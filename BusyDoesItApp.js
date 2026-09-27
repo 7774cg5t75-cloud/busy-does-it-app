@@ -147,6 +147,15 @@ function isEligibleCustomer(customer, services = [], verticalId = "exterior-clea
   return monthsSince(customer.lastServiceDate) >= Number(repeatMonths);
 }
 
+function nextRepeatDueDate(customer, services = [], verticalId = "exterior-cleaning") {
+  if (!customer?.lastServiceDate) return null;
+  const repeatMonths = Number(repeatMonthsForCustomer(customer, services, verticalId));
+  if (!Number.isFinite(repeatMonths) || repeatMonths <= 0) return null;
+  const date = dateFromISO(customer.lastServiceDate);
+  date.setMonth(date.getMonth() + repeatMonths);
+  return dateToISO(date);
+}
+
 function eligibilityRuleText(services = [], verticalId = "exterior-cleaning") {
   const repeatValues = [...new Set(
     services
@@ -4206,6 +4215,7 @@ function CustomerDetail({ s }) {
       : []),
   ].sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
 
+  const repeatDueDate = nextRepeatDueDate(customer, s.services, s.verticalId);
   const actionStatus = action
     ? !action.done
       ? "In progress"
@@ -4244,6 +4254,13 @@ function CustomerDetail({ s }) {
         />
         <MetricRow left="Last job" right={customer.lastServiceDate ? formatUKDate(customer.lastServiceDate) : "No completed job yet"} />
         <MetricRow left="Last value" right={Number(customer.lastJobValue) > 0 ? `£${customer.lastJobValue}` : "Not recorded"} />
+        {repeatDueDate ? (
+          <MetricRow
+            left="Repeat timing"
+            right={repeatDueDate <= dateToISO(new Date()) ? "Due now" : formatUKDate(repeatDueDate)}
+            strong={repeatDueDate <= dateToISO(new Date())}
+          />
+        ) : null}
       </Card>
 
       {action ? (
@@ -4676,7 +4693,8 @@ function Results({ s }) {
           );
         })}
 
-      {s.completedBookingCount ? <Button label="Open work diary" primary onPress={() => s.go("bookings")} /> : null}
+      <Button label="Open customer pipeline" primary onPress={() => s.go("workPipeline")} />
+      {s.completedBookingCount ? <Button label="Open work diary" onPress={() => s.go("bookings")} /> : null}
       {Object.keys(s.replyActions || {}).length ? (
         <Button label="View all customer activity" onPress={() => s.go("customerActivity")} />
       ) : null}
@@ -4773,6 +4791,7 @@ function Settings({ s }) {
         <MetricRow left="Connected accounts" right={`${connectedCount}/${connectionRows.length}`} />
       </Card>
       <Button label="Customer records" primary onPress={() => s.go("customerRecords")} />
+      <Button label="Customer pipeline" onPress={() => s.go("workPipeline")} />
       <Button label="Business type & services" onPress={() => s.go("businessType")} />
       {s.completedBookingCount ? <Button label="Bookings" onPress={() => s.go("bookings")} /> : null}
       {Object.keys(s.replyActions || {}).length ? (
