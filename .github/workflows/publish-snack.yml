@@ -36,7 +36,7 @@ jobs:
           node-version: 20
 
       - name: Install Snack SDK
-        run: npm install --no-save --package-lock=false --legacy-peer-deps snack-sdk@latest
+        run: npm install --no-save --package-lock=false --legacy-peer-deps snack-sdk@latest @babel/parser@latest
 
       - name: Publish clean Snack preview
         run: node scripts/publish-snack.mjs
