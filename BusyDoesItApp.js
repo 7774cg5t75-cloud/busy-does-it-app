@@ -446,7 +446,7 @@ function parseQuickCapture(text, services = [], fallbackService = "") {
     const tokens = full.split(/\s+/).filter((token) => token.length >= 4);
     return (!!full && lower.includes(full)) || tokens.some((token) => lower.includes(token));
   });
-  const service = inferCaptureService(source, services, fallbackService);
+  const service = serviceDetected ? inferCaptureService(source, services, fallbackService) : "";
   const name = inferCaptureName(source);
   const address = inferCaptureAddress(source);
   const date = extractISODateFromText(source);
@@ -753,7 +753,7 @@ function App() {
   const [capturePhone, setCapturePhone] = useState("");
   const [captureEmail, setCaptureEmail] = useState("");
   const [captureAddress, setCaptureAddress] = useState("");
-  const [captureService, setCaptureService] = useState("Driveway cleaning");
+  const [captureService, setCaptureService] = useState("");
   const [captureDate, setCaptureDate] = useState(dateToISO(new Date()));
   const [captureTime, setCaptureTime] = useState("09:00");
   const [captureValue, setCaptureValue] = useState("");
@@ -2280,7 +2280,7 @@ function App() {
     setCapturePhone("");
     setCaptureEmail("");
     setCaptureAddress("");
-    setCaptureService(preferred?.name || trade || "Service");
+    setCaptureService("");
     setCaptureDate(dateToISO(new Date()));
     setCaptureTime("09:00");
     setCaptureValue("");
@@ -2347,11 +2347,11 @@ function App() {
     const phone = capturePhone.trim();
     const email = captureEmail.trim();
     const address = captureAddress.trim();
-    const service = captureService.trim() || services[0]?.name || trade || "Service";
+    const service = captureService.trim();
     const note = captureNote.trim() || captureRawText.trim();
     const parsedValue = Number(String(captureValue).replace(/[^0-9.]/g, ""));
     const value = Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : 0;
-    if (!name || (!phone && !email)) return false;
+    if (!name || !service || (!phone && !email)) return false;
 
     const match = captureForceNew ? null : findCustomerMatch(customers, { phone, email, name });
     const existing = match?.customer || null;
@@ -2695,7 +2695,7 @@ function App() {
     setCapturePhone("");
     setCaptureEmail("");
     setCaptureAddress("");
-    setCaptureService("Driveway cleaning");
+    setCaptureService("");
     setCaptureDate(dateToISO(new Date()));
     setCaptureTime("09:00");
     setCaptureValue("");
@@ -6595,7 +6595,10 @@ function QuickCaptureReview({ s }) {
   const strongerActiveWork =
     !!activeAction &&
     customerActionStrength(activeAction) > captureStageStrength(s.captureStage);
-  const canSave = !!s.captureName.trim() && !!(s.capturePhone.trim() || s.captureEmail.trim());
+  const canSave =
+    !!s.captureName.trim() &&
+    !!s.captureService.trim() &&
+    !!(s.capturePhone.trim() || s.captureEmail.trim());
   const fields = s.captureExtractedFields || [];
 
   return (
@@ -6667,7 +6670,21 @@ function QuickCaptureReview({ s }) {
       <Field label="Phone" value={s.capturePhone} onChangeText={s.setCapturePhone} placeholder="Phone or email required" keyboardType="phone-pad" />
       <Field label="Email" value={s.captureEmail} onChangeText={s.setCaptureEmail} placeholder="Optional if phone is present" keyboardType="email-address" />
       <Field label="Address / job location" value={s.captureAddress} onChangeText={s.setCaptureAddress} placeholder="Optional" />
-      <Field label="Service" value={s.captureService} onChangeText={s.setCaptureService} placeholder="Service" />
+      <Field
+        label="Service"
+        value={s.captureService}
+        onChangeText={s.setCaptureService}
+        placeholder="Service not detected — choose or type one"
+      />
+      {!s.captureService.trim() ? (
+        <Card
+          eyebrow="Needs your confirmation"
+          title="Service not detected"
+          body="Busy has deliberately left this blank rather than guessing from your current business defaults."
+          footer="Choose or type the correct service before saving"
+          tone="amber"
+        />
+      ) : null}
       <DatePickerField label={s.captureStage === "Booking" ? "Booking date" : s.captureStage === "Completed job" ? "Job date" : s.captureStage === "Quote sent" ? "Quote sent date" : "Enquiry received"} value={s.captureDate} onChange={s.setCaptureDate} allowFuture={s.captureStage === "Booking"} />
 
       {s.captureStage === "Booking" ? (
