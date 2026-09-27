@@ -981,7 +981,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={styles.brand}>BUSY DOES IT</Text>
             <Text style={styles.tagline}>More work. Less fuss.</Text>
-            <Text style={styles.prototypeBadge}>Prototype v0.6 • customer activity + smarter actions</Text>
+            <Text style={styles.prototypeBadge}>Prototype v0.6 • bookings + action hub</Text>
           </View>
           {!noBack && s.history?.length > 0 ? (
             <Pressable onPress={s.back} style={styles.backPill}>
@@ -1486,6 +1486,22 @@ function HomeScreen({ s }) {
   const serviceName = s.selectedService?.name || s.services.find((x) => x.wanted)?.name || s.trade || "your priority service";
   const customerCount = s.customers.length;
   const eligibleCount = s.eligibleCustomers.length;
+  const todayISO = dateToISO(new Date());
+  const upcomingBookings = Object.entries(s.replyActions || {})
+    .map(([id, action]) => {
+      if (!action?.done || action.type !== "booking" || !action.details?.bookingDate) return null;
+      const customer =
+        s.lastSimulatedRecipients.find((item) => item.id === id) ||
+        s.customers.find((item) => item.id === id);
+      return customer ? { id, action, customer } : null;
+    })
+    .filter((item) => item && item.action.details.bookingDate >= todayISO)
+    .sort((a, b) =>
+      `${a.action.details.bookingDate}T${a.action.details.bookingTime || "00:00"}`.localeCompare(
+        `${b.action.details.bookingDate}T${b.action.details.bookingTime || "00:00"}`
+      )
+    );
+  const nextBooking = upcomingBookings[0] || null;
   const opportunities = [
     ...(s.pendingReplyActionCount
       ? [{
@@ -1565,9 +1581,26 @@ function HomeScreen({ s }) {
       subtitle="Customer recommendations now come from individual records saved on this phone."
       brandCue="Real local records. Simulated sends."
     >
+      {nextBooking ? (
+        <Pressable
+          onPress={() => s.openSavedReplyAction(nextBooking.id)}
+          style={styles.homePriorityCard}
+        >
+          <View style={styles.homePriorityTop}>
+            <Text style={styles.homePriorityEyebrow}>NEXT BOOKING</Text>
+            <StatusChip label="Customer work" tone="green" />
+          </View>
+          <Text style={styles.homePriorityTitle}>{nextBooking.customer.name}</Text>
+          <Text style={styles.homePriorityBody}>
+            {nextBooking.customer.service} • {formatUKDate(nextBooking.action.details.bookingDate)} at {nextBooking.action.details.bookingTime || "time not set"}
+          </Text>
+          <Text style={styles.homePriorityLink}>Open booking →</Text>
+        </Pressable>
+      ) : null}
+
       <View style={styles.dashboardHeader}>
         <StatusChip label={`${opportunities.length} opportunities`} tone={opportunities.length ? "green" : "blue"} />
-        <Text style={styles.dashboardHint}>Manage customer records any time from Home or Settings.</Text>
+        <Text style={styles.dashboardHint}>Customer work is shown before general marketing suggestions.</Text>
       </View>
 
       {opportunities.length ? (
@@ -1584,6 +1617,9 @@ function HomeScreen({ s }) {
       )}
 
       {s.dismissedOpportunities.length ? <Button label="Restore ignored opportunities" onPress={s.restoreOpportunities} /> : null}
+      {s.completedBookingCount ? (
+        <Button label={`Bookings • ${s.completedBookingCount}`} onPress={() => s.go("bookings")} />
+      ) : null}
       {Object.keys(s.replyActions || {}).length ? (
         <Button
           label={`Customer activity • ${s.pendingReplyActionCount} to do`}
@@ -2077,6 +2113,7 @@ function Replies({ s }) {
 
 
 function CustomerActivity({ s }) {
+  const [filter, setFilter] = useState("All");
   const entries = Object.entries(s.replyActions || {})
     .map(([id, action]) => {
       const customer =
@@ -2092,6 +2129,15 @@ function CustomerActivity({ s }) {
 
   const pending = entries.filter((item) => !item.action.done);
   const completed = entries.filter((item) => item.action.done);
+  const filters = ["All", "To do", "Quotes", "Bookings", "Reminders", "Completed"];
+  const visible = entries.filter((item) => {
+    if (filter === "To do") return !item.action.done;
+    if (filter === "Completed") return !!item.action.done;
+    if (filter === "Quotes") return item.action.type === "quote";
+    if (filter === "Bookings") return item.action.type === "booking";
+    if (filter === "Reminders") return item.action.type === "reminder";
+    return true;
+  });
 
   const typeLabel = (type) => {
     if (type === "quote") return "Quote";
@@ -2104,7 +2150,7 @@ function CustomerActivity({ s }) {
     <Shell
       s={s}
       title="Customer activity"
-      subtitle="A permanent place for saved quotes, bookings, reminders and outstanding customer work."
+      subtitle="Quotes, bookings, reminders and outstanding customer work — all in one permanent place."
     >
       <Card
         eyebrow="Customer work"
@@ -2114,55 +2160,132 @@ function CustomerActivity({ s }) {
         tone="green"
       />
 
-      {pending.length ? <Text style={styles.sectionLabel}>To do</Text> : null}
-      {pending.map(({ id, action, customer }) => (
-        <Pressable
-          key={id}
-          onPress={() => s.openSavedReplyAction(id)}
-          style={styles.activityCard}
-        >
-          <View style={styles.activityTopRow}>
-            <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={styles.activityName}>{customer.name}</Text>
-              <Text style={styles.activityService}>{customer.service}</Text>
-            </View>
-            <StatusChip label={typeLabel(action.type)} tone="blue" />
-          </View>
-          <Text style={styles.activitySummary}>{action.task || "Customer follow-up"}</Text>
-          <Text style={styles.activityOpen}>Open action →</Text>
-        </Pressable>
-      ))}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
+        <View style={styles.filterRow}>
+          {filters.map((item) => (
+            <Pressable
+              key={item}
+              onPress={() => setFilter(item)}
+              style={[styles.filterChip, filter === item && styles.filterChipActive]}
+            >
+              <Text style={[styles.filterChipText, filter === item && styles.filterChipTextActive]}>
+                {item}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </ScrollView>
 
-      {completed.length ? <Text style={styles.sectionLabel}>Completed</Text> : null}
-      {completed.map(({ id, action, customer }) => (
+      <Text style={styles.sectionLabel}>{filter}</Text>
+      {visible.map(({ id, action, customer }) => (
         <Pressable
           key={id}
           onPress={() => s.openSavedReplyAction(id)}
-          style={[styles.activityCard, styles.activityCardDone]}
+          style={[styles.activityCard, action.done && styles.activityCardDone]}
         >
           <View style={styles.activityTopRow}>
             <View style={{ flex: 1, paddingRight: 10 }}>
               <Text style={styles.activityName}>{customer.name}</Text>
               <Text style={styles.activityService}>{customer.service}</Text>
             </View>
-            <StatusChip label={typeLabel(action.type)} tone="green" />
+            <StatusChip label={typeLabel(action.type)} tone={action.done ? "green" : "blue"} />
           </View>
           <Text style={styles.activitySummary}>
-            {action.details?.summary || action.task || "Completed"}
+            {action.done
+              ? action.details?.summary || action.task || "Completed"
+              : action.task || "Customer follow-up"}
           </Text>
-          <Text style={styles.activityOpen}>View / edit →</Text>
+          <Text style={styles.activityOpen}>{action.done ? "View / edit →" : "Open action →"}</Text>
         </Pressable>
       ))}
 
-      {!entries.length ? (
+      {!visible.length ? (
         <Card
-          eyebrow="No activity yet"
-          title="Nothing saved yet"
-          body="Quotes, bookings and reminders will appear here once you create them."
+          eyebrow="Nothing here"
+          title={`No ${filter.toLowerCase()} items`}
+          body="Try another filter or create more customer activity from the Home flow."
         />
       ) : null}
 
+      {s.completedBookingCount ? <Button label="Open bookings" onPress={() => s.go("bookings")} /> : null}
       <Button label="Customer records" onPress={() => s.go("customerRecords")} />
+      <Button label="Done" primary onPress={s.back} />
+    </Shell>
+  );
+}
+
+function Bookings({ s }) {
+  const todayISO = dateToISO(new Date());
+  const entries = Object.entries(s.replyActions || {})
+    .map(([id, action]) => {
+      if (!action?.done || action.type !== "booking" || !action.details?.bookingDate) return null;
+      const customer =
+        s.lastSimulatedRecipients.find((item) => item.id === id) ||
+        s.customers.find((item) => item.id === id);
+      return customer ? { id, action, customer } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) =>
+      `${a.action.details.bookingDate}T${a.action.details.bookingTime || "00:00"}`.localeCompare(
+        `${b.action.details.bookingDate}T${b.action.details.bookingTime || "00:00"}`
+      )
+    );
+
+  const clashes = entries.filter((entry, index) =>
+    entries.some((other, otherIndex) =>
+      otherIndex !== index &&
+      other.action.details.bookingDate === entry.action.details.bookingDate &&
+      other.action.details.bookingTime === entry.action.details.bookingTime
+    )
+  );
+  const upcoming = entries.filter((item) => item.action.details.bookingDate >= todayISO);
+  const past = entries.filter((item) => item.action.details.bookingDate < todayISO);
+
+  const renderBooking = ({ id, action, customer }) => {
+    const isPast = action.details.bookingDate < todayISO;
+    const hasClash = clashes.some((item) => item.id === id);
+    return (
+      <Pressable key={id} onPress={() => s.openSavedReplyAction(id)} style={styles.bookingCard}>
+        <View style={styles.activityTopRow}>
+          <View style={{ flex: 1, paddingRight: 10 }}>
+            <Text style={styles.activityName}>{customer.name}</Text>
+            <Text style={styles.activityService}>{customer.service}</Text>
+          </View>
+          <StatusChip label={hasClash ? "Clash" : isPast ? "Past" : "Upcoming"} tone={hasClash ? "amber" : isPast ? "blue" : "green"} />
+        </View>
+        <Text style={styles.bookingWhen}>
+          {formatUKDate(action.details.bookingDate)} at {action.details.bookingTime || "time not set"}
+        </Text>
+        <Text style={styles.activityOpen}>View / edit booking →</Text>
+      </Pressable>
+    );
+  };
+
+  return (
+    <Shell
+      s={s}
+      title="Bookings"
+      subtitle="A simple local diary of bookings saved in Busy Does It."
+    >
+      <Card
+        eyebrow="Booking diary"
+        title={`${upcoming.length} upcoming`}
+        body={clashes.length ? "One or more booking times overlap. Open the marked booking to fix it." : "No exact booking-time clashes detected."}
+        footer={clashes.length ? `${clashes.length} booking record${clashes.length === 1 ? "" : "s"} need attention` : "Clear so far"}
+        tone={clashes.length ? "amber" : "green"}
+      />
+
+      {upcoming.length ? <Text style={styles.sectionLabel}>Upcoming</Text> : null}
+      {upcoming.map(renderBooking)}
+
+      {past.length ? <Text style={styles.sectionLabel}>Past</Text> : null}
+      {past.map(renderBooking)}
+
+      {!entries.length ? (
+        <Card eyebrow="No bookings yet" title="Nothing in the diary" body="Confirmed prototype bookings will appear here." />
+      ) : null}
+
+      <Button label="Customer activity" onPress={() => s.go("customerActivity")} />
       <Button label="Done" primary onPress={s.back} />
     </Shell>
   );
@@ -2274,6 +2397,40 @@ function ReplyActionDetail({ s }) {
       !dateMatchesSlotWeekday(saved.details.bookingDate, s.quietSlot) ||
       !timeMatchesSlotPart(saved.details.bookingTime, s.quietSlot)
     );
+  const currentBookingMatchesSlot =
+    dateMatchesSlotWeekday(s.actionBookingDate, s.quietSlot) &&
+    timeMatchesSlotPart(s.actionBookingTime, s.quietSlot);
+  const bookingCorrectionReady =
+    savedBookingNeedsReview &&
+    currentBookingMatchesSlot &&
+    (
+      s.actionBookingDate !== saved.details.bookingDate ||
+      s.actionBookingTime !== saved.details.bookingTime
+    );
+  const bookingClashes = Object.entries(s.replyActions || {})
+    .map(([id, action]) => {
+      if (
+        id === customer.id ||
+        !action?.done ||
+        action.type !== "booking" ||
+        action.details?.bookingDate !== s.actionBookingDate ||
+        action.details?.bookingTime !== s.actionBookingTime
+      ) return null;
+      const clashCustomer =
+        s.lastSimulatedRecipients.find((item) => item.id === id) ||
+        s.customers.find((item) => item.id === id);
+      return clashCustomer ? { id, action, customer: clashCustomer } : null;
+    })
+    .filter(Boolean);
+  const freeBookingTime = timeOptionsForSlot(s.quietSlot).find((time) =>
+    !Object.entries(s.replyActions || {}).some(([id, action]) =>
+      id !== customer.id &&
+      action?.done &&
+      action.type === "booking" &&
+      action.details?.bookingDate === s.actionBookingDate &&
+      action.details?.bookingTime === time
+    )
+  );
 
   const finish = (details) => {
     s.completeReplyAction(customer.id, details);
@@ -2324,16 +2481,28 @@ function ReplyActionDetail({ s }) {
         subtitle={`For ${customer.name} • ${customer.service}. This saves a local prototype booking only.`}
       >
         <Card eyebrow="Customer wants the slot" title={customer.name} body={reply.body} tone="green" />
-        <View style={[styles.suggestionBox, savedBookingNeedsReview && styles.suggestionBoxWarning]}>
+        <View
+          style={[
+            styles.suggestionBox,
+            savedBookingNeedsReview && !bookingCorrectionReady && styles.suggestionBoxWarning,
+            bookingCorrectionReady && styles.suggestionBoxSuccess,
+          ]}
+        >
           <Text style={styles.suggestionTitle}>
-            {savedBookingNeedsReview ? "Saved booking needs a quick check" : "Matched to the customer reply"}
+            {bookingCorrectionReady
+              ? "Correction ready to save"
+              : savedBookingNeedsReview
+              ? "Saved booking needs a quick check"
+              : "Matched to the customer reply"}
           </Text>
           <Text style={styles.suggestionBody}>
-            {savedBookingNeedsReview
+            {bookingCorrectionReady
+              ? `The new choice is ${formatUKDate(s.actionBookingDate)} at ${s.actionBookingTime}, which now matches “${s.quietSlot}”.`
+              : savedBookingNeedsReview
               ? `The saved booking is ${formatUKDate(saved.details.bookingDate)} at ${saved.details.bookingTime || "no time"}, which does not match “${s.quietSlot}”.`
               : `Busy Does It has suggested the next ${s.quietSlot || "matching"} slot.`}
           </Text>
-          {savedBookingNeedsReview ? (
+          {savedBookingNeedsReview && !bookingCorrectionReady ? (
             <Pressable
               onPress={() => {
                 s.setActionBookingDate(suggestedBookingDate);
@@ -2377,10 +2546,23 @@ function ReplyActionDetail({ s }) {
           ))}
         </View>
         <Field label="Or enter a time" value={s.actionBookingTime} onChangeText={s.setActionBookingTime} placeholder="e.g. 14:30" />
+        {bookingClashes.length ? (
+          <View style={styles.clashBox}>
+            <Text style={styles.clashTitle}>Booking clash</Text>
+            <Text style={styles.clashBody}>
+              {bookingClashes[0].customer.name} is already booked for {formatUKDate(s.actionBookingDate)} at {s.actionBookingTime}.
+            </Text>
+            {freeBookingTime ? (
+              <Pressable onPress={() => s.setActionBookingTime(freeBookingTime)} style={styles.slotFixButton}>
+                <Text style={styles.slotFixButtonText}>Use {freeBookingTime} instead</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : null}
         <Button
           label={saved.done ? "Save booking changes" : "Save booking confirmation"}
           primary
-          disabled={!s.actionBookingTime.trim()}
+          disabled={!s.actionBookingTime.trim() || bookingClashes.length > 0}
           onPress={() =>
             finish({
               bookingDate: s.actionBookingDate,
@@ -2926,11 +3108,17 @@ function OfferRunning({ s }) {
 function Results({ s }) {
   const completedTotal = s.completedQuoteCount + s.completedBookingCount + s.completedReminderCount;
   return (
-    <Shell s={s} noBack title="What happened?" subtitle="No marketing jargon — just the result." brandCue="More work. Less fuss.">
+    <Shell
+      s={s}
+      noBack
+      title="What happened?"
+      subtitle="Your local prototype activity first. Illustrative marketing examples are kept separate."
+      brandCue="Real local activity. Clear next steps."
+    >
       <Card
         eyebrow="Local prototype activity"
         title={`${completedTotal} customer action${completedTotal === 1 ? "" : "s"} completed`}
-        body="These figures come from the reply workflows you completed on this phone, not from real external accounts."
+        body="These figures come from the workflows you completed on this phone, not from real external accounts."
         tone="green"
       >
         <MetricRow left="Quotes prepared" right={String(s.completedQuoteCount)} />
@@ -2942,7 +3130,7 @@ function Results({ s }) {
       {Object.entries(s.replyActions)
         .filter(([, action]) => action?.done && action?.details?.summary)
         .sort(([, a], [, b]) => String(b.completedAt || "").localeCompare(String(a.completedAt || "")))
-        .slice(0, 4)
+        .slice(0, 5)
         .map(([id, action]) => {
           const customer =
             s.lastSimulatedRecipients.find((item) => item.id === id) ||
@@ -2964,24 +3152,19 @@ function Results({ s }) {
           );
         })}
 
+      {s.completedBookingCount ? <Button label="Open bookings" primary onPress={() => s.go("bookings")} /> : null}
       {Object.keys(s.replyActions || {}).length ? (
         <Button label="View all customer activity" onPress={() => s.go("customerActivity")} />
       ) : null}
 
-      <Card eyebrow="Demo marketing example" title="You spent £48" tone="blue">
-        <MetricRow left="People who got in touch" right="7" />
-        <MetricRow left="Genuine jobs" right="3" />
-        <MetricRow left="Jobs won" right="1" />
-        <MetricRow left="Won job value" right="£620" strong />
-      </Card>
       <Card
-        eyebrow="What worked best"
-        title="Previous customers"
-        body="They produced the cheapest bookings this month."
-        footer="Use this learning next time"
+        eyebrow="Illustrative only"
+        title="Marketing demo results"
+        body="The older spend, enquiry and job figures are example data. They are useful for testing the future Results experience, but they are not mixed into your local activity totals."
+        footer="Kept separate on purpose"
+        tone="blue"
       />
-      <Button label="See details" primary onPress={() => s.go("resultDetails")} />
-      <Button label="Update a result" onPress={() => s.go("updateOutcome")} />
+      <Button label="Open illustrative demo results" onPress={() => s.go("resultDetails")} />
     </Shell>
   );
 }
@@ -3066,6 +3249,7 @@ function Settings({ s }) {
         <MetricRow left="Connected accounts" right={`${connectedCount}/${connectionRows.length}`} />
       </Card>
       <Button label="Customer records" primary onPress={() => s.go("customerRecords")} />
+      {s.completedBookingCount ? <Button label="Bookings" onPress={() => s.go("bookings")} /> : null}
       {Object.keys(s.replyActions || {}).length ? (
         <Button label="Customer activity" onPress={() => s.go("customerActivity")} />
       ) : null}
@@ -3205,6 +3389,7 @@ const screens = {
   progress: Progress,
   replies: Replies,
   customerActivity: CustomerActivity,
+  bookings: Bookings,
   replyActions: ReplyActions,
   replyActionDetail: ReplyActionDetail,
   paidTest: PaidTest,
@@ -3448,7 +3633,25 @@ const styles = StyleSheet.create({
   activityService: { color: C.muted, fontSize: 13, marginTop: 2 },
   activitySummary: { color: C.ink, fontSize: 14, lineHeight: 20, fontWeight: "700", marginTop: 10 },
   activityOpen: { color: C.blue, fontSize: 12, fontWeight: "900", marginTop: 9 },
+  filterScroll: { marginBottom: 8 },
+  filterRow: { flexDirection: "row", gap: 8, paddingRight: 10 },
+  filterChip: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 999, paddingHorizontal: 13, paddingVertical: 9 },
+  filterChipActive: { backgroundColor: C.blue, borderColor: C.blue },
+  filterChipText: { color: C.muted, fontSize: 12, fontWeight: "800" },
+  filterChipTextActive: { color: "#FFFFFF" },
+  homePriorityCard: { backgroundColor: C.greenSoft, borderWidth: 1, borderColor: "#CDE7D9", borderRadius: 18, padding: 16, marginBottom: 16 },
+  homePriorityTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
+  homePriorityEyebrow: { color: C.blue, fontSize: 12, fontWeight: "900", letterSpacing: 0.8 },
+  homePriorityTitle: { color: C.ink, fontSize: 22, fontWeight: "900" },
+  homePriorityBody: { color: C.muted, fontSize: 14, lineHeight: 20, marginTop: 5 },
+  homePriorityLink: { color: C.blue, fontSize: 13, fontWeight: "900", marginTop: 10 },
+  bookingCard: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16, padding: 15, marginBottom: 10 },
+  bookingWhen: { color: C.ink, fontSize: 16, fontWeight: "800", marginTop: 10 },
   suggestionBoxWarning: { backgroundColor: C.amberSoft, borderWidth: 1, borderColor: "#F0D8B9" },
+  suggestionBoxSuccess: { backgroundColor: C.greenSoft, borderWidth: 1, borderColor: "#CDE7D9" },
+  clashBox: { backgroundColor: C.amberSoft, borderWidth: 1, borderColor: "#F0D8B9", borderRadius: 14, padding: 13, marginBottom: 14 },
+  clashTitle: { color: C.red, fontSize: 14, fontWeight: "900", marginBottom: 4 },
+  clashBody: { color: C.ink, fontSize: 13, lineHeight: 19 },
   slotFixButton: { alignSelf: "flex-start", backgroundColor: C.blue, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, marginTop: 10 },
   slotFixButtonText: { color: "#FFFFFF", fontSize: 12, fontWeight: "900" },
   groupCard: {
