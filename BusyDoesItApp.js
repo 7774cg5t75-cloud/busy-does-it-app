@@ -940,7 +940,7 @@ function App() {
       title: `Quote ${quoteStatus.toLowerCase()}`,
       note:
         quoteStatus === "Sent"
-          ? "Marked as sent in the prototype."
+          ? "Marked as sent. The prototype records the status but does not send the quote itself."
           : quoteStatus === "Accepted"
           ? "Customer accepted the quote."
           : quoteStatus === "Declined"
@@ -1400,6 +1400,8 @@ function App() {
       0
     );
 
+  const pipelineWorkValue = activeQuoteValue + bookedWorkValue;
+
   const completedJobValue = customers.reduce(
     (total, customer) =>
       total +
@@ -1571,6 +1573,7 @@ function App() {
     dueReminderEntries,
     activeQuoteValue,
     bookedWorkValue,
+    pipelineWorkValue,
     completedJobValue,
     eligibilityRule: `${eligibilityRuleText(services, verticalId)} • customers with active quotes, bookings or reminders are skipped`,
     bringBackMessage,
@@ -2443,9 +2446,11 @@ function WorkHub({ s }) {
     >
       <Card eyebrow="Today" title={todayBookings.length ? `${todayBookings.length} job${todayBookings.length === 1 ? "" : "s"} booked today` : "No booked jobs today"} tone={todayBookings.length ? "green" : "blue"}>
         <MetricRow left="New enquiries" right={String(s.openEnquiryCount)} />
+        <MetricRow left="Work in pipeline" right={`£${s.pipelineWorkValue}`} strong={s.pipelineWorkValue > 0} />
         <MetricRow left="Active quote value" right={`£${s.activeQuoteValue}`} />
         <MetricRow left="Booked work value" right={`£${s.bookedWorkValue}`} />
         <MetricRow left="Follow-ups due" right={String(s.dueReminderEntries.length)} strong={s.dueReminderEntries.length > 0} />
+        <MetricRow left="Actions to do" right={String(s.pendingReplyActionCount)} strong={s.pendingReplyActionCount > 0} />
       </Card>
 
       {s.dueReminderEntries.length ? (
@@ -3377,7 +3382,7 @@ function ReplyActionDetail({ s }) {
               quoteStatus === "Prepared"
                 ? "The quote is ready but has not been marked as sent."
                 : quoteStatus === "Sent"
-                ? "The quote has been marked as sent in the simulation and is waiting for an outcome."
+                ? "The quote has been marked as sent and is waiting for an outcome. Nothing was sent automatically by the prototype."
                 : quoteStatus === "Accepted"
                 ? "The customer has accepted this prototype quote. The next sensible step is to book the work."
                 : "This quote has been marked as declined."
@@ -3414,7 +3419,7 @@ function ReplyActionDetail({ s }) {
         />
 
         {saved.done && quoteStatus === "Prepared" ? (
-          <Button label="Simulate quote sent" onPress={() => s.setQuoteStatus(customer.id, "Sent")} />
+          <Button label="Mark quote as sent" onPress={() => s.setQuoteStatus(customer.id, "Sent")} />
         ) : null}
         {saved.done && quoteStatus === "Sent" ? (
           <>
@@ -4006,6 +4011,13 @@ function CustomerDetail({ s }) {
         footer={customer.contactOk ? "Contact allowed" : "Do not contact"}
         tone="green"
       >
+        <MetricRow
+          left="Stage"
+          right={
+            customerPipelineLabel(customer, action) ||
+            (customer.lastServiceDate ? "Previous customer" : "New enquiry")
+          }
+        />
         <MetricRow left="Last job" right={customer.lastServiceDate ? formatUKDate(customer.lastServiceDate) : "No completed job yet"} />
         <MetricRow left="Last value" right={Number(customer.lastJobValue) > 0 ? `£${customer.lastJobValue}` : "Not recorded"} />
       </Card>
@@ -4399,13 +4411,13 @@ function Results({ s }) {
     >
       <Card
         eyebrow="Customer pipeline"
-        title={`£${s.activeQuoteValue} in active quotes`}
-        body="This total comes from locally saved prepared, sent or accepted quote actions in the prototype."
+        title={`£${s.pipelineWorkValue} of customer work in the pipeline`}
+        body="This combines active quote value and confirmed booked-work value saved locally in the prototype."
         tone="green"
       >
         <MetricRow left="Open enquiries" right={String(s.openEnquiryCount)} />
         <MetricRow left="Quotes prepared" right={String(quotePrepared)} />
-        <MetricRow left="Quotes sent (simulated)" right={String(quoteSent)} />
+        <MetricRow left="Quotes marked sent" right={String(quoteSent)} />
         <MetricRow left="Quotes accepted" right={String(quoteAccepted)} />
         <MetricRow left="Confirmed bookings" right={String(confirmedBookings)} />
         <MetricRow left="Booked work value" right={`£${s.bookedWorkValue}`} strong={s.bookedWorkValue > 0} />
