@@ -724,6 +724,21 @@ function App() {
   const [advanced, setAdvanced] = useState(false);
   const [outcome, setOutcome] = useState("Won");
   const [wonValue, setWonValue] = useState("620");
+  const [captureRawText, setCaptureRawText] = useState("");
+  const [captureSource, setCaptureSource] = useState("Customer message");
+  const [captureStage, setCaptureStage] = useState("Enquiry");
+  const [captureName, setCaptureName] = useState("");
+  const [capturePhone, setCapturePhone] = useState("");
+  const [captureEmail, setCaptureEmail] = useState("");
+  const [captureAddress, setCaptureAddress] = useState("");
+  const [captureService, setCaptureService] = useState("Driveway cleaning");
+  const [captureDate, setCaptureDate] = useState(dateToISO(new Date()));
+  const [captureTime, setCaptureTime] = useState("09:00");
+  const [captureValue, setCaptureValue] = useState("");
+  const [captureNote, setCaptureNote] = useState("");
+  const [captureConfidence, setCaptureConfidence] = useState("Low");
+  const [captureExtractedFields, setCaptureExtractedFields] = useState([]);
+  const [intakeLog, setIntakeLog] = useState([]);
 
   useEffect(() => {
     let active = true;
@@ -775,6 +790,7 @@ function App() {
         if (saved.connectedAccounts) setConnectedAccounts({ ...connectionSeed, ...saved.connectedAccounts });
         if (Array.isArray(saved.dismissedOpportunities)) setDismissedOpportunities(saved.dismissedOpportunities);
         if (saved.selectedServiceId) setSelectedServiceId(saved.selectedServiceId);
+        if (Array.isArray(saved.intakeLog)) setIntakeLog(saved.intakeLog);
         if (typeof saved.advanced === "boolean") setAdvanced(saved.advanced);
         if (saved.onboardingComplete) {
           setScreen("home");
@@ -814,6 +830,7 @@ function App() {
       connectedAccounts,
       dismissedOpportunities,
       selectedServiceId,
+      intakeLog,
       advanced,
     };
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data)).catch(() => {});
@@ -839,6 +856,7 @@ function App() {
     connectedAccounts,
     dismissedOpportunities,
     selectedServiceId,
+    intakeLog,
     advanced,
   ]);
 
@@ -2311,6 +2329,21 @@ function App() {
     setEnquiryFollowUpOutcome("No reply yet");
     setReviewRequestDraft("");
     setReviewRequestOutcome("No response yet");
+    setCaptureRawText("");
+    setCaptureSource("Customer message");
+    setCaptureStage("Enquiry");
+    setCaptureName("");
+    setCapturePhone("");
+    setCaptureEmail("");
+    setCaptureAddress("");
+    setCaptureService("Driveway cleaning");
+    setCaptureDate(dateToISO(new Date()));
+    setCaptureTime("09:00");
+    setCaptureValue("");
+    setCaptureNote("");
+    setCaptureConfidence("Low");
+    setCaptureExtractedFields([]);
+    setIntakeLog([]);
     setAdvanced(false);
     setHistory([]);
     setTab("Home");
