@@ -1,1 +1,1 @@
-module.exports = require("./BusyDoesItApp").default;
+export { default } from "./BusyDoesItApp";
