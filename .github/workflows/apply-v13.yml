@@ -6,6 +6,7 @@ on:
       - v1.3
     paths:
       - .github/workflows/apply-v13.yml
+      - scripts/apply-v1.3.mjs
   workflow_dispatch:
 
 permissions:
