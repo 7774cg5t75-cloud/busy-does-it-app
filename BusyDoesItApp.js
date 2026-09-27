@@ -1599,6 +1599,23 @@ function App() {
           : item
       )
     );
+    setCustomers((list) =>
+      list.map((item) =>
+        item.id === customerId
+          ? {
+              ...item,
+              lifecycleStatus:
+                enquiryFollowUpOutcome === "Still interested"
+                  ? "Enquiry re-engaged"
+                  : enquiryFollowUpOutcome === "Not interested"
+                  ? "Enquiry closed"
+                  : "Enquiry follow-up sent",
+              lastActivityAt: recordedAt,
+              lastActivityKind: "enquiry-follow-up",
+            }
+          : item
+      )
+    );
     appendCustomerActivity(customerId, {
       kind: "enquiry-follow-up",
       title: "Quiet enquiry outcome recorded",
@@ -1694,6 +1711,25 @@ function App() {
       },
       completedAt: recordedAt,
     }));
+    setCustomers((list) =>
+      list.map((item) =>
+        item.id === customerId
+          ? {
+              ...item,
+              lifecycleStatus:
+                quoteFollowUpOutcome === "Accepted"
+                  ? "Quote accepted"
+                  : quoteFollowUpOutcome === "Declined"
+                  ? "Quote declined"
+                  : quoteFollowUpOutcome === "Still considering"
+                  ? "Quote still considering"
+                  : "Quote follow-up sent",
+              lastActivityAt: recordedAt,
+              lastActivityKind: "quote-follow-up",
+            }
+          : item
+      )
+    );
     appendCustomerActivity(customerId, {
       kind: "quote-follow-up",
       title: "Quote follow-up outcome recorded",
@@ -1841,6 +1877,32 @@ function App() {
         : current[customerId],
     }));
     if (action?.type) {
+      const lifecycleStatus =
+        action.type === "quote"
+          ? details.quoteStatus === "Sent"
+            ? "Quote sent"
+            : details.quoteStatus === "Accepted"
+            ? "Quote accepted"
+            : "Quote prepared"
+          : action.type === "booking"
+          ? details.bookingStatus === "Confirmed"
+            ? "Booked"
+            : "Booking being arranged"
+          : action.type === "reminder"
+          ? "Follow-up scheduled"
+          : "Customer action saved";
+      setCustomers((list) =>
+        list.map((customer) =>
+          customer.id === customerId
+            ? {
+                ...customer,
+                lifecycleStatus,
+                lastActivityAt: new Date().toISOString(),
+                lastActivityKind: action.type,
+              }
+            : customer
+        )
+      );
       appendCustomerActivity(customerId, {
         kind: action.type,
         title:
@@ -5996,6 +6058,7 @@ function CustomerDetail({ s }) {
           left="Stage"
           right={
             customerPipelineLabel(customer, action) ||
+            customer.lifecycleStatus ||
             (customer.lastServiceDate ? "Previous customer" : "New enquiry")
           }
         />
@@ -6009,6 +6072,12 @@ function CustomerDetail({ s }) {
             left="Repeat timing"
             right={repeatDueDate <= dateToISO(new Date()) ? "Due now" : formatUKDate(repeatDueDate)}
             strong={repeatDueDate <= dateToISO(new Date())}
+          />
+        ) : null}
+        {customer.lastActivityAt ? (
+          <MetricRow
+            left="Last record update"
+            right={formatUKDate(String(customer.lastActivityAt).slice(0, 10))}
           />
         ) : null}
       </Card>
@@ -7212,6 +7281,19 @@ function Results({ s }) {
         <MetricRow left="Finished-job posts approved" right={String(s.publishedPhotoPostCount)} />
         <MetricRow left="Post outcomes recorded" right={String(s.postOutcomeRecordedCount)} />
         <MetricRow left="Post outcomes marked booking" right={String(s.postBookingOutcomeCount)} />
+      </Card>
+
+      <Card
+        eyebrow="Admin Busy handled underneath"
+        title={`${s.backgroundReadyCount} next step${s.backgroundReadyCount === 1 ? "" : "s"} ready • ${s.lifecycleWatchCount} timeline${s.lifecycleWatchCount === 1 ? "" : "s"} being watched`}
+        body="These counts come from automatic lifecycle dates and drafts stored against the real customer, quote and job records. Nothing customer-facing is sent without approval."
+        tone="green"
+      >
+        <MetricRow left="Review requests pre-drafted" right={String(s.automaticReviewDraftCount)} />
+        <MetricRow left="Finished-job posts pre-drafted" right={String(s.automaticPostDraftCount)} />
+        <MetricRow left="Repeat-service dates tracked" right={String(s.repeatTimingTrackedCount)} />
+        <MetricRow left="Quiet enquiries ready" right={String(s.staleEnquiryEntries.length)} />
+        <MetricRow left="Quote follow-ups ready" right={String(s.dueQuoteEntries.length)} />
       </Card>
 
       <Card
