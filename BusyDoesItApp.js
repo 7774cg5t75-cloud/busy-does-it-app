@@ -439,6 +439,9 @@ function parseQuickCapture(text, services = [], fallbackService = "") {
   const phoneMatch = source.match(/(?:\+44\s?\(?0?\)?|0)7\d{3}[\s.-]?\d{3}[\s.-]?\d{3}/);
   const emailMatch = source.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
   const amountMatch = source.match(/£\s*([0-9]+(?:\.[0-9]{1,2})?)/);
+  const explicitISODate = source.match(/\b20\d{2}-\d{1,2}-\d{1,2}\b/);
+  const explicitUKDate = source.match(/\b\d{1,2}[\/-]\d{1,2}[\/-]20\d{2}\b/);
+  const explicitTime = source.match(/\b(?:[01]?\d|2[0-3])[:.]\d{2}\b/);
   const stage = inferCaptureStage(source);
   const lower = source.toLowerCase();
   const serviceDetected = services.some((candidate) => {
@@ -457,6 +460,7 @@ function parseQuickCapture(text, services = [], fallbackService = "") {
     emailMatch ? "email" : null,
     serviceDetected ? "service" : null,
     amountMatch ? "value" : null,
+    address ? "address" : null,
     name ? "name" : null,
   ].filter(Boolean);
 
@@ -473,6 +477,10 @@ function parseQuickCapture(text, services = [], fallbackService = "") {
     note: source,
     confidence: evidence.length >= 4 ? "High" : evidence.length >= 2 ? "Medium" : "Low",
     extractedFields: evidence,
+    dateDetected: !!(explicitISODate || explicitUKDate),
+    timeDetected: !!explicitTime,
+    valueDetected: !!amountMatch,
+    serviceDetected,
   };
 }
 
@@ -532,6 +540,69 @@ function triageInboxCandidate(parsed, customers = [], replyActions = {}) {
     matchReason: match?.reason || "",
     matchConfidence: match?.confidence || "",
     conflict,
+  };
+}
+
+function captureFingerprint(source, rawText) {
+  return `${String(source || "").trim().toLowerCase()}::${String(rawText || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ")}`;
+}
+
+function evaluateSafeAutoFile(parsed, customers = [], replyActions = {}, source = "", rawText = "") {
+  const match = findCustomerMatch(customers, {
+    phone: parsed.phone,
+    email: parsed.email,
+    name: parsed.name,
+  });
+  const customer = match?.customer || null;
+  const action = customer ? replyActions[customer.id] : null;
+  const exactMatch =
+    !!customer &&
+    match?.confidence === "High" &&
+    (match?.reason === "Same phone number" || match?.reason === "Same email address");
+  const fingerprint = captureFingerprint(source, rawText);
+  const duplicateSource =
+    !!customer &&
+    (Array.isArray(customer.sourceRecords) ? customer.sourceRecords : []).some(
+      (record) =>
+        record.fingerprint === fingerprint ||
+        captureFingerprint(record.source, record.rawText) === fingerprint
+    );
+
+  const reasons = [];
+  if (!exactMatch) reasons.push("No exact existing-customer phone/email match");
+  if (parsed.confidence !== "High") reasons.push("Extraction is not high confidence");
+  if (!parsed.name) reasons.push("Customer name missing");
+  if (!parsed.phone && !parsed.email) reasons.push("Contact detail missing");
+  if (!parsed.service || !parsed.serviceDetected) reasons.push("Service not confidently detected");
+  if (action && isActiveCustomerAction(action)) reasons.push("Customer already has active work");
+  if (parsed.stage === "Enquiry" && customer?.currentEnquiryAt) reasons.push("Customer already has an open enquiry");
+  if (duplicateSource) reasons.push("This source item appears to have been filed already");
+
+  if (parsed.stage === "Quote sent") {
+    if (!parsed.dateDetected) reasons.push("Quote sent date was not explicit");
+    if (!parsed.valueDetected) reasons.push("Quote value was not explicit");
+  }
+  if (parsed.stage === "Booking") {
+    if (!parsed.dateDetected) reasons.push("Booking date was not explicit");
+    if (!parsed.timeDetected) reasons.push("Booking time was not explicit");
+  }
+  if (parsed.stage === "Completed job" && !parsed.dateDetected) {
+    reasons.push("Completed-job date was not explicit");
+  }
+
+  return {
+    safe: reasons.length === 0,
+    reasons,
+    reason:
+      reasons.length === 0
+        ? `Exact ${match.reason.toLowerCase()} + high-confidence complete record + no active conflict`
+        : reasons[0],
+    match,
+    customer,
+    fingerprint,
   };
 }
 
@@ -830,6 +901,8 @@ function App() {
   const [intakeLog, setIntakeLog] = useState([]);
   const [inboxItems, setInboxItems] = useState([]);
   const [selectedInboxItemId, setSelectedInboxItemId] = useState(null);
+  const [recordFilingMode, setRecordFilingMode] = useState("safe");
+  const [lastAutoFiledInboxItemId, setLastAutoFiledInboxItemId] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -883,6 +956,9 @@ function App() {
         if (saved.selectedServiceId) setSelectedServiceId(saved.selectedServiceId);
         if (Array.isArray(saved.intakeLog)) setIntakeLog(saved.intakeLog);
         if (Array.isArray(saved.inboxItems)) setInboxItems(saved.inboxItems);
+        if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
+          setRecordFilingMode(saved.recordFilingMode);
+        }
         if (typeof saved.advanced === "boolean") setAdvanced(saved.advanced);
         if (saved.onboardingComplete) {
           setScreen("home");
@@ -924,6 +1000,7 @@ function App() {
       selectedServiceId,
       intakeLog,
       inboxItems,
+      recordFilingMode,
       advanced,
     };
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data)).catch(() => {});
@@ -951,6 +1028,7 @@ function App() {
     selectedServiceId,
     intakeLog,
     inboxItems,
+    recordFilingMode,
     advanced,
   ]);
 
@@ -2922,6 +3000,8 @@ function App() {
     setIntakeLog([]);
     setInboxItems([]);
     setSelectedInboxItemId(null);
+    setRecordFilingMode("safe");
+    setLastAutoFiledInboxItemId(null);
     setAdvanced(false);
     setHistory([]);
     setTab("Home");
