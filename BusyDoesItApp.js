@@ -2721,8 +2721,9 @@ function App() {
       },
     ]);
 
+    const { triage: _triage, autoEvaluation: _autoEvaluation, ...persistableItem } = item;
     const filedItem = {
-      ...item,
+      ...persistableItem,
       parsed,
       status: "Filed",
       reviewedAt: importedAt,
