@@ -1,0 +1,45 @@
+name: Apply v1.3 sweep
+
+on:
+  push:
+    branches:
+      - v1.3
+    paths:
+      - .github/workflows/apply-v13.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-v13
+  cancel-in-progress: true
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out v1.3
+        uses: actions/checkout@v4
+        with:
+          ref: v1.3
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Apply v1.3 code sweep
+        run: node scripts/apply-v1.3.mjs
+
+      - name: Commit v1.3
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "4189826+github-actions[bot]@users.noreply.github.com"
+          git add BusyDoesItApp.js package.json README.md
+          if git diff --cached --quiet; then
+            echo "No v1.3 changes to commit"
+          else
+            git commit -m "v1.3 job photos and reusable assets"
+            git push
+          fi
