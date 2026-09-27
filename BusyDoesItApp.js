@@ -2479,6 +2479,234 @@ function App() {
     }
   };
 
+  const fileSafeInboxItem = (item, suppliedEvaluation = null) => {
+    const parsed =
+      item.parsed ||
+      parseQuickCapture(
+        item.rawText || "",
+        services,
+        services.find((candidate) => candidate.wanted)?.name || trade || "Service"
+      );
+    const evaluation =
+      suppliedEvaluation ||
+      evaluateSafeAutoFile(
+        parsed,
+        customers,
+        replyActions,
+        item.source || "Incoming",
+        item.rawText || ""
+      );
+
+    if (recordFilingMode !== "safe" || !evaluation.safe || !evaluation.customer) return false;
+
+    const existing = evaluation.customer;
+    const customerId = existing.id;
+    const eventDate = parsed.date || dateToISO(new Date());
+    const eventTime = parsed.time || "09:00";
+    const eventAt = new Date(`${eventDate}T${eventTime}:00`).toISOString();
+    const importedAt = new Date().toISOString();
+    const parsedValue = Number(String(parsed.value || "").replace(/[^0-9.]/g, ""));
+    const value = Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : 0;
+    const sourceRecord = {
+      id: `source-${customerId}-${Date.now()}`,
+      source: item.source || "Incoming",
+      stage: parsed.stage,
+      eventDate,
+      importedAt,
+      rawText: item.rawText || "",
+      fingerprint: evaluation.fingerprint,
+      autoFiled: true,
+    };
+    const repeatDueDate =
+      parsed.stage === "Completed job"
+        ? nextRepeatDueDate(
+            { ...existing, service: parsed.service, lastServiceDate: eventDate },
+            services,
+            verticalId
+          )
+        : existing.nextRepeatDueDate || "";
+    const firstName = String(parsed.name || existing.name || "").split(" ")[0] || "there";
+    const reviewDraft =
+      parsed.stage === "Completed job" && existing.contactOk !== false
+        ? `Hi ${firstName}, thanks again for choosing us for your ${parsed.service.toLowerCase()}. If you were happy with the work, would you mind leaving us a quick review? No problem at all if not — we really appreciate the business.`
+        : "";
+
+    setCustomers((list) =>
+      list.map((customer) => {
+        if (customer.id !== customerId) return customer;
+        const activity = Array.isArray(customer.activity) ? customer.activity : [];
+        const sourceRecords = Array.isArray(customer.sourceRecords) ? customer.sourceRecords : [];
+        const history = Array.isArray(customer.history) ? customer.history : [];
+        let nextHistory = history;
+        let lifecycleStatus = customer.lifecycleStatus || (customer.lastServiceDate ? "Previous customer" : "Enquiry");
+        let currentEnquiryAt = customer.currentEnquiryAt || null;
+        let nextEnquiryCheckDate = customer.nextEnquiryCheckDate || null;
+        let lastServiceDate = customer.lastServiceDate || "";
+        let lastJobValue = customer.lastJobValue || 0;
+        let nextRepeatDate = repeatDueDate || customer.nextRepeatDueDate || "";
+
+        if (parsed.stage === "Enquiry") {
+          lifecycleStatus = "Enquiry";
+          currentEnquiryAt = eventAt;
+          nextEnquiryCheckDate = addDaysFromISO(eventDate, 7);
+        } else if (parsed.stage === "Quote sent") {
+          lifecycleStatus = "Quote sent";
+          currentEnquiryAt = null;
+          nextEnquiryCheckDate = null;
+        } else if (parsed.stage === "Booking") {
+          lifecycleStatus = "Booked";
+          currentEnquiryAt = null;
+          nextEnquiryCheckDate = null;
+        } else if (parsed.stage === "Completed job") {
+          lifecycleStatus = "Completed customer";
+          currentEnquiryAt = null;
+          nextEnquiryCheckDate = null;
+          lastServiceDate = eventDate;
+          lastJobValue = value || customer.lastJobValue || 0;
+          const jobId = `autopilot-job-${customerId}-${eventDate}`;
+          nextHistory = [
+            ...history,
+            {
+              id: jobId,
+              kind: "job",
+              date: eventDate,
+              service: parsed.service,
+              value: value || "",
+              note: parsed.note || "Completed job filed by Safe Autopilot",
+              photos: [],
+              sourceOrigin: "autopilot",
+              sourceAction: "busy-inbox",
+              repeatDueDate: repeatDueDate || "",
+              reviewRequestDraft: reviewDraft,
+              reviewRequestPreparedAt: reviewDraft ? importedAt : null,
+              adminPreparedAt: importedAt,
+            },
+          ];
+        }
+
+        return {
+          ...customer,
+          name: parsed.name || customer.name,
+          phone: parsed.phone || customer.phone || "",
+          email: parsed.email || customer.email || "",
+          address: parsed.address || customer.address || "",
+          service: parsed.service || customer.service,
+          lifecycleStatus,
+          currentEnquiryAt,
+          nextEnquiryCheckDate,
+          enquiryFollowUpSentAt: parsed.stage === "Enquiry" ? null : customer.enquiryFollowUpSentAt,
+          enquiryFollowUpStatus: parsed.stage === "Enquiry" ? null : customer.enquiryFollowUpStatus,
+          enquiryFollowUpOutcome: parsed.stage === "Enquiry" ? "" : customer.enquiryFollowUpOutcome,
+          enquiryFollowUpOutcomeRecordedAt:
+            parsed.stage === "Enquiry" ? null : customer.enquiryFollowUpOutcomeRecordedAt,
+          lastServiceDate,
+          lastJobValue,
+          nextRepeatDueDate: nextRepeatDate,
+          lastActivityAt: importedAt,
+          lastActivityKind: "autopilot-intake",
+          history: nextHistory,
+          sourceRecords: [...sourceRecords, sourceRecord],
+          activity: [
+            ...activity,
+            {
+              id: `activity-${customerId}-autopilot-${Date.now()}`,
+              kind: "intake",
+              date: eventDate,
+              createdAt: importedAt,
+              title: `${parsed.stage} filed automatically`,
+              note: `Safe Autopilot filed this from ${item.source || "incoming information"} because the existing customer match and extracted record passed every trust rule.`,
+              value: value || "",
+            },
+          ],
+        };
+      })
+    );
+
+    if (parsed.stage === "Quote sent") {
+      setReplyActions((current) => ({
+        ...current,
+        [customerId]: {
+          ...(current[customerId] || {}),
+          task: "Follow up the quote if needed",
+          type: "quote",
+          origin: "autopilot",
+          createdAt: current[customerId]?.createdAt || importedAt,
+          done: true,
+          details: {
+            ...(current[customerId]?.details || {}),
+            quoteAmount: value || "",
+            quoteStatus: "Sent",
+            quoteSentAt: eventAt,
+            followUpDueDate: addDaysFromISO(eventDate, 7),
+            message: parsed.note || item.rawText || "",
+            summary: `Safe Autopilot filed sent quote${value ? ` for £${value}` : ""}`,
+          },
+          completedAt: importedAt,
+        },
+      }));
+    }
+
+    if (parsed.stage === "Booking") {
+      setReplyActions((current) => ({
+        ...current,
+        [customerId]: {
+          ...(current[customerId] || {}),
+          task: "Booked work",
+          type: "booking",
+          origin: "autopilot",
+          createdAt: current[customerId]?.createdAt || importedAt,
+          done: true,
+          details: {
+            ...(current[customerId]?.details || {}),
+            bookingDate: eventDate,
+            bookingTime: eventTime,
+            bookingStatus: "Confirmed",
+            jobValue: value || "",
+            summary: `Safe Autopilot filed booking for ${formatUKDate(eventDate)} at ${eventTime}`,
+          },
+          completedAt: importedAt,
+        },
+      }));
+    }
+
+    setIntakeLog((items) => [
+      ...items,
+      {
+        id: `intake-log-${Date.now()}`,
+        customerId,
+        customerName: parsed.name || existing.name,
+        source: item.source || "Incoming",
+        stage: parsed.stage,
+        eventDate,
+        importedAt,
+        matchedExisting: true,
+        matchReason: evaluation.match?.reason || "",
+        confidence: parsed.confidence,
+        autoFiled: true,
+      },
+    ]);
+
+    const filedItem = {
+      ...item,
+      parsed,
+      status: "Filed",
+      reviewedAt: importedAt,
+      filedCustomerId: customerId,
+      filedStage: parsed.stage,
+      matchedExisting: true,
+      autoFiled: true,
+      autoFileReason: evaluation.reason,
+    };
+    setInboxItems((items) => {
+      const exists = items.some((candidate) => candidate.id === item.id);
+      return exists
+        ? items.map((candidate) => (candidate.id === item.id ? filedItem : candidate))
+        : [...items, filedItem];
+    });
+    setLastAutoFiledInboxItemId(item.id);
+    return true;
+  };
+
   const queueCaptureToInbox = () => {
     const rawText = captureRawText.trim();
     if (!rawText) return false;
@@ -2500,11 +2728,24 @@ function App() {
       originalReason: triage.reason,
       originalPriorityScore: triage.priorityScore,
     };
-    setInboxItems((items) => [...items, item]);
+    const autoEvaluation = evaluateSafeAutoFile(
+      parsed,
+      customers,
+      replyActions,
+      captureSource,
+      rawText
+    );
+    const autoFiled =
+      recordFilingMode === "safe" &&
+      autoEvaluation.safe &&
+      fileSafeInboxItem(item, autoEvaluation);
+
+    if (!autoFiled) setInboxItems((items) => [...items, item]);
+
     clearQuickCapture();
     setSelectedInboxItemId(null);
     setTab("Work");
-    go("busyInbox");
+    go(autoFiled ? "autopilotFiled" : "busyInbox");
     return true;
   };
 
@@ -2552,6 +2793,50 @@ function App() {
       };
     });
     setInboxItems((current) => [...current, ...items]);
+  };
+
+  const queueSafeAutopilotExample = () => {
+    const customer = customers.find(
+      (candidate) =>
+        !!candidate.phone &&
+        !!candidate.service &&
+        !isActiveCustomerAction(replyActions[candidate.id]) &&
+        !candidate.currentEnquiryAt
+    );
+    if (!customer) return false;
+
+    const rawText =
+      `Name: ${customer.name}\nPhone: ${customer.phone}\n${customer.service}\nAddress: 22 Test Lane EX17 9ZZ\nNew enquiry received today asking about ${customer.service.toLowerCase()}.`;
+    const parsed = parseQuickCapture(rawText, services, customer.service);
+    const triage = triageInboxCandidate(parsed, customers, replyActions);
+    const item = {
+      id: `inbox-autopilot-test-${Date.now()}`,
+      status: "Pending",
+      source: "Safe Autopilot test",
+      rawText,
+      parsed,
+      queuedAt: new Date().toISOString(),
+      originalLane: triage.lane,
+      originalReason: triage.reason,
+      originalPriorityScore: triage.priorityScore,
+      testItem: true,
+    };
+    const evaluation = evaluateSafeAutoFile(
+      parsed,
+      customers,
+      replyActions,
+      item.source,
+      rawText
+    );
+    const autoFiled =
+      recordFilingMode === "safe" &&
+      evaluation.safe &&
+      fileSafeInboxItem(item, evaluation);
+
+    if (!autoFiled) setInboxItems((items) => [...items, item]);
+    setTab("Work");
+    go(autoFiled ? "autopilotFiled" : "busyInbox");
+    return true;
   };
 
   const openInboxItem = (id) => {
