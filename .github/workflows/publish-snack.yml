@@ -6,6 +6,11 @@ on:
       - v0.4
     paths-ignore:
       - SNACK_PREVIEW.json
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - SNACK_PREVIEW.json
   workflow_dispatch:
 
 permissions:
@@ -15,8 +20,10 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out v0.4
+      - name: Check out source branch
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -30,6 +37,7 @@ jobs:
         run: node scripts/publish-snack.mjs
 
       - name: Save preview link in branch
+        if: github.event_name != 'pull_request'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -40,3 +48,9 @@ jobs:
             git commit -m "Update Snack preview [skip ci]"
             git push
           fi
+
+      - name: Upload preview metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: snack-preview
+          path: SNACK_PREVIEW.json
