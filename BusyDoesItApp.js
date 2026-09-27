@@ -1957,8 +1957,38 @@ function WelcomeScreen({ s }) {
         <Text style={styles.tick}>• Free and low-cost options before paid ads</Text>
         <Text style={styles.tick}>• Clear limits before money is spent</Text>
       </Card>
-      <Button label="Get started" primary onPress={() => s.go("setupBusiness")} />
+      <Button label="Get started" primary onPress={() => s.go("setupVertical")} />
       <Text style={styles.helperCenter}>Quick setup first. Spending rules and account connections can be added later.</Text>
+    </Shell>
+  );
+}
+
+function SetupVertical({ s }) {
+  const packs = Object.values(VERTICAL_PACKS);
+  return (
+    <Shell
+      s={s}
+      noNav
+      title="What kind of business is it?"
+      subtitle="This only changes the starting suggestions and timing rules. The core app stays the same."
+      brandCue="One core app. Different service-business rules underneath."
+    >
+      {packs.map((pack) => (
+        <Choice
+          key={pack.id}
+          label={pack.label}
+          sub={pack.description}
+          selected={s.verticalId === pack.id}
+          onPress={() => s.applyVerticalPack(pack.id)}
+        />
+      ))}
+      <Card
+        eyebrow="Not boxed in"
+        title="You can still add any service"
+        body="The business type gives Busy Does It a sensible starting point. Services can still be added, renamed or changed later."
+        tone="green"
+      />
+      <Button label="Continue" primary onPress={() => s.go("setupBusiness")} />
     </Shell>
   );
 }
@@ -2010,6 +2040,7 @@ function AddService({ s }) {
         name,
         value: Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed) : 0,
         wanted: true,
+        repeatMonths: s.verticalPack?.defaultRepeatMonths ?? null,
       },
     ]);
     s.setNewServiceName("");
