@@ -201,3 +201,27 @@ Busy Does It mobile app prototype.
 - Results now includes the amount of routine admin prepared / watched underneath the Opportunity Engine.
 - Main navigation remains Home / Work / Results / Settings.
 - Busy still does not send a real customer message, publish publicly or spend money without the required approval in this prototype.
+
+
+## v1.9 smart intake + duplicate prevention
+- Added the first real intake layer so business information can enter Busy without field-by-field manual entry.
+- Work now has Quick Capture as the lowest-friction intake path. The owner can paste a customer message, email / quote note, phone note, calendar / booking note or invoice / job note.
+- Quick Capture locally extracts a draft customer name, phone, email, address, service, event date, booking time, value and lifecycle stage where those details can be inferred from the pasted text.
+- Extraction is explicitly treated as a draft. Busy always shows a review screen before changing records.
+- The owner can change the inferred stage between Enquiry / Quote sent / Booking / Completed job and edit every extracted field before approval.
+- Busy checks phone first, then email, then exact full name for possible duplicate customers.
+- A likely match is merged into the existing customer rather than silently creating another record.
+- The owner can override a proposed match with “This is a different customer”, so duplicate prevention never becomes forced merging.
+- Quick Capture prevents lifecycle downgrades: weaker imported information cannot overwrite stronger active work such as a confirmed booking.
+- New enquiries from existing previous customers now use a current-enquiry field, allowing the same customer record to re-enter the pipeline without creating a duplicate customer.
+- Imported Enquiry records enter the normal 7-day enquiry lifecycle watch.
+- Imported Quote sent records create/update the sent quote, value and automatic follow-up due date.
+- Imported Booking records create/update confirmed Work bookings.
+- Imported Completed job records update job history/value, calculate sensible service-specific repeat timing, and prepare post-job review admin.
+- Completed imported work can also close an existing active booking rather than leaving contradictory open work behind.
+- Source metadata is stored against the customer and Quick Capture keeps a local intake audit trail showing source, stage, extraction confidence and whether the item created or merged a customer.
+- Customer search now includes imported email/address data and customer detail shows how many captured source items are attached.
+- Results includes Quick Capture counts, created-vs-merged customer totals and captured lifecycle stages.
+- Connected Accounts now explains the intended future architecture: real email, calendar, CRM and invoicing integrations should feed candidate data into this same parse → match → review → merge/create pathway rather than bypassing owner review.
+- No real external inbox, calendar, CRM or invoicing account is read in v1.9.
+- Main navigation remains Home / Work / Results / Settings.
