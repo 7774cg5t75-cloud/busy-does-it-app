@@ -2074,15 +2074,29 @@ function App() {
     .filter((entry) => entry.age !== null)
     .sort((a, b) => b.age - a.age);
   const staleEnquiryEntries = unresolvedEnquiryEntries.filter(
-    (entry) =>
-      entry.age >= 7 &&
-      entry.customer.contactOk !== false &&
-      !entry.customer.enquiryFollowUpSentAt
+    (entry) => {
+      const dueDate =
+        entry.customer.nextEnquiryCheckDate ||
+        (entry.customer.createdAt
+          ? addDaysFromISO(String(entry.customer.createdAt).slice(0, 10), 7)
+          : null);
+      return (
+        !!dueDate &&
+        dueDate <= todayISO &&
+        entry.customer.contactOk !== false &&
+        !entry.customer.enquiryFollowUpSentAt
+      );
+    }
   );
   const freshEnquiryEntries = unresolvedEnquiryEntries.filter(
-    (entry) =>
-      entry.age < 7 &&
-      !entry.customer.enquiryFollowUpSentAt
+    (entry) => {
+      const dueDate =
+        entry.customer.nextEnquiryCheckDate ||
+        (entry.customer.createdAt
+          ? addDaysFromISO(String(entry.customer.createdAt).slice(0, 10), 7)
+          : null);
+      return !!dueDate && dueDate > todayISO && !entry.customer.enquiryFollowUpSentAt;
+    }
   );
   const enquiryFollowUpEntries = customers
     .filter(
@@ -2158,7 +2172,10 @@ function App() {
       ) return null;
       const sentAt = action.details?.quoteSentAt || action.completedAt;
       const age = daysSinceTimestamp(sentAt);
-      if (age === null || age < 7) return null;
+      const followUpDueDate =
+        action.details?.followUpDueDate ||
+        (sentAt ? addDaysFromISO(String(sentAt).slice(0, 10), 7) : null);
+      if (!followUpDueDate || followUpDueDate > todayISO || age === null) return null;
       const customer =
         customers.find((item) => item.id === id) ||
         lastSimulatedRecipients.find((item) => item.id === id);
@@ -2249,6 +2266,21 @@ function App() {
       .filter((item) => item.kind === "job")
       .map((job) => ({ customer, job }))
   );
+  const automaticReviewDraftEntries = completedJobEntries.filter(
+    (entry) =>
+      !!entry.job.reviewRequestDraft &&
+      !entry.job.reviewRequestSentAt &&
+      entry.customer.contactOk !== false
+  );
+  const automaticReviewDraftCount = automaticReviewDraftEntries.length;
+  const repeatTimingTrackedEntries = customers
+    .filter((customer) => !!customer.nextRepeatDueDate)
+    .map((customer) => ({
+      customer,
+      dueDate: customer.nextRepeatDueDate,
+    }))
+    .sort((a, b) => String(a.dueDate).localeCompare(String(b.dueDate)));
+  const repeatTimingTrackedCount = repeatTimingTrackedEntries.length;
   const reviewRequestSentCount = completedJobEntries.filter(
     (entry) => !!entry.job.reviewRequestSentAt
   ).length;
@@ -2393,6 +2425,28 @@ function App() {
         photoCount: photoOpportunityEntry.job.photos.filter((photo) => photo.marketingOk).length,
       }
     : null;
+
+  const automaticPostDraftEntries = completedJobEntries.filter(
+    (entry) =>
+      !!entry.job.postDraft &&
+      entry.job.postDraftStatus !== "Simulated published"
+  );
+  const automaticPostDraftCount = automaticPostDraftEntries.length;
+  const lifecycleWatchCount =
+    freshEnquiryEntries.length +
+    Object.values(replyActions).filter(
+      (action) =>
+        action?.type === "quote" &&
+        action?.done &&
+        action.details?.quoteStatus === "Sent" &&
+        !action.details?.followUpSentAt
+    ).length +
+    repeatTimingTrackedCount;
+  const backgroundReadyCount =
+    staleEnquiryEntries.length +
+    dueQuoteEntries.length +
+    automaticReviewDraftCount +
+    automaticPostDraftCount;
 
   const appState = {
     screen,
@@ -2633,6 +2687,14 @@ function App() {
     bookedWorkValue,
     pipelineWorkValue,
     completedJobValue,
+    automaticReviewDraftEntries,
+    automaticReviewDraftCount,
+    automaticPostDraftEntries,
+    automaticPostDraftCount,
+    repeatTimingTrackedEntries,
+    repeatTimingTrackedCount,
+    lifecycleWatchCount,
+    backgroundReadyCount,
     reviewRequestSentCount,
     reviewRequestOutcomeCount,
     reviewReceivedCount,
