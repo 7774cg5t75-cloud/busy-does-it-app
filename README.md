@@ -247,3 +247,22 @@ Busy Does It mobile app prototype.
 - Connected Accounts now defines the intended future architecture: email, calendar, CRM and invoicing integrations should feed candidate events into Busy Inbox for triage/matching before filing.
 - No real email, calendar, CRM, social inbox or invoicing system is read in v2.0.
 - Main navigation remains Home / Work / Results / Settings.
+
+
+## v2.1 Trusted Autopilot + exceptions only
+- Added a separate Automatic Record Filing control with two modes: Review everything and Safe items only.
+- Safe items only is intentionally narrow. It can only file into an already-known customer when the customer is matched exactly by phone or email, the extracted record is high-confidence, the customer name matches exactly, the service is explicitly detected and matches the existing record, and there is no active-work conflict.
+- Existing phone/email/address data must stay consistent. A conflicting phone, email, service or saved address blocks automatic filing and leaves the item for review.
+- Safe Autopilot never trusts a name-only match and never creates a brand-new customer automatically in v2.1.
+- Duplicate source text is detected before automatic filing so the same Inbox item cannot quietly be filed twice.
+- Stage-specific evidence is required: sent quotes need an explicit sent date and value; bookings need an explicit future date and time; completed jobs need an explicit non-future date and must not duplicate an existing completed job.
+- Existing open enquiries and active customer work block automatic filing where they could create contradictory records.
+- Safe Autopilot can file trusted Enquiry / Quote sent / Booking / Completed job record updates into the existing customer lifecycle, while reusing the v2.0 follow-up dates, Work booking records and completed-job admin.
+- Automatic filing is record administration only. It never sends a customer message, publishes publicly or approves/spends advertising money.
+- Every auto-filed item produces an Inbox receipt, Intake History record, customer activity entry and visible reason explaining why Busy had authority to file it.
+- Busy Inbox now separates Auto-filed safely from Filed after owner review, and shows why Safe Autopilot stopped when a candidate failed a rule.
+- Existing pending items that now pass the safe rules can be explicitly handed to Busy with “Let Busy file this safely”.
+- Added a Safe Autopilot test using an existing prototype customer so the narrow automatic path can be verified deliberately.
+- Results, Work and Settings expose the automatic-filing mode and auto-file counts.
+- Connected Accounts now describes the same future trust architecture for email/calendar/CRM/invoicing feeds.
+- Main navigation remains Home / Work / Results / Settings.
