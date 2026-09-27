@@ -16,3 +16,10 @@ Busy Does It mobile app prototype.
 - Simulation wording has been tightened so prototype actions are not mistaken for real sends or live account connections.
 - Testing workflow remains GitHub → clean Snack preview → direct Expo QR.
 
+
+### Latest v0.6 sweep
+- Slot-aware booking suggestions now match weekday wording such as “Thursday afternoon”.
+- Booking time uses quick-select choices, with manual time entry still available.
+- Quote suggestions explain whether the figure came from the customer's previous job or the saved service price.
+- Completed quote / booking / reminder actions can be reopened and edited.
+- Results now surfaces recent completed customer actions with their saved summaries.
