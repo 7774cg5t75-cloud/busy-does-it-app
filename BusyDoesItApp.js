@@ -3884,6 +3884,126 @@ function HomeScreen({ s }) {
   );
 }
 
+function BackgroundWork({ s }) {
+  const nextReview = s.automaticReviewDraftEntries?.[0] || null;
+  const nextPost = s.automaticPostDraftEntries?.[0] || null;
+
+  return (
+    <Shell
+      s={s}
+      title="Busy in the background"
+      subtitle="Dates, drafts and follow-on admin Busy is already maintaining underneath the Opportunity Engine."
+      brandCue="Prepared automatically. Customer-facing actions still need approval."
+    >
+      <Card
+        eyebrow="Ready now"
+        title={`${s.backgroundReadyCount} next step${s.backgroundReadyCount === 1 ? "" : "s"} ready for review`}
+        body="Busy can prepare the admin, but it does not send a customer message, publish a post or spend money by itself in this prototype."
+        tone="green"
+      >
+        <MetricRow left="Quiet enquiries" right={String(s.staleEnquiryEntries.length)} />
+        <MetricRow left="Quote follow-ups" right={String(s.dueQuoteEntries.length)} />
+        <MetricRow left="Review drafts" right={String(s.automaticReviewDraftCount)} />
+        <MetricRow left="Post drafts" right={String(s.automaticPostDraftCount)} />
+      </Card>
+
+      {s.staleEnquiryEntries.length ? (
+        <Button label={`Review quiet enquiries • ${s.staleEnquiryEntries.length}`} primary onPress={() => s.go("staleEnquiries")} />
+      ) : null}
+
+      {s.dueQuoteEntries.length ? (
+        <Button label={`Review quote follow-ups • ${s.dueQuoteEntries.length}`} onPress={() => s.go("staleQuotes")} />
+      ) : null}
+
+      {nextReview ? (
+        <Card
+          eyebrow="Pre-drafted after completed work"
+          title={`Review request for ${nextReview.customer.name}`}
+          body={nextReview.job.reviewRequestDraft}
+          footer="Nothing sent"
+          tone="blue"
+        >
+          <Button
+            label="Review request"
+            onPress={() => s.prepareReviewRequest(nextReview.customer.id, nextReview.job.id)}
+          />
+        </Card>
+      ) : null}
+
+      {nextPost ? (
+        <Card
+          eyebrow="Pre-drafted from approved job photos"
+          title={`Finished-job post • ${nextPost.customer.name}`}
+          body={nextPost.job.postDraft}
+          footer="Nothing published"
+          tone="blue"
+        >
+          <Button
+            label="Review post approval"
+            onPress={() => s.openJobPostApproval(nextPost.customer.id, nextPost.job.id)}
+          />
+        </Card>
+      ) : null}
+
+      <Card
+        eyebrow="Being watched"
+        title={`${s.lifecycleWatchCount} timeline${s.lifecycleWatchCount === 1 ? "" : "s"} tracked automatically`}
+        body="Fresh enquiries, sent quotes and repeat-service dates can become opportunities when their real due dates arrive."
+        tone="blue"
+      >
+        <MetricRow left="Fresh enquiries being watched" right={String(s.freshEnquiryEntries.length)} />
+        <MetricRow
+          left="Sent quotes being watched"
+          right={String(
+            Object.values(s.replyActions || {}).filter(
+              (action) =>
+                action?.type === "quote" &&
+                action?.done &&
+                action.details?.quoteStatus === "Sent" &&
+                !action.details?.followUpSentAt
+            ).length
+          )}
+        />
+        <MetricRow left="Repeat-service dates tracked" right={String(s.repeatTimingTrackedCount)} />
+      </Card>
+
+      {s.repeatTimingTrackedEntries?.slice(0, 5).map(({ customer, dueDate }) => (
+        <Pressable
+          key={customer.id}
+          onPress={() => s.openCustomer(customer.id)}
+          style={styles.customerTimelineCard}
+        >
+          <View style={styles.activityTopRow}>
+            <View style={{ flex: 1, paddingRight: 10 }}>
+              <Text style={styles.customerTimelineLabel}>REPEAT TIMING</Text>
+              <Text style={styles.activityName}>{customer.name}</Text>
+              <Text style={styles.activityService}>{customer.service}</Text>
+            </View>
+            <StatusChip
+              label={dueDate <= dateToISO(new Date()) ? "Due now" : formatUKDate(dueDate)}
+              tone={dueDate <= dateToISO(new Date()) ? "green" : "blue"}
+            />
+          </View>
+          <Text style={styles.activityOpen}>Open customer →</Text>
+        </Pressable>
+      ))}
+
+      {!s.backgroundReadyCount && !s.lifecycleWatchCount ? (
+        <Card
+          eyebrow="All clear"
+          title="Nothing waiting in the background"
+          body="Busy is not manufacturing admin just to make the screen look busy."
+          footer="Recommended action: none"
+          tone="green"
+        />
+      ) : null}
+
+      <Button label="Back to Home" primary onPress={() => s.jump("home", "Home")} />
+    </Shell>
+  );
+}
+
+
 function WorkHub({ s }) {
   const todayISO = dateToISO(new Date());
   const freshEnquiries = (s.freshEnquiryEntries || []).map((entry) => entry.customer);
@@ -7644,6 +7764,7 @@ const screens = {
   setupLimits: SetupLimits,
   setupConnect: SetupConnect,
   home: HomeScreen,
+  backgroundWork: BackgroundWork,
   workHub: WorkHub,
   workPipeline: WorkPipeline,
   workNow: WorkNow,
