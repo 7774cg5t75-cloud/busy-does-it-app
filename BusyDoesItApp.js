@@ -3440,6 +3440,14 @@ function ReplyActionDetail({ s }) {
           ))}
         </View>
         <Field label="Or enter a time" value={s.actionBookingTime} onChangeText={s.setActionBookingTime} placeholder="e.g. 14:30" />
+        <Field
+          label="Expected job value"
+          value={s.actionJobValue}
+          onChangeText={s.setActionJobValue}
+          keyboardType="number-pad"
+          prefix="£"
+          placeholder="Optional"
+        />
 
         {bookingClashes.length ? (
           <View style={styles.clashBox}>
@@ -3465,6 +3473,7 @@ function ReplyActionDetail({ s }) {
               bookingDate: s.actionBookingDate,
               bookingTime: s.actionBookingTime,
               bookingStatus: bookingStatus === "Draft" ? "Confirmed" : bookingStatus,
+              jobValue: s.actionJobValue,
               summary: `Booking set for ${formatUKDate(s.actionBookingDate)} at ${s.actionBookingTime}`,
             })
           }
@@ -3472,14 +3481,6 @@ function ReplyActionDetail({ s }) {
 
         {saved.done && bookingStatus === "Confirmed" ? (
           <>
-            <Field
-              label="Final job value"
-              value={s.actionJobValue}
-              onChangeText={s.setActionJobValue}
-              keyboardType="number-pad"
-              prefix="£"
-              placeholder="Optional"
-            />
             <Button
               label="Mark job completed"
               onPress={() => s.markBookingCompleted(customer.id, s.actionJobValue)}
@@ -3886,7 +3887,7 @@ function CustomerDetail({ s }) {
       brandCue="One customer. One clear history."
     >
       <Card
-        eyebrow={customer.source === "New enquiry" ? "New enquiry" : "Customer"}
+        eyebrow={customer.lastServiceDate ? "Customer" : "New enquiry"}
         title={customer.service}
         body={customer.phone || "No phone number saved"}
         footer={customer.contactOk ? "Contact allowed" : "Do not contact"}
