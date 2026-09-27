@@ -7295,6 +7295,11 @@ function BusyInbox({ s }) {
         {triage.matchCustomerId ? (
           <Text style={styles.customerHistoryPhotoMeta}>Possible existing customer match detected</Text>
         ) : null}
+        {item.autoEvaluation?.safe ? (
+          <Text style={styles.customerHistoryPhotoMeta}>
+            Passes Safe Autopilot rules — {s.recordFilingMode === "safe" ? "eligible to be handled automatically" : "automatic filing is currently off"}
+          </Text>
+        ) : null}
         <View style={styles.customerActionsRow}>
           <Pressable onPress={() => s.openInboxItem(item.id)} style={styles.customerOpenWrap}>
             <Text style={styles.customerOpenText}>Review & file</Text>
@@ -7311,8 +7316,8 @@ function BusyInbox({ s }) {
     <Shell
       s={s}
       title="Busy Inbox"
-      subtitle="Incoming business information is sorted before it touches your customer records."
-      brandCue="Busy triages. You handle the exceptions and approvals."
+      subtitle="Incoming information is triaged first. Only strict, low-risk record updates can be filed automatically."
+      brandCue="Busy handles the obvious admin. You handle exceptions and approvals."
     >
       <Card
         eyebrow="Inbox triage"
@@ -7321,22 +7326,29 @@ function BusyInbox({ s }) {
             ? `${pending.length} item${pending.length === 1 ? "" : "s"} waiting`
             : "Inbox clear"
         }
-        body="Busy ranks live bookings and quotes highly, flags missing information or possible conflicts, and checks for existing customers before filing anything."
-        footer="Prototype rule: owner review before every file"
+        body={
+          s.recordFilingMode === "safe"
+            ? "Safe Autopilot is on. Busy may file only high-confidence information into an exact existing-customer phone/email match when every trust rule passes. Everything else waits here."
+            : "Automatic record filing is off. Busy can triage and prepare every item, but you review every file."
+        }
+        footer={s.recordFilingMode === "safe" ? "Safe Autopilot: ON" : "Safe Autopilot: OFF"}
         tone={attention.length ? "amber" : "green"}
       >
         <MetricRow left="Needs attention" right={String(attention.length)} strong={attention.length > 0} />
         <MetricRow left="Ready to review" right={String(ready.length)} />
-        <MetricRow left="Filed from Inbox" right={String(s.inboxFiledCount)} />
+        <MetricRow left="Would pass Safe Autopilot now" right={String(s.inboxSafeReadyItems.length)} />
+        <MetricRow left="Auto-filed safely" right={String(s.inboxAutoFiledCount)} strong={s.inboxAutoFiledCount > 0} />
+        <MetricRow left="Filed after owner review" right={String(s.inboxOwnerFiledCount)} />
         <MetricRow left="Dismissed" right={String(s.inboxDismissedCount)} />
       </Card>
 
       <Card
         eyebrow="What triage means"
         title="Not every incoming item deserves the same interruption"
-        body="Missing service/contact details, low-confidence extraction, name-only matches and conflicts with stronger active work are pushed into Needs attention. Cleaner items sit underneath as Ready to review."
+        body="Missing service/contact details, low-confidence extraction, name-only matches and conflicts with active work are pushed into Needs attention. Even a clean item is only auto-filed when it also has an exact phone/email customer match and the required stage-specific evidence."
         tone="blue"
       />
+      <Button label="Automatic record filing settings" onPress={() => s.go("recordFilingSettings")} />
 
       {attention.length ? <Text style={styles.sectionLabel}>Needs attention</Text> : null}
       {attention.map((item) => <ItemCard key={item.id} item={item} />)}
@@ -7355,8 +7367,12 @@ function BusyInbox({ s }) {
       ) : null}
 
       <Button label="Quick capture something new" primary onPress={s.startQuickCapture} />
-      <Button label="Load 4 test Inbox items" onPress={s.queueInboxTestBatch} />
-      <Text style={styles.helper}>The four Inbox examples are clearly test-only and do not change customer records until reviewed and approved.</Text>
+      <Button label="Test Safe Autopilot with an existing customer" onPress={s.queueSafeAutopilotExample} />
+      <Text style={styles.helper}>
+        This test deliberately uses an existing prototype customer. With Safe Autopilot on, it will file the record automatically only if every trust rule passes.
+      </Text>
+      <Button label="Load 4 ordinary test Inbox items" onPress={s.queueInboxTestBatch} />
+      <Text style={styles.helper}>The ordinary Inbox examples are test-only and are designed to exercise the review/exception lanes.</Text>
 
       {processed.length ? (
         <>
@@ -7368,8 +7384,19 @@ function BusyInbox({ s }) {
                   <Text style={styles.activityName}>{item.parsed?.name || "Incoming item"}</Text>
                   <Text style={styles.activityService}>{item.parsed?.stage || "Incoming"} • {item.source}</Text>
                 </View>
-                <StatusChip label={item.status} tone={item.status === "Filed" ? "green" : "blue"} />
+                <StatusChip
+                  label={item.autoFiled ? "Auto-filed" : item.status}
+                  tone={item.status === "Filed" ? "green" : "blue"}
+                />
               </View>
+              {item.autoFiled ? (
+                <>
+                  <Text style={styles.activitySummary}>{item.autoFileReason || "Passed Safe Autopilot rules"}</Text>
+                  <Pressable onPress={() => s.openCustomer(item.filedCustomerId)} style={styles.customerOpenWrap}>
+                    <Text style={styles.customerOpenText}>Open filed customer →</Text>
+                  </Pressable>
+                </>
+              ) : null}
               {item.status === "Dismissed" ? (
                 <Pressable onPress={() => s.reopenInboxItem(item.id)} style={styles.customerEditWrap}>
                   <Text style={styles.customerEditText}>Put back in Inbox</Text>
@@ -7392,7 +7419,7 @@ function QuickCapture({ s }) {
       s={s}
       title="Quick capture"
       subtitle="Paste something you already received instead of typing the customer record field by field."
-      brandCue="Paste once. Review what Busy understood. Save only after approval."
+      brandCue="Paste once. Busy triages it. Only strict safe matches can skip repetitive filing."
     >
       <Card
         eyebrow="Prototype intake layer"
@@ -7423,9 +7450,11 @@ function QuickCapture({ s }) {
       />
 
       <Button label="Add to Busy Inbox & triage" primary disabled={!canAnalyse} onPress={s.queueCaptureToInbox} />
-      <Button label="Analyse & review now" disabled={!canAnalyse} onPress={s.analyseQuickCapture} />
+      <Button label="Analyse & review manually now" disabled={!canAnalyse} onPress={s.analyseQuickCapture} />
       <Text style={styles.helper}>
-        Inbox triage sorts incoming information first. Neither route changes a customer record until you approve the review screen.
+        {s.recordFilingMode === "safe"
+          ? "Safe Autopilot is on. Inbox may file only an exact existing-customer match that passes every trust rule. Anything uncertain still waits for you."
+          : "Automatic filing is off. Inbox will triage the item, but every record change waits for your review."}
       </Text>
 
       <Text style={styles.sectionLabel}>Try a test example</Text>
