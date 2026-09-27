@@ -86,6 +86,15 @@ function formatUKDate(dateString) {
   });
 }
 
+function groupCustomersByService(customers) {
+  return customers.reduce((groups, customer) => {
+    const key = customer?.service?.trim() || "Usual service";
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(customer);
+    return groups;
+  }, {});
+}
+
 
 const previousCustomerGroups = [
   {
@@ -251,6 +260,7 @@ function App() {
   const [campaignStage, setCampaignStage] = useState(0);
   const [adBudget, setAdBudget] = useState("20");
   const [message, setMessage] = useState(campaignSteps[0].message);
+  const [serviceMessages, setServiceMessages] = useState({});
   const [bringBackMessage, setBringBackMessage] = useState(
     "Hi, it’s been a while since we last helped. We’ve got a couple of spaces next week if you need any exterior cleaning. Reply here if you’d like us to take a look."
   );
@@ -399,17 +409,33 @@ function App() {
 
   const restoreOpportunities = () => setDismissedOpportunities([]);
 
+
+  const buildReactivationMessages = () => {
+    const eligible = customers.filter(isEligibleCustomer);
+    const groups = groupCustomersByService(eligible);
+    const slotText = (quietSlot || "a quiet slot").toLowerCase();
+    const drafts = {};
+
+    Object.keys(groups).forEach((service) => {
+      drafts[service] =
+        `Hi, we’ve got a slot free ${slotText} for ${service.toLowerCase()}. If you’d like a quote or want to book it, just reply here.`;
+    });
+
+    return drafts;
+  };
+
+  const resetReactivationMessages = () => {
+    setServiceMessages(buildReactivationMessages());
+  };
+
   const startCampaign = (stage = 0) => {
     const safeStage = Math.max(0, Math.min(stage, campaignSteps.length - 1));
-    const wantedServices = services.filter((x) => x.wanted).slice(0, 2).map((x) => x.name.toLowerCase());
-    const serviceText =
-      wantedServices.length >= 2
-        ? `${wantedServices[0]} or ${wantedServices[1]}`
-        : wantedServices[0] || trade.toLowerCase() || "your usual work";
-
     setCampaignStage(safeStage);
+
     if (safeStage === 0) {
-      setMessage(`Hi, we’ve got a slot free ${quietSlot.toLowerCase()} for ${serviceText}. If you’d like a quote or want to book it, just reply here.`);
+      const drafts = buildReactivationMessages();
+      setServiceMessages(drafts);
+      setMessage(Object.values(drafts)[0] || campaignSteps[0].message);
     } else if (safeStage === 1) {
       setMessage(`Hi, you asked us about ${trade.toLowerCase()} a little while ago. We’ve got some availability coming up and I wanted to check whether you still wanted a quote. No problem if not.`);
     } else {
@@ -502,6 +528,7 @@ function App() {
     setNewCustomerDate("2025-01-01");
     setNewCustomerValue("");
     setNewCustomerContactOk(true);
+    setServiceMessages({});
     setServices(servicesSeed);
     setAlwaysAsk(true);
     setCustomerContact(true);
@@ -605,6 +632,9 @@ function App() {
     setAdBudget,
     message,
     setMessage,
+    serviceMessages,
+    setServiceMessages,
+    resetReactivationMessages,
     bringBackMessage,
     setBringBackMessage,
     offerGoal,
@@ -1463,20 +1493,25 @@ function OtherOptions({ s }) {
 }
 
 
+
 function CheckSend({ s }) {
   const baseStep = campaignSteps[s.campaignStage] || campaignSteps[0];
   const eligibleCount = s.eligibleCustomers.length;
+  const serviceGroups = groupCustomersByService(s.eligibleCustomers);
+  const serviceEntries = Object.entries(serviceGroups);
+  const serviceGroupCount = serviceEntries.length;
+
   const step =
     s.campaignStage === 0
       ? {
           ...baseStep,
-          title: `Contact ${eligibleCount} previous customer${eligibleCount === 1 ? "" : "s"}`,
+          title: `${eligibleCount} customers in ${serviceGroupCount} service group${serviceGroupCount === 1 ? "" : "s"}`,
           audience: `${eligibleCount} selected customer records`,
-          why: "These specific saved customers meet the current reactivation rule: contact is allowed and their last recorded job was at least 9 months ago.",
+          why: "Busy Does It splits eligible customers by their previous service so each person gets a relevant draft instead of a generic message about work they may never have booked.",
           evidence: [
             ["Selected customer records", String(eligibleCount)],
+            ["Service-specific drafts", String(serviceGroupCount)],
             ["Eligibility rule", "9+ months + contact allowed"],
-            ["Quiet slot", s.quietSlot || "Not set"],
             ["Advertising required", "£0"],
           ],
         }
@@ -1497,19 +1532,75 @@ function CheckSend({ s }) {
       : baseStep;
 
   return (
-    <Shell s={s} title="Check before sending" subtitle="The recipient list is real local data. Sending is still simulated in v0.5.">
-      <Card eyebrow={step.audience} title={step.title} footer={s.campaignStage === 0 ? "Advertising spend: £0" : `Estimated cost: ${step.cost}`}>
-        <Text style={styles.helper}>Tap the draft below if you want to change it.</Text>
-        <TextInput multiline value={s.message} onChangeText={s.setMessage} style={styles.messageInput} />
-      </Card>
+    <Shell
+      s={s}
+      title="Check before sending"
+      subtitle={
+        s.campaignStage === 0
+          ? "Each eligible customer now gets a draft matched to their previous service. Sending is still simulated in v0.5."
+          : "The recipient list is local prototype data. Sending is still simulated in v0.5."
+      }
+    >
+      {s.campaignStage === 0 ? (
+        <>
+          <Card
+            eyebrow={step.audience}
+            title={step.title}
+            body="Review each service group below. You can edit every draft separately."
+            footer="Advertising spend: £0"
+            tone="green"
+          />
+          {serviceEntries.map(([service, customers]) => {
+            const currentDraft =
+              s.serviceMessages[service] ||
+              `Hi, we’ve got a slot free ${(s.quietSlot || "a quiet slot").toLowerCase()} for ${service.toLowerCase()}. If you’d like a quote or want to book it, just reply here.`;
+            return (
+              <View key={service} style={styles.serviceMessageCard}>
+                <View style={styles.serviceMessageHeader}>
+                  <View style={{ flex: 1, paddingRight: 8 }}>
+                    <Text style={styles.serviceMessageTitle}>{service}</Text>
+                    <Text style={styles.serviceMessageMeta}>
+                      {customers.length} customer{customers.length === 1 ? "" : "s"} • {customers.map((customer) => customer.name).join(", ")}
+                    </Text>
+                  </View>
+                  <StatusChip label={`${customers.length}`} tone="green" />
+                </View>
+                <TextInput
+                  multiline
+                  value={currentDraft}
+                  onChangeText={(text) =>
+                    s.setServiceMessages((current) => ({ ...current, [service]: text }))
+                  }
+                  style={styles.messageInput}
+                />
+              </View>
+            );
+          })}
+        </>
+      ) : (
+        <Card eyebrow={step.audience} title={step.title} footer={`Estimated cost: ${step.cost}`}>
+          <Text style={styles.helper}>Tap the draft below if you want to change it.</Text>
+          <TextInput multiline value={s.message} onChangeText={s.setMessage} style={styles.messageInput} />
+        </Card>
+      )}
+
       <InlineExplanation why={step.why} evidence={step.evidence} />
       {s.campaignStage === 0 ? <SmallLink label="Review selected customers" onPress={() => s.go("eligibleCustomers")} /> : null}
-      <Button label="Simulate send" primary disabled={s.campaignStage === 0 && !eligibleCount} onPress={() => s.go("progress")} />
-      <Button label="Reset draft" onPress={() => s.startCampaign(s.campaignStage)} />
+      <Button
+        label={s.campaignStage === 0 ? `Simulate send to ${eligibleCount}` : "Simulate send"}
+        primary
+        disabled={s.campaignStage === 0 && !eligibleCount}
+        onPress={() => s.go("progress")}
+      />
+      <Button
+        label={s.campaignStage === 0 ? "Reset all drafts" : "Reset draft"}
+        onPress={() => (s.campaignStage === 0 ? s.resetReactivationMessages() : s.startCampaign(s.campaignStage))}
+      />
       <Button label="Skip" onPress={() => s.go("otherOptions")} />
     </Shell>
   );
 }
+
 
 function Progress({ s }) {
   const step = campaignSteps[s.campaignStage] || campaignSteps[0];
@@ -1517,12 +1608,26 @@ function Progress({ s }) {
   const hasAnotherFreeMove = nextStage < campaignSteps.length;
   const next = hasAnotherFreeMove ? campaignSteps[nextStage] : null;
   const progressCount = Math.min(s.campaignStage + 1, campaignSteps.length);
+  const serviceGroupCount = Object.keys(groupCustomersByService(s.eligibleCustomers)).length;
+
+  const result =
+    s.campaignStage === 0
+      ? {
+          title: "Service-matched send simulated",
+          body: `${s.eligibleCustomers.length} eligible customers across ${serviceGroupCount} service group${serviceGroupCount === 1 ? "" : "s"} would receive the relevant draft. No real messages were sent.`,
+          footer: "Prototype simulation only",
+        }
+      : {
+          title: step.resultTitle,
+          body: step.resultBody,
+          footer: step.resultFooter,
+        };
 
   return (
     <Shell s={s} title="Progress" subtitle="Busy Does It reassesses after every step instead of jumping straight to paid ads." brandCue="Cheapest sensible move first.">
       <StatusChip label={`Free-step ${progressCount} of ${campaignSteps.length}`} tone="green" />
       <ProgressStrip current={progressCount} total={campaignSteps.length} />
-      <Card eyebrow="Latest result" title={step.resultTitle} body={step.resultBody} footer={step.resultFooter} tone="green" />
+      <Card eyebrow="Latest result" title={result.title} body={result.body} footer={result.footer} tone="green" />
 
       {hasAnotherFreeMove ? (
         <OpportunityCard
@@ -1552,7 +1657,7 @@ function Progress({ s }) {
         />
       )}
 
-      <Button label="View replies" onPress={() => s.go("replies")} />
+      <Button label="View simulated replies" onPress={() => s.go("replies")} />
       <Button label="Stop for now" onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
@@ -1803,8 +1908,12 @@ function AddCustomerRecord({ s }) {
   );
 }
 
+
 function EligibleCustomers({ s }) {
   const eligible = s.eligibleCustomers;
+  const groups = groupCustomersByService(eligible);
+  const groupCount = Object.keys(groups).length;
+
   return (
     <Shell
       s={s}
@@ -1814,7 +1923,11 @@ function EligibleCustomers({ s }) {
       <Card
         eyebrow="Selection rule"
         title={`${eligible.length} customer${eligible.length === 1 ? "" : "s"} selected`}
-        body="Contact permission is on, and the last recorded job was at least 9 months ago."
+        body={
+          eligible.length
+            ? `They will be split into ${groupCount} service-specific message group${groupCount === 1 ? "" : "s"} before sending.`
+            : "Contact permission is on, and the last recorded job must be at least 9 months ago."
+        }
         footer="Advertising spend: £0"
         tone="green"
       />
@@ -1836,7 +1949,11 @@ function EligibleCustomers({ s }) {
         <Card eyebrow="No matches" title="Nobody is due under the current rule" body="Add customer records or update their dates and contact permission." />
       )}
       <Button
-        label={eligible.length ? `Prepare message for ${eligible.length}` : "Manage customer records"}
+        label={
+          eligible.length
+            ? `Prepare ${groupCount} message${groupCount === 1 ? "" : "s"} for ${eligible.length}`
+            : "Manage customer records"
+        }
         primary
         onPress={() => (eligible.length ? s.startCampaign(0) : s.go("customerRecords"))}
       />
@@ -1844,7 +1961,6 @@ function EligibleCustomers({ s }) {
     </Shell>
   );
 }
-
 
 function CustomerGroups({ s }) {
   const eligible = s.eligibleCustomers;
@@ -2489,6 +2605,10 @@ const styles = StyleSheet.create({
   customerMeta: { color: C.muted, fontSize: 13, lineHeight: 18, marginTop: 3 },
   removeCustomerWrap: { alignSelf: "flex-start", paddingTop: 10, paddingBottom: 2 },
   removeCustomerText: { color: C.red, fontSize: 13, fontWeight: "800" },
+  serviceMessageCard: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16, padding: 14, marginBottom: 12 },
+  serviceMessageHeader: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 },
+  serviceMessageTitle: { color: C.ink, fontSize: 17, fontWeight: "900" },
+  serviceMessageMeta: { color: C.muted, fontSize: 13, lineHeight: 18, marginTop: 3 },
   connectButtonOn: { backgroundColor: C.greenSoft },
   nav: {
     height: 72,
