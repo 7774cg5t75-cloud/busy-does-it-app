@@ -29,11 +29,92 @@ const C = {
   shadow: "#111827",
 };
 
-const servicesSeed = [
-  { id: "driveway", name: "Driveway cleaning", value: 250, wanted: true },
-  { id: "gutters", name: "Gutter clearing", value: 90, wanted: false },
-  { id: "patio", name: "Patio cleaning", value: 220, wanted: true },
-];
+const VERTICAL_PACKS = {
+  "exterior-cleaning": {
+    id: "exterior-cleaning",
+    label: "Exterior cleaning",
+    description: "Driveways, patios, gutters and similar exterior work.",
+    defaultRepeatMonths: 9,
+    services: [
+      { id: "driveway", name: "Driveway cleaning", value: 250, wanted: true, repeatMonths: 9 },
+      { id: "gutters", name: "Gutter clearing", value: 90, wanted: false, repeatMonths: 9 },
+      { id: "patio", name: "Patio cleaning", value: 220, wanted: true, repeatMonths: 9 },
+    ],
+  },
+  "window-cleaning": {
+    id: "window-cleaning",
+    label: "Window cleaning",
+    description: "Regular window, conservatory and exterior glass work.",
+    defaultRepeatMonths: 2,
+    services: [
+      { id: "windows", name: "Window cleaning", value: 35, wanted: true, repeatMonths: 2 },
+      { id: "conservatory", name: "Conservatory cleaning", value: 120, wanted: true, repeatMonths: 6 },
+      { id: "window-gutters", name: "Gutter clearing", value: 90, wanted: false, repeatMonths: 12 },
+    ],
+  },
+  "gardening-landscaping": {
+    id: "gardening-landscaping",
+    label: "Gardening & landscaping",
+    description: "Garden maintenance, lawns, hedges and landscaping jobs.",
+    defaultRepeatMonths: 2,
+    services: [
+      { id: "garden-maintenance", name: "Garden maintenance", value: 80, wanted: true, repeatMonths: 1 },
+      { id: "hedges", name: "Hedge trimming", value: 120, wanted: true, repeatMonths: 4 },
+      { id: "landscaping", name: "Landscaping", value: 900, wanted: false, repeatMonths: null },
+    ],
+  },
+  "plumbing-heating": {
+    id: "plumbing-heating",
+    label: "Plumbing & heating",
+    description: "Repairs, boiler work and planned servicing.",
+    defaultRepeatMonths: null,
+    services: [
+      { id: "boiler-service", name: "Boiler service", value: 110, wanted: true, repeatMonths: 12 },
+      { id: "plumbing-repair", name: "Plumbing repair", value: 140, wanted: true, repeatMonths: null },
+      { id: "radiators", name: "Radiator work", value: 180, wanted: false, repeatMonths: null },
+      { id: "landlord-check", name: "Landlord safety check", value: 90, wanted: false, repeatMonths: 12 },
+    ],
+  },
+  "electrical": {
+    id: "electrical",
+    label: "Electrical",
+    description: "Repairs, inspections, upgrades and installation work.",
+    defaultRepeatMonths: null,
+    services: [
+      { id: "electrical-repair", name: "Electrical repair", value: 150, wanted: true, repeatMonths: null },
+      { id: "eicr", name: "EICR inspection", value: 180, wanted: true, repeatMonths: 60 },
+      { id: "consumer-unit", name: "Consumer unit work", value: 650, wanted: false, repeatMonths: null },
+      { id: "ev-charger", name: "EV charger installation", value: 850, wanted: false, repeatMonths: null },
+    ],
+  },
+  "mobile-hair-beauty": {
+    id: "mobile-hair-beauty",
+    label: "Mobile hair & beauty",
+    description: "Appointment-led hair and beauty services.",
+    defaultRepeatMonths: 2,
+    services: [
+      { id: "haircut", name: "Haircut", value: 35, wanted: true, repeatMonths: 2 },
+      { id: "colour", name: "Hair colour", value: 85, wanted: true, repeatMonths: 2 },
+      { id: "blow-dry", name: "Blow dry", value: 30, wanted: false, repeatMonths: 1 },
+      { id: "beauty-treatment", name: "Beauty treatment", value: 45, wanted: false, repeatMonths: 1 },
+    ],
+  },
+  "other-service": {
+    id: "other-service",
+    label: "Other service business",
+    description: "Use the generic core and add the services that fit your business.",
+    defaultRepeatMonths: null,
+    services: [
+      { id: "main-service", name: "Main service", value: 0, wanted: true, repeatMonths: null },
+    ],
+  },
+};
+
+function getVerticalPack(verticalId) {
+  return VERTICAL_PACKS[verticalId] || VERTICAL_PACKS["other-service"];
+}
+
+const servicesSeed = VERTICAL_PACKS["exterior-cleaning"].services.map((item) => ({ ...item }));
 
 const customerSeed = [
   { id: "c1", name: "Sarah Mitchell", phone: "07700 900101", service: "Driveway cleaning", lastServiceDate: "2025-01-10", lastJobValue: 260, contactOk: true },
@@ -53,8 +134,32 @@ function monthsSince(dateString) {
   return Math.max(0, (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24 * 30.44));
 }
 
-function isEligibleCustomer(customer) {
-  return !!customer?.contactOk && monthsSince(customer?.lastServiceDate) >= 9;
+function repeatMonthsForCustomer(customer, services = [], verticalId = "exterior-cleaning") {
+  const service = services.find((item) => item.name === customer?.service);
+  if (service && service.repeatMonths !== undefined) return service.repeatMonths;
+  return getVerticalPack(verticalId).defaultRepeatMonths;
+}
+
+function isEligibleCustomer(customer, services = [], verticalId = "exterior-cleaning") {
+  if (!customer?.contactOk || !customer?.lastServiceDate) return false;
+  const repeatMonths = repeatMonthsForCustomer(customer, services, verticalId);
+  if (!Number.isFinite(Number(repeatMonths)) || Number(repeatMonths) <= 0) return false;
+  return monthsSince(customer.lastServiceDate) >= Number(repeatMonths);
+}
+
+function eligibilityRuleText(services = [], verticalId = "exterior-cleaning") {
+  const repeatValues = [...new Set(
+    services
+      .map((item) => Number(item.repeatMonths))
+      .filter((value) => Number.isFinite(value) && value > 0)
+  )].sort((a, b) => a - b);
+  if (!repeatValues.length) {
+    return "No blanket repeat rule — only services with a sensible repeat interval are reactivated automatically.";
+  }
+  if (repeatValues.length === 1) {
+    return `${repeatValues[0]}+ months for repeatable services + contact allowed`;
+  }
+  return `Service-specific timing (${repeatValues.join(", ")} months) + contact allowed`;
 }
 
 function formatMonthsAgo(dateString) {
