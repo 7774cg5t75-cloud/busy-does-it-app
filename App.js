@@ -54,7 +54,7 @@ const previousCustomerGroups = [
 ];
 
 
-const STORAGE_KEY = "@busy-does-it-v03";
+const STORAGE_KEY = "@busy-does-it-v04";
 
 const connectionSeed = {
   calendar: false,
@@ -168,6 +168,14 @@ function App() {
   const [trade, setTrade] = useState("Exterior cleaning");
   const [postcode, setPostcode] = useState("EX17");
   const [radius, setRadius] = useState("15");
+  const [quietSlot, setQuietSlot] = useState("Thursday afternoon");
+  const [previousCustomerCount, setPreviousCustomerCount] = useState("14");
+  const [eligibleCustomerCount, setEligibleCustomerCount] = useState("12");
+  const [oldEnquiryCount, setOldEnquiryCount] = useState("4");
+  const [oldQuoteCount, setOldQuoteCount] = useState("3");
+  const [oldQuoteTopValue, setOldQuoteTopValue] = useState("340");
+  const [unansweredReviewCount, setUnansweredReviewCount] = useState("4");
+  const [recentPhotoCountNeeded, setRecentPhotoCountNeeded] = useState("2");
   const [services, setServices] = useState(servicesSeed);
   const [newServiceName, setNewServiceName] = useState("");
   const [newServiceValue, setNewServiceValue] = useState("");
@@ -210,6 +218,14 @@ function App() {
         if (saved.trade) setTrade(saved.trade);
         if (saved.postcode) setPostcode(saved.postcode);
         if (saved.radius) setRadius(saved.radius);
+        if (saved.quietSlot) setQuietSlot(saved.quietSlot);
+        if (saved.previousCustomerCount !== undefined) setPreviousCustomerCount(String(saved.previousCustomerCount));
+        if (saved.eligibleCustomerCount !== undefined) setEligibleCustomerCount(String(saved.eligibleCustomerCount));
+        if (saved.oldEnquiryCount !== undefined) setOldEnquiryCount(String(saved.oldEnquiryCount));
+        if (saved.oldQuoteCount !== undefined) setOldQuoteCount(String(saved.oldQuoteCount));
+        if (saved.oldQuoteTopValue !== undefined) setOldQuoteTopValue(String(saved.oldQuoteTopValue));
+        if (saved.unansweredReviewCount !== undefined) setUnansweredReviewCount(String(saved.unansweredReviewCount));
+        if (saved.recentPhotoCountNeeded !== undefined) setRecentPhotoCountNeeded(String(saved.recentPhotoCountNeeded));
         if (Array.isArray(saved.services)) setServices(saved.services);
         if (typeof saved.alwaysAsk === "boolean") setAlwaysAsk(saved.alwaysAsk);
         if (typeof saved.customerContact === "boolean") setCustomerContact(saved.customerContact);
@@ -242,6 +258,14 @@ function App() {
       trade,
       postcode,
       radius,
+      quietSlot,
+      previousCustomerCount,
+      eligibleCustomerCount,
+      oldEnquiryCount,
+      oldQuoteCount,
+      oldQuoteTopValue,
+      unansweredReviewCount,
+      recentPhotoCountNeeded,
       services,
       alwaysAsk,
       customerContact,
@@ -260,6 +284,14 @@ function App() {
     trade,
     postcode,
     radius,
+    quietSlot,
+    previousCustomerCount,
+    eligibleCustomerCount,
+    oldEnquiryCount,
+    oldQuoteCount,
+    oldQuoteTopValue,
+    unansweredReviewCount,
+    recentPhotoCountNeeded,
     services,
     alwaysAsk,
     customerContact,
@@ -350,6 +382,14 @@ function App() {
     setTrade("Exterior cleaning");
     setPostcode("EX17");
     setRadius("15");
+    setQuietSlot("Thursday afternoon");
+    setPreviousCustomerCount("14");
+    setEligibleCustomerCount("12");
+    setOldEnquiryCount("4");
+    setOldQuoteCount("3");
+    setOldQuoteTopValue("340");
+    setUnansweredReviewCount("4");
+    setRecentPhotoCountNeeded("2");
     setServices(servicesSeed);
     setAlwaysAsk(true);
     setCustomerContact(true);
@@ -384,6 +424,22 @@ function App() {
     setPostcode,
     radius,
     setRadius,
+    quietSlot,
+    setQuietSlot,
+    previousCustomerCount,
+    setPreviousCustomerCount,
+    eligibleCustomerCount,
+    setEligibleCustomerCount,
+    oldEnquiryCount,
+    setOldEnquiryCount,
+    oldQuoteCount,
+    setOldQuoteCount,
+    oldQuoteTopValue,
+    setOldQuoteTopValue,
+    unansweredReviewCount,
+    setUnansweredReviewCount,
+    recentPhotoCountNeeded,
+    setRecentPhotoCountNeeded,
     services,
     setServices,
     newServiceName,
@@ -478,7 +534,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={styles.brand}>BUSY DOES IT</Text>
             <Text style={styles.tagline}>More work. Less fuss.</Text>
-            <Text style={styles.prototypeBadge}>Prototype v0.3 • simulated data</Text>
+            <Text style={styles.prototypeBadge}>Prototype v0.4 • local data + simulated actions</Text>
           </View>
           {!noBack && s.history?.length > 0 ? (
             <Pressable onPress={s.back} style={styles.backPill}>
