@@ -162,3 +162,22 @@ Busy Does It mobile app prototype.
 - Results continues to keep overlapping value buckets separate rather than manufacturing one inflated total.
 - The visible navigation remains Home / Work / Results / Settings.
 - Added a JSX syntax gate to the automatic Snack preview pipeline so invalid JS/JSX fails before a preview link is published.
+
+
+## v1.7 record-based opportunities
+- Removed the legacy typed opportunity totals for previous customers, eligible customers, old enquiries, old quotes and highest old quote value from the active prototype data model.
+- New enquiries now store the date the enquiry actually arrived. This lets Busy Does It distinguish fresh enquiries from quiet enquiries using the customer record itself.
+- A quiet enquiry is currently defined as an unresolved enquiry that is at least 7 days old, has no quote / booking / reminder in progress, has contact permission and has not already had a prepared follow-up approved.
+- Quiet enquiries now have a complete closed loop: record detected → low-pressure message prepared → owner edits/reviews → simulated send approval → outcome recorded as No reply yet / Still interested / Not interested → outcome gently influences later ranking.
+- Quote records now capture an editable sent date, allowing imported / pre-existing sent quotes to be represented accurately instead of assuming every quote was sent today.
+- Quote follow-ups due are calculated from real sent quote status and sent date (7+ days) rather than a typed old-quote count.
+- Added record-based Quiet Enquiries and Quote Follow-ups Due screens listing the actual customers, services, ages and quote values behind each opportunity.
+- Home now separates fresh enquiries from quiet enquiries and ranks a record-derived quiet-enquiry follow-up as an existing-intent opportunity.
+- Work and the customer pipeline now show age-aware enquiry states such as New enquiry, Quiet enquiry and Follow-up sent.
+- Customer detail shows the enquiry received date and exposes the prepared quiet-enquiry follow-up / outcome flow when relevant.
+- Other Opportunities now recalculates from saved enquiries, sent quotes, due previous customers and completed jobs rather than hard-coded counts.
+- The old fixed demo funnel no longer advances automatically from previous customers to invented old-enquiry and old-quote totals. After a £0 action, Busy Does It reassesses the current records.
+- Business Data now displays calculated opportunity counts. The only remaining manual profile inputs are explicitly labelled prototype-only because no live Google Business / social account is being read yet.
+- Manual profile-test numbers no longer participate in Home ranking.
+- Results now includes quiet-enquiry learning and removes the illustrative marketing-results totals from the main Results screen.
+- Main visible navigation remains Home / Work / Results / Settings.
