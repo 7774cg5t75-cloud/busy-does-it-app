@@ -2116,8 +2116,8 @@ function HomeScreen({ s }) {
     .map(([id, action]) => {
       if (!action?.done || action.type !== "booking" || !action.details?.bookingDate) return null;
       const customer =
-        s.lastSimulatedRecipients.find((item) => item.id === id) ||
-        s.customers.find((item) => item.id === id);
+        s.customers.find((item) => item.id === id) ||
+        s.lastSimulatedRecipients.find((item) => item.id === id);
       return customer ? { id, action, customer } : null;
     })
     .filter((item) =>
@@ -2162,7 +2162,7 @@ function HomeScreen({ s }) {
             ["Source", "Customer records and prototype activity"],
             ["Advertising required", "£0"],
           ],
-          onAction: () => s.go("replyActions"),
+          onAction: () => s.go("customerActivity"),
         }]
       : []),
     {
@@ -2901,8 +2901,8 @@ function CustomerActivity({ s }) {
   const entries = Object.entries(s.replyActions || {})
     .map(([id, action]) => {
       const customer =
-        s.lastSimulatedRecipients.find((item) => item.id === id) ||
-        s.customers.find((item) => item.id === id);
+        s.customers.find((item) => item.id === id) ||
+        s.lastSimulatedRecipients.find((item) => item.id === id);
       return customer ? { id, action, customer } : null;
     })
     .filter(Boolean)
@@ -3004,8 +3004,8 @@ function Bookings({ s }) {
     .map(([id, action]) => {
       if (!action?.done || action.type !== "booking" || !action.details?.bookingDate) return null;
       const customer =
-        s.lastSimulatedRecipients.find((item) => item.id === id) ||
-        s.customers.find((item) => item.id === id);
+        s.customers.find((item) => item.id === id) ||
+        s.lastSimulatedRecipients.find((item) => item.id === id);
       return customer ? { id, action, customer } : null;
     })
     .filter(Boolean)
