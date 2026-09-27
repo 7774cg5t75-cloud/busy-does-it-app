@@ -225,3 +225,25 @@ Busy Does It mobile app prototype.
 - Connected Accounts now explains the intended future architecture: real email, calendar, CRM and invoicing integrations should feed candidate data into this same parse → match → review → merge/create pathway rather than bypassing owner review.
 - No real external inbox, calendar, CRM or invoicing account is read in v1.9.
 - Main navigation remains Home / Work / Results / Settings.
+
+
+## v2.0 Busy Inbox + automatic triage
+- Built the first Busy Inbox layer on top of v1.9 Quick Capture. Incoming candidate information can now be queued and triaged before it changes customer/work records.
+- Quick Capture now defaults to “Add to Busy Inbox & triage”, while keeping an optional immediate Analyse & Review route.
+- Busy Inbox stores pending candidate items locally and recalculates their triage against the current customer database and active work before review.
+- Triage considers detected lifecycle stage, extraction confidence, missing required information, possible duplicate matches and conflicts with stronger active customer work.
+- Pending items are separated into Needs attention and Ready to review instead of being shown as one unsorted list.
+- Candidate priority favours live bookings, quotes and enquiries over lower-urgency completed-job admin, while uncertainty/conflicts increase review priority.
+- The top Inbox candidate can participate in the Home Opportunity Engine ranking, so genuinely important incoming information can become the single best next move.
+- Busy Inbox does not silently file records in v2.0. Owner review remains required before an Inbox item creates or merges a customer/work record.
+- Reviewing an Inbox item reuses the v1.9 duplicate-prevention and lifecycle-protection rules: strong phone/email matches can merge, name-only matches are treated cautiously, owners can override a proposed match, and weaker incoming data cannot move a customer backwards.
+- Filing an Inbox item marks it Filed and keeps the existing Intake History audit trail. Dismissed items remain visible as processed and can be returned to the Inbox.
+- After filing one item, Busy can offer the next pending Inbox item to reduce repeated navigation.
+- Added a clearly labelled four-item test Inbox batch so triage ordering and exception handling can be tested without pretending those items are real business data.
+- Corrected stage inference so “Can I get a quote?” remains an Enquiry; only evidence that a quote was actually sent/provided is classified as Quote sent.
+- Carried forward the v1.9 safeguard that an undetected service stays blank and must be confirmed rather than inheriting a default service.
+- Work now leads with Busy Inbox, then Quick Capture/manual entry. Home and Settings expose Inbox access without adding another permanent tab.
+- Results now reports Inbox items waiting, Needs attention vs Ready to review, filed items and dismissals separately from already-filed Quick Capture records.
+- Connected Accounts now defines the intended future architecture: email, calendar, CRM and invoicing integrations should feed candidate events into Busy Inbox for triage/matching before filing.
+- No real email, calendar, CRM, social inbox or invoicing system is read in v2.0.
+- Main navigation remains Home / Work / Results / Settings.
