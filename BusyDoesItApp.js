@@ -418,6 +418,22 @@ function inferCaptureAddress(text) {
   return line?.trim() || postcode[1].toUpperCase();
 }
 
+function captureStageStrength(stage) {
+  if (stage === "Completed job") return 4;
+  if (stage === "Booking") return 3;
+  if (stage === "Quote sent") return 2;
+  if (stage === "Enquiry") return 1;
+  return 0;
+}
+
+function customerActionStrength(action) {
+  if (!action || !isActiveCustomerAction(action)) return 0;
+  if (action.type === "booking") return 3;
+  if (action.type === "quote") return 2;
+  if (action.type === "reminder") return 1;
+  return 0;
+}
+
 function parseQuickCapture(text, services = [], fallbackService = "") {
   const source = String(text || "").trim();
   const phoneMatch = source.match(/(?:\+44\s?\(?0?\)?|0)7\d{3}[\s.-]?\d{3}[\s.-]?\d{3}/);
@@ -738,6 +754,7 @@ function App() {
   const [captureNote, setCaptureNote] = useState("");
   const [captureConfidence, setCaptureConfidence] = useState("Low");
   const [captureExtractedFields, setCaptureExtractedFields] = useState([]);
+  const [captureForceNew, setCaptureForceNew] = useState(false);
   const [intakeLog, setIntakeLog] = useState([]);
 
   useEffect(() => {
@@ -2264,6 +2281,7 @@ function App() {
     setCaptureNote("");
     setCaptureConfidence("Low");
     setCaptureExtractedFields([]);
+    setCaptureForceNew(false);
   };
 
   const startQuickCapture = () => {
@@ -2329,7 +2347,7 @@ function App() {
     const value = Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : 0;
     if (!name || (!phone && !email)) return false;
 
-    const match = findCustomerMatch(customers, { phone, email, name });
+    const match = captureForceNew ? null : findCustomerMatch(customers, { phone, email, name });
     const existing = match?.customer || null;
     const customerId = existing?.id || `intake-${Date.now()}`;
     const eventDate = captureDate || dateToISO(new Date());
@@ -2345,11 +2363,9 @@ function App() {
       rawText: captureRawText.trim(),
     };
     const existingAction = replyActions[customerId];
-    const activeAction = isActiveCustomerAction(existingAction);
     const preserveStrongerActiveWork =
       !!existing &&
-      activeAction &&
-      captureStage === "Enquiry";
+      customerActionStrength(existingAction) > captureStageStrength(captureStage);
 
     const repeatDueDate =
       captureStage === "Completed job"
@@ -2451,6 +2467,14 @@ function App() {
         lifecycleStatus: preserveStrongerActiveWork ? base.lifecycleStatus : lifecycleStatus,
         currentEnquiryAt: preserveStrongerActiveWork ? base.currentEnquiryAt : currentEnquiryAt,
         nextEnquiryCheckDate: preserveStrongerActiveWork ? base.nextEnquiryCheckDate : nextEnquiryCheckDate,
+        enquiryFollowUpSentAt:
+          captureStage === "Enquiry" && !preserveStrongerActiveWork ? null : base.enquiryFollowUpSentAt,
+        enquiryFollowUpStatus:
+          captureStage === "Enquiry" && !preserveStrongerActiveWork ? null : base.enquiryFollowUpStatus,
+        enquiryFollowUpOutcome:
+          captureStage === "Enquiry" && !preserveStrongerActiveWork ? "" : base.enquiryFollowUpOutcome,
+        enquiryFollowUpOutcomeRecordedAt:
+          captureStage === "Enquiry" && !preserveStrongerActiveWork ? null : base.enquiryFollowUpOutcomeRecordedAt,
         lastServiceDate,
         lastJobValue,
         nextRepeatDueDate: nextRepeatDate,
@@ -2672,6 +2696,7 @@ function App() {
     setCaptureNote("");
     setCaptureConfidence("Low");
     setCaptureExtractedFields([]);
+    setCaptureForceNew(false);
     setIntakeLog([]);
     setAdvanced(false);
     setHistory([]);
@@ -3087,11 +3112,13 @@ function App() {
     dueQuoteEntries.length +
     automaticReviewDraftCount +
     automaticPostDraftCount;
-  const captureMatch = findCustomerMatch(customers, {
-    phone: capturePhone,
-    email: captureEmail,
-    name: captureName,
-  });
+  const captureMatch = captureForceNew
+    ? null
+    : findCustomerMatch(customers, {
+        phone: capturePhone,
+        email: captureEmail,
+        name: captureName,
+      });
   const intakeMergedCount = intakeLog.filter((item) => item.matchedExisting).length;
   const intakeCreatedCount = intakeLog.length - intakeMergedCount;
   const intakeStageCounts = intakeLog.reduce((counts, item) => {
@@ -3262,6 +3289,8 @@ function App() {
     setCaptureNote,
     captureConfidence,
     captureExtractedFields,
+    captureForceNew,
+    setCaptureForceNew,
     captureMatch,
     intakeLog,
     intakeMergedCount,
@@ -6552,7 +6581,9 @@ function QuickCapture({ s }) {
 function QuickCaptureReview({ s }) {
   const match = s.captureMatch;
   const activeAction = match?.customer ? s.replyActions?.[match.customer.id] : null;
-  const strongerActiveWork = !!activeAction && isActiveCustomerAction(activeAction) && s.captureStage === "Enquiry";
+  const strongerActiveWork =
+    !!activeAction &&
+    customerActionStrength(activeAction) > captureStageStrength(s.captureStage);
   const canSave = !!s.captureName.trim() && !!(s.capturePhone.trim() || s.captureEmail.trim());
   const fields = s.captureExtractedFields || [];
 
@@ -6582,14 +6613,24 @@ function QuickCaptureReview({ s }) {
           body={`${match.reason} • match confidence: ${match.confidence}. Busy will update this customer instead of creating a duplicate.`}
           footer="Duplicate prevention"
           tone="green"
-        />
+        >
+          <Button label="This is a different customer" onPress={() => s.setCaptureForceNew(true)} />
+        </Card>
       ) : (
         <Card
           eyebrow="No matching customer found"
           title="This would create a new customer record"
-          body="Busy checked the saved phone number, email address and full name before deciding."
+          body={
+            s.captureForceNew
+              ? "You chose to keep this as a separate customer even though Busy had found a possible match."
+              : "Busy checked the saved phone number, email address and full name before deciding."
+          }
           tone="blue"
-        />
+        >
+          {s.captureForceNew ? (
+            <Button label="Check for an existing match again" onPress={() => s.setCaptureForceNew(false)} />
+          ) : null}
+        </Card>
       )}
 
       {strongerActiveWork ? (
