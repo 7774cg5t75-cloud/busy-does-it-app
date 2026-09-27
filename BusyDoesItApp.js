@@ -225,6 +225,12 @@ function addDaysISO(days) {
   return dateToISO(date);
 }
 
+function addDaysFromISO(dateString, days) {
+  const date = dateFromISO(dateString || dateToISO(new Date()));
+  date.setDate(date.getDate() + Number(days || 0));
+  return dateToISO(date);
+}
+
 function nextDateForSlot(slotText) {
   const text = String(slotText || "").toLowerCase();
   const weekdays = [
@@ -804,6 +810,8 @@ function App() {
         const activity = Array.isArray(customer.activity) ? customer.activity : [];
         return {
           ...customer,
+          lastActivityAt: event.createdAt || new Date().toISOString(),
+          lastActivityKind: event.kind || "note",
           activity: [
             ...activity,
             {
@@ -959,6 +967,10 @@ function App() {
           quoteStatus === "Sent"
             ? new Date(`${actionQuoteSentDate || dateToISO(new Date())}T12:00:00`).toISOString()
             : action.details?.quoteSentAt,
+        followUpDueDate:
+          quoteStatus === "Sent"
+            ? addDaysFromISO(actionQuoteSentDate || dateToISO(new Date()), 7)
+            : action.details?.followUpDueDate,
         summary:
           quoteStatus === "Prepared"
             ? `Quote prepared for £${action.details?.quoteAmount || "—"}`
@@ -1856,6 +1868,8 @@ function App() {
       contactOk: true,
       source: "New enquiry",
       createdAt: receivedAt,
+      nextEnquiryCheckDate: addDaysFromISO(newEnquiryDate || dateToISO(new Date()), 7),
+      lifecycleStatus: "Enquiry",
       activity: [
         {
           id: `activity-${id}-created`,
@@ -1874,7 +1888,6 @@ function App() {
     setNewEnquiryPhone("");
     setNewEnquiryAddress("");
     setNewEnquiryCustomService("");
-    setNewEnquiryDate(dateToISO(new Date()));
     setNewEnquiryNote("");
     setNewEnquiryDate(dateToISO(new Date()));
     go("customerDetail");
@@ -5052,6 +5065,7 @@ function ReplyActionDetail({ s }) {
                 message: s.actionQuoteMessage,
                 quoteStatus: "Sent",
                 quoteSentAt: new Date(`${s.actionQuoteSentDate || dateToISO(new Date())}T12:00:00`).toISOString(),
+                followUpDueDate: addDaysFromISO(s.actionQuoteSentDate || dateToISO(new Date()), 7),
                 summary: `Quote marked sent for £${s.actionQuoteAmount}`,
               })
             }
