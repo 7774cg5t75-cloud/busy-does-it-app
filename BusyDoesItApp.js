@@ -2690,22 +2690,26 @@ function App() {
   const unresolvedEnquiryEntries = customers
     .filter(
       (customer) =>
-        !customer.lastServiceDate &&
+        !!(customer.currentEnquiryAt || (!customer.lastServiceDate && customer.createdAt)) &&
         !replyActions[customer.id] &&
         !customer.enquiryFollowUpOutcomeRecordedAt
     )
-    .map((customer) => ({
-      customer,
-      age: daysSinceTimestamp(customer.createdAt),
-    }))
+    .map((customer) => {
+      const enquiryAt = customer.currentEnquiryAt || customer.createdAt;
+      return {
+        customer,
+        enquiryAt,
+        age: daysSinceTimestamp(enquiryAt),
+      };
+    })
     .filter((entry) => entry.age !== null)
     .sort((a, b) => b.age - a.age);
   const staleEnquiryEntries = unresolvedEnquiryEntries.filter(
     (entry) => {
       const dueDate =
         entry.customer.nextEnquiryCheckDate ||
-        (entry.customer.createdAt
-          ? addDaysFromISO(String(entry.customer.createdAt).slice(0, 10), 7)
+        (entry.enquiryAt
+          ? addDaysFromISO(String(entry.enquiryAt).slice(0, 10), 7)
           : null);
       return (
         !!dueDate &&
@@ -2719,8 +2723,8 @@ function App() {
     (entry) => {
       const dueDate =
         entry.customer.nextEnquiryCheckDate ||
-        (entry.customer.createdAt
-          ? addDaysFromISO(String(entry.customer.createdAt).slice(0, 10), 7)
+        (entry.enquiryAt
+          ? addDaysFromISO(String(entry.enquiryAt).slice(0, 10), 7)
           : null);
       return !!dueDate && dueDate > todayISO && !entry.customer.enquiryFollowUpSentAt;
     }
@@ -2728,7 +2732,6 @@ function App() {
   const enquiryFollowUpEntries = customers
     .filter(
       (customer) =>
-        !customer.lastServiceDate &&
         !!customer.enquiryFollowUpSentAt
     )
     .map((customer) => ({
@@ -4738,11 +4741,15 @@ function WorkPipeline({ s }) {
   const newEnquiries = s.customers
     .filter(
       (customer) =>
-        !customer.lastServiceDate &&
+        !!(customer.currentEnquiryAt || (!customer.lastServiceDate && customer.createdAt)) &&
         !s.replyActions?.[customer.id] &&
         !customer.enquiryFollowUpOutcomeRecordedAt
     )
-    .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+    .sort((a, b) =>
+      String(b.currentEnquiryAt || b.createdAt || "").localeCompare(
+        String(a.currentEnquiryAt || a.createdAt || "")
+      )
+    );
 
   const quotes = actionEntries.filter(({ action }) =>
     action?.type === "quote" &&
@@ -6564,11 +6571,12 @@ function CustomerRecords({ s }) {
         const action = s.replyActions?.[customer.id] || null;
         const pipelineLabel = customerPipelineLabel(customer, action);
         const activeAction = isActiveCustomerAction(action);
-        const isNewEnquiry = !customer.lastServiceDate;
-        const enquiryAge = isNewEnquiry ? daysSinceTimestamp(customer.createdAt) : null;
+        const hasOpenEnquiry = !!(customer.currentEnquiryAt || (!customer.lastServiceDate && customer.createdAt));
+        const enquiryTimestamp = customer.currentEnquiryAt || customer.createdAt;
+        const enquiryAge = hasOpenEnquiry ? daysSinceTimestamp(enquiryTimestamp) : null;
         const statusLabel =
           pipelineLabel ||
-          (isNewEnquiry
+          (hasOpenEnquiry
             ? customer.enquiryFollowUpOutcomeRecordedAt
               ? customer.enquiryFollowUpOutcome || "Follow-up recorded"
               : customer.enquiryFollowUpSentAt
@@ -6590,15 +6598,15 @@ function CustomerRecords({ s }) {
               </View>
               <StatusChip
                 label={statusLabel}
-                tone={activeAction || eligible || isNewEnquiry ? "green" : "blue"}
+                tone={activeAction || eligible || hasOpenEnquiry ? "green" : "blue"}
               />
             </View>
             <Text style={styles.customerService}>{customer.service}</Text>
             <Text style={styles.customerMeta}>
               {customer.lastServiceDate
                 ? `Last job: ${formatUKDate(customer.lastServiceDate)} • ${formatMonthsAgo(customer.lastServiceDate)}`
-                : customer.createdAt
-                ? `Enquiry: ${formatUKDate(String(customer.createdAt).slice(0, 10))} • ${enquiryAgeLabel(customer.createdAt)}`
+                : enquiryTimestamp
+                ? `Enquiry: ${formatUKDate(String(enquiryTimestamp).slice(0, 10))} • ${enquiryAgeLabel(enquiryTimestamp)}`
                 : "No completed job recorded yet"}
               {Number(customer.lastJobValue) > 0 ? ` • £${customer.lastJobValue}` : ""}
             </Text>
@@ -6700,8 +6708,12 @@ function CustomerDetail({ s }) {
           }
         />
         <MetricRow left="Last job" right={customer.lastServiceDate ? formatUKDate(customer.lastServiceDate) : "No completed job yet"} />
-        {!customer.lastServiceDate && customer.createdAt ? (
-          <MetricRow left="Enquiry received" right={formatUKDate(String(customer.createdAt).slice(0, 10))} strong={daysSinceTimestamp(customer.createdAt) >= 7} />
+        {(customer.currentEnquiryAt || (!customer.lastServiceDate && customer.createdAt)) ? (
+          <MetricRow
+            left="Current enquiry received"
+            right={formatUKDate(String(customer.currentEnquiryAt || customer.createdAt).slice(0, 10))}
+            strong={daysSinceTimestamp(customer.currentEnquiryAt || customer.createdAt) >= 7}
+          />
         ) : null}
         <MetricRow left="Last value" right={Number(customer.lastJobValue) > 0 ? `£${customer.lastJobValue}` : "Not recorded"} />
         {repeatDueDate ? (
@@ -6719,7 +6731,7 @@ function CustomerDetail({ s }) {
         ) : null}
       </Card>
 
-      {!customer.lastServiceDate && !action ? (
+      {(customer.currentEnquiryAt || (!customer.lastServiceDate && customer.createdAt)) && !action ? (
         customer.enquiryFollowUpSentAt ? (
           <Pressable
             onPress={() =>
@@ -6746,12 +6758,12 @@ function CustomerDetail({ s }) {
               <Text style={styles.activityOpen}>Record what happened →</Text>
             ) : null}
           </Pressable>
-        ) : daysSinceTimestamp(customer.createdAt) >= 7 && customer.contactOk !== false ? (
+        ) : daysSinceTimestamp(customer.currentEnquiryAt || customer.createdAt) >= 7 && customer.contactOk !== false ? (
           <Pressable onPress={() => s.prepareEnquiryFollowUp(customer.id)} style={styles.customerTimelineCard}>
             <View style={styles.activityTopRow}>
               <View style={{ flex: 1, paddingRight: 10 }}>
                 <Text style={styles.customerTimelineLabel}>QUIET ENQUIRY</Text>
-                <Text style={styles.activityName}>No next action for {daysSinceTimestamp(customer.createdAt)} days</Text>
+                <Text style={styles.activityName}>No next action for {daysSinceTimestamp(customer.currentEnquiryAt || customer.createdAt)} days</Text>
               </View>
               <StatusChip label="£0 opportunity" tone="green" />
             </View>
