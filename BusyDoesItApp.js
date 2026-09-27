@@ -107,6 +107,13 @@ function buildSimulatedReply(customer, index, quietSlot) {
   return { ...customer, ...variants[index % variants.length] };
 }
 
+function replyActionForStatus(status) {
+  if (status === "Booked") return { label: "Confirm booking", task: "Confirm the booking time" };
+  if (status === "Interested") return { label: "Prepare quote", task: "Prepare and send a quote" };
+  if (status === "Not now") return { label: "Remind later", task: "Save a later follow-up" };
+  return null;
+}
+
 
 const previousCustomerGroups = [
   {
@@ -274,6 +281,7 @@ function App() {
   const [message, setMessage] = useState(campaignSteps[0].message);
   const [serviceMessages, setServiceMessages] = useState({});
   const [lastSimulatedRecipients, setLastSimulatedRecipients] = useState([]);
+  const [replyActions, setReplyActions] = useState({});
   const [bringBackMessage, setBringBackMessage] = useState(
     "Hi, it’s been a while since we last helped. We’ve got a couple of spaces next week if you need any exterior cleaning. Reply here if you’d like us to take a look."
   );
@@ -309,6 +317,8 @@ function App() {
         if (saved.unansweredReviewCount !== undefined) setUnansweredReviewCount(String(saved.unansweredReviewCount));
         if (saved.recentPhotoCountNeeded !== undefined) setRecentPhotoCountNeeded(String(saved.recentPhotoCountNeeded));
         if (Array.isArray(saved.customers)) setCustomers(saved.customers);
+        if (Array.isArray(saved.lastSimulatedRecipients)) setLastSimulatedRecipients(saved.lastSimulatedRecipients);
+        if (saved.replyActions && typeof saved.replyActions === "object") setReplyActions(saved.replyActions);
         if (Array.isArray(saved.services)) setServices(saved.services);
         if (typeof saved.alwaysAsk === "boolean") setAlwaysAsk(saved.alwaysAsk);
         if (typeof saved.customerContact === "boolean") setCustomerContact(saved.customerContact);
@@ -350,6 +360,8 @@ function App() {
       unansweredReviewCount,
       recentPhotoCountNeeded,
       customers,
+      lastSimulatedRecipients,
+      replyActions,
       services,
       alwaysAsk,
       customerContact,
@@ -377,6 +389,8 @@ function App() {
     unansweredReviewCount,
     recentPhotoCountNeeded,
     customers,
+    lastSimulatedRecipients,
+    replyActions,
     services,
     alwaysAsk,
     customerContact,
@@ -460,8 +474,25 @@ function App() {
   const simulateCurrentSend = () => {
     if (campaignStage === 0) {
       setLastSimulatedRecipients(customers.filter(isEligibleCustomer).map((customer) => ({ ...customer })));
+      setReplyActions({});
     }
     go("progress");
+  };
+
+  const saveReplyAction = (customerId, task) => {
+    setReplyActions((current) => ({
+      ...current,
+      [customerId]: { task, done: false },
+    }));
+  };
+
+  const markReplyActionDone = (customerId) => {
+    setReplyActions((current) => ({
+      ...current,
+      [customerId]: current[customerId]
+        ? { ...current[customerId], done: true }
+        : current[customerId],
+    }));
   };
 
   const prepareOfferFromGoal = () => {
@@ -550,6 +581,7 @@ function App() {
     setNewCustomerContactOk(true);
     setServiceMessages({});
     setLastSimulatedRecipients([]);
+    setReplyActions({});
     setServices(servicesSeed);
     setAlwaysAsk(true);
     setCustomerContact(true);
@@ -566,6 +598,7 @@ function App() {
 
   const selectedService = services.find((x) => x.id === selectedServiceId) || services[0];
   const eligibleCustomers = customers.filter(isEligibleCustomer);
+  const pendingReplyActionCount = Object.values(replyActions).filter((action) => action && !action.done).length;
 
   const appState = {
     screen,
@@ -658,6 +691,11 @@ function App() {
     resetReactivationMessages,
     simulateCurrentSend,
     lastSimulatedRecipients,
+    replyActions,
+    setReplyActions,
+    saveReplyAction,
+    markReplyActionDone,
+    pendingReplyActionCount,
     bringBackMessage,
     setBringBackMessage,
     offerGoal,
@@ -1210,6 +1248,24 @@ function HomeScreen({ s }) {
   const customerCount = s.customers.length;
   const eligibleCount = s.eligibleCustomers.length;
   const opportunities = [
+    ...(s.pendingReplyActionCount
+      ? [{
+          id: "reply-actions",
+          eyebrow: "Customer replies",
+          title: `${s.pendingReplyActionCount} repl${s.pendingReplyActionCount === 1 ? "y needs" : "ies need"} your attention`,
+          body: "Busy Does It has turned the simulated replies into a short action list so nothing useful gets lost.",
+          footer: "Next step: handle the customer replies",
+          status: "Action needed",
+          tone: "green",
+          why: "A reply is only valuable if it turns into a clear next step. Busy Does It keeps interested and booked customers visible until you deal with them.",
+          evidence: [
+            ["Pending reply actions", String(s.pendingReplyActionCount)],
+            ["Source", "Your latest simulated send"],
+            ["Advertising required", "£0"],
+          ],
+          onAction: () => s.go("replyActions"),
+        }]
+      : []),
     {
       id: "quiet-slot",
       eyebrow: "Capacity",
@@ -1691,6 +1747,7 @@ function Progress({ s }) {
 }
 
 
+
 function Replies({ s }) {
   const recipients = s.lastSimulatedRecipients?.length ? s.lastSimulatedRecipients : s.eligibleCustomers;
   const replies = recipients.map((customer, index) =>
@@ -1698,23 +1755,27 @@ function Replies({ s }) {
   );
   const replyCount = replies.filter((reply) => reply.status !== "No reply").length;
   const noReplyCount = replies.length - replyCount;
+  const actionableCount = replies.filter((reply) => replyActionForStatus(reply.status)).length;
 
   return (
     <Shell
       s={s}
       title="Replies"
-      subtitle="These simulated outcomes use the exact customer records from the send you just tested."
+      subtitle="Busy Does It now turns useful replies into clear next actions."
     >
       <Card
         eyebrow="Simulated outcome"
         title={`${replyCount} repl${replyCount === 1 ? "y" : "ies"} from ${recipients.length} recipients`}
-        body={noReplyCount ? `${noReplyCount} customer${noReplyCount === 1 ? "" : "s"} have no reply yet.` : "Every simulated recipient has replied."}
+        body={`${actionableCount} replies have a sensible next step. ${noReplyCount} customer${noReplyCount === 1 ? "" : "s"} have no reply yet.`}
         footer="No real messages or replies"
         tone="green"
       />
 
       {replies.map((reply) => {
         const muted = reply.status === "Not now" || reply.status === "No reply";
+        const suggested = replyActionForStatus(reply.status);
+        const saved = s.replyActions[reply.id];
+
         return (
           <View style={styles.replyCard} key={reply.id}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
@@ -1725,11 +1786,103 @@ function Replies({ s }) {
               <Text style={[styles.replyStatus, muted && styles.replyStatusMuted]}>{reply.status}</Text>
             </View>
             <Text style={styles.replyBody}>{reply.body}</Text>
+
+            {suggested ? (
+              saved ? (
+                <View style={styles.replyActionSaved}>
+                  <Text style={styles.replyActionSavedTitle}>
+                    {saved.done ? "Completed" : "Next action saved"}
+                  </Text>
+                  <Text style={styles.replyActionSavedBody}>{saved.task}</Text>
+                </View>
+              ) : (
+                <Pressable
+                  onPress={() => s.saveReplyAction(reply.id, suggested.task)}
+                  style={styles.replyActionButton}
+                >
+                  <Text style={styles.replyActionButtonText}>{suggested.label}</Text>
+                </Pressable>
+              )
+            ) : null}
           </View>
         );
       })}
 
-      <Button label="Back to progress" primary onPress={s.back} />
+      {Object.keys(s.replyActions).length ? (
+        <Button
+          label={s.pendingReplyActionCount ? `Review next actions (${s.pendingReplyActionCount})` : "Review completed actions"}
+          primary
+          onPress={() => s.go("replyActions")}
+        />
+      ) : null}
+      <Button label="Back to progress" onPress={s.back} />
+    </Shell>
+  );
+}
+
+function ReplyActions({ s }) {
+  const recipients = s.lastSimulatedRecipients?.length ? s.lastSimulatedRecipients : s.eligibleCustomers;
+  const repliesById = Object.fromEntries(
+    recipients.map((customer, index) => {
+      const reply = buildSimulatedReply(customer, index, s.quietSlot);
+      return [reply.id, reply];
+    })
+  );
+  const entries = Object.entries(s.replyActions)
+    .map(([id, action]) => ({ id, action, reply: repliesById[id] }))
+    .filter((item) => item.reply);
+
+  const pending = entries.filter((item) => !item.action.done);
+  const done = entries.filter((item) => item.action.done);
+
+  return (
+    <Shell
+      s={s}
+      title="Next actions"
+      subtitle="A short customer follow-up queue, built from the replies you just received."
+    >
+      <Card
+        eyebrow="Reply follow-up"
+        title={`${pending.length} action${pending.length === 1 ? "" : "s"} still to do`}
+        body={done.length ? `${done.length} action${done.length === 1 ? "" : "s"} already completed.` : "Handle the useful replies first."}
+        footer="Customer work before more advertising"
+        tone="green"
+      />
+
+      {pending.map(({ id, action, reply }) => (
+        <View key={id} style={styles.replyTaskCard}>
+          <Text style={styles.replyTaskEyebrow}>{reply.status} • {reply.service}</Text>
+          <Text style={styles.replyTaskName}>{reply.name}</Text>
+          <Text style={styles.replyTaskBody}>{action.task}</Text>
+          <Pressable onPress={() => s.markReplyActionDone(id)} style={styles.replyTaskDoneButton}>
+            <Text style={styles.replyTaskDoneText}>Mark done</Text>
+          </Pressable>
+        </View>
+      ))}
+
+      {done.length ? (
+        <>
+          <Text style={styles.sectionLabel}>Completed</Text>
+          {done.map(({ id, action, reply }) => (
+            <View key={id} style={[styles.replyTaskCard, styles.replyTaskCardDone]}>
+              <Text style={styles.replyTaskEyebrow}>{reply.service}</Text>
+              <Text style={styles.replyTaskName}>{reply.name}</Text>
+              <Text style={styles.replyTaskBody}>✓ {action.task}</Text>
+            </View>
+          ))}
+        </>
+      ) : null}
+
+      {!entries.length ? (
+        <Card
+          eyebrow="Nothing queued"
+          title="No reply actions saved yet"
+          body="Go back to Replies and choose what you want to do with an interested or booked customer."
+        />
+      ) : null}
+
+      <Button label="Back to replies" primary onPress={s.back} />
+      <Button label="Home" onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
 }
@@ -2406,6 +2559,7 @@ const screens = {
   checkSend: CheckSend,
   progress: Progress,
   replies: Replies,
+  replyActions: ReplyActions,
   paidTest: PaidTest,
   howAdsWork: HowAdsWork,
   paidRunning: PaidRunning,
@@ -2607,6 +2761,18 @@ const styles = StyleSheet.create({
   replyStatusMuted: { color: C.muted },
   replyService: { color: C.muted, fontSize: 12, fontWeight: "700", marginTop: 2 },
   replyBody: { color: C.muted, lineHeight: 20, marginTop: 7 },
+  replyActionButton: { alignSelf: "flex-start", backgroundColor: C.blue, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, marginTop: 12 },
+  replyActionButtonText: { color: "#FFFFFF", fontWeight: "900", fontSize: 13 },
+  replyActionSaved: { backgroundColor: C.greenSoft, borderRadius: 10, padding: 11, marginTop: 12 },
+  replyActionSavedTitle: { color: C.green, fontWeight: "900", fontSize: 12 },
+  replyActionSavedBody: { color: C.ink, fontWeight: "700", fontSize: 13, marginTop: 3 },
+  replyTaskCard: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16, padding: 15, marginBottom: 10 },
+  replyTaskCardDone: { opacity: 0.72 },
+  replyTaskEyebrow: { color: C.blue, fontWeight: "900", fontSize: 12, textTransform: "uppercase" },
+  replyTaskName: { color: C.ink, fontWeight: "900", fontSize: 18, marginTop: 5 },
+  replyTaskBody: { color: C.muted, fontSize: 14, lineHeight: 20, marginTop: 5 },
+  replyTaskDoneButton: { alignSelf: "flex-start", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9, marginTop: 12, backgroundColor: C.greenSoft },
+  replyTaskDoneText: { color: C.green, fontSize: 13, fontWeight: "900" },
   groupCard: {
     borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16,
     padding: 16, marginBottom: 10,
