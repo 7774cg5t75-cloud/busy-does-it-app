@@ -2295,7 +2295,7 @@ function OpportunityCard({
   return (
     <View style={[styles.opportunityCard, toneStyle]}>
       <View style={styles.opportunityTop}>
-        <Text style={styles.eyebrow}>{eyebrow.toUpperCase()}</Text>
+        <Text style={[styles.eyebrow, styles.opportunityEyebrow]}>{eyebrow.toUpperCase()}</Text>
         {status ? <StatusChip label={status} tone={tone} /> : null}
       </View>
       <Text style={styles.opportunityTitle}>{title}</Text>
@@ -5964,7 +5964,8 @@ const styles = StyleSheet.create({
   opportunityBlue: { borderColor: "#CEDBF5" },
   opportunityGreen: { borderColor: "#CDE7D9" },
   opportunityAmber: { borderColor: "#F0D8B9" },
-  opportunityTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10 },
+  opportunityTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 10 },
+  opportunityEyebrow: { flex: 1, minWidth: 0, marginBottom: 0 },
   opportunityTitle: { fontSize: 20, lineHeight: 25, fontWeight: "900", color: C.ink, marginTop: 4 },
   opportunityBody: { color: C.muted, fontSize: 15, lineHeight: 21, marginTop: 7 },
   opportunityFooter: { color: C.green, fontSize: 14, fontWeight: "900", marginTop: 10 },
