@@ -3034,6 +3034,16 @@ function HomeScreen({ s }) {
   const postLearningAdjustment =
     postBookingRate === null ? 0 : Math.round((postBookingRate - 0.25) * 12);
   const reactivationLearningBoost = s.reactivationCompletedValue > 0 ? 6 : 0;
+  const quoteFollowUpAcceptanceRate = s.quoteFollowUpOutcomeCount
+    ? s.quoteFollowUpAcceptedCount / s.quoteFollowUpOutcomeCount
+    : null;
+  const quoteFollowUpLearningBoost =
+    quoteFollowUpAcceptanceRate === null ? 0 : Math.round((quoteFollowUpAcceptanceRate - 0.2) * 10);
+  const reviewSuccessRate = s.reviewRequestOutcomeCount
+    ? s.reviewReceivedCount / s.reviewRequestOutcomeCount
+    : null;
+  const reviewLearningBoost =
+    reviewSuccessRate === null ? 0 : Math.round((reviewSuccessRate - 0.35) * 8);
 
   const openEnquiries = s.customers
     .filter((customer) => !customer.lastServiceDate && !s.replyActions?.[customer.id])
@@ -3137,10 +3147,10 @@ function HomeScreen({ s }) {
     const quoteValue = Number(item.action.details?.quoteAmount) || 0;
     operationalMoves.push({
       id: `stale-quote-${item.id}`,
-      score: 95 + Math.min(8, item.age / 2) + Math.min(6, quoteValue / 250),
+      score: 95 + Math.min(8, item.age / 2) + Math.min(6, quoteValue / 250) + quoteFollowUpLearningBoost,
       eyebrow: "Quote follow-up",
       title: `A quote has been quiet for ${item.age} days`,
-      body: `${item.customer.name} already asked about ${item.customer.service.toLowerCase()}. Follow up before spending money finding another lead.`,
+      body: `${item.customer.name} already asked about ${item.customer.service.toLowerCase()}. Busy Does It has enough information to prepare a polite follow-up for review.`,
       footer: "Cost: £0",
       status: "Worth following up",
       tone: "green",
@@ -3149,10 +3159,12 @@ function HomeScreen({ s }) {
         ["Customer intent", "Quote already sent"],
         ["Waiting", `${item.age} days`],
         ["Quote value", quoteValue ? `£${quoteValue}` : "Not recorded"],
+        ["Previous follow-up outcomes", String(s.quoteFollowUpOutcomeCount)],
+        ["Previous accepted after follow-up", String(s.quoteFollowUpAcceptedCount)],
         ["Advertising required", "£0"],
       ],
-      actionLabel: "Open quote",
-      onAction: () => s.openSavedReplyAction(item.id),
+      actionLabel: "Review prepared follow-up",
+      onAction: () => s.prepareQuoteFollowUp(item.id),
       canIgnore: false,
     });
   }
@@ -3254,8 +3266,73 @@ function HomeScreen({ s }) {
             ["Completed value previously recorded from prototype reactivation flow", `£${s.reactivationCompletedValue}`],
             ["Advertising required", "£0"],
           ],
-          actionLabel: "Review customers",
-          onAction: () => s.go("bestMove"),
+          actionLabel: "Review prepared messages",
+          onAction: () => s.startCampaign(0),
+          canIgnore: true,
+        }]
+      : []),
+    ...(s.reviewRequestOpportunity
+      ? [{
+          id: `review-request-${s.reviewRequestOpportunity.jobId}`,
+          score: 62 + reviewLearningBoost,
+          eyebrow: "Post-job opportunity",
+          title: `Ask ${s.reviewRequestOpportunity.customerName} for a review`,
+          body: `${s.reviewRequestOpportunity.service} is completed. Busy Does It can prepare a short, low-pressure review request using the saved customer and job details.`,
+          footer: "Cost: £0 • owner approval required",
+          status: "Prepared on open",
+          tone: "green",
+          why: "The job is already complete and the customer can be contacted. A genuine review request costs nothing, so it can be worth doing before paid promotion.",
+          evidence: [
+            ["Completed job", s.reviewRequestOpportunity.service],
+            ["Recorded job value", s.reviewRequestOpportunity.value ? `£${s.reviewRequestOpportunity.value}` : "Not recorded"],
+            ["Previous review-request outcomes", String(s.reviewRequestOutcomeCount)],
+            ["Reviews recorded as left", String(s.reviewReceivedCount)],
+            ["Advertising required", "£0"],
+          ],
+          actionLabel: "Review prepared request",
+          onAction: () => s.prepareReviewRequest(s.reviewRequestOpportunity.customerId, s.reviewRequestOpportunity.jobId),
+          canIgnore: true,
+        }]
+      : []),
+    ...(s.quoteFollowUpOutcomeOpportunity
+      ? [{
+          id: `quote-followup-outcome-${s.quoteFollowUpOutcomeOpportunity.customerId}`,
+          score: 43,
+          eyebrow: "Learning",
+          title: `What happened with ${s.quoteFollowUpOutcomeOpportunity.customerName}?`,
+          body: `A prepared quote follow-up was approved. Recording the outcome helps Busy Does It judge future quote follow-ups more accurately.`,
+          footer: "Takes one quick update",
+          status: "Learn",
+          tone: "blue",
+          why: "This improves the evidence behind future recommendations, but it should not outrank a waiting customer or a live booking.",
+          evidence: [
+            ["Quote value", s.quoteFollowUpOutcomeOpportunity.quoteAmount ? `£${s.quoteFollowUpOutcomeOpportunity.quoteAmount}` : "Not recorded"],
+            ["Current outcome", "Not recorded"],
+            ["What we learn from", "Accepted, declined or still considering"],
+          ],
+          actionLabel: "Record outcome",
+          onAction: () => s.openQuoteFollowUpOutcome(s.quoteFollowUpOutcomeOpportunity.customerId),
+          canIgnore: true,
+        }]
+      : []),
+    ...(s.reviewOutcomeOpportunity
+      ? [{
+          id: `review-outcome-${s.reviewOutcomeOpportunity.jobId}`,
+          score: 38,
+          eyebrow: "Learning",
+          title: `Did ${s.reviewOutcomeOpportunity.customerName} leave a review?`,
+          body: "The review request was approved earlier. One quick outcome update helps the engine learn whether this free action is worthwhile.",
+          footer: "No vanity metrics needed",
+          status: "Learn",
+          tone: "blue",
+          why: "This is useful evidence but less urgent than work already in the pipeline.",
+          evidence: [
+            ["Service", s.reviewOutcomeOpportunity.service],
+            ["Current outcome", "Not recorded"],
+            ["What we learn from", "Review left or no response"],
+          ],
+          actionLabel: "Record outcome",
+          onAction: () => s.openReviewRequestOutcome(s.reviewOutcomeOpportunity.customerId, s.reviewOutcomeOpportunity.jobId),
           canIgnore: true,
         }]
       : []),
