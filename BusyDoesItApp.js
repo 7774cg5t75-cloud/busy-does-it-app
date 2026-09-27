@@ -7412,6 +7412,61 @@ function BusyInbox({ s }) {
   );
 }
 
+function AutopilotFiled({ s }) {
+  const item = s.lastAutoFiledInboxItem;
+  const customer = item?.filedCustomerId
+    ? s.customers.find((candidate) => candidate.id === item.filedCustomerId)
+    : null;
+
+  if (!item || !customer) {
+    return (
+      <Shell
+        s={s}
+        title="Safe Autopilot"
+        subtitle="The automatically filed item could not be reopened."
+      >
+        <Button label="Open Busy Inbox" primary onPress={s.openBusyInbox} />
+      </Shell>
+    );
+  }
+
+  return (
+    <Shell
+      s={s}
+      title="Busy filed it automatically"
+      subtitle="This record passed every Safe Autopilot rule. No customer-facing action was taken."
+      brandCue="Boring admin handled. Important actions still need you."
+    >
+      <Card
+        eyebrow="Safe Autopilot receipt"
+        title={customer.name}
+        body={`${item.filedStage || item.parsed?.stage || "Record update"} • ${customer.service}`}
+        footer="Filed into an existing customer record"
+        tone="green"
+      >
+        <MetricRow left="Customer match" right="Exact phone / email" strong />
+        <MetricRow left="Extraction confidence" right={item.parsed?.confidence || "High"} />
+        <MetricRow left="Conflict check" right="Passed" />
+        <MetricRow left="Customer message sent" right="No" />
+        <MetricRow left="Public post made" right="No" />
+        <MetricRow left="Money spent" right="£0" />
+      </Card>
+
+      <Card
+        eyebrow="Why Busy was allowed to do this"
+        title="All trust rules passed"
+        body={item.autoFileReason || "Exact existing-customer match, high-confidence complete data and no active-work conflict."}
+        footer="Recorded in Inbox + Intake History"
+        tone="blue"
+      />
+
+      <Button label="Open customer record" primary onPress={() => s.openCustomer(customer.id)} />
+      <Button label="Back to Busy Inbox" onPress={s.openBusyInbox} />
+      <Button label="Automatic filing settings" onPress={() => s.go("recordFilingSettings")} />
+    </Shell>
+  );
+}
+
 function QuickCapture({ s }) {
   const canAnalyse = !!s.captureRawText.trim();
   return (
@@ -9645,6 +9700,7 @@ const screens = {
   reviewRequestSent: ReviewRequestSent,
   reviewRequestOutcome: ReviewRequestOutcome,
   busyInbox: BusyInbox,
+  autopilotFiled: AutopilotFiled,
   quickCapture: QuickCapture,
   quickCaptureReview: QuickCaptureReview,
   quickCaptureSaved: QuickCaptureSaved,
