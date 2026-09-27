@@ -2532,6 +2532,154 @@ function WorkHub({ s }) {
   );
 }
 
+
+function WorkPipeline({ s }) {
+  const actionEntries = Object.entries(s.replyActions || {}).map(([id, action]) => {
+    const customer =
+      s.customers.find((item) => item.id === id) ||
+      s.lastSimulatedRecipients.find((item) => item.id === id);
+    return customer ? { id, action, customer } : null;
+  }).filter(Boolean);
+
+  const newEnquiries = s.customers
+    .filter((customer) => !customer.lastServiceDate && !s.replyActions?.[customer.id])
+    .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+
+  const quotes = actionEntries.filter(({ action }) =>
+    action?.type === "quote" &&
+    isActiveCustomerAction(action)
+  );
+  const bookings = actionEntries
+    .filter(({ action }) => action?.type === "booking" && isActiveCustomerAction(action))
+    .sort((a, b) =>
+      String(a.action.details?.bookingDate || "9999-12-31").localeCompare(
+        String(b.action.details?.bookingDate || "9999-12-31")
+      )
+    );
+  const followUps = actionEntries
+    .filter(({ action }) => action?.type === "reminder" && isActiveCustomerAction(action))
+    .sort((a, b) =>
+      String(a.action.details?.reminderDate || "9999-12-31").localeCompare(
+        String(b.action.details?.reminderDate || "9999-12-31")
+      )
+    );
+  const completed = actionEntries
+    .filter(({ action }) =>
+      action?.type === "booking" &&
+      action?.details?.bookingStatus === "Completed"
+    )
+    .sort((a, b) => String(b.action.details?.bookingDate || "").localeCompare(String(a.action.details?.bookingDate || "")))
+    .slice(0, 8);
+
+  const totalActive = newEnquiries.length + quotes.length + bookings.length + followUps.length;
+
+  const PipelineCard = ({ item, kind }) => {
+    const { id, action, customer } = item;
+    let status = "";
+    let detail = customer.service;
+    if (kind === "quote") {
+      status = action.details?.quoteStatus || "Prepared";
+      detail += action.details?.quoteAmount ? ` • £${action.details.quoteAmount}` : "";
+    } else if (kind === "booking") {
+      status = action.details?.bookingStatus || "Confirmed";
+      if (action.details?.bookingDate) {
+        detail += ` • ${formatUKDate(action.details.bookingDate)}`;
+        if (action.details?.bookingTime) detail += ` at ${action.details.bookingTime}`;
+      }
+    } else if (kind === "reminder") {
+      status = action.details?.reminderStatus || "Scheduled";
+      if (action.details?.reminderDate) detail += ` • ${formatUKDate(action.details.reminderDate)}`;
+    } else if (kind === "completed") {
+      status = "Completed";
+      if (action.details?.bookingDate) detail += ` • ${formatUKDate(action.details.bookingDate)}`;
+      if (Number(action.details?.jobValue) > 0) detail += ` • £${action.details.jobValue}`;
+    }
+    return (
+      <Pressable
+        key={id}
+        onPress={() => s.openSavedReplyAction(id)}
+        style={styles.customerTimelineCard}
+      >
+        <View style={styles.homePriorityTop}>
+          <View style={{ flex: 1, paddingRight: 10 }}>
+            <Text style={styles.customerTimelineLabel}>{kind.toUpperCase()}</Text>
+            <Text style={styles.activityName}>{customer.name}</Text>
+          </View>
+          <StatusChip label={status} tone={["Cancelled", "Declined"].includes(status) ? "blue" : "green"} />
+        </View>
+        <Text style={styles.activitySummary}>{detail}</Text>
+        <Text style={styles.activityOpen}>Open →</Text>
+      </Pressable>
+    );
+  };
+
+  return (
+    <Shell
+      s={s}
+      title="Customer pipeline"
+      subtitle="Every live customer sits in one clear stage, from first enquiry through to completed work."
+      brandCue="One customer. One next step."
+    >
+      <Card
+        eyebrow="Live customer work"
+        title={totalActive ? `${totalActive} active item${totalActive === 1 ? "" : "s"}` : "Pipeline clear"}
+        body="This view is built from the local customer records and actions already saved in Busy Does It."
+        footer={`£${s.pipelineWorkValue} currently in quotes + booked work`}
+        tone={totalActive ? "green" : "blue"}
+      >
+        <MetricRow left="New enquiries" right={String(newEnquiries.length)} />
+        <MetricRow left="Active quotes" right={String(quotes.length)} />
+        <MetricRow left="Bookings" right={String(bookings.length)} />
+        <MetricRow left="Follow-ups" right={String(followUps.length)} />
+      </Card>
+
+      {newEnquiries.length ? <Text style={styles.sectionLabel}>New enquiries</Text> : null}
+      {newEnquiries.map((customer) => (
+        <Pressable
+          key={customer.id}
+          onPress={() => s.openCustomer(customer.id)}
+          style={styles.customerTimelineCard}
+        >
+          <View style={styles.homePriorityTop}>
+            <View style={{ flex: 1, paddingRight: 10 }}>
+              <Text style={styles.customerTimelineLabel}>NEW ENQUIRY</Text>
+              <Text style={styles.activityName}>{customer.name}</Text>
+            </View>
+            <StatusChip label="Needs next step" tone="amber" />
+          </View>
+          <Text style={styles.activitySummary}>{customer.service}</Text>
+          <Text style={styles.activityOpen}>Open customer →</Text>
+        </Pressable>
+      ))}
+
+      {quotes.length ? <Text style={styles.sectionLabel}>Quotes</Text> : null}
+      {quotes.map((item) => <PipelineCard key={item.id} item={item} kind="quote" />)}
+
+      {bookings.length ? <Text style={styles.sectionLabel}>Bookings</Text> : null}
+      {bookings.map((item) => <PipelineCard key={item.id} item={item} kind="booking" />)}
+
+      {followUps.length ? <Text style={styles.sectionLabel}>Follow-ups</Text> : null}
+      {followUps.map((item) => <PipelineCard key={item.id} item={item} kind="reminder" />)}
+
+      {completed.length ? <Text style={styles.sectionLabel}>Recently completed</Text> : null}
+      {completed.map((item) => <PipelineCard key={item.id} item={item} kind="completed" />)}
+
+      {!totalActive && !completed.length ? (
+        <Card
+          eyebrow="Nothing waiting"
+          title="No customer work in the pipeline yet"
+          body="Add a new enquiry or start an action from a customer record."
+          tone="blue"
+        />
+      ) : null}
+
+      <Button label="+ New enquiry" primary onPress={s.startNewEnquiry} />
+      <Button label="Work diary" onPress={() => s.go("bookings")} />
+      <Button label="Customer records" onPress={() => s.go("customerRecords")} />
+    </Shell>
+  );
+}
+
 function WorkNow({ s }) {
   return (
     <Shell s={s} title="Find more work" subtitle="Tell Busy Does It the business result you want. We’ll work out the marketing underneath.">
@@ -4740,6 +4888,7 @@ const screens = {
   setupConnect: SetupConnect,
   home: HomeScreen,
   workHub: WorkHub,
+  workPipeline: WorkPipeline,
   workNow: WorkNow,
   chooseGap: ChooseGap,
   bestMove: BestMove,
