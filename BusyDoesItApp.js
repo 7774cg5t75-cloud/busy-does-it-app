@@ -1324,9 +1324,9 @@ function App() {
     const draft = jobPostDraft.trim();
     if (!draft || !selectedJobId || !selectedCustomerId) return;
     const channels = [
-      jobPostChannels.facebook ? "Facebook" : null,
-      jobPostChannels.instagram ? "Instagram" : null,
-      jobPostChannels.googleBusiness ? "Google Business" : null,
+      connectedAccounts.meta && jobPostChannels.facebook ? "Facebook" : null,
+      connectedAccounts.meta && jobPostChannels.instagram ? "Instagram" : null,
+      connectedAccounts.googleBusiness && jobPostChannels.googleBusiness ? "Google Business" : null,
     ].filter(Boolean);
     if (!channels.length) {
       Alert.alert("Choose where it would go", "Select at least one connected profile before approving this prototype post.");
@@ -2726,6 +2726,12 @@ function HomeScreen({ s }) {
   const eligibleCount = s.eligibleCustomers.length;
   const todayISO = dateToISO(new Date());
   const hasPublishingConnection = !!s.connectedAccounts.meta || !!s.connectedAccounts.googleBusiness;
+  const postBookingRate = s.postOutcomeRecordedCount
+    ? s.postBookingOutcomeCount / s.postOutcomeRecordedCount
+    : null;
+  const postLearningAdjustment =
+    postBookingRate === null ? 0 : Math.round((postBookingRate - 0.25) * 12);
+  const reactivationLearningBoost = s.reactivationCompletedValue > 0 ? 6 : 0;
 
   const openEnquiries = s.customers
     .filter((customer) => !customer.lastServiceDate && !s.replyActions?.[customer.id])
@@ -2881,7 +2887,7 @@ function HomeScreen({ s }) {
     ...(s.preparedPostOpportunity
       ? [{
           id: `prepared-post-${s.preparedPostOpportunity.jobId}`,
-          score: hasPublishingConnection ? 78 : 58,
+          score: (hasPublishingConnection ? 78 : 58) + postLearningAdjustment,
           eyebrow: "Prepared action ready",
           title: "A finished-job post is ready for approval",
           body: `${s.preparedPostOpportunity.customerName}’s ${s.preparedPostOpportunity.service.toLowerCase()} job already has approved photos and editable wording prepared.`,
@@ -2894,6 +2900,8 @@ function HomeScreen({ s }) {
           evidence: [
             ["Prepared photos", String(s.preparedPostOpportunity.photoCount)],
             ["Draft wording", "Ready"],
+            ["Previous post outcomes recorded", String(s.postOutcomeRecordedCount)],
+            ["Previous post bookings recorded", String(s.postBookingOutcomeCount)],
             ["Connected destination", hasPublishingConnection ? "Available" : "Not yet"],
             ["Advertising required", "£0"],
           ],
@@ -2905,7 +2913,7 @@ function HomeScreen({ s }) {
     ...(s.photoOpportunity
       ? [{
           id: `job-photo-${s.photoOpportunity.jobId}`,
-          score: 68,
+          score: 68 + postLearningAdjustment,
           eyebrow: "Free content opportunity",
           title: `Use ${s.photoOpportunity.photoCount} approved job photo${s.photoOpportunity.photoCount === 1 ? "" : "s"}`,
           body: `${s.photoOpportunity.customerName}’s ${s.photoOpportunity.service.toLowerCase()} job is already saved. Busy Does It can prepare the words and approval step for you.`,
@@ -2916,6 +2924,8 @@ function HomeScreen({ s }) {
           evidence: [
             ["Approved job photos", String(s.photoOpportunity.photoCount)],
             ["Source", "Completed customer job"],
+            ["Previous post outcomes recorded", String(s.postOutcomeRecordedCount)],
+            ["Previous post bookings recorded", String(s.postBookingOutcomeCount)],
             ["Owner approval", "Still required"],
             ["Advertising required", "£0"],
           ],
@@ -2927,7 +2937,7 @@ function HomeScreen({ s }) {
     ...(s.quietSlot && eligibleCount > 0
       ? [{
           id: "quiet-slot",
-          score: 60 + Math.min(10, eligibleCount),
+          score: 60 + Math.min(10, eligibleCount) + reactivationLearningBoost,
           eyebrow: "Spare capacity",
           title: `${s.quietSlot} is free`,
           body: `${eligibleCount} of ${customerCount} saved customer records are due and allowed to contact now. Busy Does It can prepare service-matched messages.`,
@@ -2939,6 +2949,7 @@ function HomeScreen({ s }) {
             ["Suitable customers", String(eligibleCount)],
             ["Saved customer records", String(customerCount)],
             ["Message preparation", "Service matched"],
+            ["Completed value previously recorded from prototype reactivation flow", `£${s.reactivationCompletedValue}`],
             ["Advertising required", "£0"],
           ],
           actionLabel: "Review customers",
@@ -5323,9 +5334,9 @@ function JobPostApproval({ s }) {
   }
 
   const selectedCount =
-    Number(!!s.jobPostChannels.facebook) +
-    Number(!!s.jobPostChannels.instagram) +
-    Number(!!s.jobPostChannels.googleBusiness);
+    Number(!!s.connectedAccounts.meta && !!s.jobPostChannels.facebook) +
+    Number(!!s.connectedAccounts.meta && !!s.jobPostChannels.instagram) +
+    Number(!!s.connectedAccounts.googleBusiness && !!s.jobPostChannels.googleBusiness);
   const hasSocialConnection = !!s.connectedAccounts.meta;
   const hasGoogleConnection = !!s.connectedAccounts.googleBusiness;
 
@@ -5811,8 +5822,8 @@ function Results({ s }) {
     >
       <Card
         eyebrow="Value we can trace"
-        title={`£${s.completedJobValue + s.pipelineWorkValue + s.postAttributedValue} recorded across completed work, pipeline and attributed post bookings`}
-        body="This is traceable prototype data, not a promise that Busy Does It caused every pound. User-entered attribution stays labelled as attribution."
+        title="Business value saved in separate, traceable buckets"
+        body="Busy Does It does not add these figures into one headline total because the same job could appear in more than one stage. Attribution stays labelled instead of being presented as certainty."
         tone="green"
       >
         <MetricRow left="Completed work recorded" right={`£${s.completedJobValue}`} strong={s.completedJobValue > 0} />
