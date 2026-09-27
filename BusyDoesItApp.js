@@ -1958,7 +1958,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={styles.brand}>BUSY DOES IT</Text>
             <Text style={styles.tagline}>More work. Less fuss.</Text>
-            <Text style={styles.prototypeBadge}>Prototype v1.3 • job photos + reusable assets</Text>
+            <Text style={styles.prototypeBadge}>Prototype v1.4 • business opportunity engine</Text>
           </View>
           {!noBack && s.history?.length > 0 ? (
             <Pressable onPress={s.back} style={styles.backPill}>
@@ -2261,7 +2261,7 @@ function InlineExplanation({ why, evidence = [] }) {
           {evidence.length ? (
             <>
               <Pressable onPress={() => setShowEvidence((v) => !v)} style={styles.inlineLinkWrapLeft}>
-                <Text style={styles.inlineLink}>{showEvidence ? "Hide evidence" : "Show evidence"}</Text>
+                <Text style={styles.inlineLink}>{showEvidence ? "Hide expert details" : "Expert details"}</Text>
               </Pressable>
               {showEvidence ? (
                 <View style={styles.evidenceBox}>
@@ -2491,33 +2491,17 @@ function SetupConnect({ s }) {
 
 
 function HomeScreen({ s }) {
+  const [showOtherMoves, setShowOtherMoves] = useState(false);
   const serviceName = s.selectedService?.name || s.services.find((x) => x.wanted)?.name || s.trade || "your priority service";
   const customerCount = s.customers.length;
   const eligibleCount = s.eligibleCustomers.length;
   const todayISO = dateToISO(new Date());
+
   const openEnquiries = s.customers
     .filter((customer) => !customer.lastServiceDate && !s.replyActions?.[customer.id])
     .sort((a, b) => String(a.createdAt || "").localeCompare(String(b.createdAt || "")));
   const nextEnquiry = openEnquiries[0] || null;
-  const upcomingBookings = Object.entries(s.replyActions || {})
-    .map(([id, action]) => {
-      if (!action?.done || action.type !== "booking" || !action.details?.bookingDate) return null;
-      const customer =
-        s.customers.find((item) => item.id === id) ||
-        s.lastSimulatedRecipients.find((item) => item.id === id);
-      return customer ? { id, action, customer } : null;
-    })
-    .filter((item) =>
-      item &&
-      item.action.details.bookingDate >= todayISO &&
-      !["Cancelled", "Completed"].includes(item.action.details?.bookingStatus || "Confirmed")
-    )
-    .sort((a, b) =>
-      `${a.action.details.bookingDate}T${a.action.details.bookingTime || "00:00"}`.localeCompare(
-        `${b.action.details.bookingDate}T${b.action.details.bookingTime || "00:00"}`
-      )
-    );
-  const nextBooking = upcomingBookings[0] || null;
+
   const overdueBookings = Object.entries(s.replyActions || {})
     .map(([id, action]) => {
       if (
@@ -2534,92 +2518,127 @@ function HomeScreen({ s }) {
     })
     .filter(Boolean)
     .sort((a, b) => String(a.action.details.bookingDate).localeCompare(String(b.action.details.bookingDate)));
-  const overdueBooking = overdueBookings[0] || null;
-  const activeQuoteEntries = Object.entries(s.replyActions || {})
-    .map(([id, action]) => {
-      if (
-        action?.type !== "quote" ||
-        !action?.done ||
-        !["Prepared", "Sent", "Accepted"].includes(action.details?.quoteStatus || "Prepared")
-      ) return null;
-      const customer =
-        s.customers.find((item) => item.id === id) ||
-        s.lastSimulatedRecipients.find((item) => item.id === id);
-      return customer ? { id, action, customer } : null;
-    })
-    .filter(Boolean)
-    .sort((a, b) => String(b.action.completedAt || "").localeCompare(String(a.action.completedAt || "")));
-  const priorityQuote = activeQuoteEntries[0] || null;
-  const priorityCustomerWork = overdueBooking
-    ? {
-        eyebrow: "PAST BOOKING NEEDS AN OUTCOME",
-        status: "Do this first",
-        title: overdueBooking.customer.name,
-        body: `${overdueBooking.customer.service} • ${formatUKDate(overdueBooking.action.details.bookingDate)}`,
-        link: "Complete, move or cancel →",
-        onPress: () => s.openSavedReplyAction(overdueBooking.id),
-      }
-    : s.dueReminderEntries.length
-    ? {
-        eyebrow: "FOLLOW-UP DUE",
-        status: "Action needed",
-        title: s.dueReminderEntries[0].customer.name,
-        body: `${s.dueReminderEntries[0].customer.service} • due ${formatUKDate(s.dueReminderEntries[0].action.details.reminderDate)}`,
-        link: "Open follow-up →",
-        onPress: () => s.openSavedReplyAction(s.dueReminderEntries[0].id),
-      }
-    : nextEnquiry
-    ? {
-        eyebrow: "NEW ENQUIRY",
-        status: "Needs next step",
-        title: nextEnquiry.name,
-        body: nextEnquiry.service,
-        link: "Open enquiry →",
-        onPress: () => s.openCustomer(nextEnquiry.id),
-      }
-    : nextBooking
-    ? {
-        eyebrow: "NEXT BOOKING",
-        status: "Customer work",
-        title: nextBooking.customer.name,
-        body: `${nextBooking.customer.service} • ${formatUKDate(nextBooking.action.details.bookingDate)} at ${nextBooking.action.details.bookingTime || "time not set"}`,
-        link: "Open booking →",
-        onPress: () => s.openSavedReplyAction(nextBooking.id),
-      }
-    : priorityQuote
-    ? {
-        eyebrow: "ACTIVE QUOTE",
-        status: priorityQuote.action.details?.quoteStatus || "Prepared",
-        title: priorityQuote.customer.name,
-        body: `${priorityQuote.customer.service} • £${priorityQuote.action.details?.quoteAmount || "—"}`,
-        link: "Open quote →",
-        onPress: () => s.openSavedReplyAction(priorityQuote.id),
-      }
-    : null;
-  const opportunities = [
-    ...(s.pendingReplyActionCount
-      ? [{
-          id: "reply-actions",
-          eyebrow: "Customer work",
-          title: `${s.pendingReplyActionCount} customer action${s.pendingReplyActionCount === 1 ? " needs" : "s need"} your attention`,
-          body: "Quotes, bookings and follow-ups stay visible until you deal with them — whether they came from a simulated marketing reply or were started directly from a customer record.",
-          footer: "Next step: handle the customer work",
-          status: "Action needed",
-          tone: "green",
-          why: "A lead or customer conversation is only valuable if it turns into a clear next step. Busy Does It keeps unfinished customer work visible.",
-          evidence: [
-            ["Pending customer actions", String(s.pendingReplyActionCount)],
-            ["Source", "Customer records and prototype activity"],
-            ["Advertising required", "£0"],
-          ],
-          onAction: () => s.go("customerActivity"),
-        }]
-      : []),
+
+  const operationalMoves = [];
+
+  if (overdueBookings.length) {
+    const item = overdueBookings[0];
+    operationalMoves.push({
+      id: `overdue-booking-${item.id}`,
+      eyebrow: "Past booking needs an outcome",
+      title: `${item.customer.name} needs closing out`,
+      body: `${item.customer.service} was booked for ${formatUKDate(item.action.details.bookingDate)}. Complete, move or cancel it before creating more work.`,
+      footer: "Cost: £0",
+      status: "Do this first",
+      tone: "amber",
+      why: "Busy Does It protects live customer work before suggesting marketing. An overdue booking needs a clear outcome so the diary, customer history and pipeline stay accurate.",
+      evidence: [
+        ["Customer", item.customer.name],
+        ["Service", item.customer.service],
+        ["Booked date", formatUKDate(item.action.details.bookingDate)],
+        ["Advertising required", "£0"],
+      ],
+      actionLabel: "Open booking",
+      onAction: () => s.openSavedReplyAction(item.id),
+      canIgnore: false,
+    });
+  }
+
+  if (s.dueReminderEntries.length) {
+    const item = s.dueReminderEntries[0];
+    operationalMoves.push({
+      id: `due-reminder-${item.id}`,
+      eyebrow: "Follow-up due",
+      title: `Follow up ${item.customer.name}`,
+      body: `${item.customer.service} follow-up is due ${formatUKDate(item.action.details.reminderDate)}.`,
+      footer: "Cost: £0",
+      status: "Action needed",
+      tone: "amber",
+      why: "This customer already has a promised follow-up. Keeping that commitment is a lower-risk next move than creating fresh marketing activity.",
+      evidence: [
+        ["Customer", item.customer.name],
+        ["Service", item.customer.service],
+        ["Follow-up date", formatUKDate(item.action.details.reminderDate)],
+        ["Advertising required", "£0"],
+      ],
+      actionLabel: "Open follow-up",
+      onAction: () => s.openSavedReplyAction(item.id),
+      canIgnore: false,
+    });
+  }
+
+  if (s.dueQuoteEntries.length) {
+    const item = s.dueQuoteEntries[0];
+    operationalMoves.push({
+      id: `stale-quote-${item.id}`,
+      eyebrow: "Quote follow-up",
+      title: `A quote has been quiet for ${item.age} days`,
+      body: `${item.customer.name} already asked about ${item.customer.service.toLowerCase()}. Follow up before spending money finding another lead.`,
+      footer: "Cost: £0",
+      status: "Worth following up",
+      tone: "green",
+      why: "The customer has already reached the quote stage, so a polite follow-up is usually cheaper and lower risk than buying new attention.",
+      evidence: [
+        ["Customer", item.customer.name],
+        ["Service", item.customer.service],
+        ["Days since quote was marked sent", String(item.age)],
+        ["Advertising required", "£0"],
+      ],
+      actionLabel: "Open quote",
+      onAction: () => s.openSavedReplyAction(item.id),
+      canIgnore: false,
+    });
+  }
+
+  if (nextEnquiry) {
+    operationalMoves.push({
+      id: `new-enquiry-${nextEnquiry.id}`,
+      eyebrow: "Unanswered enquiry",
+      title: `Reply to ${nextEnquiry.name}`,
+      body: `${nextEnquiry.service}${nextEnquiry.address ? ` • ${nextEnquiry.address}` : ""} • ${enquiryAgeLabel(nextEnquiry.createdAt)}.`,
+      footer: "Cost: £0",
+      status: "Customer waiting",
+      tone: "green",
+      why: "A real enquiry is already in the pipeline. Busy Does It prioritises responding to existing demand before suggesting activity to create more demand.",
+      evidence: [
+        ["Customer", nextEnquiry.name],
+        ["Service", nextEnquiry.service],
+        ["Waiting", enquiryAgeLabel(nextEnquiry.createdAt)],
+        ["Advertising required", "£0"],
+      ],
+      actionLabel: "Open enquiry",
+      onAction: () => s.openCustomer(nextEnquiry.id),
+      canIgnore: false,
+    });
+  }
+
+  if (s.pendingReplyActionCount) {
+    operationalMoves.push({
+      id: "pending-customer-actions",
+      eyebrow: "Customer work",
+      title: `${s.pendingReplyActionCount} customer action${s.pendingReplyActionCount === 1 ? " needs" : "s need"} finishing`,
+      body: "There is unfinished quote, booking or follow-up work already saved in the prototype.",
+      footer: "Cost: £0",
+      status: "Finish what is open",
+      tone: "green",
+      why: "Existing customer work comes before general marketing suggestions because it is already closer to becoming booked or completed work.",
+      evidence: [
+        ["Pending customer actions", String(s.pendingReplyActionCount)],
+        ["Source", "Saved customer activity"],
+        ["Advertising required", "£0"],
+      ],
+      actionLabel: "Review actions",
+      onAction: () => s.go("customerActivity"),
+      canIgnore: false,
+    });
+  }
+
+  const marketingMoves = [
     ...(s.photoOpportunity
       ? [{
           id: `job-photo-${s.photoOpportunity.jobId}`,
-          eyebrow: "Free content",
-          title: `Use ${s.photoOpportunity.photoCount} recent job photo${s.photoOpportunity.photoCount === 1 ? "" : "s"}`,
+          eyebrow: "Free content opportunity",
+          title: `Use ${s.photoOpportunity.photoCount} approved job photo${s.photoOpportunity.photoCount === 1 ? "" : "s"}`,
           body: `${s.photoOpportunity.customerName}’s ${s.photoOpportunity.service.toLowerCase()} job is already saved. Prepare a finished-job post before paying to reach more people.`,
           footer: "Cost: £0 • nothing posts without approval",
           status: "Free",
@@ -2631,112 +2650,137 @@ function HomeScreen({ s }) {
             ["Public posting", "Still requires approval"],
             ["Advertising required", "£0"],
           ],
+          actionLabel: "Prepare post",
           onAction: () => s.openJobPhotoOpportunity(s.photoOpportunity.customerId, s.photoOpportunity.jobId),
+          canIgnore: true,
         }]
       : []),
-    {
-      id: "quiet-slot",
-      eyebrow: "Capacity",
-      title: `${s.quietSlot || "A quiet slot"} is free`,
-      body: `You have ${customerCount} saved customer records. ${eligibleCount} are due and allowed to contact now.`,
-      footer: "Recommended first move: £0 advertising spend",
-      status: eligibleCount ? "Worth trying" : "No one due",
-      tone: eligibleCount ? "green" : "blue",
-      why: `Busy Does It checks actual saved customer records first. The timing rule comes from the service rather than assuming every business repeats on the same schedule. Current rule: ${s.eligibilityRule}`,
-      evidence: [
-        ["Saved customer records", String(customerCount)],
-        ["Eligible now", String(eligibleCount)],
-        ["Eligibility rule", s.eligibilityRule],
-        ["Advertising required", "£0"],
-      ],
-      onAction: () => s.go("bestMove"),
-    },
-    {
-      id: "profile-fixes",
-      eyebrow: "Free improvement",
-      title: "Check the free profile gaps",
-      body: `Make sure ${serviceName.toLowerCase()} is clear, add ${s.recentPhotoCountNeeded || 0} recent photo${String(s.recentPhotoCountNeeded) === "1" ? "" : "s"}, and deal with ${s.unansweredReviewCount || 0} unanswered review${String(s.unansweredReviewCount) === "1" ? "" : "s"}.`,
-      footer: "Cost: £0",
-      status: "Free",
-      tone: "blue",
-      why: "Improve the places customers already find you before paying to send more people there.",
-      evidence: [
-        ["Priority service", serviceName],
-        ["Recent photos wanted", String(s.recentPhotoCountNeeded || 0)],
-        ["Unanswered reviews entered", String(s.unansweredReviewCount || 0)],
-        ["Cost", "£0"],
-      ],
-      onAction: () => s.go("profileAudit"),
-    },
-    {
-      id: "old-quotes",
-      eyebrow: "Follow-up",
-      title: `${s.oldQuoteCount || 0} old quote${String(s.oldQuoteCount) === "1" ? "" : "s"} worth a look`,
-      body: `Highest value entered: about £${s.oldQuoteTopValue || 0}. Retrying them needs no advertising spend.`,
-      footer: "Advertising spend: £0",
-      status: "Low cost",
-      tone: "blue",
-      why: "These people already asked for a price, so checking whether the job is still live is cheaper than finding new leads.",
-      evidence: [
-        ["Old quotes entered", String(s.oldQuoteCount || 0)],
-        ["Highest value", `£${s.oldQuoteTopValue || 0}`],
-        ["Advertising required", "£0"],
-      ],
-      onAction: () => s.startCampaign(2),
-    },
+    ...(s.quietSlot && eligibleCount > 0
+      ? [{
+          id: "quiet-slot",
+          eyebrow: "Spare capacity",
+          title: `${s.quietSlot} is free`,
+          body: `${eligibleCount} of ${customerCount} saved customer records are due and allowed to contact now.`,
+          footer: "Recommended first move: £0 advertising spend",
+          status: "Worth trying",
+          tone: "green",
+          why: `Busy Does It checks actual saved customer records first. The timing rule comes from the service rather than assuming every business repeats on the same schedule. Current rule: ${s.eligibilityRule}`,
+          evidence: [
+            ["Saved customer records", String(customerCount)],
+            ["Eligible now", String(eligibleCount)],
+            ["Eligibility rule", s.eligibilityRule],
+            ["Advertising required", "£0"],
+          ],
+          actionLabel: "Review customers",
+          onAction: () => s.go("bestMove"),
+          canIgnore: true,
+        }]
+      : []),
+    ...((Number(s.unansweredReviewCount) || 0) > 0 || (Number(s.recentPhotoCountNeeded) || 0) > 0
+      ? [{
+          id: "profile-fixes",
+          eyebrow: "Free improvement",
+          title: "Fix the useful profile gaps first",
+          body: `${Number(s.unansweredReviewCount) || 0} unanswered review${Number(s.unansweredReviewCount) === 1 ? "" : "s"} and ${Number(s.recentPhotoCountNeeded) || 0} recent photo${Number(s.recentPhotoCountNeeded) === 1 ? "" : "s"} are flagged in your saved business data.`,
+          footer: "Cost: £0",
+          status: "Free",
+          tone: "blue",
+          why: `Improve the places customers already find you before paying to send more people there. ${serviceName} remains the current priority service.`,
+          evidence: [
+            ["Priority service", serviceName],
+            ["Recent photos wanted", String(Number(s.recentPhotoCountNeeded) || 0)],
+            ["Unanswered reviews entered", String(Number(s.unansweredReviewCount) || 0)],
+            ["Advertising required", "£0"],
+          ],
+          actionLabel: "Review fixes",
+          onAction: () => s.go("profileAudit"),
+          canIgnore: true,
+        }]
+      : []),
+    ...((Number(s.oldQuoteCount) || 0) > 0
+      ? [{
+          id: "old-quotes",
+          eyebrow: "Older opportunity",
+          title: `${s.oldQuoteCount} old quote${String(s.oldQuoteCount) === "1" ? "" : "s"} worth a look`,
+          body: `Highest value entered: about £${s.oldQuoteTopValue || 0}. Retrying them needs no advertising spend.`,
+          footer: "Advertising spend: £0",
+          status: "Low cost",
+          tone: "blue",
+          why: "These people already asked for a price, so checking whether the job is still live is cheaper than finding new leads.",
+          evidence: [
+            ["Old quotes entered", String(s.oldQuoteCount || 0)],
+            ["Highest value", `£${s.oldQuoteTopValue || 0}`],
+            ["Advertising required", "£0"],
+          ],
+          actionLabel: "Review old quotes",
+          onAction: () => s.startCampaign(2),
+          canIgnore: true,
+        }]
+      : []),
   ].filter((item) => !s.dismissedOpportunities.includes(item.id));
+
+  const rankedMoves = [...operationalMoves, ...marketingMoves];
+  const bestMove = rankedMoves[0] || null;
+  const otherMoves = rankedMoves.slice(1);
 
   return (
     <Shell
       s={s}
       noBack
-      title="Here’s what I noticed"
-      subtitle="Customer recommendations now come from individual records saved on this phone."
-      brandCue="Real local records. Simulated sends."
+      title="Best thing to do today"
+      subtitle="Busy Does It ranks the useful signals underneath and normally shows you one next move."
+      brandCue="One clear move. Cheapest sensible option first."
     >
-      {priorityCustomerWork ? (
-        <Pressable onPress={priorityCustomerWork.onPress} style={[styles.homePriorityCard, styles.homeReminderCard]}>
-          <View style={styles.homePriorityTop}>
-            <Text style={styles.homePriorityEyebrow}>{priorityCustomerWork.eyebrow}</Text>
-            <StatusChip label={priorityCustomerWork.status} tone="amber" />
-          </View>
-          <Text style={styles.homePriorityTitle}>{priorityCustomerWork.title}</Text>
-          <Text style={styles.homePriorityBody}>{priorityCustomerWork.body}</Text>
-          <Text style={styles.homePriorityLink}>{priorityCustomerWork.link}</Text>
-        </Pressable>
-      ) : null}
-
-      <View style={styles.dashboardHeader}>
-        <StatusChip label={`${opportunities.length} opportunities`} tone={opportunities.length ? "green" : "blue"} />
-        <Text style={styles.dashboardHint}>Customer work is shown before general marketing suggestions.</Text>
-      </View>
-
-      {opportunities.length ? (
-        opportunities.map((item) => (
+      {bestMove ? (
+        <>
           <OpportunityCard
-            key={item.id}
-            {...item}
-            actionLabel={item.id === "reply-actions" ? "Review actions" : "Do it"}
-            onIgnore={() => s.dismissOpportunity(item.id)}
+            {...bestMove}
+            eyebrow={`Best next move • ${bestMove.eyebrow}`}
+            actionLabel={bestMove.actionLabel || "Do it"}
+            onIgnore={bestMove.canIgnore ? () => s.dismissOpportunity(bestMove.id) : undefined}
           />
-        ))
+          <View style={styles.dashboardHeader}>
+            <StatusChip label="Ranked from saved business data" tone="green" />
+            <Text style={styles.dashboardHint}>
+              Customer commitments come first. Useful £0 opportunities come before paid reach.
+            </Text>
+          </View>
+        </>
       ) : (
-        <Card eyebrow="All clear" title="Nothing urgent right now" body="You’ve ignored the current opportunities. Restore them any time to keep testing." tone="green" />
+        <Card
+          eyebrow="All clear"
+          title="Nothing worth doing right now"
+          body="There is no urgent customer work or worthwhile £0 opportunity in the data currently saved. Busy Does It is not creating a task just to look busy."
+          footer="Recommended spend: £0"
+          tone="green"
+        />
       )}
 
-      {s.dismissedOpportunities.length ? <Button label="Restore ignored opportunities" onPress={s.restoreOpportunities} /> : null}
-      {s.completedBookingCount ? (
-        <Button label={`Bookings • ${s.completedBookingCount}`} onPress={() => s.go("bookings")} />
-      ) : null}
-      {Object.keys(s.replyActions || {}).length ? (
+      {otherMoves.length ? (
         <Button
-          label={`Customer activity • ${s.pendingReplyActionCount} to do`}
-          onPress={() => s.go("customerActivity")}
+          label={showOtherMoves ? "Hide other opportunities" : `See other opportunities • ${otherMoves.length}`}
+          onPress={() => setShowOtherMoves((value) => !value)}
         />
       ) : null}
+
+      {showOtherMoves
+        ? otherMoves.map((item) => (
+            <OpportunityCard
+              key={item.id}
+              {...item}
+              actionLabel={item.actionLabel || "Do it"}
+              onIgnore={item.canIgnore ? () => s.dismissOpportunity(item.id) : undefined}
+            />
+          ))
+        : null}
+
+      {s.dismissedOpportunities.length ? (
+        <Button label="Restore ignored opportunities" onPress={s.restoreOpportunities} />
+      ) : null}
+
+      <Button label="Open work hub" primary onPress={() => s.jump("workHub", "Work")} />
       <Button label="Customer records" onPress={() => s.go("customerRecords")} />
       <Button label="Update my business data" onPress={() => s.go("businessData")} />
-      <Button label="Open work hub" primary onPress={() => s.jump("workHub", "Work")} />
     </Shell>
   );
 }
