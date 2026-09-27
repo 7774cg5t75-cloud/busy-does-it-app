@@ -4923,7 +4923,7 @@ function ReplyActionDetail({ s }) {
               quoteStatus === "Prepared"
                 ? "The quote is ready but has not been marked as sent."
                 : quoteStatus === "Sent"
-                ? "The quote has been marked as sent and is waiting for an outcome. Nothing was sent automatically by the prototype."
+                ? `The quote was marked sent on ${saved.details?.quoteSentAt ? formatUKDate(String(saved.details.quoteSentAt).slice(0, 10)) : "an unknown date"} and is waiting for an outcome. Nothing was sent automatically by the prototype.`
                 : quoteStatus === "Accepted"
                 ? "The customer has accepted this prototype quote. The next sensible step is to book the work."
                 : "This quote has been marked as declined."
@@ -4944,6 +4944,13 @@ function ReplyActionDetail({ s }) {
         <Field label="Quote amount" value={s.actionQuoteAmount} onChangeText={s.setActionQuoteAmount} keyboardType="number-pad" prefix="£" />
         <Text style={styles.fieldLabel}>Draft reply</Text>
         <TextInput multiline value={s.actionQuoteMessage} onChangeText={s.setActionQuoteMessage} style={styles.messageInput} />
+        {(quoteStatus === "Prepared" || quoteStatus === "Sent" || !saved.done) ? (
+          <DatePickerField
+            label="Quote sent date"
+            value={s.actionQuoteSentDate}
+            onChange={s.setActionQuoteSentDate}
+          />
+        ) : null}
         <Button
           label={saved.done ? "Save quote changes" : "Save quote as prepared"}
           primary
@@ -4968,7 +4975,7 @@ function ReplyActionDetail({ s }) {
                 quoteAmount: s.actionQuoteAmount,
                 message: s.actionQuoteMessage,
                 quoteStatus: "Sent",
-                quoteSentAt: new Date().toISOString(),
+                quoteSentAt: new Date(`${s.actionQuoteSentDate || dateToISO(new Date())}T12:00:00`).toISOString(),
                 summary: `Quote marked sent for £${s.actionQuoteAmount}`,
               })
             }
@@ -5479,6 +5486,12 @@ function NewEnquiry({ s }) {
           ? `Using custom service: ${s.newEnquiryCustomService.trim()}`
           : `Selected service: ${s.newEnquiryService}`}
       </Text>
+
+      <DatePickerField
+        label="Enquiry received"
+        value={s.newEnquiryDate}
+        onChange={s.setNewEnquiryDate}
+      />
 
       <Text style={styles.fieldLabel}>Note (optional)</Text>
       <TextInput
