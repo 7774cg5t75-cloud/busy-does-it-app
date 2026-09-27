@@ -7344,7 +7344,10 @@ function BusyInbox({ s }) {
         {s.recordFilingMode === "safe" && item.autoEvaluation?.safe ? (
           <Button
             label="Let Busy file this safely"
-            onPress={() => s.fileSafeInboxItem(item, item.autoEvaluation)}
+            onPress={() => {
+              const filed = s.fileSafeInboxItem(item, item.autoEvaluation);
+              if (filed) s.go("autopilotFiled");
+            }}
           />
         ) : null}
         <View style={styles.customerActionsRow}>
