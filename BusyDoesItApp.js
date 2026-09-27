@@ -440,6 +440,12 @@ function parseQuickCapture(text, services = [], fallbackService = "") {
   const emailMatch = source.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
   const amountMatch = source.match(/£\s*([0-9]+(?:\.[0-9]{1,2})?)/);
   const stage = inferCaptureStage(source);
+  const lower = source.toLowerCase();
+  const serviceDetected = services.some((candidate) => {
+    const full = String(candidate.name || "").toLowerCase();
+    const tokens = full.split(/\s+/).filter((token) => token.length >= 4);
+    return (!!full && lower.includes(full)) || tokens.some((token) => lower.includes(token));
+  });
   const service = inferCaptureService(source, services, fallbackService);
   const name = inferCaptureName(source);
   const address = inferCaptureAddress(source);
@@ -449,7 +455,7 @@ function parseQuickCapture(text, services = [], fallbackService = "") {
   const evidence = [
     phoneMatch ? "phone" : null,
     emailMatch ? "email" : null,
-    service ? "service" : null,
+    serviceDetected ? "service" : null,
     amountMatch ? "value" : null,
     name ? "name" : null,
   ].filter(Boolean);
@@ -7091,6 +7097,12 @@ function CustomerDetail({ s }) {
             right={formatUKDate(String(customer.lastActivityAt).slice(0, 10))}
           />
         ) : null}
+        {Array.isArray(customer.sourceRecords) && customer.sourceRecords.length ? (
+          <MetricRow
+            left="Captured source items"
+            right={String(customer.sourceRecords.length)}
+          />
+        ) : null}
       </Card>
 
       {(customer.currentEnquiryAt || (!customer.lastServiceDate && customer.createdAt)) && !action ? (
@@ -7441,6 +7453,7 @@ function JobPostApproval({ s }) {
         onPress={s.simulateJobPostPublish}
       />
       <Button label="Connected accounts" onPress={() => s.go("connectedAccounts")} />
+      {s.intakeLog.length ? <Button label={`Intake history • ${s.intakeLog.length}`} onPress={() => s.go("intakeHistory")} /> : null}
       <Button label="Not now" onPress={() => s.openCustomer(customer.id)} />
     </Shell>
   );
@@ -8605,6 +8618,13 @@ function SettingsLimits({ s }) {
 function ConnectedAccounts({ s }) {
   return (
     <Shell s={s} title="Connected accounts" subtitle="Prototype toggles only — no real external account is connected yet.">
+      <Card
+        eyebrow="v1.9 intake architecture"
+        title="Future connections feed the same reviewed intake layer"
+        body="Email, calendar, CRM and invoicing connections should create candidate records through the same parse → match → review → merge/create path as Quick Capture, rather than bypassing owner control."
+        footer="No external inbox or account is being read in this prototype"
+        tone="green"
+      />
       {connectionRows.map(([key, label, body]) => {
         const connected = !!s.connectedAccounts[key];
         return (
