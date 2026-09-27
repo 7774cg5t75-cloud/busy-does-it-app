@@ -44,3 +44,17 @@ Busy Does It mobile app prototype.
 - Added local pipeline metrics for active quote value, confirmed bookings, completed jobs and due follow-ups.
 - Home now puts due customer follow-ups and booked work ahead of generic marketing suggestions.
 - Customer records now open into a persistent customer history instead of being isolated rows.
+
+## v0.8 flexible service-business core
+- Moved industry-specific behaviour into business-type / vertical packs while keeping the customer, quote, booking, reminder, work and results core reusable.
+- Added starter packs for exterior cleaning, window cleaning, gardening & landscaping, plumbing & heating, electrical, mobile hair & beauty and a generic service business.
+- Repeat-customer eligibility is now service-specific instead of using one blanket 9-month rule.
+- Added business-type selection during setup and a Business type & services control in Settings.
+- Turned the Work tab into a real work hub with enquiries, active quotes, bookings, follow-ups and pipeline values ahead of marketing.
+- Added a New enquiry flow for customers with no previous completed job.
+- Added direct customer actions: create a quote, book a job or set a follow-up without needing a simulated marketing reply first.
+- Added customer notes and an activity timeline alongside completed job history.
+- Added repeat customer journeys so finished or cancelled actions do not trap a customer in one old workflow.
+- Home now prioritises due follow-ups, upcoming bookings and active quotes before general marketing opportunities.
+- Results now includes open enquiries and booked-work value alongside quotes, completed jobs and follow-ups.
+- Existing customer records and job history are preserved when business-type rules change.
