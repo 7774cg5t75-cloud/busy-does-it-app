@@ -1576,7 +1576,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={styles.brand}>BUSY DOES IT</Text>
             <Text style={styles.tagline}>More work. Less fuss.</Text>
-            <Text style={styles.prototypeBadge}>Prototype v0.7 • customer + work pipeline</Text>
+            <Text style={styles.prototypeBadge}>Prototype v0.8 • flexible service-business core</Text>
           </View>
           {!noBack && s.history?.length > 0 ? (
             <Pressable onPress={s.back} style={styles.backPill}>
@@ -1599,7 +1599,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
 function BottomNav({ s }) {
   const items = [
     ["Home", "home"],
-    ["Work", "workNow"],
+    ["Work", "workHub"],
     ["Results", "results"],
     ["Settings", "settings"],
   ];
@@ -4361,6 +4361,7 @@ function Settings({ s }) {
         <MetricRow left="Connected accounts" right={`${connectedCount}/${connectionRows.length}`} />
       </Card>
       <Button label="Customer records" primary onPress={() => s.go("customerRecords")} />
+      <Button label="Business type & services" onPress={() => s.go("businessType")} />
       {s.completedBookingCount ? <Button label="Bookings" onPress={() => s.go("bookings")} /> : null}
       {Object.keys(s.replyActions || {}).length ? (
         <Button label="Customer activity" onPress={() => s.go("customerActivity")} />
@@ -4397,6 +4398,46 @@ function WhatMakesDifferent({ s }) {
       <Card eyebrow="Control" title="The maximum at risk is obvious" body="Paid advertising is treated as a test. You see the cap before approval and the app stops at the agreed limit." />
       <Card eyebrow="Proof layer" title="Every important recommendation should be justifiable" body="Average users see a simple answer. Experts can inspect the data, assumptions, alternatives, confidence and technical performance behind it." />
       <Card eyebrow="Outcome" title="Jobs and pounds before marketing jargon" body="The default result is what happened to the business, not a dashboard full of clicks and acronyms." />
+      <Button label="Done" primary onPress={s.back} />
+    </Shell>
+  );
+}
+
+function BusinessTypeSettings({ s }) {
+  const packs = Object.values(VERTICAL_PACKS);
+  return (
+    <Shell
+      s={s}
+      title="Business type & services"
+      subtitle="The business type changes the suggested services and repeat-timing rules underneath. It does not change the core app."
+      brandCue="One Busy Does It. Different service-business rules where they genuinely matter."
+    >
+      <Card
+        eyebrow="Current setup"
+        title={s.verticalPack.label}
+        body={s.verticalPack.description}
+        footer={s.eligibilityRule}
+        tone="green"
+      />
+
+      <Text style={styles.sectionLabel}>Business type</Text>
+      {packs.map((pack) => (
+        <Choice
+          key={pack.id}
+          label={pack.label}
+          sub={pack.description}
+          selected={s.verticalId === pack.id}
+          onPress={() => s.applyVerticalPack(pack.id)}
+        />
+      ))}
+
+      <Card
+        eyebrow="Important"
+        title="Existing customer records stay yours"
+        body="Changing business type replaces the suggested service list and timing rules, but it does not delete customer records or job history. You can still add any service manually."
+        tone="blue"
+      />
+      <Button label="+ Add a service" onPress={() => s.go("addService")} />
       <Button label="Done" primary onPress={s.back} />
     </Shell>
   );
@@ -4481,17 +4522,20 @@ function Advanced({ s }) {
 
 const screens = {
   welcome: WelcomeScreen,
+  setupVertical: SetupVertical,
   setupBusiness: SetupBusiness,
   setupServices: SetupServices,
   addService: AddService,
   setupLimits: SetupLimits,
   setupConnect: SetupConnect,
   home: HomeScreen,
+  workHub: WorkHub,
   workNow: WorkNow,
   chooseGap: ChooseGap,
   bestMove: BestMove,
   customerRecords: CustomerRecords,
   customerDetail: CustomerDetail,
+  newEnquiry: NewEnquiry,
   addCustomerRecord: AddCustomerRecord,
   confirmRemoveCustomer: ConfirmRemoveCustomer,
   eligibleCustomers: EligibleCustomers,
@@ -4520,6 +4564,7 @@ const screens = {
   resultDetails: ResultDetails,
   updateOutcome: UpdateOutcome,
   settings: Settings,
+  businessType: BusinessTypeSettings,
   businessData: BusinessData,
   howBusyWorks: HowBusyWorks,
   whatMakesDifferent: WhatMakesDifferent,
