@@ -5779,6 +5779,9 @@ function CustomerDetail({ s }) {
           }
         />
         <MetricRow left="Last job" right={customer.lastServiceDate ? formatUKDate(customer.lastServiceDate) : "No completed job yet"} />
+        {!customer.lastServiceDate && customer.createdAt ? (
+          <MetricRow left="Enquiry received" right={formatUKDate(String(customer.createdAt).slice(0, 10))} strong={daysSinceTimestamp(customer.createdAt) >= 7} />
+        ) : null}
         <MetricRow left="Last value" right={Number(customer.lastJobValue) > 0 ? `£${customer.lastJobValue}` : "Not recorded"} />
         {repeatDueDate ? (
           <MetricRow
@@ -5788,6 +5791,48 @@ function CustomerDetail({ s }) {
           />
         ) : null}
       </Card>
+
+      {!customer.lastServiceDate && !action ? (
+        customer.enquiryFollowUpSentAt ? (
+          <Pressable
+            onPress={() =>
+              customer.enquiryFollowUpOutcomeRecordedAt
+                ? null
+                : s.openEnquiryFollowUpOutcome(customer.id)
+            }
+            style={styles.customerTimelineCard}
+          >
+            <View style={styles.activityTopRow}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={styles.customerTimelineLabel}>QUIET ENQUIRY FOLLOW-UP</Text>
+                <Text style={styles.activityName}>
+                  {customer.enquiryFollowUpOutcomeRecordedAt ? customer.enquiryFollowUpOutcome : "Awaiting outcome"}
+                </Text>
+              </View>
+              <StatusChip
+                label={customer.enquiryFollowUpOutcomeRecordedAt ? "Recorded" : "Learn"}
+                tone={customer.enquiryFollowUpOutcomeRecordedAt ? "green" : "blue"}
+              />
+            </View>
+            <Text style={styles.activitySummary}>{customer.enquiryFollowUpDraft || "Prepared follow-up"}</Text>
+            {!customer.enquiryFollowUpOutcomeRecordedAt ? (
+              <Text style={styles.activityOpen}>Record what happened →</Text>
+            ) : null}
+          </Pressable>
+        ) : daysSinceTimestamp(customer.createdAt) >= 7 && customer.contactOk !== false ? (
+          <Pressable onPress={() => s.prepareEnquiryFollowUp(customer.id)} style={styles.customerTimelineCard}>
+            <View style={styles.activityTopRow}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={styles.customerTimelineLabel}>QUIET ENQUIRY</Text>
+                <Text style={styles.activityName}>No next action for {daysSinceTimestamp(customer.createdAt)} days</Text>
+              </View>
+              <StatusChip label="£0 opportunity" tone="green" />
+            </View>
+            <Text style={styles.activitySummary}>Busy Does It can prepare a low-pressure check-in from this record.</Text>
+            <Text style={styles.activityOpen}>Prepare follow-up →</Text>
+          </Pressable>
+        ) : null
+      ) : null}
 
       {action ? (
         <Pressable onPress={() => s.openSavedReplyAction(customer.id)} style={styles.customerTimelineCard}>
@@ -6917,8 +6962,8 @@ function Results({ s }) {
       s={s}
       noBack
       title="What happened?"
-      subtitle="What Busy Does It prepared, what you approved, and what actually happened."
-      brandCue="Actions become outcomes. Outcomes improve the next recommendation."
+      subtitle="Everything on this screen now comes from customer, quote, booking, job or recorded outcome data saved in the prototype."
+      brandCue="Record-based results. No illustrative totals on the main screen."
     >
       <Card
         eyebrow="Value we can trace"
@@ -6941,6 +6986,9 @@ function Results({ s }) {
         body="These are recorded prototype outcomes. Small samples should change rankings only gently until more real evidence exists."
         tone="blue"
       >
+        <MetricRow left="Quiet-enquiry follow-ups approved" right={String(s.enquiryFollowUpSentCount)} />
+        <MetricRow left="Quiet-enquiry outcomes recorded" right={String(s.enquiryFollowUpOutcomeCount)} />
+        <MetricRow left="Still interested after enquiry follow-up" right={String(s.enquiryFollowUpInterestedCount)} strong={s.enquiryFollowUpInterestedCount > 0} />
         <MetricRow left="Quote follow-ups approved" right={String(s.quoteFollowUpSentCount)} />
         <MetricRow left="Quote follow-up outcomes recorded" right={String(s.quoteFollowUpOutcomeCount)} />
         <MetricRow left="Accepted after quote follow-up" right={String(s.quoteFollowUpAcceptedCount)} strong={s.quoteFollowUpAcceptedCount > 0} />
@@ -6957,7 +7005,9 @@ function Results({ s }) {
         body="This combines active quote value and confirmed booked-work value saved locally in the prototype."
         tone="green"
       >
-        <MetricRow left="Open enquiries" right={String(s.openEnquiryCount)} />
+        <MetricRow left="New enquiries (<7 days)" right={String(s.freshEnquiryEntries.length)} />
+        <MetricRow left="Quiet enquiries (7+ days)" right={String(s.staleEnquiryEntries.length)} strong={s.staleEnquiryEntries.length > 0} />
+        <MetricRow left="Enquiry follow-ups awaiting outcome" right={String(s.enquiryFollowUpSentCount - s.enquiryFollowUpOutcomeCount)} />
         <MetricRow left="Quotes prepared" right={String(quotePrepared)} />
         <MetricRow left="Quotes marked sent" right={String(quoteSent)} />
         <MetricRow left="Quotes accepted" right={String(quoteAccepted)} />
@@ -7006,14 +7056,6 @@ function Results({ s }) {
         <Button label="View all customer activity" onPress={() => s.go("customerActivity")} />
       ) : null}
 
-      <Card
-        eyebrow="Illustrative only"
-        title="Marketing demo results"
-        body="Older spend, enquiry and job figures remain example data for testing the future marketing Results experience. They are not included in the customer pipeline above."
-        footer="Kept separate on purpose"
-        tone="blue"
-      />
-      <Button label="Open illustrative demo results" onPress={() => s.go("resultDetails")} />
     </Shell>
   );
 }
