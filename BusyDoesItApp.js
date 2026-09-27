@@ -333,7 +333,15 @@ function App() {
         if (saved.recentPhotoCountNeeded !== undefined) setRecentPhotoCountNeeded(String(saved.recentPhotoCountNeeded));
         if (Array.isArray(saved.customers)) setCustomers(saved.customers);
         if (Array.isArray(saved.lastSimulatedRecipients)) setLastSimulatedRecipients(saved.lastSimulatedRecipients);
-        if (saved.replyActions && typeof saved.replyActions === "object") setReplyActions(saved.replyActions);
+        if (saved.replyActions && typeof saved.replyActions === "object") {
+          const migratedReplyActions = Object.fromEntries(
+            Object.entries(saved.replyActions).map(([id, action]) => [
+              id,
+              action?.type ? action : { ...action, done: false },
+            ])
+          );
+          setReplyActions(migratedReplyActions);
+        }
         if (Array.isArray(saved.services)) setServices(saved.services);
         if (typeof saved.alwaysAsk === "boolean") setAlwaysAsk(saved.alwaysAsk);
         if (typeof saved.customerContact === "boolean") setCustomerContact(saved.customerContact);
@@ -1357,7 +1365,7 @@ function SetupLimits({ s }) {
 
 function SetupConnect({ s }) {
   return (
-    <Shell s={s} noNav title="Connect what you already use" subtitle="Nothing is shown as connected until you choose it.">
+    <Shell s={s} noNav title="Choose what you use" subtitle="Prototype selection only — this does not connect a real external account.">
       {connectionRows.map(([key, label, body]) => {
         const connected = !!s.connectedAccounts[key];
         return (
@@ -1367,7 +1375,7 @@ function SetupConnect({ s }) {
               <Text style={styles.connectBody}>{body}</Text>
             </View>
             <Pressable style={[styles.connectButton, connected && styles.connectButtonOn]} onPress={() => s.toggleConnection(key)}>
-              <Text style={[styles.connectButtonText, connected && { color: C.green }]}>{connected ? "Connected" : "Connect"}</Text>
+              <Text style={[styles.connectButtonText, connected && { color: C.green }]}>{connected ? "Selected" : "Select"}</Text>
             </Pressable>
           </View>
         );
@@ -2511,7 +2519,7 @@ function BringBack({ s }) {
       <Card eyebrow={s.selectedCustomerGroup.title} title="Message preview" footer="No predicted revenue — just a clear goal">
         <TextInput multiline value={s.bringBackMessage} onChangeText={s.setBringBackMessage} style={styles.messageInput} />
       </Card>
-      <Button label="Approve & send" primary onPress={() => s.go("progress")} />
+      <Button label="Simulate send" primary onPress={() => s.go("progress")} />
       <Button
         label="Reset draft"
         onPress={() =>
@@ -2628,9 +2636,9 @@ function ExpertOfferPlan({ s }) {
 
 function OfferRunning({ s }) {
   return (
-    <Shell s={s} title={s.offerPaused ? "Offer paused" : "Offer running"} subtitle={s.offerPaused ? "Nothing new is being sent while paused." : "We stop automatically when the booking cap is reached."}>
+    <Shell s={s} title={s.offerPaused ? "Simulated offer paused" : "Simulated offer"} subtitle={s.offerPaused ? "Nothing new is simulated while paused." : "Prototype example only — no real offer is running."}>
       <Card
-        eyebrow={s.offerPaused ? "Paused" : "Live offer"}
+        eyebrow={s.offerPaused ? "Paused demo" : "Simulated offer"}
         title={`2 of ${s.offerMax} spaces booked`}
         body="24 past customers contacted. 5 replied. 2 booked. No paid advertising has been needed yet."
         footer="Won work so far: about £450"
@@ -2678,7 +2686,7 @@ function Results({ s }) {
 
 function ResultDetails({ s }) {
   return (
-    <Shell s={s} title="Result details" subtitle="The useful business facts first.">
+    <Shell s={s} title="Demo result details" subtitle="Illustrative marketing figures only. The local customer-action card on Results is the part currently driven by your prototype activity.">
       <Card eyebrow="Previous customers" title="£1.20 spent" body="4 replies • 2 interested • 1 booking" footer="Won value: £260" tone="green" />
       <Card eyebrow="Old enquiries" title="£0 spent" body="3 followed up • 1 reply • 0 bookings" footer="No paid spend" />
       <Card eyebrow="Local advert" title="£46.80 spent" body="3 genuine enquiries • 1 booking" footer="Won value: £360" tone="amber" />
