@@ -3163,11 +3163,14 @@ function ReplyActionDetail({ s }) {
     );
   }
 
+  const saved = s.replyActions[customer.id] || {};
+  const manualAction = saved.origin === "manual";
   const recipients = s.lastSimulatedRecipients?.length ? s.lastSimulatedRecipients : s.eligibleCustomers;
   const index = Math.max(0, recipients.findIndex((item) => item.id === customer.id));
-  const reply = buildSimulatedReply(customer, index, s.quietSlot);
-  const suggested = replyActionForStatus(reply.status);
-  const saved = s.replyActions[customer.id] || {};
+  const reply = manualAction
+    ? { status: "Direct action", body: "Started directly from the customer record." }
+    : buildSimulatedReply(customer, index, s.quietSlot);
+  const suggested = manualAction ? null : replyActionForStatus(reply.status);
   const type = saved.type || suggested?.type;
   const quoteStatus = saved.details?.quoteStatus || "Prepared";
   const bookingStatus = saved.details?.bookingStatus || (saved.done ? "Confirmed" : "Draft");
@@ -3234,7 +3237,12 @@ function ReplyActionDetail({ s }) {
         subtitle={`For ${customer.name} • ${customer.service}. Sending is simulated in this prototype.`}
         brandCue="Prepare it. Track it. Turn wins into work."
       >
-        <Card eyebrow="Customer asked for a quote" title={customer.name} body={reply.body} tone="green" />
+        <Card
+          eyebrow={manualAction ? "Quote started from customer record" : "Customer asked for a quote"}
+          title={customer.name}
+          body={manualAction ? `Prepare or record a quote for ${customer.service}. Nothing is sent automatically.` : reply.body}
+          tone="green"
+        />
         {saved.done ? (
           <Card
             eyebrow="Quote status"
@@ -3309,7 +3317,12 @@ function ReplyActionDetail({ s }) {
         subtitle={`For ${customer.name} • ${customer.service}. This is a local prototype booking only.`}
         brandCue="Booked work should turn into completed work."
       >
-        <Card eyebrow="Customer wants the slot" title={customer.name} body={reply.body} tone="green" />
+        <Card
+          eyebrow={manualAction ? "Booking started from customer record" : "Customer wants the slot"}
+          title={customer.name}
+          body={manualAction ? `Choose the date and time agreed with ${customer.name}. This saves a local booking only.` : reply.body}
+          tone="green"
+        />
         {saved.done ? (
           <Card
             eyebrow="Booking status"
@@ -3340,6 +3353,8 @@ function ReplyActionDetail({ s }) {
               ? "Correction ready to save"
               : savedBookingNeedsReview
               ? "Saved booking needs a quick check"
+              : manualAction
+              ? "Choose the agreed slot"
               : "Matched to the customer reply"}
           </Text>
           <Text style={styles.suggestionBody}>
@@ -3347,6 +3362,8 @@ function ReplyActionDetail({ s }) {
               ? `The new choice is ${formatUKDate(s.actionBookingDate)} at ${s.actionBookingTime}, which now matches “${s.quietSlot}”.`
               : savedBookingNeedsReview
               ? `The saved booking is ${formatUKDate(saved.details.bookingDate)} at ${saved.details.bookingTime || "no time"}, which does not match “${s.quietSlot}”.`
+              : manualAction
+              ? "Use the date and time you have actually agreed with the customer. The suggested values are only a starting point."
               : `Busy Does It has suggested the next ${s.quietSlot || "matching"} slot.`}
           </Text>
           {savedBookingNeedsReview && !bookingCorrectionReady ? (
@@ -3467,7 +3484,12 @@ function ReplyActionDetail({ s }) {
         subtitle={`For ${customer.name} • ${customer.service}. Stored locally in this prototype.`}
         brandCue="A reminder should come back when it matters."
       >
-        <Card eyebrow="Customer said not now" title={customer.name} body={reply.body} tone="amber" />
+        <Card
+          eyebrow={manualAction ? "Follow-up started from customer record" : "Customer said not now"}
+          title={customer.name}
+          body={manualAction ? "Choose when you want this customer to come back onto the work list." : reply.body}
+          tone="amber"
+        />
         {saved.done ? (
           <Card
             eyebrow="Reminder status"
@@ -3513,7 +3535,7 @@ function ReplyActionDetail({ s }) {
 
   return (
     <Shell s={s} title="Next action" subtitle="This action does not need a dedicated workflow yet.">
-      <Card eyebrow={reply.status} title={customer.name} body={saved.task || suggested?.task || "Follow up"} />
+      <Card eyebrow={manualAction ? "Direct customer action" : reply.status} title={customer.name} body={saved.task || suggested?.task || "Follow up"} />
       <Button
         label="Mark complete"
         primary
