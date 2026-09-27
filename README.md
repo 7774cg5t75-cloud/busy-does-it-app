@@ -23,3 +23,12 @@ Busy Does It mobile app prototype.
 - Quote suggestions explain whether the figure came from the customer's previous job or the saved service price.
 - Completed quote / booking / reminder actions can be reopened and edited.
 - Results now surfaces recent completed customer actions with their saved summaries.
+
+### v0.6 bookings + action hub sweep
+- Added a permanent Bookings screen for saved local prototype bookings.
+- Added exact date/time clash detection with a suggested alternative time.
+- Improved saved-booking correction so the warning changes to a green “ready to save” state once fixed.
+- Added Customer Activity filters for To do, Quotes, Bookings, Reminders and Completed.
+- Home now surfaces the next upcoming booking before generic marketing suggestions.
+- Results is now local-activity-first; illustrative marketing figures are kept on a separate demo screen.
+- Bookings and completed actions remain reopenable/editable from Home, Results, Settings and Customer Activity.
