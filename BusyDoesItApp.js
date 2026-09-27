@@ -131,6 +131,37 @@ function defaultTimeForSlot(slotText) {
   return options[Math.min(2, options.length - 1)];
 }
 
+function slotWeekdayIndex(slotText) {
+  const text = String(slotText || "").toLowerCase();
+  const weekdays = [
+    ["sunday", 0],
+    ["monday", 1],
+    ["tuesday", 2],
+    ["wednesday", 3],
+    ["thursday", 4],
+    ["friday", 5],
+    ["saturday", 6],
+  ];
+  const match = weekdays.find(([name]) => text.includes(name));
+  return match ? match[1] : null;
+}
+
+function dateMatchesSlotWeekday(dateString, slotText) {
+  const target = slotWeekdayIndex(slotText);
+  if (target === null || !dateString) return true;
+  return dateFromISO(dateString).getDay() === target;
+}
+
+function timeMatchesSlotPart(timeString, slotText) {
+  const text = String(slotText || "").toLowerCase();
+  const hour = Number(String(timeString || "").split(":")[0]);
+  if (!Number.isFinite(hour)) return true;
+  if (text.includes("morning")) return hour < 12;
+  if (text.includes("afternoon")) return hour >= 12 && hour < 17;
+  if (text.includes("evening")) return hour >= 17;
+  return true;
+}
+
 function groupCustomersByService(customers) {
   return customers.reduce((groups, customer) => {
     const key = customer?.service?.trim() || "Usual service";
@@ -950,7 +981,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={styles.brand}>BUSY DOES IT</Text>
             <Text style={styles.tagline}>More work. Less fuss.</Text>
-            <Text style={styles.prototypeBadge}>Prototype v0.6 • smarter actions + local records</Text>
+            <Text style={styles.prototypeBadge}>Prototype v0.6 • customer activity + smarter actions</Text>
           </View>
           {!noBack && s.history?.length > 0 ? (
             <Pressable onPress={s.back} style={styles.backPill}>
@@ -1553,6 +1584,12 @@ function HomeScreen({ s }) {
       )}
 
       {s.dismissedOpportunities.length ? <Button label="Restore ignored opportunities" onPress={s.restoreOpportunities} /> : null}
+      {Object.keys(s.replyActions || {}).length ? (
+        <Button
+          label={`Customer activity • ${s.pendingReplyActionCount} to do`}
+          onPress={() => s.go("customerActivity")}
+        />
+      ) : null}
       <Button label="Customer records" onPress={() => s.go("customerRecords")} />
       <Button label="Update my business data" onPress={() => s.go("businessData")} />
       <Button label="Start something else" primary onPress={() => s.jump("workNow", "Work")} />
@@ -2038,6 +2075,99 @@ function Replies({ s }) {
   );
 }
 
+
+function CustomerActivity({ s }) {
+  const entries = Object.entries(s.replyActions || {})
+    .map(([id, action]) => {
+      const customer =
+        s.lastSimulatedRecipients.find((item) => item.id === id) ||
+        s.customers.find((item) => item.id === id);
+      return customer ? { id, action, customer } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => {
+      if (!!a.action.done !== !!b.action.done) return a.action.done ? 1 : -1;
+      return String(b.action.completedAt || "").localeCompare(String(a.action.completedAt || ""));
+    });
+
+  const pending = entries.filter((item) => !item.action.done);
+  const completed = entries.filter((item) => item.action.done);
+
+  const typeLabel = (type) => {
+    if (type === "quote") return "Quote";
+    if (type === "booking") return "Booking";
+    if (type === "reminder") return "Reminder";
+    return "Follow-up";
+  };
+
+  return (
+    <Shell
+      s={s}
+      title="Customer activity"
+      subtitle="A permanent place for saved quotes, bookings, reminders and outstanding customer work."
+    >
+      <Card
+        eyebrow="Customer work"
+        title={`${pending.length} to do • ${completed.length} completed`}
+        body="Completed items stay here so you can reopen and edit them later."
+        footer="Stored locally in this prototype"
+        tone="green"
+      />
+
+      {pending.length ? <Text style={styles.sectionLabel}>To do</Text> : null}
+      {pending.map(({ id, action, customer }) => (
+        <Pressable
+          key={id}
+          onPress={() => s.openSavedReplyAction(id)}
+          style={styles.activityCard}
+        >
+          <View style={styles.activityTopRow}>
+            <View style={{ flex: 1, paddingRight: 10 }}>
+              <Text style={styles.activityName}>{customer.name}</Text>
+              <Text style={styles.activityService}>{customer.service}</Text>
+            </View>
+            <StatusChip label={typeLabel(action.type)} tone="blue" />
+          </View>
+          <Text style={styles.activitySummary}>{action.task || "Customer follow-up"}</Text>
+          <Text style={styles.activityOpen}>Open action →</Text>
+        </Pressable>
+      ))}
+
+      {completed.length ? <Text style={styles.sectionLabel}>Completed</Text> : null}
+      {completed.map(({ id, action, customer }) => (
+        <Pressable
+          key={id}
+          onPress={() => s.openSavedReplyAction(id)}
+          style={[styles.activityCard, styles.activityCardDone]}
+        >
+          <View style={styles.activityTopRow}>
+            <View style={{ flex: 1, paddingRight: 10 }}>
+              <Text style={styles.activityName}>{customer.name}</Text>
+              <Text style={styles.activityService}>{customer.service}</Text>
+            </View>
+            <StatusChip label={typeLabel(action.type)} tone="green" />
+          </View>
+          <Text style={styles.activitySummary}>
+            {action.details?.summary || action.task || "Completed"}
+          </Text>
+          <Text style={styles.activityOpen}>View / edit →</Text>
+        </Pressable>
+      ))}
+
+      {!entries.length ? (
+        <Card
+          eyebrow="No activity yet"
+          title="Nothing saved yet"
+          body="Quotes, bookings and reminders will appear here once you create them."
+        />
+      ) : null}
+
+      <Button label="Customer records" onPress={() => s.go("customerRecords")} />
+      <Button label="Done" primary onPress={s.back} />
+    </Shell>
+  );
+}
+
 function ReplyActions({ s }) {
   const recipients = s.lastSimulatedRecipients?.length ? s.lastSimulatedRecipients : s.eligibleCustomers;
   const repliesById = Object.fromEntries(
@@ -2135,6 +2265,15 @@ function ReplyActionDetail({ s }) {
   const suggested = replyActionForStatus(reply.status);
   const saved = s.replyActions[customer.id] || {};
   const type = saved.type || suggested?.type;
+  const suggestedBookingDate = nextDateForSlot(s.quietSlot);
+  const suggestedBookingTime = defaultTimeForSlot(s.quietSlot);
+  const savedBookingNeedsReview =
+    type === "booking" &&
+    saved?.details?.bookingDate &&
+    (
+      !dateMatchesSlotWeekday(saved.details.bookingDate, s.quietSlot) ||
+      !timeMatchesSlotPart(saved.details.bookingTime, s.quietSlot)
+    );
 
   const finish = (details) => {
     s.completeReplyAction(customer.id, details);
@@ -2185,11 +2324,28 @@ function ReplyActionDetail({ s }) {
         subtitle={`For ${customer.name} • ${customer.service}. This saves a local prototype booking only.`}
       >
         <Card eyebrow="Customer wants the slot" title={customer.name} body={reply.body} tone="green" />
-        <View style={styles.suggestionBox}>
-          <Text style={styles.suggestionTitle}>Matched to the customer reply</Text>
-          <Text style={styles.suggestionBody}>
-            Busy Does It has suggested the next {s.quietSlot || "matching"} slot instead of simply adding two days.
+        <View style={[styles.suggestionBox, savedBookingNeedsReview && styles.suggestionBoxWarning]}>
+          <Text style={styles.suggestionTitle}>
+            {savedBookingNeedsReview ? "Saved booking needs a quick check" : "Matched to the customer reply"}
           </Text>
+          <Text style={styles.suggestionBody}>
+            {savedBookingNeedsReview
+              ? `The saved booking is ${formatUKDate(saved.details.bookingDate)} at ${saved.details.bookingTime || "no time"}, which does not match “${s.quietSlot}”.`
+              : `Busy Does It has suggested the next ${s.quietSlot || "matching"} slot.`}
+          </Text>
+          {savedBookingNeedsReview ? (
+            <Pressable
+              onPress={() => {
+                s.setActionBookingDate(suggestedBookingDate);
+                s.setActionBookingTime(suggestedBookingTime);
+              }}
+              style={styles.slotFixButton}
+            >
+              <Text style={styles.slotFixButtonText}>
+                Use next {s.quietSlot || "matching slot"} instead
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
         <DatePickerField
           label="Booking date"
@@ -2793,15 +2949,24 @@ function Results({ s }) {
             s.customers.find((item) => item.id === id);
           if (!customer) return null;
           return (
-            <View key={id} style={styles.resultActionRow}>
+            <Pressable
+              key={id}
+              onPress={() => s.openSavedReplyAction(id)}
+              style={styles.resultActionRow}
+            >
               <View style={{ flex: 1, paddingRight: 10 }}>
                 <Text style={styles.resultActionName}>{customer.name}</Text>
                 <Text style={styles.resultActionService}>{customer.service}</Text>
+                <Text style={styles.resultActionOpen}>Tap to view / edit</Text>
               </View>
               <Text style={styles.resultActionSummary}>{action.details.summary}</Text>
-            </View>
+            </Pressable>
           );
         })}
+
+      {Object.keys(s.replyActions || {}).length ? (
+        <Button label="View all customer activity" onPress={() => s.go("customerActivity")} />
+      ) : null}
 
       <Card eyebrow="Demo marketing example" title="You spent £48" tone="blue">
         <MetricRow left="People who got in touch" right="7" />
@@ -2901,6 +3066,9 @@ function Settings({ s }) {
         <MetricRow left="Connected accounts" right={`${connectedCount}/${connectionRows.length}`} />
       </Card>
       <Button label="Customer records" primary onPress={() => s.go("customerRecords")} />
+      {Object.keys(s.replyActions || {}).length ? (
+        <Button label="Customer activity" onPress={() => s.go("customerActivity")} />
+      ) : null}
       <Button label="Business profile & opportunity data" onPress={() => s.go("businessData")} />
       <Button label="Change limits" onPress={() => s.go("settingsLimits")} />
       <Button label="Connected accounts" onPress={() => s.go("connectedAccounts")} />
@@ -3036,6 +3204,7 @@ const screens = {
   checkSend: CheckSend,
   progress: Progress,
   replies: Replies,
+  customerActivity: CustomerActivity,
   replyActions: ReplyActions,
   replyActionDetail: ReplyActionDetail,
   paidTest: PaidTest,
@@ -3271,6 +3440,17 @@ const styles = StyleSheet.create({
   resultActionName: { color: C.ink, fontSize: 14, fontWeight: "900" },
   resultActionService: { color: C.muted, fontSize: 12, marginTop: 2 },
   resultActionSummary: { color: C.green, fontSize: 12, fontWeight: "800", textAlign: "right", maxWidth: "48%" },
+  resultActionOpen: { color: C.blue, fontSize: 11, fontWeight: "800", marginTop: 5 },
+  activityCard: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16, padding: 15, marginBottom: 10 },
+  activityCardDone: { backgroundColor: C.greenSoft, borderColor: "#CDE7D9" },
+  activityTopRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
+  activityName: { color: C.ink, fontSize: 17, fontWeight: "900" },
+  activityService: { color: C.muted, fontSize: 13, marginTop: 2 },
+  activitySummary: { color: C.ink, fontSize: 14, lineHeight: 20, fontWeight: "700", marginTop: 10 },
+  activityOpen: { color: C.blue, fontSize: 12, fontWeight: "900", marginTop: 9 },
+  suggestionBoxWarning: { backgroundColor: C.amberSoft, borderWidth: 1, borderColor: "#F0D8B9" },
+  slotFixButton: { alignSelf: "flex-start", backgroundColor: C.blue, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, marginTop: 10 },
+  slotFixButtonText: { color: "#FFFFFF", fontSize: 12, fontWeight: "900" },
   groupCard: {
     borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16,
     padding: 16, marginBottom: 10,
