@@ -1,7 +1,11 @@
 import fs from "node:fs";
 import { Snack } from "snack-sdk";
+import * as babelParser from "@babel/parser";
 
 const source = fs.readFileSync("BusyDoesItApp.js", "utf8");
+
+// Fail the preview build before publishing if the React Native source has invalid JS/JSX syntax.
+babelParser.parse(source, { sourceType: "module", plugins: ["jsx"] });
 const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
 const version = pkg.version || "preview";
 const branch = process.env.GITHUB_REF_NAME || `v${version}`;
