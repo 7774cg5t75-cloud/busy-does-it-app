@@ -928,7 +928,7 @@ function App() {
           quoteStatus === "Prepared"
             ? `Quote prepared for £${action.details?.quoteAmount || "—"}`
             : quoteStatus === "Sent"
-            ? `Quote sent (simulated) for £${action.details?.quoteAmount || "—"}`
+            ? `Quote marked sent for £${action.details?.quoteAmount || "—"}`
             : quoteStatus === "Accepted"
             ? `Quote accepted for £${action.details?.quoteAmount || "—"}`
             : `Quote declined for £${action.details?.quoteAmount || "—"}`,
@@ -2195,6 +2195,23 @@ function HomeScreen({ s }) {
       )
     );
   const nextBooking = upcomingBookings[0] || null;
+  const overdueBookings = Object.entries(s.replyActions || {})
+    .map(([id, action]) => {
+      if (
+        !action?.done ||
+        action.type !== "booking" ||
+        !action.details?.bookingDate ||
+        ["Cancelled", "Completed"].includes(action.details?.bookingStatus || "Confirmed") ||
+        action.details.bookingDate >= todayISO
+      ) return null;
+      const customer =
+        s.customers.find((item) => item.id === id) ||
+        s.lastSimulatedRecipients.find((item) => item.id === id);
+      return customer ? { id, action, customer } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => String(a.action.details.bookingDate).localeCompare(String(b.action.details.bookingDate)));
+  const overdueBooking = overdueBookings[0] || null;
   const activeQuoteEntries = Object.entries(s.replyActions || {})
     .map(([id, action]) => {
       if (
@@ -2210,6 +2227,52 @@ function HomeScreen({ s }) {
     .filter(Boolean)
     .sort((a, b) => String(b.action.completedAt || "").localeCompare(String(a.action.completedAt || "")));
   const priorityQuote = activeQuoteEntries[0] || null;
+  const priorityCustomerWork = overdueBooking
+    ? {
+        eyebrow: "PAST BOOKING NEEDS AN OUTCOME",
+        status: "Do this first",
+        title: overdueBooking.customer.name,
+        body: `${overdueBooking.customer.service} • ${formatUKDate(overdueBooking.action.details.bookingDate)}`,
+        link: "Complete, move or cancel →",
+        onPress: () => s.openSavedReplyAction(overdueBooking.id),
+      }
+    : s.dueReminderEntries.length
+    ? {
+        eyebrow: "FOLLOW-UP DUE",
+        status: "Action needed",
+        title: s.dueReminderEntries[0].customer.name,
+        body: `${s.dueReminderEntries[0].customer.service} • due ${formatUKDate(s.dueReminderEntries[0].action.details.reminderDate)}`,
+        link: "Open follow-up →",
+        onPress: () => s.openSavedReplyAction(s.dueReminderEntries[0].id),
+      }
+    : nextEnquiry
+    ? {
+        eyebrow: "NEW ENQUIRY",
+        status: "Needs next step",
+        title: nextEnquiry.name,
+        body: nextEnquiry.service,
+        link: "Open enquiry →",
+        onPress: () => s.openCustomer(nextEnquiry.id),
+      }
+    : nextBooking
+    ? {
+        eyebrow: "NEXT BOOKING",
+        status: "Customer work",
+        title: nextBooking.customer.name,
+        body: `${nextBooking.customer.service} • ${formatUKDate(nextBooking.action.details.bookingDate)} at ${nextBooking.action.details.bookingTime || "time not set"}`,
+        link: "Open booking →",
+        onPress: () => s.openSavedReplyAction(nextBooking.id),
+      }
+    : priorityQuote
+    ? {
+        eyebrow: "ACTIVE QUOTE",
+        status: priorityQuote.action.details?.quoteStatus || "Prepared",
+        title: priorityQuote.customer.name,
+        body: `${priorityQuote.customer.service} • £${priorityQuote.action.details?.quoteAmount || "—"}`,
+        link: "Open quote →",
+        onPress: () => s.openSavedReplyAction(priorityQuote.id),
+      }
+    : null;
   const opportunities = [
     ...(s.pendingReplyActionCount
       ? [{
@@ -2289,75 +2352,15 @@ function HomeScreen({ s }) {
       subtitle="Customer recommendations now come from individual records saved on this phone."
       brandCue="Real local records. Simulated sends."
     >
-      {openEnquiries.length ? (
-        <Pressable onPress={() => s.openCustomer(openEnquiries[0].id)} style={[styles.homePriorityCard, styles.homeReminderCard]}>
+      {priorityCustomerWork ? (
+        <Pressable onPress={priorityCustomerWork.onPress} style={[styles.homePriorityCard, styles.homeReminderCard]}>
           <View style={styles.homePriorityTop}>
-            <Text style={styles.homePriorityEyebrow}>NEW ENQUIRY</Text>
-            <StatusChip label="Start here" tone="amber" />
+            <Text style={styles.homePriorityEyebrow}>{priorityCustomerWork.eyebrow}</Text>
+            <StatusChip label={priorityCustomerWork.status} tone="amber" />
           </View>
-          <Text style={styles.homePriorityTitle}>{openEnquiries[0].name}</Text>
-          <Text style={styles.homePriorityBody}>{openEnquiries[0].service}</Text>
-          <Text style={styles.homePriorityLink}>Open customer →</Text>
-        </Pressable>
-      ) : null}
-
-      {s.dueReminderEntries.length ? (
-        <Pressable
-          onPress={() => s.openSavedReplyAction(s.dueReminderEntries[0].id)}
-          style={[styles.homePriorityCard, styles.homeReminderCard]}
-        >
-          <View style={styles.homePriorityTop}>
-            <Text style={styles.homePriorityEyebrow}>FOLLOW-UP DUE</Text>
-            <StatusChip label="Action needed" tone="amber" />
-          </View>
-          <Text style={styles.homePriorityTitle}>{s.dueReminderEntries[0].customer.name}</Text>
-          <Text style={styles.homePriorityBody}>
-            {s.dueReminderEntries[0].customer.service} • due {formatUKDate(s.dueReminderEntries[0].action.details.reminderDate)}
-          </Text>
-          <Text style={styles.homePriorityLink}>Open follow-up →</Text>
-        </Pressable>
-      ) : null}
-
-      {nextEnquiry ? (
-        <Pressable onPress={() => s.openCustomer(nextEnquiry.id)} style={styles.homePriorityCard}>
-          <View style={styles.homePriorityTop}>
-            <Text style={styles.homePriorityEyebrow}>NEW ENQUIRY</Text>
-            <StatusChip label="Needs next step" tone="amber" />
-          </View>
-          <Text style={styles.homePriorityTitle}>{nextEnquiry.name}</Text>
-          <Text style={styles.homePriorityBody}>{nextEnquiry.service}</Text>
-          <Text style={styles.homePriorityLink}>Open enquiry →</Text>
-        </Pressable>
-      ) : null}
-
-      {nextBooking ? (
-        <Pressable
-          onPress={() => s.openSavedReplyAction(nextBooking.id)}
-          style={styles.homePriorityCard}
-        >
-          <View style={styles.homePriorityTop}>
-            <Text style={styles.homePriorityEyebrow}>NEXT BOOKING</Text>
-            <StatusChip label="Customer work" tone="green" />
-          </View>
-          <Text style={styles.homePriorityTitle}>{nextBooking.customer.name}</Text>
-          <Text style={styles.homePriorityBody}>
-            {nextBooking.customer.service} • {formatUKDate(nextBooking.action.details.bookingDate)} at {nextBooking.action.details.bookingTime || "time not set"}
-          </Text>
-          <Text style={styles.homePriorityLink}>Open booking →</Text>
-        </Pressable>
-      ) : null}
-
-      {!s.dueReminderEntries.length && !nextBooking && priorityQuote ? (
-        <Pressable onPress={() => s.openSavedReplyAction(priorityQuote.id)} style={styles.customerTimelineCard}>
-          <View style={styles.homePriorityTop}>
-            <Text style={styles.homePriorityEyebrow}>ACTIVE QUOTE</Text>
-            <StatusChip label={priorityQuote.action.details?.quoteStatus || "Prepared"} tone="green" />
-          </View>
-          <Text style={styles.homePriorityTitle}>{priorityQuote.customer.name}</Text>
-          <Text style={styles.homePriorityBody}>
-            {priorityQuote.customer.service} • £{priorityQuote.action.details?.quoteAmount || "—"}
-          </Text>
-          <Text style={styles.homePriorityLink}>Open quote →</Text>
+          <Text style={styles.homePriorityTitle}>{priorityCustomerWork.title}</Text>
+          <Text style={styles.homePriorityBody}>{priorityCustomerWork.body}</Text>
+          <Text style={styles.homePriorityLink}>{priorityCustomerWork.link}</Text>
         </Pressable>
       ) : null}
 
@@ -2431,6 +2434,7 @@ function WorkHub({ s }) {
         `${b.action.details.bookingDate}T${b.action.details.bookingTime || "00:00"}`
       )
     );
+  const overdueBookings = bookings.filter((item) => item.action.details.bookingDate < todayISO);
   const todayBookings = bookings.filter((item) => item.action.details.bookingDate === todayISO);
   const upcomingBookings = bookings.filter((item) => item.action.details.bookingDate > todayISO);
   const nextQuote = activeQuotes[0] || null;
@@ -2453,7 +2457,21 @@ function WorkHub({ s }) {
         <MetricRow left="Actions to do" right={String(s.pendingReplyActionCount)} strong={s.pendingReplyActionCount > 0} />
       </Card>
 
-      {s.dueReminderEntries.length ? (
+      {overdueBookings.length ? (
+        <Pressable onPress={() => s.openSavedReplyAction(overdueBookings[0].id)} style={[styles.homePriorityCard, styles.homeReminderCard]}>
+          <View style={styles.homePriorityTop}>
+            <Text style={styles.homePriorityEyebrow}>PAST BOOKING NEEDS AN OUTCOME</Text>
+            <StatusChip label="Do this first" tone="amber" />
+          </View>
+          <Text style={styles.homePriorityTitle}>{overdueBookings[0].customer.name}</Text>
+          <Text style={styles.homePriorityBody}>
+            {overdueBookings[0].customer.service} • {formatUKDate(overdueBookings[0].action.details.bookingDate)}
+          </Text>
+          <Text style={styles.homePriorityLink}>Complete, move or cancel →</Text>
+        </Pressable>
+      ) : null}
+
+      {!overdueBookings.length && s.dueReminderEntries.length ? (
         <Pressable onPress={() => s.openSavedReplyAction(s.dueReminderEntries[0].id)} style={[styles.homePriorityCard, styles.homeReminderCard]}>
           <View style={styles.homePriorityTop}>
             <Text style={styles.homePriorityEyebrow}>FOLLOW-UP DUE</Text>
@@ -2496,6 +2514,10 @@ function WorkHub({ s }) {
       <Text style={styles.sectionLabel}>Add or manage work</Text>
       <Button label="+ New enquiry" primary onPress={s.startNewEnquiry} />
       <Button label="Customer records" onPress={() => s.go("customerRecords")} />
+      <Button
+        label={s.openEnquiryCount || Object.keys(s.replyActions || {}).length ? "Customer pipeline" : "Customer pipeline • empty"}
+        onPress={() => s.go("workPipeline")}
+      />
       <Button
         label={bookings.length ? `Work diary • ${bookings.length} active` : "Work diary"}
         onPress={() => s.go("bookings")}
