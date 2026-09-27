@@ -2840,8 +2840,9 @@ function App() {
     );
     if (!customer) return false;
 
+    const testAddress = customer.address || "22 Test Lane EX17 9ZZ";
     const rawText =
-      `Name: ${customer.name}\nPhone: ${customer.phone}\n${customer.service}\nAddress: 22 Test Lane EX17 9ZZ\nNew enquiry received today asking about ${customer.service.toLowerCase()}.`;
+      `Name: ${customer.name}\nPhone: ${customer.phone}\n${customer.service}\nAddress: ${testAddress}\nNew enquiry received today asking about ${customer.service.toLowerCase()}.`;
     const parsed = parseQuickCapture(rawText, services, customer.service);
     const triage = triageInboxCandidate(parsed, customers, replyActions);
     const item = {
