@@ -95,6 +95,18 @@ function groupCustomersByService(customers) {
   }, {});
 }
 
+function buildSimulatedReply(customer, index, quietSlot) {
+  const service = (customer?.service || "your usual service").toLowerCase();
+  const slot = quietSlot || "That slot";
+  const variants = [
+    { status: "Interested", body: `Yes please — could you send me a quote for the ${service}?` },
+    { status: "Booked", body: `${slot} works for me. What time can you come?` },
+    { status: "Not now", body: `Not this month, thanks — maybe later for the ${service}.` },
+    { status: "No reply", body: "No reply yet." },
+  ];
+  return { ...customer, ...variants[index % variants.length] };
+}
+
 
 const previousCustomerGroups = [
   {
@@ -261,6 +273,7 @@ function App() {
   const [adBudget, setAdBudget] = useState("20");
   const [message, setMessage] = useState(campaignSteps[0].message);
   const [serviceMessages, setServiceMessages] = useState({});
+  const [lastSimulatedRecipients, setLastSimulatedRecipients] = useState([]);
   const [bringBackMessage, setBringBackMessage] = useState(
     "Hi, it’s been a while since we last helped. We’ve got a couple of spaces next week if you need any exterior cleaning. Reply here if you’d like us to take a look."
   );
@@ -444,6 +457,13 @@ function App() {
     go("checkSend");
   };
 
+  const simulateCurrentSend = () => {
+    if (campaignStage === 0) {
+      setLastSimulatedRecipients(customers.filter(isEligibleCustomer).map((customer) => ({ ...customer })));
+    }
+    go("progress");
+  };
+
   const prepareOfferFromGoal = () => {
     const preferred = services.find((x) => x.id === selectedServiceId) || services.find((x) => x.wanted) || services[0];
     const serviceName = preferred?.name || "Driveway cleaning";
@@ -529,6 +549,7 @@ function App() {
     setNewCustomerValue("");
     setNewCustomerContactOk(true);
     setServiceMessages({});
+    setLastSimulatedRecipients([]);
     setServices(servicesSeed);
     setAlwaysAsk(true);
     setCustomerContact(true);
@@ -635,6 +656,8 @@ function App() {
     serviceMessages,
     setServiceMessages,
     resetReactivationMessages,
+    simulateCurrentSend,
+    lastSimulatedRecipients,
     bringBackMessage,
     setBringBackMessage,
     offerGoal,
@@ -1590,7 +1613,7 @@ function CheckSend({ s }) {
         label={s.campaignStage === 0 ? `Simulate send to ${eligibleCount}` : "Simulate send"}
         primary
         disabled={s.campaignStage === 0 && !eligibleCount}
-        onPress={() => s.go("progress")}
+        onPress={s.simulateCurrentSend}
       />
       <Button
         label={s.campaignStage === 0 ? "Reset all drafts" : "Reset draft"}
@@ -1608,13 +1631,17 @@ function Progress({ s }) {
   const hasAnotherFreeMove = nextStage < campaignSteps.length;
   const next = hasAnotherFreeMove ? campaignSteps[nextStage] : null;
   const progressCount = Math.min(s.campaignStage + 1, campaignSteps.length);
-  const serviceGroupCount = Object.keys(groupCustomersByService(s.eligibleCustomers)).length;
+  const sentRecipients =
+    s.campaignStage === 0 && s.lastSimulatedRecipients?.length
+      ? s.lastSimulatedRecipients
+      : s.eligibleCustomers;
+  const serviceGroupCount = Object.keys(groupCustomersByService(sentRecipients)).length;
 
   const result =
     s.campaignStage === 0
       ? {
           title: "Service-matched send simulated",
-          body: `${s.eligibleCustomers.length} eligible customers across ${serviceGroupCount} service group${serviceGroupCount === 1 ? "" : "s"} would receive the relevant draft. No real messages were sent.`,
+          body: `${sentRecipients.length} eligible customers across ${serviceGroupCount} service group${serviceGroupCount === 1 ? "" : "s"} would receive the relevant draft. No real messages were sent.`,
           footer: "Prototype simulation only",
         }
       : {
@@ -1663,24 +1690,45 @@ function Progress({ s }) {
   );
 }
 
+
 function Replies({ s }) {
-  const replies = [
-    ["Sarah M.", "Yes please — can you quote the patio as well?", "Interested"],
-    ["John P.", "Thursday works. What time can you come?", "Booked"],
-    ["Chris L.", "Not this month, thanks.", "Not now"],
-    ["Megan T.", "Could you do next Friday instead?", "Interested"],
-  ];
+  const recipients = s.lastSimulatedRecipients?.length ? s.lastSimulatedRecipients : s.eligibleCustomers;
+  const replies = recipients.map((customer, index) =>
+    buildSimulatedReply(customer, index, s.quietSlot)
+  );
+  const replyCount = replies.filter((reply) => reply.status !== "No reply").length;
+  const noReplyCount = replies.length - replyCount;
+
   return (
-    <Shell s={s} title="Replies" subtitle="Plain-English status only.">
-      {replies.map(([name, body, status]) => (
-        <View style={styles.replyCard} key={name}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
-            <Text style={styles.replyName}>{name}</Text>
-            <Text style={styles.replyStatus}>{status}</Text>
+    <Shell
+      s={s}
+      title="Replies"
+      subtitle="These simulated outcomes use the exact customer records from the send you just tested."
+    >
+      <Card
+        eyebrow="Simulated outcome"
+        title={`${replyCount} repl${replyCount === 1 ? "y" : "ies"} from ${recipients.length} recipients`}
+        body={noReplyCount ? `${noReplyCount} customer${noReplyCount === 1 ? "" : "s"} have no reply yet.` : "Every simulated recipient has replied."}
+        footer="No real messages or replies"
+        tone="green"
+      />
+
+      {replies.map((reply) => {
+        const muted = reply.status === "Not now" || reply.status === "No reply";
+        return (
+          <View style={styles.replyCard} key={reply.id}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
+              <View style={{ flex: 1, paddingRight: 8 }}>
+                <Text style={styles.replyName}>{reply.name}</Text>
+                <Text style={styles.replyService}>{reply.service}</Text>
+              </View>
+              <Text style={[styles.replyStatus, muted && styles.replyStatusMuted]}>{reply.status}</Text>
+            </View>
+            <Text style={styles.replyBody}>{reply.body}</Text>
           </View>
-          <Text style={styles.replyBody}>{body}</Text>
-        </View>
-      ))}
+        );
+      })}
+
       <Button label="Back to progress" primary onPress={s.back} />
     </Shell>
   );
@@ -2556,6 +2604,8 @@ const styles = StyleSheet.create({
   },
   replyName: { fontWeight: "900", color: C.ink, fontSize: 16 },
   replyStatus: { color: C.green, fontWeight: "800", fontSize: 13 },
+  replyStatusMuted: { color: C.muted },
+  replyService: { color: C.muted, fontSize: 12, fontWeight: "700", marginTop: 2 },
   replyBody: { color: C.muted, lineHeight: 20, marginTop: 7 },
   groupCard: {
     borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16,
