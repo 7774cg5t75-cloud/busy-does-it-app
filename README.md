@@ -58,3 +58,15 @@ Busy Does It mobile app prototype.
 - Home now prioritises due follow-ups, upcoming bookings and active quotes before general marketing opportunities.
 - Results now includes open enquiries and booked-work value alongside quotes, completed jobs and follow-ups.
 - Existing customer records and job history are preserved when business-type rules change.
+
+## v0.9 customer pipeline + work diary
+- Fixed New enquiry so the custom-service field starts blank instead of duplicating the selected service.
+- Added clearer customer pipeline statuses for new enquiries, active quotes, bookings and follow-ups.
+- Added new-enquiry priority cards to Home and Work so fresh leads do not disappear behind general marketing suggestions.
+- Strengthened the Work hub with pipeline value and open-action totals.
+- Improved the work diary with overdue-job detection, clash warnings, booked values, separate completed and cancelled sections, and clearer diary health.
+- Added a customer stage readout to each customer detail screen.
+- Added a combined customer pipeline value across active quotes and confirmed booked work.
+- Changed quote handling from a purely simulated-send label to a local operational status: users can mark a quote as sent while the prototype remains explicit that it sends nothing automatically.
+- Results now uses operational wording for quotes marked as sent and shows total customer work in the pipeline.
+- Preserved the v0.8 flexible service-business architecture and vertical packs; no exterior-cleaning logic was promoted into the reusable core.
