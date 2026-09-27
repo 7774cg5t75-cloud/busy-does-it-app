@@ -2363,6 +2363,7 @@ function App() {
 
   const startQuickCapture = () => {
     clearQuickCapture();
+    setSelectedInboxItemId(null);
     setTab("Work");
     go("quickCapture");
   };
@@ -2392,7 +2393,133 @@ function App() {
     }
   };
 
+  const queueCaptureToInbox = () => {
+    const rawText = captureRawText.trim();
+    if (!rawText) return false;
+    const parsed = parseQuickCapture(
+      rawText,
+      services,
+      services.find((item) => item.wanted)?.name || trade || "Service"
+    );
+    const triage = triageInboxCandidate(parsed, customers, replyActions);
+    const queuedAt = new Date().toISOString();
+    const item = {
+      id: `inbox-${Date.now()}`,
+      status: "Pending",
+      source: captureSource,
+      rawText,
+      parsed,
+      queuedAt,
+      originalLane: triage.lane,
+      originalReason: triage.reason,
+      originalPriorityScore: triage.priorityScore,
+    };
+    setInboxItems((items) => [...items, item]);
+    clearQuickCapture();
+    setSelectedInboxItemId(null);
+    setTab("Work");
+    go("busyInbox");
+    return true;
+  };
+
+  const queueInboxTestBatch = () => {
+    const service = services.find((item) => item.wanted)?.name || services[0]?.name || "Driveway cleaning";
+    const today = dateToISO(new Date());
+    const examples = [
+      {
+        source: "Customer message",
+        rawText: `Name: Jamie Wilson\nPhone: 07700 901001\nHi, could I get a quote for ${service.toLowerCase()} please?\nAddress: 2 Mill Lane EX17 4AA`,
+      },
+      {
+        source: "Email / quote note",
+        rawText: `Name: Lucy Brown\nPhone: 07700 901002\nEmail: lucy.brown@example.com\n${service}\nQuote sent ${formatUKDate(addDaysFromISO(today, -10))} for £390\nAddress: 14 Fore Street EX17 3BB`,
+      },
+      {
+        source: "Calendar / booking note",
+        rawText: `Customer: Noah Patel\n07700 901003\nBooked ${service} for ${formatUKDate(addDaysFromISO(today, 3))} at 10:30\nJob value £310\nSite: 6 Station Road EX17 2CC`,
+      },
+      {
+        source: "Phone note",
+        rawText: "Morgan\nCalled about some work at EX17 5DD. Please call back.",
+      },
+    ];
+    const base = Date.now();
+    const queuedAt = new Date().toISOString();
+    const items = examples.map((example, index) => {
+      const parsed = parseQuickCapture(
+        example.rawText,
+        services,
+        services.find((item) => item.wanted)?.name || trade || "Service"
+      );
+      const triage = triageInboxCandidate(parsed, customers, replyActions);
+      return {
+        id: `inbox-test-${base}-${index}`,
+        status: "Pending",
+        source: example.source,
+        rawText: example.rawText,
+        parsed,
+        queuedAt,
+        originalLane: triage.lane,
+        originalReason: triage.reason,
+        originalPriorityScore: triage.priorityScore,
+        testItem: true,
+      };
+    });
+    setInboxItems((current) => [...current, ...items]);
+  };
+
+  const openInboxItem = (id) => {
+    const item = inboxItems.find((candidate) => candidate.id === id);
+    if (!item || item.status !== "Pending") return;
+    const parsed = item.parsed || parseQuickCapture(item.rawText, services, trade);
+    setSelectedInboxItemId(id);
+    setCaptureForceNew(false);
+    setCaptureRawText(item.rawText || "");
+    setCaptureSource(item.source || "Customer message");
+    setCaptureStage(parsed.stage || "Enquiry");
+    setCaptureName(parsed.name || "");
+    setCapturePhone(parsed.phone || "");
+    setCaptureEmail(parsed.email || "");
+    setCaptureAddress(parsed.address || "");
+    setCaptureService(parsed.service || "");
+    setCaptureDate(parsed.date || dateToISO(new Date()));
+    setCaptureTime(parsed.time || "09:00");
+    setCaptureValue(parsed.value || "");
+    setCaptureNote(parsed.note || item.rawText || "");
+    setCaptureConfidence(parsed.confidence || "Low");
+    setCaptureExtractedFields(parsed.extractedFields || []);
+    setTab("Work");
+    go("quickCaptureReview");
+  };
+
+  const dismissInboxItem = (id) => {
+    const reviewedAt = new Date().toISOString();
+    setInboxItems((items) =>
+      items.map((item) =>
+        item.id === id
+          ? { ...item, status: "Dismissed", reviewedAt }
+          : item
+      )
+    );
+  };
+
+  const reopenInboxItem = (id) => {
+    setInboxItems((items) =>
+      items.map((item) =>
+        item.id === id
+          ? { ...item, status: "Pending", reviewedAt: null }
+          : item
+      )
+    );
+  };
+
+  const openBusyInbox = () => {
+    setTab("Work");
+    go("busyInbox");
+  };
+
   const analyseQuickCapture = () => {
+    setSelectedInboxItemId(null);
     const parsed = parseQuickCapture(
       captureRawText,
       services,
@@ -2672,7 +2799,25 @@ function App() {
       },
     ]);
 
+    if (selectedInboxItemId) {
+      setInboxItems((items) =>
+        items.map((item) =>
+          item.id === selectedInboxItemId
+            ? {
+                ...item,
+                status: "Filed",
+                reviewedAt: importedAt,
+                filedCustomerId: customerId,
+                filedStage: captureStage,
+                matchedExisting: !!existing,
+              }
+            : item
+        )
+      );
+    }
+
     setSelectedCustomerId(customerId);
+    setSelectedInboxItemId(null);
     go("quickCaptureSaved");
     return true;
   };
