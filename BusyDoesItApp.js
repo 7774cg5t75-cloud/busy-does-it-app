@@ -86,6 +86,13 @@ function formatUKDate(dateString) {
   });
 }
 
+function addDaysISO(days) {
+  const date = new Date();
+  date.setHours(12, 0, 0, 0);
+  date.setDate(date.getDate() + days);
+  return dateToISO(date);
+}
+
 function groupCustomersByService(customers) {
   return customers.reduce((groups, customer) => {
     const key = customer?.service?.trim() || "Usual service";
@@ -108,9 +115,9 @@ function buildSimulatedReply(customer, index, quietSlot) {
 }
 
 function replyActionForStatus(status) {
-  if (status === "Booked") return { label: "Confirm booking", task: "Confirm the booking time" };
-  if (status === "Interested") return { label: "Prepare quote", task: "Prepare and send a quote" };
-  if (status === "Not now") return { label: "Remind later", task: "Save a later follow-up" };
+  if (status === "Booked") return { type: "booking", label: "Confirm booking", task: "Confirm the booking time" };
+  if (status === "Interested") return { type: "quote", label: "Prepare quote", task: "Prepare and send a quote" };
+  if (status === "Not now") return { type: "reminder", label: "Remind later", task: "Save a later follow-up" };
   return null;
 }
 
@@ -282,6 +289,14 @@ function App() {
   const [serviceMessages, setServiceMessages] = useState({});
   const [lastSimulatedRecipients, setLastSimulatedRecipients] = useState([]);
   const [replyActions, setReplyActions] = useState({});
+  const [selectedReplyActionId, setSelectedReplyActionId] = useState(null);
+  const [actionQuoteAmount, setActionQuoteAmount] = useState("");
+  const [actionQuoteMessage, setActionQuoteMessage] = useState("");
+  const [actionBookingDate, setActionBookingDate] = useState(addDaysISO(2));
+  const [actionBookingTime, setActionBookingTime] = useState("10:00");
+  const [actionReminderDate, setActionReminderDate] = useState(addDaysISO(30));
+  const [editingCustomerId, setEditingCustomerId] = useState(null);
+  const [pendingRemoveCustomerId, setPendingRemoveCustomerId] = useState(null);
   const [bringBackMessage, setBringBackMessage] = useState(
     "Hi, it’s been a while since we last helped. We’ve got a couple of spaces next week if you need any exterior cleaning. Reply here if you’d like us to take a look."
   );
@@ -438,7 +453,7 @@ function App() {
 
 
   const buildReactivationMessages = () => {
-    const eligible = customers.filter(isEligibleCustomer);
+    const eligible = customerContact ? customers.filter(isEligibleCustomer) : [];
     const groups = groupCustomersByService(eligible);
     const slotText = (quietSlot || "a quiet slot").toLowerCase();
     const drafts = {};
@@ -473,24 +488,55 @@ function App() {
 
   const simulateCurrentSend = () => {
     if (campaignStage === 0) {
-      setLastSimulatedRecipients(customers.filter(isEligibleCustomer).map((customer) => ({ ...customer })));
+      setLastSimulatedRecipients((customerContact ? customers.filter(isEligibleCustomer) : []).map((customer) => ({ ...customer })));
       setReplyActions({});
     }
     go("progress");
   };
 
-  const saveReplyAction = (customerId, task) => {
+  const saveReplyAction = (customerId, task, type) => {
     setReplyActions((current) => ({
       ...current,
-      [customerId]: { task, done: false },
+      [customerId]: {
+        ...(current[customerId] || {}),
+        task,
+        type: type || current[customerId]?.type || null,
+        done: current[customerId]?.done || false,
+      },
     }));
   };
 
-  const markReplyActionDone = (customerId) => {
+  const beginReplyAction = (customerId, suggested) => {
+    const customer =
+      lastSimulatedRecipients.find((item) => item.id === customerId) ||
+      customers.find((item) => item.id === customerId);
+    if (!customer || !suggested) return;
+
+    saveReplyAction(customerId, suggested.task, suggested.type);
+    setSelectedReplyActionId(customerId);
+
+    if (suggested.type === "quote") {
+      const service = services.find((item) => item.name === customer.service);
+      const amount = Number(customer.lastJobValue) > 0 ? customer.lastJobValue : service?.value || "";
+      setActionQuoteAmount(String(amount || ""));
+      setActionQuoteMessage(
+        `Hi ${customer.name.split(" ")[0]}, thanks for getting back to us. The quote for ${customer.service.toLowerCase()} is £${amount || "—"}. Let me know if you’d like to go ahead.`
+      );
+    } else if (suggested.type === "booking") {
+      setActionBookingDate(addDaysISO(2));
+      setActionBookingTime("10:00");
+    } else if (suggested.type === "reminder") {
+      setActionReminderDate(addDaysISO(30));
+    }
+
+    go("replyActionDetail");
+  };
+
+  const completeReplyAction = (customerId, details = {}) => {
     setReplyActions((current) => ({
       ...current,
       [customerId]: current[customerId]
-        ? { ...current[customerId], done: true }
+        ? { ...current[customerId], done: true, details }
         : current[customerId],
     }));
   };
@@ -526,7 +572,33 @@ function App() {
     go("offerBuild");
   };
 
-  const addCustomer = () => {
+  const clearCustomerForm = () => {
+    setEditingCustomerId(null);
+    setNewCustomerName("");
+    setNewCustomerPhone("");
+    setNewCustomerService(services.find((item) => item.wanted)?.name || trade || "Service");
+    setNewCustomerDate(dateToISO(new Date()));
+    setNewCustomerValue("");
+    setNewCustomerContactOk(true);
+  };
+
+  const startNewCustomer = () => {
+    clearCustomerForm();
+    go("addCustomerRecord");
+  };
+
+  const startEditCustomer = (customer) => {
+    setEditingCustomerId(customer.id);
+    setNewCustomerName(customer.name || "");
+    setNewCustomerPhone(customer.phone || "");
+    setNewCustomerService(customer.service || "");
+    setNewCustomerDate(customer.lastServiceDate || dateToISO(new Date()));
+    setNewCustomerValue(customer.lastJobValue ? String(customer.lastJobValue) : "");
+    setNewCustomerContactOk(customer.contactOk !== false);
+    go("addCustomerRecord");
+  };
+
+  const saveCustomerRecord = () => {
     const name = newCustomerName.trim();
     const phone = newCustomerPhone.trim();
     const service = newCustomerService.trim() || trade || "Service";
@@ -534,27 +606,42 @@ function App() {
     const dateIsValid = !Number.isNaN(new Date(newCustomerDate).getTime());
     if (!name || !phone || !dateIsValid) return false;
 
-    setCustomers((list) => [
-      ...list,
-      {
-        id: `customer-${Date.now()}`,
-        name,
-        phone,
-        service,
-        lastServiceDate: newCustomerDate,
-        lastJobValue: Number.isFinite(parsedValue) ? parsedValue : 0,
-        contactOk: newCustomerContactOk,
-      },
-    ]);
-    setNewCustomerName("");
-    setNewCustomerPhone("");
-    setNewCustomerValue("");
-    setNewCustomerContactOk(true);
+    const nextRecord = {
+      id: editingCustomerId || `customer-${Date.now()}`,
+      name,
+      phone,
+      service,
+      lastServiceDate: newCustomerDate,
+      lastJobValue: Number.isFinite(parsedValue) ? parsedValue : 0,
+      contactOk: newCustomerContactOk,
+    };
+
+    setCustomers((list) =>
+      editingCustomerId
+        ? list.map((customer) => (customer.id === editingCustomerId ? nextRecord : customer))
+        : [...list, nextRecord]
+    );
+    clearCustomerForm();
     return true;
   };
 
-  const removeCustomer = (id) => {
+  const requestRemoveCustomer = (id) => {
+    setPendingRemoveCustomerId(id);
+    go("confirmRemoveCustomer");
+  };
+
+  const confirmRemoveCustomer = () => {
+    const id = pendingRemoveCustomerId;
+    if (!id) return;
     setCustomers((list) => list.filter((customer) => customer.id !== id));
+    setLastSimulatedRecipients((list) => list.filter((customer) => customer.id !== id));
+    setReplyActions((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
+    setPendingRemoveCustomerId(null);
+    back();
   };
 
   const resetPrototype = async () => {
@@ -582,6 +669,9 @@ function App() {
     setServiceMessages({});
     setLastSimulatedRecipients([]);
     setReplyActions({});
+    setSelectedReplyActionId(null);
+    setEditingCustomerId(null);
+    setPendingRemoveCustomerId(null);
     setServices(servicesSeed);
     setAlwaysAsk(true);
     setCustomerContact(true);
@@ -597,8 +687,16 @@ function App() {
   };
 
   const selectedService = services.find((x) => x.id === selectedServiceId) || services[0];
-  const eligibleCustomers = customers.filter(isEligibleCustomer);
+  const eligibleCustomers = customerContact ? customers.filter(isEligibleCustomer) : [];
   const pendingReplyActionCount = Object.values(replyActions).filter((action) => action && !action.done).length;
+  const completedReplyActions = Object.values(replyActions).filter((action) => action && action.done);
+  const completedQuoteCount = completedReplyActions.filter((action) => action.type === "quote").length;
+  const completedBookingCount = completedReplyActions.filter((action) => action.type === "booking").length;
+  const completedReminderCount = completedReplyActions.filter((action) => action.type === "reminder").length;
+  const selectedReplyCustomer =
+    lastSimulatedRecipients.find((customer) => customer.id === selectedReplyActionId) ||
+    customers.find((customer) => customer.id === selectedReplyActionId) ||
+    null;
 
   const appState = {
     screen,
@@ -649,8 +747,15 @@ function App() {
     setNewCustomerValue,
     newCustomerContactOk,
     setNewCustomerContactOk,
-    addCustomer,
-    removeCustomer,
+    editingCustomerId,
+    startNewCustomer,
+    startEditCustomer,
+    saveCustomerRecord,
+    clearCustomerForm,
+    pendingRemoveCustomerId,
+    setPendingRemoveCustomerId,
+    requestRemoveCustomer,
+    confirmRemoveCustomer,
     services,
     setServices,
     newServiceName,
@@ -694,8 +799,25 @@ function App() {
     replyActions,
     setReplyActions,
     saveReplyAction,
-    markReplyActionDone,
+    beginReplyAction,
+    completeReplyAction,
+    selectedReplyActionId,
+    setSelectedReplyActionId,
+    selectedReplyCustomer,
+    actionQuoteAmount,
+    setActionQuoteAmount,
+    actionQuoteMessage,
+    setActionQuoteMessage,
+    actionBookingDate,
+    setActionBookingDate,
+    actionBookingTime,
+    setActionBookingTime,
+    actionReminderDate,
+    setActionReminderDate,
     pendingReplyActionCount,
+    completedQuoteCount,
+    completedBookingCount,
+    completedReminderCount,
     bringBackMessage,
     setBringBackMessage,
     offerGoal,
@@ -755,7 +877,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={styles.brand}>BUSY DOES IT</Text>
             <Text style={styles.tagline}>More work. Less fuss.</Text>
-            <Text style={styles.prototypeBadge}>Prototype v0.6 • reply actions + simulated follow-up</Text>
+            <Text style={styles.prototypeBadge}>Prototype v0.6 • action workflows + local records</Text>
           </View>
           {!noBack && s.history?.length > 0 ? (
             <Pressable onPress={s.back} style={styles.backPill}>
@@ -875,7 +997,8 @@ function Field({ label, value, onChangeText, placeholder, keyboardType = "defaul
   );
 }
 
-function DatePickerField({ label, value, onChange }) {
+
+function DatePickerField({ label, value, onChange, allowFuture = false, minimumDate = null, maximumDate = null }) {
   const [open, setOpen] = useState(false);
   const selected = dateFromISO(value);
   const [viewMonth, setViewMonth] = useState(
@@ -884,17 +1007,26 @@ function DatePickerField({ label, value, onChange }) {
 
   const today = new Date();
   const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0);
+  const minLimit = minimumDate ? dateFromISO(minimumDate) : null;
+  const maxLimit = maximumDate ? dateFromISO(maximumDate) : allowFuture ? null : todayOnly;
+
   const year = viewMonth.getFullYear();
   const month = viewMonth.getMonth();
   const firstWeekdayMondayFirst = (new Date(year, month, 1).getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const monthLabel = viewMonth.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
-  const canGoForward =
-    year < today.getFullYear() || (year === today.getFullYear() && month < today.getMonth());
+
+  const previousMonth = new Date(year, month - 1, 1, 12, 0, 0);
+  const nextMonth = new Date(year, month + 1, 1, 12, 0, 0);
+  const minMonth = minLimit ? new Date(minLimit.getFullYear(), minLimit.getMonth(), 1, 12, 0, 0) : null;
+  const maxMonth = maxLimit ? new Date(maxLimit.getFullYear(), maxLimit.getMonth(), 1, 12, 0, 0) : null;
+  const canGoBack = !minMonth || previousMonth >= minMonth;
+  const canGoForward = !maxMonth || nextMonth <= maxMonth;
 
   const chooseDate = (day) => {
     const candidate = new Date(year, month, day, 12, 0, 0);
-    if (candidate > todayOnly) return;
+    if (minLimit && candidate < minLimit) return;
+    if (maxLimit && candidate > maxLimit) return;
     onChange(dateToISO(candidate));
     setOpen(false);
   };
@@ -918,16 +1050,17 @@ function DatePickerField({ label, value, onChange }) {
         <View style={styles.datePickerPanel}>
           <View style={styles.calendarHeader}>
             <Pressable
-              style={styles.calendarNav}
-              onPress={() => setViewMonth(new Date(year, month - 1, 1, 12, 0, 0))}
+              disabled={!canGoBack}
+              style={[styles.calendarNav, !canGoBack && styles.calendarNavDisabled]}
+              onPress={() => setViewMonth(previousMonth)}
             >
-              <Text style={styles.calendarNavText}>‹</Text>
+              <Text style={[styles.calendarNavText, !canGoBack && styles.calendarNavTextDisabled]}>‹</Text>
             </Pressable>
             <Text style={styles.calendarMonth}>{monthLabel}</Text>
             <Pressable
               disabled={!canGoForward}
               style={[styles.calendarNav, !canGoForward && styles.calendarNavDisabled]}
-              onPress={() => setViewMonth(new Date(year, month + 1, 1, 12, 0, 0))}
+              onPress={() => setViewMonth(nextMonth)}
             >
               <Text style={[styles.calendarNavText, !canGoForward && styles.calendarNavTextDisabled]}>›</Text>
             </Pressable>
@@ -944,7 +1077,9 @@ function DatePickerField({ label, value, onChange }) {
             ))}
             {Array.from({ length: daysInMonth }, (_, index) => index + 1).map((day) => {
               const candidate = new Date(year, month, day, 12, 0, 0);
-              const disabled = candidate > todayOnly;
+              const disabled =
+                (!!minLimit && candidate < minLimit) ||
+                (!!maxLimit && candidate > maxLimit);
               const isSelected =
                 selected.getFullYear() === year &&
                 selected.getMonth() === month &&
@@ -1336,7 +1471,7 @@ function HomeScreen({ s }) {
           <OpportunityCard
             key={item.id}
             {...item}
-            actionLabel="Do it"
+            actionLabel={item.id === "reply-actions" ? "Review actions" : "Do it"}
             onIgnore={() => s.dismissOpportunity(item.id)}
           />
         ))
@@ -1748,6 +1883,7 @@ function Progress({ s }) {
 
 
 
+
 function Replies({ s }) {
   const recipients = s.lastSimulatedRecipients?.length ? s.lastSimulatedRecipients : s.eligibleCustomers;
   const replies = recipients.map((customer, index) =>
@@ -1761,7 +1897,7 @@ function Replies({ s }) {
     <Shell
       s={s}
       title="Replies"
-      subtitle="Busy Does It now turns useful replies into clear next actions."
+      subtitle="Busy Does It turns useful replies into clear next actions."
     >
       <Card
         eyebrow="Simulated outcome"
@@ -1788,19 +1924,19 @@ function Replies({ s }) {
             <Text style={styles.replyBody}>{reply.body}</Text>
 
             {suggested ? (
-              saved ? (
+              saved?.done ? (
                 <View style={styles.replyActionSaved}>
-                  <Text style={styles.replyActionSavedTitle}>
-                    {saved.done ? "Completed" : "Next action saved"}
-                  </Text>
+                  <Text style={styles.replyActionSavedTitle}>Completed</Text>
                   <Text style={styles.replyActionSavedBody}>{saved.task}</Text>
                 </View>
               ) : (
                 <Pressable
-                  onPress={() => s.saveReplyAction(reply.id, suggested.task)}
+                  onPress={() => s.beginReplyAction(reply.id, suggested)}
                   style={styles.replyActionButton}
                 >
-                  <Text style={styles.replyActionButtonText}>{suggested.label}</Text>
+                  <Text style={styles.replyActionButtonText}>
+                    {saved ? `Continue: ${suggested.label}` : suggested.label}
+                  </Text>
                 </Pressable>
               )
             ) : null}
@@ -1839,7 +1975,7 @@ function ReplyActions({ s }) {
     <Shell
       s={s}
       title="Next actions"
-      subtitle="A short customer follow-up queue, built from the replies you just received."
+      subtitle="Work through customer replies here instead of keeping a separate to-do list."
     >
       <Card
         eyebrow="Reply follow-up"
@@ -1849,16 +1985,23 @@ function ReplyActions({ s }) {
         tone="green"
       />
 
-      {pending.map(({ id, action, reply }) => (
-        <View key={id} style={styles.replyTaskCard}>
-          <Text style={styles.replyTaskEyebrow}>{reply.status} • {reply.service}</Text>
-          <Text style={styles.replyTaskName}>{reply.name}</Text>
-          <Text style={styles.replyTaskBody}>{action.task}</Text>
-          <Pressable onPress={() => s.markReplyActionDone(id)} style={styles.replyTaskDoneButton}>
-            <Text style={styles.replyTaskDoneText}>Mark done</Text>
-          </Pressable>
-        </View>
-      ))}
+      {pending.map(({ id, action, reply }) => {
+        const suggested = replyActionForStatus(reply.status);
+        const effective = suggested || { type: action.type, label: action.task, task: action.task };
+        return (
+          <View key={id} style={styles.replyTaskCard}>
+            <Text style={styles.replyTaskEyebrow}>{reply.status} • {reply.service}</Text>
+            <Text style={styles.replyTaskName}>{reply.name}</Text>
+            <Text style={styles.replyTaskBody}>{action.task}</Text>
+            <Pressable
+              onPress={() => s.beginReplyAction(id, effective)}
+              style={styles.replyTaskOpenButton}
+            >
+              <Text style={styles.replyTaskOpenText}>{suggested?.label || "Open action"}</Text>
+            </Pressable>
+          </View>
+        );
+      })}
 
       {done.length ? (
         <>
@@ -1868,6 +2011,7 @@ function ReplyActions({ s }) {
               <Text style={styles.replyTaskEyebrow}>{reply.service}</Text>
               <Text style={styles.replyTaskName}>{reply.name}</Text>
               <Text style={styles.replyTaskBody}>✓ {action.task}</Text>
+              {action.details?.summary ? <Text style={styles.replyTaskDetail}>{action.details.summary}</Text> : null}
             </View>
           ))}
         </>
@@ -1883,6 +2027,132 @@ function ReplyActions({ s }) {
 
       <Button label="Back to replies" primary onPress={s.back} />
       <Button label="Home" onPress={() => s.jump("home", "Home")} />
+    </Shell>
+  );
+}
+
+function ReplyActionDetail({ s }) {
+  const customer = s.selectedReplyCustomer;
+  if (!customer) {
+    return (
+      <Shell s={s} title="Action unavailable" subtitle="That customer record is no longer available.">
+        <Button label="Back" primary onPress={s.back} />
+      </Shell>
+    );
+  }
+
+  const recipients = s.lastSimulatedRecipients?.length ? s.lastSimulatedRecipients : s.eligibleCustomers;
+  const index = Math.max(0, recipients.findIndex((item) => item.id === customer.id));
+  const reply = buildSimulatedReply(customer, index, s.quietSlot);
+  const suggested = replyActionForStatus(reply.status);
+  const saved = s.replyActions[customer.id] || {};
+  const type = saved.type || suggested?.type;
+
+  const finish = (details) => {
+    s.completeReplyAction(customer.id, details);
+    s.back();
+  };
+
+  if (type === "quote") {
+    return (
+      <Shell
+        s={s}
+        title="Prepare quote"
+        subtitle={`For ${customer.name} • ${customer.service}. Nothing is actually sent in this prototype.`}
+      >
+        <Card eyebrow="Customer asked for a quote" title={customer.name} body={reply.body} tone="green" />
+        <Field label="Quote amount" value={s.actionQuoteAmount} onChangeText={s.setActionQuoteAmount} keyboardType="number-pad" prefix="£" />
+        <Text style={styles.fieldLabel}>Draft reply</Text>
+        <TextInput multiline value={s.actionQuoteMessage} onChangeText={s.setActionQuoteMessage} style={styles.messageInput} />
+        <Button
+          label="Save quote as prepared"
+          primary
+          disabled={!String(s.actionQuoteAmount).trim()}
+          onPress={() =>
+            finish({
+              quoteAmount: s.actionQuoteAmount,
+              message: s.actionQuoteMessage,
+              summary: `Quote prepared for £${s.actionQuoteAmount}`,
+            })
+          }
+        />
+        <Button label="Cancel" onPress={s.back} />
+      </Shell>
+    );
+  }
+
+  if (type === "booking") {
+    return (
+      <Shell
+        s={s}
+        title="Confirm booking"
+        subtitle={`For ${customer.name} • ${customer.service}. This saves a local prototype booking only.`}
+      >
+        <Card eyebrow="Customer wants the slot" title={customer.name} body={reply.body} tone="green" />
+        <DatePickerField
+          label="Booking date"
+          value={s.actionBookingDate}
+          onChange={s.setActionBookingDate}
+          allowFuture
+          minimumDate={dateToISO(new Date())}
+        />
+        <Field label="Time" value={s.actionBookingTime} onChangeText={s.setActionBookingTime} placeholder="e.g. 10:00" />
+        <Button
+          label="Save booking confirmation"
+          primary
+          disabled={!s.actionBookingTime.trim()}
+          onPress={() =>
+            finish({
+              bookingDate: s.actionBookingDate,
+              bookingTime: s.actionBookingTime,
+              summary: `Booking set for ${formatUKDate(s.actionBookingDate)} at ${s.actionBookingTime}`,
+            })
+          }
+        />
+        <Button label="Cancel" onPress={s.back} />
+      </Shell>
+    );
+  }
+
+  if (type === "reminder") {
+    return (
+      <Shell
+        s={s}
+        title="Remind me later"
+        subtitle={`For ${customer.name} • ${customer.service}. The reminder is stored locally in this prototype.`}
+      >
+        <Card eyebrow="Customer said not now" title={customer.name} body={reply.body} tone="amber" />
+        <DatePickerField
+          label="Follow-up date"
+          value={s.actionReminderDate}
+          onChange={s.setActionReminderDate}
+          allowFuture
+          minimumDate={dateToISO(new Date())}
+        />
+        <Button
+          label="Save follow-up reminder"
+          primary
+          onPress={() =>
+            finish({
+              reminderDate: s.actionReminderDate,
+              summary: `Follow up on ${formatUKDate(s.actionReminderDate)}`,
+            })
+          }
+        />
+        <Button label="Cancel" onPress={s.back} />
+      </Shell>
+    );
+  }
+
+  return (
+    <Shell s={s} title="Next action" subtitle="This action does not need a dedicated workflow yet.">
+      <Card eyebrow={reply.status} title={customer.name} body={saved.task || suggested?.task || "Follow up"} />
+      <Button
+        label="Mark complete"
+        primary
+        onPress={() => finish({ summary: "Marked complete" })}
+      />
+      <Button label="Cancel" onPress={s.back} />
     </Shell>
   );
 }
@@ -2032,22 +2302,27 @@ function WorkPlan({ s }) {
 }
 
 
+
 function CustomerRecords({ s }) {
   return (
     <Shell
       s={s}
       title="Customer records"
-      subtitle="Stored locally on this phone in v0.5. These records now drive the previous-customer recommendation."
+      subtitle="Stored locally on this phone. These records drive previous-customer recommendations."
     >
       <Card
         eyebrow="Current records"
         title={`${s.eligibleCustomers.length} of ${s.customers.length} are eligible now`}
-        body="Eligible means contact is allowed and the last recorded job was at least 9 months ago."
+        body={
+          s.customerContact
+            ? "Eligible means contact is allowed and the last recorded job was at least 9 months ago."
+            : "Previous-customer contact is switched off in Settings, so nobody is currently eligible."
+        }
         footer="No messages are actually sent in this prototype"
         tone="green"
       />
       {s.customers.map((customer) => {
-        const eligible = isEligibleCustomer(customer);
+        const eligible = s.customerContact && isEligibleCustomer(customer);
         return (
           <View key={customer.id} style={styles.customerRecord}>
             <View style={styles.customerRecordTop}>
@@ -2055,20 +2330,28 @@ function CustomerRecords({ s }) {
                 <Text style={styles.customerName}>{customer.name}</Text>
                 <Text style={styles.customerMeta}>{customer.phone}</Text>
               </View>
-              <StatusChip label={eligible ? "Eligible now" : customer.contactOk ? "Not due" : "Do not contact"} tone={eligible ? "green" : "blue"} />
+              <StatusChip
+                label={eligible ? "Eligible now" : customer.contactOk ? (s.customerContact ? "Not due" : "Contact off") : "Do not contact"}
+                tone={eligible ? "green" : "blue"}
+              />
             </View>
             <Text style={styles.customerService}>{customer.service}</Text>
             <Text style={styles.customerMeta}>
-              Last job: {customer.lastServiceDate} • {formatMonthsAgo(customer.lastServiceDate)}
+              Last job: {formatUKDate(customer.lastServiceDate)} • {formatMonthsAgo(customer.lastServiceDate)}
               {Number(customer.lastJobValue) > 0 ? ` • £${customer.lastJobValue}` : ""}
             </Text>
-            <Pressable onPress={() => s.removeCustomer(customer.id)} style={styles.removeCustomerWrap}>
-              <Text style={styles.removeCustomerText}>Remove record</Text>
-            </Pressable>
+            <View style={styles.customerActionsRow}>
+              <Pressable onPress={() => s.startEditCustomer(customer)} style={styles.customerEditWrap}>
+                <Text style={styles.customerEditText}>Edit</Text>
+              </Pressable>
+              <Pressable onPress={() => s.requestRemoveCustomer(customer.id)} style={styles.removeCustomerWrap}>
+                <Text style={styles.removeCustomerText}>Remove</Text>
+              </Pressable>
+            </View>
           </View>
         );
       })}
-      <Button label="+ Add customer" primary onPress={() => s.go("addCustomerRecord")} />
+      <Button label="+ Add customer" primary onPress={s.startNewCustomer} />
       <Button label="Review eligible customers" onPress={() => s.go("eligibleCustomers")} />
       <Button label="Done" onPress={s.back} />
     </Shell>
@@ -2078,12 +2361,13 @@ function CustomerRecords({ s }) {
 function AddCustomerRecord({ s }) {
   const validDate = !Number.isNaN(new Date(s.newCustomerDate).getTime());
   const canSave = !!s.newCustomerName.trim() && !!s.newCustomerPhone.trim() && validDate;
+  const editing = !!s.editingCustomerId;
 
   return (
     <Shell
       s={s}
-      title="Add customer"
-      subtitle="A simple local record is enough for this prototype."
+      title={editing ? "Edit customer" : "Add customer"}
+      subtitle={editing ? "Update the record that Busy Does It uses for recommendations." : "A simple local record is enough for this prototype."}
     >
       <Field label="Customer name" value={s.newCustomerName} onChangeText={s.setNewCustomerName} placeholder="e.g. Jane Smith" />
       <Field label="Phone" value={s.newCustomerPhone} onChangeText={s.setNewCustomerPhone} placeholder="e.g. 07700 900000" keyboardType="phone-pad" />
@@ -2097,18 +2381,53 @@ function AddCustomerRecord({ s }) {
         onValueChange={s.setNewCustomerContactOk}
       />
       <Button
-        label="Save customer"
+        label={editing ? "Save changes" : "Save customer"}
         primary
         disabled={!canSave}
         onPress={() => {
-          if (s.addCustomer()) s.back();
+          if (s.saveCustomerRecord()) s.back();
         }}
       />
-      <Button label="Cancel" onPress={s.back} />
+      <Button
+        label="Cancel"
+        onPress={() => {
+          s.clearCustomerForm();
+          s.back();
+        }}
+      />
     </Shell>
   );
 }
 
+function ConfirmRemoveCustomer({ s }) {
+  const customer = s.customers.find((item) => item.id === s.pendingRemoveCustomerId);
+  return (
+    <Shell
+      s={s}
+      title="Remove customer?"
+      subtitle="This is deliberately a two-step action so a customer record cannot disappear by accident."
+    >
+      {customer ? (
+        <Card
+          eyebrow="Customer record"
+          title={customer.name}
+          body={`${customer.service} • Last job ${formatUKDate(customer.lastServiceDate)}`}
+          footer="This also removes any saved follow-up action for this customer."
+          tone="amber"
+        />
+      ) : null}
+      <Button label="Yes, remove record" danger onPress={s.confirmRemoveCustomer} />
+      <Button
+        label="Keep customer"
+        primary
+        onPress={() => {
+          s.setPendingRemoveCustomerId(null);
+          s.back();
+        }}
+      />
+    </Shell>
+  );
+}
 
 function EligibleCustomers({ s }) {
   const eligible = s.eligibleCustomers;
@@ -2325,9 +2644,21 @@ function OfferRunning({ s }) {
 }
 
 function Results({ s }) {
+  const completedTotal = s.completedQuoteCount + s.completedBookingCount + s.completedReminderCount;
   return (
     <Shell s={s} noBack title="What happened?" subtitle="No marketing jargon — just the result." brandCue="More work. Less fuss.">
-      <Card eyebrow="Last 30 days" title="You spent £48" tone="green">
+      <Card
+        eyebrow="Local prototype activity"
+        title={`${completedTotal} customer action${completedTotal === 1 ? "" : "s"} completed`}
+        body="These figures come from the reply workflows you completed on this phone, not from real external accounts."
+        tone="green"
+      >
+        <MetricRow left="Quotes prepared" right={String(s.completedQuoteCount)} />
+        <MetricRow left="Bookings confirmed" right={String(s.completedBookingCount)} />
+        <MetricRow left="Later reminders saved" right={String(s.completedReminderCount)} />
+        <MetricRow left="Still to do" right={String(s.pendingReplyActionCount)} />
+      </Card>
+      <Card eyebrow="Demo marketing example" title="You spent £48" tone="blue">
         <MetricRow left="People who got in touch" right="7" />
         <MetricRow left="Genuine jobs" right="3" />
         <MetricRow left="Jobs won" right="1" />
@@ -2380,7 +2711,7 @@ function BusinessData({ s }) {
       subtitle="General business facts stay here. Previous-customer counts now come from individual customer records."
     >
       <Card
-        eyebrow="v0.5 data model"
+        eyebrow="Local data model"
         title="Customer counts are calculated, not typed in"
         body={`You currently have ${s.customers.length} saved customer records and ${s.eligibleCustomers.length} are eligible under the 9-month rule.`}
         tone="green"
@@ -2482,7 +2813,7 @@ function SettingsLimits({ s }) {
 
 function ConnectedAccounts({ s }) {
   return (
-    <Shell s={s} title="Connected accounts" subtitle="Prototype toggles only — no real external account is connected in v0.3.">
+    <Shell s={s} title="Connected accounts" subtitle="Prototype toggles only — no real external account is connected yet.">
       {connectionRows.map(([key, label, body]) => {
         const connected = !!s.connectedAccounts[key];
         return (
@@ -2552,6 +2883,7 @@ const screens = {
   bestMove: BestMove,
   customerRecords: CustomerRecords,
   addCustomerRecord: AddCustomerRecord,
+  confirmRemoveCustomer: ConfirmRemoveCustomer,
   eligibleCustomers: EligibleCustomers,
   profileAudit: ProfileAudit,
   profileAuditPlan: ProfileAuditPlan,
@@ -2560,6 +2892,7 @@ const screens = {
   progress: Progress,
   replies: Replies,
   replyActions: ReplyActions,
+  replyActionDetail: ReplyActionDetail,
   paidTest: PaidTest,
   howAdsWork: HowAdsWork,
   paidRunning: PaidRunning,
@@ -2773,6 +3106,9 @@ const styles = StyleSheet.create({
   replyTaskBody: { color: C.muted, fontSize: 14, lineHeight: 20, marginTop: 5 },
   replyTaskDoneButton: { alignSelf: "flex-start", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9, marginTop: 12, backgroundColor: C.greenSoft },
   replyTaskDoneText: { color: C.green, fontSize: 13, fontWeight: "900" },
+  replyTaskOpenButton: { alignSelf: "flex-start", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, marginTop: 12, backgroundColor: C.blue },
+  replyTaskOpenText: { color: "#FFFFFF", fontSize: 13, fontWeight: "900" },
+  replyTaskDetail: { color: C.green, fontSize: 13, lineHeight: 18, fontWeight: "800", marginTop: 7 },
   groupCard: {
     borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16,
     padding: 16, marginBottom: 10,
@@ -2821,6 +3157,9 @@ const styles = StyleSheet.create({
   customerMeta: { color: C.muted, fontSize: 13, lineHeight: 18, marginTop: 3 },
   removeCustomerWrap: { alignSelf: "flex-start", paddingTop: 10, paddingBottom: 2 },
   removeCustomerText: { color: C.red, fontSize: 13, fontWeight: "800" },
+  customerActionsRow: { flexDirection: "row", alignItems: "center", gap: 18, marginTop: 10 },
+  customerEditWrap: { paddingVertical: 4, paddingRight: 4 },
+  customerEditText: { color: C.blue, fontSize: 13, fontWeight: "900" },
   serviceMessageCard: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16, padding: 14, marginBottom: 12 },
   serviceMessageHeader: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 },
   serviceMessageTitle: { color: C.ink, fontSize: 17, fontWeight: "900" },
