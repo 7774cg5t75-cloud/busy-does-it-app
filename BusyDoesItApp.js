@@ -3742,6 +3742,21 @@ function HomeScreen({ s }) {
         <Button label="Restore ignored opportunities" onPress={s.restoreOpportunities} />
       ) : null}
 
+      {(s.backgroundReadyCount || s.lifecycleWatchCount) ? (
+        <Card
+          eyebrow="Busy in the background"
+          title={`${s.backgroundReadyCount} next step${s.backgroundReadyCount === 1 ? "" : "s"} ready • ${s.lifecycleWatchCount} timeline${s.lifecycleWatchCount === 1 ? "" : "s"} being watched`}
+          body="Busy is keeping the dates and follow-on admin underneath the app. You still approve anything that would contact a customer or publish publicly."
+          tone="blue"
+        >
+          <MetricRow left="Quiet enquiries ready" right={String(s.staleEnquiryEntries.length)} />
+          <MetricRow left="Quote follow-ups ready" right={String(s.dueQuoteEntries.length)} />
+          <MetricRow left="Review drafts prepared" right={String(s.automaticReviewDraftCount)} />
+          <MetricRow left="Finished-job post drafts" right={String(s.automaticPostDraftCount)} />
+          <Button label="See background work" onPress={() => s.go("backgroundWork")} />
+        </Card>
+      ) : null}
+
       <Button label="Open work hub" primary onPress={() => s.jump("workHub", "Work")} />
       <Button label="Customer records" onPress={() => s.go("customerRecords")} />
       <Button label="Update my business data" onPress={() => s.go("businessData")} />
@@ -3822,6 +3837,7 @@ function WorkHub({ s }) {
         <MetricRow left="Follow-ups due" right={String(s.dueReminderEntries.length)} strong={s.dueReminderEntries.length > 0} />
         <MetricRow left="Quote follow-ups due" right={String(s.dueQuoteEntries.length)} strong={s.dueQuoteEntries.length > 0} />
         <MetricRow left="Actions to do" right={String(s.pendingReplyActionCount)} strong={s.pendingReplyActionCount > 0} />
+        <MetricRow left="Background next steps ready" right={String(s.backgroundReadyCount)} strong={s.backgroundReadyCount > 0} />
       </Card>
 
       {overdueBookings.length ? (
@@ -5166,11 +5182,19 @@ function ReplyActionDetail({ s }) {
         <Text style={styles.fieldLabel}>Draft reply</Text>
         <TextInput multiline value={s.actionQuoteMessage} onChangeText={s.setActionQuoteMessage} style={styles.messageInput} />
         {(quoteStatus === "Prepared" || quoteStatus === "Sent" || !saved.done) ? (
-          <DatePickerField
-            label="Quote sent date"
-            value={s.actionQuoteSentDate}
-            onChange={s.setActionQuoteSentDate}
-          />
+          <>
+            <DatePickerField
+              label="Quote sent date"
+              value={s.actionQuoteSentDate}
+              onChange={s.setActionQuoteSentDate}
+            />
+            <Card
+              eyebrow="Automatic admin"
+              title={`Follow-up check: ${formatUKDate(addDaysFromISO(s.actionQuoteSentDate || dateToISO(new Date()), 7))}`}
+              body="Once the quote is marked sent, Busy watches this date. If the quote is still unresolved, it can prepare the follow-up automatically."
+              tone="blue"
+            />
+          </>
         ) : null}
         <Button
           label={saved.done ? "Save quote changes" : "Save quote as prepared"}
@@ -5714,6 +5738,12 @@ function NewEnquiry({ s }) {
         value={s.newEnquiryDate}
         onChange={s.setNewEnquiryDate}
       />
+      <Card
+        eyebrow="Automatic admin"
+        title={`Busy will check this again on ${formatUKDate(addDaysFromISO(s.newEnquiryDate || dateToISO(new Date()), 7))}`}
+        body="If no quote, booking or follow-up has been recorded by then, the enquiry can become a quiet-enquiry opportunity automatically."
+        tone="blue"
+      />
 
       <Text style={styles.fieldLabel}>Note (optional)</Text>
       <TextInput
@@ -6103,6 +6133,19 @@ function JobCompletePhotos({ s }) {
   return (
     <Shell s={s} title="Job complete" subtitle={`${customer.name} • ${job.service || customer.service}`} brandCue="Save the useful proof once. Reuse it only with permission.">
       <Card eyebrow="Completed work" title={job.service || customer.service} body={`${job.date ? formatUKDate(job.date) : "Date saved"}${Number(job.value) > 0 ? ` • £${job.value}` : ""}`} footer="Saved to this customer’s job history" tone="green" />
+      <Card
+        eyebrow="Busy already handled"
+        title="The follow-on admin is prepared"
+        body={
+          `${job.reviewRequestDraft ? "Review request drafted. " : ""}${
+            job.repeatDueDate
+              ? `Repeat timing saved for ${formatUKDate(job.repeatDueDate)}. `
+              : "No repeat reminder was invented for this service. "
+          }Nothing has been sent.`
+        }
+        footer="You stay in control"
+        tone="blue"
+      />
       <Card eyebrow="Optional next step" title="Got any photos from this job?" body="Choose only the photos you want attached to this job. Busy Does It does not browse the rest of your camera roll, and nothing is posted automatically." tone="blue" />
       <Button label="Add job photos" primary onPress={() => s.go("jobPhotos")} />
       <Button label="Skip for now" onPress={() => s.openCustomer(customer.id)} />
