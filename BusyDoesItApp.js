@@ -3087,6 +3087,18 @@ function App() {
     dueQuoteEntries.length +
     automaticReviewDraftCount +
     automaticPostDraftCount;
+  const captureMatch = findCustomerMatch(customers, {
+    phone: capturePhone,
+    email: captureEmail,
+    name: captureName,
+  });
+  const intakeMergedCount = intakeLog.filter((item) => item.matchedExisting).length;
+  const intakeCreatedCount = intakeLog.length - intakeMergedCount;
+  const intakeStageCounts = intakeLog.reduce((counts, item) => {
+    const key = item.stage || "Other";
+    counts[key] = (counts[key] || 0) + 1;
+    return counts;
+  }, {});
 
   const appState = {
     screen,
@@ -3224,6 +3236,41 @@ function App() {
     setNewEnquiryNote,
     newEnquiryDate,
     setNewEnquiryDate,
+    captureRawText,
+    setCaptureRawText,
+    captureSource,
+    setCaptureSource,
+    captureStage,
+    setCaptureStage,
+    captureName,
+    setCaptureName,
+    capturePhone,
+    setCapturePhone,
+    captureEmail,
+    setCaptureEmail,
+    captureAddress,
+    setCaptureAddress,
+    captureService,
+    setCaptureService,
+    captureDate,
+    setCaptureDate,
+    captureTime,
+    setCaptureTime,
+    captureValue,
+    setCaptureValue,
+    captureNote,
+    setCaptureNote,
+    captureConfidence,
+    captureExtractedFields,
+    captureMatch,
+    intakeLog,
+    intakeMergedCount,
+    intakeCreatedCount,
+    intakeStageCounts,
+    startQuickCapture,
+    loadQuickCaptureExample,
+    analyseQuickCapture,
+    saveQuickCapture,
     customerNoteText,
     setCustomerNoteText,
     editingCustomerId,
