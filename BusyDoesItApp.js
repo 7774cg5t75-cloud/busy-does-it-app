@@ -2725,6 +2725,7 @@ function HomeScreen({ s }) {
   const customerCount = s.customers.length;
   const eligibleCount = s.eligibleCustomers.length;
   const todayISO = dateToISO(new Date());
+  const hasPublishingConnection = !!s.connectedAccounts.meta || !!s.connectedAccounts.googleBusiness;
 
   const openEnquiries = s.customers
     .filter((customer) => !customer.lastServiceDate && !s.replyActions?.[customer.id])
@@ -2752,19 +2753,21 @@ function HomeScreen({ s }) {
 
   if (overdueBookings.length) {
     const item = overdueBookings[0];
+    const value = Number(item.action.details?.jobValue) || Number(item.action.details?.sourceQuoteAmount) || 0;
     operationalMoves.push({
       id: `overdue-booking-${item.id}`,
+      score: 110 + Math.min(8, value / 250),
       eyebrow: "Past booking needs an outcome",
       title: `${item.customer.name} needs closing out`,
       body: `${item.customer.service} was booked for ${formatUKDate(item.action.details.bookingDate)}. Complete, move or cancel it before creating more work.`,
       footer: "Cost: £0",
       status: "Do this first",
       tone: "amber",
-      why: "Busy Does It protects live customer work before suggesting marketing. An overdue booking needs a clear outcome so the diary, customer history and pipeline stay accurate.",
+      why: "Busy Does It protects live customer work before suggesting marketing. This is already booked work, so leaving it unresolved can make the diary and pipeline misleading.",
       evidence: [
-        ["Customer", item.customer.name],
-        ["Service", item.customer.service],
-        ["Booked date", formatUKDate(item.action.details.bookingDate)],
+        ["Urgency", "Past booked date"],
+        ["Customer intent", "Already booked"],
+        ["Recorded value", value ? `£${value}` : "Not recorded"],
         ["Advertising required", "£0"],
       ],
       actionLabel: "Open booking",
@@ -2773,21 +2776,46 @@ function HomeScreen({ s }) {
     });
   }
 
+  if (nextEnquiry) {
+    const waitDays = daysSinceTimestamp(nextEnquiry.createdAt) || 0;
+    operationalMoves.push({
+      id: `new-enquiry-${nextEnquiry.id}`,
+      score: 104 + Math.min(10, waitDays),
+      eyebrow: "Unanswered enquiry",
+      title: `Reply to ${nextEnquiry.name}`,
+      body: `${nextEnquiry.service}${nextEnquiry.address ? ` • ${nextEnquiry.address}` : ""} • ${enquiryAgeLabel(nextEnquiry.createdAt)}.`,
+      footer: "Cost: £0",
+      status: "Customer waiting",
+      tone: "green",
+      why: "A real customer is already asking about work. Existing demand normally deserves attention before activity designed to create new demand.",
+      evidence: [
+        ["Customer intent", "Direct enquiry"],
+        ["Waiting", enquiryAgeLabel(nextEnquiry.createdAt)],
+        ["Service", nextEnquiry.service],
+        ["Advertising required", "£0"],
+      ],
+      actionLabel: "Open enquiry",
+      onAction: () => s.openCustomer(nextEnquiry.id),
+      canIgnore: false,
+    });
+  }
+
   if (s.dueReminderEntries.length) {
     const item = s.dueReminderEntries[0];
     operationalMoves.push({
       id: `due-reminder-${item.id}`,
+      score: 100,
       eyebrow: "Follow-up due",
       title: `Follow up ${item.customer.name}`,
       body: `${item.customer.service} follow-up is due ${formatUKDate(item.action.details.reminderDate)}.`,
       footer: "Cost: £0",
       status: "Action needed",
       tone: "amber",
-      why: "This customer already has a promised follow-up. Keeping that commitment is a lower-risk next move than creating fresh marketing activity.",
+      why: "This customer already has a promised follow-up. Keeping that commitment is lower risk than starting a fresh campaign.",
       evidence: [
-        ["Customer", item.customer.name],
-        ["Service", item.customer.service],
+        ["Customer intent", "Existing conversation"],
         ["Follow-up date", formatUKDate(item.action.details.reminderDate)],
+        ["Service", item.customer.service],
         ["Advertising required", "£0"],
       ],
       actionLabel: "Open follow-up",
@@ -2798,19 +2826,21 @@ function HomeScreen({ s }) {
 
   if (s.dueQuoteEntries.length) {
     const item = s.dueQuoteEntries[0];
+    const quoteValue = Number(item.action.details?.quoteAmount) || 0;
     operationalMoves.push({
       id: `stale-quote-${item.id}`,
+      score: 95 + Math.min(8, item.age / 2) + Math.min(6, quoteValue / 250),
       eyebrow: "Quote follow-up",
       title: `A quote has been quiet for ${item.age} days`,
       body: `${item.customer.name} already asked about ${item.customer.service.toLowerCase()}. Follow up before spending money finding another lead.`,
       footer: "Cost: £0",
       status: "Worth following up",
       tone: "green",
-      why: "The customer has already reached the quote stage, so a polite follow-up is usually cheaper and lower risk than buying new attention.",
+      why: "This customer reached the quote stage, which is stronger intent than a cold audience. Age, recorded value and zero ad cost all push it up the queue.",
       evidence: [
-        ["Customer", item.customer.name],
-        ["Service", item.customer.service],
-        ["Days since quote was marked sent", String(item.age)],
+        ["Customer intent", "Quote already sent"],
+        ["Waiting", `${item.age} days`],
+        ["Quote value", quoteValue ? `£${quoteValue}` : "Not recorded"],
         ["Advertising required", "£0"],
       ],
       actionLabel: "Open quote",
@@ -2819,41 +2849,26 @@ function HomeScreen({ s }) {
     });
   }
 
-  if (nextEnquiry) {
-    operationalMoves.push({
-      id: `new-enquiry-${nextEnquiry.id}`,
-      eyebrow: "Unanswered enquiry",
-      title: `Reply to ${nextEnquiry.name}`,
-      body: `${nextEnquiry.service}${nextEnquiry.address ? ` • ${nextEnquiry.address}` : ""} • ${enquiryAgeLabel(nextEnquiry.createdAt)}.`,
-      footer: "Cost: £0",
-      status: "Customer waiting",
-      tone: "green",
-      why: "A real enquiry is already in the pipeline. Busy Does It prioritises responding to existing demand before suggesting activity to create more demand.",
-      evidence: [
-        ["Customer", nextEnquiry.name],
-        ["Service", nextEnquiry.service],
-        ["Waiting", enquiryAgeLabel(nextEnquiry.createdAt)],
-        ["Advertising required", "£0"],
-      ],
-      actionLabel: "Open enquiry",
-      onAction: () => s.openCustomer(nextEnquiry.id),
-      canIgnore: false,
-    });
-  }
-
-  if (s.pendingReplyActionCount) {
+  if (
+    s.pendingReplyActionCount &&
+    !overdueBookings.length &&
+    !nextEnquiry &&
+    !s.dueReminderEntries.length &&
+    !s.dueQuoteEntries.length
+  ) {
     operationalMoves.push({
       id: "pending-customer-actions",
+      score: 88,
       eyebrow: "Customer work",
       title: `${s.pendingReplyActionCount} customer action${s.pendingReplyActionCount === 1 ? " needs" : "s need"} finishing`,
       body: "There is unfinished quote, booking or follow-up work already saved in the prototype.",
       footer: "Cost: £0",
       status: "Finish what is open",
       tone: "green",
-      why: "Existing customer work comes before general marketing suggestions because it is already closer to becoming booked or completed work.",
+      why: "Existing customer work is already closer to becoming booked or completed work than a new marketing action.",
       evidence: [
         ["Pending customer actions", String(s.pendingReplyActionCount)],
-        ["Source", "Saved customer activity"],
+        ["Customer intent", "Existing"],
         ["Advertising required", "£0"],
       ],
       actionLabel: "Review actions",
@@ -2863,20 +2878,45 @@ function HomeScreen({ s }) {
   }
 
   const marketingMoves = [
+    ...(s.preparedPostOpportunity
+      ? [{
+          id: `prepared-post-${s.preparedPostOpportunity.jobId}`,
+          score: hasPublishingConnection ? 78 : 58,
+          eyebrow: "Prepared action ready",
+          title: "A finished-job post is ready for approval",
+          body: `${s.preparedPostOpportunity.customerName}’s ${s.preparedPostOpportunity.service.toLowerCase()} job already has approved photos and editable wording prepared.`,
+          footer: "Cost: £0 • owner approval required",
+          status: hasPublishingConnection ? "Ready to approve" : "Needs connection",
+          tone: hasPublishingConnection ? "green" : "blue",
+          why: hasPublishingConnection
+            ? "The work is already prepared and costs nothing to review, so there is very little friction left before the owner can approve it."
+            : "The content is prepared, but Busy Does It should not pretend it can publish anywhere until the owner has deliberately connected a destination.",
+          evidence: [
+            ["Prepared photos", String(s.preparedPostOpportunity.photoCount)],
+            ["Draft wording", "Ready"],
+            ["Connected destination", hasPublishingConnection ? "Available" : "Not yet"],
+            ["Advertising required", "£0"],
+          ],
+          actionLabel: "Review approval",
+          onAction: () => s.openJobPostApproval(s.preparedPostOpportunity.customerId, s.preparedPostOpportunity.jobId),
+          canIgnore: true,
+        }]
+      : []),
     ...(s.photoOpportunity
       ? [{
           id: `job-photo-${s.photoOpportunity.jobId}`,
+          score: 68,
           eyebrow: "Free content opportunity",
           title: `Use ${s.photoOpportunity.photoCount} approved job photo${s.photoOpportunity.photoCount === 1 ? "" : "s"}`,
-          body: `${s.photoOpportunity.customerName}’s ${s.photoOpportunity.service.toLowerCase()} job is already saved. Prepare a finished-job post before paying to reach more people.`,
+          body: `${s.photoOpportunity.customerName}’s ${s.photoOpportunity.service.toLowerCase()} job is already saved. Busy Does It can prepare the words and approval step for you.`,
           footer: "Cost: £0 • nothing posts without approval",
           status: "Free",
           tone: "green",
-          why: "These are real job photos you deliberately attached and allowed Busy Does It to suggest. Reusing existing proof costs nothing, so it is worth considering before paid promotion.",
+          why: "This reuses real proof the owner deliberately supplied. It costs nothing and Busy Does It can prepare most of the action underneath.",
           evidence: [
             ["Approved job photos", String(s.photoOpportunity.photoCount)],
             ["Source", "Completed customer job"],
-            ["Public posting", "Still requires approval"],
+            ["Owner approval", "Still required"],
             ["Advertising required", "£0"],
           ],
           actionLabel: "Prepare post",
@@ -2887,17 +2927,18 @@ function HomeScreen({ s }) {
     ...(s.quietSlot && eligibleCount > 0
       ? [{
           id: "quiet-slot",
+          score: 60 + Math.min(10, eligibleCount),
           eyebrow: "Spare capacity",
           title: `${s.quietSlot} is free`,
-          body: `${eligibleCount} of ${customerCount} saved customer records are due and allowed to contact now.`,
+          body: `${eligibleCount} of ${customerCount} saved customer records are due and allowed to contact now. Busy Does It can prepare service-matched messages.`,
           footer: "Recommended first move: £0 advertising spend",
           status: "Worth trying",
           tone: "green",
-          why: `Busy Does It checks actual saved customer records first. The timing rule comes from the service rather than assuming every business repeats on the same schedule. Current rule: ${s.eligibilityRule}`,
+          why: `This can target existing customers at zero ad spend. The engine also considers how many suitable records exist and whether the timing rule fits the service. Current rule: ${s.eligibilityRule}`,
           evidence: [
+            ["Suitable customers", String(eligibleCount)],
             ["Saved customer records", String(customerCount)],
-            ["Eligible now", String(eligibleCount)],
-            ["Eligibility rule", s.eligibilityRule],
+            ["Message preparation", "Service matched"],
             ["Advertising required", "£0"],
           ],
           actionLabel: "Review customers",
@@ -2905,40 +2946,21 @@ function HomeScreen({ s }) {
           canIgnore: true,
         }]
       : []),
-    ...((Number(s.unansweredReviewCount) || 0) > 0 || (Number(s.recentPhotoCountNeeded) || 0) > 0
-      ? [{
-          id: "profile-fixes",
-          eyebrow: "Free improvement",
-          title: "Fix the useful profile gaps first",
-          body: `${Number(s.unansweredReviewCount) || 0} unanswered review${Number(s.unansweredReviewCount) === 1 ? "" : "s"} and ${Number(s.recentPhotoCountNeeded) || 0} recent photo${Number(s.recentPhotoCountNeeded) === 1 ? "" : "s"} are flagged in your saved business data.`,
-          footer: "Cost: £0",
-          status: "Free",
-          tone: "blue",
-          why: `Improve the places customers already find you before paying to send more people there. ${serviceName} remains the current priority service.`,
-          evidence: [
-            ["Priority service", serviceName],
-            ["Recent photos wanted", String(Number(s.recentPhotoCountNeeded) || 0)],
-            ["Unanswered reviews entered", String(Number(s.unansweredReviewCount) || 0)],
-            ["Advertising required", "£0"],
-          ],
-          actionLabel: "Review fixes",
-          onAction: () => s.go("profileAudit"),
-          canIgnore: true,
-        }]
-      : []),
     ...((Number(s.oldQuoteCount) || 0) > 0
       ? [{
           id: "old-quotes",
+          score: 56 + Math.min(6, (Number(s.oldQuoteTopValue) || 0) / 200),
           eyebrow: "Older opportunity",
           title: `${s.oldQuoteCount} old quote${String(s.oldQuoteCount) === "1" ? "" : "s"} worth a look`,
           body: `Highest value entered: about £${s.oldQuoteTopValue || 0}. Retrying them needs no advertising spend.`,
           footer: "Advertising spend: £0",
           status: "Low cost",
           tone: "blue",
-          why: "These people already asked for a price, so checking whether the job is still live is cheaper than finding new leads.",
+          why: "A previous quote shows stronger intent than a cold audience, but the data is less current than a live quote or enquiry, so it ranks lower.",
           evidence: [
             ["Old quotes entered", String(s.oldQuoteCount || 0)],
             ["Highest value", `£${s.oldQuoteTopValue || 0}`],
+            ["Data freshness", "Older"],
             ["Advertising required", "£0"],
           ],
           actionLabel: "Review old quotes",
@@ -2946,9 +2968,54 @@ function HomeScreen({ s }) {
           canIgnore: true,
         }]
       : []),
+    ...((Number(s.unansweredReviewCount) || 0) > 0 || (Number(s.recentPhotoCountNeeded) || 0) > 0
+      ? [{
+          id: "profile-fixes",
+          score: 44,
+          eyebrow: "Free improvement",
+          title: "Fix the useful profile gaps first",
+          body: `${Number(s.unansweredReviewCount) || 0} unanswered review${Number(s.unansweredReviewCount) === 1 ? "" : "s"} and ${Number(s.recentPhotoCountNeeded) || 0} recent photo${Number(s.recentPhotoCountNeeded) === 1 ? "" : "s"} are flagged in your saved business data.`,
+          footer: "Cost: £0",
+          status: "Free",
+          tone: "blue",
+          why: `Improving an existing profile costs nothing, but it is normally less urgent than a live customer or a prepared action. ${serviceName} remains the current priority service.`,
+          evidence: [
+            ["Priority service", serviceName],
+            ["Recent photos wanted", String(Number(s.recentPhotoCountNeeded) || 0)],
+            ["Unanswered reviews", String(Number(s.unansweredReviewCount) || 0)],
+            ["Advertising required", "£0"],
+          ],
+          actionLabel: "Review fixes",
+          onAction: () => s.go("profileAudit"),
+          canIgnore: true,
+        }]
+      : []),
+    ...(s.postOutcomeOpportunity
+      ? [{
+          id: `post-outcome-${s.postOutcomeOpportunity.jobId}`,
+          score: 40,
+          eyebrow: "Learning",
+          title: "Record what happened after the finished-job post",
+          body: `${s.postOutcomeOpportunity.service} was approved for ${s.postOutcomeOpportunity.channels.join(", ") || "a selected profile"}. Recording the business outcome improves future recommendations.`,
+          footer: "Takes one quick update",
+          status: "Learn",
+          tone: "blue",
+          why: "This is useful evidence, but it should not outrank a waiting customer or an action that could create work now.",
+          evidence: [
+            ["Outcome currently", "Not recorded"],
+            ["Channels", s.postOutcomeOpportunity.channels.join(", ") || "Not recorded"],
+            ["What we learn from", "Enquiries, quotes and bookings"],
+            ["Vanity metrics required", "No"],
+          ],
+          actionLabel: "Record outcome",
+          onAction: () => s.openJobPostOutcome(s.postOutcomeOpportunity.customerId, s.postOutcomeOpportunity.jobId),
+          canIgnore: true,
+        }]
+      : []),
   ].filter((item) => !s.dismissedOpportunities.includes(item.id));
 
-  const rankedMoves = [...operationalMoves, ...marketingMoves];
+  const rankedMoves = [...operationalMoves, ...marketingMoves]
+    .sort((a, b) => (b.score || 0) - (a.score || 0));
   const bestMove = rankedMoves[0] || null;
   const otherMoves = rankedMoves.slice(1);
 
@@ -2957,8 +3024,8 @@ function HomeScreen({ s }) {
       s={s}
       noBack
       title="Best thing to do today"
-      subtitle="Busy Does It ranks the useful signals underneath and normally shows you one next move."
-      brandCue="One clear move. Cheapest sensible option first."
+      subtitle="Busy Does It weighs urgency, customer intent, likely value, cost and how ready the action is — then normally shows one next move."
+      brandCue="One clear move. More work prepared underneath."
     >
       {bestMove ? (
         <>
@@ -2971,7 +3038,7 @@ function HomeScreen({ s }) {
           <View style={styles.dashboardHeader}>
             <StatusChip label="Ranked from saved business data" tone="green" />
             <Text style={styles.dashboardHint}>
-              Customer commitments come first. Useful £0 opportunities come before paid reach.
+              Live customer commitments rank highly. Prepared £0 actions can outrank ideas that still need setup.
             </Text>
           </View>
         </>
@@ -2979,7 +3046,7 @@ function HomeScreen({ s }) {
         <Card
           eyebrow="All clear"
           title="Nothing worth doing right now"
-          body="There is no urgent customer work or worthwhile £0 opportunity in the data currently saved. Busy Does It is not creating a task just to look busy."
+          body="There is no urgent customer work or worthwhile prepared opportunity in the data currently saved. Busy Does It is not creating a task just to look busy."
           footer="Recommended spend: £0"
           tone="green"
         />
