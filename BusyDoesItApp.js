@@ -1088,27 +1088,59 @@ function App() {
         const duplicate = history.some(
           (item) => item.kind === "job" && item.date === action.details.bookingDate && item.service === customer.service
         );
+        const firstName = String(customer.name || "").split(" ")[0] || "there";
+        const serviceName = customer.service || "job";
+        const repeatDueDate = nextRepeatDueDate(
+          { ...customer, lastServiceDate: action.details.bookingDate },
+          services,
+          verticalId
+        );
+        const preparedReviewDraft =
+          customer.contactOk === false
+            ? ""
+            : `Hi ${firstName}, thanks again for choosing us for your ${serviceName.toLowerCase()}. If you were happy with the work, would you mind leaving us a quick review? No problem at all if not — we really appreciate the business.`;
+        const preparedAt = new Date().toISOString();
+        const preparedJob = {
+          id: jobId,
+          kind: "job",
+          date: action.details.bookingDate,
+          service: serviceName,
+          value: amount || "",
+          note: cleanNote || "Completed through Busy Does It prototype",
+          photos: [],
+          sourceOrigin: action.origin || "manual",
+          sourceAction: action.details?.sourceQuoteStatus ? "quote-to-booking" : "booking",
+          repeatDueDate: repeatDueDate || "",
+          reviewRequestDraft: preparedReviewDraft,
+          reviewRequestPreparedAt: preparedReviewDraft ? preparedAt : null,
+          adminPreparedAt: preparedAt,
+        };
         const nextHistory = duplicate
-          ? history
-          : [
-              ...history,
-              {
-                id: jobId,
-                kind: "job",
-                date: action.details.bookingDate,
-                service: customer.service,
-                value: amount || "",
-                note: cleanNote || "Completed through Busy Does It prototype",
-                photos: [],
-                sourceOrigin: action.origin || "manual",
-                sourceAction: action.details?.sourceQuoteStatus ? "quote-to-booking" : "booking",
-              },
-            ];
+          ? history.map((item) =>
+              item.kind === "job" &&
+              item.date === action.details.bookingDate &&
+              item.service === customer.service
+                ? {
+                    ...item,
+                    repeatDueDate: item.repeatDueDate || repeatDueDate || "",
+                    reviewRequestDraft: item.reviewRequestDraft || preparedReviewDraft,
+                    reviewRequestPreparedAt:
+                      item.reviewRequestPreparedAt ||
+                      (preparedReviewDraft ? preparedAt : null),
+                    adminPreparedAt: item.adminPreparedAt || preparedAt,
+                  }
+                : item
+            )
+          : [...history, preparedJob];
         const activity = Array.isArray(customer.activity) ? customer.activity : [];
         return {
           ...customer,
           lastServiceDate: action.details.bookingDate,
           lastJobValue: amount || customer.lastJobValue,
+          nextRepeatDueDate: repeatDueDate || "",
+          lifecycleStatus: "Completed customer",
+          lastActivityAt: preparedAt,
+          lastActivityKind: "job",
           history: nextHistory,
           activity: [
             ...activity,
@@ -1116,9 +1148,11 @@ function App() {
               id: `completed-${customerId}-${action.details.bookingDate}`,
               kind: "job",
               date: action.details.bookingDate,
-              createdAt: new Date().toISOString(),
+              createdAt: preparedAt,
               title: "Job completed",
-              note: cleanNote || `${customer.service} completed through Busy Does It.`,
+              note:
+                cleanNote ||
+                `${serviceName} completed. Busy Does It also prepared the sensible follow-on admin in the background.`,
               value: amount || "",
             },
           ],
@@ -1197,29 +1231,65 @@ function App() {
   const saveJobPhotos = () => {
     if (!selectedJobId || !selectedCustomerId) return;
     const savedAt = new Date().toISOString();
+    const currentCustomer = customers.find((item) => item.id === selectedCustomerId);
+    const currentJob = (currentCustomer?.history || []).find((item) => item.id === selectedJobId);
     const photos = pendingJobPhotos.map((photo) => ({
       ...photo,
       marketingOk: !!jobPhotosMarketingOk,
       attachedAt: photo.attachedAt || savedAt,
     }));
+    const serviceName = currentJob?.service || currentCustomer?.service || "job";
+    const automaticPostDraft =
+      photos.length && jobPhotosMarketingOk
+        ? currentJob?.postDraft ||
+          `Just finished another ${serviceName.toLowerCase()} job. If you need something similar, send us a message and we’ll take a look.`
+        : currentJob?.postDraft || "";
+
+    if (automaticPostDraft) setJobPostDraft(automaticPostDraft);
+
     setCustomers((list) =>
       list.map((customer) => {
         if (customer.id !== selectedCustomerId) return customer;
         const history = (customer.history || []).map((item) =>
-          item.id === selectedJobId ? { ...item, photos } : item
+          item.id === selectedJobId
+            ? {
+                ...item,
+                photos,
+                postDraft: automaticPostDraft || item.postDraft || "",
+                postDraftPreparedAt:
+                  automaticPostDraft
+                    ? item.postDraftPreparedAt || savedAt
+                    : item.postDraftPreparedAt,
+                postDraftStatus:
+                  automaticPostDraft
+                    ? item.postDraftStatus || "Prepared"
+                    : item.postDraftStatus,
+                adminPreparedAt:
+                  automaticPostDraft ? item.adminPreparedAt || savedAt : item.adminPreparedAt,
+              }
+            : item
         );
-        return { ...customer, history };
+        return {
+          ...customer,
+          lastActivityAt: savedAt,
+          lastActivityKind: "photos",
+          history,
+        };
       })
     );
     appendCustomerActivity(selectedCustomerId, {
       kind: "photos",
       title: "Job photos updated",
       note: photos.length
-        ? `${photos.length} photo${photos.length === 1 ? "" : "s"} attached to the completed job. ${jobPhotosMarketingOk ? "They can be suggested for future marketing, but nothing is posted automatically." : "They are kept private to the job unless you change the setting later."}`
+        ? `${photos.length} photo${photos.length === 1 ? "" : "s"} attached to the completed job. ${
+            jobPhotosMarketingOk
+              ? "Busy Does It also prepared a finished-job post draft for review. Nothing is posted automatically."
+              : "They are kept private to the job unless you change the setting later."
+          }`
         : "Job photos removed.",
     });
     if (photos.length && jobPhotosMarketingOk) {
-      go("jobPhotoOpportunity");
+      go("jobPostDraft");
     } else {
       openCustomer(selectedCustomerId);
     }
