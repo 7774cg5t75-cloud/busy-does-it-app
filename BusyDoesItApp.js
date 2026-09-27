@@ -2489,7 +2489,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={styles.brand}>BUSY DOES IT</Text>
             <Text style={styles.tagline}>More work. Less fuss.</Text>
-            <Text style={styles.prototypeBadge}>Prototype v1.5 • prepared actions + learning</Text>
+            <Text style={styles.prototypeBadge}>Prototype v1.6 • closed-loop opportunity engine</Text>
           </View>
           {!noBack && s.history?.length > 0 ? (
             <Pressable onPress={s.back} style={styles.backPill}>
@@ -5873,6 +5873,220 @@ function JobPostOutcome({ s }) {
   );
 }
 
+function QuoteFollowUp({ s }) {
+  const customer = s.selectedReplyCustomer;
+  const action = customer ? s.replyActions?.[customer.id] : null;
+  const age = daysSinceTimestamp(action?.details?.quoteSentAt || action?.completedAt);
+  if (!customer || action?.type !== "quote") {
+    return <Shell s={s} title="Quote follow-up" subtitle="The quote could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
+  }
+  return (
+    <Shell
+      s={s}
+      title="Prepared quote follow-up"
+      subtitle="Busy Does It has drafted the next action from the saved quote. You can change every word."
+      brandCue="Prepared underneath. Nothing sends without approval."
+    >
+      <Card
+        eyebrow="Existing customer intent"
+        title={customer.name}
+        body={`${customer.service} • quote ${action.details?.quoteAmount ? `£${action.details.quoteAmount}` : "value not recorded"}${age !== null ? ` • quiet for ${age} days` : ""}`}
+        footer="Advertising spend: £0"
+        tone="green"
+      />
+      <Text style={styles.fieldLabel}>Prepared follow-up</Text>
+      <TextInput
+        multiline
+        value={s.quoteFollowUpDraft}
+        onChangeText={s.setQuoteFollowUpDraft}
+        style={styles.messageInput}
+        placeholder="Follow-up message"
+        placeholderTextColor="#9AA3B2"
+      />
+      <Card
+        eyebrow="Approval"
+        title="You decide whether this goes"
+        body="The prototype records the approval and outcome, but it does not actually message the customer."
+        tone="blue"
+      />
+      <Button label="Approve simulated send" primary disabled={!s.quoteFollowUpDraft.trim()} onPress={s.simulateQuoteFollowUpSend} />
+      <Button label="Open original quote" onPress={() => s.openSavedReplyAction(customer.id)} />
+      <Button label="Not now" onPress={s.back} />
+    </Shell>
+  );
+}
+
+function QuoteFollowUpSent({ s }) {
+  const customer = s.selectedReplyCustomer;
+  const action = customer ? s.replyActions?.[customer.id] : null;
+  if (!customer || !action?.details?.followUpSentAt) {
+    return <Shell s={s} title="Follow-up saved" subtitle="The follow-up could not be found."><Button label="Home" primary onPress={() => s.jump("home", "Home")} /></Shell>;
+  }
+  return (
+    <Shell
+      s={s}
+      title="Follow-up approved"
+      subtitle="Prototype only — no real message was sent."
+      brandCue="Action approved. Now Busy Does It can learn the outcome."
+    >
+      <Card
+        eyebrow="Simulated send"
+        title={customer.name}
+        body={action.details.followUpMessage}
+        footer="Cost: £0"
+        tone="green"
+      />
+      <Button label="Record what happened" primary onPress={() => s.openQuoteFollowUpOutcome(customer.id)} />
+      <Button label="Do this later" onPress={() => s.openCustomer(customer.id)} />
+    </Shell>
+  );
+}
+
+function QuoteFollowUpOutcome({ s }) {
+  const customer = s.selectedReplyCustomer;
+  const action = customer ? s.replyActions?.[customer.id] : null;
+  const options = ["No reply yet", "Still considering", "Accepted", "Declined"];
+  if (!customer || !action?.details?.followUpSentAt) {
+    return <Shell s={s} title="Follow-up outcome" subtitle="The follow-up could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
+  }
+  return (
+    <Shell
+      s={s}
+      title="What happened?"
+      subtitle="One quick update turns a follow-up into evidence the Opportunity Engine can use."
+      brandCue="Learn from customer outcomes, not message activity."
+    >
+      <Card
+        eyebrow="Quote being measured"
+        title={customer.name}
+        body={`${customer.service} • £${action.details?.quoteAmount || "—"}`}
+        footer="User-recorded outcome"
+        tone="blue"
+      />
+      {options.map((option) => (
+        <Choice
+          key={option}
+          label={option}
+          selected={s.quoteFollowUpOutcome === option}
+          onPress={() => s.setQuoteFollowUpOutcome(option)}
+        />
+      ))}
+      {s.quoteFollowUpOutcome === "Accepted" ? (
+        <Card
+          eyebrow="Next step"
+          title="Accepted quotes become bookings"
+          body="Saving this marks the quote accepted. Open the customer afterwards to turn it into a booking when the date is agreed."
+          tone="green"
+        />
+      ) : null}
+      <Button label="Save outcome" primary onPress={s.saveQuoteFollowUpOutcome} />
+      <Button label="Cancel" onPress={s.back} />
+    </Shell>
+  );
+}
+
+function ReviewRequest({ s }) {
+  const customer = s.selectedJobCustomer;
+  const job = s.selectedJob;
+  if (!customer || !job) {
+    return <Shell s={s} title="Review request" subtitle="The completed job could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
+  }
+  return (
+    <Shell
+      s={s}
+      title="Prepared review request"
+      subtitle="A completed job can create another £0 opportunity without becoming pushy."
+      brandCue="Prepared for you. Sent only with approval."
+    >
+      <Card
+        eyebrow="Completed customer job"
+        title={customer.name}
+        body={`${job.service || customer.service}${Number(job.value) > 0 ? ` • £${job.value}` : ""}`}
+        footer="Advertising spend: £0"
+        tone="green"
+      />
+      <Text style={styles.fieldLabel}>Prepared request</Text>
+      <TextInput
+        multiline
+        value={s.reviewRequestDraft}
+        onChangeText={s.setReviewRequestDraft}
+        style={styles.messageInput}
+        placeholder="Review request"
+        placeholderTextColor="#9AA3B2"
+      />
+      <Card
+        eyebrow="Trust rule"
+        title="Low pressure and truthful"
+        body="Busy Does It should ask for an honest review, not a positive review, and the owner can edit or skip the request."
+        tone="blue"
+      />
+      <Button label="Approve simulated send" primary disabled={!s.reviewRequestDraft.trim()} onPress={s.simulateReviewRequestSend} />
+      <Button label="Not now" onPress={() => s.openCustomer(customer.id)} />
+    </Shell>
+  );
+}
+
+function ReviewRequestSent({ s }) {
+  const customer = s.selectedJobCustomer;
+  const job = s.selectedJob;
+  if (!customer || !job?.reviewRequestSentAt) {
+    return <Shell s={s} title="Review request saved" subtitle="The request could not be found."><Button label="Home" primary onPress={() => s.jump("home", "Home")} /></Shell>;
+  }
+  return (
+    <Shell
+      s={s}
+      title="Review request approved"
+      subtitle="Prototype only — no real message was sent."
+      brandCue="Action approved. Outcome can be learned later."
+    >
+      <Card
+        eyebrow="Simulated send"
+        title={customer.name}
+        body={job.reviewRequestDraft}
+        footer="Cost: £0"
+        tone="green"
+      />
+      <Button label="Record what happened" primary onPress={() => s.openReviewRequestOutcome(customer.id, job.id)} />
+      <Button label="Do this later" onPress={() => s.openCustomer(customer.id)} />
+    </Shell>
+  );
+}
+
+function ReviewRequestOutcome({ s }) {
+  const customer = s.selectedJobCustomer;
+  const job = s.selectedJob;
+  const options = ["No response yet", "Review left"];
+  if (!customer || !job?.reviewRequestSentAt) {
+    return <Shell s={s} title="Review request outcome" subtitle="The request could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
+  }
+  return (
+    <Shell
+      s={s}
+      title="Did they leave a review?"
+      subtitle="This is enough for the engine to learn whether asking after completed work is useful."
+      brandCue="Simple outcome. Better future ranking."
+    >
+      <Card
+        eyebrow="Completed job"
+        title={customer.name}
+        body={job.service || customer.service}
+        footer="No rating or review text is invented"
+        tone="blue"
+      />
+      {options.map((option) => (
+        <Choice
+          key={option}
+          label={option}
+          selected={s.reviewRequestOutcome === option}
+          onPress={() => s.setReviewRequestOutcome(option)}
+        />
+      ))}
+      <Button label="Save outcome" primary onPress={s.saveReviewRequestOutcome} />
+      <Button label="Cancel" onPress={s.back} />
+    </Shell>
+  );
+}
+
 function AddCustomerRecord({ s }) {
   const validDate = !s.newCustomerHasPreviousJob || !Number.isNaN(new Date(s.newCustomerDate).getTime());
   const canSave = !!s.newCustomerName.trim() && !!s.newCustomerPhone.trim() && validDate;
@@ -6544,6 +6758,12 @@ const screens = {
   jobPostApproval: JobPostApproval,
   jobPostPublished: JobPostPublished,
   jobPostOutcome: JobPostOutcome,
+  quoteFollowUp: QuoteFollowUp,
+  quoteFollowUpSent: QuoteFollowUpSent,
+  quoteFollowUpOutcome: QuoteFollowUpOutcome,
+  reviewRequest: ReviewRequest,
+  reviewRequestSent: ReviewRequestSent,
+  reviewRequestOutcome: ReviewRequestOutcome,
   newEnquiry: NewEnquiry,
   addCustomerRecord: AddCustomerRecord,
   confirmRemoveCustomer: ConfirmRemoveCustomer,
