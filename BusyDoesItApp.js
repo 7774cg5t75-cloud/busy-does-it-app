@@ -2547,6 +2547,20 @@ function WorkHub({ s }) {
         </Pressable>
       ) : null}
 
+      {!overdueBookings.length && !s.dueReminderEntries.length && openEnquiries.length ? (
+        <Pressable onPress={() => s.openCustomer(openEnquiries[0].id)} style={[styles.homePriorityCard, styles.homeReminderCard]}>
+          <View style={styles.homePriorityTop}>
+            <Text style={styles.homePriorityEyebrow}>NEW ENQUIRY</Text>
+            <StatusChip label="Needs next step" tone="amber" />
+          </View>
+          <Text style={styles.homePriorityTitle}>{openEnquiries[0].name}</Text>
+          <Text style={styles.homePriorityBody}>
+            {openEnquiries[0].service}{openEnquiries[0].address ? ` • ${openEnquiries[0].address}` : ""}
+          </Text>
+          <Text style={styles.homePriorityLink}>Open enquiry →</Text>
+        </Pressable>
+      ) : null}
+
       {nextBooking ? (
         <Pressable onPress={() => s.openSavedReplyAction(nextBooking.id)} style={styles.homePriorityCard}>
           <View style={styles.homePriorityTop}>
@@ -2774,6 +2788,9 @@ function WorkPipeline({ s }) {
             </Pressable>
             <Pressable onPress={() => s.startDirectCustomerAction(customer.id, "booking")} style={styles.customerEditWrap}>
               <Text style={styles.customerEditText}>Book job</Text>
+            </Pressable>
+            <Pressable onPress={() => s.startDirectCustomerAction(customer.id, "reminder")} style={styles.customerEditWrap}>
+              <Text style={styles.customerEditText}>Follow up</Text>
             </Pressable>
             <Pressable onPress={() => s.openCustomer(customer.id)} style={styles.customerEditWrap}>
               <Text style={styles.customerEditText}>Open customer</Text>
