@@ -93,6 +93,44 @@ function addDaysISO(days) {
   return dateToISO(date);
 }
 
+function nextDateForSlot(slotText) {
+  const text = String(slotText || "").toLowerCase();
+  const weekdays = [
+    ["sunday", 0],
+    ["monday", 1],
+    ["tuesday", 2],
+    ["wednesday", 3],
+    ["thursday", 4],
+    ["friday", 5],
+    ["saturday", 6],
+  ];
+  const match = weekdays.find(([name]) => text.includes(name));
+  if (!match) return addDaysISO(2);
+
+  const now = new Date();
+  now.setHours(12, 0, 0, 0);
+  const targetDay = match[1];
+  let daysAhead = (targetDay - now.getDay() + 7) % 7;
+  if (daysAhead === 0) daysAhead = 7;
+  now.setDate(now.getDate() + daysAhead);
+  return dateToISO(now);
+}
+
+function timeOptionsForSlot(slotText) {
+  const text = String(slotText || "").toLowerCase();
+  if (text.includes("morning")) return ["08:00", "09:00", "10:00", "11:00", "12:00"];
+  if (text.includes("afternoon")) return ["12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
+  if (text.includes("evening")) return ["17:00", "18:00", "19:00"];
+  return ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"];
+}
+
+function defaultTimeForSlot(slotText) {
+  const options = timeOptionsForSlot(slotText);
+  if (String(slotText || "").toLowerCase().includes("afternoon")) return "14:00";
+  if (String(slotText || "").toLowerCase().includes("evening")) return "18:00";
+  return options[Math.min(2, options.length - 1)];
+}
+
 function groupCustomersByService(customers) {
   return customers.reduce((groups, customer) => {
     const key = customer?.service?.trim() || "Usual service";
@@ -292,8 +330,8 @@ function App() {
   const [selectedReplyActionId, setSelectedReplyActionId] = useState(null);
   const [actionQuoteAmount, setActionQuoteAmount] = useState("");
   const [actionQuoteMessage, setActionQuoteMessage] = useState("");
-  const [actionBookingDate, setActionBookingDate] = useState(addDaysISO(2));
-  const [actionBookingTime, setActionBookingTime] = useState("10:00");
+  const [actionBookingDate, setActionBookingDate] = useState(nextDateForSlot("Thursday afternoon"));
+  const [actionBookingTime, setActionBookingTime] = useState(defaultTimeForSlot("Thursday afternoon"));
   const [actionReminderDate, setActionReminderDate] = useState(addDaysISO(30));
   const [editingCustomerId, setEditingCustomerId] = useState(null);
   const [pendingRemoveCustomerId, setPendingRemoveCustomerId] = useState(null);
@@ -502,6 +540,7 @@ function App() {
     go("progress");
   };
 
+
   const saveReplyAction = (customerId, task, type) => {
     setReplyActions((current) => ({
       ...current,
@@ -514,6 +553,32 @@ function App() {
     }));
   };
 
+  const loadReplyActionForm = (customerId, type) => {
+    const customer =
+      lastSimulatedRecipients.find((item) => item.id === customerId) ||
+      customers.find((item) => item.id === customerId);
+    const saved = replyActions[customerId];
+    if (!customer) return false;
+
+    if (type === "quote") {
+      const service = services.find((item) => item.name === customer.service);
+      const fallbackAmount =
+        Number(customer.lastJobValue) > 0 ? customer.lastJobValue : service?.value || "";
+      const amount = saved?.details?.quoteAmount ?? fallbackAmount;
+      setActionQuoteAmount(String(amount || ""));
+      setActionQuoteMessage(
+        saved?.details?.message ||
+          `Hi ${customer.name.split(" ")[0]}, thanks for getting back to us. The quote for ${customer.service.toLowerCase()} is £${amount || "—"}. Let me know if you’d like to go ahead.`
+      );
+    } else if (type === "booking") {
+      setActionBookingDate(saved?.details?.bookingDate || nextDateForSlot(quietSlot));
+      setActionBookingTime(saved?.details?.bookingTime || defaultTimeForSlot(quietSlot));
+    } else if (type === "reminder") {
+      setActionReminderDate(saved?.details?.reminderDate || addDaysISO(30));
+    }
+    return true;
+  };
+
   const beginReplyAction = (customerId, suggested) => {
     const customer =
       lastSimulatedRecipients.find((item) => item.id === customerId) ||
@@ -522,21 +587,15 @@ function App() {
 
     saveReplyAction(customerId, suggested.task, suggested.type);
     setSelectedReplyActionId(customerId);
+    loadReplyActionForm(customerId, suggested.type);
+    go("replyActionDetail");
+  };
 
-    if (suggested.type === "quote") {
-      const service = services.find((item) => item.name === customer.service);
-      const amount = Number(customer.lastJobValue) > 0 ? customer.lastJobValue : service?.value || "";
-      setActionQuoteAmount(String(amount || ""));
-      setActionQuoteMessage(
-        `Hi ${customer.name.split(" ")[0]}, thanks for getting back to us. The quote for ${customer.service.toLowerCase()} is £${amount || "—"}. Let me know if you’d like to go ahead.`
-      );
-    } else if (suggested.type === "booking") {
-      setActionBookingDate(addDaysISO(2));
-      setActionBookingTime("10:00");
-    } else if (suggested.type === "reminder") {
-      setActionReminderDate(addDaysISO(30));
-    }
-
+  const openSavedReplyAction = (customerId) => {
+    const saved = replyActions[customerId];
+    if (!saved) return;
+    setSelectedReplyActionId(customerId);
+    loadReplyActionForm(customerId, saved.type);
     go("replyActionDetail");
   };
 
@@ -544,7 +603,12 @@ function App() {
     setReplyActions((current) => ({
       ...current,
       [customerId]: current[customerId]
-        ? { ...current[customerId], done: true, details }
+        ? {
+            ...current[customerId],
+            done: true,
+            details,
+            completedAt: new Date().toISOString(),
+          }
         : current[customerId],
     }));
   };
@@ -808,6 +872,7 @@ function App() {
     setReplyActions,
     saveReplyAction,
     beginReplyAction,
+    openSavedReplyAction,
     completeReplyAction,
     selectedReplyActionId,
     setSelectedReplyActionId,
@@ -885,7 +950,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={styles.brand}>BUSY DOES IT</Text>
             <Text style={styles.tagline}>More work. Less fuss.</Text>
-            <Text style={styles.prototypeBadge}>Prototype v0.6 • action workflows + local records</Text>
+            <Text style={styles.prototypeBadge}>Prototype v0.6 • smarter actions + local records</Text>
           </View>
           {!noBack && s.history?.length > 0 ? (
             <Pressable onPress={s.back} style={styles.backPill}>
@@ -1936,6 +2001,15 @@ function Replies({ s }) {
                 <View style={styles.replyActionSaved}>
                   <Text style={styles.replyActionSavedTitle}>Completed</Text>
                   <Text style={styles.replyActionSavedBody}>{saved.task}</Text>
+                  {saved.details?.summary ? (
+                    <Text style={styles.replyActionSavedDetail}>{saved.details.summary}</Text>
+                  ) : null}
+                  <Pressable
+                    onPress={() => s.openSavedReplyAction(reply.id)}
+                    style={styles.replyActionViewWrap}
+                  >
+                    <Text style={styles.replyActionViewText}>View details</Text>
+                  </Pressable>
                 </View>
               ) : (
                 <Pressable
@@ -2020,6 +2094,12 @@ function ReplyActions({ s }) {
               <Text style={styles.replyTaskName}>{reply.name}</Text>
               <Text style={styles.replyTaskBody}>✓ {action.task}</Text>
               {action.details?.summary ? <Text style={styles.replyTaskDetail}>{action.details.summary}</Text> : null}
+              <Pressable
+                onPress={() => s.openSavedReplyAction(id)}
+                style={styles.replyTaskViewButton}
+              >
+                <Text style={styles.replyTaskViewText}>View / edit details</Text>
+              </Pressable>
             </View>
           ))}
         </>
@@ -2069,11 +2149,19 @@ function ReplyActionDetail({ s }) {
         subtitle={`For ${customer.name} • ${customer.service}. Nothing is actually sent in this prototype.`}
       >
         <Card eyebrow="Customer asked for a quote" title={customer.name} body={reply.body} tone="green" />
+        <View style={styles.suggestionBox}>
+          <Text style={styles.suggestionTitle}>Why this amount?</Text>
+          <Text style={styles.suggestionBody}>
+            {Number(customer.lastJobValue) > 0
+              ? `Suggested from this customer’s previous recorded job: £${customer.lastJobValue}. Check it before using it — this is not a fresh calculated quote.`
+              : `Suggested from your saved ${customer.service.toLowerCase()} service price. Check it before using it.`}
+          </Text>
+        </View>
         <Field label="Quote amount" value={s.actionQuoteAmount} onChangeText={s.setActionQuoteAmount} keyboardType="number-pad" prefix="£" />
         <Text style={styles.fieldLabel}>Draft reply</Text>
         <TextInput multiline value={s.actionQuoteMessage} onChangeText={s.setActionQuoteMessage} style={styles.messageInput} />
         <Button
-          label="Save quote as prepared"
+          label={saved.done ? "Save quote changes" : "Save quote as prepared"}
           primary
           disabled={!String(s.actionQuoteAmount).trim()}
           onPress={() =>
@@ -2097,6 +2185,12 @@ function ReplyActionDetail({ s }) {
         subtitle={`For ${customer.name} • ${customer.service}. This saves a local prototype booking only.`}
       >
         <Card eyebrow="Customer wants the slot" title={customer.name} body={reply.body} tone="green" />
+        <View style={styles.suggestionBox}>
+          <Text style={styles.suggestionTitle}>Matched to the customer reply</Text>
+          <Text style={styles.suggestionBody}>
+            Busy Does It has suggested the next {s.quietSlot || "matching"} slot instead of simply adding two days.
+          </Text>
+        </View>
         <DatePickerField
           label="Booking date"
           value={s.actionBookingDate}
@@ -2104,9 +2198,31 @@ function ReplyActionDetail({ s }) {
           allowFuture
           minimumDate={dateToISO(new Date())}
         />
-        <Field label="Time" value={s.actionBookingTime} onChangeText={s.setActionBookingTime} placeholder="e.g. 10:00" />
+        <Text style={styles.fieldLabel}>Time</Text>
+        <View style={styles.timeChoiceWrap}>
+          {timeOptionsForSlot(s.quietSlot).map((time) => (
+            <Pressable
+              key={time}
+              onPress={() => s.setActionBookingTime(time)}
+              style={[
+                styles.timeChoice,
+                s.actionBookingTime === time && styles.timeChoiceSelected,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.timeChoiceText,
+                  s.actionBookingTime === time && styles.timeChoiceTextSelected,
+                ]}
+              >
+                {time}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        <Field label="Or enter a time" value={s.actionBookingTime} onChangeText={s.setActionBookingTime} placeholder="e.g. 14:30" />
         <Button
-          label="Save booking confirmation"
+          label={saved.done ? "Save booking changes" : "Save booking confirmation"}
           primary
           disabled={!s.actionBookingTime.trim()}
           onPress={() =>
@@ -2138,7 +2254,7 @@ function ReplyActionDetail({ s }) {
           minimumDate={dateToISO(new Date())}
         />
         <Button
-          label="Save follow-up reminder"
+          label={saved.done ? "Save reminder changes" : "Save follow-up reminder"}
           primary
           onPress={() =>
             finish({
@@ -2666,6 +2782,27 @@ function Results({ s }) {
         <MetricRow left="Later reminders saved" right={String(s.completedReminderCount)} />
         <MetricRow left="Still to do" right={String(s.pendingReplyActionCount)} />
       </Card>
+
+      {Object.entries(s.replyActions)
+        .filter(([, action]) => action?.done && action?.details?.summary)
+        .sort(([, a], [, b]) => String(b.completedAt || "").localeCompare(String(a.completedAt || "")))
+        .slice(0, 4)
+        .map(([id, action]) => {
+          const customer =
+            s.lastSimulatedRecipients.find((item) => item.id === id) ||
+            s.customers.find((item) => item.id === id);
+          if (!customer) return null;
+          return (
+            <View key={id} style={styles.resultActionRow}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={styles.resultActionName}>{customer.name}</Text>
+                <Text style={styles.resultActionService}>{customer.service}</Text>
+              </View>
+              <Text style={styles.resultActionSummary}>{action.details.summary}</Text>
+            </View>
+          );
+        })}
+
       <Card eyebrow="Demo marketing example" title="You spent £48" tone="blue">
         <MetricRow left="People who got in touch" right="7" />
         <MetricRow left="Genuine jobs" right="3" />
@@ -3107,6 +3244,9 @@ const styles = StyleSheet.create({
   replyActionSaved: { backgroundColor: C.greenSoft, borderRadius: 10, padding: 11, marginTop: 12 },
   replyActionSavedTitle: { color: C.green, fontWeight: "900", fontSize: 12 },
   replyActionSavedBody: { color: C.ink, fontWeight: "700", fontSize: 13, marginTop: 3 },
+  replyActionSavedDetail: { color: C.muted, fontSize: 12, lineHeight: 17, marginTop: 5 },
+  replyActionViewWrap: { alignSelf: "flex-start", paddingVertical: 6, marginTop: 4 },
+  replyActionViewText: { color: C.blue, fontSize: 12, fontWeight: "900" },
   replyTaskCard: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16, padding: 15, marginBottom: 10 },
   replyTaskCardDone: { opacity: 0.72 },
   replyTaskEyebrow: { color: C.blue, fontWeight: "900", fontSize: 12, textTransform: "uppercase" },
@@ -3117,6 +3257,20 @@ const styles = StyleSheet.create({
   replyTaskOpenButton: { alignSelf: "flex-start", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, marginTop: 12, backgroundColor: C.blue },
   replyTaskOpenText: { color: "#FFFFFF", fontSize: 13, fontWeight: "900" },
   replyTaskDetail: { color: C.green, fontSize: 13, lineHeight: 18, fontWeight: "800", marginTop: 7 },
+  replyTaskViewButton: { alignSelf: "flex-start", paddingVertical: 8, marginTop: 4 },
+  replyTaskViewText: { color: C.blue, fontSize: 13, fontWeight: "900" },
+  suggestionBox: { backgroundColor: C.blueSoft, borderRadius: 14, padding: 13, marginBottom: 14 },
+  suggestionTitle: { color: C.blue, fontSize: 13, fontWeight: "900", marginBottom: 4 },
+  suggestionBody: { color: C.muted, fontSize: 13, lineHeight: 19 },
+  timeChoiceWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 12 },
+  timeChoice: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 11, paddingHorizontal: 13, paddingVertical: 10 },
+  timeChoiceSelected: { backgroundColor: C.blue, borderColor: C.blue },
+  timeChoiceText: { color: C.ink, fontSize: 13, fontWeight: "800" },
+  timeChoiceTextSelected: { color: "#FFFFFF" },
+  resultActionRow: { flexDirection: "row", alignItems: "flex-start", borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 14, padding: 13, marginBottom: 9 },
+  resultActionName: { color: C.ink, fontSize: 14, fontWeight: "900" },
+  resultActionService: { color: C.muted, fontSize: 12, marginTop: 2 },
+  resultActionSummary: { color: C.green, fontSize: 12, fontWeight: "800", textAlign: "right", maxWidth: "48%" },
   groupCard: {
     borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16,
     padding: 16, marginBottom: 10,
