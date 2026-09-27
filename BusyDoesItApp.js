@@ -542,6 +542,9 @@ function App() {
   const [pendingJobPhotos, setPendingJobPhotos] = useState([]);
   const [jobPhotosMarketingOk, setJobPhotosMarketingOk] = useState(false);
   const [jobPostDraft, setJobPostDraft] = useState("");
+  const [jobPostChannels, setJobPostChannels] = useState({ facebook: false, instagram: false, googleBusiness: false });
+  const [jobPostOutcome, setJobPostOutcome] = useState("No enquiry yet");
+  const [jobPostOutcomeValue, setJobPostOutcomeValue] = useState("");
   const [actionReminderDate, setActionReminderDate] = useState(addDaysISO(30));
   const [editingCustomerId, setEditingCustomerId] = useState(null);
   const [pendingRemoveCustomerId, setPendingRemoveCustomerId] = useState(null);
@@ -1092,6 +1095,8 @@ function App() {
                 value: amount || "",
                 note: cleanNote || "Completed through Busy Does It prototype",
                 photos: [],
+                sourceOrigin: action.origin || "manual",
+                sourceAction: action.details?.sourceQuoteStatus ? "quote-to-booking" : "booking",
               },
             ];
         const activity = Array.isArray(customer.activity) ? customer.activity : [];
@@ -1215,6 +1220,12 @@ function App() {
     }
   };
 
+  const defaultJobPostChannels = () => ({
+    facebook: !!connectedAccounts.meta,
+    instagram: !!connectedAccounts.meta,
+    googleBusiness: !!connectedAccounts.googleBusiness,
+  });
+
   const prepareJobPost = () => {
     const customer = customers.find((item) => item.id === selectedCustomerId);
     const job = (customer?.history || []).find((item) => item.id === selectedJobId);
@@ -1229,6 +1240,15 @@ function App() {
       job.postDraft ||
       `Just finished another ${service.toLowerCase()} job. If you need something similar, send us a message and we’ll take a look.`;
     setJobPostDraft(draft);
+    setJobPostChannels(
+      Array.isArray(job.postChannels) && job.postChannels.length
+        ? {
+            facebook: job.postChannels.includes("Facebook"),
+            instagram: job.postChannels.includes("Instagram"),
+            googleBusiness: job.postChannels.includes("Google Business"),
+          }
+        : defaultJobPostChannels()
+    );
     go("jobPostDraft");
   };
 
@@ -1237,7 +1257,39 @@ function App() {
     const job = (customer?.history || []).find((item) => item.id === selectedJobId);
     if (!job) return;
     setJobPostDraft(job.postDraft || "");
+    setJobPostChannels(
+      Array.isArray(job.postChannels) && job.postChannels.length
+        ? {
+            facebook: job.postChannels.includes("Facebook"),
+            instagram: job.postChannels.includes("Instagram"),
+            googleBusiness: job.postChannels.includes("Google Business"),
+          }
+        : defaultJobPostChannels()
+    );
     go("jobPostDraft");
+  };
+
+  const openJobPostApproval = (customerId = selectedCustomerId, jobId = selectedJobId) => {
+    const customer = customers.find((item) => item.id === customerId);
+    const job = (customer?.history || []).find((item) => item.id === jobId);
+    if (!customer || !job?.postDraft) return;
+    setSelectedCustomerId(customerId);
+    setSelectedJobId(jobId);
+    setJobPostDraft(job.postDraft);
+    setJobPostChannels(
+      Array.isArray(job.postChannels) && job.postChannels.length
+        ? {
+            facebook: job.postChannels.includes("Facebook"),
+            instagram: job.postChannels.includes("Instagram"),
+            googleBusiness: job.postChannels.includes("Google Business"),
+          }
+        : defaultJobPostChannels()
+    );
+    go("jobPostApproval");
+  };
+
+  const toggleJobPostChannel = (key) => {
+    setJobPostChannels((current) => ({ ...current, [key]: !current[key] }));
   };
 
   const saveJobPostDraft = () => {
@@ -1262,8 +1314,97 @@ function App() {
     );
     appendCustomerActivity(selectedCustomerId, {
       kind: "marketing",
-      title: "Finished-job post drafted",
-      note: "Draft saved locally. Nothing has been posted.",
+      title: "Finished-job post prepared",
+      note: "Draft saved locally and moved to approval. Nothing has been posted.",
+    });
+    go("jobPostApproval");
+  };
+
+  const simulateJobPostPublish = () => {
+    const draft = jobPostDraft.trim();
+    if (!draft || !selectedJobId || !selectedCustomerId) return;
+    const channels = [
+      jobPostChannels.facebook ? "Facebook" : null,
+      jobPostChannels.instagram ? "Instagram" : null,
+      jobPostChannels.googleBusiness ? "Google Business" : null,
+    ].filter(Boolean);
+    if (!channels.length) {
+      Alert.alert("Choose where it would go", "Select at least one connected profile before approving this prototype post.");
+      return;
+    }
+    const publishedAt = new Date().toISOString();
+    setCustomers((list) =>
+      list.map((customer) => {
+        if (customer.id !== selectedCustomerId) return customer;
+        const history = (customer.history || []).map((item) =>
+          item.id === selectedJobId
+            ? {
+                ...item,
+                postDraft: draft,
+                postDraftStatus: "Simulated published",
+                postChannels: channels,
+                postPublishedAt: publishedAt,
+              }
+            : item
+        );
+        return { ...customer, history };
+      })
+    );
+    appendCustomerActivity(selectedCustomerId, {
+      kind: "marketing",
+      title: "Finished-job post approved",
+      note: `Prototype publish approved for ${channels.join(", ")}. No real post was published.`,
+    });
+    setJobPostOutcome("No enquiry yet");
+    setJobPostOutcomeValue("");
+    go("jobPostPublished");
+  };
+
+  const openJobPostOutcome = (customerId = selectedCustomerId, jobId = selectedJobId) => {
+    const customer = customers.find((item) => item.id === customerId);
+    const job = (customer?.history || []).find((item) => item.id === jobId);
+    if (!customer || !job) return;
+    setSelectedCustomerId(customerId);
+    setSelectedJobId(jobId);
+    setJobPostOutcome(job.postOutcome || "No enquiry yet");
+    setJobPostOutcomeValue(job.postOutcomeValue ? String(job.postOutcomeValue) : "");
+    go("jobPostOutcome");
+  };
+
+  const saveJobPostOutcome = () => {
+    if (!selectedJobId || !selectedCustomerId) return;
+    const parsedValue = Number(String(jobPostOutcomeValue).replace(/[^0-9.]/g, ""));
+    const recordedAt = new Date().toISOString();
+    setCustomers((list) =>
+      list.map((customer) => {
+        if (customer.id !== selectedCustomerId) return customer;
+        const history = (customer.history || []).map((item) =>
+          item.id === selectedJobId
+            ? {
+                ...item,
+                postOutcome: jobPostOutcome,
+                postOutcomeValue:
+                  jobPostOutcome === "Booking" && Number.isFinite(parsedValue) && parsedValue > 0
+                    ? parsedValue
+                    : "",
+                postOutcomeRecordedAt: recordedAt,
+              }
+            : item
+        );
+        return { ...customer, history };
+      })
+    );
+    appendCustomerActivity(selectedCustomerId, {
+      kind: "marketing",
+      title: "Post outcome recorded",
+      note:
+        jobPostOutcome === "Booking" && Number.isFinite(parsedValue) && parsedValue > 0
+          ? `Recorded outcome: Booking • £${parsedValue}. This is user-entered attribution, not a guaranteed causal claim.`
+          : `Recorded outcome: ${jobPostOutcome}.`,
+      value:
+        jobPostOutcome === "Booking" && Number.isFinite(parsedValue) && parsedValue > 0
+          ? parsedValue
+          : "",
     });
     openCustomer(selectedCustomerId);
   };
@@ -1565,6 +1706,9 @@ function App() {
     setConnectedAccounts(connectionSeed);
     setDismissedOpportunities([]);
     setSelectedServiceId("driveway");
+    setJobPostChannels({ facebook: false, instagram: false, googleBusiness: false });
+    setJobPostOutcome("No enquiry yet");
+    setJobPostOutcomeValue("");
     setAdvanced(false);
     setHistory([]);
     setTab("Home");
@@ -1687,6 +1831,73 @@ function App() {
     0
   );
   const preparedPhotoPostCount = completedJobEntries.filter((entry) => !!entry.job.postDraft).length;
+  const publishedPhotoPostCount = completedJobEntries.filter(
+    (entry) => entry.job.postDraftStatus === "Simulated published"
+  ).length;
+  const postOutcomeRecordedCount = completedJobEntries.filter(
+    (entry) => !!entry.job.postOutcomeRecordedAt
+  ).length;
+  const postBookingOutcomeCount = completedJobEntries.filter(
+    (entry) => entry.job.postOutcome === "Booking"
+  ).length;
+  const postAttributedValue = completedJobEntries.reduce(
+    (total, entry) =>
+      total +
+      (entry.job.postOutcome === "Booking"
+        ? Number(entry.job.postOutcomeValue) || 0
+        : 0),
+    0
+  );
+  const reactivationCompletedValue = completedJobEntries.reduce(
+    (total, entry) =>
+      total +
+      (entry.job.sourceOrigin === "simulated" ? Number(entry.job.value) || 0 : 0),
+    0
+  );
+  const preparedPostEntry =
+    completedJobEntries
+      .filter(
+        (entry) =>
+          !!entry.job.postDraft &&
+          entry.job.postDraftStatus !== "Simulated published"
+      )
+      .sort((a, b) =>
+        String(b.job.postDraftPreparedAt || b.job.date || "").localeCompare(
+          String(a.job.postDraftPreparedAt || a.job.date || "")
+        )
+      )[0] || null;
+  const preparedPostOpportunity = preparedPostEntry
+    ? {
+        customerId: preparedPostEntry.customer.id,
+        customerName: preparedPostEntry.customer.name,
+        jobId: preparedPostEntry.job.id,
+        service: preparedPostEntry.job.service || preparedPostEntry.customer.service,
+        photoCount: Array.isArray(preparedPostEntry.job.photos)
+          ? preparedPostEntry.job.photos.filter((photo) => photo.marketingOk).length
+          : 0,
+      }
+    : null;
+  const postOutcomeEntry =
+    completedJobEntries
+      .filter(
+        (entry) =>
+          entry.job.postDraftStatus === "Simulated published" &&
+          !entry.job.postOutcomeRecordedAt
+      )
+      .sort((a, b) =>
+        String(b.job.postPublishedAt || b.job.date || "").localeCompare(
+          String(a.job.postPublishedAt || a.job.date || "")
+        )
+      )[0] || null;
+  const postOutcomeOpportunity = postOutcomeEntry
+    ? {
+        customerId: postOutcomeEntry.customer.id,
+        customerName: postOutcomeEntry.customer.name,
+        jobId: postOutcomeEntry.job.id,
+        service: postOutcomeEntry.job.service || postOutcomeEntry.customer.service,
+        channels: postOutcomeEntry.job.postChannels || [],
+      }
+    : null;
   const photoOpportunityEntry =
     completedJobEntries
       .filter(
@@ -1761,6 +1972,13 @@ function App() {
     setJobPhotosMarketingOk,
     jobPostDraft,
     setJobPostDraft,
+    jobPostChannels,
+    setJobPostChannels,
+    toggleJobPostChannel,
+    jobPostOutcome,
+    setJobPostOutcome,
+    jobPostOutcomeValue,
+    setJobPostOutcomeValue,
     startJobPhotoPrompt,
     openJobAssets,
     openJobPhotoOpportunity,
@@ -1769,10 +1987,21 @@ function App() {
     saveJobPhotos,
     prepareJobPost,
     openJobPostDraft,
+    openJobPostApproval,
     saveJobPostDraft,
+    simulateJobPostPublish,
+    openJobPostOutcome,
+    saveJobPostOutcome,
     attachedJobPhotoCount,
     reusableJobPhotoCount,
     preparedPhotoPostCount,
+    publishedPhotoPostCount,
+    postOutcomeRecordedCount,
+    postBookingOutcomeCount,
+    postAttributedValue,
+    reactivationCompletedValue,
+    preparedPostOpportunity,
+    postOutcomeOpportunity,
     photoOpportunity,
     newCustomerName,
     setNewCustomerName,
@@ -1958,7 +2187,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={styles.brand}>BUSY DOES IT</Text>
             <Text style={styles.tagline}>More work. Less fuss.</Text>
-            <Text style={styles.prototypeBadge}>Prototype v1.4 • business opportunity engine</Text>
+            <Text style={styles.prototypeBadge}>Prototype v1.5 • prepared actions + learning</Text>
           </View>
           {!noBack && s.history?.length > 0 ? (
             <Pressable onPress={s.back} style={styles.backPill}>
@@ -4904,7 +5133,12 @@ function CustomerDetail({ s }) {
               <>
                 <Text style={styles.customerHistoryPhotoMeta}>
                   {item.photos.length} job photo{item.photos.length === 1 ? "" : "s"}
-                  {item.postDraft ? " • post draft ready" : ""}
+                  {item.postDraft
+                    ? item.postDraftStatus === "Simulated published"
+                      ? " • post approved"
+                      : " • post draft ready"
+                    : ""}
+                  {item.postOutcomeRecordedAt ? ` • ${item.postOutcome}` : ""}
                 </Text>
                 <Pressable onPress={() => s.openJobAssets(customer.id, item.id)} style={styles.customerHistoryPhotoLink}>
                   <Text style={styles.customerHistoryPhotoLinkText}>Open photos / draft →</Text>
@@ -5002,13 +5236,182 @@ function JobPostDraft({ s }) {
     return <Shell s={s} title="Post draft" subtitle="The completed job could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
   }
   return (
-    <Shell s={s} title="Finished-job post" subtitle="Draft only. Busy Does It will not publish this prototype post." brandCue="Prepare underneath. Owner approves what goes public.">
-      <Card eyebrow="Approved source material" title={`${allowedPhotos.length} job photo${allowedPhotos.length === 1 ? "" : "s"} available`} body="These are only the photos you selected and allowed Busy Does It to suggest for marketing." tone="green" />
+    <Shell s={s} title="Finished-job post" subtitle="Busy Does It has prepared the action. You can change the words before approval." brandCue="Prepare underneath. Owner decides what goes public.">
+      <Card eyebrow="Prepared for you" title={`${allowedPhotos.length} approved job photo${allowedPhotos.length === 1 ? "" : "s"} + editable wording`} body="The source is a completed job already saved in Busy Does It. No address or private customer detail is added automatically." tone="green" />
       <Text style={styles.fieldLabel}>Post draft</Text>
       <TextInput multiline value={s.jobPostDraft} onChangeText={s.setJobPostDraft} placeholder="Write the finished-job post" placeholderTextColor="#9AA3B2" style={styles.messageInput} />
-      <Text style={styles.helper}>No address or private customer detail is added automatically.</Text>
-      <Button label="Save post draft" primary disabled={!s.jobPostDraft.trim()} onPress={s.saveJobPostDraft} />
+      <Text style={styles.helper}>Saving moves this prepared action to the approval screen. It still does not publish anything.</Text>
+      <Button label="Save & review approval" primary disabled={!s.jobPostDraft.trim()} onPress={s.saveJobPostDraft} />
       <Button label="Back to photos" onPress={() => s.go("jobPhotos")} />
+    </Shell>
+  );
+}
+
+function JobPostApproval({ s }) {
+  const customer = s.selectedJobCustomer;
+  const job = s.selectedJob;
+  const allowedPhotos = (job?.photos || []).filter((photo) => photo.marketingOk);
+  if (!customer || !job?.postDraft) {
+    return <Shell s={s} title="Approve post" subtitle="There is no prepared post to approve."><Button label="Back" primary onPress={s.back} /></Shell>;
+  }
+
+  const selectedCount =
+    Number(!!s.jobPostChannels.facebook) +
+    Number(!!s.jobPostChannels.instagram) +
+    Number(!!s.jobPostChannels.googleBusiness);
+  const hasSocialConnection = !!s.connectedAccounts.meta;
+  const hasGoogleConnection = !!s.connectedAccounts.googleBusiness;
+
+  return (
+    <Shell
+      s={s}
+      title="Approve prepared post"
+      subtitle="Exactly what would be used, where it would go and what it costs — before anything happens."
+      brandCue="Prepared by Busy Does It. Approved by you."
+    >
+      <Card eyebrow="Prepared action" title={job.service || customer.service} body={job.postDraft} footer="Cost: £0" tone="green">
+        <MetricRow left="Approved photos" right={String(allowedPhotos.length)} />
+        <MetricRow left="Customer details included" right="No" />
+        <MetricRow left="Real publishing in prototype" right="No" />
+      </Card>
+
+      {allowedPhotos.length ? (
+        <View style={styles.photoGrid}>
+          {allowedPhotos.slice(0, 5).map((photo) => (
+            <View key={photo.id || photo.uri} style={styles.photoTile}>
+              <Image source={{ uri: photo.uri }} style={styles.photoImage} />
+            </View>
+          ))}
+        </View>
+      ) : null}
+
+      <Text style={styles.sectionLabel}>Where should it go?</Text>
+      {hasSocialConnection ? (
+        <>
+          <ToggleRow
+            title="Facebook"
+            body="Uses the Facebook / Instagram prototype connection."
+            value={!!s.jobPostChannels.facebook}
+            onValueChange={() => s.toggleJobPostChannel("facebook")}
+          />
+          <ToggleRow
+            title="Instagram"
+            body="Uses the Facebook / Instagram prototype connection."
+            value={!!s.jobPostChannels.instagram}
+            onValueChange={() => s.toggleJobPostChannel("instagram")}
+          />
+        </>
+      ) : null}
+      {hasGoogleConnection ? (
+        <ToggleRow
+          title="Google Business"
+          body="Prototype business-profile destination."
+          value={!!s.jobPostChannels.googleBusiness}
+          onValueChange={() => s.toggleJobPostChannel("googleBusiness")}
+        />
+      ) : null}
+
+      {!hasSocialConnection && !hasGoogleConnection ? (
+        <Card
+          eyebrow="No publishing connection selected"
+          title="Connect a profile before approval"
+          body="The prototype will still never post for real, but this lets us test the correct approval flow against a destination the owner deliberately connected."
+          tone="amber"
+        />
+      ) : null}
+
+      <Button label="Edit wording" onPress={() => s.go("jobPostDraft")} />
+      <Button
+        label={selectedCount ? `Approve simulated publish • ${selectedCount}` : "Choose a connected profile first"}
+        primary
+        disabled={!selectedCount}
+        onPress={s.simulateJobPostPublish}
+      />
+      <Button label="Connected accounts" onPress={() => s.go("connectedAccounts")} />
+      <Button label="Not now" onPress={() => s.openCustomer(customer.id)} />
+    </Shell>
+  );
+}
+
+function JobPostPublished({ s }) {
+  const customer = s.selectedJobCustomer;
+  const job = s.selectedJob;
+  if (!customer || !job) {
+    return <Shell s={s} title="Prepared action saved" subtitle="The job could not be found."><Button label="Home" primary onPress={() => s.jump("home", "Home")} /></Shell>;
+  }
+  return (
+    <Shell
+      s={s}
+      title="Approved"
+      subtitle="Prototype only — nothing was actually published."
+      brandCue="Action prepared. Owner approved. Outcome can now be learned."
+    >
+      <Card
+        eyebrow="Simulated publish"
+        title={(job.postChannels || []).join(" • ") || "Selected profile"}
+        body={job.postDraft}
+        footer="Actual spend: £0"
+        tone="green"
+      />
+      <Card
+        eyebrow="Next learning step"
+        title="What happened after the post?"
+        body="You can record the outcome now or later. Busy Does It should learn from enquiries, quotes and bookings — not just likes."
+        tone="blue"
+      />
+      <Button label="Record what happened" primary onPress={() => s.openJobPostOutcome(customer.id, job.id)} />
+      <Button label="Do this later" onPress={() => s.openCustomer(customer.id)} />
+    </Shell>
+  );
+}
+
+function JobPostOutcome({ s }) {
+  const customer = s.selectedJobCustomer;
+  const job = s.selectedJob;
+  const options = ["No enquiry yet", "Enquiry", "Quote", "Booking"];
+  if (!customer || !job) {
+    return <Shell s={s} title="Post outcome" subtitle="The selected job could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
+  }
+  return (
+    <Shell
+      s={s}
+      title="What happened?"
+      subtitle="One simple outcome helps Busy Does It learn which free actions are genuinely useful."
+      brandCue="Learn from business outcomes, not vanity metrics."
+    >
+      <Card
+        eyebrow="Post being measured"
+        title={job.service || customer.service}
+        body={`Simulated on ${(job.postChannels || []).join(", ") || "a selected profile"}.`}
+        footer="No causal claim is assumed"
+        tone="blue"
+      />
+      {options.map((option) => (
+        <Choice
+          key={option}
+          label={option}
+          selected={s.jobPostOutcome === option}
+          onPress={() => s.setJobPostOutcome(option)}
+        />
+      ))}
+      {s.jobPostOutcome === "Booking" ? (
+        <Field
+          label="Booked value (optional)"
+          value={s.jobPostOutcomeValue}
+          onChangeText={s.setJobPostOutcomeValue}
+          keyboardType="number-pad"
+          prefix="£"
+          placeholder="Only if you know it"
+        />
+      ) : null}
+      <Card
+        eyebrow="Attribution rule"
+        title="Record what you know — do not pretend"
+        body="A saved outcome means the owner associated it with this post. Busy Does It should label that clearly rather than claiming the post definitely caused the work."
+        tone="green"
+      />
+      <Button label="Save outcome" primary onPress={s.saveJobPostOutcome} />
+      <Button label="Cancel" onPress={s.back} />
     </Shell>
   );
 }
@@ -5340,6 +5743,21 @@ function Results({ s }) {
       brandCue="Real local activity. Clear next steps."
     >
       <Card
+        eyebrow="Value we can trace"
+        title={`£${s.completedJobValue + s.pipelineWorkValue + s.postAttributedValue} recorded across completed work, pipeline and attributed post bookings`}
+        body="This is traceable prototype data, not a promise that Busy Does It caused every pound. User-entered attribution stays labelled as attribution."
+        tone="green"
+      >
+        <MetricRow left="Completed work recorded" right={`£${s.completedJobValue}`} strong={s.completedJobValue > 0} />
+        <MetricRow left="Active pipeline" right={`£${s.pipelineWorkValue}`} strong={s.pipelineWorkValue > 0} />
+        <MetricRow left="Completed value from prototype reactivation flow" right={`£${s.reactivationCompletedValue}`} />
+        <MetricRow left="Post-attributed booking value" right={`£${s.postAttributedValue}`} strong={s.postAttributedValue > 0} />
+        <MetricRow left="Finished-job posts approved" right={String(s.publishedPhotoPostCount)} />
+        <MetricRow left="Post outcomes recorded" right={String(s.postOutcomeRecordedCount)} />
+        <MetricRow left="Post outcomes marked booking" right={String(s.postBookingOutcomeCount)} />
+      </Card>
+
+      <Card
         eyebrow="Customer pipeline"
         title={`£${s.pipelineWorkValue} of customer work in the pipeline`}
         body="This combines active quote value and confirmed booked-work value saved locally in the prototype."
@@ -5356,6 +5774,8 @@ function Results({ s }) {
         <MetricRow left="Job photos attached" right={String(s.attachedJobPhotoCount)} />
         <MetricRow left="Photos reusable with permission" right={String(s.reusableJobPhotoCount)} strong={s.reusableJobPhotoCount > 0} />
         <MetricRow left="Finished-job post drafts" right={String(s.preparedPhotoPostCount)} />
+        <MetricRow left="Finished-job posts approved" right={String(s.publishedPhotoPostCount)} />
+        <MetricRow left="Post outcomes recorded" right={String(s.postOutcomeRecordedCount)} />
         <MetricRow left="Follow-ups due" right={String(s.dueReminderEntries.length)} />
         <MetricRow left="Quote follow-ups due" right={String(s.dueQuoteEntries.length)} />
         <MetricRow left="Actions still to do" right={String(s.pendingReplyActionCount)} />
@@ -5664,6 +6084,9 @@ const screens = {
   jobPhotos: JobPhotos,
   jobPhotoOpportunity: JobPhotoOpportunity,
   jobPostDraft: JobPostDraft,
+  jobPostApproval: JobPostApproval,
+  jobPostPublished: JobPostPublished,
+  jobPostOutcome: JobPostOutcome,
   newEnquiry: NewEnquiry,
   addCustomerRecord: AddCustomerRecord,
   confirmRemoveCustomer: ConfirmRemoveCustomer,
