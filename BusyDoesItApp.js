@@ -575,8 +575,43 @@ function evaluateSafeAutoFile(parsed, customers = [], replyActions = {}, source 
   if (!exactMatch) reasons.push("No exact existing-customer phone/email match");
   if (parsed.confidence !== "High") reasons.push("Extraction is not high confidence");
   if (!parsed.name) reasons.push("Customer name missing");
+  if (
+    customer &&
+    parsed.name &&
+    String(parsed.name).trim().toLowerCase() !== String(customer.name || "").trim().toLowerCase()
+  ) {
+    reasons.push("Customer name does not exactly match the existing record");
+  }
   if (!parsed.phone && !parsed.email) reasons.push("Contact detail missing");
+  if (
+    customer?.phone &&
+    parsed.phone &&
+    normalizePhone(customer.phone) !== normalizePhone(parsed.phone)
+  ) {
+    reasons.push("Phone number conflicts with the existing record");
+  }
+  if (
+    customer?.email &&
+    parsed.email &&
+    normalizeEmail(customer.email) !== normalizeEmail(parsed.email)
+  ) {
+    reasons.push("Email address conflicts with the existing record");
+  }
   if (!parsed.service || !parsed.serviceDetected) reasons.push("Service not confidently detected");
+  if (
+    customer?.service &&
+    parsed.service &&
+    String(customer.service).trim().toLowerCase() !== String(parsed.service).trim().toLowerCase()
+  ) {
+    reasons.push("Service differs from the existing customer record");
+  }
+  if (
+    customer?.address &&
+    parsed.address &&
+    String(customer.address).trim().toLowerCase() !== String(parsed.address).trim().toLowerCase()
+  ) {
+    reasons.push("Job address differs from the existing customer record");
+  }
   if (action && isActiveCustomerAction(action)) reasons.push("Customer already has active work");
   if (parsed.stage === "Enquiry" && customer?.currentEnquiryAt) reasons.push("Customer already has an open enquiry");
   if (duplicateSource) reasons.push("This source item appears to have been filed already");
