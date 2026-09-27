@@ -488,11 +488,6 @@ function App() {
   const [postcode, setPostcode] = useState("EX17");
   const [radius, setRadius] = useState("15");
   const [quietSlot, setQuietSlot] = useState("Thursday afternoon");
-  const [previousCustomerCount, setPreviousCustomerCount] = useState("14");
-  const [eligibleCustomerCount, setEligibleCustomerCount] = useState("12");
-  const [oldEnquiryCount, setOldEnquiryCount] = useState("4");
-  const [oldQuoteCount, setOldQuoteCount] = useState("3");
-  const [oldQuoteTopValue, setOldQuoteTopValue] = useState("340");
   const [unansweredReviewCount, setUnansweredReviewCount] = useState("4");
   const [recentPhotoCountNeeded, setRecentPhotoCountNeeded] = useState("2");
   const [customers, setCustomers] = useState(customerSeed);
@@ -585,11 +580,6 @@ function App() {
         if (saved.postcode) setPostcode(saved.postcode);
         if (saved.radius) setRadius(saved.radius);
         if (saved.quietSlot) setQuietSlot(saved.quietSlot);
-        if (saved.previousCustomerCount !== undefined) setPreviousCustomerCount(String(saved.previousCustomerCount));
-        if (saved.eligibleCustomerCount !== undefined) setEligibleCustomerCount(String(saved.eligibleCustomerCount));
-        if (saved.oldEnquiryCount !== undefined) setOldEnquiryCount(String(saved.oldEnquiryCount));
-        if (saved.oldQuoteCount !== undefined) setOldQuoteCount(String(saved.oldQuoteCount));
-        if (saved.oldQuoteTopValue !== undefined) setOldQuoteTopValue(String(saved.oldQuoteTopValue));
         if (saved.unansweredReviewCount !== undefined) setUnansweredReviewCount(String(saved.unansweredReviewCount));
         if (saved.recentPhotoCountNeeded !== undefined) setRecentPhotoCountNeeded(String(saved.recentPhotoCountNeeded));
         if (Array.isArray(saved.customers)) setCustomers(saved.customers);
@@ -651,11 +641,6 @@ function App() {
       postcode,
       radius,
       quietSlot,
-      previousCustomerCount,
-      eligibleCustomerCount,
-      oldEnquiryCount,
-      oldQuoteCount,
-      oldQuoteTopValue,
       unansweredReviewCount,
       recentPhotoCountNeeded,
       customers,
@@ -681,11 +666,6 @@ function App() {
     postcode,
     radius,
     quietSlot,
-    previousCustomerCount,
-    eligibleCustomerCount,
-    oldEnquiryCount,
-    oldQuoteCount,
-    oldQuoteTopValue,
     unansweredReviewCount,
     recentPhotoCountNeeded,
     customers,
@@ -1940,11 +1920,6 @@ function App() {
     setPostcode("EX17");
     setRadius("15");
     setQuietSlot("Thursday afternoon");
-    setPreviousCustomerCount("14");
-    setEligibleCustomerCount("12");
-    setOldEnquiryCount("4");
-    setOldQuoteCount("3");
-    setOldQuoteTopValue("340");
     setUnansweredReviewCount("4");
     setRecentPhotoCountNeeded("2");
     setCustomers(customerSeed);
@@ -2360,16 +2335,6 @@ function App() {
     setRadius,
     quietSlot,
     setQuietSlot,
-    previousCustomerCount,
-    setPreviousCustomerCount,
-    eligibleCustomerCount,
-    setEligibleCustomerCount,
-    oldEnquiryCount,
-    setOldEnquiryCount,
-    oldQuoteCount,
-    setOldQuoteCount,
-    oldQuoteTopValue,
-    setOldQuoteTopValue,
     unansweredReviewCount,
     setUnansweredReviewCount,
     recentPhotoCountNeeded,
