@@ -1187,7 +1187,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={styles.brand}>BUSY DOES IT</Text>
             <Text style={styles.tagline}>More work. Less fuss.</Text>
-            <Text style={styles.prototypeBadge}>Prototype v0.6 • bookings + action hub</Text>
+            <Text style={styles.prototypeBadge}>Prototype v0.7 • customer + work pipeline</Text>
           </View>
           {!noBack && s.history?.length > 0 ? (
             <Pressable onPress={s.back} style={styles.backPill}>
@@ -3864,6 +3864,7 @@ const screens = {
   chooseGap: ChooseGap,
   bestMove: BestMove,
   customerRecords: CustomerRecords,
+  customerDetail: CustomerDetail,
   addCustomerRecord: AddCustomerRecord,
   confirmRemoveCustomer: ConfirmRemoveCustomer,
   eligibleCustomers: EligibleCustomers,
@@ -4125,6 +4126,7 @@ const styles = StyleSheet.create({
   filterChipText: { color: C.muted, fontSize: 12, fontWeight: "800" },
   filterChipTextActive: { color: "#FFFFFF" },
   homePriorityCard: { backgroundColor: C.greenSoft, borderWidth: 1, borderColor: "#CDE7D9", borderRadius: 18, padding: 16, marginBottom: 16 },
+  homeReminderCard: { backgroundColor: C.amberSoft, borderColor: "#F0D8B9" },
   homePriorityTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
   homePriorityEyebrow: { color: C.blue, fontSize: 12, fontWeight: "900", letterSpacing: 0.8 },
   homePriorityTitle: { color: C.ink, fontSize: 22, fontWeight: "900" },
@@ -4132,6 +4134,7 @@ const styles = StyleSheet.create({
   homePriorityLink: { color: C.blue, fontSize: 13, fontWeight: "900", marginTop: 10 },
   bookingCard: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16, padding: 15, marginBottom: 10 },
   bookingWhen: { color: C.ink, fontSize: 16, fontWeight: "800", marginTop: 10 },
+  bookingValue: { color: C.green, fontSize: 13, fontWeight: "900", marginTop: 6 },
   suggestionBoxWarning: { backgroundColor: C.amberSoft, borderWidth: 1, borderColor: "#F0D8B9" },
   suggestionBoxSuccess: { backgroundColor: C.greenSoft, borderWidth: 1, borderColor: "#CDE7D9" },
   clashBox: { backgroundColor: C.amberSoft, borderWidth: 1, borderColor: "#F0D8B9", borderRadius: 14, padding: 13, marginBottom: 14 },
@@ -4187,9 +4190,17 @@ const styles = StyleSheet.create({
   customerMeta: { color: C.muted, fontSize: 13, lineHeight: 18, marginTop: 3 },
   removeCustomerWrap: { alignSelf: "flex-start", paddingTop: 10, paddingBottom: 2 },
   removeCustomerText: { color: C.red, fontSize: 13, fontWeight: "800" },
-  customerActionsRow: { flexDirection: "row", alignItems: "center", gap: 18, marginTop: 10 },
+  customerActionsRow: { flexDirection: "row", alignItems: "center", gap: 18, marginTop: 10, flexWrap: "wrap" },
+  customerOpenWrap: { paddingVertical: 4, paddingRight: 4 },
+  customerOpenText: { color: C.green, fontSize: 13, fontWeight: "900" },
   customerEditWrap: { paddingVertical: 4, paddingRight: 4 },
   customerEditText: { color: C.blue, fontSize: 13, fontWeight: "900" },
+  customerTimelineCard: { borderWidth: 1, borderColor: "#CDE7D9", backgroundColor: C.greenSoft, borderRadius: 16, padding: 15, marginBottom: 14 },
+  customerTimelineLabel: { color: C.blue, fontSize: 11, fontWeight: "900", letterSpacing: 0.7, marginBottom: 5 },
+  customerHistoryRow: { flexDirection: "row", alignItems: "flex-start", borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 14, padding: 13, marginBottom: 9 },
+  customerHistoryTitle: { color: C.ink, fontSize: 15, fontWeight: "900" },
+  customerHistoryNote: { color: C.muted, fontSize: 12, lineHeight: 17, marginTop: 4 },
+  customerHistoryValue: { color: C.green, fontSize: 15, fontWeight: "900" },
   serviceMessageCard: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16, padding: 14, marginBottom: 12 },
   serviceMessageHeader: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 },
   serviceMessageTitle: { color: C.ink, fontSize: 17, fontWeight: "900" },
