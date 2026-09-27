@@ -1422,6 +1422,81 @@ function App() {
     openCustomer(selectedCustomerId);
   };
 
+  const prepareEnquiryFollowUp = (customerId) => {
+    const customer = customers.find((item) => item.id === customerId);
+    if (!customer || customer.lastServiceDate || replyActions[customerId]) return;
+    const firstName = String(customer.name || "").split(" ")[0] || "there";
+    const draft =
+      customer.enquiryFollowUpDraft ||
+      `Hi ${firstName}, you got in touch with us about ${String(customer.service || "some work").toLowerCase()} a little while ago. I just wanted to check whether you still needed any help with it. No problem at all if you’ve already sorted it.`;
+    setSelectedCustomerId(customerId);
+    setEnquiryFollowUpDraft(draft);
+    setEnquiryFollowUpOutcome(customer.enquiryFollowUpOutcome || "No reply yet");
+    go("enquiryFollowUp");
+  };
+
+  const simulateEnquiryFollowUpSend = () => {
+    const customerId = selectedCustomerId;
+    const draft = enquiryFollowUpDraft.trim();
+    const customer = customers.find((item) => item.id === customerId);
+    if (!customer || !draft || customer.lastServiceDate || replyActions[customerId]) return;
+    const sentAt = new Date().toISOString();
+    setCustomers((list) =>
+      list.map((item) =>
+        item.id === customerId
+          ? {
+              ...item,
+              enquiryFollowUpDraft: draft,
+              enquiryFollowUpSentAt: sentAt,
+              enquiryFollowUpStatus: "Simulated sent",
+              enquiryFollowUpOutcome: "",
+              enquiryFollowUpOutcomeRecordedAt: null,
+            }
+          : item
+      )
+    );
+    appendCustomerActivity(customerId, {
+      kind: "enquiry-follow-up",
+      title: "Quiet enquiry follow-up approved",
+      note: "Prototype send approved. No real message was sent.",
+    });
+    setEnquiryFollowUpOutcome("No reply yet");
+    go("enquiryFollowUpSent");
+  };
+
+  const openEnquiryFollowUpOutcome = (customerId) => {
+    const customer = customers.find((item) => item.id === customerId);
+    if (!customer?.enquiryFollowUpSentAt) return;
+    setSelectedCustomerId(customerId);
+    setEnquiryFollowUpDraft(customer.enquiryFollowUpDraft || "");
+    setEnquiryFollowUpOutcome(customer.enquiryFollowUpOutcome || "No reply yet");
+    go("enquiryFollowUpOutcome");
+  };
+
+  const saveEnquiryFollowUpOutcome = () => {
+    const customerId = selectedCustomerId;
+    const customer = customers.find((item) => item.id === customerId);
+    if (!customer?.enquiryFollowUpSentAt) return;
+    const recordedAt = new Date().toISOString();
+    setCustomers((list) =>
+      list.map((item) =>
+        item.id === customerId
+          ? {
+              ...item,
+              enquiryFollowUpOutcome,
+              enquiryFollowUpOutcomeRecordedAt: recordedAt,
+            }
+          : item
+      )
+    );
+    appendCustomerActivity(customerId, {
+      kind: "enquiry-follow-up",
+      title: "Quiet enquiry outcome recorded",
+      note: `Recorded outcome: ${enquiryFollowUpOutcome}.`,
+    });
+    openCustomer(customerId);
+  };
+
   const prepareQuoteFollowUp = (customerId) => {
     const action = replyActions[customerId];
     const customer =
