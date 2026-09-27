@@ -4225,7 +4225,7 @@ function ProfileAudit({ s }) {
 function ProfileAuditPlan({ s }) {
   const serviceName = s.selectedService?.name || s.services.find((x) => x.wanted)?.name || s.trade || "your priority service";
   return (
-    <Shell s={s} title="Free improvements first" subtitle="Nothing changes publicly in v0.8. These are preparation steps only.">
+    <Shell s={s} title="Free improvements first" subtitle="Nothing changes publicly in this prototype. These are preparation steps only.">
       <Card eyebrow="Step 1" title={`Check ${serviceName}`} body="Prepare clearer service wording and review it before anything is published." footer="Simulated preparation" />
       <Card eyebrow="Step 2" title={`Choose ${s.recentPhotoCountNeeded || 0} recent photo${String(s.recentPhotoCountNeeded) === "1" ? "" : "s"}`} body="Use recent before-and-after proof that represents the work accurately." footer="Simulated preparation" />
       <Card eyebrow="Step 3" title={`Prepare ${s.unansweredReviewCount || 0} review repl${String(s.unansweredReviewCount) === "1" ? "y" : "ies"}`} body="Draft short genuine replies in the business’s normal tone." footer="Simulated preparation" />
@@ -4405,8 +4405,8 @@ function CheckSend({ s }) {
       title="Check before sending"
       subtitle={
         s.campaignStage === 0
-          ? "Each eligible customer gets a draft matched to their previous service. Sending is still simulated in v0.8."
-          : "The recipient list is local prototype data. Sending is still simulated in v0.8."
+          ? "Each eligible customer gets a draft matched to their previous service. Sending is still simulated in this prototype."
+          : "The recipient list is local prototype data. Sending is still simulated in this prototype."
       }
     >
       {s.campaignStage === 0 ? (
