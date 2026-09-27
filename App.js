@@ -916,52 +916,72 @@ function SetupConnect({ s }) {
 }
 
 function HomeScreen({ s }) {
+  const serviceName = s.selectedService?.name || s.services.find((x) => x.wanted)?.name || s.trade || "your priority service";
   const opportunities = [
     {
-      id: "quiet-thursday",
+      id: "quiet-slot",
       eyebrow: "Capacity",
-      title: "Thursday afternoon is free",
-      body: "We found 14 previous customers. 12 look suitable to contact now.",
+      title: `${s.quietSlot || "A quiet slot"} is free`,
+      body: `You’ve entered ${s.previousCustomerCount || 0} previous customers. ${s.eligibleCustomerCount || 0} look suitable to contact now.`,
       footer: "Recommended first move: £0 advertising spend",
       status: "Worth trying",
       tone: "green",
-      why: "A quiet slot is already visible in the calendar, and previous customers are the cheapest sensible audience to try before buying new attention.",
-      evidence: [["Customers found", "14"], ["Suitable now", "12"], ["Advertising required", "£0"], ["Confidence", "Medium–high"]],
+      why: "You have spare capacity and an existing customer audience. Busy Does It puts that cheaper audience ahead of paid advertising.",
+      evidence: [
+        ["Saved quiet slot", s.quietSlot || "Not set"],
+        ["Previous customers", String(s.previousCustomerCount || 0)],
+        ["Suitable to contact", String(s.eligibleCustomerCount || 0)],
+        ["Advertising required", "£0"],
+      ],
       onAction: () => s.go("bestMove"),
     },
     {
       id: "profile-fixes",
       eyebrow: "Free improvement",
-      title: "3 easy profile fixes",
-      body: "Patio cleaning is missing, 2 recent photos would help, and 4 reviews have no reply.",
+      title: "Check the free profile gaps",
+      body: `Make sure ${serviceName.toLowerCase()} is clear, add ${s.recentPhotoCountNeeded || 0} recent photo${String(s.recentPhotoCountNeeded) === "1" ? "" : "s"}, and deal with ${s.unansweredReviewCount || 0} unanswered review${String(s.unansweredReviewCount) === "1" ? "" : "s"}.`,
       footer: "Cost: £0",
       status: "Free",
       tone: "blue",
       why: "Improve the places customers already find you before paying to send more people there.",
-      evidence: [["Profile areas checked", "3"], ["Unanswered reviews", "4"], ["Recent photo gap", "Yes"], ["Cost", "£0"]],
+      evidence: [
+        ["Priority service", serviceName],
+        ["Recent photos wanted", String(s.recentPhotoCountNeeded || 0)],
+        ["Unanswered reviews entered", String(s.unansweredReviewCount || 0)],
+        ["Cost", "£0"],
+      ],
       onAction: () => s.go("profileAudit"),
     },
     {
       id: "old-quotes",
       eyebrow: "Follow-up",
-      title: "3 old quotes are still worth a look",
-      body: "One is worth about £340 and none need advertising spend to retry.",
+      title: `${s.oldQuoteCount || 0} old quote${String(s.oldQuoteCount) === "1" ? "" : "s"} worth a look`,
+      body: `Highest value entered: about £${s.oldQuoteTopValue || 0}. Retrying them needs no advertising spend.`,
       footer: "Advertising spend: £0",
       status: "Low cost",
       tone: "blue",
       why: "These people already asked for a price, so checking whether the job is still live is cheaper than finding new leads.",
-      evidence: [["Old quotes", "3"], ["Highest value", "£340"], ["Advertising required", "£0"], ["Confidence", "Medium"]],
+      evidence: [
+        ["Old quotes entered", String(s.oldQuoteCount || 0)],
+        ["Highest value", `£${s.oldQuoteTopValue || 0}`],
+        ["Advertising required", "£0"],
+      ],
       onAction: () => s.startCampaign(2),
     },
   ].filter((item) => !s.dismissedOpportunities.includes(item.id));
 
   return (
-    <Shell s={s} noBack title="Here’s what I noticed" subtitle="Useful opportunities first. Start one, ask why, or ignore it." brandCue="Busy Does It is watching for useful gaps.">
+    <Shell
+      s={s}
+      noBack
+      title="Here’s what I noticed"
+      subtitle="These opportunities now use the business data saved on this phone."
+      brandCue="Your data first. Simulated actions are clearly labelled."
+    >
       <View style={styles.dashboardHeader}>
         <StatusChip label={`${opportunities.length} opportunities`} tone={opportunities.length ? "green" : "blue"} />
-        <Text style={styles.dashboardHint}>Simple by default. Evidence when you want it.</Text>
+        <Text style={styles.dashboardHint}>Update the numbers any time in Settings → Business data.</Text>
       </View>
-
       {opportunities.length ? (
         opportunities.map((item) => (
           <OpportunityCard
@@ -972,10 +992,10 @@ function HomeScreen({ s }) {
           />
         ))
       ) : (
-        <Card eyebrow="All clear" title="Nothing urgent right now" body="You’ve ignored the current demo opportunities. Restore them any time to keep testing." tone="green" />
+        <Card eyebrow="All clear" title="Nothing urgent right now" body="You’ve ignored the current opportunities. Restore them any time to keep testing." tone="green" />
       )}
-
       {s.dismissedOpportunities.length ? <Button label="Restore ignored opportunities" onPress={s.restoreOpportunities} /> : null}
+      <Button label="Update my business data" onPress={() => s.go("businessData")} />
       <Button label="Start something else" primary onPress={() => s.jump("workNow", "Work")} />
     </Shell>
   );
@@ -1007,22 +1027,28 @@ function ChooseGap({ s }) {
 }
 
 function BestMove({ s }) {
-  const step = campaignSteps[0];
+  const count = s.eligibleCustomerCount || "0";
   return (
-    <Shell s={s} title="Best first move" subtitle="We checked the cheaper options before suggesting advertising.">
+    <Shell s={s} title="Best first move" subtitle="This recommendation uses the business data saved on your phone.">
       <OpportunityCard
         eyebrow="Recommended"
-        title={step.title}
-        body="14 previous customers were found; 12 look suitable to contact now."
+        title={`Contact ${count} previous customer${String(count) === "1" ? "" : "s"}`}
+        body={`You have ${s.quietSlot || "a quiet slot"} to fill and ${count} previous customers marked as suitable to contact.`}
         footer="Advertising spend: £0"
         status="Best first move"
         tone="green"
         actionLabel="Try this"
         onAction={() => s.startCampaign(0)}
-        why={step.why}
-        evidence={step.evidence}
+        why="Previous customers already know the business, so they are a lower-cost first move than buying new attention."
+        evidence={[
+          ["Quiet slot", s.quietSlot || "Not set"],
+          ["Previous customers entered", String(s.previousCustomerCount || 0)],
+          ["Suitable to contact", String(count)],
+          ["Advertising required", "£0"],
+        ]}
       />
       <Button label="See other options" onPress={() => s.go("otherOptions")} />
+      <Button label="Edit business data" onPress={() => s.go("businessData")} />
       <Button label="Not now" onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
