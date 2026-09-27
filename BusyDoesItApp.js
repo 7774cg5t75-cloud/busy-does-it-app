@@ -5602,6 +5602,29 @@ function CustomerDetail({ s }) {
                 </Pressable>
               </>
             ) : null}
+            {item.kind === "job" && !String(item.id || "").startsWith("baseline-") && customer.contactOk !== false ? (
+              item.reviewRequestSentAt ? (
+                item.reviewRequestOutcomeRecordedAt ? (
+                  <Text style={styles.customerHistoryPhotoMeta}>
+                    Review request • {item.reviewRequestOutcome}
+                  </Text>
+                ) : (
+                  <Pressable
+                    onPress={() => s.openReviewRequestOutcome(customer.id, item.id)}
+                    style={styles.customerHistoryPhotoLink}
+                  >
+                    <Text style={styles.customerHistoryPhotoLinkText}>Record review outcome →</Text>
+                  </Pressable>
+                )
+              ) : (
+                <Pressable
+                  onPress={() => s.prepareReviewRequest(customer.id, item.id)}
+                  style={styles.customerHistoryPhotoLink}
+                >
+                  <Text style={styles.customerHistoryPhotoLinkText}>Prepare review request →</Text>
+                </Pressable>
+              )
+            ) : null}
           </View>
           <Text style={styles.customerHistoryValue}>{Number(item.value) > 0 ? `£${item.value}` : "—"}</Text>
         </View>
@@ -6410,8 +6433,8 @@ function Results({ s }) {
       s={s}
       noBack
       title="What happened?"
-      subtitle="A local customer-work picture first. Illustrative marketing examples stay separate."
-      brandCue="Real local activity. Clear next steps."
+      subtitle="What Busy Does It prepared, what you approved, and what actually happened."
+      brandCue="Actions become outcomes. Outcomes improve the next recommendation."
     >
       <Card
         eyebrow="Value we can trace"
@@ -6426,6 +6449,22 @@ function Results({ s }) {
         <MetricRow left="Finished-job posts approved" right={String(s.publishedPhotoPostCount)} />
         <MetricRow left="Post outcomes recorded" right={String(s.postOutcomeRecordedCount)} />
         <MetricRow left="Post outcomes marked booking" right={String(s.postBookingOutcomeCount)} />
+      </Card>
+
+      <Card
+        eyebrow="Opportunity Engine learning"
+        title="The app is starting to learn which £0 actions deserve priority"
+        body="These are recorded prototype outcomes. Small samples should change rankings only gently until more real evidence exists."
+        tone="blue"
+      >
+        <MetricRow left="Quote follow-ups approved" right={String(s.quoteFollowUpSentCount)} />
+        <MetricRow left="Quote follow-up outcomes recorded" right={String(s.quoteFollowUpOutcomeCount)} />
+        <MetricRow left="Accepted after quote follow-up" right={String(s.quoteFollowUpAcceptedCount)} strong={s.quoteFollowUpAcceptedCount > 0} />
+        <MetricRow left="Accepted quote value after follow-up" right={`£${s.quoteFollowUpAcceptedValue}`} />
+        <MetricRow left="Review requests approved" right={String(s.reviewRequestSentCount)} />
+        <MetricRow left="Review-request outcomes recorded" right={String(s.reviewRequestOutcomeCount)} />
+        <MetricRow left="Reviews recorded as left" right={String(s.reviewReceivedCount)} strong={s.reviewReceivedCount > 0} />
+        <MetricRow left="Previous-customer completed value" right={`£${s.reactivationCompletedValue}`} />
       </Card>
 
       <Card
