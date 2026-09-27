@@ -4941,7 +4941,8 @@ function WorkHub({ s }) {
         <MetricRow left="Quote follow-ups due" right={String(s.dueQuoteEntries.length)} strong={s.dueQuoteEntries.length > 0} />
         <MetricRow left="Actions to do" right={String(s.pendingReplyActionCount)} strong={s.pendingReplyActionCount > 0} />
         <MetricRow left="Background next steps ready" right={String(s.backgroundReadyCount)} strong={s.backgroundReadyCount > 0} />
-        <MetricRow left="Quick-captured records" right={String(s.intakeLog.length)} />
+        <MetricRow left="Inbox waiting" right={String(s.inboxPendingItems.length)} strong={s.inboxNeedsAttentionItems.length > 0} />
+        <MetricRow left="Quick-captured records filed" right={String(s.intakeLog.length)} />
       </Card>
 
       {overdueBookings.length ? (
@@ -5044,7 +5045,12 @@ function WorkHub({ s }) {
       ) : null}
 
       <Text style={styles.sectionLabel}>Add or manage work</Text>
-      <Button label="Quick capture from a message / note" primary onPress={s.startQuickCapture} />
+      <Button
+        label={s.inboxPendingItems.length ? `Busy Inbox • ${s.inboxPendingItems.length} waiting` : "Busy Inbox"}
+        primary
+        onPress={s.openBusyInbox}
+      />
+      <Button label="Quick capture from a message / note" onPress={s.startQuickCapture} />
       <Button label="+ New enquiry manually" onPress={s.startNewEnquiry} />
       {s.intakeLog.length ? (
         <Button label={`Intake history • ${s.intakeLog.length}`} onPress={() => s.go("intakeHistory")} />
@@ -6802,6 +6808,129 @@ function WorkPlan({ s }) {
 
 
 
+function BusyInbox({ s }) {
+  const pending = s.inboxPendingItems || [];
+  const attention = s.inboxNeedsAttentionItems || [];
+  const ready = s.inboxReadyItems || [];
+  const processed = [...(s.inboxItems || [])]
+    .filter((item) => item.status !== "Pending")
+    .sort((a, b) => String(b.reviewedAt || b.queuedAt || "").localeCompare(String(a.reviewedAt || a.queuedAt || "")))
+    .slice(0, 6);
+
+  const ItemCard = ({ item }) => {
+    const parsed = item.parsed || {};
+    const triage = item.triage || {};
+    const title = parsed.name || "Customer not identified";
+    const service = parsed.service || "Service not detected";
+    const contact = parsed.phone || parsed.email || "Contact detail missing";
+    return (
+      <View key={item.id} style={styles.activityCard}>
+        <View style={styles.activityTopRow}>
+          <View style={{ flex: 1, paddingRight: 10 }}>
+            <Text style={styles.customerTimelineLabel}>{String(parsed.stage || "Incoming").toUpperCase()}</Text>
+            <Text style={styles.activityName}>{title}</Text>
+            <Text style={styles.activityService}>{service} • {item.source}</Text>
+          </View>
+          <StatusChip
+            label={triage.lane === "Needs attention" ? "Check" : "Ready"}
+            tone={triage.lane === "Needs attention" ? "amber" : inboxStageTone(parsed.stage)}
+          />
+        </View>
+        <Text style={styles.activitySummary}>{contact}</Text>
+        <Text style={styles.activitySummary}>{triage.reason || "Ready for review"}</Text>
+        {triage.matchCustomerId ? (
+          <Text style={styles.customerHistoryPhotoMeta}>Possible existing customer match detected</Text>
+        ) : null}
+        <View style={styles.customerActionsRow}>
+          <Pressable onPress={() => s.openInboxItem(item.id)} style={styles.customerOpenWrap}>
+            <Text style={styles.customerOpenText}>Review & file</Text>
+          </Pressable>
+          <Pressable onPress={() => s.dismissInboxItem(item.id)} style={styles.customerEditWrap}>
+            <Text style={styles.customerEditText}>Dismiss</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  };
+
+  return (
+    <Shell
+      s={s}
+      title="Busy Inbox"
+      subtitle="Incoming business information is sorted before it touches your customer records."
+      brandCue="Busy triages. You handle the exceptions and approvals."
+    >
+      <Card
+        eyebrow="Inbox triage"
+        title={
+          pending.length
+            ? `${pending.length} item${pending.length === 1 ? "" : "s"} waiting`
+            : "Inbox clear"
+        }
+        body="Busy ranks live bookings and quotes highly, flags missing information or possible conflicts, and checks for existing customers before filing anything."
+        footer="Prototype rule: owner review before every file"
+        tone={attention.length ? "amber" : "green"}
+      >
+        <MetricRow left="Needs attention" right={String(attention.length)} strong={attention.length > 0} />
+        <MetricRow left="Ready to review" right={String(ready.length)} />
+        <MetricRow left="Filed from Inbox" right={String(s.inboxFiledCount)} />
+        <MetricRow left="Dismissed" right={String(s.inboxDismissedCount)} />
+      </Card>
+
+      <Card
+        eyebrow="What triage means"
+        title="Not every incoming item deserves the same interruption"
+        body="Missing service/contact details, low-confidence extraction, name-only matches and conflicts with stronger active work are pushed into Needs attention. Cleaner items sit underneath as Ready to review."
+        tone="blue"
+      />
+
+      {attention.length ? <Text style={styles.sectionLabel}>Needs attention</Text> : null}
+      {attention.map((item) => <ItemCard key={item.id} item={item} />)}
+
+      {ready.length ? <Text style={styles.sectionLabel}>Ready to review</Text> : null}
+      {ready.map((item) => <ItemCard key={item.id} item={item} />)}
+
+      {!pending.length ? (
+        <Card
+          eyebrow="Nothing waiting"
+          title="No incoming information needs you"
+          body="Busy is not creating Inbox work just to make the screen look active."
+          footer="You can still Quick Capture something new"
+          tone="green"
+        />
+      ) : null}
+
+      <Button label="Quick capture something new" primary onPress={s.startQuickCapture} />
+      <Button label="Load 4 test Inbox items" onPress={s.queueInboxTestBatch} />
+      <Text style={styles.helper}>The four Inbox examples are clearly test-only and do not change customer records until reviewed and approved.</Text>
+
+      {processed.length ? (
+        <>
+          <Text style={styles.sectionLabel}>Recently processed</Text>
+          {processed.map((item) => (
+            <View key={item.id} style={styles.activityCard}>
+              <View style={styles.activityTopRow}>
+                <View style={{ flex: 1, paddingRight: 10 }}>
+                  <Text style={styles.activityName}>{item.parsed?.name || "Incoming item"}</Text>
+                  <Text style={styles.activityService}>{item.parsed?.stage || "Incoming"} • {item.source}</Text>
+                </View>
+                <StatusChip label={item.status} tone={item.status === "Filed" ? "green" : "blue"} />
+              </View>
+              {item.status === "Dismissed" ? (
+                <Pressable onPress={() => s.reopenInboxItem(item.id)} style={styles.customerEditWrap}>
+                  <Text style={styles.customerEditText}>Put back in Inbox</Text>
+                </Pressable>
+              ) : null}
+            </View>
+          ))}
+        </>
+      ) : null}
+
+      <Button label="Back to Work" onPress={() => s.jump("workHub", "Work")} />
+    </Shell>
+  );
+}
+
 function QuickCapture({ s }) {
   const canAnalyse = !!s.captureRawText.trim();
   return (
@@ -6839,7 +6968,11 @@ function QuickCapture({ s }) {
         style={styles.messageInput}
       />
 
-      <Button label="Analyse & review" primary disabled={!canAnalyse} onPress={s.analyseQuickCapture} />
+      <Button label="Add to Busy Inbox & triage" primary disabled={!canAnalyse} onPress={s.queueCaptureToInbox} />
+      <Button label="Analyse & review now" disabled={!canAnalyse} onPress={s.analyseQuickCapture} />
+      <Text style={styles.helper}>
+        Inbox triage sorts incoming information first. Neither route changes a customer record until you approve the review screen.
+      </Text>
 
       <Text style={styles.sectionLabel}>Try a test example</Text>
       <Button label="Example enquiry" onPress={() => s.loadQuickCaptureExample("enquiry")} />
@@ -6869,6 +7002,15 @@ function QuickCaptureReview({ s }) {
       subtitle="Nothing changes until you approve this screen."
       brandCue="Extraction is a draft, not a fact."
     >
+      {s.selectedInboxItemId ? (
+        <Card
+          eyebrow="From Busy Inbox"
+          title="Busy has already triaged this item"
+          body="You are now doing the human review. Saving files the Inbox item into the correct customer/work record; going back leaves it pending."
+          footer="No record change yet"
+          tone="blue"
+        />
+      ) : null}
       <Card
         eyebrow="Extraction confidence"
         title={s.captureConfidence}
@@ -8994,6 +9136,7 @@ const screens = {
   reviewRequest: ReviewRequest,
   reviewRequestSent: ReviewRequestSent,
   reviewRequestOutcome: ReviewRequestOutcome,
+  busyInbox: BusyInbox,
   quickCapture: QuickCapture,
   quickCaptureReview: QuickCaptureReview,
   quickCaptureSaved: QuickCaptureSaved,
