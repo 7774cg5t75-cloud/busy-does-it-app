@@ -19,9 +19,6 @@ const snack = new Snack({
     "@react-native-async-storage/async-storage": {
       version: "2.2.0",
     },
-    "@react-native-community/datetimepicker": {
-      version: "8.4.4",
-    },
   },
 });
 
