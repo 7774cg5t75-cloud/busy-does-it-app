@@ -3992,35 +3992,57 @@ function WorkPipeline({ s }) {
         </Text>
       ) : null}
 
-      {visibleNewEnquiries.length ? <Text style={styles.sectionLabel}>New enquiries</Text> : null}
-      {visibleNewEnquiries.map((customer) => (
-        <View key={customer.id} style={styles.customerTimelineCard}>
-          <View style={styles.homePriorityTop}>
-            <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={styles.customerTimelineLabel}>NEW ENQUIRY</Text>
-              <Text style={styles.activityName}>{customer.name}</Text>
+      {visibleNewEnquiries.length ? <Text style={styles.sectionLabel}>Enquiries</Text> : null}
+      {visibleNewEnquiries.map((customer) => {
+        const age = daysSinceTimestamp(customer.createdAt);
+        const quiet = age !== null && age >= 7 && !customer.enquiryFollowUpSentAt;
+        const followUpPending = !!customer.enquiryFollowUpSentAt && !customer.enquiryFollowUpOutcomeRecordedAt;
+        return (
+          <View key={customer.id} style={styles.customerTimelineCard}>
+            <View style={styles.homePriorityTop}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={styles.customerTimelineLabel}>
+                  {followUpPending ? "ENQUIRY FOLLOW-UP SENT" : quiet ? "QUIET ENQUIRY" : "NEW ENQUIRY"}
+                </Text>
+                <Text style={styles.activityName}>{customer.name}</Text>
+              </View>
+              <StatusChip
+                label={followUpPending ? "Awaiting outcome" : quiet ? `${age}d quiet` : "Needs next step"}
+                tone={quiet || followUpPending ? "amber" : "green"}
+              />
             </View>
-            <StatusChip label="Needs next step" tone="amber" />
+            <Text style={styles.activitySummary}>
+              {customer.service}{customer.address ? ` • ${customer.address}` : ""} • {enquiryAgeLabel(customer.createdAt)}
+            </Text>
+            <View style={styles.customerActionsRow}>
+              {followUpPending ? (
+                <Pressable onPress={() => s.openEnquiryFollowUpOutcome(customer.id)} style={styles.customerOpenWrap}>
+                  <Text style={styles.customerOpenText}>Record outcome</Text>
+                </Pressable>
+              ) : quiet ? (
+                <Pressable onPress={() => s.prepareEnquiryFollowUp(customer.id)} style={styles.customerOpenWrap}>
+                  <Text style={styles.customerOpenText}>Prepare follow-up</Text>
+                </Pressable>
+              ) : (
+                <>
+                  <Pressable onPress={() => s.startDirectCustomerAction(customer.id, "quote")} style={styles.customerOpenWrap}>
+                    <Text style={styles.customerOpenText}>Create quote</Text>
+                  </Pressable>
+                  <Pressable onPress={() => s.startDirectCustomerAction(customer.id, "booking")} style={styles.customerEditWrap}>
+                    <Text style={styles.customerEditText}>Book job</Text>
+                  </Pressable>
+                  <Pressable onPress={() => s.startDirectCustomerAction(customer.id, "reminder")} style={styles.customerEditWrap}>
+                    <Text style={styles.customerEditText}>Follow up</Text>
+                  </Pressable>
+                </>
+              )}
+              <Pressable onPress={() => s.openCustomer(customer.id)} style={styles.customerEditWrap}>
+                <Text style={styles.customerEditText}>Open customer</Text>
+              </Pressable>
+            </View>
           </View>
-          <Text style={styles.activitySummary}>
-            {customer.service}{customer.address ? ` • ${customer.address}` : ""} • {enquiryAgeLabel(customer.createdAt)}
-          </Text>
-          <View style={styles.customerActionsRow}>
-            <Pressable onPress={() => s.startDirectCustomerAction(customer.id, "quote")} style={styles.customerOpenWrap}>
-              <Text style={styles.customerOpenText}>Create quote</Text>
-            </Pressable>
-            <Pressable onPress={() => s.startDirectCustomerAction(customer.id, "booking")} style={styles.customerEditWrap}>
-              <Text style={styles.customerEditText}>Book job</Text>
-            </Pressable>
-            <Pressable onPress={() => s.startDirectCustomerAction(customer.id, "reminder")} style={styles.customerEditWrap}>
-              <Text style={styles.customerEditText}>Follow up</Text>
-            </Pressable>
-            <Pressable onPress={() => s.openCustomer(customer.id)} style={styles.customerEditWrap}>
-              <Text style={styles.customerEditText}>Open customer</Text>
-            </Pressable>
-          </View>
-        </View>
-      ))}
+        );
+      })}
 
       {visibleQuotes.length ? <Text style={styles.sectionLabel}>Quotes</Text> : null}
       {visibleQuotes.map((item) => <PipelineCard key={item.id} item={item} kind="quote" />)}
