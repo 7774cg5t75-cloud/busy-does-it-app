@@ -6,7 +6,6 @@ const source = fs.readFileSync("BusyDoesItApp.js", "utf8");
 const snack = new Snack({
   name: "Busy Does It v0.4",
   description: "Auto-generated preview from the v0.4 GitHub branch",
-  sdkVersion: "57.0.0",
   files: {
     "App.js": {
       type: "CODE",
