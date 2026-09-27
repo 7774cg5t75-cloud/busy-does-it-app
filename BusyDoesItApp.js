@@ -3729,7 +3729,14 @@ function App() {
           services.find((service) => service.wanted)?.name || trade || "Service"
         );
       const triage = triageInboxCandidate(parsed, customers, replyActions);
-      return { ...item, parsed, triage };
+      const autoEvaluation = evaluateSafeAutoFile(
+        parsed,
+        customers,
+        replyActions,
+        item.source || "Incoming",
+        item.rawText || ""
+      );
+      return { ...item, parsed, triage, autoEvaluation };
     })
     .sort((a, b) => {
       if ((b.triage?.priorityScore || 0) !== (a.triage?.priorityScore || 0)) {
@@ -3743,9 +3750,28 @@ function App() {
   const inboxReadyItems = inboxPendingItems.filter(
     (item) => item.triage?.lane === "Ready to review"
   );
+  const inboxSafeReadyItems = inboxPendingItems.filter(
+    (item) => item.autoEvaluation?.safe
+  );
   const inboxFiledCount = inboxItems.filter((item) => item.status === "Filed").length;
+  const inboxAutoFiledCount = inboxItems.filter(
+    (item) => item.status === "Filed" && item.autoFiled
+  ).length;
+  const inboxOwnerFiledCount = inboxItems.filter(
+    (item) => item.status === "Filed" && !item.autoFiled
+  ).length;
   const inboxDismissedCount = inboxItems.filter((item) => item.status === "Dismissed").length;
   const inboxTopItem = inboxPendingItems[0] || null;
+  const lastAutoFiledInboxItem =
+    inboxItems.find((item) => item.id === lastAutoFiledInboxItemId) ||
+    [...inboxItems]
+      .filter((item) => item.status === "Filed" && item.autoFiled)
+      .sort((a, b) =>
+        String(b.reviewedAt || b.queuedAt || "").localeCompare(
+          String(a.reviewedAt || a.queuedAt || "")
+        )
+      )[0] ||
+    null;
   const intakeStageCounts = intakeLog.reduce((counts, item) => {
     const key = item.stage || "Other";
     counts[key] = (counts[key] || 0) + 1;
@@ -3925,15 +3951,23 @@ function App() {
     inboxPendingItems,
     inboxNeedsAttentionItems,
     inboxReadyItems,
+    inboxSafeReadyItems,
     inboxFiledCount,
+    inboxAutoFiledCount,
+    inboxOwnerFiledCount,
     inboxDismissedCount,
     inboxTopItem,
+    lastAutoFiledInboxItem,
+    recordFilingMode,
+    setRecordFilingMode,
     selectedInboxItemId,
     setSelectedInboxItemId,
     startQuickCapture,
     loadQuickCaptureExample,
     queueCaptureToInbox,
     queueInboxTestBatch,
+    queueSafeAutopilotExample,
+    fileSafeInboxItem,
     openInboxItem,
     dismissInboxItem,
     reopenInboxItem,
