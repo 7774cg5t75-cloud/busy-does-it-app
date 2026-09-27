@@ -300,6 +300,160 @@ function timeMatchesSlotPart(timeString, slotText) {
   return true;
 }
 
+function normalizePhone(value) {
+  let digits = String(value || "").replace(/\D/g, "");
+  if (digits.startsWith("44") && digits.length >= 12) digits = `0${digits.slice(2)}`;
+  return digits;
+}
+
+function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function findCustomerMatch(customers = [], { phone = "", email = "", name = "" } = {}) {
+  const phoneKey = normalizePhone(phone);
+  const emailKey = normalizeEmail(email);
+  const nameKey = String(name || "").trim().toLowerCase();
+
+  if (phoneKey) {
+    const byPhone = customers.find((customer) => normalizePhone(customer.phone) === phoneKey);
+    if (byPhone) return { customer: byPhone, reason: "Same phone number", confidence: "High" };
+  }
+
+  if (emailKey) {
+    const byEmail = customers.find((customer) => normalizeEmail(customer.email) === emailKey);
+    if (byEmail) return { customer: byEmail, reason: "Same email address", confidence: "High" };
+  }
+
+  if (nameKey && nameKey.length >= 4) {
+    const byName = customers.find((customer) => String(customer.name || "").trim().toLowerCase() === nameKey);
+    if (byName) return { customer: byName, reason: "Same full name", confidence: "Medium" };
+  }
+
+  return null;
+}
+
+function extractISODateFromText(text) {
+  const source = String(text || "");
+  const iso = source.match(/\b(20\d{2})-(\d{1,2})-(\d{1,2})\b/);
+  if (iso) {
+    const [, year, month, day] = iso;
+    return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  }
+
+  const uk = source.match(/\b(\d{1,2})[\/-](\d{1,2})[\/-](20\d{2})\b/);
+  if (uk) {
+    const [, day, month, year] = uk;
+    return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  }
+
+  return dateToISO(new Date());
+}
+
+function extractTimeFromText(text) {
+  const match = String(text || "").match(/\b([01]?\d|2[0-3])[:.]([0-5]\d)\b/);
+  if (!match) return "09:00";
+  return `${String(match[1]).padStart(2, "0")}:${match[2]}`;
+}
+
+function inferCaptureStage(text) {
+  const lower = String(text || "").toLowerCase();
+  if (/\b(completed|complete|finished|finish|job done|work done|paid)\b/.test(lower)) return "Completed job";
+  if (/\b(booked|booking|appointment|scheduled|schedule)\b/.test(lower)) return "Booking";
+  if (/\b(quote sent|sent quote|estimate sent|quoted|quote|estimate)\b/.test(lower)) return "Quote sent";
+  return "Enquiry";
+}
+
+function inferCaptureService(text, services = [], fallback = "") {
+  const lower = String(text || "").toLowerCase();
+  const exact = services.find((service) => lower.includes(String(service.name || "").toLowerCase()));
+  if (exact) return exact.name;
+
+  const scored = services
+    .map((service) => {
+      const tokens = String(service.name || "")
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((token) => token.length >= 4);
+      const score = tokens.filter((token) => lower.includes(token)).length;
+      return { name: service.name, score };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  return scored[0]?.score ? scored[0].name : fallback || services[0]?.name || "General enquiry";
+}
+
+function inferCaptureName(text) {
+  const source = String(text || "").trim();
+  const labelled = source.match(/(?:^|\n)\s*(?:name|customer)\s*[:\-]\s*([^\n,]+)/i);
+  if (labelled) return labelled[1].trim();
+
+  const from = source.match(/\bfrom\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})\b/);
+  if (from) return from[1].trim();
+
+  const firstLine = source.split(/\n/)[0]?.trim() || "";
+  if (
+    firstLine &&
+    firstLine.length <= 45 &&
+    !/@/.test(firstLine) &&
+    !/£|\d{5,}/.test(firstLine) &&
+    !/^(hi|hello|thanks|quote|booking|job|address)\b/i.test(firstLine)
+  ) {
+    return firstLine.replace(/[:\-]+$/, "").trim();
+  }
+
+  return "";
+}
+
+function inferCaptureAddress(text) {
+  const source = String(text || "");
+  const labelled = source.match(/(?:^|\n)\s*(?:address|job address|site)\s*[:\-]\s*([^\n]+)/i);
+  if (labelled) return labelled[1].trim();
+
+  const postcode = source.match(/\b([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})\b/i);
+  if (!postcode) return "";
+  const line = source
+    .split(/\n/)
+    .find((item) => item.toUpperCase().includes(postcode[1].toUpperCase()));
+  return line?.trim() || postcode[1].toUpperCase();
+}
+
+function parseQuickCapture(text, services = [], fallbackService = "") {
+  const source = String(text || "").trim();
+  const phoneMatch = source.match(/(?:\+44\s?\(?0?\)?|0)7\d{3}[\s.-]?\d{3}[\s.-]?\d{3}/);
+  const emailMatch = source.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+  const amountMatch = source.match(/£\s*([0-9]+(?:\.[0-9]{1,2})?)/);
+  const stage = inferCaptureStage(source);
+  const service = inferCaptureService(source, services, fallbackService);
+  const name = inferCaptureName(source);
+  const address = inferCaptureAddress(source);
+  const date = extractISODateFromText(source);
+  const time = extractTimeFromText(source);
+
+  const evidence = [
+    phoneMatch ? "phone" : null,
+    emailMatch ? "email" : null,
+    service ? "service" : null,
+    amountMatch ? "value" : null,
+    name ? "name" : null,
+  ].filter(Boolean);
+
+  return {
+    stage,
+    name,
+    phone: phoneMatch?.[0]?.trim() || "",
+    email: emailMatch?.[0]?.trim() || "",
+    address,
+    service,
+    date,
+    time,
+    value: amountMatch?.[1] || "",
+    note: source,
+    confidence: evidence.length >= 4 ? "High" : evidence.length >= 2 ? "Medium" : "Low",
+    extractedFields: evidence,
+  };
+}
+
 function groupCustomersByService(customers) {
   return customers.reduce((groups, customer) => {
     const key = customer?.service?.trim() || "Usual service";
