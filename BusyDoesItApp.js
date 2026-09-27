@@ -2743,11 +2743,7 @@ function WorkPipeline({ s }) {
 
       {visibleNewEnquiries.length ? <Text style={styles.sectionLabel}>New enquiries</Text> : null}
       {visibleNewEnquiries.map((customer) => (
-        <Pressable
-          key={customer.id}
-          onPress={() => s.openCustomer(customer.id)}
-          style={styles.customerTimelineCard}
-        >
+        <View key={customer.id} style={styles.customerTimelineCard}>
           <View style={styles.homePriorityTop}>
             <View style={{ flex: 1, paddingRight: 10 }}>
               <Text style={styles.customerTimelineLabel}>NEW ENQUIRY</Text>
@@ -2756,8 +2752,18 @@ function WorkPipeline({ s }) {
             <StatusChip label="Needs next step" tone="amber" />
           </View>
           <Text style={styles.activitySummary}>{customer.service}</Text>
-          <Text style={styles.activityOpen}>Open customer →</Text>
-        </Pressable>
+          <View style={styles.customerActionsRow}>
+            <Pressable onPress={() => s.startDirectCustomerAction(customer.id, "quote")} style={styles.customerOpenWrap}>
+              <Text style={styles.customerOpenText}>Create quote</Text>
+            </Pressable>
+            <Pressable onPress={() => s.startDirectCustomerAction(customer.id, "booking")} style={styles.customerEditWrap}>
+              <Text style={styles.customerEditText}>Book job</Text>
+            </Pressable>
+            <Pressable onPress={() => s.openCustomer(customer.id)} style={styles.customerEditWrap}>
+              <Text style={styles.customerEditText}>Open customer</Text>
+            </Pressable>
+          </View>
+        </View>
       ))}
 
       {visibleQuotes.length ? <Text style={styles.sectionLabel}>Quotes</Text> : null}
@@ -4204,6 +4210,15 @@ function NewEnquiry({ s }) {
 }
 
 function CustomerRecords({ s }) {
+  const [search, setSearch] = useState("");
+  const query = search.trim().toLowerCase();
+  const visibleCustomers = s.customers.filter((customer) =>
+    !query ||
+    [customer.name, customer.phone, customer.service]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query))
+  );
+
   return (
     <Shell
       s={s}
@@ -4222,7 +4237,20 @@ function CustomerRecords({ s }) {
         footer="No real messages are sent in this prototype"
         tone="green"
       />
-      {s.customers.map((customer) => {
+      <Field
+        label="Find a customer"
+        value={search}
+        onChangeText={setSearch}
+        placeholder="Name, phone or service"
+      />
+      {query ? (
+        <Text style={styles.helper}>
+          {visibleCustomers.length
+            ? `Showing ${visibleCustomers.length} matching customer${visibleCustomers.length === 1 ? "" : "s"}.`
+            : "No customer records match that search."}
+        </Text>
+      ) : null}
+      {visibleCustomers.map((customer) => {
         const eligible = s.customerContact && isEligibleCustomer(customer, s.services, s.verticalId);
         const action = s.replyActions?.[customer.id] || null;
         const pipelineLabel = customerPipelineLabel(customer, action);
@@ -4269,6 +4297,7 @@ function CustomerRecords({ s }) {
         );
       })}
       <Button label="+ New enquiry" primary onPress={s.startNewEnquiry} />
+      <Button label="Open customer pipeline" onPress={() => s.go("workPipeline")} />
       <Button label="+ Add previous customer" onPress={s.startNewCustomer} />
       {s.eligibleCustomers.length ? <Button label="Review customers worth contacting" onPress={() => s.go("eligibleCustomers")} /> : null}
       <Button label="Done" onPress={s.back} />
@@ -4375,10 +4404,20 @@ function CustomerDetail({ s }) {
       {actionIsFinished ? (
         <>
           <Card
-            eyebrow={action ? "Next customer action" : "What next?"}
-            title={action ? "Start something new for this customer" : "Turn this customer into work"}
-            body="Start the action that matches what is happening in the real conversation. You do not need a simulated reply first."
-            tone="blue"
+            eyebrow={action ? "Next customer action" : customer.lastServiceDate ? "What next?" : "Enquiry captured"}
+            title={
+              action
+                ? "Start something new for this customer"
+                : customer.lastServiceDate
+                ? "Turn this customer into work"
+                : "Choose the real next step"
+            }
+            body={
+              customer.lastServiceDate
+                ? "Start the action that matches what is happening in the real conversation. You do not need a simulated reply first."
+                : "The enquiry is saved. Prepare a quote, book agreed work or set a follow-up without re-entering the customer."
+            }
+            tone={customer.lastServiceDate ? "blue" : "green"}
           />
           <Button label="Create quote" primary onPress={() => s.startDirectCustomerAction(customer.id, "quote")} />
           <Button label="Book a job" onPress={() => s.startDirectCustomerAction(customer.id, "booking")} />
