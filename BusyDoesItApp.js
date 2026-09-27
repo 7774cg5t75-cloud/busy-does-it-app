@@ -711,14 +711,19 @@ function App() {
 
   const simulateCurrentSend = () => {
     if (campaignStage === 0) {
-      setLastSimulatedRecipients(
-        (
-          customerContact
-            ? customers.filter((customer) => isEligibleCustomer(customer, services, verticalId))
-            : []
-        ).map((customer) => ({ ...customer }))
+      const recipients = customerContact
+        ? customers.filter((customer) => isEligibleCustomer(customer, services, verticalId))
+        : [];
+      const recipientIds = new Set(recipients.map((customer) => customer.id));
+      setLastSimulatedRecipients(recipients.map((customer) => ({ ...customer })));
+      setReplyActions((current) =>
+        Object.fromEntries(
+          Object.entries(current).filter(
+            ([id, action]) =>
+              !(recipientIds.has(id) && action?.origin === "simulated" && !action?.done)
+          )
+        )
       );
-      setReplyActions({});
     }
     go("progress");
   };
