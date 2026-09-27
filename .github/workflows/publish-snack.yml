@@ -3,8 +3,7 @@ name: Publish Snack preview
 on:
   push:
     branches:
-      - 'v0.*'
-      - 'v1.*'
+      - 'v*'
     paths-ignore:
       - SNACK_PREVIEW.json
   pull_request:
