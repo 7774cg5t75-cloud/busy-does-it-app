@@ -12,6 +12,7 @@ import {
   Switch,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 const C = {
   bg: "#F5F7FB",
@@ -61,6 +62,29 @@ function formatMonthsAgo(dateString) {
   const months = Math.floor(monthsSince(dateString));
   if (!months) return "recent";
   return months === 1 ? "1 month ago" : `${months} months ago`;
+}
+
+function dateFromISO(dateString) {
+  const match = String(dateString || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return new Date();
+  const [, year, month, day] = match;
+  return new Date(Number(year), Number(month) - 1, Number(day), 12, 0, 0);
+}
+
+function dateToISO(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatUKDate(dateString) {
+  const date = dateFromISO(dateString);
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 }
 
 
@@ -757,6 +781,44 @@ function Field({ label, value, onChangeText, placeholder, keyboardType = "defaul
           placeholderTextColor="#9AA3B2"
         />
       </View>
+    </View>
+  );
+}
+
+function DatePickerField({ label, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const dateValue = dateFromISO(value);
+
+  return (
+    <View style={styles.fieldWrap}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <Pressable
+        onPress={() => setOpen((current) => !current)}
+        style={[styles.fieldBox, styles.dateFieldBox]}
+      >
+        <Text style={styles.dateFieldText}>{formatUKDate(value)}</Text>
+        <Text style={styles.dateFieldHint}>{open ? "Close" : "Choose date"}</Text>
+      </Pressable>
+
+      {open ? (
+        <View style={styles.datePickerPanel}>
+          <DateTimePicker
+            value={dateValue}
+            mode="date"
+            display="inline"
+            maximumDate={new Date()}
+            locale="en-GB"
+            onChange={(event, selectedDate) => {
+              if (event?.type === "dismissed") {
+                setOpen(false);
+                return;
+              }
+              if (selectedDate) onChange(dateToISO(selectedDate));
+            }}
+          />
+          <Button label="Done" onPress={() => setOpen(false)} />
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -1653,7 +1715,7 @@ function AddCustomerRecord({ s }) {
       <Field label="Customer name" value={s.newCustomerName} onChangeText={s.setNewCustomerName} placeholder="e.g. Jane Smith" />
       <Field label="Phone" value={s.newCustomerPhone} onChangeText={s.setNewCustomerPhone} placeholder="e.g. 07700 900000" keyboardType="phone-pad" />
       <Field label="Last service" value={s.newCustomerService} onChangeText={s.setNewCustomerService} placeholder="e.g. Driveway cleaning" />
-      <Field label="Last job date" value={s.newCustomerDate} onChangeText={s.setNewCustomerDate} placeholder="YYYY-MM-DD" />
+      <DatePickerField label="Last job date" value={s.newCustomerDate} onChange={s.setNewCustomerDate} />
       <Field label="Last job value" value={s.newCustomerValue} onChangeText={s.setNewCustomerValue} keyboardType="number-pad" prefix="£" placeholder="Optional" />
       <ToggleRow
         title="Okay to contact"
@@ -1661,7 +1723,6 @@ function AddCustomerRecord({ s }) {
         value={s.newCustomerContactOk}
         onValueChange={s.setNewCustomerContactOk}
       />
-      {!validDate ? <Text style={styles.warningText}>Use a date like 2025-01-31 so Busy Does It can calculate how long ago the job was.</Text> : null}
       <Button
         label="Save customer"
         primary
@@ -2210,6 +2271,10 @@ const styles = StyleSheet.create({
   },
   fieldPrefix: { marginRight: 9, fontWeight: "800", color: C.muted },
   fieldInput: { flex: 1, fontSize: 16, color: C.ink, paddingVertical: 12 },
+  dateFieldBox: { justifyContent: "space-between" },
+  dateFieldText: { flex: 1, fontSize: 16, color: C.ink, fontWeight: "700" },
+  dateFieldHint: { color: C.blue, fontSize: 13, fontWeight: "800", marginLeft: 12 },
+  datePickerPanel: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16, padding: 10, marginTop: 8, marginBottom: 14 },
   choice: {
     flexDirection: "row",
     alignItems: "center",
