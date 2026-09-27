@@ -982,6 +982,25 @@ function App() {
       },
       completedAt: new Date().toISOString(),
     }));
+    setCustomers((list) =>
+      list.map((customer) =>
+        customer.id === customerId
+          ? {
+              ...customer,
+              lifecycleStatus:
+                quoteStatus === "Sent"
+                  ? "Quote sent"
+                  : quoteStatus === "Accepted"
+                  ? "Quote accepted"
+                  : quoteStatus === "Declined"
+                  ? "Quote declined"
+                  : "Quote prepared",
+              lastActivityAt: new Date().toISOString(),
+              lastActivityKind: "quote",
+            }
+          : customer
+      )
+    );
     appendCustomerActivity(customerId, {
       kind: "quote",
       title: `Quote ${quoteStatus.toLowerCase()}`,
@@ -1022,6 +1041,18 @@ function App() {
         },
       },
     }));
+    setCustomers((list) =>
+      list.map((item) =>
+        item.id === customerId
+          ? {
+              ...item,
+              lifecycleStatus: "Booking being arranged",
+              lastActivityAt: new Date().toISOString(),
+              lastActivityKind: "booking",
+            }
+          : item
+      )
+    );
     setSelectedReplyActionId(customerId);
     setActionBookingDate(bookingDate);
     setActionBookingTime(bookingTime);
@@ -1049,6 +1080,23 @@ function App() {
       },
       completedAt: new Date().toISOString(),
     }));
+    setCustomers((list) =>
+      list.map((customer) =>
+        customer.id === customerId
+          ? {
+              ...customer,
+              lifecycleStatus:
+                bookingStatus === "Confirmed"
+                  ? "Booked"
+                  : bookingStatus === "Cancelled"
+                  ? "Booking cancelled"
+                  : customer.lifecycleStatus,
+              lastActivityAt: new Date().toISOString(),
+              lastActivityKind: "booking",
+            }
+          : customer
+      )
+    );
     appendCustomerActivity(customerId, {
       kind: "booking",
       title: `Booking ${bookingStatus.toLowerCase()}`,
@@ -2266,11 +2314,20 @@ function App() {
       .filter((item) => item.kind === "job")
       .map((job) => ({ customer, job }))
   );
-  const automaticReviewDraftEntries = completedJobEntries.filter(
+  const latestCompletedJobEntries = customers
+    .map((customer) => {
+      const jobs = (Array.isArray(customer.history) ? customer.history : [])
+        .filter((item) => item.kind === "job")
+        .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+      return jobs[0] ? { customer, job: jobs[0] } : null;
+    })
+    .filter(Boolean);
+  const automaticReviewDraftEntries = latestCompletedJobEntries.filter(
     (entry) =>
       !!entry.job.reviewRequestDraft &&
       !entry.job.reviewRequestSentAt &&
-      entry.customer.contactOk !== false
+      entry.customer.contactOk !== false &&
+      !hasActiveCustomerWork(entry.customer.id)
   );
   const automaticReviewDraftCount = automaticReviewDraftEntries.length;
   const repeatTimingTrackedEntries = customers
@@ -2291,11 +2348,12 @@ function App() {
     (entry) => entry.job.reviewRequestOutcome === "Review left"
   ).length;
   const reviewRequestOpportunityEntry =
-    completedJobEntries
+    latestCompletedJobEntries
       .filter(
         (entry) =>
           entry.customer.contactOk !== false &&
-          !entry.job.reviewRequestSentAt
+          !entry.job.reviewRequestSentAt &&
+          !hasActiveCustomerWork(entry.customer.id)
       )
       .sort((a, b) => String(b.job.date || "").localeCompare(String(a.job.date || "")))[0] || null;
   const reviewRequestOpportunity = reviewRequestOpportunityEntry
