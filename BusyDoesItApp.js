@@ -2275,14 +2275,120 @@ function HomeScreen({ s }) {
       ) : null}
       <Button label="Customer records" onPress={() => s.go("customerRecords")} />
       <Button label="Update my business data" onPress={() => s.go("businessData")} />
-      <Button label="Start something else" primary onPress={() => s.jump("workNow", "Work")} />
+      <Button label="Open work hub" primary onPress={() => s.jump("workHub", "Work")} />
+    </Shell>
+  );
+}
+
+function WorkHub({ s }) {
+  const todayISO = dateToISO(new Date());
+  const actionEntries = Object.entries(s.replyActions || {});
+  const activeQuotes = actionEntries
+    .filter(([, action]) =>
+      action?.type === "quote" &&
+      action?.done &&
+      ["Prepared", "Sent", "Accepted"].includes(action.details?.quoteStatus || "Prepared")
+    )
+    .map(([id, action]) => ({
+      id,
+      action,
+      customer: s.customers.find((item) => item.id === id) || s.lastSimulatedRecipients.find((item) => item.id === id),
+    }))
+    .filter((item) => item.customer);
+  const bookings = actionEntries
+    .filter(([, action]) =>
+      action?.type === "booking" &&
+      action?.done &&
+      !["Cancelled", "Completed"].includes(action.details?.bookingStatus || "Confirmed")
+    )
+    .map(([id, action]) => ({
+      id,
+      action,
+      customer: s.customers.find((item) => item.id === id) || s.lastSimulatedRecipients.find((item) => item.id === id),
+    }))
+    .filter((item) => item.customer && item.action.details?.bookingDate)
+    .sort((a, b) =>
+      `${a.action.details.bookingDate}T${a.action.details.bookingTime || "00:00"}`.localeCompare(
+        `${b.action.details.bookingDate}T${b.action.details.bookingTime || "00:00"}`
+      )
+    );
+  const todayBookings = bookings.filter((item) => item.action.details.bookingDate === todayISO);
+  const upcomingBookings = bookings.filter((item) => item.action.details.bookingDate > todayISO);
+  const nextQuote = activeQuotes[0] || null;
+  const nextBooking = todayBookings[0] || upcomingBookings[0] || null;
+
+  return (
+    <Shell
+      s={s}
+      noBack
+      title="Work"
+      subtitle="Customers, quotes, bookings and follow-ups first. Marketing sits underneath when you need more work."
+      brandCue="Run the work you already have before buying more attention."
+    >
+      <Card eyebrow="Today" title={todayBookings.length ? `${todayBookings.length} job${todayBookings.length === 1 ? "" : "s"} booked today` : "No booked jobs today"} tone={todayBookings.length ? "green" : "blue"}>
+        <MetricRow left="New enquiries" right={String(s.openEnquiryCount)} />
+        <MetricRow left="Active quote value" right={`£${s.activeQuoteValue}`} />
+        <MetricRow left="Booked work value" right={`£${s.bookedWorkValue}`} />
+        <MetricRow left="Follow-ups due" right={String(s.dueReminderEntries.length)} strong={s.dueReminderEntries.length > 0} />
+      </Card>
+
+      {s.dueReminderEntries.length ? (
+        <Pressable onPress={() => s.openSavedReplyAction(s.dueReminderEntries[0].id)} style={[styles.homePriorityCard, styles.homeReminderCard]}>
+          <View style={styles.homePriorityTop}>
+            <Text style={styles.homePriorityEyebrow}>FOLLOW-UP DUE</Text>
+            <StatusChip label="Do this first" tone="amber" />
+          </View>
+          <Text style={styles.homePriorityTitle}>{s.dueReminderEntries[0].customer.name}</Text>
+          <Text style={styles.homePriorityBody}>{s.dueReminderEntries[0].customer.service}</Text>
+          <Text style={styles.homePriorityLink}>Open follow-up →</Text>
+        </Pressable>
+      ) : null}
+
+      {nextBooking ? (
+        <Pressable onPress={() => s.openSavedReplyAction(nextBooking.id)} style={styles.homePriorityCard}>
+          <View style={styles.homePriorityTop}>
+            <Text style={styles.homePriorityEyebrow}>{nextBooking.action.details.bookingDate === todayISO ? "TODAY" : "NEXT BOOKING"}</Text>
+            <StatusChip label="Booked work" tone="green" />
+          </View>
+          <Text style={styles.homePriorityTitle}>{nextBooking.customer.name}</Text>
+          <Text style={styles.homePriorityBody}>
+            {nextBooking.customer.service} • {formatUKDate(nextBooking.action.details.bookingDate)} at {nextBooking.action.details.bookingTime || "time not set"}
+          </Text>
+          <Text style={styles.homePriorityLink}>Open booking →</Text>
+        </Pressable>
+      ) : null}
+
+      {nextQuote ? (
+        <Pressable onPress={() => s.openSavedReplyAction(nextQuote.id)} style={styles.customerTimelineCard}>
+          <View style={styles.homePriorityTop}>
+            <Text style={styles.homePriorityEyebrow}>ACTIVE QUOTE</Text>
+            <StatusChip label={nextQuote.action.details?.quoteStatus || "Prepared"} tone="green" />
+          </View>
+          <Text style={styles.homePriorityTitle}>{nextQuote.customer.name}</Text>
+          <Text style={styles.homePriorityBody}>
+            {nextQuote.customer.service} • £{nextQuote.action.details?.quoteAmount || "—"}
+          </Text>
+          <Text style={styles.homePriorityLink}>Open quote →</Text>
+        </Pressable>
+      ) : null}
+
+      <Text style={styles.sectionLabel}>Add or manage work</Text>
+      <Button label="+ New enquiry" primary onPress={s.startNewEnquiry} />
+      <Button label="Customer records" onPress={() => s.go("customerRecords")} />
+      <Button label={bookings.length ? `Work diary • ${bookings.length} upcoming` : "Work diary"} onPress={() => s.go("bookings")} />
+      {Object.keys(s.replyActions || {}).length ? (
+        <Button label={`Customer activity • ${s.pendingReplyActionCount} to do`} onPress={() => s.go("customerActivity")} />
+      ) : null}
+
+      <Text style={styles.sectionLabel}>Need more work?</Text>
+      <Button label="Find more work" onPress={() => s.go("workNow")} />
     </Shell>
   );
 }
 
 function WorkNow({ s }) {
   return (
-    <Shell s={s} noBack title="Start something new" subtitle="Tell Busy Does It the business result you want. We’ll work out the marketing underneath.">
+    <Shell s={s} title="Find more work" subtitle="Tell Busy Does It the business result you want. We’ll work out the marketing underneath.">
       <Card eyebrow="Goal first" title="You choose the problem — not the channel" body="No need to decide between ads, social, messages or audiences. Start with what the business needs." tone="green" />
       <Button label="Fill a spare day" primary onPress={() => s.go("chooseGap")} />
       <Button label="Get more work" onPress={() => s.go("moreWorkGoal")} />
