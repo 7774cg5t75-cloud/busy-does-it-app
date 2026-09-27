@@ -360,7 +360,7 @@ function inferCaptureStage(text) {
   const lower = String(text || "").toLowerCase();
   if (/\b(completed|complete|finished|finish|job done|work done|paid)\b/.test(lower)) return "Completed job";
   if (/\b(booked|booking|appointment|scheduled|schedule)\b/.test(lower)) return "Booking";
-  if (/\b(quote sent|sent quote|estimate sent|quoted|quote|estimate)\b/.test(lower)) return "Quote sent";
+  if (/\b(quote sent|sent quote|estimate sent|sent estimate|quoted|estimate provided|quote provided)\b/.test(lower)) return "Quote sent";
   return "Enquiry";
 }
 
@@ -2432,11 +2432,11 @@ function App() {
       },
       {
         source: "Email / quote note",
-        rawText: `Name: Lucy Brown\nPhone: 07700 901002\nEmail: lucy.brown@example.com\n${service}\nQuote sent ${formatUKDate(addDaysFromISO(today, -10))} for £390\nAddress: 14 Fore Street EX17 3BB`,
+        rawText: `Name: Lucy Brown\nPhone: 07700 901002\nEmail: lucy.brown@example.com\n${service}\nQuote sent ${addDaysFromISO(today, -10)} for £390\nAddress: 14 Fore Street EX17 3BB`,
       },
       {
         source: "Calendar / booking note",
-        rawText: `Customer: Noah Patel\n07700 901003\nBooked ${service} for ${formatUKDate(addDaysFromISO(today, 3))} at 10:30\nJob value £310\nSite: 6 Station Road EX17 2CC`,
+        rawText: `Customer: Noah Patel\n07700 901003\nBooked ${service} for ${addDaysFromISO(today, 3)} at 10:30\nJob value £310\nSite: 6 Station Road EX17 2CC`,
       },
       {
         source: "Phone note",
@@ -4352,6 +4352,46 @@ function HomeScreen({ s }) {
     });
   }
 
+  if (s.inboxTopItem) {
+    const item = s.inboxTopItem;
+    const parsed = item.parsed || {};
+    const triage = item.triage || {};
+    const score =
+      parsed.stage === "Booking"
+        ? 109
+        : parsed.stage === "Quote sent"
+        ? 105
+        : parsed.stage === "Enquiry"
+        ? 103
+        : triage.lane === "Needs attention"
+        ? 96
+        : 84;
+    operationalMoves.push({
+      id: `inbox-${item.id}`,
+      score,
+      eyebrow: "Busy Inbox",
+      title:
+        triage.lane === "Needs attention"
+          ? `Incoming ${String(parsed.stage || "item").toLowerCase()} needs a quick check`
+          : `Incoming ${String(parsed.stage || "item").toLowerCase()} is ready to review`,
+      body: `${parsed.name || "Customer not identified"} • ${parsed.service || "service not detected"} • ${triage.reason || "Ready for review"}.`,
+      footer: "Nothing filed yet",
+      status: triage.lane === "Needs attention" ? "Check" : "Incoming",
+      tone: triage.lane === "Needs attention" ? "amber" : "green",
+      why: "This information has arrived but is not yet part of the business records. Busy triaged it first so uncertain or potentially conflicting information can be checked before it changes the pipeline.",
+      evidence: [
+        ["Source", item.source || "Incoming"],
+        ["Detected stage", parsed.stage || "Unknown"],
+        ["Extraction confidence", parsed.confidence || "Low"],
+        ["Triage", triage.lane || "Needs review"],
+        ["Possible existing customer", triage.matchCustomerId ? "Yes" : "No"],
+      ],
+      actionLabel: "Review Inbox item",
+      onAction: () => s.openInboxItem(item.id),
+      canIgnore: false,
+    });
+  }
+
   if (nextEnquiry) {
     const waitDays = nextEnquiryEntry?.age || 0;
     operationalMoves.push({
@@ -4675,8 +4715,8 @@ function HomeScreen({ s }) {
       s={s}
       noBack
       title="Best thing to do today"
-      subtitle="Busy Does It now ranks the customer, quote and job records actually saved — then normally shows one next move."
-      brandCue="Real records in. One clear move out."
+      subtitle="Busy sorts incoming information, ranks the live business records, and normally shows one next move."
+      brandCue="Incoming information sorted. One clear move out."
     >
       {bestMove ? (
         <>
@@ -4740,7 +4780,14 @@ function HomeScreen({ s }) {
         </Card>
       ) : null}
 
-      <Button label="Open work hub" primary onPress={() => s.jump("workHub", "Work")} />
+      {s.inboxPendingItems.length ? (
+        <Button
+          label={`Busy Inbox • ${s.inboxPendingItems.length} waiting`}
+          primary
+          onPress={s.openBusyInbox}
+        />
+      ) : null}
+      <Button label="Open work hub" primary={!s.inboxPendingItems.length} onPress={() => s.jump("workHub", "Work")} />
       <Button label="Customer records" onPress={() => s.go("customerRecords")} />
       <Button label="Update my business data" onPress={() => s.go("businessData")} />
     </Shell>
