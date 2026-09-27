@@ -200,6 +200,21 @@ function formatUKDate(dateString) {
   });
 }
 
+function daysSinceTimestamp(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  const now = new Date();
+  return Math.max(0, Math.floor((now.getTime() - date.getTime()) / 86400000));
+}
+
+function enquiryAgeLabel(createdAt) {
+  const days = daysSinceTimestamp(createdAt);
+  if (days === null || days === 0) return "Added today";
+  if (days === 1) return "Waiting 1 day";
+  return `Waiting ${days} days`;
+}
+
 function addDaysISO(days) {
   const date = new Date();
   date.setHours(12, 0, 0, 0);
@@ -519,6 +534,7 @@ function App() {
   const [actionBookingDate, setActionBookingDate] = useState(nextDateForSlot("Thursday afternoon"));
   const [actionBookingTime, setActionBookingTime] = useState(defaultTimeForSlot("Thursday afternoon"));
   const [actionJobValue, setActionJobValue] = useState("");
+  const [actionJobNote, setActionJobNote] = useState("");
   const [actionReminderDate, setActionReminderDate] = useState(addDaysISO(30));
   const [editingCustomerId, setEditingCustomerId] = useState(null);
   const [pendingRemoveCustomerId, setPendingRemoveCustomerId] = useState(null);
@@ -849,6 +865,7 @@ function App() {
         service?.value ??
         "";
       setActionJobValue(String(fallbackJobValue || ""));
+      setActionJobNote(saved?.details?.completionNote || "");
     } else if (type === "reminder") {
       setActionReminderDate(saved?.details?.reminderDate || addDaysISO(30));
     }
@@ -935,6 +952,10 @@ function App() {
       details: {
         ...(action.details || {}),
         quoteStatus,
+        quoteSentAt:
+          quoteStatus === "Sent"
+            ? action.details?.quoteSentAt || new Date().toISOString()
+            : action.details?.quoteSentAt,
         summary:
           quoteStatus === "Prepared"
             ? `Quote prepared for £${action.details?.quoteAmount || "—"}`
@@ -1023,10 +1044,11 @@ function App() {
     });
   };
 
-  const markBookingCompleted = (customerId, jobValue) => {
+  const markBookingCompleted = (customerId, jobValue, completionNote = "") => {
     const action = replyActions[customerId];
     if (!action?.details?.bookingDate) return;
     const amount = Number(jobValue) || Number(action.details?.sourceQuoteAmount) || 0;
+    const cleanNote = String(completionNote || "").trim();
     setReplyActions((current) => ({
       ...current,
       [customerId]: {
@@ -1036,6 +1058,7 @@ function App() {
           ...(current[customerId]?.details || {}),
           bookingStatus: "Completed",
           jobValue: amount || "",
+          completionNote: cleanNote,
           jobCompletedAt: new Date().toISOString(),
           summary: `Job completed${amount ? ` for £${amount}` : ""} on ${formatUKDate(action.details.bookingDate)}`,
         },
@@ -1059,7 +1082,7 @@ function App() {
                 date: action.details.bookingDate,
                 service: customer.service,
                 value: amount || "",
-                note: "Completed through Busy Does It prototype",
+                note: cleanNote || "Completed through Busy Does It prototype",
               },
             ];
         const activity = Array.isArray(customer.activity) ? customer.activity : [];
@@ -1076,7 +1099,7 @@ function App() {
               date: action.details.bookingDate,
               createdAt: new Date().toISOString(),
               title: "Job completed",
-              note: `${customer.service} completed through Busy Does It.`,
+              note: cleanNote || `${customer.service} completed through Busy Does It.`,
               value: amount || "",
             },
           ],
@@ -1367,6 +1390,7 @@ function App() {
     setSelectedReplyActionId(null);
     setSelectedCustomerId(null);
     setActionJobValue("");
+    setActionJobNote("");
     setEditingCustomerId(null);
     setPendingRemoveCustomerId(null);
     setServices(servicesSeed);
@@ -1419,6 +1443,24 @@ function App() {
       return customer ? { id, action, customer } : null;
     })
     .filter(Boolean);
+  const dueQuoteEntries = Object.entries(replyActions)
+    .map(([id, action]) => {
+      if (
+        action?.type !== "quote" ||
+        !action?.done ||
+        action.details?.quoteStatus !== "Sent"
+      ) return null;
+      const sentAt = action.details?.quoteSentAt || action.completedAt;
+      const age = daysSinceTimestamp(sentAt);
+      if (age === null || age < 7) return null;
+      const customer =
+        customers.find((item) => item.id === id) ||
+        lastSimulatedRecipients.find((item) => item.id === id);
+      return customer ? { id, action, customer, age } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.age - a.age);
+
   const activeQuoteValue = Object.values(replyActions)
     .filter((action) =>
       action?.type === "quote" &&
@@ -1611,6 +1653,8 @@ function App() {
     setActionBookingTime,
     actionJobValue,
     setActionJobValue,
+    actionJobNote,
+    setActionJobNote,
     actionReminderDate,
     setActionReminderDate,
     pendingReplyActionCount,
@@ -1618,6 +1662,7 @@ function App() {
     completedBookingCount,
     completedReminderCount,
     dueReminderEntries,
+    dueQuoteEntries,
     activeQuoteValue,
     bookedWorkValue,
     pipelineWorkValue,
@@ -1682,7 +1727,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={styles.brand}>BUSY DOES IT</Text>
             <Text style={styles.tagline}>More work. Less fuss.</Text>
-            <Text style={styles.prototypeBadge}>Prototype v1.1 • faster customer workflow</Text>
+            <Text style={styles.prototypeBadge}>Prototype v1.2 • daily operations + follow-up</Text>
           </View>
           {!noBack && s.history?.length > 0 ? (
             <Pressable onPress={s.back} style={styles.backPill}>
@@ -2221,7 +2266,7 @@ function HomeScreen({ s }) {
   const todayISO = dateToISO(new Date());
   const openEnquiries = s.customers
     .filter((customer) => !customer.lastServiceDate && !s.replyActions?.[customer.id])
-    .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+    .sort((a, b) => String(a.createdAt || "").localeCompare(String(b.createdAt || "")));
   const nextEnquiry = openEnquiries[0] || null;
   const upcomingBookings = Object.entries(s.replyActions || {})
     .map(([id, action]) => {
@@ -2518,6 +2563,7 @@ function WorkHub({ s }) {
         <MetricRow left="Jobs in next 7 days" right={String(nextSevenDayBookings.length)} strong={nextSevenDayBookings.length > 0} />
         <MetricRow left="Next 7 days value" right={`£${nextSevenDayValue}`} strong={nextSevenDayValue > 0} />
         <MetricRow left="Follow-ups due" right={String(s.dueReminderEntries.length)} strong={s.dueReminderEntries.length > 0} />
+        <MetricRow left="Quote follow-ups due" right={String(s.dueQuoteEntries.length)} strong={s.dueQuoteEntries.length > 0} />
         <MetricRow left="Actions to do" right={String(s.pendingReplyActionCount)} strong={s.pendingReplyActionCount > 0} />
       </Card>
 
@@ -2547,7 +2593,21 @@ function WorkHub({ s }) {
         </Pressable>
       ) : null}
 
-      {!overdueBookings.length && !s.dueReminderEntries.length && openEnquiries.length ? (
+      {!overdueBookings.length && !s.dueReminderEntries.length && s.dueQuoteEntries.length ? (
+        <Pressable onPress={() => s.openSavedReplyAction(s.dueQuoteEntries[0].id)} style={[styles.homePriorityCard, styles.homeReminderCard]}>
+          <View style={styles.homePriorityTop}>
+            <Text style={styles.homePriorityEyebrow}>QUOTE NEEDS A FOLLOW-UP</Text>
+            <StatusChip label="Do this first" tone="amber" />
+          </View>
+          <Text style={styles.homePriorityTitle}>{s.dueQuoteEntries[0].customer.name}</Text>
+          <Text style={styles.homePriorityBody}>
+            {s.dueQuoteEntries[0].customer.service} • waiting {s.dueQuoteEntries[0].age} days
+          </Text>
+          <Text style={styles.homePriorityLink}>Open quote →</Text>
+        </Pressable>
+      ) : null}
+
+      {!overdueBookings.length && !s.dueReminderEntries.length && !s.dueQuoteEntries.length && openEnquiries.length ? (
         <Pressable onPress={() => s.openCustomer(openEnquiries[0].id)} style={[styles.homePriorityCard, styles.homeReminderCard]}>
           <View style={styles.homePriorityTop}>
             <Text style={styles.homePriorityEyebrow}>NEW ENQUIRY</Text>
@@ -2555,7 +2615,7 @@ function WorkHub({ s }) {
           </View>
           <Text style={styles.homePriorityTitle}>{openEnquiries[0].name}</Text>
           <Text style={styles.homePriorityBody}>
-            {openEnquiries[0].service}{openEnquiries[0].address ? ` • ${openEnquiries[0].address}` : ""}
+            {openEnquiries[0].service}{openEnquiries[0].address ? ` • ${openEnquiries[0].address}` : ""} • {enquiryAgeLabel(openEnquiries[0].createdAt)}
           </Text>
           <Text style={styles.homePriorityLink}>Open enquiry →</Text>
         </Pressable>
@@ -2613,6 +2673,7 @@ function WorkHub({ s }) {
 
 function WorkPipeline({ s }) {
   const [search, setSearch] = useState("");
+  const [stageFilter, setStageFilter] = useState("All");
   const todayISO = dateToISO(new Date());
   const actionEntries = Object.entries(s.replyActions || {}).map(([id, action]) => {
     const customer =
@@ -2667,14 +2728,15 @@ function WorkPipeline({ s }) {
   const query = search.trim().toLowerCase();
   const matches = (customer) =>
     !query ||
-    [customer?.name, customer?.phone, customer?.service]
+    [customer?.name, customer?.phone, customer?.service, customer?.address]
       .filter(Boolean)
       .some((value) => String(value).toLowerCase().includes(query));
-  const visibleNewEnquiries = newEnquiries.filter(matches);
-  const visibleQuotes = quotes.filter((item) => matches(item.customer));
-  const visibleBookings = bookings.filter((item) => matches(item.customer));
-  const visibleFollowUps = followUps.filter((item) => matches(item.customer));
-  const visibleCompleted = completed.filter((item) => matches(item.customer));
+  const stageOn = (stage) => stageFilter === "All" || stageFilter === stage;
+  const visibleNewEnquiries = stageOn("Enquiries") ? newEnquiries.filter(matches) : [];
+  const visibleQuotes = stageOn("Quotes") ? quotes.filter((item) => matches(item.customer)) : [];
+  const visibleBookings = stageOn("Bookings") ? bookings.filter((item) => matches(item.customer)) : [];
+  const visibleFollowUps = stageOn("Follow-ups") ? followUps.filter((item) => matches(item.customer)) : [];
+  const visibleCompleted = stageOn("Completed") ? completed.filter((item) => matches(item.customer)) : [];
   const visibleCount =
     visibleNewEnquiries.length +
     visibleQuotes.length +
@@ -2687,8 +2749,13 @@ function WorkPipeline({ s }) {
     let status = "";
     let detail = customer.service;
     if (kind === "quote") {
-      status = action.details?.quoteStatus || "Prepared";
+      const savedQuoteStatus = action.details?.quoteStatus || "Prepared";
+      const sentAge = savedQuoteStatus === "Sent"
+        ? daysSinceTimestamp(action.details?.quoteSentAt || action.completedAt)
+        : null;
+      status = savedQuoteStatus === "Sent" && sentAge !== null && sentAge >= 7 ? "Follow up" : savedQuoteStatus;
       detail += action.details?.quoteAmount ? ` • £${action.details.quoteAmount}` : "";
+      if (status === "Follow up") detail += ` • waiting ${sentAge} days`;
     } else if (kind === "booking") {
       const savedStatus = action.details?.bookingStatus || "Confirmed";
       status =
@@ -2728,7 +2795,7 @@ function WorkPipeline({ s }) {
           </View>
           <StatusChip
             label={status}
-            tone={["Overdue", "Due now"].includes(status) ? "amber" : ["Cancelled", "Declined"].includes(status) ? "blue" : "green"}
+            tone={["Overdue", "Due now", "Follow up"].includes(status) ? "amber" : ["Cancelled", "Declined"].includes(status) ? "blue" : "green"}
           />
         </View>
         <Text style={styles.activitySummary}>{detail}</Text>
@@ -2763,11 +2830,25 @@ function WorkPipeline({ s }) {
         label="Find a customer"
         value={search}
         onChangeText={setSearch}
-        placeholder="Name, phone or service"
+        placeholder="Name, phone, service or address"
       />
-      {query ? (
+      <Text style={styles.fieldLabel}>Show stage</Text>
+      <View style={styles.timeChoiceWrap}>
+        {["All", "Enquiries", "Quotes", "Bookings", "Follow-ups", "Completed"].map((stage) => (
+          <Pressable
+            key={stage}
+            onPress={() => setStageFilter(stage)}
+            style={[styles.timeChoice, stageFilter === stage && styles.timeChoiceSelected]}
+          >
+            <Text style={[styles.timeChoiceText, stageFilter === stage && styles.timeChoiceTextSelected]}>
+              {stage}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+      {query || stageFilter !== "All" ? (
         <Text style={styles.helper}>
-          {visibleCount ? `Showing ${visibleCount} matching pipeline item${visibleCount === 1 ? "" : "s"}.` : "No pipeline items match that search."}
+          {visibleCount ? `Showing ${visibleCount} matching pipeline item${visibleCount === 1 ? "" : "s"}.` : "No pipeline items match those filters."}
         </Text>
       ) : null}
 
@@ -2781,7 +2862,9 @@ function WorkPipeline({ s }) {
             </View>
             <StatusChip label="Needs next step" tone="amber" />
           </View>
-          <Text style={styles.activitySummary}>{customer.service}</Text>
+          <Text style={styles.activitySummary}>
+            {customer.service}{customer.address ? ` • ${customer.address}` : ""} • {enquiryAgeLabel(customer.createdAt)}
+          </Text>
           <View style={styles.customerActionsRow}>
             <Pressable onPress={() => s.startDirectCustomerAction(customer.id, "quote")} style={styles.customerOpenWrap}>
               <Text style={styles.customerOpenText}>Create quote</Text>
@@ -3882,7 +3965,7 @@ function ReplyActionDetail({ s }) {
         </View>
         <Field label="Or enter a time" value={s.actionBookingTime} onChangeText={s.setActionBookingTime} placeholder="e.g. 14:30" />
         <Field
-          label="Expected job value"
+          label={saved.done && bookingStatus === "Confirmed" ? "Actual / expected job value" : "Expected job value"}
           value={s.actionJobValue}
           onChangeText={s.setActionJobValue}
           keyboardType="number-pad"
@@ -3922,9 +4005,18 @@ function ReplyActionDetail({ s }) {
 
         {saved.done && bookingStatus === "Confirmed" ? (
           <>
+            <Text style={styles.fieldLabel}>Completion note (optional)</Text>
+            <TextInput
+              multiline
+              value={s.actionJobNote}
+              onChangeText={s.setActionJobNote}
+              placeholder="Anything useful to remember about the finished job?"
+              placeholderTextColor="#9AA3B2"
+              style={styles.messageInput}
+            />
             <Button
               label="Mark job completed"
-              onPress={() => s.markBookingCompleted(customer.id, s.actionJobValue)}
+              onPress={() => s.markBookingCompleted(customer.id, s.actionJobValue, s.actionJobNote)}
             />
             <Button label="Cancel booking" onPress={() => s.setBookingStatus(customer.id, "Cancelled")} />
           </>
@@ -4827,7 +4919,14 @@ function Results({ s }) {
   const quoteSent = quoteActions.filter(([, action]) => action.details?.quoteStatus === "Sent").length;
   const quoteAccepted = quoteActions.filter(([, action]) => action.details?.quoteStatus === "Accepted").length;
   const confirmedBookings = bookingActions.filter(([, action]) => (action.details?.bookingStatus || "Confirmed") === "Confirmed").length;
-  const completedJobs = bookingActions.filter(([, action]) => action.details?.bookingStatus === "Completed").length;
+  const completedJobs = s.customers.reduce(
+    (total, customer) =>
+      total +
+      (Array.isArray(customer.history)
+        ? customer.history.filter((item) => item.kind === "job").length
+        : 0),
+    0
+  );
 
   return (
     <Shell
@@ -4852,6 +4951,7 @@ function Results({ s }) {
         <MetricRow left="Completed jobs" right={String(completedJobs)} />
         <MetricRow left="Completed job value" right={`£${s.completedJobValue}`} strong={s.completedJobValue > 0} />
         <MetricRow left="Follow-ups due" right={String(s.dueReminderEntries.length)} />
+        <MetricRow left="Quote follow-ups due" right={String(s.dueQuoteEntries.length)} />
         <MetricRow left="Actions still to do" right={String(s.pendingReplyActionCount)} />
       </Card>
 
