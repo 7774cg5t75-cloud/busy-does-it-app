@@ -70,3 +70,14 @@ Busy Does It mobile app prototype.
 - Changed quote handling from a purely simulated-send label to a local operational status: users can mark a quote as sent while the prototype remains explicit that it sends nothing automatically.
 - Results now uses operational wording for quotes marked as sent and shows total customer work in the pipeline.
 - Preserved the v0.8 flexible service-business architecture and vertical packs; no exterior-cleaning logic was promoted into the reusable core.
+
+## v1.0 customer workflow + pipeline
+- Added a single Customer pipeline screen covering new enquiries, active quotes, bookings, follow-ups and recently completed jobs.
+- Work and Settings now link directly to the customer pipeline.
+- Results links back into the live customer pipeline instead of acting as a dead-end report.
+- Home now shows one clear top-priority customer task instead of stacking duplicate or competing priority cards.
+- Past bookings that still need an outcome are surfaced ahead of general marketing suggestions.
+- Follow-up reminders now have quick 1-week, 2-week, 1-month and 2-month choices, plus a one-tap 7-day snooze when overdue.
+- Customer detail now shows service-specific repeat timing and whether the customer is due now.
+- Quote wording now records “marked as sent” rather than implying the prototype actually sent anything.
+- Preserved the flexible service-business architecture so the workflow remains reusable beyond exterior cleaning.
