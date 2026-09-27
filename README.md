@@ -144,3 +144,21 @@ Busy Does It mobile app prototype.
 - Completed jobs now retain whether the underlying customer workflow originated from the prototype reactivation flow or a direct/manual customer action.
 - Results adds separate traceable value buckets for completed work, live pipeline, prototype-reactivation completed value and post-attributed booking value without adding them into a potentially misleading headline total.
 - The visible navigation remains Home / Work / Results / Settings. Social, CRM-style follow-up, attribution and learning continue to behave as capabilities underneath the opportunity engine rather than becoming new permanent tabs.
+
+
+## v1.6 closed-loop opportunity engine
+- Extended the v1.5 prepare → approve → outcome → learn pattern beyond finished-job posts.
+- Live sent quotes that have gone quiet for 7+ days can now surface as a prepared quote follow-up rather than just an instruction to “follow up”.
+- Quote follow-up flow: Busy Does It drafts a polite message from the saved customer/quote data → owner edits/reviews → explicit simulated send approval → outcome recorded as No reply yet / Still considering / Accepted / Declined.
+- Once a quote follow-up has been approved, the same quote is no longer repeatedly surfaced as a stale quote while its outcome is unresolved.
+- Quote follow-up outcomes feed gently back into future ranking. Accepted follow-ups and accepted quote value are tracked separately.
+- Completed jobs can now create a prepared review-request opportunity when customer contact is allowed.
+- Review-request flow: completed job → low-pressure editable request → explicit simulated send approval → outcome recorded as No response yet / Review left.
+- Review-request outcomes also feed gently back into future ranking, with small-sample restraint.
+- Previous-customer reactivation on Home now opens directly into the already-prepared service-group message review rather than adding an extra advice screen.
+- Home can surface low-priority learning tasks for unresolved quote-follow-up, review-request and finished-job-post outcomes without letting them outrank live customer work.
+- Customer job history now exposes review-request preparation / outcome controls for completed jobs.
+- Results now has an Opportunity Engine learning section covering quote follow-ups, review requests, reactivation value and related outcomes.
+- Results continues to keep overlapping value buckets separate rather than manufacturing one inflated total.
+- The visible navigation remains Home / Work / Results / Settings.
+- Added a JSX syntax gate to the automatic Snack preview pipeline so invalid JS/JSX fails before a preview link is published.
