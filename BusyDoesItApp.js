@@ -480,6 +480,7 @@ function App() {
   const [customers, setCustomers] = useState(customerSeed);
   const [newCustomerName, setNewCustomerName] = useState("");
   const [newCustomerPhone, setNewCustomerPhone] = useState("");
+  const [newCustomerAddress, setNewCustomerAddress] = useState("");
   const [newCustomerService, setNewCustomerService] = useState("Driveway cleaning");
   const [newCustomerDate, setNewCustomerDate] = useState("2025-01-01");
   const [newCustomerValue, setNewCustomerValue] = useState("");
@@ -487,6 +488,7 @@ function App() {
   const [newCustomerHasPreviousJob, setNewCustomerHasPreviousJob] = useState(true);
   const [newEnquiryName, setNewEnquiryName] = useState("");
   const [newEnquiryPhone, setNewEnquiryPhone] = useState("");
+  const [newEnquiryAddress, setNewEnquiryAddress] = useState("");
   const [newEnquiryService, setNewEnquiryService] = useState("Driveway cleaning");
   const [newEnquiryCustomService, setNewEnquiryCustomService] = useState("");
   const [newEnquiryNote, setNewEnquiryNote] = useState("");
@@ -1188,6 +1190,7 @@ function App() {
     setEditingCustomerId(null);
     setNewCustomerName("");
     setNewCustomerPhone("");
+    setNewCustomerAddress("");
     setNewCustomerService(services.find((item) => item.wanted)?.name || trade || "Service");
     setNewCustomerDate(dateToISO(new Date()));
     setNewCustomerValue("");
@@ -1204,6 +1207,7 @@ function App() {
     setEditingCustomerId(customer.id);
     setNewCustomerName(customer.name || "");
     setNewCustomerPhone(customer.phone || "");
+    setNewCustomerAddress(customer.address || "");
     setNewCustomerService(customer.service || "");
     setNewCustomerDate(customer.lastServiceDate || dateToISO(new Date()));
     setNewCustomerValue(customer.lastJobValue ? String(customer.lastJobValue) : "");
@@ -1215,6 +1219,7 @@ function App() {
   const saveCustomerRecord = () => {
     const name = newCustomerName.trim();
     const phone = newCustomerPhone.trim();
+    const address = newCustomerAddress.trim();
     const service = newCustomerService.trim() || trade || "Service";
     const parsedValue = Number(String(newCustomerValue).replace(/[^0-9.]/g, ""));
     const dateIsValid = !newCustomerHasPreviousJob || !Number.isNaN(new Date(newCustomerDate).getTime());
@@ -1228,6 +1233,7 @@ function App() {
       id: editingCustomerId || `customer-${Date.now()}`,
       name,
       phone,
+      address,
       service,
       lastServiceDate: newCustomerHasPreviousJob ? newCustomerDate : "",
       lastJobValue:
@@ -1250,6 +1256,7 @@ function App() {
     const preferred = services.find((item) => item.wanted) || services[0];
     setNewEnquiryName("");
     setNewEnquiryPhone("");
+    setNewEnquiryAddress("");
     setNewEnquiryService(preferred?.name || trade || "Service");
     setNewEnquiryCustomService("");
     setNewEnquiryNote("");
@@ -1259,6 +1266,7 @@ function App() {
   const saveNewEnquiry = () => {
     const name = newEnquiryName.trim();
     const phone = newEnquiryPhone.trim();
+    const address = newEnquiryAddress.trim();
     const service = newEnquiryCustomService.trim() || newEnquiryService.trim() || services[0]?.name || trade || "Service";
     if (!name || !phone) return false;
     const id = `enquiry-${Date.now()}`;
@@ -1267,6 +1275,7 @@ function App() {
       id,
       name,
       phone,
+      address,
       service,
       lastServiceDate: "",
       lastJobValue: 0,
@@ -1289,6 +1298,7 @@ function App() {
     setSelectedCustomerId(id);
     setNewEnquiryName("");
     setNewEnquiryPhone("");
+    setNewEnquiryAddress("");
     setNewEnquiryCustomService("");
     setNewEnquiryNote("");
     go("customerDetail");
@@ -1344,10 +1354,12 @@ function App() {
     setCustomers(customerSeed);
     setNewCustomerName("");
     setNewCustomerPhone("");
+    setNewCustomerAddress("");
     setNewCustomerService("Driveway cleaning");
     setNewCustomerDate("2025-01-01");
     setNewCustomerValue("");
     setNewCustomerContactOk(true);
+    setNewEnquiryAddress("");
     setNewEnquiryCustomService("");
     setServiceMessages({});
     setLastSimulatedRecipients([]);
@@ -1493,6 +1505,8 @@ function App() {
     setNewCustomerName,
     newCustomerPhone,
     setNewCustomerPhone,
+    newCustomerAddress,
+    setNewCustomerAddress,
     newCustomerService,
     setNewCustomerService,
     newCustomerDate,
@@ -1507,6 +1521,8 @@ function App() {
     setNewEnquiryName,
     newEnquiryPhone,
     setNewEnquiryPhone,
+    newEnquiryAddress,
+    setNewEnquiryAddress,
     newEnquiryService,
     setNewEnquiryService,
     newEnquiryCustomService,
@@ -2563,7 +2579,7 @@ function WorkHub({ s }) {
       <Button label="+ New enquiry" primary onPress={s.startNewEnquiry} />
       <Button label="Customer records" onPress={() => s.go("customerRecords")} />
       <Button
-        label={s.openEnquiryCount || Object.keys(s.replyActions || {}).length ? "Customer pipeline" : "Customer pipeline • empty"}
+        label="Customer pipeline"
         onPress={() => s.go("workPipeline")}
       />
       <Button
@@ -3751,7 +3767,13 @@ function ReplyActionDetail({ s }) {
         <Card
           eyebrow={manualAction ? "Booking started from customer record" : "Customer wants the slot"}
           title={customer.name}
-          body={manualAction ? `Choose the date and time agreed with ${customer.name}. This saves a local booking only.` : reply.body}
+          body={
+            customer.address
+              ? `${manualAction ? `Choose the date and time agreed with ${customer.name}. This saves a local booking only.` : reply.body}\nJob location: ${customer.address}`
+              : manualAction
+              ? `Choose the date and time agreed with ${customer.name}. This saves a local booking only.`
+              : reply.body
+          }
           tone="green"
         />
         {saved.done ? (
@@ -4168,6 +4190,12 @@ function NewEnquiry({ s }) {
     >
       <Field label="Customer name" value={s.newEnquiryName} onChangeText={s.setNewEnquiryName} placeholder="e.g. Jane Smith" />
       <Field label="Phone" value={s.newEnquiryPhone} onChangeText={s.setNewEnquiryPhone} placeholder="e.g. 07700 900000" keyboardType="phone-pad" />
+      <Field
+        label="Job address / postcode (optional)"
+        value={s.newEnquiryAddress}
+        onChangeText={s.setNewEnquiryAddress}
+        placeholder="Where is the work?"
+      />
 
       <Text style={styles.fieldLabel}>What do they need?</Text>
       {s.services.map((service) => (
@@ -4363,7 +4391,11 @@ function CustomerDetail({ s }) {
       <Card
         eyebrow={customer.lastServiceDate ? "Customer" : "New enquiry"}
         title={customer.service}
-        body={customer.phone || "No phone number saved"}
+        body={
+          customer.address
+            ? `${customer.phone || "No phone number saved"}\n${customer.address}`
+            : customer.phone || "No phone number saved"
+        }
         footer={customer.contactOk ? "Contact allowed" : "Do not contact"}
         tone="green"
       >
@@ -4482,6 +4514,12 @@ function AddCustomerRecord({ s }) {
     >
       <Field label="Customer name" value={s.newCustomerName} onChangeText={s.setNewCustomerName} placeholder="e.g. Jane Smith" />
       <Field label="Phone" value={s.newCustomerPhone} onChangeText={s.setNewCustomerPhone} placeholder="e.g. 07700 900000" keyboardType="phone-pad" />
+      <Field
+        label="Job address / postcode (optional)"
+        value={s.newCustomerAddress}
+        onChangeText={s.setNewCustomerAddress}
+        placeholder="Where is the work?"
+      />
       <Field label="Service" value={s.newCustomerService} onChangeText={s.setNewCustomerService} placeholder="What work do they need or had before?" />
       <ToggleRow
         title="Has a previous completed job"
