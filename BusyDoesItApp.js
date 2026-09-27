@@ -3668,26 +3668,67 @@ function WorkPlan({ s }) {
 
 
 
+function NewEnquiry({ s }) {
+  const canSave = !!s.newEnquiryName.trim() && !!s.newEnquiryPhone.trim() && !!s.newEnquiryService.trim();
+  return (
+    <Shell
+      s={s}
+      title="New enquiry"
+      subtitle="Add somebody who has just phoned, messaged or asked for work. No previous job is required."
+      brandCue="Capture the customer once. Turn the enquiry into the next sensible action."
+    >
+      <Field label="Customer name" value={s.newEnquiryName} onChangeText={s.setNewEnquiryName} placeholder="e.g. Jane Smith" />
+      <Field label="Phone" value={s.newEnquiryPhone} onChangeText={s.setNewEnquiryPhone} placeholder="e.g. 07700 900000" keyboardType="phone-pad" />
+
+      <Text style={styles.fieldLabel}>What do they need?</Text>
+      {s.services.map((service) => (
+        <Choice
+          key={service.id}
+          label={service.name}
+          selected={s.newEnquiryService === service.name}
+          onPress={() => s.setNewEnquiryService(service.name)}
+        />
+      ))}
+      <Field label="Or type another service" value={s.newEnquiryService} onChangeText={s.setNewEnquiryService} placeholder="Any service you offer" />
+
+      <Text style={styles.fieldLabel}>Note (optional)</Text>
+      <TextInput
+        multiline
+        value={s.newEnquiryNote}
+        onChangeText={s.setNewEnquiryNote}
+        placeholder="What did they ask for?"
+        placeholderTextColor="#9AA3B2"
+        style={styles.messageInput}
+      />
+
+      <Button label="Save enquiry" primary disabled={!canSave} onPress={s.saveNewEnquiry} />
+      <Button label="Cancel" onPress={s.back} />
+    </Shell>
+  );
+}
+
 function CustomerRecords({ s }) {
   return (
     <Shell
       s={s}
       title="Customer records"
-      subtitle="Stored locally on this phone. These records drive previous-customer recommendations."
+      subtitle="One customer list for enquiries, previous customers and completed work."
+      brandCue={`${s.verticalPack.label} rules are loaded underneath — the customer system itself stays generic.`}
     >
       <Card
         eyebrow="Current records"
-        title={`${s.eligibleCustomers.length} of ${s.customers.length} are eligible now`}
+        title={`${s.customers.length} customer${s.customers.length === 1 ? "" : "s"} • ${s.eligibleCustomers.length} due for reactivation`}
         body={
           s.customerContact
-            ? "Eligible means contact is allowed and the last recorded job was at least 9 months ago."
-            : "Previous-customer contact is switched off in Settings, so nobody is currently eligible."
+            ? s.eligibilityRule
+            : "Previous-customer contact is switched off in Settings, so nobody is currently selected for reactivation."
         }
-        footer="No messages are actually sent in this prototype"
+        footer="No real messages are sent in this prototype"
         tone="green"
       />
       {s.customers.map((customer) => {
-        const eligible = s.customerContact && isEligibleCustomer(customer);
+        const eligible = s.customerContact && isEligibleCustomer(customer, s.services, s.verticalId);
+        const isNewEnquiry = !customer.lastServiceDate;
         return (
           <View key={customer.id} style={styles.customerRecord}>
             <View style={styles.customerRecordTop}>
@@ -3696,13 +3737,23 @@ function CustomerRecords({ s }) {
                 <Text style={styles.customerMeta}>{customer.phone}</Text>
               </View>
               <StatusChip
-                label={eligible ? "Eligible now" : customer.contactOk ? (s.customerContact ? "Not due" : "Contact off") : "Do not contact"}
-                tone={eligible ? "green" : "blue"}
+                label={
+                  isNewEnquiry
+                    ? "New enquiry"
+                    : eligible
+                    ? "Eligible now"
+                    : customer.contactOk
+                    ? (s.customerContact ? "Not due" : "Contact off")
+                    : "Do not contact"
+                }
+                tone={eligible || isNewEnquiry ? "green" : "blue"}
               />
             </View>
             <Text style={styles.customerService}>{customer.service}</Text>
             <Text style={styles.customerMeta}>
-              Last job: {formatUKDate(customer.lastServiceDate)} • {formatMonthsAgo(customer.lastServiceDate)}
+              {customer.lastServiceDate
+                ? `Last job: ${formatUKDate(customer.lastServiceDate)} • ${formatMonthsAgo(customer.lastServiceDate)}`
+                : "No completed job recorded yet"}
               {Number(customer.lastJobValue) > 0 ? ` • £${customer.lastJobValue}` : ""}
             </Text>
             <View style={styles.customerActionsRow}>
@@ -3719,8 +3770,9 @@ function CustomerRecords({ s }) {
           </View>
         );
       })}
-      <Button label="+ Add customer" primary onPress={s.startNewCustomer} />
-      <Button label="Review eligible customers" onPress={() => s.go("eligibleCustomers")} />
+      <Button label="+ New enquiry" primary onPress={s.startNewEnquiry} />
+      <Button label="+ Add previous customer" onPress={s.startNewCustomer} />
+      {s.eligibleCustomers.length ? <Button label="Review customers worth contacting" onPress={() => s.go("eligibleCustomers")} /> : null}
       <Button label="Done" onPress={s.back} />
     </Shell>
   );
@@ -3738,6 +3790,9 @@ function CustomerDetail({ s }) {
 
   const action = s.replyActions?.[customer.id] || null;
   const history = Array.isArray(customer.history) ? [...customer.history] : [];
+  const activity = Array.isArray(customer.activity)
+    ? [...customer.activity].sort((a, b) => String(b.createdAt || b.date || "").localeCompare(String(a.createdAt || a.date || "")))
+    : [];
   const baselineExists = history.some(
     (item) => item.date === customer.lastServiceDate && item.service === customer.service
   );
@@ -3756,7 +3811,9 @@ function CustomerDetail({ s }) {
   ].sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
 
   const actionStatus = action
-    ? action.type === "quote"
+    ? !action.done
+      ? "In progress"
+      : action.type === "quote"
       ? action.details?.quoteStatus || "Prepared"
       : action.type === "booking"
       ? action.details?.bookingStatus || "Confirmed"
@@ -3767,17 +3824,17 @@ function CustomerDetail({ s }) {
     <Shell
       s={s}
       title={customer.name}
-      subtitle="Customer record, current action and job history in one place."
+      subtitle="Contact details, live work and history in one place."
       brandCue="One customer. One clear history."
     >
       <Card
-        eyebrow="Customer"
+        eyebrow={customer.source === "New enquiry" ? "New enquiry" : "Customer"}
         title={customer.service}
         body={customer.phone || "No phone number saved"}
         footer={customer.contactOk ? "Contact allowed" : "Do not contact"}
         tone="green"
       >
-        <MetricRow left="Last job" right={customer.lastServiceDate ? formatUKDate(customer.lastServiceDate) : "Not recorded"} />
+        <MetricRow left="Last job" right={customer.lastServiceDate ? formatUKDate(customer.lastServiceDate) : "No completed job yet"} />
         <MetricRow left="Last value" right={Number(customer.lastJobValue) > 0 ? `£${customer.lastJobValue}` : "Not recorded"} />
       </Card>
 
@@ -3787,7 +3844,7 @@ function CustomerDetail({ s }) {
             <View style={{ flex: 1, paddingRight: 10 }}>
               <Text style={styles.customerTimelineLabel}>CURRENT CUSTOMER ACTION</Text>
               <Text style={styles.activityName}>
-                {action.type === "quote" ? "Quote" : action.type === "booking" ? "Booking" : "Reminder"}
+                {action.type === "quote" ? "Quote" : action.type === "booking" ? "Booking" : "Follow-up"}
               </Text>
             </View>
             <StatusChip label={actionStatus} tone={["Cancelled", "Declined"].includes(actionStatus) ? "blue" : "green"} />
@@ -3796,10 +3853,44 @@ function CustomerDetail({ s }) {
           <Text style={styles.activityOpen}>Open / edit →</Text>
         </Pressable>
       ) : (
-        <Card eyebrow="Current action" title="Nothing active" body="No quote, booking or reminder is currently saved for this customer." />
+        <>
+          <Card
+            eyebrow="What next?"
+            title="Turn this customer into work"
+            body="Start the action that matches what is happening in the real conversation. You do not need a simulated reply first."
+            tone="blue"
+          />
+          <Button label="Create quote" primary onPress={() => s.startDirectCustomerAction(customer.id, "quote")} />
+          <Button label="Book a job" onPress={() => s.startDirectCustomerAction(customer.id, "booking")} />
+          <Button label="Set a follow-up" onPress={() => s.startDirectCustomerAction(customer.id, "reminder")} />
+        </>
       )}
 
-      <Text style={styles.sectionLabel}>Job history</Text>
+      <Text style={styles.sectionLabel}>Notes & activity</Text>
+      <TextInput
+        multiline
+        value={s.customerNoteText}
+        onChangeText={s.setCustomerNoteText}
+        placeholder="Add a quick note about this customer"
+        placeholderTextColor="#9AA3B2"
+        style={styles.messageInput}
+      />
+      <Button label="Add note" disabled={!s.customerNoteText.trim()} onPress={() => s.addCustomerNote(customer.id)} />
+
+      {activity.length ? activity.slice(0, 12).map((item) => (
+        <View key={item.id} style={styles.customerHistoryRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.customerHistoryTitle}>{item.title || "Customer update"}</Text>
+            <Text style={styles.customerMeta}>{item.date ? formatUKDate(item.date) : "Date not recorded"}</Text>
+            {item.note ? <Text style={styles.customerHistoryNote}>{item.note}</Text> : null}
+          </View>
+          {Number(item.value) > 0 ? <Text style={styles.customerHistoryValue}>£{item.value}</Text> : null}
+        </View>
+      )) : (
+        <Text style={styles.helper}>No notes or activity saved yet.</Text>
+      )}
+
+      <Text style={styles.sectionLabel}>Completed job history</Text>
       {timeline.length ? timeline.map((item) => (
         <View key={item.id || `${item.date}-${item.service}`} style={styles.customerHistoryRow}>
           <View style={{ flex: 1, paddingRight: 10 }}>
@@ -3810,7 +3901,7 @@ function CustomerDetail({ s }) {
           <Text style={styles.customerHistoryValue}>{Number(item.value) > 0 ? `£${item.value}` : "—"}</Text>
         </View>
       )) : (
-        <Card eyebrow="History" title="No completed jobs saved yet" body="Completed bookings will build this customer’s history automatically." />
+        <Card eyebrow="History" title="No completed jobs saved yet" body="Completed bookings will build this customer’s job history automatically." />
       )}
 
       <Button label="Edit customer record" onPress={() => s.startEditCustomer(customer)} />
@@ -3820,24 +3911,34 @@ function CustomerDetail({ s }) {
 }
 
 function AddCustomerRecord({ s }) {
-  const validDate = !Number.isNaN(new Date(s.newCustomerDate).getTime());
+  const validDate = !s.newCustomerHasPreviousJob || !Number.isNaN(new Date(s.newCustomerDate).getTime());
   const canSave = !!s.newCustomerName.trim() && !!s.newCustomerPhone.trim() && validDate;
   const editing = !!s.editingCustomerId;
 
   return (
     <Shell
       s={s}
-      title={editing ? "Edit customer" : "Add customer"}
-      subtitle={editing ? "Update the record that Busy Does It uses for recommendations." : "A simple local record is enough for this prototype."}
+      title={editing ? "Edit customer" : "Add previous customer"}
+      subtitle={editing ? "Update the customer without inventing a job that did not happen." : "Use this when the business has worked for this customer before."}
     >
       <Field label="Customer name" value={s.newCustomerName} onChangeText={s.setNewCustomerName} placeholder="e.g. Jane Smith" />
       <Field label="Phone" value={s.newCustomerPhone} onChangeText={s.setNewCustomerPhone} placeholder="e.g. 07700 900000" keyboardType="phone-pad" />
-      <Field label="Last service" value={s.newCustomerService} onChangeText={s.setNewCustomerService} placeholder="e.g. Driveway cleaning" />
-      <DatePickerField label="Last job date" value={s.newCustomerDate} onChange={s.setNewCustomerDate} />
-      <Field label="Last job value" value={s.newCustomerValue} onChangeText={s.setNewCustomerValue} keyboardType="number-pad" prefix="£" placeholder="Optional" />
+      <Field label="Service" value={s.newCustomerService} onChangeText={s.setNewCustomerService} placeholder="What work do they need or had before?" />
+      <ToggleRow
+        title="Has a previous completed job"
+        body="Turn this off for an enquiry or contact with no completed job yet."
+        value={s.newCustomerHasPreviousJob}
+        onValueChange={s.setNewCustomerHasPreviousJob}
+      />
+      {s.newCustomerHasPreviousJob ? (
+        <>
+          <DatePickerField label="Last job date" value={s.newCustomerDate} onChange={s.setNewCustomerDate} />
+          <Field label="Last job value" value={s.newCustomerValue} onChangeText={s.setNewCustomerValue} keyboardType="number-pad" prefix="£" placeholder="Optional" />
+        </>
+      ) : null}
       <ToggleRow
         title="Okay to contact"
-        body="Only customers with this switched on can be recommended for reactivation."
+        body="Only customers with this switched on can be considered for future reactivation."
         value={s.newCustomerContactOk}
         onValueChange={s.setNewCustomerContactOk}
       />
