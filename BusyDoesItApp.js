@@ -2468,6 +2468,20 @@ function WorkHub({ s }) {
   const overdueBookings = bookings.filter((item) => item.action.details.bookingDate < todayISO);
   const todayBookings = bookings.filter((item) => item.action.details.bookingDate === todayISO);
   const upcomingBookings = bookings.filter((item) => item.action.details.bookingDate > todayISO);
+  const sevenDayEndISO = addDaysISO(7);
+  const nextSevenDayBookings = bookings.filter(
+    (item) =>
+      item.action.details.bookingDate >= todayISO &&
+      item.action.details.bookingDate <= sevenDayEndISO
+  );
+  const nextSevenDayValue = nextSevenDayBookings.reduce(
+    (total, item) =>
+      total +
+      (Number(item.action.details?.jobValue) ||
+        Number(item.action.details?.sourceQuoteAmount) ||
+        0),
+    0
+  );
   const nextQuote = activeQuotes[0] || null;
   const nextBooking = todayBookings[0] || upcomingBookings[0] || null;
 
@@ -2484,6 +2498,9 @@ function WorkHub({ s }) {
         <MetricRow left="Work in pipeline" right={`£${s.pipelineWorkValue}`} strong={s.pipelineWorkValue > 0} />
         <MetricRow left="Active quote value" right={`£${s.activeQuoteValue}`} />
         <MetricRow left="Booked work value" right={`£${s.bookedWorkValue}`} />
+        <MetricRow left="Overdue bookings" right={String(overdueBookings.length)} strong={overdueBookings.length > 0} />
+        <MetricRow left="Jobs in next 7 days" right={String(nextSevenDayBookings.length)} strong={nextSevenDayBookings.length > 0} />
+        <MetricRow left="Next 7 days value" right={`£${nextSevenDayValue}`} strong={nextSevenDayValue > 0} />
         <MetricRow left="Follow-ups due" right={String(s.dueReminderEntries.length)} strong={s.dueReminderEntries.length > 0} />
         <MetricRow left="Actions to do" right={String(s.pendingReplyActionCount)} strong={s.pendingReplyActionCount > 0} />
       </Card>
@@ -2565,6 +2582,8 @@ function WorkHub({ s }) {
 
 
 function WorkPipeline({ s }) {
+  const [search, setSearch] = useState("");
+  const todayISO = dateToISO(new Date());
   const actionEntries = Object.entries(s.replyActions || {}).map(([id, action]) => {
     const customer =
       s.customers.find((item) => item.id === id) ||
@@ -2603,6 +2622,35 @@ function WorkPipeline({ s }) {
     .slice(0, 8);
 
   const totalActive = newEnquiries.length + quotes.length + bookings.length + followUps.length;
+  const quoteValue = quotes.reduce(
+    (total, item) => total + (Number(item.action.details?.quoteAmount) || 0),
+    0
+  );
+  const bookingValue = bookings.reduce(
+    (total, item) =>
+      total +
+      (Number(item.action.details?.jobValue) ||
+        Number(item.action.details?.sourceQuoteAmount) ||
+        0),
+    0
+  );
+  const query = search.trim().toLowerCase();
+  const matches = (customer) =>
+    !query ||
+    [customer?.name, customer?.phone, customer?.service]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(query));
+  const visibleNewEnquiries = newEnquiries.filter(matches);
+  const visibleQuotes = quotes.filter((item) => matches(item.customer));
+  const visibleBookings = bookings.filter((item) => matches(item.customer));
+  const visibleFollowUps = followUps.filter((item) => matches(item.customer));
+  const visibleCompleted = completed.filter((item) => matches(item.customer));
+  const visibleCount =
+    visibleNewEnquiries.length +
+    visibleQuotes.length +
+    visibleBookings.length +
+    visibleFollowUps.length +
+    visibleCompleted.length;
 
   const PipelineCard = ({ item, kind }) => {
     const { id, action, customer } = item;
@@ -2612,13 +2660,25 @@ function WorkPipeline({ s }) {
       status = action.details?.quoteStatus || "Prepared";
       detail += action.details?.quoteAmount ? ` • £${action.details.quoteAmount}` : "";
     } else if (kind === "booking") {
-      status = action.details?.bookingStatus || "Confirmed";
+      const savedStatus = action.details?.bookingStatus || "Confirmed";
+      status =
+        savedStatus === "Confirmed" &&
+        action.details?.bookingDate &&
+        action.details.bookingDate < todayISO
+          ? "Overdue"
+          : savedStatus;
       if (action.details?.bookingDate) {
         detail += ` • ${formatUKDate(action.details.bookingDate)}`;
         if (action.details?.bookingTime) detail += ` at ${action.details.bookingTime}`;
       }
     } else if (kind === "reminder") {
-      status = action.details?.reminderStatus || "Scheduled";
+      const savedStatus = action.details?.reminderStatus || "Scheduled";
+      status =
+        savedStatus !== "Completed" &&
+        action.details?.reminderDate &&
+        action.details.reminderDate <= todayISO
+          ? "Due now"
+          : savedStatus;
       if (action.details?.reminderDate) detail += ` • ${formatUKDate(action.details.reminderDate)}`;
     } else if (kind === "completed") {
       status = "Completed";
@@ -2636,7 +2696,10 @@ function WorkPipeline({ s }) {
             <Text style={styles.customerTimelineLabel}>{kind.toUpperCase()}</Text>
             <Text style={styles.activityName}>{customer.name}</Text>
           </View>
-          <StatusChip label={status} tone={["Cancelled", "Declined"].includes(status) ? "blue" : "green"} />
+          <StatusChip
+            label={status}
+            tone={["Overdue", "Due now"].includes(status) ? "amber" : ["Cancelled", "Declined"].includes(status) ? "blue" : "green"}
+          />
         </View>
         <Text style={styles.activitySummary}>{detail}</Text>
         <Text style={styles.activityOpen}>Open →</Text>
@@ -2660,12 +2723,26 @@ function WorkPipeline({ s }) {
       >
         <MetricRow left="New enquiries" right={String(newEnquiries.length)} />
         <MetricRow left="Active quotes" right={String(quotes.length)} />
+        <MetricRow left="Quote value" right={`£${quoteValue}`} strong={quoteValue > 0} />
         <MetricRow left="Bookings" right={String(bookings.length)} />
+        <MetricRow left="Booked value" right={`£${bookingValue}`} strong={bookingValue > 0} />
         <MetricRow left="Follow-ups" right={String(followUps.length)} />
       </Card>
 
-      {newEnquiries.length ? <Text style={styles.sectionLabel}>New enquiries</Text> : null}
-      {newEnquiries.map((customer) => (
+      <Field
+        label="Find a customer"
+        value={search}
+        onChangeText={setSearch}
+        placeholder="Name, phone or service"
+      />
+      {query ? (
+        <Text style={styles.helper}>
+          {visibleCount ? `Showing ${visibleCount} matching pipeline item${visibleCount === 1 ? "" : "s"}.` : "No pipeline items match that search."}
+        </Text>
+      ) : null}
+
+      {visibleNewEnquiries.length ? <Text style={styles.sectionLabel}>New enquiries</Text> : null}
+      {visibleNewEnquiries.map((customer) => (
         <Pressable
           key={customer.id}
           onPress={() => s.openCustomer(customer.id)}
@@ -2683,17 +2760,17 @@ function WorkPipeline({ s }) {
         </Pressable>
       ))}
 
-      {quotes.length ? <Text style={styles.sectionLabel}>Quotes</Text> : null}
-      {quotes.map((item) => <PipelineCard key={item.id} item={item} kind="quote" />)}
+      {visibleQuotes.length ? <Text style={styles.sectionLabel}>Quotes</Text> : null}
+      {visibleQuotes.map((item) => <PipelineCard key={item.id} item={item} kind="quote" />)}
 
-      {bookings.length ? <Text style={styles.sectionLabel}>Bookings</Text> : null}
-      {bookings.map((item) => <PipelineCard key={item.id} item={item} kind="booking" />)}
+      {visibleBookings.length ? <Text style={styles.sectionLabel}>Bookings</Text> : null}
+      {visibleBookings.map((item) => <PipelineCard key={item.id} item={item} kind="booking" />)}
 
-      {followUps.length ? <Text style={styles.sectionLabel}>Follow-ups</Text> : null}
-      {followUps.map((item) => <PipelineCard key={item.id} item={item} kind="reminder" />)}
+      {visibleFollowUps.length ? <Text style={styles.sectionLabel}>Follow-ups</Text> : null}
+      {visibleFollowUps.map((item) => <PipelineCard key={item.id} item={item} kind="reminder" />)}
 
-      {completed.length ? <Text style={styles.sectionLabel}>Recently completed</Text> : null}
-      {completed.map((item) => <PipelineCard key={item.id} item={item} kind="completed" />)}
+      {visibleCompleted.length ? <Text style={styles.sectionLabel}>Recently completed</Text> : null}
+      {visibleCompleted.map((item) => <PipelineCard key={item.id} item={item} kind="completed" />)}
 
       {!totalActive && !completed.length ? (
         <Card
@@ -3618,6 +3695,22 @@ function ReplyActionDetail({ s }) {
             })
           }
         />
+        {!saved.done ? (
+          <Button
+            label="Save & mark quote as sent"
+            disabled={!String(s.actionQuoteAmount).trim()}
+            onPress={() =>
+              finish({
+                ...(saved.details || {}),
+                quoteAmount: s.actionQuoteAmount,
+                message: s.actionQuoteMessage,
+                quoteStatus: "Sent",
+                quoteSentAt: new Date().toISOString(),
+                summary: `Quote marked sent for £${s.actionQuoteAmount}`,
+              })
+            }
+          />
+        ) : null}
 
         {saved.done && quoteStatus === "Prepared" ? (
           <Button label="Mark quote as sent" onPress={() => s.setQuoteStatus(customer.id, "Sent")} />
