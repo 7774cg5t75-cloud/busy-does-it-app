@@ -1216,6 +1216,7 @@ function App() {
     setPendingJobPhotos([]);
     setJobPhotosMarketingOk(false);
     setJobPostDraft("");
+    setTab("Work");
     go("jobCompletePhotos");
   };
 
