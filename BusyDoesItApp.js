@@ -5183,6 +5183,7 @@ function HomeScreen({ s }) {
           <MetricRow left="Quote follow-ups ready" right={String(s.dueQuoteEntries.length)} />
           <MetricRow left="Review drafts prepared" right={String(s.automaticReviewDraftCount)} />
           <MetricRow left="Finished-job post drafts" right={String(s.automaticPostDraftCount)} />
+          <MetricRow left="Inbox records auto-filed" right={String(s.inboxAutoFiledCount)} strong={s.inboxAutoFiledCount > 0} />
           <Button label="See background work" onPress={() => s.go("backgroundWork")} />
         </Card>
       ) : null}
@@ -9275,12 +9276,18 @@ function Results({ s }) {
       <Card
         eyebrow="Busy Inbox"
         title={`${s.inboxPendingItems.length} incoming item${s.inboxPendingItems.length === 1 ? "" : "s"} waiting for review`}
-        body="Busy triages information before it changes the customer database. Uncertainty and conflicts are separated from cleaner items so the owner can spend attention where it matters."
+        body={
+          s.recordFilingMode === "safe"
+            ? "Safe Autopilot can remove repetitive filing only when every strict trust rule passes. Exceptions remain visible for owner review."
+            : "Busy is triaging incoming information, but automatic record filing is currently off."
+        }
         tone={s.inboxNeedsAttentionItems.length ? "amber" : "green"}
       >
+        <MetricRow left="Automatic filing mode" right={s.recordFilingMode === "safe" ? "Safe items only" : "Review everything"} />
         <MetricRow left="Needs attention" right={String(s.inboxNeedsAttentionItems.length)} strong={s.inboxNeedsAttentionItems.length > 0} />
         <MetricRow left="Ready to review" right={String(s.inboxReadyItems.length)} />
-        <MetricRow left="Filed through Inbox" right={String(s.inboxFiledCount)} />
+        <MetricRow left="Auto-filed safely" right={String(s.inboxAutoFiledCount)} strong={s.inboxAutoFiledCount > 0} />
+        <MetricRow left="Filed after owner review" right={String(s.inboxOwnerFiledCount)} />
         <MetricRow left="Dismissed without filing" right={String(s.inboxDismissedCount)} />
         <Button label="Open Busy Inbox" onPress={s.openBusyInbox} />
       </Card>
@@ -9489,6 +9496,11 @@ function Settings({ s }) {
         <MetricRow left="Single test limit" right={`£${s.testLimit}`} />
         <MetricRow left="Weekly limit" right={`£${s.weeklyLimit}`} />
         <MetricRow left="Previous customers" right={s.customerContact ? "Allowed" : "Off"} />
+        <MetricRow
+          left="Automatic record filing"
+          right={s.recordFilingMode === "safe" ? "Safe items only" : "Review everything"}
+          strong={s.recordFilingMode === "safe"}
+        />
         <MetricRow left="Connected accounts" right={`${connectedCount}/${connectionRows.length}`} />
       </Card>
       <Button label="Customer records" primary onPress={() => s.go("customerRecords")} />
@@ -9504,6 +9516,7 @@ function Settings({ s }) {
       ) : null}
       <Button label="Business profile & opportunity data" onPress={() => s.go("businessData")} />
       <Button label="Change limits" onPress={() => s.go("settingsLimits")} />
+      <Button label="Automatic record filing" onPress={() => s.go("recordFilingSettings")} />
       <Button label="Connected accounts" onPress={() => s.go("connectedAccounts")} />
       <Button label="How Busy Does It works" onPress={() => s.go("howBusyWorks")} />
       <Button label="What makes it different" onPress={() => s.go("whatMakesDifferent")} />
@@ -9517,7 +9530,7 @@ function HowBusyWorks({ s }) {
   return (
     <Shell s={s} title="How Busy Does It works" subtitle="Simple on the surface. Serious business logic underneath.">
       <Card eyebrow="1" title="Incoming information gets sorted first" body="Messages, notes and future connected-app events should land in Busy Inbox. Busy extracts what it can, checks for duplicates and flags anything uncertain before it changes the records." />
-      <Card eyebrow="2" title="The business records stay organised" body="Enquiries, quotes, bookings, completed jobs, follow-ups and repeat timing update the same customer/work picture instead of becoming separate admin jobs." />
+      <Card eyebrow="2" title="Obvious record admin can disappear" body="With Safe Autopilot enabled, only strict high-confidence updates to an exact existing customer can be filed without another tap. Anything uncertain stays in Busy Inbox." />
       <Card eyebrow="3" title="Busy ranks the best next move" body="Live customer commitments, £0 opportunities and prepared actions compete underneath Home so the owner normally sees one clear priority." />
       <Card eyebrow="4" title="You control important actions" body="Customer messages, public posts and paid spend still require the appropriate approval. Busy prepares underneath without pretending approval happened." />
       <Card eyebrow="5" title="Outcomes improve later recommendations" body="Results focus on enquiries, quotes, bookings, completed work and recorded value. Outcomes feed gently back into future ranking rather than rewarding vanity activity." />
@@ -9532,7 +9545,7 @@ function WhatMakesDifferent({ s }) {
       <Card eyebrow="Triage first" title="Incoming information becomes organised work" body="Busy Inbox is designed to receive candidate information from messages, notes and future connections, match it to the right customer and only interrupt the owner when review is useful." />
       <Card eyebrow="Goal first" title="You tell us the problem, not the channel" body="The app chooses or recommends the marketing method underneath instead of forcing you to decide between ads, email, social or audiences." />
       <Card eyebrow="Cost first" title="Free and low-cost opportunities come before paid reach" body="The app can recommend spending nothing when that is the more sensible first move." />
-      <Card eyebrow="Control" title="The maximum at risk is obvious" body="Paid advertising is treated as a test. You see the cap before approval and the app stops at the agreed limit." />
+      <Card eyebrow="Control" title="Automation is split by risk" body="Low-risk record filing can use a strict Safe Autopilot rule. Customer messages, public posting and paid spend keep their own stronger controls." />
       <Card eyebrow="Proof layer" title="Every important recommendation should be justifiable" body="Average users see a simple answer. Experts can inspect the data, assumptions, alternatives, confidence and technical performance behind it." />
       <Card eyebrow="Outcome" title="Jobs and pounds before marketing jargon" body="The default result is what happened to the business, not a dashboard full of clicks and acronyms." />
       <Button label="Done" primary onPress={s.back} />
@@ -9594,6 +9607,64 @@ function SettingsLimits({ s }) {
       <Field label="Weekly paid-spend limit" value={s.weeklyLimit} onChangeText={s.setWeeklyLimit} keyboardType="number-pad" prefix="£" />
       {!s.alwaysAsk ? <Text style={styles.warningText}>Automatic mode is explicit: no single test may exceed £{s.testLimit}, and total paid spend may not exceed £{s.weeklyLimit} per week.</Text> : null}
       <Button label="Save" primary onPress={s.back} />
+    </Shell>
+  );
+}
+
+function RecordFilingSettings({ s }) {
+  return (
+    <Shell
+      s={s}
+      title="Automatic record filing"
+      subtitle="Choose how much routine Inbox filing Busy may do without interrupting you."
+      brandCue="Automation gets permission by rule — never by assumption."
+    >
+      <Choice
+        label="Review everything"
+        sub="Busy triages and prepares incoming information, but every customer/work record change waits for you."
+        selected={s.recordFilingMode === "review"}
+        onPress={() => s.setRecordFilingMode("review")}
+      />
+      <Choice
+        label="Safe items only"
+        sub="Recommended prototype setting. Busy may file only into an existing customer when every strict trust rule passes."
+        selected={s.recordFilingMode === "safe"}
+        onPress={() => s.setRecordFilingMode("safe")}
+      />
+
+      <Card
+        eyebrow="Safe means all of these"
+        title="A deliberately narrow permission"
+        body="Safe Autopilot is not general AI permission. It is a checklist. If any check fails, the item stays in Busy Inbox for you."
+        tone="green"
+      >
+        <MetricRow left="Customer match" right="Exact phone / email" />
+        <MetricRow left="Extraction" right="High confidence" />
+        <MetricRow left="Service" right="Explicitly detected" />
+        <MetricRow left="Active-work conflict" right="None" />
+        <MetricRow left="Duplicate source" right="None" />
+        <MetricRow left="Quote" right="Explicit date + value" />
+        <MetricRow left="Booking" right="Explicit future date + time" />
+        <MetricRow left="Completed job" right="Explicit non-future date" />
+      </Card>
+
+      <Card
+        eyebrow="Still never automatic here"
+        title="Record filing is not customer-facing authority"
+        body="Safe Autopilot does not send a customer message, publish a post, approve advertising spend or invent missing information."
+        footer="Those controls remain separate"
+        tone="blue"
+      />
+
+      <Card
+        eyebrow="More automatic"
+        title="Not enabled in v2.1"
+        body="Creating brand-new customers automatically, trusting name-only matches or filing through conflicts stays outside Safe Autopilot until we have stronger evidence and recovery controls."
+        tone="amber"
+      />
+
+      <Button label="Save & open Busy Inbox" primary onPress={s.openBusyInbox} />
+      <Button label="Done" onPress={s.back} />
     </Shell>
   );
 }
@@ -9739,6 +9810,7 @@ const screens = {
   howBusyWorks: HowBusyWorks,
   whatMakesDifferent: WhatMakesDifferent,
   settingsLimits: SettingsLimits,
+  recordFilingSettings: RecordFilingSettings,
   connectedAccounts: ConnectedAccounts,
   advanced: Advanced,
 };
