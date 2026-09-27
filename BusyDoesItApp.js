@@ -3345,6 +3345,34 @@ function App() {
       });
   const intakeMergedCount = intakeLog.filter((item) => item.matchedExisting).length;
   const intakeCreatedCount = intakeLog.length - intakeMergedCount;
+  const inboxPendingItems = inboxItems
+    .filter((item) => item.status === "Pending")
+    .map((item) => {
+      const parsed =
+        item.parsed ||
+        parseQuickCapture(
+          item.rawText || "",
+          services,
+          services.find((service) => service.wanted)?.name || trade || "Service"
+        );
+      const triage = triageInboxCandidate(parsed, customers, replyActions);
+      return { ...item, parsed, triage };
+    })
+    .sort((a, b) => {
+      if ((b.triage?.priorityScore || 0) !== (a.triage?.priorityScore || 0)) {
+        return (b.triage?.priorityScore || 0) - (a.triage?.priorityScore || 0);
+      }
+      return String(a.queuedAt || "").localeCompare(String(b.queuedAt || ""));
+    });
+  const inboxNeedsAttentionItems = inboxPendingItems.filter(
+    (item) => item.triage?.lane === "Needs attention"
+  );
+  const inboxReadyItems = inboxPendingItems.filter(
+    (item) => item.triage?.lane === "Ready to review"
+  );
+  const inboxFiledCount = inboxItems.filter((item) => item.status === "Filed").length;
+  const inboxDismissedCount = inboxItems.filter((item) => item.status === "Dismissed").length;
+  const inboxTopItem = inboxPendingItems[0] || null;
   const intakeStageCounts = intakeLog.reduce((counts, item) => {
     const key = item.stage || "Other";
     counts[key] = (counts[key] || 0) + 1;
@@ -3520,8 +3548,23 @@ function App() {
     intakeMergedCount,
     intakeCreatedCount,
     intakeStageCounts,
+    inboxItems,
+    inboxPendingItems,
+    inboxNeedsAttentionItems,
+    inboxReadyItems,
+    inboxFiledCount,
+    inboxDismissedCount,
+    inboxTopItem,
+    selectedInboxItemId,
+    setSelectedInboxItemId,
     startQuickCapture,
     loadQuickCaptureExample,
+    queueCaptureToInbox,
+    queueInboxTestBatch,
+    openInboxItem,
+    dismissInboxItem,
+    reopenInboxItem,
+    openBusyInbox,
     analyseQuickCapture,
     saveQuickCapture,
     customerNoteText,
