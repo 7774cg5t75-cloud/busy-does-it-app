@@ -81,3 +81,15 @@ Busy Does It mobile app prototype.
 - Customer detail now shows service-specific repeat timing and whether the customer is due now.
 - Quote wording now records “marked as sent” rather than implying the prototype actually sent anything.
 - Preserved the flexible service-business architecture so the workflow remains reusable beyond exterior cleaning.
+
+## v1.1 faster customer workflow
+- Added customer search to both Customer records and Customer pipeline using name, phone or service.
+- Added direct quote, booking and follow-up shortcuts for fresh enquiries inside the pipeline.
+- Added a one-step “Save & mark quote as sent” option so simple quotes do not need reopening before moving on.
+- Added separate active quote value and booked-work value to the pipeline summary.
+- Added overdue / due-now status highlighting inside the pipeline.
+- Expanded the Work dashboard with overdue bookings, next-7-days job count and next-7-days booked value.
+- Fresh enquiries now surface in Work when no overdue booking or follow-up is taking priority.
+- Added optional job address / postcode capture to new enquiries and customer records, and surfaced it on customer and booking detail.
+- Simplified the Work navigation label so Customer pipeline remains a stable destination even when empty.
+- Kept all new workflow logic service-business-generic; exterior cleaning remains a test pack rather than a hard-coded product boundary.
