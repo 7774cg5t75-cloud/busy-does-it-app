@@ -118,3 +118,4 @@ Busy Does It mobile app prototype.
 - Customer job history now shows photo counts and saved post-draft status.
 - Results now counts attached job photos, reusable-with-permission photos and prepared finished-job drafts.
 - The photo workflow stays service-business-generic and uses the customer’s real saved service rather than exterior-cleaning assumptions.
+
