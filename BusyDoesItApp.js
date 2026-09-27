@@ -3641,9 +3641,7 @@ function HomeScreen({ s }) {
 
 function WorkHub({ s }) {
   const todayISO = dateToISO(new Date());
-  const openEnquiries = s.customers
-    .filter((customer) => !customer.lastServiceDate && !s.replyActions?.[customer.id])
-    .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+  const freshEnquiries = (s.freshEnquiryEntries || []).map((entry) => entry.customer);
   const actionEntries = Object.entries(s.replyActions || {});
   const activeQuotes = actionEntries
     .filter(([, action]) =>
@@ -3703,7 +3701,8 @@ function WorkHub({ s }) {
       brandCue="Run the work you already have before buying more attention."
     >
       <Card eyebrow="Today" title={todayBookings.length ? `${todayBookings.length} job${todayBookings.length === 1 ? "" : "s"} booked today` : "No booked jobs today"} tone={todayBookings.length ? "green" : "blue"}>
-        <MetricRow left="New enquiries" right={String(s.openEnquiryCount)} />
+        <MetricRow left="New enquiries (<7 days)" right={String(s.freshEnquiryEntries.length)} />
+        <MetricRow left="Quiet enquiries (7+ days)" right={String(s.staleEnquiryEntries.length)} strong={s.staleEnquiryEntries.length > 0} />
         <MetricRow left="Work in pipeline" right={`£${s.pipelineWorkValue}`} strong={s.pipelineWorkValue > 0} />
         <MetricRow left="Active quote value" right={`£${s.activeQuoteValue}`} />
         <MetricRow left="Booked work value" right={`£${s.bookedWorkValue}`} />
@@ -3755,15 +3754,32 @@ function WorkHub({ s }) {
         </Pressable>
       ) : null}
 
-      {!overdueBookings.length && !s.dueReminderEntries.length && !s.dueQuoteEntries.length && openEnquiries.length ? (
-        <Pressable onPress={() => s.openCustomer(openEnquiries[0].id)} style={[styles.homePriorityCard, styles.homeReminderCard]}>
+      {!overdueBookings.length && !s.dueReminderEntries.length && !s.dueQuoteEntries.length && s.staleEnquiryEntries.length ? (
+        <Pressable
+          onPress={() => s.prepareEnquiryFollowUp(s.staleEnquiryEntries[0].customer.id)}
+          style={[styles.homePriorityCard, styles.homeReminderCard]}
+        >
+          <View style={styles.homePriorityTop}>
+            <Text style={styles.homePriorityEyebrow}>QUIET ENQUIRY</Text>
+            <StatusChip label="Worth revisiting" tone="amber" />
+          </View>
+          <Text style={styles.homePriorityTitle}>{s.staleEnquiryEntries[0].customer.name}</Text>
+          <Text style={styles.homePriorityBody}>
+            {s.staleEnquiryEntries[0].customer.service} • waiting {s.staleEnquiryEntries[0].age} days
+          </Text>
+          <Text style={styles.homePriorityLink}>Review prepared follow-up →</Text>
+        </Pressable>
+      ) : null}
+
+      {!overdueBookings.length && !s.dueReminderEntries.length && !s.dueQuoteEntries.length && !s.staleEnquiryEntries.length && freshEnquiries.length ? (
+        <Pressable onPress={() => s.openCustomer(freshEnquiries[0].id)} style={[styles.homePriorityCard, styles.homeReminderCard]}>
           <View style={styles.homePriorityTop}>
             <Text style={styles.homePriorityEyebrow}>NEW ENQUIRY</Text>
             <StatusChip label="Needs next step" tone="amber" />
           </View>
-          <Text style={styles.homePriorityTitle}>{openEnquiries[0].name}</Text>
+          <Text style={styles.homePriorityTitle}>{freshEnquiries[0].name}</Text>
           <Text style={styles.homePriorityBody}>
-            {openEnquiries[0].service}{openEnquiries[0].address ? ` • ${openEnquiries[0].address}` : ""} • {enquiryAgeLabel(openEnquiries[0].createdAt)}
+            {freshEnquiries[0].service}{freshEnquiries[0].address ? ` • ${freshEnquiries[0].address}` : ""} • {enquiryAgeLabel(freshEnquiries[0].createdAt)}
           </Text>
           <Text style={styles.homePriorityLink}>Open enquiry →</Text>
         </Pressable>
@@ -3799,6 +3815,12 @@ function WorkHub({ s }) {
 
       <Text style={styles.sectionLabel}>Add or manage work</Text>
       <Button label="+ New enquiry" primary onPress={s.startNewEnquiry} />
+      {s.staleEnquiryEntries.length ? (
+        <Button label={`Quiet enquiries • ${s.staleEnquiryEntries.length}`} onPress={() => s.go("staleEnquiries")} />
+      ) : null}
+      {s.dueQuoteEntries.length ? (
+        <Button label={`Quote follow-ups due • ${s.dueQuoteEntries.length}`} onPress={() => s.go("staleQuotes")} />
+      ) : null}
       <Button label="Customer records" onPress={() => s.go("customerRecords")} />
       <Button
         label="Customer pipeline"
@@ -3831,7 +3853,12 @@ function WorkPipeline({ s }) {
   }).filter(Boolean);
 
   const newEnquiries = s.customers
-    .filter((customer) => !customer.lastServiceDate && !s.replyActions?.[customer.id])
+    .filter(
+      (customer) =>
+        !customer.lastServiceDate &&
+        !s.replyActions?.[customer.id] &&
+        !customer.enquiryFollowUpOutcomeRecordedAt
+    )
     .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
 
   const quotes = actionEntries.filter(({ action }) =>
@@ -5618,9 +5645,18 @@ function CustomerRecords({ s }) {
         const pipelineLabel = customerPipelineLabel(customer, action);
         const activeAction = isActiveCustomerAction(action);
         const isNewEnquiry = !customer.lastServiceDate;
+        const enquiryAge = isNewEnquiry ? daysSinceTimestamp(customer.createdAt) : null;
         const statusLabel =
           pipelineLabel ||
-          (eligible
+          (isNewEnquiry
+            ? customer.enquiryFollowUpOutcomeRecordedAt
+              ? customer.enquiryFollowUpOutcome || "Follow-up recorded"
+              : customer.enquiryFollowUpSentAt
+              ? "Follow-up sent"
+              : enquiryAge !== null && enquiryAge >= 7
+              ? `Quiet ${enquiryAge}d`
+              : "New enquiry"
+            : eligible
             ? "Eligible now"
             : customer.contactOk
             ? (s.customerContact ? "Not due" : "Contact off")
@@ -5641,6 +5677,8 @@ function CustomerRecords({ s }) {
             <Text style={styles.customerMeta}>
               {customer.lastServiceDate
                 ? `Last job: ${formatUKDate(customer.lastServiceDate)} • ${formatMonthsAgo(customer.lastServiceDate)}`
+                : customer.createdAt
+                ? `Enquiry: ${formatUKDate(String(customer.createdAt).slice(0, 10))} • ${enquiryAgeLabel(customer.createdAt)}`
                 : "No completed job recorded yet"}
               {Number(customer.lastJobValue) > 0 ? ` • £${customer.lastJobValue}` : ""}
             </Text>
