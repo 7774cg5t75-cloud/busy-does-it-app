@@ -8,16 +8,16 @@ let src = fs.readFileSync(appPath, "utf8");
 
 function replaceOnce(needle, replacement, label) {
   const first = src.indexOf(needle);
-  if (first < 0) throw new Error(`Missing patch target: ${label}`);
+  if (first < 0) throw new Error(`Missing patch target: \${label}`);
   const second = src.indexOf(needle, first + needle.length);
-  if (second >= 0) throw new Error(`Patch target not unique: ${label}`);
+  if (second >= 0) throw new Error(`Patch target not unique: \${label}`);
   src = src.slice(0, first) + replacement + src.slice(first + needle.length);
 }
 
 function replaceRegexOnce(regex, replacement, label) {
   const flags = regex.flags.includes("g") ? regex.flags : regex.flags + "g";
   const matches = src.match(new RegExp(regex.source, flags)) || [];
-  if (matches.length !== 1) throw new Error(`Regex target ${label} matched ${matches.length} times`);
+  if (matches.length !== 1) throw new Error(`Regex target \${label} matched \${matches.length} times`);
   src = src.replace(regex, replacement);
 }
 
@@ -57,7 +57,7 @@ replaceRegexOnce(
     if (!action?.details?.bookingDate) return null;
     const amount = Number(jobValue) || Number(action.details?.sourceQuoteAmount) || 0;
     const cleanNote = String(completionNote || "").trim();
-    const jobId = \`job-${customerId}-${action.details.bookingDate}\`;
+    const jobId = \`job-\${customerId}-\${action.details.bookingDate}\`;
     setReplyActions((current) => ({
       ...current,
       [customerId]: {
@@ -69,7 +69,7 @@ replaceRegexOnce(
           jobValue: amount || "",
           completionNote: cleanNote,
           jobCompletedAt: new Date().toISOString(),
-          summary: \`Job completed${amount ? \` for £${amount}\` : ""} on ${formatUKDate(action.details.bookingDate)}\`,
+          summary: \`Job completed\${amount ? \` for £\${amount}\` : ""} on \${formatUKDate(action.details.bookingDate)}\`,
         },
         completedAt: new Date().toISOString(),
       },
@@ -104,12 +104,12 @@ replaceRegexOnce(
           activity: [
             ...activity,
             {
-              id: \`completed-${customerId}-${action.details.bookingDate}\`,
+              id: \`completed-\${customerId}-\${action.details.bookingDate}\`,
               kind: "job",
               date: action.details.bookingDate,
               createdAt: new Date().toISOString(),
               title: "Job completed",
-              note: cleanNote || \`${customer.service} completed through Busy Does It.\`,
+              note: cleanNote || \`\${customer.service} completed through Busy Does It.\`,
               value: amount || "",
             },
           ],
@@ -162,7 +162,7 @@ replaceRegexOnce(
       });
       if (result.canceled) return;
       const picked = (result.assets || []).map((asset, index) => ({
-        id: asset.assetId || \`photo-${Date.now()}-${index}\`,
+        id: asset.assetId || \`photo-\${Date.now()}-\${index}\`,
         uri: asset.uri,
         fileName: asset.fileName || "",
         width: asset.width || 0,
@@ -206,7 +206,7 @@ replaceRegexOnce(
       kind: "photos",
       title: "Job photos updated",
       note: photos.length
-        ? \`${photos.length} photo${photos.length === 1 ? "" : "s"} attached to the completed job. ${jobPhotosMarketingOk ? "They can be suggested for future marketing, but nothing is posted automatically." : "They are kept private to the job unless you change the setting later."}\`
+        ? \`\${photos.length} photo\${photos.length === 1 ? "" : "s"} attached to the completed job. \${jobPhotosMarketingOk ? "They can be suggested for future marketing, but nothing is posted automatically." : "They are kept private to the job unless you change the setting later."}\`
         : "Job photos removed.",
     });
     if (photos.length && jobPhotosMarketingOk) {
@@ -228,7 +228,7 @@ replaceRegexOnce(
     const service = job.service || customer.service || "job";
     const draft =
       job.postDraft ||
-      \`Just finished another ${service.toLowerCase()} job. If you need something similar, send us a message and we’ll take a look.\`;
+      \`Just finished another \${service.toLowerCase()} job. If you need something similar, send us a message and we’ll take a look.\`;
     setJobPostDraft(draft);
     go("jobPostDraft");
   };
@@ -401,7 +401,7 @@ replaceOnce(
           <>
             <Button
               label="Manage job photos"
-              onPress={() => s.openJobAssets(customer.id, \`job-${customer.id}-${saved.details?.bookingDate}\`)}
+              onPress={() => s.openJobAssets(customer.id, \`job-\${customer.id}-\${saved.details?.bookingDate}\`)}
             />
             <Button label="View customer job history" onPress={() => s.openCustomer(customer.id)} />
           </>
@@ -412,7 +412,7 @@ replaceOnce(
 replaceOnce(
 `            {item.note ? <Text style={styles.customerHistoryNote}>{item.note}</Text> : null}
           </View>
-          <Text style={styles.customerHistoryValue}>{Number(item.value) > 0 ? \`£${item.value}\` : "—"}</Text>
+          <Text style={styles.customerHistoryValue}>{Number(item.value) > 0 ? \`£\${item.value}\` : "—"}</Text>
         </View>`.replaceAll("\\`","\x60"),
 `            {item.note ? <Text style={styles.customerHistoryNote}>{item.note}</Text> : null}
             {Array.isArray(item.photos) && item.photos.length ? (
@@ -427,7 +427,7 @@ replaceOnce(
               </>
             ) : null}
           </View>
-          <Text style={styles.customerHistoryValue}>{Number(item.value) > 0 ? \`£${item.value}\` : "—"}</Text>
+          <Text style={styles.customerHistoryValue}>{Number(item.value) > 0 ? \`£\${item.value}\` : "—"}</Text>
         </View>`.replaceAll("\\`","\x60"),
 "customer history photo link"
 );
@@ -445,8 +445,8 @@ replaceOnce(
     );
   }
   return (
-    <Shell s={s} title="Job complete" subtitle={\`${customer.name} • ${job.service || customer.service}\`} brandCue="Save the useful proof once. Reuse it only with permission.">
-      <Card eyebrow="Completed work" title={job.service || customer.service} body={\`${job.date ? formatUKDate(job.date) : "Date saved"}${Number(job.value) > 0 ? \` • £${job.value}\` : ""}\`} footer="Saved to this customer’s job history" tone="green" />
+    <Shell s={s} title="Job complete" subtitle={\`\${customer.name} • \${job.service || customer.service}\`} brandCue="Save the useful proof once. Reuse it only with permission.">
+      <Card eyebrow="Completed work" title={job.service || customer.service} body={\`\${job.date ? formatUKDate(job.date) : "Date saved"}\${Number(job.value) > 0 ? \` • £\${job.value}\` : ""}\`} footer="Saved to this customer’s job history" tone="green" />
       <Card eyebrow="Optional next step" title="Got any photos from this job?" body="Choose only the photos you want attached to this job. Busy Does It does not browse the rest of your camera roll, and nothing is posted automatically." tone="blue" />
       <Button label="Add job photos" primary onPress={() => s.go("jobPhotos")} />
       <Button label="Skip for now" onPress={() => s.openCustomer(customer.id)} />
@@ -461,8 +461,8 @@ function JobPhotos({ s }) {
     return <Shell s={s} title="Job photos" subtitle="The selected job could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
   }
   return (
-    <Shell s={s} title="Job photos" subtitle={\`${customer.name} • ${job.service || customer.service}\`} brandCue="You choose the exact images. Busy Does It only sees what you select.">
-      <Card eyebrow="Privacy first" title={s.pendingJobPhotos.length ? \`${s.pendingJobPhotos.length} photo${s.pendingJobPhotos.length === 1 ? "" : "s"} selected\` : "No photos selected yet"} body="A photo can stay attached privately to the job. Allowing future marketing suggestions still does not publish it — you approve public use separately." tone="green" />
+    <Shell s={s} title="Job photos" subtitle={\`\${customer.name} • \${job.service || customer.service}\`} brandCue="You choose the exact images. Busy Does It only sees what you select.">
+      <Card eyebrow="Privacy first" title={s.pendingJobPhotos.length ? \`\${s.pendingJobPhotos.length} photo\${s.pendingJobPhotos.length === 1 ? "" : "s"} selected\` : "No photos selected yet"} body="A photo can stay attached privately to the job. Allowing future marketing suggestions still does not publish it — you approve public use separately." tone="green" />
       <Button label={s.pendingJobPhotos.length ? "Choose more / different photos" : "Choose photos"} primary={!s.pendingJobPhotos.length} onPress={s.chooseJobPhotos} />
       {s.pendingJobPhotos.length ? (
         <View style={styles.photoGrid}>
@@ -497,7 +497,7 @@ function JobPhotoOpportunity({ s }) {
   }
   return (
     <Shell s={s} title="Free next move" subtitle="Use work you already completed before buying more attention." brandCue="Existing proof first. Paid reach later.">
-      <Card eyebrow="Finished-job content" title={\`Turn ${allowedPhotos.length} job photo${allowedPhotos.length === 1 ? "" : "s"} into a post?\`} body={\`${customer.name}’s ${(job.service || customer.service).toLowerCase()} job is already saved. Busy Does It can prepare a simple post draft using only the photos you approved for suggestions.\`} footer="Cost: £0 • nothing posts without approval" tone="green" />
+      <Card eyebrow="Finished-job content" title={\`Turn \${allowedPhotos.length} job photo\${allowedPhotos.length === 1 ? "" : "s"} into a post?\`} body={\`\${customer.name}’s \${(job.service || customer.service).toLowerCase()} job is already saved. Busy Does It can prepare a simple post draft using only the photos you approved for suggestions.\`} footer="Cost: £0 • nothing posts without approval" tone="green" />
       <Button label="Prepare a post" primary disabled={!allowedPhotos.length} onPress={s.prepareJobPost} />
       <Button label="Not now" onPress={() => s.openCustomer(customer.id)} />
     </Shell>
@@ -513,7 +513,7 @@ function JobPostDraft({ s }) {
   }
   return (
     <Shell s={s} title="Finished-job post" subtitle="Draft only. Busy Does It will not publish this prototype post." brandCue="Prepare underneath. Owner approves what goes public.">
-      <Card eyebrow="Approved source material" title={\`${allowedPhotos.length} job photo${allowedPhotos.length === 1 ? "" : "s"} available\`} body="These are only the photos you selected and allowed Busy Does It to suggest for marketing." tone="green" />
+      <Card eyebrow="Approved source material" title={\`\${allowedPhotos.length} job photo\${allowedPhotos.length === 1 ? "" : "s"} available\`} body="These are only the photos you selected and allowed Busy Does It to suggest for marketing." tone="green" />
       <Text style={styles.fieldLabel}>Post draft</Text>
       <TextInput multiline value={s.jobPostDraft} onChangeText={s.setJobPostDraft} placeholder="Write the finished-job post" placeholderTextColor="#9AA3B2" style={styles.messageInput} />
       <Text style={styles.helper}>No address or private customer detail is added automatically.</Text>
@@ -538,10 +538,10 @@ replaceOnce(
       : []),
     ...(s.photoOpportunity
       ? [{
-          id: \`job-photo-${s.photoOpportunity.jobId}\`,
+          id: \`job-photo-\${s.photoOpportunity.jobId}\`,
           eyebrow: "Free content",
-          title: \`Use ${s.photoOpportunity.photoCount} recent job photo${s.photoOpportunity.photoCount === 1 ? "" : "s"}\`,
-          body: \`${s.photoOpportunity.customerName}’s ${s.photoOpportunity.service.toLowerCase()} job is already saved. Prepare a finished-job post before paying to reach more people.\`,
+          title: \`Use \${s.photoOpportunity.photoCount} recent job photo\${s.photoOpportunity.photoCount === 1 ? "" : "s"}\`,
+          body: \`\${s.photoOpportunity.customerName}’s \${s.photoOpportunity.service.toLowerCase()} job is already saved. Prepare a finished-job post before paying to reach more people.\`,
           footer: "Cost: £0 • nothing posts without approval",
           status: "Free",
           tone: "green",
@@ -561,9 +561,9 @@ replaceOnce(
 );
 
 replaceOnce(
-`        <MetricRow left="Completed job value" right={\`£${s.completedJobValue}\`} strong={s.completedJobValue > 0} />
+`        <MetricRow left="Completed job value" right={\`£\${s.completedJobValue}\`} strong={s.completedJobValue > 0} />
         <MetricRow left="Follow-ups due" right={String(s.dueReminderEntries.length)} />`.replaceAll("\\`","\x60"),
-`        <MetricRow left="Completed job value" right={\`£${s.completedJobValue}\`} strong={s.completedJobValue > 0} />
+`        <MetricRow left="Completed job value" right={\`£\${s.completedJobValue}\`} strong={s.completedJobValue > 0} />
         <MetricRow left="Job photos attached" right={String(s.attachedJobPhotoCount)} />
         <MetricRow left="Photos reusable with permission" right={String(s.reusableJobPhotoCount)} strong={s.reusableJobPhotoCount > 0} />
         <MetricRow left="Finished-job post drafts" right={String(s.preparedPhotoPostCount)} />
