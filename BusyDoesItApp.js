@@ -545,6 +545,10 @@ function App() {
   const [jobPostChannels, setJobPostChannels] = useState({ facebook: false, instagram: false, googleBusiness: false });
   const [jobPostOutcome, setJobPostOutcome] = useState("No enquiry yet");
   const [jobPostOutcomeValue, setJobPostOutcomeValue] = useState("");
+  const [quoteFollowUpDraft, setQuoteFollowUpDraft] = useState("");
+  const [quoteFollowUpOutcome, setQuoteFollowUpOutcome] = useState("No reply yet");
+  const [reviewRequestDraft, setReviewRequestDraft] = useState("");
+  const [reviewRequestOutcome, setReviewRequestOutcome] = useState("No response yet");
   const [actionReminderDate, setActionReminderDate] = useState(addDaysISO(30));
   const [editingCustomerId, setEditingCustomerId] = useState(null);
   const [pendingRemoveCustomerId, setPendingRemoveCustomerId] = useState(null);
@@ -1409,6 +1413,186 @@ function App() {
     openCustomer(selectedCustomerId);
   };
 
+  const prepareQuoteFollowUp = (customerId) => {
+    const action = replyActions[customerId];
+    const customer =
+      customers.find((item) => item.id === customerId) ||
+      lastSimulatedRecipients.find((item) => item.id === customerId);
+    if (!customer || action?.type !== "quote" || action.details?.quoteStatus !== "Sent") return;
+    const amount = action.details?.quoteAmount;
+    const service = customer.service || "the work";
+    const draft =
+      action.details?.followUpMessage ||
+      `Hi ${customer.name.split(" ")[0]}, just checking in about the ${service.toLowerCase()} quote${amount ? ` for £${amount}` : ""}. No pressure at all — let me know if you’d like to go ahead, have any questions, or want me to leave it with you for now.`;
+    setSelectedReplyActionId(customerId);
+    setQuoteFollowUpDraft(draft);
+    setQuoteFollowUpOutcome(action.details?.followUpOutcome || "No reply yet");
+    go("quoteFollowUp");
+  };
+
+  const simulateQuoteFollowUpSend = () => {
+    const customerId = selectedReplyActionId;
+    const action = replyActions[customerId];
+    const customer =
+      customers.find((item) => item.id === customerId) ||
+      lastSimulatedRecipients.find((item) => item.id === customerId);
+    const draft = quoteFollowUpDraft.trim();
+    if (!customer || action?.type !== "quote" || !draft) return;
+    const sentAt = new Date().toISOString();
+    updateReplyAction(customerId, (current) => ({
+      ...current,
+      done: true,
+      details: {
+        ...(current.details || {}),
+        followUpMessage: draft,
+        followUpSentAt: sentAt,
+        followUpStatus: "Simulated sent",
+        followUpOutcome: "",
+        followUpOutcomeRecordedAt: null,
+        summary: `Quote follow-up prepared and marked sent for £${current.details?.quoteAmount || "—"}`,
+      },
+      completedAt: sentAt,
+    }));
+    appendCustomerActivity(customerId, {
+      kind: "quote-follow-up",
+      title: "Quote follow-up approved",
+      note: "Prototype send approved. No real message was sent.",
+      value: action.details?.quoteAmount || "",
+    });
+    setQuoteFollowUpOutcome("No reply yet");
+    go("quoteFollowUpSent");
+  };
+
+  const openQuoteFollowUpOutcome = (customerId) => {
+    const action = replyActions[customerId];
+    if (!action?.details?.followUpSentAt) return;
+    setSelectedReplyActionId(customerId);
+    setQuoteFollowUpDraft(action.details?.followUpMessage || "");
+    setQuoteFollowUpOutcome(action.details?.followUpOutcome || "No reply yet");
+    go("quoteFollowUpOutcome");
+  };
+
+  const saveQuoteFollowUpOutcome = () => {
+    const customerId = selectedReplyActionId;
+    const action = replyActions[customerId];
+    if (!action?.details?.followUpSentAt) return;
+    const recordedAt = new Date().toISOString();
+    const nextQuoteStatus =
+      quoteFollowUpOutcome === "Accepted"
+        ? "Accepted"
+        : quoteFollowUpOutcome === "Declined"
+        ? "Declined"
+        : action.details?.quoteStatus || "Sent";
+    updateReplyAction(customerId, (current) => ({
+      ...current,
+      done: true,
+      details: {
+        ...(current.details || {}),
+        quoteStatus: nextQuoteStatus,
+        followUpOutcome: quoteFollowUpOutcome,
+        followUpOutcomeRecordedAt: recordedAt,
+        summary:
+          quoteFollowUpOutcome === "Accepted"
+            ? `Quote accepted after follow-up for £${current.details?.quoteAmount || "—"}`
+            : quoteFollowUpOutcome === "Declined"
+            ? `Quote declined after follow-up for £${current.details?.quoteAmount || "—"}`
+            : `Quote follow-up outcome: ${quoteFollowUpOutcome}`,
+      },
+      completedAt: recordedAt,
+    }));
+    appendCustomerActivity(customerId, {
+      kind: "quote-follow-up",
+      title: "Quote follow-up outcome recorded",
+      note: `Recorded outcome: ${quoteFollowUpOutcome}.`,
+      value: action.details?.quoteAmount || "",
+    });
+    openCustomer(customerId);
+  };
+
+  const prepareReviewRequest = (customerId, jobId) => {
+    const customer = customers.find((item) => item.id === customerId);
+    const job = (customer?.history || []).find((item) => item.id === jobId);
+    if (!customer || !job || customer.contactOk === false) return;
+    const service = job.service || customer.service || "job";
+    const firstName = String(customer.name || "").split(" ")[0] || "there";
+    const draft =
+      job.reviewRequestDraft ||
+      `Hi ${firstName}, thanks again for choosing us for your ${service.toLowerCase()}. If you were happy with the work, would you mind leaving us a quick review? No problem at all if not — we really appreciate the business.`;
+    setSelectedCustomerId(customerId);
+    setSelectedJobId(jobId);
+    setReviewRequestDraft(draft);
+    setReviewRequestOutcome(job.reviewRequestOutcome || "No response yet");
+    go("reviewRequest");
+  };
+
+  const simulateReviewRequestSend = () => {
+    const draft = reviewRequestDraft.trim();
+    if (!draft || !selectedCustomerId || !selectedJobId) return;
+    const sentAt = new Date().toISOString();
+    setCustomers((list) =>
+      list.map((customer) => {
+        if (customer.id !== selectedCustomerId) return customer;
+        const history = (customer.history || []).map((item) =>
+          item.id === selectedJobId
+            ? {
+                ...item,
+                reviewRequestDraft: draft,
+                reviewRequestSentAt: sentAt,
+                reviewRequestStatus: "Simulated sent",
+                reviewRequestOutcome: "",
+                reviewRequestOutcomeRecordedAt: null,
+              }
+            : item
+        );
+        return { ...customer, history };
+      })
+    );
+    appendCustomerActivity(selectedCustomerId, {
+      kind: "review-request",
+      title: "Review request approved",
+      note: "Prototype send approved. No real message was sent.",
+    });
+    setReviewRequestOutcome("No response yet");
+    go("reviewRequestSent");
+  };
+
+  const openReviewRequestOutcome = (customerId, jobId) => {
+    const customer = customers.find((item) => item.id === customerId);
+    const job = (customer?.history || []).find((item) => item.id === jobId);
+    if (!customer || !job?.reviewRequestSentAt) return;
+    setSelectedCustomerId(customerId);
+    setSelectedJobId(jobId);
+    setReviewRequestDraft(job.reviewRequestDraft || "");
+    setReviewRequestOutcome(job.reviewRequestOutcome || "No response yet");
+    go("reviewRequestOutcome");
+  };
+
+  const saveReviewRequestOutcome = () => {
+    if (!selectedCustomerId || !selectedJobId) return;
+    const recordedAt = new Date().toISOString();
+    setCustomers((list) =>
+      list.map((customer) => {
+        if (customer.id !== selectedCustomerId) return customer;
+        const history = (customer.history || []).map((item) =>
+          item.id === selectedJobId
+            ? {
+                ...item,
+                reviewRequestOutcome,
+                reviewRequestOutcomeRecordedAt: recordedAt,
+              }
+            : item
+        );
+        return { ...customer, history };
+      })
+    );
+    appendCustomerActivity(selectedCustomerId, {
+      kind: "review-request",
+      title: "Review request outcome recorded",
+      note: `Recorded outcome: ${reviewRequestOutcome}.`,
+    });
+    openCustomer(selectedCustomerId);
+  };
+
   const markReminderDone = (customerId) => {
     updateReplyAction(customerId, (action) => ({
       ...action,
@@ -1709,6 +1893,10 @@ function App() {
     setJobPostChannels({ facebook: false, instagram: false, googleBusiness: false });
     setJobPostOutcome("No enquiry yet");
     setJobPostOutcomeValue("");
+    setQuoteFollowUpDraft("");
+    setQuoteFollowUpOutcome("No reply yet");
+    setReviewRequestDraft("");
+    setReviewRequestOutcome("No response yet");
     setAdvanced(false);
     setHistory([]);
     setTab("Home");
