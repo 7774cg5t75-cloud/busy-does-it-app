@@ -510,6 +510,7 @@ function App() {
   const [newEnquiryService, setNewEnquiryService] = useState("Driveway cleaning");
   const [newEnquiryCustomService, setNewEnquiryCustomService] = useState("");
   const [newEnquiryNote, setNewEnquiryNote] = useState("");
+  const [newEnquiryDate, setNewEnquiryDate] = useState(dateToISO(new Date()));
   const [customerNoteText, setCustomerNoteText] = useState("");
   const [services, setServices] = useState(servicesSeed);
   const [newServiceName, setNewServiceName] = useState("");
@@ -534,6 +535,7 @@ function App() {
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [actionQuoteAmount, setActionQuoteAmount] = useState("");
   const [actionQuoteMessage, setActionQuoteMessage] = useState("");
+  const [actionQuoteSentDate, setActionQuoteSentDate] = useState(dateToISO(new Date()));
   const [actionBookingDate, setActionBookingDate] = useState(nextDateForSlot("Thursday afternoon"));
   const [actionBookingTime, setActionBookingTime] = useState(defaultTimeForSlot("Thursday afternoon"));
   const [actionJobValue, setActionJobValue] = useState("");
@@ -547,6 +549,8 @@ function App() {
   const [jobPostOutcomeValue, setJobPostOutcomeValue] = useState("");
   const [quoteFollowUpDraft, setQuoteFollowUpDraft] = useState("");
   const [quoteFollowUpOutcome, setQuoteFollowUpOutcome] = useState("No reply yet");
+  const [enquiryFollowUpDraft, setEnquiryFollowUpDraft] = useState("");
+  const [enquiryFollowUpOutcome, setEnquiryFollowUpOutcome] = useState("No reply yet");
   const [reviewRequestDraft, setReviewRequestDraft] = useState("");
   const [reviewRequestOutcome, setReviewRequestOutcome] = useState("No response yet");
   const [actionReminderDate, setActionReminderDate] = useState(addDaysISO(30));
@@ -868,6 +872,11 @@ function App() {
         saved?.details?.message ||
           `Hi ${customer.name.split(" ")[0]}, thanks for getting back to us. The quote for ${customer.service.toLowerCase()} is £${amount || "—"}. Let me know if you’d like to go ahead.`
       );
+      setActionQuoteSentDate(
+        saved?.details?.quoteSentAt
+          ? String(saved.details.quoteSentAt).slice(0, 10)
+          : dateToISO(new Date())
+      );
     } else if (type === "booking") {
       setActionBookingDate(saved?.details?.bookingDate || nextDateForSlot(quietSlot));
       setActionBookingTime(saved?.details?.bookingTime || defaultTimeForSlot(quietSlot));
@@ -968,7 +977,7 @@ function App() {
         quoteStatus,
         quoteSentAt:
           quoteStatus === "Sent"
-            ? action.details?.quoteSentAt || new Date().toISOString()
+            ? new Date(`${actionQuoteSentDate || dateToISO(new Date())}T12:00:00`).toISOString()
             : action.details?.quoteSentAt,
         summary:
           quoteStatus === "Prepared"
@@ -1768,6 +1777,7 @@ function App() {
     setNewEnquiryService(preferred?.name || trade || "Service");
     setNewEnquiryCustomService("");
     setNewEnquiryNote("");
+    setNewEnquiryDate(dateToISO(new Date()));
     go("newEnquiry");
   };
 
@@ -1778,6 +1788,7 @@ function App() {
     const service = newEnquiryCustomService.trim() || newEnquiryService.trim() || services[0]?.name || trade || "Service";
     if (!name || !phone) return false;
     const id = `enquiry-${Date.now()}`;
+    const receivedAt = new Date(`${newEnquiryDate || dateToISO(new Date())}T12:00:00`).toISOString();
     const now = new Date().toISOString();
     const customer = {
       id,
@@ -1789,13 +1800,13 @@ function App() {
       lastJobValue: 0,
       contactOk: true,
       source: "New enquiry",
-      createdAt: now,
+      createdAt: receivedAt,
       activity: [
         {
           id: `activity-${id}-created`,
           kind: "enquiry",
-          date: dateToISO(new Date()),
-          createdAt: now,
+          date: newEnquiryDate || dateToISO(new Date()),
+          createdAt: receivedAt,
           title: "New enquiry added",
           note: newEnquiryNote.trim() || `Enquiry for ${service}.`,
           value: "",
@@ -1808,7 +1819,9 @@ function App() {
     setNewEnquiryPhone("");
     setNewEnquiryAddress("");
     setNewEnquiryCustomService("");
+    setNewEnquiryDate(dateToISO(new Date()));
     setNewEnquiryNote("");
+    setNewEnquiryDate(dateToISO(new Date()));
     go("customerDetail");
     return true;
   };
@@ -1876,6 +1889,7 @@ function App() {
     setSelectedCustomerId(null);
     setActionJobValue("");
     setActionJobNote("");
+    setActionQuoteSentDate(dateToISO(new Date()));
     setSelectedJobId(null);
     setPendingJobPhotos([]);
     setJobPhotosMarketingOk(false);
@@ -1895,6 +1909,8 @@ function App() {
     setJobPostOutcomeValue("");
     setQuoteFollowUpDraft("");
     setQuoteFollowUpOutcome("No reply yet");
+    setEnquiryFollowUpDraft("");
+    setEnquiryFollowUpOutcome("No reply yet");
     setReviewRequestDraft("");
     setReviewRequestOutcome("No response yet");
     setAdvanced(false);
