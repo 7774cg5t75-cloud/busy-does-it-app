@@ -2,19 +2,17 @@
 
 Busy Does It mobile app prototype.
 
-## v0.6
-- Starting point: tested v0.5 customer-record flow.
-- Focus: turn simulated reply outcomes into clear next actions for the business owner.
-- Continue using GitHub → clean Snack preview → direct Expo QR for testing.
+## v0.6 big sweep
+- Reply actions now open real prototype workflows instead of being simple labels.
+- Interested customers can move into a quote-preparation flow.
+- Booked customers can move into a booking date/time flow.
+- “Not now” customers can get a future follow-up date.
+- The built-in UK calendar now supports both past dates and future booking/reminder dates.
+- Customer records can be edited.
+- Customer deletion now requires confirmation and cleans up related follow-up state.
+- The global “Contact previous customers” control now actually changes eligibility.
+- Results now includes locally calculated customer-action activity.
+- Old v0.6 marked-done actions are migrated back to pending so the richer workflows can be tested.
+- Simulation wording has been tightened so prototype actions are not mistaken for real sends or live account connections.
+- Testing workflow remains GitHub → clean Snack preview → direct Expo QR.
 
-## v0.5
-- Adds locally stored individual customer records.
-- Previous-customer recommendations are calculated from those records instead of typed customer counts.
-- Current eligibility rule: contact permission is on and the last recorded job was at least 9 months ago.
-- Adds customer list, add-customer, eligible-customer review and record removal flows.
-- The reactivation recipient list is real local prototype data; sending messages and campaign outcomes remain simulated.
-- Keeps the automatic GitHub → clean Snack preview → direct Expo QR testing workflow.
-
-## v0.4
-- Added editable locally saved business data.
-- Home opportunities react to saved business inputs.
