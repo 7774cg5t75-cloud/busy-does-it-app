@@ -2150,16 +2150,16 @@ function HomeScreen({ s }) {
     ...(s.pendingReplyActionCount
       ? [{
           id: "reply-actions",
-          eyebrow: "Customer replies",
-          title: `${s.pendingReplyActionCount} repl${s.pendingReplyActionCount === 1 ? "y needs" : "ies need"} your attention`,
-          body: "Busy Does It has turned the simulated replies into a short action list so nothing useful gets lost.",
-          footer: "Next step: handle the customer replies",
+          eyebrow: "Customer work",
+          title: `${s.pendingReplyActionCount} customer action${s.pendingReplyActionCount === 1 ? " needs" : "s need"} your attention`,
+          body: "Quotes, bookings and follow-ups stay visible until you deal with them — whether they came from a simulated marketing reply or were started directly from a customer record.",
+          footer: "Next step: handle the customer work",
           status: "Action needed",
           tone: "green",
-          why: "A reply is only valuable if it turns into a clear next step. Busy Does It keeps interested and booked customers visible until you deal with them.",
+          why: "A lead or customer conversation is only valuable if it turns into a clear next step. Busy Does It keeps unfinished customer work visible.",
           evidence: [
-            ["Pending reply actions", String(s.pendingReplyActionCount)],
-            ["Source", "Your latest simulated send"],
+            ["Pending customer actions", String(s.pendingReplyActionCount)],
+            ["Source", "Customer records and prototype activity"],
             ["Advertising required", "£0"],
           ],
           onAction: () => s.go("replyActions"),
