@@ -2131,6 +2131,21 @@ function HomeScreen({ s }) {
       )
     );
   const nextBooking = upcomingBookings[0] || null;
+  const activeQuoteEntries = Object.entries(s.replyActions || {})
+    .map(([id, action]) => {
+      if (
+        action?.type !== "quote" ||
+        !action?.done ||
+        !["Prepared", "Sent", "Accepted"].includes(action.details?.quoteStatus || "Prepared")
+      ) return null;
+      const customer =
+        s.customers.find((item) => item.id === id) ||
+        s.lastSimulatedRecipients.find((item) => item.id === id);
+      return customer ? { id, action, customer } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => String(b.action.completedAt || "").localeCompare(String(a.action.completedAt || "")));
+  const priorityQuote = activeQuoteEntries[0] || null;
   const opportunities = [
     ...(s.pendingReplyActionCount
       ? [{
@@ -2241,6 +2256,20 @@ function HomeScreen({ s }) {
             {nextBooking.customer.service} • {formatUKDate(nextBooking.action.details.bookingDate)} at {nextBooking.action.details.bookingTime || "time not set"}
           </Text>
           <Text style={styles.homePriorityLink}>Open booking →</Text>
+        </Pressable>
+      ) : null}
+
+      {!s.dueReminderEntries.length && !nextBooking && priorityQuote ? (
+        <Pressable onPress={() => s.openSavedReplyAction(priorityQuote.id)} style={styles.customerTimelineCard}>
+          <View style={styles.homePriorityTop}>
+            <Text style={styles.homePriorityEyebrow}>ACTIVE QUOTE</Text>
+            <StatusChip label={priorityQuote.action.details?.quoteStatus || "Prepared"} tone="green" />
+          </View>
+          <Text style={styles.homePriorityTitle}>{priorityQuote.customer.name}</Text>
+          <Text style={styles.homePriorityBody}>
+            {priorityQuote.customer.service} • £{priorityQuote.action.details?.quoteAmount || "—"}
+          </Text>
+          <Text style={styles.homePriorityLink}>Open quote →</Text>
         </Pressable>
       ) : null}
 
@@ -3658,7 +3687,7 @@ function WorkPlan({ s }) {
       title: "Best opportunity right now",
       subtitle: "Busy Does It chooses the strongest low-cost move from the demo data.",
       steps: [
-        ["Best now", "Contact 12 previous customers", "They are overdue and already know the business.", "Advertising spend: £0"],
+        ["Best now", `Review ${s.eligibleCustomers.length} eligible previous customer${s.eligibleCustomers.length === 1 ? "" : "s"}`, "Use the current service-specific timing rules rather than a blanket repeat interval.", "Advertising spend: £0"],
         ["Next", "Follow up old enquiries", "Only if more work is still needed.", "Advertising spend: £0"],
         ["Later", "Consider a paid test", "Only after the cheaper steps.", `Maximum test: £${s.testLimit}`],
       ],
@@ -3997,7 +4026,7 @@ function ConfirmRemoveCustomer({ s }) {
         <Card
           eyebrow="Customer record"
           title={customer.name}
-          body={`${customer.service} • Last job ${formatUKDate(customer.lastServiceDate)}`}
+          body={customer.lastServiceDate ? `${customer.service} • Last job ${formatUKDate(customer.lastServiceDate)}` : `${customer.service} • No completed job recorded`}
           footer="This also removes any saved follow-up action for this customer."
           tone="amber"
         />
@@ -4031,8 +4060,8 @@ function EligibleCustomers({ s }) {
         title={`${eligible.length} customer${eligible.length === 1 ? "" : "s"} selected`}
         body={
           eligible.length
-            ? `They will be split into ${groupCount} service-specific message group${groupCount === 1 ? "" : "s"} before sending.`
-            : "Contact permission is on, and the last recorded job must be at least 9 months ago."
+            ? `They will be split into ${groupCount} service-specific message group${groupCount === 1 ? "" : "s"} before sending. ${s.eligibilityRule}`
+            : `No saved customer currently meets the rule: ${s.eligibilityRule}`
         }
         footer="Advertising spend: £0"
         tone="green"
@@ -4076,7 +4105,7 @@ function CustomerGroups({ s }) {
       <Card
         eyebrow="Due now"
         title={`${eligible.length} eligible customer${eligible.length === 1 ? "" : "s"}`}
-        body="Contact permission is on and their last recorded job was at least 9 months ago."
+        body={s.eligibilityRule}
         footer="Recommended first"
         tone="green"
       />
@@ -4253,10 +4282,12 @@ function Results({ s }) {
         body="This total comes from locally saved prepared, sent or accepted quote actions in the prototype."
         tone="green"
       >
+        <MetricRow left="Open enquiries" right={String(s.openEnquiryCount)} />
         <MetricRow left="Quotes prepared" right={String(quotePrepared)} />
         <MetricRow left="Quotes sent (simulated)" right={String(quoteSent)} />
         <MetricRow left="Quotes accepted" right={String(quoteAccepted)} />
         <MetricRow left="Confirmed bookings" right={String(confirmedBookings)} />
+        <MetricRow left="Booked work value" right={`£${s.bookedWorkValue}`} strong={s.bookedWorkValue > 0} />
         <MetricRow left="Completed jobs" right={String(completedJobs)} />
         <MetricRow left="Completed job value" right={`£${s.completedJobValue}`} strong={s.completedJobValue > 0} />
         <MetricRow left="Follow-ups due" right={String(s.dueReminderEntries.length)} />
