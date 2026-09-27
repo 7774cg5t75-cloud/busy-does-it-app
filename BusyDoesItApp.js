@@ -1093,6 +1093,27 @@ function App() {
     });
   };
 
+  const rescheduleReminder = (customerId, reminderDate) => {
+    updateReplyAction(customerId, (action) => ({
+      ...action,
+      done: true,
+      details: {
+        ...(action.details || {}),
+        reminderDate,
+        reminderStatus: "Scheduled",
+        reminderCompletedAt: null,
+        summary: `Follow up on ${formatUKDate(reminderDate)}`,
+      },
+      completedAt: new Date().toISOString(),
+    }));
+    setActionReminderDate(reminderDate);
+    appendCustomerActivity(customerId, {
+      kind: "reminder",
+      title: "Follow-up rescheduled",
+      note: `New follow-up date: ${formatUKDate(reminderDate)}.`,
+    });
+  };
+
   const completeReplyAction = (customerId, details = {}) => {
     const action = replyActions[customerId];
     setReplyActions((current) => ({
@@ -1550,6 +1571,7 @@ function App() {
     setBookingStatus,
     markBookingCompleted,
     markReminderDone,
+    rescheduleReminder,
     completeReplyAction,
     selectedReplyActionId,
     setSelectedReplyActionId,
@@ -3807,6 +3829,30 @@ function ReplyActionDetail({ s }) {
           />
         ) : null}
 
+        <Text style={styles.fieldLabel}>Quick follow-up</Text>
+        <View style={styles.timeChoiceWrap}>
+          {[
+            [7, "1 week"],
+            [14, "2 weeks"],
+            [30, "1 month"],
+            [60, "2 months"],
+          ].map(([days, label]) => {
+            const presetDate = addDaysISO(days);
+            const selected = s.actionReminderDate === presetDate;
+            return (
+              <Pressable
+                key={days}
+                onPress={() => s.setActionReminderDate(presetDate)}
+                style={[styles.timeChoice, selected && styles.timeChoiceSelected]}
+              >
+                <Text style={[styles.timeChoiceText, selected && styles.timeChoiceTextSelected]}>
+                  {label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
         <DatePickerField
           label="Follow-up date"
           value={s.actionReminderDate}
@@ -3827,7 +3873,15 @@ function ReplyActionDetail({ s }) {
           }
         />
         {saved.done && reminderStatus !== "Completed" ? (
-          <Button label={reminderDue ? "Mark follow-up done" : "Mark done now"} onPress={() => s.markReminderDone(customer.id)} />
+          <>
+            {reminderDue ? (
+              <Button
+                label="Snooze 7 days"
+                onPress={() => s.rescheduleReminder(customer.id, addDaysISO(7))}
+              />
+            ) : null}
+            <Button label={reminderDue ? "Mark follow-up done" : "Mark done now"} onPress={() => s.markReminderDone(customer.id)} />
+          </>
         ) : null}
         <Button label="Open customer" onPress={() => s.openCustomer(customer.id)} />
         <Button label="Cancel" onPress={s.back} />
