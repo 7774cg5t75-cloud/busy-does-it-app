@@ -3743,7 +3743,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={styles.brand}>BUSY DOES IT</Text>
             <Text style={styles.tagline}>More work. Less fuss.</Text>
-            <Text style={styles.prototypeBadge}>Prototype v1.9 • smart intake + duplicate prevention</Text>
+            <Text style={styles.prototypeBadge}>Prototype v2.0 • Busy Inbox + automatic triage</Text>
           </View>
           {!noBack && s.history?.length > 0 ? (
             <Pressable onPress={s.back} style={styles.backPill}>
@@ -9024,12 +9024,12 @@ function Settings({ s }) {
 
 function HowBusyWorks({ s }) {
   return (
-    <Shell s={s} title="How Busy Does It works" subtitle="Simple on the surface. Serious marketing logic underneath.">
-      <Card eyebrow="1" title="Start with the business problem" body="Tell us you need work, have a quiet day, want old customers back or want to run an offer. You do not build a marketing campaign." />
-      <Card eyebrow="2" title="Check the cheapest sensible moves first" body="We can check free profile improvements, previous customers, old enquiries, quotes, cross-sells and other low-cost opportunities before paid advertising." />
-      <Card eyebrow="3" title="Explain the recommendation" body="The normal screen gives you the simple answer. Tap “Why this?” for the reasoning, or Expert details for the evidence and assumptions." />
-      <Card eyebrow="4" title="You control what gets sent and spent" body="Important sends and paid actions require approval unless you deliberately choose a different rule." />
-      <Card eyebrow="5" title="Measure work, not vanity" body="Results lead with genuine enquiries, bookings, jobs won and revenue. Technical metrics remain available for people who want them." />
+    <Shell s={s} title="How Busy Does It works" subtitle="Simple on the surface. Serious business logic underneath.">
+      <Card eyebrow="1" title="Incoming information gets sorted first" body="Messages, notes and future connected-app events should land in Busy Inbox. Busy extracts what it can, checks for duplicates and flags anything uncertain before it changes the records." />
+      <Card eyebrow="2" title="The business records stay organised" body="Enquiries, quotes, bookings, completed jobs, follow-ups and repeat timing update the same customer/work picture instead of becoming separate admin jobs." />
+      <Card eyebrow="3" title="Busy ranks the best next move" body="Live customer commitments, £0 opportunities and prepared actions compete underneath Home so the owner normally sees one clear priority." />
+      <Card eyebrow="4" title="You control important actions" body="Customer messages, public posts and paid spend still require the appropriate approval. Busy prepares underneath without pretending approval happened." />
+      <Card eyebrow="5" title="Outcomes improve later recommendations" body="Results focus on enquiries, quotes, bookings, completed work and recorded value. Outcomes feed gently back into future ranking rather than rewarding vanity activity." />
       <Button label="Done" primary onPress={s.back} />
     </Shell>
   );
@@ -9038,6 +9038,7 @@ function HowBusyWorks({ s }) {
 function WhatMakesDifferent({ s }) {
   return (
     <Shell s={s} title="What makes Busy Does It different" subtitle="Concrete design choices — not hype.">
+      <Card eyebrow="Triage first" title="Incoming information becomes organised work" body="Busy Inbox is designed to receive candidate information from messages, notes and future connections, match it to the right customer and only interrupt the owner when review is useful." />
       <Card eyebrow="Goal first" title="You tell us the problem, not the channel" body="The app chooses or recommends the marketing method underneath instead of forcing you to decide between ads, email, social or audiences." />
       <Card eyebrow="Cost first" title="Free and low-cost opportunities come before paid reach" body="The app can recommend spending nothing when that is the more sensible first move." />
       <Card eyebrow="Control" title="The maximum at risk is obvious" body="Paid advertising is treated as a test. You see the cap before approval and the app stops at the agreed limit." />
