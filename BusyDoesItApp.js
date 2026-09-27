@@ -7336,6 +7336,16 @@ function BusyInbox({ s }) {
           <Text style={styles.customerHistoryPhotoMeta}>
             Passes Safe Autopilot rules — {s.recordFilingMode === "safe" ? "eligible to be handled automatically" : "automatic filing is currently off"}
           </Text>
+        ) : s.recordFilingMode === "safe" && item.autoEvaluation?.reason ? (
+          <Text style={styles.customerHistoryPhotoMeta}>
+            Safe Autopilot stopped: {item.autoEvaluation.reason}
+          </Text>
+        ) : null}
+        {s.recordFilingMode === "safe" && item.autoEvaluation?.safe ? (
+          <Button
+            label="Let Busy file this safely"
+            onPress={() => s.fileSafeInboxItem(item, item.autoEvaluation)}
+          />
         ) : null}
         <View style={styles.customerActionsRow}>
           <Pressable onPress={() => s.openInboxItem(item.id)} style={styles.customerOpenWrap}>
@@ -7773,16 +7783,17 @@ function IntakeHistory({ s }) {
       s={s}
       title="Intake history"
       subtitle="A simple audit trail of information Busy turned into customer/work records."
-      brandCue="Know what came in, where it came from and whether it was merged."
+      brandCue="Know what came in, whether it was merged, and whether you or Safe Autopilot filed it."
     >
       <Card
         eyebrow="Quick capture"
         title={`${items.length} item${items.length === 1 ? "" : "s"} processed`}
-        body="This is local prototype history. Future email, calendar, CRM or invoicing connectors can use the same reviewed intake path."
+        body="This is local prototype history. Future email, calendar, CRM or invoicing connectors can use the same intake path while keeping the filing authority visible."
         tone="green"
       >
         <MetricRow left="New customer records created" right={String(s.intakeCreatedCount)} />
         <MetricRow left="Merged into existing customers" right={String(s.intakeMergedCount)} />
+        <MetricRow left="Filed by Safe Autopilot" right={String(s.inboxAutoFiledCount)} strong={s.inboxAutoFiledCount > 0} />
       </Card>
 
       {items.map((item) => (
@@ -7796,7 +7807,10 @@ function IntakeHistory({ s }) {
               <Text style={styles.activityName}>{item.customerName}</Text>
               <Text style={styles.activityService}>{item.stage} • {item.source}</Text>
             </View>
-            <StatusChip label={item.matchedExisting ? "Merged" : "Created"} tone={item.matchedExisting ? "green" : "blue"} />
+            <StatusChip
+              label={item.autoFiled ? "Auto-filed" : item.matchedExisting ? "Merged" : "Created"}
+              tone={item.matchedExisting ? "green" : "blue"}
+            />
           </View>
           <Text style={styles.activitySummary}>
             {formatUKDate(item.eventDate)} • extraction {String(item.confidence || "unknown").toLowerCase()} confidence
@@ -9709,9 +9723,9 @@ function ConnectedAccounts({ s }) {
   return (
     <Shell s={s} title="Connected accounts" subtitle="Prototype toggles only — no real external account is connected yet.">
       <Card
-        eyebrow="v2.0 Inbox architecture"
-        title="Future connections should land here before they touch the records"
-        body="Email, calendar, CRM and invoicing connections should create candidate items in Busy Inbox. Busy can triage, match and flag uncertainty first; filing rules can become more automatic later without bypassing owner controls."
+        eyebrow="v2.1 trusted intake architecture"
+        title="Future connections should feed Inbox, then use the same trust rules"
+        body="Email, calendar, CRM and invoicing connections should create candidate items in Busy Inbox. Safe Autopilot may file only the narrow class of exact, high-confidence existing-customer updates you have allowed; exceptions stay for review."
         footer="No external inbox or account is being read in this prototype"
         tone="green"
       />
