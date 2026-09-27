@@ -299,7 +299,7 @@ function replyActionForStatus(status) {
 const previousCustomerGroups = [
   {
     id: "lapsed",
-    title: "21 customers who haven’t booked in 9+ months",
+    title: "Previous customers who may be due again",
     reason: "They already know your business, so they’re a low-cost place to start.",
   },
   {
@@ -338,24 +338,23 @@ const connectionRows = [
 const campaignSteps = [
   {
     id: "past-customers",
-    title: "Contact 12 previous customers",
-    audience: "12 previous customers",
-    cost: "about £1.20",
+    title: "Contact eligible previous customers",
+    audience: "Eligible previous customers",
+    cost: "low direct-message cost",
     adSpend: "£0",
     message:
-      "Hi, we’ve got a slot free this Thursday for driveway or patio cleaning. If you’d like a quote or want to book it, just reply here.",
+      "Hi, we’ve got some availability coming up for your usual service. If you’d like a quote or want to book it, just reply here.",
     why:
-      "They already know your business, 12 are overdue for another service, and contacting them costs almost nothing. That is why we try this before paying for advertising.",
+      "They already know your business and the service timing says they may be due again. That is why we try this before paying for advertising.",
     evidence: [
-      ["Eligible previous customers", "12"],
-      ["Time since last booking", "10+ months"],
-      ["Estimated message cost", "£1.20"],
+      ["Eligibility", "Service-specific repeat timing"],
+      ["Existing relationship", "Yes"],
       ["Advertising required", "£0"],
-      ["Confidence", "Medium–high"],
+      ["Confidence", "Depends on saved history"],
     ],
-    resultTitle: "1 job booked",
-    resultBody: "12 contacted • 4 replied • 2 interested. One part of the quiet period is filled.",
-    resultFooter: "Booked job value: about £260",
+    resultTitle: "Customer reactivation tested",
+    resultBody: "The prototype tracks replies, useful interest and bookings in plain English.",
+    resultFooter: "Advertising spend: £0",
   },
   {
     id: "old-enquiries",
@@ -364,7 +363,7 @@ const campaignSteps = [
     cost: "£0 ad spend",
     adSpend: "£0",
     message:
-      "Hi, you asked us about exterior cleaning a little while ago. We’ve got a space coming up and I wanted to check whether you still wanted a quote. No problem if not.",
+      "Hi, you asked us about some work a little while ago. We’ve got some availability coming up and I wanted to check whether you still wanted a quote. No problem if not.",
     why:
       "These people already showed interest, so following them up is cheaper and lower-risk than buying new attention.",
     evidence: [
@@ -384,7 +383,7 @@ const campaignSteps = [
     cost: "£0 ad spend",
     adSpend: "£0",
     message:
-      "Hi, we quoted for your exterior cleaning previously. We’ve had a space open up and can still help if the job is on your list. Reply if you’d like us to revisit the quote.",
+      "Hi, we quoted for some work previously. We’ve had a space open up and can still help if the job is still on your list. Reply if you’d like us to revisit the quote.",
     why:
       "A quote means the customer got further than a normal enquiry. It is worth checking before spending money on new leads.",
     evidence: [
@@ -399,19 +398,19 @@ const campaignSteps = [
   },
   {
     id: "cross-sell",
-    title: "Offer a gutter add-on to 6 customers",
-    audience: "6 nearby previous customers",
+    title: "Offer a relevant add-on",
+    audience: "Suitable previous customers",
     cost: "message cost only",
     adSpend: "£0",
     message:
-      "Hi, we’ll already be working nearby and have a small gap available. If your gutters need clearing, we can quote for that while we’re in the area. Reply if useful.",
+      "Hi, we’ll already be working nearby and may have room for another service while we’re in the area. Reply if you’d like us to take a look.",
     why:
-      "These are existing customers near work you already have. A relevant add-on can fill small gaps without paying to reach strangers.",
+      "A relevant add-on can sometimes fill small gaps without paying to reach strangers, but only when it genuinely fits the business and customer.",
     evidence: [
-      ["Nearby previous customers", "6"],
-      ["Relevant add-on", "Gutter clearing"],
+      ["Audience", "Existing suitable customers"],
+      ["Add-on", "Chosen from the business service list"],
       ["Advertising required", "£0"],
-      ["Confidence", "Medium"],
+      ["Confidence", "Depends on service fit"],
     ],
     resultTitle: "Free options exhausted",
     resultBody: "6 customers contacted • no booking for the remaining space. We have now tried the sensible low-cost options first.",
@@ -2159,11 +2158,11 @@ function HomeScreen({ s }) {
       footer: "Recommended first move: £0 advertising spend",
       status: eligibleCount ? "Worth trying" : "No one due",
       tone: eligibleCount ? "green" : "blue",
-      why: "Busy Does It checks actual saved customer records first. A customer is eligible when contact is allowed and their last recorded job was at least 9 months ago.",
+      why: `Busy Does It checks actual saved customer records first. The timing rule comes from the service rather than assuming every business repeats on the same schedule. Current rule: ${s.eligibilityRule}`,
       evidence: [
         ["Saved customer records", String(customerCount)],
         ["Eligible now", String(eligibleCount)],
-        ["Eligibility rule", "9+ months + contact allowed"],
+        ["Eligibility rule", s.eligibilityRule],
         ["Advertising required", "£0"],
       ],
       onAction: () => s.go("bestMove"),
@@ -2421,8 +2420,8 @@ function BestMove({ s }) {
         title={count ? `Review ${count} previous customer${count === 1 ? "" : "s"}` : "No previous customers are due yet"}
         body={
           count
-            ? `You have ${s.quietSlot || "a quiet slot"} to fill and ${count} customer records meet the current 9-month contact rule.`
-            : "No saved customer currently meets the 9-month rule with contact permission switched on."
+            ? `You have ${s.quietSlot || "a quiet slot"} to fill and ${count} customer records meet the current service-specific reactivation rule.`
+            : `No saved customer currently meets the reactivation rule. ${s.eligibilityRule}`
         }
         footer="Advertising spend: £0"
         status={count ? "Best first move" : "Nothing to send"}
@@ -2433,7 +2432,7 @@ function BestMove({ s }) {
         evidence={[
           ["Customer records", String(s.customers.length)],
           ["Eligible now", String(count)],
-          ["Rule", "9+ months + contact allowed"],
+          ["Rule", s.eligibilityRule],
           ["Advertising required", "£0"],
         ]}
       />
@@ -2450,7 +2449,9 @@ function WhyBestMove({ s }) {
       <Card
         eyebrow="Why we picked it"
         title="Previous customers are the lowest-risk first move"
-        body="They already know your business, 12 are overdue for another service, and contacting them costs almost nothing. That is why we try this before paying for advertising."
+        body={s.eligibleCustomers.length
+          ? `${s.eligibleCustomers.length} previous customer${s.eligibleCustomers.length === 1 ? "" : "s"} currently match the service-specific reactivation timing and contact rules. They already know the business, so this can be a lower-cost first move than paid advertising.`
+          : `Nobody currently matches the reactivation rule: ${s.eligibilityRule}`}
         footer="Simple answer first"
         tone="green"
       />
@@ -2468,11 +2469,11 @@ function WhyBestMove({ s }) {
 function ExpertBestMove({ s }) {
   return (
     <Shell s={s} title="Expert details" subtitle="The evidence behind this recommendation. You never need this screen to use Busy Does It.">
-      <Card eyebrow="Recommendation proof" title="Contact 12 previous customers first" tone="green">
-        <MetricRow left="Eligible previous customers" right="12" />        <MetricRow left="Time since last booking" right="10+ months" />
-        <MetricRow left="Estimated direct message cost" right="£1.20" />
+      <Card eyebrow="Recommendation proof" title={`Review ${s.eligibleCustomers.length} eligible previous customer${s.eligibleCustomers.length === 1 ? "" : "s"} first`} tone="green">
+        <MetricRow left="Eligible previous customers" right={String(s.eligibleCustomers.length)} />
+        <MetricRow left="Timing rule" right={s.eligibilityRule} />
         <MetricRow left="Advertising spend required" right="£0" />
-        <MetricRow left="Recommendation confidence" right="Medium–high" strong />
+        <MetricRow left="Recommendation confidence" right={s.eligibleCustomers.length ? "Medium" : "Low"} strong />
       </Card>
       <Card
         eyebrow="Decision logic"
@@ -2537,7 +2538,7 @@ function ProfileAudit({ s }) {
 function ProfileAuditPlan({ s }) {
   const serviceName = s.selectedService?.name || s.services.find((x) => x.wanted)?.name || s.trade || "your priority service";
   return (
-    <Shell s={s} title="Free improvements first" subtitle="Nothing changes publicly in v0.4. These are preparation steps only.">
+    <Shell s={s} title="Free improvements first" subtitle="Nothing changes publicly in v0.8. These are preparation steps only.">
       <Card eyebrow="Step 1" title={`Check ${serviceName}`} body="Prepare clearer service wording and review it before anything is published." footer="Simulated preparation" />
       <Card eyebrow="Step 2" title={`Choose ${s.recentPhotoCountNeeded || 0} recent photo${String(s.recentPhotoCountNeeded) === "1" ? "" : "s"}`} body="Use recent before-and-after proof that represents the work accurately." footer="Simulated preparation" />
       <Card eyebrow="Step 3" title={`Prepare ${s.unansweredReviewCount || 0} review repl${String(s.unansweredReviewCount) === "1" ? "y" : "ies"}`} body="Draft short genuine replies in the business’s normal tone." footer="Simulated preparation" />
@@ -2564,6 +2565,7 @@ function ProfileAuditWhy({ s }) {
 }
 
 function ExpertProfileAudit({ s }) {
+  const serviceName = s.selectedService?.name || s.services.find((item) => item.wanted)?.name || s.trade || "your priority service";
   return (
     <Shell s={s} title="Expert audit details" subtitle="What was checked, what triggered the recommendation, and how certain we are.">
       <Card eyebrow="Sources checked" title="Current business presence">
@@ -2572,9 +2574,9 @@ function ExpertProfileAudit({ s }) {
         <MetricRow left="Facebook / Instagram" right="Checked" />
         <MetricRow left="Calendar / CRM" right="Not needed here" />
       </Card>
-      <Card eyebrow="Finding 1" title="Service coverage gap" body="Patio cleaning appears in the service list used by the app but is not clearly represented in the simulated Google Business profile." footer="Confidence: High" />
-      <Card eyebrow="Finding 2" title="Recent visual proof is limited" body="The simulated profile contains no recent before-and-after photo pair for patio or driveway cleaning." footer="Confidence: Medium" />
-      <Card eyebrow="Finding 3" title="Unanswered reviews" body="Four recent simulated reviews have no owner response." footer="Confidence: High" />
+      <Card eyebrow="Finding 1" title="Service coverage gap" body={`${serviceName} is a priority service in the app but is not clearly represented in the simulated public profile.`} footer="Confidence: High" />
+      <Card eyebrow="Finding 2" title="Recent proof is limited" body="The simulated profile does not show enough recent proof of the priority work. The exact evidence should adapt to the business type rather than assume before-and-after cleaning photos." footer="Confidence: Medium" />
+      <Card eyebrow="Finding 3" title="Unanswered reviews" body={`${s.unansweredReviewCount || 0} simulated reviews have no owner response.`} footer="Confidence: High" />
       <Card eyebrow="Important" title="A recommendation must be justifiable" body="In the live product, Busy Does It should show the real source, date, evidence and uncertainty. If the evidence is weak, it should lower confidence or say it does not know." tone="amber" />
       <Button label="Done" primary onPress={s.back} />
     </Shell>
@@ -2585,7 +2587,7 @@ function OtherOptions({ s }) {
   const options = [
     [1, "Follow up 4 old enquiries", "£0 ad spend", "People who asked before but never booked."],
     [2, "Revisit 3 old quotes", "£0 ad spend", "Quotes that are still worth trying."],
-    [3, "Offer a gutter add-on", "£0 ad spend", "A relevant cross-sell to nearby previous customers."],
+    [3, "Offer a relevant add-on", "£0 ad spend", "A service-aware cross-sell only when it genuinely fits the customer."],
   ];
   return (
     <Shell s={s} title="Other options" subtitle="Still cheap-first. Paid advertising stays at the bottom of the list.">
@@ -2624,7 +2626,7 @@ function CheckSend({ s }) {
           evidence: [
             ["Selected customer records", String(eligibleCount)],
             ["Service-specific drafts", String(serviceGroupCount)],
-            ["Eligibility rule", "9+ months + contact allowed"],
+            ["Eligibility rule", s.eligibilityRule],
             ["Advertising required", "£0"],
           ],
         }
@@ -2650,8 +2652,8 @@ function CheckSend({ s }) {
       title="Check before sending"
       subtitle={
         s.campaignStage === 0
-          ? "Each eligible customer now gets a draft matched to their previous service. Sending is still simulated in v0.5."
-          : "The recipient list is local prototype data. Sending is still simulated in v0.5."
+          ? "Each eligible customer gets a draft matched to their previous service. Sending is still simulated in v0.8."
+          : "The recipient list is local prototype data. Sending is still simulated in v0.8."
       }
     >
       {s.campaignStage === 0 ? (
@@ -4078,7 +4080,7 @@ function BringBack({ s }) {
         label="Reset draft"
         onPress={() =>
           s.setBringBackMessage(
-            "Hi, it’s been a while since we last helped. We’ve got a couple of spaces next week if you need any exterior cleaning. Reply here if you’d like us to take a look."
+            "Hi, it’s been a while since we last helped. We’ve got a couple of spaces next week if you need anything from us. Reply here if you’d like us to take a look."
           )
         }
       />
@@ -4318,7 +4320,7 @@ function BusinessData({ s }) {
       <Card
         eyebrow="Local data model"
         title="Customer counts are calculated, not typed in"
-        body={`You currently have ${s.customers.length} saved customer records and ${s.eligibleCustomers.length} are eligible under the 9-month rule.`}
+        body={`You currently have ${s.customers.length} saved customer records and ${s.eligibleCustomers.length} meet the current service-specific reactivation rule. ${s.eligibilityRule}`}
         tone="green"
       />
       <Field label="Business name" value={s.businessName} onChangeText={s.setBusinessName} />
