@@ -2,9 +2,14 @@
 
 Busy Does It mobile app prototype.
 
+## v0.5
+- Adds locally stored individual customer records.
+- Previous-customer recommendations are calculated from those records instead of typed customer counts.
+- Current eligibility rule: contact permission is on and the last recorded job was at least 9 months ago.
+- Adds customer list, add-customer, eligible-customer review and record removal flows.
+- The reactivation recipient list is real local prototype data; sending messages and campaign outcomes remain simulated.
+- Keeps the automatic GitHub → clean Snack preview → direct Expo QR testing workflow.
+
 ## v0.4
-- Keeps the v0.3 opportunity-first UX.
-- Adds an editable locally saved business-data screen.
-- Home opportunities now react to the saved quiet slot, customer counts, old enquiries, old quotes, review count, photo needs and business profile.
-- Recommendation evidence and message drafts use those saved inputs.
-- External account reads, real sends and campaign outcomes are still simulated and clearly labelled.
+- Added editable locally saved business data.
+- Home opportunities react to saved business inputs.
