@@ -4674,6 +4674,7 @@ function WorkHub({ s }) {
         <MetricRow left="Quote follow-ups due" right={String(s.dueQuoteEntries.length)} strong={s.dueQuoteEntries.length > 0} />
         <MetricRow left="Actions to do" right={String(s.pendingReplyActionCount)} strong={s.pendingReplyActionCount > 0} />
         <MetricRow left="Background next steps ready" right={String(s.backgroundReadyCount)} strong={s.backgroundReadyCount > 0} />
+        <MetricRow left="Quick-captured records" right={String(s.intakeLog.length)} />
       </Card>
 
       {overdueBookings.length ? (
@@ -4776,7 +4777,11 @@ function WorkHub({ s }) {
       ) : null}
 
       <Text style={styles.sectionLabel}>Add or manage work</Text>
-      <Button label="+ New enquiry" primary onPress={s.startNewEnquiry} />
+      <Button label="Quick capture from a message / note" primary onPress={s.startQuickCapture} />
+      <Button label="+ New enquiry manually" onPress={s.startNewEnquiry} />
+      {s.intakeLog.length ? (
+        <Button label={`Intake history • ${s.intakeLog.length}`} onPress={() => s.go("intakeHistory")} />
+      ) : null}
       {s.staleEnquiryEntries.length ? (
         <Button label={`Quiet enquiries • ${s.staleEnquiryEntries.length}`} onPress={() => s.go("staleEnquiries")} />
       ) : null}
@@ -6977,7 +6982,8 @@ function CustomerRecords({ s }) {
           </View>
         );
       })}
-      <Button label="+ New enquiry" primary onPress={s.startNewEnquiry} />
+      <Button label="Quick capture" primary onPress={s.startQuickCapture} />
+      <Button label="+ New enquiry manually" onPress={s.startNewEnquiry} />
       <Button label="Open customer pipeline" onPress={() => s.go("workPipeline")} />
       <Button label="+ Add previous customer" onPress={s.startNewCustomer} />
       {s.eligibleCustomers.length ? <Button label="Review customers worth contacting" onPress={() => s.go("eligibleCustomers")} /> : null}
@@ -8283,6 +8289,21 @@ function Results({ s }) {
         <MetricRow left="Finished-job posts approved" right={String(s.publishedPhotoPostCount)} />
         <MetricRow left="Post outcomes recorded" right={String(s.postOutcomeRecordedCount)} />
         <MetricRow left="Post outcomes marked booking" right={String(s.postBookingOutcomeCount)} />
+      </Card>
+
+      <Card
+        eyebrow="Less manual entry"
+        title={`${s.intakeLog.length} item${s.intakeLog.length === 1 ? "" : "s"} captured through the intake layer`}
+        body="Quick capture turns pasted business information into reviewed records. Matching phone/email/name data can merge into an existing customer instead of creating a duplicate."
+        tone="green"
+      >
+        <MetricRow left="New customer records created" right={String(s.intakeCreatedCount)} />
+        <MetricRow left="Merged into existing customers" right={String(s.intakeMergedCount)} strong={s.intakeMergedCount > 0} />
+        <MetricRow left="Enquiries captured" right={String(s.intakeStageCounts["Enquiry"] || 0)} />
+        <MetricRow left="Sent quotes captured" right={String(s.intakeStageCounts["Quote sent"] || 0)} />
+        <MetricRow left="Bookings captured" right={String(s.intakeStageCounts["Booking"] || 0)} />
+        <MetricRow left="Completed jobs captured" right={String(s.intakeStageCounts["Completed job"] || 0)} />
+        <Button label="Open intake history" onPress={() => s.go("intakeHistory")} />
       </Card>
 
       <Card
