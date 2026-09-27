@@ -2169,6 +2169,10 @@ function HomeScreen({ s }) {
   const customerCount = s.customers.length;
   const eligibleCount = s.eligibleCustomers.length;
   const todayISO = dateToISO(new Date());
+  const openEnquiries = s.customers
+    .filter((customer) => !customer.lastServiceDate && !s.replyActions?.[customer.id])
+    .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+  const nextEnquiry = openEnquiries[0] || null;
   const upcomingBookings = Object.entries(s.replyActions || {})
     .map(([id, action]) => {
       if (!action?.done || action.type !== "booking" || !action.details?.bookingDate) return null;
@@ -2282,6 +2286,18 @@ function HomeScreen({ s }) {
       subtitle="Customer recommendations now come from individual records saved on this phone."
       brandCue="Real local records. Simulated sends."
     >
+      {openEnquiries.length ? (
+        <Pressable onPress={() => s.openCustomer(openEnquiries[0].id)} style={[styles.homePriorityCard, styles.homeReminderCard]}>
+          <View style={styles.homePriorityTop}>
+            <Text style={styles.homePriorityEyebrow}>NEW ENQUIRY</Text>
+            <StatusChip label="Start here" tone="amber" />
+          </View>
+          <Text style={styles.homePriorityTitle}>{openEnquiries[0].name}</Text>
+          <Text style={styles.homePriorityBody}>{openEnquiries[0].service}</Text>
+          <Text style={styles.homePriorityLink}>Open customer →</Text>
+        </Pressable>
+      ) : null}
+
       {s.dueReminderEntries.length ? (
         <Pressable
           onPress={() => s.openSavedReplyAction(s.dueReminderEntries[0].id)}
@@ -2296,6 +2312,18 @@ function HomeScreen({ s }) {
             {s.dueReminderEntries[0].customer.service} • due {formatUKDate(s.dueReminderEntries[0].action.details.reminderDate)}
           </Text>
           <Text style={styles.homePriorityLink}>Open follow-up →</Text>
+        </Pressable>
+      ) : null}
+
+      {nextEnquiry ? (
+        <Pressable onPress={() => s.openCustomer(nextEnquiry.id)} style={styles.homePriorityCard}>
+          <View style={styles.homePriorityTop}>
+            <Text style={styles.homePriorityEyebrow}>NEW ENQUIRY</Text>
+            <StatusChip label="Needs next step" tone="amber" />
+          </View>
+          <Text style={styles.homePriorityTitle}>{nextEnquiry.name}</Text>
+          <Text style={styles.homePriorityBody}>{nextEnquiry.service}</Text>
+          <Text style={styles.homePriorityLink}>Open enquiry →</Text>
         </Pressable>
       ) : null}
 
@@ -2367,6 +2395,9 @@ function HomeScreen({ s }) {
 
 function WorkHub({ s }) {
   const todayISO = dateToISO(new Date());
+  const openEnquiries = s.customers
+    .filter((customer) => !customer.lastServiceDate && !s.replyActions?.[customer.id])
+    .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
   const actionEntries = Object.entries(s.replyActions || {});
   const activeQuotes = actionEntries
     .filter(([, action]) =>
@@ -2460,7 +2491,10 @@ function WorkHub({ s }) {
       <Text style={styles.sectionLabel}>Add or manage work</Text>
       <Button label="+ New enquiry" primary onPress={s.startNewEnquiry} />
       <Button label="Customer records" onPress={() => s.go("customerRecords")} />
-      <Button label={bookings.length ? `Work diary • ${bookings.length} upcoming` : "Work diary"} onPress={() => s.go("bookings")} />
+      <Button
+        label={bookings.length ? `Work diary • ${bookings.length} active` : "Work diary"}
+        onPress={() => s.go("bookings")}
+      />
       {Object.keys(s.replyActions || {}).length ? (
         <Button label={`Customer activity • ${s.pendingReplyActionCount} to do`} onPress={() => s.go("customerActivity")} />
       ) : null}
@@ -3082,22 +3116,17 @@ function Bookings({ s }) {
       other.action.details.bookingTime === entry.action.details.bookingTime
     )
   );
+  const overdue = activeEntries.filter((item) => item.action.details.bookingDate < todayISO);
   const today = activeEntries.filter((item) => item.action.details.bookingDate === todayISO);
   const upcoming = activeEntries.filter((item) => item.action.details.bookingDate > todayISO);
-  const pastOrCompleted = entries.filter(
-    (item) =>
-      item.action.details?.bookingStatus === "Completed" ||
-      (
-        (item.action.details?.bookingStatus || "Confirmed") !== "Cancelled" &&
-        item.action.details.bookingDate < todayISO
-      )
-  );
+  const completed = entries.filter((item) => item.action.details?.bookingStatus === "Completed");
   const cancelled = entries.filter((item) => item.action.details?.bookingStatus === "Cancelled");
 
   const renderBooking = ({ id, action, customer }) => {
     const status = action.details?.bookingStatus || "Confirmed";
     const hasClash = clashes.some((item) => item.id === id);
-    const displayStatus = hasClash ? "Clash" : status;
+    const isOverdue = status === "Confirmed" && action.details.bookingDate < todayISO;
+    const displayStatus = hasClash ? "Clash" : isOverdue ? "Needs update" : status;
     return (
       <Pressable key={id} onPress={() => s.openSavedReplyAction(id)} style={styles.bookingCard}>
         <View style={styles.activityTopRow}>
@@ -3107,14 +3136,16 @@ function Bookings({ s }) {
           </View>
           <StatusChip
             label={displayStatus}
-            tone={hasClash ? "amber" : ["Cancelled"].includes(status) ? "blue" : "green"}
+            tone={hasClash || isOverdue ? "amber" : ["Cancelled"].includes(status) ? "blue" : "green"}
           />
         </View>
         <Text style={styles.bookingWhen}>
           {formatUKDate(action.details.bookingDate)} at {action.details.bookingTime || "time not set"}
         </Text>
-        {Number(action.details?.jobValue) > 0 ? (
-          <Text style={styles.bookingValue}>Completed value: £{action.details.jobValue}</Text>
+        {Number(action.details?.jobValue || action.details?.sourceQuoteAmount) > 0 ? (
+          <Text style={styles.bookingValue}>
+            {status === "Completed" ? "Completed value" : "Booked value"}: £{action.details?.jobValue || action.details?.sourceQuoteAmount}
+          </Text>
         ) : null}
         <Text style={styles.activityOpen}>View / edit booking →</Text>
       </Pressable>
@@ -3131,10 +3162,19 @@ function Bookings({ s }) {
       <Card
         eyebrow="Work diary"
         title={`${today.length} today • ${upcoming.length} upcoming`}
-        body={clashes.length ? "One or more active booking times overlap. Open the marked booking to fix it." : "No exact active booking-time clashes detected."}
-        footer={clashes.length ? `${clashes.length} booking record${clashes.length === 1 ? "" : "s"} need attention` : "Diary clear"}
-        tone={clashes.length ? "amber" : "green"}
+        body={
+          overdue.length
+            ? `${overdue.length} past booking${overdue.length === 1 ? "" : "s"} still need an outcome. Mark them completed, move them or cancel them.`
+            : clashes.length
+            ? "One or more active booking times overlap. Open the marked booking to fix it."
+            : "No overdue jobs or exact active booking-time clashes detected."
+        }
+        footer={`£${s.bookedWorkValue} currently booked`}
+        tone={overdue.length || clashes.length ? "amber" : "green"}
       />
+
+      {overdue.length ? <Text style={styles.sectionLabel}>Needs an outcome</Text> : null}
+      {overdue.map(renderBooking)}
 
       {today.length ? <Text style={styles.sectionLabel}>Today</Text> : null}
       {today.map(renderBooking)}
@@ -3142,8 +3182,8 @@ function Bookings({ s }) {
       {upcoming.length ? <Text style={styles.sectionLabel}>Upcoming</Text> : null}
       {upcoming.map(renderBooking)}
 
-      {pastOrCompleted.length ? <Text style={styles.sectionLabel}>Past / completed</Text> : null}
-      {pastOrCompleted.map(renderBooking)}
+      {completed.length ? <Text style={styles.sectionLabel}>Completed</Text> : null}
+      {completed.map(renderBooking)}
 
       {cancelled.length ? <Text style={styles.sectionLabel}>Cancelled</Text> : null}
       {cancelled.map(renderBooking)}
