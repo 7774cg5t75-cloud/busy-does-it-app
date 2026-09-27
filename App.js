@@ -339,8 +339,20 @@ function App() {
 
   const startCampaign = (stage = 0) => {
     const safeStage = Math.max(0, Math.min(stage, campaignSteps.length - 1));
+    const wantedServices = services.filter((x) => x.wanted).slice(0, 2).map((x) => x.name.toLowerCase());
+    const serviceText =
+      wantedServices.length >= 2
+        ? `${wantedServices[0]} or ${wantedServices[1]}`
+        : wantedServices[0] || trade.toLowerCase() || "your usual work";
+
     setCampaignStage(safeStage);
-    setMessage(campaignSteps[safeStage].message);
+    if (safeStage === 0) {
+      setMessage(`Hi, we’ve got a slot free ${quietSlot.toLowerCase()} for ${serviceText}. If you’d like a quote or want to book it, just reply here.`);
+    } else if (safeStage === 1) {
+      setMessage(`Hi, you asked us about ${trade.toLowerCase()} a little while ago. We’ve got some availability coming up and I wanted to check whether you still wanted a quote. No problem if not.`);
+    } else {
+      setMessage(campaignSteps[safeStage].message);
+    }
     go("checkSend");
   };
 
@@ -1101,69 +1113,57 @@ function ExpertBestMove({ s }) {
 }
 
 function ProfileAudit({ s }) {
+  const serviceName = s.selectedService?.name || s.services.find((x) => x.wanted)?.name || s.trade || "your priority service";
   return (
-    <Shell s={s} title="We found 3 easy improvements" subtitle="Before spending money, Busy Does It checks whether useful free fixes come first.">
+    <Shell s={s} title="Free profile check" subtitle="These prompts use the profile numbers you entered. No live account is being read yet.">
       <OpportunityCard
-        eyebrow="Google Business"
-        title="Add patio cleaning as a service"
-        body="Your profile talks about driveway cleaning but does not clearly list patio cleaning."
+        eyebrow="Service coverage"
+        title={`Check that ${serviceName} is clearly listed`}
+        body="Make sure customers can immediately see the work you most want more of."
         footer="Cost: £0"
         status="Free"
         actionLabel="Include"
         onAction={() => s.go("profileAuditPlan")}
-        why="People can only choose services they can clearly see. This fills a gap in what the profile currently communicates."
-        evidence={[["Service in app", "Yes"], ["Clearly on profile", "No"], ["Cost", "£0"], ["Confidence", "High"]]}
+        why="Clear service wording helps people who already find the business understand what you actually do."
+        evidence={[["Priority service", serviceName], ["Cost", "£0"], ["Source", "Your saved business data"]]}
       />
       <OpportunityCard
         eyebrow="Photos"
-        title="Add 2 recent before-and-after photos"
-        body="Recent proof can make the profile more useful to customers who are already looking."
+        title={`Add ${s.recentPhotoCountNeeded || 0} recent photo${String(s.recentPhotoCountNeeded) === "1" ? "" : "s"}`}
+        body="Recent before-and-after proof can make the profile more useful to customers who are already looking."
         footer="Cost: £0"
         status="Free"
         actionLabel="Include"
         onAction={() => s.go("profileAuditPlan")}
-        why="Recent before-and-after proof helps customers understand the quality and type of work without paying for more reach."
-        evidence={[["Recent photo pair", "Missing"], ["Relevant services", "2"], ["Cost", "£0"], ["Confidence", "Medium"]]}
+        why="Recent visual proof helps customers understand the quality and type of work without paying for more reach."
+        evidence={[["Recent photos wanted", String(s.recentPhotoCountNeeded || 0)], ["Cost", "£0"], ["Source", "Your saved business data"]]}
       />
       <OpportunityCard
         eyebrow="Reviews"
-        title="Reply to 4 unanswered reviews"
+        title={`Reply to ${s.unansweredReviewCount || 0} unanswered review${String(s.unansweredReviewCount) === "1" ? "" : "s"}`}
         body="A short genuine reply shows that the business is active and paying attention."
         footer="Cost: £0"
         status="Free"
         actionLabel="Include"
         onAction={() => s.go("profileAuditPlan")}
         why="The reviews already exist, so replying is a free way to improve the experience for people checking the business."
-        evidence={[["Unanswered reviews", "4"], ["New ad spend", "£0"], ["Confidence", "High"]]}
+        evidence={[["Unanswered reviews entered", String(s.unansweredReviewCount || 0)], ["New ad spend", "£0"], ["Source", "Your saved business data"]]}
       />
       <Button label="Prepare all 3" primary onPress={() => s.go("profileAuditPlan")} />
+      <Button label="Edit these numbers" onPress={() => s.go("businessData")} />
       <Button label="Not now" onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
 }
 
 function ProfileAuditPlan({ s }) {
+  const serviceName = s.selectedService?.name || s.services.find((x) => x.wanted)?.name || s.trade || "your priority service";
   return (
-    <Shell s={s} title="Free improvements first" subtitle="Nothing changes publicly without your approval.">
-      <Card
-        eyebrow="Step 1"
-        title="Add patio cleaning"
-        body="We would prepare the suggested service wording and show it to you before anything is changed."
-        footer="You approve the change"
-      />
-      <Card
-        eyebrow="Step 2"
-        title="Choose 2 recent photos"
-        body="The app can suggest suitable recent images, but you decide what gets published."
-        footer="You approve the photos"
-      />
-      <Card
-        eyebrow="Step 3"
-        title="Prepare 4 review replies"
-        body="Busy Does It can draft short replies in your normal tone. You can approve, edit or skip each one."
-        footer="No automatic posting by default"
-      />
-      <Button label="Prepare step 1" primary onPress={() => s.jump("home", "Home")} />
+    <Shell s={s} title="Free improvements first" subtitle="Nothing changes publicly in v0.4. These are preparation steps only.">
+      <Card eyebrow="Step 1" title={`Check ${serviceName}`} body="Prepare clearer service wording and review it before anything is published." footer="Simulated preparation" />
+      <Card eyebrow="Step 2" title={`Choose ${s.recentPhotoCountNeeded || 0} recent photo${String(s.recentPhotoCountNeeded) === "1" ? "" : "s"}`} body="Use recent before-and-after proof that represents the work accurately." footer="Simulated preparation" />
+      <Card eyebrow="Step 3" title={`Prepare ${s.unansweredReviewCount || 0} review repl${String(s.unansweredReviewCount) === "1" ? "y" : "ies"}`} body="Draft short genuine replies in the business’s normal tone." footer="Simulated preparation" />
+      <Button label="Done" primary onPress={() => s.jump("home", "Home")} />
       <Button label="Back" onPress={s.back} />
     </Shell>
   );
@@ -1228,16 +1228,46 @@ function OtherOptions({ s }) {
 }
 
 function CheckSend({ s }) {
-  const step = campaignSteps[s.campaignStage] || campaignSteps[0];
+  const baseStep = campaignSteps[s.campaignStage] || campaignSteps[0];
+  const step =
+    s.campaignStage === 0
+      ? {
+          ...baseStep,
+          title: `Contact ${s.eligibleCustomerCount || 0} previous customer${String(s.eligibleCustomerCount) === "1" ? "" : "s"}`,
+          audience: `${s.eligibleCustomerCount || 0} previous customers`,
+          why: "These customers already know the business, so this is cheaper and lower-risk than buying new attention.",
+          evidence: [
+            ["Suitable to contact", String(s.eligibleCustomerCount || 0)],
+            ["Quiet slot", s.quietSlot || "Not set"],
+            ["Advertising required", "£0"],
+            ["Data source", "Your saved business data"],
+          ],
+        }
+      : s.campaignStage === 1
+      ? {
+          ...baseStep,
+          title: `Follow up ${s.oldEnquiryCount || 0} old enquir${String(s.oldEnquiryCount) === "1" ? "y" : "ies"}`,
+          audience: `${s.oldEnquiryCount || 0} old enquiries`,
+          evidence: [["Old enquiries entered", String(s.oldEnquiryCount || 0)], ["Advertising required", "£0"], ["Data source", "Your saved business data"]],
+        }
+      : s.campaignStage === 2
+      ? {
+          ...baseStep,
+          title: `Revisit ${s.oldQuoteCount || 0} old quote${String(s.oldQuoteCount) === "1" ? "" : "s"}`,
+          audience: `${s.oldQuoteCount || 0} old quotes`,
+          evidence: [["Old quotes entered", String(s.oldQuoteCount || 0)], ["Highest value", `£${s.oldQuoteTopValue || 0}`], ["Advertising required", "£0"], ["Data source", "Your saved business data"]],
+        }
+      : baseStep;
+
   return (
-    <Shell s={s} title="Check before sending" subtitle="You stay in control of exactly what goes out.">
+    <Shell s={s} title="Check before sending" subtitle="This is still a simulated send in v0.4. You control the draft.">
       <Card eyebrow={step.audience} title={step.title} footer={`Estimated cost: ${step.cost}`}>
         <Text style={styles.helper}>Tap the draft below if you want to change it.</Text>
         <TextInput multiline value={s.message} onChangeText={s.setMessage} style={styles.messageInput} />
       </Card>
       <InlineExplanation why={step.why} evidence={step.evidence} />
-      <Button label="Approve & send" primary onPress={() => s.go("progress")} />
-      <Button label="Reset draft" onPress={() => s.setMessage(step.message)} />
+      <Button label="Simulate send" primary onPress={() => s.go("progress")} />
+      <Button label="Reset draft" onPress={() => s.startCampaign(s.campaignStage)} />
       <Button label="Skip" onPress={() => s.go("otherOptions")} />
     </Shell>
   );
