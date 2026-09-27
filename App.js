@@ -1634,6 +1634,37 @@ function UpdateOutcome({ s }) {
   );
 }
 
+function BusinessData({ s }) {
+  return (
+    <Shell
+      s={s}
+      title="Business data"
+      subtitle="For v0.4, enter the facts you already know. Home updates from these values and saves them on this phone."
+    >
+      <Card
+        eyebrow="What is real in v0.4"
+        title="Your inputs now drive the opportunities"
+        body="The profile, capacity and opportunity numbers below are real local inputs. Sending messages, reading external accounts and campaign results are still simulated."
+        tone="green"
+      />
+      <Field label="Business name" value={s.businessName} onChangeText={s.setBusinessName} />
+      <Field label="Trade or service" value={s.trade} onChangeText={s.setTrade} />
+      <Field label="Postcode / base area" value={s.postcode} onChangeText={s.setPostcode} />
+      <Field label="Service radius" value={s.radius} onChangeText={s.setRadius} keyboardType="number-pad" prefix="Miles" />
+      <Field label="Next quiet slot" value={s.quietSlot} onChangeText={s.setQuietSlot} placeholder="e.g. Thursday afternoon" />
+      <Text style={styles.sectionLabel}>Opportunity numbers</Text>
+      <Field label="Previous customers in your records" value={s.previousCustomerCount} onChangeText={s.setPreviousCustomerCount} keyboardType="number-pad" />
+      <Field label="Suitable previous customers to contact" value={s.eligibleCustomerCount} onChangeText={s.setEligibleCustomerCount} keyboardType="number-pad" />
+      <Field label="Old enquiries worth following up" value={s.oldEnquiryCount} onChangeText={s.setOldEnquiryCount} keyboardType="number-pad" />
+      <Field label="Old quotes worth revisiting" value={s.oldQuoteCount} onChangeText={s.setOldQuoteCount} keyboardType="number-pad" />
+      <Field label="Highest old quote value" value={s.oldQuoteTopValue} onChangeText={s.setOldQuoteTopValue} keyboardType="number-pad" prefix="£" />
+      <Field label="Unanswered reviews" value={s.unansweredReviewCount} onChangeText={s.setUnansweredReviewCount} keyboardType="number-pad" />
+      <Field label="Recent photos you want to add" value={s.recentPhotoCountNeeded} onChangeText={s.setRecentPhotoCountNeeded} keyboardType="number-pad" />
+      <Button label="Save & refresh Home" primary onPress={() => s.jump("home", "Home")} />
+      <Button label="Cancel" onPress={s.back} />
+    </Shell>
+  );
+}
 function Settings({ s }) {
   const connectedCount = Object.values(s.connectedAccounts).filter(Boolean).length;
   return (
@@ -1654,7 +1685,8 @@ function Settings({ s }) {
         <MetricRow left="Previous customers" right={s.customerContact ? "Allowed" : "Off"} />
         <MetricRow left="Connected accounts" right={`${connectedCount}/${connectionRows.length}`} />
       </Card>
-      <Button label="Change limits" primary onPress={() => s.go("settingsLimits")} />
+      <Button label="Business profile & opportunity data" primary onPress={() => s.go("businessData")} />
+      <Button label="Change limits" onPress={() => s.go("settingsLimits")} />
       <Button label="Connected accounts" onPress={() => s.go("connectedAccounts")} />
       <Button label="How Busy Does It works" onPress={() => s.go("howBusyWorks")} />
       <Button label="What makes it different" onPress={() => s.go("whatMakesDifferent")} />
@@ -1799,6 +1831,7 @@ const screens = {
   resultDetails: ResultDetails,
   updateOutcome: UpdateOutcome,
   settings: Settings,
+  businessData: BusinessData,
   howBusyWorks: HowBusyWorks,
   whatMakesDifferent: WhatMakesDifferent,
   settingsLimits: SettingsLimits,
@@ -2002,6 +2035,7 @@ const styles = StyleSheet.create({
   progressTrack: { height: 8, borderRadius: 999, backgroundColor: "#DFE5EE", overflow: "hidden", marginTop: 10, marginBottom: 16 },
   progressFill: { height: "100%", backgroundColor: C.green, borderRadius: 999 },
   warningText: { color: C.amber, fontSize: 13, lineHeight: 19, fontWeight: "700", marginTop: -2, marginBottom: 14 },
+  sectionLabel: { color: C.ink, fontSize: 18, fontWeight: "900", marginTop: 8, marginBottom: 14 },
   connectButtonOn: { backgroundColor: C.greenSoft },
   nav: {
     height: 72,
