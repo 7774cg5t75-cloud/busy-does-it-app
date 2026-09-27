@@ -2,6 +2,11 @@
 
 Busy Does It mobile app prototype.
 
+## v0.6
+- Starting point: tested v0.5 customer-record flow.
+- Focus: turn simulated reply outcomes into clear next actions for the business owner.
+- Continue using GitHub → clean Snack preview → direct Expo QR for testing.
+
 ## v0.5
 - Adds locally stored individual customer records.
 - Previous-customer recommendations are calculated from those records instead of typed customer counts.
