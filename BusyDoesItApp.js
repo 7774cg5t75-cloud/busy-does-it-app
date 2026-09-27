@@ -588,9 +588,17 @@ function evaluateSafeAutoFile(parsed, customers = [], replyActions = {}, source 
   if (parsed.stage === "Booking") {
     if (!parsed.dateDetected) reasons.push("Booking date was not explicit");
     if (!parsed.timeDetected) reasons.push("Booking time was not explicit");
+    if (parsed.date && parsed.date < dateToISO(new Date())) reasons.push("Booking date is already in the past");
   }
-  if (parsed.stage === "Completed job" && !parsed.dateDetected) {
-    reasons.push("Completed-job date was not explicit");
+  if (parsed.stage === "Completed job") {
+    if (!parsed.dateDetected) reasons.push("Completed-job date was not explicit");
+    if (parsed.date && parsed.date > dateToISO(new Date())) reasons.push("Completed-job date is in the future");
+    const duplicateJob =
+      !!customer &&
+      (Array.isArray(customer.history) ? customer.history : []).some(
+        (job) => job.kind === "job" && job.date === parsed.date && job.service === parsed.service
+      );
+    if (duplicateJob) reasons.push("A completed job with this service and date already exists");
   }
 
   return {
