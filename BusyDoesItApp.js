@@ -476,6 +476,72 @@ function parseQuickCapture(text, services = [], fallbackService = "") {
   };
 }
 
+function triageInboxCandidate(parsed, customers = [], replyActions = {}) {
+  const match = findCustomerMatch(customers, {
+    phone: parsed.phone,
+    email: parsed.email,
+    name: parsed.name,
+  });
+  const action = match?.customer ? replyActions[match.customer.id] : null;
+  const conflict =
+    !!match?.customer &&
+    customerActionStrength(action) > captureStageStrength(parsed.stage);
+
+  const missing = [];
+  if (!parsed.name) missing.push("customer name");
+  if (!parsed.phone && !parsed.email) missing.push("phone or email");
+  if (!parsed.service) missing.push("service");
+
+  const stageBase =
+    parsed.stage === "Booking"
+      ? 100
+      : parsed.stage === "Quote sent"
+      ? 90
+      : parsed.stage === "Enquiry"
+      ? 80
+      : parsed.stage === "Completed job"
+      ? 60
+      : 50;
+
+  const uncertainty =
+    missing.length * 12 +
+    (parsed.confidence === "Low" ? 18 : parsed.confidence === "Medium" ? 7 : 0) +
+    (conflict ? 20 : 0) +
+    (match?.confidence === "Medium" ? 6 : 0);
+
+  const priorityScore = stageBase + uncertainty;
+  const needsAttention =
+    missing.length > 0 ||
+    parsed.confidence === "Low" ||
+    conflict ||
+    match?.confidence === "Medium";
+
+  let reason = "Ready for owner review";
+  if (conflict) reason = "Existing customer has stronger active work";
+  else if (missing.length) reason = `Missing ${missing.join(", ")}`;
+  else if (match?.confidence === "Medium") reason = "Possible name-only customer match";
+  else if (parsed.confidence === "Low") reason = "Low extraction confidence";
+  else if (match?.customer) reason = `Likely match: ${match.customer.name}`;
+
+  return {
+    priorityScore,
+    lane: needsAttention ? "Needs attention" : "Ready to review",
+    reason,
+    missing,
+    matchCustomerId: match?.customer?.id || null,
+    matchReason: match?.reason || "",
+    matchConfidence: match?.confidence || "",
+    conflict,
+  };
+}
+
+function inboxStageTone(stage) {
+  if (stage === "Booking") return "green";
+  if (stage === "Quote sent") return "amber";
+  if (stage === "Completed job") return "blue";
+  return "blue";
+}
+
 function groupCustomersByService(customers) {
   return customers.reduce((groups, customer) => {
     const key = customer?.service?.trim() || "Usual service";
@@ -762,6 +828,8 @@ function App() {
   const [captureExtractedFields, setCaptureExtractedFields] = useState([]);
   const [captureForceNew, setCaptureForceNew] = useState(false);
   const [intakeLog, setIntakeLog] = useState([]);
+  const [inboxItems, setInboxItems] = useState([]);
+  const [selectedInboxItemId, setSelectedInboxItemId] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -814,6 +882,7 @@ function App() {
         if (Array.isArray(saved.dismissedOpportunities)) setDismissedOpportunities(saved.dismissedOpportunities);
         if (saved.selectedServiceId) setSelectedServiceId(saved.selectedServiceId);
         if (Array.isArray(saved.intakeLog)) setIntakeLog(saved.intakeLog);
+        if (Array.isArray(saved.inboxItems)) setInboxItems(saved.inboxItems);
         if (typeof saved.advanced === "boolean") setAdvanced(saved.advanced);
         if (saved.onboardingComplete) {
           setScreen("home");
@@ -854,6 +923,7 @@ function App() {
       dismissedOpportunities,
       selectedServiceId,
       intakeLog,
+      inboxItems,
       advanced,
     };
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data)).catch(() => {});
@@ -880,6 +950,7 @@ function App() {
     dismissedOpportunities,
     selectedServiceId,
     intakeLog,
+    inboxItems,
     advanced,
   ]);
 
@@ -2704,6 +2775,8 @@ function App() {
     setCaptureExtractedFields([]);
     setCaptureForceNew(false);
     setIntakeLog([]);
+    setInboxItems([]);
+    setSelectedInboxItemId(null);
     setAdvanced(false);
     setHistory([]);
     setTab("Home");
