@@ -416,8 +416,8 @@ const campaignSteps = [
   },
   {
     id: "old-enquiries",
-    title: "Follow up 4 old enquiries",
-    audience: "4 old enquiries",
+    title: "Follow up quiet enquiries",
+    audience: "Quiet enquiry records",
     cost: "£0 ad spend",
     adSpend: "£0",
     message:
@@ -425,7 +425,7 @@ const campaignSteps = [
     why:
       "These people already showed interest, so following them up is cheaper and lower-risk than buying new attention.",
     evidence: [
-      ["Old enquiries worth retrying", "4"],
+      ["Opportunity source", "Saved enquiry records"],
       ["Previously requested a quote", "Yes"],
       ["Advertising required", "£0"],
       ["Confidence", "Medium"],
@@ -436,8 +436,8 @@ const campaignSteps = [
   },
   {
     id: "old-quotes",
-    title: "Revisit 3 old quotes",
-    audience: "3 old quotes",
+    title: "Revisit sent quotes",
+    audience: "Sent quote records",
     cost: "£0 ad spend",
     adSpend: "£0",
     message:
@@ -445,8 +445,8 @@ const campaignSteps = [
     why:
       "A quote means the customer got further than a normal enquiry. It is worth checking before spending money on new leads.",
     evidence: [
-      ["Old quotes still relevant", "3"],
-      ["Average quoted value", "£310"],
+      ["Opportunity source", "Saved sent quotes"],
+      ["Value source", "Each saved quote"],
       ["Advertising required", "£0"],
       ["Confidence", "Medium"],
     ],
@@ -4279,29 +4279,95 @@ function ExpertProfileAudit({ s }) {
 }
 
 function OtherOptions({ s }) {
-  const options = [
-    [1, "Follow up 4 old enquiries", "£0 ad spend", "People who asked before but never booked."],
-    [2, "Revisit 3 old quotes", "£0 ad spend", "Quotes that are still worth trying."],
-    [3, "Offer a relevant add-on", "£0 ad spend", "A service-aware cross-sell only when it genuinely fits the customer."],
-  ];
+  const reviewReadyCount = s.customers.reduce(
+    (total, customer) =>
+      total +
+      (customer.contactOk === false
+        ? 0
+        : (Array.isArray(customer.history) ? customer.history : []).filter(
+            (job) => job.kind === "job" && !job.reviewRequestSentAt
+          ).length),
+    0
+  );
+
   return (
-    <Shell s={s} title="Other options" subtitle="Still cheap-first. Paid advertising stays at the bottom of the list.">
-      {options.map(([stage, a, b, c]) => (
-        <Pressable key={a} style={styles.optionCard} onPress={() => s.startCampaign(stage)}>
-          <Text style={styles.optionTitle}>{a}</Text>
-          <Text style={styles.optionBody}>{c}</Text>
-          <Text style={styles.optionCost}>{b}</Text>
+    <Shell
+      s={s}
+      title="Other opportunities"
+      subtitle="These counts now come from the customer, quote and job records actually saved in Busy Does It."
+      brandCue="No typed-in old-enquiry or old-quote totals."
+    >
+      {s.staleEnquiryEntries.length ? (
+        <Pressable style={styles.optionCard} onPress={() => s.go("staleEnquiries")}>
+          <Text style={styles.optionTitle}>
+            {s.staleEnquiryEntries.length} quiet enquir{s.staleEnquiryEntries.length === 1 ? "y" : "ies"}
+          </Text>
+          <Text style={styles.optionBody}>No recorded next action for at least 7 days. Review the actual customers and dates.</Text>
+          <Text style={styles.optionCost}>£0 advertising spend</Text>
         </Pressable>
-      ))}
+      ) : null}
+
+      {s.dueQuoteEntries.length ? (
+        <Pressable style={styles.optionCard} onPress={() => s.go("staleQuotes")}>
+          <Text style={styles.optionTitle}>
+            {s.dueQuoteEntries.length} quote follow-up{s.dueQuoteEntries.length === 1 ? "" : "s"} due
+          </Text>
+          <Text style={styles.optionBody}>Sent quote records that have been quiet for at least 7 days.</Text>
+          <Text style={styles.optionCost}>£0 advertising spend</Text>
+        </Pressable>
+      ) : null}
+
+      {s.eligibleCustomers.length ? (
+        <Pressable style={styles.optionCard} onPress={() => s.startCampaign(0)}>
+          <Text style={styles.optionTitle}>
+            {s.eligibleCustomers.length} previous customer{s.eligibleCustomers.length === 1 ? "" : "s"} due again
+          </Text>
+          <Text style={styles.optionBody}>Calculated from service-specific repeat timing and contact permission.</Text>
+          <Text style={styles.optionCost}>£0 advertising spend</Text>
+        </Pressable>
+      ) : null}
+
+      {reviewReadyCount ? (
+        <Pressable
+          style={styles.optionCard}
+          onPress={() =>
+            s.reviewRequestOpportunity
+              ? s.prepareReviewRequest(s.reviewRequestOpportunity.customerId, s.reviewRequestOpportunity.jobId)
+              : s.go("customerRecords")
+          }
+        >
+          <Text style={styles.optionTitle}>
+            {reviewReadyCount} completed job{reviewReadyCount === 1 ? "" : "s"} could support a review request
+          </Text>
+          <Text style={styles.optionBody}>Calculated from completed job history and customer contact permission.</Text>
+          <Text style={styles.optionCost}>£0 advertising spend</Text>
+        </Pressable>
+      ) : null}
+
+      <Pressable style={styles.optionCard} onPress={() => s.startCampaign(3)}>
+        <Text style={styles.optionTitle}>Consider a relevant add-on</Text>
+        <Text style={styles.optionBody}>Service-aware cross-sell remains optional and should only be used when it genuinely fits a saved customer.</Text>
+        <Text style={styles.optionCost}>£0 advertising spend</Text>
+      </Pressable>
+
+      {!s.staleEnquiryEntries.length && !s.dueQuoteEntries.length && !s.eligibleCustomers.length && !reviewReadyCount ? (
+        <Card
+          eyebrow="No record-based follow-up due"
+          title="The cheap opportunities are genuinely quiet"
+          body="Busy Does It is not inventing old enquiries or old quotes just to populate this screen."
+          footer="Recommended spend can still be £0"
+          tone="green"
+        />
+      ) : null}
+
       <Pressable style={styles.optionCard} onPress={() => s.go("paidTest")}>
         <Text style={styles.optionTitle}>Try a small local advert</Text>
-        <Text style={styles.optionBody}>Only after the cheaper options are exhausted or you deliberately choose to skip ahead.</Text>
+        <Text style={styles.optionBody}>Only after the cheaper relevant opportunities above have been checked or deliberately skipped.</Text>
         <Text style={styles.optionCost}>Up to £{s.adBudget}</Text>
       </Pressable>
     </Shell>
   );
 }
-
 
 
 function CheckSend({ s }) {
@@ -4414,10 +4480,6 @@ function CheckSend({ s }) {
 
 function Progress({ s }) {
   const step = campaignSteps[s.campaignStage] || campaignSteps[0];
-  const nextStage = s.campaignStage + 1;
-  const hasAnotherFreeMove = nextStage < campaignSteps.length;
-  const next = hasAnotherFreeMove ? campaignSteps[nextStage] : null;
-  const progressCount = Math.min(s.campaignStage + 1, campaignSteps.length);
   const sentRecipients =
     s.campaignStage === 0 && s.lastSimulatedRecipients?.length
       ? s.lastSimulatedRecipients
@@ -4438,45 +4500,38 @@ function Progress({ s }) {
         };
 
   return (
-    <Shell s={s} title="Progress" subtitle="Busy Does It reassesses after every step instead of jumping straight to paid ads." brandCue="Cheapest sensible move first.">
-      <StatusChip label={`Free-step ${progressCount} of ${campaignSteps.length}`} tone="green" />
-      <ProgressStrip current={progressCount} total={campaignSteps.length} />
+    <Shell
+      s={s}
+      title="Progress"
+      subtitle="After each action, Busy Does It goes back to the live records instead of advancing through a prewritten marketing sequence."
+      brandCue="Reassess the business. Then choose the next cheapest sensible move."
+    >
+      <StatusChip label="£0 action reviewed" tone="green" />
       <Card eyebrow="Latest result" title={result.title} body={result.body} footer={result.footer} tone="green" />
 
-      {hasAnotherFreeMove ? (
-        <OpportunityCard
-          eyebrow="Next cheapest move"
-          title={next.title}
-          body="There is still capacity to fill, so we recommend another low-cost step before advertising."
-          footer={`Advertising spend: ${next.adSpend}`}
-          status="Try before ads"
-          tone="blue"
-          actionLabel="Try this next"
-          onAction={() => s.startCampaign(nextStage)}
-          why={next.why}
-          evidence={next.evidence}
-        />
-      ) : (
-        <OpportunityCard
-          eyebrow="Free options checked"
-          title="A small paid test is now reasonable to consider"
-          body="We’ve tried the sensible low-cost steps in this demo and the remaining space is still open."
-          footer={`Suggested cap: £${s.adBudget}`}
-          status="Optional paid test"
-          tone="amber"
-          actionLabel="Review paid test"
-          onAction={() => s.go("paidTest")}
-          why="Paid advertising is only being suggested now because the cheaper relevant options have already been tried."
-          evidence={[["Free / low-cost steps tried", String(campaignSteps.length)], ["Current suggested cap", `£${s.adBudget}`], ["Your single-test limit", `£${s.testLimit}`], ["Work guaranteed", "No"]]}
-        />
-      )}
+      <OpportunityCard
+        eyebrow="Reassess now"
+        title="Check the next real opportunity"
+        body="Quiet enquiries, sent quotes, due previous customers and completed jobs are recalculated from the records currently saved."
+        footer="No invented opportunity counts"
+        status="Live records"
+        tone="blue"
+        actionLabel="See current opportunities"
+        onAction={() => s.go("otherOptions")}
+        why="The next move should depend on what is actually still unresolved after the previous action, not on a fixed demo funnel."
+        evidence={[
+          ["Quiet enquiries", String(s.staleEnquiryEntries.length)],
+          ["Quote follow-ups due", String(s.dueQuoteEntries.length)],
+          ["Previous customers due", String(s.eligibleCustomers.length)],
+          ["Advertising required to review them", "£0"],
+        ]}
+      />
 
-      <Button label="View simulated replies" onPress={() => s.go("replies")} />
+      {s.campaignStage === 0 ? <Button label="View simulated replies" onPress={() => s.go("replies")} /> : null}
       <Button label="Stop for now" onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
 }
-
 
 
 
@@ -6975,18 +7030,36 @@ function UpdateOutcome({ s }) {
 
 
 function BusinessData({ s }) {
+  const reviewReadyCount = s.customers.reduce(
+    (total, customer) =>
+      total +
+      (customer.contactOk === false
+        ? 0
+        : (Array.isArray(customer.history) ? customer.history : []).filter(
+            (job) => job.kind === "job" && !job.reviewRequestSentAt
+          ).length),
+    0
+  );
+
   return (
     <Shell
       s={s}
       title="Business data"
-      subtitle="General business facts stay here. Previous-customer counts now come from individual customer records."
+      subtitle="General business facts stay editable. Opportunity counts now come from individual records wherever Busy Does It has the data."
     >
       <Card
-        eyebrow="Local data model"
-        title="Customer counts are calculated, not typed in"
-        body={`You currently have ${s.customers.length} saved customer records and ${s.eligibleCustomers.length} meet the current service-specific reactivation rule. ${s.eligibilityRule}`}
+        eyebrow="Calculated from records"
+        title="Opportunity counts are no longer typed in"
+        body="Busy Does It uses saved customer dates, quote statuses, job history, service timing and permissions to decide what is actually available."
         tone="green"
-      />
+      >
+        <MetricRow left="Saved customer records" right={String(s.customers.length)} />
+        <MetricRow left="Quiet enquiries (7+ days)" right={String(s.staleEnquiryEntries.length)} strong={s.staleEnquiryEntries.length > 0} />
+        <MetricRow left="Quote follow-ups due (7+ days)" right={String(s.dueQuoteEntries.length)} strong={s.dueQuoteEntries.length > 0} />
+        <MetricRow left="Previous customers due" right={String(s.eligibleCustomers.length)} strong={s.eligibleCustomers.length > 0} />
+        <MetricRow left="Completed jobs eligible for review request" right={String(reviewReadyCount)} />
+      </Card>
+
       <Field label="Business name" value={s.businessName} onChangeText={s.setBusinessName} />
       <Field label="Trade or service" value={s.trade} onChangeText={s.setTrade} />
       <Field label="Postcode / base area" value={s.postcode} onChangeText={s.setPostcode} />
@@ -6994,18 +7067,19 @@ function BusinessData({ s }) {
       <Field label="Next quiet slot" value={s.quietSlot} onChangeText={s.setQuietSlot} placeholder="e.g. Thursday afternoon" />
       <Button label="Manage customer records" onPress={() => s.go("customerRecords")} />
 
-      <Text style={styles.sectionLabel}>Other opportunity numbers</Text>
-      <Field label="Old enquiries worth following up" value={s.oldEnquiryCount} onChangeText={s.setOldEnquiryCount} keyboardType="number-pad" />
-      <Field label="Old quotes worth revisiting" value={s.oldQuoteCount} onChangeText={s.setOldQuoteCount} keyboardType="number-pad" />
-      <Field label="Highest old quote value" value={s.oldQuoteTopValue} onChangeText={s.setOldQuoteTopValue} keyboardType="number-pad" prefix="£" />
-      <Field label="Unanswered reviews" value={s.unansweredReviewCount} onChangeText={s.setUnansweredReviewCount} keyboardType="number-pad" />
-      <Field label="Recent photos you want to add" value={s.recentPhotoCountNeeded} onChangeText={s.setRecentPhotoCountNeeded} keyboardType="number-pad" />
+      <Card
+        eyebrow="Prototype-only profile inputs"
+        title="Two profile checks still need manual test data"
+        body="Until a real Google Business / social connection exists, unanswered-review and recent-photo counts stay clearly labelled as manual test inputs and do not masquerade as live account data."
+        tone="blue"
+      />
+      <Field label="Test: unanswered reviews" value={s.unansweredReviewCount} onChangeText={s.setUnansweredReviewCount} keyboardType="number-pad" />
+      <Field label="Test: recent photos wanted" value={s.recentPhotoCountNeeded} onChangeText={s.setRecentPhotoCountNeeded} keyboardType="number-pad" />
       <Button label="Save & refresh Home" primary onPress={() => s.jump("home", "Home")} />
       <Button label="Cancel" onPress={s.back} />
     </Shell>
   );
 }
-
 function Settings({ s }) {
   const connectedCount = Object.values(s.connectedAccounts).filter(Boolean).length;
   return (
