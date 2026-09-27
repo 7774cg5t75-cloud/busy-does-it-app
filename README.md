@@ -131,3 +131,16 @@ Busy Does It mobile app prototype.
 - Upgraded the explanation ladder to “Why this?” followed by “Expert details” for the underlying evidence.
 - Kept customer-control and permission rules intact: no messages are really sent, no public post is published and no paid spend happens automatically in this prototype.
 - Preserved the service-business-generic core; the ranking logic uses customer/work signals rather than exterior-cleaning-only assumptions.
+
+
+## v1.5 prepared actions + learning
+- Home ranking now weighs urgency, existing customer intent, recorded value, cost and how ready the next action already is instead of relying on one fixed display order.
+- Recorded outcomes now feed back into ranking: finished-job content can move up or down based on saved post outcomes, while completed prototype reactivation value can strengthen future reactivation recommendations.
+- Finished-job content now runs through a complete prototype chain: approved job photos → prepared editable post → connected destination selection → explicit owner approval → simulated publish → business outcome capture.
+- Facebook / Instagram and Google Business prototype destinations must be deliberately connected before they can be selected for the simulated publish.
+- Prepared post drafts can return to Home as a ready-for-approval opportunity instead of disappearing after the draft is saved.
+- Approved posts with no recorded outcome can return later as a low-priority learning task rather than outranking live customer work.
+- Post outcomes are recorded as No enquiry yet / Enquiry / Quote / Booking, with optional booked value, and are explicitly labelled as user-entered attribution rather than guaranteed causation.
+- Completed jobs now retain whether the underlying customer workflow originated from the prototype reactivation flow or a direct/manual customer action.
+- Results adds separate traceable value buckets for completed work, live pipeline, prototype-reactivation completed value and post-attributed booking value without adding them into a potentially misleading headline total.
+- The visible navigation remains Home / Work / Results / Settings. Social, CRM-style follow-up, attribution and learning continue to behave as capabilities underneath the opportunity engine rather than becoming new permanent tabs.
