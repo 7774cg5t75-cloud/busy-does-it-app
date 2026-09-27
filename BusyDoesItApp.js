@@ -2221,6 +2221,7 @@ function App() {
       contactOk: true,
       source: "New enquiry",
       createdAt: receivedAt,
+      currentEnquiryAt: receivedAt,
       nextEnquiryCheckDate: addDaysFromISO(newEnquiryDate || dateToISO(new Date()), 7),
       lifecycleStatus: "Enquiry",
       activity: [
@@ -2244,6 +2245,334 @@ function App() {
     setNewEnquiryNote("");
     setNewEnquiryDate(dateToISO(new Date()));
     go("customerDetail");
+    return true;
+  };
+
+  const clearQuickCapture = () => {
+    const preferred = services.find((item) => item.wanted) || services[0];
+    setCaptureRawText("");
+    setCaptureSource("Customer message");
+    setCaptureStage("Enquiry");
+    setCaptureName("");
+    setCapturePhone("");
+    setCaptureEmail("");
+    setCaptureAddress("");
+    setCaptureService(preferred?.name || trade || "Service");
+    setCaptureDate(dateToISO(new Date()));
+    setCaptureTime("09:00");
+    setCaptureValue("");
+    setCaptureNote("");
+    setCaptureConfidence("Low");
+    setCaptureExtractedFields([]);
+  };
+
+  const startQuickCapture = () => {
+    clearQuickCapture();
+    setTab("Work");
+    go("quickCapture");
+  };
+
+  const loadQuickCaptureExample = (kind = "enquiry") => {
+    const service = services.find((item) => item.wanted)?.name || services[0]?.name || "Driveway cleaning";
+    if (kind === "quote") {
+      setCaptureSource("Email / quote note");
+      setCaptureRawText(
+        `Name: Alex Morgan\nPhone: 07700 900222\nEmail: alex@example.com\n${service}\nQuote sent 18/09/2026 for £325\nAddress: 12 Market Road EX17 3AB`
+      );
+    } else if (kind === "booking") {
+      setCaptureSource("Calendar / booking note");
+      setCaptureRawText(
+        `Customer: Priya Shah\n07700 900333\nBooked ${service} for 30/09/2026 at 14:00\nJob value £280\nSite: 4 Station Close EX17 2AA`
+      );
+    } else if (kind === "completed") {
+      setCaptureSource("Invoice / job note");
+      setCaptureRawText(
+        `Customer: Ben Carter\n07700 900444\nFinished ${service} 25/09/2026\nPaid £260\nAddress: 8 Church Lane EX17 1BB`
+      );
+    } else {
+      setCaptureSource("Customer message");
+      setCaptureRawText(
+        `Sophie Green\nHi, could I get a quote for ${service.toLowerCase()} please?\n07700 900111\nsophie@example.com\nAddress: 7 High Street EX17 4CD`
+      );
+    }
+  };
+
+  const analyseQuickCapture = () => {
+    const parsed = parseQuickCapture(
+      captureRawText,
+      services,
+      services.find((item) => item.wanted)?.name || trade || "Service"
+    );
+    setCaptureStage(parsed.stage);
+    setCaptureName(parsed.name);
+    setCapturePhone(parsed.phone);
+    setCaptureEmail(parsed.email);
+    setCaptureAddress(parsed.address);
+    setCaptureService(parsed.service);
+    setCaptureDate(parsed.date);
+    setCaptureTime(parsed.time);
+    setCaptureValue(parsed.value);
+    setCaptureNote(parsed.note);
+    setCaptureConfidence(parsed.confidence);
+    setCaptureExtractedFields(parsed.extractedFields);
+    go("quickCaptureReview");
+  };
+
+  const saveQuickCapture = () => {
+    const name = captureName.trim();
+    const phone = capturePhone.trim();
+    const email = captureEmail.trim();
+    const address = captureAddress.trim();
+    const service = captureService.trim() || services[0]?.name || trade || "Service";
+    const note = captureNote.trim() || captureRawText.trim();
+    const parsedValue = Number(String(captureValue).replace(/[^0-9.]/g, ""));
+    const value = Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : 0;
+    if (!name || (!phone && !email)) return false;
+
+    const match = findCustomerMatch(customers, { phone, email, name });
+    const existing = match?.customer || null;
+    const customerId = existing?.id || `intake-${Date.now()}`;
+    const eventDate = captureDate || dateToISO(new Date());
+    const eventTime = captureTime || "09:00";
+    const eventAt = new Date(`${eventDate}T${eventTime}:00`).toISOString();
+    const importedAt = new Date().toISOString();
+    const sourceRecord = {
+      id: `source-${customerId}-${Date.now()}`,
+      source: captureSource,
+      stage: captureStage,
+      eventDate,
+      importedAt,
+      rawText: captureRawText.trim(),
+    };
+    const existingAction = replyActions[customerId];
+    const activeAction = isActiveCustomerAction(existingAction);
+    const preserveStrongerActiveWork =
+      !!existing &&
+      activeAction &&
+      captureStage === "Enquiry";
+
+    const repeatDueDate =
+      captureStage === "Completed job"
+        ? nextRepeatDueDate(
+            { ...(existing || {}), service, lastServiceDate: eventDate },
+            services,
+            verticalId
+          )
+        : existing?.nextRepeatDueDate || "";
+
+    const firstName = name.split(" ")[0] || "there";
+    const reviewDraft =
+      captureStage === "Completed job" && existing?.contactOk !== false
+        ? `Hi ${firstName}, thanks again for choosing us for your ${service.toLowerCase()}. If you were happy with the work, would you mind leaving us a quick review? No problem at all if not — we really appreciate the business.`
+        : "";
+
+    setCustomers((list) => {
+      const base =
+        existing ||
+        {
+          id: customerId,
+          name,
+          phone,
+          email,
+          address,
+          service,
+          lastServiceDate: "",
+          lastJobValue: 0,
+          contactOk: true,
+          createdAt: eventAt,
+          source: captureSource,
+          history: [],
+          activity: [],
+          sourceRecords: [],
+        };
+
+      const activity = Array.isArray(base.activity) ? base.activity : [];
+      const sourceRecords = Array.isArray(base.sourceRecords) ? base.sourceRecords : [];
+      const history = Array.isArray(base.history) ? base.history : [];
+      let nextHistory = history;
+      let lifecycleStatus = base.lifecycleStatus || (base.lastServiceDate ? "Previous customer" : "Enquiry");
+      let currentEnquiryAt = base.currentEnquiryAt || null;
+      let nextEnquiryCheckDate = base.nextEnquiryCheckDate || null;
+      let lastServiceDate = base.lastServiceDate || "";
+      let lastJobValue = base.lastJobValue || 0;
+      let nextRepeatDate = repeatDueDate || base.nextRepeatDueDate || "";
+
+      if (captureStage === "Enquiry" && !preserveStrongerActiveWork) {
+        lifecycleStatus = "Enquiry";
+        currentEnquiryAt = eventAt;
+        nextEnquiryCheckDate = addDaysFromISO(eventDate, 7);
+      } else if (captureStage === "Quote sent") {
+        lifecycleStatus = "Quote sent";
+        currentEnquiryAt = null;
+        nextEnquiryCheckDate = null;
+      } else if (captureStage === "Booking") {
+        lifecycleStatus = "Booked";
+        currentEnquiryAt = null;
+        nextEnquiryCheckDate = null;
+      } else if (captureStage === "Completed job") {
+        lifecycleStatus = "Completed customer";
+        currentEnquiryAt = null;
+        nextEnquiryCheckDate = null;
+        lastServiceDate = eventDate;
+        lastJobValue = value || base.lastJobValue || 0;
+        const jobId = `import-job-${customerId}-${eventDate}`;
+        const existingJob = history.find(
+          (item) => item.kind === "job" && item.date === eventDate && item.service === service
+        );
+        if (!existingJob) {
+          nextHistory = [
+            ...history,
+            {
+              id: jobId,
+              kind: "job",
+              date: eventDate,
+              service,
+              value: value || "",
+              note: note || "Imported completed job",
+              photos: [],
+              sourceOrigin: "intake",
+              sourceAction: "quick-capture",
+              repeatDueDate: repeatDueDate || "",
+              reviewRequestDraft: reviewDraft,
+              reviewRequestPreparedAt: reviewDraft ? importedAt : null,
+              adminPreparedAt: importedAt,
+            },
+          ];
+        }
+      }
+
+      const nextCustomer = {
+        ...base,
+        name: name || base.name,
+        phone: phone || base.phone || "",
+        email: email || base.email || "",
+        address: address || base.address || "",
+        service: service || base.service,
+        lifecycleStatus: preserveStrongerActiveWork ? base.lifecycleStatus : lifecycleStatus,
+        currentEnquiryAt: preserveStrongerActiveWork ? base.currentEnquiryAt : currentEnquiryAt,
+        nextEnquiryCheckDate: preserveStrongerActiveWork ? base.nextEnquiryCheckDate : nextEnquiryCheckDate,
+        lastServiceDate,
+        lastJobValue,
+        nextRepeatDueDate: nextRepeatDate,
+        lastActivityAt: importedAt,
+        lastActivityKind: "intake",
+        history: nextHistory,
+        sourceRecords: [...sourceRecords, sourceRecord],
+        activity: [
+          ...activity,
+          {
+            id: `activity-${customerId}-intake-${Date.now()}`,
+            kind: "intake",
+            date: eventDate,
+            createdAt: importedAt,
+            title: preserveStrongerActiveWork
+              ? `${captureSource} attached to existing active work`
+              : `${captureStage} captured from ${captureSource}`,
+            note:
+              preserveStrongerActiveWork
+                ? "Busy matched this incoming information to an existing customer and kept the stronger active workflow instead of creating a contradictory new enquiry."
+                : note,
+            value: value || "",
+          },
+        ],
+      };
+
+      return existing
+        ? list.map((customer) => (customer.id === customerId ? nextCustomer : customer))
+        : [...list, nextCustomer];
+    });
+
+    if (!preserveStrongerActiveWork && captureStage === "Quote sent") {
+      setReplyActions((current) => ({
+        ...current,
+        [customerId]: {
+          ...(current[customerId] || {}),
+          task: "Follow up the quote if needed",
+          type: "quote",
+          origin: "intake",
+          createdAt: current[customerId]?.createdAt || importedAt,
+          done: true,
+          details: {
+            ...(current[customerId]?.details || {}),
+            quoteAmount: value || "",
+            quoteStatus: "Sent",
+            quoteSentAt: eventAt,
+            followUpDueDate: addDaysFromISO(eventDate, 7),
+            message: note,
+            summary: `Imported sent quote${value ? ` for £${value}` : ""}`,
+          },
+          completedAt: importedAt,
+        },
+      }));
+    }
+
+    if (!preserveStrongerActiveWork && captureStage === "Booking") {
+      setReplyActions((current) => ({
+        ...current,
+        [customerId]: {
+          ...(current[customerId] || {}),
+          task: "Booked work",
+          type: "booking",
+          origin: "intake",
+          createdAt: current[customerId]?.createdAt || importedAt,
+          done: true,
+          details: {
+            ...(current[customerId]?.details || {}),
+            bookingDate: eventDate,
+            bookingTime: eventTime,
+            bookingStatus: "Confirmed",
+            jobValue: value || "",
+            summary: `Imported booking for ${formatUKDate(eventDate)} at ${eventTime}`,
+          },
+          completedAt: importedAt,
+        },
+      }));
+    }
+
+    if (captureStage === "Completed job" && existingAction) {
+      setReplyActions((current) => {
+        const currentAction = current[customerId];
+        if (!currentAction) return current;
+        return {
+          ...current,
+          [customerId]: {
+            ...currentAction,
+            type: "booking",
+            done: true,
+            details: {
+              ...(currentAction.details || {}),
+              bookingDate: eventDate,
+              bookingTime: eventTime,
+              bookingStatus: "Completed",
+              jobValue: value || currentAction.details?.jobValue || "",
+              completionNote: note,
+              jobCompletedAt: eventAt,
+              summary: `Imported completed job${value ? ` for £${value}` : ""}`,
+            },
+            completedAt: importedAt,
+          },
+        };
+      });
+    }
+
+    setIntakeLog((items) => [
+      ...items,
+      {
+        id: `intake-log-${Date.now()}`,
+        customerId,
+        customerName: name,
+        source: captureSource,
+        stage: captureStage,
+        eventDate,
+        importedAt,
+        matchedExisting: !!existing,
+        matchReason: match?.reason || "",
+        confidence: captureConfidence,
+      },
+    ]);
+
+    setSelectedCustomerId(customerId);
+    go("quickCaptureSaved");
     return true;
   };
 
