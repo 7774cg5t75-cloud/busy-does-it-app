@@ -2650,7 +2650,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={styles.brand}>BUSY DOES IT</Text>
             <Text style={styles.tagline}>More work. Less fuss.</Text>
-            <Text style={styles.prototypeBadge}>Prototype v1.6 • closed-loop opportunity engine</Text>
+            <Text style={styles.prototypeBadge}>Prototype v1.7 • record-based opportunities</Text>
           </View>
           {!noBack && s.history?.length > 0 ? (
             <Pressable onPress={s.back} style={styles.backPill}>
@@ -3527,28 +3527,6 @@ function HomeScreen({ s }) {
           canIgnore: true,
         }]
       : []),
-    ...((Number(s.unansweredReviewCount) || 0) > 0 || (Number(s.recentPhotoCountNeeded) || 0) > 0
-      ? [{
-          id: "profile-fixes",
-          score: 44,
-          eyebrow: "Free improvement",
-          title: "Fix the useful profile gaps first",
-          body: `${Number(s.unansweredReviewCount) || 0} unanswered review${Number(s.unansweredReviewCount) === 1 ? "" : "s"} and ${Number(s.recentPhotoCountNeeded) || 0} recent photo${Number(s.recentPhotoCountNeeded) === 1 ? "" : "s"} are flagged in your saved business data.`,
-          footer: "Cost: £0",
-          status: "Free",
-          tone: "blue",
-          why: `Improving an existing profile costs nothing, but it is normally less urgent than a live customer or a prepared action. ${serviceName} remains the current priority service.`,
-          evidence: [
-            ["Priority service", serviceName],
-            ["Recent photos wanted", String(Number(s.recentPhotoCountNeeded) || 0)],
-            ["Unanswered reviews", String(Number(s.unansweredReviewCount) || 0)],
-            ["Advertising required", "£0"],
-          ],
-          actionLabel: "Review fixes",
-          onAction: () => s.go("profileAudit"),
-          canIgnore: true,
-        }]
-      : []),
     ...(s.enquiryFollowUpOutcomeOpportunity
       ? [{
           id: `enquiry-followup-outcome-${s.enquiryFollowUpOutcomeOpportunity.customerId}`,
@@ -3604,8 +3582,8 @@ function HomeScreen({ s }) {
       s={s}
       noBack
       title="Best thing to do today"
-      subtitle="Busy Does It weighs urgency, customer intent, likely value, cost and how ready the action is — then normally shows one next move."
-      brandCue="One clear move. More work prepared underneath."
+      subtitle="Busy Does It now ranks the customer, quote and job records actually saved — then normally shows one next move."
+      brandCue="Real records in. One clear move out."
     >
       {bestMove ? (
         <>
@@ -4394,16 +4372,16 @@ function CheckSend({ s }) {
       : s.campaignStage === 1
       ? {
           ...baseStep,
-          title: `Follow up ${s.oldEnquiryCount || 0} old enquir${String(s.oldEnquiryCount) === "1" ? "y" : "ies"}`,
-          audience: `${s.oldEnquiryCount || 0} old enquiries`,
-          evidence: [["Old enquiries entered", String(s.oldEnquiryCount || 0)], ["Advertising required", "£0"], ["Data source", "Your saved business data"]],
+          title: `Follow up ${s.staleEnquiryEntries.length} quiet enquir${s.staleEnquiryEntries.length === 1 ? "y" : "ies"}`,
+          audience: `${s.staleEnquiryEntries.length} saved enquiry records`,
+          evidence: [["Quiet enquiries detected", String(s.staleEnquiryEntries.length)], ["Rule", "7+ days with no next action"], ["Advertising required", "£0"], ["Data source", "Individual customer records"]],
         }
       : s.campaignStage === 2
       ? {
           ...baseStep,
-          title: `Revisit ${s.oldQuoteCount || 0} old quote${String(s.oldQuoteCount) === "1" ? "" : "s"}`,
-          audience: `${s.oldQuoteCount || 0} old quotes`,
-          evidence: [["Old quotes entered", String(s.oldQuoteCount || 0)], ["Highest value", `£${s.oldQuoteTopValue || 0}`], ["Advertising required", "£0"], ["Data source", "Your saved business data"]],
+          title: `Revisit ${s.dueQuoteEntries.length} sent quote${s.dueQuoteEntries.length === 1 ? "" : "s"}`,
+          audience: `${s.dueQuoteEntries.length} saved quote records`,
+          evidence: [["Quote follow-ups detected", String(s.dueQuoteEntries.length)], ["Highest current quote", `£${s.dueQuoteEntries.reduce((max, item) => Math.max(max, Number(item.action.details?.quoteAmount) || 0), 0)}`], ["Rule", "Sent 7+ days ago"], ["Advertising required", "£0"]],
         }
       : baseStep;
 
@@ -5535,7 +5513,7 @@ function NewEnquiry({ s }) {
     <Shell
       s={s}
       title="New enquiry"
-      subtitle="Add somebody who has just phoned, messaged or asked for work. No previous job is required."
+      subtitle="Add somebody who phoned, messaged or asked for work. Record when the enquiry actually arrived so Busy Does It can judge its age."
       brandCue="Capture the customer once. Turn the enquiry into the next sensible action."
     >
       <Field label="Customer name" value={s.newEnquiryName} onChangeText={s.setNewEnquiryName} placeholder="e.g. Jane Smith" />
