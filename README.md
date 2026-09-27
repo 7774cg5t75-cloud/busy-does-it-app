@@ -119,3 +119,15 @@ Busy Does It mobile app prototype.
 - Results now counts attached job photos, reusable-with-permission photos and prepared finished-job drafts.
 - The photo workflow stays service-business-generic and uses the customer’s real saved service rather than exterior-cleaning assumptions.
 
+
+
+## v1.4 business opportunity engine home
+- Reworked Home around one ranked “Best thing to do today” instead of showing a wall of competing opportunities by default.
+- Customer commitments rank first: overdue bookings, due reminders, stale sent quotes and unanswered enquiries are surfaced before general marketing.
+- Useful £0 moves then rank underneath, including approved job-photo content, due previous customers, profile fixes and old-quote follow-up.
+- Added the missing stale-quote follow-up signal to Home so the same operational priority can surface outside the Work hub.
+- Secondary opportunities are hidden behind “See other opportunities” so more intelligence underneath does not create more visible complexity.
+- Added a genuine “Nothing worth doing right now” state with recommended spend £0 instead of manufacturing activity.
+- Upgraded the explanation ladder to “Why this?” followed by “Expert details” for the underlying evidence.
+- Kept customer-control and permission rules intact: no messages are really sent, no public post is published and no paid spend happens automatically in this prototype.
+- Preserved the service-business-generic core; the ranking logic uses customer/work signals rather than exterior-cleaning-only assumptions.
