@@ -6501,6 +6501,271 @@ function WorkPlan({ s }) {
 
 
 
+function QuickCapture({ s }) {
+  const canAnalyse = !!s.captureRawText.trim();
+  return (
+    <Shell
+      s={s}
+      title="Quick capture"
+      subtitle="Paste something you already received instead of typing the customer record field by field."
+      brandCue="Paste once. Review what Busy understood. Save only after approval."
+    >
+      <Card
+        eyebrow="Prototype intake layer"
+        title="Messages and notes can become structured work"
+        body="This prototype parses only the text you paste here. It is not reading your email, messages, calendar or invoices in the background yet."
+        footer="Future connectors can feed this same intake pipeline"
+        tone="green"
+      />
+
+      <Text style={styles.sectionLabel}>Where did it come from?</Text>
+      {["Customer message", "Email / quote note", "Phone note", "Calendar / booking note", "Invoice / job note"].map((source) => (
+        <Choice
+          key={source}
+          label={source}
+          selected={s.captureSource === source}
+          onPress={() => s.setCaptureSource(source)}
+        />
+      ))}
+
+      <Text style={styles.fieldLabel}>Paste the message or note</Text>
+      <TextInput
+        multiline
+        value={s.captureRawText}
+        onChangeText={s.setCaptureRawText}
+        placeholder={"Example:\nSophie Green\nCould I get a quote for driveway cleaning?\n07700 900111"}
+        placeholderTextColor="#9AA3B2"
+        style={styles.messageInput}
+      />
+
+      <Button label="Analyse & review" primary disabled={!canAnalyse} onPress={s.analyseQuickCapture} />
+
+      <Text style={styles.sectionLabel}>Try a test example</Text>
+      <Button label="Example enquiry" onPress={() => s.loadQuickCaptureExample("enquiry")} />
+      <Button label="Example sent quote" onPress={() => s.loadQuickCaptureExample("quote")} />
+      <Button label="Example booking" onPress={() => s.loadQuickCaptureExample("booking")} />
+      <Button label="Example completed job" onPress={() => s.loadQuickCaptureExample("completed")} />
+    </Shell>
+  );
+}
+
+function QuickCaptureReview({ s }) {
+  const match = s.captureMatch;
+  const activeAction = match?.customer ? s.replyActions?.[match.customer.id] : null;
+  const strongerActiveWork = !!activeAction && isActiveCustomerAction(activeAction) && s.captureStage === "Enquiry";
+  const canSave = !!s.captureName.trim() && !!(s.capturePhone.trim() || s.captureEmail.trim());
+  const fields = s.captureExtractedFields || [];
+
+  return (
+    <Shell
+      s={s}
+      title="Review what Busy understood"
+      subtitle="Nothing changes until you approve this screen."
+      brandCue="Extraction is a draft, not a fact."
+    >
+      <Card
+        eyebrow="Extraction confidence"
+        title={s.captureConfidence}
+        body={
+          fields.length
+            ? `Busy found: ${fields.join(", ")}. Check every important field before saving.`
+            : "Very little structure was detected. Fill in the fields below before saving."
+        }
+        footer="Owner review required"
+        tone={s.captureConfidence === "High" ? "green" : s.captureConfidence === "Medium" ? "blue" : "amber"}
+      />
+
+      {match ? (
+        <Card
+          eyebrow="Possible existing customer"
+          title={match.customer.name}
+          body={`${match.reason} • match confidence: ${match.confidence}. Busy will update this customer instead of creating a duplicate.`}
+          footer="Duplicate prevention"
+          tone="green"
+        />
+      ) : (
+        <Card
+          eyebrow="No matching customer found"
+          title="This would create a new customer record"
+          body="Busy checked the saved phone number, email address and full name before deciding."
+          tone="blue"
+        />
+      )}
+
+      {strongerActiveWork ? (
+        <Card
+          eyebrow="Conflict prevented"
+          title="Existing active work wins"
+          body="This customer already has a stronger active quote, booking or follow-up. The pasted enquiry will be attached as context instead of resetting the customer backwards in the pipeline."
+          tone="amber"
+        />
+      ) : null}
+
+      <Text style={styles.sectionLabel}>What kind of record is this?</Text>
+      {["Enquiry", "Quote sent", "Booking", "Completed job"].map((stage) => (
+        <Choice
+          key={stage}
+          label={stage}
+          selected={s.captureStage === stage}
+          onPress={() => s.setCaptureStage(stage)}
+        />
+      ))}
+
+      <Field label="Customer name" value={s.captureName} onChangeText={s.setCaptureName} placeholder="Required" />
+      <Field label="Phone" value={s.capturePhone} onChangeText={s.setCapturePhone} placeholder="Phone or email required" keyboardType="phone-pad" />
+      <Field label="Email" value={s.captureEmail} onChangeText={s.setCaptureEmail} placeholder="Optional if phone is present" keyboardType="email-address" />
+      <Field label="Address / job location" value={s.captureAddress} onChangeText={s.setCaptureAddress} placeholder="Optional" />
+      <Field label="Service" value={s.captureService} onChangeText={s.setCaptureService} placeholder="Service" />
+      <DatePickerField label={s.captureStage === "Booking" ? "Booking date" : s.captureStage === "Completed job" ? "Job date" : s.captureStage === "Quote sent" ? "Quote sent date" : "Enquiry received"} value={s.captureDate} onChange={s.setCaptureDate} allowFuture={s.captureStage === "Booking"} />
+
+      {s.captureStage === "Booking" ? (
+        <Field label="Booking time" value={s.captureTime} onChangeText={s.setCaptureTime} placeholder="14:00" />
+      ) : null}
+
+      {s.captureStage !== "Enquiry" ? (
+        <Field
+          label={s.captureStage === "Quote sent" ? "Quote value" : s.captureStage === "Booking" ? "Expected job value" : "Job value"}
+          value={s.captureValue}
+          onChangeText={s.setCaptureValue}
+          keyboardType="number-pad"
+          prefix="£"
+          placeholder="Optional"
+        />
+      ) : null}
+
+      <Text style={styles.fieldLabel}>Source note</Text>
+      <TextInput
+        multiline
+        value={s.captureNote}
+        onChangeText={s.setCaptureNote}
+        style={styles.messageInput}
+        placeholder="Original message / note"
+        placeholderTextColor="#9AA3B2"
+      />
+
+      <Card
+        eyebrow="What Save will do"
+        title={match ? "Merge into the existing customer" : "Create one customer record"}
+        body={
+          s.captureStage === "Enquiry"
+            ? "Save the enquiry date and start the normal 7-day lifecycle watch."
+            : s.captureStage === "Quote sent"
+            ? "Create/update the customer and save a sent quote with its automatic follow-up date."
+            : s.captureStage === "Booking"
+            ? "Create/update the customer and place the confirmed booking into Work."
+            : "Create/update the customer, save completed work, calculate sensible repeat timing and prepare the post-job review admin."
+        }
+        footer="No customer message is sent"
+        tone="green"
+      />
+
+      <Button label={match ? "Approve merge into customer" : "Approve & create record"} primary disabled={!canSave} onPress={s.saveQuickCapture} />
+      <Button label="Back to pasted text" onPress={s.back} />
+    </Shell>
+  );
+}
+
+function QuickCaptureSaved({ s }) {
+  const customer = s.selectedCustomer;
+  const latest = s.intakeLog?.[s.intakeLog.length - 1] || null;
+  if (!customer || !latest) {
+    return (
+      <Shell s={s} title="Capture saved" subtitle="The intake record was saved, but the customer could not be reopened.">
+        <Button label="Work" primary onPress={() => s.jump("workHub", "Work")} />
+      </Shell>
+    );
+  }
+
+  return (
+    <Shell
+      s={s}
+      title="Busy filed it"
+      subtitle="The pasted information has been turned into structured business data."
+      brandCue="Less retyping. Same approval control."
+    >
+      <Card
+        eyebrow={latest.matchedExisting ? "Merged without a duplicate" : "New record created"}
+        title={customer.name}
+        body={`${latest.stage} • ${customer.service} • source: ${latest.source}`}
+        footer={latest.matchedExisting ? latest.matchReason : "New customer"}
+        tone="green"
+      />
+      <Card
+        eyebrow="What happens next"
+        title={
+          latest.stage === "Enquiry"
+            ? "Busy will watch the enquiry lifecycle"
+            : latest.stage === "Quote sent"
+            ? "Busy will watch the quote follow-up date"
+            : latest.stage === "Booking"
+            ? "The booking is now part of Work"
+            : "Post-job admin is prepared underneath"
+        }
+        body="The normal Opportunity Engine uses this record from here. Quick capture is only the way the information got into Busy."
+        tone="blue"
+      />
+      <Button label="Open customer" primary onPress={() => s.openCustomer(customer.id)} />
+      <Button label="Capture another" onPress={s.startQuickCapture} />
+      <Button label="View intake history" onPress={() => s.go("intakeHistory")} />
+      <Button label="Back to Work" onPress={() => s.jump("workHub", "Work")} />
+    </Shell>
+  );
+}
+
+function IntakeHistory({ s }) {
+  const items = [...(s.intakeLog || [])].reverse();
+  return (
+    <Shell
+      s={s}
+      title="Intake history"
+      subtitle="A simple audit trail of information Busy turned into customer/work records."
+      brandCue="Know what came in, where it came from and whether it was merged."
+    >
+      <Card
+        eyebrow="Quick capture"
+        title={`${items.length} item${items.length === 1 ? "" : "s"} processed`}
+        body="This is local prototype history. Future email, calendar, CRM or invoicing connectors can use the same reviewed intake path."
+        tone="green"
+      >
+        <MetricRow left="New customer records created" right={String(s.intakeCreatedCount)} />
+        <MetricRow left="Merged into existing customers" right={String(s.intakeMergedCount)} />
+      </Card>
+
+      {items.map((item) => (
+        <Pressable
+          key={item.id}
+          onPress={() => s.openCustomer(item.customerId)}
+          style={styles.activityCard}
+        >
+          <View style={styles.activityTopRow}>
+            <View style={{ flex: 1, paddingRight: 10 }}>
+              <Text style={styles.activityName}>{item.customerName}</Text>
+              <Text style={styles.activityService}>{item.stage} • {item.source}</Text>
+            </View>
+            <StatusChip label={item.matchedExisting ? "Merged" : "Created"} tone={item.matchedExisting ? "green" : "blue"} />
+          </View>
+          <Text style={styles.activitySummary}>
+            {formatUKDate(item.eventDate)} • extraction {String(item.confidence || "unknown").toLowerCase()} confidence
+          </Text>
+          <Text style={styles.activityOpen}>Open customer →</Text>
+        </Pressable>
+      ))}
+
+      {!items.length ? (
+        <Card
+          eyebrow="Nothing captured yet"
+          title="Paste your first customer message or work note"
+          body="Quick capture will keep the original source label and show whether it created or merged a customer."
+          tone="blue"
+        />
+      ) : null}
+
+      <Button label="Quick capture" primary onPress={s.startQuickCapture} />
+      <Button label="Back to Work" onPress={() => s.jump("workHub", "Work")} />
+    </Shell>
+  );
+}
+
 function NewEnquiry({ s }) {
   const effectiveService = s.newEnquiryCustomService.trim() || s.newEnquiryService.trim();
   const canSave = !!s.newEnquiryName.trim() && !!s.newEnquiryPhone.trim() && !!effectiveService;
@@ -8366,6 +8631,10 @@ const screens = {
   reviewRequest: ReviewRequest,
   reviewRequestSent: ReviewRequestSent,
   reviewRequestOutcome: ReviewRequestOutcome,
+  quickCapture: QuickCapture,
+  quickCaptureReview: QuickCaptureReview,
+  quickCaptureSaved: QuickCaptureSaved,
+  intakeHistory: IntakeHistory,
   newEnquiry: NewEnquiry,
   addCustomerRecord: AddCustomerRecord,
   confirmRemoveCustomer: ConfirmRemoveCustomer,
