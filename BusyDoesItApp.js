@@ -35,6 +35,79 @@ const servicesSeed = [
   { id: "patio", name: "Patio cleaning", value: 220, wanted: true },
 ];
 
+const customerSeed = [
+  { id: "c1", name: "Sarah Mitchell", phone: "07700 900101", service: "Driveway cleaning", lastServiceDate: "2025-01-10", lastJobValue: 260, contactOk: true },
+  { id: "c2", name: "John Parker", phone: "07700 900102", service: "Patio cleaning", lastServiceDate: "2024-12-05", lastJobValue: 220, contactOk: true },
+  { id: "c3", name: "Megan Turner", phone: "07700 900103", service: "Driveway cleaning", lastServiceDate: "2025-02-15", lastJobValue: 280, contactOk: true },
+  { id: "c4", name: "Chris Lewis", phone: "07700 900104", service: "Gutter clearing", lastServiceDate: "2025-03-20", lastJobValue: 95, contactOk: true },
+  { id: "c5", name: "Anita Green", phone: "07700 900105", service: "Patio cleaning", lastServiceDate: "2025-05-01", lastJobValue: 240, contactOk: true },
+  { id: "c6", name: "Rob Davies", phone: "07700 900106", service: "Driveway cleaning", lastServiceDate: "2025-06-12", lastJobValue: 310, contactOk: true },
+  { id: "c7", name: "Elaine Cooper", phone: "07700 900107", service: "Patio cleaning", lastServiceDate: "2025-07-07", lastJobValue: 230, contactOk: true },
+  { id: "c8", name: "Paul Brown", phone: "07700 900108", service: "Gutter clearing", lastServiceDate: "2026-04-15", lastJobValue: 90, contactOk: true },
+  { id: "c9", name: "Lucy White", phone: "07700 900109", service: "Driveway cleaning", lastServiceDate: "2024-11-30", lastJobValue: 275, contactOk: false },
+];
+
+function monthsSince(dateString) {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return 0;
+  return Math.max(0, (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24 * 30.44));
+}
+
+function isEligibleCustomer(customer) {
+  return !!customer?.contactOk && monthsSince(customer?.lastServiceDate) >= 9;
+}
+
+function formatMonthsAgo(dateString) {
+  const months = Math.floor(monthsSince(dateString));
+  if (!months) return "recent";
+  return months === 1 ? "1 month ago" : `${months} months ago`;
+}
+
+function dateFromISO(dateString) {
+  const match = String(dateString || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return new Date();
+  const [, year, month, day] = match;
+  return new Date(Number(year), Number(month) - 1, Number(day), 12, 0, 0);
+}
+
+function dateToISO(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatUKDate(dateString) {
+  const date = dateFromISO(dateString);
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function groupCustomersByService(customers) {
+  return customers.reduce((groups, customer) => {
+    const key = customer?.service?.trim() || "Usual service";
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(customer);
+    return groups;
+  }, {});
+}
+
+function buildSimulatedReply(customer, index, quietSlot) {
+  const service = (customer?.service || "your usual service").toLowerCase();
+  const slot = quietSlot || "That slot";
+  const variants = [
+    { status: "Interested", body: `Yes please — could you send me a quote for the ${service}?` },
+    { status: "Booked", body: `${slot} works for me. What time can you come?` },
+    { status: "Not now", body: `Not this month, thanks — maybe later for the ${service}.` },
+    { status: "No reply", body: "No reply yet." },
+  ];
+  return { ...customer, ...variants[index % variants.length] };
+}
+
+
 const previousCustomerGroups = [
   {
     id: "lapsed",
@@ -54,7 +127,7 @@ const previousCustomerGroups = [
 ];
 
 
-const STORAGE_KEY = "@busy-does-it-v04";
+const STORAGE_KEY = "@busy-does-it-v05";
 
 const connectionSeed = {
   calendar: false,
@@ -176,6 +249,13 @@ function App() {
   const [oldQuoteTopValue, setOldQuoteTopValue] = useState("340");
   const [unansweredReviewCount, setUnansweredReviewCount] = useState("4");
   const [recentPhotoCountNeeded, setRecentPhotoCountNeeded] = useState("2");
+  const [customers, setCustomers] = useState(customerSeed);
+  const [newCustomerName, setNewCustomerName] = useState("");
+  const [newCustomerPhone, setNewCustomerPhone] = useState("");
+  const [newCustomerService, setNewCustomerService] = useState("Driveway cleaning");
+  const [newCustomerDate, setNewCustomerDate] = useState("2025-01-01");
+  const [newCustomerValue, setNewCustomerValue] = useState("");
+  const [newCustomerContactOk, setNewCustomerContactOk] = useState(true);
   const [services, setServices] = useState(servicesSeed);
   const [newServiceName, setNewServiceName] = useState("");
   const [newServiceValue, setNewServiceValue] = useState("");
@@ -192,6 +272,8 @@ function App() {
   const [campaignStage, setCampaignStage] = useState(0);
   const [adBudget, setAdBudget] = useState("20");
   const [message, setMessage] = useState(campaignSteps[0].message);
+  const [serviceMessages, setServiceMessages] = useState({});
+  const [lastSimulatedRecipients, setLastSimulatedRecipients] = useState([]);
   const [bringBackMessage, setBringBackMessage] = useState(
     "Hi, it’s been a while since we last helped. We’ve got a couple of spaces next week if you need any exterior cleaning. Reply here if you’d like us to take a look."
   );
@@ -226,6 +308,7 @@ function App() {
         if (saved.oldQuoteTopValue !== undefined) setOldQuoteTopValue(String(saved.oldQuoteTopValue));
         if (saved.unansweredReviewCount !== undefined) setUnansweredReviewCount(String(saved.unansweredReviewCount));
         if (saved.recentPhotoCountNeeded !== undefined) setRecentPhotoCountNeeded(String(saved.recentPhotoCountNeeded));
+        if (Array.isArray(saved.customers)) setCustomers(saved.customers);
         if (Array.isArray(saved.services)) setServices(saved.services);
         if (typeof saved.alwaysAsk === "boolean") setAlwaysAsk(saved.alwaysAsk);
         if (typeof saved.customerContact === "boolean") setCustomerContact(saved.customerContact);
@@ -266,6 +349,7 @@ function App() {
       oldQuoteTopValue,
       unansweredReviewCount,
       recentPhotoCountNeeded,
+      customers,
       services,
       alwaysAsk,
       customerContact,
@@ -292,6 +376,7 @@ function App() {
     oldQuoteTopValue,
     unansweredReviewCount,
     recentPhotoCountNeeded,
+    customers,
     services,
     alwaysAsk,
     customerContact,
@@ -337,23 +422,46 @@ function App() {
 
   const restoreOpportunities = () => setDismissedOpportunities([]);
 
+
+  const buildReactivationMessages = () => {
+    const eligible = customers.filter(isEligibleCustomer);
+    const groups = groupCustomersByService(eligible);
+    const slotText = (quietSlot || "a quiet slot").toLowerCase();
+    const drafts = {};
+
+    Object.keys(groups).forEach((service) => {
+      drafts[service] =
+        `Hi, we’ve got a slot free ${slotText} for ${service.toLowerCase()}. If you’d like a quote or want to book it, just reply here.`;
+    });
+
+    return drafts;
+  };
+
+  const resetReactivationMessages = () => {
+    setServiceMessages(buildReactivationMessages());
+  };
+
   const startCampaign = (stage = 0) => {
     const safeStage = Math.max(0, Math.min(stage, campaignSteps.length - 1));
-    const wantedServices = services.filter((x) => x.wanted).slice(0, 2).map((x) => x.name.toLowerCase());
-    const serviceText =
-      wantedServices.length >= 2
-        ? `${wantedServices[0]} or ${wantedServices[1]}`
-        : wantedServices[0] || trade.toLowerCase() || "your usual work";
-
     setCampaignStage(safeStage);
+
     if (safeStage === 0) {
-      setMessage(`Hi, we’ve got a slot free ${quietSlot.toLowerCase()} for ${serviceText}. If you’d like a quote or want to book it, just reply here.`);
+      const drafts = buildReactivationMessages();
+      setServiceMessages(drafts);
+      setMessage(Object.values(drafts)[0] || campaignSteps[0].message);
     } else if (safeStage === 1) {
       setMessage(`Hi, you asked us about ${trade.toLowerCase()} a little while ago. We’ve got some availability coming up and I wanted to check whether you still wanted a quote. No problem if not.`);
     } else {
       setMessage(campaignSteps[safeStage].message);
     }
     go("checkSend");
+  };
+
+  const simulateCurrentSend = () => {
+    if (campaignStage === 0) {
+      setLastSimulatedRecipients(customers.filter(isEligibleCustomer).map((customer) => ({ ...customer })));
+    }
+    go("progress");
   };
 
   const prepareOfferFromGoal = () => {
@@ -387,6 +495,37 @@ function App() {
     go("offerBuild");
   };
 
+  const addCustomer = () => {
+    const name = newCustomerName.trim();
+    const phone = newCustomerPhone.trim();
+    const service = newCustomerService.trim() || trade || "Service";
+    const parsedValue = Number(String(newCustomerValue).replace(/[^0-9.]/g, ""));
+    const dateIsValid = !Number.isNaN(new Date(newCustomerDate).getTime());
+    if (!name || !phone || !dateIsValid) return false;
+
+    setCustomers((list) => [
+      ...list,
+      {
+        id: `customer-${Date.now()}`,
+        name,
+        phone,
+        service,
+        lastServiceDate: newCustomerDate,
+        lastJobValue: Number.isFinite(parsedValue) ? parsedValue : 0,
+        contactOk: newCustomerContactOk,
+      },
+    ]);
+    setNewCustomerName("");
+    setNewCustomerPhone("");
+    setNewCustomerValue("");
+    setNewCustomerContactOk(true);
+    return true;
+  };
+
+  const removeCustomer = (id) => {
+    setCustomers((list) => list.filter((customer) => customer.id !== id));
+  };
+
   const resetPrototype = async () => {
     await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
     setOnboardingComplete(false);
@@ -402,6 +541,15 @@ function App() {
     setOldQuoteTopValue("340");
     setUnansweredReviewCount("4");
     setRecentPhotoCountNeeded("2");
+    setCustomers(customerSeed);
+    setNewCustomerName("");
+    setNewCustomerPhone("");
+    setNewCustomerService("Driveway cleaning");
+    setNewCustomerDate("2025-01-01");
+    setNewCustomerValue("");
+    setNewCustomerContactOk(true);
+    setServiceMessages({});
+    setLastSimulatedRecipients([]);
     setServices(servicesSeed);
     setAlwaysAsk(true);
     setCustomerContact(true);
@@ -417,6 +565,7 @@ function App() {
   };
 
   const selectedService = services.find((x) => x.id === selectedServiceId) || services[0];
+  const eligibleCustomers = customers.filter(isEligibleCustomer);
 
   const appState = {
     screen,
@@ -452,6 +601,23 @@ function App() {
     setUnansweredReviewCount,
     recentPhotoCountNeeded,
     setRecentPhotoCountNeeded,
+    customers,
+    setCustomers,
+    eligibleCustomers,
+    newCustomerName,
+    setNewCustomerName,
+    newCustomerPhone,
+    setNewCustomerPhone,
+    newCustomerService,
+    setNewCustomerService,
+    newCustomerDate,
+    setNewCustomerDate,
+    newCustomerValue,
+    setNewCustomerValue,
+    newCustomerContactOk,
+    setNewCustomerContactOk,
+    addCustomer,
+    removeCustomer,
     services,
     setServices,
     newServiceName,
@@ -487,6 +653,11 @@ function App() {
     setAdBudget,
     message,
     setMessage,
+    serviceMessages,
+    setServiceMessages,
+    resetReactivationMessages,
+    simulateCurrentSend,
+    lastSimulatedRecipients,
     bringBackMessage,
     setBringBackMessage,
     offerGoal,
@@ -546,7 +717,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={styles.brand}>BUSY DOES IT</Text>
             <Text style={styles.tagline}>More work. Less fuss.</Text>
-            <Text style={styles.prototypeBadge}>Prototype v0.4 • local data + simulated actions</Text>
+            <Text style={styles.prototypeBadge}>Prototype v0.5 • customer records + simulated sends</Text>
           </View>
           {!noBack && s.history?.length > 0 ? (
             <Pressable onPress={s.back} style={styles.backPill}>
@@ -662,6 +833,112 @@ function Field({ label, value, onChangeText, placeholder, keyboardType = "defaul
           placeholderTextColor="#9AA3B2"
         />
       </View>
+    </View>
+  );
+}
+
+function DatePickerField({ label, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const selected = dateFromISO(value);
+  const [viewMonth, setViewMonth] = useState(
+    new Date(selected.getFullYear(), selected.getMonth(), 1, 12, 0, 0)
+  );
+
+  const today = new Date();
+  const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0);
+  const year = viewMonth.getFullYear();
+  const month = viewMonth.getMonth();
+  const firstWeekdayMondayFirst = (new Date(year, month, 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthLabel = viewMonth.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  const canGoForward =
+    year < today.getFullYear() || (year === today.getFullYear() && month < today.getMonth());
+
+  const chooseDate = (day) => {
+    const candidate = new Date(year, month, day, 12, 0, 0);
+    if (candidate > todayOnly) return;
+    onChange(dateToISO(candidate));
+    setOpen(false);
+  };
+
+  return (
+    <View style={styles.fieldWrap}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <Pressable
+        onPress={() => {
+          const current = dateFromISO(value);
+          setViewMonth(new Date(current.getFullYear(), current.getMonth(), 1, 12, 0, 0));
+          setOpen((currentOpen) => !currentOpen);
+        }}
+        style={[styles.fieldBox, styles.dateFieldBox]}
+      >
+        <Text style={styles.dateFieldText}>{formatUKDate(value)}</Text>
+        <Text style={styles.dateFieldHint}>{open ? "Close" : "Choose date"}</Text>
+      </Pressable>
+
+      {open ? (
+        <View style={styles.datePickerPanel}>
+          <View style={styles.calendarHeader}>
+            <Pressable
+              style={styles.calendarNav}
+              onPress={() => setViewMonth(new Date(year, month - 1, 1, 12, 0, 0))}
+            >
+              <Text style={styles.calendarNavText}>‹</Text>
+            </Pressable>
+            <Text style={styles.calendarMonth}>{monthLabel}</Text>
+            <Pressable
+              disabled={!canGoForward}
+              style={[styles.calendarNav, !canGoForward && styles.calendarNavDisabled]}
+              onPress={() => setViewMonth(new Date(year, month + 1, 1, 12, 0, 0))}
+            >
+              <Text style={[styles.calendarNavText, !canGoForward && styles.calendarNavTextDisabled]}>›</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.calendarGrid}>
+            {["M", "T", "W", "T", "F", "S", "S"].map((dayName, index) => (
+              <View key={`head-${index}`} style={styles.calendarCell}>
+                <Text style={styles.calendarWeekday}>{dayName}</Text>
+              </View>
+            ))}
+            {Array.from({ length: firstWeekdayMondayFirst }).map((_, index) => (
+              <View key={`blank-${index}`} style={styles.calendarCell} />
+            ))}
+            {Array.from({ length: daysInMonth }, (_, index) => index + 1).map((day) => {
+              const candidate = new Date(year, month, day, 12, 0, 0);
+              const disabled = candidate > todayOnly;
+              const isSelected =
+                selected.getFullYear() === year &&
+                selected.getMonth() === month &&
+                selected.getDate() === day;
+              return (
+                <View key={day} style={styles.calendarCell}>
+                  <Pressable
+                    disabled={disabled}
+                    onPress={() => chooseDate(day)}
+                    style={[
+                      styles.calendarDay,
+                      isSelected && styles.calendarDaySelected,
+                      disabled && styles.calendarDayDisabled,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.calendarDayText,
+                        isSelected && styles.calendarDayTextSelected,
+                        disabled && styles.calendarDayTextDisabled,
+                      ]}
+                    >
+                      {day}
+                    </Text>
+                  </Pressable>
+                </View>
+              );
+            })}
+          </View>
+          <Text style={styles.calendarHelp}>Dates use UK day–month–year formatting.</Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -927,22 +1204,25 @@ function SetupConnect({ s }) {
   );
 }
 
+
 function HomeScreen({ s }) {
   const serviceName = s.selectedService?.name || s.services.find((x) => x.wanted)?.name || s.trade || "your priority service";
+  const customerCount = s.customers.length;
+  const eligibleCount = s.eligibleCustomers.length;
   const opportunities = [
     {
       id: "quiet-slot",
       eyebrow: "Capacity",
       title: `${s.quietSlot || "A quiet slot"} is free`,
-      body: `You’ve entered ${s.previousCustomerCount || 0} previous customers. ${s.eligibleCustomerCount || 0} look suitable to contact now.`,
+      body: `You have ${customerCount} saved customer records. ${eligibleCount} are due and allowed to contact now.`,
       footer: "Recommended first move: £0 advertising spend",
-      status: "Worth trying",
-      tone: "green",
-      why: "You have spare capacity and an existing customer audience. Busy Does It puts that cheaper audience ahead of paid advertising.",
+      status: eligibleCount ? "Worth trying" : "No one due",
+      tone: eligibleCount ? "green" : "blue",
+      why: "Busy Does It checks actual saved customer records first. A customer is eligible when contact is allowed and their last recorded job was at least 9 months ago.",
       evidence: [
-        ["Saved quiet slot", s.quietSlot || "Not set"],
-        ["Previous customers", String(s.previousCustomerCount || 0)],
-        ["Suitable to contact", String(s.eligibleCustomerCount || 0)],
+        ["Saved customer records", String(customerCount)],
+        ["Eligible now", String(eligibleCount)],
+        ["Eligibility rule", "9+ months + contact allowed"],
         ["Advertising required", "£0"],
       ],
       onAction: () => s.go("bestMove"),
@@ -987,13 +1267,14 @@ function HomeScreen({ s }) {
       s={s}
       noBack
       title="Here’s what I noticed"
-      subtitle="These opportunities now use the business data saved on this phone."
-      brandCue="Your data first. Simulated actions are clearly labelled."
+      subtitle="Customer recommendations now come from individual records saved on this phone."
+      brandCue="Real local records. Simulated sends."
     >
       <View style={styles.dashboardHeader}>
         <StatusChip label={`${opportunities.length} opportunities`} tone={opportunities.length ? "green" : "blue"} />
-        <Text style={styles.dashboardHint}>Update the numbers any time in Settings → Business data.</Text>
+        <Text style={styles.dashboardHint}>Manage customer records any time from Home or Settings.</Text>
       </View>
+
       {opportunities.length ? (
         opportunities.map((item) => (
           <OpportunityCard
@@ -1006,7 +1287,9 @@ function HomeScreen({ s }) {
       ) : (
         <Card eyebrow="All clear" title="Nothing urgent right now" body="You’ve ignored the current opportunities. Restore them any time to keep testing." tone="green" />
       )}
+
       {s.dismissedOpportunities.length ? <Button label="Restore ignored opportunities" onPress={s.restoreOpportunities} /> : null}
+      <Button label="Customer records" onPress={() => s.go("customerRecords")} />
       <Button label="Update my business data" onPress={() => s.go("businessData")} />
       <Button label="Start something else" primary onPress={() => s.jump("workNow", "Work")} />
     </Shell>
@@ -1038,29 +1321,34 @@ function ChooseGap({ s }) {
   );
 }
 
+
 function BestMove({ s }) {
-  const count = s.eligibleCustomerCount || "0";
+  const count = s.eligibleCustomers.length;
   return (
-    <Shell s={s} title="Best first move" subtitle="This recommendation uses the business data saved on your phone.">
+    <Shell s={s} title="Best first move" subtitle="This recommendation is calculated from your saved customer records.">
       <OpportunityCard
         eyebrow="Recommended"
-        title={`Contact ${count} previous customer${String(count) === "1" ? "" : "s"}`}
-        body={`You have ${s.quietSlot || "a quiet slot"} to fill and ${count} previous customers marked as suitable to contact.`}
+        title={count ? `Review ${count} previous customer${count === 1 ? "" : "s"}` : "No previous customers are due yet"}
+        body={
+          count
+            ? `You have ${s.quietSlot || "a quiet slot"} to fill and ${count} customer records meet the current 9-month contact rule.`
+            : "No saved customer currently meets the 9-month rule with contact permission switched on."
+        }
         footer="Advertising spend: £0"
-        status="Best first move"
-        tone="green"
-        actionLabel="Try this"
-        onAction={() => s.startCampaign(0)}
-        why="Previous customers already know the business, so they are a lower-cost first move than buying new attention."
+        status={count ? "Best first move" : "Nothing to send"}
+        tone={count ? "green" : "blue"}
+        actionLabel={count ? "Review customers" : "Manage customers"}
+        onAction={() => s.go("eligibleCustomers")}
+        why="Previous customers already know the business, so eligible records are checked before buying new attention."
         evidence={[
-          ["Quiet slot", s.quietSlot || "Not set"],
-          ["Previous customers entered", String(s.previousCustomerCount || 0)],
-          ["Suitable to contact", String(count)],
+          ["Customer records", String(s.customers.length)],
+          ["Eligible now", String(count)],
+          ["Rule", "9+ months + contact allowed"],
           ["Advertising required", "£0"],
         ]}
       />
       <Button label="See other options" onPress={() => s.go("otherOptions")} />
-      <Button label="Edit business data" onPress={() => s.go("businessData")} />
+      <Button label="Manage customer records" onPress={() => s.go("customerRecords")} />
       <Button label="Not now" onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
@@ -1227,20 +1515,27 @@ function OtherOptions({ s }) {
   );
 }
 
+
+
 function CheckSend({ s }) {
   const baseStep = campaignSteps[s.campaignStage] || campaignSteps[0];
+  const eligibleCount = s.eligibleCustomers.length;
+  const serviceGroups = groupCustomersByService(s.eligibleCustomers);
+  const serviceEntries = Object.entries(serviceGroups);
+  const serviceGroupCount = serviceEntries.length;
+
   const step =
     s.campaignStage === 0
       ? {
           ...baseStep,
-          title: `Contact ${s.eligibleCustomerCount || 0} previous customer${String(s.eligibleCustomerCount) === "1" ? "" : "s"}`,
-          audience: `${s.eligibleCustomerCount || 0} previous customers`,
-          why: "These customers already know the business, so this is cheaper and lower-risk than buying new attention.",
+          title: `${eligibleCount} customers in ${serviceGroupCount} service group${serviceGroupCount === 1 ? "" : "s"}`,
+          audience: `${eligibleCount} selected customer records`,
+          why: "Busy Does It splits eligible customers by their previous service so each person gets a relevant draft instead of a generic message about work they may never have booked.",
           evidence: [
-            ["Suitable to contact", String(s.eligibleCustomerCount || 0)],
-            ["Quiet slot", s.quietSlot || "Not set"],
+            ["Selected customer records", String(eligibleCount)],
+            ["Service-specific drafts", String(serviceGroupCount)],
+            ["Eligibility rule", "9+ months + contact allowed"],
             ["Advertising required", "£0"],
-            ["Data source", "Your saved business data"],
           ],
         }
       : s.campaignStage === 1
@@ -1260,18 +1555,75 @@ function CheckSend({ s }) {
       : baseStep;
 
   return (
-    <Shell s={s} title="Check before sending" subtitle="This is still a simulated send in v0.4. You control the draft.">
-      <Card eyebrow={step.audience} title={step.title} footer={`Estimated cost: ${step.cost}`}>
-        <Text style={styles.helper}>Tap the draft below if you want to change it.</Text>
-        <TextInput multiline value={s.message} onChangeText={s.setMessage} style={styles.messageInput} />
-      </Card>
+    <Shell
+      s={s}
+      title="Check before sending"
+      subtitle={
+        s.campaignStage === 0
+          ? "Each eligible customer now gets a draft matched to their previous service. Sending is still simulated in v0.5."
+          : "The recipient list is local prototype data. Sending is still simulated in v0.5."
+      }
+    >
+      {s.campaignStage === 0 ? (
+        <>
+          <Card
+            eyebrow={step.audience}
+            title={step.title}
+            body="Review each service group below. You can edit every draft separately."
+            footer="Advertising spend: £0"
+            tone="green"
+          />
+          {serviceEntries.map(([service, customers]) => {
+            const currentDraft =
+              s.serviceMessages[service] ||
+              `Hi, we’ve got a slot free ${(s.quietSlot || "a quiet slot").toLowerCase()} for ${service.toLowerCase()}. If you’d like a quote or want to book it, just reply here.`;
+            return (
+              <View key={service} style={styles.serviceMessageCard}>
+                <View style={styles.serviceMessageHeader}>
+                  <View style={{ flex: 1, paddingRight: 8 }}>
+                    <Text style={styles.serviceMessageTitle}>{service}</Text>
+                    <Text style={styles.serviceMessageMeta}>
+                      {customers.length} customer{customers.length === 1 ? "" : "s"} • {customers.map((customer) => customer.name).join(", ")}
+                    </Text>
+                  </View>
+                  <StatusChip label={`${customers.length}`} tone="green" />
+                </View>
+                <TextInput
+                  multiline
+                  value={currentDraft}
+                  onChangeText={(text) =>
+                    s.setServiceMessages((current) => ({ ...current, [service]: text }))
+                  }
+                  style={styles.messageInput}
+                />
+              </View>
+            );
+          })}
+        </>
+      ) : (
+        <Card eyebrow={step.audience} title={step.title} footer={`Estimated cost: ${step.cost}`}>
+          <Text style={styles.helper}>Tap the draft below if you want to change it.</Text>
+          <TextInput multiline value={s.message} onChangeText={s.setMessage} style={styles.messageInput} />
+        </Card>
+      )}
+
       <InlineExplanation why={step.why} evidence={step.evidence} />
-      <Button label="Simulate send" primary onPress={() => s.go("progress")} />
-      <Button label="Reset draft" onPress={() => s.startCampaign(s.campaignStage)} />
+      {s.campaignStage === 0 ? <SmallLink label="Review selected customers" onPress={() => s.go("eligibleCustomers")} /> : null}
+      <Button
+        label={s.campaignStage === 0 ? `Simulate send to ${eligibleCount}` : "Simulate send"}
+        primary
+        disabled={s.campaignStage === 0 && !eligibleCount}
+        onPress={s.simulateCurrentSend}
+      />
+      <Button
+        label={s.campaignStage === 0 ? "Reset all drafts" : "Reset draft"}
+        onPress={() => (s.campaignStage === 0 ? s.resetReactivationMessages() : s.startCampaign(s.campaignStage))}
+      />
       <Button label="Skip" onPress={() => s.go("otherOptions")} />
     </Shell>
   );
 }
+
 
 function Progress({ s }) {
   const step = campaignSteps[s.campaignStage] || campaignSteps[0];
@@ -1279,12 +1631,30 @@ function Progress({ s }) {
   const hasAnotherFreeMove = nextStage < campaignSteps.length;
   const next = hasAnotherFreeMove ? campaignSteps[nextStage] : null;
   const progressCount = Math.min(s.campaignStage + 1, campaignSteps.length);
+  const sentRecipients =
+    s.campaignStage === 0 && s.lastSimulatedRecipients?.length
+      ? s.lastSimulatedRecipients
+      : s.eligibleCustomers;
+  const serviceGroupCount = Object.keys(groupCustomersByService(sentRecipients)).length;
+
+  const result =
+    s.campaignStage === 0
+      ? {
+          title: "Service-matched send simulated",
+          body: `${sentRecipients.length} eligible customers across ${serviceGroupCount} service group${serviceGroupCount === 1 ? "" : "s"} would receive the relevant draft. No real messages were sent.`,
+          footer: "Prototype simulation only",
+        }
+      : {
+          title: step.resultTitle,
+          body: step.resultBody,
+          footer: step.resultFooter,
+        };
 
   return (
     <Shell s={s} title="Progress" subtitle="Busy Does It reassesses after every step instead of jumping straight to paid ads." brandCue="Cheapest sensible move first.">
       <StatusChip label={`Free-step ${progressCount} of ${campaignSteps.length}`} tone="green" />
       <ProgressStrip current={progressCount} total={campaignSteps.length} />
-      <Card eyebrow="Latest result" title={step.resultTitle} body={step.resultBody} footer={step.resultFooter} tone="green" />
+      <Card eyebrow="Latest result" title={result.title} body={result.body} footer={result.footer} tone="green" />
 
       {hasAnotherFreeMove ? (
         <OpportunityCard
@@ -1314,30 +1684,51 @@ function Progress({ s }) {
         />
       )}
 
-      <Button label="View replies" onPress={() => s.go("replies")} />
+      <Button label="View simulated replies" onPress={() => s.go("replies")} />
       <Button label="Stop for now" onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
 }
 
+
 function Replies({ s }) {
-  const replies = [
-    ["Sarah M.", "Yes please — can you quote the patio as well?", "Interested"],
-    ["John P.", "Thursday works. What time can you come?", "Booked"],
-    ["Chris L.", "Not this month, thanks.", "Not now"],
-    ["Megan T.", "Could you do next Friday instead?", "Interested"],
-  ];
+  const recipients = s.lastSimulatedRecipients?.length ? s.lastSimulatedRecipients : s.eligibleCustomers;
+  const replies = recipients.map((customer, index) =>
+    buildSimulatedReply(customer, index, s.quietSlot)
+  );
+  const replyCount = replies.filter((reply) => reply.status !== "No reply").length;
+  const noReplyCount = replies.length - replyCount;
+
   return (
-    <Shell s={s} title="Replies" subtitle="Plain-English status only.">
-      {replies.map(([name, body, status]) => (
-        <View style={styles.replyCard} key={name}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
-            <Text style={styles.replyName}>{name}</Text>
-            <Text style={styles.replyStatus}>{status}</Text>
+    <Shell
+      s={s}
+      title="Replies"
+      subtitle="These simulated outcomes use the exact customer records from the send you just tested."
+    >
+      <Card
+        eyebrow="Simulated outcome"
+        title={`${replyCount} repl${replyCount === 1 ? "y" : "ies"} from ${recipients.length} recipients`}
+        body={noReplyCount ? `${noReplyCount} customer${noReplyCount === 1 ? "" : "s"} have no reply yet.` : "Every simulated recipient has replied."}
+        footer="No real messages or replies"
+        tone="green"
+      />
+
+      {replies.map((reply) => {
+        const muted = reply.status === "Not now" || reply.status === "No reply";
+        return (
+          <View style={styles.replyCard} key={reply.id}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
+              <View style={{ flex: 1, paddingRight: 8 }}>
+                <Text style={styles.replyName}>{reply.name}</Text>
+                <Text style={styles.replyService}>{reply.service}</Text>
+              </View>
+              <Text style={[styles.replyStatus, muted && styles.replyStatusMuted]}>{reply.status}</Text>
+            </View>
+            <Text style={styles.replyBody}>{reply.body}</Text>
           </View>
-          <Text style={styles.replyBody}>{body}</Text>
-        </View>
-      ))}
+        );
+      })}
+
       <Button label="Back to progress" primary onPress={s.back} />
     </Shell>
   );
@@ -1487,20 +1878,157 @@ function WorkPlan({ s }) {
   );
 }
 
-function CustomerGroups({ s }) {
+
+function CustomerRecords({ s }) {
   return (
-    <Shell s={s} title="Customers worth trying" subtitle="We’ve grouped people by simple reasons.">
-      {previousCustomerGroups.map((g) => (
-        <Pressable
-          key={g.id}
-          onPress={() => s.setSelectedCustomerGroup(g)}
-          style={[styles.groupCard, s.selectedCustomerGroup.id === g.id && styles.groupCardSelected]}
-        >
-          <Text style={styles.groupTitle}>{g.title}</Text>
-          <Text style={styles.groupBody}>{g.reason}</Text>
-        </Pressable>
-      ))}
-      <Button label="Use this group" primary onPress={() => s.go("bringBack")} />
+    <Shell
+      s={s}
+      title="Customer records"
+      subtitle="Stored locally on this phone in v0.5. These records now drive the previous-customer recommendation."
+    >
+      <Card
+        eyebrow="Current records"
+        title={`${s.eligibleCustomers.length} of ${s.customers.length} are eligible now`}
+        body="Eligible means contact is allowed and the last recorded job was at least 9 months ago."
+        footer="No messages are actually sent in this prototype"
+        tone="green"
+      />
+      {s.customers.map((customer) => {
+        const eligible = isEligibleCustomer(customer);
+        return (
+          <View key={customer.id} style={styles.customerRecord}>
+            <View style={styles.customerRecordTop}>
+              <View style={{ flex: 1, paddingRight: 8 }}>
+                <Text style={styles.customerName}>{customer.name}</Text>
+                <Text style={styles.customerMeta}>{customer.phone}</Text>
+              </View>
+              <StatusChip label={eligible ? "Eligible now" : customer.contactOk ? "Not due" : "Do not contact"} tone={eligible ? "green" : "blue"} />
+            </View>
+            <Text style={styles.customerService}>{customer.service}</Text>
+            <Text style={styles.customerMeta}>
+              Last job: {customer.lastServiceDate} • {formatMonthsAgo(customer.lastServiceDate)}
+              {Number(customer.lastJobValue) > 0 ? ` • £${customer.lastJobValue}` : ""}
+            </Text>
+            <Pressable onPress={() => s.removeCustomer(customer.id)} style={styles.removeCustomerWrap}>
+              <Text style={styles.removeCustomerText}>Remove record</Text>
+            </Pressable>
+          </View>
+        );
+      })}
+      <Button label="+ Add customer" primary onPress={() => s.go("addCustomerRecord")} />
+      <Button label="Review eligible customers" onPress={() => s.go("eligibleCustomers")} />
+      <Button label="Done" onPress={s.back} />
+    </Shell>
+  );
+}
+
+function AddCustomerRecord({ s }) {
+  const validDate = !Number.isNaN(new Date(s.newCustomerDate).getTime());
+  const canSave = !!s.newCustomerName.trim() && !!s.newCustomerPhone.trim() && validDate;
+
+  return (
+    <Shell
+      s={s}
+      title="Add customer"
+      subtitle="A simple local record is enough for this prototype."
+    >
+      <Field label="Customer name" value={s.newCustomerName} onChangeText={s.setNewCustomerName} placeholder="e.g. Jane Smith" />
+      <Field label="Phone" value={s.newCustomerPhone} onChangeText={s.setNewCustomerPhone} placeholder="e.g. 07700 900000" keyboardType="phone-pad" />
+      <Field label="Last service" value={s.newCustomerService} onChangeText={s.setNewCustomerService} placeholder="e.g. Driveway cleaning" />
+      <DatePickerField label="Last job date" value={s.newCustomerDate} onChange={s.setNewCustomerDate} />
+      <Field label="Last job value" value={s.newCustomerValue} onChangeText={s.setNewCustomerValue} keyboardType="number-pad" prefix="£" placeholder="Optional" />
+      <ToggleRow
+        title="Okay to contact"
+        body="Only customers with this switched on can be recommended for reactivation."
+        value={s.newCustomerContactOk}
+        onValueChange={s.setNewCustomerContactOk}
+      />
+      <Button
+        label="Save customer"
+        primary
+        disabled={!canSave}
+        onPress={() => {
+          if (s.addCustomer()) s.back();
+        }}
+      />
+      <Button label="Cancel" onPress={s.back} />
+    </Shell>
+  );
+}
+
+
+function EligibleCustomers({ s }) {
+  const eligible = s.eligibleCustomers;
+  const groups = groupCustomersByService(eligible);
+  const groupCount = Object.keys(groups).length;
+
+  return (
+    <Shell
+      s={s}
+      title="Customers to try first"
+      subtitle="These are the actual saved records that meet the current rule."
+    >
+      <Card
+        eyebrow="Selection rule"
+        title={`${eligible.length} customer${eligible.length === 1 ? "" : "s"} selected`}
+        body={
+          eligible.length
+            ? `They will be split into ${groupCount} service-specific message group${groupCount === 1 ? "" : "s"} before sending.`
+            : "Contact permission is on, and the last recorded job must be at least 9 months ago."
+        }
+        footer="Advertising spend: £0"
+        tone="green"
+      />
+      {eligible.length ? (
+        eligible.map((customer) => (
+          <View key={customer.id} style={styles.customerRecord}>
+            <View style={styles.customerRecordTop}>
+              <Text style={styles.customerName}>{customer.name}</Text>
+              <StatusChip label="Eligible now" tone="green" />
+            </View>
+            <Text style={styles.customerService}>{customer.service}</Text>
+            <Text style={styles.customerMeta}>
+              {customer.phone} • Last job {formatMonthsAgo(customer.lastServiceDate)}
+              {Number(customer.lastJobValue) > 0 ? ` • £${customer.lastJobValue}` : ""}
+            </Text>
+          </View>
+        ))
+      ) : (
+        <Card eyebrow="No matches" title="Nobody is due under the current rule" body="Add customer records or update their dates and contact permission." />
+      )}
+      <Button
+        label={
+          eligible.length
+            ? `Prepare ${groupCount} message${groupCount === 1 ? "" : "s"} for ${eligible.length}`
+            : "Manage customer records"
+        }
+        primary
+        onPress={() => (eligible.length ? s.startCampaign(0) : s.go("customerRecords"))}
+      />
+      {eligible.length ? <Button label="Manage records" onPress={() => s.go("customerRecords")} /> : null}
+    </Shell>
+  );
+}
+
+function CustomerGroups({ s }) {
+  const eligible = s.eligibleCustomers;
+  const highValue = s.customers.filter((customer) => customer.contactOk && Number(customer.lastJobValue) >= 250);
+  return (
+    <Shell s={s} title="Customers worth trying" subtitle="Groups now come from the customer records stored on this phone.">
+      <Card
+        eyebrow="Due now"
+        title={`${eligible.length} eligible customer${eligible.length === 1 ? "" : "s"}`}
+        body="Contact permission is on and their last recorded job was at least 9 months ago."
+        footer="Recommended first"
+        tone="green"
+      />
+      <Card
+        eyebrow="Higher-value history"
+        title={`${highValue.length} customer${highValue.length === 1 ? "" : "s"} with £250+ previous jobs`}
+        body="Useful context, but recency and contact permission still matter before sending anything."
+      />
+      <Button label="Review eligible customers" primary onPress={() => s.go("eligibleCustomers")} />
+      <Button label="Manage customer records" onPress={() => s.go("customerRecords")} />
     </Shell>
   );
 }
@@ -1690,17 +2218,18 @@ function UpdateOutcome({ s }) {
   );
 }
 
+
 function BusinessData({ s }) {
   return (
     <Shell
       s={s}
       title="Business data"
-      subtitle="For v0.4, enter the facts you already know. Home updates from these values and saves them on this phone."
+      subtitle="General business facts stay here. Previous-customer counts now come from individual customer records."
     >
       <Card
-        eyebrow="What is real in v0.4"
-        title="Your inputs now drive the opportunities"
-        body="The profile, capacity and opportunity numbers below are real local inputs. Sending messages, reading external accounts and campaign results are still simulated."
+        eyebrow="v0.5 data model"
+        title="Customer counts are calculated, not typed in"
+        body={`You currently have ${s.customers.length} saved customer records and ${s.eligibleCustomers.length} are eligible under the 9-month rule.`}
         tone="green"
       />
       <Field label="Business name" value={s.businessName} onChangeText={s.setBusinessName} />
@@ -1708,9 +2237,9 @@ function BusinessData({ s }) {
       <Field label="Postcode / base area" value={s.postcode} onChangeText={s.setPostcode} />
       <Field label="Service radius" value={s.radius} onChangeText={s.setRadius} keyboardType="number-pad" prefix="Miles" />
       <Field label="Next quiet slot" value={s.quietSlot} onChangeText={s.setQuietSlot} placeholder="e.g. Thursday afternoon" />
-      <Text style={styles.sectionLabel}>Opportunity numbers</Text>
-      <Field label="Previous customers in your records" value={s.previousCustomerCount} onChangeText={s.setPreviousCustomerCount} keyboardType="number-pad" />
-      <Field label="Suitable previous customers to contact" value={s.eligibleCustomerCount} onChangeText={s.setEligibleCustomerCount} keyboardType="number-pad" />
+      <Button label="Manage customer records" onPress={() => s.go("customerRecords")} />
+
+      <Text style={styles.sectionLabel}>Other opportunity numbers</Text>
       <Field label="Old enquiries worth following up" value={s.oldEnquiryCount} onChangeText={s.setOldEnquiryCount} keyboardType="number-pad" />
       <Field label="Old quotes worth revisiting" value={s.oldQuoteCount} onChangeText={s.setOldQuoteCount} keyboardType="number-pad" />
       <Field label="Highest old quote value" value={s.oldQuoteTopValue} onChangeText={s.setOldQuoteTopValue} keyboardType="number-pad" prefix="£" />
@@ -1721,6 +2250,7 @@ function BusinessData({ s }) {
     </Shell>
   );
 }
+
 function Settings({ s }) {
   const connectedCount = Object.values(s.connectedAccounts).filter(Boolean).length;
   return (
@@ -1741,7 +2271,8 @@ function Settings({ s }) {
         <MetricRow left="Previous customers" right={s.customerContact ? "Allowed" : "Off"} />
         <MetricRow left="Connected accounts" right={`${connectedCount}/${connectionRows.length}`} />
       </Card>
-      <Button label="Business profile & opportunity data" primary onPress={() => s.go("businessData")} />
+      <Button label="Customer records" primary onPress={() => s.go("customerRecords")} />
+      <Button label="Business profile & opportunity data" onPress={() => s.go("businessData")} />
       <Button label="Change limits" onPress={() => s.go("settingsLimits")} />
       <Button label="Connected accounts" onPress={() => s.go("connectedAccounts")} />
       <Button label="How Busy Does It works" onPress={() => s.go("howBusyWorks")} />
@@ -1866,6 +2397,9 @@ const screens = {
   workNow: WorkNow,
   chooseGap: ChooseGap,
   bestMove: BestMove,
+  customerRecords: CustomerRecords,
+  addCustomerRecord: AddCustomerRecord,
+  eligibleCustomers: EligibleCustomers,
   profileAudit: ProfileAudit,
   profileAuditPlan: ProfileAuditPlan,
   otherOptions: OtherOptions,
@@ -1968,6 +2502,26 @@ const styles = StyleSheet.create({
   },
   fieldPrefix: { marginRight: 9, fontWeight: "800", color: C.muted },
   fieldInput: { flex: 1, fontSize: 16, color: C.ink, paddingVertical: 12 },
+  dateFieldBox: { justifyContent: "space-between" },
+  dateFieldText: { flex: 1, fontSize: 16, color: C.ink, fontWeight: "700" },
+  dateFieldHint: { color: C.blue, fontSize: 13, fontWeight: "800", marginLeft: 12 },
+  datePickerPanel: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16, padding: 12, marginTop: 8, marginBottom: 14 },
+  calendarHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
+  calendarMonth: { color: C.ink, fontSize: 16, fontWeight: "900" },
+  calendarNav: { width: 44, height: 44, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: C.blueSoft },
+  calendarNavDisabled: { backgroundColor: "#F1F3F6" },
+  calendarNavText: { color: C.blue, fontSize: 30, lineHeight: 32, fontWeight: "700" },
+  calendarNavTextDisabled: { color: "#B8BFCA" },
+  calendarGrid: { flexDirection: "row", flexWrap: "wrap" },
+  calendarCell: { width: "14.2857%", alignItems: "center", justifyContent: "center", minHeight: 40 },
+  calendarWeekday: { color: C.muted, fontSize: 12, fontWeight: "800" },
+  calendarDay: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  calendarDaySelected: { backgroundColor: C.blue },
+  calendarDayDisabled: { opacity: 0.28 },
+  calendarDayText: { color: C.ink, fontSize: 14, fontWeight: "700" },
+  calendarDayTextSelected: { color: "#FFFFFF", fontWeight: "900" },
+  calendarDayTextDisabled: { color: C.muted },
+  calendarHelp: { color: C.muted, fontSize: 12, textAlign: "center", marginTop: 8 },
   choice: {
     flexDirection: "row",
     alignItems: "center",
@@ -2050,6 +2604,8 @@ const styles = StyleSheet.create({
   },
   replyName: { fontWeight: "900", color: C.ink, fontSize: 16 },
   replyStatus: { color: C.green, fontWeight: "800", fontSize: 13 },
+  replyStatusMuted: { color: C.muted },
+  replyService: { color: C.muted, fontSize: 12, fontWeight: "700", marginTop: 2 },
   replyBody: { color: C.muted, lineHeight: 20, marginTop: 7 },
   groupCard: {
     borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16,
@@ -2092,6 +2648,17 @@ const styles = StyleSheet.create({
   progressFill: { height: "100%", backgroundColor: C.green, borderRadius: 999 },
   warningText: { color: C.amber, fontSize: 13, lineHeight: 19, fontWeight: "700", marginTop: -2, marginBottom: 14 },
   sectionLabel: { color: C.ink, fontSize: 18, fontWeight: "900", marginTop: 8, marginBottom: 14 },
+  customerRecord: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16, padding: 15, marginBottom: 10 },
+  customerRecordTop: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 8 },
+  customerName: { color: C.ink, fontSize: 17, fontWeight: "900" },
+  customerService: { color: C.ink, fontSize: 14, fontWeight: "800", marginTop: 8 },
+  customerMeta: { color: C.muted, fontSize: 13, lineHeight: 18, marginTop: 3 },
+  removeCustomerWrap: { alignSelf: "flex-start", paddingTop: 10, paddingBottom: 2 },
+  removeCustomerText: { color: C.red, fontSize: 13, fontWeight: "800" },
+  serviceMessageCard: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16, padding: 14, marginBottom: 12 },
+  serviceMessageHeader: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 },
+  serviceMessageTitle: { color: C.ink, fontSize: 17, fontWeight: "900" },
+  serviceMessageMeta: { color: C.muted, fontSize: 13, lineHeight: 18, marginTop: 3 },
   connectButtonOn: { backgroundColor: C.greenSoft },
   nav: {
     height: 72,
