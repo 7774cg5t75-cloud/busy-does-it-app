@@ -12,7 +12,6 @@ import {
   Switch,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import DateTimePicker from "@react-native-community/datetimepicker";
 
 const C = {
   bg: "#F5F7FB",
@@ -787,13 +786,37 @@ function Field({ label, value, onChangeText, placeholder, keyboardType = "defaul
 
 function DatePickerField({ label, value, onChange }) {
   const [open, setOpen] = useState(false);
-  const dateValue = dateFromISO(value);
+  const selected = dateFromISO(value);
+  const [viewMonth, setViewMonth] = useState(
+    new Date(selected.getFullYear(), selected.getMonth(), 1, 12, 0, 0)
+  );
+
+  const today = new Date();
+  const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0);
+  const year = viewMonth.getFullYear();
+  const month = viewMonth.getMonth();
+  const firstWeekdayMondayFirst = (new Date(year, month, 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthLabel = viewMonth.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  const canGoForward =
+    year < today.getFullYear() || (year === today.getFullYear() && month < today.getMonth());
+
+  const chooseDate = (day) => {
+    const candidate = new Date(year, month, day, 12, 0, 0);
+    if (candidate > todayOnly) return;
+    onChange(dateToISO(candidate));
+    setOpen(false);
+  };
 
   return (
     <View style={styles.fieldWrap}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <Pressable
-        onPress={() => setOpen((current) => !current)}
+        onPress={() => {
+          const current = dateFromISO(value);
+          setViewMonth(new Date(current.getFullYear(), current.getMonth(), 1, 12, 0, 0));
+          setOpen((currentOpen) => !currentOpen);
+        }}
         style={[styles.fieldBox, styles.dateFieldBox]}
       >
         <Text style={styles.dateFieldText}>{formatUKDate(value)}</Text>
@@ -802,21 +825,65 @@ function DatePickerField({ label, value, onChange }) {
 
       {open ? (
         <View style={styles.datePickerPanel}>
-          <DateTimePicker
-            value={dateValue}
-            mode="date"
-            display="inline"
-            maximumDate={new Date()}
-            locale="en-GB"
-            onChange={(event, selectedDate) => {
-              if (event?.type === "dismissed") {
-                setOpen(false);
-                return;
-              }
-              if (selectedDate) onChange(dateToISO(selectedDate));
-            }}
-          />
-          <Button label="Done" onPress={() => setOpen(false)} />
+          <View style={styles.calendarHeader}>
+            <Pressable
+              style={styles.calendarNav}
+              onPress={() => setViewMonth(new Date(year, month - 1, 1, 12, 0, 0))}
+            >
+              <Text style={styles.calendarNavText}>‹</Text>
+            </Pressable>
+            <Text style={styles.calendarMonth}>{monthLabel}</Text>
+            <Pressable
+              disabled={!canGoForward}
+              style={[styles.calendarNav, !canGoForward && styles.calendarNavDisabled]}
+              onPress={() => setViewMonth(new Date(year, month + 1, 1, 12, 0, 0))}
+            >
+              <Text style={[styles.calendarNavText, !canGoForward && styles.calendarNavTextDisabled]}>›</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.calendarGrid}>
+            {["M", "T", "W", "T", "F", "S", "S"].map((dayName, index) => (
+              <View key={`head-${index}`} style={styles.calendarCell}>
+                <Text style={styles.calendarWeekday}>{dayName}</Text>
+              </View>
+            ))}
+            {Array.from({ length: firstWeekdayMondayFirst }).map((_, index) => (
+              <View key={`blank-${index}`} style={styles.calendarCell} />
+            ))}
+            {Array.from({ length: daysInMonth }, (_, index) => index + 1).map((day) => {
+              const candidate = new Date(year, month, day, 12, 0, 0);
+              const disabled = candidate > todayOnly;
+              const isSelected =
+                selected.getFullYear() === year &&
+                selected.getMonth() === month &&
+                selected.getDate() === day;
+              return (
+                <View key={day} style={styles.calendarCell}>
+                  <Pressable
+                    disabled={disabled}
+                    onPress={() => chooseDate(day)}
+                    style={[
+                      styles.calendarDay,
+                      isSelected && styles.calendarDaySelected,
+                      disabled && styles.calendarDayDisabled,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.calendarDayText,
+                        isSelected && styles.calendarDayTextSelected,
+                        disabled && styles.calendarDayTextDisabled,
+                      ]}
+                    >
+                      {day}
+                    </Text>
+                  </Pressable>
+                </View>
+              );
+            })}
+          </View>
+          <Text style={styles.calendarHelp}>Dates use UK day–month–year formatting.</Text>
         </View>
       ) : null}
     </View>
@@ -2274,7 +2341,23 @@ const styles = StyleSheet.create({
   dateFieldBox: { justifyContent: "space-between" },
   dateFieldText: { flex: 1, fontSize: 16, color: C.ink, fontWeight: "700" },
   dateFieldHint: { color: C.blue, fontSize: 13, fontWeight: "800", marginLeft: 12 },
-  datePickerPanel: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16, padding: 10, marginTop: 8, marginBottom: 14 },
+  datePickerPanel: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16, padding: 12, marginTop: 8, marginBottom: 14 },
+  calendarHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
+  calendarMonth: { color: C.ink, fontSize: 16, fontWeight: "900" },
+  calendarNav: { width: 44, height: 44, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: C.blueSoft },
+  calendarNavDisabled: { backgroundColor: "#F1F3F6" },
+  calendarNavText: { color: C.blue, fontSize: 30, lineHeight: 32, fontWeight: "700" },
+  calendarNavTextDisabled: { color: "#B8BFCA" },
+  calendarGrid: { flexDirection: "row", flexWrap: "wrap" },
+  calendarCell: { width: "14.2857%", alignItems: "center", justifyContent: "center", minHeight: 40 },
+  calendarWeekday: { color: C.muted, fontSize: 12, fontWeight: "800" },
+  calendarDay: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  calendarDaySelected: { backgroundColor: C.blue },
+  calendarDayDisabled: { opacity: 0.28 },
+  calendarDayText: { color: C.ink, fontSize: 14, fontWeight: "700" },
+  calendarDayTextSelected: { color: "#FFFFFF", fontWeight: "900" },
+  calendarDayTextDisabled: { color: C.muted },
+  calendarHelp: { color: C.muted, fontSize: 12, textAlign: "center", marginTop: 8 },
   choice: {
     flexDirection: "row",
     alignItems: "center",
