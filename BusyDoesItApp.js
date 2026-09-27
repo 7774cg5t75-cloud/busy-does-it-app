@@ -295,6 +295,37 @@ function replyActionForStatus(status) {
   return null;
 }
 
+function customerActionStatus(action) {
+  if (!action) return null;
+  if (!action.done) return action.type === "quote" ? "Quote in progress" : action.type === "booking" ? "Booking in progress" : "Follow-up in progress";
+  if (action.type === "quote") return action.details?.quoteStatus || "Prepared";
+  if (action.type === "booking") return action.details?.bookingStatus || "Confirmed";
+  if (action.type === "reminder") return action.details?.reminderStatus || "Scheduled";
+  return "Active";
+}
+
+function isActiveCustomerAction(action) {
+  if (!action) return false;
+  if (!action.done) return true;
+  if (action.type === "quote") return ["Prepared", "Sent", "Accepted"].includes(action.details?.quoteStatus || "Prepared");
+  if (action.type === "booking") return !["Cancelled", "Completed"].includes(action.details?.bookingStatus || "Confirmed");
+  if (action.type === "reminder") return (action.details?.reminderStatus || "Scheduled") !== "Completed";
+  return false;
+}
+
+function customerPipelineLabel(customer, action) {
+  const status = customerActionStatus(action);
+  if (isActiveCustomerAction(action)) {
+    if (action.type === "quote") return status === "Sent" ? "Quote sent" : status === "Accepted" ? "Quote accepted" : "Quote active";
+    if (action.type === "booking") return status === "Confirmed" ? "Booked" : "Booking";
+    if (action.type === "reminder") return "Follow-up set";
+  }
+  if (!customer?.lastServiceDate && action?.type === "quote" && status === "Declined") return "Quote declined";
+  if (!customer?.lastServiceDate && action?.type === "booking" && status === "Cancelled") return "Booking cancelled";
+  if (!customer?.lastServiceDate) return "New enquiry";
+  return null;
+}
+
 
 const previousCustomerGroups = [
   {
@@ -448,6 +479,7 @@ function App() {
   const [newEnquiryName, setNewEnquiryName] = useState("");
   const [newEnquiryPhone, setNewEnquiryPhone] = useState("");
   const [newEnquiryService, setNewEnquiryService] = useState("Driveway cleaning");
+  const [newEnquiryCustomService, setNewEnquiryCustomService] = useState("");
   const [newEnquiryNote, setNewEnquiryNote] = useState("");
   const [customerNoteText, setCustomerNoteText] = useState("");
   const [services, setServices] = useState(servicesSeed);
@@ -658,6 +690,7 @@ function App() {
     setSelectedServiceId(nextServices[0]?.id || "");
     setNewCustomerService(nextServices[0]?.name || pack.label);
     setNewEnquiryService(nextServices[0]?.name || pack.label);
+    setNewEnquiryCustomService("");
     setOfferService(nextServices[0]?.name || pack.label);
     setDismissedOpportunities([]);
   };
@@ -672,21 +705,8 @@ function App() {
 
   const restoreOpportunities = () => setDismissedOpportunities([]);
 
-  const hasActiveCustomerWork = (customerId) => {
-    const action = replyActions[customerId];
-    if (!action) return false;
-    if (!action.done) return true;
-    if (action.type === "quote") {
-      return ["Prepared", "Sent", "Accepted"].includes(action.details?.quoteStatus || "Prepared");
-    }
-    if (action.type === "booking") {
-      return !["Cancelled", "Completed"].includes(action.details?.bookingStatus || "Confirmed");
-    }
-    if (action.type === "reminder") {
-      return (action.details?.reminderStatus || "Scheduled") !== "Completed";
-    }
-    return false;
-  };
+  const hasActiveCustomerWork = (customerId) =>
+    isActiveCustomerAction(replyActions[customerId]);
 
   const buildReactivationMessages = () => {
     const eligible = customerContact
@@ -1201,6 +1221,7 @@ function App() {
     setNewEnquiryName("");
     setNewEnquiryPhone("");
     setNewEnquiryService(preferred?.name || trade || "Service");
+    setNewEnquiryCustomService("");
     setNewEnquiryNote("");
     go("newEnquiry");
   };
@@ -1208,7 +1229,7 @@ function App() {
   const saveNewEnquiry = () => {
     const name = newEnquiryName.trim();
     const phone = newEnquiryPhone.trim();
-    const service = newEnquiryService.trim() || services[0]?.name || trade || "Service";
+    const service = newEnquiryCustomService.trim() || newEnquiryService.trim() || services[0]?.name || trade || "Service";
     if (!name || !phone) return false;
     const id = `enquiry-${Date.now()}`;
     const now = new Date().toISOString();
@@ -1238,6 +1259,7 @@ function App() {
     setSelectedCustomerId(id);
     setNewEnquiryName("");
     setNewEnquiryPhone("");
+    setNewEnquiryCustomService("");
     setNewEnquiryNote("");
     go("customerDetail");
     return true;
@@ -1296,6 +1318,7 @@ function App() {
     setNewCustomerDate("2025-01-01");
     setNewCustomerValue("");
     setNewCustomerContactOk(true);
+    setNewEnquiryCustomService("");
     setServiceMessages({});
     setLastSimulatedRecipients([]);
     setReplyActions({});
@@ -1454,6 +1477,8 @@ function App() {
     setNewEnquiryPhone,
     newEnquiryService,
     setNewEnquiryService,
+    newEnquiryCustomService,
+    setNewEnquiryCustomService,
     newEnquiryNote,
     setNewEnquiryNote,
     customerNoteText,
@@ -3755,7 +3780,8 @@ function WorkPlan({ s }) {
 
 
 function NewEnquiry({ s }) {
-  const canSave = !!s.newEnquiryName.trim() && !!s.newEnquiryPhone.trim() && !!s.newEnquiryService.trim();
+  const effectiveService = s.newEnquiryCustomService.trim() || s.newEnquiryService.trim();
+  const canSave = !!s.newEnquiryName.trim() && !!s.newEnquiryPhone.trim() && !!effectiveService;
   return (
     <Shell
       s={s}
@@ -3771,11 +3797,24 @@ function NewEnquiry({ s }) {
         <Choice
           key={service.id}
           label={service.name}
-          selected={s.newEnquiryService === service.name}
-          onPress={() => s.setNewEnquiryService(service.name)}
+          selected={!s.newEnquiryCustomService.trim() && s.newEnquiryService === service.name}
+          onPress={() => {
+            s.setNewEnquiryService(service.name);
+            s.setNewEnquiryCustomService("");
+          }}
         />
       ))}
-      <Field label="Or type another service" value={s.newEnquiryService} onChangeText={s.setNewEnquiryService} placeholder="Any service you offer" />
+      <Field
+        label="Or type another service"
+        value={s.newEnquiryCustomService}
+        onChangeText={s.setNewEnquiryCustomService}
+        placeholder="e.g. Conservatory cleaning"
+      />
+      <Text style={styles.helper}>
+        {s.newEnquiryCustomService.trim()
+          ? `Using custom service: ${s.newEnquiryCustomService.trim()}`
+          : `Selected service: ${s.newEnquiryService}`}
+      </Text>
 
       <Text style={styles.fieldLabel}>Note (optional)</Text>
       <TextInput
@@ -3814,7 +3853,17 @@ function CustomerRecords({ s }) {
       />
       {s.customers.map((customer) => {
         const eligible = s.customerContact && isEligibleCustomer(customer, s.services, s.verticalId);
+        const action = s.replyActions?.[customer.id] || null;
+        const pipelineLabel = customerPipelineLabel(customer, action);
+        const activeAction = isActiveCustomerAction(action);
         const isNewEnquiry = !customer.lastServiceDate;
+        const statusLabel =
+          pipelineLabel ||
+          (eligible
+            ? "Eligible now"
+            : customer.contactOk
+            ? (s.customerContact ? "Not due" : "Contact off")
+            : "Do not contact");
         return (
           <View key={customer.id} style={styles.customerRecord}>
             <View style={styles.customerRecordTop}>
@@ -3823,16 +3872,8 @@ function CustomerRecords({ s }) {
                 <Text style={styles.customerMeta}>{customer.phone}</Text>
               </View>
               <StatusChip
-                label={
-                  isNewEnquiry
-                    ? "New enquiry"
-                    : eligible
-                    ? "Eligible now"
-                    : customer.contactOk
-                    ? (s.customerContact ? "Not due" : "Contact off")
-                    : "Do not contact"
-                }
-                tone={eligible || isNewEnquiry ? "green" : "blue"}
+                label={statusLabel}
+                tone={activeAction || eligible || isNewEnquiry ? "green" : "blue"}
               />
             </View>
             <Text style={styles.customerService}>{customer.service}</Text>
