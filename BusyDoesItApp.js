@@ -6888,7 +6888,7 @@ function CustomerRecords({ s }) {
   const query = search.trim().toLowerCase();
   const visibleCustomers = s.customers.filter((customer) =>
     !query ||
-    [customer.name, customer.phone, customer.service]
+    [customer.name, customer.phone, customer.email, customer.address, customer.service]
       .filter(Boolean)
       .some((value) => String(value).toLowerCase().includes(query))
   );
@@ -6915,7 +6915,7 @@ function CustomerRecords({ s }) {
         label="Find a customer"
         value={search}
         onChangeText={setSearch}
-        placeholder="Name, phone or service"
+        placeholder="Name, phone, email, address or service"
       />
       {query ? (
         <Text style={styles.helper}>
@@ -6952,7 +6952,8 @@ function CustomerRecords({ s }) {
             <View style={styles.customerRecordTop}>
               <View style={{ flex: 1, paddingRight: 8 }}>
                 <Text style={styles.customerName}>{customer.name}</Text>
-                <Text style={styles.customerMeta}>{customer.phone}</Text>
+                <Text style={styles.customerMeta}>{customer.phone || customer.email || "No contact detail"}</Text>
+                {customer.phone && customer.email ? <Text style={styles.customerMeta}>{customer.email}</Text> : null}
               </View>
               <StatusChip
                 label={statusLabel}
@@ -7051,9 +7052,11 @@ function CustomerDetail({ s }) {
         eyebrow={customer.lastServiceDate ? "Customer" : "New enquiry"}
         title={customer.service}
         body={
-          customer.address
-            ? `${customer.phone || "No phone number saved"}\n${customer.address}`
-            : customer.phone || "No phone number saved"
+          [
+            customer.phone || null,
+            customer.email || null,
+            customer.address || null,
+          ].filter(Boolean).join("\n") || "No contact details saved"
         }
         footer={customer.contactOk ? "Contact allowed" : "Do not contact"}
         tone="green"
