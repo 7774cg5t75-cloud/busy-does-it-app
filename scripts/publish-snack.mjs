@@ -19,6 +19,9 @@ const snack = new Snack({
     "@react-native-async-storage/async-storage": {
       version: "2.2.0",
     },
+    "expo-image-picker": {
+      version: "~17.0.11",
+    },
   },
 });
 
