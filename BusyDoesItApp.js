@@ -1701,7 +1701,11 @@ function HomeScreen({ s }) {
         s.customers.find((item) => item.id === id);
       return customer ? { id, action, customer } : null;
     })
-    .filter((item) => item && item.action.details.bookingDate >= todayISO)
+    .filter((item) =>
+      item &&
+      item.action.details.bookingDate >= todayISO &&
+      !["Cancelled", "Completed"].includes(item.action.details?.bookingStatus || "Confirmed")
+    )
     .sort((a, b) =>
       `${a.action.details.bookingDate}T${a.action.details.bookingTime || "00:00"}`.localeCompare(
         `${b.action.details.bookingDate}T${b.action.details.bookingTime || "00:00"}`
@@ -1787,6 +1791,23 @@ function HomeScreen({ s }) {
       subtitle="Customer recommendations now come from individual records saved on this phone."
       brandCue="Real local records. Simulated sends."
     >
+      {s.dueReminderEntries.length ? (
+        <Pressable
+          onPress={() => s.openSavedReplyAction(s.dueReminderEntries[0].id)}
+          style={[styles.homePriorityCard, styles.homeReminderCard]}
+        >
+          <View style={styles.homePriorityTop}>
+            <Text style={styles.homePriorityEyebrow}>FOLLOW-UP DUE</Text>
+            <StatusChip label="Action needed" tone="amber" />
+          </View>
+          <Text style={styles.homePriorityTitle}>{s.dueReminderEntries[0].customer.name}</Text>
+          <Text style={styles.homePriorityBody}>
+            {s.dueReminderEntries[0].customer.service} • due {formatUKDate(s.dueReminderEntries[0].action.details.reminderDate)}
+          </Text>
+          <Text style={styles.homePriorityLink}>Open follow-up →</Text>
+        </Pressable>
+      ) : null}
+
       {nextBooking ? (
         <Pressable
           onPress={() => s.openSavedReplyAction(nextBooking.id)}
@@ -2437,19 +2458,32 @@ function Bookings({ s }) {
       )
     );
 
-  const clashes = entries.filter((entry, index) =>
-    entries.some((other, otherIndex) =>
+  const activeEntries = entries.filter(
+    (item) => !["Cancelled", "Completed"].includes(item.action.details?.bookingStatus || "Confirmed")
+  );
+  const clashes = activeEntries.filter((entry, index) =>
+    activeEntries.some((other, otherIndex) =>
       otherIndex !== index &&
       other.action.details.bookingDate === entry.action.details.bookingDate &&
       other.action.details.bookingTime === entry.action.details.bookingTime
     )
   );
-  const upcoming = entries.filter((item) => item.action.details.bookingDate >= todayISO);
-  const past = entries.filter((item) => item.action.details.bookingDate < todayISO);
+  const today = activeEntries.filter((item) => item.action.details.bookingDate === todayISO);
+  const upcoming = activeEntries.filter((item) => item.action.details.bookingDate > todayISO);
+  const pastOrCompleted = entries.filter(
+    (item) =>
+      item.action.details?.bookingStatus === "Completed" ||
+      (
+        (item.action.details?.bookingStatus || "Confirmed") !== "Cancelled" &&
+        item.action.details.bookingDate < todayISO
+      )
+  );
+  const cancelled = entries.filter((item) => item.action.details?.bookingStatus === "Cancelled");
 
   const renderBooking = ({ id, action, customer }) => {
-    const isPast = action.details.bookingDate < todayISO;
+    const status = action.details?.bookingStatus || "Confirmed";
     const hasClash = clashes.some((item) => item.id === id);
+    const displayStatus = hasClash ? "Clash" : status;
     return (
       <Pressable key={id} onPress={() => s.openSavedReplyAction(id)} style={styles.bookingCard}>
         <View style={styles.activityTopRow}>
@@ -2457,11 +2491,17 @@ function Bookings({ s }) {
             <Text style={styles.activityName}>{customer.name}</Text>
             <Text style={styles.activityService}>{customer.service}</Text>
           </View>
-          <StatusChip label={hasClash ? "Clash" : isPast ? "Past" : "Upcoming"} tone={hasClash ? "amber" : isPast ? "blue" : "green"} />
+          <StatusChip
+            label={displayStatus}
+            tone={hasClash ? "amber" : ["Cancelled"].includes(status) ? "blue" : "green"}
+          />
         </View>
         <Text style={styles.bookingWhen}>
           {formatUKDate(action.details.bookingDate)} at {action.details.bookingTime || "time not set"}
         </Text>
+        {Number(action.details?.jobValue) > 0 ? (
+          <Text style={styles.bookingValue}>Completed value: £{action.details.jobValue}</Text>
+        ) : null}
         <Text style={styles.activityOpen}>View / edit booking →</Text>
       </Pressable>
     );
@@ -2471,21 +2511,28 @@ function Bookings({ s }) {
     <Shell
       s={s}
       title="Bookings"
-      subtitle="A simple local diary of bookings saved in Busy Does It."
+      subtitle="Your local work diary — today, upcoming, completed and cancelled."
+      brandCue="Work first. Marketing second."
     >
       <Card
-        eyebrow="Booking diary"
-        title={`${upcoming.length} upcoming`}
-        body={clashes.length ? "One or more booking times overlap. Open the marked booking to fix it." : "No exact booking-time clashes detected."}
-        footer={clashes.length ? `${clashes.length} booking record${clashes.length === 1 ? "" : "s"} need attention` : "Clear so far"}
+        eyebrow="Work diary"
+        title={`${today.length} today • ${upcoming.length} upcoming`}
+        body={clashes.length ? "One or more active booking times overlap. Open the marked booking to fix it." : "No exact active booking-time clashes detected."}
+        footer={clashes.length ? `${clashes.length} booking record${clashes.length === 1 ? "" : "s"} need attention` : "Diary clear"}
         tone={clashes.length ? "amber" : "green"}
       />
+
+      {today.length ? <Text style={styles.sectionLabel}>Today</Text> : null}
+      {today.map(renderBooking)}
 
       {upcoming.length ? <Text style={styles.sectionLabel}>Upcoming</Text> : null}
       {upcoming.map(renderBooking)}
 
-      {past.length ? <Text style={styles.sectionLabel}>Past</Text> : null}
-      {past.map(renderBooking)}
+      {pastOrCompleted.length ? <Text style={styles.sectionLabel}>Past / completed</Text> : null}
+      {pastOrCompleted.map(renderBooking)}
+
+      {cancelled.length ? <Text style={styles.sectionLabel}>Cancelled</Text> : null}
+      {cancelled.map(renderBooking)}
 
       {!entries.length ? (
         <Card eyebrow="No bookings yet" title="Nothing in the diary" body="Confirmed prototype bookings will appear here." />
@@ -3009,6 +3056,9 @@ function CustomerRecords({ s }) {
               {Number(customer.lastJobValue) > 0 ? ` • £${customer.lastJobValue}` : ""}
             </Text>
             <View style={styles.customerActionsRow}>
+              <Pressable onPress={() => s.openCustomer(customer.id)} style={styles.customerOpenWrap}>
+                <Text style={styles.customerOpenText}>Open customer</Text>
+              </Pressable>
               <Pressable onPress={() => s.startEditCustomer(customer)} style={styles.customerEditWrap}>
                 <Text style={styles.customerEditText}>Edit</Text>
               </Pressable>
@@ -3022,6 +3072,99 @@ function CustomerRecords({ s }) {
       <Button label="+ Add customer" primary onPress={s.startNewCustomer} />
       <Button label="Review eligible customers" onPress={() => s.go("eligibleCustomers")} />
       <Button label="Done" onPress={s.back} />
+    </Shell>
+  );
+}
+
+function CustomerDetail({ s }) {
+  const customer = s.selectedCustomer;
+  if (!customer) {
+    return (
+      <Shell s={s} title="Customer unavailable" subtitle="That customer record could not be found.">
+        <Button label="Back" primary onPress={s.back} />
+      </Shell>
+    );
+  }
+
+  const action = s.replyActions?.[customer.id] || null;
+  const history = Array.isArray(customer.history) ? [...customer.history] : [];
+  const baselineExists = history.some(
+    (item) => item.date === customer.lastServiceDate && item.service === customer.service
+  );
+  const timeline = [
+    ...history,
+    ...(!baselineExists && customer.lastServiceDate
+      ? [{
+          id: `baseline-${customer.id}`,
+          kind: "job",
+          date: customer.lastServiceDate,
+          service: customer.service,
+          value: customer.lastJobValue,
+          note: "Previously recorded job",
+        }]
+      : []),
+  ].sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+
+  const actionStatus = action
+    ? action.type === "quote"
+      ? action.details?.quoteStatus || "Prepared"
+      : action.type === "booking"
+      ? action.details?.bookingStatus || "Confirmed"
+      : action.details?.reminderStatus || "Scheduled"
+    : null;
+
+  return (
+    <Shell
+      s={s}
+      title={customer.name}
+      subtitle="Customer record, current action and job history in one place."
+      brandCue="One customer. One clear history."
+    >
+      <Card
+        eyebrow="Customer"
+        title={customer.service}
+        body={customer.phone || "No phone number saved"}
+        footer={customer.contactOk ? "Contact allowed" : "Do not contact"}
+        tone="green"
+      >
+        <MetricRow left="Last job" right={customer.lastServiceDate ? formatUKDate(customer.lastServiceDate) : "Not recorded"} />
+        <MetricRow left="Last value" right={Number(customer.lastJobValue) > 0 ? `£${customer.lastJobValue}` : "Not recorded"} />
+      </Card>
+
+      {action ? (
+        <Pressable onPress={() => s.openSavedReplyAction(customer.id)} style={styles.customerTimelineCard}>
+          <View style={styles.activityTopRow}>
+            <View style={{ flex: 1, paddingRight: 10 }}>
+              <Text style={styles.customerTimelineLabel}>CURRENT CUSTOMER ACTION</Text>
+              <Text style={styles.activityName}>
+                {action.type === "quote" ? "Quote" : action.type === "booking" ? "Booking" : "Reminder"}
+              </Text>
+            </View>
+            <StatusChip label={actionStatus} tone={["Cancelled", "Declined"].includes(actionStatus) ? "blue" : "green"} />
+          </View>
+          <Text style={styles.activitySummary}>{action.details?.summary || action.task || "Open action"}</Text>
+          <Text style={styles.activityOpen}>Open / edit →</Text>
+        </Pressable>
+      ) : (
+        <Card eyebrow="Current action" title="Nothing active" body="No quote, booking or reminder is currently saved for this customer." />
+      )}
+
+      <Text style={styles.sectionLabel}>Job history</Text>
+      {timeline.length ? timeline.map((item) => (
+        <View key={item.id || `${item.date}-${item.service}`} style={styles.customerHistoryRow}>
+          <View style={{ flex: 1, paddingRight: 10 }}>
+            <Text style={styles.customerHistoryTitle}>{item.service || customer.service}</Text>
+            <Text style={styles.customerMeta}>{item.date ? formatUKDate(item.date) : "Date not recorded"}</Text>
+            {item.note ? <Text style={styles.customerHistoryNote}>{item.note}</Text> : null}
+          </View>
+          <Text style={styles.customerHistoryValue}>{Number(item.value) > 0 ? `£${item.value}` : "—"}</Text>
+        </View>
+      )) : (
+        <Card eyebrow="History" title="No completed jobs saved yet" body="Completed bookings will build this customer’s history automatically." />
+      )}
+
+      <Button label="Edit customer record" onPress={() => s.startEditCustomer(customer)} />
+      <Button label="Back to customers" primary onPress={s.back} />
     </Shell>
   );
 }
@@ -3312,25 +3455,37 @@ function OfferRunning({ s }) {
 }
 
 function Results({ s }) {
-  const completedTotal = s.completedQuoteCount + s.completedBookingCount + s.completedReminderCount;
+  const actions = Object.entries(s.replyActions || {});
+  const quoteActions = actions.filter(([, action]) => action?.type === "quote" && action?.done);
+  const bookingActions = actions.filter(([, action]) => action?.type === "booking" && action?.done);
+  const quotePrepared = quoteActions.filter(([, action]) => (action.details?.quoteStatus || "Prepared") === "Prepared").length;
+  const quoteSent = quoteActions.filter(([, action]) => action.details?.quoteStatus === "Sent").length;
+  const quoteAccepted = quoteActions.filter(([, action]) => action.details?.quoteStatus === "Accepted").length;
+  const confirmedBookings = bookingActions.filter(([, action]) => (action.details?.bookingStatus || "Confirmed") === "Confirmed").length;
+  const completedJobs = bookingActions.filter(([, action]) => action.details?.bookingStatus === "Completed").length;
+
   return (
     <Shell
       s={s}
       noBack
       title="What happened?"
-      subtitle="Your local prototype activity first. Illustrative marketing examples are kept separate."
+      subtitle="A local customer-work picture first. Illustrative marketing examples stay separate."
       brandCue="Real local activity. Clear next steps."
     >
       <Card
-        eyebrow="Local prototype activity"
-        title={`${completedTotal} customer action${completedTotal === 1 ? "" : "s"} completed`}
-        body="These figures come from the workflows you completed on this phone, not from real external accounts."
+        eyebrow="Customer pipeline"
+        title={`£${s.activeQuoteValue} in active quotes`}
+        body="This total comes from locally saved prepared, sent or accepted quote actions in the prototype."
         tone="green"
       >
-        <MetricRow left="Quotes prepared" right={String(s.completedQuoteCount)} />
-        <MetricRow left="Bookings confirmed" right={String(s.completedBookingCount)} />
-        <MetricRow left="Later reminders saved" right={String(s.completedReminderCount)} />
-        <MetricRow left="Still to do" right={String(s.pendingReplyActionCount)} />
+        <MetricRow left="Quotes prepared" right={String(quotePrepared)} />
+        <MetricRow left="Quotes sent (simulated)" right={String(quoteSent)} />
+        <MetricRow left="Quotes accepted" right={String(quoteAccepted)} />
+        <MetricRow left="Confirmed bookings" right={String(confirmedBookings)} />
+        <MetricRow left="Completed jobs" right={String(completedJobs)} />
+        <MetricRow left="Completed job value" right={`£${s.completedJobValue}`} strong={s.completedJobValue > 0} />
+        <MetricRow left="Follow-ups due" right={String(s.dueReminderEntries.length)} />
+        <MetricRow left="Actions still to do" right={String(s.pendingReplyActionCount)} />
       </Card>
 
       {Object.entries(s.replyActions)
@@ -3358,7 +3513,7 @@ function Results({ s }) {
           );
         })}
 
-      {s.completedBookingCount ? <Button label="Open bookings" primary onPress={() => s.go("bookings")} /> : null}
+      {s.completedBookingCount ? <Button label="Open work diary" primary onPress={() => s.go("bookings")} /> : null}
       {Object.keys(s.replyActions || {}).length ? (
         <Button label="View all customer activity" onPress={() => s.go("customerActivity")} />
       ) : null}
@@ -3366,7 +3521,7 @@ function Results({ s }) {
       <Card
         eyebrow="Illustrative only"
         title="Marketing demo results"
-        body="The older spend, enquiry and job figures are example data. They are useful for testing the future Results experience, but they are not mixed into your local activity totals."
+        body="Older spend, enquiry and job figures remain example data for testing the future marketing Results experience. They are not included in the customer pipeline above."
         footer="Kept separate on purpose"
         tone="blue"
       />
