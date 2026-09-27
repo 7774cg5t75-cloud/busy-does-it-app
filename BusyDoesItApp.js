@@ -3205,11 +3205,15 @@ function HomeScreen({ s }) {
     : null;
   const reviewLearningBoost =
     reviewSuccessRate === null ? 0 : Math.round((reviewSuccessRate - 0.35) * 8);
+  const enquiryInterestRate = s.enquiryFollowUpOutcomeCount
+    ? s.enquiryFollowUpInterestedCount / s.enquiryFollowUpOutcomeCount
+    : null;
+  const enquiryLearningBoost =
+    enquiryInterestRate === null ? 0 : Math.round((enquiryInterestRate - 0.25) * 10);
 
-  const openEnquiries = s.customers
-    .filter((customer) => !customer.lastServiceDate && !s.replyActions?.[customer.id])
-    .sort((a, b) => String(a.createdAt || "").localeCompare(String(b.createdAt || "")));
-  const nextEnquiry = openEnquiries[0] || null;
+  const nextEnquiryEntry = s.freshEnquiryEntries?.[0] || null;
+  const nextEnquiry = nextEnquiryEntry?.customer || null;
+  const staleEnquiryEntry = s.staleEnquiryEntries?.[0] || null;
 
   const overdueBookings = Object.entries(s.replyActions || {})
     .map(([id, action]) => {
@@ -3256,7 +3260,7 @@ function HomeScreen({ s }) {
   }
 
   if (nextEnquiry) {
-    const waitDays = daysSinceTimestamp(nextEnquiry.createdAt) || 0;
+    const waitDays = nextEnquiryEntry?.age || 0;
     operationalMoves.push({
       id: `new-enquiry-${nextEnquiry.id}`,
       score: 104 + Math.min(10, waitDays),
@@ -3275,6 +3279,32 @@ function HomeScreen({ s }) {
       ],
       actionLabel: "Open enquiry",
       onAction: () => s.openCustomer(nextEnquiry.id),
+      canIgnore: false,
+    });
+  }
+
+  if (staleEnquiryEntry) {
+    const item = staleEnquiryEntry;
+    operationalMoves.push({
+      id: `quiet-enquiry-${item.customer.id}`,
+      score: 98 + Math.min(8, item.age / 3) + enquiryLearningBoost,
+      eyebrow: "Quiet enquiry",
+      title: `${item.customer.name} asked ${item.age} days ago`,
+      body: `There is still no quote, booking or follow-up saved for ${item.customer.service.toLowerCase()}. Busy Does It can prepare a polite check-in from the real enquiry record.`,
+      footer: "Cost: £0",
+      status: "Worth revisiting",
+      tone: "green",
+      why: "This person already contacted the business but the enquiry has had no recorded next action for at least 7 days. That existing intent is usually worth checking before buying new attention.",
+      evidence: [
+        ["Customer", item.customer.name],
+        ["Service", item.customer.service],
+        ["Days since enquiry", String(item.age)],
+        ["Previous quiet-enquiry outcomes", String(s.enquiryFollowUpOutcomeCount)],
+        ["Still interested after follow-up", String(s.enquiryFollowUpInterestedCount)],
+        ["Advertising required", "£0"],
+      ],
+      actionLabel: "Review prepared follow-up",
+      onAction: () => s.prepareEnquiryFollowUp(item.customer.id),
       canIgnore: false,
     });
   }
@@ -3497,28 +3527,6 @@ function HomeScreen({ s }) {
           canIgnore: true,
         }]
       : []),
-    ...((Number(s.oldQuoteCount) || 0) > 0
-      ? [{
-          id: "old-quotes",
-          score: 56 + Math.min(6, (Number(s.oldQuoteTopValue) || 0) / 200),
-          eyebrow: "Older opportunity",
-          title: `${s.oldQuoteCount} old quote${String(s.oldQuoteCount) === "1" ? "" : "s"} worth a look`,
-          body: `Highest value entered: about £${s.oldQuoteTopValue || 0}. Retrying them needs no advertising spend.`,
-          footer: "Advertising spend: £0",
-          status: "Low cost",
-          tone: "blue",
-          why: "A previous quote shows stronger intent than a cold audience, but the data is less current than a live quote or enquiry, so it ranks lower.",
-          evidence: [
-            ["Old quotes entered", String(s.oldQuoteCount || 0)],
-            ["Highest value", `£${s.oldQuoteTopValue || 0}`],
-            ["Data freshness", "Older"],
-            ["Advertising required", "£0"],
-          ],
-          actionLabel: "Review old quotes",
-          onAction: () => s.startCampaign(2),
-          canIgnore: true,
-        }]
-      : []),
     ...((Number(s.unansweredReviewCount) || 0) > 0 || (Number(s.recentPhotoCountNeeded) || 0) > 0
       ? [{
           id: "profile-fixes",
@@ -3538,6 +3546,27 @@ function HomeScreen({ s }) {
           ],
           actionLabel: "Review fixes",
           onAction: () => s.go("profileAudit"),
+          canIgnore: true,
+        }]
+      : []),
+    ...(s.enquiryFollowUpOutcomeOpportunity
+      ? [{
+          id: `enquiry-followup-outcome-${s.enquiryFollowUpOutcomeOpportunity.customerId}`,
+          score: 42,
+          eyebrow: "Learning",
+          title: `What happened with ${s.enquiryFollowUpOutcomeOpportunity.customerName}?`,
+          body: `A quiet-enquiry follow-up was approved for ${s.enquiryFollowUpOutcomeOpportunity.service.toLowerCase()}. Recording the outcome improves future ranking.`,
+          footer: "Takes one quick update",
+          status: "Learn",
+          tone: "blue",
+          why: "This evidence matters, but it should not outrank a waiting customer or an opportunity that can create work now.",
+          evidence: [
+            ["Current outcome", "Not recorded"],
+            ["What we learn from", "Still interested or not interested"],
+            ["Source", "Actual saved enquiry record"],
+          ],
+          actionLabel: "Record outcome",
+          onAction: () => s.openEnquiryFollowUpOutcome(s.enquiryFollowUpOutcomeOpportunity.customerId),
           canIgnore: true,
         }]
       : []),
