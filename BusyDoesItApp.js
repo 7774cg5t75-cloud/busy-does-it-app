@@ -7223,7 +7223,14 @@ function QuickCaptureSaved({ s }) {
         body="The normal Opportunity Engine uses this record from here. Quick capture is only the way the information got into Busy."
         tone="blue"
       />
-      <Button label="Open customer" primary onPress={() => s.openCustomer(customer.id)} />
+      {s.inboxPendingItems.length ? (
+        <Button
+          label={`Review next Inbox item • ${s.inboxPendingItems.length} waiting`}
+          primary
+          onPress={() => s.openInboxItem(s.inboxPendingItems[0].id)}
+        />
+      ) : null}
+      <Button label="Open customer" primary={!s.inboxPendingItems.length} onPress={() => s.openCustomer(customer.id)} />
       <Button label="Capture another" onPress={s.startQuickCapture} />
       <Button label="View intake history" onPress={() => s.go("intakeHistory")} />
       <Button label="Back to Work" onPress={() => s.jump("workHub", "Work")} />
@@ -8775,6 +8782,19 @@ function Results({ s }) {
       </Card>
 
       <Card
+        eyebrow="Busy Inbox"
+        title={`${s.inboxPendingItems.length} incoming item${s.inboxPendingItems.length === 1 ? "" : "s"} waiting for review`}
+        body="Busy triages information before it changes the customer database. Uncertainty and conflicts are separated from cleaner items so the owner can spend attention where it matters."
+        tone={s.inboxNeedsAttentionItems.length ? "amber" : "green"}
+      >
+        <MetricRow left="Needs attention" right={String(s.inboxNeedsAttentionItems.length)} strong={s.inboxNeedsAttentionItems.length > 0} />
+        <MetricRow left="Ready to review" right={String(s.inboxReadyItems.length)} />
+        <MetricRow left="Filed through Inbox" right={String(s.inboxFiledCount)} />
+        <MetricRow left="Dismissed without filing" right={String(s.inboxDismissedCount)} />
+        <Button label="Open Busy Inbox" onPress={s.openBusyInbox} />
+      </Card>
+
+      <Card
         eyebrow="Less manual entry"
         title={`${s.intakeLog.length} item${s.intakeLog.length === 1 ? "" : "s"} captured through the intake layer`}
         body="Quick capture turns pasted business information into reviewed records. Matching phone/email/name data can merge into an existing customer instead of creating a duplicate."
@@ -8981,6 +9001,10 @@ function Settings({ s }) {
         <MetricRow left="Connected accounts" right={`${connectedCount}/${connectionRows.length}`} />
       </Card>
       <Button label="Customer records" primary onPress={() => s.go("customerRecords")} />
+      <Button
+        label={s.inboxPendingItems.length ? `Busy Inbox • ${s.inboxPendingItems.length} waiting` : "Busy Inbox"}
+        onPress={s.openBusyInbox}
+      />
       <Button label="Customer pipeline" onPress={() => s.go("workPipeline")} />
       <Button label="Business type & services" onPress={() => s.go("businessType")} />
       {s.completedBookingCount ? <Button label="Bookings" onPress={() => s.go("bookings")} /> : null}
@@ -9086,9 +9110,9 @@ function ConnectedAccounts({ s }) {
   return (
     <Shell s={s} title="Connected accounts" subtitle="Prototype toggles only — no real external account is connected yet.">
       <Card
-        eyebrow="v1.9 intake architecture"
-        title="Future connections feed the same reviewed intake layer"
-        body="Email, calendar, CRM and invoicing connections should create candidate records through the same parse → match → review → merge/create path as Quick Capture, rather than bypassing owner control."
+        eyebrow="v2.0 Inbox architecture"
+        title="Future connections should land here before they touch the records"
+        body="Email, calendar, CRM and invoicing connections should create candidate items in Busy Inbox. Busy can triage, match and flag uncertainty first; filing rules can become more automatic later without bypassing owner controls."
         footer="No external inbox or account is being read in this prototype"
         tone="green"
       />
