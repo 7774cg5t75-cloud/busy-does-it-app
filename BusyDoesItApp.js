@@ -6070,6 +6070,216 @@ function JobPostOutcome({ s }) {
   );
 }
 
+function StaleEnquiries({ s }) {
+  const entries = s.staleEnquiryEntries || [];
+  return (
+    <Shell
+      s={s}
+      title="Quiet enquiries"
+      subtitle="These come from actual customer records that have had no next action for at least 7 days."
+      brandCue="Real records. Real dates. No typed-in opportunity count."
+    >
+      <Card
+        eyebrow="Detected from customer records"
+        title={`${entries.length} quiet enquir${entries.length === 1 ? "y" : "ies"} worth reviewing`}
+        body="Busy Does It only includes enquiry records with contact allowed, no current quote/booking/reminder, and no previous follow-up already sent."
+        footer="Advertising spend: £0"
+        tone="green"
+      />
+      {entries.map(({ customer, age }) => (
+        <Pressable
+          key={customer.id}
+          onPress={() => s.prepareEnquiryFollowUp(customer.id)}
+          style={styles.activityCard}
+        >
+          <View style={styles.activityTopRow}>
+            <View style={{ flex: 1, paddingRight: 10 }}>
+              <Text style={styles.activityName}>{customer.name}</Text>
+              <Text style={styles.activityService}>{customer.service}</Text>
+            </View>
+            <StatusChip label={`${age}d quiet`} tone="amber" />
+          </View>
+          <Text style={styles.activitySummary}>Added {enquiryAgeLabel(customer.createdAt)} • no active customer action</Text>
+          <Text style={styles.activityOpen}>Prepare follow-up →</Text>
+        </Pressable>
+      ))}
+      {!entries.length ? (
+        <Card
+          eyebrow="Nothing due"
+          title="No quiet enquiries detected"
+          body="New enquiries stay in the normal pipeline. Once an unresolved enquiry reaches 7 days, it can appear here automatically."
+          tone="blue"
+        />
+      ) : null}
+      <Button label="+ Add an enquiry" onPress={s.startNewEnquiry} />
+      <Button label="Done" primary onPress={s.back} />
+    </Shell>
+  );
+}
+
+function StaleQuotes({ s }) {
+  const entries = s.dueQuoteEntries || [];
+  return (
+    <Shell
+      s={s}
+      title="Quote follow-ups due"
+      subtitle="These are real sent quotes whose saved sent date is at least 7 days old."
+      brandCue="Quote data creates the opportunity automatically."
+    >
+      <Card
+        eyebrow="Detected from live quote records"
+        title={`${entries.length} quote${entries.length === 1 ? "" : "s"} worth following up`}
+        body="A quote drops out of this list once its prepared follow-up is approved or its quote status changes."
+        footer="Advertising spend: £0"
+        tone="green"
+      />
+      {entries.map(({ id, action, customer, age }) => (
+        <Pressable
+          key={id}
+          onPress={() => s.prepareQuoteFollowUp(id)}
+          style={styles.activityCard}
+        >
+          <View style={styles.activityTopRow}>
+            <View style={{ flex: 1, paddingRight: 10 }}>
+              <Text style={styles.activityName}>{customer.name}</Text>
+              <Text style={styles.activityService}>{customer.service}</Text>
+            </View>
+            <StatusChip label={`${age}d`} tone="amber" />
+          </View>
+          <Text style={styles.activitySummary}>
+            Quote {action.details?.quoteAmount ? `£${action.details.quoteAmount}` : "value not recorded"} • sent {action.details?.quoteSentAt ? formatUKDate(String(action.details.quoteSentAt).slice(0, 10)) : "date unknown"}
+          </Text>
+          <Text style={styles.activityOpen}>Review prepared follow-up →</Text>
+        </Pressable>
+      ))}
+      {!entries.length ? (
+        <Card
+          eyebrow="Nothing due"
+          title="No sent quote has reached 7 days yet"
+          body="Busy Does It now calculates this from each quote’s real status and sent date instead of a manually entered old-quote count."
+          tone="blue"
+        />
+      ) : null}
+      <Button label="Open customer activity" onPress={() => s.go("customerActivity")} />
+      <Button label="Done" primary onPress={s.back} />
+    </Shell>
+  );
+}
+
+function EnquiryFollowUp({ s }) {
+  const customer = s.selectedCustomer;
+  const age = daysSinceTimestamp(customer?.createdAt);
+  if (!customer || customer.lastServiceDate) {
+    return <Shell s={s} title="Enquiry follow-up" subtitle="The enquiry could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
+  }
+  return (
+    <Shell
+      s={s}
+      title="Prepared enquiry follow-up"
+      subtitle="Busy Does It has prepared a low-pressure check-in from the actual enquiry record."
+      brandCue="Existing interest first. Nothing sends without approval."
+    >
+      <Card
+        eyebrow="Quiet enquiry"
+        title={customer.name}
+        body={`${customer.service}${age !== null ? ` • ${age} days since enquiry` : ""}`}
+        footer="Advertising spend: £0"
+        tone="green"
+      />
+      <Text style={styles.fieldLabel}>Prepared follow-up</Text>
+      <TextInput
+        multiline
+        value={s.enquiryFollowUpDraft}
+        onChangeText={s.setEnquiryFollowUpDraft}
+        style={styles.messageInput}
+        placeholder="Follow-up message"
+        placeholderTextColor="#9AA3B2"
+      />
+      <Card
+        eyebrow="Approval"
+        title="You decide whether this goes"
+        body="The prototype records the approval and later outcome. It does not actually message the customer."
+        tone="blue"
+      />
+      <Button
+        label="Approve simulated send"
+        primary
+        disabled={!s.enquiryFollowUpDraft.trim()}
+        onPress={s.simulateEnquiryFollowUpSend}
+      />
+      <Button label="Open customer" onPress={() => s.openCustomer(customer.id)} />
+      <Button label="Not now" onPress={s.back} />
+    </Shell>
+  );
+}
+
+function EnquiryFollowUpSent({ s }) {
+  const customer = s.selectedCustomer;
+  if (!customer?.enquiryFollowUpSentAt) {
+    return <Shell s={s} title="Follow-up saved" subtitle="The enquiry follow-up could not be found."><Button label="Home" primary onPress={() => s.jump("home", "Home")} /></Shell>;
+  }
+  return (
+    <Shell
+      s={s}
+      title="Enquiry follow-up approved"
+      subtitle="Prototype only — no real message was sent."
+      brandCue="Action approved. Outcome can now improve future ranking."
+    >
+      <Card
+        eyebrow="Simulated send"
+        title={customer.name}
+        body={customer.enquiryFollowUpDraft}
+        footer="Cost: £0"
+        tone="green"
+      />
+      <Button label="Record what happened" primary onPress={() => s.openEnquiryFollowUpOutcome(customer.id)} />
+      <Button label="Do this later" onPress={() => s.openCustomer(customer.id)} />
+    </Shell>
+  );
+}
+
+function EnquiryFollowUpOutcome({ s }) {
+  const customer = s.selectedCustomer;
+  const options = ["No reply yet", "Still interested", "Not interested"];
+  if (!customer?.enquiryFollowUpSentAt) {
+    return <Shell s={s} title="Enquiry outcome" subtitle="The enquiry follow-up could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
+  }
+  return (
+    <Shell
+      s={s}
+      title="What happened?"
+      subtitle="This turns an old enquiry into evidence the Opportunity Engine can use next time."
+      brandCue="Learn from customer outcomes, not message counts."
+    >
+      <Card
+        eyebrow="Enquiry being measured"
+        title={customer.name}
+        body={customer.service}
+        footer="User-recorded outcome"
+        tone="blue"
+      />
+      {options.map((option) => (
+        <Choice
+          key={option}
+          label={option}
+          selected={s.enquiryFollowUpOutcome === option}
+          onPress={() => s.setEnquiryFollowUpOutcome(option)}
+        />
+      ))}
+      {s.enquiryFollowUpOutcome === "Still interested" ? (
+        <Card
+          eyebrow="Likely next step"
+          title="Open the customer and prepare the real quote or booking"
+          body="Busy Does It records the interest but does not invent a price or booking agreement."
+          tone="green"
+        />
+      ) : null}
+      <Button label="Save outcome" primary onPress={s.saveEnquiryFollowUpOutcome} />
+      <Button label="Cancel" onPress={s.back} />
+    </Shell>
+  );
+}
+
 function QuoteFollowUp({ s }) {
   const customer = s.selectedReplyCustomer;
   const action = customer ? s.replyActions?.[customer.id] : null;
@@ -6971,6 +7181,11 @@ const screens = {
   jobPostApproval: JobPostApproval,
   jobPostPublished: JobPostPublished,
   jobPostOutcome: JobPostOutcome,
+  staleEnquiries: StaleEnquiries,
+  staleQuotes: StaleQuotes,
+  enquiryFollowUp: EnquiryFollowUp,
+  enquiryFollowUpSent: EnquiryFollowUpSent,
+  enquiryFollowUpOutcome: EnquiryFollowUpOutcome,
   quoteFollowUp: QuoteFollowUp,
   quoteFollowUpSent: QuoteFollowUpSent,
   quoteFollowUpOutcome: QuoteFollowUpOutcome,
