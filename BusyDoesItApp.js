@@ -1295,6 +1295,9 @@ function App() {
   const eligibleCustomers = customerContact
     ? customers.filter((customer) => isEligibleCustomer(customer, services, verticalId))
     : [];
+  const openEnquiryCount = customers.filter(
+    (customer) => !customer.lastServiceDate && !replyActions[customer.id]
+  ).length;
   const pendingReplyActionCount = Object.values(replyActions).filter((action) => action && !action.done).length;
   const completedReplyActions = Object.values(replyActions).filter((action) => action && action.done);
   const completedQuoteCount = completedReplyActions.filter((action) => action.type === "quote").length;
@@ -1327,6 +1330,22 @@ function App() {
       ["Prepared", "Sent", "Accepted"].includes(action.details?.quoteStatus || "Prepared")
     )
     .reduce((total, action) => total + (Number(action.details?.quoteAmount) || 0), 0);
+  const bookedWorkValue = Object.values(replyActions)
+    .filter(
+      (action) =>
+        action?.type === "booking" &&
+        action?.done &&
+        (action.details?.bookingStatus || "Confirmed") === "Confirmed"
+    )
+    .reduce(
+      (total, action) =>
+        total +
+        (Number(action.details?.jobValue) ||
+          Number(action.details?.sourceQuoteAmount) ||
+          0),
+      0
+    );
+
   const completedJobValue = customers.reduce(
     (total, customer) =>
       total +
@@ -1379,6 +1398,7 @@ function App() {
     customers,
     setCustomers,
     eligibleCustomers,
+    openEnquiryCount,
     selectedCustomerId,
     setSelectedCustomerId,
     selectedCustomer,
@@ -1412,6 +1432,11 @@ function App() {
     startEditCustomer,
     saveCustomerRecord,
     clearCustomerForm,
+    startNewEnquiry,
+    saveNewEnquiry,
+    addCustomerNote,
+    startDirectCustomerAction,
+    appendCustomerActivity,
     pendingRemoveCustomerId,
     setPendingRemoveCustomerId,
     requestRemoveCustomer,
@@ -1489,7 +1514,9 @@ function App() {
     completedReminderCount,
     dueReminderEntries,
     activeQuoteValue,
+    bookedWorkValue,
     completedJobValue,
+    eligibilityRule: eligibilityRuleText(services, verticalId),
     bringBackMessage,
     setBringBackMessage,
     offerGoal,
