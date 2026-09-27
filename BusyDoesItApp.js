@@ -3872,6 +3872,11 @@ function CustomerDetail({ s }) {
       ? action.details?.bookingStatus || "Confirmed"
       : action.details?.reminderStatus || "Scheduled"
     : null;
+  const actionIsFinished =
+    !action ||
+    (action.type === "quote" && ["Declined"].includes(actionStatus)) ||
+    (action.type === "booking" && ["Completed", "Cancelled"].includes(actionStatus)) ||
+    (action.type === "reminder" && actionStatus === "Completed");
 
   return (
     <Shell
@@ -3905,11 +3910,13 @@ function CustomerDetail({ s }) {
           <Text style={styles.activitySummary}>{action.details?.summary || action.task || "Open action"}</Text>
           <Text style={styles.activityOpen}>Open / edit →</Text>
         </Pressable>
-      ) : (
+      ) : null}
+
+      {actionIsFinished ? (
         <>
           <Card
-            eyebrow="What next?"
-            title="Turn this customer into work"
+            eyebrow={action ? "Next customer action" : "What next?"}
+            title={action ? "Start something new for this customer" : "Turn this customer into work"}
             body="Start the action that matches what is happening in the real conversation. You do not need a simulated reply first."
             tone="blue"
           />
@@ -3917,7 +3924,7 @@ function CustomerDetail({ s }) {
           <Button label="Book a job" onPress={() => s.startDirectCustomerAction(customer.id, "booking")} />
           <Button label="Set a follow-up" onPress={() => s.startDirectCustomerAction(customer.id, "reminder")} />
         </>
-      )}
+      ) : null}
 
       <Text style={styles.sectionLabel}>Notes & activity</Text>
       <TextInput
