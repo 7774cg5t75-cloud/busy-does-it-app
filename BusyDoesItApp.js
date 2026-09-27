@@ -481,7 +481,7 @@ function App() {
   const [editingCustomerId, setEditingCustomerId] = useState(null);
   const [pendingRemoveCustomerId, setPendingRemoveCustomerId] = useState(null);
   const [bringBackMessage, setBringBackMessage] = useState(
-    "Hi, it’s been a while since we last helped. We’ve got a couple of spaces next week if you need any exterior cleaning. Reply here if you’d like us to take a look."
+    "Hi, it’s been a while since we last helped. We’ve got a couple of spaces next week if you need anything from us. Reply here if you’d like us to take a look."
   );
   const [offerGoal, setOfferGoal] = useState("Fill a quiet day");
   const [offerService, setOfferService] = useState("Driveway cleaning");
@@ -725,13 +725,39 @@ function App() {
   };
 
 
-  const saveReplyAction = (customerId, task, type) => {
+  const appendCustomerActivity = (customerId, event = {}) => {
+    setCustomers((current) =>
+      current.map((customer) => {
+        if (customer.id !== customerId) return customer;
+        const activity = Array.isArray(customer.activity) ? customer.activity : [];
+        return {
+          ...customer,
+          activity: [
+            ...activity,
+            {
+              id: event.id || `activity-${customerId}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+              kind: event.kind || "note",
+              date: event.date || dateToISO(new Date()),
+              createdAt: event.createdAt || new Date().toISOString(),
+              title: event.title || "Customer update",
+              note: event.note || "",
+              value: event.value ?? "",
+            },
+          ],
+        };
+      })
+    );
+  };
+
+  const saveReplyAction = (customerId, task, type, origin = "simulated") => {
     setReplyActions((current) => ({
       ...current,
       [customerId]: {
         ...(current[customerId] || {}),
         task,
         type: type || current[customerId]?.type || null,
+        origin: current[customerId]?.origin || origin,
+        createdAt: current[customerId]?.createdAt || new Date().toISOString(),
         done: current[customerId]?.done || false,
       },
     }));
@@ -777,7 +803,7 @@ function App() {
       lastSimulatedRecipients.find((item) => item.id === customerId);
     if (!customer || !suggested) return;
 
-    saveReplyAction(customerId, suggested.task, suggested.type);
+    saveReplyAction(customerId, suggested.task, suggested.type, "simulated");
     setSelectedReplyActionId(customerId);
     loadReplyActionForm(customerId, suggested.type);
     go("replyActionDetail");
@@ -788,6 +814,42 @@ function App() {
     if (!saved) return;
     setSelectedReplyActionId(customerId);
     loadReplyActionForm(customerId, saved.type);
+    go("replyActionDetail");
+  };
+
+  const startDirectCustomerAction = (customerId, type) => {
+    const customer = customers.find((item) => item.id === customerId);
+    if (!customer || !["quote", "booking", "reminder"].includes(type)) return;
+    const task =
+      type === "quote"
+        ? "Prepare and send a quote"
+        : type === "booking"
+        ? "Confirm the booking"
+        : "Save a follow-up reminder";
+
+    loadReplyActionForm(customerId, type);
+    setReplyActions((current) => ({
+      ...current,
+      [customerId]: {
+        task,
+        type,
+        origin: "manual",
+        createdAt: new Date().toISOString(),
+        done: false,
+        details: {},
+      },
+    }));
+    setSelectedReplyActionId(customerId);
+    appendCustomerActivity(customerId, {
+      kind: type,
+      title:
+        type === "quote"
+          ? "Quote started"
+          : type === "booking"
+          ? "Booking started"
+          : "Follow-up started",
+      note: "Started directly from the customer record.",
+    });
     go("replyActionDetail");
   };
 
@@ -808,6 +870,7 @@ function App() {
   };
 
   const setQuoteStatus = (customerId, quoteStatus) => {
+    const actionBefore = replyActions[customerId];
     updateReplyAction(customerId, (action) => ({
       ...action,
       done: true,
@@ -825,6 +888,19 @@ function App() {
       },
       completedAt: new Date().toISOString(),
     }));
+    appendCustomerActivity(customerId, {
+      kind: "quote",
+      title: `Quote ${quoteStatus.toLowerCase()}`,
+      note:
+        quoteStatus === "Sent"
+          ? "Marked as sent in the prototype."
+          : quoteStatus === "Accepted"
+          ? "Customer accepted the quote."
+          : quoteStatus === "Declined"
+          ? "Customer declined the quote."
+          : "Quote saved as prepared.",
+      value: actionBefore?.details?.quoteAmount || "",
+    });
   };
 
   const convertQuoteToBooking = (customerId) => {
@@ -856,9 +932,16 @@ function App() {
     setActionBookingDate(bookingDate);
     setActionBookingTime(bookingTime);
     setActionJobValue(String(quoteAmount || ""));
+    appendCustomerActivity(customerId, {
+      kind: "booking",
+      title: "Accepted quote moved to booking",
+      note: `Quote value £${quoteAmount || "—"} is ready to schedule.`,
+      value: quoteAmount || "",
+    });
   };
 
   const setBookingStatus = (customerId, bookingStatus) => {
+    const actionBefore = replyActions[customerId];
     updateReplyAction(customerId, (action) => ({
       ...action,
       done: true,
@@ -872,6 +955,14 @@ function App() {
       },
       completedAt: new Date().toISOString(),
     }));
+    appendCustomerActivity(customerId, {
+      kind: "booking",
+      title: `Booking ${bookingStatus.toLowerCase()}`,
+      note: actionBefore?.details?.bookingDate
+        ? `${formatUKDate(actionBefore.details.bookingDate)} at ${actionBefore.details.bookingTime || "time not set"}`
+        : "",
+      value: actionBefore?.details?.sourceQuoteAmount || actionBefore?.details?.jobValue || "",
+    });
   };
 
   const markBookingCompleted = (customerId, jobValue) => {
@@ -913,11 +1004,24 @@ function App() {
                 note: "Completed through Busy Does It prototype",
               },
             ];
+        const activity = Array.isArray(customer.activity) ? customer.activity : [];
         return {
           ...customer,
           lastServiceDate: action.details.bookingDate,
           lastJobValue: amount || customer.lastJobValue,
           history: nextHistory,
+          activity: [
+            ...activity,
+            {
+              id: `completed-${customerId}-${action.details.bookingDate}`,
+              kind: "job",
+              date: action.details.bookingDate,
+              createdAt: new Date().toISOString(),
+              title: "Job completed",
+              note: `${customer.service} completed through Busy Does It.`,
+              value: amount || "",
+            },
+          ],
         };
       })
     );
@@ -935,9 +1039,15 @@ function App() {
       },
       completedAt: new Date().toISOString(),
     }));
+    appendCustomerActivity(customerId, {
+      kind: "reminder",
+      title: "Follow-up completed",
+      note: `Completed on ${formatUKDate(dateToISO(new Date()))}.`,
+    });
   };
 
   const completeReplyAction = (customerId, details = {}) => {
+    const action = replyActions[customerId];
     setReplyActions((current) => ({
       ...current,
       [customerId]: current[customerId]
@@ -949,12 +1059,27 @@ function App() {
           }
         : current[customerId],
     }));
+    if (action?.type) {
+      appendCustomerActivity(customerId, {
+        kind: action.type,
+        title:
+          action.type === "quote"
+            ? "Quote prepared"
+            : action.type === "booking"
+            ? "Booking confirmed"
+            : action.type === "reminder"
+            ? "Follow-up scheduled"
+            : "Customer action saved",
+        note: details.summary || action.task || "",
+        value: details.quoteAmount || details.jobValue || details.sourceQuoteAmount || "",
+      });
+    }
   };
 
   const prepareOfferFromGoal = () => {
     const preferred = services.find((x) => x.id === selectedServiceId) || services.find((x) => x.wanted) || services[0];
-    const serviceName = preferred?.name || "Driveway cleaning";
-    const baseValue = Number(preferred?.value) > 0 ? Number(preferred.value) : 250;
+    const serviceName = preferred?.name || trade || "Main service";
+    const baseValue = Number(preferred?.value) > 0 ? Number(preferred.value) : 100;
     setOfferService(serviceName);
     setNormalPrice(String(baseValue));
 
@@ -991,11 +1116,6 @@ function App() {
     setNewCustomerValue("");
     setNewCustomerContactOk(true);
     setNewCustomerHasPreviousJob(true);
-    setNewEnquiryName("");
-    setNewEnquiryPhone("");
-    setNewEnquiryService("Driveway cleaning");
-    setNewEnquiryNote("");
-    setCustomerNoteText("");
   };
 
   const startNewCustomer = () => {
@@ -1011,6 +1131,7 @@ function App() {
     setNewCustomerDate(customer.lastServiceDate || dateToISO(new Date()));
     setNewCustomerValue(customer.lastJobValue ? String(customer.lastJobValue) : "");
     setNewCustomerContactOk(customer.contactOk !== false);
+    setNewCustomerHasPreviousJob(!!customer.lastServiceDate);
     go("addCustomerRecord");
   };
 
@@ -1019,17 +1140,24 @@ function App() {
     const phone = newCustomerPhone.trim();
     const service = newCustomerService.trim() || trade || "Service";
     const parsedValue = Number(String(newCustomerValue).replace(/[^0-9.]/g, ""));
-    const dateIsValid = !Number.isNaN(new Date(newCustomerDate).getTime());
+    const dateIsValid = !newCustomerHasPreviousJob || !Number.isNaN(new Date(newCustomerDate).getTime());
     if (!name || !phone || !dateIsValid) return false;
 
+    const existing = editingCustomerId
+      ? customers.find((customer) => customer.id === editingCustomerId)
+      : null;
     const nextRecord = {
+      ...(existing || {}),
       id: editingCustomerId || `customer-${Date.now()}`,
       name,
       phone,
       service,
-      lastServiceDate: newCustomerDate,
-      lastJobValue: Number.isFinite(parsedValue) ? parsedValue : 0,
+      lastServiceDate: newCustomerHasPreviousJob ? newCustomerDate : "",
+      lastJobValue:
+        newCustomerHasPreviousJob && Number.isFinite(parsedValue) ? parsedValue : 0,
       contactOk: newCustomerContactOk,
+      createdAt: existing?.createdAt || new Date().toISOString(),
+      source: existing?.source || "Customer record",
     };
 
     setCustomers((list) =>
@@ -1039,6 +1167,64 @@ function App() {
     );
     clearCustomerForm();
     return true;
+  };
+
+  const startNewEnquiry = () => {
+    const preferred = services.find((item) => item.wanted) || services[0];
+    setNewEnquiryName("");
+    setNewEnquiryPhone("");
+    setNewEnquiryService(preferred?.name || trade || "Service");
+    setNewEnquiryNote("");
+    go("newEnquiry");
+  };
+
+  const saveNewEnquiry = () => {
+    const name = newEnquiryName.trim();
+    const phone = newEnquiryPhone.trim();
+    const service = newEnquiryService.trim() || services[0]?.name || trade || "Service";
+    if (!name || !phone) return false;
+    const id = `enquiry-${Date.now()}`;
+    const now = new Date().toISOString();
+    const customer = {
+      id,
+      name,
+      phone,
+      service,
+      lastServiceDate: "",
+      lastJobValue: 0,
+      contactOk: true,
+      source: "New enquiry",
+      createdAt: now,
+      activity: [
+        {
+          id: `activity-${id}-created`,
+          kind: "enquiry",
+          date: dateToISO(new Date()),
+          createdAt: now,
+          title: "New enquiry added",
+          note: newEnquiryNote.trim() || `Enquiry for ${service}.`,
+          value: "",
+        },
+      ],
+    };
+    setCustomers((list) => [...list, customer]);
+    setSelectedCustomerId(id);
+    setNewEnquiryName("");
+    setNewEnquiryPhone("");
+    setNewEnquiryNote("");
+    go("customerDetail");
+    return true;
+  };
+
+  const addCustomerNote = (customerId) => {
+    const note = customerNoteText.trim();
+    if (!note) return;
+    appendCustomerActivity(customerId, {
+      kind: "note",
+      title: "Note",
+      note,
+    });
+    setCustomerNoteText("");
   };
 
   const requestRemoveCustomer = (id) => {
