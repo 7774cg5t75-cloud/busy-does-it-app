@@ -1952,7 +1952,8 @@ function App() {
       if (
         action?.type !== "quote" ||
         !action?.done ||
-        action.details?.quoteStatus !== "Sent"
+        action.details?.quoteStatus !== "Sent" ||
+        !!action.details?.followUpSentAt
       ) return null;
       const sentAt = action.details?.quoteSentAt || action.completedAt;
       const age = daysSinceTimestamp(sentAt);
@@ -1964,6 +1965,47 @@ function App() {
     })
     .filter(Boolean)
     .sort((a, b) => b.age - a.age);
+
+  const quoteFollowUpEntries = Object.entries(replyActions)
+    .map(([id, action]) => {
+      if (action?.type !== "quote" || !action.details?.followUpSentAt) return null;
+      const customer =
+        customers.find((item) => item.id === id) ||
+        lastSimulatedRecipients.find((item) => item.id === id);
+      return customer ? { id, action, customer } : null;
+    })
+    .filter(Boolean);
+  const quoteFollowUpSentCount = quoteFollowUpEntries.length;
+  const quoteFollowUpOutcomeCount = quoteFollowUpEntries.filter(
+    (entry) => !!entry.action.details?.followUpOutcomeRecordedAt
+  ).length;
+  const quoteFollowUpAcceptedCount = quoteFollowUpEntries.filter(
+    (entry) => entry.action.details?.followUpOutcome === "Accepted"
+  ).length;
+  const quoteFollowUpAcceptedValue = quoteFollowUpEntries.reduce(
+    (total, entry) =>
+      total +
+      (entry.action.details?.followUpOutcome === "Accepted"
+        ? Number(entry.action.details?.quoteAmount) || 0
+        : 0),
+    0
+  );
+  const quoteFollowUpOutcomeEntry =
+    quoteFollowUpEntries
+      .filter((entry) => !entry.action.details?.followUpOutcomeRecordedAt)
+      .sort((a, b) =>
+        String(b.action.details?.followUpSentAt || "").localeCompare(
+          String(a.action.details?.followUpSentAt || "")
+        )
+      )[0] || null;
+  const quoteFollowUpOutcomeOpportunity = quoteFollowUpOutcomeEntry
+    ? {
+        customerId: quoteFollowUpOutcomeEntry.id,
+        customerName: quoteFollowUpOutcomeEntry.customer.name,
+        service: quoteFollowUpOutcomeEntry.customer.service,
+        quoteAmount: Number(quoteFollowUpOutcomeEntry.action.details?.quoteAmount) || 0,
+      }
+    : null;
 
   const activeQuoteValue = Object.values(replyActions)
     .filter((action) =>
@@ -2006,6 +2048,52 @@ function App() {
       .filter((item) => item.kind === "job")
       .map((job) => ({ customer, job }))
   );
+  const reviewRequestSentCount = completedJobEntries.filter(
+    (entry) => !!entry.job.reviewRequestSentAt
+  ).length;
+  const reviewRequestOutcomeCount = completedJobEntries.filter(
+    (entry) => !!entry.job.reviewRequestOutcomeRecordedAt
+  ).length;
+  const reviewReceivedCount = completedJobEntries.filter(
+    (entry) => entry.job.reviewRequestOutcome === "Review left"
+  ).length;
+  const reviewRequestOpportunityEntry =
+    completedJobEntries
+      .filter(
+        (entry) =>
+          entry.customer.contactOk !== false &&
+          !entry.job.reviewRequestSentAt
+      )
+      .sort((a, b) => String(b.job.date || "").localeCompare(String(a.job.date || "")))[0] || null;
+  const reviewRequestOpportunity = reviewRequestOpportunityEntry
+    ? {
+        customerId: reviewRequestOpportunityEntry.customer.id,
+        customerName: reviewRequestOpportunityEntry.customer.name,
+        jobId: reviewRequestOpportunityEntry.job.id,
+        service: reviewRequestOpportunityEntry.job.service || reviewRequestOpportunityEntry.customer.service,
+        value: Number(reviewRequestOpportunityEntry.job.value) || 0,
+      }
+    : null;
+  const reviewOutcomeEntry =
+    completedJobEntries
+      .filter(
+        (entry) =>
+          !!entry.job.reviewRequestSentAt &&
+          !entry.job.reviewRequestOutcomeRecordedAt
+      )
+      .sort((a, b) =>
+        String(b.job.reviewRequestSentAt || "").localeCompare(
+          String(a.job.reviewRequestSentAt || "")
+        )
+      )[0] || null;
+  const reviewOutcomeOpportunity = reviewOutcomeEntry
+    ? {
+        customerId: reviewOutcomeEntry.customer.id,
+        customerName: reviewOutcomeEntry.customer.name,
+        jobId: reviewOutcomeEntry.job.id,
+        service: reviewOutcomeEntry.job.service || reviewOutcomeEntry.customer.service,
+      }
+    : null;
   const attachedJobPhotoCount = completedJobEntries.reduce(
     (total, entry) => total + (Array.isArray(entry.job.photos) ? entry.job.photos.length : 0),
     0
@@ -2167,6 +2255,14 @@ function App() {
     setJobPostOutcome,
     jobPostOutcomeValue,
     setJobPostOutcomeValue,
+    quoteFollowUpDraft,
+    setQuoteFollowUpDraft,
+    quoteFollowUpOutcome,
+    setQuoteFollowUpOutcome,
+    reviewRequestDraft,
+    setReviewRequestDraft,
+    reviewRequestOutcome,
+    setReviewRequestOutcome,
     startJobPhotoPrompt,
     openJobAssets,
     openJobPhotoOpportunity,
@@ -2180,6 +2276,14 @@ function App() {
     simulateJobPostPublish,
     openJobPostOutcome,
     saveJobPostOutcome,
+    prepareQuoteFollowUp,
+    simulateQuoteFollowUpSend,
+    openQuoteFollowUpOutcome,
+    saveQuoteFollowUpOutcome,
+    prepareReviewRequest,
+    simulateReviewRequestSend,
+    openReviewRequestOutcome,
+    saveReviewRequestOutcome,
     attachedJobPhotoCount,
     reusableJobPhotoCount,
     preparedPhotoPostCount,
@@ -2311,10 +2415,20 @@ function App() {
     completedReminderCount,
     dueReminderEntries,
     dueQuoteEntries,
+    quoteFollowUpSentCount,
+    quoteFollowUpOutcomeCount,
+    quoteFollowUpAcceptedCount,
+    quoteFollowUpAcceptedValue,
+    quoteFollowUpOutcomeOpportunity,
     activeQuoteValue,
     bookedWorkValue,
     pipelineWorkValue,
     completedJobValue,
+    reviewRequestSentCount,
+    reviewRequestOutcomeCount,
+    reviewReceivedCount,
+    reviewRequestOpportunity,
+    reviewOutcomeOpportunity,
     eligibilityRule: `${eligibilityRuleText(services, verticalId)} • customers with active quotes, bookings or reminders are skipped`,
     bringBackMessage,
     setBringBackMessage,
