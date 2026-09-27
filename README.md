@@ -32,3 +32,15 @@ Busy Does It mobile app prototype.
 - Home now surfaces the next upcoming booking before generic marketing suggestions.
 - Results is now local-activity-first; illustrative marketing figures are kept on a separate demo screen.
 - Bookings and completed actions remain reopenable/editable from Home, Results, Settings and Customer Activity.
+
+## v0.7 customer + work pipeline
+- Added a dedicated customer detail screen with contact details, current action and job history.
+- Added quote lifecycle states: Prepared → Sent (simulated) → Accepted / Declined.
+- Accepted quotes can be converted directly into booking work.
+- Added booking lifecycle states: Confirmed → Completed / Cancelled, with reopen support for cancelled bookings.
+- Completing a booking updates the customer’s last-job date/value and appends a local job-history entry.
+- Added due follow-up reminders that surface back on Home when their date arrives.
+- Added a work diary split into Today, Upcoming, Past / completed and Cancelled.
+- Added local pipeline metrics for active quote value, confirmed bookings, completed jobs and due follow-ups.
+- Home now puts due customer follow-ups and booked work ahead of generic marketing suggestions.
+- Customer records now open into a persistent customer history instead of being isolated rows.
