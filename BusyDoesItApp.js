@@ -2002,8 +2002,60 @@ function App() {
           !hasActiveCustomerWork(customer.id)
       )
     : [];
-  const openEnquiryCount = customers.filter(
-    (customer) => !customer.lastServiceDate && !replyActions[customer.id]
+  const unresolvedEnquiryEntries = customers
+    .filter(
+      (customer) =>
+        !customer.lastServiceDate &&
+        !replyActions[customer.id] &&
+        !customer.enquiryFollowUpOutcomeRecordedAt
+    )
+    .map((customer) => ({
+      customer,
+      age: daysSinceTimestamp(customer.createdAt),
+    }))
+    .filter((entry) => entry.age !== null)
+    .sort((a, b) => b.age - a.age);
+  const staleEnquiryEntries = unresolvedEnquiryEntries.filter(
+    (entry) =>
+      entry.age >= 7 &&
+      entry.customer.contactOk !== false &&
+      !entry.customer.enquiryFollowUpSentAt
+  );
+  const freshEnquiryEntries = unresolvedEnquiryEntries.filter(
+    (entry) =>
+      entry.age < 7 &&
+      !entry.customer.enquiryFollowUpSentAt
+  );
+  const enquiryFollowUpEntries = customers
+    .filter(
+      (customer) =>
+        !customer.lastServiceDate &&
+        !!customer.enquiryFollowUpSentAt
+    )
+    .map((customer) => ({
+      customer,
+      age: daysSinceTimestamp(customer.enquiryFollowUpSentAt),
+    }));
+  const enquiryFollowUpSentCount = enquiryFollowUpEntries.length;
+  const enquiryFollowUpOutcomeCount = enquiryFollowUpEntries.filter(
+    (entry) => !!entry.customer.enquiryFollowUpOutcomeRecordedAt
+  ).length;
+  const enquiryFollowUpInterestedCount = enquiryFollowUpEntries.filter(
+    (entry) => entry.customer.enquiryFollowUpOutcome === "Still interested"
+  ).length;
+  const enquiryFollowUpOutcomeEntry =
+    enquiryFollowUpEntries.find(
+      (entry) => !entry.customer.enquiryFollowUpOutcomeRecordedAt
+    ) || null;
+  const enquiryFollowUpOutcomeOpportunity = enquiryFollowUpOutcomeEntry
+    ? {
+        customerId: enquiryFollowUpOutcomeEntry.customer.id,
+        customerName: enquiryFollowUpOutcomeEntry.customer.name,
+        service: enquiryFollowUpOutcomeEntry.customer.service,
+      }
+    : null;
+  const openEnquiryCount = unresolvedEnquiryEntries.length + enquiryFollowUpEntries.filter(
+    (entry) => !entry.customer.enquiryFollowUpOutcomeRecordedAt
   ).length;
   const pendingReplyActionCount = Object.values(replyActions).filter((action) => action && !action.done).length;
   const completedReplyActions = Object.values(replyActions).filter((action) => action && action.done);
@@ -2326,6 +2378,12 @@ function App() {
     setCustomers,
     eligibleCustomers,
     openEnquiryCount,
+    freshEnquiryEntries,
+    staleEnquiryEntries,
+    enquiryFollowUpSentCount,
+    enquiryFollowUpOutcomeCount,
+    enquiryFollowUpInterestedCount,
+    enquiryFollowUpOutcomeOpportunity,
     selectedCustomerId,
     setSelectedCustomerId,
     selectedCustomer,
@@ -2350,6 +2408,10 @@ function App() {
     setQuoteFollowUpDraft,
     quoteFollowUpOutcome,
     setQuoteFollowUpOutcome,
+    enquiryFollowUpDraft,
+    setEnquiryFollowUpDraft,
+    enquiryFollowUpOutcome,
+    setEnquiryFollowUpOutcome,
     reviewRequestDraft,
     setReviewRequestDraft,
     reviewRequestOutcome,
@@ -2367,6 +2429,10 @@ function App() {
     simulateJobPostPublish,
     openJobPostOutcome,
     saveJobPostOutcome,
+    prepareEnquiryFollowUp,
+    simulateEnquiryFollowUpSend,
+    openEnquiryFollowUpOutcome,
+    saveEnquiryFollowUpOutcome,
     prepareQuoteFollowUp,
     simulateQuoteFollowUpSend,
     openQuoteFollowUpOutcome,
@@ -2414,6 +2480,8 @@ function App() {
     setNewEnquiryCustomService,
     newEnquiryNote,
     setNewEnquiryNote,
+    newEnquiryDate,
+    setNewEnquiryDate,
     customerNoteText,
     setCustomerNoteText,
     editingCustomerId,
@@ -2490,6 +2558,8 @@ function App() {
     setActionQuoteAmount,
     actionQuoteMessage,
     setActionQuoteMessage,
+    actionQuoteSentDate,
+    setActionQuoteSentDate,
     actionBookingDate,
     setActionBookingDate,
     actionBookingTime,
