@@ -181,3 +181,23 @@ Busy Does It mobile app prototype.
 - Manual profile-test numbers no longer participate in Home ranking.
 - Results now includes quiet-enquiry learning and removes the illustrative marketing-results totals from the main Results screen.
 - Main visible navigation remains Home / Work / Results / Settings.
+
+
+## v1.8 automatic admin underneath
+- Kept v1.7 record-based opportunity discovery, but moved more routine administration into the records themselves.
+- New enquiries now receive an automatic 7-day next-check date when they are captured. Busy can use that stored lifecycle date to decide when an unresolved enquiry becomes a quiet-enquiry opportunity.
+- Sent quotes now receive an automatic 7-day follow-up due date. Quote-follow-up detection prefers that stored due date rather than repeatedly recalculating an invented demo rule.
+- Customer records now maintain lightweight lifecycle and last-activity pointers as quotes, bookings, follow-ups and outcomes change.
+- Completing a job now automatically updates the customer’s latest job date/value, stores repeat-service timing when the service has a sensible repeat interval, and pre-drafts a low-pressure review request when customer contact is allowed.
+- Post-job repeat timing is service-specific. Non-repeatable services do not receive a fake repeat reminder.
+- Saving job photos with marketing permission now automatically prepares the finished-job post wording and opens the editable draft. The owner no longer has to ask Busy to create the draft after already approving the photos.
+- Public posting still requires a separate owner approval; automatic preparation does not mean automatic publishing.
+- Review-request opportunities are deduplicated to the customer’s latest completed job and are suppressed while that customer has active customer work, reducing contradictory or repetitive asks.
+- Added a compact Home card showing how many next steps are ready and how many timelines Busy is maintaining in the background.
+- Added a non-tab Background Work screen showing quiet enquiries, due quote follow-ups, prepared review drafts, prepared post drafts and future repeat-service dates.
+- Work shows the number of background next steps ready without adding another permanent navigation item.
+- Completed-job confirmation now tells the owner which follow-on admin Busy has already prepared.
+- New-enquiry and quote screens show the automatic future check date before the record is saved/sent.
+- Results now includes the amount of routine admin prepared / watched underneath the Opportunity Engine.
+- Main navigation remains Home / Work / Results / Settings.
+- Busy still does not send a real customer message, publish publicly or spend money without the required approval in this prototype.
