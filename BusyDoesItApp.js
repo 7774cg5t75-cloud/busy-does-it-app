@@ -427,6 +427,7 @@ function App() {
   const [tab, setTab] = useState("Home");
   const [businessName, setBusinessName] = useState("Dave's Exterior Cleaning");
   const [trade, setTrade] = useState("Exterior cleaning");
+  const [verticalId, setVerticalId] = useState("exterior-cleaning");
   const [postcode, setPostcode] = useState("EX17");
   const [radius, setRadius] = useState("15");
   const [quietSlot, setQuietSlot] = useState("Thursday afternoon");
@@ -444,6 +445,12 @@ function App() {
   const [newCustomerDate, setNewCustomerDate] = useState("2025-01-01");
   const [newCustomerValue, setNewCustomerValue] = useState("");
   const [newCustomerContactOk, setNewCustomerContactOk] = useState(true);
+  const [newCustomerHasPreviousJob, setNewCustomerHasPreviousJob] = useState(true);
+  const [newEnquiryName, setNewEnquiryName] = useState("");
+  const [newEnquiryPhone, setNewEnquiryPhone] = useState("");
+  const [newEnquiryService, setNewEnquiryService] = useState("Driveway cleaning");
+  const [newEnquiryNote, setNewEnquiryNote] = useState("");
+  const [customerNoteText, setCustomerNoteText] = useState("");
   const [services, setServices] = useState(servicesSeed);
   const [newServiceName, setNewServiceName] = useState("");
   const [newServiceValue, setNewServiceValue] = useState("");
@@ -497,6 +504,8 @@ function App() {
         if (typeof saved.onboardingComplete === "boolean") setOnboardingComplete(saved.onboardingComplete);
         if (saved.businessName) setBusinessName(saved.businessName);
         if (saved.trade) setTrade(saved.trade);
+        const savedVerticalId = saved.verticalId || "exterior-cleaning";
+        setVerticalId(savedVerticalId);
         if (saved.postcode) setPostcode(saved.postcode);
         if (saved.radius) setRadius(saved.radius);
         if (saved.quietSlot) setQuietSlot(saved.quietSlot);
@@ -518,7 +527,21 @@ function App() {
           );
           setReplyActions(migratedReplyActions);
         }
-        if (Array.isArray(saved.services)) setServices(saved.services);
+        if (Array.isArray(saved.services)) {
+          const pack = getVerticalPack(saved.verticalId || "exterior-cleaning");
+          setServices(
+            saved.services.map((item) => {
+              const packService = pack.services.find((candidate) => candidate.name === item.name);
+              return {
+                ...item,
+                repeatMonths:
+                  item.repeatMonths !== undefined
+                    ? item.repeatMonths
+                    : packService?.repeatMonths ?? pack.defaultRepeatMonths,
+              };
+            })
+          );
+        }
         if (typeof saved.alwaysAsk === "boolean") setAlwaysAsk(saved.alwaysAsk);
         if (typeof saved.customerContact === "boolean") setCustomerContact(saved.customerContact);
         if (saved.testLimit) setTestLimit(saved.testLimit);
@@ -548,6 +571,7 @@ function App() {
       onboardingComplete,
       businessName,
       trade,
+      verticalId,
       postcode,
       radius,
       quietSlot,
@@ -577,6 +601,7 @@ function App() {
     onboardingComplete,
     businessName,
     trade,
+    verticalId,
     postcode,
     radius,
     quietSlot,
@@ -625,6 +650,19 @@ function App() {
     jump("home", "Home");
   };
 
+  const applyVerticalPack = (nextVerticalId) => {
+    const pack = getVerticalPack(nextVerticalId);
+    const nextServices = pack.services.map((item) => ({ ...item }));
+    setVerticalId(pack.id);
+    setTrade(pack.label);
+    setServices(nextServices);
+    setSelectedServiceId(nextServices[0]?.id || "");
+    setNewCustomerService(nextServices[0]?.name || pack.label);
+    setNewEnquiryService(nextServices[0]?.name || pack.label);
+    setOfferService(nextServices[0]?.name || pack.label);
+    setDismissedOpportunities([]);
+  };
+
   const toggleConnection = (key) => {
     setConnectedAccounts((current) => ({ ...current, [key]: !current[key] }));
   };
@@ -637,7 +675,9 @@ function App() {
 
 
   const buildReactivationMessages = () => {
-    const eligible = customerContact ? customers.filter(isEligibleCustomer) : [];
+    const eligible = customerContact
+      ? customers.filter((customer) => isEligibleCustomer(customer, services, verticalId))
+      : [];
     const groups = groupCustomersByService(eligible);
     const slotText = (quietSlot || "a quiet slot").toLowerCase();
     const drafts = {};
@@ -672,7 +712,13 @@ function App() {
 
   const simulateCurrentSend = () => {
     if (campaignStage === 0) {
-      setLastSimulatedRecipients((customerContact ? customers.filter(isEligibleCustomer) : []).map((customer) => ({ ...customer })));
+      setLastSimulatedRecipients(
+        (
+          customerContact
+            ? customers.filter((customer) => isEligibleCustomer(customer, services, verticalId))
+            : []
+        ).map((customer) => ({ ...customer }))
+      );
       setReplyActions({});
     }
     go("progress");
@@ -944,6 +990,12 @@ function App() {
     setNewCustomerDate(dateToISO(new Date()));
     setNewCustomerValue("");
     setNewCustomerContactOk(true);
+    setNewCustomerHasPreviousJob(true);
+    setNewEnquiryName("");
+    setNewEnquiryPhone("");
+    setNewEnquiryService("Driveway cleaning");
+    setNewEnquiryNote("");
+    setCustomerNoteText("");
   };
 
   const startNewCustomer = () => {
@@ -1013,6 +1065,7 @@ function App() {
     setOnboardingComplete(false);
     setBusinessName("Dave's Exterior Cleaning");
     setTrade("Exterior cleaning");
+    setVerticalId("exterior-cleaning");
     setPostcode("EX17");
     setRadius("15");
     setQuietSlot("Thursday afternoon");
@@ -1053,7 +1106,9 @@ function App() {
   };
 
   const selectedService = services.find((x) => x.id === selectedServiceId) || services[0];
-  const eligibleCustomers = customerContact ? customers.filter(isEligibleCustomer) : [];
+  const eligibleCustomers = customerContact
+    ? customers.filter((customer) => isEligibleCustomer(customer, services, verticalId))
+    : [];
   const pendingReplyActionCount = Object.values(replyActions).filter((action) => action && !action.done).length;
   const completedReplyActions = Object.values(replyActions).filter((action) => action && action.done);
   const completedQuoteCount = completedReplyActions.filter((action) => action.type === "quote").length;
@@ -1111,6 +1166,10 @@ function App() {
     setBusinessName,
     trade,
     setTrade,
+    verticalId,
+    setVerticalId,
+    applyVerticalPack,
+    verticalPack: getVerticalPack(verticalId),
     postcode,
     setPostcode,
     radius,
@@ -1150,6 +1209,18 @@ function App() {
     setNewCustomerValue,
     newCustomerContactOk,
     setNewCustomerContactOk,
+    newCustomerHasPreviousJob,
+    setNewCustomerHasPreviousJob,
+    newEnquiryName,
+    setNewEnquiryName,
+    newEnquiryPhone,
+    setNewEnquiryPhone,
+    newEnquiryService,
+    setNewEnquiryService,
+    newEnquiryNote,
+    setNewEnquiryNote,
+    customerNoteText,
+    setCustomerNoteText,
     editingCustomerId,
     startNewCustomer,
     startEditCustomer,
