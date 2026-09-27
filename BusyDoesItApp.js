@@ -588,8 +588,8 @@ function App() {
 
   const loadReplyActionForm = (customerId, type) => {
     const customer =
-      lastSimulatedRecipients.find((item) => item.id === customerId) ||
-      customers.find((item) => item.id === customerId);
+      customers.find((item) => item.id === customerId) ||
+      lastSimulatedRecipients.find((item) => item.id === customerId);
     const saved = replyActions[customerId];
     if (!customer) return false;
 
@@ -622,8 +622,8 @@ function App() {
 
   const beginReplyAction = (customerId, suggested) => {
     const customer =
-      lastSimulatedRecipients.find((item) => item.id === customerId) ||
-      customers.find((item) => item.id === customerId);
+      customers.find((item) => item.id === customerId) ||
+      lastSimulatedRecipients.find((item) => item.id === customerId);
     if (!customer || !suggested) return;
 
     saveReplyAction(customerId, suggested.task, suggested.type);
@@ -955,8 +955,8 @@ function App() {
   const completedBookingCount = completedReplyActions.filter((action) => action.type === "booking").length;
   const completedReminderCount = completedReplyActions.filter((action) => action.type === "reminder").length;
   const selectedReplyCustomer =
-    lastSimulatedRecipients.find((customer) => customer.id === selectedReplyActionId) ||
     customers.find((customer) => customer.id === selectedReplyActionId) ||
+    lastSimulatedRecipients.find((customer) => customer.id === selectedReplyActionId) ||
     null;
   const selectedCustomer = customers.find((customer) => customer.id === selectedCustomerId) || null;
   const todayISO = dateToISO(new Date());
@@ -2641,6 +2641,11 @@ function ReplyActionDetail({ s }) {
   const suggested = replyActionForStatus(reply.status);
   const saved = s.replyActions[customer.id] || {};
   const type = saved.type || suggested?.type;
+  const quoteStatus = saved.details?.quoteStatus || "Prepared";
+  const bookingStatus = saved.details?.bookingStatus || (saved.done ? "Confirmed" : "Draft");
+  const reminderStatus = saved.details?.reminderStatus || "Scheduled";
+  const todayISO = dateToISO(new Date());
+
   const suggestedBookingDate = nextDateForSlot(s.quietSlot);
   const suggestedBookingTime = defaultTimeForSlot(s.quietSlot);
   const savedBookingNeedsReview =
@@ -2662,16 +2667,18 @@ function ReplyActionDetail({ s }) {
     );
   const bookingClashes = Object.entries(s.replyActions || {})
     .map(([id, action]) => {
+      const otherStatus = action?.details?.bookingStatus || "Confirmed";
       if (
         id === customer.id ||
         !action?.done ||
         action.type !== "booking" ||
+        ["Cancelled", "Completed"].includes(otherStatus) ||
         action.details?.bookingDate !== s.actionBookingDate ||
         action.details?.bookingTime !== s.actionBookingTime
       ) return null;
       const clashCustomer =
-        s.lastSimulatedRecipients.find((item) => item.id === id) ||
-        s.customers.find((item) => item.id === id);
+        s.customers.find((item) => item.id === id) ||
+        s.lastSimulatedRecipients.find((item) => item.id === id);
       return clashCustomer ? { id, action, customer: clashCustomer } : null;
     })
     .filter(Boolean);
@@ -2680,6 +2687,7 @@ function ReplyActionDetail({ s }) {
       id !== customer.id &&
       action?.done &&
       action.type === "booking" &&
+      !["Cancelled", "Completed"].includes(action.details?.bookingStatus || "Confirmed") &&
       action.details?.bookingDate === s.actionBookingDate &&
       action.details?.bookingTime === time
     )
@@ -2694,10 +2702,29 @@ function ReplyActionDetail({ s }) {
     return (
       <Shell
         s={s}
-        title="Prepare quote"
-        subtitle={`For ${customer.name} • ${customer.service}. Nothing is actually sent in this prototype.`}
+        title="Quote"
+        subtitle={`For ${customer.name} • ${customer.service}. Sending is simulated in this prototype.`}
+        brandCue="Prepare it. Track it. Turn wins into work."
       >
         <Card eyebrow="Customer asked for a quote" title={customer.name} body={reply.body} tone="green" />
+        {saved.done ? (
+          <Card
+            eyebrow="Quote status"
+            title={quoteStatus}
+            body={
+              quoteStatus === "Prepared"
+                ? "The quote is ready but has not been marked as sent."
+                : quoteStatus === "Sent"
+                ? "The quote has been marked as sent in the simulation and is waiting for an outcome."
+                : quoteStatus === "Accepted"
+                ? "The customer has accepted this prototype quote. The next sensible step is to book the work."
+                : "This quote has been marked as declined."
+            }
+            footer={saved.details?.quoteAmount ? `£${saved.details.quoteAmount}` : undefined}
+            tone={quoteStatus === "Declined" ? "blue" : "green"}
+          />
+        ) : null}
+
         <View style={styles.suggestionBox}>
           <Text style={styles.suggestionTitle}>Why this amount?</Text>
           <Text style={styles.suggestionBody}>
@@ -2715,12 +2742,32 @@ function ReplyActionDetail({ s }) {
           disabled={!String(s.actionQuoteAmount).trim()}
           onPress={() =>
             finish({
+              ...(saved.details || {}),
               quoteAmount: s.actionQuoteAmount,
               message: s.actionQuoteMessage,
-              summary: `Quote prepared for £${s.actionQuoteAmount}`,
+              quoteStatus: saved.details?.quoteStatus || "Prepared",
+              summary: `Quote ${String(saved.details?.quoteStatus || "Prepared").toLowerCase()} for £${s.actionQuoteAmount}`,
             })
           }
         />
+
+        {saved.done && quoteStatus === "Prepared" ? (
+          <Button label="Simulate quote sent" onPress={() => s.setQuoteStatus(customer.id, "Sent")} />
+        ) : null}
+        {saved.done && quoteStatus === "Sent" ? (
+          <>
+            <Button label="Mark quote accepted" onPress={() => s.setQuoteStatus(customer.id, "Accepted")} />
+            <Button label="Mark quote declined" onPress={() => s.setQuoteStatus(customer.id, "Declined")} />
+          </>
+        ) : null}
+        {saved.done && quoteStatus === "Accepted" ? (
+          <Button label="Turn accepted quote into booking" onPress={() => s.convertQuoteToBooking(customer.id)} />
+        ) : null}
+        {saved.done && quoteStatus === "Declined" ? (
+          <Button label="Reopen quote" onPress={() => s.setQuoteStatus(customer.id, "Sent")} />
+        ) : null}
+
+        <Button label="Open customer" onPress={() => s.openCustomer(customer.id)} />
         <Button label="Cancel" onPress={s.back} />
       </Shell>
     );
@@ -2730,10 +2777,29 @@ function ReplyActionDetail({ s }) {
     return (
       <Shell
         s={s}
-        title="Confirm booking"
-        subtitle={`For ${customer.name} • ${customer.service}. This saves a local prototype booking only.`}
+        title="Booking"
+        subtitle={`For ${customer.name} • ${customer.service}. This is a local prototype booking only.`}
+        brandCue="Booked work should turn into completed work."
       >
         <Card eyebrow="Customer wants the slot" title={customer.name} body={reply.body} tone="green" />
+        {saved.done ? (
+          <Card
+            eyebrow="Booking status"
+            title={bookingStatus}
+            body={
+              bookingStatus === "Confirmed"
+                ? "This job is in the work diary."
+                : bookingStatus === "Completed"
+                ? "The job has been added to this customer’s local job history."
+                : bookingStatus === "Cancelled"
+                ? "This booking is cancelled and no longer counts as upcoming work."
+                : "Finish confirming the booking details below."
+            }
+            footer={saved.details?.summary}
+            tone={bookingStatus === "Cancelled" ? "blue" : "green"}
+          />
+        ) : null}
+
         <View
           style={[
             styles.suggestionBox,
@@ -2769,12 +2835,13 @@ function ReplyActionDetail({ s }) {
             </Pressable>
           ) : null}
         </View>
+
         <DatePickerField
           label="Booking date"
           value={s.actionBookingDate}
           onChange={s.setActionBookingDate}
           allowFuture
-          minimumDate={dateToISO(new Date())}
+          minimumDate={bookingStatus === "Completed" ? null : dateToISO(new Date())}
         />
         <Text style={styles.fieldLabel}>Time</Text>
         <View style={styles.timeChoiceWrap}>
@@ -2799,6 +2866,7 @@ function ReplyActionDetail({ s }) {
           ))}
         </View>
         <Field label="Or enter a time" value={s.actionBookingTime} onChangeText={s.setActionBookingTime} placeholder="e.g. 14:30" />
+
         {bookingClashes.length ? (
           <View style={styles.clashBox}>
             <Text style={styles.clashTitle}>Booking clash</Text>
@@ -2812,31 +2880,81 @@ function ReplyActionDetail({ s }) {
             ) : null}
           </View>
         ) : null}
+
         <Button
           label={saved.done ? "Save booking changes" : "Save booking confirmation"}
           primary
           disabled={!s.actionBookingTime.trim() || bookingClashes.length > 0}
           onPress={() =>
             finish({
+              ...(saved.details || {}),
               bookingDate: s.actionBookingDate,
               bookingTime: s.actionBookingTime,
+              bookingStatus: bookingStatus === "Draft" ? "Confirmed" : bookingStatus,
               summary: `Booking set for ${formatUKDate(s.actionBookingDate)} at ${s.actionBookingTime}`,
             })
           }
         />
+
+        {saved.done && bookingStatus === "Confirmed" ? (
+          <>
+            <Field
+              label="Final job value"
+              value={s.actionJobValue}
+              onChangeText={s.setActionJobValue}
+              keyboardType="number-pad"
+              prefix="£"
+              placeholder="Optional"
+            />
+            <Button
+              label="Mark job completed"
+              onPress={() => s.markBookingCompleted(customer.id, s.actionJobValue)}
+            />
+            <Button label="Cancel booking" onPress={() => s.setBookingStatus(customer.id, "Cancelled")} />
+          </>
+        ) : null}
+        {saved.done && bookingStatus === "Cancelled" ? (
+          <Button label="Reopen booking" onPress={() => s.setBookingStatus(customer.id, "Confirmed")} />
+        ) : null}
+        {saved.done && bookingStatus === "Completed" ? (
+          <Button label="View customer job history" onPress={() => s.openCustomer(customer.id)} />
+        ) : null}
+
+        <Button label="Open customer" onPress={() => s.openCustomer(customer.id)} />
         <Button label="Cancel" onPress={s.back} />
       </Shell>
     );
   }
 
   if (type === "reminder") {
+    const reminderDue =
+      saved.done &&
+      reminderStatus !== "Completed" &&
+      saved.details?.reminderDate &&
+      saved.details.reminderDate <= todayISO;
     return (
       <Shell
         s={s}
-        title="Remind me later"
-        subtitle={`For ${customer.name} • ${customer.service}. The reminder is stored locally in this prototype.`}
+        title="Follow-up reminder"
+        subtitle={`For ${customer.name} • ${customer.service}. Stored locally in this prototype.`}
+        brandCue="A reminder should come back when it matters."
       >
         <Card eyebrow="Customer said not now" title={customer.name} body={reply.body} tone="amber" />
+        {saved.done ? (
+          <Card
+            eyebrow="Reminder status"
+            title={reminderStatus === "Completed" ? "Completed" : reminderDue ? "Due now" : "Scheduled"}
+            body={
+              reminderStatus === "Completed"
+                ? "This follow-up has been marked as completed."
+                : reminderDue
+                ? `This follow-up was due on ${formatUKDate(saved.details.reminderDate)}.`
+                : `Busy Does It will surface this on Home when ${formatUKDate(saved.details.reminderDate)} arrives.`
+            }
+            tone={reminderDue ? "amber" : "green"}
+          />
+        ) : null}
+
         <DatePickerField
           label="Follow-up date"
           value={s.actionReminderDate}
@@ -2845,15 +2963,21 @@ function ReplyActionDetail({ s }) {
           minimumDate={dateToISO(new Date())}
         />
         <Button
-          label={saved.done ? "Save reminder changes" : "Save follow-up reminder"}
+          label={saved.done ? "Save / reschedule reminder" : "Save follow-up reminder"}
           primary
           onPress={() =>
             finish({
+              ...(saved.details || {}),
               reminderDate: s.actionReminderDate,
+              reminderStatus: "Scheduled",
               summary: `Follow up on ${formatUKDate(s.actionReminderDate)}`,
             })
           }
         />
+        {saved.done && reminderStatus !== "Completed" ? (
+          <Button label={reminderDue ? "Mark follow-up done" : "Mark done now"} onPress={() => s.markReminderDone(customer.id)} />
+        ) : null}
+        <Button label="Open customer" onPress={() => s.openCustomer(customer.id)} />
         <Button label="Cancel" onPress={s.back} />
       </Shell>
     );
