@@ -10,8 +10,11 @@ import {
   TextInput,
   StatusBar,
   Switch,
+  Image,
+  Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as ImagePicker from "expo-image-picker";
 
 const C = {
   bg: "#F5F7FB",
@@ -535,6 +538,10 @@ function App() {
   const [actionBookingTime, setActionBookingTime] = useState(defaultTimeForSlot("Thursday afternoon"));
   const [actionJobValue, setActionJobValue] = useState("");
   const [actionJobNote, setActionJobNote] = useState("");
+  const [selectedJobId, setSelectedJobId] = useState(null);
+  const [pendingJobPhotos, setPendingJobPhotos] = useState([]);
+  const [jobPhotosMarketingOk, setJobPhotosMarketingOk] = useState(false);
+  const [jobPostDraft, setJobPostDraft] = useState("");
   const [actionReminderDate, setActionReminderDate] = useState(addDaysISO(30));
   const [editingCustomerId, setEditingCustomerId] = useState(null);
   const [pendingRemoveCustomerId, setPendingRemoveCustomerId] = useState(null);
@@ -1046,9 +1053,10 @@ function App() {
 
   const markBookingCompleted = (customerId, jobValue, completionNote = "") => {
     const action = replyActions[customerId];
-    if (!action?.details?.bookingDate) return;
+    if (!action?.details?.bookingDate) return null;
     const amount = Number(jobValue) || Number(action.details?.sourceQuoteAmount) || 0;
     const cleanNote = String(completionNote || "").trim();
+    const jobId = `job-${customerId}-${action.details.bookingDate}`;
     setReplyActions((current) => ({
       ...current,
       [customerId]: {
@@ -1077,12 +1085,13 @@ function App() {
           : [
               ...history,
               {
-                id: `job-${customerId}-${action.details.bookingDate}`,
+                id: jobId,
                 kind: "job",
                 date: action.details.bookingDate,
                 service: customer.service,
                 value: amount || "",
                 note: cleanNote || "Completed through Busy Does It prototype",
+                photos: [],
               },
             ];
         const activity = Array.isArray(customer.activity) ? customer.activity : [];
@@ -1106,6 +1115,157 @@ function App() {
         };
       })
     );
+    return jobId;
+  };
+
+  const startJobPhotoPrompt = (customerId, jobId) => {
+    setSelectedCustomerId(customerId);
+    setSelectedJobId(jobId);
+    setPendingJobPhotos([]);
+    setJobPhotosMarketingOk(false);
+    setJobPostDraft("");
+    go("jobCompletePhotos");
+  };
+
+  const openJobAssets = (customerId, jobId) => {
+    const customer = customers.find((item) => item.id === customerId);
+    const job = (customer?.history || []).find((item) => item.id === jobId);
+    const photos = Array.isArray(job?.photos) ? job.photos : [];
+    setSelectedCustomerId(customerId);
+    setSelectedJobId(jobId);
+    setPendingJobPhotos(photos.map((photo) => ({ ...photo })));
+    setJobPhotosMarketingOk(photos.length > 0 && photos.every((photo) => !!photo.marketingOk));
+    setJobPostDraft(job?.postDraft || "");
+    go("jobPhotos");
+  };
+
+  const openJobPhotoOpportunity = (customerId, jobId) => {
+    const customer = customers.find((item) => item.id === customerId);
+    const job = (customer?.history || []).find((item) => item.id === jobId);
+    const photos = Array.isArray(job?.photos) ? job.photos : [];
+    setSelectedCustomerId(customerId);
+    setSelectedJobId(jobId);
+    setPendingJobPhotos(photos.map((photo) => ({ ...photo })));
+    setJobPhotosMarketingOk(photos.some((photo) => !!photo.marketingOk));
+    setJobPostDraft(job?.postDraft || "");
+    go("jobPhotoOpportunity");
+  };
+
+  const chooseJobPhotos = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsMultipleSelection: true,
+        selectionLimit: 5,
+        quality: 0.8,
+      });
+      if (result.canceled) return;
+      const picked = (result.assets || []).map((asset, index) => ({
+        id: asset.assetId || `photo-${Date.now()}-${index}`,
+        uri: asset.uri,
+        fileName: asset.fileName || "",
+        width: asset.width || 0,
+        height: asset.height || 0,
+        marketingOk: jobPhotosMarketingOk,
+      }));
+      setPendingJobPhotos((current) => {
+        const merged = [...current];
+        picked.forEach((photo) => {
+          if (!merged.some((item) => item.uri === photo.uri)) merged.push(photo);
+        });
+        return merged.slice(0, 5);
+      });
+    } catch (error) {
+      Alert.alert("Could not open photos", "Please try again. No photo access has been changed.");
+    }
+  };
+
+  const removePendingJobPhoto = (photoId) => {
+    setPendingJobPhotos((current) => current.filter((photo) => photo.id !== photoId));
+  };
+
+  const saveJobPhotos = () => {
+    if (!selectedJobId || !selectedCustomerId) return;
+    const savedAt = new Date().toISOString();
+    const photos = pendingJobPhotos.map((photo) => ({
+      ...photo,
+      marketingOk: !!jobPhotosMarketingOk,
+      attachedAt: photo.attachedAt || savedAt,
+    }));
+    setCustomers((list) =>
+      list.map((customer) => {
+        if (customer.id !== selectedCustomerId) return customer;
+        const history = (customer.history || []).map((item) =>
+          item.id === selectedJobId ? { ...item, photos } : item
+        );
+        return { ...customer, history };
+      })
+    );
+    appendCustomerActivity(selectedCustomerId, {
+      kind: "photos",
+      title: "Job photos updated",
+      note: photos.length
+        ? `${photos.length} photo${photos.length === 1 ? "" : "s"} attached to the completed job. ${jobPhotosMarketingOk ? "They can be suggested for future marketing, but nothing is posted automatically." : "They are kept private to the job unless you change the setting later."}`
+        : "Job photos removed.",
+    });
+    if (photos.length && jobPhotosMarketingOk) {
+      go("jobPhotoOpportunity");
+    } else {
+      openCustomer(selectedCustomerId);
+    }
+  };
+
+  const prepareJobPost = () => {
+    const customer = customers.find((item) => item.id === selectedCustomerId);
+    const job = (customer?.history || []).find((item) => item.id === selectedJobId);
+    if (!customer || !job) return;
+    const allowedPhotos = (job.photos || []).filter((photo) => photo.marketingOk);
+    if (!allowedPhotos.length) {
+      Alert.alert("No approved job photos", "Allow these job photos to be suggested for marketing first.");
+      return;
+    }
+    const service = job.service || customer.service || "job";
+    const draft =
+      job.postDraft ||
+      `Just finished another ${service.toLowerCase()} job. If you need something similar, send us a message and we’ll take a look.`;
+    setJobPostDraft(draft);
+    go("jobPostDraft");
+  };
+
+  const openJobPostDraft = () => {
+    const customer = customers.find((item) => item.id === selectedCustomerId);
+    const job = (customer?.history || []).find((item) => item.id === selectedJobId);
+    if (!job) return;
+    setJobPostDraft(job.postDraft || "");
+    go("jobPostDraft");
+  };
+
+  const saveJobPostDraft = () => {
+    const draft = jobPostDraft.trim();
+    if (!draft || !selectedJobId || !selectedCustomerId) return;
+    const preparedAt = new Date().toISOString();
+    setCustomers((list) =>
+      list.map((customer) => {
+        if (customer.id !== selectedCustomerId) return customer;
+        const history = (customer.history || []).map((item) =>
+          item.id === selectedJobId
+            ? {
+                ...item,
+                postDraft: draft,
+                postDraftPreparedAt: preparedAt,
+                postDraftStatus: "Prepared",
+              }
+            : item
+        );
+        return { ...customer, history };
+      })
+    );
+    appendCustomerActivity(selectedCustomerId, {
+      kind: "marketing",
+      title: "Finished-job post drafted",
+      note: "Draft saved locally. Nothing has been posted.",
+    });
+    openCustomer(selectedCustomerId);
   };
 
   const markReminderDone = (customerId) => {
@@ -1391,6 +1551,10 @@ function App() {
     setSelectedCustomerId(null);
     setActionJobValue("");
     setActionJobNote("");
+    setSelectedJobId(null);
+    setPendingJobPhotos([]);
+    setJobPhotosMarketingOk(false);
+    setJobPostDraft("");
     setEditingCustomerId(null);
     setPendingRemoveCustomerId(null);
     setServices(servicesSeed);
@@ -1428,6 +1592,14 @@ function App() {
     lastSimulatedRecipients.find((customer) => customer.id === selectedReplyActionId) ||
     null;
   const selectedCustomer = customers.find((customer) => customer.id === selectedCustomerId) || null;
+  const selectedJobCustomer = selectedJobId
+    ? customers.find((customer) =>
+        (Array.isArray(customer.history) ? customer.history : []).some((item) => item.id === selectedJobId)
+      ) || selectedCustomer
+    : selectedCustomer;
+  const selectedJob = selectedJobCustomer
+    ? (Array.isArray(selectedJobCustomer.history) ? selectedJobCustomer.history : []).find((item) => item.id === selectedJobId) || null
+    : null;
   const todayISO = dateToISO(new Date());
   const dueReminderEntries = Object.entries(replyActions)
     .map(([id, action]) => {
@@ -1497,6 +1669,43 @@ function App() {
     0
   );
 
+  const completedJobEntries = customers.flatMap((customer) =>
+    (Array.isArray(customer.history) ? customer.history : [])
+      .filter((item) => item.kind === "job")
+      .map((job) => ({ customer, job }))
+  );
+  const attachedJobPhotoCount = completedJobEntries.reduce(
+    (total, entry) => total + (Array.isArray(entry.job.photos) ? entry.job.photos.length : 0),
+    0
+  );
+  const reusableJobPhotoCount = completedJobEntries.reduce(
+    (total, entry) =>
+      total +
+      (Array.isArray(entry.job.photos)
+        ? entry.job.photos.filter((photo) => photo.marketingOk).length
+        : 0),
+    0
+  );
+  const preparedPhotoPostCount = completedJobEntries.filter((entry) => !!entry.job.postDraft).length;
+  const photoOpportunityEntry =
+    completedJobEntries
+      .filter(
+        (entry) =>
+          Array.isArray(entry.job.photos) &&
+          entry.job.photos.some((photo) => photo.marketingOk) &&
+          !entry.job.postDraft
+      )
+      .sort((a, b) => String(b.job.date || "").localeCompare(String(a.job.date || "")))[0] || null;
+  const photoOpportunity = photoOpportunityEntry
+    ? {
+        customerId: photoOpportunityEntry.customer.id,
+        customerName: photoOpportunityEntry.customer.name,
+        jobId: photoOpportunityEntry.job.id,
+        service: photoOpportunityEntry.job.service || photoOpportunityEntry.customer.service,
+        photoCount: photoOpportunityEntry.job.photos.filter((photo) => photo.marketingOk).length,
+      }
+    : null;
+
   const appState = {
     screen,
     history,
@@ -1543,6 +1752,28 @@ function App() {
     setSelectedCustomerId,
     selectedCustomer,
     openCustomer,
+    selectedJobId,
+    selectedJobCustomer,
+    selectedJob,
+    pendingJobPhotos,
+    setPendingJobPhotos,
+    jobPhotosMarketingOk,
+    setJobPhotosMarketingOk,
+    jobPostDraft,
+    setJobPostDraft,
+    startJobPhotoPrompt,
+    openJobAssets,
+    openJobPhotoOpportunity,
+    chooseJobPhotos,
+    removePendingJobPhoto,
+    saveJobPhotos,
+    prepareJobPost,
+    openJobPostDraft,
+    saveJobPostDraft,
+    attachedJobPhotoCount,
+    reusableJobPhotoCount,
+    preparedPhotoPostCount,
+    photoOpportunity,
     newCustomerName,
     setNewCustomerName,
     newCustomerPhone,
@@ -1727,7 +1958,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={styles.brand}>BUSY DOES IT</Text>
             <Text style={styles.tagline}>More work. Less fuss.</Text>
-            <Text style={styles.prototypeBadge}>Prototype v1.2 • daily operations + follow-up</Text>
+            <Text style={styles.prototypeBadge}>Prototype v1.3 • job photos + reusable assets</Text>
           </View>
           {!noBack && s.history?.length > 0 ? (
             <Pressable onPress={s.back} style={styles.backPill}>
@@ -2382,6 +2613,25 @@ function HomeScreen({ s }) {
             ["Advertising required", "£0"],
           ],
           onAction: () => s.go("customerActivity"),
+        }]
+      : []),
+    ...(s.photoOpportunity
+      ? [{
+          id: `job-photo-${s.photoOpportunity.jobId}`,
+          eyebrow: "Free content",
+          title: `Use ${s.photoOpportunity.photoCount} recent job photo${s.photoOpportunity.photoCount === 1 ? "" : "s"}`,
+          body: `${s.photoOpportunity.customerName}’s ${s.photoOpportunity.service.toLowerCase()} job is already saved. Prepare a finished-job post before paying to reach more people.`,
+          footer: "Cost: £0 • nothing posts without approval",
+          status: "Free",
+          tone: "green",
+          why: "These are real job photos you deliberately attached and allowed Busy Does It to suggest. Reusing existing proof costs nothing, so it is worth considering before paid promotion.",
+          evidence: [
+            ["Approved job photos", String(s.photoOpportunity.photoCount)],
+            ["Source", "Completed customer job"],
+            ["Public posting", "Still requires approval"],
+            ["Advertising required", "£0"],
+          ],
+          onAction: () => s.openJobPhotoOpportunity(s.photoOpportunity.customerId, s.photoOpportunity.jobId),
         }]
       : []),
     {
@@ -4016,7 +4266,10 @@ function ReplyActionDetail({ s }) {
             />
             <Button
               label="Mark job completed"
-              onPress={() => s.markBookingCompleted(customer.id, s.actionJobValue, s.actionJobNote)}
+              onPress={() => {
+                const jobId = s.markBookingCompleted(customer.id, s.actionJobValue, s.actionJobNote);
+                if (jobId) s.startJobPhotoPrompt(customer.id, jobId);
+              }}
             />
             <Button label="Cancel booking" onPress={() => s.setBookingStatus(customer.id, "Cancelled")} />
           </>
@@ -4025,7 +4278,13 @@ function ReplyActionDetail({ s }) {
           <Button label="Reopen booking" onPress={() => s.setBookingStatus(customer.id, "Confirmed")} />
         ) : null}
         {saved.done && bookingStatus === "Completed" ? (
-          <Button label="View customer job history" onPress={() => s.openCustomer(customer.id)} />
+          <>
+            <Button
+              label="Manage job photos"
+              onPress={() => s.openJobAssets(customer.id, `job-${customer.id}-${saved.details?.bookingDate}`)}
+            />
+            <Button label="View customer job history" onPress={() => s.openCustomer(customer.id)} />
+          </>
         ) : null}
 
         <Button label="Open customer" onPress={() => s.openCustomer(customer.id)} />
@@ -4597,6 +4856,17 @@ function CustomerDetail({ s }) {
             <Text style={styles.customerHistoryTitle}>{item.service || customer.service}</Text>
             <Text style={styles.customerMeta}>{item.date ? formatUKDate(item.date) : "Date not recorded"}</Text>
             {item.note ? <Text style={styles.customerHistoryNote}>{item.note}</Text> : null}
+            {Array.isArray(item.photos) && item.photos.length ? (
+              <>
+                <Text style={styles.customerHistoryPhotoMeta}>
+                  {item.photos.length} job photo{item.photos.length === 1 ? "" : "s"}
+                  {item.postDraft ? " • post draft ready" : ""}
+                </Text>
+                <Pressable onPress={() => s.openJobAssets(customer.id, item.id)} style={styles.customerHistoryPhotoLink}>
+                  <Text style={styles.customerHistoryPhotoLinkText}>Open photos / draft →</Text>
+                </Pressable>
+              </>
+            ) : null}
           </View>
           <Text style={styles.customerHistoryValue}>{Number(item.value) > 0 ? `£${item.value}` : "—"}</Text>
         </View>
@@ -4606,6 +4876,95 @@ function CustomerDetail({ s }) {
 
       <Button label="Edit customer record" onPress={() => s.startEditCustomer(customer)} />
       <Button label="Back to customers" primary onPress={s.back} />
+    </Shell>
+  );
+}
+
+function JobCompletePhotos({ s }) {
+  const customer = s.selectedJobCustomer;
+  const job = s.selectedJob;
+  if (!customer || !job) {
+    return (
+      <Shell s={s} title="Job saved" subtitle="The completed job is saved, but the photo step could not be opened.">
+        <Button label="Back" primary onPress={s.back} />
+      </Shell>
+    );
+  }
+  return (
+    <Shell s={s} title="Job complete" subtitle={`${customer.name} • ${job.service || customer.service}`} brandCue="Save the useful proof once. Reuse it only with permission.">
+      <Card eyebrow="Completed work" title={job.service || customer.service} body={`${job.date ? formatUKDate(job.date) : "Date saved"}${Number(job.value) > 0 ? ` • £${job.value}` : ""}`} footer="Saved to this customer’s job history" tone="green" />
+      <Card eyebrow="Optional next step" title="Got any photos from this job?" body="Choose only the photos you want attached to this job. Busy Does It does not browse the rest of your camera roll, and nothing is posted automatically." tone="blue" />
+      <Button label="Add job photos" primary onPress={() => s.go("jobPhotos")} />
+      <Button label="Skip for now" onPress={() => s.openCustomer(customer.id)} />
+    </Shell>
+  );
+}
+
+function JobPhotos({ s }) {
+  const customer = s.selectedJobCustomer;
+  const job = s.selectedJob;
+  if (!customer || !job) {
+    return <Shell s={s} title="Job photos" subtitle="The selected job could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
+  }
+  return (
+    <Shell s={s} title="Job photos" subtitle={`${customer.name} • ${job.service || customer.service}`} brandCue="You choose the exact images. Busy Does It only sees what you select.">
+      <Card eyebrow="Privacy first" title={s.pendingJobPhotos.length ? `${s.pendingJobPhotos.length} photo${s.pendingJobPhotos.length === 1 ? "" : "s"} selected` : "No photos selected yet"} body="A photo can stay attached privately to the job. Allowing future marketing suggestions still does not publish it — you approve public use separately." tone="green" />
+      <Button label={s.pendingJobPhotos.length ? "Choose more / different photos" : "Choose photos"} primary={!s.pendingJobPhotos.length} onPress={s.chooseJobPhotos} />
+      {s.pendingJobPhotos.length ? (
+        <View style={styles.photoGrid}>
+          {s.pendingJobPhotos.map((photo) => (
+            <View key={photo.id || photo.uri} style={styles.photoTile}>
+              <Image source={{ uri: photo.uri }} style={styles.photoImage} />
+              <Pressable onPress={() => s.removePendingJobPhoto(photo.id)} style={styles.photoRemove}><Text style={styles.photoRemoveText}>Remove</Text></Pressable>
+            </View>
+          ))}
+        </View>
+      ) : null}
+      {s.pendingJobPhotos.length ? (
+        <ToggleRow title="Let Busy Does It suggest these later" body="Makes these selected photos available for future post/profile/ad suggestions. Nothing is posted without another approval." value={s.jobPhotosMarketingOk} onValueChange={s.setJobPhotosMarketingOk} />
+      ) : null}
+      {job.postDraft ? (
+        <Card eyebrow="Saved draft" title="A finished-job post draft is ready" body="It is stored locally and has not been posted anywhere." tone="blue">
+          <Button label="Open saved post draft" onPress={s.openJobPostDraft} />
+        </Card>
+      ) : null}
+      <Button label={s.pendingJobPhotos.length ? "Save job photos" : "Save without photos"} primary={!!s.pendingJobPhotos.length} onPress={s.saveJobPhotos} />
+      <Button label="Back to customer" onPress={() => s.openCustomer(customer.id)} />
+    </Shell>
+  );
+}
+
+function JobPhotoOpportunity({ s }) {
+  const customer = s.selectedJobCustomer;
+  const job = s.selectedJob;
+  const allowedPhotos = (job?.photos || []).filter((photo) => photo.marketingOk);
+  if (!customer || !job) {
+    return <Shell s={s} title="Free next move" subtitle="The completed job could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
+  }
+  return (
+    <Shell s={s} title="Free next move" subtitle="Use work you already completed before buying more attention." brandCue="Existing proof first. Paid reach later.">
+      <Card eyebrow="Finished-job content" title={`Turn ${allowedPhotos.length} job photo${allowedPhotos.length === 1 ? "" : "s"} into a post?`} body={`${customer.name}’s ${(job.service || customer.service).toLowerCase()} job is already saved. Busy Does It can prepare a simple post draft using only the photos you approved for suggestions.`} footer="Cost: £0 • nothing posts without approval" tone="green" />
+      <Button label="Prepare a post" primary disabled={!allowedPhotos.length} onPress={s.prepareJobPost} />
+      <Button label="Not now" onPress={() => s.openCustomer(customer.id)} />
+    </Shell>
+  );
+}
+
+function JobPostDraft({ s }) {
+  const customer = s.selectedJobCustomer;
+  const job = s.selectedJob;
+  const allowedPhotos = (job?.photos || []).filter((photo) => photo.marketingOk);
+  if (!customer || !job) {
+    return <Shell s={s} title="Post draft" subtitle="The completed job could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
+  }
+  return (
+    <Shell s={s} title="Finished-job post" subtitle="Draft only. Busy Does It will not publish this prototype post." brandCue="Prepare underneath. Owner approves what goes public.">
+      <Card eyebrow="Approved source material" title={`${allowedPhotos.length} job photo${allowedPhotos.length === 1 ? "" : "s"} available`} body="These are only the photos you selected and allowed Busy Does It to suggest for marketing." tone="green" />
+      <Text style={styles.fieldLabel}>Post draft</Text>
+      <TextInput multiline value={s.jobPostDraft} onChangeText={s.setJobPostDraft} placeholder="Write the finished-job post" placeholderTextColor="#9AA3B2" style={styles.messageInput} />
+      <Text style={styles.helper}>No address or private customer detail is added automatically.</Text>
+      <Button label="Save post draft" primary disabled={!s.jobPostDraft.trim()} onPress={s.saveJobPostDraft} />
+      <Button label="Back to photos" onPress={() => s.go("jobPhotos")} />
     </Shell>
   );
 }
@@ -4950,6 +5309,9 @@ function Results({ s }) {
         <MetricRow left="Booked work value" right={`£${s.bookedWorkValue}`} strong={s.bookedWorkValue > 0} />
         <MetricRow left="Completed jobs" right={String(completedJobs)} />
         <MetricRow left="Completed job value" right={`£${s.completedJobValue}`} strong={s.completedJobValue > 0} />
+        <MetricRow left="Job photos attached" right={String(s.attachedJobPhotoCount)} />
+        <MetricRow left="Photos reusable with permission" right={String(s.reusableJobPhotoCount)} strong={s.reusableJobPhotoCount > 0} />
+        <MetricRow left="Finished-job post drafts" right={String(s.preparedPhotoPostCount)} />
         <MetricRow left="Follow-ups due" right={String(s.dueReminderEntries.length)} />
         <MetricRow left="Quote follow-ups due" right={String(s.dueQuoteEntries.length)} />
         <MetricRow left="Actions still to do" right={String(s.pendingReplyActionCount)} />
@@ -5254,6 +5616,10 @@ const screens = {
   bestMove: BestMove,
   customerRecords: CustomerRecords,
   customerDetail: CustomerDetail,
+  jobCompletePhotos: JobCompletePhotos,
+  jobPhotos: JobPhotos,
+  jobPhotoOpportunity: JobPhotoOpportunity,
+  jobPostDraft: JobPostDraft,
   newEnquiry: NewEnquiry,
   addCustomerRecord: AddCustomerRecord,
   confirmRemoveCustomer: ConfirmRemoveCustomer,
@@ -5597,6 +5963,14 @@ const styles = StyleSheet.create({
   serviceMessageTitle: { color: C.ink, fontSize: 17, fontWeight: "900" },
   serviceMessageMeta: { color: C.muted, fontSize: 13, lineHeight: 18, marginTop: 3 },
   connectButtonOn: { backgroundColor: C.greenSoft },
+  photoGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 14 },
+  photoTile: { width: "31%", minWidth: 96, borderRadius: 14, backgroundColor: C.card, borderWidth: 1, borderColor: C.border, overflow: "hidden" },
+  photoImage: { width: "100%", aspectRatio: 1, backgroundColor: "#E8ECF3" },
+  photoRemove: { paddingVertical: 8, paddingHorizontal: 8, alignItems: "center", justifyContent: "center", backgroundColor: "#FFFFFF" },
+  photoRemoveText: { color: C.red, fontSize: 12, fontWeight: "800" },
+  customerHistoryPhotoMeta: { color: C.green, fontSize: 12, fontWeight: "800", marginTop: 7 },
+  customerHistoryPhotoLink: { alignSelf: "flex-start", paddingTop: 7, paddingBottom: 2 },
+  customerHistoryPhotoLinkText: { color: C.blue, fontSize: 13, fontWeight: "800" },
   nav: {
     height: 72,
     flexDirection: "row",

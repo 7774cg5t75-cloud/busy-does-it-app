@@ -106,3 +106,15 @@ Busy Does It mobile app prototype.
 - Results now counts completed jobs from permanent customer history instead of relying only on the current live action.
 - Results also shows quote follow-ups due.
 - Preserved the “simple by default, depth on demand” principle and kept the workflow generic across service-business verticals.
+
+
+## v1.3 job photos + reusable assets
+- Completing a booked job now offers an optional job-photo step instead of ending the workflow abruptly.
+- Job photos are chosen explicitly with the system photo picker; Busy Does It never silently browses the camera roll.
+- Selected photos attach to the completed customer job and can stay private to that job.
+- A separate permission toggle controls whether those exact photos may be suggested for future marketing; attaching a photo never means it is automatically public.
+- Approved job photos can trigger a £0 finished-job content opportunity before paid promotion.
+- Busy Does It can prepare an editable finished-job post draft from approved photos, but the prototype does not publish anything.
+- Customer job history now shows photo counts and saved post-draft status.
+- Results now counts attached job photos, reusable-with-permission photos and prepared finished-job drafts.
+- The photo workflow stays service-business-generic and uses the customer’s real saved service rather than exterior-cleaning assumptions.
