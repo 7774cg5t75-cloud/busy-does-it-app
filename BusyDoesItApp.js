@@ -359,10 +359,12 @@ function App() {
   const [lastSimulatedRecipients, setLastSimulatedRecipients] = useState([]);
   const [replyActions, setReplyActions] = useState({});
   const [selectedReplyActionId, setSelectedReplyActionId] = useState(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [actionQuoteAmount, setActionQuoteAmount] = useState("");
   const [actionQuoteMessage, setActionQuoteMessage] = useState("");
   const [actionBookingDate, setActionBookingDate] = useState(nextDateForSlot("Thursday afternoon"));
   const [actionBookingTime, setActionBookingTime] = useState(defaultTimeForSlot("Thursday afternoon"));
+  const [actionJobValue, setActionJobValue] = useState("");
   const [actionReminderDate, setActionReminderDate] = useState(addDaysISO(30));
   const [editingCustomerId, setEditingCustomerId] = useState(null);
   const [pendingRemoveCustomerId, setPendingRemoveCustomerId] = useState(null);
@@ -604,6 +606,14 @@ function App() {
     } else if (type === "booking") {
       setActionBookingDate(saved?.details?.bookingDate || nextDateForSlot(quietSlot));
       setActionBookingTime(saved?.details?.bookingTime || defaultTimeForSlot(quietSlot));
+      const service = services.find((item) => item.name === customer.service);
+      const fallbackJobValue =
+        saved?.details?.jobValue ??
+        saved?.details?.sourceQuoteAmount ??
+        customer.lastJobValue ??
+        service?.value ??
+        "";
+      setActionJobValue(String(fallbackJobValue || ""));
     } else if (type === "reminder") {
       setActionReminderDate(saved?.details?.reminderDate || addDaysISO(30));
     }
@@ -628,6 +638,152 @@ function App() {
     setSelectedReplyActionId(customerId);
     loadReplyActionForm(customerId, saved.type);
     go("replyActionDetail");
+  };
+
+  const openCustomer = (customerId) => {
+    const customer = customers.find((item) => item.id === customerId);
+    if (!customer) return;
+    setSelectedCustomerId(customerId);
+    go("customerDetail");
+  };
+
+  const updateReplyAction = (customerId, updater) => {
+    setReplyActions((current) => {
+      const existing = current[customerId];
+      if (!existing) return current;
+      const next = typeof updater === "function" ? updater(existing) : { ...existing, ...updater };
+      return { ...current, [customerId]: next };
+    });
+  };
+
+  const setQuoteStatus = (customerId, quoteStatus) => {
+    updateReplyAction(customerId, (action) => ({
+      ...action,
+      done: true,
+      details: {
+        ...(action.details || {}),
+        quoteStatus,
+        summary:
+          quoteStatus === "Prepared"
+            ? `Quote prepared for £${action.details?.quoteAmount || "—"}`
+            : quoteStatus === "Sent"
+            ? `Quote sent (simulated) for £${action.details?.quoteAmount || "—"}`
+            : quoteStatus === "Accepted"
+            ? `Quote accepted for £${action.details?.quoteAmount || "—"}`
+            : `Quote declined for £${action.details?.quoteAmount || "—"}`,
+      },
+      completedAt: new Date().toISOString(),
+    }));
+  };
+
+  const convertQuoteToBooking = (customerId) => {
+    const action = replyActions[customerId];
+    const customer = customers.find((item) => item.id === customerId) ||
+      lastSimulatedRecipients.find((item) => item.id === customerId);
+    if (!action || !customer) return;
+    const quoteAmount = action.details?.quoteAmount || customer.lastJobValue || "";
+    const bookingDate = nextDateForSlot(quietSlot);
+    const bookingTime = defaultTimeForSlot(quietSlot);
+    setReplyActions((current) => ({
+      ...current,
+      [customerId]: {
+        ...action,
+        type: "booking",
+        task: "Confirm the booking time",
+        done: false,
+        details: {
+          sourceQuoteAmount: quoteAmount,
+          sourceQuoteStatus: "Accepted",
+          bookingDate,
+          bookingTime,
+          bookingStatus: "Draft",
+          summary: `Accepted quote £${quoteAmount || "—"} ready to book`,
+        },
+      },
+    }));
+    setSelectedReplyActionId(customerId);
+    setActionBookingDate(bookingDate);
+    setActionBookingTime(bookingTime);
+    setActionJobValue(String(quoteAmount || ""));
+  };
+
+  const setBookingStatus = (customerId, bookingStatus) => {
+    updateReplyAction(customerId, (action) => ({
+      ...action,
+      done: true,
+      details: {
+        ...(action.details || {}),
+        bookingStatus,
+        summary:
+          bookingStatus === "Cancelled"
+            ? `Booking cancelled for ${formatUKDate(action.details?.bookingDate)} at ${action.details?.bookingTime || "—"}`
+            : `Booking set for ${formatUKDate(action.details?.bookingDate)} at ${action.details?.bookingTime || "—"}`,
+      },
+      completedAt: new Date().toISOString(),
+    }));
+  };
+
+  const markBookingCompleted = (customerId, jobValue) => {
+    const action = replyActions[customerId];
+    if (!action?.details?.bookingDate) return;
+    const amount = Number(jobValue) || Number(action.details?.sourceQuoteAmount) || 0;
+    setReplyActions((current) => ({
+      ...current,
+      [customerId]: {
+        ...current[customerId],
+        done: true,
+        details: {
+          ...(current[customerId]?.details || {}),
+          bookingStatus: "Completed",
+          jobValue: amount || "",
+          jobCompletedAt: new Date().toISOString(),
+          summary: `Job completed${amount ? ` for £${amount}` : ""} on ${formatUKDate(action.details.bookingDate)}`,
+        },
+        completedAt: new Date().toISOString(),
+      },
+    }));
+    setCustomers((current) =>
+      current.map((customer) => {
+        if (customer.id !== customerId) return customer;
+        const history = Array.isArray(customer.history) ? customer.history : [];
+        const duplicate = history.some(
+          (item) => item.kind === "job" && item.date === action.details.bookingDate && item.service === customer.service
+        );
+        const nextHistory = duplicate
+          ? history
+          : [
+              ...history,
+              {
+                id: `job-${customerId}-${action.details.bookingDate}`,
+                kind: "job",
+                date: action.details.bookingDate,
+                service: customer.service,
+                value: amount || "",
+                note: "Completed through Busy Does It prototype",
+              },
+            ];
+        return {
+          ...customer,
+          lastServiceDate: action.details.bookingDate,
+          lastJobValue: amount || customer.lastJobValue,
+          history: nextHistory,
+        };
+      })
+    );
+  };
+
+  const markReminderDone = (customerId) => {
+    updateReplyAction(customerId, (action) => ({
+      ...action,
+      done: true,
+      details: {
+        ...(action.details || {}),
+        reminderStatus: "Completed",
+        reminderCompletedAt: new Date().toISOString(),
+        summary: `Follow-up completed on ${formatUKDate(dateToISO(new Date()))}`,
+      },
+      completedAt: new Date().toISOString(),
+    }));
   };
 
   const completeReplyAction = (customerId, details = {}) => {
@@ -773,6 +929,8 @@ function App() {
     setLastSimulatedRecipients([]);
     setReplyActions({});
     setSelectedReplyActionId(null);
+    setSelectedCustomerId(null);
+    setActionJobValue("");
     setEditingCustomerId(null);
     setPendingRemoveCustomerId(null);
     setServices(servicesSeed);
@@ -800,6 +958,39 @@ function App() {
     lastSimulatedRecipients.find((customer) => customer.id === selectedReplyActionId) ||
     customers.find((customer) => customer.id === selectedReplyActionId) ||
     null;
+  const selectedCustomer = customers.find((customer) => customer.id === selectedCustomerId) || null;
+  const todayISO = dateToISO(new Date());
+  const dueReminderEntries = Object.entries(replyActions)
+    .map(([id, action]) => {
+      if (
+        action?.type !== "reminder" ||
+        !action?.done ||
+        !action.details?.reminderDate ||
+        action.details?.reminderStatus === "Completed" ||
+        action.details.reminderDate > todayISO
+      ) return null;
+      const customer = customers.find((item) => item.id === id) ||
+        lastSimulatedRecipients.find((item) => item.id === id);
+      return customer ? { id, action, customer } : null;
+    })
+    .filter(Boolean);
+  const activeQuoteValue = Object.values(replyActions)
+    .filter((action) =>
+      action?.type === "quote" &&
+      action?.done &&
+      ["Prepared", "Sent", "Accepted"].includes(action.details?.quoteStatus || "Prepared")
+    )
+    .reduce((total, action) => total + (Number(action.details?.quoteAmount) || 0), 0);
+  const completedJobValue = customers.reduce(
+    (total, customer) =>
+      total +
+      (Array.isArray(customer.history)
+        ? customer.history
+            .filter((item) => item.kind === "job")
+            .reduce((sum, item) => sum + (Number(item.value) || 0), 0)
+        : 0),
+    0
+  );
 
   const appState = {
     screen,
@@ -838,6 +1029,10 @@ function App() {
     customers,
     setCustomers,
     eligibleCustomers,
+    selectedCustomerId,
+    setSelectedCustomerId,
+    selectedCustomer,
+    openCustomer,
     newCustomerName,
     setNewCustomerName,
     newCustomerPhone,
@@ -904,6 +1099,12 @@ function App() {
     saveReplyAction,
     beginReplyAction,
     openSavedReplyAction,
+    updateReplyAction,
+    setQuoteStatus,
+    convertQuoteToBooking,
+    setBookingStatus,
+    markBookingCompleted,
+    markReminderDone,
     completeReplyAction,
     selectedReplyActionId,
     setSelectedReplyActionId,
@@ -916,12 +1117,17 @@ function App() {
     setActionBookingDate,
     actionBookingTime,
     setActionBookingTime,
+    actionJobValue,
+    setActionJobValue,
     actionReminderDate,
     setActionReminderDate,
     pendingReplyActionCount,
     completedQuoteCount,
     completedBookingCount,
     completedReminderCount,
+    dueReminderEntries,
+    activeQuoteValue,
+    completedJobValue,
     bringBackMessage,
     setBringBackMessage,
     offerGoal,
