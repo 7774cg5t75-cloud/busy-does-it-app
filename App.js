@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   ScrollView,
@@ -11,6 +11,7 @@ import {
   StatusBar,
   Switch,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const C = {
   bg: "#F5F7FB",
@@ -52,7 +53,114 @@ const previousCustomerGroups = [
   },
 ];
 
+
+const STORAGE_KEY = "@busy-does-it-v03";
+
+const connectionSeed = {
+  calendar: false,
+  googleBusiness: false,
+  meta: false,
+  googleAds: false,
+  crm: false,
+  invoicing: false,
+};
+
+const connectionRows = [
+  ["calendar", "Calendar", "Helps spot quiet days automatically"],
+  ["googleBusiness", "Google Business", "Helps understand local presence and reviews"],
+  ["meta", "Facebook / Instagram", "Lets approved posts and adverts run"],
+  ["googleAds", "Google Ads", "Lets approved local advert tests run"],
+  ["crm", "CRM / job system", "Helps follow enquiries through to jobs"],
+  ["invoicing", "Invoicing", "Helps measure paid work instead of clicks"],
+];
+
+const campaignSteps = [
+  {
+    id: "past-customers",
+    title: "Contact 12 previous customers",
+    audience: "12 previous customers",
+    cost: "about £1.20",
+    adSpend: "£0",
+    message:
+      "Hi, we’ve got a slot free this Thursday for driveway or patio cleaning. If you’d like a quote or want to book it, just reply here.",
+    why:
+      "They already know your business, 12 are overdue for another service, and contacting them costs almost nothing. That is why we try this before paying for advertising.",
+    evidence: [
+      ["Eligible previous customers", "12"],
+      ["Time since last booking", "10+ months"],
+      ["Estimated message cost", "£1.20"],
+      ["Advertising required", "£0"],
+      ["Confidence", "Medium–high"],
+    ],
+    resultTitle: "1 job booked",
+    resultBody: "12 contacted • 4 replied • 2 interested. One part of the quiet period is filled.",
+    resultFooter: "Booked job value: about £260",
+  },
+  {
+    id: "old-enquiries",
+    title: "Follow up 4 old enquiries",
+    audience: "4 old enquiries",
+    cost: "£0 ad spend",
+    adSpend: "£0",
+    message:
+      "Hi, you asked us about exterior cleaning a little while ago. We’ve got a space coming up and I wanted to check whether you still wanted a quote. No problem if not.",
+    why:
+      "These people already showed interest, so following them up is cheaper and lower-risk than buying new attention.",
+    evidence: [
+      ["Old enquiries worth retrying", "4"],
+      ["Previously requested a quote", "Yes"],
+      ["Advertising required", "£0"],
+      ["Confidence", "Medium"],
+    ],
+    resultTitle: "1 useful reply",
+    resultBody: "4 followed up • 1 replied • no second booking yet. The remaining space is still open.",
+    resultFooter: "Advertising spend so far: £0",
+  },
+  {
+    id: "old-quotes",
+    title: "Revisit 3 old quotes",
+    audience: "3 old quotes",
+    cost: "£0 ad spend",
+    adSpend: "£0",
+    message:
+      "Hi, we quoted for your exterior cleaning previously. We’ve had a space open up and can still help if the job is on your list. Reply if you’d like us to revisit the quote.",
+    why:
+      "A quote means the customer got further than a normal enquiry. It is worth checking before spending money on new leads.",
+    evidence: [
+      ["Old quotes still relevant", "3"],
+      ["Average quoted value", "£310"],
+      ["Advertising required", "£0"],
+      ["Confidence", "Medium"],
+    ],
+    resultTitle: "No booking yet",
+    resultBody: "3 quotes revisited • 1 asked for a later date • the current space is still open.",
+    resultFooter: "Advertising spend so far: £0",
+  },
+  {
+    id: "cross-sell",
+    title: "Offer a gutter add-on to 6 customers",
+    audience: "6 nearby previous customers",
+    cost: "message cost only",
+    adSpend: "£0",
+    message:
+      "Hi, we’ll already be working nearby and have a small gap available. If your gutters need clearing, we can quote for that while we’re in the area. Reply if useful.",
+    why:
+      "These are existing customers near work you already have. A relevant add-on can fill small gaps without paying to reach strangers.",
+    evidence: [
+      ["Nearby previous customers", "6"],
+      ["Relevant add-on", "Gutter clearing"],
+      ["Advertising required", "£0"],
+      ["Confidence", "Medium"],
+    ],
+    resultTitle: "Free options exhausted",
+    resultBody: "6 customers contacted • no booking for the remaining space. We have now tried the sensible low-cost options first.",
+    resultFooter: "Paid advertising has not started",
+  },
+];
+
 function App() {
+  const [hydrated, setHydrated] = useState(false);
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
   const [screen, setScreen] = useState("welcome");
   const [history, setHistory] = useState([]);
   const [tab, setTab] = useState("Home");
@@ -67,11 +175,17 @@ function App() {
   const [customerContact, setCustomerContact] = useState(true);
   const [testLimit, setTestLimit] = useState("25");
   const [weeklyLimit, setWeeklyLimit] = useState("100");
+  const [connectedAccounts, setConnectedAccounts] = useState(connectionSeed);
+  const [dismissedOpportunities, setDismissedOpportunities] = useState([]);
   const [selectedGap, setSelectedGap] = useState("Thursday afternoon");
   const [selectedCustomerGroup, setSelectedCustomerGroup] = useState(previousCustomerGroups[0]);
+  const [selectedServiceId, setSelectedServiceId] = useState("driveway");
+  const [moreWorkGoal, setMoreWorkGoal] = useState("More work next week");
+  const [campaignStage, setCampaignStage] = useState(0);
   const [adBudget, setAdBudget] = useState("20");
-  const [message, setMessage] = useState(
-    "Hi, we’ve got a slot free this Thursday for driveway or patio cleaning. If you’d like a quote or want to book it, just reply here."
+  const [message, setMessage] = useState(campaignSteps[0].message);
+  const [bringBackMessage, setBringBackMessage] = useState(
+    "Hi, it’s been a while since we last helped. We’ve got a couple of spaces next week if you need any exterior cleaning. Reply here if you’d like us to take a look."
   );
   const [offerGoal, setOfferGoal] = useState("Fill a quiet day");
   const [offerService, setOfferService] = useState("Driveway cleaning");
@@ -79,14 +193,89 @@ function App() {
   const [offerPrice, setOfferPrice] = useState("225");
   const [offerDates, setOfferDates] = useState("Tuesday & Wednesday");
   const [offerMax, setOfferMax] = useState("4");
+  const [offerPaused, setOfferPaused] = useState(false);
   const [advanced, setAdvanced] = useState(false);
   const [outcome, setOutcome] = useState("Won");
   const [wonValue, setWonValue] = useState("620");
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(STORAGE_KEY);
+        if (!active || !raw) return;
+        const saved = JSON.parse(raw);
+        if (typeof saved.onboardingComplete === "boolean") setOnboardingComplete(saved.onboardingComplete);
+        if (saved.businessName) setBusinessName(saved.businessName);
+        if (saved.trade) setTrade(saved.trade);
+        if (saved.postcode) setPostcode(saved.postcode);
+        if (saved.radius) setRadius(saved.radius);
+        if (Array.isArray(saved.services)) setServices(saved.services);
+        if (typeof saved.alwaysAsk === "boolean") setAlwaysAsk(saved.alwaysAsk);
+        if (typeof saved.customerContact === "boolean") setCustomerContact(saved.customerContact);
+        if (saved.testLimit) setTestLimit(saved.testLimit);
+        if (saved.weeklyLimit) setWeeklyLimit(saved.weeklyLimit);
+        if (saved.connectedAccounts) setConnectedAccounts({ ...connectionSeed, ...saved.connectedAccounts });
+        if (Array.isArray(saved.dismissedOpportunities)) setDismissedOpportunities(saved.dismissedOpportunities);
+        if (saved.selectedServiceId) setSelectedServiceId(saved.selectedServiceId);
+        if (typeof saved.advanced === "boolean") setAdvanced(saved.advanced);
+        if (saved.onboardingComplete) {
+          setScreen("home");
+          setTab("Home");
+        }
+      } catch (e) {
+        // Prototype persistence should never block the app from opening.
+      } finally {
+        if (active) setHydrated(true);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    const data = {
+      onboardingComplete,
+      businessName,
+      trade,
+      postcode,
+      radius,
+      services,
+      alwaysAsk,
+      customerContact,
+      testLimit,
+      weeklyLimit,
+      connectedAccounts,
+      dismissedOpportunities,
+      selectedServiceId,
+      advanced,
+    };
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data)).catch(() => {});
+  }, [
+    hydrated,
+    onboardingComplete,
+    businessName,
+    trade,
+    postcode,
+    radius,
+    services,
+    alwaysAsk,
+    customerContact,
+    testLimit,
+    weeklyLimit,
+    connectedAccounts,
+    dismissedOpportunities,
+    selectedServiceId,
+    advanced,
+  ]);
 
   const go = (next) => {
     setHistory((h) => [...h, screen]);
     setScreen(next);
   };
+
   const back = () => {
     if (!history.length) return;
     const copy = [...history];
@@ -94,77 +283,178 @@ function App() {
     setHistory(copy);
     setScreen(prev);
   };
+
   const jump = (next, nextTab = tab) => {
     setHistory([]);
     setScreen(next);
     setTab(nextTab);
   };
 
-  const appState = useMemo(
-    () => ({
-      screen,
-      history,
-      go,
-      back,
-      jump,
-      tab,
-      setTab,
-      businessName,
-      setBusinessName,
-      trade,
-      setTrade,
-      postcode,
-      setPostcode,
-      radius,
-      setRadius,
-      services,
-      setServices,
-      newServiceName,
-      setNewServiceName,
-      newServiceValue,
-      setNewServiceValue,
-      alwaysAsk,
-      setAlwaysAsk,
-      customerContact,
-      setCustomerContact,
-      testLimit,
-      setTestLimit,
-      weeklyLimit,
-      setWeeklyLimit,
-      selectedGap,
-      setSelectedGap,
-      selectedCustomerGroup,
-      setSelectedCustomerGroup,
-      adBudget,
-      setAdBudget,
-      message,
-      setMessage,
-      offerGoal,
-      setOfferGoal,
-      offerService,
-      setOfferService,
-      normalPrice,
-      setNormalPrice,
-      offerPrice,
-      setOfferPrice,
-      offerDates,
-      setOfferDates,
-      offerMax,
-      setOfferMax,
-      advanced,
-      setAdvanced,
-      outcome,
-      setOutcome,
-      wonValue,
-      setWonValue,
-    }),
-    [
-      screen, history, tab, businessName, trade, postcode, radius, services, newServiceName, newServiceValue,
-      alwaysAsk, customerContact, testLimit, weeklyLimit, selectedGap,
-      selectedCustomerGroup, adBudget, message, offerGoal, offerService,
-      normalPrice, offerPrice, offerDates, offerMax, advanced, outcome, wonValue
-    ]
-  );
+  const completeOnboarding = () => {
+    setOnboardingComplete(true);
+    jump("home", "Home");
+  };
+
+  const toggleConnection = (key) => {
+    setConnectedAccounts((current) => ({ ...current, [key]: !current[key] }));
+  };
+
+  const dismissOpportunity = (id) => {
+    setDismissedOpportunities((items) => (items.includes(id) ? items : [...items, id]));
+  };
+
+  const restoreOpportunities = () => setDismissedOpportunities([]);
+
+  const startCampaign = (stage = 0) => {
+    const safeStage = Math.max(0, Math.min(stage, campaignSteps.length - 1));
+    setCampaignStage(safeStage);
+    setMessage(campaignSteps[safeStage].message);
+    go("checkSend");
+  };
+
+  const prepareOfferFromGoal = () => {
+    const preferred = services.find((x) => x.id === selectedServiceId) || services.find((x) => x.wanted) || services[0];
+    const serviceName = preferred?.name || "Driveway cleaning";
+    const baseValue = Number(preferred?.value) > 0 ? Number(preferred.value) : 250;
+    setOfferService(serviceName);
+    setNormalPrice(String(baseValue));
+
+    if (offerGoal === "Fill a quiet day") {
+      setOfferPrice(String(Math.max(1, Math.round(baseValue * 0.9))));
+      setOfferDates("Tuesday & Wednesday");
+      setOfferMax("4");
+    } else if (offerGoal === "Get more bookings") {
+      setOfferPrice(String(Math.max(1, Math.round(baseValue * 0.95))));
+      setOfferDates("Next 14 days");
+      setOfferMax("6");
+    } else if (offerGoal === "Promote a service") {
+      setOfferPrice(String(baseValue));
+      setOfferDates("Next 2 weeks");
+      setOfferMax("5");
+    } else if (offerGoal === "Bring customers back") {
+      setOfferPrice(String(baseValue));
+      setOfferDates("Next 10 days");
+      setOfferMax("5");
+    } else {
+      setOfferPrice(String(Math.max(1, Math.round(baseValue * 0.9))));
+      setOfferDates("Limited seasonal window");
+      setOfferMax("6");
+    }
+    go("offerBuild");
+  };
+
+  const resetPrototype = async () => {
+    await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
+    setOnboardingComplete(false);
+    setBusinessName("Dave's Exterior Cleaning");
+    setTrade("Exterior cleaning");
+    setPostcode("EX17");
+    setRadius("15");
+    setServices(servicesSeed);
+    setAlwaysAsk(true);
+    setCustomerContact(true);
+    setTestLimit("25");
+    setWeeklyLimit("100");
+    setConnectedAccounts(connectionSeed);
+    setDismissedOpportunities([]);
+    setSelectedServiceId("driveway");
+    setAdvanced(false);
+    setHistory([]);
+    setTab("Home");
+    setScreen("welcome");
+  };
+
+  const selectedService = services.find((x) => x.id === selectedServiceId) || services[0];
+
+  const appState = {
+    screen,
+    history,
+    go,
+    back,
+    jump,
+    tab,
+    setTab,
+    onboardingComplete,
+    completeOnboarding,
+    businessName,
+    setBusinessName,
+    trade,
+    setTrade,
+    postcode,
+    setPostcode,
+    radius,
+    setRadius,
+    services,
+    setServices,
+    newServiceName,
+    setNewServiceName,
+    newServiceValue,
+    setNewServiceValue,
+    alwaysAsk,
+    setAlwaysAsk,
+    customerContact,
+    setCustomerContact,
+    testLimit,
+    setTestLimit,
+    weeklyLimit,
+    setWeeklyLimit,
+    connectedAccounts,
+    toggleConnection,
+    dismissedOpportunities,
+    dismissOpportunity,
+    restoreOpportunities,
+    selectedGap,
+    setSelectedGap,
+    selectedCustomerGroup,
+    setSelectedCustomerGroup,
+    selectedServiceId,
+    setSelectedServiceId,
+    selectedService,
+    moreWorkGoal,
+    setMoreWorkGoal,
+    campaignStage,
+    setCampaignStage,
+    startCampaign,
+    adBudget,
+    setAdBudget,
+    message,
+    setMessage,
+    bringBackMessage,
+    setBringBackMessage,
+    offerGoal,
+    setOfferGoal,
+    prepareOfferFromGoal,
+    offerService,
+    setOfferService,
+    normalPrice,
+    setNormalPrice,
+    offerPrice,
+    setOfferPrice,
+    offerDates,
+    setOfferDates,
+    offerMax,
+    setOfferMax,
+    offerPaused,
+    setOfferPaused,
+    advanced,
+    setAdvanced,
+    outcome,
+    setOutcome,
+    wonValue,
+    setWonValue,
+    resetPrototype,
+  };
+
+  if (!hydrated) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.loadingWrap}>
+          <Text style={styles.brand}>BUSY DOES IT</Text>
+          <Text style={styles.loadingText}>Loading your prototype…</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const component = screens[screen] || HomeScreen;
 
@@ -185,9 +475,10 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.topRow}>
-          <View>
+          <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={styles.brand}>BUSY DOES IT</Text>
             <Text style={styles.tagline}>More work. Less fuss.</Text>
+            <Text style={styles.prototypeBadge}>Prototype v0.3 • simulated data</Text>
           </View>
           {!noBack && s.history?.length > 0 ? (
             <Pressable onPress={s.back} style={styles.backPill}>
@@ -347,16 +638,110 @@ function MetricRow({ left, right, strong = false }) {
   );
 }
 
+
+function StatusChip({ label, tone = "blue" }) {
+  const style = tone === "green" ? styles.chipGreen : tone === "amber" ? styles.chipAmber : styles.chipBlue;
+  return (
+    <View style={[styles.chip, style]}>
+      <Text style={styles.chipText}>{label}</Text>
+    </View>
+  );
+}
+
+function InlineExplanation({ why, evidence = [] }) {
+  const [showWhy, setShowWhy] = useState(false);
+  const [showEvidence, setShowEvidence] = useState(false);
+  return (
+    <View style={styles.explainWrap}>
+      <Pressable onPress={() => setShowWhy((v) => !v)} style={styles.inlineLinkWrap}>
+        <Text style={styles.inlineLink}>{showWhy ? "Hide why" : "Why this?"}</Text>
+      </Pressable>
+      {showWhy ? (
+        <View style={styles.inlinePanel}>
+          <Text style={styles.inlineWhy}>{why}</Text>
+          {evidence.length ? (
+            <>
+              <Pressable onPress={() => setShowEvidence((v) => !v)} style={styles.inlineLinkWrapLeft}>
+                <Text style={styles.inlineLink}>{showEvidence ? "Hide evidence" : "Show evidence"}</Text>
+              </Pressable>
+              {showEvidence ? (
+                <View style={styles.evidenceBox}>
+                  {evidence.map(([left, right]) => (
+                    <MetricRow key={left} left={left} right={right} />
+                  ))}
+                </View>
+              ) : null}
+            </>
+          ) : null}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function OpportunityCard({
+  eyebrow,
+  title,
+  body,
+  footer,
+  status,
+  tone = "blue",
+  actionLabel = "Do it",
+  onAction,
+  onIgnore,
+  why,
+  evidence,
+}) {
+  const toneStyle = tone === "green" ? styles.opportunityGreen : tone === "amber" ? styles.opportunityAmber : styles.opportunityBlue;
+  return (
+    <View style={[styles.opportunityCard, toneStyle]}>
+      <View style={styles.opportunityTop}>
+        <Text style={styles.eyebrow}>{eyebrow.toUpperCase()}</Text>
+        {status ? <StatusChip label={status} tone={tone} /> : null}
+      </View>
+      <Text style={styles.opportunityTitle}>{title}</Text>
+      <Text style={styles.opportunityBody}>{body}</Text>
+      {footer ? <Text style={styles.opportunityFooter}>{footer}</Text> : null}
+      {why ? <InlineExplanation why={why} evidence={evidence} /> : null}
+      <View style={styles.actionRow}>
+        <Pressable onPress={onAction} style={styles.miniPrimary}>
+          <Text style={styles.miniPrimaryText}>{actionLabel}</Text>
+        </Pressable>
+        {onIgnore ? (
+          <Pressable onPress={onIgnore} style={styles.miniSecondary}>
+            <Text style={styles.miniSecondaryText}>Ignore</Text>
+          </Pressable>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+function ProgressStrip({ current, total }) {
+  const pct = Math.max(0, Math.min(1, current / total));
+  return (
+    <View style={styles.progressTrack}>
+      <View style={[styles.progressFill, { width: `${pct * 100}%` }]} />
+    </View>
+  );
+}
+
 function WelcomeScreen({ s }) {
   return (
-    <Shell s={s} noNav noBack title="Need more work?" subtitle="Busy Does It. We’ll find the simplest way to try to get it — and you stay in control.">
-      <Card eyebrow="What to expect" title="More work. Less fuss." tone="green">
-        <Text style={styles.tick}>• Cheaper options first</Text>
-        <Text style={styles.tick}>• No guaranteed-result claims</Text>
-        <Text style={styles.tick}>• Nothing paid runs without your say-so</Text>
+    <Shell
+      s={s}
+      noNav
+      noBack
+      title="Need more work?"
+      subtitle="Tell Busy Does It what the business needs. We’ll try the cheapest sensible moves first — and you stay in control."
+    >
+      <Card eyebrow="The idea" title="More work. Less fuss." tone="green">
+        <Text style={styles.tick}>• Start with the business problem, not marketing jargon</Text>
+        <Text style={styles.tick}>• Free and low-cost options before paid ads</Text>
+        <Text style={styles.tick}>• Clear limits before money is spent</Text>
       </Card>
       <Button label="Get started" primary onPress={() => s.go("setupBusiness")} />
-      <Text style={styles.helperCenter}>Prototype v0.2 — no real messages, profile changes or adverts are sent.</Text>
+      <Text style={styles.helperCenter}>Quick setup first. Spending rules and account connections can be added later.</Text>
     </Shell>
   );
 }
@@ -378,7 +763,7 @@ function SetupServices({ s }) {
     s.setServices((list) => list.map((x) => (x.id === id ? { ...x, wanted: !x.wanted } : x)));
   };
   return (
-    <Shell s={s} noNav title="What work do you want?" subtitle="We’ll suggest the obvious services for your trade. Add anything we’ve missed.">
+    <Shell s={s} noNav title="What work do you want?" subtitle="Pick the work you most want more of. You can change this later.">
       {s.services.map((item) => (
         <Pressable key={item.id} onPress={() => toggleWanted(item.id)} style={[styles.serviceCard, item.wanted && styles.serviceCardWanted]}>
           <View style={{ flex: 1 }}>
@@ -390,7 +775,8 @@ function SetupServices({ s }) {
       ))}
       <Text style={styles.helper}>Tap the star on the work you most want more of.</Text>
       <Button label="+ Add a service" onPress={() => s.go("addService")} />
-      <Button label="Continue" primary onPress={() => s.go("setupLimits")} />
+      <Button label="Open Busy Does It" primary onPress={s.completeOnboarding} />
+      <Text style={styles.helperCenter}>That’s enough to start. Set spending limits and connect accounts later from Settings.</Text>
     </Shell>
   );
 }
@@ -452,71 +838,101 @@ function SetupLimits({ s }) {
 }
 
 function SetupConnect({ s }) {
-  const rows = [
-    ["Calendar", "Helps spot quiet days automatically"],
-    ["Google Business", "Helps understand local presence and reviews"],
-    ["Facebook / Instagram", "Lets approved posts and adverts run"],
-    ["Google Ads", "Lets approved local advert tests run"],
-    ["CRM / job system", "Helps follow enquiries through to jobs"],
-    ["Invoicing", "Helps measure paid work instead of clicks"],
-  ];
   return (
-    <Shell s={s} noNav title="Connect what you already use" subtitle="Connect what’s easy now. Skip the rest.">
-      {rows.map(([a, b], i) => (
-        <View key={a} style={styles.connectRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.connectTitle}>{a}</Text>
-            <Text style={styles.connectBody}>{b}</Text>
+    <Shell s={s} noNav title="Connect what you already use" subtitle="Nothing is shown as connected until you choose it.">
+      {connectionRows.map(([key, label, body]) => {
+        const connected = !!s.connectedAccounts[key];
+        return (
+          <View key={key} style={styles.connectRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.connectTitle}>{label}</Text>
+              <Text style={styles.connectBody}>{body}</Text>
+            </View>
+            <Pressable style={[styles.connectButton, connected && styles.connectButtonOn]} onPress={() => s.toggleConnection(key)}>
+              <Text style={[styles.connectButtonText, connected && { color: C.green }]}>{connected ? "Connected" : "Connect"}</Text>
+            </Pressable>
           </View>
-          <Pressable style={styles.connectButton}>
-            <Text style={styles.connectButtonText}>{i < 2 ? "Connected" : "Connect"}</Text>
-          </Pressable>
-        </View>
-      ))}
-      <Button
-        label="Open Busy Does It"
-        primary
-        onPress={() => {
-          s.setTab("Home");
-          s.jump("home", "Home");
-        }}
-      />
-      <SmallLink label="Do this later" onPress={() => s.jump("home", "Home")} />
+        );
+      })}
+      <Button label="Done" primary onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
 }
 
 function HomeScreen({ s }) {
+  const opportunities = [
+    {
+      id: "quiet-thursday",
+      eyebrow: "Capacity",
+      title: "Thursday afternoon is free",
+      body: "We found 14 previous customers. 12 look suitable to contact now.",
+      footer: "Recommended first move: £0 advertising spend",
+      status: "Worth trying",
+      tone: "green",
+      why: "A quiet slot is already visible in the calendar, and previous customers are the cheapest sensible audience to try before buying new attention.",
+      evidence: [["Customers found", "14"], ["Suitable now", "12"], ["Advertising required", "£0"], ["Confidence", "Medium–high"]],
+      onAction: () => s.go("bestMove"),
+    },
+    {
+      id: "profile-fixes",
+      eyebrow: "Free improvement",
+      title: "3 easy profile fixes",
+      body: "Patio cleaning is missing, 2 recent photos would help, and 4 reviews have no reply.",
+      footer: "Cost: £0",
+      status: "Free",
+      tone: "blue",
+      why: "Improve the places customers already find you before paying to send more people there.",
+      evidence: [["Profile areas checked", "3"], ["Unanswered reviews", "4"], ["Recent photo gap", "Yes"], ["Cost", "£0"]],
+      onAction: () => s.go("profileAudit"),
+    },
+    {
+      id: "old-quotes",
+      eyebrow: "Follow-up",
+      title: "3 old quotes are still worth a look",
+      body: "One is worth about £340 and none need advertising spend to retry.",
+      footer: "Advertising spend: £0",
+      status: "Low cost",
+      tone: "blue",
+      why: "These people already asked for a price, so checking whether the job is still live is cheaper than finding new leads.",
+      evidence: [["Old quotes", "3"], ["Highest value", "£340"], ["Advertising required", "£0"], ["Confidence", "Medium"]],
+      onAction: () => s.startCampaign(2),
+    },
+  ].filter((item) => !s.dismissedOpportunities.includes(item.id));
+
   return (
-    <Shell s={s} noBack title="What do you need today?" subtitle="Choose the result you want. We’ll work out the marketing underneath." brandCue="Quiet Thursday? Busy Does It.">
-      <Card
-        eyebrow="Something worth trying"
-        title="Thursday afternoon is free"
-        body="We found 14 previous customers worth trying first."
-        footer="Advertising spend: £0"
-      />
-      <Button label="Fill a spare day" primary onPress={() => s.go("chooseGap")} />
-      <Button label="Get more work" onPress={() => s.go("moreWorkGoal")} />
-      <Button label="Bring customers back" onPress={() => s.go("customerGroups")} />
-      <Button label="Create an offer" onPress={() => s.go("offerGoal")} />
-      <Button label="Check free improvements" onPress={() => s.go("profileAudit")} />
+    <Shell s={s} noBack title="Here’s what I noticed" subtitle="Useful opportunities first. Start one, ask why, or ignore it." brandCue="Busy Does It is watching for useful gaps.">
+      <View style={styles.dashboardHeader}>
+        <StatusChip label={`${opportunities.length} opportunities`} tone={opportunities.length ? "green" : "blue"} />
+        <Text style={styles.dashboardHint}>Simple by default. Evidence when you want it.</Text>
+      </View>
+
+      {opportunities.length ? (
+        opportunities.map((item) => (
+          <OpportunityCard
+            key={item.id}
+            {...item}
+            actionLabel="Do it"
+            onIgnore={() => s.dismissOpportunity(item.id)}
+          />
+        ))
+      ) : (
+        <Card eyebrow="All clear" title="Nothing urgent right now" body="You’ve ignored the current demo opportunities. Restore them any time to keep testing." tone="green" />
+      )}
+
+      {s.dismissedOpportunities.length ? <Button label="Restore ignored opportunities" onPress={s.restoreOpportunities} /> : null}
+      <Button label="Start something else" primary onPress={() => s.jump("workNow", "Work")} />
     </Shell>
   );
 }
 
 function WorkNow({ s }) {
   return (
-    <Shell s={s} noBack title="Work" subtitle="Choose what you want help with right now.">
-      <Card
-        eyebrow="Current opportunity"
-        title="Thursday afternoon is free"
-        body="The cheapest first move is to contact previous customers."
-        footer="Start cost: message cost only"
-      />
-      <Button label="Fill Thursday" primary onPress={() => s.go("chooseGap")} />
-      <Button label="Find more work" onPress={() => s.go("moreWorkGoal")} />
+    <Shell s={s} noBack title="Start something new" subtitle="Tell Busy Does It the business result you want. We’ll work out the marketing underneath.">
+      <Card eyebrow="Goal first" title="You choose the problem — not the channel" body="No need to decide between ads, social, messages or audiences. Start with what the business needs." tone="green" />
+      <Button label="Fill a spare day" primary onPress={() => s.go("chooseGap")} />
+      <Button label="Get more work" onPress={() => s.go("moreWorkGoal")} />
       <Button label="Bring customers back" onPress={() => s.go("customerGroups")} />
-      <Button label="Create a special offer" onPress={() => s.go("offerGoal")} />
+      <Button label="Create an offer" onPress={() => s.go("offerGoal")} />
       <Button label="Check free improvements" onPress={() => s.go("profileAudit")} />
     </Shell>
   );
@@ -535,22 +951,26 @@ function ChooseGap({ s }) {
 }
 
 function BestMove({ s }) {
+  const step = campaignSteps[0];
   return (
     <Shell s={s} title="Best first move" subtitle="We checked the cheaper options before suggesting advertising.">
-      <Card
+      <OpportunityCard
         eyebrow="Recommended"
-        title="Contact 12 previous customers"
-        body="They already know your business and may be due another job. Try them before paying for ads."
+        title={step.title}
+        body="14 previous customers were found; 12 look suitable to contact now."
         footer="Advertising spend: £0"
+        status="Best first move"
+        tone="green"
+        actionLabel="Try this"
+        onAction={() => s.startCampaign(0)}
+        why={step.why}
+        evidence={step.evidence}
       />
-      <Button label="Try this" primary onPress={() => s.go("checkSend")} />
-      <SmallLink label="Why this?" onPress={() => s.go("whyBestMove")} />
       <Button label="See other options" onPress={() => s.go("otherOptions")} />
       <Button label="Not now" onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
 }
-
 
 function WhyBestMove({ s }) {
   return (
@@ -577,8 +997,7 @@ function ExpertBestMove({ s }) {
   return (
     <Shell s={s} title="Expert details" subtitle="The evidence behind this recommendation. You never need this screen to use Busy Does It.">
       <Card eyebrow="Recommendation proof" title="Contact 12 previous customers first" tone="green">
-        <MetricRow left="Eligible previous customers" right="12" />
-        <MetricRow left="Time since last booking" right="10+ months" />
+        <MetricRow left="Eligible previous customers" right="12" />        <MetricRow left="Time since last booking" right="10+ months" />
         <MetricRow left="Estimated direct message cost" right="£1.20" />
         <MetricRow left="Advertising spend required" right="£0" />
         <MetricRow left="Recommendation confidence" right="Medium–high" strong />
@@ -601,27 +1020,41 @@ function ExpertBestMove({ s }) {
 
 function ProfileAudit({ s }) {
   return (
-    <Shell s={s} title="We found 3 easy improvements" subtitle="Before spending money, Busy Does It checks whether there are useful free fixes first.">
-      <Card
+    <Shell s={s} title="We found 3 easy improvements" subtitle="Before spending money, Busy Does It checks whether useful free fixes come first.">
+      <OpportunityCard
         eyebrow="Google Business"
         title="Add patio cleaning as a service"
         body="Your profile talks about driveway cleaning but does not clearly list patio cleaning."
         footer="Cost: £0"
+        status="Free"
+        actionLabel="Include"
+        onAction={() => s.go("profileAuditPlan")}
+        why="People can only choose services they can clearly see. This fills a gap in what the profile currently communicates."
+        evidence={[["Service in app", "Yes"], ["Clearly on profile", "No"], ["Cost", "£0"], ["Confidence", "High"]]}
       />
-      <Card
+      <OpportunityCard
         eyebrow="Photos"
         title="Add 2 recent before-and-after photos"
         body="Recent proof can make the profile more useful to customers who are already looking."
         footer="Cost: £0"
+        status="Free"
+        actionLabel="Include"
+        onAction={() => s.go("profileAuditPlan")}
+        why="Recent before-and-after proof helps customers understand the quality and type of work without paying for more reach."
+        evidence={[["Recent photo pair", "Missing"], ["Relevant services", "2"], ["Cost", "£0"], ["Confidence", "Medium"]]}
       />
-      <Card
+      <OpportunityCard
         eyebrow="Reviews"
         title="Reply to 4 unanswered reviews"
-        body="A short, genuine reply shows that the business is active and paying attention."
+        body="A short genuine reply shows that the business is active and paying attention."
         footer="Cost: £0"
+        status="Free"
+        actionLabel="Include"
+        onAction={() => s.go("profileAuditPlan")}
+        why="The reviews already exist, so replying is a free way to improve the experience for people checking the business."
+        evidence={[["Unanswered reviews", "4"], ["New ad spend", "£0"], ["Confidence", "High"]]}
       />
-      <Button label="Fix these first" primary onPress={() => s.go("profileAuditPlan")} />
-      <SmallLink label="Why are you recommending these?" onPress={() => s.go("profileAuditWhy")} />
+      <Button label="Prepare all 3" primary onPress={() => s.go("profileAuditPlan")} />
       <Button label="Not now" onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
@@ -690,59 +1123,87 @@ function ExpertProfileAudit({ s }) {
 
 function OtherOptions({ s }) {
   const options = [
-    ["Follow up 4 old enquiries", "£0 ad spend", "People who asked before but never booked."],
-    ["Revisit 3 old quotes", "£0 ad spend", "Quotes that are still worth trying."],
-    ["Offer a gutter add-on", "£0 ad spend", "Useful cross-sell to nearby previous customers."],
-    ["Try a small local advert", "Up to £20", "Only if the cheaper options don’t fill the gap."],
+    [1, "Follow up 4 old enquiries", "£0 ad spend", "People who asked before but never booked."],
+    [2, "Revisit 3 old quotes", "£0 ad spend", "Quotes that are still worth trying."],
+    [3, "Offer a gutter add-on", "£0 ad spend", "A relevant cross-sell to nearby previous customers."],
   ];
   return (
-    <Shell s={s} title="Other options" subtitle="Still simple — just choose the next sensible move.">
-      {options.map(([a, b, c], idx) => (
-        <Pressable
-          key={a}
-          style={styles.optionCard}
-          onPress={() => (idx === 3 ? s.go("paidTest") : s.go("checkSend"))}
-        >
+    <Shell s={s} title="Other options" subtitle="Still cheap-first. Paid advertising stays at the bottom of the list.">
+      {options.map(([stage, a, b, c]) => (
+        <Pressable key={a} style={styles.optionCard} onPress={() => s.startCampaign(stage)}>
           <Text style={styles.optionTitle}>{a}</Text>
           <Text style={styles.optionBody}>{c}</Text>
           <Text style={styles.optionCost}>{b}</Text>
         </Pressable>
       ))}
+      <Pressable style={styles.optionCard} onPress={() => s.go("paidTest")}>
+        <Text style={styles.optionTitle}>Try a small local advert</Text>
+        <Text style={styles.optionBody}>Only after the cheaper options are exhausted or you deliberately choose to skip ahead.</Text>
+        <Text style={styles.optionCost}>Up to £{s.adBudget}</Text>
+      </Pressable>
     </Shell>
   );
 }
 
 function CheckSend({ s }) {
+  const step = campaignSteps[s.campaignStage] || campaignSteps[0];
   return (
     <Shell s={s} title="Check before sending" subtitle="You stay in control of exactly what goes out.">
-      <Card eyebrow="12 previous customers" title="Message preview" footer="Message cost: about £1.20">
-        <TextInput
-          multiline
-          value={s.message}
-          onChangeText={s.setMessage}
-          style={styles.messageInput}
-        />
+      <Card eyebrow={step.audience} title={step.title} footer={`Estimated cost: ${step.cost}`}>
+        <Text style={styles.helper}>Tap the draft below if you want to change it.</Text>
+        <TextInput multiline value={s.message} onChangeText={s.setMessage} style={styles.messageInput} />
       </Card>
+      <InlineExplanation why={step.why} evidence={step.evidence} />
       <Button label="Approve & send" primary onPress={() => s.go("progress")} />
-      <Button label="Edit message" onPress={() => {}} />
+      <Button label="Reset draft" onPress={() => s.setMessage(step.message)} />
       <Button label="Skip" onPress={() => s.go("otherOptions")} />
     </Shell>
   );
 }
 
 function Progress({ s }) {
+  const step = campaignSteps[s.campaignStage] || campaignSteps[0];
+  const nextStage = s.campaignStage + 1;
+  const hasAnotherFreeMove = nextStage < campaignSteps.length;
+  const next = hasAnotherFreeMove ? campaignSteps[nextStage] : null;
+  const progressCount = Math.min(s.campaignStage + 1, campaignSteps.length);
+
   return (
-    <Shell s={s} title={`${s.selectedGap.split(" ")[0]} progress`} subtitle="Here’s what has happened so far." brandCue="Need another job? Busy Does It.">
-      <Card
-        eyebrow="Live result"
-        title="1 job booked"
-        body="12 contacted • 4 replied • 2 interested. The spare time is partly filled."
-        footer="Booked job value: about £260"
-        tone="green"
-      />
-      <Button label="Do next step" primary onPress={() => s.go("paidTest")} />
+    <Shell s={s} title="Progress" subtitle="Busy Does It reassesses after every step instead of jumping straight to paid ads." brandCue="Cheapest sensible move first.">
+      <StatusChip label={`Free-step ${progressCount} of ${campaignSteps.length}`} tone="green" />
+      <ProgressStrip current={progressCount} total={campaignSteps.length} />
+      <Card eyebrow="Latest result" title={step.resultTitle} body={step.resultBody} footer={step.resultFooter} tone="green" />
+
+      {hasAnotherFreeMove ? (
+        <OpportunityCard
+          eyebrow="Next cheapest move"
+          title={next.title}
+          body="There is still capacity to fill, so we recommend another low-cost step before advertising."
+          footer={`Advertising spend: ${next.adSpend}`}
+          status="Try before ads"
+          tone="blue"
+          actionLabel="Try this next"
+          onAction={() => s.startCampaign(nextStage)}
+          why={next.why}
+          evidence={next.evidence}
+        />
+      ) : (
+        <OpportunityCard
+          eyebrow="Free options checked"
+          title="A small paid test is now reasonable to consider"
+          body="We’ve tried the sensible low-cost steps in this demo and the remaining space is still open."
+          footer={`Suggested cap: £${s.adBudget}`}
+          status="Optional paid test"
+          tone="amber"
+          actionLabel="Review paid test"
+          onAction={() => s.go("paidTest")}
+          why="Paid advertising is only being suggested now because the cheaper relevant options have already been tried."
+          evidence={[["Free / low-cost steps tried", String(campaignSteps.length)], ["Current suggested cap", `£${s.adBudget}`], ["Your single-test limit", `£${s.testLimit}`], ["Work guaranteed", "No"]]}
+        />
+      )}
+
       <Button label="View replies" onPress={() => s.go("replies")} />
-      <Button label="Stop" onPress={() => s.jump("home", "Home")} />
+      <Button label="Stop for now" onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
 }
@@ -771,17 +1232,23 @@ function Replies({ s }) {
 }
 
 function PaidTest({ s }) {
+  const overSingleLimit = Number(s.adBudget || 0) > Number(s.testLimit || 0);
   return (
-    <Shell s={s} title="Still want to fill the gap?" subtitle="The free options haven’t filled the remaining time.">
+    <Shell s={s} title="Review a paid test" subtitle="Paid advertising is optional, capped and never presented as guaranteed work.">
       <Card
         eyebrow="Small paid test"
         title="Try a local advert"
-        body={`Maximum spend: £${s.adBudget}. This is a test — work is not guaranteed. We stop at £${s.adBudget} unless you approve more.`}
+        body={`Suggested test: £${s.adBudget}. Your single-test limit is £${s.testLimit}. Work is not guaranteed.`}
         footer={`Maximum at risk: £${s.adBudget}`}
         tone="amber"
       />
       <Field label="Maximum spend" value={s.adBudget} onChangeText={s.setAdBudget} keyboardType="number-pad" prefix="£" />
-      <Button label={`Approve £${s.adBudget}`} primary onPress={() => s.go("paidRunning")} />
+      {overSingleLimit ? <Text style={styles.warningText}>This is above your £{s.testLimit} single-test limit. Lower it or change your limit in Settings.</Text> : null}
+      <InlineExplanation
+        why="The free and low-cost options have been checked first in this flow. A capped local test is now one reasonable option, but it can still produce no work."
+        evidence={[["Suggested test", `£${s.adBudget}`], ["Single-test limit", `£${s.testLimit}`], ["Weekly limit", `£${s.weeklyLimit}`], ["Guaranteed result", "No"]]}
+      />
+      <Button label={s.alwaysAsk ? `Approve £${s.adBudget}` : `Run within £${s.adBudget} cap`} primary disabled={overSingleLimit} onPress={() => s.go("paidRunning")} />
       <Button label="Skip" onPress={() => s.jump("home", "Home")} />
       <SmallLink label="How this works" onPress={() => s.go("howAdsWork")} />
     </Shell>
@@ -819,45 +1286,91 @@ function PaidRunning({ s }) {
 }
 
 function MoreWorkGoal({ s }) {
-  const options = [
-    "More work next week",
-    "More work this month",
-    "Promote a specific service",
-    "Just find me the best opportunity",
-  ];
+  const options = ["More work next week", "More work this month", "Promote a specific service", "Just find me the best opportunity"];
   return (
-    <Shell s={s} title="What do you want?" subtitle="Tell us the business goal — not the marketing method.">
-      {options.map((x, i) => (
-        <Button key={x} label={x} primary={i === 0} onPress={() => s.go("workPlan")} />
+    <Shell s={s} title="What do you want?" subtitle="Choose the business goal. The plan underneath changes with it.">
+      {options.map((x) => (
+        <Choice key={x} label={x} selected={s.moreWorkGoal === x} onPress={() => s.setMoreWorkGoal(x)} />
       ))}
+      {s.moreWorkGoal === "Promote a specific service" ? (
+        <View style={{ marginTop: 8 }}>
+          <Text style={styles.fieldLabel}>Which service?</Text>
+          {s.services.map((service) => (
+            <Choice
+              key={service.id}
+              label={service.name}
+              sub={`Usually about £${service.value}`}
+              selected={s.selectedServiceId === service.id}
+              onPress={() => s.setSelectedServiceId(service.id)}
+            />
+          ))}
+        </View>
+      ) : null}
+      <Button label="Build my plan" primary onPress={() => s.go("workPlan")} />
     </Shell>
   );
 }
 
 function WorkPlan({ s }) {
+  const service = s.selectedService?.name || "your chosen service";
+  let plan;
+  if (s.moreWorkGoal === "More work this month") {
+    plan = {
+      title: "Build a steadier month",
+      subtitle: "Start with free improvements, then people who already know the business.",
+      steps: [
+        ["Step 1", "Fix the free profile gaps", "Improve what customers already see.", "Cost: £0"],
+        ["Step 2", "Contact previous customers", "Only if more work is still needed.", "Advertising spend: £0"],
+        ["Step 3", "Use a capped local test", "Only after cheaper options are used.", `Maximum test: £${s.testLimit}`],
+      ],
+      action: () => s.go("profileAudit"),
+      label: "Start with the free fixes",
+    };
+  } else if (s.moreWorkGoal === "Promote a specific service") {
+    plan = {
+      title: `Find more ${service.toLowerCase()} work`,
+      subtitle: "Use existing customer relationships and free profile coverage before paid reach.",
+      steps: [
+        ["Step 1", `Make ${service} clear everywhere`, "Check the profile and service wording.", "Cost: £0"],
+        ["Step 2", "Try relevant previous customers", "Start with people who already know you.", "Advertising spend: £0"],
+        ["Step 3", "Test paid local reach", "Only if more demand is still needed.", `Maximum test: £${s.testLimit}`],
+      ],
+      action: () => s.go("profileAudit"),
+      label: "Start with the free check",
+    };
+  } else if (s.moreWorkGoal === "Just find me the best opportunity") {
+    plan = {
+      title: "Best opportunity right now",
+      subtitle: "Busy Does It chooses the strongest low-cost move from the demo data.",
+      steps: [
+        ["Best now", "Contact 12 previous customers", "They are overdue and already know the business.", "Advertising spend: £0"],
+        ["Next", "Follow up old enquiries", "Only if more work is still needed.", "Advertising spend: £0"],
+        ["Later", "Consider a paid test", "Only after the cheaper steps.", `Maximum test: £${s.testLimit}`],
+      ],
+      action: () => s.go("bestMove"),
+      label: "Show me the best move",
+    };
+  } else {
+    plan = {
+      title: "Get more work next week",
+      subtitle: "Use warm leads first, one approved step at a time.",
+      steps: [
+        ["Step 1", "Contact previous customers", "Fastest low-cost audience to try first.", "Advertising spend: £0"],
+        ["Step 2", "Follow up old enquiries", "Only if next week still has gaps.", "Advertising spend: £0"],
+        ["Step 3", "Try a small local advert", "Only if cheaper options still haven’t done the job.", `Maximum paid test: £${s.testLimit}`],
+      ],
+      action: () => s.go("bestMove"),
+      label: "Start step 1",
+    };
+  }
+
   return (
-    <Shell s={s} title="Your plan" subtitle="We’ll run one approved step at a time.">
-      <Card
-        eyebrow="Step 1"
-        title="Follow up 5 old enquiries"
-        body="They already asked about work before."
-        footer="Advertising spend: £0"
-      />
-      <Card
-        eyebrow="Step 2"
-        title="Contact 18 past customers"
-        body="Only if more work is still needed."
-        footer="Message cost only"
-      />
-      <Card
-        eyebrow="Step 3"
-        title="Try a small local advert"
-        body="Only if the cheaper options still haven’t done the job."
-        footer="Maximum paid test: £25"
-        tone="amber"
-      />
-      <Button label="Start step 1" primary onPress={() => s.go("checkSend")} />
-      <Button label="Change plan" onPress={() => s.go("otherOptions")} />
+    <Shell s={s} title={plan.title} subtitle={plan.subtitle}>
+      {plan.steps.map(([eyebrow, title, body, footer]) => (
+        <Card key={eyebrow + title} eyebrow={eyebrow} title={title} body={body} footer={footer} tone={eyebrow === "Step 3" || eyebrow === "Later" ? "amber" : "blue"} />
+      ))}
+      <Button label={plan.label} primary onPress={plan.action} />
+      <Button label="Change goal" onPress={s.back} />
     </Shell>
   );
 }
@@ -883,14 +1396,18 @@ function CustomerGroups({ s }) {
 function BringBack({ s }) {
   return (
     <Shell s={s} title="Bring them back" subtitle="Approve the actual message — not an abstract campaign.">
-      <Card
-        eyebrow={s.selectedCustomerGroup.title}
-        title="Message preview"
-        body="Hi, it’s been a while since we last helped. We’ve got a couple of spaces next week if you need any exterior cleaning. Reply here if you’d like us to take a look."
-        footer="No predicted revenue — just a clear goal"
-      />
+      <Card eyebrow={s.selectedCustomerGroup.title} title="Message preview" footer="No predicted revenue — just a clear goal">
+        <TextInput multiline value={s.bringBackMessage} onChangeText={s.setBringBackMessage} style={styles.messageInput} />
+      </Card>
       <Button label="Approve & send" primary onPress={() => s.go("progress")} />
-      <Button label="Edit" onPress={() => {}} />
+      <Button
+        label="Reset draft"
+        onPress={() =>
+          s.setBringBackMessage(
+            "Hi, it’s been a while since we last helped. We’ve got a couple of spaces next week if you need any exterior cleaning. Reply here if you’d like us to take a look."
+          )
+        }
+      />
       <Button label="Skip" onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
@@ -899,29 +1416,40 @@ function BringBack({ s }) {
 function OfferGoal({ s }) {
   const goals = ["Fill a quiet day", "Get more bookings", "Promote a service", "Bring customers back", "Seasonal offer"];
   return (
-    <Shell s={s} title="What is the offer for?" subtitle="Start with the business reason — not the marketing channel." brandCue="Want to run an offer? Busy Does It.">
+    <Shell s={s} title="What is the offer for?" subtitle="The reason changes the offer we build." brandCue="Goal first, channel second.">
       {goals.map((g) => (
         <Choice key={g} label={g} selected={s.offerGoal === g} onPress={() => s.setOfferGoal(g)} />
       ))}
-      <Button label="Build the offer" primary onPress={() => s.go("offerBuild")} />
+      {s.offerGoal === "Promote a service" ? (
+        <View style={{ marginTop: 8 }}>
+          <Text style={styles.fieldLabel}>Service to promote</Text>
+          {s.services.map((service) => (
+            <Choice key={service.id} label={service.name} selected={s.selectedServiceId === service.id} onPress={() => s.setSelectedServiceId(service.id)} />
+          ))}
+        </View>
+      ) : null}
+      <Button label="Build the offer" primary onPress={s.prepareOfferFromGoal} />
     </Shell>
   );
 }
 
 function OfferBuild({ s }) {
+  const guidance = {
+    "Fill a quiet day": "Keep it limited to quieter days and a small booking cap so you protect margin.",
+    "Get more bookings": "A modest incentive and a clear booking window is usually better than an unlimited discount.",
+    "Promote a service": "You may not need a discount at all. Clear positioning and the right audience can be enough.",
+    "Bring customers back": "Existing customers already know you, so avoid giving away more margin than necessary.",
+    "Seasonal offer": "Make the reason and time window clear so it feels genuine rather than permanently discounted.",
+  }[s.offerGoal];
+
   return (
-    <Shell s={s} title="Build the offer" subtitle="Tell us the deal. We’ll help make it sensible.">
+    <Shell s={s} title="Build the offer" subtitle={`Goal: ${s.offerGoal}. Change anything before we recommend a plan.`}>
       <Field label="Service" value={s.offerService} onChangeText={s.setOfferService} />
       <Field label="Normal price" value={s.normalPrice} onChangeText={s.setNormalPrice} keyboardType="number-pad" prefix="£" />
       <Field label="Offer price" value={s.offerPrice} onChangeText={s.setOfferPrice} keyboardType="number-pad" prefix="£" />
       <Field label="Dates" value={s.offerDates} onChangeText={s.setOfferDates} />
       <Field label="Maximum bookings" value={s.offerMax} onChangeText={s.setOfferMax} keyboardType="number-pad" />
-      <Card
-        eyebrow="Margin check"
-        title="You may not need a big discount"
-        body="If you want, we can suggest a free add-on or weekday-only offer instead."
-        tone="green"
-      />
+      <Card eyebrow="Margin check" title="Don’t discount more than the goal requires" body={guidance} tone="green" />
       <Button label="Improve it for me" primary onPress={() => s.go("offerPlan")} />
       <Button label="Use my offer" onPress={() => s.go("offerPlan")} />
     </Shell>
@@ -929,22 +1457,34 @@ function OfferBuild({ s }) {
 }
 
 function OfferPlan({ s }) {
+  const audience =
+    s.offerGoal === "Bring customers back"
+      ? "Start with previous customers who have not booked recently."
+      : s.offerGoal === "Promote a service"
+      ? `Start with previous customers most likely to need ${s.offerService.toLowerCase()}.`
+      : "Start with previous customers before buying new attention.";
+  const priceChanged = String(s.offerPrice) !== String(s.normalPrice);
+  const title = priceChanged ? `${s.offerService} — £${s.offerPrice}` : `${s.offerService} — no price cut`;
+
   return (
     <Shell s={s} title="This is what we recommend" subtitle="Use it as-is or change anything.">
-      <Card
-        eyebrow="Special offer"
-        title={`${s.offerService} — £${s.offerPrice}`}
-        body={`Normal price about £${s.normalPrice}. ${s.offerDates} only. Maximum ${s.offerMax} bookings. Start with 24 previous customers. Use paid ads only if spaces remain.`}
-        footer="Start cost: message cost only"
+      <OpportunityCard
+        eyebrow="Recommended offer"
+        title={title}
+        body={`Normal price about £${s.normalPrice}. ${s.offerDates}. Maximum ${s.offerMax} bookings. ${audience}`}
+        footer="Paid ads only if spaces remain"
+        status={s.offerGoal}
+        tone="green"
+        actionLabel="Use this plan"
+        onAction={() => s.go("offerRunning")}
+        why="The plan is limited by date and booking capacity, starts with people who already know the business, and only adds paid reach if the target still has spaces."
+        evidence={[["Offer goal", s.offerGoal], ["Booking cap", s.offerMax], ["Normal price", `£${s.normalPrice}`], ["Offer price", `£${s.offerPrice}`], ["Paid reach first?", "No"]]}
       />
-      <Button label="Use this plan" primary onPress={() => s.go("offerRunning")} />
-      <SmallLink label="Why this plan?" onPress={() => s.go("whyOfferPlan")} />
       <Button label="Edit offer" onPress={s.back} />
       <Button label="Cancel" onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
 }
-
 
 function WhyOfferPlan({ s }) {
   return (
@@ -976,16 +1516,16 @@ function ExpertOfferPlan({ s }) {
 
 function OfferRunning({ s }) {
   return (
-    <Shell s={s} title="Offer running" subtitle="We stop automatically when the booking cap is reached.">
+    <Shell s={s} title={s.offerPaused ? "Offer paused" : "Offer running"} subtitle={s.offerPaused ? "Nothing new is being sent while paused." : "We stop automatically when the booking cap is reached."}>
       <Card
-        eyebrow="Live offer"
+        eyebrow={s.offerPaused ? "Paused" : "Live offer"}
         title={`2 of ${s.offerMax} spaces booked`}
         body="24 past customers contacted. 5 replied. 2 booked. No paid advertising has been needed yet."
         footer="Won work so far: about £450"
-        tone="green"
+        tone={s.offerPaused ? "amber" : "green"}
       />
       <Button label="View bookings" primary onPress={() => s.jump("results", "Results")} />
-      <Button label="Pause" onPress={() => {}} />
+      <Button label={s.offerPaused ? "Resume offer" : "Pause offer"} onPress={() => s.setOfferPaused((v) => !v)} />
       <Button label="Stop offer" danger onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
@@ -1039,23 +1579,34 @@ function UpdateOutcome({ s }) {
 }
 
 function Settings({ s }) {
+  const connectedCount = Object.values(s.connectedAccounts).filter(Boolean).length;
   return (
     <Shell s={s} noBack title="Your controls" subtitle="Set the rules once. Busy Does It works inside them.">
-      <Card eyebrow="Spending" title={s.alwaysAsk ? "Always ask before spending" : "Automatic spending rules enabled"} footer="You stay in control">
+      <Card
+        eyebrow="Spending"
+        title={s.alwaysAsk ? "Always ask before spending" : `Automatic paid tests up to £${s.testLimit}`}
+        body={
+          s.alwaysAsk
+            ? "Every paid test still needs your approval."
+            : `Busy Does It may run a paid test up to £${s.testLimit} without asking again, but total paid spend must stay within £${s.weeklyLimit} per week.`
+        }
+        footer="You can change this any time"
+        tone={s.alwaysAsk ? "green" : "amber"}
+      >
         <MetricRow left="Single test limit" right={`£${s.testLimit}`} />
         <MetricRow left="Weekly limit" right={`£${s.weeklyLimit}`} />
         <MetricRow left="Previous customers" right={s.customerContact ? "Allowed" : "Off"} />
-        <MetricRow left="Advanced details" right={s.advanced ? "Visible" : "Hidden"} />
+        <MetricRow left="Connected accounts" right={`${connectedCount}/${connectionRows.length}`} />
       </Card>
       <Button label="Change limits" primary onPress={() => s.go("settingsLimits")} />
       <Button label="Connected accounts" onPress={() => s.go("connectedAccounts")} />
       <Button label="How Busy Does It works" onPress={() => s.go("howBusyWorks")} />
       <Button label="What makes it different" onPress={() => s.go("whatMakesDifferent")} />
       <Button label="Advanced details" onPress={() => s.go("advanced")} />
+      <Button label="Reset prototype data" danger onPress={s.resetPrototype} />
     </Shell>
   );
 }
-
 
 function HowBusyWorks({ s }) {
   return (
@@ -1085,11 +1636,17 @@ function WhatMakesDifferent({ s }) {
 
 function SettingsLimits({ s }) {
   return (
-    <Shell s={s} title="Change limits" subtitle="These rules apply to future actions.">
-      <ToggleRow title="Always ask before spending" value={s.alwaysAsk} onValueChange={s.setAlwaysAsk} />
-      <ToggleRow title="Contact previous customers" value={s.customerContact} onValueChange={s.setCustomerContact} />
+    <Shell s={s} title="Change limits" subtitle="These rules apply to future paid actions.">
+      <ToggleRow
+        title="Always ask before spending"
+        body={s.alwaysAsk ? "Every paid test needs approval." : `Off: tests up to £${s.testLimit} may run automatically, within the weekly limit.`}
+        value={s.alwaysAsk}
+        onValueChange={s.setAlwaysAsk}
+      />
+      <ToggleRow title="Contact previous customers" body="Allow eligible previous customers to be suggested before paid advertising." value={s.customerContact} onValueChange={s.setCustomerContact} />
       <Field label="Maximum single test" value={s.testLimit} onChangeText={s.setTestLimit} keyboardType="number-pad" prefix="£" />
-      <Field label="Weekly limit" value={s.weeklyLimit} onChangeText={s.setWeeklyLimit} keyboardType="number-pad" prefix="£" />
+      <Field label="Weekly paid-spend limit" value={s.weeklyLimit} onChangeText={s.setWeeklyLimit} keyboardType="number-pad" prefix="£" />
+      {!s.alwaysAsk ? <Text style={styles.warningText}>Automatic mode is explicit: no single test may exceed £{s.testLimit}, and total paid spend may not exceed £{s.weeklyLimit} per week.</Text> : null}
       <Button label="Save" primary onPress={s.back} />
     </Shell>
   );
@@ -1097,20 +1654,21 @@ function SettingsLimits({ s }) {
 
 function ConnectedAccounts({ s }) {
   return (
-    <Shell s={s} title="Connected accounts" subtitle="These are simulated in v0.2.">
-      {[
-        ["Calendar", "Connected"],
-        ["Google Business", "Connected"],
-        ["Facebook / Instagram", "Not connected"],
-        ["Google Ads", "Not connected"],
-        ["CRM / job system", "Not connected"],
-        ["Invoicing", "Not connected"],
-      ].map(([a, b]) => (
-        <View key={a} style={styles.connectRow}>
-          <Text style={styles.connectTitle}>{a}</Text>
-          <Text style={[styles.connectButtonText, b === "Connected" && { color: C.green }]}>{b}</Text>
-        </View>
-      ))}
+    <Shell s={s} title="Connected accounts" subtitle="Prototype toggles only — no real external account is connected in v0.3.">
+      {connectionRows.map(([key, label, body]) => {
+        const connected = !!s.connectedAccounts[key];
+        return (
+          <View key={key} style={styles.connectRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.connectTitle}>{label}</Text>
+              <Text style={styles.connectBody}>{body}</Text>
+            </View>
+            <Pressable onPress={() => s.toggleConnection(key)} style={[styles.connectButton, connected && styles.connectButtonOn]}>
+              <Text style={[styles.connectButtonText, connected && { color: C.green }]}>{connected ? "Disconnect" : "Connect"}</Text>
+            </Pressable>
+          </View>
+        );
+      })}
       <Button label="Done" primary onPress={s.back} />
     </Shell>
   );
@@ -1164,12 +1722,8 @@ const screens = {
   workNow: WorkNow,
   chooseGap: ChooseGap,
   bestMove: BestMove,
-  whyBestMove: WhyBestMove,
-  expertBestMove: ExpertBestMove,
   profileAudit: ProfileAudit,
   profileAuditPlan: ProfileAuditPlan,
-  profileAuditWhy: ProfileAuditWhy,
-  expertProfileAudit: ExpertProfileAudit,
   otherOptions: OtherOptions,
   checkSend: CheckSend,
   progress: Progress,
@@ -1184,8 +1738,6 @@ const screens = {
   offerGoal: OfferGoal,
   offerBuild: OfferBuild,
   offerPlan: OfferPlan,
-  whyOfferPlan: WhyOfferPlan,
-  expertOfferPlan: ExpertOfferPlan,
   offerRunning: OfferRunning,
   results: Results,
   resultDetails: ResultDetails,
@@ -1361,6 +1913,40 @@ const styles = StyleSheet.create({
   groupCardSelected: { borderColor: C.blue, backgroundColor: C.blueSoft },
   groupTitle: { fontWeight: "900", color: C.ink, fontSize: 16, lineHeight: 21 },
   groupBody: { color: C.muted, marginTop: 6, lineHeight: 19 },
+  loadingWrap: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
+  loadingText: { marginTop: 10, color: C.muted, fontSize: 15 },
+  prototypeBadge: { marginTop: 5, alignSelf: "flex-start", fontSize: 10, fontWeight: "800", color: C.muted, backgroundColor: "#E8ECF3", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 },
+  dashboardHeader: { marginBottom: 14 },
+  dashboardHint: { color: C.muted, fontSize: 13, marginTop: 8 },
+  chip: { alignSelf: "flex-start", paddingHorizontal: 9, paddingVertical: 5, borderRadius: 999 },
+  chipBlue: { backgroundColor: C.blueSoft },
+  chipGreen: { backgroundColor: C.greenSoft },
+  chipAmber: { backgroundColor: C.amberSoft },
+  chipText: { color: C.ink, fontSize: 11, fontWeight: "900" },
+  opportunityCard: { borderWidth: 1, borderRadius: 18, padding: 17, marginBottom: 14, backgroundColor: C.card },
+  opportunityBlue: { borderColor: "#CEDBF5" },
+  opportunityGreen: { borderColor: "#CDE7D9" },
+  opportunityAmber: { borderColor: "#F0D8B9" },
+  opportunityTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10 },
+  opportunityTitle: { fontSize: 20, lineHeight: 25, fontWeight: "900", color: C.ink, marginTop: 4 },
+  opportunityBody: { color: C.muted, fontSize: 15, lineHeight: 21, marginTop: 7 },
+  opportunityFooter: { color: C.green, fontSize: 14, fontWeight: "900", marginTop: 10 },
+  explainWrap: { marginTop: 8 },
+  inlineLinkWrap: { alignSelf: "center", paddingVertical: 9, paddingHorizontal: 6 },
+  inlineLinkWrapLeft: { alignSelf: "flex-start", paddingVertical: 9, paddingHorizontal: 0 },
+  inlineLink: { color: C.blue, fontSize: 14, fontWeight: "800" },
+  inlinePanel: { backgroundColor: "#FFFFFFAA", borderRadius: 12, padding: 12, borderWidth: 1, borderColor: C.border },
+  inlineWhy: { color: C.ink, fontSize: 14, lineHeight: 20 },
+  evidenceBox: { marginTop: 2 },
+  actionRow: { flexDirection: "row", gap: 9, marginTop: 12 },
+  miniPrimary: { flex: 1, minHeight: 44, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: C.blue, paddingHorizontal: 12 },
+  miniPrimaryText: { color: "#FFFFFF", fontWeight: "900", fontSize: 14 },
+  miniSecondary: { minHeight: 44, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.border, paddingHorizontal: 15, backgroundColor: C.card },
+  miniSecondaryText: { color: C.muted, fontWeight: "800", fontSize: 14 },
+  progressTrack: { height: 8, borderRadius: 999, backgroundColor: "#DFE5EE", overflow: "hidden", marginTop: 10, marginBottom: 16 },
+  progressFill: { height: "100%", backgroundColor: C.green, borderRadius: 999 },
+  warningText: { color: C.amber, fontSize: 13, lineHeight: 19, fontWeight: "700", marginTop: -2, marginBottom: 14 },
+  connectButtonOn: { backgroundColor: C.greenSoft },
   nav: {
     height: 72,
     flexDirection: "row",
