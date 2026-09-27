@@ -20,7 +20,7 @@ const snack = new Snack({
       version: "2.2.0",
     },
     "expo-image-picker": {
-      version: "~17.0.11",
+      version: "17.0.11",
     },
   },
 });
