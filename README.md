@@ -93,3 +93,16 @@ Busy Does It mobile app prototype.
 - Added optional job address / postcode capture to new enquiries and customer records, and surfaced it on customer and booking detail.
 - Simplified the Work navigation label so Customer pipeline remains a stable destination even when empty.
 - Kept all new workflow logic service-business-generic; exterior cleaning remains a test pack rather than a hard-coded product boundary.
+
+## v1.2 daily operations + follow-up
+- Added 7-day quote follow-up detection so sent quotes that have gone quiet return to the Work priority queue.
+- Work now prioritises overdue bookings, due reminders, stale sent quotes and unanswered enquiries before general marketing.
+- New-enquiry cards show how long the customer has been waiting, with the oldest unanswered enquiry surfaced first.
+- Customer pipeline search now also matches job address / postcode.
+- Added pipeline stage filters for enquiries, quotes, bookings, follow-ups and completed work.
+- Sent quotes that have waited 7+ days are highlighted as “Follow up” in the pipeline.
+- Booking completion now captures an optional completion note alongside the actual / expected job value.
+- Completed-job notes flow into the permanent customer job history and activity timeline.
+- Results now counts completed jobs from permanent customer history instead of relying only on the current live action.
+- Results also shows quote follow-ups due.
+- Preserved the “simple by default, depth on demand” principle and kept the workflow generic across service-business verticals.
