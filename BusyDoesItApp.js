@@ -672,10 +672,29 @@ function App() {
 
   const restoreOpportunities = () => setDismissedOpportunities([]);
 
+  const hasActiveCustomerWork = (customerId) => {
+    const action = replyActions[customerId];
+    if (!action) return false;
+    if (!action.done) return true;
+    if (action.type === "quote") {
+      return ["Prepared", "Sent", "Accepted"].includes(action.details?.quoteStatus || "Prepared");
+    }
+    if (action.type === "booking") {
+      return !["Cancelled", "Completed"].includes(action.details?.bookingStatus || "Confirmed");
+    }
+    if (action.type === "reminder") {
+      return (action.details?.reminderStatus || "Scheduled") !== "Completed";
+    }
+    return false;
+  };
 
   const buildReactivationMessages = () => {
     const eligible = customerContact
-      ? customers.filter((customer) => isEligibleCustomer(customer, services, verticalId))
+      ? customers.filter(
+          (customer) =>
+            isEligibleCustomer(customer, services, verticalId) &&
+            !hasActiveCustomerWork(customer.id)
+        )
       : [];
     const groups = groupCustomersByService(eligible);
     const slotText = (quietSlot || "a quiet slot").toLowerCase();
@@ -712,7 +731,11 @@ function App() {
   const simulateCurrentSend = () => {
     if (campaignStage === 0) {
       const recipients = customerContact
-        ? customers.filter((customer) => isEligibleCustomer(customer, services, verticalId))
+        ? customers.filter(
+            (customer) =>
+              isEligibleCustomer(customer, services, verticalId) &&
+              !hasActiveCustomerWork(customer.id)
+          )
         : [];
       const recipientIds = new Set(recipients.map((customer) => customer.id));
       setLastSimulatedRecipients(recipients.map((customer) => ({ ...customer })));
@@ -1297,7 +1320,11 @@ function App() {
 
   const selectedService = services.find((x) => x.id === selectedServiceId) || services[0];
   const eligibleCustomers = customerContact
-    ? customers.filter((customer) => isEligibleCustomer(customer, services, verticalId))
+    ? customers.filter(
+        (customer) =>
+          isEligibleCustomer(customer, services, verticalId) &&
+          !hasActiveCustomerWork(customer.id)
+      )
     : [];
   const openEnquiryCount = customers.filter(
     (customer) => !customer.lastServiceDate && !replyActions[customer.id]
@@ -1520,7 +1547,7 @@ function App() {
     activeQuoteValue,
     bookedWorkValue,
     completedJobValue,
-    eligibilityRule: eligibilityRuleText(services, verticalId),
+    eligibilityRule: `${eligibilityRuleText(services, verticalId)} • customers with active quotes, bookings or reminders are skipped`,
     bringBackMessage,
     setBringBackMessage,
     offerGoal,
