@@ -4097,11 +4097,15 @@ function App() {
       ? Math.floor(workGoalSlotHours / workGoalDurationHours)
       : null;
   const workGoalCapacityMismatch =
-    workGoalCapacityMax !== null && workGoalTargetJobs > workGoalCapacityMax;
+    workGoalCapacityMax !== null &&
+    Math.max(workGoalTargetJobs, workGoalBookedCount) > workGoalCapacityMax;
   const workGoalRemainingJobs = Math.max(0, workGoalTargetJobs - workGoalBookedCount);
   const recommendedReactivationBatchSize = Math.min(eligibleCustomers.length, Math.max(1, workGoalRemainingJobs * 3));
   const reactivationAudience = campaignRecipientLimit && campaignRecipientLimit > 0 ? eligibleCustomers.slice(0, campaignRecipientLimit) : eligibleCustomers;
-  const workGoalFilled = !!activeWorkGoal && workGoalBookedCount >= workGoalTargetJobs;
+  const workGoalFilled =
+    !!activeWorkGoal &&
+    !workGoalCapacityMismatch &&
+    workGoalBookedCount >= workGoalTargetJobs;
 
   const appState = {
     screen,
