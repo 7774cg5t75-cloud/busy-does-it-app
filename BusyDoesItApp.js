@@ -16,8 +16,8 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 
-const APP_VERSION = "2.6";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Multi-slot capacity planner`;
+const APP_VERSION = "2.7";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Evidence-aware opportunity engine`;
 
 const C = {
   bg: "#F5F7FB",
@@ -138,6 +138,42 @@ function slotPlanningHours(part) {
   if (part === "morning" || part === "afternoon") return 4;
   if (part === "evening") return 3;
   return null;
+}
+
+function rateEvidence(successes, sample, baselineRate = 1 / 3) {
+  const safeSample = Math.max(0, Number(sample) || 0);
+  const safeSuccesses = Math.max(0, Math.min(safeSample, Number(successes) || 0));
+  const confidence =
+    safeSample === 0
+      ? "No evidence yet"
+      : safeSample < 3
+      ? "Very low"
+      : safeSample < 6
+      ? "Low"
+      : safeSample < 12
+      ? "Medium"
+      : "High";
+  const evidenceReady = safeSample >= 3;
+  const priorStrength = 4;
+  const smoothedRate = evidenceReady
+    ? (safeSuccesses + baselineRate * priorStrength) / (safeSample + priorStrength)
+    : baselineRate;
+  const weight = evidenceReady ? Math.min(1, safeSample / 12) : 0;
+  const rawAdjustment = Math.round((smoothedRate - baselineRate) * 20 * weight);
+  const scoreAdjustment = Math.max(-6, Math.min(8, rawAdjustment));
+  return {
+    sample: safeSample,
+    successes: safeSuccesses,
+    confidence,
+    evidenceReady,
+    observedRate: safeSample ? safeSuccesses / safeSample : null,
+    rate: smoothedRate,
+    scoreAdjustment,
+  };
+}
+
+function formatPercent(value) {
+  return Number.isFinite(Number(value)) ? `${Math.round(Number(value) * 100)}%` : "Not enough data";
 }
 
 const customerSeed = [
@@ -1016,6 +1052,7 @@ function App() {
   const [message, setMessage] = useState(campaignSteps[0].message);
   const [serviceMessages, setServiceMessages] = useState({});
   const [lastSimulatedRecipients, setLastSimulatedRecipients] = useState([]);
+  const [reactivationRuns, setReactivationRuns] = useState([]);
   const [replyActions, setReplyActions] = useState({});
   const [selectedReplyActionId, setSelectedReplyActionId] = useState(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
@@ -1101,6 +1138,7 @@ function App() {
         if (saved.recentPhotoCountNeeded !== undefined) setRecentPhotoCountNeeded(String(saved.recentPhotoCountNeeded));
         if (Array.isArray(saved.customers)) setCustomers(saved.customers);
         if (Array.isArray(saved.lastSimulatedRecipients)) setLastSimulatedRecipients(saved.lastSimulatedRecipients);
+        if (Array.isArray(saved.reactivationRuns)) setReactivationRuns(saved.reactivationRuns);
         if (saved.replyActions && typeof saved.replyActions === "object") {
           const migratedReplyActions = Object.fromEntries(
             Object.entries(saved.replyActions).map(([id, action]) => [
@@ -1175,6 +1213,7 @@ function App() {
       recentPhotoCountNeeded,
       customers,
       lastSimulatedRecipients,
+      reactivationRuns,
       replyActions,
       services,
       alwaysAsk,
@@ -1205,6 +1244,7 @@ function App() {
     recentPhotoCountNeeded,
     customers,
     lastSimulatedRecipients,
+    reactivationRuns,
     replyActions,
     services,
     alwaysAsk,
@@ -3623,6 +3663,7 @@ function App() {
     setNewEnquiryCustomService("");
     setServiceMessages({});
     setLastSimulatedRecipients([]);
+    setReactivationRuns([]);
     setReplyActions({});
     setSelectedReplyActionId(null);
     setSelectedCustomerId(null);
