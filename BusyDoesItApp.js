@@ -16,8 +16,8 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 
-const APP_VERSION = "2.5";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Capacity-aware opportunity engine`;
+const APP_VERSION = "2.6";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Multi-slot capacity planner`;
 
 const C = {
   bg: "#F5F7FB",
@@ -321,7 +321,7 @@ function timeMatchesSlotPart(timeString, slotText) {
   return true;
 }
 
-function suggestSpareSlots(replyActions = {}, limit = 4) {
+function suggestSpareSlots(replyActions = {}, limit = 4, daysAhead = 10) {
   const occupied = new Set();
 
   Object.values(replyActions || {}).forEach((action) => {
@@ -346,7 +346,7 @@ function suggestSpareSlots(replyActions = {}, limit = 4) {
   now.setHours(12, 0, 0, 0);
   const suggestions = [];
 
-  for (let step = 1; step <= 10 && suggestions.length < limit; step += 1) {
+  for (let step = 1; step <= daysAhead && suggestions.length < limit; step += 1) {
     const date = new Date(now);
     date.setDate(now.getDate() + step);
     if (date.getDay() === 0) continue;
@@ -369,9 +369,43 @@ function suggestSpareSlots(replyActions = {}, limit = 4) {
   return suggestions;
 }
 
+function buildMultiSlotCapacityPlan(replyActions = {}, goal = {}, service = null) {
+  const targetJobs = Math.max(1, Number(goal?.targetJobs) || 1);
+  const durationHours = planningDurationHours(service);
+  const candidates = suggestSpareSlots(replyActions, 30, 21);
+  const plannedSlots = [];
+  let remainingJobs = targetJobs;
+
+  for (const slot of candidates) {
+    const hours = slotPlanningHours(slot.part);
+    const capacity = hours ? Math.max(0, Math.floor(hours / durationHours)) : 0;
+    if (!capacity) continue;
+    const allocatedJobs = Math.min(capacity, remainingJobs);
+    plannedSlots.push({ ...slot, capacityJobs: capacity, targetJobs: allocatedJobs });
+    remainingJobs -= allocatedJobs;
+    if (remainingJobs <= 0) break;
+  }
+
+  return {
+    plannedSlots,
+    plannedJobs: targetJobs - Math.max(0, remainingJobs),
+    unplannedJobs: Math.max(0, remainingJobs),
+    complete: remainingJobs <= 0,
+    horizonDays: 21,
+  };
+}
+
 function bookingMatchesWorkGoal(action, goal) {
   if (!action?.done || action.type !== "booking") return false;
   if (!["Confirmed", "Completed"].includes(action.details?.bookingStatus || "Confirmed")) return false;
+
+  if (Array.isArray(goal?.plannedSlots) && goal.plannedSlots.length) {
+    const date = action.details?.bookingDate;
+    const hour = Number(String(action.details?.bookingTime || "").split(":")[0]);
+    if (!date || !Number.isFinite(hour)) return false;
+    const part = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+    return goal.plannedSlots.some((slot) => slot.date === date && slot.part === part);
+  }
 
   if (!goal?.date) {
     const savedAt = new Date(action.completedAt || action.createdAt || 0).getTime();
@@ -1220,6 +1254,7 @@ function App() {
       part: suggestion?.part || null,
       targetJobs,
       serviceId: planningService?.id || null,
+      serviceName: planningService?.name || null,
       createdAt: new Date().toISOString(),
     };
     setSelectedGap(nextSlot);
@@ -1246,19 +1281,57 @@ function App() {
 
   const spreadWorkGoalAcrossSlots = () => {
     if (!activeWorkGoal) return;
+    const service =
+      services.find((item) => item.id === activeWorkGoal.serviceId) ||
+      services.find((item) => item.id === selectedServiceId) ||
+      services.find((item) => item.wanted) ||
+      services[0] ||
+      null;
+    const plan = buildMultiSlotCapacityPlan(replyActions, activeWorkGoal, service);
     const target = Number(activeWorkGoal.targetJobs) || 1;
-    const label = `${target} booking${target === 1 ? "" : "s"} across next suitable slots`;
+    const label = `${target} booking${target === 1 ? "" : "s"} across planned openings`;
     setActiveWorkGoal((goal) => ({
       ...goal,
       label,
       date: null,
       part: null,
       spreadAcrossSlots: true,
+      plannedSlots: plan.plannedSlots,
+      plannedJobs: plan.plannedJobs,
+      unplannedJobs: plan.unplannedJobs,
+      planHorizonDays: plan.horizonDays,
+      planUpdatedAt: new Date().toISOString(),
     }));
-    setSelectedGap("Any suitable work");
-    setQuietSlot("Any suitable work");
+    setSelectedGap(label);
+    setQuietSlot(label);
   };
 
+  const refreshSpreadWorkGoalPlan = () => {
+    if (!activeWorkGoal?.spreadAcrossSlots) return;
+    const service =
+      services.find((item) => item.id === activeWorkGoal.serviceId) ||
+      services.find((item) => item.id === selectedServiceId) ||
+      services.find((item) => item.wanted) ||
+      services[0] ||
+      null;
+    const plan = buildMultiSlotCapacityPlan(replyActions, activeWorkGoal, service);
+    setActiveWorkGoal((goal) => ({
+      ...goal,
+      plannedSlots: plan.plannedSlots,
+      plannedJobs: plan.plannedJobs,
+      unplannedJobs: plan.unplannedJobs,
+      planHorizonDays: plan.horizonDays,
+      planUpdatedAt: new Date().toISOString(),
+    }));
+  };
+
+  const fitWorkGoalToPlannedCapacity = () => {
+    if (!activeWorkGoal?.spreadAcrossSlots) return;
+    const planned = Math.max(0, Number(activeWorkGoal.plannedJobs) || 0);
+    if (!planned) return;
+    setActiveWorkGoal((goal) => ({ ...goal, targetJobs: planned, unplannedJobs: 0 }));
+    setWorkGoalTargetDraft(planned);
+  };
   const adjustServiceDuration = (serviceId, delta) => {
     setServices((list) =>
       list.map((item) =>
@@ -1293,9 +1366,13 @@ function App() {
     const serviceName = preferred?.name || trade || "Main service";
     const baseValue = Number(preferred?.value) > 0 ? Number(preferred.value) : 100;
 
-    const alreadyBooked = Object.values(replyActions || {}).filter((action) =>
-      bookingMatchesWorkGoal(action, activeWorkGoal)
-    ).length;
+    const alreadyBooked = Object.entries(replyActions || {}).filter(([id, action]) => {
+      const customer =
+        customers.find((item) => item.id === id) ||
+        lastSimulatedRecipients.find((item) => item.id === id);
+      if (!customer || customer.service !== serviceName) return false;
+      return bookingMatchesWorkGoal(action, activeWorkGoal);
+    }).length;
     const remainingJobs = Math.max(1, (Number(activeWorkGoal?.targetJobs) || 1) - alreadyBooked);
 
     setOfferGoal("Fill a quiet day");
@@ -4060,14 +4137,22 @@ function App() {
     return counts;
   }, {});
 
+  const workGoalPlanningService =
+    services.find((item) => item.id === activeWorkGoal?.serviceId) ||
+    services.find((item) => item.id === selectedServiceId) ||
+    services.find((item) => item.wanted) ||
+    services[0] ||
+    null;
   const workGoalBookingEntries = activeWorkGoal
     ? Object.entries(replyActions || {})
         .map(([id, action]) => {
-          if (!bookingMatchesWorkGoal(action, activeWorkGoal)) return null;
           const customer =
             customers.find((item) => item.id === id) ||
             lastSimulatedRecipients.find((item) => item.id === id);
-          return customer ? { id, action, customer } : null;
+          if (!customer) return null;
+          if (workGoalPlanningService?.name && customer.service !== workGoalPlanningService.name) return null;
+          if (!bookingMatchesWorkGoal(action, activeWorkGoal)) return null;
+          return { id, action, customer };
         })
         .filter(Boolean)
     : [];
@@ -4081,12 +4166,6 @@ function App() {
     0
   );
   const workGoalTargetJobs = Number(activeWorkGoal?.targetJobs) || 1;
-  const workGoalPlanningService =
-    services.find((item) => item.id === activeWorkGoal?.serviceId) ||
-    services.find((item) => item.id === selectedServiceId) ||
-    services.find((item) => item.wanted) ||
-    services[0] ||
-    null;
   const workGoalDurationHours = planningDurationHours(workGoalPlanningService);
   const workGoalSlotHours =
     activeWorkGoal?.date && activeWorkGoal?.part
@@ -4099,12 +4178,48 @@ function App() {
   const workGoalCapacityMismatch =
     workGoalCapacityMax !== null &&
     Math.max(workGoalTargetJobs, workGoalBookedCount) > workGoalCapacityMax;
+  const workGoalPlannedSlots = Array.isArray(activeWorkGoal?.plannedSlots)
+    ? activeWorkGoal.plannedSlots.map((slot) => {
+        const matchingBookings = workGoalBookingEntries.filter((entry) => {
+          const date = entry.action.details?.bookingDate;
+          const hour = Number(String(entry.action.details?.bookingTime || "").split(":")[0]);
+          if (!date || !Number.isFinite(hour)) return false;
+          const part = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+          return date === slot.date && part === slot.part;
+        });
+        const allBookingsInSlot = Object.values(replyActions || {}).filter((action) => {
+          if (!action?.done || action.type !== "booking") return false;
+          if (!["Confirmed", "Completed"].includes(action.details?.bookingStatus || "Confirmed")) return false;
+          if (action.details?.bookingDate !== slot.date) return false;
+          const hour = Number(String(action.details?.bookingTime || "").split(":")[0]);
+          if (!Number.isFinite(hour)) return false;
+          const part = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+          return part === slot.part;
+        });
+        const bookedCount = matchingBookings.length;
+        const otherBookingCount = Math.max(0, allBookingsInSlot.length - bookedCount);
+        return {
+          ...slot,
+          bookedCount,
+          remainingJobs: Math.max(0, Number(slot.targetJobs || 0) - bookedCount),
+          otherBookingCount,
+          conflict: otherBookingCount > 0 && bookedCount < Number(slot.targetJobs || 0),
+        };
+      })
+    : [];
+  const workGoalPlanConflict = workGoalPlannedSlots.some((slot) => slot.conflict);
+  const workGoalPlanShortfall =
+    activeWorkGoal?.spreadAcrossSlots
+      ? Math.max(0, Number(activeWorkGoal?.unplannedJobs) || 0)
+      : 0;
   const workGoalRemainingJobs = Math.max(0, workGoalTargetJobs - workGoalBookedCount);
   const recommendedReactivationBatchSize = Math.min(eligibleCustomers.length, Math.max(1, workGoalRemainingJobs * 3));
   const reactivationAudience = campaignRecipientLimit && campaignRecipientLimit > 0 ? eligibleCustomers.slice(0, campaignRecipientLimit) : eligibleCustomers;
   const workGoalFilled =
     !!activeWorkGoal &&
     !workGoalCapacityMismatch &&
+    !workGoalPlanConflict &&
+    workGoalPlanShortfall === 0 &&
     workGoalBookedCount >= workGoalTargetJobs;
 
   const appState = {
@@ -4140,6 +4255,8 @@ function App() {
     confirmSpareSlot,
     fitWorkGoalToSlot,
     spreadWorkGoalAcrossSlots,
+    refreshSpreadWorkGoalPlan,
+    fitWorkGoalToPlannedCapacity,
     adjustServiceDuration,
     clearWorkGoal,
     prepareOfferForWorkGoal,
@@ -4152,6 +4269,9 @@ function App() {
     workGoalSlotHours,
     workGoalCapacityMax,
     workGoalCapacityMismatch,
+    workGoalPlannedSlots,
+    workGoalPlanConflict,
+    workGoalPlanShortfall,
     workGoalRemainingJobs,
     recommendedReactivationBatchSize,
     workGoalFilled,
