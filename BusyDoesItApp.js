@@ -16,8 +16,8 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 
-const APP_VERSION = "2.7";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Evidence-aware opportunity engine`;
+const APP_VERSION = "2.8";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Brand identity system`;
 
 const C = {
   bg: "#F5F7FB",
@@ -1969,7 +1969,7 @@ function App() {
           date: action.details.bookingDate,
           service: serviceName,
           value: amount || "",
-          note: cleanNote || "Completed through Busy Does It prototype",
+          note: cleanNote || "Completed through BUSY DOES IT prototype",
           photos: [],
           sourceOrigin: action.origin || "manual",
           sourceAction: action.details?.sourceQuoteStatus ? "quote-to-booking" : "booking",
@@ -2015,7 +2015,7 @@ function App() {
               title: "Job completed",
               note:
                 cleanNote ||
-                `${serviceName} completed. Busy Does It also prepared the sensible follow-on admin in the background.`,
+                `${serviceName} completed. BUSY DOES IT also prepared the sensible follow-on admin in the background.`,
               value: amount || "",
             },
           ],
@@ -2147,7 +2147,7 @@ function App() {
       note: photos.length
         ? `${photos.length} photo${photos.length === 1 ? "" : "s"} attached to the completed job. ${
             jobPhotosMarketingOk
-              ? "Busy Does It also prepared a finished-job post draft for review. Nothing is posted automatically."
+              ? "BUSY DOES IT also prepared a finished-job post draft for review. Nothing is posted automatically."
               : "They are kept private to the job unless you change the setting later."
           }`
         : "Job photos removed.",
@@ -3534,7 +3534,7 @@ function App() {
               : `${captureStage} captured from ${captureSource}`,
             note:
               preserveStrongerActiveWork
-                ? "Busy matched this incoming information to an existing customer and kept the stronger active workflow instead of creating a contradictory new enquiry."
+                ? "BUSY matched this incoming information to an existing customer and kept the stronger active workflow instead of creating a contradictory new enquiry."
                 : note,
             value: value || "",
           },
@@ -4866,7 +4866,8 @@ function App() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loadingWrap}>
-          <Text style={styles.brand}>BUSY DOES IT</Text>
+          <BusyBrandLockup size={58} centered />
+          <Text style={styles.loadingTagline}>More work. Less fuss.</Text>
           <Text style={styles.loadingText}>Loading your prototype…</Text>
         </View>
       </SafeAreaView>
@@ -4883,6 +4884,139 @@ function App() {
   );
 }
 
+function BusyAppMark({ size = 30 }) {
+  const radius = Math.round(size * 0.28);
+  return (
+    <View
+      style={[
+        styles.busyAppMark,
+        { width: size, height: size, borderRadius: radius },
+      ]}
+    >
+      <Text
+        style={[
+          styles.busyAppMarkLetter,
+          { fontSize: Math.round(size * 0.62), lineHeight: Math.round(size * 0.7) },
+        ]}
+      >
+        B
+      </Text>
+      <View
+        style={[
+          styles.busyAppMarkCheckWrap,
+          {
+            width: Math.max(11, Math.round(size * 0.34)),
+            height: Math.max(11, Math.round(size * 0.34)),
+            borderRadius: Math.max(6, Math.round(size * 0.17)),
+            left: Math.round(size * 0.17),
+            bottom: Math.round(size * 0.14),
+          },
+        ]}
+      >
+        <Text
+          style={[
+            styles.busyAppMarkCheck,
+            { fontSize: Math.max(8, Math.round(size * 0.23)) },
+          ]}
+        >
+          ✓
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function BusyAssistantMark({ size = 38 }) {
+  const cardWidth = Math.round(size * 0.5);
+  const cardHeight = Math.round(size * 0.6);
+  return (
+    <View style={{ width: size * 1.14, height: size, position: "relative" }}>
+      <View
+        style={[
+          styles.busyAssistantBase,
+          { width: size, height: size, borderRadius: Math.round(size * 0.28) },
+        ]}
+      >
+        <View
+          style={[
+            styles.busyAssistantBackCard,
+            {
+              width: cardWidth,
+              height: cardHeight,
+              left: Math.round(size * 0.18),
+              top: Math.round(size * 0.2),
+              borderRadius: Math.round(size * 0.1),
+            },
+          ]}
+        />
+        <View
+          style={[
+            styles.busyAssistantFrontCard,
+            {
+              width: cardWidth,
+              height: cardHeight,
+              left: Math.round(size * 0.3),
+              top: Math.round(size * 0.17),
+              borderRadius: Math.round(size * 0.1),
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.busyAssistantCheck,
+              { fontSize: Math.round(size * 0.25), lineHeight: Math.round(size * 0.27) },
+            ]}
+          >
+            ✓
+          </Text>
+          <View
+            style={[
+              styles.busyAssistantLine,
+              { width: Math.round(size * 0.24), height: Math.max(2, Math.round(size * 0.055)) },
+            ]}
+          />
+        </View>
+      </View>
+      <View
+        style={[
+          styles.busySpark,
+          {
+            width: Math.max(3, Math.round(size * 0.08)),
+            height: Math.round(size * 0.22),
+            right: Math.round(size * 0.06),
+            top: Math.round(size * 0.02),
+            transform: [{ rotate: "20deg" }],
+          },
+        ]}
+      />
+      <View
+        style={[
+          styles.busySpark,
+          {
+            width: Math.round(size * 0.2),
+            height: Math.max(3, Math.round(size * 0.08)),
+            right: 0,
+            top: Math.round(size * 0.27),
+            transform: [{ rotate: "12deg" }],
+          },
+        ]}
+      />
+    </View>
+  );
+}
+
+function BusyBrandLockup({ size = 38, centered = false }) {
+  return (
+    <View style={[styles.busyBrandLockup, centered && styles.busyBrandLockupCentered]}>
+      <BusyAssistantMark size={size} />
+      <View style={styles.busyWordmarkWrap}>
+        <Text style={[styles.busyWordmarkBusy, { fontSize: Math.max(17, Math.round(size * 0.48)) }]}>BUSY</Text>
+        <Text style={[styles.busyWordmarkDoes, { fontSize: Math.max(13, Math.round(size * 0.34)) }]}>DOES IT</Text>
+      </View>
+    </View>
+  );
+}
+
 function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack = false }) {
   return (
     <View style={styles.shell}>
@@ -4893,7 +5027,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
       >
         <View style={styles.topRow}>
           <View style={{ flex: 1, paddingRight: 12 }}>
-            <Text style={styles.brand}>BUSY DOES IT</Text>
+            <BusyBrandLockup size={36} />
             <Text style={styles.tagline}>More work. Less fuss.</Text>
             <Text style={styles.prototypeBadge}>{PROTOTYPE_BADGE}</Text>
           </View>
@@ -4951,9 +5085,20 @@ function Card({ eyebrow, title, body, footer, tone = "blue", children }) {
       : tone === "amber"
       ? styles.cardAmber
       : styles.cardBlue;
+  const eyebrowText = eyebrow ? String(eyebrow).toUpperCase() : "";
+  const showBusyMark = eyebrowText.startsWith("BUSY");
   return (
     <View style={[styles.card, toneStyle]}>
-      {eyebrow ? <Text style={styles.eyebrow}>{eyebrow.toUpperCase()}</Text> : null}
+      {eyebrow ? (
+        showBusyMark ? (
+          <View style={styles.busyEyebrowRow}>
+            <BusyAppMark size={21} />
+            <Text style={[styles.eyebrow, styles.busyEyebrowText]}>{eyebrowText}</Text>
+          </View>
+        ) : (
+          <Text style={styles.eyebrow}>{eyebrowText}</Text>
+        )
+      ) : null}
       {title ? <Text style={styles.cardTitle}>{title}</Text> : null}
       {body ? <Text style={styles.cardBody}>{body}</Text> : null}
       {children}
@@ -5269,7 +5414,7 @@ function WelcomeScreen({ s }) {
       noNav
       noBack
       title="Need more work?"
-      subtitle="Tell Busy Does It what the business needs. We’ll try the cheapest sensible moves first — and you stay in control."
+      subtitle="Tell BUSY what the business needs. It will try the cheapest sensible moves first — and you stay in control."
     >
       <Card eyebrow="The idea" title="More work. Less fuss." tone="green">
         <Text style={styles.tick}>• Start with the business problem, not marketing jargon</Text>
@@ -5304,7 +5449,7 @@ function SetupVertical({ s }) {
       <Card
         eyebrow="Not boxed in"
         title="You can still add any service"
-        body="The business type gives Busy Does It a sensible starting point. Services can still be added, renamed or changed later."
+        body="The business type gives BUSY DOES IT a sensible starting point. Services can still be added, renamed or changed later."
         tone="green"
       />
       <Button label="Continue" primary onPress={() => s.go("setupBusiness")} />
@@ -5341,7 +5486,7 @@ function SetupServices({ s }) {
       ))}
       <Text style={styles.helper}>Tap the star on the work you most want more of.</Text>
       <Button label="+ Add a service" onPress={() => s.go("addService")} />
-      <Button label="Open Busy Does It" primary onPress={s.completeOnboarding} />
+      <Button label="Open BUSY DOES IT" primary onPress={s.completeOnboarding} />
       <Text style={styles.helperCenter}>That’s enough to start. Set spending limits and connect accounts later from Settings.</Text>
     </Shell>
   );
@@ -5380,8 +5525,8 @@ function AddService({ s }) {
       <Field label="Typical job length" value={s.newServiceDuration} onChangeText={s.setNewServiceDuration} keyboardType="decimal-pad" prefix="Hours" placeholder="2" />
       <Card
         eyebrow="Why we ask"
-        title="This helps Busy Does It find the right work"
-        body="A rough value and typical job length are enough. Busy uses the time only for capacity planning, and you can correct it at any time."
+        title="This helps BUSY DOES IT find the right work"
+        body="A rough value and typical job length are enough. BUSY uses the time only for capacity planning, and you can correct it at any time."
       />
       <Button label="Add service" primary onPress={save} disabled={!s.newServiceName.trim()} />
       <Button label="Cancel" onPress={s.back} />
@@ -5481,7 +5626,7 @@ function HomeScreen({ s }) {
       score: 140,
       eyebrow: "Goal reached",
       title: `${s.activeWorkGoal.label} is covered`,
-      body: `${s.workGoalBookedCount} confirmed booking${s.workGoalBookedCount === 1 ? "" : "s"} now match this work goal. Busy Does It should stop promoting the gap instead of manufacturing more activity.`,
+      body: `${s.workGoalBookedCount} confirmed booking${s.workGoalBookedCount === 1 ? "" : "s"} now match this work goal. BUSY DOES IT should stop promoting the gap instead of manufacturing more activity.`,
       footer: s.workGoalBookedValue ? `Recorded booked value: £${s.workGoalBookedValue}` : "No more promotion needed for this goal",
       status: "Stop",
       tone: "green",
@@ -5511,7 +5656,7 @@ function HomeScreen({ s }) {
       footer: "Cost: £0",
       status: "Do this first",
       tone: "amber",
-      why: "Busy Does It protects live customer work before suggesting marketing. This is already booked work, so leaving it unresolved can make the diary and pipeline misleading.",
+      why: "BUSY DOES IT protects live customer work before suggesting marketing. This is already booked work, so leaving it unresolved can make the diary and pipeline misleading.",
       evidence: [
         ["Urgency", "Past booked date"],
         ["Customer intent", "Already booked"],
@@ -5541,7 +5686,7 @@ function HomeScreen({ s }) {
     operationalMoves.push({
       id: `inbox-${item.id}`,
       score,
-      eyebrow: "Busy Inbox",
+      eyebrow: "BUSY Inbox",
       title:
         triage.lane === "Needs attention"
           ? `Incoming ${String(parsed.stage || "item").toLowerCase()} needs a quick check`
@@ -5550,7 +5695,7 @@ function HomeScreen({ s }) {
       footer: "Nothing filed yet",
       status: triage.lane === "Needs attention" ? "Check" : "Incoming",
       tone: triage.lane === "Needs attention" ? "amber" : "green",
-      why: "This information has arrived but is not yet part of the business records. Busy triaged it first so uncertain or potentially conflicting information can be checked before it changes the pipeline.",
+      why: "This information has arrived but is not yet part of the business records. BUSY triaged it first so uncertain or potentially conflicting information can be checked before it changes the pipeline.",
       evidence: [
         ["Source", item.source || "Incoming"],
         ["Detected stage", parsed.stage || "Unknown"],
@@ -5595,7 +5740,7 @@ function HomeScreen({ s }) {
       score: 98 + Math.min(8, item.age / 3) + enquiryLearningBoost,
       eyebrow: "Quiet enquiry",
       title: `${item.customer.name} asked ${item.age} days ago`,
-      body: `There is still no quote, booking or follow-up saved for ${item.customer.service.toLowerCase()}. Busy Does It can prepare a polite check-in from the real enquiry record.`,
+      body: `There is still no quote, booking or follow-up saved for ${item.customer.service.toLowerCase()}. BUSY DOES IT can prepare a polite check-in from the real enquiry record.`,
       footer: "Cost: £0",
       status: "Worth revisiting",
       tone: "green",
@@ -5646,7 +5791,7 @@ function HomeScreen({ s }) {
       score: 95 + Math.min(8, item.age / 2) + Math.min(6, quoteValue / 250) + quoteFollowUpLearningBoost,
       eyebrow: "Quote follow-up",
       title: `A quote has been quiet for ${item.age} days`,
-      body: `${item.customer.name} already asked about ${item.customer.service.toLowerCase()}. Busy Does It has enough information to prepare a polite follow-up for review.`,
+      body: `${item.customer.name} already asked about ${item.customer.service.toLowerCase()}. BUSY DOES IT has enough information to prepare a polite follow-up for review.`,
       footer: "Cost: £0",
       status: "Worth following up",
       tone: "green",
@@ -5706,7 +5851,7 @@ function HomeScreen({ s }) {
           tone: hasPublishingConnection ? "green" : "blue",
           why: hasPublishingConnection
             ? "The work is already prepared and costs nothing to review, so there is very little friction left before the owner can approve it."
-            : "The content is prepared, but Busy Does It should not pretend it can publish anywhere until the owner has deliberately connected a destination.",
+            : "The content is prepared, but BUSY DOES IT should not pretend it can publish anywhere until the owner has deliberately connected a destination.",
           evidence: [
             ["Prepared photos", String(s.preparedPostOpportunity.photoCount)],
             ["Draft wording", "Ready"],
@@ -5726,11 +5871,11 @@ function HomeScreen({ s }) {
           score: 68 + postLearningAdjustment,
           eyebrow: "Free content opportunity",
           title: `Use ${s.photoOpportunity.photoCount} approved job photo${s.photoOpportunity.photoCount === 1 ? "" : "s"}`,
-          body: `${s.photoOpportunity.customerName}’s ${s.photoOpportunity.service.toLowerCase()} job is already saved. Busy Does It can prepare the words and approval step for you.`,
+          body: `${s.photoOpportunity.customerName}’s ${s.photoOpportunity.service.toLowerCase()} job is already saved. BUSY DOES IT can prepare the words and approval step for you.`,
           footer: "Cost: £0 • nothing posts without approval",
           status: "Free",
           tone: "green",
-          why: "This reuses real proof the owner deliberately supplied. It costs nothing and Busy Does It can prepare most of the action underneath.",
+          why: "This reuses real proof the owner deliberately supplied. It costs nothing and BUSY DOES IT can prepare most of the action underneath.",
           evidence: [
             ["Approved job photos", String(s.photoOpportunity.photoCount)],
             ["Source", "Completed customer job"],
@@ -5752,8 +5897,8 @@ function HomeScreen({ s }) {
           title: `${s.quietSlot} is free`,
           body:
             s.recommendedReactivationBatchSize >= reactivationEligibleCount
-              ? `${reactivationEligibleCount} ${s.workGoalPlanningService?.name || "service-matched"} previous customer${reactivationEligibleCount === 1 ? "" : "s"} are eligible. That is the whole relevant pool, so Busy would use all of them rather than pretending a larger audience exists.`
-              : `${reactivationEligibleCount} service-matched previous customers are eligible. Based on the recorded evidence and the ${s.workGoalRemainingJobs} booking${s.workGoalRemainingJobs === 1 ? "" : "s"} still needed, Busy would start with ${s.recommendedReactivationBatchSize}.`,
+              ? `${reactivationEligibleCount} ${s.workGoalPlanningService?.name || "service-matched"} previous customer${reactivationEligibleCount === 1 ? "" : "s"} are eligible. That is the whole relevant pool, so BUSY would use all of them rather than pretending a larger audience exists.`
+              : `${reactivationEligibleCount} service-matched previous customers are eligible. Based on the recorded evidence and the ${s.workGoalRemainingJobs} booking${s.workGoalRemainingJobs === 1 ? "" : "s"} still needed, BUSY would start with ${s.recommendedReactivationBatchSize}.`,
           footer: "Recommended first move: £0 advertising spend",
           status: "Worth trying",
           tone: "green",
@@ -5779,7 +5924,7 @@ function HomeScreen({ s }) {
           score: 62 + reviewLearningBoost,
           eyebrow: "Post-job opportunity",
           title: `Ask ${s.reviewRequestOpportunity.customerName} for a review`,
-          body: `${s.reviewRequestOpportunity.service} is completed. Busy Does It can prepare a short, low-pressure review request using the saved customer and job details.`,
+          body: `${s.reviewRequestOpportunity.service} is completed. BUSY DOES IT can prepare a short, low-pressure review request using the saved customer and job details.`,
           footer: "Cost: £0 • owner approval required",
           status: "Prepared on open",
           tone: "green",
@@ -5802,7 +5947,7 @@ function HomeScreen({ s }) {
           score: 43,
           eyebrow: "Learning",
           title: `What happened with ${s.quoteFollowUpOutcomeOpportunity.customerName}?`,
-          body: `A prepared quote follow-up was approved. Recording the outcome helps Busy Does It judge future quote follow-ups more accurately.`,
+          body: `A prepared quote follow-up was approved. Recording the outcome helps BUSY DOES IT judge future quote follow-ups more accurately.`,
           footer: "Takes one quick update",
           status: "Learn",
           tone: "blue",
@@ -5893,7 +6038,7 @@ function HomeScreen({ s }) {
       s={s}
       noBack
       title="Best thing to do today"
-      subtitle="Busy sorts incoming information, ranks the live business records, and normally shows one next move."
+      subtitle="BUSY sorts incoming information, ranks the live business records, and normally shows one next move."
       brandCue="Incoming information sorted. One clear move out."
     >
       {bestMove ? (
@@ -5915,7 +6060,7 @@ function HomeScreen({ s }) {
         <Card
           eyebrow="All clear"
           title="Nothing worth doing right now"
-          body="There is no urgent customer work or worthwhile prepared opportunity in the data currently saved. Busy Does It is not creating a task just to look busy."
+          body="There is no urgent customer work or worthwhile prepared opportunity in the data currently saved. BUSY DOES IT is not creating a task just to look busy."
           footer="Recommended spend: £0"
           tone="green"
         />
@@ -5954,9 +6099,9 @@ function HomeScreen({ s }) {
               ? s.workGoalPlanConflict
                 ? "One of the planned openings has since been taken by other work. Refresh the capacity plan before promoting further."
                 : s.workGoalPlanShortfall
-                ? `Busy found room for ${s.workGoalTargetJobs - s.workGoalPlanShortfall} of ${s.workGoalTargetJobs} requested bookings in the next ${s.activeWorkGoal.planHorizonDays || 21} days. The remaining ${s.workGoalPlanShortfall} still need diary capacity.`
-                : `Busy has spread ${s.workGoalTargetJobs} bookings across ${s.workGoalPlannedSlots.length} specific openings. ${s.workGoalRemainingJobs} still needed.`
-              : `Target: ${s.workGoalTargetJobs} suitable booking${s.workGoalTargetJobs === 1 ? "" : "s"}. ${s.workGoalRemainingJobs} still needed. Busy will size the next action to the remaining gap and stop escalating when the target is covered.`
+                ? `BUSY found room for ${s.workGoalTargetJobs - s.workGoalPlanShortfall} of ${s.workGoalTargetJobs} requested bookings in the next ${s.activeWorkGoal.planHorizonDays || 21} days. The remaining ${s.workGoalPlanShortfall} still need diary capacity.`
+                : `BUSY has spread ${s.workGoalTargetJobs} bookings across ${s.workGoalPlannedSlots.length} specific openings. ${s.workGoalRemainingJobs} still needed.`
+              : `Target: ${s.workGoalTargetJobs} suitable booking${s.workGoalTargetJobs === 1 ? "" : "s"}. ${s.workGoalRemainingJobs} still needed. BUSY will size the next action to the remaining gap and stop escalating when the target is covered.`
           }
           footer={
             s.workGoalCapacityMismatch
@@ -5990,9 +6135,9 @@ function HomeScreen({ s }) {
 
       {(s.backgroundReadyCount || s.lifecycleWatchCount) ? (
         <Card
-          eyebrow="Busy in the background"
+          eyebrow="BUSY in the background"
           title={`${s.backgroundReadyCount} next step${s.backgroundReadyCount === 1 ? "" : "s"} ready • ${s.lifecycleWatchCount} timeline${s.lifecycleWatchCount === 1 ? "" : "s"} being watched`}
-          body="Busy is keeping the dates and follow-on admin underneath the app. You still approve anything that would contact a customer or publish publicly."
+          body="BUSY is keeping the dates and follow-on admin underneath the app. You still approve anything that would contact a customer or publish publicly."
           tone="blue"
         >
           <MetricRow left="Quiet enquiries ready" right={String(s.staleEnquiryEntries.length)} />
@@ -6006,7 +6151,7 @@ function HomeScreen({ s }) {
 
       {s.inboxPendingItems.length ? (
         <Button
-          label={`Busy Inbox • ${s.inboxPendingItems.length} waiting`}
+          label={`BUSY Inbox • ${s.inboxPendingItems.length} waiting`}
           primary
           onPress={s.openBusyInbox}
         />
@@ -6026,14 +6171,14 @@ function BackgroundWork({ s }) {
   return (
     <Shell
       s={s}
-      title="Busy in the background"
-      subtitle="Dates, drafts and follow-on admin Busy is already maintaining underneath the Opportunity Engine."
+      title="BUSY in the background"
+      subtitle="Dates, drafts and follow-on admin BUSY is already maintaining underneath the Opportunity Engine."
       brandCue="Prepared automatically. Customer-facing actions still need approval."
     >
       <Card
         eyebrow="Ready now"
         title={`${s.backgroundReadyCount} next step${s.backgroundReadyCount === 1 ? "" : "s"} ready for review`}
-        body="Busy can prepare the admin, but it does not send a customer message, publish a post or spend money by itself in this prototype."
+        body="BUSY can prepare the admin, but it does not send a customer message, publish a post or spend money by itself in this prototype."
         tone="green"
       >
         <MetricRow left="Quiet enquiries" right={String(s.staleEnquiryEntries.length)} />
@@ -6127,7 +6272,7 @@ function BackgroundWork({ s }) {
         <Card
           eyebrow="All clear"
           title="Nothing waiting in the background"
-          body="Busy is not manufacturing admin just to make the screen look busy."
+          body="BUSY is not manufacturing admin just to make the screen look busy."
           footer="Recommended action: none"
           tone="green"
         />
@@ -6319,7 +6464,7 @@ function WorkHub({ s }) {
 
       <Text style={styles.sectionLabel}>Add or manage work</Text>
       <Button
-        label={s.inboxPendingItems.length ? `Busy Inbox • ${s.inboxPendingItems.length} waiting` : "Busy Inbox"}
+        label={s.inboxPendingItems.length ? `BUSY Inbox • ${s.inboxPendingItems.length} waiting` : "BUSY Inbox"}
         primary
         onPress={s.openBusyInbox}
       />
@@ -6506,7 +6651,7 @@ function WorkPipeline({ s }) {
       <Card
         eyebrow="Live customer work"
         title={totalActive ? `${totalActive} active item${totalActive === 1 ? "" : "s"}` : "Pipeline clear"}
-        body="This view is built from the local customer records and actions already saved in Busy Does It."
+        body="This view is built from the local customer records and actions already saved in BUSY DOES IT."
         footer={`£${s.pipelineWorkValue} currently in quotes + booked work`}
         tone={totalActive ? "green" : "blue"}
       >
@@ -6626,7 +6771,7 @@ function WorkPipeline({ s }) {
 
 function WorkNow({ s }) {
   return (
-    <Shell s={s} title="Find more work" subtitle="Tell Busy Does It the business result you want. We’ll work out the marketing underneath.">
+    <Shell s={s} title="Find more work" subtitle="Tell BUSY DOES IT the business result you want. We’ll work out the marketing underneath.">
       <Card eyebrow="Goal first" title="You choose the problem — not the channel" body="No need to decide between ads, social, messages or audiences. Start with what the business needs." tone="green" />
       <Button label="Fill a spare day" primary onPress={() => s.go("chooseGap")} />
       <Button label="Get more work" onPress={() => s.go("moreWorkGoal")} />
@@ -6649,7 +6794,7 @@ function ChooseGap({ s }) {
   const planningService = s.selectedService || serviceChoices[0];
 
   return (
-    <Shell s={s} title="When do you want work?" subtitle="Busy checks the saved diary first, then checks whether the amount of work you want can realistically fit." brandCue="Need → capacity → smallest sensible intervention.">
+    <Shell s={s} title="When do you want work?" subtitle="BUSY checks the saved diary first, then checks whether the amount of work you want can realistically fit." brandCue="Need → capacity → smallest sensible intervention.">
       {gaps.length ? (
         <>
           <Card eyebrow="Likely spare capacity" title="Open time found in the saved diary" body="A morning or afternoon is treated as occupied when a confirmed booking is saved in that period. This is a prototype diary check, not a live external calendar connection." tone="green" />
@@ -6658,7 +6803,7 @@ function ChooseGap({ s }) {
           ))}
         </>
       ) : (
-        <Card eyebrow="Diary looks busy" title="No obvious gap found" body="Busy could not find a clear morning or afternoon gap in the next saved diary window. You can still ask for any suitable work." tone="blue" />
+        <Card eyebrow="Diary looks busy" title="No obvious gap found" body="BUSY could not find a clear morning or afternoon gap in the next saved diary window. You can still ask for any suitable work." tone="blue" />
       )}
       <Choice label="Any suitable work" sub="Find the strongest low-risk opportunity without tying it to one slot" selected={s.selectedGap === "Any suitable work"} onPress={() => s.setSelectedGap("Any suitable work")} />
 
@@ -6676,7 +6821,7 @@ function ChooseGap({ s }) {
           ))}
         </>
       ) : planningService ? (
-        <Card eyebrow="Capacity assumption" title={planningService.name} body={`Busy will plan around about ${formatDurationHours(planningService.durationHours)} per job. This is an editable planning estimate, not a promise about every job.`} tone="blue" />
+        <Card eyebrow="Capacity assumption" title={planningService.name} body={`BUSY will plan around about ${formatDurationHours(planningService.durationHours)} per job. This is an editable planning estimate, not a promise about every job.`} tone="blue" />
       ) : null}
 
       <Text style={styles.sectionLabel}>How much work do you need?</Text>
@@ -6711,13 +6856,13 @@ function BestMove({ s }) {
       <Shell
         s={s}
         title="Work goal reached"
-        subtitle={`${s.activeWorkGoal.label} is now covered by the bookings saved in Busy Does It.`}
+        subtitle={`${s.activeWorkGoal.label} is now covered by the bookings saved in BUSY DOES IT.`}
         brandCue="Target reached. Stop promoting."
       >
         <Card
           eyebrow="Stop condition reached"
           title="No more marketing needed for this gap"
-          body={`Busy found ${s.workGoalBookedCount} confirmed booking${s.workGoalBookedCount === 1 ? "" : "s"} matching a target of ${s.workGoalTargetJobs}. It should not keep contacting people or suggest paid advertising for the same capacity.`}
+          body={`BUSY found ${s.workGoalBookedCount} confirmed booking${s.workGoalBookedCount === 1 ? "" : "s"} matching a target of ${s.workGoalTargetJobs}. It should not keep contacting people or suggest paid advertising for the same capacity.`}
           footer={s.workGoalBookedValue ? `Recorded booked value: £${s.workGoalBookedValue}` : "Recommended additional spend: £0"}
           tone="green"
         />
@@ -6734,7 +6879,7 @@ function BestMove({ s }) {
       <Shell
         s={s}
         title="That target does not fit this slot"
-        subtitle={`Busy checked the requested work against the planning time saved for ${serviceName}.`}
+        subtitle={`BUSY checked the requested work against the planning time saved for ${serviceName}.`}
         brandCue="Capacity first. Then marketing."
       >
         <Card
@@ -6747,7 +6892,7 @@ function BestMove({ s }) {
           body={
             capacity > 0
               ? `${serviceName} is currently set to about ${formatDurationHours(s.workGoalDurationHours)} per job. A ${s.workGoalSlotHours}-hour ${s.activeWorkGoal.part} therefore looks realistic for about ${capacity} job${capacity === 1 ? "" : "s"}, not ${s.workGoalTargetJobs}.`
-              : `${serviceName} is currently set to about ${formatDurationHours(s.workGoalDurationHours)} per job, which is longer than the ${s.workGoalSlotHours}-hour planning window. Busy should not pretend a full job fits there.`
+              : `${serviceName} is currently set to about ${formatDurationHours(s.workGoalDurationHours)} per job, which is longer than the ${s.workGoalSlotHours}-hour planning window. BUSY should not pretend a full job fits there.`
           }
           footer="Planning estimate only • you can correct the job length"
           tone="amber"
@@ -6781,7 +6926,7 @@ function BestMove({ s }) {
         <Card
           eyebrow="Capacity plan needs refreshing"
           title="A planned opening is no longer cleanly available"
-          body="Busy keeps the plan conservative. Rather than counting on a slot that now contains other work, rebuild the plan from the current diary."
+          body="BUSY keeps the plan conservative. Rather than counting on a slot that now contains other work, rebuild the plan from the current diary."
           footer="No extra marketing until the capacity plan is credible again"
           tone="amber"
         />
@@ -6797,13 +6942,13 @@ function BestMove({ s }) {
       <Shell
         s={s}
         title="Not enough open diary capacity yet"
-        subtitle={`Busy checked the next ${s.activeWorkGoal.planHorizonDays || 21} days before recommending more promotion.`}
+        subtitle={`BUSY checked the next ${s.activeWorkGoal.planHorizonDays || 21} days before recommending more promotion.`}
         brandCue="Do not invent capacity."
       >
         <Card
           eyebrow="Capacity shortfall"
           title={`${planned} of ${s.workGoalTargetJobs} requested bookings can be planned`}
-          body={`The current diary does not show enough clean openings for the remaining ${s.workGoalPlanShortfall} booking${s.workGoalPlanShortfall === 1 ? "" : "s"}. Busy should not market work it cannot confidently place.`}
+          body={`The current diary does not show enough clean openings for the remaining ${s.workGoalPlanShortfall} booking${s.workGoalPlanShortfall === 1 ? "" : "s"}. BUSY should not market work it cannot confidently place.`}
           footer="Choose a smaller target or free more diary capacity"
           tone="amber"
         />
@@ -6831,7 +6976,7 @@ function BestMove({ s }) {
           footer: "Cost: £0",
           status: "Best existing intent",
           tone: "green",
-          why: "A real customer is already asking about work. Busy checks existing demand before starting any new marketing.",
+          why: "A real customer is already asking about work. BUSY checks existing demand before starting any new marketing.",
           evidence: [
             ["Goal", gap],
             ["Customer intent", "Direct enquiry"],
@@ -6852,7 +6997,7 @@ function BestMove({ s }) {
           footer: "Cost: £0",
           status: "Worth revisiting",
           tone: "green",
-          why: "Busy prioritises people already close to booking before asking you to spend money.",
+          why: "BUSY prioritises people already close to booking before asking you to spend money.",
           evidence: [
             ["Goal", gap],
             ["Quote age", `${firstQuote.age} days`],
@@ -6903,14 +7048,14 @@ function BestMove({ s }) {
             ? `Use all ${targetedCustomerCount} eligible previous customer${targetedCustomerCount === 1 ? "" : "s"}`
             : `Start with ${targetedCustomerCount} due previous customer${targetedCustomerCount === 1 ? "" : "s"}`,
           body: reactivationUsesAllEligible
-            ? `Busy found only ${s.reactivationEligibleCustomers.length} service-matched eligible previous customer${s.reactivationEligibleCustomers.length === 1 ? "" : "s"}. The evidence-sized first batch is at least that large, so all available records are included.`
+            ? `BUSY found only ${s.reactivationEligibleCustomers.length} service-matched eligible previous customer${s.reactivationEligibleCustomers.length === 1 ? "" : "s"}. The evidence-sized first batch is at least that large, so all available records are included.`
             : s.reactivationEvidence?.evidenceReady
-            ? `Busy needs ${remainingJobs} more booking${remainingJobs === 1 ? "" : "s"}. Based on ${s.reactivationEvidence.sample} recorded outcome${s.reactivationEvidence.sample === 1 ? "" : "s"} (${s.reactivationEvidence.basis.toLowerCase()}), it would start with ${targetedCustomerCount} service-matched previous customers.`
-            : `Busy needs ${remainingJobs} more booking${remainingJobs === 1 ? "" : "s"}, but there is not enough recorded reactivation evidence yet. It is using the cautious fallback and would start with ${targetedCustomerCount} service-matched previous customers.`,
+            ? `BUSY needs ${remainingJobs} more booking${remainingJobs === 1 ? "" : "s"}. Based on ${s.reactivationEvidence.sample} recorded outcome${s.reactivationEvidence.sample === 1 ? "" : "s"} (${s.reactivationEvidence.basis.toLowerCase()}), it would start with ${targetedCustomerCount} service-matched previous customers.`
+            : `BUSY needs ${remainingJobs} more booking${remainingJobs === 1 ? "" : "s"}, but there is not enough recorded reactivation evidence yet. It is using the cautious fallback and would start with ${targetedCustomerCount} service-matched previous customers.`,
           footer: "Advertising spend: £0",
           status: "Ready to prepare",
           tone: "green",
-          why: "Previous customers already know the business, so Busy checks them before buying new attention.",
+          why: "Previous customers already know the business, so BUSY checks them before buying new attention.",
           evidence: [
             ["Goal", gap],
             ["Service-matched eligible customers", String(s.reactivationEligibleCustomers.length)],
@@ -6966,7 +7111,7 @@ function BestMove({ s }) {
           footer: "Cost: £0 • owner approval required",
           status: "Free option",
           tone: "green",
-          why: "Busy uses assets the owner deliberately supplied before suggesting extra spend.",
+          why: "BUSY uses assets the owner deliberately supplied before suggesting extra spend.",
           evidence: [
             ["Goal", gap],
             ["Approved photos", String(s.photoOpportunity.photoCount)],
@@ -6982,7 +7127,7 @@ function BestMove({ s }) {
       score: remainingJobs >= 3 ? 88 : remainingJobs === 2 ? 72 : 46,
       eyebrow: "Controlled offer",
       title: "Build a limited offer without assuming a discount",
-      body: `If the direct £0 routes are not enough, Busy can prepare a ${remainingJobs}-booking offer for the remaining capacity in ${gap.toLowerCase()}. It starts at the normal saved service price rather than automatically cutting margin.`,
+      body: `If the direct £0 routes are not enough, BUSY can prepare a ${remainingJobs}-booking offer for the remaining capacity in ${gap.toLowerCase()}. It starts at the normal saved service price rather than automatically cutting margin.`,
       footer: "No discount assumed • paid reach still optional",
       status: "Escalation without spend",
       tone: "blue",
@@ -7008,7 +7153,7 @@ function BestMove({ s }) {
       footer: "Cost: £0",
       status: "Free fallback",
       tone: "blue",
-      why: "Busy Does It should improve what the business already has before escalating to paid advertising when time allows.",
+      why: "BUSY DOES IT should improve what the business already has before escalating to paid advertising when time allows.",
       evidence: [
         ["Goal", gap],
         ["Advertising required", "£0"],
@@ -7050,7 +7195,7 @@ function BestMove({ s }) {
     <Shell
       s={s}
       title="Best first move"
-      subtitle={`Goal: fill ${gap.toLowerCase()}. Busy ranked the cheapest credible routes using the records and approved assets already saved.`}
+      subtitle={`Goal: fill ${gap.toLowerCase()}. BUSY ranked the cheapest credible routes using the records and approved assets already saved.`}
       brandCue="Existing demand first. Free reach next. Paid only if needed."
     >
       <OpportunityCard
@@ -7063,7 +7208,7 @@ function BestMove({ s }) {
         <Card
           eyebrow="Capacity plan"
           title={`${s.workGoalTargetJobs} booking${s.workGoalTargetJobs === 1 ? "" : "s"} across ${s.workGoalPlannedSlots.length} opening${s.workGoalPlannedSlots.length === 1 ? "" : "s"}`}
-          body="Busy has turned the larger work target into specific diary openings instead of treating it as vague future capacity."
+          body="BUSY has turned the larger work target into specific diary openings instead of treating it as vague future capacity."
           footer={`${s.workGoalRemainingJobs} still needed`}
           tone="green"
         >
@@ -7090,13 +7235,13 @@ function BestMove({ s }) {
       <Card
         eyebrow="Sized to the gap"
         title={`${remainingJobs} booking${remainingJobs === 1 ? "" : "s"} still needed`}
-        body={remainingJobs === 1 ? "Busy keeps this narrow: strongest individual intent first, then only a small previous-customer action if needed." : remainingJobs === 2 ? "Busy can justify a small targeted batch, but broad promotion is still unnecessary unless the cheaper routes fail." : "The gap is larger, so a broader previous-customer action or limited offer can become proportionate before paid reach."}
+        body={remainingJobs === 1 ? "BUSY keeps this narrow: strongest individual intent first, then only a small previous-customer action if needed." : remainingJobs === 2 ? "BUSY can justify a small targeted batch, but broad promotion is still unnecessary unless the cheaper routes fail." : "The gap is larger, so a broader previous-customer action or limited offer can become proportionate before paid reach."}
         footer="Smallest sensible intervention first"
         tone="green"
       />
 
       <Card
-        eyebrow="What Busy checked"
+        eyebrow="What BUSY checked"
         title="The opportunity engine compared the routes underneath"
         body="Live enquiries, quiet enquiries, sent quotes, due previous customers, approved job content, a limited offer, free profile improvements and finally a capped paid test were ranked without making you choose a marketing channel."
         tone="blue"
@@ -7156,7 +7301,7 @@ function WhyBestMove({ s }) {
 function ExpertBestMove({ s }) {
   const evidence = s.reactivationEvidence || {};
   return (
-    <Shell s={s} title="Expert details" subtitle="The evidence behind this recommendation. You never need this screen to use Busy Does It.">
+    <Shell s={s} title="Expert details" subtitle="The evidence behind this recommendation. You never need this screen to use BUSY DOES IT.">
       <Card eyebrow="Recommendation proof" title={`Review ${s.recommendedReactivationBatchSize} service-matched previous customer${s.recommendedReactivationBatchSize === 1 ? "" : "s"} first`} tone="green">
         <MetricRow left="Eligible service-matched customers" right={String(s.reactivationEligibleCustomers?.length || 0)} />
         <MetricRow left="Bookings still needed" right={String(s.workGoalRemainingJobs || 0)} />
@@ -7170,7 +7315,7 @@ function ExpertBestMove({ s }) {
       <Card
         eyebrow="Decision logic"
         title={evidence.evidenceReady ? "Recorded outcomes now influence the audience size" : "The fallback stays deliberately cautious"}
-        body={evidence.evidenceReady ? "Busy uses a smoothed planning rate rather than the raw percentage, so a small run cannot swing the recommendation too aggressively. Service-specific evidence is preferred once there are at least three recorded outcomes; otherwise broader evidence is used." : "There are fewer than three usable recorded outcomes, so Busy has not treated the apparent rate as reliable. It keeps the cautious baseline until more evidence accumulates."}
+        body={evidence.evidenceReady ? "BUSY uses a smoothed planning rate rather than the raw percentage, so a small run cannot swing the recommendation too aggressively. Service-specific evidence is preferred once there are at least three recorded outcomes; otherwise broader evidence is used." : "There are fewer than three usable recorded outcomes, so BUSY has not treated the apparent rate as reliable. It keeps the cautious baseline until more evidence accumulates."}
       />
       <Card
         eyebrow="Important limit"
@@ -7244,7 +7389,7 @@ function ProfileAuditWhy({ s }) {
   return (
     <Shell s={s} title="Why these improvements?" subtitle="Simple explanation first. Expert evidence is available if you want it.">
       <Card
-        eyebrow="Busy Does It logic"
+        eyebrow="BUSY DOES IT logic"
         title="Improve what you already have before buying more attention"
         body="If someone is already finding your business online, a clearer and more complete profile may help without adding advertising cost. That is why we check free improvements before recommending paid promotion."
         footer="Cost-first, evidence-led"
@@ -7269,7 +7414,7 @@ function ExpertProfileAudit({ s }) {
       <Card eyebrow="Finding 1" title="Service coverage gap" body={`${serviceName} is a priority service in the app but is not clearly represented in the simulated public profile.`} footer="Confidence: High" />
       <Card eyebrow="Finding 2" title="Recent proof is limited" body="The simulated profile does not show enough recent proof of the priority work. The exact evidence should adapt to the business type rather than assume before-and-after cleaning photos." footer="Confidence: Medium" />
       <Card eyebrow="Finding 3" title="Unanswered reviews" body={`${s.unansweredReviewCount || 0} simulated reviews have no owner response.`} footer="Confidence: High" />
-      <Card eyebrow="Important" title="A recommendation must be justifiable" body="In the live product, Busy Does It should show the real source, date, evidence and uncertainty. If the evidence is weak, it should lower confidence or say it does not know." tone="amber" />
+      <Card eyebrow="Important" title="A recommendation must be justifiable" body="In the live product, BUSY DOES IT should show the real source, date, evidence and uncertainty. If the evidence is weak, it should lower confidence or say it does not know." tone="amber" />
       <Button label="Done" primary onPress={s.back} />
     </Shell>
   );
@@ -7291,7 +7436,7 @@ function OtherOptions({ s }) {
     <Shell
       s={s}
       title="Other opportunities"
-      subtitle="These counts now come from the customer, quote and job records actually saved in Busy Does It."
+      subtitle="These counts now come from the customer, quote and job records actually saved in BUSY DOES IT."
       brandCue="No typed-in old-enquiry or old-quote totals."
     >
       {s.staleEnquiryEntries.length ? (
@@ -7351,7 +7496,7 @@ function OtherOptions({ s }) {
         <Card
           eyebrow="No record-based follow-up due"
           title="The cheap opportunities are genuinely quiet"
-          body="Busy Does It is not inventing old enquiries or old quotes just to populate this screen."
+          body="BUSY DOES IT is not inventing old enquiries or old quotes just to populate this screen."
           footer="Recommended spend can still be £0"
           tone="green"
         />
@@ -7381,7 +7526,7 @@ function CheckSend({ s }) {
           ...baseStep,
           title: `${eligibleCount} customers in ${serviceGroupCount} service group${serviceGroupCount === 1 ? "" : "s"}`,
           audience: `${eligibleCount} selected customer records`,
-          why: "Busy Does It splits eligible customers by their previous service so each person gets a relevant draft instead of a generic message about work they may never have booked.",
+          why: "BUSY DOES IT splits eligible customers by their previous service so each person gets a relevant draft instead of a generic message about work they may never have booked.",
           evidence: [
             ["Selected customer records", String(eligibleCount)],
             ["Service-specific drafts", String(serviceGroupCount)],
@@ -7425,7 +7570,7 @@ function CheckSend({ s }) {
           <Card
             eyebrow={step.audience}
             title={step.title}
-            body={s.campaignRecipientLimit ? (s.reactivationEvidence?.evidenceReady ? `Busy sized this first batch to ${eligibleCount} using ${s.reactivationEvidence.basis.toLowerCase()} with ${s.reactivationEvidence.confidence.toLowerCase()} confidence. Review each service group below; you can edit every draft separately.` : `Busy sized this first batch to ${eligibleCount} using the cautious fallback because there is not enough recorded conversion evidence yet. Review each service group below; you can edit every draft separately.`) : "Review each service group below. You can edit every draft separately."}
+            body={s.campaignRecipientLimit ? (s.reactivationEvidence?.evidenceReady ? `BUSY sized this first batch to ${eligibleCount} using ${s.reactivationEvidence.basis.toLowerCase()} with ${s.reactivationEvidence.confidence.toLowerCase()} confidence. Review each service group below; you can edit every draft separately.` : `BUSY sized this first batch to ${eligibleCount} using the cautious fallback because there is not enough recorded conversion evidence yet. Review each service group below; you can edit every draft separately.`) : "Review each service group below. You can edit every draft separately."}
             footer="Advertising spend: £0"
             tone="green"
           />
@@ -7508,7 +7653,7 @@ function Progress({ s }) {
     <Shell
       s={s}
       title="Progress"
-      subtitle="After each action, Busy Does It goes back to the live records instead of advancing through a prewritten marketing sequence."
+      subtitle="After each action, BUSY DOES IT goes back to the live records instead of advancing through a prewritten marketing sequence."
       brandCue="Reassess the business. Then choose the next cheapest sensible move."
     >
       <StatusChip label="£0 action reviewed" tone="green" />
@@ -7553,7 +7698,7 @@ function Replies({ s }) {
     <Shell
       s={s}
       title="Replies"
-      subtitle="Busy Does It turns useful replies into clear next actions."
+      subtitle="BUSY DOES IT turns useful replies into clear next actions."
     >
       <Card
         eyebrow="Simulated outcome"
@@ -8043,7 +8188,7 @@ function ReplyActionDetail({ s }) {
             <Card
               eyebrow="Automatic admin"
               title={`Follow-up check: ${formatUKDate(addDaysFromISO(s.actionQuoteSentDate || dateToISO(new Date()), 7))}`}
-              body="Once the quote is marked sent, Busy watches this date. If the quote is still unresolved, it can prepare the follow-up automatically."
+              body="Once the quote is marked sent, BUSY watches this date. If the quote is still unresolved, it can prepare the follow-up automatically."
               tone="blue"
             />
           </>
@@ -8163,7 +8308,7 @@ function ReplyActionDetail({ s }) {
               ? `The saved booking is ${formatUKDate(saved.details.bookingDate)} at ${saved.details.bookingTime || "no time"}, which does not match “${s.quietSlot}”.`
               : manualAction
               ? "Use the date and time you have actually agreed with the customer. The suggested values are only a starting point."
-              : `Busy Does It has suggested the next ${s.quietSlot || "matching"} slot.`}
+              : `BUSY DOES IT has suggested the next ${s.quietSlot || "matching"} slot.`}
           </Text>
           {savedBookingNeedsReview && !bookingCorrectionReady ? (
             <Pressable
@@ -8317,7 +8462,7 @@ function ReplyActionDetail({ s }) {
                 ? "This follow-up has been marked as completed."
                 : reminderDue
                 ? `This follow-up was due on ${formatUKDate(saved.details.reminderDate)}.`
-                : `Busy Does It will surface this on Home when ${formatUKDate(saved.details.reminderDate)} arrives.`
+                : `BUSY DOES IT will surface this on Home when ${formatUKDate(saved.details.reminderDate)} arrives.`
             }
             tone={reminderDue ? "amber" : "green"}
           />
@@ -8506,7 +8651,7 @@ function WorkPlan({ s }) {
   } else if (s.moreWorkGoal === "Just find me the best opportunity") {
     plan = {
       title: "Best opportunity right now",
-      subtitle: "Busy Does It chooses the strongest low-cost move from the demo data.",
+      subtitle: "BUSY DOES IT chooses the strongest low-cost move from the demo data.",
       steps: [
         ["Best now", `Review ${s.eligibleCustomers.length} eligible previous customer${s.eligibleCustomers.length === 1 ? "" : "s"}`, "Use the current service-specific timing rules rather than a blanket repeat interval.", "Advertising spend: £0"],
         ["Next", "Follow up old enquiries", "Only if more work is still needed.", "Advertising spend: £0"],
@@ -8586,7 +8731,7 @@ function BusyInbox({ s }) {
         ) : null}
         {s.recordFilingMode === "safe" && item.autoEvaluation?.safe ? (
           <Button
-            label="Let Busy file this safely"
+            label="Let BUSY file this safely"
             onPress={() => {
               const filed = s.fileSafeInboxItem(item, item.autoEvaluation);
               if (filed) s.go("autopilotFiled");
@@ -8608,9 +8753,9 @@ function BusyInbox({ s }) {
   return (
     <Shell
       s={s}
-      title="Busy Inbox"
+      title="BUSY Inbox"
       subtitle="Incoming information is triaged first. Only strict, low-risk record updates can be filed automatically."
-      brandCue="Busy handles the obvious admin. You handle exceptions and approvals."
+      brandCue="BUSY handles the obvious admin. You handle exceptions and approvals."
     >
       <Card
         eyebrow="Inbox triage"
@@ -8621,8 +8766,8 @@ function BusyInbox({ s }) {
         }
         body={
           s.recordFilingMode === "safe"
-            ? "Safe Autopilot is on. Busy may file only high-confidence information into an exact existing-customer phone/email match when every trust rule passes. Everything else waits here."
-            : "Automatic record filing is off. Busy can triage and prepare every item, but you review every file."
+            ? "Safe Autopilot is on. BUSY may file only high-confidence information into an exact existing-customer phone/email match when every trust rule passes. Everything else waits here."
+            : "Automatic record filing is off. BUSY can triage and prepare every item, but you review every file."
         }
         footer={s.recordFilingMode === "safe" ? "Safe Autopilot: ON" : "Safe Autopilot: OFF"}
         tone={attention.length ? "amber" : "green"}
@@ -8653,7 +8798,7 @@ function BusyInbox({ s }) {
         <Card
           eyebrow="Nothing waiting"
           title="No incoming information needs you"
-          body="Busy is not creating Inbox work just to make the screen look active."
+          body="BUSY is not creating Inbox work just to make the screen look active."
           footer="You can still Quick Capture something new"
           tone="green"
         />
@@ -8718,7 +8863,7 @@ function AutopilotFiled({ s }) {
         title="Safe Autopilot"
         subtitle="The automatically filed item could not be reopened."
       >
-        <Button label="Open Busy Inbox" primary onPress={s.openBusyInbox} />
+        <Button label="Open BUSY Inbox" primary onPress={s.openBusyInbox} />
       </Shell>
     );
   }
@@ -8726,7 +8871,7 @@ function AutopilotFiled({ s }) {
   return (
     <Shell
       s={s}
-      title="Busy filed it automatically"
+      title="BUSY filed it automatically"
       subtitle="This record passed every Safe Autopilot rule. No customer-facing action was taken."
       brandCue="Boring admin handled. Important actions still need you."
     >
@@ -8746,7 +8891,7 @@ function AutopilotFiled({ s }) {
       </Card>
 
       <Card
-        eyebrow="Why Busy was allowed to do this"
+        eyebrow="Why BUSY was allowed to do this"
         title="All trust rules passed"
         body={item.autoFileReason || "Exact existing-customer match, high-confidence complete data and no active-work conflict."}
         footer="Recorded in Inbox + Intake History"
@@ -8754,7 +8899,7 @@ function AutopilotFiled({ s }) {
       />
 
       <Button label="Open customer record" primary onPress={() => s.openCustomer(customer.id)} />
-      <Button label="Back to Busy Inbox" onPress={s.openBusyInbox} />
+      <Button label="Back to BUSY Inbox" onPress={s.openBusyInbox} />
       <Button label="Automatic filing settings" onPress={() => s.go("recordFilingSettings")} />
     </Shell>
   );
@@ -8767,7 +8912,7 @@ function QuickCapture({ s }) {
       s={s}
       title="Quick capture"
       subtitle="Paste something you already received instead of typing the customer record field by field."
-      brandCue="Paste once. Busy triages it. Only strict safe matches can skip repetitive filing."
+      brandCue="Paste once. BUSY triages it. Only strict safe matches can skip repetitive filing."
     >
       <Card
         eyebrow="Prototype intake layer"
@@ -8797,7 +8942,7 @@ function QuickCapture({ s }) {
         style={styles.messageInput}
       />
 
-      <Button label="Add to Busy Inbox & triage" primary disabled={!canAnalyse} onPress={s.queueCaptureToInbox} />
+      <Button label="Add to BUSY Inbox & triage" primary disabled={!canAnalyse} onPress={s.queueCaptureToInbox} />
       <Button label="Analyse & review manually now" disabled={!canAnalyse} onPress={s.analyseQuickCapture} />
       <Text style={styles.helper}>
         {s.recordFilingMode === "safe"
@@ -8829,14 +8974,14 @@ function QuickCaptureReview({ s }) {
   return (
     <Shell
       s={s}
-      title="Review what Busy understood"
+      title="Review what BUSY understood"
       subtitle="Nothing changes until you approve this screen."
       brandCue="Extraction is a draft, not a fact."
     >
       {s.selectedInboxItemId ? (
         <Card
-          eyebrow="From Busy Inbox"
-          title="Busy has already triaged this item"
+          eyebrow="From BUSY Inbox"
+          title="BUSY has already triaged this item"
           body="You are now doing the human review. Saving files the Inbox item into the correct customer/work record; going back leaves it pending."
           footer="No record change yet"
           tone="blue"
@@ -8847,7 +8992,7 @@ function QuickCaptureReview({ s }) {
         title={s.captureConfidence}
         body={
           fields.length
-            ? `Busy found: ${fields.join(", ")}. Check every important field before saving.`
+            ? `BUSY found: ${fields.join(", ")}. Check every important field before saving.`
             : "Very little structure was detected. Fill in the fields below before saving."
         }
         footer="Owner review required"
@@ -8858,7 +9003,7 @@ function QuickCaptureReview({ s }) {
         <Card
           eyebrow="Possible existing customer"
           title={match.customer.name}
-          body={`${match.reason} • match confidence: ${match.confidence}. Busy will update this customer instead of creating a duplicate.`}
+          body={`${match.reason} • match confidence: ${match.confidence}. BUSY will update this customer instead of creating a duplicate.`}
           footer="Duplicate prevention"
           tone="green"
         >
@@ -8870,8 +9015,8 @@ function QuickCaptureReview({ s }) {
           title="This would create a new customer record"
           body={
             s.captureForceNew
-              ? "You chose to keep this as a separate customer even though Busy had found a possible match."
-              : "Busy checked the saved phone number, email address and full name before deciding."
+              ? "You chose to keep this as a separate customer even though BUSY had found a possible match."
+              : "BUSY checked the saved phone number, email address and full name before deciding."
           }
           tone="blue"
         >
@@ -8914,7 +9059,7 @@ function QuickCaptureReview({ s }) {
         <Card
           eyebrow="Needs your confirmation"
           title="Service not detected"
-          body="Busy has deliberately left this blank rather than guessing from your current business defaults."
+          body="BUSY has deliberately left this blank rather than guessing from your current business defaults."
           footer="Choose or type the correct service before saving"
           tone="amber"
         />
@@ -8982,7 +9127,7 @@ function QuickCaptureSaved({ s }) {
   return (
     <Shell
       s={s}
-      title="Busy filed it"
+      title="BUSY filed it"
       subtitle="The pasted information has been turned into structured business data."
       brandCue="Less retyping. Same approval control."
     >
@@ -8997,14 +9142,14 @@ function QuickCaptureSaved({ s }) {
         eyebrow="What happens next"
         title={
           latest.stage === "Enquiry"
-            ? "Busy will watch the enquiry lifecycle"
+            ? "BUSY will watch the enquiry lifecycle"
             : latest.stage === "Quote sent"
-            ? "Busy will watch the quote follow-up date"
+            ? "BUSY will watch the quote follow-up date"
             : latest.stage === "Booking"
             ? "The booking is now part of Work"
             : "Post-job admin is prepared underneath"
         }
-        body="The normal Opportunity Engine uses this record from here. Quick capture is only the way the information got into Busy."
+        body="The normal Opportunity Engine uses this record from here. Quick capture is only the way the information got into BUSY."
         tone="blue"
       />
       {s.inboxPendingItems.length ? (
@@ -9028,7 +9173,7 @@ function IntakeHistory({ s }) {
     <Shell
       s={s}
       title="Intake history"
-      subtitle="A simple audit trail of information Busy turned into customer/work records."
+      subtitle="A simple audit trail of information BUSY turned into customer/work records."
       brandCue="Know what came in, whether it was merged, and whether you or Safe Autopilot filed it."
     >
       <Card
@@ -9087,7 +9232,7 @@ function NewEnquiry({ s }) {
     <Shell
       s={s}
       title="New enquiry"
-      subtitle="Add somebody who phoned, messaged or asked for work. Record when the enquiry actually arrived so Busy Does It can judge its age."
+      subtitle="Add somebody who phoned, messaged or asked for work. Record when the enquiry actually arrived so BUSY DOES IT can judge its age."
       brandCue="Capture the customer once. Turn the enquiry into the next sensible action."
     >
       <Field label="Customer name" value={s.newEnquiryName} onChangeText={s.setNewEnquiryName} placeholder="e.g. Jane Smith" />
@@ -9130,7 +9275,7 @@ function NewEnquiry({ s }) {
       />
       <Card
         eyebrow="Automatic admin"
-        title={`Busy will check this again on ${formatUKDate(addDaysFromISO(s.newEnquiryDate || dateToISO(new Date()), 7))}`}
+        title={`BUSY will check this again on ${formatUKDate(addDaysFromISO(s.newEnquiryDate || dateToISO(new Date()), 7))}`}
         body="If no quote, booking or follow-up has been recorded by then, the enquiry can become a quiet-enquiry opportunity automatically."
         tone="blue"
       />
@@ -9403,7 +9548,7 @@ function CustomerDetail({ s }) {
               </View>
               <StatusChip label="£0 opportunity" tone="green" />
             </View>
-            <Text style={styles.activitySummary}>Busy Does It can prepare a low-pressure check-in from this record.</Text>
+            <Text style={styles.activitySummary}>BUSY DOES IT can prepare a low-pressure check-in from this record.</Text>
             <Text style={styles.activityOpen}>Prepare follow-up →</Text>
           </Pressable>
         ) : null
@@ -9546,7 +9691,7 @@ function JobCompletePhotos({ s }) {
     <Shell s={s} title="Job complete" subtitle={`${customer.name} • ${job.service || customer.service}`} brandCue="Save the useful proof once. Reuse it only with permission.">
       <Card eyebrow="Completed work" title={job.service || customer.service} body={`${job.date ? formatUKDate(job.date) : "Date saved"}${Number(job.value) > 0 ? ` • £${job.value}` : ""}`} footer="Saved to this customer’s job history" tone="green" />
       <Card
-        eyebrow="Busy already handled"
+        eyebrow="BUSY already handled"
         title="The follow-on admin is prepared"
         body={
           `${job.reviewRequestDraft ? "Review request drafted. " : ""}${
@@ -9558,7 +9703,7 @@ function JobCompletePhotos({ s }) {
         footer="You stay in control"
         tone="blue"
       />
-      <Card eyebrow="Optional next step" title="Got any photos from this job?" body="Choose only the photos you want attached to this job. Busy Does It does not browse the rest of your camera roll, and nothing is posted automatically." tone="blue" />
+      <Card eyebrow="Optional next step" title="Got any photos from this job?" body="Choose only the photos you want attached to this job. BUSY DOES IT does not browse the rest of your camera roll, and nothing is posted automatically." tone="blue" />
       <Button label="Add job photos" primary onPress={() => s.go("jobPhotos")} />
       <Button label="Skip for now" onPress={() => s.openCustomer(customer.id)} />
     </Shell>
@@ -9572,7 +9717,7 @@ function JobPhotos({ s }) {
     return <Shell s={s} title="Job photos" subtitle="The selected job could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
   }
   return (
-    <Shell s={s} title="Job photos" subtitle={`${customer.name} • ${job.service || customer.service}`} brandCue="You choose the exact images. Busy Does It only sees what you select.">
+    <Shell s={s} title="Job photos" subtitle={`${customer.name} • ${job.service || customer.service}`} brandCue="You choose the exact images. BUSY DOES IT only sees what you select.">
       <Card eyebrow="Privacy first" title={s.pendingJobPhotos.length ? `${s.pendingJobPhotos.length} photo${s.pendingJobPhotos.length === 1 ? "" : "s"} selected` : "No photos selected yet"} body="A photo can stay attached privately to the job. Allowing future marketing suggestions still does not publish it — you approve public use separately." tone="green" />
       <Button label={s.pendingJobPhotos.length ? "Choose more / different photos" : "Choose photos"} primary={!s.pendingJobPhotos.length} onPress={s.chooseJobPhotos} />
       {s.pendingJobPhotos.length ? (
@@ -9586,7 +9731,7 @@ function JobPhotos({ s }) {
         </View>
       ) : null}
       {s.pendingJobPhotos.length ? (
-        <ToggleRow title="Let Busy Does It suggest these later" body="Makes these selected photos available for future post/profile/ad suggestions. Nothing is posted without another approval." value={s.jobPhotosMarketingOk} onValueChange={s.setJobPhotosMarketingOk} />
+        <ToggleRow title="Let BUSY DOES IT suggest these later" body="Makes these selected photos available for future post/profile/ad suggestions. Nothing is posted without another approval." value={s.jobPhotosMarketingOk} onValueChange={s.setJobPhotosMarketingOk} />
       ) : null}
       {job.postDraft ? (
         <Card eyebrow="Saved draft" title="A finished-job post draft is ready" body="It is stored locally and has not been posted anywhere." tone="blue">
@@ -9608,7 +9753,7 @@ function JobPhotoOpportunity({ s }) {
   }
   return (
     <Shell s={s} title="Free next move" subtitle="Use work you already completed before buying more attention." brandCue="Existing proof first. Paid reach later.">
-      <Card eyebrow="Finished-job content" title={`Turn ${allowedPhotos.length} job photo${allowedPhotos.length === 1 ? "" : "s"} into a post?`} body={`${customer.name}’s ${(job.service || customer.service).toLowerCase()} job is already saved. Busy Does It can prepare a simple post draft using only the photos you approved for suggestions.`} footer="Cost: £0 • nothing posts without approval" tone="green" />
+      <Card eyebrow="Finished-job content" title={`Turn ${allowedPhotos.length} job photo${allowedPhotos.length === 1 ? "" : "s"} into a post?`} body={`${customer.name}’s ${(job.service || customer.service).toLowerCase()} job is already saved. BUSY DOES IT can prepare a simple post draft using only the photos you approved for suggestions.`} footer="Cost: £0 • nothing posts without approval" tone="green" />
       <Button label="Prepare a post" primary disabled={!allowedPhotos.length} onPress={s.prepareJobPost} />
       <Button label="Not now" onPress={() => s.openCustomer(customer.id)} />
     </Shell>
@@ -9623,8 +9768,8 @@ function JobPostDraft({ s }) {
     return <Shell s={s} title="Post draft" subtitle="The completed job could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
   }
   return (
-    <Shell s={s} title="Finished-job post" subtitle="Busy Does It has prepared the action. You can change the words before approval." brandCue="Prepare underneath. Owner decides what goes public.">
-      <Card eyebrow="Prepared for you" title={`${allowedPhotos.length} approved job photo${allowedPhotos.length === 1 ? "" : "s"} + editable wording`} body="The source is a completed job already saved in Busy Does It. No address or private customer detail is added automatically." tone="green" />
+    <Shell s={s} title="Finished-job post" subtitle="BUSY DOES IT has prepared the action. You can change the words before approval." brandCue="Prepare underneath. Owner decides what goes public.">
+      <Card eyebrow="Prepared for you" title={`${allowedPhotos.length} approved job photo${allowedPhotos.length === 1 ? "" : "s"} + editable wording`} body="The source is a completed job already saved in BUSY DOES IT. No address or private customer detail is added automatically." tone="green" />
       <Text style={styles.fieldLabel}>Post draft</Text>
       <TextInput multiline value={s.jobPostDraft} onChangeText={s.setJobPostDraft} placeholder="Write the finished-job post" placeholderTextColor="#9AA3B2" style={styles.messageInput} />
       <Text style={styles.helper}>Saving moves this prepared action to the approval screen. It still does not publish anything.</Text>
@@ -9654,7 +9799,7 @@ function JobPostApproval({ s }) {
       s={s}
       title="Approve prepared post"
       subtitle="Exactly what would be used, where it would go and what it costs — before anything happens."
-      brandCue="Prepared by Busy Does It. Approved by you."
+      brandCue="Prepared by BUSY DOES IT. Approved by you."
     >
       <Card eyebrow="Prepared action" title={job.service || customer.service} body={job.postDraft} footer="Cost: £0" tone="green">
         <MetricRow left="Approved photos" right={String(allowedPhotos.length)} />
@@ -9744,7 +9889,7 @@ function JobPostPublished({ s }) {
       <Card
         eyebrow="Next learning step"
         title="What happened after the post?"
-        body="You can record the outcome now or later. Busy Does It should learn from enquiries, quotes and bookings — not just likes."
+        body="You can record the outcome now or later. BUSY DOES IT should learn from enquiries, quotes and bookings — not just likes."
         tone="blue"
       />
       <Button label="Record what happened" primary onPress={() => s.openJobPostOutcome(customer.id, job.id)} />
@@ -9764,7 +9909,7 @@ function JobPostOutcome({ s }) {
     <Shell
       s={s}
       title="What happened?"
-      subtitle="One simple outcome helps Busy Does It learn which free actions are genuinely useful."
+      subtitle="One simple outcome helps BUSY DOES IT learn which free actions are genuinely useful."
       brandCue="Learn from business outcomes, not vanity metrics."
     >
       <Card
@@ -9795,7 +9940,7 @@ function JobPostOutcome({ s }) {
       <Card
         eyebrow="Attribution rule"
         title="Record what you know — do not pretend"
-        body="A saved outcome means the owner associated it with this post. Busy Does It should label that clearly rather than claiming the post definitely caused the work."
+        body="A saved outcome means the owner associated it with this post. BUSY DOES IT should label that clearly rather than claiming the post definitely caused the work."
         tone="green"
       />
       <Button label="Save outcome" primary onPress={s.saveJobPostOutcome} />
@@ -9816,7 +9961,7 @@ function StaleEnquiries({ s }) {
       <Card
         eyebrow="Detected from customer records"
         title={`${entries.length} quiet enquir${entries.length === 1 ? "y" : "ies"} worth reviewing`}
-        body="Busy Does It only includes enquiry records with contact allowed, no current quote/booking/reminder, and no previous follow-up already sent."
+        body="BUSY DOES IT only includes enquiry records with contact allowed, no current quote/booking/reminder, and no previous follow-up already sent."
         footer="Advertising spend: £0"
         tone="green"
       />
@@ -9890,7 +10035,7 @@ function StaleQuotes({ s }) {
         <Card
           eyebrow="Nothing due"
           title="No sent quote has reached 7 days yet"
-          body="Busy Does It now calculates this from each quote’s real status and sent date instead of a manually entered old-quote count."
+          body="BUSY DOES IT now calculates this from each quote’s real status and sent date instead of a manually entered old-quote count."
           tone="blue"
         />
       ) : null}
@@ -9910,7 +10055,7 @@ function EnquiryFollowUp({ s }) {
     <Shell
       s={s}
       title="Prepared enquiry follow-up"
-      subtitle="Busy Does It has prepared a low-pressure check-in from the actual enquiry record."
+      subtitle="BUSY DOES IT has prepared a low-pressure check-in from the actual enquiry record."
       brandCue="Existing interest first. Nothing sends without approval."
     >
       <Card
@@ -10004,7 +10149,7 @@ function EnquiryFollowUpOutcome({ s }) {
         <Card
           eyebrow="Likely next step"
           title="Open the customer and prepare the real quote or booking"
-          body="Busy Does It records the interest but does not invent a price or booking agreement."
+          body="BUSY DOES IT records the interest but does not invent a price or booking agreement."
           tone="green"
         />
       ) : null}
@@ -10025,7 +10170,7 @@ function QuoteFollowUp({ s }) {
     <Shell
       s={s}
       title="Prepared quote follow-up"
-      subtitle="Busy Does It has drafted the next action from the saved quote. You can change every word."
+      subtitle="BUSY DOES IT has drafted the next action from the saved quote. You can change every word."
       brandCue="Prepared underneath. Nothing sends without approval."
     >
       <Card
@@ -10068,7 +10213,7 @@ function QuoteFollowUpSent({ s }) {
       s={s}
       title="Follow-up approved"
       subtitle="Prototype only — no real message was sent."
-      brandCue="Action approved. Now Busy Does It can learn the outcome."
+      brandCue="Action approved. Now BUSY DOES IT can learn the outcome."
     >
       <Card
         eyebrow="Simulated send"
@@ -10158,7 +10303,7 @@ function ReviewRequest({ s }) {
       <Card
         eyebrow="Trust rule"
         title="Low pressure and truthful"
-        body="Busy Does It should ask for an honest review, not a positive review, and the owner can edit or skip the request."
+        body="BUSY DOES IT should ask for an honest review, not a positive review, and the owner can edit or skip the request."
         tone="blue"
       />
       <Button label="Approve simulated send" primary disabled={!s.reviewRequestDraft.trim()} onPress={s.simulateReviewRequestSend} />
@@ -10451,7 +10596,7 @@ function OfferBuild({ s }) {
         <Card
           eyebrow="Built from your work goal"
           title={s.activeWorkGoal.label}
-          body={`Busy started this offer with a cap of ${s.workGoalTargetJobs} booking and the normal saved service price. Lower the price only if you decide an incentive is actually worth the margin.`}
+          body={`BUSY started this offer with a cap of ${s.workGoalTargetJobs} booking and the normal saved service price. Lower the price only if you decide an incentive is actually worth the margin.`}
           footer="Special offer does not automatically mean discount"
           tone="blue"
         />
@@ -10533,7 +10678,7 @@ function OfferRunning({ s }) {
       title={reached ? "Offer target reached" : "Offer plan ready"}
       subtitle={
         reached
-          ? "The saved bookings already cover the work goal, so Busy should stop escalating this offer."
+          ? "The saved bookings already cover the work goal, so BUSY should stop escalating this offer."
           : "Prototype plan only — no customer message, public post or advert has actually been sent."
       }
     >
@@ -10543,7 +10688,7 @@ function OfferRunning({ s }) {
         body={
           reached
             ? `${s.activeWorkGoal.label} is covered. More promotion for the same gap is unnecessary.`
-            : `${s.offerService} • ${s.offerDates}. Busy has prepared the plan, but the prototype is not pretending it has contacted customers or generated bookings that are not in the saved records.`
+            : `${s.offerService} • ${s.offerDates}. BUSY has prepared the plan, but the prototype is not pretending it has contacted customers or generated bookings that are not in the saved records.`
         }
         footer={
           reached
@@ -10601,7 +10746,7 @@ function Results({ s }) {
       <Card
         eyebrow="Value we can trace"
         title="Business value saved in separate, traceable buckets"
-        body="Busy Does It does not add these figures into one headline total because the same job could appear in more than one stage. Attribution stays labelled instead of being presented as certainty."
+        body="BUSY DOES IT does not add these figures into one headline total because the same job could appear in more than one stage. Attribution stays labelled instead of being presented as certainty."
         tone="green"
       >
         <MetricRow left="Completed work recorded" right={`£${s.completedJobValue}`} strong={s.completedJobValue > 0} />
@@ -10614,12 +10759,12 @@ function Results({ s }) {
       </Card>
 
       <Card
-        eyebrow="Busy Inbox"
+        eyebrow="BUSY Inbox"
         title={`${s.inboxPendingItems.length} incoming item${s.inboxPendingItems.length === 1 ? "" : "s"} waiting for review`}
         body={
           s.recordFilingMode === "safe"
             ? "Safe Autopilot can remove repetitive filing only when every strict trust rule passes. Exceptions remain visible for owner review."
-            : "Busy is triaging incoming information, but automatic record filing is currently off."
+            : "BUSY is triaging incoming information, but automatic record filing is currently off."
         }
         tone={s.inboxNeedsAttentionItems.length ? "amber" : "green"}
       >
@@ -10629,7 +10774,7 @@ function Results({ s }) {
         <MetricRow left="Auto-filed safely" right={String(s.inboxAutoFiledCount)} strong={s.inboxAutoFiledCount > 0} />
         <MetricRow left="Filed after owner review" right={String(s.inboxOwnerFiledCount)} />
         <MetricRow left="Dismissed without filing" right={String(s.inboxDismissedCount)} />
-        <Button label="Open Busy Inbox" onPress={s.openBusyInbox} />
+        <Button label="Open BUSY Inbox" onPress={s.openBusyInbox} />
       </Card>
 
       <Card
@@ -10648,7 +10793,7 @@ function Results({ s }) {
       </Card>
 
       <Card
-        eyebrow="Admin Busy handled underneath"
+        eyebrow="Admin BUSY handled underneath"
         title={`${s.backgroundReadyCount} next step${s.backgroundReadyCount === 1 ? "" : "s"} ready • ${s.lifecycleWatchCount} timeline${s.lifecycleWatchCount === 1 ? "" : "s"} being watched`}
         body="These counts come from automatic lifecycle dates and drafts stored against the real customer, quote and job records. Nothing customer-facing is sent without approval."
         tone="green"
@@ -10663,7 +10808,7 @@ function Results({ s }) {
       <Card
         eyebrow="Opportunity Engine evidence"
         title="Recorded outcomes now influence ranking and audience size"
-        body="Busy prefers service-specific evidence once the sample is usable. Small samples stay low-confidence and fall back to cautious planning assumptions rather than swinging recommendations aggressively."
+        body="BUSY prefers service-specific evidence once the sample is usable. Small samples stay low-confidence and fall back to cautious planning assumptions rather than swinging recommendations aggressively."
         tone="blue"
       >
         <MetricRow left="Previous-customer sample" right={String(s.reactivationEvidence?.sample || 0)} />
@@ -10784,12 +10929,12 @@ function BusinessData({ s }) {
     <Shell
       s={s}
       title="Business data"
-      subtitle="General business facts stay editable. Opportunity counts now come from individual records wherever Busy Does It has the data."
+      subtitle="General business facts stay editable. Opportunity counts now come from individual records wherever BUSY DOES IT has the data."
     >
       <Card
         eyebrow="Calculated from records"
         title="Opportunity counts are no longer typed in"
-        body="Busy Does It uses saved customer dates, quote statuses, job history, service timing and permissions to decide what is actually available."
+        body="BUSY DOES IT uses saved customer dates, quote statuses, job history, service timing and permissions to decide what is actually available."
         tone="green"
       >
         <MetricRow left="Saved customer records" right={String(s.customers.length)} />
@@ -10822,14 +10967,28 @@ function BusinessData({ s }) {
 function Settings({ s }) {
   const connectedCount = Object.values(s.connectedAccounts).filter(Boolean).length;
   return (
-    <Shell s={s} noBack title="Your controls" subtitle="Set the rules once. Busy Does It works inside them.">
+    <Shell s={s} noBack title="Your controls" subtitle="Set the rules once. BUSY works inside them.">
+      <View style={styles.brandShowcase}>
+        <BusyBrandLockup size={48} />
+        <Text style={styles.brandShowcaseTitle}>Your BUSY DOES IT identity</Text>
+        <Text style={styles.brandShowcaseBody}>
+          BUSY is the in-app assistant voice. The stacked-card mark is the main brand identity; the B/check mark is the compact app symbol.
+        </Text>
+        <View style={styles.brandCompactRow}>
+          <BusyAppMark size={46} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.brandCompactTitle}>Compact app mark</Text>
+            <Text style={styles.brandCompactBody}>Used where the full logo would be too heavy — small assistant cues, app-icon contexts and future notifications.</Text>
+          </View>
+        </View>
+      </View>
       <Card
         eyebrow="Spending"
         title={s.alwaysAsk ? "Always ask before spending" : `Automatic paid tests up to £${s.testLimit}`}
         body={
           s.alwaysAsk
             ? "Every paid test still needs your approval."
-            : `Busy Does It may run a paid test up to £${s.testLimit} without asking again, but total paid spend must stay within £${s.weeklyLimit} per week.`
+            : `BUSY DOES IT may run a paid test up to £${s.testLimit} without asking again, but total paid spend must stay within £${s.weeklyLimit} per week.`
         }
         footer="You can change this any time"
         tone={s.alwaysAsk ? "green" : "amber"}
@@ -10846,7 +11005,7 @@ function Settings({ s }) {
       </Card>
       <Button label="Customer records" primary onPress={() => s.go("customerRecords")} />
       <Button
-        label={s.inboxPendingItems.length ? `Busy Inbox • ${s.inboxPendingItems.length} waiting` : "Busy Inbox"}
+        label={s.inboxPendingItems.length ? `BUSY Inbox • ${s.inboxPendingItems.length} waiting` : "BUSY Inbox"}
         onPress={s.openBusyInbox}
       />
       <Button label="Customer pipeline" onPress={() => s.go("workPipeline")} />
@@ -10859,7 +11018,7 @@ function Settings({ s }) {
       <Button label="Change limits" onPress={() => s.go("settingsLimits")} />
       <Button label="Automatic record filing" onPress={() => s.go("recordFilingSettings")} />
       <Button label="Connected accounts" onPress={() => s.go("connectedAccounts")} />
-      <Button label="How Busy Does It works" onPress={() => s.go("howBusyWorks")} />
+      <Button label="How BUSY DOES IT works" onPress={() => s.go("howBusyWorks")} />
       <Button label="What makes it different" onPress={() => s.go("whatMakesDifferent")} />
       <Button label="Advanced details" onPress={() => s.go("advanced")} />
       <Button label="Reset prototype data" danger onPress={s.resetPrototype} />
@@ -10869,11 +11028,11 @@ function Settings({ s }) {
 
 function HowBusyWorks({ s }) {
   return (
-    <Shell s={s} title="How Busy Does It works" subtitle="Simple on the surface. Serious business logic underneath.">
-      <Card eyebrow="1" title="Incoming information gets sorted first" body="Messages, notes and future connected-app events should land in Busy Inbox. Busy extracts what it can, checks for duplicates and flags anything uncertain before it changes the records." />
-      <Card eyebrow="2" title="Obvious record admin can disappear" body="With Safe Autopilot enabled, only strict high-confidence updates to an exact existing customer can be filed without another tap. Anything uncertain stays in Busy Inbox." />
-      <Card eyebrow="3" title="Busy ranks the best next move" body="Live customer commitments, £0 opportunities and prepared actions compete underneath Home so the owner normally sees one clear priority." />
-      <Card eyebrow="4" title="You control important actions" body="Customer messages, public posts and paid spend still require the appropriate approval. Busy prepares underneath without pretending approval happened." />
+    <Shell s={s} title="How BUSY DOES IT works" subtitle="Simple on the surface. Serious business logic underneath.">
+      <Card eyebrow="1" title="Incoming information gets sorted first" body="Messages, notes and future connected-app events should land in BUSY Inbox. BUSY extracts what it can, checks for duplicates and flags anything uncertain before it changes the records." />
+      <Card eyebrow="2" title="Obvious record admin can disappear" body="With Safe Autopilot enabled, only strict high-confidence updates to an exact existing customer can be filed without another tap. Anything uncertain stays in BUSY Inbox." />
+      <Card eyebrow="3" title="BUSY ranks the best next move" body="Live customer commitments, £0 opportunities and prepared actions compete underneath Home so the owner normally sees one clear priority." />
+      <Card eyebrow="4" title="You control important actions" body="Customer messages, public posts and paid spend still require the appropriate approval. BUSY prepares underneath without pretending approval happened." />
       <Card eyebrow="5" title="Outcomes improve later recommendations" body="Results focus on enquiries, quotes, bookings, completed work and recorded value. Outcomes feed gently back into future ranking rather than rewarding vanity activity." />
       <Button label="Done" primary onPress={s.back} />
     </Shell>
@@ -10882,8 +11041,8 @@ function HowBusyWorks({ s }) {
 
 function WhatMakesDifferent({ s }) {
   return (
-    <Shell s={s} title="What makes Busy Does It different" subtitle="Concrete design choices — not hype.">
-      <Card eyebrow="Triage first" title="Incoming information becomes organised work" body="Busy Inbox is designed to receive candidate information from messages, notes and future connections, match it to the right customer and only interrupt the owner when review is useful." />
+    <Shell s={s} title="What makes BUSY DOES IT different" subtitle="Concrete design choices — not hype.">
+      <Card eyebrow="Triage first" title="Incoming information becomes organised work" body="BUSY Inbox is designed to receive candidate information from messages, notes and future connections, match it to the right customer and only interrupt the owner when review is useful." />
       <Card eyebrow="Goal first" title="You tell us the problem, not the channel" body="The app chooses or recommends the marketing method underneath instead of forcing you to decide between ads, email, social or audiences." />
       <Card eyebrow="Cost first" title="Free and low-cost opportunities come before paid reach" body="The app can recommend spending nothing when that is the more sensible first move." />
       <Card eyebrow="Control" title="Automation is split by risk" body="Low-risk record filing can use a strict Safe Autopilot rule. Customer messages, public posting and paid spend keep their own stronger controls." />
@@ -10901,7 +11060,7 @@ function BusinessTypeSettings({ s }) {
       s={s}
       title="Business type & services"
       subtitle="The business type changes the suggested services and repeat-timing rules underneath. It does not change the core app."
-      brandCue="One Busy Does It. Different service-business rules where they genuinely matter."
+      brandCue="One BUSY DOES IT. Different service-business rules where they genuinely matter."
     >
       <Card
         eyebrow="Current setup"
@@ -10940,13 +11099,13 @@ function CapacitySettings({ s }) {
     <Shell
       s={s}
       title="Typical job lengths"
-      subtitle="Busy uses these only to estimate capacity. Change them whenever the real business says otherwise."
+      subtitle="BUSY uses these only to estimate capacity. Change them whenever the real business says otherwise."
       brandCue="Editable planning assumptions. No false precision."
     >
       <Card
         eyebrow="How this is used"
         title="Can the requested work actually fit?"
-        body="For a selected morning or afternoon, Busy compares the saved typical job length with a simple four-hour planning window. Travel, job complexity and customer circumstances can still change the real duration."
+        body="For a selected morning or afternoon, BUSY compares the saved typical job length with a simple four-hour planning window. Travel, job complexity and customer circumstances can still change the real duration."
         tone="blue"
       />
       {s.services.map((service) => (
@@ -10998,18 +11157,18 @@ function RecordFilingSettings({ s }) {
     <Shell
       s={s}
       title="Automatic record filing"
-      subtitle="Choose how much routine Inbox filing Busy may do without interrupting you."
+      subtitle="Choose how much routine Inbox filing BUSY may do without interrupting you."
       brandCue="Automation gets permission by rule — never by assumption."
     >
       <Choice
         label="Review everything"
-        sub="Busy triages and prepares incoming information, but every customer/work record change waits for you."
+        sub="BUSY triages and prepares incoming information, but every customer/work record change waits for you."
         selected={s.recordFilingMode === "review"}
         onPress={() => s.setRecordFilingMode("review")}
       />
       <Choice
         label="Safe items only"
-        sub="Recommended prototype setting. Busy may file only into an existing customer when every strict trust rule passes."
+        sub="Recommended prototype setting. BUSY may file only into an existing customer when every strict trust rule passes."
         selected={s.recordFilingMode === "safe"}
         onPress={() => s.setRecordFilingMode("safe")}
       />
@@ -11017,7 +11176,7 @@ function RecordFilingSettings({ s }) {
       <Card
         eyebrow="Safe means all of these"
         title="A deliberately narrow permission"
-        body="Safe Autopilot is not general AI permission. It is a checklist. If any check fails, the item stays in Busy Inbox for you."
+        body="Safe Autopilot is not general AI permission. It is a checklist. If any check fails, the item stays in BUSY Inbox for you."
         tone="green"
       >
         <MetricRow left="Customer match" right="Exact phone / email" />
@@ -11045,7 +11204,7 @@ function RecordFilingSettings({ s }) {
         tone="amber"
       />
 
-      <Button label="Save & open Busy Inbox" primary onPress={s.openBusyInbox} />
+      <Button label="Save & open BUSY Inbox" primary onPress={s.openBusyInbox} />
       <Button label="Done" onPress={s.back} />
     </Shell>
   );
@@ -11057,7 +11216,7 @@ function ConnectedAccounts({ s }) {
       <Card
         eyebrow="v2.1 trusted intake architecture"
         title="Future connections should feed Inbox, then use the same trust rules"
-        body="Email, calendar, CRM and invoicing connections should create candidate items in Busy Inbox. Safe Autopilot may file only the narrow class of exact, high-confidence existing-customer updates you have allowed; exceptions stay for review."
+        body="Email, calendar, CRM and invoicing connections should create candidate items in BUSY Inbox. Safe Autopilot may file only the narrow class of exact, high-confidence existing-customer updates you have allowed; exceptions stay for review."
         footer="No external inbox or account is being read in this prototype"
         tone="green"
       />
@@ -11210,7 +11369,22 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   brand: { fontSize: 19, fontWeight: "900", color: C.blue, letterSpacing: 0.4 },
-  tagline: { fontSize: 12, color: C.muted, marginTop: 2, fontWeight: "600" },
+  busyBrandLockup: { flexDirection: "row", alignItems: "center", alignSelf: "flex-start" },
+  busyBrandLockupCentered: { alignSelf: "center" },
+  busyWordmarkWrap: { marginLeft: 9, justifyContent: "center" },
+  busyWordmarkBusy: { color: C.ink, fontWeight: "900", letterSpacing: -0.5, lineHeight: 20 },
+  busyWordmarkDoes: { color: C.blue, fontWeight: "900", letterSpacing: 0.6, lineHeight: 16, marginTop: -1 },
+  busyAssistantBase: { backgroundColor: C.blue, position: "relative", overflow: "hidden" },
+  busyAssistantBackCard: { position: "absolute", backgroundColor: "#BBD8FF", transform: [{ rotate: "-8deg" }] },
+  busyAssistantFrontCard: { position: "absolute", backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center" },
+  busyAssistantCheck: { color: C.blue, fontWeight: "900", marginTop: 1 },
+  busyAssistantLine: { backgroundColor: "#C9D4E3", borderRadius: 999, marginTop: 2 },
+  busySpark: { position: "absolute", backgroundColor: C.blue, borderRadius: 999 },
+  busyAppMark: { backgroundColor: C.blue, alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" },
+  busyAppMarkLetter: { color: "#FFFFFF", fontWeight: "900", letterSpacing: -2 },
+  busyAppMarkCheckWrap: { position: "absolute", backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center" },
+  busyAppMarkCheck: { color: C.blue, fontWeight: "900", lineHeight: 12 },
+  tagline: { fontSize: 12, color: C.muted, marginTop: 4, marginLeft: 2, fontWeight: "600" },
   backPill: {
     borderWidth: 1,
     borderColor: C.border,
@@ -11234,6 +11408,8 @@ const styles = StyleSheet.create({
   cardGreen: { borderColor: "#CDE7D9", backgroundColor: C.greenSoft },
   cardAmber: { borderColor: "#F0D8B9", backgroundColor: C.amberSoft },
   eyebrow: { fontSize: 12, fontWeight: "900", color: C.blue, letterSpacing: 0.8, marginBottom: 7 },
+  busyEyebrowRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 7 },
+  busyEyebrowText: { marginBottom: 0, flexShrink: 1 },
   cardTitle: { fontSize: 21, lineHeight: 26, fontWeight: "900", color: C.ink, marginBottom: 7 },
   cardBody: { fontSize: 15, lineHeight: 21, color: C.muted },
   cardFooter: { fontSize: 16, fontWeight: "900", color: C.green, marginTop: 12 },
@@ -11447,7 +11623,14 @@ const styles = StyleSheet.create({
   groupTitle: { fontWeight: "900", color: C.ink, fontSize: 16, lineHeight: 21 },
   groupBody: { color: C.muted, marginTop: 6, lineHeight: 19 },
   loadingWrap: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
-  loadingText: { marginTop: 10, color: C.muted, fontSize: 15 },
+  loadingTagline: { marginTop: 16, color: C.ink, fontSize: 16, fontWeight: "800" },
+  loadingText: { marginTop: 8, color: C.muted, fontSize: 15 },
+  brandShowcase: { borderRadius: 20, borderWidth: 1, borderColor: "#C8D9F7", backgroundColor: "#F5F9FF", padding: 18, marginBottom: 14 },
+  brandShowcaseTitle: { color: C.ink, fontSize: 20, lineHeight: 25, fontWeight: "900", marginTop: 14 },
+  brandShowcaseBody: { color: C.muted, fontSize: 14, lineHeight: 20, marginTop: 6 },
+  brandCompactRow: { flexDirection: "row", alignItems: "center", gap: 12, marginTop: 16, paddingTop: 14, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "#C8D9F7" },
+  brandCompactTitle: { color: C.ink, fontSize: 14, fontWeight: "900" },
+  brandCompactBody: { color: C.muted, fontSize: 12, lineHeight: 17, marginTop: 3 },
   prototypeBadge: { marginTop: 5, alignSelf: "flex-start", fontSize: 10, fontWeight: "800", color: C.muted, backgroundColor: "#E8ECF3", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 },
   dashboardHeader: { marginBottom: 14 },
   dashboardHint: { color: C.muted, fontSize: 13, marginTop: 8 },
