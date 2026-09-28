@@ -1515,12 +1515,17 @@ function App() {
     isActiveCustomerAction(replyActions[customerId]);
 
   const buildReactivationMessages = (limit = campaignRecipientLimit) => {
+    const goalServiceName =
+      activeWorkGoal?.serviceName ||
+      services.find((item) => item.id === activeWorkGoal?.serviceId)?.name ||
+      "";
     const eligible = customerContact
       ? customers
           .filter(
             (customer) =>
               isEligibleCustomer(customer, services, verticalId) &&
-              !hasActiveCustomerWork(customer.id)
+              !hasActiveCustomerWork(customer.id) &&
+              (!activeWorkGoal || !goalServiceName || customer.service === goalServiceName)
           )
           .sort((a, b) => {
             const aOverdue = monthsSince(a.lastServiceDate) - Number(repeatMonthsForCustomer(a, services, verticalId) || 0);
@@ -1566,12 +1571,17 @@ function App() {
 
   const simulateCurrentSend = () => {
     if (campaignStage === 0) {
+      const goalServiceName =
+        activeWorkGoal?.serviceName ||
+        services.find((item) => item.id === activeWorkGoal?.serviceId)?.name ||
+        "";
       const recipients = customerContact
         ? customers
             .filter(
               (customer) =>
                 isEligibleCustomer(customer, services, verticalId) &&
-                !hasActiveCustomerWork(customer.id)
+                !hasActiveCustomerWork(customer.id) &&
+                (!activeWorkGoal || !goalServiceName || customer.service === goalServiceName)
             )
             .sort((a, b) => {
               const aOverdue = monthsSince(a.lastServiceDate) - Number(repeatMonthsForCustomer(a, services, verticalId) || 0);
@@ -4448,8 +4458,23 @@ function App() {
       ? Math.max(0, Number(activeWorkGoal?.unplannedJobs) || 0)
       : 0;
   const workGoalRemainingJobs = Math.max(0, workGoalTargetJobs - workGoalBookedCount);
-  const recommendedReactivationBatchSize = Math.min(eligibleCustomers.length, Math.max(1, workGoalRemainingJobs * 3));
-  const reactivationAudience = campaignRecipientLimit && campaignRecipientLimit > 0 ? eligibleCustomers.slice(0, campaignRecipientLimit) : eligibleCustomers;
+  const reactivationEligibleCustomers = activeWorkGoal && evidenceServiceName
+    ? eligibleCustomers.filter((customer) => customer.service === evidenceServiceName)
+    : eligibleCustomers;
+  const reactivationRateForSizing = reactivationEvidence.evidenceReady
+    ? Math.max(0.1, Math.min(0.75, reactivationEvidence.rate))
+    : 1 / 3;
+  const evidenceSizedBatch = Math.max(
+    1,
+    Math.ceil(Math.max(1, workGoalRemainingJobs) / reactivationRateForSizing)
+  );
+  const recommendedReactivationBatchSize = Math.min(
+    reactivationEligibleCustomers.length,
+    evidenceSizedBatch
+  );
+  const reactivationAudience = campaignRecipientLimit && campaignRecipientLimit > 0
+    ? reactivationEligibleCustomers.slice(0, campaignRecipientLimit)
+    : reactivationEligibleCustomers;
   const workGoalFilled =
     !!activeWorkGoal &&
     !workGoalCapacityMismatch &&
@@ -4508,6 +4533,12 @@ function App() {
     workGoalPlanConflict,
     workGoalPlanShortfall,
     workGoalRemainingJobs,
+    reactivationEligibleCustomers,
+    reactivationEvidence,
+    quoteFollowUpEvidence,
+    enquiryFollowUpEvidence,
+    postEvidence,
+    offerEvidence,
     recommendedReactivationBatchSize,
     workGoalFilled,
     spareSlotSuggestions: suggestSpareSlots(replyActions),
@@ -4743,6 +4774,7 @@ function App() {
     resetReactivationMessages,
     simulateCurrentSend,
     lastSimulatedRecipients,
+    reactivationRuns,
     replyActions,
     setReplyActions,
     saveReplyAction,
