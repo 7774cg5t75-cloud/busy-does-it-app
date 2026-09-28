@@ -5826,7 +5826,7 @@ function SetupLimits({ s }) {
 
 function SetupConnect({ s }) {
   return (
-    <Shell s={s} noNav title="Choose what you use" subtitle="Prototype selection only — this does not connect a real external account.">
+    <Shell s={s} noNav title="Choose what you use" subtitle="Choose the systems BUSY should eventually work with. V3 can demonstrate the intake flow, but no real external account is read yet.">
       {connectionRows.map(([key, label, body]) => {
         const connected = !!s.connectedAccounts[key];
         return (
@@ -6402,6 +6402,26 @@ function HomeScreen({ s }) {
           ))}
           <Button label={s.workGoalAttempts.length ? "Review next move" : "Review this work goal"} onPress={() => s.go("bestMove")} />
           <Button label="Cancel work goal" onPress={s.clearWorkGoal} />
+        </Card>
+      ) : null}
+
+      {s.connectedIntakeKeys?.length ? (
+        <Card
+          eyebrow="BUSY connected intake"
+          title={`${s.connectedIntakeKeys.length} intake source${s.connectedIntakeKeys.length === 1 ? "" : "s"} ready`}
+          body={
+            s.lastConnectionSync
+              ? `The latest prototype sync produced ${s.lastConnectionSync.itemCount} incoming item${s.lastConnectionSync.itemCount === 1 ? "" : "s"}: ${s.lastConnectionSync.autoFiledCount} filed safely and ${s.lastConnectionSync.queuedForReviewCount} sent to BUSY Inbox for review.`
+              : "The selected sources can now demonstrate how email, calendar, CRM and invoicing events would enter the same BUSY Inbox and trust pipeline. No real external account is being read."
+          }
+          footer="Prototype source data only • customer-facing authority stays separate"
+          tone={s.connectedIntakePendingCount ? "amber" : "green"}
+        >
+          <MetricRow left="Connected intake sources" right={String(s.connectedIntakeKeys.length)} />
+          <MetricRow left="Connected-source items waiting" right={String(s.connectedIntakePendingCount)} strong={s.connectedIntakePendingCount > 0} />
+          <MetricRow left="Connected-source items auto-filed" right={String(s.connectedIntakeAutoFiledCount)} />
+          <Button label="Run prototype connected sync" onPress={s.runConnectedSourceDemoSync} />
+          <Button label="Connected accounts" onPress={() => s.go("connectedAccounts")} />
         </Card>
       ) : null}
 
@@ -9256,9 +9276,9 @@ function QuickCapture({ s }) {
     >
       <Card
         eyebrow="Prototype intake layer"
-        title="Messages and notes can become structured work"
-        body="This prototype parses only the text you paste here. It is not reading your email, messages, calendar or invoices in the background yet."
-        footer="Future connectors can feed this same intake pipeline"
+        title="Manual paste and connected sources use the same pipeline"
+        body="Quick Capture still lets you paste something manually. V3 can also demonstrate connected Email, Calendar, CRM and Invoicing items entering BUSY Inbox through the same triage and trust rules. No live account data is being read yet."
+        footer="One intake pipeline • different sources • same trust rules"
         tone="green"
       />
 
@@ -11547,9 +11567,9 @@ function RecordFilingSettings({ s }) {
       />
 
       <Card
-        eyebrow="More automatic"
-        title="Not enabled in v2.1"
-        body="Creating brand-new customers automatically, trusting name-only matches or filing through conflicts stays outside Safe Autopilot until we have stronger evidence and recovery controls."
+        eyebrow="Still deliberately restricted"
+        title="Connected sources do not get extra authority"
+        body="Even in V3, creating brand-new customers automatically, trusting name-only matches or filing through conflicts stays outside Safe Autopilot until we have stronger evidence and recovery controls."
         tone="amber"
       />
 
@@ -11560,29 +11580,85 @@ function RecordFilingSettings({ s }) {
 }
 
 function ConnectedAccounts({ s }) {
+  const intakeRows = connectionRows.filter(([key]) => intakeConnectionKeys.includes(key));
+  const actionRows = connectionRows.filter(([key]) => !intakeConnectionKeys.includes(key));
+  const renderConnection = ([key, label, body]) => {
+    const connected = !!s.connectedAccounts[key];
+    return (
+      <View key={key} style={styles.connectRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.connectTitle}>{label}</Text>
+          <Text style={styles.connectBody}>{body}</Text>
+          <Text style={styles.customerHistoryPhotoMeta}>
+            {connected ? "Prototype source selected" : "Not selected"}
+          </Text>
+        </View>
+        <Pressable
+          onPress={() => s.toggleConnection(key)}
+          style={[styles.connectButton, connected && styles.connectButtonOn]}
+        >
+          <Text style={[styles.connectButtonText, connected && { color: C.green }]}>
+            {connected ? "Disconnect" : "Connect"}
+          </Text>
+        </Pressable>
+      </View>
+    );
+  };
+
   return (
-    <Shell s={s} title="Connected accounts" subtitle="Prototype toggles only — no real external account is connected yet.">
+    <Shell
+      s={s}
+      title="Connected accounts"
+      subtitle="V3 demonstrates how connected business systems feed one operating assistant. These are still prototype connections — no real external account is being read."
+      brandCue="One business feed. One set of trust rules."
+    >
       <Card
-        eyebrow="v2.1 trusted intake architecture"
-        title="Future connections should feed Inbox, then use the same trust rules"
-        body="Email, calendar, CRM and invoicing connections should create candidate items in BUSY Inbox. Safe Autopilot may file only the narrow class of exact, high-confidence existing-customer updates you have allowed; exceptions stay for review."
-        footer="No external inbox or account is being read in this prototype"
+        eyebrow="V3 connected operating layer"
+        title="Incoming systems now feed the BUSY Inbox architecture"
+        body="Email, calendar, CRM and invoicing selections can generate honest prototype source events. Every event is parsed, triaged and checked against the same Safe Autopilot rules as Quick Capture. A connection never grants customer-facing authority."
+        footer="Prototype sync only • no live provider authentication yet"
         tone="green"
+      >
+        <MetricRow left="Intake sources selected" right={String(s.connectedIntakeKeys.length)} />
+        <MetricRow left="Connected-source items waiting" right={String(s.connectedIntakePendingCount)} />
+        <MetricRow left="Connected-source items auto-filed" right={String(s.connectedIntakeAutoFiledCount)} />
+      </Card>
+
+      <Text style={styles.sectionLabel}>Incoming business sources</Text>
+      {intakeRows.map(renderConnection)}
+
+      {s.connectedIntakeKeys.length ? (
+        <Button label="Run prototype connected sync" primary onPress={s.runConnectedSourceDemoSync} />
+      ) : (
+        <Card
+          eyebrow="Nothing selected yet"
+          title="Choose an intake source to test the V3 flow"
+          body="Select Email, Calendar, CRM / job system or Invoicing. BUSY will use generated demo records only — not your real account."
+          tone="blue"
+        />
+      )}
+
+      {s.lastConnectionSync ? (
+        <Card
+          eyebrow="Last prototype sync"
+          title={`${s.lastConnectionSync.itemCount} source item${s.lastConnectionSync.itemCount === 1 ? "" : "s"} processed`}
+          body={`${s.lastConnectionSync.autoFiledCount} passed Safe Autopilot and ${s.lastConnectionSync.queuedForReviewCount} waited for review. This receipt describes generated prototype records, not live provider data.`}
+          footer="The same split would apply to real connectors later"
+          tone={s.lastConnectionSync.queuedForReviewCount ? "amber" : "green"}
+        />
+      ) : null}
+
+      <Text style={styles.sectionLabel}>Customer-facing & marketing systems</Text>
+      {actionRows.map(renderConnection)}
+      <Card
+        eyebrow="Important boundary"
+        title="Connection does not mean permission to act"
+        body="A future live connection may provide data or make an approved action technically possible. Customer messages, public posts and paid spend still keep their own approval and spending controls."
+        footer="Read access and action authority remain separate"
+        tone="amber"
       />
-      {connectionRows.map(([key, label, body]) => {
-        const connected = !!s.connectedAccounts[key];
-        return (
-          <View key={key} style={styles.connectRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.connectTitle}>{label}</Text>
-              <Text style={styles.connectBody}>{body}</Text>
-            </View>
-            <Pressable onPress={() => s.toggleConnection(key)} style={[styles.connectButton, connected && styles.connectButtonOn]}>
-              <Text style={[styles.connectButtonText, connected && { color: C.green }]}>{connected ? "Disconnect" : "Connect"}</Text>
-            </Pressable>
-          </View>
-        );
-      })}
+
+      <Button label="Open BUSY Inbox" onPress={s.openBusyInbox} />
       <Button label="Done" primary onPress={s.back} />
     </Shell>
   );
