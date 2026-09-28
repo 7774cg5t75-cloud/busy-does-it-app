@@ -8733,7 +8733,20 @@ function PaidTest({ s }) {
         why="The free and low-cost options have been checked first in this flow. A capped local test is now one reasonable option, but it can still produce no work."
         evidence={[["Suggested test", `£${s.adBudget}`], ["Single-test limit", `£${s.testLimit}`], ["Weekly limit", `£${s.weeklyLimit}`], ["Guaranteed result", "No"]]}
       />
-      <Button label={s.alwaysAsk ? `Approve £${s.adBudget}` : `Run within £${s.adBudget} cap`} primary disabled={overSingleLimit} onPress={() => s.go("paidRunning")} />
+      <Button
+        label={s.alwaysAsk ? `Approve £${s.adBudget}` : `Run within £${s.adBudget} cap`}
+        primary
+        disabled={overSingleLimit}
+        onPress={() => {
+          s.recordWorkGoalAttempt({
+            key: "paid",
+            type: "paid",
+            label: `Paid test • up to £${s.adBudget}`,
+            cost: Number(s.adBudget) || 0,
+          });
+          s.go("paidRunning");
+        }}
+      />
       <Button label="Skip" onPress={() => s.jump("home", "Home")} />
       <SmallLink label="How this works" onPress={() => s.go("howAdsWork")} />
     </Shell>
@@ -8756,16 +8769,16 @@ function HowAdsWork({ s }) {
 
 function PaidRunning({ s }) {
   return (
-    <Shell s={s} title="Paid test running" subtitle="We’ll stop at your limit unless you approve more.">
+    <Shell s={s} title="Paid test approved" subtitle="Prototype only — no advert has actually been launched and no spend or enquiries are being invented.">
       <Card
-        eyebrow="Current test"
-        title={`£8.40 of £${s.adBudget} spent`}
-        body="2 people got in touch. 1 looks like a genuine job. No extra spend will happen beyond your limit."
-        footer="Maximum at risk stays fixed"
-        tone="green"
+        eyebrow="Approved limit"
+        title={`Up to £${s.adBudget} authorised`}
+        body="BUSY has recorded that this route was approved for the active work goal. A live version would now read real platform spend and genuine enquiries before deciding what to do next."
+        footer="Recorded live spend: £0 in this prototype"
+        tone="blue"
       />
-      <Button label="See result" primary onPress={() => s.jump("results", "Results")} />
-      <Button label="Stop test" danger onPress={() => s.jump("home", "Home")} />
+      <Button label="Back to the work goal" primary onPress={() => s.go("bestMove")} />
+      <Button label="Home" onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
 }
@@ -10803,7 +10816,16 @@ function OfferPlan({ s }) {
         status={s.offerGoal}
         tone="green"
         actionLabel="Use this plan"
-        onAction={() => s.go("offerRunning")}
+        onAction={() => {
+          s.recordWorkGoalAttempt({
+            key: "offer",
+            type: "offer",
+            label: `Limited offer • ${s.offerService}`,
+            service: s.offerService,
+            cost: 0,
+          });
+          s.go("offerRunning");
+        }}
         why="The plan is limited by date and booking capacity, starts with people who already know the business, and only adds paid reach if the target still has spaces."
         evidence={[["Offer goal", s.offerGoal], ["Booking cap", s.offerMax], ["Normal price", `£${s.normalPrice}`], ["Offer price", `£${s.offerPrice}`], ["Paid reach first?", "No"]]}
       />
