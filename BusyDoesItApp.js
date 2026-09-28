@@ -7154,23 +7154,28 @@ function WhyBestMove({ s }) {
 }
 
 function ExpertBestMove({ s }) {
+  const evidence = s.reactivationEvidence || {};
   return (
     <Shell s={s} title="Expert details" subtitle="The evidence behind this recommendation. You never need this screen to use Busy Does It.">
-      <Card eyebrow="Recommendation proof" title={`Review ${s.eligibleCustomers.length} eligible previous customer${s.eligibleCustomers.length === 1 ? "" : "s"} first`} tone="green">
-        <MetricRow left="Eligible previous customers" right={String(s.eligibleCustomers.length)} />
-        <MetricRow left="Timing rule" right={s.eligibilityRule} />
+      <Card eyebrow="Recommendation proof" title={`Review ${s.recommendedReactivationBatchSize} service-matched previous customer${s.recommendedReactivationBatchSize === 1 ? "" : "s"} first`} tone="green">
+        <MetricRow left="Eligible service-matched customers" right={String(s.reactivationEligibleCustomers?.length || 0)} />
+        <MetricRow left="Bookings still needed" right={String(s.workGoalRemainingJobs || 0)} />
+        <MetricRow left="Evidence basis" right={evidence.basis || "Cautious fallback"} />
+        <MetricRow left="Recorded sample" right={String(evidence.sample || 0)} />
+        <MetricRow left="Observed bookings" right={String(evidence.successes || 0)} />
+        <MetricRow left="Planning conversion rate" right={formatPercent(evidence.rate)} />
+        <MetricRow left="Evidence confidence" right={evidence.confidence || "No evidence yet"} strong />
         <MetricRow left="Advertising spend required" right="£0" />
-        <MetricRow left="Recommendation confidence" right={s.eligibleCustomers.length ? "Medium" : "Low"} strong />
       </Card>
       <Card
         eyebrow="Decision logic"
-        title="Why it outranked the alternatives"
-        body="The audience has an existing relationship with the business, the action has very low financial exposure, and it can be stopped immediately if the spare slot fills. Paid advertising stays behind it because it introduces more cost and uncertainty."
+        title={evidence.evidenceReady ? "Recorded outcomes now influence the audience size" : "The fallback stays deliberately cautious"}
+        body={evidence.evidenceReady ? "Busy uses a smoothed planning rate rather than the raw percentage, so a small run cannot swing the recommendation too aggressively. Service-specific evidence is preferred once there are at least three recorded outcomes; otherwise broader evidence is used." : "There are fewer than three usable recorded outcomes, so Busy has not treated the apparent rate as reliable. It keeps the cautious baseline until more evidence accumulates."}
       />
       <Card
-        eyebrow="Data limits"
-        title="What we do not know yet"
-        body="This prototype does not have enough real campaign history to estimate conversion probability reliably. A live version would show the historical evidence used, sample size, confidence and any assumptions."
+        eyebrow="Important limit"
+        title="This is planning evidence, not a promise"
+        body="The rate helps size the next low-risk action. It does not claim that a particular customer will book, and it does not override capacity, customer intent or the stop condition."
         tone="amber"
       />
       <Button label="Back to simple explanation" primary onPress={s.back} />
@@ -7380,6 +7385,11 @@ function CheckSend({ s }) {
           evidence: [
             ["Selected customer records", String(eligibleCount)],
             ["Service-specific drafts", String(serviceGroupCount)],
+            ["Evidence basis", s.reactivationEvidence?.basis || "Cautious fallback"],
+            ["Recorded sample", String(s.reactivationEvidence?.sample || 0)],
+            ["Observed bookings", String(s.reactivationEvidence?.successes || 0)],
+            ["Planning conversion rate", formatPercent(s.reactivationEvidence?.rate)],
+            ["Confidence", s.reactivationEvidence?.confidence || "No evidence yet"],
             ["Eligibility rule", s.eligibilityRule],
             ["Advertising required", "£0"],
           ],
@@ -7415,7 +7425,7 @@ function CheckSend({ s }) {
           <Card
             eyebrow={step.audience}
             title={step.title}
-            body={s.campaignRecipientLimit ? `Busy selected a proportional first batch of ${eligibleCount} customers for the current work target. Review each service group below; you can edit every draft separately.` : "Review each service group below. You can edit every draft separately."}
+            body={s.campaignRecipientLimit ? (s.reactivationEvidence?.evidenceReady ? `Busy sized this first batch to ${eligibleCount} using ${s.reactivationEvidence.basis.toLowerCase()} with ${s.reactivationEvidence.confidence.toLowerCase()} confidence. Review each service group below; you can edit every draft separately.` : `Busy sized this first batch to ${eligibleCount} using the cautious fallback because there is not enough recorded conversion evidence yet. Review each service group below; you can edit every draft separately.`) : "Review each service group below. You can edit every draft separately."}
             footer="Advertising spend: £0"
             tone="green"
           />
@@ -10651,21 +10661,22 @@ function Results({ s }) {
       </Card>
 
       <Card
-        eyebrow="Opportunity Engine learning"
-        title="The app is starting to learn which £0 actions deserve priority"
-        body="These are recorded prototype outcomes. Small samples should change rankings only gently until more real evidence exists."
+        eyebrow="Opportunity Engine evidence"
+        title="Recorded outcomes now influence ranking and audience size"
+        body="Busy prefers service-specific evidence once the sample is usable. Small samples stay low-confidence and fall back to cautious planning assumptions rather than swinging recommendations aggressively."
         tone="blue"
       >
-        <MetricRow left="Quiet-enquiry follow-ups approved" right={String(s.enquiryFollowUpSentCount)} />
-        <MetricRow left="Quiet-enquiry outcomes recorded" right={String(s.enquiryFollowUpOutcomeCount)} />
-        <MetricRow left="Still interested after enquiry follow-up" right={String(s.enquiryFollowUpInterestedCount)} strong={s.enquiryFollowUpInterestedCount > 0} />
-        <MetricRow left="Quote follow-ups approved" right={String(s.quoteFollowUpSentCount)} />
-        <MetricRow left="Quote follow-up outcomes recorded" right={String(s.quoteFollowUpOutcomeCount)} />
-        <MetricRow left="Accepted after quote follow-up" right={String(s.quoteFollowUpAcceptedCount)} strong={s.quoteFollowUpAcceptedCount > 0} />
-        <MetricRow left="Accepted quote value after follow-up" right={`£${s.quoteFollowUpAcceptedValue}`} />
-        <MetricRow left="Review requests approved" right={String(s.reviewRequestSentCount)} />
-        <MetricRow left="Review-request outcomes recorded" right={String(s.reviewRequestOutcomeCount)} />
-        <MetricRow left="Reviews recorded as left" right={String(s.reviewReceivedCount)} strong={s.reviewReceivedCount > 0} />
+        <MetricRow left="Previous-customer sample" right={String(s.reactivationEvidence?.sample || 0)} />
+        <MetricRow left="Previous-customer bookings" right={String(s.reactivationEvidence?.successes || 0)} />
+        <MetricRow left="Reactivation planning rate" right={formatPercent(s.reactivationEvidence?.rate)} />
+        <MetricRow left="Reactivation confidence" right={s.reactivationEvidence?.confidence || "No evidence yet"} strong={s.reactivationEvidence?.evidenceReady} />
+        <MetricRow left="Quiet-enquiry outcomes" right={String(s.enquiryFollowUpEvidence?.sample || 0)} />
+        <MetricRow left="Still-interested rate" right={formatPercent(s.enquiryFollowUpEvidence?.rate)} />
+        <MetricRow left="Quote follow-up outcomes" right={String(s.quoteFollowUpEvidence?.sample || 0)} />
+        <MetricRow left="Quote acceptance planning rate" right={formatPercent(s.quoteFollowUpEvidence?.rate)} />
+        <MetricRow left="Finished-job post outcomes" right={String(s.postEvidence?.sample || 0)} />
+        <MetricRow left="Post-to-booking planning rate" right={formatPercent(s.postEvidence?.rate)} />
+        <MetricRow left="Offer outcomes" right={String(s.offerEvidence?.sample || 0)} />
         <MetricRow left="Previous-customer completed value" right={`£${s.reactivationCompletedValue}`} />
       </Card>
 
