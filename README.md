@@ -2,6 +2,23 @@
 
 Busy Does It mobile app prototype.
 
+## v2.5 capacity-aware work goals
+- Added editable typical job length to service planning data so Busy can estimate whether a requested number of jobs can realistically fit into a selected diary slot.
+- Exterior-cleaning and the other prototype vertical packs now include transparent starter duration assumptions; these are planning defaults only and can be corrected by the owner.
+- Existing saved services are migrated safely: a saved duration is preserved, otherwise the current vertical default is used, with a conservative two-hour fallback for custom/unknown services.
+- “Fill a spare day” now shows which priority service is being used for capacity planning when relevant and lets the owner choose between multiple wanted services before setting the booking target.
+- Morning/afternoon slots use a simple four-hour planning window. This is deliberately transparent and is not presented as an exact real-world schedule.
+- If a requested target exceeds the apparent slot capacity, Busy stops before recommending marketing and explains the mismatch.
+- When some work can fit, the owner can reduce the goal to the realistic capacity of that slot or keep the larger target and spread it across the next suitable openings.
+- If the typical job itself is longer than the selected slot, Busy does not pretend that a full job fits there; it instead offers to spread the target or correct the planning assumption.
+- Added a “Typical job lengths” settings screen with simple 30-minute adjustments. The screen explicitly explains that travel, complexity and customer circumstances can change actual duration.
+- Custom services now ask for an optional typical job length alongside rough job value.
+- Home surfaces a capacity warning when an active goal conflicts with the selected slot instead of continuing to promote it.
+- Fixed the proportional-batch explanation edge case: when the eligible customer pool is smaller than the planned cap, Busy now states that all available eligible customers are included rather than claiming it is holding some back.
+- Centralised the visible prototype label so the app now shows v2.5 rather than the stale v2.1 badge.
+- The v2.4 proportional ranking and v2.3 stop condition remain intact: capacity is checked before marketing, free/low-risk options still rank before paid reach, and promotion stops when the target is covered.
+- Main navigation remains Home / Work / Results / Settings.
+
 ## v2.4 proportional opportunity engine
 - Added a simple work-amount choice to the spare-capacity journey: one, two or three bookings.
 - The chosen amount becomes the work-goal target, so Busy now tracks both the original target and how many bookings are still needed.
