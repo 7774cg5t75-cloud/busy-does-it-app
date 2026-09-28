@@ -300,6 +300,54 @@ function timeMatchesSlotPart(timeString, slotText) {
   return true;
 }
 
+function suggestSpareSlots(replyActions = {}, limit = 4) {
+  const occupied = new Set();
+
+  Object.values(replyActions || {}).forEach((action) => {
+    if (
+      !action?.done ||
+      action.type !== "booking" ||
+      ["Cancelled", "Completed"].includes(action.details?.bookingStatus || "Confirmed") ||
+      !action.details?.bookingDate
+    ) return;
+
+    const date = action.details.bookingDate;
+    const hour = Number(String(action.details?.bookingTime || "").split(":")[0]);
+    if (!Number.isFinite(hour)) {
+      occupied.add(`${date}:morning`);
+      occupied.add(`${date}:afternoon`);
+      return;
+    }
+    occupied.add(`${date}:${hour < 12 ? "morning" : "afternoon"}`);
+  });
+
+  const now = new Date();
+  now.setHours(12, 0, 0, 0);
+  const suggestions = [];
+
+  for (let step = 1; step <= 10 && suggestions.length < limit; step += 1) {
+    const date = new Date(now);
+    date.setDate(now.getDate() + step);
+    if (date.getDay() === 0) continue;
+
+    const iso = dateToISO(date);
+    const weekday = date.toLocaleDateString("en-GB", { weekday: "long" });
+    const shortDate = date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+
+    ["morning", "afternoon"].forEach((part) => {
+      if (suggestions.length >= limit || occupied.has(`${iso}:${part}`)) return;
+      suggestions.push({
+        id: `${iso}-${part}`,
+        date: iso,
+        part,
+        label: `${weekday} ${part} • ${shortDate}`,
+      });
+    });
+  }
+
+  return suggestions;
+}
+
 function normalizePhone(value) {
   let digits = String(value || "").replace(/\D/g, "");
   if (digits.startsWith("44") && digits.length >= 12) digits = `0${digits.slice(2)}`;
@@ -850,6 +898,7 @@ function App() {
   const [postcode, setPostcode] = useState("EX17");
   const [radius, setRadius] = useState("15");
   const [quietSlot, setQuietSlot] = useState("Thursday afternoon");
+  const [quietSlotConfirmed, setQuietSlotConfirmed] = useState(false);
   const [unansweredReviewCount, setUnansweredReviewCount] = useState("4");
   const [recentPhotoCountNeeded, setRecentPhotoCountNeeded] = useState("2");
   const [customers, setCustomers] = useState(customerSeed);
@@ -878,7 +927,7 @@ function App() {
   const [weeklyLimit, setWeeklyLimit] = useState("100");
   const [connectedAccounts, setConnectedAccounts] = useState(connectionSeed);
   const [dismissedOpportunities, setDismissedOpportunities] = useState([]);
-  const [selectedGap, setSelectedGap] = useState("Thursday afternoon");
+  const [selectedGap, setSelectedGap] = useState("");
   const [selectedCustomerGroup, setSelectedCustomerGroup] = useState(previousCustomerGroups[0]);
   const [selectedServiceId, setSelectedServiceId] = useState("driveway");
   const [moreWorkGoal, setMoreWorkGoal] = useState("More work next week");
@@ -962,6 +1011,7 @@ function App() {
         if (saved.postcode) setPostcode(saved.postcode);
         if (saved.radius) setRadius(saved.radius);
         if (saved.quietSlot) setQuietSlot(saved.quietSlot);
+        if (typeof saved.quietSlotConfirmed === "boolean") setQuietSlotConfirmed(saved.quietSlotConfirmed);
         if (saved.unansweredReviewCount !== undefined) setUnansweredReviewCount(String(saved.unansweredReviewCount));
         if (saved.recentPhotoCountNeeded !== undefined) setRecentPhotoCountNeeded(String(saved.recentPhotoCountNeeded));
         if (Array.isArray(saved.customers)) setCustomers(saved.customers);
@@ -1028,6 +1078,7 @@ function App() {
       postcode,
       radius,
       quietSlot,
+      quietSlotConfirmed,
       unansweredReviewCount,
       recentPhotoCountNeeded,
       customers,
@@ -1056,6 +1107,7 @@ function App() {
     postcode,
     radius,
     quietSlot,
+    quietSlotConfirmed,
     unansweredReviewCount,
     recentPhotoCountNeeded,
     customers,
@@ -1092,6 +1144,14 @@ function App() {
     setHistory([]);
     setScreen(next);
     setTab(nextTab);
+  };
+
+  const confirmSpareSlot = (slot) => {
+    const nextSlot = slot || "Any suitable work";
+    setSelectedGap(nextSlot);
+    setQuietSlot(nextSlot);
+    setQuietSlotConfirmed(true);
+    go("bestMove");
   };
 
   const completeOnboarding = () => {
@@ -3269,6 +3329,8 @@ function App() {
     setPostcode("EX17");
     setRadius("15");
     setQuietSlot("Thursday afternoon");
+    setQuietSlotConfirmed(false);
+    setSelectedGap("");
     setUnansweredReviewCount("4");
     setRecentPhotoCountNeeded("2");
     setCustomers(customerSeed);
@@ -3839,6 +3901,10 @@ function App() {
     setRadius,
     quietSlot,
     setQuietSlot,
+    quietSlotConfirmed,
+    setQuietSlotConfirmed,
+    confirmSpareSlot,
+    spareSlotSuggestions: suggestSpareSlots(replyActions),
     unansweredReviewCount,
     setUnansweredReviewCount,
     recentPhotoCountNeeded,
@@ -5016,7 +5082,7 @@ function HomeScreen({ s }) {
           canIgnore: true,
         }]
       : []),
-    ...(s.quietSlot && eligibleCount > 0
+    ...(s.quietSlotConfirmed && s.quietSlot && eligibleCount > 0
       ? [{
           id: "quiet-slot",
           score: 60 + Math.min(10, eligibleCount) + reactivationLearningBoost,
@@ -5232,7 +5298,8 @@ function HomeScreen({ s }) {
           onPress={s.openBusyInbox}
         />
       ) : null}
-      <Button label="Open work hub" primary={!s.inboxPendingItems.length} onPress={() => s.jump("workHub", "Work")} />
+      <Button label="I NEED MORE WORK" primary={!bestMove && !s.inboxPendingItems.length} onPress={() => s.go("workNow")} />
+      <Button label="Open work hub" primary={!s.inboxPendingItems.length && !!bestMove} onPress={() => s.jump("workHub", "Work")} />
       <Button label="Customer records" onPress={() => s.go("customerRecords")} />
       <Button label="Update my business data" onPress={() => s.go("businessData")} />
     </Shell>
@@ -5858,49 +5925,281 @@ function WorkNow({ s }) {
 }
 
 function ChooseGap({ s }) {
-  const gaps = ["Thursday afternoon", "Friday", "Next Tuesday", "Any suitable work"];
+  const gaps = Array.isArray(s.spareSlotSuggestions) ? s.spareSlotSuggestions : [];
   return (
-    <Shell s={s} title="When do you want work?" subtitle="Pick the spare time you want us to help fill.">
-      {gaps.map((g) => (
-        <Choice key={g} label={g} selected={s.selectedGap === g} onPress={() => s.setSelectedGap(g)} />
-      ))}
-      <Button label="Find the best first move" primary onPress={() => s.go("bestMove")} />
+    <Shell
+      s={s}
+      title="When do you want work?"
+      subtitle="Busy checked the saved booking diary first. These are likely open slots based on the bookings currently recorded."
+      brandCue="Diary first. Then the cheapest useful way to fill the gap."
+    >
+      {gaps.length ? (
+        <>
+          <Card
+            eyebrow="Likely spare capacity"
+            title="Open time found in the saved diary"
+            body="A morning or afternoon is treated as occupied when a confirmed booking is saved in that period. This is a prototype diary check, not a live external calendar connection."
+            tone="green"
+          />
+          {gaps.map((gap) => (
+            <Choice
+              key={gap.id}
+              label={gap.label}
+              sub="No confirmed booking saved in this period"
+              selected={s.selectedGap === gap.label}
+              onPress={() => s.setSelectedGap(gap.label)}
+            />
+          ))}
+        </>
+      ) : (
+        <Card
+          eyebrow="Diary looks busy"
+          title="No obvious gap found"
+          body="Busy could not find a clear morning or afternoon gap in the next saved diary window. You can still ask for any suitable work."
+          tone="blue"
+        />
+      )}
+
+      <Choice
+        label="Any suitable work"
+        sub="Find the strongest low-risk opportunity without tying it to one slot"
+        selected={s.selectedGap === "Any suitable work"}
+        onPress={() => s.setSelectedGap("Any suitable work")}
+      />
+      <Button
+        label="Find the best first move"
+        primary
+        disabled={!s.selectedGap}
+        onPress={() => s.confirmSpareSlot(s.selectedGap)}
+      />
+      <Button label="Enter a different quiet slot" onPress={() => s.go("businessData")} />
     </Shell>
   );
 }
 
 
 function BestMove({ s }) {
-  const count = s.eligibleCustomers.length;
+  const [showAlternatives, setShowAlternatives] = useState(false);
+  const gap = s.selectedGap || s.quietSlot || "Any suitable work";
+  const firstFreshEnquiry = s.freshEnquiryEntries?.[0] || null;
+  const firstQuietEnquiry = s.staleEnquiryEntries?.[0] || null;
+  const firstQuote = s.dueQuoteEntries?.[0] || null;
+
+  const candidates = [
+    ...(firstFreshEnquiry
+      ? [{
+          id: "gap-fresh-enquiry",
+          score: 100,
+          eyebrow: "Existing demand",
+          title: `Reply to ${firstFreshEnquiry.customer.name}`,
+          body: `${firstFreshEnquiry.customer.service} is already a live enquiry. Converting existing demand is lower-risk than creating new demand for ${gap.toLowerCase()}.`,
+          footer: "Cost: £0",
+          status: "Best existing intent",
+          tone: "green",
+          why: "A real customer is already asking about work. Busy checks existing demand before starting any new marketing.",
+          evidence: [
+            ["Goal", gap],
+            ["Customer intent", "Direct enquiry"],
+            ["Service", firstFreshEnquiry.customer.service],
+            ["Advertising required", "£0"],
+          ],
+          actionLabel: "Open enquiry",
+          onAction: () => s.openCustomer(firstFreshEnquiry.customer.id),
+        }]
+      : []),
+    ...(firstQuote
+      ? [{
+          id: "gap-quote",
+          score: 95 + Math.min(8, Number(firstQuote.action?.details?.quoteAmount || 0) / 250),
+          eyebrow: "Existing intent",
+          title: "Follow up a sent quote",
+          body: `${firstQuote.customer.name} already reached the quote stage for ${firstQuote.customer.service.toLowerCase()}. That is stronger intent than buying a new audience.`,
+          footer: "Cost: £0",
+          status: "Worth revisiting",
+          tone: "green",
+          why: "Busy prioritises people already close to booking before asking you to spend money.",
+          evidence: [
+            ["Goal", gap],
+            ["Quote age", `${firstQuote.age} days`],
+            ["Quote value", firstQuote.action?.details?.quoteAmount ? `£${firstQuote.action.details.quoteAmount}` : "Not recorded"],
+            ["Advertising required", "£0"],
+          ],
+          actionLabel: "Review quote follow-up",
+          onAction: () => s.prepareQuoteFollowUp(firstQuote.id),
+        }]
+      : []),
+    ...(firstQuietEnquiry
+      ? [{
+          id: "gap-quiet-enquiry",
+          score: 91 + Math.min(6, firstQuietEnquiry.age / 4),
+          eyebrow: "Existing intent",
+          title: "Revisit a quiet enquiry",
+          body: `${firstQuietEnquiry.customer.name} asked about ${firstQuietEnquiry.customer.service.toLowerCase()} ${firstQuietEnquiry.age} days ago and still has no recorded next action.`,
+          footer: "Cost: £0",
+          status: "Low-risk follow-up",
+          tone: "green",
+          why: "This person already showed interest, so a polite check-in is cheaper and usually lower-risk than paid promotion.",
+          evidence: [
+            ["Goal", gap],
+            ["Days since enquiry", String(firstQuietEnquiry.age)],
+            ["Service", firstQuietEnquiry.customer.service],
+            ["Advertising required", "£0"],
+          ],
+          actionLabel: "Review enquiry follow-up",
+          onAction: () => s.prepareEnquiryFollowUp(firstQuietEnquiry.customer.id),
+        }]
+      : []),
+    ...(s.eligibleCustomers.length
+      ? [{
+          id: "gap-reactivation",
+          score: 86 + Math.min(10, s.eligibleCustomers.length),
+          eyebrow: "Previous customers",
+          title: `Contact ${s.eligibleCustomers.length} due previous customer${s.eligibleCustomers.length === 1 ? "" : "s"}`,
+          body: `Busy found saved customers who are due again under the service-specific timing rules. It can prepare service-matched wording for ${gap.toLowerCase()}.`,
+          footer: "Advertising spend: £0",
+          status: "Ready to prepare",
+          tone: "green",
+          why: "Previous customers already know the business, so Busy checks them before buying new attention.",
+          evidence: [
+            ["Goal", gap],
+            ["Eligible previous customers", String(s.eligibleCustomers.length)],
+            ["Rule", s.eligibilityRule],
+            ["Advertising required", "£0"],
+          ],
+          actionLabel: "Review prepared messages",
+          onAction: () => s.startCampaign(0),
+        }]
+      : []),
+    ...(s.preparedPostOpportunity
+      ? [{
+          id: "gap-prepared-post",
+          score: 68,
+          eyebrow: "Free organic reach",
+          title: "Use the finished-job post already prepared",
+          body: `${s.preparedPostOpportunity.customerName}’s ${s.preparedPostOpportunity.service.toLowerCase()} job already has approved photos and editable wording ready.`,
+          footer: "Cost: £0 • nothing publishes without approval",
+          status: "Prepared",
+          tone: "green",
+          why: "This reuses real work and approved assets at no ad cost. It sits behind stronger existing customer intent but ahead of paid reach.",
+          evidence: [
+            ["Goal", gap],
+            ["Approved photos", String(s.preparedPostOpportunity.photoCount)],
+            ["Draft wording", "Ready"],
+            ["Advertising required", "£0"],
+          ],
+          actionLabel: "Review post",
+          onAction: () => s.openJobPostApproval(s.preparedPostOpportunity.customerId, s.preparedPostOpportunity.jobId),
+        }]
+      : []),
+    ...(s.photoOpportunity && !s.preparedPostOpportunity
+      ? [{
+          id: "gap-photo-post",
+          score: 64,
+          eyebrow: "Free organic reach",
+          title: "Turn approved job photos into a post",
+          body: `${s.photoOpportunity.photoCount} approved job photo${s.photoOpportunity.photoCount === 1 ? "" : "s"} can be turned into a finished-job post before paying for reach.`,
+          footer: "Cost: £0 • owner approval required",
+          status: "Free option",
+          tone: "green",
+          why: "Busy uses assets the owner deliberately supplied before suggesting extra spend.",
+          evidence: [
+            ["Goal", gap],
+            ["Approved photos", String(s.photoOpportunity.photoCount)],
+            ["Public use", "Still needs approval"],
+            ["Advertising required", "£0"],
+          ],
+          actionLabel: "Prepare post",
+          onAction: () => s.openJobPhotoOpportunity(s.photoOpportunity.customerId, s.photoOpportunity.jobId),
+        }]
+      : []),
+    {
+      id: "gap-free-audit",
+      score: 50,
+      eyebrow: "Free check",
+      title: "Check the easy improvements before paying",
+      body: "If the record-based opportunities are thin, review the supplied profile and social information for obvious free fixes before buying attention.",
+      footer: "Cost: £0",
+      status: "Free fallback",
+      tone: "blue",
+      why: "Busy Does It should improve what the business already has before escalating to paid advertising when time allows.",
+      evidence: [
+        ["Goal", gap],
+        ["Advertising required", "£0"],
+        ["Live profile connection", s.connectedAccounts.googleBusiness || s.connectedAccounts.meta ? "Partly selected in prototype" : "Not connected"],
+        ["Prototype limitation", "Some profile checks still use manual test inputs"],
+      ],
+      actionLabel: "Check free improvements",
+      onAction: () => s.go("profileAudit"),
+    },
+    {
+      id: "gap-paid-test",
+      score: 10,
+      eyebrow: "Escalation only",
+      title: "Consider a capped local paid test",
+      body: "Only use paid reach if the cheaper routes above are unsuitable or still leave the capacity unfilled.",
+      footer: `Maximum prototype test: £${s.testLimit}`,
+      status: "Later",
+      tone: "amber",
+      why: "Paid reach adds cost and uncertainty, so it stays behind useful £0 options. The owner still approves the maximum amount at risk.",
+      evidence: [
+        ["Goal", gap],
+        ["Maximum test", `£${s.testLimit}`],
+        ["Results guaranteed", "No"],
+        ["Owner approval", "Required"],
+      ],
+      actionLabel: "Review paid-test controls",
+      onAction: () => s.go("paidTest"),
+    },
+  ].sort((a, b) => (b.score || 0) - (a.score || 0));
+
+  const best = candidates[0];
+  const alternatives = candidates.slice(1);
+
   return (
-    <Shell s={s} title="Best first move" subtitle="This recommendation is calculated from your saved customer records.">
+    <Shell
+      s={s}
+      title="Best first move"
+      subtitle={`Goal: fill ${gap.toLowerCase()}. Busy ranked the cheapest credible routes using the records and approved assets already saved.`}
+      brandCue="Existing demand first. Free reach next. Paid only if needed."
+    >
       <OpportunityCard
-        eyebrow="Recommended"
-        title={count ? `Review ${count} previous customer${count === 1 ? "" : "s"}` : "No previous customers are due yet"}
-        body={
-          count
-            ? `You have ${s.quietSlot || "a quiet slot"} to fill and ${count} customer records meet the current service-specific reactivation rule.`
-            : `No saved customer currently meets the reactivation rule. ${s.eligibilityRule}`
-        }
-        footer="Advertising spend: £0"
-        status={count ? "Best first move" : "Nothing to send"}
-        tone={count ? "green" : "blue"}
-        actionLabel={count ? "Review customers" : "Manage customers"}
-        onAction={() => s.go("eligibleCustomers")}
-        why="Previous customers already know the business, so eligible records are checked before buying new attention."
-        evidence={[
-          ["Customer records", String(s.customers.length)],
-          ["Eligible now", String(count)],
-          ["Rule", s.eligibilityRule],
-          ["Advertising required", "£0"],
-        ]}
+        {...best}
+        eyebrow={`Recommended • ${best.eyebrow}`}
+        actionLabel={best.actionLabel}
       />
-      <Button label="See other options" onPress={() => s.go("otherOptions")} />
-      <Button label="Manage customer records" onPress={() => s.go("customerRecords")} />
+
+      <Card
+        eyebrow="What Busy checked"
+        title="The opportunity engine compared the routes underneath"
+        body="Live enquiries, quiet enquiries, sent quotes, due previous customers, approved job content, free profile improvements and a capped paid test were ranked without making you choose a marketing channel."
+        tone="blue"
+      >
+        <MetricRow left="Chosen work goal" right={gap} />
+        <MetricRow left="Eligible previous customers" right={String(s.eligibleCustomers.length)} />
+        <MetricRow left="Quiet enquiries" right={String(s.staleEnquiryEntries.length)} />
+        <MetricRow left="Quote follow-ups due" right={String(s.dueQuoteEntries.length)} />
+        <MetricRow left="Paid spend in best move" right={best.id === "gap-paid-test" ? `Up to £${s.testLimit}` : "£0"} strong />
+      </Card>
+
+      {alternatives.length ? (
+        <Button
+          label={showAlternatives ? "Hide other routes" : `See other routes • ${alternatives.length}`}
+          onPress={() => setShowAlternatives((value) => !value)}
+        />
+      ) : null}
+
+      {showAlternatives
+        ? alternatives.map((item) => (
+            <OpportunityCard key={item.id} {...item} actionLabel={item.actionLabel} />
+          ))
+        : null}
+
+      <Button label="Change the spare slot" onPress={() => s.go("chooseGap")} />
       <Button label="Not now" onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
 }
+
 
 function WhyBestMove({ s }) {
   return (
