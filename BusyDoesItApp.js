@@ -4554,6 +4554,15 @@ function App() {
     (item) => item.status === "Filed" && !item.autoFiled
   ).length;
   const inboxDismissedCount = inboxItems.filter((item) => item.status === "Dismissed").length;
+  const connectedIntakeKeys = intakeConnectionKeys.filter((key) => !!connectedAccounts[key]);
+  const connectedIntakeItems = inboxItems.filter((item) => item.connectedDemo);
+  const connectedIntakePendingCount = connectedIntakeItems.filter((item) => item.status === "Pending").length;
+  const connectedIntakeAutoFiledCount = connectedIntakeItems.filter(
+    (item) => item.status === "Filed" && item.autoFiled
+  ).length;
+  const lastConnectionSync = [...connectionSyncLog].sort((a, b) =>
+    String(b.syncedAt || "").localeCompare(String(a.syncedAt || ""))
+  )[0] || null;
   const inboxTopItem = inboxPendingItems[0] || null;
   const lastAutoFiledInboxItem =
     inboxItems.find((item) => item.id === lastAutoFiledInboxItemId) ||
@@ -4959,6 +4968,13 @@ function App() {
     queueCaptureToInbox,
     queueInboxTestBatch,
     queueSafeAutopilotExample,
+    runConnectedSourceDemoSync,
+    connectionSyncLog,
+    connectedIntakeKeys,
+    connectedIntakeItems,
+    connectedIntakePendingCount,
+    connectedIntakeAutoFiledCount,
+    lastConnectionSync,
     fileSafeInboxItem,
     openInboxItem,
     dismissInboxItem,
