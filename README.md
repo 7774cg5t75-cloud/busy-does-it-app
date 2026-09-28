@@ -2,6 +2,23 @@
 
 Busy Does It mobile app prototype.
 
+## v2.9 adaptive work-filling plan
+- Turned an active work goal into a persistent closed-loop plan rather than a one-shot recommendation.
+- Each work goal now stores approved actions that were actually tried, including previous-customer outreach, quiet-enquiry follow-ups, quote follow-ups, finished-job posts, limited offers, free profile checks and capped paid tests.
+- Approved actions are tied to the specific goal and persist with it. Closing/cancelling the goal clears that plan naturally without creating another permanent campaign area.
+- BUSY now removes already-tried goal actions from the goal-specific recommendation queue instead of repeatedly recommending the same quote, enquiry, post, customer batch, offer or paid test.
+- Previous-customer reactivation is especially adaptive: customers already contacted for the current goal are excluded from later batches, so a second batch can use different suitable customers if more bookings are still needed.
+- Quote and enquiry recommendations skip customers already followed up for the active goal. Finished-job post recommendations skip a post already approved for that goal.
+- The work-goal card on Home now shows how many goal actions have been tried and the latest recorded outcomes.
+- The Best Move screen becomes “Best next move” after the first approved action and includes a compact BUSY’S PLAN card showing target, booked count, remaining count, actions tried and their current outcomes.
+- Existing outcome data is reused rather than duplicated: quote outcomes, enquiry outcomes, reactivation bookings and post outcomes are reflected back into the plan automatically.
+- Limited offers and paid tests are recorded as tried only when the owner explicitly approves/uses them.
+- Paid-test prototype results are now truthful: approving a paid test records the route and cap, but the prototype no longer invents spend, enquiries or jobs.
+- Free profile/audit work is also treated as a tried route for the active goal so BUSY does not keep looping back to the same free check.
+- If all currently sensible routes have already been tried and the goal is still open, BUSY shows a deliberate “No new action worth forcing” hold state with recommended additional spend of £0 rather than manufacturing activity.
+- Capacity, service matching, evidence confidence, owner approval and the stop condition still outrank the adaptive sequence.
+- Main navigation remains Home / Work / Results / Settings.
+
 ## v2.8 brand identity system
 - Adopted the approved “Trusted Assistant” direction as the primary BUSY DOES IT identity and the approved B/check monogram as the compact app mark.
 - Replaced the plain text-only header with a reusable BUSY DOES IT brand lockup: assistant-style stacked-card/check symbol, BUSY wordmark, DOES IT accent and the existing “More work. Less fuss.” tagline.
