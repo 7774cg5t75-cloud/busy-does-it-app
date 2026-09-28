@@ -3323,6 +3323,133 @@ function App() {
     setInboxItems((current) => [...current, ...items]);
   };
 
+  const runConnectedSourceDemoSync = () => {
+    const sourceKeys = intakeConnectionKeys.filter((key) => !!connectedAccounts[key]);
+    if (!sourceKeys.length) {
+      Alert.alert(
+        "No intake source selected",
+        "Connect Email, Calendar, CRM / job system or Invoicing first. This remains a prototype connection — no real account will be read."
+      );
+      return false;
+    }
+
+    const availableCustomers = customers.filter(
+      (customer) =>
+        !!customer.phone &&
+        !!customer.service &&
+        !isActiveCustomerAction(replyActions[customer.id])
+    );
+    const usedCustomerIds = new Set();
+    const takeCustomer = () => {
+      const unused = availableCustomers.find((customer) => !usedCustomerIds.has(customer.id));
+      const customer = unused || availableCustomers[usedCustomerIds.size % Math.max(1, availableCustomers.length)] || null;
+      if (customer) usedCustomerIds.add(customer.id);
+      return customer;
+    };
+
+    const today = dateToISO(new Date());
+    const base = Date.now();
+    const queuedAt = new Date().toISOString();
+    const examples = [];
+
+    sourceKeys.forEach((key, index) => {
+      const customer = key === "email" ? null : takeCustomer();
+      if (key === "email") {
+        examples.push({
+          key,
+          source: "Connected Email • demo",
+          rawText: `Name: Alex Morgan\nPhone: 07700 90300${index}\nEmail: alex.morgan${index}@example.com\nHi, could I get a quote for ${(services.find((item) => item.wanted)?.name || services[0]?.name || "your service").toLowerCase()} please?\nAddress: 18 Market Road EX17 4XY`,
+        });
+      } else if (key === "calendar" && customer) {
+        examples.push({
+          key,
+          source: "Connected Calendar • demo",
+          rawText: `Customer: ${customer.name}\n${customer.phone}\nBooked ${customer.service} for ${addDaysFromISO(today, 4)} at 10:30\nJob value £${Number(customer.lastJobValue) || 250}\nSite: ${customer.address || "12 Demo Lane EX17 2AA"}`,
+        });
+      } else if (key === "crm" && customer) {
+        examples.push({
+          key,
+          source: "Connected CRM • demo",
+          rawText: `Name: ${customer.name}\nPhone: ${customer.phone}\n${customer.service}\nQuote sent ${today} for £${Math.max(100, Number(customer.lastJobValue) || 250)}\nAddress: ${customer.address || "6 Customer Close EX17 3BB"}`,
+        });
+      } else if (key === "invoicing" && customer) {
+        examples.push({
+          key,
+          source: "Connected Invoicing • demo",
+          rawText: `Customer: ${customer.name}\n${customer.phone}\nFinished ${customer.service} ${addDaysFromISO(today, -1)}\nPaid £${Math.max(80, Number(customer.lastJobValue) || 220)}\nAddress: ${customer.address || "9 Invoice Way EX17 5CC"}`,
+        });
+      } else {
+        const service = services.find((item) => item.wanted)?.name || services[0]?.name || "Service";
+        examples.push({
+          key,
+          source: `Connected ${key} • demo`,
+          rawText: `Name: Demo ${key}\nPhone: 07700 9040${index}\nNew enquiry received today asking about ${service.toLowerCase()}.`,
+        });
+      }
+    });
+
+    let autoFiledCount = 0;
+    const pendingItems = [];
+
+    examples.forEach((example, index) => {
+      const parsed = parseQuickCapture(
+        example.rawText,
+        services,
+        services.find((item) => item.wanted)?.name || trade || "Service"
+      );
+      const triage = triageInboxCandidate(parsed, customers, replyActions);
+      const item = {
+        id: `connected-sync-${base}-${index}`,
+        status: "Pending",
+        source: example.source,
+        sourceConnection: example.key,
+        connectedDemo: true,
+        rawText: example.rawText,
+        parsed,
+        queuedAt,
+        originalLane: triage.lane,
+        originalReason: triage.reason,
+        originalPriorityScore: triage.priorityScore,
+        testItem: true,
+      };
+      const evaluation = evaluateSafeAutoFile(
+        parsed,
+        customers,
+        replyActions,
+        item.source,
+        item.rawText
+      );
+      const autoFiled =
+        recordFilingMode === "safe" &&
+        evaluation.safe &&
+        fileSafeInboxItem(item, evaluation);
+      if (autoFiled) {
+        autoFiledCount += 1;
+      } else {
+        pendingItems.push(item);
+      }
+    });
+
+    if (pendingItems.length) {
+      setInboxItems((current) => [...current, ...pendingItems]);
+    }
+    setConnectionSyncLog((log) => [
+      ...log,
+      {
+        id: `connection-sync-${base}`,
+        syncedAt: queuedAt,
+        sourceKeys,
+        itemCount: examples.length,
+        autoFiledCount,
+        queuedForReviewCount: pendingItems.length,
+        prototype: true,
+      },
+    ]);
+    setTab("Work");
+    go("busyInbox");
+    return true;
+  };
+
   const queueSafeAutopilotExample = () => {
     const customer = customers.find(
       (candidate) =>
