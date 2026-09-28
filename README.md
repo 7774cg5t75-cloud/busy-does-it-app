@@ -2,6 +2,22 @@
 
 Busy Does It mobile app prototype.
 
+## v3.0 connected operating assistant
+- Promoted the connected-account layer from decorative prototype toggles into an honest connected-intake architecture that feeds the existing BUSY Inbox.
+- Added Email / enquiries as a first-class intake source alongside Calendar, CRM / job system and Invoicing.
+- Intake connections and customer-facing/marketing connections are now treated as different kinds of capability. Reading or receiving business data never grants permission to message customers, publish publicly or spend money.
+- Connected Email, Calendar, CRM and Invoicing selections can run a prototype connected-source sync using generated demo records only. No real external account, inbox, calendar, CRM or invoicing provider is authenticated or read in v3.0.
+- Prototype source events use the exact same parse → triage → Safe Autopilot / owner-review pipeline as Quick Capture. There is no separate “connected data” truth path.
+- Each connected-source item is labelled with its origin and remains traceable through BUSY Inbox, Intake History and customer records.
+- Safe Autopilot keeps the same narrow authority for connected data: only exact, high-confidence existing-customer updates with the required stage evidence and no conflict may auto-file.
+- New-customer creation, name-only matching, conflicts, uncertain extraction and incomplete records still wait for owner review even when they arrive from a connected source.
+- Added persistent connected-sync receipts recording which prototype sources ran, how many items were produced, how many filed safely and how many waited for review.
+- Home now shows a compact BUSY connected-intake card when intake sources are selected, including waiting/auto-filed counts and a direct prototype-sync action.
+- Connected Accounts now separates incoming business sources from customer-facing/marketing systems and explicitly explains the permission boundary.
+- Quick Capture remains available and now clearly shares the same V3 intake pipeline as connected sources.
+- No extra permanent navigation was added. Home / Work / Results / Settings remains the main structure.
+- All v2.9 adaptive work-goal logic, v2.8 branding, v2.7 evidence learning, v2.6 capacity planning and earlier safety/stop rules remain intact.
+
 ## v2.9 adaptive work-filling plan
 - Turned an active work goal into a persistent closed-loop plan rather than a one-shot recommendation.
 - Each work goal now stores approved actions that were actually tried, including previous-customer outreach, quiet-enquiry follow-ups, quote follow-ups, finished-job posts, limited offers, free profile checks and capped paid tests.
