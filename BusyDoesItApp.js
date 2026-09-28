@@ -6234,6 +6234,7 @@ function HomeScreen({ s }) {
         >
           <MetricRow left="Matching confirmed bookings" right={String(s.workGoalBookedCount)} />
           <MetricRow left="Recorded value" right={s.workGoalBookedValue ? `£${s.workGoalBookedValue}` : "£0"} />
+          <MetricRow left="Approved goal actions tried" right={String(s.workGoalAttempts.length)} />
           {s.activeWorkGoal.spreadAcrossSlots
             ? s.workGoalPlannedSlots.slice(0, 4).map((slot) => (
                 <MetricRow
@@ -6244,7 +6245,10 @@ function HomeScreen({ s }) {
                 />
               ))
             : null}
-          <Button label="Review this work goal" onPress={() => s.go("bestMove")} />
+          {s.workGoalAttemptRows.slice(-2).map((attempt) => (
+            <MetricRow key={attempt.id} left={attempt.label} right={attempt.outcome} strong={attempt.tone === "green"} />
+          ))}
+          <Button label={s.workGoalAttempts.length ? "Review next move" : "Review this work goal"} onPress={() => s.go("bestMove")} />
           <Button label="Cancel work goal" onPress={s.clearWorkGoal} />
         </Card>
       ) : null}
@@ -6955,8 +6959,14 @@ function BestMove({ s }) {
   const [showAlternatives, setShowAlternatives] = useState(false);
   const gap = s.selectedGap || s.quietSlot || "Any suitable work";
   const firstFreshEnquiry = s.freshEnquiryEntries?.[0] || null;
-  const firstQuietEnquiry = s.staleEnquiryEntries?.[0] || null;
-  const firstQuote = s.dueQuoteEntries?.[0] || null;
+  const firstQuietEnquiry =
+    s.staleEnquiryEntries?.find(
+      (entry) => !s.workGoalAttemptKeys?.has(`enquiry:${entry.customer.id}`)
+    ) || null;
+  const firstQuote =
+    s.dueQuoteEntries?.find(
+      (entry) => !s.workGoalAttemptKeys?.has(`quote:${entry.id}`)
+    ) || null;
   const remainingJobs = Math.max(1, s.workGoalRemainingJobs || 1);
   const targetedCustomerCount = Math.min(
     s.reactivationEligibleCustomers?.length || 0,
@@ -7191,7 +7201,7 @@ function BestMove({ s }) {
           onAction: () => s.startCampaign(0, targetedCustomerCount),
         }]
       : []),
-    ...(s.preparedPostOpportunity
+    ...(s.preparedPostOpportunity && !s.workGoalAttemptKeys?.has(`post:${s.preparedPostOpportunity.customerId}:${s.preparedPostOpportunity.jobId}`)
       ? [{
           id: "gap-prepared-post",
           score: 68 + (s.postEvidence?.scoreAdjustment || 0),
@@ -7238,7 +7248,7 @@ function BestMove({ s }) {
           onAction: () => s.openJobPhotoOpportunity(s.photoOpportunity.customerId, s.photoOpportunity.jobId),
         }]
       : []),
-    {
+    ...(!s.workGoalAttemptKeys?.has("offer") ? [{
       id: "gap-special-offer",
       score: remainingJobs >= 3 ? 88 : remainingJobs === 2 ? 72 : 46,
       eyebrow: "Controlled offer",
@@ -7259,7 +7269,7 @@ function BestMove({ s }) {
       ],
       actionLabel: "Build limited offer",
       onAction: s.prepareOfferForWorkGoal,
-    },
+    }] : []),
     {
       id: "gap-free-audit",
       score: 50,
@@ -7279,7 +7289,7 @@ function BestMove({ s }) {
       actionLabel: "Check free improvements",
       onAction: () => s.go("profileAudit"),
     },
-    {
+    ...(!s.workGoalAttemptKeys?.has("paid") ? [{
       id: "gap-paid-test",
       score: remainingJobs >= 3 ? 34 : remainingJobs === 2 ? 20 : 8,
       eyebrow: "Escalation only",
@@ -7301,7 +7311,7 @@ function BestMove({ s }) {
         s.setAdBudget(String(suggestedPaidBudget));
         s.go("paidTest");
       },
-    },
+    }] : []),
   ].sort((a, b) => (b.score || 0) - (a.score || 0));
 
   const best = candidates[0];
@@ -7310,8 +7320,8 @@ function BestMove({ s }) {
   return (
     <Shell
       s={s}
-      title="Best first move"
-      subtitle={`Goal: fill ${gap.toLowerCase()}. BUSY ranked the cheapest credible routes using the records and approved assets already saved.`}
+      title={s.workGoalAttempts.length ? "Best next move" : "Best first move"}
+      subtitle={`Goal: fill ${gap.toLowerCase()}. BUSY has ${s.workGoalAttempts.length ? "recalculated from what has already been tried and what still remains" : "ranked the cheapest credible routes using the records and approved assets already saved"}.`}
       brandCue="Existing demand first. Free reach next. Paid only if needed."
     >
       <OpportunityCard
@@ -7319,6 +7329,29 @@ function BestMove({ s }) {
         eyebrow={`Recommended • ${best.eyebrow}`}
         actionLabel={best.actionLabel}
       />
+
+      {s.activeWorkGoal ? (
+        <Card
+          eyebrow="BUSY’S PLAN"
+          title={`${s.workGoalBookedCount} of ${s.workGoalTargetJobs} booked • ${s.workGoalRemainingJobs} still needed`}
+          body={
+            s.workGoalAttempts.length
+              ? `BUSY remembers ${s.workGoalAttempts.length} approved action${s.workGoalAttempts.length === 1 ? "" : "s"} for this goal and has removed them from the recommendation queue.`
+              : "No goal action has been approved yet. BUSY will remember each approved step and recalculate what should happen next."
+          }
+          footer="Capacity and stop rules still outrank marketing"
+          tone="blue"
+        >
+          {s.workGoalAttemptRows.slice(-4).map((attempt) => (
+            <MetricRow
+              key={attempt.id}
+              left={attempt.label}
+              right={attempt.outcome}
+              strong={attempt.tone === "green"}
+            />
+          ))}
+        </Card>
+      ) : null}
 
       {s.activeWorkGoal?.spreadAcrossSlots && s.workGoalPlannedSlots.length ? (
         <Card
