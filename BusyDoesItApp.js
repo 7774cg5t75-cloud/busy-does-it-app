@@ -5691,19 +5691,39 @@ function HomeScreen({ s }) {
           body={
             s.workGoalCapacityMismatch
               ? `Capacity check needed: ${s.workGoalTargetJobs} bookings were requested, but ${s.workGoalPlanningService?.name || "the planning service"} at about ${formatDurationHours(s.workGoalDurationHours)} per job appears to fit only ${s.workGoalCapacityMax} in this ${s.activeWorkGoal.part || "slot"}.`
+              : s.activeWorkGoal.spreadAcrossSlots
+              ? s.workGoalPlanConflict
+                ? "One of the planned openings has since been taken by other work. Refresh the capacity plan before promoting further."
+                : s.workGoalPlanShortfall
+                ? `Busy found room for ${s.workGoalTargetJobs - s.workGoalPlanShortfall} of ${s.workGoalTargetJobs} requested bookings in the next ${s.activeWorkGoal.planHorizonDays || 21} days. The remaining ${s.workGoalPlanShortfall} still need diary capacity.`
+                : `Busy has spread ${s.workGoalTargetJobs} bookings across ${s.workGoalPlannedSlots.length} specific openings. ${s.workGoalRemainingJobs} still needed.`
               : `Target: ${s.workGoalTargetJobs} suitable booking${s.workGoalTargetJobs === 1 ? "" : "s"}. ${s.workGoalRemainingJobs} still needed. Busy will size the next action to the remaining gap and stop escalating when the target is covered.`
           }
           footer={
             s.workGoalCapacityMismatch
               ? "Review capacity before promoting"
+              : s.workGoalPlanConflict
+              ? "Diary changed • refresh plan"
+              : s.workGoalPlanShortfall
+              ? `${s.workGoalPlanShortfall} booking${s.workGoalPlanShortfall === 1 ? "" : "s"} still need capacity`
               : s.workGoalBookedCount
               ? `${s.workGoalBookedCount} of ${s.workGoalTargetJobs} booked`
               : `${s.workGoalRemainingJobs} still needed`
           }
-          tone={s.workGoalCapacityMismatch ? "amber" : "blue"}
+          tone={s.workGoalCapacityMismatch || s.workGoalPlanConflict || s.workGoalPlanShortfall ? "amber" : "blue"}
         >
           <MetricRow left="Matching confirmed bookings" right={String(s.workGoalBookedCount)} />
           <MetricRow left="Recorded value" right={s.workGoalBookedValue ? `£${s.workGoalBookedValue}` : "£0"} />
+          {s.activeWorkGoal.spreadAcrossSlots
+            ? s.workGoalPlannedSlots.slice(0, 4).map((slot) => (
+                <MetricRow
+                  key={slot.id}
+                  left={slot.label}
+                  right={`${slot.bookedCount}/${slot.targetJobs}${slot.conflict ? " • changed" : ""}`}
+                  strong={slot.bookedCount >= slot.targetJobs && !slot.conflict}
+                />
+              ))
+            : null}
           <Button label="Review this work goal" onPress={() => s.go("bestMove")} />
           <Button label="Cancel work goal" onPress={s.clearWorkGoal} />
         </Card>
@@ -6487,6 +6507,56 @@ function BestMove({ s }) {
     );
   }
 
+  if (s.activeWorkGoal?.spreadAcrossSlots && s.workGoalPlanConflict) {
+    return (
+      <Shell
+        s={s}
+        title="The diary changed"
+        subtitle="One of the openings in this work plan has since been taken by other booked work."
+        brandCue="Refresh the plan before promoting more work."
+      >
+        <Card
+          eyebrow="Capacity plan needs refreshing"
+          title="A planned opening is no longer cleanly available"
+          body="Busy keeps the plan conservative. Rather than counting on a slot that now contains other work, rebuild the plan from the current diary."
+          footer="No extra marketing until the capacity plan is credible again"
+          tone="amber"
+        />
+        <Button label="Refresh capacity plan" primary onPress={s.refreshSpreadWorkGoalPlan} />
+        <Button label="View work diary" onPress={() => s.jump("workHub", "Work")} />
+      </Shell>
+    );
+  }
+
+  if (s.activeWorkGoal?.spreadAcrossSlots && s.workGoalPlanShortfall > 0) {
+    const planned = s.workGoalTargetJobs - s.workGoalPlanShortfall;
+    return (
+      <Shell
+        s={s}
+        title="Not enough open diary capacity yet"
+        subtitle={`Busy checked the next ${s.activeWorkGoal.planHorizonDays || 21} days before recommending more promotion.`}
+        brandCue="Do not invent capacity."
+      >
+        <Card
+          eyebrow="Capacity shortfall"
+          title={`${planned} of ${s.workGoalTargetJobs} requested bookings can be planned`}
+          body={`The current diary does not show enough clean openings for the remaining ${s.workGoalPlanShortfall} booking${s.workGoalPlanShortfall === 1 ? "" : "s"}. Busy should not market work it cannot confidently place.`}
+          footer="Choose a smaller target or free more diary capacity"
+          tone="amber"
+        />
+        {planned > 0 ? (
+          <Button
+            label={`Use the ${planned} planned booking${planned === 1 ? "" : "s"} for now`}
+            primary
+            onPress={s.fitWorkGoalToPlannedCapacity}
+          />
+        ) : null}
+        <Button label="Choose a different work goal" onPress={() => s.go("chooseGap")} />
+        <Button label="View work diary" onPress={() => s.jump("workHub", "Work")} />
+      </Shell>
+    );
+  }
+
   const candidates = [
     ...(firstFreshEnquiry
       ? [{
@@ -6702,6 +6772,24 @@ function BestMove({ s }) {
         actionLabel={best.actionLabel}
       />
 
+      {s.activeWorkGoal?.spreadAcrossSlots && s.workGoalPlannedSlots.length ? (
+        <Card
+          eyebrow="Capacity plan"
+          title={`${s.workGoalTargetJobs} booking${s.workGoalTargetJobs === 1 ? "" : "s"} across ${s.workGoalPlannedSlots.length} opening${s.workGoalPlannedSlots.length === 1 ? "" : "s"}`}
+          body="Busy has turned the larger work target into specific diary openings instead of treating it as vague future capacity."
+          footer={`${s.workGoalRemainingJobs} still needed`}
+          tone="green"
+        >
+          {s.workGoalPlannedSlots.map((slot) => (
+            <MetricRow
+              key={slot.id}
+              left={slot.label}
+              right={`${slot.bookedCount}/${slot.targetJobs} booked`}
+              strong={slot.bookedCount >= slot.targetJobs}
+            />
+          ))}
+        </Card>
+      ) : null}
       {s.activeWorkGoal && s.workGoalSlotHours ? (
         <Card
           eyebrow="Capacity checked"
