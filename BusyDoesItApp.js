@@ -16,6 +16,9 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 
+const APP_VERSION = "2.5";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Capacity-aware opportunity engine`;
+
 const C = {
   bg: "#F5F7FB",
   card: "#FFFFFF",
@@ -39,9 +42,9 @@ const VERTICAL_PACKS = {
     description: "Driveways, patios, gutters and similar exterior work.",
     defaultRepeatMonths: 9,
     services: [
-      { id: "driveway", name: "Driveway cleaning", value: 250, wanted: true, repeatMonths: 9 },
-      { id: "gutters", name: "Gutter clearing", value: 90, wanted: false, repeatMonths: 9 },
-      { id: "patio", name: "Patio cleaning", value: 220, wanted: true, repeatMonths: 9 },
+      { id: "driveway", name: "Driveway cleaning", value: 250, wanted: true, repeatMonths: 9, durationHours: 3 },
+      { id: "gutters", name: "Gutter clearing", value: 90, wanted: false, repeatMonths: 9, durationHours: 1.5 },
+      { id: "patio", name: "Patio cleaning", value: 220, wanted: true, repeatMonths: 9, durationHours: 3 },
     ],
   },
   "window-cleaning": {
@@ -50,9 +53,9 @@ const VERTICAL_PACKS = {
     description: "Regular window, conservatory and exterior glass work.",
     defaultRepeatMonths: 2,
     services: [
-      { id: "windows", name: "Window cleaning", value: 35, wanted: true, repeatMonths: 2 },
-      { id: "conservatory", name: "Conservatory cleaning", value: 120, wanted: true, repeatMonths: 6 },
-      { id: "window-gutters", name: "Gutter clearing", value: 90, wanted: false, repeatMonths: 12 },
+      { id: "windows", name: "Window cleaning", value: 35, wanted: true, repeatMonths: 2, durationHours: 1.5 },
+      { id: "conservatory", name: "Conservatory cleaning", value: 120, wanted: true, repeatMonths: 6, durationHours: 2.5 },
+      { id: "window-gutters", name: "Gutter clearing", value: 90, wanted: false, repeatMonths: 12, durationHours: 1.5 },
     ],
   },
   "gardening-landscaping": {
@@ -61,9 +64,9 @@ const VERTICAL_PACKS = {
     description: "Garden maintenance, lawns, hedges and landscaping jobs.",
     defaultRepeatMonths: 2,
     services: [
-      { id: "garden-maintenance", name: "Garden maintenance", value: 80, wanted: true, repeatMonths: 1 },
-      { id: "hedges", name: "Hedge trimming", value: 120, wanted: true, repeatMonths: 4 },
-      { id: "landscaping", name: "Landscaping", value: 900, wanted: false, repeatMonths: null },
+      { id: "garden-maintenance", name: "Garden maintenance", value: 80, wanted: true, repeatMonths: 1, durationHours: 2 },
+      { id: "hedges", name: "Hedge trimming", value: 120, wanted: true, repeatMonths: 4, durationHours: 2.5 },
+      { id: "landscaping", name: "Landscaping", value: 900, wanted: false, repeatMonths: null, durationHours: 6 },
     ],
   },
   "plumbing-heating": {
@@ -72,10 +75,10 @@ const VERTICAL_PACKS = {
     description: "Repairs, boiler work and planned servicing.",
     defaultRepeatMonths: null,
     services: [
-      { id: "boiler-service", name: "Boiler service", value: 110, wanted: true, repeatMonths: 12 },
-      { id: "plumbing-repair", name: "Plumbing repair", value: 140, wanted: true, repeatMonths: null },
-      { id: "radiators", name: "Radiator work", value: 180, wanted: false, repeatMonths: null },
-      { id: "landlord-check", name: "Landlord safety check", value: 90, wanted: false, repeatMonths: 12 },
+      { id: "boiler-service", name: "Boiler service", value: 110, wanted: true, repeatMonths: 12, durationHours: 1.5 },
+      { id: "plumbing-repair", name: "Plumbing repair", value: 140, wanted: true, repeatMonths: null, durationHours: 2 },
+      { id: "radiators", name: "Radiator work", value: 180, wanted: false, repeatMonths: null, durationHours: 3 },
+      { id: "landlord-check", name: "Landlord safety check", value: 90, wanted: false, repeatMonths: 12, durationHours: 1.5 },
     ],
   },
   "electrical": {
@@ -84,10 +87,10 @@ const VERTICAL_PACKS = {
     description: "Repairs, inspections, upgrades and installation work.",
     defaultRepeatMonths: null,
     services: [
-      { id: "electrical-repair", name: "Electrical repair", value: 150, wanted: true, repeatMonths: null },
-      { id: "eicr", name: "EICR inspection", value: 180, wanted: true, repeatMonths: 60 },
-      { id: "consumer-unit", name: "Consumer unit work", value: 650, wanted: false, repeatMonths: null },
-      { id: "ev-charger", name: "EV charger installation", value: 850, wanted: false, repeatMonths: null },
+      { id: "electrical-repair", name: "Electrical repair", value: 150, wanted: true, repeatMonths: null, durationHours: 2 },
+      { id: "eicr", name: "EICR inspection", value: 180, wanted: true, repeatMonths: 60, durationHours: 3 },
+      { id: "consumer-unit", name: "Consumer unit work", value: 650, wanted: false, repeatMonths: null, durationHours: 6 },
+      { id: "ev-charger", name: "EV charger installation", value: 850, wanted: false, repeatMonths: null, durationHours: 5 },
     ],
   },
   "mobile-hair-beauty": {
@@ -96,10 +99,10 @@ const VERTICAL_PACKS = {
     description: "Appointment-led hair and beauty services.",
     defaultRepeatMonths: 2,
     services: [
-      { id: "haircut", name: "Haircut", value: 35, wanted: true, repeatMonths: 2 },
-      { id: "colour", name: "Hair colour", value: 85, wanted: true, repeatMonths: 2 },
-      { id: "blow-dry", name: "Blow dry", value: 30, wanted: false, repeatMonths: 1 },
-      { id: "beauty-treatment", name: "Beauty treatment", value: 45, wanted: false, repeatMonths: 1 },
+      { id: "haircut", name: "Haircut", value: 35, wanted: true, repeatMonths: 2, durationHours: 1 },
+      { id: "colour", name: "Hair colour", value: 85, wanted: true, repeatMonths: 2, durationHours: 3 },
+      { id: "blow-dry", name: "Blow dry", value: 30, wanted: false, repeatMonths: 1, durationHours: 1 },
+      { id: "beauty-treatment", name: "Beauty treatment", value: 45, wanted: false, repeatMonths: 1, durationHours: 1.5 },
     ],
   },
   "other-service": {
@@ -108,7 +111,7 @@ const VERTICAL_PACKS = {
     description: "Use the generic core and add the services that fit your business.",
     defaultRepeatMonths: null,
     services: [
-      { id: "main-service", name: "Main service", value: 0, wanted: true, repeatMonths: null },
+      { id: "main-service", name: "Main service", value: 0, wanted: true, repeatMonths: null, durationHours: 2 },
     ],
   },
 };
@@ -118,6 +121,24 @@ function getVerticalPack(verticalId) {
 }
 
 const servicesSeed = VERTICAL_PACKS["exterior-cleaning"].services.map((item) => ({ ...item }));
+
+function planningDurationHours(service) {
+  const hours = Number(service?.durationHours);
+  return Number.isFinite(hours) && hours > 0 ? hours : 2;
+}
+
+function formatDurationHours(value) {
+  const hours = Number(value);
+  if (!Number.isFinite(hours) || hours <= 0) return "Not set";
+  if (hours < 1) return `${Math.round(hours * 60)} min`;
+  return `${Number.isInteger(hours) ? hours : hours.toFixed(1)} hr${hours === 1 ? "" : "s"}`;
+}
+
+function slotPlanningHours(part) {
+  if (part === "morning" || part === "afternoon") return 4;
+  if (part === "evening") return 3;
+  return null;
+}
 
 const customerSeed = [
   { id: "c1", name: "Sarah Mitchell", phone: "07700 900101", service: "Driveway cleaning", lastServiceDate: "2025-01-10", lastJobValue: 260, contactOk: true },
@@ -942,6 +963,7 @@ function App() {
   const [services, setServices] = useState(servicesSeed);
   const [newServiceName, setNewServiceName] = useState("");
   const [newServiceValue, setNewServiceValue] = useState("");
+  const [newServiceDuration, setNewServiceDuration] = useState("2");
   const [alwaysAsk, setAlwaysAsk] = useState(true);
   const [customerContact, setCustomerContact] = useState(true);
   const [testLimit, setTestLimit] = useState("25");
@@ -1065,6 +1087,12 @@ function App() {
                   item.repeatMonths !== undefined
                     ? item.repeatMonths
                     : packService?.repeatMonths ?? pack.defaultRepeatMonths,
+                durationHours:
+                  Number(item.durationHours) > 0
+                    ? Number(item.durationHours)
+                    : Number(packService?.durationHours) > 0
+                    ? Number(packService.durationHours)
+                    : 2,
               };
             })
           );
@@ -1181,11 +1209,17 @@ function App() {
     const nextSlot = slot || "Any suitable work";
     const suggestion = suggestSpareSlots(replyActions).find((item) => item.label === nextSlot) || null;
     const targetJobs = Math.max(1, Math.min(3, Number(workGoalTargetDraft) || 1));
+    const planningService =
+      services.find((item) => item.id === selectedServiceId) ||
+      services.find((item) => item.wanted) ||
+      services[0] ||
+      null;
     const goal = {
       label: nextSlot,
       date: suggestion?.date || null,
       part: suggestion?.part || null,
       targetJobs,
+      serviceId: planningService?.id || null,
       createdAt: new Date().toISOString(),
     };
     setSelectedGap(nextSlot);
@@ -1193,6 +1227,52 @@ function App() {
     setQuietSlotConfirmed(true);
     setActiveWorkGoal(goal);
     go("bestMove");
+  };
+
+  const fitWorkGoalToSlot = () => {
+    if (!activeWorkGoal) return;
+    const service =
+      services.find((item) => item.id === activeWorkGoal.serviceId) ||
+      services.find((item) => item.id === selectedServiceId) ||
+      services.find((item) => item.wanted) ||
+      services[0];
+    const slotHours = slotPlanningHours(activeWorkGoal.part);
+    const duration = planningDurationHours(service);
+    const capacity = slotHours ? Math.floor(slotHours / duration) : null;
+    if (!capacity || capacity < 1) return;
+    setActiveWorkGoal((goal) => ({ ...goal, targetJobs: capacity }));
+    setWorkGoalTargetDraft(capacity);
+  };
+
+  const spreadWorkGoalAcrossSlots = () => {
+    if (!activeWorkGoal) return;
+    const target = Number(activeWorkGoal.targetJobs) || 1;
+    const label = `${target} booking${target === 1 ? "" : "s"} across next suitable slots`;
+    setActiveWorkGoal((goal) => ({
+      ...goal,
+      label,
+      date: null,
+      part: null,
+      spreadAcrossSlots: true,
+    }));
+    setSelectedGap("Any suitable work");
+    setQuietSlot("Any suitable work");
+  };
+
+  const adjustServiceDuration = (serviceId, delta) => {
+    setServices((list) =>
+      list.map((item) =>
+        item.id === serviceId
+          ? {
+              ...item,
+              durationHours: Math.max(
+                0.5,
+                Math.min(8, Math.round((planningDurationHours(item) + delta) * 2) / 2)
+              ),
+            }
+          : item
+      )
+    );
   };
 
   const clearWorkGoal = () => {
@@ -3453,6 +3533,7 @@ function App() {
     setEditingCustomerId(null);
     setPendingRemoveCustomerId(null);
     setServices(servicesSeed);
+    setNewServiceDuration("2");
     setAlwaysAsk(true);
     setCustomerContact(true);
     setTestLimit("25");
@@ -4000,6 +4081,23 @@ function App() {
     0
   );
   const workGoalTargetJobs = Number(activeWorkGoal?.targetJobs) || 1;
+  const workGoalPlanningService =
+    services.find((item) => item.id === activeWorkGoal?.serviceId) ||
+    services.find((item) => item.id === selectedServiceId) ||
+    services.find((item) => item.wanted) ||
+    services[0] ||
+    null;
+  const workGoalDurationHours = planningDurationHours(workGoalPlanningService);
+  const workGoalSlotHours =
+    activeWorkGoal?.date && activeWorkGoal?.part
+      ? slotPlanningHours(activeWorkGoal.part)
+      : null;
+  const workGoalCapacityMax =
+    workGoalSlotHours && workGoalDurationHours
+      ? Math.floor(workGoalSlotHours / workGoalDurationHours)
+      : null;
+  const workGoalCapacityMismatch =
+    workGoalCapacityMax !== null && workGoalTargetJobs > workGoalCapacityMax;
   const workGoalRemainingJobs = Math.max(0, workGoalTargetJobs - workGoalBookedCount);
   const recommendedReactivationBatchSize = Math.min(eligibleCustomers.length, Math.max(1, workGoalRemainingJobs * 3));
   const reactivationAudience = campaignRecipientLimit && campaignRecipientLimit > 0 ? eligibleCustomers.slice(0, campaignRecipientLimit) : eligibleCustomers;
@@ -4036,12 +4134,20 @@ function App() {
     activeWorkGoal,
     setActiveWorkGoal,
     confirmSpareSlot,
+    fitWorkGoalToSlot,
+    spreadWorkGoalAcrossSlots,
+    adjustServiceDuration,
     clearWorkGoal,
     prepareOfferForWorkGoal,
     workGoalBookingEntries,
     workGoalBookedCount,
     workGoalBookedValue,
     workGoalTargetJobs,
+    workGoalPlanningService,
+    workGoalDurationHours,
+    workGoalSlotHours,
+    workGoalCapacityMax,
+    workGoalCapacityMismatch,
     workGoalRemainingJobs,
     recommendedReactivationBatchSize,
     workGoalFilled,
@@ -4240,6 +4346,8 @@ function App() {
     setNewServiceName,
     newServiceValue,
     setNewServiceValue,
+    newServiceDuration,
+    setNewServiceDuration,
     alwaysAsk,
     setAlwaysAsk,
     customerContact,
@@ -4396,7 +4504,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           <View style={{ flex: 1, paddingRight: 12 }}>
             <Text style={styles.brand}>BUSY DOES IT</Text>
             <Text style={styles.tagline}>More work. Less fuss.</Text>
-            <Text style={styles.prototypeBadge}>Prototype v2.1 • Trusted Autopilot + exceptions only</Text>
+            <Text style={styles.prototypeBadge}>{PROTOTYPE_BADGE}</Text>
           </View>
           {!noBack && s.history?.length > 0 ? (
             <Pressable onPress={s.back} style={styles.backPill}>
@@ -4835,7 +4943,7 @@ function SetupServices({ s }) {
         <Pressable key={item.id} onPress={() => toggleWanted(item.id)} style={[styles.serviceCard, item.wanted && styles.serviceCardWanted]}>
           <View style={{ flex: 1 }}>
             <Text style={styles.serviceName}>{item.name}</Text>
-            <Text style={styles.serviceValue}>Usually about £{item.value}</Text>
+            <Text style={styles.serviceValue}>Usually about £{item.value} • about {formatDurationHours(item.durationHours)} per job</Text>
           </View>
           <Text style={[styles.star, item.wanted && styles.starOn]}>{item.wanted ? "★" : "☆"}</Text>
         </Pressable>
@@ -4853,6 +4961,7 @@ function AddService({ s }) {
     const name = s.newServiceName.trim();
     if (!name) return;
     const parsed = Number(String(s.newServiceValue).replace(/[^0-9.]/g, ""));
+    const parsedDuration = Number(String(s.newServiceDuration).replace(/[^0-9.]/g, ""));
     s.setServices((list) => [
       ...list,
       {
@@ -4861,10 +4970,15 @@ function AddService({ s }) {
         value: Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed) : 0,
         wanted: true,
         repeatMonths: s.verticalPack?.defaultRepeatMonths ?? null,
+        durationHours:
+          Number.isFinite(parsedDuration) && parsedDuration > 0
+            ? Math.max(0.5, Math.min(8, parsedDuration))
+            : 2,
       },
     ]);
     s.setNewServiceName("");
     s.setNewServiceValue("");
+    s.setNewServiceDuration("2");
     s.back();
   };
 
@@ -4872,10 +4986,11 @@ function AddService({ s }) {
     <Shell s={s} noNav title="Add a service" subtitle="If you do it, you can add it. We won’t box you into a preset list.">
       <Field label="Service" value={s.newServiceName} onChangeText={s.setNewServiceName} placeholder="e.g. Conservatory roof cleaning" />
       <Field label="Rough job value" value={s.newServiceValue} onChangeText={s.setNewServiceValue} keyboardType="number-pad" prefix="£" placeholder="Optional" />
+      <Field label="Typical job length" value={s.newServiceDuration} onChangeText={s.setNewServiceDuration} keyboardType="decimal-pad" prefix="Hours" placeholder="2" />
       <Card
         eyebrow="Why we ask"
         title="This helps Busy Does It find the right work"
-        body="A rough value is enough. You can change it later, and the app can learn better values from real jobs over time."
+        body="A rough value and typical job length are enough. Busy uses the time only for capacity planning, and you can correct it at any time."
       />
       <Button label="Add service" primary onPress={save} disabled={!s.newServiceName.trim()} />
       <Button label="Cancel" onPress={s.back} />
@@ -5255,7 +5370,10 @@ function HomeScreen({ s }) {
           score: 60 + Math.min(10, eligibleCount) + reactivationLearningBoost,
           eyebrow: "Spare capacity",
           title: `${s.quietSlot} is free`,
-          body: `${eligibleCount} of ${customerCount} saved customer records are due and allowed to contact now. Busy would start with the smallest sensible batch for the remaining target rather than contacting everyone at once.`,
+          body:
+            s.recommendedReactivationBatchSize >= eligibleCount
+              ? `${eligibleCount} of ${customerCount} saved customer records are due and allowed to contact now. The eligible pool is smaller than the planned first-batch cap, so this recommendation includes all ${eligibleCount} available records rather than pretending anyone is being held back.`
+              : `${eligibleCount} of ${customerCount} saved customer records are due and allowed to contact now. Busy would start with ${s.recommendedReactivationBatchSize} of them for the remaining target rather than contacting everyone at once.`,
           footer: "Recommended first move: £0 advertising spend",
           status: "Worth trying",
           tone: "green",
@@ -5446,9 +5564,19 @@ function HomeScreen({ s }) {
         <Card
           eyebrow="Active work goal"
           title={s.activeWorkGoal.label}
-          body={`Target: ${s.workGoalTargetJobs} suitable booking${s.workGoalTargetJobs === 1 ? "" : "s"}. ${s.workGoalRemainingJobs} still needed. Busy will size the next action to the remaining gap and stop escalating when the target is covered.`}
-          footer={s.workGoalBookedCount ? `${s.workGoalBookedCount} of ${s.workGoalTargetJobs} booked` : `${s.workGoalRemainingJobs} still needed`}
-          tone="blue"
+          body={
+            s.workGoalCapacityMismatch
+              ? `Capacity check needed: ${s.workGoalTargetJobs} bookings were requested, but ${s.workGoalPlanningService?.name || "the planning service"} at about ${formatDurationHours(s.workGoalDurationHours)} per job appears to fit only ${s.workGoalCapacityMax} in this ${s.activeWorkGoal.part || "slot"}.`
+              : `Target: ${s.workGoalTargetJobs} suitable booking${s.workGoalTargetJobs === 1 ? "" : "s"}. ${s.workGoalRemainingJobs} still needed. Busy will size the next action to the remaining gap and stop escalating when the target is covered.`
+          }
+          footer={
+            s.workGoalCapacityMismatch
+              ? "Review capacity before promoting"
+              : s.workGoalBookedCount
+              ? `${s.workGoalBookedCount} of ${s.workGoalTargetJobs} booked`
+              : `${s.workGoalRemainingJobs} still needed`
+          }
+          tone={s.workGoalCapacityMismatch ? "amber" : "blue"}
         >
           <MetricRow left="Matching confirmed bookings" right={String(s.workGoalBookedCount)} />
           <MetricRow left="Recorded value" right={s.workGoalBookedValue ? `£${s.workGoalBookedValue}` : "£0"} />
@@ -6113,9 +6241,12 @@ function ChooseGap({ s }) {
     { value: 2, label: "Two bookings", sub: "Use a small targeted action before broad promotion" },
     { value: 3, label: "Three bookings", sub: "A wider customer action or limited offer may become proportionate" },
   ];
+  const planningServices = s.services.filter((item) => item.wanted);
+  const serviceChoices = planningServices.length ? planningServices : s.services;
+  const planningService = s.selectedService || serviceChoices[0];
 
   return (
-    <Shell s={s} title="When do you want work?" subtitle="Busy checks the saved diary first, then sizes the response to how much work you actually need." brandCue="Right amount of work. Smallest sensible intervention.">
+    <Shell s={s} title="When do you want work?" subtitle="Busy checks the saved diary first, then checks whether the amount of work you want can realistically fit." brandCue="Need → capacity → smallest sensible intervention.">
       {gaps.length ? (
         <>
           <Card eyebrow="Likely spare capacity" title="Open time found in the saved diary" body="A morning or afternoon is treated as occupied when a confirmed booking is saved in that period. This is a prototype diary check, not a live external calendar connection." tone="green" />
@@ -6127,11 +6258,30 @@ function ChooseGap({ s }) {
         <Card eyebrow="Diary looks busy" title="No obvious gap found" body="Busy could not find a clear morning or afternoon gap in the next saved diary window. You can still ask for any suitable work." tone="blue" />
       )}
       <Choice label="Any suitable work" sub="Find the strongest low-risk opportunity without tying it to one slot" selected={s.selectedGap === "Any suitable work"} onPress={() => s.setSelectedGap("Any suitable work")} />
+
+      {serviceChoices.length > 1 ? (
+        <>
+          <Text style={styles.sectionLabel}>What kind of work should fill it?</Text>
+          {serviceChoices.map((service) => (
+            <Choice
+              key={service.id}
+              label={service.name}
+              sub={`About ${formatDurationHours(service.durationHours)} per job • roughly £${service.value || 0}`}
+              selected={s.selectedServiceId === service.id}
+              onPress={() => s.setSelectedServiceId(service.id)}
+            />
+          ))}
+        </>
+      ) : planningService ? (
+        <Card eyebrow="Capacity assumption" title={planningService.name} body={`Busy will plan around about ${formatDurationHours(planningService.durationHours)} per job. This is an editable planning estimate, not a promise about every job.`} tone="blue" />
+      ) : null}
+
       <Text style={styles.sectionLabel}>How much work do you need?</Text>
       {targetOptions.map((option) => (
         <Choice key={option.value} label={option.label} sub={option.sub} selected={s.workGoalTargetDraft === option.value} onPress={() => s.setWorkGoalTargetDraft(option.value)} />
       ))}
       <Button label={`Find the best way to get ${s.workGoalTargetDraft} booking${s.workGoalTargetDraft === 1 ? "" : "s"}`} primary disabled={!s.selectedGap} onPress={() => s.confirmSpareSlot(s.selectedGap)} />
+      <Button label="Change typical job lengths" onPress={() => s.go("capacitySettings")} />
       <Button label="Enter a different quiet slot" onPress={() => s.go("businessData")} />
     </Shell>
   );
@@ -6145,6 +6295,8 @@ function BestMove({ s }) {
   const firstQuote = s.dueQuoteEntries?.[0] || null;
   const remainingJobs = Math.max(1, s.workGoalRemainingJobs || 1);
   const targetedCustomerCount = Math.min(s.eligibleCustomers.length, Math.max(1, remainingJobs * 3));
+  const reactivationUsesAllEligible =
+    s.eligibleCustomers.length > 0 && targetedCustomerCount >= s.eligibleCustomers.length;
   const suggestedPaidBudget = Math.min(Number(s.testLimit) || 25, Math.max(5, remainingJobs * 10));
 
   if (s.activeWorkGoal && s.workGoalFilled) {
@@ -6164,6 +6316,49 @@ function BestMove({ s }) {
         />
         <Button label="Close this work goal" primary onPress={s.clearWorkGoal} />
         <Button label="View work diary" onPress={() => s.jump("workHub", "Work")} />
+      </Shell>
+    );
+  }
+
+  if (s.activeWorkGoal && s.workGoalCapacityMismatch) {
+    const capacity = Number(s.workGoalCapacityMax) || 0;
+    const serviceName = s.workGoalPlanningService?.name || "This service";
+    return (
+      <Shell
+        s={s}
+        title="That target does not fit this slot"
+        subtitle={`Busy checked the requested work against the planning time saved for ${serviceName}.`}
+        brandCue="Capacity first. Then marketing."
+      >
+        <Card
+          eyebrow="Capacity check"
+          title={
+            capacity > 0
+              ? `${s.workGoalTargetJobs} bookings will not fit into this ${s.activeWorkGoal.part}`
+              : `${serviceName} is longer than this ${s.activeWorkGoal.part} slot`
+          }
+          body={
+            capacity > 0
+              ? `${serviceName} is currently set to about ${formatDurationHours(s.workGoalDurationHours)} per job. A ${s.workGoalSlotHours}-hour ${s.activeWorkGoal.part} therefore looks realistic for about ${capacity} job${capacity === 1 ? "" : "s"}, not ${s.workGoalTargetJobs}.`
+              : `${serviceName} is currently set to about ${formatDurationHours(s.workGoalDurationHours)} per job, which is longer than the ${s.workGoalSlotHours}-hour planning window. Busy should not pretend a full job fits there.`
+          }
+          footer="Planning estimate only • you can correct the job length"
+          tone="amber"
+        />
+        {capacity > 0 ? (
+          <Button
+            label={`Fill this ${s.activeWorkGoal.part} with ${capacity} booking${capacity === 1 ? "" : "s"}`}
+            primary
+            onPress={s.fitWorkGoalToSlot}
+          />
+        ) : null}
+        <Button
+          label={`Find all ${s.workGoalTargetJobs} across next suitable slots`}
+          primary={capacity < 1}
+          onPress={s.spreadWorkGoalAcrossSlots}
+        />
+        <Button label="Change typical job length" onPress={() => s.go("capacitySettings")} />
+        <Button label="Choose a different slot" onPress={() => s.go("chooseGap")} />
       </Shell>
     );
   }
@@ -6237,8 +6432,12 @@ function BestMove({ s }) {
           id: "gap-reactivation",
           score: remainingJobs >= 3 ? 98 + Math.min(6, targetedCustomerCount) : remainingJobs === 2 ? 91 + Math.min(5, targetedCustomerCount) : 82 + Math.min(4, targetedCustomerCount),
           eyebrow: "Previous customers",
-          title: `Start with ${targetedCustomerCount} due previous customer${targetedCustomerCount === 1 ? "" : "s"}`,
-          body: `Busy found ${s.eligibleCustomers.length} eligible previous customer${s.eligibleCustomers.length === 1 ? "" : "s"}, but the current target only needs ${remainingJobs} more booking${remainingJobs === 1 ? "" : "s"}. It would start with a proportional batch instead of contacting everyone at once.`,
+          title: reactivationUsesAllEligible
+            ? `Use all ${targetedCustomerCount} eligible previous customer${targetedCustomerCount === 1 ? "" : "s"}`
+            : `Start with ${targetedCustomerCount} due previous customer${targetedCustomerCount === 1 ? "" : "s"}`,
+          body: reactivationUsesAllEligible
+            ? `Busy found only ${s.eligibleCustomers.length} eligible previous customer${s.eligibleCustomers.length === 1 ? "" : "s"}. The proportional first-batch cap is larger than that pool, so all available records are included — there is nobody extra being held back.`
+            : `Busy found ${s.eligibleCustomers.length} eligible previous customer${s.eligibleCustomers.length === 1 ? "" : "s"}, while the current target needs ${remainingJobs} more booking${remainingJobs === 1 ? "" : "s"}. It would start with ${targetedCustomerCount} rather than contacting everyone at once.`,
           footer: "Advertising spend: £0",
           status: "Ready to prepare",
           tone: "green",
@@ -6251,7 +6450,9 @@ function BestMove({ s }) {
             ["Rule", s.eligibilityRule],
             ["Advertising required", "£0"],
           ],
-          actionLabel: `Review ${targetedCustomerCount} targeted message${targetedCustomerCount === 1 ? "" : "s"}`,
+          actionLabel: reactivationUsesAllEligible
+            ? `Review all ${targetedCustomerCount} eligible message${targetedCustomerCount === 1 ? "" : "s"}`
+            : `Review ${targetedCustomerCount} targeted message${targetedCustomerCount === 1 ? "" : "s"}`,
           onAction: () => s.startCampaign(0, targetedCustomerCount),
         }]
       : []),
@@ -6376,6 +6577,16 @@ function BestMove({ s }) {
         eyebrow={`Recommended • ${best.eyebrow}`}
         actionLabel={best.actionLabel}
       />
+
+      {s.activeWorkGoal && s.workGoalSlotHours ? (
+        <Card
+          eyebrow="Capacity checked"
+          title={`${s.workGoalPlanningService?.name || "Planning service"} • about ${formatDurationHours(s.workGoalDurationHours)} per job`}
+          body={`This ${s.activeWorkGoal.part} is treated as about ${s.workGoalSlotHours} working hours, giving an estimated capacity of ${s.workGoalCapacityMax} job${s.workGoalCapacityMax === 1 ? "" : "s"}. Travel and unusual jobs can change that, so the estimate remains editable.`}
+          footer="Planning guidance, not false precision"
+          tone="blue"
+        />
+      ) : null}
 
       <Card
         eyebrow="Sized to the gap"
@@ -10208,6 +10419,47 @@ function BusinessTypeSettings({ s }) {
         tone="blue"
       />
       <Button label="+ Add a service" onPress={() => s.go("addService")} />
+      <Button label="Typical job lengths & capacity" onPress={() => s.go("capacitySettings")} />
+      <Button label="Done" primary onPress={s.back} />
+    </Shell>
+  );
+}
+
+function CapacitySettings({ s }) {
+  return (
+    <Shell
+      s={s}
+      title="Typical job lengths"
+      subtitle="Busy uses these only to estimate capacity. Change them whenever the real business says otherwise."
+      brandCue="Editable planning assumptions. No false precision."
+    >
+      <Card
+        eyebrow="How this is used"
+        title="Can the requested work actually fit?"
+        body="For a selected morning or afternoon, Busy compares the saved typical job length with a simple four-hour planning window. Travel, job complexity and customer circumstances can still change the real duration."
+        tone="blue"
+      />
+      {s.services.map((service) => (
+        <Card
+          key={service.id}
+          eyebrow={service.wanted ? "Priority service" : "Service"}
+          title={service.name}
+          body={`Current planning length: about ${formatDurationHours(service.durationHours)} per job.`}
+          footer="Adjust in 30-minute steps"
+          tone={service.id === s.selectedServiceId ? "green" : "blue"}
+        >
+          <Button
+            label="30 minutes shorter"
+            disabled={planningDurationHours(service) <= 0.5}
+            onPress={() => s.adjustServiceDuration(service.id, -0.5)}
+          />
+          <Button
+            label="30 minutes longer"
+            disabled={planningDurationHours(service) >= 8}
+            onPress={() => s.adjustServiceDuration(service.id, 0.5)}
+          />
+        </Card>
+      ))}
       <Button label="Done" primary onPress={s.back} />
     </Shell>
   );
@@ -10426,6 +10678,7 @@ const screens = {
   updateOutcome: UpdateOutcome,
   settings: Settings,
   businessType: BusinessTypeSettings,
+  capacitySettings: CapacitySettings,
   businessData: BusinessData,
   howBusyWorks: HowBusyWorks,
   whatMakesDifferent: WhatMakesDifferent,
