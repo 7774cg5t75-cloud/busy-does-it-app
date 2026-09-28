@@ -4514,9 +4514,65 @@ function App() {
       ? Math.max(0, Number(activeWorkGoal?.unplannedJobs) || 0)
       : 0;
   const workGoalRemainingJobs = Math.max(0, workGoalTargetJobs - workGoalBookedCount);
-  const reactivationEligibleCustomers = activeWorkGoal && evidenceServiceName
-    ? eligibleCustomers.filter((customer) => customer.service === evidenceServiceName)
-    : eligibleCustomers;
+  const workGoalAttempts = Array.isArray(activeWorkGoal?.attempts) ? activeWorkGoal.attempts : [];
+  const workGoalAttemptKeys = new Set(workGoalAttempts.map((item) => item.key).filter(Boolean));
+  const workGoalAttemptedCustomerIds = new Set(
+    workGoalAttempts.flatMap((item) =>
+      item.type === "reactivation" && Array.isArray(item.recipientIds) ? item.recipientIds : []
+    )
+  );
+  const reactivationEligibleCustomers = (
+    activeWorkGoal && evidenceServiceName
+      ? eligibleCustomers.filter((customer) => customer.service === evidenceServiceName)
+      : eligibleCustomers
+  ).filter((customer) => !workGoalAttemptedCustomerIds.has(customer.id));
+
+  const workGoalAttemptRows = workGoalAttempts.map((attempt) => {
+    let outcome = "Action approved • outcome not recorded yet";
+    let tone = "blue";
+    if (attempt.type === "quote" && attempt.customerId) {
+      const action = replyActions[attempt.customerId];
+      const recorded = action?.details?.followUpOutcome;
+      if (recorded) {
+        outcome = recorded;
+        tone = recorded === "Accepted" ? "green" : recorded === "Declined" ? "amber" : "blue";
+      }
+    } else if (attempt.type === "enquiry" && attempt.customerId) {
+      const customer = customers.find((item) => item.id === attempt.customerId);
+      if (customer?.enquiryFollowUpOutcome) {
+        outcome = customer.enquiryFollowUpOutcome;
+        tone = customer.enquiryFollowUpOutcome === "Still interested" ? "green" : customer.enquiryFollowUpOutcome === "Not interested" ? "amber" : "blue";
+      }
+    } else if (attempt.type === "reactivation") {
+      const ids = new Set(attempt.recipientIds || []);
+      const booked = Object.entries(replyActions || {}).filter(([id, action]) =>
+        ids.has(id) &&
+        action?.type === "booking" &&
+        action?.done &&
+        ["Confirmed", "Completed"].includes(action.details?.bookingStatus || "Confirmed")
+      ).length;
+      outcome = booked
+        ? `${booked} booking${booked === 1 ? "" : "s"} recorded`
+        : "Sent • awaiting recorded bookings";
+      tone = booked ? "green" : "blue";
+    } else if (attempt.type === "post" && attempt.customerId && attempt.jobId) {
+      const customer = customers.find((item) => item.id === attempt.customerId);
+      const job = (customer?.history || []).find((item) => item.id === attempt.jobId);
+      if (job?.postOutcome) {
+        outcome = job.postOutcome;
+        tone = job.postOutcome === "Booking" ? "green" : "blue";
+      }
+    } else if (attempt.type === "offer") {
+      outcome = workGoalBookedCount
+        ? `${workGoalBookedCount} matching booking${workGoalBookedCount === 1 ? "" : "s"} now recorded`
+        : "Plan prepared • no separate offer outcome recorded";
+      tone = workGoalBookedCount ? "green" : "blue";
+    } else if (attempt.type === "paid") {
+      outcome = "Prototype paid test approved • live result not recorded";
+      tone = "amber";
+    }
+    return { ...attempt, outcome, tone };
+  });
   const reactivationRateForSizing = reactivationEvidence.evidenceReady
     ? Math.max(0.1, Math.min(0.75, reactivationEvidence.rate))
     : 1 / 3;
@@ -4575,6 +4631,7 @@ function App() {
     fitWorkGoalToPlannedCapacity,
     adjustServiceDuration,
     clearWorkGoal,
+    recordWorkGoalAttempt,
     prepareOfferForWorkGoal,
     workGoalBookingEntries,
     workGoalBookedCount,
@@ -4589,6 +4646,9 @@ function App() {
     workGoalPlanConflict,
     workGoalPlanShortfall,
     workGoalRemainingJobs,
+    workGoalAttempts,
+    workGoalAttemptRows,
+    workGoalAttemptKeys,
     reactivationEligibleCustomers,
     reactivationEvidence,
     quoteFollowUpEvidence,
