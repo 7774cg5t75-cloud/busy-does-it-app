@@ -16,8 +16,8 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 
-const APP_VERSION = "2.9";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Adaptive work-filling plan`;
+const APP_VERSION = "3.0";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Connected operating assistant`;
 
 const C = {
   bg: "#F5F7FB",
@@ -929,6 +929,7 @@ const previousCustomerGroups = [
 const STORAGE_KEY = "@busy-does-it-v05";
 
 const connectionSeed = {
+  email: false,
   calendar: false,
   googleBusiness: false,
   meta: false,
@@ -937,13 +938,16 @@ const connectionSeed = {
   invoicing: false,
 };
 
+const intakeConnectionKeys = ["email", "calendar", "crm", "invoicing"];
+
 const connectionRows = [
-  ["calendar", "Calendar", "Helps spot quiet days automatically"],
-  ["googleBusiness", "Google Business", "Helps understand local presence and reviews"],
-  ["meta", "Facebook / Instagram", "Lets approved posts and adverts run"],
-  ["googleAds", "Google Ads", "Lets approved local advert tests run"],
-  ["crm", "CRM / job system", "Helps follow enquiries through to jobs"],
-  ["invoicing", "Invoicing", "Helps measure paid work instead of clicks"],
+  ["email", "Email / enquiries", "Feeds incoming customer messages into BUSY Inbox"],
+  ["calendar", "Calendar", "Feeds booking changes into BUSY Inbox and helps BUSY understand capacity"],
+  ["crm", "CRM / job system", "Feeds enquiry, quote and booking updates into the same customer pipeline"],
+  ["invoicing", "Invoicing", "Feeds completed-job and paid-work evidence into customer records"],
+  ["googleBusiness", "Google Business", "Supports reviews, local presence and approved profile actions"],
+  ["meta", "Facebook / Instagram", "Supports approved posts and adverts"],
+  ["googleAds", "Google Ads", "Supports approved local advert tests"],
 ];
 
 const campaignSteps = [
@@ -1140,6 +1144,7 @@ function App() {
   const [captureForceNew, setCaptureForceNew] = useState(false);
   const [intakeLog, setIntakeLog] = useState([]);
   const [inboxItems, setInboxItems] = useState([]);
+  const [connectionSyncLog, setConnectionSyncLog] = useState([]);
   const [selectedInboxItemId, setSelectedInboxItemId] = useState(null);
   const [recordFilingMode, setRecordFilingMode] = useState("safe");
   const [lastAutoFiledInboxItemId, setLastAutoFiledInboxItemId] = useState(null);
@@ -1209,6 +1214,7 @@ function App() {
         if (saved.selectedServiceId) setSelectedServiceId(saved.selectedServiceId);
         if (Array.isArray(saved.intakeLog)) setIntakeLog(saved.intakeLog);
         if (Array.isArray(saved.inboxItems)) setInboxItems(saved.inboxItems);
+        if (Array.isArray(saved.connectionSyncLog)) setConnectionSyncLog(saved.connectionSyncLog);
         if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
           setRecordFilingMode(saved.recordFilingMode);
         }
@@ -1256,6 +1262,7 @@ function App() {
       selectedServiceId,
       intakeLog,
       inboxItems,
+      connectionSyncLog,
       recordFilingMode,
       advanced,
     };
@@ -1287,6 +1294,7 @@ function App() {
     selectedServiceId,
     intakeLog,
     inboxItems,
+    connectionSyncLog,
     recordFilingMode,
     advanced,
   ]);
@@ -3820,6 +3828,7 @@ function App() {
     setCaptureForceNew(false);
     setIntakeLog([]);
     setInboxItems([]);
+    setConnectionSyncLog([]);
     setSelectedInboxItemId(null);
     setRecordFilingMode("safe");
     setLastAutoFiledInboxItemId(null);
