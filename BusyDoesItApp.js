@@ -6697,9 +6697,13 @@ function BestMove({ s }) {
   const firstQuietEnquiry = s.staleEnquiryEntries?.[0] || null;
   const firstQuote = s.dueQuoteEntries?.[0] || null;
   const remainingJobs = Math.max(1, s.workGoalRemainingJobs || 1);
-  const targetedCustomerCount = Math.min(s.eligibleCustomers.length, Math.max(1, remainingJobs * 3));
+  const targetedCustomerCount = Math.min(
+    s.reactivationEligibleCustomers?.length || 0,
+    Math.max(1, s.recommendedReactivationBatchSize || 1)
+  );
   const reactivationUsesAllEligible =
-    s.eligibleCustomers.length > 0 && targetedCustomerCount >= s.eligibleCustomers.length;
+    (s.reactivationEligibleCustomers?.length || 0) > 0 &&
+    targetedCustomerCount >= s.reactivationEligibleCustomers.length;
   const suggestedPaidBudget = Math.min(Number(s.testLimit) || 25, Math.max(5, remainingJobs * 10));
 
   if (s.activeWorkGoal && s.workGoalFilled) {
@@ -6841,7 +6845,7 @@ function BestMove({ s }) {
     ...(firstQuote
       ? [{
           id: "gap-quote",
-          score: 95 + Math.min(8, Number(firstQuote.action?.details?.quoteAmount || 0) / 250),
+          score: 95 + Math.min(8, Number(firstQuote.action?.details?.quoteAmount || 0) / 250) + (s.quoteFollowUpEvidence?.scoreAdjustment || 0),
           eyebrow: "Existing intent",
           title: "Follow up a sent quote",
           body: `${firstQuote.customer.name} already reached the quote stage for ${firstQuote.customer.service.toLowerCase()}. That is stronger intent than buying a new audience.`,
@@ -6853,6 +6857,11 @@ function BestMove({ s }) {
             ["Goal", gap],
             ["Quote age", `${firstQuote.age} days`],
             ["Quote value", firstQuote.action?.details?.quoteAmount ? `£${firstQuote.action.details.quoteAmount}` : "Not recorded"],
+            ["Evidence basis", s.quoteFollowUpEvidence?.basis || "Cautious fallback"],
+            ["Recorded outcomes", String(s.quoteFollowUpEvidence?.sample || 0)],
+            ["Accepted", String(s.quoteFollowUpEvidence?.successes || 0)],
+            ["Planning acceptance rate", formatPercent(s.quoteFollowUpEvidence?.rate)],
+            ["Confidence", s.quoteFollowUpEvidence?.confidence || "No evidence yet"],
             ["Advertising required", "£0"],
           ],
           actionLabel: "Review quote follow-up",
@@ -6862,7 +6871,7 @@ function BestMove({ s }) {
     ...(firstQuietEnquiry
       ? [{
           id: "gap-quiet-enquiry",
-          score: 91 + Math.min(6, firstQuietEnquiry.age / 4),
+          score: 91 + Math.min(6, firstQuietEnquiry.age / 4) + (s.enquiryFollowUpEvidence?.scoreAdjustment || 0),
           eyebrow: "Existing intent",
           title: "Revisit a quiet enquiry",
           body: `${firstQuietEnquiry.customer.name} asked about ${firstQuietEnquiry.customer.service.toLowerCase()} ${firstQuietEnquiry.age} days ago and still has no recorded next action.`,
@@ -6874,32 +6883,44 @@ function BestMove({ s }) {
             ["Goal", gap],
             ["Days since enquiry", String(firstQuietEnquiry.age)],
             ["Service", firstQuietEnquiry.customer.service],
+            ["Evidence basis", s.enquiryFollowUpEvidence?.basis || "Cautious fallback"],
+            ["Recorded outcomes", String(s.enquiryFollowUpEvidence?.sample || 0)],
+            ["Still interested", String(s.enquiryFollowUpEvidence?.successes || 0)],
+            ["Planning interest rate", formatPercent(s.enquiryFollowUpEvidence?.rate)],
+            ["Confidence", s.enquiryFollowUpEvidence?.confidence || "No evidence yet"],
             ["Advertising required", "£0"],
           ],
           actionLabel: "Review enquiry follow-up",
           onAction: () => s.prepareEnquiryFollowUp(firstQuietEnquiry.customer.id),
         }]
       : []),
-    ...(s.eligibleCustomers.length
+    ...((s.reactivationEligibleCustomers?.length || 0)
       ? [{
           id: "gap-reactivation",
-          score: remainingJobs >= 3 ? 98 + Math.min(6, targetedCustomerCount) : remainingJobs === 2 ? 91 + Math.min(5, targetedCustomerCount) : 82 + Math.min(4, targetedCustomerCount),
+          score: (remainingJobs >= 3 ? 98 + Math.min(6, targetedCustomerCount) : remainingJobs === 2 ? 91 + Math.min(5, targetedCustomerCount) : 82 + Math.min(4, targetedCustomerCount)) + (s.reactivationEvidence?.scoreAdjustment || 0),
           eyebrow: "Previous customers",
           title: reactivationUsesAllEligible
             ? `Use all ${targetedCustomerCount} eligible previous customer${targetedCustomerCount === 1 ? "" : "s"}`
             : `Start with ${targetedCustomerCount} due previous customer${targetedCustomerCount === 1 ? "" : "s"}`,
           body: reactivationUsesAllEligible
-            ? `Busy found only ${s.eligibleCustomers.length} eligible previous customer${s.eligibleCustomers.length === 1 ? "" : "s"}. The proportional first-batch cap is larger than that pool, so all available records are included — there is nobody extra being held back.`
-            : `Busy found ${s.eligibleCustomers.length} eligible previous customer${s.eligibleCustomers.length === 1 ? "" : "s"}, while the current target needs ${remainingJobs} more booking${remainingJobs === 1 ? "" : "s"}. It would start with ${targetedCustomerCount} rather than contacting everyone at once.`,
+            ? `Busy found only ${s.reactivationEligibleCustomers.length} service-matched eligible previous customer${s.reactivationEligibleCustomers.length === 1 ? "" : "s"}. The evidence-sized first batch is at least that large, so all available records are included.`
+            : s.reactivationEvidence?.evidenceReady
+            ? `Busy needs ${remainingJobs} more booking${remainingJobs === 1 ? "" : "s"}. Based on ${s.reactivationEvidence.sample} recorded outcome${s.reactivationEvidence.sample === 1 ? "" : "s"} (${s.reactivationEvidence.basis.toLowerCase()}), it would start with ${targetedCustomerCount} service-matched previous customers.`
+            : `Busy needs ${remainingJobs} more booking${remainingJobs === 1 ? "" : "s"}, but there is not enough recorded reactivation evidence yet. It is using the cautious fallback and would start with ${targetedCustomerCount} service-matched previous customers.`,
           footer: "Advertising spend: £0",
           status: "Ready to prepare",
           tone: "green",
           why: "Previous customers already know the business, so Busy checks them before buying new attention.",
           evidence: [
             ["Goal", gap],
-            ["Eligible previous customers", String(s.eligibleCustomers.length)],
+            ["Service-matched eligible customers", String(s.reactivationEligibleCustomers.length)],
             ["Recommended first batch", String(targetedCustomerCount)],
             ["Bookings still needed", String(remainingJobs)],
+            ["Evidence basis", s.reactivationEvidence?.basis || "Cautious fallback"],
+            ["Recorded sample", String(s.reactivationEvidence?.sample || 0)],
+            ["Bookings observed", String(s.reactivationEvidence?.successes || 0)],
+            ["Planning conversion rate", formatPercent(s.reactivationEvidence?.rate)],
+            ["Confidence", s.reactivationEvidence?.confidence || "No evidence yet"],
             ["Rule", s.eligibilityRule],
             ["Advertising required", "£0"],
           ],
@@ -6912,7 +6933,7 @@ function BestMove({ s }) {
     ...(s.preparedPostOpportunity
       ? [{
           id: "gap-prepared-post",
-          score: 68,
+          score: 68 + (s.postEvidence?.scoreAdjustment || 0),
           eyebrow: "Free organic reach",
           title: "Use the finished-job post already prepared",
           body: `${s.preparedPostOpportunity.customerName}’s ${s.preparedPostOpportunity.service.toLowerCase()} job already has approved photos and editable wording ready.`,
@@ -6924,6 +6945,11 @@ function BestMove({ s }) {
             ["Goal", gap],
             ["Approved photos", String(s.preparedPostOpportunity.photoCount)],
             ["Draft wording", "Ready"],
+            ["Evidence basis", s.postEvidence?.basis || "Cautious fallback"],
+            ["Recorded post outcomes", String(s.postEvidence?.sample || 0)],
+            ["Bookings attributed", String(s.postEvidence?.successes || 0)],
+            ["Planning booking rate", formatPercent(s.postEvidence?.rate)],
+            ["Confidence", s.postEvidence?.confidence || "No evidence yet"],
             ["Advertising required", "£0"],
           ],
           actionLabel: "Review post",
@@ -6933,7 +6959,7 @@ function BestMove({ s }) {
     ...(s.photoOpportunity && !s.preparedPostOpportunity
       ? [{
           id: "gap-photo-post",
-          score: 64,
+          score: 64 + (s.postEvidence?.scoreAdjustment || 0),
           eyebrow: "Free organic reach",
           title: "Turn approved job photos into a post",
           body: `${s.photoOpportunity.photoCount} approved job photo${s.photoOpportunity.photoCount === 1 ? "" : "s"} can be turned into a finished-job post before paying for reach.`,
@@ -6966,6 +6992,8 @@ function BestMove({ s }) {
         ["Booking cap", String(remainingJobs)],
         ["Starting price logic", "Normal saved service price"],
         ["Automatic discount", "No"],
+        ["Recorded offer outcomes", String(s.offerEvidence?.sample || 0)],
+        ["Evidence confidence", s.offerEvidence?.confidence || "No evidence yet"],
         ["Paid advertising required", "No"],
       ],
       actionLabel: "Build limited offer",
