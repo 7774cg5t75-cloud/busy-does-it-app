@@ -5439,29 +5439,18 @@ function HomeScreen({ s }) {
   const serviceName = s.selectedService?.name || s.services.find((x) => x.wanted)?.name || s.trade || "your priority service";
   const customerCount = s.customers.length;
   const eligibleCount = s.eligibleCustomers.length;
+  const reactivationEligibleCount = s.reactivationEligibleCustomers?.length || 0;
   const todayISO = dateToISO(new Date());
   const hasPublishingConnection = !!s.connectedAccounts.meta || !!s.connectedAccounts.googleBusiness;
-  const postBookingRate = s.postOutcomeRecordedCount
-    ? s.postBookingOutcomeCount / s.postOutcomeRecordedCount
-    : null;
-  const postLearningAdjustment =
-    postBookingRate === null ? 0 : Math.round((postBookingRate - 0.25) * 12);
-  const reactivationLearningBoost = s.reactivationCompletedValue > 0 ? 6 : 0;
-  const quoteFollowUpAcceptanceRate = s.quoteFollowUpOutcomeCount
-    ? s.quoteFollowUpAcceptedCount / s.quoteFollowUpOutcomeCount
-    : null;
-  const quoteFollowUpLearningBoost =
-    quoteFollowUpAcceptanceRate === null ? 0 : Math.round((quoteFollowUpAcceptanceRate - 0.2) * 10);
+  const postLearningAdjustment = s.postEvidence?.scoreAdjustment || 0;
+  const reactivationLearningBoost = s.reactivationEvidence?.scoreAdjustment || 0;
+  const quoteFollowUpLearningBoost = s.quoteFollowUpEvidence?.scoreAdjustment || 0;
   const reviewSuccessRate = s.reviewRequestOutcomeCount
     ? s.reviewReceivedCount / s.reviewRequestOutcomeCount
     : null;
   const reviewLearningBoost =
     reviewSuccessRate === null ? 0 : Math.round((reviewSuccessRate - 0.35) * 8);
-  const enquiryInterestRate = s.enquiryFollowUpOutcomeCount
-    ? s.enquiryFollowUpInterestedCount / s.enquiryFollowUpOutcomeCount
-    : null;
-  const enquiryLearningBoost =
-    enquiryInterestRate === null ? 0 : Math.round((enquiryInterestRate - 0.25) * 10);
+  const enquiryLearningBoost = s.enquiryFollowUpEvidence?.scoreAdjustment || 0;
 
   const nextEnquiryEntry = s.freshEnquiryEntries?.[0] || null;
   const nextEnquiry = nextEnquiryEntry?.customer || null;
@@ -5755,25 +5744,28 @@ function HomeScreen({ s }) {
           canIgnore: true,
         }]
       : []),
-    ...(s.quietSlotConfirmed && !s.workGoalFilled && s.quietSlot && eligibleCount > 0
+    ...(s.quietSlotConfirmed && !s.workGoalFilled && s.quietSlot && reactivationEligibleCount > 0
       ? [{
           id: "quiet-slot",
-          score: 60 + Math.min(10, eligibleCount) + reactivationLearningBoost,
+          score: 60 + Math.min(10, reactivationEligibleCount) + reactivationLearningBoost,
           eyebrow: "Spare capacity",
           title: `${s.quietSlot} is free`,
           body:
-            s.recommendedReactivationBatchSize >= eligibleCount
-              ? `${eligibleCount} of ${customerCount} saved customer records are due and allowed to contact now. The eligible pool is smaller than the planned first-batch cap, so this recommendation includes all ${eligibleCount} available records rather than pretending anyone is being held back.`
-              : `${eligibleCount} of ${customerCount} saved customer records are due and allowed to contact now. Busy would start with ${s.recommendedReactivationBatchSize} of them for the remaining target rather than contacting everyone at once.`,
+            s.recommendedReactivationBatchSize >= reactivationEligibleCount
+              ? `${reactivationEligibleCount} ${s.workGoalPlanningService?.name || "service-matched"} previous customer${reactivationEligibleCount === 1 ? "" : "s"} are eligible. That is the whole relevant pool, so Busy would use all of them rather than pretending a larger audience exists.`
+              : `${reactivationEligibleCount} service-matched previous customers are eligible. Based on the recorded evidence and the ${s.workGoalRemainingJobs} booking${s.workGoalRemainingJobs === 1 ? "" : "s"} still needed, Busy would start with ${s.recommendedReactivationBatchSize}.`,
           footer: "Recommended first move: £0 advertising spend",
           status: "Worth trying",
           tone: "green",
           why: `This can target existing customers at zero ad spend. The engine also considers how many suitable records exist and whether the timing rule fits the service. Current rule: ${s.eligibilityRule}`,
           evidence: [
-            ["Suitable customers", String(eligibleCount)],
-            ["Saved customer records", String(customerCount)],
-            ["Message preparation", "Service matched"],
-            ["Completed value previously recorded from prototype reactivation flow", `£${s.reactivationCompletedValue}`],
+            ["Service-matched eligible customers", String(reactivationEligibleCount)],
+            ["Recommended first batch", String(s.recommendedReactivationBatchSize)],
+            ["Evidence basis", s.reactivationEvidence?.basis || "Cautious fallback"],
+            ["Recorded sample", String(s.reactivationEvidence?.sample || 0)],
+            ["Observed bookings", String(s.reactivationEvidence?.successes || 0)],
+            ["Planning conversion rate", formatPercent(s.reactivationEvidence?.rate)],
+            ["Confidence", s.reactivationEvidence?.confidence || "No evidence yet"],
             ["Advertising required", "£0"],
           ],
           actionLabel: "Review targeted messages",
