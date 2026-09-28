@@ -7270,7 +7270,7 @@ function BestMove({ s }) {
       actionLabel: "Build limited offer",
       onAction: s.prepareOfferForWorkGoal,
     }] : []),
-    {
+    ...(!s.workGoalAttemptKeys?.has("free-audit") ? [{
       id: "gap-free-audit",
       score: 50,
       eyebrow: "Free check",
@@ -7287,8 +7287,16 @@ function BestMove({ s }) {
         ["Prototype limitation", "Some profile checks still use manual test inputs"],
       ],
       actionLabel: "Check free improvements",
-      onAction: () => s.go("profileAudit"),
-    },
+      onAction: () => {
+        s.recordWorkGoalAttempt({
+          key: "free-audit",
+          type: "free-audit",
+          label: "Free profile improvements checked",
+          cost: 0,
+        });
+        s.go("profileAudit");
+      },
+    }] : []),
     ...(!s.workGoalAttemptKeys?.has("paid") ? [{
       id: "gap-paid-test",
       score: remainingJobs >= 3 ? 34 : remainingJobs === 2 ? 20 : 8,
@@ -7312,6 +7320,24 @@ function BestMove({ s }) {
         s.go("paidTest");
       },
     }] : []),
+    {
+      id: "gap-hold",
+      score: 1,
+      eyebrow: "Hold",
+      title: "No new action worth forcing",
+      body: "BUSY has already tried the useful routes currently available for this goal. Record outcomes, add new business information or wait for a genuinely new opportunity instead of repeating the same activity.",
+      footer: "Recommended additional spend: £0",
+      status: "Wait for new evidence",
+      tone: "blue",
+      why: "Repeating the same outreach or spending more without new evidence can create noise rather than useful work. BUSY keeps the goal open and waits for something materially different.",
+      evidence: [
+        ["Goal actions already tried", String(s.workGoalAttempts.length)],
+        ["Bookings still needed", String(s.workGoalRemainingJobs)],
+        ["Recommended extra spend", "£0"],
+      ],
+      actionLabel: "Back to Home",
+      onAction: () => s.jump("home", "Home"),
+    },
   ].sort((a, b) => (b.score || 0) - (a.score || 0));
 
   const best = candidates[0];
