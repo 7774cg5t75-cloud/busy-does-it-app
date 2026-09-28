@@ -350,7 +350,7 @@ function suggestSpareSlots(replyActions = {}, limit = 4) {
 
 function bookingMatchesWorkGoal(action, goal) {
   if (!action?.done || action.type !== "booking") return false;
-  if ((action.details?.bookingStatus || "Confirmed") !== "Confirmed") return false;
+  if (!["Confirmed", "Completed"].includes(action.details?.bookingStatus || "Confirmed")) return false;
 
   if (!goal?.date) {
     const savedAt = new Date(action.completedAt || action.createdAt || 0).getTime();
