@@ -1615,6 +1615,14 @@ function App() {
         : [];
       const recipientIds = new Set(recipients.map((customer) => customer.id));
       setLastSimulatedRecipients(recipients.map((customer) => ({ ...customer })));
+      recordWorkGoalAttempt({
+        key: `reactivation:${recipients.map((customer) => customer.id).sort().join(",")}`,
+        type: "reactivation",
+        label: `Previous customers • ${recipients.length} contacted`,
+        recipientIds: recipients.map((customer) => customer.id),
+        service: goalServiceName || "",
+        cost: 0,
+      });
       setReactivationRuns((runs) => [
         ...runs,
         {
@@ -2316,6 +2324,15 @@ function App() {
       title: "Finished-job post approved",
       note: `Prototype publish approved for ${channels.join(", ")}. No real post was published.`,
     });
+    recordWorkGoalAttempt({
+      key: `post:${selectedCustomerId}:${selectedJobId}`,
+      type: "post",
+      label: "Finished-job post",
+      customerId: selectedCustomerId,
+      jobId: selectedJobId,
+      channels,
+      cost: 0,
+    });
     setJobPostOutcome("No enquiry yet");
     setJobPostOutcomeValue("");
     go("jobPostPublished");
@@ -2407,6 +2424,14 @@ function App() {
       kind: "enquiry-follow-up",
       title: "Quiet enquiry follow-up approved",
       note: "Prototype send approved. No real message was sent.",
+    });
+    recordWorkGoalAttempt({
+      key: `enquiry:${customerId}`,
+      type: "enquiry",
+      label: `Quiet enquiry • ${customer.name}`,
+      customerId,
+      service: customer.service || "",
+      cost: 0,
     });
     setEnquiryFollowUpOutcome("No reply yet");
     go("enquiryFollowUpSent");
@@ -2507,6 +2532,15 @@ function App() {
       title: "Quote follow-up approved",
       note: "Prototype send approved. No real message was sent.",
       value: action.details?.quoteAmount || "",
+    });
+    recordWorkGoalAttempt({
+      key: `quote:${customerId}`,
+      type: "quote",
+      label: `Quote follow-up • ${customer.name}`,
+      customerId,
+      service: customer.service || "",
+      value: Number(action.details?.quoteAmount) || 0,
+      cost: 0,
     });
     setQuoteFollowUpOutcome("No reply yet");
     go("quoteFollowUpSent");
