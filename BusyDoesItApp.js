@@ -4094,6 +4094,128 @@ function App() {
       (entry.job.sourceOrigin === "simulated" ? Number(entry.job.value) || 0 : 0),
     0
   );
+
+  const evidenceServiceName =
+    activeWorkGoal?.serviceName ||
+    services.find((item) => item.id === activeWorkGoal?.serviceId)?.name ||
+    selectedService?.name ||
+    services.find((item) => item.wanted)?.name ||
+    "";
+
+  const recordedReactivationContacts = (() => {
+    const source =
+      reactivationRuns.length
+        ? reactivationRuns.flatMap((run) =>
+            (Array.isArray(run.recipients) ? run.recipients : []).map((item) => ({
+              id: item.id,
+              service: item.service || "",
+            }))
+          )
+        : (lastSimulatedRecipients || []).map((customer) => ({
+            id: customer.id,
+            service: customer.service || "",
+          }));
+    const unique = new Map();
+    source.forEach((item) => {
+      if (item?.id) unique.set(item.id, item);
+    });
+    return [...unique.values()];
+  })();
+
+  const reactivationBookedCustomerIds = new Set(
+    recordedReactivationContacts
+      .filter((contact) => {
+        const action = replyActions[contact.id];
+        const customer = customers.find((item) => item.id === contact.id);
+        const bookedFromAction =
+          action?.origin === "simulated" &&
+          action?.type === "booking" &&
+          action?.done &&
+          ["Confirmed", "Completed"].includes(action.details?.bookingStatus || "Confirmed");
+        const completedFromHistory = (Array.isArray(customer?.history) ? customer.history : []).some(
+          (job) => job.kind === "job" && job.sourceOrigin === "simulated"
+        );
+        return bookedFromAction || completedFromHistory;
+      })
+      .map((item) => item.id)
+  );
+
+  const reactivationServiceContacts = recordedReactivationContacts.filter(
+    (item) => evidenceServiceName && item.service === evidenceServiceName
+  );
+  const reactivationOverallSuccesses = recordedReactivationContacts.filter((item) =>
+    reactivationBookedCustomerIds.has(item.id)
+  ).length;
+  const reactivationServiceSuccesses = reactivationServiceContacts.filter((item) =>
+    reactivationBookedCustomerIds.has(item.id)
+  ).length;
+  const reactivationEvidence = chooseRateEvidence({
+    serviceSuccesses: reactivationServiceSuccesses,
+    serviceSample: reactivationServiceContacts.length,
+    overallSuccesses: reactivationOverallSuccesses,
+    overallSample: recordedReactivationContacts.length,
+    baselineRate: 1 / 3,
+    serviceName: evidenceServiceName,
+  });
+
+  const quoteOutcomeRecordedEntries = quoteFollowUpEntries.filter(
+    (entry) => !!entry.action.details?.followUpOutcomeRecordedAt
+  );
+  const quoteServiceEntries = quoteOutcomeRecordedEntries.filter(
+    (entry) => evidenceServiceName && entry.customer.service === evidenceServiceName
+  );
+  const quoteFollowUpEvidence = chooseRateEvidence({
+    serviceSuccesses: quoteServiceEntries.filter(
+      (entry) => entry.action.details?.followUpOutcome === "Accepted"
+    ).length,
+    serviceSample: quoteServiceEntries.length,
+    overallSuccesses: quoteFollowUpAcceptedCount,
+    overallSample: quoteFollowUpOutcomeCount,
+    baselineRate: 0.25,
+    serviceName: evidenceServiceName,
+  });
+
+  const enquiryOutcomeRecordedEntries = enquiryFollowUpEntries.filter(
+    (entry) => !!entry.customer.enquiryFollowUpOutcomeRecordedAt
+  );
+  const enquiryServiceEntries = enquiryOutcomeRecordedEntries.filter(
+    (entry) => evidenceServiceName && entry.customer.service === evidenceServiceName
+  );
+  const enquiryFollowUpEvidence = chooseRateEvidence({
+    serviceSuccesses: enquiryServiceEntries.filter(
+      (entry) => entry.customer.enquiryFollowUpOutcome === "Still interested"
+    ).length,
+    serviceSample: enquiryServiceEntries.length,
+    overallSuccesses: enquiryFollowUpInterestedCount,
+    overallSample: enquiryFollowUpOutcomeCount,
+    baselineRate: 0.25,
+    serviceName: evidenceServiceName,
+  });
+
+  const postOutcomeEntries = completedJobEntries.filter(
+    (entry) => !!entry.job.postOutcomeRecordedAt
+  );
+  const postServiceEntries = postOutcomeEntries.filter(
+    (entry) =>
+      evidenceServiceName &&
+      (entry.job.service || entry.customer.service) === evidenceServiceName
+  );
+  const postEvidence = chooseRateEvidence({
+    serviceSuccesses: postServiceEntries.filter(
+      (entry) => entry.job.postOutcome === "Booking"
+    ).length,
+    serviceSample: postServiceEntries.length,
+    overallSuccesses: postBookingOutcomeCount,
+    overallSample: postOutcomeRecordedCount,
+    baselineRate: 0.2,
+    serviceName: evidenceServiceName,
+  });
+
+  const offerEvidence = {
+    ...rateEvidence(0, 0, 0.2),
+    basis: "No recorded offer outcomes yet",
+    serviceSpecific: false,
+  };
   const preparedPostEntry =
     completedJobEntries
       .filter(
