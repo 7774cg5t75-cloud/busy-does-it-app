@@ -2,6 +2,22 @@
 
 Busy Does It mobile app prototype.
 
+## v2.3 goal-aware opportunity engine
+- Turned a chosen spare-capacity slot into a persistent work goal instead of a one-off screen choice.
+- A specific suggested morning/afternoon goal now retains its date and daypart, so Busy can compare later confirmed bookings with the capacity the owner asked it to fill.
+- The default target is deliberately simple: one suitable confirmed booking. The front end stays small while the stop condition is explicit underneath.
+- Home now shows an active work-goal card with target, matching confirmed bookings and recorded booked value.
+- When the target is reached, the Opportunity Engine promotes “Goal reached” above marketing and recommends £0 additional spend instead of continuing to manufacture activity.
+- The Best first move screen also changes into a stop-state once the goal is covered.
+- Closing a completed/cancelled work goal removes the active capacity target without adding another permanent tab or dashboard.
+- Added a controlled Special Offer route to the same ranked opportunity ladder. It sits behind stronger existing demand / £0 customer opportunities and ahead of paid advertising.
+- A work-goal offer starts at the normal saved service price rather than assuming a discount is necessary. The owner can deliberately change the price if an incentive is justified.
+- Work-goal offers inherit the selected quiet slot and booking cap so the offer is tied to the actual capacity problem.
+- Removed invented “24 contacted / 5 replied / 2 booked” figures from the offer-running screen. Offer progress now uses saved booking records when tied to an active work goal and otherwise clearly states that the prototype has not really sent anything.
+- Paid reach remains the final escalation with a fixed maximum exposure and no guaranteed-results language.
+- Trusted Autopilot remains record administration only; it does not gain authority to message customers, publish publicly or spend money.
+- Main navigation remains Home / Work / Results / Settings.
+
 ## v2.2 spare-capacity opportunity engine
 - Rebalanced the prototype away from adding more CRM/admin surface area and back toward the core Busy Does It promise: identify a business need, compare the lowest-risk ways to solve it and surface one simple next move.
 - “Fill a spare day” now checks the saved booking diary and suggests likely open morning/afternoon slots instead of relying on a hard-coded Thursday example.
