@@ -176,6 +176,37 @@ function formatPercent(value) {
   return Number.isFinite(Number(value)) ? `${Math.round(Number(value) * 100)}%` : "Not enough data";
 }
 
+function chooseRateEvidence({
+  serviceSuccesses = 0,
+  serviceSample = 0,
+  overallSuccesses = 0,
+  overallSample = 0,
+  baselineRate = 1 / 3,
+  serviceName = "",
+}) {
+  if (serviceSample >= 3) {
+    return {
+      ...rateEvidence(serviceSuccesses, serviceSample, baselineRate),
+      basis: serviceName ? `${serviceName} outcomes` : "Service-specific outcomes",
+      serviceSpecific: true,
+    };
+  }
+  if (overallSample >= 3) {
+    return {
+      ...rateEvidence(overallSuccesses, overallSample, baselineRate),
+      basis: "All recorded services",
+      serviceSpecific: false,
+    };
+  }
+  const smallSample = serviceSample || overallSample;
+  const smallSuccesses = serviceSample ? serviceSuccesses : overallSuccesses;
+  return {
+    ...rateEvidence(smallSuccesses, smallSample, baselineRate),
+    basis: smallSample ? "Small sample — cautious fallback" : "No recorded outcomes yet — cautious fallback",
+    serviceSpecific: false,
+  };
+}
+
 const customerSeed = [
   { id: "c1", name: "Sarah Mitchell", phone: "07700 900101", service: "Driveway cleaning", lastServiceDate: "2025-01-10", lastJobValue: 260, contactOk: true },
   { id: "c2", name: "John Parker", phone: "07700 900102", service: "Patio cleaning", lastServiceDate: "2024-12-05", lastJobValue: 220, contactOk: true },
