@@ -2,6 +2,19 @@
 
 Busy Does It mobile app prototype.
 
+## v2.2 spare-capacity opportunity engine
+- Rebalanced the prototype away from adding more CRM/admin surface area and back toward the core Busy Does It promise: identify a business need, compare the lowest-risk ways to solve it and surface one simple next move.
+- “Fill a spare day” now checks the saved booking diary and suggests likely open morning/afternoon slots instead of relying on a hard-coded Thursday example.
+- Spare-slot detection is deliberately transparent: it uses only confirmed bookings currently saved in the prototype and does not pretend a live external calendar is connected.
+- Choosing a gap now activates a clear spare-capacity goal and keeps the selected slot consistent with prepared customer wording.
+- The Best first move screen now ranks several routes underneath: live enquiries, sent quote follow-ups, quiet enquiries, due previous customers, approved finished-job content, free profile improvements and finally a capped paid test.
+- Existing customer intent outranks cold marketing. £0 and prepared actions normally outrank paid reach.
+- Paid advertising is explicitly kept as an escalation and retains a visible maximum amount at risk with no guaranteed-results wording.
+- Home now gives direct access to “I NEED MORE WORK” without adding another permanent navigation tab.
+- A legacy saved quiet-slot value is no longer treated as confirmed spare capacity unless the owner deliberately selects/activates a work goal.
+- Trusted Autopilot remains narrow record administration only; v2.2 does not expand automatic authority to customer messages, public publishing or spend.
+- Main navigation remains Home / Work / Results / Settings.
+
 ## v0.6 big sweep
 - Reply actions now open real prototype workflows instead of being simple labels.
 - Interested customers can move into a quote-preparation flow.
