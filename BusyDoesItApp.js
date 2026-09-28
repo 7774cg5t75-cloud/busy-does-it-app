@@ -16,8 +16,8 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 
-const APP_VERSION = "2.8";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Brand identity system`;
+const APP_VERSION = "2.9";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Adaptive work-filling plan`;
 
 const C = {
   bg: "#F5F7FB",
@@ -1326,6 +1326,7 @@ function App() {
       targetJobs,
       serviceId: planningService?.id || null,
       serviceName: planningService?.name || null,
+      attempts: [],
       createdAt: new Date().toISOString(),
     };
     setSelectedGap(nextSlot);
@@ -1443,6 +1444,27 @@ function App() {
           : item
       )
     );
+  };
+
+  const recordWorkGoalAttempt = (attempt = {}) => {
+    if (!activeWorkGoal || !attempt?.key) return;
+    const startedAt = new Date().toISOString();
+    setActiveWorkGoal((goal) => {
+      if (!goal) return goal;
+      const attempts = Array.isArray(goal.attempts) ? goal.attempts : [];
+      if (attempts.some((item) => item.key === attempt.key)) return goal;
+      return {
+        ...goal,
+        attempts: [
+          ...attempts,
+          {
+            id: `goal-attempt-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            startedAt,
+            ...attempt,
+          },
+        ],
+      };
+    });
   };
 
   const clearWorkGoal = () => {
