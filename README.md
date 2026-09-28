@@ -2,6 +2,22 @@
 
 Busy Does It mobile app prototype.
 
+## v2.7 evidence-aware opportunity engine
+- Replaced the fixed “roughly three previous customers per required booking” rule with confidence-aware audience sizing when enough recorded evidence exists.
+- Previous-customer outreach now stores a lightweight local history of simulated sends so later confirmed/completed bookings can be compared with the people actually contacted.
+- Reactivation evidence prefers service-specific outcomes once at least three usable results exist. If the service sample is too small, Busy can fall back to broader recorded outcomes; if the overall sample is still too small, the cautious one-in-three planning baseline remains in force.
+- Audience sizing uses a smoothed planning conversion rate rather than the raw observed percentage, so one lucky or unlucky small run cannot swing recommendations aggressively.
+- Work-goal reactivation audiences are now service-aware: a driveway-cleaning capacity target is sized from eligible driveway-cleaning customers rather than unrelated due customers from other services.
+- Quote follow-ups, quiet-enquiry follow-ups and finished-job posts now each expose their own recorded sample, outcome rate and confidence. Their evidence can gently adjust ranking without overriding stronger customer intent, capacity or stop rules.
+- Service-specific evidence is preferred where the sample is usable; broader all-service evidence is used only when the specific sample is too small.
+- Special Offers currently show “no recorded outcome evidence yet” instead of pretending an offer conversion rate exists.
+- Check-before-sending now explains whether the selected previous-customer batch came from recorded evidence or the cautious fallback.
+- Expert details show the sample, observed bookings, planning rate, evidence basis and confidence behind the recommended first batch.
+- Results now includes an Opportunity Engine evidence card so learning remains inspectable without creating another permanent dashboard or navigation tab.
+- The v2.6 multi-slot capacity planner remains authoritative: evidence can change how much activity Busy recommends, but it cannot create capacity that does not exist.
+- The v2.3 stop condition remains authoritative: once the work target is filled, further promotion stops regardless of historical conversion evidence.
+- Main navigation remains Home / Work / Results / Settings.
+
 ## v2.6 multi-slot capacity planner
 - Turned the v2.5 “spread this target across future openings” fallback into a real multi-slot capacity plan.
 - When a requested target cannot fit one chosen slot, Busy now searches the next 21 days for clean morning/afternoon openings and allocates the required bookings across specific slots using the selected service’s editable planning duration.
