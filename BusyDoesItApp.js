@@ -1314,11 +1314,37 @@ function App() {
       services.find((item) => item.wanted) ||
       services[0] ||
       null;
-    const plan = buildMultiSlotCapacityPlan(replyActions, activeWorkGoal, service);
+    const matchedBookings = Object.entries(replyActions || {})
+      .map(([id, action]) => {
+        const customer =
+          customers.find((item) => item.id === id) ||
+          lastSimulatedRecipients.find((item) => item.id === id);
+        if (!customer || customer.service !== service?.name) return null;
+        if (!bookingMatchesWorkGoal(action, activeWorkGoal)) return null;
+        return { id, action, customer };
+      })
+      .filter(Boolean);
+    const fulfilledSlots = (activeWorkGoal.plannedSlots || [])
+      .map((slot) => {
+        const count = matchedBookings.filter((entry) => {
+          const date = entry.action.details?.bookingDate;
+          const hour = Number(String(entry.action.details?.bookingTime || "").split(":")[0]);
+          if (!date || !Number.isFinite(hour)) return false;
+          const part = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+          return date === slot.date && part === slot.part;
+        }).length;
+        return count > 0 ? { ...slot, targetJobs: count } : null;
+      })
+      .filter(Boolean);
+    const fulfilledCount = fulfilledSlots.reduce((total, slot) => total + Number(slot.targetJobs || 0), 0);
+    const remainingTarget = Math.max(0, (Number(activeWorkGoal.targetJobs) || 1) - fulfilledCount);
+    const plan = remainingTarget
+      ? buildMultiSlotCapacityPlan(replyActions, { ...activeWorkGoal, targetJobs: remainingTarget }, service)
+      : { plannedSlots: [], plannedJobs: 0, unplannedJobs: 0, horizonDays: 21 };
     setActiveWorkGoal((goal) => ({
       ...goal,
-      plannedSlots: plan.plannedSlots,
-      plannedJobs: plan.plannedJobs,
+      plannedSlots: [...fulfilledSlots, ...plan.plannedSlots],
+      plannedJobs: fulfilledCount + plan.plannedJobs,
       unplannedJobs: plan.unplannedJobs,
       planHorizonDays: plan.horizonDays,
       planUpdatedAt: new Date().toISOString(),
@@ -4203,7 +4229,10 @@ function App() {
           bookedCount,
           remainingJobs: Math.max(0, Number(slot.targetJobs || 0) - bookedCount),
           otherBookingCount,
-          conflict: otherBookingCount > 0 && bookedCount < Number(slot.targetJobs || 0),
+          overbooked: bookedCount > Number(slot.targetJobs || 0),
+          conflict:
+            (otherBookingCount > 0 && bookedCount < Number(slot.targetJobs || 0)) ||
+            bookedCount > Number(slot.targetJobs || 0),
         };
       })
     : [];
@@ -5719,7 +5748,7 @@ function HomeScreen({ s }) {
                 <MetricRow
                   key={slot.id}
                   left={slot.label}
-                  right={`${slot.bookedCount}/${slot.targetJobs}${slot.conflict ? " • changed" : ""}`}
+                  right={`${slot.bookedCount}/${slot.targetJobs}${slot.overbooked ? " • over" : slot.conflict ? " • changed" : ""}`}
                   strong={slot.bookedCount >= slot.targetJobs && !slot.conflict}
                 />
               ))
