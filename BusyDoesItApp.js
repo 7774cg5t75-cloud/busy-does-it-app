@@ -949,7 +949,9 @@ function App() {
   const [connectedAccounts, setConnectedAccounts] = useState(connectionSeed);
   const [dismissedOpportunities, setDismissedOpportunities] = useState([]);
   const [selectedGap, setSelectedGap] = useState("");
+  const [workGoalTargetDraft, setWorkGoalTargetDraft] = useState(1);
   const [activeWorkGoal, setActiveWorkGoal] = useState(null);
+  const [campaignRecipientLimit, setCampaignRecipientLimit] = useState(null);
   const [selectedCustomerGroup, setSelectedCustomerGroup] = useState(previousCustomerGroups[0]);
   const [selectedServiceId, setSelectedServiceId] = useState("driveway");
   const [moreWorkGoal, setMoreWorkGoal] = useState("More work next week");
@@ -1037,6 +1039,7 @@ function App() {
         if (saved.activeWorkGoal && typeof saved.activeWorkGoal === "object") {
           setActiveWorkGoal(saved.activeWorkGoal);
           if (saved.activeWorkGoal.label) setSelectedGap(saved.activeWorkGoal.label);
+          if (saved.activeWorkGoal.targetJobs) setWorkGoalTargetDraft(Number(saved.activeWorkGoal.targetJobs) || 1);
         }
         if (saved.unansweredReviewCount !== undefined) setUnansweredReviewCount(String(saved.unansweredReviewCount));
         if (saved.recentPhotoCountNeeded !== undefined) setRecentPhotoCountNeeded(String(saved.recentPhotoCountNeeded));
@@ -1177,11 +1180,12 @@ function App() {
   const confirmSpareSlot = (slot) => {
     const nextSlot = slot || "Any suitable work";
     const suggestion = suggestSpareSlots(replyActions).find((item) => item.label === nextSlot) || null;
+    const targetJobs = Math.max(1, Math.min(3, Number(workGoalTargetDraft) || 1));
     const goal = {
       label: nextSlot,
       date: suggestion?.date || null,
       part: suggestion?.part || null,
-      targetJobs: 1,
+      targetJobs,
       createdAt: new Date().toISOString(),
     };
     setSelectedGap(nextSlot);
@@ -1195,6 +1199,8 @@ function App() {
     setActiveWorkGoal(null);
     setQuietSlotConfirmed(false);
     setSelectedGap("");
+    setWorkGoalTargetDraft(1);
+    setCampaignRecipientLimit(null);
     setDismissedOpportunities((items) => items.filter((id) => id !== "quiet-slot"));
     jump("home", "Home");
   };
@@ -1207,12 +1213,17 @@ function App() {
     const serviceName = preferred?.name || trade || "Main service";
     const baseValue = Number(preferred?.value) > 0 ? Number(preferred.value) : 100;
 
+    const alreadyBooked = Object.values(replyActions || {}).filter((action) =>
+      bookingMatchesWorkGoal(action, activeWorkGoal)
+    ).length;
+    const remainingJobs = Math.max(1, (Number(activeWorkGoal?.targetJobs) || 1) - alreadyBooked);
+
     setOfferGoal("Fill a quiet day");
     setOfferService(serviceName);
     setNormalPrice(String(baseValue));
     setOfferPrice(String(baseValue));
     setOfferDates(activeWorkGoal?.label || quietSlot || "Next quiet slot");
-    setOfferMax(String(activeWorkGoal?.targetJobs || 1));
+    setOfferMax(String(remainingJobs));
     setOfferPaused(false);
     go("offerBuild");
   };
@@ -1249,13 +1260,21 @@ function App() {
   const hasActiveCustomerWork = (customerId) =>
     isActiveCustomerAction(replyActions[customerId]);
 
-  const buildReactivationMessages = () => {
+  const buildReactivationMessages = (limit = campaignRecipientLimit) => {
     const eligible = customerContact
-      ? customers.filter(
-          (customer) =>
-            isEligibleCustomer(customer, services, verticalId) &&
-            !hasActiveCustomerWork(customer.id)
-        )
+      ? customers
+          .filter(
+            (customer) =>
+              isEligibleCustomer(customer, services, verticalId) &&
+              !hasActiveCustomerWork(customer.id)
+          )
+          .sort((a, b) => {
+            const aOverdue = monthsSince(a.lastServiceDate) - Number(repeatMonthsForCustomer(a, services, verticalId) || 0);
+            const bOverdue = monthsSince(b.lastServiceDate) - Number(repeatMonthsForCustomer(b, services, verticalId) || 0);
+            if (bOverdue !== aOverdue) return bOverdue - aOverdue;
+            return (Number(b.lastJobValue) || 0) - (Number(a.lastJobValue) || 0);
+          })
+          .slice(0, Number.isFinite(Number(limit)) && Number(limit) > 0 ? Number(limit) : undefined)
       : [];
     const groups = groupCustomersByService(eligible);
     const slotText = (quietSlot || "a quiet slot").toLowerCase();
@@ -1270,15 +1289,17 @@ function App() {
   };
 
   const resetReactivationMessages = () => {
-    setServiceMessages(buildReactivationMessages());
+    setServiceMessages(buildReactivationMessages(campaignRecipientLimit));
   };
 
-  const startCampaign = (stage = 0) => {
+  const startCampaign = (stage = 0, recipientLimit = null) => {
     const safeStage = Math.max(0, Math.min(stage, campaignSteps.length - 1));
     setCampaignStage(safeStage);
 
     if (safeStage === 0) {
-      const drafts = buildReactivationMessages();
+      const nextLimit = Number.isFinite(Number(recipientLimit)) && Number(recipientLimit) > 0 ? Number(recipientLimit) : null;
+      setCampaignRecipientLimit(nextLimit);
+      const drafts = buildReactivationMessages(nextLimit);
       setServiceMessages(drafts);
       setMessage(Object.values(drafts)[0] || campaignSteps[0].message);
     } else if (safeStage === 1) {
@@ -1292,11 +1313,19 @@ function App() {
   const simulateCurrentSend = () => {
     if (campaignStage === 0) {
       const recipients = customerContact
-        ? customers.filter(
-            (customer) =>
-              isEligibleCustomer(customer, services, verticalId) &&
-              !hasActiveCustomerWork(customer.id)
-          )
+        ? customers
+            .filter(
+              (customer) =>
+                isEligibleCustomer(customer, services, verticalId) &&
+                !hasActiveCustomerWork(customer.id)
+            )
+            .sort((a, b) => {
+              const aOverdue = monthsSince(a.lastServiceDate) - Number(repeatMonthsForCustomer(a, services, verticalId) || 0);
+              const bOverdue = monthsSince(b.lastServiceDate) - Number(repeatMonthsForCustomer(b, services, verticalId) || 0);
+              if (bOverdue !== aOverdue) return bOverdue - aOverdue;
+              return (Number(b.lastJobValue) || 0) - (Number(a.lastJobValue) || 0);
+            })
+            .slice(0, Number.isFinite(Number(campaignRecipientLimit)) && Number(campaignRecipientLimit) > 0 ? Number(campaignRecipientLimit) : undefined)
         : [];
       const recipientIds = new Set(recipients.map((customer) => customer.id));
       setLastSimulatedRecipients(recipients.map((customer) => ({ ...customer })));
@@ -3394,7 +3423,9 @@ function App() {
     setQuietSlot("Thursday afternoon");
     setQuietSlotConfirmed(false);
     setSelectedGap("");
+    setWorkGoalTargetDraft(1);
     setActiveWorkGoal(null);
+    setCampaignRecipientLimit(null);
     setUnansweredReviewCount("4");
     setRecentPhotoCountNeeded("2");
     setCustomers(customerSeed);
@@ -3466,11 +3497,18 @@ function App() {
 
   const selectedService = services.find((x) => x.id === selectedServiceId) || services[0];
   const eligibleCustomers = customerContact
-    ? customers.filter(
-        (customer) =>
-          isEligibleCustomer(customer, services, verticalId) &&
-          !hasActiveCustomerWork(customer.id)
-      )
+    ? customers
+        .filter(
+          (customer) =>
+            isEligibleCustomer(customer, services, verticalId) &&
+            !hasActiveCustomerWork(customer.id)
+        )
+        .sort((a, b) => {
+          const aOverdue = monthsSince(a.lastServiceDate) - Number(repeatMonthsForCustomer(a, services, verticalId) || 0);
+          const bOverdue = monthsSince(b.lastServiceDate) - Number(repeatMonthsForCustomer(b, services, verticalId) || 0);
+          if (bOverdue !== aOverdue) return bOverdue - aOverdue;
+          return (Number(b.lastJobValue) || 0) - (Number(a.lastJobValue) || 0);
+        })
     : [];
   const unresolvedEnquiryEntries = customers
     .filter(
@@ -3962,6 +4000,9 @@ function App() {
     0
   );
   const workGoalTargetJobs = Number(activeWorkGoal?.targetJobs) || 1;
+  const workGoalRemainingJobs = Math.max(0, workGoalTargetJobs - workGoalBookedCount);
+  const recommendedReactivationBatchSize = Math.min(eligibleCustomers.length, Math.max(1, workGoalRemainingJobs * 3));
+  const reactivationAudience = campaignRecipientLimit && campaignRecipientLimit > 0 ? eligibleCustomers.slice(0, campaignRecipientLimit) : eligibleCustomers;
   const workGoalFilled = !!activeWorkGoal && workGoalBookedCount >= workGoalTargetJobs;
 
   const appState = {
@@ -3990,6 +4031,8 @@ function App() {
     setQuietSlot,
     quietSlotConfirmed,
     setQuietSlotConfirmed,
+    workGoalTargetDraft,
+    setWorkGoalTargetDraft,
     activeWorkGoal,
     setActiveWorkGoal,
     confirmSpareSlot,
@@ -3999,6 +4042,8 @@ function App() {
     workGoalBookedCount,
     workGoalBookedValue,
     workGoalTargetJobs,
+    workGoalRemainingJobs,
+    recommendedReactivationBatchSize,
     workGoalFilled,
     spareSlotSuggestions: suggestSpareSlots(replyActions),
     unansweredReviewCount,
@@ -4219,6 +4264,8 @@ function App() {
     setMoreWorkGoal,
     campaignStage,
     setCampaignStage,
+    campaignRecipientLimit,
+    reactivationAudience,
     startCampaign,
     adBudget,
     setAdBudget,
@@ -5208,7 +5255,7 @@ function HomeScreen({ s }) {
           score: 60 + Math.min(10, eligibleCount) + reactivationLearningBoost,
           eyebrow: "Spare capacity",
           title: `${s.quietSlot} is free`,
-          body: `${eligibleCount} of ${customerCount} saved customer records are due and allowed to contact now. Busy Does It can prepare service-matched messages.`,
+          body: `${eligibleCount} of ${customerCount} saved customer records are due and allowed to contact now. Busy would start with the smallest sensible batch for the remaining target rather than contacting everyone at once.`,
           footer: "Recommended first move: £0 advertising spend",
           status: "Worth trying",
           tone: "green",
@@ -5220,8 +5267,8 @@ function HomeScreen({ s }) {
             ["Completed value previously recorded from prototype reactivation flow", `£${s.reactivationCompletedValue}`],
             ["Advertising required", "£0"],
           ],
-          actionLabel: "Review prepared messages",
-          onAction: () => s.startCampaign(0),
+          actionLabel: "Review targeted messages",
+          onAction: () => s.startCampaign(0, s.recommendedReactivationBatchSize),
           canIgnore: true,
         }]
       : []),
@@ -5399,8 +5446,8 @@ function HomeScreen({ s }) {
         <Card
           eyebrow="Active work goal"
           title={s.activeWorkGoal.label}
-          body={`Target: ${s.workGoalTargetJobs} suitable booking. Busy will keep cheaper routes ahead of paid reach and stop escalating when the saved bookings cover the target.`}
-          footer={s.workGoalBookedCount ? `${s.workGoalBookedCount} of ${s.workGoalTargetJobs} booked` : "Still open"}
+          body={`Target: ${s.workGoalTargetJobs} suitable booking${s.workGoalTargetJobs === 1 ? "" : "s"}. ${s.workGoalRemainingJobs} still needed. Busy will size the next action to the remaining gap and stop escalating when the target is covered.`}
+          footer={s.workGoalBookedCount ? `${s.workGoalBookedCount} of ${s.workGoalTargetJobs} booked` : `${s.workGoalRemainingJobs} still needed`}
           tone="blue"
         >
           <MetricRow left="Matching confirmed bookings" right={String(s.workGoalBookedCount)} />
@@ -6061,57 +6108,34 @@ function WorkNow({ s }) {
 
 function ChooseGap({ s }) {
   const gaps = Array.isArray(s.spareSlotSuggestions) ? s.spareSlotSuggestions : [];
+  const targetOptions = [
+    { value: 1, label: "One booking", sub: "Use the narrowest sensible action first" },
+    { value: 2, label: "Two bookings", sub: "Use a small targeted action before broad promotion" },
+    { value: 3, label: "Three bookings", sub: "A wider customer action or limited offer may become proportionate" },
+  ];
+
   return (
-    <Shell
-      s={s}
-      title="When do you want work?"
-      subtitle="Busy checked the saved booking diary first. These are likely open slots based on the bookings currently recorded."
-      brandCue="Diary first. Then the cheapest useful way to fill the gap."
-    >
+    <Shell s={s} title="When do you want work?" subtitle="Busy checks the saved diary first, then sizes the response to how much work you actually need." brandCue="Right amount of work. Smallest sensible intervention.">
       {gaps.length ? (
         <>
-          <Card
-            eyebrow="Likely spare capacity"
-            title="Open time found in the saved diary"
-            body="A morning or afternoon is treated as occupied when a confirmed booking is saved in that period. This is a prototype diary check, not a live external calendar connection."
-            tone="green"
-          />
+          <Card eyebrow="Likely spare capacity" title="Open time found in the saved diary" body="A morning or afternoon is treated as occupied when a confirmed booking is saved in that period. This is a prototype diary check, not a live external calendar connection." tone="green" />
           {gaps.map((gap) => (
-            <Choice
-              key={gap.id}
-              label={gap.label}
-              sub="No confirmed booking saved in this period"
-              selected={s.selectedGap === gap.label}
-              onPress={() => s.setSelectedGap(gap.label)}
-            />
+            <Choice key={gap.id} label={gap.label} sub="No confirmed booking saved in this period" selected={s.selectedGap === gap.label} onPress={() => s.setSelectedGap(gap.label)} />
           ))}
         </>
       ) : (
-        <Card
-          eyebrow="Diary looks busy"
-          title="No obvious gap found"
-          body="Busy could not find a clear morning or afternoon gap in the next saved diary window. You can still ask for any suitable work."
-          tone="blue"
-        />
+        <Card eyebrow="Diary looks busy" title="No obvious gap found" body="Busy could not find a clear morning or afternoon gap in the next saved diary window. You can still ask for any suitable work." tone="blue" />
       )}
-
-      <Choice
-        label="Any suitable work"
-        sub="Find the strongest low-risk opportunity without tying it to one slot"
-        selected={s.selectedGap === "Any suitable work"}
-        onPress={() => s.setSelectedGap("Any suitable work")}
-      />
-      <Button
-        label="Find the best first move"
-        primary
-        disabled={!s.selectedGap}
-        onPress={() => s.confirmSpareSlot(s.selectedGap)}
-      />
+      <Choice label="Any suitable work" sub="Find the strongest low-risk opportunity without tying it to one slot" selected={s.selectedGap === "Any suitable work"} onPress={() => s.setSelectedGap("Any suitable work")} />
+      <Text style={styles.sectionLabel}>How much work do you need?</Text>
+      {targetOptions.map((option) => (
+        <Choice key={option.value} label={option.label} sub={option.sub} selected={s.workGoalTargetDraft === option.value} onPress={() => s.setWorkGoalTargetDraft(option.value)} />
+      ))}
+      <Button label={`Find the best way to get ${s.workGoalTargetDraft} booking${s.workGoalTargetDraft === 1 ? "" : "s"}`} primary disabled={!s.selectedGap} onPress={() => s.confirmSpareSlot(s.selectedGap)} />
       <Button label="Enter a different quiet slot" onPress={() => s.go("businessData")} />
     </Shell>
   );
 }
-
 
 function BestMove({ s }) {
   const [showAlternatives, setShowAlternatives] = useState(false);
@@ -6119,6 +6143,9 @@ function BestMove({ s }) {
   const firstFreshEnquiry = s.freshEnquiryEntries?.[0] || null;
   const firstQuietEnquiry = s.staleEnquiryEntries?.[0] || null;
   const firstQuote = s.dueQuoteEntries?.[0] || null;
+  const remainingJobs = Math.max(1, s.workGoalRemainingJobs || 1);
+  const targetedCustomerCount = Math.min(s.eligibleCustomers.length, Math.max(1, remainingJobs * 3));
+  const suggestedPaidBudget = Math.min(Number(s.testLimit) || 25, Math.max(5, remainingJobs * 10));
 
   if (s.activeWorkGoal && s.workGoalFilled) {
     return (
@@ -6208,10 +6235,10 @@ function BestMove({ s }) {
     ...(s.eligibleCustomers.length
       ? [{
           id: "gap-reactivation",
-          score: 86 + Math.min(10, s.eligibleCustomers.length),
+          score: remainingJobs >= 3 ? 98 + Math.min(6, targetedCustomerCount) : remainingJobs === 2 ? 91 + Math.min(5, targetedCustomerCount) : 82 + Math.min(4, targetedCustomerCount),
           eyebrow: "Previous customers",
-          title: `Contact ${s.eligibleCustomers.length} due previous customer${s.eligibleCustomers.length === 1 ? "" : "s"}`,
-          body: `Busy found saved customers who are due again under the service-specific timing rules. It can prepare service-matched wording for ${gap.toLowerCase()}.`,
+          title: `Start with ${targetedCustomerCount} due previous customer${targetedCustomerCount === 1 ? "" : "s"}`,
+          body: `Busy found ${s.eligibleCustomers.length} eligible previous customer${s.eligibleCustomers.length === 1 ? "" : "s"}, but the current target only needs ${remainingJobs} more booking${remainingJobs === 1 ? "" : "s"}. It would start with a proportional batch instead of contacting everyone at once.`,
           footer: "Advertising spend: £0",
           status: "Ready to prepare",
           tone: "green",
@@ -6219,11 +6246,13 @@ function BestMove({ s }) {
           evidence: [
             ["Goal", gap],
             ["Eligible previous customers", String(s.eligibleCustomers.length)],
+            ["Recommended first batch", String(targetedCustomerCount)],
+            ["Bookings still needed", String(remainingJobs)],
             ["Rule", s.eligibilityRule],
             ["Advertising required", "£0"],
           ],
-          actionLabel: "Review prepared messages",
-          onAction: () => s.startCampaign(0),
+          actionLabel: `Review ${targetedCustomerCount} targeted message${targetedCustomerCount === 1 ? "" : "s"}`,
+          onAction: () => s.startCampaign(0, targetedCustomerCount),
         }]
       : []),
     ...(s.preparedPostOpportunity
@@ -6270,17 +6299,17 @@ function BestMove({ s }) {
       : []),
     {
       id: "gap-special-offer",
-      score: 56,
+      score: remainingJobs >= 3 ? 88 : remainingJobs === 2 ? 72 : 46,
       eyebrow: "Controlled offer",
       title: "Build a limited offer without assuming a discount",
-      body: `If the direct £0 routes are not enough, Busy can prepare a ${s.workGoalTargetJobs}-booking offer for ${gap.toLowerCase()}. It starts at the normal saved service price rather than automatically cutting margin.`,
+      body: `If the direct £0 routes are not enough, Busy can prepare a ${remainingJobs}-booking offer for the remaining capacity in ${gap.toLowerCase()}. It starts at the normal saved service price rather than automatically cutting margin.`,
       footer: "No discount assumed • paid reach still optional",
       status: "Escalation without spend",
       tone: "blue",
       why: "A limited offer can sharpen the reason to book without immediately paying for reach or giving away margin. The owner still reviews the price, audience and booking cap.",
       evidence: [
         ["Goal", gap],
-        ["Booking cap", String(s.workGoalTargetJobs)],
+        ["Booking cap", String(remainingJobs)],
         ["Starting price logic", "Normal saved service price"],
         ["Automatic discount", "No"],
         ["Paid advertising required", "No"],
@@ -6309,22 +6338,26 @@ function BestMove({ s }) {
     },
     {
       id: "gap-paid-test",
-      score: 10,
+      score: remainingJobs >= 3 ? 34 : remainingJobs === 2 ? 20 : 8,
       eyebrow: "Escalation only",
       title: "Consider a capped local paid test",
       body: "Only use paid reach if the cheaper routes above are unsuitable or still leave the capacity unfilled.",
-      footer: `Maximum prototype test: £${s.testLimit}`,
+      footer: `Suggested cap for this gap: £${suggestedPaidBudget} • absolute prototype limit £${s.testLimit}`,
       status: "Later",
       tone: "amber",
       why: "Paid reach adds cost and uncertainty, so it stays behind useful £0 options. The owner still approves the maximum amount at risk.",
       evidence: [
         ["Goal", gap],
-        ["Maximum test", `£${s.testLimit}`],
+        ["Suggested cap", `£${suggestedPaidBudget}`],
+        ["Absolute prototype limit", `£${s.testLimit}`],
         ["Results guaranteed", "No"],
         ["Owner approval", "Required"],
       ],
       actionLabel: "Review paid-test controls",
-      onAction: () => s.go("paidTest"),
+      onAction: () => {
+        s.setAdBudget(String(suggestedPaidBudget));
+        s.go("paidTest");
+      },
     },
   ].sort((a, b) => (b.score || 0) - (a.score || 0));
 
@@ -6345,12 +6378,22 @@ function BestMove({ s }) {
       />
 
       <Card
+        eyebrow="Sized to the gap"
+        title={`${remainingJobs} booking${remainingJobs === 1 ? "" : "s"} still needed`}
+        body={remainingJobs === 1 ? "Busy keeps this narrow: strongest individual intent first, then only a small previous-customer action if needed." : remainingJobs === 2 ? "Busy can justify a small targeted batch, but broad promotion is still unnecessary unless the cheaper routes fail." : "The gap is larger, so a broader previous-customer action or limited offer can become proportionate before paid reach."}
+        footer="Smallest sensible intervention first"
+        tone="green"
+      />
+
+      <Card
         eyebrow="What Busy checked"
         title="The opportunity engine compared the routes underneath"
         body="Live enquiries, quiet enquiries, sent quotes, due previous customers, approved job content, a limited offer, free profile improvements and finally a capped paid test were ranked without making you choose a marketing channel."
         tone="blue"
       >
         <MetricRow left="Chosen work goal" right={gap} />
+        <MetricRow left="Target bookings" right={String(s.workGoalTargetJobs)} />
+        <MetricRow left="Still needed" right={String(s.workGoalRemainingJobs)} strong />
         <MetricRow left="Eligible previous customers" right={String(s.eligibleCustomers.length)} />
         <MetricRow left="Quiet enquiries" right={String(s.staleEnquiryEntries.length)} />
         <MetricRow left="Quote follow-ups due" right={String(s.dueQuoteEntries.length)} />
@@ -6611,8 +6654,9 @@ function OtherOptions({ s }) {
 
 function CheckSend({ s }) {
   const baseStep = campaignSteps[s.campaignStage] || campaignSteps[0];
-  const eligibleCount = s.eligibleCustomers.length;
-  const serviceGroups = groupCustomersByService(s.eligibleCustomers);
+  const selectedAudience = s.campaignStage === 0 && s.reactivationAudience?.length ? s.reactivationAudience : s.eligibleCustomers;
+  const eligibleCount = selectedAudience.length;
+  const serviceGroups = groupCustomersByService(selectedAudience);
   const serviceEntries = Object.entries(serviceGroups);
   const serviceGroupCount = serviceEntries.length;
 
@@ -6661,7 +6705,7 @@ function CheckSend({ s }) {
           <Card
             eyebrow={step.audience}
             title={step.title}
-            body="Review each service group below. You can edit every draft separately."
+            body={s.campaignRecipientLimit ? `Busy selected a proportional first batch of ${eligibleCount} customers for the current work target. Review each service group below; you can edit every draft separately.` : "Review each service group below. You can edit every draft separately."}
             footer="Advertising spend: £0"
             tone="green"
           />
@@ -6722,6 +6766,8 @@ function Progress({ s }) {
   const sentRecipients =
     s.campaignStage === 0 && s.lastSimulatedRecipients?.length
       ? s.lastSimulatedRecipients
+      : s.reactivationAudience?.length
+      ? s.reactivationAudience
       : s.eligibleCustomers;
   const serviceGroupCount = Object.keys(groupCustomersByService(sentRecipients)).length;
 
