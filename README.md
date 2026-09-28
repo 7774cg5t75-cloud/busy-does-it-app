@@ -2,6 +2,19 @@
 
 Busy Does It mobile app prototype.
 
+## v2.6 multi-slot capacity planner
+- Turned the v2.5 “spread this target across future openings” fallback into a real multi-slot capacity plan.
+- When a requested target cannot fit one chosen slot, Busy now searches the next 21 days for clean morning/afternoon openings and allocates the required bookings across specific slots using the selected service’s editable planning duration.
+- Each planned slot stores its own target allocation and visible label. A three-booking target can therefore become a concrete plan such as one booking Tuesday morning, one Tuesday afternoon and one Wednesday morning rather than collapsing into vague “any suitable work”.
+- Work-goal booking matching is now tighter: spread goals count only confirmed/completed bookings that land inside one of the planned slots, and service-specific goals only count bookings for the selected planning service.
+- Home shows the active multi-slot plan underneath the same existing work-goal card, including per-slot progress, without adding another permanent navigation area.
+- Best first move shows the same plan before marketing recommendations so the owner can see where the requested work is expected to fit.
+- If the current diary cannot provide enough clean capacity for the whole target within 21 days, Busy stops before marketing and states the shortfall. The owner can reduce the goal to the planned capacity or choose a different work goal.
+- If another booking later occupies one of the planned openings, Busy flags the plan as stale and offers to rebuild it from the current diary instead of silently relying on outdated capacity.
+- Multi-slot plans remain conservative: a confirmed booking anywhere in a morning/afternoon period makes that period unavailable to the planner unless it is one of the matching goal bookings already being tracked.
+- The v2.5 capacity assumptions remain editable and visible. The v2.4 proportional audience logic, v2.3 stop condition, free-first ranking and paid-spend limits remain intact.
+- The visible app stays simple. Main navigation remains Home / Work / Results / Settings.
+
 ## v2.5 capacity-aware work goals
 - Added editable typical job length to service planning data so Busy can estimate whether a requested number of jobs can realistically fit into a selected diary slot.
 - Exterior-cleaning and the other prototype vertical packs now include transparent starter duration assumptions; these are planning defaults only and can be corrected by the owner.
