@@ -348,6 +348,27 @@ function suggestSpareSlots(replyActions = {}, limit = 4) {
   return suggestions;
 }
 
+function bookingMatchesWorkGoal(action, goal) {
+  if (!action?.done || action.type !== "booking") return false;
+  if ((action.details?.bookingStatus || "Confirmed") !== "Confirmed") return false;
+
+  if (!goal?.date) {
+    const savedAt = new Date(action.completedAt || action.createdAt || 0).getTime();
+    const goalStartedAt = new Date(goal?.createdAt || 0).getTime();
+    return Number.isFinite(savedAt) && Number.isFinite(goalStartedAt) && savedAt >= goalStartedAt;
+  }
+
+  if (action.details?.bookingDate !== goal.date) return false;
+  if (!goal.part) return true;
+
+  const hour = Number(String(action.details?.bookingTime || "").split(":")[0]);
+  if (!Number.isFinite(hour)) return false;
+  if (goal.part === "morning") return hour < 12;
+  if (goal.part === "afternoon") return hour >= 12 && hour < 17;
+  if (goal.part === "evening") return hour >= 17;
+  return true;
+}
+
 function normalizePhone(value) {
   let digits = String(value || "").replace(/\D/g, "");
   if (digits.startsWith("44") && digits.length >= 12) digits = `0${digits.slice(2)}`;
@@ -928,6 +949,7 @@ function App() {
   const [connectedAccounts, setConnectedAccounts] = useState(connectionSeed);
   const [dismissedOpportunities, setDismissedOpportunities] = useState([]);
   const [selectedGap, setSelectedGap] = useState("");
+  const [activeWorkGoal, setActiveWorkGoal] = useState(null);
   const [selectedCustomerGroup, setSelectedCustomerGroup] = useState(previousCustomerGroups[0]);
   const [selectedServiceId, setSelectedServiceId] = useState("driveway");
   const [moreWorkGoal, setMoreWorkGoal] = useState("More work next week");
@@ -1012,6 +1034,10 @@ function App() {
         if (saved.radius) setRadius(saved.radius);
         if (saved.quietSlot) setQuietSlot(saved.quietSlot);
         if (typeof saved.quietSlotConfirmed === "boolean") setQuietSlotConfirmed(saved.quietSlotConfirmed);
+        if (saved.activeWorkGoal && typeof saved.activeWorkGoal === "object") {
+          setActiveWorkGoal(saved.activeWorkGoal);
+          if (saved.activeWorkGoal.label) setSelectedGap(saved.activeWorkGoal.label);
+        }
         if (saved.unansweredReviewCount !== undefined) setUnansweredReviewCount(String(saved.unansweredReviewCount));
         if (saved.recentPhotoCountNeeded !== undefined) setRecentPhotoCountNeeded(String(saved.recentPhotoCountNeeded));
         if (Array.isArray(saved.customers)) setCustomers(saved.customers);
@@ -1079,6 +1105,7 @@ function App() {
       radius,
       quietSlot,
       quietSlotConfirmed,
+      activeWorkGoal,
       unansweredReviewCount,
       recentPhotoCountNeeded,
       customers,
@@ -1108,6 +1135,7 @@ function App() {
     radius,
     quietSlot,
     quietSlotConfirmed,
+    activeWorkGoal,
     unansweredReviewCount,
     recentPhotoCountNeeded,
     customers,
@@ -1148,10 +1176,45 @@ function App() {
 
   const confirmSpareSlot = (slot) => {
     const nextSlot = slot || "Any suitable work";
+    const suggestion = suggestSpareSlots(replyActions).find((item) => item.label === nextSlot) || null;
+    const goal = {
+      label: nextSlot,
+      date: suggestion?.date || null,
+      part: suggestion?.part || null,
+      targetJobs: 1,
+      createdAt: new Date().toISOString(),
+    };
     setSelectedGap(nextSlot);
     setQuietSlot(nextSlot);
     setQuietSlotConfirmed(true);
+    setActiveWorkGoal(goal);
     go("bestMove");
+  };
+
+  const clearWorkGoal = () => {
+    setActiveWorkGoal(null);
+    setQuietSlotConfirmed(false);
+    setSelectedGap("");
+    setDismissedOpportunities((items) => items.filter((id) => id !== "quiet-slot"));
+    jump("home", "Home");
+  };
+
+  const prepareOfferForWorkGoal = () => {
+    const preferred =
+      services.find((item) => item.id === selectedServiceId) ||
+      services.find((item) => item.wanted) ||
+      services[0];
+    const serviceName = preferred?.name || trade || "Main service";
+    const baseValue = Number(preferred?.value) > 0 ? Number(preferred.value) : 100;
+
+    setOfferGoal("Fill a quiet day");
+    setOfferService(serviceName);
+    setNormalPrice(String(baseValue));
+    setOfferPrice(String(baseValue));
+    setOfferDates(activeWorkGoal?.label || quietSlot || "Next quiet slot");
+    setOfferMax(String(activeWorkGoal?.targetJobs || 1));
+    setOfferPaused(false);
+    go("offerBuild");
   };
 
   const completeOnboarding = () => {
@@ -3331,6 +3394,7 @@ function App() {
     setQuietSlot("Thursday afternoon");
     setQuietSlotConfirmed(false);
     setSelectedGap("");
+    setActiveWorkGoal(null);
     setUnansweredReviewCount("4");
     setRecentPhotoCountNeeded("2");
     setCustomers(customerSeed);
@@ -3877,6 +3941,29 @@ function App() {
     return counts;
   }, {});
 
+  const workGoalBookingEntries = activeWorkGoal
+    ? Object.entries(replyActions || {})
+        .map(([id, action]) => {
+          if (!bookingMatchesWorkGoal(action, activeWorkGoal)) return null;
+          const customer =
+            customers.find((item) => item.id === id) ||
+            lastSimulatedRecipients.find((item) => item.id === id);
+          return customer ? { id, action, customer } : null;
+        })
+        .filter(Boolean)
+    : [];
+  const workGoalBookedCount = workGoalBookingEntries.length;
+  const workGoalBookedValue = workGoalBookingEntries.reduce(
+    (total, entry) =>
+      total +
+      (Number(entry.action.details?.jobValue) ||
+        Number(entry.action.details?.sourceQuoteAmount) ||
+        0),
+    0
+  );
+  const workGoalTargetJobs = Number(activeWorkGoal?.targetJobs) || 1;
+  const workGoalFilled = !!activeWorkGoal && workGoalBookedCount >= workGoalTargetJobs;
+
   const appState = {
     screen,
     history,
@@ -3903,7 +3990,16 @@ function App() {
     setQuietSlot,
     quietSlotConfirmed,
     setQuietSlotConfirmed,
+    activeWorkGoal,
+    setActiveWorkGoal,
     confirmSpareSlot,
+    clearWorkGoal,
+    prepareOfferForWorkGoal,
+    workGoalBookingEntries,
+    workGoalBookedCount,
+    workGoalBookedValue,
+    workGoalTargetJobs,
+    workGoalFilled,
     spareSlotSuggestions: suggestSpareSlots(replyActions),
     unansweredReviewCount,
     setUnansweredReviewCount,
@@ -4837,6 +4933,30 @@ function HomeScreen({ s }) {
 
   const operationalMoves = [];
 
+  if (s.activeWorkGoal && s.workGoalFilled) {
+    operationalMoves.push({
+      id: "work-goal-reached",
+      score: 140,
+      eyebrow: "Goal reached",
+      title: `${s.activeWorkGoal.label} is covered`,
+      body: `${s.workGoalBookedCount} confirmed booking${s.workGoalBookedCount === 1 ? "" : "s"} now match this work goal. Busy Does It should stop promoting the gap instead of manufacturing more activity.`,
+      footer: s.workGoalBookedValue ? `Recorded booked value: £${s.workGoalBookedValue}` : "No more promotion needed for this goal",
+      status: "Stop",
+      tone: "green",
+      why: "The capacity target has been reached from the bookings saved in the prototype. Continuing to contact people or spend money for the same gap would work against the owner’s stated goal.",
+      evidence: [
+        ["Work goal", s.activeWorkGoal.label],
+        ["Target bookings", String(s.workGoalTargetJobs)],
+        ["Matching confirmed bookings", String(s.workGoalBookedCount)],
+        ["Recorded booked value", s.workGoalBookedValue ? `£${s.workGoalBookedValue}` : "Not recorded"],
+        ["Recommended extra spend", "£0"],
+      ],
+      actionLabel: "Close this goal",
+      onAction: s.clearWorkGoal,
+      canIgnore: false,
+    });
+  }
+
   if (overdueBookings.length) {
     const item = overdueBookings[0];
     const value = Number(item.action.details?.jobValue) || Number(item.action.details?.sourceQuoteAmount) || 0;
@@ -5082,7 +5202,7 @@ function HomeScreen({ s }) {
           canIgnore: true,
         }]
       : []),
-    ...(s.quietSlotConfirmed && s.quietSlot && eligibleCount > 0
+    ...(s.quietSlotConfirmed && !s.workGoalFilled && s.quietSlot && eligibleCount > 0
       ? [{
           id: "quiet-slot",
           score: 60 + Math.min(10, eligibleCount) + reactivationLearningBoost,
@@ -5273,6 +5393,21 @@ function HomeScreen({ s }) {
 
       {s.dismissedOpportunities.length ? (
         <Button label="Restore ignored opportunities" onPress={s.restoreOpportunities} />
+      ) : null}
+
+      {s.activeWorkGoal && !s.workGoalFilled ? (
+        <Card
+          eyebrow="Active work goal"
+          title={s.activeWorkGoal.label}
+          body={`Target: ${s.workGoalTargetJobs} suitable booking. Busy will keep cheaper routes ahead of paid reach and stop escalating when the saved bookings cover the target.`}
+          footer={s.workGoalBookedCount ? `${s.workGoalBookedCount} of ${s.workGoalTargetJobs} booked` : "Still open"}
+          tone="blue"
+        >
+          <MetricRow left="Matching confirmed bookings" right={String(s.workGoalBookedCount)} />
+          <MetricRow left="Recorded value" right={s.workGoalBookedValue ? `£${s.workGoalBookedValue}` : "£0"} />
+          <Button label="Review this work goal" onPress={() => s.go("bestMove")} />
+          <Button label="Cancel work goal" onPress={s.clearWorkGoal} />
+        </Card>
       ) : null}
 
       {(s.backgroundReadyCount || s.lifecycleWatchCount) ? (
@@ -5985,6 +6120,27 @@ function BestMove({ s }) {
   const firstQuietEnquiry = s.staleEnquiryEntries?.[0] || null;
   const firstQuote = s.dueQuoteEntries?.[0] || null;
 
+  if (s.activeWorkGoal && s.workGoalFilled) {
+    return (
+      <Shell
+        s={s}
+        title="Work goal reached"
+        subtitle={`${s.activeWorkGoal.label} is now covered by the bookings saved in Busy Does It.`}
+        brandCue="Target reached. Stop promoting."
+      >
+        <Card
+          eyebrow="Stop condition reached"
+          title="No more marketing needed for this gap"
+          body={`Busy found ${s.workGoalBookedCount} confirmed booking${s.workGoalBookedCount === 1 ? "" : "s"} matching a target of ${s.workGoalTargetJobs}. It should not keep contacting people or suggest paid advertising for the same capacity.`}
+          footer={s.workGoalBookedValue ? `Recorded booked value: £${s.workGoalBookedValue}` : "Recommended additional spend: £0"}
+          tone="green"
+        />
+        <Button label="Close this work goal" primary onPress={s.clearWorkGoal} />
+        <Button label="View work diary" onPress={() => s.jump("workHub", "Work")} />
+      </Shell>
+    );
+  }
+
   const candidates = [
     ...(firstFreshEnquiry
       ? [{
@@ -6113,6 +6269,26 @@ function BestMove({ s }) {
         }]
       : []),
     {
+      id: "gap-special-offer",
+      score: 56,
+      eyebrow: "Controlled offer",
+      title: "Build a limited offer without assuming a discount",
+      body: `If the direct £0 routes are not enough, Busy can prepare a ${s.workGoalTargetJobs}-booking offer for ${gap.toLowerCase()}. It starts at the normal saved service price rather than automatically cutting margin.`,
+      footer: "No discount assumed • paid reach still optional",
+      status: "Escalation without spend",
+      tone: "blue",
+      why: "A limited offer can sharpen the reason to book without immediately paying for reach or giving away margin. The owner still reviews the price, audience and booking cap.",
+      evidence: [
+        ["Goal", gap],
+        ["Booking cap", String(s.workGoalTargetJobs)],
+        ["Starting price logic", "Normal saved service price"],
+        ["Automatic discount", "No"],
+        ["Paid advertising required", "No"],
+      ],
+      actionLabel: "Build limited offer",
+      onAction: s.prepareOfferForWorkGoal,
+    },
+    {
       id: "gap-free-audit",
       score: 50,
       eyebrow: "Free check",
@@ -6171,7 +6347,7 @@ function BestMove({ s }) {
       <Card
         eyebrow="What Busy checked"
         title="The opportunity engine compared the routes underneath"
-        body="Live enquiries, quiet enquiries, sent quotes, due previous customers, approved job content, free profile improvements and a capped paid test were ranked without making you choose a marketing channel."
+        body="Live enquiries, quiet enquiries, sent quotes, due previous customers, approved job content, a limited offer, free profile improvements and finally a capped paid test were ranked without making you choose a marketing channel."
         tone="blue"
       >
         <MetricRow left="Chosen work goal" right={gap} />
@@ -9505,6 +9681,15 @@ function OfferBuild({ s }) {
       <Field label="Offer price" value={s.offerPrice} onChangeText={s.setOfferPrice} keyboardType="number-pad" prefix="£" />
       <Field label="Dates" value={s.offerDates} onChangeText={s.setOfferDates} />
       <Field label="Maximum bookings" value={s.offerMax} onChangeText={s.setOfferMax} keyboardType="number-pad" />
+      {s.activeWorkGoal && s.offerGoal === "Fill a quiet day" ? (
+        <Card
+          eyebrow="Built from your work goal"
+          title={s.activeWorkGoal.label}
+          body={`Busy started this offer with a cap of ${s.workGoalTargetJobs} booking and the normal saved service price. Lower the price only if you decide an incentive is actually worth the margin.`}
+          footer="Special offer does not automatically mean discount"
+          tone="blue"
+        />
+      ) : null}
       <Card eyebrow="Margin check" title="Don’t discount more than the goal requires" body={guidance} tone="green" />
       <Button label="Improve it for me" primary onPress={() => s.go("offerPlan")} />
       <Button label="Use my offer" onPress={() => s.go("offerPlan")} />
@@ -9571,21 +9756,56 @@ function ExpertOfferPlan({ s }) {
 }
 
 function OfferRunning({ s }) {
+  const tiedToGoal = !!s.activeWorkGoal && s.offerGoal === "Fill a quiet day";
+  const target = tiedToGoal ? s.workGoalTargetJobs : Math.max(1, Number(s.offerMax) || 1);
+  const booked = tiedToGoal ? s.workGoalBookedCount : 0;
+  const reached = tiedToGoal && s.workGoalFilled;
+
   return (
-    <Shell s={s} title={s.offerPaused ? "Simulated offer paused" : "Simulated offer"} subtitle={s.offerPaused ? "Nothing new is simulated while paused." : "Prototype example only — no real offer is running."}>
+    <Shell
+      s={s}
+      title={reached ? "Offer target reached" : "Offer plan ready"}
+      subtitle={
+        reached
+          ? "The saved bookings already cover the work goal, so Busy should stop escalating this offer."
+          : "Prototype plan only — no customer message, public post or advert has actually been sent."
+      }
+    >
       <Card
-        eyebrow={s.offerPaused ? "Paused demo" : "Simulated offer"}
-        title={`2 of ${s.offerMax} spaces booked`}
-        body="24 past customers contacted. 5 replied. 2 booked. No paid advertising has been needed yet."
-        footer="Won work so far: about £450"
-        tone={s.offerPaused ? "amber" : "green"}
+        eyebrow={reached ? "Stop condition reached" : "Controlled offer"}
+        title={tiedToGoal ? `${booked} of ${target} target booking${target === 1 ? "" : "s"} recorded` : `Maximum ${target} booking${target === 1 ? "" : "s"}`}
+        body={
+          reached
+            ? `${s.activeWorkGoal.label} is covered. More promotion for the same gap is unnecessary.`
+            : `${s.offerService} • ${s.offerDates}. Busy has prepared the plan, but the prototype is not pretending it has contacted customers or generated bookings that are not in the saved records.`
+        }
+        footer={
+          reached
+            ? "Recommended additional spend: £0"
+            : String(s.offerPrice) === String(s.normalPrice)
+            ? `Starts at normal price: £${s.normalPrice}`
+            : `Offer price: £${s.offerPrice} • normal about £${s.normalPrice}`
+        }
+        tone={reached ? "green" : "blue"}
       />
-      <Button label="View bookings" primary onPress={() => s.jump("results", "Results")} />
-      <Button label={s.offerPaused ? "Resume offer" : "Pause offer"} onPress={() => s.setOfferPaused((v) => !v)} />
-      <Button label="Stop offer" danger onPress={() => s.jump("home", "Home")} />
+      {tiedToGoal ? (
+        <>
+          <MetricRow left="Work goal" right={s.activeWorkGoal.label} />
+          <MetricRow left="Target bookings" right={String(target)} />
+          <MetricRow left="Matching confirmed bookings" right={String(booked)} />
+          <MetricRow left="Recorded booked value" right={s.workGoalBookedValue ? `£${s.workGoalBookedValue}` : "£0"} strong={reached} />
+        </>
+      ) : null}
+      {reached ? (
+        <Button label="Close work goal" primary onPress={s.clearWorkGoal} />
+      ) : (
+        <Button label="Back to ranked routes" primary onPress={() => s.go("bestMove")} />
+      )}
+      <Button label="View work diary" onPress={() => s.jump("workHub", "Work")} />
     </Shell>
   );
 }
+
 
 function Results({ s }) {
   const actions = Object.entries(s.replyActions || {});
