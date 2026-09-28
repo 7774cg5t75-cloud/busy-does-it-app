@@ -2,6 +2,18 @@
 
 Busy Does It mobile app prototype.
 
+## v2.8 brand identity system
+- Adopted the approved “Trusted Assistant” direction as the primary BUSY DOES IT identity and the approved B/check monogram as the compact app mark.
+- Replaced the plain text-only header with a reusable BUSY DOES IT brand lockup: assistant-style stacked-card/check symbol, BUSY wordmark, DOES IT accent and the existing “More work. Less fuss.” tagline.
+- Added a compact B/check mark for small brand moments where the full identity would be too heavy.
+- Cards whose eyebrow begins with BUSY now show the compact mark beside the label, making assistant/explainer moments visually distinct without putting a logo on every card.
+- Updated visible self-reference language from ambiguous “Busy” to “BUSY”, so sentences such as “BUSY has spread 3 bookings…” clearly refer to the product rather than the ordinary word busy.
+- Full brand name references are now visually consistent as BUSY DOES IT.
+- Added a branded loading state using the primary mark and wordmark.
+- Added a restrained brand section in Settings showing the primary identity and compact mark, so the branding system is inspectable without introducing another navigation area.
+- Kept the rest of the interface deliberately calm: no large visual redesign, no extra permanent tabs and no branding repeated on every card.
+- All v2.7 evidence-aware opportunity logic, v2.6 capacity planning, earlier safety rules and the existing Home / Work / Results / Settings navigation remain unchanged.
+
 ## v2.7 evidence-aware opportunity engine
 - Replaced the fixed “roughly three previous customers per required booking” rule with confidence-aware audience sizing when enough recorded evidence exists.
 - Previous-customer outreach now stores a lightweight local history of simulated sends so later confirmed/completed bookings can be compared with the people actually contacted.
