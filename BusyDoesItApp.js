@@ -1552,6 +1552,18 @@ function App() {
         : [];
       const recipientIds = new Set(recipients.map((customer) => customer.id));
       setLastSimulatedRecipients(recipients.map((customer) => ({ ...customer })));
+      setReactivationRuns((runs) => [
+        ...runs,
+        {
+          id: `reactivation-${Date.now()}`,
+          sentAt: new Date().toISOString(),
+          recipientIds: recipients.map((customer) => customer.id),
+          recipients: recipients.map((customer) => ({
+            id: customer.id,
+            service: customer.service || "",
+          })),
+        },
+      ]);
       setReplyActions((current) =>
         Object.fromEntries(
           Object.entries(current).filter(
