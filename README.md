@@ -2,6 +2,21 @@
 
 Busy Does It mobile app prototype.
 
+## v2.4 proportional opportunity engine
+- Added a simple work-amount choice to the spare-capacity journey: one, two or three bookings.
+- The chosen amount becomes the work-goal target, so Busy now tracks both the original target and how many bookings are still needed.
+- Recommendation strength now changes with the remaining gap rather than treating every quiet period the same.
+- One missing booking keeps the intervention deliberately narrow: strongest live intent first, then only a small previous-customer action if needed.
+- Two missing bookings can justify a small targeted customer batch while broad promotion remains unnecessary unless cheaper routes fail.
+- Three missing bookings can make a wider reactivation action or a limited offer proportionate before paid reach.
+- Previous-customer reactivation now uses a proportional first batch instead of automatically selecting every eligible customer. The initial batch is capped at roughly three suitable customers per remaining booking and prioritises customers who are more overdue, then higher saved job value.
+- The Check before sending and simulated-send flow now respects that selected batch and explains why the audience was deliberately limited.
+- Special Offers are ranked more strongly only as the remaining capacity grows, and the offer booking cap uses the remaining requirement rather than the original target.
+- Paid-test sizing is also proportional: Busy suggests a smaller cap for a small gap while never exceeding the owner's existing prototype maximum.
+- Home now shows how many bookings are still needed and keeps the active goal aligned with the proportional engine.
+- The stop condition from v2.3 remains unchanged: once the target is covered, Busy stops escalating and recommends £0 additional spend.
+- No extra permanent navigation or marketing dashboard was added. Main navigation remains Home / Work / Results / Settings.
+
 ## v2.3 goal-aware opportunity engine
 - Turned a chosen spare-capacity slot into a persistent work goal instead of a one-off screen choice.
 - A specific suggested morning/afternoon goal now retains its date and daypart, so Busy can compare later confirmed bookings with the capacity the owner asked it to fill.
