@@ -667,6 +667,60 @@ function assessJourneyReconciliation(parsed, customer, action) {
   };
 }
 
+const MAX_CAPTURE_SCREENSHOTS = 8;
+
+function screenshotFileSequence(asset, fallbackIndex = 0) {
+  const fileName = String(asset?.fileName || "");
+  const baseName = fileName.replace(/\.[^.]+$/, "");
+  const matches = baseName.match(/(\d{2,})/g);
+  if (!matches?.length) return null;
+  const value = Number(matches[matches.length - 1]);
+  return Number.isFinite(value) ? value : fallbackIndex;
+}
+
+function inferCaptureScreenshotOrder(items = []) {
+  const normalized = items.map((item, index) => ({
+    ...item,
+    pickerIndex: Number.isFinite(item?.pickerIndex) ? item.pickerIndex : index,
+    sequenceHint: screenshotFileSequence(item, index),
+  }));
+  if (normalized.length <= 1) {
+    return {
+      items: normalized,
+      confidence: normalized.length ? "High" : "Not checked",
+      reason: normalized.length
+        ? "Only one screenshot is attached, so conversation order is unambiguous."
+        : "",
+    };
+  }
+
+  const withSequence = normalized.filter((item) => Number.isFinite(item.sequenceHint));
+  if (withSequence.length === normalized.length) {
+    const sorted = [...normalized].sort((a, b) => {
+      if (a.sequenceHint !== b.sequenceHint) return a.sequenceHint - b.sequenceHint;
+      return a.pickerIndex - b.pickerIndex;
+    });
+    const originalIds = normalized.map((item) => item.id).join("|");
+    const sortedIds = sorted.map((item) => item.id).join("|");
+    const uniqueHints = new Set(sorted.map((item) => item.sequenceHint)).size === sorted.length;
+    return {
+      items: sorted,
+      confidence: uniqueHints ? "High" : "Medium",
+      reason:
+        originalIds === sortedIds
+          ? "BUSY found screenshot sequence numbers and the selected order already looks chronological."
+          : "BUSY found screenshot sequence numbers and automatically rearranged the batch into chronological order.",
+    };
+  }
+
+  return {
+    items: normalized,
+    confidence: "Check order",
+    reason:
+      "The prototype cannot prove the sequence from file metadata alone. The live AI vision step will also compare timestamps, repeated messages and conversation continuity; you can reorder the screenshots here now.",
+  };
+}
+
 function parseQuickCapture(text, services = [], fallbackService = "") {
   const source = String(text || "").trim();
   const phoneMatch = source.match(/(?:\+44\s?\(?0?\)?|0)7\d{3}[\s.-]?\d{3}[\s.-]?\d{3}/);
@@ -1188,6 +1242,9 @@ function App() {
   const [outcome, setOutcome] = useState("Won");
   const [wonValue, setWonValue] = useState("620");
   const [captureRawText, setCaptureRawText] = useState("");
+  const [captureScreenshots, setCaptureScreenshots] = useState([]);
+  const [captureScreenshotOrderConfidence, setCaptureScreenshotOrderConfidence] = useState("Not checked");
+  const [captureScreenshotOrderReason, setCaptureScreenshotOrderReason] = useState("");
   const [captureSource, setCaptureSource] = useState("Customer message");
   const [captureStage, setCaptureStage] = useState("Enquiry");
   const [captureName, setCaptureName] = useState("");
@@ -3015,9 +3072,75 @@ function App() {
     return true;
   };
 
+  const chooseCaptureScreenshots = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsMultipleSelection: true,
+        selectionLimit: MAX_CAPTURE_SCREENSHOTS,
+        quality: 0.8,
+        exif: true,
+      });
+      if (result.canceled) return;
+
+      const picked = (result.assets || []).map((asset, index) => ({
+        id: asset.assetId || `capture-shot-${Date.now()}-${index}`,
+        uri: asset.uri,
+        fileName: asset.fileName || "",
+        width: asset.width || 0,
+        height: asset.height || 0,
+        pickerIndex: index,
+      }));
+
+      setCaptureScreenshots((current) => {
+        const merged = [...current];
+        picked.forEach((shot) => {
+          if (!merged.some((item) => item.uri === shot.uri)) {
+            merged.push({ ...shot, pickerIndex: merged.length });
+          }
+        });
+        const inferred = inferCaptureScreenshotOrder(merged.slice(0, MAX_CAPTURE_SCREENSHOTS));
+        setCaptureScreenshotOrderConfidence(inferred.confidence);
+        setCaptureScreenshotOrderReason(inferred.reason);
+        return inferred.items;
+      });
+    } catch (error) {
+      Alert.alert(
+        "Could not open screenshots",
+        "Please try again. BUSY only sees the images you deliberately select."
+      );
+    }
+  };
+
+  const removeCaptureScreenshot = (id) => {
+    setCaptureScreenshots((current) => {
+      const inferred = inferCaptureScreenshotOrder(current.filter((item) => item.id !== id));
+      setCaptureScreenshotOrderConfidence(inferred.confidence);
+      setCaptureScreenshotOrderReason(inferred.reason);
+      return inferred.items;
+    });
+  };
+
+  const moveCaptureScreenshot = (id, direction) => {
+    setCaptureScreenshots((current) => {
+      const index = current.findIndex((item) => item.id === id);
+      const target = index + direction;
+      if (index < 0 || target < 0 || target >= current.length) return current;
+      const next = [...current];
+      const [moved] = next.splice(index, 1);
+      next.splice(target, 0, moved);
+      setCaptureScreenshotOrderConfidence("Confirmed");
+      setCaptureScreenshotOrderReason("You manually confirmed this screenshot order.");
+      return next;
+    });
+  };
+
   const clearQuickCapture = () => {
     const preferred = services.find((item) => item.wanted) || services[0];
     setCaptureRawText("");
+    setCaptureScreenshots([]);
+    setCaptureScreenshotOrderConfidence("Not checked");
+    setCaptureScreenshotOrderReason("");
     setCaptureSource("Customer message");
     setCaptureStage("Enquiry");
     setCaptureName("");
@@ -3358,33 +3481,77 @@ function App() {
 
   const queueCaptureToInbox = () => {
     const rawText = captureRawText.trim();
-    if (!rawText) return false;
-    const parsed = parseQuickCapture(
-      rawText,
-      services,
-      services.find((item) => item.wanted)?.name || trade || "Service"
-    );
-    const triage = triageInboxCandidate(parsed, customers, replyActions);
+    const screenshots = captureScreenshots.map((shot, index) => ({
+      id: shot.id,
+      uri: shot.uri,
+      fileName: shot.fileName || "",
+      width: shot.width || 0,
+      height: shot.height || 0,
+      order: index + 1,
+    }));
+    if (!rawText && !screenshots.length) return false;
+
     const queuedAt = new Date().toISOString();
+    const visionPending = !rawText && screenshots.length > 0;
+    const parsed = visionPending
+      ? {
+          stage: "Enquiry",
+          name: "",
+          phone: "",
+          email: "",
+          address: "",
+          service: "",
+          date: dateToISO(new Date()),
+          time: "09:00",
+          value: "",
+          note: "",
+          confidence: "Low",
+          extractedFields: [],
+          dateDetected: false,
+          timeDetected: false,
+          valueDetected: false,
+          serviceDetected: false,
+          visionPending: true,
+        }
+      : parseQuickCapture(
+          rawText,
+          services,
+          services.find((item) => item.wanted)?.name || trade || "Service"
+        );
+
+    const triage = triageInboxCandidate(parsed, customers, replyActions);
     const item = {
       id: `inbox-${Date.now()}`,
       status: "Pending",
       source: captureSource,
       rawText,
+      screenshots,
+      screenshotOrderConfidence: captureScreenshotOrderConfidence,
+      screenshotOrderReason: captureScreenshotOrderReason,
+      visionPending,
       parsed,
       queuedAt,
-      originalLane: triage.lane,
-      originalReason: triage.reason,
-      originalPriorityScore: triage.priorityScore,
+      originalLane: visionPending ? "Needs attention" : triage.lane,
+      originalReason: visionPending
+        ? "Screenshot batch attached — live AI vision analysis is not connected in this prototype yet."
+        : triage.reason,
+      originalPriorityScore: visionPending ? Math.max(120, triage.priorityScore || 0) : triage.priorityScore,
     };
-    const autoEvaluation = evaluateSafeAutoFile(
-      parsed,
-      customers,
-      replyActions,
-      captureSource,
-      rawText
-    );
+
+    const autoEvaluation = visionPending
+      ? {
+          safe: false,
+          reason: "Screenshot content must be analysed before BUSY can safely change a customer record.",
+        }
+      : evaluateSafeAutoFile(
+          parsed,
+          customers,
+          replyActions,
+          captureSource,
+          rawText
+        );
     const autoFiled =
+      !visionPending &&
       recordFilingMode === "safe" &&
       autoEvaluation.safe &&
       fileSafeInboxItem(item, autoEvaluation);
@@ -3694,6 +3861,11 @@ function App() {
     setSelectedInboxItemId(id);
     setCaptureForceNew(false);
     setCaptureRawText(item.rawText || "");
+    setCaptureScreenshots(Array.isArray(item.screenshots) ? item.screenshots : []);
+    setCaptureScreenshotOrderConfidence(
+      item.screenshotOrderConfidence || (item.screenshots?.length ? "Check order" : "Not checked")
+    );
+    setCaptureScreenshotOrderReason(item.screenshotOrderReason || "");
     setCaptureSource(item.source || "Customer message");
     setCaptureStage(parsed.stage || "Enquiry");
     setCaptureName(parsed.name || "");
@@ -3739,6 +3911,23 @@ function App() {
 
   const analyseQuickCapture = () => {
     setSelectedInboxItemId(null);
+    if (!captureRawText.trim() && captureScreenshots.length) {
+      setCaptureStage("Enquiry");
+      setCaptureName("");
+      setCapturePhone("");
+      setCaptureEmail("");
+      setCaptureAddress("");
+      setCaptureService("");
+      setCaptureDate(dateToISO(new Date()));
+      setCaptureTime("09:00");
+      setCaptureValue("");
+      setCaptureNote("");
+      setCaptureConfidence("Low");
+      setCaptureExtractedFields([]);
+      go("quickCaptureReview");
+      return;
+    }
+
     const parsed = parseQuickCapture(
       captureRawText,
       services,
@@ -3765,7 +3954,12 @@ function App() {
     const email = captureEmail.trim();
     const address = captureAddress.trim();
     const service = captureService.trim();
-    const note = captureNote.trim() || captureRawText.trim();
+    const note =
+      captureNote.trim() ||
+      captureRawText.trim() ||
+      (captureScreenshots.length
+        ? `Captured from ${captureScreenshots.length} screenshot${captureScreenshots.length === 1 ? "" : "s"}.`
+        : "");
     const parsedValue = Number(String(captureValue).replace(/[^0-9.]/g, ""));
     const value = Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : 0;
     if (!name || !service || (!phone && !email)) return false;
@@ -3784,6 +3978,16 @@ function App() {
       eventDate,
       importedAt,
       rawText: captureRawText.trim(),
+      screenshots: captureScreenshots.map((shot, index) => ({
+        id: shot.id,
+        uri: shot.uri,
+        fileName: shot.fileName || "",
+        width: shot.width || 0,
+        height: shot.height || 0,
+        order: index + 1,
+      })),
+      screenshotOrderConfidence: captureScreenshotOrderConfidence,
+      screenshotOrderReason: captureScreenshotOrderReason,
     };
     const existingAction = replyActions[customerId];
     const preserveStrongerActiveWork =
@@ -4015,6 +4219,8 @@ function App() {
         matchedExisting: !!existing,
         matchReason: match?.reason || "",
         confidence: captureConfidence,
+        screenshotCount: captureScreenshots.length,
+        screenshotOrderConfidence: captureScreenshotOrderConfidence,
       },
     ]);
 
@@ -4713,14 +4919,27 @@ function App() {
           services,
           services.find((service) => service.wanted)?.name || trade || "Service"
         );
-      const triage = triageInboxCandidate(parsed, customers, replyActions);
-      const autoEvaluation = evaluateSafeAutoFile(
-        parsed,
-        customers,
-        replyActions,
-        item.source || "Incoming",
-        item.rawText || ""
-      );
+      const baseTriage = triageInboxCandidate(parsed, customers, replyActions);
+      const triage = item.visionPending
+        ? {
+            ...baseTriage,
+            lane: "Needs attention",
+            priorityScore: Math.max(120, baseTriage.priorityScore || 0),
+            reason: "Screenshot batch attached — waiting for the live AI vision step.",
+          }
+        : baseTriage;
+      const autoEvaluation = item.visionPending
+        ? {
+            safe: false,
+            reason: "Screenshot content must be analysed before BUSY can safely change a customer record.",
+          }
+        : evaluateSafeAutoFile(
+            parsed,
+            customers,
+            replyActions,
+            item.source || "Incoming",
+            item.rawText || ""
+          );
       return { ...item, parsed, triage, autoEvaluation };
     })
     .sort((a, b) => {
@@ -5148,6 +5367,12 @@ function App() {
     setNewEnquiryDate,
     captureRawText,
     setCaptureRawText,
+    captureScreenshots,
+    captureScreenshotOrderConfidence,
+    captureScreenshotOrderReason,
+    chooseCaptureScreenshots,
+    removeCaptureScreenshot,
+    moveCaptureScreenshot,
     captureSource,
     setCaptureSource,
     captureStage,
@@ -9706,6 +9931,11 @@ function BusyInbox({ s }) {
           />
         </View>
         <Text style={styles.activitySummary}>{contact}</Text>
+        {item.screenshots?.length ? (
+          <Text style={styles.customerHistoryPhotoMeta}>
+            {item.screenshots.length} screenshot{item.screenshots.length === 1 ? "" : "s"} attached • order {String(item.screenshotOrderConfidence || "check").toLowerCase()}
+          </Text>
+        ) : null}
         <Text style={styles.activitySummary}>{triage.reason || "Ready for review"}</Text>
         {triage.reconciliation?.progression ? (
           <Text style={styles.customerHistoryPhotoMeta}>
@@ -9904,18 +10134,19 @@ function AutopilotFiled({ s }) {
 }
 
 function QuickCapture({ s }) {
-  const canAnalyse = !!s.captureRawText.trim();
+  const screenshotCount = s.captureScreenshots?.length || 0;
+  const canAnalyse = !!s.captureRawText.trim() || screenshotCount > 0;
   return (
     <Shell
       s={s}
       title="Quick capture"
-      subtitle="Paste something you already received instead of typing the customer record field by field."
-      brandCue="Paste once. BUSY triages it. Only strict safe matches can skip repetitive filing."
+      subtitle="Paste a message or add screenshots. BUSY keeps the source together and sends it through the same intake pipeline."
+      brandCue="Give BUSY the messy input once. It organises the admin underneath."
     >
       <Card
         eyebrow="Prototype intake layer"
-        title="Manual paste and connected sources use the same pipeline"
-        body="Quick Capture still lets you paste something manually. V3.1 can also demonstrate connected Email, Calendar, CRM and Invoicing items entering BUSY Inbox through the same triage, reconciliation and trust rules. No live account data is being read yet."
+        title="Text, screenshots and connected sources use the same pipeline"
+        body="You can paste text, attach up to 8 screenshots, or use both together. Screenshot selection and ordering are live in V3.1; the production AI vision connection will read the image content, remove overlaps and reconstruct conversation continuity before filing."
         footer="One intake pipeline • different sources • same trust rules"
         tone="green"
       />
@@ -9930,20 +10161,93 @@ function QuickCapture({ s }) {
         />
       ))}
 
-      <Text style={styles.fieldLabel}>Paste the message or note</Text>
+      <Text style={styles.fieldLabel}>Add the message, note or screenshots</Text>
       <TextInput
         multiline
         value={s.captureRawText}
         onChangeText={s.setCaptureRawText}
-        placeholder={"Example:\nSophie Green\nCould I get a quote for driveway cleaning?\n07700 900111"}
+        placeholder={"Optional text:\nSophie Green\nCould I get a quote for driveway cleaning?\n07700 900111"}
         placeholderTextColor="#9AA3B2"
         style={styles.messageInput}
       />
 
-      <Button label="Add to BUSY Inbox & triage" primary disabled={!canAnalyse} onPress={s.queueCaptureToInbox} />
-      <Button label="Analyse & review manually now" disabled={!canAnalyse} onPress={s.analyseQuickCapture} />
+      <Button
+        label={screenshotCount ? `Add more screenshots • ${screenshotCount}/${MAX_CAPTURE_SCREENSHOTS}` : "Add screenshots"}
+        primary={!s.captureRawText.trim() && !screenshotCount}
+        disabled={screenshotCount >= MAX_CAPTURE_SCREENSHOTS}
+        onPress={s.chooseCaptureScreenshots}
+      />
+
+      {screenshotCount ? (
+        <>
+          <Card
+            eyebrow="Screenshot conversation"
+            title={`${screenshotCount} screenshot${screenshotCount === 1 ? "" : "s"} selected`}
+            body={s.captureScreenshotOrderReason || "BUSY will keep these together as one conversation batch."}
+            footer={`Order confidence: ${s.captureScreenshotOrderConfidence}`}
+            tone={s.captureScreenshotOrderConfidence === "Check order" ? "amber" : "blue"}
+          />
+          <View style={styles.captureScreenshotGrid}>
+            {s.captureScreenshots.map((shot, index) => (
+              <View key={shot.id || shot.uri} style={styles.captureScreenshotTile}>
+                <View style={styles.captureScreenshotImageWrap}>
+                  <Image source={{ uri: shot.uri }} style={styles.captureScreenshotImage} />
+                  <View style={styles.captureScreenshotBadge}>
+                    <Text style={styles.captureScreenshotBadgeText}>{index + 1}</Text>
+                  </View>
+                </View>
+                <Text numberOfLines={1} style={styles.captureScreenshotName}>
+                  {shot.fileName || `Screenshot ${index + 1}`}
+                </Text>
+                <View style={styles.captureScreenshotControls}>
+                  <Pressable
+                    disabled={index === 0}
+                    onPress={() => s.moveCaptureScreenshot(shot.id, -1)}
+                    style={[styles.captureScreenshotMove, index === 0 && styles.captureScreenshotMoveDisabled]}
+                  >
+                    <Text style={styles.captureScreenshotMoveText}>‹</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => s.removeCaptureScreenshot(shot.id)}
+                    style={styles.captureScreenshotRemove}
+                  >
+                    <Text style={styles.captureScreenshotRemoveText}>Remove</Text>
+                  </Pressable>
+                  <Pressable
+                    disabled={index === screenshotCount - 1}
+                    onPress={() => s.moveCaptureScreenshot(shot.id, 1)}
+                    style={[
+                      styles.captureScreenshotMove,
+                      index === screenshotCount - 1 && styles.captureScreenshotMoveDisabled,
+                    ]}
+                  >
+                    <Text style={styles.captureScreenshotMoveText}>›</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ))}
+          </View>
+          <Text style={styles.helper}>
+            The numbered order is the sequence BUSY will use. If metadata is enough, BUSY orders it automatically; otherwise you can correct it with the arrows. Production AI will also use visible timestamps, repeated messages and conversation continuity.
+          </Text>
+        </>
+      ) : null}
+
+      <Button
+        label={screenshotCount ? "Add batch to BUSY Inbox & triage" : "Add to BUSY Inbox & triage"}
+        primary
+        disabled={!canAnalyse}
+        onPress={s.queueCaptureToInbox}
+      />
+      <Button
+        label={screenshotCount && !s.captureRawText.trim() ? "Review fields manually now" : "Analyse & review manually now"}
+        disabled={!canAnalyse}
+        onPress={s.analyseQuickCapture}
+      />
       <Text style={styles.helper}>
-        {s.recordFilingMode === "safe"
+        {screenshotCount && !s.captureRawText.trim()
+          ? "This prototype stores the selected screenshot batch and its order, but does not pretend to have read the pixels yet. Until the secure AI vision backend is connected, screenshot-only items wait for review instead of being auto-filed."
+          : s.recordFilingMode === "safe"
           ? "Safe Autopilot is on. Inbox may file only an exact existing-customer match that passes every trust rule. Anything uncertain still waits for you."
           : "Automatic filing is off. Inbox will triage the item, but every record change waits for your review."}
       </Text>
@@ -9985,6 +10289,33 @@ function QuickCaptureReview({ s }) {
           tone="blue"
         />
       ) : null}
+
+      {s.captureScreenshots?.length ? (
+        <>
+          <Card
+            eyebrow="Screenshot source evidence"
+            title={`${s.captureScreenshots.length} screenshot${s.captureScreenshots.length === 1 ? "" : "s"} kept together`}
+            body={
+              s.captureRawText.trim()
+                ? "The screenshots stay attached as source evidence alongside the pasted text."
+                : "The screenshot batch is attached, but live AI vision is not connected in this prototype. Check or enter the important fields before saving."
+            }
+            footer={`Order: ${s.captureScreenshotOrderConfidence}`}
+            tone={!s.captureRawText.trim() ? "amber" : "blue"}
+          />
+          <View style={styles.captureReviewStrip}>
+            {s.captureScreenshots.map((shot, index) => (
+              <View key={shot.id || shot.uri} style={styles.captureReviewThumbWrap}>
+                <Image source={{ uri: shot.uri }} style={styles.captureReviewThumb} />
+                <View style={styles.captureReviewBadge}>
+                  <Text style={styles.captureReviewBadgeText}>{index + 1}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </>
+      ) : null}
+
       <Card
         eyebrow="Extraction confidence"
         title={s.captureConfidence}
@@ -12792,6 +13123,24 @@ const styles = StyleSheet.create({
   workCalendarBookingTitle: { color: C.ink, fontSize: 16, fontWeight: "900" },
   workCalendarBookingBody: { color: C.muted, fontSize: 13, lineHeight: 18, marginTop: 3 },
   workCalendarBookingMeta: { color: C.green, fontSize: 12, fontWeight: "900", marginTop: 5 },
+  captureScreenshotGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginBottom: 12 },
+  captureScreenshotTile: { width: "48%", borderWidth: 1, borderColor: C.border, borderRadius: 16, padding: 8, backgroundColor: C.card },
+  captureScreenshotImageWrap: { position: "relative" },
+  captureScreenshotImage: { width: "100%", height: 150, borderRadius: 11, backgroundColor: "#EEF1F5" },
+  captureScreenshotBadge: { position: "absolute", top: 7, left: 7, minWidth: 28, height: 28, paddingHorizontal: 8, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: C.blue },
+  captureScreenshotBadgeText: { color: "#FFFFFF", fontSize: 13, fontWeight: "900" },
+  captureScreenshotName: { color: C.muted, fontSize: 11, fontWeight: "700", marginTop: 7 },
+  captureScreenshotControls: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 5, marginTop: 7 },
+  captureScreenshotMove: { width: 36, height: 34, borderRadius: 10, alignItems: "center", justifyContent: "center", backgroundColor: C.blueSoft },
+  captureScreenshotMoveDisabled: { opacity: 0.28 },
+  captureScreenshotMoveText: { color: C.blue, fontSize: 24, lineHeight: 26, fontWeight: "900" },
+  captureScreenshotRemove: { flex: 1, minHeight: 34, borderRadius: 10, alignItems: "center", justifyContent: "center", backgroundColor: "#F7F8FA" },
+  captureScreenshotRemoveText: { color: C.red, fontSize: 11, fontWeight: "800" },
+  captureReviewStrip: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 14 },
+  captureReviewThumbWrap: { position: "relative", width: 72, height: 96 },
+  captureReviewThumb: { width: 72, height: 96, borderRadius: 10, backgroundColor: "#EEF1F5" },
+  captureReviewBadge: { position: "absolute", top: 5, left: 5, minWidth: 22, height: 22, paddingHorizontal: 6, borderRadius: 11, alignItems: "center", justifyContent: "center", backgroundColor: C.blue },
+  captureReviewBadgeText: { color: "#FFFFFF", fontSize: 11, fontWeight: "900" },
   customerRecord: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16, padding: 15, marginBottom: 10 },
   customerRecordTop: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 8 },
   customerName: { color: C.ink, fontSize: 17, fontWeight: "900" },
