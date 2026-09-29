@@ -16,8 +16,8 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 
-const APP_VERSION = "3.0";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Connected operating assistant`;
+const APP_VERSION = "3.1";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Cross-source reconciliation`;
 
 const C = {
   bg: "#F5F7FB",
@@ -6658,7 +6658,10 @@ function HomeScreen({ s }) {
           <MetricRow left="Connected intake sources" right={String(s.connectedIntakeKeys.length)} />
           <MetricRow left="Connected-source items waiting" right={String(s.connectedIntakePendingCount)} strong={s.connectedIntakePendingCount > 0} />
           <MetricRow left="Connected-source items auto-filed" right={String(s.connectedIntakeAutoFiledCount)} />
+          <MetricRow left="Cross-source journeys reconciled" right={String(s.reconciledJourneyCount)} strong={s.reconciledJourneyCount > 0} />
+          <MetricRow left="Journey progressions waiting" right={String(s.reconciliationPendingCount)} />
           <Button label="Run prototype connected sync" onPress={s.runConnectedSourceDemoSync} />
+          <Button label="Test one customer across 4 sources" onPress={s.queueCrossSourceJourneyDemo} />
           <Button label="Connected accounts" onPress={() => s.go("connectedAccounts")} />
         </Card>
       ) : null}
@@ -9309,13 +9312,29 @@ function BusyInbox({ s }) {
             <Text style={styles.activityService}>{service} • {item.source}</Text>
           </View>
           <StatusChip
-            label={triage.lane === "Needs attention" ? "Check" : "Ready"}
-            tone={triage.lane === "Needs attention" ? "amber" : inboxStageTone(parsed.stage)}
+            label={
+              triage.reconciliation?.progression
+                ? "Continue"
+                : triage.lane === "Needs attention"
+                ? "Check"
+                : "Ready"
+            }
+            tone={
+              triage.reconciliation?.progression
+                ? "green"
+                : triage.lane === "Needs attention"
+                ? "amber"
+                : inboxStageTone(parsed.stage)
+            }
           />
         </View>
         <Text style={styles.activitySummary}>{contact}</Text>
         <Text style={styles.activitySummary}>{triage.reason || "Ready for review"}</Text>
-        {triage.matchCustomerId ? (
+        {triage.reconciliation?.progression ? (
+          <Text style={styles.customerHistoryPhotoMeta}>
+            Same journey detected: {triage.reconciliation.currentStage} → {parsed.stage}
+          </Text>
+        ) : triage.matchCustomerId ? (
           <Text style={styles.customerHistoryPhotoMeta}>Possible existing customer match detected</Text>
         ) : null}
         {item.autoEvaluation?.safe ? (
@@ -9381,7 +9400,7 @@ function BusyInbox({ s }) {
       <Card
         eyebrow="What triage means"
         title="Not every incoming item deserves the same interruption"
-        body="Missing service/contact details, low-confidence extraction, name-only matches and conflicts with active work are pushed into Needs attention. Even a clean item is only auto-filed when it also has an exact phone/email customer match and the required stage-specific evidence."
+        body="Missing service/contact details, low-confidence extraction, name-only matches, duplicate stages and backwards lifecycle changes are pushed into Needs attention. Exact, high-confidence forward progress — such as Quote sent → Booking — can stay on the same customer journey when every Safe Autopilot rule passes."
         tone="blue"
       />
       <Button label="Automatic record filing settings" onPress={() => s.go("recordFilingSettings")} />
@@ -9403,6 +9422,10 @@ function BusyInbox({ s }) {
       ) : null}
 
       <Button label="Quick capture something new" primary onPress={s.startQuickCapture} />
+      <Button label="Test one customer across 4 connected sources" onPress={s.queueCrossSourceJourneyDemo} />
+      <Text style={styles.helper}>
+        Load Email → CRM quote → Calendar booking → Invoicing completion for one existing customer. File them top-to-bottom to test V3.1 reconciliation.
+      </Text>
       <Button label="Test Safe Autopilot with an existing customer" onPress={s.queueSafeAutopilotExample} />
       <Text style={styles.helper}>
         This test deliberately uses an existing prototype customer. With Safe Autopilot on, it will file the record automatically only if every trust rule passes.
@@ -10106,6 +10129,13 @@ function CustomerDetail({ s }) {
           <MetricRow
             left="Captured source items"
             right={String(customer.sourceRecords.length)}
+          />
+        ) : null}
+        {Array.isArray(customer.sourceRecords) && customer.sourceRecords.some((record) => record.reconciled) ? (
+          <MetricRow
+            left="Reconciled lifecycle stages"
+            right={String(customer.sourceRecords.filter((record) => record.reconciled).length)}
+            strong
           />
         ) : null}
       </Card>
