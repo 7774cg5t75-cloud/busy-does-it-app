@@ -6884,6 +6884,7 @@ function WorkHub({ s }) {
     const now = new Date();
     return dateToISO(new Date(now.getFullYear(), now.getMonth(), 1, 12, 0, 0));
   });
+  const [selectedWorkDate, setSelectedWorkDate] = useState(todayISO);
   const workMonthStart = dateFromISO(workMonthStartISO);
   const workMonthYear = workMonthStart.getFullYear();
   const workMonthIndex = workMonthStart.getMonth();
@@ -6916,6 +6917,12 @@ function WorkHub({ s }) {
         0),
     0
   );
+  const selectedWorkBookings = bookings.filter(
+    (item) => item.action.details.bookingDate === selectedWorkDate
+  );
+  const selectedWorkPlanned = workPlannedSlots.filter(
+    (slot) => slot.date === selectedWorkDate
+  );
   const workMonthCells = [];
   for (let index = 0; index < workMonthFirstOffset; index += 1) {
     workMonthCells.push({ blank: true, key: `work-blank-${index}` });
@@ -6939,13 +6946,16 @@ function WorkHub({ s }) {
   }
   const moveWorkMonth = (delta) => {
     const next = new Date(workMonthYear, workMonthIndex + delta, 1, 12, 0, 0);
-    setWorkMonthStartISO(dateToISO(next));
+    const nextISO = dateToISO(next);
+    setWorkMonthStartISO(nextISO);
+    setSelectedWorkDate(nextISO);
   };
   const resetWorkMonth = () => {
     const now = new Date();
     setWorkMonthStartISO(
       dateToISO(new Date(now.getFullYear(), now.getMonth(), 1, 12, 0, 0))
     );
+    setSelectedWorkDate(todayISO);
   };
 
   return (
@@ -7034,14 +7044,22 @@ function WorkHub({ s }) {
             <View key={cell.key} style={styles.calendarDayWrap}>
               <Pressable
                 accessibilityRole="button"
-                onPress={() => s.go("workCalendar")}
+                onPress={() => setSelectedWorkDate(cell.iso)}
                 style={({ pressed }) => [
                   styles.calendarDay,
+                  cell.iso === selectedWorkDate && styles.calendarDaySelected,
                   cell.iso === todayISO && styles.calendarDayToday,
                   pressed && styles.calendarDayPressed,
                 ]}
               >
-                <Text style={styles.calendarDayNumber}>{cell.day}</Text>
+                <Text
+                  style={[
+                    styles.calendarDayNumber,
+                    cell.iso === selectedWorkDate && styles.calendarDayNumberSelected,
+                  ]}
+                >
+                  {cell.day}
+                </Text>
                 <View style={styles.calendarMarkers}>
                   {cell.bookingCount ? <View style={styles.calendarBookingDot} /> : null}
                   {cell.planCount ? <View style={styles.calendarPlanDot} /> : null}
@@ -7065,6 +7083,47 @@ function WorkHub({ s }) {
           <Text style={styles.calendarLegendText}>BUSY planned opening</Text>
         </View>
       </View>
+
+      <Text style={styles.sectionLabel}>${formatUKDate(selectedWorkDate)}</Text>
+      {selectedWorkBookings.length ? (
+        selectedWorkBookings.map((item) => (
+          <Pressable
+            key={item.id}
+            accessibilityRole="button"
+            onPress={() => s.openSavedReplyAction(item.id)}
+            style={styles.calendarBookingCard}
+          >
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.calendarBookingTitle}>{item.customer.name}</Text>
+              <Text style={styles.calendarBookingBody}>
+                {item.customer.service} • {item.action.details?.bookingTime || "time not set"}
+              </Text>
+              <Text style={styles.calendarBookingMeta}>
+                {item.action.details?.bookingStatus || "Confirmed"}
+                {item.action.details?.jobValue ? ` • £${item.action.details.jobValue}` : ""}
+              </Text>
+            </View>
+            <Text style={styles.metricChevron}>›</Text>
+          </Pressable>
+        ))
+      ) : null}
+      {selectedWorkPlanned.map((slot) => (
+        <View key={slot.id} style={styles.calendarPlanCard}>
+          <Text style={styles.calendarBookingTitle}>BUSY planned opening</Text>
+          <Text style={styles.calendarBookingBody}>
+            {slot.label} • target {slot.targetJobs || 1} booking
+            {Number(slot.targetJobs || 1) === 1 ? "" : "s"}
+          </Text>
+        </View>
+      ))}
+      {!selectedWorkBookings.length && !selectedWorkPlanned.length ? (
+        <Card
+          eyebrow="Open day"
+          title="Nothing booked or planned here"
+          body="This day is currently clear in BUSY’s saved records."
+          tone="green"
+        />
+      ) : null}
       <Button label="Open full calendar & day details" onPress={() => s.go("workCalendar")} />
 
       {overdueBookings.length ? (
