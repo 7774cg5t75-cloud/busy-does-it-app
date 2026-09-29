@@ -6064,7 +6064,7 @@ function SetupLimits({ s }) {
 
 function SetupConnect({ s }) {
   return (
-    <Shell s={s} noNav title="Choose what you use" subtitle="Choose the systems BUSY should eventually work with. V3 can demonstrate the intake flow, but no real external account is read yet.">
+    <Shell s={s} noNav title="Choose what you use" subtitle="Choose the systems BUSY should eventually work with. V3.1 can demonstrate intake and cross-source reconciliation, but no real external account is read yet.">
       {connectionRows.map(([key, label, body]) => {
         const connected = !!s.connectedAccounts[key];
         return (
@@ -9538,7 +9538,7 @@ function QuickCapture({ s }) {
       <Card
         eyebrow="Prototype intake layer"
         title="Manual paste and connected sources use the same pipeline"
-        body="Quick Capture still lets you paste something manually. V3 can also demonstrate connected Email, Calendar, CRM and Invoicing items entering BUSY Inbox through the same triage and trust rules. No live account data is being read yet."
+        body="Quick Capture still lets you paste something manually. V3.1 can also demonstrate connected Email, Calendar, CRM and Invoicing items entering BUSY Inbox through the same triage, reconciliation and trust rules. No live account data is being read yet."
         footer="One intake pipeline • different sources • same trust rules"
         tone="green"
       />
@@ -11819,7 +11819,7 @@ function RecordFilingSettings({ s }) {
         <MetricRow left="Customer match" right="Exact phone / email" />
         <MetricRow left="Extraction" right="High confidence" />
         <MetricRow left="Service" right="Explicitly detected" />
-        <MetricRow left="Active-work conflict" right="None" />
+        <MetricRow left="Lifecycle progression" right="Forward only" />
         <MetricRow left="Duplicate source" right="None" />
         <MetricRow left="Quote" right="Explicit date + value" />
         <MetricRow left="Booking" right="Explicit future date + time" />
@@ -11906,7 +11906,7 @@ function ConnectedAccounts({ s }) {
       ) : (
         <Card
           eyebrow="Nothing selected yet"
-          title="Choose an intake source to test the V3 flow"
+          title="Choose an intake source to test the V3.1 flow"
           body="Select Email, Calendar, CRM / job system or Invoicing. BUSY will use generated demo records only — not your real account."
           tone="blue"
         />
