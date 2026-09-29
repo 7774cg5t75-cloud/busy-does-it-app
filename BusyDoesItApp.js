@@ -723,9 +723,8 @@ function triageInboxCandidate(parsed, customers = [], replyActions = {}) {
     name: parsed.name,
   });
   const action = match?.customer ? replyActions[match.customer.id] : null;
-  const conflict =
-    !!match?.customer &&
-    customerActionStrength(action) > captureStageStrength(parsed.stage);
+  const reconciliation = assessJourneyReconciliation(parsed, match?.customer || null, action);
+  const conflict = reconciliation.regression;
 
   const missing = [];
   if (!parsed.name) missing.push("customer name");
@@ -747,6 +746,7 @@ function triageInboxCandidate(parsed, customers = [], replyActions = {}) {
     missing.length * 12 +
     (parsed.confidence === "Low" ? 18 : parsed.confidence === "Medium" ? 7 : 0) +
     (conflict ? 20 : 0) +
+    (reconciliation.sameStage ? 10 : 0) +
     (match?.confidence === "Medium" ? 6 : 0);
 
   const priorityScore = stageBase + uncertainty;
@@ -754,13 +754,16 @@ function triageInboxCandidate(parsed, customers = [], replyActions = {}) {
     missing.length > 0 ||
     parsed.confidence === "Low" ||
     conflict ||
+    reconciliation.sameStage ||
     match?.confidence === "Medium";
 
   let reason = "Ready for owner review";
-  if (conflict) reason = "Existing customer has stronger active work";
+  if (conflict) reason = reconciliation.reason;
+  else if (reconciliation.sameStage) reason = `Possible duplicate stage: ${reconciliation.currentStage} already active`;
   else if (missing.length) reason = `Missing ${missing.join(", ")}`;
   else if (match?.confidence === "Medium") reason = "Possible name-only customer match";
   else if (parsed.confidence === "Low") reason = "Low extraction confidence";
+  else if (reconciliation.progression) reason = reconciliation.reason;
   else if (match?.customer) reason = `Likely match: ${match.customer.name}`;
 
   return {
@@ -772,6 +775,7 @@ function triageInboxCandidate(parsed, customers = [], replyActions = {}) {
     matchReason: match?.reason || "",
     matchConfidence: match?.confidence || "",
     conflict,
+    reconciliation,
   };
 }
 
