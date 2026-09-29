@@ -3567,6 +3567,77 @@ function App() {
     return true;
   };
 
+  const queueCrossSourceJourneyDemo = () => {
+    const customer = customers.find(
+      (candidate) =>
+        !!candidate.phone &&
+        !!candidate.service &&
+        !isActiveCustomerAction(replyActions[candidate.id]) &&
+        !candidate.currentEnquiryAt
+    );
+    if (!customer) {
+      Alert.alert(
+        "No clean demo customer available",
+        "Clear or complete one existing prototype customer's active work, then try the reconciliation demo again."
+      );
+      return false;
+    }
+
+    const today = dateToISO(new Date());
+    const yesterday = addDaysFromISO(today, -1);
+    const address = customer.address || "24 Journey Lane EX17 7AA";
+    const value = Math.max(120, Number(customer.lastJobValue) || 260);
+    const base = Date.now();
+    const demoId = `journey-demo-${base}`;
+    const examples = [
+      {
+        source: "Connected Email • journey demo",
+        sourceConnection: "email",
+        rawText: `Name: ${customer.name}\nPhone: ${customer.phone}\n${customer.service}\nAddress: ${address}\nHi, could I get a quote for ${customer.service.toLowerCase()} please?`,
+      },
+      {
+        source: "Connected CRM • journey demo",
+        sourceConnection: "crm",
+        rawText: `Name: ${customer.name}\nPhone: ${customer.phone}\n${customer.service}\nQuote sent ${yesterday} for £${value}\nAddress: ${address}`,
+      },
+      {
+        source: "Connected Calendar • journey demo",
+        sourceConnection: "calendar",
+        rawText: `Customer: ${customer.name}\n${customer.phone}\nBooked ${customer.service} for ${today} at 10:30\nJob value £${value}\nSite: ${address}`,
+      },
+      {
+        source: "Connected Invoicing • journey demo",
+        sourceConnection: "invoicing",
+        rawText: `Customer: ${customer.name}\n${customer.phone}\nFinished ${customer.service} ${today}\nPaid £${value}\nAddress: ${address}`,
+      },
+    ];
+    const queuedAt = new Date().toISOString();
+    const items = examples.map((example, index) => {
+      const parsed = parseQuickCapture(example.rawText, services, customer.service);
+      const triage = triageInboxCandidate(parsed, customers, replyActions);
+      return {
+        id: `reconcile-demo-${base}-${index}`,
+        status: "Pending",
+        source: example.source,
+        sourceConnection: example.sourceConnection,
+        connectedDemo: true,
+        reconciliationDemoId: demoId,
+        reconciliationSequence: index + 1,
+        rawText: example.rawText,
+        parsed,
+        queuedAt,
+        originalLane: triage.lane,
+        originalReason: triage.reason,
+        originalPriorityScore: triage.priorityScore,
+        testItem: true,
+      };
+    });
+    setInboxItems((current) => [...current, ...items]);
+    setTab("Work");
+    go("busyInbox");
+    return true;
+  };
+
   const queueSafeAutopilotExample = () => {
     const customer = customers.find(
       (candidate) =>
