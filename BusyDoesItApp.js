@@ -6880,6 +6880,74 @@ function WorkHub({ s }) {
   const nextQuote = activeQuotes[0] || null;
   const nextBooking = todayBookings[0] || upcomingBookings[0] || null;
 
+  const [workMonthStartISO, setWorkMonthStartISO] = useState(() => {
+    const now = new Date();
+    return dateToISO(new Date(now.getFullYear(), now.getMonth(), 1, 12, 0, 0));
+  });
+  const workMonthStart = dateFromISO(workMonthStartISO);
+  const workMonthYear = workMonthStart.getFullYear();
+  const workMonthIndex = workMonthStart.getMonth();
+  const workMonthTitle = workMonthStart.toLocaleDateString("en-GB", {
+    month: "long",
+    year: "numeric",
+  });
+  const workMonthFirstOffset =
+    (new Date(workMonthYear, workMonthIndex, 1, 12, 0, 0).getDay() + 6) % 7;
+  const workMonthDays = new Date(
+    workMonthYear,
+    workMonthIndex + 1,
+    0,
+    12,
+    0,
+    0
+  ).getDate();
+  const workPlannedSlots = Array.isArray(s.activeWorkGoal?.plannedSlots)
+    ? s.activeWorkGoal.plannedSlots
+    : [];
+  const workMonthBookings = bookings.filter((item) => {
+    const date = dateFromISO(item.action.details.bookingDate);
+    return date.getFullYear() === workMonthYear && date.getMonth() === workMonthIndex;
+  });
+  const workMonthBookedValue = workMonthBookings.reduce(
+    (total, item) =>
+      total +
+      (Number(item.action.details?.jobValue) ||
+        Number(item.action.details?.sourceQuoteAmount) ||
+        0),
+    0
+  );
+  const workMonthCells = [];
+  for (let index = 0; index < workMonthFirstOffset; index += 1) {
+    workMonthCells.push({ blank: true, key: `work-blank-${index}` });
+  }
+  for (let day = 1; day <= workMonthDays; day += 1) {
+    const iso = dateToISO(
+      new Date(workMonthYear, workMonthIndex, day, 12, 0, 0)
+    );
+    const bookingCount = bookings.filter(
+      (item) => item.action.details.bookingDate === iso
+    ).length;
+    const planCount = workPlannedSlots.filter((slot) => slot.date === iso).length;
+    workMonthCells.push({
+      blank: false,
+      key: iso,
+      iso,
+      day,
+      bookingCount,
+      planCount,
+    });
+  }
+  const moveWorkMonth = (delta) => {
+    const next = new Date(workMonthYear, workMonthIndex + delta, 1, 12, 0, 0);
+    setWorkMonthStartISO(dateToISO(next));
+  };
+  const resetWorkMonth = () => {
+    const now = new Date();
+    setWorkMonthStartISO(
+      dateToISO(new Date(now.getFullYear(), now.getMonth(), 1, 12, 0, 0))
+    );
+  };
+
   return (
     <Shell
       s={s}
@@ -6905,6 +6973,99 @@ function WorkHub({ s }) {
         <MetricRow left="Auto-filed safely" right={String(s.inboxAutoFiledCount)} strong={s.inboxAutoFiledCount > 0} onPress={s.inboxAutoFiledCount ? s.openBusyInbox : null} />
         <MetricRow left="Quick-captured records filed" right={String(s.intakeLog.length)} onPress={s.intakeLog.length ? () => s.go("intakeHistory") : null} />
       </Card>
+
+      <Text style={styles.sectionLabel}>Monthly diary</Text>
+      <Card
+        eyebrow="Month at a glance"
+        title={workMonthTitle}
+        body="See confirmed work and BUSY planned openings without leaving the Work tab."
+        footer="Green = booked work • Blue = BUSY planned opening"
+        tone="blue"
+      >
+        <View style={styles.calendarMonthNav}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => moveWorkMonth(-1)}
+            style={styles.calendarNavButton}
+          >
+            <Text style={styles.calendarNavText}>‹ Previous</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={resetWorkMonth}
+            style={styles.calendarTodayButton}
+          >
+            <Text style={styles.calendarTodayText}>This month</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => moveWorkMonth(1)}
+            style={styles.calendarNavButton}
+          >
+            <Text style={styles.calendarNavText}>Next ›</Text>
+          </Pressable>
+        </View>
+        <MetricRow
+          left="Booked jobs this month"
+          right={String(workMonthBookings.length)}
+          strong={workMonthBookings.length > 0}
+          onPress={workMonthBookings.length ? () => s.go("workCalendar") : null}
+        />
+        <MetricRow
+          left="Booked value this month"
+          right={`£${workMonthBookedValue}`}
+          strong={workMonthBookedValue > 0}
+          onPress={workMonthBookedValue > 0 ? () => s.go("workCalendar") : null}
+        />
+      </Card>
+
+      <View style={styles.calendarGrid}>
+        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((label) => (
+          <View key={label} style={styles.calendarWeekdayCell}>
+            <Text style={styles.calendarWeekday}>{label}</Text>
+          </View>
+        ))}
+        {workMonthCells.map((cell) =>
+          cell.blank ? (
+            <View key={cell.key} style={styles.calendarDayWrap}>
+              <View style={styles.calendarBlankDay} />
+            </View>
+          ) : (
+            <View key={cell.key} style={styles.calendarDayWrap}>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => s.go("workCalendar")}
+                style={({ pressed }) => [
+                  styles.calendarDay,
+                  cell.iso === todayISO && styles.calendarDayToday,
+                  pressed && styles.calendarDayPressed,
+                ]}
+              >
+                <Text style={styles.calendarDayNumber}>{cell.day}</Text>
+                <View style={styles.calendarMarkers}>
+                  {cell.bookingCount ? <View style={styles.calendarBookingDot} /> : null}
+                  {cell.planCount ? <View style={styles.calendarPlanDot} /> : null}
+                </View>
+                {cell.bookingCount ? (
+                  <Text style={styles.calendarCount}>{cell.bookingCount}</Text>
+                ) : null}
+              </Pressable>
+            </View>
+          )
+        )}
+      </View>
+
+      <View style={styles.calendarLegend}>
+        <View style={styles.calendarLegendItem}>
+          <View style={styles.calendarBookingDot} />
+          <Text style={styles.calendarLegendText}>Booked work</Text>
+        </View>
+        <View style={styles.calendarLegendItem}>
+          <View style={styles.calendarPlanDot} />
+          <Text style={styles.calendarLegendText}>BUSY planned opening</Text>
+        </View>
+      </View>
+      <Button label="Open full calendar & day details" onPress={() => s.go("workCalendar")} />
 
       {overdueBookings.length ? (
         <Pressable onPress={() => s.openSavedReplyAction(overdueBookings[0].id)} style={[styles.homePriorityCard, styles.homeReminderCard]}>
@@ -7027,7 +7188,7 @@ function WorkHub({ s }) {
         label="Customer pipeline"
         onPress={() => s.go("workPipeline")}
       />
-      <Button label="Calendar" onPress={() => s.go("workCalendar")} />
+      <Button label="Full calendar & day details" onPress={() => s.go("workCalendar")} />
       <Button
         label={bookings.length ? `Work diary • ${bookings.length} active` : "Work diary"}
         onPress={() => s.go("bookings")}
