@@ -11877,26 +11877,32 @@ function ConnectedAccounts({ s }) {
     <Shell
       s={s}
       title="Connected accounts"
-      subtitle="V3 demonstrates how connected business systems feed one operating assistant. These are still prototype connections — no real external account is being read."
-      brandCue="One business feed. One set of trust rules."
+      subtitle="V3.1 adds reconciliation across connected business systems. These are still prototype connections — no real external account is being read."
+      brandCue="One customer journey across different source systems."
     >
       <Card
-        eyebrow="V3 connected operating layer"
-        title="Incoming systems now feed the BUSY Inbox architecture"
-        body="Email, calendar, CRM and invoicing selections can generate honest prototype source events. Every event is parsed, triaged and checked against the same Safe Autopilot rules as Quick Capture. A connection never grants customer-facing authority."
+        eyebrow="V3.1 reconciliation layer"
+        title="Different systems can now continue the same customer journey"
+        body="BUSY can recognise a safe forward progression such as Email enquiry → CRM quote → Calendar booking → Invoicing completion when the customer, service and stage evidence line up. It updates one customer/work lifecycle instead of creating parallel records."
         footer="Prototype sync only • no live provider authentication yet"
         tone="green"
       >
         <MetricRow left="Intake sources selected" right={String(s.connectedIntakeKeys.length)} />
         <MetricRow left="Connected-source items waiting" right={String(s.connectedIntakePendingCount)} />
         <MetricRow left="Connected-source items auto-filed" right={String(s.connectedIntakeAutoFiledCount)} />
+        <MetricRow left="Cross-source journeys reconciled" right={String(s.reconciledJourneyCount)} strong={s.reconciledJourneyCount > 0} />
+        <MetricRow left="Customers with 2+ source systems" right={String(s.crossSourceCustomerCount)} />
+        <MetricRow left="Forward progressions waiting" right={String(s.reconciliationPendingCount)} />
       </Card>
 
       <Text style={styles.sectionLabel}>Incoming business sources</Text>
       {intakeRows.map(renderConnection)}
 
       {s.connectedIntakeKeys.length ? (
-        <Button label="Run prototype connected sync" primary onPress={s.runConnectedSourceDemoSync} />
+        <>
+          <Button label="Run prototype connected sync" primary onPress={s.runConnectedSourceDemoSync} />
+          <Button label="Test one journey across 4 sources" onPress={s.queueCrossSourceJourneyDemo} />
+        </>
       ) : (
         <Card
           eyebrow="Nothing selected yet"
@@ -11905,6 +11911,24 @@ function ConnectedAccounts({ s }) {
           tone="blue"
         />
       )}
+
+      <Card
+        eyebrow="Reconciliation safety"
+        title="Forward progress can reconcile. Duplicates and backwards moves still stop."
+        body="A clean Booking can replace an active Quote for the same exact customer and service. A second Quote while a Booking is already active is treated as a backwards/duplicate risk and waits for review instead."
+        footer="Stage progression never overrides identity, service, date, duplicate or conflict checks"
+        tone="blue"
+      />
+
+      {s.lastReconciledSourceRecord ? (
+        <Card
+          eyebrow="Latest reconciled journey"
+          title={s.lastReconciledSourceRecord.customerName || "Existing customer"}
+          body={`${s.lastReconciledSourceRecord.previousStage || "Earlier stage"} → ${s.lastReconciledSourceRecord.stage} was reconciled from ${s.lastReconciledSourceRecord.source || "a connected source"} into the same customer journey.`}
+          footer="No parallel customer record created"
+          tone="green"
+        />
+      ) : null}
 
       {s.lastConnectionSync ? (
         <Card
