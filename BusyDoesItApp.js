@@ -625,6 +625,47 @@ function customerActionStrength(action) {
   return 0;
 }
 
+function currentJourneyStage(customer, action) {
+  if (action && isActiveCustomerAction(action)) {
+    if (action.type === "booking") return "Booking";
+    if (action.type === "quote") return "Quote sent";
+    if (action.type === "reminder") return "Enquiry";
+  }
+  if (customer?.currentEnquiryAt) return "Enquiry";
+  if (customer?.lifecycleStatus === "Booked") return "Booking";
+  if (customer?.lifecycleStatus === "Quote sent") return "Quote sent";
+  if (customer?.lifecycleStatus === "Enquiry") return "Enquiry";
+  return "";
+}
+
+function assessJourneyReconciliation(parsed, customer, action) {
+  const currentStage = currentJourneyStage(customer, action);
+  const currentStrength = captureStageStrength(currentStage);
+  const incomingStrength = captureStageStrength(parsed?.stage);
+  const progression =
+    !!customer && currentStrength > 0 && incomingStrength > currentStrength;
+  const sameStage =
+    !!customer && currentStrength > 0 && incomingStrength === currentStrength;
+  const regression =
+    !!customer && currentStrength > 0 && incomingStrength > 0 && incomingStrength < currentStrength;
+  return {
+    currentStage,
+    currentStrength,
+    incomingStage: parsed?.stage || "",
+    incomingStrength,
+    progression,
+    sameStage,
+    regression,
+    reason: progression
+      ? `Continuing the same customer journey: ${currentStage} → ${parsed?.stage || "next stage"}`
+      : regression
+      ? `Incoming stage would move active work backwards from ${currentStage}`
+      : sameStage
+      ? `${currentStage} is already active for this customer`
+      : "No active journey progression detected",
+  };
+}
+
 function parseQuickCapture(text, services = [], fallbackService = "") {
   const source = String(text || "").trim();
   const phoneMatch = source.match(/(?:\+44\s?\(?0?\)?|0)7\d{3}[\s.-]?\d{3}[\s.-]?\d{3}/);
