@@ -5816,12 +5816,22 @@ function ToggleRow({ title, body, value, onValueChange }) {
   );
 }
 
-function MetricRow({ left, right, strong = false }) {
-  return (
-    <View style={styles.metricRow}>
-      <Text style={[styles.metricLeft, strong && styles.metricStrong]}>{left}</Text>
-      <Text style={[styles.metricRight, strong && styles.metricStrong]}>{right}</Text>
-    </View>
+function MetricRow({ left, right, strong = false, onPress = null }) {
+  const content = (
+    <>
+      <Text style={[styles.metricLeft, strong && styles.metricStrong, onPress && styles.metricClickable]}>{left}</Text>
+      <View style={styles.metricRightWrap}>
+        <Text style={[styles.metricRight, strong && styles.metricStrong, onPress && styles.metricClickable]}>{right}</Text>
+        {onPress ? <Text style={styles.metricChevron}>›</Text> : null}
+      </View>
+    </>
+  );
+  return onPress ? (
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.metricRow, styles.metricRowClickable, pressed && styles.metricRowPressed]}>
+      {content}
+    </Pressable>
+  ) : (
+    <View style={styles.metricRow}>{content}</View>
   );
 }
 
@@ -6879,21 +6889,21 @@ function WorkHub({ s }) {
       brandCue="Run the work you already have before buying more attention."
     >
       <Card eyebrow="Today" title={todayBookings.length ? `${todayBookings.length} job${todayBookings.length === 1 ? "" : "s"} booked today` : "No booked jobs today"} tone={todayBookings.length ? "green" : "blue"}>
-        <MetricRow left="New enquiries (<7 days)" right={String(s.freshEnquiryEntries.length)} />
-        <MetricRow left="Quiet enquiries (7+ days)" right={String(s.staleEnquiryEntries.length)} strong={s.staleEnquiryEntries.length > 0} />
-        <MetricRow left="Work in pipeline" right={`£${s.pipelineWorkValue}`} strong={s.pipelineWorkValue > 0} />
-        <MetricRow left="Active quote value" right={`£${s.activeQuoteValue}`} />
-        <MetricRow left="Booked work value" right={`£${s.bookedWorkValue}`} />
-        <MetricRow left="Overdue bookings" right={String(overdueBookings.length)} strong={overdueBookings.length > 0} />
-        <MetricRow left="Jobs in next 7 days" right={String(nextSevenDayBookings.length)} strong={nextSevenDayBookings.length > 0} />
-        <MetricRow left="Next 7 days value" right={`£${nextSevenDayValue}`} strong={nextSevenDayValue > 0} />
-        <MetricRow left="Follow-ups due" right={String(s.dueReminderEntries.length)} strong={s.dueReminderEntries.length > 0} />
-        <MetricRow left="Quote follow-ups due" right={String(s.dueQuoteEntries.length)} strong={s.dueQuoteEntries.length > 0} />
-        <MetricRow left="Actions to do" right={String(s.pendingReplyActionCount)} strong={s.pendingReplyActionCount > 0} />
-        <MetricRow left="Background next steps ready" right={String(s.backgroundReadyCount)} strong={s.backgroundReadyCount > 0} />
-        <MetricRow left="Inbox waiting" right={String(s.inboxPendingItems.length)} strong={s.inboxNeedsAttentionItems.length > 0} />
-        <MetricRow left="Auto-filed safely" right={String(s.inboxAutoFiledCount)} strong={s.inboxAutoFiledCount > 0} />
-        <MetricRow left="Quick-captured records filed" right={String(s.intakeLog.length)} />
+        <MetricRow left="New enquiries (<7 days)" right={String(s.freshEnquiryEntries.length)} onPress={s.freshEnquiryEntries.length ? () => s.go("workPipeline") : null} />
+        <MetricRow left="Quiet enquiries (7+ days)" right={String(s.staleEnquiryEntries.length)} strong={s.staleEnquiryEntries.length > 0} onPress={s.staleEnquiryEntries.length ? () => s.go("staleEnquiries") : null} />
+        <MetricRow left="Work in pipeline" right={`£${s.pipelineWorkValue}`} strong={s.pipelineWorkValue > 0} onPress={s.pipelineWorkValue > 0 ? () => s.go("workPipeline") : null} />
+        <MetricRow left="Active quote value" right={`£${s.activeQuoteValue}`} onPress={s.activeQuoteValue > 0 ? () => s.go("workPipeline") : null} />
+        <MetricRow left="Booked work value" right={`£${s.bookedWorkValue}`} onPress={s.bookedWorkValue > 0 ? () => s.go("bookings") : null} />
+        <MetricRow left="Overdue bookings" right={String(overdueBookings.length)} strong={overdueBookings.length > 0} onPress={overdueBookings.length ? () => s.go("bookings") : null} />
+        <MetricRow left="Jobs in next 7 days" right={String(nextSevenDayBookings.length)} strong={nextSevenDayBookings.length > 0} onPress={nextSevenDayBookings.length ? () => s.go("workCalendar") : null} />
+        <MetricRow left="Next 7 days value" right={`£${nextSevenDayValue}`} strong={nextSevenDayValue > 0} onPress={nextSevenDayValue > 0 ? () => s.go("workCalendar") : null} />
+        <MetricRow left="Follow-ups due" right={String(s.dueReminderEntries.length)} strong={s.dueReminderEntries.length > 0} onPress={s.dueReminderEntries.length ? () => s.go("replyActions") : null} />
+        <MetricRow left="Quote follow-ups due" right={String(s.dueQuoteEntries.length)} strong={s.dueQuoteEntries.length > 0} onPress={s.dueQuoteEntries.length ? () => s.go("staleQuotes") : null} />
+        <MetricRow left="Actions to do" right={String(s.pendingReplyActionCount)} strong={s.pendingReplyActionCount > 0} onPress={s.pendingReplyActionCount ? () => s.go("replyActions") : null} />
+        <MetricRow left="Background next steps ready" right={String(s.backgroundReadyCount)} strong={s.backgroundReadyCount > 0} onPress={s.backgroundReadyCount ? () => s.go("backgroundWork") : null} />
+        <MetricRow left="Inbox waiting" right={String(s.inboxPendingItems.length)} strong={s.inboxNeedsAttentionItems.length > 0} onPress={s.inboxPendingItems.length ? s.openBusyInbox : null} />
+        <MetricRow left="Auto-filed safely" right={String(s.inboxAutoFiledCount)} strong={s.inboxAutoFiledCount > 0} onPress={s.inboxAutoFiledCount ? s.openBusyInbox : null} />
+        <MetricRow left="Quick-captured records filed" right={String(s.intakeLog.length)} onPress={s.intakeLog.length ? () => s.go("intakeHistory") : null} />
       </Card>
 
       {overdueBookings.length ? (
@@ -7017,6 +7027,7 @@ function WorkHub({ s }) {
         label="Customer pipeline"
         onPress={() => s.go("workPipeline")}
       />
+      <Button label="Calendar" onPress={() => s.go("workCalendar")} />
       <Button
         label={bookings.length ? `Work diary • ${bookings.length} active` : "Work diary"}
         onPress={() => s.go("bookings")}
@@ -7031,6 +7042,152 @@ function WorkHub({ s }) {
   );
 }
 
+
+function WorkCalendar({ s }) {
+  const todayISO = dateToISO(new Date());
+  const [monthStartISO, setMonthStartISO] = useState(() => {
+    const now = new Date();
+    return dateToISO(new Date(now.getFullYear(), now.getMonth(), 1, 12, 0, 0));
+  });
+  const [selectedDate, setSelectedDate] = useState(todayISO);
+  const monthStart = dateFromISO(monthStartISO);
+  const year = monthStart.getFullYear();
+  const month = monthStart.getMonth();
+  const monthTitle = monthStart.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  const firstOffset = (new Date(year, month, 1, 12, 0, 0).getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0, 12, 0, 0).getDate();
+  const actionEntries = Object.entries(s.replyActions || {})
+    .map(([id, action]) => {
+      const customer = s.customers.find((item) => item.id === id) || s.lastSimulatedRecipients.find((item) => item.id === id);
+      return customer ? { id, action, customer } : null;
+    })
+    .filter(Boolean);
+  const bookings = actionEntries
+    .filter(({ action }) =>
+      action?.type === "booking" &&
+      action?.done &&
+      !["Cancelled"].includes(action.details?.bookingStatus || "Confirmed") &&
+      !!action.details?.bookingDate
+    )
+    .sort((a, b) =>
+      `${a.action.details.bookingDate}T${a.action.details.bookingTime || "00:00"}`.localeCompare(
+        `${b.action.details.bookingDate}T${b.action.details.bookingTime || "00:00"}`
+      )
+    );
+  const plannedSlots = Array.isArray(s.activeWorkGoal?.plannedSlots) ? s.activeWorkGoal.plannedSlots : [];
+  const monthBookings = bookings.filter((item) => {
+    const d = dateFromISO(item.action.details.bookingDate);
+    return d.getFullYear() === year && d.getMonth() === month;
+  });
+  const monthValue = monthBookings.reduce((total, item) =>
+    total + (Number(item.action.details?.jobValue) || Number(item.action.details?.sourceQuoteAmount) || 0), 0
+  );
+  const selectedBookings = bookings.filter((item) => item.action.details.bookingDate === selectedDate);
+  const selectedPlanned = plannedSlots.filter((slot) => slot.date === selectedDate);
+  const cells = [];
+  for (let i = 0; i < firstOffset; i += 1) cells.push({ blank: true, key: `blank-${i}` });
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const iso = dateToISO(new Date(year, month, day, 12, 0, 0));
+    const dayBookings = bookings.filter((item) => item.action.details.bookingDate === iso);
+    const dayPlans = plannedSlots.filter((slot) => slot.date === iso);
+    cells.push({ blank: false, key: iso, iso, day, bookingCount: dayBookings.length, planCount: dayPlans.length });
+  }
+
+  const moveMonth = (delta) => {
+    const next = new Date(year, month + delta, 1, 12, 0, 0);
+    const nextISO = dateToISO(next);
+    setMonthStartISO(nextISO);
+    setSelectedDate(nextISO);
+  };
+
+  return (
+    <Shell
+      s={s}
+      title="Calendar"
+      subtitle="Confirmed work and BUSY’s planned openings in one simple view."
+      brandCue="Tap a day to see what sits behind it."
+    >
+      <Card eyebrow="Month" title={monthTitle} tone="blue">
+        <View style={styles.calendarMonthNav}>
+          <Pressable accessibilityRole="button" onPress={() => moveMonth(-1)} style={styles.calendarNavButton}>
+            <Text style={styles.calendarNavText}>‹ Previous</Text>
+          </Pressable>
+          <Pressable accessibilityRole="button" onPress={() => {
+            const now = new Date();
+            const start = dateToISO(new Date(now.getFullYear(), now.getMonth(), 1, 12, 0, 0));
+            setMonthStartISO(start);
+            setSelectedDate(todayISO);
+          }} style={styles.calendarTodayButton}>
+            <Text style={styles.calendarTodayText}>Today</Text>
+          </Pressable>
+          <Pressable accessibilityRole="button" onPress={() => moveMonth(1)} style={styles.calendarNavButton}>
+            <Text style={styles.calendarNavText}>Next ›</Text>
+          </Pressable>
+        </View>
+        <MetricRow left="Booked jobs this month" right={String(monthBookings.length)} strong={monthBookings.length > 0} />
+        <MetricRow left="Booked value this month" right={`£${monthValue}`} strong={monthValue > 0} />
+      </Card>
+
+      <View style={styles.calendarGrid}>
+        {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((label) => (
+          <View key={label} style={styles.calendarWeekdayCell}><Text style={styles.calendarWeekday}>{label}</Text></View>
+        ))}
+        {cells.map((cell) =>
+          cell.blank ? (
+            <View key={cell.key} style={styles.calendarDayWrap}><View style={styles.calendarBlankDay} /></View>
+          ) : (
+            <View key={cell.key} style={styles.calendarDayWrap}>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setSelectedDate(cell.iso)}
+                style={({ pressed }) => [
+                  styles.calendarDay,
+                  cell.iso === selectedDate && styles.calendarDaySelected,
+                  cell.iso === todayISO && styles.calendarDayToday,
+                  pressed && styles.calendarDayPressed,
+                ]}
+              >
+                <Text style={[styles.calendarDayNumber, cell.iso === selectedDate && styles.calendarDayNumberSelected]}>{cell.day}</Text>
+                <View style={styles.calendarMarkers}>
+                  {cell.bookingCount ? <View style={styles.calendarBookingDot} /> : null}
+                  {cell.planCount ? <View style={styles.calendarPlanDot} /> : null}
+                </View>
+                {cell.bookingCount ? <Text style={styles.calendarCount}>{cell.bookingCount}</Text> : null}
+              </Pressable>
+            </View>
+          )
+        )}
+      </View>
+
+      <View style={styles.calendarLegend}>
+        <View style={styles.calendarLegendItem}><View style={styles.calendarBookingDot} /><Text style={styles.calendarLegendText}>Booked work</Text></View>
+        <View style={styles.calendarLegendItem}><View style={styles.calendarPlanDot} /><Text style={styles.calendarLegendText}>BUSY planned opening</Text></View>
+      </View>
+
+      <Text style={styles.sectionLabel}>{formatUKDate(selectedDate)}</Text>
+      {selectedBookings.length ? selectedBookings.map((item) => (
+        <Pressable key={item.id} accessibilityRole="button" onPress={() => s.openSavedReplyAction(item.id)} style={styles.calendarBookingCard}>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={styles.calendarBookingTitle}>{item.customer.name}</Text>
+            <Text style={styles.calendarBookingBody}>{item.customer.service} • {item.action.details?.bookingTime || "time not set"}</Text>
+            <Text style={styles.calendarBookingMeta}>{item.action.details?.bookingStatus || "Confirmed"}{item.action.details?.jobValue ? ` • £${item.action.details.jobValue}` : ""}</Text>
+          </View>
+          <Text style={styles.metricChevron}>›</Text>
+        </Pressable>
+      )) : null}
+      {selectedPlanned.map((slot) => (
+        <View key={slot.id} style={styles.calendarPlanCard}>
+          <Text style={styles.calendarBookingTitle}>BUSY planned opening</Text>
+          <Text style={styles.calendarBookingBody}>{slot.label} • target {slot.targetJobs || 1} booking{Number(slot.targetJobs || 1) === 1 ? "" : "s"}</Text>
+        </View>
+      ))}
+      {!selectedBookings.length && !selectedPlanned.length ? (
+        <Card eyebrow="Open day" title="Nothing booked or planned here" body="This day is currently clear in BUSY’s saved records." tone="green" />
+      ) : null}
+      <Button label="Work diary list" onPress={() => s.go("bookings")} />
+    </Shell>
+  );
+}
 
 function WorkPipeline({ s }) {
   const [search, setSearch] = useState("");
@@ -12004,6 +12161,7 @@ const screens = {
   home: HomeScreen,
   backgroundWork: BackgroundWork,
   workHub: WorkHub,
+  workCalendar: WorkCalendar,
   workPipeline: WorkPipeline,
   workNow: WorkNow,
   chooseGap: ChooseGap,
@@ -12227,7 +12385,12 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   metricLeft: { flex: 1, color: C.muted, fontSize: 14 },
+  metricRightWrap: { flexDirection: "row", alignItems: "center", gap: 7 },
   metricRight: { color: C.ink, fontSize: 15, fontWeight: "800" },
+  metricClickable: { color: C.blue },
+  metricChevron: { color: C.blue, fontSize: 24, lineHeight: 24, fontWeight: "800" },
+  metricRowClickable: { minHeight: 44, paddingBottom: 4 },
+  metricRowPressed: { opacity: 0.58 },
   metricStrong: { fontSize: 17, fontWeight: "900", color: C.green },
   helper: { color: C.muted, fontSize: 13, marginTop: -2, marginBottom: 14 },
   helperCenter: { color: C.muted, fontSize: 12, textAlign: "center", marginTop: 7 },
@@ -12381,6 +12544,34 @@ const styles = StyleSheet.create({
   progressFill: { height: "100%", backgroundColor: C.green, borderRadius: 999 },
   warningText: { color: C.amber, fontSize: 13, lineHeight: 19, fontWeight: "700", marginTop: -2, marginBottom: 14 },
   sectionLabel: { color: C.ink, fontSize: 18, fontWeight: "900", marginTop: 8, marginBottom: 14 },
+  calendarMonthNav: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 4, marginBottom: 4 },
+  calendarNavButton: { minHeight: 44, justifyContent: "center", paddingHorizontal: 4 },
+  calendarNavText: { color: C.blue, fontSize: 13, fontWeight: "900" },
+  calendarTodayButton: { minHeight: 38, paddingHorizontal: 12, borderRadius: 12, backgroundColor: C.blueSoft, alignItems: "center", justifyContent: "center" },
+  calendarTodayText: { color: C.blue, fontSize: 13, fontWeight: "900" },
+  calendarGrid: { flexDirection: "row", flexWrap: "wrap", backgroundColor: C.card, borderWidth: 1, borderColor: C.border, borderRadius: 18, paddingVertical: 8, paddingHorizontal: 4, marginBottom: 10 },
+  calendarWeekdayCell: { width: "14.2857%", alignItems: "center", paddingVertical: 5 },
+  calendarWeekday: { color: C.muted, fontSize: 11, fontWeight: "900" },
+  calendarDayWrap: { width: "14.2857%", padding: 2 },
+  calendarBlankDay: { minHeight: 54 },
+  calendarDay: { minHeight: 54, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "transparent", backgroundColor: "#FAFBFD" },
+  calendarDaySelected: { backgroundColor: C.blueSoft, borderColor: C.blue },
+  calendarDayToday: { borderColor: "#9FC0FF" },
+  calendarDayPressed: { opacity: 0.58 },
+  calendarDayNumber: { color: C.ink, fontSize: 14, fontWeight: "800" },
+  calendarDayNumberSelected: { color: C.blue, fontWeight: "900" },
+  calendarMarkers: { flexDirection: "row", alignItems: "center", gap: 3, minHeight: 8, marginTop: 3 },
+  calendarBookingDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: C.green },
+  calendarPlanDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: C.blue },
+  calendarCount: { color: C.green, fontSize: 10, fontWeight: "900", marginTop: 1 },
+  calendarLegend: { flexDirection: "row", flexWrap: "wrap", gap: 14, marginBottom: 10 },
+  calendarLegendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
+  calendarLegendText: { color: C.muted, fontSize: 12, fontWeight: "700" },
+  calendarBookingCard: { flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1, borderColor: "#CDE7D9", backgroundColor: C.greenSoft, borderRadius: 16, padding: 14, marginBottom: 9 },
+  calendarPlanCard: { borderWidth: 1, borderColor: "#C8D9F7", backgroundColor: C.blueSoft, borderRadius: 16, padding: 14, marginBottom: 9 },
+  calendarBookingTitle: { color: C.ink, fontSize: 16, fontWeight: "900" },
+  calendarBookingBody: { color: C.muted, fontSize: 13, lineHeight: 18, marginTop: 3 },
+  calendarBookingMeta: { color: C.green, fontSize: 12, fontWeight: "900", marginTop: 5 },
   customerRecord: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16, padding: 15, marginBottom: 10 },
   customerRecordTop: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 8 },
   customerName: { color: C.ink, fontSize: 17, fontWeight: "900" },
