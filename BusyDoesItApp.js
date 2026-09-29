@@ -794,6 +794,7 @@ function evaluateSafeAutoFile(parsed, customers = [], replyActions = {}, source 
   });
   const customer = match?.customer || null;
   const action = customer ? replyActions[customer.id] : null;
+  const reconciliation = assessJourneyReconciliation(parsed, customer, action);
   const exactMatch =
     !!customer &&
     match?.confidence === "High" &&
@@ -848,8 +849,18 @@ function evaluateSafeAutoFile(parsed, customers = [], replyActions = {}, source 
   ) {
     reasons.push("Job address differs from the existing customer record");
   }
-  if (action && isActiveCustomerAction(action)) reasons.push("Customer already has active work");
-  if (parsed.stage === "Enquiry" && customer?.currentEnquiryAt) reasons.push("Customer already has an open enquiry");
+  if (action && isActiveCustomerAction(action) && !reconciliation.progression) {
+    reasons.push(
+      reconciliation.regression
+        ? reconciliation.reason
+        : reconciliation.sameStage
+        ? `${reconciliation.currentStage} is already active for this customer`
+        : "Customer already has active work"
+    );
+  }
+  if (parsed.stage === "Enquiry" && customer?.currentEnquiryAt) {
+    reasons.push("Customer already has an open enquiry");
+  }
   if (duplicateSource) reasons.push("This source item appears to have been filed already");
 
   if (parsed.stage === "Quote sent") {
@@ -882,6 +893,7 @@ function evaluateSafeAutoFile(parsed, customers = [], replyActions = {}, source 
     match,
     customer,
     fingerprint,
+    reconciliation,
   };
 }
 
