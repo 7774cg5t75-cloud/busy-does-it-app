@@ -21,6 +21,11 @@ Busy Does It mobile app prototype.
 - Calendar days are tappable; selecting a date reveals the underlying booked jobs and lets the owner open the saved booking directly.
 - The Work summary table is now drillable: non-zero/actionable metrics show a chevron and open the records behind the number (pipeline, bookings, follow-ups, background work, BUSY Inbox or intake history as appropriate).
 - Zero-value summary rows stay visually plain rather than pretending there is something to inspect.
+- Quick Capture now accepts up to 8 screenshots as one intake batch, with thumbnail review, removal and manual left/right reordering.
+- BUSY attempts a first-pass chronological order from screenshot/file sequence metadata and marks the order as High, Medium, Check order or Confirmed rather than pretending certainty.
+- The production vision design will use visible timestamps, repeated/overlapping messages and conversation continuity to reconstruct batches even when screenshots are selected out of order.
+- Screenshot batches remain attached as source evidence through BUSY Inbox and manual review. Screenshot-only batches are deliberately blocked from Safe Autopilot until the secure live AI vision service has actually analysed the image content.
+- Text and screenshots can be supplied together; pasted text can be parsed today while screenshots stay attached as evidence.
 - Main navigation remains Home / Work / Results / Settings.
 
 ## v3.0 connected operating assistant
