@@ -632,6 +632,7 @@ function currentJourneyStage(customer, action) {
     if (action.type === "reminder") return "Enquiry";
   }
   if (customer?.currentEnquiryAt) return "Enquiry";
+  if (action && !isActiveCustomerAction(action)) return "";
   if (customer?.lifecycleStatus === "Booked") return "Booking";
   if (customer?.lifecycleStatus === "Quote sent") return "Quote sent";
   if (customer?.lifecycleStatus === "Enquiry") return "Enquiry";
@@ -888,7 +889,9 @@ function evaluateSafeAutoFile(parsed, customers = [], replyActions = {}, source 
     reasons,
     reason:
       reasons.length === 0
-        ? `Exact ${match.reason.toLowerCase()} + high-confidence complete record + no active conflict`
+        ? reconciliation.progression
+          ? `Exact ${match.reason.toLowerCase()} + high-confidence lifecycle progression ${reconciliation.currentStage} → ${parsed.stage}`
+          : `Exact ${match.reason.toLowerCase()} + high-confidence complete record + no active conflict`
         : reasons[0],
     match,
     customer,
