@@ -4755,6 +4755,38 @@ function App() {
   const connectedIntakeAutoFiledCount = connectedIntakeItems.filter(
     (item) => item.status === "Filed" && item.autoFiled
   ).length;
+  const allSourceRecords = customers.flatMap((customer) =>
+    (Array.isArray(customer.sourceRecords) ? customer.sourceRecords : []).map((record) => ({
+      ...record,
+      customerId: customer.id,
+      customerName: customer.name,
+    }))
+  );
+  const reconciledSourceRecords = allSourceRecords.filter((record) => record.reconciled);
+  const reconciledJourneyIds = new Set(
+    reconciledSourceRecords.map((record) => record.workThreadId).filter(Boolean)
+  );
+  const reconciledJourneyCount = reconciledJourneyIds.size;
+  const crossSourceCustomerCount = customers.filter((customer) => {
+    const sources = new Set(
+      (Array.isArray(customer.sourceRecords) ? customer.sourceRecords : [])
+        .map((record) => record.sourceConnection || record.source || "")
+        .filter(Boolean)
+    );
+    return sources.size >= 2;
+  }).length;
+  const reconciliationPendingCount = inboxPendingItems.filter(
+    (item) => item.triage?.reconciliation?.progression
+  ).length;
+  const reconciliationBlockedCount = inboxPendingItems.filter(
+    (item) =>
+      item.triage?.reconciliation?.regression ||
+      item.triage?.reconciliation?.sameStage
+  ).length;
+  const lastReconciledSourceRecord =
+    [...reconciledSourceRecords].sort((a, b) =>
+      String(b.importedAt || "").localeCompare(String(a.importedAt || ""))
+    )[0] || null;
   const lastConnectionSync = [...connectionSyncLog].sort((a, b) =>
     String(b.syncedAt || "").localeCompare(String(a.syncedAt || ""))
   )[0] || null;
@@ -5170,6 +5202,12 @@ function App() {
     connectedIntakeItems,
     connectedIntakePendingCount,
     connectedIntakeAutoFiledCount,
+    reconciledSourceRecords,
+    reconciledJourneyCount,
+    crossSourceCustomerCount,
+    reconciliationPendingCount,
+    reconciliationBlockedCount,
+    lastReconciledSourceRecord,
     lastConnectionSync,
     fileSafeInboxItem,
     openInboxItem,
