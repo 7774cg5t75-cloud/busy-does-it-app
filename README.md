@@ -2,6 +2,23 @@
 
 Busy Does It mobile app prototype.
 
+## v3.1 cross-source reconciliation
+- Added lifecycle reconciliation so connected business systems can update one existing customer/work journey instead of creating parallel records for each source.
+- BUSY now distinguishes safe forward progression from duplicate/backwards changes. Example: Enquiry → Quote sent → Booking → Completed job can reconcile when identity, service and stage evidence all agree.
+- Safe Autopilot may progress an exact existing customer from a weaker active stage to a stronger later stage when every other trust rule still passes.
+- Same-stage duplicates and backwards lifecycle moves remain review items. Example: a second Quote while a Booking is already active does not silently overwrite the stronger work state.
+- Reconciled source records carry a shared work-thread ID, previous stage, source connection and reconciliation receipt so the journey remains traceable.
+- Completed-job reconciliation now closes the active booking state and links the completed history entry to the same work thread.
+- BUSY Inbox labels forward progressions as “Continue” and shows the stage transition before filing.
+- Added a four-source reconciliation demo using generated Email → CRM quote → Calendar booking → Invoicing completion items for one existing prototype customer.
+- Reconciliation demo items stay in lifecycle order so the owner can file them top-to-bottom and watch the same customer journey advance.
+- Home and Connected Accounts now show cross-source journeys reconciled, customers with multiple source systems and forward progressions waiting.
+- Customer detail shows how many captured stages were reconciled into that customer lifecycle.
+- Exact identity, service, address consistency, stage-specific evidence, duplicate detection and owner-control boundaries remain unchanged.
+- Reconciliation does not grant customer-facing authority. Messages, public posts and paid spend still keep their separate approval controls.
+- All V3.0 connected-intake architecture, v2.9 adaptive work-goal logic, v2.8 branding, v2.7 evidence learning and v2.6 capacity planning remain intact.
+- Main navigation remains Home / Work / Results / Settings.
+
 ## v3.0 connected operating assistant
 - Promoted the connected-account layer from decorative prototype toggles into an honest connected-intake architecture that feeds the existing BUSY Inbox.
 - Added Email / enquiries as a first-class intake source alongside Calendar, CRM / job system and Invoicing.
