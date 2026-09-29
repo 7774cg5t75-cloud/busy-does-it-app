@@ -3248,6 +3248,7 @@ function App() {
             quoteStatus: "Sent",
             quoteSentAt: eventAt,
             followUpDueDate: addDaysFromISO(eventDate, 7),
+            workThreadId,
             message: parsed.note || item.rawText || "",
             summary: `Safe Autopilot filed sent quote${value ? ` for £${value}` : ""}`,
           },
