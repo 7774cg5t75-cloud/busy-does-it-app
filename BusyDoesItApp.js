@@ -4720,6 +4720,13 @@ function App() {
       return { ...item, parsed, triage, autoEvaluation };
     })
     .sort((a, b) => {
+      if (
+        a.reconciliationDemoId &&
+        b.reconciliationDemoId &&
+        a.reconciliationDemoId === b.reconciliationDemoId
+      ) {
+        return Number(a.reconciliationSequence || 0) - Number(b.reconciliationSequence || 0);
+      }
       if ((b.triage?.priorityScore || 0) !== (a.triage?.priorityScore || 0)) {
         return (b.triage?.priorityScore || 0) - (a.triage?.priorityScore || 0);
       }
@@ -5156,6 +5163,7 @@ function App() {
     queueCaptureToInbox,
     queueInboxTestBatch,
     queueSafeAutopilotExample,
+    queueCrossSourceJourneyDemo,
     runConnectedSourceDemoSync,
     connectionSyncLog,
     connectedIntakeKeys,
