@@ -6992,27 +6992,27 @@ function WorkHub({ s }) {
         footer="Green = booked work • Blue = BUSY planned opening"
         tone="blue"
       >
-        <View style={styles.calendarMonthNav}>
+        <View style={styles.workCalendarMonthNav}>
           <Pressable
             accessibilityRole="button"
             onPress={() => moveWorkMonth(-1)}
-            style={styles.calendarNavButton}
+            style={styles.workCalendarNavButton}
           >
-            <Text style={styles.calendarNavText}>‹ Previous</Text>
+            <Text style={styles.workCalendarNavText}>‹ Previous</Text>
           </Pressable>
           <Pressable
             accessibilityRole="button"
             onPress={resetWorkMonth}
-            style={styles.calendarTodayButton}
+            style={styles.workCalendarTodayButton}
           >
-            <Text style={styles.calendarTodayText}>This month</Text>
+            <Text style={styles.workCalendarTodayText}>This month</Text>
           </Pressable>
           <Pressable
             accessibilityRole="button"
             onPress={() => moveWorkMonth(1)}
-            style={styles.calendarNavButton}
+            style={styles.workCalendarNavButton}
           >
-            <Text style={styles.calendarNavText}>Next ›</Text>
+            <Text style={styles.workCalendarNavText}>Next ›</Text>
           </Pressable>
         </View>
         <MetricRow
@@ -7029,43 +7029,43 @@ function WorkHub({ s }) {
         />
       </Card>
 
-      <View style={styles.calendarGrid}>
+      <View style={styles.workCalendarGrid}>
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((label) => (
-          <View key={label} style={styles.calendarWeekdayCell}>
-            <Text style={styles.calendarWeekday}>{label}</Text>
+          <View key={label} style={styles.workCalendarWeekdayCell}>
+            <Text style={styles.workCalendarWeekday}>{label}</Text>
           </View>
         ))}
         {workMonthCells.map((cell) =>
           cell.blank ? (
-            <View key={cell.key} style={styles.calendarDayWrap}>
-              <View style={styles.calendarBlankDay} />
+            <View key={cell.key} style={styles.workCalendarDayWrap}>
+              <View style={styles.workCalendarBlankDay} />
             </View>
           ) : (
-            <View key={cell.key} style={styles.calendarDayWrap}>
+            <View key={cell.key} style={styles.workCalendarDayWrap}>
               <Pressable
                 accessibilityRole="button"
                 onPress={() => setSelectedWorkDate(cell.iso)}
                 style={({ pressed }) => [
-                  styles.calendarDay,
-                  cell.iso === selectedWorkDate && styles.calendarDaySelected,
-                  cell.iso === todayISO && styles.calendarDayToday,
-                  pressed && styles.calendarDayPressed,
+                  styles.workCalendarDay,
+                  cell.iso === selectedWorkDate && styles.workCalendarDaySelected,
+                  cell.iso === todayISO && styles.workCalendarDayToday,
+                  pressed && styles.workCalendarDayPressed,
                 ]}
               >
                 <Text
                   style={[
-                    styles.calendarDayNumber,
-                    cell.iso === selectedWorkDate && styles.calendarDayNumberSelected,
+                    styles.workCalendarDayNumber,
+                    cell.iso === selectedWorkDate && styles.workCalendarDayNumberSelected,
                   ]}
                 >
                   {cell.day}
                 </Text>
-                <View style={styles.calendarMarkers}>
-                  {cell.bookingCount ? <View style={styles.calendarBookingDot} /> : null}
-                  {cell.planCount ? <View style={styles.calendarPlanDot} /> : null}
+                <View style={styles.workCalendarMarkers}>
+                  {cell.bookingCount ? <View style={styles.workCalendarBookingDot} /> : null}
+                  {cell.planCount ? <View style={styles.workCalendarPlanDot} /> : null}
                 </View>
                 {cell.bookingCount ? (
-                  <Text style={styles.calendarCount}>{cell.bookingCount}</Text>
+                  <Text style={styles.workCalendarCount}>{cell.bookingCount}</Text>
                 ) : null}
               </Pressable>
             </View>
@@ -7073,32 +7073,32 @@ function WorkHub({ s }) {
         )}
       </View>
 
-      <View style={styles.calendarLegend}>
-        <View style={styles.calendarLegendItem}>
-          <View style={styles.calendarBookingDot} />
-          <Text style={styles.calendarLegendText}>Booked work</Text>
+      <View style={styles.workCalendarLegend}>
+        <View style={styles.workCalendarLegendItem}>
+          <View style={styles.workCalendarBookingDot} />
+          <Text style={styles.workCalendarLegendText}>Booked work</Text>
         </View>
-        <View style={styles.calendarLegendItem}>
-          <View style={styles.calendarPlanDot} />
-          <Text style={styles.calendarLegendText}>BUSY planned opening</Text>
+        <View style={styles.workCalendarLegendItem}>
+          <View style={styles.workCalendarPlanDot} />
+          <Text style={styles.workCalendarLegendText}>BUSY planned opening</Text>
         </View>
       </View>
 
-      <Text style={styles.sectionLabel}>${formatUKDate(selectedWorkDate)}</Text>
+      <Text style={styles.sectionLabel}>{formatUKDate(selectedWorkDate)}</Text>
       {selectedWorkBookings.length ? (
         selectedWorkBookings.map((item) => (
           <Pressable
             key={item.id}
             accessibilityRole="button"
             onPress={() => s.openSavedReplyAction(item.id)}
-            style={styles.calendarBookingCard}
+            style={styles.workCalendarBookingCard}
           >
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.calendarBookingTitle}>{item.customer.name}</Text>
-              <Text style={styles.calendarBookingBody}>
+              <Text style={styles.workCalendarBookingTitle}>{item.customer.name}</Text>
+              <Text style={styles.workCalendarBookingBody}>
                 {item.customer.service} • {item.action.details?.bookingTime || "time not set"}
               </Text>
-              <Text style={styles.calendarBookingMeta}>
+              <Text style={styles.workCalendarBookingMeta}>
                 {item.action.details?.bookingStatus || "Confirmed"}
                 {item.action.details?.jobValue ? ` • £${item.action.details.jobValue}` : ""}
               </Text>
@@ -7108,9 +7108,9 @@ function WorkHub({ s }) {
         ))
       ) : null}
       {selectedWorkPlanned.map((slot) => (
-        <View key={slot.id} style={styles.calendarPlanCard}>
-          <Text style={styles.calendarBookingTitle}>BUSY planned opening</Text>
-          <Text style={styles.calendarBookingBody}>
+        <View key={slot.id} style={styles.workCalendarPlanCard}>
+          <Text style={styles.workCalendarBookingTitle}>BUSY planned opening</Text>
+          <Text style={styles.workCalendarBookingBody}>
             {slot.label} • target {slot.targetJobs || 1} booking
             {Number(slot.targetJobs || 1) === 1 ? "" : "s"}
           </Text>
@@ -12764,34 +12764,34 @@ const styles = StyleSheet.create({
   progressFill: { height: "100%", backgroundColor: C.green, borderRadius: 999 },
   warningText: { color: C.amber, fontSize: 13, lineHeight: 19, fontWeight: "700", marginTop: -2, marginBottom: 14 },
   sectionLabel: { color: C.ink, fontSize: 18, fontWeight: "900", marginTop: 8, marginBottom: 14 },
-  calendarMonthNav: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 4, marginBottom: 4 },
-  calendarNavButton: { minHeight: 44, justifyContent: "center", paddingHorizontal: 4 },
-  calendarNavText: { color: C.blue, fontSize: 13, fontWeight: "900" },
-  calendarTodayButton: { minHeight: 38, paddingHorizontal: 12, borderRadius: 12, backgroundColor: C.blueSoft, alignItems: "center", justifyContent: "center" },
-  calendarTodayText: { color: C.blue, fontSize: 13, fontWeight: "900" },
-  calendarGrid: { flexDirection: "row", flexWrap: "wrap", backgroundColor: C.card, borderWidth: 1, borderColor: C.border, borderRadius: 18, paddingVertical: 8, paddingHorizontal: 4, marginBottom: 10 },
-  calendarWeekdayCell: { width: "14.2857%", alignItems: "center", paddingVertical: 5 },
-  calendarWeekday: { color: C.muted, fontSize: 11, fontWeight: "900" },
-  calendarDayWrap: { width: "14.2857%", padding: 2 },
-  calendarBlankDay: { minHeight: 54 },
-  calendarDay: { minHeight: 54, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "transparent", backgroundColor: "#FAFBFD" },
-  calendarDaySelected: { backgroundColor: C.blueSoft, borderColor: C.blue },
-  calendarDayToday: { borderColor: "#9FC0FF" },
-  calendarDayPressed: { opacity: 0.58 },
-  calendarDayNumber: { color: C.ink, fontSize: 14, fontWeight: "800" },
-  calendarDayNumberSelected: { color: C.blue, fontWeight: "900" },
-  calendarMarkers: { flexDirection: "row", alignItems: "center", gap: 3, minHeight: 8, marginTop: 3 },
-  calendarBookingDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: C.green },
-  calendarPlanDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: C.blue },
-  calendarCount: { color: C.green, fontSize: 10, fontWeight: "900", marginTop: 1 },
-  calendarLegend: { flexDirection: "row", flexWrap: "wrap", gap: 14, marginBottom: 10 },
-  calendarLegendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
-  calendarLegendText: { color: C.muted, fontSize: 12, fontWeight: "700" },
-  calendarBookingCard: { flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1, borderColor: "#CDE7D9", backgroundColor: C.greenSoft, borderRadius: 16, padding: 14, marginBottom: 9 },
-  calendarPlanCard: { borderWidth: 1, borderColor: "#C8D9F7", backgroundColor: C.blueSoft, borderRadius: 16, padding: 14, marginBottom: 9 },
-  calendarBookingTitle: { color: C.ink, fontSize: 16, fontWeight: "900" },
-  calendarBookingBody: { color: C.muted, fontSize: 13, lineHeight: 18, marginTop: 3 },
-  calendarBookingMeta: { color: C.green, fontSize: 12, fontWeight: "900", marginTop: 5 },
+  workCalendarMonthNav: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 4, marginBottom: 4 },
+  workCalendarNavButton: { minHeight: 44, justifyContent: "center", paddingHorizontal: 4 },
+  workCalendarNavText: { color: C.blue, fontSize: 13, fontWeight: "900" },
+  workCalendarTodayButton: { minHeight: 38, paddingHorizontal: 12, borderRadius: 12, backgroundColor: C.blueSoft, alignItems: "center", justifyContent: "center" },
+  workCalendarTodayText: { color: C.blue, fontSize: 13, fontWeight: "900" },
+  workCalendarGrid: { flexDirection: "row", flexWrap: "wrap", backgroundColor: C.card, borderWidth: 1, borderColor: C.border, borderRadius: 18, paddingVertical: 8, paddingHorizontal: 4, marginBottom: 10 },
+  workCalendarWeekdayCell: { width: "14.2857%", alignItems: "center", paddingVertical: 5 },
+  workCalendarWeekday: { color: C.muted, fontSize: 11, fontWeight: "900" },
+  workCalendarDayWrap: { width: "14.2857%", padding: 2 },
+  workCalendarBlankDay: { minHeight: 54 },
+  workCalendarDay: { minHeight: 54, borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "transparent", backgroundColor: "#FAFBFD" },
+  workCalendarDaySelected: { backgroundColor: C.blueSoft, borderColor: C.blue },
+  workCalendarDayToday: { borderColor: "#9FC0FF" },
+  workCalendarDayPressed: { opacity: 0.58 },
+  workCalendarDayNumber: { color: C.ink, fontSize: 14, fontWeight: "800" },
+  workCalendarDayNumberSelected: { color: C.blue, fontWeight: "900" },
+  workCalendarMarkers: { flexDirection: "row", alignItems: "center", gap: 3, minHeight: 8, marginTop: 3 },
+  workCalendarBookingDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: C.green },
+  workCalendarPlanDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: C.blue },
+  workCalendarCount: { color: C.green, fontSize: 10, fontWeight: "900", marginTop: 1 },
+  workCalendarLegend: { flexDirection: "row", flexWrap: "wrap", gap: 14, marginBottom: 10 },
+  workCalendarLegendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
+  workCalendarLegendText: { color: C.muted, fontSize: 12, fontWeight: "700" },
+  workCalendarBookingCard: { flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1, borderColor: "#CDE7D9", backgroundColor: C.greenSoft, borderRadius: 16, padding: 14, marginBottom: 9 },
+  workCalendarPlanCard: { borderWidth: 1, borderColor: "#C8D9F7", backgroundColor: C.blueSoft, borderRadius: 16, padding: 14, marginBottom: 9 },
+  workCalendarBookingTitle: { color: C.ink, fontSize: 16, fontWeight: "900" },
+  workCalendarBookingBody: { color: C.muted, fontSize: 13, lineHeight: 18, marginTop: 3 },
+  workCalendarBookingMeta: { color: C.green, fontSize: 12, fontWeight: "900", marginTop: 5 },
   customerRecord: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 16, padding: 15, marginBottom: 10 },
   customerRecordTop: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 8 },
   customerName: { color: C.ink, fontSize: 17, fontWeight: "900" },
