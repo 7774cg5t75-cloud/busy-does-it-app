@@ -3091,15 +3091,30 @@ function App() {
     const importedAt = new Date().toISOString();
     const parsedValue = Number(String(parsed.value || "").replace(/[^0-9.]/g, ""));
     const value = Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : 0;
+    const reconciliation =
+      evaluation.reconciliation || assessJourneyReconciliation(parsed, existing, replyActions[customerId]);
+    const priorSourceRecords = Array.isArray(existing.sourceRecords) ? existing.sourceRecords : [];
+    const priorThreadRecord = [...priorSourceRecords]
+      .reverse()
+      .find((record) => record.workThreadId && record.stage !== "Completed job");
+    const workThreadId =
+      existing.activeWorkThreadId ||
+      priorThreadRecord?.workThreadId ||
+      `journey-${customerId}-${Date.now()}`;
     const sourceRecord = {
       id: `source-${customerId}-${Date.now()}`,
       source: item.source || "Incoming",
+      sourceConnection: item.sourceConnection || "",
       stage: parsed.stage,
       eventDate,
       importedAt,
       rawText: item.rawText || "",
       fingerprint: evaluation.fingerprint,
       autoFiled: true,
+      workThreadId,
+      reconciled: !!reconciliation.progression,
+      previousStage: reconciliation.currentStage || "",
+      reconciliationReason: reconciliation.progression ? reconciliation.reason : "",
     };
     const repeatDueDate =
       parsed.stage === "Completed job"
@@ -3164,6 +3179,7 @@ function App() {
               reviewRequestDraft: reviewDraft,
               reviewRequestPreparedAt: reviewDraft ? importedAt : null,
               adminPreparedAt: importedAt,
+              workThreadId,
             },
           ];
         }
@@ -3187,7 +3203,10 @@ function App() {
           lastJobValue,
           nextRepeatDueDate: nextRepeatDate,
           lastActivityAt: importedAt,
-          lastActivityKind: "autopilot-intake",
+          lastActivityKind: reconciliation.progression ? "reconciled-intake" : "autopilot-intake",
+          activeWorkThreadId: parsed.stage === "Completed job" ? null : workThreadId,
+          lastCompletedWorkThreadId:
+            parsed.stage === "Completed job" ? workThreadId : customer.lastCompletedWorkThreadId || null,
           history: nextHistory,
           sourceRecords: [...sourceRecords, sourceRecord],
           activity: [
@@ -3197,8 +3216,12 @@ function App() {
               kind: "intake",
               date: eventDate,
               createdAt: importedAt,
-              title: `${parsed.stage} filed automatically`,
-              note: `Safe Autopilot filed this from ${item.source || "incoming information"} because the existing customer match and extracted record passed every trust rule.`,
+              title: reconciliation.progression
+                ? `${reconciliation.currentStage} → ${parsed.stage} reconciled automatically`
+                : `${parsed.stage} filed automatically`,
+              note: reconciliation.progression
+                ? `BUSY recognised ${item.source || "this source"} as the next stage of the same customer journey instead of creating parallel work.`
+                : `Safe Autopilot filed this from ${item.source || "incoming information"} because the existing customer match and extracted record passed every trust rule.`,
               value: value || "",
             },
           ],
@@ -3246,11 +3269,41 @@ function App() {
             bookingTime: eventTime,
             bookingStatus: "Confirmed",
             jobValue: value || "",
+            workThreadId,
             summary: `Safe Autopilot filed booking for ${formatUKDate(eventDate)} at ${eventTime}`,
           },
           completedAt: importedAt,
         },
       }));
+    }
+
+    if (parsed.stage === "Completed job") {
+      setReplyActions((current) => {
+        const currentAction = current[customerId] || {};
+        return {
+          ...current,
+          [customerId]: {
+            ...currentAction,
+            task: "Completed work",
+            type: "booking",
+            origin: "autopilot",
+            createdAt: currentAction.createdAt || importedAt,
+            done: true,
+            details: {
+              ...(currentAction.details || {}),
+              bookingDate: currentAction.details?.bookingDate || eventDate,
+              bookingTime: currentAction.details?.bookingTime || eventTime,
+              bookingStatus: "Completed",
+              jobValue: value || currentAction.details?.jobValue || "",
+              completionNote: parsed.note || item.rawText || "",
+              jobCompletedAt: eventAt,
+              workThreadId,
+              summary: `Safe Autopilot reconciled completed job${value ? ` for £${value}` : ""}`,
+            },
+            completedAt: importedAt,
+          },
+        };
+      });
     }
 
     setIntakeLog((items) => [
@@ -3267,6 +3320,10 @@ function App() {
         matchReason: evaluation.match?.reason || "",
         confidence: parsed.confidence,
         autoFiled: true,
+        sourceConnection: item.sourceConnection || "",
+        workThreadId,
+        reconciled: !!reconciliation.progression,
+        previousStage: reconciliation.currentStage || "",
       },
     ]);
 
@@ -3281,6 +3338,9 @@ function App() {
       matchedExisting: true,
       autoFiled: true,
       autoFileReason: evaluation.reason,
+      reconciled: !!reconciliation.progression,
+      workThreadId,
+      previousStage: reconciliation.currentStage || "",
     };
     setInboxItems((items) => {
       const exists = items.some((candidate) => candidate.id === item.id);
