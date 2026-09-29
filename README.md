@@ -17,6 +17,10 @@ Busy Does It mobile app prototype.
 - Exact identity, service, address consistency, stage-specific evidence, duplicate detection and owner-control boundaries remain unchanged.
 - Reconciliation does not grant customer-facing authority. Messages, public posts and paid spend still keep their separate approval controls.
 - All V3.0 connected-intake architecture, v2.9 adaptive work-goal logic, v2.8 branding, v2.7 evidence learning and v2.6 capacity planning remain intact.
+- Added a native Work calendar without adding a fifth permanent tab. It shows confirmed/completed booking records by date, monthly booked value and BUSY's planned work-goal openings.
+- Calendar days are tappable; selecting a date reveals the underlying booked jobs and lets the owner open the saved booking directly.
+- The Work summary table is now drillable: non-zero/actionable metrics show a chevron and open the records behind the number (pipeline, bookings, follow-ups, background work, BUSY Inbox or intake history as appropriate).
+- Zero-value summary rows stay visually plain rather than pretending there is something to inspect.
 - Main navigation remains Home / Work / Results / Settings.
 
 ## v3.0 connected operating assistant
