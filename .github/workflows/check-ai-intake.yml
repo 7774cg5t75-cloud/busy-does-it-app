@@ -1,0 +1,29 @@
+name: Check AI Intake backend
+
+on:
+  push:
+    branches:
+      - v3.2
+    paths:
+      - 'supabase/functions/busy-ai-intake/**'
+      - 'supabase/config.toml'
+      - '.github/workflows/check-ai-intake.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Type-check BUSY AI Intake Edge Function
+        run: deno check supabase/functions/busy-ai-intake/index.ts
