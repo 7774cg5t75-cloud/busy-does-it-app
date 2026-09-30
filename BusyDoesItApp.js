@@ -16,8 +16,9 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 
-const APP_VERSION = "3.1";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Cross-source reconciliation`;
+const APP_VERSION = "3.2";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • AI Intake Brain`;
+const BUSY_AI_URL = String(process.env.EXPO_PUBLIC_BUSY_AI_URL || "").trim();
 
 const C = {
   bg: "#F5F7FB",
@@ -721,6 +722,157 @@ function inferCaptureScreenshotOrder(items = []) {
   };
 }
 
+function normaliseConfidence(value, fallback = "Low") {
+  const text = String(value || fallback).trim().toLowerCase();
+  if (text === "high") return "High";
+  if (text === "medium") return "Medium";
+  if (text === "not needed") return "Not needed";
+  return "Low";
+}
+
+function fieldConfidenceFromParsed(parsed = {}) {
+  return {
+    name: parsed.name ? "High" : "Low",
+    contact: parsed.phone || parsed.email ? "High" : "Low",
+    phone: parsed.phone ? "High" : "Low",
+    email: parsed.email ? "High" : "Low",
+    address: parsed.address ? "Medium" : "Low",
+    service: parsed.serviceDetected || parsed.service ? "High" : "Low",
+    date: parsed.dateDetected ? "High" : "Low",
+    time: parsed.timeDetected ? "High" : "Low",
+    value: parsed.valueDetected ? "High" : parsed.stage === "Enquiry" ? "Not needed" : "Low",
+    stage: parsed.stage ? "Medium" : "Low",
+  };
+}
+
+function criticalIntakeFieldsSafe(parsed = {}, confidence = {}) {
+  return (
+    !!parsed.name &&
+    normaliseConfidence(confidence.name) === "High" &&
+    !!(parsed.phone || parsed.email) &&
+    normaliseConfidence(confidence.contact) === "High" &&
+    !!parsed.service &&
+    normaliseConfidence(confidence.service) === "High"
+  );
+}
+
+function localIntakeBrainAnalysis({
+  parsed,
+  rawText = "",
+  screenshots = [],
+  orderConfidence = "Not checked",
+  orderReason = "",
+}) {
+  const screenshotOnly = screenshots.length > 0 && !String(rawText || "").trim();
+  if (screenshotOnly) {
+    return {
+      mode: "vision-not-connected",
+      status: "needs_connection",
+      analysedAt: new Date().toISOString(),
+      summary: "Screenshots are attached, but their pixels have not been analysed yet.",
+      threadCount: 0,
+      threads: [],
+      order: { confidence: orderConfidence, reason: orderReason },
+      overlapCount: 0,
+      warnings: ["Secure AI vision is not connected in this preview, so BUSY has not guessed what the screenshots say."],
+      safeToAutoFile: false,
+    };
+  }
+
+  const fieldConfidence = fieldConfidenceFromParsed(parsed);
+  const safeToAutoFile =
+    parsed.confidence === "High" &&
+    criticalIntakeFieldsSafe(parsed, fieldConfidence);
+
+  return {
+    mode: screenshots.length ? "text-plus-evidence" : "local-text",
+    status: "ready",
+    analysedAt: new Date().toISOString(),
+    summary: parsed.name
+      ? `${parsed.stage || "Incoming"} • ${parsed.name}${parsed.service ? ` • ${parsed.service}` : ""}`
+      : "BUSY extracted what it could from the supplied text.",
+    threadCount: 1,
+    threads: [{
+      id: "thread-1",
+      label: parsed.name || "One conversation",
+      sourceText: rawText,
+      imageIds: screenshots.map((shot) => shot.id),
+      parsed,
+      fieldConfidence,
+      warnings: safeToAutoFile ? [] : ["At least one important field needs owner review."],
+      safeToAutoFile,
+    }],
+    order: { confidence: orderConfidence, reason: orderReason },
+    overlapCount: 0,
+    warnings: screenshots.length
+      ? ["Screenshots are attached as evidence; this local pass only extracted the supplied text."]
+      : [],
+    safeToAutoFile,
+  };
+}
+
+function normaliseLiveIntakeAnalysis(payload = {}, fallback = {}) {
+  const rawThreads = Array.isArray(payload.threads) ? payload.threads : [];
+  const threads = rawThreads.map((thread, index) => {
+    const parsed = {
+      ...(fallback.parsed || {}),
+      ...(thread.parsed || {}),
+      note: thread.parsed?.note || thread.sourceText || fallback.rawText || "",
+    };
+    parsed.extractedFields = Array.isArray(thread.parsed?.extractedFields)
+      ? thread.parsed.extractedFields
+      : ["name", "phone", "email", "address", "service", "date", "time", "value"]
+          .filter((key) => !!parsed[key]);
+    const fieldConfidence = {
+      ...fieldConfidenceFromParsed(parsed),
+      ...(thread.fieldConfidence || {}),
+    };
+    const safeToAutoFile =
+      thread.safeToAutoFile === true &&
+      parsed.confidence === "High" &&
+      criticalIntakeFieldsSafe(parsed, fieldConfidence);
+
+    return {
+      id: thread.id || `thread-${index + 1}`,
+      label: thread.label || parsed.name || `Conversation ${index + 1}`,
+      sourceText: thread.sourceText || parsed.note || fallback.rawText || "",
+      imageIds: Array.isArray(thread.imageIds)
+        ? thread.imageIds
+        : fallback.screenshots.map((shot) => shot.id),
+      parsed,
+      fieldConfidence,
+      warnings: Array.isArray(thread.warnings) ? thread.warnings : [],
+      safeToAutoFile,
+    };
+  });
+
+  return {
+    mode: "live-vision",
+    status: "ready",
+    analysedAt: new Date().toISOString(),
+    summary:
+      payload.summary ||
+      (threads.length === 1
+        ? threads[0].label
+        : `${threads.length} separate conversations detected`),
+    threadCount: threads.length,
+    threads,
+    order: {
+      confidence: normaliseConfidence(payload.order?.confidence || fallback.orderConfidence, "Medium"),
+      reason: payload.order?.reason || fallback.orderReason || "BUSY reconstructed the most likely order.",
+      imageIds: Array.isArray(payload.order?.imageIds)
+        ? payload.order.imageIds
+        : fallback.screenshots.map((shot) => shot.id),
+    },
+    overlapCount: Math.max(0, Number(payload.overlapCount || payload.overlapsRemoved || 0) || 0),
+    warnings: Array.isArray(payload.warnings) ? payload.warnings : [],
+    safeToAutoFile:
+      threads.length === 1 &&
+      threads[0]?.safeToAutoFile === true &&
+      !(Array.isArray(payload.warnings) && payload.warnings.length),
+  };
+}
+
 function parseQuickCapture(text, services = [], fallbackService = "") {
   const source = String(text || "").trim();
   const phoneMatch = source.match(/(?:\+44\s?\(?0?\)?|0)7\d{3}[\s.-]?\d{3}[\s.-]?\d{3}/);
@@ -1245,6 +1397,9 @@ function App() {
   const [captureScreenshots, setCaptureScreenshots] = useState([]);
   const [captureScreenshotOrderConfidence, setCaptureScreenshotOrderConfidence] = useState("Not checked");
   const [captureScreenshotOrderReason, setCaptureScreenshotOrderReason] = useState("");
+  const [captureBrainStatus, setCaptureBrainStatus] = useState("idle");
+  const [captureBrainAnalysis, setCaptureBrainAnalysis] = useState(null);
+  const [captureBrainError, setCaptureBrainError] = useState("");
   const [captureSource, setCaptureSource] = useState("Customer message");
   const [captureStage, setCaptureStage] = useState("Enquiry");
   const [captureName, setCaptureName] = useState("");
@@ -3072,14 +3227,141 @@ function App() {
     return true;
   };
 
+  const resetCaptureBrain = () => {
+    setCaptureBrainStatus("idle");
+    setCaptureBrainAnalysis(null);
+    setCaptureBrainError("");
+  };
+
+  const updateCaptureRawText = (value) => {
+    setCaptureRawText(value);
+    resetCaptureBrain();
+  };
+
+  const updateCaptureSource = (value) => {
+    setCaptureSource(value);
+    resetCaptureBrain();
+  };
+
+  const applyBrainThreadToCapture = (thread) => {
+    const parsed = thread?.parsed || {};
+    setCaptureStage(parsed.stage || "Enquiry");
+    setCaptureName(parsed.name || "");
+    setCapturePhone(parsed.phone || "");
+    setCaptureEmail(parsed.email || "");
+    setCaptureAddress(parsed.address || "");
+    setCaptureService(parsed.service || "");
+    setCaptureDate(parsed.date || dateToISO(new Date()));
+    setCaptureTime(parsed.time || "09:00");
+    setCaptureValue(parsed.value || "");
+    setCaptureNote(parsed.note || thread?.sourceText || captureRawText || "");
+    setCaptureConfidence(parsed.confidence || "Low");
+    setCaptureExtractedFields(parsed.extractedFields || []);
+  };
+
+  const runIntakeBrain = async () => {
+    const rawText = captureRawText.trim();
+    if (!rawText && !captureScreenshots.length) return null;
+
+    setCaptureBrainStatus("analysing");
+    setCaptureBrainError("");
+
+    const fallbackParsed = parseQuickCapture(
+      rawText,
+      services,
+      services.find((item) => item.wanted)?.name || trade || "Service"
+    );
+
+    try {
+      let analysis;
+      if (captureScreenshots.length && BUSY_AI_URL) {
+        const preparedImages = captureScreenshots.map((shot, index) => {
+          if (!shot.base64) throw new Error("One selected screenshot could not be prepared. Remove it and select it again.");
+          const mimeType = shot.mimeType || "image/jpeg";
+          return {
+            id: shot.id,
+            order: index + 1,
+            fileName: shot.fileName || "",
+            dataUrl: `data:${mimeType};base64,${shot.base64}`,
+          };
+        });
+
+        const response = await fetch(`${BUSY_AI_URL.replace(/\/$/, "")}/intake/analyse`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            appVersion: APP_VERSION,
+            source: captureSource,
+            ownerText: rawText,
+            screenshots: preparedImages,
+            currentOrder: captureScreenshots.map((shot) => shot.id),
+            services: services.map((item) => ({
+              id: item.id,
+              name: item.name,
+              value: item.value,
+            })),
+            today: dateToISO(new Date()),
+          }),
+        });
+
+        if (!response.ok) throw new Error(`BUSY AI returned ${response.status}.`);
+        const payload = await response.json();
+        analysis = normaliseLiveIntakeAnalysis(payload, {
+          parsed: fallbackParsed,
+          rawText,
+          screenshots: captureScreenshots,
+          orderConfidence: captureScreenshotOrderConfidence,
+          orderReason: captureScreenshotOrderReason,
+        });
+      } else {
+        analysis = localIntakeBrainAnalysis({
+          parsed: fallbackParsed,
+          rawText,
+          screenshots: captureScreenshots,
+          orderConfidence: captureScreenshotOrderConfidence,
+          orderReason: captureScreenshotOrderReason,
+        });
+      }
+
+      setCaptureBrainAnalysis(analysis);
+      setCaptureBrainStatus(analysis.status || "ready");
+
+      if (
+        analysis.mode === "live-vision" &&
+        Array.isArray(analysis.order?.imageIds) &&
+        analysis.order.imageIds.length
+      ) {
+        const orderMap = new Map(analysis.order.imageIds.map((id, index) => [id, index]));
+        setCaptureScreenshots((current) =>
+          [...current].sort(
+            (a, b) => (orderMap.get(a.id) ?? 999) - (orderMap.get(b.id) ?? 999)
+          )
+        );
+        setCaptureScreenshotOrderConfidence(analysis.order.confidence || "Medium");
+        setCaptureScreenshotOrderReason(analysis.order.reason || "");
+      }
+
+      if (analysis.threads?.length === 1) applyBrainThreadToCapture(analysis.threads[0]);
+      return analysis;
+    } catch (error) {
+      const message = error?.message || "BUSY could not analyse this intake batch.";
+      setCaptureBrainStatus("error");
+      setCaptureBrainError(message);
+      setCaptureBrainAnalysis(null);
+      return null;
+    }
+  };
+
   const chooseCaptureScreenshots = async () => {
     try {
+      resetCaptureBrain();
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
         allowsMultipleSelection: true,
         selectionLimit: MAX_CAPTURE_SCREENSHOTS,
-        quality: 0.8,
+        quality: 0.65,
         exif: true,
+        base64: true,
       });
       if (result.canceled) return;
 
@@ -3089,6 +3371,8 @@ function App() {
         fileName: asset.fileName || "",
         width: asset.width || 0,
         height: asset.height || 0,
+        mimeType: asset.mimeType || "image/jpeg",
+        base64: asset.base64 || "",
         pickerIndex: index,
       }));
 
@@ -3113,6 +3397,7 @@ function App() {
   };
 
   const removeCaptureScreenshot = (id) => {
+    resetCaptureBrain();
     setCaptureScreenshots((current) => {
       const inferred = inferCaptureScreenshotOrder(current.filter((item) => item.id !== id));
       setCaptureScreenshotOrderConfidence(inferred.confidence);
@@ -3122,6 +3407,7 @@ function App() {
   };
 
   const moveCaptureScreenshot = (id, direction) => {
+    resetCaptureBrain();
     setCaptureScreenshots((current) => {
       const index = current.findIndex((item) => item.id === id);
       const target = index + direction;
@@ -3141,6 +3427,9 @@ function App() {
     setCaptureScreenshots([]);
     setCaptureScreenshotOrderConfidence("Not checked");
     setCaptureScreenshotOrderReason("");
+    setCaptureBrainStatus("idle");
+    setCaptureBrainAnalysis(null);
+    setCaptureBrainError("");
     setCaptureSource("Customer message");
     setCaptureStage("Enquiry");
     setCaptureName("");
@@ -3165,6 +3454,7 @@ function App() {
   };
 
   const loadQuickCaptureExample = (kind = "enquiry") => {
+    resetCaptureBrain();
     const service = services.find((item) => item.wanted)?.name || services[0]?.name || "Driveway cleaning";
     if (kind === "quote") {
       setCaptureSource("Email / quote note");
@@ -3479,7 +3769,7 @@ function App() {
     return true;
   };
 
-  const queueCaptureToInbox = () => {
+  const queueCaptureToInbox = async () => {
     const rawText = captureRawText.trim();
     const screenshots = captureScreenshots.map((shot, index) => ({
       id: shot.id,
@@ -3491,80 +3781,156 @@ function App() {
     }));
     if (!rawText && !screenshots.length) return false;
 
+    let analysis = captureBrainStatus === "ready" ? captureBrainAnalysis : null;
+    if (captureScreenshots.length && !analysis) {
+      analysis = await runIntakeBrain();
+    }
+    if (!analysis && captureBrainStatus === "error") return false;
+
+    if (!analysis && rawText) {
+      const parsed = parseQuickCapture(
+        rawText,
+        services,
+        services.find((item) => item.wanted)?.name || trade || "Service"
+      );
+      analysis = localIntakeBrainAnalysis({
+        parsed,
+        rawText,
+        screenshots: [],
+        orderConfidence: "Not needed",
+        orderReason: "",
+      });
+    }
+
+    const visionPending =
+      !!captureScreenshots.length &&
+      (!analysis || analysis.status === "needs_connection");
+
+    const candidates =
+      analysis?.threads?.length
+        ? analysis.threads
+        : [{
+            id: "thread-1",
+            label: "Screenshot batch",
+            sourceText: rawText,
+            imageIds: screenshots.map((shot) => shot.id),
+            parsed: {
+              stage: "Enquiry",
+              name: "",
+              phone: "",
+              email: "",
+              address: "",
+              service: "",
+              date: dateToISO(new Date()),
+              time: "09:00",
+              value: "",
+              note: rawText,
+              confidence: "Low",
+              extractedFields: [],
+              dateDetected: false,
+              timeDetected: false,
+              valueDetected: false,
+              serviceDetected: false,
+            },
+            fieldConfidence: {},
+            warnings: ["AI image reading is still required."],
+            safeToAutoFile: false,
+          }];
+
     const queuedAt = new Date().toISOString();
-    const visionPending = !rawText && screenshots.length > 0;
-    const parsed = visionPending
-      ? {
-          stage: "Enquiry",
-          name: "",
-          phone: "",
-          email: "",
-          address: "",
-          service: "",
-          date: dateToISO(new Date()),
-          time: "09:00",
-          value: "",
-          note: "",
-          confidence: "Low",
-          extractedFields: [],
-          dateDetected: false,
-          timeDetected: false,
-          valueDetected: false,
-          serviceDetected: false,
-          visionPending: true,
-        }
-      : parseQuickCapture(
-          rawText,
-          services,
-          services.find((item) => item.wanted)?.name || trade || "Service"
-        );
+    const base = Date.now();
+    const batchId = `ai-intake-${base}`;
+    const pendingItems = [];
+    let autoFiledCount = 0;
 
-    const triage = triageInboxCandidate(parsed, customers, replyActions);
-    const item = {
-      id: `inbox-${Date.now()}`,
-      status: "Pending",
-      source: captureSource,
-      rawText,
-      screenshots,
-      screenshotOrderConfidence: captureScreenshotOrderConfidence,
-      screenshotOrderReason: captureScreenshotOrderReason,
-      visionPending,
-      parsed,
-      queuedAt,
-      originalLane: visionPending ? "Needs attention" : triage.lane,
-      originalReason: visionPending
-        ? "Screenshot batch attached — live AI vision analysis is not connected in this prototype yet."
-        : triage.reason,
-      originalPriorityScore: visionPending ? Math.max(120, triage.priorityScore || 0) : triage.priorityScore,
-    };
+    candidates.forEach((candidate, index) => {
+      const parsed = candidate.parsed || {};
+      const candidateScreenshots = screenshots.filter(
+        (shot) => !candidate.imageIds?.length || candidate.imageIds.includes(shot.id)
+      );
+      const aiTrustBlocked =
+        visionPending ||
+        candidate.safeToAutoFile === false ||
+        (analysis?.mode === "live-vision" &&
+          !criticalIntakeFieldsSafe(parsed, candidate.fieldConfidence || {}));
 
-    const autoEvaluation = visionPending
-      ? {
-          safe: false,
-          reason: "Screenshot content must be analysed before BUSY can safely change a customer record.",
-        }
-      : evaluateSafeAutoFile(
-          parsed,
-          customers,
-          replyActions,
-          captureSource,
-          rawText
-        );
-    const autoFiled =
-      !visionPending &&
-      recordFilingMode === "safe" &&
-      autoEvaluation.safe &&
-      fileSafeInboxItem(item, autoEvaluation);
+      const triage = triageInboxCandidate(parsed, customers, replyActions);
+      const item = {
+        id: `inbox-${base}-${index}`,
+        status: "Pending",
+        source: captureSource,
+        rawText: candidate.sourceText || rawText,
+        screenshots: candidateScreenshots.length ? candidateScreenshots : screenshots,
+        screenshotOrderConfidence: analysis?.order?.confidence || captureScreenshotOrderConfidence,
+        screenshotOrderReason: analysis?.order?.reason || captureScreenshotOrderReason,
+        visionPending,
+        aiTrustBlocked,
+        aiBatchId: batchId,
+        aiThreadIndex: index + 1,
+        aiThreadCount: candidates.length,
+        aiFieldConfidence: candidate.fieldConfidence || {},
+        aiWarnings: candidate.warnings || [],
+        aiAnalysis: analysis
+          ? {
+              mode: analysis.mode,
+              summary: analysis.summary,
+              threadCount: analysis.threadCount,
+              order: analysis.order,
+              overlapCount: analysis.overlapCount,
+              warnings: analysis.warnings,
+              thread: candidate,
+            }
+          : null,
+        parsed,
+        queuedAt,
+        originalLane: aiTrustBlocked ? "Needs attention" : triage.lane,
+        originalReason: visionPending
+          ? "Screenshot batch attached — secure AI vision analysis still needs to run."
+          : aiTrustBlocked
+          ? "AI extraction needs owner review before any automatic record change."
+          : triage.reason,
+        originalPriorityScore: aiTrustBlocked
+          ? Math.max(120, triage.priorityScore || 0)
+          : triage.priorityScore,
+      };
 
-    if (!autoFiled) setInboxItems((items) => [...items, item]);
+      const autoEvaluation = aiTrustBlocked
+        ? {
+            safe: false,
+            reason: visionPending
+              ? "Screenshot content has not been read yet."
+              : "AI confidence is not strong enough for automatic filing.",
+          }
+        : evaluateSafeAutoFile(
+            parsed,
+            customers,
+            replyActions,
+            captureSource,
+            candidate.sourceText || rawText
+          );
+
+      const autoFiled =
+        !aiTrustBlocked &&
+        recordFilingMode === "safe" &&
+        autoEvaluation.safe &&
+        fileSafeInboxItem(item, autoEvaluation);
+
+      if (autoFiled) autoFiledCount += 1;
+      else pendingItems.push(item);
+    });
+
+    if (pendingItems.length) setInboxItems((items) => [...items, ...pendingItems]);
 
     clearQuickCapture();
     setSelectedInboxItemId(null);
     setTab("Work");
-    go(autoFiled ? "autopilotFiled" : "busyInbox");
+    go(
+      autoFiledCount === 1 && !pendingItems.length && candidates.length === 1
+        ? "autopilotFiled"
+        : "busyInbox"
+    );
     return true;
   };
-
   const queueInboxTestBatch = () => {
     const service = services.find((item) => item.wanted)?.name || services[0]?.name || "Driveway cleaning";
     const today = dateToISO(new Date());
@@ -3866,6 +4232,9 @@ function App() {
       item.screenshotOrderConfidence || (item.screenshots?.length ? "Check order" : "Not checked")
     );
     setCaptureScreenshotOrderReason(item.screenshotOrderReason || "");
+    setCaptureBrainAnalysis(item.aiAnalysis || null);
+    setCaptureBrainStatus(item.aiAnalysis ? "ready" : item.visionPending ? "needs_connection" : "idle");
+    setCaptureBrainError("");
     setCaptureSource(item.source || "Customer message");
     setCaptureStage(parsed.stage || "Enquiry");
     setCaptureName(parsed.name || "");
@@ -3909,23 +4278,19 @@ function App() {
     go("busyInbox");
   };
 
-  const analyseQuickCapture = () => {
+  const analyseQuickCapture = async () => {
     setSelectedInboxItemId(null);
-    if (!captureRawText.trim() && captureScreenshots.length) {
-      setCaptureStage("Enquiry");
-      setCaptureName("");
-      setCapturePhone("");
-      setCaptureEmail("");
-      setCaptureAddress("");
-      setCaptureService("");
-      setCaptureDate(dateToISO(new Date()));
-      setCaptureTime("09:00");
-      setCaptureValue("");
-      setCaptureNote("");
-      setCaptureConfidence("Low");
-      setCaptureExtractedFields([]);
+
+    if (captureScreenshots.length) {
+      const analysis =
+        captureBrainStatus === "ready" && captureBrainAnalysis
+          ? captureBrainAnalysis
+          : await runIntakeBrain();
+
+      if (!analysis) return false;
+      if (analysis.threads?.length === 1) applyBrainThreadToCapture(analysis.threads[0]);
       go("quickCaptureReview");
-      return;
+      return true;
     }
 
     const parsed = parseQuickCapture(
@@ -3945,9 +4310,17 @@ function App() {
     setCaptureNote(parsed.note);
     setCaptureConfidence(parsed.confidence);
     setCaptureExtractedFields(parsed.extractedFields);
+    setCaptureBrainAnalysis(localIntakeBrainAnalysis({
+      parsed,
+      rawText: captureRawText,
+      screenshots: [],
+      orderConfidence: "Not needed",
+      orderReason: "",
+    }));
+    setCaptureBrainStatus("ready");
     go("quickCaptureReview");
+    return true;
   };
-
   const saveQuickCapture = () => {
     const name = captureName.trim();
     const phone = capturePhone.trim();
@@ -3988,6 +4361,12 @@ function App() {
       })),
       screenshotOrderConfidence: captureScreenshotOrderConfidence,
       screenshotOrderReason: captureScreenshotOrderReason,
+      aiAnalysisMode: captureBrainAnalysis?.mode || "",
+      aiAnalysisSummary: captureBrainAnalysis?.summary || "",
+      aiFieldConfidence:
+        captureBrainAnalysis?.thread?.fieldConfidence ||
+        captureBrainAnalysis?.threads?.[0]?.fieldConfidence ||
+        {},
     };
     const existingAction = replyActions[customerId];
     const preserveStrongerActiveWork =
@@ -4920,18 +5299,23 @@ function App() {
           services.find((service) => service.wanted)?.name || trade || "Service"
         );
       const baseTriage = triageInboxCandidate(parsed, customers, replyActions);
-      const triage = item.visionPending
+      const aiBlocked = item.visionPending || item.aiTrustBlocked;
+      const triage = aiBlocked
         ? {
             ...baseTriage,
             lane: "Needs attention",
             priorityScore: Math.max(120, baseTriage.priorityScore || 0),
-            reason: "Screenshot batch attached — waiting for the live AI vision step.",
+            reason: item.visionPending
+              ? "Screenshot batch attached — waiting for secure AI vision analysis."
+              : "AI extraction needs owner review before filing.",
           }
         : baseTriage;
-      const autoEvaluation = item.visionPending
+      const autoEvaluation = aiBlocked
         ? {
             safe: false,
-            reason: "Screenshot content must be analysed before BUSY can safely change a customer record.",
+            reason: item.visionPending
+              ? "Screenshot content must be analysed before BUSY can safely change a customer record."
+              : "AI confidence is not strong enough for automatic filing.",
           }
         : evaluateSafeAutoFile(
             parsed,
@@ -5366,15 +5750,19 @@ function App() {
     newEnquiryDate,
     setNewEnquiryDate,
     captureRawText,
-    setCaptureRawText,
+    setCaptureRawText: updateCaptureRawText,
     captureScreenshots,
     captureScreenshotOrderConfidence,
     captureScreenshotOrderReason,
+    captureBrainStatus,
+    captureBrainAnalysis,
+    captureBrainError,
+    runIntakeBrain,
     chooseCaptureScreenshots,
     removeCaptureScreenshot,
     moveCaptureScreenshot,
     captureSource,
-    setCaptureSource,
+    setCaptureSource: updateCaptureSource,
     captureStage,
     setCaptureStage,
     captureName,
@@ -9936,6 +10324,15 @@ function BusyInbox({ s }) {
             {item.screenshots.length} screenshot{item.screenshots.length === 1 ? "" : "s"} attached • order {String(item.screenshotOrderConfidence || "check").toLowerCase()}
           </Text>
         ) : null}
+        {item.aiThreadCount > 1 ? (
+          <Text style={styles.customerHistoryPhotoMeta}>
+            AI Intake Brain split this batch into {item.aiThreadCount} conversations • this is {item.aiThreadIndex}/{item.aiThreadCount}
+          </Text>
+        ) : item.aiAnalysis?.mode === "live-vision" ? (
+          <Text style={styles.customerHistoryPhotoMeta}>
+            AI Intake Brain analysed screenshot content before triage
+          </Text>
+        ) : null}
         <Text style={styles.activitySummary}>{triage.reason || "Ready for review"}</Text>
         {triage.reconciliation?.progression ? (
           <Text style={styles.customerHistoryPhotoMeta}>
@@ -10136,18 +10533,23 @@ function AutopilotFiled({ s }) {
 function QuickCapture({ s }) {
   const screenshotCount = s.captureScreenshots?.length || 0;
   const canAnalyse = !!s.captureRawText.trim() || screenshotCount > 0;
+  const brain = s.captureBrainAnalysis;
+  const analysing = s.captureBrainStatus === "analysing";
+  const brainReady = s.captureBrainStatus === "ready";
+  const needsConnection = s.captureBrainStatus === "needs_connection";
+
   return (
     <Shell
       s={s}
       title="Quick capture"
-      subtitle="Paste a message or add screenshots. BUSY keeps the source together and sends it through the same intake pipeline."
-      brandCue="Give BUSY the messy input once. It organises the admin underneath."
+      subtitle="Give BUSY the messy input. The AI Intake Brain turns it into structured business information before it reaches the Inbox."
+      brandCue="Screenshots, messages and notes in. Clean business admin out."
     >
       <Card
-        eyebrow="Prototype intake layer"
-        title="Text, screenshots and connected sources use the same pipeline"
-        body="You can paste text, attach up to 8 screenshots, or use both together. Screenshot selection and ordering are live in V3.1; the production AI vision connection will read the image content, remove overlaps and reconstruct conversation continuity before filing."
-        footer="One intake pipeline • different sources • same trust rules"
+        eyebrow="V3.2 • AI Intake Brain"
+        title="Understand the conversation before filing anything"
+        body="BUSY now treats the whole batch as one intake problem: conversation order, duplicate overlap, separate customer threads, structured fields and confidence all sit in one analysis contract."
+        footer="AI extraction is evidence, not automatically fact"
         tone="green"
       />
 
@@ -10174,17 +10576,17 @@ function QuickCapture({ s }) {
       <Button
         label={screenshotCount ? `Add more screenshots • ${screenshotCount}/${MAX_CAPTURE_SCREENSHOTS}` : "Add screenshots"}
         primary={!s.captureRawText.trim() && !screenshotCount}
-        disabled={screenshotCount >= MAX_CAPTURE_SCREENSHOTS}
+        disabled={screenshotCount >= MAX_CAPTURE_SCREENSHOTS || analysing}
         onPress={s.chooseCaptureScreenshots}
       />
 
       {screenshotCount ? (
         <>
           <Card
-            eyebrow="Screenshot conversation"
+            eyebrow="Screenshot batch"
             title={`${screenshotCount} screenshot${screenshotCount === 1 ? "" : "s"} selected`}
-            body={s.captureScreenshotOrderReason || "BUSY will keep these together as one conversation batch."}
-            footer={`Order confidence: ${s.captureScreenshotOrderConfidence}`}
+            body={s.captureScreenshotOrderReason || "BUSY keeps these together until the Intake Brain has reconstructed the conversation."}
+            footer={`Pre-analysis order: ${s.captureScreenshotOrderConfidence}`}
             tone={s.captureScreenshotOrderConfidence === "Check order" ? "amber" : "blue"}
           />
           <View style={styles.captureScreenshotGrid}>
@@ -10201,24 +10603,25 @@ function QuickCapture({ s }) {
                 </Text>
                 <View style={styles.captureScreenshotControls}>
                   <Pressable
-                    disabled={index === 0}
+                    disabled={index === 0 || analysing}
                     onPress={() => s.moveCaptureScreenshot(shot.id, -1)}
-                    style={[styles.captureScreenshotMove, index === 0 && styles.captureScreenshotMoveDisabled]}
+                    style={[styles.captureScreenshotMove, (index === 0 || analysing) && styles.captureScreenshotMoveDisabled]}
                   >
                     <Text style={styles.captureScreenshotMoveText}>‹</Text>
                   </Pressable>
                   <Pressable
+                    disabled={analysing}
                     onPress={() => s.removeCaptureScreenshot(shot.id)}
                     style={styles.captureScreenshotRemove}
                   >
                     <Text style={styles.captureScreenshotRemoveText}>Remove</Text>
                   </Pressable>
                   <Pressable
-                    disabled={index === screenshotCount - 1}
+                    disabled={index === screenshotCount - 1 || analysing}
                     onPress={() => s.moveCaptureScreenshot(shot.id, 1)}
                     style={[
                       styles.captureScreenshotMove,
-                      index === screenshotCount - 1 && styles.captureScreenshotMoveDisabled,
+                      (index === screenshotCount - 1 || analysing) && styles.captureScreenshotMoveDisabled,
                     ]}
                   >
                     <Text style={styles.captureScreenshotMoveText}>›</Text>
@@ -10227,32 +10630,80 @@ function QuickCapture({ s }) {
               </View>
             ))}
           </View>
-          <Text style={styles.helper}>
-            The numbered order is the sequence BUSY will use. If metadata is enough, BUSY orders it automatically; otherwise you can correct it with the arrows. Production AI will also use visible timestamps, repeated messages and conversation continuity.
-          </Text>
         </>
       ) : null}
 
       <Button
-        label={screenshotCount ? "Add batch to BUSY Inbox & triage" : "Add to BUSY Inbox & triage"}
+        label={analysing ? "BUSY is analysing…" : brainReady ? "Analyse again" : "Analyse with BUSY"}
         primary
-        disabled={!canAnalyse}
+        disabled={!canAnalyse || analysing}
+        onPress={s.runIntakeBrain}
+      />
+
+      {s.captureBrainStatus === "error" ? (
+        <Card
+          eyebrow="AI Intake Brain"
+          title="Analysis did not complete"
+          body={s.captureBrainError || "BUSY could not analyse this batch."}
+          footer="Nothing has been filed"
+          tone="amber"
+        />
+      ) : null}
+
+      {needsConnection ? (
+        <Card
+          eyebrow="Secure vision connection"
+          title="The batch is ready, but BUSY has not read the screenshots"
+          body="The V3.2 app-side intelligence and safety flow are now in place. This Snack preview does not yet have a secure BUSY AI server URL, so screenshot-only batches stay unresolved instead of pretending the images were read."
+          footer="No API key is ever stored in the phone app"
+          tone="amber"
+        />
+      ) : null}
+
+      {brainReady && brain ? (
+        <Card
+          eyebrow="BUSY understood"
+          title={brain.summary || "Intake analysis ready"}
+          body={
+            brain.threadCount > 1
+              ? `BUSY detected ${brain.threadCount} separate conversations and will keep them as separate Inbox records.`
+              : brain.mode === "live-vision"
+              ? "The screenshot batch has been analysed as one conversation before entering the normal reconciliation pipeline."
+              : "The supplied text has been structured and the screenshots remain attached as source evidence."
+          }
+          footer={
+            brain.mode === "live-vision"
+              ? `Order: ${brain.order?.confidence || "Unknown"} • overlaps removed: ${brain.overlapCount || 0}`
+              : "Ready for the normal BUSY Inbox trust checks"
+          }
+          tone={brain.warnings?.length ? "amber" : "green"}
+        >
+          {brain.threads?.slice(0, 3).map((thread) => (
+            <MetricRow
+              key={thread.id}
+              left={thread.label || "Conversation"}
+              right={thread.parsed?.stage || "Incoming"}
+            />
+          ))}
+        </Card>
+      ) : null}
+
+      <Button
+        label={screenshotCount ? "Add analysed batch to BUSY Inbox" : "Add to BUSY Inbox & triage"}
+        disabled={!canAnalyse || analysing}
         onPress={s.queueCaptureToInbox}
       />
       <Button
-        label={screenshotCount && !s.captureRawText.trim() ? "Review fields manually now" : "Analyse & review manually now"}
-        disabled={!canAnalyse}
+        label="Review extracted fields manually"
+        disabled={!canAnalyse || analysing}
         onPress={s.analyseQuickCapture}
       />
+
       <Text style={styles.helper}>
-        {screenshotCount && !s.captureRawText.trim()
-          ? "This prototype stores the selected screenshot batch and its order, but does not pretend to have read the pixels yet. Until the secure AI vision backend is connected, screenshot-only items wait for review instead of being auto-filed."
-          : s.recordFilingMode === "safe"
-          ? "Safe Autopilot is on. Inbox may file only an exact existing-customer match that passes every trust rule. Anything uncertain still waits for you."
-          : "Automatic filing is off. Inbox will triage the item, but every record change waits for your review."}
+        If the live vision service is unavailable, BUSY keeps screenshot-only batches waiting for review. Safe Autopilot never treats unread or low-confidence AI output as fact.
       </Text>
 
-      <Text style={styles.sectionLabel}>Try a test example</Text>
+      <Text style={styles.sectionLabel}>Try a text test</Text>
       <Button label="Example enquiry" onPress={() => s.loadQuickCaptureExample("enquiry")} />
       <Button label="Example sent quote" onPress={() => s.loadQuickCaptureExample("quote")} />
       <Button label="Example booking" onPress={() => s.loadQuickCaptureExample("booking")} />
@@ -10260,9 +10711,25 @@ function QuickCapture({ s }) {
     </Shell>
   );
 }
-
 function QuickCaptureReview({ s }) {
   const match = s.captureMatch;
+  const brainThread =
+    s.captureBrainAnalysis?.thread ||
+    s.captureBrainAnalysis?.threads?.[0] ||
+    null;
+  const fieldConfidence =
+    brainThread?.fieldConfidence ||
+    fieldConfidenceFromParsed({
+      name: s.captureName,
+      phone: s.capturePhone,
+      email: s.captureEmail,
+      address: s.captureAddress,
+      service: s.captureService,
+      stage: s.captureStage,
+      date: s.captureDate,
+      time: s.captureTime,
+      value: s.captureValue,
+    });
   const activeAction = match?.customer ? s.replyActions?.[match.customer.id] : null;
   const strongerActiveWork =
     !!activeAction &&
@@ -10316,8 +10783,26 @@ function QuickCaptureReview({ s }) {
         </>
       ) : null}
 
+      {brainThread ? (
+        <Card
+          eyebrow="Field-by-field confidence"
+          title="BUSY shows where it is sure — and where it is not"
+          body="High confidence can support automation only when the other trust rules pass. Medium or low confidence stays visible for owner review."
+          tone="blue"
+        >
+          <MetricRow left="Customer name" right={fieldConfidence.name || "Low"} />
+          <MetricRow left="Phone / email" right={fieldConfidence.contact || "Low"} />
+          <MetricRow left="Service" right={fieldConfidence.service || "Low"} />
+          <MetricRow left="Address" right={fieldConfidence.address || "Low"} />
+          <MetricRow left="Date" right={fieldConfidence.date || "Low"} />
+          {s.captureStage !== "Enquiry" ? (
+            <MetricRow left="Value" right={fieldConfidence.value || "Low"} />
+          ) : null}
+        </Card>
+      ) : null}
+
       <Card
-        eyebrow="Extraction confidence"
+        eyebrow="Overall extraction confidence"
         title={s.captureConfidence}
         body={
           fields.length
