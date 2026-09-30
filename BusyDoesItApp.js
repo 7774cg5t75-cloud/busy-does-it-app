@@ -19,6 +19,7 @@ import * as ImagePicker from "expo-image-picker";
 const APP_VERSION = "3.2";
 const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • AI Intake Brain`;
 const BUSY_AI_URL = String(process.env.EXPO_PUBLIC_BUSY_AI_URL || "").trim();
+const BUSY_AI_TOKEN = String(process.env.EXPO_PUBLIC_BUSY_AI_TOKEN || "").trim();
 
 const C = {
   bg: "#F5F7FB",
@@ -3274,7 +3275,7 @@ function App() {
 
     try {
       let analysis;
-      if (captureScreenshots.length && BUSY_AI_URL) {
+      if (captureScreenshots.length && BUSY_AI_URL && BUSY_AI_TOKEN) {
         const preparedImages = captureScreenshots.map((shot, index) => {
           if (!shot.base64) throw new Error("One selected screenshot could not be prepared. Remove it and select it again.");
           const mimeType = shot.mimeType || "image/jpeg";
@@ -3286,9 +3287,12 @@ function App() {
           };
         });
 
-        const response = await fetch(`${BUSY_AI_URL.replace(/\/$/, "")}/intake/analyse`, {
+        const response = await fetch(BUSY_AI_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(BUSY_AI_TOKEN ? { "x-busy-demo-token": BUSY_AI_TOKEN } : {}),
+          },
           body: JSON.stringify({
             appVersion: APP_VERSION,
             source: captureSource,
@@ -10654,8 +10658,8 @@ function QuickCapture({ s }) {
         <Card
           eyebrow="Secure vision connection"
           title="The batch is ready, but BUSY has not read the screenshots"
-          body="The V3.2 app-side intelligence and safety flow are now in place. This Snack preview does not yet have a secure BUSY AI server URL, so screenshot-only batches stay unresolved instead of pretending the images were read."
-          footer="No API key is ever stored in the phone app"
+          body="The V3.2 app-side intelligence and safety flow are in place, but this preview still needs both its BUSY AI endpoint and prototype access token configured. Screenshot-only batches stay unresolved instead of pretending the images were read."
+          footer="The OpenAI API key stays server-side"
           tone="amber"
         />
       ) : null}
