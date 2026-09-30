@@ -2,7 +2,19 @@ import fs from "node:fs";
 import { Snack } from "snack-sdk";
 import * as babelParser from "@babel/parser";
 
-const source = fs.readFileSync("BusyDoesItApp.js", "utf8");
+let source = fs.readFileSync("BusyDoesItApp.js", "utf8");
+
+// Snack has no GitHub runtime environment of its own, so inject only the public
+// prototype endpoint/token into the generated preview. The OpenAI key stays server-side.
+source = source
+  .replaceAll(
+    "process.env.EXPO_PUBLIC_BUSY_AI_URL",
+    JSON.stringify(process.env.EXPO_PUBLIC_BUSY_AI_URL || "")
+  )
+  .replaceAll(
+    "process.env.EXPO_PUBLIC_BUSY_AI_TOKEN",
+    JSON.stringify(process.env.EXPO_PUBLIC_BUSY_AI_TOKEN || "")
+  );
 
 // Fail the preview build before publishing if the React Native source has invalid JS/JSX syntax.
 babelParser.parse(source, { sourceType: "module", plugins: ["jsx"] });
