@@ -5,7 +5,7 @@ const MAX_IMAGE_DATA_URL_CHARS = 7_000_000;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-busy-demo-token",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Content-Type": "application/json",
 };
@@ -338,14 +338,12 @@ Deno.serve(async (request: Request) => {
   if (request.method !== "POST") return json(405, { error: "POST required" });
 
   try {
-    const expectedToken = Deno.env.get("BUSY_DEMO_TOKEN");
-    if (!expectedToken) {
-      return json(503, {
-        error: "BUSY_DEMO_TOKEN is not configured on the server.",
-      });
-    }
-    const suppliedToken = request.headers.get("x-busy-demo-token") || "";
-    if (suppliedToken !== expectedToken) {
+    const publishableKeys = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") || "{}");
+    const allowedKeys = Object.values(publishableKeys).filter(
+      (value): value is string => typeof value === "string" && value.length > 0
+    );
+    const suppliedKey = request.headers.get("apikey") || "";
+    if (!suppliedKey || !allowedKeys.includes(suppliedKey)) {
       return json(401, { error: "Unauthorised BUSY prototype request." });
     }
 
