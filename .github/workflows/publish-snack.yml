@@ -38,6 +38,9 @@ jobs:
         run: npm install --no-save --package-lock=false --legacy-peer-deps snack-sdk@latest @babel/parser@latest
 
       - name: Publish clean Snack preview
+        env:
+          EXPO_PUBLIC_BUSY_AI_URL: ${{ secrets.BUSY_AI_URL }}
+          EXPO_PUBLIC_BUSY_AI_TOKEN: ${{ secrets.BUSY_AI_TOKEN }}
         run: node scripts/publish-snack.mjs
 
       - name: Save preview link in branch
