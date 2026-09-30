@@ -20,17 +20,18 @@ The OpenAI API key exists only in the server environment. It is never bundled in
 ## Required server secrets
 
 - `OPENAI_API_KEY`
-- `BUSY_DEMO_TOKEN` — prototype gate; useful for development but **not** a substitute for real per-user authentication in production
 - optional `OPENAI_INTAKE_MODEL` — defaults to `gpt-6-luna`
+
+The prototype caller is checked against the project's Supabase publishable key. Publishable keys are client-safe identifiers, not secrets. Before production this must be replaced with real BUSY user authentication and abuse/rate controls.
 
 ## Mobile preview configuration
 
 The app reads:
 
 - `EXPO_PUBLIC_BUSY_AI_URL` — the full deployed Edge Function URL, for example `https://<project>.supabase.co/functions/v1/busy-ai-intake`
-- `EXPO_PUBLIC_BUSY_AI_TOKEN` — must match `BUSY_DEMO_TOKEN`
+- `EXPO_PUBLIC_BUSY_AI_TOKEN` — the project's Supabase publishable key
 
-The publish script injects these values into the generated Snack preview from GitHub Actions environment variables/secrets. The demo token is therefore **client-visible** by design and should only be used while prototyping. Before production, replace it with real BUSY user authentication and server-side rate limits.
+The publish script can inject these values into generated Snack previews, and the V3.2 prototype also has the current project URL and publishable key as safe client-side fallbacks. Before production, replace publishable-key-only gating with real BUSY user authentication and server-side rate limits.
 
 ## Trust rules
 
