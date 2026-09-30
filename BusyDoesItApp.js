@@ -18,8 +18,14 @@ import * as ImagePicker from "expo-image-picker";
 
 const APP_VERSION = "3.2";
 const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • AI Intake Brain`;
-const BUSY_AI_URL = String(process.env.EXPO_PUBLIC_BUSY_AI_URL || "").trim();
-const BUSY_AI_TOKEN = String(process.env.EXPO_PUBLIC_BUSY_AI_TOKEN || "").trim();
+const BUSY_AI_URL = String(
+  process.env.EXPO_PUBLIC_BUSY_AI_URL ||
+    "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
+).trim();
+const BUSY_AI_TOKEN = String(
+  process.env.EXPO_PUBLIC_BUSY_AI_TOKEN ||
+    "sb_publishable_-u4GplmvwptxNjdrh2UqEg_672Lhe74"
+).trim();
 
 const C = {
   bg: "#F5F7FB",
@@ -3291,7 +3297,7 @@ function App() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(BUSY_AI_TOKEN ? { "x-busy-demo-token": BUSY_AI_TOKEN } : {}),
+            ...(BUSY_AI_TOKEN ? { apikey: BUSY_AI_TOKEN } : {}),
           },
           body: JSON.stringify({
             appVersion: APP_VERSION,
