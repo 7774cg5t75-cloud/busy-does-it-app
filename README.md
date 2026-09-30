@@ -15,6 +15,11 @@ Busy Does It mobile app prototype.
 - If the secure vision backend is not configured, screenshot-only batches remain visibly unresolved. BUSY does not fake OCR or invent what an image says.
 - Text-only Quick Capture still works locally, and text plus screenshots can be structured while the selected screenshots remain attached as source evidence.
 - Main navigation remains Home / Work / Results / Settings; the Intake Brain strengthens the existing flow rather than adding another permanent module.
+- Added a Supabase Edge Function implementation at `supabase/functions/busy-ai-intake/index.ts` that performs the actual screenshot vision request server-side using OpenAI's Responses API and strict Structured Outputs.
+- The server defaults to `gpt-6-luna` for the focused, high-volume intake workload, while allowing `OPENAI_INTAKE_MODEL` to override the model without changing the app.
+- The Edge Function independently re-checks automation safety after the model responds; model output alone cannot grant Safe Autopilot authority.
+- The generated Snack preview can now receive the full deployed BUSY AI function URL and a temporary prototype access token from GitHub Actions secrets, while the OpenAI API key never enters the mobile bundle.
+- The temporary demo token is explicitly a prototype gate rather than production user authentication. Before launch it should be replaced with proper BUSY account authentication and server-side abuse/rate controls.
 
 ## v3.1 cross-source reconciliation
 - Added lifecycle reconciliation so connected business systems can update one existing customer/work journey instead of creating parallel records for each source.
