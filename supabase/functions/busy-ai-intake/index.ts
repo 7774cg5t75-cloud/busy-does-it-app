@@ -103,25 +103,25 @@ const intakeSchema = {
   },
 };
 
-function json(status, body) {
+function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), { status, headers: corsHeaders });
 }
 
-function normaliseText(value, max = 4000) {
+function normaliseText(value: unknown, max = 4000) {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
 
-function isDataImage(value) {
+function isDataImage(value: unknown) {
   return typeof value === "string" && /^data:image\/(png|jpe?g|webp);base64,/i.test(value);
 }
 
-function sanitizeRequest(body) {
+function sanitizeRequest(body: any) {
   const screenshots = Array.isArray(body?.screenshots) ? body.screenshots : [];
   if (!screenshots.length || screenshots.length > MAX_SCREENSHOTS) {
     throw new Error(`Choose between 1 and ${MAX_SCREENSHOTS} screenshots.`);
   }
 
-  const cleanedScreenshots = screenshots.map((shot, index) => {
+  const cleanedScreenshots = screenshots.map((shot: any, index: number) => {
     const dataUrl = String(shot?.dataUrl || "");
     if (!isDataImage(dataUrl)) throw new Error(`Screenshot ${index + 1} is not a supported image.`);
     if (dataUrl.length > MAX_IMAGE_DATA_URL_CHARS) {
@@ -137,12 +137,12 @@ function sanitizeRequest(body) {
 
   const services = (Array.isArray(body?.services) ? body.services : [])
     .slice(0, 30)
-    .map((service) => ({
+    .map((service: any) => ({ 
       id: normaliseText(service?.id, 100),
       name: normaliseText(service?.name, 160),
       value: Number.isFinite(Number(service?.value)) ? Number(service.value) : null,
     }))
-    .filter((service) => service.name);
+    .filter((service: any) => service.name);
 
   return {
     appVersion: normaliseText(body?.appVersion, 30),
@@ -150,16 +150,16 @@ function sanitizeRequest(body) {
     ownerText: normaliseText(body?.ownerText, 8000),
     today: normaliseText(body?.today, 20),
     currentOrder: Array.isArray(body?.currentOrder)
-      ? body.currentOrder.map((id) => normaliseText(id, 180)).filter(Boolean)
-      : cleanedScreenshots.map((shot) => shot.id),
+      ? body.currentOrder.map((id: unknown) => normaliseText(id, 180)).filter(Boolean)
+      : cleanedScreenshots.map((shot: any) => shot.id),
     services,
     screenshots: cleanedScreenshots,
   };
 }
 
-function buildPrompt(input) {
+function buildPrompt(input: any) {
   const serviceLines = input.services.length
-    ? input.services.map((service) => `- ${service.name}`).join("\n")
+    ? input.services.map((service: any) => `- ${service.name}`).join("\n")
     : "- No service list supplied";
 
   return `You are BUSY's intake analyst for a UK small service business.
@@ -188,11 +188,11 @@ ${serviceLines}
 The screenshot IDs are identifiers only. Return them exactly in order.imageIds and each thread.imageIds.`;
 }
 
-function enforceServerSafety(result, input) {
-  const validIds = new Set(input.screenshots.map((shot) => shot.id));
-  const originalIds = input.screenshots.map((shot) => shot.id);
+function enforceServerSafety(result: any, input: any) {
+  const validIds = new Set(input.screenshots.map((shot: any) => shot.id));
+  const originalIds = input.screenshots.map((shot: any) => shot.id);
   const ordered = Array.isArray(result?.order?.imageIds)
-    ? result.order.imageIds.filter((id) => validIds.has(id))
+    ? result.order.imageIds.filter((id: string) => validIds.has(id))
     : [];
   const completeOrder =
     ordered.length === originalIds.length &&
@@ -208,15 +208,15 @@ function enforceServerSafety(result, input) {
 
   result.overlapCount = Math.max(0, Math.min(50, Number(result?.overlapCount) || 0));
   result.warnings = Array.isArray(result?.warnings)
-    ? result.warnings.map((item) => normaliseText(item, 700)).filter(Boolean).slice(0, 12)
+    ? result.warnings.map((item: unknown) => normaliseText(item, 700)).filter(Boolean).slice(0, 12)
     : [];
 
   const multipleThreads = Array.isArray(result?.threads) && result.threads.length > 1;
-  result.threads = (Array.isArray(result?.threads) ? result.threads : []).map((thread, index) => {
+  result.threads = (Array.isArray(result?.threads) ? result.threads : []).map((thread: any, index: number) => {
     const parsed = thread?.parsed || {};
     const confidence = thread?.fieldConfidence || {};
     const imageIds = (Array.isArray(thread?.imageIds) ? thread.imageIds : [])
-      .filter((id) => validIds.has(id));
+      .filter((id: string) => validIds.has(id));
 
     const nameHigh = !!normaliseText(parsed.name, 240) && confidence.name === "High";
     const contactHigh =
@@ -245,7 +245,7 @@ function enforceServerSafety(result, input) {
         note: normaliseText(parsed.note, 12000),
       },
       warnings: Array.isArray(thread?.warnings)
-        ? thread.warnings.map((item) => normaliseText(item, 700)).filter(Boolean).slice(0, 10)
+        ? thread.warnings.map((item: unknown) => normaliseText(item, 700)).filter(Boolean).slice(0, 10)
         : [],
       safeToAutoFile:
         thread?.safeToAutoFile === true &&
@@ -266,14 +266,14 @@ function enforceServerSafety(result, input) {
   return result;
 }
 
-async function analyseWithOpenAI(input) {
+async function analyseWithOpenAI(input: any) {
   const apiKey = Deno.env.get("OPENAI_API_KEY");
   if (!apiKey) throw new Error("OPENAI_API_KEY is not configured.");
 
   const model = Deno.env.get("OPENAI_INTAKE_MODEL") || DEFAULT_MODEL;
   const userContent = [
     { type: "input_text", text: buildPrompt(input) },
-    ...input.screenshots.map((shot) => ({
+    ...input.screenshots.map((shot: any) => ({ 
       type: "input_image",
       image_url: shot.dataUrl,
       detail: "high",
@@ -303,7 +303,7 @@ async function analyseWithOpenAI(input) {
     }),
   });
 
-  const payload = await response.json();
+  const payload: any = await response.json();
   if (!response.ok) {
     const message = payload?.error?.message || `OpenAI request failed with ${response.status}`;
     throw new Error(message);
@@ -313,15 +313,15 @@ async function analyseWithOpenAI(input) {
     ? payload.output_text
     : (Array.isArray(payload?.output)
         ? payload.output
-            .flatMap((item) => Array.isArray(item?.content) ? item.content : [])
-            .filter((item) => item?.type === "output_text")
-            .map((item) => item.text || "")
+            .flatMap((item: any) => Array.isArray(item?.content) ? item.content : [])
+            .filter((item: any) => item?.type === "output_text")
+            .map((item: any) => item.text || "")
             .join("")
         : "");
 
   if (!outputText) throw new Error("OpenAI returned no structured intake output.");
 
-  let parsed;
+  let parsed: any;
   try {
     parsed = JSON.parse(outputText);
   } catch {
@@ -331,7 +331,7 @@ async function analyseWithOpenAI(input) {
   return enforceServerSafety(parsed, input);
 }
 
-Deno.serve(async (request) => {
+Deno.serve(async (request: Request) => {
   if (request.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
