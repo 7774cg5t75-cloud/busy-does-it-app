@@ -1,0 +1,4 @@
+project_id = "busy-does-it"
+
+[functions.busy-ai-intake]
+verify_jwt = false
