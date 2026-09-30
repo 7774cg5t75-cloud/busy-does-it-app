@@ -18,8 +18,9 @@ Busy Does It mobile app prototype.
 - Added a Supabase Edge Function implementation at `supabase/functions/busy-ai-intake/index.ts` that performs the actual screenshot vision request server-side using OpenAI's Responses API and strict Structured Outputs.
 - The server defaults to `gpt-6-luna` for the focused, high-volume intake workload, while allowing `OPENAI_INTAKE_MODEL` to override the model without changing the app.
 - The Edge Function independently re-checks automation safety after the model responds; model output alone cannot grant Safe Autopilot authority.
-- The generated Snack preview can now receive the full deployed BUSY AI function URL and a temporary prototype access token from GitHub Actions secrets, while the OpenAI API key never enters the mobile bundle.
-- The temporary demo token is explicitly a prototype gate rather than production user authentication. Before launch it should be replaced with proper BUSY account authentication and server-side abuse/rate controls.
+- The live V3.2 preview now points at the deployed `busy-ai-intake` Supabase Edge Function. The app uses the project's client-safe Supabase publishable key to identify prototype requests; the OpenAI API key never enters the mobile bundle.
+- Publishable-key gating is deliberately prototype-only. Before launch it must be replaced with proper BUSY user authentication plus server-side abuse/rate controls.
+- The Edge Function is deployed and active in the BUSY Supabase project. Live screenshot inference begins as soon as `OPENAI_API_KEY` is added to Supabase Edge Function secrets.
 
 ## v3.1 cross-source reconciliation
 - Added lifecycle reconciliation so connected business systems can update one existing customer/work journey instead of creating parallel records for each source.
