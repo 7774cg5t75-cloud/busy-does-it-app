@@ -2,6 +2,20 @@
 
 Busy Does It mobile app prototype.
 
+## v3.2 AI Intake Brain
+- Promoted Quick Capture from a storage/triage flow into an explicit AI Intake Brain layer before BUSY Inbox.
+- A screenshot/text batch is analysed as one intake problem: likely conversation order, duplicate overlap, separate customer threads, structured fields and confidence all belong to one analysis result.
+- Added a secure backend contract through `EXPO_PUBLIC_BUSY_AI_URL`. The mobile app never contains an AI provider key; live screenshot understanding must run through a BUSY-controlled server endpoint.
+- Screenshot selection now prepares the deliberately selected images for that secure handoff while keeping the existing maximum of 8 images, thumbnail review, removal and manual ordering controls.
+- Live analysis can return a reconstructed screenshot order and an overlap count so duplicated WhatsApp/Messenger-style screenshot regions can be ignored rather than treated as repeated customer facts.
+- Live analysis can return more than one customer/conversation from an accidental mixed screenshot batch. BUSY then creates separate Inbox items linked to the same AI intake batch rather than merging unrelated customers.
+- Important extracted fields carry separate confidence: customer name, contact, service, address, date/time and value. The review screen surfaces that confidence instead of relying only on one vague overall score.
+- AI output is treated as evidence, not automatically as fact. Safe Autopilot is blocked when the screenshot has not actually been read, when the AI flags the thread for review, or when critical name/contact/service confidence is not High.
+- Existing V3.1 customer matching, lifecycle reconciliation, duplicate prevention and owner-review boundaries remain authoritative after AI extraction.
+- If the secure vision backend is not configured, screenshot-only batches remain visibly unresolved. BUSY does not fake OCR or invent what an image says.
+- Text-only Quick Capture still works locally, and text plus screenshots can be structured while the selected screenshots remain attached as source evidence.
+- Main navigation remains Home / Work / Results / Settings; the Intake Brain strengthens the existing flow rather than adding another permanent module.
+
 ## v3.1 cross-source reconciliation
 - Added lifecycle reconciliation so connected business systems can update one existing customer/work journey instead of creating parallel records for each source.
 - BUSY now distinguishes safe forward progression from duplicate/backwards changes. Example: Enquiry → Quote sent → Booking → Completed job can reconcile when identity, service and stage evidence all agree.
