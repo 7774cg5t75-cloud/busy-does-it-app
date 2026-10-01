@@ -5260,6 +5260,21 @@ function App() {
     setJobPostChannels({ facebook: false, instagram: false, googleBusiness: false });
     setJobPostOutcome("No enquiry yet");
     setJobPostOutcomeValue("");
+    setSocialDrafts([]);
+    setSocialCreatePhotos([]);
+    setSocialBrief("");
+    setSocialAiStatus("idle");
+    setSocialAiResult(null);
+    setSocialAiError("");
+    setSocialCaptionId("");
+    setSocialDraftText("");
+    setSocialDraftChannels({ facebook: false, instagram: false, googleBusiness: false });
+    setSelectedSocialDraftId(null);
+    setBusinessBrainRules([]);
+    setBusinessBrainRuleDraft("");
+    setBusinessBrainFeedback([]);
+    setPendingBrainFeedback(null);
+    setBrainFeedbackReason("");
     setQuoteFollowUpDraft("");
     setQuoteFollowUpOutcome("No reply yet");
     setEnquiryFollowUpDraft("");
@@ -6948,6 +6963,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
       >
         <View style={styles.topRow}>
           <View style={{ flex: 1, paddingRight: 12 }}>
@@ -14178,6 +14194,22 @@ function Results({ s }) {
         <MetricRow left="Post-to-booking planning rate" right={formatPercent(s.postEvidence?.rate)} />
         <MetricRow left="Offer outcomes" right={String(s.offerEvidence?.sample || 0)} />
         <MetricRow left="Previous-customer completed value" right={`£${s.reactivationCompletedValue}`} />
+      </Card>
+
+      <Card
+        eyebrow="Operational Business Brain"
+        title="Business-specific evidence now changes recommendations"
+        body="Sample size, evidence freshness, owner feedback and hard owner rules are applied before marketing opportunities are ranked. Live customer obligations remain outside those marketing blocks."
+        tone="green"
+      >
+        <MetricRow left="Evidence patterns tracked" right={String(s.businessBrainPatterns?.length || 0)} />
+        <MetricRow
+          left="Patterns with usable evidence"
+          right={String((s.businessBrainPatterns || []).filter((item) => item.evidence?.evidenceReady).length)}
+        />
+        <MetricRow left="Owner rules" right={String(s.businessBrainRules?.length || 0)} />
+        <MetricRow left="Recommendation feedback records" right={String(s.businessBrainFeedback?.length || 0)} />
+        <Button label="Open Business Brain" onPress={() => s.go("businessBrain")} />
       </Card>
 
       <Card
