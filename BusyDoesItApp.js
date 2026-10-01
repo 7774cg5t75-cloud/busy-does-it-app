@@ -13759,35 +13759,98 @@ function OfferRunning({ s }) {
 
 
 function SocialMediaCentre({ s }) {
+  useEffect(() => {
+    s.refreshSocialPublishingStatus({ quiet: true });
+  }, []);
+
   const drafts = [...(s.socialDrafts || [])].sort((a, b) =>
     String(b.updatedAt || b.createdAt || "").localeCompare(
       String(a.updatedAt || a.createdAt || "")
     )
   );
   const jobs = (s.socialJobOpportunities || []).slice(0, 6);
-  const connectedCount =
-    Number(!!s.connectedAccounts.meta) +
-    Number(!!s.connectedAccounts.googleBusiness);
+  const publish = s.socialPublishingStatus || {};
+  const meta = publish.connections?.meta || { status: "not_connected" };
+  const google = publish.connections?.google_business || { status: "not_connected" };
+  const queue = Array.isArray(publish.queue) ? publish.queue : [];
+  const liveEnabled = !!publish.credentials?.livePublishingEnabled;
+  const liveConnectedCount =
+    Number(meta.status === "connected") + Number(google.status === "connected");
+  const cloudPublished = queue.filter((post) => post.status === "Published").length;
+  const cloudScheduled = queue.filter((post) => post.status === "Scheduled").length;
+  const cloudFailed = queue.filter((post) =>
+    ["Failed", "Partial failure"].includes(post.status)
+  ).length;
+
+  const providerLabel = (connection, fallback) => {
+    if (connection.status === "connected") {
+      return connection.pageName ||
+        connection.googleLocationTitle ||
+        connection.providerAccountName ||
+        fallback;
+    }
+    if (connection.status === "needs_selection") return "Choose account";
+    if (connection.status === "needs_attention") return "Needs attention";
+    if (connection.status === "disconnected") return "Disconnected";
+    return "Not connected";
+  };
 
   return (
     <Shell
       s={s}
       title="Social media"
-      subtitle="Create useful content from work you already did, keep drafts together and learn from business outcomes rather than vanity activity."
-      brandCue="Real work in. Useful content out. Owner approval stays in control."
+      subtitle="Create from real work, approve what goes public, schedule it in the cloud and keep provider results linked back to BUSY."
+      brandCue="Real work in. Approved content out. Publishing authority stays separate."
     >
       <Card
-        eyebrow="V3.3 • Social Media Centre"
-        title="Create from real jobs or photos on your phone"
-        body="BUSY can analyse selected photos, recognise a likely before/after story, prepare several caption options and keep the result as a draft, scheduled item or approved prototype post."
-        footer="Nothing is published publicly without approval"
-        tone="green"
+        eyebrow="V3.5 • Publishing layer"
+        title="The Social Media Centre now has a real server-side queue"
+        body="Draft photos can be moved into private Supabase storage, scheduled posts are checked every minute, and provider IDs or failures come back into the same BUSY record."
+        footer={
+          liveEnabled
+            ? "Live provider publishing safety switch: ON"
+            : "Live provider publishing safety switch: OFF until setup is complete"
+        }
+        tone={liveEnabled ? "green" : "amber"}
       >
-        <MetricRow left="Drafts" right={String(s.socialDraftCount)} />
-        <MetricRow left="Scheduled in BUSY" right={String(s.socialScheduledCount)} />
-        <MetricRow left="Approved prototype posts" right={String(s.socialApprovedCount)} />
-        <MetricRow left="Publishing connections selected" right={String(connectedCount)} />
+        <MetricRow left="Live provider connections" right={String(liveConnectedCount)} />
+        <MetricRow left="Cloud scheduled" right={String(cloudScheduled)} />
+        <MetricRow left="Cloud published" right={String(cloudPublished)} strong={cloudPublished > 0} />
+        <MetricRow left="Needs attention" right={String(cloudFailed)} strong={cloudFailed > 0} />
       </Card>
+
+      <Card
+        eyebrow="Connection health"
+        title="Facebook / Instagram and Google Business are separate publishing authorities"
+        body="BUSY can prepare content before either provider is connected. Going public only becomes possible after the provider authorizes BUSY and the final live-publishing switch is deliberately enabled."
+        tone={liveConnectedCount ? "green" : "blue"}
+      >
+        <MetricRow
+          left="Facebook / Instagram"
+          right={providerLabel(meta, "Meta")}
+          strong={meta.status === "connected"}
+        />
+        <MetricRow
+          left="Google Business"
+          right={providerLabel(google, "Google Business")}
+          strong={google.status === "connected"}
+        />
+        <Button label="Manage publishing connections" onPress={() => s.go("connectedAccounts")} />
+        <Button
+          label={s.socialPublishingLoading ? "Refreshing…" : "Refresh connection status"}
+          disabled={s.socialPublishingLoading}
+          onPress={s.refreshSocialPublishingStatus}
+        />
+      </Card>
+
+      {s.socialPublishingError ? (
+        <Card
+          eyebrow="Publishing status"
+          title="BUSY could not refresh part of the publishing layer"
+          body={s.socialPublishingError}
+          tone="amber"
+        />
+      ) : null}
 
       <Button label="Create something from my phone photos" primary onPress={s.startSocialFromPhone} />
 
@@ -13810,12 +13873,12 @@ function SocialMediaCentre({ s }) {
                     </Text>
                   </View>
                   <StatusChip
-                    label={job.postDraftStatus === "Simulated published" ? "Used" : "Ready"}
-                    tone={job.postDraftStatus === "Simulated published" ? "blue" : "green"}
+                    label={job.postDraftStatus === "Published" ? "Published" : "Ready"}
+                    tone={job.postDraftStatus === "Published" ? "green" : "blue"}
                   />
                 </View>
                 <Text style={styles.activitySummary}>
-                  BUSY can analyse these approved job photos without adding the customer's name or address to the public caption.
+                  BUSY can prepare content from these owner-approved job photos without intentionally adding the customer's name or address to the public wording.
                 </Text>
                 <Text style={styles.activityOpen}>Create content →</Text>
               </Pressable>
@@ -13831,9 +13894,9 @@ function SocialMediaCentre({ s }) {
         />
       )}
 
-      <Text style={styles.sectionLabel}>Drafts & schedule</Text>
+      <Text style={styles.sectionLabel}>Drafts & publishing queue</Text>
       {drafts.length ? (
-        drafts.slice(0, 8).map((draft) => (
+        drafts.slice(0, 10).map((draft) => (
           <Pressable
             key={draft.id}
             onPress={() => s.openSocialDraft(draft.id)}
@@ -13848,16 +13911,29 @@ function SocialMediaCentre({ s }) {
               </View>
               <StatusChip
                 label={draft.status || "Draft"}
-                tone={draft.status === "Simulated published" ? "green" : draft.status === "Scheduled" ? "blue" : "amber"}
+                tone={
+                  draft.status === "Published"
+                    ? "green"
+                    : ["Failed", "Partial failure", "Ready to publish"].includes(draft.status)
+                    ? "amber"
+                    : "blue"
+                }
               />
             </View>
             <Text numberOfLines={3} style={styles.activitySummary}>{draft.text}</Text>
+            {draft.lastPublishError ? (
+              <Text style={styles.customerHistoryPhotoMeta}>{draft.lastPublishError}</Text>
+            ) : null}
             {draft.status === "Scheduled" ? (
               <Text style={styles.activityOpen}>
                 Scheduled {formatUKDate(draft.scheduleDate)} • {draft.scheduleTime}
               </Text>
+            ) : draft.status === "Published" && draft.publishedAt ? (
+              <Text style={styles.activityOpen}>
+                Published {formatUKDate(String(draft.publishedAt).slice(0, 10))}
+              </Text>
             ) : (
-              <Text style={styles.activityOpen}>Open draft →</Text>
+              <Text style={styles.activityOpen}>Open post →</Text>
             )}
           </Pressable>
         ))
@@ -13865,7 +13941,7 @@ function SocialMediaCentre({ s }) {
         <Card
           eyebrow="No drafts yet"
           title="Your content queue is empty"
-          body="Create from phone photos or a completed job. BUSY will keep the generated wording and selected destinations here."
+          body="Create from phone photos or a completed job. BUSY will keep the wording, media, destinations and provider status together."
           tone="blue"
         />
       )}
@@ -13874,10 +13950,10 @@ function SocialMediaCentre({ s }) {
         eyebrow="BUSY Business Brain"
         title={
           (s.postEvidence?.sample || 0) >= 3
-            ? "Your own post outcomes are starting to influence BUSY"
-            : "Learning cautiously until your business has enough evidence"
+            ? "Real publishing outcomes can feed the same evidence loop"
+            : "Learning cautiously until your business has enough outcome evidence"
         }
-        body="BUSY keeps owner rules separate from observed patterns. Small samples stay low-confidence, and your own business outcomes gradually matter more than generic assumptions."
+        body="Provider publishing status is not treated as a business result by itself. BUSY still learns from recorded enquiries, quotes and bookings rather than assuming a published post was successful because it got reach or likes."
         footer={
           s.latestPostEvidenceAt
             ? `Latest social outcome evidence: ${formatUKDate(String(s.latestPostEvidenceAt).slice(0, 10))}`
@@ -13888,11 +13964,9 @@ function SocialMediaCentre({ s }) {
         <MetricRow left="Finished-job post outcomes" right={String(s.postEvidence?.sample || 0)} />
         <MetricRow left="Outcomes marked booking" right={String(s.postEvidence?.successes || 0)} />
         <MetricRow left="Evidence confidence" right={s.postEvidence?.confidence || "No evidence yet"} />
-        <MetricRow left="Owner rules" right={String(s.businessBrainRules?.length || 0)} />
         <Button label="Open Business Brain" onPress={() => s.go("businessBrain")} />
       </Card>
 
-      <Button label="Connected accounts" onPress={() => s.go("connectedAccounts")} />
       <Button label="Back" onPress={s.back} />
     </Shell>
   );
