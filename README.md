@@ -2,6 +2,25 @@
 
 Busy Does It mobile app prototype.
 
+## v3.3 Social Media Centre + Business Brain foundation
+- Added a proper Social Media Centre without adding a fifth permanent bottom tab. It is reachable from Home, Results and Settings while the primary navigation remains Home / Work / Results / Settings.
+- Owners can create content from deliberately selected phone photos or from completed-job photos already marked as reusable for marketing suggestions.
+- Added a live server-side `busy-social-content` Supabase Edge Function using the existing private `OPENAI_API_KEY`. The mobile app sends only explicitly selected photos and never contains the OpenAI key.
+- BUSY social AI can identify a likely before/after pair, finished-result story, work-in-progress set, equipment/behind-the-scenes set or general business-content set without forcing a story when evidence is weak.
+- The social AI returns exactly three distinct organic caption options, recommended Facebook / Instagram / Google Business destinations and a concise reason for each option.
+- Captions are explicitly instructed not to invent customer reactions, prices, guarantees, addresses, names or other unsupported claims. The backend also surfaces privacy warnings when selected photos may contain people, registration plates, addresses, documents or other potentially private detail.
+- Generated wording remains editable before approval. Content can be kept as a draft, stored on a simple BUSY schedule, or approved as a simulated publish. V3.3 still does not send a real public provider post.
+- Completed-job social drafts remain linked to the saved customer/job record so existing outcome tracking and work-goal evidence continue to use one record rather than creating a separate marketing truth path.
+- Added Social Media Centre draft/schedule counts plus a queue of reusable completed jobs and saved content drafts.
+- Added the first Business Brain screen. It separates owner-set hard rules from observed tendencies and temporary business state instead of silently turning AI guesses into permanent rules.
+- Owner rules are persisted locally and explicitly labelled Owner-set / highest authority. They can be added or removed by the owner.
+- Social evidence is shown with sample size, observed booking outcomes, confidence and freshness. Samples below the existing evidence threshold remain visibly low-confidence rather than being over-interpreted.
+- Added per-destination evidence for Facebook, Instagram and Google Business based on recorded post outcomes. BUSY does not declare a winning channel from tiny samples.
+- The existing Opportunity Engine evidence rules remain authoritative: recorded enquiries, quotes, bookings and value matter more than vanity metrics.
+- Added backend validation for both AI Edge Functions so the Intake Brain and Social Content server code are type-checked independently of the Snack app build.
+- The live `busy-social-content` Edge Function is deployed and active in the BUSY Supabase project.
+- All V3.2 AI Intake Brain, V3.1 reconciliation/calendar, V3.0 connected-intake architecture and earlier safety/control rules remain intact.
+
 ## v3.2 AI Intake Brain
 - Promoted Quick Capture from a storage/triage flow into an explicit AI Intake Brain layer before BUSY Inbox.
 - A screenshot/text batch is analysed as one intake problem: likely conversation order, duplicate overlap, separate customer threads, structured fields and confidence all belong to one analysis result.
