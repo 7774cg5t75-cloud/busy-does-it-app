@@ -171,7 +171,7 @@ ${ownerRules}
 
 Rules:
 1. Respect every owner-set Business Brain rule above unless it conflicts with safety or the supplied evidence.
-3. Work out what the photos actually show. If they appear to form a before/after pair, identify the before and after image IDs. Do not force a before/after interpretation when the evidence is weak.
+2. Work out what the photos actually show. If they appear to form a before/after pair, identify the before and after image IDs. Do not force a before/after interpretation when the evidence is weak.
 3. detectedService may use an exact service name from the supplied service list when the photos/context clearly support it. Otherwise return the supplied service hint if appropriate, or an empty string.
 4. Never identify people, infer a customer's name, reproduce a visible home address, phone number, email, registration plate, invoice number or other private identifier in a caption.
 5. If a person, readable registration plate, house number/address, document, screen or other potentially private detail is visible, add a short privacy warning so the owner can check it before publishing.
