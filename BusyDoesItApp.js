@@ -1988,6 +1988,7 @@ function App() {
           confidence: "Owner-set",
           kind: "block-opportunity",
           targetFamilies: [family],
+          targetService: pendingBrainFeedback.service || "",
           createdAt: recordedAt,
         },
       ]);
@@ -5874,12 +5875,32 @@ function App() {
   const brainTuneOpportunity = (opportunity) => {
     if (!opportunity?.id || opportunity.canIgnore === false) return opportunity;
     const family = businessBrainOpportunityFamily(opportunity.id);
-    const feedback = businessBrainFeedbackSummary[family] || {
-      count: 0,
-      penalty: 0,
-      reasons: {},
-    };
-    const blocked = blockedBusinessBrainFamilies.has(family);
+    const relevantFeedback = businessBrainFeedback.filter(
+      (item) =>
+        (item.family || "general") === family &&
+        (!item.service ||
+          !opportunity.brainService ||
+          item.service === opportunity.brainService)
+    );
+    const feedback = relevantFeedback.reduce(
+      (summary, item) => {
+        summary.count += 1;
+        summary.penalty = Math.max(
+          -18,
+          summary.penalty + Number(item.penalty || 0)
+        );
+        summary.reasons[item.reason] =
+          (summary.reasons[item.reason] || 0) + 1;
+        return summary;
+      },
+      { count: 0, penalty: 0, reasons: {} }
+    );
+    const blocked = businessBrainRules.some((rule) => {
+      const families = manualRuleTargetFamilies(rule);
+      if (!families.includes(family)) return false;
+      if (!rule.targetService || !opportunity.brainService) return true;
+      return rule.targetService === opportunity.brainService;
+    });
     const pattern =
       businessBrainPatterns.find((item) => item.family === family) || null;
     const feedbackEvidence = feedback.count
@@ -7755,6 +7776,7 @@ function HomeScreen({ s }) {
     ...(s.preparedPostOpportunity
       ? [{
           id: `prepared-post-${s.preparedPostOpportunity.jobId}`,
+          brainService: s.preparedPostOpportunity.service,
           score: (hasPublishingConnection ? 78 : 58) + postLearningAdjustment,
           eyebrow: "Prepared action ready",
           title: "A finished-job post is ready for approval",
@@ -7781,6 +7803,7 @@ function HomeScreen({ s }) {
     ...(s.photoOpportunity
       ? [{
           id: `job-photo-${s.photoOpportunity.jobId}`,
+          brainService: s.photoOpportunity.service,
           score: 68 + postLearningAdjustment,
           eyebrow: "Free content opportunity",
           title: `Use ${s.photoOpportunity.photoCount} approved job photo${s.photoOpportunity.photoCount === 1 ? "" : "s"}`,
@@ -7805,6 +7828,7 @@ function HomeScreen({ s }) {
     ...(s.quietSlotConfirmed && !s.workGoalFilled && s.quietSlot && reactivationEligibleCount > 0
       ? [{
           id: "quiet-slot",
+          brainService: s.workGoalPlanningService?.name || "",
           score: 60 + Math.min(10, reactivationEligibleCount) + reactivationLearningBoost,
           eyebrow: "Spare capacity",
           title: `${s.quietSlot} is free`,
@@ -7834,6 +7858,7 @@ function HomeScreen({ s }) {
     ...(s.reviewRequestOpportunity
       ? [{
           id: `review-request-${s.reviewRequestOpportunity.jobId}`,
+          brainService: s.reviewRequestOpportunity.service,
           score: 62 + reviewLearningBoost,
           eyebrow: "Post-job opportunity",
           title: `Ask ${s.reviewRequestOpportunity.customerName} for a review`,
@@ -7899,6 +7924,7 @@ function HomeScreen({ s }) {
     ...(s.enquiryFollowUpOutcomeOpportunity
       ? [{
           id: `enquiry-followup-outcome-${s.enquiryFollowUpOutcomeOpportunity.customerId}`,
+          brainService: s.enquiryFollowUpOutcomeOpportunity.service,
           score: 42,
           eyebrow: "Learning",
           title: `What happened with ${s.enquiryFollowUpOutcomeOpportunity.customerName}?`,
@@ -7920,6 +7946,7 @@ function HomeScreen({ s }) {
     ...(s.postOutcomeOpportunity
       ? [{
           id: `post-outcome-${s.postOutcomeOpportunity.jobId}`,
+          brainService: s.postOutcomeOpportunity.service,
           score: 40,
           eyebrow: "Learning",
           title: "Record what happened after the finished-job post",
