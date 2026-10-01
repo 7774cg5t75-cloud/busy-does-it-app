@@ -3,10 +3,11 @@ name: Check BUSY AI backends
 on:
   push:
     branches:
-      - v3.4
+      - v3.5
     paths:
       - 'supabase/functions/busy-ai-intake/**'
       - 'supabase/functions/busy-social-content/**'
+      - 'supabase/functions/busy-social-publish/**'
       - 'supabase/config.toml'
       - '.github/workflows/check-ai-intake.yml'
   workflow_dispatch:
@@ -30,3 +31,4 @@ jobs:
         run: |
           deno check supabase/functions/busy-ai-intake/index.ts
           deno check supabase/functions/busy-social-content/index.ts
+          deno check supabase/functions/busy-social-publish/index.ts
