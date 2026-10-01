@@ -12,12 +12,13 @@ import {
   Switch,
   Image,
   Alert,
+  Linking,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 
-const APP_VERSION = "3.4";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Operational Business Brain`;
+const APP_VERSION = "3.5";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Live Social Publishing`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
@@ -28,6 +29,8 @@ const BUSY_AI_TOKEN = String(
 ).trim();
 const BUSY_SOCIAL_URL =
   "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-social-content";
+const BUSY_SOCIAL_PUBLISH_URL =
+  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-social-publish";
 
 const C = {
   bg: "#F5F7FB",
