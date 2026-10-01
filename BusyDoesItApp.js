@@ -5766,6 +5766,158 @@ function App() {
       .map((entry) => entry.job.postOutcomeRecordedAt || "")
       .sort()
       .reverse()[0] || "";
+  const latestReactivationEvidenceAt =
+    reactivationRuns
+      .map((run) => run.sentAt || "")
+      .filter(Boolean)
+      .sort()
+      .reverse()[0] || "";
+  const latestQuoteEvidenceAt =
+    quoteOutcomeRecordedEntries
+      .map((entry) => entry.action.details?.followUpOutcomeRecordedAt || "")
+      .filter(Boolean)
+      .sort()
+      .reverse()[0] || "";
+  const latestEnquiryEvidenceAt =
+    enquiryOutcomeRecordedEntries
+      .map((entry) => entry.customer.enquiryFollowUpOutcomeRecordedAt || "")
+      .filter(Boolean)
+      .sort()
+      .reverse()[0] || "";
+  const reviewOutcomeRecordedEntries = completedJobEntries.filter(
+    (entry) => !!entry.job.reviewRequestOutcomeRecordedAt
+  );
+  const latestReviewEvidenceAt =
+    reviewOutcomeRecordedEntries
+      .map((entry) => entry.job.reviewRequestOutcomeRecordedAt || "")
+      .filter(Boolean)
+      .sort()
+      .reverse()[0] || "";
+  const reviewEvidence = {
+    ...rateEvidence(reviewReceivedCount, reviewRequestOutcomeCount, 0.35),
+    basis: "Recorded review-request outcomes",
+    serviceSpecific: false,
+  };
+
+  const businessBrainPatterns = [
+    {
+      key: "reactivation",
+      family: "reactivation",
+      title: "Previous-customer reactivation",
+      evidence: reactivationEvidence,
+      lastUpdated: latestReactivationEvidenceAt,
+      outcomeLabel: "Bookings",
+    },
+    {
+      key: "quoteFollowUp",
+      family: "quote-follow-up",
+      title: "Quote follow-ups",
+      evidence: quoteFollowUpEvidence,
+      lastUpdated: latestQuoteEvidenceAt,
+      outcomeLabel: "Accepted quotes",
+    },
+    {
+      key: "enquiryFollowUp",
+      family: "enquiry-follow-up",
+      title: "Quiet-enquiry follow-ups",
+      evidence: enquiryFollowUpEvidence,
+      lastUpdated: latestEnquiryEvidenceAt,
+      outcomeLabel: "Still interested",
+    },
+    {
+      key: "social",
+      family: "social",
+      title: "Finished-job social content",
+      evidence: postEvidence,
+      lastUpdated: latestPostEvidenceAt,
+      outcomeLabel: "Bookings",
+    },
+    {
+      key: "reviews",
+      family: "reviews",
+      title: "Review requests",
+      evidence: reviewEvidence,
+      lastUpdated: latestReviewEvidenceAt,
+      outcomeLabel: "Reviews left",
+    },
+  ].map((pattern) => {
+    const freshness = businessBrainFreshness(pattern.lastUpdated);
+    return {
+      ...pattern,
+      freshness,
+      effectiveAdjustment: Math.round(
+        Number(pattern.evidence?.scoreAdjustment || 0) * freshness.weight
+      ),
+    };
+  });
+
+  const businessBrainAdjustments = Object.fromEntries(
+    businessBrainPatterns.map((pattern) => [pattern.key, pattern.effectiveAdjustment])
+  );
+
+  const businessBrainFeedbackSummary = businessBrainFeedback.reduce((summary, item) => {
+    const family = item.family || "general";
+    if (!summary[family]) {
+      summary[family] = { count: 0, penalty: 0, reasons: {} };
+    }
+    summary[family].count += 1;
+    summary[family].penalty += Number(item.penalty || 0);
+    summary[family].penalty = Math.max(-18, summary[family].penalty);
+    summary[family].reasons[item.reason] = (summary[family].reasons[item.reason] || 0) + 1;
+    return summary;
+  }, {});
+
+  const blockedBusinessBrainFamilies = new Set(
+    businessBrainRules.flatMap((rule) => manualRuleTargetFamilies(rule))
+  );
+
+  const brainTuneOpportunity = (opportunity) => {
+    if (!opportunity?.id || opportunity.canIgnore === false) return opportunity;
+    const family = businessBrainOpportunityFamily(opportunity.id);
+    const feedback = businessBrainFeedbackSummary[family] || {
+      count: 0,
+      penalty: 0,
+      reasons: {},
+    };
+    const blocked = blockedBusinessBrainFamilies.has(family);
+    const pattern =
+      businessBrainPatterns.find((item) => item.family === family) || null;
+    const feedbackEvidence = feedback.count
+      ? [
+          ["Owner feedback", `${feedback.count} previous dismissal${feedback.count === 1 ? "" : "s"}`],
+          ["Feedback ranking effect", `${feedback.penalty} points`],
+        ]
+      : [];
+    const brainEvidence = pattern
+      ? [
+          ["Business Brain evidence", pattern.evidence?.basis || pattern.title],
+          ["Evidence freshness", pattern.freshness.label],
+        ]
+      : [];
+
+    return {
+      ...opportunity,
+      score: Number(opportunity.score || 0) + Number(feedback.penalty || 0),
+      brainFamily: family,
+      brainBlocked: blocked,
+      brainFeedbackCount: feedback.count,
+      brainFeedbackPenalty: feedback.penalty,
+      evidence: [
+        ...(Array.isArray(opportunity.evidence) ? opportunity.evidence : []),
+        ...brainEvidence,
+        ...feedbackEvidence,
+        ...(blocked ? [["Owner rule", "Blocked from recommendations"]] : []),
+      ],
+      why:
+        opportunity.why +
+        (feedback.count
+          ? ` BUSY has also reduced this type of suggestion because you previously dismissed ${businessBrainFamilyLabel(family).toLowerCase()} for business-specific reasons.`
+          : "") +
+        (blocked
+          ? " An owner-set hard rule currently blocks this recommendation family."
+          : ""),
+    };
+  };
 
   const offerEvidence = {
     ...rateEvidence(0, 0, 0.2),
@@ -6210,6 +6362,12 @@ function App() {
     quoteFollowUpEvidence,
     enquiryFollowUpEvidence,
     postEvidence,
+    reviewEvidence,
+    businessBrainPatterns,
+    businessBrainAdjustments,
+    businessBrainFeedbackSummary,
+    blockedBusinessBrainFamilies,
+    brainTuneOpportunity,
     socialChannelEvidence,
     socialJobOpportunities,
     socialDraftCount,
@@ -6275,6 +6433,12 @@ function App() {
     businessBrainRules,
     businessBrainRuleDraft,
     setBusinessBrainRuleDraft,
+    businessBrainFeedback,
+    pendingBrainFeedback,
+    brainFeedbackReason,
+    setBrainFeedbackReason,
+    openOpportunityFeedback,
+    saveOpportunityFeedback,
     openSocialCentre,
     startSocialFromPhone,
     startSocialFromJob,
@@ -7335,15 +7499,16 @@ function HomeScreen({ s }) {
   const reactivationEligibleCount = s.reactivationEligibleCustomers?.length || 0;
   const todayISO = dateToISO(new Date());
   const hasPublishingConnection = !!s.connectedAccounts.meta || !!s.connectedAccounts.googleBusiness;
-  const postLearningAdjustment = s.postEvidence?.scoreAdjustment || 0;
-  const reactivationLearningBoost = s.reactivationEvidence?.scoreAdjustment || 0;
-  const quoteFollowUpLearningBoost = s.quoteFollowUpEvidence?.scoreAdjustment || 0;
-  const reviewSuccessRate = s.reviewRequestOutcomeCount
-    ? s.reviewReceivedCount / s.reviewRequestOutcomeCount
-    : null;
+  const postLearningAdjustment =
+    s.businessBrainAdjustments?.social ?? s.postEvidence?.scoreAdjustment ?? 0;
+  const reactivationLearningBoost =
+    s.businessBrainAdjustments?.reactivation ?? s.reactivationEvidence?.scoreAdjustment ?? 0;
+  const quoteFollowUpLearningBoost =
+    s.businessBrainAdjustments?.quoteFollowUp ?? s.quoteFollowUpEvidence?.scoreAdjustment ?? 0;
   const reviewLearningBoost =
-    reviewSuccessRate === null ? 0 : Math.round((reviewSuccessRate - 0.35) * 8);
-  const enquiryLearningBoost = s.enquiryFollowUpEvidence?.scoreAdjustment || 0;
+    s.businessBrainAdjustments?.reviews ?? 0;
+  const enquiryLearningBoost =
+    s.businessBrainAdjustments?.enquiryFollowUp ?? s.enquiryFollowUpEvidence?.scoreAdjustment ?? 0;
 
   const nextEnquiryEntry = s.freshEnquiryEntries?.[0] || null;
   const nextEnquiry = nextEnquiryEntry?.customer || null;
@@ -7774,7 +7939,13 @@ function HomeScreen({ s }) {
           canIgnore: true,
         }]
       : []),
-  ].filter((item) => !s.dismissedOpportunities.includes(item.id));
+  ]
+    .map((item) => s.brainTuneOpportunity(item))
+    .filter(
+      (item) =>
+        !item.brainBlocked &&
+        !s.dismissedOpportunities.includes(item.id)
+    );
 
   const rankedMoves = [...operationalMoves, ...marketingMoves]
     .sort((a, b) => (b.score || 0) - (a.score || 0));
@@ -7795,7 +7966,7 @@ function HomeScreen({ s }) {
             {...bestMove}
             eyebrow={`Best next move • ${bestMove.eyebrow}`}
             actionLabel={bestMove.actionLabel || "Do it"}
-            onIgnore={bestMove.canIgnore ? () => s.dismissOpportunity(bestMove.id) : undefined}
+            onIgnore={bestMove.canIgnore ? () => s.openOpportunityFeedback(bestMove) : undefined}
           />
           <View style={styles.dashboardHeader}>
             <StatusChip label="Ranked from saved business data" tone="green" />
@@ -7827,7 +7998,7 @@ function HomeScreen({ s }) {
               key={item.id}
               {...item}
               actionLabel={item.actionLabel || "Do it"}
-              onIgnore={item.canIgnore ? () => s.dismissOpportunity(item.id) : undefined}
+              onIgnore={item.canIgnore ? () => s.openOpportunityFeedback(item) : undefined}
             />
           ))
         : null}
