@@ -15113,9 +15113,21 @@ function RecordFilingSettings({ s }) {
 }
 
 function ConnectedAccounts({ s }) {
+  useEffect(() => {
+    s.refreshSocialPublishingStatus({ quiet: true });
+  }, []);
+
   const intakeRows = connectionRows.filter(([key]) => intakeConnectionKeys.includes(key));
-  const actionRows = connectionRows.filter(([key]) => !intakeConnectionKeys.includes(key));
-  const renderConnection = ([key, label, body]) => {
+  const prototypeActionRows = connectionRows.filter(
+    ([key]) => !intakeConnectionKeys.includes(key) && !["meta", "googleBusiness"].includes(key)
+  );
+  const publish = s.socialPublishingStatus || {};
+  const credentials = publish.credentials || {};
+  const meta = publish.connections?.meta || { status: "not_connected", assets: [] };
+  const google = publish.connections?.google_business || { status: "not_connected", assets: [] };
+  const busy = !!s.socialPublishingLoading;
+
+  const renderPrototypeConnection = ([key, label, body]) => {
     const connected = !!s.connectedAccounts[key];
     return (
       <View key={key} style={styles.connectRow}>
@@ -15138,83 +15150,195 @@ function ConnectedAccounts({ s }) {
     );
   };
 
+  const renderProvider = ({
+    provider,
+    label,
+    connection,
+    configured,
+  }) => {
+    const connected = connection.status === "connected";
+    const needsSelection = connection.status === "needs_selection";
+    const needsAttention = connection.status === "needs_attention";
+    const providerBusy = busy && s.socialPublishingAction === provider;
+    const accountLabel =
+      connection.pageName ||
+      connection.googleLocationTitle ||
+      connection.providerAccountName ||
+      "";
+
+    return (
+      <Card
+        key={provider}
+        eyebrow={label}
+        title={
+          connected
+            ? accountLabel || "Connected"
+            : needsSelection
+            ? "Choose which business account BUSY should use"
+            : needsAttention
+            ? "Connection needs attention"
+            : configured
+            ? "Ready to connect"
+            : "Developer credentials still needed"
+        }
+        body={
+          connected
+            ? "BUSY has provider authorization for approved publishing actions. Creating content still does not grant permission to publish it."
+            : configured
+            ? "The server has the provider app credentials. Start OAuth here, complete the provider consent screen, then return to BUSY and refresh."
+            : provider === "meta"
+            ? "The V3.5 Meta OAuth and publishing code is deployed, but META_APP_ID and META_APP_SECRET have not been added to Supabase yet."
+            : "The V3.5 Google OAuth and publishing code is deployed, but GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET have not been added to Supabase yet."
+        }
+        footer={
+          connected
+            ? "Connection is server-side • provider tokens are not stored in the phone app"
+            : "Nothing public can be posted from this connection yet"
+        }
+        tone={connected ? "green" : needsAttention ? "amber" : "blue"}
+      >
+        <MetricRow left="Provider status" right={connection.status || "not_connected"} strong={connected} />
+        <MetricRow left="Developer credentials" right={configured ? "Configured" : "Not configured"} />
+        {provider === "meta" && connected ? (
+          <>
+            <MetricRow left="Facebook Page" right={connection.pageName || "Connected"} />
+            <MetricRow
+              left="Instagram"
+              right={connection.instagramUsername ? `@${connection.instagramUsername}` : "No professional account on selected Page"}
+            />
+          </>
+        ) : null}
+        {provider === "google_business" && connected ? (
+          <MetricRow left="Google location" right={connection.googleLocationTitle || "Connected"} />
+        ) : null}
+        {connection.lastError ? (
+          <Text style={styles.customerHistoryPhotoMeta}>{connection.lastError}</Text>
+        ) : null}
+
+        {needsSelection && (connection.assets || []).length ? (
+          <>
+            <Text style={styles.sectionLabel}>Choose account</Text>
+            {(connection.assets || []).map((asset) => (
+              <Button
+                key={asset.id}
+                label={
+                  provider === "meta"
+                    ? `${asset.name || "Facebook Page"}${asset.instagramUsername ? ` • @${asset.instagramUsername}` : ""}`
+                    : asset.name || "Google Business location"
+                }
+                disabled={busy}
+                onPress={() => s.selectSocialProviderAsset(provider, asset.id)}
+              />
+            ))}
+          </>
+        ) : null}
+
+        {connected ? (
+          <Button
+            label={providerBusy ? "Disconnecting…" : "Disconnect provider"}
+            disabled={busy}
+            onPress={() => s.disconnectSocialProvider(provider)}
+          />
+        ) : configured && !needsSelection ? (
+          <Button
+            label={providerBusy ? "Opening provider…" : `Connect ${label}`}
+            primary
+            disabled={busy}
+            onPress={() => s.beginSocialProviderConnect(provider)}
+          />
+        ) : null}
+      </Card>
+    );
+  };
+
   return (
     <Shell
       s={s}
       title="Connected accounts"
-      subtitle="V3.1 adds reconciliation across connected business systems. These are still prototype connections — no real external account is being read."
-      brandCue="One customer journey across different source systems."
+      subtitle="V3.5 separates live publishing connections from prototype intake sources. Provider tokens stay on the server, not in the mobile app."
+      brandCue="Connection makes an action technically possible. Owner approval still decides whether it happens."
     >
       <Card
-        eyebrow="V3.1 reconciliation layer"
-        title="Different systems can now continue the same customer journey"
-        body="BUSY can recognise a safe forward progression such as Email enquiry → CRM quote → Calendar booking → Invoicing completion when the customer, service and stage evidence line up. It updates one customer/work lifecycle instead of creating parallel records."
-        footer="Prototype sync only • no live provider authentication yet"
-        tone="green"
+        eyebrow="V3.5 • Connection health"
+        title={
+          credentials.livePublishingEnabled
+            ? "Live provider publishing is enabled"
+            : "Publishing backend is ready; live posting remains safely disabled"
+        }
+        body={
+          credentials.livePublishingEnabled
+            ? "Approved posts can be sent to connected providers and scheduled posts can be processed by the server."
+            : "OAuth, private media storage and the publishing queue are deployed. The final live-publishing switch stays off until provider credentials and the remaining production authentication boundary are ready."
+        }
+        footer="Scheduled worker checks due posts once per minute"
+        tone={credentials.livePublishingEnabled ? "green" : "amber"}
       >
-        <MetricRow left="Intake sources selected" right={String(s.connectedIntakeKeys.length)} />
-        <MetricRow left="Connected-source items waiting" right={String(s.connectedIntakePendingCount)} />
-        <MetricRow left="Connected-source items auto-filed" right={String(s.connectedIntakeAutoFiledCount)} />
-        <MetricRow left="Cross-source journeys reconciled" right={String(s.reconciledJourneyCount)} strong={s.reconciledJourneyCount > 0} />
-        <MetricRow left="Customers with 2+ source systems" right={String(s.crossSourceCustomerCount)} />
-        <MetricRow left="Forward progressions waiting" right={String(s.reconciliationPendingCount)} />
+        <MetricRow left="Meta credentials" right={credentials.meta?.configured ? "Configured" : "Needed"} />
+        <MetricRow left="Google credentials" right={credentials.google_business?.configured ? "Configured" : "Needed"} />
+        <MetricRow
+          left="Live publishing switch"
+          right={credentials.livePublishingEnabled ? "ON" : "OFF"}
+          strong={credentials.livePublishingEnabled}
+        />
+        <Button
+          label={busy ? "Refreshing…" : "Refresh connection health"}
+          disabled={busy}
+          onPress={s.refreshSocialPublishingStatus}
+        />
       </Card>
 
-      <Text style={styles.sectionLabel}>Incoming business sources</Text>
-      {intakeRows.map(renderConnection)}
-
-      {s.connectedIntakeKeys.length ? (
-        <>
-          <Button label="Run prototype connected sync" primary onPress={s.runConnectedSourceDemoSync} />
-          <Button label="Test one journey across 4 sources" onPress={s.queueCrossSourceJourneyDemo} />
-        </>
-      ) : (
+      {s.socialPublishingError ? (
         <Card
-          eyebrow="Nothing selected yet"
-          title="Choose an intake source to test the V3.1 flow"
-          body="Select Email, Calendar, CRM / job system or Invoicing. BUSY will use generated demo records only — not your real account."
-          tone="blue"
+          eyebrow="Connection error"
+          title="BUSY could not complete the latest provider action"
+          body={s.socialPublishingError}
+          tone="amber"
         />
-      )}
+      ) : null}
+
+      <Text style={styles.sectionLabel}>Live social publishing</Text>
+      {renderProvider({
+        provider: "meta",
+        label: "Facebook / Instagram",
+        connection: meta,
+        configured: !!credentials.meta?.configured,
+      })}
+      {renderProvider({
+        provider: "google_business",
+        label: "Google Business",
+        connection: google,
+        configured: !!credentials.google_business?.configured,
+      })}
 
       <Card
-        eyebrow="Reconciliation safety"
-        title="Forward progress can reconcile. Duplicates and backwards moves still stop."
-        body="A clean Booking can replace an active Quote for the same exact customer and service. A second Quote while a Booking is already active is treated as a backwards/duplicate risk and waits for review instead."
-        footer="Stage progression never overrides identity, service, date, duplicate or conflict checks"
+        eyebrow="OAuth return"
+        title="After approving a provider, come back to BUSY and tap Refresh"
+        body="The provider sends its authorization response directly to the BUSY Supabase Edge Function. BUSY stores the token server-side, then this screen can show the Page, Instagram account or Google location that was authorized."
         tone="blue"
       />
 
-      {s.lastReconciledSourceRecord ? (
-        <Card
-          eyebrow="Latest reconciled journey"
-          title={s.lastReconciledSourceRecord.customerName || "Existing customer"}
-          body={`${s.lastReconciledSourceRecord.previousStage || "Earlier stage"} → ${s.lastReconciledSourceRecord.stage} was reconciled from ${s.lastReconciledSourceRecord.source || "a connected source"} into the same customer journey.`}
-          footer="No parallel customer record created"
-          tone="green"
-        />
+      <Text style={styles.sectionLabel}>Incoming business sources</Text>
+      {intakeRows.map(renderPrototypeConnection)}
+
+      {s.connectedIntakeKeys.length ? (
+        <>
+          <Button label="Run prototype connected sync" onPress={s.runConnectedSourceDemoSync} />
+          <Button label="Test one journey across 4 sources" onPress={s.queueCrossSourceJourneyDemo} />
+        </>
       ) : null}
 
-      {s.lastConnectionSync ? (
-        <Card
-          eyebrow="Last prototype sync"
-          title={`${s.lastConnectionSync.itemCount} source item${s.lastConnectionSync.itemCount === 1 ? "" : "s"} processed`}
-          body={`${s.lastConnectionSync.autoFiledCount} passed Safe Autopilot and ${s.lastConnectionSync.queuedForReviewCount} waited for review. This receipt describes generated prototype records, not live provider data.`}
-          footer="The same split would apply to real connectors later"
-          tone={s.lastConnectionSync.queuedForReviewCount ? "amber" : "green"}
-        />
-      ) : null}
+      <Text style={styles.sectionLabel}>Other prototype marketing systems</Text>
+      {prototypeActionRows.map(renderPrototypeConnection)}
 
-      <Text style={styles.sectionLabel}>Customer-facing & marketing systems</Text>
-      {actionRows.map(renderConnection)}
       <Card
-        eyebrow="Important boundary"
-        title="Connection does not mean permission to act"
-        body="A future live connection may provide data or make an approved action technically possible. Customer messages, public posts and paid spend still keep their own approval and spending controls."
-        footer="Read access and action authority remain separate"
-        tone="amber"
+        eyebrow="Authority boundary"
+        title="A connection never grants blanket permission"
+        body="Reading data, creating a draft, storing media, scheduling a post and publishing publicly are separate steps. V3.5 only allows server publishing from an owner-approved post record."
+        footer="Paid advertising remains separately controlled"
+        tone="green"
       />
 
+      <Button label="Social Media Centre" onPress={() => s.go("socialMedia")} />
       <Button label="Open BUSY Inbox" onPress={s.openBusyInbox} />
       <Button label="Done" primary onPress={s.back} />
     </Shell>
