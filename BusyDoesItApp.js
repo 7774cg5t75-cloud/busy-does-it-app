@@ -5879,8 +5879,8 @@ function App() {
       (item) =>
         (item.family || "general") === family &&
         (!item.service ||
-          !opportunity.brainService ||
-          item.service === opportunity.brainService)
+          (!!opportunity.brainService &&
+            item.service === opportunity.brainService))
     );
     const feedback = relevantFeedback.reduce(
       (summary, item) => {
@@ -5898,7 +5898,8 @@ function App() {
     const blocked = businessBrainRules.some((rule) => {
       const families = manualRuleTargetFamilies(rule);
       if (!families.includes(family)) return false;
-      if (!rule.targetService || !opportunity.brainService) return true;
+      if (!rule.targetService) return true;
+      if (!opportunity.brainService) return false;
       return rule.targetService === opportunity.brainService;
     });
     const pattern =
