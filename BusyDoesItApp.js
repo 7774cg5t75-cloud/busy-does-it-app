@@ -1495,6 +1495,22 @@ function App() {
     service: "",
   });
   const [selectedSocialDraftId, setSelectedSocialDraftId] = useState(null);
+  const [socialPublishingStatus, setSocialPublishingStatus] = useState({
+    loaded: false,
+    credentials: {
+      meta: { configured: false },
+      google_business: { configured: false },
+      livePublishingEnabled: false,
+    },
+    connections: {
+      meta: { status: "not_connected", assets: [] },
+      google_business: { status: "not_connected", assets: [] },
+    },
+    queue: [],
+  });
+  const [socialPublishingLoading, setSocialPublishingLoading] = useState(false);
+  const [socialPublishingError, setSocialPublishingError] = useState("");
+  const [socialPublishingAction, setSocialPublishingAction] = useState("");
   const [businessBrainRules, setBusinessBrainRules] = useState([]);
   const [businessBrainRuleDraft, setBusinessBrainRuleDraft] = useState("");
   const [businessBrainFeedback, setBusinessBrainFeedback] = useState([]);
