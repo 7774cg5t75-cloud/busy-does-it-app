@@ -652,6 +652,26 @@ async function publishGoogleBusiness(connection: any, caption: string, urls: str
   );
 }
 
+async function assertChannelsConnected(channels: string[]) {
+  const selected = Array.isArray(channels) ? channels : [];
+  if (selected.includes("Facebook") || selected.includes("Instagram")) {
+    const meta = await getConnection("meta");
+    if (!meta || meta.status !== "connected") {
+      throw new Error("Facebook / Instagram is not connected.");
+    }
+    if (selected.includes("Instagram") && !meta.instagram_user_id) {
+      throw new Error("The selected Meta connection does not include an Instagram professional account.");
+    }
+  }
+
+  if (selected.includes("Google Business")) {
+    const google = await getConnection("google_business");
+    if (!google || google.status !== "connected" || !google.google_location_name) {
+      throw new Error("Google Business is not connected to a selected location.");
+    }
+  }
+}
+
 async function publishPost(post: any) {
   if (!LIVE_PUBLISHING_ENABLED) {
     throw new Error("Live publishing is server-disabled until provider credentials and owner authentication are ready.");
@@ -883,6 +903,11 @@ Deno.serve(async (request: Request) => {
     if (action === "schedule") {
       if (!body?.ownerApproved) throw new Error("Owner approval is required before scheduling.");
       if (!body?.scheduledFor) throw new Error("Choose a schedule time.");
+      const channels = (Array.isArray(body?.channels) ? body.channels : [])
+        .filter((channel: string) =>
+          ["Facebook", "Instagram", "Google Business"].includes(channel)
+        );
+      if (LIVE_PUBLISHING_ENABLED) await assertChannelsConnected(channels);
       const post = await upsertPost(
         body,
         LIVE_PUBLISHING_ENABLED ? "Scheduled" : "Held for setup",
@@ -897,6 +922,11 @@ Deno.serve(async (request: Request) => {
 
     if (action === "publish_now") {
       if (!body?.ownerApproved) throw new Error("Owner approval is required before publishing.");
+      const channels = (Array.isArray(body?.channels) ? body.channels : [])
+        .filter((channel: string) =>
+          ["Facebook", "Instagram", "Google Business"].includes(channel)
+        );
+      if (LIVE_PUBLISHING_ENABLED) await assertChannelsConnected(channels);
       const post = await upsertPost(body, "Publishing", true);
       if (!LIVE_PUBLISHING_ENABLED) {
         await supabase
