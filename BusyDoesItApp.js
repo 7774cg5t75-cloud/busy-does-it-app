@@ -2708,12 +2708,56 @@ function App() {
     setSocialPublishingError("");
     try {
       const data = await socialPublishRequest("status");
+      const queue = Array.isArray(data.queue) ? data.queue : [];
       setSocialPublishingStatus({
         loaded: true,
         credentials: data.credentials || {},
         connections: data.connections || {},
-        queue: Array.isArray(data.queue) ? data.queue : [],
+        queue,
       });
+      if (queue.length) {
+        const byDraft = new Map(queue.map((post) => [post.client_draft_id, post]));
+        setSocialDrafts((items) =>
+          items.map((draft) => {
+            const post = byDraft.get(draft.id);
+            if (!post) return draft;
+            return {
+              ...draft,
+              status: post.status || draft.status,
+              cloudMedia: Array.isArray(post.media) ? post.media : draft.cloudMedia || [],
+              providerResults: post.provider_results || draft.providerResults || {},
+              lastPublishError: post.last_error || "",
+              scheduledAt: post.scheduled_for || draft.scheduledAt || null,
+              publishedAt: post.published_at || draft.publishedAt || null,
+              updatedAt: post.updated_at || draft.updatedAt,
+            };
+          })
+        );
+        setCustomers((list) =>
+          list.map((customer) => {
+            const relevant = queue.filter(
+              (post) => post.source_customer_id === customer.id && post.source_job_id
+            );
+            if (!relevant.length) return customer;
+            return {
+              ...customer,
+              history: (customer.history || []).map((job) => {
+                const post = relevant.find((item) => item.source_job_id === job.id);
+                if (!post) return job;
+                return {
+                  ...job,
+                  postDraftStatus: post.status || job.postDraftStatus,
+                  postChannels: Array.isArray(post.channels) ? post.channels : job.postChannels,
+                  postScheduledAt: post.scheduled_for || job.postScheduledAt,
+                  postPublishedAt: post.published_at || job.postPublishedAt,
+                  postProviderResults: post.provider_results || job.postProviderResults,
+                  postPublishError: post.last_error || "",
+                };
+              }),
+            };
+          })
+        );
+      }
       const metaConnected = data.connections?.meta?.status === "connected";
       const googleConnected = data.connections?.google_business?.status === "connected";
       setConnectedAccounts((current) => ({
