@@ -3,7 +3,7 @@ name: Check BUSY AI backends
 on:
   push:
     branches:
-      - v3.3
+      - v3.4
     paths:
       - 'supabase/functions/busy-ai-intake/**'
       - 'supabase/functions/busy-social-content/**'
