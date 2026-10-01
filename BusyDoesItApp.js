@@ -16,8 +16,8 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 
-const APP_VERSION = "3.3";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Social + Business Brain`;
+const APP_VERSION = "3.4";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Operational Business Brain`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
@@ -332,6 +332,70 @@ function daysSinceTimestamp(value) {
   if (Number.isNaN(date.getTime())) return null;
   const now = new Date();
   return Math.max(0, Math.floor((now.getTime() - date.getTime()) / 86400000));
+}
+
+function businessBrainFreshness(timestamp) {
+  const days = daysSinceTimestamp(timestamp);
+  if (days === null) return { label: "No dated evidence", tone: "amber", weight: 0.35, stale: true };
+  if (days <= 30) return { label: "Fresh", tone: "green", weight: 1, stale: false };
+  if (days <= 90) return { label: "Current", tone: "green", weight: 0.9, stale: false };
+  if (days <= 180) return { label: "Ageing", tone: "blue", weight: 0.7, stale: false };
+  return { label: "Stale", tone: "amber", weight: 0.4, stale: true };
+}
+
+function businessBrainRuleScope(text) {
+  const value = String(text || "").toLowerCase();
+  if (/facebook|instagram|google business|social|post|photo|caption|face/.test(value)) return "Social content";
+  if (/mile|distance|travel|postcode|area|radius/.test(value)) return "Work area";
+  if (/winter|summer|spring|autumn|season|month/.test(value)) return "Season";
+  if (/£|price|pricing|minimum|under £|over £|value/.test(value)) return "Pricing";
+  if (/quote|enquiry|follow.?up|customer contact|message/.test(value)) return "Customer contact";
+  return "Global";
+}
+
+function businessBrainOpportunityFamily(id = "") {
+  const value = String(id || "");
+  if (/prepared-post|job-photo|post-outcome/.test(value)) return "social";
+  if (/quiet-slot|reactivation|previous-customer/.test(value)) return "reactivation";
+  if (/review-request|review-outcome/.test(value)) return "reviews";
+  if (/quote-followup|stale-quote/.test(value)) return "quote-follow-up";
+  if (/enquiry-followup|stale-enquiry/.test(value)) return "enquiry-follow-up";
+  if (/paid|advert|ad-test/.test(value)) return "paid";
+  return "general";
+}
+
+function businessBrainFamilyLabel(family) {
+  if (family === "social") return "Social content";
+  if (family === "reactivation") return "Previous-customer reactivation";
+  if (family === "reviews") return "Review requests";
+  if (family === "quote-follow-up") return "Quote follow-ups";
+  if (family === "enquiry-follow-up") return "Enquiry follow-ups";
+  if (family === "paid") return "Paid advertising";
+  return "General opportunities";
+}
+
+function businessBrainFeedbackPenalty(reason) {
+  if (reason === "Not suitable for my business") return -6;
+  if (reason === "Wrong time of year") return -5;
+  if (reason === "Too far away") return -5;
+  if (reason === "Not worthwhile financially") return -6;
+  return 0;
+}
+
+function manualRuleTargetFamilies(rule) {
+  if (Array.isArray(rule?.targetFamilies) && rule.targetFamilies.length) return rule.targetFamilies;
+  const value = String(rule?.text || "").toLowerCase();
+  const isBlocking =
+    /don't recommend|dont recommend|do not recommend|never recommend|don't suggest|dont suggest|do not suggest|never suggest/.test(value);
+  if (!isBlocking) return [];
+  const families = [];
+  if (/facebook|instagram|social|post|content|photo/.test(value)) families.push("social");
+  if (/previous customer|reactivat|past customer|repeat customer/.test(value)) families.push("reactivation");
+  if (/review/.test(value)) families.push("reviews");
+  if (/quote/.test(value)) families.push("quote-follow-up");
+  if (/enquir/.test(value)) families.push("enquiry-follow-up");
+  if (/paid|advert|ads?\b/.test(value)) families.push("paid");
+  return families;
 }
 
 function enquiryAgeLabel(createdAt) {
@@ -1430,6 +1494,9 @@ function App() {
   const [selectedSocialDraftId, setSelectedSocialDraftId] = useState(null);
   const [businessBrainRules, setBusinessBrainRules] = useState([]);
   const [businessBrainRuleDraft, setBusinessBrainRuleDraft] = useState("");
+  const [businessBrainFeedback, setBusinessBrainFeedback] = useState([]);
+  const [pendingBrainFeedback, setPendingBrainFeedback] = useState(null);
+  const [brainFeedbackReason, setBrainFeedbackReason] = useState("");
   const [quoteFollowUpDraft, setQuoteFollowUpDraft] = useState("");
   const [quoteFollowUpOutcome, setQuoteFollowUpOutcome] = useState("No reply yet");
   const [enquiryFollowUpDraft, setEnquiryFollowUpDraft] = useState("");
@@ -1548,6 +1615,7 @@ function App() {
         if (Array.isArray(saved.connectionSyncLog)) setConnectionSyncLog(saved.connectionSyncLog);
         if (Array.isArray(saved.socialDrafts)) setSocialDrafts(saved.socialDrafts);
         if (Array.isArray(saved.businessBrainRules)) setBusinessBrainRules(saved.businessBrainRules);
+        if (Array.isArray(saved.businessBrainFeedback)) setBusinessBrainFeedback(saved.businessBrainFeedback);
         if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
           setRecordFilingMode(saved.recordFilingMode);
         }
@@ -1598,6 +1666,7 @@ function App() {
       connectionSyncLog,
       socialDrafts,
       businessBrainRules,
+      businessBrainFeedback,
       recordFilingMode,
       advanced,
     };
@@ -1632,6 +1701,7 @@ function App() {
     connectionSyncLog,
     socialDrafts,
     businessBrainRules,
+    businessBrainFeedback,
     recordFilingMode,
     advanced,
   ]);
@@ -1877,6 +1947,61 @@ function App() {
   };
 
   const restoreOpportunities = () => setDismissedOpportunities([]);
+
+  const openOpportunityFeedback = (opportunity) => {
+    if (!opportunity?.id) return;
+    setPendingBrainFeedback({
+      id: opportunity.id,
+      family: businessBrainOpportunityFamily(opportunity.id),
+      title: opportunity.title || "Opportunity",
+      eyebrow: opportunity.eyebrow || "",
+      service: opportunity.brainService || "",
+    });
+    setBrainFeedbackReason("");
+    go("opportunityFeedback");
+  };
+
+  const saveOpportunityFeedback = () => {
+    if (!pendingBrainFeedback?.id || !brainFeedbackReason) return;
+    const recordedAt = new Date().toISOString();
+    const family = pendingBrainFeedback.family || businessBrainOpportunityFamily(pendingBrainFeedback.id);
+    const feedback = {
+      id: `brain-feedback-${Date.now()}`,
+      opportunityId: pendingBrainFeedback.id,
+      family,
+      title: pendingBrainFeedback.title || "",
+      service: pendingBrainFeedback.service || "",
+      reason: brainFeedbackReason,
+      penalty: businessBrainFeedbackPenalty(brainFeedbackReason),
+      recordedAt,
+    };
+    setBusinessBrainFeedback((items) => [...items, feedback]);
+
+    if (brainFeedbackReason === "Don't suggest this again") {
+      setBusinessBrainRules((rules) => [
+        ...rules,
+        {
+          id: `brain-rule-${Date.now()}`,
+          text: `Don't suggest ${businessBrainFamilyLabel(family)} again unless I remove this rule.`,
+          source: "Owner feedback",
+          scope: "Recommendations",
+          confidence: "Owner-set",
+          kind: "block-opportunity",
+          targetFamilies: [family],
+          createdAt: recordedAt,
+        },
+      ]);
+    }
+
+    setDismissedOpportunities((items) =>
+      items.includes(pendingBrainFeedback.id)
+        ? items
+        : [...items, pendingBrainFeedback.id]
+    );
+    setPendingBrainFeedback(null);
+    setBrainFeedbackReason("");
+    jump("home", "Home");
+  };
 
   const hasActiveCustomerWork = (customerId) =>
     isActiveCustomerAction(replyActions[customerId]);
@@ -2905,7 +3030,10 @@ function App() {
         id: `brain-rule-${Date.now()}`,
         text,
         source: "Owner rule",
+        scope: businessBrainRuleScope(text),
         confidence: "Owner-set",
+        kind: "manual",
+        targetFamilies: manualRuleTargetFamilies({ text }),
         createdAt: new Date().toISOString(),
       },
     ]);
