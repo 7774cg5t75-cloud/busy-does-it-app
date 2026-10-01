@@ -13798,6 +13798,17 @@ function SocialMediaCentre({ s }) {
   const cloudFailed = queue.filter((post) =>
     ["Failed", "Partial failure"].includes(post.status)
   ).length;
+  const upcomingPosts = queue
+    .filter(
+      (post) =>
+        post.scheduled_for &&
+        ["Scheduled", "Held for setup"].includes(post.status) &&
+        new Date(post.scheduled_for).getTime() >= Date.now() - 60000
+    )
+    .sort((a, b) =>
+      String(a.scheduled_for || "").localeCompare(String(b.scheduled_for || ""))
+    )
+    .slice(0, 7);
 
   const providerLabel = (connection, fallback) => {
     if (connection.status === "connected") {
@@ -13907,6 +13918,47 @@ function SocialMediaCentre({ s }) {
           eyebrow="Completed-job content"
           title="No reusable job photos yet"
           body="Complete a job, attach photos and allow BUSY to suggest those selected photos for marketing. They will then appear here."
+          tone="blue"
+        />
+      )}
+
+      <Text style={styles.sectionLabel}>Publishing calendar</Text>
+      {upcomingPosts.length ? (
+        <Card
+          eyebrow="Next scheduled posts"
+          title={`${upcomingPosts.length} upcoming item${upcomingPosts.length === 1 ? "" : "s"}`}
+          body="BUSY keeps the next scheduled publishing actions visible in one simple list. Held items remain non-publishable until setup is complete and you approve them again."
+          tone="blue"
+        >
+          {upcomingPosts.map((post) => {
+            const when = new Date(post.scheduled_for);
+            const date = Number.isNaN(when.getTime())
+              ? "Date unavailable"
+              : when.toLocaleDateString("en-GB", {
+                  day: "numeric",
+                  month: "short",
+                });
+            const time = Number.isNaN(when.getTime())
+              ? ""
+              : when.toLocaleTimeString("en-GB", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+            return (
+              <MetricRow
+                key={post.id}
+                left={`${date}${time ? ` • ${time}` : ""} • ${(post.channels || []).join(", ") || "No destination"}`}
+                right={post.status}
+                strong={post.status === "Scheduled"}
+              />
+            );
+          })}
+        </Card>
+      ) : (
+        <Card
+          eyebrow="Publishing calendar"
+          title="Nothing scheduled yet"
+          body="Once an approved post is given a future date and time, it will appear here. While live publishing is disabled, test schedules are held safely for setup rather than becoming publishable later by surprise."
           tone="blue"
         />
       )}
@@ -14280,6 +14332,35 @@ function SocialDraftReview({ s }) {
           body={selectedDraft.lastPublishError}
           tone="amber"
         />
+      ) : null}
+
+      {selectedDraft?.providerResults &&
+      Object.keys(selectedDraft.providerResults).length ? (
+        <Card
+          eyebrow="Provider history"
+          title="BUSY kept the provider receipt against this post"
+          body="Provider IDs and failures stay attached to the original content record so publishing history can be inspected later."
+          tone="green"
+        >
+          {Object.entries(selectedDraft.providerResults).map(([channel, result]) => {
+            const value = result || {};
+            const failed = !!value.error;
+            const providerId =
+              value.id ||
+              value.postId ||
+              value.name ||
+              value.resourceName ||
+              "";
+            return (
+              <MetricRow
+                key={channel}
+                left={channel}
+                right={failed ? "Failed" : providerId ? `Published • ${providerId}` : "Published"}
+                strong={!failed}
+              />
+            );
+          })}
+        </Card>
       ) : null}
 
       <Button
