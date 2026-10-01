@@ -1,11 +1,12 @@
-name: Check AI Intake backend
+name: Check BUSY AI backends
 
 on:
   push:
     branches:
-      - v3.2
+      - v3.3
     paths:
       - 'supabase/functions/busy-ai-intake/**'
+      - 'supabase/functions/busy-social-content/**'
       - 'supabase/config.toml'
       - '.github/workflows/check-ai-intake.yml'
   workflow_dispatch:
@@ -25,5 +26,7 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Type-check BUSY AI Intake Edge Function
-        run: deno check supabase/functions/busy-ai-intake/index.ts
+      - name: Type-check BUSY AI Edge Functions
+        run: |
+          deno check supabase/functions/busy-ai-intake/index.ts
+          deno check supabase/functions/busy-social-content/index.ts
