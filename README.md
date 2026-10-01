@@ -2,6 +2,26 @@
 
 Busy Does It mobile app prototype.
 
+## v3.4 Operational Business Brain
+- Promoted the Business Brain from an evidence display into a live recommendation layer used by Home.
+- Added a Business Brain evidence ledger for previous-customer reactivation, quiet-enquiry follow-ups, quote follow-ups, finished-job social content and review requests.
+- Every tracked pattern now exposes its recorded sample, observed successes, confidence, last evidence date and freshness.
+- Evidence freshness changes recommendation weight without deleting old evidence: Fresh (≤30 days), Current (≤90 days), Ageing (≤180 days), then Stale. Older evidence remains visible but has a smaller ranking effect.
+- Existing evidence adjustments are now freshness-weighted before Home ranks marketing opportunities.
+- Added recommendation feedback. Tapping “Not useful” asks for a lightweight reason instead of silently discarding the suggestion.
+- Feedback reasons include Just not now, Not suitable for my business, Wrong time of year, Too far away, Not worthwhile financially and Don’t suggest this again.
+- “Just not now” hides the current suggestion without teaching a negative long-term pattern. The other business-specific reasons gently reduce similar future opportunities.
+- Feedback is service-aware whenever the recommendation has a known service, so rejecting one driveway-cleaning idea does not automatically penalise unrelated services.
+- “Don’t suggest this again” creates a removable owner rule that blocks that recommendation family, narrowed to the known service where possible.
+- Hard recommendation rules apply only to marketing/opportunity suggestions. They cannot hide live customer obligations such as waiting enquiries, confirmed bookings or promised follow-ups.
+- Manual owner rules now carry an explicit scope such as Social content, Work area, Season, Pricing, Customer contact or Global. Rules remain owner-set/highest authority rather than inferred AI facts.
+- The Business Brain screen now shows which rules actively block recommendation types, recent recommendation feedback and the current ranking effect of each evidence pattern.
+- Social AI continues to receive the full owner-rule set, so V3.3 content creation respects the same Business Brain rules.
+- Results now surfaces an Operational Business Brain summary so the learning layer is visible outside its dedicated screen.
+- Reset Prototype now clears V3.3/V3.4 social and Business Brain state as well as earlier prototype records.
+- Improved long-form iPhone usability by allowing interactive keyboard dismissal throughout the main scroll container.
+- Main navigation remains Home / Work / Results / Settings. V3.3 Social Media Centre, V3.2 AI Intake Brain, V3.1 reconciliation/calendar and all existing approval/safety boundaries remain intact.
+
 ## v3.3 Social Media Centre + Business Brain foundation
 - Added a proper Social Media Centre without adding a fifth permanent bottom tab. It is reachable from Home, Results and Settings while the primary navigation remains Home / Work / Results / Settings.
 - Owners can create content from deliberately selected phone photos or from completed-job photos already marked as reusable for marketing suggestions.
