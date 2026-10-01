@@ -3301,7 +3301,18 @@ function App() {
     const draft = socialDrafts.find((item) => item.id === id);
     if (!draft) return;
     setSelectedSocialDraftId(id);
-    setSocialCreatePhotos((draft.photos || []).map((photo) => ({ ...photo })));
+    setSocialCreatePhotos(
+      (draft.photos || []).map((photo) => {
+        const cloud = (draft.cloudMedia || []).find((item) => item.id === photo.id);
+        return cloud
+          ? {
+              ...photo,
+              storagePath: cloud.storagePath,
+              contentType: cloud.contentType || photo.mimeType || "image/jpeg",
+            }
+          : { ...photo };
+      })
+    );
     setSocialBrief(draft.brief || "");
     setSocialAiResult({
       summary: draft.story
