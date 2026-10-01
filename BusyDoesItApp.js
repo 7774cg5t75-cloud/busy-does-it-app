@@ -16,8 +16,8 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 
-const APP_VERSION = "3.2";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • AI Intake Brain`;
+const APP_VERSION = "3.3";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Social + Business Brain`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
@@ -26,6 +26,8 @@ const BUSY_AI_TOKEN = String(
   process.env.EXPO_PUBLIC_BUSY_AI_TOKEN ||
     "sb_publishable_-u4GplmvwptxNjdrh2UqEg_672Lhe74"
 ).trim();
+const BUSY_SOCIAL_URL =
+  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-social-content";
 
 const C = {
   bg: "#F5F7FB",
@@ -213,6 +215,31 @@ function chooseRateEvidence({
     basis: smallSample ? "Small sample — cautious fallback" : "No recorded outcomes yet — cautious fallback",
     serviceSpecific: false,
   };
+}
+
+async function busyPhotoToDataUrl(photo) {
+  if (photo?.base64) {
+    return `data:${photo.mimeType || "image/jpeg"};base64,${photo.base64}`;
+  }
+  if (!photo?.uri) throw new Error("A selected photo could not be read.");
+  const response = await fetch(photo.uri);
+  if (!response.ok) throw new Error("A selected photo is no longer available on this device.");
+  const blob = await response.blob();
+  return await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("A selected photo could not be prepared."));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function socialStoryLabel(type) {
+  if (type === "before_after") return "Before & after";
+  if (type === "finished_result") return "Finished result";
+  if (type === "process") return "Work in progress";
+  if (type === "equipment") return "Equipment / behind the scenes";
+  if (type === "general") return "General business content";
+  return "Not clear yet";
 }
 
 const customerSeed = [
@@ -1378,6 +1405,31 @@ function App() {
   const [jobPostChannels, setJobPostChannels] = useState({ facebook: false, instagram: false, googleBusiness: false });
   const [jobPostOutcome, setJobPostOutcome] = useState("No enquiry yet");
   const [jobPostOutcomeValue, setJobPostOutcomeValue] = useState("");
+  const [socialDrafts, setSocialDrafts] = useState([]);
+  const [socialCreatePhotos, setSocialCreatePhotos] = useState([]);
+  const [socialBrief, setSocialBrief] = useState("");
+  const [socialAiStatus, setSocialAiStatus] = useState("idle");
+  const [socialAiResult, setSocialAiResult] = useState(null);
+  const [socialAiError, setSocialAiError] = useState("");
+  const [socialCaptionId, setSocialCaptionId] = useState("");
+  const [socialDraftText, setSocialDraftText] = useState("");
+  const [socialDraftChannels, setSocialDraftChannels] = useState({
+    facebook: false,
+    instagram: false,
+    googleBusiness: false,
+  });
+  const [socialScheduleDate, setSocialScheduleDate] = useState(dateToISO(new Date()));
+  const [socialScheduleTime, setSocialScheduleTime] = useState("19:00");
+  const [socialSourceContext, setSocialSourceContext] = useState({
+    type: "phone",
+    label: "Phone photos",
+    customerId: "",
+    jobId: "",
+    service: "",
+  });
+  const [selectedSocialDraftId, setSelectedSocialDraftId] = useState(null);
+  const [businessBrainRules, setBusinessBrainRules] = useState([]);
+  const [businessBrainRuleDraft, setBusinessBrainRuleDraft] = useState("");
   const [quoteFollowUpDraft, setQuoteFollowUpDraft] = useState("");
   const [quoteFollowUpOutcome, setQuoteFollowUpOutcome] = useState("No reply yet");
   const [enquiryFollowUpDraft, setEnquiryFollowUpDraft] = useState("");
@@ -1494,6 +1546,8 @@ function App() {
         if (Array.isArray(saved.intakeLog)) setIntakeLog(saved.intakeLog);
         if (Array.isArray(saved.inboxItems)) setInboxItems(saved.inboxItems);
         if (Array.isArray(saved.connectionSyncLog)) setConnectionSyncLog(saved.connectionSyncLog);
+        if (Array.isArray(saved.socialDrafts)) setSocialDrafts(saved.socialDrafts);
+        if (Array.isArray(saved.businessBrainRules)) setBusinessBrainRules(saved.businessBrainRules);
         if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
           setRecordFilingMode(saved.recordFilingMode);
         }
@@ -1542,6 +1596,8 @@ function App() {
       intakeLog,
       inboxItems,
       connectionSyncLog,
+      socialDrafts,
+      businessBrainRules,
       recordFilingMode,
       advanced,
     };
@@ -1574,6 +1630,8 @@ function App() {
     intakeLog,
     inboxItems,
     connectionSyncLog,
+    socialDrafts,
+    businessBrainRules,
     recordFilingMode,
     advanced,
   ]);
@@ -2482,30 +2540,383 @@ function App() {
     googleBusiness: !!connectedAccounts.googleBusiness,
   });
 
-  const prepareJobPost = () => {
-    const customer = customers.find((item) => item.id === selectedCustomerId);
-    const job = (customer?.history || []).find((item) => item.id === selectedJobId);
-    if (!customer || !job) return;
-    const allowedPhotos = (job.photos || []).filter((photo) => photo.marketingOk);
-    if (!allowedPhotos.length) {
-      Alert.alert("No approved job photos", "Allow these job photos to be suggested for marketing first.");
-      return;
+  const resetSocialCreator = () => {
+    setSocialCreatePhotos([]);
+    setSocialBrief("");
+    setSocialAiStatus("idle");
+    setSocialAiResult(null);
+    setSocialAiError("");
+    setSocialCaptionId("");
+    setSocialDraftText("");
+    setSocialDraftChannels({
+      facebook: !!connectedAccounts.meta,
+      instagram: !!connectedAccounts.meta,
+      googleBusiness: !!connectedAccounts.googleBusiness,
+    });
+    setSocialScheduleDate(dateToISO(new Date()));
+    setSocialScheduleTime("19:00");
+    setSocialSourceContext({
+      type: "phone",
+      label: "Phone photos",
+      customerId: "",
+      jobId: "",
+      service: "",
+    });
+    setSelectedSocialDraftId(null);
+  };
+
+  const openSocialCentre = () => {
+    go("socialMedia");
+  };
+
+  const startSocialFromPhone = () => {
+    resetSocialCreator();
+    go("socialCreator");
+  };
+
+  const startSocialFromJob = (customerId = selectedCustomerId, jobId = selectedJobId) => {
+    const customer = customers.find((item) => item.id === customerId);
+    const job = (customer?.history || []).find((item) => item.id === jobId);
+    if (!customer || !job) return false;
+    const photos = (job.photos || []).filter((photo) => photo.marketingOk);
+    if (!photos.length) {
+      Alert.alert("No approved job photos", "Choose job photos and allow BUSY to suggest them for marketing first.");
+      return false;
     }
-    const service = job.service || customer.service || "job";
-    const draft =
-      job.postDraft ||
-      `Just finished another ${service.toLowerCase()} job. If you need something similar, send us a message and we’ll take a look.`;
-    setJobPostDraft(draft);
-    setJobPostChannels(
-      Array.isArray(job.postChannels) && job.postChannels.length
-        ? {
-            facebook: job.postChannels.includes("Facebook"),
-            instagram: job.postChannels.includes("Instagram"),
-            googleBusiness: job.postChannels.includes("Google Business"),
-          }
-        : defaultJobPostChannels()
+    const service = job.service || customer.service || "";
+    setSelectedCustomerId(customerId);
+    setSelectedJobId(jobId);
+    setSocialCreatePhotos(
+      photos.slice(0, 6).map((photo) => ({
+        ...photo,
+        mimeType: photo.mimeType || "image/jpeg",
+      }))
     );
-    go("jobPostDraft");
+    setSocialBrief(`Create a useful organic post from this completed ${service.toLowerCase()} job.`);
+    setSocialAiStatus("idle");
+    setSocialAiResult(null);
+    setSocialAiError("");
+    setSocialCaptionId("");
+    setSocialDraftText(job.postDraft || "");
+    setSocialDraftChannels(defaultJobPostChannels());
+    setSocialScheduleDate(dateToISO(new Date()));
+    setSocialScheduleTime("19:00");
+    setSocialSourceContext({
+      type: "job",
+      label: `Completed job • ${service}`,
+      customerId,
+      jobId,
+      service,
+    });
+    setSelectedSocialDraftId(null);
+    go("socialCreator");
+    return true;
+  };
+
+  const chooseSocialPhotos = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsMultipleSelection: true,
+        selectionLimit: 6,
+        quality: 0.65,
+        base64: true,
+      });
+      if (result.canceled) return;
+      const picked = (result.assets || []).map((asset, index) => ({
+        id: asset.assetId || `social-photo-${Date.now()}-${index}`,
+        uri: asset.uri,
+        fileName: asset.fileName || "",
+        width: asset.width || 0,
+        height: asset.height || 0,
+        mimeType: asset.mimeType || "image/jpeg",
+        base64: asset.base64 || "",
+      }));
+      setSocialCreatePhotos((current) => {
+        const merged = [...current];
+        picked.forEach((photo) => {
+          if (!merged.some((item) => item.uri === photo.uri)) merged.push(photo);
+        });
+        return merged.slice(0, 6);
+      });
+      setSocialAiStatus("idle");
+      setSocialAiResult(null);
+      setSocialAiError("");
+    } catch (error) {
+      Alert.alert("Could not open photos", "Please try again. Nothing was uploaded.");
+    }
+  };
+
+  const removeSocialPhoto = (id) => {
+    setSocialCreatePhotos((current) => current.filter((photo) => photo.id !== id));
+    setSocialAiStatus("idle");
+    setSocialAiResult(null);
+    setSocialAiError("");
+  };
+
+  const applySocialCaption = (caption) => {
+    if (!caption) return;
+    setSocialCaptionId(caption.id);
+    setSocialDraftText(caption.text || "");
+    const recommended = new Set(caption.recommendedChannels || []);
+    setSocialDraftChannels({
+      facebook: !!connectedAccounts.meta && recommended.has("Facebook"),
+      instagram: !!connectedAccounts.meta && recommended.has("Instagram"),
+      googleBusiness:
+        !!connectedAccounts.googleBusiness && recommended.has("Google Business"),
+    });
+  };
+
+  const runSocialContentAI = async () => {
+    if (!socialCreatePhotos.length) return false;
+    setSocialAiStatus("analysing");
+    setSocialAiError("");
+
+    try {
+      const photos = [];
+      for (let index = 0; index < socialCreatePhotos.length; index += 1) {
+        const photo = socialCreatePhotos[index];
+        photos.push({
+          id: photo.id || `photo-${index + 1}`,
+          fileName: photo.fileName || "",
+          dataUrl: await busyPhotoToDataUrl(photo),
+        });
+      }
+
+      const response = await fetch(BUSY_SOCIAL_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: BUSY_AI_TOKEN,
+        },
+        body: JSON.stringify({
+          appVersion: APP_VERSION,
+          businessName,
+          trade,
+          source: socialSourceContext.label || "Selected photos",
+          serviceHint: socialSourceContext.service || "",
+          brief: socialBrief.trim(),
+          services: services.map((service) => ({ name: service.name })),
+          photos,
+        }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error || `BUSY social AI returned ${response.status}.`);
+      }
+      setSocialAiResult(payload);
+      setSocialAiStatus("ready");
+      if (payload.detectedService && !socialSourceContext.service) {
+        setSocialSourceContext((current) => ({
+          ...current,
+          service: payload.detectedService,
+        }));
+      }
+      applySocialCaption(payload.captions?.[0]);
+      return true;
+    } catch (error) {
+      setSocialAiStatus("error");
+      setSocialAiError(error?.message || "BUSY could not analyse these photos.");
+      return false;
+    }
+  };
+
+  const toggleSocialDraftChannel = (key) => {
+    setSocialDraftChannels((current) => ({ ...current, [key]: !current[key] }));
+  };
+
+  const socialChannelNames = () =>
+    [
+      socialDraftChannels.facebook ? "Facebook" : null,
+      socialDraftChannels.instagram ? "Instagram" : null,
+      socialDraftChannels.googleBusiness ? "Google Business" : null,
+    ].filter(Boolean);
+
+  const upsertSocialDraft = (status = "Draft") => {
+    const text = socialDraftText.trim();
+    if (!text || !socialCreatePhotos.length) return null;
+    const channels = socialChannelNames();
+    if (status !== "Draft" && !channels.length) {
+      Alert.alert("Choose a destination", "Select at least one social profile before scheduling or approving this post.");
+      return null;
+    }
+
+    const now = new Date().toISOString();
+    const existing = socialDrafts.find((draft) => draft.id === selectedSocialDraftId);
+    const id = existing?.id || `social-draft-${Date.now()}`;
+    const photos = socialCreatePhotos.map((photo) => ({
+      id: photo.id,
+      uri: photo.uri,
+      fileName: photo.fileName || "",
+      width: photo.width || 0,
+      height: photo.height || 0,
+      mimeType: photo.mimeType || "image/jpeg",
+    }));
+    const record = {
+      ...(existing || {}),
+      id,
+      source: socialSourceContext.type,
+      sourceLabel: socialSourceContext.label,
+      sourceCustomerId: socialSourceContext.customerId || "",
+      sourceJobId: socialSourceContext.jobId || "",
+      service:
+        socialAiResult?.detectedService ||
+        socialSourceContext.service ||
+        existing?.service ||
+        "",
+      photos,
+      brief: socialBrief.trim(),
+      text,
+      selectedCaptionId: socialCaptionId,
+      captions: socialAiResult?.captions || existing?.captions || [],
+      story: socialAiResult?.story || existing?.story || null,
+      privacyWarnings:
+        socialAiResult?.privacyWarnings || existing?.privacyWarnings || [],
+      channels,
+      status,
+      scheduleDate: socialScheduleDate,
+      scheduleTime: socialScheduleTime,
+      createdAt: existing?.createdAt || now,
+      updatedAt: now,
+      scheduledAt: status === "Scheduled" ? now : existing?.scheduledAt || null,
+      approvedAt:
+        status === "Simulated published" ? now : existing?.approvedAt || null,
+    };
+
+    setSocialDrafts((items) => {
+      const found = items.some((draft) => draft.id === id);
+      return found
+        ? items.map((draft) => (draft.id === id ? record : draft))
+        : [...items, record];
+    });
+    setSelectedSocialDraftId(id);
+
+    if (socialSourceContext.type === "job" && socialSourceContext.customerId && socialSourceContext.jobId) {
+      setCustomers((list) =>
+        list.map((customer) => {
+          if (customer.id !== socialSourceContext.customerId) return customer;
+          const history = (customer.history || []).map((job) =>
+            job.id === socialSourceContext.jobId
+              ? {
+                  ...job,
+                  postDraft: text,
+                  postDraftPreparedAt: job.postDraftPreparedAt || now,
+                  postDraftStatus: status === "Draft" ? "Prepared" : status,
+                  postChannels: channels,
+                  postContentType: record.story?.type || "",
+                  postAIConfidence: record.story?.confidence || "",
+                  postPrivacyWarnings: record.privacyWarnings,
+                  postScheduledAt:
+                    status === "Scheduled" ? now : job.postScheduledAt,
+                  postPublishedAt:
+                    status === "Simulated published" ? now : job.postPublishedAt,
+                }
+              : job
+          );
+          return { ...customer, history };
+        })
+      );
+
+      if (status === "Simulated published") {
+        appendCustomerActivity(socialSourceContext.customerId, {
+          kind: "marketing",
+          title: "Social post approved",
+          note: `V3.3 prototype publish approved for ${channels.join(", ")}. No real provider post was sent.`,
+        });
+        recordWorkGoalAttempt({
+          key: `post:${socialSourceContext.customerId}:${socialSourceContext.jobId}`,
+          type: "post",
+          label: "Finished-job social post",
+          customerId: socialSourceContext.customerId,
+          jobId: socialSourceContext.jobId,
+          channels,
+          cost: 0,
+        });
+      }
+    }
+
+    return record;
+  };
+
+  const saveGeneratedSocialDraft = () => {
+    const record = upsertSocialDraft("Draft");
+    if (record) go("socialDraftReview");
+  };
+
+  const saveSocialDraftOnly = () => {
+    const record = upsertSocialDraft("Draft");
+    if (record) go("socialMedia");
+  };
+
+  const scheduleSocialDraft = () => {
+    const record = upsertSocialDraft("Scheduled");
+    if (record) go("socialMedia");
+  };
+
+  const approveSocialDraft = () => {
+    const record = upsertSocialDraft("Simulated published");
+    if (record) go("socialMedia");
+  };
+
+  const openSocialDraft = (id) => {
+    const draft = socialDrafts.find((item) => item.id === id);
+    if (!draft) return;
+    setSelectedSocialDraftId(id);
+    setSocialCreatePhotos((draft.photos || []).map((photo) => ({ ...photo })));
+    setSocialBrief(draft.brief || "");
+    setSocialAiResult({
+      summary: draft.story
+        ? `${socialStoryLabel(draft.story.type)} content`
+        : "Saved social draft",
+      detectedService: draft.service || "",
+      story: draft.story || null,
+      privacyWarnings: draft.privacyWarnings || [],
+      captions: draft.captions || [],
+    });
+    setSocialAiStatus("ready");
+    setSocialAiError("");
+    setSocialCaptionId(draft.selectedCaptionId || "");
+    setSocialDraftText(draft.text || "");
+    setSocialDraftChannels({
+      facebook: (draft.channels || []).includes("Facebook"),
+      instagram: (draft.channels || []).includes("Instagram"),
+      googleBusiness: (draft.channels || []).includes("Google Business"),
+    });
+    setSocialScheduleDate(draft.scheduleDate || dateToISO(new Date()));
+    setSocialScheduleTime(draft.scheduleTime || "19:00");
+    setSocialSourceContext({
+      type: draft.source || "phone",
+      label: draft.sourceLabel || "Saved draft",
+      customerId: draft.sourceCustomerId || "",
+      jobId: draft.sourceJobId || "",
+      service: draft.service || "",
+    });
+    go("socialDraftReview");
+  };
+
+  const saveBusinessBrainRule = () => {
+    const text = businessBrainRuleDraft.trim();
+    if (!text) return;
+    setBusinessBrainRules((rules) => [
+      ...rules,
+      {
+        id: `brain-rule-${Date.now()}`,
+        text,
+        source: "Owner rule",
+        confidence: "Owner-set",
+        createdAt: new Date().toISOString(),
+      },
+    ]);
+    setBusinessBrainRuleDraft("");
+  };
+
+  const removeBusinessBrainRule = (id) => {
+    setBusinessBrainRules((rules) => rules.filter((rule) => rule.id !== id));
+  };
+
+  const prepareJobPost = () => {
+    startSocialFromJob(selectedCustomerId, selectedJobId);
   };
 
   const openJobPostDraft = () => {
@@ -5200,6 +5611,33 @@ function App() {
     serviceName: evidenceServiceName,
   });
 
+  const socialChannelEvidence = ["Facebook", "Instagram", "Google Business"].map((channel) => {
+    const entries = postOutcomeEntries.filter((entry) =>
+      (entry.job.postChannels || []).includes(channel)
+    );
+    const bookings = entries.filter((entry) => entry.job.postOutcome === "Booking").length;
+    return {
+      channel,
+      ...rateEvidence(bookings, entries.length, 0.2),
+    };
+  });
+  const socialJobOpportunities = completedJobEntries
+    .filter((entry) =>
+      Array.isArray(entry.job.photos) &&
+      entry.job.photos.some((photo) => photo.marketingOk)
+    )
+    .sort((a, b) => String(b.job.date || "").localeCompare(String(a.job.date || "")));
+  const socialDraftCount = socialDrafts.filter((draft) => draft.status === "Draft").length;
+  const socialScheduledCount = socialDrafts.filter((draft) => draft.status === "Scheduled").length;
+  const socialApprovedCount = socialDrafts.filter((draft) => draft.status === "Simulated published").length;
+  const selectedSocialDraft =
+    socialDrafts.find((draft) => draft.id === selectedSocialDraftId) || null;
+  const latestPostEvidenceAt =
+    postOutcomeEntries
+      .map((entry) => entry.job.postOutcomeRecordedAt || "")
+      .sort()
+      .reverse()[0] || "";
+
   const offerEvidence = {
     ...rateEvidence(0, 0, 0.2),
     basis: "No recorded offer outcomes yet",
@@ -5643,6 +6081,13 @@ function App() {
     quoteFollowUpEvidence,
     enquiryFollowUpEvidence,
     postEvidence,
+    socialChannelEvidence,
+    socialJobOpportunities,
+    socialDraftCount,
+    socialScheduledCount,
+    socialApprovedCount,
+    selectedSocialDraft,
+    latestPostEvidenceAt,
     offerEvidence,
     recommendedReactivationBatchSize,
     workGoalFilled,
@@ -5681,6 +6126,41 @@ function App() {
     setJobPostOutcome,
     jobPostOutcomeValue,
     setJobPostOutcomeValue,
+    socialDrafts,
+    socialCreatePhotos,
+    socialBrief,
+    setSocialBrief,
+    socialAiStatus,
+    socialAiResult,
+    socialAiError,
+    socialCaptionId,
+    socialDraftText,
+    setSocialDraftText,
+    socialDraftChannels,
+    socialScheduleDate,
+    setSocialScheduleDate,
+    socialScheduleTime,
+    setSocialScheduleTime,
+    socialSourceContext,
+    selectedSocialDraftId,
+    businessBrainRules,
+    businessBrainRuleDraft,
+    setBusinessBrainRuleDraft,
+    openSocialCentre,
+    startSocialFromPhone,
+    startSocialFromJob,
+    chooseSocialPhotos,
+    removeSocialPhoto,
+    runSocialContentAI,
+    applySocialCaption,
+    toggleSocialDraftChannel,
+    saveGeneratedSocialDraft,
+    saveSocialDraftOnly,
+    scheduleSocialDraft,
+    approveSocialDraft,
+    openSocialDraft,
+    saveBusinessBrainRule,
+    removeBusinessBrainRule,
     quoteFollowUpDraft,
     setQuoteFollowUpDraft,
     quoteFollowUpOutcome,
