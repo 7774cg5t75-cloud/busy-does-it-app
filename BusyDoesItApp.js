@@ -2697,6 +2697,7 @@ function App() {
           serviceHint: socialSourceContext.service || "",
           brief: socialBrief.trim(),
           services: services.map((service) => ({ name: service.name })),
+          ownerRules: businessBrainRules.map((rule) => rule.text),
           photos,
         }),
       });
