@@ -2685,6 +2685,112 @@ function App() {
     googleBusiness: !!connectedAccounts.googleBusiness,
   });
 
+  const socialPublishRequest = async (action, payload = {}) => {
+    const response = await fetch(BUSY_SOCIAL_PUBLISH_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: BUSY_AI_TOKEN,
+      },
+      body: JSON.stringify({ action, ...payload }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const error = new Error(data?.error || `BUSY publishing returned ${response.status}.`);
+      error.payload = data;
+      throw error;
+    }
+    return data;
+  };
+
+  const refreshSocialPublishingStatus = async ({ quiet = false } = {}) => {
+    if (!quiet) setSocialPublishingLoading(true);
+    setSocialPublishingError("");
+    try {
+      const data = await socialPublishRequest("status");
+      setSocialPublishingStatus({
+        loaded: true,
+        credentials: data.credentials || {},
+        connections: data.connections || {},
+        queue: Array.isArray(data.queue) ? data.queue : [],
+      });
+      const metaConnected = data.connections?.meta?.status === "connected";
+      const googleConnected = data.connections?.google_business?.status === "connected";
+      setConnectedAccounts((current) => ({
+        ...current,
+        meta: metaConnected,
+        googleBusiness: googleConnected,
+      }));
+      return data;
+    } catch (error) {
+      setSocialPublishingError(error?.message || "BUSY could not refresh social connections.");
+      return null;
+    } finally {
+      if (!quiet) setSocialPublishingLoading(false);
+    }
+  };
+
+  const beginSocialProviderConnect = async (provider) => {
+    setSocialPublishingLoading(true);
+    setSocialPublishingAction(provider);
+    setSocialPublishingError("");
+    try {
+      const data = await socialPublishRequest("begin_oauth", { provider });
+      if (!data?.authUrl) throw new Error("The provider did not return a connection link.");
+      await Linking.openURL(data.authUrl);
+      return true;
+    } catch (error) {
+      setSocialPublishingError(error?.message || "BUSY could not start the provider connection.");
+      Alert.alert("Connection not ready", error?.message || "BUSY could not start this connection.");
+      return false;
+    } finally {
+      setSocialPublishingLoading(false);
+      setSocialPublishingAction("");
+    }
+  };
+
+  const selectSocialProviderAsset = async (provider, assetId) => {
+    setSocialPublishingLoading(true);
+    setSocialPublishingAction(provider);
+    setSocialPublishingError("");
+    try {
+      await socialPublishRequest("select_asset", { provider, assetId });
+      await refreshSocialPublishingStatus({ quiet: true });
+      return true;
+    } catch (error) {
+      setSocialPublishingError(error?.message || "BUSY could not select that account.");
+      return false;
+    } finally {
+      setSocialPublishingLoading(false);
+      setSocialPublishingAction("");
+    }
+  };
+
+  const disconnectSocialProvider = async (provider) => {
+    setSocialPublishingLoading(true);
+    setSocialPublishingAction(provider);
+    setSocialPublishingError("");
+    try {
+      await socialPublishRequest("disconnect", { provider });
+      await refreshSocialPublishingStatus({ quiet: true });
+      return true;
+    } catch (error) {
+      setSocialPublishingError(error?.message || "BUSY could not disconnect that provider.");
+      return false;
+    } finally {
+      setSocialPublishingLoading(false);
+      setSocialPublishingAction("");
+    }
+  };
+
+  const socialProviderConnected = (provider) =>
+    socialPublishingStatus?.connections?.[provider]?.status === "connected";
+
+  const socialScheduledForISO = () => {
+    const value = new Date(`${socialScheduleDate}T${socialScheduleTime || "19:00"}:00`);
+    return Number.isNaN(value.getTime()) ? null : value.toISOString();
+  };
+
   const resetSocialCreator = () => {
     setSocialCreatePhotos([]);
     setSocialBrief("");
