@@ -883,8 +883,16 @@ Deno.serve(async (request: Request) => {
     if (action === "schedule") {
       if (!body?.ownerApproved) throw new Error("Owner approval is required before scheduling.");
       if (!body?.scheduledFor) throw new Error("Choose a schedule time.");
-      const post = await upsertPost(body, "Scheduled", true);
-      return json(200, { ok: true, post });
+      const post = await upsertPost(
+        body,
+        LIVE_PUBLISHING_ENABLED ? "Scheduled" : "Held for setup",
+        LIVE_PUBLISHING_ENABLED
+      );
+      return json(200, {
+        ok: true,
+        post,
+        heldForSetup: !LIVE_PUBLISHING_ENABLED,
+      });
     }
 
     if (action === "publish_now") {
