@@ -7323,7 +7323,7 @@ function OpportunityCard({
         </Pressable>
         {onIgnore ? (
           <Pressable onPress={onIgnore} style={styles.miniSecondary}>
-            <Text style={styles.miniSecondaryText}>Ignore</Text>
+            <Text style={styles.miniSecondaryText}>Not useful</Text>
           </Pressable>
         ) : null}
       </View>
@@ -7998,7 +7998,7 @@ function HomeScreen({ s }) {
           <View style={styles.dashboardHeader}>
             <StatusChip label="Ranked from saved business data" tone="green" />
             <Text style={styles.dashboardHint}>
-              Live customer commitments rank highly. Prepared £0 actions can outrank ideas that still need setup.
+              Live customer commitments rank highly. Business-specific evidence is weighted by sample size and freshness, while owner feedback can lower or block unsuitable suggestions.
             </Text>
           </View>
         </>
@@ -13775,62 +13775,176 @@ function SocialDraftReview({ s }) {
   );
 }
 
+function OpportunityFeedback({ s }) {
+  const opportunity = s.pendingBrainFeedback;
+  const reasons = [
+    "Just not now",
+    "Not suitable for my business",
+    "Wrong time of year",
+    "Too far away",
+    "Not worthwhile financially",
+    "Don't suggest this again",
+  ];
+
+  if (!opportunity) {
+    return (
+      <Shell
+        s={s}
+        title="Recommendation feedback"
+        subtitle="There is no recommendation waiting for feedback."
+      >
+        <Button label="Back to Home" primary onPress={() => s.jump("home", "Home")} />
+      </Shell>
+    );
+  }
+
+  return (
+    <Shell
+      s={s}
+      title="Why wasn't this useful?"
+      subtitle="One tap helps BUSY avoid repeating the wrong kind of advice."
+      brandCue="Your correction becomes business evidence — not a hidden AI guess."
+    >
+      <Card
+        eyebrow="Recommendation"
+        title={opportunity.title}
+        body={opportunity.service ? `Service: ${opportunity.service}` : businessBrainFamilyLabel(opportunity.family)}
+        footer="The recommendation is hidden from this Home session either way"
+        tone="blue"
+      />
+
+      {reasons.map((reason) => (
+        <Choice
+          key={reason}
+          label={reason}
+          sub={
+            reason === "Just not now"
+              ? "Hide it for now without changing future ranking."
+              : reason === "Don't suggest this again"
+              ? opportunity.service
+                ? `Creates an owner rule blocking this type of recommendation for ${opportunity.service} until you remove it.`
+                : "Creates an owner rule blocking this recommendation type until you remove it."
+              : "Counts as business-specific feedback and gently reduces similar future suggestions."
+          }
+          selected={s.brainFeedbackReason === reason}
+          onPress={() => s.setBrainFeedbackReason(reason)}
+        />
+      ))}
+
+      <Card
+        eyebrow="Learning boundary"
+        title="BUSY learns narrowly"
+        body="When the service is known, feedback is kept service-specific. A driveway-cleaning rejection should not automatically teach BUSY that every social post or every customer follow-up is a bad idea."
+        footer="Live customer commitments are never hidden by marketing feedback"
+        tone="green"
+      />
+
+      <Button
+        label="Save feedback"
+        primary
+        disabled={!s.brainFeedbackReason}
+        onPress={s.saveOpportunityFeedback}
+      />
+      <Button label="Cancel" onPress={s.back} />
+    </Shell>
+  );
+}
+
 function BusinessBrain({ s }) {
+  const patterns = s.businessBrainPatterns || [];
   const channels = s.socialChannelEvidence || [];
-  const sample = s.postEvidence?.sample || 0;
-  const evidenceTone = sample >= 6 ? "green" : sample >= 3 ? "blue" : "amber";
+  const feedback = [...(s.businessBrainFeedback || [])].sort((a, b) =>
+    String(b.recordedAt || "").localeCompare(String(a.recordedAt || ""))
+  );
+  const activePatterns = patterns.filter((item) => item.evidence?.evidenceReady).length;
+  const stalePatterns = patterns.filter((item) => item.freshness?.stale && item.evidence?.sample).length;
+  const blockingRules = (s.businessBrainRules || []).filter(
+    (rule) => manualRuleTargetFamilies(rule).length
+  ).length;
 
   return (
     <Shell
       s={s}
       title="Business Brain"
-      subtitle="What BUSY knows because the owner told it, what it has observed, and how confident that evidence really is."
-      brandCue="Your business evidence first. Generic assumptions fade as real evidence grows."
+      subtitle="The evidence and owner rules BUSY is actually using to tailor this business."
+      brandCue="Auditable learning: source, sample, confidence, freshness and owner authority."
     >
       <Card
-        eyebrow="Three different kinds of knowledge"
-        title="Owner rules outrank learned patterns"
-        body="A hard rule you set is different from an observed tendency, and both are different from temporary current state. BUSY keeps those categories separate instead of silently turning guesses into rules."
+        eyebrow="V3.4 • Operational Business Brain"
+        title="This now changes what BUSY recommends"
+        body="Recorded business outcomes already influence Home ranking. V3.4 adds freshness weighting, owner-feedback penalties and hard blocking rules while keeping live customer commitments protected from marketing preferences."
         tone="green"
       >
+        <MetricRow left="Evidence patterns tracked" right={String(patterns.length)} />
+        <MetricRow left="Patterns with usable samples" right={String(activePatterns)} strong={activePatterns > 0} />
+        <MetricRow left="Stale patterns down-weighted" right={String(stalePatterns)} />
         <MetricRow left="Owner-set rules" right={String(s.businessBrainRules?.length || 0)} />
-        <MetricRow left="Recorded post outcomes" right={String(sample)} />
-        <MetricRow left="Current evidence confidence" right={s.postEvidence?.confidence || "No evidence yet"} />
+        <MetricRow left="Rules that block recommendation types" right={String(blockingRules)} />
+        <MetricRow left="Recommendation feedback saved" right={String(feedback.length)} />
       </Card>
+
+      <Text style={styles.sectionLabel}>Evidence ledger</Text>
+      {patterns.map((pattern) => {
+        const evidence = pattern.evidence || {};
+        const freshness = pattern.freshness || {};
+        const hasObservedRate =
+          evidence.observedRate !== null && evidence.observedRate !== undefined;
+        const adjustment = Number(pattern.effectiveAdjustment || 0);
+        return (
+          <Card
+            key={pattern.key}
+            eyebrow={pattern.title}
+            title={
+              evidence.sample
+                ? `${evidence.successes || 0} ${pattern.outcomeLabel.toLowerCase()} from ${evidence.sample} recorded outcome${evidence.sample === 1 ? "" : "s"}`
+                : "No recorded outcome evidence yet"
+            }
+            body={
+              evidence.evidenceReady
+                ? "This pattern can influence recommendations, but its effect is bounded and reduced automatically as the evidence ages."
+                : evidence.sample
+                ? "BUSY can see the early evidence but the sample is still too small to drive a strong recommendation."
+                : "BUSY falls back to cautious planning assumptions until this business records real outcomes."
+            }
+            footer={
+              pattern.lastUpdated
+                ? `Last evidence: ${formatUKDate(String(pattern.lastUpdated).slice(0, 10))} • ${freshness.label}`
+                : "No dated evidence yet"
+            }
+            tone={
+              freshness.stale && evidence.sample
+                ? "amber"
+                : evidence.evidenceReady
+                ? "green"
+                : "blue"
+            }
+          >
+            <MetricRow left="Sample size" right={String(evidence.sample || 0)} />
+            <MetricRow left={pattern.outcomeLabel} right={String(evidence.successes || 0)} />
+            <MetricRow
+              left="Observed rate"
+              right={hasObservedRate ? formatPercent(evidence.observedRate) : "Not enough data"}
+            />
+            <MetricRow left="Confidence" right={evidence.confidence || "No evidence yet"} />
+            <MetricRow left="Freshness" right={freshness.label || "Unknown"} />
+            <MetricRow
+              left="Current ranking adjustment"
+              right={adjustment > 0 ? `+${adjustment}` : String(adjustment)}
+              strong={adjustment !== 0}
+            />
+          </Card>
+        );
+      })}
 
       <Card
-        eyebrow="Social content evidence"
-        title={
-          sample >= 3
-            ? "BUSY can start using your own content outcomes cautiously"
-            : "Not enough evidence to learn a strong content pattern yet"
-        }
-        body={
-          sample
-            ? "These are owner-recorded business outcomes linked to finished-job posts. BUSY does not treat likes or reach as proof of booked work."
-            : "As posts gain recorded enquiry, quote or booking outcomes, this section will become specific to this business."
-        }
-        footer={
-          s.latestPostEvidenceAt
-            ? `Last updated from outcome evidence: ${formatUKDate(String(s.latestPostEvidenceAt).slice(0, 10))}`
-            : "No outcome evidence date yet"
-        }
-        tone={evidenceTone}
-      >
-        <MetricRow left="Sample" right={String(sample)} />
-        <MetricRow left="Bookings" right={String(s.postEvidence?.successes || 0)} />
-        <MetricRow
-          left="Observed booking rate"
-          right={
-            s.postEvidence?.observedRate === null || s.postEvidence?.observedRate === undefined
-              ? "Not enough data"
-              : formatPercent(s.postEvidence.observedRate)
-          }
-        />
-        <MetricRow left="Confidence" right={s.postEvidence?.confidence || "No evidence yet"} />
-      </Card>
+        eyebrow="Freshness rule"
+        title="Old evidence stays visible but loses influence"
+        body="BUSY does not forget a real result just because time passed. Instead, the ranking effect is reduced as evidence ages, so an old pattern cannot remain confidently dominant forever."
+        footer="Fresh ≤30d • Current ≤90d • Ageing ≤180d • then Stale"
+        tone="blue"
+      />
 
-      <Text style={styles.sectionLabel}>Evidence by destination</Text>
+      <Text style={styles.sectionLabel}>Social evidence by destination</Text>
       {channels.map((item) => (
         <Card
           key={item.channel}
@@ -13843,7 +13957,7 @@ function BusinessBrain({ s }) {
           body={
             item.sample < 3
               ? "BUSY will not make a strong channel conclusion from this sample."
-              : "This is enough to begin influencing recommendations gently, but it still does not prove causation."
+              : "This can contribute to social recommendations, but it still does not prove the channel caused the booking."
           }
           footer={`Confidence: ${item.confidence}`}
           tone={item.sample >= 3 ? "blue" : "amber"}
@@ -13861,11 +13975,11 @@ function BusinessBrain({ s }) {
 
       <Text style={styles.sectionLabel}>Teach BUSY a hard rule</Text>
       <Card
-        eyebrow="Owner rule"
-        title="Rules you set are not AI guesses"
-        body="Examples: don't recommend roof cleaning in winter; don't travel over 20 miles for jobs under £200; never use customer faces in social posts."
-        footer="Keep rules short and specific"
-        tone="blue"
+        eyebrow="Owner authority"
+        title="Rules you set outrank learned patterns"
+        body="Examples: don't recommend social posts for roof cleaning; don't travel over 20 miles for jobs under £200; never use customer faces in social posts."
+        footer="BUSY applies a rule only where the app has the evidence needed to do so safely"
+        tone="green"
       />
       <TextInput
         multiline
@@ -13882,26 +13996,81 @@ function BusinessBrain({ s }) {
         onPress={s.saveBusinessBrainRule}
       />
 
-      {(s.businessBrainRules || []).map((rule) => (
-        <View key={rule.id} style={styles.activityCard}>
-          <View style={styles.activityTopRow}>
-            <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={styles.activityName}>{rule.text}</Text>
-              <Text style={styles.activityService}>Owner-set • highest authority</Text>
+      {(s.businessBrainRules || []).map((rule) => {
+        const families = manualRuleTargetFamilies(rule);
+        const targetText = families.length
+          ? families.map(businessBrainFamilyLabel).join(", ")
+          : "Used where relevant evidence exists";
+        return (
+          <View key={rule.id} style={styles.activityCard}>
+            <View style={styles.activityTopRow}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={styles.activityName}>{rule.text}</Text>
+                <Text style={styles.activityService}>
+                  {rule.scope || businessBrainRuleScope(rule.text)} • {rule.source || "Owner rule"}
+                </Text>
+              </View>
+              <StatusChip label="Owner rule" tone="green" />
             </View>
-            <StatusChip label="Rule" tone="green" />
+            <Text style={styles.activitySummary}>
+              {rule.targetService ? `${targetText} • ${rule.targetService}` : targetText}
+            </Text>
+            <Pressable
+              onPress={() => s.removeBusinessBrainRule(rule.id)}
+              style={styles.removeCustomerWrap}
+            >
+              <Text style={styles.removeCustomerText}>Remove rule</Text>
+            </Pressable>
           </View>
-          <Pressable onPress={() => s.removeBusinessBrainRule(rule.id)} style={styles.removeCustomerWrap}>
-            <Text style={styles.removeCustomerText}>Remove rule</Text>
-          </Pressable>
-        </View>
-      ))}
+        );
+      })}
 
-      <Button label="Back to Social Media Centre" onPress={() => s.go("socialMedia")} />
+      <Text style={styles.sectionLabel}>Recent recommendation feedback</Text>
+      {feedback.length ? (
+        feedback.slice(0, 8).map((item) => (
+          <View key={item.id} style={styles.activityCard}>
+            <View style={styles.activityTopRow}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={styles.activityName}>{item.reason}</Text>
+                <Text style={styles.activityService}>
+                  {businessBrainFamilyLabel(item.family)}
+                  {item.service ? ` • ${item.service}` : ""}
+                </Text>
+              </View>
+              <StatusChip
+                label={item.penalty ? `${item.penalty} ranking` : "No penalty"}
+                tone={item.penalty ? "amber" : "blue"}
+              />
+            </View>
+            <Text style={styles.activitySummary}>{item.title || "Recommendation feedback"}</Text>
+            <Text style={styles.activityOpen}>
+              {item.recordedAt
+                ? `Recorded ${formatUKDate(String(item.recordedAt).slice(0, 10))}`
+                : "Recorded feedback"}
+            </Text>
+          </View>
+        ))
+      ) : (
+        <Card
+          eyebrow="No feedback yet"
+          title="BUSY has not been corrected on a recommendation yet"
+          body="Tap “Not useful” on a Home suggestion to teach BUSY why it missed the mark."
+          tone="blue"
+        />
+      )}
+
+      <Card
+        eyebrow="What BUSY will not do"
+        title="Feedback cannot hide real customer obligations"
+        body="A marketing preference can reduce or block future opportunities, but it cannot suppress a waiting enquiry, a confirmed booking, a promised follow-up or another live customer commitment."
+        tone="green"
+      />
+
+      <Button label="Back to Home" primary onPress={() => s.jump("home", "Home")} />
+      <Button label="Social Media Centre" onPress={() => s.go("socialMedia")} />
     </Shell>
   );
 }
-
 
 function Results({ s }) {
   const actions = Object.entries(s.replyActions || {});
@@ -14615,6 +14784,7 @@ const screens = {
   socialMedia: SocialMediaCentre,
   socialCreator: SocialCreator,
   socialDraftReview: SocialDraftReview,
+  opportunityFeedback: OpportunityFeedback,
   businessBrain: BusinessBrain,
   results: Results,
   resultDetails: ResultDetails,
