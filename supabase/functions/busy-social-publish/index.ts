@@ -44,6 +44,55 @@ function callbackUrl(provider: string) {
   return `${SUPABASE_URL}/functions/v1/busy-social-publish?action=callback&provider=${provider}`;
 }
 
+function base64UrlBytes(value: string) {
+  const normalized = value.replaceAll("-", "+").replaceAll("_", "/");
+  const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
+  const raw = atob(padded);
+  return Uint8Array.from(raw, (char) => char.charCodeAt(0));
+}
+
+async function verifyMetaSignedRequest(value: string) {
+  const secret = Deno.env.get("META_APP_SECRET") || "";
+  if (!secret) throw new Error("Meta app secret is not configured.");
+  const [signaturePart, payloadPart] = value.split(".", 2);
+  if (!signaturePart || !payloadPart) throw new Error("Invalid Meta signed request.");
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const expected = new Uint8Array(
+    await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payloadPart))
+  );
+  const received = base64UrlBytes(signaturePart);
+  if (expected.length !== received.length) throw new Error("Invalid Meta signed request.");
+
+  let mismatch = 0;
+  for (let i = 0; i < expected.length; i += 1) mismatch |= expected[i] ^ received[i];
+  if (mismatch !== 0) throw new Error("Invalid Meta signed request.");
+
+  return JSON.parse(new TextDecoder().decode(base64UrlBytes(payloadPart)));
+}
+
+async function removeMetaConnection() {
+  const connection = await supabase
+    .from("busy_social_connections")
+    .delete()
+    .eq("workspace_key", WORKSPACE)
+    .eq("provider", "meta");
+  if (connection.error) throw connection.error;
+
+  const states = await supabase
+    .from("busy_social_oauth_states")
+    .delete()
+    .eq("workspace_key", WORKSPACE)
+    .eq("provider", "meta");
+  if (states.error) throw states.error;
+}
+
 function requirePrototypeCaller(request: Request) {
   const publishableKeys = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") || "{}");
   const allowed = Object.values(publishableKeys).filter(
@@ -848,6 +897,33 @@ Deno.serve(async (request: Request) => {
 
   try {
     const url = new URL(request.url);
+
+    if (request.method === "POST" && url.searchParams.get("action") === "deauthorize") {
+      const form = await request.formData();
+      const signedRequest = cleanText(form.get("signed_request"), 10000);
+      if (!signedRequest) return json(400, { error: "Missing signed_request." });
+      await verifyMetaSignedRequest(signedRequest);
+      await removeMetaConnection();
+      return json(200, { success: true });
+    }
+
+    if (request.method === "POST" && url.searchParams.get("action") === "data_delete") {
+      const form = await request.formData();
+      const signedRequest = cleanText(form.get("signed_request"), 10000);
+      if (!signedRequest) return json(400, { error: "Missing signed_request." });
+      await verifyMetaSignedRequest(signedRequest);
+      await removeMetaConnection();
+      const confirmationCode = crypto.randomUUID();
+      return json(200, {
+        url: `${SUPABASE_URL}/functions/v1/busy-social-publish?action=data_deletion_status&code=${confirmationCode}`,
+        confirmation_code: confirmationCode,
+      });
+    }
+
+    if (request.method === "GET" && url.searchParams.get("action") === "data_deletion_status") {
+      return html(200, "BUSY data deletion complete", "Meta connection data was deleted.");
+    }
+
     if (request.method === "GET" && url.searchParams.get("action") === "callback") {
       const provider = cleanText(url.searchParams.get("provider"), 40);
       const state = cleanText(url.searchParams.get("state"), 300);
