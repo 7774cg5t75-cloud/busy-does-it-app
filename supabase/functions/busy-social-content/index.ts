@@ -128,6 +128,10 @@ function sanitizeRequest(body: any) {
     .slice(0, 30)
     .map((service: any) => cleanText(service?.name, 180))
     .filter(Boolean);
+  const ownerRules = (Array.isArray(body?.ownerRules) ? body.ownerRules : [])
+    .slice(0, 30)
+    .map((rule: unknown) => cleanText(rule, 500))
+    .filter(Boolean);
 
   return {
     appVersion: cleanText(body?.appVersion, 30),
@@ -137,6 +141,7 @@ function sanitizeRequest(body: any) {
     serviceHint: cleanText(body?.serviceHint, 180),
     brief: cleanText(body?.brief, 1800),
     services,
+    ownerRules,
     photos: cleanPhotos
   };
 }
@@ -145,6 +150,9 @@ function buildPrompt(input: any) {
   const services = input.services.length
     ? input.services.map((name: string) => `- ${name}`).join("\n")
     : "- No service list supplied";
+  const ownerRules = input.ownerRules.length
+    ? input.ownerRules.map((rule: string) => `- ${rule}`).join("\n")
+    : "- No owner rules saved";
 
   return `You are BUSY, a practical social-content assistant for a UK small service business.
 
@@ -158,20 +166,24 @@ Owner brief: ${input.brief || "(none)"}
 Known services:
 ${services}
 
+Owner-set Business Brain rules (highest authority for this content task):
+${ownerRules}
+
 Rules:
-1. Work out what the photos actually show. If they appear to form a before/after pair, identify the before and after image IDs. Do not force a before/after interpretation when the evidence is weak.
-2. detectedService may use an exact service name from the supplied service list when the photos/context clearly support it. Otherwise return the supplied service hint if appropriate, or an empty string.
-3. Never identify people, infer a customer's name, reproduce a visible home address, phone number, email, registration plate, invoice number or other private identifier in a caption.
-4. If a person, readable registration plate, house number/address, document, screen or other potentially private detail is visible, add a short privacy warning so the owner can check it before publishing.
-5. Do not invent results, prices, discounts, guarantees, review quotes, locations, customer reactions or claims that are not supported.
-6. Produce exactly three genuinely different caption options:
+1. Respect every owner-set Business Brain rule above unless it conflicts with safety or the supplied evidence.
+3. Work out what the photos actually show. If they appear to form a before/after pair, identify the before and after image IDs. Do not force a before/after interpretation when the evidence is weak.
+3. detectedService may use an exact service name from the supplied service list when the photos/context clearly support it. Otherwise return the supplied service hint if appropriate, or an empty string.
+4. Never identify people, infer a customer's name, reproduce a visible home address, phone number, email, registration plate, invoice number or other private identifier in a caption.
+5. If a person, readable registration plate, house number/address, document, screen or other potentially private detail is visible, add a short privacy warning so the owner can check it before publishing.
+6. Do not invent results, prices, discounts, guarantees, review quotes, locations, customer reactions or claims that are not supported.
+7. Produce exactly three genuinely different caption options:
    - one straightforward/local-business option,
    - one concise/results-led option,
    - one warmer/conversational option.
-7. Keep UK English natural and useful. Avoid excessive hashtags, emojis, hype, "game-changer", "transform your space", and other generic AI-marketing language.
-8. Captions should work without exposing customer identity. A simple call to message the business for a quote is fine.
-9. Recommend only Facebook, Instagram and/or Google Business, and explain briefly why each caption suits those channels.
-10. This is organic content. Do not suggest paid spend.
+8. Keep UK English natural and useful. Avoid excessive hashtags, emojis, hype, "game-changer", "transform your space", and other generic AI-marketing language.
+9. Captions should work without exposing customer identity. A simple call to message the business for a quote is fine.
+10. Recommend only Facebook, Instagram and/or Google Business, and explain briefly why each caption suits those channels.
+11. This is organic content. Do not suggest paid spend.
 
 Return only the structured result.`;
 }
