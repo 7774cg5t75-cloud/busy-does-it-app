@@ -3004,6 +3004,8 @@ function App() {
       width: photo.width || 0,
       height: photo.height || 0,
       mimeType: photo.mimeType || "image/jpeg",
+      storagePath: photo.storagePath || "",
+      contentType: photo.contentType || photo.mimeType || "image/jpeg",
     }));
     const record = {
       ...(existing || {}),
@@ -3031,9 +3033,14 @@ function App() {
       scheduleTime: socialScheduleTime,
       createdAt: existing?.createdAt || now,
       updatedAt: now,
+      cloudMedia: existing?.cloudMedia || [],
+      providerResults: existing?.providerResults || {},
+      lastPublishError: existing?.lastPublishError || "",
       scheduledAt: status === "Scheduled" ? now : existing?.scheduledAt || null,
       approvedAt:
-        status === "Simulated published" ? now : existing?.approvedAt || null,
+        status === "Published" ? now : existing?.approvedAt || null,
+      publishedAt:
+        status === "Published" ? now : existing?.publishedAt || null,
     };
 
     setSocialDrafts((items) => {
@@ -3062,7 +3069,7 @@ function App() {
                   postScheduledAt:
                     status === "Scheduled" ? now : job.postScheduledAt,
                   postPublishedAt:
-                    status === "Simulated published" ? now : job.postPublishedAt,
+                    status === "Published" ? now : job.postPublishedAt,
                 }
               : job
           );
@@ -3070,22 +3077,6 @@ function App() {
         })
       );
 
-      if (status === "Simulated published") {
-        appendCustomerActivity(socialSourceContext.customerId, {
-          kind: "marketing",
-          title: "Social post approved",
-          note: `V3.3 prototype publish approved for ${channels.join(", ")}. No real provider post was sent.`,
-        });
-        recordWorkGoalAttempt({
-          key: `post:${socialSourceContext.customerId}:${socialSourceContext.jobId}`,
-          type: "post",
-          label: "Finished-job social post",
-          customerId: socialSourceContext.customerId,
-          jobId: socialSourceContext.jobId,
-          channels,
-          cost: 0,
-        });
-      }
     }
 
     return record;
@@ -3096,19 +3087,214 @@ function App() {
     if (record) go("socialDraftReview");
   };
 
-  const saveSocialDraftOnly = () => {
+  const buildSocialPublishPayload = async (record, ownerApproved = false) => {
+    const photos = [];
+    for (let index = 0; index < socialCreatePhotos.length; index += 1) {
+      const photo = socialCreatePhotos[index];
+      if (photo.storagePath) {
+        photos.push({
+          id: photo.id || `photo-${index + 1}`,
+          storagePath: photo.storagePath,
+          contentType: photo.contentType || photo.mimeType || "image/jpeg",
+        });
+      } else {
+        photos.push({
+          id: photo.id || `photo-${index + 1}`,
+          dataUrl: await busyPhotoToDataUrl(photo),
+        });
+      }
+    }
+
+    return {
+      clientDraftId: record.id,
+      sourceCustomerId: record.sourceCustomerId || "",
+      sourceJobId: record.sourceJobId || "",
+      sourceLabel: record.sourceLabel || "",
+      service: record.service || "",
+      caption: record.text || "",
+      channels: record.channels || [],
+      photos,
+      media: record.cloudMedia || [],
+      ownerApproved,
+      scheduledFor: ownerApproved ? socialScheduledForISO() : null,
+    };
+  };
+
+  const applyCloudSocialPost = (post, fallbackRecord = null) => {
+    if (!post?.client_draft_id) return null;
+    const now = new Date().toISOString();
+    const media = Array.isArray(post.media) ? post.media : [];
+    const previous =
+      socialDrafts.find((draft) => draft.id === post.client_draft_id) ||
+      fallbackRecord ||
+      {};
+    const next = {
+      ...previous,
+      id: post.client_draft_id,
+      cloudMedia: media,
+      status: post.status || previous.status || "Draft",
+      channels: Array.isArray(post.channels) ? post.channels : previous.channels || [],
+      lastPublishError: post.last_error || "",
+      providerResults: post.provider_results || {},
+      publishedAt: post.published_at || previous.publishedAt || null,
+      scheduledAt: post.scheduled_for || previous.scheduledAt || null,
+      updatedAt: post.updated_at || now,
+    };
+
+    setSocialDrafts((items) => {
+      const found = items.some((draft) => draft.id === next.id);
+      return found
+        ? items.map((draft) => (draft.id === next.id ? next : draft))
+        : [...items, next];
+    });
+    setSelectedSocialDraftId(next.id);
+
+    if (media.length) {
+      setSocialCreatePhotos((items) =>
+        items.map((photo) => {
+          const cloud = media.find((item) => item.id === photo.id);
+          return cloud
+            ? {
+                ...photo,
+                storagePath: cloud.storagePath,
+                contentType: cloud.contentType || photo.mimeType || "image/jpeg",
+              }
+            : photo;
+        })
+      );
+    }
+
+    if (next.source === "job" && next.sourceCustomerId && next.sourceJobId) {
+      setCustomers((list) =>
+        list.map((customer) => {
+          if (customer.id !== next.sourceCustomerId) return customer;
+          return {
+            ...customer,
+            history: (customer.history || []).map((job) =>
+              job.id === next.sourceJobId
+                ? {
+                    ...job,
+                    postDraft: next.text || job.postDraft || "",
+                    postDraftStatus: next.status,
+                    postChannels: next.channels,
+                    postScheduledAt:
+                      next.status === "Scheduled"
+                        ? next.scheduledAt || now
+                        : job.postScheduledAt,
+                    postPublishedAt:
+                      next.status === "Published"
+                        ? next.publishedAt || now
+                        : job.postPublishedAt,
+                    postProviderResults: next.providerResults,
+                    postPublishError: next.lastPublishError,
+                  }
+                : job
+            ),
+          };
+        })
+      );
+
+      if (next.status === "Published" && previous.status !== "Published") {
+        appendCustomerActivity(next.sourceCustomerId, {
+          kind: "marketing",
+          title: "Social post published",
+          note: `Published through BUSY to ${(next.channels || []).join(", ")}.`,
+        });
+        recordWorkGoalAttempt({
+          key: `post:${next.sourceCustomerId}:${next.sourceJobId}`,
+          type: "post",
+          label: "Finished-job social post",
+          customerId: next.sourceCustomerId,
+          jobId: next.sourceJobId,
+          channels: next.channels || [],
+          cost: 0,
+        });
+      }
+    }
+
+    return next;
+  };
+
+  const saveSocialDraftOnly = async () => {
     const record = upsertSocialDraft("Draft");
-    if (record) go("socialMedia");
+    if (!record) return false;
+    setSocialPublishingLoading(true);
+    setSocialPublishingAction("save");
+    setSocialPublishingError("");
+    try {
+      const payload = await buildSocialPublishPayload(record, false);
+      const data = await socialPublishRequest("save_draft", payload);
+      applyCloudSocialPost(data.post, record);
+      await refreshSocialPublishingStatus({ quiet: true });
+      go("socialMedia");
+      return true;
+    } catch (error) {
+      setSocialPublishingError(error?.message || "BUSY could not save this draft to the publishing queue.");
+      Alert.alert("Draft saved on this phone", error?.message || "BUSY could not sync the cloud draft.");
+      return false;
+    } finally {
+      setSocialPublishingLoading(false);
+      setSocialPublishingAction("");
+    }
   };
 
-  const scheduleSocialDraft = () => {
-    const record = upsertSocialDraft("Scheduled");
-    if (record) go("socialMedia");
+  const scheduleSocialDraft = async () => {
+    const record = upsertSocialDraft("Draft");
+    if (!record) return false;
+    const scheduledFor = socialScheduledForISO();
+    if (!scheduledFor || new Date(scheduledFor).getTime() <= Date.now()) {
+      Alert.alert("Choose a future time", "Scheduled posts need a date and time in the future.");
+      return false;
+    }
+    setSocialPublishingLoading(true);
+    setSocialPublishingAction("schedule");
+    setSocialPublishingError("");
+    try {
+      const payload = await buildSocialPublishPayload(record, true);
+      payload.scheduledFor = scheduledFor;
+      const data = await socialPublishRequest("schedule", payload);
+      applyCloudSocialPost(data.post, record);
+      await refreshSocialPublishingStatus({ quiet: true });
+      go("socialMedia");
+      return true;
+    } catch (error) {
+      setSocialPublishingError(error?.message || "BUSY could not schedule this post.");
+      Alert.alert("Could not schedule", error?.message || "BUSY could not schedule this post.");
+      return false;
+    } finally {
+      setSocialPublishingLoading(false);
+      setSocialPublishingAction("");
+    }
   };
 
-  const approveSocialDraft = () => {
-    const record = upsertSocialDraft("Simulated published");
-    if (record) go("socialMedia");
+  const approveSocialDraft = async () => {
+    const record = upsertSocialDraft("Draft");
+    if (!record) return false;
+    setSocialPublishingLoading(true);
+    setSocialPublishingAction("publish");
+    setSocialPublishingError("");
+    try {
+      const payload = await buildSocialPublishPayload(record, true);
+      payload.scheduledFor = null;
+      const data = await socialPublishRequest("publish_now", payload);
+      applyCloudSocialPost(data.post, record);
+      await refreshSocialPublishingStatus({ quiet: true });
+      go("socialMedia");
+      return true;
+    } catch (error) {
+      const serverPost = error?.payload?.post;
+      if (serverPost) applyCloudSocialPost(serverPost, record);
+      setSocialPublishingError(error?.message || "BUSY could not publish this post.");
+      await refreshSocialPublishingStatus({ quiet: true });
+      Alert.alert(
+        "Publishing not live yet",
+        error?.message || "BUSY could not publish this post."
+      );
+      return false;
+    } finally {
+      setSocialPublishingLoading(false);
+      setSocialPublishingAction("");
+    }
   };
 
   const openSocialDraft = (id) => {
