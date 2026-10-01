@@ -7805,6 +7805,7 @@ function HomeScreen({ s }) {
       <Button label="I NEED MORE WORK" primary={!bestMove && !s.inboxPendingItems.length} onPress={() => s.go("workNow")} />
       <Button label="Open work hub" primary={!s.inboxPendingItems.length && !!bestMove} onPress={() => s.jump("workHub", "Work")} />
       <Button label="Customer records" onPress={() => s.go("customerRecords")} />
+      <Button label="Social Media Centre" onPress={s.openSocialCentre} />
       <Button label="Update my business data" onPress={() => s.go("businessData")} />
     </Shell>
   );
@@ -13038,6 +13039,543 @@ function OfferRunning({ s }) {
 }
 
 
+function SocialMediaCentre({ s }) {
+  const drafts = [...(s.socialDrafts || [])].sort((a, b) =>
+    String(b.updatedAt || b.createdAt || "").localeCompare(
+      String(a.updatedAt || a.createdAt || "")
+    )
+  );
+  const jobs = (s.socialJobOpportunities || []).slice(0, 6);
+  const connectedCount =
+    Number(!!s.connectedAccounts.meta) +
+    Number(!!s.connectedAccounts.googleBusiness);
+
+  return (
+    <Shell
+      s={s}
+      title="Social media"
+      subtitle="Create useful content from work you already did, keep drafts together and learn from business outcomes rather than vanity activity."
+      brandCue="Real work in. Useful content out. Owner approval stays in control."
+    >
+      <Card
+        eyebrow="V3.3 • Social Media Centre"
+        title="Create from real jobs or photos on your phone"
+        body="BUSY can analyse selected photos, recognise a likely before/after story, prepare several caption options and keep the result as a draft, scheduled item or approved prototype post."
+        footer="Nothing is published publicly without approval"
+        tone="green"
+      >
+        <MetricRow left="Drafts" right={String(s.socialDraftCount)} />
+        <MetricRow left="Scheduled in BUSY" right={String(s.socialScheduledCount)} />
+        <MetricRow left="Approved prototype posts" right={String(s.socialApprovedCount)} />
+        <MetricRow left="Publishing connections selected" right={String(connectedCount)} />
+      </Card>
+
+      <Button label="Create something from my phone photos" primary onPress={s.startSocialFromPhone} />
+
+      {jobs.length ? (
+        <>
+          <Text style={styles.sectionLabel}>Create from completed work</Text>
+          {jobs.map(({ customer, job }) => {
+            const reusable = (job.photos || []).filter((photo) => photo.marketingOk).length;
+            return (
+              <Pressable
+                key={`${customer.id}-${job.id}`}
+                onPress={() => s.startSocialFromJob(customer.id, job.id)}
+                style={styles.activityCard}
+              >
+                <View style={styles.activityTopRow}>
+                  <View style={{ flex: 1, paddingRight: 10 }}>
+                    <Text style={styles.activityName}>{job.service || customer.service}</Text>
+                    <Text style={styles.activityService}>
+                      {job.date ? formatUKDate(job.date) : "Completed job"} • {reusable} reusable photo{reusable === 1 ? "" : "s"}
+                    </Text>
+                  </View>
+                  <StatusChip
+                    label={job.postDraftStatus === "Simulated published" ? "Used" : "Ready"}
+                    tone={job.postDraftStatus === "Simulated published" ? "blue" : "green"}
+                  />
+                </View>
+                <Text style={styles.activitySummary}>
+                  BUSY can analyse these approved job photos without adding the customer's name or address to the public caption.
+                </Text>
+                <Text style={styles.activityOpen}>Create content →</Text>
+              </Pressable>
+            );
+          })}
+        </>
+      ) : (
+        <Card
+          eyebrow="Completed-job content"
+          title="No reusable job photos yet"
+          body="Complete a job, attach photos and allow BUSY to suggest those selected photos for marketing. They will then appear here."
+          tone="blue"
+        />
+      )}
+
+      <Text style={styles.sectionLabel}>Drafts & schedule</Text>
+      {drafts.length ? (
+        drafts.slice(0, 8).map((draft) => (
+          <Pressable
+            key={draft.id}
+            onPress={() => s.openSocialDraft(draft.id)}
+            style={styles.activityCard}
+          >
+            <View style={styles.activityTopRow}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={styles.activityName}>{draft.service || "Social post"}</Text>
+                <Text style={styles.activityService}>
+                  {draft.sourceLabel || "Selected photos"} • {(draft.channels || []).join(", ") || "No destination chosen"}
+                </Text>
+              </View>
+              <StatusChip
+                label={draft.status || "Draft"}
+                tone={draft.status === "Simulated published" ? "green" : draft.status === "Scheduled" ? "blue" : "amber"}
+              />
+            </View>
+            <Text numberOfLines={3} style={styles.activitySummary}>{draft.text}</Text>
+            {draft.status === "Scheduled" ? (
+              <Text style={styles.activityOpen}>
+                Scheduled {formatUKDate(draft.scheduleDate)} • {draft.scheduleTime}
+              </Text>
+            ) : (
+              <Text style={styles.activityOpen}>Open draft →</Text>
+            )}
+          </Pressable>
+        ))
+      ) : (
+        <Card
+          eyebrow="No drafts yet"
+          title="Your content queue is empty"
+          body="Create from phone photos or a completed job. BUSY will keep the generated wording and selected destinations here."
+          tone="blue"
+        />
+      )}
+
+      <Card
+        eyebrow="BUSY Business Brain"
+        title={
+          (s.postEvidence?.sample || 0) >= 3
+            ? "Your own post outcomes are starting to influence BUSY"
+            : "Learning cautiously until your business has enough evidence"
+        }
+        body="BUSY keeps owner rules separate from observed patterns. Small samples stay low-confidence, and your own business outcomes gradually matter more than generic assumptions."
+        footer={
+          s.latestPostEvidenceAt
+            ? `Latest social outcome evidence: ${formatUKDate(String(s.latestPostEvidenceAt).slice(0, 10))}`
+            : "No social outcome evidence recorded yet"
+        }
+        tone={(s.postEvidence?.sample || 0) >= 3 ? "green" : "blue"}
+      >
+        <MetricRow left="Finished-job post outcomes" right={String(s.postEvidence?.sample || 0)} />
+        <MetricRow left="Outcomes marked booking" right={String(s.postEvidence?.successes || 0)} />
+        <MetricRow left="Evidence confidence" right={s.postEvidence?.confidence || "No evidence yet"} />
+        <MetricRow left="Owner rules" right={String(s.businessBrainRules?.length || 0)} />
+        <Button label="Open Business Brain" onPress={() => s.go("businessBrain")} />
+      </Card>
+
+      <Button label="Connected accounts" onPress={() => s.go("connectedAccounts")} />
+      <Button label="Back" onPress={s.back} />
+    </Shell>
+  );
+}
+
+function SocialCreator({ s }) {
+  const result = s.socialAiResult;
+  const photos = s.socialCreatePhotos || [];
+  const analysing = s.socialAiStatus === "analysing";
+  const ready = s.socialAiStatus === "ready" && !!result;
+
+  return (
+    <Shell
+      s={s}
+      title="Create social content"
+      subtitle={s.socialSourceContext?.label || "Selected photos"}
+      brandCue="BUSY looks only at the photos you deliberately select."
+    >
+      <Card
+        eyebrow="Source"
+        title={s.socialSourceContext?.type === "job" ? "Completed job photos" : "Photos from your phone"}
+        body={
+          s.socialSourceContext?.type === "job"
+            ? "These are photos already attached to a completed job and approved for marketing suggestions. Private customer details are not intentionally added to the caption."
+            : "Choose up to six photos. BUSY can look for a before/after pair, a finished result, work-in-progress or another useful story."
+        }
+        tone="green"
+      />
+
+      <Button
+        label={photos.length ? `Choose more photos • ${photos.length}/6` : "Choose photos"}
+        primary={!photos.length}
+        disabled={photos.length >= 6 || analysing}
+        onPress={s.chooseSocialPhotos}
+      />
+
+      {photos.length ? (
+        <View style={styles.photoGrid}>
+          {photos.map((photo) => (
+            <View key={photo.id || photo.uri} style={styles.photoTile}>
+              <Image source={{ uri: photo.uri }} style={styles.photoImage} />
+              <Pressable
+                disabled={analysing}
+                onPress={() => s.removeSocialPhoto(photo.id)}
+                style={styles.photoRemove}
+              >
+                <Text style={styles.photoRemoveText}>Remove</Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      ) : null}
+
+      <Text style={styles.fieldLabel}>Anything BUSY should know? (optional)</Text>
+      <TextInput
+        multiline
+        value={s.socialBrief}
+        onChangeText={s.setSocialBrief}
+        placeholder="e.g. This was a heavily stained driveway. Keep the wording simple and local."
+        placeholderTextColor="#9AA3B2"
+        style={styles.messageInput}
+      />
+
+      <Button
+        label={analysing ? "BUSY is looking at the photos…" : ready ? "Analyse again" : "Create with BUSY AI"}
+        primary
+        disabled={!photos.length || analysing}
+        onPress={s.runSocialContentAI}
+      />
+
+      {s.socialAiStatus === "error" ? (
+        <Card
+          eyebrow="Social AI"
+          title="BUSY could not create the content"
+          body={s.socialAiError || "The analysis did not complete."}
+          footer="Nothing was saved or published"
+          tone="amber"
+        />
+      ) : null}
+
+      {ready ? (
+        <>
+          <Card
+            eyebrow="BUSY saw"
+            title={result.summary || socialStoryLabel(result.story?.type)}
+            body={result.story?.reason || "BUSY analysed the selected photos as one content set."}
+            footer={`${socialStoryLabel(result.story?.type)} • confidence ${result.story?.confidence || "Low"}`}
+            tone={result.privacyWarnings?.length ? "amber" : "green"}
+          >
+            <MetricRow left="Detected service" right={result.detectedService || "Not certain"} />
+            {result.story?.type === "before_after" ? (
+              <MetricRow left="Before / after pairing" right="Detected" strong />
+            ) : null}
+          </Card>
+
+          {result.privacyWarnings?.length ? (
+            <Card
+              eyebrow="Privacy check"
+              title="Check these before anything goes public"
+              body={result.privacyWarnings.join(" • ")}
+              footer="BUSY has not published anything"
+              tone="amber"
+            />
+          ) : null}
+
+          <Text style={styles.sectionLabel}>Choose the wording</Text>
+          {(result.captions || []).map((caption) => (
+            <Choice
+              key={caption.id}
+              label={caption.label}
+              sub={`${caption.text}\n\nWhy this option: ${caption.reason}`}
+              selected={s.socialCaptionId === caption.id}
+              onPress={() => s.applySocialCaption(caption)}
+            />
+          ))}
+
+          <Text style={styles.fieldLabel}>Your final wording</Text>
+          <TextInput
+            multiline
+            value={s.socialDraftText}
+            onChangeText={s.setSocialDraftText}
+            style={styles.messageInput}
+            placeholder="Edit the caption before saving"
+            placeholderTextColor="#9AA3B2"
+          />
+
+          <Button
+            label="Save draft & review"
+            primary
+            disabled={!s.socialDraftText.trim()}
+            onPress={s.saveGeneratedSocialDraft}
+          />
+        </>
+      ) : null}
+
+      <Button label="Back to Social Media Centre" onPress={() => s.go("socialMedia")} />
+    </Shell>
+  );
+}
+
+function SocialDraftReview({ s }) {
+  const photos = s.socialCreatePhotos || [];
+  const warnings = s.socialAiResult?.privacyWarnings || [];
+  const hasMeta = !!s.connectedAccounts.meta;
+  const hasGoogle = !!s.connectedAccounts.googleBusiness;
+  const selectedCount =
+    Number(!!s.socialDraftChannels.facebook) +
+    Number(!!s.socialDraftChannels.instagram) +
+    Number(!!s.socialDraftChannels.googleBusiness);
+
+  return (
+    <Shell
+      s={s}
+      title="Review social draft"
+      subtitle="Edit the wording, choose destinations and decide whether to leave it as a draft, schedule it or approve the prototype publish."
+      brandCue="Preparation can be automatic. Going public is a separate decision."
+    >
+      <Card
+        eyebrow="Prepared content"
+        title={s.socialSourceContext?.service || s.socialAiResult?.detectedService || "Social post"}
+        body={s.socialAiResult?.story?.reason || "Prepared from selected business photos."}
+        footer={s.socialSourceContext?.label || "Selected photos"}
+        tone={warnings.length ? "amber" : "green"}
+      >
+        <MetricRow left="Photos" right={String(photos.length)} />
+        <MetricRow left="Content type" right={socialStoryLabel(s.socialAiResult?.story?.type)} />
+        <MetricRow left="Privacy warnings" right={String(warnings.length)} strong={warnings.length > 0} />
+      </Card>
+
+      {photos.length ? (
+        <View style={styles.photoGrid}>
+          {photos.slice(0, 6).map((photo) => (
+            <View key={photo.id || photo.uri} style={styles.photoTile}>
+              <Image source={{ uri: photo.uri }} style={styles.photoImage} />
+            </View>
+          ))}
+        </View>
+      ) : null}
+
+      {warnings.length ? (
+        <Card
+          eyebrow="Check before approval"
+          title="The photos may contain private detail"
+          body={warnings.join(" • ")}
+          tone="amber"
+        />
+      ) : null}
+
+      <Text style={styles.fieldLabel}>Caption</Text>
+      <TextInput
+        multiline
+        value={s.socialDraftText}
+        onChangeText={s.setSocialDraftText}
+        style={styles.messageInput}
+        placeholder="Post wording"
+        placeholderTextColor="#9AA3B2"
+      />
+
+      <Text style={styles.sectionLabel}>Where should it go?</Text>
+      {hasMeta ? (
+        <>
+          <ToggleRow
+            title="Facebook"
+            body="Prepared for the selected Facebook / Instagram connection."
+            value={!!s.socialDraftChannels.facebook}
+            onValueChange={() => s.toggleSocialDraftChannel("facebook")}
+          />
+          <ToggleRow
+            title="Instagram"
+            body="Prepared for the selected Facebook / Instagram connection."
+            value={!!s.socialDraftChannels.instagram}
+            onValueChange={() => s.toggleSocialDraftChannel("instagram")}
+          />
+        </>
+      ) : null}
+      {hasGoogle ? (
+        <ToggleRow
+          title="Google Business"
+          body="Prepared for the selected Google Business connection."
+          value={!!s.socialDraftChannels.googleBusiness}
+          onValueChange={() => s.toggleSocialDraftChannel("googleBusiness")}
+        />
+      ) : null}
+      {!hasMeta && !hasGoogle ? (
+        <Card
+          eyebrow="No social connection selected"
+          title="You can still save the draft"
+          body="Choose a publishing connection before scheduling or approving it. V3.3 still does not send a real provider post."
+          tone="amber"
+        >
+          <Button label="Connected accounts" onPress={() => s.go("connectedAccounts")} />
+        </Card>
+      ) : null}
+
+      <Text style={styles.sectionLabel}>Simple schedule</Text>
+      <DatePickerField
+        label="Post date"
+        value={s.socialScheduleDate}
+        onChange={s.setSocialScheduleDate}
+        allowFuture
+        minimumDate={dateToISO(new Date())}
+      />
+      <Field
+        label="Post time"
+        value={s.socialScheduleTime}
+        onChangeText={s.setSocialScheduleTime}
+        placeholder="19:00"
+      />
+
+      <Card
+        eyebrow="Prototype boundary"
+        title="Scheduling is stored in BUSY, not sent to a real social network yet"
+        body="This lets us build and test the correct owner workflow before live provider publishing is connected."
+        footer="No public action happens automatically"
+        tone="blue"
+      />
+
+      <Button label="Save as draft" onPress={s.saveSocialDraftOnly} />
+      <Button
+        label={selectedCount ? "Schedule in BUSY" : "Choose a destination to schedule"}
+        disabled={!selectedCount || !s.socialDraftText.trim()}
+        onPress={s.scheduleSocialDraft}
+      />
+      <Button
+        label={selectedCount ? "Approve simulated publish" : "Choose a destination to approve"}
+        primary
+        disabled={!selectedCount || !s.socialDraftText.trim()}
+        onPress={s.approveSocialDraft}
+      />
+      <Button label="Back to Social Media Centre" onPress={() => s.go("socialMedia")} />
+    </Shell>
+  );
+}
+
+function BusinessBrain({ s }) {
+  const channels = s.socialChannelEvidence || [];
+  const sample = s.postEvidence?.sample || 0;
+  const evidenceTone = sample >= 6 ? "green" : sample >= 3 ? "blue" : "amber";
+
+  return (
+    <Shell
+      s={s}
+      title="Business Brain"
+      subtitle="What BUSY knows because the owner told it, what it has observed, and how confident that evidence really is."
+      brandCue="Your business evidence first. Generic assumptions fade as real evidence grows."
+    >
+      <Card
+        eyebrow="Three different kinds of knowledge"
+        title="Owner rules outrank learned patterns"
+        body="A hard rule you set is different from an observed tendency, and both are different from temporary current state. BUSY keeps those categories separate instead of silently turning guesses into rules."
+        tone="green"
+      >
+        <MetricRow left="Owner-set rules" right={String(s.businessBrainRules?.length || 0)} />
+        <MetricRow left="Recorded post outcomes" right={String(sample)} />
+        <MetricRow left="Current evidence confidence" right={s.postEvidence?.confidence || "No evidence yet"} />
+      </Card>
+
+      <Card
+        eyebrow="Social content evidence"
+        title={
+          sample >= 3
+            ? "BUSY can start using your own content outcomes cautiously"
+            : "Not enough evidence to learn a strong content pattern yet"
+        }
+        body={
+          sample
+            ? "These are owner-recorded business outcomes linked to finished-job posts. BUSY does not treat likes or reach as proof of booked work."
+            : "As posts gain recorded enquiry, quote or booking outcomes, this section will become specific to this business."
+        }
+        footer={
+          s.latestPostEvidenceAt
+            ? `Last updated from outcome evidence: ${formatUKDate(String(s.latestPostEvidenceAt).slice(0, 10))}`
+            : "No outcome evidence date yet"
+        }
+        tone={evidenceTone}
+      >
+        <MetricRow left="Sample" right={String(sample)} />
+        <MetricRow left="Bookings" right={String(s.postEvidence?.successes || 0)} />
+        <MetricRow
+          left="Observed booking rate"
+          right={
+            s.postEvidence?.observedRate === null || s.postEvidence?.observedRate === undefined
+              ? "Not enough data"
+              : formatPercent(s.postEvidence.observedRate)
+          }
+        />
+        <MetricRow left="Confidence" right={s.postEvidence?.confidence || "No evidence yet"} />
+      </Card>
+
+      <Text style={styles.sectionLabel}>Evidence by destination</Text>
+      {channels.map((item) => (
+        <Card
+          key={item.channel}
+          eyebrow={item.channel}
+          title={
+            item.sample
+              ? `${item.successes} booking outcome${item.successes === 1 ? "" : "s"} from ${item.sample} recorded result${item.sample === 1 ? "" : "s"}`
+              : "No recorded outcome evidence yet"
+          }
+          body={
+            item.sample < 3
+              ? "BUSY will not make a strong channel conclusion from this sample."
+              : "This is enough to begin influencing recommendations gently, but it still does not prove causation."
+          }
+          footer={`Confidence: ${item.confidence}`}
+          tone={item.sample >= 3 ? "blue" : "amber"}
+        >
+          <MetricRow
+            left="Observed booking rate"
+            right={
+              item.observedRate === null || item.observedRate === undefined
+                ? "Not enough data"
+                : formatPercent(item.observedRate)
+            }
+          />
+        </Card>
+      ))}
+
+      <Text style={styles.sectionLabel}>Teach BUSY a hard rule</Text>
+      <Card
+        eyebrow="Owner rule"
+        title="Rules you set are not AI guesses"
+        body="Examples: don't recommend roof cleaning in winter; don't travel over 20 miles for jobs under £200; never use customer faces in social posts."
+        footer="Keep rules short and specific"
+        tone="blue"
+      />
+      <TextInput
+        multiline
+        value={s.businessBrainRuleDraft}
+        onChangeText={s.setBusinessBrainRuleDraft}
+        placeholder="Type a rule BUSY should respect…"
+        placeholderTextColor="#9AA3B2"
+        style={styles.messageInput}
+      />
+      <Button
+        label="Save owner rule"
+        primary
+        disabled={!s.businessBrainRuleDraft.trim()}
+        onPress={s.saveBusinessBrainRule}
+      />
+
+      {(s.businessBrainRules || []).map((rule) => (
+        <View key={rule.id} style={styles.activityCard}>
+          <View style={styles.activityTopRow}>
+            <View style={{ flex: 1, paddingRight: 10 }}>
+              <Text style={styles.activityName}>{rule.text}</Text>
+              <Text style={styles.activityService}>Owner-set • highest authority</Text>
+            </View>
+            <StatusChip label="Rule" tone="green" />
+          </View>
+          <Pressable onPress={() => s.removeBusinessBrainRule(rule.id)} style={styles.removeCustomerWrap}>
+            <Text style={styles.removeCustomerText}>Remove rule</Text>
+          </Pressable>
+        </View>
+      ))}
+
+      <Button label="Back to Social Media Centre" onPress={() => s.go("socialMedia")} />
+    </Shell>
+  );
+}
+
+
 function Results({ s }) {
   const actions = Object.entries(s.replyActions || {});
   const quoteActions = actions.filter(([, action]) => action?.type === "quote" && action?.done);
@@ -13197,6 +13735,8 @@ function Results({ s }) {
         })}
 
       <Button label="Open customer pipeline" primary onPress={() => s.go("workPipeline")} />
+      <Button label="Open Social Media Centre" onPress={s.openSocialCentre} />
+      <Button label="Open Business Brain" onPress={() => s.go("businessBrain")} />
       {s.completedBookingCount ? <Button label="Open work diary" onPress={() => s.go("bookings")} /> : null}
       {Object.keys(s.replyActions || {}).length ? (
         <Button label="View all customer activity" onPress={() => s.go("customerActivity")} />
@@ -13335,6 +13875,8 @@ function Settings({ s }) {
         <Button label="Customer activity" onPress={() => s.go("customerActivity")} />
       ) : null}
       <Button label="Business profile & opportunity data" onPress={() => s.go("businessData")} />
+      <Button label="Social Media Centre" onPress={s.openSocialCentre} />
+      <Button label="Business Brain" onPress={() => s.go("businessBrain")} />
       <Button label="Change limits" onPress={() => s.go("settingsLimits")} />
       <Button label="Automatic record filing" onPress={() => s.go("recordFilingSettings")} />
       <Button label="Connected accounts" onPress={() => s.go("connectedAccounts")} />
@@ -13743,6 +14285,10 @@ const screens = {
   offerBuild: OfferBuild,
   offerPlan: OfferPlan,
   offerRunning: OfferRunning,
+  socialMedia: SocialMediaCentre,
+  socialCreator: SocialCreator,
+  socialDraftReview: SocialDraftReview,
+  businessBrain: BusinessBrain,
   results: Results,
   resultDetails: ResultDetails,
   updateOutcome: UpdateOutcome,
