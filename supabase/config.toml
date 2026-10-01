@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.busy-social-content]
 verify_jwt = false
+
+[functions.busy-social-publish]
+verify_jwt = false
