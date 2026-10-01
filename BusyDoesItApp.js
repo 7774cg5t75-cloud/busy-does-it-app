@@ -14108,21 +14108,32 @@ function SocialCreator({ s }) {
 }
 
 function SocialDraftReview({ s }) {
+  useEffect(() => {
+    s.refreshSocialPublishingStatus({ quiet: true });
+  }, []);
+
   const photos = s.socialCreatePhotos || [];
   const warnings = s.socialAiResult?.privacyWarnings || [];
-  const hasMeta = !!s.connectedAccounts.meta;
-  const hasGoogle = !!s.connectedAccounts.googleBusiness;
+  const publish = s.socialPublishingStatus || {};
+  const meta = publish.connections?.meta || { status: "not_connected" };
+  const google = publish.connections?.google_business || { status: "not_connected" };
+  const hasMeta = meta.status === "connected";
+  const hasGoogle = google.status === "connected";
+  const liveEnabled = !!publish.credentials?.livePublishingEnabled;
   const selectedCount =
     Number(!!s.socialDraftChannels.facebook) +
     Number(!!s.socialDraftChannels.instagram) +
     Number(!!s.socialDraftChannels.googleBusiness);
+  const selectedDraft =
+    (s.socialDrafts || []).find((draft) => draft.id === s.selectedSocialDraftId) || null;
+  const busy = !!s.socialPublishingLoading;
 
   return (
     <Shell
       s={s}
-      title="Review social draft"
-      subtitle="Edit the wording, choose destinations and decide whether to leave it as a draft, schedule it or approve the prototype publish."
-      brandCue="Preparation can be automatic. Going public is a separate decision."
+      title="Review social post"
+      subtitle="Edit the wording, choose real destinations and decide whether to keep it as a draft, schedule it or publish it."
+      brandCue="Preparation can be automatic. Public action still needs explicit owner approval."
     >
       <Card
         eyebrow="Prepared content"
@@ -14134,6 +14145,11 @@ function SocialDraftReview({ s }) {
         <MetricRow left="Photos" right={String(photos.length)} />
         <MetricRow left="Content type" right={socialStoryLabel(s.socialAiResult?.story?.type)} />
         <MetricRow left="Privacy warnings" right={String(warnings.length)} strong={warnings.length > 0} />
+        <MetricRow
+          left="Cloud media"
+          right={selectedDraft?.cloudMedia?.length ? "Uploaded" : "Not uploaded yet"}
+          strong={!!selectedDraft?.cloudMedia?.length}
+        />
       </Card>
 
       {photos.length ? (
@@ -14151,6 +14167,7 @@ function SocialDraftReview({ s }) {
           eyebrow="Check before approval"
           title="The photos may contain private detail"
           body={warnings.join(" • ")}
+          footer="BUSY will not remove or hide these details for you automatically"
           tone="amber"
         />
       ) : null}
@@ -14170,38 +14187,49 @@ function SocialDraftReview({ s }) {
         <>
           <ToggleRow
             title="Facebook"
-            body="Prepared for the selected Facebook / Instagram connection."
+            body={meta.pageName ? `Connected Page: ${meta.pageName}` : "Connected through Meta"}
             value={!!s.socialDraftChannels.facebook}
             onValueChange={() => s.toggleSocialDraftChannel("facebook")}
           />
-          <ToggleRow
-            title="Instagram"
-            body="Prepared for the selected Facebook / Instagram connection."
-            value={!!s.socialDraftChannels.instagram}
-            onValueChange={() => s.toggleSocialDraftChannel("instagram")}
-          />
+          {meta.instagramUserId ? (
+            <ToggleRow
+              title="Instagram"
+              body={meta.instagramUsername ? `Connected: @${meta.instagramUsername}` : "Connected professional Instagram account"}
+              value={!!s.socialDraftChannels.instagram}
+              onValueChange={() => s.toggleSocialDraftChannel("instagram")}
+            />
+          ) : (
+            <Card
+              eyebrow="Instagram"
+              title="No professional Instagram account found on this Meta connection"
+              body="Facebook can still be used. Connect/select a Page with an Instagram professional account to publish to Instagram."
+              tone="blue"
+            />
+          )}
         </>
       ) : null}
+
       {hasGoogle ? (
         <ToggleRow
           title="Google Business"
-          body="Prepared for the selected Google Business connection."
+          body={google.googleLocationTitle ? `Connected location: ${google.googleLocationTitle}` : "Connected Google Business location"}
           value={!!s.socialDraftChannels.googleBusiness}
           onValueChange={() => s.toggleSocialDraftChannel("googleBusiness")}
         />
       ) : null}
+
       {!hasMeta && !hasGoogle ? (
         <Card
-          eyebrow="No social connection selected"
-          title="You can still save the draft"
-          body="Choose a publishing connection before scheduling or approving it. V3.3 still does not send a real provider post."
+          eyebrow="No live publishing connection"
+          title="You can still save this as a cloud-backed draft"
+          body="Connect Facebook / Instagram or Google Business before scheduling or publishing to a real provider."
           tone="amber"
         >
-          <Button label="Connected accounts" onPress={() => s.go("connectedAccounts")} />
+          <Button label="Manage publishing connections" onPress={() => s.go("connectedAccounts")} />
         </Card>
       ) : null}
 
-      <Text style={styles.sectionLabel}>Simple schedule</Text>
+      <Text style={styles.sectionLabel}>Schedule</Text>
       <DatePickerField
         label="Post date"
         value={s.socialScheduleDate}
@@ -14217,25 +14245,59 @@ function SocialDraftReview({ s }) {
       />
 
       <Card
-        eyebrow="Prototype boundary"
-        title="Scheduling is stored in BUSY, not sent to a real social network yet"
-        body="This lets us build and test the correct owner workflow before live provider publishing is connected."
-        footer="No public action happens automatically"
-        tone="blue"
+        eyebrow="Publishing safety"
+        title={liveEnabled ? "Live provider publishing is enabled on the server" : "Live provider publishing is still server-disabled"}
+        body={
+          liveEnabled
+            ? "An approved Publish now action can call the selected providers. A scheduled post will be picked up by the server when its time arrives."
+            : "The real publishing code and scheduler are in place, but the final server switch remains off until provider credentials and owner authentication are ready. You can still save and test the cloud schedule."
+        }
+        footer="No post is sent merely because AI created it"
+        tone={liveEnabled ? "green" : "amber"}
       />
 
-      <Button label="Save as draft" onPress={s.saveSocialDraftOnly} />
+      {selectedDraft?.lastPublishError ? (
+        <Card
+          eyebrow="Last publishing result"
+          title={selectedDraft.status || "Needs attention"}
+          body={selectedDraft.lastPublishError}
+          tone="amber"
+        />
+      ) : null}
+
       <Button
-        label={selectedCount ? "Schedule in BUSY" : "Choose a destination to schedule"}
-        disabled={!selectedCount || !s.socialDraftText.trim()}
+        label={busy && s.socialPublishingAction === "save" ? "Saving to cloud…" : "Save cloud-backed draft"}
+        disabled={busy || !s.socialDraftText.trim()}
+        onPress={s.saveSocialDraftOnly}
+      />
+      <Button
+        label={
+          !selectedCount
+            ? "Choose a connected destination to schedule"
+            : busy && s.socialPublishingAction === "schedule"
+            ? "Scheduling…"
+            : liveEnabled
+            ? "Schedule real post"
+            : "Schedule in cloud queue"
+        }
+        disabled={busy || !selectedCount || !s.socialDraftText.trim()}
         onPress={s.scheduleSocialDraft}
       />
       <Button
-        label={selectedCount ? "Approve simulated publish" : "Choose a destination to approve"}
-        primary
-        disabled={!selectedCount || !s.socialDraftText.trim()}
+        label={
+          !selectedCount
+            ? "Choose a connected destination to publish"
+            : busy && s.socialPublishingAction === "publish"
+            ? "Publishing…"
+            : liveEnabled
+            ? "Approve & publish now"
+            : "Live publishing setup not finished"
+        }
+        primary={liveEnabled && selectedCount > 0}
+        disabled={busy || !selectedCount || !s.socialDraftText.trim() || !liveEnabled}
         onPress={s.approveSocialDraft}
       />
+      <Button label="Refresh provider status" onPress={s.refreshSocialPublishingStatus} disabled={busy} />
       <Button label="Back to Social Media Centre" onPress={() => s.go("socialMedia")} />
     </Shell>
   );
