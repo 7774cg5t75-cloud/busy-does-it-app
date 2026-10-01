@@ -2,6 +2,32 @@
 
 Busy Does It mobile app prototype.
 
+## v3.5 Live social publishing + scheduling
+- Replaced the simulated social-publishing boundary with a real server-side publishing architecture while keeping live external posting deliberately disabled until provider credentials and stronger owner authentication are complete.
+- Added the `busy-social-publish` Supabase Edge Function for Meta and Google Business Profile OAuth, provider connection health, cloud drafts, media upload, scheduling, publishing, provider receipts and error handling.
+- Added server-side OAuth state handling so Facebook / Instagram and Google Business authorization callbacks return directly to BUSY's Supabase backend. Provider tokens never enter the mobile app.
+- Meta support is designed for an authorized Facebook Page and its linked Instagram professional account. BUSY can discover available Pages, require an owner selection when multiple Pages exist, and retain the selected Page / Instagram account server-side.
+- Google Business support is designed to discover authorized accounts and locations, require a location selection when needed, refresh Google access tokens server-side and retain the selected location.
+- Added private Supabase Storage bucket `busy-social-media`. Selected post photos are uploaded privately and fresh signed URLs are generated only when a provider needs to fetch the media.
+- Added cloud publishing tables for provider connections, OAuth states and social posts. All three tables have RLS enabled plus explicit deny-all client policies; normal app clients cannot read provider tokens or publishing records directly.
+- Added a real publishing queue with statuses including Draft, Held for setup, Scheduled, Publishing, Published, Partial failure and Failed.
+- Added Postgres Cron + pg_net worker invocation once per minute. Only due posts that are explicitly owner-approved and genuinely Scheduled can be processed.
+- While live publishing is disabled, test schedules are stored as Held for setup with owner approval cleared. Enabling live publishing later cannot accidentally release an old test schedule; the owner must approve it again.
+- Added independent server-side destination checks. A stale or modified client cannot publish to Facebook / Instagram / Google Business unless the required provider account is genuinely connected; Instagram additionally requires a linked professional account.
+- Added provider-specific publishing receipts and errors to the original social post record so BUSY can show what each provider accepted or rejected.
+- Added a simple Social Media publishing calendar showing upcoming Scheduled or Held items and their selected destinations.
+- Rebuilt Social Media Centre connection health around real provider state rather than V3.4's prototype toggles.
+- Rebuilt post review so destinations appear only when genuinely connected. Generated AI recommendations cannot smuggle an unconnected destination into the publishing payload.
+- Cloud-backed drafts can be saved before a provider is connected. Media storage, caption, source job/customer link and provider status stay together.
+- Added queue synchronization back into local social drafts and completed-job records so Published / Failed / Scheduled state remains attached to the original business evidence.
+- Social publishing itself is not treated as proof of business value. The Business Brain continues to learn from recorded enquiries, quotes, bookings and value rather than vanity metrics.
+- Added `BUSY_LIVE_PUBLISHING=enabled` as an explicit server safety switch. It remains OFF in the current prototype.
+- Live outgoing publishing should not be enabled while the app is identified only by a public Supabase publishable key. Proper BUSY owner authentication is the remaining safety prerequisite before the external side-effect switch is turned on.
+- Meta developer credentials (`META_APP_ID`, `META_APP_SECRET`) and Google OAuth credentials (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`) are not configured yet. V3.5 shows that setup state honestly instead of pretending the accounts are connected.
+- Added Deno/backend validation for all three BUSY Edge Functions: AI Intake Brain, Social Content AI and Social Publishing.
+- Added explicit server-only database policies and verified the publishing endpoint with a live HTTP 200 smoke test.
+- Main navigation remains Home / Work / Results / Settings. V3.4 Operational Business Brain, V3.3 Social Media Centre, V3.2 AI Intake Brain and all existing approval/safety boundaries remain intact.
+
 ## v3.4 Operational Business Brain
 - Promoted the Business Brain from an evidence display into a live recommendation layer used by Home.
 - Added a Business Brain evidence ledger for previous-customer reactivation, quiet-enquiry follow-ups, quote follow-ups, finished-job social content and review requests.
