@@ -2680,9 +2680,12 @@ function App() {
   };
 
   const defaultJobPostChannels = () => ({
-    facebook: !!connectedAccounts.meta,
-    instagram: !!connectedAccounts.meta,
-    googleBusiness: !!connectedAccounts.googleBusiness,
+    facebook: socialPublishingStatus?.connections?.meta?.status === "connected",
+    instagram:
+      socialPublishingStatus?.connections?.meta?.status === "connected" &&
+      !!socialPublishingStatus?.connections?.meta?.instagramUserId,
+    googleBusiness:
+      socialPublishingStatus?.connections?.google_business?.status === "connected",
   });
 
   const socialPublishRequest = async (action, payload = {}) => {
@@ -2954,11 +2957,18 @@ function App() {
     setSocialCaptionId(caption.id);
     setSocialDraftText(caption.text || "");
     const recommended = new Set(caption.recommendedChannels || []);
+    const metaConnection = socialPublishingStatus?.connections?.meta || {};
+    const googleConnection = socialPublishingStatus?.connections?.google_business || {};
     setSocialDraftChannels({
-      facebook: !!connectedAccounts.meta && recommended.has("Facebook"),
-      instagram: !!connectedAccounts.meta && recommended.has("Instagram"),
+      facebook:
+        metaConnection.status === "connected" && recommended.has("Facebook"),
+      instagram:
+        metaConnection.status === "connected" &&
+        !!metaConnection.instagramUserId &&
+        recommended.has("Instagram"),
       googleBusiness:
-        !!connectedAccounts.googleBusiness && recommended.has("Google Business"),
+        googleConnection.status === "connected" &&
+        recommended.has("Google Business"),
     });
   };
 
@@ -3022,12 +3032,19 @@ function App() {
     setSocialDraftChannels((current) => ({ ...current, [key]: !current[key] }));
   };
 
-  const socialChannelNames = () =>
-    [
-      socialDraftChannels.facebook ? "Facebook" : null,
-      socialDraftChannels.instagram ? "Instagram" : null,
-      socialDraftChannels.googleBusiness ? "Google Business" : null,
+  const socialChannelNames = () => {
+    const metaConnected =
+      socialPublishingStatus?.connections?.meta?.status === "connected";
+    const instagramConnected =
+      metaConnected && !!socialPublishingStatus?.connections?.meta?.instagramUserId;
+    const googleConnected =
+      socialPublishingStatus?.connections?.google_business?.status === "connected";
+    return [
+      socialDraftChannels.facebook && metaConnected ? "Facebook" : null,
+      socialDraftChannels.instagram && instagramConnected ? "Instagram" : null,
+      socialDraftChannels.googleBusiness && googleConnected ? "Google Business" : null,
     ].filter(Boolean);
+  };
 
   const upsertSocialDraft = (status = "Draft") => {
     const text = socialDraftText.trim();
