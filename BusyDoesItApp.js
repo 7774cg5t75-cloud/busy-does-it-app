@@ -13,12 +13,15 @@ import {
   Image,
   Alert,
   Linking,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 
-const APP_VERSION = "3.6.1";
+const APP_VERSION = "3.6.2";
 const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Live Social Publishing`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
@@ -7610,14 +7613,40 @@ function BusyBrandLockup({ size = 38, centered = false }) {
 }
 
 function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack = false }) {
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const show = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      () => setKeyboardVisible(true)
+    );
+    const hide = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      () => setKeyboardVisible(false)
+    );
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+
   return (
     <View style={styles.shell}>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="interactive"
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoider}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={0}
       >
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[
+            styles.scrollContent,
+            keyboardVisible && styles.scrollContentKeyboard,
+          ]}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+        >
         <View style={styles.topRow}>
           <View style={{ flex: 1, paddingRight: 12 }}>
             <BusyBrandLockup size={36} />
@@ -7636,8 +7665,9 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
         {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
 
         {children}
-      </ScrollView>
-      {!noNav ? <BottomNav s={s} /> : null}
+        </ScrollView>
+      </KeyboardAvoidingView>
+      {!noNav && !keyboardVisible ? <BottomNav s={s} /> : null}
     </View>
   );
 }
@@ -14426,6 +14456,7 @@ function SocialCreator({ s }) {
             style={styles.messageInput}
             placeholder="Edit the caption before saving"
             placeholderTextColor="#9AA3B2"
+            textAlignVertical="top"
           />
 
           <Button
@@ -14515,6 +14546,7 @@ function SocialDraftReview({ s }) {
         style={styles.messageInput}
         placeholder="Post wording"
         placeholderTextColor="#9AA3B2"
+        textAlignVertical="top"
       />
 
       <Text style={styles.sectionLabel}>Where should it go?</Text>
@@ -15921,8 +15953,10 @@ const screens = {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.bg },
   shell: { flex: 1, backgroundColor: C.bg },
+  keyboardAvoider: { flex: 1 },
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 30 },
+  scrollContentKeyboard: { paddingBottom: 220 },
   topRow: {
     flexDirection: "row",
     alignItems: "flex-start",
