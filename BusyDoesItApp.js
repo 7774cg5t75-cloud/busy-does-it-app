@@ -21,7 +21,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 
-const APP_VERSION = "3.6.2";
+const APP_VERSION = "3.6.3";
 const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Live Social Publishing`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
@@ -3448,8 +3448,12 @@ function App() {
       channels: Array.isArray(post.channels) ? post.channels : previous.channels || [],
       lastPublishError: post.last_error || "",
       providerResults: post.provider_results || {},
-      publishedAt: post.published_at || previous.publishedAt || null,
-      scheduledAt: post.scheduled_for || previous.scheduledAt || null,
+      publishedAt: Object.prototype.hasOwnProperty.call(post, "published_at")
+        ? post.published_at
+        : previous.publishedAt || null,
+      scheduledAt: Object.prototype.hasOwnProperty.call(post, "scheduled_for")
+        ? post.scheduled_for
+        : previous.scheduledAt || null,
       updatedAt: post.updated_at || now,
     };
 
@@ -3607,6 +3611,123 @@ function App() {
       setSocialPublishingLoading(false);
       setSocialPublishingAction("");
     }
+  };
+
+  const removeLocalSocialDraft = (draft) => {
+    if (!draft?.id) return;
+    setSocialDrafts((items) => items.filter((item) => item.id !== draft.id));
+
+    if (draft.source === "job" && draft.sourceCustomerId && draft.sourceJobId) {
+      setCustomers((list) =>
+        list.map((customer) => {
+          if (customer.id !== draft.sourceCustomerId) return customer;
+          return {
+            ...customer,
+            history: (customer.history || []).map((job) =>
+              job.id === draft.sourceJobId
+                ? {
+                    ...job,
+                    postDraft: "",
+                    postDraftStatus: "",
+                    postChannels: [],
+                    postScheduledAt: null,
+                    postProviderResults: {},
+                    postPublishError: "",
+                  }
+                : job
+            ),
+          };
+        })
+      );
+    }
+
+    setSelectedSocialDraftId(null);
+    setSocialCreatePhotos([]);
+    setSocialBrief("");
+    setSocialAiStatus("idle");
+    setSocialAiResult(null);
+    setSocialAiError("");
+    setSocialCaptionId("");
+    setSocialDraftText("");
+  };
+
+  const deleteSocialDraft = async () => {
+    const draft = socialDrafts.find((item) => item.id === selectedSocialDraftId);
+    if (!draft) return false;
+    setSocialPublishingLoading(true);
+    setSocialPublishingAction("delete");
+    setSocialPublishingError("");
+    try {
+      await socialPublishRequest("delete_draft", { clientDraftId: draft.id });
+      removeLocalSocialDraft(draft);
+      await refreshSocialPublishingStatus({ quiet: true });
+      go("socialMedia");
+      return true;
+    } catch (error) {
+      const message = error?.message || "BUSY could not delete this draft.";
+      setSocialPublishingError(message);
+      Alert.alert("Draft not deleted", message);
+      return false;
+    } finally {
+      setSocialPublishingLoading(false);
+      setSocialPublishingAction("");
+    }
+  };
+
+  const confirmDeleteSocialDraft = () => {
+    const draft = socialDrafts.find((item) => item.id === selectedSocialDraftId);
+    if (!draft) return;
+    Alert.alert(
+      "Delete this draft?",
+      "This removes the draft from BUSY and deletes its private cloud media. It will not affect any separate post already published on Facebook or Instagram.",
+      [
+        { text: "Keep draft", style: "cancel" },
+        { text: "Delete draft", style: "destructive", onPress: deleteSocialDraft },
+      ]
+    );
+  };
+
+  const cancelScheduledSocialDraft = async () => {
+    const draft = socialDrafts.find((item) => item.id === selectedSocialDraftId);
+    if (!draft) return false;
+    setSocialPublishingLoading(true);
+    setSocialPublishingAction("cancel-schedule");
+    setSocialPublishingError("");
+    try {
+      const data = await socialPublishRequest("cancel_schedule", {
+        clientDraftId: draft.id,
+      });
+      applyCloudSocialPost(data.post, draft);
+      await refreshSocialPublishingStatus({ quiet: true });
+      Alert.alert(
+        "Schedule cancelled",
+        "The post is back as a draft. Nothing will be published at the old scheduled time."
+      );
+      return true;
+    } catch (error) {
+      const message = error?.message || "BUSY could not cancel this scheduled post.";
+      setSocialPublishingError(message);
+      Alert.alert("Schedule not cancelled", message);
+      return false;
+    } finally {
+      setSocialPublishingLoading(false);
+      setSocialPublishingAction("");
+    }
+  };
+
+  const confirmCancelScheduledSocialDraft = () => {
+    Alert.alert(
+      "Cancel this scheduled post?",
+      "BUSY will stop the scheduled publish and return the post to Draft so you can edit, reschedule or delete it.",
+      [
+        { text: "Keep scheduled", style: "cancel" },
+        {
+          text: "Cancel schedule",
+          style: "destructive",
+          onPress: cancelScheduledSocialDraft,
+        },
+      ]
+    );
   };
 
   const openSocialDraft = (id) => {
@@ -7144,6 +7265,10 @@ function App() {
     saveSocialDraftOnly,
     scheduleSocialDraft,
     approveSocialDraft,
+    deleteSocialDraft,
+    confirmDeleteSocialDraft,
+    cancelScheduledSocialDraft,
+    confirmCancelScheduledSocialDraft,
     openSocialDraft,
     saveBusinessBrainRule,
     removeBusinessBrainRule,
@@ -14493,6 +14618,14 @@ function SocialDraftReview({ s }) {
   const selectedDraft =
     (s.socialDrafts || []).find((draft) => draft.id === s.selectedSocialDraftId) || null;
   const busy = !!s.socialPublishingLoading;
+  const draftStatus = selectedDraft?.status || "Draft";
+  const isScheduled = ["Scheduled", "Held for setup"].includes(draftStatus);
+  const isPublishedOrPublishing = [
+    "Published",
+    "Publishing",
+    "Partial failure",
+  ].includes(draftStatus);
+  const canDeleteDraft = !!selectedDraft && !isScheduled && !isPublishedOrPublishing;
 
   return (
     <Shell
@@ -14694,6 +14827,43 @@ function SocialDraftReview({ s }) {
         onPress={s.approveSocialDraft}
       />
       <Button label="Refresh provider status" onPress={s.refreshSocialPublishingStatus} disabled={busy} />
+
+      {isScheduled ? (
+        <Button
+          label={
+            busy && s.socialPublishingAction === "cancel-schedule"
+              ? "Cancelling schedule…"
+              : "Cancel scheduled post"
+          }
+          danger
+          disabled={busy}
+          onPress={s.confirmCancelScheduledSocialDraft}
+        />
+      ) : null}
+
+      {canDeleteDraft ? (
+        <Button
+          label={
+            busy && s.socialPublishingAction === "delete"
+              ? "Deleting draft…"
+              : "Delete draft"
+          }
+          danger
+          disabled={busy}
+          onPress={s.confirmDeleteSocialDraft}
+        />
+      ) : null}
+
+      {isPublishedOrPublishing ? (
+        <Card
+          eyebrow="Published history"
+          title="This BUSY record is kept as publishing history"
+          body="Removing a BUSY record would not remove the real provider post, so published and publishing items are not offered as ordinary draft deletion."
+          footer="Delete a live Facebook or Instagram post from that provider itself"
+          tone="blue"
+        />
+      ) : null}
+
       <Button label="Back to Social Media Centre" onPress={() => s.go("socialMedia")} />
     </Shell>
   );
