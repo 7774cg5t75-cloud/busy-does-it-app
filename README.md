@@ -2,6 +2,20 @@
 
 Busy Does It mobile app prototype.
 
+## v3.10 Google Business live connection
+- Started directly from the tested V3.9 branch; V3.9 remains the known-good baseline.
+- Finishes the second genuine external publishing connection rather than adding another simulated intelligence layer.
+- Uses one clean OAuth callback path for Google Business: `/functions/v1/busy-social-publish/callback/google_business`, matching the callback shown inside the app.
+- Preserves Google OAuth authorization even when Business Profile API approval or API enablement is not ready yet, so setup can recover without repeating consent unnecessarily.
+- Separates Google OAuth authorization, Business Profile account/location discovery and actual Local Posts publishing readiness.
+- Adds a server-side Google re-check action so BUSY can retry account/location discovery after Google Cloud approval or API configuration changes.
+- After a Google location is selected, BUSY performs a read-only Local Posts API check before treating Google Business as a connected publishing destination.
+- Google Business remains unavailable to post selection until the Local Posts check succeeds; a merely authorized Google account is not presented as publish-ready.
+- Google API permission/enablement failures are converted into useful setup guidance while tokens remain server-side.
+- Existing Facebook/Instagram connection, Meta account lock, owner authentication, live-publishing switch, scheduling, provider-specific receipts and retry-only-failed-channel safeguards remain intact.
+- No new permanent navigation area was added; Google setup and verification stay inside Connected accounts / Social Control Centre.
+- The next major intelligence phase can therefore be built against three real connected publishing channels instead of relying on simulated channel state.
+
 ## v3.9 Weekly Command Centre
 - Promoted the Work tab from a collection of operational metrics into a weekly command centre without adding another permanent navigation area.
 - Added a rolling seven-day summary of booked jobs, booked value, days containing booked work, days with no booked job and the number of recorded customer/record items needing attention.
