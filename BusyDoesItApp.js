@@ -6466,7 +6466,8 @@ function App() {
   );
   const preparedPhotoPostCount = completedJobEntries.filter((entry) => !!entry.job.postDraft).length;
   const publishedPhotoPostCount = completedJobEntries.filter(
-    (entry) => entry.job.postDraftStatus === "Simulated published"
+    (entry) =>
+      ["Published", "Simulated published"].includes(entry.job.postDraftStatus)
   ).length;
   const postOutcomeRecordedCount = completedJobEntries.filter(
     (entry) => !!entry.job.postOutcomeRecordedAt
@@ -13478,8 +13479,8 @@ function JobPostOutcome({ s }) {
       <Card
         eyebrow="Post being measured"
         title={job.service || customer.service}
-        body={`Simulated on ${(job.postChannels || []).join(", ") || "a selected profile"}.`}
-        footer="No causal claim is assumed"
+        body={`${job.postDraftStatus === "Published" ? "Published" : "Recorded"} on ${(job.postChannels || []).join(", ") || "a selected profile"}.`}
+        footer="Owner-recorded attribution • no causal claim is assumed"
         tone="blue"
       />
       {options.map((option) => (
@@ -14295,11 +14296,20 @@ function SocialMediaCentre({ s }) {
     s.refreshSocialPublishingStatus({ quiet: true });
   }, []);
 
-  const drafts = [...(s.socialDrafts || [])].sort((a, b) =>
-    String(b.updatedAt || b.createdAt || "").localeCompare(
+  const statusPriority = (status) => {
+    if (["Failed", "Partial failure", "Ready to publish"].includes(status)) return 0;
+    if (["Scheduled", "Held for setup"].includes(status)) return 1;
+    if (!status || status === "Draft") return 2;
+    if (status === "Published") return 3;
+    return 4;
+  };
+  const drafts = [...(s.socialDrafts || [])].sort((a, b) => {
+    const priority = statusPriority(a.status) - statusPriority(b.status);
+    if (priority) return priority;
+    return String(b.updatedAt || b.createdAt || "").localeCompare(
       String(a.updatedAt || a.createdAt || "")
-    )
-  );
+    );
+  });
   const jobs = (s.socialJobOpportunities || [])
     .filter(({ job }) =>
       !["Published", "Publishing", "Scheduled"].includes(job.postDraftStatus || "")
@@ -14495,7 +14505,18 @@ function SocialMediaCentre({ s }) {
         />
       )}
 
-      <Text style={styles.sectionLabel}>Drafts & publishing queue</Text>
+      <Text style={styles.sectionLabel}>Publishing activity</Text>
+      <Card
+        eyebrow="At a glance"
+        title="Your social queue is organised by what needs action"
+        body="Failed items stay at the top, then scheduled posts, working drafts and recently published history."
+        tone={cloudFailed ? "amber" : "blue"}
+      >
+        <MetricRow left="Needs attention" right={String(cloudFailed)} strong={cloudFailed > 0} />
+        <MetricRow left="Scheduled" right={String(cloudScheduled)} />
+        <MetricRow left="Working drafts" right={String(drafts.filter((draft) => !draft.status || draft.status === "Draft").length)} />
+        <MetricRow left="Published" right={String(cloudPublished)} strong={cloudPublished > 0} />
+      </Card>
       {drafts.length ? (
         drafts.slice(0, 10).map((draft) => (
           <Pressable
@@ -14737,9 +14758,9 @@ function SocialDraftReview({ s }) {
   const isPublishedOrPublishing = [
     "Published",
     "Publishing",
-    "Partial failure",
   ].includes(draftStatus);
-  const canDeleteDraft = !!selectedDraft && !isScheduled && !isPublishedOrPublishing;
+  const isRetryable = ["Failed", "Partial failure", "Ready to publish"].includes(draftStatus);
+  const canDeleteDraft = !!selectedDraft && !isScheduled && !isPublishedOrPublishing && !isRetryable;
 
   return (
     <Shell
@@ -14941,6 +14962,34 @@ function SocialDraftReview({ s }) {
         onPress={s.approveSocialDraft}
       />
       <Button label="Refresh provider status" onPress={s.refreshSocialPublishingStatus} disabled={busy} />
+
+      {isRetryable ? (
+        <Button
+          label={
+            busy && s.socialPublishingAction === "retry"
+              ? "Retrying post…"
+              : "Retry failed post"
+          }
+          primary
+          disabled={busy || !liveEnabled}
+          onPress={s.confirmRetrySocialDraft}
+        />
+      ) : null}
+
+      {selectedDraft?.status === "Published" &&
+      selectedDraft?.source === "job" &&
+      selectedDraft?.sourceCustomerId &&
+      selectedDraft?.sourceJobId ? (
+        <Button
+          label="Record enquiry / booking outcome"
+          onPress={() =>
+            s.openJobPostOutcome(
+              selectedDraft.sourceCustomerId,
+              selectedDraft.sourceJobId
+            )
+          }
+        />
+      ) : null}
 
       {isScheduled ? (
         <Button
@@ -15952,7 +16001,10 @@ function ConnectedAccounts({ s }) {
         footer={s.ownerSession?.accessToken ? "Session stored securely on this device" : "Provider access alone is not enough to publish"}
         tone={s.ownerSession?.accessToken ? "green" : "amber"}
       >
-        <MetricRow left="Owner email" right={s.ownerEmail} strong={!!s.ownerSession?.accessToken} />
+        <View style={styles.ownerIdentityBlock}>
+          <Text style={styles.ownerIdentityLabel}>Owner email</Text>
+          <Text style={styles.ownerIdentityValue}>{s.ownerEmail}</Text>
+        </View>
         <MetricRow left="Owner status" right={s.ownerSession?.accessToken ? "Verified" : "Signed out"} strong={!!s.ownerSession?.accessToken} />
         {!s.ownerSession?.accessToken ? (
           <>
@@ -16396,6 +16448,20 @@ const styles = StyleSheet.create({
   metricRowClickable: { minHeight: 44, paddingBottom: 4 },
   metricRowPressed: { opacity: 0.58 },
   metricStrong: { fontSize: 17, fontWeight: "900", color: C.green },
+  ownerIdentityBlock: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#C9D7E7",
+    paddingTop: 10,
+    marginTop: 10,
+  },
+  ownerIdentityLabel: { color: C.muted, fontSize: 14, marginBottom: 4 },
+  ownerIdentityValue: {
+    color: C.green,
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: "900",
+    flexShrink: 1,
+  },
   helper: { color: C.muted, fontSize: 13, marginTop: -2, marginBottom: 14 },
   helperCenter: { color: C.muted, fontSize: 12, textAlign: "center", marginTop: 7 },
   serviceCard: {
