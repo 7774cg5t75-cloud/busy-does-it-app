@@ -6639,7 +6639,9 @@ function App() {
     );
   const socialDraftCount = socialDrafts.filter((draft) => draft.status === "Draft").length;
   const socialScheduledCount = socialDrafts.filter((draft) => draft.status === "Scheduled").length;
-  const socialApprovedCount = socialDrafts.filter((draft) => draft.status === "Simulated published").length;
+  const socialApprovedCount = socialDrafts.filter((draft) =>
+    ["Published", "Simulated published"].includes(draft.status)
+  ).length;
   const selectedSocialDraft =
     socialDrafts.find((draft) => draft.id === selectedSocialDraftId) || null;
   const latestPostEvidenceAt =
@@ -6831,7 +6833,7 @@ function App() {
       .filter(
         (entry) =>
           !!entry.job.postDraft &&
-          entry.job.postDraftStatus !== "Simulated published"
+          !["Published", "Simulated published"].includes(entry.job.postDraftStatus)
       )
       .sort((a, b) =>
         String(b.job.postDraftPreparedAt || b.job.date || "").localeCompare(
@@ -6853,7 +6855,7 @@ function App() {
     completedJobEntries
       .filter(
         (entry) =>
-          entry.job.postDraftStatus === "Simulated published" &&
+          ["Published", "Simulated published"].includes(entry.job.postDraftStatus) &&
           !entry.job.postOutcomeRecordedAt
       )
       .sort((a, b) =>
@@ -14522,7 +14524,9 @@ function SocialMediaCentre({ s }) {
 
       {jobs.length ? (
         <>
-          <Text style={styles.sectionLabel}>Create from completed work</Text>
+          <Text style={styles.sectionLabel}>
+            Ready to post • ${jobs.length} job${jobs.length === 1 ? "" : "s"}
+          </Text>
           {jobs.map(({ customer, job }) => {
             const reusable = (job.photos || []).filter((photo) => photo.marketingOk).length;
             return (
