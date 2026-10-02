@@ -2956,13 +2956,23 @@ function App() {
               history: (customer.history || []).map((job) => {
                 const post = relevant.find((item) => item.source_job_id === job.id);
                 if (!post) return job;
+                const providerResults = post.provider_results || {};
+                const selectedChannels = Array.isArray(post.channels) ? post.channels : [];
+                const successfulChannels = selectedChannels.filter(
+                  (channel) => providerResults[channel] && !providerResults[channel]?.error
+                );
                 return {
                   ...job,
                   postDraftStatus: post.status || job.postDraftStatus,
-                  postChannels: Array.isArray(post.channels) ? post.channels : job.postChannels,
+                  postChannels:
+                    post.published_at && successfulChannels.length
+                      ? successfulChannels
+                      : selectedChannels.length
+                      ? selectedChannels
+                      : job.postChannels,
                   postScheduledAt: post.scheduled_for || job.postScheduledAt,
                   postPublishedAt: post.published_at || job.postPublishedAt,
-                  postProviderResults: post.provider_results || job.postProviderResults,
+                  postProviderResults: providerResults,
                   postPublishError: post.last_error || "",
                 };
               }),
@@ -3513,6 +3523,11 @@ function App() {
     }
 
     if (next.source === "job" && next.sourceCustomerId && next.sourceJobId) {
+      const successfulChannels = (next.channels || []).filter(
+        (channel) =>
+          next.providerResults?.[channel] &&
+          !next.providerResults?.[channel]?.error
+      );
       setCustomers((list) =>
         list.map((customer) => {
           if (customer.id !== next.sourceCustomerId) return customer;
@@ -3524,14 +3539,17 @@ function App() {
                     ...job,
                     postDraft: next.text || job.postDraft || "",
                     postDraftStatus: next.status,
-                    postChannels: next.channels,
+                    postChannels:
+                      next.publishedAt && successfulChannels.length
+                        ? successfulChannels
+                        : next.channels,
                     postScheduledAt:
                       next.status === "Scheduled"
                         ? next.scheduledAt || now
                         : job.postScheduledAt,
                     postPublishedAt:
-                      next.status === "Published"
-                        ? next.publishedAt || now
+                      next.publishedAt
+                        ? next.publishedAt
                         : job.postPublishedAt,
                     postProviderResults: next.providerResults,
                     postPublishError: next.lastPublishError,
@@ -3542,11 +3560,21 @@ function App() {
         })
       );
 
-      if (next.status === "Published" && previous.status !== "Published") {
+      if (next.publishedAt && !previous.publishedAt) {
+        const publishedTo = successfulChannels.length
+          ? successfulChannels
+          : next.channels || [];
+        const failedChannels = (next.channels || []).filter(
+          (channel) => next.providerResults?.[channel]?.error
+        );
         appendCustomerActivity(next.sourceCustomerId, {
           kind: "marketing",
-          title: "Social post published",
-          note: `Published through BUSY to ${(next.channels || []).join(", ")}.`,
+          title: failedChannels.length
+            ? "Social post partly published"
+            : "Social post published",
+          note: failedChannels.length
+            ? `Published through BUSY to ${publishedTo.join(", ")}. ${failedChannels.join(", ")} still needs attention.`
+            : `Published through BUSY to ${publishedTo.join(", ")}.`,
         });
         recordWorkGoalAttempt({
           key: `post:${next.sourceCustomerId}:${next.sourceJobId}`,
@@ -3554,7 +3582,7 @@ function App() {
           label: "Finished-job social post",
           customerId: next.sourceCustomerId,
           jobId: next.sourceJobId,
-          channels: next.channels || [],
+          channels: publishedTo,
           cost: 0,
         });
       }
@@ -3642,11 +3670,31 @@ function App() {
       const saved = applyCloudSocialPost(data.post, record);
       rememberSocialChannels(record.channels || []);
       await refreshSocialPublishingStatus({ quiet: true });
-      Alert.alert(
-        "Post published",
-        `BUSY published this post to ${(record.channels || []).join(" + ")}. The provider receipt is saved against this post.`
+      const publishStatus = saved?.status || data.post?.status || "Failed";
+      const providerResults = saved?.providerResults || data.post?.provider_results || {};
+      const successfulChannels = (record.channels || []).filter(
+        (channel) => providerResults[channel] && !providerResults[channel]?.error
       );
-      go("socialMedia");
+      const failedChannels = (record.channels || []).filter(
+        (channel) => !providerResults[channel] || !!providerResults[channel]?.error
+      );
+      if (publishStatus === "Published") {
+        Alert.alert(
+          "Post published",
+          `BUSY published this post to ${successfulChannels.join(" + ") || (record.channels || []).join(" + ")}. Provider receipts are saved against this post.`
+        );
+        go("socialMedia");
+      } else if (publishStatus === "Partial failure") {
+        Alert.alert(
+          "Published with a problem",
+          `Published to ${successfulChannels.join(" + ") || "at least one destination"}. ${failedChannels.join(" + ") || "Another destination"} failed, and BUSY will retry only the failed destination(s).`
+        );
+      } else {
+        Alert.alert(
+          "Post not published",
+          `No selected destination completed successfully. BUSY kept the failure details so you can retry safely without creating a second post record.`
+        );
+      }
       return !!saved;
     } catch (error) {
       const serverPost = error?.payload?.post;
@@ -6628,7 +6676,7 @@ function App() {
   const socialOutcomeReminders = completedJobEntries
     .filter(
       (entry) =>
-        entry.job.postDraftStatus === "Published" &&
+        ["Published", "Partial failure"].includes(entry.job.postDraftStatus) &&
         !!entry.job.postPublishedAt &&
         !entry.job.postOutcomeRecordedAt
     )
@@ -6639,8 +6687,11 @@ function App() {
     );
   const socialDraftCount = socialDrafts.filter((draft) => draft.status === "Draft").length;
   const socialScheduledCount = socialDrafts.filter((draft) => draft.status === "Scheduled").length;
-  const socialApprovedCount = socialDrafts.filter((draft) =>
-    ["Published", "Simulated published"].includes(draft.status)
+  const socialApprovedCount = socialDrafts.filter(
+    (draft) =>
+      draft.status === "Simulated published" ||
+      draft.status === "Published" ||
+      !!draft.publishedAt
   ).length;
   const selectedSocialDraft =
     socialDrafts.find((draft) => draft.id === selectedSocialDraftId) || null;
@@ -8159,9 +8210,9 @@ function Choice({ label, selected, onPress, sub }) {
   );
 }
 
-function ToggleRow({ title, body, value, onValueChange }) {
+function ToggleRow({ title, body, value, onValueChange, disabled = false }) {
   return (
-    <View style={styles.toggleRow}>
+    <View style={[styles.toggleRow, disabled && { opacity: 0.55 }]}>
       <View style={{ flex: 1, paddingRight: 12 }}>
         <Text style={styles.toggleTitle}>{title}</Text>
         {body ? <Text style={styles.toggleBody}>{body}</Text> : null}
@@ -8169,6 +8220,7 @@ function ToggleRow({ title, body, value, onValueChange }) {
       <Switch
         value={value}
         onValueChange={onValueChange}
+        disabled={disabled}
         trackColor={{ false: "#C8CFD9", true: "#9FC0FF" }}
         thumbColor={value ? C.blue : "#FFFFFF"}
       />
@@ -14330,7 +14382,15 @@ function SocialMediaCentre({ s }) {
   });
   const jobs = (s.socialJobOpportunities || [])
     .filter(({ job }) =>
-      !["Published", "Publishing", "Scheduled"].includes(job.postDraftStatus || "")
+      ![
+        "Published",
+        "Publishing",
+        "Scheduled",
+        "Held for setup",
+        "Partial failure",
+        "Failed",
+        "Ready to publish",
+      ].includes(job.postDraftStatus || "")
     )
     .slice(0, 6);
   const publish = s.socialPublishingStatus || {};
@@ -14340,7 +14400,7 @@ function SocialMediaCentre({ s }) {
   const liveEnabled = !!publish.credentials?.livePublishingEnabled;
   const liveConnectedCount =
     Number(meta.status === "connected") + Number(google.status === "connected");
-  const cloudPublished = queue.filter((post) => post.status === "Published").length;
+  const cloudPublished = queue.filter((post) => !!post.published_at).length;
   const cloudScheduled = queue.filter((post) => post.status === "Scheduled").length;
   const cloudFailed = queue.filter((post) =>
     ["Failed", "Partial failure"].includes(post.status)
@@ -14426,9 +14486,9 @@ function SocialMediaCentre({ s }) {
               minute: "2-digit",
             })}
           </Text>
-        ) : draft.status === "Published" && draft.publishedAt ? (
+        ) : draft.publishedAt ? (
           <Text style={styles.activityOpen}>
-            Published {formatUKDate(String(draft.publishedAt).slice(0, 10))} • Open details →
+            {draft.status === "Partial failure" ? "Partly published" : "Published"} {formatUKDate(String(draft.publishedAt).slice(0, 10))} • Open details →
           </Text>
         ) : (
           <Text style={styles.activityOpen}>Open post →</Text>
@@ -14880,10 +14940,15 @@ function SocialDraftReview({ s }) {
     "Publishing",
   ].includes(draftStatus);
   const isRetryable = ["Failed", "Partial failure", "Ready to publish"].includes(draftStatus);
+  const hasPublishedHistory = !!selectedDraft?.publishedAt;
+  const recordLocked = !!selectedDraft && draftStatus !== "Draft";
   const providerHistoryHasFailure =
     !!selectedDraft?.providerResults &&
     Object.values(selectedDraft.providerResults).some((result) => !!result?.error);
-  const canDeleteDraft = !!selectedDraft && !isScheduled && !isPublishedOrPublishing && !isRetryable;
+  const canDeleteDraft =
+    !!selectedDraft &&
+    ["Draft", "Failed", "Ready to publish"].includes(draftStatus) &&
+    !hasPublishedHistory;
 
   return (
     <Shell
@@ -14934,7 +14999,8 @@ function SocialDraftReview({ s }) {
         multiline
         value={s.socialDraftText}
         onChangeText={s.setSocialDraftText}
-        style={styles.messageInput}
+        editable={!recordLocked}
+        style={[styles.messageInput, recordLocked && { opacity: 0.7 }]}
         placeholder="Post wording"
         placeholderTextColor="#9AA3B2"
         textAlignVertical="top"
@@ -14948,6 +15014,7 @@ function SocialDraftReview({ s }) {
             body={meta.pageName ? `Connected Page: ${meta.pageName}` : "Connected through Meta"}
             value={!!s.socialDraftChannels.facebook}
             onValueChange={() => s.toggleSocialDraftChannel("facebook")}
+            disabled={recordLocked}
           />
           {meta.instagramUserId ? (
             <ToggleRow
@@ -14955,6 +15022,7 @@ function SocialDraftReview({ s }) {
               body={meta.instagramUsername ? `Connected: @${meta.instagramUsername}` : "Connected professional Instagram account"}
               value={!!s.socialDraftChannels.instagram}
               onValueChange={() => s.toggleSocialDraftChannel("instagram")}
+              disabled={recordLocked}
             />
           ) : (
             <Card
@@ -14973,6 +15041,7 @@ function SocialDraftReview({ s }) {
           body={google.googleLocationTitle ? `Connected location: ${google.googleLocationTitle}` : "Connected Google Business location"}
           value={!!s.socialDraftChannels.googleBusiness}
           onValueChange={() => s.toggleSocialDraftChannel("googleBusiness")}
+          disabled={recordLocked}
         />
       ) : null}
 
@@ -14988,19 +15057,42 @@ function SocialDraftReview({ s }) {
       ) : null}
 
       <Text style={styles.sectionLabel}>Schedule</Text>
-      <DatePickerField
-        label="Post date"
-        value={s.socialScheduleDate}
-        onChange={s.setSocialScheduleDate}
-        allowFuture
-        minimumDate={dateToISO(new Date())}
-      />
-      <Field
-        label="Post time"
-        value={s.socialScheduleTime}
-        onChangeText={s.setSocialScheduleTime}
-        placeholder="19:00"
-      />
+      {recordLocked ? (
+        <Card
+          eyebrow="Publishing record locked"
+          title={
+            isScheduled
+              ? "Cancel this schedule before changing the post"
+              : isRetryable
+              ? "Use the safe retry action for this record"
+              : "Published history is read-only"
+          }
+          body={
+            isScheduled
+              ? "BUSY freezes the caption and destinations once a schedule is active, so an edit cannot silently create a second publishing instruction."
+              : isRetryable
+              ? "This record keeps its original provider receipts and failures. Retrying sends only the destinations that still need attention."
+              : "BUSY keeps the original caption, destinations and provider receipts as publishing history instead of turning a live post back into a draft."
+          }
+          tone={isRetryable ? "amber" : "blue"}
+        />
+      ) : (
+        <>
+          <DatePickerField
+            label="Post date"
+            value={s.socialScheduleDate}
+            onChange={s.setSocialScheduleDate}
+            allowFuture
+            minimumDate={dateToISO(new Date())}
+          />
+          <Field
+            label="Post time"
+            value={s.socialScheduleTime}
+            onChangeText={s.setSocialScheduleTime}
+            placeholder="19:00"
+          />
+        </>
+      )}
 
       <Card
         eyebrow="Publishing safety"
@@ -15056,38 +15148,42 @@ function SocialDraftReview({ s }) {
         </Card>
       ) : null}
 
-      <Button
-        label={busy && s.socialPublishingAction === "save" ? "Saving to cloud…" : "Save cloud-backed draft"}
-        disabled={busy || !s.socialDraftText.trim()}
-        onPress={s.saveSocialDraftOnly}
-      />
-      <Button
-        label={
-          !selectedCount
-            ? "Choose a connected destination to schedule"
-            : busy && s.socialPublishingAction === "schedule"
-            ? "Scheduling…"
-            : liveEnabled
-            ? "Schedule real post"
-            : "Schedule in cloud queue"
-        }
-        disabled={busy || !selectedCount || !s.socialDraftText.trim()}
-        onPress={s.scheduleSocialDraft}
-      />
-      <Button
-        label={
-          !selectedCount
-            ? "Choose a connected destination to publish"
-            : busy && s.socialPublishingAction === "publish"
-            ? "Publishing…"
-            : liveEnabled
-            ? "Approve & publish now"
-            : "Live publishing setup not finished"
-        }
-        primary={liveEnabled && selectedCount > 0}
-        disabled={busy || !selectedCount || !s.socialDraftText.trim() || !liveEnabled}
-        onPress={s.approveSocialDraft}
-      />
+      {!recordLocked ? (
+        <>
+          <Button
+            label={busy && s.socialPublishingAction === "save" ? "Saving to cloud…" : "Save cloud-backed draft"}
+            disabled={busy || !s.socialDraftText.trim()}
+            onPress={s.saveSocialDraftOnly}
+          />
+          <Button
+            label={
+              !selectedCount
+                ? "Choose a connected destination to schedule"
+                : busy && s.socialPublishingAction === "schedule"
+                ? "Scheduling…"
+                : liveEnabled
+                ? "Schedule real post"
+                : "Schedule in cloud queue"
+            }
+            disabled={busy || !selectedCount || !s.socialDraftText.trim()}
+            onPress={s.scheduleSocialDraft}
+          />
+          <Button
+            label={
+              !selectedCount
+                ? "Choose a connected destination to publish"
+                : busy && s.socialPublishingAction === "publish"
+                ? "Publishing…"
+                : liveEnabled
+                ? "Approve & publish now"
+                : "Live publishing setup not finished"
+            }
+            primary={liveEnabled && selectedCount > 0}
+            disabled={busy || !selectedCount || !s.socialDraftText.trim() || !liveEnabled}
+            onPress={s.approveSocialDraft}
+          />
+        </>
+      ) : null}
       <Button label="Refresh provider status" onPress={s.refreshSocialPublishingStatus} disabled={busy} />
 
       {isRetryable ? (
@@ -15103,7 +15199,7 @@ function SocialDraftReview({ s }) {
         />
       ) : null}
 
-      {selectedDraft?.status === "Published" &&
+      {hasPublishedHistory &&
       selectedDraft?.source === "job" &&
       selectedDraft?.sourceCustomerId &&
       selectedDraft?.sourceJobId ? (
@@ -15144,13 +15240,21 @@ function SocialDraftReview({ s }) {
         />
       ) : null}
 
-      {isPublishedOrPublishing ? (
+      {hasPublishedHistory || isPublishedOrPublishing ? (
         <Card
           eyebrow="Published history"
-          title="This BUSY record is kept as publishing history"
-          body="Removing a BUSY record would not remove the real provider post, so published and publishing items are not offered as ordinary draft deletion."
+          title={
+            draftStatus === "Partial failure"
+              ? "At least one real provider post already exists"
+              : "This BUSY record is kept as publishing history"
+          }
+          body={
+            draftStatus === "Partial failure"
+              ? "Successful destinations stay locked while BUSY retries only the failed destination(s). This prevents a retry from duplicating the posts that already went live."
+              : "Removing or rewriting a BUSY record would not remove the real provider post, so published and publishing items are kept as read-only history."
+          }
           footer="Delete a live Facebook, Instagram or Google Business post from that provider itself"
-          tone="blue"
+          tone={draftStatus === "Partial failure" ? "amber" : "blue"}
         />
       ) : null}
 
