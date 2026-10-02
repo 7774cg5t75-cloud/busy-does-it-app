@@ -3677,11 +3677,14 @@ function App() {
       const next = applyCloudSocialPost(data.post, draft);
       rememberSocialChannels(next?.channels || draft.channels || []);
       await refreshSocialPublishingStatus({ quiet: true });
+      const retried = Array.isArray(data.retriedChannels)
+        ? data.retriedChannels.join(" + ")
+        : "the failed destination";
       Alert.alert(
         "Retry complete",
         next?.status === "Published"
-          ? `The post is now published to ${(next.channels || []).join(" + ")}.`
-          : `BUSY retried the post. Current status: ${next?.status || "updated"}.`
+          ? `BUSY retried only ${retried}. All selected destinations now have successful provider receipts.`
+          : `BUSY retried only ${retried}. Current status: ${next?.status || "updated"}.`
       );
       return true;
     } catch (error) {
@@ -3698,11 +3701,11 @@ function App() {
 
   const confirmRetrySocialDraft = () => {
     Alert.alert(
-      "Retry this post?",
-      "BUSY will try the same approved destinations again using the saved caption and media.",
+      "Retry failed destination?",
+      "BUSY will retry only destinations without a successful provider receipt. Channels that already published will not be posted again.",
       [
         { text: "Not now", style: "cancel" },
-        { text: "Retry post", onPress: retrySocialDraft },
+        { text: "Retry failed only", onPress: retrySocialDraft },
       ]
     );
   };
@@ -15135,7 +15138,7 @@ function SocialDraftReview({ s }) {
           eyebrow="Published history"
           title="This BUSY record is kept as publishing history"
           body="Removing a BUSY record would not remove the real provider post, so published and publishing items are not offered as ordinary draft deletion."
-          footer="Delete a live Facebook or Instagram post from that provider itself"
+          footer="Delete a live Facebook, Instagram or Google Business post from that provider itself"
           tone="blue"
         />
       ) : null}
@@ -16100,11 +16103,11 @@ function ConnectedAccounts({ s }) {
     <Shell
       s={s}
       title="Connected accounts"
-      subtitle="V3.7 keeps owner authentication and provider tokens server-side while making the publishing workflow easier to use day to day."
+      subtitle="V3.8 keeps owner authentication and provider tokens server-side while adding Google Business readiness and safer per-channel publishing controls."
       brandCue="BUSY can prepare automatically. Public publishing still requires an authenticated owner and an approved post."
     >
       <Card
-        eyebrow="V3.7 • Owner protection"
+        eyebrow="V3.8 • Owner protection"
         title={s.ownerSession?.accessToken ? "Owner verified" : "Owner sign-in required"}
         body={
           s.ownerSession?.accessToken
@@ -16149,7 +16152,7 @@ function ConnectedAccounts({ s }) {
       </Card>
 
       <Card
-        eyebrow="V3.7 • Connection health"
+        eyebrow="V3.8 • Connection health"
         title={
           credentials.livePublishingEnabled
             ? "Live provider publishing is enabled"
