@@ -3601,10 +3601,24 @@ function App() {
       const payload = await buildSocialPublishPayload(record, true);
       payload.scheduledFor = scheduledFor;
       const data = await socialPublishRequest("schedule", payload);
-      applyCloudSocialPost(data.post, record);
+      const saved = applyCloudSocialPost(data.post, record);
+      rememberSocialChannels(record.channels || []);
       await refreshSocialPublishingStatus({ quiet: true });
+      const when = new Date(scheduledFor);
+      const whenLabel = Number.isNaN(when.getTime())
+        ? "the selected time"
+        : when.toLocaleString("en-GB", {
+            day: "numeric",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+      Alert.alert(
+        "Post scheduled",
+        `BUSY will publish to ${(record.channels || []).join(" + ")} at ${whenLabel}. You can cancel it from the Social Media Centre before it starts publishing.`
+      );
       go("socialMedia");
-      return true;
+      return !!saved;
     } catch (error) {
       setSocialPublishingError(error?.message || "BUSY could not schedule this post.");
       Alert.alert("Could not schedule", error?.message || "BUSY could not schedule this post.");
@@ -3625,10 +3639,15 @@ function App() {
       const payload = await buildSocialPublishPayload(record, true);
       payload.scheduledFor = null;
       const data = await socialPublishRequest("publish_now", payload);
-      applyCloudSocialPost(data.post, record);
+      const saved = applyCloudSocialPost(data.post, record);
+      rememberSocialChannels(record.channels || []);
       await refreshSocialPublishingStatus({ quiet: true });
+      Alert.alert(
+        "Post published",
+        `BUSY published this post to ${(record.channels || []).join(" + ")}. The provider receipt is saved against this post.`
+      );
       go("socialMedia");
-      return true;
+      return !!saved;
     } catch (error) {
       const serverPost = error?.payload?.post;
       if (serverPost) applyCloudSocialPost(serverPost, record);
@@ -3643,6 +3662,49 @@ function App() {
       setSocialPublishingLoading(false);
       setSocialPublishingAction("");
     }
+  };
+
+  const retrySocialDraft = async () => {
+    const draft = socialDrafts.find((item) => item.id === selectedSocialDraftId);
+    if (!draft) return false;
+    setSocialPublishingLoading(true);
+    setSocialPublishingAction("retry");
+    setSocialPublishingError("");
+    try {
+      const data = await socialPublishRequest("retry_post", {
+        clientDraftId: draft.id,
+      });
+      const next = applyCloudSocialPost(data.post, draft);
+      rememberSocialChannels(next?.channels || draft.channels || []);
+      await refreshSocialPublishingStatus({ quiet: true });
+      Alert.alert(
+        "Retry complete",
+        next?.status === "Published"
+          ? `The post is now published to ${(next.channels || []).join(" + ")}.`
+          : `BUSY retried the post. Current status: ${next?.status || "updated"}.`
+      );
+      return true;
+    } catch (error) {
+      const message = error?.message || "BUSY could not retry this post.";
+      setSocialPublishingError(message);
+      await refreshSocialPublishingStatus({ quiet: true });
+      Alert.alert("Retry failed", message);
+      return false;
+    } finally {
+      setSocialPublishingLoading(false);
+      setSocialPublishingAction("");
+    }
+  };
+
+  const confirmRetrySocialDraft = () => {
+    Alert.alert(
+      "Retry this post?",
+      "BUSY will try the same approved destinations again using the saved caption and media.",
+      [
+        { text: "Not now", style: "cancel" },
+        { text: "Retry post", onPress: retrySocialDraft },
+      ]
+    );
   };
 
   const removeLocalSocialDraft = (draft) => {
@@ -7238,6 +7300,7 @@ function App() {
     jobPostOutcomeValue,
     setJobPostOutcomeValue,
     socialDrafts,
+    socialPreferredChannels,
     socialCreatePhotos,
     socialBrief,
     setSocialBrief,
@@ -7297,6 +7360,8 @@ function App() {
     saveSocialDraftOnly,
     scheduleSocialDraft,
     approveSocialDraft,
+    retrySocialDraft,
+    confirmRetrySocialDraft,
     deleteSocialDraft,
     confirmDeleteSocialDraft,
     cancelScheduledSocialDraft,
