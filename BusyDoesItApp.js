@@ -21,7 +21,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 
-const APP_VERSION = "3.6.3";
+const APP_VERSION = "3.7";
 const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Live Social Publishing`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
@@ -1518,6 +1518,11 @@ function App() {
   const [jobPostOutcome, setJobPostOutcome] = useState("No enquiry yet");
   const [jobPostOutcomeValue, setJobPostOutcomeValue] = useState("");
   const [socialDrafts, setSocialDrafts] = useState([]);
+  const [socialPreferredChannels, setSocialPreferredChannels] = useState({
+    facebook: true,
+    instagram: true,
+    googleBusiness: false,
+  });
   const [socialCreatePhotos, setSocialCreatePhotos] = useState([]);
   const [socialBrief, setSocialBrief] = useState("");
   const [socialAiStatus, setSocialAiStatus] = useState("idle");
@@ -1704,6 +1709,13 @@ function App() {
         if (Array.isArray(saved.inboxItems)) setInboxItems(saved.inboxItems);
         if (Array.isArray(saved.connectionSyncLog)) setConnectionSyncLog(saved.connectionSyncLog);
         if (Array.isArray(saved.socialDrafts)) setSocialDrafts(saved.socialDrafts);
+        if (saved.socialPreferredChannels && typeof saved.socialPreferredChannels === "object") {
+          setSocialPreferredChannels({
+            facebook: !!saved.socialPreferredChannels.facebook,
+            instagram: !!saved.socialPreferredChannels.instagram,
+            googleBusiness: !!saved.socialPreferredChannels.googleBusiness,
+          });
+        }
         if (Array.isArray(saved.businessBrainRules)) setBusinessBrainRules(saved.businessBrainRules);
         if (Array.isArray(saved.businessBrainFeedback)) setBusinessBrainFeedback(saved.businessBrainFeedback);
         if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
@@ -1755,6 +1767,7 @@ function App() {
       inboxItems,
       connectionSyncLog,
       socialDrafts,
+      socialPreferredChannels,
       businessBrainRules,
       businessBrainFeedback,
       recordFilingMode,
@@ -1790,6 +1803,7 @@ function App() {
     inboxItems,
     connectionSyncLog,
     socialDrafts,
+    socialPreferredChannels,
     businessBrainRules,
     businessBrainFeedback,
     recordFilingMode,
@@ -2751,13 +2765,26 @@ function App() {
   };
 
   const defaultJobPostChannels = () => ({
-    facebook: socialPublishingStatus?.connections?.meta?.status === "connected",
+    facebook:
+      !!socialPreferredChannels.facebook &&
+      socialPublishingStatus?.connections?.meta?.status === "connected",
     instagram:
+      !!socialPreferredChannels.instagram &&
       socialPublishingStatus?.connections?.meta?.status === "connected" &&
       !!socialPublishingStatus?.connections?.meta?.instagramUserId,
     googleBusiness:
+      !!socialPreferredChannels.googleBusiness &&
       socialPublishingStatus?.connections?.google_business?.status === "connected",
   });
+
+  const rememberSocialChannels = (channels = []) => {
+    const selected = new Set(Array.isArray(channels) ? channels : []);
+    setSocialPreferredChannels({
+      facebook: selected.has("Facebook"),
+      instagram: selected.has("Instagram"),
+      googleBusiness: selected.has("Google Business"),
+    });
+  };
 
   const persistOwnerSession = async (session) => {
     setOwnerSession(session);
@@ -3064,11 +3091,7 @@ function App() {
     setSocialAiError("");
     setSocialCaptionId("");
     setSocialDraftText("");
-    setSocialDraftChannels({
-      facebook: !!connectedAccounts.meta,
-      instagram: !!connectedAccounts.meta,
-      googleBusiness: !!connectedAccounts.googleBusiness,
-    });
+    setSocialDraftChannels(defaultJobPostChannels());
     setSocialScheduleDate(dateToISO(new Date()));
     setSocialScheduleTime("19:00");
     setSocialSourceContext({
@@ -3177,16 +3200,25 @@ function App() {
     const recommended = new Set(caption.recommendedChannels || []);
     const metaConnection = socialPublishingStatus?.connections?.meta || {};
     const googleConnection = socialPublishingStatus?.connections?.google_business || {};
-    setSocialDraftChannels({
-      facebook:
-        metaConnection.status === "connected" && recommended.has("Facebook"),
-      instagram:
-        metaConnection.status === "connected" &&
-        !!metaConnection.instagramUserId &&
-        recommended.has("Instagram"),
-      googleBusiness:
-        googleConnection.status === "connected" &&
-        recommended.has("Google Business"),
+    setSocialDraftChannels((current) => {
+      const alreadyChosen =
+        !!current.facebook || !!current.instagram || !!current.googleBusiness;
+      if (alreadyChosen) return current;
+      return {
+        facebook:
+          metaConnection.status === "connected" &&
+          !!socialPreferredChannels.facebook &&
+          (recommended.size === 0 || recommended.has("Facebook")),
+        instagram:
+          metaConnection.status === "connected" &&
+          !!metaConnection.instagramUserId &&
+          !!socialPreferredChannels.instagram &&
+          (recommended.size === 0 || recommended.has("Instagram")),
+        googleBusiness:
+          googleConnection.status === "connected" &&
+          !!socialPreferredChannels.googleBusiness &&
+          (recommended.size === 0 || recommended.has("Google Business")),
+      };
     });
   };
 
