@@ -14876,6 +14876,9 @@ function SocialDraftReview({ s }) {
     "Publishing",
   ].includes(draftStatus);
   const isRetryable = ["Failed", "Partial failure", "Ready to publish"].includes(draftStatus);
+  const providerHistoryHasFailure =
+    !!selectedDraft?.providerResults &&
+    Object.values(selectedDraft.providerResults).some((result) => !!result?.error);
   const canDeleteDraft = !!selectedDraft && !isScheduled && !isPublishedOrPublishing && !isRetryable;
 
   return (
@@ -15019,10 +15022,14 @@ function SocialDraftReview({ s }) {
       {selectedDraft?.providerResults &&
       Object.keys(selectedDraft.providerResults).length ? (
         <Card
-          eyebrow="Provider history"
-          title="BUSY kept the provider receipt against this post"
-          body="Provider IDs and failures stay attached to the original content record so publishing history can be inspected later."
-          tone="green"
+          eyebrow="Per-channel publishing result"
+          title={
+            providerHistoryHasFailure
+              ? "Some destinations still need attention"
+              : "Every recorded destination has a provider receipt"
+          }
+          body="Each destination is tracked separately. If one channel fails, BUSY can retry only that failed destination without reposting the channels that already succeeded."
+          tone={providerHistoryHasFailure ? "amber" : "green"}
         >
           {Object.entries(selectedDraft.providerResults).map(([channel, result]) => {
             const value = result || {};
@@ -15084,7 +15091,7 @@ function SocialDraftReview({ s }) {
           label={
             busy && s.socialPublishingAction === "retry"
               ? "Retrying post…"
-              : "Retry failed post"
+              : "Retry failed destination(s)"
           }
           primary
           disabled={busy || !liveEnabled}
