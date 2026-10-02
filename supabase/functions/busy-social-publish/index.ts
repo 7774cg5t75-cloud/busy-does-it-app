@@ -6,8 +6,6 @@ const BUCKET = "busy-social-media";
 const WORKSPACE = "prototype";
 const META_GRAPH_VERSION = Deno.env.get("META_GRAPH_VERSION") || "v24.0";
 const META_LOGIN_CONFIG_ID = "1310417644415943";
-const LIVE_PUBLISHING_ENABLED =
-  String(Deno.env.get("BUSY_LIVE_PUBLISHING") || "").toLowerCase() === "enabled";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -108,6 +106,68 @@ function requirePrototypeCaller(request: Request) {
   }
 }
 
+async function getWorkspaceOwner() {
+  const { data, error } = await supabase
+    .from("busy_workspace_owners")
+    .select("workspace_key,owner_email")
+    .eq("workspace_key", WORKSPACE)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data?.owner_email) throw new Error("BUSY owner access is not configured.");
+  return data;
+}
+
+async function getWorkspaceSettings() {
+  const { data, error } = await supabase
+    .from("busy_workspace_settings")
+    .select("*")
+    .eq("workspace_key", WORKSPACE)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error("BUSY publishing settings are not configured.");
+  return data;
+}
+
+async function requireOwner(request: Request) {
+  const authHeader = request.headers.get("authorization") || "";
+  const token = authHeader.toLowerCase().startsWith("bearer ")
+    ? authHeader.slice(7).trim()
+    : "";
+  if (!token) throw new Error("Owner sign-in required.");
+
+  const { data, error } = await supabase.auth.getUser(token);
+  const user = data?.user;
+  if (error || !user?.email) throw new Error("Owner sign-in has expired. Sign in again.");
+
+  const owner = await getWorkspaceOwner();
+  if (user.email.trim().toLowerCase() !== String(owner.owner_email).trim().toLowerCase()) {
+    throw new Error("This signed-in account is not the BUSY owner for this workspace.");
+  }
+  return user;
+}
+
+function metaAssetMatchesLock(asset: any, settings: any) {
+  const pageId = String(asset?.pageId || asset?.id || "");
+  const instagramUserId = String(asset?.instagramUserId || "");
+  if (settings?.locked_meta_page_id && pageId !== String(settings.locked_meta_page_id)) return false;
+  if (
+    settings?.locked_instagram_user_id &&
+    instagramUserId !== String(settings.locked_instagram_user_id)
+  ) return false;
+  return true;
+}
+
+async function assertLockedMetaConnection(connection: any) {
+  const settings = await getWorkspaceSettings();
+  if (!metaAssetMatchesLock({
+    pageId: connection?.page_id,
+    instagramUserId: connection?.instagram_user_id,
+  }, settings)) {
+    throw new Error("The Meta connection does not match the locked Busy Does It Facebook and Instagram accounts.");
+  }
+  return settings;
+}
+
 async function getConnection(provider: string) {
   const { data, error } = await supabase
     .from("busy_social_connections")
@@ -138,6 +198,7 @@ async function upsertConnection(provider: string, patch: Record<string, unknown>
 }
 
 async function credentialStatus() {
+  const settings = await getWorkspaceSettings();
   return {
     meta: {
       configured: !!Deno.env.get("META_APP_ID") && !!Deno.env.get("META_APP_SECRET"),
@@ -147,7 +208,10 @@ async function credentialStatus() {
       configured: !!Deno.env.get("GOOGLE_CLIENT_ID") && !!Deno.env.get("GOOGLE_CLIENT_SECRET"),
       clientIdPresent: !!Deno.env.get("GOOGLE_CLIENT_ID"),
     },
-    livePublishingEnabled: LIVE_PUBLISHING_ENABLED,
+    ownerAuthRequired: true,
+    livePublishingEnabled: !!settings.live_publishing_enabled,
+    lockedMetaPageId: settings.locked_meta_page_id || "",
+    lockedInstagramUserId: settings.locked_instagram_user_id || "",
   };
 }
 
@@ -320,6 +384,7 @@ async function handleMetaCallback(code: string) {
       : null,
     assets,
     scopes: [
+      "business_management",
       "pages_show_list",
       "pages_read_engagement",
       "pages_manage_posts",
@@ -330,8 +395,17 @@ async function handleMetaCallback(code: string) {
     last_checked_at: new Date().toISOString(),
   };
 
+  const settings = await getWorkspaceSettings();
   if (assets.length === 1) {
     const asset = assets[0];
+    if (!metaAssetMatchesLock(asset, settings)) {
+      await upsertConnection("meta", {
+        ...common,
+        status: "needs_attention",
+        last_error: "The authorized Meta account does not match the locked Busy Does It Facebook Page and Instagram account.",
+      });
+      return;
+    }
     await upsertConnection("meta", {
       ...common,
       status: "connected",
@@ -706,6 +780,7 @@ async function assertChannelsConnected(channels: string[]) {
     if (!meta || meta.status !== "connected") {
       throw new Error("Facebook / Instagram is not connected.");
     }
+    await assertLockedMetaConnection(meta);
     if (selected.includes("Instagram") && !meta.instagram_user_id) {
       throw new Error("The selected Meta connection does not include an Instagram professional account.");
     }
@@ -720,10 +795,12 @@ async function assertChannelsConnected(channels: string[]) {
 }
 
 async function publishPost(post: any) {
-  if (!LIVE_PUBLISHING_ENABLED) {
-    throw new Error("Live publishing is server-disabled until provider credentials and owner authentication are ready.");
+  const settings = await getWorkspaceSettings();
+  if (!settings.live_publishing_enabled) {
+    throw new Error("Live publishing is disabled until the owner explicitly enables the controlled live test.");
   }
   if (!post.owner_approved) throw new Error("Owner approval is required before publishing.");
+  await assertChannelsConnected(post.channels || []);
 
   const media = await signedMedia(post.media || [], 7200);
   const urls = media.map((item) => item.signedUrl);
@@ -781,7 +858,8 @@ async function publishPost(post: any) {
 }
 
 async function processDuePosts() {
-  if (!LIVE_PUBLISHING_ENABLED) {
+  const settings = await getWorkspaceSettings();
+  if (!settings.live_publishing_enabled) {
     return { processed: 0, disabled: true };
   }
   const { data, error } = await supabase
@@ -842,6 +920,10 @@ async function selectAsset(provider: string, assetId: string) {
   if (!asset) throw new Error("That provider asset is no longer available.");
 
   if (provider === "meta") {
+    const settings = await getWorkspaceSettings();
+    if (!metaAssetMatchesLock(asset, settings)) {
+      throw new Error("That Meta account is not the locked Busy Does It Facebook / Instagram connection.");
+    }
     return await upsertConnection(provider, {
       status: "connected",
       provider_account_id: asset.pageId,
@@ -947,6 +1029,7 @@ Deno.serve(async (request: Request) => {
     requirePrototypeCaller(request);
     const body = await request.json();
     const action = cleanText(body?.action, 80);
+    const owner = action === "process_due" ? null : await requireOwner(request);
 
     if (action === "status") {
       const [credentials, meta, google, queue] = await Promise.all([
@@ -955,7 +1038,39 @@ Deno.serve(async (request: Request) => {
         connectionSummary("google_business"),
         listQueue(),
       ]);
-      return json(200, { credentials, connections: { meta, google_business: google }, queue });
+      return json(200, {
+        credentials,
+        owner: { authenticated: true, email: owner?.email || "" },
+        connections: { meta, google_business: google },
+        queue,
+      });
+    }
+
+    if (action === "set_live_publishing") {
+      const enabled = !!body?.enabled;
+      if (enabled) {
+        const meta = await getConnection("meta");
+        if (!meta || meta.status !== "connected") {
+          throw new Error("Connect the locked Busy Does It Facebook / Instagram accounts first.");
+        }
+        await assertLockedMetaConnection(meta);
+      }
+      const now = new Date().toISOString();
+      const { error } = await supabase
+        .from("busy_workspace_settings")
+        .update({
+          live_publishing_enabled: enabled,
+          live_enabled_at: enabled ? now : null,
+          live_enabled_by: enabled ? owner?.id || null : null,
+          updated_at: now,
+        })
+        .eq("workspace_key", WORKSPACE);
+      if (error) throw error;
+      return json(200, {
+        ok: true,
+        livePublishingEnabled: enabled,
+        owner: { authenticated: true, email: owner?.email || "" },
+      });
     }
 
     if (action === "begin_oauth") {
@@ -988,16 +1103,17 @@ Deno.serve(async (request: Request) => {
         .filter((channel: string) =>
           ["Facebook", "Instagram", "Google Business"].includes(channel)
         );
-      if (LIVE_PUBLISHING_ENABLED) await assertChannelsConnected(channels);
+      const settings = await getWorkspaceSettings();
+      if (settings.live_publishing_enabled) await assertChannelsConnected(channels);
       const post = await upsertPost(
         body,
-        LIVE_PUBLISHING_ENABLED ? "Scheduled" : "Held for setup",
-        LIVE_PUBLISHING_ENABLED
+        settings.live_publishing_enabled ? "Scheduled" : "Held for setup",
+        settings.live_publishing_enabled
       );
       return json(200, {
         ok: true,
         post,
-        heldForSetup: !LIVE_PUBLISHING_ENABLED,
+        heldForSetup: !settings.live_publishing_enabled,
       });
     }
 
@@ -1007,9 +1123,10 @@ Deno.serve(async (request: Request) => {
         .filter((channel: string) =>
           ["Facebook", "Instagram", "Google Business"].includes(channel)
         );
-      if (LIVE_PUBLISHING_ENABLED) await assertChannelsConnected(channels);
+      const settings = await getWorkspaceSettings();
+      if (settings.live_publishing_enabled) await assertChannelsConnected(channels);
       const post = await upsertPost(body, "Publishing", true);
-      if (!LIVE_PUBLISHING_ENABLED) {
+      if (!settings.live_publishing_enabled) {
         await supabase
           .from("busy_social_posts")
           .update({
