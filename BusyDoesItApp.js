@@ -6110,6 +6110,7 @@ function App() {
   const resetPrototype = async () => {
     await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
     await AsyncStorage.removeItem("@busy-does-it-weekly-brief-v39").catch(() => {});
+    await AsyncStorage.removeItem("@busy-does-it-home-brief-v39").catch(() => {});
     setOnboardingComplete(false);
     setBusinessName("Dave's Exterior Cleaning");
     setTrade("Exterior cleaning");
@@ -8975,14 +8976,144 @@ function HomeScreen({ s }) {
   const bestMove = rankedMoves[0] || null;
   const otherMoves = rankedMoves.slice(1);
 
+  const homeWeekEndISO = addDaysFromISO(todayISO, 6);
+  const homeWeekBookings = Object.entries(s.replyActions || {})
+    .map(([id, action]) => {
+      if (
+        action?.type !== "booking" ||
+        !action?.done ||
+        !action.details?.bookingDate ||
+        !["Confirmed", "Completed"].includes(action.details?.bookingStatus || "Confirmed") ||
+        action.details.bookingDate < todayISO ||
+        action.details.bookingDate > homeWeekEndISO
+      ) return null;
+      return { id, action };
+    })
+    .filter(Boolean);
+  const homeWeekBookedValue = homeWeekBookings.reduce(
+    (total, item) =>
+      total +
+      (Number(item.action.details?.jobValue) ||
+        Number(item.action.details?.sourceQuoteAmount) ||
+        0),
+    0
+  );
+  const nextHomeBooking = homeWeekBookings
+    .filter((item) => item.action.details.bookingDate >= todayISO)
+    .sort((a, b) =>
+      `${a.action.details.bookingDate}T${a.action.details.bookingTime || "00:00"}`.localeCompare(
+        `${b.action.details.bookingDate}T${b.action.details.bookingTime || "00:00"}`
+      )
+    )[0] || null;
+  const currentHomeBriefSnapshot = {
+    weekBookings: homeWeekBookings.length,
+    weekBookedValue: homeWeekBookedValue,
+    freshEnquiries: s.freshEnquiryEntries?.length || 0,
+    dueQuotes: s.dueQuoteEntries?.length || 0,
+    inboxAttention: s.inboxNeedsAttentionItems?.length || 0,
+    workGoalRemaining:
+      s.activeWorkGoal && !s.workGoalFilled ? Number(s.workGoalRemainingJobs || 0) : 0,
+    workGoalFilled: !!s.workGoalFilled,
+  };
+  const [homeBrief, setHomeBrief] = useState({
+    loaded: false,
+    hasPrevious: false,
+    change: "",
+  });
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const key = "@busy-does-it-home-brief-v39";
+      let previous = null;
+      try {
+        const raw = await AsyncStorage.getItem(key);
+        previous = raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        previous = null;
+      }
+      let change = "";
+      if (previous) {
+        if (previous.inboxAttention !== currentHomeBriefSnapshot.inboxAttention) {
+          change = `BUSY Inbox attention changed from ${previous.inboxAttention || 0} to ${currentHomeBriefSnapshot.inboxAttention}.`;
+        } else if (previous.freshEnquiries !== currentHomeBriefSnapshot.freshEnquiries) {
+          const delta =
+            currentHomeBriefSnapshot.freshEnquiries - Number(previous.freshEnquiries || 0);
+          change =
+            delta > 0
+              ? `${delta} new live enquir${delta === 1 ? "y has" : "ies have"} appeared.`
+              : "The live-enquiry queue has reduced.";
+        } else if (previous.dueQuotes !== currentHomeBriefSnapshot.dueQuotes) {
+          change = `Quote follow-ups due changed from ${previous.dueQuotes || 0} to ${currentHomeBriefSnapshot.dueQuotes}.`;
+        } else if (previous.weekBookings !== currentHomeBriefSnapshot.weekBookings) {
+          change = `Booked jobs this week changed from ${previous.weekBookings || 0} to ${currentHomeBriefSnapshot.weekBookings}.`;
+        } else if (previous.weekBookedValue !== currentHomeBriefSnapshot.weekBookedValue) {
+          change = `Booked value this week changed from £${previous.weekBookedValue || 0} to £${currentHomeBriefSnapshot.weekBookedValue}.`;
+        } else if (!previous.workGoalFilled && currentHomeBriefSnapshot.workGoalFilled) {
+          change = "The active work-filling goal is now covered.";
+        } else if (
+          Number(previous.workGoalRemaining || 0) !==
+          currentHomeBriefSnapshot.workGoalRemaining
+        ) {
+          change = `The active work-goal gap is now ${currentHomeBriefSnapshot.workGoalRemaining} booking${currentHomeBriefSnapshot.workGoalRemaining === 1 ? "" : "s"}.`;
+        }
+      }
+      if (active) {
+        setHomeBrief({
+          loaded: true,
+          hasPrevious: !!previous,
+          change,
+        });
+      }
+      try {
+        await AsyncStorage.setItem(
+          key,
+          JSON.stringify({
+            ...currentHomeBriefSnapshot,
+            checkedAt: new Date().toISOString(),
+          })
+        );
+      } catch (e) {
+        // Home briefing is context only; storage failure must not block the app.
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <Shell
       s={s}
       noBack
-      title="Best thing to do today"
-      subtitle="BUSY sorts incoming information, ranks the live business records, and normally shows one next move."
-      brandCue="Incoming information sorted. One clear move out."
+      title="Today"
+      subtitle="A short BUSY briefing first. Open Work when you want the full weekly plan and reasoning."
+      brandCue="The business checked. One clear move when something matters."
     >
+      <Card
+        eyebrow="BUSY briefing"
+        title={
+          bestMove
+            ? "BUSY has checked the business"
+            : "BUSY has checked the business • all clear"
+        }
+        body={
+          `${homeBrief.loaded && homeBrief.hasPrevious
+            ? homeBrief.change || "Nothing material has changed since your last Home check."
+            : "BUSY is starting a simple next-session comparison from this point."}\n${bestMove
+            ? `What matters now: ${bestMove.title}.`
+            : "What matters now: no recorded task is worth forcing."}`
+        }
+        footer={
+          nextHomeBooking
+            ? `Next saved booking: ${formatUKDate(nextHomeBooking.action.details.bookingDate)} at ${nextHomeBooking.action.details.bookingTime || "time not set"} • ${homeWeekBookings.length} booked this week • £${homeWeekBookedValue}`
+            : `${homeWeekBookings.length} booked this week • £${homeWeekBookedValue} • no upcoming booking in the next 7 days`
+        }
+        tone={bestMove?.tone || "green"}
+      >
+        <Button label="Open weekly plan" onPress={() => s.jump("workHub", "Work")} />
+      </Card>
+
       {bestMove ? (
         <>
           <OpportunityCard
@@ -9694,7 +9825,77 @@ function WorkHub({ s }) {
           action: () =>
             s.prepareEnquiryFollowUp(s.staleEnquiryEntries[0].customer.id),
         }
+      : quotesDueSoon[0]
+      ? {
+          eyebrow: "Prepared ahead • quote",
+          title: `${quotesDueSoon[0].customer.name}'s follow-up is due ${formatUKDate(quotesDueSoon[0].dueDate)}`,
+          body: "BUSY already has the customer, service and quote value, so the follow-up wording can be reviewed ahead of time. Nothing is sent until you approve it.",
+          label: "Review wording ahead",
+          action: () => s.prepareQuoteFollowUp(quotesDueSoon[0].id),
+        }
+      : enquiriesNearingCold[0]
+      ? {
+          eyebrow: "Prepared ahead • enquiry",
+          title: `${enquiriesNearingCold[0].customer.name}'s enquiry is nearing the quiet threshold`,
+          body: "BUSY can prepare the polite check-in before the enquiry becomes stale. Nothing is sent until you approve it.",
+          label: "Review wording ahead",
+          action: () =>
+            s.prepareEnquiryFollowUp(enquiriesNearingCold[0].customer.id),
+        }
       : null;
+
+  const capacityPlanningService =
+    s.workGoalPlanningService ||
+    s.selectedService ||
+    s.services.find((item) => item.wanted) ||
+    s.services[0] ||
+    null;
+  const nextOpenPlanningSlot = suggestSpareSlots(s.replyActions, 1, 14)[0] || null;
+  const nextOpenSlotCapacity = nextOpenPlanningSlot
+    ? Math.max(
+        0,
+        Math.floor(
+          (slotPlanningHours(nextOpenPlanningSlot.part) || 4) /
+            planningDurationHours(capacityPlanningService)
+        )
+      )
+    : 0;
+  const proportionatePlan =
+    s.activeWorkGoal && !s.workGoalFilled
+      ? s.workGoalCapacityMismatch || s.workGoalPlanConflict || s.workGoalPlanShortfall
+        ? {
+            title: "Fix the capacity plan before creating more demand",
+            body: "The diary assumptions and the active goal no longer line up cleanly. BUSY should correct capacity first rather than increase outreach.",
+            tone: "amber",
+          }
+        : s.workGoalRemainingJobs <= 1
+        ? {
+            title: "One booking gap = keep the response narrow",
+            body: "BUSY should use the strongest live enquiry, quote or small warm-customer action first. Broad promotion or paid reach would be disproportionate for one missing booking.",
+            tone: "green",
+          }
+        : s.workGoalRemainingJobs === 2
+        ? {
+            title: "Two booking gaps = a small warm-demand plan is proportionate",
+            body: "Use existing enquiries and quotes first, then a deliberately small previous-customer batch if the gap remains. Paid reach still sits behind those cheaper routes.",
+            tone: "blue",
+          }
+        : {
+            title: `${s.workGoalRemainingJobs} booking gaps justify a wider free-first plan`,
+            body: "A broader previous-customer batch, suitable organic content and other low-cost routes can now be proportionate, while BUSY still stops escalation as bookings arrive.",
+            tone: "blue",
+          }
+      : nextOpenPlanningSlot
+      ? {
+          title: `Next open half-day fits roughly ${nextOpenSlotCapacity || 1} ${capacityPlanningService?.name || "typical"} job${nextOpenSlotCapacity === 1 ? "" : "s"}`,
+          body: "BUSY can see spare capacity, but it will not assume you want it filled. Creating demand remains an explicit owner decision until a work goal is active.",
+          tone: "blue",
+        }
+      : {
+          title: "No obvious capacity gap needs a marketing response",
+          body: "BUSY has no reason to manufacture promotion from the current saved diary.",
+          tone: "green",
+        };
 
   const [workMonthStartISO, setWorkMonthStartISO] = useState(() => {
     const now = new Date();
@@ -9785,7 +9986,7 @@ function WorkHub({ s }) {
       <Card
         eyebrow="V3.9 • This week"
         title={weeklyStatusTitle}
-        body="The weekly view combines saved bookings, customer obligations, BUSY Inbox work and the existing capacity plan. It does not invent tasks or count activity as a business result."
+        body="The weekly view combines saved bookings, customer obligations, BUSY Inbox work and the existing capacity plan. It recalculates from the current records, so actions drop away or change when the business changes. It does not invent tasks or count activity as a business result."
         footer={`${formatUKDate(todayISO)} – ${formatUKDate(weekEndISO)}`}
         tone={weeklyStatusTone}
       >
@@ -9932,6 +10133,41 @@ function WorkHub({ s }) {
         {!followingWeekBookings.length && !s.activeWorkGoal ? (
           <Button label="Plan to fill future capacity" onPress={() => s.go("workNow")} />
         ) : null}
+      </Card>
+
+      <Card
+        eyebrow="Why this amount of activity?"
+        title={proportionatePlan.title}
+        body={proportionatePlan.body}
+        footer="Capacity, customer intent and recorded outcomes come before marketing volume."
+        tone={proportionatePlan.tone}
+      >
+        <MetricRow
+          left="Typical planning job"
+          right={capacityPlanningService?.name || "Current service"}
+        />
+        <MetricRow
+          left="Typical duration"
+          right={formatDurationHours(planningDurationHours(capacityPlanningService))}
+        />
+        {nextOpenPlanningSlot ? (
+          <MetricRow
+            left="Next open planning slot"
+            right={nextOpenPlanningSlot.label}
+          />
+        ) : null}
+        {s.activeWorkGoal ? (
+          <MetricRow
+            left="Current goal gap"
+            right={
+              s.workGoalFilled
+                ? "Filled"
+                : `${s.workGoalRemainingJobs} booking${s.workGoalRemainingJobs === 1 ? "" : "s"}`
+            }
+            strong={s.workGoalFilled}
+          />
+        ) : null}
+        <MetricRow left="Recommended extra spend now" right="£0 first" strong />
       </Card>
 
       {preparedNextAction ? (
