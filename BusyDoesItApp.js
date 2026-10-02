@@ -18,7 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 
-const APP_VERSION = "3.6";
+const APP_VERSION = "3.6.1";
 const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Live Social Publishing`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
@@ -3167,7 +3167,7 @@ function App() {
     setSocialAiError("");
   };
 
-  const applySocialCaption = (caption) => {
+  const commitSocialCaption = (caption) => {
     if (!caption) return;
     setSocialCaptionId(caption.id);
     setSocialDraftText(caption.text || "");
@@ -3185,6 +3185,37 @@ function App() {
         googleConnection.status === "connected" &&
         recommended.has("Google Business"),
     });
+  };
+
+  const applySocialCaption = (caption) => {
+    if (!caption) return;
+    const currentText = String(socialDraftText || "").trim();
+    const nextText = String(caption.text || "").trim();
+    const selectedCaption = (socialAiResult?.captions || []).find(
+      (item) => item.id === socialCaptionId
+    );
+    const selectedText = String(selectedCaption?.text || "").trim();
+    const wordingWasEdited =
+      !!currentText &&
+      currentText !== selectedText &&
+      currentText !== nextText;
+
+    if (wordingWasEdited) {
+      Alert.alert(
+        "Replace your edited wording?",
+        "You have changed the final wording. Choosing another BUSY option will replace those edits.",
+        [
+          { text: "Keep my wording", style: "cancel" },
+          {
+            text: "Replace wording",
+            onPress: () => commitSocialCaption(caption),
+          },
+        ]
+      );
+      return;
+    }
+
+    commitSocialCaption(caption);
   };
 
   const runSocialContentAI = async () => {
@@ -3234,7 +3265,9 @@ function App() {
           service: payload.detectedService,
         }));
       }
-      applySocialCaption(payload.captions?.[0]);
+      if (!String(socialDraftText || "").trim()) {
+        commitSocialCaption(payload.captions?.[0]);
+      }
       return true;
     } catch (error) {
       setSocialAiStatus("error");
@@ -14383,6 +14416,9 @@ function SocialCreator({ s }) {
           ))}
 
           <Text style={styles.fieldLabel}>Your final wording</Text>
+          <Text style={styles.cardFooter}>
+            Your edits are protected. If you choose another BUSY option after editing this box, BUSY will ask before replacing your wording.
+          </Text>
           <TextInput
             multiline
             value={s.socialDraftText}
