@@ -491,12 +491,16 @@ async function handleGoogleCallback(code: string) {
     try {
       const locations = await fetchJson(url.toString(), { headers });
       for (const location of Array.isArray(locations.locations) ? locations.locations : []) {
+        const locationName = String(location.name || "");
+        const fullLocationName = locationName.startsWith("accounts/")
+          ? locationName
+          : `${account.name}/${locationName}`;
         assets.push({
-          id: location.name,
+          id: fullLocationName,
           name: location.title || location.storeCode || "Google Business location",
           accountName: account.name,
           accountLabel: account.accountName || "",
-          locationName: location.name,
+          locationName: fullLocationName,
           locationTitle: location.title || "",
         });
       }
@@ -752,8 +756,12 @@ async function publishGoogleBusiness(connection: any, caption: string, urls: str
     throw new Error("Google Business location is not selected.");
   }
   const token = await googleAccessToken(connection);
+  const locationResource = String(connection.google_location_name || "").replace(/^\/+/, "");
+  if (!/^accounts\/[^/]+\/locations\/[^/]+$/.test(locationResource)) {
+    throw new Error("Google Business location reference is incomplete. Reconnect Google Business.");
+  }
   return await fetchJson(
-    `https://mybusiness.googleapis.com/v4/${connection.google_location_name}/localPosts`,
+    `https://mybusiness.googleapis.com/v4/${locationResource}/localPosts`,
     {
       method: "POST",
       headers: {
@@ -794,20 +802,33 @@ async function assertChannelsConnected(channels: string[]) {
   }
 }
 
-async function publishPost(post: any) {
+async function publishPost(post: any, channelsOverride: string[] | null = null) {
   const settings = await getWorkspaceSettings();
   if (!settings.live_publishing_enabled) {
     throw new Error("Live publishing is disabled until the owner explicitly enables the controlled live test.");
   }
   if (!post.owner_approved) throw new Error("Owner approval is required before publishing.");
-  await assertChannelsConnected(post.channels || []);
+
+  const allChannels = (Array.isArray(post.channels) ? post.channels : [])
+    .filter((channel: string) =>
+      ["Facebook", "Instagram", "Google Business"].includes(channel)
+    );
+  const requestedChannels = (Array.isArray(channelsOverride) && channelsOverride.length
+    ? channelsOverride
+    : allChannels
+  ).filter((channel: string) => allChannels.includes(channel));
+
+  if (!requestedChannels.length) throw new Error("There is no provider destination left to publish.");
+  await assertChannelsConnected(requestedChannels);
 
   const media = await signedMedia(post.media || [], 7200);
   const urls = media.map((item) => item.signedUrl);
-  const results: Record<string, unknown> = {};
-  const errors: string[] = [];
+  const results: Record<string, any> =
+    post.provider_results && typeof post.provider_results === "object"
+      ? { ...post.provider_results }
+      : {};
 
-  for (const channel of post.channels || []) {
+  for (const channel of requestedChannels) {
     try {
       if (channel === "Facebook") {
         const connection = await getConnection("meta");
@@ -825,19 +846,26 @@ async function publishPost(post: any) {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       results[channel] = { error: message };
-      errors.push(`${channel}: ${message}`);
     }
   }
 
-  const successful = Object.values(results).filter(
-    (value: any) => value && !value.error
-  ).length;
-  const total = (post.channels || []).length;
-  const status = successful === total
-    ? "Published"
-    : successful > 0
-    ? "Partial failure"
-    : "Failed";
+  const successfulChannels = allChannels.filter(
+    (channel: string) => results[channel] && !results[channel]?.error
+  );
+  const failedChannels = allChannels.filter(
+    (channel: string) => !results[channel] || !!results[channel]?.error
+  );
+  const status =
+    successfulChannels.length === allChannels.length
+      ? "Published"
+      : successfulChannels.length > 0
+      ? "Partial failure"
+      : "Failed";
+  const errors = failedChannels.map((channel: string) => {
+    const value = results[channel];
+    const message = value?.error || "No provider receipt was returned.";
+    return `${channel}: ${message}`;
+  });
   const now = new Date().toISOString();
 
   const { data, error } = await supabase
@@ -846,8 +874,10 @@ async function publishPost(post: any) {
       status,
       provider_results: results,
       last_error: errors.join(" • ") || null,
-      published_at: successful ? now : null,
-      retry_count: Number(post.retry_count || 0) + (errors.length ? 1 : 0),
+      published_at: successfulChannels.length ? post.published_at || now : null,
+      retry_count:
+        Number(post.retry_count || 0) +
+        (failedChannels.length && channelsOverride ? 1 : failedChannels.length ? 1 : 0),
       updated_at: now,
     })
     .eq("id", post.id)
@@ -1249,7 +1279,19 @@ Deno.serve(async (request: Request) => {
       if (!existing.owner_approved) {
         throw new Error("Owner approval is required before retrying this post.");
       }
-      await assertChannelsConnected(existing.channels || []);
+      const previousResults =
+        existing.provider_results && typeof existing.provider_results === "object"
+          ? existing.provider_results
+          : {};
+      const failedChannels = (Array.isArray(existing.channels) ? existing.channels : [])
+        .filter((channel: string) => {
+          const result = previousResults[channel];
+          return !result || !!result?.error;
+        });
+      if (!failedChannels.length) {
+        throw new Error("All selected destinations already have successful provider receipts.");
+      }
+      await assertChannelsConnected(failedChannels);
       const { data: publishing, error: updateError } = await supabase
         .from("busy_social_posts")
         .update({
@@ -1261,7 +1303,14 @@ Deno.serve(async (request: Request) => {
         .select("*")
         .single();
       if (updateError) throw updateError;
-      return json(200, { ok: true, post: await publishPost(publishing) });
+      return json(200, {
+        ok: true,
+        retriedChannels: failedChannels,
+        post: await publishPost(
+          { ...publishing, provider_results: previousResults },
+          failedChannels
+        ),
+      });
     }
 
     if (action === "process_due") {
