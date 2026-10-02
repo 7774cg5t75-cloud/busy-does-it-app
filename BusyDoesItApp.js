@@ -14601,65 +14601,85 @@ function SocialMediaCentre({ s }) {
       <Text style={styles.sectionLabel}>Publishing activity</Text>
       <Card
         eyebrow="At a glance"
-        title="Your social queue is organised by what needs action"
-        body="Failed items stay at the top, then scheduled posts, working drafts and recently published history."
-        tone={cloudFailed ? "amber" : "blue"}
+        title="Your queue is split by what needs your attention"
+        body="Problems come first, then scheduled work, drafts and recent publishing history."
+        tone={attentionDrafts.length ? "amber" : "blue"}
       >
-        <MetricRow left="Needs attention" right={String(cloudFailed)} strong={cloudFailed > 0} />
-        <MetricRow left="Scheduled" right={String(cloudScheduled)} />
-        <MetricRow left="Working drafts" right={String(drafts.filter((draft) => !draft.status || draft.status === "Draft").length)} />
-        <MetricRow left="Published" right={String(cloudPublished)} strong={cloudPublished > 0} />
+        <MetricRow left="Needs attention" right={String(attentionDrafts.length)} strong={attentionDrafts.length > 0} />
+        <MetricRow left="Scheduled" right={String(scheduledDrafts.length)} />
+        <MetricRow left="Drafts" right={String(workingDrafts.length)} />
+        <MetricRow left="Recently published" right={String(publishedDrafts.length)} strong={publishedDrafts.length > 0} />
       </Card>
-      {drafts.length ? (
-        drafts.slice(0, 10).map((draft) => (
-          <Pressable
-            key={draft.id}
-            onPress={() => s.openSocialDraft(draft.id)}
-            style={styles.activityCard}
-          >
-            <View style={styles.activityTopRow}>
-              <View style={{ flex: 1, paddingRight: 10 }}>
-                <Text style={styles.activityName}>{draft.service || "Social post"}</Text>
-                <Text style={styles.activityService}>
-                  {draft.sourceLabel || "Selected photos"} • {(draft.channels || []).join(", ") || "No destination chosen"}
-                </Text>
-              </View>
-              <StatusChip
-                label={draft.status || "Draft"}
-                tone={
-                  draft.status === "Published"
-                    ? "green"
-                    : ["Failed", "Partial failure", "Ready to publish"].includes(draft.status)
-                    ? "amber"
-                    : "blue"
-                }
-              />
-            </View>
-            <Text numberOfLines={3} style={styles.activitySummary}>{draft.text}</Text>
-            {draft.lastPublishError ? (
-              <Text style={styles.customerHistoryPhotoMeta}>{draft.lastPublishError}</Text>
-            ) : null}
-            {draft.status === "Scheduled" ? (
-              <Text style={styles.activityOpen}>
-                Scheduled {formatUKDate(draft.scheduleDate)} • {draft.scheduleTime}
-              </Text>
-            ) : draft.status === "Published" && draft.publishedAt ? (
-              <Text style={styles.activityOpen}>
-                Published {formatUKDate(String(draft.publishedAt).slice(0, 10))}
-              </Text>
-            ) : (
-              <Text style={styles.activityOpen}>Open post →</Text>
-            )}
-          </Pressable>
-        ))
-      ) : (
+
+      {attentionDrafts.length ? (
+        <>
+          <Text style={styles.sectionLabel}>Needs attention</Text>
+          {attentionDrafts.map(renderDraftCard)}
+        </>
+      ) : null}
+
+      {scheduledDrafts.length ? (
+        <>
+          <Text style={styles.sectionLabel}>Scheduled</Text>
+          {scheduledDrafts.map(renderDraftCard)}
+        </>
+      ) : null}
+
+      {workingDrafts.length ? (
+        <>
+          <Text style={styles.sectionLabel}>Drafts</Text>
+          {workingDrafts.map(renderDraftCard)}
+        </>
+      ) : null}
+
+      {publishedDrafts.length ? (
+        <>
+          <Text style={styles.sectionLabel}>Recently published</Text>
+          {publishedDrafts.map(renderDraftCard)}
+        </>
+      ) : null}
+
+      {!drafts.length ? (
         <Card
           eyebrow="No drafts yet"
           title="Your content queue is empty"
           body="Create from phone photos or a completed job. BUSY will keep the wording, media, destinations and provider status together."
           tone="blue"
         />
-      )}
+      ) : null}
+
+      {outcomeReminders.length ? (
+        <>
+          <Text style={styles.sectionLabel}>Did these posts bring work?</Text>
+          <Card
+            eyebrow="Business outcome reminders"
+            title={`${outcomeReminders.length} published job post${outcomeReminders.length === 1 ? "" : "s"} waiting for an outcome`}
+            body="BUSY does not assume a published post worked. Record an enquiry, quote, booking or no enquiry so the Business Brain learns from actual business outcomes."
+            tone="green"
+          />
+          {outcomeReminders.map(({ customer, job }) => (
+            <Pressable
+              key={`social-outcome-${customer.id}-${job.id}`}
+              onPress={() => s.openJobPostOutcome(customer.id, job.id)}
+              style={styles.activityCard}
+            >
+              <View style={styles.activityTopRow}>
+                <View style={{ flex: 1, paddingRight: 10 }}>
+                  <Text style={styles.activityName}>{job.service || customer.service || "Published job post"}</Text>
+                  <Text style={styles.activityService}>
+                    {(job.postChannels || []).join(", ") || "Published social post"}
+                  </Text>
+                </View>
+                <StatusChip label="Outcome?" tone="amber" />
+              </View>
+              <Text style={styles.activitySummary}>
+                Published {job.postPublishedAt ? formatUKDate(String(job.postPublishedAt).slice(0, 10)) : "recently"}.
+              </Text>
+              <Text style={styles.activityOpen}>Record what happened →</Text>
+            </Pressable>
+          ))}
+        </>
+      ) : null}
 
       <Card
         eyebrow="BUSY Business Brain"
