@@ -2,6 +2,29 @@
 
 Busy Does It mobile app prototype.
 
+## v3.9 Weekly Command Centre
+- Promoted the Work tab from a collection of operational metrics into a weekly command centre without adding another permanent navigation area.
+- Added a rolling seven-day summary of booked jobs, booked value, days containing booked work, days with no booked job and the number of recorded customer/record items needing attention.
+- Added BUSY's weekly plan: a maximum of three ranked next steps generated from existing business records rather than invented activity.
+- Weekly priorities protect existing obligations first: overdue booked work, BUSY Inbox items needing review, promised follow-ups, due quote follow-ups and live enquiries outrank marketing.
+- Warm-demand recovery, outcome recording, active work-goal continuation and prepared background work can enter the weekly plan after higher-authority operational work.
+- Published-post, quote-follow-up and enquiry-follow-up outcomes can surface as weekly learning tasks so the Business Brain improves from real results instead of treating activity itself as success.
+- An existing capacity goal stays authoritative. V3.9 points back into the same adaptive work-filling plan rather than starting a duplicate campaign for the same diary gap.
+- When there is genuinely nothing urgent, BUSY says so instead of manufacturing a task. If the week has no booked work, Find more work remains an explicit owner choice.
+- The existing monthly diary, day detail, pipeline, Social Control Centre, live publishing and all V3.8 duplicate-publishing protections remain intact.
+- Main navigation remains Home / Work / Results / Settings.
+
+## v3.8 Social Control Centre + channel-safe live publishing
+- Completed the Social Control Centre around real provider state, publishing receipts, schedules, failures and business outcomes.
+- Added Google Business as a first-class live destination alongside Facebook and Instagram, including Business Profile location selection and server-side publishing.
+- Added provider-specific results so each selected destination can succeed or fail independently.
+- Retries now send only failed destinations; successful Facebook, Instagram or Google Business posts are not duplicated.
+- Partially published records remain locked publishing history while failed destinations stay retryable.
+- Completed-job records distinguish destinations that actually published from destinations that failed, keeping outcome evidence truthful.
+- Scheduled, publishing and published records cannot silently regress into fresh drafts or create duplicate publishing instructions.
+- The Social Control Centre separates ready-to-post work, schedules, items needing attention, recent publishing history and outcome reminders.
+- Owner authentication, explicit live-publishing control and provider authorization remain separate safety boundaries.
+
 ## v3.5 Live social publishing + scheduling
 - Replaced the simulated social-publishing boundary with a real server-side publishing architecture while keeping live external posting deliberately disabled until provider credentials and stronger owner authentication are complete.
 - Added the `busy-social-publish` Supabase Edge Function for Meta and Google Business Profile OAuth, provider connection health, cloud drafts, media upload, scheduling, publishing, provider receipts and error handling.
