@@ -910,6 +910,88 @@ async function listQueue() {
   return data || [];
 }
 
+async function getPostByClientDraftId(clientDraftId: string) {
+  const id = cleanText(clientDraftId, 180);
+  if (!id) throw new Error("Missing social draft ID.");
+  const { data, error } = await supabase
+    .from("busy_social_posts")
+    .select("*")
+    .eq("workspace_key", WORKSPACE)
+    .eq("client_draft_id", id)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+async function deleteDraft(clientDraftId: string) {
+  const post = await getPostByClientDraftId(clientDraftId);
+  if (!post) return { deleted: true, cloudRecordFound: false };
+
+  const deletableStatuses = new Set([
+    "Draft",
+    "Failed",
+    "Ready to publish",
+    "Held for setup",
+    "Cancelled",
+  ]);
+  if (!deletableStatuses.has(String(post.status || ""))) {
+    throw new Error(
+      post.status === "Scheduled"
+        ? "Cancel the scheduled post before deleting this draft."
+        : "Published or publishing posts cannot be deleted from BUSY as drafts."
+    );
+  }
+
+  const paths = (Array.isArray(post.media) ? post.media : [])
+    .map((item: any) => cleanText(item?.storagePath, 1000))
+    .filter(Boolean);
+  if (paths.length) {
+    const { error: storageError } = await supabase.storage.from(BUCKET).remove(paths);
+    if (storageError) throw storageError;
+  }
+
+  const { error } = await supabase
+    .from("busy_social_posts")
+    .delete()
+    .eq("workspace_key", WORKSPACE)
+    .eq("client_draft_id", post.client_draft_id);
+  if (error) throw error;
+
+  return { deleted: true, cloudRecordFound: true };
+}
+
+async function cancelScheduledPost(clientDraftId: string) {
+  const post = await getPostByClientDraftId(clientDraftId);
+  if (!post) throw new Error("That scheduled post no longer exists.");
+  if (!["Scheduled", "Held for setup"].includes(String(post.status || ""))) {
+    throw new Error(
+      post.status === "Publishing" || post.status === "Published"
+        ? "That post has already started publishing and can no longer be cancelled."
+        : "That post is not currently scheduled."
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("busy_social_posts")
+    .update({
+      status: "Draft",
+      owner_approved: false,
+      scheduled_for: null,
+      last_error: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("workspace_key", WORKSPACE)
+    .eq("client_draft_id", post.client_draft_id)
+    .in("status", ["Scheduled", "Held for setup"])
+    .select("*")
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) {
+    throw new Error("That post started publishing before BUSY could cancel it.");
+  }
+  return data;
+}
+
 async function selectAsset(provider: string, assetId: string) {
   const connection = await getConnection(provider);
   if (!connection) throw new Error("Start the provider connection first.");
@@ -1094,6 +1176,16 @@ Deno.serve(async (request: Request) => {
     if (action === "save_draft") {
       const post = await upsertPost(body, "Draft", false);
       return json(200, { ok: true, post });
+    }
+
+    if (action === "delete_draft") {
+      const clientDraftId = cleanText(body?.clientDraftId, 180);
+      return json(200, { ok: true, ...(await deleteDraft(clientDraftId)) });
+    }
+
+    if (action === "cancel_schedule") {
+      const clientDraftId = cleanText(body?.clientDraftId, 180);
+      return json(200, { ok: true, post: await cancelScheduledPost(clientDraftId) });
     }
 
     if (action === "schedule") {
