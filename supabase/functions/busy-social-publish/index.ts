@@ -5,7 +5,7 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const BUCKET = "busy-social-media";
 const WORKSPACE = "prototype";
 const META_GRAPH_VERSION = Deno.env.get("META_GRAPH_VERSION") || "v24.0";
-const META_LOGIN_CONFIG_ID = "1101136039132376";
+const META_LOGIN_CONFIG_ID = "1310417644415943";
 const LIVE_PUBLISHING_ENABLED =
   String(Deno.env.get("BUSY_LIVE_PUBLISHING") || "").toLowerCase() === "enabled";
 
