@@ -21,8 +21,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 
-const APP_VERSION = "3.9";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Weekly Command Centre`;
+const APP_VERSION = "3.10";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Google Business Live`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
@@ -3061,6 +3061,25 @@ function App() {
       return true;
     } catch (error) {
       setSocialPublishingError(error?.message || "BUSY could not select that account.");
+      return false;
+    } finally {
+      setSocialPublishingLoading(false);
+      setSocialPublishingAction("");
+    }
+  };
+
+  const verifySocialProvider = async (provider) => {
+    setSocialPublishingLoading(true);
+    setSocialPublishingAction(provider);
+    setSocialPublishingError("");
+    try {
+      await socialPublishRequest("verify_provider", { provider });
+      await refreshSocialPublishingStatus({ quiet: true });
+      return true;
+    } catch (error) {
+      const message = error?.message || "BUSY could not verify that provider.";
+      setSocialPublishingError(message);
+      Alert.alert("Provider check did not complete", message);
       return false;
     } finally {
       setSocialPublishingLoading(false);
@@ -7409,6 +7428,7 @@ function App() {
     refreshSocialPublishingStatus,
     beginSocialProviderConnect,
     selectSocialProviderAsset,
+    verifySocialProvider,
     disconnectSocialProvider,
     socialProviderConnected,
     businessBrainRules,
@@ -16917,6 +16937,7 @@ function ConnectedAccounts({ s }) {
     const connected = connection.status === "connected";
     const needsSelection = connection.status === "needs_selection";
     const needsAttention = connection.status === "needs_attention";
+    const checking = connection.status === "checking";
     const providerBusy = busy && s.socialPublishingAction === provider;
     const ownerSignedIn = !!s.ownerSession?.accessToken;
     const accountLabel =
@@ -16932,17 +16953,27 @@ function ConnectedAccounts({ s }) {
         title={
           connected
             ? accountLabel || "Connected"
+            : checking
+            ? "Checking provider access"
             : needsSelection
             ? "Choose which business account BUSY should use"
             : needsAttention
-            ? "Connection needs attention"
+            ? provider === "google_business"
+              ? "Google authorization saved — publishing access needs attention"
+              : "Connection needs attention"
             : configured
             ? "Ready to connect"
             : "Developer credentials still needed"
         }
         body={
           connected
-            ? "BUSY has provider authorization for approved publishing actions. Creating content still does not grant permission to publish it."
+            ? provider === "google_business"
+              ? "BUSY has verified this selected Business Profile location against Google's Local Posts API. Owner approval is still required for every public post."
+              : "BUSY has provider authorization for approved publishing actions. Creating content still does not grant permission to publish it."
+            : checking
+            ? "BUSY is checking whether the selected provider can actually be used for publishing."
+            : needsAttention && provider === "google_business"
+            ? "Google OAuth may already be saved. BUSY keeps that authorization so you can fix API approval or enablement and re-check without starting over."
             : configured
             ? "The server has the provider app credentials. Start OAuth here, complete the provider consent screen, then return to BUSY and refresh."
             : provider === "meta"
@@ -16967,8 +16998,18 @@ function ConnectedAccounts({ s }) {
             />
           </>
         ) : null}
-        {provider === "google_business" && connected ? (
-          <MetricRow left="Google location" right={connection.googleLocationTitle || "Connected"} />
+        {provider === "google_business" && (connected || needsAttention || checking) ? (
+          <>
+            <MetricRow
+              left="Google location"
+              right={connection.googleLocationTitle || (needsSelection ? "Choose a location" : "Not verified yet")}
+            />
+            <MetricRow
+              left="Local Posts API"
+              right={connection.publishingVerified ? "Verified" : checking ? "Checking…" : "Not verified"}
+              strong={!!connection.publishingVerified}
+            />
+          </>
         ) : null}
         {connection.lastError ? (
           <Text style={styles.customerHistoryPhotoMeta}>{connection.lastError}</Text>
@@ -16992,13 +17033,31 @@ function ConnectedAccounts({ s }) {
           </>
         ) : null}
 
+        {provider === "google_business" &&
+        configured &&
+        !needsSelection &&
+        (connected || needsAttention || checking) ? (
+          <Button
+            label={
+              providerBusy
+                ? "Checking Google…"
+                : connected
+                ? "Re-check Google publishing access"
+                : "Re-check Google access"
+            }
+            primary={!connected}
+            disabled={busy || !ownerSignedIn}
+            onPress={() => s.verifySocialProvider("google_business")}
+          />
+        ) : null}
+
         {connected ? (
           <Button
             label={providerBusy ? "Disconnecting…" : "Disconnect provider"}
             disabled={busy || !ownerSignedIn}
             onPress={() => s.disconnectSocialProvider(provider)}
           />
-        ) : configured && !needsSelection ? (
+        ) : configured && !needsSelection && !checking ? (
           <Button
             label={providerBusy ? "Opening provider…" : `Connect ${label}`}
             primary
@@ -17014,11 +17073,11 @@ function ConnectedAccounts({ s }) {
     <Shell
       s={s}
       title="Connected accounts"
-      subtitle="V3.8 keeps owner authentication and provider tokens server-side while adding Google Business readiness and safer per-channel publishing controls."
+      subtitle="V3.10 finishes the second real publishing connection: Google authorization, Business Profile location discovery and Local Posts API verification stay server-side."
       brandCue="BUSY can prepare automatically. Public publishing still requires an authenticated owner and an approved post."
     >
       <Card
-        eyebrow="V3.8 • Owner protection"
+        eyebrow="V3.10 • Owner protection"
         title={s.ownerSession?.accessToken ? "Owner verified" : "Owner sign-in required"}
         body={
           s.ownerSession?.accessToken
@@ -17063,7 +17122,7 @@ function ConnectedAccounts({ s }) {
       </Card>
 
       <Card
-        eyebrow="V3.8 • Connection health"
+        eyebrow="V3.10 • Connection health"
         title={
           credentials.livePublishingEnabled
             ? "Live provider publishing is enabled"
@@ -17150,7 +17209,7 @@ function ConnectedAccounts({ s }) {
       {!credentials.google_business?.configured ? (
         <>
           <Card
-            eyebrow="V3.8 • Google Business"
+            eyebrow="V3.10 • Google Business"
             title="Google publishing code is ready for developer setup"
             body="BUSY already has the OAuth, Business Profile location selection, token refresh and Google post-publishing flow. The remaining step is to create the Google OAuth web client and add its client ID and secret to the server."
             footer={`OAuth redirect: ${BUSY_SOCIAL_PUBLISH_URL}/callback/google_business`}
@@ -17159,23 +17218,38 @@ function ConnectedAccounts({ s }) {
           <Card
             eyebrow="Google setup checklist"
             title="One developer setup unlocks the connection button"
-            body="Enable the Google Business Profile APIs in the Google Cloud project, configure the OAuth consent screen, create a Web application OAuth client using the BUSY callback above, then add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to Supabase."
-            footer="After that, BUSY handles account consent, location choice and publishing from inside the app"
+            body="Google requires the Cloud project itself to be approved for Business Profile APIs. After approval, enable Google My Business API, My Business Account Management API and My Business Business Information API, configure OAuth, then create a Web application client with the BUSY callback above."
+            footer="BUSY now preserves OAuth and can re-check API access without forcing a fresh connection"
             tone="blue"
+          />
+          <Card
+            eyebrow="Google API approval"
+            title="Approval and OAuth are separate steps"
+            body="If the Business Profile API quota is still 0, the Cloud project has not been approved yet. Once Google grants GBP API access and the required APIs are enabled, BUSY can verify the selected location without changing the rest of the app."
+            footer="A connected Google account is not treated as publish-ready until the Local Posts API check succeeds"
+            tone="amber"
           />
         </>
       ) : google.status !== "connected" ? (
         <Card
-          eyebrow="V3.8 • Google Business"
-          title="Google credentials are ready — connect a Business Profile"
-          body="Use the Google Business connection below. BUSY will list the locations the signed-in Google account manages and ask you to choose one if there is more than one."
+          eyebrow="V3.10 • Google Business"
+          title={
+            google.status === "needs_attention"
+              ? "Google is authorized — finish the API access check"
+              : "Google credentials are ready — connect a Business Profile"
+          }
+          body={
+            google.status === "needs_attention"
+              ? "BUSY has kept the Google authorization. Fix the Google Cloud approval/API issue shown below, then tap Re-check Google access."
+              : "Use the Google Business connection below. BUSY will list the locations the signed-in Google account manages, ask you to choose one if needed, then verify the Local Posts API before calling the connection live."
+          }
           tone="green"
         />
       ) : (
         <Card
-          eyebrow="V3.8 • Google Business"
+          eyebrow="V3.10 • Google Business"
           title={google.googleLocationTitle || "Google Business connected"}
-          body="This location can be selected alongside Facebook and Instagram when an owner approves a post."
+          body="This location has passed BUSY's Google Local Posts API check and can be selected alongside Facebook and Instagram when an owner approves a post."
           footer="Retries are destination-specific, so a successful Facebook or Instagram post will not be duplicated if Google alone fails."
           tone="green"
         />
