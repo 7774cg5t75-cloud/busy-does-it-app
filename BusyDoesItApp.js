@@ -14352,6 +14352,86 @@ function SocialMediaCentre({ s }) {
     )
     .slice(0, 7);
 
+  const attentionDrafts = drafts.filter((draft) =>
+    ["Failed", "Partial failure", "Ready to publish"].includes(draft.status)
+  );
+  const scheduledDrafts = drafts.filter((draft) =>
+    ["Scheduled", "Held for setup"].includes(draft.status)
+  );
+  const workingDrafts = drafts.filter(
+    (draft) => !draft.status || draft.status === "Draft"
+  );
+  const publishedDrafts = drafts
+    .filter((draft) => draft.status === "Published")
+    .slice(0, 8);
+  const outcomeReminders = (s.socialOutcomeReminders || []).slice(0, 5);
+
+  const providerResultLine = (draft) => {
+    const results = draft.providerResults || {};
+    const channels = Array.isArray(draft.channels) ? draft.channels : [];
+    if (!channels.length || !Object.keys(results).length) return "";
+    return channels
+      .map((channel) => {
+        const value = results[channel];
+        if (!value) return `${channel}: pending`;
+        return value.error ? `${channel}: failed` : `${channel}: published`;
+      })
+      .join(" • ");
+  };
+
+  const renderDraftCard = (draft) => {
+    const resultLine = providerResultLine(draft);
+    return (
+      <Pressable
+        key={draft.id}
+        onPress={() => s.openSocialDraft(draft.id)}
+        style={styles.activityCard}
+      >
+        <View style={styles.activityTopRow}>
+          <View style={{ flex: 1, paddingRight: 10 }}>
+            <Text style={styles.activityName}>{draft.service || "Social post"}</Text>
+            <Text style={styles.activityService}>
+              {draft.sourceLabel || "Selected photos"} • {(draft.channels || []).join(", ") || "No destination chosen"}
+            </Text>
+          </View>
+          <StatusChip
+            label={draft.status || "Draft"}
+            tone={
+              draft.status === "Published"
+                ? "green"
+                : ["Failed", "Partial failure", "Ready to publish"].includes(draft.status)
+                ? "amber"
+                : "blue"
+            }
+          />
+        </View>
+        <Text numberOfLines={3} style={styles.activitySummary}>{draft.text}</Text>
+        {resultLine ? (
+          <Text style={styles.customerHistoryPhotoMeta}>{resultLine}</Text>
+        ) : null}
+        {draft.lastPublishError ? (
+          <Text style={styles.customerHistoryPhotoMeta}>{draft.lastPublishError}</Text>
+        ) : null}
+        {draft.status === "Scheduled" && draft.scheduledAt ? (
+          <Text style={styles.activityOpen}>
+            Scheduled {new Date(draft.scheduledAt).toLocaleString("en-GB", {
+              day: "numeric",
+              month: "short",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </Text>
+        ) : draft.status === "Published" && draft.publishedAt ? (
+          <Text style={styles.activityOpen}>
+            Published {formatUKDate(String(draft.publishedAt).slice(0, 10))} • Open details →
+          </Text>
+        ) : (
+          <Text style={styles.activityOpen}>Open post →</Text>
+        )}
+      </Pressable>
+    );
+  };
+
   const providerLabel = (connection, fallback) => {
     if (connection.status === "connected") {
       return connection.pageName ||
