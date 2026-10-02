@@ -21,7 +21,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 
-const APP_VERSION = "3.7";
+const APP_VERSION = "3.8";
 const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Live Social Publishing`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
@@ -6622,6 +6622,18 @@ function App() {
       entry.job.photos.some((photo) => photo.marketingOk)
     )
     .sort((a, b) => String(b.job.date || "").localeCompare(String(a.job.date || "")));
+  const socialOutcomeReminders = completedJobEntries
+    .filter(
+      (entry) =>
+        entry.job.postDraftStatus === "Published" &&
+        !!entry.job.postPublishedAt &&
+        !entry.job.postOutcomeRecordedAt
+    )
+    .sort((a, b) =>
+      String(b.job.postPublishedAt || "").localeCompare(
+        String(a.job.postPublishedAt || "")
+      )
+    );
   const socialDraftCount = socialDrafts.filter((draft) => draft.status === "Draft").length;
   const socialScheduledCount = socialDrafts.filter((draft) => draft.status === "Scheduled").length;
   const socialApprovedCount = socialDrafts.filter((draft) => draft.status === "Simulated published").length;
@@ -7257,6 +7269,7 @@ function App() {
     brainTuneOpportunity,
     socialChannelEvidence,
     socialJobOpportunities,
+    socialOutcomeReminders,
     socialDraftCount,
     socialScheduledCount,
     socialApprovedCount,
@@ -14355,14 +14368,14 @@ function SocialMediaCentre({ s }) {
   return (
     <Shell
       s={s}
-      title="Social media"
-      subtitle="Create from real work, approve what goes public, schedule it in the cloud and keep provider results linked back to BUSY."
-      brandCue="Real work in. Approved content out. Publishing authority stays separate."
+      title="Social control centre"
+      subtitle="See what is ready to post, what is scheduled, what needs attention and what actually produced business results."
+      brandCue="One place for content, publishing status and outcome learning."
     >
       <Card
-        eyebrow="V3.7 • Social publishing"
-        title="BUSY now turns publishing into a repeatable business workflow"
-        body="Completed-job opportunities, preferred destinations, live provider receipts, retry handling and business outcomes now stay together instead of feeling like separate technical tests."
+        eyebrow="V3.8 • Social control centre"
+        title="Publishing is now organised around the owner's next action"
+        body="Ready-to-post jobs, drafts, schedules, provider results, failed destinations and outcome reminders are kept together in one workflow."
         footer={
           liveEnabled
             ? "Live provider publishing safety switch: ON"
