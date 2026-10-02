@@ -16,6 +16,12 @@ Busy Does It mobile app prototype.
 - Added a persistent "What changed?" briefing on Work. BUSY compares the current operating snapshot with the last time the owner opened Work and surfaces material changes in weekly booked jobs/value, live enquiries, due quotes, Inbox attention, social-outcome learning and the active work-goal gap.
 - The briefing snapshot is local operating context only and is cleared with Reset Prototype.
 - Surfaced the strongest already-prepared background action directly in Work: a review request, finished-job social post, quote follow-up or quiet-enquiry follow-up can be opened from the weekly command centre while keeping customer-facing approval intact.
+- Finished the V3.9 operating loop with a calmer Home briefing. Home now shows one compact "BUSY has checked the business" summary, the most important current move and the next saved booking/week value, while detailed weekly reasoning stays inside Work.
+- Home keeps a tiny local next-session snapshot so it can mention one meaningful change rather than duplicate the full Work change log. Reset Prototype clears this context too.
+- Added proportionate capacity reasoning to Work. One missing booking keeps activity narrow around live/warm demand; two gaps can justify a small warm-customer plan; larger genuine gaps can justify broader free-first activity before paid reach.
+- The proportional explanation uses the selected service's saved typical duration and the next available planning slot, while an active work goal remains authoritative.
+- Added genuine ahead-of-time preparation: when there is nothing more urgent, a sent quote approaching its follow-up date or a live enquiry approaching the quiet threshold can have wording opened for review before it becomes overdue.
+- The weekly plan remains derived from current records rather than a frozen task list, so bookings, quote/enquiry outcomes and work-goal progress automatically remove or reorder no-longer-relevant actions.
 - The existing monthly diary, day detail, pipeline, Social Control Centre, live publishing and all V3.8 duplicate-publishing protections remain intact.
 - Main navigation remains Home / Work / Results / Settings.
 
