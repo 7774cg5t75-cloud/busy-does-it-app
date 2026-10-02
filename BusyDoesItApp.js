@@ -3776,7 +3776,7 @@ function App() {
     if (!draft) return;
     Alert.alert(
       "Delete this draft?",
-      "This removes the draft from BUSY and deletes its private cloud media. It will not affect any separate post already published on Facebook or Instagram.",
+      "This removes the draft from BUSY and deletes its private cloud media. It will not affect any separate post already published on Facebook, Instagram or Google Business.",
       [
         { text: "Keep draft", style: "cancel" },
         { text: "Delete draft", style: "destructive", onPress: deleteSocialDraft },
@@ -15980,6 +15980,8 @@ function ConnectedAccounts({ s }) {
   const meta = publish.connections?.meta || { status: "not_connected", assets: [] };
   const google = publish.connections?.google_business || { status: "not_connected", assets: [] };
   const busy = !!s.socialPublishingLoading;
+  const hasLiveProvider =
+    meta.status === "connected" || google.status === "connected";
 
   const renderPrototypeConnection = ([key, label, body]) => {
     const connected = !!s.connectedAccounts[key];
@@ -16185,7 +16187,7 @@ function ConnectedAccounts({ s }) {
           disabled={busy || !s.ownerSession?.accessToken}
           onPress={s.refreshSocialPublishingStatus}
         />
-        {s.ownerSession?.accessToken && meta.status === "connected" ? (
+        {s.ownerSession?.accessToken && hasLiveProvider ? (
           credentials.livePublishingEnabled ? (
             <Button
               label={busy && s.socialPublishingAction === "live-switch" ? "Turning off…" : "Turn live publishing OFF"}
@@ -16213,7 +16215,7 @@ function ConnectedAccounts({ s }) {
         />
       ) : null}
 
-      {s.ownerSession?.accessToken && meta.status === "connected" ? (
+      {s.ownerSession?.accessToken && hasLiveProvider ? (
         <Card
           eyebrow="Live publishing protection"
           title={
@@ -16223,13 +16225,20 @@ function ConnectedAccounts({ s }) {
           }
           body={
             credentials.livePublishingEnabled
-              ? "Facebook and Instagram are locked to the approved BUSY accounts. Every public post still needs an owner-approved post record."
-              : "The Meta connection remains available, but nothing will publish until the owner turns live publishing back on."
+              ? "Connected providers are available only for owner-approved post records. Meta remains locked to the approved BUSY Page and Instagram account, and Google publishes only to the selected Business Profile location."
+              : "Connected provider authorization remains stored server-side, but nothing will publish until the owner turns live publishing back on."
           }
           tone={credentials.livePublishingEnabled ? "green" : "blue"}
         >
-          <MetricRow left="Facebook lock" right={meta.pageName || "Busy Does It"} strong />
-          <MetricRow left="Instagram lock" right={meta.instagramUsername ? `@${meta.instagramUsername}` : "Required"} strong={!!meta.instagramUsername} />
+          {meta.status === "connected" ? (
+            <>
+              <MetricRow left="Facebook lock" right={meta.pageName || "Busy Does It"} strong />
+              <MetricRow left="Instagram lock" right={meta.instagramUsername ? `@${meta.instagramUsername}` : "Not connected"} strong={!!meta.instagramUsername} />
+            </>
+          ) : null}
+          {google.status === "connected" ? (
+            <MetricRow left="Google Business location" right={google.googleLocationTitle || "Connected"} strong />
+          ) : null}
           {credentials.livePublishingEnabled ? (
             <Button label="Open Social Control Centre" primary onPress={() => s.go("socialMedia")} />
           ) : null}
