@@ -3615,7 +3615,7 @@ function App() {
           });
       Alert.alert(
         "Post scheduled",
-        `BUSY will publish to ${(record.channels || []).join(" + ")} at ${whenLabel}. You can cancel it from the Social Media Centre before it starts publishing.`
+        `BUSY will publish to ${(record.channels || []).join(" + ")} at ${whenLabel}. You can cancel it from the Social Control Centre before it starts publishing.`
       );
       go("socialMedia");
       return !!saved;
@@ -9075,7 +9075,7 @@ function HomeScreen({ s }) {
       <Button label="I NEED MORE WORK" primary={!bestMove && !s.inboxPendingItems.length} onPress={() => s.go("workNow")} />
       <Button label="Open work hub" primary={!s.inboxPendingItems.length && !!bestMove} onPress={() => s.jump("workHub", "Work")} />
       <Button label="Customer records" onPress={() => s.go("customerRecords")} />
-      <Button label="Social Media Centre" onPress={s.openSocialCentre} />
+      <Button label="Social Control Centre" onPress={s.openSocialCentre} />
       <Button label="Update my business data" onPress={() => s.go("businessData")} />
     </Shell>
   );
@@ -14848,7 +14848,7 @@ function SocialCreator({ s }) {
         </>
       ) : null}
 
-      <Button label="Back to Social Media Centre" onPress={() => s.go("socialMedia")} />
+      <Button label="Back to Social Control Centre" onPress={() => s.go("socialMedia")} />
     </Shell>
   );
 }
@@ -15154,7 +15154,7 @@ function SocialDraftReview({ s }) {
         />
       ) : null}
 
-      <Button label="Back to Social Media Centre" onPress={() => s.go("socialMedia")} />
+      <Button label="Back to Social Control Centre" onPress={() => s.go("socialMedia")} />
     </Shell>
   );
 }
@@ -15451,7 +15451,7 @@ function BusinessBrain({ s }) {
       />
 
       <Button label="Back to Home" primary onPress={() => s.jump("home", "Home")} />
-      <Button label="Social Media Centre" onPress={() => s.go("socialMedia")} />
+      <Button label="Social Control Centre" onPress={() => s.go("socialMedia")} />
     </Shell>
   );
 }
@@ -15631,7 +15631,7 @@ function Results({ s }) {
         })}
 
       <Button label="Open customer pipeline" primary onPress={() => s.go("workPipeline")} />
-      <Button label="Open Social Media Centre" onPress={s.openSocialCentre} />
+      <Button label="Open Social Control Centre" onPress={s.openSocialCentre} />
       <Button label="Open Business Brain" onPress={() => s.go("businessBrain")} />
       {s.completedBookingCount ? <Button label="Open work diary" onPress={() => s.go("bookings")} /> : null}
       {Object.keys(s.replyActions || {}).length ? (
@@ -15771,7 +15771,7 @@ function Settings({ s }) {
         <Button label="Customer activity" onPress={() => s.go("customerActivity")} />
       ) : null}
       <Button label="Business profile & opportunity data" onPress={() => s.go("businessData")} />
-      <Button label="Social Media Centre" onPress={s.openSocialCentre} />
+      <Button label="Social Control Centre" onPress={s.openSocialCentre} />
       <Button label="Business Brain" onPress={() => s.go("businessBrain")} />
       <Button label="Change limits" onPress={() => s.go("settingsLimits")} />
       <Button label="Automatic record filing" onPress={() => s.go("recordFilingSettings")} />
@@ -16250,13 +16250,22 @@ function ConnectedAccounts({ s }) {
       ) : null}
 
       {!credentials.google_business?.configured ? (
-        <Card
-          eyebrow="V3.8 • Google Business"
-          title="Google publishing code is ready for developer setup"
-          body="BUSY already has the OAuth, location selection, token refresh and Google post-publishing flow. The remaining step is to add the Google OAuth client ID and secret to the server, then connect the correct Business Profile location."
-          footer={`OAuth redirect: ${BUSY_SOCIAL_PUBLISH_URL}/callback/google_business`}
-          tone="blue"
-        />
+        <>
+          <Card
+            eyebrow="V3.8 • Google Business"
+            title="Google publishing code is ready for developer setup"
+            body="BUSY already has the OAuth, Business Profile location selection, token refresh and Google post-publishing flow. The remaining step is to create the Google OAuth web client and add its client ID and secret to the server."
+            footer={`OAuth redirect: ${BUSY_SOCIAL_PUBLISH_URL}/callback/google_business`}
+            tone="blue"
+          />
+          <Card
+            eyebrow="Google setup checklist"
+            title="One developer setup unlocks the connection button"
+            body="Enable the Google Business Profile APIs in the Google Cloud project, configure the OAuth consent screen, create a Web application OAuth client using the BUSY callback above, then add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to Supabase."
+            footer="After that, BUSY handles account consent, location choice and publishing from inside the app"
+            tone="blue"
+          />
+        </>
       ) : google.status !== "connected" ? (
         <Card
           eyebrow="V3.8 • Google Business"
@@ -16316,7 +16325,7 @@ function ConnectedAccounts({ s }) {
         tone="green"
       />
 
-      <Button label="Social Media Centre" onPress={() => s.go("socialMedia")} />
+      <Button label="Social Control Centre" onPress={() => s.go("socialMedia")} />
       <Button label="Open BUSY Inbox" onPress={s.openBusyInbox} />
       <Button label="Done" primary onPress={s.back} />
     </Shell>
