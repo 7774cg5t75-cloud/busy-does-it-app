@@ -9472,6 +9472,229 @@ function WorkHub({ s }) {
       ? "green"
       : "blue";
 
+  const lookAheadEndISO = addDaysFromISO(todayISO, 13);
+  const followingWeekStartISO = addDaysFromISO(todayISO, 7);
+  const followingWeekEndISO = addDaysFromISO(todayISO, 13);
+  const followingWeekBookings = bookings.filter(
+    (item) =>
+      item.action.details.bookingDate >= followingWeekStartISO &&
+      item.action.details.bookingDate <= followingWeekEndISO
+  );
+  const followingWeekBookedValue = followingWeekBookings.reduce(
+    (total, item) =>
+      total +
+      (Number(item.action.details?.jobValue) ||
+        Number(item.action.details?.sourceQuoteAmount) ||
+        0),
+    0
+  );
+  const followingWeekBookedDays = new Set(
+    followingWeekBookings.map((item) => item.action.details.bookingDate)
+  ).size;
+  const repeatDueSoon = (s.repeatTimingTrackedEntries || []).filter(
+    ({ customer, dueDate }) =>
+      customer?.contactOk !== false &&
+      dueDate >= todayISO &&
+      dueDate <= lookAheadEndISO
+  );
+  const quotesDueSoon = actionEntries
+    .map(([id, action]) => {
+      if (
+        action?.type !== "quote" ||
+        !action?.done ||
+        action.details?.quoteStatus !== "Sent" ||
+        action.details?.followUpSentAt
+      ) return null;
+      const sentAt = action.details?.quoteSentAt || action.completedAt;
+      const dueDate =
+        action.details?.followUpDueDate ||
+        (sentAt ? addDaysFromISO(String(sentAt).slice(0, 10), 7) : null);
+      if (!dueDate || dueDate <= todayISO || dueDate > lookAheadEndISO) return null;
+      const customer =
+        s.customers.find((item) => item.id === id) ||
+        s.lastSimulatedRecipients.find((item) => item.id === id);
+      return customer ? { id, action, customer, dueDate } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+  const enquiriesNearingCold = (s.freshEnquiryEntries || [])
+    .filter((entry) => Number(entry.age || 0) >= 4)
+    .sort((a, b) => Number(b.age || 0) - Number(a.age || 0));
+  const lookAheadSignals = [];
+  if (!followingWeekBookings.length) {
+    lookAheadSignals.push("Days 8–14 currently have no booked jobs saved in BUSY.");
+  } else if (followingWeekBookings.length === 1) {
+    lookAheadSignals.push("Only one booked job is currently saved for days 8–14.");
+  }
+  if (repeatDueSoon.length) {
+    lookAheadSignals.push(
+      `${repeatDueSoon.length} repeat-customer timing window${repeatDueSoon.length === 1 ? "" : "s"} fall within the next 14 days.`
+    );
+  }
+  if (quotesDueSoon.length) {
+    lookAheadSignals.push(
+      `${quotesDueSoon.length} sent quote${quotesDueSoon.length === 1 ? "" : "s"} become due for follow-up within 14 days.`
+    );
+  }
+  if (enquiriesNearingCold.length) {
+    lookAheadSignals.push(
+      `${enquiriesNearingCold.length} live enquir${enquiriesNearingCold.length === 1 ? "y is" : "ies are"} approaching the seven-day quiet-enquiry threshold.`
+    );
+  }
+  if (!lookAheadSignals.length) {
+    lookAheadSignals.push(
+      "No obvious diary, quote, repeat-customer or enquiry pressure signal is visible in the next 14 days."
+    );
+  }
+
+  const currentWeeklyBriefSnapshot = {
+    weekBookings: weekBookings.length,
+    weekBookedValue,
+    freshEnquiries: freshEnquiries.length,
+    dueQuotes: s.dueQuoteEntries?.length || 0,
+    inboxAttention: s.inboxNeedsAttentionItems?.length || 0,
+    backgroundReady: s.backgroundReadyCount || 0,
+    socialOutcomes: s.socialOutcomeReminders?.length || 0,
+    workGoalRemaining:
+      s.activeWorkGoal && !s.workGoalFilled ? Number(s.workGoalRemainingJobs || 0) : 0,
+    workGoalFilled: !!s.workGoalFilled,
+  };
+  const [weeklyBrief, setWeeklyBrief] = useState({
+    loaded: false,
+    hasPrevious: false,
+    changes: [],
+  });
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const key = "@busy-does-it-weekly-brief-v39";
+      let previous = null;
+      try {
+        const raw = await AsyncStorage.getItem(key);
+        previous = raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        previous = null;
+      }
+      const changes = [];
+      if (previous) {
+        if (previous.weekBookings !== currentWeeklyBriefSnapshot.weekBookings) {
+          changes.push(
+            `Booked jobs this week changed from ${previous.weekBookings || 0} to ${currentWeeklyBriefSnapshot.weekBookings}.`
+          );
+        }
+        if (previous.weekBookedValue !== currentWeeklyBriefSnapshot.weekBookedValue) {
+          changes.push(
+            `Booked value this week changed from £${previous.weekBookedValue || 0} to £${currentWeeklyBriefSnapshot.weekBookedValue}.`
+          );
+        }
+        if (previous.freshEnquiries !== currentWeeklyBriefSnapshot.freshEnquiries) {
+          const delta =
+            currentWeeklyBriefSnapshot.freshEnquiries - Number(previous.freshEnquiries || 0);
+          changes.push(
+            delta > 0
+              ? `${delta} new live enquir${delta === 1 ? "y has" : "ies have"} appeared.`
+              : "The live-enquiry queue has reduced since the last Work check."
+          );
+        }
+        if (previous.dueQuotes !== currentWeeklyBriefSnapshot.dueQuotes) {
+          changes.push(
+            `Quote follow-ups due changed from ${previous.dueQuotes || 0} to ${currentWeeklyBriefSnapshot.dueQuotes}.`
+          );
+        }
+        if (previous.inboxAttention !== currentWeeklyBriefSnapshot.inboxAttention) {
+          changes.push(
+            `BUSY Inbox items needing attention changed from ${previous.inboxAttention || 0} to ${currentWeeklyBriefSnapshot.inboxAttention}.`
+          );
+        }
+        if (previous.socialOutcomes !== currentWeeklyBriefSnapshot.socialOutcomes) {
+          changes.push(
+            `Published-post outcomes waiting changed from ${previous.socialOutcomes || 0} to ${currentWeeklyBriefSnapshot.socialOutcomes}.`
+          );
+        }
+        if (
+          !previous.workGoalFilled &&
+          currentWeeklyBriefSnapshot.workGoalFilled
+        ) {
+          changes.push("The active work-filling goal is now covered.");
+        } else if (
+          Number(previous.workGoalRemaining || 0) !==
+            currentWeeklyBriefSnapshot.workGoalRemaining &&
+          !currentWeeklyBriefSnapshot.workGoalFilled
+        ) {
+          changes.push(
+            `The active work-goal gap changed from ${previous.workGoalRemaining || 0} to ${currentWeeklyBriefSnapshot.workGoalRemaining} booking${currentWeeklyBriefSnapshot.workGoalRemaining === 1 ? "" : "s"}.`
+          );
+        }
+      }
+      if (active) {
+        setWeeklyBrief({
+          loaded: true,
+          hasPrevious: !!previous,
+          changes: changes.slice(0, 4),
+        });
+      }
+      try {
+        await AsyncStorage.setItem(
+          key,
+          JSON.stringify({
+            ...currentWeeklyBriefSnapshot,
+            checkedAt: new Date().toISOString(),
+          })
+        );
+      } catch (e) {
+        // The briefing is helpful context only; storage failure must not block Work.
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const preparedNextAction =
+    (s.automaticReviewDraftEntries || [])[0]
+      ? {
+          eyebrow: "Review request prepared",
+          title: `Ready for ${s.automaticReviewDraftEntries[0].customer.name}`,
+          body: s.automaticReviewDraftEntries[0].job.reviewRequestDraft,
+          label: "Review prepared request",
+          action: () =>
+            s.prepareReviewRequest(
+              s.automaticReviewDraftEntries[0].customer.id,
+              s.automaticReviewDraftEntries[0].job.id
+            ),
+        }
+      : (s.automaticPostDraftEntries || [])[0]
+      ? {
+          eyebrow: "Social post prepared",
+          title: `Finished-job post • ${s.automaticPostDraftEntries[0].customer.name}`,
+          body: s.automaticPostDraftEntries[0].job.postDraft,
+          label: "Review prepared post",
+          action: () =>
+            s.openJobPostApproval(
+              s.automaticPostDraftEntries[0].customer.id,
+              s.automaticPostDraftEntries[0].job.id
+            ),
+        }
+      : s.dueQuoteEntries?.[0]
+      ? {
+          eyebrow: "Quote follow-up wording ready",
+          title: `Follow up with ${s.dueQuoteEntries[0].customer.name}`,
+          body: "BUSY can open a sensible follow-up draft using the saved quote, service and customer record. Nothing is sent without approval.",
+          label: "Open prepared follow-up",
+          action: () => s.prepareQuoteFollowUp(s.dueQuoteEntries[0].id),
+        }
+      : s.staleEnquiryEntries?.[0]
+      ? {
+          eyebrow: "Enquiry follow-up wording ready",
+          title: `Revisit ${s.staleEnquiryEntries[0].customer.name}`,
+          body: "BUSY can open a polite follow-up draft from the saved enquiry. Nothing is sent without approval.",
+          label: "Open prepared follow-up",
+          action: () =>
+            s.prepareEnquiryFollowUp(s.staleEnquiryEntries[0].customer.id),
+        }
+      : null;
+
   const [workMonthStartISO, setWorkMonthStartISO] = useState(() => {
     const now = new Date();
     return dateToISO(new Date(now.getFullYear(), now.getMonth(), 1, 12, 0, 0));
@@ -9605,6 +9828,27 @@ function WorkHub({ s }) {
         ) : null}
       </Card>
 
+      {weeklyBrief.loaded ? (
+        <Card
+          eyebrow="What changed?"
+          title={
+            weeklyBrief.hasPrevious
+              ? weeklyBrief.changes.length
+                ? `${weeklyBrief.changes.length} meaningful change${weeklyBrief.changes.length === 1 ? "" : "s"} since your last Work check`
+                : "Nothing material has changed since your last Work check"
+              : "BUSY is now watching changes between Work checks"
+          }
+          body={
+            weeklyBrief.hasPrevious
+              ? weeklyBrief.changes.length
+                ? weeklyBrief.changes.join("\n")
+                : "The saved bookings, live enquiries, due quotes, Inbox attention and work-goal position are materially the same."
+              : "Next time you open Work, BUSY can compare the key operating signals with this snapshot and tell you what moved."
+          }
+          tone={weeklyBrief.changes.length ? "blue" : "green"}
+        />
+      ) : null}
+
       <Text style={styles.sectionLabel}>BUSY's weekly plan</Text>
       {weeklyPlan.length ? (
         weeklyPlan.map((item, index) => (
@@ -9634,6 +9878,76 @@ function WorkHub({ s }) {
           ) : null}
         </Card>
       )}
+
+      <Text style={styles.sectionLabel}>Look ahead • next 14 days</Text>
+      <Card
+        eyebrow="Capacity & opportunity radar"
+        title={
+          followingWeekBookings.length
+            ? `${followingWeekBookings.length} booked job${followingWeekBookings.length === 1 ? "" : "s"} saved for days 8–14`
+            : "No booked jobs are currently saved for days 8–14"
+        }
+        body={lookAheadSignals.join("\n")}
+        footer="This is a planning signal from BUSY's saved records, not a prediction of future demand."
+        tone={
+          !followingWeekBookings.length &&
+          (repeatDueSoon.length || quotesDueSoon.length || enquiriesNearingCold.length)
+            ? "amber"
+            : "blue"
+        }
+      >
+        <MetricRow
+          left="Days 8–14 booked value"
+          right={`£${followingWeekBookedValue}`}
+          strong={followingWeekBookedValue > 0}
+          onPress={followingWeekBookings.length ? () => s.go("workCalendar") : null}
+        />
+        <MetricRow
+          left="Days 8–14 with booked work"
+          right={`${followingWeekBookedDays} / 7`}
+        />
+        <MetricRow
+          left="Repeat timings due within 14 days"
+          right={String(repeatDueSoon.length)}
+          strong={repeatDueSoon.length > 0}
+          onPress={repeatDueSoon.length ? () => s.openCustomer(repeatDueSoon[0].customer.id) : null}
+        />
+        <MetricRow
+          left="Quotes becoming due within 14 days"
+          right={String(quotesDueSoon.length)}
+          strong={quotesDueSoon.length > 0}
+          onPress={quotesDueSoon.length ? () => s.openSavedReplyAction(quotesDueSoon[0].id) : null}
+        />
+        <MetricRow
+          left="Enquiries nearing 7 days"
+          right={String(enquiriesNearingCold.length)}
+          strong={enquiriesNearingCold.length > 0}
+          onPress={
+            enquiriesNearingCold.length
+              ? () => s.openCustomer(enquiriesNearingCold[0].customer.id)
+              : null
+          }
+        />
+        {!followingWeekBookings.length && !s.activeWorkGoal ? (
+          <Button label="Plan to fill future capacity" onPress={() => s.go("workNow")} />
+        ) : null}
+      </Card>
+
+      {preparedNextAction ? (
+        <Card
+          eyebrow={preparedNextAction.eyebrow}
+          title={preparedNextAction.title}
+          body={preparedNextAction.body}
+          footer="Prepared by BUSY • nothing customer-facing happens until you approve it"
+          tone="green"
+        >
+          <Button
+            label={preparedNextAction.label}
+            primary
+            onPress={preparedNextAction.action}
+          />
+        </Card>
+      ) : null}
 
       <Card eyebrow="Today" title={todayBookings.length ? `${todayBookings.length} job${todayBookings.length === 1 ? "" : "s"} booked today` : "No booked jobs today"} tone={todayBookings.length ? "green" : "blue"}>
         <MetricRow left="New enquiries (<7 days)" right={String(s.freshEnquiryEntries.length)} onPress={s.freshEnquiryEntries.length ? () => s.go("workPipeline") : null} />
