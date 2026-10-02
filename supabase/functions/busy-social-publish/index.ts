@@ -1162,11 +1162,17 @@ Deno.serve(async (request: Request) => {
     if (action === "set_live_publishing") {
       const enabled = !!body?.enabled;
       if (enabled) {
-        const meta = await getConnection("meta");
-        if (!meta || meta.status !== "connected") {
-          throw new Error("Connect the locked Busy Does It Facebook / Instagram accounts first.");
+        const [meta, google] = await Promise.all([
+          getConnection("meta"),
+          getConnection("google_business"),
+        ]);
+        const metaConnected = meta?.status === "connected";
+        const googleConnected =
+          google?.status === "connected" && !!google?.google_location_name;
+        if (!metaConnected && !googleConnected) {
+          throw new Error("Connect at least one live publishing provider first.");
         }
-        await assertLockedMetaConnection(meta);
+        if (metaConnected) await assertLockedMetaConnection(meta);
       }
       const now = new Date().toISOString();
       const { error } = await supabase
