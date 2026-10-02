@@ -15919,8 +15919,8 @@ function ConnectedAccounts({ s }) {
             : configured
             ? "The server has the provider app credentials. Start OAuth here, complete the provider consent screen, then return to BUSY and refresh."
             : provider === "meta"
-            ? "The V3.6.1 Meta OAuth and publishing code is deployed, but META_APP_ID and META_APP_SECRET have not been added to Supabase yet."
-            : "The V3.6.1 Google OAuth and publishing code is deployed, but GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET have not been added to Supabase yet."
+            ? "The V3.7 Meta OAuth and publishing code is deployed, but META_APP_ID and META_APP_SECRET have not been added to Supabase yet."
+            : "The V3.7 Google OAuth and publishing code is deployed, but GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET have not been added to Supabase yet."
         }
         footer={
           connected
@@ -15987,11 +15987,11 @@ function ConnectedAccounts({ s }) {
     <Shell
       s={s}
       title="Connected accounts"
-      subtitle="V3.6 adds an owner sign-in boundary before any live publishing control can be used. Provider tokens stay on the server, not in the mobile app."
+      subtitle="V3.7 keeps owner authentication and provider tokens server-side while making the publishing workflow easier to use day to day."
       brandCue="BUSY can prepare automatically. Public publishing still requires an authenticated owner and an approved post."
     >
       <Card
-        eyebrow="V3.6 • Owner protection"
+        eyebrow="V3.7 • Owner protection"
         title={s.ownerSession?.accessToken ? "Owner verified" : "Owner sign-in required"}
         body={
           s.ownerSession?.accessToken
@@ -16036,7 +16036,7 @@ function ConnectedAccounts({ s }) {
       </Card>
 
       <Card
-        eyebrow="V3.6 • Connection health"
+        eyebrow="V3.7 • Connection health"
         title={
           credentials.livePublishingEnabled
             ? "Live provider publishing is enabled"
@@ -16150,7 +16150,7 @@ function ConnectedAccounts({ s }) {
       <Card
         eyebrow="Authority boundary"
         title="A connection never grants blanket permission"
-        body="Reading data, creating a draft, storing media, scheduling a post and publishing publicly are separate steps. V3.6.1 only allows server publishing from an owner-approved post record."
+        body="Reading data, creating a draft, storing media, scheduling a post and publishing publicly are separate steps. V3.7 only allows server publishing from an owner-approved post record."
         footer="Paid advertising remains separately controlled"
         tone="green"
       />
