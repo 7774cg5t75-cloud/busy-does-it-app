@@ -38,6 +38,9 @@ const snack = new Snack({
     "expo-image-picker": {
       version: "17.0.11",
     },
+    "expo-secure-store": {
+      version: "15.0.8",
+    },
   },
 });
 
