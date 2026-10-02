@@ -21,8 +21,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 
-const APP_VERSION = "3.8";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Live Social Publishing`;
+const APP_VERSION = "3.9";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Weekly Command Centre`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
@@ -9306,6 +9306,172 @@ function WorkHub({ s }) {
   const nextQuote = activeQuotes[0] || null;
   const nextBooking = todayBookings[0] || upcomingBookings[0] || null;
 
+  const weekEndISO = addDaysFromISO(todayISO, 6);
+  const weekBookings = bookings.filter(
+    (item) =>
+      item.action.details.bookingDate >= todayISO &&
+      item.action.details.bookingDate <= weekEndISO
+  );
+  const weekBookedValue = weekBookings.reduce(
+    (total, item) =>
+      total +
+      (Number(item.action.details?.jobValue) ||
+        Number(item.action.details?.sourceQuoteAmount) ||
+        0),
+    0
+  );
+  const weekBookedDayCount = new Set(
+    weekBookings.map((item) => item.action.details.bookingDate)
+  ).size;
+  const weekClearDayCount = Math.max(0, 7 - weekBookedDayCount);
+  const weeklyOperationalCount =
+    overdueBookings.length +
+    (s.inboxNeedsAttentionItems?.length || 0) +
+    (s.dueReminderEntries?.length || 0) +
+    (s.dueQuoteEntries?.length || 0) +
+    freshEnquiries.length;
+
+  const weeklyPlanCandidates = [];
+  if (overdueBookings.length) {
+    weeklyPlanCandidates.push({
+      key: "overdue-booking",
+      eyebrow: "Protect booked work",
+      title: `Close out ${overdueBookings[0].customer.name}'s past booking`,
+      body: `${overdueBookings[0].customer.service} was booked for ${formatUKDate(overdueBookings[0].action.details.bookingDate)}. Complete, move or cancel it before creating more demand.`,
+      label: "Open booking",
+      tone: "amber",
+      action: () => s.openSavedReplyAction(overdueBookings[0].id),
+    });
+  }
+  if (s.inboxNeedsAttentionItems?.length) {
+    weeklyPlanCandidates.push({
+      key: "inbox-attention",
+      eyebrow: "Incoming information",
+      title: `${s.inboxNeedsAttentionItems.length} BUSY Inbox item${s.inboxNeedsAttentionItems.length === 1 ? "" : "s"} need a check`,
+      body: "Resolve uncertain or conflicting incoming information before it changes customer records or the work pipeline.",
+      label: "Open BUSY Inbox",
+      tone: "amber",
+      action: s.openBusyInbox,
+    });
+  }
+  if (s.dueReminderEntries?.length) {
+    weeklyPlanCandidates.push({
+      key: "due-reminder",
+      eyebrow: "Promised follow-up",
+      title: `Follow up with ${s.dueReminderEntries[0].customer.name}`,
+      body: `${s.dueReminderEntries[0].customer.service} has a due reminder. Keep the promise already made before starting new marketing.`,
+      label: "Open follow-up",
+      tone: "amber",
+      action: () => s.openSavedReplyAction(s.dueReminderEntries[0].id),
+    });
+  }
+  if (s.dueQuoteEntries?.length) {
+    weeklyPlanCandidates.push({
+      key: "due-quote",
+      eyebrow: "Existing opportunity",
+      title: `Chase ${s.dueQuoteEntries[0].customer.name}'s quote`,
+      body: `${s.dueQuoteEntries[0].customer.service} has been waiting ${s.dueQuoteEntries[0].age} days. Existing intent outranks generating colder demand.`,
+      label: "Open quote",
+      tone: "amber",
+      action: () => s.openSavedReplyAction(s.dueQuoteEntries[0].id),
+    });
+  }
+  if (freshEnquiries.length) {
+    weeklyPlanCandidates.push({
+      key: "fresh-enquiry",
+      eyebrow: "Customer waiting",
+      title: `Reply to ${freshEnquiries[0].name}`,
+      body: `${freshEnquiries[0].service}${freshEnquiries[0].address ? ` • ${freshEnquiries[0].address}` : ""}. This is live demand already in the business.`,
+      label: "Open enquiry",
+      tone: "green",
+      action: () => s.openCustomer(freshEnquiries[0].id),
+    });
+  }
+  if (s.staleEnquiryEntries?.length) {
+    weeklyPlanCandidates.push({
+      key: "quiet-enquiry",
+      eyebrow: "Recover warm demand",
+      title: `Revisit ${s.staleEnquiryEntries[0].customer.name}`,
+      body: `${s.staleEnquiryEntries[0].customer.service} has gone quiet for ${s.staleEnquiryEntries[0].age} days. BUSY already has a low-cost follow-up route.`,
+      label: "Prepare follow-up",
+      tone: "blue",
+      action: () => s.prepareEnquiryFollowUp(s.staleEnquiryEntries[0].customer.id),
+    });
+  }
+  if (s.socialOutcomeReminders?.length) {
+    const { customer, job } = s.socialOutcomeReminders[0];
+    weeklyPlanCandidates.push({
+      key: "social-outcome",
+      eyebrow: "Teach the Business Brain",
+      title: "Record what happened after a published post",
+      body: `${job.service || customer.service} was published through BUSY. Record whether it produced an enquiry or booking so future recommendations improve.`,
+      label: "Record outcome",
+      tone: "blue",
+      action: () => s.openJobPostOutcome(customer.id, job.id),
+    });
+  }
+  if (s.quoteFollowUpOutcomeOpportunity) {
+    weeklyPlanCandidates.push({
+      key: "quote-outcome",
+      eyebrow: "Close the learning loop",
+      title: `Record ${s.quoteFollowUpOutcomeOpportunity.customerName}'s quote outcome`,
+      body: "BUSY should learn from the real result rather than treating a sent follow-up as success.",
+      label: "Record quote outcome",
+      tone: "blue",
+      action: () =>
+        s.openQuoteFollowUpOutcome(s.quoteFollowUpOutcomeOpportunity.customerId),
+    });
+  }
+  if (s.enquiryFollowUpOutcomeOpportunity) {
+    weeklyPlanCandidates.push({
+      key: "enquiry-outcome",
+      eyebrow: "Close the learning loop",
+      title: `Record ${s.enquiryFollowUpOutcomeOpportunity.customerName}'s enquiry outcome`,
+      body: "This tells BUSY whether quiet-enquiry follow-ups actually bring useful work back.",
+      label: "Record enquiry outcome",
+      tone: "blue",
+      action: () =>
+        s.openEnquiryFollowUpOutcome(s.enquiryFollowUpOutcomeOpportunity.customerId),
+    });
+  }
+  if (s.activeWorkGoal && !s.workGoalFilled) {
+    weeklyPlanCandidates.push({
+      key: "work-goal",
+      eyebrow: "Capacity plan",
+      title: `${s.workGoalRemainingJobs} booking${s.workGoalRemainingJobs === 1 ? "" : "s"} still needed for ${s.activeWorkGoal.label}`,
+      body: "Continue the existing work-filling plan instead of starting a second campaign for the same capacity gap.",
+      label: "Open best next move",
+      tone: "blue",
+      action: () => s.go("bestMove"),
+    });
+  }
+  if (s.backgroundReadyCount > 0) {
+    weeklyPlanCandidates.push({
+      key: "background-ready",
+      eyebrow: "Prepared by BUSY",
+      title: `${s.backgroundReadyCount} background next step${s.backgroundReadyCount === 1 ? "" : "s"} ready`,
+      body: "Review work BUSY has prepared before creating another task from scratch.",
+      label: "Review prepared work",
+      tone: "green",
+      action: () => s.go("backgroundWork"),
+    });
+  }
+  const weeklyPlan = weeklyPlanCandidates.slice(0, 3);
+  const weeklyStatusTitle =
+    overdueBookings.length || s.inboxNeedsAttentionItems?.length
+      ? `${weeklyOperationalCount} operational item${weeklyOperationalCount === 1 ? "" : "s"} need attention this week`
+      : weeklyPlan.length
+      ? `BUSY has ${weeklyPlan.length} sensible next step${weeklyPlan.length === 1 ? "" : "s"} lined up`
+      : weekBookings.length
+      ? "The week is under control"
+      : "The diary is clear — decide whether you want to fill it";
+  const weeklyStatusTone =
+    overdueBookings.length || s.inboxNeedsAttentionItems?.length
+      ? "amber"
+      : weekBookings.length
+      ? "green"
+      : "blue";
+
   const [workMonthStartISO, setWorkMonthStartISO] = useState(() => {
     const now = new Date();
     return dateToISO(new Date(now.getFullYear(), now.getMonth(), 1, 12, 0, 0));
@@ -9389,9 +9555,86 @@ function WorkHub({ s }) {
       s={s}
       noBack
       title="Work"
-      subtitle="Customers, quotes, bookings and follow-ups first. Marketing sits underneath when you need more work."
+      subtitle="BUSY keeps the week moving: protect live work, clear customer obligations, watch capacity and only then create more demand."
       brandCue="Run the work you already have before buying more attention."
     >
+      <Card
+        eyebrow="V3.9 • This week"
+        title={weeklyStatusTitle}
+        body="The weekly view combines saved bookings, customer obligations, BUSY Inbox work and the existing capacity plan. It does not invent tasks or count activity as a business result."
+        footer={`${formatUKDate(todayISO)} – ${formatUKDate(weekEndISO)}`}
+        tone={weeklyStatusTone}
+      >
+        <MetricRow
+          left="Booked jobs"
+          right={String(weekBookings.length)}
+          strong={weekBookings.length > 0}
+          onPress={weekBookings.length ? () => s.go("workCalendar") : null}
+        />
+        <MetricRow
+          left="Booked value"
+          right={`£${weekBookedValue}`}
+          strong={weekBookedValue > 0}
+          onPress={weekBookedValue > 0 ? () => s.go("workCalendar") : null}
+        />
+        <MetricRow
+          left="Days with booked work"
+          right={`${weekBookedDayCount} / 7`}
+        />
+        <MetricRow
+          left="Days with no booked job"
+          right={String(weekClearDayCount)}
+          strong={weekClearDayCount > 0}
+        />
+        <MetricRow
+          left="Customer / record items needing attention"
+          right={String(weeklyOperationalCount)}
+          strong={weeklyOperationalCount > 0}
+        />
+        {s.activeWorkGoal ? (
+          <MetricRow
+            left="Active work goal"
+            right={
+              s.workGoalFilled
+                ? "Filled"
+                : `${s.workGoalRemainingJobs} booking${s.workGoalRemainingJobs === 1 ? "" : "s"} still needed`
+            }
+            strong={s.workGoalFilled}
+            onPress={() => s.go("bestMove")}
+          />
+        ) : null}
+      </Card>
+
+      <Text style={styles.sectionLabel}>BUSY's weekly plan</Text>
+      {weeklyPlan.length ? (
+        weeklyPlan.map((item, index) => (
+          <Card
+            key={item.key}
+            eyebrow={`Step ${index + 1} • ${item.eyebrow}`}
+            title={item.title}
+            body={item.body}
+            tone={item.tone}
+          >
+            <Button label={item.label} primary={index === 0} onPress={item.action} />
+          </Card>
+        ))
+      ) : (
+        <Card
+          eyebrow="Nothing urgent"
+          title="No recorded task needs forcing"
+          body={
+            weekBookings.length
+              ? "Your saved work and customer obligations are currently under control. BUSY will keep watching the existing records rather than manufacture activity."
+              : "There is no urgent customer obligation in the saved records and no booked work this week. Use Find more work only if you actually want to fill the capacity."
+          }
+          tone={weekBookings.length ? "green" : "blue"}
+        >
+          {!weekBookings.length ? (
+            <Button label="Find more work" primary onPress={() => s.go("workNow")} />
+          ) : null}
+        </Card>
+      )}
+
       <Card eyebrow="Today" title={todayBookings.length ? `${todayBookings.length} job${todayBookings.length === 1 ? "" : "s"} booked today` : "No booked jobs today"} tone={todayBookings.length ? "green" : "blue"}>
         <MetricRow left="New enquiries (<7 days)" right={String(s.freshEnquiryEntries.length)} onPress={s.freshEnquiryEntries.length ? () => s.go("workPipeline") : null} />
         <MetricRow left="Quiet enquiries (7+ days)" right={String(s.staleEnquiryEntries.length)} strong={s.staleEnquiryEntries.length > 0} onPress={s.staleEnquiryEntries.length ? () => s.go("staleEnquiries") : null} />
