@@ -5,6 +5,7 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const BUCKET = "busy-social-media";
 const WORKSPACE = "prototype";
 const META_GRAPH_VERSION = Deno.env.get("META_GRAPH_VERSION") || "v24.0";
+const META_LOGIN_CONFIG_ID = "1101136039132376";
 const LIVE_PUBLISHING_ENABLED =
   String(Deno.env.get("BUSY_LIVE_PUBLISHING") || "").toLowerCase() === "enabled";
 
@@ -224,19 +225,13 @@ async function beginOAuth(provider: string) {
     const appId = Deno.env.get("META_APP_ID");
     const appSecret = Deno.env.get("META_APP_SECRET");
     if (!appId || !appSecret) throw new Error("Meta developer credentials are not configured yet.");
-    const scopes = [
-      "pages_show_list",
-      "pages_read_engagement",
-      "pages_manage_posts",
-      "instagram_basic",
-      "instagram_content_publish",
-    ].join(",");
     const url = new URL(`https://www.facebook.com/${META_GRAPH_VERSION}/dialog/oauth`);
     url.searchParams.set("client_id", appId);
     url.searchParams.set("redirect_uri", callbackUrl("meta"));
     url.searchParams.set("state", state);
-    url.searchParams.set("scope", scopes);
+    url.searchParams.set("config_id", META_LOGIN_CONFIG_ID);
     url.searchParams.set("response_type", "code");
+    url.searchParams.set("override_default_response_type", "true");
     return { authUrl: url.toString(), provider };
   }
 
