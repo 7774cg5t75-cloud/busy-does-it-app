@@ -17218,7 +17218,7 @@ function ConnectedAccounts({ s }) {
           <Card
             eyebrow="Google setup checklist"
             title="One developer setup unlocks the connection button"
-            body="Google requires the Cloud project itself to be approved for Business Profile APIs. After approval, enable Google My Business API, My Business Account Management API and My Business Business Information API, configure OAuth, then create a Web application client with the BUSY callback above."
+            body="Google requires the Cloud project itself to be approved for Business Profile APIs. After approval, enable the Business Profile API suite in Google Cloud. BUSY directly uses Google My Business API, My Business Account Management API and My Business Business Information API, then verifies Local Posts before going live."
             footer="BUSY now preserves OAuth and can re-check API access without forcing a fresh connection"
             tone="blue"
           />
