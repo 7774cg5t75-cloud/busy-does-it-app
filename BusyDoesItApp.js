@@ -14525,7 +14525,7 @@ function SocialMediaCentre({ s }) {
       {jobs.length ? (
         <>
           <Text style={styles.sectionLabel}>
-            Ready to post • ${jobs.length} job${jobs.length === 1 ? "" : "s"}
+            {`Ready to post • ${jobs.length} job${jobs.length === 1 ? "" : "s"}`}
           </Text>
           {jobs.map(({ customer, job }) => {
             const reusable = (job.photos || []).filter((photo) => photo.marketingOk).length;
