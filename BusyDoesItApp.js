@@ -16035,8 +16035,8 @@ function ConnectedAccounts({ s }) {
             : configured
             ? "The server has the provider app credentials. Start OAuth here, complete the provider consent screen, then return to BUSY and refresh."
             : provider === "meta"
-            ? "The V3.7 Meta OAuth and publishing code is deployed, but META_APP_ID and META_APP_SECRET have not been added to Supabase yet."
-            : "The V3.7 Google OAuth and publishing code is deployed, but GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET have not been added to Supabase yet."
+            ? "The V3.8 Meta OAuth and publishing code is deployed, but META_APP_ID and META_APP_SECRET have not been added to Supabase yet."
+            : "The V3.8 Google OAuth and publishing code is deployed, but GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET have not been added to Supabase yet."
         }
         footer={
           connected
@@ -16208,26 +16208,51 @@ function ConnectedAccounts({ s }) {
 
       {s.ownerSession?.accessToken && meta.status === "connected" ? (
         <Card
-          eyebrow="Controlled first post"
+          eyebrow="Live publishing protection"
           title={
             credentials.livePublishingEnabled
-              ? "Live test mode is enabled"
-              : "Ready for the final safety check"
+              ? "Owner-approved live publishing is enabled"
+              : "Live publishing is currently off"
           }
           body={
             credentials.livePublishingEnabled
-              ? "Create one simple BUSY test post in Social Media Centre, approve it yourself, publish it, then verify it appears on the Busy Does It Facebook Page and @busydoesitapp."
-              : "The Meta account is locked to the Busy Does It Page and @busydoesitapp. Enable the controlled live test only when you are ready to send one real post."
+              ? "Facebook and Instagram are locked to the approved BUSY accounts. Every public post still needs an owner-approved post record."
+              : "The Meta connection remains available, but nothing will publish until the owner turns live publishing back on."
           }
           tone={credentials.livePublishingEnabled ? "green" : "blue"}
         >
           <MetricRow left="Facebook lock" right={meta.pageName || "Busy Does It"} strong />
           <MetricRow left="Instagram lock" right={meta.instagramUsername ? `@${meta.instagramUsername}` : "Required"} strong={!!meta.instagramUsername} />
           {credentials.livePublishingEnabled ? (
-            <Button label="Open Social Media Centre" primary onPress={() => s.go("socialMedia")} />
+            <Button label="Open Social Control Centre" primary onPress={() => s.go("socialMedia")} />
           ) : null}
         </Card>
       ) : null}
+
+      {!credentials.google_business?.configured ? (
+        <Card
+          eyebrow="V3.8 • Google Business"
+          title="Google publishing code is ready for developer setup"
+          body="BUSY already has the OAuth, location selection, token refresh and Google post-publishing flow. The remaining step is to add the Google OAuth client ID and secret to the server, then connect the correct Business Profile location."
+          footer={`OAuth redirect: ${BUSY_SOCIAL_PUBLISH_URL}/callback/google_business`}
+          tone="blue"
+        />
+      ) : google.status !== "connected" ? (
+        <Card
+          eyebrow="V3.8 • Google Business"
+          title="Google credentials are ready — connect a Business Profile"
+          body="Use the Google Business connection below. BUSY will list the locations the signed-in Google account manages and ask you to choose one if there is more than one."
+          tone="green"
+        />
+      ) : (
+        <Card
+          eyebrow="V3.8 • Google Business"
+          title={google.googleLocationTitle || "Google Business connected"}
+          body="This location can be selected alongside Facebook and Instagram when an owner approves a post."
+          footer="Retries are destination-specific, so a successful Facebook or Instagram post will not be duplicated if Google alone fails."
+          tone="green"
+        />
+      )}
 
       <Text style={styles.sectionLabel}>Live social publishing</Text>
       {renderProvider({
@@ -16266,7 +16291,7 @@ function ConnectedAccounts({ s }) {
       <Card
         eyebrow="Authority boundary"
         title="A connection never grants blanket permission"
-        body="Reading data, creating a draft, storing media, scheduling a post and publishing publicly are separate steps. V3.7 only allows server publishing from an owner-approved post record."
+        body="Reading data, creating a draft, storing media, scheduling a post and publishing publicly are separate steps. V3.8 only allows server publishing from an owner-approved post record."
         footer="Paid advertising remains separately controlled"
         tone="green"
       />
