@@ -40,10 +40,7 @@ function providerLabel(provider: string) {
 }
 
 function callbackUrl(provider: string) {
-  if (provider === "meta") {
-    return `${SUPABASE_URL}/functions/v1/busy-social-publish/callback/meta`;
-  }
-  return `${SUPABASE_URL}/functions/v1/busy-social-publish?action=callback&provider=${provider}`;
+  return `${SUPABASE_URL}/functions/v1/busy-social-publish/callback/${provider}`;
 }
 
 function base64UrlBytes(value: string) {
@@ -237,6 +234,10 @@ async function connectionSummary(provider: string) {
     googleAccountName: row.google_account_name || "",
     googleLocationName: row.google_location_name || "",
     googleLocationTitle: row.google_location_title || "",
+    publishingVerified:
+      provider === "google_business"
+        ? row.status === "connected" && !!row.google_location_name && !row.last_error
+        : row.status === "connected",
     tokenExpiresAt: row.token_expires_at || null,
     lastError: row.last_error || "",
     lastCheckedAt: row.last_checked_at || null,
@@ -333,7 +334,10 @@ async function fetchJson(url: string, init?: RequestInit) {
       payload?.error_description ||
       payload?.message ||
       `Provider request failed with ${response.status}`;
-    throw new Error(message);
+    const providerError: any = new Error(message);
+    providerError.status = response.status;
+    providerError.payload = payload;
+    throw providerError;
   }
   return payload;
 }
@@ -461,28 +465,41 @@ async function googleAccessToken(connection: any) {
   return payload.access_token;
 }
 
-async function handleGoogleCallback(code: string) {
-  const body = new URLSearchParams({
-    code,
-    client_id: Deno.env.get("GOOGLE_CLIENT_ID") || "",
-    client_secret: Deno.env.get("GOOGLE_CLIENT_SECRET") || "",
-    redirect_uri: callbackUrl("google_business"),
-    grant_type: "authorization_code",
-  });
-  const token = await fetchJson("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
-  });
+function googleAccessGuidance(error: any) {
+  const status = Number(error?.status || 0);
+  const message = String(error?.message || error || "");
+  const lower = message.toLowerCase();
+  if (
+    status === 403 ||
+    lower.includes("permission") ||
+    lower.includes("quota") ||
+    lower.includes("access not configured") ||
+    lower.includes("has not been used") ||
+    lower.includes("disabled")
+  ) {
+    return "Google authorization was saved, but this Google Cloud project does not yet have usable Business Profile API access. Confirm GBP API approval and enable Google My Business API, My Business Account Management API and My Business Business Information API, then tap Re-check Google access in BUSY.";
+  }
+  if (status === 401 || lower.includes("invalid_grant") || lower.includes("unauth")) {
+    return "Google authorization needs to be renewed. Reconnect Google Business in BUSY and approve the Business Profile permission again.";
+  }
+  return message || "BUSY could not verify Google Business Profile API access yet.";
+}
 
-  const headers = { Authorization: `Bearer ${token.access_token}` };
+async function discoverGoogleAssets(accessToken: string) {
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    "X-GOOG-API-FORMAT-VERSION": "2",
+  };
   const accounts = await fetchJson(
     "https://mybusinessaccountmanagement.googleapis.com/v1/accounts",
     { headers }
   );
 
+  const accountRows = Array.isArray(accounts.accounts) ? accounts.accounts.slice(0, 20) : [];
   const assets: any[] = [];
-  for (const account of Array.isArray(accounts.accounts) ? accounts.accounts.slice(0, 20) : []) {
+  const locationErrors: any[] = [];
+
+  for (const account of accountRows) {
     const url = new URL(
       `https://mybusinessbusinessinformation.googleapis.com/v1/${account.name}/locations`
     );
@@ -504,47 +521,183 @@ async function handleGoogleCallback(code: string) {
           locationTitle: location.title || "",
         });
       }
-    } catch {
-      // Some accessible accounts may not expose locations; continue to the next.
+    } catch (error) {
+      locationErrors.push(error);
     }
   }
+
+  if (!assets.length && accountRows.length && locationErrors.length) {
+    throw locationErrors[0];
+  }
+  return assets;
+}
+
+async function verifyGooglePublishingAccess(connection: any) {
+  if (!connection?.google_location_name) {
+    return await upsertConnection("google_business", {
+      status: "needs_attention",
+      last_error: "Choose a Google Business Profile location before BUSY can verify publishing access.",
+      last_checked_at: new Date().toISOString(),
+    });
+  }
+
+  try {
+    const token = await googleAccessToken(connection);
+    const locationResource = String(connection.google_location_name || "").replace(/^\/+/, "");
+    if (!/^accounts\/[^/]+\/locations\/[^/]+$/.test(locationResource)) {
+      throw new Error("Google Business location reference is incomplete. Reconnect Google Business.");
+    }
+    const url = new URL(
+      `https://mybusiness.googleapis.com/v4/${locationResource}/localPosts`
+    );
+    url.searchParams.set("pageSize", "1");
+    await fetchJson(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-GOOG-API-FORMAT-VERSION": "2",
+      },
+    });
+    return await upsertConnection("google_business", {
+      status: "connected",
+      connected_at: connection.connected_at || new Date().toISOString(),
+      last_error: null,
+      last_checked_at: new Date().toISOString(),
+    });
+  } catch (error) {
+    return await upsertConnection("google_business", {
+      status: "needs_attention",
+      last_error: googleAccessGuidance(error),
+      last_checked_at: new Date().toISOString(),
+    });
+  }
+}
+
+async function refreshGoogleConnection() {
+  const connection = await getConnection("google_business");
+  if (!connection?.access_token && !connection?.refresh_token) {
+    throw new Error("Reconnect Google Business first so BUSY has Google authorization to check.");
+  }
+  try {
+    const token = await googleAccessToken(connection);
+    const assets = await discoverGoogleAssets(token);
+    const currentLocation = String(connection.google_location_name || "");
+    const currentAsset = assets.find((asset: any) => asset.locationName === currentLocation);
+
+    if (currentAsset) {
+      const selected = await upsertConnection("google_business", {
+        status: "checking",
+        assets,
+        provider_account_id: currentAsset.accountName,
+        provider_account_name: currentAsset.accountLabel || "",
+        google_account_name: currentAsset.accountName,
+        google_location_name: currentAsset.locationName,
+        google_location_title: currentAsset.locationTitle || currentAsset.name || "",
+        last_error: null,
+        last_checked_at: new Date().toISOString(),
+      });
+      return await verifyGooglePublishingAccess(selected);
+    }
+
+    if (assets.length === 1) {
+      const asset = assets[0];
+      const selected = await upsertConnection("google_business", {
+        status: "checking",
+        assets,
+        provider_account_id: asset.accountName,
+        provider_account_name: asset.accountLabel || "",
+        google_account_name: asset.accountName,
+        google_location_name: asset.locationName,
+        google_location_title: asset.locationTitle || asset.name || "",
+        connected_at: connection.connected_at || new Date().toISOString(),
+        last_error: null,
+        last_checked_at: new Date().toISOString(),
+      });
+      return await verifyGooglePublishingAccess(selected);
+    }
+
+    return await upsertConnection("google_business", {
+      status: assets.length ? "needs_selection" : "needs_attention",
+      assets,
+      google_account_name: null,
+      google_location_name: null,
+      google_location_title: null,
+      last_error: assets.length
+        ? null
+        : "Google authorization is valid, but no Business Profile locations were returned for this login.",
+      last_checked_at: new Date().toISOString(),
+    });
+  } catch (error) {
+    return await upsertConnection("google_business", {
+      status: "needs_attention",
+      last_error: googleAccessGuidance(error),
+      last_checked_at: new Date().toISOString(),
+    });
+  }
+}
+
+async function handleGoogleCallback(code: string) {
+  const body = new URLSearchParams({
+    code,
+    client_id: Deno.env.get("GOOGLE_CLIENT_ID") || "",
+    client_secret: Deno.env.get("GOOGLE_CLIENT_SECRET") || "",
+    redirect_uri: callbackUrl("google_business"),
+    grant_type: "authorization_code",
+  });
+  const token = await fetchJson("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body,
+  });
 
   const expiresAt = token.expires_in
     ? new Date(Date.now() + Number(token.expires_in) * 1000).toISOString()
     : null;
   const existingGoogle = await getConnection("google_business");
-  const common = {
+  const savedAuthorization = await upsertConnection("google_business", {
+    status: "checking",
     access_token: token.access_token,
     refresh_token: token.refresh_token || existingGoogle?.refresh_token || null,
     token_expires_at: expiresAt,
-    assets,
     scopes: ["https://www.googleapis.com/auth/business.manage"],
     last_checked_at: new Date().toISOString(),
     last_error: null,
-  };
-
-  if (assets.length === 1) {
-    const asset = assets[0];
-    await upsertConnection("google_business", {
-      ...common,
-      status: "connected",
-      provider_account_id: asset.accountName,
-      provider_account_name: asset.accountLabel,
-      google_account_name: asset.accountName,
-      google_location_name: asset.locationName,
-      google_location_title: asset.locationTitle,
-      connected_at: new Date().toISOString(),
-    });
-    return;
-  }
-
-  await upsertConnection("google_business", {
-    ...common,
-    status: assets.length ? "needs_selection" : "needs_attention",
-    last_error: assets.length
-      ? null
-      : "No Google Business Profile locations were available to this login.",
   });
+
+  try {
+    const assets = await discoverGoogleAssets(token.access_token);
+    if (assets.length === 1) {
+      const asset = assets[0];
+      const selected = await upsertConnection("google_business", {
+        status: "checking",
+        assets,
+        provider_account_id: asset.accountName,
+        provider_account_name: asset.accountLabel,
+        google_account_name: asset.accountName,
+        google_location_name: asset.locationName,
+        google_location_title: asset.locationTitle || asset.name || "",
+        connected_at: new Date().toISOString(),
+        last_error: null,
+        last_checked_at: new Date().toISOString(),
+      });
+      return await verifyGooglePublishingAccess(selected);
+    }
+
+    return await upsertConnection("google_business", {
+      status: assets.length ? "needs_selection" : "needs_attention",
+      assets,
+      last_error: assets.length
+        ? null
+        : "Google authorization succeeded, but no Business Profile locations were available to this login.",
+      last_checked_at: new Date().toISOString(),
+    });
+  } catch (error) {
+    return await upsertConnection("google_business", {
+      ...savedAuthorization,
+      status: "needs_attention",
+      last_error: googleAccessGuidance(error),
+      last_checked_at: new Date().toISOString(),
+    });
+  }
 }
 
 function decodeDataUrl(dataUrl: string) {
@@ -1068,8 +1221,8 @@ async function selectAsset(provider: string, assetId: string) {
     });
   }
 
-  return await upsertConnection(provider, {
-    status: "connected",
+  const selected = await upsertConnection(provider, {
+    status: "checking",
     provider_account_id: asset.accountName,
     provider_account_name: asset.accountLabel || "",
     google_account_name: asset.accountName,
@@ -1077,7 +1230,9 @@ async function selectAsset(provider: string, assetId: string) {
     google_location_title: asset.locationTitle || asset.name || "",
     connected_at: new Date().toISOString(),
     last_error: null,
+    last_checked_at: new Date().toISOString(),
   });
+  return await verifyGooglePublishingAccess(selected);
 }
 
 async function disconnectProvider(provider: string) {
@@ -1149,10 +1304,21 @@ Deno.serve(async (request: Request) => {
       if (errorText) return html(400, "Connection cancelled", errorText);
       if (!provider || !state || !code) return html(400, "Connection failed", "The provider did not return a complete authorization response.");
       await consumeOAuthState(provider, state);
-      if (provider === "meta") await handleMetaCallback(code);
-      else if (provider === "google_business") await handleGoogleCallback(code);
-      else throw new Error("Unknown provider.");
-      return html(200, "Connected to BUSY", `${providerLabel(provider)} authorization completed successfully.`);
+      if (provider === "meta") {
+        await handleMetaCallback(code);
+        return html(200, "Connected to BUSY", "Facebook / Instagram authorization completed successfully.");
+      }
+      if (provider === "google_business") {
+        const google = await handleGoogleCallback(code);
+        const message =
+          google?.status === "connected"
+            ? "Google Business authorization and publishing access were verified successfully."
+            : google?.status === "needs_selection"
+            ? "Google authorization was saved. Return to BUSY, refresh, and choose the Business Profile location to use."
+            : "Google authorization was saved. Return to BUSY to see the API-access check and the next setup step.";
+        return html(200, "Google authorization saved", message);
+      }
+      throw new Error("Unknown provider.");
     }
 
     if (request.method !== "POST") return json(405, { error: "POST required" });
@@ -1218,6 +1384,15 @@ Deno.serve(async (request: Request) => {
       const provider = cleanText(body?.provider, 40);
       const assetId = cleanText(body?.assetId, 500);
       await selectAsset(provider, assetId);
+      return json(200, { ok: true, connection: await connectionSummary(provider) });
+    }
+
+    if (action === "verify_provider") {
+      const provider = cleanText(body?.provider, 40);
+      if (provider !== "google_business") {
+        throw new Error("Provider verification is currently available for Google Business.");
+      }
+      await refreshGoogleConnection();
       return json(200, { ok: true, connection: await connectionSummary(provider) });
     }
 
