@@ -14094,7 +14094,7 @@ function SocialMediaCentre({ s }) {
       brandCue="Real work in. Approved content out. Publishing authority stays separate."
     >
       <Card
-        eyebrow="V3.5 • Publishing layer"
+        eyebrow="V3.6.1 • Publishing layer"
         title="The Social Media Centre now has a real server-side queue"
         body="Draft photos can be moved into private Supabase storage, scheduled posts are checked every minute, and provider IDs or failures come back into the same BUSY record."
         footer={
@@ -15554,8 +15554,8 @@ function ConnectedAccounts({ s }) {
             : configured
             ? "The server has the provider app credentials. Start OAuth here, complete the provider consent screen, then return to BUSY and refresh."
             : provider === "meta"
-            ? "The V3.5 Meta OAuth and publishing code is deployed, but META_APP_ID and META_APP_SECRET have not been added to Supabase yet."
-            : "The V3.5 Google OAuth and publishing code is deployed, but GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET have not been added to Supabase yet."
+            ? "The V3.6.1 Meta OAuth and publishing code is deployed, but META_APP_ID and META_APP_SECRET have not been added to Supabase yet."
+            : "The V3.6.1 Google OAuth and publishing code is deployed, but GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET have not been added to Supabase yet."
         }
         footer={
           connected
@@ -15782,7 +15782,7 @@ function ConnectedAccounts({ s }) {
       <Card
         eyebrow="Authority boundary"
         title="A connection never grants blanket permission"
-        body="Reading data, creating a draft, storing media, scheduling a post and publishing publicly are separate steps. V3.5 only allows server publishing from an owner-approved post record."
+        body="Reading data, creating a draft, storing media, scheduling a post and publishing publicly are separate steps. V3.6.1 only allows server publishing from an owner-approved post record."
         footer="Paid advertising remains separately controlled"
         tone="green"
       />
