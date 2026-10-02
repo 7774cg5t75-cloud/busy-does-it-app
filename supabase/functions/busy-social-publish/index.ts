@@ -41,6 +41,9 @@ function providerLabel(provider: string) {
 }
 
 function callbackUrl(provider: string) {
+  if (provider === "meta") {
+    return `${SUPABASE_URL}/functions/v1/busy-social-publish/callback/meta`;
+  }
   return `${SUPABASE_URL}/functions/v1/busy-social-publish?action=callback&provider=${provider}`;
 }
 
@@ -897,6 +900,9 @@ Deno.serve(async (request: Request) => {
 
   try {
     const url = new URL(request.url);
+    const pathParts = url.pathname.split("/").filter(Boolean);
+    const callbackProvider =
+      pathParts.at(-2) === "callback" ? cleanText(pathParts.at(-1), 40) : "";
 
     if (request.method === "POST" && url.searchParams.get("action") === "deauthorize") {
       const form = await request.formData();
@@ -924,8 +930,12 @@ Deno.serve(async (request: Request) => {
       return html(200, "BUSY data deletion complete", "Meta connection data was deleted.");
     }
 
-    if (request.method === "GET" && url.searchParams.get("action") === "callback") {
-      const provider = cleanText(url.searchParams.get("provider"), 40);
+    if (
+      request.method === "GET" &&
+      (callbackProvider || url.searchParams.get("action") === "callback")
+    ) {
+      const provider =
+        callbackProvider || cleanText(url.searchParams.get("provider"), 40);
       const state = cleanText(url.searchParams.get("state"), 300);
       const code = cleanText(url.searchParams.get("code"), 5000);
       const errorText = cleanText(url.searchParams.get("error_description") || url.searchParams.get("error"), 1000);
