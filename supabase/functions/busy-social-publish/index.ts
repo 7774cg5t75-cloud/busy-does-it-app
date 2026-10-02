@@ -1235,6 +1235,35 @@ Deno.serve(async (request: Request) => {
       return json(200, { ok: true, post: await publishPost(post) });
     }
 
+    if (action === "retry_post") {
+      const clientDraftId = cleanText(body?.clientDraftId, 180);
+      const existing = await getPostByClientDraftId(clientDraftId);
+      if (!existing) throw new Error("That post no longer exists.");
+      if (!["Failed", "Partial failure", "Ready to publish"].includes(String(existing.status || ""))) {
+        throw new Error("Only failed or held posts can be retried.");
+      }
+      const settings = await getWorkspaceSettings();
+      if (!settings.live_publishing_enabled) {
+        throw new Error("Live publishing is currently off.");
+      }
+      if (!existing.owner_approved) {
+        throw new Error("Owner approval is required before retrying this post.");
+      }
+      await assertChannelsConnected(existing.channels || []);
+      const { data: publishing, error: updateError } = await supabase
+        .from("busy_social_posts")
+        .update({
+          status: "Publishing",
+          last_error: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existing.id)
+        .select("*")
+        .single();
+      if (updateError) throw updateError;
+      return json(200, { ok: true, post: await publishPost(publishing) });
+    }
+
     if (action === "process_due") {
       return json(200, await processDuePosts());
     }
