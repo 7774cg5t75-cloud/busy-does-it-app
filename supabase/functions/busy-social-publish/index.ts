@@ -610,6 +610,23 @@ async function upsertPost(payload: any, status: string, ownerApproved: boolean) 
       ["Facebook", "Instagram", "Google Business"].includes(channel)
     );
   const photos = Array.isArray(payload.photos) ? payload.photos.slice(0, 6) : [];
+
+  const existing = await getPostByClientDraftId(clientDraftId);
+  const existingStatus = String(existing?.status || "");
+  if (existing && ["Scheduled", "Held for setup"].includes(existingStatus)) {
+    throw new Error("Cancel the existing schedule before changing or republishing this post.");
+  }
+  if (
+    existing &&
+    ["Publishing", "Published", "Partial failure", "Failed", "Ready to publish"].includes(existingStatus)
+  ) {
+    throw new Error(
+      ["Partial failure", "Failed", "Ready to publish"].includes(existingStatus)
+        ? "Use Retry failed destinations for this publishing record. BUSY will not reset it to a fresh draft."
+        : "This publishing record is locked as history and cannot be republished from the draft controls."
+    );
+  }
+
   let media = Array.isArray(payload.media) ? payload.media : [];
   if (photos.length) media = await uploadMedia(clientDraftId, photos);
   if (!media.length) throw new Error("At least one post photo is required.");
