@@ -10167,7 +10167,7 @@ function WorkHub({ s }) {
             strong={s.workGoalFilled}
           />
         ) : null}
-        <MetricRow left="Default spend position" right="£0 while free routes remain" strong />
+        <MetricRow left="Paid spend" right="£0 for now" strong />
       </Card>
 
       {preparedNextAction ? (
@@ -17508,9 +17508,22 @@ const styles = StyleSheet.create({
     marginTop: 10,
     gap: 14,
   },
-  metricLeft: { flex: 1, color: C.muted, fontSize: 14 },
-  metricRightWrap: { flexDirection: "row", alignItems: "center", gap: 7 },
-  metricRight: { color: C.ink, fontSize: 15, fontWeight: "800" },
+  metricLeft: { flex: 1, minWidth: 0, color: C.muted, fontSize: 14, paddingRight: 8 },
+  metricRightWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: 7,
+    flexShrink: 1,
+    maxWidth: "58%",
+  },
+  metricRight: {
+    color: C.ink,
+    fontSize: 15,
+    fontWeight: "800",
+    flexShrink: 1,
+    textAlign: "right",
+  },
   metricClickable: { color: C.blue },
   metricChevron: { color: C.blue, fontSize: 24, lineHeight: 24, fontWeight: "800" },
   metricRowClickable: { minHeight: 44, paddingBottom: 4 },
