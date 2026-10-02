@@ -11,6 +11,11 @@ Busy Does It mobile app prototype.
 - Published-post, quote-follow-up and enquiry-follow-up outcomes can surface as weekly learning tasks so the Business Brain improves from real results instead of treating activity itself as success.
 - An existing capacity goal stays authoritative. V3.9 points back into the same adaptive work-filling plan rather than starting a duplicate campaign for the same diary gap.
 - When there is genuinely nothing urgent, BUSY says so instead of manufacturing a task. If the week has no booked work, Find more work remains an explicit owner choice.
+- Added a 14-day capacity and opportunity radar. It looks beyond the immediate week for saved work in days 8–14, repeat-customer timing windows, sent quotes approaching their follow-up date and live enquiries nearing the quiet-enquiry threshold.
+- The look-ahead stays factual: it reports what is present in BUSY's saved records and explicitly avoids pretending to predict future demand.
+- Added a persistent "What changed?" briefing on Work. BUSY compares the current operating snapshot with the last time the owner opened Work and surfaces material changes in weekly booked jobs/value, live enquiries, due quotes, Inbox attention, social-outcome learning and the active work-goal gap.
+- The briefing snapshot is local operating context only and is cleared with Reset Prototype.
+- Surfaced the strongest already-prepared background action directly in Work: a review request, finished-job social post, quote follow-up or quiet-enquiry follow-up can be opened from the weekly command centre while keeping customer-facing approval intact.
 - The existing monthly diary, day detail, pipeline, Social Control Centre, live publishing and all V3.8 duplicate-publishing protections remain intact.
 - Main navigation remains Home / Work / Results / Settings.
 
