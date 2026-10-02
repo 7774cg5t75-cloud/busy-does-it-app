@@ -6109,6 +6109,7 @@ function App() {
 
   const resetPrototype = async () => {
     await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
+    await AsyncStorage.removeItem("@busy-does-it-weekly-brief-v39").catch(() => {});
     setOnboardingComplete(false);
     setBusinessName("Dave's Exterior Cleaning");
     setTrade("Exterior cleaning");
