@@ -512,9 +512,10 @@ async function handleGoogleCallback(code: string) {
   const expiresAt = token.expires_in
     ? new Date(Date.now() + Number(token.expires_in) * 1000).toISOString()
     : null;
+  const existingGoogle = await getConnection("google_business");
   const common = {
     access_token: token.access_token,
-    refresh_token: token.refresh_token || null,
+    refresh_token: token.refresh_token || existingGoogle?.refresh_token || null,
     token_expires_at: expiresAt,
     assets,
     scopes: ["https://www.googleapis.com/auth/business.manage"],
