@@ -8983,7 +8983,7 @@ function HomeScreen({ s }) {
         action?.type !== "booking" ||
         !action?.done ||
         !action.details?.bookingDate ||
-        !["Confirmed", "Completed"].includes(action.details?.bookingStatus || "Confirmed") ||
+        (action.details?.bookingStatus || "Confirmed") !== "Confirmed" ||
         action.details.bookingDate < todayISO ||
         action.details.bookingDate > homeWeekEndISO
       ) return null;
@@ -10167,7 +10167,7 @@ function WorkHub({ s }) {
             strong={s.workGoalFilled}
           />
         ) : null}
-        <MetricRow left="Recommended extra spend now" right="£0 first" strong />
+        <MetricRow left="Default spend position" right="£0 while free routes remain" strong />
       </Card>
 
       {preparedNextAction ? (
