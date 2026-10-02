@@ -16,8 +16,9 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
+import * as SecureStore from "expo-secure-store";
 
-const APP_VERSION = "3.5";
+const APP_VERSION = "3.6";
 const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Live Social Publishing`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
@@ -31,6 +32,47 @@ const BUSY_SOCIAL_URL =
   "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-social-content";
 const BUSY_SOCIAL_PUBLISH_URL =
   "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-social-publish";
+const BUSY_SUPABASE_URL = "https://qgkmuiipicazmcxxmoxv.supabase.co";
+const OWNER_SESSION_KEY = "busy-owner-session-v3.6";
+const OWNER_EMAIL = "busydoesitapp@gmail.com";
+
+async function busyAuthRequest(path, { method = "POST", body = null, token = "" } = {}) {
+  const headers = {
+    apikey: BUSY_AI_TOKEN,
+    "Content-Type": "application/json",
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const response = await fetch(`${BUSY_SUPABASE_URL}/auth/v1/${path}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(
+      data?.msg ||
+      data?.error_description ||
+      data?.message ||
+      data?.error ||
+      `Owner authentication returned ${response.status}.`
+    );
+  }
+  return data;
+}
+
+function ownerSessionFromPayload(data) {
+  if (!data?.access_token) return null;
+  const expiresAt = data.expires_at
+    ? Number(data.expires_at) * 1000
+    : Date.now() + Number(data.expires_in || 3600) * 1000;
+  return {
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token || "",
+    expiresAt,
+    email: data.user?.email || OWNER_EMAIL,
+    userId: data.user?.id || "",
+  };
+}
 
 const C = {
   bg: "#F5F7FB",
@@ -1511,6 +1553,12 @@ function App() {
   const [socialPublishingLoading, setSocialPublishingLoading] = useState(false);
   const [socialPublishingError, setSocialPublishingError] = useState("");
   const [socialPublishingAction, setSocialPublishingAction] = useState("");
+  const [ownerSession, setOwnerSession] = useState(null);
+  const [ownerPassword, setOwnerPassword] = useState("");
+  const [ownerAuthLoading, setOwnerAuthLoading] = useState(false);
+  const [ownerAuthError, setOwnerAuthError] = useState("");
+  const [ownerAuthNotice, setOwnerAuthNotice] = useState("");
+  const [ownerAuthReady, setOwnerAuthReady] = useState(false);
   const [businessBrainRules, setBusinessBrainRules] = useState([]);
   const [businessBrainRuleDraft, setBusinessBrainRuleDraft] = useState("");
   const [businessBrainFeedback, setBusinessBrainFeedback] = useState([]);
@@ -1565,6 +1613,26 @@ function App() {
   const [selectedInboxItemId, setSelectedInboxItemId] = useState(null);
   const [recordFilingMode, setRecordFilingMode] = useState("safe");
   const [lastAutoFiledInboxItemId, setLastAutoFiledInboxItemId] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const rawSession = await SecureStore.getItemAsync(OWNER_SESSION_KEY);
+        if (active && rawSession) {
+          const parsed = JSON.parse(rawSession);
+          if (parsed?.accessToken) setOwnerSession(parsed);
+        }
+      } catch (e) {
+        // A missing or unreadable secure session simply means the owner signs in again.
+      } finally {
+        if (active) setOwnerAuthReady(true);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -2688,12 +2756,123 @@ function App() {
       socialPublishingStatus?.connections?.google_business?.status === "connected",
   });
 
+  const persistOwnerSession = async (session) => {
+    setOwnerSession(session);
+    if (session?.accessToken) {
+      await SecureStore.setItemAsync(OWNER_SESSION_KEY, JSON.stringify(session));
+    } else {
+      await SecureStore.deleteItemAsync(OWNER_SESSION_KEY);
+    }
+  };
+
+  const ownerAccessToken = async () => {
+    if (!ownerSession?.accessToken) return "";
+    if (Number(ownerSession.expiresAt || 0) > Date.now() + 60_000) {
+      return ownerSession.accessToken;
+    }
+    if (!ownerSession.refreshToken) {
+      await persistOwnerSession(null);
+      return "";
+    }
+    try {
+      const data = await busyAuthRequest("token?grant_type=refresh_token", {
+        body: { refresh_token: ownerSession.refreshToken },
+      });
+      const refreshed = ownerSessionFromPayload(data);
+      if (!refreshed) throw new Error("Owner session could not be refreshed.");
+      await persistOwnerSession(refreshed);
+      return refreshed.accessToken;
+    } catch (error) {
+      await persistOwnerSession(null);
+      setOwnerAuthError("Your owner sign-in expired. Sign in again.");
+      return "";
+    }
+  };
+
+  const signInOwner = async () => {
+    if (!ownerPassword || ownerPassword.length < 6) {
+      setOwnerAuthError("Enter the password for the Busy Does It owner account.");
+      return false;
+    }
+    setOwnerAuthLoading(true);
+    setOwnerAuthError("");
+    setOwnerAuthNotice("");
+    try {
+      const data = await busyAuthRequest("token?grant_type=password", {
+        body: { email: OWNER_EMAIL, password: ownerPassword },
+      });
+      const session = ownerSessionFromPayload(data);
+      if (!session) throw new Error("Supabase did not return an owner session.");
+      await persistOwnerSession(session);
+      setOwnerPassword("");
+      setOwnerAuthNotice("Owner verified. Publishing actions are now tied to this signed-in account.");
+      return true;
+    } catch (error) {
+      setOwnerAuthError(error?.message || "Owner sign-in failed.");
+      return false;
+    } finally {
+      setOwnerAuthLoading(false);
+    }
+  };
+
+  const createOwnerAccount = async () => {
+    if (!ownerPassword || ownerPassword.length < 8) {
+      setOwnerAuthError("Choose a password with at least 8 characters.");
+      return false;
+    }
+    setOwnerAuthLoading(true);
+    setOwnerAuthError("");
+    setOwnerAuthNotice("");
+    try {
+      const data = await busyAuthRequest("signup", {
+        body: { email: OWNER_EMAIL, password: ownerPassword },
+      });
+      const session = ownerSessionFromPayload(data);
+      if (session) {
+        await persistOwnerSession(session);
+        setOwnerPassword("");
+        setOwnerAuthNotice("Owner account created and signed in.");
+      } else {
+        setOwnerAuthNotice(
+          `Account created for ${OWNER_EMAIL}. Check that inbox for the Supabase confirmation email, then return here and sign in.`
+        );
+      }
+      return true;
+    } catch (error) {
+      const message = error?.message || "Owner account could not be created.";
+      setOwnerAuthError(
+        /already|registered/i.test(message)
+          ? "That owner account already exists. Use Sign in instead."
+          : message
+      );
+      return false;
+    } finally {
+      setOwnerAuthLoading(false);
+    }
+  };
+
+  const signOutOwner = async () => {
+    await persistOwnerSession(null);
+    setOwnerPassword("");
+    setOwnerAuthError("");
+    setOwnerAuthNotice("Owner signed out. Live publishing controls are locked again.");
+    setSocialPublishingStatus((current) => ({
+      ...current,
+      loaded: false,
+    }));
+  };
+
   const socialPublishRequest = async (action, payload = {}) => {
+    const token = await ownerAccessToken();
+    if (!token) {
+      throw new Error("Owner sign-in is required for social publishing controls.");
+    }
     const response = await fetch(BUSY_SOCIAL_PUBLISH_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         apikey: BUSY_AI_TOKEN,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ action, ...payload }),
     });
@@ -2775,6 +2954,42 @@ function App() {
     } finally {
       if (!quiet) setSocialPublishingLoading(false);
     }
+  };
+
+  const setLivePublishingEnabled = async (enabled) => {
+    setSocialPublishingLoading(true);
+    setSocialPublishingAction("live-switch");
+    setSocialPublishingError("");
+    try {
+      await socialPublishRequest("set_live_publishing", { enabled: !!enabled });
+      await refreshSocialPublishingStatus({ quiet: true });
+      return true;
+    } catch (error) {
+      const message = error?.message || "BUSY could not change the live publishing switch.";
+      setSocialPublishingError(message);
+      Alert.alert("Live publishing not changed", message);
+      return false;
+    } finally {
+      setSocialPublishingLoading(false);
+      setSocialPublishingAction("");
+    }
+  };
+
+  const confirmLivePublishingChange = (enabled) => {
+    Alert.alert(
+      enabled ? "Enable controlled live publishing?" : "Turn live publishing off?",
+      enabled
+        ? "Only owner-approved posts can publish. The Meta connection is locked to Busy Does It and @busydoesitapp. Start with one controlled test post."
+        : "Drafts remain available, but no public posts or scheduled posts will be sent while the switch is off.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: enabled ? "Enable test" : "Turn off",
+          style: enabled ? "default" : "destructive",
+          onPress: () => setLivePublishingEnabled(enabled),
+        },
+      ]
+    );
   };
 
   const beginSocialProviderConnect = async (provider) => {
@@ -6854,6 +7069,19 @@ function App() {
     socialPublishingLoading,
     socialPublishingError,
     socialPublishingAction,
+    ownerSession,
+    ownerPassword,
+    setOwnerPassword,
+    ownerAuthLoading,
+    ownerAuthError,
+    ownerAuthNotice,
+    ownerAuthReady,
+    ownerEmail: OWNER_EMAIL,
+    signInOwner,
+    createOwnerAccount,
+    signOutOwner,
+    setLivePublishingEnabled,
+    confirmLivePublishingChange,
     refreshSocialPublishingStatus,
     beginSocialProviderConnect,
     selectSocialProviderAsset,
@@ -7473,7 +7701,7 @@ function SmallLink({ label, onPress }) {
   );
 }
 
-function Field({ label, value, onChangeText, placeholder, keyboardType = "default", prefix }) {
+function Field({ label, value, onChangeText, placeholder, keyboardType = "default", prefix, secureTextEntry = false, autoCapitalize = "sentences" }) {
   return (
     <View style={styles.fieldWrap}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -7484,6 +7712,8 @@ function Field({ label, value, onChangeText, placeholder, keyboardType = "defaul
           onChangeText={onChangeText}
           placeholder={placeholder}
           keyboardType={keyboardType}
+          secureTextEntry={secureTextEntry}
+          autoCapitalize={autoCapitalize}
           style={styles.fieldInput}
           placeholderTextColor="#9AA3B2"
         />
@@ -15212,8 +15442,10 @@ function RecordFilingSettings({ s }) {
 
 function ConnectedAccounts({ s }) {
   useEffect(() => {
-    s.refreshSocialPublishingStatus({ quiet: true });
-  }, []);
+    if (s.ownerSession?.accessToken) {
+      s.refreshSocialPublishingStatus({ quiet: true });
+    }
+  }, [s.ownerSession?.accessToken]);
 
   const intakeRows = connectionRows.filter(([key]) => intakeConnectionKeys.includes(key));
   const prototypeActionRows = connectionRows.filter(
@@ -15258,6 +15490,7 @@ function ConnectedAccounts({ s }) {
     const needsSelection = connection.status === "needs_selection";
     const needsAttention = connection.status === "needs_attention";
     const providerBusy = busy && s.socialPublishingAction === provider;
+    const ownerSignedIn = !!s.ownerSession?.accessToken;
     const accountLabel =
       connection.pageName ||
       connection.googleLocationTitle ||
@@ -15334,14 +15567,14 @@ function ConnectedAccounts({ s }) {
         {connected ? (
           <Button
             label={providerBusy ? "Disconnecting…" : "Disconnect provider"}
-            disabled={busy}
+            disabled={busy || !ownerSignedIn}
             onPress={() => s.disconnectSocialProvider(provider)}
           />
         ) : configured && !needsSelection ? (
           <Button
             label={providerBusy ? "Opening provider…" : `Connect ${label}`}
             primary
-            disabled={busy}
+            disabled={busy || !ownerSignedIn}
             onPress={() => s.beginSocialProviderConnect(provider)}
           />
         ) : null}
@@ -15353,11 +15586,53 @@ function ConnectedAccounts({ s }) {
     <Shell
       s={s}
       title="Connected accounts"
-      subtitle="V3.5 separates live publishing connections from prototype intake sources. Provider tokens stay on the server, not in the mobile app."
-      brandCue="Connection makes an action technically possible. Owner approval still decides whether it happens."
+      subtitle="V3.6 adds an owner sign-in boundary before any live publishing control can be used. Provider tokens stay on the server, not in the mobile app."
+      brandCue="BUSY can prepare automatically. Public publishing still requires an authenticated owner and an approved post."
     >
       <Card
-        eyebrow="V3.5 • Connection health"
+        eyebrow="V3.6 • Owner protection"
+        title={s.ownerSession?.accessToken ? "Owner verified" : "Owner sign-in required"}
+        body={
+          s.ownerSession?.accessToken
+            ? "This device has an authenticated Supabase owner session. Publishing controls now verify that session on the server before accepting an action."
+            : "Before BUSY can enable live publishing, connect providers or approve a public post, sign in as the Busy Does It owner."
+        }
+        footer={s.ownerSession?.accessToken ? "Session stored securely on this device" : "Provider access alone is not enough to publish"}
+        tone={s.ownerSession?.accessToken ? "green" : "amber"}
+      >
+        <MetricRow left="Owner email" right={s.ownerEmail} strong={!!s.ownerSession?.accessToken} />
+        <MetricRow left="Owner status" right={s.ownerSession?.accessToken ? "Verified" : "Signed out"} strong={!!s.ownerSession?.accessToken} />
+        {!s.ownerSession?.accessToken ? (
+          <>
+            <Field
+              label="Owner password"
+              value={s.ownerPassword}
+              onChangeText={s.setOwnerPassword}
+              placeholder="Enter or choose a password"
+              secureTextEntry
+              autoCapitalize="none"
+            />
+            <Button
+              label={s.ownerAuthLoading ? "Signing in…" : "Sign in"}
+              primary
+              disabled={s.ownerAuthLoading}
+              onPress={s.signInOwner}
+            />
+            <Button
+              label={s.ownerAuthLoading ? "Please wait…" : "Create owner account"}
+              disabled={s.ownerAuthLoading}
+              onPress={s.createOwnerAccount}
+            />
+          </>
+        ) : (
+          <Button label="Sign out owner" disabled={s.ownerAuthLoading} onPress={s.signOutOwner} />
+        )}
+        {s.ownerAuthError ? <Text style={styles.customerHistoryPhotoMeta}>{s.ownerAuthError}</Text> : null}
+        {s.ownerAuthNotice ? <Text style={styles.cardFooter}>{s.ownerAuthNotice}</Text> : null}
+      </Card>
+
+      <Card
+        eyebrow="V3.6 • Connection health"
         title={
           credentials.livePublishingEnabled
             ? "Live provider publishing is enabled"
@@ -15366,7 +15641,7 @@ function ConnectedAccounts({ s }) {
         body={
           credentials.livePublishingEnabled
             ? "Approved posts can be sent to connected providers and scheduled posts can be processed by the server."
-            : "OAuth, private media storage and the publishing queue are deployed. The final live-publishing switch stays off until provider credentials and the remaining production authentication boundary are ready."
+            : "OAuth, private media storage and the publishing queue are deployed. Live posting stays off until the signed-in owner explicitly enables the controlled test."
         }
         footer="Scheduled worker checks due posts once per minute"
         tone={credentials.livePublishingEnabled ? "green" : "amber"}
@@ -15380,9 +15655,26 @@ function ConnectedAccounts({ s }) {
         />
         <Button
           label={busy ? "Refreshing…" : "Refresh connection health"}
-          disabled={busy}
+          disabled={busy || !s.ownerSession?.accessToken}
           onPress={s.refreshSocialPublishingStatus}
         />
+        {s.ownerSession?.accessToken && meta.status === "connected" ? (
+          credentials.livePublishingEnabled ? (
+            <Button
+              label={busy && s.socialPublishingAction === "live-switch" ? "Turning off…" : "Turn live publishing OFF"}
+              danger
+              disabled={busy}
+              onPress={() => s.confirmLivePublishingChange(false)}
+            />
+          ) : (
+            <Button
+              label={busy && s.socialPublishingAction === "live-switch" ? "Enabling…" : "Enable controlled live test"}
+              primary
+              disabled={busy}
+              onPress={() => s.confirmLivePublishingChange(true)}
+            />
+          )
+        ) : null}
       </Card>
 
       {s.socialPublishingError ? (
@@ -15392,6 +15684,29 @@ function ConnectedAccounts({ s }) {
           body={s.socialPublishingError}
           tone="amber"
         />
+      ) : null}
+
+      {s.ownerSession?.accessToken && meta.status === "connected" ? (
+        <Card
+          eyebrow="Controlled first post"
+          title={
+            credentials.livePublishingEnabled
+              ? "Live test mode is enabled"
+              : "Ready for the final safety check"
+          }
+          body={
+            credentials.livePublishingEnabled
+              ? "Create one simple BUSY test post in Social Media Centre, approve it yourself, publish it, then verify it appears on the Busy Does It Facebook Page and @busydoesitapp."
+              : "The Meta account is locked to the Busy Does It Page and @busydoesitapp. Enable the controlled live test only when you are ready to send one real post."
+          }
+          tone={credentials.livePublishingEnabled ? "green" : "blue"}
+        >
+          <MetricRow left="Facebook lock" right={meta.pageName || "Busy Does It"} strong />
+          <MetricRow left="Instagram lock" right={meta.instagramUsername ? `@${meta.instagramUsername}` : "Required"} strong={!!meta.instagramUsername} />
+          {credentials.livePublishingEnabled ? (
+            <Button label="Open Social Media Centre" primary onPress={() => s.go("socialMedia")} />
+          ) : null}
+        </Card>
       ) : null}
 
       <Text style={styles.sectionLabel}>Live social publishing</Text>
