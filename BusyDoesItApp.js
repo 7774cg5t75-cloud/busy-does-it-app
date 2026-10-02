@@ -14300,7 +14300,11 @@ function SocialMediaCentre({ s }) {
       String(a.updatedAt || a.createdAt || "")
     )
   );
-  const jobs = (s.socialJobOpportunities || []).slice(0, 6);
+  const jobs = (s.socialJobOpportunities || [])
+    .filter(({ job }) =>
+      !["Published", "Publishing", "Scheduled"].includes(job.postDraftStatus || "")
+    )
+    .slice(0, 6);
   const publish = s.socialPublishingStatus || {};
   const meta = publish.connections?.meta || { status: "not_connected" };
   const google = publish.connections?.google_business || { status: "not_connected" };
@@ -14346,9 +14350,9 @@ function SocialMediaCentre({ s }) {
       brandCue="Real work in. Approved content out. Publishing authority stays separate."
     >
       <Card
-        eyebrow="V3.6.1 • Publishing layer"
-        title="The Social Media Centre now has a real server-side queue"
-        body="Draft photos can be moved into private Supabase storage, scheduled posts are checked every minute, and provider IDs or failures come back into the same BUSY record."
+        eyebrow="V3.7 • Social publishing"
+        title="BUSY now turns publishing into a repeatable business workflow"
+        body="Completed-job opportunities, preferred destinations, live provider receipts, retry handling and business outcomes now stay together instead of feeling like separate technical tests."
         footer={
           liveEnabled
             ? "Live provider publishing safety switch: ON"
@@ -14394,6 +14398,19 @@ function SocialMediaCentre({ s }) {
           tone="amber"
         />
       ) : null}
+
+      <Card
+        eyebrow="Usual destinations"
+        title={
+          [
+            s.socialPreferredChannels?.facebook ? "Facebook" : null,
+            s.socialPreferredChannels?.instagram ? "Instagram" : null,
+            s.socialPreferredChannels?.googleBusiness ? "Google Business" : null,
+          ].filter(Boolean).join(" + ") || "Choose per post"
+        }
+        body="BUSY remembers the destinations you most recently approved. You can still change them on every individual post before publishing."
+        tone="blue"
+      />
 
       <Button label="Create something from my phone photos" primary onPress={s.startSocialFromPhone} />
 
