@@ -3454,13 +3454,17 @@ function App() {
     setAccountClosureBusy(true);
     setAccountClosureError("");
     try {
+      const currentUserCacheKey = storageKeyForUser(ownerSession?.userId || "");
       await socialPublishRequest("delete_account", {
         confirmation: "DELETE",
         confirmationEmail: signedInEmail,
       });
 
-      await resetPrototype({ preserveUserCache: false });
       await persistOwnerSession(null);
+      if (currentUserCacheKey) {
+        await AsyncStorage.removeItem(currentUserCacheKey).catch(() => {});
+      }
+      await resetPrototype({ preserveUserCache: true });
       setCloudWorkspace(null);
       setCloudInitialised(false);
       setCloudAttempted(false);
