@@ -22,8 +22,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 
-const APP_VERSION = "3.14";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Account Data Controls`;
+const APP_VERSION = "3.15";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Production Security & Reliability`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
@@ -41,6 +41,29 @@ const OWNER_SESSION_KEY = "busy-owner-session-v3.6";
 const DEFAULT_OWNER_EMAIL = "busydoesitapp@gmail.com";
 const CLOUD_SCHEMA_VERSION = 1;
 
+function busyRequestId(prefix = "req") {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (error) {
+    const wrapped = new Error(
+      error?.name === "AbortError"
+        ? "BUSY could not reach the server in time. Check your connection and try again."
+        : "BUSY could not reach the server. Check your internet connection and try again."
+    );
+    wrapped.network = true;
+    wrapped.cause = error;
+    throw wrapped;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function busyDataRequest(path, { method = "GET", body = null, token = "", prefer = "" } = {}) {
   const headers = {
     apikey: BUSY_AI_TOKEN,
@@ -48,21 +71,33 @@ async function busyDataRequest(path, { method = "GET", body = null, token = "", 
   };
   if (token) headers.Authorization = `Bearer ${token}`;
   if (prefer) headers.Prefer = prefer;
-  const response = await fetch(`${BUSY_SUPABASE_URL}/rest/v1/${path}`, {
-    method,
-    headers,
-    body: body === null ? undefined : JSON.stringify(body),
-  });
+  const response = await fetchWithTimeout(
+    `${BUSY_SUPABASE_URL}/rest/v1/${path}`,
+    {
+      method,
+      headers,
+      body: body === null ? undefined : JSON.stringify(body),
+    },
+    15000
+  );
   const text = await response.text();
-  const data = text ? JSON.parse(text) : null;
+  let data = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = null;
+  }
   if (!response.ok) {
-    throw new Error(
+    const error = new Error(
       data?.message ||
       data?.hint ||
       data?.details ||
       data?.error ||
       `BUSY cloud data returned ${response.status}.`
     );
+    error.status = response.status;
+    error.payload = data;
+    throw error;
   }
   return data;
 }
@@ -73,20 +108,27 @@ async function busyAuthRequest(path, { method = "POST", body = null, token = "" 
     "Content-Type": "application/json",
   };
   if (token) headers.Authorization = `Bearer ${token}`;
-  const response = await fetch(`${BUSY_SUPABASE_URL}/auth/v1/${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  const response = await fetchWithTimeout(
+    `${BUSY_SUPABASE_URL}/auth/v1/${path}`,
+    {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    },
+    15000
+  );
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(
+    const error = new Error(
       data?.msg ||
       data?.error_description ||
       data?.message ||
       data?.error ||
-      `Owner authentication returned ${response.status}.`
+      `BUSY authentication returned ${response.status}.`
     );
+    error.status = response.status;
+    error.payload = data;
+    throw error;
   }
   return data;
 }
@@ -2984,8 +3026,22 @@ function App() {
       await persistOwnerSession(refreshed);
       return refreshed.accessToken;
     } catch (error) {
-      await persistOwnerSession(null);
-      setOwnerAuthError("Your owner sign-in expired. Sign in again.");
+      const status = Number(error?.status || 0);
+      const message = String(error?.message || "").toLowerCase();
+      const definitelyInvalid =
+        status === 400 ||
+        status === 401 ||
+        status === 403 ||
+        message.includes("invalid_grant") ||
+        message.includes("refresh token");
+      if (definitelyInvalid) {
+        await persistOwnerSession(null);
+        setOwnerAuthError("Your BUSY sign-in expired. Sign in again.");
+      } else {
+        setOwnerAuthError(
+          "BUSY could not refresh your session because the server is unreachable. Your account remains on this device; reconnect and try again."
+        );
+      }
       return "";
     }
   };
@@ -3031,8 +3087,13 @@ function App() {
       setOwnerAuthError("Enter the email address you want to use for this BUSY account.");
       return false;
     }
-    if (!ownerPassword || ownerPassword.length < 8) {
-      setOwnerAuthError("Choose a password with at least 8 characters.");
+    if (
+      !ownerPassword ||
+      ownerPassword.length < 10 ||
+      !/[A-Za-z]/.test(ownerPassword) ||
+      !/[0-9]/.test(ownerPassword)
+    ) {
+      setOwnerAuthError("Choose at least 10 characters with both a letter and a number.");
       return false;
     }
     setOwnerAuthLoading(true);
@@ -3420,24 +3481,40 @@ function App() {
   const socialPublishRequest = async (action, payload = {}) => {
     const token = await ownerAccessToken();
     if (!token) {
-      throw new Error("Owner sign-in is required for social publishing controls.");
+      throw new Error("BUSY account sign-in is required for publishing controls.");
     }
-    const response = await fetch(BUSY_SOCIAL_PUBLISH_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: BUSY_AI_TOKEN,
-        Authorization: `Bearer ${token}`,
+    const requestId = busyRequestId(action || "social");
+    const response = await fetchWithTimeout(
+      BUSY_SOCIAL_PUBLISH_URL,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: BUSY_AI_TOKEN,
+          Authorization: `Bearer ${token}`,
+          "X-BUSY-Request-ID": requestId,
+        },
+        body: JSON.stringify({ action, requestId, ...payload }),
       },
-      body: JSON.stringify({ action, ...payload }),
-    });
+      action === "publish_now" || action === "retry_post" ? 45000 : 25000
+    );
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      const error = new Error(data?.error || `BUSY publishing returned ${response.status}.`);
+      if (response.status === 401) {
+        await persistOwnerSession(null);
+        setOwnerAuthError("Your BUSY sign-in expired. Sign in again before using live controls.");
+      }
+      const message =
+        response.status === 429
+          ? "That sensitive action was attempted too many times. BUSY has paused it briefly for safety."
+          : data?.error || `BUSY publishing returned ${response.status}.`;
+      const error = new Error(message);
+      error.status = response.status;
       error.payload = data;
+      error.requestId = requestId;
       throw error;
     }
-    return data;
+    return { ...data, requestId };
   };
 
   const completeAccountClosure = async () => {
@@ -17467,7 +17544,7 @@ function AccountAccess({ s }) {
       <Card
         eyebrow="Privacy"
         title="One account cannot browse another business"
-        body="The cloud database uses authenticated membership rules. V3.14 keeps social-provider data inside that boundary and adds owner-controlled permanent account removal."
+        body="The cloud database uses authenticated membership rules. V3.15 adds safer session recovery, server rate limits and network-failure handling on top of the existing per-business data boundary."
         tone="blue"
       />
     </ScrollView>
@@ -17534,6 +17611,20 @@ function AccountData({ s }) {
         footer="Selected phone photos still follow the app's existing explicit-permission rules"
         tone="blue"
       />
+
+      <Text style={styles.sectionLabel}>Production safety</Text>
+      <Card
+        eyebrow="V3.15 • Reliability"
+        title="BUSY now fails safely instead of guessing"
+        body="Server requests time out with a clear retry message, temporary network failures no longer erase a valid saved session, stale cloud devices are blocked from overwriting newer data, and live publishing actions are never automatically repeated after an uncertain network result."
+        footer="Sensitive publishing and account actions are also rate-limited on the server"
+        tone="green"
+      >
+        <MetricRow left="Cloud overwrite guard" right="Active" strong />
+        <MetricRow left="Private social-media bucket" right="Active" strong />
+        <MetricRow left="Provider tokens on phone" right="Never stored" strong />
+        <MetricRow left="Sensitive-action rate limits" right="Active" strong />
+      </Card>
 
       <Text style={styles.sectionLabel}>Account safety</Text>
       <Button label="Sign out on this device" onPress={s.signOutOwner} />
@@ -17994,7 +18085,7 @@ function ConnectedAccounts({ s }) {
       brandCue="BUSY can prepare automatically. Public publishing still requires an authenticated owner and an approved post."
     >
       <Card
-        eyebrow="V3.14 • Account & business control"
+        eyebrow="V3.15 • Production-safe account controls"
         title={s.ownerSession?.accessToken ? "Account verified" : "BUSY account sign-in"}
         body={
           s.ownerSession?.accessToken
@@ -18026,6 +18117,7 @@ function ConnectedAccounts({ s }) {
                 s.socialPublishingStatus.owner.businessId === s.cloudWorkspace?.businessId
               }
             />
+            <MetricRow left="Sensitive action protection" right="Server rate limits active" strong />
           </>
         ) : null}
         {!s.ownerSession?.accessToken ? (
