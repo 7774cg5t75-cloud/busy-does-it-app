@@ -2,6 +2,21 @@
 
 Busy Does It mobile app prototype.
 
+## v3.12 Account Safety & Recovery
+- Built directly from the tested V3.11 production-data foundation.
+- Added a real account gate: unsigned users no longer drop straight into whichever business data happened to be visible on the device.
+- Local persistence is now isolated per Supabase user ID. The old shared prototype key is read only as a one-time migration source instead of remaining the normal storage location.
+- Sign-out now clears the visible business state without deleting that account's private device cache, preventing one signed-out user from exposing their working data to the next account.
+- Added recovery-aware cloud loading: BUSY checks the signed-in user's private device cache first, then restores the authoritative business snapshot from Supabase.
+- Added optimistic cloud revisions. A stale device can no longer silently overwrite a newer cloud snapshot; BUSY stops the save, surfaces the conflict and asks the owner to restore the latest cloud copy.
+- Added manual cloud restore and Sync now controls, with last-sync time and revision visibility.
+- Added a user-facing data export through the native share sheet. The export includes the current BUSY business snapshot and account/workspace metadata, but deliberately excludes provider access tokens.
+- Added password-recovery email requests to the account gate and Connected Accounts.
+- Added a dedicated Account, privacy & recovery screen explaining the local cache, cloud copy and server-only provider-token boundary.
+- Kept Facebook/Instagram publishing, schedules, receipts and the waiting Google Business integration unchanged.
+- Full self-service account deletion remains intentionally blocked until the older prototype social workspace is migrated into the same per-business tenancy model; BUSY does not claim a deletion is complete while provider data would remain elsewhere.
+- Main navigation remains Home / Work / Results / Settings.
+
 ## v3.11 Production Data Foundation
 - Started from the tested V3.10 branch and preserves the live Facebook/Instagram publishing architecture plus the waiting Google Business connection.
 - Added a real multi-user BUSY account path instead of a single hard-coded owner email. Existing owner sessions remain compatible, while the sign-in UI can now use any authorised account email.
