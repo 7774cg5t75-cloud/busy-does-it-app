@@ -1614,6 +1614,10 @@ function App() {
   const [cloudRevision, setCloudRevision] = useState(0);
   const [cloudAttempted, setCloudAttempted] = useState(false);
   const [cloudConflict, setCloudConflict] = useState(null);
+  const [accountClosurePhrase, setAccountClosurePhrase] = useState("");
+  const [accountClosureEmail, setAccountClosureEmail] = useState("");
+  const [accountClosureBusy, setAccountClosureBusy] = useState(false);
+  const [accountClosureError, setAccountClosureError] = useState("");
   const [businessBrainRules, setBusinessBrainRules] = useState([]);
   const [businessBrainRuleDraft, setBusinessBrainRuleDraft] = useState("");
   const [businessBrainFeedback, setBusinessBrainFeedback] = useState([]);
@@ -3434,6 +3438,84 @@ function App() {
       throw error;
     }
     return data;
+  };
+
+  const completeAccountClosure = async () => {
+    const signedInEmail = normalizeEmail(ownerSession?.email || ownerEmail);
+    if (accountClosurePhrase.trim() !== "DELETE") {
+      setAccountClosureError('Type DELETE exactly to continue.');
+      return false;
+    }
+    if (normalizeEmail(accountClosureEmail) !== signedInEmail) {
+      setAccountClosureError("Enter the signed-in account email exactly.");
+      return false;
+    }
+
+    setAccountClosureBusy(true);
+    setAccountClosureError("");
+    try {
+      await socialPublishRequest("delete_account", {
+        confirmation: "DELETE",
+        confirmationEmail: signedInEmail,
+      });
+
+      await resetPrototype({ preserveUserCache: false });
+      await persistOwnerSession(null);
+      setCloudWorkspace(null);
+      setCloudInitialised(false);
+      setCloudAttempted(false);
+      setCloudConflict(null);
+      setCloudSyncStatus("Local only");
+      setCloudLastSyncedAt("");
+      setCloudSyncError("");
+      setCloudRevision(0);
+      setConnectedAccounts(connectionSeed);
+      setSocialPublishingStatus((current) => ({
+        ...current,
+        loaded: false,
+        owner: { authenticated: false, email: "", businessId: "", role: "" },
+        queue: [],
+      }));
+      setAccountClosurePhrase("");
+      setAccountClosureEmail("");
+      setOwnerPassword("");
+      setOwnerAuthError("");
+      setOwnerEmail(signedInEmail || DEFAULT_OWNER_EMAIL);
+      setOwnerAuthNotice(
+        "Your BUSY account and business workspace have been removed. You can create a new account at any time."
+      );
+      return true;
+    } catch (error) {
+      setAccountClosureError(error?.message || "BUSY could not complete account removal.");
+      return false;
+    } finally {
+      setAccountClosureBusy(false);
+    }
+  };
+
+  const confirmAccountClosure = () => {
+    const signedInEmail = normalizeEmail(ownerSession?.email || ownerEmail);
+    if (accountClosurePhrase.trim() !== "DELETE") {
+      setAccountClosureError('Type DELETE exactly to continue.');
+      return;
+    }
+    if (normalizeEmail(accountClosureEmail) !== signedInEmail) {
+      setAccountClosureError("Enter the signed-in account email exactly.");
+      return;
+    }
+    setAccountClosureError("");
+    Alert.alert(
+      "Remove this BUSY account permanently?",
+      "This removes the account and its BUSY business data. This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Remove permanently",
+          style: "destructive",
+          onPress: completeAccountClosure,
+        },
+      ]
+    );
   };
 
   const refreshSocialPublishingStatus = async ({ quiet = false } = {}) => {
@@ -7972,6 +8054,13 @@ function App() {
     cloudRevision,
     cloudAttempted,
     cloudConflict,
+    accountClosurePhrase,
+    setAccountClosurePhrase,
+    accountClosureEmail,
+    setAccountClosureEmail,
+    accountClosureBusy,
+    accountClosureError,
+    confirmAccountClosure,
     syncCloudNow,
     restoreLatestCloudCopy,
     confirmRestoreLatestCloudCopy,
