@@ -2,6 +2,22 @@
 
 Busy Does It mobile app prototype.
 
+## v3.13 Business-Separated Social Tenancy
+- Built from V3.12 after the account, local-cache and cloud-recovery foundation was tested.
+- Added a real business_id tenant boundary to social provider connections, OAuth states, publishing records and publishing settings in Supabase.
+- Migrated the existing BUSY prototype Meta connection, publishing history and live-publishing settings onto the authenticated owner's business without deleting or reconnecting the working Facebook/Instagram setup.
+- The social publishing Edge Function now resolves the signed-in user's business membership server-side; the app never chooses or supplies another business ID as an authority.
+- Facebook, Instagram and future Google OAuth state now carries the initiating business so provider callbacks return to the correct tenant.
+- Provider connection lookup, draft lookup, scheduling, retry, cancellation, queue/history and live-publishing settings are now scoped by business_id rather than one shared "prototype" workspace.
+- Scheduled publishing now scans due records across businesses, then checks each record's own business settings and provider connections before publishing.
+- New uploaded social media is stored under a business-specific storage path; historic prototype media remains readable through its saved storage path.
+- Added a Meta app-scoped user identity field for future deauthorization/data-deletion routing without touching another business's connection.
+- The mobile app now validates the publishing server's returned business ID against the cloud workspace and blocks a mismatch rather than displaying cross-business data.
+- Connected Accounts now shows publishing-tenancy health so the owner can see when the social backend matches the signed-in business.
+- Existing live Facebook/Instagram publishing remains enabled for the migrated owner. Google Business remains waiting for external API eligibility/approval rather than being faked.
+- With provider data now inside the same tenant boundary, a genuine self-service account deletion flow can be built next without knowingly leaving the old shared social workspace behind.
+- Main navigation remains Home / Work / Results / Settings.
+
 ## v3.12 Account Safety & Recovery
 - Built directly from the tested V3.11 production-data foundation.
 - Added a real account gate: unsigned users no longer drop straight into whichever business data happened to be visible on the device.
