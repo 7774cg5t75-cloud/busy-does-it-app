@@ -2,6 +2,22 @@
 
 Busy Does It mobile app prototype.
 
+## v3.15 Production Security & Reliability
+- Built from the tested V3.14 account-control foundation.
+- Added request timeouts and clearer network-failure handling to Supabase Auth, cloud-data and social-publishing calls instead of allowing requests to hang indefinitely.
+- Session refresh no longer signs a user out simply because the phone is temporarily offline; BUSY only clears the saved session when the refresh token is genuinely rejected or expired.
+- Live publishing and retry requests deliberately do not auto-repeat after an uncertain network result, preventing a timeout from accidentally causing duplicate public posts.
+- Added a request ID to sensitive social/backend calls for safer troubleshooting without logging customer content or provider tokens.
+- Added server-side rate limits for OAuth starts, live-publishing switches, scheduling, publish-now, retry, provider disconnect and account removal.
+- Added a server-only security-event table used for short-retention abuse protection and diagnostics. It does not store passwords, provider tokens, captions, customer messages or other business content.
+- Revoked direct anon/authenticated table privileges from the server-only social connection, OAuth-state and publishing tables; the Edge Function service role remains the only backend path.
+- Added explicit client-deny RLS policies to the old workspace owner/settings tables so their server-only intent is visible to the database security linter.
+- Confirmed the BUSY social-media storage bucket is private.
+- Strengthened new-account password validation in the app to require at least 10 characters containing both a letter and a number.
+- Added production-safety visibility to Account & recovery and Connected Accounts.
+- Supabase's leaked-password screening remains a project-level dashboard setting to enable before App Store release; it is not exposed by the connected management tool.
+- Main navigation remains Home / Work / Results / Settings.
+
 ## v3.14 Account Deletion & Data Control
 - Built from the tested V3.13 business-separated tenancy foundation.
 - Added a genuine in-app owner account-removal flow with export-first guidance, typed DELETE confirmation, exact signed-in-email confirmation and a final destructive confirmation dialog.
