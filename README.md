@@ -4,6 +4,20 @@ Busy Does It mobile app prototype.
 
 ## v3.16 Business Brain Intelligence 2.0
 - Built from the tested V3.15 production-security foundation.
+- Home now ranks a visible Top 3 Next Best Actions rather than showing only one recommendation and hiding the rest behind another tap.
+- Each ranked action can show its priority, a cautious business-value label and decision confidence alongside the existing Why is this? evidence.
+- Live customer obligations still outrank marketing ideas; the engine continues to protect bookings, enquiries, promised follow-ups and open quotes before creating new demand.
+- Optional recommendations now teach BUSY in both directions: choosing an action adds a small bounded positive signal, while dismissing it keeps the existing business-specific negative feedback path.
+- Owner-choice learning is service-aware where possible and remains bounded so a few taps cannot overpower real operational evidence or recorded outcomes.
+- Business Brain now exposes chosen vs dismissed recommendation history and shows how those choices are affecting ranking.
+- Added a completed-job bundle: one finished job can prepare a review request, a finished-job social post and repeat-service timing from the same saved record.
+- The completed-job bundle only prepares safe internal drafts/timing. Customer contact and public publishing still require explicit owner approval.
+- Duplicate completed-job recommendations are suppressed when the 3-step bundle already covers the same review/social opportunity.
+- Existing Facebook/Instagram live publishing remains unchanged and Google Business stays in the waiting/approval state.
+- Main navigation remains Home / Work / Results / Settings.
+
+## v3.16 Business Brain Intelligence 2.0
+- Built from the tested V3.15 production-security foundation.
 - Reworked Home into a clearer Next Best Actions layer that ranks the top three things worth attention instead of showing one recommendation plus an unstructured pile underneath.
 - Ranking continues to protect live customer obligations first, then considers likely business value, zero/low-cost leverage, recorded business outcomes, evidence freshness, owner choices and owner-set hard rules.
 - Each ranked action now shows its priority, a conservative business-value label and a decision-confidence label alongside the existing Why is this? evidence.
