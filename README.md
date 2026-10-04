@@ -2,6 +2,21 @@
 
 Busy Does It mobile app prototype.
 
+## v3.17 Proactive BUSY
+- Built directly from the tested V3.16 Business Brain Intelligence 2.0 branch.
+- Added a separate proactive signal engine so BUSY can surface useful combinations in the saved business records instead of waiting for the owner to inspect every area manually.
+- New proactive patterns include clusters of BUSY Inbox items needing review, multiple quiet quotes, a light seven-day diary with a usable previous-customer pool, repeat-service windows approaching together, completed jobs with reusable follow-on value, and missing outcome data that would improve the Business Brain.
+- The proactive layer is deliberately separate from Next Best Actions. Live customer obligations and ranked work still keep their existing authority; “BUSY noticed” is a nudge layer, not a second competing task list.
+- Home now surfaces the strongest non-duplicate proactive pattern with its reasoning and evidence, plus a route into the full BUSY noticed watchlist.
+- Work now includes the current proactive watch alongside the weekly plan so capacity, pipeline and timing patterns are visible where the owner naturally plans the week.
+- Added a dedicated BUSY noticed watchlist showing active patterns, evidence, safe next actions and temporary hidden state.
+- Owners can choose Not now to hide a current pattern for 24 hours or Seen to hide the current occurrence for seven days. A changing underlying signal receives a new occurrence ID and can surface again legitimately.
+- Proactive hidden/seen state is stored per business in the same local/cloud persistence layer as the rest of BUSY rather than becoming a device-only preference.
+- Business Brain now shows how many proactive patterns are active or temporarily hidden and links directly to the watchlist.
+- Completed-job, quote, repeat-work and capacity nudges still prepare or open review flows only. V3.17 does not auto-message customers, auto-publish posts or spend money.
+- Existing Facebook/Instagram publishing, V3.15 production safety, V3.16 ranked learning and the waiting Google Business integration remain unchanged.
+- Main navigation remains Home / Work / Results / Settings.
+
 ## v3.16 Business Brain Intelligence 2.0
 - Built from the tested V3.15 production-security baseline.
 - Home now shows a ranked Top 3 Next Best Actions rather than one best move plus an unstructured list.
