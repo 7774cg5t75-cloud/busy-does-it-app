@@ -3314,7 +3314,14 @@ function App() {
   };
 
   useEffect(() => {
-    if (!hydrated || !ownerAuthReady || !ownerSession?.accessToken || cloudInitialised || cloudInitialising) return;
+    if (
+      !hydrated ||
+      !ownerAuthReady ||
+      !ownerSession?.accessToken ||
+      cloudInitialised ||
+      cloudInitialising ||
+      cloudAttempted
+    ) return;
     initialiseBusinessCloud();
   }, [
     hydrated,
@@ -3322,6 +3329,7 @@ function App() {
     ownerSession?.accessToken,
     cloudInitialised,
     cloudInitialising,
+    cloudAttempted,
   ]);
 
   useEffect(() => {
@@ -3396,7 +3404,7 @@ function App() {
       ...current,
       loaded: false,
     }));
-    await resetPrototype();
+    await resetPrototype({ preserveUserCache: true });
   };
 
   const socialPublishRequest = async (action, payload = {}) => {
@@ -6633,10 +6641,10 @@ function App() {
     back();
   };
 
-  const resetPrototype = async () => {
+  const resetPrototype = async ({ preserveUserCache = false } = {}) => {
     await AsyncStorage.removeItem(LEGACY_STORAGE_KEY).catch(() => {});
     const currentUserCache = storageKeyForUser(ownerSession?.userId || "");
-    if (currentUserCache) {
+    if (currentUserCache && !preserveUserCache) {
       await AsyncStorage.removeItem(currentUserCache).catch(() => {});
     }
     await AsyncStorage.removeItem("@busy-does-it-weekly-brief-v39").catch(() => {});
@@ -17281,20 +17289,6 @@ function Settings({ s }) {
       <Button label="How BUSY DOES IT works" onPress={() => s.go("howBusyWorks")} />
       <Button label="What makes it different" onPress={() => s.go("whatMakesDifferent")} />
       <Button label="Advanced details" onPress={() => s.go("advanced")} />
-      <Button
-        label="Reset this device's demo data"
-        danger
-        onPress={() =>
-          Alert.alert(
-            "Reset this device's demo data?",
-            "This clears the current local demo state. If cloud sync is active, restore from cloud afterwards rather than using this as an account-deletion control.",
-            [
-              { text: "Cancel", style: "cancel" },
-              { text: "Reset device data", style: "destructive", onPress: s.resetPrototype },
-            ]
-          )
-        }
-      />
     </Shell>
   );
 }
