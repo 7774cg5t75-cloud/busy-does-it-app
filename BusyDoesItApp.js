@@ -22,8 +22,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 
-const APP_VERSION = "3.16";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Business Brain Intelligence 2.0`;
+const APP_VERSION = "3.17";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Proactive BUSY`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
@@ -1668,6 +1668,7 @@ function App() {
   const [businessBrainRules, setBusinessBrainRules] = useState([]);
   const [businessBrainRuleDraft, setBusinessBrainRuleDraft] = useState("");
   const [businessBrainFeedback, setBusinessBrainFeedback] = useState([]);
+  const [proactiveNoticeState, setProactiveNoticeState] = useState({});
   const [pendingBrainFeedback, setPendingBrainFeedback] = useState(null);
   const [brainFeedbackReason, setBrainFeedbackReason] = useState("");
   const [quoteFollowUpDraft, setQuoteFollowUpDraft] = useState("");
@@ -1819,6 +1820,9 @@ function App() {
         }
         if (Array.isArray(saved.businessBrainRules)) setBusinessBrainRules(saved.businessBrainRules);
         if (Array.isArray(saved.businessBrainFeedback)) setBusinessBrainFeedback(saved.businessBrainFeedback);
+        if (saved.proactiveNoticeState && typeof saved.proactiveNoticeState === "object") {
+          setProactiveNoticeState(saved.proactiveNoticeState);
+        }
         if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
           setRecordFilingMode(saved.recordFilingMode);
         }
@@ -1871,6 +1875,7 @@ function App() {
       socialPreferredChannels,
       businessBrainRules,
       businessBrainFeedback,
+      proactiveNoticeState,
       recordFilingMode,
       advanced,
     };
@@ -1912,6 +1917,7 @@ function App() {
     socialPreferredChannels,
     businessBrainRules,
     businessBrainFeedback,
+    proactiveNoticeState,
     recordFilingMode,
     advanced,
   ]);
@@ -3028,6 +3034,7 @@ function App() {
     socialPreferredChannels,
     businessBrainRules,
     businessBrainFeedback,
+    proactiveNoticeState,
     recordFilingMode,
     advanced,
   });
@@ -3099,6 +3106,9 @@ function App() {
     }
     if (Array.isArray(saved.businessBrainRules)) setBusinessBrainRules(saved.businessBrainRules);
     if (Array.isArray(saved.businessBrainFeedback)) setBusinessBrainFeedback(saved.businessBrainFeedback);
+    if (saved.proactiveNoticeState && typeof saved.proactiveNoticeState === "object") {
+      setProactiveNoticeState(saved.proactiveNoticeState);
+    }
     if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
       setRecordFilingMode(saved.recordFilingMode);
     }
@@ -3561,6 +3571,7 @@ function App() {
     socialPreferredChannels,
     businessBrainRules,
     businessBrainFeedback,
+    proactiveNoticeState,
     recordFilingMode,
     advanced,
   ]);
