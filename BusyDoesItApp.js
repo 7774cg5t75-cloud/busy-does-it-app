@@ -22,8 +22,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 
-const APP_VERSION = "3.15";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Production Security & Reliability`;
+const APP_VERSION = "3.16";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Business Brain Intelligence 2.0`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
@@ -498,6 +498,11 @@ function businessBrainFeedbackPenalty(reason) {
   if (reason === "Too far away") return -5;
   if (reason === "Not worthwhile financially") return -6;
   return 0;
+}
+
+function businessBrainFeedbackEffect(item) {
+  if (item?.signal === "accepted") return Math.max(1, Number(item.boost || 2));
+  return Number(item?.penalty || 0);
 }
 
 function manualRuleTargetFamilies(rule) {
@@ -2166,6 +2171,35 @@ function App() {
     go("opportunityFeedback");
   };
 
+  const recordOpportunityAccepted = (opportunity) => {
+    if (!opportunity?.id || opportunity.canIgnore === false) return;
+    const family = opportunity.brainFamily || businessBrainOpportunityFamily(opportunity.id);
+    const service = opportunity.brainService || "";
+    const recentDuplicate = businessBrainFeedback.some(
+      (item) =>
+        item.signal === "accepted" &&
+        item.opportunityId === opportunity.id &&
+        daysSinceTimestamp(item.recordedAt) !== null &&
+        daysSinceTimestamp(item.recordedAt) <= 1
+    );
+    if (recentDuplicate) return;
+    setBusinessBrainFeedback((items) => [
+      ...items,
+      {
+        id: `brain-feedback-accepted-${Date.now()}`,
+        opportunityId: opportunity.id,
+        family,
+        title: opportunity.title || "",
+        service,
+        reason: "Owner chose this recommendation",
+        signal: "accepted",
+        boost: 2,
+        penalty: 0,
+        recordedAt: new Date().toISOString(),
+      },
+    ]);
+  };
+
   const saveOpportunityFeedback = () => {
     if (!pendingBrainFeedback?.id || !brainFeedbackReason) return;
     const recordedAt = new Date().toISOString();
@@ -2177,6 +2211,7 @@ function App() {
       title: pendingBrainFeedback.title || "",
       service: pendingBrainFeedback.service || "",
       reason: brainFeedbackReason,
+      signal: "dismissed",
       penalty: businessBrainFeedbackPenalty(brainFeedbackReason),
       recordedAt,
     };
@@ -7518,11 +7553,21 @@ function App() {
   const businessBrainFeedbackSummary = businessBrainFeedback.reduce((summary, item) => {
     const family = item.family || "general";
     if (!summary[family]) {
-      summary[family] = { count: 0, penalty: 0, reasons: {} };
+      summary[family] = {
+        count: 0,
+        accepted: 0,
+        dismissed: 0,
+        rankingEffect: 0,
+        reasons: {},
+      };
     }
     summary[family].count += 1;
-    summary[family].penalty += Number(item.penalty || 0);
-    summary[family].penalty = Math.max(-18, summary[family].penalty);
+    if (item.signal === "accepted") summary[family].accepted += 1;
+    else summary[family].dismissed += 1;
+    summary[family].rankingEffect = Math.max(
+      -18,
+      Math.min(12, summary[family].rankingEffect + businessBrainFeedbackEffect(item))
+    );
     summary[family].reasons[item.reason] = (summary[family].reasons[item.reason] || 0) + 1;
     return summary;
   }, {});
@@ -7544,15 +7589,17 @@ function App() {
     const feedback = relevantFeedback.reduce(
       (summary, item) => {
         summary.count += 1;
-        summary.penalty = Math.max(
+        if (item.signal === "accepted") summary.accepted += 1;
+        else summary.dismissed += 1;
+        summary.rankingEffect = Math.max(
           -18,
-          summary.penalty + Number(item.penalty || 0)
+          Math.min(12, summary.rankingEffect + businessBrainFeedbackEffect(item))
         );
         summary.reasons[item.reason] =
           (summary.reasons[item.reason] || 0) + 1;
         return summary;
       },
-      { count: 0, penalty: 0, reasons: {} }
+      { count: 0, accepted: 0, dismissed: 0, rankingEffect: 0, reasons: {} }
     );
     const blocked = businessBrainRules.some((rule) => {
       const families = manualRuleTargetFamilies(rule);
@@ -7565,8 +7612,14 @@ function App() {
       businessBrainPatterns.find((item) => item.family === family) || null;
     const feedbackEvidence = feedback.count
       ? [
-          ["Owner feedback", `${feedback.count} previous dismissal${feedback.count === 1 ? "" : "s"}`],
-          ["Feedback ranking effect", `${feedback.penalty} points`],
+          [
+            "Owner choices",
+            `${feedback.accepted} accepted • ${feedback.dismissed} dismissed`,
+          ],
+          [
+            "Choice ranking effect",
+            `${feedback.rankingEffect > 0 ? "+" : ""}${feedback.rankingEffect} points`,
+          ],
         ]
       : [];
     const brainEvidence = pattern
@@ -7578,11 +7631,13 @@ function App() {
 
     return {
       ...opportunity,
-      score: Number(opportunity.score || 0) + Number(feedback.penalty || 0),
+      score: Number(opportunity.score || 0) + Number(feedback.rankingEffect || 0),
       brainFamily: family,
       brainBlocked: blocked,
       brainFeedbackCount: feedback.count,
-      brainFeedbackPenalty: feedback.penalty,
+      brainFeedbackAccepted: feedback.accepted,
+      brainFeedbackDismissed: feedback.dismissed,
+      brainFeedbackEffect: feedback.rankingEffect,
       evidence: [
         ...(Array.isArray(opportunity.evidence) ? opportunity.evidence : []),
         ...brainEvidence,
@@ -7592,7 +7647,7 @@ function App() {
       why:
         opportunity.why +
         (feedback.count
-          ? ` BUSY has also reduced this type of suggestion because you previously dismissed ${businessBrainFamilyLabel(family).toLowerCase()} for business-specific reasons.`
+          ? ` BUSY has also adjusted this ranking from your previous choices: ${feedback.accepted} accepted and ${feedback.dismissed} dismissed in this recommendation family.`
           : "") +
         (blocked
           ? " An owner-set hard rule currently blocks this recommendation family."
