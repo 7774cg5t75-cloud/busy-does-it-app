@@ -278,6 +278,10 @@ function App() {
   const [busyCommandResult, setBusyCommandResult] = useState(null);
   const [busyCommandError, setBusyCommandError] = useState("");
   const [busyVoiceStartNonce, setBusyVoiceStartNonce] = useState(0);
+  const [busyConversationTurns, setBusyConversationTurns] = useState([]);
+  const [busyOperatorSnapshot, setBusyOperatorSnapshot] = useState(null);
+  const [busyActionAudit, setBusyActionAudit] = useState([]);
+  const [busyUndoAction, setBusyUndoAction] = useState(null);
   const [pendingBrainFeedback, setPendingBrainFeedback] = useState(null);
   const [brainFeedbackReason, setBrainFeedbackReason] = useState("");
   const [quoteFollowUpDraft, setQuoteFollowUpDraft] = useState("");
@@ -435,6 +439,15 @@ function App() {
         if (Array.isArray(saved.busyCommandHistory)) {
           setBusyCommandHistory(saved.busyCommandHistory.slice(0, 20));
         }
+        if (Array.isArray(saved.busyConversationTurns)) {
+          setBusyConversationTurns(saved.busyConversationTurns.slice(-18));
+        }
+        if (saved.busyOperatorSnapshot && typeof saved.busyOperatorSnapshot === "object") {
+          setBusyOperatorSnapshot(saved.busyOperatorSnapshot);
+        }
+        if (Array.isArray(saved.busyActionAudit)) {
+          setBusyActionAudit(saved.busyActionAudit.slice(0, 30));
+        }
         if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
           setRecordFilingMode(saved.recordFilingMode);
         }
@@ -532,6 +545,9 @@ function App() {
     businessBrainFeedback,
     proactiveNoticeState,
     busyCommandHistory,
+    busyConversationTurns,
+    busyOperatorSnapshot,
+    busyActionAudit,
     recordFilingMode,
     advanced,
   ]);
@@ -1726,6 +1742,15 @@ function App() {
     if (Array.isArray(saved.busyCommandHistory)) {
       setBusyCommandHistory(saved.busyCommandHistory.slice(0, 20));
     }
+    if (Array.isArray(saved.busyConversationTurns)) {
+      setBusyConversationTurns(saved.busyConversationTurns.slice(-18));
+    }
+    if (saved.busyOperatorSnapshot && typeof saved.busyOperatorSnapshot === "object") {
+      setBusyOperatorSnapshot(saved.busyOperatorSnapshot);
+    }
+    if (Array.isArray(saved.busyActionAudit)) {
+      setBusyActionAudit(saved.busyActionAudit.slice(0, 30));
+    }
     if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
       setRecordFilingMode(saved.recordFilingMode);
     }
@@ -2190,6 +2215,9 @@ function App() {
     businessBrainFeedback,
     proactiveNoticeState,
     busyCommandHistory,
+    busyConversationTurns,
+    busyOperatorSnapshot,
+    busyActionAudit,
     recordFilingMode,
     advanced,
   ]);
@@ -5644,6 +5672,10 @@ function App() {
     setBusyCommandResult(null);
     setBusyCommandError("");
     setBusyVoiceStartNonce(0);
+    setBusyConversationTurns([]);
+    setBusyOperatorSnapshot(null);
+    setBusyActionAudit([]);
+    setBusyUndoAction(null);
     setPendingBrainFeedback(null);
     setBrainFeedbackReason("");
     setQuoteFollowUpDraft("");
@@ -7062,8 +7094,62 @@ function App() {
       .filter((item) => item?.kind === "job")
       .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")))[0] || null;
 
+  const buildBusyOperatorSnapshot = () => ({
+    capturedAt: new Date().toISOString(),
+    inboxWaiting: inboxPendingItems.length,
+    dueQuoteFollowUps: dueQuoteEntries.length,
+    quietEnquiries: staleEnquiryEntries.length,
+    pendingCustomerActions: pendingReplyActionCount,
+    bookedWorkValue: Number(bookedWorkValue) || 0,
+    completedJobValue: Number(completedJobValue) || 0,
+    repeatCustomersDue: eligibleCustomers.length,
+    backgroundReady: backgroundReadyCount,
+    bookedJobs: Object.values(replyActions || {}).filter(
+      (action) =>
+        action?.type === "booking" &&
+        action?.done &&
+        ["Confirmed"].includes(action.details?.bookingStatus || "Confirmed")
+    ).length,
+    completedBookings: completedBookingCount,
+  });
+
+  const buildBusyChangeRows = (previous, current) => {
+    if (!previous || !current) return [];
+    const labels = {
+      inboxWaiting: "BUSY Inbox waiting",
+      dueQuoteFollowUps: "Quote follow-ups due",
+      quietEnquiries: "Quiet enquiries",
+      pendingCustomerActions: "Open customer actions",
+      bookedWorkValue: "Booked work value",
+      completedJobValue: "Completed job value",
+      repeatCustomersDue: "Repeat customers due",
+      backgroundReady: "Background steps ready",
+      bookedJobs: "Confirmed bookings",
+      completedBookings: "Completed bookings",
+    };
+    return Object.keys(labels)
+      .map((key) => {
+        const before = Number(previous?.[key] || 0);
+        const after = Number(current?.[key] || 0);
+        const delta = after - before;
+        if (!delta) return null;
+        const money = key.toLowerCase().includes("value");
+        return {
+          key,
+          label: labels[key],
+          before: money ? `£${before}` : String(before),
+          after: money ? `£${after}` : String(after),
+          delta: money
+            ? `${delta > 0 ? "+" : "-"}£${Math.abs(delta)}`
+            : `${delta > 0 ? "+" : ""}${delta}`,
+        };
+      })
+      .filter(Boolean);
+  };
+
   const buildBusyCommandContext = () => {
     const today = dateToISO(new Date());
+    const currentSnapshot = buildBusyOperatorSnapshot();
     const bookingRows = Object.entries(replyActions || {})
       .map(([customerId, action]) => {
         if (
@@ -7111,6 +7197,12 @@ function App() {
         repeatCustomersDue: eligibleCustomers.length,
         backgroundReady: backgroundReadyCount,
       },
+      currentSnapshot,
+      previousSnapshot: busyOperatorSnapshot,
+      changesSinceLastConversation: buildBusyChangeRows(
+        busyOperatorSnapshot,
+        currentSnapshot
+      ),
       activeWorkGoal: activeWorkGoal
         ? {
             label: activeWorkGoal.label || "",
@@ -7169,6 +7261,32 @@ function App() {
     ].slice(0, 20));
   };
 
+  const addBusyConversationTurn = (role, content, structured = null) => {
+    const next = {
+      id: `busy-turn-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      role,
+      content: String(content || "").trim().slice(0, 1800),
+      structured: structured && typeof structured === "object"
+        ? {
+            intent: structured.intent || "",
+            mode: structured.mode || "",
+            customerName: structured.customerName || "",
+            service: structured.service || "",
+            date: structured.date || "",
+            time: structured.time || "",
+            value: Number(structured.value) || 0,
+            draftText: String(structured.draftText || "").slice(0, 2200),
+            draftTarget: structured.draftTarget || "",
+            needsClarification: !!structured.needsClarification,
+            clarificationQuestion: structured.clarificationQuestion || "",
+          }
+        : null,
+      createdAt: new Date().toISOString(),
+    };
+    setBusyConversationTurns((current) => [...current, next].slice(-18));
+    return next;
+  };
+
   const submitBusyCommand = async ({ text = "", audioUri = "" } = {}) => {
     const cleanText = String(text || "").trim();
     if (!cleanText && !audioUri) {
@@ -7180,13 +7298,21 @@ function App() {
     setBusyCommandResult(null);
     try {
       const token = await ownerAccessToken();
-      if (!token) throw new Error("Sign in again before using Talk to BUSY.");
+      if (!token) throw new Error("Sign in again before using BUSY Operator.");
+
+      const context = buildBusyCommandContext();
+      const conversation = busyConversationTurns.slice(-12).map((turn) => ({
+        role: turn.role,
+        content: turn.content,
+        structured: turn.structured || null,
+      }));
 
       let response;
       if (audioUri) {
         const form = new FormData();
         form.append("appVersion", APP_VERSION);
-        form.append("context", JSON.stringify(buildBusyCommandContext()));
+        form.append("context", JSON.stringify(context));
+        form.append("conversation", JSON.stringify(conversation));
         form.append("audio", {
           uri: audioUri,
           name: `busy-command-${Date.now()}.m4a`,
@@ -7199,7 +7325,7 @@ function App() {
             headers: {
               apikey: BUSY_AI_TOKEN,
               Authorization: `Bearer ${token}`,
-              "x-busy-request-id": busyRequestId("command"),
+              "x-busy-request-id": busyRequestId("operator"),
             },
             body: form,
           },
@@ -7214,12 +7340,13 @@ function App() {
               apikey: BUSY_AI_TOKEN,
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
-              "x-busy-request-id": busyRequestId("command"),
+              "x-busy-request-id": busyRequestId("operator"),
             },
             body: JSON.stringify({
               appVersion: APP_VERSION,
               text: cleanText,
-              context: buildBusyCommandContext(),
+              context,
+              conversation,
             }),
           },
           30000
@@ -7228,20 +7355,34 @@ function App() {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(payload?.error || `Talk to BUSY returned ${response.status}.`);
+        throw new Error(payload?.error || `BUSY Operator returned ${response.status}.`);
       }
+
       const command = payload?.command || {};
       const result = {
         ...command,
         transcript: String(payload?.transcript || cleanText || "").trim(),
       };
+
+      addBusyConversationTurn("user", result.transcript);
+      addBusyConversationTurn(
+        "assistant",
+        result.needsClarification
+          ? result.clarificationQuestion || result.response
+          : result.response,
+        result
+      );
+
       setBusyCommandResult(result);
       addBusyCommandHistory({
         transcript: result.transcript,
-        response: result.response,
+        response: result.needsClarification
+          ? result.clarificationQuestion || result.response
+          : result.response,
         intent: result.intent,
         confidence: result.confidence,
       });
+      setBusyOperatorSnapshot(context.currentSnapshot);
       setBusyCommandStatus("ready");
       return result;
     } catch (error) {
@@ -7254,10 +7395,23 @@ function App() {
 
   const busyCommandHasAction = (command = busyCommandResult) =>
     !!command &&
-    !["business_summary", "unknown"].includes(command.intent || "unknown");
+    !command.needsClarification &&
+    !["business_summary", "business_changes", "unknown"].includes(command.intent || "unknown");
+
+  const rememberBusyAudit = ({ type, label, customerId = "", rollback = null }) => {
+    const row = {
+      id: `busy-audit-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      type,
+      label,
+      customerId,
+      createdAt: new Date().toISOString(),
+    };
+    setBusyActionAudit((current) => [row, ...current].slice(0, 30));
+    setBusyUndoAction(rollback ? { ...row, rollback } : null);
+  };
 
   const executeBusyCommand = (command = busyCommandResult) => {
-    if (!command) return false;
+    if (!command || command.needsClarification) return false;
     const customer = findBusyCommandCustomer(command.customerName || "");
     const commandValue = Number(command.value) || 0;
 
@@ -7290,16 +7444,28 @@ function App() {
         }
         openCustomer(customer.id);
         return true;
-      case "create_booking":
+      case "create_booking": {
         if (!customer) {
           setBusyCommandError("BUSY needs one unambiguous saved customer before it can prepare that booking.");
           return false;
         }
+        const previousCustomer = customers.find((item) => item.id === customer.id) || null;
+        const previousAction = replyActions?.[customer.id] || null;
         startDirectCustomerAction(customer.id, "booking");
         if (command.date) setActionBookingDate(command.date);
         if (command.time) setActionBookingTime(command.time);
         if (commandValue > 0) setActionJobValue(String(commandValue));
+        rememberBusyAudit({
+          type: "booking-prepared",
+          label: `Prepared booking for ${customer.name}`,
+          customerId: customer.id,
+          rollback: {
+            customer: previousCustomer,
+            action: previousAction,
+          },
+        });
         return true;
+      }
       case "complete_job": {
         if (!customer) {
           setBusyCommandError("BUSY needs one unambiguous saved customer before it can complete that job.");
@@ -7314,7 +7480,22 @@ function App() {
           setBusyCommandError("BUSY could not find an open confirmed booking for that customer.");
           return false;
         }
-        markBookingCompleted(customer.id, commandValue || action.details?.jobValue || "", command.note || "");
+        const previousCustomer = customers.find((item) => item.id === customer.id) || null;
+        const previousAction = action ? JSON.parse(JSON.stringify(action)) : null;
+        markBookingCompleted(
+          customer.id,
+          commandValue || action.details?.jobValue || "",
+          command.note || ""
+        );
+        rememberBusyAudit({
+          type: "job-completed",
+          label: `Marked ${customer.name}'s job complete`,
+          customerId: customer.id,
+          rollback: {
+            customer: previousCustomer,
+            action: previousAction,
+          },
+        });
         setSelectedCustomerId(customer.id);
         go("customerDetail");
         return true;
@@ -7324,20 +7505,36 @@ function App() {
           const job = latestBusyCompletedJob(customer);
           if (job) {
             startSocialFromJob(customer.id, job.id);
-            if (command.note) setSocialBrief(command.note);
+            setSocialBrief(command.draftText || command.note || "");
             return true;
           }
         }
         startSocialFromPhone();
-        setSocialBrief(command.note || command.transcript || "");
+        setSocialBrief(command.draftText || command.note || command.transcript || "");
         return true;
       }
       case "reactivation_draft":
-        startCampaign(0, Math.max(1, Math.min(20, Number(command.value) || 3)));
+      case "draft_refinement":
+        if (command.draftTarget === "social") {
+          if (customer) {
+            const job = latestBusyCompletedJob(customer);
+            if (job) startSocialFromJob(customer.id, job.id);
+            else startSocialFromPhone();
+          } else {
+            startSocialFromPhone();
+          }
+          setSocialBrief(command.draftText || command.note || "");
+          return true;
+        }
+        if (command.draftText) {
+          setBringBackMessage(command.draftText);
+          setMessage(command.draftText);
+        }
+        go("bringBack");
         return true;
       case "quick_capture":
         updateCaptureRawText(command.transcript || command.note || "");
-        setCaptureSource("BUSY command");
+        setCaptureSource("BUSY Operator");
         go("quickCapture");
         return true;
       case "open_inbox":
@@ -7354,10 +7551,54 @@ function App() {
     }
   };
 
+  const executeBusyPlanStep = (step) => {
+    if (!step) return false;
+    return executeBusyCommand({
+      ...step,
+      transcript: busyCommandResult?.transcript || "",
+      confidence: busyCommandResult?.confidence || "Medium",
+    });
+  };
+
+  const undoLastBusyAction = () => {
+    const undo = busyUndoAction;
+    if (!undo?.rollback || !undo.customerId) return false;
+    const { customer, action } = undo.rollback;
+    if (customer) {
+      setCustomers((current) =>
+        current.map((item) => item.id === undo.customerId ? customer : item)
+      );
+    }
+    setReplyActions((current) => {
+      const next = { ...current };
+      if (action) next[undo.customerId] = action;
+      else delete next[undo.customerId];
+      return next;
+    });
+    setBusyActionAudit((current) => [
+      {
+        id: `busy-audit-${Date.now()}-undo`,
+        type: "undo",
+        label: `Undid: ${undo.label}`,
+        customerId: undo.customerId,
+        createdAt: new Date().toISOString(),
+      },
+      ...current,
+    ].slice(0, 30));
+    setBusyUndoAction(null);
+    setBusyCommandResult(null);
+    return true;
+  };
+
   const clearBusyCommandResult = () => {
     setBusyCommandResult(null);
     setBusyCommandError("");
     setBusyCommandStatus("idle");
+  };
+
+  const startNewBusyConversation = () => {
+    setBusyConversationTurns([]);
+    clearBusyCommandResult();
   };
 
   const openTalkToBusy = (startVoice = false) => {
@@ -7551,6 +7792,10 @@ function App() {
     proactiveTopNotice,
     proactiveHiddenNoticeCount,
     busyCommandHistory,
+    busyConversationTurns,
+    busyOperatorSnapshot,
+    busyActionAudit,
+    busyUndoAction,
     busyCommandStatus,
     busyCommandResult,
     busyCommandError,
@@ -7558,7 +7803,10 @@ function App() {
     submitBusyCommand,
     busyCommandHasAction,
     executeBusyCommand,
+    executeBusyPlanStep,
+    undoLastBusyAction,
     clearBusyCommandResult,
+    startNewBusyConversation,
     openTalkToBusy,
     snoozeProactiveNotice,
     acknowledgeProactiveNotice,

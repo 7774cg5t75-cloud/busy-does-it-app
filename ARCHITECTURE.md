@@ -30,3 +30,9 @@ This branch restructures the large single-file prototype into domain modules wit
 3. New work should go into the relevant domain module instead of rebuilding a monolithic root file.
 4. Public messaging, posting and spend remain behind the same explicit owner approvals.
 5. The Snack publisher includes the whole `src/` module tree and syntax-checks every JS/JSX file before publishing.
+
+## V3.19 Operator layer
+- The controller persists bounded conversation turns, the last operating snapshot and a small internal audit history.
+- The busy-command Edge Function receives recent conversation context plus current saved-business context and returns a strict structured operator result.
+- Operator results can be an answer, clarification, safe action, editable draft or multi-step plan.
+- Record-changing actions keep explicit confirmation and a reversible pre-change snapshot where supported.

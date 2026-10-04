@@ -2,6 +2,19 @@
 
 Busy Does It mobile app prototype.
 
+## v3.19 BUSY Operator
+- Built directly on the tested V3.18 Talk to BUSY voice/text layer.
+- Talk to BUSY is now conversational rather than isolated-command based: the current subject, recent references and the last prepared draft are carried across turns.
+- BUSY asks one focused clarification question when a required customer, date or other material detail is missing instead of failing or guessing.
+- Added multi-step Operator Plans for goals such as filling a quiet day. Plans rank warm/live customer work first, then low-cost opportunity steps, while keeping each step individually controlled.
+- Added conversational draft refinement: owners can say “shorter”, “friendlier”, “less salesy” or add a detail and BUSY revises the most recent relevant draft.
+- Added a real “what changed since last BUSY conversation?” comparison using saved operating counts and values rather than invented narrative.
+- Added visible action previews for booking/job-completion record changes before confirmation.
+- Added a BUSY internal action audit trail and one-level undo for BUSY-triggered booking-preparation or job-completion record changes.
+- Conversation does not expand authority: customer sends, public publishing and advertising spend still require their existing explicit approval paths.
+- Recent conversation context, operator snapshot and audit history stay inside the normal per-business local/cloud snapshot.
+- Main navigation remains Home / Work / Results / Settings.
+
 ## v3.18 Talk to BUSY
 - Built on the modular V3.17.1 architecture and keeps the existing Proactive BUSY / Business Brain behaviour.
 - Added a prominent Home microphone entry and typed-command alternative so the owner can tell BUSY what they want in normal language.

@@ -15,6 +15,8 @@ const corsHeaders = {
 
 const intents = [
   "business_summary",
+  "business_changes",
+  "operator_plan",
   "open_today",
   "open_calendar",
   "open_quote_followups",
@@ -25,6 +27,7 @@ const intents = [
   "complete_job",
   "social_post",
   "reactivation_draft",
+  "draft_refinement",
   "quick_capture",
   "open_inbox",
   "open_results",
@@ -32,14 +35,68 @@ const intents = [
   "unknown",
 ];
 
+const stepIntentEnum = intents.filter((intent) =>
+  !["business_summary", "business_changes", "operator_plan", "draft_refinement", "unknown"].includes(intent)
+);
+
+const previewRowSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: ["label", "value"],
+  properties: {
+    label: { type: "string" },
+    value: { type: "string" },
+  },
+};
+
+const planStepSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "id",
+    "intent",
+    "label",
+    "reason",
+    "actionLabel",
+    "requiresConfirmation",
+    "customerName",
+    "service",
+    "date",
+    "time",
+    "value",
+    "note",
+    "draftText",
+    "draftTarget",
+  ],
+  properties: {
+    id: { type: "string" },
+    intent: { type: "string", enum: stepIntentEnum },
+    label: { type: "string" },
+    reason: { type: "string" },
+    actionLabel: { type: "string" },
+    requiresConfirmation: { type: "boolean" },
+    customerName: { type: "string" },
+    service: { type: "string" },
+    date: { type: "string" },
+    time: { type: "string" },
+    value: { type: "number", minimum: 0 },
+    note: { type: "string" },
+    draftText: { type: "string" },
+    draftTarget: { type: "string", enum: ["", "social", "reactivation", "follow_up"] },
+  },
+};
+
 const commandSchema = {
   type: "object",
   additionalProperties: false,
   required: [
     "intent",
+    "mode",
     "title",
     "response",
     "confidence",
+    "needsClarification",
+    "clarificationQuestion",
     "requiresConfirmation",
     "actionLabel",
     "customerName",
@@ -48,12 +105,19 @@ const commandSchema = {
     "time",
     "value",
     "note",
+    "draftText",
+    "draftTarget",
+    "previewRows",
+    "planSteps",
   ],
   properties: {
     intent: { type: "string", enum: intents },
+    mode: { type: "string", enum: ["answer", "action", "plan", "draft", "clarify"] },
     title: { type: "string" },
     response: { type: "string" },
     confidence: { type: "string", enum: ["High", "Medium", "Low"] },
+    needsClarification: { type: "boolean" },
+    clarificationQuestion: { type: "string" },
     requiresConfirmation: { type: "boolean" },
     actionLabel: { type: "string" },
     customerName: { type: "string" },
@@ -62,6 +126,10 @@ const commandSchema = {
     time: { type: "string" },
     value: { type: "number", minimum: 0 },
     note: { type: "string" },
+    draftText: { type: "string" },
+    draftTarget: { type: "string", enum: ["", "social", "reactivation", "follow_up"] },
+    previewRows: { type: "array", maxItems: 8, items: previewRowSchema },
+    planSteps: { type: "array", maxItems: 5, items: planStepSchema },
   },
 };
 
@@ -71,6 +139,32 @@ function json(status: number, body: unknown) {
 
 function cleanText(value: unknown, max = 8000) {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
+}
+
+function cleanConversation(value: any) {
+  return (Array.isArray(value) ? value : [])
+    .slice(-12)
+    .map((turn: any) => ({
+      role: turn?.role === "assistant" ? "assistant" : "user",
+      content: cleanText(turn?.content, 1800),
+      structured:
+        turn?.structured && typeof turn.structured === "object"
+          ? {
+              intent: cleanText(turn.structured.intent, 80),
+              mode: cleanText(turn.structured.mode, 40),
+              customerName: cleanText(turn.structured.customerName, 240),
+              service: cleanText(turn.structured.service, 240),
+              date: cleanText(turn.structured.date, 20),
+              time: cleanText(turn.structured.time, 20),
+              value: Math.max(0, Number(turn.structured.value) || 0),
+              draftText: cleanText(turn.structured.draftText, 2200),
+              draftTarget: cleanText(turn.structured.draftTarget, 40),
+              needsClarification: !!turn.structured.needsClarification,
+              clarificationQuestion: cleanText(turn.structured.clarificationQuestion, 500),
+            }
+          : null,
+    }))
+    .filter((turn: any) => turn.content);
 }
 
 function safeContext(value: any) {
@@ -83,6 +177,17 @@ function safeContext(value: any) {
     selectedService: cleanText(context.selectedService, 200),
     services: Array.isArray(context.services) ? context.services.slice(0, 30) : [],
     counts: context.counts && typeof context.counts === "object" ? context.counts : {},
+    currentSnapshot:
+      context.currentSnapshot && typeof context.currentSnapshot === "object"
+        ? context.currentSnapshot
+        : null,
+    previousSnapshot:
+      context.previousSnapshot && typeof context.previousSnapshot === "object"
+        ? context.previousSnapshot
+        : null,
+    changesSinceLastConversation: Array.isArray(context.changesSinceLastConversation)
+      ? context.changesSinceLastConversation.slice(0, 12)
+      : [],
     activeWorkGoal:
       context.activeWorkGoal && typeof context.activeWorkGoal === "object"
         ? context.activeWorkGoal
@@ -123,51 +228,76 @@ async function transcribeAudio(file: File) {
   return text;
 }
 
-function commandPrompt(text: string, context: any) {
-  return `You are the command router for BUSY DOES IT, a UK small-business operating assistant.
+function operatorPrompt(text: string, context: any, conversation: any[]) {
+  return `You are BUSY Operator, the conversational operating layer for BUSY DOES IT, a UK small-business assistant.
 
-The owner said:
+Current owner message:
 "${text}"
 
 Today is ${context.today || "not supplied"} in ${context.timezone || "Europe/London"}.
 
-Use ONLY the supplied business context. Never invent a customer, booking, quote, value, result or business change.
+Conversation so far:
+${JSON.stringify(conversation)}
 
-Choose exactly one intent:
-- business_summary: answer a factual question from counts/current records, with no navigation required.
-- open_today: the owner asks what needs doing, what changed, or wants the weekly/current operating view.
-- open_calendar: asks to see diary/calendar/bookings generally.
-- open_quote_followups: asks which quotes need chasing/following up.
-- open_repeat_customers: asks who may be due again/repeat work.
-- find_more_work: wants to fill capacity, get more work, or target a quiet day.
-- customer_lookup: wants to open or inspect one existing customer.
-- create_booking: explicitly asks to book/schedule one saved customer. This MUST require confirmation.
-- complete_job: explicitly says a booked job is finished/completed. This MUST require confirmation.
-- social_post: asks to draft/create social content, especially from a completed job. This only opens/prepares a draft and MUST NOT claim it published.
-- reactivation_draft: asks to draft wording to previous customers or the best few customers. This prepares internal drafts only and MUST NOT claim anything was sent.
-- quick_capture: asks BUSY to capture/file a new business fact that does not safely map to a supported direct record action. This opens owner review and MUST NOT claim it was filed.
-- open_inbox: asks to review incoming BUSY Inbox items.
-- open_results: asks for business results/performance/outcomes.
-- open_settings: asks for settings/account/connected account controls.
-- unknown: insufficient or ambiguous request.
+Use ONLY the supplied conversation and business context. Never invent a customer, booking, quote, result, date, value or business change.
 
-Rules:
-1. Creating a booking or completing a job requiresConfirmation=true. All other intents are false because they either answer, navigate or prepare internal work only.
-2. External customer messages, public social publishing and paid advertising are NEVER executed by this command router. The response must say a draft/review step will open when relevant.
-3. If a customer is needed, customerName must exactly match ONE name in the supplied context. If the name is ambiguous or absent, use unknown.
-4. For create_booking, resolve explicit/relative dates to YYYY-MM-DD where confidently possible. Resolve times to HH:MM. If the owner omitted a required date, use unknown rather than guessing.
-5. For complete_job, only choose it when the context shows an open saved booking for that customer.
-6. For "what changed since yesterday" or similar, do not invent changes: choose open_today and explain the saved Work briefing should be opened.
-7. For business_summary, make the answer concise and factual from the supplied counts and nextBookings only.
-8. value is a numeric GBP amount when explicitly stated or directly supported; otherwise 0.
-9. note carries useful user wording/context for a draft or completion note. Keep it short.
-10. actionLabel should clearly describe the safe next UI action.
+Your job is conversational:
+- Resolve short follow-ups such as "John", "Friday afternoon", "yes, that one", "make it friendlier", "shorter", "what next?" from the recent conversation when the reference is clear.
+- If a materially required detail is missing or there are multiple plausible customers, do NOT fail generically. Set needsClarification=true, mode="clarify", and ask ONE concise question.
+- When the owner asks for a goal that needs several sensible moves (for example "I need two jobs next Thursday"), use intent="operator_plan", mode="plan", and return 2-5 ordered planSteps.
+- When refining or creating wording, use mode="draft", put the actual editable wording in draftText, and set draftTarget.
+- When asked "what changed?", use changesSinceLastConversation. If it is empty, say no material saved change is visible since the last BUSY conversation; never invent a change.
+
+Supported direct intents:
+- business_summary: factual answer from current context.
+- business_changes: factual comparison using changesSinceLastConversation.
+- operator_plan: 2-5 sequenced safe steps.
+- open_today, open_calendar, open_quote_followups, open_repeat_customers, find_more_work, customer_lookup.
+- create_booking: prepare a booking for one saved customer. MUST require confirmation and preview the customer/date/time/value.
+- complete_job: mark one currently open booked job complete. MUST require confirmation and preview the customer/value/note.
+- social_post: prepare/open a social draft only; never publish.
+- reactivation_draft: prepare previous-customer wording only; never send.
+- draft_refinement: refine the most recent relevant draft in conversation; preserve draftTarget.
+- quick_capture, open_inbox, open_results, open_settings.
+- unknown only when you truly cannot safely infer the request even after considering conversation.
+
+Planning rules:
+1. Real customer obligations and warm existing demand outrank optional marketing.
+2. Prefer £0/low-cost moves before paid advertising.
+3. Do not create a plan step that claims a customer was contacted, a post was published or money was spent.
+4. Each planStep must be independently safe and executable through one supported direct intent. Do not use operator_plan inside planSteps.
+5. create_booking and complete_job plan steps requireConfirmation=true. All other plan steps false.
+6. If a plan mentions advertising, the plan may recommend opening find_more_work, but it must not imply spend authority.
+
+Draft rules:
+1. draftText must be ready-to-edit wording, not a description of a draft.
+2. If the owner says "make that friendlier/shorter/less salesy", locate the most recent assistant structured draftText and revise it.
+3. A social draft can be prepared but not published. A reactivation/follow-up draft can be prepared but not sent.
+4. If there is no previous draft to refine, ask which wording they mean.
+
+Customer/date rules:
+1. When a customer is required, customerName must exactly match ONE saved customer in context.
+2. If first-name matching is ambiguous, ask which person.
+3. Resolve relative dates against today's supplied date when confidently possible.
+4. create_booking requires a customer and date. If date is missing, ask.
+5. complete_job requires an open saved booking for that customer. If none exists, explain and do not mark it complete.
+
+Preview rules:
+- For any record-changing action, previewRows should clearly show the fields that would change.
+- For plans, previewRows may summarise goal/constraints.
+- Keep previewRows empty for ordinary answers when not useful.
+
+Safety:
+- Conversation never grants blanket authority.
+- Customer messages, public publishing and advertising spend remain outside this router's authority.
+- Do not treat phrases like "go ahead with everything" as permission to publish/send/spend.
+- Be concise, practical and specific.
 
 Business context:
 ${JSON.stringify(context)}`;
 }
 
-async function routeCommand(text: string, context: any) {
+async function routeOperator(text: string, context: any, conversation: any[]) {
   const apiKey = Deno.env.get("OPENAI_API_KEY");
   if (!apiKey) throw new Error("OPENAI_API_KEY is not configured.");
   const model = Deno.env.get("OPENAI_COMMAND_MODEL") || DEFAULT_COMMAND_MODEL;
@@ -181,23 +311,23 @@ async function routeCommand(text: string, context: any) {
     body: JSON.stringify({
       model,
       reasoning: { effort: "low" },
-      input: commandPrompt(text, context),
+      input: operatorPrompt(text, context, conversation),
       text: {
         format: {
           type: "json_schema",
-          name: "busy_command",
+          name: "busy_operator",
           strict: true,
           schema: commandSchema,
         },
       },
-      max_output_tokens: 1400,
+      max_output_tokens: 2600,
       store: false,
     }),
   });
 
   const payload: any = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(payload?.error?.message || `OpenAI command routing failed with ${response.status}.`);
+    throw new Error(payload?.error?.message || `OpenAI operator routing failed with ${response.status}.`);
   }
 
   const outputText =
@@ -211,29 +341,71 @@ async function routeCommand(text: string, context: any) {
           .join("")
       : "";
 
-  if (!outputText) throw new Error("BUSY received no command interpretation.");
+  if (!outputText) throw new Error("BUSY received no operator interpretation.");
 
   let parsed: any;
   try {
     parsed = JSON.parse(outputText);
   } catch {
-    throw new Error("BUSY could not parse the command interpretation.");
+    throw new Error("BUSY could not parse the operator interpretation.");
   }
 
   if (!intents.includes(parsed?.intent)) parsed.intent = "unknown";
-  parsed.title = cleanText(parsed?.title, 180) || "BUSY understood";
-  parsed.response = cleanText(parsed?.response, 1200) || "BUSY understood the request.";
+  parsed.title = cleanText(parsed?.title, 180) || "BUSY Operator";
+  parsed.response = cleanText(parsed?.response, 1400) || "BUSY understood the request.";
   parsed.actionLabel = cleanText(parsed?.actionLabel, 120) || "Continue";
   parsed.customerName = cleanText(parsed?.customerName, 240);
   parsed.service = cleanText(parsed?.service, 240);
   parsed.date = cleanText(parsed?.date, 20);
   parsed.time = cleanText(parsed?.time, 20);
   parsed.note = cleanText(parsed?.note, 900);
+  parsed.draftText = cleanText(parsed?.draftText, 2200);
   parsed.value = Math.max(0, Number(parsed?.value) || 0);
   parsed.confidence = ["High", "Medium", "Low"].includes(parsed?.confidence)
     ? parsed.confidence
     : "Low";
+  parsed.mode = ["answer", "action", "plan", "draft", "clarify"].includes(parsed?.mode)
+    ? parsed.mode
+    : "answer";
+  parsed.needsClarification = !!parsed?.needsClarification;
+  parsed.clarificationQuestion = cleanText(parsed?.clarificationQuestion, 500);
   parsed.requiresConfirmation = ["create_booking", "complete_job"].includes(parsed.intent);
+  if (parsed.needsClarification) {
+    parsed.requiresConfirmation = false;
+    parsed.mode = "clarify";
+  }
+  parsed.previewRows = (Array.isArray(parsed?.previewRows) ? parsed.previewRows : [])
+    .slice(0, 8)
+    .map((row: any) => ({
+      label: cleanText(row?.label, 120),
+      value: cleanText(row?.value, 300),
+    }))
+    .filter((row: any) => row.label);
+
+  parsed.planSteps = (Array.isArray(parsed?.planSteps) ? parsed.planSteps : [])
+    .slice(0, 5)
+    .map((step: any, index: number) => ({
+      id: cleanText(step?.id, 100) || `step-${index + 1}`,
+      intent: stepIntentEnum.includes(step?.intent) ? step.intent : "open_today",
+      label: cleanText(step?.label, 180) || `Step ${index + 1}`,
+      reason: cleanText(step?.reason, 500),
+      actionLabel: cleanText(step?.actionLabel, 100) || "Open step",
+      requiresConfirmation: ["create_booking", "complete_job"].includes(step?.intent),
+      customerName: cleanText(step?.customerName, 240),
+      service: cleanText(step?.service, 240),
+      date: cleanText(step?.date, 20),
+      time: cleanText(step?.time, 20),
+      value: Math.max(0, Number(step?.value) || 0),
+      note: cleanText(step?.note, 900),
+      draftText: cleanText(step?.draftText, 2200),
+      draftTarget: ["social", "reactivation", "follow_up"].includes(step?.draftTarget)
+        ? step.draftTarget
+        : "",
+    }));
+
+  if (parsed.intent !== "operator_plan") parsed.planSteps = [];
+  if (parsed.intent === "operator_plan") parsed.mode = "plan";
+  if (parsed.intent === "draft_refinement") parsed.mode = "draft";
 
   return parsed;
 }
@@ -248,6 +420,7 @@ Deno.serve(async (request: Request) => {
     const contentType = request.headers.get("content-type") || "";
     let transcript = "";
     let context: any = {};
+    let conversation: any[] = [];
 
     if (contentType.includes("multipart/form-data")) {
       const form = await request.formData();
@@ -255,18 +428,23 @@ Deno.serve(async (request: Request) => {
       if (!(audio instanceof File)) {
         return json(400, { error: "Audio file is required." });
       }
-      const rawContext = cleanText(form.get("context"), 80_000);
+      const rawContext = cleanText(form.get("context"), 100_000);
+      const rawConversation = cleanText(form.get("conversation"), 45_000);
       context = rawContext ? JSON.parse(rawContext) : {};
+      conversation = rawConversation ? JSON.parse(rawConversation) : [];
       transcript = await transcribeAudio(audio);
     } else {
       const body: any = await request.json();
       transcript = cleanText(body?.text, 4000);
       context = body?.context || {};
+      conversation = body?.conversation || [];
     }
 
     if (!transcript) return json(400, { error: "Tell BUSY what you want to do." });
+
     const cleanedContext = safeContext(context);
-    const command = await routeCommand(transcript, cleanedContext);
+    const cleanedConversation = cleanConversation(conversation);
+    const command = await routeOperator(transcript, cleanedContext, cleanedConversation);
 
     return json(200, {
       transcript,
@@ -274,11 +452,12 @@ Deno.serve(async (request: Request) => {
       backend: {
         commandModel: Deno.env.get("OPENAI_COMMAND_MODEL") || DEFAULT_COMMAND_MODEL,
         transcriptionModel: Deno.env.get("OPENAI_TRANSCRIBE_MODEL") || DEFAULT_TRANSCRIBE_MODEL,
+        operatorVersion: "3.19",
       },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Talk to BUSY failed.";
-    console.error("BUSY command error:", message);
+    const message = error instanceof Error ? error.message : "BUSY Operator failed.";
+    console.error("BUSY operator error:", message);
     return json(400, { error: message });
   }
 });

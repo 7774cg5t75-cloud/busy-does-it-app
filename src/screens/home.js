@@ -834,9 +834,9 @@ function HomeScreen({ s }) {
     >
 
       <Card
-        eyebrow="V3.18 • Talk to BUSY"
-        title="Just tell BUSY what you want to do"
-        body="Speak naturally or type a request. BUSY can find the right place, answer from saved business records, prepare safe next steps and ask before changing a booking or completed-job record."
+        eyebrow="V3.19 • BUSY Operator"
+        title="Talk it through with BUSY"
+        body="Speak naturally or type. BUSY now keeps the current conversation in context, can ask for missing details, build a multi-step plan and refine the last draft without making you start again."
         footer={
           s.busyCommandHistory?.length
             ? `Last request: ${s.busyCommandHistory[0].transcript}`
@@ -854,7 +854,7 @@ function HomeScreen({ s }) {
           <View style={styles.talkHomeCopy}>
             <Text style={styles.talkHomeTitle}>Tap and talk</Text>
             <Text style={styles.talkHomeBody}>
-              “Book John for Friday afternoon” • “What needs doing today?” • “Find me more work next Thursday”
+              “I need two jobs next Thursday” • “Okay, use John” • “Make that friendlier”
             </Text>
           </View>
         </View>
