@@ -10399,6 +10399,16 @@ function HomeScreen({ s }) {
     };
   }, []);
 
+  const homeProactiveNotice =
+    (s.proactiveNotices || []).find((notice) => {
+      if (!String(notice.id || "").startsWith("completed-job-leverage-")) return true;
+      const jobId = String(notice.id).replace("completed-job-leverage-", "");
+      return !topMoves.some(
+        (item) =>
+          String(item.id || "") === `job-photo-review-bundle-${jobId}`
+      );
+    }) || null;
+
   return (
     <Shell
       s={s}
@@ -10430,6 +10440,36 @@ function HomeScreen({ s }) {
       >
         <Button label="Open weekly plan" onPress={() => s.jump("workHub", "Work")} />
       </Card>
+
+      {homeProactiveNotice ? (
+        <Card
+          eyebrow="V3.17 • BUSY noticed"
+          title={homeProactiveNotice.title}
+          body={homeProactiveNotice.body}
+          footer={homeProactiveNotice.footer}
+          tone={homeProactiveNotice.tone || "blue"}
+        >
+          <InlineExplanation
+            why={homeProactiveNotice.why}
+            evidence={homeProactiveNotice.evidence}
+          />
+          <Button
+            label={homeProactiveNotice.actionLabel || "Review this"}
+            primary
+            onPress={() => s.runProactiveNotice(homeProactiveNotice)}
+          />
+          <Button
+            label="Not now • hide for 24 hours"
+            onPress={() => s.snoozeProactiveNotice(homeProactiveNotice.id)}
+          />
+          {(s.proactiveNotices?.length || 0) > 1 || s.proactiveHiddenNoticeCount ? (
+            <Button
+              label={`See BUSY watchlist • ${s.proactiveNotices?.length || 0} active`}
+              onPress={() => s.go("proactiveWatch")}
+            />
+          ) : null}
+        </Card>
+      ) : null}
 
       {topMoves.length ? (
         <Card
@@ -10618,6 +10658,82 @@ function HomeScreen({ s }) {
       <Button label="Customer records" onPress={() => s.go("customerRecords")} />
       <Button label="Social Control Centre" onPress={s.openSocialCentre} />
       <Button label="Update my business data" onPress={() => s.go("businessData")} />
+    </Shell>
+  );
+}
+
+function ProactiveWatch({ s }) {
+  const notices = s.proactiveNotices || [];
+
+  return (
+    <Shell
+      s={s}
+      title="BUSY noticed"
+      subtitle="Patterns BUSY has spotted across the diary, customer pipeline, repeat timing, completed jobs and Business Brain outcomes."
+      brandCue="Surface useful patterns early. Never turn a pattern into an external action without your approval."
+    >
+      <Card
+        eyebrow="V3.17 • Proactive watch"
+        title={
+          notices.length
+            ? `${notices.length} active pattern${notices.length === 1 ? "" : "s"} worth seeing`
+            : "Nothing new needs surfacing"
+        }
+        body={
+          notices.length
+            ? "These are combinations or changes in the saved business records, not generic tips. BUSY keeps them separate from the ranked Next Best Actions so a pattern can be useful without pretending it is the most urgent task."
+            : "BUSY is still watching the business, but no current pattern passes the threshold for a proactive nudge."
+        }
+        footer={
+          s.proactiveHiddenNoticeCount
+            ? `${s.proactiveHiddenNoticeCount} current pattern${s.proactiveHiddenNoticeCount === 1 ? " is" : "s are"} temporarily hidden`
+            : "No current patterns hidden"
+        }
+        tone={notices.length ? "green" : "blue"}
+      >
+        <MetricRow left="Active notices" right={String(notices.length)} strong={notices.length > 0} />
+        <MetricRow left="Temporarily hidden" right={String(s.proactiveHiddenNoticeCount || 0)} />
+        {s.proactiveHiddenNoticeCount ? (
+          <Button label="Show hidden patterns again" onPress={s.restoreProactiveNotices} />
+        ) : null}
+      </Card>
+
+      {notices.map((notice, index) => (
+        <Card
+          key={notice.id}
+          eyebrow={`#${index + 1} • ${notice.category || "BUSY noticed"}`}
+          title={notice.title}
+          body={notice.body}
+          footer={notice.footer}
+          tone={notice.tone || "blue"}
+        >
+          <InlineExplanation why={notice.why} evidence={notice.evidence} />
+          <Button
+            label={notice.actionLabel || "Review this"}
+            primary={index === 0}
+            onPress={() => s.runProactiveNotice(notice)}
+          />
+          <Button
+            label="Not now • hide for 24 hours"
+            onPress={() => s.snoozeProactiveNotice(notice.id)}
+          />
+          <Button
+            label="Seen • hide this occurrence"
+            onPress={() => s.acknowledgeProactiveNotice(notice.id)}
+          />
+        </Card>
+      ))}
+
+      {!notices.length ? (
+        <Card
+          eyebrow="All clear"
+          title="BUSY is watching without creating noise"
+          body="The proactive layer only surfaces clusters or combinations that cross a useful threshold. A single normal booking, one ordinary repeat date or one isolated action is not enough to manufacture an alert."
+          tone="green"
+        />
+      ) : null}
+
+      <Button label="Back to Home" primary onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
 }
@@ -11421,6 +11537,29 @@ function WorkHub({ s }) {
           }
           tone={weeklyBrief.changes.length ? "blue" : "green"}
         />
+      ) : null}
+
+      {(s.proactiveNotices?.length || 0) ? (
+        <Card
+          eyebrow="V3.17 • BUSY noticed"
+          title={s.proactiveTopNotice?.title || "BUSY has spotted a useful pattern"}
+          body={
+            s.proactiveTopNotice?.body ||
+            "There are proactive patterns worth reviewing alongside the weekly plan."
+          }
+          footer={`${s.proactiveNotices.length} active pattern${s.proactiveNotices.length === 1 ? "" : "s"} • these do not replace live customer priorities`}
+          tone={s.proactiveTopNotice?.tone || "blue"}
+        >
+          {s.proactiveNotices.slice(0, 3).map((notice) => (
+            <MetricRow
+              key={notice.id}
+              left={notice.category || "Pattern"}
+              right={notice.title.replace(/^BUSY noticed\s*/i, "")}
+              strong={notice.id === s.proactiveTopNotice?.id}
+            />
+          ))}
+          <Button label="Review BUSY watchlist" onPress={() => s.go("proactiveWatch")} />
+        </Card>
       ) : null}
 
       <Text style={styles.sectionLabel}>BUSY's weekly plan</Text>
@@ -19191,6 +19330,7 @@ const screens = {
   setupLimits: SetupLimits,
   setupConnect: SetupConnect,
   home: HomeScreen,
+  proactiveWatch: ProactiveWatch,
   backgroundWork: BackgroundWork,
   workHub: WorkHub,
   workCalendar: WorkCalendar,
