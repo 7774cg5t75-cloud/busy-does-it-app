@@ -2,6 +2,19 @@
 
 Busy Does It mobile app prototype.
 
+## v3.11 Production Data Foundation
+- Started from the tested V3.10 branch and preserves the live Facebook/Instagram publishing architecture plus the waiting Google Business connection.
+- Added a real multi-user BUSY account path instead of a single hard-coded owner email. Existing owner sessions remain compatible, while the sign-in UI can now use any authorised account email.
+- Added Supabase business workspaces, memberships and cloud snapshots. Each signed-in user is attached to a business workspace and core app state is stored behind authenticated Row Level Security.
+- Added first-run cloud migration: when a signed-in business has no cloud snapshot yet, the existing local prototype data is uploaded as its first protected cloud backup rather than discarded.
+- Added restore-on-sign-in: a business with an existing cloud snapshot can restore customers, services, work goals, bookings/quotes encoded in the customer pipeline, BUSY Inbox data, social drafts and Business Brain learning onto a device.
+- Kept AsyncStorage as a fast local cache while adding a debounced cloud mirror, manual Sync now control, cloud status, last-sync time and revision visibility in Settings.
+- Added separate business membership boundaries in Postgres so one authenticated user cannot read another business's snapshot through the public API.
+- Hardened new RLS policies and added indexes for the new business-ownership path.
+- Kept provider tokens and social publishing records server-side. V3.11 does not weaken the V3.10 public-post approval controls.
+- This is a production-data foundation, not the final account/privacy phase. V3.12 should add account deletion/export, stronger recovery/conflict handling, per-user local-cache isolation and migrate the remaining prototype social workspace key into the new business tenancy model.
+- Main navigation remains Home / Work / Results / Settings.
+
 ## v3.10 Google Business live connection
 - Started directly from the tested V3.9 branch; V3.9 remains the known-good baseline.
 - Finishes the second genuine external publishing connection rather than adding another simulated intelligence layer.
