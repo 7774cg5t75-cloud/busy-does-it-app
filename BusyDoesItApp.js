@@ -17463,7 +17463,7 @@ function AccountAccess({ s }) {
       <Card
         eyebrow="Privacy"
         title="One account cannot browse another business"
-        body="The cloud database uses authenticated membership rules. V3.13 extends that same boundary to social-provider connections and publishing history, while unsigned users still cannot see a previous user's local business data."
+        body="The cloud database uses authenticated membership rules. V3.14 keeps social-provider data inside that boundary and adds owner-controlled permanent account removal."
         tone="blue"
       />
     </ScrollView>
@@ -17533,10 +17533,84 @@ function AccountData({ s }) {
 
       <Text style={styles.sectionLabel}>Account safety</Text>
       <Button label="Sign out on this device" onPress={s.signOutOwner} />
-      <Text style={styles.helper}>
-        V3.13 has now moved social-provider connections and publishing records into the same per-business tenancy boundary. The next account-control step can therefore add a genuine self-service delete-account flow without leaving the old social workspace behind.
-      </Text>
+      <Card
+        eyebrow="Permanent account removal"
+        title="Remove this BUSY account and its business data"
+        body="This is different from signing out. It removes the BUSY account, business workspace, core records, learning data, connected-provider credentials, publishing history and BUSY-stored social media."
+        footer="Export first if you may need a copy later"
+        tone="amber"
+      >
+        <Button label="Review account removal" danger onPress={() => s.go("accountRemoval")} />
+      </Card>
       <Button label="Done" onPress={s.back} />
+    </Shell>
+  );
+}
+
+function AccountRemoval({ s }) {
+  const signedInEmail = normalizeEmail(s.ownerSession?.email || s.ownerEmail || "");
+  const ready =
+    s.accountClosurePhrase.trim() === "DELETE" &&
+    normalizeEmail(s.accountClosureEmail) === signedInEmail;
+
+  return (
+    <Shell
+      s={s}
+      title="Remove BUSY account"
+      subtitle="This is permanent. BUSY requires both the command and the signed-in email before the final confirmation appears."
+      brandCue="Export first. Remove only when you are certain."
+    >
+      <Card
+        eyebrow="Keep a copy"
+        title="Export your BUSY data first"
+        body="The export contains the current business snapshot and workspace metadata. Provider credentials and access tokens are never included."
+        tone="blue"
+      >
+        <Button label="Export my BUSY data" primary onPress={s.exportBusinessData} />
+      </Card>
+
+      <Card
+        eyebrow="What BUSY removes"
+        title="The account and its BUSY business workspace"
+        body="Customer and job records, enquiries, quotes, bookings, services, goals, BUSY Inbox, Business Brain learning, social drafts/history, connected-provider credentials and BUSY-stored social images are removed."
+        footer="Posts already published on Facebook or Instagram are not removed from those platforms"
+        tone="amber"
+      />
+
+      <Text style={styles.sectionLabel}>Permanent confirmation</Text>
+      <Field
+        label="Type DELETE"
+        value={s.accountClosurePhrase}
+        onChangeText={s.setAccountClosurePhrase}
+        autoCapitalize="characters"
+        placeholder="DELETE"
+      />
+      <Field
+        label="Type the signed-in email"
+        value={s.accountClosureEmail}
+        onChangeText={s.setAccountClosureEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        placeholder={signedInEmail}
+      />
+      <Text style={styles.helper}>Signed in as {signedInEmail}</Text>
+
+      {s.accountClosureError ? (
+        <Card
+          eyebrow="Account removal blocked"
+          title="Nothing has been removed"
+          body={s.accountClosureError}
+          tone="amber"
+        />
+      ) : null}
+
+      <Button
+        label={s.accountClosureBusy ? "Removing account…" : "Remove my BUSY account permanently"}
+        danger
+        disabled={!ready || s.accountClosureBusy}
+        onPress={s.confirmAccountClosure}
+      />
+      <Button label="Cancel" disabled={s.accountClosureBusy} onPress={s.back} />
     </Shell>
   );
 }
@@ -17916,7 +17990,7 @@ function ConnectedAccounts({ s }) {
       brandCue="BUSY can prepare automatically. Public publishing still requires an authenticated owner and an approved post."
     >
       <Card
-        eyebrow="V3.13 • Business tenancy"
+        eyebrow="V3.14 • Account & business control"
         title={s.ownerSession?.accessToken ? "Account verified" : "BUSY account sign-in"}
         body={
           s.ownerSession?.accessToken
@@ -18292,6 +18366,7 @@ const screens = {
   capacitySettings: CapacitySettings,
   businessData: BusinessData,
   accountData: AccountData,
+  accountRemoval: AccountRemoval,
   howBusyWorks: HowBusyWorks,
   whatMakesDifferent: WhatMakesDifferent,
   settingsLimits: SettingsLimits,
