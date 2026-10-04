@@ -7799,7 +7799,11 @@ function App() {
     : null;
 
   const postJobBundleEntry =
-    latestCompletedJobEntries.find((entry) => {
+    [...latestCompletedJobEntries]
+      .sort((a, b) =>
+        String(b.job.date || "").localeCompare(String(a.job.date || ""))
+      )
+      .find((entry) => {
       const photos = Array.isArray(entry.job.photos) ? entry.job.photos : [];
       const approvedPhotoCount = photos.filter((photo) => photo.marketingOk).length;
       const reviewPending =
@@ -7811,8 +7815,8 @@ function App() {
         entry.customer.nextRepeatDueDate ||
         entry.job.repeatDueDate
       );
-      return reviewPending && approvedPhotoCount > 0 && repeatTracked;
-    }) || null;
+        return reviewPending && approvedPhotoCount > 0 && repeatTracked;
+      }) || null;
   const postJobBundleOpportunity = postJobBundleEntry
     ? {
         customerId: postJobBundleEntry.customer.id,
@@ -15154,6 +15158,18 @@ function CustomerDetail({ s }) {
                   <Text style={styles.customerHistoryPhotoLinkText}>Open photos / draft →</Text>
                 </Pressable>
               </>
+            ) : null}
+            {item.kind === "job" &&
+            !String(item.id || "").startsWith("baseline-") &&
+            Array.isArray(item.photos) &&
+            item.photos.some((photo) => photo.marketingOk) &&
+            (customer.nextRepeatDueDate || item.repeatDueDate) ? (
+              <Pressable
+                onPress={() => s.openPostJobBundle(customer.id, item.id)}
+                style={styles.customerHistoryPhotoLink}
+              >
+                <Text style={styles.customerHistoryPhotoLinkText}>Use this job for the next best actions →</Text>
+              </Pressable>
             ) : null}
             {item.kind === "job" && !String(item.id || "").startsWith("baseline-") && customer.contactOk !== false ? (
               item.reviewRequestSentAt ? (
