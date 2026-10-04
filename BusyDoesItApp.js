@@ -21,8 +21,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 
-const APP_VERSION = "3.10";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Google Business Live`;
+const APP_VERSION = "3.11";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Production Data Foundation`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
@@ -37,7 +37,34 @@ const BUSY_SOCIAL_PUBLISH_URL =
   "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-social-publish";
 const BUSY_SUPABASE_URL = "https://qgkmuiipicazmcxxmoxv.supabase.co";
 const OWNER_SESSION_KEY = "busy-owner-session-v3.6";
-const OWNER_EMAIL = "busydoesitapp@gmail.com";
+const DEFAULT_OWNER_EMAIL = "busydoesitapp@gmail.com";
+const CLOUD_SCHEMA_VERSION = 1;
+
+async function busyDataRequest(path, { method = "GET", body = null, token = "", prefer = "" } = {}) {
+  const headers = {
+    apikey: BUSY_AI_TOKEN,
+    "Content-Type": "application/json",
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  if (prefer) headers.Prefer = prefer;
+  const response = await fetch(`${BUSY_SUPABASE_URL}/rest/v1/${path}`, {
+    method,
+    headers,
+    body: body === null ? undefined : JSON.stringify(body),
+  });
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : null;
+  if (!response.ok) {
+    throw new Error(
+      data?.message ||
+      data?.hint ||
+      data?.details ||
+      data?.error ||
+      `BUSY cloud data returned ${response.status}.`
+    );
+  }
+  return data;
+}
 
 async function busyAuthRequest(path, { method = "POST", body = null, token = "" } = {}) {
   const headers = {
@@ -72,7 +99,7 @@ function ownerSessionFromPayload(data) {
     accessToken: data.access_token,
     refreshToken: data.refresh_token || "",
     expiresAt,
-    email: data.user?.email || OWNER_EMAIL,
+    email: data.user?.email || "",
     userId: data.user?.id || "",
   };
 }
@@ -1562,11 +1589,19 @@ function App() {
   const [socialPublishingError, setSocialPublishingError] = useState("");
   const [socialPublishingAction, setSocialPublishingAction] = useState("");
   const [ownerSession, setOwnerSession] = useState(null);
+  const [ownerEmail, setOwnerEmail] = useState(DEFAULT_OWNER_EMAIL);
   const [ownerPassword, setOwnerPassword] = useState("");
   const [ownerAuthLoading, setOwnerAuthLoading] = useState(false);
   const [ownerAuthError, setOwnerAuthError] = useState("");
   const [ownerAuthNotice, setOwnerAuthNotice] = useState("");
   const [ownerAuthReady, setOwnerAuthReady] = useState(false);
+  const [cloudWorkspace, setCloudWorkspace] = useState(null);
+  const [cloudInitialised, setCloudInitialised] = useState(false);
+  const [cloudInitialising, setCloudInitialising] = useState(false);
+  const [cloudSyncStatus, setCloudSyncStatus] = useState("Local only");
+  const [cloudLastSyncedAt, setCloudLastSyncedAt] = useState("");
+  const [cloudSyncError, setCloudSyncError] = useState("");
+  const [cloudRevision, setCloudRevision] = useState(0);
   const [businessBrainRules, setBusinessBrainRules] = useState([]);
   const [businessBrainRuleDraft, setBusinessBrainRuleDraft] = useState("");
   const [businessBrainFeedback, setBusinessBrainFeedback] = useState([]);
@@ -1629,7 +1664,10 @@ function App() {
         const rawSession = await SecureStore.getItemAsync(OWNER_SESSION_KEY);
         if (active && rawSession) {
           const parsed = JSON.parse(rawSession);
-          if (parsed?.accessToken) setOwnerSession(parsed);
+          if (parsed?.accessToken) {
+            setOwnerSession(parsed);
+            if (parsed?.email) setOwnerEmail(parsed.email);
+          }
         }
       } catch (e) {
         // A missing or unreadable secure session simply means the owner signs in again.
@@ -2786,6 +2824,118 @@ function App() {
     });
   };
 
+  const buildPersistentSnapshot = () => ({
+    onboardingComplete,
+    businessName,
+    trade,
+    verticalId,
+    postcode,
+    radius,
+    quietSlot,
+    quietSlotConfirmed,
+    activeWorkGoal,
+    unansweredReviewCount,
+    recentPhotoCountNeeded,
+    customers,
+    lastSimulatedRecipients,
+    reactivationRuns,
+    replyActions,
+    services,
+    alwaysAsk,
+    customerContact,
+    testLimit,
+    weeklyLimit,
+    connectedAccounts,
+    dismissedOpportunities,
+    selectedServiceId,
+    intakeLog,
+    inboxItems,
+    connectionSyncLog,
+    socialDrafts,
+    socialPreferredChannels,
+    businessBrainRules,
+    businessBrainFeedback,
+    recordFilingMode,
+    advanced,
+  });
+
+  const applyCloudSnapshot = (saved) => {
+    if (!saved || typeof saved !== "object") return;
+    if (typeof saved.onboardingComplete === "boolean") setOnboardingComplete(saved.onboardingComplete);
+    if (saved.businessName) setBusinessName(saved.businessName);
+    if (saved.trade) setTrade(saved.trade);
+    const savedVerticalId = saved.verticalId || "exterior-cleaning";
+    setVerticalId(savedVerticalId);
+    if (saved.postcode) setPostcode(saved.postcode);
+    if (saved.radius) setRadius(saved.radius);
+    if (saved.quietSlot) setQuietSlot(saved.quietSlot);
+    if (typeof saved.quietSlotConfirmed === "boolean") setQuietSlotConfirmed(saved.quietSlotConfirmed);
+    if (saved.activeWorkGoal && typeof saved.activeWorkGoal === "object") {
+      setActiveWorkGoal(saved.activeWorkGoal);
+      if (saved.activeWorkGoal.label) setSelectedGap(saved.activeWorkGoal.label);
+      if (saved.activeWorkGoal.targetJobs) {
+        setWorkGoalTargetDraft(Number(saved.activeWorkGoal.targetJobs) || 1);
+      }
+    } else if (saved.activeWorkGoal === null) {
+      setActiveWorkGoal(null);
+    }
+    if (saved.unansweredReviewCount !== undefined) setUnansweredReviewCount(String(saved.unansweredReviewCount));
+    if (saved.recentPhotoCountNeeded !== undefined) setRecentPhotoCountNeeded(String(saved.recentPhotoCountNeeded));
+    if (Array.isArray(saved.customers)) setCustomers(saved.customers);
+    if (Array.isArray(saved.lastSimulatedRecipients)) setLastSimulatedRecipients(saved.lastSimulatedRecipients);
+    if (Array.isArray(saved.reactivationRuns)) setReactivationRuns(saved.reactivationRuns);
+    if (saved.replyActions && typeof saved.replyActions === "object") setReplyActions(saved.replyActions);
+    if (Array.isArray(saved.services)) {
+      const pack = getVerticalPack(savedVerticalId);
+      setServices(
+        saved.services.map((item) => {
+          const packService = pack.services.find((candidate) => candidate.name === item.name);
+          return {
+            ...item,
+            repeatMonths:
+              item.repeatMonths !== undefined
+                ? item.repeatMonths
+                : packService?.repeatMonths ?? pack.defaultRepeatMonths,
+            durationHours:
+              Number(item.durationHours) > 0
+                ? Number(item.durationHours)
+                : Number(packService?.durationHours) > 0
+                ? Number(packService.durationHours)
+                : 2,
+          };
+        })
+      );
+    }
+    if (typeof saved.alwaysAsk === "boolean") setAlwaysAsk(saved.alwaysAsk);
+    if (typeof saved.customerContact === "boolean") setCustomerContact(saved.customerContact);
+    if (saved.testLimit) setTestLimit(saved.testLimit);
+    if (saved.weeklyLimit) setWeeklyLimit(saved.weeklyLimit);
+    if (saved.connectedAccounts) setConnectedAccounts({ ...connectionSeed, ...saved.connectedAccounts });
+    if (Array.isArray(saved.dismissedOpportunities)) setDismissedOpportunities(saved.dismissedOpportunities);
+    if (saved.selectedServiceId) setSelectedServiceId(saved.selectedServiceId);
+    if (Array.isArray(saved.intakeLog)) setIntakeLog(saved.intakeLog);
+    if (Array.isArray(saved.inboxItems)) setInboxItems(saved.inboxItems);
+    if (Array.isArray(saved.connectionSyncLog)) setConnectionSyncLog(saved.connectionSyncLog);
+    if (Array.isArray(saved.socialDrafts)) setSocialDrafts(saved.socialDrafts);
+    if (saved.socialPreferredChannels && typeof saved.socialPreferredChannels === "object") {
+      setSocialPreferredChannels({
+        facebook: !!saved.socialPreferredChannels.facebook,
+        instagram: !!saved.socialPreferredChannels.instagram,
+        googleBusiness: !!saved.socialPreferredChannels.googleBusiness,
+      });
+    }
+    if (Array.isArray(saved.businessBrainRules)) setBusinessBrainRules(saved.businessBrainRules);
+    if (Array.isArray(saved.businessBrainFeedback)) setBusinessBrainFeedback(saved.businessBrainFeedback);
+    if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
+      setRecordFilingMode(saved.recordFilingMode);
+    }
+    if (typeof saved.advanced === "boolean") setAdvanced(saved.advanced);
+    if (saved.onboardingComplete) {
+      setScreen("home");
+      setTab("Home");
+    }
+  };
+
   const persistOwnerSession = async (session) => {
     setOwnerSession(session);
     if (session?.accessToken) {
@@ -2820,8 +2970,13 @@ function App() {
   };
 
   const signInOwner = async () => {
+    const email = normalizeEmail(ownerEmail);
+    if (!email || !email.includes("@")) {
+      setOwnerAuthError("Enter the email address for this BUSY account.");
+      return false;
+    }
     if (!ownerPassword || ownerPassword.length < 6) {
-      setOwnerAuthError("Enter the password for the Busy Does It owner account.");
+      setOwnerAuthError("Enter the password for this BUSY account.");
       return false;
     }
     setOwnerAuthLoading(true);
@@ -2829,16 +2984,18 @@ function App() {
     setOwnerAuthNotice("");
     try {
       const data = await busyAuthRequest("token?grant_type=password", {
-        body: { email: OWNER_EMAIL, password: ownerPassword },
+        body: { email, password: ownerPassword },
       });
       const session = ownerSessionFromPayload(data);
-      if (!session) throw new Error("Supabase did not return an owner session.");
+      if (!session) throw new Error("Supabase did not return an account session.");
       await persistOwnerSession(session);
+      setOwnerEmail(session.email || email);
       setOwnerPassword("");
-      setOwnerAuthNotice("Owner verified. Publishing actions are now tied to this signed-in account.");
+      setCloudInitialised(false);
+      setOwnerAuthNotice("Signed in. BUSY will restore this business from its secure cloud workspace.");
       return true;
     } catch (error) {
-      setOwnerAuthError(error?.message || "Owner sign-in failed.");
+      setOwnerAuthError(error?.message || "Account sign-in failed.");
       return false;
     } finally {
       setOwnerAuthLoading(false);
@@ -2846,6 +3003,11 @@ function App() {
   };
 
   const createOwnerAccount = async () => {
+    const email = normalizeEmail(ownerEmail);
+    if (!email || !email.includes("@")) {
+      setOwnerAuthError("Enter the email address you want to use for this BUSY account.");
+      return false;
+    }
     if (!ownerPassword || ownerPassword.length < 8) {
       setOwnerAuthError("Choose a password with at least 8 characters.");
       return false;
@@ -2855,24 +3017,26 @@ function App() {
     setOwnerAuthNotice("");
     try {
       const data = await busyAuthRequest("signup", {
-        body: { email: OWNER_EMAIL, password: ownerPassword },
+        body: { email, password: ownerPassword },
       });
       const session = ownerSessionFromPayload(data);
       if (session) {
         await persistOwnerSession(session);
+        setOwnerEmail(session.email || email);
         setOwnerPassword("");
-        setOwnerAuthNotice("Owner account created and signed in.");
+        setCloudInitialised(false);
+        setOwnerAuthNotice("Account created and signed in. BUSY is creating a secure business workspace.");
       } else {
         setOwnerAuthNotice(
-          `Account created for ${OWNER_EMAIL}. Check that inbox for the Supabase confirmation email, then return here and sign in.`
+          `Account created for ${email}. Check that inbox for the Supabase confirmation email, then return here and sign in.`
         );
       }
       return true;
     } catch (error) {
-      const message = error?.message || "Owner account could not be created.";
+      const message = error?.message || "Account could not be created.";
       setOwnerAuthError(
         /already|registered/i.test(message)
-          ? "That owner account already exists. Use Sign in instead."
+          ? "That account already exists. Use Sign in instead."
           : message
       );
       return false;
@@ -2881,11 +3045,200 @@ function App() {
     }
   };
 
+  const initialiseBusinessCloud = async (sessionOverride = null) => {
+    if (cloudInitialising) return false;
+    setCloudInitialising(true);
+    setCloudSyncError("");
+    setCloudSyncStatus("Connecting…");
+    try {
+      const token =
+        sessionOverride?.accessToken ||
+        ownerSession?.accessToken ||
+        (await ownerAccessToken());
+      if (!token) throw new Error("Sign in before connecting cloud data.");
+
+      const ensured = await busyDataRequest("rpc/busy_ensure_business", {
+        method: "POST",
+        token,
+        body: { p_name: businessName || null },
+      });
+      const row = Array.isArray(ensured) ? ensured[0] : ensured;
+      const businessId = row?.business_id;
+      if (!businessId) throw new Error("BUSY could not create or find this business workspace.");
+
+      const workspace = {
+        businessId,
+        name: row?.business_name || businessName || "My Business",
+        role: row?.member_role || "owner",
+      };
+      setCloudWorkspace(workspace);
+
+      const snapshots = await busyDataRequest(
+        `busy_business_snapshots?business_id=eq.${encodeURIComponent(businessId)}&select=payload,schema_version,revision,updated_at`,
+        { token }
+      );
+      const snapshot = Array.isArray(snapshots) ? snapshots[0] : snapshots;
+      const payload =
+        snapshot?.payload && typeof snapshot.payload === "object"
+          ? snapshot.payload
+          : null;
+      const hasCloudData = payload && Object.keys(payload).length > 0;
+
+      if (hasCloudData) {
+        applyCloudSnapshot(payload);
+        setCloudRevision(Number(snapshot?.revision) || 1);
+        setCloudLastSyncedAt(snapshot?.updated_at || new Date().toISOString());
+        setCloudSyncStatus("Cloud restored");
+      } else {
+        const localPayload = buildPersistentSnapshot();
+        const saved = await busyDataRequest(
+          "busy_business_snapshots?on_conflict=business_id",
+          {
+            method: "POST",
+            token,
+            prefer: "resolution=merge-duplicates,return=representation",
+            body: {
+              business_id: businessId,
+              payload: localPayload,
+              schema_version: CLOUD_SCHEMA_VERSION,
+              revision: 1,
+              updated_at: new Date().toISOString(),
+            },
+          }
+        );
+        const savedRow = Array.isArray(saved) ? saved[0] : saved;
+        setCloudRevision(Number(savedRow?.revision) || 1);
+        setCloudLastSyncedAt(savedRow?.updated_at || new Date().toISOString());
+        setCloudSyncStatus("Local data backed up");
+      }
+
+      setCloudInitialised(true);
+      return true;
+    } catch (error) {
+      setCloudSyncError(error?.message || "Cloud workspace could not be loaded.");
+      setCloudSyncStatus("Cloud unavailable");
+      return false;
+    } finally {
+      setCloudInitialising(false);
+    }
+  };
+
+  const saveBusinessCloud = async ({ quiet = false } = {}) => {
+    if (!cloudWorkspace?.businessId || !ownerSession?.accessToken || !cloudInitialised) return false;
+    if (!quiet) setCloudSyncStatus("Syncing…");
+    setCloudSyncError("");
+    try {
+      const token = await ownerAccessToken();
+      if (!token) throw new Error("Sign in again before syncing cloud data.");
+      const nextRevision = Math.max(1, Number(cloudRevision) + 1);
+      const now = new Date().toISOString();
+      const saved = await busyDataRequest(
+        "busy_business_snapshots?on_conflict=business_id",
+        {
+          method: "POST",
+          token,
+          prefer: "resolution=merge-duplicates,return=representation",
+          body: {
+            business_id: cloudWorkspace.businessId,
+            payload: buildPersistentSnapshot(),
+            schema_version: CLOUD_SCHEMA_VERSION,
+            revision: nextRevision,
+            updated_at: now,
+          },
+        }
+      );
+      const savedRow = Array.isArray(saved) ? saved[0] : saved;
+      setCloudRevision(Number(savedRow?.revision) || nextRevision);
+      setCloudLastSyncedAt(savedRow?.updated_at || now);
+      setCloudSyncStatus("Up to date");
+      return true;
+    } catch (error) {
+      setCloudSyncError(error?.message || "Cloud sync failed.");
+      setCloudSyncStatus("Sync needs attention");
+      return false;
+    }
+  };
+
+  const syncCloudNow = async () => {
+    if (!ownerSession?.accessToken) {
+      setCloudSyncError("Sign in first.");
+      setCloudSyncStatus("Local only");
+      return false;
+    }
+    if (!cloudInitialised) return initialiseBusinessCloud();
+    return saveBusinessCloud();
+  };
+
+  useEffect(() => {
+    if (!hydrated || !ownerAuthReady || !ownerSession?.accessToken || cloudInitialised || cloudInitialising) return;
+    initialiseBusinessCloud();
+  }, [
+    hydrated,
+    ownerAuthReady,
+    ownerSession?.accessToken,
+    cloudInitialised,
+    cloudInitialising,
+  ]);
+
+  useEffect(() => {
+    if (!hydrated || !cloudInitialised || !cloudWorkspace?.businessId || !ownerSession?.accessToken) return;
+    const timer = setTimeout(() => {
+      saveBusinessCloud({ quiet: true });
+    }, 1400);
+    return () => clearTimeout(timer);
+  }, [
+    hydrated,
+    cloudInitialised,
+    cloudWorkspace?.businessId,
+    ownerSession?.accessToken,
+    onboardingComplete,
+    businessName,
+    trade,
+    verticalId,
+    postcode,
+    radius,
+    quietSlot,
+    quietSlotConfirmed,
+    activeWorkGoal,
+    unansweredReviewCount,
+    recentPhotoCountNeeded,
+    customers,
+    lastSimulatedRecipients,
+    reactivationRuns,
+    replyActions,
+    services,
+    alwaysAsk,
+    customerContact,
+    testLimit,
+    weeklyLimit,
+    connectedAccounts,
+    dismissedOpportunities,
+    selectedServiceId,
+    intakeLog,
+    inboxItems,
+    connectionSyncLog,
+    socialDrafts,
+    socialPreferredChannels,
+    businessBrainRules,
+    businessBrainFeedback,
+    recordFilingMode,
+    advanced,
+  ]);
+
   const signOutOwner = async () => {
+    if (cloudInitialised) {
+      await saveBusinessCloud({ quiet: true });
+    }
     await persistOwnerSession(null);
     setOwnerPassword("");
     setOwnerAuthError("");
-    setOwnerAuthNotice("Owner signed out. Live publishing controls are locked again.");
+    setOwnerAuthNotice("Signed out. Cloud data and live publishing controls are locked on this device.");
+    setCloudWorkspace(null);
+    setCloudInitialised(false);
+    setCloudSyncStatus("Local only");
+    setCloudLastSyncedAt("");
+    setCloudSyncError("");
+    setCloudRevision(0);
     setSocialPublishingStatus((current) => ({
       ...current,
       loaded: false,
@@ -7413,13 +7766,22 @@ function App() {
     socialPublishingError,
     socialPublishingAction,
     ownerSession,
+    ownerEmail,
+    setOwnerEmail,
     ownerPassword,
     setOwnerPassword,
     ownerAuthLoading,
     ownerAuthError,
     ownerAuthNotice,
     ownerAuthReady,
-    ownerEmail: OWNER_EMAIL,
+    cloudWorkspace,
+    cloudInitialised,
+    cloudInitialising,
+    cloudSyncStatus,
+    cloudLastSyncedAt,
+    cloudSyncError,
+    cloudRevision,
+    syncCloudNow,
     signInOwner,
     createOwnerAccount,
     signOutOwner,
@@ -16677,6 +17039,42 @@ function Settings({ s }) {
         />
         <MetricRow left="Connected accounts" right={`${connectedCount}/${connectionRows.length}`} />
       </Card>
+      <Card
+        eyebrow="V3.11 • Secure cloud data"
+        title={
+          s.ownerSession?.accessToken
+            ? s.cloudInitialised
+              ? "This business is backed up to its own cloud workspace"
+              : "Signed in — cloud workspace is being prepared"
+            : "Sign in to protect and restore business data"
+        }
+        body={
+          s.ownerSession?.accessToken
+            ? "Customers, work records, services, goals and BUSY learning are mirrored to a Supabase workspace protected by row-level security. The local copy remains as a fast device cache."
+            : "The app can still run locally, but signed-in accounts get a separate protected business workspace that can be restored on another device."
+        }
+        footer={
+          s.cloudSyncError
+            ? s.cloudSyncError
+            : s.cloudLastSyncedAt
+            ? `Last cloud sync: ${new Date(s.cloudLastSyncedAt).toLocaleString("en-GB")}`
+            : "No cloud backup yet"
+        }
+        tone={s.cloudSyncError ? "amber" : s.cloudInitialised ? "green" : "blue"}
+      >
+        <MetricRow left="Account" right={s.ownerSession?.email || "Signed out"} />
+        <MetricRow left="Business workspace" right={s.cloudWorkspace?.name || "Not connected"} />
+        <MetricRow left="Cloud status" right={s.cloudSyncStatus} strong={s.cloudInitialised && !s.cloudSyncError} />
+        {s.cloudInitialised ? <MetricRow left="Cloud revision" right={String(s.cloudRevision || 1)} /> : null}
+        <Button
+          label={s.cloudInitialising ? "Connecting…" : s.cloudSyncStatus === "Syncing…" ? "Syncing…" : "Sync now"}
+          disabled={s.cloudInitialising || !s.ownerSession?.accessToken}
+          onPress={s.syncCloudNow}
+        />
+        {!s.ownerSession?.accessToken ? (
+          <Button label="Open account & connections" onPress={() => s.go("connectedAccounts")} />
+        ) : null}
+      </Card>
       <Button label="Customer records" primary onPress={() => s.go("customerRecords")} />
       <Button
         label={s.inboxPendingItems.length ? `BUSY Inbox • ${s.inboxPendingItems.length} waiting` : "BUSY Inbox"}
@@ -17073,29 +17471,40 @@ function ConnectedAccounts({ s }) {
     <Shell
       s={s}
       title="Connected accounts"
-      subtitle="V3.10 finishes the second real publishing connection: Google authorization, Business Profile location discovery and Local Posts API verification stay server-side."
+      subtitle="V3.11 adds a real BUSY account and protected business workspace while keeping the V3.10 provider connections intact."
       brandCue="BUSY can prepare automatically. Public publishing still requires an authenticated owner and an approved post."
     >
       <Card
-        eyebrow="V3.10 • Owner protection"
-        title={s.ownerSession?.accessToken ? "Owner verified" : "Owner sign-in required"}
+        eyebrow="V3.11 • Account protection"
+        title={s.ownerSession?.accessToken ? "Account verified" : "BUSY account sign-in"}
         body={
           s.ownerSession?.accessToken
-            ? "This device has an authenticated Supabase owner session. Publishing controls now verify that session on the server before accepting an action."
-            : "Before BUSY can enable live publishing, connect providers or approve a public post, sign in as the Busy Does It owner."
+            ? "This device has an authenticated Supabase session. Core business data can now restore from its protected cloud workspace, and publishing controls still verify the same session on the server."
+            : "Sign in to connect this device to a protected BUSY business workspace. Provider access alone is never enough to publish."
         }
-        footer={s.ownerSession?.accessToken ? "Session stored securely on this device" : "Provider access alone is not enough to publish"}
+        footer={s.ownerSession?.accessToken ? "Session stored securely on this device" : "Each signed-in business gets its own protected data workspace"}
         tone={s.ownerSession?.accessToken ? "green" : "amber"}
       >
         <View style={styles.ownerIdentityBlock}>
-          <Text style={styles.ownerIdentityLabel}>Owner email</Text>
-          <Text style={styles.ownerIdentityValue}>{s.ownerEmail}</Text>
+          <Text style={styles.ownerIdentityLabel}>Account email</Text>
+          <Text style={styles.ownerIdentityValue}>{s.ownerSession?.email || s.ownerEmail}</Text>
         </View>
-        <MetricRow left="Owner status" right={s.ownerSession?.accessToken ? "Verified" : "Signed out"} strong={!!s.ownerSession?.accessToken} />
+        <MetricRow left="Account status" right={s.ownerSession?.accessToken ? "Verified" : "Signed out"} strong={!!s.ownerSession?.accessToken} />
+        {s.ownerSession?.accessToken ? (
+          <MetricRow left="Cloud data" right={s.cloudInitialised ? s.cloudSyncStatus : "Preparing…"} strong={s.cloudInitialised && !s.cloudSyncError} />
+        ) : null}
         {!s.ownerSession?.accessToken ? (
           <>
             <Field
-              label="Owner password"
+              label="Email"
+              value={s.ownerEmail}
+              onChangeText={s.setOwnerEmail}
+              placeholder="you@yourbusiness.co.uk"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <Field
+              label="Password"
               value={s.ownerPassword}
               onChangeText={s.setOwnerPassword}
               placeholder="Enter or choose a password"
@@ -17109,20 +17518,20 @@ function ConnectedAccounts({ s }) {
               onPress={s.signInOwner}
             />
             <Button
-              label={s.ownerAuthLoading ? "Please wait…" : "Create owner account"}
+              label={s.ownerAuthLoading ? "Please wait…" : "Create BUSY account"}
               disabled={s.ownerAuthLoading}
               onPress={s.createOwnerAccount}
             />
           </>
         ) : (
-          <Button label="Sign out owner" disabled={s.ownerAuthLoading} onPress={s.signOutOwner} />
+          <Button label="Sign out" disabled={s.ownerAuthLoading} onPress={s.signOutOwner} />
         )}
         {s.ownerAuthError ? <Text style={styles.customerHistoryPhotoMeta}>{s.ownerAuthError}</Text> : null}
         {s.ownerAuthNotice ? <Text style={styles.cardFooter}>{s.ownerAuthNotice}</Text> : null}
       </Card>
 
       <Card
-        eyebrow="V3.10 • Connection health"
+        eyebrow="V3.11 • Connection health"
         title={
           credentials.livePublishingEnabled
             ? "Live provider publishing is enabled"
