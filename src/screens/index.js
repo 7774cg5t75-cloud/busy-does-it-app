@@ -1,11 +1,11 @@
-import * as Onboarding from "./onboarding";
-import * as Home from "./home";
-import * as Work from "./work";
-import * as Intake from "./intake";
-import * as Customers from "./customers";
-import * as Social from "./social";
-import * as Results from "./results";
-import * as Settings from "./settings";
+import * as OnboardingScreens from "./onboarding";
+import * as HomeScreens from "./home";
+import * as WorkScreens from "./work";
+import * as IntakeScreens from "./intake";
+import * as CustomersScreens from "./customers";
+import * as SocialScreens from "./social";
+import * as ResultsScreens from "./results";
+import * as SettingsScreens from "./settings";
 
 export * from "./onboarding";
 export * from "./home";
@@ -17,14 +17,14 @@ export * from "./results";
 export * from "./settings";
 
 const allScreens = {
-  ...Onboarding,
-  ...Home,
-  ...Work,
-  ...Intake,
-  ...Customers,
-  ...Social,
-  ...Results,
-  ...Settings,
+  ...OnboardingScreens,
+  ...HomeScreens,
+  ...WorkScreens,
+  ...IntakeScreens,
+  ...CustomersScreens,
+  ...SocialScreens,
+  ...ResultsScreens,
+  ...SettingsScreens,
 };
 
 const {
