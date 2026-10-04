@@ -6954,10 +6954,8 @@ function App() {
     if (!["off", "prepare", "trusted"].includes(mode)) return;
     setAutopilotMode(mode);
     setAutopilotLastSignature("");
-    if (mode === "trusted") {
-      // Existing safe-filing evaluator remains the only automatic record-write authority.
-      setRecordFilingMode("safe");
-    }
+    // Autopilot authority is explicit: only Trusted mode may auto-file high-confidence records.
+    setRecordFilingMode(mode === "trusted" ? "safe" : "review");
   };
 
   const saveAutopilotRule = () => {

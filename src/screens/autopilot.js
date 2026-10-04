@@ -168,6 +168,16 @@ function AutopilotCentre({ s }) {
         <MetricRow left="Customer sends" right="Explicit approval" strong />
         <MetricRow left="Public publishing" right="Explicit approval" strong />
         <MetricRow left="Advertising spend" right="Explicit approval" strong />
+        <MetricRow
+          left="Paid recommendation rule"
+          right={s.autopilotPaidBlockedByRule ? "Free options first" : "No extra block"}
+          strong={s.autopilotPaidBlockedByRule}
+        />
+        <MetricRow
+          left="Customer contact limit"
+          right={s.autopilotContactLimit ? `Max ${s.autopilotContactLimit} recorded contacts` : "No extra limit"}
+          strong={!!s.autopilotContactLimit}
+        />
         <MetricRow left="Booking changes" right="Explicit approval" strong />
         <MetricRow
           left="Safe internal filing"

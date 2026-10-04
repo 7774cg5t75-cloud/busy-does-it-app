@@ -2104,7 +2104,8 @@ function BestMove({ s }) {
         s.go("profileAudit");
       },
     }] : []),
-    ...(!s.workGoalAttemptKeys?.has("paid") ? [{
+    ...(!s.workGoalAttemptKeys?.has("paid") &&
+    (!s.autopilotPaidBlockedByRule || s.workGoalAttemptKeys?.has("free-audit")) ? [{
       id: "gap-paid-test",
       score: remainingJobs >= 3 ? 34 : remainingJobs === 2 ? 20 : 8,
       eyebrow: "Escalation only",
@@ -3527,6 +3528,14 @@ function PaidTest({ s }) {
   const overSingleLimit = Number(s.adBudget || 0) > Number(s.testLimit || 0);
   return (
     <Shell s={s} title="Review a paid test" subtitle="Paid advertising is optional, capped and never presented as guaranteed work.">
+      {s.autopilotPaidBlockedByRule && !s.workGoalAttemptKeys?.has("free-audit") ? (
+        <Card
+          eyebrow="Owner rule"
+          title="Paid advertising is blocked for now"
+          body="Your Autopilot rule says the free options must be tried first. BUSY will not recommend or approve this paid route until the free-check step has been recorded."
+          tone="amber"
+        />
+      ) : null}
       <Card
         eyebrow="Small paid test"
         title="Try a local advert"
@@ -3543,7 +3552,7 @@ function PaidTest({ s }) {
       <Button
         label={s.alwaysAsk ? `Approve £${s.adBudget}` : `Run within £${s.adBudget} cap`}
         primary
-        disabled={overSingleLimit}
+        disabled={overSingleLimit || (s.autopilotPaidBlockedByRule && !s.workGoalAttemptKeys?.has("free-audit"))}
         onPress={() => {
           s.recordWorkGoalAttempt({
             key: "paid",
