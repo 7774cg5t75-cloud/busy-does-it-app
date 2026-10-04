@@ -7811,7 +7811,7 @@ function App() {
         entry.customer.nextRepeatDueDate ||
         entry.job.repeatDueDate
       );
-      return (reviewPending || socialPending) && repeatTracked;
+      return reviewPending && approvedPhotoCount > 0 && repeatTracked;
     }) || null;
   const postJobBundleOpportunity = postJobBundleEntry
     ? {
@@ -17361,6 +17361,25 @@ function BusinessBrain({ s }) {
   const blockingRules = (s.businessBrainRules || []).filter(
     (rule) => manualRuleTargetFamilies(rule).length
   ).length;
+  const acceptedFeedback = feedback.filter((item) => item.signal === "accepted");
+  const dismissedFeedback = feedback.filter((item) => item.signal !== "accepted");
+  const learnedChoiceRows = Object.entries(s.businessBrainFeedbackSummary || {})
+    .map(([family, summary]) => ({
+      family,
+      label: businessBrainFamilyLabel(family),
+      accepted: Number(summary.accepted || 0),
+      dismissed: Number(summary.dismissed || 0),
+      rankingEffect: Number(summary.rankingEffect || 0),
+    }))
+    .sort((a, b) => Math.abs(b.rankingEffect) - Math.abs(a.rankingEffect));
+  const strongestEvidencePattern =
+    [...patterns]
+      .filter((item) => Number(item.effectiveAdjustment || 0) !== 0)
+      .sort(
+        (a, b) =>
+          Math.abs(Number(b.effectiveAdjustment || 0)) -
+          Math.abs(Number(a.effectiveAdjustment || 0))
+      )[0] || null;
 
   return (
     <Shell
@@ -17370,17 +17389,43 @@ function BusinessBrain({ s }) {
       brandCue="Auditable learning: source, sample, confidence, freshness and owner authority."
     >
       <Card
-        eyebrow="V3.4 • Operational Business Brain"
-        title="This now changes what BUSY recommends"
-        body="Recorded business outcomes already influence Home ranking. V3.4 adds freshness weighting, owner-feedback penalties and hard blocking rules while keeping live customer commitments protected from marketing preferences."
+        eyebrow="V3.16 • Business Brain Intelligence 2.0"
+        title="BUSY now learns from choices as well as recorded outcomes"
+        body="The ranking still starts with real business evidence and live customer obligations. V3.16 also remembers which optional recommendations you choose, which ones you dismiss and any hard rules you set."
         tone="green"
       >
         <MetricRow left="Evidence patterns tracked" right={String(patterns.length)} />
         <MetricRow left="Patterns with usable samples" right={String(activePatterns)} strong={activePatterns > 0} />
+        <MetricRow left="Recommendations chosen" right={String(acceptedFeedback.length)} strong={acceptedFeedback.length > 0} />
+        <MetricRow left="Recommendations dismissed" right={String(dismissedFeedback.length)} />
         <MetricRow left="Stale patterns down-weighted" right={String(stalePatterns)} />
         <MetricRow left="Owner-set rules" right={String(s.businessBrainRules?.length || 0)} />
         <MetricRow left="Rules that block recommendation types" right={String(blockingRules)} />
-        <MetricRow left="Recommendation feedback saved" right={String(feedback.length)} />
+      </Card>
+
+      <Card
+        eyebrow="What BUSY has learned"
+        title={
+          strongestEvidencePattern || learnedChoiceRows.length
+            ? "The engine can explain what is affecting the ranking"
+            : "BUSY is still building business-specific evidence"
+        }
+        body={
+          strongestEvidencePattern
+            ? `${strongestEvidencePattern.title} currently has the strongest measured evidence effect at ${Number(strongestEvidencePattern.effectiveAdjustment) > 0 ? "+" : ""}${strongestEvidencePattern.effectiveAdjustment} ranking points. Owner choices are applied separately and remain bounded.`
+            : "There is not enough recorded outcome evidence for a strong pattern yet. BUSY will stay cautious and learn as real results and owner choices accumulate."
+        }
+        footer="No hidden personality profile — only saved business evidence, explicit choices and owner rules"
+        tone="blue"
+      >
+        {learnedChoiceRows.slice(0, 4).map((item) => (
+          <MetricRow
+            key={item.family}
+            left={item.label}
+            right={`${item.accepted} chosen • ${item.dismissed} dismissed • ${item.rankingEffect > 0 ? "+" : ""}${item.rankingEffect}`}
+            strong={item.rankingEffect !== 0}
+          />
+        ))}
       </Card>
 
       <Text style={styles.sectionLabel}>Evidence ledger</Text>
@@ -17538,8 +17583,14 @@ function BusinessBrain({ s }) {
                 </Text>
               </View>
               <StatusChip
-                label={item.penalty ? `${item.penalty} ranking` : "No penalty"}
-                tone={item.penalty ? "amber" : "blue"}
+                label={
+                  item.signal === "accepted"
+                    ? `+${Number(item.boost || 2)} ranking`
+                    : item.penalty
+                    ? `${item.penalty} ranking`
+                    : "No ranking change"
+                }
+                tone={item.signal === "accepted" ? "green" : item.penalty ? "amber" : "blue"}
               />
             </View>
             <Text style={styles.activitySummary}>{item.title || "Recommendation feedback"}</Text>
@@ -17553,8 +17604,8 @@ function BusinessBrain({ s }) {
       ) : (
         <Card
           eyebrow="No feedback yet"
-          title="BUSY has not been corrected on a recommendation yet"
-          body="Tap “Not useful” on a Home suggestion to teach BUSY why it missed the mark."
+          title="BUSY has not learned from an optional recommendation choice yet"
+          body="Choose or dismiss an optional Home recommendation and BUSY will remember that narrow preference alongside the real outcome evidence."
           tone="blue"
         />
       )}
