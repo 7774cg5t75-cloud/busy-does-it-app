@@ -451,6 +451,11 @@ export const styles = StyleSheet.create({
   operatorPlanTitle: { color: C.ink, fontSize: 15, fontWeight: "900" },
   operatorPlanReason: { color: C.muted, fontSize: 13, lineHeight: 18, marginTop: 4 },
   operatorPlanSafety: { color: C.amber, fontSize: 11, fontWeight: "800", marginTop: 5 },
+  autopilotRuleInput: { minHeight: 92, borderWidth: 1, borderColor: C.border, borderRadius: 14, backgroundColor: C.card, color: C.ink, fontSize: 15, lineHeight: 21, padding: 13, textAlignVertical: "top", marginTop: 10, marginBottom: 10 },
+  autopilotRuleExamples: { color: C.muted, fontSize: 12, lineHeight: 18, marginTop: 10 },
+  autopilotRuleCard: { borderWidth: 1, borderColor: "#C8D9F7", backgroundColor: C.blueSoft, borderRadius: 16, padding: 14, marginBottom: 10, gap: 10 },
+  autopilotRuleText: { color: C.ink, fontSize: 14, lineHeight: 20, fontWeight: "800" },
+  autopilotRuleMeta: { color: C.muted, fontSize: 11, marginTop: 6, fontWeight: "700" },
   nav: {
     height: 72,
     flexDirection: "row",

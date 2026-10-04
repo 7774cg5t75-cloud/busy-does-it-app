@@ -833,6 +833,56 @@ function HomeScreen({ s }) {
       brandCue="The business checked. One clear move when something matters."
     >
 
+
+      <Card
+        eyebrow="V3.20 • Controlled Autopilot"
+        title={
+          s.autopilotMode === "off"
+            ? "Autopilot is off"
+            : s.autopilotApprovalItems.length || s.autopilotNeedsInputItems.length
+            ? "BUSY has prepared work underneath"
+            : "BUSY has checked ahead • nothing needs interrupting"
+        }
+        body={
+          s.autopilotMode === "off"
+            ? "BUSY is watching and recommending only. Turn preparation back on whenever you want BUSY to work ahead."
+            : `${s.autopilotApprovalItems.length} item${s.autopilotApprovalItems.length === 1 ? "" : "s"} ready for approval • ${s.autopilotNeedsInputItems.length} need${s.autopilotNeedsInputItems.length === 1 ? "s" : ""} your input. BUSY can prepare safe internal work, but it still cannot send, publish or spend without the existing approval steps.`
+        }
+        footer={
+          s.autopilotLastCheckAt
+            ? `Last checked: ${new Date(s.autopilotLastCheckAt).toLocaleString("en-GB")}`
+            : `Mode: ${s.autopilotModeLabel}`
+        }
+        tone={
+          s.autopilotNeedsInputItems.length
+            ? "amber"
+            : s.autopilotApprovalItems.length
+            ? "green"
+            : "blue"
+        }
+      >
+        <MetricRow
+          left="Ready for approval"
+          right={String(s.autopilotApprovalItems.length)}
+          strong={s.autopilotApprovalItems.length > 0}
+        />
+        <MetricRow
+          left="Needs your input"
+          right={String(s.autopilotNeedsInputItems.length)}
+          strong={s.autopilotNeedsInputItems.length > 0}
+        />
+        <MetricRow left="Authority" right={s.autopilotModeLabel} />
+        <Button
+          label={
+            s.autopilotApprovalItems.length || s.autopilotNeedsInputItems.length
+              ? "Open Approval Inbox"
+              : "Open Controlled Autopilot"
+          }
+          primary={s.autopilotApprovalItems.length > 0 || s.autopilotNeedsInputItems.length > 0}
+          onPress={() => s.go("autopilotCentre")}
+        />
+      </Card>
+
       <Card
         eyebrow="V3.19 • BUSY Operator"
         title="Talk it through with BUSY"

@@ -36,3 +36,10 @@ This branch restructures the large single-file prototype into domain modules wit
 - The busy-command Edge Function receives recent conversation context plus current saved-business context and returns a strict structured operator result.
 - Operator results can be an answer, clarification, safe action, editable draft or multi-step plan.
 - Record-changing actions keep explicit confirmation and a reversible pre-change snapshot where supported.
+
+## V3.20 Controlled Autopilot
+- `src/screens/autopilot.js` is the owner-facing authority, Approval Inbox, Needs your input and plain-English rule surface.
+- Autopilot preparation is derived from the same saved customer/quote/job evidence used by Home and Business Brain; it does not create a separate hidden source of truth.
+- Safe preparation can write drafts internally, but external actions route back through the existing customer/social approval screens.
+- Trusted mode reuses the established high-confidence intake auto-file evaluator rather than introducing a broader write authority.
+- Operator and Autopilot state are both included in the normal local cache and cloud business snapshot.

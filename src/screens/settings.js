@@ -284,6 +284,7 @@ function Settings({ s }) {
       ) : null}
       <Button label="Business profile & opportunity data" onPress={() => s.go("businessData")} />
       <Button label="Social Control Centre" onPress={s.openSocialCentre} />
+      <Button label="Controlled Autopilot" primary onPress={() => s.go("autopilotCentre")} />
       <Button label="Business Brain" onPress={() => s.go("businessBrain")} />
       <Button label="Change limits" onPress={() => s.go("settingsLimits")} />
       <Button label="Automatic record filing" onPress={() => s.go("recordFilingSettings")} />

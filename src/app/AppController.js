@@ -282,6 +282,12 @@ function App() {
   const [busyOperatorSnapshot, setBusyOperatorSnapshot] = useState(null);
   const [busyActionAudit, setBusyActionAudit] = useState([]);
   const [busyUndoAction, setBusyUndoAction] = useState(null);
+  const [autopilotMode, setAutopilotMode] = useState("prepare");
+  const [autopilotRuleDraft, setAutopilotRuleDraft] = useState("");
+  const [autopilotLastCheckAt, setAutopilotLastCheckAt] = useState("");
+  const [autopilotLastSignature, setAutopilotLastSignature] = useState("");
+  const [autopilotSnoozed, setAutopilotSnoozed] = useState({});
+  const [autopilotPreparedLog, setAutopilotPreparedLog] = useState([]);
   const [pendingBrainFeedback, setPendingBrainFeedback] = useState(null);
   const [brainFeedbackReason, setBrainFeedbackReason] = useState("");
   const [quoteFollowUpDraft, setQuoteFollowUpDraft] = useState("");
@@ -448,6 +454,17 @@ function App() {
         if (Array.isArray(saved.busyActionAudit)) {
           setBusyActionAudit(saved.busyActionAudit.slice(0, 30));
         }
+        if (["off", "prepare", "trusted"].includes(saved.autopilotMode)) {
+          setAutopilotMode(saved.autopilotMode);
+        }
+        if (saved.autopilotLastCheckAt) setAutopilotLastCheckAt(saved.autopilotLastCheckAt);
+        if (saved.autopilotLastSignature) setAutopilotLastSignature(saved.autopilotLastSignature);
+        if (saved.autopilotSnoozed && typeof saved.autopilotSnoozed === "object") {
+          setAutopilotSnoozed(saved.autopilotSnoozed);
+        }
+        if (Array.isArray(saved.autopilotPreparedLog)) {
+          setAutopilotPreparedLog(saved.autopilotPreparedLog.slice(0, 30));
+        }
         if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
           setRecordFilingMode(saved.recordFilingMode);
         }
@@ -543,11 +560,36 @@ function App() {
     socialPreferredChannels,
     businessBrainRules,
     businessBrainFeedback,
+    autopilotMode,
+    autopilotModeLabel,
+    autopilotRuleDraft,
+    setAutopilotRuleDraft,
+    autopilotRules,
+    autopilotContactLimit,
+    autopilotPaidBlockedByRule,
+    autopilotLastCheckAt,
+    autopilotSnoozed,
+    autopilotPreparedLog,
+    autopilotApprovalItems,
+    autopilotNeedsInputItems,
+    changeAutopilotMode,
+    runAutopilotPreparation,
+    saveAutopilotRule,
+    removeAutopilotRule,
+    snoozeAutopilotItem,
+    restoreAutopilotItems,
+    openAutopilotApproval,
+    openAutopilotNeedsInput,
     proactiveNoticeState,
     busyCommandHistory,
     busyConversationTurns,
     busyOperatorSnapshot,
     busyActionAudit,
+    autopilotMode,
+    autopilotLastCheckAt,
+    autopilotLastSignature,
+    autopilotSnoozed,
+    autopilotPreparedLog,
     recordFilingMode,
     advanced,
   ]);
@@ -1665,6 +1707,15 @@ function App() {
     businessBrainRules,
     businessBrainFeedback,
     proactiveNoticeState,
+    busyCommandHistory,
+    busyConversationTurns,
+    busyOperatorSnapshot,
+    busyActionAudit,
+    autopilotMode,
+    autopilotLastCheckAt,
+    autopilotLastSignature,
+    autopilotSnoozed,
+    autopilotPreparedLog,
     recordFilingMode,
     advanced,
   });
@@ -1750,6 +1801,17 @@ function App() {
     }
     if (Array.isArray(saved.busyActionAudit)) {
       setBusyActionAudit(saved.busyActionAudit.slice(0, 30));
+    }
+    if (["off", "prepare", "trusted"].includes(saved.autopilotMode)) {
+      setAutopilotMode(saved.autopilotMode);
+    }
+    if (saved.autopilotLastCheckAt) setAutopilotLastCheckAt(saved.autopilotLastCheckAt);
+    if (saved.autopilotLastSignature) setAutopilotLastSignature(saved.autopilotLastSignature);
+    if (saved.autopilotSnoozed && typeof saved.autopilotSnoozed === "object") {
+      setAutopilotSnoozed(saved.autopilotSnoozed);
+    }
+    if (Array.isArray(saved.autopilotPreparedLog)) {
+      setAutopilotPreparedLog(saved.autopilotPreparedLog.slice(0, 30));
     }
     if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
       setRecordFilingMode(saved.recordFilingMode);
@@ -2218,6 +2280,11 @@ function App() {
     busyConversationTurns,
     busyOperatorSnapshot,
     busyActionAudit,
+    autopilotMode,
+    autopilotLastCheckAt,
+    autopilotLastSignature,
+    autopilotSnoozed,
+    autopilotPreparedLog,
     recordFilingMode,
     advanced,
   ]);
@@ -5676,6 +5743,12 @@ function App() {
     setBusyOperatorSnapshot(null);
     setBusyActionAudit([]);
     setBusyUndoAction(null);
+    setAutopilotMode("prepare");
+    setAutopilotRuleDraft("");
+    setAutopilotLastCheckAt("");
+    setAutopilotLastSignature("");
+    setAutopilotSnoozed({});
+    setAutopilotPreparedLog([]);
     setPendingBrainFeedback(null);
     setBrainFeedbackReason("");
     setQuoteFollowUpDraft("");
@@ -6534,6 +6607,455 @@ function App() {
     dueQuoteEntries.length +
     automaticReviewDraftCount +
     automaticPostDraftCount;
+
+  const autopilotRules = businessBrainRules.filter(
+    (rule) => rule?.source === "Autopilot rule"
+  );
+  const autopilotRuleText = autopilotRules
+    .map((rule) => String(rule.text || "").toLowerCase())
+    .join(" \n");
+
+  const autopilotModeLabel =
+    autopilotMode === "trusted"
+      ? "Trusted internal actions"
+      : autopilotMode === "off"
+      ? "Off"
+      : "Prepare for me";
+
+  const contactNumberWords = {
+    one: 1,
+    two: 2,
+    three: 3,
+    four: 4,
+    five: 5,
+  };
+  const autopilotContactLimit = (() => {
+    for (const rule of [...autopilotRules].reverse()) {
+      const text = String(rule.text || "").toLowerCase();
+      if (!/(contact|message|follow.?up|chase)/i.test(text)) continue;
+      const match = text.match(
+        /(?:no more than|more than|maximum|max|limit(?:ed)?(?:\s+to)?)\s+(one|two|three|four|five|\d+)/i
+      );
+      if (!match) continue;
+      const raw = String(match[1] || "").toLowerCase();
+      const parsed = contactNumberWords[raw] || Number(raw);
+      if (Number.isFinite(parsed) && parsed > 0) return parsed;
+    }
+    return null;
+  })();
+
+  const autopilotPaidBlockedByRule =
+    /(paid|advertis|ad spend)/i.test(autopilotRuleText) &&
+    /(never|do not|don't|free.*first|before.*paid|only after)/i.test(autopilotRuleText);
+
+  const customerContactCount = (customer) =>
+    (Array.isArray(customer?.activity) ? customer.activity : []).filter((item) =>
+      /(follow-up|review-request|reactivation|message|contact)/i.test(
+        String(item?.kind || "")
+      )
+    ).length;
+
+  const isAutopilotSnoozed = (id) => {
+    const until = Date.parse(autopilotSnoozed?.[id]?.until || "");
+    return Number.isFinite(until) && until > Date.now();
+  };
+
+  const autopilotRawApprovalItems = [
+    ...dueQuoteEntries.slice(0, 8).map((entry) => {
+      const amount = Number(entry.action?.details?.quoteAmount) || 0;
+      const customer = entry.customer;
+      const firstName = String(customer?.name || "").split(" ")[0] || "there";
+      const draft =
+        entry.action?.details?.followUpMessage ||
+        `Hi ${firstName}, just checking in about the ${String(
+          customer?.service || "work"
+        ).toLowerCase()} quote${amount ? ` for £${amount}` : ""}. No pressure at all — let me know if you’d like to go ahead, have any questions, or want me to leave it with you for now.`;
+      return {
+        id: `autopilot-quote-${entry.id}`,
+        kind: "quote-follow-up",
+        customerId: entry.id,
+        customerName: customer?.name || "Customer",
+        title: `Quote follow-up • ${customer?.name || "Customer"}`,
+        body: draft,
+        reason: `Quote has been quiet for ${entry.age || 0} days. Existing demand outranks creating new demand.`,
+        confidence: "High",
+        externalAction: "Customer message",
+        actionLabel: "Review message",
+        value: amount,
+        contactCount: customerContactCount(customer),
+      };
+    }),
+    ...staleEnquiryEntries.slice(0, 8).map((entry) => {
+      const customer = entry.customer;
+      const firstName = String(customer?.name || "").split(" ")[0] || "there";
+      const draft =
+        customer?.enquiryFollowUpDraft ||
+        `Hi ${firstName}, you got in touch with us about ${String(
+          customer?.service || "some work"
+        ).toLowerCase()} a little while ago. I just wanted to check whether you still needed any help with it. No problem at all if you’ve already sorted it.`;
+      return {
+        id: `autopilot-enquiry-${customer?.id}`,
+        kind: "enquiry-follow-up",
+        customerId: customer?.id || "",
+        customerName: customer?.name || "Customer",
+        title: `Quiet enquiry • ${customer?.name || "Customer"}`,
+        body: draft,
+        reason: `The enquiry is ${entry.age || 0} days old with no recorded next action.`,
+        confidence: "High",
+        externalAction: "Customer message",
+        actionLabel: "Review message",
+        value: 0,
+        contactCount: customerContactCount(customer),
+      };
+    }),
+    ...automaticReviewDraftEntries.slice(0, 8).map((entry) => ({
+      id: `autopilot-review-${entry.customer.id}-${entry.job.id}`,
+      kind: "review-request",
+      customerId: entry.customer.id,
+      jobId: entry.job.id,
+      customerName: entry.customer.name,
+      title: `Review request • ${entry.customer.name}`,
+      body: entry.job.reviewRequestDraft,
+      reason: "The completed job already contains enough information to prepare this safely.",
+      confidence: "High",
+      externalAction: "Customer message",
+      actionLabel: "Review request",
+      value: Number(entry.job.value) || 0,
+      contactCount: customerContactCount(entry.customer),
+    })),
+    ...automaticPostDraftEntries
+      .filter((entry) =>
+        !["Published", "Partial failure", "Scheduled", "Simulated published"].includes(
+          entry.job.postDraftStatus || "Prepared"
+        )
+      )
+      .slice(0, 6)
+      .map((entry) => ({
+        id: `autopilot-social-${entry.customer.id}-${entry.job.id}`,
+        kind: "social-post",
+        customerId: entry.customer.id,
+        jobId: entry.job.id,
+        customerName: entry.customer.name,
+        title: `Finished-job post • ${entry.customer.name}`,
+        body: entry.job.postDraft,
+        reason: "Real completed-job evidence and approved job photos are already saved.",
+        confidence: "High",
+        externalAction: "Public post",
+        actionLabel: "Review post",
+        value: Number(entry.job.value) || 0,
+        contactCount: 0,
+      })),
+    ...(activeWorkGoal &&
+    !workGoalFilled &&
+    reactivationEligibleCustomers.length
+      ? [{
+          id: `autopilot-reactivation-${activeWorkGoal.createdAt || "goal"}`,
+          kind: "reactivation",
+          title: `Fill ${activeWorkGoal.label || "the work gap"}`,
+          body: `BUSY has identified ${Math.min(
+            reactivationEligibleCustomers.length,
+            Math.max(1, recommendedReactivationBatchSize || 1)
+          )} suitable previous customer${Math.min(
+            reactivationEligibleCustomers.length,
+            Math.max(1, recommendedReactivationBatchSize || 1)
+          ) === 1 ? "" : "s"} to review before considering paid advertising.`,
+          reason: "Previous customers and warm demand are a lower-cost first move for an open capacity goal.",
+          confidence: reactivationEvidence?.evidenceReady ? "High" : "Medium",
+          externalAction: "Customer messages",
+          actionLabel: "Review customer batch",
+          value: 0,
+          contactCount: 0,
+        }]
+      : []),
+  ];
+
+  const autopilotContactBlockedItems =
+    autopilotContactLimit === null
+      ? []
+      : autopilotRawApprovalItems.filter(
+          (item) =>
+            item.customerId &&
+            item.kind !== "social-post" &&
+            Number(item.contactCount || 0) >= autopilotContactLimit
+        );
+
+  const autopilotApprovalItems =
+    autopilotMode === "off"
+      ? []
+      : autopilotRawApprovalItems
+          .filter(
+            (item) =>
+              !autopilotContactBlockedItems.some((blocked) => blocked.id === item.id) &&
+              !isAutopilotSnoozed(item.id)
+          )
+          .slice(0, 18);
+
+  const autopilotOverdueBookingItems = Object.entries(replyActions || {})
+    .map(([customerId, action]) => {
+      if (
+        action?.type !== "booking" ||
+        !action?.done ||
+        !action.details?.bookingDate ||
+        ["Cancelled", "Completed"].includes(action.details?.bookingStatus || "Confirmed") ||
+        action.details.bookingDate >= dateToISO(new Date())
+      ) return null;
+      const customer = customers.find((item) => item.id === customerId);
+      return customer
+        ? {
+            id: `autopilot-booking-input-${customerId}`,
+            kind: "booking-outcome",
+            customerId,
+            title: `Booking outcome needed • ${customer.name}`,
+            body: `${customer.service} was booked for ${formatUKDate(
+              action.details.bookingDate
+            )}. BUSY will not guess whether it was completed, moved or cancelled.`,
+            reason: "A real booking needs owner input before the diary and pipeline can be trusted.",
+            actionLabel: "Open booking",
+          }
+        : null;
+    })
+    .filter(Boolean);
+
+  const autopilotNeedsInputItems = [
+    ...inboxNeedsAttentionItems.slice(0, 8).map((item) => ({
+      id: `autopilot-inbox-${item.id}`,
+      kind: "inbox",
+      sourceId: item.id,
+      title: item.parsed?.name
+        ? `Check incoming record • ${item.parsed.name}`
+        : "Check incoming business record",
+      body: item.triage?.reason || "BUSY does not have enough confidence to file this automatically.",
+      reason: "Confidence threshold not met.",
+      actionLabel: "Review item",
+    })),
+    ...autopilotContactBlockedItems.map((item) => ({
+      ...item,
+      id: `autopilot-contact-limit-${item.id}`,
+      sourceApprovalId: item.id,
+      kind: "contact-limit",
+      body: `This would be contact #${Number(item.contactCount || 0) + 1}. Your owner rule limits BUSY to ${autopilotContactLimit} recorded contact${autopilotContactLimit === 1 ? "" : "s"} before asking you.`,
+      reason: "Owner contact-limit rule reached.",
+      actionLabel: "Review customer",
+    })),
+    ...autopilotOverdueBookingItems.slice(0, 6),
+    ...socialOutcomeReminders.slice(0, 5).map((entry) => ({
+      id: `autopilot-social-outcome-${entry.customer.id}-${entry.job.id}`,
+      kind: "social-outcome",
+      customerId: entry.customer.id,
+      jobId: entry.job.id,
+      title: `Post result needed • ${entry.customer.name}`,
+      body: "The post is recorded as published, but BUSY does not yet know whether it produced an enquiry or booking.",
+      reason: "Real outcomes improve the Business Brain; BUSY will not invent attribution.",
+      actionLabel: "Record outcome",
+    })),
+  ].filter((item) => !isAutopilotSnoozed(item.id));
+
+  const autopilotPreparationSignature = [
+    autopilotMode,
+    ...autopilotRawApprovalItems.map((item) => item.id),
+    ...autopilotNeedsInputItems.map((item) => item.id),
+    businessBrainRules.map((rule) => `${rule.id}:${rule.text}`).join("|"),
+  ].join("::");
+
+  const runAutopilotPreparation = ({ force = false } = {}) => {
+    if (autopilotMode === "off") {
+      setAutopilotLastCheckAt(new Date().toISOString());
+      setAutopilotLastSignature(autopilotPreparationSignature);
+      return { prepared: 0, needsInput: autopilotNeedsInputItems.length };
+    }
+    if (!force && autopilotLastSignature === autopilotPreparationSignature) {
+      return {
+        prepared: autopilotApprovalItems.length,
+        needsInput: autopilotNeedsInputItems.length,
+      };
+    }
+
+    // Safe internal prep only: create/edit no external messages and publish nothing.
+    setCustomers((current) =>
+      current.map((customer) => {
+        const entry = staleEnquiryEntries.find(
+          (candidate) => candidate.customer?.id === customer.id
+        );
+        if (!entry || customer.enquiryFollowUpDraft) return customer;
+        const firstName = String(customer.name || "").split(" ")[0] || "there";
+        return {
+          ...customer,
+          enquiryFollowUpDraft:
+            `Hi ${firstName}, you got in touch with us about ${String(
+              customer.service || "some work"
+            ).toLowerCase()} a little while ago. I just wanted to check whether you still needed any help with it. No problem at all if you’ve already sorted it.`,
+          enquiryFollowUpPreparedAt: new Date().toISOString(),
+        };
+      })
+    );
+
+    setReplyActions((current) => {
+      let changed = false;
+      const next = { ...current };
+      dueQuoteEntries.forEach((entry) => {
+        const action = next[entry.id];
+        if (
+          !action ||
+          action?.type !== "quote" ||
+          action.details?.followUpMessage
+        ) return;
+        const customer = entry.customer;
+        const amount = action.details?.quoteAmount;
+        const service = customer?.service || "the work";
+        next[entry.id] = {
+          ...action,
+          details: {
+            ...(action.details || {}),
+            followUpMessage:
+              `Hi ${String(customer?.name || "there").split(" ")[0]}, just checking in about the ${service.toLowerCase()} quote${amount ? ` for £${amount}` : ""}. No pressure at all — let me know if you’d like to go ahead, have any questions, or want me to leave it with you for now.`,
+            followUpPreparedAt: new Date().toISOString(),
+          },
+        };
+        changed = true;
+      });
+      return changed ? next : current;
+    });
+
+    const checkedAt = new Date().toISOString();
+    setAutopilotLastCheckAt(checkedAt);
+    setAutopilotLastSignature(autopilotPreparationSignature);
+    setAutopilotPreparedLog((current) => [
+      {
+        id: `autopilot-check-${Date.now()}`,
+        checkedAt,
+        mode: autopilotMode,
+        prepared: autopilotApprovalItems.length,
+        needsInput: autopilotNeedsInputItems.length,
+      },
+      ...current,
+    ].slice(0, 30));
+    return {
+      prepared: autopilotApprovalItems.length,
+      needsInput: autopilotNeedsInputItems.length,
+    };
+  };
+
+  useEffect(() => {
+    if (!hydrated || !cloudAttempted || autopilotMode === "off") return;
+    if (autopilotLastSignature === autopilotPreparationSignature) return;
+    const timer = setTimeout(() => {
+      runAutopilotPreparation();
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [
+    hydrated,
+    cloudAttempted,
+    autopilotMode,
+    autopilotPreparationSignature,
+    autopilotLastSignature,
+  ]);
+
+  const changeAutopilotMode = (mode) => {
+    if (!["off", "prepare", "trusted"].includes(mode)) return;
+    setAutopilotMode(mode);
+    setAutopilotLastSignature("");
+    if (mode === "trusted") {
+      // Existing safe-filing evaluator remains the only automatic record-write authority.
+      setRecordFilingMode("safe");
+    }
+  };
+
+  const saveAutopilotRule = () => {
+    const text = autopilotRuleDraft.trim();
+    if (!text) return;
+    setBusinessBrainRules((rules) => [
+      ...rules,
+      {
+        id: `autopilot-rule-${Date.now()}`,
+        text,
+        source: "Autopilot rule",
+        scope: businessBrainRuleScope(text),
+        confidence: "Owner-set",
+        kind: "manual",
+        targetFamilies: manualRuleTargetFamilies({ text }),
+        createdAt: new Date().toISOString(),
+      },
+    ]);
+    setAutopilotRuleDraft("");
+    setAutopilotLastSignature("");
+  };
+
+  const removeAutopilotRule = (id) => {
+    setBusinessBrainRules((rules) => rules.filter((rule) => rule.id !== id));
+    setAutopilotLastSignature("");
+  };
+
+  const snoozeAutopilotItem = (id, hours = 24) => {
+    setAutopilotSnoozed((current) => ({
+      ...current,
+      [id]: {
+        until: new Date(Date.now() + hours * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    }));
+  };
+
+  const restoreAutopilotItems = () => setAutopilotSnoozed({});
+
+  const openAutopilotApproval = (item) => {
+    if (!item) return false;
+    if (item.kind === "quote-follow-up") {
+      prepareQuoteFollowUp(item.customerId);
+      return true;
+    }
+    if (item.kind === "enquiry-follow-up") {
+      prepareEnquiryFollowUp(item.customerId);
+      return true;
+    }
+    if (item.kind === "review-request") {
+      prepareReviewRequest(item.customerId, item.jobId);
+      return true;
+    }
+    if (item.kind === "social-post") {
+      openJobPostApproval(item.customerId, item.jobId);
+      return true;
+    }
+    if (item.kind === "reactivation") {
+      startCampaign(
+        0,
+        Math.max(
+          1,
+          Math.min(
+            reactivationEligibleCustomers.length,
+            recommendedReactivationBatchSize || 1
+          )
+        )
+      );
+      return true;
+    }
+    return false;
+  };
+
+  const openAutopilotNeedsInput = (item) => {
+    if (!item) return false;
+    if (item.kind === "inbox") {
+      openInboxItem(item.sourceId);
+      return true;
+    }
+    if (item.kind === "contact-limit") {
+      const original = autopilotRawApprovalItems.find(
+        (candidate) => candidate.id === item.sourceApprovalId
+      );
+      if (original?.customerId) {
+        openCustomer(original.customerId);
+        return true;
+      }
+    }
+    if (item.kind === "booking-outcome") {
+      openSavedReplyAction(item.customerId);
+      return true;
+    }
+    if (item.kind === "social-outcome") {
+      openJobPostOutcome(item.customerId, item.jobId);
+      return true;
+    }
+    return false;
+  };
   const captureMatch = captureForceNew
     ? null
     : findCustomerMatch(customers, {

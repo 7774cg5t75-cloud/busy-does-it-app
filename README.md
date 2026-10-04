@@ -2,6 +2,21 @@
 
 Busy Does It mobile app prototype.
 
+## v3.20 Controlled Autopilot
+- Built directly on the tested V3.19 BUSY Operator branch.
+- Added three explicit authority levels: Off, Prepare for me (recommended default) and Trusted internal actions.
+- Prepare for me automatically prepares safe internal quote/enquiry follow-up wording and gathers already-prepared review/social work into one Approval Inbox.
+- Trusted internal actions also enables the existing high-confidence safe record-filing evaluator; it does not expand authority to customer sends, public publishing, advertising spend or important booking changes.
+- Added a Home Autopilot briefing showing how many prepared items are ready for approval and how many items need owner input.
+- Added a dedicated Approval Inbox that routes each item into the existing final review/approval flow rather than executing external actions itself.
+- Added Needs your input for low-confidence incoming records, owner-rule contact-limit conflicts, unresolved past bookings and missing real social outcomes.
+- Added owner rules in normal English. V3.20 directly enforces contact-count limits where the saved activity supports them and exposes paid-advertising blocks while existing Business Brain rule logic continues to influence recommendations.
+- Added safe automatic preparation checks when the app/cloud workspace is restored or relevant saved-business evidence changes.
+- Added 24-hour snooze/restore controls plus a preparation log.
+- Fixed V3.19 cloud snapshot coverage so recent Operator conversation context, operating snapshot and BUSY action audit are included with the business cloud snapshot alongside V3.20 Autopilot state.
+- Hard boundaries remain: Autopilot cannot autonomously send customer messages, publish publicly, spend money, delete records or silently change important bookings.
+- Main navigation remains Home / Work / Results / Settings.
+
 ## v3.19 BUSY Operator
 - Built directly on the tested V3.18 Talk to BUSY voice/text layer.
 - Talk to BUSY is now conversational rather than isolated-command based: the current subject, recent references and the last prepared draft are carried across turns.
