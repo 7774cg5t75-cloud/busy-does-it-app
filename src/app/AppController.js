@@ -7553,11 +7553,27 @@ function App() {
 
   const executeBusyPlanStep = (step) => {
     if (!step) return false;
-    return executeBusyCommand({
+    const command = {
       ...step,
+      title: step.label || "BUSY plan step",
+      response: step.reason || "Review this step before continuing.",
       transcript: busyCommandResult?.transcript || "",
       confidence: busyCommandResult?.confidence || "Medium",
-    });
+      mode: "action",
+      previewRows: [
+        ...(step.customerName ? [{ label: "Customer", value: step.customerName }] : []),
+        ...(step.service ? [{ label: "Service", value: step.service }] : []),
+        ...(step.date ? [{ label: "Date", value: step.date }] : []),
+        ...(step.time ? [{ label: "Time", value: step.time }] : []),
+        ...(Number(step.value) > 0 ? [{ label: "Value", value: `£${step.value}` }] : []),
+      ],
+      planSteps: [],
+    };
+    if (step.requiresConfirmation) {
+      setBusyCommandResult({ ...command, requiresConfirmation: true });
+      return true;
+    }
+    return executeBusyCommand(command);
   };
 
   const undoLastBusyAction = () => {
