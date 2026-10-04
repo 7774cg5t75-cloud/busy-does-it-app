@@ -22,8 +22,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 
-const APP_VERSION = "3.12";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Account Safety & Recovery`;
+const APP_VERSION = "3.13";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Business-Separated Social Tenancy`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
@@ -1578,6 +1578,12 @@ function App() {
   const [selectedSocialDraftId, setSelectedSocialDraftId] = useState(null);
   const [socialPublishingStatus, setSocialPublishingStatus] = useState({
     loaded: false,
+    owner: {
+      authenticated: false,
+      email: "",
+      businessId: "",
+      role: "",
+    },
     credentials: {
       meta: { configured: false },
       google_business: { configured: false },
@@ -3436,8 +3442,25 @@ function App() {
     try {
       const data = await socialPublishRequest("status");
       const queue = Array.isArray(data.queue) ? data.queue : [];
+      const publishingBusinessId = String(data?.owner?.businessId || "");
+      const appBusinessId = String(cloudWorkspace?.businessId || "");
+      if (
+        publishingBusinessId &&
+        appBusinessId &&
+        publishingBusinessId !== appBusinessId
+      ) {
+        throw new Error(
+          "BUSY blocked this publishing response because it belongs to a different business workspace."
+        );
+      }
       setSocialPublishingStatus({
         loaded: true,
+        owner: data.owner || {
+          authenticated: true,
+          email: ownerSession?.email || "",
+          businessId: appBusinessId,
+          role: cloudWorkspace?.role || "",
+        },
         credentials: data.credentials || {},
         connections: data.connections || {},
         queue,
@@ -17243,7 +17266,7 @@ function Settings({ s }) {
         }
         body={
           s.ownerSession?.accessToken
-            ? "Customers, work records, services, goals and BUSY learning are mirrored to a Supabase workspace protected by row-level security. V3.12 also stops an older device from silently overwriting a newer cloud revision."
+            ? "Customers, work records, services, goals and BUSY learning are mirrored to a protected Supabase workspace. V3.13 now puts Facebook, Instagram, Google connection records and publishing history behind that same business boundary too."
             : "The app can still run locally, but signed-in accounts get a separate protected business workspace that can be restored on another device."
         }
         footer={
@@ -17351,7 +17374,7 @@ function AccountAccess({ s }) {
       <Card
         eyebrow="Privacy"
         title="One account cannot browse another business"
-        body="The cloud database uses authenticated membership rules, and V3.12 also stops unsigned users from seeing a previous user's local business data."
+        body="The cloud database uses authenticated membership rules. V3.13 extends that same boundary to social-provider connections and publishing history, while unsigned users still cannot see a previous user's local business data."
         tone="blue"
       />
     </ScrollView>
@@ -17414,7 +17437,7 @@ function AccountData({ s }) {
       <Card
         eyebrow="What is stored"
         title="Core business data is cloud-backed; provider secrets stay server-side"
-        body="The account snapshot contains the business records BUSY needs to restore the app. Facebook, Instagram and Google provider tokens are not included in the export or local cache."
+        body="The account snapshot contains the business records BUSY needs to restore the app. Facebook, Instagram and Google connection records now belong to the same business tenant, while provider tokens remain server-side and are never included in the export or local cache."
         footer="Selected phone photos still follow the app's existing explicit-permission rules"
         tone="blue"
       />
@@ -17422,7 +17445,7 @@ function AccountData({ s }) {
       <Text style={styles.sectionLabel}>Account safety</Text>
       <Button label="Sign out on this device" onPress={s.signOutOwner} />
       <Text style={styles.helper}>
-        Full self-service account deletion will only be enabled once the remaining social-provider workspace is migrated into the same per-business tenancy boundary. BUSY will not pretend deletion is complete while provider data still uses the older prototype workspace.
+        V3.13 has now moved social-provider connections and publishing records into the same per-business tenancy boundary. The next account-control step can therefore add a genuine self-service delete-account flow without leaving the old social workspace behind.
       </Text>
       <Button label="Done" onPress={s.back} />
     </Shell>
@@ -17800,18 +17823,18 @@ function ConnectedAccounts({ s }) {
     <Shell
       s={s}
       title="Connected accounts"
-      subtitle="V3.11 adds a real BUSY account and protected business workspace while keeping the V3.10 provider connections intact."
+      subtitle="V3.13 makes every Facebook, Instagram and future Google publishing record belong to the signed-in business rather than one shared prototype workspace."
       brandCue="BUSY can prepare automatically. Public publishing still requires an authenticated owner and an approved post."
     >
       <Card
-        eyebrow="V3.11 • Account protection"
+        eyebrow="V3.13 • Business tenancy"
         title={s.ownerSession?.accessToken ? "Account verified" : "BUSY account sign-in"}
         body={
           s.ownerSession?.accessToken
-            ? "This device has an authenticated Supabase session. Core business data can now restore from its protected cloud workspace, and publishing controls still verify the same session on the server."
+            ? "This device has an authenticated Supabase session. The publishing server now resolves the business from that session and only returns that business's provider connections, drafts and publishing history."
             : "Sign in to connect this device to a protected BUSY business workspace. Provider access alone is never enough to publish."
         }
-        footer={s.ownerSession?.accessToken ? "Session stored securely on this device" : "Each signed-in business gets its own protected data workspace"}
+        footer={s.ownerSession?.accessToken ? "Session + business membership are verified server-side" : "Each signed-in business gets its own protected data workspace"}
         tone={s.ownerSession?.accessToken ? "green" : "amber"}
       >
         <View style={styles.ownerIdentityBlock}>
@@ -17820,7 +17843,23 @@ function ConnectedAccounts({ s }) {
         </View>
         <MetricRow left="Account status" right={s.ownerSession?.accessToken ? "Verified" : "Signed out"} strong={!!s.ownerSession?.accessToken} />
         {s.ownerSession?.accessToken ? (
-          <MetricRow left="Cloud data" right={s.cloudInitialised ? s.cloudSyncStatus : "Preparing…"} strong={s.cloudInitialised && !s.cloudSyncError} />
+          <>
+            <MetricRow left="Cloud data" right={s.cloudInitialised ? s.cloudSyncStatus : "Preparing…"} strong={s.cloudInitialised && !s.cloudSyncError} />
+            <MetricRow
+              left="Publishing tenant"
+              right={
+                s.socialPublishingStatus?.owner?.businessId
+                  ? s.socialPublishingStatus.owner.businessId === s.cloudWorkspace?.businessId
+                    ? "Matches this business"
+                    : "Blocked mismatch"
+                  : "Verified when publishing loads"
+              }
+              strong={
+                !!s.socialPublishingStatus?.owner?.businessId &&
+                s.socialPublishingStatus.owner.businessId === s.cloudWorkspace?.businessId
+              }
+            />
+          </>
         ) : null}
         {!s.ownerSession?.accessToken ? (
           <>
@@ -17865,7 +17904,7 @@ function ConnectedAccounts({ s }) {
       </Card>
 
       <Card
-        eyebrow="V3.11 • Connection health"
+        eyebrow="V3.13 • Tenant-scoped connection health"
         title={
           credentials.livePublishingEnabled
             ? "Live provider publishing is enabled"
