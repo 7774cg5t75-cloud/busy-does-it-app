@@ -9987,9 +9987,10 @@ function HomeScreen({ s }) {
       let estimatedValue = directValue && directValue !== "Not recorded"
         ? `Known ${directValue}`
         : service?.value
-        ? `Typical job ~£${Number(service.value)}`
+        ? `Potential job ~£${Number(service.value)}`
         : "Indirect / not yet quantified";
 
+      const opportunityFamily = item.brainFamily || businessBrainOpportunityFamily(item.id);
       if (item.id === "quiet-slot" && s.workGoalRemainingJobs && s.workGoalPlanningService?.value) {
         estimatedValue = `Capacity goal up to £${Math.round(
           Number(s.workGoalRemainingJobs) * Number(s.workGoalPlanningService.value)
@@ -9998,6 +9999,12 @@ function HomeScreen({ s }) {
         estimatedValue = "Learning value";
       } else if (item.id === "work-goal-reached") {
         estimatedValue = "Protects capacity / spend";
+      } else if (String(item.id || "").startsWith("job-photo-review-bundle-")) {
+        estimatedValue = "Reuses completed work";
+      } else if (opportunityFamily === "reviews") {
+        estimatedValue = "Trust / reputation value";
+      } else if (opportunityFamily === "social") {
+        estimatedValue = "Organic reach / proof";
       }
 
       const pattern = item.brainFamily
@@ -10618,6 +10625,21 @@ function WorkHub({ s }) {
       label: "Prepare follow-up",
       tone: "blue",
       action: () => s.prepareEnquiryFollowUp(s.staleEnquiryEntries[0].customer.id),
+    });
+  }
+  if (s.postJobBundleOpportunity) {
+    weeklyPlanCandidates.push({
+      key: "completed-job-bundle",
+      eyebrow: "Use work already completed",
+      title: `Turn ${s.postJobBundleOpportunity.customerName}'s finished job into the sensible follow-ons`,
+      body: "BUSY can prepare the review request, finished-job content and repeat timing from the same saved job record instead of making you enter the details again.",
+      label: "Review completed-job bundle",
+      tone: "green",
+      action: () =>
+        s.openPostJobBundle(
+          s.postJobBundleOpportunity.customerId,
+          s.postJobBundleOpportunity.jobId
+        ),
     });
   }
   if (s.socialOutcomeReminders?.length) {
@@ -17401,8 +17423,8 @@ function BusinessBrain({ s }) {
     <Shell
       s={s}
       title="Business Brain"
-      subtitle="The evidence and owner rules BUSY is actually using to tailor this business."
-      brandCue="Auditable learning: source, sample, confidence, freshness and owner authority."
+      subtitle="The evidence, outcomes and owner choices BUSY is actually using to tailor this business."
+      brandCue="Auditable learning: source, sample, confidence, freshness, choices and owner authority."
     >
       <Card
         eyebrow="V3.16 • Business Brain Intelligence 2.0"
