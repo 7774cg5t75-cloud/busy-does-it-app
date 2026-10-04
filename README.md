@@ -4,6 +4,21 @@ Busy Does It mobile app prototype.
 
 ## v3.16 Business Brain Intelligence 2.0
 - Built from the tested V3.15 production-security foundation.
+- Reworked Home into a clearer Next Best Actions layer that ranks the top three things worth attention instead of showing one recommendation plus an unstructured pile underneath.
+- Ranking continues to protect live customer obligations first, then considers likely business value, zero/low-cost leverage, recorded business outcomes, evidence freshness, owner choices and owner-set hard rules.
+- Each ranked action now shows its priority, a conservative business-value label and a decision-confidence label alongside the existing Why is this? evidence.
+- BUSY now learns from positive owner choices as well as dismissals. Choosing an optional recommendation gives that narrow recommendation family a small bounded preference signal; dismissals and hard rules still reduce or block unsuitable suggestions.
+- Real recorded outcomes remain more important than preference signals, and live enquiries/bookings/follow-ups cannot be hidden by marketing preferences.
+- Added a completed-job bundle that can use one saved finished job to prepare the relevant follow-ons: a review request, finished-job social content and repeat-service timing.
+- Prepare all safe next steps only prepares drafts/timing inside BUSY. It does not contact a customer, publish publicly or spend money without the existing approval flows.
+- Suppressed duplicate Home cards for review/social actions when they are already represented inside the same completed-job bundle.
+- Connected the completed-job bundle into the Work weekly plan as well as Home so the same intelligent follow-on is visible in both places.
+- Updated Business Brain to show chosen vs dismissed recommendations and the bounded ranking effect those choices are having.
+- Kept Facebook/Instagram live publishing, account security, cloud tenancy and the waiting Google Business state unchanged.
+- Main navigation remains Home / Work / Results / Settings.
+
+## v3.16 Business Brain Intelligence 2.0
+- Built from the tested V3.15 production-security foundation.
 - Home now shows a true Top 3 Next Best Actions view instead of only one best move plus a hidden list.
 - The Opportunity Engine now annotates ranked actions with a cautious business-value label and a decision-confidence label, while keeping live customer obligations above optional marketing activity.
 - Optional recommendations now teach the Business Brain in both directions: choosing a suggestion adds a small bounded positive ranking signal; dismissing one still records the business-specific reason and can reduce or block similar suggestions.
