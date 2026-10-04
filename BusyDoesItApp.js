@@ -15274,6 +15274,138 @@ function JobPhotoOpportunity({ s }) {
   );
 }
 
+function PostJobBundle({ s }) {
+  const customer = s.selectedJobCustomer;
+  const job = s.selectedJob;
+  if (!customer || !job) {
+    return (
+      <Shell
+        s={s}
+        title="Use this completed job"
+        subtitle="The completed job could not be found."
+      >
+        <Button label="Back" primary onPress={s.back} />
+      </Shell>
+    );
+  }
+
+  const approvedPhotos = (Array.isArray(job.photos) ? job.photos : []).filter(
+    (photo) => photo.marketingOk
+  );
+  const reviewReady =
+    customer.contactOk !== false &&
+    !job.reviewRequestSentAt;
+  const postReady =
+    approvedPhotos.length > 0 &&
+    !["Published", "Simulated published"].includes(job.postDraftStatus);
+  const repeatDue =
+    customer.nextRepeatDueDate ||
+    job.repeatDueDate ||
+    "";
+  const reviewPrepared = !!job.reviewRequestDraft;
+  const postPrepared = !!job.postDraft;
+
+  return (
+    <Shell
+      s={s}
+      title="Use this completed job"
+      subtitle="One saved job can create several useful follow-on actions without typing the same information three times."
+      brandCue="Prepare underneath. Keep customer contact and public posting under your control."
+    >
+      <Card
+        eyebrow="V3.16 • Completed-job bundle"
+        title={`${customer.name} • ${job.service || customer.service}`}
+        body="BUSY has linked the sensible follow-ons around this real completed job: review, social proof and repeat-service timing."
+        footer={job.value ? `Recorded job value: £${job.value}` : "Recorded job value not set"}
+        tone="green"
+      >
+        <MetricRow left="Review request" right={job.reviewRequestSentAt ? "Already sent" : reviewPrepared ? "Prepared" : reviewReady ? "Can prepare" : "Not available"} strong={reviewPrepared && !job.reviewRequestSentAt} />
+        <MetricRow left="Finished-job post" right={["Published", "Simulated published"].includes(job.postDraftStatus) ? "Already published" : postPrepared ? "Prepared" : postReady ? "Can prepare" : approvedPhotos.length ? "Needs review" : "No approved photos"} strong={postPrepared && !["Published", "Simulated published"].includes(job.postDraftStatus)} />
+        <MetricRow left="Repeat timing" right={repeatDue ? formatUKDate(repeatDue) : "No repeat date available"} strong={!!repeatDue} />
+      </Card>
+
+      <Button
+        label="Prepare all safe next steps"
+        primary
+        onPress={s.preparePostJobBundle}
+      />
+      <Text style={styles.helper}>
+        This button only prepares internal drafts/timing. It does not message the customer, publish anything or spend money.
+      </Text>
+
+      <Text style={styles.sectionLabel}>1. Review request</Text>
+      <Card
+        eyebrow="Customer follow-up"
+        title={
+          job.reviewRequestSentAt
+            ? "Review request already handled"
+            : customer.contactOk === false
+            ? "Customer contact is not allowed"
+            : reviewPrepared
+            ? "Review wording is ready"
+            : "BUSY can prepare the wording"
+        }
+        body={
+          job.reviewRequestDraft ||
+          "BUSY will use the saved customer name and completed service to prepare a short, low-pressure review request."
+        }
+        tone={job.reviewRequestSentAt ? "blue" : reviewReady ? "green" : "amber"}
+      >
+        {reviewReady ? (
+          <Button
+            label={reviewPrepared ? "Review request" : "Prepare review request"}
+            onPress={() => s.prepareReviewRequest(customer.id, job.id)}
+          />
+        ) : null}
+      </Card>
+
+      <Text style={styles.sectionLabel}>2. Finished-job post</Text>
+      <Card
+        eyebrow="Social proof"
+        title={
+          ["Published", "Simulated published"].includes(job.postDraftStatus)
+            ? "Finished-job post already handled"
+            : postPrepared
+            ? "Post wording is ready"
+            : approvedPhotos.length
+            ? `${approvedPhotos.length} approved photo${approvedPhotos.length === 1 ? "" : "s"} can be used`
+            : "Add/approve job photos first"
+        }
+        body={
+          job.postDraft ||
+          "BUSY can prepare a simple post from approved completed-job photos without adding the customer's private details."
+        }
+        tone={postReady ? "green" : "blue"}
+      >
+        {!["Published", "Simulated published"].includes(job.postDraftStatus) ? (
+          <Button
+            label={postPrepared ? "Review post approval" : approvedPhotos.length ? "Prepare finished-job post" : "Open job photos"}
+            onPress={() =>
+              postPrepared
+                ? s.openJobPostApproval(customer.id, job.id)
+                : approvedPhotos.length
+                ? s.openJobPhotoOpportunity(customer.id, job.id)
+                : s.openJobAssets(customer.id, job.id)
+            }
+          />
+        ) : null}
+      </Card>
+
+      <Text style={styles.sectionLabel}>3. Repeat timing</Text>
+      <Card
+        eyebrow="Future work"
+        title={repeatDue ? `Next timing: ${formatUKDate(repeatDue)}` : "No repeat timing set yet"}
+        body="BUSY keeps the repeat-service timing on the customer record so it can surface the opportunity when the real date approaches rather than nagging early."
+        tone={repeatDue ? "green" : "blue"}
+      >
+        <Button label="Open customer timeline" onPress={() => s.openCustomer(customer.id)} />
+      </Card>
+
+      <Button label="Back to Home" onPress={() => s.jump("home", "Home")} />
+    </Shell>
+  );
+}
+
 function JobPostDraft({ s }) {
   const customer = s.selectedJobCustomer;
   const job = s.selectedJob;
@@ -18721,6 +18853,7 @@ const screens = {
   jobCompletePhotos: JobCompletePhotos,
   jobPhotos: JobPhotos,
   jobPhotoOpportunity: JobPhotoOpportunity,
+  postJobBundle: PostJobBundle,
   jobPostDraft: JobPostDraft,
   jobPostApproval: JobPostApproval,
   jobPostPublished: JobPostPublished,
