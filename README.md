@@ -3,6 +3,20 @@
 Busy Does It mobile app prototype.
 
 ## v3.16 Business Brain Intelligence 2.0
+- Built from the tested V3.15 production-security baseline.
+- Home now surfaces a ranked Top 3 Next Best Actions rather than only one best move, while live customer commitments still outrank optional marketing suggestions.
+- Every ranked recommendation now shows a visible priority number, a cautious business-value label and decision confidence alongside the existing Why is this? evidence.
+- Opportunity ranking continues to use real business outcomes, sample size and freshness, but V3.16 also learns from owner choices: choosing an optional recommendation creates a small positive signal; dismissing one keeps the existing bounded negative signal.
+- Choice-learning is intentionally narrow and bounded. It cannot overpower waiting enquiries, bookings, promised follow-ups or hard owner rules.
+- Business Brain now shows chosen vs dismissed recommendation history and the bounded ranking effect by recommendation family so the owner can see what BUSY has actually learned.
+- Added a completed-job 3-step bundle: review request, finished-job social proof and repeat-service timing are linked around the same real completed job rather than being treated as separate admin tasks.
+- The completed-job bundle prepares only internal drafts/timing. Customer messaging and public publishing still require explicit owner approval.
+- Completing a job now offers the bundle directly, and saving approved job photos routes into the bundle instead of jumping straight to a social post.
+- Duplicate post/review opportunities for the same completed job are suppressed while the bundle is active, reducing clutter on Home.
+- Existing Facebook/Instagram publishing, cloud tenancy, account security and Google Business waiting-state logic remain unchanged.
+- Main navigation remains Home / Work / Results / Settings.
+
+## v3.16 Business Brain Intelligence 2.0
 - Built from the tested V3.15 production-security foundation.
 - Home now ranks a visible Top 3 Next Best Actions rather than showing only one recommendation and hiding the rest behind another tap.
 - Each ranked action can show its priority, a cautious business-value label and decision confidence alongside the existing Why is this? evidence.
