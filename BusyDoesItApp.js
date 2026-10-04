@@ -2969,7 +2969,7 @@ function App() {
         : "Job photos removed.",
     });
     if (photos.length && jobPhotosMarketingOk) {
-      go("jobPostDraft");
+      go("postJobBundle");
     } else {
       openCustomer(selectedCustomerId);
     }
@@ -15257,6 +15257,7 @@ function JobCompletePhotos({ s }) {
       />
       <Card eyebrow="Optional next step" title="Got any photos from this job?" body="Choose only the photos you want attached to this job. BUSY DOES IT does not browse the rest of your camera roll, and nothing is posted automatically." tone="blue" />
       <Button label="Add job photos" primary onPress={() => s.go("jobPhotos")} />
+      <Button label="Review all follow-on actions" onPress={() => s.openPostJobBundle(customer.id, job.id)} />
       <Button label="Skip for now" onPress={() => s.openCustomer(customer.id)} />
     </Shell>
   );
