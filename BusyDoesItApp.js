@@ -8172,6 +8172,246 @@ function App() {
     workGoalPlanShortfall === 0 &&
     workGoalBookedCount >= workGoalTargetJobs;
 
+  const proactiveTodayISO = dateToISO(new Date());
+  const proactiveWeekEndISO = addDaysFromISO(proactiveTodayISO, 6);
+  const proactiveLookAheadISO = addDaysFromISO(proactiveTodayISO, 13);
+  const proactiveBookingsNext7 = Object.entries(replyActions || {})
+    .map(([id, action]) => {
+      if (
+        action?.type !== "booking" ||
+        !action?.done ||
+        !action.details?.bookingDate ||
+        ["Cancelled", "Completed"].includes(action.details?.bookingStatus || "Confirmed") ||
+        action.details.bookingDate < proactiveTodayISO ||
+        action.details.bookingDate > proactiveWeekEndISO
+      ) return null;
+      const customer =
+        customers.find((item) => item.id === id) ||
+        lastSimulatedRecipients.find((item) => item.id === id);
+      return customer ? { id, action, customer } : null;
+    })
+    .filter(Boolean);
+  const proactiveBookedValueNext7 = proactiveBookingsNext7.reduce(
+    (total, item) =>
+      total +
+      (Number(item.action.details?.jobValue) ||
+        Number(item.action.details?.sourceQuoteAmount) ||
+        0),
+    0
+  );
+  const proactiveRepeatDueSoon = (repeatTimingTrackedEntries || []).filter(
+    ({ customer, dueDate }) =>
+      customer?.contactOk !== false &&
+      dueDate >= proactiveTodayISO &&
+      dueDate <= proactiveLookAheadISO
+  );
+  const proactiveDueQuoteValue = (dueQuoteEntries || []).reduce(
+    (total, item) =>
+      total + (Number(item.action?.details?.quoteAmount) || 0),
+    0
+  );
+  const proactiveLearningGapCount =
+    (socialOutcomeReminders?.length || 0) +
+    (quoteFollowUpOutcomeOpportunity ? 1 : 0) +
+    (enquiryFollowUpOutcomeOpportunity ? 1 : 0) +
+    (reviewOutcomeOpportunity ? 1 : 0);
+
+  const proactiveSignalRows = [];
+
+  if ((inboxNeedsAttentionItems?.length || 0) >= 2) {
+    const ids = inboxNeedsAttentionItems.slice(0, 4).map((item) => item.id).join("-");
+    proactiveSignalRows.push({
+      id: `inbox-stack-${ids}`,
+      score: 118,
+      tone: "amber",
+      category: "Incoming work",
+      title: `BUSY noticed ${inboxNeedsAttentionItems.length} incoming items need checking`,
+      body: "Several new pieces of information are waiting for review. Clearing uncertain incoming records now protects the customer pipeline from getting out of step.",
+      footer: "Nothing has been filed from these uncertain items yet",
+      actionLabel: "Review BUSY Inbox",
+      onAction: openBusyInbox,
+      why: "This is a cluster rather than one isolated message. BUSY raises it because multiple unresolved incoming records can affect quotes, bookings and customer timelines.",
+      evidence: [
+        ["Items needing attention", String(inboxNeedsAttentionItems.length)],
+        ["Automatic filing", "Blocked until reviewed"],
+        ["Customer-facing action", "None"],
+      ],
+    });
+  }
+
+  if ((dueQuoteEntries?.length || 0) >= 2) {
+    const ids = dueQuoteEntries.slice(0, 4).map((item) => item.id).join("-");
+    proactiveSignalRows.push({
+      id: `quote-cluster-${ids}`,
+      score: 108 + Math.min(10, dueQuoteEntries.length),
+      tone: "green",
+      category: "Warm demand",
+      title: `BUSY noticed ${dueQuoteEntries.length} quotes have gone quiet`,
+      body: proactiveDueQuoteValue
+        ? `There is £${proactiveDueQuoteValue} of recorded quote value sitting in follow-up territory. BUSY would revisit this warm demand before creating colder marketing.`
+        : "Several real quotes are due for a follow-up. BUSY would revisit this warm demand before creating colder marketing.",
+      footer: "Existing intent • £0 advertising required",
+      actionLabel: "Review quote follow-ups",
+      onAction: () => go("staleQuotes"),
+      why: "A cluster of existing quotes is stronger evidence of potential work than a generic marketing idea, especially when the follow-up costs nothing.",
+      evidence: [
+        ["Quotes due", String(dueQuoteEntries.length)],
+        ["Recorded quote value", proactiveDueQuoteValue ? `£${proactiveDueQuoteValue}` : "Not fully recorded"],
+        ["Advertising required", "£0"],
+      ],
+    });
+  }
+
+  if (
+    proactiveBookingsNext7.length <= 1 &&
+    reactivationEligibleCustomers.length >= 3 &&
+    !activeWorkGoal
+  ) {
+    proactiveSignalRows.push({
+      id: `quiet-week-${proactiveTodayISO}-${proactiveBookingsNext7.length}-${reactivationEligibleCustomers.length}`,
+      score: 88,
+      tone: "blue",
+      category: "Capacity",
+      title: "BUSY noticed the next 7 days look light",
+      body: `${proactiveBookingsNext7.length} confirmed booking${proactiveBookingsNext7.length === 1 ? "" : "s"} are saved for the next week, while ${reactivationEligibleCustomers.length} previous customer${reactivationEligibleCustomers.length === 1 ? "" : "s"} currently fit the repeat-work rules.`,
+      footer: proactiveBookedValueNext7
+        ? `Booked value currently recorded: £${proactiveBookedValueNext7}`
+        : "BUSY is not assuming demand — it is flagging saved capacity only",
+      actionLabel: "Review work-filling options",
+      onAction: () => go("workNow"),
+      why: "BUSY combines the diary with the previous-customer pool. It does not send anything automatically; it simply surfaces a credible low-cost route when saved capacity looks light.",
+      evidence: [
+        ["Confirmed bookings next 7 days", String(proactiveBookingsNext7.length)],
+        ["Booked value next 7 days", proactiveBookedValueNext7 ? `£${proactiveBookedValueNext7}` : "Not recorded"],
+        ["Eligible previous customers", String(reactivationEligibleCustomers.length)],
+        ["Active work-filling goal", "None"],
+      ],
+    });
+  }
+
+  if (proactiveRepeatDueSoon.length >= 2) {
+    const ids = proactiveRepeatDueSoon.slice(0, 5).map((item) => item.customer.id).join("-");
+    const serviceCounts = proactiveRepeatDueSoon.reduce((acc, item) => {
+      const key = item.customer?.service || "Service";
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+    const strongestService = Object.entries(serviceCounts)
+      .sort((a, b) => b[1] - a[1])[0] || null;
+    proactiveSignalRows.push({
+      id: `repeat-window-${ids}`,
+      score: 76 + Math.min(8, proactiveRepeatDueSoon.length),
+      tone: "green",
+      category: "Repeat work",
+      title: `BUSY noticed ${proactiveRepeatDueSoon.length} repeat-customer windows are approaching`,
+      body: strongestService && strongestService[1] > 1
+        ? `${strongestService[1]} of them are for ${String(strongestService[0]).toLowerCase()}. BUSY can keep these on the radar without contacting anyone early.`
+        : "Several previous customers are approaching their saved repeat-service timing. BUSY can keep them on the radar without contacting anyone early.",
+      footer: "Timing signal only • nothing sent",
+      actionLabel: "Review the 14-day radar",
+      onAction: () => jump("workHub", "Work"),
+      why: "The signal comes from saved repeat-service dates rather than a generic seasonal guess. BUSY waits for the real timing window instead of creating unnecessary messages.",
+      evidence: [
+        ["Repeat windows next 14 days", String(proactiveRepeatDueSoon.length)],
+        ["Largest service cluster", strongestService ? `${strongestService[0]} • ${strongestService[1]}` : "Mixed"],
+        ["Customer contact", "Not automatic"],
+      ],
+    });
+  }
+
+  if (postJobBundleOpportunity) {
+    proactiveSignalRows.push({
+      id: `completed-job-leverage-${postJobBundleOpportunity.jobId}`,
+      score: 72,
+      tone: "green",
+      category: "Completed job",
+      title: "BUSY noticed one finished job can do more work for you",
+      body: `${postJobBundleOpportunity.customerName}’s ${postJobBundleOpportunity.service.toLowerCase()} job can support a review request, finished-job social proof and future repeat timing from the same record.`,
+      footer: "Prepare internally first • approval stays with you",
+      actionLabel: "Review the 3-step bundle",
+      onAction: () =>
+        openPostJobBundle(
+          postJobBundleOpportunity.customerId,
+          postJobBundleOpportunity.jobId
+        ),
+      why: "This reduces duplicate admin by reusing a real completed-job record. It does not send a customer message or publish publicly by itself.",
+      evidence: [
+        ["Approved photos", String(postJobBundleOpportunity.approvedPhotoCount || 0)],
+        ["Review request", postJobBundleOpportunity.reviewPending ? "Available" : "Already handled"],
+        ["Finished-job post", postJobBundleOpportunity.socialPending ? "Available" : "Already handled"],
+        ["Repeat timing", postJobBundleOpportunity.repeatDueDate ? formatUKDate(postJobBundleOpportunity.repeatDueDate) : "Not available"],
+      ],
+    });
+  }
+
+  if (proactiveLearningGapCount >= 2) {
+    proactiveSignalRows.push({
+      id: `learning-gap-${proactiveLearningGapCount}-${socialOutcomeReminders?.length || 0}-${quoteFollowUpOutcomeOpportunity ? 1 : 0}-${enquiryFollowUpOutcomeOpportunity ? 1 : 0}-${reviewOutcomeOpportunity ? 1 : 0}`,
+      score: 48,
+      tone: "blue",
+      category: "Business Brain",
+      title: `BUSY noticed ${proactiveLearningGapCount} outcomes are still unknown`,
+      body: "A few actions have been taken, but their real business result has not been recorded yet. Closing those loops helps BUSY distinguish useful activity from busywork.",
+      footer: "Learning task • lower priority than live customer work",
+      actionLabel: "Open Business Brain",
+      onAction: () => go("businessBrain"),
+      why: "BUSY should learn from enquiries, accepted quotes, bookings and value — not just from the fact an action was performed.",
+      evidence: [
+        ["Unrecorded outcomes", String(proactiveLearningGapCount)],
+        ["Published-post outcomes", String(socialOutcomeReminders?.length || 0)],
+        ["Customer follow-up outcomes", String(
+          (quoteFollowUpOutcomeOpportunity ? 1 : 0) +
+          (enquiryFollowUpOutcomeOpportunity ? 1 : 0) +
+          (reviewOutcomeOpportunity ? 1 : 0)
+        )],
+      ],
+    });
+  }
+
+  const proactiveSignals = proactiveSignalRows
+    .sort((a, b) => (b.score || 0) - (a.score || 0));
+
+  const isProactiveNoticeHidden = (notice) => {
+    const state = proactiveNoticeState?.[notice.id];
+    if (!state?.hiddenUntil) return false;
+    const until = Date.parse(state.hiddenUntil);
+    return Number.isFinite(until) && until > Date.now();
+  };
+
+  const proactiveNotices = proactiveSignals.filter(
+    (notice) => !isProactiveNoticeHidden(notice)
+  );
+  const proactiveHiddenNoticeCount =
+    proactiveSignals.length - proactiveNotices.length;
+  const proactiveTopNotice = proactiveNotices[0] || null;
+
+  const hideProactiveNoticeUntil = (noticeId, hours, reason) => {
+    if (!noticeId) return;
+    const hiddenUntil = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+    setProactiveNoticeState((current) => ({
+      ...current,
+      [noticeId]: {
+        hiddenUntil,
+        reason,
+        updatedAt: new Date().toISOString(),
+      },
+    }));
+  };
+
+  const snoozeProactiveNotice = (noticeId) =>
+    hideProactiveNoticeUntil(noticeId, 24, "Not now");
+
+  const acknowledgeProactiveNotice = (noticeId) =>
+    hideProactiveNoticeUntil(noticeId, 24 * 7, "Seen");
+
+  const runProactiveNotice = (notice) => {
+    if (!notice) return;
+    acknowledgeProactiveNotice(notice.id);
+    notice.onAction?.();
+  };
+
+  const restoreProactiveNotices = () => setProactiveNoticeState({});
+
   const appState = {
     screen,
     history,
