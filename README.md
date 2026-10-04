@@ -4,60 +4,17 @@ Busy Does It mobile app prototype.
 
 ## v3.16 Business Brain Intelligence 2.0
 - Built from the tested V3.15 production-security baseline.
-- Home now surfaces a ranked Top 3 Next Best Actions rather than only one best move, while live customer commitments still outrank optional marketing suggestions.
-- Every ranked recommendation now shows a visible priority number, a cautious business-value label and decision confidence alongside the existing Why is this? evidence.
-- Opportunity ranking continues to use real business outcomes, sample size and freshness, but V3.16 also learns from owner choices: choosing an optional recommendation creates a small positive signal; dismissing one keeps the existing bounded negative signal.
-- Choice-learning is intentionally narrow and bounded. It cannot overpower waiting enquiries, bookings, promised follow-ups or hard owner rules.
-- Business Brain now shows chosen vs dismissed recommendation history and the bounded ranking effect by recommendation family so the owner can see what BUSY has actually learned.
-- Added a completed-job 3-step bundle: review request, finished-job social proof and repeat-service timing are linked around the same real completed job rather than being treated as separate admin tasks.
-- The completed-job bundle prepares only internal drafts/timing. Customer messaging and public publishing still require explicit owner approval.
-- Completing a job now offers the bundle directly, and saving approved job photos routes into the bundle instead of jumping straight to a social post.
-- Duplicate post/review opportunities for the same completed job are suppressed while the bundle is active, reducing clutter on Home.
-- Existing Facebook/Instagram publishing, cloud tenancy, account security and Google Business waiting-state logic remain unchanged.
-- Main navigation remains Home / Work / Results / Settings.
-
-## v3.16 Business Brain Intelligence 2.0
-- Built from the tested V3.15 production-security foundation.
-- Home now ranks a visible Top 3 Next Best Actions rather than showing only one recommendation and hiding the rest behind another tap.
-- Each ranked action can show its priority, a cautious business-value label and decision confidence alongside the existing Why is this? evidence.
-- Live customer obligations still outrank marketing ideas; the engine continues to protect bookings, enquiries, promised follow-ups and open quotes before creating new demand.
-- Optional recommendations now teach BUSY in both directions: choosing an action adds a small bounded positive signal, while dismissing it keeps the existing business-specific negative feedback path.
-- Owner-choice learning is service-aware where possible and remains bounded so a few taps cannot overpower real operational evidence or recorded outcomes.
-- Business Brain now exposes chosen vs dismissed recommendation history and shows how those choices are affecting ranking.
-- Added a completed-job bundle: one finished job can prepare a review request, a finished-job social post and repeat-service timing from the same saved record.
-- The completed-job bundle only prepares safe internal drafts/timing. Customer contact and public publishing still require explicit owner approval.
-- Duplicate completed-job recommendations are suppressed when the 3-step bundle already covers the same review/social opportunity.
-- Existing Facebook/Instagram live publishing remains unchanged and Google Business stays in the waiting/approval state.
-- Main navigation remains Home / Work / Results / Settings.
-
-## v3.16 Business Brain Intelligence 2.0
-- Built from the tested V3.15 production-security foundation.
-- Reworked Home into a clearer Next Best Actions layer that ranks the top three things worth attention instead of showing one recommendation plus an unstructured pile underneath.
-- Ranking continues to protect live customer obligations first, then considers likely business value, zero/low-cost leverage, recorded business outcomes, evidence freshness, owner choices and owner-set hard rules.
-- Each ranked action now shows its priority, a conservative business-value label and a decision-confidence label alongside the existing Why is this? evidence.
-- BUSY now learns from positive owner choices as well as dismissals. Choosing an optional recommendation gives that narrow recommendation family a small bounded preference signal; dismissals and hard rules still reduce or block unsuitable suggestions.
-- Real recorded outcomes remain more important than preference signals, and live enquiries/bookings/follow-ups cannot be hidden by marketing preferences.
-- Added a completed-job bundle that can use one saved finished job to prepare the relevant follow-ons: a review request, finished-job social content and repeat-service timing.
-- Prepare all safe next steps only prepares drafts/timing inside BUSY. It does not contact a customer, publish publicly or spend money without the existing approval flows.
-- Suppressed duplicate Home cards for review/social actions when they are already represented inside the same completed-job bundle.
-- Connected the completed-job bundle into the Work weekly plan as well as Home so the same intelligent follow-on is visible in both places.
-- Updated Business Brain to show chosen vs dismissed recommendations and the bounded ranking effect those choices are having.
-- Kept Facebook/Instagram live publishing, account security, cloud tenancy and the waiting Google Business state unchanged.
-- Main navigation remains Home / Work / Results / Settings.
-
-## v3.16 Business Brain Intelligence 2.0
-- Built from the tested V3.15 production-security foundation.
-- Home now shows a true Top 3 Next Best Actions view instead of only one best move plus a hidden list.
-- The Opportunity Engine now annotates ranked actions with a cautious business-value label and a decision-confidence label, while keeping live customer obligations above optional marketing activity.
-- Optional recommendations now teach the Business Brain in both directions: choosing a suggestion adds a small bounded positive ranking signal; dismissing one still records the business-specific reason and can reduce or block similar suggestions.
-- Positive/negative owner-choice effects are capped so clicks cannot overpower live customer commitments or strong recorded business outcomes.
-- Business Brain now shows what it has learned from owner choices, the strongest measured evidence pattern and the current ranking effect by recommendation family.
-- Added a completed-job intelligence bundle: one saved job can prepare a review request, finished-job social post and repeat-service timing without re-entering the same customer/service information.
-- The completed-job bundle only prepares safe internal drafts/timing. Sending a customer message and publishing publicly still require explicit approval.
-- Home can surface the completed-job bundle as a ranked opportunity when a real completed job has approved photos, a pending review request and a repeat timing date.
-- Customer history can now jump directly into the completed-job intelligence bundle for a suitable saved job.
-- Existing outcome learning remains intact: quote, enquiry, review and social outcomes still influence future recommendations through bounded, freshness-weighted evidence.
-- Existing V3.15 account security, cloud tenancy, rate limits, Meta publishing and Google waiting-state logic remain unchanged.
+- Home now shows a ranked Top 3 Next Best Actions rather than one best move plus an unstructured list.
+- Live customer obligations still rank first; optional opportunities are then weighed using likely business value, zero/low-cost leverage, real outcome evidence, evidence freshness, owner choices and owner-set rules.
+- Every ranked recommendation can show a visible priority number, a cautious business-value label, decision confidence and the existing Why is this? evidence.
+- Optional recommendations now teach BUSY in both directions: choosing one creates a small bounded positive signal, while dismissing one keeps the existing bounded negative feedback path.
+- Owner-choice learning stays narrow and service-aware where possible. It cannot overpower real recorded outcomes, waiting enquiries, bookings, promised follow-ups or hard owner rules.
+- Business Brain now exposes chosen vs dismissed recommendation history and the bounded ranking effect by recommendation family.
+- Added a completed-job 3-step bundle: review request, finished-job social proof and repeat-service timing can all be prepared from the same saved completed job.
+- Prepare all safe next steps only prepares internal drafts/timing. Customer messaging and public publishing still require explicit owner approval.
+- Duplicate review/social Home cards for the same completed job are suppressed while the bundle is active.
+- The completed-job bundle is surfaced from Home, the Work weekly plan and relevant completed-job history so the same intelligent follow-on is reachable from the places owners naturally work.
+- Existing Facebook/Instagram live publishing, V3.15 security/reliability, per-business cloud tenancy and the waiting Google Business integration remain unchanged.
 - Main navigation remains Home / Work / Results / Settings.
 
 ## v3.15 Production Security & Reliability
