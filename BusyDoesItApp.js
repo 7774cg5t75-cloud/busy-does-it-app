@@ -7020,6 +7020,7 @@ function App() {
     setBusinessBrainRules([]);
     setBusinessBrainRuleDraft("");
     setBusinessBrainFeedback([]);
+    setProactiveNoticeState({});
     setPendingBrainFeedback(null);
     setBrainFeedbackReason("");
     setQuoteFollowUpDraft("");
@@ -17827,9 +17828,9 @@ function BusinessBrain({ s }) {
       brandCue="Auditable learning: source, sample, confidence, freshness, choices and owner authority."
     >
       <Card
-        eyebrow="V3.16 • Business Brain Intelligence 2.0"
-        title="BUSY now learns from choices as well as recorded outcomes"
-        body="The ranking still starts with real business evidence and live customer obligations. V3.16 also remembers which optional recommendations you choose, which ones you dismiss and any hard rules you set."
+        eyebrow="V3.17 • Business Brain + proactive watch"
+        title="BUSY now learns, ranks and notices patterns"
+        body="The ranking still starts with real business evidence and live customer obligations. V3.17 adds a separate proactive watch layer for useful combinations in the diary, pipeline, repeat timing and completed-job records without letting those nudges override live customer commitments."
         tone="green"
       >
         <MetricRow left="Evidence patterns tracked" right={String(patterns.length)} />
@@ -17839,6 +17840,9 @@ function BusinessBrain({ s }) {
         <MetricRow left="Stale patterns down-weighted" right={String(stalePatterns)} />
         <MetricRow left="Owner-set rules" right={String(s.businessBrainRules?.length || 0)} />
         <MetricRow left="Rules that block recommendation types" right={String(blockingRules)} />
+        <MetricRow left="Proactive patterns active" right={String(s.proactiveNotices?.length || 0)} strong={(s.proactiveNotices?.length || 0) > 0} />
+        <MetricRow left="Proactive patterns hidden" right={String(s.proactiveHiddenNoticeCount || 0)} />
+        <Button label="Open BUSY noticed watchlist" onPress={() => s.go("proactiveWatch")} />
       </Card>
 
       <Card
