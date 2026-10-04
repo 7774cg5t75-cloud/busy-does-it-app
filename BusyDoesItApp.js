@@ -12,6 +12,7 @@ import {
   Switch,
   Image,
   Alert,
+  Share,
   Linking,
   Keyboard,
   KeyboardAvoidingView,
@@ -21,8 +22,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 
-const APP_VERSION = "3.11";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Production Data Foundation`;
+const APP_VERSION = "3.12";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Account Safety & Recovery`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
@@ -1365,7 +1366,10 @@ const previousCustomerGroups = [
 ];
 
 
-const STORAGE_KEY = "@busy-does-it-v05";
+const LEGACY_STORAGE_KEY = "@busy-does-it-v05";
+const USER_CACHE_PREFIX = "@busy-does-it-user-v312:";
+const storageKeyForUser = (userId = "") =>
+  userId ? `${USER_CACHE_PREFIX}${userId}` : "";
 
 const connectionSeed = {
   email: false,
@@ -1602,6 +1606,8 @@ function App() {
   const [cloudLastSyncedAt, setCloudLastSyncedAt] = useState("");
   const [cloudSyncError, setCloudSyncError] = useState("");
   const [cloudRevision, setCloudRevision] = useState(0);
+  const [cloudAttempted, setCloudAttempted] = useState(false);
+  const [cloudConflict, setCloudConflict] = useState(null);
   const [businessBrainRules, setBusinessBrainRules] = useState([]);
   const [businessBrainRuleDraft, setBusinessBrainRuleDraft] = useState("");
   const [businessBrainFeedback, setBusinessBrainFeedback] = useState([]);
@@ -1684,7 +1690,7 @@ function App() {
     let active = true;
     (async () => {
       try {
-        const raw = await AsyncStorage.getItem(STORAGE_KEY);
+        const raw = await AsyncStorage.getItem(LEGACY_STORAGE_KEY);
         if (!active || !raw) return;
         const saved = JSON.parse(raw);
         if (typeof saved.onboardingComplete === "boolean") setOnboardingComplete(saved.onboardingComplete);
@@ -1776,7 +1782,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !ownerAuthReady || !ownerSession?.userId) return;
     const data = {
       onboardingComplete,
       businessName,
@@ -1811,9 +1817,14 @@ function App() {
       recordFilingMode,
       advanced,
     };
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data)).catch(() => {});
+    const userCacheKey = storageKeyForUser(ownerSession.userId);
+    if (userCacheKey) {
+      AsyncStorage.setItem(userCacheKey, JSON.stringify(data)).catch(() => {});
+    }
   }, [
     hydrated,
+    ownerAuthReady,
+    ownerSession?.userId,
     onboardingComplete,
     businessName,
     trade,
@@ -2992,6 +3003,8 @@ function App() {
       setOwnerEmail(session.email || email);
       setOwnerPassword("");
       setCloudInitialised(false);
+      setCloudAttempted(false);
+      setCloudConflict(null);
       setOwnerAuthNotice("Signed in. BUSY will restore this business from its secure cloud workspace.");
       return true;
     } catch (error) {
@@ -3025,6 +3038,8 @@ function App() {
         setOwnerEmail(session.email || email);
         setOwnerPassword("");
         setCloudInitialised(false);
+        setCloudAttempted(false);
+        setCloudConflict(null);
         setOwnerAuthNotice("Account created and signed in. BUSY is creating a secure business workspace.");
       } else {
         setOwnerAuthNotice(
@@ -3045,17 +3060,55 @@ function App() {
     }
   };
 
+  const sendPasswordReset = async () => {
+    const email = normalizeEmail(ownerEmail);
+    if (!email || !email.includes("@")) {
+      setOwnerAuthError("Enter your BUSY account email first.");
+      return false;
+    }
+    setOwnerAuthLoading(true);
+    setOwnerAuthError("");
+    setOwnerAuthNotice("");
+    try {
+      await busyAuthRequest("recover", {
+        body: { email },
+      });
+      setOwnerAuthNotice(
+        `Password recovery email requested for ${email}. Check the inbox and junk folder.`
+      );
+      return true;
+    } catch (error) {
+      setOwnerAuthError(error?.message || "Password recovery email could not be sent.");
+      return false;
+    } finally {
+      setOwnerAuthLoading(false);
+    }
+  };
+
   const initialiseBusinessCloud = async (sessionOverride = null) => {
     if (cloudInitialising) return false;
     setCloudInitialising(true);
+    setCloudAttempted(false);
+    setCloudConflict(null);
     setCloudSyncError("");
     setCloudSyncStatus("Connecting…");
     try {
+      const session = sessionOverride || ownerSession;
       const token =
-        sessionOverride?.accessToken ||
-        ownerSession?.accessToken ||
+        session?.accessToken ||
         (await ownerAccessToken());
       if (!token) throw new Error("Sign in before connecting cloud data.");
+
+      const userId = session?.userId || ownerSession?.userId || "";
+      const userCacheKey = storageKeyForUser(userId);
+      if (userCacheKey) {
+        try {
+          const cached = await AsyncStorage.getItem(userCacheKey);
+          if (cached) applyCloudSnapshot(JSON.parse(cached));
+        } catch (error) {
+          // A bad cache must never block the cloud copy from restoring.
+        }
+      }
 
       const ensured = await busyDataRequest("rpc/busy_ensure_business", {
         method: "POST",
@@ -3088,6 +3141,7 @@ function App() {
         applyCloudSnapshot(payload);
         setCloudRevision(Number(snapshot?.revision) || 1);
         setCloudLastSyncedAt(snapshot?.updated_at || new Date().toISOString());
+        setCloudConflict(null);
         setCloudSyncStatus("Cloud restored");
       } else {
         const localPayload = buildPersistentSnapshot();
@@ -3109,6 +3163,7 @@ function App() {
         const savedRow = Array.isArray(saved) ? saved[0] : saved;
         setCloudRevision(Number(savedRow?.revision) || 1);
         setCloudLastSyncedAt(savedRow?.updated_at || new Date().toISOString());
+        setCloudConflict(null);
         setCloudSyncStatus("Local data backed up");
       }
 
@@ -3119,8 +3174,22 @@ function App() {
       setCloudSyncStatus("Cloud unavailable");
       return false;
     } finally {
+      setCloudAttempted(true);
       setCloudInitialising(false);
     }
+  };
+
+  const fetchCloudSnapshot = async (tokenOverride = "") => {
+    if (!cloudWorkspace?.businessId) return null;
+    const token = tokenOverride || (await ownerAccessToken());
+    if (!token) throw new Error("Sign in again before reading cloud data.");
+    const rows = await busyDataRequest(
+      `busy_business_snapshots?business_id=eq.${encodeURIComponent(
+        cloudWorkspace.businessId
+      )}&select=payload,schema_version,revision,updated_at`,
+      { token }
+    );
+    return Array.isArray(rows) ? rows[0] || null : rows;
   };
 
   const saveBusinessCloud = async ({ quiet = false } = {}) => {
@@ -3130,16 +3199,18 @@ function App() {
     try {
       const token = await ownerAccessToken();
       if (!token) throw new Error("Sign in again before syncing cloud data.");
-      const nextRevision = Math.max(1, Number(cloudRevision) + 1);
+      const expectedRevision = Math.max(1, Number(cloudRevision) || 1);
+      const nextRevision = expectedRevision + 1;
       const now = new Date().toISOString();
       const saved = await busyDataRequest(
-        "busy_business_snapshots?on_conflict=business_id",
+        `busy_business_snapshots?business_id=eq.${encodeURIComponent(
+          cloudWorkspace.businessId
+        )}&revision=eq.${expectedRevision}`,
         {
-          method: "POST",
+          method: "PATCH",
           token,
-          prefer: "resolution=merge-duplicates,return=representation",
+          prefer: "return=representation",
           body: {
-            business_id: cloudWorkspace.businessId,
             payload: buildPersistentSnapshot(),
             schema_version: CLOUD_SCHEMA_VERSION,
             revision: nextRevision,
@@ -3148,8 +3219,21 @@ function App() {
         }
       );
       const savedRow = Array.isArray(saved) ? saved[0] : saved;
+      if (!savedRow) {
+        const remote = await fetchCloudSnapshot(token);
+        setCloudConflict({
+          remoteRevision: Number(remote?.revision) || 0,
+          remoteUpdatedAt: remote?.updated_at || "",
+        });
+        setCloudSyncStatus("Newer cloud copy found");
+        setCloudSyncError(
+          "BUSY stopped this save because another device or session changed the cloud copy. Restore the latest cloud copy before continuing."
+        );
+        return false;
+      }
       setCloudRevision(Number(savedRow?.revision) || nextRevision);
       setCloudLastSyncedAt(savedRow?.updated_at || now);
+      setCloudConflict(null);
       setCloudSyncStatus("Up to date");
       return true;
     } catch (error) {
@@ -3169,6 +3253,66 @@ function App() {
     return saveBusinessCloud();
   };
 
+  const restoreLatestCloudCopy = async () => {
+    if (!ownerSession?.accessToken || !cloudWorkspace?.businessId) return false;
+    setCloudInitialising(true);
+    setCloudSyncError("");
+    setCloudSyncStatus("Restoring…");
+    try {
+      const remote = await fetchCloudSnapshot();
+      if (!remote?.payload || typeof remote.payload !== "object") {
+        throw new Error("No cloud backup is available for this business yet.");
+      }
+      applyCloudSnapshot(remote.payload);
+      setCloudRevision(Number(remote.revision) || 1);
+      setCloudLastSyncedAt(remote.updated_at || new Date().toISOString());
+      setCloudConflict(null);
+      setCloudSyncStatus("Cloud restored");
+      const key = storageKeyForUser(ownerSession.userId || "");
+      if (key) {
+        await AsyncStorage.setItem(key, JSON.stringify(remote.payload)).catch(() => {});
+      }
+      return true;
+    } catch (error) {
+      setCloudSyncError(error?.message || "Cloud restore failed.");
+      setCloudSyncStatus("Restore needs attention");
+      return false;
+    } finally {
+      setCloudInitialising(false);
+    }
+  };
+
+  const confirmRestoreLatestCloudCopy = () => {
+    Alert.alert(
+      "Restore the latest cloud copy?",
+      "This replaces the business data currently shown on this device with the latest saved cloud copy. Export first if you want to keep a copy of the current device data.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Restore cloud copy", onPress: restoreLatestCloudCopy },
+      ]
+    );
+  };
+
+  const exportBusinessData = async () => {
+    const exportPayload = {
+      exportedAt: new Date().toISOString(),
+      appVersion: APP_VERSION,
+      accountEmail: ownerSession?.email || ownerEmail || "",
+      business: cloudWorkspace || null,
+      cloudRevision: cloudRevision || null,
+      data: buildPersistentSnapshot(),
+    };
+    try {
+      await Share.share({
+        title: `BUSY DOES IT data export • ${businessName || "Business"}`,
+        message: JSON.stringify(exportPayload, null, 2),
+      });
+      setCloudSyncError("");
+    } catch (error) {
+      setCloudSyncError(error?.message || "Could not open the data export share sheet.");
+    }
+  };
+
   useEffect(() => {
     if (!hydrated || !ownerAuthReady || !ownerSession?.accessToken || cloudInitialised || cloudInitialising) return;
     initialiseBusinessCloud();
@@ -3181,7 +3325,13 @@ function App() {
   ]);
 
   useEffect(() => {
-    if (!hydrated || !cloudInitialised || !cloudWorkspace?.businessId || !ownerSession?.accessToken) return;
+    if (
+      !hydrated ||
+      !cloudInitialised ||
+      !cloudWorkspace?.businessId ||
+      !ownerSession?.accessToken ||
+      cloudConflict
+    ) return;
     const timer = setTimeout(() => {
       saveBusinessCloud({ quiet: true });
     }, 1400);
@@ -3191,6 +3341,7 @@ function App() {
     cloudInitialised,
     cloudWorkspace?.businessId,
     ownerSession?.accessToken,
+    cloudConflict,
     onboardingComplete,
     businessName,
     trade,
@@ -3235,6 +3386,8 @@ function App() {
     setOwnerAuthNotice("Signed out. Cloud data and live publishing controls are locked on this device.");
     setCloudWorkspace(null);
     setCloudInitialised(false);
+    setCloudAttempted(false);
+    setCloudConflict(null);
     setCloudSyncStatus("Local only");
     setCloudLastSyncedAt("");
     setCloudSyncError("");
@@ -3243,6 +3396,7 @@ function App() {
       ...current,
       loaded: false,
     }));
+    await resetPrototype();
   };
 
   const socialPublishRequest = async (action, payload = {}) => {
@@ -6480,7 +6634,11 @@ function App() {
   };
 
   const resetPrototype = async () => {
-    await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
+    await AsyncStorage.removeItem(LEGACY_STORAGE_KEY).catch(() => {});
+    const currentUserCache = storageKeyForUser(ownerSession?.userId || "");
+    if (currentUserCache) {
+      await AsyncStorage.removeItem(currentUserCache).catch(() => {});
+    }
     await AsyncStorage.removeItem("@busy-does-it-weekly-brief-v39").catch(() => {});
     await AsyncStorage.removeItem("@busy-does-it-home-brief-v39").catch(() => {});
     setOnboardingComplete(false);
@@ -7781,7 +7939,13 @@ function App() {
     cloudLastSyncedAt,
     cloudSyncError,
     cloudRevision,
+    cloudAttempted,
+    cloudConflict,
     syncCloudNow,
+    restoreLatestCloudCopy,
+    confirmRestoreLatestCloudCopy,
+    exportBusinessData,
+    sendPasswordReset,
     signInOwner,
     createOwnerAccount,
     signOutOwner,
@@ -8133,13 +8297,34 @@ function App() {
     resetPrototype,
   };
 
-  if (!hydrated) {
+  if (!hydrated || !ownerAuthReady) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loadingWrap}>
           <BusyBrandLockup size={58} centered />
           <Text style={styles.loadingTagline}>More work. Less fuss.</Text>
-          <Text style={styles.loadingText}>Loading your prototype…</Text>
+          <Text style={styles.loadingText}>Loading BUSY securely…</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!ownerSession?.accessToken) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <StatusBar barStyle="dark-content" />
+        <AccountAccess s={appState} />
+      </SafeAreaView>
+    );
+  }
+
+  if (!cloudAttempted || cloudInitialising) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.loadingWrap}>
+          <BusyBrandLockup size={58} centered />
+          <Text style={styles.loadingTagline}>More work. Less fuss.</Text>
+          <Text style={styles.loadingText}>Restoring your business…</Text>
         </View>
       </SafeAreaView>
     );
@@ -17050,7 +17235,7 @@ function Settings({ s }) {
         }
         body={
           s.ownerSession?.accessToken
-            ? "Customers, work records, services, goals and BUSY learning are mirrored to a Supabase workspace protected by row-level security. The local copy remains as a fast device cache."
+            ? "Customers, work records, services, goals and BUSY learning are mirrored to a Supabase workspace protected by row-level security. V3.12 also stops an older device from silently overwriting a newer cloud revision."
             : "The app can still run locally, but signed-in accounts get a separate protected business workspace that can be restored on another device."
         }
         footer={
@@ -17075,7 +17260,8 @@ function Settings({ s }) {
           <Button label="Open account & connections" onPress={() => s.go("connectedAccounts")} />
         ) : null}
       </Card>
-      <Button label="Customer records" primary onPress={() => s.go("customerRecords")} />
+      <Button label="Account, privacy & recovery" primary onPress={() => s.go("accountData")} />
+      <Button label="Customer records" onPress={() => s.go("customerRecords")} />
       <Button
         label={s.inboxPendingItems.length ? `BUSY Inbox • ${s.inboxPendingItems.length} waiting` : "BUSY Inbox"}
         onPress={s.openBusyInbox}
@@ -17095,7 +17281,156 @@ function Settings({ s }) {
       <Button label="How BUSY DOES IT works" onPress={() => s.go("howBusyWorks")} />
       <Button label="What makes it different" onPress={() => s.go("whatMakesDifferent")} />
       <Button label="Advanced details" onPress={() => s.go("advanced")} />
-      <Button label="Reset prototype data" danger onPress={s.resetPrototype} />
+      <Button
+        label="Reset this device's demo data"
+        danger
+        onPress={() =>
+          Alert.alert(
+            "Reset this device's demo data?",
+            "This clears the current local demo state. If cloud sync is active, restore from cloud afterwards rather than using this as an account-deletion control.",
+            [
+              { text: "Cancel", style: "cancel" },
+              { text: "Reset device data", style: "destructive", onPress: s.resetPrototype },
+            ]
+          )
+        }
+      />
+    </Shell>
+  );
+}
+
+function AccountAccess({ s }) {
+  return (
+    <ScrollView
+      style={styles.scroll}
+      contentContainerStyle={[styles.scrollContent, { flexGrow: 1, justifyContent: "center" }]}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={{ alignItems: "center", marginBottom: 26 }}>
+        <BusyBrandLockup size={58} centered />
+        <Text style={[styles.loadingTagline, { marginTop: 12 }]}>More work. Less fuss.</Text>
+      </View>
+
+      <Card
+        eyebrow="V3.12 • Your BUSY account"
+        title="Your business data now belongs to an account"
+        body="Sign in to restore this business securely. A new business can create its own account and workspace here."
+        footer="Separate account • separate cloud workspace • separate device cache"
+        tone="green"
+      />
+
+      <Field
+        label="Email"
+        value={s.ownerEmail}
+        onChangeText={s.setOwnerEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        placeholder="you@yourbusiness.co.uk"
+      />
+      <Field
+        label="Password"
+        value={s.ownerPassword}
+        onChangeText={s.setOwnerPassword}
+        secureTextEntry
+        autoCapitalize="none"
+        placeholder="Your BUSY password"
+      />
+      <Button
+        label={s.ownerAuthLoading ? "Signing in…" : "Sign in"}
+        primary
+        disabled={s.ownerAuthLoading}
+        onPress={s.signInOwner}
+      />
+      <Button
+        label={s.ownerAuthLoading ? "Please wait…" : "Create a new BUSY account"}
+        disabled={s.ownerAuthLoading}
+        onPress={s.createOwnerAccount}
+      />
+      <Button
+        label="Forgot password? Send recovery email"
+        disabled={s.ownerAuthLoading}
+        onPress={s.sendPasswordReset}
+      />
+      {s.ownerAuthError ? <Text style={styles.customerHistoryPhotoMeta}>{s.ownerAuthError}</Text> : null}
+      {s.ownerAuthNotice ? <Text style={styles.cardFooter}>{s.ownerAuthNotice}</Text> : null}
+
+      <Card
+        eyebrow="Privacy"
+        title="One account cannot browse another business"
+        body="The cloud database uses authenticated membership rules, and V3.12 also stops unsigned users from seeing a previous user's local business data."
+        tone="blue"
+      />
+    </ScrollView>
+  );
+}
+
+function AccountData({ s }) {
+  return (
+    <Shell
+      s={s}
+      title="Account, privacy & recovery"
+      subtitle="See where BUSY stores your business data, make a copy and recover safely if another device changes the cloud version."
+      brandCue="Your data should be portable, separated and recoverable."
+    >
+      <Card
+        eyebrow="Account"
+        title={s.ownerSession?.email || "Signed out"}
+        body={
+          s.cloudWorkspace?.name
+            ? `Connected to ${s.cloudWorkspace.name} as ${s.cloudWorkspace.role || "member"}.`
+            : "No cloud business workspace is currently connected."
+        }
+        footer={s.cloudLastSyncedAt ? `Last sync: ${new Date(s.cloudLastSyncedAt).toLocaleString("en-GB")}` : "No cloud sync recorded"}
+        tone={s.cloudInitialised ? "green" : "blue"}
+      >
+        <MetricRow left="Cloud status" right={s.cloudSyncStatus} strong={s.cloudInitialised && !s.cloudSyncError} />
+        <MetricRow left="Cloud revision" right={String(s.cloudRevision || 0)} />
+        <MetricRow left="Local cache" right={s.ownerSession?.userId ? "Private to this account" : "Unavailable"} />
+      </Card>
+
+      {s.cloudConflict ? (
+        <Card
+          eyebrow="Recovery protection"
+          title="BUSY found a newer cloud copy"
+          body="This device was stopped from overwriting newer business data. Export this device copy if you need it, then restore the newest cloud version."
+          footer={
+            s.cloudConflict.remoteUpdatedAt
+              ? `Cloud revision ${s.cloudConflict.remoteRevision || "?"} • ${new Date(s.cloudConflict.remoteUpdatedAt).toLocaleString("en-GB")}`
+              : "Cloud copy changed elsewhere"
+          }
+          tone="amber"
+        />
+      ) : null}
+
+      <Text style={styles.sectionLabel}>Recovery</Text>
+      <Button
+        label={s.cloudInitialising ? "Restoring…" : "Restore latest cloud copy"}
+        primary={!!s.cloudConflict}
+        disabled={s.cloudInitialising || !s.ownerSession?.accessToken}
+        onPress={s.confirmRestoreLatestCloudCopy}
+      />
+      <Button
+        label={s.cloudSyncStatus === "Syncing…" ? "Syncing…" : "Sync this device now"}
+        disabled={s.cloudInitialising || !s.ownerSession?.accessToken || !!s.cloudConflict}
+        onPress={s.syncCloudNow}
+      />
+
+      <Text style={styles.sectionLabel}>Your data</Text>
+      <Button label="Export a copy of my BUSY data" onPress={s.exportBusinessData} />
+      <Card
+        eyebrow="What is stored"
+        title="Core business data is cloud-backed; provider secrets stay server-side"
+        body="The account snapshot contains the business records BUSY needs to restore the app. Facebook, Instagram and Google provider tokens are not included in the export or local cache."
+        footer="Selected phone photos still follow the app's existing explicit-permission rules"
+        tone="blue"
+      />
+
+      <Text style={styles.sectionLabel}>Account safety</Text>
+      <Button label="Sign out on this device" onPress={s.signOutOwner} />
+      <Text style={styles.helper}>
+        Full self-service account deletion will only be enabled once the remaining social-provider workspace is migrated into the same per-business tenancy boundary. BUSY will not pretend deletion is complete while provider data still uses the older prototype workspace.
+      </Text>
+      <Button label="Done" onPress={s.back} />
     </Shell>
   );
 }
@@ -17522,6 +17857,11 @@ function ConnectedAccounts({ s }) {
               disabled={s.ownerAuthLoading}
               onPress={s.createOwnerAccount}
             />
+            <Button
+              label="Forgot password? Send recovery email"
+              disabled={s.ownerAuthLoading}
+              onPress={s.sendPasswordReset}
+            />
           </>
         ) : (
           <Button label="Sign out" disabled={s.ownerAuthLoading} onPress={s.signOutOwner} />
@@ -17829,6 +18169,7 @@ const screens = {
   businessType: BusinessTypeSettings,
   capacitySettings: CapacitySettings,
   businessData: BusinessData,
+  accountData: AccountData,
   howBusyWorks: HowBusyWorks,
   whatMakesDifferent: WhatMakesDifferent,
   settingsLimits: SettingsLimits,
