@@ -9248,6 +9248,9 @@ function OpportunityCard({
   onIgnore,
   why,
   evidence,
+  rank,
+  estimatedValue,
+  decisionConfidence,
 }) {
   const toneStyle = tone === "green" ? styles.opportunityGreen : tone === "amber" ? styles.opportunityAmber : styles.opportunityBlue;
   return (
@@ -9258,6 +9261,13 @@ function OpportunityCard({
       </View>
       <Text style={styles.opportunityTitle}>{title}</Text>
       <Text style={styles.opportunityBody}>{body}</Text>
+      {rank || estimatedValue || decisionConfidence ? (
+        <View style={styles.evidenceBox}>
+          {rank ? <MetricRow left="Priority" right={`#${rank}`} strong={rank === 1} /> : null}
+          {estimatedValue ? <MetricRow left="Business value" right={estimatedValue} /> : null}
+          {decisionConfidence ? <MetricRow left="Decision confidence" right={decisionConfidence} /> : null}
+        </View>
+      ) : null}
       {footer ? <Text style={styles.opportunityFooter}>{footer}</Text> : null}
       {why ? <InlineExplanation why={why} evidence={evidence} /> : null}
       <View style={styles.actionRow}>
@@ -9716,7 +9726,38 @@ function HomeScreen({ s }) {
   }
 
   const marketingMoves = [
-    ...(s.preparedPostOpportunity
+    ...(s.postJobBundleOpportunity
+      ? [{
+          id: `job-photo-review-bundle-${s.postJobBundleOpportunity.jobId}`,
+          brainService: s.postJobBundleOpportunity.service,
+          score:
+            82 +
+            Math.round((postLearningAdjustment + reviewLearningBoost) / 2),
+          eyebrow: "Use a completed job",
+          title: "Turn one finished job into three useful next steps",
+          body: `${s.postJobBundleOpportunity.customerName}’s ${s.postJobBundleOpportunity.service.toLowerCase()} job can feed a review request, a finished-job post and the next repeat-service timing without re-entering the same information.`,
+          footer: "BUSY prepares underneath • customer/public actions still need approval",
+          status: "3-way follow-on",
+          tone: "green",
+          why: "One completed job already contains useful evidence. Reusing the same job record for a review request, social proof and repeat timing reduces admin while keeping each external action under owner approval.",
+          evidence: [
+            ["Completed job", s.postJobBundleOpportunity.service],
+            ["Recorded job value", s.postJobBundleOpportunity.value ? `£${s.postJobBundleOpportunity.value}` : "Not recorded"],
+            ["Review request", s.postJobBundleOpportunity.reviewPending ? "Ready to prepare/review" : "Already handled"],
+            ["Approved job photos", String(s.postJobBundleOpportunity.approvedPhotoCount || 0)],
+            ["Finished-job post", s.postJobBundleOpportunity.socialPending ? "Ready to prepare/review" : "Already handled"],
+            ["Repeat timing", s.postJobBundleOpportunity.repeatDueDate ? formatUKDate(s.postJobBundleOpportunity.repeatDueDate) : "Not available"],
+          ],
+          actionLabel: "Review the 3-step bundle",
+          onAction: () => s.openPostJobBundle(
+            s.postJobBundleOpportunity.customerId,
+            s.postJobBundleOpportunity.jobId
+          ),
+          canIgnore: true,
+        }]
+      : []),
+    ...(s.preparedPostOpportunity &&
+        s.preparedPostOpportunity.jobId !== s.postJobBundleOpportunity?.jobId
       ? [{
           id: `prepared-post-${s.preparedPostOpportunity.jobId}`,
           brainService: s.preparedPostOpportunity.service,
@@ -9743,7 +9784,8 @@ function HomeScreen({ s }) {
           canIgnore: true,
         }]
       : []),
-    ...(s.photoOpportunity
+    ...(s.photoOpportunity &&
+        s.photoOpportunity.jobId !== s.postJobBundleOpportunity?.jobId
       ? [{
           id: `job-photo-${s.photoOpportunity.jobId}`,
           brainService: s.photoOpportunity.service,
@@ -9798,7 +9840,8 @@ function HomeScreen({ s }) {
           canIgnore: true,
         }]
       : []),
-    ...(s.reviewRequestOpportunity
+    ...(s.reviewRequestOpportunity &&
+        s.reviewRequestOpportunity.jobId !== s.postJobBundleOpportunity?.jobId
       ? [{
           id: `review-request-${s.reviewRequestOpportunity.jobId}`,
           brainService: s.reviewRequestOpportunity.service,
@@ -9918,9 +9961,66 @@ function HomeScreen({ s }) {
     );
 
   const rankedMoves = [...operationalMoves, ...marketingMoves]
-    .sort((a, b) => (b.score || 0) - (a.score || 0));
-  const bestMove = rankedMoves[0] || null;
-  const otherMoves = rankedMoves.slice(1);
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .map((item, index) => {
+      const evidenceRows = Object.fromEntries(
+        (Array.isArray(item.evidence) ? item.evidence : []).filter(
+          (row) => Array.isArray(row) && row.length >= 2
+        )
+      );
+      const directValue =
+        evidenceRows["Quote value"] ||
+        evidenceRows["Recorded value"] ||
+        evidenceRows["Recorded job value"] ||
+        "";
+      const serviceLabel =
+        evidenceRows.Service ||
+        item.brainService ||
+        "";
+      const service =
+        s.services.find((candidate) => candidate.name === serviceLabel) ||
+        null;
+      let estimatedValue = directValue && directValue !== "Not recorded"
+        ? `Known ${directValue}`
+        : service?.value
+        ? `Typical job ~£${Number(service.value)}`
+        : "Indirect / not yet quantified";
+
+      if (item.id === "quiet-slot" && s.workGoalRemainingJobs && s.workGoalPlanningService?.value) {
+        estimatedValue = `Capacity goal up to £${Math.round(
+          Number(s.workGoalRemainingJobs) * Number(s.workGoalPlanningService.value)
+        )}`;
+      } else if (/learning|outcome/.test(String(item.eyebrow || "").toLowerCase())) {
+        estimatedValue = "Learning value";
+      } else if (item.id === "work-goal-reached") {
+        estimatedValue = "Protects capacity / spend";
+      }
+
+      const pattern = item.brainFamily
+        ? s.businessBrainPatterns?.find(
+            (candidate) => candidate.family === item.brainFamily
+          )
+        : null;
+      const decisionConfidence =
+        item.canIgnore === false
+          ? "High — live business record"
+          : pattern?.evidence?.evidenceReady
+          ? `${pattern.evidence.confidence || "Evidence-backed"}`
+          : pattern?.evidence?.sample
+          ? "Early business evidence"
+          : "Cautious";
+
+      return {
+        ...item,
+        rank: index + 1,
+        estimatedValue,
+        decisionConfidence,
+      };
+    });
+  const topMoves = rankedMoves.slice(0, 3);
+  const bestMove = topMoves[0] || null;
+  const nextBestMoves = topMoves.slice(1);
+  const otherMoves = rankedMoves.slice(3);
 
   const homeWeekEndISO = addDaysFromISO(todayISO, 6);
   const homeWeekBookings = Object.entries(s.replyActions || {})
@@ -10060,18 +10160,54 @@ function HomeScreen({ s }) {
         <Button label="Open weekly plan" onPress={() => s.jump("workHub", "Work")} />
       </Card>
 
+      {topMoves.length ? (
+        <Card
+          eyebrow="V3.16 • Next Best Actions"
+          title="The three things most worth your attention"
+          body="BUSY ranks live customer obligations first, then weighs likely business value, zero/low-cost opportunities, real outcome evidence, evidence freshness and the choices you have made before."
+          footer="Tap Why is this? on any recommendation to inspect the evidence."
+          tone="green"
+        >
+          {topMoves.map((item) => (
+            <MetricRow
+              key={item.id}
+              left={`#${item.rank} • ${item.title}`}
+              right={item.estimatedValue}
+              strong={item.rank === 1}
+            />
+          ))}
+        </Card>
+      ) : null}
+
       {bestMove ? (
         <>
           <OpportunityCard
             {...bestMove}
             eyebrow={`Best next move • ${bestMove.eyebrow}`}
             actionLabel={bestMove.actionLabel || "Do it"}
+            onAction={() => {
+              if (bestMove.canIgnore) s.recordOpportunityAccepted(bestMove);
+              bestMove.onAction?.();
+            }}
             onIgnore={bestMove.canIgnore ? () => s.openOpportunityFeedback(bestMove) : undefined}
           />
+          {nextBestMoves.map((item) => (
+            <OpportunityCard
+              key={item.id}
+              {...item}
+              eyebrow={`#${item.rank} next • ${item.eyebrow}`}
+              actionLabel={item.actionLabel || "Do it"}
+              onAction={() => {
+                if (item.canIgnore) s.recordOpportunityAccepted(item);
+                item.onAction?.();
+              }}
+              onIgnore={item.canIgnore ? () => s.openOpportunityFeedback(item) : undefined}
+            />
+          ))}
           <View style={styles.dashboardHeader}>
             <StatusChip label="Ranked from saved business data" tone="green" />
             <Text style={styles.dashboardHint}>
-              Live customer commitments rank highly. Business-specific evidence is weighted by sample size and freshness, while owner feedback can lower or block unsuitable suggestions.
+              Live customer commitments rank highly. Business-specific evidence is weighted by sample size and freshness. Choosing or dismissing an optional recommendation now teaches the Business Brain too.
             </Text>
           </View>
         </>
@@ -10098,6 +10234,10 @@ function HomeScreen({ s }) {
               key={item.id}
               {...item}
               actionLabel={item.actionLabel || "Do it"}
+              onAction={() => {
+                if (item.canIgnore) s.recordOpportunityAccepted(item);
+                item.onAction?.();
+              }}
               onIgnore={item.canIgnore ? () => s.openOpportunityFeedback(item) : undefined}
             />
           ))
