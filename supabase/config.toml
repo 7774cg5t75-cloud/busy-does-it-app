@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.busy-social-publish]
 verify_jwt = false
+
+[functions.busy-command]
+verify_jwt = true

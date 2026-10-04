@@ -50,6 +50,7 @@ const snack = new Snack({
   dependencies: {
     "@react-native-async-storage/async-storage": { version: "2.2.0" },
     "expo-image-picker": { version: "17.0.11" },
+    "expo-audio": { version: "1.1.1" },
     "expo-secure-store": { version: "15.0.8" },
   },
 });

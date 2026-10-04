@@ -1,6 +1,6 @@
 {
   "name": "busy-does-it-app",
-  "version": "3.17.1",
+  "version": "3.18.0",
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
@@ -12,6 +12,7 @@
     "react-native": "0.86.3",
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo-image-picker": "~57.0.20",
-    "expo-secure-store": "~57.0.4"
+    "expo-secure-store": "~57.0.4",
+    "expo-audio": "~57.0.5"
   }
 }

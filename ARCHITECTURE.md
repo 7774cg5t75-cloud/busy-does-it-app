@@ -14,6 +14,7 @@ This branch restructures the large single-file prototype into domain modules wit
 ## Screens
 - `src/screens/onboarding.js` — setup/onboarding.
 - `src/screens/home.js` — Home and background-work surfaces.
+- `src/screens/talk.js` — Talk to BUSY voice/text command interface and confirmation surface.
 - `src/screens/work.js` — weekly command centre, diary, pipeline, work goals and reply actions.
 - `src/screens/intake.js` — BUSY Inbox, Quick Capture and intake history.
 - `src/screens/customers.js` — customer records, jobs, post-job bundle, follow-ups, reviews and reactivation offers.
@@ -21,6 +22,7 @@ This branch restructures the large single-file prototype into domain modules wit
 - `src/screens/results.js` — Results and outcome capture.
 - `src/screens/settings.js` — business data, account/privacy, business settings and connected accounts.
 - `src/screens/index.js` — screen registry used by the controller.
+- `supabase/functions/busy-command/index.ts` — authenticated voice transcription + constrained command routing.
 
 ## Refactor rules
 1. V3.16 and the original V3.17 branches remain untouched fallbacks.

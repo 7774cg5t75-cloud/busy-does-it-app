@@ -2,6 +2,18 @@
 
 Busy Does It mobile app prototype.
 
+## v3.18 Talk to BUSY
+- Built on the modular V3.17.1 architecture and keeps the existing Proactive BUSY / Business Brain behaviour.
+- Added a prominent Home microphone entry and typed-command alternative so the owner can tell BUSY what they want in normal language.
+- Added genuine voice recording in Expo Go using expo-audio. Voice clips are sent only when the owner deliberately records a command.
+- Added an authenticated busy-command Supabase Edge Function that transcribes voice server-side, interprets text/voice into a constrained command schema and keeps the OpenAI key off-device.
+- Supported command routes include today/weekly work, calendar, due quote follow-ups, repeat customers, find-more-work, customer lookup, booking preparation, job completion, social-draft preparation, previous-customer draft preparation, BUSY Inbox, Results and Settings.
+- Creating a booking or marking a job complete always stops at a visible confirmation card before changing a record.
+- Voice commands cannot directly send customer messages, publish publicly or spend advertising money. Existing approval boundaries remain authoritative.
+- Added Recent conversations with BUSY and stores the last 20 command/response pairs with the normal per-business local/cloud snapshot.
+- Added graceful ambiguity handling: BUSY asks for a clearer request instead of guessing a customer, booking date or business fact.
+- Main navigation remains Home / Work / Results / Settings.
+
 ## v3.17.1 Modular Architecture
 - Structural refactor built from the existing V3.17 Proactive BUSY code without intentionally changing product behaviour.
 - Replaced the single ~20,000-line application file with a small entry point plus dedicated core, controller, reusable UI, screen-domain and theme modules.

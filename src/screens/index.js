@@ -1,5 +1,6 @@
 import * as OnboardingScreens from "./onboarding";
 import * as HomeScreens from "./home";
+import * as TalkScreens from "./talk";
 import * as WorkScreens from "./work";
 import * as IntakeScreens from "./intake";
 import * as CustomersScreens from "./customers";
@@ -9,6 +10,7 @@ import * as SettingsScreens from "./settings";
 
 export * from "./onboarding";
 export * from "./home";
+export * from "./talk";
 export * from "./work";
 export * from "./intake";
 export * from "./customers";
@@ -19,6 +21,7 @@ export * from "./settings";
 const allScreens = {
   ...OnboardingScreens,
   ...HomeScreens,
+  ...TalkScreens,
   ...WorkScreens,
   ...IntakeScreens,
   ...CustomersScreens,
@@ -38,6 +41,7 @@ const {
   HomeScreen,
   ProactiveWatch,
   BackgroundWork,
+  TalkToBusy,
   WorkHub,
   WorkCalendar,
   WorkPipeline,
@@ -136,6 +140,7 @@ export const screens = {
   home: HomeScreen,
   proactiveWatch: ProactiveWatch,
   backgroundWork: BackgroundWork,
+  talkToBusy: TalkToBusy,
   workHub: WorkHub,
   workCalendar: WorkCalendar,
   workPipeline: WorkPipeline,

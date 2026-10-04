@@ -832,6 +832,35 @@ function HomeScreen({ s }) {
       subtitle="A short BUSY briefing first. Open Work when you want the full weekly plan and reasoning."
       brandCue="The business checked. One clear move when something matters."
     >
+
+      <Card
+        eyebrow="V3.18 • Talk to BUSY"
+        title="Just tell BUSY what you want to do"
+        body="Speak naturally or type a request. BUSY can find the right place, answer from saved business records, prepare safe next steps and ask before changing a booking or completed-job record."
+        footer={
+          s.busyCommandHistory?.length
+            ? `Last request: ${s.busyCommandHistory[0].transcript}`
+            : "Nothing is sent or published just because you spoke to BUSY"
+        }
+        tone="blue"
+      >
+        <View style={styles.talkHomeActions}>
+          <Pressable
+            onPress={() => s.openTalkToBusy(true)}
+            style={({ pressed }) => [styles.talkMicButton, pressed && styles.pressed]}
+          >
+            <Text style={styles.talkMicIcon}>🎙</Text>
+          </Pressable>
+          <View style={styles.talkHomeCopy}>
+            <Text style={styles.talkHomeTitle}>Tap and talk</Text>
+            <Text style={styles.talkHomeBody}>
+              “Book John for Friday afternoon” • “What needs doing today?” • “Find me more work next Thursday”
+            </Text>
+          </View>
+        </View>
+        <Button label="Type to BUSY instead" onPress={() => s.openTalkToBusy(false)} />
+      </Card>
+
       <Card
         eyebrow="BUSY briefing"
         title={

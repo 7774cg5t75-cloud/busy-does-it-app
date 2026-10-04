@@ -27,6 +27,7 @@ const {
   PROTOTYPE_BADGE,
   BUSY_AI_URL,
   BUSY_AI_TOKEN,
+  BUSY_COMMAND_URL,
   BUSY_SOCIAL_URL,
   BUSY_SOCIAL_PUBLISH_URL,
   BUSY_SUPABASE_URL,
@@ -272,6 +273,11 @@ function App() {
   const [businessBrainRuleDraft, setBusinessBrainRuleDraft] = useState("");
   const [businessBrainFeedback, setBusinessBrainFeedback] = useState([]);
   const [proactiveNoticeState, setProactiveNoticeState] = useState({});
+  const [busyCommandHistory, setBusyCommandHistory] = useState([]);
+  const [busyCommandStatus, setBusyCommandStatus] = useState("idle");
+  const [busyCommandResult, setBusyCommandResult] = useState(null);
+  const [busyCommandError, setBusyCommandError] = useState("");
+  const [busyVoiceStartNonce, setBusyVoiceStartNonce] = useState(0);
   const [pendingBrainFeedback, setPendingBrainFeedback] = useState(null);
   const [brainFeedbackReason, setBrainFeedbackReason] = useState("");
   const [quoteFollowUpDraft, setQuoteFollowUpDraft] = useState("");
@@ -426,6 +432,9 @@ function App() {
         if (saved.proactiveNoticeState && typeof saved.proactiveNoticeState === "object") {
           setProactiveNoticeState(saved.proactiveNoticeState);
         }
+        if (Array.isArray(saved.busyCommandHistory)) {
+          setBusyCommandHistory(saved.busyCommandHistory.slice(0, 20));
+        }
         if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
           setRecordFilingMode(saved.recordFilingMode);
         }
@@ -479,6 +488,7 @@ function App() {
       businessBrainRules,
       businessBrainFeedback,
       proactiveNoticeState,
+      busyCommandHistory,
       recordFilingMode,
       advanced,
     };
@@ -521,6 +531,7 @@ function App() {
     businessBrainRules,
     businessBrainFeedback,
     proactiveNoticeState,
+    busyCommandHistory,
     recordFilingMode,
     advanced,
   ]);
@@ -1712,6 +1723,9 @@ function App() {
     if (saved.proactiveNoticeState && typeof saved.proactiveNoticeState === "object") {
       setProactiveNoticeState(saved.proactiveNoticeState);
     }
+    if (Array.isArray(saved.busyCommandHistory)) {
+      setBusyCommandHistory(saved.busyCommandHistory.slice(0, 20));
+    }
     if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
       setRecordFilingMode(saved.recordFilingMode);
     }
@@ -2175,6 +2189,7 @@ function App() {
     businessBrainRules,
     businessBrainFeedback,
     proactiveNoticeState,
+    busyCommandHistory,
     recordFilingMode,
     advanced,
   ]);
@@ -5624,6 +5639,11 @@ function App() {
     setBusinessBrainRuleDraft("");
     setBusinessBrainFeedback([]);
     setProactiveNoticeState({});
+    setBusyCommandHistory([]);
+    setBusyCommandStatus("idle");
+    setBusyCommandResult(null);
+    setBusyCommandError("");
+    setBusyVoiceStartNonce(0);
     setPendingBrainFeedback(null);
     setBrainFeedbackReason("");
     setQuoteFollowUpDraft("");
@@ -7016,6 +7036,336 @@ function App() {
 
   const restoreProactiveNotices = () => setProactiveNoticeState({});
 
+
+  const normaliseBusyCommandName = (value = "") =>
+    String(value || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+  const findBusyCommandCustomer = (name = "") => {
+    const needle = normaliseBusyCommandName(name);
+    if (!needle) return null;
+    const exact = customers.find(
+      (customer) => normaliseBusyCommandName(customer.name) === needle
+    );
+    if (exact) return exact;
+    const starts = customers.filter((customer) =>
+      normaliseBusyCommandName(customer.name).startsWith(needle)
+    );
+    if (starts.length === 1) return starts[0];
+    const contains = customers.filter((customer) =>
+      normaliseBusyCommandName(customer.name).includes(needle)
+    );
+    return contains.length === 1 ? contains[0] : null;
+  };
+
+  const latestBusyCompletedJob = (customer) =>
+    [...(Array.isArray(customer?.history) ? customer.history : [])]
+      .filter((item) => item?.kind === "job")
+      .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")))[0] || null;
+
+  const buildBusyCommandContext = () => {
+    const today = dateToISO(new Date());
+    const bookingRows = Object.entries(replyActions || {})
+      .map(([customerId, action]) => {
+        if (
+          action?.type !== "booking" ||
+          !action?.done ||
+          !action.details?.bookingDate ||
+          ["Cancelled", "Completed"].includes(action.details?.bookingStatus || "Confirmed")
+        ) return null;
+        const customer = customers.find((item) => item.id === customerId);
+        return customer
+          ? {
+              customer: customer.name,
+              service: customer.service || "",
+              date: action.details.bookingDate,
+              time: action.details.bookingTime || "",
+              value:
+                Number(action.details?.jobValue) ||
+                Number(action.details?.sourceQuoteAmount) ||
+                0,
+            }
+          : null;
+      })
+      .filter(Boolean)
+      .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+
+    return {
+      today,
+      timezone: "Europe/London",
+      businessName,
+      trade,
+      selectedService: selectedService?.name || "",
+      services: services.slice(0, 30).map((service) => ({
+        name: service.name,
+        typicalValue: Number(service.value) || 0,
+        wanted: !!service.wanted,
+      })),
+      counts: {
+        customers: customers.length,
+        inboxWaiting: inboxPendingItems.length,
+        dueQuoteFollowUps: dueQuoteEntries.length,
+        quietEnquiries: staleEnquiryEntries.length,
+        pendingCustomerActions: pendingReplyActionCount,
+        bookedWorkValue: Number(bookedWorkValue) || 0,
+        completedJobValue: Number(completedJobValue) || 0,
+        repeatCustomersDue: eligibleCustomers.length,
+        backgroundReady: backgroundReadyCount,
+      },
+      activeWorkGoal: activeWorkGoal
+        ? {
+            label: activeWorkGoal.label || "",
+            targetJobs: Number(workGoalTargetJobs) || 0,
+            bookedJobs: Number(workGoalBookedCount) || 0,
+            remainingJobs: Number(workGoalRemainingJobs) || 0,
+          }
+        : null,
+      nextBookings: bookingRows.slice(0, 12),
+      dueQuoteCustomers: dueQuoteEntries.slice(0, 10).map((item) => ({
+        name: item.customer?.name || "",
+        service: item.customer?.service || "",
+        ageDays: Number(item.age) || 0,
+        value: Number(item.action?.details?.quoteAmount) || 0,
+      })),
+      quietEnquiryCustomers: staleEnquiryEntries.slice(0, 10).map((item) => ({
+        name: item.customer?.name || "",
+        service: item.customer?.service || "",
+        ageDays: Number(item.age) || 0,
+      })),
+      customers: customers.slice(0, 60).map((customer) => {
+        const action = replyActions?.[customer.id] || null;
+        const job = latestBusyCompletedJob(customer);
+        return {
+          name: customer.name || "",
+          service: customer.service || "",
+          lifecycleStatus: customer.lifecycleStatus || "",
+          lastServiceDate: customer.lastServiceDate || "",
+          lastJobValue: Number(customer.lastJobValue) || 0,
+          bookingDate:
+            action?.type === "booking" &&
+            action?.done &&
+            !["Cancelled", "Completed"].includes(action.details?.bookingStatus || "Confirmed")
+              ? action.details?.bookingDate || ""
+              : "",
+          bookingTime: action?.details?.bookingTime || "",
+          quoteStatus: action?.type === "quote" ? action.details?.quoteStatus || "" : "",
+          latestCompletedJobDate: job?.date || "",
+          latestCompletedJobValue: Number(job?.value) || 0,
+        };
+      }),
+    };
+  };
+
+  const addBusyCommandHistory = (entry) => {
+    setBusyCommandHistory((current) => [
+      {
+        id: entry.id || `busy-command-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        createdAt: new Date().toISOString(),
+        transcript: String(entry.transcript || "").trim().slice(0, 500),
+        response: String(entry.response || "").trim().slice(0, 900),
+        intent: String(entry.intent || "unknown"),
+        confidence: String(entry.confidence || "Low"),
+      },
+      ...current,
+    ].slice(0, 20));
+  };
+
+  const submitBusyCommand = async ({ text = "", audioUri = "" } = {}) => {
+    const cleanText = String(text || "").trim();
+    if (!cleanText && !audioUri) {
+      setBusyCommandError("Tell BUSY what you want to do.");
+      return null;
+    }
+    setBusyCommandStatus("thinking");
+    setBusyCommandError("");
+    setBusyCommandResult(null);
+    try {
+      const token = await ownerAccessToken();
+      if (!token) throw new Error("Sign in again before using Talk to BUSY.");
+
+      let response;
+      if (audioUri) {
+        const form = new FormData();
+        form.append("appVersion", APP_VERSION);
+        form.append("context", JSON.stringify(buildBusyCommandContext()));
+        form.append("audio", {
+          uri: audioUri,
+          name: `busy-command-${Date.now()}.m4a`,
+          type: "audio/m4a",
+        });
+        response = await fetchWithTimeout(
+          BUSY_COMMAND_URL,
+          {
+            method: "POST",
+            headers: {
+              apikey: BUSY_AI_TOKEN,
+              Authorization: `Bearer ${token}`,
+              "x-busy-request-id": busyRequestId("command"),
+            },
+            body: form,
+          },
+          45000
+        );
+      } else {
+        response = await fetchWithTimeout(
+          BUSY_COMMAND_URL,
+          {
+            method: "POST",
+            headers: {
+              apikey: BUSY_AI_TOKEN,
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+              "x-busy-request-id": busyRequestId("command"),
+            },
+            body: JSON.stringify({
+              appVersion: APP_VERSION,
+              text: cleanText,
+              context: buildBusyCommandContext(),
+            }),
+          },
+          30000
+        );
+      }
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.error || `Talk to BUSY returned ${response.status}.`);
+      }
+      const command = payload?.command || {};
+      const result = {
+        ...command,
+        transcript: String(payload?.transcript || cleanText || "").trim(),
+      };
+      setBusyCommandResult(result);
+      addBusyCommandHistory({
+        transcript: result.transcript,
+        response: result.response,
+        intent: result.intent,
+        confidence: result.confidence,
+      });
+      setBusyCommandStatus("ready");
+      return result;
+    } catch (error) {
+      const message = error?.message || "BUSY could not understand that request.";
+      setBusyCommandError(message);
+      setBusyCommandStatus("error");
+      return null;
+    }
+  };
+
+  const busyCommandHasAction = (command = busyCommandResult) =>
+    !!command &&
+    !["business_summary", "unknown"].includes(command.intent || "unknown");
+
+  const executeBusyCommand = (command = busyCommandResult) => {
+    if (!command) return false;
+    const customer = findBusyCommandCustomer(command.customerName || "");
+    const commandValue = Number(command.value) || 0;
+
+    switch (command.intent) {
+      case "open_today":
+        jump("workHub", "Work");
+        return true;
+      case "open_calendar":
+        jump("workCalendar", "Work");
+        return true;
+      case "open_quote_followups":
+        dueQuoteEntries.length ? go("staleQuotes") : jump("workHub", "Work");
+        return true;
+      case "open_repeat_customers":
+        go("eligibleCustomers");
+        return true;
+      case "find_more_work":
+        if (command.service) {
+          const service = services.find(
+            (item) => normaliseBusyCommandName(item.name) === normaliseBusyCommandName(command.service)
+          );
+          if (service) setSelectedServiceId(service.id);
+        }
+        go("workNow");
+        return true;
+      case "customer_lookup":
+        if (!customer) {
+          setBusyCommandError("BUSY could not match that name to one saved customer.");
+          return false;
+        }
+        openCustomer(customer.id);
+        return true;
+      case "create_booking":
+        if (!customer) {
+          setBusyCommandError("BUSY needs one unambiguous saved customer before it can prepare that booking.");
+          return false;
+        }
+        startDirectCustomerAction(customer.id, "booking");
+        if (command.date) setActionBookingDate(command.date);
+        if (command.time) setActionBookingTime(command.time);
+        if (commandValue > 0) setActionJobValue(String(commandValue));
+        return true;
+      case "complete_job": {
+        if (!customer) {
+          setBusyCommandError("BUSY needs one unambiguous saved customer before it can complete that job.");
+          return false;
+        }
+        const action = replyActions?.[customer.id];
+        if (
+          action?.type !== "booking" ||
+          !action?.done ||
+          ["Cancelled", "Completed"].includes(action.details?.bookingStatus || "Confirmed")
+        ) {
+          setBusyCommandError("BUSY could not find an open confirmed booking for that customer.");
+          return false;
+        }
+        markBookingCompleted(customer.id, commandValue || action.details?.jobValue || "", command.note || "");
+        setSelectedCustomerId(customer.id);
+        go("customerDetail");
+        return true;
+      }
+      case "social_post": {
+        if (customer) {
+          const job = latestBusyCompletedJob(customer);
+          if (job) {
+            startSocialFromJob(customer.id, job.id);
+            if (command.note) setSocialBrief(command.note);
+            return true;
+          }
+        }
+        startSocialFromPhone();
+        setSocialBrief(command.note || command.transcript || "");
+        return true;
+      }
+      case "reactivation_draft":
+        startCampaign(0, Math.max(1, Math.min(20, Number(command.value) || 3)));
+        return true;
+      case "quick_capture":
+        updateCaptureRawText(command.transcript || command.note || "");
+        setCaptureSource("BUSY command");
+        go("quickCapture");
+        return true;
+      case "open_inbox":
+        openBusyInbox();
+        return true;
+      case "open_results":
+        jump("results", "Results");
+        return true;
+      case "open_settings":
+        jump("settings", "Settings");
+        return true;
+      default:
+        return false;
+    }
+  };
+
+  const clearBusyCommandResult = () => {
+    setBusyCommandResult(null);
+    setBusyCommandError("");
+    setBusyCommandStatus("idle");
+  };
+
+  const openTalkToBusy = (startVoice = false) => {
+    clearBusyCommandResult();
+    if (startVoice) setBusyVoiceStartNonce(Date.now());
+    go("talkToBusy");
+  };
+
   const appState = {
     screen,
     history,
@@ -7200,6 +7550,16 @@ function App() {
     proactiveNotices,
     proactiveTopNotice,
     proactiveHiddenNoticeCount,
+    busyCommandHistory,
+    busyCommandStatus,
+    busyCommandResult,
+    busyCommandError,
+    busyVoiceStartNonce,
+    submitBusyCommand,
+    busyCommandHasAction,
+    executeBusyCommand,
+    clearBusyCommandResult,
+    openTalkToBusy,
     snoozeProactiveNotice,
     acknowledgeProactiveNotice,
     runProactiveNotice,

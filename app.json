@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "Busy Does It",
+    "slug": "busy-does-it",
+    "version": "3.18.0",
+    "plugins": [
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow Busy Does It to use your microphone so you can talk to BUSY."
+        }
+      ]
+    ]
+  }
+}
