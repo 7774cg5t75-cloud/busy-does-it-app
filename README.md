@@ -2,6 +2,21 @@
 
 Busy Does It mobile app prototype.
 
+## v3.16 Business Brain Intelligence 2.0
+- Built from the tested V3.15 production-security foundation.
+- Home now shows a true Top 3 Next Best Actions view instead of only one best move plus a hidden list.
+- The Opportunity Engine now annotates ranked actions with a cautious business-value label and a decision-confidence label, while keeping live customer obligations above optional marketing activity.
+- Optional recommendations now teach the Business Brain in both directions: choosing a suggestion adds a small bounded positive ranking signal; dismissing one still records the business-specific reason and can reduce or block similar suggestions.
+- Positive/negative owner-choice effects are capped so clicks cannot overpower live customer commitments or strong recorded business outcomes.
+- Business Brain now shows what it has learned from owner choices, the strongest measured evidence pattern and the current ranking effect by recommendation family.
+- Added a completed-job intelligence bundle: one saved job can prepare a review request, finished-job social post and repeat-service timing without re-entering the same customer/service information.
+- The completed-job bundle only prepares safe internal drafts/timing. Sending a customer message and publishing publicly still require explicit approval.
+- Home can surface the completed-job bundle as a ranked opportunity when a real completed job has approved photos, a pending review request and a repeat timing date.
+- Customer history can now jump directly into the completed-job intelligence bundle for a suitable saved job.
+- Existing outcome learning remains intact: quote, enquiry, review and social outcomes still influence future recommendations through bounded, freshness-weighted evidence.
+- Existing V3.15 account security, cloud tenancy, rate limits, Meta publishing and Google waiting-state logic remain unchanged.
+- Main navigation remains Home / Work / Results / Settings.
+
 ## v3.15 Production Security & Reliability
 - Built from the tested V3.14 account-control foundation.
 - Added request timeouts and clearer network-failure handling to Supabase Auth, cloud-data and social-publishing calls instead of allowing requests to hang indefinitely.
