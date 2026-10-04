@@ -2,6 +2,17 @@
 
 Busy Does It mobile app prototype.
 
+## v3.17.1 Modular Architecture
+- Structural refactor built from the existing V3.17 Proactive BUSY code without intentionally changing product behaviour.
+- Replaced the single ~20,000-line application file with a small entry point plus dedicated core, controller, reusable UI, screen-domain and theme modules.
+- Split the visible product into onboarding, Home, Work, BUSY Inbox/intake, customers/jobs, social/Business Brain, Results and Settings modules.
+- Kept shared ranking/intake/date/value helpers and configuration in a central core runtime instead of duplicating logic across screens.
+- Kept the state/orchestration layer central for behavioural safety while removing the thousands of lines of screen JSX from it.
+- Updated Snack publishing so the complete module tree is uploaded and every JS/JSX module is syntax-checked before a preview is created.
+- V3.16 and the original V3.17 branches remain untouched as fallbacks.
+- No customer message, public post, cloud-tenancy rule, account-security boundary or advertising authority is intentionally changed by this refactor.
+- See ARCHITECTURE.md for the new file map.
+
 ## v3.17 Proactive BUSY
 - Built directly from the tested V3.16 Business Brain Intelligence 2.0 branch.
 - Added a separate proactive signal engine so BUSY can surface useful combinations in the saved business records instead of waiting for the owner to inspect every area manually.

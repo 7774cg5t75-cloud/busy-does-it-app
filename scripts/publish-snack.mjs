@@ -1,23 +1,44 @@
 import fs from "node:fs";
+import path from "node:path";
 import { Snack } from "snack-sdk";
 import * as babelParser from "@babel/parser";
 
-let source = fs.readFileSync("BusyDoesItApp.js", "utf8");
+function collectJsFiles(dir) {
+  if (!fs.existsSync(dir)) return [];
+  const files = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) files.push(...collectJsFiles(full));
+    else if (entry.isFile() && /\.js$/i.test(entry.name)) files.push(full);
+  }
+  return files;
+}
 
-// Snack has no GitHub runtime environment of its own, so inject only the public
-// prototype endpoint/token into the generated preview. The OpenAI key stays server-side.
-source = source
-  .replaceAll(
-    "process.env.EXPO_PUBLIC_BUSY_AI_URL",
-    JSON.stringify(process.env.EXPO_PUBLIC_BUSY_AI_URL || "")
-  )
-  .replaceAll(
-    "process.env.EXPO_PUBLIC_BUSY_AI_TOKEN",
-    JSON.stringify(process.env.EXPO_PUBLIC_BUSY_AI_TOKEN || "")
-  );
+function prepareSource(source) {
+  return source
+    .replaceAll(
+      "process.env.EXPO_PUBLIC_BUSY_AI_URL",
+      JSON.stringify(process.env.EXPO_PUBLIC_BUSY_AI_URL || "")
+    )
+    .replaceAll(
+      "process.env.EXPO_PUBLIC_BUSY_AI_TOKEN",
+      JSON.stringify(process.env.EXPO_PUBLIC_BUSY_AI_TOKEN || "")
+    );
+}
 
-// Fail the preview build before publishing if the React Native source has invalid JS/JSX syntax.
-babelParser.parse(source, { sourceType: "module", plugins: ["jsx"] });
+const sourcePaths = ["BusyDoesItApp.js", ...collectJsFiles("src")];
+const files = {};
+
+for (const sourcePath of sourcePaths) {
+  const prepared = prepareSource(fs.readFileSync(sourcePath, "utf8"));
+  babelParser.parse(prepared, { sourceType: "module", plugins: ["jsx"] });
+  const snackPath =
+    sourcePath === "BusyDoesItApp.js"
+      ? "App.js"
+      : sourcePath.split(path.sep).join("/");
+  files[snackPath] = { type: "CODE", contents: prepared };
+}
+
 const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
 const version = pkg.version || "preview";
 const branch = process.env.GITHUB_REF_NAME || `v${version}`;
@@ -25,22 +46,11 @@ const branch = process.env.GITHUB_REF_NAME || `v${version}`;
 const snack = new Snack({
   name: `Busy Does It v${version.replace(/^0\./, "0.")}`,
   description: `Auto-generated preview from the ${branch} GitHub branch`,
-  files: {
-    "App.js": {
-      type: "CODE",
-      contents: source,
-    },
-  },
+  files,
   dependencies: {
-    "@react-native-async-storage/async-storage": {
-      version: "2.2.0",
-    },
-    "expo-image-picker": {
-      version: "17.0.11",
-    },
-    "expo-secure-store": {
-      version: "15.0.8",
-    },
+    "@react-native-async-storage/async-storage": { version: "2.2.0" },
+    "expo-image-picker": { version: "17.0.11" },
+    "expo-secure-store": { version: "15.0.8" },
   },
 });
 
