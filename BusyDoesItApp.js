@@ -22,8 +22,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 
-const APP_VERSION = "3.13";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Business-Separated Social Tenancy`;
+const APP_VERSION = "3.14";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Account Data Controls`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
