@@ -2,6 +2,19 @@
 
 Busy Does It mobile app prototype.
 
+## v3.14 Account Deletion & Data Control
+- Built from the tested V3.13 business-separated tenancy foundation.
+- Added a genuine in-app owner account-removal flow with export-first guidance, typed DELETE confirmation, exact signed-in-email confirmation and a final destructive confirmation dialog.
+- The server now validates the authenticated owner and business before any removal can happen; admins cannot use the owner-deletion route.
+- Self-service removal is deliberately blocked if a business has other members or if the account owns multiple businesses, so one user cannot accidentally wipe shared data.
+- Before removing BUSY data, the backend collects BUSY-stored social-media paths, attempts to revoke connected Meta/Google authorization, removes those stored files, then deletes the Supabase Auth account.
+- Deleting the Auth account cascades through the user's BUSY business, membership, cloud snapshot, social connections, publishing settings and publishing records through the V3.13 tenant foreign keys.
+- Existing posts already published on Facebook or Instagram are not deleted from those platforms; the UI states this clearly before confirmation.
+- After successful server removal, the app clears the secure session and the deleted user's private local cache before returning to the signed-out account gate.
+- The normal Sign out action remains non-destructive and preserves that account's private device cache.
+- Existing Facebook/Instagram live publishing and Google Business waiting-state logic remain unchanged for normal accounts.
+- Main navigation remains Home / Work / Results / Settings.
+
 ## v3.13 Business-Separated Social Tenancy
 - Built from V3.12 after the account, local-cache and cloud-recovery foundation was tested.
 - Added a real business_id tenant boundary to social provider connections, OAuth states, publishing records and publishing settings in Supabase.
