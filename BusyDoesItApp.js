@@ -2800,6 +2800,81 @@ function App() {
     go("jobPhotoOpportunity");
   };
 
+  const openPostJobBundle = (customerId, jobId) => {
+    setSelectedCustomerId(customerId);
+    setSelectedJobId(jobId);
+    go("postJobBundle");
+  };
+
+  const preparePostJobBundle = () => {
+    if (!selectedCustomerId || !selectedJobId) return;
+    const preparedAt = new Date().toISOString();
+    setCustomers((list) =>
+      list.map((customer) => {
+        if (customer.id !== selectedCustomerId) return customer;
+        const history = Array.isArray(customer.history) ? customer.history : [];
+        const job = history.find((item) => item.id === selectedJobId);
+        if (!job) return customer;
+
+        const firstName = String(customer.name || "").split(" ")[0] || "there";
+        const serviceName = job.service || customer.service || "job";
+        const repeatDue =
+          customer.nextRepeatDueDate ||
+          job.repeatDueDate ||
+          nextRepeatDueDate(
+            { ...customer, lastServiceDate: job.date || customer.lastServiceDate },
+            services,
+            verticalId
+          ) ||
+          "";
+        const approvedPhotos = (Array.isArray(job.photos) ? job.photos : []).filter(
+          (photo) => photo.marketingOk
+        );
+        const reviewDraft =
+          customer.contactOk === false || job.reviewRequestSentAt
+            ? job.reviewRequestDraft || ""
+            : job.reviewRequestDraft ||
+              `Hi ${firstName}, thanks again for choosing us for your ${serviceName.toLowerCase()}. If you were happy with the work, would you mind leaving us a quick review? No problem at all if not — we really appreciate the business.`;
+        const postDraft =
+          approvedPhotos.length &&
+          !["Published", "Simulated published"].includes(job.postDraftStatus)
+            ? job.postDraft ||
+              `Just finished another ${serviceName.toLowerCase()} job. If you need something similar, send us a message and we’ll take a look.`
+            : job.postDraft || "";
+
+        return {
+          ...customer,
+          nextRepeatDueDate: repeatDue || customer.nextRepeatDueDate || "",
+          lastActivityAt: preparedAt,
+          lastActivityKind: "business-brain-bundle",
+          history: history.map((item) =>
+            item.id === selectedJobId
+              ? {
+                  ...item,
+                  repeatDueDate: repeatDue || item.repeatDueDate || "",
+                  reviewRequestDraft: reviewDraft,
+                  reviewRequestPreparedAt:
+                    reviewDraft && !item.reviewRequestPreparedAt
+                      ? preparedAt
+                      : item.reviewRequestPreparedAt,
+                  postDraft,
+                  postDraftPreparedAt:
+                    postDraft && !item.postDraftPreparedAt
+                      ? preparedAt
+                      : item.postDraftPreparedAt,
+                  postDraftStatus:
+                    postDraft && !item.postDraftStatus
+                      ? "Prepared"
+                      : item.postDraftStatus,
+                  adminBundlePreparedAt: preparedAt,
+                }
+              : item
+          ),
+        };
+      })
+    );
+  };
+
   const chooseJobPhotos = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -7720,6 +7795,50 @@ function App() {
         jobId: photoOpportunityEntry.job.id,
         service: photoOpportunityEntry.job.service || photoOpportunityEntry.customer.service,
         photoCount: photoOpportunityEntry.job.photos.filter((photo) => photo.marketingOk).length,
+      }
+    : null;
+
+  const postJobBundleEntry =
+    latestCompletedJobEntries.find((entry) => {
+      const photos = Array.isArray(entry.job.photos) ? entry.job.photos : [];
+      const approvedPhotoCount = photos.filter((photo) => photo.marketingOk).length;
+      const reviewPending =
+        entry.customer.contactOk !== false && !entry.job.reviewRequestSentAt;
+      const socialPending =
+        approvedPhotoCount > 0 &&
+        !["Published", "Simulated published"].includes(entry.job.postDraftStatus);
+      const repeatTracked = !!(
+        entry.customer.nextRepeatDueDate ||
+        entry.job.repeatDueDate
+      );
+      return (reviewPending || socialPending) && repeatTracked;
+    }) || null;
+  const postJobBundleOpportunity = postJobBundleEntry
+    ? {
+        customerId: postJobBundleEntry.customer.id,
+        customerName: postJobBundleEntry.customer.name,
+        jobId: postJobBundleEntry.job.id,
+        service:
+          postJobBundleEntry.job.service ||
+          postJobBundleEntry.customer.service,
+        value: Number(postJobBundleEntry.job.value) || 0,
+        reviewPending:
+          postJobBundleEntry.customer.contactOk !== false &&
+          !postJobBundleEntry.job.reviewRequestSentAt,
+        socialPending:
+          (postJobBundleEntry.job.photos || []).some(
+            (photo) => photo.marketingOk
+          ) &&
+          !["Published", "Simulated published"].includes(
+            postJobBundleEntry.job.postDraftStatus
+          ),
+        approvedPhotoCount: (postJobBundleEntry.job.photos || []).filter(
+          (photo) => photo.marketingOk
+        ).length,
+        repeatDueDate:
+          postJobBundleEntry.customer.nextRepeatDueDate ||
+          postJobBundleEntry.job.repeatDueDate ||
+          "",
       }
     : null;
 
