@@ -81,8 +81,8 @@ function TalkToBusy({ s }) {
     <Shell
       s={s}
       title="BUSY Operator"
-      subtitle="Have a real back-and-forth. BUSY remembers the current subject, asks when something is missing and can build a plan across the business."
-      brandCue="Conversation adds context, not authority. Record changes still ask first; messages, publishing and spend keep their separate approval gates."
+      subtitle="Run more of the day by talking naturally. BUSY keeps the current customer, booking and draft in context, then previews record changes before applying them."
+      brandCue="Voice-first, not authority-first. Booking/customer changes still ask for confirmation; messages, publishing and spend keep their separate approval gates."
     >
       {recentTurns.length ? (
         <Card
@@ -145,7 +145,7 @@ function TalkToBusy({ s }) {
         body={
           result?.needsClarification
             ? result.clarificationQuestion || "BUSY needs one more detail."
-            : "Try: “I need two jobs next Thursday”, “prepare something for John”, “make that less salesy”, or “what has changed since last time?”"
+            : "Try: “move John to Friday at 3”, “cancel Sarah’s booking”, “add a note to Dave”, “show me Tuesday”, or “what should I do now?”"
         }
         tone={result?.needsClarification ? "amber" : "green"}
       >
@@ -166,6 +166,29 @@ function TalkToBusy({ s }) {
         />
       </Card>
 
+      <Card
+        eyebrow="Quick asks"
+        title="Common daily commands"
+        body="These use the same Operator conversation, so you can follow up naturally after BUSY answers."
+        tone="blue"
+      >
+        <Button
+          label="What should I do now?"
+          disabled={s.busyCommandStatus === "thinking"}
+          onPress={() => s.submitBusyCommand({ text: "What should I do now?" })}
+        />
+        <Button
+          label="Show me tomorrow"
+          disabled={s.busyCommandStatus === "thinking"}
+          onPress={() => s.submitBusyCommand({ text: "Show me tomorrow in the calendar" })}
+        />
+        <Button
+          label="What needs chasing?"
+          disabled={s.busyCommandStatus === "thinking"}
+          onPress={() => s.submitBusyCommand({ text: "What customer work needs chasing first?" })}
+        />
+      </Card>
+
       {s.busyCommandError ? (
         <Card
           eyebrow="Could not complete that"
@@ -178,7 +201,9 @@ function TalkToBusy({ s }) {
       {result ? (
         <Card
           eyebrow={
-            result.needsClarification
+            result.applied
+              ? "Change applied"
+              : result.needsClarification
               ? "One detail needed"
               : result.mode === "plan"
               ? "BUSY Operator plan"
@@ -195,7 +220,9 @@ function TalkToBusy({ s }) {
               : result.response || "BUSY understood the request."
           }
           footer={
-            result.needsClarification
+            result.applied
+              ? "Applied to BUSY records • undo is available below"
+              : result.needsClarification
               ? "Nothing has changed"
               : result.requiresConfirmation
               ? "Nothing changes until you confirm"
@@ -206,7 +233,9 @@ function TalkToBusy({ s }) {
               : "Answer only • no action required"
           }
           tone={
-            result.needsClarification || result.requiresConfirmation
+            result.applied
+              ? "green"
+              : result.needsClarification || result.requiresConfirmation
               ? "amber"
               : "green"
           }
@@ -293,9 +322,9 @@ function TalkToBusy({ s }) {
       ) : null}
 
       <Card
-        eyebrow="Operator boundary"
-        title="BUSY can coordinate more without gaining blanket authority"
-        body="Conversation can now span several steps and refine drafts. Customer messages, public publishing and paid advertising still require their existing explicit approval. BUSY never treats a conversational “yes” as permission to spend money or publish publicly."
+        eyebrow="Operator 2.0 boundary"
+        title="More commands, same hard safety line"
+        body="BUSY can now create, move and cancel bookings, complete jobs, add customer notes, set safe reminders and open a requested calendar day after the required preview/confirmation. Customer messages, public publishing and paid advertising still require their existing explicit approval."
         tone="blue"
       />
 
