@@ -50,3 +50,14 @@ create table if not exists public.busy_calendar_oauth_states (
 
 -- busy_push_devices: authenticated owner-only RLS.
 -- busy_calendar_connections / busy_calendar_oauth_states: RLS enabled and client access explicitly blocked.
+
+
+-- Cover foreign keys used during account/business cleanup and OAuth-state expiry work.
+create index if not exists busy_calendar_connections_business_idx
+  on public.busy_calendar_connections (business_id);
+
+create index if not exists busy_calendar_oauth_states_business_idx
+  on public.busy_calendar_oauth_states (business_id);
+
+create index if not exists busy_calendar_oauth_states_user_idx
+  on public.busy_calendar_oauth_states (user_id);
