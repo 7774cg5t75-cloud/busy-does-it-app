@@ -954,6 +954,20 @@ function HomeScreen({ s }) {
         </Card>
       ) : null}
 
+      {s.operationalContinuity?.status !== "All clear" ? (
+        <Card
+          eyebrow="V3.27 • Continuity"
+          title={s.operationalContinuity?.headline || "BUSY can keep working while a connection recovers"}
+          body="A provider or connection issue is being isolated from the rest of the business. Customer records, planning and safe draft preparation can continue while the affected connection is recovered separately."
+          footer={`${(s.operationalContinuity?.highCount || 0) + (s.operationalContinuity?.reviewCount || 0)} important recovery item${((s.operationalContinuity?.highCount || 0) + (s.operationalContinuity?.reviewCount || 0)) === 1 ? "" : "s"} • no automatic duplicate sends or silent booking overwrites`}
+          tone={(s.operationalContinuity?.highCount || 0) > 0 ? "amber" : "blue"}
+        >
+          <MetricRow left="Continuity state" right={s.operationalContinuity?.status || "All clear"} strong />
+          <MetricRow left="What still works" right={String(s.operationalContinuity?.continueNow?.length || 0)} />
+          <Button label="Open Continuity Centre" primary onPress={() => s.go("operationalContinuity")} />
+        </Card>
+      ) : null}
+
       <Card
         eyebrow="BUSY underneath"
         title="One assistant • several systems underneath"
@@ -964,8 +978,10 @@ function HomeScreen({ s }) {
         <MetricRow left="Memory confidence" right={s.strongestBusinessMemoryPattern?.stage?.label || "Too early to tell"} />
         <MetricRow left="Proactive reminders" right={s.proactiveNotificationsEnabled ? String(Object.keys(s.proactiveScheduledMap || {}).length) : "Off"} />
         <MetricRow left="Diary" right={s.diaryConnection?.status === "connected" ? "Connected" : "Not connected"} />
+        <MetricRow left="Continuity" right={s.operationalContinuity?.status || "All clear"} />
         <Button label="Executive Briefing" onPress={() => s.go("executiveBriefing")} />
         <Button label="Business Memory" onPress={() => s.go("businessMemory")} />
+        <Button label="Continuity Centre" onPress={() => s.go("operationalContinuity")} />
         <Button label="Release Core" onPress={() => s.go("releaseCore")} />
       </Card>
 
