@@ -17,6 +17,10 @@ function collectJsFiles(dir) {
 function prepareSource(source) {
   return source
     .replaceAll(
+      'import * as Calendar from "expo-calendar/legacy";',
+      'import * as Calendar from "expo-calendar";'
+    )
+    .replaceAll(
       "process.env.EXPO_PUBLIC_BUSY_AI_URL",
       JSON.stringify(process.env.EXPO_PUBLIC_BUSY_AI_URL || "")
     )
