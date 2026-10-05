@@ -140,6 +140,10 @@ const {
 } = Core;
 
 import { styles } from "../theme/styles";
+import {
+  buildReleaseCoreHealth,
+  buildHomeCommandCentre,
+} from "../domain/releaseCore";
 import { BusyBrandLockup } from "../components/ui";
 import { screens, HomeScreen, AccountAccess } from "../screens";
 
@@ -4290,6 +4294,27 @@ function App() {
     const dateIsValid = !newCustomerHasPreviousJob || !Number.isNaN(new Date(newCustomerDate).getTime());
     if (!name || !phone || !dateIsValid) return false;
 
+    if (!editingCustomerId) {
+      const duplicate = findCustomerMatch(customers, { phone, name });
+      if (duplicate?.customer && duplicate.confidence === "High") {
+        Alert.alert(
+          "This customer may already exist",
+          `${duplicate.customer.name} already uses this phone number. BUSY keeps one customer history wherever possible.`,
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Open existing",
+              onPress: () => {
+                clearCustomerForm();
+                openCustomer(duplicate.customer.id);
+              },
+            },
+          ]
+        );
+        return false;
+      }
+    }
+
     const existing = editingCustomerId
       ? customers.find((customer) => customer.id === editingCustomerId)
       : null;
@@ -4335,37 +4360,80 @@ function App() {
     const address = newEnquiryAddress.trim();
     const service = newEnquiryCustomService.trim() || newEnquiryService.trim() || services[0]?.name || trade || "Service";
     if (!name || !phone) return false;
-    const id = `enquiry-${Date.now()}`;
-    const receivedAt = new Date(`${newEnquiryDate || dateToISO(new Date())}T12:00:00`).toISOString();
-    const now = new Date().toISOString();
-    const customer = {
-      id,
-      name,
-      phone,
-      address,
-      service,
-      lastServiceDate: "",
-      lastJobValue: 0,
-      contactOk: true,
-      source: "New enquiry",
-      createdAt: receivedAt,
-      currentEnquiryAt: receivedAt,
-      nextEnquiryCheckDate: addDaysFromISO(newEnquiryDate || dateToISO(new Date()), 7),
-      lifecycleStatus: "Enquiry",
-      activity: [
-        {
-          id: `activity-${id}-created`,
-          kind: "enquiry",
-          date: newEnquiryDate || dateToISO(new Date()),
-          createdAt: receivedAt,
-          title: "New enquiry added",
-          note: newEnquiryNote.trim() || `Enquiry for ${service}.`,
-          value: "",
-        },
-      ],
-    };
-    setCustomers((list) => [...list, customer]);
-    setSelectedCustomerId(id);
+    const receivedDate = newEnquiryDate || dateToISO(new Date());
+    const receivedAt = new Date(`${receivedDate}T12:00:00`).toISOString();
+    const note = newEnquiryNote.trim() || `Enquiry for ${service}.`;
+    const match = findCustomerMatch(customers, { phone, name });
+    const existing = match?.confidence === "High" ? match.customer : null;
+
+    if (existing) {
+      setCustomers((list) =>
+        list.map((customer) => {
+          if (customer.id !== existing.id) return customer;
+          const activity = Array.isArray(customer.activity) ? customer.activity : [];
+          return {
+            ...customer,
+            name: customer.name || name,
+            phone: customer.phone || phone,
+            address: address || customer.address || "",
+            service: service || customer.service,
+            currentEnquiryAt: receivedAt,
+            nextEnquiryCheckDate: addDaysFromISO(receivedDate, 7),
+            enquiryFollowUpSentAt: null,
+            enquiryFollowUpStatus: null,
+            enquiryFollowUpOutcome: "",
+            enquiryFollowUpOutcomeRecordedAt: null,
+            lifecycleStatus: "Enquiry",
+            lastActivityAt: receivedAt,
+            lastActivityKind: "enquiry",
+            activity: [
+              ...activity,
+              {
+                id: `activity-${existing.id}-enquiry-${Date.now()}`,
+                kind: "enquiry",
+                date: receivedDate,
+                createdAt: receivedAt,
+                title: "New enquiry added to existing customer",
+                note,
+                value: "",
+              },
+            ],
+          };
+        })
+      );
+      setSelectedCustomerId(existing.id);
+    } else {
+      const id = `enquiry-${Date.now()}`;
+      const customer = {
+        id,
+        name,
+        phone,
+        address,
+        service,
+        lastServiceDate: "",
+        lastJobValue: 0,
+        contactOk: true,
+        source: "New enquiry",
+        createdAt: receivedAt,
+        currentEnquiryAt: receivedAt,
+        nextEnquiryCheckDate: addDaysFromISO(receivedDate, 7),
+        lifecycleStatus: "Enquiry",
+        activity: [
+          {
+            id: `activity-${id}-created`,
+            kind: "enquiry",
+            date: receivedDate,
+            createdAt: receivedAt,
+            title: "New enquiry added",
+            note,
+            value: "",
+          },
+        ],
+      };
+      setCustomers((list) => [...list, customer]);
+      setSelectedCustomerId(id);
+    }
+
     setNewEnquiryName("");
     setNewEnquiryPhone("");
     setNewEnquiryAddress("");
@@ -8702,6 +8770,63 @@ function App() {
     });
   };
 
+  const releaseCoreHealth = buildReleaseCoreHealth({
+    customers,
+    replyActions,
+    inboxItems,
+    diaryConflicts,
+    proactiveScheduledMap,
+    cloudConflict,
+    todayISO: executiveTodayISO,
+  });
+
+  const homeCommandCentre = buildHomeCommandCentre({
+    executiveBriefing,
+    autopilotApprovalItems,
+    autopilotNeedsInputItems,
+    proactiveNotificationsEnabled,
+    proactiveScheduledMap,
+    diaryConnection,
+    diaryConflicts,
+    strongestBusinessMemoryPattern,
+    releaseCoreHealth,
+  });
+
+  const openReleaseCoreIssue = (issue) => {
+    if (!issue) return false;
+    if (
+      ["booking-date", "overdue-booking", "completed-job-history"].includes(
+        issue.kind
+      ) &&
+      issue.customerId
+    ) {
+      openSavedReplyAction(issue.customerId);
+      return true;
+    }
+    if (issue.kind === "duplicate-customer" && issue.customerId) {
+      openCustomer(issue.customerId);
+      return true;
+    }
+    if (issue.kind === "diary-conflict") {
+      go("proactiveBusyCentre");
+      return true;
+    }
+    if (issue.kind === "orphan-inbox") {
+      openBusyInbox();
+      return true;
+    }
+    if (issue.kind === "cloud-conflict") {
+      go("businessData");
+      return true;
+    }
+    if (issue.kind === "stale-notifications") {
+      go("proactiveBusyCentre");
+      return true;
+    }
+    go("releaseCore");
+    return true;
+  };
+
   const proactiveParseClock = (value, fallbackHour = 8, fallbackMinute = 0) => {
     const match = String(value || "").match(/^(\d{1,2}):(\d{2})$/);
     if (!match) return { hour: fallbackHour, minute: fallbackMinute };
@@ -10161,6 +10286,9 @@ function App() {
     executiveBookings30,
     executiveOpenQuoteRows,
     executiveRepeatPool,
+    releaseCoreHealth,
+    homeCommandCentre,
+    openReleaseCoreIssue,
     openExecutivePriority,
     askBusyAboutOutlook,
     proactiveNotificationsEnabled,

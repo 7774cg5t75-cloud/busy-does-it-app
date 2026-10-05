@@ -5,6 +5,7 @@ import * as AutopilotScreens from "./autopilot";
 import * as MemoryScreens from "./memory";
 import * as ExecutiveScreens from "./executive";
 import * as Proactive23Screens from "./proactive23";
+import * as ReleaseCoreScreens from "./releaseCore";
 import * as WorkScreens from "./work";
 import * as IntakeScreens from "./intake";
 import * as CustomersScreens from "./customers";
@@ -19,6 +20,7 @@ export * from "./autopilot";
 export * from "./memory";
 export * from "./executive";
 export * from "./proactive23";
+export * from "./releaseCore";
 export * from "./work";
 export * from "./intake";
 export * from "./customers";
@@ -34,6 +36,7 @@ const allScreens = {
   ...MemoryScreens,
   ...ExecutiveScreens,
   ...Proactive23Screens,
+  ...ReleaseCoreScreens,
   ...WorkScreens,
   ...IntakeScreens,
   ...CustomersScreens,
@@ -58,6 +61,7 @@ const {
   BusinessMemory,
   ExecutiveBriefing,
   ProactiveBusyCentre,
+  ReleaseCore,
   WorkHub,
   WorkCalendar,
   WorkPipeline,
@@ -161,6 +165,7 @@ export const screens = {
   businessMemory: BusinessMemory,
   executiveBriefing: ExecutiveBriefing,
   proactiveBusyCentre: ProactiveBusyCentre,
+  releaseCore: ReleaseCore,
   workHub: WorkHub,
   workCalendar: WorkCalendar,
   workPipeline: WorkPipeline,

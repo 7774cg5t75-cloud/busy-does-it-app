@@ -459,6 +459,8 @@ export const styles = StyleSheet.create({
   proactiveFieldLabel: { color: C.muted, fontSize: 11, fontWeight: "800", letterSpacing: 0.3, marginTop: 10, marginBottom: 5 },
   proactiveCompactInput: { borderWidth: 1, borderColor: C.border, borderRadius: 12, backgroundColor: C.card, color: C.ink, fontSize: 15, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 4 },
   proactiveChoiceRow: { gap: 8, marginTop: 4 },
+  releaseCheckRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 8 },
+  releaseCheckLabel: { flex: 1, color: C.ink, fontSize: 14, fontWeight: "800" },
   nav: {
     height: 72,
     flexDirection: "row",

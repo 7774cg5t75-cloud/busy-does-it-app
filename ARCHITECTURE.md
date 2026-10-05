@@ -62,3 +62,10 @@ This branch restructures the large single-file prototype into domain modules wit
 - Notification payloads contain structured local route data; taps navigate to existing approval/work surfaces rather than executing business actions.
 - Device-calendar sync maps BUSY booking/customer IDs to native event IDs. External edits become reconciliation conflicts and require an explicit owner choice.
 - Other events from the selected device calendar are used only as local scheduled-load context and are not turned into customer records.
+
+## V3.24 Release-Grade Core
+- `src/domain/releaseCore.js` is the first dedicated domain-selector module in the next refactor phase. It owns deterministic customer/link/lifecycle consistency checks and the compact Home command-centre summary.
+- `src/screens/releaseCore.js` exposes those checks without giving them automatic mutation authority.
+- Home no longer renders every intelligent subsystem as a separate top-level card. It acts as a thin command-centre surface over Operator, Autopilot, Business Memory, Executive Briefing and Proactive BUSY.
+- Obvious duplicate phone records are blocked at manual entry, while repeat enquiries with a high-confidence existing phone match append to the existing customer lifecycle.
+- Future refactors should continue moving pure forecasting, notification and diary selectors out of `AppController.js` before adding new controller-level intelligence.

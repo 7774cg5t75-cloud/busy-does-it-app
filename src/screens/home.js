@@ -828,54 +828,28 @@ function HomeScreen({ s }) {
     <Shell
       s={s}
       noBack
-      title="Today"
-      subtitle="A short BUSY briefing first. Open Work when you want the full weekly plan and reasoning."
-      brandCue="The business checked. One clear move when something matters."
+      title={`${s.homeCommandCentre?.greeting || "Hello"}`}
+      subtitle="Here’s what matters now. Everything else stays underneath until you need it."
+      brandCue="One assistant. One priority. Full reasoning when you want it."
     >
 
 
 
 
       <Card
-        eyebrow="V3.23 • Proactive BUSY"
-        title={
-          s.proactiveNotificationsEnabled
-            ? "BUSY can now bring the important things to you"
-            : "Let BUSY keep an eye on the clock"
-        }
+        eyebrow="V3.24 • BUSY Today"
+        title={bestMove ? bestMove.title : "Nothing urgent needs forcing"}
         body={
-          s.proactiveNotificationsEnabled
-            ? `${Object.keys(s.proactiveScheduledMap || {}).length} local reminder${Object.keys(s.proactiveScheduledMap || {}).length === 1 ? "" : "s"} scheduled • ${s.diaryConnection?.status === "connected" ? `diary connected to ${s.diaryConnection.title}` : "device diary not connected yet"}.`
-            : "Enable a small, prioritised reminder schedule for morning briefings, real bookings and genuinely due owner decisions."
+          bestMove
+            ? bestMove.body
+            : "BUSY has checked the saved customer work, diary, approvals and current business risks. No recorded action is important enough to manufacture a task."
         }
         footer={
-          s.diaryConflicts?.length
-            ? `${s.diaryConflicts.length} diary change${s.diaryConflicts.length === 1 ? "" : "s"} need your decision`
-            : "No customer message, post or spend happens from a notification"
+          homeBrief.loaded && homeBrief.hasPrevious
+            ? homeBrief.change || "Nothing material has changed since your last Home check."
+            : "BUSY is starting a clean next-session comparison from this point."
         }
-        tone={s.diaryConflicts?.length ? "amber" : s.proactiveNotificationsEnabled ? "green" : "blue"}
-      >
-        <MetricRow left="Scheduled reminders" right={String(Object.keys(s.proactiveScheduledMap || {}).length)} />
-        <MetricRow left="Diary" right={s.diaryConnection?.status === "connected" ? "Connected" : "Not connected"} />
-        <Button label="Open Proactive BUSY" primary onPress={() => s.go("proactiveBusyCentre")} />
-      </Card>
-
-      <Card
-        eyebrow="V3.22 • Executive Briefing"
-        title={
-          s.executiveBriefing?.priority?.title ||
-          "BUSY has checked the business"
-        }
-        body={
-          s.executiveBriefing?.priority?.body ||
-          "No material recorded issue is forcing itself to the top."
-        }
-        footer={
-          s.executiveBriefing?.outlook?.low === s.executiveBriefing?.outlook?.high
-            ? `30-day confirmed outlook: £${s.executiveBriefing?.outlook?.low || 0}`
-            : `30-day outlook: £${s.executiveBriefing?.outlook?.low || 0}–£${s.executiveBriefing?.outlook?.high || 0} • ${s.executiveBriefing?.outlook?.confidence || "Low"} variable-pipeline confidence`
-        }
-        tone={s.executiveBriefing?.priority?.kind === "clear" ? "green" : "amber"}
+        tone={bestMove?.tone || "green"}
       >
         <MetricRow
           left="Confirmed next 7 days"
@@ -883,94 +857,39 @@ function HomeScreen({ s }) {
           strong={(s.executiveBriefing?.confirmed7?.value || 0) > 0}
         />
         <MetricRow
-          left="Risk signals"
-          right={String(s.executiveBriefing?.risks?.length || 0)}
-          strong={(s.executiveBriefing?.risks?.length || 0) > 0}
-        />
-        <Button label="Open full forward view" primary onPress={() => s.go("executiveBriefing")} />
-      </Card>
-
-      <Card
-        eyebrow="V3.20 • Controlled Autopilot"
-        title={
-          s.autopilotMode === "off"
-            ? "Autopilot is off"
-            : s.autopilotApprovalItems.length || s.autopilotNeedsInputItems.length
-            ? "BUSY has prepared work underneath"
-            : "BUSY has checked ahead • nothing needs interrupting"
-        }
-        body={
-          s.autopilotMode === "off"
-            ? "BUSY is watching and recommending only. Turn preparation back on whenever you want BUSY to work ahead."
-            : `${s.autopilotApprovalItems.length} item${s.autopilotApprovalItems.length === 1 ? "" : "s"} ready for approval • ${s.autopilotNeedsInputItems.length} need${s.autopilotNeedsInputItems.length === 1 ? "s" : ""} your input. BUSY can prepare safe internal work, but it still cannot send, publish or spend without the existing approval steps.`
-        }
-        footer={
-          s.autopilotLastCheckAt
-            ? `Last checked: ${new Date(s.autopilotLastCheckAt).toLocaleString("en-GB")}`
-            : `Mode: ${s.autopilotModeLabel}`
-        }
-        tone={
-          s.autopilotNeedsInputItems.length
-            ? "amber"
-            : s.autopilotApprovalItems.length
-            ? "green"
-            : "blue"
-        }
-      >
-        <MetricRow
           left="Ready for approval"
-          right={String(s.autopilotApprovalItems.length)}
-          strong={s.autopilotApprovalItems.length > 0}
+          right={String(s.autopilotApprovalItems?.length || 0)}
+          strong={(s.autopilotApprovalItems?.length || 0) > 0}
         />
         <MetricRow
           left="Needs your input"
-          right={String(s.autopilotNeedsInputItems.length)}
-          strong={s.autopilotNeedsInputItems.length > 0}
+          right={String(s.autopilotNeedsInputItems?.length || 0)}
+          strong={(s.autopilotNeedsInputItems?.length || 0) > 0}
         />
-        <MetricRow left="Authority" right={s.autopilotModeLabel} />
-        <Button
-          label={
-            s.autopilotApprovalItems.length || s.autopilotNeedsInputItems.length
-              ? "Open Approval Inbox"
-              : "Open Controlled Autopilot"
-          }
-          primary={s.autopilotApprovalItems.length > 0 || s.autopilotNeedsInputItems.length > 0}
-          onPress={() => s.go("autopilotCentre")}
-        />
-      </Card>
-
-
-      <Card
-        eyebrow="V3.21 • Business Memory"
-        title={
-          s.strongestBusinessMemoryPattern
-            ? `BUSY is learning how this business actually performs`
-            : "BUSY is building its evidence base"
-        }
-        body={
-          s.strongestBusinessMemoryPattern
-            ? `${s.strongestBusinessMemoryPattern.title}: ${s.strongestBusinessMemoryPattern.learnedBecause}`
-            : "BUSY is recording outcomes but will not change rankings from tiny samples."
-        }
-        footer={
-          s.businessMemoryChanges?.length
-            ? `${s.businessMemoryChanges.length} evidence change${s.businessMemoryChanges.length === 1 ? "" : "s"} since the previous memory snapshot`
-            : "No material long-term learning shift to report"
-        }
-        tone={s.businessMemoryChanges?.length ? "green" : "blue"}
-      >
         <MetricRow
-          left="Memory confidence"
-          right={s.strongestBusinessMemoryPattern?.stage?.label || "Too early to tell"}
-          strong={!!s.strongestBusinessMemoryPattern}
+          left="Core health"
+          right={s.releaseCoreHealth?.status || "Healthy"}
+          strong={(s.releaseCoreHealth?.highCount || 0) === 0}
         />
-        <Button label="See what BUSY has learned" onPress={() => s.go("businessMemory")} />
+        {bestMove ? (
+          <Button
+            label={bestMove.actionLabel || "Handle this"}
+            primary
+            onPress={() => {
+              if (bestMove.canIgnore) s.recordOpportunityAccepted(bestMove);
+              bestMove.onAction?.();
+            }}
+          />
+        ) : (
+          <Button label="Open forward view" primary onPress={() => s.go("executiveBriefing")} />
+        )}
+        <Button label="Why this is first" onPress={() => s.jump("workHub", "Work")} />
       </Card>
 
       <Card
-        eyebrow="V3.19 • BUSY Operator"
-        title="Talk it through with BUSY"
-        body="Speak naturally or type. BUSY now keeps the current conversation in context, can ask for missing details, build a multi-step plan and refine the last draft without making you start again."
+        eyebrow="Talk to BUSY"
+        title="Tell BUSY what you want to do"
+        body="Speak naturally. BUSY keeps the conversation in context and uses the same customer records, Business Memory, Executive Briefing and approval rules underneath."
         footer={
           s.busyCommandHistory?.length
             ? `Last request: ${s.busyCommandHistory[0].transcript}`
@@ -988,140 +907,86 @@ function HomeScreen({ s }) {
           <View style={styles.talkHomeCopy}>
             <Text style={styles.talkHomeTitle}>Tap and talk</Text>
             <Text style={styles.talkHomeBody}>
-              “I need two jobs next Thursday” • “Okay, use John” • “Make that friendlier”
+              “How does this week look?” • “Book John Friday” • “What needs my attention?”
             </Text>
           </View>
         </View>
         <Button label="Type to BUSY instead" onPress={() => s.openTalkToBusy(false)} />
       </Card>
 
-      <Card
-        eyebrow="BUSY briefing"
-        title={
-          bestMove
-            ? "BUSY has checked the business"
-            : "BUSY has checked the business • all clear"
-        }
-        body={
-          `${homeBrief.loaded && homeBrief.hasPrevious
-            ? homeBrief.change || "Nothing material has changed since your last Home check."
-            : "BUSY is starting a simple next-session comparison from this point."}\n${bestMove
-            ? `What matters now: ${bestMove.title}.`
-            : "What matters now: no recorded task is worth forcing."}`
-        }
-        footer={
-          nextHomeBooking
-            ? `Next saved booking: ${formatUKDate(nextHomeBooking.action.details.bookingDate)} at ${nextHomeBooking.action.details.bookingTime || "time not set"} • ${homeWeekBookings.length} booked this week • £${homeWeekBookedValue}`
-            : `${homeWeekBookings.length} booked this week • £${homeWeekBookedValue} • no upcoming booking in the next 7 days`
-        }
-        tone={bestMove?.tone || "green"}
-      >
-        <Button label="Open weekly plan" onPress={() => s.jump("workHub", "Work")} />
-      </Card>
-
-      {homeProactiveNotice ? (
+      {(s.autopilotApprovalItems?.length ||
+        s.autopilotNeedsInputItems?.length ||
+        s.diaryConflicts?.length ||
+        s.releaseCoreHealth?.issueCount) ? (
         <Card
-          eyebrow="V3.17 • BUSY noticed"
-          title={homeProactiveNotice.title}
-          body={homeProactiveNotice.body}
-          footer={homeProactiveNotice.footer}
-          tone={homeProactiveNotice.tone || "blue"}
+          eyebrow="BUSY prepared / needs you"
+          title={
+            s.autopilotNeedsInputItems?.length || s.diaryConflicts?.length || s.releaseCoreHealth?.highCount
+              ? "A few things need owner judgement"
+              : "Prepared work is ready when you are"
+          }
+          body="The intelligence layers are still working underneath Home; they now surface here only when there is something useful to decide."
+          tone={
+            s.autopilotNeedsInputItems?.length || s.diaryConflicts?.length || s.releaseCoreHealth?.highCount
+              ? "amber"
+              : "green"
+          }
         >
-          <InlineExplanation
-            why={homeProactiveNotice.why}
-            evidence={homeProactiveNotice.evidence}
-          />
-          <Button
-            label={homeProactiveNotice.actionLabel || "Review this"}
-            primary
-            onPress={() => s.runProactiveNotice(homeProactiveNotice)}
-          />
-          <Button
-            label="Not now • hide for 24 hours"
-            onPress={() => s.snoozeProactiveNotice(homeProactiveNotice.id)}
-          />
-          {(s.proactiveNotices?.length || 0) > 1 || s.proactiveHiddenNoticeCount ? (
-            <Button
-              label={`See BUSY watchlist • ${s.proactiveNotices?.length || 0} active`}
-              onPress={() => s.go("proactiveWatch")}
-            />
+          <MetricRow left="Prepared approvals" right={String(s.autopilotApprovalItems?.length || 0)} />
+          <MetricRow left="Owner-input items" right={String(s.autopilotNeedsInputItems?.length || 0)} strong={(s.autopilotNeedsInputItems?.length || 0) > 0} />
+          <MetricRow left="Diary conflicts" right={String(s.diaryConflicts?.length || 0)} strong={(s.diaryConflicts?.length || 0) > 0} />
+          <MetricRow left="Release-core issues" right={String(s.releaseCoreHealth?.issueCount || 0)} strong={(s.releaseCoreHealth?.highCount || 0) > 0} />
+          {(s.autopilotApprovalItems?.length || s.autopilotNeedsInputItems?.length) ? (
+            <Button label="Open Approval Inbox" primary onPress={() => s.go("autopilotCentre")} />
+          ) : null}
+          {(s.diaryConflicts?.length || !s.diaryConnection || s.diaryConnection.status !== "connected") ? (
+            <Button label="Open Proactive BUSY + diary" onPress={() => s.go("proactiveBusyCentre")} />
+          ) : null}
+          {(s.releaseCoreHealth?.issueCount || 0) ? (
+            <Button label="Review core health" onPress={() => s.go("releaseCore")} />
           ) : null}
         </Card>
       ) : null}
 
-      {topMoves.length ? (
-        <Card
-          eyebrow="V3.16 • Next Best Actions"
-          title="The three things most worth your attention"
-          body="BUSY ranks live customer obligations first, then weighs likely business value, zero/low-cost opportunities, real outcome evidence, evidence freshness and the choices you have made before."
-          footer="Tap Why is this? on any recommendation to inspect the evidence."
-          tone="green"
-        >
-          {topMoves.map((item) => (
-            <MetricRow
-              key={item.id}
-              left={`#${item.rank} • ${item.title}`}
-              right={item.estimatedValue}
-              strong={item.rank === 1}
-            />
-          ))}
-        </Card>
+      <Card
+        eyebrow="BUSY underneath"
+        title="One assistant • several systems underneath"
+        body="Autopilot prepares. Business Memory learns. Executive Briefing forecasts. Proactive BUSY watches the clock. Home now keeps those systems out of the way unless they change what you should do."
+        tone="blue"
+      >
+        <MetricRow left="Autopilot" right={s.autopilotModeLabel || "Prepare for me"} />
+        <MetricRow left="Memory confidence" right={s.strongestBusinessMemoryPattern?.stage?.label || "Too early to tell"} />
+        <MetricRow left="Proactive reminders" right={s.proactiveNotificationsEnabled ? String(Object.keys(s.proactiveScheduledMap || {}).length) : "Off"} />
+        <MetricRow left="Diary" right={s.diaryConnection?.status === "connected" ? "Connected" : "Not connected"} />
+        <Button label="Executive Briefing" onPress={() => s.go("executiveBriefing")} />
+        <Button label="Business Memory" onPress={() => s.go("businessMemory")} />
+        <Button label="Release Core" onPress={() => s.go("releaseCore")} />
+      </Card>
+
+      {homeProactiveNotice ? (
+        <Button
+          label={`BUSY noticed something • ${homeProactiveNotice.title}`}
+          onPress={() => s.go("proactiveWatch")}
+        />
       ) : null}
 
-      {bestMove ? (
-        <>
-          <OpportunityCard
-            {...bestMove}
-            eyebrow={`Best next move • ${bestMove.eyebrow}`}
-            actionLabel={bestMove.actionLabel || "Do it"}
-            onAction={() => {
-              if (bestMove.canIgnore) s.recordOpportunityAccepted(bestMove);
-              bestMove.onAction?.();
-            }}
-            onIgnore={bestMove.canIgnore ? () => s.openOpportunityFeedback(bestMove) : undefined}
-          />
-          {nextBestMoves.map((item) => (
-            <OpportunityCard
-              key={item.id}
-              {...item}
-              eyebrow={`#${item.rank} next • ${item.eyebrow}`}
-              actionLabel={item.actionLabel || "Do it"}
-              onAction={() => {
-                if (item.canIgnore) s.recordOpportunityAccepted(item);
-                item.onAction?.();
-              }}
-              onIgnore={item.canIgnore ? () => s.openOpportunityFeedback(item) : undefined}
-            />
-          ))}
-          <View style={styles.dashboardHeader}>
-            <StatusChip label="Ranked from saved business data" tone="green" />
-            <Text style={styles.dashboardHint}>
-              Live customer commitments rank highly. Business-specific evidence is weighted by sample size and freshness. Choosing or dismissing an optional recommendation now teaches the Business Brain too.
-            </Text>
-          </View>
-        </>
-      ) : (
-        <Card
-          eyebrow="All clear"
-          title="Nothing worth doing right now"
-          body="There is no urgent customer work or worthwhile prepared opportunity in the data currently saved. BUSY DOES IT is not creating a task just to look busy."
-          footer="Recommended spend: £0"
-          tone="green"
-        />
-      )}
-
-      {otherMoves.length ? (
+      {nextBestMoves.length || otherMoves.length ? (
         <Button
-          label={showOtherMoves ? "Hide other opportunities" : `See other opportunities • ${otherMoves.length}`}
+          label={
+            showOtherMoves
+              ? "Hide other recommendations"
+              : `See other recommendations • ${nextBestMoves.length + otherMoves.length}`
+          }
           onPress={() => setShowOtherMoves((value) => !value)}
         />
       ) : null}
 
       {showOtherMoves
-        ? otherMoves.map((item) => (
+        ? [...nextBestMoves, ...otherMoves].map((item) => (
             <OpportunityCard
               key={item.id}
               {...item}
+              eyebrow={`#${item.rank} • ${item.eyebrow}`}
               actionLabel={item.actionLabel || "Do it"}
               onAction={() => {
                 if (item.canIgnore) s.recordOpportunityAccepted(item);
