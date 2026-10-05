@@ -8138,7 +8138,9 @@ function App() {
     0
   );
 
-  const executiveRepeatPool = eligibleCustomers.map((customer) => {
+  const executiveRepeatPool = eligibleCustomers
+    .filter((customer) => !hasActiveCustomerWork(customer.id))
+    .map((customer) => {
     const service = services.find((item) => item.name === customer.service);
     const serviceMemory = completedServiceMemory.find(
       (item) => item.service === customer.service && item.averageValue > 0
@@ -8166,7 +8168,10 @@ function App() {
       pattern?.observedRate === null || pattern?.observedRate === undefined
         ? null
         : Number(pattern.observedRate);
-    const base = observed === null ? Number(fallbackRate || 0) : observed;
+    const base =
+      observed !== null && ["Useful evidence", "Strong evidence"].includes(stage)
+        ? observed
+        : Number(fallbackRate || 0);
     const spread =
       stage === "Strong evidence"
         ? 0.07
@@ -8525,7 +8530,11 @@ function App() {
       quoteWins: executiveQuoteWinsLast7,
       reviews: executiveReviewsLast7,
       socialBookings: executiveSocialBookingsLast7,
-      memoryChanges: businessMemoryChanges.length,
+      memoryChanges:
+        businessMemoryLastReviewAt &&
+        String(businessMemoryLastReviewAt).slice(0, 10) >= executiveStart7ISO
+          ? businessMemoryChanges.length
+          : 0,
     },
   };
 
