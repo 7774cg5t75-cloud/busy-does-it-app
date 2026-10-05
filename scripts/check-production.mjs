@@ -8,7 +8,7 @@ const controllerSource = fs.readFileSync("src/app/AppController.js", "utf8");
 const snackPublisherSource = fs.readFileSync("scripts/publish-snack.mjs", "utf8");
 
 const checks = [
-  ["package/app version match", pkg.version === app.version && /^3\\.\\d+\\.\\d+$/.test(String(pkg.version || ""))],
+  ["package/app version match", pkg.version === app.version && /^3\.\d+\.\d+$/.test(String(pkg.version || ""))],
   ["Expo SDK 57", String(pkg.dependencies?.expo || "").startsWith("~57.")],
   ["expo-dev-client", !!pkg.dependencies?.["expo-dev-client"]],
   ["expo-constants", !!pkg.dependencies?.["expo-constants"]],
