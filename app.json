@@ -2,12 +2,25 @@
   "expo": {
     "name": "Busy Does It",
     "slug": "busy-does-it",
-    "version": "3.22.0",
+    "version": "3.23.0",
     "plugins": [
       [
         "expo-audio",
         {
           "microphonePermission": "Allow Busy Does It to use your microphone so you can talk to BUSY."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "busy-priority"
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Allow Busy Does It to read and sync the business calendar so bookings and diary conflicts stay visible.",
+          "remindersPermission": "Allow Busy Does It to access reminders when diary features need them."
         }
       ]
     ]

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   SafeAreaView,
   ScrollView,
@@ -20,6 +20,22 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
+import * as Notifications from "expo-notifications";
+import * as Calendar from "expo-calendar";
+
+try {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+      shouldShowAlert: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+} catch (e) {
+  // Notification presentation is optional in unsupported preview environments.
+}
 
 import * as Core from "../core/runtime";
 const {
@@ -290,6 +306,28 @@ function App() {
   const [autopilotPreparedLog, setAutopilotPreparedLog] = useState([]);
   const [businessMemoryHistory, setBusinessMemoryHistory] = useState([]);
   const [businessMemoryLastReviewAt, setBusinessMemoryLastReviewAt] = useState("");
+  const [proactiveNotificationsEnabled, setProactiveNotificationsEnabled] = useState(false);
+  const [proactiveNotificationPermission, setProactiveNotificationPermission] = useState("unknown");
+  const [proactiveMorningTime, setProactiveMorningTime] = useState("08:00");
+  const [proactiveQuietHoursEnabled, setProactiveQuietHoursEnabled] = useState(true);
+  const [proactiveQuietStart, setProactiveQuietStart] = useState("20:00");
+  const [proactiveQuietEnd, setProactiveQuietEnd] = useState("07:00");
+  const [proactiveJobReminderMinutes, setProactiveJobReminderMinutes] = useState(60);
+  const [proactiveScheduledMap, setProactiveScheduledMap] = useState({});
+  const [proactiveNotificationLog, setProactiveNotificationLog] = useState([]);
+  const [diaryConnection, setDiaryConnection] = useState({
+    status: "disconnected",
+    calendarId: "",
+    title: "",
+    source: "",
+    lastSyncAt: "",
+  });
+  const [diaryCalendars, setDiaryCalendars] = useState([]);
+  const [diaryEventMap, setDiaryEventMap] = useState({});
+  const [diaryExternalEvents, setDiaryExternalEvents] = useState([]);
+  const [diaryConflicts, setDiaryConflicts] = useState([]);
+  const [diarySyncStatus, setDiarySyncStatus] = useState("idle");
+  const notificationHandledRef = useRef("");
   const [pendingBrainFeedback, setPendingBrainFeedback] = useState(null);
   const [brainFeedbackReason, setBrainFeedbackReason] = useState("");
   const [quoteFollowUpDraft, setQuoteFollowUpDraft] = useState("");
@@ -473,6 +511,39 @@ function App() {
         if (saved.businessMemoryLastReviewAt) {
           setBusinessMemoryLastReviewAt(saved.businessMemoryLastReviewAt);
         }
+        if (typeof saved.proactiveNotificationsEnabled === "boolean") {
+          setProactiveNotificationsEnabled(saved.proactiveNotificationsEnabled);
+        }
+        if (saved.proactiveNotificationPermission) {
+          setProactiveNotificationPermission(saved.proactiveNotificationPermission);
+        }
+        if (saved.proactiveMorningTime) setProactiveMorningTime(saved.proactiveMorningTime);
+        if (typeof saved.proactiveQuietHoursEnabled === "boolean") {
+          setProactiveQuietHoursEnabled(saved.proactiveQuietHoursEnabled);
+        }
+        if (saved.proactiveQuietStart) setProactiveQuietStart(saved.proactiveQuietStart);
+        if (saved.proactiveQuietEnd) setProactiveQuietEnd(saved.proactiveQuietEnd);
+        if (saved.proactiveJobReminderMinutes !== undefined) {
+          setProactiveJobReminderMinutes(Number(saved.proactiveJobReminderMinutes) || 60);
+        }
+        if (saved.proactiveScheduledMap && typeof saved.proactiveScheduledMap === "object") {
+          setProactiveScheduledMap(saved.proactiveScheduledMap);
+        }
+        if (Array.isArray(saved.proactiveNotificationLog)) {
+          setProactiveNotificationLog(saved.proactiveNotificationLog.slice(0, 40));
+        }
+        if (saved.diaryConnection && typeof saved.diaryConnection === "object") {
+          setDiaryConnection({
+            status: saved.diaryConnection.status || "disconnected",
+            calendarId: saved.diaryConnection.calendarId || "",
+            title: saved.diaryConnection.title || "",
+            source: saved.diaryConnection.source || "",
+            lastSyncAt: saved.diaryConnection.lastSyncAt || "",
+          });
+        }
+        if (saved.diaryEventMap && typeof saved.diaryEventMap === "object") {
+          setDiaryEventMap(saved.diaryEventMap);
+        }
         if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
           setRecordFilingMode(saved.recordFilingMode);
         }
@@ -600,6 +671,17 @@ function App() {
     autopilotPreparedLog,
     businessMemoryHistory,
     businessMemoryLastReviewAt,
+    proactiveNotificationsEnabled,
+    proactiveNotificationPermission,
+    proactiveMorningTime,
+    proactiveQuietHoursEnabled,
+    proactiveQuietStart,
+    proactiveQuietEnd,
+    proactiveJobReminderMinutes,
+    proactiveScheduledMap,
+    proactiveNotificationLog,
+    diaryConnection,
+    diaryEventMap,
     recordFilingMode,
     advanced,
   ]);
@@ -1728,6 +1810,17 @@ function App() {
     autopilotPreparedLog,
     businessMemoryHistory,
     businessMemoryLastReviewAt,
+    proactiveNotificationsEnabled,
+    proactiveNotificationPermission,
+    proactiveMorningTime,
+    proactiveQuietHoursEnabled,
+    proactiveQuietStart,
+    proactiveQuietEnd,
+    proactiveJobReminderMinutes,
+    proactiveScheduledMap,
+    proactiveNotificationLog,
+    diaryConnection,
+    diaryEventMap,
     recordFilingMode,
     advanced,
   });
@@ -1830,6 +1923,39 @@ function App() {
     }
     if (saved.businessMemoryLastReviewAt) {
       setBusinessMemoryLastReviewAt(saved.businessMemoryLastReviewAt);
+    }
+    if (typeof saved.proactiveNotificationsEnabled === "boolean") {
+      setProactiveNotificationsEnabled(saved.proactiveNotificationsEnabled);
+    }
+    if (saved.proactiveNotificationPermission) {
+      setProactiveNotificationPermission(saved.proactiveNotificationPermission);
+    }
+    if (saved.proactiveMorningTime) setProactiveMorningTime(saved.proactiveMorningTime);
+    if (typeof saved.proactiveQuietHoursEnabled === "boolean") {
+      setProactiveQuietHoursEnabled(saved.proactiveQuietHoursEnabled);
+    }
+    if (saved.proactiveQuietStart) setProactiveQuietStart(saved.proactiveQuietStart);
+    if (saved.proactiveQuietEnd) setProactiveQuietEnd(saved.proactiveQuietEnd);
+    if (saved.proactiveJobReminderMinutes !== undefined) {
+      setProactiveJobReminderMinutes(Number(saved.proactiveJobReminderMinutes) || 60);
+    }
+    if (saved.proactiveScheduledMap && typeof saved.proactiveScheduledMap === "object") {
+      setProactiveScheduledMap(saved.proactiveScheduledMap);
+    }
+    if (Array.isArray(saved.proactiveNotificationLog)) {
+      setProactiveNotificationLog(saved.proactiveNotificationLog.slice(0, 40));
+    }
+    if (saved.diaryConnection && typeof saved.diaryConnection === "object") {
+      setDiaryConnection({
+        status: saved.diaryConnection.status || "disconnected",
+        calendarId: saved.diaryConnection.calendarId || "",
+        title: saved.diaryConnection.title || "",
+        source: saved.diaryConnection.source || "",
+        lastSyncAt: saved.diaryConnection.lastSyncAt || "",
+      });
+    }
+    if (saved.diaryEventMap && typeof saved.diaryEventMap === "object") {
+      setDiaryEventMap(saved.diaryEventMap);
     }
     if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
       setRecordFilingMode(saved.recordFilingMode);
@@ -2305,6 +2431,17 @@ function App() {
     autopilotPreparedLog,
     businessMemoryHistory,
     businessMemoryLastReviewAt,
+    proactiveNotificationsEnabled,
+    proactiveNotificationPermission,
+    proactiveMorningTime,
+    proactiveQuietHoursEnabled,
+    proactiveQuietStart,
+    proactiveQuietEnd,
+    proactiveJobReminderMinutes,
+    proactiveScheduledMap,
+    proactiveNotificationLog,
+    diaryConnection,
+    diaryEventMap,
     recordFilingMode,
     advanced,
   ]);
@@ -5771,6 +5908,27 @@ function App() {
     setAutopilotPreparedLog([]);
     setBusinessMemoryHistory([]);
     setBusinessMemoryLastReviewAt("");
+    setProactiveNotificationsEnabled(false);
+    setProactiveNotificationPermission("unknown");
+    setProactiveMorningTime("08:00");
+    setProactiveQuietHoursEnabled(true);
+    setProactiveQuietStart("20:00");
+    setProactiveQuietEnd("07:00");
+    setProactiveJobReminderMinutes(60);
+    setProactiveScheduledMap({});
+    setProactiveNotificationLog([]);
+    setDiaryConnection({
+      status: "disconnected",
+      calendarId: "",
+      title: "",
+      source: "",
+      lastSyncAt: "",
+    });
+    setDiaryCalendars([]);
+    setDiaryEventMap({});
+    setDiaryExternalEvents([]);
+    setDiaryConflicts([]);
+    setDiarySyncStatus("idle");
     setPendingBrainFeedback(null);
     setBrainFeedbackReason("");
     setQuoteFollowUpDraft("");
@@ -8232,9 +8390,16 @@ function App() {
   const executiveLoadRows = Array.from({ length: 7 }, (_, offset) => {
     const date = addDaysFromISO(executiveTodayISO, offset);
     const entries = executiveBookings7.filter((item) => item.date === date);
-    const hours = Math.round(
-      entries.reduce((sum, item) => sum + Number(item.durationHours || 0), 0) * 10
-    ) / 10;
+    const externalEntries = diaryExternalEvents.filter((item) => item.date === date);
+    const busyHours = entries.reduce(
+      (sum, item) => sum + Number(item.durationHours || 0),
+      0
+    );
+    const externalHours = externalEntries.reduce(
+      (sum, item) => sum + Number(item.durationHours || 0),
+      0
+    );
+    const hours = Math.round((busyHours + externalHours) * 10) / 10;
     const value = entries.reduce((sum, item) => sum + Number(item.value || 0), 0);
     const label = new Date(`${date}T12:00:00`).toLocaleDateString("en-GB", {
       weekday: "short",
@@ -8245,7 +8410,9 @@ function App() {
       date,
       label,
       count: entries.length,
+      externalCount: externalEntries.length,
       hours,
+      externalHours: Math.round(externalHours * 10) / 10,
       value,
       state:
         hours === 0
@@ -8543,6 +8710,766 @@ function App() {
     return submitBusyCommand({
       text: "How does the business look over the next 7 and 30 days, what is the biggest risk, and what should I focus on today?",
     });
+  };
+
+  const proactiveParseClock = (value, fallbackHour = 8, fallbackMinute = 0) => {
+    const match = String(value || "").match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return { hour: fallbackHour, minute: fallbackMinute };
+    const hour = Math.max(0, Math.min(23, Number(match[1]) || 0));
+    const minute = Math.max(0, Math.min(59, Number(match[2]) || 0));
+    return { hour, minute };
+  };
+
+  const proactiveMoveOutsideQuietHours = (inputDate) => {
+    const date = new Date(inputDate);
+    if (!proactiveQuietHoursEnabled) return date;
+    const start = proactiveParseClock(proactiveQuietStart, 20, 0);
+    const end = proactiveParseClock(proactiveQuietEnd, 7, 0);
+    const minuteOfDay = date.getHours() * 60 + date.getMinutes();
+    const startMinute = start.hour * 60 + start.minute;
+    const endMinute = end.hour * 60 + end.minute;
+    const overnight = startMinute >= endMinute;
+    const isQuiet = overnight
+      ? minuteOfDay >= startMinute || minuteOfDay < endMinute
+      : minuteOfDay >= startMinute && minuteOfDay < endMinute;
+    if (!isQuiet) return date;
+    const moved = new Date(date);
+    if (overnight && minuteOfDay >= startMinute) moved.setDate(moved.getDate() + 1);
+    moved.setHours(end.hour, end.minute, 0, 0);
+    return moved;
+  };
+
+  const proactiveBookingDate = (booking) => {
+    const time = /^\d{2}:\d{2}$/.test(String(booking?.time || ""))
+      ? booking.time
+      : "09:00";
+    const date = new Date(`${booking.date}T${time}:00`);
+    return Number.isNaN(date.getTime()) ? null : date;
+  };
+
+  const proactiveNextMorning = () => {
+    const clock = proactiveParseClock(proactiveMorningTime, 8, 0);
+    const date = new Date();
+    date.setHours(clock.hour, clock.minute, 0, 0);
+    if (date.getTime() <= Date.now() + 60 * 1000) date.setDate(date.getDate() + 1);
+    return proactiveMoveOutsideQuietHours(date);
+  };
+
+  const proactiveNotificationCandidates = (() => {
+    if (!proactiveNotificationsEnabled) return [];
+    const candidates = [];
+    const morning = proactiveNextMorning();
+    candidates.push({
+      key: `morning-${dateToISO(morning)}`,
+      title: "BUSY morning briefing",
+      body: `${executiveBriefing.confirmed7.count} job${executiveBriefing.confirmed7.count === 1 ? "" : "s"} confirmed in the next 7 days • £${executiveBriefing.confirmed7.value} booked • ${executiveBriefing.risks.length} risk signal${executiveBriefing.risks.length === 1 ? "" : "s"}.`,
+      triggerAt: morning.toISOString(),
+      priority: 100,
+      data: { route: "executive", kind: "morning" },
+    });
+
+    executiveBookings7.slice(0, 4).forEach((booking) => {
+      const start = proactiveBookingDate(booking);
+      if (!start) return;
+      const reminder = new Date(
+        start.getTime() - Math.max(15, Number(proactiveJobReminderMinutes) || 60) * 60 * 1000
+      );
+      if (reminder.getTime() > Date.now() + 30 * 1000) {
+        candidates.push({
+          key: `booking-${booking.customerId}-${booking.date}-${booking.time}`,
+          title: `${booking.customerName} • job coming up`,
+          body: `${booking.service} starts at ${booking.time || "time not set"}${booking.value ? ` • £${booking.value} recorded value` : ""}.`,
+          triggerAt: proactiveMoveOutsideQuietHours(reminder).toISOString(),
+          priority: 95,
+          data: {
+            route: "booking",
+            kind: "booking-reminder",
+            customerId: booking.customerId,
+          },
+        });
+      }
+      const postJob = new Date(
+        start.getTime() + (Number(booking.durationHours) || 2) * 60 * 60 * 1000 + 15 * 60 * 1000
+      );
+      if (postJob.getTime() > Date.now() + 30 * 1000) {
+        candidates.push({
+          key: `post-job-${booking.customerId}-${booking.date}`,
+          title: `${booking.customerName}'s job should be finished`,
+          body: "Tell BUSY what happened: complete it, move it or cancel it so the diary and Business Memory stay trustworthy.",
+          triggerAt: proactiveMoveOutsideQuietHours(postJob).toISOString(),
+          priority: 90,
+          data: {
+            route: "booking",
+            kind: "post-job",
+            customerId: booking.customerId,
+          },
+        });
+      }
+    });
+
+    if (executivePriority.kind !== "clear" && executivePriority.kind !== "booking-outcome") {
+      const soon = proactiveMoveOutsideQuietHours(new Date(Date.now() + 3 * 60 * 1000));
+      const source = executivePriority.source || {};
+      candidates.push({
+        key: `priority-${executivePriority.kind}-${source.id || source.customerId || executiveTodayISO}`,
+        title: executivePriority.title,
+        body: executivePriority.body,
+        triggerAt: soon.toISOString(),
+        priority: 85,
+        data: {
+          route:
+            executivePriority.kind === "inbox"
+              ? "inbox"
+              : executivePriority.kind === "quote"
+              ? "quote"
+              : executivePriority.kind === "enquiry"
+              ? "customer"
+              : executivePriority.kind === "approval"
+              ? "approval"
+              : "executive",
+          kind: executivePriority.kind,
+          customerId:
+            source.customerId ||
+            source.customer?.id ||
+            source.id ||
+            "",
+          sourceId: executivePriority.kind === "inbox" ? source.id || "" : "",
+        },
+      });
+    }
+
+    if (
+      autopilotApprovalItems.length &&
+      executivePriority.kind !== "approval"
+    ) {
+      const approvalTime = proactiveMoveOutsideQuietHours(
+        new Date(Date.now() + 6 * 60 * 1000)
+      );
+      candidates.push({
+        key: `approval-summary-${autopilotApprovalItems
+          .slice(0, 4)
+          .map((item) => item.id)
+          .join("-")}`,
+        title: "BUSY has work ready for approval",
+        body: `${autopilotApprovalItems.length} prepared item${autopilotApprovalItems.length === 1 ? "" : "s"} are waiting. Nothing has been sent or published.`,
+        triggerAt: approvalTime.toISOString(),
+        priority: 70,
+        data: { route: "approval", kind: "approval-summary" },
+      });
+    }
+
+    return candidates
+      .filter((item) => new Date(item.triggerAt).getTime() > Date.now() + 20 * 1000)
+      .sort((a, b) => b.priority - a.priority || String(a.triggerAt).localeCompare(String(b.triggerAt)))
+      .slice(0, 10);
+  })();
+
+  const proactiveScheduleSignature = JSON.stringify({
+    enabled: proactiveNotificationsEnabled,
+    permission: proactiveNotificationPermission,
+    morning: proactiveMorningTime,
+    quiet: [proactiveQuietHoursEnabled, proactiveQuietStart, proactiveQuietEnd],
+    lead: proactiveJobReminderMinutes,
+    candidates: proactiveNotificationCandidates.map((item) => [
+      item.key,
+      item.triggerAt,
+      item.title,
+      item.body,
+    ]),
+  });
+
+  const appendProactiveNotificationLog = (entry) => {
+    setProactiveNotificationLog((current) => [
+      {
+        id: `notification-log-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        at: new Date().toISOString(),
+        ...entry,
+      },
+      ...current,
+    ].slice(0, 40));
+  };
+
+  const enableProactiveNotifications = async () => {
+    try {
+      if (Platform.OS === "android" && Notifications.setNotificationChannelAsync) {
+        await Notifications.setNotificationChannelAsync("busy-priority", {
+          name: "BUSY priorities",
+          importance: Notifications.AndroidImportance?.DEFAULT ?? 3,
+        });
+      }
+      const existing = await Notifications.getPermissionsAsync();
+      let status = existing?.status || "undetermined";
+      if (status !== "granted") {
+        const requested = await Notifications.requestPermissionsAsync();
+        status = requested?.status || "denied";
+      }
+      setProactiveNotificationPermission(status);
+      const enabled = status === "granted";
+      setProactiveNotificationsEnabled(enabled);
+      appendProactiveNotificationLog({
+        kind: enabled ? "permission-granted" : "permission-denied",
+        title: enabled ? "Proactive notifications enabled" : "Notification permission not granted",
+      });
+      return enabled;
+    } catch (error) {
+      setProactiveNotificationPermission("unavailable");
+      setProactiveNotificationsEnabled(false);
+      Alert.alert(
+        "Notifications unavailable",
+        error?.message || "This preview could not enable local notifications."
+      );
+      return false;
+    }
+  };
+
+  const disableProactiveNotifications = async () => {
+    for (const item of Object.values(proactiveScheduledMap || {})) {
+      if (item?.nativeId) {
+        await Notifications.cancelScheduledNotificationAsync(item.nativeId).catch(() => {});
+      }
+    }
+    setProactiveScheduledMap({});
+    setProactiveNotificationsEnabled(false);
+    appendProactiveNotificationLog({
+      kind: "disabled",
+      title: "Proactive notification scheduling turned off",
+    });
+  };
+
+  const refreshProactiveNotifications = async ({ force = false } = {}) => {
+    if (
+      !proactiveNotificationsEnabled ||
+      proactiveNotificationPermission !== "granted"
+    ) return false;
+    try {
+      const currentMap = proactiveScheduledMap || {};
+      const desiredByKey = Object.fromEntries(
+        proactiveNotificationCandidates.map((item) => [item.key, item])
+      );
+      const nextMap = {};
+
+      for (const [key, existing] of Object.entries(currentMap)) {
+        const desired = desiredByKey[key];
+        const same =
+          desired &&
+          existing?.fingerprint ===
+            JSON.stringify([desired.triggerAt, desired.title, desired.body]);
+        if (same && !force) {
+          nextMap[key] = existing;
+        } else if (existing?.nativeId) {
+          await Notifications.cancelScheduledNotificationAsync(existing.nativeId).catch(() => {});
+        }
+      }
+
+      for (const candidate of proactiveNotificationCandidates) {
+        if (nextMap[candidate.key]) continue;
+        const triggerDate = new Date(candidate.triggerAt);
+        if (triggerDate.getTime() <= Date.now() + 20 * 1000) continue;
+        const nativeId = await Notifications.scheduleNotificationAsync({
+          content: {
+            title: candidate.title,
+            body: candidate.body,
+            data: {
+              ...candidate.data,
+              busyNotificationKey: candidate.key,
+            },
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: triggerDate,
+            channelId: Platform.OS === "android" ? "busy-priority" : undefined,
+          },
+        });
+        nextMap[candidate.key] = {
+          nativeId,
+          triggerAt: candidate.triggerAt,
+          title: candidate.title,
+          body: candidate.body,
+          data: candidate.data,
+          fingerprint: JSON.stringify([
+            candidate.triggerAt,
+            candidate.title,
+            candidate.body,
+          ]),
+        };
+      }
+
+      setProactiveScheduledMap(nextMap);
+      appendProactiveNotificationLog({
+        kind: "refresh",
+        title: `${Object.keys(nextMap).length} proactive reminder${Object.keys(nextMap).length === 1 ? "" : "s"} scheduled`,
+      });
+      return true;
+    } catch (error) {
+      appendProactiveNotificationLog({
+        kind: "error",
+        title: "Notification refresh failed",
+        detail: error?.message || "Unknown notification error",
+      });
+      return false;
+    }
+  };
+
+  const testProactiveNotification = async () => {
+    if (!proactiveNotificationsEnabled) {
+      const enabled = await enableProactiveNotifications();
+      if (!enabled) return false;
+    }
+    try {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "BUSY test reminder",
+          body: "Notifications are working. Tap this to open the Executive Briefing.",
+          data: { route: "executive", kind: "test" },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: 10,
+          channelId: Platform.OS === "android" ? "busy-priority" : undefined,
+        },
+      });
+      appendProactiveNotificationLog({
+        kind: "test",
+        title: "Test notification scheduled for 10 seconds",
+      });
+      return true;
+    } catch (error) {
+      Alert.alert(
+        "Could not schedule test",
+        error?.message || "Local notification scheduling failed."
+      );
+      return false;
+    }
+  };
+
+  const remindProactiveItemLater = async (item, minutes = 60) => {
+    if (!item) return false;
+    if (!proactiveNotificationsEnabled) {
+      const enabled = await enableProactiveNotifications();
+      if (!enabled) return false;
+    }
+    const triggerDate = proactiveMoveOutsideQuietHours(
+      new Date(Date.now() + Math.max(1, Number(minutes) || 60) * 60 * 1000)
+    );
+    try {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: item.title || "BUSY reminder",
+          body: item.body || "This needs another look.",
+          data: {
+            ...(item.data || {}),
+            route: item.data?.route || "executive",
+            kind: "manual-snooze",
+          },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: triggerDate,
+          channelId: Platform.OS === "android" ? "busy-priority" : undefined,
+        },
+      });
+      appendProactiveNotificationLog({
+        kind: "manual-snooze",
+        title: `Reminder moved to ${triggerDate.toLocaleString("en-GB")}`,
+      });
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    if (!hydrated || !proactiveNotificationsEnabled) return;
+    const timer = setTimeout(() => {
+      refreshProactiveNotifications();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [
+    hydrated,
+    proactiveNotificationsEnabled,
+    proactiveNotificationPermission,
+    proactiveScheduleSignature,
+  ]);
+
+  const handleProactiveNotificationRoute = (data = {}) => {
+    const route = String(data?.route || "");
+    if (route === "booking" && data.customerId) {
+      openSavedReplyAction(data.customerId);
+      return true;
+    }
+    if (route === "quote" && data.customerId) {
+      prepareQuoteFollowUp(data.customerId);
+      return true;
+    }
+    if (route === "customer" && data.customerId) {
+      openCustomer(data.customerId);
+      return true;
+    }
+    if (route === "inbox" && data.sourceId) {
+      openInboxItem(data.sourceId);
+      return true;
+    }
+    if (route === "approval") {
+      go("autopilotCentre");
+      return true;
+    }
+    go("executiveBriefing");
+    return true;
+  };
+
+  useEffect(() => {
+    if (!hydrated) return;
+    const handleResponse = async (response) => {
+      const notification = response?.notification;
+      const identifier = notification?.request?.identifier || "";
+      if (identifier && notificationHandledRef.current === identifier) return;
+      if (identifier) notificationHandledRef.current = identifier;
+      const data = notification?.request?.content?.data || {};
+      handleProactiveNotificationRoute(data);
+      appendProactiveNotificationLog({
+        kind: "opened",
+        title: notification?.request?.content?.title || "Notification opened",
+      });
+      await Notifications.clearLastNotificationResponseAsync?.().catch(() => {});
+    };
+
+    const subscription = Notifications.addNotificationResponseReceivedListener(
+      handleResponse
+    );
+    Notifications.getLastNotificationResponseAsync()
+      .then((response) => {
+        if (response) handleResponse(response);
+      })
+      .catch(() => {});
+
+    return () => subscription?.remove?.();
+  }, [hydrated]);
+
+  const diaryBookingFingerprint = (booking) =>
+    JSON.stringify([
+      booking.date,
+      booking.time || "",
+      booking.customerName,
+      booking.service,
+      Number(booking.value || 0),
+    ]);
+
+  const diaryDateParts = (date) => ({
+    date: dateToISO(date),
+    time: `${String(date.getHours()).padStart(2, "0")}:${String(
+      date.getMinutes()
+    ).padStart(2, "0")}`,
+  });
+
+  const diaryEventDetails = (booking) => {
+    const startDate = proactiveBookingDate(booking);
+    if (!startDate) return null;
+    const endDate = new Date(
+      startDate.getTime() + (Number(booking.durationHours) || 2) * 60 * 60 * 1000
+    );
+    const customer =
+      customers.find((item) => item.id === booking.customerId) || null;
+    return {
+      title: `${booking.customerName} • ${booking.service}`,
+      startDate,
+      endDate,
+      location: customer?.address || "",
+      notes: `[BUSY DOES IT]\nCustomer: ${booking.customerName}\nService: ${booking.service}${booking.value ? `\nRecorded value: £${booking.value}` : ""}`,
+      timeZone: "Europe/London",
+    };
+  };
+
+  const loadDeviceCalendars = async () => {
+    try {
+      setDiarySyncStatus("connecting");
+      const available = await Calendar.isAvailableAsync();
+      if (!available) throw new Error("Calendar access is unavailable on this device.");
+      const permission = await Calendar.requestCalendarPermissionsAsync();
+      if (permission?.status !== "granted") {
+        setDiarySyncStatus("permission-denied");
+        return false;
+      }
+      const rows = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
+      const writable = (Array.isArray(rows) ? rows : [])
+        .filter((calendar) => calendar?.allowsModifications !== false)
+        .map((calendar) => ({
+          id: calendar.id,
+          title: calendar.title || calendar.name || "Calendar",
+          source:
+            calendar.source?.name ||
+            calendar.source?.type ||
+            calendar.ownerAccount ||
+            "Device calendar",
+          color: calendar.color || "",
+          isPrimary: !!calendar.isPrimary,
+        }))
+        .sort((a, b) =>
+          Number(b.isPrimary) - Number(a.isPrimary) ||
+          String(a.title).localeCompare(String(b.title))
+        );
+      setDiaryCalendars(writable);
+      setDiarySyncStatus(writable.length ? "choose-calendar" : "no-calendar");
+      return writable;
+    } catch (error) {
+      setDiarySyncStatus("unavailable");
+      Alert.alert(
+        "Calendar connection unavailable",
+        error?.message ||
+          "This preview could not access the device calendar."
+      );
+      return false;
+    }
+  };
+
+  const selectDiaryCalendar = (calendar) => {
+    if (!calendar?.id) return;
+    setDiaryConnection({
+      status: "connected",
+      calendarId: calendar.id,
+      title: calendar.title || "Calendar",
+      source: calendar.source || "Device calendar",
+      lastSyncAt: diaryConnection.lastSyncAt || "",
+    });
+    setDiaryConflicts([]);
+    setDiarySyncStatus("connected");
+  };
+
+  const disconnectDiary = () => {
+    setDiaryConnection({
+      status: "disconnected",
+      calendarId: "",
+      title: "",
+      source: "",
+      lastSyncAt: "",
+    });
+    setDiaryCalendars([]);
+    setDiaryExternalEvents([]);
+    setDiaryConflicts([]);
+    setDiarySyncStatus("idle");
+  };
+
+  const syncDiaryNow = async () => {
+    if (!diaryConnection.calendarId) return false;
+    setDiarySyncStatus("syncing");
+    try {
+      const calendarId = diaryConnection.calendarId;
+      const conflicts = [];
+      const nextMap = { ...(diaryEventMap || {}) };
+      const activeBookings = executiveConfirmedBookings.filter(
+        (booking) =>
+          booking.date >= executiveTodayISO &&
+          booking.date <= addDaysFromISO(executiveTodayISO, 90)
+      );
+
+      for (const booking of activeBookings) {
+        const details = diaryEventDetails(booking);
+        if (!details) continue;
+        const key = booking.customerId;
+        const fingerprint = diaryBookingFingerprint(booking);
+        const mapped = nextMap[key];
+
+        if (mapped?.eventId) {
+          let existingEvent = null;
+          try {
+            existingEvent = await Calendar.getEventAsync(mapped.eventId);
+          } catch (e) {
+            existingEvent = null;
+          }
+          if (existingEvent) {
+            const actualStart = new Date(existingEvent.startDate);
+            const mappedStart = mapped.lastStartDate
+              ? new Date(mapped.lastStartDate)
+              : null;
+            const calendarMoved =
+              mappedStart &&
+              !Number.isNaN(actualStart.getTime()) &&
+              !Number.isNaN(mappedStart.getTime()) &&
+              Math.abs(actualStart.getTime() - mappedStart.getTime()) > 60 * 1000;
+            const busyChanged = mapped.fingerprint !== fingerprint;
+
+            if (calendarMoved) {
+              const parts = diaryDateParts(actualStart);
+              conflicts.push({
+                id: `diary-conflict-${key}`,
+                customerId: key,
+                customerName: booking.customerName,
+                service: booking.service,
+                eventId: mapped.eventId,
+                calendarDate: parts.date,
+                calendarTime: parts.time,
+                busyDate: booking.date,
+                busyTime: booking.time || "",
+                booking,
+              });
+              continue;
+            }
+
+            if (busyChanged) {
+              await Calendar.updateEventAsync(mapped.eventId, details);
+              nextMap[key] = {
+                ...mapped,
+                fingerprint,
+                lastStartDate: details.startDate.toISOString(),
+                updatedAt: new Date().toISOString(),
+              };
+            }
+            continue;
+          }
+        }
+
+        const eventId = await Calendar.createEventAsync(calendarId, details);
+        nextMap[key] = {
+          eventId,
+          fingerprint,
+          lastStartDate: details.startDate.toISOString(),
+          createdAt: new Date().toISOString(),
+        };
+      }
+
+      for (const [customerId, mapped] of Object.entries(nextMap)) {
+        const action = replyActions?.[customerId];
+        if (
+          mapped?.eventId &&
+          action?.type === "booking" &&
+          action?.details?.bookingStatus === "Cancelled"
+        ) {
+          await Calendar.deleteEventAsync(mapped.eventId).catch(() => {});
+          delete nextMap[customerId];
+        }
+      }
+
+      const rangeStart = new Date(`${executiveTodayISO}T00:00:00`);
+      const rangeEnd = new Date(`${executiveEnd7ISO}T23:59:59`);
+      const calendarEvents = await Calendar.getEventsAsync(
+        [calendarId],
+        rangeStart,
+        rangeEnd
+      );
+      const busyEventIds = new Set(
+        Object.values(nextMap).map((item) => item?.eventId).filter(Boolean)
+      );
+      const externalRows = (Array.isArray(calendarEvents) ? calendarEvents : [])
+        .filter(
+          (event) =>
+            !busyEventIds.has(event.id) &&
+            !String(event.notes || "").includes("[BUSY DOES IT]")
+        )
+        .map((event) => {
+          const start = new Date(event.startDate);
+          const end = new Date(event.endDate);
+          return {
+            id: event.id,
+            title: event.title || "Calendar commitment",
+            date: Number.isNaN(start.getTime()) ? "" : dateToISO(start),
+            time: Number.isNaN(start.getTime())
+              ? ""
+              : `${String(start.getHours()).padStart(2, "0")}:${String(
+                  start.getMinutes()
+                ).padStart(2, "0")}`,
+            durationHours:
+              Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())
+                ? 0
+                : Math.max(
+                    0,
+                    Math.round(((end.getTime() - start.getTime()) / 3600000) * 10) /
+                      10
+                  ),
+          };
+        });
+
+      const syncedAt = new Date().toISOString();
+      setDiaryEventMap(nextMap);
+      setDiaryExternalEvents(externalRows);
+      setDiaryConflicts(conflicts);
+      setDiaryConnection((current) => ({
+        ...current,
+        status: "connected",
+        lastSyncAt: syncedAt,
+      }));
+      setDiarySyncStatus(conflicts.length ? "needs-review" : "synced");
+      appendProactiveNotificationLog({
+        kind: "calendar-sync",
+        title: `Diary synced • ${activeBookings.length} BUSY booking${activeBookings.length === 1 ? "" : "s"} • ${externalRows.length} external commitment${externalRows.length === 1 ? "" : "s"}`,
+      });
+      return true;
+    } catch (error) {
+      setDiarySyncStatus("error");
+      Alert.alert(
+        "Diary sync failed",
+        error?.message || "BUSY could not sync the selected device calendar."
+      );
+      return false;
+    }
+  };
+
+  const keepBusyDiaryTime = async (conflict) => {
+    if (!conflict?.eventId || !conflict?.booking) return false;
+    const details = diaryEventDetails(conflict.booking);
+    if (!details) return false;
+    await Calendar.updateEventAsync(conflict.eventId, details);
+    setDiaryEventMap((current) => ({
+      ...current,
+      [conflict.customerId]: {
+        ...(current[conflict.customerId] || {}),
+        eventId: conflict.eventId,
+        fingerprint: diaryBookingFingerprint(conflict.booking),
+        lastStartDate: details.startDate.toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    }));
+    setDiaryConflicts((current) =>
+      current.filter((item) => item.id !== conflict.id)
+    );
+    return true;
+  };
+
+  const useCalendarDiaryTime = (conflict) => {
+    if (!conflict?.customerId || !conflict.calendarDate) return false;
+    setReplyActions((current) => {
+      const action = current[conflict.customerId];
+      if (!action || action.type !== "booking") return current;
+      return {
+        ...current,
+        [conflict.customerId]: {
+          ...action,
+          details: {
+            ...(action.details || {}),
+            bookingDate: conflict.calendarDate,
+            bookingTime: conflict.calendarTime || action.details?.bookingTime || "",
+            diaryReconciledAt: new Date().toISOString(),
+          },
+        },
+      };
+    });
+    setDiaryEventMap((current) => ({
+      ...current,
+      [conflict.customerId]: {
+        ...(current[conflict.customerId] || {}),
+        eventId: conflict.eventId,
+        fingerprint: JSON.stringify([
+          conflict.calendarDate,
+          conflict.calendarTime || "",
+          conflict.customerName,
+          conflict.service,
+          Number(conflict.booking?.value || 0),
+        ]),
+        lastStartDate: new Date(
+          `${conflict.calendarDate}T${conflict.calendarTime || "09:00"}:00`
+        ).toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    }));
+    setDiaryConflicts((current) =>
+      current.filter((item) => item.id !== conflict.id)
+    );
+    appendCustomerActivity(conflict.customerId, {
+      kind: "booking",
+      title: "Booking time reconciled from connected diary",
+      note: `Owner explicitly accepted the device-calendar time: ${formatUKDate(
+        conflict.calendarDate
+      )} at ${conflict.calendarTime || "time not set"}.`,
+    });
+    return true;
   };
 
   const normaliseBusyCommandName = (value = "") =>
@@ -9225,6 +10152,38 @@ function App() {
     executiveRepeatPool,
     openExecutivePriority,
     askBusyAboutOutlook,
+    proactiveNotificationsEnabled,
+    proactiveNotificationPermission,
+    proactiveMorningTime,
+    setProactiveMorningTime,
+    proactiveQuietHoursEnabled,
+    setProactiveQuietHoursEnabled,
+    proactiveQuietStart,
+    setProactiveQuietStart,
+    proactiveQuietEnd,
+    setProactiveQuietEnd,
+    proactiveJobReminderMinutes,
+    setProactiveJobReminderMinutes,
+    proactiveScheduledMap,
+    proactiveNotificationLog,
+    proactiveNotificationCandidates,
+    enableProactiveNotifications,
+    disableProactiveNotifications,
+    refreshProactiveNotifications,
+    testProactiveNotification,
+    remindProactiveItemLater,
+    diaryConnection,
+    diaryCalendars,
+    diaryEventMap,
+    diaryExternalEvents,
+    diaryConflicts,
+    diarySyncStatus,
+    loadDeviceCalendars,
+    selectDiaryCalendar,
+    disconnectDiary,
+    syncDiaryNow,
+    keepBusyDiaryTime,
+    useCalendarDiaryTime,
     completedServiceMemory,
     quoteValueBandMemory,
     socialChannelMemory,

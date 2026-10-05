@@ -835,6 +835,31 @@ function HomeScreen({ s }) {
 
 
 
+
+      <Card
+        eyebrow="V3.23 • Proactive BUSY"
+        title={
+          s.proactiveNotificationsEnabled
+            ? "BUSY can now bring the important things to you"
+            : "Let BUSY keep an eye on the clock"
+        }
+        body={
+          s.proactiveNotificationsEnabled
+            ? `${Object.keys(s.proactiveScheduledMap || {}).length} local reminder${Object.keys(s.proactiveScheduledMap || {}).length === 1 ? "" : "s"} scheduled • ${s.diaryConnection?.status === "connected" ? `diary connected to ${s.diaryConnection.title}` : "device diary not connected yet"}.`
+            : "Enable a small, prioritised reminder schedule for morning briefings, real bookings and genuinely due owner decisions."
+        }
+        footer={
+          s.diaryConflicts?.length
+            ? `${s.diaryConflicts.length} diary change${s.diaryConflicts.length === 1 ? "" : "s"} need your decision`
+            : "No customer message, post or spend happens from a notification"
+        }
+        tone={s.diaryConflicts?.length ? "amber" : s.proactiveNotificationsEnabled ? "green" : "blue"}
+      >
+        <MetricRow left="Scheduled reminders" right={String(Object.keys(s.proactiveScheduledMap || {}).length)} />
+        <MetricRow left="Diary" right={s.diaryConnection?.status === "connected" ? "Connected" : "Not connected"} />
+        <Button label="Open Proactive BUSY" primary onPress={() => s.go("proactiveBusyCentre")} />
+      </Card>
+
       <Card
         eyebrow="V3.22 • Executive Briefing"
         title={

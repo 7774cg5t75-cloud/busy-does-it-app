@@ -2,6 +2,22 @@
 
 Busy Does It mobile app prototype.
 
+## v3.23 Proactive BUSY + Connected Diary
+- Built directly on the tested V3.22 Executive Briefing branch.
+- Added real local scheduled notifications using expo-notifications: morning briefing, confirmed-job reminders, post-job outcome prompts, one highest-value due obligation and one Approval Inbox summary.
+- Notification priority is deliberately capped and deduplicated. BUSY does not schedule a notification for every optional opportunity.
+- Added owner-controlled morning time, quiet hours and 30/60/120-minute job reminder lead times.
+- Added notification response routing so tapping a reminder opens the exact booking, quote follow-up, customer, BUSY Inbox item, Approval Inbox or Executive Briefing.
+- Added a 10-second test notification and manual “remind me in 1 hour” flow.
+- Added a device-calendar bridge using Expo Calendar in the SDK 54 Snack preview: owners can choose a writable device calendar, create/update BUSY confirmed bookings, detect cancelled BUSY bookings and read other calendar commitments for the next 7 days.
+- If a Google Calendar account is already configured on the device, its writable calendar can be selected through the device bridge; this is not yet the deeper Google OAuth server integration.
+- External calendar time changes are surfaced as explicit conflicts. BUSY never silently changes an important booking: the owner chooses “keep BUSY time” or “use calendar time in BUSY”.
+- Other selected-calendar commitments feed the Executive Briefing scheduled-load rows locally without creating customers or sending event details to BUSY Operator.
+- Notification and diary settings, event mappings and activity history are included in the normal local/cloud business snapshot. Device-calendar event contents themselves remain local.
+- The current Snack preview targets Expo SDK 54, where expo-calendar is available in Expo Go. The production Expo 57 path will need the newer Calendar API/development build before App Store release.
+- Remote push remains a production-build step; V3.23 uses local scheduled notifications so the current Expo Go testing workflow remains usable.
+- Hard authority boundaries remain unchanged: a notification or diary sync never grants permission to contact customers, publish publicly or spend money.
+
 ## v3.22 Executive Briefing + Forward View
 - Built directly on the tested V3.21 Business Memory branch.
 - Home now opens with an executive briefing: the most important recorded issue, confirmed 7-day work, risk count and a confidence-aware 30-day outlook.

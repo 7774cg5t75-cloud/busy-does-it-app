@@ -114,9 +114,9 @@ function ExecutiveBriefing({ s }) {
             <View style={{ flex: 1, paddingRight: 10 }}>
               <Text style={styles.activityName}>{row.label}</Text>
               <Text style={styles.activityService}>
-                {row.count
-                  ? `${row.count} confirmed booking${row.count === 1 ? "" : "s"} • about ${row.hours}h scheduled`
-                  : "No confirmed booking saved"}
+                {row.count || row.externalCount
+                  ? `${row.count} BUSY booking${row.count === 1 ? "" : "s"} • ${row.externalCount || 0} external commitment${row.externalCount === 1 ? "" : "s"} • about ${row.hours}h scheduled`
+                  : "No confirmed booking or connected-calendar commitment saved"}
               </Text>
             </View>
             <StatusChip

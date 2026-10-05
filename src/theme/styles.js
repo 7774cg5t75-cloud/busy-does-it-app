@@ -456,6 +456,9 @@ export const styles = StyleSheet.create({
   autopilotRuleCard: { borderWidth: 1, borderColor: "#C8D9F7", backgroundColor: C.blueSoft, borderRadius: 16, padding: 14, marginBottom: 10, gap: 10 },
   autopilotRuleText: { color: C.ink, fontSize: 14, lineHeight: 20, fontWeight: "800" },
   autopilotRuleMeta: { color: C.muted, fontSize: 11, marginTop: 6, fontWeight: "700" },
+  proactiveFieldLabel: { color: C.muted, fontSize: 11, fontWeight: "800", letterSpacing: 0.3, marginTop: 10, marginBottom: 5 },
+  proactiveCompactInput: { borderWidth: 1, borderColor: C.border, borderRadius: 12, backgroundColor: C.card, color: C.ink, fontSize: 15, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 4 },
+  proactiveChoiceRow: { gap: 8, marginTop: 4 },
   nav: {
     height: 72,
     flexDirection: "row",

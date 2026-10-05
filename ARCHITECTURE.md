@@ -55,3 +55,10 @@ This branch restructures the large single-file prototype into domain modules wit
 - Forward view is derived from saved confirmed bookings, open quote value, due repeat-customer value, Business Memory outcome rates and current operational risks.
 - Confirmed work is kept separate from forecast ranges. Forecast confidence widens/narrows the range rather than presenting false precision.
 - The same compact Executive Briefing context is supplied to BUSY Operator for conversational outlook/risk questions.
+
+## V3.23 Proactive BUSY + Connected Diary
+- `src/screens/proactive23.js` is the owner-facing notification/diary control surface.
+- Local notification candidates are derived deterministically from the Executive Briefing, saved confirmed bookings and Approval Inbox. Only a small priority-capped set is scheduled.
+- Notification payloads contain structured local route data; taps navigate to existing approval/work surfaces rather than executing business actions.
+- Device-calendar sync maps BUSY booking/customer IDs to native event IDs. External edits become reconciliation conflicts and require an explicit owner choice.
+- Other events from the selected device calendar are used only as local scheduled-load context and are not turned into customer records.

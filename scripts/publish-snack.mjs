@@ -52,6 +52,8 @@ const snack = new Snack({
     "expo-image-picker": { version: "17.0.11" },
     "expo-audio": { version: "1.1.1" },
     "expo-secure-store": { version: "15.0.8" },
+    "expo-notifications": { version: "0.32.17" },
+    "expo-calendar": { version: "15.0.8" },
   },
 });
 
