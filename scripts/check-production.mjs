@@ -4,6 +4,8 @@ const readJson = (path) => JSON.parse(fs.readFileSync(path, "utf8"));
 const pkg = readJson("package.json");
 const app = readJson("app.json").expo || {};
 const eas = readJson("eas.json");
+const controllerSource = fs.readFileSync("src/app/AppController.js", "utf8");
+const snackPublisherSource = fs.readFileSync("scripts/publish-snack.mjs", "utf8");
 
 const checks = [
   ["package version", pkg.version === "3.26.0"],
@@ -25,6 +27,8 @@ const checks = [
   ["production watch function", fs.existsSync("supabase/functions/busy-production-watch/index.ts")],
   ["EAS link workflow", fs.existsSync(".github/workflows/eas-link.yml")],
   ["native development build workflow", fs.existsSync(".github/workflows/native-development-build.yml")],
+  ["SDK57 calendar legacy import", controllerSource.includes('import * as Calendar from "expo-calendar/legacy";')],
+  ["SDK54 Snack calendar rewrite", snackPublisherSource.includes('expo-calendar/legacy') && snackPublisherSource.includes('expo-calendar";')],
 ];
 
 let failed = 0;
