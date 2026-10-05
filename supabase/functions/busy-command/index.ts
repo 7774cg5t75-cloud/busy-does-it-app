@@ -18,6 +18,7 @@ const intents = [
   "business_changes",
   "business_memory",
   "business_outlook",
+  "next_best_action",
   "operator_plan",
   "open_today",
   "open_calendar",
@@ -26,7 +27,11 @@ const intents = [
   "find_more_work",
   "customer_lookup",
   "create_booking",
+  "edit_booking",
+  "cancel_booking",
   "complete_job",
+  "add_customer_note",
+  "set_reminder",
   "social_post",
   "reactivation_draft",
   "draft_refinement",
@@ -38,7 +43,7 @@ const intents = [
 ];
 
 const stepIntentEnum = intents.filter((intent) =>
-  !["business_summary", "business_changes", "business_memory", "business_outlook", "operator_plan", "draft_refinement", "unknown"].includes(intent)
+  !["business_summary", "business_changes", "business_memory", "business_outlook", "next_best_action", "operator_plan", "draft_refinement", "unknown"].includes(intent)
 );
 
 const previewRowSchema = {
@@ -159,6 +164,7 @@ function cleanConversation(value: any) {
               date: cleanText(turn.structured.date, 20),
               time: cleanText(turn.structured.time, 20),
               value: Math.max(0, Number(turn.structured.value) || 0),
+              note: cleanText(turn.structured.note, 900),
               draftText: cleanText(turn.structured.draftText, 2200),
               draftTarget: cleanText(turn.structured.draftTarget, 40),
               needsClarification: !!turn.structured.needsClarification,
@@ -207,6 +213,18 @@ function safeContext(value: any) {
             scenarios: context.executiveBriefing.scenarios || {},
             weeklyReview: context.executiveBriefing.weeklyReview || {},
             priority: context.executiveBriefing.priority || {},
+          }
+        : null,
+    operationalContinuity:
+      context.operationalContinuity && typeof context.operationalContinuity === "object"
+        ? {
+            status: cleanText(context.operationalContinuity.status, 80),
+            headline: cleanText(context.operationalContinuity.headline, 400),
+            highCount: Math.max(0, Number(context.operationalContinuity.highCount) || 0),
+            reviewCount: Math.max(0, Number(context.operationalContinuity.reviewCount) || 0),
+            recoveryQueue: Array.isArray(context.operationalContinuity.recoveryQueue)
+              ? context.operationalContinuity.recoveryQueue.slice(0, 6)
+              : [],
           }
         : null,
     businessMemory:
@@ -290,20 +308,28 @@ Your job is conversational:
 - If a materially required detail is missing or there are multiple plausible customers, do NOT fail generically. Set needsClarification=true, mode="clarify", and ask ONE concise question.
 - When the owner asks for a goal that needs several sensible moves (for example "I need two jobs next Thursday"), use intent="operator_plan", mode="plan", and return 2-5 ordered planSteps.
 - When refining or creating wording, use mode="draft", put the actual editable wording in draftText, and set draftTarget.
+- Short corrections such as "actually make it 3pm", "move it to Friday", "make the value £350", "yes, John Smith" or "add that as a note" should reuse the most recent clear customer/booking/draft reference from conversation instead of forcing the owner to repeat it.
+- When the owner changes one field of the booking currently under discussion, preserve the other known customer/date/time/value fields unless the owner explicitly changes them.
 - When asked "what changed?", use changesSinceLastConversation unless the owner explicitly asks what BUSY has learned or why recommendations changed; then use businessMemory and intent="business_memory".
 - For business_memory, clearly separate recorded facts from inferred patterns. Mention sample size/confidence and ranking effect where relevant. If businessMemory.changes is empty, explain the current strongest pattern without claiming a new change.
 - Never claim causation from attributed social outcomes or small samples.
 - For business_outlook, never collapse confirmed work and predicted pipeline into one factual number. State confirmed value separately, label forecast ranges as planning estimates, mention forecast confidence, and explain that quiet/light days are scheduled-load observations rather than guaranteed spare capacity.
+- For next_best_action, give ONE practical next move using the live customer-work priority first. If operationalContinuity has a high-severity recovery item that can make the records unreliable, mention that constraint. Do not manufacture work just to sound useful.
 
 Supported direct intents:
 - business_summary: factual answer from current context.
 - business_changes: factual comparison using changesSinceLastConversation.
 - business_memory: explain what BUSY has learned over time, why an optional recommendation has moved up/down, or what evidence currently has the strongest influence. Use businessMemory only.
 - business_outlook: answer questions about today, next week, the next 30 days, pipeline, capacity load, forecast range, risk radar, scenarios or whether the business is on track. Use executiveBriefing and clearly separate confirmed values from forecast ranges.
+- next_best_action: answer "what should I do now/next?" with one record-backed priority. This is an answer, not blanket action authority.
 - operator_plan: 2-5 sequenced safe steps.
 - open_today, open_calendar, open_quote_followups, open_repeat_customers, find_more_work, customer_lookup.
-- create_booking: prepare a booking for one saved customer. MUST require confirmation and preview the customer/date/time/value.
+- create_booking: confirm a new BUSY booking for one saved customer. MUST require confirmation and needs an exact customer, date and time. Value is optional.
+- edit_booking: change the date, time and/or value of one currently open booking. MUST require confirmation and preview old → new values.
+- cancel_booking: cancel one currently open booking. MUST require confirmation and preview the existing booking.
 - complete_job: mark one currently open booked job complete. MUST require confirmation and preview the customer/value/note.
+- add_customer_note: append a note to one saved customer history. MUST require confirmation and put the note in note.
+- set_reminder: create/update a follow-up reminder only when that customer does not have another saved quote/booking action that would be overwritten. MUST require confirmation and needs a date.
 - social_post: prepare/open a social draft only; never publish.
 - reactivation_draft: prepare previous-customer wording only; never send.
 - draft_refinement: refine the most recent relevant draft in conversation; preserve draftTarget.
@@ -328,8 +354,12 @@ Customer/date rules:
 1. When a customer is required, customerName must exactly match ONE saved customer in context.
 2. If first-name matching is ambiguous, ask which person.
 3. Resolve relative dates against today's supplied date when confidently possible.
-4. create_booking requires a customer and date. If date is missing, ask.
-5. complete_job requires an open saved booking for that customer. If none exists, explain and do not mark it complete.
+4. create_booking requires a customer, date and time. Ask one focused question for whichever is missing.
+5. edit_booking, cancel_booking and complete_job require an open saved booking for that customer. If none exists, explain and do not invent one.
+6. edit_booking must include at least one changed date, time or value. Preserve unchanged known booking fields.
+7. add_customer_note requires non-empty note text.
+8. set_reminder requires a date. If the customer context shows another saved actionType such as a quote or booking, do not claim the reminder can overwrite it; explain that the existing customer work must be reviewed first.
+9. open_calendar can carry a resolved date so BUSY opens that exact day. Resolve "today", "tomorrow", weekdays and clear relative dates against context.today.
 
 Preview rules:
 - For any record-changing action, previewRows should clearly show the fields that would change.
@@ -418,7 +448,14 @@ async function routeOperator(text: string, context: any, conversation: any[]) {
     : "answer";
   parsed.needsClarification = !!parsed?.needsClarification;
   parsed.clarificationQuestion = cleanText(parsed?.clarificationQuestion, 500);
-  parsed.requiresConfirmation = ["create_booking", "complete_job"].includes(parsed.intent);
+  parsed.requiresConfirmation = [
+    "create_booking",
+    "edit_booking",
+    "cancel_booking",
+    "complete_job",
+    "add_customer_note",
+    "set_reminder",
+  ].includes(parsed.intent);
   if (parsed.needsClarification) {
     parsed.requiresConfirmation = false;
     parsed.mode = "clarify";
@@ -439,7 +476,14 @@ async function routeOperator(text: string, context: any, conversation: any[]) {
       label: cleanText(step?.label, 180) || `Step ${index + 1}`,
       reason: cleanText(step?.reason, 500),
       actionLabel: cleanText(step?.actionLabel, 100) || "Open step",
-      requiresConfirmation: ["create_booking", "complete_job"].includes(step?.intent),
+      requiresConfirmation: [
+        "create_booking",
+        "edit_booking",
+        "cancel_booking",
+        "complete_job",
+        "add_customer_note",
+        "set_reminder",
+      ].includes(step?.intent),
       customerName: cleanText(step?.customerName, 240),
       service: cleanText(step?.service, 240),
       date: cleanText(step?.date, 20),
@@ -501,7 +545,7 @@ Deno.serve(async (request: Request) => {
       backend: {
         commandModel: Deno.env.get("OPENAI_COMMAND_MODEL") || DEFAULT_COMMAND_MODEL,
         transcriptionModel: Deno.env.get("OPENAI_TRANSCRIBE_MODEL") || DEFAULT_TRANSCRIBE_MODEL,
-        operatorVersion: "3.19",
+        operatorVersion: "3.28",
       },
     });
   } catch (error) {
