@@ -4367,6 +4367,8 @@ function App() {
     const existing = match?.confidence === "High" ? match.customer : null;
 
     if (existing) {
+      const existingAction = replyActions?.[existing.id] || null;
+      const preserveStrongerWork = isActiveCustomerAction(existingAction);
       setCustomers((list) =>
         list.map((customer) => {
           if (customer.id !== existing.id) return customer;
@@ -4376,14 +4378,19 @@ function App() {
             name: customer.name || name,
             phone: customer.phone || phone,
             address: address || customer.address || "",
-            service: service || customer.service,
+            service:
+              preserveStrongerWork && customer.service
+                ? customer.service
+                : service || customer.service,
             currentEnquiryAt: receivedAt,
             nextEnquiryCheckDate: addDaysFromISO(receivedDate, 7),
             enquiryFollowUpSentAt: null,
             enquiryFollowUpStatus: null,
             enquiryFollowUpOutcome: "",
             enquiryFollowUpOutcomeRecordedAt: null,
-            lifecycleStatus: "Enquiry",
+            lifecycleStatus: preserveStrongerWork
+              ? customer.lifecycleStatus
+              : "Enquiry",
             lastActivityAt: receivedAt,
             lastActivityKind: "enquiry",
             activity: [
@@ -4393,8 +4400,13 @@ function App() {
                 kind: "enquiry",
                 date: receivedDate,
                 createdAt: receivedAt,
-                title: "New enquiry added to existing customer",
-                note,
+                title: preserveStrongerWork
+                  ? "New enquiry added alongside active customer work"
+                  : "New enquiry added to existing customer",
+                note:
+                  preserveStrongerWork && service !== customer.service
+                    ? `${note} New enquiry service: ${service}. Existing ${existingAction?.type || "customer"} work remains authoritative until it is resolved.`
+                    : note,
                 value: "",
               },
             ],
