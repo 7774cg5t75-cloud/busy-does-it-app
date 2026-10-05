@@ -2,6 +2,21 @@
 
 Busy Does It mobile app prototype.
 
+## v3.21 Business Memory / Long-term Learning
+- Built directly on the tested V3.20 Controlled Autopilot branch.
+- Added durable Business Memory snapshots so BUSY can compare current evidence with previous distinct evidence states instead of recalculating without history.
+- Outcome memories now move through visible confidence stages: Too early to tell, Early signal, Useful evidence and Strong evidence.
+- Samples below three remain visible but have zero ranking authority. Evidence influence grows gradually and stays bounded even at strong confidence.
+- Existing quote-follow-up, quiet-enquiry, previous-customer, review and social outcomes feed the memory using real saved results and existing freshness weighting.
+- Added service-value memory, quote-value-band memory, social-destination memory and repeat-interval memory where enough real records exist.
+- Added a dedicated Business Memory screen with “BUSY learned this month”, current outcome memories, recent evidence shifts, service/value/channel/repeat patterns and ranking effects.
+- Home now surfaces the strongest usable learned pattern and whether anything materially changed since the previous memory snapshot.
+- Business Brain links directly into Business Memory and shows the new confidence layer.
+- BUSY Operator now receives the bounded Business Memory context, so “why have you changed your mind?” can be answered from recorded evidence, sample size, confidence and ranking effects instead of generic AI reasoning.
+- Business Memory snapshots and review timestamps are included in the normal per-business local and cloud snapshot.
+- Owner rules, live customer obligations and hard approval boundaries continue to outrank learned patterns.
+- Main navigation remains Home / Work / Results / Settings.
+
 ## v3.20 Controlled Autopilot
 - Built directly on the tested V3.19 BUSY Operator branch.
 - Added three explicit authority levels: Off, Prepare for me (recommended default) and Trusted internal actions.

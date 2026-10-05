@@ -1145,7 +1145,7 @@ function BusinessBrain({ s }) {
     .sort((a, b) => Math.abs(b.rankingEffect) - Math.abs(a.rankingEffect));
   const strongestEvidencePattern =
     [...patterns]
-      .filter((item) => Number(item.effectiveAdjustment || 0) !== 0)
+      .filter((item) => Number(item.memoryAdjustment ?? item.effectiveAdjustment ?? 0) !== 0)
       .sort(
         (a, b) =>
           Math.abs(Number(b.effectiveAdjustment || 0)) -
@@ -1159,6 +1159,26 @@ function BusinessBrain({ s }) {
       subtitle="The evidence, outcomes and owner choices BUSY is actually using to tailor this business."
       brandCue="Auditable learning: source, sample, confidence, freshness, choices and owner authority."
     >
+
+      <Card
+        eyebrow="V3.21 • Business Memory"
+        title="Outcome history now changes BUSY gradually"
+        body="BUSY now keeps bounded long-term evidence snapshots, confidence stages and trend direction. Tiny samples remain visible but have no ranking authority; useful and strong evidence can gently change optional recommendations."
+        footer="Too early to tell → Early signal → Useful evidence → Strong evidence"
+        tone="green"
+      >
+        <MetricRow
+          left="Memory snapshots"
+          right={String(s.businessMemoryHistory?.length || 0)}
+        />
+        <MetricRow
+          left="Evidence changes"
+          right={String(s.businessMemoryChanges?.length || 0)}
+          strong={(s.businessMemoryChanges?.length || 0) > 0}
+        />
+        <Button label="Open Business Memory" primary onPress={() => s.go("businessMemory")} />
+      </Card>
+
       <Card
         eyebrow="V3.17 • Business Brain + proactive watch"
         title="BUSY now learns, ranks and notices patterns"
@@ -1186,7 +1206,7 @@ function BusinessBrain({ s }) {
         }
         body={
           strongestEvidencePattern
-            ? `${strongestEvidencePattern.title} currently has the strongest measured evidence effect at ${Number(strongestEvidencePattern.effectiveAdjustment) > 0 ? "+" : ""}${strongestEvidencePattern.effectiveAdjustment} ranking points. Owner choices are applied separately and remain bounded.`
+            ? `${strongestEvidencePattern.title} currently has the strongest measured evidence effect at ${Number((strongestEvidencePattern.memoryAdjustment ?? strongestEvidencePattern.effectiveAdjustment)) > 0 ? "+" : ""}${(strongestEvidencePattern.memoryAdjustment ?? strongestEvidencePattern.effectiveAdjustment)} ranking points. Owner choices are applied separately and remain bounded.`
             : "There is not enough recorded outcome evidence for a strong pattern yet. BUSY will stay cautious and learn as real results and owner choices accumulate."
         }
         footer="No hidden personality profile — only saved business evidence, explicit choices and owner rules"
@@ -1245,6 +1265,7 @@ function BusinessBrain({ s }) {
               right={hasObservedRate ? formatPercent(evidence.observedRate) : "Not enough data"}
             />
             <MetricRow left="Confidence" right={evidence.confidence || "No evidence yet"} />
+            <MetricRow left="Memory stage" right={s.businessMemoryPatterns?.find((item) => item.key === pattern.key)?.stage?.label || "Too early to tell"} />
             <MetricRow left="Freshness" right={freshness.label || "Unknown"} />
             <MetricRow
               left="Current ranking adjustment"

@@ -288,6 +288,8 @@ function App() {
   const [autopilotLastSignature, setAutopilotLastSignature] = useState("");
   const [autopilotSnoozed, setAutopilotSnoozed] = useState({});
   const [autopilotPreparedLog, setAutopilotPreparedLog] = useState([]);
+  const [businessMemoryHistory, setBusinessMemoryHistory] = useState([]);
+  const [businessMemoryLastReviewAt, setBusinessMemoryLastReviewAt] = useState("");
   const [pendingBrainFeedback, setPendingBrainFeedback] = useState(null);
   const [brainFeedbackReason, setBrainFeedbackReason] = useState("");
   const [quoteFollowUpDraft, setQuoteFollowUpDraft] = useState("");
@@ -465,6 +467,12 @@ function App() {
         if (Array.isArray(saved.autopilotPreparedLog)) {
           setAutopilotPreparedLog(saved.autopilotPreparedLog.slice(0, 30));
         }
+        if (Array.isArray(saved.businessMemoryHistory)) {
+          setBusinessMemoryHistory(saved.businessMemoryHistory.slice(0, 24));
+        }
+        if (saved.businessMemoryLastReviewAt) {
+          setBusinessMemoryLastReviewAt(saved.businessMemoryLastReviewAt);
+        }
         if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
           setRecordFilingMode(saved.recordFilingMode);
         }
@@ -590,6 +598,8 @@ function App() {
     autopilotLastSignature,
     autopilotSnoozed,
     autopilotPreparedLog,
+    businessMemoryHistory,
+    businessMemoryLastReviewAt,
     recordFilingMode,
     advanced,
   ]);
@@ -1716,6 +1726,8 @@ function App() {
     autopilotLastSignature,
     autopilotSnoozed,
     autopilotPreparedLog,
+    businessMemoryHistory,
+    businessMemoryLastReviewAt,
     recordFilingMode,
     advanced,
   });
@@ -1812,6 +1824,12 @@ function App() {
     }
     if (Array.isArray(saved.autopilotPreparedLog)) {
       setAutopilotPreparedLog(saved.autopilotPreparedLog.slice(0, 30));
+    }
+    if (Array.isArray(saved.businessMemoryHistory)) {
+      setBusinessMemoryHistory(saved.businessMemoryHistory.slice(0, 24));
+    }
+    if (saved.businessMemoryLastReviewAt) {
+      setBusinessMemoryLastReviewAt(saved.businessMemoryLastReviewAt);
     }
     if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
       setRecordFilingMode(saved.recordFilingMode);
@@ -2285,6 +2303,8 @@ function App() {
     autopilotLastSignature,
     autopilotSnoozed,
     autopilotPreparedLog,
+    businessMemoryHistory,
+    businessMemoryLastReviewAt,
     recordFilingMode,
     advanced,
   ]);
@@ -5749,6 +5769,8 @@ function App() {
     setAutopilotLastSignature("");
     setAutopilotSnoozed({});
     setAutopilotPreparedLog([]);
+    setBusinessMemoryHistory([]);
+    setBusinessMemoryLastReviewAt("");
     setPendingBrainFeedback(null);
     setBrainFeedbackReason("");
     setQuoteFollowUpDraft("");
@@ -6361,9 +6383,451 @@ function App() {
     };
   });
 
-  const businessBrainAdjustments = Object.fromEntries(
-    businessBrainPatterns.map((pattern) => [pattern.key, pattern.effectiveAdjustment])
+  const businessMemoryStage = (sample = 0) => {
+    const count = Math.max(0, Number(sample) || 0);
+    if (count < 3) return { label: "Too early to tell", weight: 0, tone: "blue" };
+    if (count < 6) return { label: "Early signal", weight: 0.5, tone: "blue" };
+    if (count < 12) return { label: "Useful evidence", weight: 0.8, tone: "green" };
+    return { label: "Strong evidence", weight: 1, tone: "green" };
+  };
+
+  const businessMemoryCorePatterns = businessBrainPatterns.map((pattern) => {
+    const sample = Number(pattern.evidence?.sample || 0);
+    const successes = Number(pattern.evidence?.successes || 0);
+    const observedRate =
+      pattern.evidence?.observedRate === null ||
+      pattern.evidence?.observedRate === undefined
+        ? null
+        : Number(pattern.evidence.observedRate);
+    const stage = businessMemoryStage(sample);
+    const boundedBase = Number(pattern.effectiveAdjustment || 0);
+    const stagedAdjustment =
+      stage.weight === 0 ? 0 : Math.round(boundedBase * stage.weight);
+    return {
+      key: pattern.key,
+      family: pattern.family,
+      title: pattern.title,
+      outcomeLabel: pattern.outcomeLabel,
+      sample,
+      successes,
+      observedRate,
+      stage,
+      basis: pattern.evidence?.basis || pattern.title,
+      lastUpdated: pattern.lastUpdated || "",
+      freshness: pattern.freshness,
+      stagedAdjustment,
+    };
+  });
+
+  const completedServiceMemory = Object.values(
+    completedJobEntries.reduce((groups, entry) => {
+      const service = entry.job.service || entry.customer.service || "Other work";
+      if (!groups[service]) {
+        groups[service] = {
+          service,
+          sample: 0,
+          totalValue: 0,
+          values: [],
+        };
+      }
+      const value = Number(entry.job.value) || 0;
+      groups[service].sample += 1;
+      groups[service].totalValue += value;
+      if (value > 0) groups[service].values.push(value);
+      return groups;
+    }, {})
+  )
+    .map((item) => ({
+      ...item,
+      averageValue: item.values.length
+        ? Math.round(item.values.reduce((sum, value) => sum + value, 0) / item.values.length)
+        : 0,
+      stage: businessMemoryStage(item.sample),
+    }))
+    .sort((a, b) => b.sample - a.sample || b.averageValue - a.averageValue);
+
+  const quoteValueBandMemory = [
+    { id: "under-300", label: "Quotes under £300", min: 0, max: 299.999 },
+    { id: "300-500", label: "Quotes £300–£500", min: 300, max: 500 },
+    { id: "over-500", label: "Quotes over £500", min: 500.001, max: Infinity },
+  ].map((band) => {
+    const entries = quoteOutcomeRecordedEntries.filter((entry) => {
+      const value = Number(entry.action.details?.quoteAmount) || 0;
+      return value >= band.min && value <= band.max;
+    });
+    const successes = entries.filter(
+      (entry) => entry.action.details?.followUpOutcome === "Accepted"
+    ).length;
+    return {
+      ...band,
+      sample: entries.length,
+      successes,
+      observedRate: entries.length ? successes / entries.length : null,
+      stage: businessMemoryStage(entries.length),
+    };
+  });
+
+  const socialChannelMemory = socialChannelEvidence.map((item) => ({
+    channel: item.channel,
+    sample: Number(item.sample || 0),
+    successes: Number(item.successes || 0),
+    observedRate:
+      item.observedRate === null || item.observedRate === undefined
+        ? null
+        : Number(item.observedRate),
+    stage: businessMemoryStage(item.sample),
+  }));
+
+  const repeatIntervalSamples = customers.flatMap((customer) => {
+    const jobs = (Array.isArray(customer.history) ? customer.history : [])
+      .filter((item) => item.kind === "job" && item.date)
+      .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    if (jobs.length < 2) return [];
+    const samples = [];
+    for (let index = 1; index < jobs.length; index += 1) {
+      const earlier = new Date(jobs[index - 1].date);
+      const later = new Date(jobs[index].date);
+      const months =
+        Number.isNaN(earlier.getTime()) || Number.isNaN(later.getTime())
+          ? 0
+          : (later.getTime() - earlier.getTime()) / (1000 * 60 * 60 * 24 * 30.44);
+      if (months > 0) {
+        samples.push({
+          service: jobs[index].service || customer.service || "Other work",
+          months,
+        });
+      }
+    }
+    return samples;
+  });
+
+  const repeatIntervalMemory = Object.values(
+    repeatIntervalSamples.reduce((groups, item) => {
+      if (!groups[item.service]) {
+        groups[item.service] = { service: item.service, sample: 0, totalMonths: 0 };
+      }
+      groups[item.service].sample += 1;
+      groups[item.service].totalMonths += item.months;
+      return groups;
+    }, {})
+  )
+    .map((item) => ({
+      ...item,
+      averageMonths: Math.round((item.totalMonths / Math.max(1, item.sample)) * 10) / 10,
+      stage: businessMemoryStage(item.sample),
+    }))
+    .sort((a, b) => b.sample - a.sample);
+
+  const businessMemoryRawSignature = JSON.stringify({
+    outcomes: businessMemoryCorePatterns.map((item) => [
+      item.key,
+      item.sample,
+      item.successes,
+      item.observedRate === null ? null : Math.round(item.observedRate * 1000),
+      item.lastUpdated,
+    ]),
+    services: completedServiceMemory.map((item) => [
+      item.service,
+      item.sample,
+      item.averageValue,
+    ]),
+    quoteBands: quoteValueBandMemory.map((item) => [
+      item.id,
+      item.sample,
+      item.successes,
+    ]),
+    channels: socialChannelMemory.map((item) => [
+      item.channel,
+      item.sample,
+      item.successes,
+    ]),
+    repeats: repeatIntervalMemory.map((item) => [
+      item.service,
+      item.sample,
+      item.averageMonths,
+    ]),
+  });
+
+  const previousBusinessMemorySnapshot =
+    businessMemoryHistory.find(
+      (snapshot) => snapshot?.signature && snapshot.signature !== businessMemoryRawSignature
+    ) || null;
+  const previousBusinessMemoryByKey = Object.fromEntries(
+    (previousBusinessMemorySnapshot?.patterns || []).map((item) => [item.key, item])
   );
+
+  const businessMemoryPatterns = businessMemoryCorePatterns.map((item) => {
+    const previous = previousBusinessMemoryByKey[item.key] || null;
+    const previousRate =
+      previous?.observedRate === null || previous?.observedRate === undefined
+        ? null
+        : Number(previous.observedRate);
+    const rateDelta =
+      item.observedRate === null || previousRate === null
+        ? 0
+        : item.observedRate - previousRate;
+    const hasUsefulTrend =
+      item.sample >= 6 &&
+      Number(previous?.sample || 0) >= 3 &&
+      Math.abs(rateDelta) >= 0.08;
+    const trendAdjustment = hasUsefulTrend ? (rateDelta > 0 ? 1 : -1) : 0;
+    const memoryAdjustment = Math.max(
+      -6,
+      Math.min(8, Number(item.stagedAdjustment || 0) + trendAdjustment)
+    );
+    const direction =
+      !previous || item.sample === Number(previous.sample || 0)
+        ? "Stable"
+        : rateDelta >= 0.08
+        ? "Strengthening"
+        : rateDelta <= -0.08
+        ? "Weakening"
+        : "More evidence";
+
+    return {
+      ...item,
+      previousSample: Number(previous?.sample || 0),
+      previousSuccesses: Number(previous?.successes || 0),
+      previousObservedRate: previousRate,
+      rateDelta,
+      direction,
+      trendAdjustment,
+      memoryAdjustment,
+      learnedBecause:
+        item.sample < 3
+          ? `Only ${item.sample} recorded outcome${item.sample === 1 ? "" : "s"} — BUSY will not let this change rankings yet.`
+          : `${item.successes} ${item.outcomeLabel.toLowerCase()} from ${item.sample} recorded outcomes • ${item.stage.label.toLowerCase()} • ${item.freshness?.label || "unknown freshness"}.`,
+    };
+  });
+
+  const businessBrainAdjustments = Object.fromEntries(
+    businessMemoryPatterns.map((pattern) => [pattern.key, pattern.memoryAdjustment])
+  );
+
+  const businessMemoryChanges = businessMemoryPatterns
+    .map((item) => {
+      const previous = previousBusinessMemoryByKey[item.key] || null;
+      if (!previous) return null;
+      const sampleDelta = item.sample - Number(previous.sample || 0);
+      const successDelta = item.successes - Number(previous.successes || 0);
+      const adjustmentDelta =
+        item.memoryAdjustment - Number(previous.memoryAdjustment || 0);
+      if (!sampleDelta && !successDelta && !adjustmentDelta) return null;
+      return {
+        key: item.key,
+        title: item.title,
+        sampleDelta,
+        successDelta,
+        adjustmentDelta,
+        direction: item.direction,
+        currentStage: item.stage.label,
+        currentRate: item.observedRate,
+        previousRate: item.previousObservedRate,
+      };
+    })
+    .filter(Boolean)
+    .sort(
+      (a, b) =>
+        Math.abs(Number(b.adjustmentDelta || 0)) -
+          Math.abs(Number(a.adjustmentDelta || 0)) ||
+        Number(b.sampleDelta || 0) - Number(a.sampleDelta || 0)
+    );
+
+  const strongestBusinessMemoryPattern =
+    [...businessMemoryPatterns]
+      .filter((item) => item.stage.weight > 0)
+      .sort(
+        (a, b) =>
+          Math.abs(Number(b.memoryAdjustment || 0)) -
+            Math.abs(Number(a.memoryAdjustment || 0)) ||
+          b.sample - a.sample
+      )[0] || null;
+
+  const businessMemoryInsights = [];
+  if (strongestBusinessMemoryPattern) {
+    const item = strongestBusinessMemoryPattern;
+    businessMemoryInsights.push({
+      id: `outcome-${item.key}`,
+      title: item.title,
+      kind: "Outcome performance",
+      body:
+        item.observedRate === null
+          ? item.learnedBecause
+          : `${Math.round(item.observedRate * 100)}% observed success from ${item.sample} recorded outcome${item.sample === 1 ? "" : "s"}. ${item.stage.label}.`,
+      confidence: item.stage.label,
+      rankingEffect: item.memoryAdjustment,
+    });
+  }
+  const strongestServiceValue = completedServiceMemory.find(
+    (item) => item.sample >= 3 && item.averageValue > 0
+  );
+  if (strongestServiceValue) {
+    businessMemoryInsights.push({
+      id: `service-value-${strongestServiceValue.service}`,
+      title: `${strongestServiceValue.service} job value`,
+      kind: "Service value",
+      body: `Average recorded completed-job value is £${strongestServiceValue.averageValue} across ${strongestServiceValue.sample} job${strongestServiceValue.sample === 1 ? "" : "s"}.`,
+      confidence: strongestServiceValue.stage.label,
+      rankingEffect: 0,
+    });
+  }
+  const strongestQuoteBand =
+    [...quoteValueBandMemory]
+      .filter((item) => item.sample >= 3)
+      .sort(
+        (a, b) =>
+          Number(b.observedRate || 0) - Number(a.observedRate || 0) ||
+          b.sample - a.sample
+      )[0] || null;
+  if (strongestQuoteBand) {
+    businessMemoryInsights.push({
+      id: `quote-band-${strongestQuoteBand.id}`,
+      title: strongestQuoteBand.label,
+      kind: "Quote value",
+      body: `${strongestQuoteBand.successes} accepted from ${strongestQuoteBand.sample} recorded follow-up outcomes (${Math.round(
+        Number(strongestQuoteBand.observedRate || 0) * 100
+      )}%).`,
+      confidence: strongestQuoteBand.stage.label,
+      rankingEffect: 0,
+    });
+  }
+  const strongestChannel =
+    [...socialChannelMemory]
+      .filter((item) => item.sample >= 3)
+      .sort(
+        (a, b) =>
+          Number(b.observedRate || 0) - Number(a.observedRate || 0) ||
+          b.sample - a.sample
+      )[0] || null;
+  if (strongestChannel) {
+    businessMemoryInsights.push({
+      id: `channel-${strongestChannel.channel}`,
+      title: strongestChannel.channel,
+      kind: "Social destination",
+      body: `${strongestChannel.successes} recorded booking outcome${strongestChannel.successes === 1 ? "" : "s"} from ${strongestChannel.sample} attributed result${strongestChannel.sample === 1 ? "" : "s"}.`,
+      confidence: strongestChannel.stage.label,
+      rankingEffect: 0,
+    });
+  }
+  const strongestRepeat =
+    repeatIntervalMemory.find((item) => item.sample >= 3) || null;
+  if (strongestRepeat) {
+    businessMemoryInsights.push({
+      id: `repeat-${strongestRepeat.service}`,
+      title: `${strongestRepeat.service} repeat rhythm`,
+      kind: "Repeat timing",
+      body: `Recorded repeat jobs for this service have averaged about ${strongestRepeat.averageMonths} months across ${strongestRepeat.sample} intervals.`,
+      confidence: strongestRepeat.stage.label,
+      rankingEffect: 0,
+    });
+  }
+
+  const recentMemoryWithin30Days = (timestamp) => {
+    const days = daysSinceTimestamp(timestamp);
+    return days !== null && days <= 30;
+  };
+  const businessMemoryRecentRows = [
+    {
+      key: "quotes",
+      label: "Quote follow-ups",
+      sample: quoteOutcomeRecordedEntries.filter((entry) =>
+        recentMemoryWithin30Days(entry.action.details?.followUpOutcomeRecordedAt)
+      ).length,
+      successes: quoteOutcomeRecordedEntries.filter(
+        (entry) =>
+          recentMemoryWithin30Days(entry.action.details?.followUpOutcomeRecordedAt) &&
+          entry.action.details?.followUpOutcome === "Accepted"
+      ).length,
+      successLabel: "accepted",
+    },
+    {
+      key: "reviews",
+      label: "Review requests",
+      sample: reviewOutcomeRecordedEntries.filter((entry) =>
+        recentMemoryWithin30Days(entry.job.reviewRequestOutcomeRecordedAt)
+      ).length,
+      successes: reviewOutcomeRecordedEntries.filter(
+        (entry) =>
+          recentMemoryWithin30Days(entry.job.reviewRequestOutcomeRecordedAt) &&
+          entry.job.reviewRequestOutcome === "Review left"
+      ).length,
+      successLabel: "reviews",
+    },
+    {
+      key: "social",
+      label: "Finished-job posts",
+      sample: postOutcomeEntries.filter((entry) =>
+        recentMemoryWithin30Days(entry.job.postOutcomeRecordedAt)
+      ).length,
+      successes: postOutcomeEntries.filter(
+        (entry) =>
+          recentMemoryWithin30Days(entry.job.postOutcomeRecordedAt) &&
+          entry.job.postOutcome === "Booking"
+      ).length,
+      successLabel: "bookings",
+    },
+    {
+      key: "enquiries",
+      label: "Quiet-enquiry follow-ups",
+      sample: enquiryOutcomeRecordedEntries.filter((entry) =>
+        recentMemoryWithin30Days(entry.customer.enquiryFollowUpOutcomeRecordedAt)
+      ).length,
+      successes: enquiryOutcomeRecordedEntries.filter(
+        (entry) =>
+          recentMemoryWithin30Days(entry.customer.enquiryFollowUpOutcomeRecordedAt) &&
+          entry.customer.enquiryFollowUpOutcome === "Still interested"
+      ).length,
+      successLabel: "still interested",
+    },
+  ];
+
+  const businessMemorySnapshot = {
+    id: `memory-${Date.now()}`,
+    capturedAt: new Date().toISOString(),
+    signature: businessMemoryRawSignature,
+    patterns: businessMemoryPatterns.map((item) => ({
+      key: item.key,
+      title: item.title,
+      sample: item.sample,
+      successes: item.successes,
+      observedRate: item.observedRate,
+      memoryAdjustment: item.memoryAdjustment,
+      stage: item.stage.label,
+      lastUpdated: item.lastUpdated,
+    })),
+    services: completedServiceMemory.map((item) => ({
+      service: item.service,
+      sample: item.sample,
+      averageValue: item.averageValue,
+      stage: item.stage.label,
+    })),
+    quoteBands: quoteValueBandMemory.map((item) => ({
+      id: item.id,
+      label: item.label,
+      sample: item.sample,
+      successes: item.successes,
+      observedRate: item.observedRate,
+      stage: item.stage.label,
+    })),
+    channels: socialChannelMemory.map((item) => ({
+      channel: item.channel,
+      sample: item.sample,
+      successes: item.successes,
+      observedRate: item.observedRate,
+      stage: item.stage.label,
+    })),
+  };
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (businessMemoryHistory[0]?.signature === businessMemoryRawSignature) return;
+    const reviewedAt = new Date().toISOString();
+    setBusinessMemoryHistory((current) => [
+      { ...businessMemorySnapshot, capturedAt: reviewedAt },
+      ...current.filter((item) => item?.signature !== businessMemoryRawSignature),
+    ].slice(0, 24));
+    setBusinessMemoryLastReviewAt(reviewedAt);
+  }, [hydrated, businessMemoryRawSignature]);
 
   const businessBrainFeedbackSummary = businessBrainFeedback.reduce((summary, item) => {
     const family = item.family || "general";
@@ -6424,7 +6888,7 @@ function App() {
       return rule.targetService === opportunity.brainService;
     });
     const pattern =
-      businessBrainPatterns.find((item) => item.family === family) || null;
+      businessMemoryPatterns.find((item) => item.family === family) || null;
     const feedbackEvidence = feedback.count
       ? [
           [
@@ -6439,8 +6903,10 @@ function App() {
       : [];
     const brainEvidence = pattern
       ? [
-          ["Business Brain evidence", pattern.evidence?.basis || pattern.title],
-          ["Evidence freshness", pattern.freshness.label],
+          ["Business Memory evidence", pattern.basis || pattern.title],
+          ["Memory confidence", pattern.stage?.label || "Too early to tell"],
+          ["Evidence freshness", pattern.freshness?.label || "Unknown"],
+          ["Outcome ranking effect", `${Number(pattern.memoryAdjustment || 0) > 0 ? "+" : ""}${Number(pattern.memoryAdjustment || 0)} points`],
         ]
       : [];
 
@@ -7723,6 +8189,34 @@ function App() {
         busyOperatorSnapshot,
         currentSnapshot
       ),
+      businessMemory: {
+        lastReviewedAt: businessMemoryLastReviewAt,
+        strongestPattern: strongestBusinessMemoryPattern
+          ? {
+              title: strongestBusinessMemoryPattern.title,
+              sample: strongestBusinessMemoryPattern.sample,
+              successes: strongestBusinessMemoryPattern.successes,
+              observedRate: strongestBusinessMemoryPattern.observedRate,
+              confidence: strongestBusinessMemoryPattern.stage.label,
+              direction: strongestBusinessMemoryPattern.direction,
+              rankingEffect: strongestBusinessMemoryPattern.memoryAdjustment,
+              learnedBecause: strongestBusinessMemoryPattern.learnedBecause,
+            }
+          : null,
+        patterns: businessMemoryPatterns.map((item) => ({
+          title: item.title,
+          sample: item.sample,
+          successes: item.successes,
+          observedRate: item.observedRate,
+          confidence: item.stage.label,
+          direction: item.direction,
+          rankingEffect: item.memoryAdjustment,
+          learnedBecause: item.learnedBecause,
+        })),
+        changes: businessMemoryChanges.slice(0, 8),
+        insights: businessMemoryInsights.slice(0, 8),
+        recent30Days: businessMemoryRecentRows,
+      },
       activeWorkGoal: activeWorkGoal
         ? {
             label: activeWorkGoal.label || "",
@@ -7916,7 +8410,7 @@ function App() {
   const busyCommandHasAction = (command = busyCommandResult) =>
     !!command &&
     !command.needsClarification &&
-    !["business_summary", "business_changes", "unknown"].includes(command.intent || "unknown");
+    !["business_summary", "business_changes", "business_memory", "unknown"].includes(command.intent || "unknown");
 
   const rememberBusyAudit = ({ type, label, customerId = "", rollback = null }) => {
     const row = {
@@ -8143,6 +8637,13 @@ function App() {
     go("talkToBusy");
   };
 
+  const askBusyWhyLearningChanged = async () => {
+    go("talkToBusy");
+    return submitBusyCommand({
+      text: "Why have your recommendations changed based on what you have learned about my business?",
+    });
+  };
+
   const appState = {
     screen,
     history,
@@ -8205,6 +8706,17 @@ function App() {
     postEvidence,
     reviewEvidence,
     businessBrainPatterns,
+    businessMemoryPatterns,
+    businessMemoryInsights,
+    businessMemoryChanges,
+    businessMemoryRecentRows,
+    businessMemoryHistory,
+    businessMemoryLastReviewAt,
+    completedServiceMemory,
+    quoteValueBandMemory,
+    socialChannelMemory,
+    repeatIntervalMemory,
+    strongestBusinessMemoryPattern,
     businessBrainAdjustments,
     businessBrainFeedbackSummary,
     blockedBusinessBrainFamilies,
@@ -8344,6 +8856,7 @@ function App() {
     clearBusyCommandResult,
     startNewBusyConversation,
     openTalkToBusy,
+    askBusyWhyLearningChanged,
     snoozeProactiveNotice,
     acknowledgeProactiveNotice,
     runProactiveNotice,

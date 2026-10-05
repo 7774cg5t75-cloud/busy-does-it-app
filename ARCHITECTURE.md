@@ -43,3 +43,9 @@ This branch restructures the large single-file prototype into domain modules wit
 - Safe preparation can write drafts internally, but external actions route back through the existing customer/social approval screens.
 - Trusted mode reuses the established high-confidence intake auto-file evaluator rather than introducing a broader write authority.
 - Operator and Autopilot state are both included in the normal local cache and cloud business snapshot.
+
+## V3.21 Business Memory
+- `src/screens/memory.js` exposes the long-term evidence ledger, confidence stages, recent learning changes and service/value/channel/repeat memories.
+- Business Memory snapshots are derived only from saved business outcomes and retained in the normal business snapshot; they are not a hidden model-side profile.
+- Samples below three cannot affect rankings. Later stages progressively unlock bounded influence while freshness still reduces old evidence.
+- BUSY Operator receives a compact memory summary so explanations of changed recommendations can cite the actual saved evidence.

@@ -883,6 +883,34 @@ function HomeScreen({ s }) {
         />
       </Card>
 
+
+      <Card
+        eyebrow="V3.21 • Business Memory"
+        title={
+          s.strongestBusinessMemoryPattern
+            ? `BUSY is learning how this business actually performs`
+            : "BUSY is building its evidence base"
+        }
+        body={
+          s.strongestBusinessMemoryPattern
+            ? `${s.strongestBusinessMemoryPattern.title}: ${s.strongestBusinessMemoryPattern.learnedBecause}`
+            : "BUSY is recording outcomes but will not change rankings from tiny samples."
+        }
+        footer={
+          s.businessMemoryChanges?.length
+            ? `${s.businessMemoryChanges.length} evidence change${s.businessMemoryChanges.length === 1 ? "" : "s"} since the previous memory snapshot`
+            : "No material long-term learning shift to report"
+        }
+        tone={s.businessMemoryChanges?.length ? "green" : "blue"}
+      >
+        <MetricRow
+          left="Memory confidence"
+          right={s.strongestBusinessMemoryPattern?.stage?.label || "Too early to tell"}
+          strong={!!s.strongestBusinessMemoryPattern}
+        />
+        <Button label="See what BUSY has learned" onPress={() => s.go("businessMemory")} />
+      </Card>
+
       <Card
         eyebrow="V3.19 • BUSY Operator"
         title="Talk it through with BUSY"

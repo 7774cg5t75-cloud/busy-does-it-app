@@ -16,6 +16,7 @@ const corsHeaders = {
 const intents = [
   "business_summary",
   "business_changes",
+  "business_memory",
   "operator_plan",
   "open_today",
   "open_calendar",
@@ -36,7 +37,7 @@ const intents = [
 ];
 
 const stepIntentEnum = intents.filter((intent) =>
-  !["business_summary", "business_changes", "operator_plan", "draft_refinement", "unknown"].includes(intent)
+  !["business_summary", "business_changes", "business_memory", "operator_plan", "draft_refinement", "unknown"].includes(intent)
 );
 
 const previewRowSchema = {
@@ -188,6 +189,29 @@ function safeContext(value: any) {
     changesSinceLastConversation: Array.isArray(context.changesSinceLastConversation)
       ? context.changesSinceLastConversation.slice(0, 12)
       : [],
+    businessMemory:
+      context.businessMemory && typeof context.businessMemory === "object"
+        ? {
+            lastReviewedAt: cleanText(context.businessMemory.lastReviewedAt, 40),
+            strongestPattern:
+              context.businessMemory.strongestPattern &&
+              typeof context.businessMemory.strongestPattern === "object"
+                ? context.businessMemory.strongestPattern
+                : null,
+            patterns: Array.isArray(context.businessMemory.patterns)
+              ? context.businessMemory.patterns.slice(0, 12)
+              : [],
+            changes: Array.isArray(context.businessMemory.changes)
+              ? context.businessMemory.changes.slice(0, 8)
+              : [],
+            insights: Array.isArray(context.businessMemory.insights)
+              ? context.businessMemory.insights.slice(0, 8)
+              : [],
+            recent30Days: Array.isArray(context.businessMemory.recent30Days)
+              ? context.businessMemory.recent30Days.slice(0, 8)
+              : [],
+          }
+        : null,
     activeWorkGoal:
       context.activeWorkGoal && typeof context.activeWorkGoal === "object"
         ? context.activeWorkGoal
@@ -246,11 +270,14 @@ Your job is conversational:
 - If a materially required detail is missing or there are multiple plausible customers, do NOT fail generically. Set needsClarification=true, mode="clarify", and ask ONE concise question.
 - When the owner asks for a goal that needs several sensible moves (for example "I need two jobs next Thursday"), use intent="operator_plan", mode="plan", and return 2-5 ordered planSteps.
 - When refining or creating wording, use mode="draft", put the actual editable wording in draftText, and set draftTarget.
-- When asked "what changed?", use changesSinceLastConversation. If it is empty, say no material saved change is visible since the last BUSY conversation; never invent a change.
+- When asked "what changed?", use changesSinceLastConversation unless the owner explicitly asks what BUSY has learned or why recommendations changed; then use businessMemory and intent="business_memory".
+- For business_memory, clearly separate recorded facts from inferred patterns. Mention sample size/confidence and ranking effect where relevant. If businessMemory.changes is empty, explain the current strongest pattern without claiming a new change.
+- Never claim causation from attributed social outcomes or small samples.
 
 Supported direct intents:
 - business_summary: factual answer from current context.
 - business_changes: factual comparison using changesSinceLastConversation.
+- business_memory: explain what BUSY has learned over time, why an optional recommendation has moved up/down, or what evidence currently has the strongest influence. Use businessMemory only.
 - operator_plan: 2-5 sequenced safe steps.
 - open_today, open_calendar, open_quote_followups, open_repeat_customers, find_more_work, customer_lookup.
 - create_booking: prepare a booking for one saved customer. MUST require confirmation and preview the customer/date/time/value.
