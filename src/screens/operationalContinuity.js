@@ -95,7 +95,7 @@ function OperationalContinuity({ s }) {
           <View key={row.id} style={styles.releaseCheckRow}>
             <View style={{ flex: 1, paddingRight: 12 }}>
               <Text style={styles.releaseCheckLabel}>{row.label}</Text>
-              <Text style={styles.muted}>
+              <Text style={styles.productionReadinessDetail}>
                 {row.essential ? "Core resilience" : "Optional / connected extra"}
               </Text>
             </View>
