@@ -2,6 +2,21 @@
 
 Busy Does It mobile app prototype.
 
+## v3.26 First Native Connections
+- Built directly on the tested V3.25 Production Bridge branch.
+- Added the first real server-side Google Calendar booking sync. Confirmed BUSY bookings are created/updated in the connected primary Google Calendar with customer, service, address, duration and a private BUSY mapping marker.
+- Added durable server-only calendar event mappings. BUSY tracks the last agreed BUSY fingerprint and Google event times so an external Google edit is detected as a conflict rather than silently copied over.
+- Added explicit conflict resolution: Keep BUSY time writes the BUSY booking back to Google; Use Google time updates the BUSY booking only after the owner chooses it, then records the new shared baseline.
+- Google Calendar events that are not owned by BUSY are returned as external commitments and now feed the Executive Briefing scheduled-load view without becoming customer records.
+- Added server-side Google access-token refresh. Google refresh tokens remain only in the server-only connection table.
+- Added a production watcher backed by Supabase Cron. Every 15 minutes it can inspect saved business state and send deduplicated remote pushes for trusted events: approaching confirmed bookings, unresolved past bookings and stale sent quotes.
+- Added server-only push-delivery dedupe records so the same business event is not repeatedly pushed every cron run. DeviceNotRegistered Expo tokens are disabled automatically when the push service reports them.
+- Added EAS project-link automation. If the repository has an EXPO_TOKEN secret, the v3.26 workflow runs eas init and commits the generated EAS project ID back to app.json; otherwise it reports that the account-bound step remains.
+- Added a manual native-development-build workflow for iOS/Android once the EAS project is linked and platform signing/device provisioning is ready.
+- Preview and production EAS channels are now explicit.
+- The existing Snack/Expo Go path remains available as the fallback. Native-only push token registration and the custom-scheme OAuth return still require the first development build to be installed on the device.
+- Existing owner approval rules remain unchanged; calendar sync never sends customer communication and server pushes only open the relevant BUSY work.
+
 ## v3.25 Production Bridge
 - Built directly on the tested V3.24 Release-Grade Core branch.
 - Added committed EAS development / preview / production build profiles, Node 22 production checks, native iOS/Android application identifiers, the `busydoesit://` URL scheme and app-version runtime policy.
