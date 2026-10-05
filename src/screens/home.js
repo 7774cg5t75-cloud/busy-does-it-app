@@ -883,7 +883,13 @@ function HomeScreen({ s }) {
         ) : (
           <Button label="Open forward view" primary onPress={() => s.go("executiveBriefing")} />
         )}
-        <Button label="Why this is first" onPress={() => s.jump("workHub", "Work")} />
+        {bestMove ? (
+          <InlineExplanation
+            why={bestMove.why}
+            evidence={bestMove.evidence}
+          />
+        ) : null}
+        <Button label="Open full briefing" onPress={() => s.go("executiveBriefing")} />
       </Card>
 
       <Card
@@ -1051,42 +1057,17 @@ function HomeScreen({ s }) {
       ) : null}
 
       {s.connectedIntakeKeys?.length ? (
-        <Card
-          eyebrow="BUSY connected intake"
-          title={`${s.connectedIntakeKeys.length} intake source${s.connectedIntakeKeys.length === 1 ? "" : "s"} ready`}
-          body={
-            s.lastConnectionSync
-              ? `The latest prototype sync produced ${s.lastConnectionSync.itemCount} incoming item${s.lastConnectionSync.itemCount === 1 ? "" : "s"}: ${s.lastConnectionSync.autoFiledCount} filed safely and ${s.lastConnectionSync.queuedForReviewCount} sent to BUSY Inbox for review.`
-              : "The selected sources can now demonstrate how email, calendar, CRM and invoicing events would enter the same BUSY Inbox and trust pipeline. No real external account is being read."
-          }
-          footer="Prototype source data only • customer-facing authority stays separate"
-          tone={s.connectedIntakePendingCount ? "amber" : "green"}
-        >
-          <MetricRow left="Connected intake sources" right={String(s.connectedIntakeKeys.length)} />
-          <MetricRow left="Connected-source items waiting" right={String(s.connectedIntakePendingCount)} strong={s.connectedIntakePendingCount > 0} />
-          <MetricRow left="Connected-source items auto-filed" right={String(s.connectedIntakeAutoFiledCount)} />
-          <MetricRow left="Cross-source journeys reconciled" right={String(s.reconciledJourneyCount)} strong={s.reconciledJourneyCount > 0} />
-          <MetricRow left="Journey progressions waiting" right={String(s.reconciliationPendingCount)} />
-          <Button label="Run prototype connected sync" onPress={s.runConnectedSourceDemoSync} />
-          <Button label="Test one customer across 4 sources" onPress={s.queueCrossSourceJourneyDemo} />
-          <Button label="Connected accounts" onPress={() => s.go("connectedAccounts")} />
-        </Card>
+        <Button
+          label={`Connected intake • ${s.connectedIntakeKeys.length} source${s.connectedIntakeKeys.length === 1 ? "" : "s"} • ${s.connectedIntakePendingCount || 0} waiting`}
+          onPress={() => s.go("connectedAccounts")}
+        />
       ) : null}
 
       {(s.backgroundReadyCount || s.lifecycleWatchCount) ? (
-        <Card
-          eyebrow="BUSY in the background"
-          title={`${s.backgroundReadyCount} next step${s.backgroundReadyCount === 1 ? "" : "s"} ready • ${s.lifecycleWatchCount} timeline${s.lifecycleWatchCount === 1 ? "" : "s"} being watched`}
-          body="BUSY is keeping the dates and follow-on admin underneath the app. You still approve anything that would contact a customer or publish publicly."
-          tone="blue"
-        >
-          <MetricRow left="Quiet enquiries ready" right={String(s.staleEnquiryEntries.length)} />
-          <MetricRow left="Quote follow-ups ready" right={String(s.dueQuoteEntries.length)} />
-          <MetricRow left="Review drafts prepared" right={String(s.automaticReviewDraftCount)} />
-          <MetricRow left="Finished-job post drafts" right={String(s.automaticPostDraftCount)} />
-          <MetricRow left="Inbox records auto-filed" right={String(s.inboxAutoFiledCount)} strong={s.inboxAutoFiledCount > 0} />
-          <Button label="See background work" onPress={() => s.go("backgroundWork")} />
-        </Card>
+        <Button
+          label={`BUSY in the background • ${s.backgroundReadyCount || 0} ready • ${s.lifecycleWatchCount || 0} watched`}
+          onPress={() => s.go("backgroundWork")}
+        />
       ) : null}
 
       {s.inboxPendingItems.length ? (
