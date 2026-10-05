@@ -16,6 +16,11 @@ function ProductionBridge({ s }) {
   const push = s.remotePushStatus || {};
   const calendar = s.calendarOAuthStatus || {};
   const calendarConnected = calendar.connection?.status === "connected";
+  const googleSync = s.googleCalendarSyncStatus || {};
+  const googleConflicts = Array.isArray(s.googleCalendarConflicts)
+    ? s.googleCalendarConflicts
+    : [];
+  const watch = s.productionWatchStatus || {};
 
   return (
     <Shell
@@ -150,6 +155,97 @@ function ProductionBridge({ s }) {
             onPress={s.startGoogleCalendarOAuth}
           />
         )}
+      </Card>
+
+      {calendarConnected ? (
+        <Card
+          eyebrow="V3.26 • Real booking sync"
+          title={
+            googleSync.state === "synced"
+              ? "BUSY and Google Calendar are aligned"
+              : googleSync.state === "needs_review"
+              ? "Google changed a booking"
+              : "Sync BUSY bookings into Google Calendar"
+          }
+          body={
+            googleSync.message ||
+            "Confirmed BUSY bookings can now be created/updated server-side in Google Calendar. Other Google events feed the Forward View without becoming customer records."
+          }
+          footer={
+            googleSync.lastSyncedAt
+              ? `Last sync: ${new Date(googleSync.lastSyncedAt).toLocaleString("en-GB")}`
+              : "No real Google booking sync has run yet"
+          }
+          tone={
+            googleConflicts.length
+              ? "amber"
+              : googleSync.state === "synced"
+              ? "green"
+              : "blue"
+          }
+        >
+          <MetricRow left="Created this sync" right={String(googleSync.created || 0)} />
+          <MetricRow left="Updated this sync" right={String(googleSync.updated || 0)} />
+          <MetricRow left="External commitments" right={String(s.googleCalendarExternalEvents?.length || 0)} />
+          <MetricRow left="Conflicts needing owner" right={String(googleConflicts.length)} strong={googleConflicts.length > 0} />
+          <Button
+            label={s.productionBridgeAction === "google-sync" ? "Syncing…" : "Sync Google Calendar now"}
+            primary
+            disabled={!!s.productionBridgeAction}
+            onPress={s.syncGoogleCalendarNow}
+          />
+        </Card>
+      ) : null}
+
+      {googleConflicts.length ? (
+        <>
+          <Text style={styles.sectionLabel}>Google Calendar changes need your decision</Text>
+          {googleConflicts.map((conflict) => (
+            <Card
+              key={conflict.customerId}
+              eyebrow="Calendar conflict"
+              title={conflict.customerName || "Customer booking"}
+              body={`BUSY: ${conflict.busyDate || ""} ${conflict.busyTime || ""} • Google: ${conflict.googleLabel || conflict.googleStartAt || ""}. BUSY will not silently choose.`}
+              footer="One explicit owner choice becomes the new shared baseline"
+              tone="amber"
+            >
+              <Button
+                label="Keep BUSY time"
+                primary
+                disabled={!!s.productionBridgeAction}
+                onPress={() => s.keepBusyGoogleCalendarTime(conflict)}
+              />
+              <Button
+                label="Use Google time in BUSY"
+                disabled={!!s.productionBridgeAction}
+                onPress={() => s.useGoogleCalendarTime(conflict)}
+              />
+            </Card>
+          ))}
+        </>
+      ) : null}
+
+      <Card
+        eyebrow="Server proactive watcher"
+        title={
+          watch.configured
+            ? "Background business watch is scheduled"
+            : "Background watcher needs attention"
+        }
+        body={
+          watch.configured
+            ? "The Supabase watcher can inspect saved business state independently of the phone and deduplicate trusted remote alerts for approaching bookings, unresolved past bookings and stale sent quotes."
+            : watch.message || "The production watcher schedule has not been verified yet."
+        }
+        footer={watch.schedule || "No schedule reported"}
+        tone={watch.configured ? "green" : "amber"}
+      >
+        <MetricRow left="Recorded remote deliveries" right={String(watch.deliveryCount || 0)} />
+        <MetricRow
+          left="Last delivery"
+          right={watch.lastDeliveryAt ? new Date(watch.lastDeliveryAt).toLocaleString("en-GB") : "None yet"}
+        />
+        <Button label="Refresh watcher status" onPress={s.refreshProductionWatchStatus} />
       </Card>
 
       <Card
