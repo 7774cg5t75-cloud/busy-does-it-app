@@ -257,12 +257,14 @@ function validateOperatorCommand({
     };
   }
 
-  if (intent === "create_booking" && !command?.date) {
+  if (intent === "create_booking" && (!command?.date || !command?.time)) {
     return {
       ok: false,
       customer,
-      reason: "missing-date",
-      message: "BUSY needs a booking date before it can prepare that change.",
+      reason: !command?.date ? "missing-date" : "missing-time",
+      message: !command?.date
+        ? "BUSY needs a booking date before it can confirm that booking."
+        : "BUSY needs a booking time before it can confirm that booking.",
     };
   }
 
@@ -300,24 +302,14 @@ function validateOperatorCommand({
       };
     }
     const existing = replyActions?.[customer.id] || null;
-    const activeNonReminder =
-      existing &&
-      existing.type !== "reminder" &&
-      !(
-        existing.type === "booking" &&
-        ["Cancelled", "Completed"].includes(existing.details?.bookingStatus || "")
-      ) &&
-      !(
-        existing.type === "quote" &&
-        ["Declined"].includes(existing.details?.quoteStatus || "")
-      );
+    const activeNonReminder = existing && existing.type !== "reminder";
     if (activeNonReminder) {
       return {
         ok: false,
         customer,
         reason: "active-customer-action",
         message:
-          "BUSY will not overwrite that customer's active quote or booking with a reminder. Open the customer first and finish or review the active work.",
+          "BUSY will not overwrite that customer's saved quote or booking record with a reminder. Open the customer first and use the existing follow-up controls.",
       };
     }
   }
