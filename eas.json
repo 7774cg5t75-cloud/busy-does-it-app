@@ -17,14 +17,16 @@
       "node": "22.13.0",
       "env": {
         "BUSY_BUILD_PROFILE": "preview"
-      }
+      },
+      "channel": "preview"
     },
     "production": {
       "node": "22.13.0",
       "autoIncrement": true,
       "env": {
         "BUSY_BUILD_PROFILE": "production"
-      }
+      },
+      "channel": "production"
     }
   },
   "submit": {
