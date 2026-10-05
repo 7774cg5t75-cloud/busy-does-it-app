@@ -44,6 +44,9 @@
         "googleCalendarOAuthFunction": true,
         "googleCalendarSyncFunction": true,
         "productionWatchFunction": true
+      },
+      "eas": {
+        "projectId": "146c1b9d-fc14-4f3b-b744-06d8ec32c7f2"
       }
     }
   }
