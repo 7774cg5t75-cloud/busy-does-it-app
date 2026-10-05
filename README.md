@@ -13,7 +13,7 @@ Busy Does It mobile app prototype.
 - If a Google Calendar account is already configured on the device, its writable calendar can be selected through the device bridge; this is not yet the deeper Google OAuth server integration.
 - External calendar time changes are surfaced as explicit conflicts. BUSY never silently changes an important booking: the owner chooses “keep BUSY time” or “use calendar time in BUSY”.
 - Other selected-calendar commitments feed the Executive Briefing scheduled-load rows locally without creating customers or sending event details to BUSY Operator.
-- Notification and diary settings, event mappings and activity history are included in the normal local/cloud business snapshot. Device-calendar event contents themselves remain local.
+- Notification permission, native scheduled-notification IDs, selected device-calendar IDs and native event mappings stay device-local so one phone cannot corrupt another phone’s native state. Business data and higher-level intelligence continue through the normal cloud snapshot.
 - The current Snack preview targets Expo SDK 54, where expo-calendar is available in Expo Go. The production Expo 57 path will need the newer Calendar API/development build before App Store release.
 - Remote push remains a production-build step; V3.23 uses local scheduled notifications so the current Expo Go testing workflow remains usable.
 - Hard authority boundaries remain unchanged: a notification or diary sync never grants permission to contact customers, publish publicly or spend money.
