@@ -50,6 +50,8 @@ const {
   BUSY_SUPABASE_URL,
   BUSY_PUSH_DISPATCH_URL,
   BUSY_CALENDAR_OAUTH_URL,
+  BUSY_CALENDAR_SYNC_URL,
+  BUSY_PRODUCTION_WATCH_URL,
   OWNER_SESSION_KEY,
   DEFAULT_OWNER_EMAIL,
   CLOUD_SCHEMA_VERSION,
@@ -355,6 +357,23 @@ function App() {
     error: "",
   });
   const [productionBridgeAction, setProductionBridgeAction] = useState("");
+  const [googleCalendarSyncStatus, setGoogleCalendarSyncStatus] = useState({
+    state: "not_synced",
+    lastSyncedAt: "",
+    created: 0,
+    updated: 0,
+    conflictCount: 0,
+    message: "",
+  });
+  const [googleCalendarExternalEvents, setGoogleCalendarExternalEvents] = useState([]);
+  const [googleCalendarConflicts, setGoogleCalendarConflicts] = useState([]);
+  const [productionWatchStatus, setProductionWatchStatus] = useState({
+    configured: false,
+    schedule: "",
+    lastDeliveryAt: "",
+    deliveryCount: 0,
+    message: "",
+  });
   const [pendingBrainFeedback, setPendingBrainFeedback] = useState(null);
   const [brainFeedbackReason, setBrainFeedbackReason] = useState("");
   const [quoteFollowUpDraft, setQuoteFollowUpDraft] = useState("");
@@ -6053,6 +6072,23 @@ function App() {
       error: "",
     });
     setProductionBridgeAction("");
+    setGoogleCalendarSyncStatus({
+      state: "not_synced",
+      lastSyncedAt: "",
+      created: 0,
+      updated: 0,
+      conflictCount: 0,
+      message: "",
+    });
+    setGoogleCalendarExternalEvents([]);
+    setGoogleCalendarConflicts([]);
+    setProductionWatchStatus({
+      configured: false,
+      schedule: "",
+      lastDeliveryAt: "",
+      deliveryCount: 0,
+      message: "",
+    });
     setPendingBrainFeedback(null);
     setBrainFeedbackReason("");
     setQuoteFollowUpDraft("");
@@ -8511,10 +8547,26 @@ function App() {
       ? "Medium"
       : "Low";
 
+  const executiveExternalScheduleEvents = (() => {
+    const rows = [...diaryExternalEvents, ...googleCalendarExternalEvents];
+    const seen = new Set();
+    return rows.filter((item) => {
+      const signature = [
+        item.date || "",
+        item.time || "",
+        String(item.title || "").trim().toLowerCase(),
+        Math.round(Number(item.durationHours || 0) * 10),
+      ].join("|");
+      if (seen.has(signature)) return false;
+      seen.add(signature);
+      return true;
+    });
+  })();
+
   const executiveLoadRows = Array.from({ length: 7 }, (_, offset) => {
     const date = addDaysFromISO(executiveTodayISO, offset);
     const entries = executiveBookings7.filter((item) => item.date === date);
-    const externalEntries = diaryExternalEvents.filter((item) => item.date === date);
+    const externalEntries = executiveExternalScheduleEvents.filter((item) => item.date === date);
     const busyHours = entries.reduce(
       (sum, item) => sum + Number(item.durationHours || 0),
       0
@@ -8912,6 +8964,12 @@ function App() {
     easProfilesConfigured:
       Constants?.expoConfig?.extra?.productionBridge?.easProfilesConfigured ===
       true,
+    googleCalendarSyncFunction:
+      Constants?.expoConfig?.extra?.productionBridge?.googleCalendarSyncFunction ===
+      true,
+    productionWatchFunction:
+      Constants?.expoConfig?.extra?.productionBridge?.productionWatchFunction ===
+      true,
   };
 
   const productionReadiness = buildProductionReadiness({
@@ -8925,6 +8983,8 @@ function App() {
     androidPackage: productionBridgeRuntime.androidPackage,
     remotePushStatus,
     calendarOAuthStatus,
+    googleCalendarSyncStatus,
+    productionWatchStatus,
     easProfilesConfigured: productionBridgeRuntime.easProfilesConfigured,
   });
 
@@ -9254,12 +9314,342 @@ function App() {
     }
   };
 
+  const productionCalendarBookingRows = executiveConfirmedBookings
+    .filter(
+      (booking) =>
+        booking.date >= executiveTodayISO &&
+        booking.date <= addDaysFromISO(executiveTodayISO, 90)
+    )
+    .map((booking) => {
+      const time = /^\d{2}:\d{2}$/.test(String(booking.time || ""))
+        ? booking.time
+        : "09:00";
+      const start = new Date(`${booking.date}T${time}:00`);
+      const end = new Date(
+        start.getTime() +
+          Math.max(0.5, Number(booking.durationHours) || 2) * 3600000
+      );
+      const customer =
+        customers.find((item) => item.id === booking.customerId) || {};
+      const fingerprint = JSON.stringify([
+        booking.date,
+        time,
+        booking.customerName,
+        booking.service,
+        Number(booking.value || 0),
+        Math.max(0.5, Number(booking.durationHours) || 2),
+        customer.address || "",
+      ]);
+      return {
+        ...booking,
+        time,
+        startAt: start.toISOString(),
+        endAt: end.toISOString(),
+        address: customer.address || "",
+        fingerprint,
+      };
+    });
+
+  const productionCancelledBookingIds = Object.entries(replyActions || {})
+    .filter(
+      ([, action]) =>
+        action?.type === "booking" &&
+        action?.done &&
+        action?.details?.bookingStatus === "Cancelled"
+    )
+    .map(([customerId]) => customerId);
+
+  const refreshProductionWatchStatus = async () => {
+    if (!ownerSession?.accessToken || !cloudWorkspace?.businessId) return null;
+    try {
+      const data = await productionFunctionRequest(
+        BUSY_PRODUCTION_WATCH_URL,
+        "status"
+      );
+      setProductionWatchStatus({
+        configured: !!data?.configured,
+        schedule: data?.schedule || "",
+        lastDeliveryAt: data?.lastDeliveryAt || "",
+        deliveryCount: Number(data?.deliveryCount || 0),
+        message: data?.message || "",
+      });
+      return data;
+    } catch (error) {
+      setProductionWatchStatus((current) => ({
+        ...current,
+        configured: false,
+        message:
+          error?.message ||
+          "Production watcher status could not be checked.",
+      }));
+      return null;
+    }
+  };
+
+  const syncGoogleCalendarNow = async () => {
+    if (calendarOAuthStatus?.connection?.status !== "connected") {
+      setGoogleCalendarSyncStatus((current) => ({
+        ...current,
+        state: "not_connected",
+        message:
+          "Connect Google Calendar before running server-side booking sync.",
+      }));
+      return false;
+    }
+
+    setProductionBridgeAction("google-sync");
+    setGoogleCalendarSyncStatus((current) => ({
+      ...current,
+      state: "syncing",
+      message: "Syncing BUSY bookings with Google Calendar…",
+    }));
+
+    try {
+      const data = await productionFunctionRequest(
+        BUSY_CALENDAR_SYNC_URL,
+        "sync",
+        {
+          bookings: productionCalendarBookingRows,
+          cancelledCustomerIds: productionCancelledBookingIds,
+          rangeStart: new Date(
+            `${executiveTodayISO}T00:00:00`
+          ).toISOString(),
+          rangeEnd: new Date(
+            `${executiveEnd7ISO}T23:59:59`
+          ).toISOString(),
+        }
+      );
+
+      const conflicts = Array.isArray(data?.conflicts)
+        ? data.conflicts
+        : [];
+      const external = Array.isArray(data?.externalEvents)
+        ? data.externalEvents
+        : [];
+
+      setGoogleCalendarConflicts(conflicts);
+      setGoogleCalendarExternalEvents(external);
+      setGoogleCalendarSyncStatus({
+        state: conflicts.length ? "needs_review" : "synced",
+        lastSyncedAt: data?.syncedAt || new Date().toISOString(),
+        created: Number(data?.created || 0),
+        updated: Number(data?.updated || 0),
+        conflictCount: conflicts.length,
+        message: conflicts.length
+          ? `${conflicts.length} Google Calendar change${conflicts.length === 1 ? "" : "s"} need owner reconciliation.`
+          : "BUSY and Google Calendar agree on the mapped bookings.",
+      });
+
+      return true;
+    } catch (error) {
+      setGoogleCalendarSyncStatus((current) => ({
+        ...current,
+        state: "error",
+        message:
+          error?.message || "Google Calendar sync failed.",
+      }));
+      return false;
+    } finally {
+      setProductionBridgeAction("");
+    }
+  };
+
+  const googleCalendarConflictBooking = (conflict) =>
+    productionCalendarBookingRows.find(
+      (item) => item.customerId === conflict?.customerId
+    ) || null;
+
+  const keepBusyGoogleCalendarTime = async (conflict) => {
+    const booking = googleCalendarConflictBooking(conflict);
+    if (!booking) return false;
+
+    setProductionBridgeAction(
+      `google-keep-${conflict.customerId}`
+    );
+
+    try {
+      await productionFunctionRequest(
+        BUSY_CALENDAR_SYNC_URL,
+        "resolve",
+        {
+          direction: "keep_busy",
+          customerId: conflict.customerId,
+          booking,
+        }
+      );
+
+      setGoogleCalendarConflicts((current) =>
+        current.filter(
+          (item) => item.customerId !== conflict.customerId
+        )
+      );
+
+      setGoogleCalendarSyncStatus((current) => {
+        const remaining = Math.max(
+          0,
+          Number(current.conflictCount || 0) - 1
+        );
+        return {
+          ...current,
+          state: remaining ? "needs_review" : "synced",
+          conflictCount: remaining,
+          lastSyncedAt: new Date().toISOString(),
+          message:
+            "BUSY booking time was kept and written back to Google Calendar.",
+        };
+      });
+
+      return true;
+    } catch (error) {
+      setGoogleCalendarSyncStatus((current) => ({
+        ...current,
+        message:
+          error?.message ||
+          "BUSY could not write its booking time back to Google.",
+      }));
+      return false;
+    } finally {
+      setProductionBridgeAction("");
+    }
+  };
+
+  const useGoogleCalendarTime = async (conflict) => {
+    if (!conflict?.customerId || !conflict?.googleStartAt) {
+      return false;
+    }
+
+    const start = new Date(conflict.googleStartAt);
+    const end = new Date(
+      conflict.googleEndAt || conflict.googleStartAt
+    );
+
+    if (Number.isNaN(start.getTime())) return false;
+
+    const nextDate = dateToISO(start);
+    const nextTime = `${String(start.getHours()).padStart(
+      2,
+      "0"
+    )}:${String(start.getMinutes()).padStart(2, "0")}`;
+
+    const currentBooking =
+      googleCalendarConflictBooking(conflict);
+
+    if (!currentBooking) return false;
+
+    const durationHours = Math.max(
+      0.5,
+      Number.isNaN(end.getTime())
+        ? Number(currentBooking.durationHours) || 2
+        : Math.round(
+            ((end.getTime() - start.getTime()) / 3600000) * 10
+          ) / 10
+    );
+
+    const resolvedBooking = {
+      ...currentBooking,
+      date: nextDate,
+      time: nextTime,
+      startAt: start.toISOString(),
+      endAt: new Date(
+        start.getTime() + durationHours * 3600000
+      ).toISOString(),
+      durationHours,
+      fingerprint: JSON.stringify([
+        nextDate,
+        nextTime,
+        currentBooking.customerName,
+        currentBooking.service,
+        Number(currentBooking.value || 0),
+        durationHours,
+        currentBooking.address || "",
+      ]),
+    };
+
+    setProductionBridgeAction(
+      `google-use-${conflict.customerId}`
+    );
+
+    try {
+      await productionFunctionRequest(
+        BUSY_CALENDAR_SYNC_URL,
+        "resolve",
+        {
+          direction: "use_google",
+          customerId: conflict.customerId,
+          booking: resolvedBooking,
+        }
+      );
+
+      setReplyActions((current) => {
+        const action = current[conflict.customerId];
+        if (!action || action.type !== "booking") return current;
+
+        return {
+          ...current,
+          [conflict.customerId]: {
+            ...action,
+            details: {
+              ...(action.details || {}),
+              bookingDate: nextDate,
+              bookingTime: nextTime,
+              diaryReconciledAt: new Date().toISOString(),
+              diaryReconciledFrom: "google_calendar",
+            },
+          },
+        };
+      });
+
+      appendCustomerActivity(conflict.customerId, {
+        kind: "booking",
+        title:
+          "Booking time reconciled from Google Calendar",
+        note: `Owner explicitly accepted the Google Calendar time: ${formatUKDate(
+          nextDate
+        )} at ${nextTime}.`,
+      });
+
+      setGoogleCalendarConflicts((current) =>
+        current.filter(
+          (item) => item.customerId !== conflict.customerId
+        )
+      );
+
+      setGoogleCalendarSyncStatus((current) => {
+        const remaining = Math.max(
+          0,
+          Number(current.conflictCount || 0) - 1
+        );
+        return {
+          ...current,
+          state: remaining ? "needs_review" : "synced",
+          conflictCount: remaining,
+          lastSyncedAt: new Date().toISOString(),
+          message:
+            "Google Calendar time was explicitly accepted into BUSY.",
+        };
+      });
+
+      return true;
+    } catch (error) {
+      setGoogleCalendarSyncStatus((current) => ({
+        ...current,
+        message:
+          error?.message ||
+          "BUSY could not accept the Google Calendar time.",
+      }));
+      return false;
+    } finally {
+      setProductionBridgeAction("");
+    }
+  };
+
   const refreshProductionBridge = async () => {
     setProductionBridgeAction("refresh");
     try {
       await Promise.all([
         refreshRemotePushStatus(),
         refreshCalendarOAuthStatus(),
+        refreshProductionWatchStatus(),
       ]);
       return true;
     } finally {
@@ -9286,6 +9676,12 @@ function App() {
         return;
       }
       refreshCalendarOAuthStatus();
+      setGoogleCalendarSyncStatus((current) => ({
+        ...current,
+        state: "not_synced",
+        message:
+          "Google Calendar connected. Run the first booking sync when ready.",
+      }));
       go("productionBridge");
     };
     const subscription = Linking.addEventListener("url", handleProductionLink);
@@ -10769,6 +11165,10 @@ function App() {
     remotePushAction,
     calendarOAuthStatus,
     productionBridgeAction,
+    googleCalendarSyncStatus,
+    googleCalendarExternalEvents,
+    googleCalendarConflicts,
+    productionWatchStatus,
     refreshProductionBridge,
     registerRemotePushDevice,
     deactivateRemotePushDevice,
@@ -10776,6 +11176,10 @@ function App() {
     refreshCalendarOAuthStatus,
     startGoogleCalendarOAuth,
     disconnectGoogleCalendarOAuth,
+    syncGoogleCalendarNow,
+    keepBusyGoogleCalendarTime,
+    useGoogleCalendarTime,
+    refreshProductionWatchStatus,
     maskPushToken,
     openReleaseCoreIssue,
     openExecutivePriority,
