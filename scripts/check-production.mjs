@@ -6,7 +6,7 @@ const app = readJson("app.json").expo || {};
 const eas = readJson("eas.json");
 
 const checks = [
-  ["package version", pkg.version === "3.25.0"],
+  ["package version", pkg.version === "3.26.0"],
   ["Expo SDK 57", String(pkg.dependencies?.expo || "").startsWith("~57.")],
   ["expo-dev-client", !!pkg.dependencies?.["expo-dev-client"]],
   ["expo-constants", !!pkg.dependencies?.["expo-constants"]],
@@ -19,6 +19,12 @@ const checks = [
   ["preview build profile", eas.build?.preview?.distribution === "internal"],
   ["production auto increment", eas.build?.production?.autoIncrement === true],
   ["Node 22 production runtime", String(eas.build?.production?.node || "").startsWith("22.")],
+  ["preview channel", eas.build?.preview?.channel === "preview"],
+  ["production channel", eas.build?.production?.channel === "production"],
+  ["Google Calendar sync function", fs.existsSync("supabase/functions/busy-calendar-sync/index.ts")],
+  ["production watch function", fs.existsSync("supabase/functions/busy-production-watch/index.ts")],
+  ["EAS link workflow", fs.existsSync(".github/workflows/eas-link.yml")],
+  ["native development build workflow", fs.existsSync(".github/workflows/native-development-build.yml")],
 ];
 
 let failed = 0;
