@@ -22,6 +22,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 import * as Notifications from "expo-notifications";
 import * as Calendar from "expo-calendar";
+import Constants from "expo-constants";
 
 try {
   Notifications.setNotificationHandler({
@@ -47,6 +48,8 @@ const {
   BUSY_SOCIAL_URL,
   BUSY_SOCIAL_PUBLISH_URL,
   BUSY_SUPABASE_URL,
+  BUSY_PUSH_DISPATCH_URL,
+  BUSY_CALENDAR_OAUTH_URL,
   OWNER_SESSION_KEY,
   DEFAULT_OWNER_EMAIL,
   CLOUD_SCHEMA_VERSION,
@@ -144,6 +147,10 @@ import {
   buildReleaseCoreHealth,
   buildHomeCommandCentre,
 } from "../domain/releaseCore";
+import {
+  buildProductionReadiness,
+  maskPushToken,
+} from "../domain/productionBridge";
 import { BusyBrandLockup } from "../components/ui";
 import { screens, HomeScreen, AccountAccess } from "../screens";
 
@@ -332,6 +339,22 @@ function App() {
   const [diaryConflicts, setDiaryConflicts] = useState([]);
   const [diarySyncStatus, setDiarySyncStatus] = useState("idle");
   const notificationHandledRef = useRef("");
+  const [remotePushStatus, setRemotePushStatus] = useState({
+    state: "not_checked",
+    token: "",
+    deviceCount: 0,
+    lastRegisteredAt: "",
+    message: "",
+  });
+  const [remotePushAction, setRemotePushAction] = useState("");
+  const [calendarOAuthStatus, setCalendarOAuthStatus] = useState({
+    loaded: false,
+    configured: false,
+    connection: null,
+    callbackUrl: "",
+    error: "",
+  });
+  const [productionBridgeAction, setProductionBridgeAction] = useState("");
   const [pendingBrainFeedback, setPendingBrainFeedback] = useState(null);
   const [brainFeedbackReason, setBrainFeedbackReason] = useState("");
   const [quoteFollowUpDraft, setQuoteFollowUpDraft] = useState("");
@@ -6014,6 +6037,22 @@ function App() {
     setDiaryExternalEvents([]);
     setDiaryConflicts([]);
     setDiarySyncStatus("idle");
+    setRemotePushStatus({
+      state: "not_checked",
+      token: "",
+      deviceCount: 0,
+      lastRegisteredAt: "",
+      message: "",
+    });
+    setRemotePushAction("");
+    setCalendarOAuthStatus({
+      loaded: false,
+      configured: false,
+      connection: null,
+      callbackUrl: "",
+      error: "",
+    });
+    setProductionBridgeAction("");
     setPendingBrainFeedback(null);
     setBrainFeedbackReason("");
     setQuoteFollowUpDraft("");
@@ -8854,6 +8893,415 @@ function App() {
     return true;
   };
 
+  const productionBridgeRuntime = {
+    easProjectId:
+      Constants?.expoConfig?.extra?.eas?.projectId ||
+      Constants?.easConfig?.projectId ||
+      "",
+    expoGoPreview: !!Constants?.expoGoConfig,
+    scheme:
+      typeof Constants?.expoConfig?.scheme === "string"
+        ? Constants.expoConfig.scheme
+        : Array.isArray(Constants?.expoConfig?.scheme)
+        ? Constants.expoConfig.scheme[0] || ""
+        : "",
+    iosBundleIdentifier:
+      Constants?.expoConfig?.ios?.bundleIdentifier || "",
+    androidPackage:
+      Constants?.expoConfig?.android?.package || "",
+    easProfilesConfigured:
+      Constants?.expoConfig?.extra?.productionBridge?.easProfilesConfigured ===
+      true,
+  };
+
+  const productionReadiness = buildProductionReadiness({
+    releaseCoreHealth,
+    cloudInitialised,
+    ownerSignedIn: !!ownerSession?.accessToken,
+    easProjectId: productionBridgeRuntime.easProjectId,
+    expoGoPreview: productionBridgeRuntime.expoGoPreview,
+    scheme: productionBridgeRuntime.scheme,
+    iosBundleIdentifier: productionBridgeRuntime.iosBundleIdentifier,
+    androidPackage: productionBridgeRuntime.androidPackage,
+    remotePushStatus,
+    calendarOAuthStatus,
+    easProfilesConfigured: productionBridgeRuntime.easProfilesConfigured,
+  });
+
+  const productionFunctionRequest = async (url, action, payload = {}) => {
+    const token = await ownerAccessToken();
+    if (!token) throw new Error("Sign in to BUSY before using production integrations.");
+    const response = await fetchWithTimeout(
+      url,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: BUSY_AI_TOKEN,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action,
+          businessId: cloudWorkspace?.businessId || "",
+          ...payload,
+        }),
+      },
+      25000
+    );
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const error = new Error(
+        data?.error || data?.message || `Production service returned ${response.status}.`
+      );
+      error.status = response.status;
+      error.payload = data;
+      throw error;
+    }
+    return data;
+  };
+
+  const refreshRemotePushStatus = async () => {
+    if (!ownerSession?.accessToken || !ownerSession?.userId) {
+      setRemotePushStatus((current) => ({
+        ...current,
+        state: "signed_out",
+        deviceCount: 0,
+        message: "Sign in before registering a production push device.",
+      }));
+      return null;
+    }
+    try {
+      const token = await ownerAccessToken();
+      const rows = await busyDataRequest(
+        `busy_push_devices?user_id=eq.${encodeURIComponent(
+          ownerSession.userId
+        )}&active=eq.true&select=expo_push_token,platform,app_version,last_seen_at,business_id`,
+        { token }
+      );
+      const devices = Array.isArray(rows) ? rows : [];
+      setRemotePushStatus((current) => ({
+        ...current,
+        deviceCount: devices.length,
+        state:
+          current.token &&
+          devices.some((item) => item.expo_push_token === current.token)
+            ? "registered"
+            : current.state === "registered"
+            ? "registered"
+            : "not_registered",
+        message: devices.length
+          ? `${devices.length} active push device${devices.length === 1 ? "" : "s"} registered for this owner.`
+          : "No active production push device is registered yet.",
+      }));
+      return devices;
+    } catch (error) {
+      setRemotePushStatus((current) => ({
+        ...current,
+        state: "error",
+        message: error?.message || "Push-device registry could not be checked.",
+      }));
+      return null;
+    }
+  };
+
+  const registerRemotePushDevice = async () => {
+    if (productionBridgeRuntime.expoGoPreview) {
+      setRemotePushStatus((current) => ({
+        ...current,
+        state: "needs_development_build",
+        message:
+          "Remote push registration is intentionally tested in the native development build, not Expo Go.",
+      }));
+      return false;
+    }
+    if (!productionBridgeRuntime.easProjectId) {
+      setRemotePushStatus((current) => ({
+        ...current,
+        state: "needs_eas_project",
+        message: "Link the app to an EAS project before requesting an Expo push token.",
+      }));
+      return false;
+    }
+    if (!ownerSession?.accessToken || !ownerSession?.userId) {
+      setRemotePushStatus((current) => ({
+        ...current,
+        state: "signed_out",
+        message: "Sign in before registering this device.",
+      }));
+      return false;
+    }
+
+    setRemotePushAction("register");
+    try {
+      const existingPermission = await Notifications.getPermissionsAsync();
+      let permission = existingPermission?.status || "undetermined";
+      if (permission !== "granted") {
+        const requested = await Notifications.requestPermissionsAsync();
+        permission = requested?.status || "denied";
+      }
+      if (permission !== "granted") {
+        throw new Error("Notification permission was not granted.");
+      }
+
+      const expoToken = (
+        await Notifications.getExpoPushTokenAsync({
+          projectId: productionBridgeRuntime.easProjectId,
+        })
+      )?.data;
+      if (!expoToken) throw new Error("Expo did not return a push token.");
+
+      const token = await ownerAccessToken();
+      const saved = await busyDataRequest(
+        "busy_push_devices?on_conflict=user_id,expo_push_token",
+        {
+          method: "POST",
+          token,
+          prefer: "resolution=merge-duplicates,return=representation",
+          body: {
+            user_id: ownerSession.userId,
+            business_id: cloudWorkspace?.businessId || null,
+            expo_push_token: expoToken,
+            platform:
+              Platform.OS === "ios"
+                ? "ios"
+                : Platform.OS === "android"
+                ? "android"
+                : "unknown",
+            app_version: APP_VERSION,
+            device_label: `${Platform.OS} BUSY device`,
+            active: true,
+            last_seen_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        }
+      );
+      const savedRow = Array.isArray(saved) ? saved[0] : saved;
+      setRemotePushStatus({
+        state: "registered",
+        token: expoToken,
+        deviceCount: Math.max(1, Number(remotePushStatus.deviceCount || 0)),
+        lastRegisteredAt: savedRow?.last_seen_at || new Date().toISOString(),
+        message: "This device is registered for production push notifications.",
+      });
+      return true;
+    } catch (error) {
+      setRemotePushStatus((current) => ({
+        ...current,
+        state: "error",
+        message: error?.message || "This device could not be registered for remote push.",
+      }));
+      return false;
+    } finally {
+      setRemotePushAction("");
+    }
+  };
+
+  const deactivateRemotePushDevice = async () => {
+    if (!remotePushStatus.token || !ownerSession?.userId) return false;
+    setRemotePushAction("deactivate");
+    try {
+      const token = await ownerAccessToken();
+      await busyDataRequest(
+        `busy_push_devices?user_id=eq.${encodeURIComponent(
+          ownerSession.userId
+        )}&expo_push_token=eq.${encodeURIComponent(remotePushStatus.token)}`,
+        {
+          method: "PATCH",
+          token,
+          prefer: "return=representation",
+          body: {
+            active: false,
+            updated_at: new Date().toISOString(),
+          },
+        }
+      );
+      setRemotePushStatus((current) => ({
+        ...current,
+        state: "not_registered",
+        token: "",
+        message: "Remote push is inactive on this device.",
+      }));
+      return true;
+    } catch (error) {
+      setRemotePushStatus((current) => ({
+        ...current,
+        message: error?.message || "BUSY could not deactivate this push device.",
+      }));
+      return false;
+    } finally {
+      setRemotePushAction("");
+    }
+  };
+
+  const sendRemotePushTest = async () => {
+    setRemotePushAction("test");
+    try {
+      const data = await productionFunctionRequest(
+        BUSY_PUSH_DISPATCH_URL,
+        "test",
+        { route: "executive" }
+      );
+      setRemotePushStatus((current) => ({
+        ...current,
+        message:
+          data?.sent > 0
+            ? `Remote test sent to ${data.sent} device${data.sent === 1 ? "" : "s"}.`
+            : data?.message || "No active push device was available.",
+      }));
+      return data;
+    } catch (error) {
+      setRemotePushStatus((current) => ({
+        ...current,
+        message: error?.message || "Remote push test failed.",
+      }));
+      return null;
+    } finally {
+      setRemotePushAction("");
+    }
+  };
+
+  const refreshCalendarOAuthStatus = async () => {
+    if (!ownerSession?.accessToken || !cloudWorkspace?.businessId) {
+      setCalendarOAuthStatus({
+        loaded: true,
+        configured: false,
+        connection: null,
+        callbackUrl: "",
+        error: "Sign in and initialise the cloud business first.",
+      });
+      return null;
+    }
+    try {
+      const data = await productionFunctionRequest(
+        BUSY_CALENDAR_OAUTH_URL,
+        "status"
+      );
+      setCalendarOAuthStatus({
+        loaded: true,
+        configured: !!data?.configured,
+        connection: data?.connection || null,
+        callbackUrl: data?.callbackUrl || "",
+        error: data?.error || "",
+      });
+      return data;
+    } catch (error) {
+      setCalendarOAuthStatus({
+        loaded: true,
+        configured: false,
+        connection: null,
+        callbackUrl: "",
+        error: error?.message || "Calendar OAuth status could not be checked.",
+      });
+      return null;
+    }
+  };
+
+  const startGoogleCalendarOAuth = async () => {
+    if (productionBridgeRuntime.expoGoPreview) {
+      Alert.alert(
+        "Development build required",
+        "The production Google Calendar callback uses the busydoesit:// app scheme, so connect it from the native development build rather than Expo Go."
+      );
+      return false;
+    }
+    setProductionBridgeAction("google-calendar");
+    try {
+      const data = await productionFunctionRequest(
+        BUSY_CALENDAR_OAUTH_URL,
+        "start"
+      );
+      if (!data?.url) {
+        throw new Error(
+          data?.error ||
+            "Google Calendar OAuth is not ready on the production backend."
+        );
+      }
+      await Linking.openURL(data.url);
+      return true;
+    } catch (error) {
+      setCalendarOAuthStatus((current) => ({
+        ...current,
+        loaded: true,
+        error: error?.message || "Google Calendar connection could not start.",
+      }));
+      Alert.alert(
+        "Google Calendar not opened",
+        error?.message || "BUSY could not start Google Calendar sign-in."
+      );
+      return false;
+    } finally {
+      setProductionBridgeAction("");
+    }
+  };
+
+  const disconnectGoogleCalendarOAuth = async () => {
+    setProductionBridgeAction("google-calendar-disconnect");
+    try {
+      await productionFunctionRequest(
+        BUSY_CALENDAR_OAUTH_URL,
+        "disconnect"
+      );
+      await refreshCalendarOAuthStatus();
+      return true;
+    } catch (error) {
+      setCalendarOAuthStatus((current) => ({
+        ...current,
+        error: error?.message || "Google Calendar could not be disconnected.",
+      }));
+      return false;
+    } finally {
+      setProductionBridgeAction("");
+    }
+  };
+
+  const refreshProductionBridge = async () => {
+    setProductionBridgeAction("refresh");
+    try {
+      await Promise.all([
+        refreshRemotePushStatus(),
+        refreshCalendarOAuthStatus(),
+      ]);
+      return true;
+    } finally {
+      setProductionBridgeAction("");
+    }
+  };
+
+  useEffect(() => {
+    if (!hydrated || !ownerSession?.accessToken || !cloudInitialised) return;
+    const timer = setTimeout(() => {
+      refreshProductionBridge();
+    }, 650);
+    return () => clearTimeout(timer);
+  }, [
+    hydrated,
+    ownerSession?.accessToken,
+    cloudInitialised,
+    cloudWorkspace?.businessId,
+  ]);
+
+  useEffect(() => {
+    const handleProductionLink = ({ url }) => {
+      if (!String(url || "").startsWith("busydoesit://oauth/google-calendar")) {
+        return;
+      }
+      refreshCalendarOAuthStatus();
+      go("productionBridge");
+    };
+    const subscription = Linking.addEventListener("url", handleProductionLink);
+    Linking.getInitialURL()
+      .then((url) => {
+        if (
+          url &&
+          String(url).startsWith("busydoesit://oauth/google-calendar")
+        ) {
+          handleProductionLink({ url });
+        }
+      })
+      .catch(() => {});
+    return () => subscription?.remove?.();
+  }, [ownerSession?.accessToken, cloudWorkspace?.businessId]);
+
   const proactiveParseClock = (value, fallbackHour = 8, fallbackMinute = 0) => {
     const match = String(value || "").match(/^(\d{1,2}):(\d{2})$/);
     if (!match) return { hour: fallbackHour, minute: fallbackMinute };
@@ -10315,6 +10763,20 @@ function App() {
     executiveRepeatPool,
     releaseCoreHealth,
     homeCommandCentre,
+    productionBridgeRuntime,
+    productionReadiness,
+    remotePushStatus,
+    remotePushAction,
+    calendarOAuthStatus,
+    productionBridgeAction,
+    refreshProductionBridge,
+    registerRemotePushDevice,
+    deactivateRemotePushDevice,
+    sendRemotePushTest,
+    refreshCalendarOAuthStatus,
+    startGoogleCalendarOAuth,
+    disconnectGoogleCalendarOAuth,
+    maskPushToken,
     openReleaseCoreIssue,
     openExecutivePriority,
     askBusyAboutOutlook,

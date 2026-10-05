@@ -2,7 +2,7 @@
   "expo": {
     "name": "Busy Does It",
     "slug": "busy-does-it",
-    "version": "3.24.0",
+    "version": "3.25.0",
     "plugins": [
       [
         "expo-audio",
@@ -23,6 +23,26 @@
           "remindersPermission": "Allow Busy Does It to access reminders when diary features need them."
         }
       ]
-    ]
+    ],
+    "scheme": "busydoesit",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "ios": {
+      "bundleIdentifier": "com.busydoesit.app",
+      "buildNumber": "1",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.busydoesit.app",
+      "versionCode": 1
+    },
+    "extra": {
+      "productionBridge": {
+        "easProfilesConfigured": true,
+        "remotePushRegistry": true,
+        "googleCalendarOAuthFunction": true
+      }
+    }
   }
 }

@@ -57,6 +57,17 @@ function ReleaseCore({ s }) {
         <MetricRow left="Total core issues" right={String(health.issueCount || 0)} />
       </Card>
 
+      <Card
+        eyebrow="V3.25 • Production readiness"
+        title={s.productionReadiness?.headline || "Production bridge status"}
+        body={`${s.productionReadiness?.readyCount || 0} of ${s.productionReadiness?.total || 0} production gates are genuinely ready. Expo Go remains the fast test fallback while native-only capabilities move into a development build.`}
+        tone={(s.productionReadiness?.blockedCount || 0) ? "amber" : "green"}
+      >
+        <MetricRow left="Ready gates" right={String(s.productionReadiness?.readyCount || 0)} strong />
+        <MetricRow left="Blocked gates" right={String(s.productionReadiness?.blockedCount || 0)} />
+        <Button label="Open Production Bridge" primary onPress={() => s.go("productionBridge")} />
+      </Card>
+
       <Text style={styles.sectionLabel}>Release checks</Text>
       {checks.map(([label, ok]) => (
         <View key={label} style={styles.releaseCheckRow}>

@@ -1,5 +1,5 @@
-const APP_VERSION = "3.24";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Release-Grade Core`;
+const APP_VERSION = "3.25";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Production Bridge`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
@@ -14,6 +14,10 @@ const BUSY_SOCIAL_URL =
 const BUSY_SOCIAL_PUBLISH_URL =
   "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-social-publish";
 const BUSY_SUPABASE_URL = "https://qgkmuiipicazmcxxmoxv.supabase.co";
+const BUSY_PUSH_DISPATCH_URL =
+  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-push-dispatch";
+const BUSY_CALENDAR_OAUTH_URL =
+  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-calendar-oauth";
 const OWNER_SESSION_KEY = "busy-owner-session-v3.6";
 const DEFAULT_OWNER_EMAIL = "busydoesitapp@gmail.com";
 const CLOUD_SCHEMA_VERSION = 1;
@@ -1510,6 +1514,8 @@ export {
   BUSY_SOCIAL_URL,
   BUSY_SOCIAL_PUBLISH_URL,
   BUSY_SUPABASE_URL,
+  BUSY_PUSH_DISPATCH_URL,
+  BUSY_CALENDAR_OAUTH_URL,
   OWNER_SESSION_KEY,
   DEFAULT_OWNER_EMAIL,
   CLOUD_SCHEMA_VERSION,

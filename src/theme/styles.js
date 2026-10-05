@@ -461,6 +461,7 @@ export const styles = StyleSheet.create({
   proactiveChoiceRow: { gap: 8, marginTop: 4 },
   releaseCheckRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 8 },
   releaseCheckLabel: { flex: 1, color: C.ink, fontSize: 14, fontWeight: "800" },
+  productionReadinessDetail: { color: C.muted, fontSize: 12, lineHeight: 17, marginTop: 4 },
   nav: {
     height: 72,
     flexDirection: "row",

@@ -2,6 +2,20 @@
 
 Busy Does It mobile app prototype.
 
+## v3.25 Production Bridge
+- Built directly on the tested V3.24 Release-Grade Core branch.
+- Added committed EAS development / preview / production build profiles, Node 22 production checks, native iOS/Android application identifiers, the `busydoesit://` URL scheme and app-version runtime policy.
+- Added `expo-dev-client` for the first proper native development build while keeping the existing Snack/Expo Go publisher as a fast fallback.
+- Added a deterministic Production Bridge screen and readiness gates. A capability is shown as Ready only when the actual runtime/backend requirement is present.
+- Added an owner-scoped `busy_push_devices` registry with RLS. A native development build can obtain an Expo push token using the real EAS project ID and register it against the signed-in BUSY owner/business.
+- Added authenticated `busy-push-dispatch` backend groundwork. V3.25 exposes only an owner test action, allowing end-to-end remote push verification without creating a broad server-send authority.
+- Added server-only Google Calendar OAuth tables and a `busy-calendar-oauth` Edge Function. OAuth state, Google access tokens and refresh tokens stay server-side; the mobile app receives only status and the authorization URL.
+- Google Calendar OAuth uses the existing server Google client credentials when available, a 10-minute one-time state, the minimal calendar event/calendar-list scopes needed for the planned bridge, and the `busydoesit://oauth/google-calendar` native callback.
+- Added a production foundation GitHub check so future version branches validate build profiles, native identifiers, required plugins and production dependencies automatically.
+- Added `src/domain/productionBridge.js` so production readiness stays outside AppController; V3.24’s release-domain extraction continues rather than reversing back into a monolith.
+- Expo Go cannot generate the final production push token or receive the custom native OAuth callback. Those two gates intentionally remain marked as development-build work until the Expo account creates the EAS project ID and first native build.
+- Hard authority boundaries remain unchanged: remote notifications open BUSY work; they do not send customer messages, publish posts, spend money or silently change bookings.
+
 ## v3.24 Release-Grade Core + Home Simplification
 - Built directly on the tested V3.23 Proactive BUSY + Connected Diary branch.
 - Home is now a single BUSY command centre instead of separate feature cards fighting for attention. The first screen focuses on one current priority, confirmed 7-day work, approvals/input, core health and the Talk to BUSY microphone.

@@ -6,6 +6,7 @@ import * as MemoryScreens from "./memory";
 import * as ExecutiveScreens from "./executive";
 import * as Proactive23Screens from "./proactive23";
 import * as ReleaseCoreScreens from "./releaseCore";
+import * as ProductionBridgeScreens from "./productionBridge";
 import * as WorkScreens from "./work";
 import * as IntakeScreens from "./intake";
 import * as CustomersScreens from "./customers";
@@ -21,6 +22,7 @@ export * from "./memory";
 export * from "./executive";
 export * from "./proactive23";
 export * from "./releaseCore";
+export * from "./productionBridge";
 export * from "./work";
 export * from "./intake";
 export * from "./customers";
@@ -37,6 +39,7 @@ const allScreens = {
   ...ExecutiveScreens,
   ...Proactive23Screens,
   ...ReleaseCoreScreens,
+  ...ProductionBridgeScreens,
   ...WorkScreens,
   ...IntakeScreens,
   ...CustomersScreens,
@@ -62,6 +65,7 @@ const {
   ExecutiveBriefing,
   ProactiveBusyCentre,
   ReleaseCore,
+  ProductionBridge,
   WorkHub,
   WorkCalendar,
   WorkPipeline,
@@ -166,6 +170,7 @@ export const screens = {
   executiveBriefing: ExecutiveBriefing,
   proactiveBusyCentre: ProactiveBusyCentre,
   releaseCore: ReleaseCore,
+  productionBridge: ProductionBridge,
   workHub: WorkHub,
   workCalendar: WorkCalendar,
   workPipeline: WorkPipeline,
