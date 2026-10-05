@@ -1123,6 +1123,7 @@ function OpportunityFeedback({ s }) {
 
 function BusinessBrain({ s }) {
   const patterns = s.businessBrainPatterns || [];
+  const memoryPatterns = s.businessMemoryPatterns || [];
   const channels = s.socialChannelEvidence || [];
   const feedback = [...(s.businessBrainFeedback || [])].sort((a, b) =>
     String(b.recordedAt || "").localeCompare(String(a.recordedAt || ""))
@@ -1144,12 +1145,13 @@ function BusinessBrain({ s }) {
     }))
     .sort((a, b) => Math.abs(b.rankingEffect) - Math.abs(a.rankingEffect));
   const strongestEvidencePattern =
-    [...patterns]
-      .filter((item) => Number(item.memoryAdjustment ?? item.effectiveAdjustment ?? 0) !== 0)
+    [...memoryPatterns]
+      .filter((item) => Number(item.memoryAdjustment || 0) !== 0)
       .sort(
         (a, b) =>
-          Math.abs(Number(b.effectiveAdjustment || 0)) -
-          Math.abs(Number(a.effectiveAdjustment || 0))
+          Math.abs(Number(b.memoryAdjustment || 0)) -
+            Math.abs(Number(a.memoryAdjustment || 0)) ||
+          Number(b.sample || 0) - Number(a.sample || 0)
       )[0] || null;
 
   return (
@@ -1206,7 +1208,7 @@ function BusinessBrain({ s }) {
         }
         body={
           strongestEvidencePattern
-            ? `${strongestEvidencePattern.title} currently has the strongest measured evidence effect at ${Number((strongestEvidencePattern.memoryAdjustment ?? strongestEvidencePattern.effectiveAdjustment)) > 0 ? "+" : ""}${(strongestEvidencePattern.memoryAdjustment ?? strongestEvidencePattern.effectiveAdjustment)} ranking points. Owner choices are applied separately and remain bounded.`
+            ? `${strongestEvidencePattern.title} currently has the strongest measured evidence effect at ${Number(strongestEvidencePattern.memoryAdjustment || 0) > 0 ? "+" : ""}${Number(strongestEvidencePattern.memoryAdjustment || 0)} ranking points. Owner choices are applied separately and remain bounded.`
             : "There is not enough recorded outcome evidence for a strong pattern yet. BUSY will stay cautious and learn as real results and owner choices accumulate."
         }
         footer="No hidden personality profile — only saved business evidence, explicit choices and owner rules"
@@ -1228,7 +1230,11 @@ function BusinessBrain({ s }) {
         const freshness = pattern.freshness || {};
         const hasObservedRate =
           evidence.observedRate !== null && evidence.observedRate !== undefined;
-        const adjustment = Number(pattern.effectiveAdjustment || 0);
+        const memoryPattern =
+          memoryPatterns.find((item) => item.key === pattern.key) || null;
+        const adjustment = Number(
+          memoryPattern?.memoryAdjustment ?? pattern.effectiveAdjustment ?? 0
+        );
         return (
           <Card
             key={pattern.key}
@@ -1240,7 +1246,7 @@ function BusinessBrain({ s }) {
             }
             body={
               evidence.evidenceReady
-                ? "This pattern can influence recommendations, but its effect is bounded and reduced automatically as the evidence ages."
+                ? "This outcome can contribute to recommendations, but V3.21 applies the separate memory-confidence stage and freshness limit before it affects ranking."
                 : evidence.sample
                 ? "BUSY can see the early evidence but the sample is still too small to drive a strong recommendation."
                 : "BUSY falls back to cautious planning assumptions until this business records real outcomes."
@@ -1265,7 +1271,7 @@ function BusinessBrain({ s }) {
               right={hasObservedRate ? formatPercent(evidence.observedRate) : "Not enough data"}
             />
             <MetricRow left="Confidence" right={evidence.confidence || "No evidence yet"} />
-            <MetricRow left="Memory stage" right={s.businessMemoryPatterns?.find((item) => item.key === pattern.key)?.stage?.label || "Too early to tell"} />
+            <MetricRow left="Memory stage" right={memoryPattern?.stage?.label || "Too early to tell"} />
             <MetricRow left="Freshness" right={freshness.label || "Unknown"} />
             <MetricRow
               left="Current ranking adjustment"
