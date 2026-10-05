@@ -1,5 +1,5 @@
-const APP_VERSION = "3.25";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Production Bridge`;
+const APP_VERSION = "3.26";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Native Connections`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
@@ -18,6 +18,10 @@ const BUSY_PUSH_DISPATCH_URL =
   "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-push-dispatch";
 const BUSY_CALENDAR_OAUTH_URL =
   "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-calendar-oauth";
+const BUSY_CALENDAR_SYNC_URL =
+  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-calendar-sync";
+const BUSY_PRODUCTION_WATCH_URL =
+  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-production-watch";
 const OWNER_SESSION_KEY = "busy-owner-session-v3.6";
 const DEFAULT_OWNER_EMAIL = "busydoesitapp@gmail.com";
 const CLOUD_SCHEMA_VERSION = 1;
@@ -1516,6 +1520,8 @@ export {
   BUSY_SUPABASE_URL,
   BUSY_PUSH_DISPATCH_URL,
   BUSY_CALENDAR_OAUTH_URL,
+  BUSY_CALENDAR_SYNC_URL,
+  BUSY_PRODUCTION_WATCH_URL,
   OWNER_SESSION_KEY,
   DEFAULT_OWNER_EMAIL,
   CLOUD_SCHEMA_VERSION,
