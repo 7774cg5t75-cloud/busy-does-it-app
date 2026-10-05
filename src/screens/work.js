@@ -1282,11 +1282,27 @@ function WorkHub({ s }) {
 
 function WorkCalendar({ s }) {
   const todayISO = dateToISO(new Date());
+  const initialOperatorDate =
+    /^\d{4}-\d{2}-\d{2}$/.test(String(s.operatorCalendarDate || ""))
+      ? s.operatorCalendarDate
+      : todayISO;
   const [monthStartISO, setMonthStartISO] = useState(() => {
-    const now = new Date();
-    return dateToISO(new Date(now.getFullYear(), now.getMonth(), 1, 12, 0, 0));
+    const initial = dateFromISO(initialOperatorDate);
+    return dateToISO(
+      new Date(initial.getFullYear(), initial.getMonth(), 1, 12, 0, 0)
+    );
   });
-  const [selectedDate, setSelectedDate] = useState(todayISO);
+  const [selectedDate, setSelectedDate] = useState(initialOperatorDate);
+
+  useEffect(() => {
+    const focusDate = String(s.operatorCalendarDate || "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(focusDate)) return;
+    const parsed = dateFromISO(focusDate);
+    setMonthStartISO(
+      dateToISO(new Date(parsed.getFullYear(), parsed.getMonth(), 1, 12, 0, 0))
+    );
+    setSelectedDate(focusDate);
+  }, [s.operatorCalendarDate]);
   const monthStart = dateFromISO(monthStartISO);
   const year = monthStart.getFullYear();
   const month = monthStart.getMonth();
