@@ -4296,7 +4296,15 @@ function App() {
 
     if (!editingCustomerId) {
       const duplicate = findCustomerMatch(customers, { phone, name });
-      if (duplicate?.customer && duplicate.confidence === "High") {
+      const sameName =
+        duplicate?.customer &&
+        String(duplicate.customer.name || "").trim().toLowerCase() ===
+          name.toLowerCase();
+      if (
+        duplicate?.customer &&
+        duplicate.confidence === "High" &&
+        sameName
+      ) {
         Alert.alert(
           "This customer may already exist",
           `${duplicate.customer.name} already uses this phone number. BUSY keeps one customer history wherever possible.`,
@@ -4364,7 +4372,14 @@ function App() {
     const receivedAt = new Date(`${receivedDate}T12:00:00`).toISOString();
     const note = newEnquiryNote.trim() || `Enquiry for ${service}.`;
     const match = findCustomerMatch(customers, { phone, name });
-    const existing = match?.confidence === "High" ? match.customer : null;
+    const sameMatchedName =
+      match?.customer &&
+      String(match.customer.name || "").trim().toLowerCase() ===
+        name.toLowerCase();
+    const existing =
+      match?.confidence === "High" && sameMatchedName
+        ? match.customer
+        : null;
 
     if (existing) {
       const existingAction = replyActions?.[existing.id] || null;
