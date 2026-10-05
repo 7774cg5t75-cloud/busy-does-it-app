@@ -11375,8 +11375,21 @@ function App() {
       ],
       planSteps: [],
     };
-    if (step.requiresConfirmation) {
-      setBusyCommandResult({ ...command, requiresConfirmation: true });
+    if (operatorRequiresConfirmation(step.intent) || step.requiresConfirmation) {
+      const validation = validateOperatorCommand({
+        command,
+        customers,
+        replyActions,
+      });
+      setBusyCommandResult({
+        ...command,
+        requiresConfirmation: true,
+        previewRows: buildOperatorClientPreview({
+          command,
+          customer: validation.customer,
+          replyActions,
+        }),
+      });
       return true;
     }
     return executeBusyCommand(command);
@@ -11701,6 +11714,7 @@ function App() {
     busyOperatorSnapshot,
     busyActionAudit,
     busyUndoAction,
+    operatorCalendarDate,
     busyCommandStatus,
     busyCommandResult,
     busyCommandError,
