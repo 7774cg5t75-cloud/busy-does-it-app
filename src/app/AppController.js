@@ -10843,10 +10843,50 @@ function App() {
       }
 
       const command = payload?.command || {};
-      const result = {
+      let result = {
         ...command,
         transcript: String(payload?.transcript || cleanText || "").trim(),
       };
+
+      const validation = validateOperatorCommand({
+        command: result,
+        customers,
+        replyActions,
+      });
+      result = {
+        ...result,
+        requiresConfirmation:
+          operatorRequiresConfirmation(result.intent) ||
+          !!result.requiresConfirmation,
+        previewRows: buildOperatorClientPreview({
+          command: result,
+          customer: validation.customer,
+          replyActions,
+        }),
+      };
+
+      if (!validation.ok) {
+        const clarificationReasons = [
+          "ambiguous-customer",
+          "missing-customer",
+          "missing-date",
+          "missing-time",
+          "no-booking-change",
+          "missing-note",
+          "missing-reminder-date",
+        ];
+        const needsClarification = clarificationReasons.includes(validation.reason);
+        result = {
+          ...result,
+          intent: needsClarification ? result.intent : "unknown",
+          mode: needsClarification ? "clarify" : "answer",
+          needsClarification,
+          clarificationQuestion: needsClarification ? validation.message : "",
+          requiresConfirmation: false,
+          actionLabel: "",
+          response: validation.message || result.response,
+        };
+      }
 
       addBusyConversationTurn("user", result.transcript);
       addBusyConversationTurn(
@@ -10880,7 +10920,9 @@ function App() {
   const busyCommandHasAction = (command = busyCommandResult) =>
     !!command &&
     !command.needsClarification &&
-    !["business_summary", "business_changes", "business_memory", "business_outlook", "unknown"].includes(command.intent || "unknown");
+    !command.applied &&
+    command.intent !== "operator_plan" &&
+    !operatorIsAnswerOnly(command.intent || "unknown");
 
   const rememberBusyAudit = ({ type, label, customerId = "", rollback = null }) => {
     const row = {
@@ -10894,8 +10936,36 @@ function App() {
     setBusyUndoAction(rollback ? { ...row, rollback } : null);
   };
 
+  const cloneOperatorValue = (value) =>
+    value === null || value === undefined
+      ? null
+      : JSON.parse(JSON.stringify(value));
+
+  const operatorRollbackFor = (customerId) => ({
+    customer: cloneOperatorValue(
+      customers.find((item) => item.id === customerId) || null
+    ),
+    action: cloneOperatorValue(replyActions?.[customerId] || null),
+  });
+
+  const markBusyCommandApplied = (command, title, response) => {
+    const applied = {
+      ...command,
+      title,
+      response,
+      mode: "answer",
+      requiresConfirmation: false,
+      actionLabel: "",
+      applied: true,
+    };
+    setBusyCommandResult(applied);
+    addBusyConversationTurn("assistant", response, applied);
+    setBusyCommandStatus("ready");
+    return applied;
+  };
+
   const executeBusyCommand = (command = busyCommandResult) => {
-    if (!command || command.needsClarification) return false;
+    if (!command || command.needsClarification || command.applied) return false;
     const customer = findBusyCommandCustomer(command.customerName || "");
     const commandValue = Number(command.value) || 0;
 
@@ -10904,6 +10974,7 @@ function App() {
         jump("workHub", "Work");
         return true;
       case "open_calendar":
+        if (command.date) setOperatorCalendarDate(command.date);
         jump("workCalendar", "Work");
         return true;
       case "open_quote_followups":
@@ -10929,59 +11000,310 @@ function App() {
         openCustomer(customer.id);
         return true;
       case "create_booking": {
-        if (!customer) {
-          setBusyCommandError("BUSY needs one unambiguous saved customer before it can prepare that booking.");
+        const validation = validateOperatorCommand({
+          command,
+          customers,
+          replyActions,
+        });
+        if (!validation.ok || !validation.customer) {
+          setBusyCommandError(validation.message || "BUSY could not safely create that booking.");
           return false;
         }
-        const previousCustomer = customers.find((item) => item.id === customer.id) || null;
-        const previousAction = replyActions?.[customer.id] || null;
-        startDirectCustomerAction(customer.id, "booking");
-        if (command.date) setActionBookingDate(command.date);
-        if (command.time) setActionBookingTime(command.time);
-        if (commandValue > 0) setActionJobValue(String(commandValue));
-        rememberBusyAudit({
-          type: "booking-prepared",
-          label: `Prepared booking for ${customer.name}`,
-          customerId: customer.id,
-          rollback: {
-            customer: previousCustomer,
-            action: previousAction,
+        const target = validation.customer;
+        const rollback = operatorRollbackFor(target.id);
+        const previousAction = replyActions?.[target.id] || null;
+        const now = new Date().toISOString();
+        const sourceQuoteAmount =
+          previousAction?.type === "quote"
+            ? Number(previousAction.details?.quoteAmount) || 0
+            : Number(previousAction?.details?.sourceQuoteAmount) || 0;
+        const value = commandValue || sourceQuoteAmount || 0;
+
+        setReplyActions((current) => ({
+          ...current,
+          [target.id]: {
+            ...(current[target.id] || {}),
+            task: "Booking confirmed",
+            type: "booking",
+            origin: "BUSY Operator",
+            createdAt: current[target.id]?.createdAt || now,
+            done: true,
+            details: {
+              ...(current[target.id]?.type === "booking"
+                ? current[target.id]?.details || {}
+                : {}),
+              sourceQuoteAmount: sourceQuoteAmount || "",
+              bookingDate: command.date,
+              bookingTime: command.time,
+              bookingStatus: "Confirmed",
+              jobValue: value || "",
+              operatorChangedAt: now,
+              summary: `Booking set for ${formatUKDate(command.date)} at ${command.time}`,
+            },
+            completedAt: now,
           },
+        }));
+        setCustomers((current) =>
+          current.map((item) =>
+            item.id === target.id
+              ? {
+                  ...item,
+                  lifecycleStatus: "Booked",
+                  lastActivityAt: now,
+                  lastActivityKind: "booking",
+                }
+              : item
+          )
+        );
+        appendCustomerActivity(target.id, {
+          kind: "booking",
+          title: "Booking confirmed through BUSY Operator",
+          note: `${formatUKDate(command.date)} at ${command.time}${value ? ` • £${value}` : ""}.`,
+          value: value || "",
         });
+        setSelectedReplyActionId(target.id);
+        setActionBookingDate(command.date);
+        setActionBookingTime(command.time);
+        if (value) setActionJobValue(String(value));
+        rememberBusyAudit({
+          type: "booking-created",
+          label: `Confirmed booking for ${target.name}`,
+          customerId: target.id,
+          rollback,
+        });
+        markBusyCommandApplied(
+          command,
+          "Booking confirmed",
+          `${target.name} is now booked for ${formatUKDate(command.date)} at ${command.time}. You can undo this BUSY change below.`
+        );
+        return true;
+      }
+      case "edit_booking": {
+        const validation = validateOperatorCommand({
+          command,
+          customers,
+          replyActions,
+        });
+        if (!validation.ok || !validation.customer || !validation.booking) {
+          setBusyCommandError(validation.message || "BUSY could not safely change that booking.");
+          return false;
+        }
+        const target = validation.customer;
+        const action = validation.booking;
+        const rollback = operatorRollbackFor(target.id);
+        const beforeDate = action.details?.bookingDate || "";
+        const beforeTime = action.details?.bookingTime || "";
+        const beforeValue =
+          Number(action.details?.jobValue) ||
+          Number(action.details?.sourceQuoteAmount) ||
+          0;
+        const nextDate = command.date || beforeDate;
+        const nextTime = command.time || beforeTime;
+        const nextValue = commandValue || beforeValue;
+        const now = new Date().toISOString();
+
+        setReplyActions((current) => ({
+          ...current,
+          [target.id]: {
+            ...current[target.id],
+            details: {
+              ...(current[target.id]?.details || {}),
+              bookingDate: nextDate,
+              bookingTime: nextTime,
+              jobValue: nextValue || "",
+              operatorChangedAt: now,
+              summary: `Booking set for ${formatUKDate(nextDate)} at ${nextTime || "time not set"}`,
+            },
+          },
+        }));
+        setCustomers((current) =>
+          current.map((item) =>
+            item.id === target.id
+              ? {
+                  ...item,
+                  lifecycleStatus: "Booked",
+                  lastActivityAt: now,
+                  lastActivityKind: "booking",
+                }
+              : item
+          )
+        );
+        appendCustomerActivity(target.id, {
+          kind: "booking",
+          title: "Booking changed through BUSY Operator",
+          note: `${formatUKDate(beforeDate)} ${beforeTime || ""} → ${formatUKDate(nextDate)} ${nextTime || ""}${beforeValue !== nextValue ? ` • £${beforeValue || 0} → £${nextValue || 0}` : ""}`,
+          value: nextValue || "",
+        });
+        setActionBookingDate(nextDate);
+        setActionBookingTime(nextTime);
+        if (nextValue) setActionJobValue(String(nextValue));
+        rememberBusyAudit({
+          type: "booking-edited",
+          label: `Changed ${target.name}'s booking`,
+          customerId: target.id,
+          rollback,
+        });
+        markBusyCommandApplied(
+          command,
+          "Booking updated",
+          `${target.name}'s booking is now ${formatUKDate(nextDate)} at ${nextTime || "time not set"}${nextValue ? ` for £${nextValue}` : ""}. You can undo this BUSY change below.`
+        );
+        return true;
+      }
+      case "cancel_booking": {
+        const validation = validateOperatorCommand({
+          command,
+          customers,
+          replyActions,
+        });
+        if (!validation.ok || !validation.customer || !validation.booking) {
+          setBusyCommandError(validation.message || "BUSY could not safely cancel that booking.");
+          return false;
+        }
+        const target = validation.customer;
+        const action = validation.booking;
+        const rollback = operatorRollbackFor(target.id);
+        const bookedDate = action.details?.bookingDate || "";
+        const bookedTime = action.details?.bookingTime || "";
+        setBookingStatus(target.id, "Cancelled");
+        rememberBusyAudit({
+          type: "booking-cancelled",
+          label: `Cancelled ${target.name}'s booking`,
+          customerId: target.id,
+          rollback,
+        });
+        markBusyCommandApplied(
+          command,
+          "Booking cancelled",
+          `${target.name}'s booking for ${formatUKDate(bookedDate)} at ${bookedTime || "time not set"} is marked cancelled. You can undo this BUSY change below.`
+        );
         return true;
       }
       case "complete_job": {
-        if (!customer) {
-          setBusyCommandError("BUSY needs one unambiguous saved customer before it can complete that job.");
+        const validation = validateOperatorCommand({
+          command,
+          customers,
+          replyActions,
+        });
+        if (!validation.ok || !validation.customer || !validation.booking) {
+          setBusyCommandError(validation.message || "BUSY could not safely complete that job.");
           return false;
         }
-        const action = replyActions?.[customer.id];
-        if (
-          action?.type !== "booking" ||
-          !action?.done ||
-          ["Cancelled", "Completed"].includes(action.details?.bookingStatus || "Confirmed")
-        ) {
-          setBusyCommandError("BUSY could not find an open confirmed booking for that customer.");
-          return false;
-        }
-        const previousCustomer = customers.find((item) => item.id === customer.id) || null;
-        const previousAction = action ? JSON.parse(JSON.stringify(action)) : null;
+        const target = validation.customer;
+        const action = validation.booking;
+        const rollback = operatorRollbackFor(target.id);
         markBookingCompleted(
-          customer.id,
+          target.id,
           commandValue || action.details?.jobValue || "",
           command.note || ""
         );
         rememberBusyAudit({
           type: "job-completed",
-          label: `Marked ${customer.name}'s job complete`,
-          customerId: customer.id,
-          rollback: {
-            customer: previousCustomer,
-            action: previousAction,
-          },
+          label: `Marked ${target.name}'s job complete`,
+          customerId: target.id,
+          rollback,
         });
-        setSelectedCustomerId(customer.id);
-        go("customerDetail");
+        markBusyCommandApplied(
+          command,
+          "Job marked complete",
+          `${target.name}'s booked job is now marked complete${commandValue ? ` at £${commandValue}` : ""}. You can undo this BUSY change below.`
+        );
+        return true;
+      }
+      case "add_customer_note": {
+        const validation = validateOperatorCommand({
+          command,
+          customers,
+          replyActions,
+        });
+        if (!validation.ok || !validation.customer) {
+          setBusyCommandError(validation.message || "BUSY could not safely add that note.");
+          return false;
+        }
+        const target = validation.customer;
+        const rollback = operatorRollbackFor(target.id);
+        appendCustomerActivity(target.id, {
+          kind: "note",
+          title: "Note added through BUSY Operator",
+          note: String(command.note || "").trim(),
+        });
+        rememberBusyAudit({
+          type: "customer-note-added",
+          label: `Added a note to ${target.name}`,
+          customerId: target.id,
+          rollback,
+        });
+        markBusyCommandApplied(
+          command,
+          "Customer note added",
+          `The note has been added to ${target.name}'s BUSY customer history. You can undo this BUSY change below.`
+        );
+        return true;
+      }
+      case "set_reminder": {
+        const validation = validateOperatorCommand({
+          command,
+          customers,
+          replyActions,
+        });
+        if (!validation.ok || !validation.customer) {
+          setBusyCommandError(validation.message || "BUSY could not safely set that reminder.");
+          return false;
+        }
+        const target = validation.customer;
+        const rollback = operatorRollbackFor(target.id);
+        const now = new Date().toISOString();
+        setReplyActions((current) => ({
+          ...current,
+          [target.id]: {
+            ...(current[target.id] || {}),
+            task: "Follow up with customer",
+            type: "reminder",
+            origin: "BUSY Operator",
+            createdAt: current[target.id]?.createdAt || now,
+            done: true,
+            details: {
+              ...(current[target.id]?.type === "reminder"
+                ? current[target.id]?.details || {}
+                : {}),
+              reminderDate: command.date,
+              reminderStatus: "Scheduled",
+              reminderNote: String(command.note || "").trim(),
+              reminderCompletedAt: null,
+              summary: `Follow up on ${formatUKDate(command.date)}`,
+            },
+            completedAt: now,
+          },
+        }));
+        setCustomers((current) =>
+          current.map((item) =>
+            item.id === target.id
+              ? {
+                  ...item,
+                  lifecycleStatus: "Follow-up scheduled",
+                  lastActivityAt: now,
+                  lastActivityKind: "reminder",
+                }
+              : item
+          )
+        );
+        appendCustomerActivity(target.id, {
+          kind: "reminder",
+          title: "Follow-up scheduled through BUSY Operator",
+          note: `${formatUKDate(command.date)}${command.note ? ` • ${command.note}` : ""}`,
+        });
+        setActionReminderDate(command.date);
+        rememberBusyAudit({
+          type: "reminder-set",
+          label: `Set a follow-up for ${target.name}`,
+          customerId: target.id,
+          rollback,
+        });
+        markBusyCommandApplied(
+          command,
+          "Follow-up scheduled",
+          `BUSY will now show ${target.name}'s follow-up for ${formatUKDate(command.date)} in the normal customer-work flow. You can undo this BUSY change below.`
+        );
         return true;
       }
       case "social_post": {
