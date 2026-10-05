@@ -1282,9 +1282,14 @@ function WorkHub({ s }) {
 
 function WorkCalendar({ s }) {
   const todayISO = dateToISO(new Date());
+  const requestedOperatorDate = String(s.operatorCalendarDate || "");
+  const requestedOperatorDateValue = /^\d{4}-\d{2}-\d{2}$/.test(requestedOperatorDate)
+    ? dateFromISO(requestedOperatorDate)
+    : null;
   const initialOperatorDate =
-    /^\d{4}-\d{2}-\d{2}$/.test(String(s.operatorCalendarDate || ""))
-      ? s.operatorCalendarDate
+    requestedOperatorDateValue &&
+    !Number.isNaN(requestedOperatorDateValue.getTime())
+      ? requestedOperatorDate
       : todayISO;
   const [monthStartISO, setMonthStartISO] = useState(() => {
     const initial = dateFromISO(initialOperatorDate);
@@ -1298,6 +1303,7 @@ function WorkCalendar({ s }) {
     const focusDate = String(s.operatorCalendarDate || "");
     if (!/^\d{4}-\d{2}-\d{2}$/.test(focusDate)) return;
     const parsed = dateFromISO(focusDate);
+    if (Number.isNaN(parsed.getTime())) return;
     setMonthStartISO(
       dateToISO(new Date(parsed.getFullYear(), parsed.getMonth(), 1, 12, 0, 0))
     );
