@@ -49,3 +49,9 @@ This branch restructures the large single-file prototype into domain modules wit
 - Business Memory snapshots are derived only from saved business outcomes and retained in the normal business snapshot; they are not a hidden model-side profile.
 - Samples below three cannot affect rankings. Later stages progressively unlock bounded influence while freshness still reduces old evidence.
 - BUSY Operator receives a compact memory summary so explanations of changed recommendations can cite the actual saved evidence.
+
+## V3.22 Executive Briefing
+- `src/screens/executive.js` is the forward-looking owner briefing surface.
+- Forward view is derived from saved confirmed bookings, open quote value, due repeat-customer value, Business Memory outcome rates and current operational risks.
+- Confirmed work is kept separate from forecast ranges. Forecast confidence widens/narrows the range rather than presenting false precision.
+- The same compact Executive Briefing context is supplied to BUSY Operator for conversational outlook/risk questions.

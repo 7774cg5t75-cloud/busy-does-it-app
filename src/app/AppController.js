@@ -8055,6 +8055,487 @@ function App() {
   const restoreProactiveNotices = () => setProactiveNoticeState({});
 
 
+  const executiveTodayISO = dateToISO(new Date());
+  const executiveEnd7ISO = addDaysFromISO(executiveTodayISO, 6);
+  const executiveEnd30ISO = addDaysFromISO(executiveTodayISO, 29);
+  const executiveStart7ISO = addDaysFromISO(executiveTodayISO, -6);
+
+  const executiveConfirmedBookings = Object.entries(replyActions || {})
+    .map(([customerId, action]) => {
+      if (
+        action?.type !== "booking" ||
+        !action?.done ||
+        !action.details?.bookingDate ||
+        (action.details?.bookingStatus || "Confirmed") !== "Confirmed"
+      ) return null;
+      const customer =
+        customers.find((item) => item.id === customerId) ||
+        lastSimulatedRecipients.find((item) => item.id === customerId);
+      if (!customer) return null;
+      const service =
+        services.find((item) => item.name === customer.service) || null;
+      return {
+        customerId,
+        customerName: customer.name || "Customer",
+        service: customer.service || "Service",
+        date: action.details.bookingDate,
+        time: action.details.bookingTime || "",
+        value:
+          Number(action.details?.jobValue) ||
+          Number(action.details?.sourceQuoteAmount) ||
+          0,
+        durationHours: Math.max(
+          0.5,
+          Number(planningDurationHours(service)) || 2
+        ),
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) =>
+      String(a.date).localeCompare(String(b.date)) ||
+      String(a.time).localeCompare(String(b.time))
+    );
+
+  const executiveBookings7 = executiveConfirmedBookings.filter(
+    (item) => item.date >= executiveTodayISO && item.date <= executiveEnd7ISO
+  );
+  const executiveBookings30 = executiveConfirmedBookings.filter(
+    (item) => item.date >= executiveTodayISO && item.date <= executiveEnd30ISO
+  );
+  const executiveConfirmed7Value = executiveBookings7.reduce(
+    (sum, item) => sum + Number(item.value || 0),
+    0
+  );
+  const executiveConfirmed30Value = executiveBookings30.reduce(
+    (sum, item) => sum + Number(item.value || 0),
+    0
+  );
+
+  const executiveOpenQuoteRows = Object.entries(replyActions || {})
+    .map(([customerId, action]) => {
+      if (
+        action?.type !== "quote" ||
+        !action?.done ||
+        !["Sent", "Accepted"].includes(action.details?.quoteStatus || "Prepared") ||
+        ["Declined", "No response"].includes(action.details?.followUpOutcome || "")
+      ) return null;
+      const customer =
+        customers.find((item) => item.id === customerId) ||
+        lastSimulatedRecipients.find((item) => item.id === customerId);
+      if (!customer) return null;
+      return {
+        customerId,
+        customerName: customer.name || "Customer",
+        service: customer.service || "Service",
+        value: Number(action.details?.quoteAmount) || 0,
+        status: action.details?.quoteStatus || "Sent",
+        sentAt: action.details?.quoteSentAt || action.updatedAt || "",
+      };
+    })
+    .filter(Boolean);
+  const executiveOpenQuoteValue = executiveOpenQuoteRows.reduce(
+    (sum, item) => sum + Number(item.value || 0),
+    0
+  );
+
+  const executiveRepeatPool = eligibleCustomers.map((customer) => {
+    const service = services.find((item) => item.name === customer.service);
+    const serviceMemory = completedServiceMemory.find(
+      (item) => item.service === customer.service && item.averageValue > 0
+    );
+    return {
+      customerId: customer.id,
+      customerName: customer.name,
+      service: customer.service,
+      value:
+        Number(customer.lastJobValue) ||
+        Number(serviceMemory?.averageValue) ||
+        Number(service?.value) ||
+        0,
+    };
+  });
+  const executiveRepeatPoolValue = executiveRepeatPool.reduce(
+    (sum, item) => sum + Number(item.value || 0),
+    0
+  );
+
+  const executiveForecastBand = (pattern, fallbackRate = 0.25) => {
+    const sample = Number(pattern?.sample || 0);
+    const stage = pattern?.stage?.label || "Too early to tell";
+    const observed =
+      pattern?.observedRate === null || pattern?.observedRate === undefined
+        ? null
+        : Number(pattern.observedRate);
+    const base = observed === null ? Number(fallbackRate || 0) : observed;
+    const spread =
+      stage === "Strong evidence"
+        ? 0.07
+        : stage === "Useful evidence"
+        ? 0.1
+        : stage === "Early signal"
+        ? 0.14
+        : 0.18;
+    return {
+      sample,
+      stage,
+      base,
+      low: Math.max(0, Math.min(0.9, base - spread)),
+      high: Math.max(0, Math.min(0.9, base + spread)),
+    };
+  };
+
+  const executiveQuotePattern =
+    businessMemoryPatterns.find((item) => item.key === "quoteFollowUp") || null;
+  const executiveRepeatPattern =
+    businessMemoryPatterns.find((item) => item.key === "reactivation") || null;
+  const executiveQuoteBand = executiveForecastBand(
+    executiveQuotePattern,
+    quoteFollowUpEvidence?.rate ?? 0.25
+  );
+  const executiveRepeatBand = executiveForecastBand(
+    executiveRepeatPattern,
+    reactivationEvidence?.rate ?? 1 / 3
+  );
+
+  const executiveWarmQuoteLow = Math.round(
+    executiveOpenQuoteValue * executiveQuoteBand.low
+  );
+  const executiveWarmQuoteHigh = Math.round(
+    executiveOpenQuoteValue * executiveQuoteBand.high
+  );
+  const executiveRepeatLow = Math.round(
+    executiveRepeatPoolValue * executiveRepeatBand.low
+  );
+  const executiveRepeatHigh = Math.round(
+    executiveRepeatPoolValue * executiveRepeatBand.high
+  );
+  const executiveOutlookLow =
+    executiveConfirmed30Value + executiveWarmQuoteLow + executiveRepeatLow;
+  const executiveOutlookHigh =
+    executiveConfirmed30Value + executiveWarmQuoteHigh + executiveRepeatHigh;
+  const executiveForecastEvidenceSample =
+    Number(executiveQuoteBand.sample || 0) + Number(executiveRepeatBand.sample || 0);
+  const executiveForecastConfidence =
+    executiveForecastEvidenceSample >= 18 &&
+    ["Useful evidence", "Strong evidence"].includes(executiveQuoteBand.stage) &&
+    ["Useful evidence", "Strong evidence"].includes(executiveRepeatBand.stage)
+      ? "High"
+      : executiveForecastEvidenceSample >= 6
+      ? "Medium"
+      : "Low";
+
+  const executiveLoadRows = Array.from({ length: 7 }, (_, offset) => {
+    const date = addDaysFromISO(executiveTodayISO, offset);
+    const entries = executiveBookings7.filter((item) => item.date === date);
+    const hours = Math.round(
+      entries.reduce((sum, item) => sum + Number(item.durationHours || 0), 0) * 10
+    ) / 10;
+    const value = entries.reduce((sum, item) => sum + Number(item.value || 0), 0);
+    const label = new Date(`${date}T12:00:00`).toLocaleDateString("en-GB", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+    });
+    return {
+      date,
+      label,
+      count: entries.length,
+      hours,
+      value,
+      state:
+        hours === 0
+          ? "Quiet"
+          : hours < 2.5
+          ? "Light"
+          : hours < 5.5
+          ? "Healthy"
+          : "Busy",
+    };
+  });
+
+  const executiveQuietDays = executiveLoadRows.filter(
+    (item) => item.state === "Quiet"
+  );
+  const executiveLightDays = executiveLoadRows.filter(
+    (item) => item.state === "Light"
+  );
+
+  const executiveServiceConcentration = (() => {
+    if (!executiveBookings30.length) return null;
+    const totals = executiveBookings30.reduce((map, item) => {
+      map[item.service] = (map[item.service] || 0) + (Number(item.value) || 1);
+      return map;
+    }, {});
+    const total = Object.values(totals).reduce(
+      (sum, value) => sum + Number(value || 0),
+      0
+    );
+    if (!total) return null;
+    const [service, value] =
+      Object.entries(totals).sort((a, b) => Number(b[1]) - Number(a[1]))[0] || [];
+    if (!service) return null;
+    return {
+      service,
+      share: Number(value) / total,
+      bookingCount: executiveBookings30.filter((item) => item.service === service).length,
+    };
+  })();
+
+  const executiveRiskRows = [
+    ...(autopilotOverdueBookingItems.length
+      ? [{
+          id: "past-bookings",
+          label: "Past booking outcomes",
+          level: "High",
+          detail: `${autopilotOverdueBookingItems.length} past booking${autopilotOverdueBookingItems.length === 1 ? "" : "s"} still need a real outcome.`,
+        }]
+      : []),
+    ...(dueQuoteEntries.length
+      ? [{
+          id: "ageing-quotes",
+          label: "Ageing quotes",
+          level: dueQuoteEntries.length >= 3 ? "High" : "Medium",
+          detail: `${dueQuoteEntries.length} quote${dueQuoteEntries.length === 1 ? "" : "s"} are due for follow-up.`,
+        }]
+      : []),
+    ...(executiveQuietDays.length >= 3
+      ? [{
+          id: "light-capacity",
+          label: "Forward diary",
+          level: "Medium",
+          detail: `${executiveQuietDays.length} of the next 7 calendar days currently have no confirmed booking saved.`,
+        }]
+      : []),
+    ...(executiveServiceConcentration &&
+    executiveBookings30.length >= 3 &&
+    executiveServiceConcentration.share >= 0.7
+      ? [{
+          id: "service-concentration",
+          label: "Service concentration",
+          level: "Medium",
+          detail: `${Math.round(executiveServiceConcentration.share * 100)}% of confirmed 30-day booked value is currently tied to ${executiveServiceConcentration.service}.`,
+        }]
+      : []),
+    ...(autopilotNeedsInputItems.length
+      ? [{
+          id: "missing-judgement",
+          label: "Owner input",
+          level: "Medium",
+          detail: `${autopilotNeedsInputItems.length} item${autopilotNeedsInputItems.length === 1 ? "" : "s"} cannot safely move forward without owner judgement or a real-world outcome.`,
+        }]
+      : []),
+    ...(activeWorkGoal && !workGoalFilled
+      ? [{
+          id: "open-work-goal",
+          label: "Open work goal",
+          level: "Medium",
+          detail: `${workGoalRemainingJobs} booking${workGoalRemainingJobs === 1 ? "" : "s"} still needed for ${activeWorkGoal.label || "the current work goal"}.`,
+        }]
+      : []),
+  ];
+
+  const executiveCompletedLast7 = completedJobEntries.filter(
+    (entry) =>
+      String(entry.job.date || "") >= executiveStart7ISO &&
+      String(entry.job.date || "") <= executiveTodayISO
+  );
+  const executiveCompletedLast7Value = executiveCompletedLast7.reduce(
+    (sum, entry) => sum + (Number(entry.job.value) || 0),
+    0
+  );
+  const executiveQuoteOutcomesLast7 = quoteOutcomeRecordedEntries.filter(
+    (entry) =>
+      String(entry.action.details?.followUpOutcomeRecordedAt || "").slice(0, 10) >=
+        executiveStart7ISO &&
+      String(entry.action.details?.followUpOutcomeRecordedAt || "").slice(0, 10) <=
+        executiveTodayISO
+  );
+  const executiveQuoteWinsLast7 = executiveQuoteOutcomesLast7.filter(
+    (entry) => entry.action.details?.followUpOutcome === "Accepted"
+  ).length;
+  const executiveReviewsLast7 = reviewOutcomeRecordedEntries.filter(
+    (entry) =>
+      String(entry.job.reviewRequestOutcomeRecordedAt || "").slice(0, 10) >=
+        executiveStart7ISO &&
+      String(entry.job.reviewRequestOutcomeRecordedAt || "").slice(0, 10) <=
+        executiveTodayISO &&
+      entry.job.reviewRequestOutcome === "Review left"
+  ).length;
+  const executiveSocialBookingsLast7 = postOutcomeEntries.filter(
+    (entry) =>
+      String(entry.job.postOutcomeRecordedAt || "").slice(0, 10) >=
+        executiveStart7ISO &&
+      String(entry.job.postOutcomeRecordedAt || "").slice(0, 10) <=
+        executiveTodayISO &&
+      entry.job.postOutcome === "Booking"
+  ).length;
+
+  const executivePriority = (() => {
+    if (autopilotOverdueBookingItems.length) {
+      const item = autopilotOverdueBookingItems[0];
+      return {
+        kind: "booking-outcome",
+        title: item.title,
+        body: item.body,
+        actionLabel: "Resolve booking",
+        source: item,
+      };
+    }
+    if (inboxNeedsAttentionItems.length) {
+      const item = inboxNeedsAttentionItems[0];
+      return {
+        kind: "inbox",
+        title: item.parsed?.name
+          ? `Review incoming record for ${item.parsed.name}`
+          : "Review an uncertain incoming record",
+        body: item.triage?.reason || "BUSY needs owner judgement before filing.",
+        actionLabel: "Review Inbox item",
+        source: item,
+      };
+    }
+    if (dueQuoteEntries.length) {
+      const item = dueQuoteEntries[0];
+      return {
+        kind: "quote",
+        title: `Follow up ${item.customer.name}'s quote`,
+        body: `${item.customer.service} has been quiet for ${item.age || 0} days.`,
+        actionLabel: "Review follow-up",
+        source: item,
+      };
+    }
+    if (staleEnquiryEntries.length) {
+      const item = staleEnquiryEntries[0];
+      return {
+        kind: "enquiry",
+        title: `Revisit ${item.customer.name}'s enquiry`,
+        body: `${item.customer.service} has no recorded next step after ${item.age || 0} days.`,
+        actionLabel: "Review enquiry",
+        source: item,
+      };
+    }
+    if (activeWorkGoal && !workGoalFilled) {
+      return {
+        kind: "work-goal",
+        title: `Fill ${activeWorkGoal.label || "the current work gap"}`,
+        body: `${workGoalRemainingJobs} booking${workGoalRemainingJobs === 1 ? "" : "s"} still needed.`,
+        actionLabel: "Open best next move",
+        source: null,
+      };
+    }
+    if (autopilotApprovalItems.length) {
+      return {
+        kind: "approval",
+        title: `${autopilotApprovalItems.length} prepared item${autopilotApprovalItems.length === 1 ? "" : "s"} are ready`,
+        body: "BUSY has prepared safe work that now needs the owner's existing approval flow.",
+        actionLabel: "Open Approval Inbox",
+        source: null,
+      };
+    }
+    return {
+      kind: "clear",
+      title: "No urgent recorded issue is forcing itself to the top",
+      body: executiveBookings7.length
+        ? `${executiveBookings7.length} confirmed booking${executiveBookings7.length === 1 ? "" : "s"} are saved across the next 7 days.`
+        : "There is no confirmed booking in the next 7 days, so the forward view is worth checking.",
+      actionLabel: "Open forward view",
+      source: null,
+    };
+  })();
+
+  const openExecutivePriority = () => {
+    const item = executivePriority?.source;
+    if (executivePriority.kind === "booking-outcome" && item?.customerId) {
+      return openSavedReplyAction(item.customerId);
+    }
+    if (executivePriority.kind === "inbox" && item?.id) {
+      return openInboxItem(item.id);
+    }
+    if (executivePriority.kind === "quote" && item?.id) {
+      return prepareQuoteFollowUp(item.id);
+    }
+    if (executivePriority.kind === "enquiry" && item?.customer?.id) {
+      return prepareEnquiryFollowUp(item.customer.id);
+    }
+    if (executivePriority.kind === "work-goal") {
+      go("bestMove");
+      return true;
+    }
+    if (executivePriority.kind === "approval") {
+      go("autopilotCentre");
+      return true;
+    }
+    go("executiveBriefing");
+    return true;
+  };
+
+  const executiveBriefing = {
+    today: executiveTodayISO,
+    priority: executivePriority,
+    confirmed7: {
+      count: executiveBookings7.length,
+      value: executiveConfirmed7Value,
+    },
+    confirmed30: {
+      count: executiveBookings30.length,
+      value: executiveConfirmed30Value,
+    },
+    warmQuotes: {
+      count: executiveOpenQuoteRows.length,
+      totalValue: executiveOpenQuoteValue,
+      low: executiveWarmQuoteLow,
+      high: executiveWarmQuoteHigh,
+      confidence: executiveQuoteBand.stage,
+      sample: executiveQuoteBand.sample,
+    },
+    repeatPotential: {
+      count: executiveRepeatPool.length,
+      poolValue: executiveRepeatPoolValue,
+      low: executiveRepeatLow,
+      high: executiveRepeatHigh,
+      confidence: executiveRepeatBand.stage,
+      sample: executiveRepeatBand.sample,
+    },
+    outlook: {
+      low: executiveOutlookLow,
+      high: executiveOutlookHigh,
+      confidence: executiveForecastConfidence,
+      evidenceSample: executiveForecastEvidenceSample,
+    },
+    loadRows: executiveLoadRows,
+    risks: executiveRiskRows,
+    scenarios: {
+      noMoreWork: executiveConfirmed30Value,
+      warmMid:
+        executiveConfirmed30Value +
+        Math.round((executiveWarmQuoteLow + executiveWarmQuoteHigh) / 2),
+      fullMid:
+        executiveConfirmed30Value +
+        Math.round(
+          (executiveWarmQuoteLow +
+            executiveWarmQuoteHigh +
+            executiveRepeatLow +
+            executiveRepeatHigh) /
+            2
+        ),
+    },
+    weeklyReview: {
+      completedJobs: executiveCompletedLast7.length,
+      completedValue: executiveCompletedLast7Value,
+      quoteOutcomes: executiveQuoteOutcomesLast7.length,
+      quoteWins: executiveQuoteWinsLast7,
+      reviews: executiveReviewsLast7,
+      socialBookings: executiveSocialBookingsLast7,
+      memoryChanges: businessMemoryChanges.length,
+    },
+  };
+
+  const askBusyAboutOutlook = async () => {
+    go("talkToBusy");
+    return submitBusyCommand({
+      text: "How does the business look over the next 7 and 30 days, what is the biggest risk, and what should I focus on today?",
+    });
+  };
+
   const normaliseBusyCommandName = (value = "") =>
     String(value || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
@@ -8189,6 +8670,22 @@ function App() {
         busyOperatorSnapshot,
         currentSnapshot
       ),
+      executiveBriefing: {
+        confirmed7: executiveBriefing.confirmed7,
+        confirmed30: executiveBriefing.confirmed30,
+        warmQuotes: executiveBriefing.warmQuotes,
+        repeatPotential: executiveBriefing.repeatPotential,
+        outlook: executiveBriefing.outlook,
+        loadRows: executiveBriefing.loadRows,
+        risks: executiveBriefing.risks,
+        scenarios: executiveBriefing.scenarios,
+        weeklyReview: executiveBriefing.weeklyReview,
+        priority: {
+          kind: executiveBriefing.priority.kind,
+          title: executiveBriefing.priority.title,
+          body: executiveBriefing.priority.body,
+        },
+      },
       businessMemory: {
         lastReviewedAt: businessMemoryLastReviewAt,
         strongestPattern: strongestBusinessMemoryPattern
@@ -8410,7 +8907,7 @@ function App() {
   const busyCommandHasAction = (command = busyCommandResult) =>
     !!command &&
     !command.needsClarification &&
-    !["business_summary", "business_changes", "business_memory", "unknown"].includes(command.intent || "unknown");
+    !["business_summary", "business_changes", "business_memory", "business_outlook", "unknown"].includes(command.intent || "unknown");
 
   const rememberBusyAudit = ({ type, label, customerId = "", rollback = null }) => {
     const row = {
@@ -8712,6 +9209,13 @@ function App() {
     businessMemoryRecentRows,
     businessMemoryHistory,
     businessMemoryLastReviewAt,
+    executiveBriefing,
+    executiveBookings7,
+    executiveBookings30,
+    executiveOpenQuoteRows,
+    executiveRepeatPool,
+    openExecutivePriority,
+    askBusyAboutOutlook,
     completedServiceMemory,
     quoteValueBandMemory,
     socialChannelMemory,

@@ -17,6 +17,7 @@ const intents = [
   "business_summary",
   "business_changes",
   "business_memory",
+  "business_outlook",
   "operator_plan",
   "open_today",
   "open_calendar",
@@ -37,7 +38,7 @@ const intents = [
 ];
 
 const stepIntentEnum = intents.filter((intent) =>
-  !["business_summary", "business_changes", "business_memory", "operator_plan", "draft_refinement", "unknown"].includes(intent)
+  !["business_summary", "business_changes", "business_memory", "business_outlook", "operator_plan", "draft_refinement", "unknown"].includes(intent)
 );
 
 const previewRowSchema = {
@@ -189,6 +190,25 @@ function safeContext(value: any) {
     changesSinceLastConversation: Array.isArray(context.changesSinceLastConversation)
       ? context.changesSinceLastConversation.slice(0, 12)
       : [],
+    executiveBriefing:
+      context.executiveBriefing && typeof context.executiveBriefing === "object"
+        ? {
+            confirmed7: context.executiveBriefing.confirmed7 || {},
+            confirmed30: context.executiveBriefing.confirmed30 || {},
+            warmQuotes: context.executiveBriefing.warmQuotes || {},
+            repeatPotential: context.executiveBriefing.repeatPotential || {},
+            outlook: context.executiveBriefing.outlook || {},
+            loadRows: Array.isArray(context.executiveBriefing.loadRows)
+              ? context.executiveBriefing.loadRows.slice(0, 7)
+              : [],
+            risks: Array.isArray(context.executiveBriefing.risks)
+              ? context.executiveBriefing.risks.slice(0, 10)
+              : [],
+            scenarios: context.executiveBriefing.scenarios || {},
+            weeklyReview: context.executiveBriefing.weeklyReview || {},
+            priority: context.executiveBriefing.priority || {},
+          }
+        : null,
     businessMemory:
       context.businessMemory && typeof context.businessMemory === "object"
         ? {
@@ -273,11 +293,13 @@ Your job is conversational:
 - When asked "what changed?", use changesSinceLastConversation unless the owner explicitly asks what BUSY has learned or why recommendations changed; then use businessMemory and intent="business_memory".
 - For business_memory, clearly separate recorded facts from inferred patterns. Mention sample size/confidence and ranking effect where relevant. If businessMemory.changes is empty, explain the current strongest pattern without claiming a new change.
 - Never claim causation from attributed social outcomes or small samples.
+- For business_outlook, never collapse confirmed work and predicted pipeline into one factual number. State confirmed value separately, label forecast ranges as planning estimates, mention forecast confidence, and explain that quiet/light days are scheduled-load observations rather than guaranteed spare capacity.
 
 Supported direct intents:
 - business_summary: factual answer from current context.
 - business_changes: factual comparison using changesSinceLastConversation.
 - business_memory: explain what BUSY has learned over time, why an optional recommendation has moved up/down, or what evidence currently has the strongest influence. Use businessMemory only.
+- business_outlook: answer questions about today, next week, the next 30 days, pipeline, capacity load, forecast range, risk radar, scenarios or whether the business is on track. Use executiveBriefing and clearly separate confirmed values from forecast ranges.
 - operator_plan: 2-5 sequenced safe steps.
 - open_today, open_calendar, open_quote_followups, open_repeat_customers, find_more_work, customer_lookup.
 - create_booking: prepare a booking for one saved customer. MUST require confirmation and preview the customer/date/time/value.

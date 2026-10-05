@@ -2,6 +2,20 @@
 
 Busy Does It mobile app prototype.
 
+## v3.22 Executive Briefing + Forward View
+- Built directly on the tested V3.21 Business Memory branch.
+- Home now opens with an executive briefing: the most important recorded issue, confirmed 7-day work, risk count and a confidence-aware 30-day outlook.
+- Added a dedicated Executive Briefing screen with confirmed 7/30-day bookings, warm quote range, repeat-work range, scenario view, scheduled-load radar, risk radar and a record-based weekly review.
+- Confirmed booked value is never blended into a single factual number with forecast pipeline. BUSY presents confirmed work separately and labels variable quote/repeat projections as ranges.
+- Forecast ranges use the existing Business Memory quote-follow-up and reactivation evidence. Weak samples deliberately produce wider ranges and a lower confidence label.
+- Added next-7-day scheduled-load rows using saved bookings plus configured service planning durations. They are labelled as scheduled load, not assumed total working capacity.
+- Added risk signals for unresolved past bookings, ageing quotes, a light forward diary, concentrated confirmed service value, owner-input items and open capacity goals.
+- Added three scenarios: no new work, evidence-weighted warm quotes, and warm quotes plus repeat potential.
+- Added a last-7-days review covering completed jobs/value, quote outcomes/wins, reviews, social booking outcomes and Business Memory changes.
+- BUSY Operator now receives the Executive Briefing context and can answer “How does next week look?”, “Am I on track?”, “What is the biggest risk?” and similar questions without inventing future revenue.
+- Existing owner rules, Controlled Autopilot boundaries and explicit approvals remain unchanged.
+- Main navigation remains Home / Work / Results / Settings.
+
 ## v3.21 Business Memory / Long-term Learning
 - Built directly on the tested V3.20 Controlled Autopilot branch.
 - Added durable Business Memory snapshots so BUSY can compare current evidence with previous distinct evidence states instead of recalculating without history.

@@ -834,6 +834,37 @@ function HomeScreen({ s }) {
     >
 
 
+
+      <Card
+        eyebrow="V3.22 • Executive Briefing"
+        title={
+          s.executiveBriefing?.priority?.title ||
+          "BUSY has checked the business"
+        }
+        body={
+          s.executiveBriefing?.priority?.body ||
+          "No material recorded issue is forcing itself to the top."
+        }
+        footer={
+          s.executiveBriefing?.outlook?.low === s.executiveBriefing?.outlook?.high
+            ? `30-day confirmed outlook: £${s.executiveBriefing?.outlook?.low || 0}`
+            : `30-day outlook: £${s.executiveBriefing?.outlook?.low || 0}–£${s.executiveBriefing?.outlook?.high || 0} • ${s.executiveBriefing?.outlook?.confidence || "Low"} variable-pipeline confidence`
+        }
+        tone={s.executiveBriefing?.priority?.kind === "clear" ? "green" : "amber"}
+      >
+        <MetricRow
+          left="Confirmed next 7 days"
+          right={`£${s.executiveBriefing?.confirmed7?.value || 0} • ${s.executiveBriefing?.confirmed7?.count || 0} booking${s.executiveBriefing?.confirmed7?.count === 1 ? "" : "s"}`}
+          strong={(s.executiveBriefing?.confirmed7?.value || 0) > 0}
+        />
+        <MetricRow
+          left="Risk signals"
+          right={String(s.executiveBriefing?.risks?.length || 0)}
+          strong={(s.executiveBriefing?.risks?.length || 0) > 0}
+        />
+        <Button label="Open full forward view" primary onPress={() => s.go("executiveBriefing")} />
+      </Card>
+
       <Card
         eyebrow="V3.20 • Controlled Autopilot"
         title={
