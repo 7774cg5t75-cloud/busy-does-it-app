@@ -9,7 +9,7 @@ Busy Does It mobile app prototype.
 - Removed duplicate Home rendering of the same “best move” across Executive Briefing, Next Best Actions and proactive-watch cards. Other ranked recommendations are collapsed behind one optional control.
 - Added a deterministic Release Core health screen for orphan customer/action links, invalid or overdue bookings, completed bookings missing job history, duplicate phone/email contacts, connected-diary conflicts, cloud conflicts and stale local reminders.
 - Manual customer creation now blocks an obvious duplicate phone record and offers to open the existing customer instead.
-- A new enquiry using an existing high-confidence phone match now reopens that customer’s lifecycle and appends the new enquiry activity rather than creating a second customer record.
+- A new enquiry reuses an existing customer only when the phone match is backed by the same customer name; it appends the enquiry activity rather than creating a second customer record. Shared phone numbers with different names are not auto-merged.
 - Added `src/domain/releaseCore.js` for release/lifecycle consistency checks and Home command-centre selection, beginning the next architecture phase outside the already-large AppController.
 - Release Core issues route back into existing booking/customer/Inbox/diary/cloud repair surfaces instead of introducing hidden automatic fixes.
 - Existing approval boundaries remain unchanged: no release-hardening path can send a customer message, publish, spend money or silently reconcile an important booking.
