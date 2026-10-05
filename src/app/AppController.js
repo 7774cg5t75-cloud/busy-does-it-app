@@ -154,6 +154,14 @@ import {
   maskPushToken,
 } from "../domain/productionBridge";
 import { buildOperationalContinuity } from "../domain/operationalContinuity";
+import {
+  normaliseOperatorName,
+  matchOperatorCustomer,
+  operatorRequiresConfirmation,
+  operatorIsAnswerOnly,
+  buildOperatorClientPreview,
+  validateOperatorCommand,
+} from "../domain/operator2";
 import { BusyBrandLockup } from "../components/ui";
 import { screens, HomeScreen, AccountAccess } from "../screens";
 
@@ -312,6 +320,7 @@ function App() {
   const [busyOperatorSnapshot, setBusyOperatorSnapshot] = useState(null);
   const [busyActionAudit, setBusyActionAudit] = useState([]);
   const [busyUndoAction, setBusyUndoAction] = useState(null);
+  const [operatorCalendarDate, setOperatorCalendarDate] = useState("");
   const [autopilotMode, setAutopilotMode] = useState("prepare");
   const [autopilotRuleDraft, setAutopilotRuleDraft] = useState("");
   const [autopilotLastCheckAt, setAutopilotLastCheckAt] = useState("");
@@ -10497,25 +10506,10 @@ function App() {
     return true;
   };
 
-  const normaliseBusyCommandName = (value = "") =>
-    String(value || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const normaliseBusyCommandName = normaliseOperatorName;
 
-  const findBusyCommandCustomer = (name = "") => {
-    const needle = normaliseBusyCommandName(name);
-    if (!needle) return null;
-    const exact = customers.find(
-      (customer) => normaliseBusyCommandName(customer.name) === needle
-    );
-    if (exact) return exact;
-    const starts = customers.filter((customer) =>
-      normaliseBusyCommandName(customer.name).startsWith(needle)
-    );
-    if (starts.length === 1) return starts[0];
-    const contains = customers.filter((customer) =>
-      normaliseBusyCommandName(customer.name).includes(needle)
-    );
-    return contains.length === 1 ? contains[0] : null;
-  };
+  const findBusyCommandCustomer = (name = "") =>
+    matchOperatorCustomer(customers, name).customer;
 
   const latestBusyCompletedJob = (customer) =>
     [...(Array.isArray(customer?.history) ? customer.history : [])]
@@ -10647,6 +10641,18 @@ function App() {
           body: executiveBriefing.priority.body,
         },
       },
+      operationalContinuity: {
+        status: operationalContinuity?.status || "All clear",
+        headline: operationalContinuity?.headline || "",
+        highCount: Number(operationalContinuity?.highCount || 0),
+        reviewCount: Number(operationalContinuity?.reviewCount || 0),
+        recoveryQueue: (operationalContinuity?.recoveryQueue || []).slice(0, 6).map((item) => ({
+          area: item.area || "",
+          severity: item.severity || "",
+          title: item.title || "",
+          body: item.body || "",
+        })),
+      },
       businessMemory: {
         lastReviewedAt: businessMemoryLastReviewAt,
         strongestPattern: strongestBusinessMemoryPattern
@@ -10711,7 +10717,12 @@ function App() {
               ? action.details?.bookingDate || ""
               : "",
           bookingTime: action?.details?.bookingTime || "",
+          actionType: action?.type || "",
+          actionDone: !!action?.done,
+          bookingStatus: action?.type === "booking" ? action.details?.bookingStatus || "" : "",
           quoteStatus: action?.type === "quote" ? action.details?.quoteStatus || "" : "",
+          reminderDate: action?.type === "reminder" ? action.details?.reminderDate || "" : "",
+          reminderStatus: action?.type === "reminder" ? action.details?.reminderStatus || "" : "",
           latestCompletedJobDate: job?.date || "",
           latestCompletedJobValue: Number(job?.value) || 0,
         };
@@ -10747,6 +10758,7 @@ function App() {
             date: structured.date || "",
             time: structured.time || "",
             value: Number(structured.value) || 0,
+            note: String(structured.note || "").slice(0, 900),
             draftText: String(structured.draftText || "").slice(0, 2200),
             draftTarget: structured.draftTarget || "",
             needsClarification: !!structured.needsClarification,
