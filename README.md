@@ -2,6 +2,21 @@
 
 Busy Does It mobile app prototype.
 
+## v3.28 BUSY Operator 2.0
+- Built directly on the tested V3.27 Operational Continuity branch.
+- Expanded Talk to BUSY from navigation/draft preparation into a broader voice-first daily operating layer.
+- Added confirmed, preview-first Operator actions for creating bookings, changing booking date/time/value, cancelling bookings, completing jobs, adding customer notes and setting safe follow-up reminders.
+- Every record-changing Operator action is forced through explicit confirmation on both the backend router and the client. A model response cannot silently downgrade that confirmation requirement.
+- Added one-level undo coverage for the new BUSY-triggered customer/booking/reminder changes using the exact pre-change customer/action snapshot.
+- Added deterministic client-side command validation for ambiguous customer matches, missing booking date/time, nonexistent open bookings, empty notes and reminder collisions.
+- Follow-up conversation now carries the current structured customer/date/time/value/note context so corrections such as “actually make it 3pm” or “make the value £350” can reuse the active subject.
+- Added a dedicated next-best-action answer for “What should I do now?” using Executive Briefing priorities plus Continuity constraints rather than inventing activity.
+- Calendar commands can now carry a resolved date; “show me tomorrow/Tuesday” opens the Work calendar focused on that day.
+- Added Operator quick asks for today’s priority, tomorrow’s calendar and customer work that needs chasing.
+- Added `src/domain/operator2.js` so customer matching, action validation, confirmation policy and preview construction live outside AppController.
+- Preserved the hard authority boundary: Talk to BUSY still cannot directly send customer messages, publish public posts or spend advertising money.
+- The native iOS build remains independent of this sweep. V3.28 can be reviewed through the existing Expo Go path while Apple device provisioning is unavailable.
+
 ## v3.27 Operational Continuity
 - Built directly on the V3.26 First Native Connections branch while the first signed iOS development build remains dependent on Apple account/device provisioning.
 - Added a deterministic Operational Continuity domain layer that separates a degraded provider or connection from the rest of the business instead of treating the whole app as unavailable.
