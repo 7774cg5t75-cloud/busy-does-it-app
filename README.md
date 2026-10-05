@@ -2,6 +2,19 @@
 
 Busy Does It mobile app prototype.
 
+## v3.27 Operational Continuity
+- Built directly on the V3.26 First Native Connections branch while the first signed iOS development build remains dependent on Apple account/device provisioning.
+- Added a deterministic Operational Continuity domain layer that separates a degraded provider or connection from the rest of the business instead of treating the whole app as unavailable.
+- Added a dedicated Continuity Centre showing what can still be used now, the current recovery queue, connection health and pending native release gates.
+- Cloud conflicts, cloud-sync limitations, social publishing errors, device-diary conflicts, Google Calendar conflicts/sync errors and remote-push errors are surfaced with explicit recovery routes.
+- Core-record or booking inconsistencies remain Release Core issues; Continuity consumes that health signal rather than duplicating record-repair logic.
+- Optional integrations are clearly labelled as optional. A missing social/calendar/push connection does not make BUSY report the business as broken.
+- Home now surfaces continuity only when an important limitation exists, while the normal “BUSY underneath” card always exposes the Continuity Centre without cluttering the main priority view.
+- The recovery model is fail-safe: provider uncertainty never grants permission to duplicate a post, silently overwrite a booking or invent a successful sync.
+- Customer records, Work, Business Memory/Executive Briefing, social draft preparation and Talk to BUSY remain available when an isolated integration is degraded.
+- Added `src/domain/operationalContinuity.js` so connection-health policy lives outside the already-large AppController.
+- Expo Go remains the fast test path for V3.27. The signed iOS development build, remote-push token proof and custom-scheme OAuth return still wait on Apple device provisioning.
+
 ## v3.26 First Native Connections
 - Built directly on the tested V3.25 Production Bridge branch.
 - Added the first real server-side Google Calendar booking sync. Confirmed BUSY bookings are created/updated in the connected primary Google Calendar with customer, service, address, duration and a private BUSY mapping marker.
