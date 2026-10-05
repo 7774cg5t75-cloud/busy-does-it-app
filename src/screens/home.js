@@ -913,7 +913,7 @@ function HomeScreen({ s }) {
           <View style={styles.talkHomeCopy}>
             <Text style={styles.talkHomeTitle}>Tap and talk</Text>
             <Text style={styles.talkHomeBody}>
-              “How does this week look?” • “Book John Friday” • “What needs my attention?”
+              “What should I do now?” • “Book John Friday at 2” • “Show me Tuesday”
             </Text>
           </View>
         </View>
