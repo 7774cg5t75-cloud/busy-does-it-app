@@ -598,6 +598,27 @@ function App() {
       businessBrainFeedback,
       proactiveNoticeState,
       busyCommandHistory,
+      busyConversationTurns,
+      busyOperatorSnapshot,
+      busyActionAudit,
+      autopilotMode,
+      autopilotLastCheckAt,
+      autopilotLastSignature,
+      autopilotSnoozed,
+      autopilotPreparedLog,
+      businessMemoryHistory,
+      businessMemoryLastReviewAt,
+      proactiveNotificationsEnabled,
+      proactiveNotificationPermission,
+      proactiveMorningTime,
+      proactiveQuietHoursEnabled,
+      proactiveQuietStart,
+      proactiveQuietEnd,
+      proactiveJobReminderMinutes,
+      proactiveScheduledMap,
+      proactiveNotificationLog,
+      diaryConnection,
+      diaryEventMap,
       recordFilingMode,
       advanced,
     };
@@ -639,26 +660,6 @@ function App() {
     socialPreferredChannels,
     businessBrainRules,
     businessBrainFeedback,
-    autopilotMode,
-    autopilotModeLabel,
-    autopilotRuleDraft,
-    setAutopilotRuleDraft,
-    autopilotRules,
-    autopilotContactLimit,
-    autopilotPaidBlockedByRule,
-    autopilotLastCheckAt,
-    autopilotSnoozed,
-    autopilotPreparedLog,
-    autopilotApprovalItems,
-    autopilotNeedsInputItems,
-    changeAutopilotMode,
-    runAutopilotPreparation,
-    saveAutopilotRule,
-    removeAutopilotRule,
-    snoozeAutopilotItem,
-    restoreAutopilotItems,
-    openAutopilotApproval,
-    openAutopilotNeedsInput,
     proactiveNoticeState,
     busyCommandHistory,
     busyConversationTurns,
@@ -1810,17 +1811,6 @@ function App() {
     autopilotPreparedLog,
     businessMemoryHistory,
     businessMemoryLastReviewAt,
-    proactiveNotificationsEnabled,
-    proactiveNotificationPermission,
-    proactiveMorningTime,
-    proactiveQuietHoursEnabled,
-    proactiveQuietStart,
-    proactiveQuietEnd,
-    proactiveJobReminderMinutes,
-    proactiveScheduledMap,
-    proactiveNotificationLog,
-    diaryConnection,
-    diaryEventMap,
     recordFilingMode,
     advanced,
   });
@@ -8808,10 +8798,15 @@ function App() {
     });
 
     if (executivePriority.kind !== "clear" && executivePriority.kind !== "booking-outcome") {
-      const soon = proactiveMoveOutsideQuietHours(new Date(Date.now() + 3 * 60 * 1000));
       const source = executivePriority.source || {};
+      const key = `priority-${executivePriority.kind}-${source.id || source.customerId || executiveTodayISO}`;
+      const existingTrigger = proactiveScheduledMap?.[key]?.triggerAt;
+      const soon =
+        existingTrigger && new Date(existingTrigger).getTime() > Date.now() + 20 * 1000
+          ? new Date(existingTrigger)
+          : proactiveMoveOutsideQuietHours(new Date(Date.now() + 3 * 60 * 1000));
       candidates.push({
-        key: `priority-${executivePriority.kind}-${source.id || source.customerId || executiveTodayISO}`,
+        key,
         title: executivePriority.title,
         body: executivePriority.body,
         triggerAt: soon.toISOString(),
@@ -8842,14 +8837,21 @@ function App() {
       autopilotApprovalItems.length &&
       executivePriority.kind !== "approval"
     ) {
-      const approvalTime = proactiveMoveOutsideQuietHours(
-        new Date(Date.now() + 6 * 60 * 1000)
-      );
+      const approvalKey = `approval-summary-${autopilotApprovalItems
+        .slice(0, 4)
+        .map((item) => item.id)
+        .join("-")}`;
+      const existingApprovalTrigger =
+        proactiveScheduledMap?.[approvalKey]?.triggerAt;
+      const approvalTime =
+        existingApprovalTrigger &&
+        new Date(existingApprovalTrigger).getTime() > Date.now() + 20 * 1000
+          ? new Date(existingApprovalTrigger)
+          : proactiveMoveOutsideQuietHours(
+              new Date(Date.now() + 6 * 60 * 1000)
+            );
       candidates.push({
-        key: `approval-summary-${autopilotApprovalItems
-          .slice(0, 4)
-          .map((item) => item.id)
-          .join("-")}`,
+        key: approvalKey,
         title: "BUSY has work ready for approval",
         body: `${autopilotApprovalItems.length} prepared item${autopilotApprovalItems.length === 1 ? "" : "s"} are waiting. Nothing has been sent or published.`,
         triggerAt: approvalTime.toISOString(),
@@ -8994,11 +8996,20 @@ function App() {
         };
       }
 
+      const changed =
+        force ||
+        JSON.stringify(Object.keys(nextMap).sort()) !==
+          JSON.stringify(Object.keys(currentMap).sort()) ||
+        Object.keys(nextMap).some(
+          (key) => nextMap[key]?.fingerprint !== currentMap[key]?.fingerprint
+        );
       setProactiveScheduledMap(nextMap);
-      appendProactiveNotificationLog({
-        kind: "refresh",
-        title: `${Object.keys(nextMap).length} proactive reminder${Object.keys(nextMap).length === 1 ? "" : "s"} scheduled`,
-      });
+      if (changed) {
+        appendProactiveNotificationLog({
+          kind: "refresh",
+          title: `${Object.keys(nextMap).length} proactive reminder${Object.keys(nextMap).length === 1 ? "" : "s"} scheduled`,
+        });
+      }
       return true;
     } catch (error) {
       appendProactiveNotificationLog({
