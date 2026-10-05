@@ -341,7 +341,7 @@ Planning rules:
 2. Prefer £0/low-cost moves before paid advertising.
 3. Do not create a plan step that claims a customer was contacted, a post was published or money was spent.
 4. Each planStep must be independently safe and executable through one supported direct intent. Do not use operator_plan inside planSteps.
-5. create_booking and complete_job plan steps requireConfirmation=true. All other plan steps false.
+5. Any record-changing plan step (create/edit/cancel booking, complete job, add note or set reminder) requiresConfirmation=true. Navigation/draft steps do not.
 6. If a plan mentions advertising, the plan may recommend opening find_more_work, but it must not imply spend authority.
 
 Draft rules:
