@@ -153,6 +153,7 @@ import {
   buildProductionReadiness,
   maskPushToken,
 } from "../domain/productionBridge";
+import { buildOperationalContinuity } from "../domain/operationalContinuity";
 import { BusyBrandLockup } from "../components/ui";
 import { screens, HomeScreen, AccountAccess } from "../screens";
 
@@ -8988,6 +8989,23 @@ function App() {
     easProfilesConfigured: productionBridgeRuntime.easProfilesConfigured,
   });
 
+  const operationalContinuity = buildOperationalContinuity({
+    releaseCoreHealth,
+    cloudSyncStatus,
+    cloudSyncError,
+    cloudConflict,
+    socialPublishingError,
+    connectedAccounts,
+    diaryConnection,
+    diarySyncStatus,
+    diaryConflicts,
+    calendarOAuthStatus,
+    googleCalendarSyncStatus,
+    googleCalendarConflicts,
+    remotePushStatus,
+    productionReadiness,
+  });
+
   const productionFunctionRequest = async (url, action, payload = {}) => {
     const token = await ownerAccessToken();
     if (!token) throw new Error("Sign in to BUSY before using production integrations.");
@@ -11161,6 +11179,7 @@ function App() {
     homeCommandCentre,
     productionBridgeRuntime,
     productionReadiness,
+    operationalContinuity,
     remotePushStatus,
     remotePushAction,
     calendarOAuthStatus,
