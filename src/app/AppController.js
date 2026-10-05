@@ -21,7 +21,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 import * as Notifications from "expo-notifications";
-import * as Calendar from "expo-calendar";
+import * as Calendar from "expo-calendar/legacy";
 import Constants from "expo-constants";
 
 try {
