@@ -105,6 +105,17 @@ function ReleaseCore({ s }) {
       )}
 
       <Card
+        eyebrow="V3.27 • Continuity"
+        title={s.operationalContinuity?.headline || "BUSY can keep working through isolated connection problems"}
+        body="Release Core protects record consistency; the Continuity Centre now handles degraded cloud/provider/calendar states without treating the whole app as broken."
+        tone={(s.operationalContinuity?.highCount || 0) > 0 ? "amber" : "blue"}
+      >
+        <MetricRow left="Continuity state" right={s.operationalContinuity?.status || "All clear"} strong />
+        <MetricRow left="Recovery queue" right={String(s.operationalContinuity?.issueCount || 0)} />
+        <Button label="Open Continuity Centre" onPress={() => s.go("operationalContinuity")} />
+      </Card>
+
+      <Card
         eyebrow="Lifecycle"
         title="One customer • one history"
         body="V3.24 now blocks an obvious duplicate phone record during manual customer creation. A new enquiry from an existing phone number reopens that customer’s lifecycle instead of creating another customer."
