@@ -124,6 +124,30 @@ function eventTimes(event: any) {
   };
 }
 
+function londonDateTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return { date: "", time: "", label: "" };
+  }
+  const formatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  });
+  const parts = Object.fromEntries(
+    formatter.formatToParts(date).map((part) => [part.type, part.value])
+  );
+  return {
+    date: `${parts.year}-${parts.month}-${parts.day}`,
+    time: `${parts.hour}:${parts.minute}`,
+    label: `${parts.day}/${parts.month}/${parts.year} ${parts.hour}:${parts.minute}`,
+  };
+}
+
 function sameInstant(a: string, b: string) {
   const left = new Date(a).getTime();
   const right = new Date(b).getTime();
@@ -479,31 +503,21 @@ Deno.serve(async (req: Request) => {
         return !ownEventIds.has(event.id) && busyId !== businessId;
       })
       .map((event: any) => {
-        const start = new Date(
-          event?.start?.dateTime || event?.start?.date || ""
-        );
-        const end = new Date(
-          event?.end?.dateTime || event?.end?.date || ""
-        );
+        const allDayDate = String(event?.start?.date || "");
+        const startValue = String(event?.start?.dateTime || "");
+        const endValue = String(event?.end?.dateTime || "");
+        const start = new Date(startValue || allDayDate || "");
+        const end = new Date(endValue || event?.end?.date || "");
+        const london = startValue
+          ? londonDateTime(startValue)
+          : { date: allDayDate, time: "", label: allDayDate };
         return {
           id: event.id,
           title: String(
             event.summary || "Google Calendar commitment"
           ).slice(0, 240),
-          date: Number.isNaN(start.getTime())
-            ? ""
-            : `${start.getFullYear()}-${String(
-                start.getMonth() + 1
-              ).padStart(2, "0")}-${String(start.getDate()).padStart(
-                2,
-                "0"
-              )}`,
-          time:
-            event?.start?.dateTime && !Number.isNaN(start.getTime())
-              ? `${String(start.getHours()).padStart(2, "0")}:${String(
-                  start.getMinutes()
-                ).padStart(2, "0")}`
-              : "",
+          date: london.date,
+          time: london.time,
           durationHours:
             Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())
               ? 0
