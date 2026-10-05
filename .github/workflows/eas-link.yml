@@ -1,0 +1,56 @@
+name: Link EAS project
+
+on:
+  push:
+    branches:
+      - v3.26
+    paths-ignore:
+      - SNACK_PREVIEW.json
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: eas-link-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  link:
+    runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+
+      - name: Link EAS project when Expo token exists
+        id: link
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "EXPO_TOKEN is not configured; leaving the EAS project link as the remaining account-bound step."
+            echo "linked=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          npx --yes eas-cli@latest init --non-interactive --force
+          echo "linked=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit generated EAS project ID
+        if: steps.link.outputs.linked == 'true'
+        run: |
+          if git diff --quiet -- app.json; then
+            echo "app.json already contains the EAS project link."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.json
+          git commit -m "Link BUSY to EAS project [skip ci]"
+          git push
