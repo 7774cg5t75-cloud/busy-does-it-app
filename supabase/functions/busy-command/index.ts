@@ -20,6 +20,7 @@ const intents = [
   "business_outlook",
   "next_best_action",
   "daily_briefing",
+  "customer_journey_summary",
   "calendar_day_summary",
   "calendar_gap",
   "calendar_fit_job",
@@ -47,7 +48,7 @@ const intents = [
 ];
 
 const stepIntentEnum = intents.filter((intent) =>
-  !["business_summary", "business_changes", "business_memory", "business_outlook", "next_best_action", "daily_briefing", "calendar_day_summary", "calendar_gap", "calendar_fit_job", "operator_plan", "draft_refinement", "unknown"].includes(intent)
+  !["business_summary", "business_changes", "business_memory", "business_outlook", "next_best_action", "daily_briefing", "customer_journey_summary", "calendar_day_summary", "calendar_gap", "calendar_fit_job", "operator_plan", "draft_refinement", "unknown"].includes(intent)
 );
 
 const previewRowSchema = {
@@ -348,6 +349,7 @@ Your job is conversational:
 - For business_outlook, never collapse confirmed work and predicted pipeline into one factual number. State confirmed value separately, label forecast ranges as planning estimates, mention forecast confidence, and explain that quiet/light days are scheduled-load observations rather than guaranteed spare capacity.
 - For next_best_action, give ONE practical next move using the live customer-work priority first. If operationalContinuity has a high-severity recovery item that can make the records unreliable, mention that constraint. Do not manufacture work just to sound useful.
 - For daily_briefing, use dailyCommandCentre as the primary source. Summarise in three short parts: Do now, Later today, Watch. If a lane is empty, say so rather than inventing work. Mention changes only when dailyCommandCentre.changes contains real saved-signal changes.
+- For customer_journey_summary, find exactly one saved customer and use that customer's journey object as the primary source. Summarise what has happened, the current stage/action, communication already recorded, stalled signals, and ONE next step. Do not imply that a prepared/simulated message was actually delivered unless the saved status says it was recorded as sent.
 - For calendar questions, use calendarIntelligence.days as the source of truth for scheduled load, open-capacity estimates, follow-ups, external commitments and potential overlaps. Open-capacity hours are planning guidance, never a guaranteed bookable slot.
 
 Supported direct intents:
@@ -357,6 +359,7 @@ Supported direct intents:
 - business_outlook: answer questions about today, next week, the next 30 days, pipeline, capacity load, forecast range, risk radar, scenarios or whether the business is on track. Use executiveBriefing and clearly separate confirmed values from forecast ranges.
 - next_best_action: answer "what should I do now/next?" with one record-backed priority. This is an answer, not blanket action authority.
 - daily_briefing: answer requests like "brief me", "what matters today?", "what do I need to do now/later/watch?" from dailyCommandCentre. Keep the lane order exactly Do now → Later today → Watch and never manufacture a lane item.
+- customer_journey_summary: answer questions like "what has happened with John?", "where are we with Sarah?", "when did I last contact them?", or a full customer briefing. customerName must exactly match one saved customer; use customers[].journey, separate recorded communication from prepared wording, and finish with the journey.nextAction recommendation.
 - calendar_day_summary: answer "what have I got [day]?" or "how busy is [day]?" from one resolved calendarIntelligence day. Include booked jobs/value, scheduled hours, estimated open hours, follow-ups, external commitments and conflicts when relevant.
 - calendar_gap: answer "where have I got a gap?" with the earliest sensible future Open/Light day from calendarIntelligence.days, excluding days with conflicts. Mention a supplied fillCandidate only as a suggestion, never as a booked job.
 - calendar_fit_job: answer whether a requested day appears to have planning capacity for another job. Compare estimatedOpenHours with the requested/inferred service durationHours when available. If no service/duration is known, state the open-hours estimate and ask what kind of job rather than claiming it fits.
@@ -400,6 +403,8 @@ Customer/date rules:
 9. open_calendar can carry a resolved date so BUSY opens that exact day. Resolve "today", "tomorrow", weekdays and clear relative dates against context.today.
 10. calendar_day_summary and calendar_fit_job should carry the resolved date in date. calendar_gap should carry the recommended gap date when one is clear.
 11. For calendar_fit_job, put the relevant service name in service when the owner named one or when the current conversation unambiguously supplies it.
+12. customer_journey_summary requires one unambiguous saved customer. If the name is missing or ambiguous, ask one short clarification question rather than summarising the wrong customer.
+13. When using customers[].journey, treat stalledSignals as deterministic saved-state warnings and nextAction as the recommended next step; do not invent a second conflicting next step.
 
 Preview rules:
 - For any record-changing action, previewRows should clearly show the fields that would change.
@@ -585,7 +590,7 @@ Deno.serve(async (request: Request) => {
       backend: {
         commandModel: Deno.env.get("OPENAI_COMMAND_MODEL") || DEFAULT_COMMAND_MODEL,
         transcriptionModel: Deno.env.get("OPENAI_TRANSCRIBE_MODEL") || DEFAULT_TRANSCRIBE_MODEL,
-        operatorVersion: "3.30",
+        operatorVersion: "3.31",
       },
     });
   } catch (error) {
