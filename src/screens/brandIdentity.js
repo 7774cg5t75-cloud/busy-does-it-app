@@ -308,18 +308,26 @@ function BrandIdentity({ s }) {
       )}
 
       <Card
-        eyebrow="V3.35 handoff"
-        title={brain.websiteReady ? "Website brief is ready" : "BUSY is building the website brief as you fill this in"}
+        eyebrow="V3.35 • Website Builder"
+        title={s.websiteDraft ? "Website draft already exists" : brain.websiteReady ? "Website brief is ready" : "BUSY can build a truthful partial draft"}
         body={
-          brain.websiteReady
-            ? "The next Website Builder sweep can consume this exact structured brief: business story, services, tone, visual direction, contact details, FAQs, testimonials and approved imagery."
+          s.websiteDraft
+            ? "The Website Builder is now consuming this Brand Brain directly. Update the identity here, then rebuild the site whenever you want the latest facts reflected."
+            : brain.websiteReady
+            ? "BUSY now has enough recorded business information to generate the first website draft without starting from a blank page."
             : (brain.missingForWebsite || []).length
-            ? `Still needed for a safe first website draft: ${brain.missingForWebsite.join(", ")}.`
+            ? `BUSY can still generate a partial draft, but it will leave these core facts unfilled rather than guess: ${brain.missingForWebsite.join(", ")}.`
             : "Optional brand depth will keep improving the first website draft."
         }
-        footer="Nothing has been published publicly by this screen."
-        tone={brain.websiteReady ? "green" : "blue"}
-      />
+        footer="Website generation stays private in V3.35. Nothing publishes from this screen."
+        tone={s.websiteDraft || brain.websiteReady ? "green" : "blue"}
+      >
+        <Button
+          label={s.websiteDraft ? "Open Website Builder" : "Build my website"}
+          primary
+          onPress={s.openWebsiteBuilder}
+        />
+      </Card>
 
       <Button label="Ask BUSY what is missing" onPress={s.askBusyAboutBrandIdentity} />
       <Button label="Save to cloud now" onPress={() => s.syncCloudNow()} />
