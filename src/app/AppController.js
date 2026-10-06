@@ -11463,9 +11463,13 @@ function App() {
         result
       );
 
-      const autoWebsiteIntent = ["website_build", "website_edit", "open_website"].includes(
-        result.intent
-      );
+      const autoWebsiteIntent = [
+        "website_build",
+        "website_edit",
+        "open_website",
+        "website_publish_request",
+        "website_rollback_request",
+      ].includes(result.intent);
       if (
         autoWebsiteIntent &&
         !result.needsClarification &&
@@ -11943,6 +11947,10 @@ function App() {
       }
       case "open_website":
         jump(websiteDraft ? "websitePreview" : "websiteBuilder", "Home");
+        return true;
+      case "website_publish_request":
+      case "website_rollback_request":
+        openWebsitePublishing();
         return true;
       case "social_post": {
         if (customer) {
