@@ -11418,6 +11418,28 @@ function App() {
         result
       );
 
+      const autoWebsiteIntent = ["website_build", "website_edit", "open_website"].includes(
+        result.intent
+      );
+      if (
+        autoWebsiteIntent &&
+        !result.needsClarification &&
+        !result.requiresConfirmation
+      ) {
+        addBusyConversationTurn("user", result.transcript);
+        addBusyConversationTurn("assistant", result.response || result.title || "Website request understood.", result);
+        addBusyCommandHistory({
+          transcript: result.transcript,
+          response: result.response || result.title || "Website request understood.",
+          intent: result.intent,
+          confidence: result.confidence,
+        });
+        setBusyOperatorSnapshot(context.currentSnapshot);
+        setBusyCommandStatus("ready");
+        executeBusyCommand(result);
+        return result;
+      }
+
       setBusyCommandResult(result);
       addBusyCommandHistory({
         transcript: result.transcript,
