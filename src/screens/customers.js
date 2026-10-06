@@ -336,6 +336,7 @@ function CustomerDetail({ s }) {
   }
 
   const action = s.replyActions?.[customer.id] || null;
+  const journey = s.selectedCustomerJourney || null;
   const history = Array.isArray(customer.history) ? [...customer.history] : [];
   const activity = Array.isArray(customer.activity)
     ? [...customer.activity].sort((a, b) => String(b.createdAt || b.date || "").localeCompare(String(a.createdAt || a.date || "")))
@@ -437,6 +438,119 @@ function CustomerDetail({ s }) {
           />
         ) : null}
       </Card>
+
+      {journey ? (
+        <Card
+          eyebrow="V3.31 • Customer Command Centre"
+          title={journey.nextAction?.title || "Customer journey is up to date"}
+          body={
+            journey.nextAction?.body ||
+            "BUSY has combined this customer's enquiry, live work, completed jobs, follow-ups and recorded communication into one journey."
+          }
+          footer={
+            journey.nextAction?.why ||
+            "One relationship • one timeline • no duplicate customer chasing"
+          }
+          tone={(journey.stalledSignals?.length || 0) ? "amber" : "green"}
+        >
+          <MetricRow
+            left="Journey stage"
+            right={journey.lifecycleStatus || "Customer"}
+            strong
+          />
+          <MetricRow
+            left="Completed jobs"
+            right={String(journey.relationship?.completedJobs || 0)}
+          />
+          <MetricRow
+            left="Recorded completed value"
+            right={`£${Math.round(Number(journey.relationship?.completedValue || 0))}`}
+            strong={Number(journey.relationship?.completedValue || 0) > 0}
+          />
+          <MetricRow
+            left="Recorded communications"
+            right={String(journey.relationship?.communicationCount || 0)}
+          />
+          <MetricRow
+            left="Journey warnings"
+            right={String(journey.stalledSignals?.length || 0)}
+            strong={(journey.stalledSignals?.length || 0) > 0}
+          />
+          {journey.nextAction?.actionLabel ? (
+            <Button
+              label={journey.nextAction.actionLabel}
+              primary
+              onPress={() => s.openCustomerJourneyNext(journey.nextAction)}
+            />
+          ) : null}
+          <Button
+            label={`Ask BUSY about ${String(customer.name || "this customer").split(" ")[0]}`}
+            onPress={() => s.askBusyAboutCustomer(customer.id)}
+          />
+        </Card>
+      ) : null}
+
+      {journey?.stalledSignals?.length ? (
+        <>
+          <Text style={styles.sectionLabel}>Needs attention</Text>
+          {journey.stalledSignals.map((signal) => (
+            <Card
+              key={signal.id}
+              eyebrow={signal.level === "High" ? "Stalled journey" : "Worth reviewing"}
+              title={signal.title}
+              body={signal.body}
+              tone={signal.level === "High" ? "amber" : "blue"}
+            />
+          ))}
+        </>
+      ) : null}
+
+      {journey?.timeline?.length ? (
+        <>
+          <Text style={styles.sectionLabel}>Full customer journey</Text>
+          {journey.timeline.slice(0, 12).map((item) => (
+            <View key={item.id} style={styles.customerTimelineCard}>
+              <View style={styles.activityTopRow}>
+                <View style={{ flex: 1, paddingRight: 10 }}>
+                  <Text style={styles.customerTimelineLabel}>
+                    {String(item.kind || "activity").replace(/-/g, " ").toUpperCase()}
+                  </Text>
+                  <Text style={styles.activityName}>{item.title || "Customer update"}</Text>
+                </View>
+                {item.status ? (
+                  <StatusChip
+                    label={item.status}
+                    tone={["Cancelled", "Declined"].includes(item.status) ? "blue" : "green"}
+                  />
+                ) : null}
+              </View>
+              <Text style={styles.activitySummary}>
+                {item.date ? formatUKDate(item.date) : "Date not recorded"}
+                {Number(item.value) > 0 ? ` • £${item.value}` : ""}
+              </Text>
+              {item.body ? <Text style={styles.customerHistoryNote}>{item.body}</Text> : null}
+            </View>
+          ))}
+        </>
+      ) : null}
+
+      {journey?.communicationHistory?.length ? (
+        <>
+          <Text style={styles.sectionLabel}>Communication history</Text>
+          {journey.communicationHistory.slice(0, 8).map((item) => (
+            <View key={`communication-${item.id}`} style={styles.customerHistoryRow}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={styles.customerHistoryTitle}>{item.title}</Text>
+                <Text style={styles.customerMeta}>
+                  {item.date ? formatUKDate(item.date) : "Date not recorded"}
+                  {item.status ? ` • ${item.status}` : ""}
+                </Text>
+                {item.body ? <Text style={styles.customerHistoryNote}>{item.body}</Text> : null}
+              </View>
+            </View>
+          ))}
+        </>
+      ) : null}
 
       {(customer.currentEnquiryAt || (!customer.lastServiceDate && customer.createdAt)) && !action ? (
         customer.enquiryFollowUpSentAt ? (
