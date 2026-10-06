@@ -258,8 +258,8 @@ async function uploadText(
 ) {
   const result = await supabase.storage
     .from(bucket)
-    .upload(path, new Blob([value], { type: "text/html; charset=utf-8" }), {
-      contentType: "text/html; charset=utf-8",
+    .upload(path, new Blob([value], { type: "text/html" }), {
+      contentType: "text/html",
       cacheControl,
       upsert,
     });
@@ -340,7 +340,7 @@ async function prepareDeployment(job: any, deployment: any, website: any) {
 
     const signed = await supabase.storage
       .from(PREVIEW_BUCKET)
-      .createSignedUrl(previewPath, 86400);
+      .createSignedUrl(previewPath, 31536000);
     if (signed.error) throw signed.error;
 
     const bytes = Number(downloaded.data.size || 0);
