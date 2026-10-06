@@ -21,7 +21,7 @@ function WebsiteBuilder({ s }) {
       s={s}
       title="Website Builder"
       subtitle="Build from the Brand Brain instead of starting from a blank page."
-      brandCue="V3.35 • Voice-first draft creation • nothing publishes without a later explicit publishing step."
+      brandCue="V3.36 • Voice-first building • multi-tenant hosting • explicit public Go Live approval."
     >
       <Card
         eyebrow="Website generation"
@@ -66,7 +66,7 @@ function WebsiteBuilder({ s }) {
             eyebrow="Website status"
             title={draft.businessName || "Business website"}
             body={draft.seo?.description || "No public description has been recorded yet."}
-            footer="Internal draft only — not live on the internet."
+            footer={s.websitePublishingView?.liveDeployment ? "A separate approved version is currently live." : "This editor draft is not public until an exact hosted version is approved."}
             tone="blue"
           >
             <MetricRow left="Status" right={draft.status} />
@@ -122,12 +122,27 @@ function WebsiteBuilder({ s }) {
           ))}
 
           <Card
-            eyebrow="Publishing boundary"
-            title="This website is not live"
-            body="V3.35 generates and edits the internal site model and HTML source. It does not buy a domain, alter DNS, upload hosting files or publish anything publicly."
-            footer="Those actions can be introduced behind an explicit owner-controlled publishing flow in the next sweep."
-            tone="amber"
-          />
+            eyebrow="V3.36 • Publishing & hosting"
+            title={s.websitePublishingView?.publicStatus || "Draft only"}
+            body="BUSY can now turn this editor draft into an immutable hosted preview on tenant-isolated infrastructure. Public Go Live remains a separate approval after you inspect the exact hosted version."
+            footer="Normal public page views are served as static CDN files rather than running the BUSY app or AI."
+            tone={s.websitePublishingView?.liveDeployment ? "green" : "blue"}
+          >
+            <MetricRow
+              left="Hosted preview"
+              right={s.websitePublishingView?.previewDeployment ? `v${s.websitePublishingView.previewDeployment.version_no}` : "Not prepared"}
+            />
+            <MetricRow
+              left="Live version"
+              right={s.websitePublishingView?.liveDeployment ? `v${s.websitePublishingView.liveDeployment.version_no}` : "Not live"}
+              strong={!!s.websitePublishingView?.liveDeployment}
+            />
+            <Button
+              label="Publishing & hosting"
+              primary
+              onPress={s.openWebsitePublishing}
+            />
+          </Card>
         </>
       ) : null}
 
@@ -154,8 +169,8 @@ function WebsitePreview({ s }) {
     <Shell
       s={s}
       title="Website preview"
-      subtitle="A mobile preview of the internal V3.35 website model."
-      brandCue="Preview only • not public • generated from recorded Brand Brain facts."
+      subtitle="A mobile preview of the editable website model."
+      brandCue="Editor preview • hosted preview and public Go Live are separate V3.36 deployment states."
     >
       <View style={{ alignItems: "flex-start", marginBottom: 10 }}>
         <StatusChip label={draft.publicStatus} tone="blue" />
@@ -212,13 +227,14 @@ function WebsitePreview({ s }) {
 
       <Card
         eyebrow="Source"
-        title="Static website source is already generated"
-        body="The draft includes semantic HTML and layout/theme information ready for the later publishing/hosting layer."
-        footer={`${draft.html?.length || 0} source characters • internal only`}
+        title="Static website source is generated"
+        body="V3.36 can package this draft into an immutable hosted deployment. Approved images are copied into deployment-specific website assets before anything goes public."
+        footer={`${draft.html?.length || 0} source characters • editor source`}
         tone="green"
       />
 
-      <Button label="Edit website" primary onPress={() => s.go("websiteBuilder")} />
+      <Button label="Prepare / publish website" primary onPress={s.openWebsitePublishing} />
+      <Button label="Edit website" onPress={() => s.go("websiteBuilder")} />
       <Button label="Back to Home" onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
