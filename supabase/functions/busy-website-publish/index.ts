@@ -121,8 +121,21 @@ async function ensureWebsite(
     })
     .select("*")
     .single();
-  if (created.error) throw created.error;
-  return created.data;
+
+  if (!created.error) return created.data;
+
+  if (created.error.code === "23505") {
+    const raced = await supabase
+      .from("busy_websites")
+      .select("*")
+      .eq("business_id", businessId)
+      .eq("site_key", "main")
+      .maybeSingle();
+    if (raced.error) throw raced.error;
+    if (raced.data) return raced.data;
+  }
+
+  throw created.error;
 }
 
 async function websiteForBusiness(businessId: string) {
@@ -209,6 +222,18 @@ async function enqueueJob({
   idempotencyKey: string;
   payload?: Record<string, unknown>;
 }) {
+  const active = await supabase
+    .from("busy_website_publish_jobs")
+    .select("*")
+    .eq("deployment_id", deploymentId)
+    .eq("action", action)
+    .in("status", ["queued", "processing", "retry_wait"])
+    .order("requested_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (active.error) throw active.error;
+  if (active.data) return active.data;
+
   const existing = await supabase
     .from("busy_website_publish_jobs")
     .select("*")
@@ -231,7 +256,22 @@ async function enqueueJob({
     })
     .select("*")
     .single();
-  if (created.error) throw created.error;
+  if (created.error) {
+    if (created.error.code === "23505") {
+      const raced = await supabase
+        .from("busy_website_publish_jobs")
+        .select("*")
+        .eq("deployment_id", deploymentId)
+        .eq("action", action)
+        .in("status", ["queued", "processing", "retry_wait"])
+        .order("requested_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (raced.error) throw raced.error;
+      if (raced.data) return raced.data;
+    }
+    throw created.error;
+  }
 
   const queued = await supabase.rpc("busy_enqueue_website_publish_job", {
     p_job_id: created.data.id,
@@ -316,8 +356,23 @@ async function prepare(
       })
       .select("*")
       .single();
-    if (inserted.error) throw inserted.error;
-    deployment = inserted.data;
+    if (inserted.error) {
+      if (inserted.error.code === "23505") {
+        const raced = await supabase
+          .from("busy_website_deployments")
+          .select("*")
+          .eq("website_id", website.id)
+          .eq("content_hash", contentHash)
+          .maybeSingle();
+        if (raced.error) throw raced.error;
+        if (!raced.data) throw inserted.error;
+        deployment = raced.data;
+      } else {
+        throw inserted.error;
+      }
+    } else {
+      deployment = inserted.data;
+    }
   }
 
   if (["preview_ready", "live"].includes(deployment.state)) {
