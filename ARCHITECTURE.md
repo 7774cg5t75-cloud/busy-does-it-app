@@ -79,6 +79,17 @@ This branch restructures the large single-file prototype into domain modules wit
 - `busy-calendar-oauth` is a server-side OAuth boundary. Provider client secrets, access tokens and refresh tokens never enter the React Native client or cloud business snapshot.
 - Calendar OAuth callback state is one-time and expires after ten minutes. External provider connection state is isolated from the existing device-calendar bridge.
 
+## V3.31 Customer Journey 2.0
+- `src/domain/customerJourney2.js` owns per-customer journey derivation: joined timeline, communication history, relationship totals, stalled signals and next-action selection.
+- The selector consumes the existing customer object plus its current reply action and never creates a second persistent customer-history store.
+- Timeline rows are derived from enquiry/source records, customer activity, completed-job history, current quote/booking/reminder state, review outcomes and saved follow-up outcomes.
+- Communication history is intentionally narrower than the full timeline: prepared/sent quote wording, follow-ups and review requests are separated from ordinary internal notes so BUSY does not mistake preparation for actual customer contact.
+- Customer next-action ranking preserves the existing safety/order rules: contact preference → live action → warm follow-up/outcome → completed-job follow-on → repeat timing → no forced action.
+- Stalled signals are deterministic saved-state warnings and do not autonomously send, cancel, move or create customer work.
+- `src/screens/customers.js` renders Customer Command Centre and joined journey views while reusing the existing quote/booking/reminder/review screens for any write action.
+- BUSY Operator receives a bounded per-customer journey summary through the normal owner-scoped command context. `customer_journey_summary` is answer-only and requires one unambiguous saved customer.
+- Multiple jobs stay attached to the same customer record; relationship counts/value are derived from saved job history rather than a separate CRM table.
+
 ## V3.30 Daily Command Centre / Business Brain 3.0
 - `src/domain/dailyCommandCentre.js` owns deterministic daily-priority selection and briefing-snapshot comparison. It does not mutate business records.
 - `src/screens/dailyCommandCentre.js` is the owner-facing Do now / Later today / Watch view.
