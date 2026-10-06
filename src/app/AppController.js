@@ -6256,15 +6256,25 @@ function App() {
     ? (Array.isArray(selectedJobCustomer.history) ? selectedJobCustomer.history : []).find((item) => item.id === selectedJobId) || null
     : null;
   const todayISO = dateToISO(new Date());
-  const selectedCustomerJourney = selectedCustomer
-    ? buildCustomerJourney2({
-        customer: selectedCustomer,
-        action: replyActions?.[selectedCustomer.id] || null,
+  const customerJourneys = customers
+    .map((customer) =>
+      buildCustomerJourney2({
+        customer,
+        action: replyActions?.[customer.id] || null,
         services,
         verticalId,
         todayISO,
       })
-    : null;
+    )
+    .filter(Boolean);
+  const selectedCustomerJourney =
+    customerJourneys.find((journey) => journey.customerId === selectedCustomerId) || null;
+  const customerJourneyWarningCount = customerJourneys.filter(
+    (journey) => (journey.stalledSignals?.length || 0) > 0
+  ).length;
+  const customerJourneyNextActionCount = customerJourneys.filter(
+    (journey) => !!journey.nextAction?.actionLabel
+  ).length;
   const dueReminderEntries = Object.entries(replyActions)
     .map(([id, action]) => {
       if (
