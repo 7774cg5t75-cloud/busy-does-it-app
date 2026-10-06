@@ -1465,11 +1465,7 @@ function WorkCalendar({ s }) {
 
   const openAttention = (item) => {
     if (!item) return;
-    if (item.kind === "quote") {
-      s.go("staleQuotes");
-      return;
-    }
-    if (item.kind === "reminder") {
+    if (item.kind === "quote" || item.kind === "reminder") {
       s.openSavedReplyAction(item.customerId);
       return;
     }
