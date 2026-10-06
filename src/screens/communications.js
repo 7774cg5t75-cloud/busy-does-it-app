@@ -67,6 +67,27 @@ function CommunicationsHub({ s }) {
           right={String(counts.unmatched || 0)}
           strong={(counts.unmatched || 0) > 0}
         />
+        <MetricRow
+          left="Follow-ups ready now"
+          right={String(
+            Number(s.followUpEngine?.counts?.replyNow || 0) +
+              Number(s.followUpEngine?.counts?.followUpToday || 0)
+          )}
+          strong={
+            Number(s.followUpEngine?.counts?.replyNow || 0) +
+              Number(s.followUpEngine?.counts?.followUpToday || 0) >
+            0
+          }
+        />
+        <Button
+          label="Open V3.33 Follow-up Engine"
+          primary={
+            Number(s.followUpEngine?.counts?.replyNow || 0) +
+              Number(s.followUpEngine?.counts?.followUpToday || 0) >
+            0
+          }
+          onPress={s.openFollowUpEngine}
+        />
       </Card>
 
       {(hub.unmatched || []).length ? (
@@ -178,13 +199,14 @@ function CommunicationThread({ s }) {
 
   const guard = thread.duplicateGuard || {};
   const incoming = thread.latestIncomingInterpretation || null;
+  const followUp = s.selectedFollowUpCandidate || null;
 
   return (
     <Shell
       s={s}
       title={thread.customerName}
       subtitle="Customer conversation + journey context in one place."
-      brandCue="V3.32 • BUSY can interpret and draft. You still approve customer-facing communication."
+      brandCue="V3.33 • Understand → prioritise → prepare. You still approve customer-facing communication."
     >
       <Card
         eyebrow="Conversation state"
@@ -226,6 +248,31 @@ function CommunicationThread({ s }) {
           tone={incoming.kind === "decline" || incoming.kind === "price-concern" ? "amber" : "blue"}
         >
           <MetricRow left="Interpretation confidence" right={incoming.confidence} />
+        </Card>
+      ) : null}
+
+      {followUp ? (
+        <Card
+          eyebrow="V3.33 • Follow-up decision"
+          title={followUp.title}
+          body={followUp.reason}
+          footer={
+            followUp.nextReviewDate
+              ? `Next sensible review: ${readableDate(followUp.nextReviewDate)}`
+              : "BUSY is using the saved conversation and journey state, not a generic chase timer."
+          }
+          tone={followUp.lane === "Reply now" ? "amber" : followUp.lane === "Follow up today" ? "green" : "blue"}
+        >
+          <MetricRow left="Decision" right={followUp.lane} strong={followUp.draftable} />
+          <MetricRow left="Suggested route" right={followUp.preferredChannel} />
+          <MetricRow left="Transport state" right={followUp.transportState} />
+          {followUp.draftable ? (
+            <Button
+              label="Draft this follow-up with BUSY"
+              primary
+              onPress={() => s.draftFollowUpCandidate(thread.customerId)}
+            />
+          ) : null}
         </Card>
       ) : null}
 
