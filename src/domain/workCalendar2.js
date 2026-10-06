@@ -107,9 +107,12 @@ function buildAttentionRows({
       action.details?.quoteStatus === "Sent" &&
       !action.details?.followUpSentAt
     ) {
+      const sentDate = normaliseDate(
+        String(action.details?.quoteSentAt || action.completedAt || "").slice(0, 10)
+      );
       const dueDate = normaliseDate(
         action.details?.followUpDueDate ||
-          String(action.details?.quoteSentAt || action.completedAt || "").slice(0, 10)
+          (sentDate ? addDays(sentDate, 7) : "")
       );
       if (dueDate) {
         rows.push({
