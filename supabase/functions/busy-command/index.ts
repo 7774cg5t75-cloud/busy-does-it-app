@@ -19,6 +19,9 @@ const intents = [
   "business_memory",
   "business_outlook",
   "next_best_action",
+  "calendar_day_summary",
+  "calendar_gap",
+  "calendar_fit_job",
   "operator_plan",
   "open_today",
   "open_calendar",
@@ -43,7 +46,7 @@ const intents = [
 ];
 
 const stepIntentEnum = intents.filter((intent) =>
-  !["business_summary", "business_changes", "business_memory", "business_outlook", "next_best_action", "operator_plan", "draft_refinement", "unknown"].includes(intent)
+  !["business_summary", "business_changes", "business_memory", "business_outlook", "next_best_action", "calendar_day_summary", "calendar_gap", "calendar_fit_job", "operator_plan", "draft_refinement", "unknown"].includes(intent)
 );
 
 const previewRowSchema = {
@@ -254,6 +257,15 @@ function safeContext(value: any) {
       context.activeWorkGoal && typeof context.activeWorkGoal === "object"
         ? context.activeWorkGoal
         : null,
+    calendarIntelligence:
+      context.calendarIntelligence && typeof context.calendarIntelligence === "object"
+        ? {
+            capacityHours: Math.max(0, Number(context.calendarIntelligence.capacityHours) || 0),
+            days: Array.isArray(context.calendarIntelligence.days)
+              ? context.calendarIntelligence.days.slice(0, 45)
+              : [],
+          }
+        : null,
     nextBookings: Array.isArray(context.nextBookings) ? context.nextBookings.slice(0, 12) : [],
     dueQuoteCustomers: Array.isArray(context.dueQuoteCustomers)
       ? context.dueQuoteCustomers.slice(0, 10)
@@ -315,6 +327,7 @@ Your job is conversational:
 - Never claim causation from attributed social outcomes or small samples.
 - For business_outlook, never collapse confirmed work and predicted pipeline into one factual number. State confirmed value separately, label forecast ranges as planning estimates, mention forecast confidence, and explain that quiet/light days are scheduled-load observations rather than guaranteed spare capacity.
 - For next_best_action, give ONE practical next move using the live customer-work priority first. If operationalContinuity has a high-severity recovery item that can make the records unreliable, mention that constraint. Do not manufacture work just to sound useful.
+- For calendar questions, use calendarIntelligence.days as the source of truth for scheduled load, open-capacity estimates, follow-ups, external commitments and potential overlaps. Open-capacity hours are planning guidance, never a guaranteed bookable slot.
 
 Supported direct intents:
 - business_summary: factual answer from current context.
@@ -322,6 +335,9 @@ Supported direct intents:
 - business_memory: explain what BUSY has learned over time, why an optional recommendation has moved up/down, or what evidence currently has the strongest influence. Use businessMemory only.
 - business_outlook: answer questions about today, next week, the next 30 days, pipeline, capacity load, forecast range, risk radar, scenarios or whether the business is on track. Use executiveBriefing and clearly separate confirmed values from forecast ranges.
 - next_best_action: answer "what should I do now/next?" with one record-backed priority. This is an answer, not blanket action authority.
+- calendar_day_summary: answer "what have I got [day]?" or "how busy is [day]?" from one resolved calendarIntelligence day. Include booked jobs/value, scheduled hours, estimated open hours, follow-ups, external commitments and conflicts when relevant.
+- calendar_gap: answer "where have I got a gap?" with the earliest sensible future Open/Light day from calendarIntelligence.days, excluding days with conflicts. Mention a supplied fillCandidate only as a suggestion, never as a booked job.
+- calendar_fit_job: answer whether a requested day appears to have planning capacity for another job. Compare estimatedOpenHours with the requested/inferred service durationHours when available. If no service/duration is known, state the open-hours estimate and ask what kind of job rather than claiming it fits.
 - operator_plan: 2-5 sequenced safe steps.
 - open_today, open_calendar, open_quote_followups, open_repeat_customers, find_more_work, customer_lookup.
 - create_booking: confirm a new BUSY booking for one saved customer. MUST require confirmation and needs an exact customer, date and time. Value is optional.
@@ -360,6 +376,8 @@ Customer/date rules:
 7. add_customer_note requires non-empty note text.
 8. set_reminder requires a date. If the customer context shows another saved actionType such as a quote or booking, do not claim the reminder can overwrite it; explain that the existing customer work must be reviewed first.
 9. open_calendar can carry a resolved date so BUSY opens that exact day. Resolve "today", "tomorrow", weekdays and clear relative dates against context.today.
+10. calendar_day_summary and calendar_fit_job should carry the resolved date in date. calendar_gap should carry the recommended gap date when one is clear.
+11. For calendar_fit_job, put the relevant service name in service when the owner named one or when the current conversation unambiguously supplies it.
 
 Preview rules:
 - For any record-changing action, previewRows should clearly show the fields that would change.
@@ -545,7 +563,7 @@ Deno.serve(async (request: Request) => {
       backend: {
         commandModel: Deno.env.get("OPENAI_COMMAND_MODEL") || DEFAULT_COMMAND_MODEL,
         transcriptionModel: Deno.env.get("OPENAI_TRANSCRIBE_MODEL") || DEFAULT_TRANSCRIBE_MODEL,
-        operatorVersion: "3.28",
+        operatorVersion: "3.29",
       },
     });
   } catch (error) {
