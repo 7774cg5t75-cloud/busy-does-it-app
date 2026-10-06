@@ -126,8 +126,11 @@ function sanitizeRequest(body: any) {
 
   const services = (Array.isArray(body?.services) ? body.services : [])
     .slice(0, 30)
-    .map((service: any) => cleanText(service?.name, 180))
-    .filter(Boolean);
+    .map((service: any) => ({
+      name: cleanText(service?.name, 180),
+      description: cleanText(service?.description, 700),
+    }))
+    .filter((service: any) => service.name);
   const ownerRules = (Array.isArray(body?.ownerRules) ? body.ownerRules : [])
     .slice(0, 30)
     .map((rule: unknown) => cleanText(rule, 500))
@@ -141,6 +144,17 @@ function sanitizeRequest(body: any) {
     serviceHint: cleanText(body?.serviceHint, 180),
     brief: cleanText(body?.brief, 1800),
     services,
+    brandIdentity:
+      body?.brandIdentity && typeof body.brandIdentity === "object"
+        ? {
+            tagline: cleanText(body.brandIdentity.tagline, 300),
+            publicDescription: cleanText(body.brandIdentity.publicDescription, 1200),
+            serviceAreaText: cleanText(body.brandIdentity.serviceAreaText, 500),
+            toneOfVoice: cleanText(body.brandIdentity.toneOfVoice, 200),
+            visualStyle: cleanText(body.brandIdentity.visualStyle, 200),
+            differentiators: cleanText(body.brandIdentity.differentiators, 1200),
+          }
+        : null,
     ownerRules,
     photos: cleanPhotos
   };
@@ -148,8 +162,34 @@ function sanitizeRequest(body: any) {
 
 function buildPrompt(input: any) {
   const services = input.services.length
-    ? input.services.map((name: string) => `- ${name}`).join("\n")
+    ? input.services
+        .map((service: any) =>
+          service.description
+            ? `- ${service.name}: ${service.description}`
+            : `- ${service.name}`
+        )
+        .join("\n")
     : "- No service list supplied";
+  const brandIdentity = input.brandIdentity
+    ? [
+        input.brandIdentity.tagline ? `Tagline: ${input.brandIdentity.tagline}` : "",
+        input.brandIdentity.publicDescription
+          ? `Public description: ${input.brandIdentity.publicDescription}`
+          : "",
+        input.brandIdentity.serviceAreaText
+          ? `Service area wording: ${input.brandIdentity.serviceAreaText}`
+          : "",
+        input.brandIdentity.toneOfVoice
+          ? `Tone of voice: ${input.brandIdentity.toneOfVoice}`
+          : "",
+        input.brandIdentity.visualStyle
+          ? `Visual direction: ${input.brandIdentity.visualStyle}`
+          : "",
+        input.brandIdentity.differentiators
+          ? `Recorded differentiators: ${input.brandIdentity.differentiators}`
+          : "",
+      ].filter(Boolean).join("\n")
+    : "";
   const ownerRules = input.ownerRules.length
     ? input.ownerRules.map((rule: string) => `- ${rule}`).join("\n")
     : "- No owner rules saved";
@@ -166,6 +206,9 @@ Owner brief: ${input.brief || "(none)"}
 Known services:
 ${services}
 
+Recorded Brand Brain identity (use only what is present; never fill blanks with guesses):
+${brandIdentity || "- No additional brand identity saved"}
+
 Owner-set Business Brain rules (highest authority for this content task):
 ${ownerRules}
 
@@ -180,7 +223,7 @@ Rules:
    - one straightforward/local-business option,
    - one concise/results-led option,
    - one warmer/conversational option.
-8. Keep UK English natural and useful. Avoid excessive hashtags, emojis, hype, "game-changer", "transform your space", and other generic AI-marketing language.
+8. Keep UK English natural and useful. When a Brand Brain tone of voice is recorded, use it as the default writing style without copying the wording mechanically. Avoid excessive hashtags, emojis, hype, "game-changer", "transform your space", and other generic AI-marketing language.
 9. Captions should work without exposing customer identity. A simple call to message the business for a quote is fine.
 10. Recommend only Facebook, Instagram and/or Google Business, and explain briefly why each caption suits those channels.
 11. This is organic content. Do not suggest paid spend.
