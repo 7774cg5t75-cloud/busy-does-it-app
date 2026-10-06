@@ -2,6 +2,56 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.36 Multi-Tenant Website Publishing Platform
+### Tenant boundary
+- The fundamental key is `business_id`, not user ID, filename or device ID.
+- `busy_websites` owns one or more website projects for a business; V3.36 currently uses the `main` site key while retaining a one-business/many-sites schema.
+- `busy_website_deployments`, `busy_website_domains` and `busy_website_publish_jobs` all repeat the business tenant ID deliberately so policies, indexes, audit queries and worker checks do not need to infer tenancy from opaque paths.
+- Existing `busy_business_memberships` remains the authority for tenant access. Members may read their tenant website metadata; only owner/admin requests may prepare/publish/rollback or create/verify domain records through the server API.
+
+### Immutable deployments and live alias
+- Each website deployment receives an atomic version number and content hash.
+- A database trigger makes tenant/site/version/source/hash/source-draft fields immutable after creation.
+- The public live site is not an editable deployment row. It is a stable CDN object plus `current_live_deployment_id` pointer to one immutable approved deployment.
+- Publishing a newer version marks the previous current deployment superseded but retains it as a rollback target.
+- Rollback regenerates the stable live alias from an already-published immutable deployment; it does not mutate historical source content.
+
+### Queued publishing
+- `busy_website_publish_jobs` is the durable audit/status record.
+- Postgres queue `busy_website_publish` carries only server-side job IDs.
+- A partial unique index allows only one active `prepare`, `publish` or `rollback` job for a deployment at a time, protecting against duplicate taps and concurrent devices.
+- `busy-website-publish` accepts authenticated app requests, verifies business membership and performs no heavy hosting work synchronously.
+- `busy-website-worker` is stateless and server-only. It pulls batches from the durable queue, writes status, prepares assets/HTML, retries failures and archives completed messages.
+- A Supabase Cron job wakes the worker every minute through a private token stored in `busy_internal_config`. App requests may also wake the worker immediately.
+- This lets worker concurrency/capacity scale separately from app traffic.
+
+### Storage/CDN model
+- Original customer/job/social images remain in private BUSY source storage.
+- Hosted preview assets are copied only from recorded approved storage paths into the private `busy-website-preview` bucket.
+- Public deployment assets are copied into `busy-website-public` under `business_id/website_id/deployments/deployment_id` paths.
+- Immutable public assets/version pages may use long CDN caching; the stable `business_id/website_id/live/index.html` alias uses a short cache lifetime so approved version switches propagate quickly.
+- Public visitors load static files. Normal site traffic does not execute BUSY AI, load the business snapshot or require the mobile app.
+
+### Go Live safety
+- Preparing a hosted preview is non-public and may be initiated without a publication confirmation.
+- Publishing and rollback are public-state changes and require an explicit native owner confirmation naming the exact version.
+- BUSY Operator intents for Go Live/rollback only route the owner to the review flow; voice alone cannot publish.
+- `ownerApproved=true` is required again at the server API boundary, so the UI is not the only safety control.
+
+### Domains
+- `busy_website_domains` reserves each hostname globally to one website/business.
+- V3.36 supports DNS TXT ownership verification using `_busy-verify.<hostname>` and a tenant-scoped verification token.
+- Domain ownership, DNS routing and TLS/SSL are intentionally separate states.
+- `routing_provider='unassigned'` and `ssl_status='pending'` remain truthful until a real custom-domain routing provider is connected. V3.36 does not fake DNS changes, certificate issuance or domain purchase.
+
+### Scale properties
+- Tenant data is indexed by business and common deployment/job state paths.
+- Public read traffic is offloaded to Storage/CDN.
+- Deployment work is asynchronous/durable and can be processed by additional workers.
+- Identical draft content is content-hash deduplicated per website.
+- Site creation, deployment creation and publish jobs have race/concurrency protection.
+- Failure for one business is recorded against that tenant/deployment/job and does not alter another business's live pointer.
+
 ## V3.35 Website Builder
 - `src/domain/websiteBuilder.js` consumes `brandBrain.websiteBrief` and produces one persisted `websiteDraft`. Brand Brain remains the source of business/public identity truth; Website Builder owns presentation structure only.
 - The draft is intentionally structured before it is rendered: theme, sections, SEO metadata, readiness snapshot, source summary and publish state are stored separately from generated HTML.
