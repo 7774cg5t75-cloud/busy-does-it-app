@@ -689,10 +689,25 @@ async function processMessage(message: any) {
   }
 }
 
+async function validWorkerRequest(request: Request) {
+  const authorization = request.headers.get("Authorization") || "";
+  if (authorization === `Bearer ${SERVICE_ROLE_KEY}`) return true;
+
+  const supplied = request.headers.get("x-busy-worker-token") || "";
+  if (!supplied) return false;
+
+  const token = await supabase
+    .from("busy_internal_config")
+    .select("value")
+    .eq("key", "website_worker_token")
+    .maybeSingle();
+  if (token.error || !token.data?.value) return false;
+  return supplied === token.data.value;
+}
+
 Deno.serve(async (request: Request) => {
   if (request.method !== "POST") return json(405, { error: "POST required" });
-  const authorization = request.headers.get("Authorization") || "";
-  if (authorization !== `Bearer ${SERVICE_ROLE_KEY}`) {
+  if (!(await validWorkerRequest(request))) {
     return json(401, { error: "Internal BUSY worker authentication required." });
   }
 
