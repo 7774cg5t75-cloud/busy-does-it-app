@@ -168,6 +168,7 @@ import { buildCustomerJourney2 } from "../domain/customerJourney2";
 import { buildCommunicationsHub } from "../domain/communicationsHub";
 import { buildFollowUpEngine } from "../domain/followUpEngine";
 import { buildBrandBrain } from "../domain/brandBrain";
+import { buildWebsiteDraft, applyWebsiteInstruction } from "../domain/websiteBuilder";
 import { BusyBrandLockup } from "../components/ui";
 import { screens, HomeScreen, AccountAccess } from "../screens";
 
@@ -234,6 +235,8 @@ function App() {
   const [newBrandFaqAnswer, setNewBrandFaqAnswer] = useState("");
   const [newBrandTestimonialText, setNewBrandTestimonialText] = useState("");
   const [newBrandTestimonialAttribution, setNewBrandTestimonialAttribution] = useState("");
+  const [websiteDraft, setWebsiteDraft] = useState(null);
+  const [websiteBuilderNotice, setWebsiteBuilderNotice] = useState("");
   const [quietSlot, setQuietSlot] = useState("Thursday afternoon");
   const [quietSlotConfirmed, setQuietSlotConfirmed] = useState(false);
   const [unansweredReviewCount, setUnansweredReviewCount] = useState("4");
@@ -691,6 +694,7 @@ function App() {
       postcode,
       radius,
       brandProfile,
+      websiteDraft,
       quietSlot,
       quietSlotConfirmed,
       activeWorkGoal,
@@ -757,6 +761,7 @@ function App() {
     postcode,
     radius,
     brandProfile,
+    websiteDraft,
     quietSlot,
     quietSlotConfirmed,
     activeWorkGoal,
@@ -1898,6 +1903,7 @@ function App() {
     postcode,
     radius,
     brandProfile,
+    websiteDraft,
     quietSlot,
     quietSlotConfirmed,
     activeWorkGoal,
@@ -1964,6 +1970,11 @@ function App() {
           ? saved.brandProfile.testimonials.slice(0, 12)
           : [],
       });
+    }
+    if (saved.websiteDraft && typeof saved.websiteDraft === "object") {
+      setWebsiteDraft(saved.websiteDraft);
+    } else if (saved.websiteDraft === null) {
+      setWebsiteDraft(null);
     }
     if (saved.quietSlot) setQuietSlot(saved.quietSlot);
     if (typeof saved.quietSlotConfirmed === "boolean") setQuietSlotConfirmed(saved.quietSlotConfirmed);
@@ -6079,6 +6090,8 @@ function App() {
     setNewBrandFaqAnswer("");
     setNewBrandTestimonialText("");
     setNewBrandTestimonialAttribution("");
+    setWebsiteDraft(null);
+    setWebsiteBuilderNotice("");
     setQuietSlot("Thursday afternoon");
     setQuietSlotConfirmed(false);
     setSelectedGap("");
@@ -11041,6 +11054,27 @@ function App() {
           faqCount: Number(brandBrain?.summary?.faqCount || 0),
         },
       },
+      websiteBuilder: {
+        hasDraft: !!websiteDraft,
+        status: websiteDraft?.status || "",
+        publicStatus: websiteDraft?.publicStatus || "Not published",
+        generation: Number(websiteDraft?.generation || 0),
+        theme: websiteDraft?.theme || null,
+        visibleSections: (websiteDraft?.sections || [])
+          .filter((section) => section.enabled !== false)
+          .map((section) => ({
+            id: section.id || "",
+            type: section.type || "",
+            title: section.title || "",
+          })),
+        readiness: websiteDraft?.readiness || {
+          websiteReady: !!brandBrain?.websiteReady,
+          label: brandBrain?.websiteReadinessLabel || "",
+          missing: brandBrain?.missingForWebsite || [],
+          identityScore: Number(brandBrain?.completeness?.score || 0),
+        },
+        publishingEnabled: false,
+      },
       businessMemory: {
         lastReviewedAt: businessMemoryLastReviewAt,
         strongestPattern: strongestBusinessMemoryPattern
@@ -12099,6 +12133,61 @@ function App() {
     return true;
   };
 
+  const buildWebsiteFromBrandBrain = () => {
+    const next = buildWebsiteDraft({
+      brandBrain,
+      previousDraft: websiteDraft,
+    });
+    setWebsiteDraft(next);
+    setWebsiteBuilderNotice(
+      brandBrain.websiteReady
+        ? "Website draft rebuilt from the latest Brand Brain."
+        : "Website draft created with missing business facts left visibly incomplete."
+    );
+    setTab("Home");
+    go("websitePreview");
+    return true;
+  };
+
+  const applyWebsiteChange = (instruction) => {
+    if (!websiteDraft) {
+      setWebsiteBuilderNotice("Build the first website draft before changing it.");
+      return false;
+    }
+    const result = applyWebsiteInstruction(websiteDraft, instruction);
+    setWebsiteBuilderNotice(result.reason || "");
+    if (!result.applied) return false;
+    setWebsiteDraft(result.draft);
+    return true;
+  };
+
+  const openWebsiteBuilder = () => {
+    setTab("Home");
+    go("websiteBuilder");
+    return true;
+  };
+
+  const askBusyToBuildWebsite = () => {
+    openTalkToBusy(true);
+    setTimeout(() => {
+      if (!busyCommandStatus || busyCommandStatus === "idle") {
+        setWebsiteBuilderNotice('Say “BUSY, build me a website” and BUSY will use the Brand Brain.');
+      }
+    }, 80);
+    return true;
+  };
+
+  const askBusyToEditWebsite = () => {
+    if (!websiteDraft) return askBusyToBuildWebsite();
+    openTalkToBusy(true);
+    setTimeout(() => {
+      setWebsiteBuilderNotice(
+        'Tell BUSY the change, for example “make the main photo bigger” or “make the website feel more premium”.'
+      );
+    }, 80);
+    return true;
+  };
+
   const openCommunicationsHub = () => {
     setTab("Work");
     go("communicationsHub");
@@ -12227,6 +12316,14 @@ function App() {
     removeBrandTestimonial,
     openBrandIdentity,
     askBusyAboutBrandIdentity,
+    websiteDraft,
+    setWebsiteDraft,
+    websiteBuilderNotice,
+    buildWebsiteFromBrandBrain,
+    applyWebsiteChange,
+    openWebsiteBuilder,
+    askBusyToBuildWebsite,
+    askBusyToEditWebsite,
     quietSlot,
     setQuietSlot,
     quietSlotConfirmed,
