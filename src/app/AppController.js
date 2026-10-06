@@ -164,6 +164,7 @@ import {
 } from "../domain/operator2";
 import { buildWorkCalendarIntelligence } from "../domain/workCalendar2";
 import { buildDailyCommandCentre } from "../domain/dailyCommandCentre";
+import { buildCustomerJourney2 } from "../domain/customerJourney2";
 import { BusyBrandLockup } from "../components/ui";
 import { screens, HomeScreen, AccountAccess } from "../screens";
 
@@ -6255,6 +6256,15 @@ function App() {
     ? (Array.isArray(selectedJobCustomer.history) ? selectedJobCustomer.history : []).find((item) => item.id === selectedJobId) || null
     : null;
   const todayISO = dateToISO(new Date());
+  const selectedCustomerJourney = selectedCustomer
+    ? buildCustomerJourney2({
+        customer: selectedCustomer,
+        action: replyActions?.[selectedCustomer.id] || null,
+        services,
+        verticalId,
+        todayISO,
+      })
+    : null;
   const dueReminderEntries = Object.entries(replyActions)
     .map(([id, action]) => {
       if (
