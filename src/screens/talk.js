@@ -193,6 +193,11 @@ function TalkToBusy({ s }) {
           onPress={() => s.submitBusyCommand({ text: "What customer work needs chasing first?" })}
         />
         <Button
+          label="Who am I waiting to hear back from?"
+          disabled={s.busyCommandStatus === "thinking"}
+          onPress={() => s.submitBusyCommand({ text: "Who am I waiting to hear back from, and who actually needs a reply from me?" })}
+        />
+        <Button
           label="Where have I got a gap?"
           disabled={s.busyCommandStatus === "thinking"}
           onPress={() => s.submitBusyCommand({ text: "Where have I got a sensible gap for another job?" })}
