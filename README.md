@@ -2,6 +2,20 @@
 
 Busy Does It mobile app prototype.
 
+## v3.33 Follow-up Engine / Communications Bridge
+- Built directly on the tested V3.32 Communications Hub branch.
+- Added `src/domain/followUpEngine.js` as a deterministic prioritisation layer over Communications Hub; it does not create another customer or message store.
+- Customer communication is separated into **Reply now**, **Follow up today**, **Waiting**, **No chase**, and **Do not contact** so BUSY does not manufacture activity just because a conversation exists.
+- Newer incoming communication and pending matched Inbox items outrank ordinary chasing. Contact preference and duplicate-contact protection remain authoritative.
+- Waiting customers get a sensible review date derived from the latest recorded outbound contact and the type of journey follow-up, without claiming that a timer alone makes another message appropriate.
+- Added warm opportunity recovery for existing enquiry/quote journeys where saved evidence genuinely supports a follow-up. These opportunities remain distinct from cold acquisition or advertising.
+- Added provider-ready communication state: BUSY can model preferred contact route and preparation/delivery state now, while real SMS/email/WhatsApp sending remains disabled and can later attach behind the same approval boundary.
+- Added the V3.33 Follow-up Engine screen with top priority, ready-to-prepare items, waiting safeguards, recovery opportunities and provider readiness.
+- Home, Work, Communications Hub and individual customer conversation screens now surface the same Follow-up Engine state.
+- BUSY Operator receives the same ranked follow-up context and can answer “Who should I chase today?” while preserving **Reply now → Follow up today → Waiting** rather than inventing work.
+- Drafting remains one customer at a time through the existing BUSY reply-draft path. Prepared wording is never recorded as sent.
+- The signed native iOS build remains an independent Apple provisioning gate; V3.33 remains testable through the existing Expo Go path.
+
 ## v3.32 Communications Hub / Unified Inbox 2.0
 - Built directly on the provisionally accepted V3.31 Customer Journey 2.0 branch.
 - Added `src/domain/communicationsHub.js` as a deterministic communication layer that joins customer-facing communication around the existing customer journey instead of creating a second CRM/message store.
