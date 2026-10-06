@@ -1019,6 +1019,11 @@ function HomeScreen({ s }) {
           }
           strong={!!s.websiteDraft}
         />
+        <MetricRow
+          left="Website hosting"
+          right={s.websitePublishingView?.publicStatus || "Not checked"}
+          strong={!!s.websitePublishingView?.liveDeployment}
+        />
         <Button label="Daily Command Centre" onPress={() => s.go("dailyCommandCentre")} />
         <Button label="Follow-up Engine" onPress={() => s.openFollowUpEngine()} />
         <Button label="Communications Hub" onPress={() => s.openCommunicationsHub()} />
@@ -1026,6 +1031,12 @@ function HomeScreen({ s }) {
         <Button label="Business Memory" onPress={() => s.go("businessMemory")} />
         <Button label="Brand & Business Identity" onPress={s.openBrandIdentity} />
         <Button label={s.websiteDraft ? "Website Builder & preview" : "Build my website"} onPress={s.openWebsiteBuilder} />
+        {s.websiteDraft ? (
+          <Button
+            label={s.websitePublishingView?.liveDeployment ? "Website publishing & live site" : "Prepare website hosting"}
+            onPress={s.openWebsitePublishing}
+          />
+        ) : null}
         <Button label="Continuity Centre" onPress={() => s.go("operationalContinuity")} />
         <Button label="Release Core" onPress={() => s.go("releaseCore")} />
       </Card>
