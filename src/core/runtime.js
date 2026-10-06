@@ -1,5 +1,5 @@
-const APP_VERSION = "3.29";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Work & Calendar 2.0`;
+const APP_VERSION = "3.30";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Daily Command Centre`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
