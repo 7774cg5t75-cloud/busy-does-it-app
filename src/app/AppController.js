@@ -10868,6 +10868,13 @@ function App() {
       customers: customers.slice(0, 60).map((customer) => {
         const action = replyActions?.[customer.id] || null;
         const job = latestBusyCompletedJob(customer);
+        const journey = buildCustomerJourney2({
+          customer,
+          action,
+          services,
+          verticalId,
+          todayISO: today,
+        });
         return {
           name: customer.name || "",
           service: customer.service || "",
@@ -10889,6 +10896,52 @@ function App() {
           reminderStatus: action?.type === "reminder" ? action.details?.reminderStatus || "" : "",
           latestCompletedJobDate: job?.date || "",
           latestCompletedJobValue: Number(job?.value) || 0,
+          journey: journey
+            ? {
+                lifecycleStatus: journey.lifecycleStatus || "",
+                completedJobs: Number(journey.relationship?.completedJobs || 0),
+                completedValue: Number(journey.relationship?.completedValue || 0),
+                communicationCount: Number(journey.relationship?.communicationCount || 0),
+                repeatDueDate: journey.relationship?.repeatDueDate || "",
+                currentAction: journey.currentAction
+                  ? {
+                      label: journey.currentAction.label || "",
+                      status: journey.currentAction.status || "",
+                      summary: journey.currentAction.summary || "",
+                      date: journey.currentAction.date || "",
+                      time: journey.currentAction.time || "",
+                      value: Number(journey.currentAction.value || 0),
+                    }
+                  : null,
+                stalledSignals: (journey.stalledSignals || []).slice(0, 6).map((item) => ({
+                  level: item.level || "",
+                  title: item.title || "",
+                  body: item.body || "",
+                })),
+                nextAction: journey.nextAction
+                  ? {
+                      kind: journey.nextAction.kind || "",
+                      title: journey.nextAction.title || "",
+                      body: journey.nextAction.body || "",
+                      why: journey.nextAction.why || "",
+                    }
+                  : null,
+                timeline: (journey.timeline || []).slice(0, 12).map((item) => ({
+                  kind: item.kind || "",
+                  date: item.date || "",
+                  title: item.title || "",
+                  body: item.body || "",
+                  status: item.status || "",
+                  value: Number(item.value || 0),
+                })),
+                communications: (journey.communicationHistory || []).slice(0, 10).map((item) => ({
+                  date: item.date || "",
+                  title: item.title || "",
+                  body: item.body || "",
+                  status: item.status || "",
+                })),
+              }
+            : null,
         };
       }),
     };
