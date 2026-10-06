@@ -978,6 +978,8 @@ function HomeScreen({ s }) {
         <MetricRow left="Proactive reminders" right={s.proactiveNotificationsEnabled ? String(Object.keys(s.proactiveScheduledMap || {}).length) : "Off"} />
         <MetricRow left="Diary" right={s.diaryConnection?.status === "connected" ? "Connected" : "Not connected"} />
         <MetricRow left="Continuity" right={s.operationalContinuity?.status || "All clear"} />
+        <MetricRow left="Daily briefing" right={s.dailyCommandCentre?.status || "Clear"} />
+        <Button label="Daily Command Centre" onPress={() => s.go("dailyCommandCentre")} />
         <Button label="Executive Briefing" onPress={() => s.go("executiveBriefing")} />
         <Button label="Business Memory" onPress={() => s.go("businessMemory")} />
         <Button label="Continuity Centre" onPress={() => s.go("operationalContinuity")} />
