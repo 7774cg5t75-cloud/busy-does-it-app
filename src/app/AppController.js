@@ -11827,6 +11827,56 @@ function App() {
         );
         return true;
       }
+      case "website_build": {
+        const nextDraft = buildWebsiteDraft({
+          brandBrain,
+          previousDraft: websiteDraft,
+        });
+        setWebsiteDraft(nextDraft);
+        setWebsiteBuilderNotice(
+          brandBrain.websiteReady
+            ? "BUSY built the website draft from the recorded Brand Brain."
+            : "BUSY built a partial website draft and left missing business facts unfilled."
+        );
+        markBusyCommandApplied(
+          command,
+          "Website draft built",
+          "Your internal website draft is ready to preview. Nothing has been published or connected to a domain."
+        );
+        jump("websitePreview", "Home");
+        return true;
+      }
+      case "website_edit": {
+        if (!websiteDraft) {
+          setWebsiteBuilderNotice("Build the first website draft before applying website changes.");
+          jump("websiteBuilder", "Home");
+          return false;
+        }
+        const result = applyWebsiteInstruction(
+          websiteDraft,
+          command.note || command.transcript || ""
+        );
+        setWebsiteBuilderNotice(result.reason || "");
+        if (!result.applied) {
+          setBusyCommandError(
+            result.reason ||
+              "BUSY understood the website request but could not safely apply that change automatically."
+          );
+          jump("websiteBuilder", "Home");
+          return false;
+        }
+        setWebsiteDraft(result.draft);
+        markBusyCommandApplied(
+          command,
+          "Website draft updated",
+          `${result.reason} The change is saved to the internal draft only; nothing was published.`
+        );
+        jump("websitePreview", "Home");
+        return true;
+      }
+      case "open_website":
+        jump(websiteDraft ? "websitePreview" : "websiteBuilder", "Home");
+        return true;
       case "social_post": {
         if (customer) {
           const job = latestBusyCompletedJob(customer);
