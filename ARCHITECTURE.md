@@ -79,6 +79,18 @@ This branch restructures the large single-file prototype into domain modules wit
 - `busy-calendar-oauth` is a server-side OAuth boundary. Provider client secrets, access tokens and refresh tokens never enter the React Native client or cloud business snapshot.
 - Calendar OAuth callback state is one-time and expires after ten minutes. External provider connection state is isolated from the existing device-calendar bridge.
 
+## V3.32 Communications Hub / Unified Inbox 2.0
+- `src/domain/communicationsHub.js` derives communication threads and lane status from existing customer journeys, source records and pending BUSY Inbox items. It does not persist a parallel conversation database.
+- Thread lanes are deterministic: pending matched incoming or communication-specific high-severity stalls → Needs attention; latest real outbound contact newer than incoming → Awaiting customer; safe communication preparation → Draft ready; otherwise Done.
+- Duplicate-contact protection compares only communication explicitly recorded as sent against newer saved incoming communication. Prepared drafts and internal outcome records do not count as customer contact.
+- Incoming-message intent helpers are deliberately bounded heuristics. They can label likely acceptance, scheduling, price/scope concern, feedback, decline or question, but those labels are not allowed to mutate business records.
+- `src/screens/communications.js` owns the Communications Hub and per-customer Communication Thread views.
+- Unmatched incoming information stays in the existing BUSY Inbox review/filing flow. The communications layer never guesses a customer match.
+- Customer Journey remains the lifecycle source of truth; Communications Hub is the conversation projection over that journey.
+- BUSY Operator receives a bounded Communications Hub context. `communications_summary` and `customer_communication_summary` are answer-only.
+- `customer_reply_draft` can produce editable wording only when one customer is unambiguous, contact is allowed and the duplicate-contact guard is clear. It has no send authority.
+- Real provider-specific SMS/email/WhatsApp sending is intentionally not implemented in this sweep; future providers can attach behind the same thread/approval model.
+
 ## V3.31 Customer Journey 2.0
 - `src/domain/customerJourney2.js` owns per-customer journey derivation: joined timeline, communication history, relationship totals, stalled signals and next-action selection.
 - The selector consumes the existing customer object plus its current reply action and never creates a second persistent customer-history store.
