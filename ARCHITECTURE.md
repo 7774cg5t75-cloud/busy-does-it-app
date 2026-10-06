@@ -2,6 +2,18 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.33 Follow-up Engine / Communications Bridge
+- `src/domain/followUpEngine.js` is a pure prioritisation layer over V3.32 Communications Hub. It consumes communication threads and returns follow-up lanes, review timing, recovery opportunities and provider-readiness state without persisting a second communication model.
+- Lane order is intentional: **Reply now** outranks **Follow up today**; **Waiting** suppresses duplicate chasing; **No chase** and **Do not contact** prevent BUSY from inventing unnecessary outbound work.
+- Incoming customer evidence outranks chase timers. Contact preference and the V3.32 duplicate-contact guard remain hard constraints.
+- Waiting review dates are guidance only. They do not themselves create send authority or prove that another message is appropriate.
+- Warm recovery is limited to saved enquiry/quote follow-up journeys and remains separate from cold marketing.
+- `src/screens/followUpEngine.js` is the owner-facing prioritisation/review surface. Draft preparation routes through the existing one-customer BUSY reply-draft path.
+- Provider bridge fields model channel availability and transport state without claiming a real provider send. Future SMS/email/WhatsApp providers must attach behind the same customer thread + approval boundary.
+- Home, Work, Communications Hub and Communication Thread all read the same Follow-up Engine object from AppController.
+- BUSY Operator receives a bounded Follow-up Engine context. Chase/follow-up questions must preserve the deterministic lanes and may not promote a Waiting customer merely to create activity.
+- V3.33 does not grant autonomous customer-send authority.
+
 ## Entry
 - `BusyDoesItApp.js` — tiny root entry point.
 - `src/app/AppController.js` — central state/orchestration layer and navigation handoff.
