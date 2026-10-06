@@ -163,6 +163,7 @@ import {
   validateOperatorCommand,
 } from "../domain/operator2";
 import { buildWorkCalendarIntelligence } from "../domain/workCalendar2";
+import { buildDailyCommandCentre } from "../domain/dailyCommandCentre";
 import { BusyBrandLockup } from "../components/ui";
 import { screens, HomeScreen, AccountAccess } from "../screens";
 
@@ -322,6 +323,7 @@ function App() {
   const [busyActionAudit, setBusyActionAudit] = useState([]);
   const [busyUndoAction, setBusyUndoAction] = useState(null);
   const [operatorCalendarDate, setOperatorCalendarDate] = useState("");
+  const [dailyCommandCheckpoint, setDailyCommandCheckpoint] = useState(null);
   const [autopilotMode, setAutopilotMode] = useState("prepare");
   const [autopilotRuleDraft, setAutopilotRuleDraft] = useState("");
   const [autopilotLastCheckAt, setAutopilotLastCheckAt] = useState("");
@@ -548,6 +550,9 @@ function App() {
         if (saved.busyOperatorSnapshot && typeof saved.busyOperatorSnapshot === "object") {
           setBusyOperatorSnapshot(saved.busyOperatorSnapshot);
         }
+        if (saved.dailyCommandCheckpoint && typeof saved.dailyCommandCheckpoint === "object") {
+          setDailyCommandCheckpoint(saved.dailyCommandCheckpoint);
+        }
         if (Array.isArray(saved.busyActionAudit)) {
           setBusyActionAudit(saved.busyActionAudit.slice(0, 30));
         }
@@ -657,6 +662,7 @@ function App() {
       busyCommandHistory,
       busyConversationTurns,
       busyOperatorSnapshot,
+      dailyCommandCheckpoint,
       busyActionAudit,
       autopilotMode,
       autopilotLastCheckAt,
@@ -721,6 +727,7 @@ function App() {
     busyCommandHistory,
     busyConversationTurns,
     busyOperatorSnapshot,
+    dailyCommandCheckpoint,
     busyActionAudit,
     autopilotMode,
     autopilotLastCheckAt,
@@ -1860,6 +1867,7 @@ function App() {
     busyCommandHistory,
     busyConversationTurns,
     busyOperatorSnapshot,
+    dailyCommandCheckpoint,
     busyActionAudit,
     autopilotMode,
     autopilotLastCheckAt,
@@ -1950,6 +1958,9 @@ function App() {
     }
     if (saved.busyOperatorSnapshot && typeof saved.busyOperatorSnapshot === "object") {
       setBusyOperatorSnapshot(saved.busyOperatorSnapshot);
+    }
+    if (saved.dailyCommandCheckpoint && typeof saved.dailyCommandCheckpoint === "object") {
+      setDailyCommandCheckpoint(saved.dailyCommandCheckpoint);
     }
     if (Array.isArray(saved.busyActionAudit)) {
       setBusyActionAudit(saved.busyActionAudit.slice(0, 30));
