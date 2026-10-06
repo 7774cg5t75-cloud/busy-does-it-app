@@ -9041,6 +9041,60 @@ function App() {
     productionReadiness,
   });
 
+  const dailyCommandCentre = buildDailyCommandCentre({
+    todayISO: executiveTodayISO,
+    executiveBriefing,
+    workCalendarIntelligence,
+    operationalContinuity,
+    releaseCoreHealth,
+    autopilotApprovalItems,
+    autopilotNeedsInputItems,
+    inboxNeedsAttentionItems,
+    dueReminderEntries,
+    dueQuoteEntries,
+    staleEnquiryEntries,
+    activeWorkGoal,
+    workGoalRemainingJobs,
+    workGoalFilled,
+    businessMemoryChanges,
+    proactiveNotices,
+    previousCheckpoint: dailyCommandCheckpoint,
+  });
+
+  const markDailyCommandReviewed = () => {
+    setDailyCommandCheckpoint({
+      ...(dailyCommandCentre.currentSnapshot || {}),
+      reviewedAt: new Date().toISOString(),
+    });
+    return true;
+  };
+
+  const openDailyCommandItem = (item) => {
+    const action = item?.action || {};
+    if (action.kind === "route" && action.route) {
+      go(action.route);
+      return true;
+    }
+    if (action.kind === "calendar-day" && action.date) {
+      setOperatorCalendarDate(action.date);
+      jump("workCalendar", "Work");
+      return true;
+    }
+    if (action.kind === "customer-action" && action.customerId) {
+      openSavedReplyAction(action.customerId);
+      return true;
+    }
+    if (action.kind === "open-inbox") {
+      openBusyInbox();
+      return true;
+    }
+    if (action.kind === "executive-priority") {
+      return openExecutivePriority();
+    }
+    go("dailyCommandCentre");
+    return false;
+  };
+
   const productionFunctionRequest = async (url, action, payload = {}) => {
     const token = await ownerAccessToken();
     if (!token) throw new Error("Sign in to BUSY before using production integrations.");
