@@ -173,6 +173,11 @@ function TalkToBusy({ s }) {
         tone="blue"
       >
         <Button
+          label="Give me my daily briefing"
+          disabled={s.busyCommandStatus === "thinking"}
+          onPress={() => s.submitBusyCommand({ text: "Give me my daily briefing: what do I need to do now, what can wait until later today, and what should I watch?" })}
+        />
+        <Button
           label="What should I do now?"
           disabled={s.busyCommandStatus === "thinking"}
           onPress={() => s.submitBusyCommand({ text: "What should I do now?" })}
