@@ -221,6 +221,33 @@ function WorkHub({ s }) {
     (s.dueReminderEntries?.length || 0) +
     (s.dueQuoteEntries?.length || 0) +
     freshEnquiries.length;
+  const calendarWeekRows = Array.from({ length: 7 }, (_, offset) => {
+    const date = addDaysFromISO(todayISO, offset);
+    return (
+      s.workCalendarIntelligence?.byDate?.[date] || {
+        date,
+        state: "Open",
+        attention: [],
+        externalEvents: [],
+        conflictCount: 0,
+      }
+    );
+  });
+  const calendarWeekOpenLight = calendarWeekRows.filter((day) =>
+    ["Open", "Light"].includes(day.state)
+  ).length;
+  const calendarWeekAttention = calendarWeekRows.reduce(
+    (total, day) => total + Number(day.attention?.length || 0),
+    0
+  );
+  const calendarWeekExternal = calendarWeekRows.reduce(
+    (total, day) => total + Number(day.externalEvents?.length || 0),
+    0
+  );
+  const calendarWeekConflicts = calendarWeekRows.reduce(
+    (total, day) => total + Number(day.conflictCount || 0),
+    0
+  );
 
   const weeklyPlanCandidates = [];
   if (overdueBookings.length) {
@@ -758,9 +785,9 @@ function WorkHub({ s }) {
       brandCue="Run the work you already have before buying more attention."
     >
       <Card
-        eyebrow="V3.9 • This week"
+        eyebrow="V3.29 • Work & Calendar 2.0"
         title={weeklyStatusTitle}
-        body="The weekly view combines saved bookings, customer obligations, BUSY Inbox work and the existing capacity plan. It recalculates from the current records, so actions drop away or change when the business changes. It does not invent tasks or count activity as a business result."
+        body="The weekly view now combines saved bookings, customer obligations, connected-diary commitments and estimated capacity. It recalculates from current records and keeps open-time guidance separate from confirmed work."
         footer={`${formatUKDate(todayISO)} – ${formatUKDate(weekEndISO)}`}
         tone={weeklyStatusTone}
       >
@@ -781,10 +808,30 @@ function WorkHub({ s }) {
           right={`${weekBookedDayCount} / 7`}
         />
         <MetricRow
-          left="Days with no booked job"
-          right={String(weekClearDayCount)}
-          strong={weekClearDayCount > 0}
+          left="Open or light days"
+          right={String(calendarWeekOpenLight)}
+          strong={calendarWeekOpenLight > 0}
+          onPress={() => s.go("workCalendar")}
         />
+        <MetricRow
+          left="Calendar follow-ups due"
+          right={String(calendarWeekAttention)}
+          strong={calendarWeekAttention > 0}
+          onPress={calendarWeekAttention ? () => s.go("workCalendar") : null}
+        />
+        <MetricRow
+          left="External diary commitments"
+          right={String(calendarWeekExternal)}
+          onPress={calendarWeekExternal ? () => s.go("workCalendar") : null}
+        />
+        {calendarWeekConflicts ? (
+          <MetricRow
+            left="Potential schedule overlaps"
+            right={String(calendarWeekConflicts)}
+            strong
+            onPress={() => s.go("workCalendar")}
+          />
+        ) : null}
         <MetricRow
           left="Customer / record items needing attention"
           right={String(weeklyOperationalCount)}
