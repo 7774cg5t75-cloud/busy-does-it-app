@@ -10720,6 +10720,26 @@ function App() {
             followUps: Number(day.attention?.length || 0),
             externalCommitments: Number(day.externalEvents?.length || 0),
             conflictCount: Number(day.conflictCount || 0),
+            bookings: (day.bookings || []).slice(0, 6).map((booking) => ({
+              customerName: booking.customerName || "",
+              service: booking.service || "",
+              time: booking.time || "",
+              value: Number(booking.value || 0),
+              durationHours: Number(booking.durationHours || 0),
+            })),
+            attention: (day.attention || []).slice(0, 6).map((item) => ({
+              kind: item.kind || "",
+              customerName: item.customerName || "",
+              service: item.service || "",
+              title: item.title || "",
+              overdue: !!item.overdue,
+              dueDate: item.dueDate || item.date || "",
+            })),
+            external: (day.externalEvents || []).slice(0, 6).map((item) => ({
+              title: item.title || "External commitment",
+              time: item.time || "",
+              durationHours: Number(item.durationHours || 0),
+            })),
             fillCandidate: day.fillCandidate
               ? {
                   customerName: day.fillCandidate.customerName || "",
