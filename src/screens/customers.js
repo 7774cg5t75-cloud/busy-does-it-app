@@ -516,6 +516,10 @@ function CustomerDetail({ s }) {
             />
           ) : null}
           <Button
+            label="Open communication thread"
+            onPress={() => s.openCommunicationThread(customer.id)}
+          />
+          <Button
             label={`Ask BUSY about ${String(customer.name || "this customer").split(" ")[0]}`}
             onPress={() => s.askBusyAboutCustomer(customer.id)}
           />
