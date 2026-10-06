@@ -2,6 +2,19 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.35 Website Builder
+- `src/domain/websiteBuilder.js` consumes `brandBrain.websiteBrief` and produces one persisted `websiteDraft`. Brand Brain remains the source of business/public identity truth; Website Builder owns presentation structure only.
+- The draft is intentionally structured before it is rendered: theme, sections, SEO metadata, readiness snapshot, source summary and publish state are stored separately from generated HTML.
+- Section generation is evidence-led. Services require existing BUSY service records; testimonials require explicit Brand Brain public-use approval; gallery/hero imagery comes from marketing-approved assets; contact details come only from Brand Brain public contact fields.
+- Internal service values and planning durations are excluded from public website output by default.
+- `renderWebsiteHtml()` generates a static semantic HTML representation from the same draft used by the mobile preview. V3.35 does not treat local device image URIs or private storage paths as publicly hosted assets.
+- `applyWebsiteInstruction()` is deliberately narrow and deterministic in V3.35. It may change safe presentation state such as theme mood, hero prominence and section visibility. Unsupported content rewrites are not guessed.
+- `websiteDraft` is persisted in the existing business snapshot. Rebuilds use the latest Brand Brain and increment `generation`.
+- BUSY Operator receives a bounded `websiteBuilder` context and supports `website_build`, `website_edit` and `open_website`.
+- These three intents are non-public internal-draft actions and may auto-apply from voice without a second confirmation tap. They are not classified as customer/public record changes.
+- V3.35 has no hosting provider, deployment credential, DNS write, domain purchase, SSL provisioning or live-publication action. `publish.enabled` remains false and `publicStatus` remains “Not published”.
+- The next website publishing/hosting layer must preserve an explicit owner-controlled go-live boundary and resolve website assets into publishable hosted URLs before deployment.
+
 ## V3.34 Brand Brain / Business Identity
 - `src/domain/brandBrain.js` is a pure projection over the existing business record plus one persisted `brandProfile` object. It does not replace business name, trade, postcode/radius, services, customer records or connected-account truth.
 - `brandProfile` owns only public-identity fields that previously lacked a stable home: descriptive copy, contact/public links, voice/style, story, differentiators, service descriptions, FAQs, explicitly approved testimonials and hero selection.
