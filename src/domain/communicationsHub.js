@@ -143,8 +143,16 @@ function inboxCustomerId(item = {}) {
   );
 }
 
-function sourceDirection(source = "") {
+function sourceDirection(source = "", stage = "") {
   const name = lower(source);
+  const lifecycleStage = lower(stage);
+  if (
+    lifecycleStage &&
+    lifecycleStage !== "enquiry" &&
+    lifecycleStage !== "incoming"
+  ) {
+    return "record";
+  }
   if (
     name.includes("customer message") ||
     name.includes("email") ||
@@ -175,10 +183,12 @@ function communicationRowsForCustomer({
     const title = clean(item.title);
     const status = clean(item.status);
     const preparedOnly = /wording prepared|draft/i.test(title) && !isRecordedSent(title, status);
+    const isOutcome = String(item.kind || "").toLowerCase() === "outcome";
+    const direction = isOutcome ? "record" : preparedOnly ? "draft" : "outbound";
     rows.push({
       id: `journey-${customer.id}-${item.id || title}-${item.createdAt || item.date || ""}`,
       customerId: customer.id,
-      direction: preparedOnly ? "draft" : "outbound",
+      direction,
       kind: item.source || item.kind || "communication",
       title: title || "Customer communication",
       body: clean(item.body),
@@ -186,7 +196,7 @@ function communicationRowsForCustomer({
       source: item.source || "Customer journey",
       createdAt: item.createdAt || (item.date ? `${item.date}T12:00:00` : ""),
       date: item.date || "",
-      actualContact: !preparedOnly && isRecordedSent(title, status),
+      actualContact: direction === "outbound" && isRecordedSent(title, status),
       pendingInbox: false,
     });
   });
@@ -194,7 +204,10 @@ function communicationRowsForCustomer({
   safeArray(customer.sourceRecords).forEach((record, index) => {
     const rawText = clean(record.rawText);
     if (!rawText) return;
-    const direction = sourceDirection(record.sourceConnection || record.source);
+    const direction = sourceDirection(
+      record.sourceConnection || record.source,
+      record.stage
+    );
     if (direction !== "incoming") return;
     rows.push({
       id: record.id || `source-message-${customer.id}-${index}`,
