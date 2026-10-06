@@ -12279,7 +12279,6 @@ function App() {
     communicationsHub,
     followUpEngine,
     brandBrain,
-    brandProfile,
     selectedCommunicationThread,
     selectedFollowUpCandidate,
     dailyCommandCheckpoint,
