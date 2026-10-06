@@ -2481,6 +2481,7 @@ function App() {
     busyCommandHistory,
     busyConversationTurns,
     busyOperatorSnapshot,
+    dailyCommandCheckpoint,
     busyActionAudit,
     autopilotMode,
     autopilotLastCheckAt,
