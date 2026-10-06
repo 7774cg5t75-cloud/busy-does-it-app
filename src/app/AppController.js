@@ -162,6 +162,7 @@ import {
   buildOperatorClientPreview,
   validateOperatorCommand,
 } from "../domain/operator2";
+import { buildWorkCalendarIntelligence } from "../domain/workCalendar2";
 import { BusyBrandLockup } from "../components/ui";
 import { screens, HomeScreen, AccountAccess } from "../screens";
 
@@ -8573,6 +8574,19 @@ function App() {
     });
   })();
 
+  const workCalendarIntelligence = buildWorkCalendarIntelligence({
+    todayISO: executiveTodayISO,
+    bookings: executiveConfirmedBookings,
+    externalEvents: executiveExternalScheduleEvents,
+    replyActions,
+    customers,
+    services,
+    eligibleCustomers,
+    plannedSlots: Array.isArray(activeWorkGoal?.plannedSlots)
+      ? activeWorkGoal.plannedSlots
+      : [],
+  });
+
   const executiveLoadRows = Array.from({ length: 7 }, (_, offset) => {
     const date = addDaysFromISO(executiveTodayISO, offset);
     const entries = executiveBookings7.filter((item) => item.date === date);
@@ -11518,6 +11532,7 @@ function App() {
     businessMemoryHistory,
     businessMemoryLastReviewAt,
     executiveBriefing,
+    workCalendarIntelligence,
     executiveBookings7,
     executiveBookings30,
     executiveOpenQuoteRows,
