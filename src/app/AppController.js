@@ -11737,6 +11737,69 @@ function App() {
     return true;
   };
 
+  const openCommunicationsHub = () => {
+    setTab("Work");
+    go("communicationsHub");
+    return true;
+  };
+
+  const openCommunicationThread = (customerId) => {
+    const customer = customers.find((item) => item.id === customerId);
+    if (!customer) return false;
+    setSelectedCustomerId(customerId);
+    setTab("Work");
+    go("communicationThread");
+    return true;
+  };
+
+  const openCommunicationInboxItem = (itemId) => {
+    const item = inboxPendingItems.find((candidate) => candidate.id === itemId);
+    if (!item) return false;
+    openInboxItem(itemId);
+    return true;
+  };
+
+  const askBusyAboutCommunications = () => {
+    openTalkToBusy(false);
+    setTimeout(() => {
+      submitBusyCommand({
+        text: "Give me my communications briefing. Who needs attention, who am I waiting to hear back from, which replies are ready to draft, and where should I avoid duplicate chasing?",
+      });
+    }, 80);
+    return true;
+  };
+
+  const askBusyAboutCommunication = (customerId = selectedCustomerId) => {
+    const customer = customers.find((item) => item.id === customerId);
+    if (!customer) return false;
+    setSelectedCustomerId(customer.id);
+    openTalkToBusy(false);
+    setTimeout(() => {
+      submitBusyCommand({
+        text: `Tell me the communication history with ${customer.name}: what they last said, what I last recorded as sent, whether I am waiting on them, and what the safest next communication step is.`,
+      });
+    }, 80);
+    return true;
+  };
+
+  const draftCustomerReply = (customerId = selectedCustomerId) => {
+    const customer = customers.find((item) => item.id === customerId);
+    const thread = communicationsHub.threads.find(
+      (item) => item.customerId === customerId
+    );
+    if (!customer || !thread || customer.contactOk === false || thread.duplicateGuard?.blocked) {
+      return false;
+    }
+    setSelectedCustomerId(customer.id);
+    openTalkToBusy(false);
+    setTimeout(() => {
+      submitBusyCommand({
+        text: `Draft the best reply to ${customer.name} using their latest recorded incoming message, customer journey and previous communication. Keep it natural and concise. Do not send it.`,
+      });
+    }, 80);
+    return true;
+  };
+
   const appState = {
     screen,
     history,
