@@ -6048,6 +6048,8 @@ function App() {
     setBusyVoiceStartNonce(0);
     setBusyConversationTurns([]);
     setBusyOperatorSnapshot(null);
+    setDailyCommandCheckpoint(null);
+    setOperatorCalendarDate("");
     setBusyActionAudit([]);
     setBusyUndoAction(null);
     setAutopilotMode("prepare");
