@@ -11,6 +11,7 @@ const OPERATOR_ANSWER_INTENTS = new Set([
   "business_summary",
   "business_changes",
   "business_memory",
+  "business_identity_summary",
   "business_outlook",
   "next_best_action",
   "daily_briefing",
