@@ -2,6 +2,25 @@
 
 Busy Does It mobile app prototype.
 
+## v3.35 Website Builder / Voice-first site draft
+- Built directly on the V3.34 Brand Brain branch.
+- Added `src/domain/websiteBuilder.js` and `src/screens/websiteBuilder.js`.
+- BUSY can now generate a saved internal one-page website draft from the structured V3.34 Brand Brain brief instead of starting from a blank website wizard.
+- The draft uses recorded business identity, service descriptions, approved website imagery, approved testimonials, FAQs, social identity and public contact details. Missing public facts remain missing; BUSY does not invent them.
+- The generated site model includes hero, services, about, gallery, testimonials, FAQ and contact sections where the Brand Brain has supporting information.
+- A static semantic HTML document is generated alongside the in-app site model so the future publishing/hosting layer does not need to redesign the content structure.
+- Internal BUSY planning values and job-duration assumptions are not exposed as public website pricing.
+- Added an in-app mobile website preview using the same saved draft.
+- The website draft is persisted in the same owner-scoped local/cloud business snapshot as the rest of BUSY.
+- Rebuilding from Brand Brain increments the draft generation and refreshes the site from the latest recorded business facts.
+- Added safe conversational draft edits for layout/style/section changes, including requests such as “make it more premium”, “make the main photo bigger”, “hide the testimonials” and “bring the gallery back”.
+- Added BUSY Operator intents `website_build`, `website_edit` and `open_website`.
+- Because these V3.35 website actions affect only a private internal draft, those three voice commands can auto-apply after transcription without a second confirmation tap. They cannot publish, host, buy a domain or change DNS.
+- “BUSY, build me a website” now creates/rebuilds the internal draft from Brand Brain and opens the website preview.
+- Website Builder is surfaced from Home and directly from Brand & Business Identity.
+- Publishing remains disabled in V3.35. The draft explicitly reports “Not published” and no domain/hosting authority exists yet.
+- The next publishing sweep can resolve approved image assets, hosting, domains and controlled live updates behind a separate owner approval boundary.
+
 ## v3.34 Brand Brain / Business Identity
 - Built directly on the V3.33 Follow-up Engine branch.
 - Added `src/domain/brandBrain.js` as the authoritative public-identity projection over existing BUSY business facts, services, approved job/marketing photos and connected-account state.
