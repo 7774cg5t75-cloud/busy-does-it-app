@@ -1044,6 +1044,17 @@ function WorkHub({ s }) {
         <MetricRow left="Actions to do" right={String(s.pendingReplyActionCount)} strong={s.pendingReplyActionCount > 0} onPress={s.pendingReplyActionCount ? () => s.go("replyActions") : null} />
         <MetricRow left="Background next steps ready" right={String(s.backgroundReadyCount)} strong={s.backgroundReadyCount > 0} onPress={s.backgroundReadyCount ? () => s.go("backgroundWork") : null} />
         <MetricRow left="Inbox waiting" right={String(s.inboxPendingItems.length)} strong={s.inboxNeedsAttentionItems.length > 0} onPress={s.inboxPendingItems.length ? s.openBusyInbox : null} />
+        <MetricRow
+          left="Communications needing attention"
+          right={String(s.communicationsHub?.counts?.needsAttention || 0)}
+          strong={(s.communicationsHub?.counts?.needsAttention || 0) > 0}
+          onPress={() => s.openCommunicationsHub()}
+        />
+        <MetricRow
+          left="Waiting on customers"
+          right={String(s.communicationsHub?.counts?.awaitingCustomer || 0)}
+          onPress={() => s.openCommunicationsHub()}
+        />
         <MetricRow left="Auto-filed safely" right={String(s.inboxAutoFiledCount)} strong={s.inboxAutoFiledCount > 0} onPress={s.inboxAutoFiledCount ? s.openBusyInbox : null} />
         <MetricRow left="Quick-captured records filed" right={String(s.intakeLog.length)} onPress={s.intakeLog.length ? () => s.go("intakeHistory") : null} />
       </Card>
