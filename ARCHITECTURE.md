@@ -2,6 +2,20 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.34 Brand Brain / Business Identity
+- `src/domain/brandBrain.js` is a pure projection over the existing business record plus one persisted `brandProfile` object. It does not replace business name, trade, postcode/radius, services, customer records or connected-account truth.
+- `brandProfile` owns only public-identity fields that previously lacked a stable home: descriptive copy, contact/public links, voice/style, story, differentiators, service descriptions, FAQs, explicitly approved testimonials and hero selection.
+- Approved website-photo candidates are derived from job photos with `marketingOk=true` and reusable cloud social media. V3.34 never upgrades an unapproved customer image into public marketing material.
+- Website readiness is a deterministic checklist and consistency layer. It is guidance for generation readiness, not an assertion that every optional brand field is complete.
+- High-severity readiness checks cover missing business name/type/service area/services/contact route. Review checks cover issues such as connected social accounts without public profile links or malformed domain text.
+- `websiteBrief` is the stable V3.35 handoff. It contains the recorded business identity, service master, public contact/service area, voice/style, approved FAQs/testimonials and approved image references.
+- `src/screens/brandIdentity.js` is the owner-facing editor and evidence surface.
+- Positive feedback remains separate from public testimonials. A testimonial enters Brand Brain only through explicit owner approval.
+- BUSY Operator receives a bounded Brand Identity summary and `business_identity_summary` is answer-only. It may identify gaps and inconsistencies but may not invent missing public facts.
+- Customer reply drafting may use a recorded Brand Brain tone of voice, but existing contact-preference and duplicate-contact protections still outrank style.
+- Social Media AI receives sanitised tone, differentiators, public description/service-area wording and service descriptions. These are context, not permission to invent unsupported marketing claims.
+- V3.34 adds no website rendering, publishing, hosting, DNS or autonomous public-update authority. Those remain future gates.
+
 ## V3.33 Follow-up Engine / Communications Bridge
 - `src/domain/followUpEngine.js` is a pure prioritisation layer over V3.32 Communications Hub. It consumes communication threads and returns follow-up lanes, review timing, recovery opportunities and provider-readiness state without persisting a second communication model.
 - Lane order is intentional: **Reply now** outranks **Follow up today**; **Waiting** suppresses duplicate chasing; **No chase** and **Do not contact** prevent BUSY from inventing unnecessary outbound work.
