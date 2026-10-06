@@ -165,6 +165,7 @@ import {
 import { buildWorkCalendarIntelligence } from "../domain/workCalendar2";
 import { buildDailyCommandCentre } from "../domain/dailyCommandCentre";
 import { buildCustomerJourney2 } from "../domain/customerJourney2";
+import { buildCommunicationsHub } from "../domain/communicationsHub";
 import { BusyBrandLockup } from "../components/ui";
 import { screens, HomeScreen, AccountAccess } from "../screens";
 
@@ -8002,6 +8003,15 @@ function App() {
     String(b.syncedAt || "").localeCompare(String(a.syncedAt || ""))
   )[0] || null;
   const inboxTopItem = inboxPendingItems[0] || null;
+  const communicationsHub = buildCommunicationsHub({
+    customers,
+    customerJourneys,
+    inboxItems: inboxPendingItems,
+  });
+  const selectedCommunicationThread =
+    communicationsHub.threads.find(
+      (thread) => thread.customerId === selectedCustomerId
+    ) || null;
   const lastAutoFiledInboxItem =
     inboxItems.find((item) => item.id === lastAutoFiledInboxItemId) ||
     [...inboxItems]
