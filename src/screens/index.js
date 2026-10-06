@@ -13,6 +13,7 @@ import * as CommunicationsScreens from "./communications";
 import * as FollowUpScreens from "./followUpEngine";
 import * as BrandIdentityScreens from "./brandIdentity";
 import * as WebsiteBuilderScreens from "./websiteBuilder";
+import * as WebsitePublishingScreens from "./websitePublishing";
 import * as WorkScreens from "./work";
 import * as IntakeScreens from "./intake";
 import * as CustomersScreens from "./customers";
@@ -35,6 +36,7 @@ export * from "./communications";
 export * from "./followUpEngine";
 export * from "./brandIdentity";
 export * from "./websiteBuilder";
+export * from "./websitePublishing";
 export * from "./work";
 export * from "./intake";
 export * from "./customers";
@@ -58,6 +60,7 @@ const allScreens = {
   ...FollowUpScreens,
   ...BrandIdentityScreens,
   ...WebsiteBuilderScreens,
+  ...WebsitePublishingScreens,
   ...WorkScreens,
   ...IntakeScreens,
   ...CustomersScreens,
@@ -92,6 +95,7 @@ const {
   BrandIdentity,
   WebsiteBuilder,
   WebsitePreview,
+  WebsitePublishing,
   WorkHub,
   WorkCalendar,
   WorkPipeline,
@@ -205,6 +209,7 @@ export const screens = {
   brandIdentity: BrandIdentity,
   websiteBuilder: WebsiteBuilder,
   websitePreview: WebsitePreview,
+  websitePublishing: WebsitePublishing,
   workHub: WorkHub,
   workCalendar: WorkCalendar,
   workPipeline: WorkPipeline,
