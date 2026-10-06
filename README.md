@@ -2,6 +2,24 @@
 
 Busy Does It mobile app prototype.
 
+## v3.29 Work & Calendar 2.0
+- Built directly on the tested V3.28 BUSY Operator 2.0 branch.
+- Added a dedicated calendar-intelligence domain in `src/domain/workCalendar2.js`; day workload/capacity policy no longer lives inside the Work screen or AppController.
+- The Work calendar now combines confirmed BUSY bookings, connected external-calendar commitments, quote follow-ups, customer reminders, enquiry check-ins and BUSY planned openings.
+- Added a 60-day forward planning horizon so completely empty days are visible to the intelligence layer rather than disappearing simply because no record exists yet.
+- Each current/future day is classified as Open, Light, Comfortable, Busy or Overloaded from saved scheduled hours and potential timed overlaps.
+- Day detail now shows booked job count/value, scheduled hours, estimated open capacity, follow-ups, external commitments and overlap warnings.
+- Open-capacity figures are deliberately labelled as planning guidance based on an approximately 7.5-hour planning day; BUSY does not claim an empty-looking day is definitely bookable.
+- Timed BUSY bookings and connected-calendar commitments are compared for overlaps. BUSY surfaces a potential conflict but never silently moves either item.
+- Overdue quote follow-ups, reminders and enquiry checks roll onto today’s attention list while preserving the original due date.
+- Open/light days can show one evidence-backed repeat-customer candidate whose typical duration fits the estimated open capacity. This is a suggestion only; BUSY does not contact or book the customer.
+- Work’s weekly overview now includes open/light days, calendar follow-ups, external commitments and potential overlaps rather than treating “no BUSY booking” as automatically free time.
+- BUSY Operator receives compact calendar intelligence for the next 45 days, including day load, booked work, follow-ups, external commitments, overlap count and possible fill candidate.
+- Added Operator answer intents for “What have I got Thursday?”, “Where have I got a gap?” and “Can I fit another job Friday?” using the calendar intelligence rather than guessing.
+- “Show me Tuesday” still opens the calendar directly on the resolved day.
+- Added a Talk to BUSY quick ask for finding the next sensible gap.
+- The signed native iOS build remains an independent Apple provisioning gate; V3.29 is testable through the existing Expo Go path.
+
 ## v3.28 BUSY Operator 2.0
 - Built directly on the tested V3.27 Operational Continuity branch.
 - Expanded Talk to BUSY from navigation/draft preparation into a broader voice-first daily operating layer.
