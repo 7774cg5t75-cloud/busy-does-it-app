@@ -5,6 +5,19 @@ function normaliseDate(value = "") {
   return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : "";
 }
 
+function addDays(dateISO, amount) {
+  const iso = normaliseDate(dateISO);
+  if (!iso) return "";
+  const date = new Date(`${iso}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return "";
+  date.setDate(date.getDate() + Number(amount || 0));
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
 function parseClock(value = "") {
   const match = String(value || "").match(/^(\d{1,2}):(\d{2})$/);
   if (!match) return null;
@@ -262,6 +275,12 @@ function buildWorkCalendarIntelligence({
     }
     return byDate[iso];
   };
+
+  if (normaliseDate(todayISO)) {
+    for (let offset = 0; offset < 60; offset += 1) {
+      ensure(addDays(todayISO, offset));
+    }
+  }
 
   (Array.isArray(bookings) ? bookings : []).forEach((booking) => {
     const day = ensure(booking?.date);
