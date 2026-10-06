@@ -187,6 +187,11 @@ function TalkToBusy({ s }) {
           disabled={s.busyCommandStatus === "thinking"}
           onPress={() => s.submitBusyCommand({ text: "What customer work needs chasing first?" })}
         />
+        <Button
+          label="Where have I got a gap?"
+          disabled={s.busyCommandStatus === "thinking"}
+          onPress={() => s.submitBusyCommand({ text: "Where have I got a sensible gap for another job?" })}
+        />
       </Card>
 
       {s.busyCommandError ? (
