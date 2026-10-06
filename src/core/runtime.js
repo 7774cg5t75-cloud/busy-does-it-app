@@ -13,6 +13,8 @@ const BUSY_SOCIAL_URL =
   "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-social-content";
 const BUSY_SOCIAL_PUBLISH_URL =
   "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-social-publish";
+const BUSY_WEBSITE_PUBLISH_URL =
+  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-website-publish";
 const BUSY_SUPABASE_URL = "https://qgkmuiipicazmcxxmoxv.supabase.co";
 const BUSY_PUSH_DISPATCH_URL =
   "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-push-dispatch";
@@ -1517,6 +1519,7 @@ export {
   BUSY_COMMAND_URL,
   BUSY_SOCIAL_URL,
   BUSY_SOCIAL_PUBLISH_URL,
+  BUSY_WEBSITE_PUBLISH_URL,
   BUSY_SUPABASE_URL,
   BUSY_PUSH_DISPATCH_URL,
   BUSY_CALENDAR_OAUTH_URL,
