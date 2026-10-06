@@ -51,6 +51,15 @@ function WebsiteBuilder({ s }) {
         />
       </Card>
 
+      {s.websiteBuilderNotice ? (
+        <Card
+          eyebrow="BUSY website update"
+          title="Latest builder message"
+          body={s.websiteBuilderNotice}
+          tone="blue"
+        />
+      ) : null}
+
       {draft ? (
         <>
           <Card
