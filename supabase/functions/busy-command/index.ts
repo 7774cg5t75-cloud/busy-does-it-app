@@ -21,6 +21,9 @@ const intents = [
   "next_best_action",
   "daily_briefing",
   "customer_journey_summary",
+  "communications_summary",
+  "customer_communication_summary",
+  "customer_reply_draft",
   "calendar_day_summary",
   "calendar_gap",
   "calendar_fit_job",
@@ -48,7 +51,7 @@ const intents = [
 ];
 
 const stepIntentEnum = intents.filter((intent) =>
-  !["business_summary", "business_changes", "business_memory", "business_outlook", "next_best_action", "daily_briefing", "customer_journey_summary", "calendar_day_summary", "calendar_gap", "calendar_fit_job", "operator_plan", "draft_refinement", "unknown"].includes(intent)
+  !["business_summary", "business_changes", "business_memory", "business_outlook", "next_best_action", "daily_briefing", "customer_journey_summary", "communications_summary", "customer_communication_summary", "customer_reply_draft", "calendar_day_summary", "calendar_gap", "calendar_fit_job", "operator_plan", "draft_refinement", "unknown"].includes(intent)
 );
 
 const previewRowSchema = {
@@ -251,6 +254,68 @@ function safeContext(value: any) {
               : [],
           }
         : null,
+    communicationsHub:
+      context.communicationsHub && typeof context.communicationsHub === "object"
+        ? {
+            counts:
+              context.communicationsHub.counts &&
+              typeof context.communicationsHub.counts === "object"
+                ? context.communicationsHub.counts
+                : {},
+            threads: Array.isArray(context.communicationsHub.threads)
+              ? context.communicationsHub.threads.slice(0, 30).map((thread: any) => ({
+                  customerName: cleanText(thread?.customerName, 240),
+                  service: cleanText(thread?.service, 240),
+                  lane: cleanText(thread?.lane, 80),
+                  contactAllowed: thread?.contactAllowed !== false,
+                  latestSummary: cleanText(thread?.latestSummary, 900),
+                  duplicateContactBlocked: !!thread?.duplicateContactBlocked,
+                  duplicateContactReason: cleanText(thread?.duplicateContactReason, 700),
+                  latestIncoming:
+                    thread?.latestIncoming && typeof thread.latestIncoming === "object"
+                      ? {
+                          title: cleanText(thread.latestIncoming.title, 300),
+                          body: cleanText(thread.latestIncoming.body, 1200),
+                          source: cleanText(thread.latestIncoming.source, 120),
+                          createdAt: cleanText(thread.latestIncoming.createdAt, 40),
+                        }
+                      : null,
+                  latestIncomingInterpretation:
+                    thread?.latestIncomingInterpretation &&
+                    typeof thread.latestIncomingInterpretation === "object"
+                      ? {
+                          kind: cleanText(thread.latestIncomingInterpretation.kind, 80),
+                          label: cleanText(thread.latestIncomingInterpretation.label, 160),
+                          confidence: cleanText(thread.latestIncomingInterpretation.confidence, 40),
+                          summary: cleanText(thread.latestIncomingInterpretation.summary, 500),
+                          suggestedHandling: cleanText(thread.latestIncomingInterpretation.suggestedHandling, 700),
+                        }
+                      : null,
+                  latestOutbound:
+                    thread?.latestOutbound && typeof thread.latestOutbound === "object"
+                      ? {
+                          title: cleanText(thread.latestOutbound.title, 300),
+                          body: cleanText(thread.latestOutbound.body, 1200),
+                          status: cleanText(thread.latestOutbound.status, 120),
+                          createdAt: cleanText(thread.latestOutbound.createdAt, 40),
+                        }
+                      : null,
+                  nextAction:
+                    thread?.nextAction && typeof thread.nextAction === "object"
+                      ? {
+                          kind: cleanText(thread.nextAction.kind, 80),
+                          title: cleanText(thread.nextAction.title, 300),
+                          body: cleanText(thread.nextAction.body, 700),
+                          why: cleanText(thread.nextAction.why, 700),
+                        }
+                      : null,
+                }))
+              : [],
+            unmatched: Array.isArray(context.communicationsHub.unmatched)
+              ? context.communicationsHub.unmatched.slice(0, 10)
+              : [],
+          }
+        : null,
     businessMemory:
       context.businessMemory && typeof context.businessMemory === "object"
         ? {
@@ -350,6 +415,10 @@ Your job is conversational:
 - For next_best_action, give ONE practical next move using the live customer-work priority first. If operationalContinuity has a high-severity recovery item that can make the records unreliable, mention that constraint. Do not manufacture work just to sound useful.
 - For daily_briefing, use dailyCommandCentre as the primary source. Summarise in three short parts: Do now, Later today, Watch. If a lane is empty, say so rather than inventing work. Mention changes only when dailyCommandCentre.changes contains real saved-signal changes.
 - For customer_journey_summary, find exactly one saved customer and use that customer's journey object as the primary source. Summarise what has happened, the current stage/action, communication already recorded, stalled signals, and ONE next step. Do not imply that a prepared/simulated message was actually delivered unless the saved status says it was recorded as sent.
+- For communications questions, use communicationsHub as the primary source. Treat lanes literally: Needs attention means owner review/reply is needed; Awaiting customer means the latest recorded real contact is outbound and BUSY should avoid another chase; Draft ready means a safe next communication can be prepared; Done means no communication action needs forcing.
+- Message interpretation is deterministic guidance, not certainty. If latestIncomingInterpretation confidence is Low or Medium, phrase it as "looks like" or "appears to" rather than asserting intent as fact.
+- Never recommend another chase when duplicateContactBlocked=true unless the owner explicitly says new information has arrived outside BUSY.
+- For customer_reply_draft, use exactly one matched communicationsHub thread plus the matching customers[].journey. If contactAllowed=false or duplicateContactBlocked=true, do not create draftText; explain why in mode="answer". Otherwise use mode="draft", draftTarget="follow_up", put ready-to-edit wording in draftText, and never claim it was sent.
 - For calendar questions, use calendarIntelligence.days as the source of truth for scheduled load, open-capacity estimates, follow-ups, external commitments and potential overlaps. Open-capacity hours are planning guidance, never a guaranteed bookable slot.
 
 Supported direct intents:
@@ -360,6 +429,9 @@ Supported direct intents:
 - next_best_action: answer "what should I do now/next?" with one record-backed priority. This is an answer, not blanket action authority.
 - daily_briefing: answer requests like "brief me", "what matters today?", "what do I need to do now/later/watch?" from dailyCommandCentre. Keep the lane order exactly Do now → Later today → Watch and never manufacture a lane item.
 - customer_journey_summary: answer questions like "what has happened with John?", "where are we with Sarah?", "when did I last contact them?", or a full customer briefing. customerName must exactly match one saved customer; use customers[].journey, separate recorded communication from prepared wording, and finish with the journey.nextAction recommendation.
+- communications_summary: answer "who needs a reply?", "who am I waiting to hear back from?", "what communication needs attention?" from communicationsHub lanes and counts. Mention unmatched incoming separately when present.
+- customer_communication_summary: answer "what did Sarah last say?", "when did I last contact John?", or "where are we in the conversation?" using exactly one communicationsHub thread. customerName must exactly match that saved thread.
+- customer_reply_draft: draft a contextual reply to exactly one saved customer using their latest incoming message, communication history and journey. Set mode="draft", draftTarget="follow_up" and customerName. Never send it and never draft around a duplicate-contact/contact-preference block.
 - calendar_day_summary: answer "what have I got [day]?" or "how busy is [day]?" from one resolved calendarIntelligence day. Include booked jobs/value, scheduled hours, estimated open hours, follow-ups, external commitments and conflicts when relevant.
 - calendar_gap: answer "where have I got a gap?" with the earliest sensible future Open/Light day from calendarIntelligence.days, excluding days with conflicts. Mention a supplied fillCandidate only as a suggestion, never as a booked job.
 - calendar_fit_job: answer whether a requested day appears to have planning capacity for another job. Compare estimatedOpenHours with the requested/inferred service durationHours when available. If no service/duration is known, state the open-hours estimate and ask what kind of job rather than claiming it fits.
@@ -405,6 +477,9 @@ Customer/date rules:
 11. For calendar_fit_job, put the relevant service name in service when the owner named one or when the current conversation unambiguously supplies it.
 12. customer_journey_summary requires one unambiguous saved customer. If the name is missing or ambiguous, ask one short clarification question rather than summarising the wrong customer.
 13. When using customers[].journey, treat stalledSignals as deterministic saved-state warnings and nextAction as the recommended next step; do not invent a second conflicting next step.
+14. customer_communication_summary and customer_reply_draft require one unambiguous saved customer whose name exactly matches both the customer context and Communications Hub thread. Ask one concise clarification if needed.
+15. For "what did they last say?", use latestIncoming.body only. Do not substitute an internal note, prepared draft or outbound message.
+16. For "when did I last contact them?", use latestOutbound only when its status/title shows contact was recorded as sent; prepared wording is not contact.
 
 Preview rules:
 - For any record-changing action, previewRows should clearly show the fields that would change.
@@ -590,7 +665,7 @@ Deno.serve(async (request: Request) => {
       backend: {
         commandModel: Deno.env.get("OPENAI_COMMAND_MODEL") || DEFAULT_COMMAND_MODEL,
         transcriptionModel: Deno.env.get("OPENAI_TRANSCRIBE_MODEL") || DEFAULT_TRANSCRIBE_MODEL,
-        operatorVersion: "3.31",
+        operatorVersion: "3.32",
       },
     });
   } catch (error) {
