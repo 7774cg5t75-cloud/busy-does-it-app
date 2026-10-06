@@ -1055,6 +1055,25 @@ function WorkHub({ s }) {
           right={String(s.communicationsHub?.counts?.awaitingCustomer || 0)}
           onPress={() => s.openCommunicationsHub()}
         />
+        <MetricRow
+          left="Follow-ups ready now"
+          right={String(
+            Number(s.followUpEngine?.counts?.replyNow || 0) +
+              Number(s.followUpEngine?.counts?.followUpToday || 0)
+          )}
+          strong={
+            Number(s.followUpEngine?.counts?.replyNow || 0) +
+              Number(s.followUpEngine?.counts?.followUpToday || 0) >
+            0
+          }
+          onPress={() => s.openFollowUpEngine()}
+        />
+        <MetricRow
+          left="Warm opportunities to recover"
+          right={String(s.followUpEngine?.counts?.recovery || 0)}
+          strong={(s.followUpEngine?.counts?.recovery || 0) > 0}
+          onPress={() => s.openFollowUpEngine()}
+        />
         <MetricRow left="Auto-filed safely" right={String(s.inboxAutoFiledCount)} strong={s.inboxAutoFiledCount > 0} onPress={s.inboxAutoFiledCount ? s.openBusyInbox : null} />
         <MetricRow left="Quick-captured records filed" right={String(s.intakeLog.length)} onPress={s.intakeLog.length ? () => s.go("intakeHistory") : null} />
       </Card>
