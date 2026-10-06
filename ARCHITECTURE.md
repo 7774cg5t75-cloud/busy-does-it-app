@@ -79,6 +79,16 @@ This branch restructures the large single-file prototype into domain modules wit
 - `busy-calendar-oauth` is a server-side OAuth boundary. Provider client secrets, access tokens and refresh tokens never enter the React Native client or cloud business snapshot.
 - Calendar OAuth callback state is one-time and expires after ten minutes. External provider connection state is isolated from the existing device-calendar bridge.
 
+## V3.30 Daily Command Centre / Business Brain 3.0
+- `src/domain/dailyCommandCentre.js` owns deterministic daily-priority selection and briefing-snapshot comparison. It does not mutate business records.
+- `src/screens/dailyCommandCentre.js` is the owner-facing Do now / Later today / Watch view.
+- The current briefing is derived from Executive Briefing, Work & Calendar 2.0, Release Core, Operational Continuity, Approval Inbox, customer follow-ups, active work goals, Business Memory changes and proactive signals.
+- A single persisted `dailyCommandCheckpoint` stores the last owner-reviewed signal snapshot. The checkpoint lives in the same local cache/cloud snapshot as the rest of the business state and is not model-side memory.
+- Change detection compares bounded numeric business signals rather than free-form text, making “since your last briefing” explainable and reproducible.
+- Home consumes the Daily Command Centre as its top-level daily priority surface while Executive Briefing remains the deeper forward/forecast view.
+- BUSY Operator receives a compact copy of the three lanes and real saved changes through `dailyCommandCentre` context. The `daily_briefing` intent is answer-only and cannot grant action authority.
+- Daily Command Centre cards route into existing customer, calendar, Approval Inbox, Release Core, Continuity, Business Memory and proactive-watch flows. No new hidden send/publish/spend path is introduced.
+
 ## V3.29 Work & Calendar 2.0
 - `src/domain/workCalendar2.js` owns derived calendar intelligence: forward-day rows, workload state, estimated planning capacity, follow-up placement, external commitments, overlap detection and gap-fill candidates.
 - Calendar intelligence is derived from saved business state and connected diary snapshots; it is not separately persisted, so it cannot drift away from the underlying customer/booking records.
