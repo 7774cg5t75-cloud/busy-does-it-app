@@ -10620,6 +10620,7 @@ function App() {
       services: services.slice(0, 30).map((service) => ({
         name: service.name,
         typicalValue: Number(service.value) || 0,
+        durationHours: Math.max(0.5, Number(planningDurationHours(service)) || 2),
         wanted: !!service.wanted,
       })),
       counts: {
