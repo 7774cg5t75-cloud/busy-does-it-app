@@ -1001,11 +1001,21 @@ function HomeScreen({ s }) {
               : "Clear"
           }
         />
+        <MetricRow
+          left="Brand Brain"
+          right={
+            s.brandBrain?.websiteReady
+              ? "Website foundation ready"
+              : `${Number(s.brandBrain?.completeness?.score || 0)}% complete`
+          }
+          strong={!!s.brandBrain?.websiteReady}
+        />
         <Button label="Daily Command Centre" onPress={() => s.go("dailyCommandCentre")} />
         <Button label="Follow-up Engine" onPress={() => s.openFollowUpEngine()} />
         <Button label="Communications Hub" onPress={() => s.openCommunicationsHub()} />
         <Button label="Executive Briefing" onPress={() => s.go("executiveBriefing")} />
         <Button label="Business Memory" onPress={() => s.go("businessMemory")} />
+        <Button label="Brand & Business Identity" onPress={s.openBrandIdentity} />
         <Button label="Continuity Centre" onPress={() => s.go("operationalContinuity")} />
         <Button label="Release Core" onPress={() => s.go("releaseCore")} />
       </Card>
