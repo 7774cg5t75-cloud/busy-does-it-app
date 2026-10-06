@@ -12,6 +12,7 @@ import * as DailyCommandCentreScreens from "./dailyCommandCentre";
 import * as CommunicationsScreens from "./communications";
 import * as FollowUpScreens from "./followUpEngine";
 import * as BrandIdentityScreens from "./brandIdentity";
+import * as WebsiteBuilderScreens from "./websiteBuilder";
 import * as WorkScreens from "./work";
 import * as IntakeScreens from "./intake";
 import * as CustomersScreens from "./customers";
@@ -33,6 +34,7 @@ export * from "./dailyCommandCentre";
 export * from "./communications";
 export * from "./followUpEngine";
 export * from "./brandIdentity";
+export * from "./websiteBuilder";
 export * from "./work";
 export * from "./intake";
 export * from "./customers";
@@ -55,6 +57,7 @@ const allScreens = {
   ...CommunicationsScreens,
   ...FollowUpScreens,
   ...BrandIdentityScreens,
+  ...WebsiteBuilderScreens,
   ...WorkScreens,
   ...IntakeScreens,
   ...CustomersScreens,
@@ -87,6 +90,8 @@ const {
   CommunicationThread,
   FollowUpEngine,
   BrandIdentity,
+  WebsiteBuilder,
+  WebsitePreview,
   WorkHub,
   WorkCalendar,
   WorkPipeline,
@@ -198,6 +203,8 @@ export const screens = {
   communicationThread: CommunicationThread,
   followUpEngine: FollowUpEngine,
   brandIdentity: BrandIdentity,
+  websiteBuilder: WebsiteBuilder,
+  websitePreview: WebsitePreview,
   workHub: WorkHub,
   workCalendar: WorkCalendar,
   workPipeline: WorkPipeline,
