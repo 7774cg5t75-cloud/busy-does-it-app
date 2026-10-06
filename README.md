@@ -2,6 +2,25 @@
 
 Busy Does It mobile app prototype.
 
+## v3.32 Communications Hub / Unified Inbox 2.0
+- Built directly on the provisionally accepted V3.31 Customer Journey 2.0 branch.
+- Added `src/domain/communicationsHub.js` as a deterministic communication layer that joins customer-facing communication around the existing customer journey instead of creating a second CRM/message store.
+- Added a new Communications Hub with four explicit lanes: **Needs attention**, **Awaiting customer**, **Draft ready**, and **Done**.
+- Pending incoming Inbox items that can be safely matched to one customer are surfaced inside that customer's communication thread; unmatched or ambiguous incoming items remain separate and route back through the existing BUSY Inbox review flow.
+- Each communication thread combines recorded outbound follow-ups/review requests, saved incoming customer-message/source evidence, pending matched Inbox items, the current customer journey next action and communication-related stalled signals.
+- Added deterministic incoming-message guidance for likely acceptance, scheduling requests, price/scope concerns, positive feedback, likely declines and customer questions. These labels are guidance only and are explicitly confidence-limited rather than treated as facts.
+- Added duplicate-contact protection: when the latest recorded real contact is outbound and no newer incoming reply is saved, BUSY places the thread in **Awaiting customer** and suppresses another draft/chase recommendation.
+- Prepared wording remains distinct from communication recorded as sent. Internal outcome records are also kept separate from outbound contact so BUSY does not mistake admin history for a customer message.
+- Customer contact preference remains authoritative. “Do not contact” blocks reply drafting.
+- Added a per-customer Communication Thread screen showing latest incoming interpretation, duplicate-contact guard, joined communication history and the underlying Customer Journey next step.
+- Customer Command Centre now links directly into the customer's communication thread.
+- Work and Home now surface communication health without replacing the raw BUSY Inbox, which remains the source-review/filing surface.
+- Added BUSY Operator intents for `communications_summary`, `customer_communication_summary` and `customer_reply_draft`.
+- BUSY can now answer questions such as “Who am I waiting to hear back from?”, “What did Sarah last say?”, and “When did I last contact John?” using the same communication-thread state shown in the app.
+- “Draft a reply to John” uses the latest saved incoming message, prior recorded communication and Customer Journey context. It creates editable wording only; it cannot send the message.
+- No unrestricted customer-send authority was introduced. Communication analysis and drafting remain separate from any future real SMS/email/WhatsApp provider integration.
+- The signed native iOS build remains an independent Apple provisioning gate; V3.32 remains testable through the existing Expo Go path.
+
 ## v3.31 Customer Journey 2.0 / Customer Command Centre
 - Built directly on the provisionally accepted V3.30 Daily Command Centre branch.
 - Added `src/domain/customerJourney2.js` as a deterministic per-customer journey selector instead of pushing more lifecycle logic into AppController.
