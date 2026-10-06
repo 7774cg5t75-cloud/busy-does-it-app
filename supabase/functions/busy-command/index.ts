@@ -316,6 +316,43 @@ function safeContext(value: any) {
               : [],
           }
         : null,
+    followUpEngine:
+      context.followUpEngine && typeof context.followUpEngine === "object"
+        ? {
+            counts:
+              context.followUpEngine.counts &&
+              typeof context.followUpEngine.counts === "object"
+                ? context.followUpEngine.counts
+                : {},
+            candidates: Array.isArray(context.followUpEngine.candidates)
+              ? context.followUpEngine.candidates.slice(0, 30).map((item: any) => ({
+                  customerName: cleanText(item?.customerName, 240),
+                  service: cleanText(item?.service, 240),
+                  lane: cleanText(item?.lane, 80),
+                  title: cleanText(item?.title, 300),
+                  reason: cleanText(item?.reason, 900),
+                  actionKind: cleanText(item?.actionKind, 80),
+                  preferredChannel: cleanText(item?.preferredChannel, 120),
+                  transportState: cleanText(item?.transportState, 160),
+                  lastContactDate: cleanText(item?.lastContactDate, 20),
+                  nextReviewDate: cleanText(item?.nextReviewDate, 20),
+                  draftable: !!item?.draftable,
+                  recovery: !!item?.recovery,
+                  duplicateContactBlocked: !!item?.duplicateContactBlocked,
+                  contactAllowed: item?.contactAllowed !== false,
+                }))
+              : [],
+            providerBridge:
+              context.followUpEngine.providerBridge &&
+              typeof context.followUpEngine.providerBridge === "object"
+                ? {
+                    status: cleanText(context.followUpEngine.providerBridge.status, 160),
+                    realSendingEnabled:
+                      !!context.followUpEngine.providerBridge.realSendingEnabled,
+                  }
+                : null,
+          }
+        : null,
     businessMemory:
       context.businessMemory && typeof context.businessMemory === "object"
         ? {
@@ -416,6 +453,7 @@ Your job is conversational:
 - For daily_briefing, use dailyCommandCentre as the primary source. Summarise in three short parts: Do now, Later today, Watch. If a lane is empty, say so rather than inventing work. Mention changes only when dailyCommandCentre.changes contains real saved-signal changes.
 - For customer_journey_summary, find exactly one saved customer and use that customer's journey object as the primary source. Summarise what has happened, the current stage/action, communication already recorded, stalled signals, and ONE next step. Do not imply that a prepared/simulated message was actually delivered unless the saved status says it was recorded as sent.
 - For communications questions, use communicationsHub as the primary source. Treat lanes literally: Needs attention means owner review/reply is needed; Awaiting customer means the latest recorded real contact is outbound and BUSY should avoid another chase; Draft ready means a safe next communication can be prepared; Done means no communication action needs forcing.
+- For chase/follow-up prioritisation such as "who should I chase today?", use followUpEngine as the primary source and preserve its lanes literally: Reply now → Follow up today → Waiting → No chase / Do not contact. Do not promote a Waiting customer into a chase merely to create activity. Warm recovery opportunities are existing enquiries/quotes only; do not describe them as guaranteed wins.
 - Message interpretation is deterministic guidance, not certainty. If latestIncomingInterpretation confidence is Low or Medium, phrase it as "looks like" or "appears to" rather than asserting intent as fact.
 - Never recommend another chase when duplicateContactBlocked=true unless the owner explicitly says new information has arrived outside BUSY.
 - For customer_reply_draft, use exactly one matched communicationsHub thread plus the matching customers[].journey. If contactAllowed=false or duplicateContactBlocked=true, do not create draftText; explain why in mode="answer". Otherwise use mode="draft", draftTarget="follow_up", put ready-to-edit wording in draftText, and never claim it was sent.
@@ -429,7 +467,7 @@ Supported direct intents:
 - next_best_action: answer "what should I do now/next?" with one record-backed priority. This is an answer, not blanket action authority.
 - daily_briefing: answer requests like "brief me", "what matters today?", "what do I need to do now/later/watch?" from dailyCommandCentre. Keep the lane order exactly Do now → Later today → Watch and never manufacture a lane item.
 - customer_journey_summary: answer questions like "what has happened with John?", "where are we with Sarah?", "when did I last contact them?", or a full customer briefing. customerName must exactly match one saved customer; use customers[].journey, separate recorded communication from prepared wording, and finish with the journey.nextAction recommendation.
-- communications_summary: answer "who needs a reply?", "who am I waiting to hear back from?", "what communication needs attention?" from communicationsHub lanes and counts. Mention unmatched incoming separately when present.
+- communications_summary: answer "who needs a reply?", "who am I waiting to hear back from?", "what communication needs attention?" from communicationsHub lanes and counts. For "who should I chase today?" or equivalent prioritisation, use followUpEngine and keep Reply now / Follow up today separate from Waiting. Mention unmatched incoming separately when present.
 - customer_communication_summary: answer "what did Sarah last say?", "when did I last contact John?", or "where are we in the conversation?" using exactly one communicationsHub thread. customerName must exactly match that saved thread.
 - customer_reply_draft: draft a contextual reply to exactly one saved customer using their latest incoming message, communication history and journey. Set mode="draft", draftTarget="follow_up" and customerName. Never send it and never draft around a duplicate-contact/contact-preference block.
 - calendar_day_summary: answer "what have I got [day]?" or "how busy is [day]?" from one resolved calendarIntelligence day. Include booked jobs/value, scheduled hours, estimated open hours, follow-ups, external commitments and conflicts when relevant.
