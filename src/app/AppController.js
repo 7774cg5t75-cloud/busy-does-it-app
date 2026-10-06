@@ -47,6 +47,7 @@ const {
   BUSY_COMMAND_URL,
   BUSY_SOCIAL_URL,
   BUSY_SOCIAL_PUBLISH_URL,
+  BUSY_WEBSITE_PUBLISH_URL,
   BUSY_SUPABASE_URL,
   BUSY_PUSH_DISPATCH_URL,
   BUSY_CALENDAR_OAUTH_URL,
@@ -169,6 +170,7 @@ import { buildCommunicationsHub } from "../domain/communicationsHub";
 import { buildFollowUpEngine } from "../domain/followUpEngine";
 import { buildBrandBrain } from "../domain/brandBrain";
 import { buildWebsiteDraft, applyWebsiteInstruction } from "../domain/websiteBuilder";
+import { buildWebsitePublishingView } from "../domain/websitePublishing";
 import { BusyBrandLockup } from "../components/ui";
 import { screens, HomeScreen, AccountAccess } from "../screens";
 
@@ -237,6 +239,20 @@ function App() {
   const [newBrandTestimonialAttribution, setNewBrandTestimonialAttribution] = useState("");
   const [websiteDraft, setWebsiteDraft] = useState(null);
   const [websiteBuilderNotice, setWebsiteBuilderNotice] = useState("");
+  const [websitePublishingStatus, setWebsitePublishingStatus] = useState({
+    loaded: false,
+    role: "",
+    website: null,
+    deployments: [],
+    domains: [],
+    jobs: [],
+    queue: null,
+  });
+  const [websitePublishingLoading, setWebsitePublishingLoading] = useState(false);
+  const [websitePublishingAction, setWebsitePublishingAction] = useState("");
+  const [websitePublishingError, setWebsitePublishingError] = useState("");
+  const [websitePublishingNotice, setWebsitePublishingNotice] = useState("");
+  const [websiteDomainDraft, setWebsiteDomainDraft] = useState("");
   const [quietSlot, setQuietSlot] = useState("Thursday afternoon");
   const [quietSlotConfirmed, setQuietSlotConfirmed] = useState(false);
   const [unansweredReviewCount, setUnansweredReviewCount] = useState("4");
@@ -6092,6 +6108,20 @@ function App() {
     setNewBrandTestimonialAttribution("");
     setWebsiteDraft(null);
     setWebsiteBuilderNotice("");
+    setWebsitePublishingStatus({
+      loaded: false,
+      role: "",
+      website: null,
+      deployments: [],
+      domains: [],
+      jobs: [],
+      queue: null,
+    });
+    setWebsitePublishingLoading(false);
+    setWebsitePublishingAction("");
+    setWebsitePublishingError("");
+    setWebsitePublishingNotice("");
+    setWebsiteDomainDraft("");
     setQuietSlot("Thursday afternoon");
     setQuietSlotConfirmed(false);
     setSelectedGap("");
@@ -8131,6 +8161,10 @@ function App() {
     customers,
     socialDrafts,
     connectedAccounts,
+  });
+  const websitePublishingView = buildWebsitePublishingView({
+    remote: websitePublishingStatus,
+    websiteDraft,
   });
   const selectedCommunicationThread =
     communicationsHub.threads.find(
@@ -11075,6 +11109,17 @@ function App() {
         },
         publishingEnabled: false,
       },
+      websitePublishing: {
+        publicStatus: websitePublishingView?.publicStatus || "Not checked",
+        hasHostedPreview: !!websitePublishingView?.previewDeployment,
+        liveVersion: Number(websitePublishingView?.liveDeployment?.version_no || 0),
+        previewVersion: Number(websitePublishingView?.previewDeployment?.version_no || 0),
+        draftChangedSinceHosted: !!websitePublishingView?.draftChangedSinceHosted,
+        queueStatus: websitePublishingView?.queueHealth?.status || "Not checked",
+        customDomainStatus: websitePublishingView?.domainState?.latest?.status || "",
+        customDomainRoutingActive: !!websitePublishingView?.domainState?.routingActive,
+        publicChangeRequiresOwnerApproval: true,
+      },
       businessMemory: {
         lastReviewedAt: businessMemoryLastReviewAt,
         strongestPattern: strongestBusinessMemoryPattern
@@ -12260,6 +12305,283 @@ function App() {
     return true;
   };
 
+  const websitePublishingRequest = async (action, payload = {}) => {
+    const token = await ownerAccessToken();
+    if (!token) throw new Error("Sign in again before managing website hosting.");
+    const businessId = cloudWorkspace?.businessId || "";
+    if (!businessId) throw new Error("BUSY needs the business cloud workspace before publishing.");
+
+    const response = await fetchWithTimeout(
+      BUSY_WEBSITE_PUBLISH_URL,
+      {
+        method: "POST",
+        headers: {
+          apikey: BUSY_AI_TOKEN,
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          "x-busy-request-id": busyRequestId(`website-${action}`),
+        },
+        body: JSON.stringify({
+          action,
+          businessId,
+          ...payload,
+        }),
+      },
+      30000
+    );
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(
+        data?.error || `BUSY website publishing returned ${response.status}.`
+      );
+    }
+    return data;
+  };
+
+  const refreshWebsitePublishingStatus = async ({ quiet = false } = {}) => {
+    if (!ownerSession?.accessToken || !cloudWorkspace?.businessId) {
+      if (!quiet) setWebsitePublishingError("Sign in and connect the BUSY cloud workspace first.");
+      return false;
+    }
+    if (!quiet) setWebsitePublishingLoading(true);
+    setWebsitePublishingError("");
+    try {
+      const data = await websitePublishingRequest("status");
+      setWebsitePublishingStatus({
+        loaded: true,
+        role: data?.role || "",
+        website: data?.website || null,
+        deployments: Array.isArray(data?.deployments) ? data.deployments : [],
+        domains: Array.isArray(data?.domains) ? data.domains : [],
+        jobs: Array.isArray(data?.jobs) ? data.jobs : [],
+        queue: data?.queue || null,
+      });
+      return true;
+    } catch (error) {
+      setWebsitePublishingError(
+        error?.message || "BUSY could not load website publishing status."
+      );
+      return false;
+    } finally {
+      if (!quiet) setWebsitePublishingLoading(false);
+    }
+  };
+
+  const prepareHostedWebsite = async () => {
+    if (!websiteDraft) {
+      setWebsitePublishingError("Build the website draft before preparing a hosted preview.");
+      return false;
+    }
+    setWebsitePublishingAction("prepare");
+    setWebsitePublishingError("");
+    setWebsitePublishingNotice("");
+    try {
+      const result = await websitePublishingRequest("prepare", {
+        websiteDraft,
+      });
+      setWebsitePublishingNotice(
+        result?.reused
+          ? "This exact website version was already prepared, so BUSY reused the immutable deployment."
+          : "BUSY queued this website version for a private hosted preview."
+      );
+      await refreshWebsitePublishingStatus({ quiet: true });
+      setTimeout(() => refreshWebsitePublishingStatus({ quiet: true }), 1200);
+      return true;
+    } catch (error) {
+      setWebsitePublishingError(
+        error?.message || "BUSY could not prepare the hosted website preview."
+      );
+      return false;
+    } finally {
+      setWebsitePublishingAction("");
+    }
+  };
+
+  const openHostedWebsitePreview = async (deploymentId) => {
+    if (!deploymentId) return false;
+    setWebsitePublishingAction(`preview:${deploymentId}`);
+    setWebsitePublishingError("");
+    try {
+      const result = await websitePublishingRequest("preview_url", {
+        deploymentId,
+      });
+      if (!result?.previewUrl) throw new Error("Hosted preview URL is not ready yet.");
+      await Linking.openURL(result.previewUrl);
+      return true;
+    } catch (error) {
+      setWebsitePublishingError(
+        error?.message || "BUSY could not open the hosted website preview."
+      );
+      return false;
+    } finally {
+      setWebsitePublishingAction("");
+    }
+  };
+
+  const publishHostedWebsite = async (deploymentId) => {
+    if (!deploymentId) return false;
+    setWebsitePublishingAction("publish");
+    setWebsitePublishingError("");
+    setWebsitePublishingNotice("");
+    try {
+      await websitePublishingRequest("publish", {
+        deploymentId,
+        ownerApproved: true,
+      });
+      setWebsitePublishingNotice(
+        "Go Live was approved. BUSY queued exactly the previewed version for public deployment."
+      );
+      await refreshWebsitePublishingStatus({ quiet: true });
+      setTimeout(() => refreshWebsitePublishingStatus({ quiet: true }), 1200);
+      return true;
+    } catch (error) {
+      setWebsitePublishingError(
+        error?.message || "BUSY could not publish that website version."
+      );
+      return false;
+    } finally {
+      setWebsitePublishingAction("");
+    }
+  };
+
+  const confirmPublishHostedWebsite = (deploymentId) => {
+    const deployment = websitePublishingView.deployments.find(
+      (item) => item.id === deploymentId
+    );
+    if (!deployment) return false;
+    Alert.alert(
+      "Put this website version live?",
+      `You are approving website v${deployment.version_no} to become public. BUSY will publish exactly this hosted preview. The current live version, if any, will remain available for rollback.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Approve & go live",
+          onPress: () => publishHostedWebsite(deploymentId),
+        },
+      ]
+    );
+    return true;
+  };
+
+  const rollbackWebsite = async (deploymentId) => {
+    if (!deploymentId) return false;
+    setWebsitePublishingAction(`rollback:${deploymentId}`);
+    setWebsitePublishingError("");
+    setWebsitePublishingNotice("");
+    try {
+      await websitePublishingRequest("rollback", {
+        deploymentId,
+        ownerApproved: true,
+      });
+      setWebsitePublishingNotice(
+        "Rollback was approved. BUSY queued that previously published immutable version to become live again."
+      );
+      await refreshWebsitePublishingStatus({ quiet: true });
+      setTimeout(() => refreshWebsitePublishingStatus({ quiet: true }), 1200);
+      return true;
+    } catch (error) {
+      setWebsitePublishingError(
+        error?.message || "BUSY could not restore that website version."
+      );
+      return false;
+    } finally {
+      setWebsitePublishingAction("");
+    }
+  };
+
+  const confirmRollbackWebsite = (deploymentId, versionNo) => {
+    Alert.alert(
+      "Restore this previous website?",
+      `This will make website v${versionNo || "?"} the public live version again. The current version will stay in deployment history.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Approve rollback",
+          onPress: () => rollbackWebsite(deploymentId),
+        },
+      ]
+    );
+    return true;
+  };
+
+  const openLiveWebsite = async () => {
+    const url =
+      websitePublishingView?.website?.live_url ||
+      websitePublishingView?.liveDeployment?.public_url ||
+      "";
+    if (!url) {
+      setWebsitePublishingError("BUSY does not have a live website URL yet.");
+      return false;
+    }
+    try {
+      await Linking.openURL(url);
+      return true;
+    } catch {
+      setWebsitePublishingError("This live website URL could not be opened.");
+      return false;
+    }
+  };
+
+  const requestWebsiteDomain = async () => {
+    const hostname = websiteDomainDraft.trim();
+    if (!hostname) return false;
+    setWebsitePublishingAction("domain");
+    setWebsitePublishingError("");
+    try {
+      const result = await websitePublishingRequest("request_domain", {
+        hostname,
+        websiteDraft,
+      });
+      setWebsitePublishingNotice(
+        `Domain verification created. Add TXT record ${result?.verificationName || ""} with the value shown, then check verification.`
+      );
+      await refreshWebsitePublishingStatus({ quiet: true });
+      return true;
+    } catch (error) {
+      setWebsitePublishingError(
+        error?.message || "BUSY could not start domain verification."
+      );
+      return false;
+    } finally {
+      setWebsitePublishingAction("");
+    }
+  };
+
+  const verifyWebsiteDomain = async (domainId) => {
+    if (!domainId) return false;
+    setWebsitePublishingAction(`verify-domain:${domainId}`);
+    setWebsitePublishingError("");
+    try {
+      const result = await websitePublishingRequest("verify_domain", {
+        domainId,
+      });
+      setWebsitePublishingNotice(
+        result?.verified
+          ? "BUSY verified domain ownership. Routing and SSL remain separate until a real routing provider is connected."
+          : "The verification TXT record is not visible in public DNS yet. Nothing was changed."
+      );
+      await refreshWebsitePublishingStatus({ quiet: true });
+      return !!result?.verified;
+    } catch (error) {
+      setWebsitePublishingError(
+        error?.message || "BUSY could not verify that domain."
+      );
+      return false;
+    } finally {
+      setWebsitePublishingAction("");
+    }
+  };
+
+  const openWebsitePublishing = () => {
+    if (!websiteDomainDraft && brandProfile.websiteDomain) {
+      setWebsiteDomainDraft(brandProfile.websiteDomain);
+    }
+    setTab("Home");
+    go("websitePublishing");
+    setTimeout(() => refreshWebsitePublishingStatus({ quiet: true }), 80);
+    return true;
+  };
+
   const openCommunicationsHub = () => {
     setTab("Work");
     go("communicationsHub");
@@ -12396,6 +12718,23 @@ function App() {
     openWebsiteBuilder,
     askBusyToBuildWebsite,
     askBusyToEditWebsite,
+    websitePublishingStatus,
+    websitePublishingView,
+    websitePublishingLoading,
+    websitePublishingAction,
+    websitePublishingError,
+    websitePublishingNotice,
+    websiteDomainDraft,
+    setWebsiteDomainDraft,
+    refreshWebsitePublishingStatus,
+    prepareHostedWebsite,
+    openHostedWebsitePreview,
+    confirmPublishHostedWebsite,
+    confirmRollbackWebsite,
+    openLiveWebsite,
+    requestWebsiteDomain,
+    verifyWebsiteDomain,
+    openWebsitePublishing,
     quietSlot,
     setQuietSlot,
     quietSlotConfirmed,
