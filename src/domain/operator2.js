@@ -13,6 +13,7 @@ const OPERATOR_ANSWER_INTENTS = new Set([
   "business_memory",
   "business_outlook",
   "next_best_action",
+  "daily_briefing",
   "calendar_day_summary",
   "calendar_gap",
   "calendar_fit_job",
