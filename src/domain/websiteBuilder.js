@@ -59,7 +59,15 @@ function buildSections(brief = {}) {
       ? "Call us"
       : clean(brief.email)
       ? "Get in touch"
-      : "Contact us",
+      : safeArray(brief.services).length
+      ? "See our services"
+      : "",
+    ctaHref:
+      clean(brief.phone) || clean(brief.email)
+        ? "#contact"
+        : safeArray(brief.services).length
+        ? "#services"
+        : "",
     asset: brief.heroAsset || null,
   });
 
@@ -74,7 +82,6 @@ function buildSections(brief = {}) {
         id: service.id || slugify(service.name),
         title: clean(service.name),
         body: clean(service.description),
-        meta: service.typicalValue ? `Typical job value £${Number(service.typicalValue)}` : "",
       })),
     });
   }
@@ -306,7 +313,7 @@ function renderWebsiteHtml(draft = {}) {
 
   const sectionHtml = sections.map((section) => {
     if (section.type === "hero") {
-      return `<section class="hero hero-${escapeHtml(theme.heroSize || "large")}"><div class="wrap"><p class="kicker">${escapeHtml(draft.businessName)}</p><h1>${escapeHtml(section.title)}</h1><p>${escapeHtml(section.body)}</p><a class="cta" href="#contact">${escapeHtml(section.cta || "Get in touch")}</a></div></section>`;
+      return `<section class="hero hero-${escapeHtml(theme.heroSize || "large")}"><div class="wrap"><p class="kicker">${escapeHtml(draft.businessName)}</p><h1>${escapeHtml(section.title)}</h1><p>${escapeHtml(section.body)}</p>${section.cta && section.ctaHref ? `<a class="cta" href="${escapeHtml(section.ctaHref)}">${escapeHtml(section.cta)}</a>` : ""}</div></section>`;
     }
     if (section.type === "services") {
       return `<section id="services"><div class="wrap"><h2>${escapeHtml(section.title)}</h2><div class="grid">${safeArray(section.items).map((item) => `<article><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body)}</p></article>`).join("")}</div></div></section>`;
