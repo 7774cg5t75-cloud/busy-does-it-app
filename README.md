@@ -2,6 +2,22 @@
 
 Busy Does It mobile app prototype.
 
+## v3.31 Customer Journey 2.0 / Customer Command Centre
+- Built directly on the provisionally accepted V3.30 Daily Command Centre branch.
+- Added `src/domain/customerJourney2.js` as a deterministic per-customer journey selector instead of pushing more lifecycle logic into AppController.
+- Each customer now gets one joined journey across enquiry capture, source records, notes/activity, quotes, bookings, reminders, completed jobs, review requests, follow-up outcomes and recorded social outcomes.
+- Customer Detail now opens with a Customer Command Centre showing the journey stage, completed-job count/value, recorded communication count, stalled-journey warnings and one recommended next step.
+- Added a joined chronological journey timeline so an owner can see the relationship from enquiry through repeat work without reconstructing it from separate screens.
+- Added a dedicated communication-history view that distinguishes recorded sends/outcomes from ordinary customer activity and prepared wording.
+- Added deterministic stalled-journey detection for quiet enquiries, ageing sent quotes, unresolved follow-up outcomes, past confirmed bookings, completed jobs missing a review request and repeat timing that has become due.
+- The “What happens next?” recommendation is evidence/rule based: finish live customer work first, then warm follow-up/outcome capture, review/repeat opportunities, and otherwise explicitly says nothing needs forcing.
+- Customer contact preference remains authoritative. A record marked “do not contact” will not be turned into an outbound follow-up recommendation.
+- Added “Ask BUSY about [customer]” from Customer Detail. BUSY receives a compact copy of that customer’s joined journey and can answer what has happened, what is open, what communication is already recorded, what is stalled and the single best next step.
+- Added BUSY Operator `customer_journey_summary` intent. It is answer-only; it does not gain permission to send messages, publish, spend money or silently change a booking.
+- Multiple completed jobs are treated as one continuing customer relationship, with relationship totals and repeat timing retained alongside the current live action.
+- Existing quote/booking/reminder/review action screens remain the mutation boundary; Customer Journey 2.0 routes into them rather than inventing parallel write paths.
+- The signed native iOS build remains an independent Apple provisioning gate; V3.31 remains testable through the existing Expo Go path.
+
 ## v3.30 Daily Command Centre / Business Brain 3.0
 - Built directly on the provisionally accepted V3.29 Work & Calendar 2.0 branch.
 - Added a dedicated `src/domain/dailyCommandCentre.js` layer that ranks the current business into three explicit lanes: **Do now**, **Later today**, and **Watch**.
