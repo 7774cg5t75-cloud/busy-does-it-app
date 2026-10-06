@@ -2,6 +2,22 @@
 
 Busy Does It mobile app prototype.
 
+## v3.34 Brand Brain / Business Identity
+- Built directly on the V3.33 Follow-up Engine branch.
+- Added `src/domain/brandBrain.js` as the authoritative public-identity projection over existing BUSY business facts, services, approved job/marketing photos and connected-account state.
+- Added one persisted `brandProfile` object for information that did not previously have an authoritative home: public description, tagline, service-area wording, phone/email, opening hours, domain, social links, tone of voice, visual direction, colours, business story, differentiators, logo note, service descriptions, FAQs, approved testimonials and selected hero imagery.
+- Existing BUSY business name, trade, postcode/radius and service records remain authoritative. V3.34 does not create a duplicate service catalogue.
+- Added the Brand & Business Identity Centre with identity completeness, core gaps, service copy, tone/visual choices, FAQ/testimonial approval, social identity, photo-library intelligence and consistency checks.
+- Positive customer feedback is not automatically treated as a testimonial. Only owner-added entries marked approved for public use flow into the website brief.
+- Brand Brain indexes completed-job photos already approved for marketing and reusable cloud social media. Unapproved customer photos are not promoted into website content.
+- Added deterministic website readiness and a structured `websiteBrief` handoff containing business identity, services, contact details, tone, visual direction, FAQs, approved testimonials and approved imagery for the planned V3.35 Website Builder.
+- Home, Settings and Business data now surface Brand Brain readiness.
+- BUSY Operator receives bounded Brand Identity context and a new answer-only `business_identity_summary` intent for questions such as “What is missing from my brand?” and “Am I ready to build my website?”. Missing public facts must never be invented.
+- Recorded tone of voice now informs BUSY customer reply drafts and Social Media AI output when present.
+- The social-content Edge Function now accepts sanitised Brand Brain context and service descriptions while retaining the same privacy/evidence restrictions.
+- No website has been generated or published in V3.34. No domain/hosting authority has been introduced.
+- The signed native iOS build remains an independent Apple provisioning gate; V3.34 remains testable through the existing Expo Go path.
+
 ## v3.33 Follow-up Engine / Communications Bridge
 - Built directly on the tested V3.32 Communications Hub branch.
 - Added `src/domain/followUpEngine.js` as a deterministic prioritisation layer over Communications Hub; it does not create another customer or message store.
