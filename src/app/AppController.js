@@ -167,8 +167,51 @@ import { buildDailyCommandCentre } from "../domain/dailyCommandCentre";
 import { buildCustomerJourney2 } from "../domain/customerJourney2";
 import { buildCommunicationsHub } from "../domain/communicationsHub";
 import { buildFollowUpEngine } from "../domain/followUpEngine";
+import { buildBrandBrain } from "../domain/brandBrain";
 import { BusyBrandLockup } from "../components/ui";
 import { screens, HomeScreen, AccountAccess } from "../screens";
+
+const BRAND_PROFILE_SEED = {
+  publicDescription: "",
+  tagline: "",
+  serviceAreaText: "",
+  phone: "",
+  email: "",
+  openingHours: "",
+  websiteDomain: "",
+  facebookUrl: "",
+  instagramUrl: "",
+  toneOfVoice: "",
+  visualStyle: "",
+  primaryColour: "",
+  secondaryColour: "",
+  story: "",
+  differentiators: "",
+  logoLabel: "",
+  heroAssetKey: "",
+  serviceDescriptions: {},
+  faqs: [],
+  testimonials: [],
+};
+
+const BRAND_PROFILE_TEXT_FIELDS = new Set([
+  "publicDescription",
+  "tagline",
+  "serviceAreaText",
+  "phone",
+  "email",
+  "openingHours",
+  "websiteDomain",
+  "facebookUrl",
+  "instagramUrl",
+  "toneOfVoice",
+  "visualStyle",
+  "primaryColour",
+  "secondaryColour",
+  "story",
+  "differentiators",
+  "logoLabel",
+]);
 
 function App() {
   const [hydrated, setHydrated] = useState(false);
@@ -181,6 +224,16 @@ function App() {
   const [verticalId, setVerticalId] = useState("exterior-cleaning");
   const [postcode, setPostcode] = useState("EX17");
   const [radius, setRadius] = useState("15");
+  const [brandProfile, setBrandProfile] = useState(() => ({
+    ...BRAND_PROFILE_SEED,
+    serviceDescriptions: {},
+    faqs: [],
+    testimonials: [],
+  }));
+  const [newBrandFaqQuestion, setNewBrandFaqQuestion] = useState("");
+  const [newBrandFaqAnswer, setNewBrandFaqAnswer] = useState("");
+  const [newBrandTestimonialText, setNewBrandTestimonialText] = useState("");
+  const [newBrandTestimonialAttribution, setNewBrandTestimonialAttribution] = useState("");
   const [quietSlot, setQuietSlot] = useState("Thursday afternoon");
   const [quietSlotConfirmed, setQuietSlotConfirmed] = useState(false);
   const [unansweredReviewCount, setUnansweredReviewCount] = useState("4");
@@ -637,6 +690,7 @@ function App() {
       verticalId,
       postcode,
       radius,
+      brandProfile,
       quietSlot,
       quietSlotConfirmed,
       activeWorkGoal,
@@ -702,6 +756,7 @@ function App() {
     verticalId,
     postcode,
     radius,
+    brandProfile,
     quietSlot,
     quietSlotConfirmed,
     activeWorkGoal,
@@ -1842,6 +1897,7 @@ function App() {
     verticalId,
     postcode,
     radius,
+    brandProfile,
     quietSlot,
     quietSlotConfirmed,
     activeWorkGoal,
@@ -1892,6 +1948,23 @@ function App() {
     setVerticalId(savedVerticalId);
     if (saved.postcode) setPostcode(saved.postcode);
     if (saved.radius) setRadius(saved.radius);
+    if (saved.brandProfile && typeof saved.brandProfile === "object") {
+      setBrandProfile({
+        ...BRAND_PROFILE_SEED,
+        ...saved.brandProfile,
+        serviceDescriptions:
+          saved.brandProfile.serviceDescriptions &&
+          typeof saved.brandProfile.serviceDescriptions === "object"
+            ? saved.brandProfile.serviceDescriptions
+            : {},
+        faqs: Array.isArray(saved.brandProfile.faqs)
+          ? saved.brandProfile.faqs.slice(0, 12)
+          : [],
+        testimonials: Array.isArray(saved.brandProfile.testimonials)
+          ? saved.brandProfile.testimonials.slice(0, 12)
+          : [],
+      });
+    }
     if (saved.quietSlot) setQuietSlot(saved.quietSlot);
     if (typeof saved.quietSlotConfirmed === "boolean") setQuietSlotConfirmed(saved.quietSlotConfirmed);
     if (saved.activeWorkGoal && typeof saved.activeWorkGoal === "object") {
@@ -5985,6 +6058,16 @@ function App() {
     setVerticalId("exterior-cleaning");
     setPostcode("EX17");
     setRadius("15");
+    setBrandProfile({
+      ...BRAND_PROFILE_SEED,
+      serviceDescriptions: {},
+      faqs: [],
+      testimonials: [],
+    });
+    setNewBrandFaqQuestion("");
+    setNewBrandFaqAnswer("");
+    setNewBrandTestimonialText("");
+    setNewBrandTestimonialAttribution("");
     setQuietSlot("Thursday afternoon");
     setQuietSlotConfirmed(false);
     setSelectedGap("");
@@ -8012,6 +8095,18 @@ function App() {
   const followUpEngine = buildFollowUpEngine({
     communicationsHub,
     todayISO: dateToISO(new Date()),
+  });
+  const brandBrain = buildBrandBrain({
+    businessName,
+    trade,
+    verticalLabel: getVerticalPack(verticalId)?.label || "",
+    postcode,
+    radius,
+    services,
+    brandProfile,
+    customers,
+    socialDrafts,
+    connectedAccounts,
   });
   const selectedCommunicationThread =
     communicationsHub.threads.find(
@@ -10892,6 +10987,49 @@ function App() {
           realSendingEnabled: !!followUpEngine?.providerBridge?.realSendingEnabled,
         },
       },
+      brandIdentity: {
+        completeness: {
+          score: Number(brandBrain?.completeness?.score || 0),
+          label: brandBrain?.completeness?.label || "",
+          coreMissing: (brandBrain?.completeness?.coreMissing || []).map((item) => item.label),
+        },
+        websiteReady: !!brandBrain?.websiteReady,
+        websiteReadinessLabel: brandBrain?.websiteReadinessLabel || "",
+        missingForWebsite: (brandBrain?.missingForWebsite || []).slice(0, 12),
+        consistencyChecks: (brandBrain?.checks || []).slice(0, 12).map((item) => ({
+          severity: item.severity || "",
+          title: item.title || "",
+          body: item.body || "",
+        })),
+        profile: {
+          tagline: brandBrain?.profile?.tagline || "",
+          publicDescription: brandBrain?.profile?.publicDescription || "",
+          serviceAreaText: brandBrain?.profile?.serviceAreaText || "",
+          phone: brandBrain?.profile?.phone || "",
+          email: brandBrain?.profile?.email || "",
+          openingHours: brandBrain?.profile?.openingHours || "",
+          websiteDomain: brandBrain?.profile?.websiteDomain || "",
+          toneOfVoice: brandBrain?.profile?.toneOfVoice || "",
+          visualStyle: brandBrain?.profile?.visualStyle || "",
+          story: brandBrain?.profile?.story || "",
+          differentiators: brandBrain?.profile?.differentiators || "",
+          facebookUrl: brandBrain?.profile?.facebookUrl || "",
+          instagramUrl: brandBrain?.profile?.instagramUrl || "",
+        },
+        services: (brandBrain?.serviceMaster || []).slice(0, 20).map((service) => ({
+          name: service.name || "",
+          description: service.description || "",
+          typicalValue: Number(service.value || 0),
+          durationHours: Number(service.durationHours || 0),
+        })),
+        assets: {
+          websitePhotoCount: Number(brandBrain?.summary?.photoCount || 0),
+          heroSelected: !!brandBrain?.heroAsset,
+          heroService: brandBrain?.heroAsset?.service || "",
+          approvedTestimonialCount: Number(brandBrain?.summary?.testimonialCount || 0),
+          faqCount: Number(brandBrain?.summary?.faqCount || 0),
+        },
+      },
       businessMemory: {
         lastReviewedAt: businessMemoryLastReviewAt,
         strongestPattern: strongestBusinessMemoryPattern
@@ -11838,6 +11976,118 @@ function App() {
     return true;
   };
 
+  const updateBrandProfile = (field, value) => {
+    if (!BRAND_PROFILE_TEXT_FIELDS.has(String(field || ""))) return false;
+    setBrandProfile((current) => ({
+      ...current,
+      [field]: String(value ?? ""),
+    }));
+    return true;
+  };
+
+  const updateBrandServiceDescription = (serviceId, value) => {
+    const id = String(serviceId || "");
+    if (!id || !services.some((service) => service.id === id)) return false;
+    setBrandProfile((current) => ({
+      ...current,
+      serviceDescriptions: {
+        ...(current.serviceDescriptions || {}),
+        [id]: String(value ?? ""),
+      },
+    }));
+    return true;
+  };
+
+  const selectBrandHeroAsset = (assetKey) => {
+    const key = String(assetKey || "");
+    if (!brandBrain.photoLibrary.some((asset) => asset.key === key)) return false;
+    setBrandProfile((current) => ({
+      ...current,
+      heroAssetKey: current.heroAssetKey === key ? "" : key,
+    }));
+    return true;
+  };
+
+  const addBrandFaq = () => {
+    const question = newBrandFaqQuestion.trim();
+    const answer = newBrandFaqAnswer.trim();
+    if (!question || !answer) return false;
+    setBrandProfile((current) => ({
+      ...current,
+      faqs: [
+        ...(Array.isArray(current.faqs) ? current.faqs : []),
+        {
+          id: `brand-faq-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          question,
+          answer,
+          createdAt: new Date().toISOString(),
+        },
+      ].slice(-12),
+    }));
+    setNewBrandFaqQuestion("");
+    setNewBrandFaqAnswer("");
+    return true;
+  };
+
+  const removeBrandFaq = (faqId) => {
+    setBrandProfile((current) => ({
+      ...current,
+      faqs: (Array.isArray(current.faqs) ? current.faqs : []).filter(
+        (item) => item.id !== faqId
+      ),
+    }));
+    return true;
+  };
+
+  const addBrandTestimonial = () => {
+    const text = newBrandTestimonialText.trim();
+    const attribution = newBrandTestimonialAttribution.trim();
+    if (!text) return false;
+    setBrandProfile((current) => ({
+      ...current,
+      testimonials: [
+        ...(Array.isArray(current.testimonials) ? current.testimonials : []),
+        {
+          id: `brand-testimonial-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          text,
+          attribution,
+          approvedForPublicUse: true,
+          approvedAt: new Date().toISOString(),
+        },
+      ].slice(-12),
+    }));
+    setNewBrandTestimonialText("");
+    setNewBrandTestimonialAttribution("");
+    return true;
+  };
+
+  const removeBrandTestimonial = (testimonialId) => {
+    setBrandProfile((current) => ({
+      ...current,
+      testimonials: (Array.isArray(current.testimonials)
+        ? current.testimonials
+        : []
+      ).filter((item) => item.id !== testimonialId),
+    }));
+    return true;
+  };
+
+  const openBrandIdentity = () => {
+    setTab("Settings");
+    go("brandIdentity");
+    return true;
+  };
+
+  const askBusyAboutBrandIdentity = () => {
+    openTalkToBusy(false);
+    setTimeout(() => {
+      submitBusyCommand({
+        text: "Review my Brand & Business Identity. Tell me what BUSY already knows, what is inconsistent or missing, and what I should fill in before asking BUSY to build my website. Do not invent missing business facts.",
+      });
+    }, 80);
+    return true;
+  };
+
   const openCommunicationsHub = () => {
     setTab("Work");
     go("communicationsHub");
@@ -11947,6 +12197,25 @@ function App() {
     setPostcode,
     radius,
     setRadius,
+    brandProfile,
+    setBrandProfile,
+    newBrandFaqQuestion,
+    setNewBrandFaqQuestion,
+    newBrandFaqAnswer,
+    setNewBrandFaqAnswer,
+    newBrandTestimonialText,
+    setNewBrandTestimonialText,
+    newBrandTestimonialAttribution,
+    setNewBrandTestimonialAttribution,
+    updateBrandProfile,
+    updateBrandServiceDescription,
+    selectBrandHeroAsset,
+    addBrandFaq,
+    removeBrandFaq,
+    addBrandTestimonial,
+    removeBrandTestimonial,
+    openBrandIdentity,
+    askBusyAboutBrandIdentity,
     quietSlot,
     setQuietSlot,
     quietSlotConfirmed,
@@ -11998,6 +12267,8 @@ function App() {
     dailyCommandCentre,
     communicationsHub,
     followUpEngine,
+    brandBrain,
+    brandProfile,
     selectedCommunicationThread,
     selectedFollowUpCandidate,
     dailyCommandCheckpoint,
