@@ -989,7 +989,20 @@ function HomeScreen({ s }) {
               : "Clear"
           }
         />
+        <MetricRow
+          left="Follow-up Engine"
+          right={
+            Number(s.followUpEngine?.counts?.replyNow || 0) +
+              Number(s.followUpEngine?.counts?.followUpToday || 0) >
+            0
+              ? `${Number(s.followUpEngine?.counts?.replyNow || 0) + Number(s.followUpEngine?.counts?.followUpToday || 0)} ready now`
+              : (s.followUpEngine?.counts?.waiting || 0) > 0
+              ? `${s.followUpEngine.counts.waiting} waiting`
+              : "Clear"
+          }
+        />
         <Button label="Daily Command Centre" onPress={() => s.go("dailyCommandCentre")} />
+        <Button label="Follow-up Engine" onPress={() => s.openFollowUpEngine()} />
         <Button label="Communications Hub" onPress={() => s.openCommunicationsHub()} />
         <Button label="Executive Briefing" onPress={() => s.go("executiveBriefing")} />
         <Button label="Business Memory" onPress={() => s.go("businessMemory")} />
