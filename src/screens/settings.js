@@ -180,6 +180,30 @@ function BusinessData({ s }) {
       <Field label="Postcode / base area" value={s.postcode} onChangeText={s.setPostcode} />
       <Field label="Service radius" value={s.radius} onChangeText={s.setRadius} keyboardType="number-pad" prefix="Miles" />
       <Field label="Next quiet slot" value={s.quietSlot} onChangeText={s.setQuietSlot} placeholder="e.g. Thursday afternoon" />
+
+      <Card
+        eyebrow="V3.34 • Brand Brain"
+        title={s.brandBrain?.websiteReadinessLabel || "Build one public business identity"}
+        body="Use one authoritative profile for future website copy, social wording, public contact details, service descriptions, FAQs and approved testimonials."
+        footer={`Identity completeness: ${Number(s.brandBrain?.completeness?.score || 0)}% • website builder handoff prepared`}
+        tone={s.brandBrain?.websiteReady ? "green" : "blue"}
+      >
+        <MetricRow
+          left="Core identity gaps"
+          right={String(s.brandBrain?.completeness?.coreMissing?.length || 0)}
+          strong={(s.brandBrain?.completeness?.coreMissing?.length || 0) > 0}
+        />
+        <MetricRow
+          left="Approved website photos"
+          right={String(s.brandBrain?.summary?.photoCount || 0)}
+        />
+        <Button
+          label="Open Brand & Business Identity"
+          primary
+          onPress={s.openBrandIdentity}
+        />
+      </Card>
+
       <Button label="Manage customer records" onPress={() => s.go("customerRecords")} />
 
       <Card
@@ -213,6 +237,17 @@ function Settings({ s }) {
           </View>
         </View>
       </View>
+
+      <Card
+        eyebrow="V3.34 • Your business brand"
+        title={s.brandBrain?.websiteReadinessLabel || "Brand Brain"}
+        body="BUSY now keeps the business's public identity separate from the BUSY DOES IT app brand. This profile feeds future website generation, social copy and other public-facing work."
+        footer={`${Number(s.brandBrain?.completeness?.score || 0)}% identity completeness • ${Number(s.brandBrain?.highCheckCount || 0)} core consistency issue${Number(s.brandBrain?.highCheckCount || 0) === 1 ? "" : "s"}`}
+        tone={s.brandBrain?.websiteReady ? "green" : (s.brandBrain?.highCheckCount || 0) > 0 ? "amber" : "blue"}
+      >
+        <Button label="Brand & Business Identity" primary onPress={s.openBrandIdentity} />
+      </Card>
+
       <Card
         eyebrow="Spending"
         title={s.alwaysAsk ? "Always ask before spending" : `Automatic paid tests up to £${s.testLimit}`}
