@@ -2,6 +2,21 @@
 
 Busy Does It mobile app prototype.
 
+## v3.30 Daily Command Centre / Business Brain 3.0
+- Built directly on the provisionally accepted V3.29 Work & Calendar 2.0 branch.
+- Added a dedicated `src/domain/dailyCommandCentre.js` layer that ranks the current business into three explicit lanes: **Do now**, **Later today**, and **Watch**.
+- The ranking order protects live customer obligations, record integrity, schedule conflicts and high-severity connection issues before optional growth activity.
+- Added a new owner-facing Daily Command Centre screen with a morning picture, confirmed seven-day work, today’s booked value/load, estimated open capacity, approval/input counts and explainable priority cards.
+- Each surfaced item includes a plain-English “why” so the owner can see why it is ahead of other work.
+- Added a durable briefing checkpoint to the normal local/cloud business snapshot. The screen can compare the current saved-business signals with the last reviewed briefing and surface meaningful changes instead of relying on model memory.
+- The comparison tracks confirmed work, today’s bookings, due quotes/reminders, quiet enquiries, Inbox attention, approvals, owner-input items, schedule overlaps, high-priority core/continuity issues and the active work-goal gap.
+- Home now uses the Daily Command Centre as the main priority surface instead of duplicating several independent intelligence cards at the top.
+- The Daily Command Centre reuses existing action surfaces; it does not introduce hidden automatic mutations. Customer actions, booking changes, publishing and spend keep their existing approval boundaries.
+- Added BUSY Operator `daily_briefing` intent. “Brief me” can now summarise **Do now → Later today → Watch** using the same deterministic Daily Command Centre state and only mentions changes that actually exist in the saved comparison.
+- Added a Talk to BUSY quick ask for the daily briefing.
+- The briefing checkpoint is persisted locally and in the owner’s existing cloud business snapshot so the “what changed?” baseline survives normal app restarts and device/cloud restores.
+- The signed native iOS build remains an independent Apple provisioning gate; V3.30 remains testable through the existing Expo Go path.
+
 ## v3.29 Work & Calendar 2.0
 - Built directly on the tested V3.28 BUSY Operator 2.0 branch.
 - Added a dedicated calendar-intelligence domain in `src/domain/workCalendar2.js`; day workload/capacity policy no longer lives inside the Work screen or AppController.
