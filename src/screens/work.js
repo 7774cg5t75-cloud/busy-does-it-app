@@ -1282,6 +1282,11 @@ function WorkHub({ s }) {
 
 function WorkCalendar({ s }) {
   const todayISO = dateToISO(new Date());
+  const intelligence = s.workCalendarIntelligence || {
+    capacityHours: 7.5,
+    byDate: {},
+    counts: { overloadedDays: 0, openDays: 0, attentionDue: 0 },
+  };
   const requestedOperatorDate = String(s.operatorCalendarDate || "");
   const requestedOperatorDateValue = /^\d{4}-\d{2}-\d{2}$/.test(requestedOperatorDate)
     ? dateFromISO(requestedOperatorDate)
@@ -1309,48 +1314,100 @@ function WorkCalendar({ s }) {
     );
     setSelectedDate(focusDate);
   }, [s.operatorCalendarDate]);
+
   const monthStart = dateFromISO(monthStartISO);
   const year = monthStart.getFullYear();
   const month = monthStart.getMonth();
-  const monthTitle = monthStart.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  const monthTitle = monthStart.toLocaleDateString("en-GB", {
+    month: "long",
+    year: "numeric",
+  });
   const firstOffset = (new Date(year, month, 1, 12, 0, 0).getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0, 12, 0, 0).getDate();
-  const actionEntries = Object.entries(s.replyActions || {})
-    .map(([id, action]) => {
-      const customer = s.customers.find((item) => item.id === id) || s.lastSimulatedRecipients.find((item) => item.id === id);
-      return customer ? { id, action, customer } : null;
-    })
-    .filter(Boolean);
-  const bookings = actionEntries
-    .filter(({ action }) =>
-      action?.type === "booking" &&
-      action?.done &&
-      !["Cancelled"].includes(action.details?.bookingStatus || "Confirmed") &&
-      !!action.details?.bookingDate
-    )
-    .sort((a, b) =>
-      `${a.action.details.bookingDate}T${a.action.details.bookingTime || "00:00"}`.localeCompare(
-        `${b.action.details.bookingDate}T${b.action.details.bookingTime || "00:00"}`
-      )
-    );
-  const plannedSlots = Array.isArray(s.activeWorkGoal?.plannedSlots) ? s.activeWorkGoal.plannedSlots : [];
-  const monthBookings = bookings.filter((item) => {
-    const d = dateFromISO(item.action.details.bookingDate);
-    return d.getFullYear() === year && d.getMonth() === month;
-  });
-  const monthValue = monthBookings.reduce((total, item) =>
-    total + (Number(item.action.details?.jobValue) || Number(item.action.details?.sourceQuoteAmount) || 0), 0
-  );
-  const selectedBookings = bookings.filter((item) => item.action.details.bookingDate === selectedDate);
-  const selectedPlanned = plannedSlots.filter((slot) => slot.date === selectedDate);
+
+  const dayFor = (iso) => {
+    const saved = intelligence.byDate?.[iso];
+    if (saved) return saved;
+    return {
+      date: iso,
+      bookings: [],
+      externalEvents: [],
+      attention: [],
+      plannedSlots: [],
+      bookingHours: 0,
+      externalHours: 0,
+      scheduledHours: 0,
+      estimatedOpenHours: Number(intelligence.capacityHours || 7.5),
+      bookedValue: 0,
+      conflictCount: 0,
+      conflicts: [],
+      state: iso < todayISO ? "Past" : "Open",
+      tone: "green",
+      fillCandidate: null,
+      summary: "No saved work or follow-ups",
+    };
+  };
+
   const cells = [];
-  for (let i = 0; i < firstOffset; i += 1) cells.push({ blank: true, key: `blank-${i}` });
+  for (let i = 0; i < firstOffset; i += 1) {
+    cells.push({ blank: true, key: `blank-${i}` });
+  }
   for (let day = 1; day <= daysInMonth; day += 1) {
     const iso = dateToISO(new Date(year, month, day, 12, 0, 0));
-    const dayBookings = bookings.filter((item) => item.action.details.bookingDate === iso);
-    const dayPlans = plannedSlots.filter((slot) => slot.date === iso);
-    cells.push({ blank: false, key: iso, iso, day, bookingCount: dayBookings.length, planCount: dayPlans.length });
+    const row = dayFor(iso);
+    cells.push({
+      blank: false,
+      key: iso,
+      iso,
+      day,
+      bookingCount: row.bookings?.length || 0,
+      planCount: row.plannedSlots?.length || 0,
+      attentionCount: row.attention?.length || 0,
+      externalCount: row.externalEvents?.length || 0,
+      state: row.state || "Open",
+    });
   }
+
+  const monthRows = cells
+    .filter((cell) => !cell.blank)
+    .map((cell) => dayFor(cell.iso));
+  const monthBookings = monthRows.reduce(
+    (total, row) => total + Number(row.bookings?.length || 0),
+    0
+  );
+  const monthValue = monthRows.reduce(
+    (total, row) => total + Number(row.bookedValue || 0),
+    0
+  );
+  const monthAttention = monthRows.reduce(
+    (total, row) => total + Number(row.attention?.length || 0),
+    0
+  );
+  const monthOpenFuture = monthRows.filter(
+    (row) =>
+      row.date >= todayISO &&
+      ["Open", "Light"].includes(row.state)
+  ).length;
+  const monthOverloaded = monthRows.filter(
+    (row) => row.date >= todayISO && row.state === "Overloaded"
+  ).length;
+
+  const selectedDay = dayFor(selectedDate);
+  const selectedBookings = Array.isArray(selectedDay.bookings)
+    ? selectedDay.bookings
+    : [];
+  const selectedPlanned = Array.isArray(selectedDay.plannedSlots)
+    ? selectedDay.plannedSlots
+    : [];
+  const selectedAttention = Array.isArray(selectedDay.attention)
+    ? selectedDay.attention
+    : [];
+  const selectedExternal = Array.isArray(selectedDay.externalEvents)
+    ? selectedDay.externalEvents
+    : [];
+  const selectedConflicts = Array.isArray(selectedDay.conflicts)
+    ? selectedDay.conflicts
+    : [];
 
   const moveMonth = (delta) => {
     const next = new Date(year, month + delta, 1, 12, 0, 0);
@@ -1359,94 +1416,372 @@ function WorkCalendar({ s }) {
     setSelectedDate(nextISO);
   };
 
+  const openAttention = (item) => {
+    if (!item) return;
+    if (item.kind === "quote") {
+      s.go("staleQuotes");
+      return;
+    }
+    if (item.kind === "reminder") {
+      s.openSavedReplyAction(item.customerId);
+      return;
+    }
+    if (item.customerId) {
+      s.openCustomer(item.customerId);
+      return;
+    }
+    s.jump("workHub", "Work");
+  };
+
+  const stateShort = (state) =>
+    state === "Overloaded"
+      ? "Over"
+      : state === "Comfortable"
+      ? "OK"
+      : state === "Past"
+      ? ""
+      : state;
+
   return (
     <Shell
       s={s}
       title="Calendar"
-      subtitle="Confirmed work and BUSY’s planned openings in one simple view."
-      brandCue="Tap a day to see what sits behind it."
+      subtitle="Work, follow-ups and capacity in one place."
+      brandCue="V3.29 • Tap a day to see jobs, value, open capacity, follow-ups, external commitments and BUSY’s suggested next move."
     >
-      <Card eyebrow="Month" title={monthTitle} tone="blue">
-        <View style={styles.calendarMonthNav}>
-          <Pressable accessibilityRole="button" onPress={() => moveMonth(-1)} style={styles.calendarNavButton}>
-            <Text style={styles.calendarNavText}>‹ Previous</Text>
+      <Card eyebrow="Work & Calendar 2.0" title={monthTitle} tone="blue">
+        <View style={styles.workCalendarMonthNav}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => moveMonth(-1)}
+            style={styles.workCalendarNavButton}
+          >
+            <Text style={styles.workCalendarNavText}>‹ Previous</Text>
           </Pressable>
-          <Pressable accessibilityRole="button" onPress={() => {
-            const now = new Date();
-            const start = dateToISO(new Date(now.getFullYear(), now.getMonth(), 1, 12, 0, 0));
-            setMonthStartISO(start);
-            setSelectedDate(todayISO);
-          }} style={styles.calendarTodayButton}>
-            <Text style={styles.calendarTodayText}>Today</Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              const now = new Date();
+              const start = dateToISO(
+                new Date(now.getFullYear(), now.getMonth(), 1, 12, 0, 0)
+              );
+              setMonthStartISO(start);
+              setSelectedDate(todayISO);
+            }}
+            style={styles.workCalendarTodayButton}
+          >
+            <Text style={styles.workCalendarTodayText}>Today</Text>
           </Pressable>
-          <Pressable accessibilityRole="button" onPress={() => moveMonth(1)} style={styles.calendarNavButton}>
-            <Text style={styles.calendarNavText}>Next ›</Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => moveMonth(1)}
+            style={styles.workCalendarNavButton}
+          >
+            <Text style={styles.workCalendarNavText}>Next ›</Text>
           </Pressable>
         </View>
-        <MetricRow left="Booked jobs this month" right={String(monthBookings.length)} strong={monthBookings.length > 0} />
-        <MetricRow left="Booked value this month" right={`£${monthValue}`} strong={monthValue > 0} />
+        <MetricRow
+          left="Booked jobs this month"
+          right={String(monthBookings)}
+          strong={monthBookings > 0}
+        />
+        <MetricRow
+          left="Booked value this month"
+          right={`£${Math.round(monthValue)}`}
+          strong={monthValue > 0}
+        />
+        <MetricRow
+          left="Follow-ups / actions on calendar"
+          right={String(monthAttention)}
+          strong={monthAttention > 0}
+        />
+        <MetricRow
+          left="Open or light future days"
+          right={String(monthOpenFuture)}
+        />
+        {monthOverloaded ? (
+          <MetricRow
+            left="Potentially overloaded days"
+            right={String(monthOverloaded)}
+            strong
+          />
+        ) : null}
       </Card>
 
-      <View style={styles.calendarGrid}>
-        {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((label) => (
-          <View key={label} style={styles.calendarWeekdayCell}><Text style={styles.calendarWeekday}>{label}</Text></View>
+      <View style={styles.workCalendarGrid}>
+        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((label) => (
+          <View key={label} style={styles.workCalendarWeekdayCell}>
+            <Text style={styles.workCalendarWeekday}>{label}</Text>
+          </View>
         ))}
         {cells.map((cell) =>
           cell.blank ? (
-            <View key={cell.key} style={styles.calendarDayWrap}><View style={styles.calendarBlankDay} /></View>
+            <View key={cell.key} style={styles.workCalendarDayWrap}>
+              <View style={styles.workCalendarBlankDay} />
+            </View>
           ) : (
-            <View key={cell.key} style={styles.calendarDayWrap}>
+            <View key={cell.key} style={styles.workCalendarDayWrap}>
               <Pressable
                 accessibilityRole="button"
                 onPress={() => setSelectedDate(cell.iso)}
                 style={({ pressed }) => [
-                  styles.calendarDay,
-                  cell.iso === selectedDate && styles.calendarDaySelected,
-                  cell.iso === todayISO && styles.calendarDayToday,
-                  pressed && styles.calendarDayPressed,
+                  styles.workCalendarDay,
+                  cell.iso === selectedDate && styles.workCalendarDaySelected,
+                  cell.iso === todayISO && styles.workCalendarDayToday,
+                  pressed && styles.workCalendarDayPressed,
                 ]}
               >
-                <Text style={[styles.calendarDayNumber, cell.iso === selectedDate && styles.calendarDayNumberSelected]}>{cell.day}</Text>
-                <View style={styles.calendarMarkers}>
-                  {cell.bookingCount ? <View style={styles.calendarBookingDot} /> : null}
-                  {cell.planCount ? <View style={styles.calendarPlanDot} /> : null}
+                <Text
+                  style={[
+                    styles.workCalendarDayNumber,
+                    cell.iso === selectedDate &&
+                      styles.workCalendarDayNumberSelected,
+                  ]}
+                >
+                  {cell.day}
+                </Text>
+                <View style={styles.workCalendarMarkers}>
+                  {cell.bookingCount ? (
+                    <View style={styles.workCalendarBookingDot} />
+                  ) : null}
+                  {cell.planCount ? (
+                    <View style={styles.workCalendarPlanDot} />
+                  ) : null}
+                  {cell.attentionCount ? (
+                    <View style={styles.workCalendarAttentionDot} />
+                  ) : null}
+                  {cell.externalCount ? (
+                    <View style={styles.workCalendarExternalDot} />
+                  ) : null}
                 </View>
-                {cell.bookingCount ? <Text style={styles.calendarCount}>{cell.bookingCount}</Text> : null}
+                {cell.bookingCount ? (
+                  <Text style={styles.workCalendarCount}>
+                    {cell.bookingCount}
+                  </Text>
+                ) : (
+                  <Text style={styles.workCalendarStateText}>
+                    {stateShort(cell.state)}
+                  </Text>
+                )}
               </Pressable>
             </View>
           )
         )}
       </View>
 
-      <View style={styles.calendarLegend}>
-        <View style={styles.calendarLegendItem}><View style={styles.calendarBookingDot} /><Text style={styles.calendarLegendText}>Booked work</Text></View>
-        <View style={styles.calendarLegendItem}><View style={styles.calendarPlanDot} /><Text style={styles.calendarLegendText}>BUSY planned opening</Text></View>
+      <View style={styles.workCalendarLegend}>
+        <View style={styles.workCalendarLegendItem}>
+          <View style={styles.workCalendarBookingDot} />
+          <Text style={styles.workCalendarLegendText}>Booked work</Text>
+        </View>
+        <View style={styles.workCalendarLegendItem}>
+          <View style={styles.workCalendarPlanDot} />
+          <Text style={styles.workCalendarLegendText}>BUSY planned opening</Text>
+        </View>
+        <View style={styles.workCalendarLegendItem}>
+          <View style={styles.workCalendarAttentionDot} />
+          <Text style={styles.workCalendarLegendText}>Follow-up due</Text>
+        </View>
+        <View style={styles.workCalendarLegendItem}>
+          <View style={styles.workCalendarExternalDot} />
+          <Text style={styles.workCalendarLegendText}>External diary</Text>
+        </View>
       </View>
 
       <Text style={styles.sectionLabel}>{formatUKDate(selectedDate)}</Text>
-      {selectedBookings.length ? selectedBookings.map((item) => (
-        <Pressable key={item.id} accessibilityRole="button" onPress={() => s.openSavedReplyAction(item.id)} style={styles.calendarBookingCard}>
+
+      <Card
+        eyebrow="Day picture"
+        title={
+          selectedDay.state === "Past"
+            ? "Past day"
+            : `${selectedDay.state || "Open"} workload`
+        }
+        body={selectedDay.summary || "No saved work or follow-ups."}
+        footer={
+          selectedDate < todayISO
+            ? "Historical view • capacity guidance is only used for current/future planning."
+            : `Open-capacity figure uses a ~${intelligence.capacityHours || 7.5} hour planning day. It is guidance, not a promise that the whole day is bookable.`
+        }
+        tone={
+          selectedDay.state === "Overloaded"
+            ? "amber"
+            : selectedDay.state === "Busy"
+            ? "blue"
+            : "green"
+        }
+      >
+        <MetricRow
+          left="Booked jobs"
+          right={String(selectedBookings.length)}
+          strong={selectedBookings.length > 0}
+        />
+        <MetricRow
+          left="Booked value"
+          right={`£${Math.round(Number(selectedDay.bookedValue || 0))}`}
+          strong={Number(selectedDay.bookedValue || 0) > 0}
+        />
+        <MetricRow
+          left="Scheduled load"
+          right={`${Number(selectedDay.scheduledHours || 0)}h`}
+        />
+        {selectedDate >= todayISO ? (
+          <MetricRow
+            left="Estimated open capacity"
+            right={`~${Number(selectedDay.estimatedOpenHours || 0)}h`}
+          />
+        ) : null}
+        <MetricRow
+          left="Follow-ups / actions"
+          right={String(selectedAttention.length)}
+          strong={selectedAttention.length > 0}
+        />
+        <MetricRow
+          left="External commitments"
+          right={String(selectedExternal.length)}
+        />
+      </Card>
+
+      {selectedConflicts.length ? (
+        <Card
+          eyebrow="Potential overlap"
+          title={`${selectedConflicts.length} schedule conflict${selectedConflicts.length === 1 ? "" : "s"} worth checking`}
+          body="BUSY found timed items that overlap. It has not moved anything automatically."
+          footer="Review the booking and connected diary before accepting more work on this day."
+          tone="amber"
+        />
+      ) : null}
+
+      {selectedBookings.map((booking) => (
+        <Pressable
+          key={booking.customerId}
+          accessibilityRole="button"
+          onPress={() => s.openSavedReplyAction(booking.customerId)}
+          style={styles.workCalendarBookingCard}
+        >
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={styles.calendarBookingTitle}>{item.customer.name}</Text>
-            <Text style={styles.calendarBookingBody}>{item.customer.service} • {item.action.details?.bookingTime || "time not set"}</Text>
-            <Text style={styles.calendarBookingMeta}>{item.action.details?.bookingStatus || "Confirmed"}{item.action.details?.jobValue ? ` • £${item.action.details.jobValue}` : ""}</Text>
+            <Text style={styles.workCalendarBookingTitle}>
+              {booking.customerName}
+            </Text>
+            <Text style={styles.workCalendarBookingBody}>
+              {booking.service} • {booking.time || "time not set"} • about{" "}
+              {booking.durationHours || 2}h
+            </Text>
+            <Text style={styles.workCalendarBookingMeta}>
+              Confirmed
+              {Number(booking.value) > 0 ? ` • £${booking.value}` : ""}
+            </Text>
           </View>
           <Text style={styles.metricChevron}>›</Text>
         </Pressable>
-      )) : null}
-      {selectedPlanned.map((slot) => (
-        <View key={slot.id} style={styles.calendarPlanCard}>
-          <Text style={styles.calendarBookingTitle}>BUSY planned opening</Text>
-          <Text style={styles.calendarBookingBody}>{slot.label} • target {slot.targetJobs || 1} booking{Number(slot.targetJobs || 1) === 1 ? "" : "s"}</Text>
+      ))}
+
+      {selectedExternal.map((event) => (
+        <View
+          key={event.id || `${selectedDate}-${event.title}-${event.time}`}
+          style={styles.workCalendarExternalCard}
+        >
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={styles.workCalendarBookingTitle}>
+              {event.title || "External diary commitment"}
+            </Text>
+            <Text style={styles.workCalendarBookingBody}>
+              {event.time || "time not set"}
+              {Number(event.durationHours) > 0
+                ? ` • about ${event.durationHours}h`
+                : ""}
+            </Text>
+          </View>
         </View>
       ))}
-      {!selectedBookings.length && !selectedPlanned.length ? (
-        <Card eyebrow="Open day" title="Nothing booked or planned here" body="This day is currently clear in BUSY’s saved records." tone="green" />
+
+      {selectedAttention.length ? (
+        <>
+          <Text style={styles.sectionLabel}>Needs attention</Text>
+          {selectedAttention.map((item) => (
+            <Pressable
+              key={item.id}
+              accessibilityRole="button"
+              onPress={() => openAttention(item)}
+              style={styles.workCalendarAttentionCard}
+            >
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={styles.workCalendarBookingTitle}>{item.title}</Text>
+                <Text style={styles.workCalendarBookingBody}>{item.body}</Text>
+                <Text style={styles.workCalendarBookingMeta}>
+                  {item.overdue
+                    ? `Overdue from ${formatUKDate(item.dueDate || item.date)}`
+                    : `Due ${formatUKDate(item.dueDate || item.date)}`}
+                  {Number(item.value) > 0 ? ` • £${item.value}` : ""}
+                </Text>
+              </View>
+              <Text style={styles.metricChevron}>›</Text>
+            </Pressable>
+          ))}
+        </>
       ) : null}
+
+      {selectedPlanned.map((slot) => (
+        <View key={slot.id} style={styles.workCalendarPlanCard}>
+          <Text style={styles.workCalendarBookingTitle}>
+            BUSY planned opening
+          </Text>
+          <Text style={styles.workCalendarBookingBody}>
+            {slot.label} • target {slot.targetJobs || 1} booking
+            {Number(slot.targetJobs || 1) === 1 ? "" : "s"}
+          </Text>
+        </View>
+      ))}
+
+      {selectedDate >= todayISO && selectedDay.fillCandidate ? (
+        <Card
+          eyebrow="Possible gap filler"
+          title={`${selectedDay.fillCandidate.customerName} • ${selectedDay.fillCandidate.service}`}
+          body={`This repeat-work candidate looks small enough for the day’s estimated open capacity: about ${selectedDay.fillCandidate.durationHours}h${Number(selectedDay.fillCandidate.value) > 0 ? ` • around £${selectedDay.fillCandidate.value} recorded/typical value` : ""}.`}
+          footer="This is a planning suggestion only. BUSY has not contacted the customer or booked anything."
+          tone="green"
+        >
+          <Button
+            label="Open customer"
+            onPress={() => s.openCustomer(selectedDay.fillCandidate.customerId)}
+          />
+          <Button label="Find more work" onPress={() => s.go("workNow")} />
+        </Card>
+      ) : null}
+
+      {!selectedBookings.length &&
+      !selectedExternal.length &&
+      !selectedAttention.length &&
+      !selectedPlanned.length ? (
+        <Card
+          eyebrow={selectedDate < todayISO ? "Past day" : "Open day"}
+          title={
+            selectedDate < todayISO
+              ? "No saved activity on this day"
+              : "Nothing booked or due here"
+          }
+          body={
+            selectedDate < todayISO
+              ? "BUSY has no saved booking, follow-up or connected-calendar commitment for this date."
+              : "This day is currently clear in BUSY’s saved records. Use the capacity estimate and customer evidence before deciding whether to fill it."
+          }
+          tone="green"
+        />
+      ) : null}
+
+      <Button label="Ask BUSY about this day" onPress={() => {
+        s.openTalkToBusy(false);
+        setTimeout(() => {
+          s.submitBusyCommand({
+            text: `What have I got on ${formatUKDate(selectedDate)}, how busy is that day, and is there room for another job?`,
+          });
+        }, 80);
+      }} />
       <Button label="Work diary list" onPress={() => s.go("bookings")} />
     </Shell>
   );
 }
+
 
 function WorkPipeline({ s }) {
   const [search, setSearch] = useState("");
