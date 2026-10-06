@@ -1,0 +1,724 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
+const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+const SOURCE_BUCKET = "busy-social-media";
+const PREVIEW_BUCKET = "busy-website-preview";
+const PUBLIC_BUCKET = "busy-website-public";
+
+const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+  auth: { persistSession: false },
+});
+
+function json(status: number, body: unknown) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+function clean(value: unknown, max = 8000) {
+  return typeof value === "string" ? value.trim().slice(0, max) : "";
+}
+
+function safeArray(value: unknown) {
+  return Array.isArray(value) ? value : [];
+}
+
+function escapeHtml(value: unknown) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function contentTypeFor(path: string) {
+  const lower = path.toLowerCase();
+  if (lower.endsWith(".png")) return "image/png";
+  if (lower.endsWith(".webp")) return "image/webp";
+  return "image/jpeg";
+}
+
+function assetKey(asset: any, index = 0) {
+  return clean(asset?.key, 500) || clean(asset?.storagePath, 1000) || `asset-${index}`;
+}
+
+function fileNameFor(asset: any, index = 0) {
+  const source = clean(asset?.storagePath, 1000);
+  const raw = source.split("/").filter(Boolean).at(-1) || `asset-${index}.jpg`;
+  return raw.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-180);
+}
+
+function collectAssetRefs(draft: any) {
+  const raw: any[] = [];
+  safeArray(draft?.sections).forEach((section: any) => {
+    if (section?.id === "hero" && section?.asset) raw.push(section.asset);
+    if (section?.type === "gallery") {
+      safeArray(section?.items).forEach((item: any) => raw.push(item));
+    }
+  });
+
+  const grouped = new Map<string, any>();
+  raw.forEach((asset, index) => {
+    const sourcePath = clean(asset?.storagePath, 1000);
+    if (!sourcePath) return;
+    const groupKey = sourcePath;
+    const existing = grouped.get(groupKey) || {
+      sourcePath,
+      keys: [],
+      fileName: fileNameFor(asset, index),
+    };
+    const key = assetKey(asset, index);
+    if (!existing.keys.includes(key)) existing.keys.push(key);
+    grouped.set(groupKey, existing);
+  });
+  return [...grouped.values()];
+}
+
+function buildAssetMap(manifest: any, field: "previewUrl" | "publicUrl") {
+  const map: Record<string, string> = {};
+  safeArray(manifest?.assets).forEach((asset: any) => {
+    const url = clean(asset?.[field], 4000);
+    if (!url) return;
+    if (asset.sourcePath) map[asset.sourcePath] = url;
+    safeArray(asset.keys).forEach((key: string) => {
+      if (key) map[key] = url;
+    });
+  });
+  return map;
+}
+
+function urlForAsset(asset: any, urls: Record<string, string>, index = 0) {
+  return (
+    urls[assetKey(asset, index)] ||
+    urls[clean(asset?.storagePath, 1000)] ||
+    ""
+  );
+}
+
+function renderWebsiteHtml(draft: any, urls: Record<string, string>) {
+  const sections = safeArray(draft?.sections).filter(
+    (section: any) => section?.enabled !== false
+  );
+  const theme = draft?.theme || {};
+  const primary = clean(theme?.primary, 100);
+  const secondary = clean(theme?.secondary, 100);
+  const cssVars = [
+    primary ? `--brand-primary:${escapeHtml(primary)};` : "",
+    secondary ? `--brand-secondary:${escapeHtml(secondary)};` : "",
+  ]
+    .filter(Boolean)
+    .join("");
+
+  const sectionHtml = sections
+    .map((section: any) => {
+      if (section.type === "hero") {
+        const image = section.asset ? urlForAsset(section.asset, urls) : "";
+        return `<section class="hero hero-${escapeHtml(
+          theme.heroSize || "large"
+        )}"><div class="wrap">${image ? `<img class="hero-image" src="${escapeHtml(
+          image
+        )}" alt="">` : ""}<p class="kicker">${escapeHtml(
+          draft.businessName
+        )}</p><h1>${escapeHtml(section.title)}</h1><p>${escapeHtml(
+          section.body
+        )}</p>${
+          section.cta && section.ctaHref
+            ? `<a class="cta" href="${escapeHtml(
+                section.ctaHref
+              )}">${escapeHtml(section.cta)}</a>`
+            : ""
+        }</div></section>`;
+      }
+
+      if (section.type === "services") {
+        return `<section id="services"><div class="wrap"><h2>${escapeHtml(
+          section.title
+        )}</h2><div class="grid">${safeArray(section.items)
+          .map(
+            (item: any) =>
+              `<article><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(
+                item.body
+              )}</p></article>`
+          )
+          .join("")}</div></div></section>`;
+      }
+
+      if (section.type === "gallery") {
+        const images = safeArray(section.items)
+          .map((item: any, index: number) => {
+            const url = urlForAsset(item, urls, index);
+            return url
+              ? `<img class="gallery-image" src="${escapeHtml(
+                  url
+                )}" alt="">`
+              : "";
+          })
+          .filter(Boolean)
+          .join("");
+        return `<section id="gallery"><div class="wrap"><h2>${escapeHtml(
+          section.title
+        )}</h2><div class="gallery">${images}</div></div></section>`;
+      }
+
+      if (section.type === "testimonials" || section.type === "faq") {
+        return `<section id="${escapeHtml(
+          section.id
+        )}"><div class="wrap"><h2>${escapeHtml(
+          section.title
+        )}</h2>${safeArray(section.items)
+          .map(
+            (item: any) =>
+              `<article><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(
+                item.body
+              )}</p></article>`
+          )
+          .join("")}</div></section>`;
+      }
+
+      if (section.type === "contact") {
+        return `<section id="contact"><div class="wrap"><h2>${escapeHtml(
+          section.title
+        )}</h2><p>${escapeHtml(section.body)}</p>${
+          section.phone
+            ? `<p><a href="tel:${escapeHtml(
+                String(section.phone).replace(/\s+/g, "")
+              )}">${escapeHtml(section.phone)}</a></p>`
+            : ""
+        }${
+          section.email
+            ? `<p><a href="mailto:${escapeHtml(
+                section.email
+              )}">${escapeHtml(section.email)}</a></p>`
+            : ""
+        }${
+          section.openingHours
+            ? `<p>${escapeHtml(section.openingHours)}</p>`
+            : ""
+        }</div></section>`;
+      }
+
+      return `<section id="${escapeHtml(
+        section.id
+      )}"><div class="wrap"><h2>${escapeHtml(
+        section.title
+      )}</h2><p>${escapeHtml(section.body).replace(
+        /\n/g,
+        "<br>"
+      )}</p></div></section>`;
+    })
+    .join("");
+
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(
+    draft?.seo?.title || draft?.businessName || "Website"
+  )}</title><meta name="description" content="${escapeHtml(
+    draft?.seo?.description || ""
+  )}"><style>:root{${cssVars}}*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.55;color:#1f2933;background:#fff}.wrap{max-width:1080px;margin:0 auto;padding:64px 24px}section:nth-child(even){background:#f7f7f5}h1{font-size:clamp(2.5rem,8vw,5rem);line-height:1.02;margin:.2em 0}h2{font-size:2rem}h3{margin-top:0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}article{padding:22px;border:1px solid #e5e7eb;border-radius:18px;background:#fff}.cta{display:inline-block;margin-top:18px;padding:12px 18px;border-radius:999px;background:var(--brand-primary,#1f5eff);color:#fff;text-decoration:none}.hero-image{width:100%;max-height:620px;object-fit:cover;border-radius:22px;margin-bottom:28px}.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}.gallery-image{width:100%;height:260px;object-fit:cover;border-radius:16px}.mood-warm{background:#fffaf2}.mood-bold h1{font-weight:900}.mood-premium{letter-spacing:.01em}.hero-extra-large .wrap{padding-top:100px;padding-bottom:100px}.hero-medium .wrap{padding-top:44px;padding-bottom:44px}@media(max-width:600px){.wrap{padding:42px 20px}.gallery-image{height:220px}}</style></head><body class="mood-${escapeHtml(
+    theme?.mood || "clean"
+  )}">${sectionHtml}</body></html>`;
+}
+
+async function ensureBucket(
+  name: string,
+  options: { public: boolean; allowedMimeTypes: string[]; fileSizeLimit: number }
+) {
+  const existing = await supabase.storage.getBucket(name);
+  if (!existing.error && existing.data) return;
+  const created = await supabase.storage.createBucket(name, options);
+  if (
+    created.error &&
+    !/already exists|duplicate/i.test(created.error.message || "")
+  ) {
+    throw created.error;
+  }
+}
+
+async function ensureBuckets() {
+  await ensureBucket(PREVIEW_BUCKET, {
+    public: false,
+    allowedMimeTypes: ["text/html", "image/jpeg", "image/png", "image/webp"],
+    fileSizeLimit: 15_000_000,
+  });
+  await ensureBucket(PUBLIC_BUCKET, {
+    public: true,
+    allowedMimeTypes: ["text/html", "image/jpeg", "image/png", "image/webp"],
+    fileSizeLimit: 15_000_000,
+  });
+}
+
+async function uploadText(
+  bucket: string,
+  path: string,
+  value: string,
+  cacheControl: string,
+  upsert = true
+) {
+  const result = await supabase.storage
+    .from(bucket)
+    .upload(path, new Blob([value], { type: "text/html; charset=utf-8" }), {
+      contentType: "text/html; charset=utf-8",
+      cacheControl,
+      upsert,
+    });
+  if (result.error) throw result.error;
+}
+
+async function loadJob(jobId: string) {
+  const job = await supabase
+    .from("busy_website_publish_jobs")
+    .select("*")
+    .eq("id", jobId)
+    .maybeSingle();
+  if (job.error) throw job.error;
+  if (!job.data) throw new Error("Queued website publish job no longer exists.");
+  return job.data;
+}
+
+async function loadDeployment(deploymentId: string) {
+  const deployment = await supabase
+    .from("busy_website_deployments")
+    .select("*")
+    .eq("id", deploymentId)
+    .maybeSingle();
+  if (deployment.error) throw deployment.error;
+  if (!deployment.data) throw new Error("Website deployment not found.");
+  return deployment.data;
+}
+
+async function loadWebsite(websiteId: string) {
+  const website = await supabase
+    .from("busy_websites")
+    .select("*")
+    .eq("id", websiteId)
+    .maybeSingle();
+  if (website.error) throw website.error;
+  if (!website.data) throw new Error("Website project not found.");
+  return website.data;
+}
+
+async function prepareDeployment(job: any, deployment: any, website: any) {
+  await ensureBuckets();
+  await supabase
+    .from("busy_website_deployments")
+    .update({ state: "preparing", last_error: null })
+    .eq("id", deployment.id);
+
+  const refs = collectAssetRefs(deployment.source_draft);
+  const assets: any[] = [];
+  let artifactBytes = 0;
+
+  for (let index = 0; index < refs.length; index += 1) {
+    const ref = refs[index];
+    const downloaded = await supabase.storage
+      .from(SOURCE_BUCKET)
+      .download(ref.sourcePath);
+    if (downloaded.error || !downloaded.data) {
+      assets.push({
+        ...ref,
+        previewPath: "",
+        previewUrl: "",
+        publicPath: "",
+        publicUrl: "",
+        warning: "Approved source image could not be copied into the website preview.",
+      });
+      continue;
+    }
+
+    const contentType = contentTypeFor(ref.fileName);
+    const previewPath = `${job.business_id}/${job.website_id}/deployments/${deployment.id}/assets/${index + 1}-${ref.fileName}`;
+    const uploaded = await supabase.storage
+      .from(PREVIEW_BUCKET)
+      .upload(previewPath, downloaded.data, {
+        contentType,
+        cacheControl: "3600",
+        upsert: true,
+      });
+    if (uploaded.error) throw uploaded.error;
+
+    const signed = await supabase.storage
+      .from(PREVIEW_BUCKET)
+      .createSignedUrl(previewPath, 86400);
+    if (signed.error) throw signed.error;
+
+    const bytes = Number(downloaded.data.size || 0);
+    artifactBytes += bytes;
+    assets.push({
+      ...ref,
+      contentType,
+      bytes,
+      previewPath,
+      previewUrl: signed.data.signedUrl,
+      publicPath: "",
+      publicUrl: "",
+      warning: "",
+    });
+  }
+
+  const manifest = {
+    schemaVersion: 1,
+    sourceBucket: SOURCE_BUCKET,
+    previewBucket: PREVIEW_BUCKET,
+    publicBucket: PUBLIC_BUCKET,
+    assets,
+    preparedAt: new Date().toISOString(),
+  };
+  const previewHtml = renderWebsiteHtml(
+    deployment.source_draft,
+    buildAssetMap(manifest, "previewUrl")
+  );
+  const indexPath = `${job.business_id}/${job.website_id}/deployments/${deployment.id}/index.html`;
+  await uploadText(PREVIEW_BUCKET, indexPath, previewHtml, "300", true);
+  artifactBytes += new TextEncoder().encode(previewHtml).byteLength;
+
+  const now = new Date().toISOString();
+  const updated = await supabase
+    .from("busy_website_deployments")
+    .update({
+      state: "preview_ready",
+      manifest,
+      preview_storage_path: indexPath,
+      artifact_bytes: artifactBytes,
+      last_error: null,
+      prepared_at: now,
+    })
+    .eq("id", deployment.id)
+    .select("*")
+    .single();
+  if (updated.error) throw updated.error;
+
+  const websiteUpdated = await supabase
+    .from("busy_websites")
+    .update({
+      status: website.current_live_deployment_id
+        ? "update_pending"
+        : "preview_ready",
+      current_preview_deployment_id: deployment.id,
+      last_error: null,
+      updated_at: now,
+    })
+    .eq("id", website.id);
+  if (websiteUpdated.error) throw websiteUpdated.error;
+}
+
+async function publishDeployment(job: any, deployment: any, website: any) {
+  if (!deployment.preview_storage_path || !deployment.prepared_at) {
+    throw new Error("The website version must be prepared before publishing.");
+  }
+  await ensureBuckets();
+
+  await supabase
+    .from("busy_website_deployments")
+    .update({ state: "publishing", last_error: null })
+    .eq("id", deployment.id);
+
+  const manifest = {
+    ...(deployment.manifest || {}),
+    assets: safeArray(deployment.manifest?.assets).map((item: any) => ({
+      ...item,
+    })),
+  };
+
+  for (let index = 0; index < manifest.assets.length; index += 1) {
+    const asset = manifest.assets[index];
+    if (!asset.previewPath) continue;
+    const downloaded = await supabase.storage
+      .from(PREVIEW_BUCKET)
+      .download(asset.previewPath);
+    if (downloaded.error || !downloaded.data) {
+      throw new Error(
+        `Prepared website asset is missing: ${asset.fileName || asset.sourcePath}`
+      );
+    }
+
+    const publicPath = `${job.business_id}/${job.website_id}/deployments/${deployment.id}/assets/${index + 1}-${asset.fileName}`;
+    const uploaded = await supabase.storage
+      .from(PUBLIC_BUCKET)
+      .upload(publicPath, downloaded.data, {
+        contentType: asset.contentType || contentTypeFor(asset.fileName || ""),
+        cacheControl: "31536000",
+        upsert: true,
+      });
+    if (uploaded.error) throw uploaded.error;
+    const publicUrl = supabase.storage
+      .from(PUBLIC_BUCKET)
+      .getPublicUrl(publicPath).data.publicUrl;
+    manifest.assets[index] = {
+      ...asset,
+      publicPath,
+      publicUrl,
+    };
+  }
+
+  manifest.publishedAt = new Date().toISOString();
+  const publicHtml = renderWebsiteHtml(
+    deployment.source_draft,
+    buildAssetMap(manifest, "publicUrl")
+  );
+  const versionPath = `${job.business_id}/${job.website_id}/deployments/${deployment.id}/index.html`;
+  const livePath = `${job.business_id}/${job.website_id}/live/index.html`;
+
+  await uploadText(PUBLIC_BUCKET, versionPath, publicHtml, "31536000", true);
+  await uploadText(PUBLIC_BUCKET, livePath, publicHtml, "60", true);
+
+  const liveUrl = supabase.storage
+    .from(PUBLIC_BUCKET)
+    .getPublicUrl(livePath).data.publicUrl;
+  const now = new Date().toISOString();
+  const previousLiveId = website.current_live_deployment_id;
+
+  if (previousLiveId && previousLiveId !== deployment.id) {
+    const previous = await supabase
+      .from("busy_website_deployments")
+      .update({ state: "superseded" })
+      .eq("id", previousLiveId)
+      .eq("website_id", website.id);
+    if (previous.error) throw previous.error;
+  }
+
+  const deploymentUpdated = await supabase
+    .from("busy_website_deployments")
+    .update({
+      state: "live",
+      manifest,
+      public_storage_path: versionPath,
+      public_url: liveUrl,
+      last_error: null,
+      published_at: now,
+    })
+    .eq("id", deployment.id);
+  if (deploymentUpdated.error) throw deploymentUpdated.error;
+
+  const websiteUpdated = await supabase
+    .from("busy_websites")
+    .update({
+      status: "live",
+      current_live_deployment_id: deployment.id,
+      current_preview_deployment_id: deployment.id,
+      live_url: liveUrl,
+      last_error: null,
+      updated_at: now,
+    })
+    .eq("id", website.id);
+  if (websiteUpdated.error) throw websiteUpdated.error;
+}
+
+async function rollbackDeployment(job: any, target: any, website: any) {
+  if (!target.published_at || !target.public_storage_path) {
+    throw new Error("That website version has never been published.");
+  }
+  await ensureBuckets();
+
+  const manifest = target.manifest || {};
+  const html = renderWebsiteHtml(
+    target.source_draft,
+    buildAssetMap(manifest, "publicUrl")
+  );
+  const livePath = `${job.business_id}/${job.website_id}/live/index.html`;
+  await uploadText(PUBLIC_BUCKET, livePath, html, "60", true);
+  const liveUrl = supabase.storage
+    .from(PUBLIC_BUCKET)
+    .getPublicUrl(livePath).data.publicUrl;
+
+  const previousLiveId = website.current_live_deployment_id;
+  if (previousLiveId && previousLiveId !== target.id) {
+    const previous = await supabase
+      .from("busy_website_deployments")
+      .update({ state: "superseded" })
+      .eq("id", previousLiveId)
+      .eq("website_id", website.id);
+    if (previous.error) throw previous.error;
+  }
+
+  const targetUpdated = await supabase
+    .from("busy_website_deployments")
+    .update({ state: "live", last_error: null })
+    .eq("id", target.id);
+  if (targetUpdated.error) throw targetUpdated.error;
+
+  const siteUpdated = await supabase
+    .from("busy_websites")
+    .update({
+      status: "live",
+      current_live_deployment_id: target.id,
+      live_url: liveUrl,
+      last_error: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", website.id);
+  if (siteUpdated.error) throw siteUpdated.error;
+}
+
+async function failJob(
+  job: any,
+  messageId: number,
+  error: unknown,
+  deployment: any,
+  website: any
+) {
+  const message =
+    error instanceof Error ? error.message : "Website publishing worker failed.";
+  const attempt = Number(job.attempt_count || 0) + 1;
+  const canRetry = attempt < Number(job.max_attempts || 5);
+  const now = new Date().toISOString();
+
+  await supabase
+    .from("busy_website_publish_jobs")
+    .update({
+      status: canRetry ? "retry_wait" : "failed",
+      attempt_count: attempt,
+      last_error: message,
+      completed_at: canRetry ? null : now,
+      updated_at: now,
+    })
+    .eq("id", job.id);
+
+  if (job.action === "prepare") {
+    await supabase
+      .from("busy_website_deployments")
+      .update({ state: canRetry ? "queued" : "failed", last_error: message })
+      .eq("id", deployment.id);
+  } else {
+    await supabase
+      .from("busy_website_deployments")
+      .update({ last_error: message })
+      .eq("id", deployment.id);
+  }
+
+  await supabase
+    .from("busy_websites")
+    .update({
+      status: canRetry
+        ? website.current_live_deployment_id
+          ? "update_pending"
+          : "queued"
+        : "failed",
+      last_error: message,
+      updated_at: now,
+    })
+    .eq("id", website.id);
+
+  if (canRetry) {
+    const retry = await supabase.rpc("busy_retry_website_publish_message", {
+      p_msg_id: messageId,
+      p_delay_seconds: Math.min(300, 30 * attempt),
+    });
+    if (retry.error) throw retry.error;
+  } else {
+    const archived = await supabase.rpc(
+      "busy_archive_website_publish_message",
+      { p_msg_id: messageId }
+    );
+    if (archived.error) throw archived.error;
+  }
+}
+
+async function succeedJob(job: any, messageId: number) {
+  const now = new Date().toISOString();
+  const completed = await supabase
+    .from("busy_website_publish_jobs")
+    .update({
+      status: "succeeded",
+      attempt_count: Number(job.attempt_count || 0) + 1,
+      last_error: null,
+      completed_at: now,
+      updated_at: now,
+    })
+    .eq("id", job.id);
+  if (completed.error) throw completed.error;
+
+  const archived = await supabase.rpc(
+    "busy_archive_website_publish_message",
+    { p_msg_id: messageId }
+  );
+  if (archived.error) throw archived.error;
+}
+
+async function processMessage(message: any) {
+  const jobId = clean(message?.message?.job_id, 80);
+  if (!jobId) {
+    await supabase.rpc("busy_archive_website_publish_message", {
+      p_msg_id: message.msg_id,
+    });
+    return { ok: false, reason: "Queue message had no job id." };
+  }
+
+  const job = await loadJob(jobId);
+  if (job.status === "succeeded" || job.status === "failed") {
+    await supabase.rpc("busy_archive_website_publish_message", {
+      p_msg_id: message.msg_id,
+    });
+    return { ok: true, jobId, skipped: true };
+  }
+
+  const deployment = await loadDeployment(job.deployment_id);
+  const website = await loadWebsite(job.website_id);
+  const startedAt = new Date().toISOString();
+  const started = await supabase
+    .from("busy_website_publish_jobs")
+    .update({
+      status: "processing",
+      started_at: startedAt,
+      updated_at: startedAt,
+    })
+    .eq("id", job.id);
+  if (started.error) throw started.error;
+
+  try {
+    if (job.action === "prepare") {
+      await prepareDeployment(job, deployment, website);
+    } else if (job.action === "publish") {
+      await publishDeployment(job, deployment, website);
+    } else if (job.action === "rollback") {
+      await rollbackDeployment(job, deployment, website);
+    } else {
+      throw new Error("Unsupported website publish job.");
+    }
+    await succeedJob(job, message.msg_id);
+    return { ok: true, jobId, action: job.action };
+  } catch (error) {
+    await failJob(job, message.msg_id, error, deployment, website);
+    return {
+      ok: false,
+      jobId,
+      action: job.action,
+      error: error instanceof Error ? error.message : "Worker failed.",
+    };
+  }
+}
+
+Deno.serve(async (request: Request) => {
+  if (request.method !== "POST") return json(405, { error: "POST required" });
+  const authorization = request.headers.get("Authorization") || "";
+  if (authorization !== `Bearer ${SERVICE_ROLE_KEY}`) {
+    return json(401, { error: "Internal BUSY worker authentication required." });
+  }
+
+  try {
+    const body = await request.json().catch(() => ({}));
+    const limit = Math.min(20, Math.max(1, Number(body?.limit) || 5));
+    const read = await supabase.rpc("busy_read_website_publish_jobs", {
+      p_limit: limit,
+    });
+    if (read.error) throw read.error;
+    const messages = Array.isArray(read.data) ? read.data : [];
+    const results = [];
+    for (const message of messages) {
+      results.push(await processMessage(message));
+    }
+    return json(200, {
+      ok: true,
+      processed: results.length,
+      results,
+    });
+  } catch (error) {
+    return json(500, {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Website publishing worker failed.",
+    });
+  }
+});
