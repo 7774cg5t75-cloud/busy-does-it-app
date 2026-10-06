@@ -79,6 +79,17 @@ This branch restructures the large single-file prototype into domain modules wit
 - `busy-calendar-oauth` is a server-side OAuth boundary. Provider client secrets, access tokens and refresh tokens never enter the React Native client or cloud business snapshot.
 - Calendar OAuth callback state is one-time and expires after ten minutes. External provider connection state is isolated from the existing device-calendar bridge.
 
+## V3.29 Work & Calendar 2.0
+- `src/domain/workCalendar2.js` owns derived calendar intelligence: forward-day rows, workload state, estimated planning capacity, follow-up placement, external commitments, overlap detection and gap-fill candidates.
+- Calendar intelligence is derived from saved business state and connected diary snapshots; it is not separately persisted, so it cannot drift away from the underlying customer/booking records.
+- The planning-capacity baseline is explicitly advisory. It helps rank Open/Light/Comfortable/Busy/Overloaded days but does not represent guaranteed staff availability or travel feasibility.
+- Overlap detection only flags timed records that intersect. It never reconciles, moves or deletes a booking or external-calendar event.
+- Overdue customer actions are surfaced on today while retaining their original due date for owner context.
+- Repeat-work gap candidates are selected only from already-eligible customers with no active work and only when their typical service duration fits the estimated open capacity.
+- `src/screens/work.js` renders the monthly/day intelligence and uses the existing customer/action screens for all actual record work.
+- The BUSY Operator context contains a compact 45-day projection of calendar intelligence plus detailed bookings, follow-ups and external commitments for grounded day/gap questions.
+- Calendar question intents are answer-only and do not create authority. Booking mutations continue to use the V3.28 preview/confirmation/undo path.
+
 ## V3.28 BUSY Operator 2.0
 - `src/domain/operator2.js` owns deterministic Operator record-change policy: customer matching, open-booking lookup, hard confirmation intent classification, client-side preview construction and pre-execution validation.
 - `src/screens/talk.js` remains the owner-facing conversational surface but now exposes common daily quick asks and clearly distinguishes a preview from an applied/undoable change.
