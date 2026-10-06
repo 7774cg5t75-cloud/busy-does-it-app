@@ -18,6 +18,9 @@ const intents = [
   "business_changes",
   "business_memory",
   "business_identity_summary",
+  "website_build",
+  "website_edit",
+  "open_website",
   "business_outlook",
   "next_best_action",
   "daily_briefing",
@@ -418,6 +421,43 @@ function safeContext(value: any) {
                 : null,
           }
         : null,
+    websiteBuilder:
+      context.websiteBuilder && typeof context.websiteBuilder === "object"
+        ? {
+            hasDraft: !!context.websiteBuilder.hasDraft,
+            status: cleanText(context.websiteBuilder.status, 80),
+            publicStatus: cleanText(context.websiteBuilder.publicStatus, 120),
+            generation: Math.max(0, Number(context.websiteBuilder.generation) || 0),
+            theme:
+              context.websiteBuilder.theme && typeof context.websiteBuilder.theme === "object"
+                ? {
+                    mood: cleanText(context.websiteBuilder.theme.mood, 80),
+                    heroSize: cleanText(context.websiteBuilder.theme.heroSize, 80),
+                    layout: cleanText(context.websiteBuilder.theme.layout, 80),
+                  }
+                : null,
+            visibleSections: Array.isArray(context.websiteBuilder.visibleSections)
+              ? context.websiteBuilder.visibleSections.slice(0, 12).map((section: any) => ({
+                  id: cleanText(section?.id, 80),
+                  type: cleanText(section?.type, 80),
+                  title: cleanText(section?.title, 240),
+                }))
+              : [],
+            readiness:
+              context.websiteBuilder.readiness &&
+              typeof context.websiteBuilder.readiness === "object"
+                ? {
+                    websiteReady: !!context.websiteBuilder.readiness.websiteReady,
+                    label: cleanText(context.websiteBuilder.readiness.label, 240),
+                    missing: Array.isArray(context.websiteBuilder.readiness.missing)
+                      ? context.websiteBuilder.readiness.missing.slice(0, 12).map((item: any) => cleanText(item, 240))
+                      : [],
+                    identityScore: Math.max(0, Math.min(100, Number(context.websiteBuilder.readiness.identityScore) || 0)),
+                  }
+                : null,
+            publishingEnabled: false,
+          }
+        : null,
     businessMemory:
       context.businessMemory && typeof context.businessMemory === "object"
         ? {
@@ -513,6 +553,10 @@ Your job is conversational:
 - When asked "what changed?", use changesSinceLastConversation unless the owner explicitly asks what BUSY has learned or why recommendations changed; then use businessMemory and intent="business_memory".
 - For business_memory, clearly separate recorded facts from inferred patterns. Mention sample size/confidence and ranking effect where relevant. If businessMemory.changes is empty, explain the current strongest pattern without claiming a new change.
 - For business_identity_summary, use brandIdentity only for public-brand facts and website readiness. Clearly distinguish recorded fields from missing fields. Never invent a phone number, email, service area, business story, testimonial, service description, opening hours, brand colour or public profile URL.
+- For "build me a website", "make me a website", "create my website" or equivalent, use intent="website_build", mode="action", requiresConfirmation=false, actionLabel="Build website draft". This creates an internal draft only. Never imply it is published, hosted or attached to a domain.
+- For changes to an existing website draft such as "make it more premium", "make the main photo bigger", "hide the testimonials", or "bring the gallery back", use intent="website_edit", mode="action", requiresConfirmation=false, actionLabel="Apply website change", and copy the owner's requested change concisely into note. Do not invent a different change. If no website draft exists, prefer website_build when the request can be satisfied by creating the first draft.
+- For "show/open/preview my website", use intent="open_website", mode="action", requiresConfirmation=false, actionLabel="Open website preview". V3.35 preview is internal only.
+- Website actions may use brandIdentity and websiteBuilder context, but publishingEnabled is false. Never claim a website went live, DNS changed, hosting was configured, or a domain was purchased.
 - Never claim causation from attributed social outcomes or small samples.
 - For business_outlook, never collapse confirmed work and predicted pipeline into one factual number. State confirmed value separately, label forecast ranges as planning estimates, mention forecast confidence, and explain that quiet/light days are scheduled-load observations rather than guaranteed spare capacity.
 - For next_best_action, give ONE practical next move using the live customer-work priority first. If operationalContinuity has a high-severity recovery item that can make the records unreliable, mention that constraint. Do not manufacture work just to sound useful.
@@ -530,6 +574,9 @@ Supported direct intents:
 - business_changes: factual comparison using changesSinceLastConversation.
 - business_memory: explain what BUSY has learned over time, why an optional recommendation has moved up/down, or what evidence currently has the strongest influence. Use businessMemory only.
 - business_identity_summary: answer questions such as "what does BUSY know about my business?", "what is missing from my brand?", "am I ready to build my website?", or "review my business identity". Use brandIdentity only for public identity/readiness, name the missing/core consistency items explicitly, and never fill gaps with guesses.
+- website_build: create/rebuild an internal V3.35 website draft from the recorded Brand Brain; action only, not publishing.
+- website_edit: apply a safe conversational change to the saved internal website draft; put the exact requested change in note.
+- open_website: open the saved internal Website Builder/preview; do not claim it is public.
 - business_outlook: answer questions about today, next week, the next 30 days, pipeline, capacity load, forecast range, risk radar, scenarios or whether the business is on track. Use executiveBriefing and clearly separate confirmed values from forecast ranges.
 - next_best_action: answer "what should I do now/next?" with one record-backed priority. This is an answer, not blanket action authority.
 - daily_briefing: answer requests like "brief me", "what matters today?", "what do I need to do now/later/watch?" from dailyCommandCentre. Keep the lane order exactly Do now → Later today → Watch and never manufacture a lane item.
