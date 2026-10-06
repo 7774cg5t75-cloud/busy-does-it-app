@@ -2,6 +2,29 @@
 
 Busy Does It mobile app prototype.
 
+## v3.36 Multi-Tenant Website Publishing Platform
+- Built directly on the V3.35 voice-first Website Builder.
+- Website hosting is multi-tenant from the first production-facing version: every website, deployment, domain and publish job is scoped to a real `business_id` from the existing BUSY business/membership model.
+- Added live Supabase tables `busy_websites`, `busy_website_deployments`, `busy_website_domains` and `busy_website_publish_jobs`, all with RLS enabled.
+- Authenticated app users receive tenant-scoped read access to website metadata only. Website/deployment/domain/job writes are server-mediated; anon and authenticated clients cannot directly mutate those tables.
+- Added immutable website deployments. The content hash, tenant, website, version number and source draft cannot be changed after deployment creation; only processing/publication metadata changes.
+- Added atomic per-site version allocation plus a concurrency guard so duplicate taps/requests cannot create multiple active jobs for the same deployment/action.
+- Added a durable Postgres-native `busy_website_publish` queue. Customer devices never consume the queue and never receive worker credentials.
+- Added `busy-website-publish` Edge Function as the authenticated owner/admin publishing API.
+- Added `busy-website-worker` as a stateless server-only queue worker. Worker capacity can grow independently from the mobile app and website data model.
+- Added a one-minute Supabase Cron wake for the worker through a private token stored in the existing server-only internal config. Retries continue even when every BUSY phone is offline.
+- Hosted previews are prepared in a private website-preview bucket. Approved source images are copied out of the private BUSY source-media bucket into deployment-specific preview assets.
+- Public deployments are copied into a separate public website bucket with immutable versioned assets and long CDN cache lifetimes.
+- The live website uses a stable `live/index.html` alias while the underlying approved deployment remains immutable. Normal public page views therefore hit object storage/CDN rather than the BUSY database, AI or mobile app.
+- Publishing follows **draft → immutable hosted preview → explicit owner Go Live approval → live**. Voice commands cannot bypass the Go Live gate.
+- Previous published versions remain rollback targets. Rollback also requires explicit owner approval and switches the live alias back without deleting the newer deployment.
+- Added Website Publishing Centre with hosted-preview preparation, exact-version preview, Go Live approval, live-site access, deployment history, rollback and shared queue health.
+- Added custom-domain ownership records from day one. BUSY can create a tenant-scoped DNS TXT verification challenge and verify ownership, while routing/SSL remain separate explicit states.
+- V3.36 deliberately does not pretend a verified domain is routed. Automated custom-domain routing/SSL activation and domain purchase require a genuine routing/provider integration.
+- Added BUSY Operator hosting awareness. “Put my website live” opens the exact Go Live review rather than publishing directly; “roll back my website” opens version history; hosting-status questions distinguish editor draft, hosted preview and live version.
+- The V3.35 Website Builder remains the editor. Updating a live site creates/changes a draft first; the owner then prepares and approves a new immutable deployment.
+- Queue, RLS and scheduler infrastructure was applied to the live Busy Does It Supabase project and the server worker wake path returned HTTP 200 in a live check.
+
 ## v3.35 Website Builder / Voice-first site draft
 - Built directly on the V3.34 Brand Brain branch.
 - Added `src/domain/websiteBuilder.js` and `src/screens/websiteBuilder.js`.
