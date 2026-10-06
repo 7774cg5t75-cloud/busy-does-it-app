@@ -17,6 +17,7 @@ const intents = [
   "business_summary",
   "business_changes",
   "business_memory",
+  "business_identity_summary",
   "business_outlook",
   "next_best_action",
   "daily_briefing",
@@ -51,7 +52,7 @@ const intents = [
 ];
 
 const stepIntentEnum = intents.filter((intent) =>
-  !["business_summary", "business_changes", "business_memory", "business_outlook", "next_best_action", "daily_briefing", "customer_journey_summary", "communications_summary", "customer_communication_summary", "customer_reply_draft", "calendar_day_summary", "calendar_gap", "calendar_fit_job", "operator_plan", "draft_refinement", "unknown"].includes(intent)
+  !["business_summary", "business_changes", "business_memory", "business_identity_summary", "business_outlook", "next_best_action", "daily_briefing", "customer_journey_summary", "communications_summary", "customer_communication_summary", "customer_reply_draft", "calendar_day_summary", "calendar_gap", "calendar_fit_job", "operator_plan", "draft_refinement", "unknown"].includes(intent)
 );
 
 const previewRowSchema = {
@@ -353,6 +354,70 @@ function safeContext(value: any) {
                 : null,
           }
         : null,
+    brandIdentity:
+      context.brandIdentity && typeof context.brandIdentity === "object"
+        ? {
+            completeness:
+              context.brandIdentity.completeness &&
+              typeof context.brandIdentity.completeness === "object"
+                ? {
+                    score: Math.max(0, Math.min(100, Number(context.brandIdentity.completeness.score) || 0)),
+                    label: cleanText(context.brandIdentity.completeness.label, 200),
+                    coreMissing: Array.isArray(context.brandIdentity.completeness.coreMissing)
+                      ? context.brandIdentity.completeness.coreMissing.slice(0, 12).map((item: any) => cleanText(item, 200))
+                      : [],
+                  }
+                : null,
+            websiteReady: !!context.brandIdentity.websiteReady,
+            websiteReadinessLabel: cleanText(context.brandIdentity.websiteReadinessLabel, 240),
+            missingForWebsite: Array.isArray(context.brandIdentity.missingForWebsite)
+              ? context.brandIdentity.missingForWebsite.slice(0, 12).map((item: any) => cleanText(item, 240))
+              : [],
+            consistencyChecks: Array.isArray(context.brandIdentity.consistencyChecks)
+              ? context.brandIdentity.consistencyChecks.slice(0, 12).map((item: any) => ({
+                  severity: cleanText(item?.severity, 80),
+                  title: cleanText(item?.title, 240),
+                  body: cleanText(item?.body, 600),
+                }))
+              : [],
+            profile:
+              context.brandIdentity.profile && typeof context.brandIdentity.profile === "object"
+                ? {
+                    tagline: cleanText(context.brandIdentity.profile.tagline, 300),
+                    publicDescription: cleanText(context.brandIdentity.profile.publicDescription, 1200),
+                    serviceAreaText: cleanText(context.brandIdentity.profile.serviceAreaText, 500),
+                    phone: cleanText(context.brandIdentity.profile.phone, 120),
+                    email: cleanText(context.brandIdentity.profile.email, 240),
+                    openingHours: cleanText(context.brandIdentity.profile.openingHours, 300),
+                    websiteDomain: cleanText(context.brandIdentity.profile.websiteDomain, 300),
+                    toneOfVoice: cleanText(context.brandIdentity.profile.toneOfVoice, 200),
+                    visualStyle: cleanText(context.brandIdentity.profile.visualStyle, 200),
+                    story: cleanText(context.brandIdentity.profile.story, 1500),
+                    differentiators: cleanText(context.brandIdentity.profile.differentiators, 1200),
+                    facebookUrl: cleanText(context.brandIdentity.profile.facebookUrl, 400),
+                    instagramUrl: cleanText(context.brandIdentity.profile.instagramUrl, 400),
+                  }
+                : null,
+            services: Array.isArray(context.brandIdentity.services)
+              ? context.brandIdentity.services.slice(0, 20).map((service: any) => ({
+                  name: cleanText(service?.name, 240),
+                  description: cleanText(service?.description, 700),
+                  typicalValue: Math.max(0, Number(service?.typicalValue) || 0),
+                  durationHours: Math.max(0, Number(service?.durationHours) || 0),
+                }))
+              : [],
+            assets:
+              context.brandIdentity.assets && typeof context.brandIdentity.assets === "object"
+                ? {
+                    websitePhotoCount: Math.max(0, Number(context.brandIdentity.assets.websitePhotoCount) || 0),
+                    heroSelected: !!context.brandIdentity.assets.heroSelected,
+                    heroService: cleanText(context.brandIdentity.assets.heroService, 240),
+                    approvedTestimonialCount: Math.max(0, Number(context.brandIdentity.assets.approvedTestimonialCount) || 0),
+                    faqCount: Math.max(0, Number(context.brandIdentity.assets.faqCount) || 0),
+                  }
+                : null,
+          }
+        : null,
     businessMemory:
       context.businessMemory && typeof context.businessMemory === "object"
         ? {
@@ -447,6 +512,7 @@ Your job is conversational:
 - When the owner changes one field of the booking currently under discussion, preserve the other known customer/date/time/value fields unless the owner explicitly changes them.
 - When asked "what changed?", use changesSinceLastConversation unless the owner explicitly asks what BUSY has learned or why recommendations changed; then use businessMemory and intent="business_memory".
 - For business_memory, clearly separate recorded facts from inferred patterns. Mention sample size/confidence and ranking effect where relevant. If businessMemory.changes is empty, explain the current strongest pattern without claiming a new change.
+- For business_identity_summary, use brandIdentity only for public-brand facts and website readiness. Clearly distinguish recorded fields from missing fields. Never invent a phone number, email, service area, business story, testimonial, service description, opening hours, brand colour or public profile URL.
 - Never claim causation from attributed social outcomes or small samples.
 - For business_outlook, never collapse confirmed work and predicted pipeline into one factual number. State confirmed value separately, label forecast ranges as planning estimates, mention forecast confidence, and explain that quiet/light days are scheduled-load observations rather than guaranteed spare capacity.
 - For next_best_action, give ONE practical next move using the live customer-work priority first. If operationalContinuity has a high-severity recovery item that can make the records unreliable, mention that constraint. Do not manufacture work just to sound useful.
@@ -463,6 +529,7 @@ Supported direct intents:
 - business_summary: factual answer from current context.
 - business_changes: factual comparison using changesSinceLastConversation.
 - business_memory: explain what BUSY has learned over time, why an optional recommendation has moved up/down, or what evidence currently has the strongest influence. Use businessMemory only.
+- business_identity_summary: answer questions such as "what does BUSY know about my business?", "what is missing from my brand?", "am I ready to build my website?", or "review my business identity". Use brandIdentity only for public identity/readiness, name the missing/core consistency items explicitly, and never fill gaps with guesses.
 - business_outlook: answer questions about today, next week, the next 30 days, pipeline, capacity load, forecast range, risk radar, scenarios or whether the business is on track. Use executiveBriefing and clearly separate confirmed values from forecast ranges.
 - next_best_action: answer "what should I do now/next?" with one record-backed priority. This is an answer, not blanket action authority.
 - daily_briefing: answer requests like "brief me", "what matters today?", "what do I need to do now/later/watch?" from dailyCommandCentre. Keep the lane order exactly Do now → Later today → Watch and never manufacture a lane item.
