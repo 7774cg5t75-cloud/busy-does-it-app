@@ -266,6 +266,28 @@ function communicationRowsForCustomer({
     );
 }
 
+function isCommunicationNextAction(nextAction = null) {
+  return [
+    "new-enquiry",
+    "enquiry-follow-up",
+    "enquiry-outcome",
+    "quote-follow-up",
+    "quote-outcome",
+    "review-request",
+    "review-outcome",
+  ].includes(String(nextAction?.kind || ""));
+}
+
+function communicationSignal(signal = null) {
+  return [
+    "quiet-enquiry",
+    "enquiry-follow-up-outcome",
+    "quiet-quote",
+    "quote-follow-up-outcome",
+    "review-opportunity",
+  ].includes(String(signal?.id || ""));
+}
+
 function threadLane({
   customer = {},
   journey = null,
@@ -275,7 +297,9 @@ function threadLane({
   if (pendingIncoming.length) return "Needs attention";
 
   if (
-    safeArray(journey?.stalledSignals).some((signal) => signal.level === "High")
+    safeArray(journey?.stalledSignals).some(
+      (signal) => signal.level === "High" && communicationSignal(signal)
+    )
   ) {
     return "Needs attention";
   }
@@ -297,7 +321,19 @@ function threadLane({
   }
 
   if (
-    journey?.nextAction?.actionLabel ||
+    journey?.nextAction?.kind === "new-enquiry" &&
+    lastIncoming &&
+    (!lastOutbound ||
+      timeValue(lastIncoming.createdAt || lastIncoming.date) >
+        timeValue(lastOutbound.createdAt || lastOutbound.date))
+  ) {
+    return "Needs attention";
+  }
+
+  if (
+    ["enquiry-follow-up", "quote-follow-up", "review-request"].includes(
+      String(journey?.nextAction?.kind || "")
+    ) ||
     rows.some((row) => row.direction === "draft")
   ) {
     return "Draft ready";
@@ -436,8 +472,8 @@ function buildCommunicationsHub({
       (thread) =>
         thread.recordedMessageCount > 0 ||
         thread.pendingInboxCount > 0 ||
-        thread.nextAction?.actionLabel ||
-        thread.stalledSignals.length > 0
+        isCommunicationNextAction(thread.nextAction) ||
+        thread.stalledSignals.some(communicationSignal)
     )
     .sort((a, b) => {
       const laneOrder = {
