@@ -837,19 +837,21 @@ function HomeScreen({ s }) {
 
 
       <Card
-        eyebrow="V3.24 • BUSY Today"
-        title={bestMove ? bestMove.title : "Nothing urgent needs forcing"}
+        eyebrow="V3.30 • Daily Command Centre"
+        title={s.dailyCommandCentre?.headline || (bestMove ? bestMove.title : "Nothing urgent needs forcing")}
         body={
-          bestMove
-            ? bestMove.body
-            : "BUSY has checked the saved customer work, diary, approvals and current business risks. No recorded action is important enough to manufacture a task."
+          s.dailyCommandCentre?.status === "Action needed"
+            ? "BUSY has ranked the live business state into what needs doing now, what can wait until later today, and what is worth watching."
+            : "BUSY has checked customer work, the diary, approvals, record health and current risks without manufacturing a task."
         }
         footer={
-          homeBrief.loaded && homeBrief.hasPrevious
-            ? homeBrief.change || "Nothing material has changed since your last Home check."
-            : "BUSY is starting a clean next-session comparison from this point."
+          s.dailyCommandCentre?.previousCheckpoint
+            ? (s.dailyCommandCentre?.changes?.length || 0)
+              ? `${s.dailyCommandCentre.changes.length} meaningful change${s.dailyCommandCentre.changes.length === 1 ? "" : "s"} since your last reviewed briefing`
+              : "Nothing material has changed since your last reviewed briefing."
+            : "Open the Daily Command Centre once to create a comparison baseline."
         }
-        tone={bestMove?.tone || "green"}
+        tone={s.dailyCommandCentre?.status === "Action needed" ? "amber" : "green"}
       >
         <MetricRow
           left="Confirmed next 7 days"
@@ -857,39 +859,36 @@ function HomeScreen({ s }) {
           strong={(s.executiveBriefing?.confirmed7?.value || 0) > 0}
         />
         <MetricRow
-          left="Ready for approval"
-          right={String(s.autopilotApprovalItems?.length || 0)}
-          strong={(s.autopilotApprovalItems?.length || 0) > 0}
+          left="Do now"
+          right={String(s.dailyCommandCentre?.doNow?.length || 0)}
+          strong={(s.dailyCommandCentre?.doNow?.length || 0) > 0}
         />
         <MetricRow
-          left="Needs your input"
-          right={String(s.autopilotNeedsInputItems?.length || 0)}
-          strong={(s.autopilotNeedsInputItems?.length || 0) > 0}
+          left="Later today"
+          right={String(s.dailyCommandCentre?.laterToday?.length || 0)}
         />
         <MetricRow
-          left="Core health"
-          right={s.releaseCoreHealth?.status || "Healthy"}
-          strong={(s.releaseCoreHealth?.highCount || 0) === 0}
+          left="Watch"
+          right={String(s.dailyCommandCentre?.watch?.length || 0)}
         />
-        {bestMove ? (
+        {(s.dailyCommandCentre?.doNow?.length || 0) ? (
           <Button
-            label={bestMove.actionLabel || "Handle this"}
+            label={s.dailyCommandCentre.doNow[0].actionLabel || "Handle top priority"}
             primary
-            onPress={() => {
-              if (bestMove.canIgnore) s.recordOpportunityAccepted(bestMove);
-              bestMove.onAction?.();
-            }}
+            onPress={() => s.openDailyCommandItem(s.dailyCommandCentre.doNow[0])}
           />
         ) : (
-          <Button label="Open forward view" primary onPress={() => s.go("executiveBriefing")} />
-        )}
-        {bestMove ? (
-          <InlineExplanation
-            why={bestMove.why}
-            evidence={bestMove.evidence}
+          <Button
+            label="Open Daily Command Centre"
+            primary
+            onPress={() => s.go("dailyCommandCentre")}
           />
-        ) : null}
-        <Button label="Open full briefing" onPress={() => s.go("executiveBriefing")} />
+        )}
+        <Button
+          label="See full daily picture"
+          onPress={() => s.go("dailyCommandCentre")}
+        />
+        <Button label="Executive forward view" onPress={() => s.go("executiveBriefing")} />
       </Card>
 
       <Card
