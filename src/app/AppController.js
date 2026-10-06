@@ -166,6 +166,7 @@ import { buildWorkCalendarIntelligence } from "../domain/workCalendar2";
 import { buildDailyCommandCentre } from "../domain/dailyCommandCentre";
 import { buildCustomerJourney2 } from "../domain/customerJourney2";
 import { buildCommunicationsHub } from "../domain/communicationsHub";
+import { buildFollowUpEngine } from "../domain/followUpEngine";
 import { BusyBrandLockup } from "../components/ui";
 import { screens, HomeScreen, AccountAccess } from "../screens";
 
@@ -8008,9 +8009,17 @@ function App() {
     customerJourneys,
     inboxItems: inboxPendingItems,
   });
+  const followUpEngine = buildFollowUpEngine({
+    communicationsHub,
+    todayISO: dateToISO(new Date()),
+  });
   const selectedCommunicationThread =
     communicationsHub.threads.find(
       (thread) => thread.customerId === selectedCustomerId
+    ) || null;
+  const selectedFollowUpCandidate =
+    followUpEngine.candidates.find(
+      (candidate) => candidate.customerId === selectedCustomerId
     ) || null;
   const lastAutoFiledInboxItem =
     inboxItems.find((item) => item.id === lastAutoFiledInboxItemId) ||
@@ -10854,6 +10863,35 @@ function App() {
             : null,
         })),
       },
+      followUpEngine: {
+        counts: {
+          replyNow: Number(followUpEngine?.counts?.replyNow || 0),
+          followUpToday: Number(followUpEngine?.counts?.followUpToday || 0),
+          waiting: Number(followUpEngine?.counts?.waiting || 0),
+          readyToPrepare: Number(followUpEngine?.counts?.readyToPrepare || 0),
+          recovery: Number(followUpEngine?.counts?.recovery || 0),
+        },
+        candidates: (followUpEngine?.candidates || []).slice(0, 30).map((item) => ({
+          customerName: item.customerName || "",
+          service: item.service || "",
+          lane: item.lane || "",
+          title: item.title || "",
+          reason: item.reason || "",
+          actionKind: item.actionKind || "",
+          preferredChannel: item.preferredChannel || "",
+          transportState: item.transportState || "",
+          lastContactDate: item.lastContactDate || "",
+          nextReviewDate: item.nextReviewDate || "",
+          draftable: !!item.draftable,
+          recovery: !!item.recovery,
+          duplicateContactBlocked: !!item.duplicateContactBlocked,
+          contactAllowed: item.contactAllowed !== false,
+        })),
+        providerBridge: {
+          status: followUpEngine?.providerBridge?.status || "",
+          realSendingEnabled: !!followUpEngine?.providerBridge?.realSendingEnabled,
+        },
+      },
       businessMemory: {
         lastReviewedAt: businessMemoryLastReviewAt,
         strongestPattern: strongestBusinessMemoryPattern
@@ -11806,6 +11844,12 @@ function App() {
     return true;
   };
 
+  const openFollowUpEngine = () => {
+    setTab("Work");
+    go("followUpEngine");
+    return true;
+  };
+
   const openCommunicationThread = (customerId) => {
     const customer = customers.find((item) => item.id === customerId);
     if (!customer) return false;
@@ -11827,6 +11871,16 @@ function App() {
     setTimeout(() => {
       submitBusyCommand({
         text: "Give me my communications briefing. Who needs attention, who am I waiting to hear back from, which replies are ready to draft, and where should I avoid duplicate chasing?",
+      });
+    }, 80);
+    return true;
+  };
+
+  const askBusyAboutFollowUps = () => {
+    openTalkToBusy(false);
+    setTimeout(() => {
+      submitBusyCommand({
+        text: "Who should I chase today? Use the Follow-up Engine priorities: separate customers who need a reply, customers worth following up today, and customers I should deliberately leave alone. Explain why and do not send anything.",
       });
     }, 80);
     return true;
@@ -11861,6 +11915,14 @@ function App() {
       });
     }, 80);
     return true;
+  };
+
+  const draftFollowUpCandidate = (customerId) => {
+    const candidate = followUpEngine.candidates.find(
+      (item) => item.customerId === customerId
+    );
+    if (!candidate?.draftable) return false;
+    return draftCustomerReply(customerId);
   };
 
   const appState = {
@@ -11935,7 +11997,9 @@ function App() {
     workCalendarIntelligence,
     dailyCommandCentre,
     communicationsHub,
+    followUpEngine,
     selectedCommunicationThread,
+    selectedFollowUpCandidate,
     dailyCommandCheckpoint,
     markDailyCommandReviewed,
     openDailyCommandItem,
@@ -12049,11 +12113,14 @@ function App() {
     openCustomerJourneyNext,
     askBusyAboutCustomer,
     openCommunicationsHub,
+    openFollowUpEngine,
     openCommunicationThread,
     openCommunicationInboxItem,
     askBusyAboutCommunications,
+    askBusyAboutFollowUps,
     askBusyAboutCommunication,
     draftCustomerReply,
+    draftFollowUpCandidate,
     selectedJobId,
     selectedJobCustomer,
     selectedJob,
