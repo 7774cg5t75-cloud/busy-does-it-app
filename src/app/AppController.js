@@ -10734,6 +10734,31 @@ function App() {
           body: item.body || "",
         })),
       },
+      dailyCommandCentre: {
+        headline: dailyCommandCentre?.headline || "",
+        status: dailyCommandCentre?.status || "Clear",
+        changes: (dailyCommandCentre?.changes || []).slice(0, 8).map((item) => ({
+          label: item.label || "",
+          before: Number(item.before || 0),
+          after: Number(item.after || 0),
+          tone: item.tone || "blue",
+        })),
+        doNow: (dailyCommandCentre?.doNow || []).slice(0, 4).map((item) => ({
+          title: item.title || "",
+          body: item.body || "",
+          why: item.why || "",
+        })),
+        laterToday: (dailyCommandCentre?.laterToday || []).slice(0, 6).map((item) => ({
+          title: item.title || "",
+          body: item.body || "",
+          why: item.why || "",
+        })),
+        watch: (dailyCommandCentre?.watch || []).slice(0, 6).map((item) => ({
+          title: item.title || "",
+          body: item.body || "",
+          why: item.why || "",
+        })),
+      },
       businessMemory: {
         lastReviewedAt: businessMemoryLastReviewAt,
         strongestPattern: strongestBusinessMemoryPattern
