@@ -11613,6 +11613,57 @@ function App() {
     });
   };
 
+  const openCustomerJourneyNext = (next = selectedCustomerJourney?.nextAction) => {
+    const action = next?.action || null;
+    if (!action) return false;
+    if (action.kind === "customer-action" && action.customerId) {
+      openSavedReplyAction(action.customerId);
+      return true;
+    }
+    if (action.kind === "quote-follow-up" && action.customerId) {
+      prepareQuoteFollowUp(action.customerId);
+      return true;
+    }
+    if (action.kind === "quote-outcome" && action.customerId) {
+      openQuoteFollowUpOutcome(action.customerId);
+      return true;
+    }
+    if (action.kind === "enquiry-follow-up" && action.customerId) {
+      prepareEnquiryFollowUp(action.customerId);
+      return true;
+    }
+    if (action.kind === "enquiry-outcome" && action.customerId) {
+      openEnquiryFollowUpOutcome(action.customerId);
+      return true;
+    }
+    if (action.kind === "review-request" && action.customerId && action.jobId) {
+      prepareReviewRequest(action.customerId, action.jobId);
+      return true;
+    }
+    if (action.kind === "review-outcome" && action.customerId && action.jobId) {
+      openReviewRequestOutcome(action.customerId, action.jobId);
+      return true;
+    }
+    if (action.kind === "repeat") {
+      go("eligibleCustomers");
+      return true;
+    }
+    return false;
+  };
+
+  const askBusyAboutCustomer = (customerId = selectedCustomerId) => {
+    const customer = customers.find((item) => item.id === customerId);
+    if (!customer) return false;
+    setSelectedCustomerId(customer.id);
+    openTalkToBusy(false);
+    setTimeout(() => {
+      submitBusyCommand({
+        text: `Give me the full customer journey for ${customer.name}. Tell me what has happened, what is open, what communication is already recorded, whether anything is stalled, and the single best next step.`,
+      });
+    }, 80);
+    return true;
+  };
+
   const appState = {
     screen,
     history,
