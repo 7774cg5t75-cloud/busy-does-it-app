@@ -81,7 +81,7 @@ function WebsiteBuilder({ s }) {
           <Card
             eyebrow="Conversational website editing"
             title="Tell BUSY what you want changed"
-            body="V3.35 safely handles layout/style requests such as “make it more premium”, “make the main photo bigger”, “hide the testimonials”, or “bring the gallery back”."
+            body="The website editor safely handles layout/style requests such as “make it more premium”, “make the main photo bigger”, “hide the testimonials”, or “bring the gallery back”."
             footer="Unsupported wording changes are not guessed. BUSY keeps them as a future editing request instead."
             tone="blue"
           >
