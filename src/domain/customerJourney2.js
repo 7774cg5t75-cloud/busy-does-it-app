@@ -328,8 +328,8 @@ function buildJourneyTimeline(customer = {}, action = null) {
 
 function buildCommunicationHistory(customer = {}, action = null, timeline = []) {
   const rows = timeline.filter((row) =>
-    ["communication", "quote", "reminder"].includes(row.kind) ||
-    /follow-up|review request|quote/i.test(row.title || "")
+    row.kind === "communication" ||
+    /follow-up|review request/i.test(row.title || "")
   );
 
   if (action?.type === "quote" && action.details?.message) {
@@ -634,8 +634,29 @@ function buildCustomerJourney2({
 
   const timeline = buildJourneyTimeline(customer, action);
   const communicationHistory = buildCommunicationHistory(customer, action, timeline);
-  const jobs = timeline.filter((row) => row.kind === "job");
-  const completedValue = jobs.reduce((sum, row) => sum + money(row.value), 0);
+  const savedJobs = (Array.isArray(customer.history) ? customer.history : []).filter(
+    (item) => item?.kind === "job" || item?.date
+  );
+  const baselineCovered = savedJobs.some(
+    (item) =>
+      item?.date === customer.lastServiceDate &&
+      (item?.service || customer.service) === customer.service
+  );
+  const relationshipJobs = [
+    ...savedJobs,
+    ...(!baselineCovered && customer.lastServiceDate
+      ? [{
+          id: `baseline-${customer.id}`,
+          date: customer.lastServiceDate,
+          service: customer.service,
+          value: customer.lastJobValue,
+        }]
+      : []),
+  ];
+  const completedValue = relationshipJobs.reduce(
+    (sum, row) => sum + money(row?.value),
+    0
+  );
   const repeatDue = repeatDueDate(customer, services, verticalId);
   const stalledSignals = buildStalledSignals({
     customer,
@@ -661,10 +682,13 @@ function buildCustomerJourney2({
       customer.lifecycleStatus ||
       (action ? currentStatus || actionLabel(action) : customer.lastServiceDate ? "Previous customer" : "Enquiry"),
     relationship: {
-      completedJobs: jobs.length,
+      completedJobs: relationshipJobs.length,
       completedValue: Math.round(completedValue),
       latestJobDate:
-        jobs.find((row) => row.date)?.date || customer.lastServiceDate || "",
+        [...relationshipJobs]
+          .sort((a, b) => String(b?.date || "").localeCompare(String(a?.date || "")))[0]?.date ||
+        customer.lastServiceDate ||
+        "",
       repeatDueDate: repeatDue,
       sourceRecordCount: Array.isArray(customer.sourceRecords)
         ? customer.sourceRecords.length
