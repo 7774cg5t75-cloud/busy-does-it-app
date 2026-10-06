@@ -1,5 +1,5 @@
-const APP_VERSION = "3.32";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Communications Hub`;
+const APP_VERSION = "3.33";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Follow-up Engine`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
