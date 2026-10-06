@@ -21,6 +21,9 @@ const intents = [
   "website_build",
   "website_edit",
   "open_website",
+  "website_hosting_status",
+  "website_publish_request",
+  "website_rollback_request",
   "business_outlook",
   "next_best_action",
   "daily_briefing",
@@ -55,7 +58,7 @@ const intents = [
 ];
 
 const stepIntentEnum = intents.filter((intent) =>
-  !["business_summary", "business_changes", "business_memory", "business_identity_summary", "business_outlook", "next_best_action", "daily_briefing", "customer_journey_summary", "communications_summary", "customer_communication_summary", "customer_reply_draft", "calendar_day_summary", "calendar_gap", "calendar_fit_job", "operator_plan", "draft_refinement", "unknown"].includes(intent)
+  !["business_summary", "business_changes", "business_memory", "business_identity_summary", "website_hosting_status", "business_outlook", "next_best_action", "daily_briefing", "customer_journey_summary", "communications_summary", "customer_communication_summary", "customer_reply_draft", "calendar_day_summary", "calendar_gap", "calendar_fit_job", "operator_plan", "draft_refinement", "unknown"].includes(intent)
 );
 
 const previewRowSchema = {
@@ -458,6 +461,20 @@ function safeContext(value: any) {
             publishingEnabled: false,
           }
         : null,
+    websitePublishing:
+      context.websitePublishing && typeof context.websitePublishing === "object"
+        ? {
+            publicStatus: cleanText(context.websitePublishing.publicStatus, 160),
+            hasHostedPreview: !!context.websitePublishing.hasHostedPreview,
+            liveVersion: Math.max(0, Number(context.websitePublishing.liveVersion) || 0),
+            previewVersion: Math.max(0, Number(context.websitePublishing.previewVersion) || 0),
+            draftChangedSinceHosted: !!context.websitePublishing.draftChangedSinceHosted,
+            queueStatus: cleanText(context.websitePublishing.queueStatus, 120),
+            customDomainStatus: cleanText(context.websitePublishing.customDomainStatus, 120),
+            customDomainRoutingActive: !!context.websitePublishing.customDomainRoutingActive,
+            publicChangeRequiresOwnerApproval: true,
+          }
+        : null,
     businessMemory:
       context.businessMemory && typeof context.businessMemory === "object"
         ? {
@@ -556,7 +573,11 @@ Your job is conversational:
 - For "build me a website", "make me a website", "create my website" or equivalent, use intent="website_build", mode="action", requiresConfirmation=false, actionLabel="Build website draft". This creates an internal draft only. Never imply it is published, hosted or attached to a domain.
 - For changes to an existing website draft such as "make it more premium", "make the main photo bigger", "hide the testimonials", or "bring the gallery back", use intent="website_edit", mode="action", requiresConfirmation=false, actionLabel="Apply website change", and copy the owner's requested change concisely into note. Do not invent a different change. If no website draft exists, prefer website_build when the request can be satisfied by creating the first draft.
 - For "show/open/preview my website", use intent="open_website", mode="action", requiresConfirmation=false, actionLabel="Open website preview". V3.35 preview is internal only.
-- Website actions may use brandIdentity and websiteBuilder context, but publishingEnabled is false. Never claim a website went live, DNS changed, hosting was configured, or a domain was purchased.
+- Website build/edit actions may use brandIdentity and websiteBuilder context. V3.36 hosting state is in websitePublishing.
+- For "put my website live", "publish my website", "go live" or equivalent, use intent="website_publish_request", mode="action", requiresConfirmation=false, actionLabel="Review Go Live". This intent ONLY opens the Website Publishing approval flow. Never claim publication happened from the voice command itself.
+- For "roll back my website", "restore the old website/version" or equivalent, use intent="website_rollback_request", mode="action", requiresConfirmation=false, actionLabel="Review rollback". This ONLY opens version history and approval.
+- For questions such as "is my website live?", "what version is live?", "is hosting ready?", or "what is happening with my website publish?", use intent="website_hosting_status", mode="answer" and use websitePublishing. Keep editor draft, hosted preview and live version distinct.
+- A public website change always requires the explicit owner approval gate in Website Publishing. Never claim DNS changed, a custom domain is routed, SSL is active, or a domain was purchased unless websitePublishing explicitly says so.
 - Never claim causation from attributed social outcomes or small samples.
 - For business_outlook, never collapse confirmed work and predicted pipeline into one factual number. State confirmed value separately, label forecast ranges as planning estimates, mention forecast confidence, and explain that quiet/light days are scheduled-load observations rather than guaranteed spare capacity.
 - For next_best_action, give ONE practical next move using the live customer-work priority first. If operationalContinuity has a high-severity recovery item that can make the records unreliable, mention that constraint. Do not manufacture work just to sound useful.
@@ -577,6 +598,9 @@ Supported direct intents:
 - website_build: create/rebuild an internal V3.35 website draft from the recorded Brand Brain; action only, not publishing.
 - website_edit: apply a safe conversational change to the saved internal website draft; put the exact requested change in note.
 - open_website: open the saved internal Website Builder/preview; do not claim it is public.
+- website_hosting_status: explain the current draft/hosted-preview/live state using websitePublishing and distinguish all three.
+- website_publish_request: open the Go Live review flow for the exact prepared version; do not publish directly.
+- website_rollback_request: open version history/rollback review; do not change the live site directly.
 - business_outlook: answer questions about today, next week, the next 30 days, pipeline, capacity load, forecast range, risk radar, scenarios or whether the business is on track. Use executiveBriefing and clearly separate confirmed values from forecast ranges.
 - next_best_action: answer "what should I do now/next?" with one record-backed priority. This is an answer, not blanket action authority.
 - daily_briefing: answer requests like "brief me", "what matters today?", "what do I need to do now/later/watch?" from dailyCommandCentre. Keep the lane order exactly Do now → Later today → Watch and never manufacture a lane item.
