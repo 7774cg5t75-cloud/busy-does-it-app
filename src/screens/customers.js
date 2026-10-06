@@ -233,16 +233,30 @@ function CustomerRecords({ s }) {
       brandCue={`${s.verticalPack.label} rules are loaded underneath — the customer system itself stays generic.`}
     >
       <Card
-        eyebrow="Current records"
-        title={`${s.customers.length} customer${s.customers.length === 1 ? "" : "s"} • ${s.eligibleCustomers.length} due for reactivation`}
+        eyebrow="V3.31 • Customer journeys"
+        title={`${s.customers.length} customer${s.customers.length === 1 ? "" : "s"} • one joined lifecycle each`}
         body={
           s.customerContact
-            ? s.eligibilityRule
-            : "Previous-customer contact is switched off in Settings, so nobody is currently selected for reactivation."
+            ? "BUSY now joins enquiry, quote, booking, completed jobs, follow-ups and repeat timing around the customer instead of treating each step as a separate record."
+            : "Previous-customer contact is switched off in Settings. Journey history still remains visible, but BUSY will not recommend outbound reactivation."
         }
-        footer="No real messages are sent in this prototype"
-        tone="green"
-      />
+        footer="Open a customer to see the full timeline, recorded communication and the single recommended next step."
+        tone={(s.customerJourneyWarningCount || 0) > 0 ? "amber" : "green"}
+      >
+        <MetricRow
+          left="Journeys needing review"
+          right={String(s.customerJourneyWarningCount || 0)}
+          strong={(s.customerJourneyWarningCount || 0) > 0}
+        />
+        <MetricRow
+          left="Customers with a next action"
+          right={String(s.customerJourneyNextActionCount || 0)}
+        />
+        <MetricRow
+          left="Repeat customers due"
+          right={String(s.eligibleCustomers.length || 0)}
+        />
+      </Card>
       <Field
         label="Find a customer"
         value={search}
@@ -259,6 +273,9 @@ function CustomerRecords({ s }) {
       {visibleCustomers.map((customer) => {
         const eligible = s.customerContact && isEligibleCustomer(customer, s.services, s.verticalId);
         const action = s.replyActions?.[customer.id] || null;
+        const journey = (s.customerJourneys || []).find(
+          (item) => item.customerId === customer.id
+        ) || null;
         const pipelineLabel = customerPipelineLabel(customer, action);
         const activeAction = isActiveCustomerAction(action);
         const hasOpenEnquiry = !!(customer.currentEnquiryAt || (!customer.lastServiceDate && customer.createdAt));
@@ -288,8 +305,18 @@ function CustomerRecords({ s }) {
                 {customer.phone && customer.email ? <Text style={styles.customerMeta}>{customer.email}</Text> : null}
               </View>
               <StatusChip
-                label={statusLabel}
-                tone={activeAction || eligible || hasOpenEnquiry ? "green" : "blue"}
+                label={
+                  (journey?.stalledSignals?.length || 0) > 0
+                    ? `${statusLabel} • review`
+                    : statusLabel
+                }
+                tone={
+                  (journey?.stalledSignals?.length || 0) > 0
+                    ? "amber"
+                    : activeAction || eligible || hasOpenEnquiry
+                    ? "green"
+                    : "blue"
+                }
               />
             </View>
             <Text style={styles.customerService}>{customer.service}</Text>
@@ -301,6 +328,11 @@ function CustomerRecords({ s }) {
                 : "No completed job recorded yet"}
               {Number(customer.lastJobValue) > 0 ? ` • £${customer.lastJobValue}` : ""}
             </Text>
+            {journey?.nextAction?.title ? (
+              <Text style={styles.customerMeta}>
+                Next: {journey.nextAction.title}
+              </Text>
+            ) : null}
             <View style={styles.customerActionsRow}>
               <Pressable onPress={() => s.openCustomer(customer.id)} style={styles.customerOpenWrap}>
                 <Text style={styles.customerOpenText}>Open customer</Text>
