@@ -10703,6 +10703,32 @@ function App() {
             remainingJobs: Number(workGoalRemainingJobs) || 0,
           }
         : null,
+      calendarIntelligence: {
+        capacityHours: Number(workCalendarIntelligence?.capacityHours || 7.5),
+        days: Object.values(workCalendarIntelligence?.byDate || {})
+          .filter((day) => !day?.date || day.date >= today)
+          .sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")))
+          .slice(0, 45)
+          .map((day) => ({
+            date: day.date || "",
+            state: day.state || "Open",
+            bookedJobs: Number(day.bookings?.length || 0),
+            bookedValue: Number(day.bookedValue || 0),
+            scheduledHours: Number(day.scheduledHours || 0),
+            estimatedOpenHours: Number(day.estimatedOpenHours || 0),
+            followUps: Number(day.attention?.length || 0),
+            externalCommitments: Number(day.externalEvents?.length || 0),
+            conflictCount: Number(day.conflictCount || 0),
+            fillCandidate: day.fillCandidate
+              ? {
+                  customerName: day.fillCandidate.customerName || "",
+                  service: day.fillCandidate.service || "",
+                  durationHours: Number(day.fillCandidate.durationHours || 0),
+                  value: Number(day.fillCandidate.value || 0),
+                }
+              : null,
+          })),
+      },
       nextBookings: bookingRows.slice(0, 12),
       dueQuoteCustomers: dueQuoteEntries.slice(0, 10).map((item) => ({
         name: item.customer?.name || "",
