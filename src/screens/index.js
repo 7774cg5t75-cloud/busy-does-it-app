@@ -10,6 +10,7 @@ import * as ProductionBridgeScreens from "./productionBridge";
 import * as OperationalContinuityScreens from "./operationalContinuity";
 import * as DailyCommandCentreScreens from "./dailyCommandCentre";
 import * as CommunicationsScreens from "./communications";
+import * as FollowUpScreens from "./followUpEngine";
 import * as WorkScreens from "./work";
 import * as IntakeScreens from "./intake";
 import * as CustomersScreens from "./customers";
@@ -29,6 +30,7 @@ export * from "./productionBridge";
 export * from "./operationalContinuity";
 export * from "./dailyCommandCentre";
 export * from "./communications";
+export * from "./followUpEngine";
 export * from "./work";
 export * from "./intake";
 export * from "./customers";
@@ -49,6 +51,7 @@ const allScreens = {
   ...OperationalContinuityScreens,
   ...DailyCommandCentreScreens,
   ...CommunicationsScreens,
+  ...FollowUpScreens,
   ...WorkScreens,
   ...IntakeScreens,
   ...CustomersScreens,
@@ -79,6 +82,7 @@ const {
   DailyCommandCentre,
   CommunicationsHub,
   CommunicationThread,
+  FollowUpEngine,
   WorkHub,
   WorkCalendar,
   WorkPipeline,
@@ -188,6 +192,7 @@ export const screens = {
   dailyCommandCentre: DailyCommandCentre,
   communicationsHub: CommunicationsHub,
   communicationThread: CommunicationThread,
+  followUpEngine: FollowUpEngine,
   workHub: WorkHub,
   workCalendar: WorkCalendar,
   workPipeline: WorkPipeline,
