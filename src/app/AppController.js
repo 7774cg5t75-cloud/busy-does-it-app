@@ -10791,6 +10791,69 @@ function App() {
           why: item.why || "",
         })),
       },
+      communicationsHub: {
+        counts: {
+          needsAttention: Number(communicationsHub?.counts?.needsAttention || 0),
+          awaitingCustomer: Number(communicationsHub?.counts?.awaitingCustomer || 0),
+          draftReady: Number(communicationsHub?.counts?.draftReady || 0),
+          done: Number(communicationsHub?.counts?.done || 0),
+          unmatched: Number(communicationsHub?.counts?.unmatched || 0),
+        },
+        threads: (communicationsHub?.threads || []).slice(0, 30).map((thread) => ({
+          customerName: thread.customerName || "",
+          service: thread.service || "",
+          lane: thread.lane || "",
+          contactAllowed: thread.contactAllowed !== false,
+          latestSummary: String(thread.latestSummary || "").slice(0, 900),
+          duplicateContactBlocked: !!thread.duplicateGuard?.blocked,
+          duplicateContactReason: String(thread.duplicateGuard?.body || "").slice(0, 700),
+          latestIncoming: thread.latestIncoming
+            ? {
+                title: thread.latestIncoming.title || "",
+                body: String(thread.latestIncoming.body || "").slice(0, 1200),
+                source: thread.latestIncoming.source || "",
+                createdAt: thread.latestIncoming.createdAt || "",
+              }
+            : null,
+          latestIncomingInterpretation: thread.latestIncomingInterpretation
+            ? {
+                kind: thread.latestIncomingInterpretation.kind || "",
+                label: thread.latestIncomingInterpretation.label || "",
+                confidence: thread.latestIncomingInterpretation.confidence || "",
+                summary: thread.latestIncomingInterpretation.summary || "",
+                suggestedHandling: thread.latestIncomingInterpretation.suggestedHandling || "",
+              }
+            : null,
+          latestOutbound: thread.latestOutbound
+            ? {
+                title: thread.latestOutbound.title || "",
+                body: String(thread.latestOutbound.body || "").slice(0, 1200),
+                status: thread.latestOutbound.status || "",
+                createdAt: thread.latestOutbound.createdAt || "",
+              }
+            : null,
+          nextAction: thread.nextAction
+            ? {
+                kind: thread.nextAction.kind || "",
+                title: thread.nextAction.title || "",
+                body: thread.nextAction.body || "",
+                why: thread.nextAction.why || "",
+              }
+            : null,
+        })),
+        unmatched: (communicationsHub?.unmatched || []).slice(0, 10).map((item) => ({
+          title: item.title || "",
+          source: item.source || "",
+          reason: item.reason || "",
+          interpretation: item.interpretation
+            ? {
+                label: item.interpretation.label || "",
+                confidence: item.interpretation.confidence || "",
+                summary: item.interpretation.summary || "",
+              }
+            : null,
+        })),
+      },
       businessMemory: {
         lastReviewedAt: businessMemoryLastReviewAt,
         strongestPattern: strongestBusinessMemoryPattern
