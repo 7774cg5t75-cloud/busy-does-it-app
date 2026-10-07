@@ -3,6 +3,8 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+const MINI_APP_PUBLIC_BUCKET = "busy-mini-app-public";
+const MINI_APP_LINK_URL = `${SUPABASE_URL}/functions/v1/busy-mini-app-link`;
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
@@ -712,11 +714,11 @@ async function ownerStatus(businessId: string) {
   }
 
   const entrySince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const [versions, requests, requestLinks, entrySummary] = await Promise.all([
+  const [versions, requests, requestLinks, entrySummary, requestCount30] = await Promise.all([
     supabase
       .from("busy_mini_app_versions")
       .select(
-        "id,version_no,source_profile_revision,source_draft_revision,config_hash,state,change_label,change_summary,created_at,prepared_at,published_at"
+        "id,version_no,source_profile_revision,source_draft_revision,config_hash,state,change_label,change_summary,public_web_storage_path,public_web_artifact_bytes,public_web_published_at,created_at,prepared_at,published_at"
       )
       .eq("mini_app_id", app.id)
       .order("version_no", { ascending: false })
@@ -740,17 +742,24 @@ async function ownerStatus(businessId: string) {
       p_mini_app_id: app.id,
       p_since: entrySince,
     }),
+    supabase
+      .from("busy_mini_app_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("mini_app_id", app.id)
+      .gte("created_at", entrySince),
   ]);
   if (versions.error) throw versions.error;
   if (requests.error) throw requests.error;
   if (requestLinks.error) throw requestLinks.error;
   if (entrySummary.error) throw entrySummary.error;
+  if (requestCount30.error) throw requestCount30.error;
   return {
     app,
     versions: versions.data || [],
     requests: requests.data || [],
     requestLinks: requestLinks.data || [],
     entrySummary: entrySummary.data || [],
+    requestCount30: Number(requestCount30.count || 0),
     catalog,
     publicProfile: profile,
   };
@@ -996,6 +1005,190 @@ async function syncSharedPublicProfile(
   return inserted.data;
 }
 
+function escapeHtml(value: unknown) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function safeHttps(value: unknown) {
+  const url = clean(value, 2000);
+  return /^https:\/\//i.test(url) ? url : "";
+}
+
+function safeCssColor(value: unknown, fallback: string) {
+  const color = clean(value, 30);
+  return /^#[0-9a-f]{3,8}$/i.test(color) ? color : fallback;
+}
+
+function publicMiniAppWebHtml(app: any, version: any) {
+  const config = version?.config || {};
+  const profile = sanitizePublicProfile(config?.publicProfile || {});
+  const display = config?.display || {};
+  const enabled = new Set(
+    safeArray(config?.modules)
+      .filter((item: any) => item?.enabled)
+      .map((item: any) => clean(item?.key, 80))
+  );
+
+  const name = clean(display?.name || profile.businessName || app?.display_name, 240) || "Business";
+  const category = clean(display?.category || profile.businessType || app?.category, 240);
+  const tagline = clean(display?.tagline || profile.tagline || app?.tagline, 500);
+  const description = clean(profile.description || profile.about, 2500);
+  const about = clean(profile.about || profile.description, 2500);
+  const serviceArea = clean(profile.serviceArea, 500);
+  const services = safeArray(profile.services).slice(0, 50);
+  const gallery = safeArray(profile?.assets?.gallery)
+    .map((asset: any) => ({ ...asset, uri: safeHttps(asset?.uri) }))
+    .filter((asset: any) => asset.uri)
+    .slice(0, 18);
+  const hero = safeHttps(profile?.assets?.hero?.uri);
+  const phone = clean(profile?.contact?.phone, 120);
+  const email = clean(profile?.contact?.email, 240);
+  const openingHours = clean(profile?.contact?.openingHours, 700);
+  const facebook = safeHttps(profile?.contact?.social?.facebook);
+  const instagram = safeHttps(profile?.contact?.social?.instagram);
+  const primary = safeCssColor(profile?.theme?.primary, "#245fd6");
+  const secondary = safeCssColor(profile?.theme?.secondary, "#eef4ff");
+  const slug = clean(app?.public_slug, 100);
+  const actionUrl = (intent: string) =>
+    `${MINI_APP_LINK_URL}?slug=${encodeURIComponent(slug)}&source=web&intent=${encodeURIComponent(intent)}`;
+
+  const servicesHtml = enabled.has("services")
+    ? services.length
+      ? `<section id="services"><div class="wrap"><p class="eyebrow">Services</p><h2>What we do</h2><div class="grid">${services
+          .map((service: any) => `<article><h3>${escapeHtml(service?.name || "Service")}</h3>${clean(service?.description, 1500) ? `<p>${escapeHtml(service.description)}</p>` : ""}</article>`)
+          .join("")}</div></div></section>`
+      : `<section id="services"><div class="wrap"><p class="eyebrow">Services</p><h2>Services</h2><p>No public services are listed yet.</p></div></section>`
+    : "";
+
+  const galleryHtml = enabled.has("gallery") && gallery.length
+    ? `<section id="gallery"><div class="wrap"><p class="eyebrow">Gallery</p><h2>Recent work</h2><div class="gallery">${gallery
+        .map((asset: any) => `<img loading="lazy" src="${escapeHtml(asset.uri)}" alt="${escapeHtml(name)}" />`)
+        .join("")}</div></div></section>`
+    : "";
+
+  const contactItems = [
+    phone ? `<a class="contact" href="tel:${escapeHtml(phone.replace(/[^+0-9]/g, ""))}">Call ${escapeHtml(phone)}</a>` : "",
+    email ? `<a class="contact" href="mailto:${escapeHtml(email)}">Email ${escapeHtml(email)}</a>` : "",
+    facebook ? `<a class="contact" href="${escapeHtml(facebook)}" rel="noopener noreferrer">Facebook</a>` : "",
+    instagram ? `<a class="contact" href="${escapeHtml(instagram)}" rel="noopener noreferrer">Instagram</a>` : "",
+  ].filter(Boolean).join("");
+
+  const contactHtml = enabled.has("contact") && (contactItems || openingHours)
+    ? `<section id="contact"><div class="wrap"><p class="eyebrow">Contact</p><h2>Get in touch</h2>${openingHours ? `<p>${escapeHtml(openingHours)}</p>` : ""}<div class="contacts">${contactItems}</div></div></section>`
+    : "";
+
+  const actions: string[] = [];
+  if (enabled.has("enquiry")) {
+    actions.push(`<a class="button" href="${escapeHtml(actionUrl("enquiry"))}">Send an enquiry</a>`);
+  }
+  if (enabled.has("booking_request")) {
+    actions.push(`<a class="button secondary" href="${escapeHtml(actionUrl("booking_request"))}">Request a booking</a>`);
+  }
+  const actionHtml = actions.length
+    ? `<section id="actions"><div class="wrap action-box"><p class="eyebrow">Ready to contact us?</p><h2>Continue securely in BUSY DOES IT</h2><p>You can browse this Mini App without installing anything. Enquiries and booking requests continue through BUSY so the request is attached to the right business and can be tracked safely.</p><div class="actions">${actions.join("")}</div></div></section>`
+    : "";
+
+  const offersHtml = enabled.has("offers")
+    ? `<section id="offers"><div class="wrap"><p class="eyebrow">Offers</p><h2>Offers</h2><p>No approved public offer is currently published.</p></div></section>`
+    : "";
+
+  const heroHtml = hero ? `<img class="hero-image" src="${escapeHtml(hero)}" alt="${escapeHtml(name)}" />` : "";
+  const aboutHtml = enabled.has("business_profile")
+    ? `<section id="about"><div class="wrap"><p class="eyebrow">About</p><h2>${escapeHtml(name)}</h2>${about ? `<p>${escapeHtml(about)}</p>` : ""}${serviceArea ? `<p class="muted">Service area: ${escapeHtml(serviceArea)}</p>` : ""}</div></section>`
+    : "";
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="${escapeHtml(primary)}">
+  <meta name="description" content="${escapeHtml(tagline || description || name)}">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; style-src 'unsafe-inline'; img-src https: data:; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="busy-mini-app-version" content="${escapeHtml(String(version?.id || ""))}">
+  <title>${escapeHtml(name)} • BUSY DOES IT</title>
+  <style>
+    :root{--brand:${primary};--soft:${secondary};--ink:#172033;--muted:#637083;--line:#e3e8f0;--card:#fff}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#f6f8fb;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.55}
+    .wrap{max-width:760px;margin:0 auto;padding:34px 20px}.hero{background:linear-gradient(160deg,var(--soft),#fff);padding-top:max(28px,env(safe-area-inset-top))}.brand{font-size:12px;font-weight:850;letter-spacing:.12em}.eyebrow{font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--brand);margin:0 0 8px}
+    h1{font-size:clamp(2.2rem,10vw,4rem);line-height:1.02;margin:12px 0}h2{font-size:clamp(1.7rem,7vw,2.5rem);line-height:1.12;margin:8px 0 14px}h3{margin:0 0 8px}.lead{font-size:1.08rem}.muted{color:var(--muted)}
+    .hero-image{width:100%;max-height:430px;object-fit:cover;border-radius:24px;margin-top:22px;box-shadow:0 18px 40px rgba(19,31,55,.12)}section{background:#fff;border-top:1px solid var(--line)}section:nth-of-type(even){background:#fafbfd}
+    .grid{display:grid;gap:14px}.grid article{border:1px solid var(--line);border-radius:18px;padding:18px;background:var(--card)}.gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.gallery img{width:100%;height:170px;object-fit:cover;border-radius:15px}
+    .contacts,.actions{display:flex;gap:10px;flex-wrap:wrap}.contact,.button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:12px 17px;border-radius:14px;text-decoration:none;font-weight:750}.contact{border:1px solid var(--line);color:var(--ink);background:#fff}.button{background:var(--brand);color:#fff}.button.secondary{background:#fff;color:var(--brand);border:2px solid var(--brand)}
+    .hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.browse-note{display:inline-block;margin-top:12px;padding:8px 11px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:13px;color:var(--muted)}.action-box{padding-top:40px;padding-bottom:44px}footer{padding:28px 20px 42px;text-align:center;color:var(--muted);font-size:13px}
+    @media(min-width:620px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.gallery{grid-template-columns:repeat(3,minmax(0,1fr))}.gallery img{height:210px}.wrap{padding:50px 28px}}
+  </style>
+</head>
+<body>
+  <header class="hero"><div class="wrap"><div class="brand">BUSY DOES IT</div>${category ? `<p class="eyebrow" style="margin-top:22px">${escapeHtml(category)}</p>` : ""}<h1>${escapeHtml(name)}</h1>${tagline ? `<p class="lead">${escapeHtml(tagline)}</p>` : description ? `<p class="lead">${escapeHtml(description)}</p>` : ""}${serviceArea ? `<p class="muted">${escapeHtml(serviceArea)}</p>` : ""}${heroHtml}<div class="hero-actions"><a class="button" href="${escapeHtml(actionUrl("open"))}">Open in BUSY DOES IT</a></div><span class="browse-note">No app or sign-in needed to browse</span></div></header>
+  ${aboutHtml}
+  ${servicesHtml}
+  ${galleryHtml}
+  ${offersHtml}
+  ${contactHtml}
+  ${actionHtml}
+  <footer>Powered by <strong>BUSY DOES IT</strong> • Public information from the business's approved live Mini App.</footer>
+</body>
+</html>`;
+}
+
+async function ensureMiniAppPublicBucket() {
+  const existing = await supabase.storage.getBucket(MINI_APP_PUBLIC_BUCKET);
+  if (!existing.error && existing.data) return;
+  const created = await supabase.storage.createBucket(MINI_APP_PUBLIC_BUCKET, {
+    public: true,
+    allowedMimeTypes: ["text/html"],
+    fileSizeLimit: 2_000_000,
+  });
+  if (created.error && !/already exists|duplicate/i.test(created.error.message || "")) {
+    throw created.error;
+  }
+}
+
+async function uploadMiniAppHtml(path: string, html: string, cacheControl: string) {
+  const result = await supabase.storage
+    .from(MINI_APP_PUBLIC_BUCKET)
+    .upload(path, new Blob([html], { type: "text/html" }), {
+      contentType: "text/html",
+      cacheControl,
+      upsert: true,
+    });
+  if (result.error) throw result.error;
+}
+
+async function publishMiniAppWebArtifact(app: any, version: any) {
+  await ensureMiniAppPublicBucket();
+  const html = publicMiniAppWebHtml(app, version);
+  const bytes = new TextEncoder().encode(html).byteLength;
+  if (bytes > 1_500_000) throw new Error("The public Mini App web artifact is unexpectedly large.");
+
+  const versionPath = `${app.business_id}/${app.id}/versions/${version.id}/index.html`;
+  const livePath = `${app.business_id}/${app.id}/live/index.html`;
+  await uploadMiniAppHtml(versionPath, html, "31536000");
+  await uploadMiniAppHtml(livePath, html, "60");
+
+  const liveUrl = supabase.storage
+    .from(MINI_APP_PUBLIC_BUCKET)
+    .getPublicUrl(livePath).data.publicUrl;
+  const artifact = await supabase
+    .from("busy_mini_app_versions")
+    .update({
+      public_web_storage_path: versionPath,
+      public_web_artifact_bytes: bytes,
+      public_web_published_at: new Date().toISOString(),
+    })
+    .eq("id", version.id)
+    .eq("mini_app_id", app.id);
+  if (artifact.error) throw artifact.error;
+
+  return { liveUrl, versionPath, livePath, bytes };
+}
+
 async function publishVersion(
   userId: string,
   businessId: string,
@@ -1022,6 +1215,7 @@ async function publishVersion(
   if (version.error) throw version.error;
   if (!version.data) throw new Error("That Mini App version was not found.");
 
+  const webArtifact = await publishMiniAppWebArtifact(app, version.data);
   const now = new Date().toISOString();
   if (
     app.current_live_version_id &&
@@ -1053,6 +1247,11 @@ async function publishVersion(
       current_preview_version_id: versionId,
       current_live_version_id: versionId,
       discoverable: body?.discoverable === true,
+      public_web_url: webArtifact.liveUrl,
+      public_web_version_id: versionId,
+      public_web_status: "ready",
+      public_web_updated_at: now,
+      public_web_last_error: null,
       last_error: null,
       updated_at: now,
     })
@@ -1093,6 +1292,7 @@ async function rollbackVersion(
   if (target.error) throw target.error;
   if (!target.data) throw new Error("That version has never been published.");
 
+  const webArtifact = await publishMiniAppWebArtifact(app, target.data);
   const now = new Date().toISOString();
   if (app.current_live_version_id && app.current_live_version_id !== versionId) {
     await supabase
@@ -1114,6 +1314,11 @@ async function rollbackVersion(
       status: "live",
       current_live_version_id: versionId,
       current_preview_version_id: versionId,
+      public_web_url: webArtifact.liveUrl,
+      public_web_version_id: versionId,
+      public_web_status: "ready",
+      public_web_updated_at: now,
+      public_web_last_error: null,
       updated_at: now,
     })
     .eq("id", app.id)
