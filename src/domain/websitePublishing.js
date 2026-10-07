@@ -48,7 +48,10 @@ function buildWebsitePublishingView({
     hasCnameTarget: false,
     rootDomain: "busydoesit.co.uk",
     baseDomainConfigured: true,
-    baseDomain: "sites.busydoesit.co.uk",
+    baseDomain: "busydoesit.co.uk",
+    cnameHost: "sites.busydoesit.co.uk",
+    hasAccountId: false,
+    bootstrapReady: false,
   };
   const providerPreflight = remote?.providerPreflight || null;
   const publicProfile = remote?.publicProfile || null;
@@ -239,6 +242,9 @@ function buildWebsitePublishingView({
       tokenReady: !!providerConfig.hasApiToken,
       zoneReady: !!providerConfig.hasZoneId,
       targetReady: !!providerConfig.hasCnameTarget,
+      accountReady: !!providerConfig.hasAccountId,
+      bootstrapReady: !!providerConfig.bootstrapReady,
+      cnameHost: clean(providerConfig.cnameHost) || "sites.busydoesit.co.uk",
       lastDomainSignal,
       lastAnalyticsSignal,
       rootDomain: clean(providerConfig.rootDomain) || "busydoesit.co.uk",
