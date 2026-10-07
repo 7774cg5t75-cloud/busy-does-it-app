@@ -511,6 +511,22 @@ async function reconcilePlatformActivation() {
   const before = platformActivationState(config, preflight, provider);
 
   if (!config.bootstrapReady || !preflight.rootOnCloudflare || before.applied) {
+    console.log(
+      "BUSY_WEBSITE_PLATFORM_ACTIVATION",
+      JSON.stringify({
+        status: before.status,
+        ready: before.ready,
+        applied: before.applied,
+        attempted: false,
+        credentialsReady: before.credentialsReady,
+        nameserversReady: before.nameserversReady,
+        routingDnsReady: before.routingDnsReady,
+        fallbackOriginReady: before.fallbackOriginReady,
+        workerReady: before.workerReady,
+        workerRouteReady: before.workerRouteReady,
+        rootRoutesExcluded: before.rootRoutesExcluded,
+      })
+    );
     return {
       ...before,
       attempted: false,
@@ -519,17 +535,42 @@ async function reconcilePlatformActivation() {
     };
   }
 
-  const bootstrap = await bootstrapPlatform();
-  const nextPreflight = bootstrap?.preflight || (await platformPreflight());
-  const nextProvider = bootstrap?.provider || (await inspectPlatformProvider());
-  const after = platformActivationState(config, nextPreflight, nextProvider);
+  try {
+    const bootstrap = await bootstrapPlatform();
+    const nextPreflight = bootstrap?.preflight || (await platformPreflight());
+    const nextProvider = bootstrap?.provider || (await inspectPlatformProvider());
+    const after = platformActivationState(config, nextPreflight, nextProvider);
 
-  return {
-    ...after,
-    attempted: true,
-    preflight: nextPreflight,
-    provider: nextProvider,
-  };
+    console.log(
+      "BUSY_WEBSITE_PLATFORM_ACTIVATION",
+      JSON.stringify({
+        status: after.status,
+        ready: after.ready,
+        applied: after.applied,
+        attempted: true,
+        credentialsReady: after.credentialsReady,
+        nameserversReady: after.nameserversReady,
+        routingDnsReady: after.routingDnsReady,
+        fallbackOriginReady: after.fallbackOriginReady,
+        workerReady: after.workerReady,
+        workerRouteReady: after.workerRouteReady,
+        rootRoutesExcluded: after.rootRoutesExcluded,
+      })
+    );
+
+    return {
+      ...after,
+      attempted: true,
+      preflight: nextPreflight,
+      provider: nextProvider,
+    };
+  } catch (error) {
+    console.error(
+      "BUSY_WEBSITE_PLATFORM_ACTIVATION_ERROR",
+      error instanceof Error ? error.message : "Cloudflare platform activation failed."
+    );
+    throw error;
+  }
 }
 
 function errorStatus(value: string) {
