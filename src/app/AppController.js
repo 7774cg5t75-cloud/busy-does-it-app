@@ -13850,7 +13850,6 @@ function App() {
     if (!ownerSession?.accessToken) {
       setPendingMiniAppDeepLink(target);
       setMiniAppsNotice("Sign in to BUSY to open the shared business app.");
-      go("accountAccess");
       return true;
     }
     setPendingMiniAppDeepLink(null);
