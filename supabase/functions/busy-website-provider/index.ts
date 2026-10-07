@@ -68,7 +68,7 @@ async function dnsAnswers(name: string, type: "NS" | "CNAME" | "A" | "AAAA") {
     {
       headers: {
         Accept: "application/dns-json",
-        "User-Agent": "BUSY-Website-Provider/3.46",
+        "User-Agent": "BUSY-Website-Provider/3.47",
       },
     }
   );
@@ -258,7 +258,7 @@ function routerWorkerSource() {
     'const key=new Request(keyUrl.toString(),{method:"GET",headers:{Accept:request.headers.get("Accept")||"*/*"}});',
     'if(method==="GET"&&!health){const cached=await caches.default.match(key);if(cached){const h=new Headers(cached.headers);h.set("X-BUSY-Edge-Cache","HIT");return new Response(cached.body,{status:cached.status,statusText:cached.statusText,headers:h});}}',
     'const target=new URL(origin);target.searchParams.set("host",host);target.searchParams.set("path",incoming.pathname||"/");',
-    'const upstream=await fetch(target.toString(),{method,headers:{Accept:request.headers.get("Accept")||"text/html,*/*;q=0.8","X-BUSY-Original-Host":host,"X-BUSY-Original-Path":incoming.pathname||"/","User-Agent":"BUSY-Cloudflare-Router/3.46"},cf:{cacheEverything:false}});',
+    'const upstream=await fetch(target.toString(),{method,headers:{Accept:request.headers.get("Accept")||"text/html,*/*;q=0.8","X-BUSY-Original-Host":host,"X-BUSY-Original-Path":incoming.pathname||"/","User-Agent":"BUSY-Cloudflare-Router/3.47"},cf:{cacheEverything:false}});',
     'const headers=new Headers(upstream.headers);headers.set("X-BUSY-Edge","cloudflare-worker");headers.set("X-BUSY-Edge-Cache","MISS");headers.set("Vary","Accept-Encoding");',
     'const response=new Response(upstream.body,{status:upstream.status,statusText:upstream.statusText,headers});',
     'if(method==="GET"&&!health&&cacheable(response)){ctx.waitUntil(caches.default.put(key,response.clone()));}',
@@ -461,6 +461,74 @@ async function bootstrapPlatform() {
       id: clean(worker?.id, 200) || CLOUDFLARE_ROUTER_SCRIPT,
       routes,
     },
+  };
+}
+
+function platformActivationState(config: any, preflight: any, provider: any) {
+  const fallbackStatus = clean(provider?.fallbackOriginStatus, 100);
+  const fallbackConfigured =
+    !!fallbackStatus &&
+    fallbackStatus !== "not_connected" &&
+    !/(failed|error|inactive|deletion)/i.test(fallbackStatus);
+  const infrastructureApplied =
+    !!provider?.routerScriptReady &&
+    !!provider?.routerRouteReady &&
+    !!provider?.rootRoutesExcluded &&
+    fallbackConfigured &&
+    !!preflight?.baseDomainRoutable;
+  const ready =
+    !!config?.bootstrapReady &&
+    !!preflight?.rootOnCloudflare &&
+    infrastructureApplied &&
+    fallbackStatus === "active";
+
+  let status = "activation_required";
+  if (!config?.bootstrapReady) status = "credentials_required";
+  else if (!preflight?.rootOnCloudflare) status = "waiting_for_nameservers";
+  else if (ready) status = "ready";
+  else if (infrastructureApplied) status = "activating";
+
+  return {
+    status,
+    ready,
+    applied: infrastructureApplied,
+    credentialsReady: !!config?.bootstrapReady,
+    nameserversReady: !!preflight?.rootOnCloudflare,
+    routingDnsReady: !!preflight?.baseDomainRoutable,
+    fallbackOriginReady: fallbackStatus === "active",
+    fallbackOriginConfigured: fallbackConfigured,
+    workerReady: !!provider?.routerScriptReady,
+    workerRouteReady: !!provider?.routerRouteReady,
+    rootRoutesExcluded: !!provider?.rootRoutesExcluded,
+    checkedAt: new Date().toISOString(),
+  };
+}
+
+async function reconcilePlatformActivation() {
+  const config = providerConfig();
+  const preflight = await platformPreflight();
+  const provider = await inspectPlatformProvider();
+  const before = platformActivationState(config, preflight, provider);
+
+  if (!config.bootstrapReady || !preflight.rootOnCloudflare || before.applied) {
+    return {
+      ...before,
+      attempted: false,
+      preflight,
+      provider,
+    };
+  }
+
+  const bootstrap = await bootstrapPlatform();
+  const nextPreflight = bootstrap?.preflight || (await platformPreflight());
+  const nextProvider = bootstrap?.provider || (await inspectPlatformProvider());
+  const after = platformActivationState(config, nextPreflight, nextProvider);
+
+  return {
+    ...after,
+    attempted: true,
+    preflight: nextPreflight,
+    provider: nextProvider,
   };
 }
 
@@ -668,14 +736,16 @@ async function syncDomain(domain: any) {
 }
 
 async function syncDomains(limit = 40) {
+  const activation = await reconcilePlatformActivation();
   const config = providerConfig();
-  const preflight = await platformPreflight();
+  const preflight = activation.preflight || (await platformPreflight());
   if (!config.configured) {
     return {
       configured: false,
       config,
       preflight,
-      provider: await inspectPlatformProvider(),
+      provider: activation.provider || (await inspectPlatformProvider()),
+      activation,
       synced: 0,
       results: [],
     };
@@ -736,7 +806,8 @@ async function syncDomains(limit = 40) {
     configured: true,
     config,
     preflight,
-    provider: await inspectPlatformProvider(),
+    provider: activation.provider || (await inspectPlatformProvider()),
+    activation,
     synced: results.length,
     results,
   };
@@ -786,15 +857,30 @@ Deno.serve(async (request: Request) => {
     const body = await request.json().catch(() => ({}));
     const action = clean(body?.action, 80) || "status";
     if (action === "status") {
+      const config = providerConfig();
+      const preflight = await platformPreflight();
+      const provider = await inspectPlatformProvider();
       return json(200, {
         ok: true,
-        config: providerConfig(),
-        preflight: await platformPreflight(),
-        provider: await inspectPlatformProvider(),
+        config,
+        preflight,
+        provider,
+        activation: platformActivationState(config, preflight, provider),
       });
     }
     if (action === "bootstrap_platform") {
-      return json(200, { ok: true, ...(await bootstrapPlatform()) });
+      const bootstrapped = await bootstrapPlatform();
+      const config = providerConfig();
+      const preflight = bootstrapped?.preflight || (await platformPreflight());
+      const provider = bootstrapped?.provider || (await inspectPlatformProvider());
+      return json(200, {
+        ok: true,
+        ...bootstrapped,
+        activation: platformActivationState(config, preflight, provider),
+      });
+    }
+    if (action === "reconcile_platform") {
+      return json(200, { ok: true, activation: await reconcilePlatformActivation() });
     }
     if (action === "provision_domain") {
       const domainId = clean(body?.domainId, 80);
