@@ -6,7 +6,7 @@ function clean(value = "") {
   return String(value || "").trim();
 }
 
-function buildMiniAppProfileDraft(brandBrain = {}) {
+function buildMiniAppProfileDraft(brandBrain = {}, businessCreationIntelligence = null) {
   const brief = brandBrain?.websiteBrief || {};
   return {
     businessName: clean(brief.businessName),
@@ -39,6 +39,27 @@ function buildMiniAppProfileDraft(brandBrain = {}) {
       primary: clean(brief.colours?.[0]),
       secondary: clean(brief.colours?.[1]),
     },
+    builderIntelligence: businessCreationIntelligence
+      ? {
+          schemaVersion: Number(businessCreationIntelligence.schemaVersion || 1),
+          source: clean(businessCreationIntelligence.source),
+          sharedProfileFingerprint: clean(
+            businessCreationIntelligence.sharedProfile?.fingerprint
+          ),
+          recommendedModules: safeArray(
+            businessCreationIntelligence.recommendedAppModules
+          ).map((item) => clean(item)).filter(Boolean),
+          moduleReasons: safeArray(
+            businessCreationIntelligence.recommendations?.app
+          ).reduce((result, item) => {
+            const key = clean(item?.key);
+            if (key) result[key] = clean(item?.reason);
+            return result;
+          }, {}),
+          ownerApprovalRequired:
+            businessCreationIntelligence.ownerApprovalRequired !== false,
+        }
+      : null,
   };
 }
 
