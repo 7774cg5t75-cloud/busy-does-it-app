@@ -66,6 +66,7 @@ export default {
     cacheUrl.pathname =
       "/" +
       encodeURIComponent(hostname) +
+      "/" +
       incoming.pathname.replace(/^\//, "");
     const cacheKey = new Request(cacheUrl.toString(), {
       method: "GET",
