@@ -45,7 +45,7 @@ function WebsitePublishing({ s }) {
       s={s}
       title="Website Management"
       subtitle="Edit privately, inspect the exact hosted version, then decide what becomes public."
-      brandCue="V3.47 • real delivery • provider routing • traffic signals • usage metering."
+      brandCue="V3.48 • automatic BUSY addresses • route proof • real delivery • tenant-safe hosting."
     >
       <Card
         eyebrow="Website lifecycle"
@@ -418,15 +418,19 @@ function WebsitePublishing({ s }) {
 
       <Text style={styles.sectionLabel}>Default BUSY website address</Text>
       <Card
-        eyebrow="Instant-address foundation"
+        eyebrow="Automatic tenant address"
         title={view.defaultAddressState?.address?.hostname || view.defaultAddressState?.status || "Not reserved yet"}
         body={
-          view.defaultAddressState?.address
-            ? "BUSY has reserved a tenant-safe hostname. It only becomes a usable public address after the BUSY platform domain/routing layer genuinely serves the expected deployment."
-            : "V3.47 reserves tenant-safe first-level addresses such as site-business-1234.busydoesit.co.uk. This keeps default BUSY addresses inside the root certificate boundary while custom customer domains use the separate SaaS routing target."
+          view.defaultAddressState?.address?.live
+            ? "BUSY has independently proved this tenant-safe address is serving the exact approved live deployment through Cloudflare."
+            : view.defaultAddressState?.address
+            ? live
+              ? "The address is reserved and BUSY is automatically checking the real Cloudflare route. It is not labelled live until the deployment marker is observed through this hostname."
+              : "BUSY has reserved the address now so it is ready for route verification as soon as the owner publishes a website version."
+            : "V3.48 automatically reserves a tenant-safe first-level BUSY address and moves it through route proof after publication. No business can become live merely because a hostname was allocated."
         }
         footer="Two businesses with the same trading name still receive different tenant-safe hostnames."
-        tone={view.defaultAddressState?.address?.live ? "green" : "blue"}
+        tone={view.defaultAddressState?.address?.live ? "green" : view.defaultAddressState?.status?.includes("attention") ? "amber" : "blue"}
       >
         <MetricRow left="Address state" right={view.defaultAddressState?.status || "Not configured"} strong={view.defaultAddressState?.address?.live} />
         {view.defaultAddressState?.address?.live ? (
