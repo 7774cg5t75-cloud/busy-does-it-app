@@ -247,12 +247,12 @@ function routerWorkerSource() {
     'const DEFAULT_ROOT_DOMAIN = "busydoesit.co.uk";',
     'const DEFAULT_ORIGIN_URL = "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-website-origin";',
     'function cleanHost(value){return String(value||"").trim().toLowerCase().replace(/\\.$/,"").replace(/:\\d+$/,"");}',
-    'function bypass(host,root){return host===root||host==="www."+root||host==="origin."+root||host==="sites."+root;}',
+    'function reservedRoot(host,root){return host===root||host==="www."+root;}',
     'function cacheable(response){if(!response||response.status!==200)return false;const t=response.headers.get("content-type")||"";return t.startsWith("text/html")||t.startsWith("text/css")||t.startsWith("application/javascript")||t.startsWith("image/");}',
     'export default {async fetch(request,env,ctx){',
     'const method=request.method.toUpperCase();if(method!=="GET"&&method!=="HEAD")return new Response("Method not allowed.",{status:405,headers:{Allow:"GET, HEAD"}});',
     'const incoming=new URL(request.url);const host=cleanHost(incoming.hostname);const root=cleanHost(env.BUSY_ROOT_DOMAIN||DEFAULT_ROOT_DOMAIN);const health=String(request.headers.get("User-Agent")||"").startsWith("BUSY-Website-Health/");',
-    'if(bypass(host,root))return fetch(request);',
+    'if(reservedRoot(host,root))return new Response("BUSY DOES IT",{status:404,headers:{"Content-Type":"text/plain; charset=utf-8"}});',
     'const origin=String(env.BUSY_ORIGIN_URL||DEFAULT_ORIGIN_URL).trim();',
     'const keyUrl=new URL("https://busy-edge-cache.invalid/");keyUrl.pathname="/"+encodeURIComponent(host)+incoming.pathname;',
     'const key=new Request(keyUrl.toString(),{method:"GET",headers:{Accept:request.headers.get("Accept")||"*/*"}});',
@@ -294,31 +294,45 @@ async function uploadRouterWorker() {
   );
 }
 
-async function ensureWorkerRoute() {
+async function ensureWorkerRoute(
+  pattern: string,
+  script: string | null
+) {
   const routes = await cfRequest(
     `/zones/${encodeURIComponent(CLOUDFLARE_ZONE_ID)}/workers/routes`
   );
-  const existing = (Array.isArray(routes) ? routes : []).find(
-    (route: any) => clean(route?.pattern, 200) === "*/*"
+  const list = Array.isArray(routes) ? routes : [];
+  const existing = list.find(
+    (route: any) => clean(route?.pattern, 300) === pattern
   );
+  const existingScript = clean(existing?.script, 200);
+
   if (existing?.id) {
-    if (clean(existing?.script, 200) !== CLOUDFLARE_ROUTER_SCRIPT) {
-      throw new Error(
-        "Cloudflare already has a different * /* Worker route. BUSY will not overwrite it automatically."
-      );
-    }
-    return existing;
+    if ((script || "") === existingScript) return existing;
+    throw new Error(
+      `Cloudflare route ${pattern} already exists with a different Worker assignment. BUSY will not overwrite it automatically.`
+    );
   }
+
+  const body: Record<string, unknown> = { pattern };
+  if (script) body.script = script;
   return await cfRequest(
     `/zones/${encodeURIComponent(CLOUDFLARE_ZONE_ID)}/workers/routes`,
     {
       method: "POST",
-      body: JSON.stringify({
-        pattern: "*/*",
-        script: CLOUDFLARE_ROUTER_SCRIPT,
-      }),
+      body: JSON.stringify(body),
     }
   );
+}
+
+async function ensureWorkerRoutes() {
+  // More-specific root/www exclusions are created first so BUSY's own
+  // marketing hostnames do not enter the SaaS router. Cloudflare documents
+  // no-script routes as the supported way to negate a broader Worker route.
+  const root = await ensureWorkerRoute(`${BUSY_ROOT_DOMAIN}/*`, null);
+  const www = await ensureWorkerRoute(`www.${BUSY_ROOT_DOMAIN}/*`, null);
+  const wildcard = await ensureWorkerRoute("*/*", CLOUDFLARE_ROUTER_SCRIPT);
+  return { root, www, wildcard };
 }
 
 async function ensureFallbackOrigin() {
@@ -422,7 +436,7 @@ async function bootstrapPlatform() {
   );
   const fallback = await ensureFallbackOrigin();
   const worker = await uploadRouterWorker();
-  const route = await ensureWorkerRoute();
+  const routes = await ensureWorkerRoutes();
 
   return {
     configured: true,
@@ -437,7 +451,7 @@ async function bootstrapPlatform() {
     fallback,
     worker: {
       id: clean(worker?.id, 200) || CLOUDFLARE_ROUTER_SCRIPT,
-      route,
+      routes,
     },
   };
 }
