@@ -180,13 +180,13 @@ function BusyAppsMarketplace({ s }) {
       s={s}
       title="BUSY Apps"
       subtitle="Search customer-facing apps created from BUSY's tested small-business modules."
-      brandCue="V3.39 • BUSY-owned marketplace • controlled modules • shared public business data."
+      brandCue="V3.40 • customer journey bridge • My BUSY Apps • controlled modules • shared business data."
     >
       <Card
         eyebrow="BUSY Apps marketplace"
         title="One place for small-business apps"
         body="A customer can search a business name inside BUSY, open that business's Mini App, browse services and use enabled customer actions such as enquiry or booking request."
-        footer="V3.39 builds the marketplace foundation; it does not create arbitrary bespoke native apps."
+        footer="V3.40 connects Mini Apps to real BUSY customer journeys while keeping one shared, controlled app platform."
         tone="green"
       >
         <Button
@@ -203,6 +203,83 @@ function BusyAppsMarketplace({ s }) {
           body={s.miniAppsError}
           tone="amber"
         />
+      ) : null}
+
+      <Text style={styles.sectionLabel}>My BUSY Apps</Text>
+      {s.myBusyAppsLoading ? (
+        <Card
+          eyebrow="My BUSY Apps"
+          title="Loading…"
+          body="BUSY is loading the business apps you have used."
+          tone="blue"
+        />
+      ) : (s.myBusyApps || []).length ? (
+        (s.myBusyApps || []).map((item) => (
+          <Card
+            key={`mine-${item.id}`}
+            eyebrow={item.favorite ? "Favourite BUSY App" : item.category || "BUSY App"}
+            title={item.name || "Business"}
+            body={item.tagline || "Previously used BUSY Mini App"}
+            footer={[
+              item.favorite ? "★ Favourite" : "",
+              item.lastActionAt ? `Last action ${readableDate(item.lastActionAt)}` : `Last opened ${readableDate(item.lastOpenedAt)}`,
+            ].filter(Boolean).join(" • ")}
+            tone={item.favorite ? "green" : "blue"}
+          >
+            <Button
+              label="Open app"
+              primary
+              onPress={() => s.openBusyAppDetail(item.slug)}
+            />
+            <Button
+              label={item.favorite ? "Remove favourite" : "Add to favourites"}
+              disabled={s.miniAppsAction === `favorite:${item.slug}`}
+              onPress={() =>
+                s.toggleBusyAppFavorite(item.slug, !item.favorite)
+              }
+            />
+          </Card>
+        ))
+      ) : (
+        <Card
+          eyebrow="My BUSY Apps"
+          title="No apps used yet"
+          body="Apps you open or use will appear here automatically, so customers do not have to search for the same business every time."
+          tone="blue"
+        />
+      )}
+
+      {(s.myBusyAppRequests || []).length ? (
+        <>
+          <Text style={styles.sectionLabel}>My recent requests</Text>
+          {(s.myBusyAppRequests || []).slice(0, 8).map((request) => (
+            <Card
+              key={`my-request-${request.id}`}
+              eyebrow={
+                request.request_type === "booking_request"
+                  ? "Booking request"
+                  : "Enquiry"
+              }
+              title={request.app?.name || "BUSY business"}
+              body={
+                request.request_type === "booking_request"
+                  ? [
+                      request.service_name || "Service request",
+                      request.preferred_date_text || "",
+                    ].filter(Boolean).join(" • ")
+                  : request.payload?.message || "Enquiry sent through BUSY."
+              }
+              footer={`${String(request.status || "received").replaceAll("_", " ")} • ${readableDate(request.updated_at || request.created_at)}`}
+              tone={
+                request.status === "accepted"
+                  ? "green"
+                  : request.status === "declined"
+                  ? "amber"
+                  : "blue"
+              }
+            />
+          ))}
+        </>
       ) : null}
 
       <Text style={styles.sectionLabel}>Find an app</Text>
@@ -271,7 +348,7 @@ function MiniAppBuilder({ s }) {
       s={s}
       title="Mini App Builder"
       subtitle="BUSY assembles a customer-facing app from reusable tested modules and approved public business facts."
-      brandCue="V3.39 • one controlled platform • immutable versions • marketplace approval separated from Go Live."
+      brandCue="V3.40 • one controlled platform • immutable versions • marketplace approval separated from Go Live."
     >
       <Card
         eyebrow="Your BUSY Mini App"
@@ -430,33 +507,90 @@ function MiniAppBuilder({ s }) {
           {view.pendingRequests?.length ? (
             <>
               <Text style={styles.sectionLabel}>Customer requests</Text>
-              {view.pendingRequests.slice(0, 10).map((request) => (
-                <Card
-                  key={request.id}
-                  eyebrow={request.request_type === "booking_request" ? "Booking request" : "Enquiry"}
-                  title={request.payload?.service || request.payload?.name || "Customer request"}
-                  body={request.payload?.note || request.payload?.message || "No note supplied."}
-                  footer={`${request.status} • ${readableDate(request.created_at)}`}
-                  tone="amber"
-                >
-                  <Button
-                    label="Mark reviewing"
-                    disabled={!!s.miniAppsAction}
-                    onPress={() => s.updateMiniAppRequestStatus(request.id, "reviewing")}
-                  />
-                  <Button
-                    label="Accept request"
-                    primary
-                    disabled={!!s.miniAppsAction}
-                    onPress={() => s.updateMiniAppRequestStatus(request.id, "accepted")}
-                  />
-                  <Button
-                    label="Decline request"
-                    disabled={!!s.miniAppsAction}
-                    onPress={() => s.updateMiniAppRequestStatus(request.id, "declined")}
-                  />
-                </Card>
-              ))}
+              {view.pendingRequests.slice(0, 10).map((request) => {
+                const link = view.linkByRequest?.get?.(request.id) || null;
+                return (
+                  <Card
+                    key={request.id}
+                    eyebrow={
+                      request.request_type === "booking_request"
+                        ? "Booking request"
+                        : "Enquiry"
+                    }
+                    title={
+                      request.contact_name ||
+                      request.payload?.name ||
+                      request.service_name ||
+                      request.payload?.service ||
+                      "Customer request"
+                    }
+                    body={
+                      request.request_type === "booking_request"
+                        ? [
+                            request.service_name || request.payload?.service || "Service not stated",
+                            request.preferred_date_text || request.payload?.preferredDate || "Date/time still to agree",
+                            request.payload?.note || "",
+                          ].filter(Boolean).join(" • ")
+                        : request.payload?.message || "No message supplied."
+                    }
+                    footer={
+                      link
+                        ? `Linked to BUSY customer • ${link.bridge_state.replaceAll("_", " ")}`
+                        : `${request.status} • ${readableDate(request.created_at)}`
+                    }
+                    tone={link ? "green" : "amber"}
+                  >
+                    <MetricRow
+                      left="Contact"
+                      right={
+                        request.contact_phone ||
+                        request.contact_email ||
+                        "Not supplied"
+                      }
+                    />
+                    {!link ? (
+                      <Button
+                        label={
+                          s.miniAppsAction === `bridge:${request.id}`
+                            ? "Linking into BUSY…"
+                            : request.request_type === "booking_request"
+                            ? "Create BUSY customer + Draft booking"
+                            : "Add to BUSY customer journey"
+                        }
+                        primary
+                        disabled={!!s.miniAppsAction}
+                        onPress={() =>
+                          s.bridgeMiniAppRequestIntoBusy(request.id)
+                        }
+                      />
+                    ) : null}
+                    {!link && request.status !== "reviewing" ? (
+                      <Button
+                        label="Mark reviewing"
+                        disabled={!!s.miniAppsAction}
+                        onPress={() =>
+                          s.updateMiniAppRequestStatus(
+                            request.id,
+                            "reviewing"
+                          )
+                        }
+                      />
+                    ) : null}
+                    {!link ? (
+                      <Button
+                        label="Decline request"
+                        disabled={!!s.miniAppsAction}
+                        onPress={() =>
+                          s.updateMiniAppRequestStatus(
+                            request.id,
+                            "declined"
+                          )
+                        }
+                      />
+                    ) : null}
+                  </Card>
+                );
+              })}
             </>
           ) : null}
 
@@ -507,7 +641,7 @@ function MiniAppPreview({ s }) {
       s={s}
       title="Mini App Preview"
       subtitle="Preview the controlled customer-facing configuration before anything changes publicly."
-      brandCue="V3.39 • preview only • reusable BUSY modules."
+      brandCue="V3.40 • preview only • reusable BUSY modules."
     >
       {config ? (
         <MiniAppSurface config={config} />
@@ -527,6 +661,9 @@ function MiniAppPreview({ s }) {
 function BusyAppDetail({ s }) {
   const detail = s.selectedBusyAppDetail || {};
   const config = detail?.version?.config || null;
+  const [name, setName] = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [phone, setPhone] = React.useState("");
   const [service, setService] = React.useState("");
   const [date, setDate] = React.useState("");
   const [note, setNote] = React.useState("");
@@ -540,6 +677,9 @@ function BusyAppDetail({ s }) {
 
   const submitBooking = async () => {
     const ok = await s.submitBusyAppRequest("booking_request", {
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
       service: service.trim(),
       preferredDate: date.trim(),
       note: note.trim(),
@@ -553,6 +693,10 @@ function BusyAppDetail({ s }) {
 
   const submitEnquiry = async () => {
     const ok = await s.submitBusyAppRequest("enquiry", {
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      service: service.trim(),
       message: message.trim(),
     });
     if (ok) setMessage("");
@@ -563,9 +707,29 @@ function BusyAppDetail({ s }) {
       s={s}
       title={detail?.app?.name || "BUSY Mini App"}
       subtitle="Customer-facing business app inside BUSY."
-      brandCue="V3.39 • live marketplace version."
+      brandCue="V3.40 • live marketplace version."
     >
       {config ? <MiniAppSurface config={config} interactive s={s} /> : null}
+      <Card
+        eyebrow="My BUSY Apps"
+        title={detail?.app?.favorite ? "★ Favourite" : "This app is saved to your history"}
+        body="Opening a BUSY Mini App automatically keeps it in My BUSY Apps so you can return without searching again."
+        footer="Favourites stay pinned above recently used apps."
+        tone={detail?.app?.favorite ? "green" : "blue"}
+      >
+        <Button
+          label={detail?.app?.favorite ? "Remove favourite" : "Add to favourites"}
+          disabled={s.miniAppsAction === `favorite:${detail?.app?.slug}`}
+          onPress={() =>
+            s.toggleBusyAppFavorite(
+              detail?.app?.slug,
+              !detail?.app?.favorite
+            )
+          }
+        />
+      </Card>
+
+
 
       {s.miniAppsNotice ? (
         <Card
@@ -585,6 +749,31 @@ function BusyAppDetail({ s }) {
         />
       ) : null}
 
+      {(enabled.has("booking_request") || enabled.has("enquiry")) ? (
+        <>
+          <Text style={styles.sectionLabel}>Your contact details</Text>
+          <Field
+            label="Name"
+            value={name}
+            onChangeText={setName}
+            placeholder="Your name"
+          />
+          <Field
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            placeholder="you@example.com"
+          />
+          <Field
+            label="Phone"
+            value={phone}
+            onChangeText={setPhone}
+            placeholder="Phone number"
+          />
+        </>
+      ) : null}
+
       {enabled.has("booking_request") ? (
         <>
           <Text style={styles.sectionLabel}>Request a booking</Text>
@@ -594,7 +783,12 @@ function BusyAppDetail({ s }) {
           <Button
             label={s.miniAppsAction === "request:booking_request" ? "Sending…" : "Send booking request"}
             primary
-            disabled={!service.trim() || !!s.miniAppsAction}
+            disabled={
+              !name.trim() ||
+              (!email.trim() && !phone.trim()) ||
+              !service.trim() ||
+              !!s.miniAppsAction
+            }
             onPress={submitBooking}
           />
         </>
@@ -606,7 +800,12 @@ function BusyAppDetail({ s }) {
           <Field label="Message" value={message} onChangeText={setMessage} placeholder="What would you like to ask?" multiline />
           <Button
             label={s.miniAppsAction === "request:enquiry" ? "Sending…" : "Send enquiry"}
-            disabled={!message.trim() || !!s.miniAppsAction}
+            disabled={
+              !name.trim() ||
+              (!email.trim() && !phone.trim()) ||
+              !message.trim() ||
+              !!s.miniAppsAction
+            }
             onPress={submitEnquiry}
           />
         </>
