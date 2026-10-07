@@ -1122,7 +1122,7 @@ function HomeScreen({ s }) {
         {s.miniAppsView?.hasLive ? (
           <MetricRow
             left="Mini App journey • 30d"
-            right={`${Number(s.miniAppsView?.entryCounts?.byStage?.web_view || s.miniAppsView?.entryCounts?.byStage?.landing || 0)} web views • ${Number(s.miniAppsView?.entryCounts?.byStage?.action_intent || 0)} action attempts • ${Number(s.miniAppsView?.requestCount30 || 0)} requests`}
+            right={`${Number(s.miniAppsView?.entryCounts?.byStage?.web_view || s.miniAppsView?.entryCounts?.byStage?.landing || 0)} web views • ${Number(s.miniAppsView?.entryCounts?.byStage?.action_intent || 0)} attempts • ${Number(s.miniAppsView?.guestRequestCount30 || 0)} guest requests`}
           />
         ) : null}
         <Button label="Daily Command Centre" onPress={() => s.go("dailyCommandCentre")} />
