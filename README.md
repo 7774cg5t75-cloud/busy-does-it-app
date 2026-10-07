@@ -1,5 +1,16 @@
 # busy-does-it-app
 
+## v3.48 Automatic Tenant Website Addresses
+- Closes the gap between **allocating** a BUSY hostname and actually proving it is live. A tenant address such as `site-business-1234.busydoesit.co.uk` now moves through **reserved → provisioning/route proof → active** instead of remaining permanently reserved after the owner publishes.
+- Publishing or rolling back a website now automatically starts default-address route verification whenever that website already has a BUSY hostname.
+- The scheduled Cloudflare provider reconciler self-heals older V3.47 state: a live website whose BUSY address is still marked `reserved` is promoted to `provisioning` without needing the owner to republish.
+- If the address is first reserved after a website is already live, it enters `provisioning` immediately. If the website is still only a draft/preview, the address remains safely reserved until publication.
+- The live-site health checker now tests reserved/provisioning/degraded BUSY addresses as well as active ones. It only marks the address `active` after the real public hostname returns the exact expected immutable BUSY deployment marker.
+- A failed first route proof becomes a visible `degraded`/needs-attention state rather than being mistaken for a live website. An already-active address is not flapped by a single transient health-check failure.
+- Website Publishing now explains whether the default BUSY address is merely reserved, queued for route proof, actively being checked, needs attention, or is independently proven live.
+- The domain model exposes a primary public-address view: the proven BUSY hostname takes precedence when active; until then the existing hosted live version remains distinct rather than being relabelled.
+- Production checks now assert this tenant-address lifecycle across provider reconciliation, publishing and health verification so a future refactor cannot silently regress the hand-off.
+
 ## v3.47 Cloudflare Production Activation
 - BUSY now turns the previously prepared Cloudflare-for-SaaS infrastructure into an **automatic, idempotent production activation flow**. The existing five-minute provider scheduler checks the real platform state and performs the bootstrap only when credentials, nameservers and routing prerequisites are genuinely ready.
 - The provider now distinguishes **credentials ready**, **nameservers ready**, **infrastructure applied**, **Cloudflare still activating** and **fully active** instead of collapsing them into one connected/not-connected flag.
