@@ -367,7 +367,7 @@ function BusyAppsMarketplace({ s }) {
       s={s}
       title="BUSY Apps"
       subtitle="Search customer-facing apps created from BUSY's tested small-business modules."
-      brandCue="V3.44 • customer journey bridge • My BUSY Apps • controlled modules • shared business data."
+      brandCue="V3.55 • Business Apps • customer journeys • loyalty • booking bridge • controlled modules."
     >
       <Card
         eyebrow="BUSY Apps marketplace"
@@ -1450,7 +1450,7 @@ function MiniAppShareCentre({ s }) {
       s={s}
       title="Share Business App"
       subtitle="Give customers an install-free web view of this business's live BUSY Business App."
-      brandCue="V3.45 • install-free guest enquiries & booking requests • browser challenge • bounded rate limits."
+      brandCue="V3.55 • stable QR/share links • install-free guest requests • live Business App delivery."
     >
       {view.hasLive && links.qr ? (
         <>
@@ -1556,7 +1556,7 @@ function MiniAppRequestDetail({ s }) {
             : "Business App customer conversation"
           : "Your conversation with this business"
       }
-      brandCue="V3.45 • guest web requests • explicit identity assurance • safe owner follow-up."
+      brandCue="V3.55 • request conversation • real BUSY booking bridge • signed-in loyalty progress."
     >
       {s.miniAppRequestHistoryLoading && !request ? (
         <Card eyebrow="Conversation" title="Loading…" body="BUSY is loading the latest request activity." tone="blue" />
