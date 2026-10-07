@@ -8,6 +8,17 @@ function clean(value = "") {
   return String(value || "").trim();
 }
 
+function leadingFailureCount(rows = [], targetType = "", domainId = "") {
+  let failures = 0;
+  for (const row of safeArray(rows)) {
+    if (targetType && row?.target_type !== targetType) continue;
+    if (domainId && row?.domain_id !== domainId) continue;
+    if (row?.status === "healthy") break;
+    failures += 1;
+  }
+  return failures;
+}
+
 function buildWebsitePublishingView({
   remote = {},
   websiteDraft = null,
@@ -428,6 +439,115 @@ function buildWebsitePublishingView({
       }
     : null;
 
+  const liveFailureCount = leadingFailureCount(
+    healthChecks,
+    "live_alias"
+  );
+  const defaultFailureCount = leadingFailureCount(
+    healthChecks,
+    "default_domain"
+  );
+  const customFailureCount = latestDomain
+    ? leadingFailureCount(healthChecks, "custom_domain", latestDomain.id)
+    : 0;
+  const providerRecovery =
+    latestDomain?.provider_status?.recovery &&
+    typeof latestDomain.provider_status.recovery === "object"
+      ? latestDomain.provider_status.recovery
+      : {};
+  const deliveryRecovery =
+    latestDomain?.provider_status?.deliveryRecovery &&
+    typeof latestDomain.provider_status.deliveryRecovery === "object"
+      ? latestDomain.provider_status.deliveryRecovery
+      : {};
+
+  const latestPublishFailure =
+    jobs.find(
+      (job) =>
+        ["publish", "rollback"].includes(job.action) &&
+        job.status === "failed"
+    ) || null;
+  const safeRollbackTarget = previouslyPublished[0] || null;
+
+  let recoveryStage = "healthy";
+  let recoveryTitle = "Live and healthy";
+  let recoveryMessage =
+    "BUSY is monitoring publishing, Cloudflare routing, SSL and the public website.";
+  let recoveryOwnerAction = false;
+  let recoveryAutomatic = false;
+  let recoveryArea = "none";
+
+  if (latestPublishFailure && pendingPreview) {
+    recoveryStage = "publish_failed";
+    recoveryArea = "publishing";
+    recoveryTitle = liveDeployment
+      ? "Your website is still live"
+      : "Publishing needs attention";
+    recoveryMessage = liveDeployment
+      ? "The new version did not complete safely, so BUSY has left the existing live website in place. The failed version can be retried without losing the rollback history."
+      : "BUSY could not complete the first publication. The prepared version remains separate so nothing unsafe has been made public.";
+  } else if (liveFailureCount >= 2) {
+    recoveryStage = "live_delivery";
+    recoveryArea = "origin";
+    recoveryTitle = "BUSY is fixing a live delivery issue";
+    recoveryMessage =
+      "Two consecutive checks failed against the hosted live version. BUSY is continuing health checks and has retained earlier published versions for recovery.";
+    recoveryAutomatic = true;
+  } else if (defaultFailureCount >= 2 || deliveryStatus === "degraded") {
+    recoveryStage = "busy_route";
+    recoveryArea = "busy_domain";
+    recoveryTitle = "BUSY is repairing the website route";
+    recoveryMessage =
+      "The approved website is preserved, but the BUSY public address has failed repeated route checks. BUSY will keep reconciling Cloudflare and verifying the exact deployment.";
+    recoveryAutomatic = true;
+  } else if (
+    clean(providerRecovery?.status) === "operator_attention"
+  ) {
+    recoveryStage = "provider_internal";
+    recoveryArea = "cloudflare";
+    recoveryTitle = "BUSY is fixing an internal hosting issue";
+    recoveryMessage =
+      clean(providerRecovery?.ownerMessage) ||
+      "BUSY needs to repair its Cloudflare connection. The business owner does not need to change anything.";
+    recoveryAutomatic = true;
+  } else if (
+    clean(providerRecovery?.status) === "owner_dns_action" ||
+    (customDomainStage === "dns_required" && providerDnsRecords.length)
+  ) {
+    recoveryStage = "owner_dns_action";
+    recoveryArea = "custom_domain";
+    recoveryTitle = "We need one DNS change from you";
+    recoveryMessage =
+      clean(providerRecovery?.ownerMessage) ||
+      "Add the DNS records shown under Custom domain. BUSY will automatically continue SSL, routing and health checks afterwards.";
+    recoveryOwnerAction = true;
+  } else if (
+    ["retrying", "checking"].includes(clean(providerRecovery?.status)) ||
+    ["retrying", "observing_transient"].includes(
+      clean(deliveryRecovery?.status)
+    ) ||
+    customFailureCount > 0
+  ) {
+    recoveryStage = "automatic_retry";
+    recoveryArea = "custom_domain";
+    recoveryTitle = "BUSY is fixing a temporary issue";
+    recoveryMessage =
+      clean(deliveryRecovery?.ownerMessage) ||
+      clean(providerRecovery?.ownerMessage) ||
+      "BUSY is retrying the affected hosting check automatically. No action is required yet.";
+    recoveryAutomatic = true;
+  }
+
+  const recoveryNextRetryAt =
+    clean(providerRecovery?.nextRetryAt) ||
+    clean(deliveryRecovery?.nextRetryAt) ||
+    "";
+  const recoveryLastAttemptAt =
+    clean(providerRecovery?.lastAttemptAt) ||
+    clean(deliveryRecovery?.lastCheckedAt) ||
+    clean(latestDomain?.last_checked_at) ||
+    clean(website?.last_health_check_at);
+
   return {
     website,
     deployments,
@@ -494,6 +614,31 @@ function buildWebsitePublishingView({
       domainOwnershipReady &&
       !latestDomainRouteReady,
     canOpenCustomDomain: !!customDomainPublicAddress,
+    canRetrySafeRecovery:
+      recoveryStage !== "healthy" &&
+      !recoveryOwnerAction &&
+      !!liveDeployment &&
+      !activeJob,
+    recoveryState: {
+      stage: recoveryStage,
+      area: recoveryArea,
+      title: recoveryTitle,
+      message: recoveryMessage,
+      healthy: recoveryStage === "healthy",
+      automatic: recoveryAutomatic,
+      ownerActionRequired: recoveryOwnerAction,
+      nextRetryAt: recoveryNextRetryAt || null,
+      lastAttemptAt: recoveryLastAttemptAt || null,
+      providerAttemptCount: Math.max(
+        0,
+        Number(providerRecovery?.attemptCount || 0)
+      ),
+      liveFailureCount,
+      defaultFailureCount,
+      customFailureCount,
+      lastKnownGoodDeployment: safeRollbackTarget,
+      latestPublishFailure,
+    },
     providerState: {
       provider: providerConfig.provider || "cloudflare_saas",
       configured: !!providerConfig.configured,
@@ -538,9 +683,10 @@ function buildWebsitePublishingView({
       needsAttention: ["publish_failed", "route_attention"].includes(goLiveStage),
       steps: goLiveSteps,
       primaryPublicAddress:
-        defaultAddress?.live
+        customDomainPublicAddress?.url ||
+        (defaultAddress?.live
           ? defaultAddress.url
-          : clean(website?.live_url),
+          : clean(website?.live_url)),
     },
     defaultAddressState: {
       address: defaultAddress,
