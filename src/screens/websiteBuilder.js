@@ -137,7 +137,7 @@ function WebsiteBuilder({ s }) {
           ))}
 
           <Card
-            eyebrow="V3.37 • Live website management"
+            eyebrow="V3.38 • Website delivery & real-world signals"
             title={s.websitePublishingView?.publicStatus || "Draft only"}
             body="BUSY turns the editor draft into a private immutable multi-page preview, stores a plain-English change summary, and keeps the current live site untouched until you approve the exact version."
             footer="Normal public page views are served as static CDN files rather than running the BUSY app or AI."
@@ -185,7 +185,7 @@ function WebsitePreview({ s }) {
       s={s}
       title="Website preview"
       subtitle="A mobile preview of the editable website model."
-      brandCue="Editor preview • hosted preview and public Go Live remain separate V3.37 states."
+      brandCue="Editor preview • hosted preview, delivery and public Go Live remain separate V3.38 states."
     >
       <View style={{ alignItems: "flex-start", marginBottom: 10 }}>
         <StatusChip label={draft.publicStatus} tone="blue" />
@@ -243,7 +243,7 @@ function WebsitePreview({ s }) {
       <Card
         eyebrow="Source"
         title="Static website source is generated"
-        body="V3.37 can package this multi-page draft into an immutable hosted deployment. Approved images are copied into deployment-specific website assets before anything goes public."
+        body="V3.38 packages this multi-page draft into an immutable hosted deployment while delivery/provider state remains separate. Approved images are copied into deployment-specific website assets before anything goes public."
         footer={`${draft.html?.length || 0} source characters • editor source`}
         tone="green"
       />
