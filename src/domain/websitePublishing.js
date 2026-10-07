@@ -1,3 +1,5 @@
+import { buildSeoAudit } from "./websiteManagement";
+
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -14,6 +16,15 @@ function buildWebsitePublishingView({
   const deployments = safeArray(remote?.deployments);
   const domains = safeArray(remote?.domains);
   const jobs = safeArray(remote?.jobs);
+  const healthChecks = safeArray(remote?.healthChecks);
+  const analytics = remote?.analytics || {
+    days: 30,
+    pageViews: 0,
+    uniqueVisitors: 0,
+    enquiries: 0,
+    status: "foundation",
+  };
+  const publicProfile = remote?.publicProfile || null;
   const queue = remote?.queue || null;
 
   const latestDeployment = deployments[0] || null;
@@ -37,16 +48,28 @@ function buildWebsitePublishingView({
       item.id !== liveDeployment?.id
   );
 
-  const activeJob = jobs.find((job) =>
-    ["queued", "processing", "retry_wait"].includes(job.status)
-  ) || null;
-
+  const activeJob =
+    jobs.find((job) =>
+      ["queued", "processing", "retry_wait"].includes(job.status)
+    ) || null;
   const failedJob = jobs.find((job) => job.status === "failed") || null;
+
   const latestDomain = domains[0] || null;
   const verifiedDomain =
     domains.find((domain) =>
       ["verified", "active"].includes(domain.status)
     ) || null;
+  const routedDomain =
+    domains.find(
+      (domain) =>
+        domain.routing_status === "active" &&
+        domain.ssl_status === "active"
+    ) || null;
+
+  const latestHealth =
+    healthChecks.find((item) => item.target_type === "live_alias") || null;
+  const customDomainHealth =
+    healthChecks.find((item) => item.target_type === "custom_domain") || null;
 
   const draftGeneration = Number(websiteDraft?.generation || 0);
   const hostedGeneration = Number(
@@ -78,12 +101,39 @@ function buildWebsitePublishingView({
     ? "Draft only"
     : "No website draft";
 
+  const seoAudit = buildSeoAudit(websiteDraft || {});
+  const changeSummary =
+    previewDeployment?.change_summary || {
+      headline: previewDeployment?.change_label || "",
+      items: [],
+      counts: { added: 0, removed: 0, changed: 0 },
+    };
+
+  const healthStatus =
+    website?.health_status ||
+    latestHealth?.status ||
+    (liveDeployment ? "not_checked" : "not_live");
+
+  const healthLabel =
+    healthStatus === "healthy"
+      ? "Healthy"
+      : healthStatus === "degraded"
+      ? "Needs attention"
+      : healthStatus === "down"
+      ? "Down"
+      : liveDeployment
+      ? "Not checked yet"
+      : "Not live";
+
   return {
     website,
     deployments,
     domains,
     jobs,
     queue,
+    healthChecks,
+    analytics,
+    publicProfile,
     latestDeployment,
     previewDeployment,
     liveDeployment,
@@ -92,8 +142,21 @@ function buildWebsitePublishingView({
     failedJob,
     latestDomain,
     verifiedDomain,
+    routedDomain,
+    latestHealth,
+    customDomainHealth,
     publicStatus,
+    healthStatus,
+    healthLabel,
+    seoAudit,
+    changeSummary,
     draftChangedSinceHosted,
+    pageCount: Number(
+      previewDeployment?.page_count ||
+        liveDeployment?.page_count ||
+        websiteDraft?.pages?.length ||
+        1
+    ),
     canPrepare:
       !!websiteDraft &&
       !activeJob &&
@@ -106,6 +169,7 @@ function buildWebsitePublishingView({
       !activeJob,
     canOpenLive: !!clean(website?.live_url),
     canRollback: previouslyPublished.length > 0 && !activeJob,
+    canCheckHealth: !!liveDeployment && !activeJob,
     queueHealth: {
       length: Number(queue?.queue_length || 0),
       oldestSeconds:
@@ -125,12 +189,39 @@ function buildWebsitePublishingView({
       count: domains.length,
       latest: latestDomain,
       verified: verifiedDomain,
-      routingActive: domains.some(
-        (domain) =>
-          domain.status === "active" &&
-          domain.ssl_status === "active" &&
-          domain.routing_provider !== "unassigned"
-      ),
+      routed: routedDomain,
+      ownership:
+        latestDomain?.status === "active" || latestDomain?.status === "verified"
+          ? "Verified"
+          : latestDomain
+          ? "Waiting for verification"
+          : "Not connected",
+      routing:
+        routedDomain
+          ? "Active"
+          : latestDomain?.routing_status === "error"
+          ? "Routing error"
+          : latestDomain?.routing_status === "pending" ||
+            latestDomain?.routing_status === "validating"
+          ? "Routing pending"
+          : "Not configured",
+      ssl:
+        latestDomain?.ssl_status === "active"
+          ? "Active"
+          : latestDomain?.ssl_status === "error"
+          ? "SSL error"
+          : latestDomain
+          ? "Not active"
+          : "Not configured",
+      routingActive: !!routedDomain,
+    },
+    analyticsView: {
+      period: "Last 30 days",
+      pageViews: Number(analytics?.pageViews || 0),
+      uniqueVisitors: Number(analytics?.uniqueVisitors || 0),
+      enquiries: Number(analytics?.enquiries || 0),
+      status: clean(analytics?.status) || "foundation",
+      collecting: ["collecting", "active"].includes(clean(analytics?.status)),
     },
   };
 }
