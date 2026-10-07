@@ -578,14 +578,104 @@ function MiniAppBuilder({ s }) {
   const configuredModules = new Map(
     (view.modules || []).map((item) => [item.key, item])
   );
+  const plan = s.miniAppBuilderPlan || view.builderPlan || null;
+  const missingFacts = Array.isArray(plan?.missingFacts)
+    ? plan.missingFacts
+    : [];
+  const draftBuilt = !!view.draftConfig?.builderPlan;
+  const previewMatchesDraft =
+    !!view.previewVersion &&
+    Number(view.previewVersion?.source_draft_revision || 0) ===
+      Number(app?.draft_revision || 0);
+  const liveMatchesDraft =
+    !!view.liveVersion &&
+    Number(view.liveVersion?.source_draft_revision || 0) ===
+      Number(app?.draft_revision || 0);
+  const journeyLabel = !plan
+    ? "Describe the app you want"
+    : missingFacts.length
+    ? "BUSY needs a few details"
+    : !draftBuilt
+    ? "Review BUSY's app plan"
+    : !previewMatchesDraft
+    ? "BUSY is preparing the customer preview"
+    : !liveMatchesDraft
+    ? "Customer preview ready for approval"
+    : "Your Business App is live";
+  const journeySteps = [
+    {
+      id: "describe",
+      label: "Describe the customer experience",
+      status: plan ? "complete" : "working",
+    },
+    {
+      id: "facts",
+      label: "Fill only the missing facts",
+      status: !plan
+        ? "waiting"
+        : missingFacts.length
+        ? "working"
+        : "complete",
+    },
+    {
+      id: "draft",
+      label: "BUSY builds the private app",
+      status: draftBuilt
+        ? "complete"
+        : plan && !missingFacts.length
+        ? "working"
+        : "waiting",
+    },
+    {
+      id: "preview",
+      label: "Review the real customer experience",
+      status: previewMatchesDraft
+        ? "complete"
+        : draftBuilt
+        ? "working"
+        : "waiting",
+    },
+    {
+      id: "live",
+      label: "Owner approves Go Live",
+      status: liveMatchesDraft
+        ? "complete"
+        : previewMatchesDraft
+        ? "working"
+        : "waiting",
+    },
+  ];
 
   return (
     <Shell
       s={s}
       title="Business App Builder"
       subtitle="Describe the customer experience you want. BUSY turns it into a controlled app plan using tested modules and the business facts it already knows."
-      brandCue="V3.54 • plain-English planning • voice-first input • Business Brain facts • reviewed plan → private draft → immutable preview."
+      brandCue="V3.55 • one app journey • targeted follow-ups • real customer preview • dated offers • simple loyalty."
     >
+      <Card
+        eyebrow="Your app journey"
+        title={journeyLabel}
+        body="BUSY keeps the technical work underneath one simple path: describe it, answer only what is missing, review the customer experience, then approve Go Live."
+        footer="Nothing public changes until you approve the exact immutable customer preview."
+        tone={liveMatchesDraft ? "green" : "blue"}
+      >
+        {journeySteps.map((step) => (
+          <MetricRow
+            key={step.id}
+            left={step.label}
+            right={
+              step.status === "complete"
+                ? "Done"
+                : step.status === "working"
+                ? "Current"
+                : "Waiting"
+            }
+            strong={step.status === "complete"}
+          />
+        ))}
+      </Card>
+
       <Card
         eyebrow="Tell BUSY the outcome"
         title="What should customers be able to do?"
@@ -616,15 +706,15 @@ function MiniAppBuilder({ s }) {
         />
       </Card>
 
-      {s.miniAppBuilderPlan ? (
+      {plan ? (
         <Card
           eyebrow="BUSY App Plan"
-          title={s.miniAppBuilderPlan.summary || "Proposed customer app"}
-          body="BUSY has mapped your request onto the reusable modules it can safely support. Review this before BUSY changes the private draft."
-          footer={`Confidence: ${s.miniAppBuilderPlan.confidence || "Not stated"} • Nothing public changes here.`}
-          tone="blue"
+          title={plan.summary || "Proposed customer app"}
+          body="BUSY maps your request onto the tested modules it can safely support. It asks only for facts that are genuinely missing before it builds the private app."
+          footer={`Confidence: ${plan.confidence || "Not stated"} • Nothing public changes here.`}
+          tone={missingFacts.length ? "amber" : "blue"}
         >
-          {(s.miniAppBuilderPlan.modules || [])
+          {(plan.modules || [])
             .filter((item) => item.enabled)
             .map((item) => (
               <MetricRow
@@ -635,23 +725,60 @@ function MiniAppBuilder({ s }) {
               />
             ))}
 
-          {(s.miniAppBuilderPlan.missingFacts || []).length ? (
+          {missingFacts.length ? (
             <>
               <Text style={styles.sectionLabel}>BUSY still needs</Text>
-              {(s.miniAppBuilderPlan.missingFacts || []).map((item) => (
-                <MetricRow
-                  key={`missing-${item.key}`}
-                  left={miniAppModuleLabel(item.key)}
-                  right={item.question}
-                />
-              ))}
+              {missingFacts.map((item) =>
+                item.key === "gallery" ? (
+                  <Card
+                    key={`missing-${item.key}`}
+                    eyebrow="Approved photos"
+                    title="Add the photos you want customers to see"
+                    body={item.question}
+                    footer="BUSY will only use imagery already approved for the public business profile."
+                    tone="amber"
+                  >
+                    <Button
+                      label="Open Brand Identity photos"
+                      disabled={!!s.miniAppsAction}
+                      onPress={s.openBrandIdentity}
+                    />
+                  </Card>
+                ) : (
+                  <Field
+                    key={`missing-${item.key}`}
+                    label={item.question}
+                    value={s.miniAppFactAnswers?.[item.key] || ""}
+                    onChangeText={(value) =>
+                      s.updateMiniAppFactAnswer(item.key, value)
+                    }
+                    placeholder={
+                      item.key === "loyalty"
+                        ? "e.g. 6 visits earns a free wash"
+                        : item.key === "offers"
+                        ? "Exact offer wording, terms and optional dates"
+                        : "Tell BUSY this detail"
+                    }
+                  />
+                )
+              )}
+              <Button
+                label={
+                  s.miniAppsAction === "plan-app"
+                    ? "Updating plan…"
+                    : "Use these answers & update plan"
+                }
+                primary
+                disabled={!!s.miniAppsAction}
+                onPress={s.answerMiniAppMissingFacts}
+              />
             </>
           ) : null}
 
-          {(s.miniAppBuilderPlan.unsupportedRequests || []).length ? (
+          {(plan.unsupportedRequests || []).length ? (
             <>
               <Text style={styles.sectionLabel}>Planned for later</Text>
-              {(s.miniAppBuilderPlan.unsupportedRequests || []).map((item, index) => (
+              {(plan.unsupportedRequests || []).map((item, index) => (
                 <MetricRow
                   key={`unsupported-${index}-${item.request}`}
                   left={item.request}
@@ -661,36 +788,59 @@ function MiniAppBuilder({ s }) {
             </>
           ) : null}
 
-          {(s.miniAppBuilderPlan.offers || []).length ? (
+          {(plan.offers || []).length ? (
             <>
               <Text style={styles.sectionLabel}>Approved offer wording</Text>
-              {(s.miniAppBuilderPlan.offers || []).map((offer, index) => (
+              {(plan.offers || []).map((offer, index) => (
                 <MetricRow
                   key={`planned-offer-${index}`}
                   left={offer.title}
-                  right={[offer.body, offer.terms].filter(Boolean).join(" • ")}
+                  right={[
+                    offer.body,
+                    offer.terms,
+                    offer.startDate ? `Starts ${offer.startDate}` : "",
+                    offer.endDate ? `Ends ${offer.endDate}` : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" • ")}
                 />
               ))}
             </>
           ) : null}
 
-          <Button
-            label={
-              s.miniAppsAction === "apply-app-plan"
-                ? "Building private draft…"
-                : app
-                ? "Apply this plan to my draft"
-                : "Build this app plan"
-            }
-            primary
-            disabled={!!s.miniAppsAction}
-            onPress={s.applyMiniAppPlan}
-          />
+          {plan.loyalty?.enabled ? (
+            <>
+              <Text style={styles.sectionLabel}>Loyalty</Text>
+              <MetricRow
+                left={plan.loyalty.programName || "Loyalty reward"}
+                right={`${plan.loyalty.targetStamps || 0} stamps → ${plan.loyalty.reward || "Reward not set"}`}
+                strong
+              />
+              {plan.loyalty.terms ? (
+                <MetricRow left="Terms" right={plan.loyalty.terms} />
+              ) : null}
+            </>
+          ) : null}
+
+          {!missingFacts.length ? (
+            <Button
+              label={
+                s.miniAppsAction === "apply-app-plan"
+                  ? "Building customer preview…"
+                  : app
+                  ? "Build this update & show me"
+                  : "Build this app & show me"
+              }
+              primary
+              disabled={!!s.miniAppsAction}
+              onPress={s.applyMiniAppPlan}
+            />
+          ) : null}
         </Card>
       ) : null}
 
       <Card
-        eyebrow="Your BUSY Business App"
+        eyebrow="Your Business App"
         title={view.statusLabel || "Not built"}
         body={
           app
@@ -743,7 +893,7 @@ function MiniAppBuilder({ s }) {
 
       {app ? (
         <>
-          <Text style={styles.sectionLabel}>Reusable modules</Text>
+          <Text style={styles.sectionLabel}>Fine-tune app sections</Text>
           {modules.map((module) => {
             const configured = configuredModules.get(module.module_key);
             const enabled = !!configured?.enabled;
@@ -784,18 +934,18 @@ function MiniAppBuilder({ s }) {
             );
           })}
 
-          <Text style={styles.sectionLabel}>Prepare & publish</Text>
+          <Text style={styles.sectionLabel}>Preview & Go Live</Text>
           <Card
             eyebrow="Immutable preview"
             title={
               view.previewVersion
-                ? `Prepared Mini App v${view.previewVersion.version_no}`
-                : "No prepared version yet"
+                ? `Customer preview v${view.previewVersion.version_no}`
+                : "No customer preview prepared yet"
             }
             body={
               view.previewVersion
-                ? view.previewVersion.change_label || "Prepared Mini App version"
-                : "Prepare freezes the current module configuration into an immutable version for review."
+                ? view.previewVersion.change_label || "Prepared Business App version"
+                : "BUSY freezes the current private app into an immutable customer preview so the exact version you approve is the version that goes live."
             }
             footer="Draft edits remain private until another version is prepared and explicitly approved."
             tone={view.previewVersion ? "green" : "blue"}
@@ -814,13 +964,13 @@ function MiniAppBuilder({ s }) {
           {view.canPublish ? (
             <Card
               eyebrow="Public Go Live gate"
-              title={`Publish Mini App v${view.previewVersion.version_no}?`}
-              body="BUSY will publish exactly this immutable configuration. You can make it live without listing it, or approve marketplace discovery at the same time."
-              footer="Publishing and marketplace discoverability are deliberate owner decisions."
+              title={`Business App v${view.previewVersion.version_no} is ready`}
+              body="Review the real customer experience first. If you approve Go Live, BUSY publishes exactly this immutable version — never a later draft."
+              footer="Go Live and marketplace listing remain deliberate owner decisions."
               tone="amber"
             >
               <Button
-                label={s.miniAppsAction === "publish" ? "Publishing…" : "Review & approve publication"}
+                label={s.miniAppsAction === "publish" ? "Publishing…" : "Review & approve Go Live"}
                 primary
                 disabled={!!s.miniAppsAction}
                 onPress={() => s.confirmPublishMiniApp(view.previewVersion.id)}
@@ -830,7 +980,7 @@ function MiniAppBuilder({ s }) {
 
           {view.hasLive ? (
             <Card
-              eyebrow={`Live Mini App v${view.liveVersion.version_no}`}
+              eyebrow={`Live Business App v${view.liveVersion.version_no}`}
               title={view.isDiscoverable ? "Listed in BUSY Apps" : "Live but not listed"}
               body={
                 view.isDiscoverable
@@ -841,7 +991,7 @@ function MiniAppBuilder({ s }) {
               tone="green"
             >
               <MetricRow
-                left="Public web Mini App"
+                left="Public Business App"
                 right={view.webReady ? "Ready" : "Needs republish"}
                 strong={view.webReady}
               />
