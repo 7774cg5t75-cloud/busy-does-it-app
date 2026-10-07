@@ -215,14 +215,30 @@ function MiniAppSurface({ config, interactive = false, s = null }) {
         }
 
         if (module.key === "offers") {
+          const offers = Array.isArray(config?.offers) ? config.offers : [];
           return (
-            <Card
-              key={module.key}
-              eyebrow="Offers"
-              title="No approved offer is stored yet"
-              body="The module can exist without BUSY inventing a promotion, price or discount."
-              tone="blue"
-            />
+            <View key={module.key}>
+              <Text style={styles.sectionLabel}>Offers</Text>
+              {offers.length ? (
+                offers.map((offer, index) => (
+                  <Card
+                    key={`offer-${index}-${offer.title || "offer"}`}
+                    eyebrow="Approved offer"
+                    title={offer.title || "Offer"}
+                    body={offer.body || ""}
+                    footer={offer.terms || "No additional terms recorded."}
+                    tone="green"
+                  />
+                ))
+              ) : (
+                <Card
+                  eyebrow="Offers"
+                  title="No approved offer is stored yet"
+                  body="BUSY will not invent a promotion, price or discount. Add the exact offer in your app request and review it before building."
+                  tone="blue"
+                />
+              )}
+            </View>
           );
         }
 
@@ -455,12 +471,115 @@ function MiniAppBuilder({ s }) {
   return (
     <Shell
       s={s}
-      title="Mini App Builder"
-      subtitle="BUSY assembles a customer-facing app from reusable tested modules and approved public business facts."
-      brandCue="V3.44 • one controlled platform • immutable versions • marketplace approval separated from Go Live."
+      title="Business App Builder"
+      subtitle="Describe the customer experience you want. BUSY turns it into a controlled app plan using tested modules and the business facts it already knows."
+      brandCue="V3.54 • plain-English planning • voice-first input • Business Brain facts • reviewed plan → private draft → immutable preview."
     >
       <Card
-        eyebrow="Your BUSY Mini App"
+        eyebrow="Tell BUSY the outcome"
+        title="What should customers be able to do?"
+        body="Use normal language — for example: “I want customers to see my services and photos, request a quote and ask for a booking.” BUSY plans the app before building anything."
+        footer="You can also use the BUSY microphone. Voice is transcribed through the existing BUSY Operator and returns here as a plan."
+        tone="green"
+      >
+        <Field
+          label="Describe your app"
+          value={s.miniAppBuildBrief}
+          onChangeText={s.setMiniAppBuildBrief}
+          placeholder="e.g. Let customers see our work, request quotes and ask for bookings"
+        />
+        <Button
+          label={
+            s.miniAppsAction === "plan-app"
+              ? "Creating app plan…"
+              : "Create app plan"
+          }
+          primary
+          disabled={!String(s.miniAppBuildBrief || "").trim() || !!s.miniAppsAction}
+          onPress={() => s.planMiniAppFromBrief()}
+        />
+        <Button
+          label="Describe it by voice"
+          disabled={!!s.miniAppsAction}
+          onPress={s.describeMiniAppByVoice}
+        />
+      </Card>
+
+      {s.miniAppBuilderPlan ? (
+        <Card
+          eyebrow="BUSY App Plan"
+          title={s.miniAppBuilderPlan.summary || "Proposed customer app"}
+          body="BUSY has mapped your request onto the reusable modules it can safely support. Review this before BUSY changes the private draft."
+          footer={`Confidence: ${s.miniAppBuilderPlan.confidence || "Not stated"} • Nothing public changes here.`}
+          tone="blue"
+        >
+          {(s.miniAppBuilderPlan.modules || [])
+            .filter((item) => item.enabled)
+            .map((item) => (
+              <MetricRow
+                key={`plan-module-${item.key}`}
+                left={miniAppModuleLabel(item.key)}
+                right={item.reason || "Included"}
+                strong
+              />
+            ))}
+
+          {(s.miniAppBuilderPlan.missingFacts || []).length ? (
+            <>
+              <Text style={styles.sectionLabel}>BUSY still needs</Text>
+              {(s.miniAppBuilderPlan.missingFacts || []).map((item) => (
+                <MetricRow
+                  key={`missing-${item.key}`}
+                  left={miniAppModuleLabel(item.key)}
+                  right={item.question}
+                />
+              ))}
+            </>
+          ) : null}
+
+          {(s.miniAppBuilderPlan.unsupportedRequests || []).length ? (
+            <>
+              <Text style={styles.sectionLabel}>Planned for later</Text>
+              {(s.miniAppBuilderPlan.unsupportedRequests || []).map((item, index) => (
+                <MetricRow
+                  key={`unsupported-${index}-${item.request}`}
+                  left={item.request}
+                  right={item.reason}
+                />
+              ))}
+            </>
+          ) : null}
+
+          {(s.miniAppBuilderPlan.offers || []).length ? (
+            <>
+              <Text style={styles.sectionLabel}>Approved offer wording</Text>
+              {(s.miniAppBuilderPlan.offers || []).map((offer, index) => (
+                <MetricRow
+                  key={`planned-offer-${index}`}
+                  left={offer.title}
+                  right={[offer.body, offer.terms].filter(Boolean).join(" • ")}
+                />
+              ))}
+            </>
+          ) : null}
+
+          <Button
+            label={
+              s.miniAppsAction === "apply-app-plan"
+                ? "Building private draft…"
+                : app
+                ? "Apply this plan to my draft"
+                : "Build this app plan"
+            }
+            primary
+            disabled={!!s.miniAppsAction}
+            onPress={s.applyMiniAppPlan}
+          />
+        </Card>
+      ) : null}
+
+      <Card
+        eyebrow="Your BUSY Business App"
         title={view.statusLabel || "Not built"}
         body={
           app
@@ -478,20 +597,25 @@ function MiniAppBuilder({ s }) {
         <MetricRow left="Category" right={view.category || s.trade || "Not recorded"} />
         <MetricRow left="Marketplace" right={view.isDiscoverable ? "Listed" : "Not listed"} />
         <Button
-          label={s.miniAppsAction === "build" ? "Building…" : app ? "Refresh draft from Brand Brain" : "Build my Mini App"}
-          primary={!app}
+          label={
+            s.miniAppsAction === "build"
+              ? "Refreshing business facts…"
+              : app
+              ? "Refresh draft from Business Brain facts"
+              : "Quick-build from Business Brain facts"
+          }
           disabled={!!s.miniAppsAction}
           onPress={s.buildMiniAppFromBrandBrain}
         />
         {view.activeConfig ? (
-          <Button label="Preview Mini App" onPress={s.openMiniAppPreview} />
+          <Button label="Preview Business App" onPress={s.openMiniAppPreview} />
         ) : null}
       </Card>
 
       {s.miniAppsError ? (
         <Card
           eyebrow="Nothing unsafe was applied"
-          title="Mini App needs attention"
+          title="Business App needs attention"
           body={s.miniAppsError}
           tone="amber"
         />
@@ -566,13 +690,13 @@ function MiniAppBuilder({ s }) {
             tone={view.previewVersion ? "green" : "blue"}
           >
             <Button
-              label={s.miniAppsAction === "prepare" ? "Preparing…" : "Prepare immutable preview"}
+              label={s.miniAppsAction === "prepare" ? "Preparing…" : "Prepare immutable app preview"}
               primary={!!view.canPrepare}
               disabled={!view.canPrepare || !!s.miniAppsAction}
               onPress={s.prepareMiniAppPreview}
             />
             {view.previewVersion ? (
-              <Button label="Open prepared preview" onPress={s.openMiniAppPreview} />
+              <Button label="Open prepared app preview" onPress={s.openMiniAppPreview} />
             ) : null}
           </Card>
 
