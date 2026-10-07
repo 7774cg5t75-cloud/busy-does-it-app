@@ -156,7 +156,7 @@ function buildSections(brief = {}) {
   return sections;
 }
 
-function buildWebsiteDraft({ brandBrain = {}, previousDraft = null } = {}) {
+function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCreationIntelligence = null } = {}) {
   const brief = brandBrain.websiteBrief || {};
   const now = new Date().toISOString();
   const sections = buildSections(brief);
@@ -172,7 +172,18 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null } = {}) {
     generatedAt: previousDraft?.generatedAt || now,
     updatedAt: now,
     generation: Number(previousDraft?.generation || 0) + 1,
-    sourceVersion: "Brand Brain V3.34+",
+    sourceVersion: "Business Creation Intelligence V3.56",
+    sharedBusinessProfile: businessCreationIntelligence
+      ? {
+          source: businessCreationIntelligence.source || "brand_brain_shared_business_profile",
+          fingerprint: businessCreationIntelligence.sharedProfile?.fingerprint || "",
+          recommendedSections: safeArray(
+            businessCreationIntelligence.recommendedWebsiteSections
+          ),
+          ownerApprovalRequired:
+            businessCreationIntelligence.ownerApprovalRequired !== false,
+        }
+      : null,
     theme: themeFromBrief(brief),
     sections,
     seo: {
