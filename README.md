@@ -2,6 +2,17 @@
 
 Busy Does It mobile app prototype.
 
+## v3.43 Mini App Direct Customer Entry
+- Adds a dedicated **Share Mini App** centre for each live BUSY Mini App, including an in-app QR code, share sheet and direct-link test path.
+- QR and shared links use a stable BUSY-hosted HTTPS landing URL backed by the new public `busy-mini-app-link` Edge Function. Cloudflare is not required for this stage.
+- The landing page records a bounded attribution event and attempts the native `busydoesit://apps/<slug>` handoff while retaining a visible **Open in BUSY DOES IT** button.
+- Native deep links now route straight to the exact live business Mini App. If the user is signed out, BUSY preserves the target and opens it after sign-in instead of losing the link.
+- Marketplace discovery and direct access are deliberately separate: an owner can keep a live Mini App **unlisted** in marketplace search while an exact owner-shared link/QR continues to work.
+- Direct-entry sources are recorded as QR, shared link, deep link, marketplace, My BUSY Apps, notification, owner test or unknown. Landing-page visits and authenticated in-app opens are kept separate so neither is misreported as an enquiry or booking.
+- The owner receives 30-day entry summaries rather than raw unbounded event history. Home and BUSY Operator can report genuine Mini App entry signals without loading every event.
+- The public landing page contains no private customer or Business Brain data. It resolves only a genuinely live Mini App by public slug and shows the business's public display name/category.
+- The same stable HTTPS route can later gain App Store/Play Store fallback or a branded universal-link domain without changing the Mini App/customer-request model or printed QR codes.
+
 ## v3.42 Mini App Notifications & Conversation Centre
 - Adds separate durable unread counters for the business side and customer side of every BUSY Mini App request.
 - A new request starts unread for the business; customer replies increment business unread state; business replies and genuine request-status changes increment customer unread state.
