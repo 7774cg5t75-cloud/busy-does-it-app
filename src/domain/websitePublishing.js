@@ -260,6 +260,7 @@ function buildWebsitePublishingView({
       statusError: clean(remote?.providerStatusError),
       routerScriptReady: !!providerPlatform?.routerScriptReady,
       routerRouteReady: !!providerPlatform?.routerRouteReady,
+      rootRoutesExcluded: !!providerPlatform?.rootRoutesExcluded,
       fallbackOriginStatus: clean(providerPlatform?.fallbackOriginStatus) || "not_connected",
       fallbackOrigin: clean(providerPlatform?.fallbackOrigin),
     },
