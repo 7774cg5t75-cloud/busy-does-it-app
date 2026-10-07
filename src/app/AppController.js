@@ -272,6 +272,7 @@ function App() {
     versions: [],
     requests: [],
     requestLinks: [],
+    messages: [],
     catalog: [],
     publicProfile: null,
   });
@@ -285,6 +286,7 @@ function App() {
   const [selectedBusyAppDetail, setSelectedBusyAppDetail] = useState(null);
   const [myBusyApps, setMyBusyApps] = useState([]);
   const [myBusyAppRequests, setMyBusyAppRequests] = useState([]);
+  const [myBusyAppMessages, setMyBusyAppMessages] = useState([]);
   const [myBusyAppsLoading, setMyBusyAppsLoading] = useState(false);
 
   const [quietSlot, setQuietSlot] = useState("Thursday afternoon");
@@ -6217,6 +6219,7 @@ function App() {
       versions: [],
       requests: [],
       requestLinks: [],
+      messages: [],
       catalog: [],
       publicProfile: null,
     });
@@ -6230,6 +6233,7 @@ function App() {
     setSelectedBusyAppDetail(null);
     setMyBusyApps([]);
     setMyBusyAppRequests([]);
+    setMyBusyAppMessages([]);
     setMyBusyAppsLoading(false);
     setQuietSlot("Thursday afternoon");
     setQuietSlotConfirmed(false);
@@ -11262,6 +11266,7 @@ function App() {
         pendingCustomerRequests: Number(miniAppsView?.pendingRequests?.length || 0),
         unlinkedCustomerRequests: Number(miniAppsView?.unlinkedPendingRequests?.length || 0),
         linkedCustomerRequests: Number(miniAppsView?.linkedRequests?.length || 0),
+        requestMessages: Number(miniAppsView?.messages?.length || 0),
         bookingDraftRequests: Number(
           (miniAppsView?.requestLinks || []).filter(
             (item) => item.bridge_state === "booking_draft"
@@ -12861,6 +12866,7 @@ function App() {
       versions: Array.isArray(data?.versions) ? data.versions : [],
       requests: Array.isArray(data?.requests) ? data.requests : [],
       requestLinks: Array.isArray(data?.requestLinks) ? data.requestLinks : [],
+      messages: Array.isArray(data?.messages) ? data.messages : [],
       catalog: Array.isArray(data?.catalog) ? data.catalog : [],
       publicProfile: data?.publicProfile || null,
     });
@@ -13212,6 +13218,9 @@ function App() {
       setMyBusyAppRequests(
         Array.isArray(data?.requests) ? data.requests : []
       );
+      setMyBusyAppMessages(
+        Array.isArray(data?.messages) ? data.messages : []
+      );
       return true;
     } catch (error) {
       setMiniAppsError(
@@ -13247,6 +13256,42 @@ function App() {
       setMiniAppsError(
         error?.message || "BUSY could not update that favourite."
       );
+      return false;
+    } finally {
+      setMiniAppsAction("");
+    }
+  };
+
+  const sendMiniAppRequestMessage = async (requestId, message) => {
+    const body = String(message || "").trim();
+    if (!requestId || !body) return false;
+    setMiniAppsAction(`owner-message:${requestId}`);
+    setMiniAppsError("");
+    try {
+      const data = await miniAppsRequest("send_request_message", { requestId, message: body });
+      applyMiniAppsStatus(data);
+      setMiniAppsNotice("Message sent to the customer inside BUSY Apps.");
+      return true;
+    } catch (error) {
+      setMiniAppsError(error?.message || "BUSY could not send that customer message.");
+      return false;
+    } finally {
+      setMiniAppsAction("");
+    }
+  };
+
+  const replyBusyAppRequestMessage = async (requestId, message) => {
+    const body = String(message || "").trim();
+    if (!requestId || !body) return false;
+    setMiniAppsAction(`customer-message:${requestId}`);
+    setMiniAppsError("");
+    try {
+      await miniAppsRequest("reply_request_message", { requestId, message: body }, { includeBusiness: false });
+      await loadMyBusyApps({ quiet: true });
+      setMiniAppsNotice("Reply sent to the business through BUSY.");
+      return true;
+    } catch (error) {
+      setMiniAppsError(error?.message || "BUSY could not send that reply.");
       return false;
     } finally {
       setMiniAppsAction("");
@@ -13686,10 +13731,13 @@ function App() {
     selectedBusyAppDetail,
     myBusyApps,
     myBusyAppRequests,
+    myBusyAppMessages,
     myBusyAppsLoading,
     refreshMiniAppsStatus,
     loadMyBusyApps,
     toggleBusyAppFavorite,
+    sendMiniAppRequestMessage,
+    replyBusyAppRequestMessage,
     bridgeMiniAppRequestIntoBusy,
     buildMiniAppFromBrandBrain,
     toggleMiniAppModule,

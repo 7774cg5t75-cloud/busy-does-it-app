@@ -14,6 +14,43 @@ function readableDate(value, fallback = "Not yet") {
   }
 }
 
+function RequestConversation({ messages = [], sending = false, onSend, customerView = false }) {
+  const [draft, setDraft] = React.useState("");
+  const ordered = Array.isArray(messages)
+    ? messages.slice().sort((a, b) => String(a.created_at || "").localeCompare(String(b.created_at || "")))
+    : [];
+  const send = async () => {
+    const body = draft.trim();
+    if (!body || !onSend) return;
+    const ok = await onSend(body);
+    if (ok) setDraft("");
+  };
+  return (
+    <View style={{ marginTop: 10 }}>
+      {ordered.length ? (
+        <>
+          <Text style={styles.sectionLabel}>Conversation</Text>
+          {ordered.slice(-6).map((item) => (
+            <View key={item.id} style={{ marginBottom: 8 }}>
+              <Text style={{ fontWeight: "700" }}>{item.sender_role === "customer" ? "Customer" : "Business"}</Text>
+              <Text>{item.body}</Text>
+              <Text style={{ opacity: 0.6, fontSize: 12 }}>{readableDate(item.created_at)}</Text>
+            </View>
+          ))}
+        </>
+      ) : (
+        <Text style={{ opacity: 0.7, marginBottom: 8 }}>No messages in this request yet.</Text>
+      )}
+      {onSend ? (
+        <>
+          <Field label={customerView ? "Reply to business" : "Reply to customer"} value={draft} onChangeText={setDraft} placeholder={customerView ? "Write a reply…" : "Write a customer update…"} multiline />
+          <Button label={sending ? "Sending…" : "Send message"} disabled={sending || !draft.trim()} onPress={send} />
+        </>
+      ) : null}
+    </View>
+  );
+}
+
 function MiniAppSurface({ config, interactive = false, s = null }) {
   const profile = config?.publicProfile || {};
   const modules = Array.isArray(config?.modules)
@@ -180,13 +217,13 @@ function BusyAppsMarketplace({ s }) {
       s={s}
       title="BUSY Apps"
       subtitle="Search customer-facing apps created from BUSY's tested small-business modules."
-      brandCue="V3.40 • customer journey bridge • My BUSY Apps • controlled modules • shared business data."
+      brandCue="V3.41 • customer journey bridge • My BUSY Apps • controlled modules • shared business data."
     >
       <Card
         eyebrow="BUSY Apps marketplace"
         title="One place for small-business apps"
         body="A customer can search a business name inside BUSY, open that business's Mini App, browse services and use enabled customer actions such as enquiry or booking request."
-        footer="V3.40 connects Mini Apps to real BUSY customer journeys while keeping one shared, controlled app platform."
+        footer="V3.41 connects Mini Apps to real BUSY customer journeys while keeping one shared, controlled app platform."
         tone="green"
       >
         <Button
@@ -277,7 +314,14 @@ function BusyAppsMarketplace({ s }) {
                   ? "amber"
                   : "blue"
               }
-            />
+            >
+              <RequestConversation
+                customerView
+                messages={(s.myBusyAppMessages || []).filter((item) => item.request_id === request.id)}
+                sending={s.miniAppsAction === `customer-message:${request.id}`}
+                onSend={["declined", "closed"].includes(request.status) ? null : (body) => s.replyBusyAppRequestMessage(request.id, body)}
+              />
+            </Card>
           ))}
         </>
       ) : null}
@@ -348,7 +392,7 @@ function MiniAppBuilder({ s }) {
       s={s}
       title="Mini App Builder"
       subtitle="BUSY assembles a customer-facing app from reusable tested modules and approved public business facts."
-      brandCue="V3.40 • one controlled platform • immutable versions • marketplace approval separated from Go Live."
+      brandCue="V3.41 • one controlled platform • immutable versions • marketplace approval separated from Go Live."
     >
       <Card
         eyebrow="Your BUSY Mini App"
@@ -588,6 +632,12 @@ function MiniAppBuilder({ s }) {
                         }
                       />
                     ) : null}
+
+                    <RequestConversation
+                      messages={view.messagesByRequest?.get?.(request.id) || []}
+                      sending={s.miniAppsAction === `owner-message:${request.id}`}
+                      onSend={["declined", "closed"].includes(request.status) ? null : (body) => s.sendMiniAppRequestMessage(request.id, body)}
+                    />
                   </Card>
                 );
               })}
@@ -641,7 +691,7 @@ function MiniAppPreview({ s }) {
       s={s}
       title="Mini App Preview"
       subtitle="Preview the controlled customer-facing configuration before anything changes publicly."
-      brandCue="V3.40 • preview only • reusable BUSY modules."
+      brandCue="V3.41 • preview only • reusable BUSY modules."
     >
       {config ? (
         <MiniAppSurface config={config} />
@@ -707,7 +757,7 @@ function BusyAppDetail({ s }) {
       s={s}
       title={detail?.app?.name || "BUSY Mini App"}
       subtitle="Customer-facing business app inside BUSY."
-      brandCue="V3.40 • live marketplace version."
+      brandCue="V3.41 • live marketplace version."
     >
       {config ? <MiniAppSurface config={config} interactive s={s} /> : null}
       <Card

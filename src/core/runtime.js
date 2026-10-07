@@ -1,5 +1,5 @@
-const APP_VERSION = "3.40";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Mini Apps Customer Journey Bridge`;
+const APP_VERSION = "3.41";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Mini App Conversation Loop`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"

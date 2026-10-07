@@ -384,12 +384,14 @@ async function ownerStatus(businessId: string) {
       app: null,
       versions: [],
       requests: [],
+      requestLinks: [],
+      messages: [],
       catalog,
       publicProfile: profile,
     };
   }
 
-  const [versions, requests, requestLinks] = await Promise.all([
+  const [versions, requests, requestLinks, messages] = await Promise.all([
     supabase
       .from("busy_mini_app_versions")
       .select(
@@ -412,15 +414,23 @@ async function ownerStatus(businessId: string) {
       .eq("business_id", businessId)
       .order("linked_at", { ascending: false })
       .limit(100),
+    supabase
+      .from("busy_mini_app_request_messages")
+      .select("id,request_id,sender_user_id,sender_role,body,created_at")
+      .eq("business_id", businessId)
+      .order("created_at", { ascending: false })
+      .limit(200),
   ]);
   if (versions.error) throw versions.error;
   if (requests.error) throw requests.error;
   if (requestLinks.error) throw requestLinks.error;
+  if (messages.error) throw messages.error;
   return {
     app,
     versions: versions.data || [],
     requests: requests.data || [],
     requestLinks: requestLinks.data || [],
+    messages: messages.data || [],
     catalog,
     publicProfile: profile,
   };
@@ -997,6 +1007,16 @@ async function myMiniAppRequests(userId: string) {
   });
 }
 
+async function myMiniAppMessages(userId: string) {
+  const requests = await supabase.from("busy_mini_app_requests").select("id").eq("consumer_user_id", userId).order("created_at", { ascending: false }).limit(50);
+  if (requests.error) throw requests.error;
+  const requestIds = (requests.data || []).map((item: any) => item.id);
+  if (!requestIds.length) return [];
+  const messages = await supabase.from("busy_mini_app_request_messages").select("id,request_id,sender_user_id,sender_role,body,created_at").in("request_id", requestIds).order("created_at", { ascending: false }).limit(250);
+  if (messages.error) throw messages.error;
+  return messages.data || [];
+}
+
 async function setConsumerFavorite(
   userId: string,
   slug: string,
@@ -1219,6 +1239,61 @@ async function submitRequest(
   return { reused: false, request: inserted.data };
 }
 
+async function sendRequestMessage(userId: string, businessId: string, body: any, idempotencyKey: string) {
+  const requestId = clean(body?.requestId, 80);
+  const messageBody = clean(body?.message, 3000);
+  if (!requestId || !messageBody) throw new Error("Choose a request and enter a message first.");
+  const request = await supabase.from("busy_mini_app_requests").select("id,business_id,mini_app_id,status").eq("id", requestId).eq("business_id", businessId).maybeSingle();
+  if (request.error) throw request.error;
+  if (!request.data) throw new Error("Mini App request not found.");
+  if (["declined", "closed"].includes(request.data.status)) throw new Error("That Mini App request is closed for new messages.");
+  if (idempotencyKey) {
+    const existing = await supabase.from("busy_mini_app_request_messages").select("*").eq("request_id", requestId).eq("sender_user_id", userId).eq("idempotency_key", idempotencyKey).maybeSingle();
+    if (existing.error) throw existing.error;
+    if (existing.data) return { reused: true, message: existing.data };
+  }
+  const now = new Date().toISOString();
+  const inserted = await supabase.from("busy_mini_app_request_messages").insert({ business_id: businessId, request_id: requestId, mini_app_id: request.data.mini_app_id, sender_user_id: userId, sender_role: "business", body: messageBody, idempotency_key: idempotencyKey || null, created_at: now }).select("*").single();
+  if (inserted.error) {
+    if (inserted.error.code === "23505" && idempotencyKey) {
+      const raced = await supabase.from("busy_mini_app_request_messages").select("*").eq("request_id", requestId).eq("sender_user_id", userId).eq("idempotency_key", idempotencyKey).maybeSingle();
+      if (raced.error) throw raced.error;
+      if (raced.data) return { reused: true, message: raced.data };
+    }
+    throw inserted.error;
+  }
+  await supabase.from("busy_mini_app_requests").update({ status: request.data.status === "received" ? "reviewing" : request.data.status, updated_at: now }).eq("id", requestId).eq("business_id", businessId);
+  return { reused: false, message: inserted.data };
+}
+
+async function replyRequestMessage(userId: string, body: any, idempotencyKey: string) {
+  const requestId = clean(body?.requestId, 80);
+  const messageBody = clean(body?.message, 3000);
+  if (!requestId || !messageBody) throw new Error("Choose a request and enter a reply first.");
+  const request = await supabase.from("busy_mini_app_requests").select("id,business_id,mini_app_id,status").eq("id", requestId).eq("consumer_user_id", userId).maybeSingle();
+  if (request.error) throw request.error;
+  if (!request.data) throw new Error("That Mini App request is not available.");
+  if (["declined", "closed"].includes(request.data.status)) throw new Error("That Mini App request is closed for new messages.");
+  if (idempotencyKey) {
+    const existing = await supabase.from("busy_mini_app_request_messages").select("*").eq("request_id", requestId).eq("sender_user_id", userId).eq("idempotency_key", idempotencyKey).maybeSingle();
+    if (existing.error) throw existing.error;
+    if (existing.data) return { reused: true, message: existing.data };
+  }
+  const now = new Date().toISOString();
+  const inserted = await supabase.from("busy_mini_app_request_messages").insert({ business_id: request.data.business_id, request_id: requestId, mini_app_id: request.data.mini_app_id, sender_user_id: userId, sender_role: "customer", body: messageBody, idempotency_key: idempotencyKey || null, created_at: now }).select("*").single();
+  if (inserted.error) {
+    if (inserted.error.code === "23505" && idempotencyKey) {
+      const raced = await supabase.from("busy_mini_app_request_messages").select("*").eq("request_id", requestId).eq("sender_user_id", userId).eq("idempotency_key", idempotencyKey).maybeSingle();
+      if (raced.error) throw raced.error;
+      if (raced.data) return { reused: true, message: raced.data };
+    }
+    throw inserted.error;
+  }
+  await supabase.from("busy_mini_app_requests").update({ updated_at: now }).eq("id", requestId).eq("consumer_user_id", userId);
+  await trackConsumerApp(userId, request.data.mini_app_id, { action: true });
+  return { reused: false, message: inserted.data };
+}
+
 async function updateRequestStatus(
   userId: string,
   businessId: string,
@@ -1408,6 +1483,7 @@ Deno.serve(async (request: Request) => {
         ok: true,
         apps: await myBusyApps(user.id),
         requests: await myMiniAppRequests(user.id),
+        messages: await myMiniAppMessages(user.id),
       });
     }
     if (action === "set_favorite") {
@@ -1427,6 +1503,13 @@ Deno.serve(async (request: Request) => {
         ...(await submitRequest(user.id, body, requestId)),
       });
     }
+    if (action === "reply_request_message") {
+      return json(200, {
+        ok: true,
+        ...(await replyRequestMessage(user.id, body, requestId)),
+        messages: await myMiniAppMessages(user.id),
+      });
+    }
 
     const writeActions = new Set([
       "build_draft",
@@ -1437,6 +1520,7 @@ Deno.serve(async (request: Request) => {
       "set_discoverable",
       "update_request_status",
       "mark_request_linked",
+      "send_request_message",
     ]);
     const member = await membership(
       user.id,
@@ -1497,6 +1581,13 @@ Deno.serve(async (request: Request) => {
       return json(200, {
         ok: true,
         app: await setDiscoverable(resolvedBusinessId, body),
+        status: await ownerStatus(resolvedBusinessId),
+      });
+    }
+    if (action === "send_request_message") {
+      return json(200, {
+        ok: true,
+        ...(await sendRequestMessage(user.id, resolvedBusinessId, body, requestId)),
         status: await ownerStatus(resolvedBusinessId),
       });
     }

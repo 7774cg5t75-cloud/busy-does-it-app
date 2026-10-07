@@ -2,6 +2,19 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.41 Mini App Conversation Loop
+### One request, one shared conversation
+- A Mini App enquiry/booking request owns a durable conversation thread in `busy_mini_app_request_messages` rather than a separate chat identity or CRM.
+- Business writes require tenant membership; customer writes require that the request belongs to that signed-in consumer.
+- The server derives business, Mini App and request ownership from stored records; clients cannot choose another tenant or recipient.
+- Direct Data API access stays revoked; both sides use the `busy-mini-apps` Edge Function.
+
+### Retry and lifecycle safety
+- Each send uses BUSY's request idempotency key so a retry resolves to the same stored message.
+- Declined/closed requests reject new messages.
+- A first owner reply may move `received` to `reviewing`; messaging never marks a booking accepted and never confirms a diary slot.
+- Conversation history is projected separately into owner status and My BUSY Apps, preserving tenant/customer visibility boundaries.
+
 ## V3.40 Mini Apps Customer Journey Bridge
 ### One customer journey, not a Mini App CRM
 - V3.40 deliberately does not create a second standalone customer database for BUSY Apps.

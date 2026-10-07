@@ -2,6 +2,16 @@
 
 Busy Does It mobile app prototype.
 
+## v3.41 Mini App Conversation Loop
+- Adds durable request-scoped messaging between a business and the signed-in customer who created a Mini App enquiry or booking request.
+- Business replies are owner-authorised; customer replies are accepted only for requests owned by that signed-in customer.
+- Messages are stored in `busy_mini_app_request_messages`, tenant/request scoped, and not granted directly to anonymous or authenticated Data API clients.
+- Message writes use BUSY request idempotency so network retries do not duplicate replies.
+- Declined/closed requests stop accepting new messages; a first business reply may move `received` to `reviewing`, but never accepts a booking or invents a diary slot.
+- Owners reply from Mini App Builder request cards; customers see and reply to the same thread from **My BUSY Apps**.
+- BUSY Operator receives only a request-message count in general context, not conversation bodies.
+- Cloudflare remains deliberately deferred and is not required for this loop.
+
 ## v3.40 Mini Apps Customer Journey Bridge
 - Builds directly on the V3.39 BUSY Apps marketplace without requiring Cloudflare or website-provider setup.
 - Mini App enquiries and booking requests now carry normalized customer name/email/phone/service/preferred-date fields in addition to the immutable raw request payload.
