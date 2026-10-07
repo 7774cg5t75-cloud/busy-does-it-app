@@ -315,11 +315,15 @@ function WebsitePublishing({ s }) {
           strong={view.providerState?.rootOnCloudflare}
         />
         <MetricRow
-          left="BUSY website base"
-          right={view.providerState?.baseDomain || "sites.busydoesit.co.uk"}
+          left="BUSY site suffix"
+          right={view.providerState?.baseDomain || "busydoesit.co.uk"}
         />
         <MetricRow
-          left="Base hostname DNS"
+          left="SaaS CNAME target"
+          right={view.providerState?.cnameHost || "sites.busydoesit.co.uk"}
+        />
+        <MetricRow
+          left="Routing target DNS"
           right={view.providerState?.baseDomainRoutable ? "Resolving" : "Not routed yet"}
           strong={view.providerState?.baseDomainRoutable}
         />
@@ -344,6 +348,7 @@ function WebsitePublishing({ s }) {
       >
         <MetricRow left="API token" right={view.providerState?.tokenReady ? "Server secret ready" : "Not connected"} />
         <MetricRow left="SaaS zone" right={view.providerState?.zoneReady ? "Ready" : "Not connected"} />
+        <MetricRow left="Cloudflare account" right={view.providerState?.accountReady ? "Server value ready" : "Not connected"} />
         <MetricRow left="Routing target" right={view.providerState?.targetReady ? "Ready" : "Not connected"} />
         <MetricRow left="BUSY web domain" right={view.providerState?.baseDomainConfigured ? view.providerState.baseDomain : "Not configured"} />
       </Card>
@@ -355,7 +360,7 @@ function WebsitePublishing({ s }) {
         body={
           view.defaultAddressState?.address
             ? "BUSY has reserved a tenant-safe hostname. It only becomes a usable public address after the BUSY platform domain/routing layer genuinely serves the expected deployment."
-            : "V3.46 reserves tenant-safe addresses under sites.busydoesit.co.uk. They remain non-live until the delivery provider and health checks prove that the expected deployment is really being served."
+            : "V3.46 reserves tenant-safe first-level addresses such as site-business-1234.busydoesit.co.uk. This keeps default BUSY addresses inside the root certificate boundary while custom customer domains use the separate SaaS routing target."
         }
         footer="Two businesses with the same trading name still receive different tenant-safe hostnames."
         tone={view.defaultAddressState?.address?.live ? "green" : "blue"}
