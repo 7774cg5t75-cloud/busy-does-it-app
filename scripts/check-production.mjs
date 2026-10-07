@@ -23,6 +23,18 @@ const websiteScaleIndexMigrationSource = fs.readFileSync(
   "supabase/migrations/20261007221500_v3_52_tenant_fk_indexes.sql",
   "utf8"
 );
+const websiteReadinessMigrationSource = fs.readFileSync(
+  "supabase/migrations/20261007223000_v3_53_release_readiness_controls.sql",
+  "utf8"
+);
+const websiteSimulationSource = fs.readFileSync(
+  "scripts/website-platform-simulation.mjs",
+  "utf8"
+);
+const productionWorkflowSource = fs.readFileSync(
+  ".github/workflows/production-check.yml",
+  "utf8"
+);
 
 const checks = [
   ["package/app version match", pkg.version === app.version && /^3\.\d+\.\d+$/.test(String(pkg.version || ""))],
@@ -46,8 +58,8 @@ const checks = [
   ["native development build workflow", fs.existsSync(".github/workflows/native-development-build.yml")],
   ["SDK57 calendar legacy import", controllerSource.includes('import * as Calendar from "expo-calendar/legacy";')],
   ["SDK54 Snack calendar rewrite", snackPublisherSource.includes('expo-calendar/legacy') && snackPublisherSource.includes('expo-calendar";')],
-  ["V3.52 public website origin", fs.existsSync("supabase/functions/busy-website-origin/index.ts")],
-  ["V3.52 Cloudflare router Worker", fs.existsSync("cloudflare/busy-website-router/worker.js")],
+  ["V3.53 public website origin", fs.existsSync("supabase/functions/busy-website-origin/index.ts")],
+  ["V3.53 Cloudflare router Worker", fs.existsSync("cloudflare/busy-website-router/worker.js")],
   ["website origin is public edge function", supabaseConfigSource.includes("[functions.busy-website-origin]") && supabaseConfigSource.includes("verify_jwt = false")],
   ["BUSY production root domain", websiteProviderSource.includes("busydoesit.co.uk")],
   ["Cloudflare automated platform bootstrap", websiteProviderSource.includes("bootstrapPlatform") && websiteProviderSource.includes("uploadRouterWorker")],
@@ -92,6 +104,14 @@ const checks = [
   ["V3.52 custom-domain capacity safeguard", websitePublishApiSource.includes("maximum number of active or pending custom domains") && websitePublishApiSource.includes(">= 5")],
   ["V3.52 operational pressure metrics", websiteScaleMigrationSource.includes("busy_website_operational_metrics") && websiteScaleMigrationSource.includes("failed_signals_24h")],
   ["V3.52 bounded operational retention", websiteScaleMigrationSource.includes("busy_prune_website_operational_history") && websiteScaleMigrationSource.includes("180 days")],
+  ["V3.53 immediate worker wakes are coalesced", websiteReadinessMigrationSource.includes("busy_should_wake_website_worker") && websitePublishApiSource.includes("p_min_gap_seconds: 5")],
+  ["V3.53 backlog-sensitive worker fanout", websiteReadinessMigrationSource.includes("busy_wake_website_worker_scaled") && websiteReadinessMigrationSource.includes("else 8") && websiteReadinessMigrationSource.includes("'limit', 12")],
+  ["V3.53 health scheduler has 10k headroom", websiteReadinessMigrationSource.includes("jsonb_build_object('limit', 40)") && websiteHealthSource.includes(": 720;")],
+  ["V3.53 healthy provider reconciliation is spread", websiteProviderSource.includes("48 * 60 * 60000")],
+  ["V3.53 service-only live readiness snapshot", websiteReadinessMigrationSource.includes("busy_website_release_readiness") && websiteReadinessMigrationSource.includes("revoke all on function public.busy_website_release_readiness")],
+  ["V3.53 deterministic 10k simulation exists", websiteSimulationSource.includes("10000") && websiteSimulationSource.includes("simulatedCrashEvery") && websiteSimulationSource.includes("cross-tenant-mismatch-rejected")],
+  ["V3.53 simulation models cost envelope", websiteSimulationSource.includes("dailyEnvelope") && websiteSimulationSource.includes("assumedPublishesAtTenPercentDaily")],
+  ["V3.53 simulation is a production release gate", productionWorkflowSource.includes("Simulate website scale and failure recovery") && productionWorkflowSource.includes("website-platform-simulation.mjs")],
   ["Cloudflare root routes excluded", websiteProviderSource.includes("ensureWorkerRoutes") && websiteProviderSource.includes("www.")],
   ["health checks bypass website edge cache", websiteRouterSource.includes("BUSY-Website-Health/") && websiteProviderSource.includes("BUSY-Website-Health/")],
   ["website origin rejects storage traversal", websiteOriginSource.includes('part === ".."') && websiteOriginSource.includes("busy-website-public")],
