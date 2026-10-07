@@ -172,6 +172,7 @@ import { buildCommunicationsHub } from "../domain/communicationsHub";
 import { buildFollowUpEngine } from "../domain/followUpEngine";
 import { buildBrandBrain } from "../domain/brandBrain";
 import { buildBusinessCreationIntelligence } from "../domain/businessCreationIntelligence";
+import { buildBusinessCreationJourney } from "../domain/businessCreationJourney";
 import { buildWebsiteDraft, applyWebsiteInstruction } from "../domain/websiteBuilder";
 import { buildWebsitePublishingView } from "../domain/websitePublishing";
 import {
@@ -288,6 +289,10 @@ function App() {
   const [miniAppsError, setMiniAppsError] = useState("");
   const [miniAppsNotice, setMiniAppsNotice] = useState("");
   const [miniAppBuildBrief, setMiniAppBuildBrief] = useState("");
+  const [businessCreationBrief, setBusinessCreationBrief] = useState("");
+  const [businessCreationAction, setBusinessCreationAction] = useState("");
+  const [businessCreationNotice, setBusinessCreationNotice] = useState("");
+  const [businessCreationError, setBusinessCreationError] = useState("");
   const [miniAppBuilderPlan, setMiniAppBuilderPlan] = useState(null);
   const [miniAppFactAnswers, setMiniAppFactAnswers] = useState({});
   const [busyAppsSearch, setBusyAppsSearch] = useState("");
@@ -8320,6 +8325,14 @@ function App() {
     websiteDraft,
     miniAppsView,
   });
+  const businessCreationJourney = buildBusinessCreationJourney({
+    businessCreationIntelligence,
+    brandBrain,
+    websiteDraft,
+    miniAppsView,
+    socialBrief,
+    ownerBrief: businessCreationBrief,
+  });
   const miniAppProfileDraft = buildMiniAppProfileDraft(
     brandBrain,
     businessCreationIntelligence
@@ -13275,6 +13288,74 @@ function App() {
     return true;
   };
 
+  const openBusinessCreationJourney = () => {
+    setTab("Home");
+    go("businessCreationJourney");
+    return true;
+  };
+
+  const describeBusinessCreationByVoice = () => {
+    setBusinessCreationNotice(
+      "Tell BUSY what the business does, who it serves and what you want the website, Business App and social presence to achieve. BUSY will keep the existing approval gates."
+    );
+    openTalkToBusy(true);
+    return true;
+  };
+
+  const prepareBusinessCreationJourney = async () => {
+    const brief = String(businessCreationBrief || "").trim();
+    if (!brief) {
+      setBusinessCreationError("Tell BUSY about the business and what you want it to prepare.");
+      return false;
+    }
+    setBusinessCreationAction("prepare");
+    setBusinessCreationError("");
+    setBusinessCreationNotice("");
+    let websiteOk = false;
+    let appOk = false;
+    try {
+      const nextWebsite = buildWebsiteDraft({
+        brandBrain,
+        previousDraft: websiteDraft,
+        businessCreationIntelligence,
+      });
+      setWebsiteDraft(nextWebsite);
+      websiteOk = true;
+
+      setSocialBrief(brief);
+      setSocialSourceContext({
+        type: "business_creation",
+        label: "Business Creation Journey",
+        customerId: "",
+        jobId: "",
+        service: "",
+      });
+
+      setMiniAppBuildBrief(brief);
+      appOk = await planMiniAppFromBrief(brief, miniAppFactAnswers);
+
+      setBusinessCreationNotice(
+        [
+          websiteOk ? "private website draft prepared" : "",
+          appOk ? "Business App plan prepared" : "Business App plan needs review",
+          "social creation brief prepared",
+        ]
+          .filter(Boolean)
+          .join(" • ") +
+          ". Nothing has been published; review each customer-facing surface before approval."
+      );
+      return websiteOk || appOk;
+    } catch (error) {
+      setBusinessCreationError(
+        error?.message ||
+          "BUSY could not finish the coordinated preparation. Any completed private drafts remain safe to review."
+      );
+      return false;
+    } finally {
+      setBusinessCreationAction("");
+    }
+  };
+
   const toggleMiniAppModule = async (moduleKey, enabled) => {
     setMiniAppsAction(`module:${moduleKey}`);
     setMiniAppsError("");
@@ -14412,6 +14493,15 @@ function App() {
     miniAppsStatus,
     miniAppsView,
     businessCreationIntelligence,
+    businessCreationJourney,
+    businessCreationBrief,
+    setBusinessCreationBrief,
+    businessCreationAction,
+    businessCreationNotice,
+    businessCreationError,
+    openBusinessCreationJourney,
+    describeBusinessCreationByVoice,
+    prepareBusinessCreationJourney,
     miniAppProfileDraft,
     miniAppsLoading,
     miniAppsAction,
