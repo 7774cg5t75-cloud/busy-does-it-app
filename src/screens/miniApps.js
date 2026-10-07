@@ -579,6 +579,13 @@ function MiniAppBuilder({ s }) {
     (view.modules || []).map((item) => [item.key, item])
   );
   const plan = s.miniAppBuilderPlan || view.builderPlan || null;
+  const intelligence = s.businessCreationIntelligence || {};
+  const recommendedModules = Array.isArray(intelligence.recommendedAppModules)
+    ? intelligence.recommendedAppModules
+    : [];
+  const recommendationRows = Array.isArray(intelligence.recommendations?.app)
+    ? intelligence.recommendations.app.filter((item) => item?.recommended)
+    : [];
   const missingFacts = Array.isArray(plan?.missingFacts)
     ? plan.missingFacts
     : [];
@@ -651,7 +658,7 @@ function MiniAppBuilder({ s }) {
       s={s}
       title="Business App Builder"
       subtitle="Describe the customer experience you want. BUSY turns it into a controlled app plan using tested modules and the business facts it already knows."
-      brandCue="V3.55 • one app journey • targeted follow-ups • real customer preview • dated offers • simple loyalty."
+      brandCue="V3.56 • shared business profile • intelligent module recommendations • owner-controlled publishing."
     >
       <Card
         eyebrow="Your app journey"
@@ -672,6 +679,31 @@ function MiniAppBuilder({ s }) {
                 : "Waiting"
             }
             strong={step.status === "complete"}
+          />
+        ))}
+      </Card>
+
+      <Card
+        eyebrow="BUSY already knows"
+        title={
+          recommendedModules.length
+            ? `${recommendedModules.length} module${recommendedModules.length === 1 ? "" : "s"} fit this business`
+            : "Your shared business profile is ready"
+        }
+        body="V3.56 uses the same approved business facts for the website and Business App, then suggests modules that fit the type of business without inventing services, offers, prices or claims."
+        footer={
+          intelligence.aligned === false
+            ? "BUSY spotted a difference between a current builder draft and the shared profile. Review before publishing."
+            : "Website and Business App intelligence are aligned to the same source of truth."
+        }
+        tone={intelligence.aligned === false ? "amber" : "blue"}
+      >
+        {recommendationRows.slice(0, 6).map((item) => (
+          <MetricRow
+            key={`intelligence-${item.key}`}
+            left={miniAppModuleLabel(item.key)}
+            right={item.reason || "Recommended from approved business facts"}
+            strong
           />
         ))}
       </Card>
