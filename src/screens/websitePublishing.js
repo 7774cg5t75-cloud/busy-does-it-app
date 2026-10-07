@@ -354,6 +354,11 @@ function WebsitePublishing({ s }) {
           }
           strong={view.providerState?.routerScriptReady && view.providerState?.routerRouteReady}
         />
+        <MetricRow
+          left="BUSY root / www"
+          right={view.providerState?.rootRoutesExcluded ? "Excluded from SaaS router" : "Exclusions pending"}
+          strong={view.providerState?.rootRoutesExcluded}
+        />
       </Card>
 
       <Text style={styles.sectionLabel}>Delivery provider</Text>
