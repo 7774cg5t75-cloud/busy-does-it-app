@@ -47,6 +47,7 @@ function buildMiniAppsView(remote = {}) {
   const versions = safeArray(remote?.versions);
   const requests = safeArray(remote?.requests);
   const requestLinks = safeArray(remote?.requestLinks);
+  const entrySummary = safeArray(remote?.entrySummary);
   const catalog = safeArray(remote?.catalog);
   const draftConfig = app?.draft_config || null;
 
@@ -90,12 +91,25 @@ function buildMiniAppsView(remote = {}) {
     0
   );
 
+  const entryCounts = entrySummary.reduce(
+    (counts, row) => {
+      const source = clean(row?.source) || "unknown";
+      const stage = clean(row?.stage) || "app_open";
+      const value = Math.max(0, Number(row?.event_count || 0));
+      counts.total += value;
+      counts.bySource[source] = (counts.bySource[source] || 0) + value;
+      counts.byStage[stage] = (counts.byStage[stage] || 0) + value;
+      return counts;
+    },
+    { total: 0, bySource: {}, byStage: {} }
+  );
+
   const statusLabel = !app
     ? "Not built"
     : app.status === "live"
     ? app.discoverable
       ? "Live • listed in BUSY Apps"
-      : "Live • private listing"
+      : "Live • unlisted"
     : app.status === "update_pending"
     ? "Live • draft update available"
     : app.status === "preview_ready"
@@ -109,6 +123,8 @@ function buildMiniAppsView(remote = {}) {
     versions,
     requests,
     requestLinks,
+    entrySummary,
+    entryCounts,
     linkedRequests,
     unreadRequests,
     businessUnreadTotal,
