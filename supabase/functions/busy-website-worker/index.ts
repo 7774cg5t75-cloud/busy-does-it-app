@@ -887,10 +887,12 @@ async function failJob(
   await supabase
     .from("busy_websites")
     .update({
-      status: canRetry
-        ? website.current_live_deployment_id
+      status: website.current_live_deployment_id
+        ? canRetry
           ? "update_pending"
-          : "queued"
+          : "live"
+        : canRetry
+        ? "queued"
         : "failed",
       last_error: message,
       updated_at: now,
