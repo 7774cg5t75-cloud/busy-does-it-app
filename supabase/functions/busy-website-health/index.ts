@@ -43,7 +43,7 @@ async function fetchWithDeadline(url: string, timeoutMs = 8000) {
       method: "GET",
       redirect: "follow",
       headers: {
-        "User-Agent": "BUSY-Website-Health/3.38",
+        "User-Agent": "BUSY-Website-Health/3.46",
         Accept: "text/html,*/*;q=0.8",
       },
       signal: controller.signal,
