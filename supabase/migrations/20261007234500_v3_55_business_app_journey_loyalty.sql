@@ -27,6 +27,49 @@ create table if not exists public.busy_mini_app_loyalty_events (
   unique (mini_app_id, consumer_user_id, idempotency_key)
 );
 
+create unique index if not exists busy_mini_apps_id_business_unique_idx
+  on public.busy_mini_apps (id, business_id);
+
+create unique index if not exists busy_mini_app_requests_id_business_app_unique_idx
+  on public.busy_mini_app_requests (id, business_id, mini_app_id);
+
+do $
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'busy_mini_app_loyalty_progress_tenant_app_fkey'
+  ) then
+    alter table public.busy_mini_app_loyalty_progress
+      add constraint busy_mini_app_loyalty_progress_tenant_app_fkey
+      foreign key (mini_app_id, business_id)
+      references public.busy_mini_apps(id, business_id)
+      on delete cascade;
+  end if;
+
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'busy_mini_app_loyalty_events_tenant_app_fkey'
+  ) then
+    alter table public.busy_mini_app_loyalty_events
+      add constraint busy_mini_app_loyalty_events_tenant_app_fkey
+      foreign key (mini_app_id, business_id)
+      references public.busy_mini_apps(id, business_id)
+      on delete cascade;
+  end if;
+
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'busy_mini_app_loyalty_events_tenant_request_fkey'
+  ) then
+    alter table public.busy_mini_app_loyalty_events
+      add constraint busy_mini_app_loyalty_events_tenant_request_fkey
+      foreign key (request_id, business_id, mini_app_id)
+      references public.busy_mini_app_requests(id, business_id, mini_app_id)
+      on delete set null (request_id);
+  end if;
+end
+$;
+
 create index if not exists busy_mini_app_loyalty_progress_business_idx
   on public.busy_mini_app_loyalty_progress (business_id, updated_at desc);
 create index if not exists busy_mini_app_loyalty_progress_consumer_idx
