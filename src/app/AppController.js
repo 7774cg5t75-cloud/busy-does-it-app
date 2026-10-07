@@ -172,7 +172,7 @@ import { buildCommunicationsHub } from "../domain/communicationsHub";
 import { buildFollowUpEngine } from "../domain/followUpEngine";
 import { buildBrandBrain } from "../domain/brandBrain";
 import { buildBusinessCreationIntelligence } from "../domain/businessCreationIntelligence";
-import { buildBusinessCreationJourney } from "../domain/businessCreationJourney";
+import { buildBusinessCreationJourney, nextBestBusinessCreationQuestion } from "../domain/businessCreationJourney";
 import { buildWebsiteDraft, applyWebsiteInstruction } from "../domain/websiteBuilder";
 import { buildWebsitePublishingView } from "../domain/websitePublishing";
 import {
@@ -294,6 +294,7 @@ function App() {
   const [businessCreationNotice, setBusinessCreationNotice] = useState("");
   const [businessCreationError, setBusinessCreationError] = useState("");
   const [businessCreationAnswer, setBusinessCreationAnswer] = useState("");
+  const [businessCreationConversationActive, setBusinessCreationConversationActive] = useState(false);
   const [miniAppBuilderPlan, setMiniAppBuilderPlan] = useState(null);
   const [miniAppFactAnswers, setMiniAppFactAnswers] = useState({});
   const [busyAppsSearch, setBusyAppsSearch] = useState("");
@@ -13298,6 +13299,7 @@ function App() {
   };
 
   const describeBusinessCreationByVoice = () => {
+    setBusinessCreationConversationActive(true);
     setBusinessCreationNotice(
       "Tell BUSY what the business does, who it serves and what you want the website, Business App and social presence to achieve. BUSY will keep the existing approval gates."
     );
@@ -13305,7 +13307,7 @@ function App() {
     return true;
   };
 
-  const answerBusinessCreationQuestion = () => {
+  const answerBusinessCreationQuestion = (answerOverride = "") => {
     const question = businessCreationJourney?.nextQuestion;
     if (!question) {
       setBusinessCreationNotice("BUSY does not need another important business-profile answer right now.");
@@ -13317,7 +13319,7 @@ function App() {
       return true;
     }
 
-    const answer = String(businessCreationAnswer || "").trim();
+    const answer = String(answerOverride || businessCreationAnswer || "").trim();
     if (!answer) {
       setBusinessCreationError("Add the answer before continuing.");
       return false;
@@ -14566,6 +14568,8 @@ function App() {
     setBusinessCreationBrief,
     businessCreationAnswer,
     setBusinessCreationAnswer,
+    businessCreationConversationActive,
+    setBusinessCreationConversationActive,
     businessCreationAction,
     businessCreationNotice,
     businessCreationError,
