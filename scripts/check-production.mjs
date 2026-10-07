@@ -8,6 +8,7 @@ const controllerSource = fs.readFileSync("src/app/AppController.js", "utf8");
 const snackPublisherSource = fs.readFileSync("scripts/publish-snack.mjs", "utf8");
 const supabaseConfigSource = fs.readFileSync("supabase/config.toml", "utf8");
 const websiteProviderSource = fs.readFileSync("supabase/functions/busy-website-provider/index.ts", "utf8");
+const websitePublishApiSource = fs.readFileSync("supabase/functions/busy-website-publish/index.ts", "utf8");
 const websiteWorkerSource = fs.readFileSync("supabase/functions/busy-website-worker/index.ts", "utf8");
 const websiteHealthSource = fs.readFileSync("supabase/functions/busy-website-health/index.ts", "utf8");
 const websitePublishingDomainSource = fs.readFileSync("src/domain/websitePublishing.js", "utf8");
@@ -37,8 +38,8 @@ const checks = [
   ["native development build workflow", fs.existsSync(".github/workflows/native-development-build.yml")],
   ["SDK57 calendar legacy import", controllerSource.includes('import * as Calendar from "expo-calendar/legacy";')],
   ["SDK54 Snack calendar rewrite", snackPublisherSource.includes('expo-calendar/legacy') && snackPublisherSource.includes('expo-calendar";')],
-  ["V3.49 public website origin", fs.existsSync("supabase/functions/busy-website-origin/index.ts")],
-  ["V3.49 Cloudflare router Worker", fs.existsSync("cloudflare/busy-website-router/worker.js")],
+  ["V3.50 public website origin", fs.existsSync("supabase/functions/busy-website-origin/index.ts")],
+  ["V3.50 Cloudflare router Worker", fs.existsSync("cloudflare/busy-website-router/worker.js")],
   ["website origin is public edge function", supabaseConfigSource.includes("[functions.busy-website-origin]") && supabaseConfigSource.includes("verify_jwt = false")],
   ["BUSY production root domain", websiteProviderSource.includes("busydoesit.co.uk")],
   ["Cloudflare automated platform bootstrap", websiteProviderSource.includes("bootstrapPlatform") && websiteProviderSource.includes("uploadRouterWorker")],
@@ -51,6 +52,13 @@ const checks = [
   ["V3.49 immediate provider reconciliation is tenant-targeted", websiteProviderSource.includes("reserveDefaultHostnames(websiteId") && websiteProviderSource.includes('websiteQuery.eq("id", websiteId)')],
   ["V3.49 owner Go Live journey", websitePublishingDomainSource.includes("goLiveJourney") && websitePublishingDomainSource.includes("live_healthy")],
   ["V3.49 Go Live UI is owner-facing", websitePublishingScreenSource.includes("One approval • automatic delivery checks") && websitePublishingScreenSource.includes("Open public BUSY website")],
+  ["V3.50 verified domains auto-provision", websiteProviderSource.includes("findProviderHostname") && websiteProviderSource.includes('in("status", ["verified", "active"])') && websiteProviderSource.includes("provisionDomain(domain.id)")],
+  ["V3.50 custom hostname recovery is idempotent", websiteProviderSource.includes("custom_hostnames?hostname=") && websiteProviderSource.includes("scheduled reconciliation will retry safely")],
+  ["V3.50 Cloudflare validation TXT variants supported", websiteProviderSource.includes("txt_value || record?.txt_record")],
+  ["V3.50 ownership continues into provider activation", websitePublishApiSource.includes("continueVerifiedDomainActivation") && websitePublishApiSource.includes("activation,")],
+  ["V3.50 customer-domain journey model", websitePublishingDomainSource.includes("customDomainStage") && websitePublishingDomainSource.includes("customDomainSteps") && websitePublishingDomainSource.includes("customDomainPublicAddress")],
+  ["V3.50 customer-domain UI is guided", websitePublishingScreenSource.includes("Your own domain • one ownership check") && websitePublishingScreenSource.includes("Check domain setup now") && websitePublishingScreenSource.includes("Open customer-owned website")],
+  ["V3.50 custom domain becomes preferred public address", controllerSource.includes("primaryPublicAddress?.url") && controllerSource.includes("openCustomWebsiteDomain")],
   ["Cloudflare root routes excluded", websiteProviderSource.includes("ensureWorkerRoutes") && websiteProviderSource.includes("www.")],
   ["health checks bypass website edge cache", websiteRouterSource.includes("BUSY-Website-Health/") && websiteProviderSource.includes("BUSY-Website-Health/")],
   ["website origin rejects storage traversal", websiteOriginSource.includes('part === ".."') && websiteOriginSource.includes("busy-website-public")],
