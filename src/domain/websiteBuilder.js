@@ -1,3 +1,5 @@
+import { syncWebsitePageModel } from "./websiteManagement";
+
 function clean(value = "") {
   return String(value || "").trim();
 }
@@ -36,7 +38,7 @@ function themeFromBrief(brief = {}) {
     mood,
     primary: colours[0] || "",
     secondary: colours[1] || "",
-    layout: "single-page",
+    layout: "multi-page-ready",
     heroSize: "large",
     spacing: "comfortable",
   };
@@ -163,6 +165,9 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null } = {}) {
     status: "Draft",
     publicStatus: "Not published",
     businessName: clean(brief.businessName),
+    businessType: clean(brief.businessType),
+    serviceArea: clean(brief.serviceArea),
+    description: clean(brief.description),
     slug: slugify(brief.businessName),
     generatedAt: previousDraft?.generatedAt || now,
     updatedAt: now,
@@ -175,6 +180,8 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null } = {}) {
         ? `${clean(brief.businessName)} | ${clean(brief.businessType) || "Local business"}`
         : "",
       description: clean(brief.description).slice(0, 160),
+      pages: {},
+      schemaType: "LocalBusiness",
     },
     readiness: {
       websiteReady: !!brandBrain.websiteReady,
@@ -199,9 +206,10 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null } = {}) {
     },
   };
 
+  const modelled = syncWebsitePageModel(draft);
   return {
-    ...draft,
-    html: renderWebsiteHtml(draft),
+    ...modelled,
+    html: renderWebsiteHtml(modelled),
   };
 }
 
@@ -210,10 +218,11 @@ function sectionIndex(draft = {}, id = "") {
 }
 
 function withHtml(draft = {}) {
+  const modelled = syncWebsitePageModel(draft);
   return {
-    ...draft,
+    ...modelled,
     updatedAt: new Date().toISOString(),
-    html: renderWebsiteHtml(draft),
+    html: renderWebsiteHtml(modelled),
   };
 }
 
@@ -291,7 +300,7 @@ function applyWebsiteInstruction(draft = {}, instruction = "") {
     return {
       applied: false,
       reason:
-        "BUSY understood this as a website request, but V3.35 only applies safe layout/style/section changes automatically. The wording request can stay in the conversation for the next editing pass.",
+        "BUSY understood this as a website request, but this safe editor only applies supported layout/style/section changes automatically. The wording request can stay in the conversation for a richer editing pass.",
       draft,
     };
   }
