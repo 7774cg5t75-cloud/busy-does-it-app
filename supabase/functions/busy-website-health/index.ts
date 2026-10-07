@@ -34,7 +34,7 @@ async function validRequest(request: Request) {
   return supplied === token.data.value;
 }
 
-async function fetchWithDeadline(url: string, timeoutMs = 8000) {
+async function fetchWithDeadline(url: string, timeoutMs = 6000) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   const started = Date.now();
@@ -244,18 +244,41 @@ async function checkWebsite(website: any) {
     .in("routing_status", ["validating", "active"]);
   if (domains.error) throw domains.error;
 
-  const domainResults = [];
-  let maxDomainFailureStreak = 0;
-  for (const domain of domains.data || []) {
-    domainResults.push(
-      await recordCheck({
+  const domainRows = domains.data || [];
+  const defaultEligible =
+    !!website.default_url &&
+    ["reserved", "provisioning", "active", "degraded"].includes(
+      clean(website.delivery_status, 80)
+    );
+
+  // After the immutable live alias has been checked, independent public
+  // addresses are probed concurrently. This bounds wall-clock time when a
+  // tenant has both a BUSY address and one or more custom domains.
+  const routeChecks = await Promise.all([
+    defaultEligible
+      ? recordCheck({
+          website,
+          targetType: "default_domain",
+          url: website.default_url,
+        })
+      : Promise.resolve(null),
+    ...domainRows.map((domain: any) =>
+      recordCheck({
         website,
         domain,
         targetType: "custom_domain",
         url: `https://${domain.hostname}/`,
       })
-    );
-    const domainResult = domainResults.at(-1);
+    ),
+  ]);
+
+  const defaultResult: any = routeChecks[0];
+  const domainResults = routeChecks.slice(1);
+  let maxDomainFailureStreak = 0;
+
+  for (let index = 0; index < domainRows.length; index += 1) {
+    const domain = domainRows[index];
+    const domainResult: any = domainResults[index];
     const streak =
       domainResult?.status === "healthy"
         ? 0
@@ -313,9 +336,6 @@ async function checkWebsite(website: any) {
       domainUpdate.status = "active";
       domainUpdate.activated_at = domain.activated_at || checkedAt;
     } else if (streak >= 2) {
-      // One transient failure never takes a known-good custom domain out of
-      // service. Two consecutive failures move it back to verification so the
-      // BUSY default address can remain the safe fallback.
       domainUpdate.routing_status = "validating";
     }
     await supabase
@@ -324,23 +344,12 @@ async function checkWebsite(website: any) {
       .eq("id", domain.id);
   }
 
-  let defaultResult: any = null;
   let defaultFailureStreak = 0;
-  if (
-    website.default_url &&
-    ["reserved", "provisioning", "active", "degraded"].includes(clean(website.delivery_status, 80))
-  ) {
-    defaultResult = await recordCheck({
-      website,
-      targetType: "default_domain",
-      url: website.default_url,
-    });
-    if (defaultResult?.status !== "healthy") {
-      defaultFailureStreak = await failureStreak(
-        website.id,
-        "default_domain"
-      );
-    }
+  if (defaultResult?.status && defaultResult.status !== "healthy") {
+    defaultFailureStreak = await failureStreak(
+      website.id,
+      "default_domain"
+    );
   }
 
   const preserveKnownGoodLive =
