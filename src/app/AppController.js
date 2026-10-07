@@ -1569,7 +1569,7 @@ function App() {
     });
   };
 
-  const setBookingStatus = (customerId, bookingStatus) => {
+  const setBookingStatus = async (customerId, bookingStatus) => {
     const actionBefore = replyActions[customerId];
     updateReplyAction(customerId, (action) => ({
       ...action,
@@ -1609,6 +1609,33 @@ function App() {
         : "",
       value: actionBefore?.details?.sourceQuoteAmount || actionBefore?.details?.jobValue || "",
     });
+
+    const sourceMiniAppRequestId =
+      actionBefore?.details?.sourceMiniAppRequestId || "";
+    if (sourceMiniAppRequestId && bookingStatus === "Confirmed") {
+      try {
+        const linked = await miniAppsRequest("mark_request_linked", {
+          requestId: sourceMiniAppRequestId,
+          customerRecordId: customerId,
+          actionRecordId: `miniapp-booking-${sourceMiniAppRequestId}`,
+          bridgeState: "booking_confirmed",
+          metadata: {
+            bookingDate: actionBefore?.details?.bookingDate || "",
+            bookingTime: actionBefore?.details?.bookingTime || "",
+          },
+        });
+        applyMiniAppsStatus(linked);
+        setMiniAppsNotice(
+          "BUSY confirmed the diary booking and updated the customer's Mini App request status."
+        );
+      } catch (error) {
+        setMiniAppsError(
+          error?.message ||
+            "The booking was confirmed in BUSY, but the Mini App request status could not be updated."
+        );
+      }
+    }
+    setTimeout(() => saveBusinessCloud({ quiet: true }), 250);
   };
 
   const markBookingCompleted = (customerId, jobValue, completionNote = "") => {
