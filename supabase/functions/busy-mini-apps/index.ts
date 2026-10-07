@@ -1006,6 +1006,13 @@ function sanitiseAppPlan(
     .map(safeOffer)
     .filter((item: any) => item.title && item.body)
     .filter((item: any) => {
+      if (
+        item.startDate &&
+        item.endDate &&
+        item.endDate < item.startDate
+      ) {
+        return false;
+      }
       const key = `${item.title.toLowerCase()}|${item.body.toLowerCase()}|${item.terms.toLowerCase()}|${item.startDate}|${item.endDate}`;
       if (existingOfferKeys.has(key)) return true;
       const parts = [item.title, item.body, item.terms]
@@ -1408,7 +1415,7 @@ function changeSummary(previous: any, next: any) {
     items.push({ type, label: clean(label, 240) });
 
   if (!previous) {
-    add("added", "Created first BUSY Mini App");
+    add("added", "Created first BUSY Business App");
   } else {
     if (clean(previous?.display?.name) !== clean(next?.display?.name)) {
       add("changed", "Business/app name");
@@ -1436,6 +1443,18 @@ function changeSummary(previous: any, next: any) {
         );
       }
     }
+    if (
+      JSON.stringify(safeArray(previous?.offers)) !==
+      JSON.stringify(safeArray(next?.offers))
+    ) {
+      add("changed", "Offers");
+    }
+    if (
+      JSON.stringify(safeLoyalty(previous?.loyalty || {})) !==
+      JSON.stringify(safeLoyalty(next?.loyalty || {}))
+    ) {
+      add("changed", "Loyalty programme");
+    }
   }
 
   const counts = {
@@ -1447,10 +1466,10 @@ function changeSummary(previous: any, next: any) {
   return {
     headline:
       items.length === 0
-        ? "No material Mini App change"
+        ? "No material Business App change"
         : items.length === 1
         ? items[0].label
-        : `${items.length} Mini App changes`,
+        : `${items.length} Business App changes`,
     items,
     counts,
   };
@@ -2002,7 +2021,7 @@ function publicMiniAppWebHtml(app: any, version: any) {
                   : ""
               }</article>`
           )
-          .join("")}</div><p id="busy-no-active-offers" class="muted" hidden>No offer is active today.</p><script>(function(){var today=new Date().toISOString().slice(0,10);var cards=[].slice.call(document.querySelectorAll(".busy-offer"));var shown=0;cards.forEach(function(card){var start=card.getAttribute("data-start")||"";var end=card.getAttribute("data-end")||"";var active=(!start||today>=start)&&(!end||today<=end);card.hidden=!active;if(active)shown+=1;});var empty=document.getElementById("busy-no-active-offers");if(empty)empty.hidden=shown>0;})();</script></div></section>`
+          .join("")}</div><p id="busy-no-active-offers" class="muted" hidden>No offer is active today.</p><script>(function(){var now=new Date();var today=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");var cards=[].slice.call(document.querySelectorAll(".busy-offer"));var shown=0;cards.forEach(function(card){var start=card.getAttribute("data-start")||"";var end=card.getAttribute("data-end")||"";var active=(!start||today>=start)&&(!end||today<=end);card.hidden=!active;if(active)shown+=1;});var empty=document.getElementById("busy-no-active-offers");if(empty)empty.hidden=shown>0;})();</script></div></section>`
       : `<section id="offers"><div class="wrap"><p class="eyebrow">Offers</p><h2>Offers</h2><p>No approved public offer is currently published.</p></div></section>`
     : "";
 
@@ -2056,7 +2075,7 @@ function publicMiniAppWebHtml(app: any, version: any) {
   ${loyaltyHtml}
   ${contactHtml}
   ${actionHtml}
-  <footer>Powered by <strong>BUSY DOES IT</strong> • Public information from the business's approved live Mini App.</footer>
+  <footer>Powered by <strong>BUSY DOES IT</strong> • Public information from the business's approved live Business App.</footer>
   <script>
     (function () {
       "use strict";
