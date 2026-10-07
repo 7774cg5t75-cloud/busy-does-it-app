@@ -6,6 +6,8 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const SOURCE_BUCKET = "busy-social-media";
 const PREVIEW_BUCKET = "busy-website-preview";
 const PUBLIC_BUCKET = "busy-website-public";
+const PROVIDER_URL = `${SUPABASE_URL}/functions/v1/busy-website-provider`;
+const HEALTH_URL = `${SUPABASE_URL}/functions/v1/busy-website-health`;
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
@@ -875,6 +877,74 @@ async function failJob(
   }
 }
 
+async function internalPost(url: string, body: Record<string, unknown>) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(
+      data?.error || `BUSY internal website service returned ${response.status}.`
+    );
+  }
+  return data;
+}
+
+async function verifyPublicDelivery(websiteId: string) {
+  const result: any = {
+    providerReserved: false,
+    healthChecked: false,
+    defaultAddressHealthy: false,
+    errors: [],
+  };
+
+  try {
+    const provider = await internalPost(PROVIDER_URL, {
+      action: "reserve_default_hostnames",
+    });
+    result.providerReserved = provider?.configured !== false;
+    result.reserved = Number(provider?.reserved || 0);
+    result.promoted = Number(provider?.promoted || 0);
+  } catch (error) {
+    result.errors.push(
+      error instanceof Error ? error.message : "BUSY address reservation check failed."
+    );
+  }
+
+  try {
+    const health = await internalPost(HEALTH_URL, {
+      websiteId,
+      limit: 1,
+    });
+    const check = Array.isArray(health?.results) ? health.results[0] : null;
+    result.healthChecked = !!check;
+    result.defaultAddressHealthy = check?.defaultDomain?.status === "healthy";
+    result.liveAliasHealthy = check?.live?.status === "healthy";
+  } catch (error) {
+    result.errors.push(
+      error instanceof Error ? error.message : "BUSY live delivery verification failed."
+    );
+  }
+
+  console.log(
+    "BUSY_WEBSITE_GO_LIVE_VERIFICATION",
+    JSON.stringify({
+      websiteId,
+      providerReserved: result.providerReserved,
+      healthChecked: result.healthChecked,
+      defaultAddressHealthy: result.defaultAddressHealthy,
+      liveAliasHealthy: result.liveAliasHealthy,
+      errorCount: result.errors.length,
+    })
+  );
+  return result;
+}
+
 async function succeedJob(job: any, messageId: number) {
   const now = new Date().toISOString();
   const completed = await supabase
@@ -937,7 +1007,18 @@ async function processMessage(message: any) {
       throw new Error("Unsupported website publish job.");
     }
     await succeedJob(job, message.msg_id);
-    return { ok: true, jobId, action: job.action };
+
+    const deliveryVerification =
+      job.action === "publish" || job.action === "rollback"
+        ? await verifyPublicDelivery(website.id)
+        : null;
+
+    return {
+      ok: true,
+      jobId,
+      action: job.action,
+      deliveryVerification,
+    };
   } catch (error) {
     await failJob(job, message.msg_id, error, deployment, website);
     return {
