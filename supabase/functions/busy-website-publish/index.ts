@@ -1037,6 +1037,31 @@ async function provisionDomainProvider(
   });
 }
 
+async function continueVerifiedDomainActivation(
+  businessId: string,
+  domainId: string
+) {
+  try {
+    return {
+      attempted: true,
+      provider: await provisionDomainProvider(businessId, domainId),
+      error: "",
+    };
+  } catch (error) {
+    // Ownership verification is an independent fact. Do not turn a temporary
+    // provider problem into a false "verification failed" result; the
+    // scheduled provider reconciler can safely continue from here.
+    return {
+      attempted: true,
+      provider: null,
+      error:
+        error instanceof Error
+          ? error.message
+          : "BUSY could not continue custom-domain activation yet.",
+    };
+  }
+}
+
 async function refreshWebsiteSignals(businessId: string) {
   const website = await websiteForBusiness(businessId);
   if (!website?.id) throw new Error("Build the website before refreshing website signals.");
@@ -1129,9 +1154,15 @@ Deno.serve(async (request: Request) => {
     }
     if (action === "verify_domain") {
       const domainId = cleanText(body?.domainId, 80);
+      const verification = await verifyDomain(businessId, domainId);
+      const activation = verification.verified
+        ? await continueVerifiedDomainActivation(businessId, domainId)
+        : { attempted: false, provider: null, error: "" };
       return json(200, {
         ok: true,
-        ...(await verifyDomain(businessId, domainId)),
+        ...verification,
+        activation,
+        status: await websiteStatus(businessId),
       });
     }
     if (action === "provision_domain") {
