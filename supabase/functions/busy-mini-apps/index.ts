@@ -707,6 +707,7 @@ async function ownerStatus(businessId: string) {
       versions: [],
       requests: [],
       requestLinks: [],
+      requestCount30: 0,
       entrySummary: [],
       catalog,
       publicProfile: profile,
