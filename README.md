@@ -2,6 +2,20 @@
 
 Busy Does It mobile app prototype.
 
+## v3.44 Public Mini App Web Experience
+- QR/share entry is now **web-first**: customers can browse the current live Mini App in a normal mobile browser without installing BUSY or signing in.
+- Publishing a Mini App now renders an immutable public-safe HTML artifact from the exact approved live Mini App version and writes both a long-cache version path and a short-cache live alias.
+- Rollback rewrites the live alias from the previously published immutable version, so the web experience follows the same known-good version as the native Mini App.
+- Public browsing reads a static Storage/CDN artifact. BUSY AI, private Business Brain data, customer records and the operational business snapshot are not on the normal page-render path.
+- Public modules include approved business profile, services, gallery, contact details and an honest empty state for Offers when no approved offer exists.
+- Enquiry and booking CTAs do not create anonymous requests in V3.44. They preserve the exact business + intended action and hand off to BUSY's authenticated request flow.
+- Signed-out native users retain the intended enquiry/booking action through sign-in, as well as the business slug.
+- The 30-day funnel keeps **web views → action attempts → authenticated BUSY opens → genuine requests** distinct; a scan/view is never promoted into a lead or booking.
+- Entry analytics remain bounded daily counters, not per-visitor browsing records.
+- Marketplace discoverability and exact-link access remain separate. A live unlisted Mini App can still be reached from the owner's exact QR/share link.
+- Cloudflare remains deferred. The current public web artifact uses BUSY's existing Supabase Storage/CDN and stable link function.
+- App Store/Play Store fallback and verified guest enquiry/booking submission remain later controlled steps.
+
 ## v3.43 Mini App Direct Customer Entry
 - Adds a dedicated **Share Mini App** centre for each live BUSY Mini App, including an in-app QR code, share sheet and direct-link test path.
 - QR and shared links use a stable BUSY-hosted HTTPS landing URL backed by the new public `busy-mini-app-link` Edge Function. Cloudflare is not required for this stage.
