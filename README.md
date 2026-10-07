@@ -3,12 +3,14 @@
 Busy Does It mobile app prototype.
 
 ## v3.46 Production Domains & Hosting Activation
-- BUSY now has a first-party production root domain: `busydoesit.co.uk`. Tenant-safe default website addresses use `sites.busydoesit.co.uk` unless a future environment override deliberately changes the platform hostname.
+- BUSY now has a first-party production root domain: `busydoesit.co.uk`. Tenant-safe default website addresses are first-level hostnames such as `site-business-1234.busydoesit.co.uk`, while `sites.busydoesit.co.uk` is reserved as the friendly Cloudflare-for-SaaS CNAME target for customer-owned domains.
 - Cloudflare account activation is no longer treated as a blind external checkbox. The website-provider service now performs a public DNS preflight against the root domain and can independently tell whether the authoritative nameservers have moved to Cloudflare.
 - The preflight separately checks whether the BUSY website base hostname is actually resolving. Nameserver propagation, Cloudflare-for-SaaS credentials, routing DNS and real deployment health remain separate truths.
 - Website status now exposes the platform preflight to the owner UI, so BUSY can show **nameservers propagating**, **SaaS setup required**, **routing DNS required** and **ready for customer domains** without pretending a later stage is complete.
 - Existing provider-neutral routing, SSL and health boundaries remain intact: a Cloudflare custom hostname is not considered live until BUSY's health checker observes the expected live deployment through the public hostname.
-- The remaining account-owner steps are deliberately narrow: wait for the registrar nameserver change to become active, enable Cloudflare for SaaS / Custom Hostnames, then place the restricted API token, SaaS Zone ID and managed CNAME target into server secrets. No Cloudflare secret is committed to the app or repository.
+- V3.46 now also includes the production routing layer that will be activated after the account credentials are connected: a Cloudflare Worker routes both BUSY-owned hostnames and Cloudflare-for-SaaS custom hostnames to a public-safe Supabase origin resolver, which serves only the current approved live static deployment.
+- The platform bootstrap is designed to be automated once the restricted Cloudflare credentials are present: BUSY can create the dummy proxied fallback origin, the friendly `sites.busydoesit.co.uk` CNAME target, the wildcard BUSY DNS record, the fallback-origin setting, the routing Worker, and the wildcard Worker route without manual per-business setup.
+- The remaining account-owner steps are deliberately narrow: wait for the registrar nameserver change to become active, enable Cloudflare for SaaS / Custom Hostnames, then place the restricted API token, Zone ID and Account ID into server secrets. No Cloudflare secret is committed to the app or repository.
 
 ## v3.45 Guest Mini App Requests
 - Customers can now submit **enquiries and booking requests directly from the public web Mini App** without installing BUSY or signing into a BUSY account.
