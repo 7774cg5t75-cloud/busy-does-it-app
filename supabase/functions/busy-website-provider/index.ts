@@ -620,12 +620,13 @@ function requiredRecords(domain: any, result: any) {
   for (const record of Array.isArray(result?.ssl?.validation_records)
     ? result.ssl.validation_records
     : []) {
-    if (record?.txt_name && record?.txt_value) {
+    const txtValue = clean(record?.txt_value || record?.txt_record, 2000);
+    if (record?.txt_name && txtValue) {
       add({
         purpose: "ssl_certificate_validation",
         type: "TXT",
         name: clean(record.txt_name, 500),
-        value: clean(record.txt_value, 2000),
+        value: txtValue,
       });
     }
     if (record?.cname && record?.cname_target) {
@@ -719,6 +720,21 @@ async function providerDetails(providerHostnameId: string) {
   );
 }
 
+async function findProviderHostname(hostname: string) {
+  const result = await cfRequest(
+    `/zones/${encodeURIComponent(CLOUDFLARE_ZONE_ID)}/custom_hostnames?hostname=${encodeURIComponent(
+      hostname
+    )}&per_page=5`
+  );
+  const rows = Array.isArray(result) ? result : [];
+  return (
+    rows.find(
+      (item: any) =>
+        clean(item?.hostname, 300).toLowerCase() === hostname.toLowerCase()
+    ) || null
+  );
+}
+
 async function provisionDomain(domainId: string) {
   const config = providerConfig();
   const domain = await loadDomain(domainId);
@@ -733,28 +749,34 @@ async function provisionDomain(domainId: string) {
   if (domain.provider_hostname_id) {
     result = await providerDetails(domain.provider_hostname_id);
   } else {
-    result = await cfRequest(
-      `/zones/${encodeURIComponent(CLOUDFLARE_ZONE_ID)}/custom_hostnames`,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          hostname: domain.hostname,
-          ssl: {
-            method: "txt",
-            type: "dv",
-            settings: { min_tls_version: "1.2" },
-          },
-        }),
-      }
-    );
+    // Recover idempotently if Cloudflare already has the hostname but BUSY did
+    // not persist the provider id because a previous request was interrupted.
+    result = await findProviderHostname(domain.hostname);
 
-    // Cloudflare notes that validation records can be absent from the initial
-    // POST response. A follow-up GET is therefore the canonical source.
+    if (!result) {
+      result = await cfRequest(
+        `/zones/${encodeURIComponent(CLOUDFLARE_ZONE_ID)}/custom_hostnames`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            hostname: domain.hostname,
+            ssl: {
+              method: "txt",
+              type: "dv",
+              settings: { min_tls_version: "1.2" },
+            },
+          }),
+        }
+      );
+    }
+
+    // Cloudflare can omit later validation details from the creation response.
+    // Fetch the canonical hostname state whenever we have an id.
     if (result?.id) {
       try {
         result = await providerDetails(result.id);
       } catch {
-        // Keep the creation response; the scheduled sync will retry details.
+        // Keep the previous result; scheduled reconciliation will retry safely.
       }
     }
   }
@@ -771,7 +793,10 @@ async function provisionDomain(domainId: string) {
 }
 
 async function syncDomain(domain: any) {
-  if (!domain.provider_hostname_id) return null;
+  if (!domain.provider_hostname_id) {
+    const provisioned = await provisionDomain(domain.id);
+    return provisioned?.domain || null;
+  }
   const result = await providerDetails(domain.provider_hostname_id);
   return await saveProviderState(domain, result);
 }
@@ -795,8 +820,8 @@ async function syncDomains(limit = 40) {
   const domains = await supabase
     .from("busy_website_domains")
     .select("*")
-    .eq("routing_provider", "cloudflare_saas")
-    .not("provider_hostname_id", "is", null)
+    .in("status", ["verified", "active"])
+    .in("routing_provider", ["unassigned", "cloudflare_saas"])
     .order("last_checked_at", { ascending: true, nullsFirst: true })
     .limit(Math.min(100, Math.max(1, limit)));
   if (domains.error) throw domains.error;
