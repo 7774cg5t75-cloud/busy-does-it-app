@@ -235,9 +235,11 @@ function renderSectionHtml(
 function relativePageHref(currentPage: any, targetPath: string) {
   const target = clean(targetPath, 240) || "/";
   const currentIsHome = !currentPage || currentPage.id === "home";
-  if (target === "/") return currentIsHome ? "./" : "../";
+  if (target === "/") return currentIsHome ? "./index.html" : "../index.html";
   const segment = target.replace(/^\/+|\/+$/g, "");
-  return currentIsHome ? `./${segment}/` : `../${segment}/`;
+  return currentIsHome
+    ? `./${segment}/index.html`
+    : `../${segment}/index.html`;
 }
 
 function renderWebsiteHtml(
