@@ -1099,6 +1099,92 @@ async function runHealthCheck(businessId: string) {
   return data;
 }
 
+async function safeRecovery(businessId: string) {
+  const website = await websiteForBusiness(businessId);
+  if (!website?.id || !website?.current_live_deployment_id) {
+    throw new Error("Publish a website version before running hosting recovery.");
+  }
+
+  const actions: any[] = [];
+
+  try {
+    const platform = await internalWebsiteRequest(PROVIDER_URL, {
+      action: "reconcile_platform",
+    });
+    actions.push({
+      area: "platform",
+      ok: true,
+      status: platform?.activation?.status || "checked",
+    });
+  } catch (error) {
+    actions.push({
+      area: "platform",
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "BUSY platform routing check failed.",
+    });
+  }
+
+  const domain = await supabase
+    .from("busy_website_domains")
+    .select("id,status,routing_status,ssl_status")
+    .eq("business_id", businessId)
+    .eq("website_id", website.id)
+    .in("status", ["verified", "active"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (domain.error) throw domain.error;
+
+  if (domain.data?.id) {
+    try {
+      const provider = await internalWebsiteRequest(PROVIDER_URL, {
+        action: "provision_domain",
+        domainId: domain.data.id,
+      });
+      actions.push({
+        area: "custom_domain",
+        ok: true,
+        readyForHealthCheck: !!provider?.readyForHealthCheck,
+      });
+    } catch (error) {
+      actions.push({
+        area: "custom_domain",
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "BUSY custom-domain recovery could not complete yet.",
+      });
+    }
+  }
+
+  try {
+    const health = await runHealthCheck(businessId);
+    actions.push({
+      area: "health",
+      ok: true,
+      checked: Number(health?.checked || 0),
+    });
+  } catch (error) {
+    actions.push({
+      area: "health",
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "BUSY live-site recovery check failed.",
+    });
+  }
+
+  return {
+    ok: actions.some((item) => item.ok),
+    actions,
+  };
+}
+
 Deno.serve(async (request: Request) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (request.method !== "POST") return json(405, { error: "POST required" });
@@ -1115,6 +1201,7 @@ Deno.serve(async (request: Request) => {
       "request_domain",
       "verify_domain",
       "provision_domain",
+      "recover",
       "refresh_signals",
     ]);
     const member = await membership(
@@ -1178,6 +1265,13 @@ Deno.serve(async (request: Request) => {
       return json(200, {
         ok: true,
         provider: await provisionDomainProvider(businessId, domainId),
+        status: await websiteStatus(businessId),
+      });
+    }
+    if (action === "recover") {
+      return json(200, {
+        ok: true,
+        recovery: await safeRecovery(businessId),
         status: await websiteStatus(businessId),
       });
     }
