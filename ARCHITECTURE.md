@@ -15,8 +15,9 @@ This branch restructures the large single-file prototype into domain modules wit
 
 ### Activation truth model
 - **Nameservers active** means the root zone is authoritative on Cloudflare.
-- **Provider configured** means BUSY has the restricted Cloudflare API token, SaaS Zone ID and managed CNAME target in server secrets.
+- **Provider configured** means BUSY has the restricted Cloudflare API token and SaaS Zone ID. **Platform bootstrap ready** additionally requires the Cloudflare Account ID; the friendly CNAME target and fallback hostname are deterministic BUSY-owned public configuration, not secrets.
 - **Base hostname routable** means public DNS resolves the BUSY tenant website namespace.
+- **Routing Worker active** means the BUSY Worker script and wildcard `*/*` zone route are both present. More-specific no-Worker routes protect `busydoesit.co.uk/*` and `www.busydoesit.co.uk/*` from being swallowed by the SaaS router.
 - **Routing Worker active** means the BUSY Worker script and wildcard `*/*` zone route are both present.
 - **Fallback origin active** means Cloudflare for SaaS has accepted `origin.busydoesit.co.uk`; the record itself is intentionally originless/dummy because the Worker is the real application origin.
 - **Custom hostname active** still requires Cloudflare hostname/SSL state plus BUSY's independent health check to observe the expected deployment.
