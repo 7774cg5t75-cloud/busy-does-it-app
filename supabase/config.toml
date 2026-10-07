@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.busy-mini-app-guest]
 verify_jwt = false
+
+[functions.busy-website-origin]
+verify_jwt = false
