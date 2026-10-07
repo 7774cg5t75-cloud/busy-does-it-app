@@ -272,7 +272,6 @@ function App() {
     versions: [],
     requests: [],
     requestLinks: [],
-    messages: [],
     catalog: [],
     publicProfile: null,
   });
@@ -286,8 +285,17 @@ function App() {
   const [selectedBusyAppDetail, setSelectedBusyAppDetail] = useState(null);
   const [myBusyApps, setMyBusyApps] = useState([]);
   const [myBusyAppRequests, setMyBusyAppRequests] = useState([]);
-  const [myBusyAppMessages, setMyBusyAppMessages] = useState([]);
   const [myBusyAppsLoading, setMyBusyAppsLoading] = useState(false);
+  const [selectedMiniAppRequestRole, setSelectedMiniAppRequestRole] = useState("");
+  const [selectedMiniAppRequestDetail, setSelectedMiniAppRequestDetail] = useState(null);
+  const [miniAppRequestHistoryLoading, setMiniAppRequestHistoryLoading] = useState(false);
+  const [miniAppsNotificationStatus, setMiniAppsNotificationStatus] = useState({
+    state: "unknown",
+    activeDeviceCount: 0,
+    token: "",
+    message: "",
+  });
+  const [miniAppsNotificationAction, setMiniAppsNotificationAction] = useState("");
 
   const [quietSlot, setQuietSlot] = useState("Thursday afternoon");
   const [quietSlotConfirmed, setQuietSlotConfirmed] = useState(false);
@@ -6219,7 +6227,6 @@ function App() {
       versions: [],
       requests: [],
       requestLinks: [],
-      messages: [],
       catalog: [],
       publicProfile: null,
     });
@@ -6233,8 +6240,17 @@ function App() {
     setSelectedBusyAppDetail(null);
     setMyBusyApps([]);
     setMyBusyAppRequests([]);
-    setMyBusyAppMessages([]);
     setMyBusyAppsLoading(false);
+    setSelectedMiniAppRequestRole("");
+    setSelectedMiniAppRequestDetail(null);
+    setMiniAppRequestHistoryLoading(false);
+    setMiniAppsNotificationStatus({
+      state: "unknown",
+      activeDeviceCount: 0,
+      token: "",
+      message: "",
+    });
+    setMiniAppsNotificationAction("");
     setQuietSlot("Thursday afternoon");
     setQuietSlotConfirmed(false);
     setSelectedGap("");
@@ -9367,6 +9383,7 @@ function App() {
     workGoalFilled,
     businessMemoryChanges,
     proactiveNotices,
+    miniAppUnreadRequests: miniAppsView?.unreadRequests || [],
     previousCheckpoint: dailyCommandCheckpoint,
   });
 
@@ -9395,6 +9412,10 @@ function App() {
     }
     if (action.kind === "open-inbox") {
       openBusyInbox();
+      return true;
+    }
+    if (action.kind === "mini-app-request" && action.requestId) {
+      openOwnerMiniAppRequest(action.requestId);
       return true;
     }
     if (action.kind === "executive-priority") {
@@ -10514,8 +10535,16 @@ function App() {
     proactiveScheduleSignature,
   ]);
 
-  const handleProactiveNotificationRoute = (data = {}) => {
+  const handleProactiveNotificationRoute = async (data = {}) => {
     const route = String(data?.route || "");
+    if (route === "mini_app_request" && data.requestId) {
+      if (String(data?.role || "") === "customer") {
+        await openCustomerMiniAppRequest(String(data.requestId));
+      } else {
+        await openOwnerMiniAppRequest(String(data.requestId));
+      }
+      return true;
+    }
     if (route === "booking" && data.customerId) {
       openSavedReplyAction(data.customerId);
       return true;
@@ -10548,7 +10577,7 @@ function App() {
       if (identifier && notificationHandledRef.current === identifier) return;
       if (identifier) notificationHandledRef.current = identifier;
       const data = notification?.request?.content?.data || {};
-      handleProactiveNotificationRoute(data);
+      await handleProactiveNotificationRoute(data);
       appendProactiveNotificationLog({
         kind: "opened",
         title: notification?.request?.content?.title || "Notification opened",
@@ -11266,7 +11295,7 @@ function App() {
         pendingCustomerRequests: Number(miniAppsView?.pendingRequests?.length || 0),
         unlinkedCustomerRequests: Number(miniAppsView?.unlinkedPendingRequests?.length || 0),
         linkedCustomerRequests: Number(miniAppsView?.linkedRequests?.length || 0),
-        requestMessages: Number(miniAppsView?.messages?.length || 0),
+        businessUnreadMessages: Number(miniAppsView?.businessUnreadTotal || 0),
         bookingDraftRequests: Number(
           (miniAppsView?.requestLinks || []).filter(
             (item) => item.bridge_state === "booking_draft"
@@ -12866,7 +12895,6 @@ function App() {
       versions: Array.isArray(data?.versions) ? data.versions : [],
       requests: Array.isArray(data?.requests) ? data.requests : [],
       requestLinks: Array.isArray(data?.requestLinks) ? data.requestLinks : [],
-      messages: Array.isArray(data?.messages) ? data.messages : [],
       catalog: Array.isArray(data?.catalog) ? data.catalog : [],
       publicProfile: data?.publicProfile || null,
     });
@@ -13196,6 +13224,12 @@ function App() {
         status,
       });
       applyMiniAppsStatus(data);
+      if (
+        selectedMiniAppRequestDetail?.request?.id === requestId &&
+        selectedMiniAppRequestRole === "business"
+      ) {
+        await loadMiniAppRequestDetail(requestId, "business", { navigate: false });
+      }
       return true;
     } catch (error) {
       setMiniAppsError(error?.message || "BUSY could not update that request.");
@@ -13218,9 +13252,16 @@ function App() {
       setMyBusyAppRequests(
         Array.isArray(data?.requests) ? data.requests : []
       );
-      setMyBusyAppMessages(
-        Array.isArray(data?.messages) ? data.messages : []
-      );
+      const activeDeviceCount = Number(data?.notification?.activeDeviceCount || 0);
+      setMiniAppsNotificationStatus((current) => ({
+        ...current,
+        state: activeDeviceCount > 0 ? "enabled" : "disabled",
+        activeDeviceCount,
+        message:
+          activeDeviceCount > 0
+            ? `Request notifications are active on ${activeDeviceCount} device${activeDeviceCount === 1 ? "" : "s"}.`
+            : current.message || "Request notifications are not enabled on a device yet.",
+      }));
       return true;
     } catch (error) {
       setMiniAppsError(
@@ -13230,6 +13271,176 @@ function App() {
     } finally {
       if (!quiet) setMyBusyAppsLoading(false);
     }
+  };
+
+  const enableMiniAppNotifications = async () => {
+    if (productionBridgeRuntime.expoGoPreview) {
+      setMiniAppsNotificationStatus((current) => ({
+        ...current,
+        state: "needs_development_build",
+        message: "Remote request notifications are tested in the native development build. Unread badges still work in Expo Go.",
+      }));
+      return false;
+    }
+    if (!productionBridgeRuntime.easProjectId) {
+      setMiniAppsNotificationStatus((current) => ({
+        ...current,
+        state: "needs_eas_project",
+        message: "BUSY needs its EAS project link before this device can receive remote push.",
+      }));
+      return false;
+    }
+    setMiniAppsNotificationAction("enable");
+    try {
+      const existing = await Notifications.getPermissionsAsync();
+      let permission = existing?.status || "undetermined";
+      if (permission !== "granted") {
+        const requested = await Notifications.requestPermissionsAsync();
+        permission = requested?.status || "denied";
+      }
+      if (permission !== "granted") throw new Error("Notification permission was not granted.");
+      const expoToken = (
+        await Notifications.getExpoPushTokenAsync({
+          projectId: productionBridgeRuntime.easProjectId,
+        })
+      )?.data;
+      if (!expoToken) throw new Error("Expo did not return a push token.");
+      const data = await miniAppsRequest(
+        "register_notification_device",
+        {
+          expoPushToken: expoToken,
+          platform: Platform.OS,
+          appVersion: APP_VERSION,
+          deviceLabel: `${Platform.OS} BUSY Apps device`,
+        },
+        { includeBusiness: false }
+      );
+      const activeDeviceCount = Number(data?.notification?.activeDeviceCount || 0);
+      setMiniAppsNotificationStatus({
+        state: activeDeviceCount > 0 ? "enabled" : "disabled",
+        activeDeviceCount,
+        token: expoToken,
+        message: activeDeviceCount > 0
+          ? "This device will receive BUSY Apps request updates."
+          : "BUSY could not confirm this notification device.",
+      });
+      return activeDeviceCount > 0;
+    } catch (error) {
+      setMiniAppsNotificationStatus((current) => ({
+        ...current,
+        state: "error",
+        message: error?.message || "BUSY could not enable request notifications.",
+      }));
+      return false;
+    } finally {
+      setMiniAppsNotificationAction("");
+    }
+  };
+
+  const disableMiniAppNotifications = async () => {
+    if (productionBridgeRuntime.expoGoPreview || !productionBridgeRuntime.easProjectId) return false;
+    setMiniAppsNotificationAction("disable");
+    try {
+      let expoToken = miniAppsNotificationStatus.token || "";
+      if (!expoToken) {
+        const permission = await Notifications.getPermissionsAsync();
+        if (permission?.status !== "granted") throw new Error("This device has no active notification permission.");
+        expoToken = (
+          await Notifications.getExpoPushTokenAsync({
+            projectId: productionBridgeRuntime.easProjectId,
+          })
+        )?.data || "";
+      }
+      if (!expoToken) throw new Error("BUSY could not identify this device's push token.");
+      const data = await miniAppsRequest(
+        "disable_notification_device",
+        { expoPushToken: expoToken },
+        { includeBusiness: false }
+      );
+      const activeDeviceCount = Number(data?.notification?.activeDeviceCount || 0);
+      setMiniAppsNotificationStatus({
+        state: activeDeviceCount > 0 ? "enabled" : "disabled",
+        activeDeviceCount,
+        token: "",
+        message: activeDeviceCount > 0
+          ? `Notifications remain active on ${activeDeviceCount} other device${activeDeviceCount === 1 ? "" : "s"}.`
+          : "Request notifications are off on this device.",
+      });
+      return true;
+    } catch (error) {
+      setMiniAppsNotificationStatus((current) => ({
+        ...current,
+        message: error?.message || "BUSY could not disable request notifications on this device.",
+      }));
+      return false;
+    } finally {
+      setMiniAppsNotificationAction("");
+    }
+  };
+
+  const loadMiniAppRequestDetail = async (
+    requestId,
+    role,
+    { before = "", append = false, navigate = true } = {}
+  ) => {
+    if (!requestId) return false;
+    const ownerView = role === "business";
+    setMiniAppRequestHistoryLoading(true);
+    setMiniAppsError("");
+    try {
+      const data = await miniAppsRequest(
+        ownerView ? "owner_request_detail" : "customer_request_detail",
+        { requestId, before, limit: 30 },
+        { includeBusiness: ownerView }
+      );
+      if (data?.status) applyMiniAppsStatus(data);
+      const detail = data?.detail || null;
+      if (!detail?.request?.id) throw new Error("BUSY could not load that request conversation.");
+      setSelectedMiniAppRequestRole(ownerView ? "business" : "customer");
+      setSelectedMiniAppRequestDetail((current) => {
+        if (!append || current?.request?.id !== detail.request.id) return detail;
+        const messageMap = new Map(
+          [...(current.messages || []), ...(detail.messages || [])].map((item) => [item.id, item])
+        );
+        return {
+          ...detail,
+          messages: [...messageMap.values()],
+          events: Array.isArray(detail.events) ? detail.events : current.events || [],
+        };
+      });
+      if (ownerView) {
+        await refreshMiniAppsStatus({ quiet: true });
+      } else {
+        await loadMyBusyApps({ quiet: true });
+      }
+      if (navigate) {
+        setTab("Home");
+        go("miniAppRequestDetail");
+      }
+      return true;
+    } catch (error) {
+      setMiniAppsError(error?.message || "BUSY could not load that request conversation.");
+      return false;
+    } finally {
+      setMiniAppRequestHistoryLoading(false);
+    }
+  };
+
+  const openOwnerMiniAppRequest = (requestId) =>
+    loadMiniAppRequestDetail(requestId, "business");
+
+  const openCustomerMiniAppRequest = (requestId) =>
+    loadMiniAppRequestDetail(requestId, "customer");
+
+  const loadEarlierMiniAppRequestMessages = async () => {
+    const requestId = selectedMiniAppRequestDetail?.request?.id || "";
+    const before = selectedMiniAppRequestDetail?.nextBefore || "";
+    if (!requestId || !before) return false;
+    return await loadMiniAppRequestDetail(
+      requestId,
+      selectedMiniAppRequestRole || "customer",
+      { before, append: true, navigate: false }
+    );
   };
 
   const toggleBusyAppFavorite = async (slug, favorite) => {
@@ -13270,6 +13481,12 @@ function App() {
     try {
       const data = await miniAppsRequest("send_request_message", { requestId, message: body });
       applyMiniAppsStatus(data);
+      if (
+        selectedMiniAppRequestDetail?.request?.id === requestId &&
+        selectedMiniAppRequestRole === "business"
+      ) {
+        await loadMiniAppRequestDetail(requestId, "business", { navigate: false });
+      }
       setMiniAppsNotice("Message sent to the customer inside BUSY Apps.");
       return true;
     } catch (error) {
@@ -13288,6 +13505,12 @@ function App() {
     try {
       await miniAppsRequest("reply_request_message", { requestId, message: body }, { includeBusiness: false });
       await loadMyBusyApps({ quiet: true });
+      if (
+        selectedMiniAppRequestDetail?.request?.id === requestId &&
+        selectedMiniAppRequestRole === "customer"
+      ) {
+        await loadMiniAppRequestDetail(requestId, "customer", { navigate: false });
+      }
       setMiniAppsNotice("Reply sent to the business through BUSY.");
       return true;
     } catch (error) {
@@ -13513,6 +13736,12 @@ function App() {
           "BUSY linked this Mini App enquiry into the existing customer journey. Follow-up now uses the same BUSY customer record as other enquiries."
         );
       }
+      if (
+        selectedMiniAppRequestDetail?.request?.id === requestId &&
+        selectedMiniAppRequestRole === "business"
+      ) {
+        await loadMiniAppRequestDetail(requestId, "business", { navigate: false });
+      }
       setTimeout(() => saveBusinessCloud({ quiet: true }), 250);
       return true;
     } catch (error) {
@@ -13731,10 +13960,19 @@ function App() {
     selectedBusyAppDetail,
     myBusyApps,
     myBusyAppRequests,
-    myBusyAppMessages,
     myBusyAppsLoading,
+    selectedMiniAppRequestRole,
+    selectedMiniAppRequestDetail,
+    miniAppRequestHistoryLoading,
+    miniAppsNotificationStatus,
+    miniAppsNotificationAction,
     refreshMiniAppsStatus,
     loadMyBusyApps,
+    enableMiniAppNotifications,
+    disableMiniAppNotifications,
+    openOwnerMiniAppRequest,
+    openCustomerMiniAppRequest,
+    loadEarlierMiniAppRequestMessages,
     toggleBusyAppFavorite,
     sendMiniAppRequestMessage,
     replyBusyAppRequestMessage,
