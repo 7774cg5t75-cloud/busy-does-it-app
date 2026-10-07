@@ -2,6 +2,48 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.38 Website Delivery & Real-World Signals
+### Provider-neutral delivery boundary
+- BUSY stores generic delivery fields on `busy_websites` and `busy_website_domains`; Cloudflare-specific API shapes stay inside `busy-website-provider`.
+- Custom-domain lifecycle remains: BUSY ownership verification → provider provisioning → provider hostname state → certificate state → customer DNS → BUSY public deployment health.
+- Provider `active` plus SSL `active` is necessary but not sufficient for BUSY routing `active`. The public hostname must serve the expected `busy-deployment` marker.
+- Provider credentials never enter React Native, GitHub, public configuration or tenant tables. They belong in Supabase Edge Function secrets.
+
+### Cloudflare for SaaS adapter
+- Uses the Custom Hostnames API behind a private server-only Edge Function.
+- The provider's custom-hostname ID is persisted in `provider_hostname_id`; normalized status/error details live in `provider_status`.
+- Provider ownership/SSL validation records and the managed traffic CNAME are normalized into `required_records` so the app can explain exactly what the domain owner must configure.
+- Scheduled sync polls only provider-created hostnames. It never auto-creates an external hostname merely because a local domain record exists; owner/admin preparation remains deliberate.
+
+### Default BUSY addresses
+- `default_hostname` and `default_url` reserve tenant-safe BUSY-owned addresses.
+- The reserved hostname includes a business-specific suffix, so two businesses with the same trading name cannot collide.
+- V3.38 does not declare a reserved address live until the BUSY platform domain/routing layer is externally configured and health-verified.
+
+### Real traffic signals
+- `busy-website-signals` reads aggregated Cloudflare HTTP analytics and writes tenant-scoped daily rollups.
+- HTTP requests, Cloudflare visits, edge bytes, page views, unique visitors and enquiries are separate fields because they are not interchangeable measurements.
+- Cloudflare traffic is filtered back to known BUSY hostnames before tenant rows are written.
+- Provider aggregate result limits are surfaced as partial/error state rather than silently treating a truncated response as complete.
+
+### Usage/cost control
+- `busy_website_usage_daily` rolls up per-business delivery/deployment usage so pricing and fair-use decisions can be evidence-led.
+- `busy_refresh_website_usage_daily(date)` aggregates internal deployment/artifact/health usage with external request/visit/egress rollups.
+- A daily Cron refresh persists historical operational usage even when no app is open.
+
+### Enquiry attribution
+- `busy_website_enquiry_attributions` is the future join point between public website conversions and BUSY customer journeys.
+- It is intentionally not populated from generic traffic. A real approved public enquiry module/provider must emit the event.
+- Authenticated tenant members may read their own attribution rows; writes remain server-side.
+
+### Background operations
+- Website publish worker: every minute.
+- Website health: every five minutes.
+- Delivery-provider sync: every five minutes.
+- Traffic signals: hourly.
+- Usage rollup: daily.
+- Provider/signal workers use private internal tokens and return `configured:false` rather than failing when the external Cloudflare account gate has not been completed.
+
 ## V3.37 Live Website Management 2.0
 ### Structured multi-page model
 - `websiteDraft.pages` and `websiteDraft.navigation` are generated from the same approved section model as the editor.
