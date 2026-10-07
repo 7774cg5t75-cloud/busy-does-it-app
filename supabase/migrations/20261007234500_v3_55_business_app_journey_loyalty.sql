@@ -24,7 +24,7 @@ create table if not exists public.busy_mini_app_loyalty_events (
   awarded_by uuid references auth.users(id) on delete set null,
   idempotency_key text,
   created_at timestamptz not null default now(),
-  unique (mini_app_id, idempotency_key)
+  unique (mini_app_id, consumer_user_id, idempotency_key)
 );
 
 create index if not exists busy_mini_app_loyalty_progress_business_idx
@@ -119,6 +119,7 @@ begin
     select * into v_existing
     from public.busy_mini_app_loyalty_events
     where mini_app_id = p_mini_app_id
+      and consumer_user_id = p_consumer_user_id
       and idempotency_key = p_idempotency_key
     limit 1;
 
