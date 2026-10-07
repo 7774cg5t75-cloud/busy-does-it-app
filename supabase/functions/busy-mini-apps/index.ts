@@ -1093,15 +1093,70 @@ function publicMiniAppWebHtml(app: any, version: any) {
     ? `<section id="contact"><div class="wrap"><p class="eyebrow">Contact</p><h2>Get in touch</h2>${openingHours ? `<p>${escapeHtml(openingHours)}</p>` : ""}<div class="contacts">${contactItems}</div></div></section>`
     : "";
 
-  const actions: string[] = [];
+  const serviceListHtml = services
+    .map(
+      (service: any) =>
+        `<option value="${escapeHtml(service?.name || "")}"></option>`
+    )
+    .join("");
+
+  const guestForms: string[] = [];
   if (enabled.has("enquiry")) {
-    actions.push(`<a class="button" href="${escapeHtml(actionUrl("enquiry"))}">Send an enquiry</a>`);
+    guestForms.push(`
+      <form class="request-form" data-request-type="enquiry" novalidate>
+        <h3>Send an enquiry</h3>
+        <p class="form-note">No BUSY account needed. BUSY performs a short one-time browser check before sending.</p>
+        <div class="form-grid">
+          <label><span>Name</span><input name="name" maxlength="160" autocomplete="name" required></label>
+          <label><span>Email</span><input name="email" type="email" maxlength="240" autocomplete="email" placeholder="you@example.com"></label>
+          <label><span>Phone</span><input name="phone" type="tel" maxlength="80" autocomplete="tel" placeholder="Phone number"></label>
+        </div>
+        <label><span>Service (optional)</span><input name="service" maxlength="240" list="busy-service-list" placeholder="What is this about?"></label>
+        <label><span>Message</span><textarea name="message" maxlength="5000" rows="5" required placeholder="What would you like to ask?"></textarea></label>
+        <label class="hp" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+        <p class="trust-note">Use either email or phone so the business can respond. Contact details are supplied by you; the one-time check verifies the browser request, not ownership of the contact details.</p>
+        <button class="button request-submit" type="submit">Send enquiry</button>
+        <p class="form-status" aria-live="polite"></p>
+      </form>`);
   }
   if (enabled.has("booking_request")) {
-    actions.push(`<a class="button secondary" href="${escapeHtml(actionUrl("booking_request"))}">Request a booking</a>`);
+    guestForms.push(`
+      <form class="request-form" data-request-type="booking_request" novalidate>
+        <h3>Request a booking</h3>
+        <p class="form-note">Tell the business what you need. This is a request only — no diary slot is confirmed until the business accepts it.</p>
+        <div class="form-grid">
+          <label><span>Name</span><input name="name" maxlength="160" autocomplete="name" required></label>
+          <label><span>Email</span><input name="email" type="email" maxlength="240" autocomplete="email" placeholder="you@example.com"></label>
+          <label><span>Phone</span><input name="phone" type="tel" maxlength="80" autocomplete="tel" placeholder="Phone number"></label>
+        </div>
+        <label><span>Service</span><input name="service" maxlength="240" list="busy-service-list" required placeholder="Which service do you want?"></label>
+        <label><span>Preferred date or time</span><input name="preferredDate" maxlength="240" placeholder="e.g. Friday afternoon"></label>
+        <label><span>Anything else?</span><textarea name="note" maxlength="3000" rows="4" placeholder="Anything the business should know"></textarea></label>
+        <label class="hp" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+        <p class="trust-note">Use either email or phone so the business can respond. Contact details are supplied by you; the one-time check verifies the browser request, not ownership of the contact details.</p>
+        <button class="button request-submit" type="submit">Send booking request</button>
+        <p class="form-status" aria-live="polite"></p>
+      </form>`);
   }
-  const actionHtml = actions.length
-    ? `<section id="actions"><div class="wrap action-box"><p class="eyebrow">Ready to contact us?</p><h2>Continue securely in BUSY DOES IT</h2><p>You can browse this Mini App without installing anything. Enquiries and booking requests continue through BUSY so the request is attached to the right business and can be tracked safely.</p><div class="actions">${actions.join("")}</div></div></section>`
+
+  const actionHtml = guestForms.length
+    ? `<section id="actions"><div class="wrap action-box">
+        <p class="eyebrow">Contact this business</p>
+        <h2>Send a request without installing BUSY</h2>
+        <p>Choose the form you need. BUSY uses a short-lived browser challenge and rate limits to reduce automated spam, while the business still receives the request in its normal BUSY workflow.</p>
+        <datalist id="busy-service-list">${serviceListHtml}</datalist>
+        <div class="request-stack">${guestForms.join("")}</div>
+        <div id="guest-receipt" class="receipt" hidden>
+          <p class="eyebrow">Request receipt</p>
+          <h3 id="guest-receipt-title">Request sent</h3>
+          <p id="guest-receipt-copy"></p>
+          <div class="actions">
+            <button id="guest-status-refresh" class="button secondary" type="button">Check latest status</button>
+            <a class="button secondary" href="${escapeHtml(actionUrl("open"))}">Open this business in BUSY</a>
+          </div>
+          <p class="trust-note">This receipt is stored only in this browser. Keep the page or return on the same browser to check the latest request status.</p>
+        </div>
+      </div></section>`
     : "";
 
   const offersHtml = enabled.has("offers")
