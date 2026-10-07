@@ -372,12 +372,12 @@ function BusyAppsMarketplace({ s }) {
       <Card
         eyebrow="BUSY Apps marketplace"
         title="One place for small-business apps"
-        body="A customer can search a business name inside BUSY, open that business's Mini App, browse services and use enabled customer actions such as enquiry or booking request."
-        footer="V3.44 connects Mini Apps to real BUSY customer journeys while keeping one shared, controlled app platform."
+        body="A customer can search a business name inside BUSY, open that business's Business App, browse services and use enabled customer actions such as enquiry or booking request."
+        footer="V3.44 connects Business Apps to real BUSY customer journeys while keeping one shared, controlled app platform."
         tone="green"
       >
         <Button
-          label={s.miniAppsView?.app ? "Manage my business Mini App" : "Build my business Mini App"}
+          label={s.miniAppsView?.app ? "Manage my business Business App" : "Build my business Business App"}
           primary
           onPress={s.openMiniAppBuilder}
         />
@@ -401,7 +401,7 @@ function BusyAppsMarketplace({ s }) {
         }
         body={
           s.miniAppsNotificationStatus?.message ||
-          "BUSY can alert this device when a business replies or a customer updates a Mini App request."
+          "BUSY can alert this device when a business replies or a customer updates a Business App request."
         }
         footer="Notification taps open the exact request conversation. Expo Go keeps unread badges working but remote push is tested in the native development build."
         tone={Number(s.miniAppsNotificationStatus?.activeDeviceCount || 0) > 0 ? "green" : "blue"}
@@ -436,7 +436,7 @@ function BusyAppsMarketplace({ s }) {
             key={`mine-${item.id}`}
             eyebrow={item.favorite ? "Favourite BUSY App" : item.category || "BUSY App"}
             title={item.name || "Business"}
-            body={item.tagline || "Previously used BUSY Mini App"}
+            body={item.tagline || "Previously used BUSY Business App"}
             footer={[
               item.favorite ? "★ Favourite" : "",
               (s.myBusyAppRequests || []).reduce(
@@ -535,9 +535,9 @@ function BusyAppsMarketplace({ s }) {
         results.map((item) => (
           <Card
             key={item.id}
-            eyebrow={item.category || "BUSY Mini App"}
+            eyebrow={item.category || "BUSY Business App"}
             title={item.name || "Business"}
-            body={item.tagline || "Customer-facing BUSY Mini App"}
+            body={item.tagline || "Customer-facing BUSY Business App"}
             footer={
               [
                 item.serviceArea || "",
@@ -561,7 +561,7 @@ function BusyAppsMarketplace({ s }) {
         <Card
           eyebrow="Directory"
           title={s.busyAppsSearching ? "Searching…" : "No listed apps found"}
-          body="Only live Mini Apps that their business owner has explicitly approved for marketplace discovery appear here."
+          body="Only live Business Apps that their business owner has explicitly approved for marketplace discovery appear here."
           tone="blue"
         />
       )}
@@ -885,7 +885,7 @@ function MiniAppBuilder({ s }) {
       {s.miniAppsNotice ? (
         <Card
           eyebrow="Latest update"
-          title={view.statusLabel || "Mini App"}
+          title={view.statusLabel || "Business App"}
           body={s.miniAppsNotice}
           tone="blue"
         />
@@ -1108,6 +1108,24 @@ function MiniAppBuilder({ s }) {
                       />
                     ) : null}
 
+                    {link?.bridge_state === "booking_draft" ? (
+                      <Button
+                        label="Open BUSY booking to confirm"
+                        primary
+                        onPress={() =>
+                          s.openMiniAppLinkedBooking(request.id)
+                        }
+                      />
+                    ) : null}
+                    {link?.bridge_state === "booking_confirmed" ? (
+                      <Button
+                        label="Open confirmed BUSY booking"
+                        onPress={() =>
+                          s.openMiniAppLinkedBooking(request.id)
+                        }
+                      />
+                    ) : null}
+
                     {Number(request.business_unread_count || 0) > 0 ? (
                       <MetricRow
                         left="New customer activity"
@@ -1146,7 +1164,7 @@ function MiniAppBuilder({ s }) {
               <Card
                 key={version.id}
                 eyebrow={`Previously published • v${version.version_no}`}
-                title={version.change_label || "Mini App version"}
+                title={version.change_label || "Business App version"}
                 body="Immutable previously published configuration retained for rollback."
                 footer={readableDate(version.published_at, "Published previously")}
                 tone="blue"
@@ -1180,21 +1198,53 @@ function MiniAppPreview({ s }) {
   return (
     <Shell
       s={s}
-      title="Mini App Preview"
-      subtitle="Preview the controlled customer-facing configuration before anything changes publicly."
-      brandCue="V3.44 • preview only • reusable BUSY modules."
+      title="Customer Preview"
+      subtitle="See the Business App as a customer will see it before approving any public change."
+      brandCue="V3.55 • real customer experience • immutable preview • explicit owner Go Live."
     >
+      <Card
+        eyebrow="Customer view"
+        title="Review the experience, not the machinery"
+        body="Check the branding, services, imagery, offers, loyalty and customer actions below. BUSY will publish exactly this immutable version only if you approve Go Live."
+        footer="Opening this preview does not make anything public."
+        tone="green"
+      />
       {config ? (
         <MiniAppSurface config={config} />
       ) : (
         <Card
           eyebrow="Preview"
-          title="No Mini App draft yet"
-          body="Build the first Mini App draft before opening the preview."
+          title="No Business App draft yet"
+          body="Build the private Business App before opening the customer preview."
           tone="amber"
         />
       )}
-      <Button label="Back to Mini App Builder" primary onPress={() => s.go("miniAppBuilder")} />
+      {view.canPublish && view.previewVersion ? (
+        <Card
+          eyebrow="Owner approval"
+          title="Happy with what customers will see?"
+          body={`Business App v${view.previewVersion.version_no} is frozen and ready. Go Live will publish exactly this preview.`}
+          footer="Marketplace listing is a separate choice inside the approval dialog."
+          tone="amber"
+        >
+          <Button
+            label={
+              s.miniAppsAction === "publish"
+                ? "Publishing…"
+                : "Review & approve Go Live"
+            }
+            primary
+            disabled={!!s.miniAppsAction}
+            onPress={() =>
+              s.confirmPublishMiniApp(view.previewVersion.id)
+            }
+          />
+        </Card>
+      ) : null}
+      <Button
+        label="Back to Business App Builder"
+        onPress={() => s.go("miniAppBuilder")}
+      />
     </Shell>
   );
 }
@@ -1246,13 +1296,14 @@ function BusyAppDetail({ s }) {
   return (
     <Shell
       s={s}
-      title={detail?.app?.name || "BUSY Mini App"}
+      title={detail?.app?.name || "Business App"}
       subtitle="Customer-facing business app inside BUSY."
-      brandCue="V3.44 • live marketplace version."
+      brandCue="V3.55 • live Business App • customer requests • loyalty progress."
+
     >
       {detail?.entryIntent ? (
         <Card
-          eyebrow="From the web Mini App"
+          eyebrow="From the web Business App"
           title={
             detail.entryIntent === "booking_request"
               ? "Continue your booking request"
@@ -1260,17 +1311,24 @@ function BusyAppDetail({ s }) {
           }
           body={
             detail.entryIntent === "booking_request"
-              ? "BUSY kept the business and action you chose on the public web Mini App. Complete the request below; it is still only a request until the business confirms it."
-              : "BUSY kept the business and action you chose on the public web Mini App. Complete the enquiry below and it will go to the right business."
+              ? "BUSY kept the business and action you chose on the public web Business App. Complete the request below; it is still only a request until the business confirms it."
+              : "BUSY kept the business and action you chose on the public web Business App. Complete the enquiry below and it will go to the right business."
           }
           tone="green"
         />
       ) : null}
-      {config ? <MiniAppSurface config={config} interactive s={s} /> : null}
+      {config ? (
+        <MiniAppSurface
+          config={config}
+          interactive
+          s={s}
+          loyaltyProgress={detail?.loyaltyProgress || null}
+        />
+      ) : null}
       <Card
         eyebrow="My BUSY Apps"
         title={detail?.app?.favorite ? "★ Favourite" : "This app is saved to your history"}
-        body="Opening a BUSY Mini App automatically keeps it in My BUSY Apps so you can return without searching again."
+        body="Opening a BUSY Business App automatically keeps it in My BUSY Apps so you can return without searching again."
         footer="Favourites stay pinned above recently used apps."
         tone={detail?.app?.favorite ? "green" : "blue"}
       >
@@ -1390,16 +1448,16 @@ function MiniAppShareCentre({ s }) {
   return (
     <Shell
       s={s}
-      title="Share Mini App"
-      subtitle="Give customers an install-free web view of this business's live BUSY Mini App."
+      title="Share Business App"
+      subtitle="Give customers an install-free web view of this business's live BUSY Business App."
       brandCue="V3.45 • install-free guest enquiries & booking requests • browser challenge • bounded rate limits."
     >
       {view.hasLive && links.qr ? (
         <>
           <Card
             eyebrow="Customer QR code"
-            title={view.displayName || "Your BUSY Mini App"}
-            body="Customers can scan this code from a counter sign, van, leaflet, website or another phone and immediately browse the live Mini App in their web browser."
+            title={view.displayName || "Your BUSY Business App"}
+            body="Customers can scan this code from a counter sign, van, leaflet, website or another phone and immediately browse the live Business App in their web browser."
             footer="No BUSY install or sign-in is needed just to browse. The stable HTTPS QR can later gain App Store fallback without changing the printed code."
             tone="green"
           >
@@ -1413,7 +1471,7 @@ function MiniAppShareCentre({ s }) {
           <Card
             eyebrow="Direct entry"
             title="One business, one stable public slug"
-            body="Marketplace listing and exact-link access stay separate. The public web experience is rendered from the immutable live Mini App version, so unlisting the business from search does not break its owner-shared QR code."
+            body="Marketplace listing and exact-link access stay separate. The public web experience is rendered from the immutable live Business App version, so unlisting the business from search does not break its owner-shared QR code."
             footer={`Native route: ${links.native || "Not ready"}`}
             tone="blue"
           >
@@ -1434,7 +1492,7 @@ function MiniAppShareCentre({ s }) {
             body="BUSY keeps public web views, action attempts, authenticated app opens and genuine requests separate. A scan or page view is never counted as an enquiry or booking."
             tone="blue"
           >
-            <MetricRow left="Web Mini App views" right={String(webViewCount)} strong={webViewCount > 0} />
+            <MetricRow left="Web Business App views" right={String(webViewCount)} strong={webViewCount > 0} />
             <MetricRow left="Contact / booking attempts" right={String(actionIntentCount)} strong={actionIntentCount > 0} />
             <MetricRow left="Opened in BUSY" right={String(appOpenCount)} strong={appOpenCount > 0} />
             <MetricRow left="Genuine requests" right={String(requestCount)} strong={requestCount > 0} />
@@ -1448,8 +1506,8 @@ function MiniAppShareCentre({ s }) {
             title="Browse and contact the business without installing BUSY"
             body={
               view.guestWebReady
-                ? "V3.45 lets a customer submit an enquiry or booking request directly from the public web Mini App. BUSY uses a short-lived browser challenge, a hidden bot trap and server-side rate limits before the request enters the business workflow."
-                : "This live web artifact was published before V3.45 guest forms. Republish the current Mini App version through the normal owner approval flow to add guest enquiry and booking forms without changing the saved business content."
+                ? "V3.45 lets a customer submit an enquiry or booking request directly from the public web Business App. BUSY uses a short-lived browser challenge, a hidden bot trap and server-side rate limits before the request enters the business workflow."
+                : "This live web artifact was published before V3.45 guest forms. Republish the current Business App version through the normal owner approval flow to add guest enquiry and booking forms without changing the saved business content."
             }
             footer="The browser challenge reduces automated spam but does not prove ownership of the email address or phone number typed by the customer. Booking requests are still requests, never silent confirmed diary entries."
             tone="blue"
@@ -1457,14 +1515,14 @@ function MiniAppShareCentre({ s }) {
         </>
       ) : (
         <Card
-          eyebrow="Share Mini App"
-          title="Publish the Mini App first"
-          body="BUSY only creates customer entry links and QR codes for a genuinely live Mini App."
+          eyebrow="Share Business App"
+          title="Publish the Business App first"
+          body="BUSY only creates customer entry links and QR codes for a genuinely live Business App."
           tone="amber"
         />
       )}
 
-      <Button label="Back to Mini App Builder" onPress={() => s.go("miniAppBuilder")} />
+      <Button label="Back to Business App Builder" onPress={() => s.go("miniAppBuilder")} />
     </Shell>
   );
 }
@@ -1495,7 +1553,7 @@ function MiniAppRequestDetail({ s }) {
         ownerView
           ? guestWebRequest
             ? "Public web guest request"
-            : "Mini App customer conversation"
+            : "Business App customer conversation"
           : "Your conversation with this business"
       }
       brandCue="V3.45 • guest web requests • explicit identity assurance • safe owner follow-up."
@@ -1558,6 +1616,76 @@ function MiniAppRequestDetail({ s }) {
             ) : null}
           </Card>
 
+          {ownerView && link?.bridge_state === "booking_draft" ? (
+            <Card
+              eyebrow="BUSY booking"
+              title="Booking request linked • confirmation still required"
+              body="BUSY has created the draft booking from this customer request. Open it to choose/confirm the real diary date and time."
+              footer="The customer is not told the booking is confirmed until you confirm it in BUSY."
+              tone="amber"
+            >
+              <Button
+                label="Open BUSY booking to confirm"
+                primary
+                onPress={() => s.openMiniAppLinkedBooking(request.id)}
+              />
+            </Card>
+          ) : null}
+
+          {ownerView && link?.bridge_state === "booking_confirmed" ? (
+            <Card
+              eyebrow="BUSY booking"
+              title="Booking confirmed"
+              body="The linked BUSY booking is confirmed and the customer's Business App request has been updated to accepted."
+              tone="green"
+            >
+              <Button
+                label="Open confirmed BUSY booking"
+                onPress={() => s.openMiniAppLinkedBooking(request.id)}
+              />
+            </Card>
+          ) : null}
+
+          {detail.loyaltyProgress ? (
+            <Card
+              eyebrow="Loyalty"
+              title={
+                detail.loyaltyProgress.programName ||
+                "Customer loyalty progress"
+              }
+              body={
+                detail.loyaltyProgress.rewardReached
+                  ? `Reward reached: ${detail.loyaltyProgress.reward || "reward"}`
+                  : `${detail.loyaltyProgress.stamps || 0}/${detail.loyaltyProgress.targetStamps || 0} stamps • ${detail.loyaltyProgress.remaining || 0} to go`
+              }
+              footer={
+                detail.loyaltyProgress.terms ||
+                "The business records eligible stamps manually."
+              }
+              tone={detail.loyaltyProgress.rewardReached ? "green" : "blue"}
+            >
+              {ownerView ? (
+                <Button
+                  label={
+                    s.miniAppsAction === `loyalty:${request.id}`
+                      ? "Recording stamp…"
+                      : detail.loyaltyProgress.rewardReached
+                      ? "Reward target reached"
+                      : "Record 1 eligible loyalty stamp"
+                  }
+                  primary={!detail.loyaltyProgress.rewardReached}
+                  disabled={
+                    !!s.miniAppsAction ||
+                    !!detail.loyaltyProgress.rewardReached
+                  }
+                  onPress={() =>
+                    s.awardMiniAppLoyaltyStamp(request.id)
+                  }
+                />
+              ) : null}
+            </Card>
+          ) : null}
+
           <Text style={styles.sectionLabel}>{guestWebRequest && ownerView ? "Request activity" : "Conversation & request activity"}</Text>
           <Card
             eyebrow="Latest activity"
@@ -1584,7 +1712,7 @@ function MiniAppRequestDetail({ s }) {
               <Card
                 eyebrow="Guest follow-up"
                 title="Use the supplied contact details for replies"
-                body="This customer submitted from the public web Mini App without a BUSY account. V3.45 deliberately does not pretend an in-app message will reach them. Use the supplied email or phone while their browser receipt continues to show genuine request-status changes."
+                body="This customer submitted from the public web Business App without a BUSY account. V3.45 deliberately does not pretend an in-app message will reach them. Use the supplied email or phone while their browser receipt continues to show genuine request-status changes."
                 footer={request.contact_email || request.contact_phone || "No contact details supplied"}
                 tone="amber"
               />
@@ -1617,7 +1745,7 @@ function MiniAppRequestDetail({ s }) {
       )}
 
       <Button
-        label={ownerView ? "Back to Mini App Builder" : "Back to My BUSY Apps"}
+        label={ownerView ? "Back to Business App Builder" : "Back to My BUSY Apps"}
         onPress={() => (ownerView ? s.go("miniAppBuilder") : s.go("busyAppsMarketplace"))}
       />
     </Shell>
