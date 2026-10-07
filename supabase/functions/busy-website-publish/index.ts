@@ -918,6 +918,14 @@ async function requestDomain(
 ) {
   const hostname = normalizeHostname(body?.hostname);
   if (!validHostname(hostname)) throw new Error("Enter a valid custom domain, such as example.co.uk.");
+  if (
+    hostname === BUSY_ROOT_DOMAIN ||
+    hostname.endsWith(`.${BUSY_ROOT_DOMAIN}`)
+  ) {
+    throw new Error(
+      "BUSY platform hostnames are reserved. Connect a domain owned by this business instead."
+    );
+  }
 
   const website =
     (await websiteForBusiness(businessId)) ||
