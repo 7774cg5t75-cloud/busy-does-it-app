@@ -180,6 +180,265 @@ async function cfRequest(path: string, options: RequestInit = {}) {
   return body?.result;
 }
 
+async function cfAccountRequest(path: string, options: RequestInit = {}) {
+  if (!CLOUDFLARE_API_TOKEN || !CLOUDFLARE_ACCOUNT_ID) {
+    throw new Error("Cloudflare account id and API token are required for Worker deployment.");
+  }
+  const response = await fetch(`${CLOUDFLARE_API}${path}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
+      ...(options.headers || {}),
+    },
+  });
+  const body: any = await response.json().catch(() => ({}));
+  if (!response.ok || body?.success === false) {
+    const detail =
+      body?.errors?.map((item: any) => clean(item?.message, 500)).filter(Boolean).join(" • ") ||
+      `Cloudflare API returned ${response.status}.`;
+    throw new Error(detail);
+  }
+  return body?.result;
+}
+
+async function ensureDnsRecord(
+  type: "AAAA" | "CNAME",
+  name: string,
+  content: string,
+  proxied = true
+) {
+  const query = await cfRequest(
+    `/zones/${encodeURIComponent(CLOUDFLARE_ZONE_ID)}/dns_records?type=${encodeURIComponent(type)}&name=${encodeURIComponent(name)}`
+  );
+  const existing = Array.isArray(query) ? query[0] || null : null;
+  const payload = {
+    type,
+    name,
+    content,
+    proxied,
+    ttl: 1,
+  };
+  if (existing?.id) {
+    if (
+      clean(existing.content, 500).toLowerCase() === content.toLowerCase() &&
+      !!existing.proxied === proxied
+    ) {
+      return existing;
+    }
+    return await cfRequest(
+      `/zones/${encodeURIComponent(CLOUDFLARE_ZONE_ID)}/dns_records/${encodeURIComponent(existing.id)}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      }
+    );
+  }
+  return await cfRequest(
+    `/zones/${encodeURIComponent(CLOUDFLARE_ZONE_ID)}/dns_records`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }
+  );
+}
+
+function routerWorkerSource() {
+  return [
+    'const DEFAULT_ROOT_DOMAIN = "busydoesit.co.uk";',
+    'const DEFAULT_ORIGIN_URL = "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-website-origin";',
+    'function cleanHost(value){return String(value||"").trim().toLowerCase().replace(/\\.$/,"").replace(/:\\d+$/,"");}',
+    'function bypass(host,root){return host===root||host==="www."+root||host==="origin."+root||host==="sites."+root;}',
+    'function cacheable(response){if(!response||response.status!==200)return false;const t=response.headers.get("content-type")||"";return t.startsWith("text/html")||t.startsWith("text/css")||t.startsWith("application/javascript")||t.startsWith("image/");}',
+    'export default {async fetch(request,env,ctx){',
+    'const method=request.method.toUpperCase();if(method!=="GET"&&method!=="HEAD")return new Response("Method not allowed.",{status:405,headers:{Allow:"GET, HEAD"}});',
+    'const incoming=new URL(request.url);const host=cleanHost(incoming.hostname);const root=cleanHost(env.BUSY_ROOT_DOMAIN||DEFAULT_ROOT_DOMAIN);',
+    'if(bypass(host,root))return fetch(request);',
+    'const origin=String(env.BUSY_ORIGIN_URL||DEFAULT_ORIGIN_URL).trim();',
+    'const keyUrl=new URL("https://busy-edge-cache.invalid/");keyUrl.pathname="/"+encodeURIComponent(host)+incoming.pathname;',
+    'const key=new Request(keyUrl.toString(),{method:"GET",headers:{Accept:request.headers.get("Accept")||"*/*"}});',
+    'if(method==="GET"){const cached=await caches.default.match(key);if(cached){const h=new Headers(cached.headers);h.set("X-BUSY-Edge-Cache","HIT");return new Response(cached.body,{status:cached.status,statusText:cached.statusText,headers:h});}}',
+    'const target=new URL(origin);target.searchParams.set("host",host);target.searchParams.set("path",incoming.pathname||"/");',
+    'const upstream=await fetch(target.toString(),{method,headers:{Accept:request.headers.get("Accept")||"text/html,*/*;q=0.8","X-BUSY-Original-Host":host,"X-BUSY-Original-Path":incoming.pathname||"/","User-Agent":"BUSY-Cloudflare-Router/3.46"},cf:{cacheEverything:false}});',
+    'const headers=new Headers(upstream.headers);headers.set("X-BUSY-Edge","cloudflare-worker");headers.set("X-BUSY-Edge-Cache","MISS");headers.set("Vary","Accept-Encoding");',
+    'const response=new Response(upstream.body,{status:upstream.status,statusText:upstream.statusText,headers});',
+    'if(method==="GET"&&cacheable(response)){ctx.waitUntil(caches.default.put(key,response.clone()));}',
+    'return response;}};'
+  ].join("\n");
+}
+
+async function uploadRouterWorker() {
+  if (!providerConfig().bootstrapReady) {
+    throw new Error("Cloudflare account id, zone id and restricted API token are required before deploying the BUSY router.");
+  }
+  const form = new FormData();
+  form.append(
+    "metadata",
+    JSON.stringify({
+      main_module: "worker.js",
+      compatibility_date: "2026-10-07",
+      bindings: [
+        { type: "plain_text", name: "BUSY_ROOT_DOMAIN", text: BUSY_ROOT_DOMAIN },
+        { type: "plain_text", name: "BUSY_ORIGIN_URL", text: BUSY_WEBSITE_ORIGIN_URL },
+      ],
+    })
+  );
+  form.append(
+    "worker.js",
+    new Blob([routerWorkerSource()], { type: "application/javascript+module" }),
+    "worker.js"
+  );
+
+  return await cfAccountRequest(
+    `/accounts/${encodeURIComponent(CLOUDFLARE_ACCOUNT_ID)}/workers/scripts/${encodeURIComponent(CLOUDFLARE_ROUTER_SCRIPT)}`,
+    { method: "PUT", body: form }
+  );
+}
+
+async function ensureWorkerRoute() {
+  const routes = await cfRequest(
+    `/zones/${encodeURIComponent(CLOUDFLARE_ZONE_ID)}/workers/routes`
+  );
+  const existing = (Array.isArray(routes) ? routes : []).find(
+    (route: any) => clean(route?.pattern, 200) === "*/*"
+  );
+  if (existing?.id) {
+    if (clean(existing?.script, 200) !== CLOUDFLARE_ROUTER_SCRIPT) {
+      throw new Error(
+        "Cloudflare already has a different * /* Worker route. BUSY will not overwrite it automatically."
+      );
+    }
+    return existing;
+  }
+  return await cfRequest(
+    `/zones/${encodeURIComponent(CLOUDFLARE_ZONE_ID)}/workers/routes`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        pattern: "*/*",
+        script: CLOUDFLARE_ROUTER_SCRIPT,
+      }),
+    }
+  );
+}
+
+async function ensureFallbackOrigin() {
+  return await cfRequest(
+    `/zones/${encodeURIComponent(CLOUDFLARE_ZONE_ID)}/custom_hostnames/fallback_origin`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ origin: CLOUDFLARE_FALLBACK_ORIGIN }),
+    }
+  );
+}
+
+async function inspectPlatformProvider() {
+  const config = providerConfig();
+  if (!config.configured) {
+    return {
+      configured: false,
+      routerScriptReady: false,
+      routerRouteReady: false,
+      fallbackOriginStatus: "not_connected",
+    };
+  }
+
+  let fallback: any = null;
+  let routes: any[] = [];
+  try {
+    fallback = await cfRequest(
+      `/zones/${encodeURIComponent(CLOUDFLARE_ZONE_ID)}/custom_hostnames/fallback_origin`
+    );
+  } catch {}
+  try {
+    const result = await cfRequest(
+      `/zones/${encodeURIComponent(CLOUDFLARE_ZONE_ID)}/workers/routes`
+    );
+    routes = Array.isArray(result) ? result : [];
+  } catch {}
+
+  let routerScriptReady = false;
+  if (CLOUDFLARE_ACCOUNT_ID) {
+    try {
+      await cfAccountRequest(
+        `/accounts/${encodeURIComponent(CLOUDFLARE_ACCOUNT_ID)}/workers/scripts/${encodeURIComponent(CLOUDFLARE_ROUTER_SCRIPT)}`,
+        { method: "GET" }
+      );
+      routerScriptReady = true;
+    } catch {}
+  }
+
+  return {
+    configured: true,
+    routerScriptReady,
+    routerRouteReady: routes.some(
+      (route: any) =>
+        clean(route?.pattern, 200) === "*/*" &&
+        clean(route?.script, 200) === CLOUDFLARE_ROUTER_SCRIPT
+    ),
+    fallbackOriginStatus: clean(fallback?.status, 100) || "not_configured",
+    fallbackOrigin: clean(fallback?.origin, 300) || "",
+  };
+}
+
+async function bootstrapPlatform() {
+  const config = providerConfig();
+  const before = await platformPreflight();
+  if (!before.rootOnCloudflare) {
+    throw new Error("busydoesit.co.uk nameservers must be active on Cloudflare before BUSY bootstraps website delivery.");
+  }
+  if (!config.bootstrapReady) {
+    return {
+      configured: false,
+      config,
+      preflight: before,
+      missing: {
+        apiToken: !config.hasApiToken,
+        zoneId: !config.hasZoneId,
+        accountId: !config.hasAccountId,
+      },
+    };
+  }
+
+  const fallbackDns = await ensureDnsRecord(
+    "AAAA",
+    CLOUDFLARE_FALLBACK_ORIGIN,
+    "100::",
+    true
+  );
+  const cnameDns = await ensureDnsRecord(
+    "CNAME",
+    BUSY_WEBSITE_CNAME_HOST,
+    CLOUDFLARE_FALLBACK_ORIGIN,
+    true
+  );
+  const wildcardDns = await ensureDnsRecord(
+    "CNAME",
+    `*.${BUSY_ROOT_DOMAIN}`,
+    BUSY_WEBSITE_CNAME_HOST,
+    true
+  );
+  const fallback = await ensureFallbackOrigin();
+  const worker = await uploadRouterWorker();
+  const route = await ensureWorkerRoute();
+
+  return {
+    configured: true,
+    config,
+    preflight: await platformPreflight(),
+    provider: await inspectPlatformProvider(),
+    dns: {
+      fallback: fallbackDns,
+      cnameTarget: cnameDns,
+      wildcard: wildcardDns,
+    },
+    fallback,
+    worker: {
+      id: clean(worker?.id, 200) || CLOUDFLARE_ROUTER_SCRIPT,
+      route,
+    },
+  };
+}
+
 function errorStatus(value: string) {
   return /(blocked|failed|timed_out|expired|inactive|deletion)/i.test(value);
 }
@@ -385,8 +644,16 @@ async function syncDomain(domain: any) {
 
 async function syncDomains(limit = 40) {
   const config = providerConfig();
+  const preflight = await platformPreflight();
   if (!config.configured) {
-    return { configured: false, config, synced: 0, results: [] };
+    return {
+      configured: false,
+      config,
+      preflight,
+      provider: await inspectPlatformProvider(),
+      synced: 0,
+      results: [],
+    };
   }
 
   const domains = await supabase
@@ -440,7 +707,14 @@ async function syncDomains(limit = 40) {
     }
   }
 
-  return { configured: true, config, synced: results.length, results };
+  return {
+    configured: true,
+    config,
+    preflight,
+    provider: await inspectPlatformProvider(),
+    synced: results.length,
+    results,
+  };
 }
 
 async function reserveDefaultHostnames() {
@@ -491,7 +765,11 @@ Deno.serve(async (request: Request) => {
         ok: true,
         config: providerConfig(),
         preflight: await platformPreflight(),
+        provider: await inspectPlatformProvider(),
       });
+    }
+    if (action === "bootstrap_platform") {
+      return json(200, { ok: true, ...(await bootstrapPlatform()) });
     }
     if (action === "provision_domain") {
       const domainId = clean(body?.domainId, 80);
