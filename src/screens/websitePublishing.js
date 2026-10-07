@@ -45,7 +45,7 @@ function WebsitePublishing({ s }) {
       s={s}
       title="Website Management"
       subtitle="Edit privately, inspect the exact hosted version, then decide what becomes public."
-      brandCue="V3.52 • tenant isolation • fair queues • worker leases • adaptive health • scale safeguards."
+      brandCue="V3.53 • release readiness • burst simulation • failure recovery • 10k-tenant capacity model."
     >
       <Card
         eyebrow="Website lifecycle"
