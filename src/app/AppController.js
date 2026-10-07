@@ -48,6 +48,7 @@ const {
   BUSY_SOCIAL_URL,
   BUSY_SOCIAL_PUBLISH_URL,
   BUSY_WEBSITE_PUBLISH_URL,
+  BUSY_MINI_APPS_URL,
   BUSY_SUPABASE_URL,
   BUSY_PUSH_DISPATCH_URL,
   BUSY_CALENDAR_OAUTH_URL,
@@ -171,6 +172,10 @@ import { buildFollowUpEngine } from "../domain/followUpEngine";
 import { buildBrandBrain } from "../domain/brandBrain";
 import { buildWebsiteDraft, applyWebsiteInstruction } from "../domain/websiteBuilder";
 import { buildWebsitePublishingView } from "../domain/websitePublishing";
+import {
+  buildMiniAppProfileDraft,
+  buildMiniAppsView,
+} from "../domain/miniApps";
 import { BusyBrandLockup } from "../components/ui";
 import { screens, HomeScreen, AccountAccess } from "../screens";
 
@@ -260,6 +265,24 @@ function App() {
   const [websitePublishingError, setWebsitePublishingError] = useState("");
   const [websitePublishingNotice, setWebsitePublishingNotice] = useState("");
   const [websiteDomainDraft, setWebsiteDomainDraft] = useState("");
+  const [miniAppsStatus, setMiniAppsStatus] = useState({
+    loaded: false,
+    role: "",
+    app: null,
+    versions: [],
+    requests: [],
+    catalog: [],
+    publicProfile: null,
+  });
+  const [miniAppsLoading, setMiniAppsLoading] = useState(false);
+  const [miniAppsAction, setMiniAppsAction] = useState("");
+  const [miniAppsError, setMiniAppsError] = useState("");
+  const [miniAppsNotice, setMiniAppsNotice] = useState("");
+  const [busyAppsSearch, setBusyAppsSearch] = useState("");
+  const [busyAppsResults, setBusyAppsResults] = useState([]);
+  const [busyAppsSearching, setBusyAppsSearching] = useState(false);
+  const [selectedBusyAppDetail, setSelectedBusyAppDetail] = useState(null);
+
   const [quietSlot, setQuietSlot] = useState("Thursday afternoon");
   const [quietSlotConfirmed, setQuietSlotConfirmed] = useState(false);
   const [unansweredReviewCount, setUnansweredReviewCount] = useState("4");
@@ -6136,6 +6159,23 @@ function App() {
     setWebsitePublishingError("");
     setWebsitePublishingNotice("");
     setWebsiteDomainDraft("");
+    setMiniAppsStatus({
+      loaded: false,
+      role: "",
+      app: null,
+      versions: [],
+      requests: [],
+      catalog: [],
+      publicProfile: null,
+    });
+    setMiniAppsLoading(false);
+    setMiniAppsAction("");
+    setMiniAppsError("");
+    setMiniAppsNotice("");
+    setBusyAppsSearch("");
+    setBusyAppsResults([]);
+    setBusyAppsSearching(false);
+    setSelectedBusyAppDetail(null);
     setQuietSlot("Thursday afternoon");
     setQuietSlotConfirmed(false);
     setSelectedGap("");
@@ -8180,6 +8220,8 @@ function App() {
     remote: websitePublishingStatus,
     websiteDraft,
   });
+  const miniAppProfileDraft = buildMiniAppProfileDraft(brandBrain);
+  const miniAppsView = buildMiniAppsView(miniAppsStatus);
   const selectedCommunicationThread =
     communicationsHub.threads.find(
       (thread) => thread.customerId === selectedCustomerId
@@ -12716,6 +12758,371 @@ function App() {
     }
   };
 
+  const applyMiniAppsStatus = (payload = {}) => {
+    const data = payload?.status || payload;
+    setMiniAppsStatus({
+      loaded: true,
+      role: data?.role || miniAppsStatus.role || "",
+      app: data?.app || null,
+      versions: Array.isArray(data?.versions) ? data.versions : [],
+      requests: Array.isArray(data?.requests) ? data.requests : [],
+      catalog: Array.isArray(data?.catalog) ? data.catalog : [],
+      publicProfile: data?.publicProfile || null,
+    });
+  };
+
+  const miniAppsRequest = async (
+    action,
+    payload = {},
+    { includeBusiness = true } = {}
+  ) => {
+    const token = await ownerAccessToken();
+    if (!token) throw new Error("Sign in again before using BUSY Apps.");
+    const businessId = cloudWorkspace?.businessId || "";
+    if (includeBusiness && !businessId) {
+      throw new Error("BUSY needs the business cloud workspace before managing your Mini App.");
+    }
+
+    const response = await fetchWithTimeout(
+      BUSY_MINI_APPS_URL,
+      {
+        method: "POST",
+        headers: {
+          apikey: BUSY_AI_TOKEN,
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          "x-busy-request-id": busyRequestId(`mini-app-${action}`),
+        },
+        body: JSON.stringify({
+          action,
+          ...(includeBusiness ? { businessId } : {}),
+          ...payload,
+        }),
+      },
+      30000
+    );
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(
+        data?.error || `BUSY Apps returned ${response.status}.`
+      );
+    }
+    return data;
+  };
+
+  const refreshMiniAppsStatus = async ({ quiet = false } = {}) => {
+    if (!ownerSession?.accessToken || !cloudWorkspace?.businessId) {
+      if (!quiet) setMiniAppsError("Sign in and connect the BUSY cloud workspace first.");
+      return false;
+    }
+    if (!quiet) setMiniAppsLoading(true);
+    setMiniAppsError("");
+    try {
+      const data = await miniAppsRequest("owner_status");
+      applyMiniAppsStatus(data);
+      return true;
+    } catch (error) {
+      setMiniAppsError(error?.message || "BUSY could not load your Mini App.");
+      return false;
+    } finally {
+      if (!quiet) setMiniAppsLoading(false);
+    }
+  };
+
+  const buildMiniAppFromBrandBrain = async () => {
+    setMiniAppsAction("build");
+    setMiniAppsError("");
+    setMiniAppsNotice("");
+    try {
+      const data = await miniAppsRequest("build_draft", {
+        profileDraft: miniAppProfileDraft,
+      });
+      applyMiniAppsStatus(data);
+      setMiniAppsNotice(
+        data?.source === "shared_public_profile_plus_owner_draft"
+          ? "BUSY rebuilt the Mini App draft from the shared public business profile plus your current approved Brand Brain facts."
+          : "BUSY created the first Mini App draft from your approved public Brand Brain facts."
+      );
+      return true;
+    } catch (error) {
+      setMiniAppsError(error?.message || "BUSY could not build the Mini App draft.");
+      return false;
+    } finally {
+      setMiniAppsAction("");
+    }
+  };
+
+  const toggleMiniAppModule = async (moduleKey, enabled) => {
+    setMiniAppsAction(`module:${moduleKey}`);
+    setMiniAppsError("");
+    try {
+      const data = await miniAppsRequest("set_module", {
+        moduleKey,
+        enabled,
+      });
+      applyMiniAppsStatus(data);
+      setMiniAppsNotice(
+        `${enabled ? "Enabled" : "Disabled"} ${moduleKey.replaceAll("_", " ")} in the private Mini App draft. Nothing public changed.`
+      );
+      return true;
+    } catch (error) {
+      setMiniAppsError(error?.message || "BUSY could not update that Mini App module.");
+      return false;
+    } finally {
+      setMiniAppsAction("");
+    }
+  };
+
+  const prepareMiniAppPreview = async () => {
+    setMiniAppsAction("prepare");
+    setMiniAppsError("");
+    setMiniAppsNotice("");
+    try {
+      const data = await miniAppsRequest("prepare_preview");
+      applyMiniAppsStatus(data);
+      setMiniAppsNotice(
+        data?.reused
+          ? "That exact Mini App configuration was already prepared, so BUSY reused the immutable version."
+          : "BUSY prepared an immutable Mini App preview version."
+      );
+      return true;
+    } catch (error) {
+      setMiniAppsError(error?.message || "BUSY could not prepare the Mini App preview.");
+      return false;
+    } finally {
+      setMiniAppsAction("");
+    }
+  };
+
+  const publishMiniApp = async (versionId, discoverable = false) => {
+    setMiniAppsAction("publish");
+    setMiniAppsError("");
+    setMiniAppsNotice("");
+    try {
+      const data = await miniAppsRequest("publish", {
+        versionId,
+        discoverable,
+        ownerApproved: true,
+      });
+      applyMiniAppsStatus(data);
+      setMiniAppsNotice(
+        discoverable
+          ? "The exact previewed Mini App version is live and listed in BUSY Apps."
+          : "The exact previewed Mini App version is live but is not listed in BUSY Apps search."
+      );
+      return true;
+    } catch (error) {
+      setMiniAppsError(error?.message || "BUSY could not publish that Mini App version.");
+      return false;
+    } finally {
+      setMiniAppsAction("");
+    }
+  };
+
+  const confirmPublishMiniApp = (versionId) => {
+    const version = miniAppsView.versions.find((item) => item.id === versionId);
+    if (!version) return false;
+    Alert.alert(
+      "Publish this Mini App version?",
+      `BUSY will put immutable Mini App v${version.version_no} live. Choose whether customers should also be able to find it in BUSY Apps search.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Live, not listed",
+          onPress: () => publishMiniApp(versionId, false),
+        },
+        {
+          text: "Live & list",
+          onPress: () => publishMiniApp(versionId, true),
+        },
+      ]
+    );
+    return true;
+  };
+
+  const setMiniAppDiscoverable = async (discoverable) => {
+    setMiniAppsAction("discoverability");
+    setMiniAppsError("");
+    try {
+      const data = await miniAppsRequest("set_discoverable", {
+        discoverable,
+        ownerApproved: true,
+      });
+      applyMiniAppsStatus(data);
+      setMiniAppsNotice(
+        discoverable
+          ? "Your live Mini App is now discoverable in BUSY Apps search."
+          : "Your Mini App remains live, but BUSY removed it from marketplace search."
+      );
+      return true;
+    } catch (error) {
+      setMiniAppsError(error?.message || "BUSY could not change marketplace visibility.");
+      return false;
+    } finally {
+      setMiniAppsAction("");
+    }
+  };
+
+  const confirmMiniAppDiscoverable = (discoverable) => {
+    Alert.alert(
+      discoverable ? "List this Mini App in BUSY Apps?" : "Remove from BUSY Apps search?",
+      discoverable
+        ? "Customers using BUSY will be able to find this live app by business name/category."
+        : "The app stays live, but it will no longer appear in marketplace search.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: discoverable ? "Approve listing" : "Remove listing",
+          onPress: () => setMiniAppDiscoverable(discoverable),
+        },
+      ]
+    );
+    return true;
+  };
+
+  const rollbackMiniApp = async (versionId) => {
+    setMiniAppsAction(`rollback:${versionId}`);
+    setMiniAppsError("");
+    try {
+      const data = await miniAppsRequest("rollback", {
+        versionId,
+        ownerApproved: true,
+      });
+      applyMiniAppsStatus(data);
+      setMiniAppsNotice("BUSY restored the selected previously published Mini App version.");
+      return true;
+    } catch (error) {
+      setMiniAppsError(error?.message || "BUSY could not restore that Mini App version.");
+      return false;
+    } finally {
+      setMiniAppsAction("");
+    }
+  };
+
+  const confirmRollbackMiniApp = (versionId, versionNo) => {
+    Alert.alert(
+      "Restore this Mini App version?",
+      `This will make previously published Mini App v${versionNo} the live version again.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Approve rollback",
+          onPress: () => rollbackMiniApp(versionId),
+        },
+      ]
+    );
+    return true;
+  };
+
+  const searchBusyApps = async (query = busyAppsSearch) => {
+    setBusyAppsSearching(true);
+    setMiniAppsError("");
+    try {
+      const data = await miniAppsRequest(
+        "directory_search",
+        { query: String(query || "").trim() },
+        { includeBusiness: false }
+      );
+      setBusyAppsResults(Array.isArray(data?.apps) ? data.apps : []);
+      return true;
+    } catch (error) {
+      setMiniAppsError(error?.message || "BUSY could not search the app marketplace.");
+      return false;
+    } finally {
+      setBusyAppsSearching(false);
+    }
+  };
+
+  const openBusyAppDetail = async (slug) => {
+    if (!slug) return false;
+    setMiniAppsAction(`open:${slug}`);
+    setMiniAppsError("");
+    try {
+      const data = await miniAppsRequest(
+        "app_detail",
+        { slug },
+        { includeBusiness: false }
+      );
+      setSelectedBusyAppDetail(data);
+      go("busyAppDetail");
+      return true;
+    } catch (error) {
+      setMiniAppsError(error?.message || "BUSY could not open that Mini App.");
+      return false;
+    } finally {
+      setMiniAppsAction("");
+    }
+  };
+
+  const submitBusyAppRequest = async (requestType, payload = {}) => {
+    const slug = selectedBusyAppDetail?.app?.slug || "";
+    if (!slug) return false;
+    setMiniAppsAction(`request:${requestType}`);
+    setMiniAppsError("");
+    setMiniAppsNotice("");
+    try {
+      const data = await miniAppsRequest(
+        "submit_request",
+        {
+          slug,
+          requestType,
+          payload,
+        },
+        { includeBusiness: false }
+      );
+      setMiniAppsNotice(
+        requestType === "booking_request"
+          ? "Booking request sent through BUSY. It is a request, not a confirmed appointment yet."
+          : "Enquiry sent through BUSY."
+      );
+      return !!data?.request;
+    } catch (error) {
+      setMiniAppsError(error?.message || "BUSY could not send that request.");
+      return false;
+    } finally {
+      setMiniAppsAction("");
+    }
+  };
+
+  const updateMiniAppRequestStatus = async (requestId, status) => {
+    setMiniAppsAction(`request-status:${requestId}`);
+    setMiniAppsError("");
+    try {
+      const data = await miniAppsRequest("update_request_status", {
+        requestId,
+        status,
+      });
+      applyMiniAppsStatus(data);
+      return true;
+    } catch (error) {
+      setMiniAppsError(error?.message || "BUSY could not update that request.");
+      return false;
+    } finally {
+      setMiniAppsAction("");
+    }
+  };
+
+  const openBusyAppsMarketplace = () => {
+    setTab("Home");
+    go("busyAppsMarketplace");
+    setTimeout(() => searchBusyApps(""), 80);
+    return true;
+  };
+
+  const openMiniAppBuilder = () => {
+    setTab("Home");
+    go("miniAppBuilder");
+    setTimeout(() => refreshMiniAppsStatus({ quiet: true }), 80);
+    return true;
+  };
+
+  const openMiniAppPreview = () => {
+    if (!miniAppsView.activeConfig) return false;
+    setTab("Home");
+    go("miniAppPreview");
+    return true;
+  };
+
   const openWebsitePublishing = () => {
     if (!websiteDomainDraft && brandProfile.websiteDomain) {
       setWebsiteDomainDraft(brandProfile.websiteDomain);
@@ -12883,6 +13290,32 @@ function App() {
     runWebsiteHealthCheck,
     openDefaultWebsiteAddress,
     openWebsitePublishing,
+    miniAppsStatus,
+    miniAppsView,
+    miniAppProfileDraft,
+    miniAppsLoading,
+    miniAppsAction,
+    miniAppsError,
+    miniAppsNotice,
+    busyAppsSearch,
+    setBusyAppsSearch,
+    busyAppsResults,
+    busyAppsSearching,
+    selectedBusyAppDetail,
+    refreshMiniAppsStatus,
+    buildMiniAppFromBrandBrain,
+    toggleMiniAppModule,
+    prepareMiniAppPreview,
+    confirmPublishMiniApp,
+    confirmMiniAppDiscoverable,
+    confirmRollbackMiniApp,
+    searchBusyApps,
+    openBusyAppDetail,
+    submitBusyAppRequest,
+    updateMiniAppRequestStatus,
+    openBusyAppsMarketplace,
+    openMiniAppBuilder,
+    openMiniAppPreview,
     quietSlot,
     setQuietSlot,
     quietSlotConfirmed,
