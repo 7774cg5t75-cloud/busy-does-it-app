@@ -251,17 +251,17 @@ function routerWorkerSource() {
     'function cacheable(response){if(!response||response.status!==200)return false;const t=response.headers.get("content-type")||"";return t.startsWith("text/html")||t.startsWith("text/css")||t.startsWith("application/javascript")||t.startsWith("image/");}',
     'export default {async fetch(request,env,ctx){',
     'const method=request.method.toUpperCase();if(method!=="GET"&&method!=="HEAD")return new Response("Method not allowed.",{status:405,headers:{Allow:"GET, HEAD"}});',
-    'const incoming=new URL(request.url);const host=cleanHost(incoming.hostname);const root=cleanHost(env.BUSY_ROOT_DOMAIN||DEFAULT_ROOT_DOMAIN);',
+    'const incoming=new URL(request.url);const host=cleanHost(incoming.hostname);const root=cleanHost(env.BUSY_ROOT_DOMAIN||DEFAULT_ROOT_DOMAIN);const health=String(request.headers.get("User-Agent")||"").startsWith("BUSY-Website-Health/");',
     'if(bypass(host,root))return fetch(request);',
     'const origin=String(env.BUSY_ORIGIN_URL||DEFAULT_ORIGIN_URL).trim();',
     'const keyUrl=new URL("https://busy-edge-cache.invalid/");keyUrl.pathname="/"+encodeURIComponent(host)+incoming.pathname;',
     'const key=new Request(keyUrl.toString(),{method:"GET",headers:{Accept:request.headers.get("Accept")||"*/*"}});',
-    'if(method==="GET"){const cached=await caches.default.match(key);if(cached){const h=new Headers(cached.headers);h.set("X-BUSY-Edge-Cache","HIT");return new Response(cached.body,{status:cached.status,statusText:cached.statusText,headers:h});}}',
+    'if(method==="GET"&&!health){const cached=await caches.default.match(key);if(cached){const h=new Headers(cached.headers);h.set("X-BUSY-Edge-Cache","HIT");return new Response(cached.body,{status:cached.status,statusText:cached.statusText,headers:h});}}',
     'const target=new URL(origin);target.searchParams.set("host",host);target.searchParams.set("path",incoming.pathname||"/");',
     'const upstream=await fetch(target.toString(),{method,headers:{Accept:request.headers.get("Accept")||"text/html,*/*;q=0.8","X-BUSY-Original-Host":host,"X-BUSY-Original-Path":incoming.pathname||"/","User-Agent":"BUSY-Cloudflare-Router/3.46"},cf:{cacheEverything:false}});',
     'const headers=new Headers(upstream.headers);headers.set("X-BUSY-Edge","cloudflare-worker");headers.set("X-BUSY-Edge-Cache","MISS");headers.set("Vary","Accept-Encoding");',
     'const response=new Response(upstream.body,{status:upstream.status,statusText:upstream.statusText,headers});',
-    'if(method==="GET"&&cacheable(response)){ctx.waitUntil(caches.default.put(key,response.clone()));}',
+    'if(method==="GET"&&!health&&cacheable(response)){ctx.waitUntil(caches.default.put(key,response.clone()));}',
     'return response;}};'
   ].join("\n");
 }
