@@ -398,7 +398,11 @@ async function customerRequestDetail(userId: string, body: any) {
     .select("*")
     .single();
   if (updated.error) throw updated.error;
-  return await requestConversationPage(updated.data, body);
+  const detail = await requestConversationPage(updated.data, body);
+  return {
+    ...detail,
+    loyaltyProgress: await loyaltyForRequest(updated.data),
+  };
 }
 
 async function ownerRequestDetail(businessId: string, body: any) {
@@ -420,7 +424,11 @@ async function ownerRequestDetail(businessId: string, body: any) {
     .select("*")
     .single();
   if (updated.error) throw updated.error;
-  return await requestConversationPage(updated.data, body);
+  const detail = await requestConversationPage(updated.data, body);
+  return {
+    ...detail,
+    loyaltyProgress: await loyaltyForRequest(updated.data),
+  };
 }
 
 function publicAsset(value: any) {
@@ -1072,17 +1080,27 @@ function sanitiseAppPlan(
     }
   }
 
+  const resolvedKeys = new Set<string>();
+  if (offers.length) resolvedKeys.add("offers");
+  if (loyaltyReady(loyalty)) resolvedKeys.add("loyalty");
+  const missingFacts = safeArray(plan?.missingFacts)
+    .map((item: any) => ({
+      key: clean(item?.key, 80),
+      question: clean(item?.question, 500),
+    }))
+    .filter(
+      (item: any) =>
+        item.key &&
+        item.question &&
+        !resolvedKeys.has(item.key)
+    )
+    .slice(0, 8);
+
   return {
-    version: 1,
+    version: 2,
     summary: clean(plan?.summary, 900) || fallback.summary,
     modules,
-    missingFacts: safeArray(plan?.missingFacts)
-      .map((item: any) => ({
-        key: clean(item?.key, 80),
-        question: clean(item?.question, 500),
-      }))
-      .filter((item: any) => item.key && item.question)
-      .slice(0, 8),
+    missingFacts,
     offers,
     loyalty,
     unsupportedRequests: unsupportedRequests.slice(0, 6),
@@ -1489,7 +1507,7 @@ async function ownerStatus(businessId: string) {
     supabase
       .from("busy_mini_app_requests")
       .select(
-        "id,version_id,module_key,request_type,status,payload,contact_name,contact_email,contact_phone,service_name,preferred_date_text,request_origin,identity_assurance,guest_proof_verified_at,business_unread_count,customer_unread_count,last_business_read_at,last_customer_read_at,created_at,updated_at"
+        "id,version_id,module_key,request_type,status,payload,consumer_user_id,contact_name,contact_email,contact_phone,service_name,preferred_date_text,request_origin,identity_assurance,guest_proof_verified_at,business_unread_count,customer_unread_count,last_business_read_at,last_customer_read_at,created_at,updated_at"
       )
       .eq("mini_app_id", app.id)
       .order("created_at", { ascending: false })
@@ -1594,12 +1612,12 @@ async function setModule(
     appForBusiness(businessId),
     moduleCatalog(),
   ]);
-  if (!app) throw new Error("Build the Mini App draft first.");
+  if (!app) throw new Error("Build the Business App draft first.");
 
   const module = catalog.find(
     (item: any) => item.module_key === moduleKey
   );
-  if (!module) throw new Error("That Mini App module is not supported.");
+  if (!module) throw new Error("That Business App module is not supported.");
   if (module.status !== "available" && enabled) {
     throw new Error(`${module.title} is planned but is not available yet.`);
   }
@@ -1637,10 +1655,10 @@ async function preparePreview(
   businessId: string
 ) {
   const app = await appForBusiness(businessId);
-  if (!app) throw new Error("Build the Mini App draft first.");
+  if (!app) throw new Error("Build the Business App draft first.");
   const config = app.draft_config || {};
   if (!safeArray(config?.modules).some((item: any) => item.enabled)) {
-    throw new Error("Enable at least one Mini App module.");
+    throw new Error("Enable at least one Business App module.");
   }
 
   const hash = await sha256(config);
@@ -1925,20 +1943,47 @@ function publicMiniAppWebHtml(app: any, version: any) {
     .slice(0, 4);
   const offersHtml = enabled.has("offers")
     ? approvedOffers.length
-      ? `<section id="offers"><div class="wrap"><p class="eyebrow">Offers</p><h2>Current offers</h2><div class="grid">${approvedOffers
+      ? `<section id="offers"><div class="wrap"><p class="eyebrow">Offers</p><h2>Current offers</h2><div class="grid" id="busy-offer-grid">${approvedOffers
           .map(
             (offer: any) =>
-              `<article><h3>${escapeHtml(offer.title)}</h3><p>${escapeHtml(
-                offer.body
-              )}</p>${
+              `<article class="busy-offer" data-start="${escapeHtml(
+                offer.startDate
+              )}" data-end="${escapeHtml(offer.endDate)}"><h3>${escapeHtml(
+                offer.title
+              )}</h3><p>${escapeHtml(offer.body)}</p>${
                 offer.terms
                   ? `<p class="muted">${escapeHtml(offer.terms)}</p>`
                   : ""
+              }${
+                offer.startDate || offer.endDate
+                  ? `<p class="muted">${escapeHtml(
+                      [
+                        offer.startDate ? `Starts ${offer.startDate}` : "",
+                        offer.endDate ? `Ends ${offer.endDate}` : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" • ")
+                    )}</p>`
+                  : ""
               }</article>`
           )
-          .join("")}</div></div></section>`
+          .join("")}</div><p id="busy-no-active-offers" class="muted" hidden>No offer is active today.</p><script>(function(){var today=new Date().toISOString().slice(0,10);var cards=[].slice.call(document.querySelectorAll(".busy-offer"));var shown=0;cards.forEach(function(card){var start=card.getAttribute("data-start")||"";var end=card.getAttribute("data-end")||"";var active=(!start||today>=start)&&(!end||today<=end);card.hidden=!active;if(active)shown+=1;});var empty=document.getElementById("busy-no-active-offers");if(empty)empty.hidden=shown>0;})();</script></div></section>`
       : `<section id="offers"><div class="wrap"><p class="eyebrow">Offers</p><h2>Offers</h2><p>No approved public offer is currently published.</p></div></section>`
     : "";
+
+  const loyalty = safeLoyalty(config?.loyalty || {});
+  const loyaltyHtml =
+    enabled.has("loyalty") && loyaltyReady(loyalty)
+      ? `<section id="loyalty"><div class="wrap"><p class="eyebrow">Loyalty</p><h2>${escapeHtml(
+          loyalty.programName || "Loyalty rewards"
+        )}</h2><p>Collect ${loyalty.targetStamps} stamps or visits to earn: <strong>${escapeHtml(
+          loyalty.reward
+        )}</strong>.</p>${
+          loyalty.terms
+            ? `<p class="muted">${escapeHtml(loyalty.terms)}</p>`
+            : ""
+        }<p class="muted">Open this business in BUSY to see your signed-in loyalty progress. The business records stamps after eligible visits or jobs.</p></div></section>`
+      : "";
 
   const heroHtml = hero ? `<img class="hero-image" src="${escapeHtml(hero)}" alt="${escapeHtml(name)}" />` : "";
   const aboutHtml = enabled.has("business_profile")
@@ -1973,6 +2018,7 @@ function publicMiniAppWebHtml(app: any, version: any) {
   ${servicesHtml}
   ${galleryHtml}
   ${offersHtml}
+  ${loyaltyHtml}
   ${contactHtml}
   ${actionHtml}
   <footer>Powered by <strong>BUSY DOES IT</strong> • Public information from the business's approved live Mini App.</footer>
@@ -2289,7 +2335,7 @@ async function publishVersion(
     body?.versionId || app.current_preview_version_id,
     80
   );
-  if (!versionId) throw new Error("Prepare a Mini App preview first.");
+  if (!versionId) throw new Error("Prepare a Business App preview first.");
 
   const version = await supabase
     .from("busy_mini_app_versions")
@@ -2298,7 +2344,7 @@ async function publishVersion(
     .eq("mini_app_id", app.id)
     .maybeSingle();
   if (version.error) throw version.error;
-  if (!version.data) throw new Error("That Mini App version was not found.");
+  if (!version.data) throw new Error("That Business App version was not found.");
 
   const webArtifact = await publishMiniAppWebArtifact(app, version.data);
   const now = new Date().toISOString();
@@ -2335,7 +2381,7 @@ async function publishVersion(
       public_web_url: webArtifact.liveUrl,
       public_web_version_id: versionId,
       public_web_status: "ready",
-      public_web_schema_version: 2,
+      public_web_schema_version: 3,
       public_web_updated_at: now,
       public_web_last_error: null,
       last_error: null,
@@ -2667,6 +2713,64 @@ async function recordMiniAppEntry(app: any, _userId: string, source: string) {
   }
 }
 
+async function loyaltyProgressFor(
+  miniAppId: string,
+  consumerUserId: string,
+  config: any
+) {
+  const enabled = safeArray(config?.modules).some(
+    (item: any) => item?.key === "loyalty" && item?.enabled
+  );
+  const loyalty = safeLoyalty(config?.loyalty || {});
+  if (!enabled || !loyaltyReady(loyalty) || !consumerUserId) {
+    return null;
+  }
+
+  const progress = await supabase
+    .from("busy_mini_app_loyalty_progress")
+    .select("stamps,last_awarded_at,updated_at")
+    .eq("mini_app_id", miniAppId)
+    .eq("consumer_user_id", consumerUserId)
+    .maybeSingle();
+  if (progress.error) throw progress.error;
+  const stamps = Math.max(0, Number(progress.data?.stamps || 0));
+  return {
+    ...loyalty,
+    stamps,
+    remaining: Math.max(0, loyalty.targetStamps - stamps),
+    rewardReached: stamps >= loyalty.targetStamps,
+    lastAwardedAt: progress.data?.last_awarded_at || null,
+  };
+}
+
+async function liveConfigForMiniApp(miniAppId: string) {
+  const app = await supabase
+    .from("busy_mini_apps")
+    .select("id,business_id,current_live_version_id")
+    .eq("id", miniAppId)
+    .maybeSingle();
+  if (app.error) throw app.error;
+  if (!app.data?.current_live_version_id) return { app: app.data || null, config: null };
+  const version = await supabase
+    .from("busy_mini_app_versions")
+    .select("config")
+    .eq("id", app.data.current_live_version_id)
+    .eq("mini_app_id", miniAppId)
+    .maybeSingle();
+  if (version.error) throw version.error;
+  return { app: app.data, config: version.data?.config || null };
+}
+
+async function loyaltyForRequest(request: any) {
+  if (!request?.mini_app_id || !request?.consumer_user_id) return null;
+  const live = await liveConfigForMiniApp(request.mini_app_id);
+  return await loyaltyProgressFor(
+    request.mini_app_id,
+    request.consumer_user_id,
+    live.config
+  );
+}
+
 async function appDetail(
   slug: string,
   userId = "",
@@ -2689,7 +2793,7 @@ async function appDetail(
     .eq("id", app.data.current_live_version_id)
     .maybeSingle();
   if (version.error) throw version.error;
-  if (!version.data) throw new Error("Live Mini App version not found.");
+  if (!version.data) throw new Error("Live Business App version not found.");
 
   if (userId) await trackConsumerApp(userId, app.data.id);
   if (trackEntry) await recordMiniAppEntry(app.data, userId, entrySource);
@@ -2705,6 +2809,10 @@ async function appDetail(
     favorite = !!consumer.data?.favorite;
   }
 
+  const loyaltyProgress = userId
+    ? await loyaltyProgressFor(app.data.id, userId, version.data.config)
+    : null;
+
   return {
     app: {
       id: app.data.id,
@@ -2716,6 +2824,7 @@ async function appDetail(
       favorite,
     },
     version: version.data,
+    loyaltyProgress,
   };
 }
 
@@ -3003,6 +3112,70 @@ async function updateRequestStatus(
   return updated.data;
 }
 
+async function awardLoyaltyStamp(
+  userId: string,
+  businessId: string,
+  body: any,
+  idempotencyKey: string
+) {
+  const requestId = clean(body?.requestId, 80);
+  if (!requestId) throw new Error("Choose a customer request first.");
+
+  const request = await supabase
+    .from("busy_mini_app_requests")
+    .select("id,business_id,mini_app_id,consumer_user_id")
+    .eq("id", requestId)
+    .eq("business_id", businessId)
+    .maybeSingle();
+  if (request.error) throw request.error;
+  if (!request.data) throw new Error("Business App request not found.");
+  if (!request.data.consumer_user_id) {
+    throw new Error(
+      "Loyalty progress needs a signed-in BUSY customer. Guest web requests cannot be given an account stamp."
+    );
+  }
+
+  const live = await liveConfigForMiniApp(request.data.mini_app_id);
+  const moduleEnabled = safeArray(live.config?.modules).some(
+    (item: any) => item?.key === "loyalty" && item?.enabled
+  );
+  const loyalty = safeLoyalty(live.config?.loyalty || {});
+  if (!moduleEnabled || !loyaltyReady(loyalty)) {
+    throw new Error(
+      "Publish an active Loyalty programme in this Business App before recording stamps."
+    );
+  }
+
+  const awarded = await supabase.rpc(
+    "busy_award_mini_app_loyalty_stamp",
+    {
+      p_business_id: businessId,
+      p_mini_app_id: request.data.mini_app_id,
+      p_consumer_user_id: request.data.consumer_user_id,
+      p_request_id: requestId,
+      p_awarded_by: userId,
+      p_idempotency_key: clean(idempotencyKey, 180) || crypto.randomUUID(),
+      p_target_stamps: loyalty.targetStamps,
+      p_reason: clean(body?.reason, 500) || "Owner recorded loyalty stamp",
+    }
+  );
+  if (awarded.error) throw awarded.error;
+
+  return {
+    loyaltyProgress: {
+      ...loyalty,
+      stamps: Math.max(0, Number(awarded.data?.stamps || 0)),
+      remaining: Math.max(
+        0,
+        loyalty.targetStamps - Number(awarded.data?.stamps || 0)
+      ),
+      rewardReached: awarded.data?.rewardReached === true,
+      reused: awarded.data?.reused === true,
+      alreadyComplete: awarded.data?.alreadyComplete === true,
+    },
+  };
+}
+
 async function requestBridgePlan(
   businessId: string,
   requestId: string
@@ -3239,6 +3412,7 @@ Deno.serve(async (request: Request) => {
       "rollback",
       "set_discoverable",
       "update_request_status",
+      "award_loyalty_stamp",
       "mark_request_linked",
       "send_request_message",
       "owner_request_detail",
@@ -3344,6 +3518,18 @@ Deno.serve(async (request: Request) => {
           resolvedBusinessId,
           clean(body?.requestId, 80)
         ),
+      });
+    }
+    if (action === "award_loyalty_stamp") {
+      return json(200, {
+        ok: true,
+        ...(await awardLoyaltyStamp(
+          user.id,
+          resolvedBusinessId,
+          body,
+          requestId
+        )),
+        status: await ownerStatus(resolvedBusinessId),
       });
     }
     if (action === "mark_request_linked") {
