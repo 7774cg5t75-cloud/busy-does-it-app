@@ -21,7 +21,7 @@ function WebsiteBuilder({ s }) {
       s={s}
       title="Website Builder"
       subtitle="Build from the Brand Brain instead of starting from a blank page."
-      brandCue="V3.36 • Voice-first building • multi-tenant hosting • explicit public Go Live approval."
+      brandCue="V3.37 • private editing • multi-page model • live management • explicit Go Live approval."
     >
       <Card
         eyebrow="Website generation"
@@ -73,6 +73,8 @@ function WebsiteBuilder({ s }) {
             <MetricRow left="Public status" right={draft.publicStatus} strong />
             <MetricRow left="Theme" right={draft.theme?.mood || "clean"} />
             <MetricRow left="Sections" right={String((draft.sections || []).filter((item) => item.enabled !== false).length)} />
+            <MetricRow left="Pages" right={String(draft.pages?.length || 1)} strong={(draft.pages?.length || 1) > 1} />
+            <MetricRow left="SEO basics" right={s.websitePublishingView?.seoAudit?.label || "Not checked"} />
             <MetricRow left="HTML source" right={draft.html ? "Generated" : "Not generated"} />
             <Button label="Preview website" primary onPress={() => s.go("websitePreview")} />
           </Card>
@@ -81,18 +83,31 @@ function WebsiteBuilder({ s }) {
           <Card
             eyebrow="Conversational website editing"
             title="Tell BUSY what you want changed"
-            body="The website editor safely handles layout/style requests such as “make it more premium”, “make the main photo bigger”, “hide the testimonials”, or “bring the gallery back”."
-            footer="Unsupported wording changes are not guessed. BUSY keeps them as a future editing request instead."
+            body="The editor now safely handles exact public wording/contact changes, adding or removing named services, changing service emphasis, section visibility and visual style. Vague claims are still not invented."
+            footer="Examples: “change the headline to…”, “update my opening hours to…”, “add gutter cleaning”, “put roof cleaning first”, or “make the main photo bigger”."
             tone="blue"
           >
             <Field
               label="Website change"
               value={instruction}
               onChangeText={setInstruction}
-              placeholder="e.g. Make the main photo more prominent"
+              placeholder="e.g. Change the headline to Proper local service"
             />
             <Button label="Apply change" primary onPress={applyInstruction} />
             <Button label="Tell BUSY by voice" onPress={s.askBusyToEditWebsite} />
+          </Card>
+
+          <Text style={styles.sectionLabel}>Page structure</Text>
+          <Card
+            eyebrow="Multi-page foundation"
+            title={`${draft.pages?.length || 1} structured page${Number(draft.pages?.length || 1) === 1 ? "" : "s"}`}
+            body="BUSY keeps pages inside the same controlled website model, so editing, SEO, preview, versioning and publishing stay connected."
+            footer="Home remains the complete overview; dedicated pages are generated from the same approved sections."
+            tone="blue"
+          >
+            {(draft.pages || []).map((page) => (
+              <MetricRow key={page.id} left={page.title || page.id} right={page.path || "/"} />
+            ))}
           </Card>
 
           <Text style={styles.sectionLabel}>Draft structure</Text>
@@ -122,9 +137,9 @@ function WebsiteBuilder({ s }) {
           ))}
 
           <Card
-            eyebrow="V3.36 • Publishing & hosting"
+            eyebrow="V3.37 • Live website management"
             title={s.websitePublishingView?.publicStatus || "Draft only"}
-            body="BUSY can now turn this editor draft into an immutable hosted preview on tenant-isolated infrastructure. Public Go Live remains a separate approval after you inspect the exact hosted version."
+            body="BUSY turns the editor draft into a private immutable multi-page preview, stores a plain-English change summary, and keeps the current live site untouched until you approve the exact version."
             footer="Normal public page views are served as static CDN files rather than running the BUSY app or AI."
             tone={s.websitePublishingView?.liveDeployment ? "green" : "blue"}
           >
@@ -170,7 +185,7 @@ function WebsitePreview({ s }) {
       s={s}
       title="Website preview"
       subtitle="A mobile preview of the editable website model."
-      brandCue="Editor preview • hosted preview and public Go Live are separate V3.36 deployment states."
+      brandCue="Editor preview • hosted preview and public Go Live remain separate V3.37 states."
     >
       <View style={{ alignItems: "flex-start", marginBottom: 10 }}>
         <StatusChip label={draft.publicStatus} tone="blue" />
