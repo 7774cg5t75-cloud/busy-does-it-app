@@ -8,6 +8,8 @@ const controllerSource = fs.readFileSync("src/app/AppController.js", "utf8");
 const snackPublisherSource = fs.readFileSync("scripts/publish-snack.mjs", "utf8");
 const supabaseConfigSource = fs.readFileSync("supabase/config.toml", "utf8");
 const websiteProviderSource = fs.readFileSync("supabase/functions/busy-website-provider/index.ts", "utf8");
+const websiteWorkerSource = fs.readFileSync("supabase/functions/busy-website-worker/index.ts", "utf8");
+const websiteHealthSource = fs.readFileSync("supabase/functions/busy-website-health/index.ts", "utf8");
 const websiteOriginSource = fs.readFileSync("supabase/functions/busy-website-origin/index.ts", "utf8");
 const websiteRouterSource = fs.readFileSync("cloudflare/busy-website-router/worker.js", "utf8");
 
@@ -33,13 +35,16 @@ const checks = [
   ["native development build workflow", fs.existsSync(".github/workflows/native-development-build.yml")],
   ["SDK57 calendar legacy import", controllerSource.includes('import * as Calendar from "expo-calendar/legacy";')],
   ["SDK54 Snack calendar rewrite", snackPublisherSource.includes('expo-calendar/legacy') && snackPublisherSource.includes('expo-calendar";')],
-  ["V3.47 public website origin", fs.existsSync("supabase/functions/busy-website-origin/index.ts")],
-  ["V3.47 Cloudflare router Worker", fs.existsSync("cloudflare/busy-website-router/worker.js")],
+  ["V3.48 public website origin", fs.existsSync("supabase/functions/busy-website-origin/index.ts")],
+  ["V3.48 Cloudflare router Worker", fs.existsSync("cloudflare/busy-website-router/worker.js")],
   ["website origin is public edge function", supabaseConfigSource.includes("[functions.busy-website-origin]") && supabaseConfigSource.includes("verify_jwt = false")],
   ["BUSY production root domain", websiteProviderSource.includes("busydoesit.co.uk")],
   ["Cloudflare automated platform bootstrap", websiteProviderSource.includes("bootstrapPlatform") && websiteProviderSource.includes("uploadRouterWorker")],
-  ["V3.47 scheduled Cloudflare activation", websiteProviderSource.includes("reconcilePlatformActivation") && websiteProviderSource.includes("platformActivationState")],
-  ["V3.47 provider sync triggers activation", websiteProviderSource.includes("const activation = await reconcilePlatformActivation()")],
+  ["V3.48 scheduled Cloudflare activation", websiteProviderSource.includes("reconcilePlatformActivation") && websiteProviderSource.includes("platformActivationState")],
+  ["V3.48 provider sync triggers activation", websiteProviderSource.includes("const activation = await reconcilePlatformActivation()")],
+  ["V3.48 live sites promote reserved BUSY addresses", websiteProviderSource.includes('delivery_status", "reserved"') && websiteProviderSource.includes('"provisioning"')],
+  ["V3.48 publish starts BUSY address route proof", websiteWorkerSource.includes('delivery_status: "provisioning"')],
+  ["V3.48 health proves BUSY address before activation", websiteHealthSource.includes('"default_domain"') && websiteHealthSource.includes('delivery_status = "active"')],
   ["Cloudflare root routes excluded", websiteProviderSource.includes("ensureWorkerRoutes") && websiteProviderSource.includes("www.")],
   ["health checks bypass website edge cache", websiteRouterSource.includes("BUSY-Website-Health/") && websiteProviderSource.includes("BUSY-Website-Health/")],
   ["website origin rejects storage traversal", websiteOriginSource.includes('part === ".."') && websiteOriginSource.includes("busy-website-public")],
