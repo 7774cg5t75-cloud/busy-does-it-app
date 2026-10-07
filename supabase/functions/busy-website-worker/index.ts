@@ -448,9 +448,9 @@ async function syncProfileForDeployment(
         business_id: job.business_id,
         source_website_id: job.website_id,
         source_deployment_id: deployment.id,
-        public_slug:
-          clean(deployment.source_draft?.slug, 80) ||
-          `business-${String(job.business_id).replaceAll("-", "").slice(0, 8)}`,
+        public_slug: `${clean(deployment.source_draft?.slug, 60) || "business"}-${String(
+          job.business_id
+        ).replaceAll("-", "").slice(0, 8)}`.slice(0, 80),
         display_name: clean(deployment.source_draft?.businessName, 240),
         status,
         revision: Math.max(1, Number(deployment.version_no) || 1),
