@@ -10,13 +10,8 @@ function cleanHostname(value) {
     .replace(/:\d+$/, "");
 }
 
-function bypassPlatformHostname(hostname, rootDomain) {
-  return (
-    hostname === rootDomain ||
-    hostname === `www.${rootDomain}` ||
-    hostname === `origin.${rootDomain}` ||
-    hostname === `sites.${rootDomain}`
-  );
+function reservedRootHostname(hostname, rootDomain) {
+  return hostname === rootDomain || hostname === `www.${rootDomain}`;
 }
 
 function cacheable(response) {
@@ -58,9 +53,14 @@ export default {
       "BUSY-Website-Health/"
     );
 
-    // BUSY's own root/marketing hostnames stay free to use a separate origin.
-    if (bypassPlatformHostname(hostname, rootDomain)) {
-      return fetch(request);
+    // The Cloudflare bootstrap installs more-specific no-Worker routes for
+    // the root and www hostnames. If one reaches this Worker anyway, fail closed
+    // instead of self-fetching the same routed URL.
+    if (reservedRootHostname(hostname, rootDomain)) {
+      return new Response("BUSY DOES IT", {
+        status: 404,
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      });
     }
 
     const originUrl = String(env.BUSY_ORIGIN_URL || DEFAULT_ORIGIN_URL).trim();
