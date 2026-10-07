@@ -271,6 +271,7 @@ function App() {
     app: null,
     versions: [],
     requests: [],
+    requestLinks: [],
     catalog: [],
     publicProfile: null,
   });
@@ -282,6 +283,9 @@ function App() {
   const [busyAppsResults, setBusyAppsResults] = useState([]);
   const [busyAppsSearching, setBusyAppsSearching] = useState(false);
   const [selectedBusyAppDetail, setSelectedBusyAppDetail] = useState(null);
+  const [myBusyApps, setMyBusyApps] = useState([]);
+  const [myBusyAppRequests, setMyBusyAppRequests] = useState([]);
+  const [myBusyAppsLoading, setMyBusyAppsLoading] = useState(false);
 
   const [quietSlot, setQuietSlot] = useState("Thursday afternoon");
   const [quietSlotConfirmed, setQuietSlotConfirmed] = useState(false);
@@ -6185,6 +6189,7 @@ function App() {
       app: null,
       versions: [],
       requests: [],
+      requestLinks: [],
       catalog: [],
       publicProfile: null,
     });
@@ -6196,6 +6201,9 @@ function App() {
     setBusyAppsResults([]);
     setBusyAppsSearching(false);
     setSelectedBusyAppDetail(null);
+    setMyBusyApps([]);
+    setMyBusyAppRequests([]);
+    setMyBusyAppsLoading(false);
     setQuietSlot("Thursday afternoon");
     setQuietSlotConfirmed(false);
     setSelectedGap("");
@@ -12818,6 +12826,7 @@ function App() {
       app: data?.app || null,
       versions: Array.isArray(data?.versions) ? data.versions : [],
       requests: Array.isArray(data?.requests) ? data.requests : [],
+      requestLinks: Array.isArray(data?.requestLinks) ? data.requestLinks : [],
       catalog: Array.isArray(data?.catalog) ? data.catalog : [],
       publicProfile: data?.publicProfile || null,
     });
@@ -13097,6 +13106,7 @@ function App() {
       );
       setSelectedBusyAppDetail(data);
       go("busyAppDetail");
+      setTimeout(() => loadMyBusyApps({ quiet: true }), 80);
       return true;
     } catch (error) {
       setMiniAppsError(error?.message || "BUSY could not open that Mini App.");
@@ -13127,6 +13137,7 @@ function App() {
           ? "Booking request sent through BUSY. It is a request, not a confirmed appointment yet."
           : "Enquiry sent through BUSY."
       );
+      await loadMyBusyApps({ quiet: true });
       return !!data?.request;
     } catch (error) {
       setMiniAppsError(error?.message || "BUSY could not send that request.");
@@ -13154,10 +13165,295 @@ function App() {
     }
   };
 
+  const loadMyBusyApps = async ({ quiet = false } = {}) => {
+    if (!ownerSession?.accessToken) return false;
+    if (!quiet) setMyBusyAppsLoading(true);
+    try {
+      const data = await miniAppsRequest(
+        "my_apps",
+        {},
+        { includeBusiness: false }
+      );
+      setMyBusyApps(Array.isArray(data?.apps) ? data.apps : []);
+      setMyBusyAppRequests(
+        Array.isArray(data?.requests) ? data.requests : []
+      );
+      return true;
+    } catch (error) {
+      setMiniAppsError(
+        error?.message || "BUSY could not load My BUSY Apps."
+      );
+      return false;
+    } finally {
+      if (!quiet) setMyBusyAppsLoading(false);
+    }
+  };
+
+  const toggleBusyAppFavorite = async (slug, favorite) => {
+    if (!slug) return false;
+    setMiniAppsAction(`favorite:${slug}`);
+    setMiniAppsError("");
+    try {
+      const data = await miniAppsRequest(
+        "set_favorite",
+        { slug, favorite },
+        { includeBusiness: false }
+      );
+      setMyBusyApps(Array.isArray(data?.apps) ? data.apps : []);
+      setSelectedBusyAppDetail((current) =>
+        current?.app?.slug === slug
+          ? {
+              ...current,
+              app: { ...current.app, favorite },
+            }
+          : current
+      );
+      return true;
+    } catch (error) {
+      setMiniAppsError(
+        error?.message || "BUSY could not update that favourite."
+      );
+      return false;
+    } finally {
+      setMiniAppsAction("");
+    }
+  };
+
+  const explicitPreferredDate = (value = "") => {
+    const text = String(value || "").trim();
+    const iso = text.match(/\b(20\d{2})-(\d{1,2})-(\d{1,2})\b/);
+    if (iso) {
+      return `${iso[1]}-${String(iso[2]).padStart(2, "0")}-${String(
+        iso[3]
+      ).padStart(2, "0")}`;
+    }
+    const uk = text.match(/\b(\d{1,2})[\/-](\d{1,2})[\/-](20\d{2})\b/);
+    if (uk) {
+      return `${uk[3]}-${String(uk[2]).padStart(2, "0")}-${String(
+        uk[1]
+      ).padStart(2, "0")}`;
+    }
+    return "";
+  };
+
+  const bridgeMiniAppRequestIntoBusy = async (requestId) => {
+    if (!requestId) return false;
+    setMiniAppsAction(`bridge:${requestId}`);
+    setMiniAppsError("");
+    setMiniAppsNotice("");
+    try {
+      const data = await miniAppsRequest("request_bridge_plan", {
+        requestId,
+      });
+      const plan = data?.plan;
+      if (!plan?.request || !plan?.customerCandidate) {
+        throw new Error("BUSY could not prepare that customer journey.");
+      }
+
+      if (plan.existingLink?.customer_record_id) {
+        setMiniAppsNotice(
+          "That Mini App request is already linked to a BUSY customer record, so BUSY did not import it twice."
+        );
+        await refreshMiniAppsStatus({ quiet: true });
+        return true;
+      }
+
+      const candidate = plan.customerCandidate;
+      const requestRow = plan.request;
+      const matched = findCustomerMatch(customers, {
+        phone: candidate.phone,
+        email: candidate.email,
+        name: candidate.name,
+      });
+      const existing = matched?.customer || null;
+      const customerId =
+        existing?.id || candidate.idHint || `miniapp-${requestId}`;
+      const now = new Date().toISOString();
+      const today = dateToISO(new Date());
+      const activityKind =
+        requestRow.request_type === "booking_request"
+          ? "booking"
+          : "enquiry";
+      const activityTitle =
+        requestRow.request_type === "booking_request"
+          ? "Booking request received through BUSY Mini App"
+          : "Enquiry received through BUSY Mini App";
+      const note =
+        candidate.note ||
+        (requestRow.request_type === "booking_request"
+          ? "Customer requested a booking through BUSY."
+          : "Customer sent an enquiry through BUSY.");
+
+      setCustomers((list) => {
+        const base =
+          existing || {
+            id: customerId,
+            name: candidate.name || "BUSY customer",
+            phone: candidate.phone || "",
+            email: candidate.email || "",
+            address: "",
+            service: candidate.service || "General enquiry",
+            lastServiceDate: "",
+            lastJobValue: 0,
+            contactOk: true,
+            source: "BUSY Mini App",
+            createdAt: now,
+            history: [],
+            activity: [],
+            sourceRecords: [],
+          };
+        const activity = Array.isArray(base.activity)
+          ? base.activity
+          : [];
+        const sourceRecords = Array.isArray(base.sourceRecords)
+          ? base.sourceRecords
+          : [];
+        return [
+          ...list.filter((item) => item.id !== customerId),
+          {
+            ...base,
+            name: candidate.name || base.name,
+            phone: candidate.phone || base.phone || "",
+            email: candidate.email || base.email || "",
+            service: candidate.service || base.service,
+            source: base.source || "BUSY Mini App",
+            lifecycleStatus:
+              requestRow.request_type === "booking_request"
+                ? "Booking being arranged"
+                : "Enquiry",
+            currentEnquiryAt:
+              requestRow.request_type === "booking_request"
+                ? null
+                : now,
+            nextEnquiryCheckDate:
+              requestRow.request_type === "booking_request"
+                ? null
+                : addDaysFromISO(today, 7),
+            lastActivityAt: now,
+            lastActivityKind: activityKind,
+            sourceRecords: [
+              ...sourceRecords.filter(
+                (item) =>
+                  item.miniAppRequestId !== requestId
+              ),
+              {
+                id: `source-miniapp-${requestId}`,
+                source: "BUSY Mini App",
+                stage:
+                  requestRow.request_type === "booking_request"
+                    ? "Booking request"
+                    : "Enquiry",
+                eventDate: String(requestRow.created_at || "").slice(0, 10) || today,
+                importedAt: now,
+                rawText: note,
+                miniAppRequestId: requestId,
+              },
+            ],
+            activity: [
+              ...activity.filter(
+                (item) =>
+                  item.miniAppRequestId !== requestId
+              ),
+              {
+                id: `activity-miniapp-${requestId}`,
+                kind: activityKind,
+                date: today,
+                createdAt: now,
+                title: activityTitle,
+                note,
+                value: "",
+                miniAppRequestId: requestId,
+              },
+            ],
+          },
+        ];
+      });
+
+      let bridgeState = "enquiry_linked";
+      let actionRecordId = "";
+      if (requestRow.request_type === "booking_request") {
+        const preferredDateText =
+          requestRow.preferred_date_text ||
+          requestRow.payload?.preferredDate ||
+          "";
+        const bookingDate = explicitPreferredDate(
+          preferredDateText
+        );
+        actionRecordId = `miniapp-booking-${requestId}`;
+        bridgeState = "booking_draft";
+        setReplyActions((current) => ({
+          ...current,
+          [customerId]: {
+            ...(current[customerId] || {}),
+            task: "Review Mini App booking request",
+            type: "booking",
+            origin: "mini-app",
+            createdAt: current[customerId]?.createdAt || now,
+            done: false,
+            details: {
+              ...(current[customerId]?.details || {}),
+              bookingDate,
+              bookingTime: "",
+              bookingStatus: "Draft",
+              requestedDateText: preferredDateText,
+              requestedService:
+                requestRow.service_name ||
+                requestRow.payload?.service ||
+                candidate.service ||
+                "",
+              sourceMiniAppRequestId: requestId,
+              note,
+              summary: preferredDateText
+                ? `Mini App booking request • preferred: ${preferredDateText}`
+                : "Mini App booking request • date/time still to agree",
+            },
+          },
+        }));
+      }
+
+      const linked = await miniAppsRequest("mark_request_linked", {
+        requestId,
+        customerRecordId: customerId,
+        actionRecordId,
+        bridgeState,
+        metadata: {
+          matchedExisting: !!existing,
+          matchReason: matched?.reason || "",
+        },
+      });
+      applyMiniAppsStatus(linked);
+
+      setSelectedCustomerId(customerId);
+      if (requestRow.request_type === "booking_request") {
+        setSelectedReplyActionId(customerId);
+        setMiniAppsNotice(
+          "BUSY linked this customer and created a Draft booking action. The customer's requested date is preserved, but nothing has been confirmed in the diary yet."
+        );
+      } else {
+        setMiniAppsNotice(
+          "BUSY linked this Mini App enquiry into the existing customer journey. Follow-up now uses the same BUSY customer record as other enquiries."
+        );
+      }
+      setTimeout(() => saveBusinessCloud({ quiet: true }), 250);
+      return true;
+    } catch (error) {
+      setMiniAppsError(
+        error?.message ||
+          "BUSY could not link that Mini App request into the customer journey."
+      );
+      return false;
+    } finally {
+      setMiniAppsAction("");
+    }
+  };
+
   const openBusyAppsMarketplace = () => {
     setTab("Home");
     go("busyAppsMarketplace");
-    setTimeout(() => searchBusyApps(""), 80);
+    setTimeout(() => {
+      searchBusyApps("");
+      loadMyBusyApps({ quiet: true });
+    }, 80);
     return true;
   };
 
@@ -13354,7 +13650,13 @@ function App() {
     busyAppsResults,
     busyAppsSearching,
     selectedBusyAppDetail,
+    myBusyApps,
+    myBusyAppRequests,
+    myBusyAppsLoading,
     refreshMiniAppsStatus,
+    loadMyBusyApps,
+    toggleBusyAppFavorite,
+    bridgeMiniAppRequestIntoBusy,
     buildMiniAppFromBrandBrain,
     toggleMiniAppModule,
     prepareMiniAppPreview,
