@@ -45,7 +45,7 @@ function WebsitePublishing({ s }) {
       s={s}
       title="Website Management"
       subtitle="Edit privately, inspect the exact hosted version, then decide what becomes public."
-      brandCue="V3.49 • one Go Live journey • automatic delivery proof • simple owner status."
+      brandCue="V3.50 • customer-owned domains • automatic Cloudflare + SSL • verified public delivery."
     >
       <Card
         eyebrow="Website lifecycle"
@@ -524,23 +524,49 @@ function WebsitePublishing({ s }) {
 
       <Text style={styles.sectionLabel}>Custom domain</Text>
       <Card
-        eyebrow="Three separate truths"
-        title={domain ? domain.hostname : "Connect a domain you already own"}
+        eyebrow="Your own domain • one ownership check"
+        title={view.domainState?.journey?.label || "Connect a domain you already own"}
         body={
-          domain
-            ? "BUSY tracks ownership, traffic routing and SSL separately. A verified TXT record is not treated as a live HTTPS website."
-            : "Start with ownership verification. Routing and certificate activation will only become active when a genuine domain-routing provider confirms them."
+          !domain
+            ? "Enter the domain you want customers to use. BUSY first proves ownership with one TXT record; after that it prepares the Cloudflare hostname, SSL and route automatically."
+            : view.domainState?.journey?.complete
+            ? "BUSY has proved ownership, Cloudflare routing, HTTPS and the exact live website through this customer-owned domain."
+            : view.domainState?.journey?.needsAttention
+            ? "Your approved BUSY website remains safe. The custom-domain setup has been isolated to the stage shown below, and BUSY will keep the default BUSY address separate."
+            : domain.status === "pending_verification"
+            ? "Add the ownership TXT record below, then check ownership once. BUSY takes over the provider setup after that."
+            : "Ownership is complete. BUSY is handling the Cloudflare hostname and SSL automatically; only the DNS records shown below still need to be added at the domain's DNS provider."
         }
         footer={
-          view.providerState?.configured
-            ? "Cloudflare provider adapter is connected; BUSY still waits for real DNS + deployment health before declaring routing active."
-            : "BUSY-side provider adapter is ready. Cloudflare account setup is the remaining external gate."
+          view.domainState?.journey?.complete
+            ? "The customer-owned domain is now the preferred public website address."
+            : "BUSY never treats ownership, SSL, routing or live-site health as the same thing."
         }
-        tone={view.domainState?.routingActive ? "green" : "blue"}
+        tone={
+          view.domainState?.journey?.complete
+            ? "green"
+            : view.domainState?.journey?.needsAttention
+            ? "amber"
+            : "blue"
+        }
       >
-        <MetricRow left="Ownership" right={view.domainState?.ownership || "Not connected"} strong={view.domainState?.ownership === "Verified"} />
-        <MetricRow left="Routing" right={view.domainState?.routing || "Not configured"} strong={view.domainState?.routing === "Active"} />
-        <MetricRow left="SSL / HTTPS" right={view.domainState?.ssl || "Not configured"} strong={view.domainState?.ssl === "Active"} />
+        {(view.domainState?.journey?.steps || []).map((step) => (
+          <MetricRow
+            key={step.id}
+            left={step.label}
+            right={
+              step.status === "complete"
+                ? "Done"
+                : step.status === "working"
+                ? "Checking…"
+                : step.status === "error"
+                ? "Needs attention"
+                : "Waiting"
+            }
+            strong={step.status === "complete"}
+          />
+        ))}
+
         {!domain ? (
           <>
             <Field
@@ -548,46 +574,68 @@ function WebsitePublishing({ s }) {
               value={s.websiteDomainDraft}
               onChangeText={s.setWebsiteDomainDraft}
               autoCapitalize="none"
-              placeholder="example.co.uk"
+              placeholder="www.example.co.uk"
             />
             <Button
-              label={s.websitePublishingAction === "domain" ? "Creating verification…" : "Start domain verification"}
+              label={s.websitePublishingAction === "domain" ? "Creating verification…" : "Connect my domain"}
               disabled={!s.websiteDomainDraft.trim() || !!s.websitePublishingAction}
               onPress={s.requestWebsiteDomain}
             />
           </>
         ) : (
           <>
-            <MetricRow left="Ownership TXT name" right={`_busy-verify.${domain.hostname}`} />
-            <MetricRow left="TXT value" right={domain.verification_token || "Saved securely"} />
+            <MetricRow left="Domain" right={domain.hostname} strong />
             {domain.status === "pending_verification" ? (
-              <Button
-                label={s.websitePublishingAction === `verify-domain:${domain.id}` ? "Checking DNS…" : "Check ownership verification"}
-                disabled={!!s.websitePublishingAction}
-                onPress={() => s.verifyWebsiteDomain(domain.id)}
-              />
+              <>
+                <MetricRow left="Add TXT record" right={`_busy-verify.${domain.hostname}`} />
+                <MetricRow left="TXT value" right={domain.verification_token || "Saved securely"} />
+                <Button
+                  label={s.websitePublishingAction === `verify-domain:${domain.id}` ? "Checking ownership…" : "I've added the TXT record • check now"}
+                  disabled={!!s.websitePublishingAction}
+                  onPress={() => s.verifyWebsiteDomain(domain.id)}
+                />
+              </>
             ) : null}
-            {view.canProvisionDomain ? (
-              <Button
-                label={
-                  s.websitePublishingAction === `provision-domain:${domain.id}`
-                    ? "Preparing provider routing…"
-                    : view.providerState?.configured
-                    ? "Prepare Cloudflare routing & SSL"
-                    : "Cloudflare setup required before routing"
-                }
-                primary={!!view.providerState?.configured}
-                disabled={!view.providerState?.configured || !!s.websitePublishingAction}
-                onPress={() => s.provisionWebsiteDomain(domain.id)}
-              />
-            ) : null}
-            {(view.domainState?.requiredRecords || []).slice(0, 8).map((record, index) => (
+
+            {(view.domainState?.recordsToAdd || []).slice(0, 8).map((record, index) => (
               <MetricRow
                 key={`${record.purpose || "dns"}-${record.type || ""}-${record.name || index}`}
-                left={`${record.type || "DNS"} • ${record.purpose || "required"}`}
+                left={
+                  record.purpose === "traffic_routing"
+                    ? `${record.type || "DNS"} • website traffic`
+                    : record.purpose === "ssl_certificate_validation"
+                    ? `${record.type || "DNS"} • HTTPS validation`
+                    : record.purpose === "cloudflare_hostname_ownership"
+                    ? `${record.type || "DNS"} • Cloudflare validation`
+                    : `${record.type || "DNS"} • required`
+                }
                 right={`${record.name || ""} → ${record.value || ""}`}
               />
             ))}
+
+            {domain.status !== "pending_verification" && !view.domainState?.journey?.complete ? (
+              <Button
+                label={
+                  s.websitePublishingAction === `provision-domain:${domain.id}`
+                    ? "Checking domain setup…"
+                    : "Check domain setup now"
+                }
+                disabled={!!s.websitePublishingAction}
+                onPress={() => s.provisionWebsiteDomain(domain.id)}
+              />
+            ) : null}
+
+            {view.domainState?.journey?.lastError ? (
+              <MetricRow left="Latest provider message" right={view.domainState.journey.lastError} />
+            ) : null}
+
+            {view.canOpenCustomDomain ? (
+              <Button
+                label="Open customer-owned website"
+                primary
+                onPress={s.openCustomWebsiteDomain}
+              />
+            ) : null}
           </>
         )}
       </Card>
