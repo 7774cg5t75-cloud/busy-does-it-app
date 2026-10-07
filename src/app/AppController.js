@@ -49,6 +49,7 @@ const {
   BUSY_SOCIAL_PUBLISH_URL,
   BUSY_WEBSITE_PUBLISH_URL,
   BUSY_MINI_APPS_URL,
+  BUSY_MINI_APP_LINK_URL,
   BUSY_SUPABASE_URL,
   BUSY_PUSH_DISPATCH_URL,
   BUSY_CALENDAR_OAUTH_URL,
@@ -272,6 +273,7 @@ function App() {
     versions: [],
     requests: [],
     requestLinks: [],
+    entrySummary: [],
     catalog: [],
     publicProfile: null,
   });
@@ -296,6 +298,7 @@ function App() {
     message: "",
   });
   const [miniAppsNotificationAction, setMiniAppsNotificationAction] = useState("");
+  const [pendingMiniAppDeepLink, setPendingMiniAppDeepLink] = useState(null);
 
   const [quietSlot, setQuietSlot] = useState("Thursday afternoon");
   const [quietSlotConfirmed, setQuietSlotConfirmed] = useState(false);
@@ -6227,6 +6230,7 @@ function App() {
       versions: [],
       requests: [],
       requestLinks: [],
+      entrySummary: [],
       catalog: [],
       publicProfile: null,
     });
@@ -6251,6 +6255,7 @@ function App() {
       message: "",
     });
     setMiniAppsNotificationAction("");
+    setPendingMiniAppDeepLink(null);
     setQuietSlot("Thursday afternoon");
     setQuietSlotConfirmed(false);
     setSelectedGap("");
@@ -8297,6 +8302,18 @@ function App() {
   });
   const miniAppProfileDraft = buildMiniAppProfileDraft(brandBrain);
   const miniAppsView = buildMiniAppsView(miniAppsStatus);
+  const miniAppShareLinks = (() => {
+    const slug = String(miniAppsView?.publicSlug || "").trim();
+    if (!slug) return { native: "", qr: "", share: "" };
+    const encoded = encodeURIComponent(slug);
+    const landing = (source) =>
+      `${BUSY_MINI_APP_LINK_URL}?slug=${encoded}&source=${encodeURIComponent(source)}`;
+    return {
+      native: `busydoesit://apps/${encoded}?source=deep_link`,
+      qr: landing("qr"),
+      share: landing("share"),
+    };
+  })();
   const selectedCommunicationThread =
     communicationsHub.threads.find(
       (thread) => thread.customerId === selectedCustomerId
@@ -11302,6 +11319,10 @@ function App() {
           ).length
         ),
         publicSlug: miniAppsView?.publicSlug || "",
+        entryLanding30: Number(miniAppsView?.entryCounts?.byStage?.landing || 0),
+        entryAppOpens30: Number(miniAppsView?.entryCounts?.byStage?.app_open || 0),
+        qrEntries30: Number(miniAppsView?.entryCounts?.bySource?.qr || 0),
+        shareEntries30: Number(miniAppsView?.entryCounts?.bySource?.share || 0),
         arbitraryBespokeCodeSupported: false,
         publicChangeRequiresOwnerApproval: true,
       },
@@ -12895,6 +12916,7 @@ function App() {
       versions: Array.isArray(data?.versions) ? data.versions : [],
       requests: Array.isArray(data?.requests) ? data.requests : [],
       requestLinks: Array.isArray(data?.requestLinks) ? data.requestLinks : [],
+      entrySummary: Array.isArray(data?.entrySummary) ? data.entrySummary : [],
       catalog: Array.isArray(data?.catalog) ? data.catalog : [],
       publicProfile: data?.publicProfile || null,
     });
@@ -13162,14 +13184,14 @@ function App() {
     }
   };
 
-  const openBusyAppDetail = async (slug) => {
+  const openBusyAppDetail = async (slug, source = "marketplace") => {
     if (!slug) return false;
     setMiniAppsAction(`open:${slug}`);
     setMiniAppsError("");
     try {
       const data = await miniAppsRequest(
         "app_detail",
-        { slug },
+        { slug, source },
         { includeBusiness: false }
       );
       setSelectedBusyAppDetail(data);
@@ -13755,6 +13777,114 @@ function App() {
     }
   };
 
+  const openMiniAppShareCentre = () => {
+    if (!miniAppsView?.hasLive || !miniAppsView?.publicSlug) {
+      setMiniAppsError("Publish a live Mini App before creating customer entry links.");
+      return false;
+    }
+    setTab("Home");
+    go("miniAppShareCentre");
+    setTimeout(() => refreshMiniAppsStatus({ quiet: true }), 80);
+    return true;
+  };
+
+  const shareMiniAppCustomerLink = async () => {
+    const url = miniAppShareLinks.share;
+    if (!url || !miniAppsView?.hasLive) return false;
+    try {
+      await Share.share({
+        title: `${miniAppsView.displayName || "Business"} • BUSY DOES IT`,
+        message: `Open ${miniAppsView.displayName || "this business"} in BUSY DOES IT:\n${url}`,
+        url,
+      });
+      setMiniAppsNotice("Customer link opened in the share sheet.");
+      return true;
+    } catch (error) {
+      setMiniAppsError(error?.message || "BUSY could not open the share sheet.");
+      return false;
+    }
+  };
+
+  const openMiniAppCustomerLink = async (source = "share") => {
+    const url = source === "qr" ? miniAppShareLinks.qr : miniAppShareLinks.share;
+    if (!url) return false;
+    try {
+      await Linking.openURL(url);
+      return true;
+    } catch (error) {
+      setMiniAppsError(error?.message || "BUSY could not open that customer link.");
+      return false;
+    }
+  };
+
+  const parseMiniAppDeepLink = (value = "") => {
+    const raw = String(value || "");
+    const prefix = "busydoesit://apps/";
+    if (!raw.startsWith(prefix)) return null;
+    const rest = raw.slice(prefix.length);
+    const [pathPart, queryPart = ""] = rest.split("?");
+    let slug = "";
+    try {
+      slug = decodeURIComponent(String(pathPart || "").split("/")[0] || "");
+    } catch {
+      slug = String(pathPart || "").split("/")[0] || "";
+    }
+    if (!slug) return null;
+    const query = {};
+    queryPart.split("&").filter(Boolean).forEach((pair) => {
+      const [rawKey, rawValue = ""] = pair.split("=");
+      try {
+        query[decodeURIComponent(rawKey)] = decodeURIComponent(rawValue);
+      } catch {
+        query[rawKey] = rawValue;
+      }
+    });
+    const allowed = new Set(["qr", "share", "deep_link", "marketplace", "my_apps", "notification", "owner_test"]);
+    const source = allowed.has(String(query.source || "")) ? String(query.source) : "deep_link";
+    return { slug, source };
+  };
+
+  const handleMiniAppDeepLink = async (url) => {
+    const target = parseMiniAppDeepLink(url);
+    if (!target) return false;
+    if (!ownerSession?.accessToken) {
+      setPendingMiniAppDeepLink(target);
+      setMiniAppsNotice("Sign in to BUSY to open the shared business app.");
+      go("accountAccess");
+      return true;
+    }
+    setPendingMiniAppDeepLink(null);
+    return await openBusyAppDetail(target.slug, target.source);
+  };
+
+  useEffect(() => {
+    if (!hydrated) return;
+    const onUrl = ({ url }) => {
+      if (String(url || "").startsWith("busydoesit://apps/")) {
+        handleMiniAppDeepLink(url);
+      }
+    };
+    const subscription = Linking.addEventListener("url", onUrl);
+    Linking.getInitialURL()
+      .then((url) => {
+        if (url && String(url).startsWith("busydoesit://apps/")) {
+          handleMiniAppDeepLink(url);
+        }
+      })
+      .catch(() => {});
+    return () => subscription?.remove?.();
+  }, [hydrated, ownerSession?.accessToken]);
+
+  useEffect(() => {
+    if (!hydrated || !ownerSession?.accessToken || !pendingMiniAppDeepLink?.slug) return;
+    const target = pendingMiniAppDeepLink;
+    const timer = setTimeout(() => {
+      setPendingMiniAppDeepLink(null);
+      openBusyAppDetail(target.slug, target.source || "deep_link");
+    }, 120);
+    return () => clearTimeout(timer);
+  }, [hydrated, ownerSession?.accessToken, pendingMiniAppDeepLink?.slug]);
+
   const openBusyAppsMarketplace = () => {
     setTab("Home");
     go("busyAppsMarketplace");
@@ -13966,6 +14096,7 @@ function App() {
     miniAppRequestHistoryLoading,
     miniAppsNotificationStatus,
     miniAppsNotificationAction,
+    miniAppShareLinks,
     refreshMiniAppsStatus,
     loadMyBusyApps,
     enableMiniAppNotifications,
@@ -13985,6 +14116,9 @@ function App() {
     confirmRollbackMiniApp,
     searchBusyApps,
     openBusyAppDetail,
+    openMiniAppShareCentre,
+    shareMiniAppCustomerLink,
+    openMiniAppCustomerLink,
     submitBusyAppRequest,
     updateMiniAppRequestStatus,
     openBusyAppsMarketplace,
