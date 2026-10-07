@@ -80,9 +80,17 @@ function TalkToBusy({ s }) {
   return (
     <Shell
       s={s}
-      title="BUSY Operator"
-      subtitle="Run more of the day by talking naturally. BUSY keeps the current customer, booking and draft in context, then previews record changes before applying them."
-      brandCue="Voice-first, not authority-first. Booking/customer changes still ask for confirmation; messages, publishing and spend keep their separate approval gates."
+      title={s.businessCreationConversationActive ? "Talk to BUSY • Build my business" : "BUSY Operator"}
+      subtitle={
+        s.businessCreationConversationActive
+          ? "Talk naturally about the business. BUSY remembers each answer, asks the next useful question and advances the private launch pack."
+          : "Run more of the day by talking naturally. BUSY keeps the current customer, booking and draft in context, then previews record changes before applying them."
+      }
+      brandCue={
+        s.businessCreationConversationActive
+          ? "V3.59 • conversational business creation • one question at a time • shared memory • nothing published automatically."
+          : "Voice-first, not authority-first. Booking/customer changes still ask for confirmation; messages, publishing and spend keep their separate approval gates."
+      }
     >
       {recentTurns.length ? (
         <Card
@@ -101,6 +109,28 @@ function TalkToBusy({ s }) {
             </View>
           ))}
           <Button label="Start a fresh conversation" onPress={s.startNewBusyConversation} />
+        </Card>
+      ) : null}
+
+      {s.businessCreationConversationActive ? (
+        <Card
+          eyebrow="Business creation conversation"
+          title={s.businessCreationJourney?.nextQuestion?.question || "BUSY has the core facts it needs"}
+          body={
+            s.businessCreationJourney?.nextQuestion?.helper ||
+            "You can keep talking naturally, ask BUSY to prepare the launch pack, or return to the combined review."
+          }
+          footer="Your answers feed the shared business profile used by the website, Business App and marketing tools."
+          tone="green"
+        >
+          <Button
+            label="Return to launch-pack review"
+            onPress={() => s.go("businessCreationJourney")}
+          />
+          <Button
+            label="Finish business-creation conversation"
+            onPress={() => s.setBusinessCreationConversationActive(false)}
+          />
         </Card>
       ) : null}
 
@@ -166,6 +196,7 @@ function TalkToBusy({ s }) {
         />
       </Card>
 
+      {!s.businessCreationConversationActive ? (
       <Card
         eyebrow="Quick asks"
         title="Common daily commands"
@@ -203,6 +234,7 @@ function TalkToBusy({ s }) {
           onPress={() => s.submitBusyCommand({ text: "Where have I got a sensible gap for another job?" })}
         />
       </Card>
+      ) : null}
 
       {s.busyCommandError ? (
         <Card
