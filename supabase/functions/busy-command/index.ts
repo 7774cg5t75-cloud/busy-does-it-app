@@ -26,6 +26,10 @@ const intents = [
   "website_health_check",
   "website_publish_request",
   "website_rollback_request",
+  "mini_app_build",
+  "mini_app_edit",
+  "open_busy_apps",
+  "mini_app_status",
   "business_outlook",
   "next_best_action",
   "daily_briefing",
@@ -60,7 +64,7 @@ const intents = [
 ];
 
 const stepIntentEnum = intents.filter((intent) =>
-  !["business_summary", "business_changes", "business_memory", "business_identity_summary", "website_hosting_status", "website_traffic_status", "business_outlook", "next_best_action", "daily_briefing", "customer_journey_summary", "communications_summary", "customer_communication_summary", "customer_reply_draft", "calendar_day_summary", "calendar_gap", "calendar_fit_job", "operator_plan", "draft_refinement", "unknown"].includes(intent)
+  !["business_summary", "business_changes", "business_memory", "business_identity_summary", "website_hosting_status", "website_traffic_status", "mini_app_status", "business_outlook", "next_best_action", "daily_briefing", "customer_journey_summary", "communications_summary", "customer_communication_summary", "customer_reply_draft", "calendar_day_summary", "calendar_gap", "calendar_fit_job", "operator_plan", "draft_refinement", "unknown"].includes(intent)
 );
 
 const previewRowSchema = {
@@ -495,6 +499,28 @@ function safeContext(value: any) {
             publicChangeRequiresOwnerApproval: true,
           }
         : null,
+    miniApps:
+      context.miniApps && typeof context.miniApps === "object"
+        ? {
+            status: cleanText(context.miniApps.status, 160),
+            hasDraft: !!context.miniApps.hasDraft,
+            hasPreview: !!context.miniApps.hasPreview,
+            hasLive: !!context.miniApps.hasLive,
+            discoverable: !!context.miniApps.discoverable,
+            liveVersion: Math.max(0, Number(context.miniApps.liveVersion) || 0),
+            previewVersion: Math.max(0, Number(context.miniApps.previewVersion) || 0),
+            enabledModules: Array.isArray(context.miniApps.enabledModules)
+              ? context.miniApps.enabledModules.slice(0, 20).map((item: any) => cleanText(item, 80))
+              : [],
+            plannedModules: Array.isArray(context.miniApps.plannedModules)
+              ? context.miniApps.plannedModules.slice(0, 20).map((item: any) => cleanText(item, 80))
+              : [],
+            pendingCustomerRequests: Math.max(0, Number(context.miniApps.pendingCustomerRequests) || 0),
+            publicSlug: cleanText(context.miniApps.publicSlug, 160),
+            arbitraryBespokeCodeSupported: false,
+            publicChangeRequiresOwnerApproval: true,
+          }
+        : null,
     businessMemory:
       context.businessMemory && typeof context.businessMemory === "object"
         ? {
@@ -599,6 +625,11 @@ Your job is conversational:
 - For questions such as "is my website live?", "what version is live?", "what changed?", "is hosting ready?", "is my domain really live?", "is SSL active?", "are the SEO basics ready?", or "what is happening with my website publish?", use intent="website_hosting_status", mode="answer" and use websitePublishing. Keep editor draft, hosted preview and live version distinct; keep domain ownership, routing and SSL distinct.
 - For questions such as "how many visits has my website had?", "has anyone visited my site?", "how much website traffic have I had?", "did the website generate any enquiries?", "what traffic did Cloudflare record?", or "how much bandwidth is the website using?", use intent="website_traffic_status", mode="answer". Use only websitePublishing traffic/usage fields. A Cloudflare visit is not a unique person; do not rename it "unique visitors". If deliveryProviderConfigured=false or analyticsStatus is foundation with zero provider evidence, say real traffic collection is awaiting provider setup rather than interpreting zero as proven zero visitors.
 - For "check my live website", "is my website healthy?", "check whether the website is serving the right version" or equivalent, use intent="website_health_check", mode="action", requiresConfirmation=false, actionLabel="Check live website". This is a read/verification action only; it must not publish or change public content.
+- For "build me an app", "make my business app" or equivalent, use intent="mini_app_build", mode="action", requiresConfirmation=false, actionLabel="Build Mini App". BUSY assembles the controlled reusable module set; never imply arbitrary bespoke code generation.
+- For "change/edit my app", "add/remove a module" or equivalent, use intent="mini_app_edit", mode="action", requiresConfirmation=false, actionLabel="Open Mini App Builder". The builder only supports the tested module catalogue.
+- For "open apps", "search apps", "find Jenny's app" or equivalent marketplace navigation, use intent="open_busy_apps", mode="action", requiresConfirmation=false, actionLabel="Open BUSY Apps".
+- For "is my app live?", "is my app listed?", "what is in my app?", "how many customer requests are waiting?" or equivalent, use intent="mini_app_status", mode="answer" and use miniApps only.
+- Publishing a Mini App or changing marketplace discoverability remains an explicit owner approval action in the Mini App Builder.
 - A public website change always requires the explicit owner approval gate in Website Publishing. Never claim DNS changed, a custom domain is routed, SSL is active, or a domain was purchased unless websitePublishing explicitly says so.
 - Never claim causation from attributed social outcomes or small samples.
 - For business_outlook, never collapse confirmed work and predicted pipeline into one factual number. State confirmed value separately, label forecast ranges as planning estimates, mention forecast confidence, and explain that quiet/light days are scheduled-load observations rather than guaranteed spare capacity.
@@ -625,6 +656,10 @@ Supported direct intents:
 - website_health_check: trigger a live reachability/deployment-marker verification; it is safe and non-public-changing.
 - website_publish_request: open the Go Live review flow for the exact prepared version; do not publish directly.
 - website_rollback_request: open version history/rollback review; do not change the live site directly.
+- mini_app_build: build/rebuild the private BUSY Mini App draft from approved public business facts and the controlled module catalogue; do not publish it.
+- mini_app_edit: open the controlled Mini App Builder; do not invent unsupported modules.
+- open_busy_apps: open the BUSY Apps marketplace/directory.
+- mini_app_status: answer from miniApps state only; distinguish draft, prepared preview, live and marketplace discoverability.
 - business_outlook: answer questions about today, next week, the next 30 days, pipeline, capacity load, forecast range, risk radar, scenarios or whether the business is on track. Use executiveBriefing and clearly separate confirmed values from forecast ranges.
 - next_best_action: answer "what should I do now/next?" with one record-backed priority. This is an answer, not blanket action authority.
 - daily_briefing: answer requests like "brief me", "what matters today?", "what do I need to do now/later/watch?" from dailyCommandCentre. Keep the lane order exactly Do now → Later today → Watch and never manufacture a lane item.
