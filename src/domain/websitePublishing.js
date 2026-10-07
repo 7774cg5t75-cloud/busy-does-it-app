@@ -183,6 +183,104 @@ function buildWebsitePublishingView({
   const lastAnalyticsSignal =
     signalRuns.find((run) => run.signal_type === "analytics_sync") || null;
 
+  const latestPublishJob =
+    jobs.find((job) => ["publish", "rollback"].includes(job.action)) || null;
+  const publishFailed = latestPublishJob?.status === "failed";
+  const defaultRouteHealthy =
+    defaultAddress?.live && defaultDomainHealth?.status === "healthy";
+  const liveAliasHealthy = healthStatus === "healthy";
+
+  const goLiveStage = !liveDeployment
+    ? publishFailed
+      ? "publish_failed"
+      : activeJob?.action === "publish" || activeJob?.action === "rollback"
+      ? "publishing"
+      : previewDeployment
+      ? "approval_ready"
+      : "not_ready"
+    : !defaultAddress
+    ? "allocating_address"
+    : !defaultAddress.live
+    ? deliveryStatus === "degraded"
+      ? "route_attention"
+      : "verifying_route"
+    : !liveAliasHealthy || !defaultRouteHealthy
+    ? "verifying_health"
+    : "live_healthy";
+
+  const goLiveLabel =
+    goLiveStage === "live_healthy"
+      ? "Live and healthy"
+      : goLiveStage === "verifying_health"
+      ? "Live • final health proof running"
+      : goLiveStage === "route_attention"
+      ? "Live version safe • BUSY address needs attention"
+      : goLiveStage === "verifying_route"
+      ? "Published • verifying BUSY address"
+      : goLiveStage === "allocating_address"
+      ? "Published • allocating BUSY address"
+      : goLiveStage === "publishing"
+      ? "Publishing approved version"
+      : goLiveStage === "publish_failed"
+      ? "Go Live needs attention"
+      : goLiveStage === "approval_ready"
+      ? "Preview ready for owner approval"
+      : "Build and prepare a hosted preview";
+
+  const goLiveSteps = [
+    {
+      id: "approval",
+      label: "Owner approval",
+      status:
+        liveDeployment || activeJob?.action === "publish" || latestPublishJob
+          ? "complete"
+          : previewDeployment
+          ? "ready"
+          : "waiting",
+    },
+    {
+      id: "public_version",
+      label: "Approved version published",
+      status: liveDeployment
+        ? "complete"
+        : publishFailed
+        ? "error"
+        : activeJob?.action === "publish"
+        ? "working"
+        : "waiting",
+    },
+    {
+      id: "busy_address",
+      label: "BUSY address allocated",
+      status: defaultAddress
+        ? "complete"
+        : liveDeployment
+        ? "working"
+        : "waiting",
+    },
+    {
+      id: "route_proof",
+      label: "Cloudflare route verified",
+      status: defaultAddress?.live
+        ? "complete"
+        : deliveryStatus === "degraded"
+        ? "error"
+        : defaultAddress && liveDeployment
+        ? "working"
+        : "waiting",
+    },
+    {
+      id: "health",
+      label: "Exact deployment health proof",
+      status:
+        liveAliasHealthy && defaultRouteHealthy
+          ? "complete"
+          : liveDeployment && defaultAddress?.live
+          ? "working"
+          : "waiting",
+    },
+  ];
+
   return {
     website,
     deployments,
@@ -283,6 +381,17 @@ function buildWebsitePublishingView({
       activationApplied: !!providerActivation?.applied,
       activationAttempted: !!providerActivation?.attempted,
       activationCheckedAt: providerActivation?.checkedAt || null,
+    },
+    goLiveJourney: {
+      stage: goLiveStage,
+      label: goLiveLabel,
+      complete: goLiveStage === "live_healthy",
+      needsAttention: ["publish_failed", "route_attention"].includes(goLiveStage),
+      steps: goLiveSteps,
+      primaryPublicAddress:
+        defaultAddress?.live
+          ? defaultAddress.url
+          : clean(website?.live_url),
     },
     defaultAddressState: {
       address: defaultAddress,
