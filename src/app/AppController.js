@@ -6221,6 +6221,9 @@ function App() {
       signalRuns: [],
       enquiryAttributions: [],
       providerConfig: null,
+      providerPreflight: null,
+      providerPlatform: null,
+      providerActivation: null,
       publicProfile: null,
     });
     setWebsitePublishingLoading(false);
