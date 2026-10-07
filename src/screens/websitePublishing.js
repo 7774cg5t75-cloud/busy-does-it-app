@@ -742,6 +742,11 @@ function WebsitePublishing({ s }) {
       >
         <MetricRow left="Waiting jobs" right={String(view.queueHealth?.length || 0)} />
         <MetricRow left="Oldest waiting" right={view.queueHealth?.oldestSeconds == null ? "None" : readableSeconds(view.queueHealth.oldestSeconds)} />
+        <MetricRow left="Tenant fairness" right={view.queueHealth?.tenantFair ? "Active" : "Not checked"} strong={!!view.queueHealth?.tenantFair} />
+        <MetricRow left="Concurrent website changes" right={view.queueHealth?.oneOperationPerWebsite ? "Blocked" : "Not checked"} strong={!!view.queueHealth?.oneOperationPerWebsite} />
+        {view.queueHealth?.activeLeaseUntil ? (
+          <MetricRow left="Current worker lease" right={readableDate(view.queueHealth.activeLeaseUntil)} />
+        ) : null}
         <MetricRow left="Jobs seen" right={String(view.queueHealth?.totalMessages || 0)} />
       </Card>
 
