@@ -171,6 +171,7 @@ import { buildCustomerJourney2 } from "../domain/customerJourney2";
 import { buildCommunicationsHub } from "../domain/communicationsHub";
 import { buildFollowUpEngine } from "../domain/followUpEngine";
 import { buildBrandBrain } from "../domain/brandBrain";
+import { buildBusinessCreationIntelligence } from "../domain/businessCreationIntelligence";
 import { buildWebsiteDraft, applyWebsiteInstruction } from "../domain/websiteBuilder";
 import { buildWebsitePublishingView } from "../domain/websitePublishing";
 import {
@@ -8313,8 +8314,16 @@ function App() {
     remote: websitePublishingStatus,
     websiteDraft,
   });
-  const miniAppProfileDraft = buildMiniAppProfileDraft(brandBrain);
   const miniAppsView = buildMiniAppsView(miniAppsStatus);
+  const businessCreationIntelligence = buildBusinessCreationIntelligence({
+    brandBrain,
+    websiteDraft,
+    miniAppsView,
+  });
+  const miniAppProfileDraft = buildMiniAppProfileDraft(
+    brandBrain,
+    businessCreationIntelligence
+  );
   const miniAppShareLinks = (() => {
     const slug = String(miniAppsView?.publicSlug || "").trim();
     if (!slug) return { native: "", qr: "", share: "" };
@@ -12522,6 +12531,7 @@ function App() {
     const next = buildWebsiteDraft({
       brandBrain,
       previousDraft: websiteDraft,
+      businessCreationIntelligence,
     });
     setWebsiteDraft(next);
     setWebsiteBuilderNotice(
@@ -14401,6 +14411,7 @@ function App() {
     openWebsitePublishing,
     miniAppsStatus,
     miniAppsView,
+    businessCreationIntelligence,
     miniAppProfileDraft,
     miniAppsLoading,
     miniAppsAction,
