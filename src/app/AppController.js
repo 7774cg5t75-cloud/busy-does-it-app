@@ -288,6 +288,7 @@ function App() {
   const [miniAppsNotice, setMiniAppsNotice] = useState("");
   const [miniAppBuildBrief, setMiniAppBuildBrief] = useState("");
   const [miniAppBuilderPlan, setMiniAppBuilderPlan] = useState(null);
+  const [miniAppFactAnswers, setMiniAppFactAnswers] = useState({});
   const [busyAppsSearch, setBusyAppsSearch] = useState("");
   const [busyAppsResults, setBusyAppsResults] = useState([]);
   const [busyAppsSearching, setBusyAppsSearching] = useState(false);
@@ -13012,6 +13013,15 @@ function App() {
       if (!miniAppBuildBrief && savedPlan?.ownerRequest) {
         setMiniAppBuildBrief(String(savedPlan.ownerRequest));
       }
+      if (
+        savedPlan?.factAnswers &&
+        typeof savedPlan.factAnswers === "object"
+      ) {
+        setMiniAppFactAnswers((current) => ({
+          ...current,
+          ...savedPlan.factAnswers,
+        }));
+      }
     }
     setMiniAppsStatus({
       loaded: true,
@@ -13109,7 +13119,20 @@ function App() {
     }
   };
 
-  const planMiniAppFromBrief = async (brief = miniAppBuildBrief) => {
+  const updateMiniAppFactAnswer = (key, value) => {
+    const safeKey = String(key || "").trim();
+    if (!safeKey) return false;
+    setMiniAppFactAnswers((current) => ({
+      ...current,
+      [safeKey]: String(value || ""),
+    }));
+    return true;
+  };
+
+  const planMiniAppFromBrief = async (
+    brief = miniAppBuildBrief,
+    factAnswers = miniAppFactAnswers
+  ) => {
     const ownerRequest = String(brief || "").trim();
     if (!ownerRequest) {
       setMiniAppsError(
@@ -13124,10 +13147,17 @@ function App() {
     try {
       const data = await miniAppsRequest("plan_app", {
         ownerRequest,
+        factAnswers,
         profileDraft: miniAppProfileDraft,
       });
       applyMiniAppsStatus(data);
       setMiniAppBuilderPlan(data?.plan || null);
+      if (data?.plan?.factAnswers) {
+        setMiniAppFactAnswers((current) => ({
+          ...current,
+          ...data.plan.factAnswers,
+        }));
+      }
       setMiniAppsNotice(
         data?.plan?.planner === "ai"
           ? "BUSY turned your request and recorded business facts into a controlled app plan. Review the modules and any missing facts before building."
@@ -13144,9 +13174,40 @@ function App() {
     }
   };
 
+  const answerMiniAppMissingFacts = async () => {
+    const missing = Array.isArray(miniAppBuilderPlan?.missingFacts)
+      ? miniAppBuilderPlan.missingFacts
+      : [];
+    const answered = missing.filter((item) =>
+      String(miniAppFactAnswers?.[item.key] || "").trim()
+    );
+    if (!answered.length) {
+      setMiniAppsError(
+        "Answer at least one of BUSY's missing-detail questions first."
+      );
+      return false;
+    }
+    const planned = await planMiniAppFromBrief(
+      miniAppBuildBrief,
+      miniAppFactAnswers
+    );
+    if (planned) {
+      setMiniAppsNotice(
+        "BUSY used those answers to update the app plan. Only details still genuinely needed remain below."
+      );
+    }
+    return planned;
+  };
+
   const applyMiniAppPlan = async () => {
     if (!miniAppBuilderPlan) {
       setMiniAppsError("Create an app plan before building the draft.");
+      return false;
+    }
+    if ((miniAppBuilderPlan?.missingFacts || []).length) {
+      setMiniAppsError(
+        "Answer the remaining BUSY questions before building the private app."
+      );
       return false;
     }
     setMiniAppsAction("apply-app-plan");
@@ -13155,14 +13216,32 @@ function App() {
     try {
       const data = await miniAppsRequest("apply_app_plan", {
         ownerRequest: miniAppBuildBrief,
+        factAnswers: miniAppFactAnswers,
         plan: miniAppBuilderPlan,
         profileDraft: miniAppProfileDraft,
       });
       applyMiniAppsStatus(data);
       setMiniAppBuilderPlan(data?.plan || miniAppBuilderPlan);
-      setMiniAppsNotice(
-        "BUSY built the private app draft from the reviewed plan and the business facts it already knows. Nothing has been published."
-      );
+
+      try {
+        const preview = await miniAppsRequest("prepare_preview");
+        applyMiniAppsStatus(preview);
+        setMiniAppsNotice(
+          preview?.reused
+            ? "BUSY built the private app and reused the matching immutable customer preview. Nothing is public until you approve Go Live."
+            : "BUSY built the private app and prepared an immutable customer preview. Nothing is public until you approve Go Live."
+        );
+        setTab("Home");
+        go("miniAppPreview");
+      } catch (previewError) {
+        setMiniAppsNotice(
+          "BUSY built the private app safely, but the customer preview still needs preparing. The draft remains private and nothing was published."
+        );
+        setMiniAppsError(
+          previewError?.message ||
+            "BUSY could not prepare the customer preview yet."
+        );
+      }
       return true;
     } catch (error) {
       setMiniAppsError(
@@ -13192,7 +13271,7 @@ function App() {
       });
       applyMiniAppsStatus(data);
       setMiniAppsNotice(
-        `${enabled ? "Enabled" : "Disabled"} ${moduleKey.replaceAll("_", " ")} in the private Mini App draft. Nothing public changed.`
+        `${enabled ? "Enabled" : "Disabled"} ${moduleKey.replaceAll("_", " ")} in the private Business App draft. Nothing public changed.`
       );
       return true;
     } catch (error) {
@@ -13212,8 +13291,8 @@ function App() {
       applyMiniAppsStatus(data);
       setMiniAppsNotice(
         data?.reused
-          ? "That exact Mini App configuration was already prepared, so BUSY reused the immutable version."
-          : "BUSY prepared an immutable Mini App preview version."
+          ? "That exact Business App configuration was already prepared, so BUSY reused the immutable customer preview."
+          : "BUSY prepared an immutable Business App customer preview."
       );
       return true;
     } catch (error) {
@@ -13237,8 +13316,8 @@ function App() {
       applyMiniAppsStatus(data);
       setMiniAppsNotice(
         discoverable
-          ? "The exact previewed Mini App version is live and listed in BUSY Apps."
-          : "The exact previewed Mini App version is live but is not listed in BUSY Apps search."
+          ? "The exact previewed Business App version is live and listed in BUSY Apps."
+          : "The exact previewed Business App version is live but is not listed in BUSY Apps search."
       );
       return true;
     } catch (error) {
@@ -13253,16 +13332,16 @@ function App() {
     const version = miniAppsView.versions.find((item) => item.id === versionId);
     if (!version) return false;
     Alert.alert(
-      "Publish this Mini App version?",
-      `BUSY will put immutable Mini App v${version.version_no} live. Choose whether customers should also be able to find it in BUSY Apps search.`,
+      "Put this Business App live?",
+      `BUSY will publish exactly the immutable customer preview v${version.version_no}. Choose whether customers should also be able to find it in BUSY Apps search.`,
       [
         { text: "Cancel", style: "cancel" },
         {
-          text: "Live, not listed",
+          text: "Go Live, not listed",
           onPress: () => publishMiniApp(versionId, false),
         },
         {
-          text: "Live & list",
+          text: "Go Live & list",
           onPress: () => publishMiniApp(versionId, true),
         },
       ]
@@ -13281,8 +13360,8 @@ function App() {
       applyMiniAppsStatus(data);
       setMiniAppsNotice(
         discoverable
-          ? "Your live Mini App is now discoverable in BUSY Apps search."
-          : "Your Mini App remains live, but BUSY removed it from marketplace search."
+          ? "Your live Business App is now discoverable in BUSY Apps search."
+          : "Your Business App remains live, but BUSY removed it from marketplace search."
       );
       return true;
     } catch (error) {
@@ -13295,7 +13374,7 @@ function App() {
 
   const confirmMiniAppDiscoverable = (discoverable) => {
     Alert.alert(
-      discoverable ? "List this Mini App in BUSY Apps?" : "Remove from BUSY Apps search?",
+      discoverable ? "List this Business App in BUSY Apps?" : "Remove from BUSY Apps search?",
       discoverable
         ? "Customers using BUSY will be able to find this live app by business name/category."
         : "The app stays live, but it will no longer appear in marketplace search.",
@@ -13319,7 +13398,7 @@ function App() {
         ownerApproved: true,
       });
       applyMiniAppsStatus(data);
-      setMiniAppsNotice("BUSY restored the selected previously published Mini App version.");
+      setMiniAppsNotice("BUSY restored the selected previously published Business App version.");
       return true;
     } catch (error) {
       setMiniAppsError(error?.message || "BUSY could not restore that Mini App version.");
@@ -13331,8 +13410,8 @@ function App() {
 
   const confirmRollbackMiniApp = (versionId, versionNo) => {
     Alert.alert(
-      "Restore this Mini App version?",
-      `This will make previously published Mini App v${versionNo} the live version again.`,
+      "Restore this Business App version?",
+      `This will make previously published Business App v${versionNo} the live version again.`,
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -13961,9 +14040,61 @@ function App() {
     }
   };
 
+  const openMiniAppLinkedBooking = (requestId) => {
+    const link = miniAppsView?.linkByRequest?.get?.(requestId) || null;
+    const customerId = link?.customer_record_id || "";
+    if (!customerId || !replyActions?.[customerId]) {
+      setMiniAppsError(
+        "BUSY could not find the linked booking action for this request."
+      );
+      return false;
+    }
+    setSelectedCustomerId(customerId);
+    openSavedReplyAction(customerId);
+    return true;
+  };
+
+  const awardMiniAppLoyaltyStamp = async (requestId) => {
+    if (!requestId) return false;
+    setMiniAppsAction(`loyalty:${requestId}`);
+    setMiniAppsError("");
+    setMiniAppsNotice("");
+    try {
+      const data = await miniAppsRequest("award_loyalty_stamp", {
+        requestId,
+        reason: "Owner recorded an eligible Business App visit or job",
+      });
+      applyMiniAppsStatus(data);
+      if (
+        selectedMiniAppRequestDetail?.request?.id === requestId &&
+        selectedMiniAppRequestRole === "business"
+      ) {
+        setSelectedMiniAppRequestDetail((current) => ({
+          ...(current || {}),
+          loyaltyProgress:
+            data?.loyaltyProgress || current?.loyaltyProgress || null,
+        }));
+      }
+      const progress = data?.loyaltyProgress || {};
+      setMiniAppsNotice(
+        progress.rewardReached
+          ? `Loyalty progress is now ${progress.stamps || 0}/${progress.targetStamps || 0}. The customer has reached the recorded reward: ${progress.reward || "reward"}.`
+          : `Recorded one loyalty stamp. Progress is now ${progress.stamps || 0}/${progress.targetStamps || 0}.`
+      );
+      return true;
+    } catch (error) {
+      setMiniAppsError(
+        error?.message || "BUSY could not record that loyalty stamp."
+      );
+      return false;
+    } finally {
+      setMiniAppsAction("");
+    }
+  };
+
   const openMiniAppShareCentre = () => {
     if (!miniAppsView?.hasLive || !miniAppsView?.publicSlug) {
-      setMiniAppsError("Publish a live Mini App before creating customer entry links.");
+      setMiniAppsError("Publish a live Business App before creating customer entry links.");
       return false;
     }
     setTab("Home");
@@ -13977,8 +14108,8 @@ function App() {
     if (!url || !miniAppsView?.hasLive) return false;
     try {
       await Share.share({
-        title: `${miniAppsView.displayName || "Business"} • BUSY DOES IT`,
-        message: `Open ${miniAppsView.displayName || "this business"} in BUSY DOES IT:\n${url}`,
+        title: `${miniAppsView.displayName || "Business"} • Business App`,
+        message: `Open ${miniAppsView.displayName || "this business"} Business App from BUSY DOES IT:\n${url}`,
         url,
       });
       setMiniAppsNotice("Customer link opened in the share sheet.");
@@ -14275,6 +14406,9 @@ function App() {
     setMiniAppBuildBrief,
     miniAppBuilderPlan,
     setMiniAppBuilderPlan,
+    miniAppFactAnswers,
+    setMiniAppFactAnswers,
+    updateMiniAppFactAnswer,
     busyAppsSearch,
     setBusyAppsSearch,
     busyAppsResults,
@@ -14300,8 +14434,11 @@ function App() {
     sendMiniAppRequestMessage,
     replyBusyAppRequestMessage,
     bridgeMiniAppRequestIntoBusy,
+    openMiniAppLinkedBooking,
+    awardMiniAppLoyaltyStamp,
     buildMiniAppFromBrandBrain,
     planMiniAppFromBrief,
+    answerMiniAppMissingFacts,
     applyMiniAppPlan,
     describeMiniAppByVoice,
     toggleMiniAppModule,
