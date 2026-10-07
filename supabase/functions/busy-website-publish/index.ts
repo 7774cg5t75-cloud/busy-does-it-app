@@ -691,11 +691,16 @@ async function enqueueJob({
     throw queued.error;
   }
 
-  wakeWorker();
+  await wakeWorker();
   return created.data;
 }
 
-function wakeWorker() {
+async function wakeWorker() {
+  const claim = await supabase.rpc("busy_should_wake_website_worker", {
+    p_min_gap_seconds: 5,
+  });
+  if (claim.error || claim.data !== true) return false;
+
   const promise = fetch(WORKER_URL, {
     method: "POST",
     headers: {
@@ -706,7 +711,12 @@ function wakeWorker() {
   }).catch(() => null);
 
   const runtime = (globalThis as any).EdgeRuntime;
-  if (runtime?.waitUntil) runtime.waitUntil(promise);
+  if (runtime?.waitUntil) {
+    runtime.waitUntil(promise);
+  } else {
+    await promise;
+  }
+  return true;
 }
 
 async function prepare(
