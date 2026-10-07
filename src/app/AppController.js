@@ -12684,6 +12684,12 @@ function App() {
     }
   };
 
+  const followWebsiteGoLive = () => {
+    [1200, 3000, 7000, 15000].forEach((delay) => {
+      setTimeout(() => refreshWebsitePublishingStatus({ quiet: true }), delay);
+    });
+  };
+
   const publishHostedWebsite = async (deploymentId) => {
     if (!deploymentId) return false;
     setWebsitePublishingAction("publish");
@@ -12695,10 +12701,10 @@ function App() {
         ownerApproved: true,
       });
       setWebsitePublishingNotice(
-        "Go Live was approved. BUSY queued exactly the previewed version for public deployment."
+        "Go Live approved. BUSY is publishing the exact previewed version and will automatically verify its BUSY address, Cloudflare route and live deployment health."
       );
       await refreshWebsitePublishingStatus({ quiet: true });
-      setTimeout(() => refreshWebsitePublishingStatus({ quiet: true }), 1200);
+      followWebsiteGoLive();
       return true;
     } catch (error) {
       setWebsitePublishingError(
@@ -12740,10 +12746,10 @@ function App() {
         ownerApproved: true,
       });
       setWebsitePublishingNotice(
-        "Rollback was approved. BUSY queued that previously published immutable version to become live again."
+        "Rollback approved. BUSY is restoring that immutable version and re-checking the real public delivery path automatically."
       );
       await refreshWebsitePublishingStatus({ quiet: true });
-      setTimeout(() => refreshWebsitePublishingStatus({ quiet: true }), 1200);
+      followWebsiteGoLive();
       return true;
     } catch (error) {
       setWebsitePublishingError(
