@@ -2,6 +2,24 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.44 Public Mini App Web Experience
+### Immutable static web artifact
+- `busy_mini_app_versions` now carries public-web artifact metadata, while `busy_mini_apps` points at the web artifact corresponding to the current live immutable version.
+- Publication renders from `version.config` only. That configuration is already the approved public Mini App projection; private Business Brain/customer state is not consulted by the renderer.
+- The worker path is intentionally lightweight and synchronous because a Mini App artifact is one bounded HTML document. Versioned objects use long cache lifetimes; the live alias uses a short cache lifetime.
+- A publish/rollback builds the target artifact **before** switching the live database pointer. If artifact creation fails, BUSY does not silently move the app to a version whose public web representation is missing.
+
+### Public customer boundary
+- The stable `busy-mini-app-link` URL resolves a live Mini App then redirects normal browsing to its cached public Storage artifact.
+- Enquiry/booking buttons return through the same server boundary with an explicit intent. That records an action-attempt counter and opens a narrow `busydoesit://apps/<slug>?intent=...` route.
+- V3.44 does not accept anonymous customer request payloads. Browsing is public; transactional enquiry/booking creation remains authenticated and server-mediated.
+- Direct-link access is not equivalent to marketplace listing. `discoverable=false` hides directory search but does not revoke an exact owner-shared public link while the Mini App is live.
+
+### Bounded funnel analytics
+- `busy_mini_app_entry_daily` supports web-view, action-intent and app-open stages. Existing legacy landing counters remain readable for compatibility.
+- Owner/Operator context receives only 30-day aggregates plus the genuine request count. No raw visitor history or per-scan identity is returned.
+- Funnel semantics are strict: web view ≠ action intent ≠ in-app open ≠ customer request ≠ confirmed booking.
+
 ## V3.43 Mini App Direct Customer Entry
 ### Stable public entry boundary
 - Live Mini Apps now have two distinct visibility concepts: **marketplace discoverability** and **exact-link accessibility**. `discoverable=false` removes a Mini App from directory search but is not treated as an access-control mechanism for an owner-shared public link.
