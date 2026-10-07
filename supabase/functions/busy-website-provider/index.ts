@@ -6,8 +6,11 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const CLOUDFLARE_API_TOKEN = Deno.env.get("CLOUDFLARE_API_TOKEN") || "";
 const CLOUDFLARE_ZONE_ID = Deno.env.get("CLOUDFLARE_SAAS_ZONE_ID") || "";
 const CLOUDFLARE_CNAME_TARGET = Deno.env.get("CLOUDFLARE_SAAS_CNAME_TARGET") || "";
-const BUSY_WEBSITE_BASE_DOMAIN = Deno.env.get("BUSY_WEBSITE_BASE_DOMAIN") || "";
+const BUSY_ROOT_DOMAIN = Deno.env.get("BUSY_WEBSITE_ROOT_DOMAIN") || "busydoesit.co.uk";
+const BUSY_WEBSITE_BASE_DOMAIN =
+  Deno.env.get("BUSY_WEBSITE_BASE_DOMAIN") || "sites.busydoesit.co.uk";
 const CLOUDFLARE_API = "https://api.cloudflare.com/client/v4";
+const DNS_JSON_URL = "https://cloudflare-dns.com/dns-query";
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
@@ -35,10 +38,92 @@ function providerConfig() {
     hasApiToken: !!CLOUDFLARE_API_TOKEN,
     hasZoneId: !!CLOUDFLARE_ZONE_ID,
     hasCnameTarget: !!CLOUDFLARE_CNAME_TARGET,
+    rootDomain: BUSY_ROOT_DOMAIN,
     baseDomainConfigured: !!BUSY_WEBSITE_BASE_DOMAIN,
     baseDomain: BUSY_WEBSITE_BASE_DOMAIN || "",
+    baseDomainSource: Deno.env.get("BUSY_WEBSITE_BASE_DOMAIN") ? "environment" : "busy_default",
     routingTarget: CLOUDFLARE_CNAME_TARGET || "",
   };
+}
+
+async function dnsAnswers(name: string, type: "NS" | "CNAME" | "A" | "AAAA") {
+  const response = await fetch(
+    `${DNS_JSON_URL}?name=${encodeURIComponent(name)}&type=${type}`,
+    {
+      headers: {
+        Accept: "application/dns-json",
+        "User-Agent": "BUSY-Website-Provider/3.46",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error(`DNS preflight returned HTTP ${response.status}.`);
+  }
+  const payload: any = await response.json().catch(() => ({}));
+  return Array.isArray(payload?.Answer) ? payload.Answer : [];
+}
+
+function cleanDnsValue(value: unknown) {
+  return clean(value, 1000).replace(/\.$/, "").toLowerCase();
+}
+
+async function platformPreflight() {
+  const checkedAt = new Date().toISOString();
+  const result: any = {
+    rootDomain: BUSY_ROOT_DOMAIN,
+    baseDomain: BUSY_WEBSITE_BASE_DOMAIN,
+    checkedAt,
+    rootNameservers: [],
+    rootOnCloudflare: false,
+    baseDomainAnswers: [],
+    baseDomainRoutable: false,
+    status: "waiting_for_nameservers",
+    lastError: null,
+  };
+
+  try {
+    const ns = await dnsAnswers(BUSY_ROOT_DOMAIN, "NS");
+    result.rootNameservers = ns
+      .map((answer: any) => cleanDnsValue(answer?.data))
+      .filter(Boolean);
+    result.rootOnCloudflare =
+      result.rootNameservers.filter((value: string) =>
+        /\.ns\.cloudflare\.com$/i.test(value)
+      ).length >= 2;
+
+    if (!result.rootOnCloudflare) {
+      result.status = "waiting_for_nameservers";
+      return result;
+    }
+
+    const [cname, a, aaaa] = await Promise.all([
+      dnsAnswers(BUSY_WEBSITE_BASE_DOMAIN, "CNAME"),
+      dnsAnswers(BUSY_WEBSITE_BASE_DOMAIN, "A"),
+      dnsAnswers(BUSY_WEBSITE_BASE_DOMAIN, "AAAA"),
+    ]);
+    result.baseDomainAnswers = [...cname, ...a, ...aaaa]
+      .map((answer: any) => cleanDnsValue(answer?.data))
+      .filter(Boolean);
+    result.baseDomainRoutable = result.baseDomainAnswers.length > 0;
+
+    const config = providerConfig();
+    if (!config.configured) {
+      result.status = result.baseDomainRoutable
+        ? "cloudflare_saas_credentials_required"
+        : "cloudflare_saas_setup_required";
+      return result;
+    }
+
+    result.status = result.baseDomainRoutable
+      ? "ready_for_customer_domains"
+      : "routing_target_dns_required";
+    return result;
+  } catch (error) {
+    result.status = "preflight_error";
+    result.lastError =
+      error instanceof Error ? error.message : "BUSY platform DNS preflight failed.";
+    return result;
+  }
 }
 
 async function validRequest(request: Request) {
@@ -384,7 +469,11 @@ Deno.serve(async (request: Request) => {
     const body = await request.json().catch(() => ({}));
     const action = clean(body?.action, 80) || "status";
     if (action === "status") {
-      return json(200, { ok: true, config: providerConfig() });
+      return json(200, {
+        ok: true,
+        config: providerConfig(),
+        preflight: await platformPreflight(),
+      });
     }
     if (action === "provision_domain") {
       const domainId = clean(body?.domainId, 80);
