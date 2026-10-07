@@ -214,7 +214,7 @@ async function syncPublicProfile({
         business_id: businessId,
         source_website_id: websiteId,
         source_deployment_id: deploymentId,
-        public_slug: cleanText(draft?.slug, 80) || `business-${businessId.replaceAll("-", "").slice(0, 8)}`,
+        public_slug: `${cleanText(draft?.slug, 60) || "business"}-${businessId.replaceAll("-", "").slice(0, 8)}`.slice(0, 80),
         display_name: cleanText(draft?.businessName, 240),
         status,
         revision: Math.max(1, Number(revision) || 1),
