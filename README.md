@@ -8,6 +8,7 @@
 - Website Publishing now carries the provider preflight, platform inspection and activation state all the way from the server into the owner UI. This fixes the V3.46 state-drop where the server knew the real Cloudflare state but the mobile view did not retain it.
 - The UI now shows whether automatic activation is waiting, applied, still being activated by Cloudflare or fully active, while keeping customer-domain ownership, routing, SSL and live deployment health as separate truths.
 - No Cloudflare secret is exposed to the app, GitHub, logs or customer-facing website artifacts. The mobile client receives only boolean/status evidence.
+- Production validation completed after the restricted credentials were added: the live provider reported `status=ready` with routing DNS, fallback origin, Worker script, wildcard Worker route and root/www exclusions all confirmed active.
 
 Busy Does It mobile app prototype.
 
