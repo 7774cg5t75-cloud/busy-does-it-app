@@ -56,6 +56,7 @@ const checks = [
   ["V3.50 custom hostname recovery is idempotent", websiteProviderSource.includes("custom_hostnames?hostname=") && websiteProviderSource.includes("scheduled reconciliation will retry safely")],
   ["V3.50 Cloudflare validation TXT variants supported", websiteProviderSource.includes("txt_value || record?.txt_record")],
   ["V3.50 ownership continues into provider activation", websitePublishApiSource.includes("continueVerifiedDomainActivation") && websitePublishApiSource.includes("activation,")],
+  ["V3.50 BUSY platform namespace is reserved", websitePublishApiSource.includes("BUSY platform hostnames are reserved") && websitePublishApiSource.includes('hostname.endsWith(`.${BUSY_ROOT_DOMAIN}`)')],
   ["V3.50 customer-domain journey model", websitePublishingDomainSource.includes("customDomainStage") && websitePublishingDomainSource.includes("customDomainSteps") && websitePublishingDomainSource.includes("customDomainPublicAddress")],
   ["V3.50 customer-domain UI is guided", websitePublishingScreenSource.includes("Your own domain • one ownership check") && websitePublishingScreenSource.includes("Check domain setup now") && websitePublishingScreenSource.includes("Open customer-owned website")],
   ["V3.50 custom domain becomes preferred public address", controllerSource.includes("primaryPublicAddress?.url") && controllerSource.includes("openCustomWebsiteDomain")],
