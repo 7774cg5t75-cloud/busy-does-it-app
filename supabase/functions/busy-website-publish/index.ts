@@ -5,6 +5,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const PREVIEW_BUCKET = "busy-website-preview";
 const WORKER_URL = `${SUPABASE_URL}/functions/v1/busy-website-worker`;
+const HEALTH_URL = `${SUPABASE_URL}/functions/v1/busy-website-health`;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -775,6 +776,14 @@ async function requestDomain(
       website_id: website.id,
       hostname,
       verification_token: token,
+      required_records: [
+        {
+          purpose: "ownership",
+          type: "TXT",
+          name: `_busy-verify.${hostname}`,
+          value: token,
+        },
+      ],
       created_by: userId,
     })
     .select("*")
@@ -838,6 +847,28 @@ async function verifyDomain(businessId: string, domainId: string) {
     verificationName,
     verificationValue: domain.data.verification_token,
   };
+}
+
+
+async function runHealthCheck(businessId: string) {
+  const website = await websiteForBusiness(businessId);
+  if (!website?.id || !website?.current_live_deployment_id) {
+    throw new Error("Publish a website version before running a live-site health check.");
+  }
+
+  const response = await fetch(HEALTH_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ websiteId: website.id, limit: 1 }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data?.error || "BUSY could not complete the live-site health check.");
+  }
+  return data;
 }
 
 Deno.serve(async (request: Request) => {
@@ -904,6 +935,13 @@ Deno.serve(async (request: Request) => {
       return json(200, {
         ok: true,
         ...(await verifyDomain(businessId, domainId)),
+      });
+    }
+    if (action === "health_check") {
+      return json(200, {
+        ok: true,
+        health: await runHealthCheck(businessId),
+        status: await websiteStatus(businessId),
       });
     }
 
