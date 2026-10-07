@@ -1034,6 +1034,11 @@ function MiniAppShareCentre({ s }) {
           >
             <MetricRow left="Marketplace" right={view.isDiscoverable ? "Listed" : "Unlisted"} />
             <MetricRow left="Public web" right={view.webReady ? "Ready" : "Needs republish"} strong={view.webReady} />
+            <MetricRow
+              left="Guest web forms"
+              right={view.guestWebReady ? "Ready" : "Republish live version to enable"}
+              strong={view.guestWebReady}
+            />
             <MetricRow left="Live version" right={view.liveVersion ? `v${view.liveVersion.version_no}` : "Not live"} strong />
           </Card>
 
@@ -1056,7 +1061,11 @@ function MiniAppShareCentre({ s }) {
           <Card
             eyebrow="Guest customer entry"
             title="Browse and contact the business without installing BUSY"
-            body="V3.45 lets a customer submit an enquiry or booking request directly from the public web Mini App. BUSY uses a short-lived browser challenge, a hidden bot trap and server-side rate limits before the request enters the business workflow."
+            body={
+              view.guestWebReady
+                ? "V3.45 lets a customer submit an enquiry or booking request directly from the public web Mini App. BUSY uses a short-lived browser challenge, a hidden bot trap and server-side rate limits before the request enters the business workflow."
+                : "This live web artifact was published before V3.45 guest forms. Republish the current Mini App version through the normal owner approval flow to add guest enquiry and booking forms without changing the saved business content."
+            }
             footer="The browser challenge reduces automated spam but does not prove ownership of the email address or phone number typed by the customer. Booking requests are still requests, never silent confirmed diary entries."
             tone="blue"
           />
