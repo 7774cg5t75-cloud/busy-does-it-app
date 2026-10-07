@@ -49,7 +49,9 @@ function providerRecovery(domain: any) {
 }
 
 function recoveryDue(domain: any) {
-  const nextRetryAt = isoMs(providerRecovery(domain)?.nextRetryAt);
+  const nextRetryAt =
+    isoMs(domain?.provider_next_retry_at) ||
+    isoMs(providerRecovery(domain)?.nextRetryAt);
   return !nextRetryAt || nextRetryAt <= Date.now();
 }
 
@@ -117,7 +119,12 @@ async function recordProviderFailure(domain: any, error: unknown) {
   const message =
     error instanceof Error ? error.message : "Domain provider sync failed.";
   const previous = providerRecovery(domain);
-  const attempt = Math.max(0, Number(previous?.attemptCount || 0)) + 1;
+  const attempt =
+    Math.max(
+      0,
+      Number(domain?.provider_attempt_count || 0),
+      Number(previous?.attemptCount || 0)
+    ) + 1;
   const failure = providerFailureClass(message);
   const delayMinutes = recoveryDelayMinutes(failure.delayMinutes, attempt);
   const nextRetryAt = new Date(now.getTime() + delayMinutes * 60000).toISOString();
@@ -139,6 +146,8 @@ async function recordProviderFailure(domain: any, error: unknown) {
     .from("busy_website_domains")
     .update({
       provider_status: providerStatus,
+      provider_next_retry_at: nextRetryAt,
+      provider_attempt_count: attempt,
       last_checked_at: now.toISOString(),
       last_error: clean(message, 2000),
       updated_at: now.toISOString(),
@@ -794,7 +803,12 @@ async function saveProviderState(domain: any, result: any) {
       )
     );
   const nextRetryAt = new Date(
-    Date.now() + (ownerDnsAction ? 30 : fullyProviderReady ? 60 : 10) * 60000
+    Date.now() +
+      (ownerDnsAction
+        ? 30 * 60000
+        : fullyProviderReady
+        ? 12 * 60 * 60000
+        : 10 * 60000)
   ).toISOString();
 
   const update: any = {
@@ -837,6 +851,8 @@ async function saveProviderState(domain: any, result: any) {
         technicalMessage: providerErrors.join(" • ").slice(0, 1200),
       },
     },
+    provider_next_retry_at: nextRetryAt,
+    provider_attempt_count: 0,
     last_checked_at: now,
     last_error: providerErrors.length ? providerErrors.join(" • ").slice(0, 2000) : null,
     updated_at: now,
@@ -964,11 +980,14 @@ async function syncDomains(limit = 40) {
     };
   }
 
+  const dueNow = new Date().toISOString();
   const domains = await supabase
     .from("busy_website_domains")
     .select("*")
     .in("status", ["verified", "active"])
     .in("routing_provider", ["unassigned", "cloudflare_saas"])
+    .or(`provider_next_retry_at.is.null,provider_next_retry_at.lte.${dueNow}`)
+    .order("provider_next_retry_at", { ascending: true, nullsFirst: true })
     .order("last_checked_at", { ascending: true, nullsFirst: true })
     .limit(Math.min(100, Math.max(1, limit)));
   if (domains.error) throw domains.error;
