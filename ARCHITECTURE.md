@@ -2,6 +2,43 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.39 BUSY Apps Marketplace Foundation
+### Product model
+- A Mini App is configuration over a controlled module catalogue. BUSY does not generate arbitrary application code per business.
+- One shared runtime can serve many businesses while each tenant owns its configuration, versions, requests and public identity.
+- Module capability/state is platform-owned. Planned modules remain disabled until their implementation is genuinely available.
+
+### Tenant/app/version model
+- busy_mini_apps is unique by (business_id, app_key) and carries private draft configuration plus live/preview pointers.
+- Public slugs include a tenant-derived suffix so same-name businesses cannot collide.
+- busy_mini_app_versions is immutable for source/configuration fields. Only publication lifecycle metadata can change.
+- Config hashes prevent duplicate immutable versions for identical module configurations.
+- Rollback switches the live pointer to a previously published immutable version.
+
+### Marketplace boundary
+- The database tables are not granted directly to anon or authenticated.
+- busy-mini-apps is the authenticated server boundary for owner management, marketplace search/detail and customer actions.
+- Directory search returns only live + discoverable apps and only public-safe fields/configuration.
+- Live publication and discoverability are separate states and both require explicit owner approval.
+
+### Shared public profile
+- Mini App drafts can be assembled from current approved Brand Brain public facts.
+- Published Mini Apps synchronize those approved facts into busy_public_business_profiles.
+- Websites and Mini Apps therefore converge on one public identity layer while retaining independent immutable publication versions.
+
+### Customer actions
+- Enquiry and booking_request are the first action modules.
+- Booking requests are explicitly request-only; acceptance remains a business-side decision.
+- Requests resolve business_id from the live Mini App server-side, never from consumer-supplied destination data.
+- Requests are authenticated, server-mediated, idempotent and rate-limited.
+- Business owners/admins can review/accept/decline requests without automatically turning them into confirmed bookings.
+- A later sweep can bridge accepted booking requests into the existing Work/Calendar confirmation flow.
+
+### Scale path
+- Thousands of businesses do not imply thousands of separately compiled apps.
+- Shared code + module versions + per-tenant configuration keeps fixes, security updates and new capabilities centrally deployable.
+- Search/indexes, tenant-safe public slugs, immutable configs and bounded directory responses establish the first marketplace scaling boundary.
+- The same model can later support richer vertical packs, loyalty, payments and business-specific customer experiences without abandoning the shared runtime.
 ## V3.38 Website Delivery & Real-World Signals
 ### Provider-neutral delivery boundary
 - BUSY stores generic delivery fields on `busy_websites` and `busy_website_domains`; Cloudflare-specific API shapes stay inside `busy-website-provider`.
