@@ -4,8 +4,9 @@ This branch restructures the large single-file prototype into domain modules wit
 
 ## V3.46 Production Domain Activation
 ### BUSY-owned platform domain
-- The platform root defaults to `busydoesit.co.uk` and the tenant website namespace defaults to `sites.busydoesit.co.uk`. These names are public routing configuration, not secrets, and remain overrideable by server environment configuration.
-- Default tenant hostnames retain the existing slug + business-id suffix strategy, so two businesses with the same trading name cannot collide.
+- The platform root defaults to `busydoesit.co.uk`. Default BUSY websites use first-level hostnames such as `site-<slug>-<business-suffix>.busydoesit.co.uk`; `sites.busydoesit.co.uk` is reserved as the SaaS CNAME target and `origin.busydoesit.co.uk` as the fallback-origin record.
+- Keeping BUSY-owned default websites at the first subdomain level means they can use the zone's normal proxied certificate coverage, while customer-owned vanity domains continue through Cloudflare for SaaS certificate provisioning.
+- Default tenant hostnames retain the slug + business-id suffix strategy, so two businesses with the same trading name cannot collide.
 
 ### DNS preflight before provider activation
 - `busy-website-provider` can query authoritative public DNS without a Cloudflare API token. It verifies whether the root domain's NS answers are Cloudflare nameservers and whether the BUSY website base hostname has A/AAAA/CNAME resolution.
@@ -16,8 +17,16 @@ This branch restructures the large single-file prototype into domain modules wit
 - **Nameservers active** means the root zone is authoritative on Cloudflare.
 - **Provider configured** means BUSY has the restricted Cloudflare API token, SaaS Zone ID and managed CNAME target in server secrets.
 - **Base hostname routable** means public DNS resolves the BUSY tenant website namespace.
+- **Routing Worker active** means the BUSY Worker script and wildcard `*/*` zone route are both present.
+- **Fallback origin active** means Cloudflare for SaaS has accepted `origin.busydoesit.co.uk`; the record itself is intentionally originless/dummy because the Worker is the real application origin.
 - **Custom hostname active** still requires Cloudflare hostname/SSL state plus BUSY's independent health check to observe the expected deployment.
 - These states are intentionally not collapsed into one green badge, preventing DNS or provider configuration from being mistaken for a genuinely working customer website.
+
+### Multi-tenant website origin
+- `busy-website-origin` is an unauthenticated **public-content-only** edge boundary. It accepts a hostname/path, resolves only a current live BUSY website or a verified Cloudflare-routed custom domain, and serves the matching file from the public `busy-website-public` storage bucket.
+- It never exposes drafts, private previews, Business Brain data, customer records, service-role credentials or arbitrary storage paths. Hostnames are exact matched and object paths reject traversal.
+- `cloudflare/busy-website-router/worker.js` is the edge router template. It preserves BUSY's root/marketing hostnames, routes tenant/custom hostnames to `busy-website-origin`, and uses Cloudflare's edge cache so normal traffic does not put the operational database on every page request.
+- The provider bootstrap can upload the same router logic through the Cloudflare Workers API once the restricted account credentials are available, then attach a wildcard Worker route that also captures Cloudflare-for-SaaS custom-hostname traffic.
 
 ## V3.45 Guest Mini App Request Boundary
 ### Public request service
