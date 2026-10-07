@@ -206,7 +206,7 @@ async function checkWebsite(website: any) {
   let defaultResult: any = null;
   if (
     website.default_url &&
-    ["provisioning", "active"].includes(clean(website.delivery_status, 80))
+    ["reserved", "provisioning", "active", "degraded"].includes(clean(website.delivery_status, 80))
   ) {
     defaultResult = await recordCheck({
       website,
@@ -232,9 +232,13 @@ async function checkWebsite(website: any) {
     update.delivery_provider = "cloudflare_saas";
   } else if (
     website.default_url &&
-    website.delivery_status === "provisioning" &&
+    ["reserved", "provisioning", "degraded"].includes(
+      clean(website.delivery_status, 80)
+    ) &&
     defaultResult
   ) {
+    // A first failed route check must not be presented as live. Existing
+    // active sites are not flapped by one transient health-check failure.
     update.delivery_status = "degraded";
   }
 
