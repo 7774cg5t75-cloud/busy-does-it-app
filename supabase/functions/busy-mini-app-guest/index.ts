@@ -104,6 +104,11 @@ async function contactHash(email: string, phone: string) {
   );
 }
 
+function entrySourceValue(value: unknown) {
+  const source = clean(value, 40).toLowerCase();
+  return ["qr", "share", "web"].includes(source) ? source : "web";
+}
+
 function requestTypeValue(value: unknown) {
   const type = clean(value, 40);
   if (!["enquiry", "booking_request"].includes(type)) {
@@ -218,7 +223,7 @@ async function createChallenge(req: Request, body: any) {
     .single();
   if (inserted.error) throw inserted.error;
 
-  await recordEntry(app, "web", "action_intent");
+  await recordEntry(app, entrySourceValue(body?.source), "action_intent");
 
   return {
     challengeId: inserted.data.id,
