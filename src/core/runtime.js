@@ -1,5 +1,5 @@
-const APP_VERSION = "3.38";
-const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • Website Delivery & Real-World Signals`;
+const APP_VERSION = "3.39";
+const PROTOTYPE_BADGE = `Prototype v${APP_VERSION} • BUSY Apps Marketplace Foundation`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
@@ -15,6 +15,8 @@ const BUSY_SOCIAL_PUBLISH_URL =
   "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-social-publish";
 const BUSY_WEBSITE_PUBLISH_URL =
   "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-website-publish";
+const BUSY_MINI_APPS_URL =
+  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-mini-apps";
 const BUSY_SUPABASE_URL = "https://qgkmuiipicazmcxxmoxv.supabase.co";
 const BUSY_PUSH_DISPATCH_URL =
   "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-push-dispatch";
@@ -1520,6 +1522,7 @@ export {
   BUSY_SOCIAL_URL,
   BUSY_SOCIAL_PUBLISH_URL,
   BUSY_WEBSITE_PUBLISH_URL,
+  BUSY_MINI_APPS_URL,
   BUSY_SUPABASE_URL,
   BUSY_PUSH_DISPATCH_URL,
   BUSY_CALENDAR_OAUTH_URL,
