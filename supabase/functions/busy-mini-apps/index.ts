@@ -694,33 +694,62 @@ function fallbackAppPlan(
   const existingOffers = safeArray(existingConfig?.offers)
     .map(safeOffer)
     .filter((item: any) => item.title && item.body);
+  const existingEnabled = new Set(
+    safeArray(existingConfig?.modules)
+      .filter((item: any) => item?.enabled)
+      .map((item: any) => clean(item?.key, 80))
+  );
 
   const wants = (words: string[]) =>
     words.some((word) => text.includes(word));
+  const explicitlyRemoves = (words: string[]) =>
+    words.some(
+      (word) =>
+        text.includes(`remove ${word}`) ||
+        text.includes(`without ${word}`) ||
+        text.includes(`no ${word}`) ||
+        text.includes(`don't want ${word}`) ||
+        text.includes(`do not want ${word}`)
+    );
 
   const moduleFlags: Record<string, boolean> = {
     business_profile: true,
     services:
-      safeArray(profile?.services).length > 0 ||
-      wants(["service", "what we do", "price list"]),
+      !explicitlyRemoves(["services", "service list"]) &&
+      (existingEnabled.has("services") ||
+        safeArray(profile?.services).length > 0 ||
+        wants(["service", "what we do", "price list"])),
     gallery:
-      safeArray(profile?.assets?.gallery).length > 0 ||
-      wants(["gallery", "photo", "picture", "portfolio", "before and after"]),
+      !explicitlyRemoves(["gallery", "photos", "pictures"]) &&
+      (existingEnabled.has("gallery") ||
+        safeArray(profile?.assets?.gallery).length > 0 ||
+        wants(["gallery", "photo", "picture", "portfolio", "before and after"])),
     contact:
-      !!(profile?.contact?.phone || profile?.contact?.email) ||
-      wants(["contact", "call", "email", "get in touch"]),
-    enquiry: wants(["enquir", "quote", "estimate", "message", "contact"]) || true,
-    booking_request: wants([
-      "book",
-      "appointment",
-      "schedule",
-      "reserve",
-      "date",
-      "slot",
-    ]),
+      !explicitlyRemoves(["contact", "contact details"]) &&
+      (existingEnabled.has("contact") ||
+        !!(profile?.contact?.phone || profile?.contact?.email) ||
+        wants(["contact", "call", "email", "get in touch"])),
+    enquiry:
+      !explicitlyRemoves(["enquiries", "enquiry", "quote requests"]) &&
+      (existingEnabled.has("enquiry") ||
+        wants(["enquir", "quote", "estimate", "message", "contact"]) ||
+        !existingConfig),
+    booking_request:
+      !explicitlyRemoves(["booking", "bookings", "booking requests"]) &&
+      (existingEnabled.has("booking_request") ||
+        wants([
+          "book",
+          "appointment",
+          "schedule",
+          "reserve",
+          "date",
+          "slot",
+        ])),
     offers:
+      !explicitlyRemoves(["offers", "offer", "promotions"]) &&
       existingOffers.length > 0 &&
-      wants(["offer", "deal", "discount", "promotion", "promo"]),
+      (existingEnabled.has("offers") ||
+        wants(["offer", "deal", "discount", "promotion", "promo"])),
   };
 
   const moduleReasons: Record<string, string> = {
@@ -929,6 +958,9 @@ async function aiAppPlan(
     existingApprovedOffers: safeArray(existingConfig?.offers)
       .map(safeOffer)
       .filter((item: any) => item.title && item.body),
+    existingEnabledModules: safeArray(existingConfig?.modules)
+      .filter((item: any) => item?.enabled)
+      .map((item: any) => clean(item?.key, 80)),
   };
 
   const prompt = `You are the controlled BUSY DOES IT business-app planner.
@@ -946,6 +978,7 @@ Return a conservative app plan. Rules:
 - Only recommend modules in the supplied catalogue.
 - business_profile must always be enabled.
 - Never enable a module whose status is not "available".
+- If an existing app draft is present, preserve existingEnabledModules unless the owner explicitly asks to remove/change one. Treat short edit requests as incremental rather than as permission to rebuild the whole app from scratch.
 - Reuse recorded business facts; never invent services, contact details, photos, prices, offers, discounts, terms, opening hours or business claims.
 - Enable enquiry when the owner wants leads, messages, quotes or contact forms.
 - Enable booking_request when the owner wants customers to request dates/services. It remains request-only; never imply automatic booking confirmation.
