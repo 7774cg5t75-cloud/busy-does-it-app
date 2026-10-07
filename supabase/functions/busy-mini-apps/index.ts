@@ -607,7 +607,59 @@ async function preparePreview(
   };
 }
 
+async function syncSharedPublicProfile(
+  userId: string,
+  businessId: string,
+  version: any,
+  status: "live" | "draft" = "live"
+) {
+  const profile = sanitizePublicProfile(version?.config?.publicProfile || {});
+  if (!profile.businessName) return null;
+
+  const existing = await publicProfileForBusiness(businessId);
+  const nextRevision = Math.max(
+    Number(existing?.revision || 0) + 1,
+    Number(version?.source_profile_revision || 0) + 1,
+    1
+  );
+
+  if (existing) {
+    const updated = await supabase
+      .from("busy_public_business_profiles")
+      .update({
+        display_name: profile.businessName,
+        status,
+        revision: nextRevision,
+        profile,
+        updated_by: userId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("business_id", businessId)
+      .select("*")
+      .single();
+    if (updated.error) throw updated.error;
+    return updated.data;
+  }
+
+  const inserted = await supabase
+    .from("busy_public_business_profiles")
+    .insert({
+      business_id: businessId,
+      public_slug: `${slugify(profile.businessName)}-${businessId.replaceAll("-", "").slice(0, 8)}`.slice(0, 80),
+      display_name: profile.businessName,
+      status,
+      revision: nextRevision,
+      profile,
+      updated_by: userId,
+    })
+    .select("*")
+    .single();
+  if (inserted.error) throw inserted.error;
+  return inserted.data;
+}
+
 async function publishVersion(
+  userId: string,
   businessId: string,
   body: any
 ) {
@@ -671,10 +723,18 @@ async function publishVersion(
     .single();
   if (updated.error) throw updated.error;
 
-  return { app: updated.data, version: live.data };
+  const publicProfile = await syncSharedPublicProfile(
+    userId,
+    businessId,
+    live.data,
+    "live"
+  );
+
+  return { app: updated.data, version: live.data, publicProfile };
 }
 
 async function rollbackVersion(
+  userId: string,
   businessId: string,
   body: any
 ) {
@@ -722,7 +782,13 @@ async function rollbackVersion(
     .select("*")
     .single();
   if (updated.error) throw updated.error;
-  return { app: updated.data, version: promoted.data };
+  const publicProfile = await syncSharedPublicProfile(
+    userId,
+    businessId,
+    promoted.data,
+    "live"
+  );
+  return { app: updated.data, version: promoted.data, publicProfile };
 }
 
 async function setDiscoverable(
@@ -760,7 +826,7 @@ async function directorySearch(queryText = "") {
     .order("display_name", { ascending: true })
     .limit(30);
 
-  const q = clean(queryText, 100).replace(/[%_,()]/g, " ");
+  const q = clean(queryText, 100).replace(/[^a-z0-9 '&-]/gi, " ");
   if (q) {
     query = query.or(
       `display_name.ilike.%${q}%,category.ilike.%${q}%,tagline.ilike.%${q}%`
@@ -883,10 +949,17 @@ async function submitRequest(
     if (existing.data) return { reused: true, request: existing.data };
   }
 
+  const appRow = await supabase
+    .from("busy_mini_apps")
+    .select("business_id")
+    .eq("id", detail.app.id)
+    .single();
+  if (appRow.error) throw appRow.error;
+
   const inserted = await supabase
     .from("busy_mini_app_requests")
     .insert({
-      business_id: detail.version.config?.businessId || body?.businessId || null,
+      business_id: appRow.data.business_id,
       mini_app_id: detail.app.id,
       version_id: detail.version.id,
       consumer_user_id: userId,
@@ -897,31 +970,19 @@ async function submitRequest(
     })
     .select("*")
     .single();
-
   if (inserted.error) {
-    // business_id cannot come from the consumer. Resolve from the app row.
-    const appRow = await supabase
-      .from("busy_mini_apps")
-      .select("business_id")
-      .eq("id", detail.app.id)
-      .single();
-    if (appRow.error) throw appRow.error;
-    const retried = await supabase
-      .from("busy_mini_app_requests")
-      .insert({
-        business_id: appRow.data.business_id,
-        mini_app_id: detail.app.id,
-        version_id: detail.version.id,
-        consumer_user_id: userId,
-        module_key: moduleKey,
-        request_type: requestType,
-        payload,
-        idempotency_key: requestId || null,
-      })
-      .select("*")
-      .single();
-    if (retried.error) throw retried.error;
-    return { reused: false, request: retried.data };
+    if (inserted.error.code === "23505" && requestId) {
+      const raced = await supabase
+        .from("busy_mini_app_requests")
+        .select("*")
+        .eq("mini_app_id", detail.app.id)
+        .eq("consumer_user_id", userId)
+        .eq("idempotency_key", requestId)
+        .maybeSingle();
+      if (raced.error) throw raced.error;
+      if (raced.data) return { reused: true, request: raced.data };
+    }
+    throw inserted.error;
   }
 
   return { reused: false, request: inserted.data };
@@ -1036,14 +1097,14 @@ Deno.serve(async (request: Request) => {
     if (action === "publish") {
       return json(200, {
         ok: true,
-        ...(await publishVersion(resolvedBusinessId, body)),
+        ...(await publishVersion(user.id, resolvedBusinessId, body)),
         status: await ownerStatus(resolvedBusinessId),
       });
     }
     if (action === "rollback") {
       return json(200, {
         ok: true,
-        ...(await rollbackVersion(resolvedBusinessId, body)),
+        ...(await rollbackVersion(user.id, resolvedBusinessId, body)),
         status: await ownerStatus(resolvedBusinessId),
       });
     }
