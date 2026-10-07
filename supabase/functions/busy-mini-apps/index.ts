@@ -1199,6 +1199,248 @@ function publicMiniAppWebHtml(app: any, version: any) {
   ${contactHtml}
   ${actionHtml}
   <footer>Powered by <strong>BUSY DOES IT</strong> • Public information from the business's approved live Mini App.</footer>
+  <script>
+    (function () {
+      "use strict";
+      var BUSY_GUEST_URL = ${JSON.stringify(MINI_APP_GUEST_URL)};
+      var BUSY_SLUG = ${JSON.stringify(slug)};
+      var STORAGE_KEY = "busy-mini-app-guest:" + BUSY_SLUG;
+      var query = new URLSearchParams(window.location.search || "");
+      var ENTRY_SOURCE = ["qr","share","web"].indexOf(query.get("entry")) >= 0
+        ? query.get("entry")
+        : "web";
+
+      function requestId(prefix) {
+        if (window.crypto && typeof window.crypto.randomUUID === "function") {
+          return prefix + "-" + window.crypto.randomUUID();
+        }
+        return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 12);
+      }
+
+      async function post(action, payload) {
+        var response = await fetch(BUSY_GUEST_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-busy-request-id": requestId("guest")
+          },
+          body: JSON.stringify(Object.assign({ action: action }, payload || {}))
+        });
+        var data = await response.json().catch(function () { return {}; });
+        if (!response.ok || data.ok === false) {
+          throw new Error(data.error || "BUSY could not complete that request.");
+        }
+        return data;
+      }
+
+      async function digestHex(value) {
+        var bytes = new TextEncoder().encode(value);
+        var digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+        return Array.from(digest).map(function (item) {
+          return item.toString(16).padStart(2, "0");
+        }).join("");
+      }
+
+      async function solveProof(challenge) {
+        if (!window.crypto || !window.crypto.subtle) {
+          throw new Error("This browser cannot complete BUSY's guest verification.");
+        }
+        var prefix = "0".repeat(Math.max(2, Math.min(5, Number(challenge.difficulty || 3))));
+        for (var solution = 0; solution <= 2000000; solution += 1) {
+          var digest = await digestHex(
+            challenge.seed + ":" + challenge.token + ":" + solution
+          );
+          if (digest.indexOf(prefix) === 0) return solution;
+          if (solution > 0 && solution % 250 === 0) {
+            await new Promise(function (resolve) { setTimeout(resolve, 0); });
+          }
+        }
+        throw new Error("BUSY could not complete the guest verification. Please try again.");
+      }
+
+      function setFormStatus(form, message, tone, busy) {
+        var status = form.querySelector(".form-status");
+        var button = form.querySelector(".request-submit");
+        if (status) {
+          status.className = "form-status" + (tone ? " " + tone : "");
+          status.textContent = message || "";
+        }
+        if (button) {
+          button.disabled = !!busy;
+        }
+      }
+
+      function safeReceipt() {
+        try {
+          var raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return null;
+          var parsed = JSON.parse(raw);
+          return parsed && parsed.requestId && parsed.guestAccessToken ? parsed : null;
+        } catch (_) {
+          return null;
+        }
+      }
+
+      function saveReceipt(value) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+        } catch (_) {}
+      }
+
+      function statusCopy(request) {
+        if (!request) return "";
+        if (request.bookingConfirmed) {
+          return "BUSY shows this booking as confirmed by the business.";
+        }
+        if (request.status === "reviewing") {
+          return "The business is reviewing your request.";
+        }
+        if (request.status === "accepted") {
+          return request.type === "booking_request"
+            ? "The business has accepted the request. A booking is only confirmed when BUSY records the confirmed booking."
+            : "The business has accepted your enquiry.";
+        }
+        if (request.status === "declined") {
+          return "The business has declined this request.";
+        }
+        if (request.status === "closed") {
+          return "This request is now closed.";
+        }
+        return request.type === "booking_request"
+          ? "Your booking request has been sent. It is not a confirmed appointment yet."
+          : "Your enquiry has been sent to the business.";
+      }
+
+      function showReceipt(receipt, request) {
+        var box = document.getElementById("guest-receipt");
+        var title = document.getElementById("guest-receipt-title");
+        var copy = document.getElementById("guest-receipt-copy");
+        if (!box || !receipt) return;
+        box.hidden = false;
+        if (title) {
+          title.textContent =
+            request && request.type === "booking_request"
+              ? "Booking request received"
+              : "Enquiry received";
+        }
+        if (copy) {
+          var reference = receipt.requestId ? " Reference " + receipt.requestId.slice(0, 8) + "." : "";
+          copy.textContent = statusCopy(request || receipt.request || null) + reference;
+        }
+      }
+
+      async function refreshReceipt() {
+        var receipt = safeReceipt();
+        if (!receipt) return;
+        var button = document.getElementById("guest-status-refresh");
+        if (button) {
+          button.disabled = true;
+          button.textContent = "Checking…";
+        }
+        try {
+          var data = await post("status", {
+            requestId: receipt.requestId,
+            guestAccessToken: receipt.guestAccessToken
+          });
+          receipt.request = data.request || receipt.request || null;
+          saveReceipt(receipt);
+          showReceipt(receipt, data.request || receipt.request || null);
+        } catch (error) {
+          var copy = document.getElementById("guest-receipt-copy");
+          if (copy) copy.textContent = error.message || "BUSY could not check this receipt.";
+        } finally {
+          if (button) {
+            button.disabled = false;
+            button.textContent = "Check latest status";
+          }
+        }
+      }
+
+      Array.from(document.querySelectorAll(".request-form")).forEach(function (form) {
+        form.addEventListener("submit", async function (event) {
+          event.preventDefault();
+          if (!form.reportValidity()) return;
+
+          var formData = new FormData(form);
+          var email = String(formData.get("email") || "").trim();
+          var phone = String(formData.get("phone") || "").trim();
+          if (!email && !phone) {
+            setFormStatus(form, "Add an email address or phone number so the business can respond.", "error", false);
+            return;
+          }
+
+          var requestType = String(form.getAttribute("data-request-type") || "");
+          var payload = {
+            name: String(formData.get("name") || "").trim(),
+            email: email,
+            phone: phone,
+            service: String(formData.get("service") || "").trim(),
+            preferredDate: String(formData.get("preferredDate") || "").trim(),
+            note: String(formData.get("note") || "").trim(),
+            message: String(formData.get("message") || "").trim()
+          };
+
+          setFormStatus(form, "Securing your request…", "", true);
+          try {
+            var challengeData = await post("challenge", {
+              slug: BUSY_SLUG,
+              requestType: requestType,
+              source: ENTRY_SOURCE
+            });
+            var challenge = challengeData.challenge || {};
+            var solution = await solveProof(challenge);
+            setFormStatus(form, "Sending securely to the business…", "", true);
+
+            var result = await post("submit", {
+              slug: BUSY_SLUG,
+              challengeId: challenge.challengeId,
+              token: challenge.token,
+              solution: solution,
+              idempotencyKey: requestId("request"),
+              website: String(formData.get("website") || ""),
+              payload: payload
+            });
+
+            var receipt = {
+              requestId: result.request && result.request.id ? result.request.id : "",
+              guestAccessToken: result.guestAccessToken || "",
+              request: result.request || null
+            };
+            if (!receipt.requestId || !receipt.guestAccessToken) {
+              throw new Error("BUSY saved the request but could not create a browser receipt.");
+            }
+            saveReceipt(receipt);
+            showReceipt(receipt, result.request || null);
+            setFormStatus(
+              form,
+              requestType === "booking_request"
+                ? "Booking request sent. This is not a confirmed appointment yet."
+                : "Enquiry sent to the business.",
+              "success",
+              false
+            );
+            form.reset();
+          } catch (error) {
+            setFormStatus(
+              form,
+              error && error.message ? error.message : "BUSY could not send this request.",
+              "error",
+              false
+            );
+          }
+        });
+      });
+
+      var refreshButton = document.getElementById("guest-status-refresh");
+      if (refreshButton) refreshButton.addEventListener("click", refreshReceipt);
+
+      var existing = safeReceipt();
+      if (existing) {
+        showReceipt(existing, existing.request || null);
+        refreshReceipt();
+      }
+    })();
+  </script>
 </body>
 </html>`;
 }
