@@ -45,7 +45,7 @@ function WebsitePublishing({ s }) {
       s={s}
       title="Website Management"
       subtitle="Edit privately, inspect the exact hosted version, then decide what becomes public."
-      brandCue="V3.50 • customer-owned domains • automatic Cloudflare + SSL • verified public delivery."
+      brandCue="V3.51 • hosting intelligence • self-healing retries • protected live versions • clear recovery."
     >
       <Card
         eyebrow="Website lifecycle"
@@ -107,6 +107,98 @@ function WebsitePublishing({ s }) {
           body={s.websitePublishingNotice}
           tone="blue"
         />
+      ) : null}
+
+      {live || !view.recoveryState?.healthy ? (
+        <>
+          <Text style={styles.sectionLabel}>Hosting intelligence & recovery</Text>
+          <Card
+            eyebrow={
+              view.recoveryState?.ownerActionRequired
+                ? "One owner action required"
+                : view.recoveryState?.automatic
+                ? "BUSY is handling this automatically"
+                : "Continuous delivery protection"
+            }
+            title={view.recoveryState?.title || "Hosting status"}
+            body={
+              view.recoveryState?.message ||
+              "BUSY monitors publishing, Cloudflare routing, SSL and the live website independently."
+            }
+            footer={
+              view.recoveryState?.ownerActionRequired
+                ? "Only the DNS change shown below needs you. BUSY continues the rest automatically."
+                : view.recoveryState?.automatic
+                ? "Retries are bounded and tenant-scoped so one business cannot create a retry storm for others."
+                : "One failed check never takes a previously proven website offline."
+            }
+            tone={
+              view.recoveryState?.healthy
+                ? "green"
+                : view.recoveryState?.ownerActionRequired
+                ? "amber"
+                : "blue"
+            }
+          >
+            <MetricRow
+              left="Affected area"
+              right={
+                view.recoveryState?.area === "publishing"
+                  ? "Publishing"
+                  : view.recoveryState?.area === "origin"
+                  ? "Hosted live version"
+                  : view.recoveryState?.area === "busy_domain"
+                  ? "BUSY website address"
+                  : view.recoveryState?.area === "custom_domain"
+                  ? "Customer-owned domain"
+                  : view.recoveryState?.area === "cloudflare"
+                  ? "Cloudflare connection"
+                  : "None"
+              }
+              strong={!view.recoveryState?.healthy}
+            />
+            <MetricRow
+              left="Automatic recovery"
+              right={
+                view.recoveryState?.automatic
+                  ? "Running"
+                  : view.recoveryState?.ownerActionRequired
+                  ? "Waiting for your DNS change"
+                  : "Standing by"
+              }
+            />
+            {view.recoveryState?.lastAttemptAt ? (
+              <MetricRow
+                left="Last recovery check"
+                right={readableDate(view.recoveryState.lastAttemptAt)}
+              />
+            ) : null}
+            {view.recoveryState?.nextRetryAt && view.recoveryState?.automatic ? (
+              <MetricRow
+                left="Next automatic retry"
+                right={readableDate(view.recoveryState.nextRetryAt)}
+              />
+            ) : null}
+            {view.recoveryState?.lastKnownGoodDeployment ? (
+              <MetricRow
+                left="Rollback safety"
+                right={`v${view.recoveryState.lastKnownGoodDeployment.version_no} retained`}
+                strong
+              />
+            ) : null}
+            {view.canRetrySafeRecovery ? (
+              <Button
+                label={
+                  s.websitePublishingAction === "recover"
+                    ? "Running safe recovery…"
+                    : "Run safe recovery now"
+                }
+                disabled={!!s.websitePublishingAction}
+                onPress={s.retryWebsiteRecovery}
+              />
+            ) : null}
+          </Card>
+        </>
       ) : null}
 
       <Text style={styles.sectionLabel}>Go Live journey</Text>
