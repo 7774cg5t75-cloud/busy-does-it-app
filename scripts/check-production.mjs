@@ -55,6 +55,10 @@ const appBuilderMigrationSource = fs.readFileSync(
   "supabase/migrations/20261007231500_v3_54_business_app_builder_intelligence.sql",
   "utf8"
 );
+const appJourneyMigrationSource = fs.readFileSync(
+  "supabase/migrations/20261007234500_v3_55_business_app_journey_loyalty.sql",
+  "utf8"
+);
 const productionWorkflowSource = fs.readFileSync(
   ".github/workflows/production-check.yml",
   "utf8"
@@ -82,8 +86,8 @@ const checks = [
   ["native development build workflow", fs.existsSync(".github/workflows/native-development-build.yml")],
   ["SDK57 calendar legacy import", controllerSource.includes('import * as Calendar from "expo-calendar/legacy";')],
   ["SDK54 Snack calendar rewrite", snackPublisherSource.includes('expo-calendar/legacy') && snackPublisherSource.includes('expo-calendar";')],
-  ["V3.54 public website origin", fs.existsSync("supabase/functions/busy-website-origin/index.ts")],
-  ["V3.54 Cloudflare router Worker", fs.existsSync("cloudflare/busy-website-router/worker.js")],
+  ["V3.55 public website origin", fs.existsSync("supabase/functions/busy-website-origin/index.ts")],
+  ["V3.55 Cloudflare router Worker", fs.existsSync("cloudflare/busy-website-router/worker.js")],
   ["website origin is public edge function", supabaseConfigSource.includes("[functions.busy-website-origin]") && supabaseConfigSource.includes("verify_jwt = false")],
   ["BUSY production root domain", websiteProviderSource.includes("busydoesit.co.uk")],
   ["Cloudflare automated platform bootstrap", websiteProviderSource.includes("bootstrapPlatform") && websiteProviderSource.includes("uploadRouterWorker")],
@@ -142,10 +146,23 @@ const checks = [
   ["V3.54 planned modules cannot be silently enabled", miniAppsSource.includes("catalogItem.status !== \"available\"") && miniAppsSource.includes("unsupportedRequests")],
   ["V3.54 offers require explicit approved wording", miniAppsSource.includes("Offers must contain explicit content") && miniAppsSource.includes("approvedOffers") && appBuilderMigrationSource.includes("requires_approved_offer_data")],
   ["V3.54 voice requests route into reviewed app plans", busyCommandSource.includes('actionLabel=\"Create app plan\"') && busyCommandSource.includes("Copy the owner's requested app outcome/features") && controllerSource.includes("planMiniAppFromBrief(brief)")],
-  ["V3.54 owner can review plan before draft mutation", miniAppsScreenSource.includes("BUSY App Plan") && miniAppsScreenSource.includes("Build this app plan") && miniAppsScreenSource.includes("Nothing public changes here")],
+  ["V3.54 owner can review plan before draft mutation", miniAppsScreenSource.includes("BUSY App Plan") && miniAppsScreenSource.includes("Nothing public changes here") && controllerSource.includes("applyMiniAppPlan")],
   ["V3.54 targeted missing-fact questions", miniAppsSource.includes("missingFacts") && miniAppsScreenSource.includes("BUSY still needs")],
   ["V3.54 business app terminology introduced", miniAppsScreenSource.includes('title=\"Business App Builder\"') && miniAppsSource.includes('surface: \"busy_business_app\"')],
   ["V3.54 app-plan state survives draft refresh", miniAppsDomainSource.includes("builderPlan") && controllerSource.includes("draft_config?.builderPlan")],
+  ["V3.55 one continuous Business App journey", miniAppsDomainSource.includes("builderJourney") && miniAppsScreenSource.includes("Your app journey") && miniAppsScreenSource.includes("Owner approves Go Live")],
+  ["V3.55 targeted follow-up answers feed the planner", controllerSource.includes("miniAppFactAnswers") && controllerSource.includes("answerMiniAppMissingFacts") && miniAppsSource.includes("cleanFactAnswers") && miniAppsSource.includes("ownerRequestWithAnswers")],
+  ["V3.55 reviewed plan auto-prepares customer preview", controllerSource.includes('miniAppsRequest("apply_app_plan"') && controllerSource.includes('miniAppsRequest("prepare_preview"') && miniAppsScreenSource.includes('title="Customer Preview"')],
+  ["V3.55 Go Live still requires explicit owner approval", miniAppsSource.includes("body?.ownerApproved !== true") && controllerSource.includes("confirmPublishMiniApp") && miniAppsScreenSource.includes("Review & approve Go Live")],
+  ["V3.55 dated offers are owner-evidenced and time bounded", miniAppsSource.includes("startDate") && miniAppsSource.includes("endDate") && miniAppsSource.includes("datesSupported") && miniAppsSource.includes("busy-no-active-offers")],
+  ["V3.55 loyalty module is real but bounded", appJourneyMigrationSource.includes("busy_mini_app_loyalty_progress") && appJourneyMigrationSource.includes("busy_award_mini_app_loyalty_stamp") && appJourneyMigrationSource.includes("max_target_stamps") && appJourneyMigrationSource.includes("status = 'available'")],
+  ["V3.55 loyalty records are tenant guarded", appJourneyMigrationSource.includes("busy_mini_app_loyalty_progress_tenant_app_fkey") && appJourneyMigrationSource.includes("busy_mini_app_loyalty_events_tenant_request_fkey")],
+  ["V3.55 loyalty is service-role only", appJourneyMigrationSource.includes("busy_mini_app_loyalty_progress_no_direct_client_access") && appJourneyMigrationSource.includes("busy_mini_app_loyalty_events_no_direct_client_access") && appJourneyMigrationSource.includes("grant execute on function public.busy_award_mini_app_loyalty_stamp")],
+  ["V3.55 loyalty reward cannot be invented", miniAppsSource.includes("loyaltyRewardSupported") && miniAppsSource.includes("Never invent a reward") && busyCommandSource.includes("Never invent the target, reward or terms")],
+  ["V3.55 signed-in customers receive loyalty progress", miniAppsSource.includes("loyaltyProgressFor") && miniAppsSource.includes("loyaltyProgress") && miniAppsScreenSource.includes("Record 1 eligible loyalty stamp")],
+  ["V3.55 booking requests open the real BUSY booking", controllerSource.includes("openMiniAppLinkedBooking") && miniAppsScreenSource.includes("Open BUSY booking to confirm") && controllerSource.includes('bridgeState: "booking_confirmed"')],
+  ["V3.55 customer preview renders real branding media", miniAppsScreenSource.includes("profile?.assets?.hero?.uri") && miniAppsScreenSource.includes("gallery.slice(0, 12)")],
+  ["V3.55 payments remain deliberately planned", appJourneyMigrationSource.includes("Payments are not enabled in V3.55") && busyCommandSource.includes("Payments/deposits remain planned")],
   ["Cloudflare root routes excluded", websiteProviderSource.includes("ensureWorkerRoutes") && websiteProviderSource.includes("www.")],
   ["health checks bypass website edge cache", websiteRouterSource.includes("BUSY-Website-Health/") && websiteProviderSource.includes("BUSY-Website-Health/")],
   ["website origin rejects storage traversal", websiteOriginSource.includes('part === ".."') && websiteOriginSource.includes("busy-website-public")],
