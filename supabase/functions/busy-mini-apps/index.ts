@@ -839,7 +839,13 @@ function fallbackAppPlan(
   };
 }
 
-function sanitiseAppPlan(plan: any, catalog: any[], fallback: any) {
+function sanitiseAppPlan(
+  plan: any,
+  catalog: any[],
+  fallback: any,
+  ownerRequest = "",
+  existingOffers: any[] = []
+) {
   const catalogByKey = new Map(
     catalog.map((item: any) => [item.module_key, item])
   );
@@ -868,9 +874,31 @@ function sanitiseAppPlan(plan: any, catalog: any[], fallback: any) {
     };
   });
 
+  const ownerRequestLower = clean(ownerRequest, 3000).toLowerCase();
+  const existingOfferKeys = new Set(
+    safeArray(existingOffers)
+      .map(safeOffer)
+      .filter((item: any) => item.title && item.body)
+      .map(
+        (item: any) =>
+          `${item.title.toLowerCase()}|${item.body.toLowerCase()}|${item.terms.toLowerCase()}`
+      )
+  );
   const offers = safeArray(plan?.offers)
     .map(safeOffer)
     .filter((item: any) => item.title && item.body)
+    .filter((item: any) => {
+      const key = `${item.title.toLowerCase()}|${item.body.toLowerCase()}|${item.terms.toLowerCase()}`;
+      if (existingOfferKeys.has(key)) return true;
+      const parts = [item.title, item.body, item.terms]
+        .map((value) => clean(value, 900).toLowerCase())
+        .filter(Boolean);
+      return (
+        ownerRequestLower &&
+        parts.length >= 2 &&
+        parts.every((part) => ownerRequestLower.includes(part))
+      );
+    })
     .slice(0, 4);
 
   // Offers must contain explicit content. BUSY never publishes an empty or
@@ -990,6 +1018,7 @@ Return a conservative app plan. Rules:
 - missingFacts should contain only information materially needed for requested modules; avoid a giant questionnaire.
 - Explain why each module is included/excluded in short owner-friendly language.
 - offers must contain only offer wording explicitly supported by the owner request or existingApprovedOffers.
+- For any NEW offer, copy the offer title/body/terms exactly from phrases present in the owner's current request; do not paraphrase or expand them. If the exact offer cannot be represented without adding words or assumptions, leave offers empty and ask a missingFacts question instead.
 `;
 
   try {
@@ -1035,7 +1064,9 @@ Return a conservative app plan. Rules:
     return sanitiseAppPlan(
       { ...parsed, planner: "ai" },
       catalog,
-      fallback
+      fallback,
+      ownerRequest,
+      businessFacts.existingApprovedOffers
     );
   } catch {
     return fallback;
@@ -1100,7 +1131,13 @@ async function applyBusinessAppPlan(
     catalog,
     null
   );
-  const plan = sanitiseAppPlan(body?.plan || {}, catalog, fallback);
+  const plan = sanitiseAppPlan(
+    body?.plan || {},
+    catalog,
+    fallback,
+    ownerRequest,
+    safeArray(body?.plan?.offers)
+  );
   const app = await ensureApp(businessId, userId, profile);
   const base = buildConfig(
     profile,
