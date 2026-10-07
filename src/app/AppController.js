@@ -12778,6 +12778,7 @@ function App() {
 
   const openLiveWebsite = async () => {
     const url =
+      websitePublishingView?.primaryPublicAddress?.url ||
       websitePublishingView?.website?.live_url ||
       websitePublishingView?.liveDeployment?.public_url ||
       "";
@@ -12830,7 +12831,7 @@ function App() {
         websiteDraft,
       });
       setWebsitePublishingNotice(
-        `Domain verification created. Add TXT record ${result?.verificationName || ""} with the value shown, then check verification.`
+        `Domain verification created. Add TXT record ${result?.verificationName || ""} with the value shown, then check ownership once. After ownership is proved, BUSY will prepare Cloudflare routing and SSL automatically.`
       );
       await refreshWebsitePublishingStatus({ quiet: true });
       return true;
@@ -12844,6 +12845,12 @@ function App() {
     }
   };
 
+  const followCustomDomain = () => {
+    [1500, 5000, 12000, 25000].forEach((delay) => {
+      setTimeout(() => refreshWebsitePublishingStatus({ quiet: true }), delay);
+    });
+  };
+
   const verifyWebsiteDomain = async (domainId) => {
     if (!domainId) return false;
     setWebsitePublishingAction(`verify-domain:${domainId}`);
@@ -12854,10 +12861,13 @@ function App() {
       });
       setWebsitePublishingNotice(
         result?.verified
-          ? "BUSY verified domain ownership. Routing and SSL remain separate until a real routing provider is connected."
+          ? result?.activation?.error
+            ? "Domain ownership is verified. BUSY could not continue the provider step immediately, so the background reconciler will retry safely."
+            : "Domain ownership is verified. BUSY has started the Cloudflare hostname, DNS-routing and SSL setup automatically."
           : "The verification TXT record is not visible in public DNS yet. Nothing was changed."
       );
       await refreshWebsitePublishingStatus({ quiet: true });
+      if (result?.verified) followCustomDomain();
       return !!result?.verified;
     } catch (error) {
       setWebsitePublishingError(
@@ -12881,10 +12891,11 @@ function App() {
       const configured = !!result?.provider?.configured;
       setWebsitePublishingNotice(
         configured
-          ? "BUSY prepared this verified hostname with the external delivery provider. Follow the required DNS records; BUSY will keep checking routing and SSL automatically."
-          : "The BUSY-side Cloudflare adapter is ready, but the Cloudflare account/token/zone has not been connected yet. No external routing change was made."
+          ? "BUSY refreshed this domain with Cloudflare. Add any DNS records still shown below; BUSY will continue checking routing, SSL and the exact live deployment automatically."
+          : "The BUSY-side Cloudflare adapter is ready, but the server connection is not complete yet. No unsafe routing change was made."
       );
       await refreshWebsitePublishingStatus({ quiet: true });
+      if (configured) followCustomDomain();
       return configured;
     } catch (error) {
       setWebsitePublishingError(
@@ -12929,6 +12940,20 @@ function App() {
     } catch (error) {
       setWebsitePublishingError(
         error?.message || "BUSY could not open the default website address."
+      );
+      return false;
+    }
+  };
+
+  const openCustomWebsiteDomain = async () => {
+    const url = websitePublishingView?.domainState?.publicAddress?.url || "";
+    if (!url || !websitePublishingView?.canOpenCustomDomain) return false;
+    try {
+      await Linking.openURL(url);
+      return true;
+    } catch (error) {
+      setWebsitePublishingError(
+        error?.message || "BUSY could not open the custom website domain."
       );
       return false;
     }
@@ -14111,6 +14136,7 @@ function App() {
     refreshWebsiteSignals,
     runWebsiteHealthCheck,
     openDefaultWebsiteAddress,
+    openCustomWebsiteDomain,
     openWebsitePublishing,
     miniAppsStatus,
     miniAppsView,
