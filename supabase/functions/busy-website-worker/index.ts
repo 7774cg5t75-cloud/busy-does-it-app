@@ -397,6 +397,70 @@ async function loadWebsite(websiteId: string) {
   return website.data;
 }
 
+function profileFromDraft(draft: any) {
+  const sections = safeArray(draft?.sections);
+  const contact: any = sections.find((section: any) => section?.id === "contact") || {};
+  const services: any = sections.find((section: any) => section?.id === "services") || {};
+  const hero: any = sections.find((section: any) => section?.id === "hero") || {};
+  const gallery: any = sections.find((section: any) => section?.id === "gallery") || {};
+  return {
+    schemaVersion: 1,
+    businessName: clean(draft?.businessName, 240),
+    businessType: clean(draft?.businessType, 240),
+    serviceArea: clean(draft?.serviceArea, 500),
+    slug: clean(draft?.slug, 100),
+    theme: draft?.theme || {},
+    contact: {
+      phone: clean(contact?.phone, 120),
+      email: clean(contact?.email, 240),
+      openingHours: clean(contact?.openingHours, 600),
+      social: contact?.social && typeof contact.social === "object" ? contact.social : {},
+    },
+    services: safeArray(services?.items).map((item: any) => ({
+      id: clean(item?.id, 120),
+      name: clean(item?.title, 240),
+      description: clean(item?.body, 1200),
+    })),
+    assets: {
+      hero: hero?.asset || null,
+      gallery: safeArray(gallery?.items).slice(0, 24),
+    },
+    pages: pageList(draft).map((page: any) => ({
+      id: clean(page?.id, 80),
+      path: clean(page?.path, 240),
+      title: clean(page?.title, 160),
+    })),
+  };
+}
+
+async function syncProfileForDeployment(
+  job: any,
+  deployment: any,
+  status: "draft" | "preview_ready" | "live"
+) {
+  const profile = profileFromDraft(deployment.source_draft);
+  const result = await supabase
+    .from("busy_public_business_profiles")
+    .upsert(
+      {
+        business_id: job.business_id,
+        source_website_id: job.website_id,
+        source_deployment_id: deployment.id,
+        public_slug:
+          clean(deployment.source_draft?.slug, 80) ||
+          `business-${String(job.business_id).replaceAll("-", "").slice(0, 8)}`,
+        display_name: clean(deployment.source_draft?.businessName, 240),
+        status,
+        revision: Math.max(1, Number(deployment.version_no) || 1),
+        profile,
+        updated_by: job.requested_by || null,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "business_id" }
+    );
+  if (result.error) throw result.error;
+}
+
 async function prepareDeployment(job: any, deployment: any, website: any) {
   await ensureBuckets();
   await supabase
@@ -455,29 +519,70 @@ async function prepareDeployment(job: any, deployment: any, website: any) {
     });
   }
 
-  const manifest = {
-    schemaVersion: 1,
+  const pages = pageList(deployment.source_draft);
+  const manifest: any = {
+    schemaVersion: 2,
     sourceBucket: SOURCE_BUCKET,
     previewBucket: PREVIEW_BUCKET,
     publicBucket: PUBLIC_BUCKET,
     assets,
+    pages: [],
     preparedAt: new Date().toISOString(),
   };
-  const previewHtml = renderWebsiteHtml(
-    deployment.source_draft,
-    buildAssetMap(manifest, "previewUrl")
-  );
-  const indexPath = `${job.business_id}/${job.website_id}/deployments/${deployment.id}/index.html`;
-  await uploadText(PREVIEW_BUCKET, indexPath, previewHtml, "300", true);
-  artifactBytes += new TextEncoder().encode(previewHtml).byteLength;
 
+  // Create each private page once so Storage can issue stable signed URLs for
+  // cross-page preview navigation, then overwrite with the final signed links.
+  for (const page of pages) {
+    const outputPath = clean(page?.outputPath, 300) || (page.id === "home" ? "index.html" : `${page.id}/index.html`);
+    const previewPath = `${job.business_id}/${job.website_id}/deployments/${deployment.id}/${outputPath}`;
+    const provisional = renderWebsiteHtml(
+      deployment.source_draft,
+      buildAssetMap(manifest, "previewUrl"),
+      page,
+      deployment.id
+    );
+    await uploadText(PREVIEW_BUCKET, previewPath, provisional, "300", true);
+    const signed = await supabase.storage
+      .from(PREVIEW_BUCKET)
+      .createSignedUrl(previewPath, 31536000);
+    if (signed.error) throw signed.error;
+    manifest.pages.push({
+      id: page.id,
+      path: page.path,
+      outputPath,
+      previewPath,
+      previewUrl: signed.data.signedUrl,
+      publicPath: "",
+      publicUrl: "",
+    });
+  }
+
+  const previewPageUrls = Object.fromEntries(
+    manifest.pages.map((page: any) => [page.id, page.previewUrl])
+  );
+
+  for (let index = 0; index < pages.length; index += 1) {
+    const page = pages[index];
+    const pageManifest = manifest.pages[index];
+    const finalHtml = renderWebsiteHtml(
+      deployment.source_draft,
+      buildAssetMap(manifest, "previewUrl"),
+      page,
+      deployment.id,
+      previewPageUrls
+    );
+    await uploadText(PREVIEW_BUCKET, pageManifest.previewPath, finalHtml, "300", true);
+    artifactBytes += new TextEncoder().encode(finalHtml).byteLength;
+  }
+
+  const homePage = manifest.pages.find((page: any) => page.id === "home") || manifest.pages[0];
   const now = new Date().toISOString();
   const updated = await supabase
     .from("busy_website_deployments")
     .update({
       state: "preview_ready",
       manifest,
-      preview_storage_path: indexPath,
+      preview_storage_path: homePage?.previewPath || null,
       artifact_bytes: artifactBytes,
       last_error: null,
       prepared_at: now,
@@ -499,6 +604,8 @@ async function prepareDeployment(job: any, deployment: any, website: any) {
     })
     .eq("id", website.id);
   if (websiteUpdated.error) throw websiteUpdated.error;
+
+  await syncProfileForDeployment(job, updated.data, "preview_ready");
 }
 
 async function publishDeployment(job: any, deployment: any, website: any) {
@@ -512,9 +619,12 @@ async function publishDeployment(job: any, deployment: any, website: any) {
     .update({ state: "publishing", last_error: null })
     .eq("id", deployment.id);
 
-  const manifest = {
+  const manifest: any = {
     ...(deployment.manifest || {}),
     assets: safeArray(deployment.manifest?.assets).map((item: any) => ({
+      ...item,
+    })),
+    pages: safeArray(deployment.manifest?.pages).map((item: any) => ({
       ...item,
     })),
   };
@@ -550,20 +660,40 @@ async function publishDeployment(job: any, deployment: any, website: any) {
     };
   }
 
+  const pages = pageList(deployment.source_draft);
+  manifest.pages = [];
   manifest.publishedAt = new Date().toISOString();
-  const publicHtml = renderWebsiteHtml(
-    deployment.source_draft,
-    buildAssetMap(manifest, "publicUrl")
-  );
-  const versionPath = `${job.business_id}/${job.website_id}/deployments/${deployment.id}/index.html`;
-  const livePath = `${job.business_id}/${job.website_id}/live/index.html`;
 
-  await uploadText(PUBLIC_BUCKET, versionPath, publicHtml, "31536000", true);
-  await uploadText(PUBLIC_BUCKET, livePath, publicHtml, "60", true);
+  for (const page of pages) {
+    const outputPath = clean(page?.outputPath, 300) || (page.id === "home" ? "index.html" : `${page.id}/index.html`);
+    const versionPath = `${job.business_id}/${job.website_id}/deployments/${deployment.id}/${outputPath}`;
+    const livePath = `${job.business_id}/${job.website_id}/live/${outputPath}`;
+    const html = renderWebsiteHtml(
+      deployment.source_draft,
+      buildAssetMap(manifest, "publicUrl"),
+      page,
+      deployment.id
+    );
+    await uploadText(PUBLIC_BUCKET, versionPath, html, "31536000", true);
+    await uploadText(PUBLIC_BUCKET, livePath, html, "60", true);
+    manifest.pages.push({
+      id: page.id,
+      path: page.path,
+      outputPath,
+      previewPath:
+        safeArray(deployment.manifest?.pages).find((item: any) => item.id === page.id)?.previewPath || "",
+      previewUrl:
+        safeArray(deployment.manifest?.pages).find((item: any) => item.id === page.id)?.previewUrl || "",
+      publicPath: versionPath,
+      publicUrl: supabase.storage.from(PUBLIC_BUCKET).getPublicUrl(versionPath).data.publicUrl,
+      livePath,
+      liveUrl: supabase.storage.from(PUBLIC_BUCKET).getPublicUrl(livePath).data.publicUrl,
+    });
+  }
 
-  const liveUrl = supabase.storage
-    .from(PUBLIC_BUCKET)
-    .getPublicUrl(livePath).data.publicUrl;
+  const homePage = manifest.pages.find((page: any) => page.id === "home") || manifest.pages[0];
+  const liveUrl = homePage?.liveUrl || "";
+  const versionPath = homePage?.publicPath || "";
   const now = new Date().toISOString();
   const previousLiveId = website.current_live_deployment_id;
 
@@ -586,7 +716,9 @@ async function publishDeployment(job: any, deployment: any, website: any) {
       last_error: null,
       published_at: now,
     })
-    .eq("id", deployment.id);
+    .eq("id", deployment.id)
+    .select("*")
+    .single();
   if (deploymentUpdated.error) throw deploymentUpdated.error;
 
   const websiteUpdated = await supabase
@@ -596,11 +728,14 @@ async function publishDeployment(job: any, deployment: any, website: any) {
       current_live_deployment_id: deployment.id,
       current_preview_deployment_id: deployment.id,
       live_url: liveUrl,
+      health_status: "not_checked",
       last_error: null,
       updated_at: now,
     })
     .eq("id", website.id);
   if (websiteUpdated.error) throw websiteUpdated.error;
+
+  await syncProfileForDeployment(job, deploymentUpdated.data, "live");
 }
 
 async function rollbackDeployment(job: any, target: any, website: any) {
@@ -609,13 +744,21 @@ async function rollbackDeployment(job: any, target: any, website: any) {
   }
   await ensureBuckets();
 
-  const manifest = target.manifest || {};
-  const html = renderWebsiteHtml(
-    target.source_draft,
-    buildAssetMap(manifest, "publicUrl")
-  );
+  const manifest: any = target.manifest || {};
+  const pages = pageList(target.source_draft);
+  for (const page of pages) {
+    const outputPath = clean(page?.outputPath, 300) || (page.id === "home" ? "index.html" : `${page.id}/index.html`);
+    const livePath = `${job.business_id}/${job.website_id}/live/${outputPath}`;
+    const html = renderWebsiteHtml(
+      target.source_draft,
+      buildAssetMap(manifest, "publicUrl"),
+      page,
+      target.id
+    );
+    await uploadText(PUBLIC_BUCKET, livePath, html, "60", true);
+  }
+
   const livePath = `${job.business_id}/${job.website_id}/live/index.html`;
-  await uploadText(PUBLIC_BUCKET, livePath, html, "60", true);
   const liveUrl = supabase.storage
     .from(PUBLIC_BUCKET)
     .getPublicUrl(livePath).data.publicUrl;
@@ -633,7 +776,9 @@ async function rollbackDeployment(job: any, target: any, website: any) {
   const targetUpdated = await supabase
     .from("busy_website_deployments")
     .update({ state: "live", last_error: null })
-    .eq("id", target.id);
+    .eq("id", target.id)
+    .select("*")
+    .single();
   if (targetUpdated.error) throw targetUpdated.error;
 
   const siteUpdated = await supabase
@@ -642,11 +787,14 @@ async function rollbackDeployment(job: any, target: any, website: any) {
       status: "live",
       current_live_deployment_id: target.id,
       live_url: liveUrl,
+      health_status: "not_checked",
       last_error: null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", website.id);
   if (siteUpdated.error) throw siteUpdated.error;
+
+  await syncProfileForDeployment(job, targetUpdated.data, "live");
 }
 
 async function failJob(
