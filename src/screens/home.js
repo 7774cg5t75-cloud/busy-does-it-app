@@ -1073,6 +1073,15 @@ function HomeScreen({ s }) {
           strong={!!s.brandBrain?.websiteReady}
         />
         <MetricRow
+          left="Business Creation"
+          right={
+            s.businessCreationJourney?.readyCount
+              ? `${s.businessCreationJourney.readyCount}/${s.businessCreationJourney.totalSteps} stages prepared`
+              : "Ready for one guided brief"
+          }
+          strong={Number(s.businessCreationJourney?.readyCount || 0) >= 3}
+        />
+        <MetricRow
           left="Website Builder"
           right={
             s.websiteDraft
@@ -1131,6 +1140,11 @@ function HomeScreen({ s }) {
         <Button label="Executive Briefing" onPress={() => s.go("executiveBriefing")} />
         <Button label="Business Memory" onPress={() => s.go("businessMemory")} />
         <Button label="Brand & Business Identity" onPress={s.openBrandIdentity} />
+        <Button
+          label="Build my business with BUSY"
+          primary
+          onPress={s.openBusinessCreationJourney}
+        />
         <Button label={s.websiteDraft ? "Website Builder & preview" : "Build my website"} onPress={s.openWebsiteBuilder} />
         {s.websiteDraft ? (
           <Button
