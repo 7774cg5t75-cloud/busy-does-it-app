@@ -235,6 +235,12 @@ function buildWebsitePublishingView({
       !activeJob,
     canOpenLive: !!clean(website?.live_url),
     canOpenDefaultAddress: !!defaultAddress?.live,
+    primaryPublicAddress:
+      defaultAddress?.live
+        ? { url: defaultAddress.url, label: defaultAddress.hostname, source: "busy_domain" }
+        : clean(website?.live_url)
+        ? { url: clean(website.live_url), label: "Hosted live version", source: "storage_alias" }
+        : null,
     canRollback: previouslyPublished.length > 0 && !activeJob,
     canCheckHealth: !!liveDeployment && !activeJob,
     canProvisionDomain:
@@ -285,11 +291,13 @@ function buildWebsitePublishingView({
           ? "Live"
           : defaultAddress
           ? deliveryStatus === "reserved"
-            ? "Reserved"
+            ? liveDeployment
+              ? "Queued for route proof"
+              : "Reserved"
             : deliveryStatus === "provisioning"
-            ? "Provisioning"
+            ? "Checking live route"
             : deliveryStatus === "degraded"
-            ? "Needs attention"
+            ? "Route check needs attention"
             : deliveryStatus === "error"
             ? "Delivery error"
             : "Not live"
