@@ -59,6 +59,10 @@ const appJourneyMigrationSource = fs.readFileSync(
   "supabase/migrations/20261007234500_v3_55_business_app_journey_loyalty.sql",
   "utf8"
 );
+const appJourneyIndexMigrationSource = fs.readFileSync(
+  "supabase/migrations/20261007235500_v3_55_loyalty_fk_indexes.sql",
+  "utf8"
+);
 const productionWorkflowSource = fs.readFileSync(
   ".github/workflows/production-check.yml",
   "utf8"
@@ -157,6 +161,7 @@ const checks = [
   ["V3.55 dated offers are owner-evidenced and time bounded", miniAppsSource.includes("startDate") && miniAppsSource.includes("endDate") && miniAppsSource.includes("datesSupported") && miniAppsSource.includes("busy-no-active-offers")],
   ["V3.55 loyalty module is real but bounded", appJourneyMigrationSource.includes("busy_mini_app_loyalty_progress") && appJourneyMigrationSource.includes("busy_award_mini_app_loyalty_stamp") && appJourneyMigrationSource.includes("max_target_stamps") && appJourneyMigrationSource.includes("status = 'available'")],
   ["V3.55 loyalty records are tenant guarded", appJourneyMigrationSource.includes("busy_mini_app_loyalty_progress_tenant_app_fkey") && appJourneyMigrationSource.includes("busy_mini_app_loyalty_events_tenant_request_fkey")],
+  ["V3.55 loyalty FK indexes", appJourneyIndexMigrationSource.includes("busy_mini_app_loyalty_progress_tenant_app_idx") && appJourneyIndexMigrationSource.includes("busy_mini_app_loyalty_events_tenant_request_idx") && appJourneyIndexMigrationSource.includes("busy_mini_app_loyalty_events_awarded_by_idx")],
   ["V3.55 loyalty is service-role only", appJourneyMigrationSource.includes("busy_mini_app_loyalty_progress_no_direct_client_access") && appJourneyMigrationSource.includes("busy_mini_app_loyalty_events_no_direct_client_access") && appJourneyMigrationSource.includes("grant execute on function public.busy_award_mini_app_loyalty_stamp")],
   ["V3.55 loyalty reward cannot be invented", miniAppsSource.includes("loyaltyRewardSupported") && miniAppsSource.includes("Never invent a reward") && busyCommandSource.includes("Never invent the target, reward or terms")],
   ["V3.55 signed-in customers receive loyalty progress", miniAppsSource.includes("loyaltyProgressFor") && miniAppsSource.includes("loyaltyProgress") && miniAppsScreenSource.includes("Record 1 eligible loyalty stamp")],
