@@ -2568,6 +2568,26 @@ function App() {
       !cloudInitialised ||
       !cloudWorkspace?.businessId ||
       !ownerSession?.accessToken ||
+      miniAppsStatus.loaded
+    ) return;
+    const timer = setTimeout(() => {
+      refreshMiniAppsStatus({ quiet: true });
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [
+    hydrated,
+    cloudInitialised,
+    cloudWorkspace?.businessId,
+    ownerSession?.accessToken,
+    miniAppsStatus.loaded,
+  ]);
+
+  useEffect(() => {
+    if (
+      !hydrated ||
+      !cloudInitialised ||
+      !cloudWorkspace?.businessId ||
+      !ownerSession?.accessToken ||
       cloudConflict
     ) return;
     const timer = setTimeout(() => {
