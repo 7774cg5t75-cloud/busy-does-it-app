@@ -2,6 +2,14 @@
 
 Busy Does It mobile app prototype.
 
+## v3.46 Production Domains & Hosting Activation
+- BUSY now has a first-party production root domain: `busydoesit.co.uk`. Tenant-safe default website addresses use `sites.busydoesit.co.uk` unless a future environment override deliberately changes the platform hostname.
+- Cloudflare account activation is no longer treated as a blind external checkbox. The website-provider service now performs a public DNS preflight against the root domain and can independently tell whether the authoritative nameservers have moved to Cloudflare.
+- The preflight separately checks whether the BUSY website base hostname is actually resolving. Nameserver propagation, Cloudflare-for-SaaS credentials, routing DNS and real deployment health remain separate truths.
+- Website status now exposes the platform preflight to the owner UI, so BUSY can show **nameservers propagating**, **SaaS setup required**, **routing DNS required** and **ready for customer domains** without pretending a later stage is complete.
+- Existing provider-neutral routing, SSL and health boundaries remain intact: a Cloudflare custom hostname is not considered live until BUSY's health checker observes the expected live deployment through the public hostname.
+- The remaining account-owner steps are deliberately narrow: wait for the registrar nameserver change to become active, enable Cloudflare for SaaS / Custom Hostnames, then place the restricted API token, SaaS Zone ID and managed CNAME target into server secrets. No Cloudflare secret is committed to the app or repository.
+
 ## v3.45 Guest Mini App Requests
 - Customers can now submit **enquiries and booking requests directly from the public web Mini App** without installing BUSY or signing into a BUSY account.
 - Public forms reuse the exact immutable live Mini App configuration and only appear when the corresponding controlled `enquiry` or `booking_request` module is enabled.
