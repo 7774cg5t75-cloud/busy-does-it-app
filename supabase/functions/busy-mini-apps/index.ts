@@ -1361,17 +1361,16 @@ function miniAppEntrySource(value: unknown) {
   return MINI_APP_ENTRY_SOURCES.has(source) ? source : "unknown";
 }
 
-async function recordMiniAppEntry(app: any, userId: string, source: string) {
+async function recordMiniAppEntry(app: any, _userId: string, source: string) {
   if (!app?.id || !app?.business_id) return;
-  const inserted = await supabase.from("busy_mini_app_entry_events").insert({
-    business_id: app.business_id,
-    mini_app_id: app.id,
-    consumer_user_id: userId || null,
-    source: miniAppEntrySource(source),
-    stage: "app_open",
+  const recorded = await supabase.rpc("busy_mini_app_record_entry", {
+    p_business_id: app.business_id,
+    p_mini_app_id: app.id,
+    p_source: miniAppEntrySource(source),
+    p_stage: "app_open",
   });
-  if (inserted.error) {
-    console.error("BUSY Mini App entry attribution failed", inserted.error.message);
+  if (recorded.error) {
+    console.error("BUSY Mini App entry attribution failed", recorded.error.message);
   }
 }
 
