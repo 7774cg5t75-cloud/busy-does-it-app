@@ -5,6 +5,7 @@ This branch restructures the large single-file prototype into domain modules wit
 ## V3.45 Guest Mini App Request Boundary
 ### Public request service
 - `busy-mini-app-guest` is the only unauthenticated request-creation boundary. Direct Data API access to guest challenges and Mini App requests remains revoked.
+- `busy_mini_apps.public_web_schema_version` prevents BUSY from claiming that a pre-V3.45 static artifact already contains guest forms. Existing live artifacts stay unchanged until the owner republishes through the normal approval gate; publish/rollback then writes schema version 2.
 - A guest form first requests a short-lived challenge for one live Mini App version and one enabled request module. Submission must present the challenge token, a small proof-of-work, the same keyed browser fingerprint and valid bounded customer payload.
 - The challenge is consumed inside `busy_mini_app_create_guest_request`, which locks the challenge row, rechecks the current live Mini App version, enforces recent browser/contact rate limits, inserts the request and writes the lifecycle event in one database transaction.
 - Guest request access uses a high-entropy token derived server-side from the one-time challenge. Only its SHA-256 hash is stored with the request.
