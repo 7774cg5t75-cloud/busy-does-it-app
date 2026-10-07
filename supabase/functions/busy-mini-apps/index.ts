@@ -1110,9 +1110,10 @@ async function applyBusinessAppPlan(
   businessId: string,
   body: any
 ) {
-  const [catalog, storedProfile] = await Promise.all([
+  const [catalog, storedProfile, existingApp] = await Promise.all([
     moduleCatalog(),
     publicProfileForBusiness(businessId),
+    appForBusiness(businessId),
   ]);
   const supplied = sanitizePublicProfile(body?.profileDraft || {});
   const profile = supplied.businessName
@@ -1129,16 +1130,16 @@ async function applyBusinessAppPlan(
     ownerRequest,
     profile,
     catalog,
-    null
+    existingApp?.draft_config || null
   );
   const plan = sanitiseAppPlan(
     body?.plan || {},
     catalog,
     fallback,
     ownerRequest,
-    safeArray(body?.plan?.offers)
+    safeArray(existingApp?.draft_config?.offers)
   );
-  const app = await ensureApp(businessId, userId, profile);
+  const app = existingApp || (await ensureApp(businessId, userId, profile));
   const base = buildConfig(
     profile,
     catalog,
