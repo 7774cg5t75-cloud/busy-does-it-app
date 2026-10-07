@@ -21,7 +21,7 @@ function WebsiteBuilder({ s }) {
       s={s}
       title="Website Builder"
       subtitle="Build from the Brand Brain instead of starting from a blank page."
-      brandCue="V3.37 • private editing • multi-page model • live management • explicit Go Live approval."
+      brandCue="V3.38 • private editing • multi-page • live delivery signals • explicit Go Live approval."
     >
       <Card
         eyebrow="Website generation"
