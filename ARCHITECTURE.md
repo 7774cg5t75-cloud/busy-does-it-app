@@ -2,6 +2,22 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.43 Mini App Direct Customer Entry
+### Stable public entry boundary
+- Live Mini Apps now have two distinct visibility concepts: **marketplace discoverability** and **exact-link accessibility**. `discoverable=false` removes a Mini App from directory search but is not treated as an access-control mechanism for an owner-shared public link.
+- The canonical customer entry URL is currently the BUSY Supabase Edge Function `busy-mini-app-link?slug=<public_slug>&source=<source>`. It resolves only live Mini Apps and hands off to `busydoesit://apps/<slug>`.
+- This indirection means printed QR codes can remain stable while the delivery layer later changes to a BUSY-owned universal-link domain or App Store fallback.
+
+### Entry attribution without inflating business outcomes
+- `busy_mini_app_entry_events` records server-side entry signals with source and stage. `landing` means the HTTPS entry page was reached; `app_open` means an authenticated user opened the live Mini App in BUSY.
+- Landing visits and app opens are never treated as enquiries, bookings or customers. Those outcomes continue to require the existing explicit request flow.
+- Owner status calls the server-only `busy_mini_app_entry_summary` aggregation for a 30-day summary rather than returning raw event history, keeping owner payloads bounded as usage grows.
+- Direct Data API access to entry events is revoked from anonymous/authenticated clients; both the public landing function and authenticated Mini Apps function write through service-role server boundaries.
+
+### Deep-link continuation
+- The app parses only the narrow `busydoesit://apps/<slug>` route for Mini Apps. A signed-out user keeps a pending slug/source through the account-access hop; once authentication is available BUSY opens the intended Mini App.
+- Entry source is attribution metadata, not authorisation. The backend independently verifies that the target Mini App is live before returning its immutable live version.
+
 ## V3.42 Mini App Notifications & Conversation Centre
 ### Unread state without per-message polling
 - `busy_mini_app_requests` owns bounded business/customer unread counters plus last-read timestamps. This keeps list/status queries cheap as the number of messages grows.
