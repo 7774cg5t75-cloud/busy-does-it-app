@@ -22,6 +22,7 @@ const intents = [
   "website_edit",
   "open_website",
   "website_hosting_status",
+  "website_health_check",
   "website_publish_request",
   "website_rollback_request",
   "business_outlook",
@@ -472,6 +473,14 @@ function safeContext(value: any) {
             queueStatus: cleanText(context.websitePublishing.queueStatus, 120),
             customDomainStatus: cleanText(context.websitePublishing.customDomainStatus, 120),
             customDomainRoutingActive: !!context.websitePublishing.customDomainRoutingActive,
+            domainOwnership: cleanText(context.websitePublishing.domainOwnership, 120),
+            domainRouting: cleanText(context.websitePublishing.domainRouting, 120),
+            domainSsl: cleanText(context.websitePublishing.domainSsl, 120),
+            healthStatus: cleanText(context.websitePublishing.healthStatus, 120),
+            pageCount: Math.max(0, Number(context.websitePublishing.pageCount) || 0),
+            seoBasics: cleanText(context.websitePublishing.seoBasics, 160),
+            analyticsStatus: cleanText(context.websitePublishing.analyticsStatus, 120),
+            publicProfileRevision: Math.max(0, Number(context.websitePublishing.publicProfileRevision) || 0),
             publicChangeRequiresOwnerApproval: true,
           }
         : null,
@@ -573,10 +582,11 @@ Your job is conversational:
 - For "build me a website", "make me a website", "create my website" or equivalent, use intent="website_build", mode="action", requiresConfirmation=false, actionLabel="Build website draft". This creates an internal draft only. Never imply it is published, hosted or attached to a domain.
 - For changes to an existing website draft such as "make it more premium", "make the main photo bigger", "hide the testimonials", or "bring the gallery back", use intent="website_edit", mode="action", requiresConfirmation=false, actionLabel="Apply website change", and copy the owner's requested change concisely into note. Do not invent a different change. If no website draft exists, prefer website_build when the request can be satisfied by creating the first draft.
 - For "show/open/preview my website", use intent="open_website", mode="action", requiresConfirmation=false, actionLabel="Open website preview". The editor preview is internal; hosted preview and live deployment are separate states.
-- Website build/edit actions may use brandIdentity and websiteBuilder context. V3.36 hosting state is in websitePublishing.
+- Website build/edit actions may use brandIdentity and websiteBuilder context. V3.37 live-management state is in websitePublishing.
 - For "put my website live", "publish my website", "go live" or equivalent, use intent="website_publish_request", mode="action", requiresConfirmation=false, actionLabel="Review Go Live". This intent ONLY opens the Website Publishing approval flow. Never claim publication happened from the voice command itself.
 - For "roll back my website", "restore the old website/version" or equivalent, use intent="website_rollback_request", mode="action", requiresConfirmation=false, actionLabel="Review rollback". This ONLY opens version history and approval.
-- For questions such as "is my website live?", "what version is live?", "is hosting ready?", or "what is happening with my website publish?", use intent="website_hosting_status", mode="answer" and use websitePublishing. Keep editor draft, hosted preview and live version distinct.
+- For questions such as "is my website live?", "what version is live?", "what changed?", "is hosting ready?", "is my domain really live?", "is SSL active?", "are the SEO basics ready?", or "what is happening with my website publish?", use intent="website_hosting_status", mode="answer" and use websitePublishing. Keep editor draft, hosted preview and live version distinct; keep domain ownership, routing and SSL distinct.
+- For "check my live website", "is my website healthy?", "check whether the website is serving the right version" or equivalent, use intent="website_health_check", mode="action", requiresConfirmation=false, actionLabel="Check live website". This is a read/verification action only; it must not publish or change public content.
 - A public website change always requires the explicit owner approval gate in Website Publishing. Never claim DNS changed, a custom domain is routed, SSL is active, or a domain was purchased unless websitePublishing explicitly says so.
 - Never claim causation from attributed social outcomes or small samples.
 - For business_outlook, never collapse confirmed work and predicted pipeline into one factual number. State confirmed value separately, label forecast ranges as planning estimates, mention forecast confidence, and explain that quiet/light days are scheduled-load observations rather than guaranteed spare capacity.
@@ -598,7 +608,8 @@ Supported direct intents:
 - website_build: create/rebuild an internal website draft from the recorded Brand Brain; action only, not publishing.
 - website_edit: apply a safe conversational change to the saved internal website draft; put the exact requested change in note.
 - open_website: open the saved internal Website Builder/preview; do not claim it is public.
-- website_hosting_status: explain the current draft/hosted-preview/live state using websitePublishing and distinguish all three.
+- website_hosting_status: explain the current draft/hosted-preview/live state using websitePublishing; distinguish draft, preview and live, and report health/domain/SEO state only from recorded fields.
+- website_health_check: trigger a live reachability/deployment-marker verification; it is safe and non-public-changing.
 - website_publish_request: open the Go Live review flow for the exact prepared version; do not publish directly.
 - website_rollback_request: open version history/rollback review; do not change the live site directly.
 - business_outlook: answer questions about today, next week, the next 30 days, pipeline, capacity load, forecast range, risk radar, scenarios or whether the business is on track. Use executiveBriefing and clearly separate confirmed values from forecast ranges.
