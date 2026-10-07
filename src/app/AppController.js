@@ -273,6 +273,7 @@ function App() {
     versions: [],
     requests: [],
     requestLinks: [],
+    requestCount30: 0,
     entrySummary: [],
     catalog: [],
     publicProfile: null,
@@ -6230,6 +6231,7 @@ function App() {
       versions: [],
       requests: [],
       requestLinks: [],
+      requestCount30: 0,
       entrySummary: [],
       catalog: [],
       publicProfile: null,
@@ -11319,8 +11321,15 @@ function App() {
           ).length
         ),
         publicSlug: miniAppsView?.publicSlug || "",
-        entryLanding30: Number(miniAppsView?.entryCounts?.byStage?.landing || 0),
+        publicWebReady: !!miniAppsView?.webReady,
+        webViews30: Number(
+          miniAppsView?.entryCounts?.byStage?.web_view ||
+          miniAppsView?.entryCounts?.byStage?.landing ||
+          0
+        ),
+        actionIntents30: Number(miniAppsView?.entryCounts?.byStage?.action_intent || 0),
         entryAppOpens30: Number(miniAppsView?.entryCounts?.byStage?.app_open || 0),
+        customerRequests30: Number(miniAppsView?.requestCount30 || 0),
         qrEntries30: Number(miniAppsView?.entryCounts?.bySource?.qr || 0),
         shareEntries30: Number(miniAppsView?.entryCounts?.bySource?.share || 0),
         arbitraryBespokeCodeSupported: false,
@@ -12916,6 +12925,7 @@ function App() {
       versions: Array.isArray(data?.versions) ? data.versions : [],
       requests: Array.isArray(data?.requests) ? data.requests : [],
       requestLinks: Array.isArray(data?.requestLinks) ? data.requestLinks : [],
+      requestCount30: Math.max(0, Number(data?.requestCount30 || 0)),
       entrySummary: Array.isArray(data?.entrySummary) ? data.entrySummary : [],
       catalog: Array.isArray(data?.catalog) ? data.catalog : [],
       publicProfile: data?.publicProfile || null,
@@ -13184,7 +13194,7 @@ function App() {
     }
   };
 
-  const openBusyAppDetail = async (slug, source = "marketplace") => {
+  const openBusyAppDetail = async (slug, source = "marketplace", intent = "") => {
     if (!slug) return false;
     setMiniAppsAction(`open:${slug}`);
     setMiniAppsError("");
@@ -13194,7 +13204,12 @@ function App() {
         { slug, source },
         { includeBusiness: false }
       );
-      setSelectedBusyAppDetail(data);
+      setSelectedBusyAppDetail({
+        ...data,
+        entryIntent: ["enquiry", "booking_request"].includes(String(intent || ""))
+          ? String(intent)
+          : "",
+      });
       go("busyAppDetail");
       setTimeout(() => loadMyBusyApps({ quiet: true }), 80);
       return true;
@@ -13839,9 +13854,12 @@ function App() {
         query[rawKey] = rawValue;
       }
     });
-    const allowed = new Set(["qr", "share", "deep_link", "marketplace", "my_apps", "notification", "owner_test"]);
+    const allowed = new Set(["qr", "share", "web", "deep_link", "marketplace", "my_apps", "notification", "owner_test"]);
     const source = allowed.has(String(query.source || "")) ? String(query.source) : "deep_link";
-    return { slug, source };
+    const intent = ["enquiry", "booking_request"].includes(String(query.intent || ""))
+      ? String(query.intent)
+      : "";
+    return { slug, source, intent };
   };
 
   const handleMiniAppDeepLink = async (url) => {
@@ -13853,7 +13871,7 @@ function App() {
       return true;
     }
     setPendingMiniAppDeepLink(null);
-    return await openBusyAppDetail(target.slug, target.source);
+    return await openBusyAppDetail(target.slug, target.source, target.intent || "");
   };
 
   useEffect(() => {
@@ -13879,7 +13897,7 @@ function App() {
     const target = pendingMiniAppDeepLink;
     const timer = setTimeout(() => {
       setPendingMiniAppDeepLink(null);
-      openBusyAppDetail(target.slug, target.source || "deep_link");
+      openBusyAppDetail(target.slug, target.source || "deep_link", target.intent || "");
     }, 120);
     return () => clearTimeout(timer);
   }, [hydrated, ownerSession?.accessToken, pendingMiniAppDeepLink?.slug]);
