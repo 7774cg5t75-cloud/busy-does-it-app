@@ -243,7 +243,7 @@ function WebsitePreview({ s }) {
       <Card
         eyebrow="Source"
         title="Static website source is generated"
-        body="V3.36 can package this draft into an immutable hosted deployment. Approved images are copied into deployment-specific website assets before anything goes public."
+        body="V3.37 can package this multi-page draft into an immutable hosted deployment. Approved images are copied into deployment-specific website assets before anything goes public."
         footer={`${draft.html?.length || 0} source characters • editor source`}
         tone="green"
       />
