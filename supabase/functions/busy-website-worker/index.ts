@@ -232,11 +232,20 @@ function renderSectionHtml(
   )}</p></div></section>`;
 }
 
+function relativePageHref(currentPage: any, targetPath: string) {
+  const target = clean(targetPath, 240) || "/";
+  const currentIsHome = !currentPage || currentPage.id === "home";
+  if (target === "/") return currentIsHome ? "./" : "../";
+  const segment = target.replace(/^\/+|\/+$/g, "");
+  return currentIsHome ? `./${segment}/` : `../${segment}/`;
+}
+
 function renderWebsiteHtml(
   draft: any,
   urls: Record<string, string>,
   page: any,
-  deploymentId: string
+  deploymentId: string,
+  pageUrls: Record<string, string> = {}
 ) {
   const allSections = safeArray(draft?.sections).filter(
     (section: any) => section?.enabled !== false
@@ -263,9 +272,9 @@ function renderWebsiteHtml(
       )}</a><div class="nav-links">${navigation
         .map(
           (item: any) =>
-            `<a href="${escapeHtml(item.href || "/")}">${escapeHtml(
-              item.label || item.id
-            )}</a>`
+            `<a href="${escapeHtml(
+              pageUrls[item.id] || relativePageHref(page, item.href || "/")
+            )}">${escapeHtml(item.label || item.id)}</a>`
         )
         .join("")}</div></div></nav>`
     : "";
