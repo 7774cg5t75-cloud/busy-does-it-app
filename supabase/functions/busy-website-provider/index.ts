@@ -188,7 +188,7 @@ async function dnsAnswers(name: string, type: "NS" | "CNAME" | "A" | "AAAA") {
     {
       headers: {
         Accept: "application/dns-json",
-        "User-Agent": "BUSY-Website-Provider/3.52",
+        "User-Agent": "BUSY-Website-Provider/3.53",
       },
     }
   );
@@ -378,7 +378,7 @@ function routerWorkerSource() {
     'const key=new Request(keyUrl.toString(),{method:"GET",headers:{Accept:request.headers.get("Accept")||"*/*"}});',
     'if(method==="GET"&&!health){const cached=await caches.default.match(key);if(cached){const h=new Headers(cached.headers);h.set("X-BUSY-Edge-Cache","HIT");return new Response(cached.body,{status:cached.status,statusText:cached.statusText,headers:h});}}',
     'const target=new URL(origin);target.searchParams.set("host",host);target.searchParams.set("path",incoming.pathname||"/");',
-    'const upstream=await fetch(target.toString(),{method,headers:{Accept:request.headers.get("Accept")||"text/html,*/*;q=0.8","X-BUSY-Original-Host":host,"X-BUSY-Original-Path":incoming.pathname||"/","User-Agent":"BUSY-Cloudflare-Router/3.52"},cf:{cacheEverything:false}});',
+    'const upstream=await fetch(target.toString(),{method,headers:{Accept:request.headers.get("Accept")||"text/html,*/*;q=0.8","X-BUSY-Original-Host":host,"X-BUSY-Original-Path":incoming.pathname||"/","User-Agent":"BUSY-Cloudflare-Router/3.53"},cf:{cacheEverything:false}});',
     'const headers=new Headers(upstream.headers);headers.set("X-BUSY-Edge","cloudflare-worker");headers.set("X-BUSY-Edge-Cache","MISS");headers.set("Vary","Accept-Encoding");',
     'const response=new Response(upstream.body,{status:upstream.status,statusText:upstream.statusText,headers});',
     'if(method==="GET"&&!health&&cacheable(response)){ctx.waitUntil(caches.default.put(key,response.clone()));}',
@@ -807,7 +807,7 @@ async function saveProviderState(domain: any, result: any) {
       (ownerDnsAction
         ? 30 * 60000
         : fullyProviderReady
-        ? 12 * 60 * 60000
+        ? 48 * 60 * 60000
         : 10 * 60000)
   ).toISOString();
 
