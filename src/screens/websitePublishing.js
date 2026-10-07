@@ -45,7 +45,7 @@ function WebsitePublishing({ s }) {
       s={s}
       title="Website Management"
       subtitle="Edit privately, inspect the exact hosted version, then decide what becomes public."
-      brandCue="V3.51 • hosting intelligence • self-healing retries • protected live versions • clear recovery."
+      brandCue="V3.52 • tenant isolation • fair queues • worker leases • adaptive health • scale safeguards."
     >
       <Card
         eyebrow="Website lifecycle"
@@ -734,10 +734,10 @@ function WebsitePublishing({ s }) {
 
       <Text style={styles.sectionLabel}>Publishing infrastructure</Text>
       <Card
-        eyebrow="Shared scalable worker queue"
+        eyebrow="Tenant-fair production queue"
         title={view.queueHealth?.status || "Queue not checked"}
-        body="Publishing remains durable server-side work. Phones can close, reconnect or fail without becoming the deployment engine."
-        footer="Each queued job stays tenant-scoped even though the worker infrastructure is shared."
+        body="Publishing remains durable server-side work. V3.52 leases each job atomically, allows only one active website operation at a time and spreads worker capacity fairly across businesses."
+        footer="Duplicate taps, stale workers and one unusually busy tenant cannot silently create concurrent website changes."
         tone={view.queueHealth?.status === "Backlog needs attention" ? "amber" : "green"}
       >
         <MetricRow left="Waiting jobs" right={String(view.queueHealth?.length || 0)} />
