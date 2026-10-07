@@ -183,19 +183,37 @@ function buildWebsitePublishingView({
   const lastAnalyticsSignal =
     signalRuns.find((run) => run.signal_type === "analytics_sync") || null;
 
-  const latestPublishJob =
-    jobs.find((job) => ["publish", "rollback"].includes(job.action)) || null;
-  const publishFailed = latestPublishJob?.status === "failed";
+  const pendingPreview =
+    !!previewDeployment && previewDeployment.id !== liveDeployment?.id;
+  const activeGoLiveJob =
+    jobs.find(
+      (job) =>
+        ["publish", "rollback"].includes(job.action) &&
+        ["queued", "processing", "retry_wait"].includes(job.status)
+    ) || null;
+  const targetDeploymentId =
+    activeGoLiveJob?.deployment_id ||
+    (pendingPreview ? previewDeployment?.id : liveDeployment?.id) ||
+    "";
+  const latestTargetJob =
+    jobs.find(
+      (job) =>
+        ["publish", "rollback"].includes(job.action) &&
+        (!targetDeploymentId || job.deployment_id === targetDeploymentId)
+    ) || null;
+  const publishFailed = latestTargetJob?.status === "failed";
   const defaultRouteHealthy =
     defaultAddress?.live && defaultDomainHealth?.status === "healthy";
   const liveAliasHealthy = healthStatus === "healthy";
 
-  const goLiveStage = !liveDeployment
-    ? publishFailed
-      ? "publish_failed"
-      : activeJob?.action === "publish" || activeJob?.action === "rollback"
-      ? "publishing"
-      : previewDeployment
+  const goLiveStage = activeGoLiveJob
+    ? "publishing"
+    : publishFailed && (!liveDeployment || pendingPreview)
+    ? "publish_failed"
+    : pendingPreview
+    ? "approval_ready"
+    : !liveDeployment
+    ? previewDeployment
       ? "approval_ready"
       : "not_ready"
     : !defaultAddress
@@ -231,22 +249,25 @@ function buildWebsitePublishingView({
     {
       id: "approval",
       label: "Owner approval",
-      status:
-        liveDeployment || activeJob?.action === "publish" || latestPublishJob
-          ? "complete"
-          : previewDeployment
-          ? "ready"
-          : "waiting",
+      status: activeGoLiveJob
+        ? "complete"
+        : pendingPreview || (!liveDeployment && previewDeployment)
+        ? "ready"
+        : liveDeployment
+        ? "complete"
+        : "waiting",
     },
     {
       id: "public_version",
       label: "Approved version published",
-      status: liveDeployment
-        ? "complete"
-        : publishFailed
-        ? "error"
-        : activeJob?.action === "publish"
+      status: activeGoLiveJob
         ? "working"
+        : publishFailed && (!liveDeployment || pendingPreview)
+        ? "error"
+        : pendingPreview
+        ? "waiting"
+        : liveDeployment
+        ? "complete"
         : "waiting",
     },
     {
