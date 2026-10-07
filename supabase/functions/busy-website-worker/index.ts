@@ -99,10 +99,153 @@ function urlForAsset(asset: any, urls: Record<string, string>, index = 0) {
   );
 }
 
-function renderWebsiteHtml(draft: any, urls: Record<string, string>) {
-  const sections = safeArray(draft?.sections).filter(
+function pageList(draft: any) {
+  const configured = safeArray(draft?.pages).filter(
+    (page: any) => page?.enabled !== false && clean(page?.id, 80)
+  );
+  if (configured.length) return configured;
+  return [
+    {
+      id: "home",
+      path: "/",
+      outputPath: "index.html",
+      title: "Home",
+      sectionIds: safeArray(draft?.sections)
+        .filter((section: any) => section?.enabled !== false)
+        .map((section: any) => section.id),
+    },
+  ];
+}
+
+function pageSeo(draft: any, page: any) {
+  return (
+    draft?.seo?.pages?.[page?.id] || {
+      title: draft?.seo?.title || draft?.businessName || "Website",
+      description: draft?.seo?.description || "",
+      heading: page?.id === "home" ? draft?.businessName || "" : page?.title || "",
+    }
+  );
+}
+
+function renderSectionHtml(
+  draft: any,
+  section: any,
+  urls: Record<string, string>,
+  isFirstSection: boolean
+) {
+  const theme = draft?.theme || {};
+  if (section.type === "hero") {
+    const image = section.asset ? urlForAsset(section.asset, urls) : "";
+    return `<section class="hero hero-${escapeHtml(
+      theme.heroSize || "large"
+    )}"><div class="wrap">${image ? `<img class="hero-image" src="${escapeHtml(
+      image
+    )}" alt="">` : ""}<p class="kicker">${escapeHtml(
+      draft.businessName
+    )}</p><h1>${escapeHtml(section.title)}</h1><p>${escapeHtml(
+      section.body
+    )}</p>${
+      section.cta && section.ctaHref
+        ? `<a class="cta" href="${escapeHtml(
+            section.ctaHref
+          )}">${escapeHtml(section.cta)}</a>`
+        : ""
+    }</div></section>`;
+  }
+
+  const headingTag = isFirstSection ? "h1" : "h2";
+
+  if (section.type === "services") {
+    return `<section id="services"><div class="wrap"><${headingTag}>${escapeHtml(
+      section.title
+    )}</${headingTag}><div class="grid">${safeArray(section.items)
+      .map(
+        (item: any) =>
+          `<article><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(
+            item.body
+          )}</p></article>`
+      )
+      .join("")}</div></div></section>`;
+  }
+
+  if (section.type === "gallery") {
+    const images = safeArray(section.items)
+      .map((item: any, index: number) => {
+        const url = urlForAsset(item, urls, index);
+        return url
+          ? `<img class="gallery-image" src="${escapeHtml(
+              url
+            )}" alt="">`
+          : "";
+      })
+      .filter(Boolean)
+      .join("");
+    return `<section id="gallery"><div class="wrap"><${headingTag}>${escapeHtml(
+      section.title
+    )}</${headingTag}><div class="gallery">${images}</div></div></section>`;
+  }
+
+  if (section.type === "testimonials" || section.type === "faq") {
+    return `<section id="${escapeHtml(
+      section.id
+    )}"><div class="wrap"><${headingTag}>${escapeHtml(
+      section.title
+    )}</${headingTag}>${safeArray(section.items)
+      .map(
+        (item: any) =>
+          `<article><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(
+            item.body
+          )}</p></article>`
+      )
+      .join("")}</div></section>`;
+  }
+
+  if (section.type === "contact") {
+    return `<section id="contact"><div class="wrap"><${headingTag}>${escapeHtml(
+      section.title
+    )}</${headingTag}><p>${escapeHtml(section.body)}</p>${
+      section.phone
+        ? `<p><a href="tel:${escapeHtml(
+            String(section.phone).replace(/\s+/g, "")
+          )}">${escapeHtml(section.phone)}</a></p>`
+        : ""
+    }${
+      section.email
+        ? `<p><a href="mailto:${escapeHtml(
+            section.email
+          )}">${escapeHtml(section.email)}</a></p>`
+        : ""
+    }${
+      section.openingHours
+        ? `<p>${escapeHtml(section.openingHours)}</p>`
+        : ""
+    }</div></section>`;
+  }
+
+  return `<section id="${escapeHtml(
+    section.id
+  )}"><div class="wrap"><${headingTag}>${escapeHtml(
+    section.title
+  )}</${headingTag}><p>${escapeHtml(section.body).replace(
+    /\n/g,
+    "<br>"
+  )}</p></div></section>`;
+}
+
+function renderWebsiteHtml(
+  draft: any,
+  urls: Record<string, string>,
+  page: any,
+  deploymentId: string
+) {
+  const allSections = safeArray(draft?.sections).filter(
     (section: any) => section?.enabled !== false
   );
+  const allowed = new Set(safeArray(page?.sectionIds));
+  const sections =
+    allowed.size > 0
+      ? allSections.filter((section: any) => allowed.has(section.id))
+      : allSections;
   const theme = draft?.theme || {};
   const primary = clean(theme?.primary, 100);
   const secondary = clean(theme?.secondary, 100);
@@ -112,113 +255,59 @@ function renderWebsiteHtml(draft: any, urls: Record<string, string>) {
   ]
     .filter(Boolean)
     .join("");
+  const seo = pageSeo(draft, page);
+  const navigation = safeArray(draft?.navigation);
+  const navHtml = navigation.length
+    ? `<nav aria-label="Main navigation"><div class="nav-wrap"><a class="brand" href="/">${escapeHtml(
+        draft?.businessName || "Home"
+      )}</a><div class="nav-links">${navigation
+        .map(
+          (item: any) =>
+            `<a href="${escapeHtml(item.href || "/")}">${escapeHtml(
+              item.label || item.id
+            )}</a>`
+        )
+        .join("")}</div></div></nav>`
+    : "";
 
   const sectionHtml = sections
-    .map((section: any) => {
-      if (section.type === "hero") {
-        const image = section.asset ? urlForAsset(section.asset, urls) : "";
-        return `<section class="hero hero-${escapeHtml(
-          theme.heroSize || "large"
-        )}"><div class="wrap">${image ? `<img class="hero-image" src="${escapeHtml(
-          image
-        )}" alt="">` : ""}<p class="kicker">${escapeHtml(
-          draft.businessName
-        )}</p><h1>${escapeHtml(section.title)}</h1><p>${escapeHtml(
-          section.body
-        )}</p>${
-          section.cta && section.ctaHref
-            ? `<a class="cta" href="${escapeHtml(
-                section.ctaHref
-              )}">${escapeHtml(section.cta)}</a>`
-            : ""
-        }</div></section>`;
-      }
-
-      if (section.type === "services") {
-        return `<section id="services"><div class="wrap"><h2>${escapeHtml(
-          section.title
-        )}</h2><div class="grid">${safeArray(section.items)
-          .map(
-            (item: any) =>
-              `<article><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(
-                item.body
-              )}</p></article>`
-          )
-          .join("")}</div></div></section>`;
-      }
-
-      if (section.type === "gallery") {
-        const images = safeArray(section.items)
-          .map((item: any, index: number) => {
-            const url = urlForAsset(item, urls, index);
-            return url
-              ? `<img class="gallery-image" src="${escapeHtml(
-                  url
-                )}" alt="">`
-              : "";
-          })
-          .filter(Boolean)
-          .join("");
-        return `<section id="gallery"><div class="wrap"><h2>${escapeHtml(
-          section.title
-        )}</h2><div class="gallery">${images}</div></div></section>`;
-      }
-
-      if (section.type === "testimonials" || section.type === "faq") {
-        return `<section id="${escapeHtml(
-          section.id
-        )}"><div class="wrap"><h2>${escapeHtml(
-          section.title
-        )}</h2>${safeArray(section.items)
-          .map(
-            (item: any) =>
-              `<article><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(
-                item.body
-              )}</p></article>`
-          )
-          .join("")}</div></section>`;
-      }
-
-      if (section.type === "contact") {
-        return `<section id="contact"><div class="wrap"><h2>${escapeHtml(
-          section.title
-        )}</h2><p>${escapeHtml(section.body)}</p>${
-          section.phone
-            ? `<p><a href="tel:${escapeHtml(
-                String(section.phone).replace(/\s+/g, "")
-              )}">${escapeHtml(section.phone)}</a></p>`
-            : ""
-        }${
-          section.email
-            ? `<p><a href="mailto:${escapeHtml(
-                section.email
-              )}">${escapeHtml(section.email)}</a></p>`
-            : ""
-        }${
-          section.openingHours
-            ? `<p>${escapeHtml(section.openingHours)}</p>`
-            : ""
-        }</div></section>`;
-      }
-
-      return `<section id="${escapeHtml(
-        section.id
-      )}"><div class="wrap"><h2>${escapeHtml(
-        section.title
-      )}</h2><p>${escapeHtml(section.body).replace(
-        /\n/g,
-        "<br>"
-      )}</p></div></section>`;
-    })
+    .map((section: any, index: number) =>
+      renderSectionHtml(draft, section, urls, index === 0)
+    )
     .join("");
 
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(
-    draft?.seo?.title || draft?.businessName || "Website"
+  const contact: any =
+    allSections.find((section: any) => section.id === "contact") || {};
+  const sameAs = Object.values(contact?.social || {})
+    .map((value) => clean(value, 1000))
+    .filter((value) => /^https?:\/\//i.test(value));
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": draft?.seo?.schemaType || "LocalBusiness",
+    name: clean(draft?.businessName, 240),
+    description: clean(draft?.description, 1200) || clean(seo?.description, 1200),
+    telephone: clean(contact?.phone, 120) || undefined,
+    email: clean(contact?.email, 240) || undefined,
+    areaServed: clean(draft?.serviceArea, 500) || undefined,
+    sameAs: sameAs.length ? sameAs : undefined,
+  };
+  Object.keys(structuredData).forEach((key) => {
+    if ((structuredData as any)[key] === undefined) delete (structuredData as any)[key];
+  });
+
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="busy-deployment" content="${escapeHtml(
+    deploymentId
+  )}"><meta name="busy-page" content="${escapeHtml(
+    page?.id || "home"
+  )}"><title>${escapeHtml(
+    seo?.title || draft?.businessName || "Website"
   )}</title><meta name="description" content="${escapeHtml(
-    draft?.seo?.description || ""
-  )}"><style>:root{${cssVars}}*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.55;color:#1f2933;background:#fff}.wrap{max-width:1080px;margin:0 auto;padding:64px 24px}section:nth-child(even){background:#f7f7f5}h1{font-size:clamp(2.5rem,8vw,5rem);line-height:1.02;margin:.2em 0}h2{font-size:2rem}h3{margin-top:0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}article{padding:22px;border:1px solid #e5e7eb;border-radius:18px;background:#fff}.cta{display:inline-block;margin-top:18px;padding:12px 18px;border-radius:999px;background:var(--brand-primary,#1f5eff);color:#fff;text-decoration:none}.hero-image{width:100%;max-height:620px;object-fit:cover;border-radius:22px;margin-bottom:28px}.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}.gallery-image{width:100%;height:260px;object-fit:cover;border-radius:16px}.mood-warm{background:#fffaf2}.mood-bold h1{font-weight:900}.mood-premium{letter-spacing:.01em}.hero-extra-large .wrap{padding-top:100px;padding-bottom:100px}.hero-medium .wrap{padding-top:44px;padding-bottom:44px}@media(max-width:600px){.wrap{padding:42px 20px}.gallery-image{height:220px}}</style></head><body class="mood-${escapeHtml(
+    seo?.description || ""
+  )}"><script type="application/ld+json">${JSON.stringify(
+    structuredData
+  ).replace(/</g, "\\u003c")}</script><style>:root{${cssVars}}*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.55;color:#1f2933;background:#fff}nav{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.96);border-bottom:1px solid #ececec}.nav-wrap{max-width:1080px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{font-weight:800;color:inherit;text-decoration:none}.nav-links{display:flex;gap:14px;flex-wrap:wrap}.nav-links a{color:inherit;text-decoration:none}.wrap{max-width:1080px;margin:0 auto;padding:64px 24px}section:nth-child(even){background:#f7f7f5}h1{font-size:clamp(2.4rem,7vw,4.8rem);line-height:1.04;margin:.2em 0}h2{font-size:2rem}h3{margin-top:0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}article{padding:22px;border:1px solid #e5e7eb;border-radius:18px;background:#fff}.cta{display:inline-block;margin-top:18px;padding:12px 18px;border-radius:999px;background:var(--brand-primary,#1f5eff);color:#fff;text-decoration:none}.hero-image{width:100%;max-height:620px;object-fit:cover;border-radius:22px;margin-bottom:28px}.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}.gallery-image{width:100%;height:260px;object-fit:cover;border-radius:16px}.mood-warm{background:#fffaf2}.mood-bold h1{font-weight:900}.mood-premium{letter-spacing:.01em}.hero-extra-large .wrap{padding-top:100px;padding-bottom:100px}.hero-medium .wrap{padding-top:44px;padding-bottom:44px}@media(max-width:700px){.nav-wrap{align-items:flex-start;flex-direction:column}.wrap{padding:42px 20px}.gallery-image{height:220px}}</style></head><body class="mood-${escapeHtml(
     theme?.mood || "clean"
-  )}">${sectionHtml}</body></html>`;
+  )}">${navHtml}${sectionHtml}</body></html>`;
 }
 
 async function ensureBucket(
