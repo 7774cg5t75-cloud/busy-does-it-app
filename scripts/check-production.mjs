@@ -10,6 +10,8 @@ const supabaseConfigSource = fs.readFileSync("supabase/config.toml", "utf8");
 const websiteProviderSource = fs.readFileSync("supabase/functions/busy-website-provider/index.ts", "utf8");
 const websiteWorkerSource = fs.readFileSync("supabase/functions/busy-website-worker/index.ts", "utf8");
 const websiteHealthSource = fs.readFileSync("supabase/functions/busy-website-health/index.ts", "utf8");
+const websitePublishingDomainSource = fs.readFileSync("src/domain/websitePublishing.js", "utf8");
+const websitePublishingScreenSource = fs.readFileSync("src/screens/websitePublishing.js", "utf8");
 const websiteOriginSource = fs.readFileSync("supabase/functions/busy-website-origin/index.ts", "utf8");
 const websiteRouterSource = fs.readFileSync("cloudflare/busy-website-router/worker.js", "utf8");
 
@@ -35,8 +37,8 @@ const checks = [
   ["native development build workflow", fs.existsSync(".github/workflows/native-development-build.yml")],
   ["SDK57 calendar legacy import", controllerSource.includes('import * as Calendar from "expo-calendar/legacy";')],
   ["SDK54 Snack calendar rewrite", snackPublisherSource.includes('expo-calendar/legacy') && snackPublisherSource.includes('expo-calendar";')],
-  ["V3.48 public website origin", fs.existsSync("supabase/functions/busy-website-origin/index.ts")],
-  ["V3.48 Cloudflare router Worker", fs.existsSync("cloudflare/busy-website-router/worker.js")],
+  ["V3.49 public website origin", fs.existsSync("supabase/functions/busy-website-origin/index.ts")],
+  ["V3.49 Cloudflare router Worker", fs.existsSync("cloudflare/busy-website-router/worker.js")],
   ["website origin is public edge function", supabaseConfigSource.includes("[functions.busy-website-origin]") && supabaseConfigSource.includes("verify_jwt = false")],
   ["BUSY production root domain", websiteProviderSource.includes("busydoesit.co.uk")],
   ["Cloudflare automated platform bootstrap", websiteProviderSource.includes("bootstrapPlatform") && websiteProviderSource.includes("uploadRouterWorker")],
@@ -45,6 +47,9 @@ const checks = [
   ["V3.48 live sites promote reserved BUSY addresses", websiteProviderSource.includes('delivery_status", "reserved"') && websiteProviderSource.includes('"provisioning"')],
   ["V3.48 publish starts BUSY address route proof", websiteWorkerSource.includes('delivery_status: "provisioning"')],
   ["V3.48 health proves BUSY address before activation", websiteHealthSource.includes('"default_domain"') && websiteHealthSource.includes('delivery_status = "active"')],
+  ["V3.49 publish immediately starts delivery proof", websiteWorkerSource.includes("verifyPublicDelivery") && websiteWorkerSource.includes("reserve_default_hostnames") && websiteWorkerSource.includes("busy-website-health")],
+  ["V3.49 owner Go Live journey", websitePublishingDomainSource.includes("goLiveJourney") && websitePublishingDomainSource.includes("live_healthy")],
+  ["V3.49 Go Live UI is owner-facing", websitePublishingScreenSource.includes("One approval • automatic delivery checks") && websitePublishingScreenSource.includes("Open public BUSY website")],
   ["Cloudflare root routes excluded", websiteProviderSource.includes("ensureWorkerRoutes") && websiteProviderSource.includes("www.")],
   ["health checks bypass website edge cache", websiteRouterSource.includes("BUSY-Website-Health/") && websiteProviderSource.includes("BUSY-Website-Health/")],
   ["website origin rejects storage traversal", websiteOriginSource.includes('part === ".."') && websiteOriginSource.includes("busy-website-public")],
