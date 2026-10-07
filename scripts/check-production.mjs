@@ -31,6 +31,10 @@ const websiteSimulationSource = fs.readFileSync(
   "scripts/website-platform-simulation.mjs",
   "utf8"
 );
+const websiteWakeRlsMigrationSource = fs.readFileSync(
+  "supabase/migrations/20261007224500_v3_53_worker_wake_rls_policy.sql",
+  "utf8"
+);
 const productionWorkflowSource = fs.readFileSync(
   ".github/workflows/production-check.yml",
   "utf8"
@@ -109,6 +113,7 @@ const checks = [
   ["V3.53 health scheduler has 10k headroom", websiteReadinessMigrationSource.includes("jsonb_build_object('limit', 40)") && websiteHealthSource.includes(": 720;")],
   ["V3.53 healthy provider reconciliation is spread", websiteProviderSource.includes("48 * 60 * 60000")],
   ["V3.53 service-only live readiness snapshot", websiteReadinessMigrationSource.includes("busy_website_release_readiness") && websiteReadinessMigrationSource.includes("revoke all on function public.busy_website_release_readiness")],
+  ["V3.53 internal wake state has explicit deny RLS", websiteWakeRlsMigrationSource.includes("busy_website_worker_wake_state_deny_authenticated") && websiteWakeRlsMigrationSource.includes("using (false)") && websiteWakeRlsMigrationSource.includes("with check (false)")],
   ["V3.53 deterministic 10k simulation exists", websiteSimulationSource.includes("10000") && websiteSimulationSource.includes("simulatedCrashEvery") && websiteSimulationSource.includes("cross-tenant-mismatch-rejected")],
   ["V3.53 simulation models cost envelope", websiteSimulationSource.includes("dailyEnvelope") && websiteSimulationSource.includes("assumedPublishesAtTenPercentDaily")],
   ["V3.53 simulation is a production release gate", productionWorkflowSource.includes("Simulate website scale and failure recovery") && productionWorkflowSource.includes("website-platform-simulation.mjs")],
