@@ -45,7 +45,7 @@ function WebsitePublishing({ s }) {
       s={s}
       title="Website Management"
       subtitle="Edit privately, inspect the exact hosted version, then decide what becomes public."
-      brandCue="V3.48 • automatic BUSY addresses • route proof • real delivery • tenant-safe hosting."
+      brandCue="V3.49 • one Go Live journey • automatic delivery proof • simple owner status."
     >
       <Card
         eyebrow="Website lifecycle"
@@ -109,6 +109,57 @@ function WebsitePublishing({ s }) {
         />
       ) : null}
 
+      <Text style={styles.sectionLabel}>Go Live journey</Text>
+      <Card
+        eyebrow="One approval • automatic delivery checks"
+        title={view.goLiveJourney?.label || "Website delivery"}
+        body={
+          view.goLiveJourney?.complete
+            ? "BUSY has proved the approved website version is public, the tenant-safe BUSY address reaches it through Cloudflare, and the exact immutable deployment is healthy."
+            : view.goLiveJourney?.needsAttention
+            ? "The approved website data remains safe. BUSY has isolated the stage that needs attention instead of treating every Go Live problem as the same error."
+            : preview && !live
+            ? "Review the hosted preview once. After owner approval, BUSY handles publication, address allocation, Cloudflare routing and health proof automatically."
+            : live
+            ? "The approved version is public. BUSY is completing the remaining delivery checks automatically and will only call the BUSY address live after real route proof."
+            : "Prepare a hosted preview first. Nothing becomes public until you approve the exact immutable version."
+        }
+        footer={
+          view.goLiveJourney?.complete
+            ? "No Cloudflare dashboard work is required for the default BUSY address."
+            : "Draft, preview, public version, routing and health remain separate facts."
+        }
+        tone={
+          view.goLiveJourney?.complete
+            ? "green"
+            : view.goLiveJourney?.needsAttention
+            ? "amber"
+            : "blue"
+        }
+      >
+        {(view.goLiveJourney?.steps || []).map((step) => (
+          <MetricRow
+            key={step.id}
+            left={step.label}
+            right={
+              step.status === "complete"
+                ? "Done"
+                : step.status === "working"
+                ? "Checking…"
+                : step.status === "error"
+                ? "Needs attention"
+                : step.status === "ready"
+                ? "Ready"
+                : "Waiting"
+            }
+            strong={step.status === "complete"}
+          />
+        ))}
+        {view.goLiveJourney?.complete && view.defaultAddressState?.address?.url ? (
+          <Button label="Open public BUSY website" primary onPress={s.openDefaultWebsiteAddress} />
+        ) : null}
+      </Card>
+
       {preview ? (
         <>
           <Text style={styles.sectionLabel}>What changed in this version</Text>
@@ -138,8 +189,8 @@ function WebsitePublishing({ s }) {
         <Card
           eyebrow="Go Live gate"
           title={`Publish v${preview.version_no}?`}
-          body="This is a public change. BUSY will publish exactly the immutable hosted version you previewed — not a later editor state."
-          footer="The current public version is retained as a rollback target."
+          body="This is the only public approval. BUSY will publish exactly the immutable hosted version you previewed, then automatically allocate/verify the BUSY address, Cloudflare route and live deployment health."
+          footer="The current public version is retained as a rollback target. Infrastructure checks do not require another approval."
           tone="amber"
         >
           <MetricRow left="Change summary" right={preview.change_label || "Website update"} strong />
