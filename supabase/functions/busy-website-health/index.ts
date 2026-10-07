@@ -43,7 +43,7 @@ async function fetchWithDeadline(url: string, timeoutMs = 8000) {
       method: "GET",
       redirect: "follow",
       headers: {
-        "User-Agent": "BUSY-Website-Health/3.37",
+        "User-Agent": "BUSY-Website-Health/3.38",
         Accept: "text/html,*/*;q=0.8",
       },
       signal: controller.signal,
@@ -96,7 +96,7 @@ async function recordCheck({
 }: {
   website: any;
   domain?: any;
-  targetType: "live_alias" | "custom_domain";
+  targetType: "live_alias" | "default_domain" | "custom_domain";
   url: string;
 }) {
   const result = await fetchWithDeadline(url);
@@ -169,8 +169,8 @@ async function checkWebsite(website: any) {
     .from("busy_website_domains")
     .select("*")
     .eq("website_id", website.id)
-    .eq("routing_status", "active")
-    .eq("ssl_status", "active");
+    .eq("ssl_status", "active")
+    .in("routing_status", ["validating", "active"]);
   if (domains.error) throw domains.error;
 
   const domainResults = [];
@@ -183,17 +183,36 @@ async function checkWebsite(website: any) {
         url: `https://${domain.hostname}/`,
       })
     );
+    const domainResult = domainResults.at(-1);
+    const domainUpdate: Record<string, unknown> = {
+      last_checked_at: checkedAt,
+      last_error:
+        domainResult?.status === "healthy"
+          ? null
+          : domainResult?.error || "Domain health check failed.",
+      updated_at: checkedAt,
+    };
+    if (domainResult?.status === "healthy") {
+      domainUpdate.routing_status = "active";
+      domainUpdate.status = "active";
+      domainUpdate.activated_at = domain.activated_at || checkedAt;
+    }
     await supabase
       .from("busy_website_domains")
-      .update({
-        last_checked_at: checkedAt,
-        last_error:
-          domainResults.at(-1)?.status === "healthy"
-            ? null
-            : domainResults.at(-1)?.error || "Domain health check failed.",
-        updated_at: checkedAt,
-      })
+      .update(domainUpdate)
       .eq("id", domain.id);
+  }
+
+  let defaultResult: any = null;
+  if (
+    website.default_url &&
+    ["provisioning", "active"].includes(clean(website.delivery_status, 80))
+  ) {
+    defaultResult = await recordCheck({
+      website,
+      targetType: "default_domain",
+      url: website.default_url,
+    });
   }
 
   const update: Record<string, unknown> = {
@@ -208,6 +227,16 @@ async function checkWebsite(website: any) {
   } else {
     update.last_error = live.error || "Live website health check failed.";
   }
+  if (defaultResult?.status === "healthy") {
+    update.delivery_status = "active";
+    update.delivery_provider = "cloudflare_saas";
+  } else if (
+    website.default_url &&
+    website.delivery_status === "provisioning" &&
+    defaultResult
+  ) {
+    update.delivery_status = "degraded";
+  }
 
   const saved = await supabase
     .from("busy_websites")
@@ -220,6 +249,7 @@ async function checkWebsite(website: any) {
     status: live.status,
     live,
     domains: domainResults,
+    defaultDomain: defaultResult,
   };
 }
 
