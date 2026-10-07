@@ -293,6 +293,7 @@ function App() {
   const [businessCreationAction, setBusinessCreationAction] = useState("");
   const [businessCreationNotice, setBusinessCreationNotice] = useState("");
   const [businessCreationError, setBusinessCreationError] = useState("");
+  const [businessCreationAnswer, setBusinessCreationAnswer] = useState("");
   const [miniAppBuilderPlan, setMiniAppBuilderPlan] = useState(null);
   const [miniAppFactAnswers, setMiniAppFactAnswers] = useState({});
   const [busyAppsSearch, setBusyAppsSearch] = useState("");
@@ -8329,7 +8330,9 @@ function App() {
     businessCreationIntelligence,
     brandBrain,
     websiteDraft,
+    websitePublishingView,
     miniAppsView,
+    connectedAccounts,
     socialBrief,
     ownerBrief: businessCreationBrief,
   });
@@ -13302,6 +13305,71 @@ function App() {
     return true;
   };
 
+  const answerBusinessCreationQuestion = () => {
+    const question = businessCreationJourney?.nextQuestion;
+    if (!question) {
+      setBusinessCreationNotice("BUSY does not need another important business-profile answer right now.");
+      return true;
+    }
+    if (question.answerType === "navigate_services") {
+      setBusinessCreationNotice("Update the public service list, then return here. BUSY will automatically recalculate the launch plan.");
+      go("setupServices");
+      return true;
+    }
+
+    const answer = String(businessCreationAnswer || "").trim();
+    if (!answer) {
+      setBusinessCreationError("Add the answer before continuing.");
+      return false;
+    }
+
+    setBusinessCreationError("");
+    if (question.key === "businessName") {
+      setBusinessName(answer);
+    } else if (question.key === "businessType") {
+      setTrade(answer);
+    } else {
+      setBrandProfile((current) => {
+        const next = { ...(current || {}) };
+        if (question.key === "serviceArea") next.serviceAreaText = answer;
+        if (question.key === "description") next.publicDescription = answer;
+        if (question.key === "openingHours") next.openingHours = answer;
+        if (question.key === "contact") {
+          if (answer.includes("@")) next.email = answer;
+          else next.phone = answer;
+        }
+        return next;
+      });
+    }
+    setBusinessCreationAnswer("");
+    setBusinessCreationNotice(
+      "Saved to the shared business profile. BUSY will use the answer across the website, Business App and future marketing preparation."
+    );
+    return true;
+  };
+
+  const propagateBusinessCreationChanges = () => {
+    if (!businessCreationJourney?.propagation?.needsPropagation) {
+      setBusinessCreationNotice("Website and Business App are already aligned with the current shared business profile.");
+      return true;
+    }
+
+    const nextWebsite = buildWebsiteDraft({
+      brandBrain,
+      previousDraft: websiteDraft,
+      businessCreationIntelligence,
+    });
+    setWebsiteDraft(nextWebsite);
+    setMiniAppBuildBrief(
+      businessCreationBrief ||
+        "Refresh the Business App using the latest approved shared business profile."
+    );
+    setBusinessCreationNotice(
+      "BUSY refreshed the private website draft from the latest shared profile and prepared the Business App for replanning. Nothing public changed."
+    );
+    return true;
+  };
+
   const prepareBusinessCreationJourney = async () => {
     const brief = String(businessCreationBrief || "").trim();
     if (!brief) {
@@ -14496,11 +14564,15 @@ function App() {
     businessCreationJourney,
     businessCreationBrief,
     setBusinessCreationBrief,
+    businessCreationAnswer,
+    setBusinessCreationAnswer,
     businessCreationAction,
     businessCreationNotice,
     businessCreationError,
     openBusinessCreationJourney,
     describeBusinessCreationByVoice,
+    answerBusinessCreationQuestion,
+    propagateBusinessCreationChanges,
     prepareBusinessCreationJourney,
     miniAppProfileDraft,
     miniAppsLoading,
