@@ -21,6 +21,14 @@ function readableDate(value, fallback = "Not yet") {
     return fallback;
   }
 }
+function readableBytes(value) {
+  const bytes = Math.max(0, Number(value || 0));
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
 
 function WebsitePublishing({ s }) {
   const view = s.websitePublishingView || {};
@@ -241,23 +249,109 @@ function WebsitePublishing({ s }) {
         </>
       ) : null}
 
-      <Text style={styles.sectionLabel}>Website analytics</Text>
+      <Text style={styles.sectionLabel}>Real website signals</Text>
       <Card
-        eyebrow="Last 30 days"
-        title={view.analyticsView?.collecting ? "Aggregated website results" : "Analytics foundation ready"}
+        eyebrow="External traffic • last 30 days"
+        title={
+          view.analyticsView?.collecting
+            ? "Real delivery signals are being collected"
+            : view.providerState?.configured
+            ? "Cloudflare connected • waiting for routed traffic"
+            : "BUSY collector ready • Cloudflare connection required"
+        }
         body={
           view.analyticsView?.collecting
-            ? "BUSY is reading aggregated website measurements rather than writing every visitor event into the operational business database."
-            : "V3.37 has the tenant-scoped daily rollup model ready. Raw visitor traffic stays outside the operational database until a CDN/analytics ingestion provider is connected."
+            ? "These figures come from the external delivery/analytics provider and are aggregated into BUSY by tenant. They are not generated estimates."
+            : view.providerState?.configured
+            ? "BUSY can read provider traffic, but no active BUSY-routed hostname has produced a provider rollup yet."
+            : "The traffic collector and database rollups are live, but Cloudflare credentials/zone setup are still the external account gate. BUSY records zero rather than inventing traffic."
         }
-        footer="Designed for page views, unique visitors and enquiries without putting BUSY in the critical path of every public visit."
+        footer={`Last provider sync: ${readableDate(view.analyticsView?.lastSyncAt)}`}
+        tone={view.analyticsView?.collecting ? "green" : "blue"}
+      >
+        <MetricRow left="HTTP requests" right={String(view.analyticsView?.requests || 0)} />
+        <MetricRow left="Visits" right={String(view.analyticsView?.visits || 0)} />
+        <MetricRow left="Edge transfer" right={readableBytes(view.analyticsView?.edgeBytes || 0)} />
+        <MetricRow
+          left="Attributed enquiries"
+          right={String(view.enquiryView?.count || 0)}
+          strong={Number(view.enquiryView?.count || 0) > 0}
+        />
+        <Button
+          label={s.websitePublishingAction === "signals" ? "Refreshing signals…" : "Refresh real signals"}
+          disabled={!!s.websitePublishingAction}
+          onPress={s.refreshWebsiteSignals}
+        />
+      </Card>
+
+      <Text style={styles.sectionLabel}>Delivery provider</Text>
+      <Card
+        eyebrow="Provider-neutral BUSY layer"
+        title={view.providerState?.label || "External delivery not configured"}
+        body={
+          view.providerState?.configured
+            ? "BUSY has the server-side provider configuration needed for Cloudflare for SaaS. Customer hostname activation, certificate state and real-route health remain independently verified."
+            : "The V3.38 adapter is deployed, scheduled and tested. The remaining gate is the account-owner Cloudflare setup: API token, SaaS zone and managed CNAME target. No secret belongs in the app or GitHub."
+        }
+        footer="Cloudflare is the first adapter, not the BUSY data model. Another delivery provider can be added behind the same states later."
+        tone={view.providerState?.configured ? "green" : "blue"}
+      >
+        <MetricRow left="API token" right={view.providerState?.tokenReady ? "Server secret ready" : "Not connected"} />
+        <MetricRow left="SaaS zone" right={view.providerState?.zoneReady ? "Ready" : "Not connected"} />
+        <MetricRow left="Routing target" right={view.providerState?.targetReady ? "Ready" : "Not connected"} />
+        <MetricRow left="BUSY web domain" right={view.providerState?.baseDomainConfigured ? view.providerState.baseDomain : "Not configured"} />
+      </Card>
+
+      <Text style={styles.sectionLabel}>Default BUSY website address</Text>
+      <Card
+        eyebrow="Instant-address foundation"
+        title={view.defaultAddressState?.address?.hostname || view.defaultAddressState?.status || "Not reserved yet"}
+        body={
+          view.defaultAddressState?.address
+            ? "BUSY has reserved a tenant-safe hostname. It only becomes a usable public address after the BUSY platform domain/routing layer genuinely serves the expected deployment."
+            : "V3.38 can reserve a BUSY-owned address automatically once the BUSY website base domain is connected to the provider."
+        }
+        footer="Two businesses with the same trading name still receive different tenant-safe hostnames."
+        tone={view.defaultAddressState?.address?.live ? "green" : "blue"}
+      >
+        <MetricRow left="Address state" right={view.defaultAddressState?.status || "Not configured"} strong={view.defaultAddressState?.address?.live} />
+        {view.defaultAddressState?.address?.live ? (
+          <Button label="Open BUSY website address" primary onPress={s.openDefaultWebsiteAddress} />
+        ) : null}
+      </Card>
+
+      <Text style={styles.sectionLabel}>Website usage & cost signals</Text>
+      <Card
+        eyebrow="Last 30 days • per business"
+        title="Usage is measurable before scale arrives"
+        body="BUSY now rolls up deployment work, generated artifact bytes, provider requests/visits/egress, health checks and active custom domains per tenant. This is the foundation for evidence-based fair-use limits and pricing."
+        footer="Growth should mean increasing capacity and predictable variable cost, not rebuilding the platform."
         tone="blue"
       >
-        <MetricRow left="Page views" right={String(view.analyticsView?.pageViews || 0)} />
-        <MetricRow left="Unique visitors" right={String(view.analyticsView?.uniqueVisitors || 0)} />
-        <MetricRow left="Enquiries" right={String(view.analyticsView?.enquiries || 0)} strong={Number(view.analyticsView?.enquiries || 0) > 0} />
-        <MetricRow left="Collection state" right={view.analyticsView?.status || "foundation"} />
+        <MetricRow left="Deployments created" right={String(view.usageView?.deployments || 0)} />
+        <MetricRow left="Versions published" right={String(view.usageView?.publishedVersions || 0)} />
+        <MetricRow left="Generated artifacts" right={readableBytes(view.usageView?.artifactBytes || 0)} />
+        <MetricRow left="Provider egress" right={readableBytes(view.usageView?.edgeBytes || 0)} />
+        <MetricRow left="Health checks" right={String(view.usageView?.healthChecks || 0)} />
+        <MetricRow left="Active custom domains" right={String(view.usageView?.activeCustomDomains || 0)} />
       </Card>
+
+      <Text style={styles.sectionLabel}>Enquiry attribution</Text>
+      <Card
+        eyebrow="Only genuine events count"
+        title={
+          view.enquiryView?.hasRealAttribution
+            ? `${view.enquiryView.count} attributed website enquir${view.enquiryView.count === 1 ? "y" : "ies"}`
+            : "Attribution pipeline ready • no events recorded"
+        }
+        body={
+          view.enquiryView?.hasRealAttribution
+            ? "BUSY has real website enquiry-attribution events for this tenant. These can later be joined to customer journeys without treating clicks or visits as enquiries."
+            : "V3.38 has the tenant-safe attribution store ready, but the current static website does not silently add a public enquiry form or tracking event. BUSY will only count a real enquiry when an approved public enquiry module/provider emits one."
+        }
+        footer="Traffic, visits and enquiries remain separate evidence."
+        tone={view.enquiryView?.hasRealAttribution ? "green" : "blue"}
+      />
 
       <Text style={styles.sectionLabel}>Custom domain</Text>
       <Card
@@ -268,7 +362,11 @@ function WebsitePublishing({ s }) {
             ? "BUSY tracks ownership, traffic routing and SSL separately. A verified TXT record is not treated as a live HTTPS website."
             : "Start with ownership verification. Routing and certificate activation will only become active when a genuine domain-routing provider confirms them."
         }
-        footer="Provider-neutral state model is ready for a real SaaS custom-domain integration."
+        footer={
+          view.providerState?.configured
+            ? "Cloudflare provider adapter is connected; BUSY still waits for real DNS + deployment health before declaring routing active."
+            : "BUSY-side provider adapter is ready. Cloudflare account setup is the remaining external gate."
+        }
         tone={view.domainState?.routingActive ? "green" : "blue"}
       >
         <MetricRow left="Ownership" right={view.domainState?.ownership || "Not connected"} strong={view.domainState?.ownership === "Verified"} />
@@ -293,11 +391,34 @@ function WebsitePublishing({ s }) {
           <>
             <MetricRow left="Ownership TXT name" right={`_busy-verify.${domain.hostname}`} />
             <MetricRow left="TXT value" right={domain.verification_token || "Saved securely"} />
-            <Button
-              label={s.websitePublishingAction === `verify-domain:${domain.id}` ? "Checking DNS…" : "Check ownership verification"}
-              disabled={domain.status === "active" || !!s.websitePublishingAction}
-              onPress={() => s.verifyWebsiteDomain(domain.id)}
-            />
+            {domain.status === "pending_verification" ? (
+              <Button
+                label={s.websitePublishingAction === `verify-domain:${domain.id}` ? "Checking DNS…" : "Check ownership verification"}
+                disabled={!!s.websitePublishingAction}
+                onPress={() => s.verifyWebsiteDomain(domain.id)}
+              />
+            ) : null}
+            {view.canProvisionDomain ? (
+              <Button
+                label={
+                  s.websitePublishingAction === `provision-domain:${domain.id}`
+                    ? "Preparing provider routing…"
+                    : view.providerState?.configured
+                    ? "Prepare Cloudflare routing & SSL"
+                    : "Cloudflare setup required before routing"
+                }
+                primary={!!view.providerState?.configured}
+                disabled={!view.providerState?.configured || !!s.websitePublishingAction}
+                onPress={() => s.provisionWebsiteDomain(domain.id)}
+              />
+            ) : null}
+            {(view.domainState?.requiredRecords || []).slice(0, 8).map((record, index) => (
+              <MetricRow
+                key={`${record.purpose || "dns"}-${record.type || ""}-${record.name || index}`}
+                left={`${record.type || "DNS"} • ${record.purpose || "required"}`}
+                right={`${record.name || ""} → ${record.value || ""}`}
+              />
+            ))}
           </>
         )}
       </Card>
