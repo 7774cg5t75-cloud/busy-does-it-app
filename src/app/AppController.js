@@ -247,6 +247,9 @@ function App() {
     domains: [],
     jobs: [],
     queue: null,
+    healthChecks: [],
+    analytics: null,
+    publicProfile: null,
   });
   const [websitePublishingLoading, setWebsitePublishingLoading] = useState(false);
   const [websitePublishingAction, setWebsitePublishingAction] = useState("");
@@ -6116,6 +6119,9 @@ function App() {
       domains: [],
       jobs: [],
       queue: null,
+      healthChecks: [],
+      analytics: null,
+      publicProfile: null,
     });
     setWebsitePublishingLoading(false);
     setWebsitePublishingAction("");
@@ -11118,6 +11124,14 @@ function App() {
         queueStatus: websitePublishingView?.queueHealth?.status || "Not checked",
         customDomainStatus: websitePublishingView?.domainState?.latest?.status || "",
         customDomainRoutingActive: !!websitePublishingView?.domainState?.routingActive,
+        domainOwnership: websitePublishingView?.domainState?.ownership || "Not connected",
+        domainRouting: websitePublishingView?.domainState?.routing || "Not configured",
+        domainSsl: websitePublishingView?.domainState?.ssl || "Not configured",
+        healthStatus: websitePublishingView?.healthLabel || "Not checked",
+        pageCount: Number(websitePublishingView?.pageCount || 0),
+        seoBasics: websitePublishingView?.seoAudit?.label || "Not checked",
+        analyticsStatus: websitePublishingView?.analyticsView?.status || "foundation",
+        publicProfileRevision: Number(websitePublishingView?.publicProfile?.revision || 0),
         publicChangeRequiresOwnerApproval: true,
       },
       businessMemory: {
@@ -12363,6 +12377,9 @@ function App() {
         domains: Array.isArray(data?.domains) ? data.domains : [],
         jobs: Array.isArray(data?.jobs) ? data.jobs : [],
         queue: data?.queue || null,
+        healthChecks: Array.isArray(data?.healthChecks) ? data.healthChecks : [],
+        analytics: data?.analytics || null,
+        publicProfile: data?.publicProfile || null,
       });
       return true;
     } catch (error) {
@@ -12527,6 +12544,31 @@ function App() {
     } catch {
       setWebsitePublishingError("This live website URL could not be opened.");
       return false;
+    }
+  };
+
+  const runWebsiteHealthCheck = async () => {
+    if (!websitePublishingView?.liveDeployment) {
+      setWebsitePublishingError("Publish a website version before checking the live site.");
+      return false;
+    }
+    setWebsitePublishingAction("health");
+    setWebsitePublishingError("");
+    setWebsitePublishingNotice("");
+    try {
+      await websitePublishingRequest("health_check");
+      setWebsitePublishingNotice(
+        "BUSY checked the live website response and verified which immutable deployment is actually being served."
+      );
+      await refreshWebsitePublishingStatus({ quiet: true });
+      return true;
+    } catch (error) {
+      setWebsitePublishingError(
+        error?.message || "BUSY could not complete the live website health check."
+      );
+      return false;
+    } finally {
+      setWebsitePublishingAction("");
     }
   };
 
@@ -12742,6 +12784,7 @@ function App() {
     openLiveWebsite,
     requestWebsiteDomain,
     verifyWebsiteDomain,
+    runWebsiteHealthCheck,
     openWebsitePublishing,
     quietSlot,
     setQuietSlot,
