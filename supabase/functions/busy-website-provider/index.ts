@@ -68,7 +68,7 @@ async function dnsAnswers(name: string, type: "NS" | "CNAME" | "A" | "AAAA") {
     {
       headers: {
         Accept: "application/dns-json",
-        "User-Agent": "BUSY-Website-Provider/3.47",
+        "User-Agent": "BUSY-Website-Provider/3.48",
       },
     }
   );
@@ -857,35 +857,67 @@ async function syncDomains(limit = 40) {
 async function reserveDefaultHostnames() {
   const config = providerConfig();
   if (!config.baseDomainConfigured) {
-    return { configured: false, reserved: 0 };
+    return { configured: false, reserved: 0, promoted: 0 };
   }
+
   const websites = await supabase
     .from("busy_websites")
-    .select("id,business_id,public_slug,default_hostname,default_url")
+    .select("id,business_id,public_slug,default_hostname,default_url,delivery_status,current_live_deployment_id")
     .is("default_hostname", null)
     .limit(100);
   if (websites.error) throw websites.error;
 
   let reserved = 0;
+  let promoted = 0;
   for (const website of websites.data || []) {
     const businessSuffix = String(website.business_id).replaceAll("-", "").slice(0, 8);
     const slug = clean(website.public_slug, 55).replace(/[^a-z0-9-]/gi, "-").replace(/^-+|-+$/g, "");
     const safeSlug = (slug || "business").slice(0, 42);
     const hostname = `site-${safeSlug}-${businessSuffix}.${BUSY_WEBSITE_BASE_DOMAIN}`.toLowerCase();
+    const deliveryStatus = website.current_live_deployment_id ? "provisioning" : "reserved";
     const updated = await supabase
       .from("busy_websites")
       .update({
         default_hostname: hostname,
         default_url: `https://${hostname}`,
         delivery_provider: "cloudflare_saas",
-        delivery_status: "reserved",
+        delivery_status: deliveryStatus,
         updated_at: new Date().toISOString(),
       })
       .eq("id", website.id)
       .is("default_hostname", null);
-    if (!updated.error) reserved += 1;
+    if (!updated.error) {
+      reserved += 1;
+      if (deliveryStatus === "provisioning") promoted += 1;
+    }
   }
-  return { configured: true, reserved };
+
+  // V3.47 could reserve the address before a first publication, but nothing
+  // promoted an already-reserved address once the site later became live.
+  // Reconcile that state here so scheduled provider sync self-heals it.
+  const ready = await supabase
+    .from("busy_websites")
+    .select("id")
+    .not("current_live_deployment_id", "is", null)
+    .not("default_hostname", "is", null)
+    .eq("delivery_status", "reserved")
+    .limit(100);
+  if (ready.error) throw ready.error;
+
+  for (const website of ready.data || []) {
+    const updated = await supabase
+      .from("busy_websites")
+      .update({
+        delivery_provider: "cloudflare_saas",
+        delivery_status: "provisioning",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", website.id)
+      .eq("delivery_status", "reserved");
+    if (!updated.error) promoted += 1;
+  }
+
+  return { configured: true, reserved, promoted };
 }
 
 Deno.serve(async (request: Request) => {
