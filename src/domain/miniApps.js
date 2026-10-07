@@ -69,6 +69,8 @@ function buildMiniAppsView(remote = {}) {
     null;
 
   const modules = safeArray(activeConfig?.modules);
+  const builderPlan = draftConfig?.builderPlan || activeConfig?.builderPlan || null;
+  const offers = safeArray(activeConfig?.offers);
   const availableModules = catalog.filter((item) => item.status === "available");
   const plannedModules = catalog.filter((item) => item.status === "planned");
   const enabledModules = modules.filter((item) => item.enabled);
@@ -140,6 +142,11 @@ function buildMiniAppsView(remote = {}) {
     draftConfig,
     activeConfig,
     modules,
+    builderPlan,
+    offers,
+    builderPlanMissingFacts: safeArray(builderPlan?.missingFacts),
+    builderPlanUnsupported: safeArray(builderPlan?.unsupportedRequests),
+    builderPlanModules: safeArray(builderPlan?.modules),
     availableModules,
     plannedModules,
     enabledModules,
