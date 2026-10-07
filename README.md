@@ -1,5 +1,18 @@
 # busy-does-it-app
 
+## v3.53 Production Simulation & Release Readiness
+- Adds a deterministic, isolated website-platform simulation covering **100, 1,000, 5,000 and 10,000 synthetic tenants** without writing fake customers into production. The simulation exercises burst publishing, duplicate taps, tenant fairness, stale worker recovery, provider backoff, confirmed-failure health logic, tenant-boundary mismatches and rollback safety.
+- The scale simulator is now part of the normal Production foundation workflow, so later versions cannot silently reduce queue, health or provider capacity below the V3.53 release assumptions without failing CI.
+- Adds backlog-sensitive publishing fan-out. The scheduled worker now scales from zero to eight worker invocations according to queue depth, while V3.52 atomic leases and one-operation-per-website protection prevent that extra concurrency from creating duplicate mutations.
+- Immediate publish-triggered worker wakes are **coalesced** through a service-role-only database gate. A burst of taps can no longer turn into one Edge Function wake request per tap.
+- Healthy website checks are spread over 12 hours while confirmed failures remain on fast 3–5 minute recovery cadence. The health scheduler can select up to 40 due sites per minute, giving the 10,000-tenant model headroom even with a simulated 1% incident rate.
+- Healthy Cloudflare custom-hostname reconciliation is spread over 48 hours. Pending setup, owner-DNS and failure states remain on faster retry windows, preserving responsiveness without continuously polling already-proven infrastructure.
+- Adds a service-role-only `busy_website_release_readiness()` snapshot that combines live queue/retry pressure with scheduler readiness. This is intentionally separate from synthetic simulation so an idle production database is never mistaken for proof of scalability.
+- Adds a documented workload/cost envelope rather than inventing a currency estimate. At 10,000 tenants, the deterministic model remains below 90% of modeled health and provider scheduler capacity under the declared 1% incident / 1% owner-DNS assumptions.
+- The V3.53 evidence and assumptions are documented in `docs/V3_53_WEBSITE_RELEASE_READINESS.md`.
+- A true paid Supabase branch stress run is deliberately **not** created silently: Supabase branch creation has a separate platform cost and requires explicit cost confirmation. V3.53 therefore completes all no-cost deterministic simulation, CI release gates and live non-destructive production checks first.
+
+
 ## v3.52 Scale & Production Hardening
 - Adds an atomic **worker lease** to every website publishing job. A job can only be claimed by one worker at a time, the queue visibility window is longer than the lease, and stale processing leases are automatically recovered into a safe retry path.
 - Strengthens the publishing concurrency rule from “one active deployment/action pair” to **one active website operation per website**. Prepare, publish and rollback can no longer race each other on the same site.
