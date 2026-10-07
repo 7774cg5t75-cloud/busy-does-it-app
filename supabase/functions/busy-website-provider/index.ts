@@ -392,9 +392,12 @@ Deno.serve(async (request: Request) => {
       return json(200, { ok: true, ...(await provisionDomain(domainId)) });
     }
     if (action === "sync_domains") {
+      const synced = await syncDomains(Math.min(100, Math.max(1, Number(body?.limit) || 40)));
+      const defaults = await reserveDefaultHostnames();
       return json(200, {
         ok: true,
-        ...(await syncDomains(Math.min(100, Math.max(1, Number(body?.limit) || 40)))),
+        ...synced,
+        defaultHostnames: defaults,
       });
     }
     if (action === "reserve_default_hostnames") {
