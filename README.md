@@ -1,5 +1,19 @@
 # busy-does-it-app
 
+## v3.54 Business App Builder Intelligence & Voice-First Creation
+- Promotes the earlier Mini App machinery into the owner-facing **Business App Builder**. The owner describes what customers should be able to do in normal language; BUSY creates a reviewable plan before changing the private draft.
+- Adds a controlled AI app planner in `busy-mini-apps`. The planner receives only the owner's request, the recorded approved business facts and the reusable module catalogue. Its output is schema-constrained and then server-side sanitised against the real catalogue before BUSY will use it.
+- Existing app edits are incremental: modules already enabled remain enabled unless the owner explicitly asks to remove/change them. Short requests such as “add booking requests” therefore do not silently rebuild the rest of the app.
+- The planner may only enable catalogue modules whose status is `available`. Loyalty, payments or unknown bespoke capabilities are surfaced as **planned/unsupported** rather than being falsely presented as working.
+- The builder asks **targeted missing-fact questions** instead of opening a large setup form. Examples include the services to display, the contact route to use, approved gallery photos or the exact wording/terms of a requested offer.
+- Offers are now a real reusable module rather than a permanent placeholder. Up to four explicit owner-supported offers can be stored in the immutable app config and rendered in both the in-app preview and the public web Business App. BUSY will not invent an offer, discount, price or terms.
+- Voice-first creation is wired through the existing BUSY Operator voice/transcription path. “Build me an app…” or “change my app…” now carries the owner's spoken request into the Business App Builder, creates the plan, and stops for review before draft mutation/publication.
+- A builder-screen **Describe it by voice** action opens the existing BUSY microphone experience directly. Typed and spoken requests therefore converge on the same controlled planner.
+- Applying an app plan changes only the private mutable draft. The established **immutable preview → explicit owner publication approval → optional BUSY Apps listing** gates remain unchanged.
+- Draft configs created by the planner use `surface: busy_business_app` and retain the exact plan, rationale, missing-fact list and owner request alongside the reusable module configuration for later review/version comparison.
+- Production checks now protect planner schema enforcement, catalogue gating, explicit-offer requirements, targeted missing questions, voice hand-off and review-before-build behaviour.
+
+
 ## v3.53 Production Simulation & Release Readiness
 - Adds a deterministic, isolated website-platform simulation covering **100, 1,000, 5,000 and 10,000 synthetic tenants** without writing fake customers into production. The simulation exercises burst publishing, duplicate taps, tenant fairness, stale worker recovery, provider backoff, confirmed-failure health logic, tenant-boundary mismatches and rollback safety.
 - The scale simulator is now part of the normal Production foundation workflow, so later versions cannot silently reduce queue, health or provider capacity below the V3.53 release assumptions without failing CI.
