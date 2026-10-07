@@ -14,6 +14,7 @@ import * as FollowUpScreens from "./followUpEngine";
 import * as BrandIdentityScreens from "./brandIdentity";
 import * as WebsiteBuilderScreens from "./websiteBuilder";
 import * as WebsitePublishingScreens from "./websitePublishing";
+import * as MiniAppsScreens from "./miniApps";
 import * as WorkScreens from "./work";
 import * as IntakeScreens from "./intake";
 import * as CustomersScreens from "./customers";
@@ -37,6 +38,7 @@ export * from "./followUpEngine";
 export * from "./brandIdentity";
 export * from "./websiteBuilder";
 export * from "./websitePublishing";
+export * from "./miniApps";
 export * from "./work";
 export * from "./intake";
 export * from "./customers";
@@ -61,6 +63,7 @@ const allScreens = {
   ...BrandIdentityScreens,
   ...WebsiteBuilderScreens,
   ...WebsitePublishingScreens,
+  ...MiniAppsScreens,
   ...WorkScreens,
   ...IntakeScreens,
   ...CustomersScreens,
@@ -96,6 +99,10 @@ const {
   WebsiteBuilder,
   WebsitePreview,
   WebsitePublishing,
+  BusyAppsMarketplace,
+  MiniAppBuilder,
+  MiniAppPreview,
+  BusyAppDetail,
   WorkHub,
   WorkCalendar,
   WorkPipeline,
@@ -210,6 +217,10 @@ export const screens = {
   websiteBuilder: WebsiteBuilder,
   websitePreview: WebsitePreview,
   websitePublishing: WebsitePublishing,
+  busyAppsMarketplace: BusyAppsMarketplace,
+  miniAppBuilder: MiniAppBuilder,
+  miniAppPreview: MiniAppPreview,
+  busyAppDetail: BusyAppDetail,
   workHub: WorkHub,
   workCalendar: WorkCalendar,
   workPipeline: WorkPipeline,
