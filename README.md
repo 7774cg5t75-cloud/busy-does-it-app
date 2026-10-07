@@ -2,6 +2,20 @@
 
 Busy Does It mobile app prototype.
 
+## v3.45 Guest Mini App Requests
+- Customers can now submit **enquiries and booking requests directly from the public web Mini App** without installing BUSY or signing into a BUSY account.
+- Public forms reuse the exact immutable live Mini App configuration and only appear when the corresponding controlled `enquiry` or `booking_request` module is enabled.
+- Before submission BUSY issues a short-lived, one-time guest browser challenge. The web page solves a small proof-of-work, the server checks the same browser fingerprint, a hidden bot-trap field, expiry and rate limits, then atomically consumes the challenge.
+- Raw IP addresses are not stored. BUSY stores a keyed hash for the short-lived challenge/rate-limit window and prunes expired challenge rows automatically.
+- Guest requests enter the **same** `busy_mini_app_requests` pipeline as signed-in requests with an explicit `request_origin=guest_web` and `identity_assurance=guest_browser_challenge`.
+- The assurance label is intentionally narrow: it means BUSY verified the one-time browser challenge; it does **not** claim ownership of the email address or phone number typed by the customer.
+- Guest booking requests remain requests only. V3.45 does not silently reserve or confirm a diary slot.
+- A successful guest submission receives a high-entropy browser receipt. The same browser can securely check the current request status without exposing the request through the public Data API.
+- Owner/admin users receive the same high-priority BUSY Apps notification for new guest requests. Guest requests appear in the existing owner review/bridge flow and can be linked into the normal BUSY customer journey or Draft booking flow.
+- BUSY deliberately disables in-app conversation replies for guest web requests in the owner UI because V3.45 has no guest message-delivery channel. Owners are told to use the supplied contact details instead of being given a button that would appear to message the customer but would not reach them.
+- Funnel reporting now distinguishes web views, action attempts, signed-in app opens, all genuine requests and genuine **guest web requests**.
+- No CAPTCHA vendor or Cloudflare dependency is introduced. The challenge boundary is provider-independent so a stronger CAPTCHA/contact-verification adapter can be added later without rebuilding the request model.
+
 ## v3.44 Public Mini App Web Experience
 - QR/share entry is now **web-first**: customers can browse the current live Mini App in a normal mobile browser without installing BUSY or signing in.
 - Publishing a Mini App now renders an immutable public-safe HTML artifact from the exact approved live Mini App version and writes both a long-cache version path and a short-cache live alias.
