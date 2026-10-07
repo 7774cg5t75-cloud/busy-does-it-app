@@ -1,5 +1,22 @@
 # busy-does-it-app
 
+## v3.52 Scale & Production Hardening
+- Adds an atomic **worker lease** to every website publishing job. A job can only be claimed by one worker at a time, the queue visibility window is longer than the lease, and stale processing leases are automatically recovered into a safe retry path.
+- Strengthens the publishing concurrency rule from “one active deployment/action pair” to **one active website operation per website**. Prepare, publish and rollback can no longer race each other on the same site.
+- Worker batches are now **tenant-fair**. BUSY reads extra queue candidates, processes at most one business at a time within each batch, and quickly defers duplicate-business candidates so one noisy tenant cannot monopolise shared publishing capacity.
+- Queue retries retain V3.51 exponential backoff/jitter, while V3.52 adds lease-aware completion/failure updates so a stale worker cannot overwrite the result of a newer worker.
+- Permanent failures on a new update no longer change a previously proven live website to a failed site. The old live deployment remains the public truth while the failed update keeps its diagnostic evidence.
+- Adds database-level **cross-tenant integrity constraints** linking website, deployment, domain, health, usage, enquiry and publishing rows by both resource id and business id. This protects service-role code from accidentally joining one tenant's infrastructure to another even if an application bug slips through.
+- Adds indexed provider scheduling fields (`provider_next_retry_at` / `provider_attempt_count`). Healthy Cloudflare hostnames back off to long reconciliation intervals, pending/owner-DNS states use appropriate shorter windows, and failed provider calls retain bounded recovery state without repeatedly selecting tenants that are not due.
+- Website health checks now have an indexed `next_health_check_at` schedule. Unhealthy/not-yet-proven sites are prioritised, healthy sites are spread continuously, and the scheduler runs smaller batches every minute instead of creating a five-minute spike.
+- BUSY now probes a site's BUSY address and custom-domain routes concurrently after verifying the immutable live alias, bounding wall-clock health-check time as customers add domains.
+- Publishing includes **soft tenant capacity safeguards**: at most one active site operation, an unusually high 30-operations-per-hour business is temporarily paused, and one website cannot accumulate more than five active/pending custom domains.
+- Adds a service-role-only `busy_website_operational_metrics()` snapshot for queue age, active/retrying jobs, recent failures, stale leases, due health work, due provider work and failed signal runs. This gives production operations pressure signals without exposing cross-tenant platform data to normal app users.
+- Adds bounded operational retention: completed publish jobs and signal-run audit rows older than 180 days are pruned daily; immutable published website versions and rollback content are deliberately excluded from this cleanup.
+- Website Management keeps the front end simple but now exposes the important expert facts under Publishing infrastructure: tenant fairness, single-operation protection and the current worker lease when one exists.
+- Production checks guard the lease functions, stale-job recovery, tenant-fair worker logic, composite tenant constraints, adaptive health scheduling, rate/capacity safeguards and internal operational metrics.
+
+
 ## v3.51 Hosting Intelligence & Recovery
 - Adds an owner-facing **Hosting intelligence & recovery** layer across publishing, Cloudflare, DNS, SSL and public health checks. BUSY now distinguishes a publishing problem from a route problem, a customer-DNS action, an internal provider issue and a temporary external failure instead of collapsing them into one generic error.
 - Provider reconciliation now stores bounded recovery state inside each tenant domain: category, retry count, first failure, last attempt, next retry and a plain-English owner message. Scheduled domain sync respects the next-retry time instead of hammering Cloudflare on every cycle.
