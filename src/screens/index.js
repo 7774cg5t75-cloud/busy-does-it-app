@@ -15,6 +15,7 @@ import * as BrandIdentityScreens from "./brandIdentity";
 import * as WebsiteBuilderScreens from "./websiteBuilder";
 import * as WebsitePublishingScreens from "./websitePublishing";
 import * as MiniAppsScreens from "./miniApps";
+import * as BusinessCreationJourneyScreens from "./businessCreationJourney";
 import * as WorkScreens from "./work";
 import * as IntakeScreens from "./intake";
 import * as CustomersScreens from "./customers";
@@ -39,6 +40,7 @@ export * from "./brandIdentity";
 export * from "./websiteBuilder";
 export * from "./websitePublishing";
 export * from "./miniApps";
+export * from "./businessCreationJourney";
 export * from "./work";
 export * from "./intake";
 export * from "./customers";
@@ -64,6 +66,7 @@ const allScreens = {
   ...WebsiteBuilderScreens,
   ...WebsitePublishingScreens,
   ...MiniAppsScreens,
+  ...BusinessCreationJourneyScreens,
   ...WorkScreens,
   ...IntakeScreens,
   ...CustomersScreens,
@@ -105,6 +108,7 @@ const {
   BusyAppDetail,
   MiniAppShareCentre,
   MiniAppRequestDetail,
+  BusinessCreationJourney,
   WorkHub,
   WorkCalendar,
   WorkPipeline,
@@ -225,6 +229,7 @@ export const screens = {
   busyAppDetail: BusyAppDetail,
   miniAppShareCentre: MiniAppShareCentre,
   miniAppRequestDetail: MiniAppRequestDetail,
+  businessCreationJourney: BusinessCreationJourney,
   workHub: WorkHub,
   workCalendar: WorkCalendar,
   workPipeline: WorkPipeline,
