@@ -359,11 +359,14 @@ async function inspectPlatformProvider() {
   let routerScriptReady = false;
   if (CLOUDFLARE_ACCOUNT_ID) {
     try {
-      await cfAccountRequest(
-        `/accounts/${encodeURIComponent(CLOUDFLARE_ACCOUNT_ID)}/workers/scripts/${encodeURIComponent(CLOUDFLARE_ROUTER_SCRIPT)}`,
+      const scripts = await cfAccountRequest(
+        `/accounts/${encodeURIComponent(CLOUDFLARE_ACCOUNT_ID)}/workers/scripts`,
         { method: "GET" }
       );
-      routerScriptReady = true;
+      routerScriptReady = (Array.isArray(scripts) ? scripts : []).some(
+        (script: any) =>
+          clean(script?.id || script?.name, 200) === CLOUDFLARE_ROUTER_SCRIPT
+      );
     } catch {}
   }
 
