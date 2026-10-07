@@ -461,11 +461,15 @@ function buildWebsitePublishingView({
       ? latestDomain.provider_status.deliveryRecovery
       : {};
 
+  const recoveryTargetDeploymentId =
+    pendingPreview || !liveDeployment ? previewDeployment?.id || "" : "";
   const latestPublishFailure =
     jobs.find(
       (job) =>
         ["publish", "rollback"].includes(job.action) &&
-        job.status === "failed"
+        job.status === "failed" &&
+        (!recoveryTargetDeploymentId ||
+          job.deployment_id === recoveryTargetDeploymentId)
     ) || null;
   const safeRollbackTarget = previouslyPublished[0] || null;
 
