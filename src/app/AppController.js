@@ -259,6 +259,9 @@ function App() {
     signalRuns: [],
     enquiryAttributions: [],
     providerConfig: null,
+    providerPreflight: null,
+    providerPlatform: null,
+    providerActivation: null,
     publicProfile: null,
   });
   const [websitePublishingLoading, setWebsitePublishingLoading] = useState(false);
@@ -12611,6 +12614,9 @@ function App() {
           ? data.enquiryAttributions
           : [],
         providerConfig: data?.providerConfig || null,
+        providerPreflight: data?.providerPreflight || null,
+        providerPlatform: data?.providerPlatform || null,
+        providerActivation: data?.providerActivation || null,
         publicProfile: data?.publicProfile || null,
       });
       return true;
