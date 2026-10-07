@@ -389,7 +389,7 @@ async function ownerStatus(businessId: string) {
     };
   }
 
-  const [versions, requests] = await Promise.all([
+  const [versions, requests, requestLinks] = await Promise.all([
     supabase
       .from("busy_mini_app_versions")
       .select(
@@ -401,18 +401,26 @@ async function ownerStatus(businessId: string) {
     supabase
       .from("busy_mini_app_requests")
       .select(
-        "id,version_id,module_key,request_type,status,payload,created_at,updated_at"
+        "id,version_id,module_key,request_type,status,payload,contact_name,contact_email,contact_phone,service_name,preferred_date_text,created_at,updated_at"
       )
       .eq("mini_app_id", app.id)
       .order("created_at", { ascending: false })
       .limit(30),
+    supabase
+      .from("busy_mini_app_request_links")
+      .select("request_id,customer_record_id,action_record_id,bridge_state,linked_at,updated_at,metadata")
+      .eq("business_id", businessId)
+      .order("linked_at", { ascending: false })
+      .limit(100),
   ]);
   if (versions.error) throw versions.error;
   if (requests.error) throw requests.error;
+  if (requestLinks.error) throw requestLinks.error;
   return {
     app,
     versions: versions.data || [],
     requests: requests.data || [],
+    requestLinks: requestLinks.data || [],
     catalog,
     publicProfile: profile,
   };
@@ -511,6 +519,16 @@ async function setModule(
     .select("*")
     .single();
   if (updated.error) throw updated.error;
+  const event = await supabase
+    .from("busy_mini_app_request_events")
+    .insert({
+      business_id: businessId,
+      request_id: updated.data.id,
+      actor_user_id: userId,
+      event_type: status,
+      detail: { source: "business_review" },
+    });
+  if (event.error) throw event.error;
   return updated.data;
 }
 
@@ -865,7 +883,148 @@ async function directorySearch(queryText = "") {
   });
 }
 
-async function appDetail(slug: string) {
+async function trackConsumerApp(
+  userId: string,
+  miniAppId: string,
+  { action = false } = {}
+) {
+  if (!userId || !miniAppId) return;
+  const now = new Date().toISOString();
+  const existing = await supabase
+    .from("busy_mini_app_consumer_apps")
+    .select("id,first_opened_at,favorite")
+    .eq("consumer_user_id", userId)
+    .eq("mini_app_id", miniAppId)
+    .maybeSingle();
+  if (existing.error) throw existing.error;
+
+  if (existing.data) {
+    const updated = await supabase
+      .from("busy_mini_app_consumer_apps")
+      .update({
+        last_opened_at: now,
+        ...(action ? { last_action_at: now } : {}),
+        updated_at: now,
+      })
+      .eq("id", existing.data.id);
+    if (updated.error) throw updated.error;
+    return;
+  }
+
+  const inserted = await supabase
+    .from("busy_mini_app_consumer_apps")
+    .insert({
+      consumer_user_id: userId,
+      mini_app_id: miniAppId,
+      first_opened_at: now,
+      last_opened_at: now,
+      last_action_at: action ? now : null,
+    });
+  if (inserted.error && inserted.error.code !== "23505") throw inserted.error;
+}
+
+async function myBusyApps(userId: string) {
+  const rows = await supabase
+    .from("busy_mini_app_consumer_apps")
+    .select("mini_app_id,first_opened_at,last_opened_at,last_action_at,favorite")
+    .eq("consumer_user_id", userId)
+    .order("favorite", { ascending: false })
+    .order("last_opened_at", { ascending: false })
+    .limit(50);
+  if (rows.error) throw rows.error;
+  const history = rows.data || [];
+  if (!history.length) return [];
+
+  const ids = history.map((item: any) => item.mini_app_id);
+  const apps = await supabase
+    .from("busy_mini_apps")
+    .select("id,public_slug,display_name,category,tagline,status,discoverable,current_live_version_id")
+    .in("id", ids);
+  if (apps.error) throw apps.error;
+  const map = new Map((apps.data || []).map((item: any) => [item.id, item]));
+
+  return history
+    .map((item: any) => {
+      const app = map.get(item.mini_app_id) as any;
+      if (!app?.current_live_version_id || app.status !== "live") return null;
+      return {
+        id: app.id,
+        slug: app.public_slug,
+        name: app.display_name,
+        category: app.category,
+        tagline: app.tagline,
+        discoverable: !!app.discoverable,
+        favorite: !!item.favorite,
+        firstOpenedAt: item.first_opened_at,
+        lastOpenedAt: item.last_opened_at,
+        lastActionAt: item.last_action_at,
+      };
+    })
+    .filter(Boolean);
+}
+
+async function myMiniAppRequests(userId: string) {
+  const requests = await supabase
+    .from("busy_mini_app_requests")
+    .select("id,mini_app_id,request_type,status,contact_name,service_name,preferred_date_text,payload,created_at,updated_at")
+    .eq("consumer_user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (requests.error) throw requests.error;
+  const rows = requests.data || [];
+  if (!rows.length) return [];
+
+  const ids = [...new Set(rows.map((item: any) => item.mini_app_id))];
+  const apps = await supabase
+    .from("busy_mini_apps")
+    .select("id,public_slug,display_name,category")
+    .in("id", ids);
+  if (apps.error) throw apps.error;
+  const map = new Map((apps.data || []).map((item: any) => [item.id, item]));
+
+  return rows.map((item: any) => {
+    const app = map.get(item.mini_app_id) as any;
+    return {
+      ...item,
+      app: app
+        ? {
+            slug: app.public_slug,
+            name: app.display_name,
+            category: app.category,
+          }
+        : null,
+    };
+  });
+}
+
+async function setConsumerFavorite(
+  userId: string,
+  slug: string,
+  favorite: boolean
+) {
+  const app = await supabase
+    .from("busy_mini_apps")
+    .select("id,status,current_live_version_id")
+    .eq("public_slug", slug)
+    .maybeSingle();
+  if (app.error) throw app.error;
+  if (!app.data?.id || app.data.status !== "live" || !app.data.current_live_version_id) {
+    throw new Error("That BUSY Mini App is not currently live.");
+  }
+  await trackConsumerApp(userId, app.data.id);
+  const updated = await supabase
+    .from("busy_mini_app_consumer_apps")
+    .update({
+      favorite,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("consumer_user_id", userId)
+    .eq("mini_app_id", app.data.id);
+  if (updated.error) throw updated.error;
+  return { favorite };
+}
+
+async function appDetail(slug: string, userId = "") {
   const app = await supabase
     .from("busy_mini_apps")
     .select("*")
@@ -886,6 +1045,19 @@ async function appDetail(slug: string) {
   if (version.error) throw version.error;
   if (!version.data) throw new Error("Live Mini App version not found.");
 
+  if (userId) await trackConsumerApp(userId, app.data.id);
+  let favorite = false;
+  if (userId) {
+    const consumer = await supabase
+      .from("busy_mini_app_consumer_apps")
+      .select("favorite")
+      .eq("consumer_user_id", userId)
+      .eq("mini_app_id", app.data.id)
+      .maybeSingle();
+    if (consumer.error) throw consumer.error;
+    favorite = !!consumer.data?.favorite;
+  }
+
   return {
     app: {
       id: app.data.id,
@@ -893,6 +1065,7 @@ async function appDetail(slug: string) {
       name: app.data.display_name,
       category: app.data.category,
       tagline: app.data.tagline,
+      favorite,
     },
     version: version.data,
   };
@@ -908,7 +1081,7 @@ async function submitRequest(
   if (!["booking_request", "enquiry"].includes(requestType)) {
     throw new Error("Unsupported Mini App request type.");
   }
-  const detail = await appDetail(slug);
+  const detail = await appDetail(slug, userId);
   const modules = safeArray(detail.version?.config?.modules);
   const moduleKey =
     requestType === "booking_request" ? "booking_request" : "enquiry";
@@ -917,12 +1090,39 @@ async function submitRequest(
     throw new Error("That action is not enabled in this Mini App.");
   }
 
-  const payload = body?.payload && typeof body.payload === "object"
-    ? body.payload
-    : {};
-  const serialized = JSON.stringify(payload);
-  if (serialized.length > 20_000) {
-    throw new Error("That request is too large.");
+  const rawPayload =
+    body?.payload && typeof body.payload === "object" ? body.payload : {};
+  const contactName = clean(rawPayload?.name || rawPayload?.contactName, 160);
+  const contactEmail = clean(rawPayload?.email || rawPayload?.contactEmail, 240);
+  const contactPhone = clean(rawPayload?.phone || rawPayload?.contactPhone, 80);
+  const serviceName = clean(rawPayload?.service, 240);
+  const preferredDateText = clean(rawPayload?.preferredDate, 240);
+  const payload =
+    requestType === "booking_request"
+      ? {
+          name: contactName,
+          email: contactEmail,
+          phone: contactPhone,
+          service: serviceName,
+          preferredDate: preferredDateText,
+          note: clean(rawPayload?.note, 3000),
+        }
+      : {
+          name: contactName,
+          email: contactEmail,
+          phone: contactPhone,
+          service: serviceName,
+          message: clean(rawPayload?.message, 5000),
+        };
+
+  if (!contactName) {
+    throw new Error("Add your name before sending this request.");
+  }
+  if (!contactEmail && !contactPhone) {
+    throw new Error("Add an email address or phone number so the business can respond.");
+  }
+  if (requestType === "booking_request" && !serviceName) {
+    throw new Error("Choose or enter the service you want to request.");
   }
 
   const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
@@ -966,6 +1166,11 @@ async function submitRequest(
       module_key: moduleKey,
       request_type: requestType,
       payload,
+      contact_name: contactName,
+      contact_email: contactEmail || null,
+      contact_phone: contactPhone || null,
+      service_name: serviceName || null,
+      preferred_date_text: preferredDateText || null,
       idempotency_key: requestId || null,
     })
     .select("*")
@@ -985,10 +1190,23 @@ async function submitRequest(
     throw inserted.error;
   }
 
+  const event = await supabase
+    .from("busy_mini_app_request_events")
+    .insert({
+      business_id: appRow.data.business_id,
+      request_id: inserted.data.id,
+      actor_user_id: userId,
+      event_type: "received",
+      detail: { requestType, source: "busy_mini_app" },
+    });
+  if (event.error) throw event.error;
+
+  await trackConsumerApp(userId, detail.app.id, { action: true });
   return { reused: false, request: inserted.data };
 }
 
 async function updateRequestStatus(
+  userId: string,
   businessId: string,
   body: any
 ) {
@@ -1006,6 +1224,140 @@ async function updateRequestStatus(
     .single();
   if (updated.error) throw updated.error;
   return updated.data;
+}
+
+async function requestBridgePlan(
+  businessId: string,
+  requestId: string
+) {
+  const request = await supabase
+    .from("busy_mini_app_requests")
+    .select("*")
+    .eq("id", requestId)
+    .eq("business_id", businessId)
+    .maybeSingle();
+  if (request.error) throw request.error;
+  if (!request.data) throw new Error("Mini App request not found.");
+
+  const linked = await supabase
+    .from("busy_mini_app_request_links")
+    .select("*")
+    .eq("request_id", requestId)
+    .maybeSingle();
+  if (linked.error) throw linked.error;
+
+  const row = request.data;
+  return {
+    request: row,
+    existingLink: linked.data || null,
+    customerCandidate: {
+      idHint: `miniapp-${row.id}`,
+      name: clean(row.contact_name, 160),
+      email: clean(row.contact_email, 240),
+      phone: clean(row.contact_phone, 80),
+      service: clean(row.service_name, 240) || "General enquiry",
+      source: "BUSY Mini App",
+      note:
+        row.request_type === "booking_request"
+          ? clean(row.payload?.note, 3000)
+          : clean(row.payload?.message, 5000),
+    },
+    actionCandidate:
+      row.request_type === "booking_request"
+        ? {
+            type: "booking",
+            bookingStatus: "Draft",
+            preferredDateText: clean(row.preferred_date_text, 240),
+            service: clean(row.service_name, 240),
+            note: clean(row.payload?.note, 3000),
+          }
+        : {
+            type: "enquiry",
+            service: clean(row.service_name, 240),
+            note: clean(row.payload?.message, 5000),
+          },
+  };
+}
+
+async function markRequestLinked(
+  userId: string,
+  businessId: string,
+  body: any
+) {
+  const requestId = clean(body?.requestId, 80);
+  const customerRecordId = clean(body?.customerRecordId, 160);
+  const actionRecordId = clean(body?.actionRecordId, 160);
+  const bridgeState = clean(body?.bridgeState, 40) || "linked";
+  if (!requestId || !customerRecordId) {
+    throw new Error("Request and customer record IDs are required.");
+  }
+  if (!["linked","enquiry_linked","booking_draft","booking_confirmed","closed"].includes(bridgeState)) {
+    throw new Error("Unsupported BUSY bridge state.");
+  }
+
+  const request = await supabase
+    .from("busy_mini_app_requests")
+    .select("id,request_type")
+    .eq("id", requestId)
+    .eq("business_id", businessId)
+    .maybeSingle();
+  if (request.error) throw request.error;
+  if (!request.data) throw new Error("Mini App request not found.");
+
+  const linked = await supabase
+    .from("busy_mini_app_request_links")
+    .upsert(
+      {
+        business_id: businessId,
+        request_id: requestId,
+        customer_record_id: customerRecordId,
+        action_record_id: actionRecordId || null,
+        bridge_state: bridgeState,
+        linked_by: userId,
+        updated_at: new Date().toISOString(),
+        metadata:
+          body?.metadata && typeof body.metadata === "object"
+            ? body.metadata
+            : {},
+      },
+      { onConflict: "request_id" }
+    )
+    .select("*")
+    .single();
+  if (linked.error) throw linked.error;
+
+  const eventType =
+    bridgeState === "booking_draft"
+      ? "booking_draft"
+      : bridgeState === "booking_confirmed"
+      ? "booking_confirmed"
+      : "linked_customer";
+  const event = await supabase
+    .from("busy_mini_app_request_events")
+    .insert({
+      business_id: businessId,
+      request_id: requestId,
+      actor_user_id: userId,
+      event_type: eventType,
+      detail: {
+        customerRecordId,
+        actionRecordId: actionRecordId || null,
+      },
+    });
+  if (event.error) throw event.error;
+
+  const nextStatus =
+    bridgeState === "booking_confirmed" || bridgeState === "closed"
+      ? "closed"
+      : request.data.request_type === "booking_request"
+      ? "accepted"
+      : "reviewing";
+  await supabase
+    .from("busy_mini_app_requests")
+    .update({ status: nextStatus, updated_at: new Date().toISOString() })
+    .eq("id", requestId);
+
+  return linked.data;
 }
 
 Deno.serve(async (request: Request) => {
@@ -1034,7 +1386,25 @@ Deno.serve(async (request: Request) => {
     if (action === "app_detail") {
       return json(200, {
         ok: true,
-        ...(await appDetail(clean(body?.slug, 100))),
+        ...(await appDetail(clean(body?.slug, 100), user.id)),
+      });
+    }
+    if (action === "my_apps") {
+      return json(200, {
+        ok: true,
+        apps: await myBusyApps(user.id),
+        requests: await myMiniAppRequests(user.id),
+      });
+    }
+    if (action === "set_favorite") {
+      return json(200, {
+        ok: true,
+        ...(await setConsumerFavorite(
+          user.id,
+          clean(body?.slug, 100),
+          body?.favorite === true
+        )),
+        apps: await myBusyApps(user.id),
       });
     }
     if (action === "submit_request") {
@@ -1052,6 +1422,7 @@ Deno.serve(async (request: Request) => {
       "rollback",
       "set_discoverable",
       "update_request_status",
+      "mark_request_linked",
     ]);
     const member = await membership(
       user.id,
@@ -1115,10 +1486,34 @@ Deno.serve(async (request: Request) => {
         status: await ownerStatus(resolvedBusinessId),
       });
     }
+    if (action === "request_bridge_plan") {
+      return json(200, {
+        ok: true,
+        plan: await requestBridgePlan(
+          resolvedBusinessId,
+          clean(body?.requestId, 80)
+        ),
+      });
+    }
+    if (action === "mark_request_linked") {
+      return json(200, {
+        ok: true,
+        link: await markRequestLinked(
+          user.id,
+          resolvedBusinessId,
+          body
+        ),
+        status: await ownerStatus(resolvedBusinessId),
+      });
+    }
     if (action === "update_request_status") {
       return json(200, {
         ok: true,
-        request: await updateRequestStatus(resolvedBusinessId, body),
+        request: await updateRequestStatus(
+          user.id,
+          resolvedBusinessId,
+          body
+        ),
         status: await ownerStatus(resolvedBusinessId),
       });
     }
