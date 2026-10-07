@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, View } from "react-native";
+import { Image, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 
 import { styles } from "../theme/styles";
@@ -74,20 +74,46 @@ function RequestTimeline({ messages = [], events = [] }) {
   );
 }
 
-function MiniAppSurface({ config, interactive = false, s = null }) {
+function localIsoDate() {
+  const now = new Date();
+  return [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+function offerActiveToday(offer = {}) {
+  const today = localIsoDate();
+  const start = String(offer?.startDate || "").trim();
+  const end = String(offer?.endDate || "").trim();
+  return (!start || today >= start) && (!end || today <= end);
+}
+
+function MiniAppSurface({
+  config,
+  interactive = false,
+  s = null,
+  loyaltyProgress = null,
+}) {
   const profile = config?.publicProfile || {};
   const modules = Array.isArray(config?.modules)
     ? config.modules.filter((item) => item.enabled)
     : [];
   const services = Array.isArray(profile?.services) ? profile.services : [];
   const gallery = Array.isArray(profile?.assets?.gallery)
-    ? profile.assets.gallery
+    ? profile.assets.gallery.filter((item) => String(item?.uri || "").startsWith("https://"))
     : [];
+  const heroUri = String(profile?.assets?.hero?.uri || "");
+  const loyalty = config?.loyalty || {};
+  const offers = (Array.isArray(config?.offers) ? config.offers : []).filter(
+    offerActiveToday
+  );
 
   return (
     <>
       <Card
-        eyebrow={config?.display?.category || profile.businessType || "BUSY Mini App"}
+        eyebrow={config?.display?.category || profile.businessType || "Business App"}
         title={config?.display?.name || profile.businessName || "Business"}
         body={
           config?.display?.tagline ||
@@ -98,8 +124,19 @@ function MiniAppSurface({ config, interactive = false, s = null }) {
         footer={profile.serviceArea || ""}
         tone="green"
       >
+        {heroUri.startsWith("https://") ? (
+          <Image
+            source={{ uri: heroUri }}
+            resizeMode="cover"
+            style={{
+              width: "100%",
+              height: 230,
+              borderRadius: 18,
+              marginBottom: 14,
+            }}
+          />
+        ) : null}
         <MetricRow left="Powered by" right="BUSY DOES IT" strong />
-        <MetricRow left="Modules" right={String(modules.length)} />
       </Card>
 
       {modules.map((module) => {
@@ -108,8 +145,12 @@ function MiniAppSurface({ config, interactive = false, s = null }) {
             <Card
               key={module.key}
               eyebrow="About"
-              title={profile.businessName || "Business profile"}
-              body={profile.about || profile.description || "No public description recorded yet."}
+              title={profile.businessName || "About this business"}
+              body={
+                profile.about ||
+                profile.description ||
+                "No public description recorded yet."
+              }
               footer={profile.differentiators || ""}
               tone="blue"
             />
@@ -126,15 +167,18 @@ function MiniAppSurface({ config, interactive = false, s = null }) {
                     key={service.id || service.name}
                     eyebrow="Service"
                     title={service.name || "Service"}
-                    body={service.description || "No public service description recorded."}
+                    body={
+                      service.description ||
+                      "Contact the business for more information."
+                    }
                     tone="blue"
                   />
                 ))
               ) : (
                 <Card
                   eyebrow="Services"
-                  title="No public services recorded"
-                  body="BUSY will not invent services just to fill the Mini App."
+                  title="Services still need adding"
+                  body="BUSY will not invent services just to fill the Business App."
                   tone="amber"
                 />
               )}
@@ -144,17 +188,33 @@ function MiniAppSurface({ config, interactive = false, s = null }) {
 
         if (module.key === "gallery") {
           return (
-            <Card
-              key={module.key}
-              eyebrow="Gallery"
-              title={`${gallery.length} approved public image${gallery.length === 1 ? "" : "s"}`}
-              body={
-                gallery.length
-                  ? "Only imagery already approved for public/marketing use belongs in this module."
-                  : "No approved public gallery images are available yet."
-              }
-              tone="blue"
-            />
+            <View key={module.key}>
+              <Text style={styles.sectionLabel}>Gallery</Text>
+              {gallery.length ? (
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                  {gallery.slice(0, 12).map((asset, index) => (
+                    <Image
+                      key={asset.key || asset.uri || `gallery-${index}`}
+                      source={{ uri: asset.uri }}
+                      resizeMode="cover"
+                      style={{
+                        width: "48%",
+                        height: 150,
+                        borderRadius: 14,
+                        marginBottom: 8,
+                      }}
+                    />
+                  ))}
+                </View>
+              ) : (
+                <Card
+                  eyebrow="Gallery"
+                  title="No approved photos yet"
+                  body="Only imagery approved for public business use is shown here."
+                  tone="amber"
+                />
+              )}
+            </View>
           );
         }
 
@@ -164,7 +224,7 @@ function MiniAppSurface({ config, interactive = false, s = null }) {
               key={module.key}
               eyebrow="Contact"
               title="Get in touch"
-              body="These details come from the shared approved public business profile."
+              body="Contact details come from the business information approved for public use."
               tone="blue"
             >
               {profile.contact?.phone ? (
@@ -184,12 +244,12 @@ function MiniAppSurface({ config, interactive = false, s = null }) {
           return (
             <Card
               key={module.key}
-              eyebrow="Enquiry"
-              title="Send an enquiry through BUSY"
+              eyebrow="Enquiries"
+              title="Ask this business a question"
               body={
                 interactive
-                  ? "Use the enquiry form below. BUSY records it as a genuine customer request."
-                  : "Customer-facing enquiry module enabled."
+                  ? "Use the enquiry form below and BUSY will send it into the business's normal customer workflow."
+                  : "Customers can send a genuine enquiry from this Business App."
               }
               footer="A visit or click is never counted as an enquiry."
               tone="green"
@@ -202,20 +262,19 @@ function MiniAppSurface({ config, interactive = false, s = null }) {
             <Card
               key={module.key}
               eyebrow="Booking request"
-              title="Request a service/date"
+              title="Request a service or date"
               body={
                 interactive
-                  ? "Use the booking request form below. The business still has to accept it."
-                  : "Request-only booking module enabled."
+                  ? "Use the booking request below. The business still has to confirm the real diary booking."
+                  : "Customers can request a service/date without silently creating a confirmed booking."
               }
-              footer="Submitting this does not silently create a confirmed calendar booking."
+              footer="Request first • business confirmation required."
               tone="green"
             />
           );
         }
 
         if (module.key === "offers") {
-          const offers = Array.isArray(config?.offers) ? config.offers : [];
           return (
             <View key={module.key}>
               <Text style={styles.sectionLabel}>Offers</Text>
@@ -223,22 +282,74 @@ function MiniAppSurface({ config, interactive = false, s = null }) {
                 offers.map((offer, index) => (
                   <Card
                     key={`offer-${index}-${offer.title || "offer"}`}
-                    eyebrow="Approved offer"
+                    eyebrow="Current offer"
                     title={offer.title || "Offer"}
                     body={offer.body || ""}
-                    footer={offer.terms || "No additional terms recorded."}
+                    footer={[
+                      offer.terms || "",
+                      offer.startDate ? `Starts ${offer.startDate}` : "",
+                      offer.endDate ? `Ends ${offer.endDate}` : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" • ")}
                     tone="green"
                   />
                 ))
               ) : (
                 <Card
                   eyebrow="Offers"
-                  title="No approved offer is stored yet"
-                  body="BUSY will not invent a promotion, price or discount. Add the exact offer in your app request and review it before building."
+                  title="No offer is active today"
+                  body="BUSY only shows offers and dates the business owner has explicitly approved."
                   tone="blue"
                 />
               )}
             </View>
+          );
+        }
+
+        if (module.key === "loyalty") {
+          const target = Number(loyalty?.targetStamps || 0);
+          const stamps = Number(loyaltyProgress?.stamps || 0);
+          return (
+            <Card
+              key={module.key}
+              eyebrow="Loyalty"
+              title={loyalty?.programName || "Loyalty rewards"}
+              body={
+                target > 0 && loyalty?.reward
+                  ? `Collect ${target} stamps or visits to earn: ${loyalty.reward}`
+                  : "The business has not finished configuring its loyalty reward."
+              }
+              footer={
+                loyalty?.terms ||
+                "The business records eligible stamps; BUSY does not create automatic points."
+              }
+              tone={loyaltyProgress?.rewardReached ? "green" : "blue"}
+            >
+              {loyaltyProgress && target > 0 ? (
+                <>
+                  <MetricRow
+                    left="Your progress"
+                    right={`${stamps}/${target} stamps`}
+                    strong
+                  />
+                  <MetricRow
+                    left="Reward"
+                    right={
+                      loyaltyProgress.rewardReached
+                        ? "Reached"
+                        : `${Math.max(0, target - stamps)} to go`
+                    }
+                    strong={!!loyaltyProgress.rewardReached}
+                  />
+                </>
+              ) : (
+                <MetricRow
+                  left="Signed-in progress"
+                  right={interactive ? "Open a request/conversation to track" : "Customer-specific"}
+                />
+              )}
+            </Card>
           );
         }
 
