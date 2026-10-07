@@ -2,6 +2,53 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.37 Live Website Management 2.0
+### Structured multi-page model
+- `websiteDraft.pages` and `websiteDraft.navigation` are generated from the same approved section model as the editor.
+- Page structure remains configuration, not separate generated codebases. This preserves one controlled editing/versioning path and is reusable by future public surfaces.
+- The hosted worker renders each configured page from the immutable deployment source. Private previews use per-page signed URLs; public Storage pages use exact object paths until a domain router provides clean URL rewriting.
+- Public HTML includes `busy-deployment` and `busy-page` metadata for operational verification.
+
+### Change-aware immutable deployments
+- V3.37 adds `change_label`, `change_summary` and `page_count` to each deployment.
+- Change metadata is derived before deployment creation by comparing the new structured draft with the current live deployment source.
+- The deployment immutability guard now protects these fields together with the original source/hash/version fields.
+- Rollback therefore restores a known immutable source version and its corresponding shared public profile.
+
+### Shared public-business profile
+- `busy_public_business_profiles` is the approved public projection boundary between private business knowledge and public experiences.
+- It contains only public-safe structured fields such as display name, business type, service area, contact details, public services, approved public assets, theme and page definitions.
+- Writes are server-mediated. Authenticated business members may read their own projection; anonymous Data API access is not granted.
+- The profile is updated at hosted-preview preparation and moved to live state only when the corresponding deployment becomes live.
+- This table is intentionally designed for reuse by the future BUSY Mini-App/marketplace engine so website and mini-app surfaces do not create independent copies of business truth.
+
+### Health monitoring
+- `busy-website-health` is a private server-only Edge Function.
+- Published pages expose the expected immutable deployment ID in HTML metadata.
+- A health check validates HTTP reachability, response time and the observed deployment marker.
+- A 200 response with the wrong/missing marker is `degraded`, not healthy.
+- `busy_website_health_checks` stores bounded tenant-scoped history; records older than 30 days are pruned by the health worker.
+- Supabase Cron wakes the health checker every five minutes; each invocation takes a bounded oldest-first batch so monitoring scales through capacity/batch tuning rather than app redesign.
+
+### Analytics boundary
+- `busy_website_analytics_daily` stores aggregate daily page views, unique visitors and enquiries by tenant/site/page/source.
+- V3.37 does not insert a database row for every visitor event.
+- Raw request/event collection belongs at the CDN/analytics provider edge and should be rolled up into this table asynchronously.
+- This protects the BUSY operational database from becoming the serving/analytics hot path for public traffic.
+
+### Domain truth model
+- Domain ownership, routing and SSL are separate durable states.
+- `busy_website_domains` now includes `routing_status`, `provider_hostname_id`, `routing_target`, `required_records`, `provider_status` and `last_checked_at`.
+- The current TXT ownership flow remains real and isolated per tenant.
+- Routing remains `not_configured` and SSL remains non-active until a genuine provider adapter confirms otherwise.
+- A future provider adapter can map Cloudflare-for-SaaS-style custom-hostname and certificate statuses into these provider-neutral fields without changing the app data model.
+
+### Conversational management safety
+- Exact owner-provided public facts can update a private draft without a public confirmation.
+- Safe supported edits include exact headline/tagline/contact changes, named service add/remove/reordering and deterministic layout/visibility changes.
+- Broad requests that would require invented public facts (for example an unspecified “winter update”) do not fabricate services, offers, prices or claims.
+- Publishing and rollback remain separate public-state actions with native owner approval of the exact immutable version.
+
 ## V3.36 Multi-Tenant Website Publishing Platform
 ### Tenant boundary
 - The fundamental key is `business_id`, not user ID, filename or device ID.
