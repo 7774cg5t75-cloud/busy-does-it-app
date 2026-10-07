@@ -608,6 +608,7 @@ const appPlanSchema = {
     "modules",
     "missingFacts",
     "offers",
+    "loyalty",
     "unsupportedRequests",
     "confidence",
   ],
@@ -646,12 +647,26 @@ const appPlanSchema = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["title", "body", "terms"],
+        required: ["title", "body", "terms", "startDate", "endDate"],
         properties: {
           title: { type: "string" },
           body: { type: "string" },
           terms: { type: "string" },
+          startDate: { type: "string" },
+          endDate: { type: "string" },
         },
+      },
+    },
+    loyalty: {
+      type: "object",
+      additionalProperties: false,
+      required: ["enabled", "programName", "targetStamps", "reward", "terms"],
+      properties: {
+        enabled: { type: "boolean" },
+        programName: { type: "string" },
+        targetStamps: { type: "number", minimum: 0, maximum: 20 },
+        reward: { type: "string" },
+        terms: { type: "string" },
       },
     },
     unsupportedRequests: {
@@ -671,12 +686,92 @@ const appPlanSchema = {
   },
 };
 
+function safeIsoDate(value: unknown) {
+  const date = clean(value, 20);
+  return /^20\d{2}-\d{2}-\d{2}$/.test(date) ? date : "";
+}
+
 function safeOffer(value: any) {
   return {
     title: clean(value?.title, 180),
     body: clean(value?.body, 900),
     terms: clean(value?.terms, 500),
+    startDate: safeIsoDate(value?.startDate),
+    endDate: safeIsoDate(value?.endDate),
   };
+}
+
+function safeLoyalty(value: any) {
+  const target = Math.max(0, Math.min(20, Number(value?.targetStamps) || 0));
+  return {
+    enabled: value?.enabled === true,
+    programName: clean(value?.programName, 180),
+    targetStamps: target,
+    reward: clean(value?.reward, 500),
+    terms: clean(value?.terms, 500),
+  };
+}
+
+function loyaltyReady(value: any) {
+  const loyalty = safeLoyalty(value);
+  return (
+    loyalty.enabled &&
+    loyalty.targetStamps >= 2 &&
+    loyalty.targetStamps <= 20 &&
+    !!loyalty.reward
+  );
+}
+
+function cleanFactAnswers(value: any) {
+  const source = value && typeof value === "object" ? value : {};
+  return Object.entries(source)
+    .slice(0, 12)
+    .reduce((acc: Record<string, string>, [key, answer]) => {
+      const safeKey = clean(key, 80);
+      const safeAnswer = clean(answer, 2000);
+      if (safeKey && safeAnswer) acc[safeKey] = safeAnswer;
+      return acc;
+    }, {});
+}
+
+function applyFactAnswersToProfile(profile: any, answers: Record<string, string>) {
+  const next = JSON.parse(JSON.stringify(profile || {}));
+  const serviceAnswer = clean(answers?.services, 2000);
+  if (serviceAnswer && !safeArray(next.services).length) {
+    next.services = serviceAnswer
+      .split(/[\n,;]+/)
+      .map((name: string) => clean(name, 240))
+      .filter(Boolean)
+      .slice(0, 20)
+      .map((name: string) => ({
+        id: slugify(name),
+        name,
+        description: "",
+      }));
+  }
+
+  const contactAnswer = clean(answers?.contact, 800);
+  if (contactAnswer) {
+    next.contact = next.contact || {};
+    if (!next.contact.email) {
+      const email = contactAnswer.match(/[^\s@]+@[^\s@]+\.[^\s@]+/i)?.[0] || "";
+      if (email) next.contact.email = clean(email, 240);
+    }
+    if (!next.contact.phone) {
+      const phone = contactAnswer.match(/(?:\+?\d[\d\s().-]{6,}\d)/)?.[0] || "";
+      if (phone) next.contact.phone = clean(phone, 120);
+    }
+  }
+  return next;
+}
+
+function ownerRequestWithAnswers(ownerRequest: string, answers: Record<string, string>) {
+  const rows = Object.entries(answers || {})
+    .map(([key, value]) => `${key}: ${value}`)
+    .filter(Boolean);
+  return rows.length
+    ? `${ownerRequest}\n\nOwner answers to BUSY follow-up questions:\n${rows.join("\n")}`
+    : ownerRequest;
 }
 
 function fallbackAppPlan(
@@ -694,6 +789,7 @@ function fallbackAppPlan(
   const existingOffers = safeArray(existingConfig?.offers)
     .map(safeOffer)
     .filter((item: any) => item.title && item.body);
+  const existingLoyalty = safeLoyalty(existingConfig?.loyalty || {});
   const existingEnabled = new Set(
     safeArray(existingConfig?.modules)
       .filter((item: any) => item?.enabled)
@@ -750,6 +846,11 @@ function fallbackAppPlan(
       existingOffers.length > 0 &&
       (existingEnabled.has("offers") ||
         wants(["offer", "deal", "discount", "promotion", "promo"])),
+    loyalty:
+      !explicitlyRemoves(["loyalty", "stamp card", "stamps"]) &&
+      loyaltyReady(existingLoyalty) &&
+      (existingEnabled.has("loyalty") ||
+        wants(["loyalty", "stamp card", "stamps", "visits", "reward"])),
   };
 
   const moduleReasons: Record<string, string> = {
@@ -765,6 +866,8 @@ function fallbackAppPlan(
     booking_request:
       "Customers can request a service/date, while the business still confirms the booking.",
     offers: "An already approved offer can be shown publicly.",
+    loyalty:
+      "Customers can track simple owner-recorded stamps toward one clearly defined reward.",
   };
 
   const missingFacts: any[] = [];
@@ -799,17 +902,22 @@ function fallbackAppPlan(
   ) {
     missingFacts.push({
       key: "offers",
-      question: "What exact offer should customers see, including any important terms?",
+      question:
+        "What exact offer should customers see? Include the wording, terms and optional start/end dates if you want them.",
+    });
+  }
+  if (
+    wants(["loyalty", "stamp card", "stamps", "visits", "reward"]) &&
+    !loyaltyReady(existingLoyalty)
+  ) {
+    missingFacts.push({
+      key: "loyalty",
+      question:
+        "How many stamps or visits should earn what reward? For example: 6 visits earns a free wash.",
     });
   }
 
   const unsupportedRequests: any[] = [];
-  if (wants(["loyalty", "stamp card", "points"])) {
-    unsupportedRequests.push({
-      request: "Loyalty",
-      reason: "The reusable Loyalty module is still planned and BUSY will not pretend it is live yet.",
-    });
-  }
   if (wants(["payment", "pay online", "take payment", "card payment", "deposit"])) {
     unsupportedRequests.push({
       request: "Payments",
@@ -833,6 +941,7 @@ function fallbackAppPlan(
     })),
     missingFacts,
     offers: existingOffers,
+    loyalty: existingLoyalty,
     unsupportedRequests,
     confidence: ownerRequest ? "Medium" : "Low",
     planner: "deterministic_fallback",
@@ -844,7 +953,8 @@ function sanitiseAppPlan(
   catalog: any[],
   fallback: any,
   ownerRequest = "",
-  existingOffers: any[] = []
+  existingOffers: any[] = [],
+  existingLoyalty: any = null
 ) {
   const catalogByKey = new Map(
     catalog.map((item: any) => [item.module_key, item])
@@ -881,14 +991,14 @@ function sanitiseAppPlan(
       .filter((item: any) => item.title && item.body)
       .map(
         (item: any) =>
-          `${item.title.toLowerCase()}|${item.body.toLowerCase()}|${item.terms.toLowerCase()}`
+          `${item.title.toLowerCase()}|${item.body.toLowerCase()}|${item.terms.toLowerCase()}|${item.startDate}|${item.endDate}`
       )
   );
   const offers = safeArray(plan?.offers)
     .map(safeOffer)
     .filter((item: any) => item.title && item.body)
     .filter((item: any) => {
-      const key = `${item.title.toLowerCase()}|${item.body.toLowerCase()}|${item.terms.toLowerCase()}`;
+      const key = `${item.title.toLowerCase()}|${item.body.toLowerCase()}|${item.terms.toLowerCase()}|${item.startDate}|${item.endDate}`;
       if (existingOfferKeys.has(key)) return true;
       const parts = [item.title, item.body, item.terms]
         .map((value) => clean(value, 900).toLowerCase())
@@ -905,6 +1015,37 @@ function sanitiseAppPlan(
   // invented promotion merely because the owner mentioned "offers".
   const offerModule = modules.find((item: any) => item.key === "offers");
   if (offerModule && !offers.length) offerModule.enabled = false;
+
+  const requestedLoyalty = safeLoyalty(plan?.loyalty || {});
+  const savedLoyalty = safeLoyalty(existingLoyalty || {});
+  const loyaltyRewardSupported =
+    requestedLoyalty.reward &&
+    (
+      (loyaltyReady(savedLoyalty) &&
+        requestedLoyalty.targetStamps === savedLoyalty.targetStamps &&
+        requestedLoyalty.reward.toLowerCase() === savedLoyalty.reward.toLowerCase()) ||
+      (
+        ownerRequestLower.includes(String(requestedLoyalty.targetStamps)) &&
+        ownerRequestLower.includes(requestedLoyalty.reward.toLowerCase())
+      )
+    );
+  const loyalty =
+    requestedLoyalty.enabled &&
+    requestedLoyalty.targetStamps >= 2 &&
+    requestedLoyalty.targetStamps <= 20 &&
+    loyaltyRewardSupported
+      ? requestedLoyalty
+      : savedLoyalty;
+
+  const loyaltyModule = modules.find((item: any) => item.key === "loyalty");
+  if (loyaltyModule) {
+    loyaltyModule.enabled =
+      loyaltyReady(loyalty) &&
+      (
+        requestedModules.get("loyalty")?.enabled === true ||
+        fallback?.modules?.find((item: any) => item.key === "loyalty")?.enabled === true
+      );
+  }
 
   const unsupportedRequests = safeArray(plan?.unsupportedRequests)
     .map((item: any) => ({
@@ -943,6 +1084,7 @@ function sanitiseAppPlan(
       .filter((item: any) => item.key && item.question)
       .slice(0, 8),
     offers,
+    loyalty,
     unsupportedRequests: unsupportedRequests.slice(0, 6),
     confidence: ["High", "Medium", "Low"].includes(plan?.confidence)
       ? plan.confidence
@@ -986,6 +1128,7 @@ async function aiAppPlan(
     existingApprovedOffers: safeArray(existingConfig?.offers)
       .map(safeOffer)
       .filter((item: any) => item.title && item.body),
+    existingLoyalty: safeLoyalty(existingConfig?.loyalty || {}),
     existingEnabledModules: safeArray(existingConfig?.modules)
       .filter((item: any) => item?.enabled)
       .map((item: any) => clean(item?.key, 80)),
@@ -1013,11 +1156,13 @@ Return a conservative app plan. Rules:
 - Enable gallery only when approved images exist or the owner explicitly asks for it. If requested but no approved images exist, add one targeted missingFacts question.
 - Enable contact only when contact details exist or the owner asks for contact; if requested but missing, ask one targeted question.
 - Enable services when recorded services exist or the owner explicitly asks for services; ask one targeted question when needed.
-- Offers may be enabled ONLY when a specific offer is already recorded or the owner's current request itself states the actual offer. Do not invent a discount. If the owner asks for offers generically, ask for the exact offer instead.
-- Loyalty and payments are planned modules. If requested, keep them disabled and put them in unsupportedRequests with a plain-English reason.
+- Offers may be enabled ONLY when a specific offer is already recorded or the owner's current request itself states the actual offer. Do not invent a discount. If the owner asks for offers generically, ask for the exact offer instead. startDate/endDate are optional ISO YYYY-MM-DD fields; leave them empty unless explicitly supported.
+- Loyalty is now an available simple stamp/visit module. Enable it only when the owner has supplied a target between 2 and 20 and an explicit reward, or an existingLoyalty program already contains them. It is owner-recorded progress, not an automatic points economy. If details are missing, ask ONE targeted missingFacts question and keep loyalty disabled.
+- Payments remain planned. If requested, keep payments disabled and put it in unsupportedRequests with a plain-English reason.
 - missingFacts should contain only information materially needed for requested modules; avoid a giant questionnaire.
 - Explain why each module is included/excluded in short owner-friendly language.
 - offers must contain only offer wording explicitly supported by the owner request or existingApprovedOffers.
+- loyalty.reward and loyalty.targetStamps must be directly supported by the owner request or existingLoyalty. Never invent a reward.
 - For any NEW offer, copy the offer title/body/terms exactly from phrases present in the owner's current request; do not paraphrase or expand them. If the exact offer cannot be represented without adding words or assumptions, leave offers empty and ask a missingFacts question instead.
 `;
 
@@ -1066,7 +1211,8 @@ Return a conservative app plan. Rules:
       catalog,
       fallback,
       ownerRequest,
-      businessFacts.existingApprovedOffers
+      businessFacts.existingApprovedOffers,
+      businessFacts.existingLoyalty
     );
   } catch {
     return fallback;
@@ -1083,9 +1229,11 @@ async function planBusinessApp(
     appForBusiness(businessId),
   ]);
   const supplied = sanitizePublicProfile(body?.profileDraft || {});
-  const profile = supplied.businessName
+  const answers = cleanFactAnswers(body?.factAnswers || {});
+  const sourceProfile = supplied.businessName
     ? supplied
     : sanitizePublicProfile(storedProfile?.profile || {});
+  const profile = applyFactAnswersToProfile(sourceProfile, answers);
   if (!profile.businessName) {
     throw new Error(
       "BUSY needs the approved business name before planning the app."
@@ -1097,12 +1245,17 @@ async function planBusinessApp(
       "Tell BUSY what you want customers to be able to do in your app."
     );
   }
-  return await aiAppPlan(
-    ownerRequest,
+  const planned = await aiAppPlan(
+    ownerRequestWithAnswers(ownerRequest, answers),
     profile,
     catalog,
     app?.draft_config || null
   );
+  return {
+    ...planned,
+    ownerRequest,
+    factAnswers: answers,
+  };
 }
 
 async function applyBusinessAppPlan(
@@ -1116,9 +1269,11 @@ async function applyBusinessAppPlan(
     appForBusiness(businessId),
   ]);
   const supplied = sanitizePublicProfile(body?.profileDraft || {});
-  const profile = supplied.businessName
+  const answers = cleanFactAnswers(body?.factAnswers || {});
+  const sourceProfile = supplied.businessName
     ? supplied
     : sanitizePublicProfile(storedProfile?.profile || {});
+  const profile = applyFactAnswersToProfile(sourceProfile, answers);
   if (!profile.businessName) {
     throw new Error(
       "BUSY needs an approved public business name before building the app."
@@ -1126,8 +1281,9 @@ async function applyBusinessAppPlan(
   }
 
   const ownerRequest = clean(body?.ownerRequest, 3000);
+  const planningRequest = ownerRequestWithAnswers(ownerRequest, answers);
   const fallback = fallbackAppPlan(
-    ownerRequest,
+    planningRequest,
     profile,
     catalog,
     existingApp?.draft_config || null
@@ -1136,8 +1292,9 @@ async function applyBusinessAppPlan(
     body?.plan || {},
     catalog,
     fallback,
-    ownerRequest,
-    safeArray(existingApp?.draft_config?.offers)
+    planningRequest,
+    safeArray(existingApp?.draft_config?.offers),
+    existingApp?.draft_config?.loyalty || null
   );
   const app = existingApp || (await ensureApp(businessId, userId, profile));
   const base = buildConfig(
@@ -1151,24 +1308,30 @@ async function applyBusinessAppPlan(
   );
   const modules = safeArray(base.modules).map((item: any) => {
     const planned: any = planByKey.get(item.key);
+    const enabled =
+      item.key === "business_profile"
+        ? true
+        : item.status === "available" && planned?.enabled === true;
     return {
       ...item,
       enabled:
-        item.key === "business_profile"
-          ? true
-          : item.status === "available" && planned?.enabled === true,
+        item.key === "loyalty"
+          ? enabled && loyaltyReady(plan.loyalty)
+          : enabled,
     };
   });
   const config = {
     ...base,
-    schemaVersion: 2,
+    schemaVersion: 3,
     surface: "busy_business_app",
     builderPlan: {
       ...plan,
       ownerRequest,
+      factAnswers: answers,
       generatedAt: new Date().toISOString(),
     },
     offers: plan.offers,
+    loyalty: plan.loyalty,
     modules,
     navigation: modules
       .filter((item: any) => item.enabled)
