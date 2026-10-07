@@ -2,6 +2,23 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.42 Mini App Notifications & Conversation Centre
+### Unread state without per-message polling
+- `busy_mini_app_requests` owns bounded business/customer unread counters plus last-read timestamps. This keeps list/status queries cheap as the number of messages grows.
+- Server-only `busy_mini_app_bump_unread` performs atomic increments so concurrent replies cannot overwrite each other's unread count.
+- Business and customer read state are intentionally separate. Opening a conversation clears only the viewer's side.
+
+### Bounded request conversation loading
+- Owner status and My BUSY Apps no longer fetch all conversation bodies. The dedicated request-detail endpoints load only the latest 30 messages and expose a cursor for older pages.
+- Request lifecycle events stay on the same detail timeline so `received → reviewing → booking confirmed` is distinguishable from human-written messages.
+- Customer detail access is constrained by `consumer_user_id`; business detail access is constrained by tenant membership plus the request's `business_id`.
+
+### Server-side notifications
+- Signed-in users may register their Expo token through the authenticated BUSY Apps server boundary; the server never accepts another user's target identity from the client.
+- Business notifications resolve owner/admin recipients from `busy_business_memberships`. Customer notifications resolve the consumer from the stored request.
+- Dispatch reuses `busy_push_devices` and `busy_push_deliveries`. Delivery rows claim a deterministic notification key before Expo delivery, then retain provider receipts for dedupe/audit.
+- Push payloads carry only the request route/role/request ID and public app slug needed for navigation. They do not carry private customer records or Business Brain evidence.
+
 ## V3.41 Mini App Conversation Loop
 ### One request, one shared conversation
 - A Mini App enquiry/booking request owns a durable conversation thread in `busy_mini_app_request_messages` rather than a separate chat identity or CRM.
