@@ -1,5 +1,18 @@
 # busy-does-it-app
 
+## v3.50 Automatic Customer-Owned Domains
+- Turns custom domains into one guided owner flow instead of separate technical actions. The owner enters a domain, adds one BUSY ownership TXT record, and checks ownership once; after that BUSY automatically continues into Cloudflare custom-hostname creation, SSL setup and scheduled provider reconciliation.
+- Verified domains that have not yet received a Cloudflare hostname are now picked up automatically by the existing provider scheduler. A missed browser tap or interrupted request therefore no longer leaves a verified domain permanently stranded.
+- Custom-hostname creation is idempotent. Before creating a Cloudflare hostname, BUSY searches the SaaS zone for an existing exact hostname and safely reuses it if a previous request succeeded externally before BUSY persisted the provider id.
+- Cloudflare SSL validation now accepts both current TXT response shapes used by the provider API, while retaining hostname-ownership, certificate-validation and traffic-routing records as separate instructions.
+- BUSY's own platform namespace (`busydoesit.co.uk` and all subdomains) is reserved and cannot be claimed as a customer-owned domain.
+- Website Management now shows a five-stage customer-domain journey: domain ownership, Cloudflare hostname, DNS traffic route, SSL/HTTPS and exact website health proof. The app only calls the customer domain live after the real hostname serves the expected immutable BUSY deployment.
+- The screen now shows only the DNS records relevant to the current stage. Before ownership it shows the BUSY TXT challenge; after ownership it shows Cloudflare/SSL/traffic records still required at the customer's DNS provider.
+- The manual provider button is retained only as a safe **Check domain setup now** recovery/refresh action. Normal setup continues automatically after ownership verification and via the background reconciler.
+- Once a customer-owned domain is fully active and healthy it becomes BUSY's preferred public website address ahead of the default `busydoesit.co.uk` tenant hostname, while the default address remains available as a separate fallback route.
+- Production checks now guard automatic provisioning, idempotent Cloudflare recovery, current validation-record parsing, the reserved BUSY namespace, preferred custom-domain routing and the owner-facing journey UI.
+
+
 ## v3.49 Real Website Go-Live
 - Turns the V3.47–V3.48 hosting machinery into one owner-facing **Go Live journey**. The owner still approves the exact immutable hosted preview once; after that BUSY automatically carries the release through publication, BUSY-address allocation, Cloudflare route proof and exact-deployment health verification.
 - The website publishing worker now immediately asks the provider layer to reserve/promote the tenant-safe BUSY hostname after a publish or rollback, then invokes the live health verifier. These checks are non-destructive and cannot silently change the approved website content.
