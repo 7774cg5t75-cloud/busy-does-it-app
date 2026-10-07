@@ -43,7 +43,7 @@ async function fetchWithDeadline(url: string, timeoutMs = 6000) {
       method: "GET",
       redirect: "follow",
       headers: {
-        "User-Agent": "BUSY-Website-Health/3.51",
+        "User-Agent": "BUSY-Website-Health/3.53",
         Accept: "text/html,*/*;q=0.8",
       },
       signal: controller.signal,
@@ -368,7 +368,7 @@ async function checkWebsite(website: any) {
     ? 5
     : anyTransientFailure
     ? 3
-    : 60;
+    : 720;
 
   const update: Record<string, unknown> = {
     health_status: preserveKnownGoodLive ? "healthy" : live.status,
