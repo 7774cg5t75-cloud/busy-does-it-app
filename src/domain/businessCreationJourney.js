@@ -6,7 +6,7 @@ function clean(value = "") {
   return String(value || "").trim();
 }
 
-function nextBestQuestion({ shared = {}, brandBrain = {}, miniAppsView = {} } = {}) {
+function nextBestBusinessCreationQuestion({ shared = {}, brandBrain = {}, miniAppsView = {} } = {}) {
   const missingLabels = new Set(
     safeArray(brandBrain?.missingForWebsite).map((item) => clean(item).toLowerCase())
   );
@@ -216,7 +216,7 @@ function buildBusinessCreationJourney({
   const appPrepared = !!(miniAppsView?.hasDraft || miniAppsView?.builderPlan);
   const socialPrepared = !!clean(socialBrief);
   const briefReady = !!clean(ownerBrief);
-  const nextQuestion = nextBestQuestion({ shared, brandBrain, miniAppsView });
+  const nextQuestion = nextBestBusinessCreationQuestion({ shared, brandBrain, miniAppsView });
   const dependencies = buildDependencies({
     connectedAccounts,
     websitePublishingView,
@@ -335,4 +335,4 @@ function buildBusinessCreationJourney({
   };
 }
 
-export { buildBusinessCreationJourney };
+export { buildBusinessCreationJourney, nextBestBusinessCreationQuestion };
