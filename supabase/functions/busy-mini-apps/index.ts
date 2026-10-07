@@ -1030,11 +1030,25 @@ async function appDetail(slug: string, userId = "") {
     .select("*")
     .eq("public_slug", slug)
     .eq("status", "live")
-    .eq("discoverable", true)
     .maybeSingle();
   if (app.error) throw app.error;
   if (!app.data?.current_live_version_id) {
     throw new Error("That BUSY Mini App is not currently available.");
+  }
+  if (!app.data.discoverable) {
+    if (!userId) {
+      throw new Error("That BUSY Mini App is not currently listed.");
+    }
+    const known = await supabase
+      .from("busy_mini_app_consumer_apps")
+      .select("id")
+      .eq("consumer_user_id", userId)
+      .eq("mini_app_id", app.data.id)
+      .maybeSingle();
+    if (known.error) throw known.error;
+    if (!known.data?.id) {
+      throw new Error("That BUSY Mini App is not currently listed.");
+    }
   }
 
   const version = await supabase
