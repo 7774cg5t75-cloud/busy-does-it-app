@@ -33,7 +33,7 @@ create unique index if not exists busy_mini_apps_id_business_unique_idx
 create unique index if not exists busy_mini_app_requests_id_business_app_unique_idx
   on public.busy_mini_app_requests (id, business_id, mini_app_id);
 
-do $
+do $$
 begin
   if not exists (
     select 1 from pg_constraint
@@ -68,7 +68,7 @@ begin
       on delete set null (request_id);
   end if;
 end
-$;
+$$;
 
 create index if not exists busy_mini_app_loyalty_progress_business_idx
   on public.busy_mini_app_loyalty_progress (business_id, updated_at desc);
