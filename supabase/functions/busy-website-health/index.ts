@@ -43,7 +43,7 @@ async function fetchWithDeadline(url: string, timeoutMs = 8000) {
       method: "GET",
       redirect: "follow",
       headers: {
-        "User-Agent": "BUSY-Website-Health/3.46",
+        "User-Agent": "BUSY-Website-Health/3.51",
         Accept: "text/html,*/*;q=0.8",
       },
       signal: controller.signal,
@@ -86,6 +86,72 @@ async function knownDeployment(marker: string, websiteId: string) {
     .maybeSingle();
   if (result.error) return null;
   return result.data?.id || null;
+}
+
+async function failureStreak(
+  websiteId: string,
+  targetType: "live_alias" | "default_domain" | "custom_domain",
+  domainId = ""
+) {
+  let query = supabase
+    .from("busy_website_health_checks")
+    .select("status,checked_at")
+    .eq("website_id", websiteId)
+    .eq("target_type", targetType)
+    .order("checked_at", { ascending: false })
+    .limit(4);
+  if (domainId) query = query.eq("domain_id", domainId);
+  const result = await query;
+  if (result.error) return 1;
+  let failures = 0;
+  for (const row of result.data || []) {
+    if (row.status === "healthy") break;
+    failures += 1;
+  }
+  return failures;
+}
+
+function healthFailureClass(result: any) {
+  if (result?.status === "degraded") {
+    return {
+      category: "deployment_mismatch",
+      ownerMessage:
+        "The address responded, but it is not serving the approved BUSY website version yet. BUSY is rechecking the route.",
+    };
+  }
+  if ([525, 526].includes(Number(result?.httpStatus || 0))) {
+    return {
+      category: "ssl_handshake",
+      ownerMessage:
+        "HTTPS is not completing correctly yet. BUSY will keep checking the certificate and route.",
+    };
+  }
+  if (!Number(result?.httpStatus || 0)) {
+    return {
+      category: "dns_or_network",
+      ownerMessage:
+        "The public address could not be reached. BUSY is checking whether DNS or the delivery network is still updating.",
+    };
+  }
+  if (Number(result?.httpStatus || 0) >= 500) {
+    return {
+      category: "upstream_unavailable",
+      ownerMessage:
+        "The website delivery path is temporarily unavailable. BUSY will retry automatically.",
+    };
+  }
+  if (Number(result?.httpStatus || 0) === 404) {
+    return {
+      category: "route_or_origin",
+      ownerMessage:
+        "The address is reachable but the website route is not serving the approved version yet. BUSY is rechecking it.",
+    };
+  }
+  return {
+    category: "http_failure",
+    ownerMessage:
+      "The public website check did not pass. BUSY will retry automatically before asking you to do anything.",
+  };
 }
 
 async function recordCheck({
@@ -164,6 +230,10 @@ async function checkWebsite(website: any) {
     targetType: "live_alias",
     url: liveUrl,
   });
+  const liveFailureStreak =
+    live.status === "healthy"
+      ? 0
+      : await failureStreak(website.id, "live_alias");
 
   const domains = await supabase
     .from("busy_website_domains")
@@ -184,10 +254,53 @@ async function checkWebsite(website: any) {
       })
     );
     const domainResult = domainResults.at(-1);
+    const streak =
+      domainResult?.status === "healthy"
+        ? 0
+        : await failureStreak(website.id, "custom_domain", domain.id);
+    const failure = healthFailureClass(domainResult);
+    const existingProviderStatus =
+      domain.provider_status && typeof domain.provider_status === "object"
+        ? domain.provider_status
+        : {};
+    const existingDeliveryRecovery =
+      existingProviderStatus?.deliveryRecovery &&
+      typeof existingProviderStatus.deliveryRecovery === "object"
+        ? existingProviderStatus.deliveryRecovery
+        : {};
+
     const domainUpdate: Record<string, unknown> = {
       last_checked_at: checkedAt,
+      provider_status: {
+        ...existingProviderStatus,
+        deliveryRecovery:
+          domainResult?.status === "healthy"
+            ? {
+                status: "healthy",
+                category: "healthy",
+                consecutiveFailures: 0,
+                firstDetectedAt: null,
+                lastCheckedAt: checkedAt,
+                ownerMessage:
+                  "BUSY has proved this custom domain is serving the approved website.",
+              }
+            : {
+                status: streak >= 2 ? "retrying" : "observing_transient",
+                category: failure.category,
+                consecutiveFailures: streak,
+                firstDetectedAt:
+                  clean(existingDeliveryRecovery?.firstDetectedAt, 120) ||
+                  checkedAt,
+                lastCheckedAt: checkedAt,
+                ownerMessage:
+                  streak >= 2
+                    ? failure.ownerMessage
+                    : "BUSY saw one failed check and is confirming it before changing the live status.",
+                technicalMessage: clean(domainResult?.error, 1200),
+              },
+      },
       last_error:
-        domainResult?.status === "healthy"
+        domainResult?.status === "healthy" || streak < 2
           ? null
           : domainResult?.error || "Domain health check failed.",
       updated_at: checkedAt,
@@ -196,6 +309,11 @@ async function checkWebsite(website: any) {
       domainUpdate.routing_status = "active";
       domainUpdate.status = "active";
       domainUpdate.activated_at = domain.activated_at || checkedAt;
+    } else if (streak >= 2) {
+      // One transient failure never takes a known-good custom domain out of
+      // service. Two consecutive failures move it back to verification so the
+      // BUSY default address can remain the safe fallback.
+      domainUpdate.routing_status = "validating";
     }
     await supabase
       .from("busy_website_domains")
@@ -204,6 +322,7 @@ async function checkWebsite(website: any) {
   }
 
   let defaultResult: any = null;
+  let defaultFailureStreak = 0;
   if (
     website.default_url &&
     ["reserved", "provisioning", "active", "degraded"].includes(clean(website.delivery_status, 80))
@@ -213,16 +332,30 @@ async function checkWebsite(website: any) {
       targetType: "default_domain",
       url: website.default_url,
     });
+    if (defaultResult?.status !== "healthy") {
+      defaultFailureStreak = await failureStreak(
+        website.id,
+        "default_domain"
+      );
+    }
   }
 
+  const preserveKnownGoodLive =
+    live.status !== "healthy" &&
+    website.health_status === "healthy" &&
+    liveFailureStreak < 2;
   const update: Record<string, unknown> = {
-    health_status: live.status,
+    health_status: preserveKnownGoodLive ? "healthy" : live.status,
     last_health_check_at: checkedAt,
     last_observed_deployment_id: live.observedDeploymentId,
     updated_at: checkedAt,
   };
   if (live.status === "healthy") {
     update.last_healthy_at = checkedAt;
+    update.last_error = null;
+  } else if (preserveKnownGoodLive) {
+    // The evidence row records the failed check, but one transient result does
+    // not turn a proven live deployment into an owner-facing outage.
     update.last_error = null;
   } else {
     update.last_error = live.error || "Live website health check failed.";
@@ -232,13 +365,19 @@ async function checkWebsite(website: any) {
     update.delivery_provider = "cloudflare_saas";
   } else if (
     website.default_url &&
-    ["reserved", "provisioning", "degraded"].includes(
-      clean(website.delivery_status, 80)
-    ) &&
-    defaultResult
+    defaultResult &&
+    (
+      ["reserved", "provisioning", "degraded"].includes(
+        clean(website.delivery_status, 80)
+      ) ||
+      (
+        clean(website.delivery_status, 80) === "active" &&
+        defaultFailureStreak >= 2
+      )
+    )
   ) {
-    // A first failed route check must not be presented as live. Existing
-    // active sites are not flapped by one transient health-check failure.
+    // An active BUSY address needs two consecutive failures before it is
+    // withdrawn as the preferred route. New/unproven addresses remain strict.
     update.delivery_status = "degraded";
   }
 
@@ -254,6 +393,11 @@ async function checkWebsite(website: any) {
     live,
     domains: domainResults,
     defaultDomain: defaultResult,
+    recovery: {
+      liveFailureStreak,
+      defaultFailureStreak,
+      liveTransientPreserved: preserveKnownGoodLive,
+    },
   };
 }
 
