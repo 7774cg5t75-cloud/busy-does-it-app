@@ -22,7 +22,32 @@ function buildWebsitePublishingView({
     pageViews: 0,
     uniqueVisitors: 0,
     enquiries: 0,
+    requests: 0,
+    visits: 0,
+    edgeBytes: 0,
     status: "foundation",
+  };
+  const usage = remote?.usage || {
+    days: 30,
+    deployments: 0,
+    publishedVersions: 0,
+    artifactBytes: 0,
+    requests: 0,
+    visits: 0,
+    edgeBytes: 0,
+    healthChecks: 0,
+    activeCustomDomains: 0,
+  };
+  const signalRuns = safeArray(remote?.signalRuns);
+  const enquiryAttributions = safeArray(remote?.enquiryAttributions);
+  const providerConfig = remote?.providerConfig || {
+    provider: "cloudflare_saas",
+    configured: false,
+    hasApiToken: false,
+    hasZoneId: false,
+    hasCnameTarget: false,
+    baseDomainConfigured: false,
+    baseDomain: "",
   };
   const publicProfile = remote?.publicProfile || null;
   const queue = remote?.queue || null;
@@ -68,6 +93,8 @@ function buildWebsitePublishingView({
 
   const latestHealth =
     healthChecks.find((item) => item.target_type === "live_alias") || null;
+  const defaultDomainHealth =
+    healthChecks.find((item) => item.target_type === "default_domain") || null;
   const customDomainHealth =
     healthChecks.find((item) => item.target_type === "custom_domain") || null;
 
@@ -125,6 +152,26 @@ function buildWebsitePublishingView({
       ? "Not checked yet"
       : "Not live";
 
+  const providerLabel = providerConfig.configured
+    ? "Cloudflare for SaaS connected"
+    : "Cloudflare setup required";
+
+  const deliveryStatus = clean(website?.delivery_status) || "not_configured";
+  const defaultAddress =
+    website?.default_hostname
+      ? {
+          hostname: website.default_hostname,
+          url: website.default_url || `https://${website.default_hostname}`,
+          status: deliveryStatus,
+          live: deliveryStatus === "active",
+        }
+      : null;
+
+  const lastDomainSignal =
+    signalRuns.find((run) => run.signal_type === "domain_sync") || null;
+  const lastAnalyticsSignal =
+    signalRuns.find((run) => run.signal_type === "analytics_sync") || null;
+
   return {
     website,
     deployments,
@@ -133,6 +180,10 @@ function buildWebsitePublishingView({
     queue,
     healthChecks,
     analytics,
+    usage,
+    signalRuns,
+    enquiryAttributions,
+    providerConfig,
     publicProfile,
     latestDeployment,
     previewDeployment,
@@ -144,6 +195,7 @@ function buildWebsitePublishingView({
     verifiedDomain,
     routedDomain,
     latestHealth,
+    defaultDomainHealth,
     customDomainHealth,
     publicStatus,
     healthStatus,
@@ -168,8 +220,44 @@ function buildWebsitePublishingView({
       previewDeployment.id !== liveDeployment?.id &&
       !activeJob,
     canOpenLive: !!clean(website?.live_url),
+    canOpenDefaultAddress: !!defaultAddress?.live,
     canRollback: previouslyPublished.length > 0 && !activeJob,
     canCheckHealth: !!liveDeployment && !activeJob,
+    canProvisionDomain:
+      !!latestDomain &&
+      ["verified", "active"].includes(latestDomain.status) &&
+      !["active"].includes(latestDomain.routing_status),
+    providerState: {
+      provider: providerConfig.provider || "cloudflare_saas",
+      configured: !!providerConfig.configured,
+      label: providerLabel,
+      baseDomainConfigured: !!providerConfig.baseDomainConfigured,
+      baseDomain: clean(providerConfig.baseDomain),
+      tokenReady: !!providerConfig.hasApiToken,
+      zoneReady: !!providerConfig.hasZoneId,
+      targetReady: !!providerConfig.hasCnameTarget,
+      lastDomainSignal,
+      lastAnalyticsSignal,
+    },
+    defaultAddressState: {
+      address: defaultAddress,
+      status:
+        defaultAddress?.live
+          ? "Live"
+          : defaultAddress
+          ? deliveryStatus === "reserved"
+            ? "Reserved"
+            : deliveryStatus === "provisioning"
+            ? "Provisioning"
+            : deliveryStatus === "degraded"
+            ? "Needs attention"
+            : deliveryStatus === "error"
+            ? "Delivery error"
+            : "Not live"
+          : providerConfig.baseDomainConfigured
+          ? "Waiting for reservation"
+          : "BUSY platform domain not configured",
+    },
     queueHealth: {
       length: Number(queue?.queue_length || 0),
       oldestSeconds:
@@ -203,16 +291,24 @@ function buildWebsitePublishingView({
           ? "Routing error"
           : latestDomain?.routing_status === "pending" ||
             latestDomain?.routing_status === "validating"
-          ? "Routing pending"
+          ? latestDomain.routing_status === "validating"
+            ? "Provider ready • validating real route"
+            : "Routing pending"
           : "Not configured",
       ssl:
         latestDomain?.ssl_status === "active"
           ? "Active"
           : latestDomain?.ssl_status === "error"
           ? "SSL error"
+          : latestDomain?.ssl_status === "provisioning"
+          ? "Provisioning"
           : latestDomain
           ? "Not active"
           : "Not configured",
+      provider: clean(latestDomain?.routing_provider) || "unassigned",
+      providerHostnameId: clean(latestDomain?.provider_hostname_id),
+      requiredRecords: safeArray(latestDomain?.required_records),
+      providerStatus: latestDomain?.provider_status || {},
       routingActive: !!routedDomain,
     },
     analyticsView: {
@@ -220,8 +316,31 @@ function buildWebsitePublishingView({
       pageViews: Number(analytics?.pageViews || 0),
       uniqueVisitors: Number(analytics?.uniqueVisitors || 0),
       enquiries: Number(analytics?.enquiries || 0),
+      requests: Number(analytics?.requests || 0),
+      visits: Number(analytics?.visits || 0),
+      edgeBytes: Number(analytics?.edgeBytes || 0),
+      providerRows: Number(analytics?.providerRows || 0),
+      lastSyncAt: analytics?.lastSyncAt || null,
       status: clean(analytics?.status) || "foundation",
-      collecting: ["collecting", "active"].includes(clean(analytics?.status)),
+      collecting:
+        Number(analytics?.providerRows || 0) > 0 ||
+        ["collecting", "active"].includes(clean(analytics?.status)),
+    },
+    usageView: {
+      period: "Last 30 days",
+      deployments: Number(usage?.deployments || 0),
+      publishedVersions: Number(usage?.publishedVersions || 0),
+      artifactBytes: Number(usage?.artifactBytes || 0),
+      requests: Number(usage?.requests || 0),
+      visits: Number(usage?.visits || 0),
+      edgeBytes: Number(usage?.edgeBytes || 0),
+      healthChecks: Number(usage?.healthChecks || 0),
+      activeCustomDomains: Number(usage?.activeCustomDomains || 0),
+    },
+    enquiryView: {
+      count: enquiryAttributions.length,
+      latest: enquiryAttributions[0] || null,
+      hasRealAttribution: enquiryAttributions.length > 0,
     },
   };
 }
