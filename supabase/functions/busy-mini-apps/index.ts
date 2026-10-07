@@ -98,7 +98,7 @@ async function membership(
     throw new Error("This account is not a member of that BUSY business.");
   }
   if (requireWrite && !["owner", "admin"].includes(row.role)) {
-    throw new Error("Owner or admin access is required to change a BUSY Mini App.");
+    throw new Error("Owner or admin access is required to change a BUSY Business App.");
   }
   return row as { business_id: string; role: string };
 }
@@ -242,7 +242,7 @@ async function dispatchMiniAppPush({
       .single();
     if (claimed.error) {
       if (claimed.error.code === "23505") continue;
-      console.error("BUSY Mini App push claim failed", claimed.error.message);
+      console.error("BUSY Business App push claim failed", claimed.error.message);
       continue;
     }
 
@@ -286,7 +286,7 @@ async function dispatchMiniAppPush({
         .eq("id", claimed.data.id);
       sent += tokens.length;
     } catch (error) {
-      console.error("BUSY Mini App push failed", error instanceof Error ? error.message : error);
+      console.error("BUSY Business App push failed", error instanceof Error ? error.message : error);
       await supabase.from("busy_push_deliveries").delete().eq("id", claimed.data.id);
     }
   }
@@ -312,7 +312,7 @@ async function notifyBusinessOfMiniAppRequest(requestRow: any, title: string, bo
       },
     });
   } catch (error) {
-    console.error("BUSY business Mini App notification failed", error instanceof Error ? error.message : error);
+    console.error("BUSY business Business App notification failed", error instanceof Error ? error.message : error);
     return { sent: 0 };
   }
 }
@@ -336,7 +336,7 @@ async function notifyCustomerOfMiniAppRequest(requestRow: any, title: string, bo
       },
     });
   } catch (error) {
-    console.error("BUSY customer Mini App notification failed", error instanceof Error ? error.message : error);
+    console.error("BUSY customer Business App notification failed", error instanceof Error ? error.message : error);
     return { sent: 0 };
   }
 }
@@ -414,7 +414,7 @@ async function ownerRequestDetail(businessId: string, body: any) {
     .eq("business_id", businessId)
     .maybeSingle();
   if (request.error) throw request.error;
-  if (!request.data) throw new Error("Mini App request not found.");
+  if (!request.data) throw new Error("Business App request not found.");
   const readAt = new Date().toISOString();
   const updated = await supabase
     .from("busy_mini_app_requests")
@@ -1614,7 +1614,7 @@ async function buildDraft(
 
   if (!profile.businessName) {
     throw new Error(
-      "BUSY needs an approved public business name before building a Mini App."
+      "BUSY needs an approved public business name before building a Business App."
     );
   }
 
@@ -2350,7 +2350,7 @@ async function publishMiniAppWebArtifact(app: any, version: any) {
   await ensureMiniAppPublicBucket();
   const html = publicMiniAppWebHtml(app, version);
   const bytes = new TextEncoder().encode(html).byteLength;
-  if (bytes > 1_500_000) throw new Error("The public Mini App web artifact is unexpectedly large.");
+  if (bytes > 1_500_000) throw new Error("The public Business App web artifact is unexpectedly large.");
 
   const versionPath = `${app.business_id}/${app.id}/versions/${version.id}/index.html`;
   const livePath = `${app.business_id}/${app.id}/live/index.html`;
@@ -2380,11 +2380,11 @@ async function publishVersion(
   body: any
 ) {
   if (body?.ownerApproved !== true) {
-    throw new Error("Owner approval is required before a Mini App becomes public.");
+    throw new Error("Owner approval is required before a Business App becomes public.");
   }
 
   const app = await appForBusiness(businessId);
-  if (!app) throw new Error("Build the Mini App first.");
+  if (!app) throw new Error("Build the Business App first.");
   const versionId = clean(
     body?.versionId || app.current_preview_version_id,
     80
@@ -2462,10 +2462,10 @@ async function rollbackVersion(
   body: any
 ) {
   if (body?.ownerApproved !== true) {
-    throw new Error("Owner approval is required before changing the live Mini App.");
+    throw new Error("Owner approval is required before changing the live Business App.");
   }
   const app = await appForBusiness(businessId);
-  if (!app) throw new Error("Mini App not found.");
+  if (!app) throw new Error("Business App not found.");
 
   const versionId = clean(body?.versionId, 80);
   const target = await supabase
@@ -2530,7 +2530,7 @@ async function setDiscoverable(
   }
   const app = await appForBusiness(businessId);
   if (!app?.current_live_version_id || app.status !== "live") {
-    throw new Error("Publish a live Mini App before listing it in BUSY Apps.");
+    throw new Error("Publish a live Business App before listing it in BUSY Apps.");
   }
   const updated = await supabase
     .from("busy_mini_apps")
@@ -2722,7 +2722,7 @@ async function setConsumerFavorite(
     .maybeSingle();
   if (app.error) throw app.error;
   if (!app.data?.id || app.data.status !== "live" || !app.data.current_live_version_id) {
-    throw new Error("That BUSY Mini App is not currently live.");
+    throw new Error("That BUSY Business App is not currently live.");
   }
   await trackConsumerApp(userId, app.data.id);
   const updated = await supabase
@@ -2763,7 +2763,7 @@ async function recordMiniAppEntry(app: any, _userId: string, source: string) {
     p_stage: "app_open",
   });
   if (recorded.error) {
-    console.error("BUSY Mini App entry attribution failed", recorded.error.message);
+    console.error("BUSY Business App entry attribution failed", recorded.error.message);
   }
 }
 
@@ -2839,7 +2839,7 @@ async function appDetail(
     .maybeSingle();
   if (app.error) throw app.error;
   if (!app.data?.current_live_version_id) {
-    throw new Error("That BUSY Mini App is not currently available.");
+    throw new Error("That BUSY Business App is not currently available.");
   }
   const version = await supabase
     .from("busy_mini_app_versions")
@@ -2890,7 +2890,7 @@ async function submitRequest(
   const slug = clean(body?.slug, 100);
   const requestType = clean(body?.requestType, 40);
   if (!["booking_request", "enquiry"].includes(requestType)) {
-    throw new Error("Unsupported Mini App request type.");
+    throw new Error("Unsupported Business App request type.");
   }
   const detail = await appDetail(slug, userId, "unknown", false);
   const modules = safeArray(detail.version?.config?.modules);
@@ -2898,7 +2898,7 @@ async function submitRequest(
     requestType === "booking_request" ? "booking_request" : "enquiry";
   const module = modules.find((item: any) => item.key === moduleKey);
   if (!module?.enabled) {
-    throw new Error("That action is not enabled in this Mini App.");
+    throw new Error("That action is not enabled in this Business App.");
   }
 
   const rawPayload =
@@ -2945,7 +2945,7 @@ async function submitRequest(
     .gte("created_at", since);
   if (recent.error) throw recent.error;
   if (Number(recent.count || 0) >= 10) {
-    throw new Error("Too many Mini App requests. Try again later.");
+    throw new Error("Too many Business App requests. Try again later.");
   }
 
   if (requestId) {
@@ -3020,7 +3020,7 @@ async function submitRequest(
   await notifyBusinessOfMiniAppRequest(
     inserted.data,
     requestType === "booking_request" ? "BUSY Apps • New booking request" : "BUSY Apps • New enquiry",
-    "A customer sent a new request through your BUSY Mini App.",
+    "A customer sent a new request through your BUSY Business App.",
     "received"
   );
   return { reused: false, request: inserted.data };
@@ -3032,11 +3032,11 @@ async function sendRequestMessage(userId: string, businessId: string, body: any,
   if (!requestId || !messageBody) throw new Error("Choose a request and enter a message first.");
   const request = await supabase.from("busy_mini_app_requests").select("id,business_id,mini_app_id,consumer_user_id,request_origin,status").eq("id", requestId).eq("business_id", businessId).maybeSingle();
   if (request.error) throw request.error;
-  if (!request.data) throw new Error("Mini App request not found.");
+  if (!request.data) throw new Error("Business App request not found.");
   if (request.data.request_origin === "guest_web" || !request.data.consumer_user_id) {
     throw new Error("Guest web requests do not have a BUSY chat recipient. Use the customer's supplied contact details for replies.");
   }
-  if (["declined", "closed"].includes(request.data.status)) throw new Error("That Mini App request is closed for new messages.");
+  if (["declined", "closed"].includes(request.data.status)) throw new Error("That Business App request is closed for new messages.");
   if (idempotencyKey) {
     const existing = await supabase.from("busy_mini_app_request_messages").select("*").eq("request_id", requestId).eq("sender_user_id", userId).eq("idempotency_key", idempotencyKey).maybeSingle();
     if (existing.error) throw existing.error;
@@ -3079,8 +3079,8 @@ async function replyRequestMessage(userId: string, body: any, idempotencyKey: st
   if (!requestId || !messageBody) throw new Error("Choose a request and enter a reply first.");
   const request = await supabase.from("busy_mini_app_requests").select("id,business_id,mini_app_id,status").eq("id", requestId).eq("consumer_user_id", userId).maybeSingle();
   if (request.error) throw request.error;
-  if (!request.data) throw new Error("That Mini App request is not available.");
-  if (["declined", "closed"].includes(request.data.status)) throw new Error("That Mini App request is closed for new messages.");
+  if (!request.data) throw new Error("That Business App request is not available.");
+  if (["declined", "closed"].includes(request.data.status)) throw new Error("That Business App request is closed for new messages.");
   if (idempotencyKey) {
     const existing = await supabase.from("busy_mini_app_request_messages").select("*").eq("request_id", requestId).eq("sender_user_id", userId).eq("idempotency_key", idempotencyKey).maybeSingle();
     if (existing.error) throw existing.error;
@@ -3125,7 +3125,7 @@ async function updateRequestStatus(
     .eq("business_id", businessId)
     .maybeSingle();
   if (current.error) throw current.error;
-  if (!current.data) throw new Error("Mini App request not found.");
+  if (!current.data) throw new Error("Business App request not found.");
   if (current.data.status === status) return current.data;
 
   const now = new Date().toISOString();
@@ -3241,7 +3241,7 @@ async function requestBridgePlan(
     .eq("business_id", businessId)
     .maybeSingle();
   if (request.error) throw request.error;
-  if (!request.data) throw new Error("Mini App request not found.");
+  if (!request.data) throw new Error("Business App request not found.");
 
   const linked = await supabase
     .from("busy_mini_app_request_links")
@@ -3260,7 +3260,7 @@ async function requestBridgePlan(
       email: clean(row.contact_email, 240),
       phone: clean(row.contact_phone, 80),
       service: clean(row.service_name, 240) || "General enquiry",
-      source: "BUSY Mini App",
+      source: "BUSY Business App",
       note:
         row.request_type === "booking_request"
           ? clean(row.payload?.note, 3000)
@@ -3306,7 +3306,7 @@ async function markRequestLinked(
     .eq("business_id", businessId)
     .maybeSingle();
   if (request.error) throw request.error;
-  if (!request.data) throw new Error("Mini App request not found.");
+  if (!request.data) throw new Error("Business App request not found.");
 
   const linked = await supabase
     .from("busy_mini_app_request_links")
