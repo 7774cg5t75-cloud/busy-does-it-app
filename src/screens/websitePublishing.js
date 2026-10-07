@@ -45,7 +45,7 @@ function WebsitePublishing({ s }) {
       s={s}
       title="Website Management"
       subtitle="Edit privately, inspect the exact hosted version, then decide what becomes public."
-      brandCue="V3.38 • real delivery • provider routing • traffic signals • usage metering."
+      brandCue="V3.46 • real delivery • provider routing • traffic signals • usage metering."
     >
       <Card
         eyebrow="Website lifecycle"
@@ -284,6 +284,52 @@ function WebsitePublishing({ s }) {
         />
       </Card>
 
+      <Text style={styles.sectionLabel}>BUSY platform activation</Text>
+      <Card
+        eyebrow="busydoesit.co.uk • live DNS preflight"
+        title={
+          view.providerState?.rootOnCloudflare
+            ? view.providerState?.baseDomainRoutable
+              ? "Cloudflare nameservers active • routing hostname resolving"
+              : "Cloudflare nameservers active • SaaS routing is the next gate"
+            : "Waiting for the new nameservers to propagate"
+        }
+        body={
+          view.providerState?.rootOnCloudflare
+            ? view.providerState?.configured
+              ? "BUSY can see the platform domain on Cloudflare and the Cloudflare-for-SaaS server configuration is connected. The remaining checks are the routing hostname and real deployment health."
+              : "BUSY can automatically see when busydoesit.co.uk has moved onto Cloudflare. The account-owner API token, SaaS zone and managed routing target can be connected afterwards without blocking the rest of development."
+            : "Namecheap has been pointed at Cloudflare. BUSY now has a server-side DNS preflight that can detect the change independently; no customer website will be declared live merely because a settings screen says it should be."
+        }
+        footer={`Last DNS preflight: ${readableDate(view.providerState?.checkedAt)}`}
+        tone={view.providerState?.rootOnCloudflare ? "green" : "blue"}
+      >
+        <MetricRow
+          left="Root domain"
+          right={view.providerState?.rootDomain || "busydoesit.co.uk"}
+          strong
+        />
+        <MetricRow
+          left="Cloudflare nameservers"
+          right={view.providerState?.rootOnCloudflare ? "Active" : "Propagating"}
+          strong={view.providerState?.rootOnCloudflare}
+        />
+        <MetricRow
+          left="BUSY website base"
+          right={view.providerState?.baseDomain || "sites.busydoesit.co.uk"}
+        />
+        <MetricRow
+          left="Base hostname DNS"
+          right={view.providerState?.baseDomainRoutable ? "Resolving" : "Not routed yet"}
+          strong={view.providerState?.baseDomainRoutable}
+        />
+        <MetricRow
+          left="Cloudflare for SaaS"
+          right={view.providerState?.configured ? "Server configuration ready" : "Account connection still required"}
+          strong={view.providerState?.configured}
+        />
+      </Card>
+
       <Text style={styles.sectionLabel}>Delivery provider</Text>
       <Card
         eyebrow="Provider-neutral BUSY layer"
@@ -291,7 +337,7 @@ function WebsitePublishing({ s }) {
         body={
           view.providerState?.configured
             ? "BUSY has the server-side provider configuration needed for Cloudflare for SaaS. Customer hostname activation, certificate state and real-route health remain independently verified."
-            : "The V3.38 adapter is deployed, scheduled and tested. The remaining gate is the account-owner Cloudflare setup: API token, SaaS zone and managed CNAME target. No secret belongs in the app or GitHub."
+            : "The V3.46 adapter is deployed and BUSY can now independently preflight the platform DNS. The remaining account-owner gate is the restricted Cloudflare API token, SaaS zone and managed CNAME target. No secret belongs in the app or GitHub."
         }
         footer="Cloudflare is the first adapter, not the BUSY data model. Another delivery provider can be added behind the same states later."
         tone={view.providerState?.configured ? "green" : "blue"}
@@ -309,7 +355,7 @@ function WebsitePublishing({ s }) {
         body={
           view.defaultAddressState?.address
             ? "BUSY has reserved a tenant-safe hostname. It only becomes a usable public address after the BUSY platform domain/routing layer genuinely serves the expected deployment."
-            : "V3.38 can reserve a BUSY-owned address automatically once the BUSY website base domain is connected to the provider."
+            : "V3.46 reserves tenant-safe addresses under sites.busydoesit.co.uk. They remain non-live until the delivery provider and health checks prove that the expected deployment is really being served."
         }
         footer="Two businesses with the same trading name still receive different tenant-safe hostnames."
         tone={view.defaultAddressState?.address?.live ? "green" : "blue"}
@@ -347,7 +393,7 @@ function WebsitePublishing({ s }) {
         body={
           view.enquiryView?.hasRealAttribution
             ? "BUSY has real website enquiry-attribution events for this tenant. These can later be joined to customer journeys without treating clicks or visits as enquiries."
-            : "V3.38 has the tenant-safe attribution store ready, but the current static website does not silently add a public enquiry form or tracking event. BUSY will only count a real enquiry when an approved public enquiry module/provider emits one."
+            : "V3.46 has the tenant-safe attribution store ready, but the current static website does not silently add a public enquiry form or tracking event. BUSY will only count a real enquiry when an approved public enquiry module/provider emits one."
         }
         footer="Traffic, visits and enquiries remain separate evidence."
         tone={view.enquiryView?.hasRealAttribution ? "green" : "blue"}
