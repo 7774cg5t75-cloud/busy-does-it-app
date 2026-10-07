@@ -76,6 +76,7 @@ const checks = [
   ["V3.52 one active operation per website", websiteScaleMigrationSource.includes("busy_website_publish_jobs_one_active_website_idx") && websitePublishApiSource.includes("another website operation")],
   ["V3.52 atomic worker leases", websiteScaleMigrationSource.includes("busy_claim_website_publish_job") && websiteWorkerSource.includes("p_processing_token") && websiteWorkerSource.includes("lease_held")],
   ["V3.52 stale jobs self-recover", websiteScaleMigrationSource.includes("busy_recover_stale_website_publish_jobs") && websiteWorkerSource.includes("staleRecovered")],
+  ["V3.52 failed updates preserve a proven live site", websiteWorkerSource.includes('website.current_live_deployment_id') && websiteWorkerSource.includes('? "live"')],
   ["V3.52 tenant-fair queue", websiteWorkerSource.includes("tenant_fairness") && websiteWorkerSource.includes("seenBusinesses") && websitePublishingScreenSource.includes("Tenant-fair production queue")],
   ["V3.52 cross-tenant database guards", websiteScaleMigrationSource.includes("busy_website_publish_jobs_tenant_deployment_fkey") && websiteScaleMigrationSource.includes("busy_website_health_checks_tenant_domain_fkey")],
   ["V3.52 provider retries are indexable", websiteScaleMigrationSource.includes("provider_next_retry_at") && websiteProviderSource.includes("provider_next_retry_at") && websiteProviderSource.includes("provider_attempt_count")],
