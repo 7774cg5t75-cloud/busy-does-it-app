@@ -62,9 +62,16 @@ function responseHeaders(contentType = "text/html; charset=utf-8") {
       ? "public, max-age=60, s-maxage=300, stale-while-revalidate=86400"
       : "public, max-age=86400, s-maxage=604800, stale-while-revalidate=2592000",
     "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Permissions-Policy":
       "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+    ...(html
+      ? {
+          "Content-Security-Policy":
+            "default-src 'self' https: data:; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src https: data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
+        }
+      : {}),
   };
 }
 
