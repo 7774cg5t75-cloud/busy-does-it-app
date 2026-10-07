@@ -235,6 +235,35 @@ function HomeScreen({ s }) {
     });
   }
 
+  if (s.miniAppsView?.unreadRequests?.length) {
+    const request = s.miniAppsView.unreadRequests[0];
+    const unread = Number(request.business_unread_count || 0);
+    operationalMoves.push({
+      id: `mini-app-unread-${request.id}`,
+      score: 112 + Math.min(8, unread),
+      eyebrow: "BUSY Apps conversation",
+      title: `${request.contact_name || "A customer"} replied through BUSY Apps`,
+      body: request.request_type === "booking_request"
+        ? [
+            request.service_name || request.payload?.service || "Booking request",
+            `${unread} unread update${unread === 1 ? "" : "s"}`,
+          ].join(" • ")
+        : `${unread} unread customer update${unread === 1 ? "" : "s"} on this enquiry.`,
+      footer: "Live customer conversation",
+      status: "Reply needed",
+      tone: "amber",
+      why: "This is new activity from a real customer inside BUSY Apps, so BUSY ranks it ahead of optional marketing work.",
+      evidence: [
+        ["Source", "BUSY Apps"],
+        ["Unread updates", String(unread)],
+        ["Request status", String(request.status || "received").replaceAll("_", " ")],
+      ],
+      actionLabel: "Open conversation",
+      onAction: () => s.openOwnerMiniAppRequest(request.id),
+      canIgnore: false,
+    });
+  }
+
   if (s.miniAppsView?.unlinkedPendingRequests?.length) {
     const request = s.miniAppsView.unlinkedPendingRequests[0];
     const booking = request.request_type === "booking_request";
@@ -1078,12 +1107,15 @@ function HomeScreen({ s }) {
         <MetricRow
           left="BUSY Apps"
           right={
-            s.miniAppsView?.unlinkedPendingRequests?.length
+            s.miniAppsView?.businessUnreadTotal
+              ? `${s.miniAppsView.businessUnreadTotal} unread message${s.miniAppsView.businessUnreadTotal === 1 ? "" : "s"}`
+              : s.miniAppsView?.unlinkedPendingRequests?.length
               ? `${s.miniAppsView.unlinkedPendingRequests.length} request${s.miniAppsView.unlinkedPendingRequests.length === 1 ? "" : "s"} need review`
               : s.miniAppsView?.statusLabel || "Not built"
           }
           strong={
             !!s.miniAppsView?.hasLive ||
+            !!s.miniAppsView?.businessUnreadTotal ||
             !!s.miniAppsView?.unlinkedPendingRequests?.length
           }
         />
