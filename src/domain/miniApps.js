@@ -48,6 +48,7 @@ function buildMiniAppsView(remote = {}) {
   const requests = safeArray(remote?.requests);
   const requestLinks = safeArray(remote?.requestLinks);
   const requestCount30 = Math.max(0, Number(remote?.requestCount30 || 0));
+  const guestRequestCount30 = Math.max(0, Number(remote?.guestRequestCount30 || 0));
   const entrySummary = safeArray(remote?.entrySummary);
   const catalog = safeArray(remote?.catalog);
   const draftConfig = app?.draft_config || null;
@@ -125,6 +126,7 @@ function buildMiniAppsView(remote = {}) {
     requests,
     requestLinks,
     requestCount30,
+    guestRequestCount30,
     entrySummary,
     entryCounts,
     linkedRequests,
