@@ -447,7 +447,7 @@ async function websiteStatus(businessId: string) {
     supabase
       .from("busy_website_publish_jobs")
       .select(
-        "id,deployment_id,action,status,attempt_count,max_attempts,last_error,requested_at,started_at,completed_at"
+        "id,deployment_id,action,status,attempt_count,max_attempts,lease_expires_at,last_error,requested_at,started_at,completed_at"
       )
       .eq("website_id", website.id)
       .order("requested_at", { ascending: false })
@@ -596,14 +596,36 @@ async function enqueueJob({
   const active = await supabase
     .from("busy_website_publish_jobs")
     .select("*")
-    .eq("deployment_id", deploymentId)
-    .eq("action", action)
+    .eq("website_id", websiteId)
     .in("status", ["queued", "processing", "retry_wait"])
     .order("requested_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (active.error) throw active.error;
-  if (active.data) return active.data;
+  if (active.data) {
+    if (
+      active.data.deployment_id === deploymentId &&
+      active.data.action === action
+    ) {
+      return active.data;
+    }
+    throw new Error(
+      "BUSY is already processing another website operation. It will finish that safely before starting this one."
+    );
+  }
+
+  const oneHourAgo = new Date(Date.now() - 60 * 60000).toISOString();
+  const recent = await supabase
+    .from("busy_website_publish_jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("business_id", businessId)
+    .gte("requested_at", oneHourAgo);
+  if (recent.error) throw recent.error;
+  if (Number(recent.count || 0) >= 30) {
+    throw new Error(
+      "BUSY has temporarily paused new website operations for this business because unusually high publishing activity was detected. Existing live content is unaffected."
+    );
+  }
 
   const existing = await supabase
     .from("busy_website_publish_jobs")
@@ -632,14 +654,23 @@ async function enqueueJob({
       const raced = await supabase
         .from("busy_website_publish_jobs")
         .select("*")
-        .eq("deployment_id", deploymentId)
-        .eq("action", action)
+        .eq("website_id", websiteId)
         .in("status", ["queued", "processing", "retry_wait"])
         .order("requested_at", { ascending: false })
         .limit(1)
         .maybeSingle();
       if (raced.error) throw raced.error;
-      if (raced.data) return raced.data;
+      if (raced.data) {
+        if (
+          raced.data.deployment_id === deploymentId &&
+          raced.data.action === action
+        ) {
+          return raced.data;
+        }
+        throw new Error(
+          "BUSY is already processing another website operation. Try again after that operation finishes."
+        );
+      }
     }
     throw created.error;
   }
@@ -941,6 +972,19 @@ async function requestDomain(
     throw new Error("That domain is already attached to another BUSY business.");
   }
   if (existing.data) return existing.data;
+
+  const domainCapacity = await supabase
+    .from("busy_website_domains")
+    .select("id")
+    .eq("website_id", website.id)
+    .neq("status", "disabled")
+    .limit(6);
+  if (domainCapacity.error) throw domainCapacity.error;
+  if ((domainCapacity.data || []).length >= 5) {
+    throw new Error(
+      "This BUSY website already has the maximum number of active or pending custom domains. Remove or disable an old domain before adding another."
+    );
+  }
 
   const token = crypto.randomUUID();
   const inserted = await supabase
