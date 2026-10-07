@@ -12820,6 +12820,38 @@ function App() {
     }
   };
 
+  const retryWebsiteRecovery = async () => {
+    if (!websitePublishingView?.liveDeployment) {
+      setWebsitePublishingError("Publish a website version before running hosting recovery.");
+      return false;
+    }
+    setWebsitePublishingAction("recover");
+    setWebsitePublishingError("");
+    setWebsitePublishingNotice("");
+    try {
+      const result = await websitePublishingRequest("recover");
+      const actions = Array.isArray(result?.recovery?.actions)
+        ? result.recovery.actions
+        : [];
+      const failed = actions.filter((item) => item?.ok === false);
+      setWebsitePublishingNotice(
+        failed.length
+          ? "BUSY ran the safe recovery checks. Some external delivery checks still need time, so background retries will continue without changing the approved website content."
+          : "BUSY rechecked the hosting platform, custom-domain provider state and live website delivery. Background monitoring will continue automatically."
+      );
+      await refreshWebsitePublishingStatus({ quiet: true });
+      followWebsiteGoLive();
+      return true;
+    } catch (error) {
+      setWebsitePublishingError(
+        error?.message || "BUSY could not run the safe hosting recovery checks."
+      );
+      return false;
+    } finally {
+      setWebsitePublishingAction("");
+    }
+  };
+
   const requestWebsiteDomain = async () => {
     const hostname = websiteDomainDraft.trim();
     if (!hostname) return false;
@@ -14135,6 +14167,7 @@ function App() {
     provisionWebsiteDomain,
     refreshWebsiteSignals,
     runWebsiteHealthCheck,
+    retryWebsiteRecovery,
     openDefaultWebsiteAddress,
     openCustomWebsiteDomain,
     openWebsitePublishing,
