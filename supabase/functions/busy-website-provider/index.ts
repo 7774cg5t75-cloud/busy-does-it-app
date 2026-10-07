@@ -5,10 +5,21 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const CLOUDFLARE_API_TOKEN = Deno.env.get("CLOUDFLARE_API_TOKEN") || "";
 const CLOUDFLARE_ZONE_ID = Deno.env.get("CLOUDFLARE_SAAS_ZONE_ID") || "";
-const CLOUDFLARE_CNAME_TARGET = Deno.env.get("CLOUDFLARE_SAAS_CNAME_TARGET") || "";
-const BUSY_ROOT_DOMAIN = Deno.env.get("BUSY_WEBSITE_ROOT_DOMAIN") || "busydoesit.co.uk";
+const CLOUDFLARE_ACCOUNT_ID = Deno.env.get("CLOUDFLARE_ACCOUNT_ID") || "";
+const BUSY_ROOT_DOMAIN =
+  (Deno.env.get("BUSY_WEBSITE_ROOT_DOMAIN") || "busydoesit.co.uk").toLowerCase();
 const BUSY_WEBSITE_BASE_DOMAIN =
-  Deno.env.get("BUSY_WEBSITE_BASE_DOMAIN") || "sites.busydoesit.co.uk";
+  (Deno.env.get("BUSY_WEBSITE_BASE_DOMAIN") || BUSY_ROOT_DOMAIN).toLowerCase();
+const BUSY_WEBSITE_CNAME_HOST =
+  (Deno.env.get("BUSY_WEBSITE_CNAME_HOST") || `sites.${BUSY_ROOT_DOMAIN}`).toLowerCase();
+const CLOUDFLARE_CNAME_TARGET =
+  (Deno.env.get("CLOUDFLARE_SAAS_CNAME_TARGET") || BUSY_WEBSITE_CNAME_HOST).toLowerCase();
+const CLOUDFLARE_FALLBACK_ORIGIN =
+  (Deno.env.get("CLOUDFLARE_FALLBACK_ORIGIN") || `origin.${BUSY_ROOT_DOMAIN}`).toLowerCase();
+const CLOUDFLARE_ROUTER_SCRIPT =
+  Deno.env.get("CLOUDFLARE_ROUTER_SCRIPT") || "busy-website-router";
+const BUSY_WEBSITE_ORIGIN_URL =
+  `${SUPABASE_URL}/functions/v1/busy-website-origin`;
 const CLOUDFLARE_API = "https://api.cloudflare.com/client/v4";
 const DNS_JSON_URL = "https://cloudflare-dns.com/dns-query";
 
@@ -30,18 +41,23 @@ function clean(value: unknown, max = 4000) {
 function providerConfig() {
   return {
     provider: "cloudflare_saas",
-    configured: !!(
+    configured: !!(CLOUDFLARE_API_TOKEN && CLOUDFLARE_ZONE_ID),
+    bootstrapReady: !!(
       CLOUDFLARE_API_TOKEN &&
       CLOUDFLARE_ZONE_ID &&
-      CLOUDFLARE_CNAME_TARGET
+      CLOUDFLARE_ACCOUNT_ID
     ),
     hasApiToken: !!CLOUDFLARE_API_TOKEN,
     hasZoneId: !!CLOUDFLARE_ZONE_ID,
+    hasAccountId: !!CLOUDFLARE_ACCOUNT_ID,
     hasCnameTarget: !!CLOUDFLARE_CNAME_TARGET,
     rootDomain: BUSY_ROOT_DOMAIN,
     baseDomainConfigured: !!BUSY_WEBSITE_BASE_DOMAIN,
     baseDomain: BUSY_WEBSITE_BASE_DOMAIN || "",
     baseDomainSource: Deno.env.get("BUSY_WEBSITE_BASE_DOMAIN") ? "environment" : "busy_default",
+    cnameHost: BUSY_WEBSITE_CNAME_HOST,
+    fallbackOrigin: CLOUDFLARE_FALLBACK_ORIGIN,
+    routerScript: CLOUDFLARE_ROUTER_SCRIPT,
     routingTarget: CLOUDFLARE_CNAME_TARGET || "",
   };
 }
@@ -72,6 +88,7 @@ async function platformPreflight() {
   const result: any = {
     rootDomain: BUSY_ROOT_DOMAIN,
     baseDomain: BUSY_WEBSITE_BASE_DOMAIN,
+    cnameHost: BUSY_WEBSITE_CNAME_HOST,
     checkedAt,
     rootNameservers: [],
     rootOnCloudflare: false,
@@ -97,9 +114,9 @@ async function platformPreflight() {
     }
 
     const [cname, a, aaaa] = await Promise.all([
-      dnsAnswers(BUSY_WEBSITE_BASE_DOMAIN, "CNAME"),
-      dnsAnswers(BUSY_WEBSITE_BASE_DOMAIN, "A"),
-      dnsAnswers(BUSY_WEBSITE_BASE_DOMAIN, "AAAA"),
+      dnsAnswers(BUSY_WEBSITE_CNAME_HOST, "CNAME"),
+      dnsAnswers(BUSY_WEBSITE_CNAME_HOST, "A"),
+      dnsAnswers(BUSY_WEBSITE_CNAME_HOST, "AAAA"),
     ]);
     result.baseDomainAnswers = [...cname, ...a, ...aaaa]
       .map((answer: any) => cleanDnsValue(answer?.data))
@@ -442,7 +459,8 @@ async function reserveDefaultHostnames() {
   for (const website of websites.data || []) {
     const businessSuffix = String(website.business_id).replaceAll("-", "").slice(0, 8);
     const slug = clean(website.public_slug, 55).replace(/[^a-z0-9-]/gi, "-").replace(/^-+|-+$/g, "");
-    const hostname = `${slug || "business"}-${businessSuffix}.${BUSY_WEBSITE_BASE_DOMAIN}`.toLowerCase();
+    const safeSlug = (slug || "business").slice(0, 42);
+    const hostname = `site-${safeSlug}-${businessSuffix}.${BUSY_WEBSITE_BASE_DOMAIN}`.toLowerCase();
     const updated = await supabase
       .from("busy_websites")
       .update({
