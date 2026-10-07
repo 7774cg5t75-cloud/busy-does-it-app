@@ -2,6 +2,37 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.40 Mini Apps Customer Journey Bridge
+### One customer journey, not a Mini App CRM
+- V3.40 deliberately does not create a second standalone customer database for BUSY Apps.
+- `busy_mini_app_requests` remains the durable external-request source record; once an owner reviews it, the client creates/links the existing BUSY snapshot customer/action record.
+- `busy_mini_app_request_links` stores the durable cross-device bridge to the snapshot customer ID and optional action ID. Re-importing the same request therefore resolves to the existing link instead of creating another customer/action.
+- Deterministic Mini App source/activity IDs make the client-side import itself duplicate-resistant if a network failure happens before the bridge acknowledgement is stored.
+
+### Booking safety boundary
+- A Mini App booking submission is a request only.
+- On owner review it becomes a BUSY booking action with `bookingStatus=Draft`, `done=false`, origin `mini-app`, and the original preferred-date text.
+- Relative/free-form date wording is not converted into a made-up confirmed date. Exact ISO/UK dates may be carried into the Draft; otherwise the owner chooses the actual slot.
+- The existing Work booking confirmation path is the only point that updates the Mini App request to accepted/confirmed journey state.
+- This preserves the existing BUSY calendar/customer rules and prevents a public customer action from bypassing owner control.
+
+### Consumer relationship layer
+- `busy_mini_app_consumer_apps` is a private server-owned relationship between a signed-in BUSY user and Mini Apps they have actually opened or used.
+- Opening a live listed Mini App creates/refreshes that relationship. Sending a request also updates `last_action_at`.
+- Customers can favourite apps; favourites are a presentation preference, not a business endorsement/ranking signal.
+- A previously used live app may remain reachable from My BUSY Apps even after the owner removes it from marketplace discovery. New directory users cannot discover it.
+- Consumer request history is read from the user's own `busy_mini_app_requests` rows through the Edge Function, never through direct table access.
+
+### Request lifecycle audit
+- `busy_mini_app_request_events` records server-side lifecycle events such as received, reviewing, accepted, declined, customer-link creation, Draft booking creation and real booking confirmation.
+- Owner/admin status changes and customer submissions create audit rows server-side.
+- Request status semantics remain conservative: linking a booking request into BUSY keeps it Reviewing; only a confirmed BUSY booking moves it to Accepted.
+
+### Scale/security
+- The new consumer/link/event tables are RLS-enabled but expose no anon/authenticated table privileges; all access is mediated by `busy-mini-apps`.
+- Request contact fields are normalized into bounded columns for matching/querying while the bounded request payload remains available as source evidence.
+- Owner Home and BUSY Operator consume the same server request/link state, so business workflow visibility does not depend on the Mini App Builder screen being open.
+
 ## V3.39 BUSY Apps Marketplace Foundation
 ### Product model
 - A Mini App is configuration over a controlled module catalogue. BUSY does not generate arbitrary application code per business.
