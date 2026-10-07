@@ -6,6 +6,8 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const MINI_APP_PUBLIC_BUCKET = "busy-mini-app-public";
 const MINI_APP_LINK_URL = `${SUPABASE_URL}/functions/v1/busy-mini-app-link`;
 const MINI_APP_GUEST_URL = `${SUPABASE_URL}/functions/v1/busy-mini-app-guest`;
+const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
+const DEFAULT_APP_PLANNER_MODEL = "gpt-6-luna";
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
@@ -598,6 +600,530 @@ function buildConfig(
   };
 }
 
+const appPlanSchema = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "summary",
+    "modules",
+    "missingFacts",
+    "offers",
+    "unsupportedRequests",
+    "confidence",
+  ],
+  properties: {
+    summary: { type: "string" },
+    modules: {
+      type: "array",
+      maxItems: 12,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["key", "enabled", "reason"],
+        properties: {
+          key: { type: "string" },
+          enabled: { type: "boolean" },
+          reason: { type: "string" },
+        },
+      },
+    },
+    missingFacts: {
+      type: "array",
+      maxItems: 8,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["key", "question"],
+        properties: {
+          key: { type: "string" },
+          question: { type: "string" },
+        },
+      },
+    },
+    offers: {
+      type: "array",
+      maxItems: 4,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["title", "body", "terms"],
+        properties: {
+          title: { type: "string" },
+          body: { type: "string" },
+          terms: { type: "string" },
+        },
+      },
+    },
+    unsupportedRequests: {
+      type: "array",
+      maxItems: 6,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["request", "reason"],
+        properties: {
+          request: { type: "string" },
+          reason: { type: "string" },
+        },
+      },
+    },
+    confidence: { type: "string", enum: ["High", "Medium", "Low"] },
+  },
+};
+
+function safeOffer(value: any) {
+  return {
+    title: clean(value?.title, 180),
+    body: clean(value?.body, 900),
+    terms: clean(value?.terms, 500),
+  };
+}
+
+function fallbackAppPlan(
+  ownerRequest: string,
+  profile: any,
+  catalog: any[],
+  existingConfig: any = null
+) {
+  const text = ownerRequest.toLowerCase();
+  const available = new Set(
+    catalog
+      .filter((item: any) => item.status === "available")
+      .map((item: any) => item.module_key)
+  );
+  const existingOffers = safeArray(existingConfig?.offers)
+    .map(safeOffer)
+    .filter((item: any) => item.title && item.body);
+
+  const wants = (words: string[]) =>
+    words.some((word) => text.includes(word));
+
+  const moduleFlags: Record<string, boolean> = {
+    business_profile: true,
+    services:
+      safeArray(profile?.services).length > 0 ||
+      wants(["service", "what we do", "price list"]),
+    gallery:
+      safeArray(profile?.assets?.gallery).length > 0 ||
+      wants(["gallery", "photo", "picture", "portfolio", "before and after"]),
+    contact:
+      !!(profile?.contact?.phone || profile?.contact?.email) ||
+      wants(["contact", "call", "email", "get in touch"]),
+    enquiry: wants(["enquir", "quote", "estimate", "message", "contact"]) || true,
+    booking_request: wants([
+      "book",
+      "appointment",
+      "schedule",
+      "reserve",
+      "date",
+      "slot",
+    ]),
+    offers:
+      existingOffers.length > 0 &&
+      wants(["offer", "deal", "discount", "promotion", "promo"]),
+  };
+
+  const moduleReasons: Record<string, string> = {
+    business_profile: "Every BUSY business app needs the approved business identity.",
+    services: safeArray(profile?.services).length
+      ? "BUSY already knows the business services."
+      : "You asked customers to see services.",
+    gallery: safeArray(profile?.assets?.gallery).length
+      ? "Approved business imagery is already available."
+      : "You asked for visual work examples.",
+    contact: "Customers need a clear route to contact the business.",
+    enquiry: "A structured enquiry keeps customer interest inside the BUSY workflow.",
+    booking_request:
+      "Customers can request a service/date, while the business still confirms the booking.",
+    offers: "An already approved offer can be shown publicly.",
+  };
+
+  const missingFacts: any[] = [];
+  if (moduleFlags.services && !safeArray(profile?.services).length) {
+    missingFacts.push({
+      key: "services",
+      question: "Which services should customers see in the app?",
+    });
+  }
+  if (
+    moduleFlags.contact &&
+    !profile?.contact?.phone &&
+    !profile?.contact?.email
+  ) {
+    missingFacts.push({
+      key: "contact",
+      question: "What phone number or email should customers use?",
+    });
+  }
+  if (
+    wants(["gallery", "photo", "picture", "portfolio", "before and after"]) &&
+    !safeArray(profile?.assets?.gallery).length
+  ) {
+    missingFacts.push({
+      key: "gallery",
+      question: "Which approved photos should BUSY use for the app gallery?",
+    });
+  }
+  if (
+    wants(["offer", "deal", "discount", "promotion", "promo"]) &&
+    !existingOffers.length
+  ) {
+    missingFacts.push({
+      key: "offers",
+      question: "What exact offer should customers see, including any important terms?",
+    });
+  }
+
+  const unsupportedRequests: any[] = [];
+  if (wants(["loyalty", "stamp card", "points"])) {
+    unsupportedRequests.push({
+      request: "Loyalty",
+      reason: "The reusable Loyalty module is still planned and BUSY will not pretend it is live yet.",
+    });
+  }
+  if (wants(["payment", "pay online", "take payment", "card payment", "deposit"])) {
+    unsupportedRequests.push({
+      request: "Payments",
+      reason: "Payments remain a planned controlled module and are not enabled by this builder yet.",
+    });
+  }
+
+  return {
+    summary:
+      ownerRequest ||
+      "Build a simple customer-facing app from the business information BUSY already knows.",
+    modules: catalog.map((item: any) => ({
+      key: item.module_key,
+      enabled:
+        item.status === "available" &&
+        !!moduleFlags[item.module_key],
+      reason:
+        item.status === "available"
+          ? moduleReasons[item.module_key] || "Not needed for this app request."
+          : "This module is planned but is not available yet.",
+    })),
+    missingFacts,
+    offers: existingOffers,
+    unsupportedRequests,
+    confidence: ownerRequest ? "Medium" : "Low",
+    planner: "deterministic_fallback",
+  };
+}
+
+function sanitiseAppPlan(plan: any, catalog: any[], fallback: any) {
+  const catalogByKey = new Map(
+    catalog.map((item: any) => [item.module_key, item])
+  );
+  const requestedModules = new Map(
+    safeArray(plan?.modules).map((item: any) => [clean(item?.key, 80), item])
+  );
+
+  const modules = catalog.map((catalogItem: any) => {
+    const requested: any = requestedModules.get(catalogItem.module_key);
+    const enabled =
+      catalogItem.module_key === "business_profile"
+        ? true
+        : catalogItem.status === "available" && requested?.enabled === true;
+    return {
+      key: catalogItem.module_key,
+      enabled,
+      reason:
+        clean(requested?.reason, 500) ||
+        clean(
+          fallback?.modules?.find(
+            (item: any) => item.key === catalogItem.module_key
+          )?.reason,
+          500
+        ) ||
+        (enabled ? "Included for this app." : "Not needed for this app."),
+    };
+  });
+
+  const offers = safeArray(plan?.offers)
+    .map(safeOffer)
+    .filter((item: any) => item.title && item.body)
+    .slice(0, 4);
+
+  // Offers must contain explicit content. BUSY never publishes an empty or
+  // invented promotion merely because the owner mentioned "offers".
+  const offerModule = modules.find((item: any) => item.key === "offers");
+  if (offerModule && !offers.length) offerModule.enabled = false;
+
+  const unsupportedRequests = safeArray(plan?.unsupportedRequests)
+    .map((item: any) => ({
+      request: clean(item?.request, 180),
+      reason: clean(item?.reason, 600),
+    }))
+    .filter((item: any) => item.request && item.reason)
+    .slice(0, 6);
+
+  // Any model attempt to enable a planned/unknown module is surfaced as an
+  // unsupported request rather than silently expanding the trusted platform.
+  for (const [key, requested] of requestedModules.entries()) {
+    const catalogItem: any = catalogByKey.get(key);
+    if (
+      requested?.enabled === true &&
+      (!catalogItem || catalogItem.status !== "available")
+    ) {
+      unsupportedRequests.push({
+        request: clean(catalogItem?.title || key, 180),
+        reason: catalogItem
+          ? "This reusable module is planned but is not available yet."
+          : "That capability is outside the current tested BUSY module catalogue.",
+      });
+    }
+  }
+
+  return {
+    version: 1,
+    summary: clean(plan?.summary, 900) || fallback.summary,
+    modules,
+    missingFacts: safeArray(plan?.missingFacts)
+      .map((item: any) => ({
+        key: clean(item?.key, 80),
+        question: clean(item?.question, 500),
+      }))
+      .filter((item: any) => item.key && item.question)
+      .slice(0, 8),
+    offers,
+    unsupportedRequests: unsupportedRequests.slice(0, 6),
+    confidence: ["High", "Medium", "Low"].includes(plan?.confidence)
+      ? plan.confidence
+      : fallback.confidence,
+    planner: clean(plan?.planner, 80) || "ai",
+  };
+}
+
+async function aiAppPlan(
+  ownerRequest: string,
+  profile: any,
+  catalog: any[],
+  existingConfig: any = null
+) {
+  const fallback = fallbackAppPlan(
+    ownerRequest,
+    profile,
+    catalog,
+    existingConfig
+  );
+  const apiKey = Deno.env.get("OPENAI_API_KEY");
+  if (!apiKey || !ownerRequest) return fallback;
+
+  const catalogueSummary = catalog.map((item: any) => ({
+    key: item.module_key,
+    title: item.title,
+    status: item.status,
+    description: item.description,
+  }));
+  const businessFacts = {
+    businessName: profile?.businessName || "",
+    businessType: profile?.businessType || "",
+    serviceArea: profile?.serviceArea || "",
+    serviceCount: safeArray(profile?.services).length,
+    serviceNames: safeArray(profile?.services)
+      .slice(0, 20)
+      .map((item: any) => item.name),
+    hasPhone: !!profile?.contact?.phone,
+    hasEmail: !!profile?.contact?.email,
+    approvedGalleryCount: safeArray(profile?.assets?.gallery).length,
+    existingApprovedOffers: safeArray(existingConfig?.offers)
+      .map(safeOffer)
+      .filter((item: any) => item.title && item.body),
+  };
+
+  const prompt = `You are the controlled BUSY DOES IT business-app planner.
+
+Owner request:
+"${ownerRequest}"
+
+Recorded business facts:
+${JSON.stringify(businessFacts)}
+
+Trusted module catalogue:
+${JSON.stringify(catalogueSummary)}
+
+Return a conservative app plan. Rules:
+- Only recommend modules in the supplied catalogue.
+- business_profile must always be enabled.
+- Never enable a module whose status is not "available".
+- Reuse recorded business facts; never invent services, contact details, photos, prices, offers, discounts, terms, opening hours or business claims.
+- Enable enquiry when the owner wants leads, messages, quotes or contact forms.
+- Enable booking_request when the owner wants customers to request dates/services. It remains request-only; never imply automatic booking confirmation.
+- Enable gallery only when approved images exist or the owner explicitly asks for it. If requested but no approved images exist, add one targeted missingFacts question.
+- Enable contact only when contact details exist or the owner asks for contact; if requested but missing, ask one targeted question.
+- Enable services when recorded services exist or the owner explicitly asks for services; ask one targeted question when needed.
+- Offers may be enabled ONLY when a specific offer is already recorded or the owner's current request itself states the actual offer. Do not invent a discount. If the owner asks for offers generically, ask for the exact offer instead.
+- Loyalty and payments are planned modules. If requested, keep them disabled and put them in unsupportedRequests with a plain-English reason.
+- missingFacts should contain only information materially needed for requested modules; avoid a giant questionnaire.
+- Explain why each module is included/excluded in short owner-friendly language.
+- offers must contain only offer wording explicitly supported by the owner request or existingApprovedOffers.
+`;
+
+  try {
+    const response = await fetch(OPENAI_RESPONSES_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model:
+          Deno.env.get("OPENAI_APP_PLANNER_MODEL") ||
+          DEFAULT_APP_PLANNER_MODEL,
+        reasoning: { effort: "low" },
+        input: prompt,
+        text: {
+          format: {
+            type: "json_schema",
+            name: "busy_business_app_plan",
+            strict: true,
+            schema: appPlanSchema,
+          },
+        },
+        max_output_tokens: 1800,
+        store: false,
+      }),
+    });
+    const payload: any = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error("Planner unavailable.");
+    const outputText =
+      typeof payload?.output_text === "string"
+        ? payload.output_text
+        : Array.isArray(payload?.output)
+        ? payload.output
+            .flatMap((item: any) =>
+              Array.isArray(item?.content) ? item.content : []
+            )
+            .filter((item: any) => item?.type === "output_text")
+            .map((item: any) => item.text || "")
+            .join("")
+        : "";
+    const parsed = outputText ? JSON.parse(outputText) : null;
+    return sanitiseAppPlan(
+      { ...parsed, planner: "ai" },
+      catalog,
+      fallback
+    );
+  } catch {
+    return fallback;
+  }
+}
+
+async function planBusinessApp(
+  businessId: string,
+  body: any
+) {
+  const [catalog, storedProfile, app] = await Promise.all([
+    moduleCatalog(),
+    publicProfileForBusiness(businessId),
+    appForBusiness(businessId),
+  ]);
+  const supplied = sanitizePublicProfile(body?.profileDraft || {});
+  const profile = supplied.businessName
+    ? supplied
+    : sanitizePublicProfile(storedProfile?.profile || {});
+  if (!profile.businessName) {
+    throw new Error(
+      "BUSY needs the approved business name before planning the app."
+    );
+  }
+  const ownerRequest = clean(body?.ownerRequest, 3000);
+  if (!ownerRequest) {
+    throw new Error(
+      "Tell BUSY what you want customers to be able to do in your app."
+    );
+  }
+  return await aiAppPlan(
+    ownerRequest,
+    profile,
+    catalog,
+    app?.draft_config || null
+  );
+}
+
+async function applyBusinessAppPlan(
+  userId: string,
+  businessId: string,
+  body: any
+) {
+  const [catalog, storedProfile] = await Promise.all([
+    moduleCatalog(),
+    publicProfileForBusiness(businessId),
+  ]);
+  const supplied = sanitizePublicProfile(body?.profileDraft || {});
+  const profile = supplied.businessName
+    ? supplied
+    : sanitizePublicProfile(storedProfile?.profile || {});
+  if (!profile.businessName) {
+    throw new Error(
+      "BUSY needs an approved public business name before building the app."
+    );
+  }
+
+  const ownerRequest = clean(body?.ownerRequest, 3000);
+  const fallback = fallbackAppPlan(
+    ownerRequest,
+    profile,
+    catalog,
+    null
+  );
+  const plan = sanitiseAppPlan(body?.plan || {}, catalog, fallback);
+  const app = await ensureApp(businessId, userId, profile);
+  const base = buildConfig(
+    profile,
+    catalog,
+    Number(storedProfile?.revision || 0),
+    app.draft_config
+  );
+  const planByKey = new Map(
+    plan.modules.map((item: any) => [item.key, item])
+  );
+  const modules = safeArray(base.modules).map((item: any) => {
+    const planned: any = planByKey.get(item.key);
+    return {
+      ...item,
+      enabled:
+        item.key === "business_profile"
+          ? true
+          : item.status === "available" && planned?.enabled === true,
+    };
+  });
+  const config = {
+    ...base,
+    schemaVersion: 2,
+    surface: "busy_business_app",
+    builderPlan: {
+      ...plan,
+      ownerRequest,
+      generatedAt: new Date().toISOString(),
+    },
+    offers: plan.offers,
+    modules,
+    navigation: modules
+      .filter((item: any) => item.enabled)
+      .map((item: any) => item.key),
+  };
+
+  const updated = await supabase
+    .from("busy_mini_apps")
+    .update({
+      display_name: profile.businessName,
+      category: profile.businessType,
+      tagline: profile.tagline,
+      status: app.current_live_version_id ? "update_pending" : "draft",
+      draft_revision: Number(app.draft_revision || 1) + 1,
+      draft_profile_revision: Number(storedProfile?.revision || 0),
+      draft_config: config,
+      last_error: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", app.id)
+    .select("*")
+    .single();
+  if (updated.error) throw updated.error;
+  return { app: updated.data, plan };
+}
+
 function changeSummary(previous: any, next: any) {
   const items: any[] = [];
   const add = (type: string, label: string) =>
@@ -1159,8 +1685,25 @@ function publicMiniAppWebHtml(app: any, version: any) {
       </div></section>`
     : "";
 
+  const approvedOffers = safeArray(config?.offers)
+    .map(safeOffer)
+    .filter((item: any) => item.title && item.body)
+    .slice(0, 4);
   const offersHtml = enabled.has("offers")
-    ? `<section id="offers"><div class="wrap"><p class="eyebrow">Offers</p><h2>Offers</h2><p>No approved public offer is currently published.</p></div></section>`
+    ? approvedOffers.length
+      ? `<section id="offers"><div class="wrap"><p class="eyebrow">Offers</p><h2>Current offers</h2><div class="grid">${approvedOffers
+          .map(
+            (offer: any) =>
+              `<article><h3>${escapeHtml(offer.title)}</h3><p>${escapeHtml(
+                offer.body
+              )}</p>${
+                offer.terms
+                  ? `<p class="muted">${escapeHtml(offer.terms)}</p>`
+                  : ""
+              }</article>`
+          )
+          .join("")}</div></div></section>`
+      : `<section id="offers"><div class="wrap"><p class="eyebrow">Offers</p><h2>Offers</h2><p>No approved public offer is currently published.</p></div></section>`
     : "";
 
   const heroHtml = hero ? `<img class="hero-image" src="${escapeHtml(hero)}" alt="${escapeHtml(name)}" />` : "";
@@ -2454,6 +2997,8 @@ Deno.serve(async (request: Request) => {
 
     const writeActions = new Set([
       "build_draft",
+      "plan_app",
+      "apply_app_plan",
       "set_module",
       "prepare_preview",
       "publish",
@@ -2483,6 +3028,24 @@ Deno.serve(async (request: Request) => {
       return json(200, {
         ok: true,
         ...(await buildDraft(user.id, resolvedBusinessId, body)),
+        status: await ownerStatus(resolvedBusinessId),
+      });
+    }
+    if (action === "plan_app") {
+      return json(200, {
+        ok: true,
+        plan: await planBusinessApp(resolvedBusinessId, body),
+        status: await ownerStatus(resolvedBusinessId),
+      });
+    }
+    if (action === "apply_app_plan") {
+      return json(200, {
+        ok: true,
+        ...(await applyBusinessAppPlan(
+          user.id,
+          resolvedBusinessId,
+          body
+        )),
         status: await ownerStatus(resolvedBusinessId),
       });
     }
