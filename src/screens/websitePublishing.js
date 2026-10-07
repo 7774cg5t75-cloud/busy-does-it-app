@@ -45,7 +45,7 @@ function WebsitePublishing({ s }) {
       s={s}
       title="Website Management"
       subtitle="Edit privately, inspect the exact hosted version, then decide what becomes public."
-      brandCue="V3.37 • live management • multi-page • health • SEO basics • shared public profile."
+      brandCue="V3.38 • real delivery • provider routing • traffic signals • usage metering."
     >
       <Card
         eyebrow="Website lifecycle"
