@@ -35,6 +35,26 @@ const websiteWakeRlsMigrationSource = fs.readFileSync(
   "supabase/migrations/20261007224500_v3_53_worker_wake_rls_policy.sql",
   "utf8"
 );
+const miniAppsSource = fs.readFileSync(
+  "supabase/functions/busy-mini-apps/index.ts",
+  "utf8"
+);
+const busyCommandSource = fs.readFileSync(
+  "supabase/functions/busy-command/index.ts",
+  "utf8"
+);
+const miniAppsDomainSource = fs.readFileSync(
+  "src/domain/miniApps.js",
+  "utf8"
+);
+const miniAppsScreenSource = fs.readFileSync(
+  "src/screens/miniApps.js",
+  "utf8"
+);
+const appBuilderMigrationSource = fs.readFileSync(
+  "supabase/migrations/20261007231500_v3_54_business_app_builder_intelligence.sql",
+  "utf8"
+);
 const productionWorkflowSource = fs.readFileSync(
   ".github/workflows/production-check.yml",
   "utf8"
@@ -62,8 +82,8 @@ const checks = [
   ["native development build workflow", fs.existsSync(".github/workflows/native-development-build.yml")],
   ["SDK57 calendar legacy import", controllerSource.includes('import * as Calendar from "expo-calendar/legacy";')],
   ["SDK54 Snack calendar rewrite", snackPublisherSource.includes('expo-calendar/legacy') && snackPublisherSource.includes('expo-calendar";')],
-  ["V3.53 public website origin", fs.existsSync("supabase/functions/busy-website-origin/index.ts")],
-  ["V3.53 Cloudflare router Worker", fs.existsSync("cloudflare/busy-website-router/worker.js")],
+  ["V3.54 public website origin", fs.existsSync("supabase/functions/busy-website-origin/index.ts")],
+  ["V3.54 Cloudflare router Worker", fs.existsSync("cloudflare/busy-website-router/worker.js")],
   ["website origin is public edge function", supabaseConfigSource.includes("[functions.busy-website-origin]") && supabaseConfigSource.includes("verify_jwt = false")],
   ["BUSY production root domain", websiteProviderSource.includes("busydoesit.co.uk")],
   ["Cloudflare automated platform bootstrap", websiteProviderSource.includes("bootstrapPlatform") && websiteProviderSource.includes("uploadRouterWorker")],
@@ -117,6 +137,15 @@ const checks = [
   ["V3.53 deterministic 10k simulation exists", websiteSimulationSource.includes("10000") && websiteSimulationSource.includes("simulatedCrashEvery") && websiteSimulationSource.includes("cross-tenant-mismatch-rejected")],
   ["V3.53 simulation models cost envelope", websiteSimulationSource.includes("dailyEnvelope") && websiteSimulationSource.includes("assumedPublishesAtTenPercentDaily")],
   ["V3.53 simulation is a production release gate", productionWorkflowSource.includes("Simulate website scale and failure recovery") && productionWorkflowSource.includes("website-platform-simulation.mjs")],
+  ["V3.54 controlled business app planner", miniAppsSource.includes("planBusinessApp") && miniAppsSource.includes("applyBusinessAppPlan") && miniAppsSource.includes("appPlanSchema")],
+  ["V3.54 app planner uses recorded business facts", miniAppsSource.includes("serviceNames") && miniAppsSource.includes("approvedGalleryCount") && miniAppsSource.includes("existingEnabledModules")],
+  ["V3.54 planned modules cannot be silently enabled", miniAppsSource.includes("catalogItem.status !== \"available\"") && miniAppsSource.includes("unsupportedRequests")],
+  ["V3.54 offers require explicit approved wording", miniAppsSource.includes("Offers must contain explicit content") && miniAppsSource.includes("approvedOffers") && appBuilderMigrationSource.includes("requires_approved_offer_data")],
+  ["V3.54 voice requests route into reviewed app plans", busyCommandSource.includes('actionLabel=\"Create app plan\"') && busyCommandSource.includes("copy the owner's requested app outcome/features") && controllerSource.includes("planMiniAppFromBrief(brief)")],
+  ["V3.54 owner can review plan before draft mutation", miniAppsScreenSource.includes("BUSY App Plan") && miniAppsScreenSource.includes("Build this app plan") && miniAppsScreenSource.includes("Nothing public changes here")],
+  ["V3.54 targeted missing-fact questions", miniAppsSource.includes("missingFacts") && miniAppsScreenSource.includes("BUSY still needs")],
+  ["V3.54 business app terminology introduced", miniAppsScreenSource.includes('title=\"Business App Builder\"') && miniAppsSource.includes('surface: \"busy_business_app\"')],
+  ["V3.54 app-plan state survives draft refresh", miniAppsDomainSource.includes("builderPlan") && controllerSource.includes("draft_config?.builderPlan")],
   ["Cloudflare root routes excluded", websiteProviderSource.includes("ensureWorkerRoutes") && websiteProviderSource.includes("www.")],
   ["health checks bypass website edge cache", websiteRouterSource.includes("BUSY-Website-Health/") && websiteProviderSource.includes("BUSY-Website-Health/")],
   ["website origin rejects storage traversal", websiteOriginSource.includes('part === ".."') && websiteOriginSource.includes("busy-website-public")],
