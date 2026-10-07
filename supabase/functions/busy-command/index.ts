@@ -520,6 +520,10 @@ function safeContext(value: any) {
             linkedCustomerRequests: Math.max(0, Number(context.miniApps.linkedCustomerRequests) || 0),
             businessUnreadMessages: Math.max(0, Number(context.miniApps.businessUnreadMessages) || 0),
             bookingDraftRequests: Math.max(0, Number(context.miniApps.bookingDraftRequests) || 0),
+            entryLanding30: Math.max(0, Number(context.miniApps.entryLanding30) || 0),
+            entryAppOpens30: Math.max(0, Number(context.miniApps.entryAppOpens30) || 0),
+            qrEntries30: Math.max(0, Number(context.miniApps.qrEntries30) || 0),
+            shareEntries30: Math.max(0, Number(context.miniApps.shareEntries30) || 0),
             publicSlug: cleanText(context.miniApps.publicSlug, 160),
             arbitraryBespokeCodeSupported: false,
             publicChangeRequiresOwnerApproval: true,
@@ -663,7 +667,7 @@ Supported direct intents:
 - mini_app_build: build/rebuild the private BUSY Mini App draft from approved public business facts and the controlled module catalogue; do not publish it.
 - mini_app_edit: open the controlled Mini App Builder; do not invent unsupported modules.
 - open_busy_apps: open the BUSY Apps marketplace/directory.
-- mini_app_status: answer from miniApps state only; distinguish draft, prepared preview, live and marketplace discoverability. Also answer owner questions such as "any new app requests?", "has anyone requested a booking through my app?", "what Mini App requests still need reviewing?" or "are customers messaging through my app?" from pendingCustomerRequests/unlinkedCustomerRequests/linkedCustomerRequests/businessUnreadMessages/bookingDraftRequests. Treat businessUnreadMessages as customer-originated conversation activity that still needs the business to open/read it. A booking draft is not a confirmed booking.
+- mini_app_status: answer from miniApps state only; distinguish draft, prepared preview, live and marketplace discoverability. Also answer owner questions such as "any new app requests?", "has anyone requested a booking through my app?", "what Mini App requests still need reviewing?" or "are customers messaging through my app?" from pendingCustomerRequests/unlinkedCustomerRequests/linkedCustomerRequests/businessUnreadMessages/bookingDraftRequests. Treat businessUnreadMessages as customer-originated conversation activity that still needs the business to open/read it. For questions such as "is anyone using my QR code?", "how are people opening my app?" or "did the shared link get used?", use entryLanding30/entryAppOpens30/qrEntries30/shareEntries30 and keep landing-page visits separate from authenticated in-app opens. A booking draft is not a confirmed booking.
 - business_outlook: answer questions about today, next week, the next 30 days, pipeline, capacity load, forecast range, risk radar, scenarios or whether the business is on track. Use executiveBriefing and clearly separate confirmed values from forecast ranges.
 - next_best_action: answer "what should I do now/next?" with one record-backed priority. This is an answer, not blanket action authority.
 - daily_briefing: answer requests like "brief me", "what matters today?", "what do I need to do now/later/watch?" from dailyCommandCentre. Keep the lane order exactly Do now → Later today → Watch and never manufacture a lane item.
