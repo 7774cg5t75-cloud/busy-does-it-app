@@ -2,6 +2,24 @@
 
 Busy Does It mobile app prototype.
 
+## v3.37 Live Website Management 2.0
+- Builds on the V3.36 multi-tenant publishing platform; no parallel website stack was introduced.
+- Website drafts are now multi-page structured models. V3.37 creates Home plus dedicated Services/About/Gallery/FAQ/Contact pages when the underlying approved sections exist.
+- Private hosted previews keep cross-page navigation private by using signed Storage URLs. Public Storage deployments use explicit object-safe page links until a real custom-domain router supplies clean path rewriting.
+- Each immutable deployment now stores a plain-English change label, structured change summary and page count. These source/version fields are protected by the existing immutability trigger.
+- Version history and rollback now explain what changed rather than showing only version numbers.
+- Safe conversational editing now supports exact headline/tagline/contact changes, adding/removing named services, changing service priority, section visibility and visual style. Vague seasonal/public claims are not invented.
+- SEO foundation now includes per-page titles/descriptions/headings, LocalBusiness structured-data output from recorded facts, and an owner-facing SEO-basics audit.
+- Added `busy_public_business_profiles`: a server-owned public-safe projection shared by website publishing and the future BUSY Mini-App platform. It is tenant-scoped, not a copy of the private Business Brain, and is not exposed directly to anonymous Data API users.
+- Added live-site health monitoring. Published HTML carries the immutable deployment ID; BUSY checks HTTP reachability and verifies that the site is actually serving the expected deployment.
+- Added scheduled `busy-website-health` Edge Function checks plus owner-triggered health verification. Health history is tenant-scoped and automatically pruned after 30 days.
+- Added daily tenant-scoped website analytics rollup tables. V3.37 intentionally does not write every public page view into the operational database; raw/CDN analytics ingestion remains a provider integration.
+- Domain state is now explicit across ownership, routing and SSL/TLS. Ownership verification does not imply traffic routing, and routing does not imply certificate activation.
+- Cloudflare for SaaS is a researched candidate for the later real custom-domain routing/SSL adapter, but V3.37 does not claim it is configured without credentials/provider confirmation.
+- Website health, domain truth, SEO basics, page count and public-profile revision are available to BUSY Operator context.
+- “Check my live website” is a safe read/verification voice action. “Publish” and “rollback” remain exact-version owner-approval actions.
+- Public visitor traffic still serves static Storage/CDN assets; BUSY AI and the transactional business database remain outside the critical path for normal website page loads.
+
 ## v3.36 Multi-Tenant Website Publishing Platform
 - Built directly on the V3.35 voice-first Website Builder.
 - Website hosting is multi-tenant from the first production-facing version: every website, deployment, domain and publish job is scoped to a real `business_id` from the existing BUSY business/membership model.
