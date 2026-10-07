@@ -1,5 +1,17 @@
 # busy-does-it-app
 
+## v3.49 Real Website Go-Live
+- Turns the V3.47–V3.48 hosting machinery into one owner-facing **Go Live journey**. The owner still approves the exact immutable hosted preview once; after that BUSY automatically carries the release through publication, BUSY-address allocation, Cloudflare route proof and exact-deployment health verification.
+- The website publishing worker now immediately asks the provider layer to reserve/promote the tenant-safe BUSY hostname after a publish or rollback, then invokes the live health verifier. These checks are non-destructive and cannot silently change the approved website content.
+- A temporary provider/health-check problem does **not** fail the approved publication itself. BUSY records the public version separately and lets the existing scheduled provider/health workers retry delivery proof safely.
+- Website Management now has a plain-English Go Live journey with five independent stages: owner approval, approved version published, BUSY address allocated, Cloudflare route verified, and exact deployment health proof.
+- The final **Live and healthy** state is only reached when both the storage/live alias and the tenant-safe Cloudflare hostname prove the expected immutable deployment. A DNS/route problem is therefore not misreported as a publishing failure, and a successful publish is not misreported as a verified public route.
+- After approval the mobile app follows the Go Live state automatically with short bounded refreshes, so the owner does not have to keep pressing Refresh while BUSY completes the background hand-off.
+- Rollback uses the same joined-up verification path: restoring an immutable version also re-checks the public BUSY address and deployment marker automatically.
+- The proven BUSY hostname becomes the preferred public address only after route proof; until then the existing hosted live alias remains a separate fallback truth.
+- Production checks now guard the immediate delivery-verification hand-off, Go Live state model and owner-facing journey UI.
+
+
 ## v3.48 Automatic Tenant Website Addresses
 - Closes the gap between **allocating** a BUSY hostname and actually proving it is live. A tenant address such as `site-business-1234.busydoesit.co.uk` now moves through **reserved → provisioning/route proof → active** instead of remaining permanently reserved after the owner publishes.
 - Publishing or rolling back a website now automatically starts default-address route verification whenever that website already has a BUSY hostname.
