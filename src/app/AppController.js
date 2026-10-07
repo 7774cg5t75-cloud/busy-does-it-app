@@ -11194,6 +11194,21 @@ function App() {
         publicProfileRevision: Number(websitePublishingView?.publicProfile?.revision || 0),
         publicChangeRequiresOwnerApproval: true,
       },
+      miniApps: {
+        status: miniAppsView?.statusLabel || "Not built",
+        hasDraft: !!miniAppsView?.hasDraft,
+        hasPreview: !!miniAppsView?.hasPreview,
+        hasLive: !!miniAppsView?.hasLive,
+        discoverable: !!miniAppsView?.isDiscoverable,
+        liveVersion: Number(miniAppsView?.liveVersion?.version_no || 0),
+        previewVersion: Number(miniAppsView?.previewVersion?.version_no || 0),
+        enabledModules: (miniAppsView?.enabledModules || []).map((item) => item.key),
+        plannedModules: (miniAppsView?.plannedModules || []).map((item) => item.module_key),
+        pendingCustomerRequests: Number(miniAppsView?.pendingRequests?.length || 0),
+        publicSlug: miniAppsView?.publicSlug || "",
+        arbitraryBespokeCodeSupported: false,
+        publicChangeRequiresOwnerApproval: true,
+      },
       businessMemory: {
         lastReviewedAt: businessMemoryLastReviewAt,
         strongestPattern: strongestBusinessMemoryPattern
@@ -11544,6 +11559,10 @@ function App() {
         "website_health_check",
         "website_publish_request",
         "website_rollback_request",
+        "mini_app_build",
+        "mini_app_edit",
+        "open_busy_apps",
+        "mini_app_status",
       ].includes(result.intent);
       if (
         autoWebsiteIntent &&
@@ -12030,6 +12049,19 @@ function App() {
       case "website_publish_request":
       case "website_rollback_request":
         openWebsitePublishing();
+        return true;
+      case "mini_app_build":
+        openMiniAppBuilder();
+        setTimeout(() => buildMiniAppFromBrandBrain(), 120);
+        return true;
+      case "mini_app_edit":
+        openMiniAppBuilder();
+        return true;
+      case "open_busy_apps":
+        openBusyAppsMarketplace();
+        return true;
+      case "mini_app_status":
+        openMiniAppBuilder();
         return true;
       case "social_post": {
         if (customer) {
