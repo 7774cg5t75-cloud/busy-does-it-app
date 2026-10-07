@@ -1028,6 +1028,20 @@ function HomeScreen({ s }) {
           }
           strong={!!s.websitePublishingView?.liveDeployment}
         />
+        <MetricRow
+          left="Website delivery"
+          right={s.websitePublishingView?.providerState?.label || "Not checked"}
+          strong={!!s.websitePublishingView?.providerState?.configured}
+        />
+        <MetricRow
+          left="Website signals"
+          right={
+            s.websitePublishingView?.analyticsView?.collecting
+              ? `${Number(s.websitePublishingView.analyticsView.visits || 0)} visits • ${Number(s.websitePublishingView.analyticsView.requests || 0)} requests`
+              : "Awaiting real provider signals"
+          }
+          strong={!!s.websitePublishingView?.analyticsView?.collecting}
+        />
         <Button label="Daily Command Centre" onPress={() => s.go("dailyCommandCentre")} />
         <Button label="Follow-up Engine" onPress={() => s.openFollowUpEngine()} />
         <Button label="Communications Hub" onPress={() => s.openCommunicationsHub()} />
