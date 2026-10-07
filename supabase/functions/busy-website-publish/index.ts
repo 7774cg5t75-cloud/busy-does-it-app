@@ -10,10 +10,15 @@ const PROVIDER_URL = `${SUPABASE_URL}/functions/v1/busy-website-provider`;
 const SIGNALS_URL = `${SUPABASE_URL}/functions/v1/busy-website-signals`;
 const CLOUDFLARE_API_TOKEN = Deno.env.get("CLOUDFLARE_API_TOKEN") || "";
 const CLOUDFLARE_ZONE_ID = Deno.env.get("CLOUDFLARE_SAAS_ZONE_ID") || "";
-const CLOUDFLARE_CNAME_TARGET = Deno.env.get("CLOUDFLARE_SAAS_CNAME_TARGET") || "";
-const BUSY_ROOT_DOMAIN = Deno.env.get("BUSY_WEBSITE_ROOT_DOMAIN") || "busydoesit.co.uk";
+const CLOUDFLARE_ACCOUNT_ID = Deno.env.get("CLOUDFLARE_ACCOUNT_ID") || "";
+const BUSY_ROOT_DOMAIN =
+  (Deno.env.get("BUSY_WEBSITE_ROOT_DOMAIN") || "busydoesit.co.uk").toLowerCase();
 const BUSY_WEBSITE_BASE_DOMAIN =
-  Deno.env.get("BUSY_WEBSITE_BASE_DOMAIN") || "sites.busydoesit.co.uk";
+  (Deno.env.get("BUSY_WEBSITE_BASE_DOMAIN") || BUSY_ROOT_DOMAIN).toLowerCase();
+const BUSY_WEBSITE_CNAME_HOST =
+  (Deno.env.get("BUSY_WEBSITE_CNAME_HOST") || `sites.${BUSY_ROOT_DOMAIN}`).toLowerCase();
+const CLOUDFLARE_CNAME_TARGET =
+  (Deno.env.get("CLOUDFLARE_SAAS_CNAME_TARGET") || BUSY_WEBSITE_CNAME_HOST).toLowerCase();
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -332,17 +337,20 @@ async function websiteForBusiness(businessId: string) {
 function websiteProviderConfig() {
   return {
     provider: "cloudflare_saas",
-    configured: !!(
+    configured: !!(CLOUDFLARE_API_TOKEN && CLOUDFLARE_ZONE_ID),
+    bootstrapReady: !!(
       CLOUDFLARE_API_TOKEN &&
       CLOUDFLARE_ZONE_ID &&
-      CLOUDFLARE_CNAME_TARGET
+      CLOUDFLARE_ACCOUNT_ID
     ),
     hasApiToken: !!CLOUDFLARE_API_TOKEN,
     hasZoneId: !!CLOUDFLARE_ZONE_ID,
+    hasAccountId: !!CLOUDFLARE_ACCOUNT_ID,
     hasCnameTarget: !!CLOUDFLARE_CNAME_TARGET,
     rootDomain: BUSY_ROOT_DOMAIN,
     baseDomainConfigured: !!BUSY_WEBSITE_BASE_DOMAIN,
     baseDomain: BUSY_WEBSITE_BASE_DOMAIN || "",
+    cnameHost: BUSY_WEBSITE_CNAME_HOST,
     baseDomainSource: Deno.env.get("BUSY_WEBSITE_BASE_DOMAIN") ? "environment" : "busy_default",
   };
 }
