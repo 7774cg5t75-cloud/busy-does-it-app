@@ -667,6 +667,21 @@ function MiniAppBuilder({ s }) {
                         "Not supplied"
                       }
                     />
+                    {request.request_origin === "guest_web" ? (
+                      <>
+                        <MetricRow
+                          left="Source"
+                          right="Public web guest"
+                          strong
+                        />
+                        <MetricRow
+                          left="Verification"
+                          right="Browser challenge passed • contact details self-reported"
+                        />
+                      </>
+                    ) : (
+                      <MetricRow left="Source" right="Signed-in BUSY customer" />
+                    )}
                     {!link ? (
                       <Button
                         label={
@@ -716,8 +731,17 @@ function MiniAppBuilder({ s }) {
                       />
                     ) : null}
                     <Button
-                      label={Number(request.business_unread_count || 0) > 0 ? "Open new message" : "Open conversation"}
-                      primary={Number(request.business_unread_count || 0) > 0}
+                      label={
+                        request.request_origin === "guest_web"
+                          ? "Open guest request"
+                          : Number(request.business_unread_count || 0) > 0
+                          ? "Open new message"
+                          : "Open conversation"
+                      }
+                      primary={
+                        request.request_origin === "guest_web" ||
+                        Number(request.business_unread_count || 0) > 0
+                      }
                       onPress={() => s.openOwnerMiniAppRequest(request.id)}
                     />
                   </Card>
@@ -974,6 +998,7 @@ function MiniAppShareCentre({ s }) {
   const actionIntentCount = Number(entryCounts.byStage?.action_intent || 0);
   const appOpenCount = Number(entryCounts.byStage?.app_open || 0);
   const requestCount = Number(view.requestCount30 || 0);
+  const guestRequestCount = Number(view.guestRequestCount30 || 0);
   const qrCount = Number(entryCounts.bySource?.qr || 0);
   const shareCount = Number(entryCounts.bySource?.share || 0);
 
@@ -982,7 +1007,7 @@ function MiniAppShareCentre({ s }) {
       s={s}
       title="Share Mini App"
       subtitle="Give customers an install-free web view of this business's live BUSY Mini App."
-      brandCue="V3.44 • static web Mini App • QR/share entry • protected customer actions • funnel attribution."
+      brandCue="V3.45 • install-free guest enquiries & booking requests • browser challenge • bounded rate limits."
     >
       {view.hasLive && links.qr ? (
         <>
@@ -1023,15 +1048,16 @@ function MiniAppShareCentre({ s }) {
             <MetricRow left="Contact / booking attempts" right={String(actionIntentCount)} strong={actionIntentCount > 0} />
             <MetricRow left="Opened in BUSY" right={String(appOpenCount)} strong={appOpenCount > 0} />
             <MetricRow left="Genuine requests" right={String(requestCount)} strong={requestCount > 0} />
+            <MetricRow left="Guest web requests" right={String(guestRequestCount)} strong={guestRequestCount > 0} />
             <MetricRow left="QR-attributed entry" right={String(qrCount)} />
             <MetricRow left="Shared-link entry" right={String(shareCount)} />
           </Card>
 
           <Card
-            eyebrow="Release-ready handoff"
-            title="Fast public browsing without Cloudflare"
-            body="V3.44 publishes the live Mini App as a cached public-safe HTML artifact. Normal customer browsing loads that static artifact rather than running BUSY AI or reading the operational business database."
-            footer="Enquiry and booking buttons preserve the chosen business/action and continue securely in BUSY. Frictionless verified guest submission is deliberately left for the next controlled sweep."
+            eyebrow="Guest customer entry"
+            title="Browse and contact the business without installing BUSY"
+            body="V3.45 lets a customer submit an enquiry or booking request directly from the public web Mini App. BUSY uses a short-lived browser challenge, a hidden bot trap and server-side rate limits before the request enters the business workflow."
+            footer="The browser challenge reduces automated spam but does not prove ownership of the email address or phone number typed by the customer. Booking requests are still requests, never silent confirmed diary entries."
             tone="blue"
           />
         </>
@@ -1055,6 +1081,7 @@ function MiniAppRequestDetail({ s }) {
   const role = s.selectedMiniAppRequestRole || "customer";
   const [draft, setDraft] = React.useState("");
   const ownerView = role === "business";
+  const guestWebRequest = request?.request_origin === "guest_web";
   const link = request?.id ? s.miniAppsView?.linkByRequest?.get?.(request.id) || null : null;
 
   const send = async () => {
@@ -1070,8 +1097,14 @@ function MiniAppRequestDetail({ s }) {
     <Shell
       s={s}
       title={ownerView ? request?.contact_name || "Customer request" : detail.app?.display_name || "BUSY request"}
-      subtitle={ownerView ? "Mini App customer conversation" : "Your conversation with this business"}
-      brandCue="V3.44 • unread state • push routing • bounded conversation history."
+      subtitle={
+        ownerView
+          ? guestWebRequest
+            ? "Public web guest request"
+            : "Mini App customer conversation"
+          : "Your conversation with this business"
+      }
+      brandCue="V3.45 • guest web requests • explicit identity assurance • safe owner follow-up."
     >
       {s.miniAppRequestHistoryLoading && !request ? (
         <Card eyebrow="Conversation" title="Loading…" body="BUSY is loading the latest request activity." tone="blue" />
@@ -1092,7 +1125,20 @@ function MiniAppRequestDetail({ s }) {
             tone={request.status === "accepted" ? "green" : ["declined", "closed"].includes(request.status) ? "amber" : "blue"}
           >
             {ownerView ? (
-              <MetricRow left="Contact" right={request.contact_phone || request.contact_email || "Not supplied"} />
+              <>
+                <MetricRow left="Contact" right={request.contact_phone || request.contact_email || "Not supplied"} />
+                <MetricRow
+                  left="Request source"
+                  right={guestWebRequest ? "Public web guest" : "Signed-in BUSY customer"}
+                  strong={guestWebRequest}
+                />
+                {guestWebRequest ? (
+                  <MetricRow
+                    left="Identity assurance"
+                    right="Browser challenge passed • contact details self-reported"
+                  />
+                ) : null}
+              </>
             ) : null}
             {ownerView && !link ? (
               <Button
@@ -1118,11 +1164,15 @@ function MiniAppRequestDetail({ s }) {
             ) : null}
           </Card>
 
-          <Text style={styles.sectionLabel}>Conversation & request activity</Text>
+          <Text style={styles.sectionLabel}>{guestWebRequest && ownerView ? "Request activity" : "Conversation & request activity"}</Text>
           <Card
             eyebrow="Latest activity"
-            title="One shared request timeline"
-            body="Messages and real request-status events stay attached to this request. BUSY does not turn internal drafts into customer-facing confirmations."
+            title={guestWebRequest && ownerView ? "Guest request timeline" : "One shared request timeline"}
+            body={
+              guestWebRequest && ownerView
+                ? "Lifecycle events stay attached to this request. The guest can check its status from the same browser receipt, but BUSY chat replies are not delivered to guest web customers in V3.45."
+                : "Messages and real request-status events stay attached to this request. BUSY does not turn internal drafts into customer-facing confirmations."
+            }
             tone="blue"
           >
             <RequestTimeline messages={detail.messages || []} events={detail.events || []} />
@@ -1136,26 +1186,36 @@ function MiniAppRequestDetail({ s }) {
           </Card>
 
           {!["declined", "closed"].includes(request.status) ? (
-            <Card
-              eyebrow="Reply"
-              title={ownerView ? "Reply to customer" : "Reply to business"}
-              body="Your message stays inside this request conversation."
-              tone="green"
-            >
-              <Field
-                label="Message"
-                value={draft}
-                onChangeText={setDraft}
-                placeholder={ownerView ? "Write a customer update…" : "Write a reply…"}
-                multiline
+            guestWebRequest && ownerView ? (
+              <Card
+                eyebrow="Guest follow-up"
+                title="Use the supplied contact details for replies"
+                body="This customer submitted from the public web Mini App without a BUSY account. V3.45 deliberately does not pretend an in-app message will reach them. Use the supplied email or phone while their browser receipt continues to show genuine request-status changes."
+                footer={request.contact_email || request.contact_phone || "No contact details supplied"}
+                tone="amber"
               />
-              <Button
-                label={s.miniAppsAction?.includes("message:") ? "Sending…" : "Send message"}
-                primary
-                disabled={!draft.trim() || !!s.miniAppsAction}
-                onPress={send}
-              />
-            </Card>
+            ) : (
+              <Card
+                eyebrow="Reply"
+                title={ownerView ? "Reply to customer" : "Reply to business"}
+                body="Your message stays inside this request conversation."
+                tone="green"
+              >
+                <Field
+                  label="Message"
+                  value={draft}
+                  onChangeText={setDraft}
+                  placeholder={ownerView ? "Write a customer update…" : "Write a reply…"}
+                  multiline
+                />
+                <Button
+                  label={s.miniAppsAction?.includes("message:") ? "Sending…" : "Send message"}
+                  primary
+                  disabled={!draft.trim() || !!s.miniAppsAction}
+                  onPress={send}
+                />
+              </Card>
+            )
           ) : null}
         </>
       ) : (
