@@ -35,6 +35,7 @@ function currentSnapshot({
   workGoalRemainingJobs = 0,
   workGoalFilled = false,
   businessMemoryChanges = [],
+  miniAppUnreadRequests = [],
 } = {}) {
   const today = workCalendarIntelligence?.byDate?.[todayISO] || {};
   return {
@@ -59,6 +60,10 @@ function currentSnapshot({
     workGoalRemaining:
       activeWorkGoal && !workGoalFilled ? count(workGoalRemainingJobs) : 0,
     memoryChanges: count(businessMemoryChanges.length),
+    miniAppUnreadMessages: safeArray(miniAppUnreadRequests).reduce(
+      (total, item) => total + count(item?.business_unread_count),
+      0
+    ),
   };
 }
 
@@ -169,6 +174,13 @@ function compareSnapshot(previous = null, current = {}) {
     false
   );
   add(
+    "mini-app-unread",
+    "Unread BUSY Apps messages",
+    previous.miniAppUnreadMessages,
+    current.miniAppUnreadMessages,
+    false
+  );
+  add(
     "work-goal",
     "Work-goal bookings still needed",
     previous.workGoalRemaining,
@@ -196,6 +208,7 @@ function buildDailyCommandCentre({
   workGoalFilled = false,
   businessMemoryChanges = [],
   proactiveNotices = [],
+  miniAppUnreadRequests = [],
   previousCheckpoint = null,
 } = {}) {
   const snapshot = currentSnapshot({
@@ -214,6 +227,7 @@ function buildDailyCommandCentre({
     workGoalRemainingJobs,
     workGoalFilled,
     businessMemoryChanges,
+    miniAppUnreadRequests,
   });
 
   const today = workCalendarIntelligence?.byDate?.[todayISO] || {};
@@ -262,6 +276,27 @@ function buildDailyCommandCentre({
       tone: "amber",
       actionLabel: "Open Continuity Centre",
       action: { kind: "route", route: "operationalContinuity" },
+    });
+  }
+
+  const miniAppUnread = safeArray(miniAppUnreadRequests)
+    .filter((item) => count(item?.business_unread_count) > 0)
+    .sort((a, b) => String(b.updated_at || "").localeCompare(String(a.updated_at || "")));
+  if (miniAppUnread.length) {
+    const request = miniAppUnread[0];
+    const unread = count(request.business_unread_count);
+    doNow.push({
+      id: `mini-app-unread-${request.id}`,
+      lane: "do-now",
+      eyebrow: "BUSY Apps conversation",
+      title: `${unread} unread customer update${unread === 1 ? "" : "s"}`,
+      body: request.request_type === "booking_request"
+        ? `${request.contact_name || "A customer"} is waiting in a booking-request conversation.`
+        : `${request.contact_name || "A customer"} has new activity on an enquiry.`,
+      why: "A customer has actively replied through BUSY Apps, so this is live customer work rather than optional marketing.",
+      tone: "amber",
+      actionLabel: "Open conversation",
+      action: { kind: "mini-app-request", requestId: request.id },
     });
   }
 
