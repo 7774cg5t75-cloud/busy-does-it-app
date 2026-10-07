@@ -2,6 +2,21 @@
 
 Busy Does It mobile app prototype.
 
+## v3.40 Mini Apps Customer Journey Bridge
+- Builds directly on the V3.39 BUSY Apps marketplace without requiring Cloudflare or website-provider setup.
+- Mini App enquiries and booking requests now carry normalized customer name/email/phone/service/preferred-date fields in addition to the immutable raw request payload.
+- Business-side review can deliberately link a Mini App request into the existing BUSY snapshot customer model. The bridge is durable and idempotent through `busy_mini_app_request_links`, so another device/session can see that the request has already been imported.
+- Existing BUSY customer matching still prefers same phone, then same email, then exact full name; a Mini App request therefore joins an existing customer where evidence supports it rather than creating a duplicate by default.
+- Mini App enquiries become normal BUSY enquiries with the same follow-up/customer journey system used elsewhere in the app.
+- Mini App booking requests become BUSY booking actions with `bookingStatus=Draft`. The customer's preferred-date text is preserved, but BUSY does not invent a real diary date/time or silently confirm the booking.
+- Only the existing BUSY booking confirmation action promotes a bridged booking request to customer-visible accepted status.
+- Home/Command Centre now treats unlinked Mini App requests as real incoming work that needs owner review.
+- Added `busy_mini_app_request_events` for auditable received/reviewing/accepted/declined/link/booking transitions.
+- Added **My BUSY Apps**: signed-in customers automatically retain apps they have opened/used, may favourite them, and can see recent enquiry/booking-request status.
+- A live app removed from marketplace discovery remains accessible from My BUSY Apps for a customer who previously used it.
+- Directory discovery and My BUSY Apps remain server-mediated; the new consumer/link/event tables are not granted directly to authenticated or anonymous Data API clients.
+- BUSY Operator can report how many Mini App requests are pending, unlinked, linked or sitting as Draft bookings and is explicitly instructed not to call a Draft booking confirmed.
+
 ## v3.39 BUSY Apps Marketplace Foundation
 - Adds the first real BUSY Apps marketplace architecture without depending on Cloudflare.
 - A BUSY Mini App is a tenant-owned configuration assembled from platform-tested reusable modules, not a bespoke generated codebase.
