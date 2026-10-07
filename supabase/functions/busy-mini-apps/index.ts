@@ -2090,9 +2090,12 @@ async function sendRequestMessage(userId: string, businessId: string, body: any,
   const requestId = clean(body?.requestId, 80);
   const messageBody = clean(body?.message, 3000);
   if (!requestId || !messageBody) throw new Error("Choose a request and enter a message first.");
-  const request = await supabase.from("busy_mini_app_requests").select("id,business_id,mini_app_id,consumer_user_id,status").eq("id", requestId).eq("business_id", businessId).maybeSingle();
+  const request = await supabase.from("busy_mini_app_requests").select("id,business_id,mini_app_id,consumer_user_id,request_origin,status").eq("id", requestId).eq("business_id", businessId).maybeSingle();
   if (request.error) throw request.error;
   if (!request.data) throw new Error("Mini App request not found.");
+  if (request.data.request_origin === "guest_web" || !request.data.consumer_user_id) {
+    throw new Error("Guest web requests do not have a BUSY chat recipient. Use the customer's supplied contact details for replies.");
+  }
   if (["declined", "closed"].includes(request.data.status)) throw new Error("That Mini App request is closed for new messages.");
   if (idempotencyKey) {
     const existing = await supabase.from("busy_mini_app_request_messages").select("*").eq("request_id", requestId).eq("sender_user_id", userId).eq("idempotency_key", idempotencyKey).maybeSingle();
@@ -2177,7 +2180,7 @@ async function updateRequestStatus(
   }
   const current = await supabase
     .from("busy_mini_app_requests")
-    .select("id,business_id,mini_app_id,consumer_user_id,status")
+    .select("id,business_id,mini_app_id,consumer_user_id,request_origin,status")
     .eq("id", requestId)
     .eq("business_id", businessId)
     .maybeSingle();
@@ -2204,20 +2207,22 @@ async function updateRequestStatus(
   });
   if (event.error) throw event.error;
 
-  await bumpUnread(requestId, "customer");
-  const statusText = status === "accepted"
-    ? "Your request has been accepted."
-    : status === "declined"
-    ? "The business updated your request as declined."
-    : status === "closed"
-    ? "The business closed this request."
-    : "The business is reviewing your request.";
-  await notifyCustomerOfMiniAppRequest(
-    updated.data,
-    "BUSY Apps • Request update",
-    statusText,
-    `status:${status}`
-  );
+  if (current.data.consumer_user_id) {
+    await bumpUnread(requestId, "customer");
+    const statusText = status === "accepted"
+      ? "Your request has been accepted."
+      : status === "declined"
+      ? "The business updated your request as declined."
+      : status === "closed"
+      ? "The business closed this request."
+      : "The business is reviewing your request.";
+    await notifyCustomerOfMiniAppRequest(
+      updated.data,
+      "BUSY Apps • Request update",
+      statusText,
+      `status:${status}`
+    );
+  }
   return updated.data;
 }
 
@@ -2352,7 +2357,11 @@ async function markRequestLinked(
     .update({ status: nextStatus, updated_at: new Date().toISOString() })
     .eq("id", requestId);
 
-  if (request.data.status !== nextStatus && ["accepted", "closed"].includes(nextStatus)) {
+  if (
+    request.data.consumer_user_id &&
+    request.data.status !== nextStatus &&
+    ["accepted", "closed"].includes(nextStatus)
+  ) {
     await bumpUnread(requestId, "customer");
     await notifyCustomerOfMiniAppRequest(
       { ...request.data, business_id: businessId },
