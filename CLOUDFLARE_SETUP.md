@@ -23,7 +23,7 @@ BUSY independently verifies the nameserver and routing state; dashboard settings
    - Zone DNS Write
    - SSL and Certificates Write
    - Workers Routes Write
-   - Zone Analytics Read
+   - Analytics Read (Zone)
    - Account Workers Scripts Write
 6. Store these values only in Supabase Edge Function secrets:
    - `CLOUDFLARE_API_TOKEN`
