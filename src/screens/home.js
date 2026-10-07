@@ -1042,6 +1042,11 @@ function HomeScreen({ s }) {
           }
           strong={!!s.websitePublishingView?.analyticsView?.collecting}
         />
+        <MetricRow
+          left="BUSY Apps"
+          right={s.miniAppsView?.statusLabel || "Not built"}
+          strong={!!s.miniAppsView?.hasLive}
+        />
         <Button label="Daily Command Centre" onPress={() => s.go("dailyCommandCentre")} />
         <Button label="Follow-up Engine" onPress={() => s.openFollowUpEngine()} />
         <Button label="Communications Hub" onPress={() => s.openCommunicationsHub()} />
@@ -1055,6 +1060,11 @@ function HomeScreen({ s }) {
             onPress={s.openWebsitePublishing}
           />
         ) : null}
+        <Button label="BUSY Apps marketplace" onPress={s.openBusyAppsMarketplace} />
+        <Button
+          label={s.miniAppsView?.app ? "Manage my Mini App" : "Build my Mini App"}
+          onPress={s.openMiniAppBuilder}
+        />
         <Button label="Continuity Centre" onPress={() => s.go("operationalContinuity")} />
         <Button label="Release Core" onPress={() => s.go("releaseCore")} />
       </Card>
