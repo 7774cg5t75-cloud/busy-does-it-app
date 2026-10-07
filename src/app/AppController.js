@@ -249,6 +249,10 @@ function App() {
     queue: null,
     healthChecks: [],
     analytics: null,
+    usage: null,
+    signalRuns: [],
+    enquiryAttributions: [],
+    providerConfig: null,
     publicProfile: null,
   });
   const [websitePublishingLoading, setWebsitePublishingLoading] = useState(false);
@@ -6121,6 +6125,10 @@ function App() {
       queue: null,
       healthChecks: [],
       analytics: null,
+      usage: null,
+      signalRuns: [],
+      enquiryAttributions: [],
+      providerConfig: null,
       publicProfile: null,
     });
     setWebsitePublishingLoading(false);
@@ -11131,6 +11139,16 @@ function App() {
         pageCount: Number(websitePublishingView?.pageCount || 0),
         seoBasics: websitePublishingView?.seoAudit?.label || "Not checked",
         analyticsStatus: websitePublishingView?.analyticsView?.status || "foundation",
+        trafficRequests30: Number(websitePublishingView?.analyticsView?.requests || 0),
+        trafficVisits30: Number(websitePublishingView?.analyticsView?.visits || 0),
+        trafficEdgeBytes30: Number(websitePublishingView?.analyticsView?.edgeBytes || 0),
+        attributedEnquiries30: Number(websitePublishingView?.enquiryView?.count || 0),
+        deliveryProvider: websitePublishingView?.providerState?.provider || "",
+        deliveryProviderConfigured: !!websitePublishingView?.providerState?.configured,
+        defaultWebsiteAddress: websitePublishingView?.defaultAddressState?.address?.hostname || "",
+        defaultWebsiteAddressStatus: websitePublishingView?.defaultAddressState?.status || "Not configured",
+        usageDeployments30: Number(websitePublishingView?.usageView?.deployments || 0),
+        usageArtifactBytes30: Number(websitePublishingView?.usageView?.artifactBytes || 0),
         publicProfileRevision: Number(websitePublishingView?.publicProfile?.revision || 0),
         publicChangeRequiresOwnerApproval: true,
       },
@@ -12384,6 +12402,12 @@ function App() {
         queue: data?.queue || null,
         healthChecks: Array.isArray(data?.healthChecks) ? data.healthChecks : [],
         analytics: data?.analytics || null,
+        usage: data?.usage || null,
+        signalRuns: Array.isArray(data?.signalRuns) ? data.signalRuns : [],
+        enquiryAttributions: Array.isArray(data?.enquiryAttributions)
+          ? data.enquiryAttributions
+          : [],
+        providerConfig: data?.providerConfig || null,
         publicProfile: data?.publicProfile || null,
       });
       return true;
@@ -12627,6 +12651,71 @@ function App() {
     }
   };
 
+  const provisionWebsiteDomain = async (domainId) => {
+    if (!domainId) return false;
+    setWebsitePublishingAction(`provision-domain:${domainId}`);
+    setWebsitePublishingError("");
+    setWebsitePublishingNotice("");
+    try {
+      const result = await websitePublishingRequest("provision_domain", {
+        domainId,
+      });
+      const configured = !!result?.provider?.configured;
+      setWebsitePublishingNotice(
+        configured
+          ? "BUSY prepared this verified hostname with the external delivery provider. Follow the required DNS records; BUSY will keep checking routing and SSL automatically."
+          : "The BUSY-side Cloudflare adapter is ready, but the Cloudflare account/token/zone has not been connected yet. No external routing change was made."
+      );
+      await refreshWebsitePublishingStatus({ quiet: true });
+      return configured;
+    } catch (error) {
+      setWebsitePublishingError(
+        error?.message || "BUSY could not prepare external website routing."
+      );
+      return false;
+    } finally {
+      setWebsitePublishingAction("");
+    }
+  };
+
+  const refreshWebsiteSignals = async () => {
+    setWebsitePublishingAction("signals");
+    setWebsitePublishingError("");
+    setWebsitePublishingNotice("");
+    try {
+      const result = await websitePublishingRequest("refresh_signals");
+      const configured = !!result?.signals?.configured;
+      setWebsitePublishingNotice(
+        configured
+          ? "BUSY refreshed the current external website traffic signals and updated the tenant usage rollup."
+          : "Real traffic collection is ready on the BUSY side, but Cloudflare analytics credentials are not connected yet. No traffic numbers were invented."
+      );
+      await refreshWebsitePublishingStatus({ quiet: true });
+      return configured;
+    } catch (error) {
+      setWebsitePublishingError(
+        error?.message || "BUSY could not refresh website traffic signals."
+      );
+      return false;
+    } finally {
+      setWebsitePublishingAction("");
+    }
+  };
+
+  const openDefaultWebsiteAddress = async () => {
+    const url = websitePublishingView?.defaultAddressState?.address?.url || "";
+    if (!url || !websitePublishingView?.canOpenDefaultAddress) return false;
+    try {
+      await Linking.openURL(url);
+      return true;
+    } catch (error) {
+      setWebsitePublishingError(
+        error?.message || "BUSY could not open the default website address."
+      );
+      return false;
+    }
+  };
+
   const openWebsitePublishing = () => {
     if (!websiteDomainDraft && brandProfile.websiteDomain) {
       setWebsiteDomainDraft(brandProfile.websiteDomain);
@@ -12789,7 +12878,10 @@ function App() {
     openLiveWebsite,
     requestWebsiteDomain,
     verifyWebsiteDomain,
+    provisionWebsiteDomain,
+    refreshWebsiteSignals,
     runWebsiteHealthCheck,
+    openDefaultWebsiteAddress,
     openWebsitePublishing,
     quietSlot,
     setQuietSlot,
