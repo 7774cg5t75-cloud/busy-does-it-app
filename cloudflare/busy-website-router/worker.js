@@ -99,7 +99,7 @@ export default {
         Accept: request.headers.get("Accept") || "text/html,*/*;q=0.8",
         "X-BUSY-Original-Host": hostname,
         "X-BUSY-Original-Path": incoming.pathname || "/",
-        "User-Agent": "BUSY-Cloudflare-Router/3.46",
+        "User-Agent": "BUSY-Cloudflare-Router/3.47",
       },
       cf: {
         cacheEverything: false,
