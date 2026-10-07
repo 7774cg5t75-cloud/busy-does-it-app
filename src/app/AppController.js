@@ -13181,7 +13181,11 @@ function App() {
     const answered = missing.filter((item) =>
       String(miniAppFactAnswers?.[item.key] || "").trim()
     );
-    if (!answered.length) {
+    const approvedGalleryAdded =
+      missing.some((item) => item.key === "gallery") &&
+      Array.isArray(miniAppProfileDraft?.assets?.gallery) &&
+      miniAppProfileDraft.assets.gallery.length > 0;
+    if (!answered.length && !approvedGalleryAdded) {
       setMiniAppsError(
         "Answer at least one of BUSY's missing-detail questions first."
       );
