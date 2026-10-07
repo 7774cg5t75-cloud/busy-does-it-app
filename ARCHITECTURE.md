@@ -2,6 +2,23 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.46 Production Domain Activation
+### BUSY-owned platform domain
+- The platform root defaults to `busydoesit.co.uk` and the tenant website namespace defaults to `sites.busydoesit.co.uk`. These names are public routing configuration, not secrets, and remain overrideable by server environment configuration.
+- Default tenant hostnames retain the existing slug + business-id suffix strategy, so two businesses with the same trading name cannot collide.
+
+### DNS preflight before provider activation
+- `busy-website-provider` can query authoritative public DNS without a Cloudflare API token. It verifies whether the root domain's NS answers are Cloudflare nameservers and whether the BUSY website base hostname has A/AAAA/CNAME resolution.
+- This preflight does not provision anything. It exists so BUSY can distinguish registrar propagation from later Cloudflare-for-SaaS configuration and from actual routed-site health.
+- Provider status is fetched server-to-server by `busy-website-publish`; the client receives only readiness booleans, public hostnames and public DNS state, never provider credentials.
+
+### Activation truth model
+- **Nameservers active** means the root zone is authoritative on Cloudflare.
+- **Provider configured** means BUSY has the restricted Cloudflare API token, SaaS Zone ID and managed CNAME target in server secrets.
+- **Base hostname routable** means public DNS resolves the BUSY tenant website namespace.
+- **Custom hostname active** still requires Cloudflare hostname/SSL state plus BUSY's independent health check to observe the expected deployment.
+- These states are intentionally not collapsed into one green badge, preventing DNS or provider configuration from being mistaken for a genuinely working customer website.
+
 ## V3.45 Guest Mini App Request Boundary
 ### Public request service
 - `busy-mini-app-guest` is the only unauthenticated request-creation boundary. Direct Data API access to guest challenges and Mini App requests remains revoked.
