@@ -47,7 +47,6 @@ function buildMiniAppsView(remote = {}) {
   const versions = safeArray(remote?.versions);
   const requests = safeArray(remote?.requests);
   const requestLinks = safeArray(remote?.requestLinks);
-  const messages = safeArray(remote?.messages);
   const catalog = safeArray(remote?.catalog);
   const draftConfig = app?.draft_config || null;
 
@@ -77,23 +76,19 @@ function buildMiniAppsView(remote = {}) {
   const linkByRequest = new Map(
     requestLinks.map((item) => [item.request_id, item])
   );
-  const messagesByRequest = new Map();
-  messages
-    .slice()
-    .sort((a, b) => String(a.created_at || "").localeCompare(String(b.created_at || "")))
-    .forEach((item) => {
-      const requestId = item?.request_id;
-      if (!requestId) return;
-      const list = messagesByRequest.get(requestId) || [];
-      list.push(item);
-      messagesByRequest.set(requestId, list);
-    });
   const linkedRequests = requests.filter((item) => linkByRequest.has(item.id));
   const unlinkedRequests = requests.filter((item) => !linkByRequest.has(item.id));
   const pendingRequests = requests.filter((item) =>
     ["received", "reviewing"].includes(item.status)
   );
   const acceptedRequests = requests.filter((item) => item.status === "accepted");
+  const unreadRequests = requests.filter(
+    (item) => Number(item.business_unread_count || 0) > 0
+  );
+  const businessUnreadTotal = unreadRequests.reduce(
+    (total, item) => total + Math.max(0, Number(item.business_unread_count || 0)),
+    0
+  );
 
   const statusLabel = !app
     ? "Not built"
@@ -114,9 +109,9 @@ function buildMiniAppsView(remote = {}) {
     versions,
     requests,
     requestLinks,
-    messages,
-    messagesByRequest,
     linkedRequests,
+    unreadRequests,
+    businessUnreadTotal,
     unlinkedRequests,
     linkByRequest,
     catalog,
