@@ -1119,6 +1119,12 @@ function HomeScreen({ s }) {
             !!s.miniAppsView?.unlinkedPendingRequests?.length
           }
         />
+        {s.miniAppsView?.hasLive ? (
+          <MetricRow
+            left="Mini App entry • 30d"
+            right={`${Number(s.miniAppsView?.entryCounts?.byStage?.app_open || 0)} app opens • ${Number(s.miniAppsView?.entryCounts?.byStage?.landing || 0)} link visits`}
+          />
+        ) : null}
         <Button label="Daily Command Centre" onPress={() => s.go("dailyCommandCentre")} />
         <Button label="Follow-up Engine" onPress={() => s.openFollowUpEngine()} />
         <Button label="Communications Hub" onPress={() => s.openCommunicationsHub()} />
@@ -1137,6 +1143,9 @@ function HomeScreen({ s }) {
           label={s.miniAppsView?.app ? "Manage my Mini App" : "Build my Mini App"}
           onPress={s.openMiniAppBuilder}
         />
+        {s.miniAppsView?.hasLive ? (
+          <Button label="Share my Mini App" onPress={s.openMiniAppShareCentre} />
+        ) : null}
         <Button label="Continuity Centre" onPress={() => s.go("operationalContinuity")} />
         <Button label="Release Core" onPress={() => s.go("releaseCore")} />
       </Card>
