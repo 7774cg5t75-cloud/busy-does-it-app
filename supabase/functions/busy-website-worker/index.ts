@@ -813,6 +813,25 @@ async function rollbackDeployment(job: any, target: any, website: any) {
   await syncProfileForDeployment(job, targetUpdated.data, "live");
 }
 
+function permanentPublishingFailure(message: string) {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes("prepared website asset is missing") ||
+    lower.includes("must be prepared before publishing") ||
+    lower.includes("has never been published") ||
+    lower.includes("unsupported website publish job")
+  );
+}
+
+function retryDelaySeconds(jobId: string, attempt: number) {
+  const base = Math.min(900, 30 * 2 ** Math.max(0, attempt - 1));
+  const jitter =
+    clean(jobId, 120)
+      .split("")
+      .reduce((sum, char) => sum + char.charCodeAt(0), 0) % 23;
+  return Math.min(900, base + jitter);
+}
+
 async function failJob(
   job: any,
   messageId: number,
@@ -823,7 +842,9 @@ async function failJob(
   const message =
     error instanceof Error ? error.message : "Website publishing worker failed.";
   const attempt = Number(job.attempt_count || 0) + 1;
-  const canRetry = attempt < Number(job.max_attempts || 5);
+  const canRetry =
+    !permanentPublishingFailure(message) &&
+    attempt < Number(job.max_attempts || 5);
   const now = new Date().toISOString();
 
   await supabase
@@ -865,7 +886,7 @@ async function failJob(
   if (canRetry) {
     const retry = await supabase.rpc("busy_retry_website_publish_message", {
       p_msg_id: messageId,
-      p_delay_seconds: Math.min(300, 30 * attempt),
+      p_delay_seconds: retryDelaySeconds(job.id, attempt),
     });
     if (retry.error) throw retry.error;
   } else {
