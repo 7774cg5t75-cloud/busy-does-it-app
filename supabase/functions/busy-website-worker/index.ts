@@ -835,6 +835,7 @@ function retryDelaySeconds(jobId: string, attempt: number) {
 async function failJob(
   job: any,
   messageId: number,
+  leaseToken: string,
   error: unknown,
   deployment: any,
   website: any
@@ -847,16 +848,27 @@ async function failJob(
     attempt < Number(job.max_attempts || 5);
   const now = new Date().toISOString();
 
-  await supabase
+  const released = await supabase
     .from("busy_website_publish_jobs")
     .update({
       status: canRetry ? "retry_wait" : "failed",
       attempt_count: attempt,
+      processing_token: null,
+      lease_expires_at: null,
       last_error: message,
       completed_at: canRetry ? null : now,
       updated_at: now,
     })
-    .eq("id", job.id);
+    .eq("id", job.id)
+    .eq("processing_token", leaseToken)
+    .select("id")
+    .maybeSingle();
+  if (released.error) throw released.error;
+  if (!released.data?.id) {
+    throw new Error(
+      "BUSY worker lease was lost before the failed job could be released."
+    );
+  }
 
   if (job.action === "prepare") {
     await supabase
@@ -967,19 +979,33 @@ async function verifyPublicDelivery(websiteId: string) {
   return result;
 }
 
-async function succeedJob(job: any, messageId: number) {
+async function succeedJob(
+  job: any,
+  messageId: number,
+  leaseToken: string
+) {
   const now = new Date().toISOString();
   const completed = await supabase
     .from("busy_website_publish_jobs")
     .update({
       status: "succeeded",
       attempt_count: Number(job.attempt_count || 0) + 1,
+      processing_token: null,
+      lease_expires_at: null,
       last_error: null,
       completed_at: now,
       updated_at: now,
     })
-    .eq("id", job.id);
+    .eq("id", job.id)
+    .eq("processing_token", leaseToken)
+    .select("id")
+    .maybeSingle();
   if (completed.error) throw completed.error;
+  if (!completed.data?.id) {
+    throw new Error(
+      "BUSY worker lease was lost before the completed job could be committed."
+    );
+  }
 
   const archived = await supabase.rpc(
     "busy_archive_website_publish_message",
@@ -988,13 +1014,24 @@ async function succeedJob(job: any, messageId: number) {
   if (archived.error) throw archived.error;
 }
 
-async function processMessage(message: any) {
+async function deferMessage(messageId: number, seconds = 20) {
+  const delayed = await supabase.rpc("busy_retry_website_publish_message", {
+    p_msg_id: messageId,
+    p_delay_seconds: Math.min(90, Math.max(5, seconds)),
+  });
+  if (delayed.error) throw delayed.error;
+}
+
+async function processMessage(
+  message: any,
+  seenBusinesses: Set<string>
+) {
   const jobId = clean(message?.message?.job_id, 80);
   if (!jobId) {
     await supabase.rpc("busy_archive_website_publish_message", {
       p_msg_id: message.msg_id,
     });
-    return { ok: false, reason: "Queue message had no job id." };
+    return { ok: false, reason: "Queue message had no job id.", skipped: true };
   }
 
   const job = await loadJob(jobId);
@@ -1002,21 +1039,45 @@ async function processMessage(message: any) {
     await supabase.rpc("busy_archive_website_publish_message", {
       p_msg_id: message.msg_id,
     });
-    return { ok: true, jobId, skipped: true };
+    return { ok: true, jobId, skipped: true, reason: "terminal" };
   }
 
+  if (seenBusinesses.has(job.business_id)) {
+    const fairnessDelay =
+      12 +
+      (clean(job.business_id, 80)
+        .split("")
+        .reduce((sum, char) => sum + char.charCodeAt(0), 0) %
+        18);
+    await deferMessage(message.msg_id, fairnessDelay);
+    return {
+      ok: true,
+      jobId,
+      skipped: true,
+      reason: "tenant_fairness",
+    };
+  }
+
+  const leaseToken = crypto.randomUUID();
+  const claim = await supabase.rpc("busy_claim_website_publish_job", {
+    p_job_id: job.id,
+    p_processing_token: leaseToken,
+    p_lease_seconds: 300,
+  });
+  if (claim.error) throw claim.error;
+  if (claim.data !== true) {
+    await deferMessage(message.msg_id, 30);
+    return {
+      ok: true,
+      jobId,
+      skipped: true,
+      reason: "lease_held",
+    };
+  }
+
+  seenBusinesses.add(job.business_id);
   const deployment = await loadDeployment(job.deployment_id);
   const website = await loadWebsite(job.website_id);
-  const startedAt = new Date().toISOString();
-  const started = await supabase
-    .from("busy_website_publish_jobs")
-    .update({
-      status: "processing",
-      started_at: startedAt,
-      updated_at: startedAt,
-    })
-    .eq("id", job.id);
-  if (started.error) throw started.error;
 
   try {
     if (job.action === "prepare") {
@@ -1028,7 +1089,7 @@ async function processMessage(message: any) {
     } else {
       throw new Error("Unsupported website publish job.");
     }
-    await succeedJob(job, message.msg_id);
+    await succeedJob(job, message.msg_id, leaseToken);
 
     const deliveryVerification =
       job.action === "publish" || job.action === "rollback"
@@ -1042,7 +1103,14 @@ async function processMessage(message: any) {
       deliveryVerification,
     };
   } catch (error) {
-    await failJob(job, message.msg_id, error, deployment, website);
+    await failJob(
+      job,
+      message.msg_id,
+      leaseToken,
+      error,
+      deployment,
+      website
+    );
     return {
       ok: false,
       jobId,
@@ -1076,19 +1144,46 @@ Deno.serve(async (request: Request) => {
 
   try {
     const body = await request.json().catch(() => ({}));
-    const limit = Math.min(20, Math.max(1, Number(body?.limit) || 5));
+    const limit = Math.min(12, Math.max(1, Number(body?.limit) || 5));
+
+    const stale = await supabase.rpc(
+      "busy_recover_stale_website_publish_jobs"
+    );
+    if (stale.error) throw stale.error;
+
+    // Read extra candidates so one noisy tenant cannot monopolise a worker
+    // invocation. Unselected messages are returned to the queue quickly.
+    const candidateLimit = Math.min(20, Math.max(limit, limit * 3));
     const read = await supabase.rpc("busy_read_website_publish_jobs", {
-      p_limit: limit,
+      p_limit: candidateLimit,
     });
     if (read.error) throw read.error;
     const messages = Array.isArray(read.data) ? read.data : [];
     const results = [];
+    const seenBusinesses = new Set<string>();
+    let processed = 0;
+
     for (const message of messages) {
-      results.push(await processMessage(message));
+      if (processed >= limit) {
+        await deferMessage(message.msg_id, 20);
+        results.push({
+          ok: true,
+          skipped: true,
+          reason: "worker_capacity",
+        });
+        continue;
+      }
+
+      const result = await processMessage(message, seenBusinesses);
+      results.push(result);
+      if (!result?.skipped) processed += 1;
     }
+
     return json(200, {
       ok: true,
-      processed: results.length,
+      processed,
+      deferred: results.filter((item) => item?.skipped).length,
+      staleRecovered: Number(stale.data || 0),
       results,
     });
   } catch (error) {
