@@ -286,6 +286,8 @@ function App() {
   const [miniAppsAction, setMiniAppsAction] = useState("");
   const [miniAppsError, setMiniAppsError] = useState("");
   const [miniAppsNotice, setMiniAppsNotice] = useState("");
+  const [miniAppBuildBrief, setMiniAppBuildBrief] = useState("");
+  const [miniAppBuilderPlan, setMiniAppBuilderPlan] = useState(null);
   const [busyAppsSearch, setBusyAppsSearch] = useState("");
   const [busyAppsResults, setBusyAppsResults] = useState([]);
   const [busyAppsSearching, setBusyAppsSearching] = useState(false);
@@ -12185,13 +12187,24 @@ function App() {
       case "website_rollback_request":
         openWebsitePublishing();
         return true;
-      case "mini_app_build":
+      case "mini_app_build": {
+        const brief =
+          String(command.note || command.transcript || "").trim() ||
+          "Build a customer-facing app for my business using the information BUSY already knows.";
+        setMiniAppBuildBrief(brief);
         openMiniAppBuilder();
-        setTimeout(() => buildMiniAppFromBrandBrain(), 120);
+        setTimeout(() => planMiniAppFromBrief(brief), 120);
         return true;
-      case "mini_app_edit":
+      }
+      case "mini_app_edit": {
+        const editBrief = String(
+          command.note || command.transcript || ""
+        ).trim();
+        if (editBrief) setMiniAppBuildBrief(editBrief);
         openMiniAppBuilder();
+        if (editBrief) setTimeout(() => planMiniAppFromBrief(editBrief), 120);
         return true;
+      }
       case "open_busy_apps":
         openBusyAppsMarketplace();
         return true;
@@ -12993,6 +13006,13 @@ function App() {
 
   const applyMiniAppsStatus = (payload = {}) => {
     const data = payload?.status || payload;
+    const savedPlan = data?.app?.draft_config?.builderPlan || null;
+    if (savedPlan) {
+      setMiniAppBuilderPlan(savedPlan);
+      if (!miniAppBuildBrief && savedPlan?.ownerRequest) {
+        setMiniAppBuildBrief(String(savedPlan.ownerRequest));
+      }
+    }
     setMiniAppsStatus({
       loaded: true,
       role: data?.role || miniAppsStatus.role || "",
@@ -13087,6 +13107,79 @@ function App() {
     } finally {
       setMiniAppsAction("");
     }
+  };
+
+  const planMiniAppFromBrief = async (brief = miniAppBuildBrief) => {
+    const ownerRequest = String(brief || "").trim();
+    if (!ownerRequest) {
+      setMiniAppsError(
+        "Tell BUSY what you want customers to be able to do in your app."
+      );
+      return false;
+    }
+    setMiniAppBuildBrief(ownerRequest);
+    setMiniAppsAction("plan-app");
+    setMiniAppsError("");
+    setMiniAppsNotice("");
+    try {
+      const data = await miniAppsRequest("plan_app", {
+        ownerRequest,
+        profileDraft: miniAppProfileDraft,
+      });
+      applyMiniAppsStatus(data);
+      setMiniAppBuilderPlan(data?.plan || null);
+      setMiniAppsNotice(
+        data?.plan?.planner === "ai"
+          ? "BUSY turned your request and recorded business facts into a controlled app plan. Review the modules and any missing facts before building."
+          : "BUSY created a safe app plan from your request and recorded business facts. Review it before building."
+      );
+      return !!data?.plan;
+    } catch (error) {
+      setMiniAppsError(
+        error?.message || "BUSY could not create the business app plan."
+      );
+      return false;
+    } finally {
+      setMiniAppsAction("");
+    }
+  };
+
+  const applyMiniAppPlan = async () => {
+    if (!miniAppBuilderPlan) {
+      setMiniAppsError("Create an app plan before building the draft.");
+      return false;
+    }
+    setMiniAppsAction("apply-app-plan");
+    setMiniAppsError("");
+    setMiniAppsNotice("");
+    try {
+      const data = await miniAppsRequest("apply_app_plan", {
+        ownerRequest: miniAppBuildBrief,
+        plan: miniAppBuilderPlan,
+        profileDraft: miniAppProfileDraft,
+      });
+      applyMiniAppsStatus(data);
+      setMiniAppBuilderPlan(data?.plan || miniAppBuilderPlan);
+      setMiniAppsNotice(
+        "BUSY built the private app draft from the reviewed plan and the business facts it already knows. Nothing has been published."
+      );
+      return true;
+    } catch (error) {
+      setMiniAppsError(
+        error?.message || "BUSY could not build the app from that plan."
+      );
+      return false;
+    } finally {
+      setMiniAppsAction("");
+    }
+  };
+
+  const describeMiniAppByVoice = () => {
+    setMiniAppsNotice(
+      "Tell BUSY what customers should be able to do. Your voice request will return here as an app plan before anything is published."
+    );
+    openTalkToBusy(true);
+    return true;
   };
 
   const toggleMiniAppModule = async (moduleKey, enabled) => {
@@ -14178,6 +14271,10 @@ function App() {
     miniAppsAction,
     miniAppsError,
     miniAppsNotice,
+    miniAppBuildBrief,
+    setMiniAppBuildBrief,
+    miniAppBuilderPlan,
+    setMiniAppBuilderPlan,
     busyAppsSearch,
     setBusyAppsSearch,
     busyAppsResults,
@@ -14204,6 +14301,9 @@ function App() {
     replyBusyAppRequestMessage,
     bridgeMiniAppRequestIntoBusy,
     buildMiniAppFromBrandBrain,
+    planMiniAppFromBrief,
+    applyMiniAppPlan,
+    describeMiniAppByVoice,
     toggleMiniAppModule,
     prepareMiniAppPreview,
     confirmPublishMiniApp,
