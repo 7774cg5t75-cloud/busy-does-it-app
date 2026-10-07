@@ -6,6 +6,12 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const PREVIEW_BUCKET = "busy-website-preview";
 const WORKER_URL = `${SUPABASE_URL}/functions/v1/busy-website-worker`;
 const HEALTH_URL = `${SUPABASE_URL}/functions/v1/busy-website-health`;
+const PROVIDER_URL = `${SUPABASE_URL}/functions/v1/busy-website-provider`;
+const SIGNALS_URL = `${SUPABASE_URL}/functions/v1/busy-website-signals`;
+const CLOUDFLARE_API_TOKEN = Deno.env.get("CLOUDFLARE_API_TOKEN") || "";
+const CLOUDFLARE_ZONE_ID = Deno.env.get("CLOUDFLARE_SAAS_ZONE_ID") || "";
+const CLOUDFLARE_CNAME_TARGET = Deno.env.get("CLOUDFLARE_SAAS_CNAME_TARGET") || "";
+const BUSY_WEBSITE_BASE_DOMAIN = Deno.env.get("BUSY_WEBSITE_BASE_DOMAIN") || "";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -321,6 +327,41 @@ async function websiteForBusiness(businessId: string) {
   return result.data;
 }
 
+function websiteProviderConfig() {
+  return {
+    provider: "cloudflare_saas",
+    configured: !!(
+      CLOUDFLARE_API_TOKEN &&
+      CLOUDFLARE_ZONE_ID &&
+      CLOUDFLARE_CNAME_TARGET
+    ),
+    hasApiToken: !!CLOUDFLARE_API_TOKEN,
+    hasZoneId: !!CLOUDFLARE_ZONE_ID,
+    hasCnameTarget: !!CLOUDFLARE_CNAME_TARGET,
+    baseDomainConfigured: !!BUSY_WEBSITE_BASE_DOMAIN,
+    baseDomain: BUSY_WEBSITE_BASE_DOMAIN || "",
+  };
+}
+
+async function internalWebsiteRequest(
+  url: string,
+  body: Record<string, unknown>
+) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data?.error || `BUSY internal website service returned ${response.status}.`);
+  }
+  return data;
+}
+
 async function queueMetrics() {
   const result = await supabase.rpc("busy_website_publish_queue_metrics");
   if (result.error) return null;
@@ -336,10 +377,17 @@ async function websiteStatus(businessId: string) {
       domains: [],
       jobs: [],
       queue: await queueMetrics(),
+      healthChecks: [],
+      analytics: { days: 30, pageViews: 0, uniqueVisitors: 0, enquiries: 0, requests: 0, visits: 0, edgeBytes: 0, status: "foundation" },
+      usage: { days: 30, deployments: 0, publishedVersions: 0, artifactBytes: 0, requests: 0, visits: 0, edgeBytes: 0, healthChecks: 0, activeCustomDomains: 0 },
+      signalRuns: [],
+      enquiryAttributions: [],
+      publicProfile: null,
+      providerConfig: websiteProviderConfig(),
     };
   }
 
-  const [deployments, domains, jobs, queue, healthChecks, analyticsRows, publicProfile] = await Promise.all([
+  const [deployments, domains, jobs, queue, healthChecks, analyticsRows, publicProfile, usageRows, signalRuns, enquiryAttributions] = await Promise.all([
     supabase
       .from("busy_website_deployments")
       .select(
@@ -370,7 +418,7 @@ async function websiteStatus(businessId: string) {
       .limit(12),
     supabase
       .from("busy_website_analytics_daily")
-      .select("metric_date,page_path,page_views,unique_visitors,enquiries,source")
+.select("metric_date,page_path,page_views,unique_visitors,enquiries,requests,visits,edge_bytes,sample_interval,provider_meta,source")
       .eq("website_id", website.id)
       .gte("metric_date", new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10))
       .order("metric_date", { ascending: false }),
@@ -379,6 +427,25 @@ async function websiteStatus(businessId: string) {
       .select("business_id,source_website_id,source_deployment_id,public_slug,display_name,status,revision,profile,updated_at")
       .eq("business_id", businessId)
       .maybeSingle(),
+    supabase
+      .from("busy_website_usage_daily")
+      .select("usage_date,deployments_created,versions_published,artifact_bytes,requests,visits,edge_bytes,health_checks,active_custom_domains,source")
+      .eq("website_id", website.id)
+      .gte("usage_date", new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10))
+      .order("usage_date", { ascending: false }),
+    supabase
+      .from("busy_website_signal_runs")
+      .select("provider,signal_type,status,rows_written,detail,last_error,started_at,completed_at")
+      .eq("website_id", website.id)
+      .order("started_at", { ascending: false })
+      .limit(12),
+    supabase
+      .from("busy_website_enquiry_attributions")
+      .select("id,domain_id,occurred_at,page_path,source,referrer_host,campaign_source,campaign_medium,campaign_name,external_event_id,metadata")
+      .eq("website_id", website.id)
+      .gte("occurred_at", new Date(Date.now() - 30 * 86400000).toISOString())
+      .order("occurred_at", { ascending: false })
+      .limit(50),
   ]);
 
   if (deployments.error) throw deployments.error;
@@ -387,15 +454,61 @@ async function websiteStatus(businessId: string) {
   if (healthChecks.error) throw healthChecks.error;
   if (analyticsRows.error) throw analyticsRows.error;
   if (publicProfile.error) throw publicProfile.error;
+  if (usageRows.error) throw usageRows.error;
+  if (signalRuns.error) throw signalRuns.error;
+  if (enquiryAttributions.error) throw enquiryAttributions.error;
 
   const analytics = (analyticsRows.data || []).reduce(
     (acc: any, row: any) => {
       acc.pageViews += Number(row.page_views || 0);
       acc.uniqueVisitors += Number(row.unique_visitors || 0);
       acc.enquiries += Number(row.enquiries || 0);
+      acc.requests += Number(row.requests || 0);
+      acc.visits += Number(row.visits || 0);
+      acc.edgeBytes += Number(row.edge_bytes || 0);
+      if (row.source === "cloudflare_http") acc.providerRows += 1;
       return acc;
     },
-    { days: 30, pageViews: 0, uniqueVisitors: 0, enquiries: 0, status: website.analytics_status || "foundation" }
+    {
+      days: 30,
+      pageViews: 0,
+      uniqueVisitors: 0,
+      enquiries: 0,
+      requests: 0,
+      visits: 0,
+      edgeBytes: 0,
+      providerRows: 0,
+      status: website.analytics_status || "foundation",
+      lastSyncAt: website.analytics_last_sync_at || null,
+    }
+  );
+
+  const usage = (usageRows.data || []).reduce(
+    (acc: any, row: any) => {
+      acc.deployments += Number(row.deployments_created || 0);
+      acc.publishedVersions += Number(row.versions_published || 0);
+      acc.artifactBytes += Number(row.artifact_bytes || 0);
+      acc.requests += Number(row.requests || 0);
+      acc.visits += Number(row.visits || 0);
+      acc.edgeBytes += Number(row.edge_bytes || 0);
+      acc.healthChecks += Number(row.health_checks || 0);
+      acc.activeCustomDomains = Math.max(
+        acc.activeCustomDomains,
+        Number(row.active_custom_domains || 0)
+      );
+      return acc;
+    },
+    {
+      days: 30,
+      deployments: 0,
+      publishedVersions: 0,
+      artifactBytes: 0,
+      requests: 0,
+      visits: 0,
+      edgeBytes: 0,
+      healthChecks: 0,
+      activeCustomDomains: 0,
+    }
   );
 
   return {
@@ -406,7 +519,11 @@ async function websiteStatus(businessId: string) {
     queue,
     healthChecks: healthChecks.data || [],
     analytics,
+    usage,
+    signalRuns: signalRuns.data || [],
+    enquiryAttributions: enquiryAttributions.data || [],
     publicProfile: publicProfile.data || null,
+    providerConfig: websiteProviderConfig(),
   };
 }
 
@@ -850,6 +967,35 @@ async function verifyDomain(businessId: string, domainId: string) {
 }
 
 
+async function provisionDomainProvider(
+  businessId: string,
+  domainId: string
+) {
+  const domain = await supabase
+    .from("busy_website_domains")
+    .select("id,business_id,status")
+    .eq("id", domainId)
+    .eq("business_id", businessId)
+    .maybeSingle();
+  if (domain.error) throw domain.error;
+  if (!domain.data) throw new Error("Domain record not found.");
+  if (!["verified", "active"].includes(domain.data.status)) {
+    throw new Error("Verify domain ownership before preparing external routing.");
+  }
+  return await internalWebsiteRequest(PROVIDER_URL, {
+    action: "provision_domain",
+    domainId,
+  });
+}
+
+async function refreshWebsiteSignals(businessId: string) {
+  const website = await websiteForBusiness(businessId);
+  if (!website?.id) throw new Error("Build the website before refreshing website signals.");
+  return await internalWebsiteRequest(SIGNALS_URL, {
+    action: "sync_analytics",
+  });
+}
+
 async function runHealthCheck(businessId: string) {
   const website = await websiteForBusiness(businessId);
   if (!website?.id || !website?.current_live_deployment_id) {
@@ -886,6 +1032,8 @@ Deno.serve(async (request: Request) => {
       "rollback",
       "request_domain",
       "verify_domain",
+      "provision_domain",
+      "refresh_signals",
     ]);
     const member = await membership(
       user.id,
@@ -935,6 +1083,21 @@ Deno.serve(async (request: Request) => {
       return json(200, {
         ok: true,
         ...(await verifyDomain(businessId, domainId)),
+      });
+    }
+    if (action === "provision_domain") {
+      const domainId = cleanText(body?.domainId, 80);
+      return json(200, {
+        ok: true,
+        provider: await provisionDomainProvider(businessId, domainId),
+        status: await websiteStatus(businessId),
+      });
+    }
+    if (action === "refresh_signals") {
+      return json(200, {
+        ok: true,
+        signals: await refreshWebsiteSignals(businessId),
+        status: await websiteStatus(businessId),
       });
     }
     if (action === "health_check") {
