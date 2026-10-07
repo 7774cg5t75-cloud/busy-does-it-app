@@ -906,6 +906,7 @@ async function verifyPublicDelivery(websiteId: string) {
   try {
     const provider = await internalPost(PROVIDER_URL, {
       action: "reserve_default_hostnames",
+      websiteId,
     });
     result.providerReserved = provider?.configured !== false;
     result.reserved = Number(provider?.reserved || 0);
