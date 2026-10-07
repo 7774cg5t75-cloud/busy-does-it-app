@@ -19,6 +19,19 @@ The deterministic simulator exercises 100, 1,000, 5,000 and 10,000 synthetic ten
 
 The simulator runs in the Production foundation workflow. A future version cannot silently weaken one of these assumptions without failing CI.
 
+## Deterministic burst results
+
+The CI simulator injects duplicate taps and one stale-worker crash for roughly every 97 jobs. The modeled p95 completion times are:
+
+| Synthetic tenants | Duplicate taps collapsed | Stale jobs recovered | p95 completion | Total drain time |
+| ---: | ---: | ---: | ---: | ---: |
+| 100 | 8 | 1 | 2 min | 9 min |
+| 1,000 | 83 | 10 | 11 min | 18 min |
+| 5,000 | 416 | 51 | 50 min | 60 min |
+| 10,000 | 833 | 103 | 100 min | 113 min |
+
+These are queue-model results, not real Edge/network latency measurements. They prove the release assumptions remain internally consistent and that crash recovery does not lose accepted work.
+
 ## Capacity model
 
 The model deliberately assumes a non-zero incident load rather than an all-healthy fleet:
