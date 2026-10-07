@@ -1021,7 +1021,11 @@ function HomeScreen({ s }) {
         />
         <MetricRow
           left="Website hosting"
-          right={s.websitePublishingView?.publicStatus || "Not checked"}
+          right={
+            s.websitePublishingView?.liveDeployment
+              ? `${s.websitePublishingView.publicStatus} • ${s.websitePublishingView.healthLabel || "health pending"}`
+              : s.websitePublishingView?.publicStatus || "Not checked"
+          }
           strong={!!s.websitePublishingView?.liveDeployment}
         />
         <Button label="Daily Command Centre" onPress={() => s.go("dailyCommandCentre")} />
