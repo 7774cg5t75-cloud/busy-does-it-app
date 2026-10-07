@@ -2,6 +2,20 @@
 
 Busy Does It mobile app prototype.
 
+## v3.42 Mini App Notifications & Conversation Centre
+- Adds separate durable unread counters for the business side and customer side of every BUSY Mini App request.
+- A new request starts unread for the business; customer replies increment business unread state; business replies and genuine request-status changes increment customer unread state.
+- Opening the exact request conversation clears only that side's unread counter. Reading as the business does not mark the customer's updates read, and vice versa.
+- Conversation history no longer rides inside every owner-status/My BUSY Apps payload. Dedicated request detail loads the newest 30 messages and can page older messages, while request lifecycle events remain attached to the same timeline.
+- Home and the Daily Command Centre now treat unread BUSY Apps customer replies as live customer work and can open the exact request directly.
+- **My BUSY Apps** shows unread request activity and a dedicated conversation screen instead of embedding whole message histories inside list cards.
+- Native builds can register a signed-in user's device for BUSY Apps request notifications. Expo Go keeps the unread experience but does not pretend remote push can be production-tested there.
+- New request, reply and genuine status-change notifications are dispatched from the server after tenant/request ownership checks. Notification taps route to the exact request conversation.
+- Push delivery uses the existing server-owned device registry and delivery-dedupe table; request/message/status notification keys prevent accidental resend on normal retries.
+- Notification bodies are deliberately minimal. They do not expose internal Business Brain/customer-record data on the device lock screen.
+- Fixed a V3.41 Mini App module-toggle regression where a module edit could incorrectly try to write a request-lifecycle event.
+- Cloudflare remains deferred; V3.42 has no dependency on website-provider credentials.
+
 ## v3.41 Mini App Conversation Loop
 - Adds durable request-scoped messaging between a business and the signed-in customer who created a Mini App enquiry or booking request.
 - Business replies are owner-authorised; customer replies are accepted only for requests owned by that signed-in customer.
