@@ -38,6 +38,117 @@ function clean(value: unknown, max = 4000) {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
 
+function isoMs(value: unknown) {
+  const parsed = Date.parse(clean(value, 120));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function providerRecovery(domain: any) {
+  const recovery = domain?.provider_status?.recovery;
+  return recovery && typeof recovery === "object" ? recovery : {};
+}
+
+function recoveryDue(domain: any) {
+  const nextRetryAt = isoMs(providerRecovery(domain)?.nextRetryAt);
+  return !nextRetryAt || nextRetryAt <= Date.now();
+}
+
+function providerFailureClass(message: string) {
+  const lower = message.toLowerCase();
+  if (
+    lower.includes("unauthorized") ||
+    lower.includes("forbidden") ||
+    lower.includes("permission") ||
+    lower.includes("authentication") ||
+    lower.includes("api token")
+  ) {
+    return {
+      category: "operator_attention",
+      status: "operator_attention",
+      ownerMessage:
+        "BUSY website delivery needs an internal Cloudflare permission check. Your existing live website has not been changed.",
+      delayMinutes: 60,
+    };
+  }
+  if (
+    lower.includes("429") ||
+    lower.includes("rate limit") ||
+    lower.includes("too many requests")
+  ) {
+    return {
+      category: "rate_limited",
+      status: "retrying",
+      ownerMessage:
+        "Cloudflare is temporarily rate-limiting checks. BUSY will retry automatically.",
+      delayMinutes: 15,
+    };
+  }
+  if (
+    lower.includes("timeout") ||
+    lower.includes("timed out") ||
+    lower.includes("network") ||
+    lower.includes("fetch") ||
+    /http 5\d\d/.test(lower)
+  ) {
+    return {
+      category: "provider_temporary",
+      status: "retrying",
+      ownerMessage:
+        "The delivery provider is temporarily unavailable. BUSY will retry automatically.",
+      delayMinutes: 10,
+    };
+  }
+  return {
+    category: "provider_retry",
+    status: "retrying",
+    ownerMessage:
+      "BUSY could not complete this delivery check yet. It will retry automatically.",
+    delayMinutes: 15,
+  };
+}
+
+function recoveryDelayMinutes(base: number, attempt: number) {
+  const multiplier = Math.min(8, Math.max(1, 2 ** Math.max(0, attempt - 1)));
+  return Math.min(360, base * multiplier);
+}
+
+async function recordProviderFailure(domain: any, error: unknown) {
+  const now = new Date();
+  const message =
+    error instanceof Error ? error.message : "Domain provider sync failed.";
+  const previous = providerRecovery(domain);
+  const attempt = Math.max(0, Number(previous?.attemptCount || 0)) + 1;
+  const failure = providerFailureClass(message);
+  const delayMinutes = recoveryDelayMinutes(failure.delayMinutes, attempt);
+  const nextRetryAt = new Date(now.getTime() + delayMinutes * 60000).toISOString();
+  const providerStatus = {
+    ...(domain?.provider_status || {}),
+    recovery: {
+      status: failure.status,
+      category: failure.category,
+      attemptCount: attempt,
+      firstFailedAt: clean(previous?.firstFailedAt, 120) || now.toISOString(),
+      lastAttemptAt: now.toISOString(),
+      nextRetryAt,
+      ownerMessage: failure.ownerMessage,
+      technicalMessage: clean(message, 1200),
+    },
+  };
+
+  const updated = await supabase
+    .from("busy_website_domains")
+    .update({
+      provider_status: providerStatus,
+      last_checked_at: now.toISOString(),
+      last_error: clean(message, 2000),
+      updated_at: now.toISOString(),
+    })
+    .eq("id", domain.id);
+  if (updated.error) throw updated.error;
+
+  return providerStatus.recovery;
+}
+
 function providerConfig() {
   return {
     provider: "cloudflare_saas",
@@ -672,6 +783,19 @@ async function saveProviderState(domain: any, result: any) {
   ]
     .map((item) => clean(item, 800))
     .filter(Boolean);
+  const records = requiredRecords(domain, result);
+  const fullyProviderReady =
+    state.hostnameStatus === "active" && state.sslProviderStatus === "active";
+  const ownerDnsAction =
+    !fullyProviderReady &&
+    records.some((record: any) =>
+      ["cloudflare_hostname_ownership", "ssl_certificate_validation", "traffic_routing"].includes(
+        clean(record?.purpose, 80)
+      )
+    );
+  const nextRetryAt = new Date(
+    Date.now() + (ownerDnsAction ? 30 : fullyProviderReady ? 60 : 10) * 60000
+  ).toISOString();
 
   const update: any = {
     routing_provider: "cloudflare_saas",
@@ -682,13 +806,36 @@ async function saveProviderState(domain: any, result: any) {
         ? "active"
         : state.routingStatus,
     ssl_status: state.sslStatus,
-    required_records: requiredRecords(domain, result),
+    required_records: records,
     provider_status: {
+      ...(domain?.provider_status || {}),
       provider: "cloudflare_saas",
       hostnameStatus: state.hostnameStatus,
       sslStatus: state.sslProviderStatus,
       verificationErrors: providerErrors,
       syncedAt: now,
+      recovery: {
+        status: fullyProviderReady
+          ? "provider_ready"
+          : ownerDnsAction
+          ? "owner_dns_action"
+          : "checking",
+        category: fullyProviderReady
+          ? "healthy"
+          : ownerDnsAction
+          ? "dns_or_validation"
+          : "provider_pending",
+        attemptCount: 0,
+        firstFailedAt: null,
+        lastAttemptAt: now,
+        nextRetryAt,
+        ownerMessage: fullyProviderReady
+          ? "Cloudflare hostname and SSL are ready. BUSY is verifying the real website route."
+          : ownerDnsAction
+          ? "BUSY is waiting for the required DNS records shown in the app."
+          : "BUSY is continuing the Cloudflare setup automatically.",
+        technicalMessage: providerErrors.join(" • ").slice(0, 1200),
+      },
     },
     last_checked_at: now,
     last_error: providerErrors.length ? providerErrors.join(" • ").slice(0, 2000) : null,
@@ -827,7 +974,19 @@ async function syncDomains(limit = 40) {
   if (domains.error) throw domains.error;
 
   const results: any[] = [];
+  let skippedBackoff = 0;
   for (const domain of domains.data || []) {
+    if (!recoveryDue(domain)) {
+      skippedBackoff += 1;
+      results.push({
+        domainId: domain.id,
+        ok: true,
+        skipped: "backoff",
+        recovery: providerRecovery(domain),
+      });
+      continue;
+    }
+
     const run = await supabase
       .from("busy_website_signal_runs")
       .insert({
@@ -854,7 +1013,13 @@ async function syncDomains(limit = 40) {
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Domain provider sync failed.";
-      results.push({ domainId: domain.id, ok: false, error: message });
+      const recovery = await recordProviderFailure(domain, error);
+      results.push({
+        domainId: domain.id,
+        ok: false,
+        error: message,
+        recovery,
+      });
       if (run.data?.id) {
         await supabase
           .from("busy_website_signal_runs")
@@ -874,7 +1039,8 @@ async function syncDomains(limit = 40) {
     preflight,
     provider: activation.provider || (await inspectPlatformProvider()),
     activation,
-    synced: results.length,
+    synced: results.filter((item) => !item.skipped).length,
+    skippedBackoff,
     results,
   };
 }
