@@ -5,6 +5,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const MINI_APP_PUBLIC_BUCKET = "busy-mini-app-public";
 const MINI_APP_LINK_URL = `${SUPABASE_URL}/functions/v1/busy-mini-app-link`;
+const MINI_APP_GUEST_URL = `${SUPABASE_URL}/functions/v1/busy-mini-app-guest`;
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
@@ -708,6 +709,7 @@ async function ownerStatus(businessId: string) {
       requests: [],
       requestLinks: [],
       requestCount30: 0,
+      guestRequestCount30: 0,
       entrySummary: [],
       catalog,
       publicProfile: profile,
@@ -715,7 +717,7 @@ async function ownerStatus(businessId: string) {
   }
 
   const entrySince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const [versions, requests, requestLinks, entrySummary, requestCount30] = await Promise.all([
+  const [versions, requests, requestLinks, entrySummary, requestCount30, guestRequestCount30] = await Promise.all([
     supabase
       .from("busy_mini_app_versions")
       .select(
@@ -727,7 +729,7 @@ async function ownerStatus(businessId: string) {
     supabase
       .from("busy_mini_app_requests")
       .select(
-        "id,version_id,module_key,request_type,status,payload,contact_name,contact_email,contact_phone,service_name,preferred_date_text,business_unread_count,customer_unread_count,last_business_read_at,last_customer_read_at,created_at,updated_at"
+        "id,version_id,module_key,request_type,status,payload,contact_name,contact_email,contact_phone,service_name,preferred_date_text,request_origin,identity_assurance,guest_proof_verified_at,business_unread_count,customer_unread_count,last_business_read_at,last_customer_read_at,created_at,updated_at"
       )
       .eq("mini_app_id", app.id)
       .order("created_at", { ascending: false })
@@ -748,12 +750,19 @@ async function ownerStatus(businessId: string) {
       .select("id", { count: "exact", head: true })
       .eq("mini_app_id", app.id)
       .gte("created_at", entrySince),
+    supabase
+      .from("busy_mini_app_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("mini_app_id", app.id)
+      .eq("request_origin", "guest_web")
+      .gte("created_at", entrySince),
   ]);
   if (versions.error) throw versions.error;
   if (requests.error) throw requests.error;
   if (requestLinks.error) throw requestLinks.error;
   if (entrySummary.error) throw entrySummary.error;
   if (requestCount30.error) throw requestCount30.error;
+  if (guestRequestCount30.error) throw guestRequestCount30.error;
   return {
     app,
     versions: versions.data || [],
@@ -761,6 +770,7 @@ async function ownerStatus(businessId: string) {
     requestLinks: requestLinks.data || [],
     entrySummary: entrySummary.data || [],
     requestCount30: Number(requestCount30.count || 0),
+    guestRequestCount30: Number(guestRequestCount30.count || 0),
     catalog,
     publicProfile: profile,
   };
@@ -1733,6 +1743,8 @@ async function submitRequest(
       contact_phone: contactPhone || null,
       service_name: serviceName || null,
       preferred_date_text: preferredDateText || null,
+      request_origin: "signed_in",
+      identity_assurance: "signed_in_account",
       business_unread_count: 1,
       customer_unread_count: 0,
       idempotency_key: requestId || null,
