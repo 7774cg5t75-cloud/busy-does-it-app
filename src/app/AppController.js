@@ -11260,6 +11260,13 @@ function App() {
         enabledModules: (miniAppsView?.enabledModules || []).map((item) => item.key),
         plannedModules: (miniAppsView?.plannedModules || []).map((item) => item.module_key),
         pendingCustomerRequests: Number(miniAppsView?.pendingRequests?.length || 0),
+        unlinkedCustomerRequests: Number(miniAppsView?.unlinkedPendingRequests?.length || 0),
+        linkedCustomerRequests: Number(miniAppsView?.linkedRequests?.length || 0),
+        bookingDraftRequests: Number(
+          (miniAppsView?.requestLinks || []).filter(
+            (item) => item.bridge_state === "booking_draft"
+          ).length
+        ),
         publicSlug: miniAppsView?.publicSlug || "",
         arbitraryBespokeCodeSupported: false,
         publicChangeRequiresOwnerApproval: true,
