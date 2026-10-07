@@ -54,6 +54,9 @@ export default {
     const incoming = new URL(request.url);
     const hostname = cleanHostname(incoming.hostname);
     const rootDomain = cleanHostname(env.BUSY_ROOT_DOMAIN || DEFAULT_ROOT_DOMAIN);
+    const healthRequest = String(request.headers.get("User-Agent") || "").startsWith(
+      "BUSY-Website-Health/"
+    );
 
     // BUSY's own root/marketing hostnames stay free to use a separate origin.
     if (bypassPlatformHostname(hostname, rootDomain)) {
@@ -73,7 +76,7 @@ export default {
       headers: { Accept: request.headers.get("Accept") || "*/*" },
     });
 
-    if (method === "GET") {
+    if (method === "GET" && !healthRequest) {
       const cached = await caches.default.match(cacheKey);
       if (cached) {
         const hitHeaders = new Headers(cached.headers);
@@ -106,7 +109,7 @@ export default {
     const response = withEdgeHeaders(upstream);
     response.headers.set("X-BUSY-Edge-Cache", "MISS");
 
-    if (method === "GET" && cacheable(response)) {
+    if (method === "GET" && !healthRequest && cacheable(response)) {
       const stored = response.clone();
       stored.headers.set(
         "Cache-Control",
