@@ -723,12 +723,15 @@ function buildWebsitePublishingView({
           ? null
           : Number(queue.oldest_msg_age_sec || 0),
       totalMessages: Number(queue?.total_messages || 0),
+      activeLeaseUntil: activeJob?.lease_expires_at || null,
+      tenantFair: true,
+      oneOperationPerWebsite: true,
       status:
         Number(queue?.queue_length || 0) === 0
           ? "Clear"
           : Number(queue?.oldest_msg_age_sec || 0) > 300
           ? "Backlog needs attention"
-          : "Processing",
+          : "Processing fairly",
     },
     domainState: {
       count: domains.length,
