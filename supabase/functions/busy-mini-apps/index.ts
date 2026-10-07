@@ -2503,7 +2503,7 @@ async function rollbackVersion(
       public_web_url: webArtifact.liveUrl,
       public_web_version_id: versionId,
       public_web_status: "ready",
-      public_web_schema_version: 2,
+      public_web_schema_version: 3,
       public_web_updated_at: now,
       public_web_last_error: null,
       updated_at: now,
