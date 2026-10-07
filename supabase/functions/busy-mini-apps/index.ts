@@ -705,13 +705,14 @@ async function ownerStatus(businessId: string) {
       versions: [],
       requests: [],
       requestLinks: [],
-      messages: [],
+      entrySummary: [],
       catalog,
       publicProfile: profile,
     };
   }
 
-  const [versions, requests, requestLinks] = await Promise.all([
+  const entrySince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const [versions, requests, requestLinks, entrySummary] = await Promise.all([
     supabase
       .from("busy_mini_app_versions")
       .select(
@@ -734,15 +735,22 @@ async function ownerStatus(businessId: string) {
       .eq("business_id", businessId)
       .order("linked_at", { ascending: false })
       .limit(100),
+    supabase.rpc("busy_mini_app_entry_summary", {
+      p_business_id: businessId,
+      p_mini_app_id: app.id,
+      p_since: entrySince,
+    }),
   ]);
   if (versions.error) throw versions.error;
   if (requests.error) throw requests.error;
   if (requestLinks.error) throw requestLinks.error;
+  if (entrySummary.error) throw entrySummary.error;
   return {
     app,
     versions: versions.data || [],
     requests: requests.data || [],
     requestLinks: requestLinks.data || [],
+    entrySummary: entrySummary.data || [],
     catalog,
     publicProfile: profile,
   };
@@ -1309,15 +1317,6 @@ async function myMiniAppRequests(userId: string) {
   });
 }
 
-async function myMiniAppMessages(userId: string) {
-  const requests = await supabase.from("busy_mini_app_requests").select("id").eq("consumer_user_id", userId).order("created_at", { ascending: false }).limit(50);
-  if (requests.error) throw requests.error;
-  const requestIds = (requests.data || []).map((item: any) => item.id);
-  if (!requestIds.length) return [];
-  const messages = await supabase.from("busy_mini_app_request_messages").select("id,request_id,sender_user_id,sender_role,body,created_at").in("request_id", requestIds).order("created_at", { ascending: false }).limit(250);
-  if (messages.error) throw messages.error;
-  return messages.data || [];
-}
 
 async function setConsumerFavorite(
   userId: string,
@@ -1346,7 +1345,42 @@ async function setConsumerFavorite(
   return { favorite };
 }
 
-async function appDetail(slug: string, userId = "") {
+const MINI_APP_ENTRY_SOURCES = new Set([
+  "qr",
+  "share",
+  "deep_link",
+  "marketplace",
+  "my_apps",
+  "notification",
+  "owner_test",
+  "unknown",
+]);
+
+function miniAppEntrySource(value: unknown) {
+  const source = clean(value, 40).toLowerCase();
+  return MINI_APP_ENTRY_SOURCES.has(source) ? source : "unknown";
+}
+
+async function recordMiniAppEntry(app: any, userId: string, source: string) {
+  if (!app?.id || !app?.business_id) return;
+  const inserted = await supabase.from("busy_mini_app_entry_events").insert({
+    business_id: app.business_id,
+    mini_app_id: app.id,
+    consumer_user_id: userId || null,
+    source: miniAppEntrySource(source),
+    stage: "app_open",
+  });
+  if (inserted.error) {
+    console.error("BUSY Mini App entry attribution failed", inserted.error.message);
+  }
+}
+
+async function appDetail(
+  slug: string,
+  userId = "",
+  entrySource = "unknown",
+  trackEntry = true
+) {
   const app = await supabase
     .from("busy_mini_apps")
     .select("*")
@@ -1357,22 +1391,6 @@ async function appDetail(slug: string, userId = "") {
   if (!app.data?.current_live_version_id) {
     throw new Error("That BUSY Mini App is not currently available.");
   }
-  if (!app.data.discoverable) {
-    if (!userId) {
-      throw new Error("That BUSY Mini App is not currently listed.");
-    }
-    const known = await supabase
-      .from("busy_mini_app_consumer_apps")
-      .select("id")
-      .eq("consumer_user_id", userId)
-      .eq("mini_app_id", app.data.id)
-      .maybeSingle();
-    if (known.error) throw known.error;
-    if (!known.data?.id) {
-      throw new Error("That BUSY Mini App is not currently listed.");
-    }
-  }
-
   const version = await supabase
     .from("busy_mini_app_versions")
     .select("id,version_no,config,published_at")
@@ -1382,6 +1400,7 @@ async function appDetail(slug: string, userId = "") {
   if (!version.data) throw new Error("Live Mini App version not found.");
 
   if (userId) await trackConsumerApp(userId, app.data.id);
+  if (trackEntry) await recordMiniAppEntry(app.data, userId, entrySource);
   let favorite = false;
   if (userId) {
     const consumer = await supabase
@@ -1401,6 +1420,7 @@ async function appDetail(slug: string, userId = "") {
       name: app.data.display_name,
       category: app.data.category,
       tagline: app.data.tagline,
+      discoverable: !!app.data.discoverable,
       favorite,
     },
     version: version.data,
@@ -1417,7 +1437,7 @@ async function submitRequest(
   if (!["booking_request", "enquiry"].includes(requestType)) {
     throw new Error("Unsupported Mini App request type.");
   }
-  const detail = await appDetail(slug, userId);
+  const detail = await appDetail(slug, userId, "unknown", false);
   const modules = safeArray(detail.version?.config?.modules);
   const moduleKey =
     requestType === "booking_request" ? "booking_request" : "enquiry";
@@ -1854,7 +1874,12 @@ Deno.serve(async (request: Request) => {
     if (action === "app_detail") {
       return json(200, {
         ok: true,
-        ...(await appDetail(clean(body?.slug, 100), user.id)),
+        ...(await appDetail(
+          clean(body?.slug, 100),
+          user.id,
+          miniAppEntrySource(body?.source),
+          true
+        )),
       });
     }
     if (action === "my_apps") {
