@@ -854,17 +854,18 @@ async function syncDomains(limit = 40) {
   };
 }
 
-async function reserveDefaultHostnames() {
+async function reserveDefaultHostnames(websiteId = "") {
   const config = providerConfig();
   if (!config.baseDomainConfigured) {
     return { configured: false, reserved: 0, promoted: 0 };
   }
 
-  const websites = await supabase
+  let websiteQuery = supabase
     .from("busy_websites")
     .select("id,business_id,public_slug,default_hostname,default_url,delivery_status,current_live_deployment_id")
-    .is("default_hostname", null)
-    .limit(100);
+    .is("default_hostname", null);
+  if (websiteId) websiteQuery = websiteQuery.eq("id", websiteId);
+  const websites = await websiteQuery.limit(websiteId ? 1 : 100);
   if (websites.error) throw websites.error;
 
   let reserved = 0;
@@ -895,13 +896,14 @@ async function reserveDefaultHostnames() {
   // V3.47 could reserve the address before a first publication, but nothing
   // promoted an already-reserved address once the site later became live.
   // Reconcile that state here so scheduled provider sync self-heals it.
-  const ready = await supabase
+  let readyQuery = supabase
     .from("busy_websites")
     .select("id")
     .not("current_live_deployment_id", "is", null)
     .not("default_hostname", "is", null)
-    .eq("delivery_status", "reserved")
-    .limit(100);
+    .eq("delivery_status", "reserved");
+  if (websiteId) readyQuery = readyQuery.eq("id", websiteId);
+  const ready = await readyQuery.limit(websiteId ? 1 : 100);
   if (ready.error) throw ready.error;
 
   for (const website of ready.data || []) {
@@ -970,7 +972,11 @@ Deno.serve(async (request: Request) => {
       });
     }
     if (action === "reserve_default_hostnames") {
-      return json(200, { ok: true, ...(await reserveDefaultHostnames()) });
+      const websiteId = clean(body?.websiteId, 80);
+      return json(200, {
+        ok: true,
+        ...(await reserveDefaultHostnames(websiteId)),
+      });
     }
     return json(400, { error: "Unknown website provider action." });
   } catch (error) {
