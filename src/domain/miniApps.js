@@ -173,6 +173,12 @@ function buildMiniAppsView(remote = {}) {
       clean(app?.public_web_status) === "ready" &&
       clean(app?.public_web_version_id) === clean(app?.current_live_version_id) &&
       /^https:\/\//i.test(clean(app?.public_web_url)),
+    guestWebReady:
+      !!app?.current_live_version_id &&
+      clean(app?.public_web_status) === "ready" &&
+      clean(app?.public_web_version_id) === clean(app?.current_live_version_id) &&
+      Number(app?.public_web_schema_version || 1) >= 2 &&
+      /^https:\/\//i.test(clean(app?.public_web_url)),
     displayName:
       clean(activeConfig?.display?.name) ||
       clean(app?.display_name) ||
