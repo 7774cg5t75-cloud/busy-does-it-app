@@ -219,6 +219,7 @@ async function checkWebsite(website: any) {
       .update({
         health_status: "down",
         last_health_check_at: checkedAt,
+        next_health_check_at: new Date(Date.now() + 5 * 60000).toISOString(),
         last_error: "Live website has no recorded public URL.",
       })
       .eq("id", website.id);
@@ -244,6 +245,7 @@ async function checkWebsite(website: any) {
   if (domains.error) throw domains.error;
 
   const domainResults = [];
+  let maxDomainFailureStreak = 0;
   for (const domain of domains.data || []) {
     domainResults.push(
       await recordCheck({
@@ -258,6 +260,7 @@ async function checkWebsite(website: any) {
       domainResult?.status === "healthy"
         ? 0
         : await failureStreak(website.id, "custom_domain", domain.id);
+    maxDomainFailureStreak = Math.max(maxDomainFailureStreak, streak);
     const failure = healthFailureClass(domainResult);
     const existingProviderStatus =
       domain.provider_status && typeof domain.provider_status === "object"
@@ -344,9 +347,26 @@ async function checkWebsite(website: any) {
     live.status !== "healthy" &&
     website.health_status === "healthy" &&
     liveFailureStreak < 2;
+  const anyTransientFailure =
+    live.status !== "healthy" ||
+    (!!defaultResult && defaultResult.status !== "healthy") ||
+    domainResults.some((item: any) => item?.status !== "healthy");
+  const anyConfirmedFailure =
+    liveFailureStreak >= 2 ||
+    defaultFailureStreak >= 2 ||
+    maxDomainFailureStreak >= 2;
+  const nextHealthMinutes = anyConfirmedFailure
+    ? 5
+    : anyTransientFailure
+    ? 3
+    : 60;
+
   const update: Record<string, unknown> = {
     health_status: preserveKnownGoodLive ? "healthy" : live.status,
     last_health_check_at: checkedAt,
+    next_health_check_at: new Date(
+      Date.now() + nextHealthMinutes * 60000
+    ).toISOString(),
     last_observed_deployment_id: live.observedDeploymentId,
     updated_at: checkedAt,
   };
@@ -396,31 +416,60 @@ async function checkWebsite(website: any) {
     recovery: {
       liveFailureStreak,
       defaultFailureStreak,
+      maxDomainFailureStreak,
+      nextHealthMinutes,
       liveTransientPreserved: preserveKnownGoodLive,
     },
   };
 }
 
 async function websitesToCheck(websiteId: string, limit: number) {
-  let query = supabase
-    .from("busy_websites")
-    .select("*")
-    .not("current_live_deployment_id", "is", null);
+  const base = () =>
+    supabase
+      .from("busy_websites")
+      .select("*")
+      .not("current_live_deployment_id", "is", null);
 
   if (websiteId) {
-    query = query.eq("id", websiteId);
-  } else {
-    query = query
-      .order("last_health_check_at", {
-        ascending: true,
-        nullsFirst: true,
-      })
-      .limit(limit);
+    const result = await base().eq("id", websiteId).limit(1);
+    if (result.error) throw result.error;
+    return result.data || [];
   }
 
-  const result = websiteId ? await query.limit(1) : await query;
-  if (result.error) throw result.error;
-  return result.data || [];
+  const dueNow = new Date().toISOString();
+  const dueFilter =
+    `next_health_check_at.is.null,next_health_check_at.lte.${dueNow}`;
+  const urgentLimit = Math.min(limit, Math.max(4, Math.ceil(limit / 2)));
+
+  const urgent = await base()
+    .neq("health_status", "healthy")
+    .or(dueFilter)
+    .order("next_health_check_at", { ascending: true, nullsFirst: true })
+    .order("last_health_check_at", { ascending: true, nullsFirst: true })
+    .limit(urgentLimit);
+  if (urgent.error) throw urgent.error;
+
+  const selected = [...(urgent.data || [])];
+  const selectedIds = new Set(selected.map((item: any) => item.id));
+  const remaining = Math.max(0, limit - selected.length);
+
+  if (remaining) {
+    const healthy = await base()
+      .eq("health_status", "healthy")
+      .or(dueFilter)
+      .order("next_health_check_at", { ascending: true, nullsFirst: true })
+      .order("last_health_check_at", { ascending: true, nullsFirst: true })
+      .limit(remaining + selected.length);
+    if (healthy.error) throw healthy.error;
+    for (const website of healthy.data || []) {
+      if (selectedIds.has(website.id)) continue;
+      selected.push(website);
+      selectedIds.add(website.id);
+      if (selected.length >= limit) break;
+    }
+  }
+
+  return selected;
 }
 
 Deno.serve(async (request: Request) => {
@@ -436,10 +485,10 @@ Deno.serve(async (request: Request) => {
     const websites = await websitesToCheck(websiteId, limit);
     const results = [];
 
-    // Small concurrent groups keep scheduled checks bounded without making
-    // thousands of sites wait on one serial HTTP chain.
-    for (let offset = 0; offset < websites.length; offset += 8) {
-      const group = websites.slice(offset, offset + 8);
+    // Ten-site groups keep the one-minute scheduler bounded while spreading
+    // checks continuously instead of creating a five-minute traffic spike.
+    for (let offset = 0; offset < websites.length; offset += 10) {
+      const group = websites.slice(offset, offset + 10);
       results.push(...(await Promise.all(group.map(checkWebsite))));
     }
 
