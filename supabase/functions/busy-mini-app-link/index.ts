@@ -80,17 +80,14 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  const userAgent = clean(req.headers.get("user-agent"), 500);
-  const inserted = await supabase.from("busy_mini_app_entry_events").insert({
-    business_id: app.data.business_id,
-    mini_app_id: app.data.id,
-    consumer_user_id: null,
-    source,
-    stage: "landing",
-    user_agent: userAgent || null,
+  const recorded = await supabase.rpc("busy_mini_app_record_entry", {
+    p_business_id: app.data.business_id,
+    p_mini_app_id: app.data.id,
+    p_source: source,
+    p_stage: "landing",
   });
-  if (inserted.error) {
-    console.error("BUSY Mini App landing attribution failed", inserted.error.message);
+  if (recorded.error) {
+    console.error("BUSY Mini App landing attribution failed", recorded.error.message);
   }
 
   const encodedSlug = encodeURIComponent(app.data.public_slug);
