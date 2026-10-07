@@ -2,6 +2,24 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.45 Guest Mini App Request Boundary
+### Public request service
+- `busy-mini-app-guest` is the only unauthenticated request-creation boundary. Direct Data API access to guest challenges and Mini App requests remains revoked.
+- A guest form first requests a short-lived challenge for one live Mini App version and one enabled request module. Submission must present the challenge token, a small proof-of-work, the same keyed browser fingerprint and valid bounded customer payload.
+- The challenge is consumed inside `busy_mini_app_create_guest_request`, which locks the challenge row, rechecks the current live Mini App version, enforces recent browser/contact rate limits, inserts the request and writes the lifecycle event in one database transaction.
+- Guest request access uses a high-entropy token derived server-side from the one-time challenge. Only its SHA-256 hash is stored with the request.
+
+### Identity and privacy semantics
+- Signed-in and guest requests share one downstream request/customer-work model, but their identity assurance is explicit. `signed_in_account` and `guest_browser_challenge` are never conflated.
+- A guest browser challenge is anti-abuse evidence, not proof that the typed email/phone belongs to the person submitting the form. Owner UI and Operator wording preserve that distinction.
+- Challenge fingerprints are keyed hashes of edge request signals; raw IP addresses are never persisted by the guest-request tables.
+- Guest challenge rows are ephemeral and pruned after expiry. Long-lived request records retain the business/customer request itself, not the browser fingerprint.
+
+### Conversation and booking safety
+- V3.45 does not create a fake customer chat channel for guests. Owner chat composition is disabled for guest-originated requests; the supplied contact details are the current reply path.
+- Guest browser receipts can read only the narrow status of the request they hold the secret token for.
+- Booking requests remain `received/reviewing/accepted/declined/closed` request workflow records. The existing Draft/Confirmed booking bridge remains the only path that can represent actual BUSY booking state.
+
 ## V3.44 Public Mini App Web Experience
 ### Immutable static web artifact
 - `busy_mini_app_versions` now carries public-web artifact metadata, while `busy_mini_apps` points at the web artifact corresponding to the current live immutable version.
