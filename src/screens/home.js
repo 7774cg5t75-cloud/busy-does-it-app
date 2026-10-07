@@ -1121,8 +1121,8 @@ function HomeScreen({ s }) {
         />
         {s.miniAppsView?.hasLive ? (
           <MetricRow
-            left="Mini App entry • 30d"
-            right={`${Number(s.miniAppsView?.entryCounts?.byStage?.app_open || 0)} app opens • ${Number(s.miniAppsView?.entryCounts?.byStage?.landing || 0)} link visits`}
+            left="Mini App journey • 30d"
+            right={`${Number(s.miniAppsView?.entryCounts?.byStage?.web_view || s.miniAppsView?.entryCounts?.byStage?.landing || 0)} web views • ${Number(s.miniAppsView?.entryCounts?.byStage?.action_intent || 0)} action attempts • ${Number(s.miniAppsView?.requestCount30 || 0)} requests`}
           />
         ) : null}
         <Button label="Daily Command Centre" onPress={() => s.go("dailyCommandCentre")} />
