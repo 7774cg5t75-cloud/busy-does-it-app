@@ -128,7 +128,7 @@ select cron.schedule(
 
 create or replace function public.busy_wake_website_health()
 returns bigint language plpgsql security definer set search_path = ''
-as $
+as $$
 declare
   v_token text;
   v_request_id bigint;
@@ -153,7 +153,7 @@ begin
 
   return v_request_id;
 end;
-$;
+$$;
 
 revoke all on function public.busy_wake_website_health()
   from public, anon, authenticated;
