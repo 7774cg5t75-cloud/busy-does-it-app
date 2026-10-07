@@ -5,6 +5,7 @@ Busy Does It mobile app prototype.
 ## v3.45 Guest Mini App Requests
 - Customers can now submit **enquiries and booking requests directly from the public web Mini App** without installing BUSY or signing into a BUSY account.
 - Public forms reuse the exact immutable live Mini App configuration and only appear when the corresponding controlled `enquiry` or `booking_request` module is enabled.
+- Existing V3.44 web artifacts are not silently rewritten. BUSY records a web-artifact capability version; an owner must republish through the existing approval flow before an older live artifact gains V3.45 guest forms.
 - Before submission BUSY issues a short-lived, one-time guest browser challenge. The web page solves a small proof-of-work, the server checks the same browser fingerprint, a hidden bot-trap field, expiry and rate limits, then atomically consumes the challenge.
 - Raw IP addresses are not stored. BUSY stores a keyed hash for the short-lived challenge/rate-limit window and prunes expired challenge rows automatically.
 - Guest requests enter the **same** `busy_mini_app_requests` pipeline as signed-in requests with an explicit `request_origin=guest_web` and `identity_assurance=guest_browser_challenge`.
