@@ -11667,6 +11667,93 @@ function App() {
         transcript: String(payload?.transcript || cleanText || "").trim(),
       };
 
+      if (businessCreationConversationActive && result.transcript) {
+        const spoken = String(result.transcript || "").trim();
+        let responseText = "";
+        let clarificationQuestion = "";
+        let needsClarification = false;
+
+        if (!String(businessCreationBrief || "").trim()) {
+          setBusinessCreationBrief(spoken);
+          await prepareBusinessCreationJourney(spoken);
+          const question = businessCreationJourney?.nextQuestion;
+          clarificationQuestion =
+            question?.question ||
+            "I have prepared the private launch pack. Would you like to review the website, Business App or social setup first?";
+          needsClarification = !!question;
+          responseText = question
+            ? "I have started the business launch pack from what you told me. I just need one useful detail next."
+            : "I have prepared the private launch pack from what you told me. Nothing has been published.";
+        } else if (businessCreationJourney?.nextQuestion) {
+          const currentQuestion = businessCreationJourney.nextQuestion;
+          const saved = answerBusinessCreationQuestion(spoken);
+          if (!saved) {
+            responseText = "I could not safely save that answer.";
+            clarificationQuestion = currentQuestion.question || "";
+            needsClarification = true;
+          } else {
+            const shared = {
+              ...(businessCreationIntelligence?.sharedProfile || {}),
+            };
+            if (currentQuestion.key === "businessName") shared.businessName = spoken;
+            if (currentQuestion.key === "businessType") shared.businessType = spoken;
+            if (currentQuestion.key === "serviceArea") shared.serviceArea = spoken;
+            if (currentQuestion.key === "description") shared.description = spoken;
+            if (currentQuestion.key === "openingHours") shared.openingHours = spoken;
+            if (currentQuestion.key === "contact") {
+              if (spoken.includes("@")) shared.email = spoken;
+              else shared.phone = spoken;
+            }
+            const nextQuestion = nextBestBusinessCreationQuestion({
+              shared,
+              brandBrain: { ...brandBrain, missingForWebsite: [] },
+              miniAppsView,
+            });
+            clarificationQuestion = nextQuestion?.question || "";
+            needsClarification = !!nextQuestion;
+            responseText = nextQuestion
+              ? "Got it. I have saved that to the shared business profile and carried it into the creation journey. Here is the next thing I need."
+              : "Got it. I now have the important business-profile details I need. The launch pack can keep moving forward.";
+          }
+        } else {
+          responseText =
+            "The business creation profile has the important core facts. I can keep preparing the launch pack or you can review one of the private previews.";
+        }
+
+        const creationResult = {
+          intent: "business_creation_conversation",
+          mode: needsClarification ? "clarify" : "answer",
+          title: "Business creation",
+          response: responseText,
+          confidence: "High",
+          needsClarification,
+          clarificationQuestion,
+          requiresConfirmation: false,
+          actionLabel: "",
+          customerName: "",
+          service: "",
+          date: "",
+          time: "",
+          value: 0,
+          note: "",
+          draftText: "",
+          draftTarget: "",
+          previewRows: [],
+          planSteps: [],
+          transcript: spoken,
+          applied: true,
+        };
+        addBusyConversationTurn("user", spoken);
+        addBusyConversationTurn(
+          "assistant",
+          needsClarification ? clarificationQuestion : responseText,
+          creationResult
+        );
+        setBusyCommandResult(creationResult);
+        setBusyCommandStatus("ready");
+        return creationResult;
+      }
+
       const validation = validateOperatorCommand({
         command: result,
         customers,
@@ -13372,8 +13459,8 @@ function App() {
     return true;
   };
 
-  const prepareBusinessCreationJourney = async () => {
-    const brief = String(businessCreationBrief || "").trim();
+  const prepareBusinessCreationJourney = async (briefOverride = "") => {
+    const brief = String(briefOverride || businessCreationBrief || "").trim();
     if (!brief) {
       setBusinessCreationError("Tell BUSY about the business and what you want it to prepare.");
       return false;
