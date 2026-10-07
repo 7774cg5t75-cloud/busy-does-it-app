@@ -332,6 +332,28 @@ function WebsitePublishing({ s }) {
           right={view.providerState?.configured ? "Server configuration ready" : "Account connection still required"}
           strong={view.providerState?.configured}
         />
+        <MetricRow
+          left="Fallback origin"
+          right={
+            view.providerState?.fallbackOriginStatus === "active"
+              ? "Active"
+              : view.providerState?.fallbackOriginStatus === "not_connected"
+              ? "Not connected"
+              : view.providerState?.fallbackOriginStatus || "Not configured"
+          }
+          strong={view.providerState?.fallbackOriginStatus === "active"}
+        />
+        <MetricRow
+          left="Routing Worker"
+          right={
+            view.providerState?.routerScriptReady && view.providerState?.routerRouteReady
+              ? "Deployed & routed"
+              : view.providerState?.routerScriptReady
+              ? "Deployed • route pending"
+              : "Not deployed yet"
+          }
+          strong={view.providerState?.routerScriptReady && view.providerState?.routerRouteReady}
+        />
       </Card>
 
       <Text style={styles.sectionLabel}>Delivery provider</Text>
@@ -349,6 +371,7 @@ function WebsitePublishing({ s }) {
         <MetricRow left="API token" right={view.providerState?.tokenReady ? "Server secret ready" : "Not connected"} />
         <MetricRow left="SaaS zone" right={view.providerState?.zoneReady ? "Ready" : "Not connected"} />
         <MetricRow left="Cloudflare account" right={view.providerState?.accountReady ? "Server value ready" : "Not connected"} />
+        <MetricRow left="Platform bootstrap" right={view.providerState?.bootstrapReady ? "Ready to automate" : "Waiting for account credentials"} />
         <MetricRow left="Routing target" right={view.providerState?.targetReady ? "Ready" : "Not connected"} />
         <MetricRow left="BUSY web domain" right={view.providerState?.baseDomainConfigured ? view.providerState.baseDomain : "Not configured"} />
       </Card>
