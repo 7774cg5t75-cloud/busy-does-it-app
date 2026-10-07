@@ -1,5 +1,14 @@
 # busy-does-it-app
 
+## v3.47 Cloudflare Production Activation
+- BUSY now turns the previously prepared Cloudflare-for-SaaS infrastructure into an **automatic, idempotent production activation flow**. The existing five-minute provider scheduler checks the real platform state and performs the bootstrap only when credentials, nameservers and routing prerequisites are genuinely ready.
+- The provider now distinguishes **credentials ready**, **nameservers ready**, **infrastructure applied**, **Cloudflare still activating** and **fully active** instead of collapsing them into one connected/not-connected flag.
+- Once activation is needed, BUSY can create or reconcile the proxied fallback-origin record, the friendly `sites.busydoesit.co.uk` target, the wildcard BUSY DNS record, the Cloudflare fallback-origin setting, the `busy-website-router` Worker and its wildcard/exclusion routes. Existing correct resources are reused rather than recreated.
+- The scheduled domain-sync path now performs platform reconciliation first, so adding the restricted Cloudflare token, Zone ID and Account ID is enough to let the backend move forward without another manual deployment step.
+- Website Publishing now carries the provider preflight, platform inspection and activation state all the way from the server into the owner UI. This fixes the V3.46 state-drop where the server knew the real Cloudflare state but the mobile view did not retain it.
+- The UI now shows whether automatic activation is waiting, applied, still being activated by Cloudflare or fully active, while keeping customer-domain ownership, routing, SSL and live deployment health as separate truths.
+- No Cloudflare secret is exposed to the app, GitHub, logs or customer-facing website artifacts. The mobile client receives only boolean/status evidence.
+
 Busy Does It mobile app prototype.
 
 ## v3.46 Production Domains & Hosting Activation
