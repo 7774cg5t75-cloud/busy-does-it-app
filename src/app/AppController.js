@@ -11481,6 +11481,7 @@ function App() {
         "website_build",
         "website_edit",
         "open_website",
+        "website_health_check",
         "website_publish_request",
         "website_rollback_request",
       ].includes(result.intent);
@@ -11961,6 +11962,10 @@ function App() {
       }
       case "open_website":
         jump(websiteDraft ? "websitePreview" : "websiteBuilder", "Home");
+        return true;
+      case "website_health_check":
+        openWebsitePublishing();
+        setTimeout(() => runWebsiteHealthCheck(), 120);
         return true;
       case "website_publish_request":
       case "website_rollback_request":
