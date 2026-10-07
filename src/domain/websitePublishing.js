@@ -46,9 +46,11 @@ function buildWebsitePublishingView({
     hasApiToken: false,
     hasZoneId: false,
     hasCnameTarget: false,
-    baseDomainConfigured: false,
-    baseDomain: "",
+    rootDomain: "busydoesit.co.uk",
+    baseDomainConfigured: true,
+    baseDomain: "sites.busydoesit.co.uk",
   };
+  const providerPreflight = remote?.providerPreflight || null;
   const publicProfile = remote?.publicProfile || null;
   const queue = remote?.queue || null;
 
@@ -184,6 +186,7 @@ function buildWebsitePublishingView({
     signalRuns,
     enquiryAttributions,
     providerConfig,
+    providerPreflight,
     publicProfile,
     latestDeployment,
     previewDeployment,
@@ -238,6 +241,15 @@ function buildWebsitePublishingView({
       targetReady: !!providerConfig.hasCnameTarget,
       lastDomainSignal,
       lastAnalyticsSignal,
+      rootDomain: clean(providerConfig.rootDomain) || "busydoesit.co.uk",
+      preflight: providerPreflight,
+      rootOnCloudflare: !!providerPreflight?.rootOnCloudflare,
+      baseDomainRoutable: !!providerPreflight?.baseDomainRoutable,
+      activationStatus: clean(providerPreflight?.status) || "not_checked",
+      checkedAt: providerPreflight?.checkedAt || null,
+      nameservers: safeArray(providerPreflight?.rootNameservers),
+      statusReachable: remote?.providerStatusReachable !== false,
+      statusError: clean(remote?.providerStatusError),
     },
     defaultAddressState: {
       address: defaultAddress,
@@ -255,7 +267,9 @@ function buildWebsitePublishingView({
             ? "Delivery error"
             : "Not live"
           : providerConfig.baseDomainConfigured
-          ? "Waiting for reservation"
+          ? providerPreflight?.rootOnCloudflare
+            ? "Waiting for delivery routing"
+            : "Waiting for Cloudflare nameservers"
           : "BUSY platform domain not configured",
     },
     queueHealth: {
