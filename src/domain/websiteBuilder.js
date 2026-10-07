@@ -243,7 +243,102 @@ function applyWebsiteInstruction(draft = {}, instruction = "") {
   };
   let summary = "";
 
-  if (/make (it |the site |website )?(more )?(premium|polished|luxury)/i.test(text)) {
+  const exactValue = (patterns) => {
+    for (const pattern of patterns) {
+      const match = text.match(pattern);
+      if (match?.[1]) return clean(match[1]).replace(/^["']|["']$/g, "");
+    }
+    return "";
+  };
+
+  const headline = exactValue([
+    /(?:change|set) (?:the )?(?:homepage )?(?:headline|main heading) (?:to|as)\s+(.+)/i,
+    /(?:make) (?:the )?(?:homepage )?(?:headline|main heading) (?:say|read)\s+(.+)/i,
+  ]);
+  const tagline = exactValue([
+    /(?:change|set) (?:the )?(?:tagline|hero text) (?:to|as)\s+(.+)/i,
+    /(?:make) (?:the )?(?:tagline|hero text) (?:say|read)\s+(.+)/i,
+  ]);
+  const phone = exactValue([
+    /(?:change|set|update) (?:the )?(?:phone|phone number|telephone) (?:to|as)\s+(.+)/i,
+  ]);
+  const email = exactValue([
+    /(?:change|set|update) (?:the )?(?:email|email address) (?:to|as)\s+([^\s]+@[^\s]+)/i,
+  ]);
+  const openingHours = exactValue([
+    /(?:change|set|update) (?:the )?(?:opening hours|hours) (?:to|as)\s+(.+)/i,
+  ]);
+  const addService = exactValue([
+    /(?:add|include) (?:a |the )?(?:service called |service )(.+)/i,
+  ]);
+  const removeService = exactValue([
+    /(?:remove|delete|hide) (?:the )?(.+?) (?:service|from services)$/i,
+  ]);
+  const emphasiseService = exactValue([
+    /(?:put|move) (?:the )?(.+?) (?:service )?(?:first|at the top)(?: of services)?$/i,
+    /(?:emphasise|highlight|feature) (?:the )?(.+?) (?:service )?first$/i,
+  ]);
+
+  const heroIndex = sectionIndex(next, "hero");
+  const contactIndex = sectionIndex(next, "contact");
+  const servicesIndex = sectionIndex(next, "services");
+
+  if (headline && heroIndex >= 0) {
+    next.sections[heroIndex] = { ...next.sections[heroIndex], title: headline };
+    summary = "Updated the homepage headline exactly as requested.";
+  } else if (tagline && heroIndex >= 0) {
+    next.sections[heroIndex] = { ...next.sections[heroIndex], body: tagline };
+    summary = "Updated the hero wording exactly as requested.";
+  } else if (phone && contactIndex >= 0) {
+    next.sections[contactIndex] = { ...next.sections[contactIndex], phone };
+    summary = "Updated the public phone number.";
+  } else if (email && contactIndex >= 0) {
+    next.sections[contactIndex] = { ...next.sections[contactIndex], email };
+    summary = "Updated the public email address.";
+  } else if (openingHours && contactIndex >= 0) {
+    next.sections[contactIndex] = { ...next.sections[contactIndex], openingHours };
+    summary = "Updated the public opening hours.";
+  } else if (removeService && servicesIndex >= 0) {
+    const needle = removeService.toLowerCase().replace(/\s+/g, " ");
+    const before = safeArray(next.sections[servicesIndex].items);
+    const kept = before.filter((item) => {
+      const title = clean(item.title).toLowerCase().replace(/\s+/g, " ");
+      return !(title === needle || title.includes(needle) || needle.includes(title));
+    });
+    if (kept.length < before.length) {
+      next.sections[servicesIndex] = { ...next.sections[servicesIndex], items: kept };
+      summary = `Removed ${removeService} from the website services.`;
+    }
+  } else if (addService && servicesIndex >= 0) {
+    const items = safeArray(next.sections[servicesIndex].items);
+    const exists = items.some(
+      (item) => clean(item.title).toLowerCase() === addService.toLowerCase()
+    );
+    if (!exists) {
+      next.sections[servicesIndex] = {
+        ...next.sections[servicesIndex],
+        items: [
+          ...items,
+          { id: slugify(addService), title: addService, body: "" },
+        ],
+      };
+      summary = `Added ${addService} as a website service. BUSY did not invent a description.`;
+    }
+  } else if (emphasiseService && servicesIndex >= 0) {
+    const items = safeArray(next.sections[servicesIndex].items);
+    const needle = emphasiseService.toLowerCase();
+    const index = items.findIndex((item) =>
+      clean(item.title).toLowerCase().includes(needle)
+    );
+    if (index >= 0) {
+      const chosen = items[index];
+      next.sections[servicesIndex] = {
+        ...next.sections[servicesIndex],
+        items: [chosen, ...items.filter((_, itemIndex) => itemIndex !== index)],
+      };
+      summary = `Moved ${chosen.title} to the top of the services list.`;
+    }
+  } else if (/make (it |the site |website )?(more )?(premium|polished|luxury)/i.test(text)) {
     next.theme.mood = "premium";
     next.theme.spacing = "generous";
     summary = "Made the website feel more premium and spacious.";
@@ -297,10 +392,12 @@ function applyWebsiteInstruction(draft = {}, instruction = "") {
   }
 
   if (!summary) {
+    const vagueSeasonal = /winter|summer|spring|autumn|seasonal|christmas|easter/i.test(lower);
     return {
       applied: false,
-      reason:
-        "BUSY understood this as a website request, but this safe editor only applies supported layout/style/section changes automatically. The wording request can stay in the conversation for a richer editing pass.",
+      reason: vagueSeasonal
+        ? "BUSY can prepare seasonal website changes, but it needs a specific approved fact or existing service to emphasise. It will not invent seasonal services, prices or claims."
+        : "BUSY understood this as a website request, but the safe editor only applies supported exact wording, contact, service, layout and visibility changes automatically. Unsupported public copy is not guessed.",
       draft,
     };
   }
