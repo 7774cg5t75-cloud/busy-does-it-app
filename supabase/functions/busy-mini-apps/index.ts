@@ -1553,6 +1553,7 @@ async function setConsumerFavorite(
 const MINI_APP_ENTRY_SOURCES = new Set([
   "qr",
   "share",
+  "web",
   "deep_link",
   "marketplace",
   "my_apps",
