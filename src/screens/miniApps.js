@@ -14,39 +14,61 @@ function readableDate(value, fallback = "Not yet") {
   }
 }
 
-function RequestConversation({ messages = [], sending = false, onSend, customerView = false }) {
-  const [draft, setDraft] = React.useState("");
-  const ordered = Array.isArray(messages)
-    ? messages.slice().sort((a, b) => String(a.created_at || "").localeCompare(String(b.created_at || "")))
-    : [];
-  const send = async () => {
-    const body = draft.trim();
-    if (!body || !onSend) return;
-    const ok = await onSend(body);
-    if (ok) setDraft("");
+function requestEventLabel(type = "") {
+  const labels = {
+    received: "Request sent",
+    reviewing: "Business is reviewing the request",
+    accepted: "Request accepted",
+    declined: "Request declined",
+    closed: "Request closed",
+    linked_customer: "Linked into the BUSY customer journey",
+    booking_draft: "Business is arranging the booking",
+    booking_confirmed: "Booking confirmed",
   };
+  return labels[type] || String(type || "Request updated").replaceAll("_", " ");
+}
+
+function RequestTimeline({ messages = [], events = [] }) {
+  const timeline = [
+    ...(Array.isArray(messages) ? messages : []).map((item) => ({
+      ...item,
+      timelineKind: "message",
+      at: item.created_at,
+    })),
+    ...(Array.isArray(events) ? events : []).map((item) => ({
+      ...item,
+      timelineKind: "event",
+      at: item.created_at,
+    })),
+  ].sort((a, b) => String(a.at || "").localeCompare(String(b.at || "")));
+
+  if (!timeline.length) {
+    return <Text style={{ opacity: 0.7 }}>No conversation activity yet.</Text>;
+  }
+
   return (
-    <View style={{ marginTop: 10 }}>
-      {ordered.length ? (
-        <>
-          <Text style={styles.sectionLabel}>Conversation</Text>
-          {ordered.slice(-6).map((item) => (
-            <View key={item.id} style={{ marginBottom: 8 }}>
-              <Text style={{ fontWeight: "700" }}>{item.sender_role === "customer" ? "Customer" : "Business"}</Text>
-              <Text>{item.body}</Text>
-              <Text style={{ opacity: 0.6, fontSize: 12 }}>{readableDate(item.created_at)}</Text>
-            </View>
-          ))}
-        </>
-      ) : (
-        <Text style={{ opacity: 0.7, marginBottom: 8 }}>No messages in this request yet.</Text>
+    <View style={{ marginTop: 8 }}>
+      {timeline.map((item) =>
+        item.timelineKind === "message" ? (
+          <View key={`message-${item.id}`} style={{ marginBottom: 12 }}>
+            <Text style={{ fontWeight: "700" }}>
+              {item.sender_role === "customer" ? "Customer" : "Business"}
+            </Text>
+            <Text>{item.body}</Text>
+            <Text style={{ opacity: 0.6, fontSize: 12 }}>
+              {readableDate(item.created_at)}
+            </Text>
+          </View>
+        ) : (
+          <View key={`event-${item.id}`} style={{ marginBottom: 10 }}>
+            <Text style={{ fontWeight: "700" }}>BUSY update</Text>
+            <Text>{requestEventLabel(item.event_type)}</Text>
+            <Text style={{ opacity: 0.6, fontSize: 12 }}>
+              {readableDate(item.created_at)}
+            </Text>
+          </View>
+        )
       )}
-      {onSend ? (
-        <>
-          <Field label={customerView ? "Reply to business" : "Reply to customer"} value={draft} onChangeText={setDraft} placeholder={customerView ? "Write a reply…" : "Write a customer update…"} multiline />
-          <Button label={sending ? "Sending…" : "Send message"} disabled={sending || !draft.trim()} onPress={send} />
-        </>
-      ) : null}
     </View>
   );
 }
@@ -217,13 +239,13 @@ function BusyAppsMarketplace({ s }) {
       s={s}
       title="BUSY Apps"
       subtitle="Search customer-facing apps created from BUSY's tested small-business modules."
-      brandCue="V3.41 • customer journey bridge • My BUSY Apps • controlled modules • shared business data."
+      brandCue="V3.42 • customer journey bridge • My BUSY Apps • controlled modules • shared business data."
     >
       <Card
         eyebrow="BUSY Apps marketplace"
         title="One place for small-business apps"
         body="A customer can search a business name inside BUSY, open that business's Mini App, browse services and use enabled customer actions such as enquiry or booking request."
-        footer="V3.41 connects Mini Apps to real BUSY customer journeys while keeping one shared, controlled app platform."
+        footer="V3.42 connects Mini Apps to real BUSY customer journeys while keeping one shared, controlled app platform."
         tone="green"
       >
         <Button
@@ -242,6 +264,36 @@ function BusyAppsMarketplace({ s }) {
         />
       ) : null}
 
+      <Card
+        eyebrow="Request notifications"
+        title={
+          Number(s.miniAppsNotificationStatus?.activeDeviceCount || 0) > 0
+            ? "Notifications are on"
+            : "Get replies without checking BUSY"
+        }
+        body={
+          s.miniAppsNotificationStatus?.message ||
+          "BUSY can alert this device when a business replies or a customer updates a Mini App request."
+        }
+        footer="Notification taps open the exact request conversation. Expo Go keeps unread badges working but remote push is tested in the native development build."
+        tone={Number(s.miniAppsNotificationStatus?.activeDeviceCount || 0) > 0 ? "green" : "blue"}
+      >
+        {Number(s.miniAppsNotificationStatus?.activeDeviceCount || 0) > 0 ? (
+          <Button
+            label={s.miniAppsNotificationAction === "disable" ? "Turning off…" : "Turn off on this device"}
+            disabled={!!s.miniAppsNotificationAction}
+            onPress={s.disableMiniAppNotifications}
+          />
+        ) : (
+          <Button
+            label={s.miniAppsNotificationAction === "enable" ? "Turning on…" : "Turn on request notifications"}
+            primary
+            disabled={!!s.miniAppsNotificationAction}
+            onPress={s.enableMiniAppNotifications}
+          />
+        )}
+      </Card>
+
       <Text style={styles.sectionLabel}>My BUSY Apps</Text>
       {s.myBusyAppsLoading ? (
         <Card
@@ -259,6 +311,12 @@ function BusyAppsMarketplace({ s }) {
             body={item.tagline || "Previously used BUSY Mini App"}
             footer={[
               item.favorite ? "★ Favourite" : "",
+              (s.myBusyAppRequests || []).reduce(
+                (total, request) => total + (request.mini_app_id === item.id ? Number(request.customer_unread_count || 0) : 0),
+                0
+              )
+                ? `${(s.myBusyAppRequests || []).reduce((total, request) => total + (request.mini_app_id === item.id ? Number(request.customer_unread_count || 0) : 0), 0)} unread`
+                : "",
               item.lastActionAt ? `Last action ${readableDate(item.lastActionAt)}` : `Last opened ${readableDate(item.lastOpenedAt)}`,
             ].filter(Boolean).join(" • ")}
             tone={item.favorite ? "green" : "blue"}
@@ -315,11 +373,17 @@ function BusyAppsMarketplace({ s }) {
                   : "blue"
               }
             >
-              <RequestConversation
-                customerView
-                messages={(s.myBusyAppMessages || []).filter((item) => item.request_id === request.id)}
-                sending={s.miniAppsAction === `customer-message:${request.id}`}
-                onSend={["declined", "closed"].includes(request.status) ? null : (body) => s.replyBusyAppRequestMessage(request.id, body)}
+              {Number(request.customer_unread_count || 0) > 0 ? (
+                <MetricRow
+                  left="New activity"
+                  right={`${Number(request.customer_unread_count || 0)} unread`}
+                  strong
+                />
+              ) : null}
+              <Button
+                label={Number(request.customer_unread_count || 0) > 0 ? "Open new reply" : "Open conversation"}
+                primary={Number(request.customer_unread_count || 0) > 0}
+                onPress={() => s.openCustomerMiniAppRequest(request.id)}
               />
             </Card>
           ))}
@@ -392,7 +456,7 @@ function MiniAppBuilder({ s }) {
       s={s}
       title="Mini App Builder"
       subtitle="BUSY assembles a customer-facing app from reusable tested modules and approved public business facts."
-      brandCue="V3.41 • one controlled platform • immutable versions • marketplace approval separated from Go Live."
+      brandCue="V3.42 • one controlled platform • immutable versions • marketplace approval separated from Go Live."
     >
       <Card
         eyebrow="Your BUSY Mini App"
@@ -633,10 +697,17 @@ function MiniAppBuilder({ s }) {
                       />
                     ) : null}
 
-                    <RequestConversation
-                      messages={view.messagesByRequest?.get?.(request.id) || []}
-                      sending={s.miniAppsAction === `owner-message:${request.id}`}
-                      onSend={["declined", "closed"].includes(request.status) ? null : (body) => s.sendMiniAppRequestMessage(request.id, body)}
+                    {Number(request.business_unread_count || 0) > 0 ? (
+                      <MetricRow
+                        left="New customer activity"
+                        right={`${Number(request.business_unread_count || 0)} unread`}
+                        strong
+                      />
+                    ) : null}
+                    <Button
+                      label={Number(request.business_unread_count || 0) > 0 ? "Open new message" : "Open conversation"}
+                      primary={Number(request.business_unread_count || 0) > 0}
+                      onPress={() => s.openOwnerMiniAppRequest(request.id)}
                     />
                   </Card>
                 );
@@ -691,7 +762,7 @@ function MiniAppPreview({ s }) {
       s={s}
       title="Mini App Preview"
       subtitle="Preview the controlled customer-facing configuration before anything changes publicly."
-      brandCue="V3.41 • preview only • reusable BUSY modules."
+      brandCue="V3.42 • preview only • reusable BUSY modules."
     >
       {config ? (
         <MiniAppSurface config={config} />
@@ -757,7 +828,7 @@ function BusyAppDetail({ s }) {
       s={s}
       title={detail?.app?.name || "BUSY Mini App"}
       subtitle="Customer-facing business app inside BUSY."
-      brandCue="V3.41 • live marketplace version."
+      brandCue="V3.42 • live marketplace version."
     >
       {config ? <MiniAppSurface config={config} interactive s={s} /> : null}
       <Card
@@ -866,9 +937,131 @@ function BusyAppDetail({ s }) {
   );
 }
 
+function MiniAppRequestDetail({ s }) {
+  const detail = s.selectedMiniAppRequestDetail || {};
+  const request = detail.request || null;
+  const role = s.selectedMiniAppRequestRole || "customer";
+  const [draft, setDraft] = React.useState("");
+  const ownerView = role === "business";
+  const link = request?.id ? s.miniAppsView?.linkByRequest?.get?.(request.id) || null : null;
+
+  const send = async () => {
+    const body = draft.trim();
+    if (!request?.id || !body) return;
+    const ok = ownerView
+      ? await s.sendMiniAppRequestMessage(request.id, body)
+      : await s.replyBusyAppRequestMessage(request.id, body);
+    if (ok) setDraft("");
+  };
+
+  return (
+    <Shell
+      s={s}
+      title={ownerView ? request?.contact_name || "Customer request" : detail.app?.display_name || "BUSY request"}
+      subtitle={ownerView ? "Mini App customer conversation" : "Your conversation with this business"}
+      brandCue="V3.42 • unread state • push routing • bounded conversation history."
+    >
+      {s.miniAppRequestHistoryLoading && !request ? (
+        <Card eyebrow="Conversation" title="Loading…" body="BUSY is loading the latest request activity." tone="blue" />
+      ) : request ? (
+        <>
+          <Card
+            eyebrow={request.request_type === "booking_request" ? "Booking request" : "Enquiry"}
+            title={detail.app?.display_name || detail.app?.name || (ownerView ? request.contact_name || "Customer" : "BUSY business")}
+            body={
+              request.request_type === "booking_request"
+                ? [
+                    request.service_name || request.payload?.service || "Service not stated",
+                    request.preferred_date_text || request.payload?.preferredDate || "Date/time still to agree",
+                  ].filter(Boolean).join(" • ")
+                : request.payload?.message || "Customer enquiry"
+            }
+            footer={`Status: ${String(request.status || "received").replaceAll("_", " ")}`}
+            tone={request.status === "accepted" ? "green" : ["declined", "closed"].includes(request.status) ? "amber" : "blue"}
+          >
+            {ownerView ? (
+              <MetricRow left="Contact" right={request.contact_phone || request.contact_email || "Not supplied"} />
+            ) : null}
+            {ownerView && !link ? (
+              <Button
+                label={request.request_type === "booking_request" ? "Create BUSY customer + Draft booking" : "Add to BUSY customer journey"}
+                primary
+                disabled={!!s.miniAppsAction}
+                onPress={() => s.bridgeMiniAppRequestIntoBusy(request.id)}
+              />
+            ) : null}
+            {ownerView && !link && request.status !== "reviewing" && !["declined", "closed"].includes(request.status) ? (
+              <Button
+                label="Mark reviewing"
+                disabled={!!s.miniAppsAction}
+                onPress={() => s.updateMiniAppRequestStatus(request.id, "reviewing")}
+              />
+            ) : null}
+            {ownerView && !["declined", "closed", "accepted"].includes(request.status) ? (
+              <Button
+                label="Decline request"
+                disabled={!!s.miniAppsAction}
+                onPress={() => s.updateMiniAppRequestStatus(request.id, "declined")}
+              />
+            ) : null}
+          </Card>
+
+          <Text style={styles.sectionLabel}>Conversation & request activity</Text>
+          <Card
+            eyebrow="Latest activity"
+            title="One shared request timeline"
+            body="Messages and real request-status events stay attached to this request. BUSY does not turn internal drafts into customer-facing confirmations."
+            tone="blue"
+          >
+            <RequestTimeline messages={detail.messages || []} events={detail.events || []} />
+            {detail.nextBefore ? (
+              <Button
+                label={s.miniAppRequestHistoryLoading ? "Loading earlier…" : "Load earlier messages"}
+                disabled={s.miniAppRequestHistoryLoading}
+                onPress={s.loadEarlierMiniAppRequestMessages}
+              />
+            ) : null}
+          </Card>
+
+          {!["declined", "closed"].includes(request.status) ? (
+            <Card
+              eyebrow="Reply"
+              title={ownerView ? "Reply to customer" : "Reply to business"}
+              body="Your message stays inside this request conversation."
+              tone="green"
+            >
+              <Field
+                label="Message"
+                value={draft}
+                onChangeText={setDraft}
+                placeholder={ownerView ? "Write a customer update…" : "Write a reply…"}
+                multiline
+              />
+              <Button
+                label={s.miniAppsAction?.includes("message:") ? "Sending…" : "Send message"}
+                primary
+                disabled={!draft.trim() || !!s.miniAppsAction}
+                onPress={send}
+              />
+            </Card>
+          ) : null}
+        </>
+      ) : (
+        <Card eyebrow="Conversation" title="Request unavailable" body={s.miniAppsError || "BUSY could not load this request."} tone="amber" />
+      )}
+
+      <Button
+        label={ownerView ? "Back to Mini App Builder" : "Back to My BUSY Apps"}
+        onPress={() => (ownerView ? s.go("miniAppBuilder") : s.go("busyAppsMarketplace"))}
+      />
+    </Shell>
+  );
+}
+
 export {
   BusyAppsMarketplace,
   MiniAppBuilder,
   MiniAppPreview,
   BusyAppDetail,
+  MiniAppRequestDetail,
 };
