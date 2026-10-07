@@ -1361,10 +1361,10 @@ async function markRequestLinked(
   if (event.error) throw event.error;
 
   const nextStatus =
-    bridgeState === "booking_confirmed" || bridgeState === "closed"
-      ? "closed"
-      : request.data.request_type === "booking_request"
+    bridgeState === "booking_confirmed"
       ? "accepted"
+      : bridgeState === "closed"
+      ? "closed"
       : "reviewing";
   await supabase
     .from("busy_mini_app_requests")
