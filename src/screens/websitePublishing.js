@@ -118,7 +118,7 @@ function WebsitePublishing({ s }) {
             body={
               changes.length
                 ? "BUSY stores this change summary with the immutable deployment, so version history remains understandable later."
-                : "This deployment predates the richer V3.37 change summary or contains no material detected change."
+                : "This deployment either predates stored change summaries or contains no material detected public-facing change."
             }
             footer={`${preview.page_count || 1} page${Number(preview.page_count || 1) === 1 ? "" : "s"} • source generation ${preview.source_generation || 1}`}
             tone="blue"
