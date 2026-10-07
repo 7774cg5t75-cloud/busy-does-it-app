@@ -240,13 +240,13 @@ function BusyAppsMarketplace({ s }) {
       s={s}
       title="BUSY Apps"
       subtitle="Search customer-facing apps created from BUSY's tested small-business modules."
-      brandCue="V3.43 • customer journey bridge • My BUSY Apps • controlled modules • shared business data."
+      brandCue="V3.44 • customer journey bridge • My BUSY Apps • controlled modules • shared business data."
     >
       <Card
         eyebrow="BUSY Apps marketplace"
         title="One place for small-business apps"
         body="A customer can search a business name inside BUSY, open that business's Mini App, browse services and use enabled customer actions such as enquiry or booking request."
-        footer="V3.43 connects Mini Apps to real BUSY customer journeys while keeping one shared, controlled app platform."
+        footer="V3.44 connects Mini Apps to real BUSY customer journeys while keeping one shared, controlled app platform."
         tone="green"
       >
         <Button
@@ -457,7 +457,7 @@ function MiniAppBuilder({ s }) {
       s={s}
       title="Mini App Builder"
       subtitle="BUSY assembles a customer-facing app from reusable tested modules and approved public business facts."
-      brandCue="V3.43 • one controlled platform • immutable versions • marketplace approval separated from Go Live."
+      brandCue="V3.44 • one controlled platform • immutable versions • marketplace approval separated from Go Live."
     >
       <Card
         eyebrow="Your BUSY Mini App"
@@ -605,6 +605,11 @@ function MiniAppBuilder({ s }) {
               footer={`Public slug: ${view.publicSlug || "Not set"}`}
               tone="green"
             >
+              <MetricRow
+                left="Public web Mini App"
+                right={view.webReady ? "Ready" : "Needs republish"}
+                strong={view.webReady}
+              />
               <Button
                 label="Share, link & QR"
                 primary
@@ -768,7 +773,7 @@ function MiniAppPreview({ s }) {
       s={s}
       title="Mini App Preview"
       subtitle="Preview the controlled customer-facing configuration before anything changes publicly."
-      brandCue="V3.43 • preview only • reusable BUSY modules."
+      brandCue="V3.44 • preview only • reusable BUSY modules."
     >
       {config ? (
         <MiniAppSurface config={config} />
@@ -834,8 +839,24 @@ function BusyAppDetail({ s }) {
       s={s}
       title={detail?.app?.name || "BUSY Mini App"}
       subtitle="Customer-facing business app inside BUSY."
-      brandCue="V3.43 • live marketplace version."
+      brandCue="V3.44 • live marketplace version."
     >
+      {detail?.entryIntent ? (
+        <Card
+          eyebrow="From the web Mini App"
+          title={
+            detail.entryIntent === "booking_request"
+              ? "Continue your booking request"
+              : "Continue your enquiry"
+          }
+          body={
+            detail.entryIntent === "booking_request"
+              ? "BUSY kept the business and action you chose on the public web Mini App. Complete the request below; it is still only a request until the business confirms it."
+              : "BUSY kept the business and action you chose on the public web Mini App. Complete the enquiry below and it will go to the right business."
+          }
+          tone="green"
+        />
+      ) : null}
       {config ? <MiniAppSurface config={config} interactive s={s} /> : null}
       <Card
         eyebrow="My BUSY Apps"
@@ -947,8 +968,12 @@ function MiniAppShareCentre({ s }) {
   const view = s.miniAppsView || {};
   const links = s.miniAppShareLinks || {};
   const entryCounts = view.entryCounts || { bySource: {}, byStage: {} };
-  const landingCount = Number(entryCounts.byStage?.landing || 0);
+  const webViewCount = Number(
+    entryCounts.byStage?.web_view || entryCounts.byStage?.landing || 0
+  );
+  const actionIntentCount = Number(entryCounts.byStage?.action_intent || 0);
   const appOpenCount = Number(entryCounts.byStage?.app_open || 0);
+  const requestCount = Number(view.requestCount30 || 0);
   const qrCount = Number(entryCounts.bySource?.qr || 0);
   const shareCount = Number(entryCounts.bySource?.share || 0);
 
@@ -956,16 +981,16 @@ function MiniAppShareCentre({ s }) {
     <Shell
       s={s}
       title="Share Mini App"
-      subtitle="Give customers a direct route into this business's live BUSY Mini App."
-      brandCue="V3.43 • QR entry • HTTPS share link • native deep link • source attribution."
+      subtitle="Give customers an install-free web view of this business's live BUSY Mini App."
+      brandCue="V3.44 • static web Mini App • QR/share entry • protected customer actions • funnel attribution."
     >
       {view.hasLive && links.qr ? (
         <>
           <Card
             eyebrow="Customer QR code"
             title={view.displayName || "Your BUSY Mini App"}
-            body="Customers can scan this code from a counter sign, van, leaflet, website or another phone. It opens a BUSY-hosted landing page and then hands off to the exact Mini App."
-            footer="The QR uses an HTTPS BUSY link, so the printed code does not need to change when the App Store fallback is connected later."
+            body="Customers can scan this code from a counter sign, van, leaflet, website or another phone and immediately browse the live Mini App in their web browser."
+            footer="No BUSY install or sign-in is needed just to browse. The stable HTTPS QR can later gain App Store fallback without changing the printed code."
             tone="green"
           >
             <View style={{ alignItems: "center", paddingVertical: 18 }}>
@@ -978,32 +1003,35 @@ function MiniAppShareCentre({ s }) {
           <Card
             eyebrow="Direct entry"
             title="One business, one stable public slug"
-            body="Marketplace listing and direct access are separate. Removing the business from BUSY Apps search does not break an owner-shared QR code or exact link while the Mini App remains live."
+            body="Marketplace listing and exact-link access stay separate. The public web experience is rendered from the immutable live Mini App version, so unlisting the business from search does not break its owner-shared QR code."
             footer={`Native route: ${links.native || "Not ready"}`}
             tone="blue"
           >
             <MetricRow left="Marketplace" right={view.isDiscoverable ? "Listed" : "Unlisted"} />
+            <MetricRow left="Public web" right={view.webReady ? "Ready" : "Needs republish"} strong={view.webReady} />
             <MetricRow left="Live version" right={view.liveVersion ? `v${view.liveVersion.version_no}` : "Not live"} strong />
           </Card>
 
           <Text style={styles.sectionLabel}>Last 30 days</Text>
           <Card
             eyebrow="Customer-entry signals"
-            title="See how people are reaching the Mini App"
-            body="BUSY keeps landing-page visits separate from authenticated in-app opens so the figures are not presented as enquiries or bookings."
+            title="See the customer journey without inflating results"
+            body="BUSY keeps public web views, action attempts, authenticated app opens and genuine requests separate. A scan or page view is never counted as an enquiry or booking."
             tone="blue"
           >
-            <MetricRow left="Landing-page visits" right={String(landingCount)} strong={landingCount > 0} />
-            <MetricRow left="In-app opens" right={String(appOpenCount)} strong={appOpenCount > 0} />
-            <MetricRow left="QR-attributed entries" right={String(qrCount)} />
-            <MetricRow left="Shared-link entries" right={String(shareCount)} />
+            <MetricRow left="Web Mini App views" right={String(webViewCount)} strong={webViewCount > 0} />
+            <MetricRow left="Contact / booking attempts" right={String(actionIntentCount)} strong={actionIntentCount > 0} />
+            <MetricRow left="Opened in BUSY" right={String(appOpenCount)} strong={appOpenCount > 0} />
+            <MetricRow left="Genuine requests" right={String(requestCount)} strong={requestCount > 0} />
+            <MetricRow left="QR-attributed entry" right={String(qrCount)} />
+            <MetricRow left="Shared-link entry" right={String(shareCount)} />
           </Card>
 
           <Card
             eyebrow="Release-ready handoff"
-            title="Cloudflare is still not required"
-            body="V3.43 uses BUSY's existing Supabase-hosted HTTPS landing route for the QR/share link. A branded universal-link domain and App Store fallback can be attached later without rebuilding the Mini App request system."
-            footer="Until the public app is released, the landing page can only hand off successfully on devices that have a BUSY native build installed."
+            title="Fast public browsing without Cloudflare"
+            body="V3.44 publishes the live Mini App as a cached public-safe HTML artifact. Normal customer browsing loads that static artifact rather than running BUSY AI or reading the operational business database."
+            footer="Enquiry and booking buttons preserve the chosen business/action and continue securely in BUSY. Frictionless verified guest submission is deliberately left for the next controlled sweep."
             tone="blue"
           />
         </>
@@ -1043,7 +1071,7 @@ function MiniAppRequestDetail({ s }) {
       s={s}
       title={ownerView ? request?.contact_name || "Customer request" : detail.app?.display_name || "BUSY request"}
       subtitle={ownerView ? "Mini App customer conversation" : "Your conversation with this business"}
-      brandCue="V3.43 • unread state • push routing • bounded conversation history."
+      brandCue="V3.44 • unread state • push routing • bounded conversation history."
     >
       {s.miniAppRequestHistoryLoading && !request ? (
         <Card eyebrow="Conversation" title="Loading…" body="BUSY is loading the latest request activity." tone="blue" />
