@@ -506,6 +506,42 @@ function sanitizePublicProfile(input: any) {
             secondary: clean(profile.theme.secondary, 80),
           }
         : {},
+    builderIntelligence:
+      profile.builderIntelligence &&
+      typeof profile.builderIntelligence === "object"
+        ? {
+            schemaVersion: Math.max(
+              1,
+              Math.min(10, Number(profile.builderIntelligence.schemaVersion || 1))
+            ),
+            source: clean(profile.builderIntelligence.source, 160),
+            sharedProfileFingerprint: clean(
+              profile.builderIntelligence.sharedProfileFingerprint,
+              160
+            ),
+            recommendedModules: safeArray(
+              profile.builderIntelligence.recommendedModules
+            )
+              .slice(0, 20)
+              .map((item: any) => clean(item, 80))
+              .filter(Boolean),
+            moduleReasons:
+              profile.builderIntelligence.moduleReasons &&
+              typeof profile.builderIntelligence.moduleReasons === "object"
+                ? Object.fromEntries(
+                    Object.entries(profile.builderIntelligence.moduleReasons)
+                      .slice(0, 20)
+                      .map(([key, value]) => [
+                        clean(key, 80),
+                        clean(value, 500),
+                      ])
+                      .filter(([key]) => !!key)
+                  )
+                : {},
+            ownerApprovalRequired:
+              profile.builderIntelligence.ownerApprovalRequired !== false,
+          }
+        : null,
   };
 }
 
@@ -803,6 +839,11 @@ function fallbackAppPlan(
       .filter((item: any) => item?.enabled)
       .map((item: any) => clean(item?.key, 80))
   );
+  const recommendedByBrain = new Set(
+    safeArray(profile?.builderIntelligence?.recommendedModules)
+      .map((item: any) => clean(item, 80))
+      .filter((item: string) => available.has(item))
+  );
 
   const wants = (words: string[]) =>
     words.some((word) => text.includes(word));
@@ -821,26 +862,31 @@ function fallbackAppPlan(
     services:
       !explicitlyRemoves(["services", "service list"]) &&
       (existingEnabled.has("services") ||
+        recommendedByBrain.has("services") ||
         safeArray(profile?.services).length > 0 ||
         wants(["service", "what we do", "price list"])),
     gallery:
       !explicitlyRemoves(["gallery", "photos", "pictures"]) &&
       (existingEnabled.has("gallery") ||
+        recommendedByBrain.has("gallery") ||
         safeArray(profile?.assets?.gallery).length > 0 ||
         wants(["gallery", "photo", "picture", "portfolio", "before and after"])),
     contact:
       !explicitlyRemoves(["contact", "contact details"]) &&
       (existingEnabled.has("contact") ||
+        recommendedByBrain.has("contact") ||
         !!(profile?.contact?.phone || profile?.contact?.email) ||
         wants(["contact", "call", "email", "get in touch"])),
     enquiry:
       !explicitlyRemoves(["enquiries", "enquiry", "quote requests"]) &&
       (existingEnabled.has("enquiry") ||
+        recommendedByBrain.has("enquiry") ||
         wants(["enquir", "quote", "estimate", "message", "contact"]) ||
         !existingConfig),
     booking_request:
       !explicitlyRemoves(["booking", "bookings", "booking requests"]) &&
       (existingEnabled.has("booking_request") ||
+        recommendedByBrain.has("booking_request") ||
         wants([
           "book",
           "appointment",
@@ -1183,6 +1229,18 @@ async function aiAppPlan(
     existingEnabledModules: safeArray(existingConfig?.modules)
       .filter((item: any) => item?.enabled)
       .map((item: any) => clean(item?.key, 80)),
+    sharedProfileFingerprint:
+      clean(profile?.builderIntelligence?.sharedProfileFingerprint, 160),
+    recommendedModuleKeys: safeArray(
+      profile?.builderIntelligence?.recommendedModules
+    )
+      .slice(0, 20)
+      .map((item: any) => clean(item, 80))
+      .filter(Boolean),
+    recommendationReasons:
+      profile?.builderIntelligence?.moduleReasons || {},
+    ownerApprovalRequired:
+      profile?.builderIntelligence?.ownerApprovalRequired !== false,
   };
 
   const prompt = `You are the controlled BUSY DOES IT business-app planner.
@@ -1198,6 +1256,9 @@ ${JSON.stringify(catalogueSummary)}
 
 Return a conservative app plan. Rules:
 - Only recommend modules in the supplied catalogue.
+- recommendedModuleKeys come from BUSY's shared Business Creation Intelligence. Treat them as conservative suggestions based only on recorded business facts, not as owner instructions.
+- Preserve owner intent: an explicit owner request to include/remove a module overrides a recommendation when the module is available and safe.
+- Never invent facts merely to satisfy a recommendationReasons entry.
 - business_profile must always be enabled.
 - Never enable a module whose status is not "available".
 - If an existing app draft is present, preserve existingEnabledModules unless the owner explicitly asks to remove/change one. Treat short edit requests as incremental rather than as permission to rebuild the whole app from scratch.
