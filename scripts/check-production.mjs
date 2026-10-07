@@ -19,6 +19,10 @@ const websiteScaleMigrationSource = fs.readFileSync(
   "supabase/migrations/20261007220000_v3_52_website_scale_hardening.sql",
   "utf8"
 );
+const websiteScaleIndexMigrationSource = fs.readFileSync(
+  "supabase/migrations/20261007221500_v3_52_tenant_fk_indexes.sql",
+  "utf8"
+);
 
 const checks = [
   ["package/app version match", pkg.version === app.version && /^3\.\d+\.\d+$/.test(String(pkg.version || ""))],
@@ -79,6 +83,7 @@ const checks = [
   ["V3.52 failed updates preserve a proven live site", websiteWorkerSource.includes('website.current_live_deployment_id') && websiteWorkerSource.includes('? "live"')],
   ["V3.52 tenant-fair queue", websiteWorkerSource.includes("tenant_fairness") && websiteWorkerSource.includes("seenBusinesses") && websitePublishingScreenSource.includes("Tenant-fair production queue")],
   ["V3.52 cross-tenant database guards", websiteScaleMigrationSource.includes("busy_website_publish_jobs_tenant_deployment_fkey") && websiteScaleMigrationSource.includes("busy_website_health_checks_tenant_domain_fkey")],
+  ["V3.52 composite tenant foreign keys are indexed", websiteScaleIndexMigrationSource.includes("busy_website_publish_jobs_tenant_deployment_idx") && websiteScaleIndexMigrationSource.includes("busy_website_health_checks_tenant_domain_idx") && websiteScaleIndexMigrationSource.includes("busy_website_usage_daily_tenant_site_idx")],
   ["V3.52 provider retries are indexable", websiteScaleMigrationSource.includes("provider_next_retry_at") && websiteProviderSource.includes("provider_next_retry_at") && websiteProviderSource.includes("provider_attempt_count")],
   ["V3.52 adaptive health scheduling", websiteScaleMigrationSource.includes("next_health_check_at") && websiteHealthSource.includes("nextHealthMinutes") && websiteHealthSource.includes("dueFilter")],
   ["V3.52 route probes are concurrent", websiteHealthSource.includes("const routeChecks = await Promise.all") && websiteHealthSource.includes("domainRows.map")],
