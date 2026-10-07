@@ -2,6 +2,27 @@
 
 Busy Does It mobile app prototype.
 
+## v3.38 Website Delivery & Real-World Signals
+- Adds a provider-neutral website delivery layer on top of V3.37. Cloudflare for SaaS is the first adapter, not a hard-coded product assumption throughout BUSY.
+- New private Edge Functions:
+  - `busy-website-provider` — Cloudflare custom-hostname provisioning/sync and BUSY default-hostname reservation.
+  - `busy-website-signals` — Cloudflare HTTP analytics ingestion plus BUSY website usage rollups.
+- External provider secrets are read only from Supabase Edge Function environment variables:
+  - `CLOUDFLARE_API_TOKEN`
+  - `CLOUDFLARE_SAAS_ZONE_ID`
+  - `CLOUDFLARE_SAAS_CNAME_TARGET`
+  - `BUSY_WEBSITE_BASE_DOMAIN`
+- Until those secrets are configured, provider/signal workers return a successful explicit `configured:false` result. BUSY never fabricates routing, SSL, hostnames or traffic.
+- Verified custom domains can be prepared for Cloudflare only through the server-side owner/admin flow. Provider activation and SSL are tracked independently.
+- Even after Cloudflare reports hostname + certificate active, BUSY keeps routing in `validating` until the live health worker proves the public hostname serves the expected immutable BUSY deployment.
+- Default BUSY website addresses are tenant-safe and reserved only after a BUSY platform base domain is configured. Reservation is not presented as a live address.
+- Cloudflare analytics ingestion uses aggregated `httpRequestsAdaptiveGroups`-style semantics: requests, visits and edge bytes remain distinct. A Cloudflare visit is never relabelled as a unique person.
+- Added tenant-scoped daily usage/cost rollups for deployments, published versions, generated artifact bytes, requests, visits, edge transfer, health checks and active custom domains.
+- Added a genuine website-enquiry attribution store. V3.38 does not silently add a contact form or count visits/clicks as enquiries; attribution rows exist only when a real approved public enquiry integration emits an event.
+- New provider/domain/analytics schedulers continue independently of phones being open.
+- Website Management and BUSY Operator now report real provider readiness, default-address state, traffic signals, usage and attributed enquiries.
+- Account-owner gate still required: the Cloudflare account/zone/token cannot be created or funded by BUSY. Once those secrets are added, the deployed adapters are ready to use without a mobile-app redesign.
+
 ## v3.37 Live Website Management 2.0
 - Builds on the V3.36 multi-tenant publishing platform; no parallel website stack was introduced.
 - Website drafts are now multi-page structured models. V3.37 creates Home plus dedicated Services/About/Gallery/FAQ/Contact pages when the underlying approved sections exist.
