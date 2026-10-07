@@ -55,6 +55,7 @@ function buildWebsitePublishingView({
   };
   const providerPreflight = remote?.providerPreflight || null;
   const providerPlatform = remote?.providerPlatform || null;
+  const providerActivation = remote?.providerActivation || null;
   const publicProfile = remote?.publicProfile || null;
   const queue = remote?.queue || null;
 
@@ -158,7 +159,11 @@ function buildWebsitePublishingView({
       ? "Not checked yet"
       : "Not live";
 
-  const providerLabel = providerConfig.configured
+  const providerLabel = providerActivation?.ready
+    ? "Cloudflare production delivery active"
+    : providerActivation?.applied
+    ? "Cloudflare production delivery activating"
+    : providerConfig.configured
     ? "Cloudflare for SaaS connected"
     : "Cloudflare setup required";
 
@@ -192,6 +197,7 @@ function buildWebsitePublishingView({
     providerConfig,
     providerPreflight,
     providerPlatform,
+    providerActivation,
     publicProfile,
     latestDeployment,
     previewDeployment,
@@ -263,6 +269,14 @@ function buildWebsitePublishingView({
       rootRoutesExcluded: !!providerPlatform?.rootRoutesExcluded,
       fallbackOriginStatus: clean(providerPlatform?.fallbackOriginStatus) || "not_connected",
       fallbackOrigin: clean(providerPlatform?.fallbackOrigin),
+      activation: providerActivation,
+      activationStatus:
+        clean(providerActivation?.status) ||
+        (providerConfig.bootstrapReady ? "activation_required" : "credentials_required"),
+      activationReady: !!providerActivation?.ready,
+      activationApplied: !!providerActivation?.applied,
+      activationAttempted: !!providerActivation?.attempted,
+      activationCheckedAt: providerActivation?.checkedAt || null,
     },
     defaultAddressState: {
       address: defaultAddress,
