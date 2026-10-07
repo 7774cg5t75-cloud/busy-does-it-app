@@ -141,7 +141,7 @@ const checks = [
   ["V3.54 app planner uses recorded business facts", miniAppsSource.includes("serviceNames") && miniAppsSource.includes("approvedGalleryCount") && miniAppsSource.includes("existingEnabledModules")],
   ["V3.54 planned modules cannot be silently enabled", miniAppsSource.includes("catalogItem.status !== \"available\"") && miniAppsSource.includes("unsupportedRequests")],
   ["V3.54 offers require explicit approved wording", miniAppsSource.includes("Offers must contain explicit content") && miniAppsSource.includes("approvedOffers") && appBuilderMigrationSource.includes("requires_approved_offer_data")],
-  ["V3.54 voice requests route into reviewed app plans", busyCommandSource.includes('actionLabel=\"Create app plan\"') && busyCommandSource.includes("copy the owner's requested app outcome/features") && controllerSource.includes("planMiniAppFromBrief(brief)")],
+  ["V3.54 voice requests route into reviewed app plans", busyCommandSource.includes('actionLabel=\"Create app plan\"') && busyCommandSource.includes("Copy the owner's requested app outcome/features") && controllerSource.includes("planMiniAppFromBrief(brief)")],
   ["V3.54 owner can review plan before draft mutation", miniAppsScreenSource.includes("BUSY App Plan") && miniAppsScreenSource.includes("Build this app plan") && miniAppsScreenSource.includes("Nothing public changes here")],
   ["V3.54 targeted missing-fact questions", miniAppsSource.includes("missingFacts") && miniAppsScreenSource.includes("BUSY still needs")],
   ["V3.54 business app terminology introduced", miniAppsScreenSource.includes('title=\"Business App Builder\"') && miniAppsSource.includes('surface: \"busy_business_app\"')],
