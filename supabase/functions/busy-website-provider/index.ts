@@ -384,14 +384,22 @@ async function inspectPlatformProvider() {
     } catch {}
   }
 
+  const routeFor = (pattern: string) =>
+    routes.find((route: any) => clean(route?.pattern, 300) === pattern) || null;
+  const wildcardRoute = routeFor("*/*");
+  const rootRoute = routeFor(`${BUSY_ROOT_DOMAIN}/*`);
+  const wwwRoute = routeFor(`www.${BUSY_ROOT_DOMAIN}/*`);
+
   return {
     configured: true,
     routerScriptReady,
-    routerRouteReady: routes.some(
-      (route: any) =>
-        clean(route?.pattern, 200) === "*/*" &&
-        clean(route?.script, 200) === CLOUDFLARE_ROUTER_SCRIPT
-    ),
+    routerRouteReady:
+      clean(wildcardRoute?.script, 200) === CLOUDFLARE_ROUTER_SCRIPT,
+    rootRoutesExcluded:
+      !!rootRoute &&
+      !clean(rootRoute?.script, 200) &&
+      !!wwwRoute &&
+      !clean(wwwRoute?.script, 200),
     fallbackOriginStatus: clean(fallback?.status, 100) || "not_configured",
     fallbackOrigin: clean(fallback?.origin, 300) || "",
   };
