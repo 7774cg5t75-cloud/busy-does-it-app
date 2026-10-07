@@ -6,6 +6,10 @@ const app = readJson("app.json").expo || {};
 const eas = readJson("eas.json");
 const controllerSource = fs.readFileSync("src/app/AppController.js", "utf8");
 const snackPublisherSource = fs.readFileSync("scripts/publish-snack.mjs", "utf8");
+const supabaseConfigSource = fs.readFileSync("supabase/config.toml", "utf8");
+const websiteProviderSource = fs.readFileSync("supabase/functions/busy-website-provider/index.ts", "utf8");
+const websiteOriginSource = fs.readFileSync("supabase/functions/busy-website-origin/index.ts", "utf8");
+const websiteRouterSource = fs.readFileSync("cloudflare/busy-website-router/worker.js", "utf8");
 
 const checks = [
   ["package/app version match", pkg.version === app.version && /^3\.\d+\.\d+$/.test(String(pkg.version || ""))],
@@ -29,6 +33,15 @@ const checks = [
   ["native development build workflow", fs.existsSync(".github/workflows/native-development-build.yml")],
   ["SDK57 calendar legacy import", controllerSource.includes('import * as Calendar from "expo-calendar/legacy";')],
   ["SDK54 Snack calendar rewrite", snackPublisherSource.includes('expo-calendar/legacy') && snackPublisherSource.includes('expo-calendar";')],
+  ["V3.46 public website origin", fs.existsSync("supabase/functions/busy-website-origin/index.ts")],
+  ["V3.46 Cloudflare router Worker", fs.existsSync("cloudflare/busy-website-router/worker.js")],
+  ["website origin is public edge function", supabaseConfigSource.includes("[functions.busy-website-origin]") && supabaseConfigSource.includes("verify_jwt = false")],
+  ["BUSY production root domain", websiteProviderSource.includes("busydoesit.co.uk")],
+  ["Cloudflare automated platform bootstrap", websiteProviderSource.includes("bootstrapPlatform") && websiteProviderSource.includes("uploadRouterWorker")],
+  ["Cloudflare root routes excluded", websiteProviderSource.includes("ensureWorkerRoutes") && websiteProviderSource.includes("www.")],
+  ["health checks bypass website edge cache", websiteRouterSource.includes("BUSY-Website-Health/") && websiteProviderSource.includes("BUSY-Website-Health/")],
+  ["website origin rejects storage traversal", websiteOriginSource.includes('part === ".."') && websiteOriginSource.includes("busy-website-public")],
+  ["website origin hardened headers", websiteOriginSource.includes("Content-Security-Policy") && websiteOriginSource.includes("X-Frame-Options")],
 ];
 
 let failed = 0;
