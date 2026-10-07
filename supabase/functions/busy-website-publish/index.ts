@@ -55,6 +55,177 @@ async function sha256(value: string) {
   return [...digest].map((item) => item.toString(16).padStart(2, "0")).join("");
 }
 
+function safeArray(value: unknown) {
+  return Array.isArray(value) ? value : [];
+}
+
+function comparable(value: any): any {
+  if (Array.isArray(value)) return value.map(comparable);
+  if (value && typeof value === "object") {
+    return Object.keys(value)
+      .sort()
+      .reduce((acc: Record<string, unknown>, key) => {
+        if (["html", "updatedAt", "generatedAt"].includes(key)) return acc;
+        acc[key] = comparable(value[key]);
+        return acc;
+      }, {});
+  }
+  return value;
+}
+
+function same(a: unknown, b: unknown) {
+  return JSON.stringify(comparable(a)) === JSON.stringify(comparable(b));
+}
+
+function summarizeDraftChanges(previousDraft: any, nextDraft: any) {
+  if (!previousDraft) {
+    return {
+      headline: "Initial website release",
+      items: [{ type: "added", label: "Initial website", detail: "First hosted website version." }],
+      counts: { added: 1, removed: 0, changed: 0 },
+    };
+  }
+
+  const items: Array<Record<string, string>> = [];
+  const counts = { added: 0, removed: 0, changed: 0 };
+  const add = (type: "added" | "removed" | "changed", label: string, detail: string) => {
+    items.push({ type, label, detail });
+    counts[type] += 1;
+  };
+
+  const before = new Map(safeArray(previousDraft?.sections).map((section: any) => [section?.id, section]));
+  const after = new Map(safeArray(nextDraft?.sections).map((section: any) => [section?.id, section]));
+  const ids = new Set([...before.keys(), ...after.keys()]);
+
+  ids.forEach((id: any) => {
+    const prior: any = before.get(id);
+    const next: any = after.get(id);
+    if (!prior && next) {
+      add("added", `Added ${cleanText(next?.title || id, 160)}`, "New website section.");
+      return;
+    }
+    if (prior && !next) {
+      add("removed", `Removed ${cleanText(prior?.title || id, 160)}`, "Website section removed.");
+      return;
+    }
+    if (!!prior?.enabled !== !!next?.enabled) {
+      add(
+        next?.enabled === false ? "removed" : "added",
+        `${next?.enabled === false ? "Hidden" : "Restored"} ${cleanText(next?.title || id, 160)}`,
+        "Section visibility changed."
+      );
+      return;
+    }
+    if (!same(prior, next)) {
+      add("changed", `Updated ${cleanText(next?.title || id, 160)}`, "Section content or presentation changed.");
+    }
+  });
+
+  if (!same(previousDraft?.theme, nextDraft?.theme)) {
+    add("changed", "Updated visual style", "Theme, spacing or hero presentation changed.");
+  }
+  if (!same(previousDraft?.seo, nextDraft?.seo)) {
+    add("changed", "Updated SEO basics", "Titles, descriptions or page metadata changed.");
+  }
+  if (!same(previousDraft?.pages, nextDraft?.pages)) {
+    add(
+      "changed",
+      "Updated page structure",
+      `${safeArray(nextDraft?.pages).length || 1} page${(safeArray(nextDraft?.pages).length || 1) === 1 ? "" : "s"} in this version.`
+    );
+  }
+
+  if (!items.length) {
+    items.push({
+      type: "changed",
+      label: "Rebuilt from current business data",
+      detail: "No material public-facing difference was detected.",
+    });
+  }
+
+  const headline =
+    items.length === 1
+      ? items[0].label
+      : `${items[0].label}${items.length > 1 ? ` + ${items.length - 1} more` : ""}`;
+
+  return { headline, items, counts };
+}
+
+function publicProfileFromDraft(draft: any) {
+  const sections = safeArray(draft?.sections);
+  const contact: any = sections.find((section: any) => section?.id === "contact") || {};
+  const services: any = sections.find((section: any) => section?.id === "services") || {};
+  const hero: any = sections.find((section: any) => section?.id === "hero") || {};
+  const gallery: any = sections.find((section: any) => section?.id === "gallery") || {};
+
+  return {
+    schemaVersion: 1,
+    businessName: cleanText(draft?.businessName, 240),
+    businessType: cleanText(draft?.businessType, 240),
+    serviceArea: cleanText(draft?.serviceArea, 500),
+    slug: cleanText(draft?.slug, 100),
+    theme: draft?.theme || {},
+    contact: {
+      phone: cleanText(contact?.phone, 120),
+      email: cleanText(contact?.email, 240),
+      openingHours: cleanText(contact?.openingHours, 600),
+      social: contact?.social && typeof contact.social === "object" ? contact.social : {},
+    },
+    services: safeArray(services?.items).map((item: any) => ({
+      id: cleanText(item?.id, 120),
+      name: cleanText(item?.title, 240),
+      description: cleanText(item?.body, 1200),
+    })),
+    assets: {
+      hero: hero?.asset || null,
+      gallery: safeArray(gallery?.items).slice(0, 24),
+    },
+    pages: safeArray(draft?.pages).map((page: any) => ({
+      id: cleanText(page?.id, 80),
+      path: cleanText(page?.path, 240),
+      title: cleanText(page?.title, 160),
+    })),
+  };
+}
+
+async function syncPublicProfile({
+  businessId,
+  websiteId,
+  deploymentId,
+  userId,
+  draft,
+  revision,
+  status,
+}: {
+  businessId: string;
+  websiteId: string;
+  deploymentId: string;
+  userId: string;
+  draft: any;
+  revision: number;
+  status: "draft" | "preview_ready" | "live" | "disabled";
+}) {
+  const profile = publicProfileFromDraft(draft);
+  const result = await supabase
+    .from("busy_public_business_profiles")
+    .upsert(
+      {
+        business_id: businessId,
+        source_website_id: websiteId,
+        source_deployment_id: deploymentId,
+        public_slug: cleanText(draft?.slug, 80) || `business-${businessId.replaceAll("-", "").slice(0, 8)}`,
+        display_name: cleanText(draft?.businessName, 240),
+        status,
+        revision: Math.max(1, Number(revision) || 1),
+        profile,
+        updated_by: userId,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "business_id" }
+    );
+  if (result.error) throw result.error;
+}
+
 async function requireUser(request: Request) {
   const authorization = request.headers.get("Authorization") || "";
   const token = authorization.replace(/^Bearer\s+/i, "");
@@ -167,11 +338,11 @@ async function websiteStatus(businessId: string) {
     };
   }
 
-  const [deployments, domains, jobs, queue] = await Promise.all([
+  const [deployments, domains, jobs, queue, healthChecks, analyticsRows, publicProfile] = await Promise.all([
     supabase
       .from("busy_website_deployments")
       .select(
-        "id,version_no,source_generation,state,content_hash,manifest,preview_storage_path,public_storage_path,public_url,artifact_bytes,last_error,created_at,prepared_at,published_at"
+        "id,version_no,source_generation,state,content_hash,change_label,change_summary,page_count,manifest,preview_storage_path,public_storage_path,public_url,artifact_bytes,last_error,created_at,prepared_at,published_at"
       )
       .eq("website_id", website.id)
       .order("version_no", { ascending: false })
@@ -190,11 +361,41 @@ async function websiteStatus(businessId: string) {
       .order("requested_at", { ascending: false })
       .limit(12),
     queueMetrics(),
+    supabase
+      .from("busy_website_health_checks")
+      .select("id,deployment_id,domain_id,target_type,checked_url,status,http_status,response_ms,expected_deployment_id,observed_deployment_id,last_error,checked_at")
+      .eq("website_id", website.id)
+      .order("checked_at", { ascending: false })
+      .limit(12),
+    supabase
+      .from("busy_website_analytics_daily")
+      .select("metric_date,page_path,page_views,unique_visitors,enquiries,source")
+      .eq("website_id", website.id)
+      .gte("metric_date", new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10))
+      .order("metric_date", { ascending: false }),
+    supabase
+      .from("busy_public_business_profiles")
+      .select("business_id,source_website_id,source_deployment_id,public_slug,display_name,status,revision,profile,updated_at")
+      .eq("business_id", businessId)
+      .maybeSingle(),
   ]);
 
   if (deployments.error) throw deployments.error;
   if (domains.error) throw domains.error;
   if (jobs.error) throw jobs.error;
+  if (healthChecks.error) throw healthChecks.error;
+  if (analyticsRows.error) throw analyticsRows.error;
+  if (publicProfile.error) throw publicProfile.error;
+
+  const analytics = (analyticsRows.data || []).reduce(
+    (acc: any, row: any) => {
+      acc.pageViews += Number(row.page_views || 0);
+      acc.uniqueVisitors += Number(row.unique_visitors || 0);
+      acc.enquiries += Number(row.enquiries || 0);
+      return acc;
+    },
+    { days: 30, pageViews: 0, uniqueVisitors: 0, enquiries: 0, status: website.analytics_status || "foundation" }
+  );
 
   return {
     website,
@@ -202,6 +403,9 @@ async function websiteStatus(businessId: string) {
     domains: domains.data || [],
     jobs: jobs.data || [],
     queue,
+    healthChecks: healthChecks.data || [],
+    analytics,
+    publicProfile: publicProfile.data || null,
   };
 }
 
@@ -320,12 +524,25 @@ async function prepare(
 
   const sourceDraft = { ...input };
   delete sourceDraft.html;
+
+  const website = await ensureWebsite(businessId, userId, sourceDraft);
+  let previousLiveDraft: any = null;
+  if (website.current_live_deployment_id) {
+    const live = await supabase
+      .from("busy_website_deployments")
+      .select("source_draft")
+      .eq("id", website.current_live_deployment_id)
+      .eq("business_id", businessId)
+      .maybeSingle();
+    if (live.error) throw live.error;
+    previousLiveDraft = live.data?.source_draft || null;
+  }
+  const changeSummary = summarizeDraftChanges(previousLiveDraft, sourceDraft);
   const serialized = JSON.stringify(sourceDraft);
   if (!serialized || serialized.length > 1_000_000) {
     throw new Error("The website draft is too large to prepare safely.");
   }
 
-  const website = await ensureWebsite(businessId, userId, sourceDraft);
   const contentHash = await sha256(serialized);
   const existing = await supabase
     .from("busy_website_deployments")
@@ -352,6 +569,9 @@ async function prepare(
         content_hash: contentHash,
         state: "queued",
         source_draft: sourceDraft,
+        change_label: cleanText(changeSummary.headline, 240) || "Website update",
+        change_summary: changeSummary,
+        page_count: Math.max(1, safeArray(sourceDraft.pages).length || 1),
         created_by: userId,
       })
       .select("*")
@@ -374,6 +594,16 @@ async function prepare(
       deployment = inserted.data;
     }
   }
+
+  await syncPublicProfile({
+    businessId,
+    websiteId: website.id,
+    deploymentId: deployment.id,
+    userId,
+    draft: sourceDraft,
+    revision: Number(deployment.version_no) || 1,
+    status: deployment.state === "live" ? "live" : deployment.state === "preview_ready" ? "preview_ready" : "draft",
+  });
 
   if (["preview_ready", "live"].includes(deployment.state)) {
     return {
