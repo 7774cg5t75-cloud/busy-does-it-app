@@ -1,5 +1,6 @@
 import React from "react";
 import { Text, View } from "react-native";
+import QRCode from "react-native-qrcode-svg";
 
 import { styles } from "../theme/styles";
 import { Shell, Card, Button, Field, MetricRow, StatusChip } from "../components/ui";
@@ -239,13 +240,13 @@ function BusyAppsMarketplace({ s }) {
       s={s}
       title="BUSY Apps"
       subtitle="Search customer-facing apps created from BUSY's tested small-business modules."
-      brandCue="V3.42 • customer journey bridge • My BUSY Apps • controlled modules • shared business data."
+      brandCue="V3.43 • customer journey bridge • My BUSY Apps • controlled modules • shared business data."
     >
       <Card
         eyebrow="BUSY Apps marketplace"
         title="One place for small-business apps"
         body="A customer can search a business name inside BUSY, open that business's Mini App, browse services and use enabled customer actions such as enquiry or booking request."
-        footer="V3.42 connects Mini Apps to real BUSY customer journeys while keeping one shared, controlled app platform."
+        footer="V3.43 connects Mini Apps to real BUSY customer journeys while keeping one shared, controlled app platform."
         tone="green"
       >
         <Button
@@ -324,7 +325,7 @@ function BusyAppsMarketplace({ s }) {
             <Button
               label="Open app"
               primary
-              onPress={() => s.openBusyAppDetail(item.slug)}
+              onPress={() => s.openBusyAppDetail(item.slug, "my_apps")}
             />
             <Button
               label={item.favorite ? "Remove favourite" : "Add to favourites"}
@@ -456,7 +457,7 @@ function MiniAppBuilder({ s }) {
       s={s}
       title="Mini App Builder"
       subtitle="BUSY assembles a customer-facing app from reusable tested modules and approved public business facts."
-      brandCue="V3.42 • one controlled platform • immutable versions • marketplace approval separated from Go Live."
+      brandCue="V3.43 • one controlled platform • immutable versions • marketplace approval separated from Go Live."
     >
       <Card
         eyebrow="Your BUSY Mini App"
@@ -598,12 +599,17 @@ function MiniAppBuilder({ s }) {
               title={view.isDiscoverable ? "Listed in BUSY Apps" : "Live but not listed"}
               body={
                 view.isDiscoverable
-                  ? "Signed-in BUSY users can find this business through marketplace search."
-                  : "The app is live, but it stays out of marketplace search until you explicitly approve listing."
+                  ? "Customers can find this business through BUSY Apps search, and the exact QR/share link also opens it directly."
+                  : "The app is live and hidden from marketplace search, but customers with the exact owner-shared link or QR code can still open it."
               }
               footer={`Public slug: ${view.publicSlug || "Not set"}`}
               tone="green"
             >
+              <Button
+                label="Share, link & QR"
+                primary
+                onPress={s.openMiniAppShareCentre}
+              />
               <Button
                 label={view.isDiscoverable ? "Remove from BUSY Apps search" : "List in BUSY Apps search"}
                 disabled={!!s.miniAppsAction}
@@ -762,7 +768,7 @@ function MiniAppPreview({ s }) {
       s={s}
       title="Mini App Preview"
       subtitle="Preview the controlled customer-facing configuration before anything changes publicly."
-      brandCue="V3.42 • preview only • reusable BUSY modules."
+      brandCue="V3.43 • preview only • reusable BUSY modules."
     >
       {config ? (
         <MiniAppSurface config={config} />
@@ -828,7 +834,7 @@ function BusyAppDetail({ s }) {
       s={s}
       title={detail?.app?.name || "BUSY Mini App"}
       subtitle="Customer-facing business app inside BUSY."
-      brandCue="V3.42 • live marketplace version."
+      brandCue="V3.43 • live marketplace version."
     >
       {config ? <MiniAppSurface config={config} interactive s={s} /> : null}
       <Card
@@ -937,6 +943,84 @@ function BusyAppDetail({ s }) {
   );
 }
 
+function MiniAppShareCentre({ s }) {
+  const view = s.miniAppsView || {};
+  const links = s.miniAppShareLinks || {};
+  const entryCounts = view.entryCounts || { bySource: {}, byStage: {} };
+  const landingCount = Number(entryCounts.byStage?.landing || 0);
+  const appOpenCount = Number(entryCounts.byStage?.app_open || 0);
+  const qrCount = Number(entryCounts.bySource?.qr || 0);
+  const shareCount = Number(entryCounts.bySource?.share || 0);
+
+  return (
+    <Shell
+      s={s}
+      title="Share Mini App"
+      subtitle="Give customers a direct route into this business's live BUSY Mini App."
+      brandCue="V3.43 • QR entry • HTTPS share link • native deep link • source attribution."
+    >
+      {view.hasLive && links.qr ? (
+        <>
+          <Card
+            eyebrow="Customer QR code"
+            title={view.displayName || "Your BUSY Mini App"}
+            body="Customers can scan this code from a counter sign, van, leaflet, website or another phone. It opens a BUSY-hosted landing page and then hands off to the exact Mini App."
+            footer="The QR uses an HTTPS BUSY link, so the printed code does not need to change when the App Store fallback is connected later."
+            tone="green"
+          >
+            <View style={{ alignItems: "center", paddingVertical: 18 }}>
+              <QRCode value={links.qr} size={220} />
+            </View>
+            <Button label="Share customer link" primary onPress={s.shareMiniAppCustomerLink} />
+            <Button label="Open customer link" onPress={() => s.openMiniAppCustomerLink("share")} />
+          </Card>
+
+          <Card
+            eyebrow="Direct entry"
+            title="One business, one stable public slug"
+            body="Marketplace listing and direct access are separate. Removing the business from BUSY Apps search does not break an owner-shared QR code or exact link while the Mini App remains live."
+            footer={`Native route: ${links.native || "Not ready"}`}
+            tone="blue"
+          >
+            <MetricRow left="Marketplace" right={view.isDiscoverable ? "Listed" : "Unlisted"} />
+            <MetricRow left="Live version" right={view.liveVersion ? `v${view.liveVersion.version_no}` : "Not live"} strong />
+          </Card>
+
+          <Text style={styles.sectionLabel}>Last 30 days</Text>
+          <Card
+            eyebrow="Customer-entry signals"
+            title="See how people are reaching the Mini App"
+            body="BUSY keeps landing-page visits separate from authenticated in-app opens so the figures are not presented as enquiries or bookings."
+            tone="blue"
+          >
+            <MetricRow left="Landing-page visits" right={String(landingCount)} strong={landingCount > 0} />
+            <MetricRow left="In-app opens" right={String(appOpenCount)} strong={appOpenCount > 0} />
+            <MetricRow left="QR-attributed entries" right={String(qrCount)} />
+            <MetricRow left="Shared-link entries" right={String(shareCount)} />
+          </Card>
+
+          <Card
+            eyebrow="Release-ready handoff"
+            title="Cloudflare is still not required"
+            body="V3.43 uses BUSY's existing Supabase-hosted HTTPS landing route for the QR/share link. A branded universal-link domain and App Store fallback can be attached later without rebuilding the Mini App request system."
+            footer="Until the public app is released, the landing page can only hand off successfully on devices that have a BUSY native build installed."
+            tone="blue"
+          />
+        </>
+      ) : (
+        <Card
+          eyebrow="Share Mini App"
+          title="Publish the Mini App first"
+          body="BUSY only creates customer entry links and QR codes for a genuinely live Mini App."
+          tone="amber"
+        />
+      )}
+
+      <Button label="Back to Mini App Builder" onPress={() => s.go("miniAppBuilder")} />
+    </Shell>
+  );
+}
+
 function MiniAppRequestDetail({ s }) {
   const detail = s.selectedMiniAppRequestDetail || {};
   const request = detail.request || null;
@@ -959,7 +1043,7 @@ function MiniAppRequestDetail({ s }) {
       s={s}
       title={ownerView ? request?.contact_name || "Customer request" : detail.app?.display_name || "BUSY request"}
       subtitle={ownerView ? "Mini App customer conversation" : "Your conversation with this business"}
-      brandCue="V3.42 • unread state • push routing • bounded conversation history."
+      brandCue="V3.43 • unread state • push routing • bounded conversation history."
     >
       {s.miniAppRequestHistoryLoading && !request ? (
         <Card eyebrow="Conversation" title="Loading…" body="BUSY is loading the latest request activity." tone="blue" />
@@ -1063,5 +1147,6 @@ export {
   MiniAppBuilder,
   MiniAppPreview,
   BusyAppDetail,
+  MiniAppShareCentre,
   MiniAppRequestDetail,
 };
