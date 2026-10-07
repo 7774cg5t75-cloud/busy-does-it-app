@@ -1647,12 +1647,12 @@ function App() {
         });
         applyMiniAppsStatus(linked);
         setMiniAppsNotice(
-          "BUSY confirmed the diary booking and updated the customer's Mini App request status."
+          "BUSY confirmed the diary booking and updated the customer's Business App request status."
         );
       } catch (error) {
         setMiniAppsError(
           error?.message ||
-            "The booking was confirmed in BUSY, but the Mini App request status could not be updated."
+            "The booking was confirmed in BUSY, but the Business App request status could not be updated."
         );
       }
     }
@@ -13047,7 +13047,7 @@ function App() {
     if (!token) throw new Error("Sign in again before using BUSY Apps.");
     const businessId = cloudWorkspace?.businessId || "";
     if (includeBusiness && !businessId) {
-      throw new Error("BUSY needs the business cloud workspace before managing your Mini App.");
+      throw new Error("BUSY needs the business cloud workspace before managing your Business App.");
     }
 
     const response = await fetchWithTimeout(
@@ -13089,7 +13089,7 @@ function App() {
       applyMiniAppsStatus(data);
       return true;
     } catch (error) {
-      setMiniAppsError(error?.message || "BUSY could not load your Mini App.");
+      setMiniAppsError(error?.message || "BUSY could not load your Business App.");
       return false;
     } finally {
       if (!quiet) setMiniAppsLoading(false);
@@ -13107,12 +13107,12 @@ function App() {
       applyMiniAppsStatus(data);
       setMiniAppsNotice(
         data?.source === "shared_public_profile_plus_owner_draft"
-          ? "BUSY rebuilt the Mini App draft from the shared public business profile plus your current approved Brand Brain facts."
-          : "BUSY created the first Mini App draft from your approved public Brand Brain facts."
+          ? "BUSY rebuilt the Business App draft from the shared public business profile plus your current approved Brand Brain facts."
+          : "BUSY created the first Business App draft from your approved public Brand Brain facts."
       );
       return true;
     } catch (error) {
-      setMiniAppsError(error?.message || "BUSY could not build the Mini App draft.");
+      setMiniAppsError(error?.message || "BUSY could not build the Business App draft.");
       return false;
     } finally {
       setMiniAppsAction("");
@@ -13279,7 +13279,7 @@ function App() {
       );
       return true;
     } catch (error) {
-      setMiniAppsError(error?.message || "BUSY could not update that Mini App module.");
+      setMiniAppsError(error?.message || "BUSY could not update that Business App module.");
       return false;
     } finally {
       setMiniAppsAction("");
@@ -13300,7 +13300,7 @@ function App() {
       );
       return true;
     } catch (error) {
-      setMiniAppsError(error?.message || "BUSY could not prepare the Mini App preview.");
+      setMiniAppsError(error?.message || "BUSY could not prepare the Business App preview.");
       return false;
     } finally {
       setMiniAppsAction("");
@@ -13325,7 +13325,7 @@ function App() {
       );
       return true;
     } catch (error) {
-      setMiniAppsError(error?.message || "BUSY could not publish that Mini App version.");
+      setMiniAppsError(error?.message || "BUSY could not publish that Business App version.");
       return false;
     } finally {
       setMiniAppsAction("");
@@ -13405,7 +13405,7 @@ function App() {
       setMiniAppsNotice("BUSY restored the selected previously published Business App version.");
       return true;
     } catch (error) {
-      setMiniAppsError(error?.message || "BUSY could not restore that Mini App version.");
+      setMiniAppsError(error?.message || "BUSY could not restore that Business App version.");
       return false;
     } finally {
       setMiniAppsAction("");
@@ -13466,7 +13466,7 @@ function App() {
       setTimeout(() => loadMyBusyApps({ quiet: true }), 80);
       return true;
     } catch (error) {
-      setMiniAppsError(error?.message || "BUSY could not open that Mini App.");
+      setMiniAppsError(error?.message || "BUSY could not open that Business App.");
       return false;
     } finally {
       setMiniAppsAction("");
@@ -13843,7 +13843,7 @@ function App() {
 
       if (plan.existingLink?.customer_record_id) {
         setMiniAppsNotice(
-          "That Mini App request is already linked to a BUSY customer record, so BUSY did not import it twice."
+          "That Business App request is already linked to a BUSY customer record, so BUSY did not import it twice."
         );
         await refreshMiniAppsStatus({ quiet: true });
         return true;
@@ -13867,8 +13867,8 @@ function App() {
           : "enquiry";
       const activityTitle =
         requestRow.request_type === "booking_request"
-          ? "Booking request received through BUSY Mini App"
-          : "Enquiry received through BUSY Mini App";
+          ? "Booking request received through BUSY Business App"
+          : "Enquiry received through BUSY Business App";
       const note =
         candidate.note ||
         (requestRow.request_type === "booking_request"
@@ -13887,7 +13887,7 @@ function App() {
             lastServiceDate: "",
             lastJobValue: 0,
             contactOk: true,
-            source: "BUSY Mini App",
+            source: "BUSY Business App",
             createdAt: now,
             history: [],
             activity: [],
@@ -13907,7 +13907,7 @@ function App() {
             phone: candidate.phone || base.phone || "",
             email: candidate.email || base.email || "",
             service: candidate.service || base.service,
-            source: base.source || "BUSY Mini App",
+            source: base.source || "BUSY Business App",
             lifecycleStatus:
               requestRow.request_type === "booking_request"
                 ? "Booking being arranged"
@@ -13929,7 +13929,7 @@ function App() {
               ),
               {
                 id: `source-miniapp-${requestId}`,
-                source: "BUSY Mini App",
+                source: "BUSY Business App",
                 stage:
                   requestRow.request_type === "booking_request"
                     ? "Booking request"
@@ -13976,7 +13976,7 @@ function App() {
           ...current,
           [customerId]: {
             ...(current[customerId] || {}),
-            task: "Review Mini App booking request",
+            task: "Review Business App booking request",
             type: "booking",
             origin: "mini-app",
             createdAt: current[customerId]?.createdAt || now,
@@ -13995,8 +13995,8 @@ function App() {
               sourceMiniAppRequestId: requestId,
               note,
               summary: preferredDateText
-                ? `Mini App booking request • preferred: ${preferredDateText}`
-                : "Mini App booking request • date/time still to agree",
+                ? `Business App booking request • preferred: ${preferredDateText}`
+                : "Business App booking request • date/time still to agree",
             },
           },
         }));
@@ -14022,7 +14022,7 @@ function App() {
         );
       } else {
         setMiniAppsNotice(
-          "BUSY linked this Mini App enquiry into the existing customer journey. Follow-up now uses the same BUSY customer record as other enquiries."
+          "BUSY linked this Business App enquiry into the existing customer journey. Follow-up now uses the same BUSY customer record as other enquiries."
         );
       }
       if (
@@ -14036,7 +14036,7 @@ function App() {
     } catch (error) {
       setMiniAppsError(
         error?.message ||
-          "BUSY could not link that Mini App request into the customer journey."
+          "BUSY could not link that Business App request into the customer journey."
       );
       return false;
     } finally {
