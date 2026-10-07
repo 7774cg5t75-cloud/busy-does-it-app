@@ -2,6 +2,25 @@
 
 Busy Does It mobile app prototype.
 
+## v3.39 BUSY Apps Marketplace Foundation
+- Adds the first real BUSY Apps marketplace architecture without depending on Cloudflare.
+- A BUSY Mini App is a tenant-owned configuration assembled from platform-tested reusable modules, not a bespoke generated codebase.
+- Initial available modules: Business profile, Services, Gallery, Contact, Enquiry, Booking request and optional Offers.
+- Loyalty and Payments are represented honestly as planned modules and cannot be enabled in V3.39.
+- busy_mini_apps stores the mutable private draft and marketplace state.
+- busy_mini_app_versions stores immutable prepared/live configurations with content hashes, change summaries and rollback history.
+- busy_mini_app_module_catalog is the platform-owned reusable module catalogue.
+- busy_mini_app_requests stores authenticated customer enquiry/booking requests; direct client writes are not granted.
+- Booking is request-only in V3.39. A customer request does not silently create a confirmed business calendar booking.
+- Customer requests are server-routed to the business resolved from the live Mini App; the consumer cannot choose/spoof a destination business ID.
+- Request idempotency plus a per-user/app hourly request cap provide first abuse/duplicate protection.
+- Publication and marketplace discoverability are separate owner-approved public actions.
+- A live Mini App can remain unlisted while the business tests it.
+- Signed-in BUSY users can search live/discoverable apps by business/category and open the immutable live version.
+- Mini Apps share the same approved public-business profile layer as websites.
+- Home now exposes BUSY Apps marketplace + owner Mini App management.
+- BUSY Operator receives Mini App state and understands build/edit/open/status intents.
+- Cloudflare remains optional/deferred: V3.39 has no dependency on completing the V3.38 external delivery setup.
 ## v3.38 Website Delivery & Real-World Signals
 - Adds a provider-neutral website delivery layer on top of V3.37. Cloudflare for SaaS is the first adapter, not a hard-coded product assumption throughout BUSY.
 - New private Edge Functions:
