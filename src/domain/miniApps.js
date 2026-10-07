@@ -46,6 +46,7 @@ function buildMiniAppsView(remote = {}) {
   const app = remote?.app || null;
   const versions = safeArray(remote?.versions);
   const requests = safeArray(remote?.requests);
+  const requestLinks = safeArray(remote?.requestLinks);
   const catalog = safeArray(remote?.catalog);
   const draftConfig = app?.draft_config || null;
 
@@ -72,6 +73,11 @@ function buildMiniAppsView(remote = {}) {
     (item) => item.capabilities?.customer_action
   );
 
+  const linkByRequest = new Map(
+    requestLinks.map((item) => [item.request_id, item])
+  );
+  const linkedRequests = requests.filter((item) => linkByRequest.has(item.id));
+  const unlinkedRequests = requests.filter((item) => !linkByRequest.has(item.id));
   const pendingRequests = requests.filter((item) =>
     ["received", "reviewing"].includes(item.status)
   );
@@ -95,6 +101,10 @@ function buildMiniAppsView(remote = {}) {
     app,
     versions,
     requests,
+    requestLinks,
+    linkedRequests,
+    unlinkedRequests,
+    linkByRequest,
     catalog,
     previewVersion,
     liveVersion,
@@ -107,6 +117,9 @@ function buildMiniAppsView(remote = {}) {
     actionableModules,
     pendingRequests,
     acceptedRequests,
+    unlinkedPendingRequests: pendingRequests.filter(
+      (item) => !linkByRequest.has(item.id)
+    ),
     statusLabel,
     hasDraft: !!draftConfig,
     hasPreview: !!previewVersion,
