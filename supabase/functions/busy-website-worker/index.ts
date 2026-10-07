@@ -731,6 +731,12 @@ async function publishDeployment(job: any, deployment: any, website: any) {
       current_preview_deployment_id: deployment.id,
       live_url: liveUrl,
       health_status: "not_checked",
+      ...(website.default_hostname
+        ? {
+            delivery_provider: "cloudflare_saas",
+            delivery_status: "provisioning",
+          }
+        : {}),
       last_error: null,
       updated_at: now,
     })
@@ -790,6 +796,12 @@ async function rollbackDeployment(job: any, target: any, website: any) {
       current_live_deployment_id: target.id,
       live_url: liveUrl,
       health_status: "not_checked",
+      ...(website.default_hostname
+        ? {
+            delivery_provider: "cloudflare_saas",
+            delivery_status: "provisioning",
+          }
+        : {}),
       last_error: null,
       updated_at: new Date().toISOString(),
     })
