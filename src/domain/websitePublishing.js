@@ -54,6 +54,7 @@ function buildWebsitePublishingView({
     bootstrapReady: false,
   };
   const providerPreflight = remote?.providerPreflight || null;
+  const providerPlatform = remote?.providerPlatform || null;
   const publicProfile = remote?.publicProfile || null;
   const queue = remote?.queue || null;
 
@@ -190,6 +191,7 @@ function buildWebsitePublishingView({
     enquiryAttributions,
     providerConfig,
     providerPreflight,
+    providerPlatform,
     publicProfile,
     latestDeployment,
     previewDeployment,
@@ -256,6 +258,10 @@ function buildWebsitePublishingView({
       nameservers: safeArray(providerPreflight?.rootNameservers),
       statusReachable: remote?.providerStatusReachable !== false,
       statusError: clean(remote?.providerStatusError),
+      routerScriptReady: !!providerPlatform?.routerScriptReady,
+      routerRouteReady: !!providerPlatform?.routerRouteReady,
+      fallbackOriginStatus: clean(providerPlatform?.fallbackOriginStatus) || "not_connected",
+      fallbackOrigin: clean(providerPlatform?.fallbackOrigin),
     },
     defaultAddressState: {
       address: defaultAddress,
