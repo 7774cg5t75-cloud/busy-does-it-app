@@ -103,7 +103,11 @@ function buildWebsitePublishingView({
   const defaultDomainHealth =
     healthChecks.find((item) => item.target_type === "default_domain") || null;
   const customDomainHealth =
-    healthChecks.find((item) => item.target_type === "custom_domain") || null;
+    healthChecks.find(
+      (item) =>
+        item.target_type === "custom_domain" &&
+        (!latestDomain || item.domain_id === latestDomain.id)
+    ) || null;
 
   const draftGeneration = Number(websiteDraft?.generation || 0);
   const hostedGeneration = Number(
@@ -302,6 +306,128 @@ function buildWebsitePublishingView({
     },
   ];
 
+  const latestDomainRecords = safeArray(latestDomain?.required_records);
+  const ownershipRecords = latestDomainRecords.filter(
+    (record) => clean(record?.purpose) === "ownership"
+  );
+  const providerDnsRecords = latestDomainRecords.filter(
+    (record) => clean(record?.purpose) !== "ownership"
+  );
+  const domainOwnershipReady =
+    !!latestDomain && ["verified", "active"].includes(latestDomain.status);
+  const domainProviderReady = !!clean(latestDomain?.provider_hostname_id);
+  const providerHostnameActive =
+    clean(latestDomain?.provider_status?.hostnameStatus) === "active";
+  const domainSslReady = latestDomain?.ssl_status === "active";
+  const latestDomainRouteReady =
+    latestDomain?.routing_status === "active" && domainSslReady;
+  const latestDomainHealthReady =
+    customDomainHealth?.status === "healthy" &&
+    (!latestDomain || customDomainHealth?.domain_id === latestDomain.id);
+  const domainHasError =
+    latestDomain?.routing_status === "error" ||
+    latestDomain?.ssl_status === "error" ||
+    !!clean(latestDomain?.last_error);
+
+  const customDomainStage = !latestDomain
+    ? "not_connected"
+    : !domainOwnershipReady
+    ? "ownership_required"
+    : domainHasError
+    ? "needs_attention"
+    : !domainProviderReady
+    ? "provider_queued"
+    : !providerHostnameActive || !domainSslReady
+    ? "dns_required"
+    : !latestDomainRouteReady
+    ? "route_verifying"
+    : !latestDomainHealthReady
+    ? "health_verifying"
+    : "live";
+
+  const customDomainLabel =
+    customDomainStage === "live"
+      ? "Custom domain live and healthy"
+      : customDomainStage === "health_verifying"
+      ? "Route active • proving the live website"
+      : customDomainStage === "route_verifying"
+      ? "SSL active • verifying real traffic"
+      : customDomainStage === "dns_required"
+      ? "Add the DNS records below"
+      : customDomainStage === "provider_queued"
+      ? "Ownership verified • BUSY is preparing Cloudflare"
+      : customDomainStage === "needs_attention"
+      ? "Custom domain needs attention"
+      : customDomainStage === "ownership_required"
+      ? "Verify that you own this domain"
+      : "Connect a domain you already own";
+
+  const customDomainSteps = [
+    {
+      id: "ownership",
+      label: "Domain ownership",
+      status: domainOwnershipReady ? "complete" : latestDomain ? "working" : "waiting",
+    },
+    {
+      id: "provider",
+      label: "Cloudflare hostname",
+      status: domainProviderReady
+        ? "complete"
+        : domainOwnershipReady
+        ? domainHasError
+          ? "error"
+          : "working"
+        : "waiting",
+    },
+    {
+      id: "dns",
+      label: "DNS traffic route",
+      status: providerHostnameActive
+        ? "complete"
+        : domainProviderReady
+        ? domainHasError
+          ? "error"
+          : "working"
+        : "waiting",
+    },
+    {
+      id: "ssl",
+      label: "SSL / HTTPS",
+      status: domainSslReady
+        ? "complete"
+        : domainProviderReady
+        ? domainHasError
+          ? "error"
+          : "working"
+        : "waiting",
+    },
+    {
+      id: "health",
+      label: "Exact website health proof",
+      status: latestDomainHealthReady
+        ? "complete"
+        : latestDomainRouteReady
+        ? "working"
+        : "waiting",
+    },
+  ];
+
+  const activeCustomDomain =
+    domains.find(
+      (domain) =>
+        domain.status === "active" &&
+        domain.routing_status === "active" &&
+        domain.ssl_status === "active"
+    ) || null;
+
+  const customDomainPublicAddress = activeCustomDomain
+    ? {
+        url: `https://${activeCustomDomain.hostname}`,
+        label: activeCustomDomain.hostname,
+        source: "custom_domain",
+      }
+    : null;
+
   return {
     website,
     deployments,
@@ -355,17 +481,19 @@ function buildWebsitePublishingView({
     canOpenLive: !!clean(website?.live_url),
     canOpenDefaultAddress: !!defaultAddress?.live,
     primaryPublicAddress:
-      defaultAddress?.live
+      customDomainPublicAddress ||
+      (defaultAddress?.live
         ? { url: defaultAddress.url, label: defaultAddress.hostname, source: "busy_domain" }
         : clean(website?.live_url)
         ? { url: clean(website.live_url), label: "Hosted live version", source: "storage_alias" }
-        : null,
+        : null),
     canRollback: previouslyPublished.length > 0 && !activeJob,
     canCheckHealth: !!liveDeployment && !activeJob,
     canProvisionDomain:
       !!latestDomain &&
-      ["verified", "active"].includes(latestDomain.status) &&
-      !["active"].includes(latestDomain.routing_status),
+      domainOwnershipReady &&
+      !latestDomainRouteReady,
+    canOpenCustomDomain: !!customDomainPublicAddress,
     providerState: {
       provider: providerConfig.provider || "cloudflare_saas",
       configured: !!providerConfig.configured,
@@ -457,38 +585,49 @@ function buildWebsitePublishingView({
       latest: latestDomain,
       verified: verifiedDomain,
       routed: routedDomain,
-      ownership:
-        latestDomain?.status === "active" || latestDomain?.status === "verified"
-          ? "Verified"
-          : latestDomain
-          ? "Waiting for verification"
-          : "Not connected",
-      routing:
-        routedDomain
-          ? "Active"
-          : latestDomain?.routing_status === "error"
-          ? "Routing error"
-          : latestDomain?.routing_status === "pending" ||
-            latestDomain?.routing_status === "validating"
-          ? latestDomain.routing_status === "validating"
-            ? "Provider ready • validating real route"
-            : "Routing pending"
-          : "Not configured",
-      ssl:
-        latestDomain?.ssl_status === "active"
-          ? "Active"
-          : latestDomain?.ssl_status === "error"
-          ? "SSL error"
-          : latestDomain?.ssl_status === "provisioning"
-          ? "Provisioning"
-          : latestDomain
-          ? "Not active"
-          : "Not configured",
+      ownership: domainOwnershipReady
+        ? "Verified"
+        : latestDomain
+        ? "Waiting for verification"
+        : "Not connected",
+      routing: latestDomainRouteReady
+        ? "Active"
+        : latestDomain?.routing_status === "error"
+        ? "Routing error"
+        : latestDomain?.routing_status === "validating"
+        ? "Provider ready • validating real route"
+        : latestDomain?.routing_status === "pending"
+        ? "Routing pending"
+        : "Not configured",
+      ssl: domainSslReady
+        ? "Active"
+        : latestDomain?.ssl_status === "error"
+        ? "SSL error"
+        : latestDomain?.ssl_status === "provisioning"
+        ? "Provisioning"
+        : latestDomain
+        ? "Not active"
+        : "Not configured",
       provider: clean(latestDomain?.routing_provider) || "unassigned",
       providerHostnameId: clean(latestDomain?.provider_hostname_id),
-      requiredRecords: safeArray(latestDomain?.required_records),
+      requiredRecords: latestDomainRecords,
+      recordsToAdd:
+        customDomainStage === "live"
+          ? []
+          : domainOwnershipReady
+          ? providerDnsRecords
+          : ownershipRecords,
       providerStatus: latestDomain?.provider_status || {},
-      routingActive: !!routedDomain,
+      routingActive: latestDomainRouteReady,
+      publicAddress: customDomainPublicAddress,
+      journey: {
+        stage: customDomainStage,
+        label: customDomainLabel,
+        complete: customDomainStage === "live",
+        needsAttention: customDomainStage === "needs_attention",
+        steps: customDomainSteps,
+        lastError: clean(latestDomain?.last_error),
+      },
     },
     analyticsView: {
       period: "Last 30 days",
