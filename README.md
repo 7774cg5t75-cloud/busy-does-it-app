@@ -1,5 +1,19 @@
 # busy-does-it-app
 
+## v3.51 Hosting Intelligence & Recovery
+- Adds an owner-facing **Hosting intelligence & recovery** layer across publishing, Cloudflare, DNS, SSL and public health checks. BUSY now distinguishes a publishing problem from a route problem, a customer-DNS action, an internal provider issue and a temporary external failure instead of collapsing them into one generic error.
+- Provider reconciliation now stores bounded recovery state inside each tenant domain: category, retry count, first failure, last attempt, next retry and a plain-English owner message. Scheduled domain sync respects the next-retry time instead of hammering Cloudflare on every cycle.
+- Automatic provider retries use exponential backoff with a six-hour ceiling. Authentication/permission faults are classified as internal operator attention; rate limiting and temporary provider/network faults remain automatic retries.
+- Successful Cloudflare responses reset provider retry attempts while preserving independent live-delivery recovery evidence. Pending DNS/validation states use slower scheduled checks so thousands of tenants cannot create a retry storm.
+- Live-site health now uses **confirmed failure** semantics. A previously healthy hosted site, BUSY address or customer domain is not taken out of service after one failed probe. Two consecutive failures are required before BUSY withdraws a proven public route and falls back to another known-good address.
+- Customer-domain health writes independent delivery-recovery evidence (healthy, transient observation or retrying) while preserving Cloudflare provider state. A recovered domain is automatically restored to active routing after the exact immutable deployment marker is observed again.
+- Publishing jobs now use exponential retry delays with deterministic tenant/job jitter rather than synchronized linear retries. Clearly permanent failures such as a missing prepared artifact stop retrying instead of wasting queue capacity.
+- Existing live content remains protected when a newer publication fails. BUSY surfaces the retained previously published version as rollback safety rather than treating an update failure as if the whole website disappeared.
+- A new server-side **safe recovery** action can reconcile the shared Cloudflare platform, refresh a verified custom hostname and run exact-deployment health proof without changing approved website content. The normal background workers remain automatic; the button is an optional accelerator when an owner wants BUSY to recheck immediately.
+- Website Management now reduces hosting incidents to three owner-level outcomes: **Live and healthy**, **BUSY is fixing a temporary issue**, or **We need one DNS change from you**. Technical evidence remains underneath for diagnosis without forcing a small-business owner to understand Cloudflare internals.
+- Production checks now protect confirmed-failure semantics, tenant-scoped backoff, permanent-vs-retryable publishing errors, recovery orchestration and the owner-facing recovery centre.
+
+
 ## v3.50 Automatic Customer-Owned Domains
 - Turns custom domains into one guided owner flow instead of separate technical actions. The owner enters a domain, adds one BUSY ownership TXT record, and checks ownership once; after that BUSY automatically continues into Cloudflare custom-hostname creation, SSL setup and scheduled provider reconciliation.
 - Verified domains that have not yet received a Cloudflare hostname are now picked up automatically by the existing provider scheduler. A missed browser tap or interrupted request therefore no longer leaves a verified domain permanently stranded.
