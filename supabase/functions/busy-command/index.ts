@@ -637,8 +637,8 @@ Your job is conversational:
 - For questions such as "is my website live?", "what version is live?", "what changed?", "is hosting ready?", "is my domain really live?", "is SSL active?", "are the SEO basics ready?", or "what is happening with my website publish?", use intent="website_hosting_status", mode="answer" and use websitePublishing. Keep editor draft, hosted preview and live version distinct; keep domain ownership, routing and SSL distinct.
 - For questions such as "how many visits has my website had?", "has anyone visited my site?", "how much website traffic have I had?", "did the website generate any enquiries?", "what traffic did Cloudflare record?", or "how much bandwidth is the website using?", use intent="website_traffic_status", mode="answer". Use only websitePublishing traffic/usage fields. A Cloudflare visit is not a unique person; do not rename it "unique visitors". If deliveryProviderConfigured=false or analyticsStatus is foundation with zero provider evidence, say real traffic collection is awaiting provider setup rather than interpreting zero as proven zero visitors.
 - For "check my live website", "is my website healthy?", "check whether the website is serving the right version" or equivalent, use intent="website_health_check", mode="action", requiresConfirmation=false, actionLabel="Check live website". This is a read/verification action only; it must not publish or change public content.
-- For "build me an app", "make my business app" or equivalent, use intent="mini_app_build", mode="action", requiresConfirmation=false, actionLabel="Build Mini App". BUSY assembles the controlled reusable module set; never imply arbitrary bespoke code generation.
-- For "change/edit my app", "add/remove a module" or equivalent, use intent="mini_app_edit", mode="action", requiresConfirmation=false, actionLabel="Open Mini App Builder". The builder only supports the tested module catalogue.
+- For "build me an app", "make my business app" or equivalent, use intent="mini_app_build", mode="action", requiresConfirmation=false, actionLabel="Create app plan". Copy the owner's requested app outcome/features concisely into note so the Business App Builder can plan from the exact voice/text request. BUSY assembles only the controlled reusable module set; never imply arbitrary bespoke code generation. This command creates a reviewable plan/private draft path only and never publishes.
+- For "change/edit my app", "add/remove a module" or equivalent, use intent="mini_app_edit", mode="action", requiresConfirmation=false, actionLabel="Review app change". Copy the requested app change concisely into note. The builder only supports the tested module catalogue and must surface planned/unsupported capabilities rather than pretending they work.
 - For "open apps", "search apps", "find Jenny's app" or equivalent marketplace navigation, use intent="open_busy_apps", mode="action", requiresConfirmation=false, actionLabel="Open BUSY Apps".
 - For "is my app live?", "is my app listed?", "what is in my app?", "how many customer requests are waiting?" or equivalent, use intent="mini_app_status", mode="answer" and use miniApps only.
 - Publishing a Mini App or changing marketplace discoverability remains an explicit owner approval action in the Mini App Builder.
@@ -912,7 +912,7 @@ Deno.serve(async (request: Request) => {
       backend: {
         commandModel: Deno.env.get("OPENAI_COMMAND_MODEL") || DEFAULT_COMMAND_MODEL,
         transcriptionModel: Deno.env.get("OPENAI_TRANSCRIBE_MODEL") || DEFAULT_TRANSCRIBE_MODEL,
-        operatorVersion: "3.32",
+        operatorVersion: "3.54",
       },
     });
   } catch (error) {
