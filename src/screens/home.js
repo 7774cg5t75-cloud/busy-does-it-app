@@ -235,6 +235,39 @@ function HomeScreen({ s }) {
     });
   }
 
+  if (s.miniAppsView?.unlinkedPendingRequests?.length) {
+    const request = s.miniAppsView.unlinkedPendingRequests[0];
+    const booking = request.request_type === "booking_request";
+    operationalMoves.push({
+      id: `mini-app-request-${request.id}`,
+      score: booking ? 108 : 102,
+      eyebrow: "BUSY Mini App",
+      title: booking
+        ? `${request.contact_name || "A customer"} sent a booking request`
+        : `${request.contact_name || "A customer"} sent an enquiry`,
+      body: booking
+        ? [
+            request.service_name || request.payload?.service || "Service not stated",
+            request.preferred_date_text || request.payload?.preferredDate || "Date/time still to agree",
+          ].join(" • ")
+        : request.payload?.message || "New Mini App enquiry waiting for review.",
+      footer: "Not linked to a BUSY customer yet",
+      status: "Review",
+      tone: "amber",
+      why: "This came through a live BUSY Mini App but has not yet been linked into the business customer journey. BUSY keeps it separate until the owner reviews it so an incoming request cannot silently create or confirm work.",
+      evidence: [
+        ["Source", "BUSY Mini App"],
+        ["Request type", booking ? "Booking request" : "Enquiry"],
+        ["Customer", request.contact_name || "Not recorded"],
+        ["Contact", request.contact_phone || request.contact_email || "Not recorded"],
+        ["BUSY customer link", "Not linked yet"],
+      ],
+      actionLabel: "Review request",
+      onAction: s.openMiniAppBuilder,
+      canIgnore: false,
+    });
+  }
+
   if (s.inboxTopItem) {
     const item = s.inboxTopItem;
     const parsed = item.parsed || {};
@@ -1044,8 +1077,15 @@ function HomeScreen({ s }) {
         />
         <MetricRow
           left="BUSY Apps"
-          right={s.miniAppsView?.statusLabel || "Not built"}
-          strong={!!s.miniAppsView?.hasLive}
+          right={
+            s.miniAppsView?.unlinkedPendingRequests?.length
+              ? `${s.miniAppsView.unlinkedPendingRequests.length} request${s.miniAppsView.unlinkedPendingRequests.length === 1 ? "" : "s"} need review`
+              : s.miniAppsView?.statusLabel || "Not built"
+          }
+          strong={
+            !!s.miniAppsView?.hasLive ||
+            !!s.miniAppsView?.unlinkedPendingRequests?.length
+          }
         />
         <Button label="Daily Command Centre" onPress={() => s.go("dailyCommandCentre")} />
         <Button label="Follow-up Engine" onPress={() => s.openFollowUpEngine()} />
