@@ -11,7 +11,9 @@ const SIGNALS_URL = `${SUPABASE_URL}/functions/v1/busy-website-signals`;
 const CLOUDFLARE_API_TOKEN = Deno.env.get("CLOUDFLARE_API_TOKEN") || "";
 const CLOUDFLARE_ZONE_ID = Deno.env.get("CLOUDFLARE_SAAS_ZONE_ID") || "";
 const CLOUDFLARE_CNAME_TARGET = Deno.env.get("CLOUDFLARE_SAAS_CNAME_TARGET") || "";
-const BUSY_WEBSITE_BASE_DOMAIN = Deno.env.get("BUSY_WEBSITE_BASE_DOMAIN") || "";
+const BUSY_ROOT_DOMAIN = Deno.env.get("BUSY_WEBSITE_ROOT_DOMAIN") || "busydoesit.co.uk";
+const BUSY_WEBSITE_BASE_DOMAIN =
+  Deno.env.get("BUSY_WEBSITE_BASE_DOMAIN") || "sites.busydoesit.co.uk";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -338,8 +340,10 @@ function websiteProviderConfig() {
     hasApiToken: !!CLOUDFLARE_API_TOKEN,
     hasZoneId: !!CLOUDFLARE_ZONE_ID,
     hasCnameTarget: !!CLOUDFLARE_CNAME_TARGET,
+    rootDomain: BUSY_ROOT_DOMAIN,
     baseDomainConfigured: !!BUSY_WEBSITE_BASE_DOMAIN,
     baseDomain: BUSY_WEBSITE_BASE_DOMAIN || "",
+    baseDomainSource: Deno.env.get("BUSY_WEBSITE_BASE_DOMAIN") ? "environment" : "busy_default",
   };
 }
 
@@ -362,6 +366,27 @@ async function internalWebsiteRequest(
   return data;
 }
 
+async function websiteProviderStatus() {
+  try {
+    const result = await internalWebsiteRequest(PROVIDER_URL, { action: "status" });
+    return {
+      config: result?.config || websiteProviderConfig(),
+      preflight: result?.preflight || null,
+      reachable: true,
+    };
+  } catch (error) {
+    return {
+      config: websiteProviderConfig(),
+      preflight: null,
+      reachable: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "BUSY website provider status is unavailable.",
+    };
+  }
+}
+
 async function queueMetrics() {
   const result = await supabase.rpc("busy_website_publish_queue_metrics");
   if (result.error) return null;
@@ -371,6 +396,7 @@ async function queueMetrics() {
 async function websiteStatus(businessId: string) {
   const website = await websiteForBusiness(businessId);
   if (!website) {
+    const providerStatus = await websiteProviderStatus();
     return {
       website: null,
       deployments: [],
@@ -383,11 +409,14 @@ async function websiteStatus(businessId: string) {
       signalRuns: [],
       enquiryAttributions: [],
       publicProfile: null,
-      providerConfig: websiteProviderConfig(),
+      providerConfig: providerStatus.config,
+      providerPreflight: providerStatus.preflight,
+      providerStatusReachable: providerStatus.reachable,
+      providerStatusError: providerStatus.error || null,
     };
   }
 
-  const [deployments, domains, jobs, queue, healthChecks, analyticsRows, publicProfile, usageRows, signalRuns, enquiryAttributions] = await Promise.all([
+  const [deployments, domains, jobs, queue, healthChecks, analyticsRows, publicProfile, usageRows, signalRuns, enquiryAttributions, providerStatus] = await Promise.all([
     supabase
       .from("busy_website_deployments")
       .select(
@@ -446,6 +475,7 @@ async function websiteStatus(businessId: string) {
       .gte("occurred_at", new Date(Date.now() - 30 * 86400000).toISOString())
       .order("occurred_at", { ascending: false })
       .limit(50),
+    websiteProviderStatus(),
   ]);
 
   if (deployments.error) throw deployments.error;
@@ -523,7 +553,10 @@ async function websiteStatus(businessId: string) {
     signalRuns: signalRuns.data || [],
     enquiryAttributions: enquiryAttributions.data || [],
     publicProfile: publicProfile.data || null,
-    providerConfig: websiteProviderConfig(),
+    providerConfig: providerStatus.config || websiteProviderConfig(),
+    providerPreflight: providerStatus.preflight || null,
+    providerStatusReachable: providerStatus.reachable !== false,
+    providerStatusError: providerStatus.error || null,
   };
 }
 
