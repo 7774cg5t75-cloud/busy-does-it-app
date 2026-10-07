@@ -1011,10 +1011,14 @@ function sanitiseAppPlan(
       const parts = [item.title, item.body, item.terms]
         .map((value) => clean(value, 900).toLowerCase())
         .filter(Boolean);
+      const datesSupported =
+        (!item.startDate || ownerRequestLower.includes(item.startDate)) &&
+        (!item.endDate || ownerRequestLower.includes(item.endDate));
       return (
         ownerRequestLower &&
         parts.length >= 2 &&
-        parts.every((part) => ownerRequestLower.includes(part))
+        parts.every((part) => ownerRequestLower.includes(part)) &&
+        datesSupported
       );
     })
     .slice(0, 4);
@@ -1037,12 +1041,34 @@ function sanitiseAppPlan(
         ownerRequestLower.includes(requestedLoyalty.reward.toLowerCase())
       )
     );
+  const sameSavedLoyalty =
+    loyaltyReady(savedLoyalty) &&
+    requestedLoyalty.targetStamps === savedLoyalty.targetStamps &&
+    requestedLoyalty.reward.toLowerCase() === savedLoyalty.reward.toLowerCase();
   const loyalty =
     requestedLoyalty.enabled &&
     requestedLoyalty.targetStamps >= 2 &&
     requestedLoyalty.targetStamps <= 20 &&
     loyaltyRewardSupported
-      ? requestedLoyalty
+      ? sameSavedLoyalty
+        ? savedLoyalty
+        : {
+            ...requestedLoyalty,
+            programName:
+              requestedLoyalty.programName &&
+              ownerRequestLower.includes(
+                requestedLoyalty.programName.toLowerCase()
+              )
+                ? requestedLoyalty.programName
+                : "Loyalty rewards",
+            terms:
+              requestedLoyalty.terms &&
+              ownerRequestLower.includes(
+                requestedLoyalty.terms.toLowerCase()
+              )
+                ? requestedLoyalty.terms
+                : "",
+          }
       : savedLoyalty;
 
   const loyaltyModule = modules.find((item: any) => item.key === "loyalty");
@@ -1623,6 +1649,15 @@ async function setModule(
   }
   if (moduleKey === "business_profile" && !enabled) {
     throw new Error("The Business profile module is required.");
+  }
+  if (
+    moduleKey === "loyalty" &&
+    enabled &&
+    !loyaltyReady(app.draft_config?.loyalty)
+  ) {
+    throw new Error(
+      "Set the loyalty stamp target and owner-approved reward through the Business App plan before enabling Loyalty."
+    );
   }
 
   const config = {
