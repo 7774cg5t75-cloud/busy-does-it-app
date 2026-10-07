@@ -15,6 +15,10 @@ const websitePublishingDomainSource = fs.readFileSync("src/domain/websitePublish
 const websitePublishingScreenSource = fs.readFileSync("src/screens/websitePublishing.js", "utf8");
 const websiteOriginSource = fs.readFileSync("supabase/functions/busy-website-origin/index.ts", "utf8");
 const websiteRouterSource = fs.readFileSync("cloudflare/busy-website-router/worker.js", "utf8");
+const websiteScaleMigrationSource = fs.readFileSync(
+  "supabase/migrations/20261007220000_v3_52_website_scale_hardening.sql",
+  "utf8"
+);
 
 const checks = [
   ["package/app version match", pkg.version === app.version && /^3\.\d+\.\d+$/.test(String(pkg.version || ""))],
@@ -38,8 +42,8 @@ const checks = [
   ["native development build workflow", fs.existsSync(".github/workflows/native-development-build.yml")],
   ["SDK57 calendar legacy import", controllerSource.includes('import * as Calendar from "expo-calendar/legacy";')],
   ["SDK54 Snack calendar rewrite", snackPublisherSource.includes('expo-calendar/legacy') && snackPublisherSource.includes('expo-calendar";')],
-  ["V3.51 public website origin", fs.existsSync("supabase/functions/busy-website-origin/index.ts")],
-  ["V3.51 Cloudflare router Worker", fs.existsSync("cloudflare/busy-website-router/worker.js")],
+  ["V3.52 public website origin", fs.existsSync("supabase/functions/busy-website-origin/index.ts")],
+  ["V3.52 Cloudflare router Worker", fs.existsSync("cloudflare/busy-website-router/worker.js")],
   ["website origin is public edge function", supabaseConfigSource.includes("[functions.busy-website-origin]") && supabaseConfigSource.includes("verify_jwt = false")],
   ["BUSY production root domain", websiteProviderSource.includes("busydoesit.co.uk")],
   ["Cloudflare automated platform bootstrap", websiteProviderSource.includes("bootstrapPlatform") && websiteProviderSource.includes("uploadRouterWorker")],
@@ -69,6 +73,19 @@ const checks = [
   ["V3.51 recovery intelligence model", websitePublishingDomainSource.includes("recoveryState") && websitePublishingDomainSource.includes("owner_dns_action") && websitePublishingDomainSource.includes("lastKnownGoodDeployment")],
   ["V3.51 owner recovery centre", websitePublishingScreenSource.includes("Hosting intelligence & recovery") && websitePublishingScreenSource.includes("Run safe recovery now")],
   ["V3.51 recovery action wired to app", controllerSource.includes("retryWebsiteRecovery") && controllerSource.includes('websitePublishingRequest("recover")')],
+  ["V3.52 one active operation per website", websiteScaleMigrationSource.includes("busy_website_publish_jobs_one_active_website_idx") && websitePublishApiSource.includes("another website operation")],
+  ["V3.52 atomic worker leases", websiteScaleMigrationSource.includes("busy_claim_website_publish_job") && websiteWorkerSource.includes("p_processing_token") && websiteWorkerSource.includes("lease_held")],
+  ["V3.52 stale jobs self-recover", websiteScaleMigrationSource.includes("busy_recover_stale_website_publish_jobs") && websiteWorkerSource.includes("staleRecovered")],
+  ["V3.52 tenant-fair queue", websiteWorkerSource.includes("tenant_fairness") && websiteWorkerSource.includes("seenBusinesses") && websitePublishingScreenSource.includes("Tenant-fair production queue")],
+  ["V3.52 cross-tenant database guards", websiteScaleMigrationSource.includes("busy_website_publish_jobs_tenant_deployment_fkey") && websiteScaleMigrationSource.includes("busy_website_health_checks_tenant_domain_fkey")],
+  ["V3.52 provider retries are indexable", websiteScaleMigrationSource.includes("provider_next_retry_at") && websiteProviderSource.includes("provider_next_retry_at") && websiteProviderSource.includes("provider_attempt_count")],
+  ["V3.52 adaptive health scheduling", websiteScaleMigrationSource.includes("next_health_check_at") && websiteHealthSource.includes("nextHealthMinutes") && websiteHealthSource.includes("dueFilter")],
+  ["V3.52 route probes are concurrent", websiteHealthSource.includes("const routeChecks = await Promise.all") && websiteHealthSource.includes("domainRows.map")],
+  ["V3.52 health work is continuously spread", websiteScaleMigrationSource.includes("busy-website-health-minute") && websiteScaleMigrationSource.includes("jsonb_build_object('limit', 20)")],
+  ["V3.52 tenant operation rate safeguard", websitePublishApiSource.includes("unusually high publishing activity") && websitePublishApiSource.includes('recent.count || 0') && websitePublishApiSource.includes(">= 30")],
+  ["V3.52 custom-domain capacity safeguard", websitePublishApiSource.includes("maximum number of active or pending custom domains") && websitePublishApiSource.includes(">= 5")],
+  ["V3.52 operational pressure metrics", websiteScaleMigrationSource.includes("busy_website_operational_metrics") && websiteScaleMigrationSource.includes("failed_signals_24h")],
+  ["V3.52 bounded operational retention", websiteScaleMigrationSource.includes("busy_prune_website_operational_history") && websiteScaleMigrationSource.includes("180 days")],
   ["Cloudflare root routes excluded", websiteProviderSource.includes("ensureWorkerRoutes") && websiteProviderSource.includes("www.")],
   ["health checks bypass website edge cache", websiteRouterSource.includes("BUSY-Website-Health/") && websiteProviderSource.includes("BUSY-Website-Health/")],
   ["website origin rejects storage traversal", websiteOriginSource.includes('part === ".."') && websiteOriginSource.includes("busy-website-public")],
