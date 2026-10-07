@@ -47,6 +47,7 @@ function buildMiniAppsView(remote = {}) {
   const versions = safeArray(remote?.versions);
   const requests = safeArray(remote?.requests);
   const requestLinks = safeArray(remote?.requestLinks);
+  const requestCount30 = Math.max(0, Number(remote?.requestCount30 || 0));
   const entrySummary = safeArray(remote?.entrySummary);
   const catalog = safeArray(remote?.catalog);
   const draftConfig = app?.draft_config || null;
@@ -123,6 +124,7 @@ function buildMiniAppsView(remote = {}) {
     versions,
     requests,
     requestLinks,
+    requestCount30,
     entrySummary,
     entryCounts,
     linkedRequests,
@@ -161,6 +163,14 @@ function buildMiniAppsView(remote = {}) {
       previewVersion.state === "preview_ready",
     canToggleModules: !!app && !!draftConfig,
     publicSlug: clean(app?.public_slug),
+    publicWebUrl: clean(app?.public_web_url),
+    publicWebStatus: clean(app?.public_web_status) || "not_ready",
+    publicWebVersionId: clean(app?.public_web_version_id),
+    webReady:
+      !!app?.current_live_version_id &&
+      clean(app?.public_web_status) === "ready" &&
+      clean(app?.public_web_version_id) === clean(app?.current_live_version_id) &&
+      /^https:\/\//i.test(clean(app?.public_web_url)),
     displayName:
       clean(activeConfig?.display?.name) ||
       clean(app?.display_name) ||
