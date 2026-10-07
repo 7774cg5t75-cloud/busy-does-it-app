@@ -381,12 +381,15 @@ async function websiteProviderStatus() {
       config: result?.config || websiteProviderConfig(),
       preflight: result?.preflight || null,
       platform: result?.provider || null,
+      activation: result?.activation || null,
       reachable: true,
     };
   } catch (error) {
     return {
       config: websiteProviderConfig(),
       preflight: null,
+      platform: null,
+      activation: null,
       reachable: false,
       error:
         error instanceof Error
@@ -421,6 +424,7 @@ async function websiteStatus(businessId: string) {
       providerConfig: providerStatus.config,
       providerPreflight: providerStatus.preflight,
       providerPlatform: providerStatus.platform,
+      providerActivation: providerStatus.activation || null,
       providerStatusReachable: providerStatus.reachable,
       providerStatusError: providerStatus.error || null,
     };
@@ -566,6 +570,7 @@ async function websiteStatus(businessId: string) {
     providerConfig: providerStatus.config || websiteProviderConfig(),
     providerPreflight: providerStatus.preflight || null,
     providerPlatform: providerStatus.platform || null,
+    providerActivation: providerStatus.activation || null,
     providerStatusReachable: providerStatus.reachable !== false,
     providerStatusError: providerStatus.error || null,
   };
