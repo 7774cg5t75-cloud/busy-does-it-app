@@ -23,3 +23,6 @@ jobs:
 
       - name: Validate production foundation
         run: node scripts/check-production.mjs
+
+      - name: Simulate website scale and failure recovery
+        run: node scripts/website-platform-simulation.mjs
