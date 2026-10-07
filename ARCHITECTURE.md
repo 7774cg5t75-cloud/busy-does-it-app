@@ -9,10 +9,10 @@ This branch restructures the large single-file prototype into domain modules wit
 - This indirection means printed QR codes can remain stable while the delivery layer later changes to a BUSY-owned universal-link domain or App Store fallback.
 
 ### Entry attribution without inflating business outcomes
-- `busy_mini_app_entry_events` records server-side entry signals with source and stage. `landing` means the HTTPS entry page was reached; `app_open` means an authenticated user opened the live Mini App in BUSY.
+- `busy_mini_app_entry_daily` stores bounded daily counters by Mini App, source and stage. `landing` means the HTTPS entry page was reached; `app_open` means an authenticated user opened the live Mini App in BUSY.
+- `busy_mini_app_record_entry` atomically increments the day's counter, so thousands of scans do not create thousands of analytics rows and BUSY does not retain per-visitor QR/share browsing records.
 - Landing visits and app opens are never treated as enquiries, bookings or customers. Those outcomes continue to require the existing explicit request flow.
-- Owner status calls the server-only `busy_mini_app_entry_summary` aggregation for a 30-day summary rather than returning raw event history, keeping owner payloads bounded as usage grows.
-- Direct Data API access to entry events is revoked from anonymous/authenticated clients; both the public landing function and authenticated Mini Apps function write through service-role server boundaries.
+- Owner status calls the server-only `busy_mini_app_entry_summary` aggregation for a 30-day summary. Direct Data API access is revoked from anonymous/authenticated clients; both entry functions write through service-role server boundaries.
 
 ### Deep-link continuation
 - The app parses only the narrow `busydoesit://apps/<slug>` route for Mini Apps. A signed-out user keeps a pending slug/source through the account-access hop; once authentication is available BUSY opens the intended Mini App.
