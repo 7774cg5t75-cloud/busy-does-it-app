@@ -71,6 +71,10 @@ function buildMiniAppsView(remote = {}) {
   const modules = safeArray(activeConfig?.modules);
   const builderPlan = draftConfig?.builderPlan || activeConfig?.builderPlan || null;
   const offers = safeArray(activeConfig?.offers);
+  const loyalty =
+    activeConfig?.loyalty && typeof activeConfig.loyalty === "object"
+      ? activeConfig.loyalty
+      : null;
   const availableModules = catalog.filter((item) => item.status === "available");
   const plannedModules = catalog.filter((item) => item.status === "planned");
   const enabledModules = modules.filter((item) => item.enabled);
@@ -122,6 +126,82 @@ function buildMiniAppsView(remote = {}) {
     ? "Needs attention"
     : "Draft";
 
+  const planMissingFacts = safeArray(builderPlan?.missingFacts);
+  const hasReviewedPlan = !!builderPlan;
+  const draftPlanApplied =
+    !!draftConfig?.builderPlan &&
+    Number(app?.draft_revision || 0) > 0;
+  const previewMatchesDraft =
+    !!previewVersion &&
+    Number(previewVersion?.source_draft_revision || 0) ===
+      Number(app?.draft_revision || 0);
+  const liveMatchesDraft =
+    !!liveVersion &&
+    Number(liveVersion?.source_draft_revision || 0) ===
+      Number(app?.draft_revision || 0);
+
+  const journeyStage = !builderPlan
+    ? "describe"
+    : planMissingFacts.length
+    ? "answer_questions"
+    : !draftPlanApplied
+    ? "review_plan"
+    : !previewMatchesDraft
+    ? "build_preview"
+    : !liveMatchesDraft
+    ? "approve_go_live"
+    : "live";
+
+  const journeyLabel =
+    journeyStage === "live"
+      ? "Your Business App is live"
+      : journeyStage === "approve_go_live"
+      ? "Customer preview ready for approval"
+      : journeyStage === "build_preview"
+      ? "Private app built • prepare the customer preview"
+      : journeyStage === "review_plan"
+      ? "Review BUSY's app plan"
+      : journeyStage === "answer_questions"
+      ? "BUSY needs a few details"
+      : "Describe the app you want";
+
+  const builderJourney = {
+    stage: journeyStage,
+    label: journeyLabel,
+    complete: journeyStage === "live",
+    steps: [
+      {
+        id: "describe",
+        label: "Describe the customer experience",
+        status: hasReviewedPlan ? "complete" : "working",
+      },
+      {
+        id: "facts",
+        label: "Fill only the missing facts",
+        status: !hasReviewedPlan
+          ? "waiting"
+          : planMissingFacts.length
+          ? "working"
+          : "complete",
+      },
+      {
+        id: "draft",
+        label: "BUSY builds the private app",
+        status: draftPlanApplied ? "complete" : hasReviewedPlan && !planMissingFacts.length ? "working" : "waiting",
+      },
+      {
+        id: "preview",
+        label: "Review the real customer experience",
+        status: previewMatchesDraft ? "complete" : draftPlanApplied ? "working" : "waiting",
+      },
+      {
+        id: "live",
+        label: "Owner approves Go Live",
+        status: liveMatchesDraft ? "complete" : previewMatchesDraft ? "working" : "waiting",
+      },
+    ],
+  };
+
   return {
     app,
     versions,
@@ -143,7 +223,9 @@ function buildMiniAppsView(remote = {}) {
     activeConfig,
     modules,
     builderPlan,
+    builderJourney,
     offers,
+    loyalty,
     builderPlanMissingFacts: safeArray(builderPlan?.missingFacts),
     builderPlanUnsupported: safeArray(builderPlan?.unsupportedRequests),
     builderPlanModules: safeArray(builderPlan?.modules),
@@ -189,7 +271,7 @@ function buildMiniAppsView(remote = {}) {
     displayName:
       clean(activeConfig?.display?.name) ||
       clean(app?.display_name) ||
-      "BUSY Mini App",
+      "BUSY Business App",
     category:
       clean(activeConfig?.display?.category) ||
       clean(app?.category),
