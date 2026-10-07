@@ -1,5 +1,22 @@
 # busy-does-it-app
 
+## v3.55 Business App Builder 2.0 — Complete App Journey
+- Turns the Business App Builder into one continuous owner journey: **describe the customer experience → answer only missing facts → BUSY builds the private app → review the real customer preview → explicitly approve Go Live**.
+- The builder now surfaces a five-step journey card instead of making the owner reason about draft/version/module machinery. Technical module controls remain available underneath for fine-tuning, but they are no longer the primary path.
+- Targeted planner questions are now editable in place. Answers are fed back into the controlled planner, and BUSY removes questions that have genuinely been resolved rather than reopening a broad setup form.
+- App-specific service/contact answers can fill missing Business App facts without inventing data. Missing gallery imagery routes the owner back to approved Brand Identity photos instead of accepting fake photo descriptions.
+- Applying an approved plan now automatically builds the private draft and prepares the matching **immutable customer preview**. It still stops before publication. The preview screen itself contains the explicit Go Live review gate.
+- The customer preview is much closer to the real experience: approved hero imagery, gallery photos, services, contact details, enquiries, booking requests, dated offers and loyalty all render in customer-facing order.
+- **Offers 2.0** adds optional start/end dates. The planner may only use dates and offer wording supported by the owner or an already-approved offer; invalid date ranges are rejected. Public web Business Apps hide offers outside their approved date window using the customer's local date.
+- **Loyalty v1** is now a real reusable module rather than a placeholder. A business can define one simple target of 2–20 stamps/visits leading to one explicit owner-defined reward. BUSY will not invent the target, reward or terms.
+- Signed-in customers can see their loyalty progress inside the live Business App/request journey. Owners can record one eligible stamp at a time; awards are atomic, idempotent, auditable and capped at the live reward target. Guest web requests cannot receive account loyalty stamps because there is no authenticated customer identity.
+- Loyalty storage is service-role owned with explicit deny RLS for normal clients, composite business/app/request tenant-integrity constraints and customer-scoped idempotency.
+- Booking requests now expose the existing real bridge more clearly: after BUSY creates the linked draft booking, the owner gets **Open BUSY booking to confirm**. Confirming the real BUSY booking updates the original Business App request to accepted; the request itself never silently creates a confirmed diary booking.
+- Stable QR/share/deep links remain part of the live Business App flow, while owner-facing wording has been cleaned up from “Mini App” toward **Business App**. Internal table/function names remain unchanged for compatibility.
+- Payments/deposits deliberately remain a planned controlled module. V3.55 does not collect money or imply that payments are available.
+- Production checks now guard the continuous journey, targeted fact answers, automatic immutable preview, explicit owner Go Live, dated-offer evidence, bounded loyalty, tenant/RLS safety, signed-in loyalty progress, real booking confirmation bridge and the continued absence of payments.
+
+
 ## v3.54 Business App Builder Intelligence & Voice-First Creation
 - Promotes the earlier Mini App machinery into the owner-facing **Business App Builder**. The owner describes what customers should be able to do in normal language; BUSY creates a reviewable plan before changing the private draft.
 - Adds a controlled AI app planner in `busy-mini-apps`. The planner receives only the owner's request, the recorded approved business facts and the reusable module catalogue. Its output is schema-constrained and then server-side sanitised against the real catalogue before BUSY will use it.
