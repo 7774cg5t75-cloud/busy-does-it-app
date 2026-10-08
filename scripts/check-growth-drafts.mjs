@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { runInNewContext } from "node:vm";
 import {
   prepareCoordinatedGrowthDrafts,
   isCurrentGrowthDraftPack,
@@ -79,4 +80,30 @@ assert.ok(!screen.includes("handOffGrowthCopy(\"publish\")"));
 assert.ok(website.includes("function applyCoordinatedWebsiteCopy("));
 assert.ok(website.includes("draft: withHtml({...draft, sections})"));
 assert.ok(website.includes('["draft", "pending"]'));
+// Exercise the actual website copy-update implementation without an Expo bundle.
+// The page-model import is replaced with a pure identity adapter for the test.
+const executableWebsite = website
+  .replace(/^import \{ syncWebsitePageModel \} from "\.\/websiteManagement";\s*/, "")
+  .replace(/export \{[\s\S]*?\};\s*$/, "");
+const websiteEnv = {syncWebsitePageModel: draft => draft};
+runInNewContext(executableWebsite + "\n globalThis.applyCopyForTest = applyCoordinatedWebsiteCopy;", websiteEnv);
+const applyCopy = websiteEnv.applyCopyForTest;
+const websiteDraft = {
+  id: "private-website", businessName: "Acme Cleaning",
+  seo: {title:"Acme", description:"Private test"}, theme: {},
+  sections: [
+    {id:"services",type:"services",title:"Services",enabled:true,items:[{id:"carpet",title:"Carpet cleaning",body:"Old text"}]},
+  ],
+};
+const webEdited = applyCopy({draft:websiteDraft, approved,serviceName:"Carpet cleaning",text:"Owner-reviewed wording."});
+assert.equal(webEdited.applied,true);
+assert.equal(websiteDraft.sections[0].items[0].body,"Old text");
+assert.equal(webEdited.draft.sections[0].items[0].body,"Owner-reviewed wording.");
+assert.ok(webEdited.draft.html.includes("Owner-reviewed wording."));
+assert.equal(webEdited.draft.publicStatus, undefined);
+assert.equal(applyCopy({draft:websiteDraft,approved,serviceName:"Unapproved roof repair",text:"Unsafe"}).applied,false);
+assert.equal(applyCopy({draft:websiteDraft,approved,serviceName:"Carpet cleaning",text:" "}).applied,false);
+assert.equal(applyCopy({draft:null,approved,serviceName:"Carpet cleaning",text:"Test"}).applied,false);
+assert.equal(applyCopy({draft:websiteDraft,approved:{services:[]},serviceName:"Carpet cleaning",text:"Unsafe"}).applied,false);
+
 console.log("V3.63 coordinated editable growth drafts: all Node assertions passed");
