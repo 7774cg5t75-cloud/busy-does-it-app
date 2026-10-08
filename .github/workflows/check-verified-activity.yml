@@ -1,0 +1,29 @@
+name: V3.67 Verified Business Activity
+on:
+  push:
+    branches: [v3.67]
+  pull_request:
+    paths:
+      - "src/domain/verifiedBusinessActivity.mjs"
+      - "src/domain/verifiedBusinessActivityCloud.mjs"
+      - "src/domain/businessActivityQuestions.mjs"
+      - "src/screens/businessActivityCentre.js"
+      - "scripts/check-verified-activity.mjs"
+      - ".github/workflows/check-verified-activity.yml"
+  workflow_dispatch:
+jobs:
+  verified-activity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: V3.64 Project checkpoints
+        run: node scripts/check-growth-workspace.mjs
+      - name: V3.65 Project Command Centre
+        run: node scripts/check-growth-command-centre.mjs
+      - name: V3.66 Voice and typed Operator
+        run: node scripts/check-growth-operator.mjs
+      - name: V3.67 Source-verified publishing activity
+        run: node scripts/check-verified-activity.mjs
