@@ -20,7 +20,7 @@ function buildSelfRunningOperations({
 }={}){
   if(!ownerId||!businessId)return {
     state:"signed_out",exceptions:[],humanRequired:[],watch:[],metrics:{},costs:{state:"unmeasured"},
-    headline:"Sign in to view this business's operations.",autoRecovered:0,
+    headline:"Sign in to view this business's operations.",autoRecovered:null,
   };
   const exceptionMap=new Map();
   const put=(row)=>{
@@ -140,7 +140,7 @@ function buildSelfRunningOperations({
       possible:3,recordedPublications:finiteCount(activity.verified)||0,
       recordedFailures:finiteCount(activity.failed)||0,
     },
-    costs,autoRecovered:0,
+    costs,autoRecovered:null,
     headline:humanRequired.length
       ? humanRequired.length+" item(s) need human review"
       : attention.length
