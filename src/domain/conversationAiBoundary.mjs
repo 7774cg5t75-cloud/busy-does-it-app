@@ -20,6 +20,7 @@ function validateAiConversationDraft({ extraction, transcript, approved = {} } =
     const quote = clean(item?.evidence);
     if (!value || value.length > 300 || !quote || quote.length > 300 ||
         !source.toLowerCase().includes(quote.toLowerCase()) ||
+        !quote.toLowerCase().includes(value.toLowerCase()) ||
         clean(approved[key])) { rejected.push(key); continue; }
     // Evidence is required, but not sufficient to establish truth.
     fields[key] = { value, evidence: quote, source: "ai_candidate", confidence: "unverified", approved: false };
