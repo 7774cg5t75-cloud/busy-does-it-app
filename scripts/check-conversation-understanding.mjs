@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { validateAiConversationDraft } from "../src/domain/conversationAiBoundary.mjs";
-import { loadCloudConversation, saveCloudConversation } from "../src/domain/conversationCloud.mjs";
+import { loadCloudConversation, saveCloudConversation, deleteCloudConversation } from "../src/domain/conversationCloud.mjs";
 import assert from "node:assert/strict";
 import { extractConversationTurn, reviewConversation, buildApprovedCreationHandoff } from "../src/domain/conversationUnderstanding.mjs";
 const first = extractConversationTurn("My business is called Acme Services. We're based in Exeter. I do plumbing.");
@@ -227,3 +227,18 @@ assert.ok(controllerCode.includes('if (scoped !== conversationActiveScopeRef.cur
 assert.ok(controllerCode.includes('if (scope !== conversationActiveScopeRef.current ||'));
 assert.ok(controllerCode.includes('transcript !== conversationActiveBriefRef.current.slice(0, 3000)'));
 console.log("V3.60 stale account and transcript response guard checks passed");
+
+const deletedRecord = await deleteCloudConversation({
+  ...scope,revision:3,fetchImpl:async(url,options)=>{
+    assert.equal(options.method,"DELETE");
+    assert.ok(url.includes("revision=eq.3"));
+    return {ok:true,status:200,json:async()=>[{revision:3}]};
+  }
+});
+assert.equal(deletedRecord.deleted,true);
+const staleDelete = await deleteCloudConversation({...scope,revision:2,fetchImpl:async()=>({ok:true,status:200,json:async()=>[]})});
+assert.equal(staleDelete.deleted,false);
+assert.equal(staleDelete.conflict,true);
+assert.ok(controllerCode.includes('Alert.alert("Delete private cloud draft?"'));
+assert.ok(journeyCode.includes("deleteConversationFromCloud"));
+console.log("V3.60 confirmed revision-safe private draft deletion checks passed");
