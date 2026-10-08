@@ -1,3 +1,4 @@
+import { assessBusinessCreationReadiness } from "../src/domain/businessCreationReadiness.mjs";
 import { readFileSync } from "node:fs";
 import { validateAiConversationDraft } from "../src/domain/conversationAiBoundary.mjs";
 import { loadCloudConversation, saveCloudConversation, deleteCloudConversation } from "../src/domain/conversationCloud.mjs";
@@ -263,3 +264,18 @@ console.log("V3.60 voice conversation exit and transcription wiring checks passe
 
 assert.ok(controllerCode.includes("supabaseUrl: BUSY_SUPABASE_URL, fetchImpl: fetchWithTimeout"));
 console.log("V3.60 cloud network timeout integration check passed");
+
+const emptyReadiness=assessBusinessCreationReadiness({ai:{fields:{businessName:{value:"Invented",approved:false}}}});
+assert.equal(emptyReadiness.ready,0);
+assert.equal(emptyReadiness.percent,0);
+assert.equal(emptyReadiness.aiApprovalPending,true);
+assert.equal(emptyReadiness.isPublishAuthorized,false);
+const completedReadiness=assessBusinessCreationReadiness({approved:{
+ businessName:"Real Ltd",businessType:"Catering",serviceArea:"Devon",services:[{name:"Events"}],
+ email:"hello@example.com",openingHours:"Mon-Fri"
+}});
+assert.equal(completedReadiness.ready,6);
+assert.equal(completedReadiness.percent,100);
+assert.equal(completedReadiness.next,null);
+assert.equal(completedReadiness.isPublishAuthorized,false);
+console.log("V3.61 confirmed facts-only readiness scorecard tests passed");
