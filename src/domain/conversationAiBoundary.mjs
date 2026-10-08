@@ -25,6 +25,23 @@ function validateAiConversationDraft({ extraction, transcript, approved = {} } =
     // Evidence is required, but not sufficient to establish truth.
     fields[key] = { value, evidence: quote, source: "ai_candidate", confidence: "unverified", approved: false };
   }
-  return { fields, rejected, approvalRequired: true, publicationAllowed: false };
+  const proposedServices = extraction.services;
+  const services = [];
+  if (Array.isArray(proposedServices)) {
+    for (const item of proposedServices.slice(0, 12)) {
+      const name = clean(item?.name);
+      const evidence = clean(item?.evidence);
+      if (!name || name.length > 100 || !evidence || evidence.length > 300 ||
+          !source.toLowerCase().includes(evidence.toLowerCase()) ||
+          !evidence.toLowerCase().includes(name.toLowerCase())) {
+        rejected.push("services");
+        continue;
+      }
+      if (!services.some(service => service.name.toLowerCase() === name.toLowerCase())) {
+        services.push({ name, evidence, approved: false, source: "ai_candidate" });
+      }
+    }
+  } else if (proposedServices !== undefined) rejected.push("services");
+  return { fields, services, rejected, approvalRequired: true, publicationAllowed: false };
 }
 export { validateAiConversationDraft };
