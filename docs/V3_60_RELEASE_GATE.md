@@ -5,11 +5,15 @@
 - [x] Confirmed facts remain the sole eligible source for website, Business App and social handoffs; publication approval is separate.
 - [x] Private same-device draft recovery scoped to owner and business.
 - [x] Authenticated creator-scoped cloud checkpoint table with RLS and revision compare-and-swap.
-- [x] Manual cloud Load / Save on business-creation screen; drafts are never auto-published.
+- [x] Manual cloud Load / Save / confirmed Delete on business-creation screen, with revision protection. Cloud drafts preserve up to 6,000 characters; drafts are never auto-published.
+- [x] Conflict-safe device replacement confirmation and cross-account stale-response guards.
+- [x] Multi-turn sentence/line correction detection and owner conflict prompts.
+- [x] Explicit exit button for the voice business-creation mode.
 - [x] AI suggestion endpoint deployed with JWT verification, authenticated user identity and creator ownership check.
-- [x] Returned AI suggestions validated against owner evidence, presented unapproved, and suppressed if the source text changes.
+- [x] Returned AI suggestions including service names validated against owner evidence, presented unapproved, and suppressed if the source text changes.
 - [x] Server-side atomic quota of 20 AI extractions per owner/business UTC day. Clients cannot debit or reset the quota directly.
-- [x] Node regression tests, CI foundation checks and Snack preview jobs on prior tested commits.
+- [x] Node regression tests, including mocked two-device load/save/delete conflicts, CI foundation checks and Snack preview jobs on prior tested commits.
+- [x] Transactional owner/unrelated-account RLS test passed and was rolled back without leaving test data.
 
 ## Must pass before merging or releasing
 - [ ] Sign into a real owner account, save a new conversation on iPhone, load it in a separate signed-in device, and verify exactly identical text.
