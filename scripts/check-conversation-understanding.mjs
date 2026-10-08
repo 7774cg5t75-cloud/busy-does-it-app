@@ -161,3 +161,20 @@ assert.ok(cloudSaveGuard.includes('setConversationCloudScope("")'));
 assert.ok(cloudSaveGuard.includes('setConversationCloudRevision(null)'));
 assert.ok(cloudSaveGuard.indexOf('setConversationCloudScope("")') < cloudSaveGuard.indexOf('return false;'));
 console.log("V3.60 cloud existing-draft overwrite guard checks passed");
+
+const proposedServices = validateAiConversationDraft({
+  transcript: "We offer gutter clearing and pressure washing.",
+  extraction: {fields:{}, services:[
+    {name:"gutter clearing",evidence:"We offer gutter clearing"},
+    {name:"roof replacement",evidence:"pressure washing"},
+    {name:"gutter clearing",evidence:"We offer gutter clearing"}
+  ]}
+});
+assert.equal(proposedServices.services.length,1);
+assert.equal(proposedServices.services[0].approved,false);
+assert.equal(proposedServices.services[0].name,"gutter clearing");
+assert.ok(proposedServices.rejected.includes("services"));
+assert.equal(proposedServices.publicationAllowed,false);
+assert.ok(endpointCode.includes('candidate.services.slice(0,12)'));
+assert.ok(journeyCode.includes('Possible service (unconfirmed)'));
+console.log("V3.60 AI service evidence and review boundary checks passed");
