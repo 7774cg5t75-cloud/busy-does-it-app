@@ -151,7 +151,7 @@ async function main(){
  for(const fragment of ['businessActivityCentre: BusinessActivityCentre','BusinessActivityCentreScreens'])assert.ok(routeFile.includes(fragment));
  assert.ok(home.includes('s.go("businessActivityCentre")'));
  assert.ok(screen.includes("loadVerifiedActivity(args)"));
- assert.ok(screen.includes("No automatic retry"));
+ assert.ok(screen.includes("BUSY never retries failed posts automatically"));
  assert.ok(command.includes("tryBusinessActivityOperator(cleanText,growthNonce)"));
  assert.ok(command.includes("tryBusinessActivityOperator(result.transcript,growthNonce)"));
  assert.ok(cloud.includes('action:p.action'));
