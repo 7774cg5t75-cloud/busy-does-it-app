@@ -7,9 +7,13 @@ import { miniAppModuleLabel } from "../domain/miniApps";
 import { reviewConversation } from "../domain/conversationUnderstanding.mjs";
 import { assessBusinessCreationReadiness } from "../domain/businessCreationReadiness.mjs";
 import { confirmedServices, buildCoordinatedGrowthPlan } from "../domain/coordinatedGrowthPlan.mjs";
+import { prepareCoordinatedGrowthDrafts, isCurrentGrowthDraftPack, editGrowthDraft } from "../domain/coordinatedGrowthDrafts.mjs";
+import { applyCoordinatedWebsiteCopy } from "../domain/websiteBuilder";
 
 function BusinessCreationJourney({ s }) {
   const [growthServiceFocus, setGrowthServiceFocus] = React.useState("");
+  const [growthDraftPack, setGrowthDraftPack] = React.useState(null);
+  const [growthDraftNotice, setGrowthDraftNotice] = React.useState("");
   const journey = s.businessCreationJourney || {};
   const conversationReview = reviewConversation({
     turns: [s.businessCreationBrief],
@@ -19,6 +23,50 @@ function BusinessCreationJourney({ s }) {
   const approvedProfile = s.businessCreationIntelligence?.sharedProfile || {};
   const growthServices = confirmedServices(approvedProfile);
   const growthPlan = buildCoordinatedGrowthPlan({approved:approvedProfile,focusService:growthServiceFocus});
+  const candidateDraftPack = prepareCoordinatedGrowthDrafts({
+    approved: approvedProfile,
+    focusService: growthServiceFocus,
+    ownerId: s.ownerSession?.userId || "",
+    businessId: s.cloudWorkspace?.businessId || "",
+  });
+  const isDraftPackCurrent = isCurrentGrowthDraftPack(growthDraftPack, candidateDraftPack);
+
+  const handOffGrowthCopy = (target) => {
+    if (!isCurrentGrowthDraftPack(growthDraftPack, candidateDraftPack)) {
+      setGrowthDraftNotice("These drafts are out of date. Prepare a fresh pack from the latest confirmed business details.");
+      return;
+    }
+    const item = growthDraftPack.items.find(entry => entry.target === target);
+    if (!item || item.status !== "editable_draft" || !String(item.text || "").trim()) {
+      setGrowthDraftNotice("Review and fill in the available draft text before handing it off.");
+      return;
+    }
+    if (target === "website") {
+      const result = applyCoordinatedWebsiteCopy({
+        draft: s.websiteDraft,
+        approved: approvedProfile,
+        serviceName: growthDraftPack.serviceName,
+        text: item.text,
+      });
+      setGrowthDraftNotice(result.reason);
+      if (!result.applied) return;
+      s.setWebsiteDraft(result.draft);
+    } else if (target === "business_app") {
+      // The planner must still review the instruction. This does NOT create a
+      // live app, enable modules or issue an external publishing request.
+      s.setMiniAppBuildBrief(item.text);
+      s.openMiniAppBuilder();
+    } else if (target === "social") {
+      // A brief is deliberately NOT a saved, scheduled or published social post.
+      s.startSocialFromPhone();
+      s.setSocialBrief(item.text);
+    } else return;
+    setGrowthDraftPack(current => current ? {
+      ...current,
+      items: current.items.map(entry => entry.target === target ? {...entry, handedOff: true} : entry),
+    } : current);
+    if (target === "website") setGrowthDraftNotice("Private website draft updated. Check the website preview before any Go Live approval.");
+  };
   const readiness = assessBusinessCreationReadiness({approved:s.businessCreationIntelligence?.sharedProfile || {},ai:s.conversationAiDraft || {}});
   const steps = Array.isArray(journey.steps) ? journey.steps : [];
   const appModules = Array.isArray(journey.recommendedAppModules) ? journey.recommendedAppModules : [];
@@ -33,7 +81,7 @@ function BusinessCreationJourney({ s }) {
       s={s}
       title="Build my business with BUSY"
       subtitle="One guided conversation now coordinates the website, Business App and social setup, asks only the next useful question, and parks anything blocked without stopping the rest."
-      brandCue="V3.62 • confirmed Business Brain • cross-channel planning • owner approval before changes."
+      brandCue="V3.63 • editable growth drafts • confirmed Business Brain • separate publishing approvals."
     >
       <Card
         eyebrow="V3.61 • confirmed information only"
@@ -100,6 +148,62 @@ function BusinessCreationJourney({ s }) {
             ))}
             <Text style={styles.sectionLabel}>{growthPlan.notice}</Text>
           </>
+        ) : null}
+      </Card>
+      <Card
+        eyebrow="V3.63 • coordinated growth draft studio"
+        title="Prepare once, edit each customer-facing draft"
+        body="BUSY prepares factual copy from a confirmed service. Review and edit each draft, then choose where to send it. Nothing here automatically posts, enables app features or changes a public website."
+        footer="Drafts in this studio are temporary on this screen. A website handoff changes its private editor draft only. Social and Business App handoffs open their separate editors for review."
+        tone="blue"
+      >
+        <Button
+          label={isDraftPackCurrent ? "Regenerate drafts from confirmed facts" : "Prepare three editable drafts"}
+          disabled={!candidateDraftPack.valid}
+          onPress={() => {
+            setGrowthDraftPack(candidateDraftPack);
+            setGrowthDraftNotice("Review the wording below. Editing stays local to this studio until you choose a specific handoff.");
+          }}
+        />
+        {!candidateDraftPack.valid ? (
+          <Text style={styles.sectionLabel}>{candidateDraftPack.notice}</Text>
+        ) : null}
+        {growthDraftPack && !isDraftPackCurrent ? (
+          <Text style={styles.sectionLabel}>Business details, account or selected service changed. Older drafts are hidden. Regenerate to work from approved information.</Text>
+        ) : null}
+        {isDraftPackCurrent ? growthDraftPack.items.map(item => (
+          <React.Fragment key={"growth-copy-" + item.target}>
+            <MetricRow
+              left={item.label}
+              right={item.status === "blocked" ? "Blocked by missing facts" : item.handedOff ? "Handed to private editor" : "Editable draft"}
+            />
+            {item.status === "blocked" ? (
+              <Text style={styles.sectionLabel}>Confirm first: {item.blockedBy.join(", ").replace(/_/g, " ")}</Text>
+            ) : (
+              <>
+                <Field
+                  label={item.label + " wording"}
+                  value={item.text}
+                  onChangeText={text => setGrowthDraftPack(current => editGrowthDraft(current, item.target, text))}
+                  multiline
+                />
+                {item.target === "website" ? (
+                  <Button
+                    label={s.websiteDraft ? "Apply to private website draft" : "Open Website Builder to create a draft first"}
+                    disabled={!String(item.text || "").trim()}
+                    onPress={() => s.websiteDraft ? handOffGrowthCopy("website") : s.openWebsiteBuilder()}
+                  />
+                ) : item.target === "business_app" ? (
+                  <Button label="Review in Business App planner" disabled={!String(item.text || "").trim()} onPress={() => handOffGrowthCopy("business_app")} />
+                ) : (
+                  <Button label="Review in Social Media Creator" disabled={!String(item.text || "").trim()} onPress={() => handOffGrowthCopy("social")} />
+                )}
+              </>
+            )}
+          </React.Fragment>
+        )) : null}
+        {growthDraftNotice && candidateDraftPack.valid ? (
+          <Text style={styles.sectionLabel}>{growthDraftNotice}</Text>
         ) : null}
       </Card>
       <Card
