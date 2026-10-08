@@ -478,6 +478,8 @@ function App() {
   useEffect(()=>{
     growthOperatorFocusRef.current=null;
     growthOperatorRequestRef.current+=1;
+    setBusyCommandStatus("idle");
+    setBusyCommandResult(null);
   },[ownerSession?.userId,cloudWorkspace?.businessId]);
   const [busyCommandStatus, setBusyCommandStatus] = useState("idle");
   const [busyCommandResult, setBusyCommandResult] = useState(null);
