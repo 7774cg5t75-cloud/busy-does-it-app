@@ -1249,3 +1249,12 @@ Busy Does It mobile app prototype.
 - Results, Work and Settings expose the automatic-filing mode and auto-file counts.
 - Connected Accounts now describes the same future trust architecture for email/calendar/CRM/invoicing feeds.
 - Main navigation remains Home / Work / Results / Settings.
+
+
+### V3.60 cloud and AI integration status
+
+- Creator-scoped cloud conversation draft RLS table has been deployed. Manual Load / Save controls are wired in the development app, with optimistic revision conflict checking.
+- Authenticated `busy-conversation-extract` Edge Function is deployed (JWT required). Suggestions are evidence-validated in the client and remain unapproved; neither AI extraction nor a conversation triggers publication.
+- Daily server-side AI usage quota: 20 requests per business creator, per business, per UTC day. The quota table and RPC are service-only; authenticated client roles cannot directly change counts.
+- AI review sends the description to the configured AI service only when the owner explicitly taps its button. Failed AI reviews leave the local draft unchanged.
+- **Not release-ready:** signed-in cross-device tests, tenant separation tests with real accounts, actual provider response, iPhone/iPad voice and UI testing, and publication gate regression must pass. See [V3.60 release acceptance](docs/V3_60_RELEASE_GATE.md).
