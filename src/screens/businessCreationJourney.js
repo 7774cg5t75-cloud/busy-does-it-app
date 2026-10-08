@@ -35,6 +35,9 @@ function BusinessCreationJourney({ s }) {
         footer="Nothing is published from this journey."
         tone="green"
       >
+        {s.conversationResumeNotice ? (
+          <Text style={styles.sectionLabel}>{s.conversationResumeNotice}</Text>
+        ) : null}
         <Field
           label="What are you building?"
           value={s.businessCreationBrief}
