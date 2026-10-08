@@ -291,6 +291,9 @@ function App() {
   const [miniAppsNotice, setMiniAppsNotice] = useState("");
   const [miniAppBuildBrief, setMiniAppBuildBrief] = useState("");
   const [businessCreationBrief, setBusinessCreationBrief] = useState("");
+  const [conversationResumeReady, setConversationResumeReady] = useState(false);
+  const [conversationResumeNotice, setConversationResumeNotice] = useState("");
+
   const [businessCreationAction, setBusinessCreationAction] = useState("");
   const [businessCreationNotice, setBusinessCreationNotice] = useState("");
   const [businessCreationError, setBusinessCreationError] = useState("");
@@ -13380,6 +13383,44 @@ function App() {
     return true;
   };
 
+  // V3.60: encrypted on-device checkpoint, scoped by authenticated owner and business.
+  // No cross-account draft fallbacks and no public/server writes.
+  const conversationResumeKey = ownerSession?.userId && cloudWorkspace?.businessId
+    ? `busy-conversation-v360-${ownerSession.userId}-${cloudWorkspace.businessId}`
+    : "";
+  useEffect(() => {
+    let active = true;
+    setConversationResumeReady(false);
+    setBusinessCreationBrief("");
+    setConversationResumeNotice("");
+    if (!conversationResumeKey) return () => { active = false; };
+    SecureStore.getItemAsync(conversationResumeKey).then((raw) => {
+      if (!active) return;
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved?.version === 1 && typeof saved.brief === "string") {
+          setBusinessCreationBrief(saved.brief.slice(0, 1800));
+          setConversationResumeNotice("Your last private conversation draft has been restored on this device.");
+        }
+      }
+    }).catch(() => {
+      if (active) setConversationResumeNotice("Private draft restore is unavailable on this device.");
+    }).finally(() => { if (active) setConversationResumeReady(true); });
+    return () => { active = false; };
+  }, [conversationResumeKey]);
+
+  useEffect(() => {
+    if (!conversationResumeKey || !conversationResumeReady) return;
+    const timer = setTimeout(() => {
+      const brief = String(businessCreationBrief || "").slice(0, 1800);
+      const operation = brief
+        ? SecureStore.setItemAsync(conversationResumeKey, JSON.stringify({ version: 1, brief }))
+        : SecureStore.deleteItemAsync(conversationResumeKey);
+      operation.catch(() => setConversationResumeNotice("Private draft could not be saved on this device."));
+    }, 650);
+    return () => clearTimeout(timer);
+  }, [conversationResumeKey, conversationResumeReady, businessCreationBrief]);
+
   const openBusinessCreationJourney = () => {
     setTab("Home");
     go("businessCreationJourney");
@@ -14685,6 +14726,8 @@ function App() {
     businessCreationJourney,
     businessCreationBrief,
     setBusinessCreationBrief,
+    conversationResumeReady,
+    conversationResumeNotice,
     businessCreationAnswer,
     setBusinessCreationAnswer,
     businessCreationConversationActive,
