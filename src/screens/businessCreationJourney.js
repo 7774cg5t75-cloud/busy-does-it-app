@@ -52,7 +52,19 @@ function BusinessCreationJourney({ s }) {
           onPress={s.prepareBusinessCreationJourney}
         />
         <Button label="Describe it by voice" disabled={!!s.businessCreationAction} onPress={s.describeBusinessCreationByVoice} />
-        <Text style={styles.sectionLabel}>Cloud draft sync (V3.60 testing: requires the reviewed database schema)</Text>
+        <Button label={s.conversationAiBusy ? "BUSY is reading your description…" : "Suggest details with AI"} disabled={!!s.conversationAiBusy || !String(s.businessCreationBrief || "").trim()} onPress={s.suggestBusinessFactsWithAi} />
+        {s.conversationAiNotice ? <Text style={styles.sectionLabel}>{s.conversationAiNotice}</Text> : null}
+        {Object.entries(s.conversationAiDraft?.fields || {}).map(([key, item]) => (
+          <React.Fragment key={"ai-" + key}>
+            <MetricRow left={"AI suggests: " + key} right={item.value} />
+            <Text style={styles.sectionLabel}>From: {item.evidence}</Text>
+            {["businessName","serviceArea","email","phone"].includes(key) ? (
+              <Button label={"Confirm AI suggestion: " + key} onPress={() => s.confirmConversationFact(key, item.value)} />
+            ) : null}
+          </React.Fragment>
+        ))}
+
+        <Text style={styles.sectionLabel}>Cloud draft sync (private account; manual load/save)</Text>
         <Button label="Load private cloud draft" disabled={!!s.conversationCloudBusy} onPress={s.loadConversationFromCloud} />
         <Button label="Save private cloud draft" disabled={!!s.conversationCloudBusy || !String(s.businessCreationBrief || "").trim()} onPress={s.saveConversationToCloud} />
 
