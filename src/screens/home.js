@@ -899,6 +899,16 @@ function HomeScreen({ s }) {
 
 
       <Card
+        eyebrow="V3.68 • Low-maintenance business operations"
+        title="Let BUSY triage the interruptions"
+        body="One place for real source health checks, the few issues that need human review, safe reporting retries and usage visibility. BUSY never treats a failed status check as a confirmed outage."
+        footer="This private dashboard covers the signed-in business, not cross-customer platform administration or live subscription billing."
+        tone="blue"
+      >
+        <Button label="Open Operations & Reliability" primary onPress={() => s.go("selfRunningOperations")} />
+      </Card>
+
+      <Card
         eyebrow="V3.67 • Verified Business Activity"
         title="Know what genuinely finished"
         body="Check provider-recorded website deployments, customer Business App releases and social publishing results in one read-only activity timeline. Failed destinations remain separate."
