@@ -13455,10 +13455,19 @@ function App() {
         return true;
       }
       if (String(businessCreationBrief || "").trim() && businessCreationBrief !== record.brief) {
-        setConversationResumeNotice("This device has different text. Clear the device draft before loading cloud text to avoid overwriting it.");
+        Alert.alert("Different private draft found", "The cloud and this device contain different conversations. Replace only this device's text with the cloud version?", [
+          {text:"Keep device draft",style:"cancel"},
+          {text:"Load cloud version",onPress:()=>{
+            if (scoped !== conversationActiveScopeRef.current) return;
+            setBusinessCreationBrief(String(record.brief || "").slice(0, 6000));
+            setConversationCloudRevision(record.revision);
+            setConversationCloudScope(scoped);
+            setConversationResumeNotice("Cloud draft loaded. Previous device text was replaced after your confirmation.");
+          }},
+        ]);
         return false;
       }
-      setBusinessCreationBrief(String(record.brief || "").slice(0, 1000));
+      setBusinessCreationBrief(String(record.brief || "").slice(0, 6000));
       setConversationCloudRevision(record.revision);
       setConversationCloudScope(scoped);
       setConversationResumeNotice("Private cloud draft loaded for this business.");
@@ -13470,6 +13479,10 @@ function App() {
   };
   const saveConversationToCloud = async () => {
     if (conversationCloudBusy) return false;
+    if (String(businessCreationBrief || "").length > 6000) {
+      setConversationResumeNotice("Cloud drafts can contain up to 6000 characters. Shorten this description before saving.");
+      return false;
+    }
     setConversationCloudBusy(true);
     try {
       const args = await conversationCloudArgs();
