@@ -39,7 +39,7 @@ async function listGrowthProjects(args){
   checkScope(args);
   const url=root(args)+"?business_id=eq."+encodeURIComponent(args.businessId)+
     "&user_id=eq."+encodeURIComponent(args.userId)+
-    "&select=service_name,service_key,revision,updated_at&order=updated_at.desc&limit=25";
+    "&select=service_name,service_key,revision,updated_at,draft_data&order=updated_at.desc&limit=25";
   const rows=await request(args,url);
   return Array.isArray(rows)?rows:[];
 }
