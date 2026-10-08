@@ -173,7 +173,7 @@ import { buildFollowUpEngine } from "../domain/followUpEngine";
 import { buildBrandBrain } from "../domain/brandBrain";
 import { buildBusinessCreationIntelligence } from "../domain/businessCreationIntelligence";
 import { buildBusinessCreationJourney, nextBestBusinessCreationQuestion } from "../domain/businessCreationJourney";
-import { reviewConversation } from "../domain/conversationUnderstanding.mjs";
+import { reviewConversation, buildApprovedCreationHandoff } from "../domain/conversationUnderstanding.mjs";
 import { buildWebsiteDraft, applyWebsiteInstruction } from "../domain/websiteBuilder";
 import { buildWebsitePublishingView } from "../domain/websitePublishing";
 import {
@@ -13533,6 +13533,17 @@ function App() {
   };
 
   const prepareBusinessCreationJourney = async (briefOverride = "") => {
+    // Build a bounded, approved-only fact handoff. The free-form owner request
+    // remains a planning instruction, never a replacement for verified facts.
+    const approvedCreationHandoff = buildApprovedCreationHandoff({
+      approved: businessCreationIntelligence?.sharedProfile || {},
+      requestedSurfaces: ["website", "business_app", "social"],
+    });
+    if (!approvedCreationHandoff.requiresSeparatePublicationApproval ||
+        approvedCreationHandoff.unconfirmedConversationIncluded) {
+      setBusinessCreationError("BUSY could not validate the approval boundary.");
+      return false;
+    }
     const brief = String(briefOverride || businessCreationBrief || "").trim();
     if (!brief) {
       setBusinessCreationError("Tell BUSY about the business and what you want it to prepare.");
