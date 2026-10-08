@@ -72,7 +72,7 @@ const website = readFileSync(new URL("../src/domain/websiteBuilder.js", import.m
 assert.ok(screen.includes("isCurrentGrowthDraftPack(growthDraftPack, candidateDraftPack)"));
 assert.ok(screen.includes("setGrowthDraftPack(current=>editGrowthDraft(current,target,text))"));
 assert.ok(screen.includes("applyCoordinatedWebsiteCopy({"));
-assert.ok(screen.includes("s.setWebsiteDraft(result.draft)"));
+assert.ok(screen.includes("s.setWebsiteDraft(websiteResult.draft)"));
 assert.ok(screen.includes("s.openMiniAppBuilder()"));
 assert.ok(screen.includes("s.startSocialFromPhone()"));
 assert.ok(screen.includes("s.setSocialBrief(item.text)"));
