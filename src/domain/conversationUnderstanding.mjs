@@ -20,12 +20,14 @@ const evidence = (value, source, confidence = "explicit") => ({
   value, source, confidence, approved: false
 });
 function extractConversationTurn(input) {
-  const text = trim(input).slice(0, 6000);
-  if (!text) return { fields: {}, suggestions: [], conflicts: [] };
+  const original = trim(input).slice(0, 6000);
+  if (!original) return { fields: {}, suggestions: [], conflicts: [] };
+  // Examples are not business facts. Exclude only their sentence, rather than
+  // discarding genuine owner facts given before or after an example.
+  const text = original.split(/(?<=[.!?])\\s+|\\n+/)
+    .filter(part => !/\\b(?:for example|imagine|hypothetically|suppose|what if)\\b/i.test(part))
+    .join(". ");
   const fields = {};
-  // Negated references and hypothetical examples must not become suggested facts.
-  const hypothetical = /\b(?:for example|imagine|hypothetically|suppose|what if)\b/i.test(text);
-  if (hypothetical) return { fields: {}, suggestions: [], conflicts: [], excerpt: redact(text).slice(0, 160) };
   const name = text.match(/\b(?:my (?:business|company) is called|we(?:'re| are) called|trading as|business name is)\s+([^.!?,;\n]{2,65})/i);
   if (name && cleanCapture(name[1])) fields.businessName = evidence(cleanCapture(name[1]), "owner_statement");
   const area = text.match(/\b(?:based (?:in|around)|cover(?:ing)?|serv(?:e|ing) (?:the )?(?:area of )?|work(?:ing)? (?:in|around))\s+([^.!?,;\n]{2,75})/i);
@@ -57,7 +59,7 @@ function extractConversationTurn(input) {
     field: "businessType", value, confidence: "inferred", approved: false,
     explanation: "Suggested from the owner's words; confirmation required."
   }));
-  return { fields, suggestions, conflicts: [], excerpt: redact(text).slice(0, 160) };
+  return { fields, suggestions, conflicts: [], excerpt: redact(original).slice(0, 160) };
 }
 /**
  * Builds a safe handoff for builders. Only already-approved business profile
