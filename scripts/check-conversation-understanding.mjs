@@ -220,3 +220,10 @@ assert.equal(oldSave.saved,false);
 assert.equal(oldSave.conflict,true);
 assert.equal((await loadCloudConversation({...scope,fetchImpl:mockTwoDevices})).brief,"Updated on iPad");
 console.log("V3.60 simulated two-device optimistic concurrency tests passed");
+
+assert.ok(controllerCode.includes('conversationActiveScopeRef.current = String(ownerSession?.userId'));
+assert.ok(controllerCode.includes('conversationActiveBriefRef.current = String(businessCreationBrief'));
+assert.ok(controllerCode.includes('if (scoped !== conversationActiveScopeRef.current) return false;'));
+assert.ok(controllerCode.includes('if (scope !== conversationActiveScopeRef.current ||'));
+assert.ok(controllerCode.includes('transcript !== conversationActiveBriefRef.current.slice(0, 3000)'));
+console.log("V3.60 stale account and transcript response guard checks passed");
