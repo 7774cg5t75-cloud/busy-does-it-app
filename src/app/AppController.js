@@ -13438,7 +13438,7 @@ function App() {
     const businessId = String(cloudWorkspace?.businessId || "");
     const userId = String(ownerSession?.userId || "");
     if (!businessId || !userId || !accessToken) throw new Error("Sign in and select your business to sync.");
-    return { businessId, userId, accessToken, publishableKey: BUSY_AI_TOKEN, supabaseUrl: BUSY_SUPABASE_URL };
+    return { businessId, userId, accessToken, publishableKey: BUSY_AI_TOKEN, supabaseUrl: BUSY_SUPABASE_URL, fetchImpl: fetchWithTimeout };
   };
   const loadConversationFromCloud = async () => {
     if (conversationCloudBusy) return false;
