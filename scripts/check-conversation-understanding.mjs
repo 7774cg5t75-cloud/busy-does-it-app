@@ -242,3 +242,16 @@ assert.equal(staleDelete.conflict,true);
 assert.ok(controllerCode.includes('Alert.alert("Delete private cloud draft?"'));
 assert.ok(journeyCode.includes("deleteConversationFromCloud"));
 console.log("V3.60 confirmed revision-safe private draft deletion checks passed");
+
+let longSaved = "";
+const longBrief = "A".repeat(4000);
+const longCreate = await saveCloudConversation({...scope,brief:longBrief,fetchImpl:async(_url,options)=>{
+  longSaved=JSON.parse(options.body).brief;
+  return {ok:true,status:201,json:async()=>[{brief:longSaved,revision:1}]};
+}});
+assert.equal(longCreate.saved,true);
+assert.equal(longSaved.length,4000);
+await assert.rejects(()=>saveCloudConversation({...scope,brief:"B".repeat(6001),fetchImpl:async()=>{throw new Error("Must not send oversized draft");}}));
+assert.ok(controllerCode.includes('Alert.alert("Different private draft found"'));
+assert.ok(controllerCode.includes('setBusinessCreationBrief(String(record.brief || "").slice(0, 6000))'));
+console.log("V3.60 full-length cloud draft and confirmed replacement checks passed");
