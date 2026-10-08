@@ -43,7 +43,9 @@ assert.equal(classify("Publish my carpet cleaning project now").forbidden,true);
 assert.equal(classify("Show me the website wording",{activeContext:true}).growth,true);
 assert.equal(classify("Show me the website wording").growth,false);
 assert.equal(classify("Open that project",{activeContext:true}).growth,true);
-assert.equal(classify("Open that project").growth,true); // explicit "project", but not enough to infer which.
+assert.equal(classify("Open that project").growth,true);
+assert.equal(classify("Publish that now",{activeContext:true}).growth,true);
+assert.equal(classify("Publish that now",{activeContext:false}).growth,false); // explicit "project", but not enough to infer which.
 assert.equal(classify("What about the website?",{activeContext:true}).growth,true);
 const state=(t,opts={})=>resolveGrowthOperator(t,centre,{scope,focus:null,...opts});
 const check=state("Where are we with carpet cleaning?");
@@ -69,6 +71,8 @@ assert.equal(state("Continue my calendar booking").handled,false);
 assert.equal(state("Launch my carpet cleaning project now").kind,"blocked");
 assert.equal(state("Publish my carpet cleaning project now").kind,"blocked");
 assert.equal(state("Delete my project").kind,"blocked");
+assert.equal(withFocus("Publish that now").kind,"blocked");
+assert.equal(withFocus("Delete this now").kind,"blocked");
 assert.equal(state("Open that project",{focus:{scope:owner+":"+elsewhere,serviceName:"Carpet cleaning"}}).kind,"clarify");
 assert.equal(state("Open that project",{focus:{scope,serviceName:"Nonexistent"}}).kind,"clarify");
 const changed=buildGrowthCommandCentre({
@@ -105,6 +109,10 @@ for(const requirement of [
 assert.ok(talk.includes("s.submitBusyCommand({ audioUri: audioRecorder.uri })"));
 assert.ok(talk.includes("s.submitBusyCommand({ text })"));
 assert.ok(core.includes("BUSY_COMMAND_URL"));
+assert.ok(app.includes("growthProjectTarget"));
+assert.ok(app.includes("setGrowthProjectTarget(result.growthProjectTarget"));
+const business=readFileSync(new URL("../src/screens/businessCreationJourney.js",import.meta.url),"utf8");
+assert.ok(business.includes("Load selected private cloud project"));
 // The growth bridge must never send provider requests, write cloud checkpoints,
 // or touch website/app/social publishing endpoints.
 const bridge=readFileSync(new URL("../src/domain/growthOperatorBridge.mjs",import.meta.url),"utf8");
