@@ -1,5 +1,8 @@
 # busy-does-it-app
 
+## Commercial objective (planning, not live billing)
+Aim to make a future **£50/month BUSY DOES IT subscription feel excellent value** through reliable business-building, website/app/social support, genuinely verified outcomes and meaningful time savings. Build with sustainable multi-tenant costs and sensible AI/media usage limits; do not claim £50 billing is enabled until pricing and payment implementation is tested.
+
 ## V3.67 — Verified Business Activity & Results (development, not released)
 
 - Adds a source-attributed, **read-only Verified Business Activity** screen, linked from Home and Growth Command Centre, for the authenticated business's existing website hosting, customer Business App and social publishing records.
