@@ -221,8 +221,22 @@ function BusinessCreationJourney({ s }) {
       s={s}
       title="Build my business with BUSY"
       subtitle="One guided conversation now coordinates the website, Business App and social setup, asks only the next useful question, and parks anything blocked without stopping the rest."
-      brandCue="V3.64 • cloud growth projects • safe reviews • independent publishing approvals."
+      brandCue="V3.66 • safely resume private growth projects from Talk to BUSY."
     >
+      {s.growthProjectFocus ? (
+        <Card eyebrow="V3.66 • requested from BUSY conversation"
+          title={"Continue "+s.growthProjectFocus}
+          body={"BUSY opened this service workspace"+(s.growthProjectTarget
+            ? " for your "+({website:"website",business_app:"Business App",social:"social media"}[s.growthProjectTarget]||"project")+" review"
+            : "")+". No private draft was overwritten and nothing was published. To see saved wording, explicitly load the cloud checkpoint below."}
+          tone="blue">
+          <Button label="Load selected private cloud project"
+            disabled={!canManageCloud}
+            onPress={loadGrowthWorkspace}/>
+          <Button label="View growth workspace below"
+            onPress={()=>setGrowthDraftNotice("The coordinated growth project workspace is further down this page. Choose Load to retrieve saved wording.")}/>
+        </Card>
+      ):null}
       <Card
         eyebrow="V3.61 • confirmed information only"
         title={readiness.ready + " of " + readiness.total + " business essentials confirmed"}
