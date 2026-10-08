@@ -173,6 +173,7 @@ import { buildFollowUpEngine } from "../domain/followUpEngine";
 import { buildBrandBrain } from "../domain/brandBrain";
 import { buildBusinessCreationIntelligence } from "../domain/businessCreationIntelligence";
 import { buildBusinessCreationJourney, nextBestBusinessCreationQuestion } from "../domain/businessCreationJourney";
+import { reviewConversation } from "../domain/conversationUnderstanding.mjs";
 import { buildWebsiteDraft, applyWebsiteInstruction } from "../domain/websiteBuilder";
 import { buildWebsitePublishingView } from "../domain/websitePublishing";
 import {
@@ -13437,6 +13438,37 @@ function App() {
     return true;
   };
 
+  const confirmConversationFact = (field, proposedValue) => {
+    const allowed = ["businessName", "serviceArea", "email", "phone"];
+    if (!allowed.includes(field)) return false;
+    const review = reviewConversation({
+      turns: [businessCreationBrief],
+      approved: businessCreationIntelligence?.sharedProfile || {},
+    });
+    const candidate = review.draft?.[field];
+    const value = String(proposedValue || "").trim();
+    if (!candidate || candidate.approved || candidate.value !== value || !value || review.conflicts.some((entry) => entry.field === field)) {
+      setBusinessCreationError("That suggestion has changed or is already recorded. Review the description again.");
+      return false;
+    }
+    const existing = businessCreationIntelligence?.sharedProfile || {};
+    if (String(existing[field] || "").trim()) {
+      setBusinessCreationError("An approved value already exists. Edit it in Business Identity instead.");
+      return false;
+    }
+    if (field === "businessName") setBusinessName(value);
+    else setBrandProfile((current) => {
+      const next = { ...(current || {}) };
+      if (field === "serviceArea") next.serviceAreaText = value;
+      if (field === "email") next.email = value;
+      if (field === "phone") next.phone = value;
+      return next;
+    });
+    setBusinessCreationError("");
+    setBusinessCreationNotice("Confirmed and saved to the shared business profile. Website and Business App publication still require separate approval.");
+    return true;
+  };
+
   const propagateBusinessCreationChanges = () => {
     if (!businessCreationJourney?.propagation?.needsPropagation) {
       setBusinessCreationNotice("Website and Business App are already aligned with the current shared business profile.");
@@ -14663,6 +14695,7 @@ function App() {
     openBusinessCreationJourney,
     describeBusinessCreationByVoice,
     answerBusinessCreationQuestion,
+    confirmConversationFact,
     propagateBusinessCreationChanges,
     prepareBusinessCreationJourney,
     miniAppProfileDraft,
