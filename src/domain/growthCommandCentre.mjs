@@ -32,6 +32,10 @@ function buildGrowthCommandCentre({
     if(!saved)continue;
     const serviceKey=keyOf(saved.serviceName);
     if(!serviceKey || unique.has(serviceKey) || (record.service_key && serviceKey!==keyOf(record.service_key)))continue;
+    let sourceScope;
+    try { sourceScope=JSON.parse(saved.sourceKey); } catch { continue; }
+    // Defence in depth, on top of Supabase RLS. Never show a mismatched checkpoint.
+    if(!Array.isArray(sourceScope) || sourceScope[0]!==ownerId || sourceScope[1]!==businessId)continue;
     unique.add(serviceKey);
     const current=prepareCoordinatedGrowthDrafts({
       approved,ownerId,businessId,focusService:saved.serviceName,
@@ -98,7 +102,7 @@ function buildGrowthCommandCentre({
   };
 }
 const COMMAND_INTENTS=Object.freeze({
-  review:/\b(approv|review|sign.?off|need(s)? my approval)\b/i,
+  review:/\b(approval|approve|approved|approving|review|reviews|reviewed|sign.?off|needs? my approval)\b/i,
   resume:/\b(continue|resume|carry on|pick up|open|go back|finish)\b/i,
   summary:/\b(where are we|what'?s left|what is left|status|progress|update|what next|what needs doing|show projects|what'?s next)\b/i,
 });
