@@ -64,6 +64,7 @@ function GrowthCommandCentre({s}){
     // No write or publication: select the confirmed service, then user loads
     // its private checkpoint in the existing business creation workspace.
     s.setGrowthProjectFocus(serviceName);
+    s.setGrowthProjectTarget("");
     s.openBusinessCreationJourney();
   };
   return (
