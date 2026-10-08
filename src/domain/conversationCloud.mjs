@@ -21,7 +21,7 @@ async function request(url, { accessToken, publishableKey, method = "GET", body,
     },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
-  if (!result.ok) throw new Error(`Cloud draft request failed (${result.status})`);
+  if (!result.ok) { const error = new Error(`Cloud draft request failed (${result.status})`); error.status = result.status; throw error; }
   if (result.status === 204) return [];
   return await result.json();
 }
@@ -43,7 +43,7 @@ async function saveCloudConversation(args) {
       });
       return { saved: true, record: rows?.[0] || null };
     } catch (error) {
-      return { saved: false, conflict: false, reason: "Cloud save failed. Check database availability or access and retry.", errorCode: "create_failure" };
+      return error?.status === 409\n        ? { saved: false, conflict: true, reason: "A cloud draft already exists. Load it before attempting another save.", errorCode: "create_conflict" }\n        : { saved: false, conflict: false, reason: "Cloud save failed. Check database availability or access and retry.", errorCode: "create_failure" };
     }
   }
   if (!Number.isSafeInteger(args.revision) || args.revision < 1) throw new Error("Invalid draft revision.");
