@@ -48,7 +48,7 @@ assert.ok(ops.exceptions.some(x=>x.id==="website-job:job-1"));
 assert.ok(!ops.exceptions.some(x=>x.id==="social:post-1:facebook"));
 assert.equal(nextRecoveryStep(ops.exceptions.find(x=>x.id==="social:post-1:instagram")).requiresApproval,true);
 assert.equal(ops.humanRequired.length,0);
-assert.equal(ops.autoRecovered,0);
+assert.equal(ops.autoRecovered,null);
 
 const cloudConflict={
  id:"cloud-conflict",severity:"High",area:"Cloud",title:"Cloud versions disagree",
@@ -101,6 +101,7 @@ assert.equal(isTransientReadError({status:502}),true);
 assert.equal(isTransientReadError({status:504}),true);
 assert.equal(isTransientReadError({status:408}),true);
 assert.equal(isTransientReadError({status:401}),false);
+assert.equal(isTransientReadError({status:429}),false);
 assert.equal(isTransientReadError({status:403}),false);
 assert.equal(isTransientReadError({status:422}),false);
 assert.equal(isTransientReadError({status:0,message:"Network request failed"}),true);
