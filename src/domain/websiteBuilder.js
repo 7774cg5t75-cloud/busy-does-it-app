@@ -237,6 +237,42 @@ function withHtml(draft = {}) {
   };
 }
 
+/**
+ * An explicit owner handoff from the V3.63 coordinated draft editor.
+ * Updates ONLY the private website service copy. Publication still uses the
+ * existing immutable hosted release and independent owner approval process.
+ */
+function applyCoordinatedWebsiteCopy({ draft = null, approved = {}, serviceName = "", text = "" } = {}) {
+  const name = clean(serviceName).slice(0, 120);
+  const body = clean(text).slice(0, 800);
+  const allowed = safeArray(approved?.services).some((service) =>
+    service?.approved !== false &&
+    !["draft", "pending"].includes(String(service?.status || "").toLowerCase()) &&
+    clean(service?.name).toLowerCase() === name.toLowerCase()
+  );
+  if (!draft?.id || !name || !body || !allowed) {
+    return {applied: false, draft, reason: "An existing website draft, approved service and non-empty reviewed text are required."};
+  }
+  const index = sectionIndex(draft, "services");
+  if (index < 0) {
+    return {applied: false, draft, reason: "This website draft has no services section. Open the Website Builder to review its structure."};
+  }
+  const sections = safeArray(draft.sections).map((section, sectionIndexValue) => {
+    if (sectionIndexValue !== index) return section;
+    const items = safeArray(section.items).map((item) => ({...item}));
+    const found = items.findIndex(item => clean(item.title).toLowerCase() === name.toLowerCase());
+    const updated = {id: found >= 0 ? items[found].id : slugify(name), title: name, body};
+    if (found >= 0) items[found] = {...items[found], ...updated};
+    else items.push(updated);
+    return {...section, items};
+  });
+  return {
+    applied: true,
+    draft: withHtml({...draft, sections}),
+    reason: "Updated only the private website draft. Review the preview; nothing has gone live.",
+  };
+}
+
 function applyWebsiteInstruction(draft = {}, instruction = "") {
   const text = clean(instruction);
   const lower = text.toLowerCase();
@@ -453,5 +489,6 @@ function renderWebsiteHtml(draft = {}) {
 export {
   buildWebsiteDraft,
   applyWebsiteInstruction,
+  applyCoordinatedWebsiteCopy,
   renderWebsiteHtml,
 };
