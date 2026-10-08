@@ -81,6 +81,12 @@ function GrowthCommandCentre({s}){
         <Button label={busy?"Refreshing…":"Refresh private project progress"} disabled={busy||!userId||!businessId} onPress={fetchProjects}/>
         <Button label="Start a growth project" onPress={s.openBusinessCreationJourney}/>
       </Card>
+      <Card eyebrow="Real publishing results"
+        title="Did it actually go live?"
+        body="Private growth-project status is not proof of publication. View authenticated website, app and social service records separately. BUSY will not attribute an unrelated result to a service."
+        tone="blue">
+        <Button label="View verified business activity" onPress={()=>s.go("businessActivityCentre")}/>
+      </Card>
       <Card eyebrow="Ask BUSY about your projects"
         title="What should we do next?"
         body="Use a quick question or type your own. BUSY answers from saved project checkpoints only, with no guessed publication status."
