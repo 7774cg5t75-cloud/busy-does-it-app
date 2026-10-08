@@ -19,6 +19,7 @@ import * as BusinessCreationJourneyScreens from "./businessCreationJourney";
 import * as GrowthCommandCentreScreens from "./growthCommandCentre";
 import * as BusinessActivityCentreScreens from "./businessActivityCentre";
 import * as SelfRunningOperationsScreens from "./selfRunningOperations";
+import * as FounderOperationsScreens from "./founderOperations";
 import * as WorkScreens from "./work";
 import * as IntakeScreens from "./intake";
 import * as CustomersScreens from "./customers";
@@ -47,6 +48,7 @@ export * from "./businessCreationJourney";
 export * from "./growthCommandCentre";
 export * from "./businessActivityCentre";
 export * from "./selfRunningOperations";
+export * from "./founderOperations";
 export * from "./work";
 export * from "./intake";
 export * from "./customers";
@@ -76,6 +78,7 @@ const allScreens = {
   ...GrowthCommandCentreScreens,
   ...BusinessActivityCentreScreens,
   ...SelfRunningOperationsScreens,
+  ...FounderOperationsScreens,
   ...WorkScreens,
   ...IntakeScreens,
   ...CustomersScreens,
@@ -121,6 +124,7 @@ const {
   GrowthCommandCentre,
   BusinessActivityCentre,
   SelfRunningOperations,
+  FounderOperations,
   WorkHub,
   WorkCalendar,
   WorkPipeline,
@@ -245,6 +249,7 @@ export const screens = {
   growthCommandCentre: GrowthCommandCentre,
   businessActivityCentre: BusinessActivityCentre,
   selfRunningOperations: SelfRunningOperations,
+  founderOperations: FounderOperations,
   workHub: WorkHub,
   workCalendar: WorkCalendar,
   workPipeline: WorkPipeline,
