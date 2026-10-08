@@ -90,7 +90,7 @@ function reviewConversation({ turns = [], approved = {}, previousDraft = {} } = 
   const draft = { ...previousDraft };
   const conflicts = [];
   const suggestions = [];
-  for (const turn of turns.slice(-30)) {
+  for (const turn of turns.slice(-30).flatMap(value => trim(value).split(/\n+|(?<=[.!?])\s+/).filter(Boolean)).slice(-60)) {
     const parsed = extractConversationTurn(turn);
     suggestions.push(...parsed.suggestions);
     for (const [key, candidate] of Object.entries(parsed.fields)) {
