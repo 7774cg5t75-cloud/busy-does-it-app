@@ -178,3 +178,15 @@ assert.equal(proposedServices.publicationAllowed,false);
 assert.ok(endpointCode.includes('candidate.services.slice(0,12)'));
 assert.ok(journeyCode.includes('Possible service (unconfirmed)'));
 console.log("V3.60 AI service evidence and review boundary checks passed");
+
+const inOneBrief = reviewConversation({
+ turns:["My business is called Early Name. Actually my business is called Correct Name. We cover Devon."]
+});
+assert.equal(inOneBrief.conflicts[0].field,"businessName");
+assert.equal(inOneBrief.nextQuestion.field,"businessName");
+assert.equal(inOneBrief.draft.businessName,undefined);
+assert.equal(inOneBrief.draft.serviceArea.value,"Devon");
+const acrossLines = reviewConversation({turns:["We cover Devon\nWe cover Cornwall"]});
+assert.equal(acrossLines.nextQuestion.field,"serviceArea");
+assert.equal(acrossLines.publicationAllowed,false);
+console.log("V3.60 multi-turn correction tests passed");
