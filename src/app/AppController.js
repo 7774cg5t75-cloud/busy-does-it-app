@@ -474,6 +474,10 @@ function App() {
   const growthOperatorRequestRef=useRef(0);
   const growthOperatorScopeRef=useRef("");
   growthOperatorScopeRef.current=(ownerSession?.userId||"")+":"+(cloudWorkspace?.businessId||"");
+  useEffect(()=>{
+    growthOperatorFocusRef.current=null;
+    growthOperatorRequestRef.current+=1;
+  },[ownerSession?.userId,cloudWorkspace?.businessId]);
   const [busyCommandStatus, setBusyCommandStatus] = useState("idle");
   const [busyCommandResult, setBusyCommandResult] = useState(null);
   const [busyCommandError, setBusyCommandError] = useState("");
@@ -11643,6 +11647,15 @@ function App() {
       centre=buildGrowthCommandCentre({ownerId,businessId,readFailed:true});
     }
     const resolved=resolveGrowthOperator(request,centre,{focus,scope});
+    if(!resolved.handled && centre.state==="unavailable"){
+      return {handled:true,result:{
+        intent:"growth_project_summary",title:"Private growth project unavailable",
+        response:"BUSY could not verify your saved growth projects. Your wording was not changed; reconnect and ask again.",
+        transcript:request,applied:true,confidence:"Low",mode:"answer",
+        needsClarification:false,requiresConfirmation:false,actionLabel:"",
+        growthOwnerId:ownerId,growthBusinessId:businessId,
+      }};
+    }
     if(!resolved.handled)return null;
     if(!valid())return {cancelled:true};
     if(resolved.serviceName && centre.projects?.some(p=>p.serviceName===resolved.serviceName))
