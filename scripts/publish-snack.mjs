@@ -9,13 +9,15 @@ function collectJsFiles(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) files.push(...collectJsFiles(full));
-    else if (entry.isFile() && /\.js$/i.test(entry.name)) files.push(full);
+    else if (entry.isFile() && /\.(?:js|mjs)$/i.test(entry.name)) files.push(full);
   }
   return files;
 }
 
 function prepareSource(source) {
   return source
+    // Snack bundles .js files; convert relative .mjs imports only in the preview.
+    .replace(/(\.{1,2}\/[^"\'\s]+)\.mjs(?=["\'])/g, "$1.js")
     .replaceAll(
       'import * as Calendar from "expo-calendar/legacy";',
       'import * as Calendar from "expo-calendar";'
@@ -39,10 +41,15 @@ for (const sourcePath of sourcePaths) {
   const snackPath =
     sourcePath === "BusyDoesItApp.js"
       ? "App.js"
-      : sourcePath.split(path.sep).join("/");
+      : sourcePath.split(path.sep).join("/").replace(/\.mjs$/i, ".js");
   files[snackPath] = { type: "CODE", contents: prepared };
 }
 
+// Catch unpublished source files before claiming the Snack is ready.
+for (const path of sourcePaths.filter(path => path.endsWith(".mjs"))) {
+  const expected = path.replace(/\.mjs$/, ".js");
+  if (!files[expected]) throw new Error(`Snack missing converted module: ${path}`);
+}
 const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
 const version = pkg.version || "preview";
 const branch = process.env.GITHUB_REF_NAME || `v${version}`;
