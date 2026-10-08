@@ -2741,6 +2741,8 @@ function App() {
   ]);
 
   const signOutOwner = async () => {
+    growthOperatorRequestRef.current+=1;
+    growthOperatorFocusRef.current=null;
     if (cloudInitialised) {
       await saveBusinessCloud({ quiet: true });
     }
@@ -11687,10 +11689,18 @@ function App() {
       setBusyCommandError("Tell BUSY what you want to do.");
       return null;
     }
+    const growthNonce=++growthOperatorRequestRef.current;
     setBusyCommandStatus("thinking");
     setBusyCommandError("");
     setBusyCommandResult(null);
     try {
+      // Local typed routing uses the authenticated project rows, avoiding an AI
+      // request for grounded project-only questions.
+      if(cleanText && !audioUri && !businessCreationConversationActive){
+        const handled=await tryGrowthOperator(cleanText,growthNonce);
+        if(handled?.cancelled)return null;
+        if(handled?.handled)return acceptGrowthOperator(handled);
+      }
       const token = await ownerAccessToken();
       if (!token) throw new Error("Sign in again before using BUSY Operator.");
 
@@ -11758,6 +11768,13 @@ function App() {
         transcript: String(payload?.transcript || cleanText || "").trim(),
       };
 
+      // Audio was transcribed by the existing BUSY Operator service; resolve
+      // project-only commands before its standard actions can run.
+      if(result.transcript && !businessCreationConversationActive){
+        const handled=await tryGrowthOperator(result.transcript,growthNonce);
+        if(handled?.cancelled)return null;
+        if(handled?.handled)return acceptGrowthOperator(handled);
+      }
       if (businessCreationConversationActive && result.transcript) {
         const spoken = String(result.transcript || "").trim();
         let responseText = "";
@@ -11998,6 +12015,19 @@ function App() {
     const commandValue = Number(command.value) || 0;
 
     switch (command.intent) {
+      case "growth_project_open":
+        if(!command.growthProjectName || command.growthOwnerId!==ownerSession?.userId ||
+           command.growthBusinessId!==cloudWorkspace?.businessId){
+          setBusyCommandError("Your account or business changed. Please reload the private project.");
+          return false;
+        }
+        setGrowthProjectFocus(command.growthProjectName);
+        setTab("Home");
+        go("businessCreationJourney");
+        markBusyCommandApplied(command,"Private growth workspace opened",
+          "Opened the project workspace for "+command.growthProjectName+
+          ". Explicitly load your saved cloud draft before editing. Nothing was published.");
+        return true;
       case "open_today":
         jump("workHub", "Work");
         return true;
@@ -12542,6 +12572,8 @@ function App() {
   };
 
   const startNewBusyConversation = () => {
+    growthOperatorRequestRef.current+=1;
+    growthOperatorFocusRef.current=null;
     setBusyConversationTurns([]);
     clearBusyCommandResult();
   };
