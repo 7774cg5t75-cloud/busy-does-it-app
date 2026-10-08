@@ -78,7 +78,7 @@ const snack = new Snack({
   dependencies: {
     "@react-native-async-storage/async-storage": { version: "2.2.0" },
     "expo-image-picker": { version: "17.0.11" },
-    "expo-audio": { version: "1.1.1" },
+    "expo-audio": { version: "1.1.0" },
     "expo-secure-store": { version: "15.0.8" },
     "expo-notifications": { version: "0.32.17" },
     // expo-calendar is deliberately absent: it is unavailable in this Snack preview.
