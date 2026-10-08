@@ -7845,6 +7845,63 @@ function App() {
     return Number.isFinite(until) && until > Date.now();
   };
 
+  // Compute inbox triage before Autopilot needs-input derives its queues.
+  // A forward reference previously crashed first render in Expo Go.
+  const inboxPendingItems = inboxItems
+    .filter((item) => item.status === "Pending")
+    .map((item) => {
+      const parsed =
+        item.parsed ||
+        parseQuickCapture(
+          item.rawText || "",
+          services,
+          services.find((service) => service.wanted)?.name || trade || "Service"
+        );
+      const baseTriage = triageInboxCandidate(parsed, customers, replyActions);
+      const aiBlocked = item.visionPending || item.aiTrustBlocked;
+      const triage = aiBlocked
+        ? {
+            ...baseTriage,
+            lane: "Needs attention",
+            priorityScore: Math.max(120, baseTriage.priorityScore || 0),
+            reason: item.visionPending
+              ? "Screenshot batch attached — waiting for secure AI vision analysis."
+              : "AI extraction needs owner review before filing.",
+          }
+        : baseTriage;
+      const autoEvaluation = aiBlocked
+        ? {
+            safe: false,
+            reason: item.visionPending
+              ? "Screenshot content must be analysed before BUSY can safely change a customer record."
+              : "AI confidence is not strong enough for automatic filing.",
+          }
+        : evaluateSafeAutoFile(
+            parsed,
+            customers,
+            replyActions,
+            item.source || "Incoming",
+            item.rawText || ""
+          );
+      return { ...item, parsed, triage, autoEvaluation };
+    })
+    .sort((a, b) => {
+      if (
+        a.reconciliationDemoId &&
+        b.reconciliationDemoId &&
+        a.reconciliationDemoId === b.reconciliationDemoId
+      ) {
+        return Number(a.reconciliationSequence || 0) - Number(b.reconciliationSequence || 0);
+      }
+      if ((b.triage?.priorityScore || 0) !== (a.triage?.priorityScore || 0)) {
+        return (b.triage?.priorityScore || 0) - (a.triage?.priorityScore || 0);
+      }
+      return String(a.queuedAt || "").localeCompare(String(b.queuedAt || ""));
+    });
+  const inboxNeedsAttentionItems = inboxPendingItems.filter(
+    (item) => item.triage?.lane === "Needs attention"
+  );
+
   const autopilotRawApprovalItems = [
     ...dueQuoteEntries.slice(0, 8).map((entry) => {
       const amount = Number(entry.action?.details?.quoteAmount) || 0;
@@ -8248,60 +8305,6 @@ function App() {
       });
   const intakeMergedCount = intakeLog.filter((item) => item.matchedExisting).length;
   const intakeCreatedCount = intakeLog.length - intakeMergedCount;
-  const inboxPendingItems = inboxItems
-    .filter((item) => item.status === "Pending")
-    .map((item) => {
-      const parsed =
-        item.parsed ||
-        parseQuickCapture(
-          item.rawText || "",
-          services,
-          services.find((service) => service.wanted)?.name || trade || "Service"
-        );
-      const baseTriage = triageInboxCandidate(parsed, customers, replyActions);
-      const aiBlocked = item.visionPending || item.aiTrustBlocked;
-      const triage = aiBlocked
-        ? {
-            ...baseTriage,
-            lane: "Needs attention",
-            priorityScore: Math.max(120, baseTriage.priorityScore || 0),
-            reason: item.visionPending
-              ? "Screenshot batch attached — waiting for secure AI vision analysis."
-              : "AI extraction needs owner review before filing.",
-          }
-        : baseTriage;
-      const autoEvaluation = aiBlocked
-        ? {
-            safe: false,
-            reason: item.visionPending
-              ? "Screenshot content must be analysed before BUSY can safely change a customer record."
-              : "AI confidence is not strong enough for automatic filing.",
-          }
-        : evaluateSafeAutoFile(
-            parsed,
-            customers,
-            replyActions,
-            item.source || "Incoming",
-            item.rawText || ""
-          );
-      return { ...item, parsed, triage, autoEvaluation };
-    })
-    .sort((a, b) => {
-      if (
-        a.reconciliationDemoId &&
-        b.reconciliationDemoId &&
-        a.reconciliationDemoId === b.reconciliationDemoId
-      ) {
-        return Number(a.reconciliationSequence || 0) - Number(b.reconciliationSequence || 0);
-      }
-      if ((b.triage?.priorityScore || 0) !== (a.triage?.priorityScore || 0)) {
-        return (b.triage?.priorityScore || 0) - (a.triage?.priorityScore || 0);
-      }
-      return String(a.queuedAt || "").localeCompare(String(b.queuedAt || ""));
-    });
-  const inboxNeedsAttentionItems = inboxPendingItems.filter(
-    (item) => item.triage?.lane === "Needs attention"
-  );
   const inboxReadyItems = inboxPendingItems.filter(
     (item) => item.triage?.lane === "Ready to review"
   );
