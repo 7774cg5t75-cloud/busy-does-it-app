@@ -95,3 +95,9 @@ assert.equal(extractConversationTurn("For example, my business is called Imagina
 assert.equal(extractConversationTurn("We do not offer plumbing, we provide catering.").suggestions.some(x=>x.value==="plumbing"),false);
 assert.equal(extractConversationTurn("We do not offer plumbing, we provide catering.").suggestions.some(x=>x.value==="catering"),true);
 console.log("V3.60 hypothetical and negation protection checks passed");
+
+const mixedExample = extractConversationTurn("My business is called Real Services. For example, imagine we sold cars. We cover Exeter.");
+assert.equal(mixedExample.fields.businessName.value, "Real Services");
+assert.equal(mixedExample.fields.serviceArea.value, "Exeter");
+assert.equal(extractConversationTurn("For example, my business is called Imaginary Ltd.").fields.businessName, undefined);
+console.log("V3.60 mixed examples and real statement preservation passed");
