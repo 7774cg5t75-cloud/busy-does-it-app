@@ -174,7 +174,7 @@ import { buildBrandBrain } from "../domain/brandBrain";
 import { buildBusinessCreationIntelligence } from "../domain/businessCreationIntelligence";
 import { buildBusinessCreationJourney, nextBestBusinessCreationQuestion } from "../domain/businessCreationJourney";
 import { reviewConversation, buildApprovedCreationHandoff } from "../domain/conversationUnderstanding.mjs";
-import { loadCloudConversation, saveCloudConversation } from "../domain/conversationCloud.mjs";
+import { loadCloudConversation, saveCloudConversation, deleteCloudConversation } from "../domain/conversationCloud.mjs";
 import { validateAiConversationDraft } from "../domain/conversationAiBoundary.mjs";
 import { buildWebsiteDraft, applyWebsiteInstruction } from "../domain/websiteBuilder";
 import { buildWebsitePublishingView } from "../domain/websitePublishing";
@@ -13508,6 +13508,32 @@ function App() {
   };
 
 
+  const deleteConversationFromCloud = () => {
+    if (conversationCloudBusy) return false;
+    Alert.alert("Delete private cloud draft?", "This deletes the saved cloud checkpoint for this business. Your on-device draft will remain unless you clear it separately.", [
+      {text:"Cancel",style:"cancel"},
+      {text:"Delete cloud draft",style:"destructive",onPress:async()=>{
+        setConversationCloudBusy(true);
+        try {
+          const args = await conversationCloudArgs();
+          const scoped = args.userId + ":" + args.businessId;
+          if (scoped !== conversationActiveScopeRef.current || conversationCloudScope !== scoped || !conversationCloudRevision) {
+            setConversationResumeNotice("Load your current cloud draft before deleting it.");
+            return;
+          }
+          const result=await deleteCloudConversation({...args,revision:conversationCloudRevision});
+          if(scoped !== conversationActiveScopeRef.current) return;
+          if(!result.deleted) {setConversationResumeNotice(result.reason);return;}
+          setConversationCloudRevision(null);
+          setConversationCloudScope("");
+          setConversationResumeNotice("Cloud draft deleted. Your local draft is unchanged.");
+        }catch{setConversationResumeNotice("Cloud draft could not be deleted. Nothing was changed locally.");}
+        finally{setConversationCloudBusy(false);}
+      }},
+    ]);
+    return true;
+  };
+
   const suggestBusinessFactsWithAi = async () => {
     if (conversationAiBusy) return false;
     const transcript = String(businessCreationBrief || "").trim().slice(0, 3000);
@@ -14867,6 +14893,7 @@ function App() {
     suggestBusinessFactsWithAi,
     loadConversationFromCloud,
     saveConversationToCloud,
+    deleteConversationFromCloud,
     businessCreationAnswer,
     setBusinessCreationAnswer,
     businessCreationConversationActive,
