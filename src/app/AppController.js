@@ -175,6 +175,7 @@ import { buildBusinessCreationIntelligence } from "../domain/businessCreationInt
 import { buildBusinessCreationJourney, nextBestBusinessCreationQuestion } from "../domain/businessCreationJourney";
 import { reviewConversation, buildApprovedCreationHandoff } from "../domain/conversationUnderstanding.mjs";
 import { loadCloudConversation, saveCloudConversation } from "../domain/conversationCloud.mjs";
+import { validateAiConversationDraft } from "../domain/conversationAiBoundary.mjs";
 import { buildWebsiteDraft, applyWebsiteInstruction } from "../domain/websiteBuilder";
 import { buildWebsitePublishingView } from "../domain/websitePublishing";
 import {
@@ -297,6 +298,9 @@ function App() {
   const [conversationCloudRevision, setConversationCloudRevision] = useState(null);
   const [conversationCloudScope, setConversationCloudScope] = useState("");
   const [conversationCloudBusy, setConversationCloudBusy] = useState(false);
+  const [conversationAiBusy, setConversationAiBusy] = useState(false);
+  const [conversationAiDraft, setConversationAiDraft] = useState(null);
+  const [conversationAiNotice, setConversationAiNotice] = useState("");
 
   const [businessCreationAction, setBusinessCreationAction] = useState("");
   const [businessCreationNotice, setBusinessCreationNotice] = useState("");
@@ -13494,6 +13498,40 @@ function App() {
     } finally { setConversationCloudBusy(false); }
   };
 
+
+  const suggestBusinessFactsWithAi = async () => {
+    if (conversationAiBusy) return false;
+    const transcript = String(businessCreationBrief || "").trim().slice(0, 3000);
+    if (!transcript) return false;
+    setConversationAiBusy(true);
+    setConversationAiDraft(null);
+    setConversationAiNotice("");
+    const scope = String(ownerSession?.userId || "") + ":" + String(cloudWorkspace?.businessId || "");
+    try {
+      const args = await conversationCloudArgs();
+      const response = await fetchWithTimeout(
+        BUSY_SUPABASE_URL + "/functions/v1/busy-conversation-extract",
+        { method: "POST", headers: { Authorization: "Bearer " + args.accessToken, apikey: BUSY_AI_TOKEN, "Content-Type":"application/json" },
+          body: JSON.stringify({ businessId:args.businessId, transcript }) }, 20000
+      );
+      if (!response.ok) throw new Error("AI extraction unavailable");
+      const raw = await response.json();
+      if (scope !== String(ownerSession?.userId || "") + ":" + String(cloudWorkspace?.businessId || "") ||
+          transcript !== String(businessCreationBrief || "").trim().slice(0, 3000)) return false;
+      const validation = validateAiConversationDraft({
+        extraction:raw, transcript, approved:businessCreationIntelligence?.sharedProfile || {},
+      });
+      setConversationAiDraft(validation);
+      setConversationAiNotice(Object.keys(validation.fields).length
+        ? "AI suggestions are unverified. Review before confirming."
+        : "No reliably supported new details detected. Continue manually.");
+      return true;
+    } catch {
+      setConversationAiNotice("AI review unavailable. Manual confirmation still works.");
+      return false;
+    } finally { setConversationAiBusy(false); }
+  };
+
   const openBusinessCreationJourney = () => {
     setTab("Home");
     go("businessCreationJourney");
@@ -14813,6 +14851,10 @@ function App() {
     conversationResumeReady,
     conversationResumeNotice,
     conversationCloudBusy,
+    conversationAiBusy,
+    conversationAiDraft,
+    conversationAiNotice,
+    suggestBusinessFactsWithAi,
     loadConversationFromCloud,
     saveConversationToCloud,
     businessCreationAnswer,
