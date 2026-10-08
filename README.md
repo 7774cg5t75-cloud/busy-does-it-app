@@ -1,5 +1,14 @@
 # busy-does-it-app
 
+## V3.66 — BUSY Operator 3.0: voice and text project continuity (development, not released)
+- Extends the existing **Talk to BUSY** microphone and typed-command experience to answer owner-only, RLS-authenticated saved growth-project questions. Voice passes through the existing transcription service; typed project queries read grounded checkpoints without another LLM call.
+- Supports single-service status checks and in-conversation pronouns such as "open that project" and "show me the website wording." Keeps the selected project scoped to the current signed-in owner/business; clears context on new chat, sign-out or tenant switch.
+- Open/continue safely navigates to Business Creation with the service and requested channel identified, offering explicit cloud load/review. It never overwrites wording, confirms public publication, schedules social content, or posts automatically.
+- Refuses project-context requests to publish, launch live, schedule or delete without the separate existing permission process. Missing cloud records, bad authorisation or interrupted requests produce a truthful no-verification notice rather than invented status.
+- Adds deterministic conversation/parser regressions, CI and a V3.66 Expo Snack preview. See `docs/V3_66_OPERATOR_GROWTH_VOICE.md`.
+- Still requires actual signed-in iPhone audio, cross-device, private cloud, real provider receipt and native release acceptance testing. No new third-party account, cloud schema or service-role key was added.
+
+
 ## v3.65 Business Growth Command Centre 2.0 — development branch, not released
 - Introduces a prominent Growth Command Centre on the Home screen, reading the 25 most recent creator-private saved growth projects from the V3.64 Supabase project checkpoints.
 - Prioritises the **next safe step** per service from approved business facts and real private checkpoint stages. Stale service information requires explicit re-review; other account/business checkpoints are suppressed before display.
