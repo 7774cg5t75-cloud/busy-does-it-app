@@ -1,0 +1,27 @@
+name: V3.62 coordinated growth checks
+on:
+  push:
+    branches: [v3.62]
+    paths:
+      - "src/domain/coordinatedGrowthPlan.mjs"
+      - "src/domain/businessCreationReadiness.mjs"
+      - "src/screens/businessCreationJourney.js"
+      - "scripts/check-coordinated-growth.mjs"
+      - ".github/workflows/check-coordinated-growth.yml"
+  pull_request:
+    paths:
+      - "src/domain/coordinatedGrowthPlan.mjs"
+      - "src/domain/businessCreationReadiness.mjs"
+      - "src/screens/businessCreationJourney.js"
+      - "scripts/check-coordinated-growth.mjs"
+      - ".github/workflows/check-coordinated-growth.yml"
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node scripts/check-coordinated-growth.mjs
+      - run: node scripts/check-conversation-understanding.mjs
