@@ -54,7 +54,7 @@ function BusinessCreationJourney({ s }) {
         <Button label="Describe it by voice" disabled={!!s.businessCreationAction} onPress={s.describeBusinessCreationByVoice} />
         <Button label={s.conversationAiBusy ? "BUSY is reading your description…" : "Suggest details with AI"} disabled={!!s.conversationAiBusy || !String(s.businessCreationBrief || "").trim()} onPress={s.suggestBusinessFactsWithAi} />
         {s.conversationAiNotice ? <Text style={styles.sectionLabel}>{s.conversationAiNotice}</Text> : null}
-        {Object.entries(s.conversationAiDraft?.fields || {}).map(([key, item]) => (
+        {Object.entries(s.conversationAiDraft?.transcript === String(s.businessCreationBrief || "").trim().slice(0, 3000) ? (s.conversationAiDraft?.fields || {}) : {}).map(([key, item]) => (
           <React.Fragment key={"ai-" + key}>
             <MetricRow left={"AI suggests: " + key} right={item.value} />
             <Text style={styles.sectionLabel}>From: {item.evidence}</Text>
