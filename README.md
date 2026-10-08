@@ -1,5 +1,16 @@
 # busy-does-it-app
 
+## V3.68 — Self-Running Operations 1.0 (development branch)
+
+- New **Operations & Reliability** screen on Home and Verified Business Activity, aimed at reducing routine owner workload with a single, low-noise, *per-business* exception digest.
+- Reuses existing operational continuity and core-integrity data; groups duplicate issues, flags cloud conflicts for human review, separates provider status uncertainty from confirmed failures, and links safely to existing recovery screens.
+- Reads the three authenticated website, Customer App and social reporting endpoints. Automatically retries **status reads only**, at most once, after transient connection/5xx issues. It will never automatically repost content, roll back websites, change business records or bypass approvals.
+- Shows only genuine provider-reported hosting usage **counters**, not invented cost or revenue figures. Billing, active subscriber counts, AI cost, storage invoices, actual profit and £50 subscription payments remain **not integrated**.
+- Does **not** expose cross-business platform administrator data. A separate founder-only, server-authorised, multi-tenant monitoring/billing system is a later milestone. The operations view is on-demand, **not** a new 24/7 background monitoring worker.
+- Automated checks: `node scripts/check-self-running-operations.mjs`, earlier V3.64–V3.67 regression scripts, and standard production foundation.
+- Commercial north star: a genuinely valuable eventual **£50/month** subscription which costs as little founder time as practical to operate. Details and acceptance gaps: `docs/V3_68_SELF_RUNNING_OPERATIONS.md`.
+
+
 ## Commercial objective (planning, not live billing)
 Aim to make a future **£50/month BUSY DOES IT subscription feel excellent value** through reliable business-building, website/app/social support, genuinely verified outcomes and meaningful time savings. Build with sustainable multi-tenant costs and sensible AI/media usage limits; do not claim £50 billing is enabled until pricing and payment implementation is tested.
 
