@@ -14,6 +14,20 @@ const firstCrash=source.indexOf(firstUse);
 assert.ok(sortedBefore>=0&&sortedAfter>sortedBefore);
 assert.ok(initAutopilot>sortedAfter,"Inbox must be initialised before Autopilot begins");
 assert.ok(firstCrash>initAutopilot,"Autopilot must only slice an initialised array");
+for(const derived of [
+  "const reactivationEligibleCustomers =",
+  "const recommendedReactivationBatchSize =",
+  "const workGoalFilled =",
+]){
+  const position=source.indexOf(derived);
+  assert.ok(position>0&&position<initAutopilot,
+    "Active work goals must be derived before Autopilot uses "+derived);
+}
+const rawAutopilot=source.indexOf("  const autopilotRawApprovalItems = [");
+const reactivationUse=source.indexOf("reactivationEligibleCustomers.length",rawAutopilot);
+assert.ok(reactivationUse>initAutopilot,
+  "Active work goal must not use reactivation eligibility before initialization");
+
 assert.equal(source.split(marker).length,2,"Exactly one inbox pending derivation");
 assert.equal(source.split(attention).length,2,"Exactly one inbox attention derivation");
 
