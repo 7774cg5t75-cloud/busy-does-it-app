@@ -260,3 +260,6 @@ assert.ok(controllerCode.includes('if (businessCreationConversationActive && res
 assert.ok(journeyCode.includes('Finish business voice conversation'));
 assert.ok(journeyCode.includes('s.setBusinessCreationConversationActive(false)'));
 console.log("V3.60 voice conversation exit and transcription wiring checks passed");
+
+assert.ok(controllerCode.includes("supabaseUrl: BUSY_SUPABASE_URL, fetchImpl: fetchWithTimeout"));
+console.log("V3.60 cloud network timeout integration check passed");
