@@ -26,7 +26,7 @@ function BusinessCreationJourney({ s }) {
       s={s}
       title="Build my business with BUSY"
       subtitle="One guided conversation now coordinates the website, Business App and social setup, asks only the next useful question, and parks anything blocked without stopping the rest."
-      brandCue="V3.58 • next-best question • dependency handling • coordinated updates • one launch-pack review."
+      brandCue="V3.60 • confirm conversational facts • dependency handling • coordinated updates • one launch-pack review."
     >
       <Card
         eyebrow="Business Creation Orchestrator"
@@ -59,7 +59,12 @@ function BusinessCreationJourney({ s }) {
           tone="blue"
         >
           {proposedFacts.map(([key, item]) => (
-            <MetricRow key={key} left={key} right={String(item.value || "").slice(0, 72)} />
+            <React.Fragment key={key}>
+              <MetricRow left={key} right={String(item.value || "").slice(0, 72)} />
+              {["businessName", "serviceArea", "email", "phone"].includes(key) ? (
+                <Button label={`Confirm ${key}`} onPress={() => s.confirmConversationFact(key, item.value)} />
+              ) : null}
+            </React.Fragment>
           ))}
           {conversationReview.suggestions.map((item) => (
             <MetricRow key={item.value} left="Possible industry (unconfirmed)" right={item.value} />
