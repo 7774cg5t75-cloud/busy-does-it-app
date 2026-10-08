@@ -23,6 +23,9 @@ function extractConversationTurn(input) {
   const text = trim(input).slice(0, 6000);
   if (!text) return { fields: {}, suggestions: [], conflicts: [] };
   const fields = {};
+  // Negated references and hypothetical examples must not become suggested facts.
+  const hypothetical = /\b(?:for example|imagine|hypothetically|suppose|what if)\b/i.test(text);
+  if (hypothetical) return { fields: {}, suggestions: [], conflicts: [], excerpt: redact(text).slice(0, 160) };
   const name = text.match(/\b(?:my (?:business|company) is called|we(?:'re| are) called|trading as|business name is)\s+([^.!?,;\n]{2,65})/i);
   if (name && cleanCapture(name[1])) fields.businessName = evidence(cleanCapture(name[1]), "owner_statement");
   const area = text.match(/\b(?:based (?:in|around)|cover(?:ing)?|serv(?:e|ing) (?:the )?(?:area of )?|work(?:ing)? (?:in|around))\s+([^.!?,;\n]{2,75})/i);
@@ -45,7 +48,12 @@ function extractConversationTurn(input) {
     ["photography", /\bphotograph(?:er|y|ers)\b/i],
     ["accounting", /\baccountan(?:t|ts|cy)\b|\bbookkeep(?:er|ing|ers)\b/i]
   ];
-  const suggestions = categories.filter(([, pattern]) => pattern.test(text)).map(([value]) => ({
+  const suggestions = categories.filter(([, pattern]) => {
+    const match = pattern.exec(text);
+    if (!match) return false;
+    const leading = text.slice(Math.max(0, match.index - 32), match.index);
+    return !/(?:\b(?:not|never|don't|do not|isn't|aren't|no longer)\s+(?:an?\s+|in\s+|doing\s+|offering\s+)?|\b(?:used to|previously)\s+(?:do\s+|offer\s+)?)[^.!?]{0,15}$/i.test(leading);
+  }).map(([value]) => ({
     field: "businessType", value, confidence: "inferred", approved: false,
     explanation: "Suggested from the owner's words; confirmation required."
   }));
