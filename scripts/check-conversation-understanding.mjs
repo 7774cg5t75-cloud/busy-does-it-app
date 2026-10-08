@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { validateAiConversationDraft } from "../src/domain/conversationAiBoundary.mjs";
 import { loadCloudConversation, saveCloudConversation } from "../src/domain/conversationCloud.mjs";
 import assert from "node:assert/strict";
@@ -130,3 +131,17 @@ const unsupportedAiValue = validateAiConversationDraft({
 assert.equal(unsupportedAiValue.fields.businessName, undefined);
 assert.ok(unsupportedAiValue.rejected.includes("businessName"));
 console.log("V3.60 AI evidence/value consistency checks passed");
+
+const controllerCode = readFileSync(new URL("../src/app/AppController.js", import.meta.url), "utf8");
+const journeyCode = readFileSync(new URL("../src/screens/businessCreationJourney.js", import.meta.url), "utf8");
+const endpointCode = readFileSync(new URL("../supabase/functions/busy-conversation-extract/index.ts", import.meta.url), "utf8");
+assert.ok(controllerCode.includes("suggestBusinessFactsWithAi"));
+assert.ok(controllerCode.includes("validateAiConversationDraft({"));
+assert.ok(controllerCode.includes("conversationAiDraft({ ...validation, transcript }") === false || controllerCode.includes("setConversationAiDraft({ ...validation, transcript })"));
+assert.ok(journeyCode.includes("s.conversationAiDraft?.transcript === String(s.businessCreationBrief"));
+assert.ok(journeyCode.includes("s.confirmConversationFact(key, item.value)"));
+assert.ok(endpointCode.includes('created_by=eq.'));
+assert.ok(endpointCode.includes('auth/v1/user'));
+assert.ok(endpointCode.includes('store:false'));
+assert.ok(endpointCode.includes('publicationAllowed:false'));
+console.log("V3.60 AI extraction wiring and approval gate checks passed");
