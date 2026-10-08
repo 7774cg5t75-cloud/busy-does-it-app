@@ -18,9 +18,11 @@ function prepareSource(source) {
   return source
     // Snack bundles .js files; convert relative .mjs imports only in the preview.
     .replace(/(\.{1,2}\/[^"\'\s]+)\.mjs(?=["\'])/g, "$1.js")
+    // Expo Go preview: do not bundle device-calendar native integration.
+    // The real application still uses expo-calendar/legacy in development builds.
     .replaceAll(
       'import * as Calendar from "expo-calendar/legacy";',
-      'import * as Calendar from "expo-calendar";'
+      'import * as Calendar from "../preview/calendarUnavailable";'
     )
     .replaceAll(
       "process.env.EXPO_PUBLIC_BUSY_AI_URL",
@@ -33,7 +35,21 @@ function prepareSource(source) {
 }
 
 const sourcePaths = ["BusyDoesItApp.js", ...collectJsFiles("src")];
+const calendarPreviewShim = `// Expo Go-only: device calendar integration requires the native development build.
+export const EntityTypes = { EVENT: "event" };
+export const isAvailableAsync = async () => false;
+const unavailable = async () => { throw new Error("Device calendar sync requires a BUSY DOES IT development build."); };
+export const requestCalendarPermissionsAsync = unavailable;
+export const getCalendarsAsync = unavailable;
+export const getEventAsync = unavailable;
+export const updateEventAsync = unavailable;
+export const createEventAsync = unavailable;
+export const deleteEventAsync = unavailable;
+export const getEventsAsync = unavailable;
+`;
+
 const files = {};
+files["src/preview/calendarUnavailable.js"] = { type: "CODE", contents: calendarPreviewShim };
 
 for (const sourcePath of sourcePaths) {
   const prepared = prepareSource(fs.readFileSync(sourcePath, "utf8"));
@@ -55,6 +71,7 @@ const version = pkg.version || "preview";
 const branch = process.env.GITHUB_REF_NAME || `v${version}`;
 
 const snack = new Snack({
+  sdkVersion: "54.0.0",
   name: `Busy Does It v${version.replace(/^0\./, "0.")}`,
   description: `Auto-generated preview from the ${branch} GitHub branch`,
   files,
@@ -64,11 +81,17 @@ const snack = new Snack({
     "expo-audio": { version: "1.1.1" },
     "expo-secure-store": { version: "15.0.8" },
     "expo-notifications": { version: "0.32.17" },
-    "expo-calendar": { version: "~15.0.3" },
+    // expo-calendar is deliberately absent: it is unavailable in this Snack preview.
     "expo-constants": { version: "18.0.14" },
   },
 });
 
+if (!files["src/app/AppController.js"]?.contents.includes("../preview/calendarUnavailable")) {
+  throw new Error("Preview calendar adapter is not connected.");
+}
+if (Object.values(files).some(file => /from\s*["']expo-calendar(?:\/legacy)?["']/.test(file.contents))) {
+  throw new Error("Native calendar import unexpectedly included in Snack.");
+}
 const result = await snack.saveAsync({ ignoreUser: true });
 
 const payload = {
