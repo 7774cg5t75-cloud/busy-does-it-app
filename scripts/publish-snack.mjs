@@ -24,6 +24,7 @@ function prepareSource(source) {
       'import * as Calendar from "expo-calendar/legacy";',
       'import * as Calendar from "../preview/calendarUnavailable";'
     )
+    .replaceAll('from "expo-audio"', 'from "../preview/audioUnavailable"')
     .replaceAll(
       "process.env.EXPO_PUBLIC_BUSY_AI_URL",
       JSON.stringify(process.env.EXPO_PUBLIC_BUSY_AI_URL || "")
@@ -48,7 +49,22 @@ export const deleteEventAsync = unavailable;
 export const getEventsAsync = unavailable;
 `;
 
+const audioPreviewShim = `import React from "react";
+// Voice recording is not available in this Expo Go-only preview.
+export const RecordingPresets = { HIGH_QUALITY: {} };
+export const AudioModule = { requestRecordingPermissionsAsync: async () => ({ granted: false }) };
+export const setAudioModeAsync = async () => {};
+export const useAudioRecorder = () => React.useMemo(() => ({
+  uri: null,
+  prepareToRecordAsync: async () => { throw new Error("Voice recording requires a BUSY DOES IT development build."); },
+  record: () => {},
+  stop: async () => {},
+}), []);
+export const useAudioRecorderState = () => ({ isRecording: false, durationMillis: 0 });
+`;
+
 const files = {};
+files["src/preview/audioUnavailable.js"] = { type: "CODE", contents: audioPreviewShim };
 files["src/preview/calendarUnavailable.js"] = { type: "CODE", contents: calendarPreviewShim };
 
 for (const sourcePath of sourcePaths) {
@@ -78,7 +94,7 @@ const snack = new Snack({
   dependencies: {
     "@react-native-async-storage/async-storage": { version: "2.2.0" },
     "expo-image-picker": { version: "17.0.11" },
-    "expo-audio": { version: "1.1.0" },
+    // Voice recording uses the Expo Go preview adapter, not expo-audio.
     "expo-secure-store": { version: "15.0.8" },
     "expo-notifications": { version: "0.32.17" },
     // expo-calendar is deliberately absent: it is unavailable in this Snack preview.
@@ -86,6 +102,12 @@ const snack = new Snack({
   },
 });
 
+if (!files["src/screens/talk.js"]?.contents.includes("../preview/audioUnavailable")) {
+  throw new Error("Preview voice adapter is not connected.");
+}
+if (Object.values(files).some(file => /from\s*["\']expo-audio["\']/.test(file.contents))) {
+  throw new Error("Native audio import unexpectedly included in Snack.");
+}
 if (!files["src/app/AppController.js"]?.contents.includes("../preview/calendarUnavailable")) {
   throw new Error("Preview calendar adapter is not connected.");
 }
