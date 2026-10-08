@@ -20,6 +20,8 @@ function confirmedServices(approved = {}) {
   const seen = new Set();
   const results = [];
   for (const candidate of approved.services.slice(0, 100)) {
+    // Even inside a shared profile, explicitly pending/draft services stay excluded.
+    if (candidate?.approved === false || candidate?.status === "draft" || candidate?.status === "pending") continue;
     const name = asText(candidate?.name).slice(0, 120);
     if (!name || seen.has(normalized(name))) continue;
     seen.add(normalized(name));
