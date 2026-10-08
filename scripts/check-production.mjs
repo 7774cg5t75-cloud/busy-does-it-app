@@ -89,7 +89,7 @@ const checks = [
   ["EAS link workflow", fs.existsSync(".github/workflows/eas-link.yml")],
   ["native development build workflow", fs.existsSync(".github/workflows/native-development-build.yml")],
   ["SDK57 calendar legacy import", controllerSource.includes('import * as Calendar from "expo-calendar/legacy";')],
-  ["SDK54 Snack calendar rewrite", snackPublisherSource.includes('expo-calendar/legacy') && snackPublisherSource.includes('expo-calendar";')],
+  ["SDK54 Snack calendar isolation", snackPublisherSource.includes('expo-calendar/legacy') && snackPublisherSource.includes('../preview/calendarUnavailable') && snackPublisherSource.includes('sdkVersion: "54.0.0"') && !snackPublisherSource.includes('"expo-calendar": { version:')],
   ["V3.55 public website origin", fs.existsSync("supabase/functions/busy-website-origin/index.ts")],
   ["V3.55 Cloudflare router Worker", fs.existsSync("cloudflare/busy-website-router/worker.js")],
   ["website origin is public edge function", supabaseConfigSource.includes("[functions.busy-website-origin]") && supabaseConfigSource.includes("verify_jwt = false")],
