@@ -7,7 +7,7 @@
 - Adds a bounded approved-only handoff contract for website, Business App and social draft creation. Publishing still requires independent approval.
 - Extends deterministic automated tests for conflicting facts, non-approval of inferred claims, inline statement boundaries, PII redaction in excerpts and approved handoff limits.
 - Remaining before release: authenticated tenant-scoped cloud conversation persistence and cross-device syncing, schema-constrained AI extraction, end-to-end device testing, and validation of actual builder payload propagation.
-- A revision-safe authenticated REST cloud-draft client is implemented in `src/domain/conversationCloud.mjs` with conflict detection and scope validation, but is not yet called by the mobile app or tested against a deployed table.\n- A proposed RLS-protected per-owner cloud checkpoint schema is now included at `docs/V3_60_CONVERSATION_STORAGE_PROPOSAL.sql` for review; it is **not deployed** or wired to a cloud API yet.\n- Production database schema and deployed functions remain unchanged by this branch.
+- A revision-safe authenticated REST cloud-draft client is implemented in `src/domain/conversationCloud.mjs` with conflict detection and scope validation, and is now wired to explicit manual Load/Save controls in the development business-creation screen. The table is still not deployed, so the controls fail safely until schema verification.\n- A proposed RLS-protected per-owner cloud checkpoint schema is now included at `docs/V3_60_CONVERSATION_STORAGE_PROPOSAL.sql` for review; it is **not deployed** or wired to a cloud API yet.\n- Production database schema and deployed functions remain unchanged by this branch.
 
 
 ## v3.55 Business App Builder 2.0 — Complete App Journey
