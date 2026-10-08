@@ -1,3 +1,4 @@
+import { loadCloudConversation, saveCloudConversation } from "../src/domain/conversationCloud.mjs";
 import assert from "node:assert/strict";
 import { extractConversationTurn, reviewConversation, buildApprovedCreationHandoff } from "../src/domain/conversationUnderstanding.mjs";
 const first = extractConversationTurn("My business is called Acme Services. We're based in Exeter. I do plumbing.");
@@ -37,3 +38,25 @@ assert.equal(handoff.unconfirmedConversationIncluded, false);
 assert.equal(handoff.requiresSeparatePublicationApproval, true);
 assert.ok(!("publish" in handoff.facts));
 console.log("V3.60 conversation understanding tests passed");
+
+const scope = {
+  businessId:"11111111-1111-4111-8111-111111111111",
+  userId:"22222222-2222-4222-8222-222222222222",
+  accessToken:"test-token",publishableKey:"test-publishable",
+  supabaseUrl:"https://example.supabase.co"
+};
+const calls=[];
+const mocked = async (url, options) => {
+  calls.push({url, options});
+  return {ok:true,status:200,json:async()=> options.method==="PATCH" ? [] : [{brief:"private note",revision:2}]};
+};
+const loaded=await loadCloudConversation({...scope,fetchImpl:mocked});
+assert.equal(loaded.revision,2);
+const conflict=await saveCloudConversation({...scope,brief:"draft",revision:2,fetchImpl:mocked});
+assert.equal(conflict.saved,false);
+assert.equal(conflict.conflict,true);
+assert.ok(calls[1].url.includes("revision=eq.2"));
+assert.equal(JSON.parse(calls[1].options.body).revision,3);
+await assert.rejects(()=>loadCloudConversation({...scope,businessId:"wrong",fetchImpl:mocked}));
+assert.equal(calls.length,2);
+console.log("V3.60 cloud draft transport checks passed");
