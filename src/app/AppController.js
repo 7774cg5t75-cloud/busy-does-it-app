@@ -2297,6 +2297,34 @@ function App() {
     }
   };
 
+  // V3.69: server-enforced founder-only aggregate reporting. No admin key in mobile app.
+  const fetchFounderOperations = async () => {
+    const ownerId=ownerSession?.userId||"";
+    const token=await ownerAccessToken();
+    if(!ownerId||!token)throw Error("A signed-in BUSY account is required.");
+    const response=await fetchWithTimeout(
+      BUSY_SUPABASE_URL+"/functions/v1/busy-founder-ops",{
+        method:"POST",
+        headers:{
+          apikey:BUSY_AI_TOKEN,
+          Authorization:"Bearer "+token,
+          "Content-Type":"application/json",
+        },
+        body:JSON.stringify({action:"summary"}),
+      },20000
+    );
+    if(!response.ok){
+      const error=new Error(response.status===403
+        ?"Founder role not enabled":"Secure founder reporting unavailable");
+      error.status=response.status;
+      throw error;
+    }
+    const result=await response.json();
+    if(!result||result.scope!=="platform_aggregate"||result.privacy!=="aggregate_only")
+      throw Error("Invalid founder aggregate reporting response.");
+    return result;
+  };
+
   const signInOwner = async () => {
     const email = normalizeEmail(ownerEmail);
     if (!email || !email.includes("@")) {
@@ -15229,6 +15257,7 @@ function App() {
     keepBusyGoogleCalendarTime,
     useGoogleCalendarTime,
     refreshProductionWatchStatus,
+    fetchFounderOperations,
     maskPushToken,
     openReleaseCoreIssue,
     openExecutivePriority,
