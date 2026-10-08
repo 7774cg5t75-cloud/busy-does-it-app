@@ -11,7 +11,7 @@ const bounded = value => String(value || "").trim().slice(0,320);
 const PROJECT = /\b(growth|project|launch|business builder|business creation|new service|service rollout)\b/i;
 const FOLLOWUP = /\b(that project|this project|it again|the (website|app|social) (draft|wording|copy)|show me (the |its )?(website|app|social) (draft|wording|copy))\b/i;
 const INTENT = /\b(where are we|what(?:'s| is) left|what(?:'s| is) next|what needs|status|progress|update|continue|resume|carry on|pick up|open|show|review|approv|finish|ready|done|completed|prepared)\b/i;
-const FORBIDDEN = /\b(publish|post now|go live|launch now|send out|delete|remove|release live|schedule now|make live)\b/i;
+const FORBIDDEN = /\b(publish|post now|go live|launch now|launch (my|the) .* now|send out|delete|remove|release live|schedule now|make live)\b/i;
 const CHANNELS = [
   {id:"website",regex:/\b(website|web page|webpage|site copy|site wording)\b/i},
   {id:"business_app",regex:/\b(customer app|business app|mini app|mobile app)\b/i},
