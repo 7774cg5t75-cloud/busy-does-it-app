@@ -32,6 +32,9 @@ const snack=new Snack({
     "expo-notifications":{version:"0.32.17"},
     "expo-calendar":{version:"15.0.8"},
     "expo-constants":{version:"18.0.14"},
+    // Business App QR rendering uses both libraries (Expo Go + SDK54).
+    "react-native-qrcode-svg":{version:"6.3.15"},
+    "react-native-svg":{version:"15.12.1"},
   },
 });
 const result=await snack.saveAsync({ignoreUser:true});
