@@ -4,9 +4,15 @@ import { Text } from "react-native";
 import { styles } from "../theme/styles";
 import { Shell, Card, Button, Field, MetricRow } from "../components/ui";
 import { miniAppModuleLabel } from "../domain/miniApps";
+import { reviewConversation } from "../domain/conversationUnderstanding.mjs";
 
 function BusinessCreationJourney({ s }) {
   const journey = s.businessCreationJourney || {};
+  const conversationReview = reviewConversation({
+    turns: [s.businessCreationBrief],
+    approved: s.businessCreationIntelligence?.sharedProfile || {},
+  });
+  const proposedFacts = Object.entries(conversationReview.draft);
   const steps = Array.isArray(journey.steps) ? journey.steps : [];
   const appModules = Array.isArray(journey.recommendedAppModules) ? journey.recommendedAppModules : [];
   const websiteSections = Array.isArray(journey.recommendedWebsiteSections) ? journey.recommendedWebsiteSections : [];
@@ -44,6 +50,25 @@ function BusinessCreationJourney({ s }) {
         />
         <Button label="Describe it by voice" disabled={!!s.businessCreationAction} onPress={s.describeBusinessCreationByVoice} />
       </Card>
+
+      {String(s.businessCreationBrief || "").trim() ? (
+        <Card
+          eyebrow="V3.60 • conversation understanding (preview)"
+          title="What BUSY heard from your description"
+          body="These are unconfirmed suggestions only. Nothing here changes the shared business profile or publishes anything. Confirm important details through the existing questions below."
+          tone="blue"
+        >
+          {proposedFacts.map(([key, item]) => (
+            <MetricRow key={key} left={key} right={String(item.value || "").slice(0, 72)} />
+          ))}
+          {conversationReview.suggestions.map((item) => (
+            <MetricRow key={item.value} left="Possible industry (unconfirmed)" right={item.value} />
+          ))}
+          {conversationReview.nextQuestion ? (
+            <Text style={styles.sectionLabel}>Suggested next question: {conversationReview.nextQuestion.question}</Text>
+          ) : null}
+        </Card>
+      ) : null}
 
       {nextQuestion ? (
         <Card
