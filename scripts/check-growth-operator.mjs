@@ -64,6 +64,7 @@ assert.equal(website.kind,"open_project");
 assert.equal(website.channel,"website");
 assert.ok(website.message.includes("private"));
 assert.equal(withFocus("What about the website?").kind,"summary");
+assert.equal(withFocus("Which drafts need my approval?").handled,true);
 assert.equal(state("Open that project").kind,"clarify");
 assert.equal(state("Where are we with all my growth projects?").handled,true);
 assert.equal(state("What is left to do?").handled,false); // generic daily task not stolen
