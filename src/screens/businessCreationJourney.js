@@ -144,45 +144,63 @@ function BusinessCreationJourney({ s }) {
   };
 
 
-  const handOffGrowthCopy = (target) => {
-    if (!isCurrentGrowthDraftPack(growthDraftPack, candidateDraftPack)) {
-      setGrowthDraftNotice("These drafts are out of date. Prepare a fresh pack from the latest confirmed business details.");
+  const handOffGrowthCopy = async (target) => {
+    if(growthCloudBusy)return;
+    if(!isCurrentGrowthDraftPack(growthDraftPack,candidateDraftPack) || projectStale){
+      setGrowthDraftNotice("Confirmed facts changed. Review the current project again before handing off.");
       return;
     }
-    if(!activeProject||projectStale||activeProject.items.find(i=>i.target===target)?.status!=="reviewed"){
-      setGrowthDraftNotice("Review this exact current draft before handing it to a private editor.");return;
-    }
-    const item = growthDraftPack.items.find(entry => entry.target === target);
-    if (!item || item.status !== "editable_draft" || !String(item.text || "").trim()) {
-      setGrowthDraftNotice("Review and fill in the available draft text before handing it off.");
+    const item=growthDraftPack.items.find(entry=>entry.target===target);
+    const updated=activeProject && markGrowthHandedOff(activeProject,target,candidateDraftPack);
+    if(!updated || !item || item.status!=="editable_draft" || !String(item.text||"").trim() ||
+       activeProject.items.find(i=>i.target===target)?.text!==item.text){
+      setGrowthDraftNotice("Mark this exact current wording Reviewed before handing it to a private editor.");
       return;
     }
-    if (target === "website") {
-      const result = applyCoordinatedWebsiteCopy({
-        draft: s.websiteDraft,
-        approved: approvedProfile,
-        serviceName: growthDraftPack.serviceName,
-        text: item.text,
-      });
-      setGrowthDraftNotice(result.reason);
-      if (!result.applied) return;
-      s.setWebsiteDraft(result.draft);
-    } else if (target === "business_app") {
-      // The planner must still review the instruction. This does NOT create a
-      // live app, enable modules or issue an external publishing request.
-      s.setMiniAppBuildBrief(item.text);
-      s.openMiniAppBuilder();
-    } else if (target === "social") {
-      // A brief is deliberately NOT a saved, scheduled or published social post.
-      s.startSocialFromPhone();
-      s.setSocialBrief(item.text);
-    } else return;
-    setGrowthProject(current => markGrowthHandedOff(current,target,candidateDraftPack)||current);
-    setGrowthDraftPack(current => current ? {
-      ...current,
-      items: current.items.map(entry => entry.target === target ? {...entry, handedOff: true} : entry),
-    } : current);
-    if (target === "website") setGrowthDraftNotice("Private website draft updated. Check the website preview before any Go Live approval.");
+    // Check that the existing private website editor can accept the change
+    // *before* writing a 'handed_off' cloud checkpoint.
+    const websiteResult=target==="website" ? applyCoordinatedWebsiteCopy({
+      draft:s.websiteDraft,approved:approvedProfile,
+      serviceName:growthDraftPack.serviceName,text:item.text,
+    }) : null;
+    if(websiteResult && !websiteResult.applied){
+      setGrowthDraftNotice(websiteResult.reason);
+      return;
+    }
+    const scope=growthScope;
+    setGrowthCloudBusy(true);
+    try{
+      const args=await s.growthProjectCloudArgs();
+      if(scope!==currentGrowthScopeRef.current ||
+         args.userId!==s.ownerSession?.userId || args.businessId!==s.cloudWorkspace?.businessId)return;
+      const result=await saveGrowthProject(args,updated,growthCloudRevision);
+      if(scope!==currentGrowthScopeRef.current)return;
+      if(!result.saved){
+        setGrowthDraftNotice(result.reason||"Private checkpoint was not saved. No handoff occurred.");
+        return;
+      }
+      setGrowthCloudRevision(result.revision);
+      setGrowthProject(updated);
+      setGrowthDraftPack(current=>current ? {
+        ...current,items:current.items.map(entry=>entry.target===target?{...entry,handedOff:true}:entry),
+      }:current);
+      if(target==="website"){
+        s.setWebsiteDraft(websiteResult.draft);
+        setGrowthDraftNotice("Private website draft updated, and progress saved. Check the preview; nothing is public.");
+      }else if(target==="business_app"){
+        s.setMiniAppBuildBrief(item.text);
+        s.openMiniAppBuilder();
+      }else if(target==="social"){
+        s.startSocialFromPhone();
+        s.setSocialBrief(item.text);
+      }
+      setGrowthCloudNotice("Private handoff progress saved. No channel has been published.");
+    }catch(e){
+      if(scope===currentGrowthScopeRef.current)
+        setGrowthDraftNotice("Cloud checkpoint unavailable. No handoff performed; device edits remain intact.");
+    }finally{
+      if(scope===currentGrowthScopeRef.current)setGrowthCloudBusy(false);
+    }
   };
   const readiness = assessBusinessCreationReadiness({approved:s.businessCreationIntelligence?.sharedProfile || {},ai:s.conversationAiDraft || {}});
   const steps = Array.isArray(journey.steps) ? journey.steps : [];
@@ -321,7 +339,7 @@ function BusinessCreationJourney({ s }) {
                 <Field
                   label={item.label + " wording"}
                   value={item.text}
-                  onChangeText={text => editWorkspaceCopy(item.target,text)}
+                  onChangeText={text => {if(!growthCloudBusy)editWorkspaceCopy(item.target,text);}}
                   multiline
                 />
                 <Button
