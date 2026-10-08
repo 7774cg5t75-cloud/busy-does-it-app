@@ -18,6 +18,7 @@ import * as MiniAppsScreens from "./miniApps";
 import * as BusinessCreationJourneyScreens from "./businessCreationJourney";
 import * as GrowthCommandCentreScreens from "./growthCommandCentre";
 import * as BusinessActivityCentreScreens from "./businessActivityCentre";
+import * as SelfRunningOperationsScreens from "./selfRunningOperations";
 import * as WorkScreens from "./work";
 import * as IntakeScreens from "./intake";
 import * as CustomersScreens from "./customers";
@@ -45,6 +46,7 @@ export * from "./miniApps";
 export * from "./businessCreationJourney";
 export * from "./growthCommandCentre";
 export * from "./businessActivityCentre";
+export * from "./selfRunningOperations";
 export * from "./work";
 export * from "./intake";
 export * from "./customers";
@@ -73,6 +75,7 @@ const allScreens = {
   ...BusinessCreationJourneyScreens,
   ...GrowthCommandCentreScreens,
   ...BusinessActivityCentreScreens,
+  ...SelfRunningOperationsScreens,
   ...WorkScreens,
   ...IntakeScreens,
   ...CustomersScreens,
@@ -117,6 +120,7 @@ const {
   BusinessCreationJourney,
   GrowthCommandCentre,
   BusinessActivityCentre,
+  SelfRunningOperations,
   WorkHub,
   WorkCalendar,
   WorkPipeline,
@@ -240,6 +244,7 @@ export const screens = {
   businessCreationJourney: BusinessCreationJourney,
   growthCommandCentre: GrowthCommandCentre,
   businessActivityCentre: BusinessActivityCentre,
+  selfRunningOperations: SelfRunningOperations,
   workHub: WorkHub,
   workCalendar: WorkCalendar,
   workPipeline: WorkPipeline,
