@@ -899,6 +899,16 @@ function HomeScreen({ s }) {
 
 
       <Card
+        eyebrow="V3.67 • Verified Business Activity"
+        title="Know what genuinely finished"
+        body="Check provider-recorded website deployments, customer Business App releases and social publishing results in one read-only activity timeline. Failed destinations remain separate."
+        footer="BUSY does not mistake a draft, scheduled item or private editor handoff for a live result."
+        tone="blue"
+      >
+        <Button label="Open verified activity & results" onPress={() => s.go("businessActivityCentre")} />
+      </Card>
+
+      <Card
         eyebrow="V3.65 • Business Growth Command Centre"
         title="Pick up your business growth projects"
         body="See the next private-draft step across your saved website, customer app and social media work. BUSY can help you resume without mistaking a saved draft for something published."
