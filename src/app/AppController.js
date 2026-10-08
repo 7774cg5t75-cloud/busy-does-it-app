@@ -297,6 +297,7 @@ function App() {
   const [miniAppBuildBrief, setMiniAppBuildBrief] = useState("");
   const [businessCreationBrief, setBusinessCreationBrief] = useState("");
   const [growthProjectFocus, setGrowthProjectFocus] = useState("");
+  const [growthProjectTarget, setGrowthProjectTarget] = useState("");
   const [conversationResumeReady, setConversationResumeReady] = useState("");
   const [conversationResumeNotice, setConversationResumeNotice] = useState("");
   const [conversationCloudRevision, setConversationCloudRevision] = useState(null);
@@ -11689,6 +11690,7 @@ function App() {
        result.growthBusinessId===cloudWorkspace?.businessId){
       // Navigation only; saved drafts are loaded explicitly in their workspace.
       setGrowthProjectFocus(result.growthProjectName);
+      setGrowthProjectTarget(result.growthProjectTarget || "");
       setTab("Home");
       go("businessCreationJourney");
       setBusyCommandResult({...result,applied:true,actionLabel:""});
@@ -12035,6 +12037,7 @@ function App() {
           return false;
         }
         setGrowthProjectFocus(command.growthProjectName);
+        setGrowthProjectTarget(command.growthProjectTarget || "");
         setTab("Home");
         go("businessCreationJourney");
         markBusyCommandApplied(command,"Private growth workspace opened",
@@ -15327,6 +15330,8 @@ function App() {
     growthProjectCloudArgs: conversationCloudArgs,
     growthProjectFocus,
     setGrowthProjectFocus,
+    growthProjectTarget,
+    setGrowthProjectTarget,
     cloudInitialised,
     cloudInitialising,
     cloudSyncStatus,
