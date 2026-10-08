@@ -1,0 +1,25 @@
+name: V3.69 Founder Operations Security
+on:
+  push:
+    branches: [v3.69]
+  pull_request:
+    paths:
+      - "supabase/functions/busy-founder-ops/**"
+      - "supabase/config.toml"
+      - "src/screens/founderOperations.js"
+      - "src/app/AppController.js"
+      - "scripts/check-founder-operations.mjs"
+      - ".github/workflows/check-founder-operations.yml"
+  workflow_dispatch:
+jobs:
+  founder-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node scripts/check-self-running-operations.mjs
+      - run: node scripts/check-verified-activity.mjs
+      - run: node scripts/check-growth-operator.mjs
+      - run: node scripts/check-founder-operations.mjs
