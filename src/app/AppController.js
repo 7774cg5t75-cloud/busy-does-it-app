@@ -13514,6 +13514,7 @@ function App() {
         { method: "POST", headers: { Authorization: "Bearer " + args.accessToken, apikey: BUSY_AI_TOKEN, "Content-Type":"application/json" },
           body: JSON.stringify({ businessId:args.businessId, transcript }) }, 20000
       );
+      if (response.status === 429) { setConversationAiNotice("Daily AI review limit reached (20 per business owner). Try again tomorrow or review manually."); return false; }
       if (!response.ok) throw new Error("AI extraction unavailable");
       const raw = await response.json();
       if (scope !== String(ownerSession?.userId || "") + ":" + String(cloudWorkspace?.businessId || "") ||
