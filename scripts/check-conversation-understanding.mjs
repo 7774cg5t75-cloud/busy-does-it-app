@@ -68,3 +68,11 @@ assert.equal(failingCreate.saved,false);
 assert.equal(failingCreate.conflict,false);
 assert.equal(failingCreate.errorCode,"create_failure");
 console.log("V3.60 cloud error classification checks passed");
+
+const duplicateCreate = await saveCloudConversation({
+  ...scope, brief:"private", fetchImpl:async () => ({ok:false,status:409})
+});
+assert.equal(duplicateCreate.saved,false);
+assert.equal(duplicateCreate.conflict,true);
+assert.equal(duplicateCreate.errorCode,"create_conflict");
+console.log("V3.60 cloud duplicate revision protection tests passed");
