@@ -174,6 +174,7 @@ import { buildBrandBrain } from "../domain/brandBrain";
 import { buildBusinessCreationIntelligence } from "../domain/businessCreationIntelligence";
 import { buildBusinessCreationJourney, nextBestBusinessCreationQuestion } from "../domain/businessCreationJourney";
 import { reviewConversation, buildApprovedCreationHandoff } from "../domain/conversationUnderstanding.mjs";
+import { loadCloudConversation, saveCloudConversation } from "../domain/conversationCloud.mjs";
 import { buildWebsiteDraft, applyWebsiteInstruction } from "../domain/websiteBuilder";
 import { buildWebsitePublishingView } from "../domain/websitePublishing";
 import {
@@ -293,6 +294,9 @@ function App() {
   const [businessCreationBrief, setBusinessCreationBrief] = useState("");
   const [conversationResumeReady, setConversationResumeReady] = useState("");
   const [conversationResumeNotice, setConversationResumeNotice] = useState("");
+  const [conversationCloudRevision, setConversationCloudRevision] = useState(null);
+  const [conversationCloudScope, setConversationCloudScope] = useState("");
+  const [conversationCloudBusy, setConversationCloudBusy] = useState(false);
 
   const [businessCreationAction, setBusinessCreationAction] = useState("");
   const [businessCreationNotice, setBusinessCreationNotice] = useState("");
@@ -13421,6 +13425,75 @@ function App() {
     return () => clearTimeout(timer);
   }, [conversationResumeKey, conversationResumeReady, businessCreationBrief]);
 
+  const conversationCloudArgs = async () => {
+    const accessToken = await ownerAccessToken();
+    const businessId = String(cloudWorkspace?.businessId || "");
+    const userId = String(ownerSession?.userId || "");
+    if (!businessId || !userId || !accessToken) throw new Error("Sign in and select your business to sync.");
+    return { businessId, userId, accessToken, publishableKey: BUSY_AI_TOKEN, supabaseUrl: BUSY_SUPABASE_URL };
+  };
+  const loadConversationFromCloud = async () => {
+    if (conversationCloudBusy) return false;
+    setConversationCloudBusy(true);
+    try {
+      const args = await conversationCloudArgs();
+      const scoped = args.userId + ":" + args.businessId;
+      const record = await loadCloudConversation(args);
+      if (scoped !== String(ownerSession?.userId || "") + ":" + String(cloudWorkspace?.businessId || "")) return false;
+      if (!record) {
+        setConversationCloudRevision(null);
+        setConversationCloudScope(scoped);
+        setConversationResumeNotice("No cloud conversation found for this business. Your device draft was left unchanged.");
+        return true;
+      }
+      if (String(businessCreationBrief || "").trim() && businessCreationBrief !== record.brief) {
+        setConversationResumeNotice("This device has different text. Clear the device draft before loading cloud text to avoid overwriting it.");
+        return false;
+      }
+      setBusinessCreationBrief(String(record.brief || "").slice(0, 1000));
+      setConversationCloudRevision(record.revision);
+      setConversationCloudScope(scoped);
+      setConversationResumeNotice("Private cloud draft loaded for this business.");
+      return true;
+    } catch (error) {
+      setConversationResumeNotice("Cloud sync unavailable. Your private device draft is still saved locally.");
+      return false;
+    } finally { setConversationCloudBusy(false); }
+  };
+  const saveConversationToCloud = async () => {
+    if (conversationCloudBusy) return false;
+    setConversationCloudBusy(true);
+    try {
+      const args = await conversationCloudArgs();
+      const scoped = args.userId + ":" + args.businessId;
+      // An unknown server revision must first be checked, not overwritten.
+      if (conversationCloudScope !== scoped) {
+        const existing = await loadCloudConversation(args);
+        if (existing) {
+          setConversationCloudRevision(existing.revision);
+          setConversationCloudScope(scoped);
+          setConversationResumeNotice("A cloud draft already exists. Review it before saving to avoid overwriting newer work.");
+          return false;
+        }
+      }
+      const result = await saveCloudConversation({
+        ...args, brief: businessCreationBrief,
+        revision: conversationCloudScope === scoped ? conversationCloudRevision : null,
+      });
+      if (!result.saved) {
+        setConversationResumeNotice(result.reason || "Cloud draft conflict. Nothing was overwritten.");
+        return false;
+      }
+      setConversationCloudScope(scoped);
+      setConversationCloudRevision(result.record?.revision || 1);
+      setConversationResumeNotice("Private draft saved to your business cloud.");
+      return true;
+    } catch (error) {
+      setConversationResumeNotice("Cloud sync unavailable. Your private device draft is still saved locally.");
+      return false;
+    } finally { setConversationCloudBusy(false); }
+  };
+
   const openBusinessCreationJourney = () => {
     setTab("Home");
     go("businessCreationJourney");
@@ -14739,6 +14812,9 @@ function App() {
     setBusinessCreationBrief,
     conversationResumeReady,
     conversationResumeNotice,
+    conversationCloudBusy,
+    loadConversationFromCloud,
+    saveConversationToCloud,
     businessCreationAnswer,
     setBusinessCreationAnswer,
     businessCreationConversationActive,
