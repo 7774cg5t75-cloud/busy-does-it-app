@@ -13474,9 +13474,11 @@ function App() {
       if (conversationCloudScope !== scoped) {
         const existing = await loadCloudConversation(args);
         if (existing) {
-          setConversationCloudRevision(existing.revision);
-          setConversationCloudScope(scoped);
-          setConversationResumeNotice("A cloud draft already exists. Review it before saving to avoid overwriting newer work.");
+          // Do not arm an existing revision merely by detecting it. An owner must
+          // explicitly load that cloud draft before future saves may update it.
+          setConversationCloudRevision(null);
+          setConversationCloudScope("");
+          setConversationResumeNotice("A different cloud draft exists. Load and review it before saving. Repeated Save taps cannot overwrite it.");
           return false;
         }
       }
