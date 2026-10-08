@@ -43,7 +43,9 @@ async function saveCloudConversation(args) {
       });
       return { saved: true, record: rows?.[0] || null };
     } catch (error) {
-      return error?.status === 409\n        ? { saved: false, conflict: true, reason: "A cloud draft already exists. Load it before attempting another save.", errorCode: "create_conflict" }\n        : { saved: false, conflict: false, reason: "Cloud save failed. Check database availability or access and retry.", errorCode: "create_failure" };
+      return error?.status === 409
+        ? { saved: false, conflict: true, reason: "A cloud draft already exists. Load it before attempting another save.", errorCode: "create_conflict" }
+        : { saved: false, conflict: false, reason: "Cloud save failed. Check database availability or access and retry.", errorCode: "create_failure" };
     }
   }
   if (!Number.isSafeInteger(args.revision) || args.revision < 1) throw new Error("Invalid draft revision.");
