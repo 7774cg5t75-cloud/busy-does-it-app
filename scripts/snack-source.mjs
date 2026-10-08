@@ -30,6 +30,12 @@ function prepareSource(source, {aiUrl=process.env.EXPO_PUBLIC_BUSY_AI_URL||"",
       'import * as Calendar from "expo-calendar/legacy";',
       'import * as Calendar from "expo-calendar";'
     )
+    // Expo Go Snack SDK54 may not have react-native-svg's native module.
+    // The actual native app source is untouched; only previews get a safe link.
+    .replaceAll(
+      'import QRCode from "react-native-qrcode-svg";',
+      'import QRCode from "../components/snackQrFallback";'
+    )
     .replaceAll("process.env.EXPO_PUBLIC_BUSY_AI_URL", JSON.stringify(aiUrl))
     .replaceAll("process.env.EXPO_PUBLIC_BUSY_AI_TOKEN", JSON.stringify(aiToken))
     // Snack maps every internal *.mjs file to *.js. Rewrite imports as well.
