@@ -33,7 +33,7 @@ function BusinessCreationJourney({ s }) {
       s={s}
       title="Build my business with BUSY"
       subtitle="One guided conversation now coordinates the website, Business App and social setup, asks only the next useful question, and parks anything blocked without stopping the rest."
-      brandCue="V3.60 • confirm conversational facts • dependency handling • coordinated updates • one launch-pack review."
+      brandCue="V3.62 • confirmed Business Brain • cross-channel planning • owner approval before changes."
     >
       <Card
         eyebrow="V3.61 • confirmed information only"
