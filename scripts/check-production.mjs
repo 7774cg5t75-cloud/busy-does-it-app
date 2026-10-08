@@ -6,6 +6,7 @@ const app = readJson("app.json").expo || {};
 const eas = readJson("eas.json");
 const controllerSource = fs.readFileSync("src/app/AppController.js", "utf8");
 const snackPublisherSource = fs.readFileSync("scripts/publish-snack.mjs", "utf8");
+const snackSourceHelper = fs.readFileSync("scripts/snack-source.mjs", "utf8");
 const supabaseConfigSource = fs.readFileSync("supabase/config.toml", "utf8");
 const websiteProviderSource = fs.readFileSync("supabase/functions/busy-website-provider/index.ts", "utf8");
 const websitePublishApiSource = fs.readFileSync("supabase/functions/busy-website-publish/index.ts", "utf8");
@@ -89,7 +90,9 @@ const checks = [
   ["EAS link workflow", fs.existsSync(".github/workflows/eas-link.yml")],
   ["native development build workflow", fs.existsSync(".github/workflows/native-development-build.yml")],
   ["SDK57 calendar legacy import", controllerSource.includes('import * as Calendar from "expo-calendar/legacy";')],
-  ["SDK54 Snack calendar rewrite", snackPublisherSource.includes('expo-calendar/legacy') && snackPublisherSource.includes('expo-calendar";')],
+  ["SDK54 Snack calendar rewrite", snackSourceHelper.includes('expo-calendar/legacy') && snackSourceHelper.includes('expo-calendar";')],
+  ["Snack refuses incomplete imports", snackPublisherSource.includes("validateSnackImports(files)") && snackPublisherSource.includes("incomplete Snack module graph")],
+  ["Snack packages ESM modules", snackSourceHelper.includes("collectJsFiles") && snackSourceHelper.includes("mjs") && snackSourceHelper.includes("toSnackPath")],
   ["V3.55 public website origin", fs.existsSync("supabase/functions/busy-website-origin/index.ts")],
   ["V3.55 Cloudflare router Worker", fs.existsSync("cloudflare/busy-website-router/worker.js")],
   ["website origin is public edge function", supabaseConfigSource.includes("[functions.busy-website-origin]") && supabaseConfigSource.includes("verify_jwt = false")],
