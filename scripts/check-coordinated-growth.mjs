@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { confirmedServices, buildCoordinatedGrowthPlan } from "../src/domain/coordinatedGrowthPlan.mjs";
+import { confirmedServices, buildCoordinatedGrowthPlan, rankGrowthBlockers } from "../src/domain/coordinatedGrowthPlan.mjs";
 
 const empty=buildCoordinatedGrowthPlan({approved:{businessName:"Acme"},focusService:"Unverified"});
 assert.equal(empty.valid,false);
@@ -50,3 +50,12 @@ assert.ok(screen.includes("setGrowthServiceFocus(service.name)"));
 assert.ok(screen.includes("action.blockedBy"));
 assert.ok(screen.includes("Nothing is automatically published") || screen.includes("Nothing is published from this journey") || screen.includes("nothing or posting online"));
 console.log("V3.62 coordinated growth planning tests passed");
+
+assert.equal(missingContact.nextBlockers[0].key,"public_contact");
+assert.equal(missingContact.nextBlockers[0].impactedCount,2);
+assert.deepEqual(missingContact.nextBlockers[0].targets,["website","business_app"]);
+assert.equal(missingContact.nextBlockers[1].key,"service_area");
+assert.equal(missingContact.nextBlockers[1].impactedCount,1);
+assert.deepEqual(rankGrowthBlockers(plan.actions),[]);
+assert.ok(screen.includes("growthPlan.nextBlockers.map(blocker"));
+console.log("V3.62 multi-surface blocker prioritization checks passed");
