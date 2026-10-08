@@ -159,7 +159,7 @@ const cloudSaveGuard = controllerCode.slice(controllerCode.indexOf('const saveCo
 assert.ok(cloudSaveGuard.includes('if (conversationCloudScope !== scoped)'));
 assert.ok(cloudSaveGuard.includes('setConversationCloudScope("")'));
 assert.ok(cloudSaveGuard.includes('setConversationCloudRevision(null)'));
-assert.ok(cloudSaveGuard.indexOf('setConversationCloudScope("")') < cloudSaveGuard.indexOf('return false;'));
+assert.ok(/if \(existing\) \{[\s\S]*?setConversationCloudScope\(""\);[\s\S]*?return false;/.test(cloudSaveGuard));
 console.log("V3.60 cloud existing-draft overwrite guard checks passed");
 
 const proposedServices = validateAiConversationDraft({
