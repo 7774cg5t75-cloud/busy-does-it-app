@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.busy-website-origin]
 verify_jwt = false
+
+[functions.busy-founder-ops]
+verify_jwt = true
