@@ -173,6 +173,9 @@ import { buildFollowUpEngine } from "../domain/followUpEngine";
 import { buildBrandBrain } from "../domain/brandBrain";
 import { buildBusinessCreationIntelligence } from "../domain/businessCreationIntelligence";
 import { buildBusinessCreationJourney, nextBestBusinessCreationQuestion } from "../domain/businessCreationJourney";
+import { reviewConversation, buildApprovedCreationHandoff } from "../domain/conversationUnderstanding.mjs";
+import { loadCloudConversation, saveCloudConversation, deleteCloudConversation } from "../domain/conversationCloud.mjs";
+import { validateAiConversationDraft } from "../domain/conversationAiBoundary.mjs";
 import { buildWebsiteDraft, applyWebsiteInstruction } from "../domain/websiteBuilder";
 import { buildWebsitePublishingView } from "../domain/websitePublishing";
 import {
@@ -290,6 +293,17 @@ function App() {
   const [miniAppsNotice, setMiniAppsNotice] = useState("");
   const [miniAppBuildBrief, setMiniAppBuildBrief] = useState("");
   const [businessCreationBrief, setBusinessCreationBrief] = useState("");
+  const [conversationResumeReady, setConversationResumeReady] = useState("");
+  const [conversationResumeNotice, setConversationResumeNotice] = useState("");
+  const [conversationCloudRevision, setConversationCloudRevision] = useState(null);
+  const [conversationCloudScope, setConversationCloudScope] = useState("");
+  const [conversationCloudBusy, setConversationCloudBusy] = useState(false);
+  const [conversationAiBusy, setConversationAiBusy] = useState(false);
+  const [conversationAiDraft, setConversationAiDraft] = useState(null);
+  const [conversationAiNotice, setConversationAiNotice] = useState("");
+  const conversationActiveScopeRef = useRef("");
+  const conversationActiveBriefRef = useRef("");
+
   const [businessCreationAction, setBusinessCreationAction] = useState("");
   const [businessCreationNotice, setBusinessCreationNotice] = useState("");
   const [businessCreationError, setBusinessCreationError] = useState("");
@@ -13379,6 +13393,194 @@ function App() {
     return true;
   };
 
+  // V3.60: encrypted on-device checkpoint, scoped by authenticated owner and business.
+  // No cross-account draft fallbacks and no public/server writes.
+  conversationActiveScopeRef.current = String(ownerSession?.userId || "") + ":" + String(cloudWorkspace?.businessId || "");
+  conversationActiveBriefRef.current = String(businessCreationBrief || "").trim();
+  const conversationResumeKey = ownerSession?.userId && cloudWorkspace?.businessId
+    ? `busy-conversation-v360-${ownerSession.userId}-${cloudWorkspace.businessId}`
+    : "";
+  useEffect(() => {
+    let active = true;
+    setConversationResumeReady("");
+    setBusinessCreationBrief("");
+    setConversationResumeNotice("");
+    if (!conversationResumeKey) return () => { active = false; };
+    SecureStore.getItemAsync(conversationResumeKey).then((raw) => {
+      if (!active) return;
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved?.version === 1 && typeof saved.brief === "string") {
+          setBusinessCreationBrief(saved.brief.slice(0, 1000));
+          setConversationResumeNotice("Your last private conversation draft has been restored on this device.");
+        }
+      }
+    }).catch(() => {
+      if (active) setConversationResumeNotice("Private draft restore is unavailable on this device.");
+    }).finally(() => { if (active) setConversationResumeReady(conversationResumeKey); });
+    return () => { active = false; };
+  }, [conversationResumeKey]);
+
+  useEffect(() => {
+    if (!conversationResumeKey || conversationResumeReady !== conversationResumeKey) return;
+    const timer = setTimeout(() => {
+      const brief = String(businessCreationBrief || "").slice(0, 1000);
+      const operation = brief
+        ? SecureStore.setItemAsync(conversationResumeKey, JSON.stringify({ version: 1, brief }))
+        : SecureStore.deleteItemAsync(conversationResumeKey);
+      operation.catch(() => setConversationResumeNotice("Private draft could not be saved on this device."));
+    }, 650);
+    return () => clearTimeout(timer);
+  }, [conversationResumeKey, conversationResumeReady, businessCreationBrief]);
+
+  const conversationCloudArgs = async () => {
+    const accessToken = await ownerAccessToken();
+    const businessId = String(cloudWorkspace?.businessId || "");
+    const userId = String(ownerSession?.userId || "");
+    if (!businessId || !userId || !accessToken) throw new Error("Sign in and select your business to sync.");
+    return { businessId, userId, accessToken, publishableKey: BUSY_AI_TOKEN, supabaseUrl: BUSY_SUPABASE_URL, fetchImpl: fetchWithTimeout };
+  };
+  const loadConversationFromCloud = async () => {
+    if (conversationCloudBusy) return false;
+    setConversationCloudBusy(true);
+    try {
+      const args = await conversationCloudArgs();
+      const scoped = args.userId + ":" + args.businessId;
+      const record = await loadCloudConversation(args);
+      if (scoped !== conversationActiveScopeRef.current) return false;
+      if (!record) {
+        setConversationCloudRevision(null);
+        setConversationCloudScope(scoped);
+        setConversationResumeNotice("No cloud conversation found for this business. Your device draft was left unchanged.");
+        return true;
+      }
+      if (String(businessCreationBrief || "").trim() && businessCreationBrief !== record.brief) {
+        Alert.alert("Different private draft found", "The cloud and this device contain different conversations. Replace only this device's text with the cloud version?", [
+          {text:"Keep device draft",style:"cancel"},
+          {text:"Load cloud version",onPress:()=>{
+            if (scoped !== conversationActiveScopeRef.current) return;
+            setBusinessCreationBrief(String(record.brief || "").slice(0, 6000));
+            setConversationCloudRevision(record.revision);
+            setConversationCloudScope(scoped);
+            setConversationResumeNotice("Cloud draft loaded. Previous device text was replaced after your confirmation.");
+          }},
+        ]);
+        return false;
+      }
+      setBusinessCreationBrief(String(record.brief || "").slice(0, 6000));
+      setConversationCloudRevision(record.revision);
+      setConversationCloudScope(scoped);
+      setConversationResumeNotice("Private cloud draft loaded for this business.");
+      return true;
+    } catch (error) {
+      setConversationResumeNotice("Cloud sync unavailable. Your private device draft is still saved locally.");
+      return false;
+    } finally { setConversationCloudBusy(false); }
+  };
+  const saveConversationToCloud = async () => {
+    if (conversationCloudBusy) return false;
+    if (String(businessCreationBrief || "").length > 6000) {
+      setConversationResumeNotice("Cloud drafts can contain up to 6000 characters. Shorten this description before saving.");
+      return false;
+    }
+    setConversationCloudBusy(true);
+    try {
+      const args = await conversationCloudArgs();
+      const scoped = args.userId + ":" + args.businessId;
+      if (scoped !== conversationActiveScopeRef.current) return false;
+      // An unknown server revision must first be checked, not overwritten.
+      if (conversationCloudScope !== scoped) {
+        const existing = await loadCloudConversation(args);
+        if (scoped !== conversationActiveScopeRef.current) return false;
+        if (existing) {
+          // Do not arm an existing revision merely by detecting it. An owner must
+          // explicitly load that cloud draft before future saves may update it.
+          setConversationCloudRevision(null);
+          setConversationCloudScope("");
+          setConversationResumeNotice("A different cloud draft exists. Load and review it before saving. Repeated Save taps cannot overwrite it.");
+          return false;
+        }
+      }
+      const result = await saveCloudConversation({
+        ...args, brief: businessCreationBrief,
+        revision: conversationCloudScope === scoped ? conversationCloudRevision : null,
+      });
+      if (scoped !== conversationActiveScopeRef.current) return false;
+      if (!result.saved) {
+        setConversationResumeNotice(result.reason || "Cloud draft conflict. Nothing was overwritten.");
+        return false;
+      }
+      setConversationCloudScope(scoped);
+      setConversationCloudRevision(result.record?.revision || 1);
+      setConversationResumeNotice("Private draft saved to your business cloud.");
+      return true;
+    } catch (error) {
+      setConversationResumeNotice("Cloud sync unavailable. Your private device draft is still saved locally.");
+      return false;
+    } finally { setConversationCloudBusy(false); }
+  };
+
+
+  const deleteConversationFromCloud = () => {
+    if (conversationCloudBusy) return false;
+    Alert.alert("Delete private cloud draft?", "This deletes the saved cloud checkpoint for this business. Your on-device draft will remain unless you clear it separately.", [
+      {text:"Cancel",style:"cancel"},
+      {text:"Delete cloud draft",style:"destructive",onPress:async()=>{
+        setConversationCloudBusy(true);
+        try {
+          const args = await conversationCloudArgs();
+          const scoped = args.userId + ":" + args.businessId;
+          if (scoped !== conversationActiveScopeRef.current || conversationCloudScope !== scoped || !conversationCloudRevision) {
+            setConversationResumeNotice("Load your current cloud draft before deleting it.");
+            return;
+          }
+          const result=await deleteCloudConversation({...args,revision:conversationCloudRevision});
+          if(scoped !== conversationActiveScopeRef.current) return;
+          if(!result.deleted) {setConversationResumeNotice(result.reason);return;}
+          setConversationCloudRevision(null);
+          setConversationCloudScope("");
+          setConversationResumeNotice("Cloud draft deleted. Your local draft is unchanged.");
+        }catch{setConversationResumeNotice("Cloud draft could not be deleted. Nothing was changed locally.");}
+        finally{setConversationCloudBusy(false);}
+      }},
+    ]);
+    return true;
+  };
+
+  const suggestBusinessFactsWithAi = async () => {
+    if (conversationAiBusy) return false;
+    const transcript = String(businessCreationBrief || "").trim().slice(0, 3000);
+    if (!transcript) return false;
+    setConversationAiBusy(true);
+    setConversationAiDraft(null);
+    setConversationAiNotice("");
+    const scope = String(ownerSession?.userId || "") + ":" + String(cloudWorkspace?.businessId || "");
+    try {
+      const args = await conversationCloudArgs();
+      const response = await fetchWithTimeout(
+        BUSY_SUPABASE_URL + "/functions/v1/busy-conversation-extract",
+        { method: "POST", headers: { Authorization: "Bearer " + args.accessToken, apikey: BUSY_AI_TOKEN, "Content-Type":"application/json" },
+          body: JSON.stringify({ businessId:args.businessId, transcript }) }, 20000
+      );
+      if (response.status === 429) { setConversationAiNotice("Daily AI review limit reached (20 per business owner). Try again tomorrow or review manually."); return false; }
+      if (!response.ok) throw new Error("AI extraction unavailable");
+      const raw = await response.json();
+      if (scope !== conversationActiveScopeRef.current ||
+          transcript !== conversationActiveBriefRef.current.slice(0, 3000)) return false;
+      const validation = validateAiConversationDraft({
+        extraction:raw, transcript, approved:businessCreationIntelligence?.sharedProfile || {},
+      });
+      setConversationAiDraft({ ...validation, transcript });
+      setConversationAiNotice(Object.keys(validation.fields).length
+        ? "AI suggestions are unverified. Review before confirming."
+        : "No reliably supported new details detected. Continue manually.");
+      return true;
+    } catch {
+      setConversationAiNotice("AI review unavailable. Manual confirmation still works.");
+      return false;
+    } finally { setConversationAiBusy(false); }
+  };
+
   const openBusinessCreationJourney = () => {
     setTab("Home");
     go("businessCreationJourney");
@@ -13437,6 +13639,37 @@ function App() {
     return true;
   };
 
+  const confirmConversationFact = (field, proposedValue) => {
+    const allowed = ["businessName", "serviceArea", "email", "phone"];
+    if (!allowed.includes(field)) return false;
+    const review = reviewConversation({
+      turns: [businessCreationBrief],
+      approved: businessCreationIntelligence?.sharedProfile || {},
+    });
+    const candidate = review.draft?.[field];
+    const value = String(proposedValue || "").trim();
+    if (!candidate || candidate.approved || candidate.value !== value || !value || review.conflicts.some((entry) => entry.field === field)) {
+      setBusinessCreationError("That suggestion has changed or is already recorded. Review the description again.");
+      return false;
+    }
+    const existing = businessCreationIntelligence?.sharedProfile || {};
+    if (String(existing[field] || "").trim()) {
+      setBusinessCreationError("An approved value already exists. Edit it in Business Identity instead.");
+      return false;
+    }
+    if (field === "businessName") setBusinessName(value);
+    else setBrandProfile((current) => {
+      const next = { ...(current || {}) };
+      if (field === "serviceArea") next.serviceAreaText = value;
+      if (field === "email") next.email = value;
+      if (field === "phone") next.phone = value;
+      return next;
+    });
+    setBusinessCreationError("");
+    setBusinessCreationNotice("Confirmed and saved to the shared business profile. Website and Business App publication still require separate approval.");
+    return true;
+  };
+
   const propagateBusinessCreationChanges = () => {
     if (!businessCreationJourney?.propagation?.needsPropagation) {
       setBusinessCreationNotice("Website and Business App are already aligned with the current shared business profile.");
@@ -13460,6 +13693,17 @@ function App() {
   };
 
   const prepareBusinessCreationJourney = async (briefOverride = "") => {
+    // Build a bounded, approved-only fact handoff. The free-form owner request
+    // remains a planning instruction, never a replacement for verified facts.
+    const approvedCreationHandoff = buildApprovedCreationHandoff({
+      approved: businessCreationIntelligence?.sharedProfile || {},
+      requestedSurfaces: ["website", "business_app", "social"],
+    });
+    if (!approvedCreationHandoff.requiresSeparatePublicationApproval ||
+        approvedCreationHandoff.unconfirmedConversationIncluded) {
+      setBusinessCreationError("BUSY could not validate the approval boundary.");
+      return false;
+    }
     const brief = String(briefOverride || businessCreationBrief || "").trim();
     if (!brief) {
       setBusinessCreationError("Tell BUSY about the business and what you want it to prepare.");
@@ -14653,6 +14897,16 @@ function App() {
     businessCreationJourney,
     businessCreationBrief,
     setBusinessCreationBrief,
+    conversationResumeReady,
+    conversationResumeNotice,
+    conversationCloudBusy,
+    conversationAiBusy,
+    conversationAiDraft,
+    conversationAiNotice,
+    suggestBusinessFactsWithAi,
+    loadConversationFromCloud,
+    saveConversationToCloud,
+    deleteConversationFromCloud,
     businessCreationAnswer,
     setBusinessCreationAnswer,
     businessCreationConversationActive,
@@ -14663,6 +14917,7 @@ function App() {
     openBusinessCreationJourney,
     describeBusinessCreationByVoice,
     answerBusinessCreationQuestion,
+    confirmConversationFact,
     propagateBusinessCreationChanges,
     prepareBusinessCreationJourney,
     miniAppProfileDraft,

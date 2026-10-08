@@ -4,9 +4,15 @@ import { Text } from "react-native";
 import { styles } from "../theme/styles";
 import { Shell, Card, Button, Field, MetricRow } from "../components/ui";
 import { miniAppModuleLabel } from "../domain/miniApps";
+import { reviewConversation } from "../domain/conversationUnderstanding.mjs";
 
 function BusinessCreationJourney({ s }) {
   const journey = s.businessCreationJourney || {};
+  const conversationReview = reviewConversation({
+    turns: [s.businessCreationBrief],
+    approved: s.businessCreationIntelligence?.sharedProfile || {},
+  });
+  const proposedFacts = Object.entries(conversationReview.draft);
   const steps = Array.isArray(journey.steps) ? journey.steps : [];
   const appModules = Array.isArray(journey.recommendedAppModules) ? journey.recommendedAppModules : [];
   const websiteSections = Array.isArray(journey.recommendedWebsiteSections) ? journey.recommendedWebsiteSections : [];
@@ -20,7 +26,7 @@ function BusinessCreationJourney({ s }) {
       s={s}
       title="Build my business with BUSY"
       subtitle="One guided conversation now coordinates the website, Business App and social setup, asks only the next useful question, and parks anything blocked without stopping the rest."
-      brandCue="V3.58 • next-best question • dependency handling • coordinated updates • one launch-pack review."
+      brandCue="V3.60 • confirm conversational facts • dependency handling • coordinated updates • one launch-pack review."
     >
       <Card
         eyebrow="Business Creation Orchestrator"
@@ -29,6 +35,9 @@ function BusinessCreationJourney({ s }) {
         footer="Nothing is published from this journey."
         tone="green"
       >
+        {s.conversationResumeNotice ? (
+          <Text style={styles.sectionLabel}>{s.conversationResumeNotice}</Text>
+        ) : null}
         <Field
           label="What are you building?"
           value={s.businessCreationBrief}
@@ -43,7 +52,57 @@ function BusinessCreationJourney({ s }) {
           onPress={s.prepareBusinessCreationJourney}
         />
         <Button label="Describe it by voice" disabled={!!s.businessCreationAction} onPress={s.describeBusinessCreationByVoice} />
+        {s.businessCreationConversationActive ? <Button label="Finish business voice conversation" onPress={() => s.setBusinessCreationConversationActive(false)} /> : null}
+        <Text style={styles.sectionLabel}>AI review sends your business description to the AI service to suggest unconfirmed details. Nothing is published. Limit: 20 reviews per business owner per day.</Text>
+        <Button label={s.conversationAiBusy ? "BUSY is reading your description…" : "Suggest details with AI"} disabled={!!s.conversationAiBusy || !String(s.businessCreationBrief || "").trim()} onPress={s.suggestBusinessFactsWithAi} />
+        {s.conversationAiNotice ? <Text style={styles.sectionLabel}>{s.conversationAiNotice}</Text> : null}
+        {(s.conversationAiDraft?.transcript === String(s.businessCreationBrief || "").trim().slice(0, 3000) ? (s.conversationAiDraft?.services || []) : []).map((item, index) => (
+          <React.Fragment key={"ai-service-" + index}>
+            <MetricRow left="Possible service (unconfirmed)" right={item.name} />
+            <Text style={styles.sectionLabel}>Evidence: {item.evidence}. Review your public services separately before adding.</Text>
+          </React.Fragment>
+        ))}
+        {Object.entries(s.conversationAiDraft?.transcript === String(s.businessCreationBrief || "").trim().slice(0, 3000) ? (s.conversationAiDraft?.fields || {}) : {}).map(([key, item]) => (
+          <React.Fragment key={"ai-" + key}>
+            <MetricRow left={"AI suggests: " + key} right={item.value} />
+            <Text style={styles.sectionLabel}>From: {item.evidence}</Text>
+            {["businessName","serviceArea","email","phone"].includes(key) ? (
+              <Button label={"Confirm AI suggestion: " + key} onPress={() => s.confirmConversationFact(key, item.value)} />
+            ) : null}
+          </React.Fragment>
+        ))}
+
+        <Text style={styles.sectionLabel}>Private cloud drafts support up to 6,000 characters. On-device recovery currently retains only the first 1,000; use Save private cloud draft for longer descriptions. AI reviews the first 3,000 characters.</Text>
+        <Text style={styles.sectionLabel}>Cloud draft sync (private account; manual load/save)</Text>
+        <Button label="Load private cloud draft" disabled={!!s.conversationCloudBusy} onPress={s.loadConversationFromCloud} />
+        <Button label="Save private cloud draft" disabled={!!s.conversationCloudBusy || !String(s.businessCreationBrief || "").trim()} onPress={s.saveConversationToCloud} />
+        <Button label="Delete saved cloud draft" disabled={!!s.conversationCloudBusy} onPress={s.deleteConversationFromCloud} />
+
       </Card>
+
+      {String(s.businessCreationBrief || "").trim() ? (
+        <Card
+          eyebrow="V3.60 • conversation understanding (preview)"
+          title="What BUSY heard from your description"
+          body="These are unconfirmed suggestions only. Nothing here changes the shared business profile or publishes anything. Confirm important details through the existing questions below."
+          tone="blue"
+        >
+          {proposedFacts.map(([key, item]) => (
+            <React.Fragment key={key}>
+              <MetricRow left={key} right={String(item.value || "").slice(0, 72)} />
+              {["businessName", "serviceArea", "email", "phone"].includes(key) ? (
+                <Button label={`Confirm ${key}`} onPress={() => s.confirmConversationFact(key, item.value)} />
+              ) : null}
+            </React.Fragment>
+          ))}
+          {conversationReview.suggestions.map((item) => (
+            <MetricRow key={item.value} left="Possible industry (unconfirmed)" right={item.value} />
+          ))}
+          {conversationReview.nextQuestion ? (
+            <Text style={styles.sectionLabel}>Suggested next question: {conversationReview.nextQuestion.question}</Text>
+          ) : null}
+        </Card>
+      ) : null}
 
       {nextQuestion ? (
         <Card

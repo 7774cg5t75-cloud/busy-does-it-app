@@ -1,5 +1,15 @@
 # busy-does-it-app
 
+## v3.60 Conversational Business Understanding — development branch, not released
+- Adds a review-only parser for owner-stated trading names, coverage areas and public contact information, plus clearly marked unconfirmed industry suggestions.
+- Owner must explicitly confirm facts before BUSY puts them into the shared business profile; existing approved values are never silently replaced.
+- Adds encrypted on-device draft restore scoped to the authenticated user and business. **This is not yet multi-device cloud conversation history.**
+- Adds a bounded approved-only handoff contract for website, Business App and social draft creation. Publishing still requires independent approval.
+- Extends deterministic automated tests for conflicting facts, non-approval of inferred claims, inline statement boundaries, PII redaction in excerpts and approved handoff limits.
+- Remaining before release: authenticated tenant-scoped cloud conversation persistence and cross-device syncing, schema-constrained AI extraction, end-to-end device testing, and validation of actual builder payload propagation.
+- A revision-safe authenticated REST cloud-draft client is implemented in `src/domain/conversationCloud.mjs` with conflict detection and scope validation, and is now wired to explicit manual Load/Save controls in the development business-creation screen. The database table has now been deployed and its RLS/grant configuration inspected; authenticated device-level end-to-end tests are still outstanding.\n- A proposed RLS-protected per-owner cloud checkpoint schema is now included at `docs/V3_60_CONVERSATION_STORAGE_PROPOSAL.sql` for review; the equivalent schema has been deployed to the BUSY Supabase project and the authenticated REST client has been wired to manual draft controls; full cross-device verification is outstanding.\n- **Production database change:** deployed the narrowly scoped `busy_business_conversations` table with RLS on, four creator-only policies, authenticated-only API privileges, no anonymous read grant. No existing data was modified.\n- Client UI is on development branch only; full real-auth testing and model-based extraction remain release gates.
+
+
 ## v3.55 Business App Builder 2.0 — Complete App Journey
 - Turns the Business App Builder into one continuous owner journey: **describe the customer experience → answer only missing facts → BUSY builds the private app → review the real customer preview → explicitly approve Go Live**.
 - The builder now surfaces a five-step journey card instead of making the owner reason about draft/version/module machinery. Technical module controls remain available underneath for fine-tuning, but they are no longer the primary path.
@@ -1239,3 +1249,12 @@ Busy Does It mobile app prototype.
 - Results, Work and Settings expose the automatic-filing mode and auto-file counts.
 - Connected Accounts now describes the same future trust architecture for email/calendar/CRM/invoicing feeds.
 - Main navigation remains Home / Work / Results / Settings.
+
+
+### V3.60 cloud and AI integration status
+
+- Creator-scoped cloud conversation draft RLS table has been deployed. Manual Load / Save controls are wired in the development app, with optimistic revision conflict checking.
+- Authenticated `busy-conversation-extract` Edge Function is deployed (JWT required). Suggestions are evidence-validated in the client and remain unapproved; neither AI extraction nor a conversation triggers publication.
+- Daily server-side AI usage quota: 20 requests per business creator, per business, per UTC day. The quota table and RPC are service-only; authenticated client roles cannot directly change counts.
+- AI review sends the description to the configured AI service only when the owner explicitly taps its button. Failed AI reviews leave the local draft unchanged.
+- **Not release-ready:** signed-in cross-device tests, tenant separation tests with real accounts, actual provider response, iPhone/iPad voice and UI testing, and publication gate regression must pass. See [V3.60 release acceptance](docs/V3_60_RELEASE_GATE.md).
