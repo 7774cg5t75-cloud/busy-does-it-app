@@ -1,0 +1,31 @@
+name: V3.68 Self-Running Operations checks
+on:
+  push:
+    branches: [v3.68]
+  pull_request:
+    paths:
+      - "src/domain/selfRunningOperations.mjs"
+      - "src/domain/readOnlyStatusRecovery.mjs"
+      - "src/domain/verifiedBusinessActivityCloud.mjs"
+      - "src/screens/selfRunningOperations.js"
+      - "scripts/check-self-running-operations.mjs"
+      - ".github/workflows/check-self-running-operations.yml"
+  workflow_dispatch:
+jobs:
+  operations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Earlier cloud project checkpoints
+        run: node scripts/check-growth-workspace.mjs
+      - name: Earlier Growth Command Centre
+        run: node scripts/check-growth-command-centre.mjs
+      - name: Earlier Operator conversation bridge
+        run: node scripts/check-growth-operator.mjs
+      - name: Earlier verified activity proof
+        run: node scripts/check-verified-activity.mjs
+      - name: V3.68 operational triage and safe recovery
+        run: node scripts/check-self-running-operations.mjs
