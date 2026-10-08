@@ -145,3 +145,12 @@ assert.ok(endpointCode.includes('auth/v1/user'));
 assert.ok(endpointCode.includes('store:false'));
 assert.ok(endpointCode.includes('publicationAllowed:false'));
 console.log("V3.60 AI extraction wiring and approval gate checks passed");
+
+const quotaSchema = readFileSync(new URL("../supabase/migrations/20261008004000_v3_60_conversation_ai_daily_quota.sql", import.meta.url), "utf8");
+assert.ok(endpointCode.includes('busy_try_conversation_ai_quota'));
+assert.ok(endpointCode.includes('daily_ai_limit_reached'));
+assert.ok(endpointCode.indexOf('busy_try_conversation_ai_quota') < endpointCode.indexOf('await fetch("https://api.openai.com/v1/responses"'));
+assert.ok(quotaSchema.includes('security invoker'));
+assert.ok(quotaSchema.includes('revoke all on function public.busy_try_conversation_ai_quota'));
+assert.ok(quotaSchema.includes('grant execute on function public.busy_try_conversation_ai_quota(uuid,uuid) to service_role'));
+console.log("V3.60 server enforced AI quota and cost guard checks passed");
