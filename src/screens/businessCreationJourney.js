@@ -76,6 +76,13 @@ function BusinessCreationJourney({ s }) {
           <>
             <MetricRow left="Service being reviewed" right={growthPlan.service.name} />
             <MetricRow left="Actions ready for review" right={String(growthPlan.reviewable) + " of " + String(growthPlan.actions.length)} />
+            {growthPlan.nextBlockers.map(blocker => (
+              <MetricRow
+                key={"growth-blocker-" + blocker.key}
+                left={"Confirm next: " + blocker.label}
+                right={"Unblocks " + blocker.impactedCount + " area" + (blocker.impactedCount === 1 ? "" : "s")}
+              />
+            ))}
             {growthPlan.actions.map(action => (
               <React.Fragment key={action.id}>
                 <MetricRow left={action.label} right={action.status === "blocked" ? "Missing details" : "Ready to review"} />
