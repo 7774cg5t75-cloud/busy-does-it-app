@@ -32,7 +32,8 @@ async function loadCloudConversation(args) {
 }
 async function saveCloudConversation(args) {
   assertScope(args);
-  const brief = String(args.brief || "").slice(0, 1000);
+  const brief = String(args.brief || "");
+  if (brief.length > 6000) throw new Error("Cloud drafts are limited to 6000 characters.");
   const url = cloudDraftUrl(args);
   if (args.revision == null) {
     // Insert is deliberately create-only: no upsert replacing another device.
