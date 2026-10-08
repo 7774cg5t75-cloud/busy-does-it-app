@@ -2,7 +2,7 @@
   "expo": {
     "name": "Busy Does It",
     "slug": "busy-does-it",
-    "version": "3.68.0",
+    "version": "3.69.0",
     "plugins": [
       [
         "expo-audio",
