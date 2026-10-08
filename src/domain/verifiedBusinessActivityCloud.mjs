@@ -20,7 +20,11 @@ async function readOne(args,key){
     },
     body:JSON.stringify({action:p.action,businessId:args.businessId}),
   });
-  if(!response?.ok)throw Error("Reporting endpoint unavailable ("+(response?.status||"network")+").");
+  if(!response?.ok){
+    const error=new Error("Reporting endpoint unavailable ("+(response?.status||"network")+").");
+    error.status=Number(response?.status||0);
+    throw error;
+  }
   const payload=await response.json();
   if(!payload||typeof payload!=="object"||payload.error)throw Error("Reporting endpoint returned invalid data.");
   const data=payload.status && typeof payload.status==="object"?payload.status:payload;
