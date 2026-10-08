@@ -13521,7 +13521,7 @@ function App() {
       const validation = validateAiConversationDraft({
         extraction:raw, transcript, approved:businessCreationIntelligence?.sharedProfile || {},
       });
-      setConversationAiDraft(validation);
+      setConversationAiDraft({ ...validation, transcript });
       setConversationAiNotice(Object.keys(validation.fields).length
         ? "AI suggestions are unverified. Review before confirming."
         : "No reliably supported new details detected. Continue manually.");
