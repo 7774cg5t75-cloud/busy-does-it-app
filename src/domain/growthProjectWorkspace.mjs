@@ -25,7 +25,7 @@ function createGrowthProject(pack) {
   };
 }
 function validateGrowthProject(input) {
-  if (!input || input.schema!==1 || !keyOf(input.serviceName) ||
+  if (!input || input.schema!==1 || input.published===true || !keyOf(input.serviceName) ||
       typeof input.sourceKey!=="string" || input.sourceKey.length>4000 ||
       !Array.isArray(input.items) || input.items.length!==3) return null;
   const targets=new Set();
@@ -77,13 +77,22 @@ function markGrowthHandedOff(project,target,currentPack){
   return {...p,items:p.items.map(i=>i.target===target?{...i,status:"handed_off"}:i)};
 }
 /** Never silently replace edited wording when approved facts change. */
+function sameSourceOwner(a,b){
+  try{
+    const before=JSON.parse(a),after=JSON.parse(b);
+    return Array.isArray(before)&&Array.isArray(after)&&
+      typeof before[0]==="string" && before[0].length>0 &&
+      typeof before[1]==="string" && before[1].length>0 &&
+      before[0]===after[0] && before[1]===after[1];
+  }catch{return false;}
+}
 function reconcileGrowthProject(project,currentPack){
   const p=validateGrowthProject(project);
   if(!p)return {valid:false,reason:"Invalid saved project"};
   const same=!!currentPack?.valid && p.sourceKey===currentPack.sourceKey &&
     keyOf(p.serviceName)===keyOf(currentPack.serviceName);
   if(same)return {valid:true,stale:false,project:p};
-  if(!currentPack?.valid || keyOf(p.serviceName)!==keyOf(currentPack.serviceName))
+  if(!currentPack?.valid || !sameSourceOwner(p.sourceKey,currentPack.sourceKey) || keyOf(p.serviceName)!==keyOf(currentPack.serviceName))
     return {valid:true,stale:true,needsNewSelection:true,project:p};
   return {
     valid:true,stale:true,needsNewSelection:false,
@@ -97,7 +106,7 @@ function reconcileGrowthProject(project,currentPack){
 /** Explicitly rebase to latest confirmed facts without overwriting user copy. */
 function rebaseGrowthProject(project,currentPack) {
   const p=validateGrowthProject(project);
-  if(!p || !currentPack?.valid || keyOf(p.serviceName)!==keyOf(currentPack.serviceName))return null;
+  if(!p || !currentPack?.valid || !sameSourceOwner(p.sourceKey,currentPack.sourceKey) || keyOf(p.serviceName)!==keyOf(currentPack.serviceName))return null;
   return {...p,sourceKey:currentPack.sourceKey,items:p.items.map(item=>{
     const current=currentPack.items.find(i=>i.target===item.target);
     return {...item,status:current?.status==="blocked"?"blocked":"draft",
