@@ -175,6 +175,9 @@ import { buildBusinessCreationIntelligence } from "../domain/businessCreationInt
 import { buildBusinessCreationJourney, nextBestBusinessCreationQuestion } from "../domain/businessCreationJourney";
 import { reviewConversation, buildApprovedCreationHandoff } from "../domain/conversationUnderstanding.mjs";
 import { loadCloudConversation, saveCloudConversation, deleteCloudConversation } from "../domain/conversationCloud.mjs";
+import {listGrowthProjects} from "../domain/growthProjectCloud.mjs";
+import {buildGrowthCommandCentre} from "../domain/growthCommandCentre.mjs";
+import {classifyGrowthUtterance,resolveGrowthOperator} from "../domain/growthOperatorBridge.mjs";
 import { validateAiConversationDraft } from "../domain/conversationAiBoundary.mjs";
 import { buildWebsiteDraft, applyWebsiteInstruction } from "../domain/websiteBuilder";
 import { buildWebsitePublishingView } from "../domain/websitePublishing";
@@ -467,6 +470,10 @@ function App() {
   const [businessBrainFeedback, setBusinessBrainFeedback] = useState([]);
   const [proactiveNoticeState, setProactiveNoticeState] = useState({});
   const [busyCommandHistory, setBusyCommandHistory] = useState([]);
+  const growthOperatorFocusRef=useRef(null);
+  const growthOperatorRequestRef=useRef(0);
+  const growthOperatorScopeRef=useRef("");
+  growthOperatorScopeRef.current=(ownerSession?.userId||"")+":"+(cloudWorkspace?.businessId||"");
   const [busyCommandStatus, setBusyCommandStatus] = useState("idle");
   const [busyCommandResult, setBusyCommandResult] = useState(null);
   const [busyCommandError, setBusyCommandError] = useState("");
@@ -11603,6 +11610,75 @@ function App() {
     };
     setBusyConversationTurns((current) => [...current, next].slice(-18));
     return next;
+  };
+
+
+  // V3.66: read-only, creator-scoped growth answers; never a publishing command.
+  const growthOperatorCandidate = transcript => {
+    const focus=growthOperatorFocusRef.current;
+    return classifyGrowthUtterance(transcript,{
+      activeContext:!!(focus && focus.scope===growthOperatorScopeRef.current),
+    }).growth || /\b(where are we with|progress on|status of|continue my|resume my|how is my)\b/i.test(String(transcript||""));
+  };
+  const tryGrowthOperator=async (transcript,nonce)=>{
+    const request=String(transcript||"").trim().slice(0,400);
+    if(!request||!growthOperatorCandidate(request))return null;
+    const scope=growthOperatorScopeRef.current;
+    const ownerId=String(ownerSession?.userId||"");
+    const businessId=String(cloudWorkspace?.businessId||"");
+    const valid=()=>growthOperatorRequestRef.current===nonce && growthOperatorScopeRef.current===scope;
+    const focus=growthOperatorFocusRef.current;
+    let centre;
+    if(!ownerId||!businessId)centre=buildGrowthCommandCentre({ownerId,businessId});
+    else try{
+      const args=await conversationCloudArgs();
+      if(!valid()||args.userId!==ownerId||args.businessId!==businessId)return {cancelled:true};
+      const records=await listGrowthProjects(args);
+      if(!valid())return {cancelled:true};
+      centre=buildGrowthCommandCentre({records,approved:businessCreationIntelligence?.sharedProfile||{},ownerId,businessId});
+    }catch(_){
+      if(!valid())return {cancelled:true};
+      centre=buildGrowthCommandCentre({ownerId,businessId,readFailed:true});
+    }
+    const resolved=resolveGrowthOperator(request,centre,{focus,scope});
+    if(!resolved.handled)return null;
+    if(!valid())return {cancelled:true};
+    if(resolved.serviceName && centre.projects?.some(p=>p.serviceName===resolved.serviceName))
+      growthOperatorFocusRef.current={scope,serviceName:resolved.serviceName};
+    const action=resolved.kind==="open_project"&&!!resolved.serviceName;
+    return {handled:true,autoOpen:action && /\b(open|continue|resume|pick up|carry on)\b/i.test(request),
+      result:{
+        intent:action?"growth_project_open":"growth_project_summary",
+        title:"BUSY growth projects",response:resolved.message,transcript:request,
+        mode:action?"action":"answer",applied:!action,
+        confidence:"High",needsClarification:false,requiresConfirmation:false,
+        actionLabel:action?(resolved.actionLabel||"Open private project"):"",
+        growthProjectName:action?resolved.serviceName:"",
+        growthProjectTarget:action?(resolved.channel||""):"",
+        growthOwnerId:ownerId,growthBusinessId:businessId,
+      }};
+  };
+  const acceptGrowthOperator=processed=>{
+    if(!processed?.handled)return null;
+    const result=processed.result;
+    addBusyConversationTurn("user",result.transcript);
+    addBusyConversationTurn("assistant",result.response,result);
+    addBusyCommandHistory({
+      transcript:result.transcript,response:result.response,
+      intent:result.intent,confidence:"High",
+    });
+    setBusyCommandResult(result);
+    setBusyCommandStatus("ready");
+    if(processed.autoOpen && result.intent==="growth_project_open" &&
+       result.growthOwnerId===ownerSession?.userId &&
+       result.growthBusinessId===cloudWorkspace?.businessId){
+      // Navigation only; saved drafts are loaded explicitly in their workspace.
+      setGrowthProjectFocus(result.growthProjectName);
+      setTab("Home");
+      go("businessCreationJourney");
+      setBusyCommandResult({...result,applied:true,actionLabel:""});
+    }
+    return result;
   };
 
   const submitBusyCommand = async ({ text = "", audioUri = "" } = {}) => {
