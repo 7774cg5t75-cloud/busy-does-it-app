@@ -52,26 +52,43 @@ const publisher=readFileSync(new URL("./publish-snack.mjs",import.meta.url),"utf
 const explicit=Object.fromEntries([...publisher.matchAll(/"([^"]+)":\{version:"([^"]+)"\}/g)]
   .map(match=>[match[1],{version:match[2]}]));
 const pkg=JSON.parse(readFileSync(new URL("../package.json",import.meta.url),"utf8"));
+// Native release continues to depend on actual QR + SVG, but Expo Go SDK54
+// must NOT eagerly evaluate those native packages (PlatformConstants crash).
 for(const name of ["react-native-qrcode-svg","react-native-svg"]){
-  assert.ok(pkg.dependencies[name],"App must declare "+name);
-  assert.ok(explicit[name]?.version,"Snack must explicitly package "+name);
-  assert.ok(explicit[name].version.match(/^\d+\.\d+\.\d+$/),"Explicit version must be pinned "+name);
+  assert.ok(pkg.dependencies[name],"Production must keep "+name);
+  assert.equal(explicit[name],undefined,"Expo Go must not install "+name);
 }
-assert.ok(files["src/screens/miniApps.js"].contents.includes('from "react-native-qrcode-svg"'));
+const miniApp=files["src/screens/miniApps.js"].contents;
+assert.ok(miniApp.includes('from "../components/snackQrFallback"'));
+assert.ok(!miniApp.includes('from "react-native-qrcode-svg"'));
+assert.ok(files["src/components/snackQrFallback.js"]);
+assert.ok(files["src/components/snackQrFallback.js"].contents.includes("Open share link"));
+assert.ok(!files["src/components/snackQrFallback.js"].contents.includes("react-native-svg"));
+const importSample=prepareSource(
+  'import QRCode from "react-native-qrcode-svg";',
+  {aiUrl:"",aiToken:""}
+);
+assert.ok(importSample.includes('from "../components/snackQrFallback"'));
 const missingPackages=validateSnackPackages(files,explicit);
 assert.deepEqual(missingPackages,[],missingPackages.join("\n"));
 assert.ok(publisher.includes("validateSnackPackages(files,snackDependencies)"),
   "Snack exporter must refuse undeclared external packages");
-const qrOmitted={...explicit};
-delete qrOmitted["react-native-qrcode-svg"];
-assert.ok(validateSnackPackages(files,qrOmitted).some(x=>x.includes("react-native-qrcode-svg")),
-  "Previously failing QR dependency must be caught by CI");
+const crashAgain={...files,"src/screens/regression.js":{
+  type:"CODE",contents:'import QRCode from "react-native-qrcode-svg";',
+}};
+assert.ok(validateSnackPackages(crashAgain,explicit).some(s=>s.includes("react-native-qrcode-svg")),
+  "Reintroduction of native SVG-based QR to Snack must fail CI");
+const svgAgain={...files,"src/screens/svgRegression.js":{
+  type:"CODE",contents:'import Svg from "react-native-svg";',
+}};
+assert.ok(validateSnackPackages(svgAgain,explicit).some(s=>s.includes("react-native-svg")),
+  "Direct react-native-svg import in Snack must fail CI");
 const brokenDependency={...files,"src/screens/testMissingPackage.js":{
   type:"CODE",contents:'import Test from "missing-package"; export default Test;',
 }};
 assert.ok(validateSnackPackages(brokenDependency,explicit).some(x=>x.includes("missing-package")));
-console.log("PASS Snack external packages: explicit QR and SVG dependencies, "+
-  "all bare imports covered, missing-package regression caught");
+console.log("PASS Snack packages: unsafe native SVG/QR omitted from Expo Go, "+
+  "QR share link fallback active, all package imports covered");
 
 console.log("PASS Snack source graph: "+Object.keys(files).length+
   " modules, including "+mjs.length+" converted .mjs modules, no unresolved relative imports");
