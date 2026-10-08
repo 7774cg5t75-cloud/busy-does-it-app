@@ -1,5 +1,14 @@
 # busy-does-it-app
 
+## v3.65 Business Growth Command Centre 2.0 — development branch, not released
+- Introduces a prominent Growth Command Centre on the Home screen, reading the 25 most recent creator-private saved growth projects from the V3.64 Supabase project checkpoints.
+- Prioritises the **next safe step** per service from approved business facts and real private checkpoint stages. Stale service information requires explicit re-review; other account/business checkpoints are suppressed before display.
+- Lets the owner type simple requests, including "where are we with carpet cleaning?", "what's left to do?", and "which drafts need approval?" without needing an extra AI call. Selecting Continue opens the existing Business Creation workspace with the correct service preselected, ready for explicit cloud loading.
+- Displays review/hand-off progress only. **There is no verified public publication badge or automatic publish action** in the new centre. The existing website, Business App and social provider controls remain authoritative.
+- Adds a dedicated Node test script and GitHub CI workflow for project progress, cross-tenant/stale state, safe intent routing and UI integration.
+- Native iPhone/iPad account switching, real cloud sync and provider receipt verification remain outstanding before release. Full scope: `docs/V3_65_GROWTH_COMMAND_CENTRE.md`.
+
+
 ## v3.64 Business Growth Workspace 2.0 — development branch, not released
 - Adds creator-private, cloud-saved growth projects for already-confirmed business services, with three independently reviewable website, Business App and social copy targets.
 - Owner can create, review, edit, save, browse and load a per-service project. All checkpoints are revision-checked to prevent an older device from silently overwriting newer work.
