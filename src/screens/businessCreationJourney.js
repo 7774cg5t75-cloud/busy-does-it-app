@@ -5,6 +5,7 @@ import { styles } from "../theme/styles";
 import { Shell, Card, Button, Field, MetricRow } from "../components/ui";
 import { miniAppModuleLabel } from "../domain/miniApps";
 import { reviewConversation } from "../domain/conversationUnderstanding.mjs";
+import { assessBusinessCreationReadiness } from "../domain/businessCreationReadiness.mjs";
 
 function BusinessCreationJourney({ s }) {
   const journey = s.businessCreationJourney || {};
@@ -13,6 +14,7 @@ function BusinessCreationJourney({ s }) {
     approved: s.businessCreationIntelligence?.sharedProfile || {},
   });
   const proposedFacts = Object.entries(conversationReview.draft);
+  const readiness = assessBusinessCreationReadiness({approved:s.businessCreationIntelligence?.sharedProfile || {},ai:s.conversationAiDraft || {}});
   const steps = Array.isArray(journey.steps) ? journey.steps : [];
   const appModules = Array.isArray(journey.recommendedAppModules) ? journey.recommendedAppModules : [];
   const websiteSections = Array.isArray(journey.recommendedWebsiteSections) ? journey.recommendedWebsiteSections : [];
@@ -28,6 +30,15 @@ function BusinessCreationJourney({ s }) {
       subtitle="One guided conversation now coordinates the website, Business App and social setup, asks only the next useful question, and parks anything blocked without stopping the rest."
       brandCue="V3.60 • confirm conversational facts • dependency handling • coordinated updates • one launch-pack review."
     >
+      <Card
+        eyebrow="V3.61 • confirmed information only"
+        title={readiness.ready + " of " + readiness.total + " business essentials confirmed"}
+        body={readiness.next ? "Next to confirm: " + readiness.next + ". AI suggestions do not count until you approve them." : "Core profile details are confirmed. Publishing still needs separate approval."}
+        tone="blue"
+      >
+        <MetricRow left="Confirmed readiness" right={readiness.percent + "%"} />
+        {readiness.checks.map(check => <MetricRow key={check.id} left={check.label} right={check.ready ? "Confirmed" : "Needs review"} />)}
+      </Card>
       <Card
         eyebrow="Business Creation Orchestrator"
         title={journey.headline || "Tell BUSY what this business should become"}
