@@ -122,3 +122,11 @@ assert.equal(checked.publicationAllowed,false);
 const override=validateAiConversationDraft({...aiInput,approved:{businessName:"Verified Ltd"}});
 assert.equal(override.fields.businessName,undefined);
 console.log("V3.60 AI draft evidence boundary checks passed");
+
+const unsupportedAiValue = validateAiConversationDraft({
+ transcript: "We cover Devon, but haven't chosen a name.",
+ extraction: { fields: { businessName: { value: "Invented Brand", evidence: "We cover Devon" } } }
+});
+assert.equal(unsupportedAiValue.fields.businessName, undefined);
+assert.ok(unsupportedAiValue.rejected.includes("businessName"));
+console.log("V3.60 AI evidence/value consistency checks passed");
