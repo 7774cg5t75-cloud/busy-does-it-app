@@ -16,6 +16,7 @@ import * as WebsiteBuilderScreens from "./websiteBuilder";
 import * as WebsitePublishingScreens from "./websitePublishing";
 import * as MiniAppsScreens from "./miniApps";
 import * as BusinessCreationJourneyScreens from "./businessCreationJourney";
+import * as GrowthCommandCentreScreens from "./growthCommandCentre";
 import * as WorkScreens from "./work";
 import * as IntakeScreens from "./intake";
 import * as CustomersScreens from "./customers";
@@ -41,6 +42,7 @@ export * from "./websiteBuilder";
 export * from "./websitePublishing";
 export * from "./miniApps";
 export * from "./businessCreationJourney";
+export * from "./growthCommandCentre";
 export * from "./work";
 export * from "./intake";
 export * from "./customers";
@@ -67,6 +69,7 @@ const allScreens = {
   ...WebsitePublishingScreens,
   ...MiniAppsScreens,
   ...BusinessCreationJourneyScreens,
+  ...GrowthCommandCentreScreens,
   ...WorkScreens,
   ...IntakeScreens,
   ...CustomersScreens,
@@ -109,6 +112,7 @@ const {
   MiniAppShareCentre,
   MiniAppRequestDetail,
   BusinessCreationJourney,
+  GrowthCommandCentre,
   WorkHub,
   WorkCalendar,
   WorkPipeline,
@@ -230,6 +234,7 @@ export const screens = {
   miniAppShareCentre: MiniAppShareCentre,
   miniAppRequestDetail: MiniAppRequestDetail,
   businessCreationJourney: BusinessCreationJourney,
+  growthCommandCentre: GrowthCommandCentre,
   workHub: WorkHub,
   workCalendar: WorkCalendar,
   workPipeline: WorkPipeline,
