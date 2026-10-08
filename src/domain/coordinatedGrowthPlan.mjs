@@ -31,6 +31,27 @@ function confirmedServices(approved = {}) {
   return results;
 }
 
+const BLOCKER_LABELS = Object.freeze({
+  business_name:"Confirmed trading name",
+  service_area:"Confirmed service area",
+  public_contact:"Public customer contact",
+});
+
+function rankGrowthBlockers(actions = []) {
+  const priorities = new Map();
+  for (const action of Array.isArray(actions) ? actions : []) {
+    for (const blocker of Array.isArray(action?.blockedBy) ? action.blockedBy : []) {
+      if (!Object.prototype.hasOwnProperty.call(BLOCKER_LABELS, blocker)) continue;
+      const existing = priorities.get(blocker) || {key:blocker,label:BLOCKER_LABELS[blocker],targets:[]};
+      if (!existing.targets.includes(action.target)) existing.targets.push(action.target);
+      priorities.set(blocker, existing);
+    }
+  }
+  return [...priorities.values()]
+    .map(item => ({...item, impactedCount:item.targets.length}))
+    .sort((a,b) => b.impactedCount - a.impactedCount || a.label.localeCompare(b.label));
+}
+
 function buildCoordinatedGrowthPlan({ approved = {}, focusService = "", requestedTargets = TARGETS } = {}) {
   const services = confirmedServices(approved);
   const selected = services.find(service => normalized(service.name) === normalized(focusService));
@@ -105,9 +126,10 @@ function buildCoordinatedGrowthPlan({ approved = {}, focusService = "", requeste
     actions,
     blocked:actions.filter(action=>action.status==="blocked").map(action=>action.target),
     reviewable:actions.filter(action=>action.status==="ready_for_review").length,
+    nextBlockers:rankGrowthBlockers(actions),
     requiresOwnerConfirmation:true,
     publicationAllowed:false,
     notice:"This preview does not check published websites, app releases or social posts. Each change requires separate approval.",
   };
 }
-export { confirmedServices, buildCoordinatedGrowthPlan, TARGET_LABELS };
+export { confirmedServices, buildCoordinatedGrowthPlan, rankGrowthBlockers, TARGET_LABELS };
