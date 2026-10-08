@@ -1,3 +1,4 @@
+import { validateAiConversationDraft } from "../src/domain/conversationAiBoundary.mjs";
 import { loadCloudConversation, saveCloudConversation } from "../src/domain/conversationCloud.mjs";
 import assert from "node:assert/strict";
 import { extractConversationTurn, reviewConversation, buildApprovedCreationHandoff } from "../src/domain/conversationUnderstanding.mjs";
@@ -101,3 +102,23 @@ assert.equal(mixedExample.fields.businessName.value, "Real Services");
 assert.equal(mixedExample.fields.serviceArea.value, "Exeter");
 assert.equal(extractConversationTurn("For example, my business is called Imaginary Ltd.").fields.businessName, undefined);
 console.log("V3.60 mixed examples and real statement preservation passed");
+
+const aiInput = {
+  transcript: "We cover Devon and our company is called Acme Ltd.",
+  extraction: { fields: {
+    businessName: { value:"Acme Ltd", evidence:"our company is called Acme Ltd" },
+    serviceArea: { value:"Devon", evidence:"We cover Devon" },
+    published: { value:"true", evidence:"We cover Devon" },
+    email: { value:"invented@example.com", evidence:"invented@example.com" }
+  }}
+};
+const checked = validateAiConversationDraft(aiInput);
+assert.equal(checked.fields.businessName.approved,false);
+assert.equal(checked.fields.businessName.confidence,"unverified");
+assert.equal(checked.fields.serviceArea.value,"Devon");
+assert.equal(checked.fields.email,undefined);
+assert.ok(checked.rejected.includes("published"));
+assert.equal(checked.publicationAllowed,false);
+const override=validateAiConversationDraft({...aiInput,approved:{businessName:"Verified Ltd"}});
+assert.equal(override.fields.businessName,undefined);
+console.log("V3.60 AI draft evidence boundary checks passed");
