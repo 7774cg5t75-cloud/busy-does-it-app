@@ -1,5 +1,16 @@
 # busy-does-it-app
 
+## V3.67 — Verified Business Activity & Results (development, not released)
+
+- Adds a source-attributed, **read-only Verified Business Activity** screen, linked from Home and Growth Command Centre, for the authenticated business's existing website hosting, customer Business App and social publishing records.
+- Distinguishes a provider-recorded live deployment or release, a destination-specific social publication receipt, an unpublished preview, a scheduled post, a recorded failure, and an unverified result. A queue row merely saying "Published" is not enough to claim a successful post.
+- Shows separately which reporting systems responded and which could not be checked. A website/app/social event is **not automatically attributed to a Growth Project** without reliable project-specific source identifiers.
+- Responds to spoken and typed publishing-status **questions** from authenticated records before the existing Operator takes any actions. The response never initiates publishing, retrying, deleting or scheduling.
+- Offers deep links into the existing owner-controlled publisher screens for further checks or explicitly approved retry-only-failed-channel recovery.
+- Uses existing owner-token Edge Functions and RLS; no new database, service-role key or hosting service subscription. Adds an independent suite: `scripts/check-verified-activity.mjs`.
+- **Limitation:** provider-recorded successes are not independently verified public URL reachability. Real iPhone/connected-channel acceptance remains required. Details in `docs/V3_67_VERIFIED_BUSINESS_ACTIVITY.md`.
+
+
 ## V3.66 — BUSY Operator 3.0: voice and text project continuity (development, not released)
 - Extends the existing **Talk to BUSY** microphone and typed-command experience to answer owner-only, RLS-authenticated saved growth-project questions. Voice passes through the existing transcription service; typed project queries read grounded checkpoints without another LLM call.
 - Supports single-service status checks and in-conversation pronouns such as "open that project" and "show me the website wording." Keeps the selected project scoped to the current signed-in owner/business; clears context on new chat, sign-out or tenant switch.
