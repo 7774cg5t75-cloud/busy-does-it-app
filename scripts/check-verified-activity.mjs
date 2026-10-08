@@ -69,9 +69,9 @@ assert.equal(wrong.verified,0);
 // Live record without an exact matching, dated active hosting record is unverified.
 const noProof=build({...response,
   website:{...response.website,data:{...response.website.data,
-    deployments:[{id:"deploy-1",state:"preview_ready",published_at:published}]}}},
+    deployments:[{id:"deploy-1",state:"preview_ready",published_at:published}]}},
   business_app:{...response.business_app,data:{...response.business_app.data,
-    versions:[{id:"v-1",state:"preview_ready"}]}}},
+    versions:[{id:"v-1",state:"preview_ready"}]}},
   social:{...response.social,data:{...response.social.data,
     queue:[{id:"post-1",status:"Published",channels:["facebook"],published_at:published,provider_results:{facebook:{}}}]}}
 });
