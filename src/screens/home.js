@@ -899,6 +899,16 @@ function HomeScreen({ s }) {
 
 
       <Card
+        eyebrow="V3.65 • Business Growth Command Centre"
+        title="Pick up your business growth projects"
+        body="See the next private-draft step across your saved website, customer app and social media work. BUSY can help you resume without mistaking a saved draft for something published."
+        footer="Cloud progress is loaded only after signing in. No public provider is contacted or changed from this dashboard."
+        tone="blue"
+      >
+        <Button label="Open my Growth Command Centre" primary onPress={() => s.go("growthCommandCentre")} />
+      </Card>
+
+      <Card
         eyebrow="V3.30 • Daily Command Centre"
         title={s.dailyCommandCentre?.headline || (bestMove ? bestMove.title : "Nothing urgent needs forcing")}
         body={
