@@ -291,7 +291,7 @@ function App() {
   const [miniAppsNotice, setMiniAppsNotice] = useState("");
   const [miniAppBuildBrief, setMiniAppBuildBrief] = useState("");
   const [businessCreationBrief, setBusinessCreationBrief] = useState("");
-  const [conversationResumeReady, setConversationResumeReady] = useState(false);
+  const [conversationResumeReady, setConversationResumeReady] = useState("");
   const [conversationResumeNotice, setConversationResumeNotice] = useState("");
 
   const [businessCreationAction, setBusinessCreationAction] = useState("");
@@ -13390,7 +13390,7 @@ function App() {
     : "";
   useEffect(() => {
     let active = true;
-    setConversationResumeReady(false);
+    setConversationResumeReady("");
     setBusinessCreationBrief("");
     setConversationResumeNotice("");
     if (!conversationResumeKey) return () => { active = false; };
@@ -13399,20 +13399,20 @@ function App() {
       if (raw) {
         const saved = JSON.parse(raw);
         if (saved?.version === 1 && typeof saved.brief === "string") {
-          setBusinessCreationBrief(saved.brief.slice(0, 1800));
+          setBusinessCreationBrief(saved.brief.slice(0, 1000));
           setConversationResumeNotice("Your last private conversation draft has been restored on this device.");
         }
       }
     }).catch(() => {
       if (active) setConversationResumeNotice("Private draft restore is unavailable on this device.");
-    }).finally(() => { if (active) setConversationResumeReady(true); });
+    }).finally(() => { if (active) setConversationResumeReady(conversationResumeKey); });
     return () => { active = false; };
   }, [conversationResumeKey]);
 
   useEffect(() => {
-    if (!conversationResumeKey || !conversationResumeReady) return;
+    if (!conversationResumeKey || conversationResumeReady !== conversationResumeKey) return;
     const timer = setTimeout(() => {
-      const brief = String(businessCreationBrief || "").slice(0, 1800);
+      const brief = String(businessCreationBrief || "").slice(0, 1000);
       const operation = brief
         ? SecureStore.setItemAsync(conversationResumeKey, JSON.stringify({ version: 1, brief }))
         : SecureStore.deleteItemAsync(conversationResumeKey);
