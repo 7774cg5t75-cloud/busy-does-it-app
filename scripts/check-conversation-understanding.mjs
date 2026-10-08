@@ -90,3 +90,8 @@ for (const [words, expected] of businessKinds) {
  assert.ok(parsed.suggestions.some(item=>item.value===expected && item.approved===false), words);
 }
 console.log("V3.60 multi-industry classification checks passed");
+
+assert.equal(extractConversationTurn("For example, my business is called Imaginary Ltd.").fields.businessName,undefined);
+assert.equal(extractConversationTurn("We do not offer plumbing, we provide catering.").suggestions.some(x=>x.value==="plumbing"),false);
+assert.equal(extractConversationTurn("We do not offer plumbing, we provide catering.").suggestions.some(x=>x.value==="catering"),true);
+console.log("V3.60 hypothetical and negation protection checks passed");
