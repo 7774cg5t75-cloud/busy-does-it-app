@@ -22,7 +22,8 @@ function classifyGrowthUtterance(text,{activeContext=false,projectNames=[]}={}){
   if(!request)return {growth:false,reason:"empty"};
   const explicit=PROJECT.test(request);
   const names=projectNames.some(name=>keyOf(name).length>2 && norm(request).includes(keyOf(name)));
-  const followup=activeContext && (FOLLOWUP.test(request)||/^(show (me )?(the )?wording|open it|continue|what(?:'s| is) left|what(?:'s| is) next|where are we|is it ready|what about the (website|app|social))\??$/i.test(request));
+  const followup=activeContext && (FOLLOWUP.test(request)||/^(show (me )?(the )?wording|open it|continue|what(?:'s| is) left|what(?:'s| is) next|where are we|is it ready|what about the (website|app|social))\??$/i.test(request) ||
+    /\b(publish|post|go live|launch|delete|remove|schedule)\b.{0,30}\b(that|it|this|project|website|app|post)\b/i.test(request));
   const growth=!!(explicit||names||followup);
   if(!growth)return {growth:false,reason:"not_project_related"};
   // Deliberately never interpret broad requests like "run my business"
