@@ -1,5 +1,15 @@
 # busy-does-it-app
 
+## v3.60 Conversational Business Understanding — development branch, not released
+- Adds a review-only parser for owner-stated trading names, coverage areas and public contact information, plus clearly marked unconfirmed industry suggestions.
+- Owner must explicitly confirm facts before BUSY puts them into the shared business profile; existing approved values are never silently replaced.
+- Adds encrypted on-device draft restore scoped to the authenticated user and business. **This is not yet multi-device cloud conversation history.**
+- Adds a bounded approved-only handoff contract for website, Business App and social draft creation. Publishing still requires independent approval.
+- Extends deterministic automated tests for conflicting facts, non-approval of inferred claims, inline statement boundaries, PII redaction in excerpts and approved handoff limits.
+- Remaining before release: authenticated tenant-scoped cloud conversation persistence and cross-device syncing, schema-constrained AI extraction, end-to-end device testing, and validation of actual builder payload propagation.
+- Production database schema and deployed functions remain unchanged by this branch.
+
+
 ## v3.55 Business App Builder 2.0 — Complete App Journey
 - Turns the Business App Builder into one continuous owner journey: **describe the customer experience → answer only missing facts → BUSY builds the private app → review the real customer preview → explicitly approve Go Live**.
 - The builder now surfaces a five-step journey card instead of making the owner reason about draft/version/module machinery. Technical module controls remain available underneath for fine-tuning, but they are no longer the primary path.
