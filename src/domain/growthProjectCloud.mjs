@@ -4,7 +4,7 @@
  * Authenticated session and RLS must be enforced server-side.
  */
 import {keyOf,validateGrowthProject} from "./growthProjectWorkspace.mjs";
-const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function checkScope({businessId,userId,accessToken,publishableKey,supabaseUrl}={}){
   if(!UUID.test(businessId||"") || !UUID.test(userId||"") ||
      !accessToken || !publishableKey || !/^https:\/\/[^/]+$/.test(supabaseUrl||""))
