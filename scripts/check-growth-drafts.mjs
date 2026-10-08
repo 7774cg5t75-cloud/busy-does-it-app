@@ -70,7 +70,7 @@ assert.ok(!isCurrentGrowthDraftPack(null, build()));
 const screen = readFileSync(new URL("../src/screens/businessCreationJourney.js", import.meta.url),"utf8");
 const website = readFileSync(new URL("../src/domain/websiteBuilder.js", import.meta.url),"utf8");
 assert.ok(screen.includes("isCurrentGrowthDraftPack(growthDraftPack, candidateDraftPack)"));
-assert.ok(screen.includes("setGrowthDraftPack(current => editGrowthDraft(current, item.target, text))"));
+assert.ok(screen.includes("setGrowthDraftPack(current=>editGrowthDraft(current,target,text))"));
 assert.ok(screen.includes("applyCoordinatedWebsiteCopy({"));
 assert.ok(screen.includes("s.setWebsiteDraft(result.draft)"));
 assert.ok(screen.includes("s.openMiniAppBuilder()"));
