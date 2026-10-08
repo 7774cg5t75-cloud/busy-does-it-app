@@ -71,4 +71,30 @@ function validateSnackImports(files) {
   }
   return issues;
 }
-export {collectJsFiles,toSnackPath,prepareSource,snackSourceFiles,validateSnackImports};
+/**
+ * Expo Snack does not infer npm packages from the repository's package.json.
+ * Every bare package import in uploaded source requires an explicit Snack
+ * dependency, except the Expo built-in runtime packages.
+ */
+function validateSnackPackages(files, declaredDependencies={}) {
+  const core=new Set(["react","react-native","expo"]);
+  const declared=new Set(Object.keys(declaredDependencies));
+  const issues=[];
+  const known=new Set();
+  for(const [file,record] of Object.entries(files)) {
+    const source=String(record?.contents||"");
+    const re=/(?:\bfrom\s*|\bimport\s*(?:\(\s*)?|\brequire\s*\(\s*)(["'])([^\x22\x27\x60]+)\1/g;
+    for(const found of source.matchAll(re)){
+      const spec=found[2];
+      if(spec.startsWith(".")||spec.startsWith("/")||spec.startsWith("node:"))continue;
+      const bits=spec.split("/");
+      const pkg=spec.startsWith("@")?bits.slice(0,2).join("/"):bits[0];
+      if(core.has(pkg)||declared.has(pkg))continue;
+      const key=file+" => "+pkg;
+      if(!known.has(key)){issues.push(key+" missing from Expo Snack dependencies");known.add(key);}
+    }
+  }
+  return issues;
+}
+
+export {collectJsFiles,toSnackPath,prepareSource,snackSourceFiles,validateSnackImports,validateSnackPackages};
