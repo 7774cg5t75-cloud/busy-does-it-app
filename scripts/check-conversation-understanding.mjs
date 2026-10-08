@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { extractConversationTurn, reviewConversation } from "../src/domain/conversationUnderstanding.mjs";
+import { extractConversationTurn, reviewConversation, buildApprovedCreationHandoff } from "../src/domain/conversationUnderstanding.mjs";
 const first = extractConversationTurn("My business is called Acme Services. We're based in Exeter. I do plumbing.");
 assert.equal(first.fields.businessName.value, "Acme Services");
 assert.equal(first.fields.businessName.approved, false);
@@ -26,4 +26,14 @@ const confirmedDraft = reviewConversation({
 assert.equal(confirmedDraft.draft.businessName, undefined);
 assert.equal(confirmedDraft.draft.serviceArea, undefined);
 assert.equal(confirmedDraft.publicationAllowed, false);
+const handoff = buildApprovedCreationHandoff({
+  approved: { businessName: "Approved Ltd", services: [{ name: "Boiler service", description: "Annual" }] },
+  requestedSurfaces: ["website", "business_app", "social", "publish", "website"]
+});
+assert.deepEqual(handoff.targets, ["website", "business_app", "social"]);
+assert.equal(handoff.facts.businessName, "Approved Ltd");
+assert.equal(handoff.facts.services.length, 1);
+assert.equal(handoff.unconfirmedConversationIncluded, false);
+assert.equal(handoff.requiresSeparatePublicationApproval, true);
+assert.ok(!("publish" in handoff.facts));
 console.log("V3.60 conversation understanding tests passed");
