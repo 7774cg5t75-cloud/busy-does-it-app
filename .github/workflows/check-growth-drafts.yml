@@ -1,0 +1,27 @@
+name: V3.63 coordinated editable growth checks
+on:
+  push:
+    branches: [v3.63]
+  pull_request:
+    paths:
+      - "src/domain/coordinatedGrowthDrafts.mjs"
+      - "src/domain/coordinatedGrowthPlan.mjs"
+      - "src/domain/websiteBuilder.js"
+      - "src/screens/businessCreationJourney.js"
+      - "scripts/check-growth-drafts.mjs"
+      - ".github/workflows/check-growth-drafts.yml"
+  workflow_dispatch:
+jobs:
+  review-drafts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check approved-only growth planning
+        run: node scripts/check-coordinated-growth.mjs
+      - name: Check editable draft pack and handoff boundaries
+        run: node scripts/check-growth-drafts.mjs
+      - name: Check conversation and approval regressions
+        run: node scripts/check-conversation-understanding.mjs
