@@ -7902,6 +7902,313 @@ function App() {
     (item) => item.triage?.lane === "Needs attention"
   );
 
+  const captureMatch = captureForceNew
+    ? null
+    : findCustomerMatch(customers, {
+        phone: capturePhone,
+        email: captureEmail,
+        name: captureName,
+      });
+  const intakeMergedCount = intakeLog.filter((item) => item.matchedExisting).length;
+  const intakeCreatedCount = intakeLog.length - intakeMergedCount;
+  const inboxReadyItems = inboxPendingItems.filter(
+    (item) => item.triage?.lane === "Ready to review"
+  );
+  const inboxSafeReadyItems = inboxPendingItems.filter(
+    (item) => item.autoEvaluation?.safe
+  );
+  const inboxFiledCount = inboxItems.filter((item) => item.status === "Filed").length;
+  const inboxAutoFiledCount = inboxItems.filter(
+    (item) => item.status === "Filed" && item.autoFiled
+  ).length;
+  const inboxOwnerFiledCount = inboxItems.filter(
+    (item) => item.status === "Filed" && !item.autoFiled
+  ).length;
+  const inboxDismissedCount = inboxItems.filter((item) => item.status === "Dismissed").length;
+  const connectedIntakeKeys = intakeConnectionKeys.filter((key) => !!connectedAccounts[key]);
+  const connectedIntakeItems = inboxItems.filter((item) => item.connectedDemo);
+  const connectedIntakePendingCount = connectedIntakeItems.filter((item) => item.status === "Pending").length;
+  const connectedIntakeAutoFiledCount = connectedIntakeItems.filter(
+    (item) => item.status === "Filed" && item.autoFiled
+  ).length;
+  const allSourceRecords = customers.flatMap((customer) =>
+    (Array.isArray(customer.sourceRecords) ? customer.sourceRecords : []).map((record) => ({
+      ...record,
+      customerId: customer.id,
+      customerName: customer.name,
+    }))
+  );
+  const reconciledSourceRecords = allSourceRecords.filter((record) => record.reconciled);
+  const reconciledJourneyIds = new Set(
+    reconciledSourceRecords.map((record) => record.workThreadId).filter(Boolean)
+  );
+  const reconciledJourneyCount = reconciledJourneyIds.size;
+  const crossSourceCustomerCount = customers.filter((customer) => {
+    const sources = new Set(
+      (Array.isArray(customer.sourceRecords) ? customer.sourceRecords : [])
+        .map((record) => record.sourceConnection || record.source || "")
+        .filter(Boolean)
+    );
+    return sources.size >= 2;
+  }).length;
+  const reconciliationPendingCount = inboxPendingItems.filter(
+    (item) => item.triage?.reconciliation?.progression
+  ).length;
+  const reconciliationBlockedCount = inboxPendingItems.filter(
+    (item) =>
+      item.triage?.reconciliation?.regression ||
+      item.triage?.reconciliation?.sameStage
+  ).length;
+  const lastReconciledSourceRecord =
+    [...reconciledSourceRecords].sort((a, b) =>
+      String(b.importedAt || "").localeCompare(String(a.importedAt || ""))
+    )[0] || null;
+  const lastConnectionSync = [...connectionSyncLog].sort((a, b) =>
+    String(b.syncedAt || "").localeCompare(String(a.syncedAt || ""))
+  )[0] || null;
+  const inboxTopItem = inboxPendingItems[0] || null;
+  const communicationsHub = buildCommunicationsHub({
+    customers,
+    customerJourneys,
+    inboxItems: inboxPendingItems,
+  });
+  const followUpEngine = buildFollowUpEngine({
+    communicationsHub,
+    todayISO: dateToISO(new Date()),
+  });
+  const brandBrain = buildBrandBrain({
+    businessName,
+    trade,
+    verticalLabel: getVerticalPack(verticalId)?.label || "",
+    postcode,
+    radius,
+    services,
+    brandProfile,
+    customers,
+    socialDrafts,
+    connectedAccounts,
+  });
+  const websitePublishingView = buildWebsitePublishingView({
+    remote: websitePublishingStatus,
+    websiteDraft,
+  });
+  const miniAppsView = buildMiniAppsView(miniAppsStatus);
+  const businessCreationIntelligence = buildBusinessCreationIntelligence({
+    brandBrain,
+    websiteDraft,
+    miniAppsView,
+  });
+  const businessCreationJourney = buildBusinessCreationJourney({
+    businessCreationIntelligence,
+    brandBrain,
+    websiteDraft,
+    websitePublishingView,
+    miniAppsView,
+    connectedAccounts,
+    socialBrief,
+    ownerBrief: businessCreationBrief,
+  });
+  const miniAppProfileDraft = buildMiniAppProfileDraft(
+    brandBrain,
+    businessCreationIntelligence
+  );
+  const miniAppShareLinks = (() => {
+    const slug = String(miniAppsView?.publicSlug || "").trim();
+    if (!slug) return { native: "", qr: "", share: "" };
+    const encoded = encodeURIComponent(slug);
+    const landing = (source) =>
+      `${BUSY_MINI_APP_LINK_URL}?slug=${encoded}&source=${encodeURIComponent(source)}`;
+    return {
+      native: `busydoesit://apps/${encoded}?source=deep_link`,
+      qr: landing("qr"),
+      share: landing("share"),
+    };
+  })();
+  const selectedCommunicationThread =
+    communicationsHub.threads.find(
+      (thread) => thread.customerId === selectedCustomerId
+    ) || null;
+  const selectedFollowUpCandidate =
+    followUpEngine.candidates.find(
+      (candidate) => candidate.customerId === selectedCustomerId
+    ) || null;
+  const lastAutoFiledInboxItem =
+    inboxItems.find((item) => item.id === lastAutoFiledInboxItemId) ||
+    [...inboxItems]
+      .filter((item) => item.status === "Filed" && item.autoFiled)
+      .sort((a, b) =>
+        String(b.reviewedAt || b.queuedAt || "").localeCompare(
+          String(a.reviewedAt || a.queuedAt || "")
+        )
+      )[0] ||
+    null;
+  const intakeStageCounts = intakeLog.reduce((counts, item) => {
+    const key = item.stage || "Other";
+    counts[key] = (counts[key] || 0) + 1;
+    return counts;
+  }, {});
+
+  const workGoalPlanningService =
+    services.find((item) => item.id === activeWorkGoal?.serviceId) ||
+    services.find((item) => item.id === selectedServiceId) ||
+    services.find((item) => item.wanted) ||
+    services[0] ||
+    null;
+  const workGoalBookingEntries = activeWorkGoal
+    ? Object.entries(replyActions || {})
+        .map(([id, action]) => {
+          const customer =
+            customers.find((item) => item.id === id) ||
+            lastSimulatedRecipients.find((item) => item.id === id);
+          if (!customer) return null;
+          if (workGoalPlanningService?.name && customer.service !== workGoalPlanningService.name) return null;
+          if (!bookingMatchesWorkGoal(action, activeWorkGoal)) return null;
+          return { id, action, customer };
+        })
+        .filter(Boolean)
+    : [];
+  const workGoalBookedCount = workGoalBookingEntries.length;
+  const workGoalBookedValue = workGoalBookingEntries.reduce(
+    (total, entry) =>
+      total +
+      (Number(entry.action.details?.jobValue) ||
+        Number(entry.action.details?.sourceQuoteAmount) ||
+        0),
+    0
+  );
+  const workGoalTargetJobs = Number(activeWorkGoal?.targetJobs) || 1;
+  const workGoalDurationHours = planningDurationHours(workGoalPlanningService);
+  const workGoalSlotHours =
+    activeWorkGoal?.date && activeWorkGoal?.part
+      ? slotPlanningHours(activeWorkGoal.part)
+      : null;
+  const workGoalCapacityMax =
+    workGoalSlotHours && workGoalDurationHours
+      ? Math.floor(workGoalSlotHours / workGoalDurationHours)
+      : null;
+  const workGoalCapacityMismatch =
+    workGoalCapacityMax !== null &&
+    Math.max(workGoalTargetJobs, workGoalBookedCount) > workGoalCapacityMax;
+  const workGoalPlannedSlots = Array.isArray(activeWorkGoal?.plannedSlots)
+    ? activeWorkGoal.plannedSlots.map((slot) => {
+        const matchingBookings = workGoalBookingEntries.filter((entry) => {
+          const date = entry.action.details?.bookingDate;
+          const hour = Number(String(entry.action.details?.bookingTime || "").split(":")[0]);
+          if (!date || !Number.isFinite(hour)) return false;
+          const part = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+          return date === slot.date && part === slot.part;
+        });
+        const allBookingsInSlot = Object.values(replyActions || {}).filter((action) => {
+          if (!action?.done || action.type !== "booking") return false;
+          if (!["Confirmed", "Completed"].includes(action.details?.bookingStatus || "Confirmed")) return false;
+          if (action.details?.bookingDate !== slot.date) return false;
+          const hour = Number(String(action.details?.bookingTime || "").split(":")[0]);
+          if (!Number.isFinite(hour)) return false;
+          const part = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+          return part === slot.part;
+        });
+        const bookedCount = matchingBookings.length;
+        const otherBookingCount = Math.max(0, allBookingsInSlot.length - bookedCount);
+        return {
+          ...slot,
+          bookedCount,
+          remainingJobs: Math.max(0, Number(slot.targetJobs || 0) - bookedCount),
+          otherBookingCount,
+          overbooked: bookedCount > Number(slot.targetJobs || 0),
+          conflict:
+            (otherBookingCount > 0 && bookedCount < Number(slot.targetJobs || 0)) ||
+            bookedCount > Number(slot.targetJobs || 0),
+        };
+      })
+    : [];
+  const workGoalPlanConflict = workGoalPlannedSlots.some((slot) => slot.conflict);
+  const workGoalPlanShortfall =
+    activeWorkGoal?.spreadAcrossSlots
+      ? Math.max(0, Number(activeWorkGoal?.unplannedJobs) || 0)
+      : 0;
+  const workGoalRemainingJobs = Math.max(0, workGoalTargetJobs - workGoalBookedCount);
+  const workGoalAttempts = Array.isArray(activeWorkGoal?.attempts) ? activeWorkGoal.attempts : [];
+  const workGoalAttemptKeys = new Set(workGoalAttempts.map((item) => item.key).filter(Boolean));
+  const workGoalAttemptedCustomerIds = new Set(
+    workGoalAttempts.flatMap((item) =>
+      item.type === "reactivation" && Array.isArray(item.recipientIds) ? item.recipientIds : []
+    )
+  );
+  const reactivationEligibleCustomers = (
+    activeWorkGoal && evidenceServiceName
+      ? eligibleCustomers.filter((customer) => customer.service === evidenceServiceName)
+      : eligibleCustomers
+  ).filter((customer) => !workGoalAttemptedCustomerIds.has(customer.id));
+
+  const workGoalAttemptRows = workGoalAttempts.map((attempt) => {
+    let outcome = "Action approved • outcome not recorded yet";
+    let tone = "blue";
+    if (attempt.type === "quote" && attempt.customerId) {
+      const action = replyActions[attempt.customerId];
+      const recorded = action?.details?.followUpOutcome;
+      if (recorded) {
+        outcome = recorded;
+        tone = recorded === "Accepted" ? "green" : recorded === "Declined" ? "amber" : "blue";
+      }
+    } else if (attempt.type === "enquiry" && attempt.customerId) {
+      const customer = customers.find((item) => item.id === attempt.customerId);
+      if (customer?.enquiryFollowUpOutcome) {
+        outcome = customer.enquiryFollowUpOutcome;
+        tone = customer.enquiryFollowUpOutcome === "Still interested" ? "green" : customer.enquiryFollowUpOutcome === "Not interested" ? "amber" : "blue";
+      }
+    } else if (attempt.type === "reactivation") {
+      const ids = new Set(attempt.recipientIds || []);
+      const booked = Object.entries(replyActions || {}).filter(([id, action]) =>
+        ids.has(id) &&
+        action?.type === "booking" &&
+        action?.done &&
+        ["Confirmed", "Completed"].includes(action.details?.bookingStatus || "Confirmed")
+      ).length;
+      outcome = booked
+        ? `${booked} booking${booked === 1 ? "" : "s"} recorded`
+        : "Sent • awaiting recorded bookings";
+      tone = booked ? "green" : "blue";
+    } else if (attempt.type === "post" && attempt.customerId && attempt.jobId) {
+      const customer = customers.find((item) => item.id === attempt.customerId);
+      const job = (customer?.history || []).find((item) => item.id === attempt.jobId);
+      if (job?.postOutcome) {
+        outcome = job.postOutcome;
+        tone = job.postOutcome === "Booking" ? "green" : "blue";
+      }
+    } else if (attempt.type === "offer") {
+      outcome = workGoalBookedCount
+        ? `${workGoalBookedCount} matching booking${workGoalBookedCount === 1 ? "" : "s"} now recorded`
+        : "Plan prepared • no separate offer outcome recorded";
+      tone = workGoalBookedCount ? "green" : "blue";
+    } else if (attempt.type === "paid") {
+      outcome = "Prototype paid test approved • live result not recorded";
+      tone = "amber";
+    }
+    return { ...attempt, outcome, tone };
+  });
+  const reactivationRateForSizing = reactivationEvidence.evidenceReady
+    ? Math.max(0.1, Math.min(0.75, reactivationEvidence.rate))
+    : 1 / 3;
+  const evidenceSizedBatch = Math.max(
+    1,
+    Math.ceil(Math.max(1, workGoalRemainingJobs) / reactivationRateForSizing)
+  );
+  const recommendedReactivationBatchSize = Math.min(
+    reactivationEligibleCustomers.length,
+    evidenceSizedBatch
+  );
+  const reactivationAudience = campaignRecipientLimit && campaignRecipientLimit > 0
+    ? reactivationEligibleCustomers.slice(0, campaignRecipientLimit)
+    : reactivationEligibleCustomers;
+  const workGoalFilled =
+    !!activeWorkGoal &&
+    !workGoalCapacityMismatch &&
+    !workGoalPlanConflict &&
+    workGoalPlanShortfall === 0 &&
+    workGoalBookedCount >= workGoalTargetJobs;
+
+  // Autopilot depends on inbox review and work-goal/reactivation derivations.
+  // Keep every input initialised before evaluating these queues on first render.
   const autopilotRawApprovalItems = [
     ...dueQuoteEntries.slice(0, 8).map((entry) => {
       const amount = Number(entry.action?.details?.quoteAmount) || 0;
@@ -8296,310 +8603,6 @@ function App() {
     }
     return false;
   };
-  const captureMatch = captureForceNew
-    ? null
-    : findCustomerMatch(customers, {
-        phone: capturePhone,
-        email: captureEmail,
-        name: captureName,
-      });
-  const intakeMergedCount = intakeLog.filter((item) => item.matchedExisting).length;
-  const intakeCreatedCount = intakeLog.length - intakeMergedCount;
-  const inboxReadyItems = inboxPendingItems.filter(
-    (item) => item.triage?.lane === "Ready to review"
-  );
-  const inboxSafeReadyItems = inboxPendingItems.filter(
-    (item) => item.autoEvaluation?.safe
-  );
-  const inboxFiledCount = inboxItems.filter((item) => item.status === "Filed").length;
-  const inboxAutoFiledCount = inboxItems.filter(
-    (item) => item.status === "Filed" && item.autoFiled
-  ).length;
-  const inboxOwnerFiledCount = inboxItems.filter(
-    (item) => item.status === "Filed" && !item.autoFiled
-  ).length;
-  const inboxDismissedCount = inboxItems.filter((item) => item.status === "Dismissed").length;
-  const connectedIntakeKeys = intakeConnectionKeys.filter((key) => !!connectedAccounts[key]);
-  const connectedIntakeItems = inboxItems.filter((item) => item.connectedDemo);
-  const connectedIntakePendingCount = connectedIntakeItems.filter((item) => item.status === "Pending").length;
-  const connectedIntakeAutoFiledCount = connectedIntakeItems.filter(
-    (item) => item.status === "Filed" && item.autoFiled
-  ).length;
-  const allSourceRecords = customers.flatMap((customer) =>
-    (Array.isArray(customer.sourceRecords) ? customer.sourceRecords : []).map((record) => ({
-      ...record,
-      customerId: customer.id,
-      customerName: customer.name,
-    }))
-  );
-  const reconciledSourceRecords = allSourceRecords.filter((record) => record.reconciled);
-  const reconciledJourneyIds = new Set(
-    reconciledSourceRecords.map((record) => record.workThreadId).filter(Boolean)
-  );
-  const reconciledJourneyCount = reconciledJourneyIds.size;
-  const crossSourceCustomerCount = customers.filter((customer) => {
-    const sources = new Set(
-      (Array.isArray(customer.sourceRecords) ? customer.sourceRecords : [])
-        .map((record) => record.sourceConnection || record.source || "")
-        .filter(Boolean)
-    );
-    return sources.size >= 2;
-  }).length;
-  const reconciliationPendingCount = inboxPendingItems.filter(
-    (item) => item.triage?.reconciliation?.progression
-  ).length;
-  const reconciliationBlockedCount = inboxPendingItems.filter(
-    (item) =>
-      item.triage?.reconciliation?.regression ||
-      item.triage?.reconciliation?.sameStage
-  ).length;
-  const lastReconciledSourceRecord =
-    [...reconciledSourceRecords].sort((a, b) =>
-      String(b.importedAt || "").localeCompare(String(a.importedAt || ""))
-    )[0] || null;
-  const lastConnectionSync = [...connectionSyncLog].sort((a, b) =>
-    String(b.syncedAt || "").localeCompare(String(a.syncedAt || ""))
-  )[0] || null;
-  const inboxTopItem = inboxPendingItems[0] || null;
-  const communicationsHub = buildCommunicationsHub({
-    customers,
-    customerJourneys,
-    inboxItems: inboxPendingItems,
-  });
-  const followUpEngine = buildFollowUpEngine({
-    communicationsHub,
-    todayISO: dateToISO(new Date()),
-  });
-  const brandBrain = buildBrandBrain({
-    businessName,
-    trade,
-    verticalLabel: getVerticalPack(verticalId)?.label || "",
-    postcode,
-    radius,
-    services,
-    brandProfile,
-    customers,
-    socialDrafts,
-    connectedAccounts,
-  });
-  const websitePublishingView = buildWebsitePublishingView({
-    remote: websitePublishingStatus,
-    websiteDraft,
-  });
-  const miniAppsView = buildMiniAppsView(miniAppsStatus);
-  const businessCreationIntelligence = buildBusinessCreationIntelligence({
-    brandBrain,
-    websiteDraft,
-    miniAppsView,
-  });
-  const businessCreationJourney = buildBusinessCreationJourney({
-    businessCreationIntelligence,
-    brandBrain,
-    websiteDraft,
-    websitePublishingView,
-    miniAppsView,
-    connectedAccounts,
-    socialBrief,
-    ownerBrief: businessCreationBrief,
-  });
-  const miniAppProfileDraft = buildMiniAppProfileDraft(
-    brandBrain,
-    businessCreationIntelligence
-  );
-  const miniAppShareLinks = (() => {
-    const slug = String(miniAppsView?.publicSlug || "").trim();
-    if (!slug) return { native: "", qr: "", share: "" };
-    const encoded = encodeURIComponent(slug);
-    const landing = (source) =>
-      `${BUSY_MINI_APP_LINK_URL}?slug=${encoded}&source=${encodeURIComponent(source)}`;
-    return {
-      native: `busydoesit://apps/${encoded}?source=deep_link`,
-      qr: landing("qr"),
-      share: landing("share"),
-    };
-  })();
-  const selectedCommunicationThread =
-    communicationsHub.threads.find(
-      (thread) => thread.customerId === selectedCustomerId
-    ) || null;
-  const selectedFollowUpCandidate =
-    followUpEngine.candidates.find(
-      (candidate) => candidate.customerId === selectedCustomerId
-    ) || null;
-  const lastAutoFiledInboxItem =
-    inboxItems.find((item) => item.id === lastAutoFiledInboxItemId) ||
-    [...inboxItems]
-      .filter((item) => item.status === "Filed" && item.autoFiled)
-      .sort((a, b) =>
-        String(b.reviewedAt || b.queuedAt || "").localeCompare(
-          String(a.reviewedAt || a.queuedAt || "")
-        )
-      )[0] ||
-    null;
-  const intakeStageCounts = intakeLog.reduce((counts, item) => {
-    const key = item.stage || "Other";
-    counts[key] = (counts[key] || 0) + 1;
-    return counts;
-  }, {});
-
-  const workGoalPlanningService =
-    services.find((item) => item.id === activeWorkGoal?.serviceId) ||
-    services.find((item) => item.id === selectedServiceId) ||
-    services.find((item) => item.wanted) ||
-    services[0] ||
-    null;
-  const workGoalBookingEntries = activeWorkGoal
-    ? Object.entries(replyActions || {})
-        .map(([id, action]) => {
-          const customer =
-            customers.find((item) => item.id === id) ||
-            lastSimulatedRecipients.find((item) => item.id === id);
-          if (!customer) return null;
-          if (workGoalPlanningService?.name && customer.service !== workGoalPlanningService.name) return null;
-          if (!bookingMatchesWorkGoal(action, activeWorkGoal)) return null;
-          return { id, action, customer };
-        })
-        .filter(Boolean)
-    : [];
-  const workGoalBookedCount = workGoalBookingEntries.length;
-  const workGoalBookedValue = workGoalBookingEntries.reduce(
-    (total, entry) =>
-      total +
-      (Number(entry.action.details?.jobValue) ||
-        Number(entry.action.details?.sourceQuoteAmount) ||
-        0),
-    0
-  );
-  const workGoalTargetJobs = Number(activeWorkGoal?.targetJobs) || 1;
-  const workGoalDurationHours = planningDurationHours(workGoalPlanningService);
-  const workGoalSlotHours =
-    activeWorkGoal?.date && activeWorkGoal?.part
-      ? slotPlanningHours(activeWorkGoal.part)
-      : null;
-  const workGoalCapacityMax =
-    workGoalSlotHours && workGoalDurationHours
-      ? Math.floor(workGoalSlotHours / workGoalDurationHours)
-      : null;
-  const workGoalCapacityMismatch =
-    workGoalCapacityMax !== null &&
-    Math.max(workGoalTargetJobs, workGoalBookedCount) > workGoalCapacityMax;
-  const workGoalPlannedSlots = Array.isArray(activeWorkGoal?.plannedSlots)
-    ? activeWorkGoal.plannedSlots.map((slot) => {
-        const matchingBookings = workGoalBookingEntries.filter((entry) => {
-          const date = entry.action.details?.bookingDate;
-          const hour = Number(String(entry.action.details?.bookingTime || "").split(":")[0]);
-          if (!date || !Number.isFinite(hour)) return false;
-          const part = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
-          return date === slot.date && part === slot.part;
-        });
-        const allBookingsInSlot = Object.values(replyActions || {}).filter((action) => {
-          if (!action?.done || action.type !== "booking") return false;
-          if (!["Confirmed", "Completed"].includes(action.details?.bookingStatus || "Confirmed")) return false;
-          if (action.details?.bookingDate !== slot.date) return false;
-          const hour = Number(String(action.details?.bookingTime || "").split(":")[0]);
-          if (!Number.isFinite(hour)) return false;
-          const part = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
-          return part === slot.part;
-        });
-        const bookedCount = matchingBookings.length;
-        const otherBookingCount = Math.max(0, allBookingsInSlot.length - bookedCount);
-        return {
-          ...slot,
-          bookedCount,
-          remainingJobs: Math.max(0, Number(slot.targetJobs || 0) - bookedCount),
-          otherBookingCount,
-          overbooked: bookedCount > Number(slot.targetJobs || 0),
-          conflict:
-            (otherBookingCount > 0 && bookedCount < Number(slot.targetJobs || 0)) ||
-            bookedCount > Number(slot.targetJobs || 0),
-        };
-      })
-    : [];
-  const workGoalPlanConflict = workGoalPlannedSlots.some((slot) => slot.conflict);
-  const workGoalPlanShortfall =
-    activeWorkGoal?.spreadAcrossSlots
-      ? Math.max(0, Number(activeWorkGoal?.unplannedJobs) || 0)
-      : 0;
-  const workGoalRemainingJobs = Math.max(0, workGoalTargetJobs - workGoalBookedCount);
-  const workGoalAttempts = Array.isArray(activeWorkGoal?.attempts) ? activeWorkGoal.attempts : [];
-  const workGoalAttemptKeys = new Set(workGoalAttempts.map((item) => item.key).filter(Boolean));
-  const workGoalAttemptedCustomerIds = new Set(
-    workGoalAttempts.flatMap((item) =>
-      item.type === "reactivation" && Array.isArray(item.recipientIds) ? item.recipientIds : []
-    )
-  );
-  const reactivationEligibleCustomers = (
-    activeWorkGoal && evidenceServiceName
-      ? eligibleCustomers.filter((customer) => customer.service === evidenceServiceName)
-      : eligibleCustomers
-  ).filter((customer) => !workGoalAttemptedCustomerIds.has(customer.id));
-
-  const workGoalAttemptRows = workGoalAttempts.map((attempt) => {
-    let outcome = "Action approved • outcome not recorded yet";
-    let tone = "blue";
-    if (attempt.type === "quote" && attempt.customerId) {
-      const action = replyActions[attempt.customerId];
-      const recorded = action?.details?.followUpOutcome;
-      if (recorded) {
-        outcome = recorded;
-        tone = recorded === "Accepted" ? "green" : recorded === "Declined" ? "amber" : "blue";
-      }
-    } else if (attempt.type === "enquiry" && attempt.customerId) {
-      const customer = customers.find((item) => item.id === attempt.customerId);
-      if (customer?.enquiryFollowUpOutcome) {
-        outcome = customer.enquiryFollowUpOutcome;
-        tone = customer.enquiryFollowUpOutcome === "Still interested" ? "green" : customer.enquiryFollowUpOutcome === "Not interested" ? "amber" : "blue";
-      }
-    } else if (attempt.type === "reactivation") {
-      const ids = new Set(attempt.recipientIds || []);
-      const booked = Object.entries(replyActions || {}).filter(([id, action]) =>
-        ids.has(id) &&
-        action?.type === "booking" &&
-        action?.done &&
-        ["Confirmed", "Completed"].includes(action.details?.bookingStatus || "Confirmed")
-      ).length;
-      outcome = booked
-        ? `${booked} booking${booked === 1 ? "" : "s"} recorded`
-        : "Sent • awaiting recorded bookings";
-      tone = booked ? "green" : "blue";
-    } else if (attempt.type === "post" && attempt.customerId && attempt.jobId) {
-      const customer = customers.find((item) => item.id === attempt.customerId);
-      const job = (customer?.history || []).find((item) => item.id === attempt.jobId);
-      if (job?.postOutcome) {
-        outcome = job.postOutcome;
-        tone = job.postOutcome === "Booking" ? "green" : "blue";
-      }
-    } else if (attempt.type === "offer") {
-      outcome = workGoalBookedCount
-        ? `${workGoalBookedCount} matching booking${workGoalBookedCount === 1 ? "" : "s"} now recorded`
-        : "Plan prepared • no separate offer outcome recorded";
-      tone = workGoalBookedCount ? "green" : "blue";
-    } else if (attempt.type === "paid") {
-      outcome = "Prototype paid test approved • live result not recorded";
-      tone = "amber";
-    }
-    return { ...attempt, outcome, tone };
-  });
-  const reactivationRateForSizing = reactivationEvidence.evidenceReady
-    ? Math.max(0.1, Math.min(0.75, reactivationEvidence.rate))
-    : 1 / 3;
-  const evidenceSizedBatch = Math.max(
-    1,
-    Math.ceil(Math.max(1, workGoalRemainingJobs) / reactivationRateForSizing)
-  );
-  const recommendedReactivationBatchSize = Math.min(
-    reactivationEligibleCustomers.length,
-    evidenceSizedBatch
-  );
-  const reactivationAudience = campaignRecipientLimit && campaignRecipientLimit > 0
-    ? reactivationEligibleCustomers.slice(0, campaignRecipientLimit)
-    : reactivationEligibleCustomers;
-  const workGoalFilled =
-    !!activeWorkGoal &&
-    !workGoalCapacityMismatch &&
-    !workGoalPlanConflict &&
-    workGoalPlanShortfall === 0 &&
-    workGoalBookedCount >= workGoalTargetJobs;
 
   const proactiveTodayISO = dateToISO(new Date());
   const proactiveWeekEndISO = addDaysFromISO(proactiveTodayISO, 6);
