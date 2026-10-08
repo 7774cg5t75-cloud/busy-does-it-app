@@ -87,6 +87,9 @@ function validateSnackPackages(files, declaredDependencies={}) {
     for(const found of source.matchAll(re)){
       const spec=found[2];
       if(spec.startsWith(".")||spec.startsWith("/")||spec.startsWith("node:"))continue;
+      // Ignore quoted prose caught by loose import scanning. A real npm
+      // module specifier cannot contain spaces or punctuation like commas.
+      if(!/^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*(?:\/[a-z0-9._/-]+)*$/i.test(spec))continue;
       const bits=spec.split("/");
       const pkg=spec.startsWith("@")?bits.slice(0,2).join("/"):bits[0];
       if(core.has(pkg)||declared.has(pkg))continue;
