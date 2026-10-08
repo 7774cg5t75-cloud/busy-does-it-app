@@ -90,6 +90,12 @@ function BusinessActivityCentre({s}){
       ):<Text style={styles.sectionLabel}>{state.busy?"Checking source records…":
         "No qualifying activity was recorded in the available responses. This does not mean nothing has happened."}</Text>}
     </Card>
+    <Card eyebrow="Low-maintenance operations"
+      title="Let BUSY triage your exceptions"
+      body="View read-only health checks, guided recovery and source-specific failures. BUSY groups repeated issues and keeps uncertain reporting separate from confirmed outages."
+      tone="blue">
+      <Button label="Open Operations & Reliability" onPress={()=>s.go("selfRunningOperations")}/>
+    </Card>
     <Card eyebrow="Safe recovery"
       title="Failed destinations remain separate"
       body="If Facebook succeeds but Instagram fails, the timeline keeps both outcomes distinct. Open the original social item and use its existing retry-only-failed-channels controls after owner review."
