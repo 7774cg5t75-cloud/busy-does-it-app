@@ -16,4 +16,14 @@ const untrusted = extractConversationTurn("Email me at hello@example.com and cal
 assert.ok(!untrusted.excerpt.includes("hello@example.com"));
 assert.ok(!untrusted.excerpt.includes("01234567890"));
 assert.equal(reviewConversation({}).nextQuestion.field, "businessName");
+const inline = extractConversationTurn("My business is called Acme Services and we cover Exeter.");
+assert.equal(inline.fields.businessName.value, "Acme Services");
+assert.equal(inline.fields.serviceArea.value, "Exeter");
+const confirmedDraft = reviewConversation({
+  turns: ["My business is called Acme Services and we cover Exeter."],
+  approved: { businessName: "Acme Services", serviceArea: "Exeter", services: [{name:"Emergency plumbing"}] }
+});
+assert.equal(confirmedDraft.draft.businessName, undefined);
+assert.equal(confirmedDraft.draft.serviceArea, undefined);
+assert.equal(confirmedDraft.publicationAllowed, false);
 console.log("V3.60 conversation understanding tests passed");
