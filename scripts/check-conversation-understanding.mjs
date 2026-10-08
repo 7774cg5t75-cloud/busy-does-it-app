@@ -279,3 +279,16 @@ assert.equal(completedReadiness.percent,100);
 assert.equal(completedReadiness.next,null);
 assert.equal(completedReadiness.isPublishAuthorized,false);
 console.log("V3.61 confirmed facts-only readiness scorecard tests passed");
+
+const guidanceBlank = assessBusinessCreationReadiness();
+assert.equal(guidanceBlank.nextAction.field,"identity");
+assert.equal(guidanceBlank.nextAction.action,"describe_business");
+assert.equal(guidanceBlank.nextAction.requiresOwnerConfirmation,true);
+const guidanceService = assessBusinessCreationReadiness({approved:{
+ businessName:"Acme",businessType:"Plumber",serviceArea:"Devon"
+}});
+assert.equal(guidanceService.nextAction.field,"services");
+assert.equal(guidanceService.nextAction.action,"review_services");
+assert.equal(completedReadiness.nextAction.action,"review_launch_pack");
+assert.equal(completedReadiness.nextAction.requiresOwnerConfirmation,true);
+console.log("V3.61 next-best setup action checks passed");
