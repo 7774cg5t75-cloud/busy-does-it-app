@@ -255,3 +255,8 @@ await assert.rejects(()=>saveCloudConversation({...scope,brief:"B".repeat(6001),
 assert.ok(controllerCode.includes('Alert.alert("Different private draft found"'));
 assert.ok(controllerCode.includes('setBusinessCreationBrief(String(record.brief || "").slice(0, 6000))'));
 console.log("V3.60 full-length cloud draft and confirmed replacement checks passed");
+
+assert.ok(controllerCode.includes('if (businessCreationConversationActive && result.transcript)'));
+assert.ok(journeyCode.includes('Finish business voice conversation'));
+assert.ok(journeyCode.includes('s.setBusinessCreationConversationActive(false)'));
+console.log("V3.60 voice conversation exit and transcription wiring checks passed");
