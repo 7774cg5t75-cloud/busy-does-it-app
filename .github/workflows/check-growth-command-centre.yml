@@ -1,0 +1,32 @@
+name: V3.65 Growth Command Centre checks
+on:
+  push:
+    branches: [v3.65]
+  pull_request:
+    paths:
+      - "src/domain/growthCommandCentre.mjs"
+      - "src/screens/growthCommandCentre.js"
+      - "src/domain/growthProjectCloud.mjs"
+      - "src/screens/home.js"
+      - "src/screens/index.js"
+      - "scripts/check-growth-command-centre.mjs"
+      - ".github/workflows/check-growth-command-centre.yml"
+  workflow_dispatch:
+jobs:
+  command-centre:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Coordinated growth planning regressions
+        run: node scripts/check-coordinated-growth.mjs
+      - name: Editable private draft regressions
+        run: node scripts/check-growth-drafts.mjs
+      - name: Cloud project checkpoint regressions
+        run: node scripts/check-growth-workspace.mjs
+      - name: Command Centre interaction and tenant guards
+        run: node scripts/check-growth-command-centre.mjs
+      - name: Conversation fact approval boundaries
+        run: node scripts/check-conversation-understanding.mjs
