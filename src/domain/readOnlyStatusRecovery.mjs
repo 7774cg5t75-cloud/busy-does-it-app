@@ -7,7 +7,7 @@ import {checkScope} from "./growthProjectCloud.mjs";
 import {readOne,PROVIDERS} from "./verifiedBusinessActivityCloud.mjs";
 const isTransientReadError=e=>{
   const status=Number(e?.status||0);
-  return status===408 || status===429 || status===502 ||
+  return status===408 || status===502 ||
     status===503 || status===504 || (status===0 && /network|fetch failed|timeout|timed out/i.test(String(e?.message||"")));
 };
 async function readOnlyStatusWithRecovery(args,source,{pause=ms=>new Promise(resolve=>setTimeout(resolve,ms)),onAttempt}={}){
