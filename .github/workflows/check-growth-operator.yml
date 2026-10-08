@@ -1,0 +1,27 @@
+name: V3.66 voice and project Operator checks
+on:
+  push:
+    branches: [v3.66]
+  pull_request:
+    paths:
+      - "src/domain/growthOperatorBridge.mjs"
+      - "src/app/AppController.js"
+      - "src/screens/talk.js"
+      - "src/domain/growthCommandCentre.mjs"
+      - "scripts/check-growth-operator.mjs"
+      - ".github/workflows/check-growth-operator.yml"
+  workflow_dispatch:
+jobs:
+  growth-operator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node scripts/check-coordinated-growth.mjs
+      - run: node scripts/check-growth-drafts.mjs
+      - run: node scripts/check-growth-workspace.mjs
+      - run: node scripts/check-growth-command-centre.mjs
+      - run: node scripts/check-growth-operator.mjs
+      - run: node scripts/check-conversation-understanding.mjs
