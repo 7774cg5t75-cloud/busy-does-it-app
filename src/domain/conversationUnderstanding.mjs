@@ -24,8 +24,8 @@ function extractConversationTurn(input) {
   if (!original) return { fields: {}, suggestions: [], conflicts: [] };
   // Examples are not business facts. Exclude only their sentence, rather than
   // discarding genuine owner facts given before or after an example.
-  const text = original.split(/(?<=[.!?])\\s+|\\n+/)
-    .filter(part => !/\\b(?:for example|imagine|hypothetically|suppose|what if)\\b/i.test(part))
+  const text = original.split(/(?<=[.!?])\s+|\n+/)
+    .filter(part => !/\b(?:for example|imagine|hypothetically|suppose|what if)\b/i.test(part))
     .join(". ");
   const fields = {};
   const name = text.match(/\b(?:my (?:business|company) is called|we(?:'re| are) called|trading as|business name is)\s+([^.!?,;\n]{2,65})/i);
