@@ -43,7 +43,7 @@ async function saveCloudConversation(args) {
       });
       return { saved: true, record: rows?.[0] || null };
     } catch (error) {
-      return { saved: false, conflict: true, reason: "Cloud draft may already exist. Reload before saving.", errorCode: "create_conflict_or_failure" };
+      return { saved: false, conflict: false, reason: "Cloud save failed. Check database availability or access and retry.", errorCode: "create_failure" };
     }
   }
   if (!Number.isSafeInteger(args.revision) || args.revision < 1) throw new Error("Invalid draft revision.");
