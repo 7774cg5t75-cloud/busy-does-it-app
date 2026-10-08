@@ -144,11 +144,11 @@ async function main(){
    assert.equal(isBusinessActivityQuestion(q),false,q);
  }
  const screen=readFileSync(new URL("../src/screens/businessActivityCentre.js",import.meta.url),"utf8");
- const routes=readFileSync(new URL("../src/screens/index.js",import.meta.url),"utf8");
+ const routeFile=readFileSync(new URL("../src/screens/index.js",import.meta.url),"utf8");
  const home=readFileSync(new URL("../src/screens/home.js",import.meta.url),"utf8");
  const command=readFileSync(new URL("../src/app/AppController.js",import.meta.url),"utf8");
  const cloud=readFileSync(new URL("../src/domain/verifiedBusinessActivityCloud.mjs",import.meta.url),"utf8");
- for(const fragment of ['businessActivityCentre: BusinessActivityCentre','BusinessActivityCentreScreens'])assert.ok(routes.includes(fragment));
+ for(const fragment of ['businessActivityCentre: BusinessActivityCentre','BusinessActivityCentreScreens'])assert.ok(routeFile.includes(fragment));
  assert.ok(home.includes('s.go("businessActivityCentre")'));
  assert.ok(screen.includes("loadVerifiedActivity(args)"));
  assert.ok(screen.includes("No automatic retry"));
