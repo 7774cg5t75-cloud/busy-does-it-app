@@ -14,6 +14,11 @@ import {listGrowthProjects,loadGrowthProject,saveGrowthProject} from "../domain/
 
 function BusinessCreationJourney({ s }) {
   const [growthServiceFocus, setGrowthServiceFocus] = React.useState("");
+  // V3.65: explicit resume target from the read-only Command Centre.
+  React.useEffect(() => {
+    const requested=String(s.growthProjectFocus||"").trim();
+    if(requested) setGrowthServiceFocus(requested);
+  }, [s.growthProjectFocus]);
   const [growthDraftPack, setGrowthDraftPack] = React.useState(null);
   const [growthDraftNotice, setGrowthDraftNotice] = React.useState("");
   const [growthProject, setGrowthProject] = React.useState(null);
@@ -289,7 +294,7 @@ function BusinessCreationJourney({ s }) {
         eyebrow="V3.64 • private growth project workspace"
         title="Prepare once, edit each customer-facing draft"
         body="BUSY prepares factual copy from a confirmed service. Review and edit each draft, then choose where to send it. Nothing here automatically posts, enables app features or changes a public website."
-        footer="Use Save to keep reviewed wording in your private cloud project. No progress status here means a website, app or social post was published."
+        footer="To resume another device, select its service and tap Load this service’s private cloud project. All channel handoffs still require the separate publisher approvals."
         tone="blue"
       >
         <Button
