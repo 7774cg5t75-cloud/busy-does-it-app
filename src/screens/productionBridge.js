@@ -255,6 +255,16 @@ function ProductionBridge({ s }) {
         tone="green"
       />
 
+      <Card
+        eyebrow="V3.69 • restricted founder administration"
+        title="Founder-only platform reporting"
+        body="A private aggregated dashboard for subscriber-system foundations, usage and technical exceptions across BUSY. Access is checked using a fresh server-side founder role, not this device or business ownership."
+        footer="Ordinary customer accounts cannot read platform data. Founder activation is a separate, verified administrator action."
+        tone="blue"
+      >
+        <Button label="Verify founder access & open dashboard" onPress={() => s.go("founderOperations")} />
+      </Card>
+
       <Button label="Release Core health" onPress={() => s.go("releaseCore")} />
       <Button label="Proactive BUSY" onPress={() => s.go("proactiveBusyCentre")} />
       <Button label="Back to Home" primary onPress={() => s.jump("home", "Home")} />
