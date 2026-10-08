@@ -301,6 +301,8 @@ function App() {
   const [conversationAiBusy, setConversationAiBusy] = useState(false);
   const [conversationAiDraft, setConversationAiDraft] = useState(null);
   const [conversationAiNotice, setConversationAiNotice] = useState("");
+  const conversationActiveScopeRef = useRef("");
+  const conversationActiveBriefRef = useRef("");
 
   const [businessCreationAction, setBusinessCreationAction] = useState("");
   const [businessCreationNotice, setBusinessCreationNotice] = useState("");
@@ -13393,6 +13395,8 @@ function App() {
 
   // V3.60: encrypted on-device checkpoint, scoped by authenticated owner and business.
   // No cross-account draft fallbacks and no public/server writes.
+  conversationActiveScopeRef.current = String(ownerSession?.userId || "") + ":" + String(cloudWorkspace?.businessId || "");
+  conversationActiveBriefRef.current = String(businessCreationBrief || "").trim();
   const conversationResumeKey = ownerSession?.userId && cloudWorkspace?.businessId
     ? `busy-conversation-v360-${ownerSession.userId}-${cloudWorkspace.businessId}`
     : "";
@@ -13443,7 +13447,7 @@ function App() {
       const args = await conversationCloudArgs();
       const scoped = args.userId + ":" + args.businessId;
       const record = await loadCloudConversation(args);
-      if (scoped !== String(ownerSession?.userId || "") + ":" + String(cloudWorkspace?.businessId || "")) return false;
+      if (scoped !== conversationActiveScopeRef.current) return false;
       if (!record) {
         setConversationCloudRevision(null);
         setConversationCloudScope(scoped);
@@ -13470,9 +13474,11 @@ function App() {
     try {
       const args = await conversationCloudArgs();
       const scoped = args.userId + ":" + args.businessId;
+      if (scoped !== conversationActiveScopeRef.current) return false;
       // An unknown server revision must first be checked, not overwritten.
       if (conversationCloudScope !== scoped) {
         const existing = await loadCloudConversation(args);
+        if (scoped !== conversationActiveScopeRef.current) return false;
         if (existing) {
           // Do not arm an existing revision merely by detecting it. An owner must
           // explicitly load that cloud draft before future saves may update it.
@@ -13486,6 +13492,7 @@ function App() {
         ...args, brief: businessCreationBrief,
         revision: conversationCloudScope === scoped ? conversationCloudRevision : null,
       });
+      if (scoped !== conversationActiveScopeRef.current) return false;
       if (!result.saved) {
         setConversationResumeNotice(result.reason || "Cloud draft conflict. Nothing was overwritten.");
         return false;
@@ -13519,8 +13526,8 @@ function App() {
       if (response.status === 429) { setConversationAiNotice("Daily AI review limit reached (20 per business owner). Try again tomorrow or review manually."); return false; }
       if (!response.ok) throw new Error("AI extraction unavailable");
       const raw = await response.json();
-      if (scope !== String(ownerSession?.userId || "") + ":" + String(cloudWorkspace?.businessId || "") ||
-          transcript !== String(businessCreationBrief || "").trim().slice(0, 3000)) return false;
+      if (scope !== conversationActiveScopeRef.current ||
+          transcript !== conversationActiveBriefRef.current.slice(0, 3000)) return false;
       const validation = validateAiConversationDraft({
         extraction:raw, transcript, approved:businessCreationIntelligence?.sharedProfile || {},
       });
