@@ -76,3 +76,17 @@ assert.equal(duplicateCreate.saved,false);
 assert.equal(duplicateCreate.conflict,true);
 assert.equal(duplicateCreate.errorCode,"create_conflict");
 console.log("V3.60 cloud duplicate revision protection tests passed");
+
+const businessKinds = [
+ ["I am an electrician serving Devon", "electrical"],
+ ["We operate a dog walking service", "pet care"],
+ ["I'm a photographer for weddings", "photography"],
+ ["We provide bookkeeping for small companies", "accounting"],
+ ["We run a nail salon", "beauty"],
+ ["I do joinery", "carpentry"]
+];
+for (const [words, expected] of businessKinds) {
+ const parsed = extractConversationTurn(words);
+ assert.ok(parsed.suggestions.some(item=>item.value===expected && item.approved===false), words);
+}
+console.log("V3.60 multi-industry classification checks passed");
