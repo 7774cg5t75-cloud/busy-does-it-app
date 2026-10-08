@@ -60,3 +60,11 @@ assert.equal(JSON.parse(calls[1].options.body).revision,3);
 await assert.rejects(()=>loadCloudConversation({...scope,businessId:"wrong",fetchImpl:mocked}));
 assert.equal(calls.length,2);
 console.log("V3.60 cloud draft transport checks passed");
+
+const failingCreate = await saveCloudConversation({
+  ...scope, brief:"Private", fetchImpl:async () => ({ok:false,status:404,json:async()=>({})})
+});
+assert.equal(failingCreate.saved,false);
+assert.equal(failingCreate.conflict,false);
+assert.equal(failingCreate.errorCode,"create_failure");
+console.log("V3.60 cloud error classification checks passed");
