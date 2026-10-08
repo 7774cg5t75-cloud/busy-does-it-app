@@ -1,5 +1,16 @@
 # busy-does-it-app
 
+## V3.69 — Founder Operations Security Foundation (development only)
+
+- Implements a **separate, server-authorised founder-only dashboard** linked discreetly from Production Bridge. Unlike the customer-level Operations & Reliability view, the new `busy-founder-ops` backend can return **aggregate platform-wide** health and business-workspace activity after a fresh authenticated Supabase Auth check.
+- **Deny-by-default role:** Only a user explicitly granted `app_metadata.busy_platform_role=founder` by an authorised administrator can request platform aggregates. Regular subscribers, owners of individual BUSY workspaces, and self-edited `user_metadata` cannot grant themselves access. No founder role has been assigned yet — activation requires identity verification.
+- Shows actual workspace/membership counts, recent business snapshot activity, failed/pending website jobs, failed social/app records, and bounded 30-day AI/hosting usage counts. No names, emails, customer data or business IDs in results.
+- Explicitly does **not** claim paying subscribers, £50 subscription payments, MRR, AI or hosting invoices, margins, continuous monitoring or unattended provider recovery. Those need verified, separate commercial and monitoring integrations.
+- `supabase/functions/busy-founder-ops` is a deployed read-only Supabase Edge Function with JWT verification. The mobile app passes only the authenticated user's bearer token, never the privileged server key.
+- `scripts/check-founder-operations.mjs` and `.github/workflows/check-founder-operations.yml` add auth/permission and reporting regressions alongside earlier V3.64–V3.68 checks.
+- See `docs/V3_69_FOUNDER_OPERATIONS.md` for the one-time role activation safety gate and signed-device acceptance checklist.
+
+
 ## V3.68 — Self-Running Operations 1.0 (development branch)
 
 - New **Operations & Reliability** screen on Home and Verified Business Activity, aimed at reducing routine owner workload with a single, low-noise, *per-business* exception digest.
