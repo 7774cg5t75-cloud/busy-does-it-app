@@ -1,5 +1,5 @@
 import React from "react";
-import { Text } from "react-native";
+import { Alert, Text } from "react-native";
 
 import { styles } from "../theme/styles";
 import { Shell, Card, Button, Field, MetricRow } from "../components/ui";
@@ -9,11 +9,19 @@ import { assessBusinessCreationReadiness } from "../domain/businessCreationReadi
 import { confirmedServices, buildCoordinatedGrowthPlan } from "../domain/coordinatedGrowthPlan.mjs";
 import { prepareCoordinatedGrowthDrafts, isCurrentGrowthDraftPack, editGrowthDraft } from "../domain/coordinatedGrowthDrafts.mjs";
 import { applyCoordinatedWebsiteCopy } from "../domain/websiteBuilder";
+import {keyOf,createGrowthProject,workspaceProgress,editGrowthProject,reviewGrowthProject,markGrowthHandedOff,reconcileGrowthProject,rebaseGrowthProject} from "../domain/growthProjectWorkspace.mjs";
+import {listGrowthProjects,loadGrowthProject,saveGrowthProject} from "../domain/growthProjectCloud.mjs";
 
 function BusinessCreationJourney({ s }) {
   const [growthServiceFocus, setGrowthServiceFocus] = React.useState("");
   const [growthDraftPack, setGrowthDraftPack] = React.useState(null);
   const [growthDraftNotice, setGrowthDraftNotice] = React.useState("");
+  const [growthProject, setGrowthProject] = React.useState(null);
+  const [growthProjectScope, setGrowthProjectScope] = React.useState("");
+  const [growthCloudRevision, setGrowthCloudRevision] = React.useState(null);
+  const [growthCloudBusy, setGrowthCloudBusy] = React.useState(false);
+  const [growthCloudNotice, setGrowthCloudNotice] = React.useState("");
+  const [savedGrowthProjects, setSavedGrowthProjects] = React.useState([]);
   const journey = s.businessCreationJourney || {};
   const conversationReview = reviewConversation({
     turns: [s.businessCreationBrief],
@@ -31,10 +39,118 @@ function BusinessCreationJourney({ s }) {
   });
   const isDraftPackCurrent = isCurrentGrowthDraftPack(growthDraftPack, candidateDraftPack);
 
+  const growthScope=[s.ownerSession?.userId||"",s.cloudWorkspace?.businessId||"",keyOf(growthServiceFocus)].join("|");
+  const currentGrowthScopeRef=React.useRef(growthScope);
+  currentGrowthScopeRef.current=growthScope;
+  React.useEffect(()=>{
+    setGrowthProject(null);setGrowthProjectScope("");setGrowthDraftPack(null);
+    setGrowthCloudRevision(null);setSavedGrowthProjects([]);setGrowthCloudNotice("");
+  },[growthScope]);
+  const activeProject=growthProjectScope===growthScope?growthProject:null;
+  const growthReconciliation=activeProject?reconcileGrowthProject(activeProject,candidateDraftPack):null;
+  const projectedGrowth=growthReconciliation?.project||null;
+  const projectProgress=workspaceProgress(projectedGrowth);
+  const projectStale=!!growthReconciliation?.stale;
+  const canManageCloud=!!candidateDraftPack.valid && !!s.cloudWorkspace?.businessId && !growthCloudBusy;
+
+  const prepareGrowthWorkspace=()=>{
+    if(!candidateDraftPack.valid)return;
+    setGrowthDraftPack(candidateDraftPack);
+    setGrowthProject(createGrowthProject(candidateDraftPack));
+    setGrowthProjectScope(growthScope);
+    setGrowthCloudRevision(null);
+    setGrowthDraftNotice("Review each draft, mark it reviewed, then hand it to a private editor. Saving to cloud is separate.");
+  };
+  const editWorkspaceCopy=(target,text)=>{
+    setGrowthDraftPack(current=>editGrowthDraft(current,target,text));
+    setGrowthProject(current=>editGrowthProject(current,target,text));
+  };
+  const prepareLoadedProject=(project,revision,scope)=>{
+    if(currentGrowthScopeRef.current!==scope)return;
+    const result=reconcileGrowthProject(project,candidateDraftPack);
+    if(!result.valid||result.needsNewSelection){
+      setGrowthCloudNotice("Saved project does not match this confirmed service. No local draft replaced.");
+      return;
+    }
+    const adjusted=result.project;
+    setGrowthProject(adjusted);setGrowthProjectScope(scope);setGrowthCloudRevision(revision);
+    setGrowthDraftPack({...candidateDraftPack,items:candidateDraftPack.items.map(item=>({
+      ...item,text:adjusted.items.find(saved=>saved.target===item.target)?.text||"",ownerEdited:true,
+    }))});
+    setGrowthCloudNotice(result.stale
+      ?"Project loaded. Approved facts changed; acknowledge latest facts and review each channel again."
+      :"Private project loaded. Separate publication approval is still required.");
+  };
+  const loadGrowthWorkspace=async()=>{
+    if(!canManageCloud)return;
+    const scope=growthScope;setGrowthCloudBusy(true);
+    try{
+      const args=await s.growthProjectCloudArgs();
+      if(scope!==currentGrowthScopeRef.current||args.userId!==s.ownerSession?.userId||args.businessId!==s.cloudWorkspace?.businessId)return;
+      const record=await loadGrowthProject(args,growthServiceFocus);
+      if(scope!==currentGrowthScopeRef.current)return;
+      if(!record){setGrowthCloudNotice("No saved project for this service. Local edits remain untouched.");return;}
+      if(activeProject){
+        Alert.alert("Replace local growth project?",
+          "Cloud loading replaces unsaved changes on this device. Continue?",[
+          {text:"Keep local edits",style:"cancel"},
+          {text:"Load cloud project",onPress:()=>prepareLoadedProject(record.project,record.revision,scope)},
+        ]);
+      }else prepareLoadedProject(record.project,record.revision,scope);
+    }catch(e){if(scope===currentGrowthScopeRef.current)setGrowthCloudNotice("Could not load project. Device edits remain untouched.");}
+    finally{if(scope===currentGrowthScopeRef.current)setGrowthCloudBusy(false);}
+  };
+  const saveGrowthWorkspace=async()=>{
+    if(!canManageCloud||!activeProject||projectStale)return;
+    const scope=growthScope;setGrowthCloudBusy(true);
+    try{
+      const args=await s.growthProjectCloudArgs();
+      if(scope!==currentGrowthScopeRef.current||args.userId!==s.ownerSession?.userId||args.businessId!==s.cloudWorkspace?.businessId)return;
+      const result=await saveGrowthProject(args,activeProject,growthCloudRevision);
+      if(scope!==currentGrowthScopeRef.current)return;
+      if(result.saved){setGrowthCloudRevision(result.revision);setGrowthCloudNotice("Private project saved to BUSY cloud. Load it on another signed-in device.");}
+      else setGrowthCloudNotice(result.reason||"Save rejected. Load newer project first.");
+    }catch(e){if(scope===currentGrowthScopeRef.current)setGrowthCloudNotice("Could not save to cloud. Device edits remain untouched.");}
+    finally{if(scope===currentGrowthScopeRef.current)setGrowthCloudBusy(false);}
+  };
+  const browseGrowthWorkspaces=async()=>{
+    if(!s.ownerSession?.userId||!s.cloudWorkspace?.businessId||growthCloudBusy)return;
+    const scope=growthScope;setGrowthCloudBusy(true);
+    try{
+      const args=await s.growthProjectCloudArgs();
+      if(scope!==currentGrowthScopeRef.current)return;
+      const rows=await listGrowthProjects(args);
+      if(scope===currentGrowthScopeRef.current){
+        setSavedGrowthProjects(rows);
+        setGrowthCloudNotice(rows.length?"Select a saved service, then load its project.":"No saved growth projects yet.");
+      }
+    }catch(e){if(scope===currentGrowthScopeRef.current)setGrowthCloudNotice("Could not list cloud projects. No changes made.");}
+    finally{if(scope===currentGrowthScopeRef.current)setGrowthCloudBusy(false);}
+  };
+  const markWorkspaceReviewed=target=>{
+    if(!activeProject||projectStale)return;
+    const updated=reviewGrowthProject(activeProject,target,candidateDraftPack);
+    if(updated){setGrowthProject(updated);setGrowthCloudNotice("Marked reviewed locally. Save privately to keep this status across devices.");}
+  };
+  const acceptUpdatedGrowthFacts=()=>{
+    if(!activeProject||!candidateDraftPack.valid)return;
+    const updated=rebaseGrowthProject(activeProject,candidateDraftPack);
+    if(!updated)return;
+    setGrowthProject(updated);
+    setGrowthDraftPack({...candidateDraftPack,items:candidateDraftPack.items.map(item=>({
+      ...item,text:updated.items.find(i=>i.target===item.target)?.text||"",
+    }))});
+    setGrowthCloudNotice("Latest confirmed facts acknowledged. Wording preserved; each channel needs a new review.");
+  };
+
+
   const handOffGrowthCopy = (target) => {
     if (!isCurrentGrowthDraftPack(growthDraftPack, candidateDraftPack)) {
       setGrowthDraftNotice("These drafts are out of date. Prepare a fresh pack from the latest confirmed business details.");
       return;
+    }
+    if(!activeProject||projectStale||activeProject.items.find(i=>i.target===target)?.status!=="reviewed"){
+      setGrowthDraftNotice("Review this exact current draft before handing it to a private editor.");return;
     }
     const item = growthDraftPack.items.find(entry => entry.target === target);
     if (!item || item.status !== "editable_draft" || !String(item.text || "").trim()) {
@@ -61,6 +177,7 @@ function BusinessCreationJourney({ s }) {
       s.startSocialFromPhone();
       s.setSocialBrief(item.text);
     } else return;
+    setGrowthProject(current => markGrowthHandedOff(current,target,candidateDraftPack)||current);
     setGrowthDraftPack(current => current ? {
       ...current,
       items: current.items.map(entry => entry.target === target ? {...entry, handedOff: true} : entry),
@@ -81,7 +198,7 @@ function BusinessCreationJourney({ s }) {
       s={s}
       title="Build my business with BUSY"
       subtitle="One guided conversation now coordinates the website, Business App and social setup, asks only the next useful question, and parks anything blocked without stopping the rest."
-      brandCue="V3.63 • editable growth drafts • confirmed Business Brain • separate publishing approvals."
+      brandCue="V3.64 • cloud growth projects • safe reviews • independent publishing approvals."
     >
       <Card
         eyebrow="V3.61 • confirmed information only"
