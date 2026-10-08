@@ -1,0 +1,74 @@
+/**
+ * Assemble the self-contained Expo Snack source tree.
+ * Expo Snack resolves *.js; internal Node ESM *.mjs files must be included
+ * and their relative import specifiers converted to *.js as well.
+ *
+ * A successful snack.saveAsync does not imply Metro resolved any imports.
+ */
+import fs from "node:fs";
+import path from "node:path";
+
+function collectJsFiles(dir) {
+  if (!fs.existsSync(dir)) return [];
+  const files = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) files.push(...collectJsFiles(full));
+    else if (entry.isFile() && /\.(?:js|mjs)$/i.test(entry.name)) files.push(full);
+  }
+  return files.sort();
+}
+function toSnackPath(sourcePath) {
+  return (sourcePath === "BusyDoesItApp.js"
+    ? "App.js"
+    : sourcePath.split(path.sep).join("/").replace(/\.mjs$/i, ".js"));
+}
+function prepareSource(source, {aiUrl=process.env.EXPO_PUBLIC_BUSY_AI_URL||"",
+  aiToken=process.env.EXPO_PUBLIC_BUSY_AI_TOKEN||""}={}) {
+  return source
+    .replaceAll(
+      'import * as Calendar from "expo-calendar/legacy";',
+      'import * as Calendar from "expo-calendar";'
+    )
+    .replaceAll("process.env.EXPO_PUBLIC_BUSY_AI_URL", JSON.stringify(aiUrl))
+    .replaceAll("process.env.EXPO_PUBLIC_BUSY_AI_TOKEN", JSON.stringify(aiToken))
+    // Snack maps every internal *.mjs file to *.js. Rewrite imports as well.
+    // Restrict to quoted relative paths, not arbitrary prose/module names.
+    .replace(/(["'])(\.{1,2}\/[^\x22\x27\x60\s]+)\.mjs\1/g, (_m,quote,rel) =>
+      quote + rel + ".js" + quote);
+}
+function snackSourceFiles() {
+  const files = {};
+  const sourcePaths = ["BusyDoesItApp.js", ...collectJsFiles("src")];
+  for(const sourcePath of sourcePaths) {
+    const snackPath = toSnackPath(sourcePath);
+    if(Object.prototype.hasOwnProperty.call(files,snackPath))
+      throw Error("Snack module collision: "+snackPath);
+    files[snackPath] = {
+      type: "CODE",
+      contents: prepareSource(fs.readFileSync(sourcePath,"utf8")),
+    };
+  }
+  return files;
+}
+function validateSnackImports(files) {
+  const issues=[];
+  const virtualPaths=new Set(Object.keys(files));
+  for(const [file,record] of Object.entries(files)){
+    const contents=String(record?.contents||"");
+    // Match static from imports, side-effect imports and dynamic import().
+    // Babel verifies full JS syntax during publishing.
+    const re=/(?:\bfrom\s*|\bimport\s*(?:\(\s*)?)(["'])([^\x22\x27\x60]+)\1/g;
+    for(const m of contents.matchAll(re)){
+      const spec=m[2];
+      if(!spec.startsWith("./")&&!spec.startsWith("../"))continue;
+      const normalized=path.posix.normalize(path.posix.join(path.posix.dirname(file),spec));
+      const possibilities=/\.[cm]?js$/i.test(normalized)
+        ?[normalized]:[normalized+".js",normalized+"/index.js"];
+      if(!possibilities.some(p=>virtualPaths.has(p)))
+        issues.push(file+" imports missing "+spec+" (searched "+possibilities.join(", ")+")");
+    }
+  }
+  return issues;
+}
+export {collectJsFiles,toSnackPath,prepareSource,snackSourceFiles,validateSnackImports};
