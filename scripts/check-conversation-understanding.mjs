@@ -154,3 +154,10 @@ assert.ok(quotaSchema.includes('security invoker'));
 assert.ok(quotaSchema.includes('revoke all on function public.busy_try_conversation_ai_quota'));
 assert.ok(quotaSchema.includes('grant execute on function public.busy_try_conversation_ai_quota(uuid,uuid) to service_role'));
 console.log("V3.60 server enforced AI quota and cost guard checks passed");
+
+const cloudSaveGuard = controllerCode.slice(controllerCode.indexOf('const saveConversationToCloud'), controllerCode.indexOf('const suggestBusinessFactsWithAi'));
+assert.ok(cloudSaveGuard.includes('if (conversationCloudScope !== scoped)'));
+assert.ok(cloudSaveGuard.includes('setConversationCloudScope("")'));
+assert.ok(cloudSaveGuard.includes('setConversationCloudRevision(null)'));
+assert.ok(cloudSaveGuard.indexOf('setConversationCloudScope("")') < cloudSaveGuard.indexOf('return false;'));
+console.log("V3.60 cloud existing-draft overwrite guard checks passed");
