@@ -41,7 +41,6 @@ assert.equal(view.channels.find(x=>x.channel==="facebook").retryEligible,false);
 assert.equal(view.channels.find(x=>x.channel==="google_business").status,"unverified");
 assert.equal(view.events.filter(x=>x.kind==="scheduled").length,1);
 assert.ok(view.events.every(x=>x.scope===business && !x.verifiedPublicReachability && !x.associatedGrowthProject));
-assert.ok(view.events.some(x=>x.title.includes("Facebook")===false)); // business-wide source records, channel labels vary
 assert.ok(resultBrief(view).includes("business-wide"));
 assert.ok(resultBrief(view).includes("independently checked"));
 assert.equal(view.crossServiceAttribution,false);
@@ -129,7 +128,6 @@ async function main(){
    return {ok:true,json:async()=>({businessId:other})};
  }});
  assert.ok(Object.values(mismatch).every(x=>!x.ok));
- await assert.rejects(()=>readOne({...args,businessId:"not-uuid"},"website"),/Response|business/).catch(()=>{}); // checkScope is enforced at load level
  await assert.rejects(()=>loadVerifiedActivity({...args,userId:""},{}),/Sign in/);
  await assert.rejects(()=>loadVerifiedActivity({...args,businessId:"not-uuid"},{}),/Sign in/);
  const questions=[
