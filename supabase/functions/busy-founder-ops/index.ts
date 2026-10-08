@@ -1,0 +1,119 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import {isFounderUser,aggregateUsageRows,buildFounderReport} from "./report.mjs";
+
+/**
+ * V3.69 founder-only READ endpoint.
+ * Every request is freshly checked against the Auth server's app_metadata.
+ * NO client request parameter can grant privilege or choose another identity.
+ * The service key remains on this server; only aggregate counters are returned.
+ */
+const ROOT=Deno.env.get("SUPABASE_URL")||"";
+function injectedKey(name:string){
+  try{
+    const parsed=JSON.parse(Deno.env.get(name)||"{}");
+    return typeof parsed?.default==="string"?parsed.default:"";
+  }catch{return "";}
+}
+const PUBLIC_KEY=injectedKey("SUPABASE_PUBLISHABLE_KEYS")||Deno.env.get("SUPABASE_ANON_KEY")||"";
+const SECRET_KEY=injectedKey("SUPABASE_SECRET_KEYS")||Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"";
+const headers={"Content-Type":"application/json","Cache-Control":"no-store",
+  "Access-Control-Allow-Origin":"*",
+  "Access-Control-Allow-Methods":"POST,OPTIONS",
+  "Access-Control-Allow-Headers":"authorization,apikey,content-type,x-client-info"};
+const send=(status:number,body:unknown)=>
+  new Response(JSON.stringify(body),{status,headers});
+function serviceHeaders(){
+  return {"apikey":SECRET_KEY,...(!SECRET_KEY.startsWith("sb_secret_")
+    ? {"Authorization":"Bearer "+SECRET_KEY}:{})};
+}
+async function authenticatedUser(req:Request){
+  const bearer=req.headers.get("Authorization")||"";
+  if(!PUBLIC_KEY||!/^Bearer [^ ]{16,}$/i.test(bearer))return null;
+  const reply=await fetch(ROOT+"/auth/v1/user",{
+    headers:{"apikey":PUBLIC_KEY,"Authorization":bearer},signal:AbortSignal.timeout(8500)});
+  if(!reply.ok)return null;
+  const user=await reply.json().catch(()=>null);
+  return isFounderUser(user)?user:null;
+}
+function recentDate(days:number){
+  const day=new Date(Date.now()-days*86400000);
+  return day.toISOString().slice(0,10);
+}
+async function queryCount(table:string,column:string,filters:Record<string,string>={}){
+  if(!SECRET_KEY)throw Error("service not configured");
+  const query=new URLSearchParams({select:column,...filters});
+  const result=await fetch(ROOT+"/rest/v1/"+table+"?"+query,{
+    method:"HEAD",
+    headers:{...serviceHeaders(),"Prefer":"count=exact"},
+    signal:AbortSignal.timeout(8500),
+  });
+  if(!result.ok)throw Error("count unavailable");
+  const range=result.headers.get("Content-Range")||"";
+  const match=range.match(/\/(\d+)$/);
+  if(!match)return null;
+  const n=Number(match[1]);
+  return Number.isSafeInteger(n)?n:null;
+}
+async function queryUsageSum(table:string,field:string,dateColumn:string){
+  if(!SECRET_KEY)throw Error("service not configured");
+  const q=new URLSearchParams({select:field,[dateColumn]:"gte."+recentDate(30),limit:"1001"});
+  const result=await fetch(ROOT+"/rest/v1/"+table+"?"+q,{
+    headers:{...serviceHeaders(),"Prefer":"count=exact"},
+    signal:AbortSignal.timeout(8500),
+  });
+  if(!result.ok)return null;
+  const range=result.headers.get("Content-Range")||"";
+  const totalMatch=range.match(/\/(\d+)$/);
+  if(!totalMatch||Number(totalMatch[1])>1000)return null;
+  const data=await result.json().catch(()=>null);
+  return aggregateUsageRows(data,{exhaustive:true,field,maxRows:1000});
+}
+async function safely<T>(query:()=>Promise<T>):Promise<T|null>{
+  try{return await query();}catch{return null;}
+}
+async function aggregates(){
+  const entries=await Promise.all([
+    safely(()=>queryCount("busy_businesses","id")),
+    safely(()=>queryCount("busy_business_memberships","business_id")),
+    safely(()=>queryCount("busy_business_snapshots","business_id",{"updated_at":"gte."+new Date(Date.now()-7*86400000).toISOString()})),
+    safely(()=>queryCount("busy_website_publish_jobs","id",{"status":"in.(queued,processing,retry_wait)"})),
+    safely(()=>queryCount("busy_website_publish_jobs","id",{"status":"eq.failed"})),
+    safely(()=>queryCount("busy_social_posts","id",{"status":"eq.Failed"})),
+    safely(()=>queryCount("busy_social_posts","id",{"status":"eq.Partial failure"})),
+    safely(()=>queryCount("busy_mini_apps","id",{"status":"eq.failed"})),
+    safely(()=>queryUsageSum("busy_conversation_ai_usage_daily","request_count","usage_day")),
+    safely(()=>queryUsageSum("busy_website_usage_daily","requests","usage_date")),
+  ]);
+  const [businessWorkspaces,businessMemberships,activeWorkspaces7d,
+    pendingWebsiteJobs,failedWebsiteJobs,socialFailed,socialPartial,failedBusinessApps,
+    aiRequests30d,siteRequests30d]=entries;
+  const sumSocial=socialFailed===null||socialPartial===null?null:socialFailed+socialPartial;
+  return {
+    counts:{businessWorkspaces,businessMemberships,activeWorkspaces7d,
+      pendingWebsiteJobs,failedWebsiteJobs,failedSocialPosts:sumSocial,failedBusinessApps},
+    usage:{aiRequests30d,siteRequests30d},
+  };
+}
+Deno.serve(async(req:Request)=>{
+  if(req.method==="OPTIONS")return new Response(null,{status:204,headers});
+  if(req.method!=="POST")return send(405,{error:"method_not_allowed"});
+  // No invocation without a verified server-side founder grant.
+  let founder;
+  try{founder=await authenticatedUser(req);}catch{return send(401,{error:"not_authorized"});}
+  if(!founder)return send(403,{error:"founder_access_not_enabled"});
+  let payload:unknown;
+  try{
+    if(Number(req.headers.get("content-length")||0)>2048)return send(413,{error:"request_too_large"});
+    payload=await req.json();
+  }catch{return send(400,{error:"invalid_request"});}
+  if(!payload||typeof payload!=="object"||Array.isArray(payload)||
+    (payload as {action?:unknown}).action!=="summary" ||
+    Object.keys(payload).some(k=>k!=="action")){
+      return send(400,{error:"unsupported_action"});
+  }
+  if(!ROOT||!SECRET_KEY)return send(503,{error:"platform_reporting_unavailable"});
+  try{
+    const {counts,usage}=await aggregates();
+    return send(200,buildFounderReport({counts,usage,checkedAt:new Date().toISOString(),verifiedRole:true}));
+  }catch{return send(503,{error:"platform_reporting_unavailable"});}
+});
