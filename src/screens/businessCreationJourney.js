@@ -71,6 +71,7 @@ function BusinessCreationJourney({ s }) {
           </React.Fragment>
         ))}
 
+        <Text style={styles.sectionLabel}>Private cloud drafts support up to 6,000 characters. On-device recovery currently retains only the first 1,000; use Save private cloud draft for longer descriptions. AI reviews the first 3,000 characters.</Text>
         <Text style={styles.sectionLabel}>Cloud draft sync (private account; manual load/save)</Text>
         <Button label="Load private cloud draft" disabled={!!s.conversationCloudBusy} onPress={s.loadConversationFromCloud} />
         <Button label="Save private cloud draft" disabled={!!s.conversationCloudBusy || !String(s.businessCreationBrief || "").trim()} onPress={s.saveConversationToCloud} />
