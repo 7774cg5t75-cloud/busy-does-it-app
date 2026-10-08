@@ -21,6 +21,8 @@ const pkg=JSON.parse(fs.readFileSync("package.json","utf8"));
 const version=pkg.version||"preview";
 const branch=process.env.GITHUB_REF_NAME||("v"+version);
 const snackDependencies={
+    // react-native-qrcode-svg / react-native-svg intentionally excluded from
+    // Snack. Business App QR is native-build only; Snack uses a share link.
     "@react-native-async-storage/async-storage":{version:"2.2.0"},
     "expo-image-picker":{version:"17.0.11"},
     "expo-audio":{version:"1.1.1"},
@@ -28,8 +30,6 @@ const snackDependencies={
     "expo-notifications":{version:"0.32.17"},
     "expo-calendar":{version:"15.0.8"},
     "expo-constants":{version:"18.0.14"},
-    "react-native-qrcode-svg":{version:"6.3.15"},
-    "react-native-svg":{version:"15.12.1"},
 };
 const missingPackages=validateSnackPackages(files,snackDependencies);
 if(missingPackages.length)throw Error("Cannot publish an incomplete Snack package graph:\n"+missingPackages.join("\n"));
