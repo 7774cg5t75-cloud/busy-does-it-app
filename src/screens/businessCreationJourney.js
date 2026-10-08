@@ -52,6 +52,7 @@ function BusinessCreationJourney({ s }) {
           onPress={s.prepareBusinessCreationJourney}
         />
         <Button label="Describe it by voice" disabled={!!s.businessCreationAction} onPress={s.describeBusinessCreationByVoice} />
+        <Text style={styles.sectionLabel}>AI review sends your business description to the AI service to suggest unconfirmed details. Nothing is published. Limit: 20 reviews per business owner per day.</Text>
         <Button label={s.conversationAiBusy ? "BUSY is reading your description…" : "Suggest details with AI"} disabled={!!s.conversationAiBusy || !String(s.businessCreationBrief || "").trim()} onPress={s.suggestBusinessFactsWithAi} />
         {s.conversationAiNotice ? <Text style={styles.sectionLabel}>{s.conversationAiNotice}</Text> : null}
         {Object.entries(s.conversationAiDraft?.transcript === String(s.businessCreationBrief || "").trim().slice(0, 3000) ? (s.conversationAiDraft?.fields || {}) : {}).map(([key, item]) => (
