@@ -37,7 +37,13 @@ function extractConversationTurn(input) {
     ["cleaning", /\bclean(?:er|ing|ers)?\b/i],
     ["catering", /\bcater(?:er|ing|ers)?\b|\bhog roast\b/i],
     ["landscaping", /\blandscap(?:er|ing|ers)?\b/i],
-    ["hairdressing", /\bhairdress(?:er|ing|ers)?\b|\bbarber\b/i]
+    ["hairdressing", /\bhairdress(?:er|ing|ers)?\b|\bbarber\b/i],
+    ["electrical", /\belectrician(?:s)?\b|\belectrical\b/i],
+    ["carpentry", /\bcarpent(?:er|ry|ers)\b|\bjoiner(?:y|s)?\b/i],
+    ["pet care", /\bdog walk(?:er|ing|ers)?\b|\bpet sitt(?:er|ing|ers)?\b|\bpet grooming\b/i],
+    ["beauty", /\bbeauty salon\b|\bnail salon\b|\bbeautician(?:s)?\b/i],
+    ["photography", /\bphotograph(?:er|y|ers)\b/i],
+    ["accounting", /\baccountan(?:t|ts|cy)\b|\bbookkeep(?:er|ing|ers)\b/i]
   ];
   const suggestions = categories.filter(([, pattern]) => pattern.test(text)).map(([value]) => ({
     field: "businessType", value, confidence: "inferred", approved: false,
