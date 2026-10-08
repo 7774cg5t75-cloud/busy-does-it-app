@@ -15202,6 +15202,7 @@ function App() {
     ownerAuthNotice,
     ownerAuthReady,
     cloudWorkspace,
+    growthProjectCloudArgs: conversationCloudArgs,
     cloudInitialised,
     cloudInitialising,
     cloudSyncStatus,
