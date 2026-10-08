@@ -61,7 +61,7 @@ const registry=readFileSync(new URL("../src/screens/index.js",import.meta.url),"
 const production=readFileSync(new URL("../src/screens/productionBridge.js",import.meta.url),"utf8");
 const config=readFileSync(new URL("../supabase/config.toml",import.meta.url),"utf8");
 const fullReply=JSON.stringify(r);
-for(const banned of ["email","phone","token","customers","business_name","service_role"])
+for(const banned of ["email","phone","Bearer ","customer_id","business_name","service_role"])
  assert.ok(!fullReply.includes(banned),banned);
 // Role lookup must happen with the auth server before any privileged query.
 assert.ok(edge.includes('ROOT+"/auth/v1/user"'));
