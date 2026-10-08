@@ -190,3 +190,33 @@ const acrossLines = reviewConversation({turns:["We cover Devon\nWe cover Cornwal
 assert.equal(acrossLines.nextQuestion.field,"serviceArea");
 assert.equal(acrossLines.publicationAllowed,false);
 console.log("V3.60 multi-turn correction tests passed");
+
+let cloudRecord = null;
+const mockTwoDevices = async (url, options) => {
+  const method = options.method;
+  if (method === "GET") return {ok:true,status:200,json:async()=>cloudRecord ? [{...cloudRecord}] : []};
+  if (method === "POST") {
+    if (cloudRecord) return {ok:false,status:409,json:async()=>({})};
+    cloudRecord = {brief:JSON.parse(options.body).brief,revision:1};
+    return {ok:true,status:201,json:async()=>[{...cloudRecord}]};
+  }
+  if (method === "PATCH") {
+    const revision = Number(new URL(url).searchParams.get("revision")?.replace("eq.",""));
+    if (cloudRecord?.revision !== revision) return {ok:true,status:200,json:async()=>[]};
+    const update = JSON.parse(options.body);
+    cloudRecord = {brief:update.brief,revision:update.revision};
+    return {ok:true,status:200,json:async()=>[{...cloudRecord}]};
+  }
+  throw new Error("Unexpected mock request");
+};
+const firstSave = await saveCloudConversation({...scope,brief:"From iPhone",fetchImpl:mockTwoDevices});
+assert.equal(firstSave.saved,true);
+const secondDevice = await loadCloudConversation({...scope,fetchImpl:mockTwoDevices});
+assert.equal(secondDevice.brief,"From iPhone");
+const secondSave = await saveCloudConversation({...scope,brief:"Updated on iPad",revision:secondDevice.revision,fetchImpl:mockTwoDevices});
+assert.equal(secondSave.saved,true);
+const oldSave = await saveCloudConversation({...scope,brief:"Old iPhone edit",revision:firstSave.record.revision,fetchImpl:mockTwoDevices});
+assert.equal(oldSave.saved,false);
+assert.equal(oldSave.conflict,true);
+assert.equal((await loadCloudConversation({...scope,fetchImpl:mockTwoDevices})).brief,"Updated on iPad");
+console.log("V3.60 simulated two-device optimistic concurrency tests passed");
