@@ -45,6 +45,31 @@ function extractConversationTurn(input) {
   }));
   return { fields, suggestions, conflicts: [], excerpt: redact(text).slice(0, 160) };
 }
+/**
+ * Builds a safe handoff for builders. Only already-approved business profile
+ * fields are included. A conversation is never permission to publish.
+ */
+function buildApprovedCreationHandoff({ approved = {}, requestedSurfaces = [] } = {}) {
+  const allowed = ["businessName", "businessType", "tagline", "description", "serviceArea", "phone", "email", "openingHours"];
+  const facts = {};
+  for (const field of allowed) {
+    const value = trim(approved[field]).slice(0, 600);
+    if (value) facts[field] = value;
+  }
+  const services = Array.isArray(approved.services) ? approved.services : [];
+  facts.services = services.slice(0, 30).filter(item => trim(item?.name)).map(item => ({
+    name: trim(item.name).slice(0, 120),
+    description: trim(item.description).slice(0, 300)
+  }));
+  const targets = [...new Set(requestedSurfaces.filter(item => ["website", "business_app", "social"].includes(item)))];
+  return {
+    source: "approved_shared_business_profile",
+    facts,
+    targets,
+    requiresSeparatePublicationApproval: true,
+    unconfirmedConversationIncluded: false,
+  };
+}
 function reviewConversation({ turns = [], approved = {}, previousDraft = {} } = {}) {
   const draft = { ...previousDraft };
   const conflicts = [];
@@ -75,4 +100,4 @@ function reviewConversation({ turns = [], approved = {}, previousDraft = {} } = 
     note: "Draft and inferred facts must be confirmed before being added to the shared profile."
   };
 }
-export { extractConversationTurn, reviewConversation };
+export { extractConversationTurn, reviewConversation, buildApprovedCreationHandoff };
