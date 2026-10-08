@@ -178,6 +178,9 @@ import { loadCloudConversation, saveCloudConversation, deleteCloudConversation }
 import {listGrowthProjects} from "../domain/growthProjectCloud.mjs";
 import {buildGrowthCommandCentre} from "../domain/growthCommandCentre.mjs";
 import {classifyGrowthUtterance,resolveGrowthOperator} from "../domain/growthOperatorBridge.mjs";
+import {isBusinessActivityQuestion} from "../domain/businessActivityQuestions.mjs";
+import {loadVerifiedActivity} from "../domain/verifiedBusinessActivityCloud.mjs";
+import {buildVerifiedActivity,resultBrief} from "../domain/verifiedBusinessActivity.mjs";
 import { validateAiConversationDraft } from "../domain/conversationAiBoundary.mjs";
 import { buildWebsiteDraft, applyWebsiteInstruction } from "../domain/websiteBuilder";
 import { buildWebsitePublishingView } from "../domain/websitePublishing";
@@ -11700,6 +11703,35 @@ function App() {
     return result;
   };
 
+  const tryBusinessActivityOperator=async (utterance,nonce)=>{
+    const transcript=String(utterance||"").trim().slice(0,400);
+    if(!isBusinessActivityQuestion(transcript))return null;
+    const scope=growthOperatorScopeRef.current;
+    const ownerId=String(ownerSession?.userId||"");
+    const businessId=String(cloudWorkspace?.businessId||"");
+    const current=()=>growthOperatorScopeRef.current===scope &&
+      growthOperatorRequestRef.current===nonce;
+    let response="Sign in and select a business before checking publishing results.";
+    if(ownerId&&businessId){
+      try{
+        const args=await conversationCloudArgs();
+        if(!current()||args.userId!==ownerId||args.businessId!==businessId)return {cancelled:true};
+        const results=await loadVerifiedActivity(args);
+        if(!current())return {cancelled:true};
+        response=resultBrief(buildVerifiedActivity({results,userId:ownerId,businessId,asOf:new Date().toISOString()}));
+      }catch(_){
+        if(!current())return {cancelled:true};
+        response="BUSY could not check live publishing records for this business. Please open Verified Business Activity to retry. No success has been assumed.";
+      }
+    }
+    if(!current())return {cancelled:true};
+    return {handled:true,result:{
+      title:"Verified Business Activity",intent:"business_activity_summary",
+      transcript,response,mode:"answer",applied:true,confidence:"High",
+      needsClarification:false,requiresConfirmation:false,actionLabel:"",
+    }};
+  };
+
   const submitBusyCommand = async ({ text = "", audioUri = "" } = {}) => {
     const cleanText = String(text || "").trim();
     if (!cleanText && !audioUri) {
@@ -11714,6 +11746,9 @@ function App() {
       // Local typed routing uses the authenticated project rows, avoiding an AI
       // request for grounded project-only questions.
       if(cleanText && !audioUri && !businessCreationConversationActive){
+        const activityAnswer=await tryBusinessActivityOperator(cleanText,growthNonce);
+        if(activityAnswer?.cancelled)return null;
+        if(activityAnswer?.handled)return acceptGrowthOperator(activityAnswer);
         const handled=await tryGrowthOperator(cleanText,growthNonce);
         if(handled?.cancelled)return null;
         if(handled?.handled)return acceptGrowthOperator(handled);
@@ -11788,6 +11823,9 @@ function App() {
       // Audio was transcribed by the existing BUSY Operator service; resolve
       // project-only commands before its standard actions can run.
       if(result.transcript && !businessCreationConversationActive){
+        const activityAnswer=await tryBusinessActivityOperator(result.transcript,growthNonce);
+        if(activityAnswer?.cancelled)return null;
+        if(activityAnswer?.handled)return acceptGrowthOperator(activityAnswer);
         const handled=await tryGrowthOperator(result.transcript,growthNonce);
         if(handled?.cancelled)return null;
         if(handled?.handled)return acceptGrowthOperator(handled);
