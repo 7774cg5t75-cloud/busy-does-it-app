@@ -111,8 +111,8 @@ assert.ok(talk.includes("s.submitBusyCommand({ text })"));
 assert.ok(core.includes("BUSY_COMMAND_URL"));
 assert.ok(app.includes("growthProjectTarget"));
 assert.ok(app.includes("setGrowthProjectTarget(result.growthProjectTarget"));
-const business=readFileSync(new URL("../src/screens/businessCreationJourney.js",import.meta.url),"utf8");
-assert.ok(business.includes("Load selected private cloud project"));
+const journeyFile=readFileSync(new URL("../src/screens/businessCreationJourney.js",import.meta.url),"utf8");
+assert.ok(journeyFile.includes("Load selected private cloud project"));
 // The growth bridge must never send provider requests, write cloud checkpoints,
 // or touch website/app/social publishing endpoints.
 const bridge=readFileSync(new URL("../src/domain/growthOperatorBridge.mjs",import.meta.url),"utf8");
