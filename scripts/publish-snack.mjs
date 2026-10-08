@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import {Snack} from "snack-sdk";
 import * as babelParser from "@babel/parser";
-import {snackSourceFiles,validateSnackImports} from "./snack-source.mjs";
+import {snackSourceFiles,validateSnackImports,validateSnackPackages} from "./snack-source.mjs";
 
 // Build the COMPLETE source graph. *.mjs files are mapped to *.js for Expo
 // Snack and references inside import statements use the matching path.
@@ -20,11 +20,7 @@ console.log("Validated "+Object.keys(files).length+" Snack modules with resolved
 const pkg=JSON.parse(fs.readFileSync("package.json","utf8"));
 const version=pkg.version||"preview";
 const branch=process.env.GITHUB_REF_NAME||("v"+version);
-const snack=new Snack({
-  name:"Busy Does It v"+version,
-  description:"Auto-generated preview from the "+branch+" GitHub branch",
-  files,
-  dependencies:{
+const snackDependencies={
     "@react-native-async-storage/async-storage":{version:"2.2.0"},
     "expo-image-picker":{version:"17.0.11"},
     "expo-audio":{version:"1.1.1"},
@@ -32,10 +28,17 @@ const snack=new Snack({
     "expo-notifications":{version:"0.32.17"},
     "expo-calendar":{version:"15.0.8"},
     "expo-constants":{version:"18.0.14"},
-    // Business App QR rendering uses both libraries (Expo Go + SDK54).
     "react-native-qrcode-svg":{version:"6.3.15"},
     "react-native-svg":{version:"15.12.1"},
-  },
+};
+const missingPackages=validateSnackPackages(files,snackDependencies);
+if(missingPackages.length)throw Error("Cannot publish an incomplete Snack package graph:\n"+missingPackages.join("\n"));
+console.log("Validated Expo Snack package imports.");
+const snack=new Snack({
+  name:"Busy Does It v"+version,
+  description:"Auto-generated preview from the "+branch+" GitHub branch",
+  files,
+  dependencies:snackDependencies,
 });
 const result=await snack.saveAsync({ignoreUser:true});
 const payload={
