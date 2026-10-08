@@ -1,5 +1,15 @@
 # busy-does-it-app
 
+## v3.63 Coordinated Growth Draft Studio — development branch, not released
+- Adds a three-channel, editable, approved-only draft studio in Build my business with BUSY. Owners can prepare factual website service copy, Business App enquiry instructions and social marketing wording without publishing.
+- Draft preparation requires owner sign-in and an already confirmed service. Missing confirmed identity, service area or contact facts continue to block the relevant target.
+- Selecting an approved service creates temporary local editable drafts. Changing the signed-in owner, business, service or relevant approved profile facts invalidates the old draft pack before any handoff.
+- Per-target handoff: apply copy to an existing **private** website services draft (regenerates internal HTML), open Business App planner with the reviewed instruction, or open Social Media Creator with the text as a brief. None of these actions publishes a website, app or post.
+- Local draft text is limited to 800 characters per target; local editor changes do not automatically sync across devices or persist when leaving the screen. Separate publisher approvals remain mandatory.
+- Node regression tests added in `scripts/check-growth-drafts.mjs` with branch CI. Full signed-in iPhone/iPad handoff and end-to-end testing is still outstanding; V3.63 has not been merged into production.
+- Scope, limitations and release acceptance gates: `docs/V3_63_COORDINATED_DRAFT_STUDIO.md`.
+
+
 ## v3.60 Conversational Business Understanding — development branch, not released
 - Adds a review-only parser for owner-stated trading names, coverage areas and public contact information, plus clearly marked unconfirmed industry suggestions.
 - Owner must explicitly confirm facts before BUSY puts them into the shared business profile; existing approved values are never silently replaced.
