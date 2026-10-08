@@ -37,6 +37,10 @@ function BusinessCreationJourney({ s }) {
         tone="blue"
       >
         <MetricRow left="Confirmed readiness" right={readiness.percent + "%"} />
+        <Text style={styles.sectionLabel}>Suggested next action: {readiness.nextAction.guidance}</Text>
+        {readiness.nextAction.action === "describe_business" ? (
+          <Button label="Describe the missing detail by voice" onPress={s.describeBusinessCreationByVoice} />
+        ) : null}
         {readiness.checks.map(check => <MetricRow key={check.id} left={check.label} right={check.ready ? "Confirmed" : "Needs review"} />)}
       </Card>
       <Card
