@@ -93,6 +93,11 @@ function BusinessCreationJourney({ s }) {
                 ) : null}
               </React.Fragment>
             ))}
+            {(s.businessCreationIntelligence?.alignment || []).map(item => (
+              <Text key={"growth-alignment-" + item.id} style={styles.sectionLabel}>
+                Existing draft mismatch to review: {item.message}
+              </Text>
+            ))}
             <Text style={styles.sectionLabel}>{growthPlan.notice}</Text>
           </>
         ) : null}
