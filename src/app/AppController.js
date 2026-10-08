@@ -293,6 +293,7 @@ function App() {
   const [miniAppsNotice, setMiniAppsNotice] = useState("");
   const [miniAppBuildBrief, setMiniAppBuildBrief] = useState("");
   const [businessCreationBrief, setBusinessCreationBrief] = useState("");
+  const [growthProjectFocus, setGrowthProjectFocus] = useState("");
   const [conversationResumeReady, setConversationResumeReady] = useState("");
   const [conversationResumeNotice, setConversationResumeNotice] = useState("");
   const [conversationCloudRevision, setConversationCloudRevision] = useState(null);
@@ -15203,6 +15204,8 @@ function App() {
     ownerAuthReady,
     cloudWorkspace,
     growthProjectCloudArgs: conversationCloudArgs,
+    growthProjectFocus,
+    setGrowthProjectFocus,
     cloudInitialised,
     cloudInitialising,
     cloudSyncStatus,
