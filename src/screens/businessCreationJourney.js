@@ -52,6 +52,10 @@ function BusinessCreationJourney({ s }) {
           onPress={s.prepareBusinessCreationJourney}
         />
         <Button label="Describe it by voice" disabled={!!s.businessCreationAction} onPress={s.describeBusinessCreationByVoice} />
+        <Text style={styles.sectionLabel}>Cloud draft sync (V3.60 testing: requires the reviewed database schema)</Text>
+        <Button label="Load private cloud draft" disabled={!!s.conversationCloudBusy} onPress={s.loadConversationFromCloud} />
+        <Button label="Save private cloud draft" disabled={!!s.conversationCloudBusy || !String(s.businessCreationBrief || "").trim()} onPress={s.saveConversationToCloud} />
+
       </Card>
 
       {String(s.businessCreationBrief || "").trim() ? (
