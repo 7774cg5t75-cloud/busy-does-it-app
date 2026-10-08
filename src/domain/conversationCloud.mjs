@@ -56,4 +56,14 @@ async function saveCloudConversation(args) {
   if (!Array.isArray(rows) || rows.length !== 1) return { saved: false, conflict: true, reason: "Another device changed this draft. Reload before overwriting." };
   return { saved: true, record: rows[0] };
 }
-export { cloudDraftUrl, loadCloudConversation, saveCloudConversation };
+async function deleteCloudConversation(args) {
+  assertScope(args);
+  if (!Number.isSafeInteger(args.revision) || args.revision < 1) throw new Error("Load a cloud draft before deleting it.");
+  const rows = await request(cloudDraftUrl(args) + "&revision=eq." + args.revision + "&select=revision", {
+    ...args, method: "DELETE", headers: {Prefer: "return=representation"},
+  });
+  if (!Array.isArray(rows) || rows.length !== 1)
+    return { deleted:false, conflict:true, reason:"The cloud draft changed on another device. Reload before deleting." };
+  return { deleted:true };
+}
+export { cloudDraftUrl, loadCloudConversation, saveCloudConversation, deleteCloudConversation };
