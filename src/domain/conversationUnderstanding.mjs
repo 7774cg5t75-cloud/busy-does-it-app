@@ -4,6 +4,7 @@
  * stores transcripts or triggers publication.
  */
 const trim = value => typeof value === "string" ? value.trim() : "";
+const cleanCapture = value => trim(value).replace(/\s+(?:and|but|because)\s+(?:(?:we|i)(?:\s|\u0027|’)|our\s).*$/i, "").replace(/\s+(?:we|i)\s+(?:do|offer|run|want|need|serve|cover)\b.*$/i, "").trim();
 const unique = items => [...new Set(items.filter(Boolean))];
 const FIELD_ORDER = ["businessName", "businessType", "services", "serviceArea", "contact", "openingHours"];
 const QUESTIONS = {
@@ -23,9 +24,9 @@ function extractConversationTurn(input) {
   if (!text) return { fields: {}, suggestions: [], conflicts: [] };
   const fields = {};
   const name = text.match(/\b(?:my (?:business|company) is called|we(?:'re| are) called|trading as|business name is)\s+([^.!?,;\n]{2,65})/i);
-  if (name) fields.businessName = evidence(trim(name[1]).replace(/\s+(?:and|but)\s+(?:we|i)\b.*$/i, ""), "owner_statement");
+  if (name && cleanCapture(name[1])) fields.businessName = evidence(cleanCapture(name[1]), "owner_statement");
   const area = text.match(/\b(?:based (?:in|around)|cover(?:ing)?|serv(?:e|ing) (?:the )?(?:area of )?|work(?:ing)? (?:in|around))\s+([^.!?,;\n]{2,75})/i);
-  if (area) fields.serviceArea = evidence(trim(area[1]).replace(/\s+(?:and|but)\s+(?:we|i)\b.*$/i, ""), "owner_statement");
+  if (area && cleanCapture(area[1])) fields.serviceArea = evidence(cleanCapture(area[1]), "owner_statement");
   const email = text.match(/\b[\w.+-]+@[\w.-]+\.[a-z]{2,}\b/i);
   if (email) fields.email = evidence(email[0], "owner_statement");
   const phone = text.match(/\b(?:\+44\s?\d[\d -]{8,}|0\d[\d -]{9,})\b/);
