@@ -6,14 +6,19 @@ import { Shell, Card, Button, Field, MetricRow } from "../components/ui";
 import { miniAppModuleLabel } from "../domain/miniApps";
 import { reviewConversation } from "../domain/conversationUnderstanding.mjs";
 import { assessBusinessCreationReadiness } from "../domain/businessCreationReadiness.mjs";
+import { confirmedServices, buildCoordinatedGrowthPlan } from "../domain/coordinatedGrowthPlan.mjs";
 
 function BusinessCreationJourney({ s }) {
+  const [growthServiceFocus, setGrowthServiceFocus] = React.useState("");
   const journey = s.businessCreationJourney || {};
   const conversationReview = reviewConversation({
     turns: [s.businessCreationBrief],
     approved: s.businessCreationIntelligence?.sharedProfile || {},
   });
   const proposedFacts = Object.entries(conversationReview.draft);
+  const approvedProfile = s.businessCreationIntelligence?.sharedProfile || {};
+  const growthServices = confirmedServices(approvedProfile);
+  const growthPlan = buildCoordinatedGrowthPlan({approved:approvedProfile,focusService:growthServiceFocus});
   const readiness = assessBusinessCreationReadiness({approved:s.businessCreationIntelligence?.sharedProfile || {},ai:s.conversationAiDraft || {}});
   const steps = Array.isArray(journey.steps) ? journey.steps : [];
   const appModules = Array.isArray(journey.recommendedAppModules) ? journey.recommendedAppModules : [];
@@ -42,6 +47,48 @@ function BusinessCreationJourney({ s }) {
           <Button label="Describe the missing detail by voice" onPress={s.describeBusinessCreationByVoice} />
         ) : null}
         {readiness.checks.map(check => <MetricRow key={check.id} left={check.label} right={check.ready ? "Confirmed" : "Needs review"} />)}
+      </Card>
+      <Card
+        eyebrow="V3.62 • coordinated growth planner"
+        title="One confirmed service, three coordinated improvements"
+        body="Select a service from your confirmed business profile. BUSY prepares a separate website, customer-app and marketing plan without changing anything or posting online."
+        footer="Preview only. Each customer-facing change must be reviewed and approved separately."
+        tone="blue"
+      >
+        {growthServices.length ? (
+          <>
+            <Text style={styles.sectionLabel}>Choose a confirmed service:</Text>
+            {growthServices.slice(0, 8).map(service => (
+              <Button
+                key={"growth-select-" + service.name}
+                label={(growthPlan.valid && growthPlan.service.name === service.name ? "Selected: " : "Plan updates for: ") + service.name.slice(0, 65)}
+                onPress={() => setGrowthServiceFocus(service.name)}
+              />
+            ))}
+            {growthServices.length > 8 ? (
+              <Text style={styles.sectionLabel}>Showing the first 8 confirmed services. Additional services remain in your business profile.</Text>
+            ) : null}
+          </>
+        ) : (
+          <Text style={styles.sectionLabel}>First confirm at least one customer-facing service in your shared business profile. Unverified AI suggestions do not count.</Text>
+        )}
+        {growthPlan.valid ? (
+          <>
+            <MetricRow left="Service being reviewed" right={growthPlan.service.name} />
+            <MetricRow left="Actions ready for review" right={String(growthPlan.reviewable) + " of " + String(growthPlan.actions.length)} />
+            {growthPlan.actions.map(action => (
+              <React.Fragment key={action.id}>
+                <MetricRow left={action.label} right={action.status === "blocked" ? "Missing details" : "Ready to review"} />
+                <Text style={styles.sectionLabel}>{action.task}</Text>
+                <Text style={styles.sectionLabel}>{action.note}</Text>
+                {action.blockedBy.length ? (
+                  <Text style={styles.sectionLabel}>Needs confirmed: {action.blockedBy.join(", ").replace(/_/g, " ")}</Text>
+                ) : null}
+              </React.Fragment>
+            ))}
+            <Text style={styles.sectionLabel}>{growthPlan.notice}</Text>
+          </>
+        ) : null}
       </Card>
       <Card
         eyebrow="Business Creation Orchestrator"
