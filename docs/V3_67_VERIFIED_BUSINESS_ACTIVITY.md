@@ -41,3 +41,7 @@
 ## Next step
 
 Introduce explicit server-stored project-to-provider action correlation IDs and a durable, append-only, owner-scoped audit event feed for **true** per-service completion. Avoid backfilling inferred links from text similarity or time proximity.
+
+## Commercial quality target — £50/month
+
+BUSY DOES IT is being designed to justify an eventual **£50/month** subscription through demonstrable value, not feature count. Product acceptance should measure real time saved, fewer forgotten publishing tasks, clear failure recovery, useful website/app/social outcomes, and confidence that BUSY accurately distinguishes attempted work from verified results. Keep cost-to-serve and AI/media-generation usage limits visible during later billing architecture, while preserving fair value for multiple business types. This sweep **does not** enable or charge a £50 subscription.
