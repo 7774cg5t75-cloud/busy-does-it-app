@@ -25,6 +25,15 @@ Deno.serve(async req=>{
     if(!business.ok || !(await business.json()).length) return reply({error:"business_not_authorized"},403);
     const key=Deno.env.get("OPENAI_API_KEY");
     if(!key) return reply({error:"ai_not_configured"},503);
+    const service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if(!service) return reply({error:"quota_unavailable"},503);
+    const quota=await fetch(origin+"/rest/v1/rpc/busy_try_conversation_ai_quota",{
+      method:"POST",
+      headers:{Authorization:"Bearer "+service,apikey:service,"Content-Type":"application/json"},
+      body:JSON.stringify({p_business_id:businessId,p_user_id:identity.id})
+    });
+    if(!quota.ok) return reply({error:"quota_unavailable"},503);
+    if((await quota.json())!==true) return reply({error:"daily_ai_limit_reached"},429);
     const response=await fetch("https://api.openai.com/v1/responses",{
       method:"POST",
       headers:{"Authorization":`Bearer ${key}`,"Content-Type":"application/json"},
