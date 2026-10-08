@@ -20,6 +20,8 @@ function GrowthCommandCentre({s}){
   const [reply,setReply]=React.useState(null);
   const scopeRef=React.useRef(scope);
   const requestId=React.useRef(0);
+  const cloudArgsRef=React.useRef(s.growthProjectCloudArgs);
+  cloudArgsRef.current=s.growthProjectCloudArgs;
   scopeRef.current=scope;
   const fetchProjects=React.useCallback(async()=>{
     const request=++requestId.current;
@@ -29,7 +31,7 @@ function GrowthCommandCentre({s}){
     }
     setBusy(true);
     try{
-      const args=await s.growthProjectCloudArgs();
+      const args=await cloudArgsRef.current();
       if(scopeRef.current!==scope || args.userId!==userId || args.businessId!==businessId)return;
       const records=await listGrowthProjects(args);
       if(scopeRef.current!==scope || requestId.current!==request)return;
@@ -40,7 +42,7 @@ function GrowthCommandCentre({s}){
     }finally{
       if(scopeRef.current===scope && requestId.current===request)setBusy(false);
     }
-  },[scope,userId,businessId,s.growthProjectCloudArgs]);
+  },[scope,userId,businessId]);
   React.useEffect(()=>{
     setResult({scope:"",records:[],error:false});
     setReply(null);
