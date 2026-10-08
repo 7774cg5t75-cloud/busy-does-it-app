@@ -24,5 +24,8 @@ jobs:
       - name: Validate production foundation
         run: node scripts/check-production.mjs
 
+      - name: Verify Expo Snack module dependency graph
+        run: node scripts/check-snack-dependencies.mjs
+
       - name: Simulate website scale and failure recovery
         run: node scripts/website-platform-simulation.mjs
