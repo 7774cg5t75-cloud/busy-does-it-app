@@ -1,5 +1,16 @@
 # busy-does-it-app
 
+## v3.64 Business Growth Workspace 2.0 — development branch, not released
+- Adds creator-private, cloud-saved growth projects for already-confirmed business services, with three independently reviewable website, Business App and social copy targets.
+- Owner can create, review, edit, save, browse and load a per-service project. All checkpoints are revision-checked to prevent an older device from silently overwriting newer work.
+- Per-target statuses distinguish local draft, owner-reviewed, handed to a **private editor**, missing confirmed facts, and stale information requiring fresh review. The workspace never treats a draft handoff as a real public publication.
+- Changing the approved business profile marks earlier approvals stale, preserves edited copy, and requires explicit acknowledgement of the latest confirmed facts and new per-channel review.
+- Private handoff progress is saved before navigating to the separate existing editor; offline/cloud-conflicted handoffs remain unperformed rather than reporting false success.
+- BUSY Supabase `busy_growth_projects` table was deployed with creator-only Row Level Security, no anonymous grants, and no direct public publishing capability. Schema: `docs/V3_64_GROWTH_PROJECT_SCHEMA.sql`.
+- New Node regression suite and CI workflow check cloud conflict scenarios, cross-owner/business isolation in client logic, drift, and review stages. Real authenticated iPhone/iPad tests and Apple native development build remain release gates.
+- Details: `docs/V3_64_GROWTH_WORKSPACE.md`.
+
+
 ## v3.63 Coordinated Growth Draft Studio — development branch, not released
 - Adds a three-channel, editable, approved-only draft studio in Build my business with BUSY. Owners can prepare factual website service copy, Business App enquiry instructions and social marketing wording without publishing.
 - Draft preparation requires owner sign-in and an already confirmed service. Missing confirmed identity, service area or contact facts continue to block the relevant target.
