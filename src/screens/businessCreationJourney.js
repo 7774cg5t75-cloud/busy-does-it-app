@@ -268,31 +268,51 @@ function BusinessCreationJourney({ s }) {
         ) : null}
       </Card>
       <Card
-        eyebrow="V3.63 • coordinated growth draft studio"
+        eyebrow="V3.64 • private growth project workspace"
         title="Prepare once, edit each customer-facing draft"
         body="BUSY prepares factual copy from a confirmed service. Review and edit each draft, then choose where to send it. Nothing here automatically posts, enables app features or changes a public website."
-        footer="Drafts in this studio are temporary on this screen. A website handoff changes its private editor draft only. Social and Business App handoffs open their separate editors for review."
+        footer="Use Save to keep reviewed wording in your private cloud project. No progress status here means a website, app or social post was published."
         tone="blue"
       >
         <Button
-          label={isDraftPackCurrent ? "Regenerate drafts from confirmed facts" : "Prepare three editable drafts"}
+          label={isDraftPackCurrent ? "Start fresh drafts" : "Prepare growth project"}
           disabled={!candidateDraftPack.valid}
           onPress={() => {
-            setGrowthDraftPack(candidateDraftPack);
-            setGrowthDraftNotice("Review the wording below. Editing stays local to this studio until you choose a specific handoff.");
+            if(activeProject) Alert.alert("Start fresh local project?",
+              "This replaces unsaved local wording. Your cloud checkpoint is left unchanged until you save.",[
+                {text:"Keep current",style:"cancel"},{text:"Start fresh",onPress:prepareGrowthWorkspace},
+              ]);
+            else prepareGrowthWorkspace();
           }}
         />
+        <MetricRow left="Private drafts reviewed" right={projectProgress.reviewed+" of "+projectProgress.total} />
+        <MetricRow left="Passed to private editors" right={String(projectProgress.handedOff)} />
+        <MetricRow left="Needs fact review" right={String(projectProgress.needsReview)} />
+        <Button label={growthCloudBusy?"Cloud working…":"Show saved growth projects"} disabled={growthCloudBusy||!s.cloudWorkspace?.businessId} onPress={browseGrowthWorkspaces} />
+        {savedGrowthProjects.map(saved=><Button key={"growth-saved-"+saved.service_key}
+          label={"Saved: "+saved.service_name+" (revision "+saved.revision+")"}
+          onPress={()=>setGrowthServiceFocus(saved.service_name)} />)}
+        <Button label="Load this service's private cloud project" disabled={!canManageCloud} onPress={loadGrowthWorkspace} />
+        <Button label="Save growth project to BUSY cloud" disabled={!canManageCloud||!activeProject||projectStale} onPress={saveGrowthWorkspace} />
+        {growthCloudRevision!=null?<MetricRow left="Loaded cloud revision" right={String(growthCloudRevision)} />:null}
+        {growthCloudNotice?<Text style={styles.sectionLabel}>{growthCloudNotice}</Text>:null}
+        {projectStale?(
+          <>
+            <Text style={styles.sectionLabel}>Confirmed facts changed. Existing wording is preserved, but old reviews are no longer valid.</Text>
+            <Button label="Accept latest confirmed facts; re-review each draft" disabled={!candidateDraftPack.valid} onPress={acceptUpdatedGrowthFacts} />
+          </>
+        ):null}
         {!candidateDraftPack.valid ? (
           <Text style={styles.sectionLabel}>{candidateDraftPack.notice}</Text>
         ) : null}
         {growthDraftPack && !isDraftPackCurrent ? (
           <Text style={styles.sectionLabel}>Business details, account or selected service changed. Older drafts are hidden. Regenerate to work from approved information.</Text>
         ) : null}
-        {isDraftPackCurrent ? growthDraftPack.items.map(item => (
+        {isDraftPackCurrent && activeProject ? growthDraftPack.items.map(item => (
           <React.Fragment key={"growth-copy-" + item.target}>
             <MetricRow
               left={item.label}
-              right={item.status === "blocked" ? "Blocked by missing facts" : item.handedOff ? "Handed to private editor" : "Editable draft"}
+              right={projectedGrowth?.items.find(i=>i.target===item.target)?.status?.replace(/_/g," ") || "Editable draft"}
             />
             {item.status === "blocked" ? (
               <Text style={styles.sectionLabel}>Confirm first: {item.blockedBy.join(", ").replace(/_/g, " ")}</Text>
@@ -301,8 +321,14 @@ function BusinessCreationJourney({ s }) {
                 <Field
                   label={item.label + " wording"}
                   value={item.text}
-                  onChangeText={text => setGrowthDraftPack(current => editGrowthDraft(current, item.target, text))}
+                  onChangeText={text => editWorkspaceCopy(item.target,text)}
                   multiline
+                />
+                <Button
+                  label={projectedGrowth?.items.find(i=>i.target===item.target)?.status==="reviewed"?"Reviewed • edit to revise":"Mark this wording reviewed"}
+                  disabled={projectStale || !String(item.text||"").trim() ||
+                    ["blocked","needs_review"].includes(projectedGrowth?.items.find(i=>i.target===item.target)?.status)}
+                  onPress={()=>markWorkspaceReviewed(item.target)}
                 />
                 {item.target === "website" ? (
                   <Button
