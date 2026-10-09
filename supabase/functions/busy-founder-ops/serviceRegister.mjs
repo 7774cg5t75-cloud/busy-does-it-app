@@ -82,7 +82,8 @@ function formatSnapshot(row){
   row.amount_gbp_pence:null;
  const validDate=Number.isFinite(Date.parse(row.observed_at||""));
  return {serviceKey:row.service_key,source:row.source==="verified_log_sample"?
-    "verified_log_sample":"founder_entered",
+    "verified_log_sample":row.source==="provider_api_readonly"?
+    "provider_api_readonly":"founder_entered",
     planName:TEXT(row.plan_name),billingStatus:VALUES_STATUS.has(row.billing_status)?
     row.billing_status:"unknown",
     billingCadence:CADENCE.has(row.billing_cadence)?row.billing_cadence:"unknown",
@@ -91,7 +92,8 @@ function formatSnapshot(row){
     observedAt:validDate?row.observed_at:null,note:TEXT(row.note),
     percentOfAllowance:allowance>0&&usage!==null?Math.round(1000*usage/allowance)/10:null,
     measurementType:row.source==="verified_log_sample"?
-       "One-off verified request logs":"Founder-entered snapshot",
+       "One-off verified request logs":row.source==="provider_api_readonly"?
+       "Read-only provider API observation":"Founder-entered snapshot",
     liveBilling:false,invoiceVerified:false};
 }
 function buildServiceInventory(rows,{checkedAt=new Date().toISOString()}={}){
@@ -112,7 +114,9 @@ function buildServiceInventory(rows,{checkedAt=new Date().toISOString()}={}){
    const threshold=typeof percent==="number"&&Number.isFinite(percent)?
        percent>=90?"90":percent>=75?"75":percent>=50?"50":null:null;
    const usageReview=threshold?
-     "Historical "+threshold+"% allowance threshold reached. Recheck the real provider period and usage before taking any action.":"";
+     (latest?.source==="provider_api_readonly"&&freshness==="within_24h"?
+       "Recent provider API "+threshold+"% threshold reached. Verify the billing period and allowance before acting.":
+       "Historical "+threshold+"% allowance threshold reached. Recheck the real provider period and usage before taking any action."):"";
    const renewalAlert=renewalReview==="past_review_date"?
        "Founder-entered renewal/review date has passed. Verify before paying or renewing.":
        renewalReview==="review_within_30_days"?
