@@ -80,6 +80,8 @@ assert.ok(server.includes('const preflight=evaluateLaunchPreflight({website,depl
 assert.ok(server.includes("if(!preflight.canApprove)"));
 assert.ok(server.includes('if (body?.ownerApproved !== true)'));
 assert.ok(server.includes('eq("website_id",website.id)'));
+assert.ok(server.includes('deployment.data.website_id!==mainWebsite.id'));
+assert.ok(server.includes('Only a previously published website version can be restored.'));
 const controllerConfirm=controller.slice(controller.indexOf("const confirmPublishHostedWebsite"),controller.indexOf("const rollbackWebsite"));
 assert.ok(controllerConfirm.includes('websitePublishingRequest("launch_preflight",{deploymentId})'));
 assert.ok(controllerConfirm.indexOf('websitePublishingRequest("launch_preflight"')<controllerConfirm.indexOf("Alert.alert("));
