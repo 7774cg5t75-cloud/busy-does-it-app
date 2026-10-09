@@ -133,7 +133,7 @@ function WebsitePublishing({ s }) {
       s={s}
       title="Website Management"
       subtitle="Edit privately, inspect the exact hosted version, then decide what becomes public."
-      brandCue="V3.78 • customer success • verified outcomes"
+      brandCue="V3.79 • verified lead capture • human-approved replies"
     >
       <Card
         eyebrow="V3.77 • Website launch assistant"
@@ -890,17 +890,23 @@ function WebsitePublishing({ s }) {
         <MetricRow left="Live website updates" right="Always require approval"/>
       </Card>
 
-      <Card eyebrow="V3.78 • Enquiry follow-up"
+      <Card eyebrow="V3.79 • Lead Capture & Follow-up"
         title="Turn real conversations into organised opportunities"
-        body="This secure inbox currently records enquiries that you enter yourself. Website analytics events are not named leads, and a booked label is not proof of payment or completed work. Public contact forms and automatic customer replies are not enabled."
+        body="This secure inbox distinguishes owner-entered contacts from verified website form submissions. Website analytics clicks are not named leads, and a manually marked booked label is not proof of payment or completed work. Public forms remain disabled until the security and hosting gates are explicitly activated."
         footer="Only an authorised business owner or admin can access this contact information."
         tone="blue">
         <MetricRow left="Website-attributed enquiry events"
           right={view.enquiryView?.count==null?"Not measured":
             String(view.enquiryView.count)+" events (not verified contacts)"}/>
-        <MetricRow left="Owner-entered leads (recent sample)"
+        <MetricRow left="Recent leads (owner and website)"
           right={leads.scope===leadScope&&leads.result?
             String(leads.result.sampled)+" of up to 25":"Not measured"}/>
+        <MetricRow left="Challenge-verified website contacts"
+          right={leads.scope===leadScope&&leads.result?
+            String(leads.result.trackedWebsiteContacts??0)+" recent sample":"Not measured"}/>
+        <MetricRow left="Public contact form activation"
+          right={website?.public_form_enabled===true?
+            "Site opted in; platform readiness unverified":"Disabled"}/>
         <MetricRow left="New leads awaiting review"
           right={leads.scope===leadScope&&leads.result?
             String(leads.result.counts?.new??0):"Not measured"}/>
@@ -919,9 +925,16 @@ function WebsitePublishing({ s }) {
           <Card key={item.id} eyebrow={"Enquiry • "+item.status}
             title={item.name||"Customer enquiry"} body={item.service||"Service not specified"}
             footer={item.nextStep} tone="blue">
+            <MetricRow left="Recorded from"
+              right={item.source==="website_form"?"Verified website form":"Entered by business"}/>
             <MetricRow left="Preferred contact" right={item.contactMethod}/>
             <MetricRow left="Contact details" right={item.contactValue}/>
             <MetricRow left="Message sent by BUSY" right="No"/>
+            {item.replyDraft?.draft?(
+              <Text style={styles.sectionLabel}>
+                Suggested reply, NOT sent: {item.replyDraft.draft}
+              </Text>
+            ):null}
             {item.status==="new"?(
               <Button label="Mark as reviewing"
                 disabled={!!leadBusy} onPress={()=>advanceLead(item,"reviewing")}/>
