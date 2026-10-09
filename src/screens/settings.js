@@ -325,7 +325,6 @@ function Settings({ s }) {
           <Button label="Open account & connections" onPress={() => s.go("connectedAccounts")} />
         ) : null}
       </Card>
-      <Button label="Account, privacy & recovery" primary onPress={() => s.go("accountData")} />
       <Button label="Customer records" onPress={() => s.go("customerRecords")} />
       <Button
         label={s.inboxPendingItems.length ? `BUSY Inbox • ${s.inboxPendingItems.length} waiting` : "BUSY Inbox"}
