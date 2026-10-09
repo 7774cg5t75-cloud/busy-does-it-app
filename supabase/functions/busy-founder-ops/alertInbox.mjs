@@ -1,0 +1,28 @@
+/**
+ * V3.71 founder in-app alert inbox. Strict aggregate-only allowlist.
+ * Acknowledgement is not recovery or notification delivery.
+ */
+const VALID_KEYS=new Set(["website_failed","website_stalled","social_failed","app_failed"]);
+const positive=n=>Number.isSafeInteger(n)&&n>=1?n:null;
+const safeCount=n=>Number.isSafeInteger(n)&&n>=0?n:null;
+const date=v=>typeof v==="string"&&Number.isFinite(Date.parse(v))?new Date(v).toISOString():null;
+function buildFounderAlertInbox({rows=null,verifiedRole=false}={}){
+  if(!verifiedRole)return null;
+  if(!Array.isArray(rows))return {status:"unavailable",unread:null,items:null,
+    destination:"in_app_only",externalDeliveryConfigured:false};
+  const items=rows.filter(r=>VALID_KEYS.has(r?.incident_key))
+    .slice(0,12).map(r=>({
+      key:r.incident_key,
+      priority:r.priority==="attention"?"attention":"watch",
+      status:r.status==="open"?"open":"resolved",
+      count:safeCount(r.affected_count),
+      transition:positive(r.source_transition_count),
+      openedAt:date(r.opened_at),
+      lastSeenAt:date(r.last_seen_at),
+      resolvedAt:date(r.resolved_at),
+      acknowledgedAt:date(r.acknowledged_at)
+    }));
+  return {status:"available",unread:items.filter(r=>r.status==="open"&&!r.acknowledgedAt).length,
+    items,destination:"in_app_only",externalDeliveryConfigured:false};
+}
+export {buildFounderAlertInbox,VALID_KEYS};
