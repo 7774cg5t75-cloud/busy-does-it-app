@@ -94,6 +94,34 @@ async function aggregates(){
     usage:{aiRequests30d,siteRequests30d},
   };
 }
+/**
+ * Platform data is server-only and returned AFTER a fresh Supabase Auth founder
+ * role check. Never accept a user-provided business ID or arbitrary SQL filter.
+ */
+async function privilegedRows(table:string,select:string,order:string,limit:number){
+  if(!SECRET_KEY)throw Error("platform reporting key not configured");
+  const query=new URLSearchParams({select,order,limit:String(limit)});
+  const reply=await fetch(ROOT+"/rest/v1/"+table+"?"+query,{
+    headers:serviceHeaders(),signal:AbortSignal.timeout(8500)});
+  if(!reply.ok)throw Error("platform incident reporting source unavailable");
+  const data=await reply.json().catch(()=>null);
+  if(!Array.isArray(data))throw Error("invalid incident reporting source");
+  return data;
+}
+async function incidentData(){
+  const [runs,incidents]=await Promise.all([
+    safely(()=>privilegedRows("busy_platform_monitor_runs",
+      "checked_at,status,coverage","checked_at.desc",1)),
+    safely(()=>privilegedRows("busy_platform_incidents",
+      "incident_key,status,severity,affected_count,first_detected_at,last_observed_at,resolved_at,transition_count",
+      "last_observed_at.desc",12)),
+  ]);
+  return {
+    monitorRun:Array.isArray(runs)?(runs[0]||null):null,
+    monitorIncidents:Array.isArray(incidents)?incidents:null,
+  };
+}
+
 Deno.serve(async(req:Request)=>{
   if(req.method==="OPTIONS")return new Response(null,{status:204,headers});
   if(req.method!=="POST")return send(405,{error:"method_not_allowed"});
@@ -113,7 +141,10 @@ Deno.serve(async(req:Request)=>{
   }
   if(!ROOT||!SECRET_KEY)return send(503,{error:"platform_reporting_unavailable"});
   try{
-    const {counts,usage}=await aggregates();
-    return send(200,buildFounderReport({counts,usage,checkedAt:new Date().toISOString(),verifiedRole:true}));
+    const [{counts,usage},{monitorRun,monitorIncidents}]=await Promise.all([
+      aggregates(),incidentData()
+    ]);
+    return send(200,buildFounderReport({counts,usage,monitorRun,monitorIncidents,
+      checkedAt:new Date().toISOString(),verifiedRole:true}));
   }catch{return send(503,{error:"platform_reporting_unavailable"});}
 });
