@@ -127,6 +127,24 @@ async function incidentData(){
   };
 }
 
+
+async function acknowledgeAlert(key:string,transition:number){
+  // Optimistic lock: never acknowledge a newer recurrence by accident.
+  const q=new URLSearchParams({select:"incident_key,source_transition_count,acknowledged_at",
+    incident_key:"eq."+key,source_transition_count:"eq."+transition,
+    status:"eq.open",acknowledged_at:"is.null"});
+  const reply=await fetch(ROOT+"/rest/v1/busy_platform_alert_inbox?"+q,{
+    method:"PATCH",headers:{...serviceHeaders(),"Content-Type":"application/json",
+      "Prefer":"return=representation"},
+    body:JSON.stringify({acknowledged_at:new Date().toISOString()}),
+    signal:AbortSignal.timeout(8500)
+  });
+  if(!reply.ok)throw Error("alert inbox unavailable");
+  const rows=await reply.json().catch(()=>null);
+  return Array.isArray(rows)&&rows.length===1&&rows[0]?.incident_key===key&&
+    rows[0]?.source_transition_count===transition;
+}
+
 Deno.serve(async(req:Request)=>{
   if(req.method==="OPTIONS")return new Response(null,{status:204,headers});
   if(req.method!=="POST")return send(405,{error:"method_not_allowed"});
@@ -139,11 +157,25 @@ Deno.serve(async(req:Request)=>{
     if(Number(req.headers.get("content-length")||0)>2048)return send(413,{error:"request_too_large"});
     payload=await req.json();
   }catch{return send(400,{error:"invalid_request"});}
-  if(!payload||typeof payload!=="object"||Array.isArray(payload)||
-    (payload as {action?:unknown}).action!=="summary" ||
-    Object.keys(payload).some(k=>k!=="action")){
-      return send(400,{error:"unsupported_action"});
+
+  if(!payload||typeof payload!=="object"||Array.isArray(payload))
+    return send(400,{error:"unsupported_action"});
+  const action=(payload as {action?:unknown}).action;
+  if(action==="acknowledge"){
+    const item=payload as {key?:string,transition?:number};
+    if(Object.keys(payload).sort().join(",")!=="action,key,transition"||
+       !VALID_KEYS.has(item.key)||!Number.isSafeInteger(item.transition)||
+       !item.transition||item.transition<1)
+      return send(400,{error:"invalid_alert"});
+    if(!ROOT||!SECRET_KEY)return send(503,{error:"platform_reporting_unavailable"});
+    try{
+      const ok=await acknowledgeAlert(item.key,item.transition);
+      return ok?send(200,{status:"acknowledged"}):
+        send(409,{error:"alert_changed_or_already_acknowledged"});
+    }catch{return send(503,{error:"platform_reporting_unavailable"});}
   }
+  if(action!=="summary"||Object.keys(payload).some(k=>k!=="action"))
+    return send(400,{error:"unsupported_action"});
   if(!ROOT||!SECRET_KEY)return send(503,{error:"platform_reporting_unavailable"});
   try{
     const [{counts,usage},{monitorRun,monitorIncidents,alertRows}]=await Promise.all([
