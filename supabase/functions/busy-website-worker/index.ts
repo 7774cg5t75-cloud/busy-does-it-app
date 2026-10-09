@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import {renderOptInContactForm} from "./formHtml.mjs";
+import {formReadiness} from "./formPolicy.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -543,8 +544,10 @@ async function prepareDeployment(job: any, deployment: any, website: any) {
     siteId:website.id,siteHostname:website.default_hostname||"",
     siteKey:Deno.env.get("BUSY_TURNSTILE_SITE_KEY")||"",
     endpoint:SUPABASE_URL+"/functions/v1/busy-website-form",
-    enabled:website.public_form_enabled===true&&
-      Deno.env.get("BUSY_WEBSITE_FORM_INTAKE_ENABLED")==="true"
+    enabled:formReadiness(website,{
+      globalEnabled:Deno.env.get("BUSY_WEBSITE_FORM_INTAKE_ENABLED")==="true",
+      hasSecret:!!Deno.env.get("BUSY_TURNSTILE_SITE_KEY")
+    }).ready
   });
 
   // Create each private page once so Storage can issue stable signed URLs for
@@ -689,8 +692,10 @@ async function publishDeployment(job: any, deployment: any, website: any) {
     siteHostname:website.default_hostname||"",
     siteKey:Deno.env.get("BUSY_TURNSTILE_SITE_KEY")||"",
     endpoint:SUPABASE_URL+"/functions/v1/busy-website-form",
-    enabled:website.public_form_enabled===true&&
-      Deno.env.get("BUSY_WEBSITE_FORM_INTAKE_ENABLED")==="true"
+    enabled:formReadiness(website,{
+      globalEnabled:Deno.env.get("BUSY_WEBSITE_FORM_INTAKE_ENABLED")==="true",
+      hasSecret:!!Deno.env.get("BUSY_TURNSTILE_SITE_KEY")
+    }).ready
   });
   for (const page of pages) {
     const outputPath = clean(page?.outputPath, 300) || (page.id === "home" ? "index.html" : `${page.id}/index.html`);
@@ -787,8 +792,10 @@ async function rollbackDeployment(job: any, target: any, website: any) {
     siteId:website.id,siteHostname:website.default_hostname||"",
     siteKey:Deno.env.get("BUSY_TURNSTILE_SITE_KEY")||"",
     endpoint:SUPABASE_URL+"/functions/v1/busy-website-form",
-    enabled:website.public_form_enabled===true&&
-      Deno.env.get("BUSY_WEBSITE_FORM_INTAKE_ENABLED")==="true"
+    enabled:formReadiness(website,{
+      globalEnabled:Deno.env.get("BUSY_WEBSITE_FORM_INTAKE_ENABLED")==="true",
+      hasSecret:!!Deno.env.get("BUSY_TURNSTILE_SITE_KEY")
+    }).ready
   });
   for (const page of pages) {
     const outputPath = clean(page?.outputPath, 300) || (page.id === "home" ? "index.html" : `${page.id}/index.html`);
