@@ -930,18 +930,18 @@ function HomeScreen({ s }) {
     (s.diaryConflicts?.length || 0) > 0 ||
     pendingInbox > 0;
   const quickTools = [
-    ["Daily Command Centre", () => s.go("dailyCommandCentre")],
-    ["Follow-up Engine", () => s.openFollowUpEngine()],
-    ["Communications Hub", () => s.openCommunicationsHub()],
-    ["Customer records", () => s.go("customerRecords")],
-    ["Social Media Centre", () => s.openSocialCentre()],
+    ["Today’s priorities", () => s.go("dailyCommandCentre")],
+    ["Customer follow-ups", () => s.openFollowUpEngine()],
+    ["Messages & replies", () => s.openCommunicationsHub()],
+    ["All customer records", () => s.go("customerRecords")],
+    ["Social Media", () => s.openSocialCentre()],
     ["Build my business", () => s.openBusinessCreationJourney()],
     [s.websiteDraft ? "Continue my website" : "Build my website", () => s.openWebsiteBuilder()],
-    ["BUSY Apps", () => s.openBusyAppsMarketplace()],
-    ["Business Memory", () => s.go("businessMemory")],
-    ["Growth Command Centre", () => s.go("growthCommandCentre")],
-    ["Operations & Reliability", () => s.go("selfRunningOperations")],
-    ["Verified activity & results", () => s.go("businessActivityCentre")],
+    ["Build a customer app", () => s.openBusyAppsMarketplace()],
+    ["What BUSY remembers", () => s.go("businessMemory")],
+    ["Grow my business", () => s.go("growthCommandCentre")],
+    ["System health", () => s.go("selfRunningOperations")],
+    ["Completed activities", () => s.go("businessActivityCentre")],
   ];
   return (
     <Shell
@@ -1051,7 +1051,7 @@ function HomeScreen({ s }) {
           onPress={() => setShowOtherMoves((value) => !value)}
           style={homeDark.outlineButton}
         >
-          <Text style={homeDark.outlineText}>{showOtherMoves ? "Hide extra tools −" : "Explore BUSY's other tools +"}</Text>
+          <Text style={homeDark.outlineText}>{showOtherMoves ? "Hide other tools −" : "See all BUSY tools +"}</Text>
         </Pressable>
         {showOtherMoves ? (
           <View style={{ marginTop: 7 }}>
