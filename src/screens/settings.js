@@ -764,6 +764,9 @@ function RecordFilingSettings({ s }) {
 }
 
 function ConnectedAccounts({ s }) {
+  const [showOtherConnections, setShowOtherConnections] = useState(false);
+  const [showConnectionDiagnostics, setShowConnectionDiagnostics] = useState(false);
+  const [expandedProviders, setExpandedProviders] = useState({});
   useEffect(() => {
     if (s.ownerSession?.accessToken) {
       s.refreshSocialPublishingStatus({ quiet: true });
@@ -790,7 +793,7 @@ function ConnectedAccounts({ s }) {
           <Text style={styles.connectTitle}>{label}</Text>
           <Text style={styles.connectBody}>{body}</Text>
           <Text style={styles.customerHistoryPhotoMeta}>
-            {connected ? "Prototype source selected" : "Not selected"}
+            {connected ? "Demo selected — not a live connection" : "Demo only — not connected"}
           </Text>
         </View>
         <Pressable
@@ -798,7 +801,7 @@ function ConnectedAccounts({ s }) {
           style={[styles.connectButton, connected && styles.connectButtonOn]}
         >
           <Text style={[styles.connectButtonText, connected && { color: C.green }]}>
-            {connected ? "Disconnect" : "Connect"}
+            {connected ? "Clear demo" : "Try demo"}
           </Text>
         </Pressable>
       </View>
@@ -817,6 +820,7 @@ function ConnectedAccounts({ s }) {
     const checking = connection.status === "checking";
     const providerBusy = busy && s.socialPublishingAction === provider;
     const ownerSignedIn = !!s.ownerSession?.accessToken;
+    const showDetails = !!expandedProviders[provider];
     const accountLabel =
       connection.pageName ||
       connection.googleLocationTitle ||
@@ -827,43 +831,30 @@ function ConnectedAccounts({ s }) {
       <Card
         key={provider}
         eyebrow={label}
-        title={
-          connected
-            ? accountLabel || "Connected"
-            : checking
-            ? "Checking provider access"
-            : needsSelection
-            ? "Choose which business account BUSY should use"
-            : needsAttention
-            ? provider === "google_business"
-              ? "Google authorization saved — publishing access needs attention"
-              : "Connection needs attention"
-            : configured
-            ? "Ready to connect"
-            : "Developer credentials still needed"
-        }
-        body={
-          connected
-            ? provider === "google_business"
-              ? "BUSY has verified this selected Business Profile location against Google's Local Posts API. Owner approval is still required for every public post."
-              : "BUSY has provider authorization for approved publishing actions. Creating content still does not grant permission to publish it."
-            : checking
-            ? "BUSY is checking whether the selected provider can actually be used for publishing."
-            : needsAttention && provider === "google_business"
-            ? "Google OAuth may already be saved. BUSY keeps that authorization so you can fix API approval or enablement and re-check without starting over."
-            : configured
-            ? "The server has the provider app credentials. Start OAuth here, complete the provider consent screen, then return to BUSY and refresh."
-            : provider === "meta"
-            ? "The V3.8 Meta OAuth and publishing code is deployed, but META_APP_ID and META_APP_SECRET have not been added to Supabase yet."
-            : "The V3.8 Google OAuth and publishing code is deployed, but GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET have not been added to Supabase yet."
-        }
-        footer={
-          connected
-            ? "Connection is server-side • provider tokens are not stored in the phone app"
-            : "Nothing public can be posted from this connection yet"
-        }
+        title={connected ? "Connected" : checking ? "Checking…" : needsSelection ? "Choose an account" : needsAttention ? "Needs attention" : configured ? "Not connected" : "Setup required"}
+        body={connected
+          ? accountLabel || "Ready to use for approved posts."
+          : needsSelection
+          ? "Choose which business account BUSY should use."
+          : needsAttention
+          ? "This connection needs checking before it can publish."
+          : configured
+          ? "Connect your business account when you're ready."
+          : "This service needs additional setup before it can connect."}
         tone={connected ? "green" : needsAttention ? "amber" : "blue"}
       >
+        {needsAttention && connection.lastError ? (
+          <Text style={styles.customerHistoryPhotoMeta}>{connection.lastError}</Text>
+        ) : null}
+        {(connected || needsAttention || checking || needsSelection) ? (
+          <Button
+            label={showDetails ? "Hide account details" : "Manage connection"}
+            onPress={() => setExpandedProviders((old) => ({ ...old, [provider]: !old[provider] }))}
+          />
+        ) : null}
+        {showDetails ? (
+          <>
+            <Text style={styles.sectionLabel}>Account details</Text>
         <MetricRow left="Provider status" right={connection.status || "not_connected"} strong={connected} />
         <MetricRow left="Developer credentials" right={configured ? "Configured" : "Not configured"} />
         {provider === "meta" && connected ? (
@@ -888,10 +879,11 @@ function ConnectedAccounts({ s }) {
             />
           </>
         ) : null}
-        {connection.lastError ? (
-          <Text style={styles.customerHistoryPhotoMeta}>{connection.lastError}</Text>
-        ) : null}
 
+
+
+          </>
+        ) : null}
         {needsSelection && (connection.assets || []).length ? (
           <>
             <Text style={styles.sectionLabel}>Choose account</Text>
@@ -910,7 +902,7 @@ function ConnectedAccounts({ s }) {
           </>
         ) : null}
 
-        {provider === "google_business" &&
+        {showDetails && provider === "google_business" &&
         configured &&
         !needsSelection &&
         (connected || needsAttention || checking) ? (
@@ -928,9 +920,9 @@ function ConnectedAccounts({ s }) {
           />
         ) : null}
 
-        {connected ? (
+        {connected && showDetails ? (
           <Button
-            label={providerBusy ? "Disconnecting…" : "Disconnect provider"}
+            label={providerBusy ? "Disconnecting…" : "Disconnect account"}
             disabled={busy || !ownerSignedIn}
             onPress={() => s.disconnectSocialProvider(provider)}
           />
