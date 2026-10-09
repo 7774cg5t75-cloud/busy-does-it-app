@@ -1,5 +1,10 @@
 # busy-does-it-app
 
+## V3.84 — Unified Dark App Design (development)
+
+The near-black V3.83 Home style is now shared across the full authenticated app: Work, Results, Settings, calendars, forms, customer tools, website management and founder views. Readable text accents and dark panels replace the old light palette, and the overflowing Home review label is fixed. Customer-owned website branding remains independent. This **requires a new native V3.84 preview build**; the installed V3.83 app does not receive updates automatically. Automated theme-contrast regression checks are in CI; full iPhone acceptance is still required. See `docs/V3_84_UNIFIED_DARK_THEME.md`.
+
+
 ## V3.83 — Dark Home & Voice-first Simplification (development)
 
 Home now has an opt-in near-black look, a prominent Talk to BUSY action, a small real-data business summary, one reviewed next suggestion, and an expandable home for secondary tools. Existing business forms remain light for this pass, and the founder-only operations backend is unchanged. `3.83.0` is committed to branch `v3.83`; **the V3.82 app already installed on an iPhone will need a new native build**. GitHub CI now checks the V3.83 Home requirements; native acceptance remains pending. See `docs/V3_83_DARK_HOME.md`.
