@@ -71,7 +71,7 @@ for(const banned of ["@gmail.com","@example.org","Bearer ","customer_id","busine
 assert.ok(edge.includes('ROOT+"/auth/v1/user"'));
 assert.ok(edge.includes("isFounderUser(user)?user:null"));
 const gate=edge.indexOf("if(!founder)return send(403");
-const db=edge.indexOf("await aggregates();");
+const db=edge.indexOf("aggregates(),incidentData()");
 assert.ok(gate>0 && db>gate);
 assert.ok(edge.includes('(payload as {action?:unknown}).action!=="summary"'));
 assert.ok(edge.includes('Object.keys(payload).some(k=>k!=="action")'));
