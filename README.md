@@ -1,5 +1,11 @@
 # busy-does-it-app
 
+## V3.76 — Evidence & Intelligence Engine (development)
+
+V3.76 adds a **private, bounded aggregate evidence history** behind the founder-only external Reality Check. It records no business or customer IDs, addresses, personal information, public URLs, provider tokens, posts or media. The database atomically allows at most one new check per 30-minute window, and hourly pruning removes history older than 30 days. The founder dashboard presents limited seven-day trends and potential repeated/shared symptoms, explicitly without claiming a verified shared provider fault. Scheduled customer-facing probes, real provider re-publishing, push/email alerts and billing actions remain disabled.
+
+The Supabase evidence migrations are applied; the authenticated founder Edge Function is active with JWT enforcement. V3.76 automated regression tests are committed to GitHub, but their complete CI result and native device acceptance still need verification. See `docs/V3_76_EVIDENCE_INTELLIGENCE.md`.
+
 ## V3.75 — Reality Check Engine (development)
 
 V3.75 introduces a **founder-authorised, on-demand Reality Check** in Founder Operations: bounded HTTPS HEAD probes of BUSY-owned website default hostnames with matching website/deployment headers, aggregate reconciliation of existing Facebook/Instagram/Google Business API submission receipts, and Business App live/public deployment version comparisons. The system returns **only aggregate samples and clear uncertainty labels**. Provider receipts are not represented as public-feed visibility, and deployment records are not presented as App Store/device verification.
