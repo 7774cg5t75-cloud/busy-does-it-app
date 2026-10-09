@@ -6,16 +6,24 @@ function expectedSiteOrigin(site){
   return typeof hostname==="string"&&hostname.length<96&&HOST.test(hostname)
     ?"https://"+hostname:null;
 }
-function formReadiness(site,{globalEnabled=false,hasSecret=false}={}){
+function formReadiness(site,{globalEnabled=false,hasSecret=false,nowISO=""}={}){
   const origin=expectedSiteOrigin(site);
-  const ready=globalEnabled===true&&hasSecret===true&&
+  const checked=Date.parse(site?.last_health_check_at||"");
+  const now=Date.parse(nowISO||new Date().toISOString());
+  const fresh=Number.isFinite(checked)&&Number.isFinite(now)&&
+    checked<=now&&now-checked<=48*3600000;
+  const verifiedHealth=fresh&&site?.health_status==="healthy"&&
+    site?.delivery_status==="active"&&
+    site?.last_observed_deployment_id===site?.current_live_deployment_id&&
+    site?.last_healthy_at===site?.last_health_check_at;
+  const ready=globalEnabled===true&&hasSecret===true&&verifiedHealth&&
     site?.public_form_enabled===true&&
     typeof site?.id==="string"&&UUID.test(site.id)&&
     typeof site?.business_id==="string"&&UUID.test(site.business_id)&&
     typeof site?.current_live_deployment_id==="string"&&UUID.test(site.current_live_deployment_id)&&
     !!origin;
   return {ready,expectedOrigin:origin,requiresChallenge:true,
-    requiresLiveWebsite:true,automaticMessages:false,
+    requiresLiveWebsite:true,requiresFreshMatchingHealth:true,automaticMessages:false,
     status:ready?"configured":"disabled_or_unverified"};
 }
 function cleanPublicSubmission(body){
