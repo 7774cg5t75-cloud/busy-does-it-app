@@ -1,5 +1,5 @@
-const APP_VERSION = "3.83";
-const PROTOTYPE_BADGE = `Development v${APP_VERSION} • Dark Home and Voice-first Simplicity`;
+const APP_VERSION = "3.84";
+const PROTOTYPE_BADGE = `Development v${APP_VERSION} • Unified Dark Theme and Readability`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
@@ -138,20 +138,26 @@ function ownerSessionFromPayload(data) {
   };
 }
 
+// V3.84: shared dark design tokens for the entire authenticated product.
+// Keep high-contrast text tones distinct from filled-button colors.
 const C = {
-  bg: "#F5F7FB",
-  card: "#FFFFFF",
-  ink: "#162033",
-  muted: "#687386",
+  bg: "#0D131E",
+  card: "#171F2D",
+  ink: "#F4F7FE",
+  muted: "#B4C0D2",
   blue: "#3671E3",
-  blueSoft: "#EAF1FF",
-  green: "#238F57",
-  greenSoft: "#EAF7F0",
-  amber: "#B86B10",
-  amberSoft: "#FFF5E8",
-  red: "#B23A3A",
-  border: "#DDE3EC",
-  shadow: "#111827",
+  blueText: "#94BCFF",
+  blueSoft: "#1A2A44",
+  green: "#7BE0AE",
+  greenAction: "#238F57",
+  greenSoft: "#173329",
+  amber: "#F6C16E",
+  amberAction: "#9D631D",
+  amberSoft: "#342817",
+  red: "#FF9494",
+  redAction: "#AA3F4F",
+  border: "#344157",
+  shadow: "#000000",
 };
 
 const VERTICAL_PACKS = {
