@@ -44,7 +44,8 @@ async function readGitHubUsage(env,fetcher=fetch,now=new Date()){
   if(!state.github)return {serviceKey:"github",status:"not_connected"};
   const username=env.GITHUB_BILLING_ACCOUNT;
   const year=now.getUTCFullYear(),month=now.getUTCMonth()+1;
-  const url="https://api.github.com/users/"+encodeURIComponent(username)+
+  const scope=env.GITHUB_BILLING_SCOPE==="organization"?"organizations":"users";
+  const url="https://api.github.com/"+scope+"/"+encodeURIComponent(username)+
     "/settings/billing/usage/summary?year="+year+"&month="+month;
   try{
     const data=await fetchJson(url,{headers:{
@@ -56,7 +57,7 @@ async function readGitHubUsage(env,fetcher=fetch,now=new Date()){
     if(count===null)return {serviceKey:"github",status:"not_verified"};
     return {serviceKey:"github",status:"read_success",usageValue:count,
       usageUnit:"Actions minutes (month)",period:"UTC calendar month",
-      note:"GitHub read-only billing usage API; account-scoped Actions minutes. Not a GBP invoice or rate-limit allowance.",
+      note:"GitHub read-only billing usage API ("+scope+"); account-scoped Actions minutes. Not a GBP invoice or rate-limit allowance.",
       observedAt:now.toISOString()};
   }catch{return {serviceKey:"github",status:"not_verified"};}
 }
@@ -66,7 +67,7 @@ async function readCloudflareTraffic(env,fetcher=fetch,now=new Date()){
   // One hour prevents truncation for quiet accounts, but reject datasets that
   // reach the documented 100-row page limit rather than claiming full coverage.
   const start=new Date(now.getTime()-3600000).toISOString();
-  const query=`query GetWorkersAnalytics($accountTag:string,$datetimeStart:string,$datetimeEnd:string,$scriptName:string){
+  const query=`query GetWorkersAnalytics($accountTag: string!, $datetimeStart: Time!, $datetimeEnd: Time!, $scriptName: string!){
     viewer{accounts(filter:{accountTag:$accountTag}){
       workersInvocationsAdaptive(limit:100,filter:{scriptName:$scriptName,datetime_geq:$datetimeStart,datetime_leq:$datetimeEnd}){
         sum{requests}
