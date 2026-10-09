@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {isFounderUser,aggregateUsageRows,buildFounderReport} from "./report.mjs";
+import {VALID_KEYS} from "./alertInbox.mjs";
 
 /**
  * V3.69 founder-only READ endpoint.
@@ -109,16 +110,20 @@ async function privilegedRows(table:string,select:string,order:string,limit:numb
   return data;
 }
 async function incidentData(){
-  const [runs,incidents]=await Promise.all([
+  const [runs,incidents,alerts]=await Promise.all([
     safely(()=>privilegedRows("busy_platform_monitor_runs",
       "checked_at,status,coverage","checked_at.desc",1)),
     safely(()=>privilegedRows("busy_platform_incidents",
       "incident_key,status,severity,affected_count,first_detected_at,last_observed_at,resolved_at,transition_count",
       "last_observed_at.desc",12)),
+    safely(()=>privilegedRows("busy_platform_alert_inbox",
+      "incident_key,priority,status,affected_count,source_transition_count,opened_at,last_seen_at,resolved_at,acknowledged_at",
+      "last_seen_at.desc",12)),
   ]);
   return {
     monitorRun:Array.isArray(runs)?(runs[0]||null):null,
     monitorIncidents:Array.isArray(incidents)?incidents:null,
+    alertRows:Array.isArray(alerts)?alerts:null,
   };
 }
 
@@ -141,10 +146,10 @@ Deno.serve(async(req:Request)=>{
   }
   if(!ROOT||!SECRET_KEY)return send(503,{error:"platform_reporting_unavailable"});
   try{
-    const [{counts,usage},{monitorRun,monitorIncidents}]=await Promise.all([
+    const [{counts,usage},{monitorRun,monitorIncidents,alertRows}]=await Promise.all([
       aggregates(),incidentData()
     ]);
-    return send(200,buildFounderReport({counts,usage,monitorRun,monitorIncidents,
+    return send(200,buildFounderReport({counts,usage,monitorRun,monitorIncidents,alertRows,
       checkedAt:new Date().toISOString(),verifiedRole:true}));
   }catch{return send(503,{error:"platform_reporting_unavailable"});}
 });
