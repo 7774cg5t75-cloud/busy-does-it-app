@@ -26,12 +26,12 @@ function BusinessMemory({ s }) {
   return (
     <Shell
       s={s}
-      title="Business Memory"
-      subtitle="What BUSY has learned from this business over time — with the sample, confidence and ranking effect visible."
+      title="What BUSY remembers"
+      subtitle="See what BUSY has learned from real business activity and how it uses that information."
       brandCue="Facts stay facts. Patterns need evidence. Owner rules still outrank learning."
     >
       <Card
-        eyebrow="V3.21 • Long-term learning"
+        eyebrow="Learning over time"
         title={
           s.strongestBusinessMemoryPattern
             ? "BUSY is building a business-specific operating memory"
