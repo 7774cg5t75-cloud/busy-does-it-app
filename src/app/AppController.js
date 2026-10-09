@@ -23,6 +23,8 @@ import * as SecureStore from "expo-secure-store";
 import * as Notifications from "expo-notifications";
 import * as Calendar from "expo-calendar/legacy";
 import Constants from "expo-constants";
+import { fetch as expoFetch } from "expo/fetch";
+import { File as ExpoFile } from "expo-file-system";
 
 try {
   Notifications.setNotificationHandler({
@@ -11948,28 +11950,45 @@ function App() {
 
       let response;
       if (audioUri) {
+        // expo/fetch accepts ExpoFile as a real Blob. React Native's standard
+        // fetch can reject {uri,name,type} multipart parts *before* the request
+        // reaches Supabase, reporting only "Network request failed" on iOS.
+        // Never retry blindly: repeating an accepted command could repeat its
+        // model cost or a previously approved action.
+        const audioFile = new ExpoFile(audioUri);
+        if (!audioFile.exists || !Number(audioFile.size || 0)) {
+          throw new Error("The iPhone didn't save a voice recording. Try again.");
+        }
+        if (Number(audioFile.size) > 10_000_000) {
+          throw new Error("That recording is too long. Try a shorter voice request.");
+        }
         const form = new FormData();
         form.append("appVersion", APP_VERSION);
         form.append("context", JSON.stringify(context));
         form.append("conversation", JSON.stringify(conversation));
-        form.append("audio", {
-          uri: audioUri,
-          name: `busy-command-${Date.now()}.m4a`,
-          type: "audio/m4a",
-        });
-        response = await fetchWithTimeout(
-          BUSY_COMMAND_URL,
-          {
-            method: "POST",
-            headers: {
-              apikey: BUSY_AI_TOKEN,
-              Authorization: `Bearer ${token}`,
-              "x-busy-request-id": busyRequestId("operator"),
+        form.append("audio", audioFile, `busy-command-${Date.now()}.m4a`);
+        try {
+          response = await fetchWithTimeout(
+            BUSY_COMMAND_URL,
+            {
+              method: "POST",
+              headers: {
+                apikey: BUSY_AI_TOKEN,
+                Authorization: `Bearer ${token}`,
+                "x-busy-request-id": busyRequestId("operator"),
+              },
+              body: form,
             },
-            body: form,
-          },
-          45000
-        );
+            45000,
+            expoFetch
+          );
+        } catch (error) {
+          throw new Error(
+            error?.network
+              ? "Your recording was saved, but BUSY couldn't send it to the server. Please try typing a short request so we can check whether the server is reachable."
+              : error?.message || "BUSY couldn't upload the voice recording."
+          );
+        }
       } else {
         response = await fetchWithTimeout(
           BUSY_COMMAND_URL,
