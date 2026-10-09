@@ -1,0 +1,15 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+const read=p=>readFileSync(p,"utf8");
+const code=read("src/screens/settings.js");
+const page=code.slice(code.indexOf("function ConnectedAccounts({ s }) {"),code.indexOf("\nfunction Advanced({ s }) {"));
+const pkg=JSON.parse(read("package.json")),app=JSON.parse(read("app.json")).expo;
+const checks=[
+["version",()=>{assert.equal(pkg.version,"3.89.0");assert.equal(app.version,pkg.version);assert.equal(app.ios.buildNumber,"9");}],
+["visible account cards",()=>{assert.ok(page.includes('label: "Facebook & Instagram"'));assert.ok(page.includes('label: "Google Business"'));}],
+["extra details closed initially",()=>{for(const t of ["showOtherConnections","showConnectionDiagnostics","expandedProviders"])assert.ok(page.includes(t));assert.ok(page.includes("useState(false)"));}],
+["honest demo labels",()=>{assert.ok(page.includes("Demo only — not connected"));assert.ok(page.includes("Try demo"));}],
+["existing routes remain",()=>{for(const t of ["s.beginSocialProviderConnect","s.disconnectSocialProvider","s.selectSocialProviderAsset","s.verifySocialProvider","s.confirmLivePublishingChange","s.signInOwner","s.signOutOwner"])assert.ok(page.includes(t),t);}],
+["real status",()=>{assert.ok(page.includes("publish.connections?.meta"));assert.ok(page.includes("publish.connections?.google_business"));}]
+];
+for(const [name,test] of checks){test();console.log("PASS",name)}
