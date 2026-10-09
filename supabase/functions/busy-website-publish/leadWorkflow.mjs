@@ -46,7 +46,7 @@ function safeLeadRow(row){
   return {id:row.id,name:row.name,contactMethod:row.contact_method,
     contactValue:row.contact_value,service:row.service_requested,
     notes:row.notes,status:row.status,createdAt:row.created_at,
-    nextStep:leadSuggestion(row),source:"owner_entered",
+    nextStep:leadSuggestion(row),source:row.source==="website_form"?"website_form":"owner_entered",
     messageSent:false,verifiedBooking:false};
 }
 function buildLeadDigest(rows){
@@ -55,7 +55,20 @@ function buildLeadDigest(rows){
   const counts={new:0,reviewing:0,quoted:0,booked:0,closed:0};
   sample.forEach(row=>counts[row.status]++);
   return {status:"available",recent:sample,sampled:sample.length,counts,
-    limitedTo:25,trackedWebsiteContacts:0,
-    statusCaveat:"These are owner-entered records, not public website form submissions. A booked status is a manual label, not independently verified revenue or work."};
+    limitedTo:25,
+    trackedWebsiteContacts:sample.filter(row=>row.source==="website_form").length,
+    statusCaveat:"Website contacts are challenge-verified submitted form records. Owner-entered contacts are separate. Booking stages are manual labels, not independently verified appointments, income or completed work."};
 }
-export {validatedLeadInput,validTransition,buildLeadDigest};
+function suggestedCustomerReply(lead){
+  const service=clean(lead?.service,80);
+  const subject=service?("your enquiry about "+service):"your enquiry";
+  return {
+    kind:"review_before_sending",
+    suggestedSubject:"Thanks for "+subject,
+    draft:"Thanks for getting in touch about "+(service||"your enquiry")+
+      ". Could you share any details that would help us give you an accurate quote? We'll review the information before confirming the next steps.",
+    autoSent:false,requiresOwnerApproval:true,
+    note:"This is an editable local draft only. It has not been sent or generated using paid AI."
+  };
+}
+export {validatedLeadInput,validTransition,buildLeadDigest,suggestedCustomerReply};
