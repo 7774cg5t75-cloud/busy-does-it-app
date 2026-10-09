@@ -1,5 +1,11 @@
 # busy-does-it-app
 
+
+## V3.87 — One-tap Social Media & simpler posting (development)
+
+Social Media is now permanently reachable from Home directly beneath Talk to BUSY, beside Work & diary. Its own main screen opens with **+ Create a new post**, saved draft/scheduled/published counts, real connected-account statuses, and short selectable post lists. Advanced publishing status, scheduling reports, eligible completed-job media, provider details and business-outcome learning remain behind **More social media tools & details**. Failed post and connection problems remain visible, and the original approval rules and provider-specific retry behaviour are unchanged. Branch `v3.87` includes new UI regressions; a signed iOS `3.87.0` build (build number `7`) and iPhone acceptance are still required. See `docs/V3_87_SOCIAL_HOME_SIMPLIFICATION.md`.
+
+
 ## V3.86 — Calendar-first Work (development)
 
 The Work tab is now designed around the everyday tasks: a compact weekly glance, a highlighted real priority (when there is one), the next saved booking, the existing tappable monthly calendar and **Customers & enquiries**. Detailed forecasts, Work metrics, multi-step plans and secondary tools remain available behind **More work tools and reports** rather than filling the default screen. No customer or backend functionality was removed. Regression checks now cover calendar navigation, route preservation and hidden advanced reports. Version `3.86.0`, iOS build number `6` still requires a signed preview build and native acceptance. See `docs/V3_86_CALENDAR_FIRST_WORK.md`.
