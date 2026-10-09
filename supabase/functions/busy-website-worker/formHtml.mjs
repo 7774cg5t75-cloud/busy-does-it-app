@@ -3,9 +3,10 @@
  * explicitly activated, Turnstile is configured and the specific live site is
  * owner-enabled. Never embed a service key, access token or customer data.
  */
-function renderOptInContactForm({siteId="",siteKey="",enabled=false,endpoint=""}={}){
+function renderOptInContactForm({siteId="",siteKey="",enabled=false,endpoint="",siteHostname=""}={}){
  if(enabled!==true||typeof siteId!=="string"||
    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(siteId)||
+   typeof siteHostname!=="string"||!new RegExp("^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\\\.busydoesit\\\\.co\\\\.uk$").test(siteHostname)||
    typeof siteKey!=="string"||!/^[a-zA-Z0-9_-]{10,200}$/.test(siteKey)||
    typeof endpoint!=="string"||
    !/^https:\/\/[a-z0-9-]+\.supabase\.co\/functions\/v1\/busy-website-form$/.test(endpoint))
@@ -13,7 +14,7 @@ function renderOptInContactForm({siteId="",siteKey="",enabled=false,endpoint=""}
  const escape=s=>String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
  const id=escape(siteId),key=escape(siteKey),url=escape(endpoint);
  // Encode constant values with JSON.stringify: no untrusted JS interpolations.
- const cfg=JSON.stringify({siteId,endpoint}).replace(/</g,"\\u003c");
+ const cfg=JSON.stringify({siteId,endpoint,expectedOrigin:"https://"+siteHostname}).replace(/</g,"\\u003c");
  return `<section id="busy-enquiry" aria-label="Contact this business"><div class="wrap">
  <h2>Request a quote or ask a question</h2>
  <p>Send this business an enquiry. Your details will be used to respond to your request; no automated marketing message will be sent.</p>
@@ -40,6 +41,11 @@ function renderOptInContactForm({siteId="",siteKey="",enabled=false,endpoint=""}
  var form=document.getElementById("busy-enquiry-form");
  var status=document.getElementById("busy-enquiry-result");
  if(!form||!status)return;
+ if(location.origin!==cfg.expectedOrigin){
+  status.textContent="Private hosted preview: form submissions are disabled until this version is approved and published.";
+  form.querySelector('button[type="submit"]').disabled=true;
+  return;
+ }
  var pending=false,requestKey="";
  form.addEventListener("submit",async function(e){
   e.preventDefault();
