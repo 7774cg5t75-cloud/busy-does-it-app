@@ -1,5 +1,10 @@
 # busy-does-it-app
 
+## V3.90 — Talk to BUSY microphone reliability
+
+A native iPhone test exposed a voice recording that appeared to do nothing after Stop. The Talk screen now tracks start and stop immediately instead of relying solely on the delayed native recorder-state hook. Recording, upload and Operator errors are visible beside the microphone, including permission or missing-audio failures. The existing authentication and no-automatic-publishing rules are unchanged. New CI checks pass, but real iPhone voice acceptance is still required before declaring the whole workflow working. See `docs/V3_90_VOICE_RELIABILITY.md`.
+
+
 ## V3.89 — Connected Accounts, without jargon
 
 Connected Accounts now leads with the signed-in business and real Facebook/Instagram or Google Business connection status, plus direct account actions. Prototype email, calendar, CRM, invoicing and advertising switches are accurately labelled as demos inside **Other services & demos**. OAuth, live publishing test protection, developer setup and detailed health reports remain intact behind **Advanced connection details**. The default screen is shorter and designed for larger iPhone display settings. See `docs/V3_89_CONNECTED_ACCOUNTS.md`; the signed V3.89 iPhone preview must still be tested before acceptance.
