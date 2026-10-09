@@ -220,9 +220,29 @@ function BusinessData({ s }) {
   );
 }
 function Settings({ s }) {
+  const [showMoreSettings, setShowMoreSettings] = useState(false);
   const connectedCount = Object.values(s.connectedAccounts).filter(Boolean).length;
   return (
-    <Shell s={s} noBack title="Your controls" subtitle="Set the rules once. BUSY works inside them.">
+    <Shell s={s} noBack title="Settings" subtitle="Your business details, connected accounts and approval rules, all in one place.">
+      <Card
+        eyebrow="Your everyday settings"
+        title="What would you like to manage?"
+        body="Choose a section below. Advanced controls are kept out of the way until you need them."
+        tone="blue"
+      >
+        <Button label="Account & privacy" primary onPress={() => s.go("accountData")} />
+        <Button label="Customers & enquiries" onPress={() => s.go("workPipeline")} />
+        <Button label="Social Media" onPress={s.openSocialCentre} />
+        <Button label="Business type & services" onPress={() => s.go("businessType")} />
+        <Button label="Connected accounts" onPress={() => s.go("connectedAccounts")} />
+        <Button label="Spending limits" onPress={() => s.go("settingsLimits")} />
+      </Card>
+      <Button
+        label={showMoreSettings ? "Hide extra settings" : "Show more settings"}
+        onPress={() => setShowMoreSettings((value) => !value)}
+      />
+      {showMoreSettings ? (
+        <>
       <View style={styles.brandShowcase}>
         <BusyBrandLockup size={48} />
         <Text style={styles.brandShowcaseTitle}>Your BUSY DOES IT identity</Text>
@@ -245,7 +265,7 @@ function Settings({ s }) {
         footer={`${Number(s.brandBrain?.completeness?.score || 0)}% identity completeness • ${Number(s.brandBrain?.highCheckCount || 0)} core consistency issue${Number(s.brandBrain?.highCheckCount || 0) === 1 ? "" : "s"}`}
         tone={s.brandBrain?.websiteReady ? "green" : (s.brandBrain?.highCheckCount || 0) > 0 ? "amber" : "blue"}
       >
-        <Button label="Brand & Business Identity" primary onPress={s.openBrandIdentity} />
+        <Button label="Business name & branding" primary onPress={s.openBrandIdentity} />
       </Card>
 
       <Card
@@ -311,25 +331,27 @@ function Settings({ s }) {
         label={s.inboxPendingItems.length ? `BUSY Inbox • ${s.inboxPendingItems.length} waiting` : "BUSY Inbox"}
         onPress={s.openBusyInbox}
       />
-      <Button label="Customer pipeline" onPress={() => s.go("workPipeline")} />
+      <Button label="Customers & enquiries" onPress={() => s.go("workPipeline")} />
       <Button label="Business type & services" onPress={() => s.go("businessType")} />
       {s.completedBookingCount ? <Button label="Bookings" onPress={() => s.go("bookings")} /> : null}
       {Object.keys(s.replyActions || {}).length ? (
         <Button label="Customer activity" onPress={() => s.go("customerActivity")} />
       ) : null}
-      <Button label="Business profile & opportunity data" onPress={() => s.go("businessData")} />
-      <Button label="Social Control Centre" onPress={s.openSocialCentre} />
+      <Button label="My business details" onPress={() => s.go("businessData")} />
+      <Button label="Social Media" onPress={s.openSocialCentre} />
       <Button label="Production Bridge" primary onPress={() => s.go("productionBridge")} />
       <Button label="Release Core health" primary onPress={() => s.go("releaseCore")} />
       <Button label="Proactive BUSY + diary" primary onPress={() => s.go("proactiveBusyCentre")} />
-      <Button label="Controlled Autopilot" primary onPress={() => s.go("autopilotCentre")} />
-      <Button label="Business Brain" onPress={() => s.go("businessBrain")} />
-      <Button label="Change limits" onPress={() => s.go("settingsLimits")} />
-      <Button label="Automatic record filing" onPress={() => s.go("recordFilingSettings")} />
+      <Button label="Automatic tasks" primary onPress={() => s.go("autopilotCentre")} />
+      <Button label="How BUSY learns" onPress={() => s.go("businessBrain")} />
+      <Button label="Spending limits" onPress={() => s.go("settingsLimits")} />
+      <Button label="Automatic record updates" onPress={() => s.go("recordFilingSettings")} />
       <Button label="Connected accounts" onPress={() => s.go("connectedAccounts")} />
       <Button label="How BUSY DOES IT works" onPress={() => s.go("howBusyWorks")} />
       <Button label="What makes it different" onPress={() => s.go("whatMakesDifferent")} />
       <Button label="Advanced details" onPress={() => s.go("advanced")} />
+        </>
+      ) : null}
     </Shell>
   );
 }
