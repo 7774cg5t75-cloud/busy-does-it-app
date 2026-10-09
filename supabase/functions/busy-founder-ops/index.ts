@@ -247,7 +247,7 @@ Deno.serve(async(req:Request)=>{
       if(!slot)return send(429,{error:"evidence_rate_limited",
         note:"An external evidence check has already been claimed in this 30-minute window. The founder history remains available."});
       const result=await externalReality();
-      const historyPersisted=await storeEvidenceWindow(slot,result);
+      const historyPersisted=(await safely(()=>storeEvidenceWindow(slot,result)))===true;
       return send(200,{...result,historyPersisted});
     }catch{return send(503,{error:"external_evidence_unavailable"});}
   }
