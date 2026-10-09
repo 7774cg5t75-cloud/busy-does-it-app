@@ -934,7 +934,7 @@ function HomeScreen({ s }) {
     ["Customer follow-ups", () => s.openFollowUpEngine()],
     ["Messages & replies", () => s.openCommunicationsHub()],
     ["All customer records", () => s.go("customerRecords")],
-    ["Social Media", () => s.openSocialCentre()],
+    ["Find more work", () => s.go("workNow")],
     ["Build my business", () => s.openBusinessCreationJourney()],
     [s.websiteDraft ? "Continue my website" : "Build my website", () => s.openWebsiteBuilder()],
     ["Build a customer app", () => s.openBusyAppsMarketplace()],
@@ -972,6 +972,67 @@ function HomeScreen({ s }) {
           <Text style={homeDark.outlineText}>Type to BUSY instead</Text>
         </Pressable>
         <Text style={homeDark.micro}>Nothing is sent or published without the required approval.</Text>
+      </View>
+
+      <View style={homeDark.panel}>
+        <View style={homeDark.inlineRow}>
+          <Text style={homeDark.heading}>Quick access</Text>
+          <Text style={homeDark.badge}>Your tools</Text>
+        </View>
+        <View style={homeDark.smallActionRow}>
+          <Pressable accessibilityRole="button" onPress={() => s.jump("workHub", "Work")} style={homeDark.smallAction}>
+            <Text style={homeDark.smallActionText}>Work & diary</Text>
+          </Pressable>
+          <Pressable accessibilityRole="button" onPress={s.openSocialCentre} style={homeDark.smallAction}>
+            <Text style={homeDark.smallActionText}>Social Media</Text>
+          </Pressable>
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ expanded: showOtherMoves }}
+          onPress={() => setShowOtherMoves((value) => !value)}
+          style={homeDark.outlineButton}
+        >
+          <Text style={homeDark.outlineText}>{showOtherMoves ? "Hide other tools −" : "See all BUSY tools +"}</Text>
+        </Pressable>
+        {showOtherMoves ? (
+          <View style={{ marginTop: 7 }}>
+            {quickTools.map(([label, onPress]) => (
+              <Pressable accessibilityRole="button" key={label} onPress={onPress} style={homeDark.toolRow}>
+                <Text style={homeDark.toolText}>{label}</Text>
+                <Text style={homeDark.chevron}>›</Text>
+              </Pressable>
+            ))}
+            {rankedMoves.length > 1 ? (
+              <View style={{ marginTop: 16 }}>
+                <Text style={homeDark.kicker}>OTHER SUGGESTIONS</Text>
+                {rankedMoves.slice(1, 4).map((move) => (
+                  <View key={move.id} style={homeDark.toolRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={homeDark.toolText}>{move.title}</Text>
+                      <Text style={homeDark.micro}>{move.eyebrow}</Text>
+                    </View>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={move.actionLabel || "Review suggestion"}
+                      onPress={() => {
+                        if (move.canIgnore) s.recordOpportunityAccepted(move);
+                        move.onAction?.();
+                      }}
+                    >
+                      <Text style={homeDark.chevron}>›</Text>
+                    </Pressable>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+            {s.dismissedOpportunities?.length ? (
+              <Pressable accessibilityRole="button" onPress={s.restoreOpportunities} style={homeDark.outlineButton}>
+                <Text style={homeDark.outlineText}>Restore ignored suggestions</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : null}
       </View>
 
       <Text style={homeDark.sectionHeading}>Your day at a glance</Text>
@@ -1032,66 +1093,7 @@ function HomeScreen({ s }) {
         </View>
       )}
 
-      <View style={homeDark.panel}>
-        <View style={homeDark.inlineRow}>
-          <Text style={homeDark.heading}>Quick access</Text>
-          <Text style={homeDark.badge}>Your tools</Text>
-        </View>
-        <View style={homeDark.smallActionRow}>
-          <Pressable accessibilityRole="button" onPress={() => s.jump("workHub", "Work")} style={homeDark.smallAction}>
-            <Text style={homeDark.smallActionText}>Work & diary</Text>
-          </Pressable>
-          <Pressable accessibilityRole="button" onPress={() => s.go("workNow")} style={homeDark.smallAction}>
-            <Text style={homeDark.smallActionText}>Find more work</Text>
-          </Pressable>
-        </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ expanded: showOtherMoves }}
-          onPress={() => setShowOtherMoves((value) => !value)}
-          style={homeDark.outlineButton}
-        >
-          <Text style={homeDark.outlineText}>{showOtherMoves ? "Hide other tools −" : "See all BUSY tools +"}</Text>
-        </Pressable>
-        {showOtherMoves ? (
-          <View style={{ marginTop: 7 }}>
-            {quickTools.map(([label, onPress]) => (
-              <Pressable accessibilityRole="button" key={label} onPress={onPress} style={homeDark.toolRow}>
-                <Text style={homeDark.toolText}>{label}</Text>
-                <Text style={homeDark.chevron}>›</Text>
-              </Pressable>
-            ))}
-            {rankedMoves.length > 1 ? (
-              <View style={{ marginTop: 16 }}>
-                <Text style={homeDark.kicker}>OTHER SUGGESTIONS</Text>
-                {rankedMoves.slice(1, 4).map((move) => (
-                  <View key={move.id} style={homeDark.toolRow}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={homeDark.toolText}>{move.title}</Text>
-                      <Text style={homeDark.micro}>{move.eyebrow}</Text>
-                    </View>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel={move.actionLabel || "Review suggestion"}
-                      onPress={() => {
-                        if (move.canIgnore) s.recordOpportunityAccepted(move);
-                        move.onAction?.();
-                      }}
-                    >
-                      <Text style={homeDark.chevron}>›</Text>
-                    </Pressable>
-                  </View>
-                ))}
-              </View>
-            ) : null}
-            {s.dismissedOpportunities?.length ? (
-              <Pressable accessibilityRole="button" onPress={s.restoreOpportunities} style={homeDark.outlineButton}>
-                <Text style={homeDark.outlineText}>Restore ignored suggestions</Text>
-              </Pressable>
-            ) : null}
-          </View>
-        ) : null}
-      </View>
+
     </Shell>
   );
 }
