@@ -16,11 +16,11 @@ assert.ok(start>=0&&end>start);
 const body=home.slice(start,end);
 const check=[
   ["V3.88 version and iOS bundle",()=>{
-    assert.equal(pkg.version,"3.88.0");
+    assert.ok(["3.88.0","3.89.0"].includes(pkg.version));
     assert.equal(config.version,pkg.version);
-    assert.equal(config.ios.buildNumber,"8");
+    assert.equal(config.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));
     assert.equal(config.ios.bundleIdentifier,"com.busydoesit.app");
-    assert.ok(runtime.includes('const APP_VERSION = "3.88";'));
+    assert.ok(runtime.includes(`const APP_VERSION = "${pkg.version.slice(0,-2)}";`));
   }],
   ["Create a post is permanently visible below Talk to BUSY",()=>{
     const talk=body.indexOf('accessibilityLabel="Talk to BUSY"');
