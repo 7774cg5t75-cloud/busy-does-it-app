@@ -2,6 +2,17 @@ import { StyleSheet } from "react-native";
 import { C } from "../core/runtime";
 
 export const styles = StyleSheet.create({
+  // V3.83: dark is opt-in on Home; business forms retain their existing light palette.
+  homeDarkShell: { backgroundColor: "#0D131E" },
+  homeDarkContent: { paddingTop: 20, paddingBottom: 28 },
+  homeDarkTopRow: { marginBottom: 17 },
+  homeDarkText: { color: "#F6F9FF" },
+  homeDarkHeading: { color: "#F6F9FF", fontSize: 30, lineHeight: 36 },
+  homeDarkMuted: { color: "#AAB8CD" },
+  homeDarkAccent: { color: "#7EDEAB" },
+  homeDarkNav: { backgroundColor: "#131C2A", borderTopColor: "#344157" },
+  homeDarkNavText: { color: "#9DADC5" },
+  homeDarkNavActive: { color: "#8EB5FF" },
   safe: { flex: 1, backgroundColor: C.bg },
   shell: { flex: 1, backgroundColor: C.bg },
   keyboardAvoider: { flex: 1 },
