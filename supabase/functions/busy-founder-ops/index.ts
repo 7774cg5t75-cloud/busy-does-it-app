@@ -164,8 +164,9 @@ Deno.serve(async(req:Request)=>{
   if(action==="acknowledge"){
     const item=payload as {key?:string,transition?:number};
     if(Object.keys(payload).sort().join(",")!=="action,key,transition"||
-       !VALID_KEYS.has(item.key)||!Number.isSafeInteger(item.transition)||
-       !item.transition||item.transition<1)
+       typeof item.key!=="string"||!VALID_KEYS.has(item.key)||
+       typeof item.transition!=="number"||!Number.isSafeInteger(item.transition)||
+       item.transition<1)
       return send(400,{error:"invalid_alert"});
     if(!ROOT||!SECRET_KEY)return send(503,{error:"platform_reporting_unavailable"});
     try{
