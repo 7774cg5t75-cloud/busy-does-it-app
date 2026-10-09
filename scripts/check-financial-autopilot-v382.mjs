@@ -127,9 +127,9 @@ assert.equal(parseCloudflareSample({data:{viewer:{accounts:[{
  assert.equal(method,"POST");
  assert.equal(url,"https://api.cloudflare.com/client/v4/graphql");
  assert.equal(posted.variables.scriptName,"busy-worker");
-  assert.ok(posted.query.includes("$datetimeStart: Time!"));
-  assert.ok(posted.query.includes("$datetimeEnd: Time!"));
-  assert.ok(posted.query.includes("$accountTag: string!"));
+  assert.ok(posted.query.includes("$datetimeStart: string"));
+  assert.ok(posted.query.includes("$datetimeEnd: string"));
+  assert.ok(posted.query.includes("$accountTag: string"));
  assert.ok(!JSON.stringify(got).includes("cloud-secret"));
  assert.ok(got.note.includes("NOT billable"));
 }
