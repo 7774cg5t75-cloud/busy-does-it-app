@@ -214,6 +214,31 @@ async function acknowledgeAlert(key:string,transition:number){
 /** V3.81 restricted vendor ledger. Fixed REST paths only, bounded retrieval,
  * zero external provider API calls and no embedded provider billing secrets.
  */
+async function demoLaunchStatus(){
+  // Fixed host only. Founders cannot use this read path to inspect arbitrary
+  // private customer websites by passing an URL or business identifier.
+  const name="demo.busydoesit.co.uk";
+  const rows=await privilegedRows("busy_websites",
+    "id,current_preview_deployment_id,current_live_deployment_id,default_hostname,health_status,delivery_status,last_health_check_at,last_observed_deployment_id",
+    "updated_at.desc",1,{default_hostname:"eq."+name});
+  const site=rows[0]||null;
+  const live=!!site?.current_live_deployment_id;
+  return {
+    scope:"founder_demo_staging",
+    hostname:name,privateHostedPreviewRecorded:!!site?.current_preview_deployment_id,
+    siteRecordAllocated:!!site,
+    publicationRecorded:live,
+    siteHealthVerified:live&&site.health_status==="healthy"&&
+      site.delivery_status==="active"&&
+      site.current_live_deployment_id===site.last_observed_deployment_id&&
+      !!site.last_health_check_at,
+    explicitGoLiveApprovalStillRequired:true,
+    verifiedExternalHttps:false,
+    status:!site?"no_website_record":live?"published_record_needs_external_verification":
+      site.current_preview_deployment_id?"private_preview_record_present":"not_prepared",
+    note:"Database evidence only. It never publishes a site, performs a customer action or proves public HTTPS. The exact hosted preview still needs an authenticated owner, deliberate review and separate Go Live approval."
+  };
+}
 async function getServiceInventory(){
   const rows=await privilegedRows("busy_founder_service_snapshots",
     "service_key,source,plan_name,billing_status,billing_cadence,usage_value,allowance_value,usage_unit,amount_gbp_pence,renewal_on,observed_at,note",
@@ -265,6 +290,11 @@ Deno.serve(async(req:Request)=>{
   if(!payload||typeof payload!=="object"||Array.isArray(payload))
     return send(400,{error:"unsupported_action"});
   const action=(payload as {action?:unknown}).action;
+  if(action==="demo_launch_status"&&Object.keys(payload).length===1){
+    if(!ROOT||!SECRET_KEY)return send(503,{error:"platform_reporting_unavailable"});
+    try{return send(200,await demoLaunchStatus());}
+    catch{return send(503,{error:"demo_launch_status_unavailable"});}
+  }
   if(action==="service_catalog"&&Object.keys(payload).length===1){
     if(!ROOT||!SECRET_KEY)return send(503,{error:"platform_reporting_unavailable"});
     try{return send(200,await getServiceInventory());}
