@@ -110,7 +110,7 @@ async function privilegedRows(table:string,select:string,order:string,limit:numb
   return data;
 }
 async function incidentData(){
-  const [runs,incidents,alerts]=await Promise.all([
+  const [runs,incidents,alerts,reviews]=await Promise.all([
     safely(()=>privilegedRows("busy_platform_monitor_runs",
       "checked_at,status,coverage","checked_at.desc",1)),
     safely(()=>privilegedRows("busy_platform_incidents",
@@ -119,11 +119,15 @@ async function incidentData(){
     safely(()=>privilegedRows("busy_platform_alert_inbox",
       "incident_key,priority,status,affected_count,source_transition_count,opened_at,last_seen_at,resolved_at,acknowledged_at",
       "last_seen_at.desc",12)),
+    safely(()=>privilegedRows("busy_platform_recovery_reviews",
+      "incident_key,source_transition_count,assessment,monitoring_verified,affected_count,clear_checks,last_assessed_at,assessment_runs",
+      "last_assessed_at.desc",12)),
   ]);
   return {
     monitorRun:Array.isArray(runs)?(runs[0]||null):null,
     monitorIncidents:Array.isArray(incidents)?incidents:null,
     alertRows:Array.isArray(alerts)?alerts:null,
+    recoveryRows:Array.isArray(reviews)?reviews:null,
   };
 }
 
@@ -179,11 +183,11 @@ Deno.serve(async(req:Request)=>{
     return send(400,{error:"unsupported_action"});
   if(!ROOT||!SECRET_KEY)return send(503,{error:"platform_reporting_unavailable"});
   try{
-    const [{counts,usage},{monitorRun,monitorIncidents,alertRows},founderDeviceCount]=await Promise.all([
+    const [{counts,usage},{monitorRun,monitorIncidents,alertRows,recoveryRows},founderDeviceCount]=await Promise.all([
       aggregates(),incidentData(),
       safely(()=>queryCount("busy_push_devices","id",{"user_id":"eq."+founder.id,"active":"eq.true"}))
     ]);
-    return send(200,buildFounderReport({counts,usage,monitorRun,monitorIncidents,alertRows,founderDeviceCount,
+    return send(200,buildFounderReport({counts,usage,monitorRun,monitorIncidents,alertRows,recoveryRows,founderDeviceCount,
       checkedAt:new Date().toISOString(),verifiedRole:true}));
   }catch{return send(503,{error:"platform_reporting_unavailable"});}
 });
