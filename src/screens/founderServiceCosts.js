@@ -134,7 +134,7 @@ function FounderServiceCosts({s,owner,enabled}){
   const services=Array.isArray(current?.services)?current.services:[];
   const chosen=services.find(item=>item.key===selected);
   return <>
-    <Card eyebrow="V3.81 • Founder Service Control"
+    <Card eyebrow="V3.82 • Founder Financial Autopilot"
       title="Subscriptions, cloud usage and operating costs"
       body="This is your private inventory of BUSY's operating dependencies. The dashboard separates independently counted app activity from manually entered costs and historical provider observations. It does not connect billing accounts or create charges."
       footer="Founder-only, on demand. This screen is not an automatic bill monitor."
@@ -150,6 +150,39 @@ function FounderServiceCosts({s,owner,enabled}){
       {current?<Text style={styles.sectionLabel}>
         {current.note} Every number below shows its source and observation date.
       </Text>:null}
+    </Card>
+    <Card eyebrow="V3.82 • Automatic monitoring"
+      title="BUSY activity — updated by a server schedule"
+      body="These counters are collected from BUSY's own private database every hour even when your phone is off. They are NOT official Supabase Edge Function usage, Cloudflare invoices, model tokens, paying customers or billable provider traffic."
+      footer="Independent supplier billing connections require separate read-only account authorisation. Missing measurements never count as zero."
+      tone="blue">
+      <MetricRow left="Automatic collection cadence" right={current?.automaticUsage?.scheduledInterval||"Not verified"}/>
+      {(current?.automaticUsage?.metrics||[]).map(item=>(
+        <React.Fragment key={item.key}>
+          <MetricRow left={item.name}
+            right={item.value===null?"Not measured":fnum(item.value)+" "+item.unit}/>
+          <Text style={styles.sectionLabel}>
+            {item.status==="recent"?"Recent internal observation":item.status==="stale"?
+              "Older internal observation":"No verified observation"} • {item.detail}
+          </Text>
+        </React.Fragment>
+      ))}
+      {current?.automaticUsage?.note?
+        <Text style={styles.sectionLabel}>{current.automaticUsage.note}</Text>:null}
+    </Card>
+    <Card eyebrow="Provider billing connections"
+      title="Actual supplier usage and invoices"
+      body="Automatic BUSY activity counts are working, but we won't show guessed provider balances. The connections below require explicit authorisation to read each supplier's account, and no charges or plan changes are permitted."
+      tone="blue">
+      <MetricRow left="Supabase official monthly invocations" right="Provider billing not connected"/>
+      <MetricRow left="GitHub Actions billed usage" right="Provider billing not connected"/>
+      <MetricRow left="Cloudflare Workers billed usage" right="Provider billing not connected"/>
+      <MetricRow left="AI provider credits and invoice" right="Provider billing not connected"/>
+      <MetricRow left="Automatic purchases, upgrades or renewals" right="Disabled"/>
+      <Text style={styles.sectionLabel}>
+        Existing GitHub source-control access is not the same as billing authorisation.
+        Provider usage connections will be read-only and account-scoped.
+      </Text>
     </Card>
     <Card eyebrow="V3.81 • First live website milestone"
       title="demo.busydoesit.co.uk — controlled staging"
