@@ -53,7 +53,7 @@ declare
   v_slot timestamptz;
 begin
   v_slot := pg_catalog.to_timestamp(
-    pg_catalog.floor(pg_catalog.extract(epoch from v_now) / 1800) * 1800);
+    pg_catalog.floor(pg_catalog.date_part('epoch', v_now) / 1800) * 1800);
   insert into public.busy_platform_evidence_snapshots(window_start,status)
   values(v_slot,'running') on conflict (window_start) do nothing;
   if found then
