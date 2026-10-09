@@ -4,6 +4,7 @@ import { Text } from "react-native";
 import { styles } from "../theme/styles";
 import { Shell, Card, Button, Field, MetricRow } from "../components/ui";
 import { buildWebsiteLaunchJourney } from "../core/websiteLaunchJourney";
+import { buildWebsiteLaunchProof } from "../core/websiteLaunchProof.mjs";
 
 function readableSeconds(value) {
   const seconds = Number(value || 0);
@@ -115,6 +116,7 @@ function WebsitePublishing({ s }) {
   const journey=buildWebsiteLaunchJourney({
     brand:s.brandBrain,draft:s.websiteDraft,publishing:view
   });
+  const launchProof=buildWebsiteLaunchProof({...view,websiteDraftPresent:!!s.websiteDraft});
   const [openedHostedPreview,setOpenedHostedPreview]=React.useState("");
   const [reviewedHostedPreview,setReviewedHostedPreview]=React.useState("");
   React.useEffect(()=>{
@@ -133,7 +135,7 @@ function WebsitePublishing({ s }) {
       s={s}
       title="Website Management"
       subtitle="Edit privately, inspect the exact hosted version, then decide what becomes public."
-      brandCue="V3.79 • verified lead capture • human-approved replies"
+      brandCue="V3.80 • real deployment proof • approved customer websites"
     >
       <Card
         eyebrow="V3.77 • Website launch assistant"
@@ -154,6 +156,23 @@ function WebsitePublishing({ s }) {
           <Button label={"Review "+journey.missingCoreFacts.length+
             " missing business details"} onPress={s.openBrandIdentity}/>
         ):null}
+      </Card>
+      <Card eyebrow="V3.80 • Real-world launch proof"
+        title={launchProof.verified?
+          "The approved website passed delivery verification":
+          "Publication still needs real-world verification"}
+        body="These are actual deployment and hosting signals for this business, not a simulated website launch. Preparing a draft or hosted preview does not make it public."
+        footer={launchProof.passed+" of "+launchProof.total+
+          " launch checks supported by evidence • No automatic Go Live"}
+        tone={launchProof.verified?"green":"blue"}>
+        {launchProof.checks.map(check=>(
+          <MetricRow key={check.id} left={check.label}
+            right={check.ready?"Verified":"Not yet verified"}
+            strong={check.ready}/>
+        ))}
+        <MetricRow left="Allocated BUSY hostname"
+          right={launchProof.hostname||"Not allocated"}/>
+        <Text style={styles.sectionLabel}>{launchProof.note}</Text>
       </Card>
       <Card
         eyebrow="Website lifecycle"
