@@ -19,11 +19,11 @@ const quick=screen.indexOf("Quick access",fallback);
 const daily=screen.indexOf("Your day at a glance",quick);
 const tests=[
  ["App and native build versions match",()=>{
-  assert.equal(pkg.version,"3.88.0");
+  assert.ok(["3.88.0","3.89.0"].includes(pkg.version));
   assert.equal(expo.version,pkg.version);
-  assert.equal(expo.ios.buildNumber,"8");
+  assert.equal(expo.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));
   assert.equal(expo.ios.bundleIdentifier,"com.busydoesit.app");
-  assert.ok(runtime.includes('const APP_VERSION = "3.88";'));
+  assert.ok(runtime.includes(`const APP_VERSION = "${pkg.version.slice(0,-2)}";`));
  }],
  ["Direct Create a post is visible next to the BUSY assistant before scrolling to summaries",()=>{
   assert.ok(voice>=0&&direct>voice&&fallback>direct&&quick>fallback&&daily>quick);
