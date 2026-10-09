@@ -158,6 +158,22 @@ const providerDigest=buildServiceInventory([{...observation,
  source:"provider_api_readonly",usage_value:180,allowance_value:null}],{checkedAt:now});
 assert.equal(providerDigest.services.find(x=>x.key==="supabase").latest.source,"provider_api_readonly");
 assert.equal(providerDigest.services.find(x=>x.key==="supabase").latest.invoiceVerified,false);
+const mixed=buildServiceInventory([
+  {...observation,source:"provider_api_readonly",usage_value:100,
+    plan_name:"",billing_status:"unknown",billing_cadence:"unknown",
+    amount_gbp_pence:null,renewal_on:null,observed_at:"2026-10-09T10:30:00Z"},
+  {...observation,source:"founder_entered",usage_value:null,
+    allowance_value:null,amount_gbp_pence:1200,renewal_on:"2026-10-20",
+    plan_name:"Founder verified paid plan",billing_status:"paid",
+    observed_at:"2026-10-08T10:00:00Z"}
+],{checkedAt:now}).services.find(x=>x.key==="supabase");
+assert.equal(mixed.latest.usageValue,100);
+assert.equal(mixed.latest.source,"provider_api_readonly");
+assert.equal(mixed.subscription.planName,"Founder verified paid plan");
+assert.equal(mixed.subscription.amountGbpPence,1200);
+assert.equal(mixed.renewalReview,"review_within_30_days");
+assert.equal(mixed.latest.invoiceVerified,false);
+
 
 const migration=readFileSync(new URL("../supabase/migrations/20261009123000_v382_internal_telemetry.sql",import.meta.url),"utf8");
 const backend=readFileSync(new URL("../supabase/functions/busy-founder-ops/index.ts",import.meta.url),"utf8");
