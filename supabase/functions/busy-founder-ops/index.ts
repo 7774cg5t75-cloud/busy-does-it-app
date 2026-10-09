@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {isFounderUser,aggregateUsageRows,buildFounderReport} from "./report.mjs";
 import {VALID_KEYS} from "./alertInbox.mjs";
 import {probeManagedWebsite,buildExternalRealityDigest} from "./externalReality.mjs";
+import {snapshotPayload} from "./evidenceHistory.mjs";
 
 /**
  * V3.69 founder-only READ endpoint.
@@ -157,6 +158,41 @@ async function externalReality(){
 }
 
 
+async function claimEvidenceWindow(){
+  // No client value decides the slot. The DB atomically grants only one
+  // 30-minute window, regardless of repeated API calls.
+  const reply=await fetch(ROOT+"/rest/v1/rpc/busy_claim_evidence_window",{
+    method:"POST",headers:{...serviceHeaders(),"Content-Type":"application/json"},
+    body:"{}",signal:AbortSignal.timeout(8500)});
+  if(!reply.ok)throw Error("evidence_claim_unavailable");
+  const slot=await reply.json().catch(()=>undefined);
+  if(slot===null)return null;
+  if(typeof slot!=="string"||!Number.isFinite(Date.parse(slot)))
+    throw Error("evidence_claim_invalid");
+  return new Date(slot).toISOString();
+}
+async function evidenceRows(){
+  return await privilegedRows("busy_platform_evidence_snapshots",
+    "window_start,status,website_sampled,website_responding,website_unreachable,website_mismatch,website_unverified,social_sampled,social_provider_accepted,social_failed,social_unverified,app_sampled,app_deployment_recorded,app_version_mismatch,app_unverified",
+    "window_start.desc",336,{"status":"in.(complete,partial)",
+      "window_start":"gte."+new Date(Date.now()-7*86400000).toISOString()});
+}
+async function storeEvidenceWindow(slot:string,digest:unknown){
+  const payload=snapshotPayload(digest);
+  const q=new URLSearchParams({
+    window_start:"eq."+slot,status:"eq.running",
+    select:"window_start,status"});
+  const reply=await fetch(ROOT+"/rest/v1/busy_platform_evidence_snapshots?"+q,{
+    method:"PATCH",
+    headers:{...serviceHeaders(),"Content-Type":"application/json",
+      "Prefer":"return=representation"},
+    body:JSON.stringify(payload),
+    signal:AbortSignal.timeout(8500)});
+  if(!reply.ok)return false;
+  const rows=await reply.json().catch(()=>null);
+  return Array.isArray(rows)&&rows.length===1&&rows[0]?.status===payload.status;
+}
+
 async function acknowledgeAlert(key:string,transition:number){
   // Optimistic lock: never acknowledge a newer recurrence by accident.
   const q=new URLSearchParams({select:"incident_key,source_transition_count,acknowledged_at",
@@ -206,18 +242,25 @@ Deno.serve(async(req:Request)=>{
   }
   if(action==="verify_external"&&Object.keys(payload).length===1){
     if(!ROOT||!SECRET_KEY)return send(503,{error:"platform_reporting_unavailable"});
-    try{return send(200,await externalReality());}
-    catch{return send(503,{error:"external_evidence_unavailable"});}
+    try{
+      const slot=await claimEvidenceWindow();
+      if(!slot)return send(429,{error:"evidence_rate_limited",
+        note:"An external evidence check has already been claimed in this 30-minute window. The founder history remains available."});
+      const result=await externalReality();
+      const historyPersisted=await storeEvidenceWindow(slot,result);
+      return send(200,{...result,historyPersisted});
+    }catch{return send(503,{error:"external_evidence_unavailable"});}
   }
   if(action!=="summary"||Object.keys(payload).some(k=>k!=="action"))
     return send(400,{error:"unsupported_action"});
   if(!ROOT||!SECRET_KEY)return send(503,{error:"platform_reporting_unavailable"});
   try{
-    const [{counts,usage},{monitorRun,monitorIncidents,alertRows,recoveryRows},founderDeviceCount]=await Promise.all([
+    const [{counts,usage},{monitorRun,monitorIncidents,alertRows,recoveryRows},founderDeviceCount,history]=await Promise.all([
       aggregates(),incidentData(),
-      safely(()=>queryCount("busy_push_devices","id",{"user_id":"eq."+founder.id,"active":"eq.true"}))
+      safely(()=>queryCount("busy_push_devices","id",{"user_id":"eq."+founder.id,"active":"eq.true"})),
+      safely(()=>evidenceRows())
     ]);
-    return send(200,buildFounderReport({counts,usage,monitorRun,monitorIncidents,alertRows,recoveryRows,founderDeviceCount,
+    return send(200,buildFounderReport({counts,usage,monitorRun,monitorIncidents,alertRows,recoveryRows,evidenceRows:history,founderDeviceCount,
       checkedAt:new Date().toISOString(),verifiedRole:true}));
   }catch{return send(503,{error:"platform_reporting_unavailable"});}
 });
