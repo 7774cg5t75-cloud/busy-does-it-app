@@ -108,15 +108,26 @@ function buildServiceInventory(rows,{checkedAt=new Date().toISOString()}={}){
    const renewalReview=Number.isFinite(untilRenewal)?
      untilRenewal<0?"past_review_date":
      untilRenewal<=30?"review_within_30_days":"scheduled":"not_recorded";
+   const percent=latest?.percentOfAllowance;
+   const threshold=typeof percent==="number"&&Number.isFinite(percent)?
+       percent>=90?"90":percent>=75?"75":percent>=50?"50":null:null;
+   const usageReview=threshold?
+     "Historical "+threshold+"% allowance threshold reached. Recheck the real provider period and usage before taking any action.":"";
+   const renewalAlert=renewalReview==="past_review_date"?
+       "Founder-entered renewal/review date has passed. Verify before paying or renewing.":
+       renewalReview==="review_within_30_days"?
+       "Founder-entered renewal/review date is within 30 days. Verify provider terms.":"";
    return {...service,status:latest?"snapshot_available":"not_measured",
      latest,historyCount:history.length,freshness,renewalReview,
-     alert:latest?.percentOfAllowance>=80?
-       "Review the source and billing period; this snapshot shows high allowance usage.":""
+     usageReviewLevel:threshold,
+     alert:[usageReview,renewalAlert].filter(Boolean).join(" "),
+     alertProvenance:threshold||renewalAlert?"historical_review_only":null
    };
  });
  return {scope:"founder_service_register",privacy:"founder_only",checkedAt,
    sources:"Manual entries and individually labelled log samples, never provider billing APIs.",
    services:result,
+   alertPolicy:"50/75/90% usage thresholds and 30-day renewals are in-app reviews of historical founder-entered or sampled information. Never claim provider-live warnings or send external alerts.",
    billsVerified:false,totalCostGbp:null,remainingCreditGbp:null,
    note:"Every vendor has its own plan, billing period and limits. An empty provider is NOT free or disconnected. No secrets, customer information or automatic payments are stored."};
 }
