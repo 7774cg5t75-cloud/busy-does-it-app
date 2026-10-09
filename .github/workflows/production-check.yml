@@ -42,6 +42,7 @@ jobs:
           node scripts/check-financial-autopilot-v382.mjs
           node scripts/check-dark-home-v383.mjs
           node scripts/check-unified-dark-v384.mjs
+          node scripts/check-plain-language-v385.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs
