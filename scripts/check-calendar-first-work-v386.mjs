@@ -31,7 +31,7 @@ for (let i=0;i<order.length;i++) {
 }
 const checks = [
   ["version and signed iOS metadata", () => {
-    assert.ok(["3.86.0","3.87.0","3.88.0","3.89.0"].includes(pkg.version));
+    assert.ok(["3.86.0","3.87.0","3.88.0","3.89.0","3.90.0"].includes(pkg.version));
     assert.equal(app.version,pkg.version);
     assert.equal(app.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));
     assert.equal(app.ios.bundleIdentifier,"com.busydoesit.app");
