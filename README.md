@@ -1,5 +1,10 @@
 # busy-does-it-app
 
+## V3.85 — Plain-English navigation (development)
+
+Customer-facing navigation now says **Customers & enquiries**, **Social Media**, **Today's priorities**, **Customer follow-ups** and **Messages & replies** rather than technical labels. Results opens with four honest saved-record figures and hides deeper reports until requested. Settings opens with six everyday tasks and hides complex settings behind a reversible **Show more settings** button. All original screens, business data routes and approval gates are preserved, with a new focused CI regression script. The new version requires a signed iPhone build and in-app review; no live service or App Store release is implied. See `docs/V3_85_PLAIN_ENGLISH_NAVIGATION.md`.
+
+
 ## V3.84 — Unified Dark App Design (development)
 
 The near-black V3.83 Home style is now shared across the full authenticated app: Work, Results, Settings, calendars, forms, customer tools, website management and founder views. Readable text accents and dark panels replace the old light palette, and the overflowing Home review label is fixed. Customer-owned website branding remains independent. This **requires a new native V3.84 preview build**; the installed V3.83 app does not receive updates automatically. Automated theme-contrast regression checks are in CI; full iPhone acceptance is still required. See `docs/V3_84_UNIFIED_DARK_THEME.md`.
