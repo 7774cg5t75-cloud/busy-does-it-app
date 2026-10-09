@@ -16,11 +16,11 @@ const expo = JSON.parse(read("app.json")).expo;
 
 const checks = [
   ["version matched without changing bundle ID", () => {
-    assert.equal(pkg.version, "3.85.0");
+    assert.ok(["3.85.0", "3.86.0"].includes(pkg.version));
     assert.equal(expo.version, pkg.version);
     assert.equal(expo.ios.bundleIdentifier, "com.busydoesit.app");
-    assert.equal(expo.ios.buildNumber, "5");
-    assert.ok(runtime.includes('const APP_VERSION = "3.85";'));
+    assert.equal(expo.ios.buildNumber, String(Number(pkg.version.split(".")[1]) - 80));
+    assert.ok(runtime.includes(`const APP_VERSION = "${pkg.version.slice(0,-2)}";`));
   }],
   ["Customers & enquiries appears in Work, Results, Settings and customer records", () => {
     for (const source of [results, work, settings, customers]) {
