@@ -13113,20 +13113,36 @@ function App() {
     }
   };
 
-  const confirmPublishHostedWebsite = (deploymentId) => {
-    const deployment = websitePublishingView.deployments.find(
-      (item) => item.id === deploymentId
+  const confirmPublishHostedWebsite = async (deploymentId) => {
+    const deployment=websitePublishingView.deployments.find(
+      (item)=>item.id===deploymentId
     );
-    if (!deployment) return false;
+    if(!deploymentId||!deployment||websitePublishingAction)return false;
+    setWebsitePublishingError("");
+    setWebsitePublishingAction("preflight");
+    let preflight;
+    try{
+      const result=await websitePublishingRequest("launch_preflight",{deploymentId});
+      preflight=result?.preflight;
+      if(preflight?.canApprove!==true||preflight?.publicDeliveryVerified!==false){
+        const reason=Array.isArray(preflight?.issues)?
+          preflight.issues.filter(x=>typeof x==="string").slice(0,1)[0]:"";
+        throw Error(reason||"The exact hosted website version is not ready. Refresh and prepare it again.");
+      }
+    }catch(error){
+      setWebsitePublishingError(error?.message||
+        "BUSY couldn't verify the exact hosted version. Nothing was published.");
+      setWebsitePublishingAction("");
+      return false;
+    }
+    setWebsitePublishingAction("");
     Alert.alert(
-      "Put this website version live?",
-      `You are approving website v${deployment.version_no} to become public. BUSY will publish exactly this hosted preview. The current live version, if any, will remain available for rollback.`,
+      "Put this exact website version live?",
+      `You are approving website v${deployment.version_no} to become public. BUSY has verified the selected immutable hosted preview belongs to this business. This is NOT a verified public deployment yet. The previous live version, if any, remains available for rollback.`,
       [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Approve & go live",
-          onPress: () => publishHostedWebsite(deploymentId),
-        },
+        {text:"Cancel",style:"cancel"},
+        {text:"Approve & go live",
+          onPress:()=>publishHostedWebsite(deploymentId)}
       ]
     );
     return true;
