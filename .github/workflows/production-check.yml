@@ -48,6 +48,7 @@ jobs:
           node scripts/check-direct-create-post-v388.mjs
           node scripts/check-direct-home-post-v388.mjs
           node scripts/check-connected-accounts-v389.mjs
+          node scripts/check-voice-v390.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs
