@@ -1,0 +1,47 @@
+name: Check V3.83 iOS preview result
+
+on:
+  push:
+    branches:
+      - v3.83
+    paths:
+      - .github/workflows/check-v383-ios-result.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-existing-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Check submitted V3.83 build without starting another build
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$EXPO_TOKEN" ]; then echo "::error::EXPO_TOKEN missing"; exit 1; fi
+          for attempt in $(seq 1 25); do
+            npx --yes eas-cli@latest build:view 3ff7d381-6bf5-4d67-b618-194f33782fde --json > /tmp/busy-ios.json
+            node -e '
+              const b=require("/tmp/busy-ios.json");
+              console.log("BUILD STATUS: "+b.status);
+              console.log("Build page: https://expo.dev/accounts/jasperfari/projects/busy-does-it/builds/"+b.id);
+              if (b.artifacts?.buildUrl) console.log("INSTALLATION ARTIFACT: "+b.artifacts.buildUrl);
+              if (b.error?.message) console.log("BUILD ERROR: "+b.error.message);
+              if (b.expirationDate) console.log("Expiration: "+b.expirationDate);
+            '
+            status=$(node -p 'require("/tmp/busy-ios.json").status')
+            if [ "$status" = "FINISHED" ]; then echo "V3.83 IOS PREVIEW FINISHED"; exit 0; fi
+            if [ "$status" = "ERRORED" ] || [ "$status" = "CANCELED" ]; then echo "::error::Build ended with $status"; exit 1; fi
+            echo "Build still $status (check $attempt/25)"
+            sleep 22
+          done
+          echo "::notice::Build is still running; see the Expo build page for the final result."
