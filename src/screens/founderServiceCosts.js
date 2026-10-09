@@ -36,6 +36,7 @@ function FounderServiceCosts({s,owner,enabled}){
   const [message,setMessage]=React.useState("");
   const scope=React.useRef(owner);
   const nonce=React.useRef(0);
+  const stagingNonce=React.useRef(0);
   const serviceLoader=React.useRef(s.fetchFounderServices);
   const stagingLoader=React.useRef(s.fetchFounderDemoLaunch);
   serviceLoader.current=s.fetchFounderServices;
@@ -75,7 +76,7 @@ function FounderServiceCosts({s,owner,enabled}){
     setSaving(false);setMessage("");key.current="";
   },[owner]);
   const loadStaging=React.useCallback(async()=>{
-    const requestedOwner=owner;
+    const requestedOwner=owner,request=++stagingNonce.current;
     if(!enabled||!owner){
       setStaging({owner,status:"idle",data:null});
       return;
@@ -83,16 +84,20 @@ function FounderServiceCosts({s,owner,enabled}){
     setStaging({owner,status:"loading",data:null});
     try{
       const data=await stagingLoader.current();
-      if(scope.current!==requestedOwner)return;
+      if(scope.current!==requestedOwner||request!==stagingNonce.current)return;
       if(data?.scope!=="founder_demo_staging"||
-         data?.explicitGoLiveApprovalStillRequired!==true)return;
+         data?.explicitGoLiveApprovalStillRequired!==true)
+        throw Error("Invalid staging evidence");
       setStaging({owner,status:"ready",data});
     }catch{
-      if(scope.current===requestedOwner)
+      if(scope.current===requestedOwner&&request===stagingNonce.current)
         setStaging({owner,status:"unavailable",data:null});
     }
   },[owner,enabled]);
-  React.useEffect(()=>{loadStaging();},[loadStaging]);
+  React.useEffect(()=>{
+    loadStaging();
+    return ()=>{stagingNonce.current+=1;};
+  },[loadStaging]);
   const save=async()=>{
     if(saving||!enabled||!owner)return;
     const usage=parseWhole(form.usage),allowance=parseWhole(form.allowance),
