@@ -43,7 +43,7 @@ Deno.serve(async(req)=>{
   // OPTIONS does not authorise a submission, and CORS is never sufficient
   // authentication; every POST verifies the live site and Turnstile token.
   if(req.method==="OPTIONS")
-    return result(origin?204:403,{},origin);
+    return result(origin?200:403,{},origin);
   if(req.method!=="POST")return result(405,{error:"method_not_allowed"},origin);
   if(!ENABLED||!CHALLENGE_SECRET||!service)
     return result(503,{error:"website_enquiries_not_enabled"},origin);
