@@ -2351,6 +2351,28 @@ function App() {
       throw Error("Invalid founder service register response.");
     return data;
   };
+  const syncFounderConnectedProviders = async () => {
+    const ownerId=ownerSession?.userId||"";
+    const token=await ownerAccessToken();
+    if(!ownerId||!token)throw Error("Sign in with a verified founder account.");
+    const response=await fetchWithTimeout(
+      BUSY_SUPABASE_URL+"/functions/v1/busy-founder-ops",{
+        method:"POST",
+        headers:{apikey:BUSY_AI_TOKEN,Authorization:"Bearer "+token,
+          "Content-Type":"application/json"},
+        body:JSON.stringify({action:"sync_connected_providers"})
+      },20000);
+    if(!response.ok){
+      const error=new Error(response.status===403?
+        "Verified founder access is required.":"Provider reading unavailable.");
+      error.status=response.status;throw error;
+    }
+    const data=await response.json();
+    if(data?.scope!=="founder_provider_refresh"||data?.noPurchases!==true||
+       !Array.isArray(data?.results))
+      throw Error("Provider read-only status was not verified.");
+    return data;
+  };
   const fetchFounderDemoLaunch = async () => {
     const ownerId=ownerSession?.userId||"";
     const token=await ownerAccessToken();
@@ -15437,6 +15459,7 @@ function App() {
     fetchFounderOperations,
     fetchFounderServices,
     fetchFounderDemoLaunch,
+    syncFounderConnectedProviders,
     recordFounderService,
     fetchExternalReality,
     acknowledgeFounderAlert,
