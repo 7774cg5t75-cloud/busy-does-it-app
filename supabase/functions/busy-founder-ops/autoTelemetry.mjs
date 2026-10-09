@@ -13,7 +13,7 @@ function digestAutomaticTelemetry(rows,{checkedAt=new Date().toISOString()}={}){
   const sorted=Array.isArray(rows)?rows.slice().sort((a,b)=>
     Date.parse(b.observed_at||"")-Date.parse(a.observed_at||"")):[];
   const metrics=METRICS.map(m=>{
-    const row=sorted.find(x=>x.metric_key===m.key&&x.source==="busy_internal_database"&&
+    const row=sorted.find(x=>x.metric_key===m.key&&x.source==="busy_internal_database"&&x.value!==null&&x.value!==undefined&&
        positiveInteger(Number(x.value))&&Number.isFinite(Date.parse(x.observed_at||"")));
     const age=row?Date.parse(checkedAt)-Date.parse(row.observed_at):NaN;
     const recent=Number.isFinite(age)&&age>=0&&age<=2*3600*1000;
