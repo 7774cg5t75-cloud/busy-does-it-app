@@ -102,8 +102,14 @@ function buildServiceInventory(rows,{checkedAt=new Date().toISOString()}={}){
    const age=latest?.observedAt?Date.parse(checkedAt)-Date.parse(latest.observedAt):NaN;
    const freshness=Number.isFinite(age)&&age>=0&&age<86400000?
      "within_24h":latest?"historical":"not_measured";
+   const renewalTime=latest?.renewalOn?Date.parse(latest.renewalOn+"T00:00:00.000Z"):NaN;
+   const untilRenewal=Number.isFinite(renewalTime)?
+     Math.ceil((renewalTime-Date.parse(checkedAt))/86400000):NaN;
+   const renewalReview=Number.isFinite(untilRenewal)?
+     untilRenewal<0?"past_review_date":
+     untilRenewal<=30?"review_within_30_days":"scheduled":"not_recorded";
    return {...service,status:latest?"snapshot_available":"not_measured",
-     latest,historyCount:history.length,freshness,
+     latest,historyCount:history.length,freshness,renewalReview,
      alert:latest?.percentOfAllowance>=80?
        "Review the source and billing period; this snapshot shows high allowance usage.":""
    };
