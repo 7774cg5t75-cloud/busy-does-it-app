@@ -336,8 +336,6 @@ function Results({ s }) {
           );
         })}
 
-      <Button label="Customers & enquiries" primary onPress={() => s.go("workPipeline")} />
-      <Button label="Social Media" onPress={s.openSocialCentre} />
       <Button label="How BUSY learns" onPress={() => s.go("businessBrain")} />
       {s.completedBookingCount ? <Button label="Open work diary" onPress={() => s.go("bookings")} /> : null}
       {Object.keys(s.replyActions || {}).length ? (
