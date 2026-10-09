@@ -3,11 +3,34 @@ import { Image, Text, View } from "react-native";
 
 import { styles } from "../theme/styles";
 import { Shell, Card, Button, Field, MetricRow, StatusChip } from "../components/ui";
+import { buildWebsiteLaunchJourney } from "../core/websiteLaunchJourney";
 
 function WebsiteBuilder({ s }) {
   const draft = s.websiteDraft;
   const brand = s.brandBrain || {};
   const [instruction, setInstruction] = React.useState("");
+  const journey=buildWebsiteLaunchJourney({
+    brand, draft, publishing:s.websitePublishingView
+  });
+  const nextStep=()=>{
+    switch(journey.nextAction){
+      case "brand":return s.openBrandIdentity();
+      case "build":return s.buildWebsiteFromBrandBrain();
+      case "prepare":
+      case "review":
+      case "verify":
+      case "maintain":return s.openWebsitePublishing();
+      default:return s.openBrandIdentity();
+    }
+  };
+  const nextLabel={
+    brand:"Complete business details",
+    build:"Build my first draft",
+    prepare:"Prepare the hosted version",
+    review:"Review the hosted preview",
+    verify:"Check my live website",
+    maintain:"Manage my live website"
+  }[journey.nextAction]||"Continue website setup";
 
   const applyInstruction = () => {
     const text = instruction.trim();
@@ -21,8 +44,27 @@ function WebsiteBuilder({ s }) {
       s={s}
       title="Website Builder"
       subtitle="Build from the Brand Brain instead of starting from a blank page."
-      brandCue="V3.38 • private editing • multi-page • live delivery signals • explicit Go Live approval."
+      brandCue="V3.77 • guided website launch • clear approval and verification"
     >
+      <Card
+        eyebrow="V3.77 • Your website launch plan"
+        title={journey.isVerified?"Your published website has passed its deployment check":
+          "Your next step: "+nextLabel}
+        body="BUSY guides you from recording your business details to reviewing a private draft, approving the exact hosted version and checking the public site. You stay in control of Go Live."
+        footer={journey.completedStages+" of "+journey.totalStages+
+          " launch milestones complete • No automatic publishing"}
+        tone={journey.isVerified?"green":"blue"}
+      >
+        {journey.stages.map(item=>(
+          <MetricRow key={item.id}
+            left={item.title}
+            right={item.state==="complete"?"Done":
+              item.state==="needs_details"?"Add details":
+              item.state==="working"?"In progress":
+              item.state==="ready"?"Ready":"Next"}/>
+        ))}
+        <Button label={nextLabel} primary onPress={nextStep}/>
+      </Card>
       <Card
         eyebrow="Website generation"
         title={draft ? "Your website draft exists" : "BUSY is ready to build the first draft"}
