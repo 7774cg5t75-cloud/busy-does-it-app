@@ -536,6 +536,17 @@ async function prepareDeployment(job: any, deployment: any, website: any) {
     preparedAt: new Date().toISOString(),
   };
 
+  // Include the same opt-in form in the immutable hosted preview and the
+  // eventual public artifact. Browser script disallows submission from the
+  // signed private preview origin. Existing sites default to NO form.
+  const optedInFormHtml=renderOptInContactForm({
+    siteId:website.id,siteHostname:website.default_hostname||"",
+    siteKey:Deno.env.get("BUSY_TURNSTILE_SITE_KEY")||"",
+    endpoint:SUPABASE_URL+"/functions/v1/busy-website-form",
+    enabled:website.public_form_enabled===true&&
+      Deno.env.get("BUSY_WEBSITE_FORM_INTAKE_ENABLED")==="true"
+  });
+
   // Create each private page once so Storage can issue stable signed URLs for
   // cross-page preview navigation, then overwrite with the final signed links.
   for (const page of pages) {
@@ -545,7 +556,9 @@ async function prepareDeployment(job: any, deployment: any, website: any) {
       deployment.source_draft,
       buildAssetMap(manifest, "previewUrl"),
       page,
-      deployment.id
+      deployment.id,
+      {},
+      page.id==="home"||page.id==="contact"?optedInFormHtml:""
     );
     await uploadText(PREVIEW_BUCKET, previewPath, provisional, "300", true);
     const signed = await supabase.storage
@@ -575,7 +588,8 @@ async function prepareDeployment(job: any, deployment: any, website: any) {
       buildAssetMap(manifest, "previewUrl"),
       page,
       deployment.id,
-      previewPageUrls
+      previewPageUrls,
+      page.id==="home"||page.id==="contact"?optedInFormHtml:""
     );
     await uploadText(PREVIEW_BUCKET, pageManifest.previewPath, finalHtml, "300", true);
     artifactBytes += new TextEncoder().encode(finalHtml).byteLength;
@@ -672,6 +686,7 @@ async function publishDeployment(job: any, deployment: any, website: any) {
 
   const optedInFormHtml=renderOptInContactForm({
     siteId:website.id,
+    siteHostname:website.default_hostname||"",
     siteKey:Deno.env.get("BUSY_TURNSTILE_SITE_KEY")||"",
     endpoint:SUPABASE_URL+"/functions/v1/busy-website-form",
     enabled:website.public_form_enabled===true&&
@@ -769,7 +784,8 @@ async function rollbackDeployment(job: any, target: any, website: any) {
   const manifest: any = target.manifest || {};
   const pages = pageList(target.source_draft);
   const optedInFormHtml=renderOptInContactForm({
-    siteId:website.id,siteKey:Deno.env.get("BUSY_TURNSTILE_SITE_KEY")||"",
+    siteId:website.id,siteHostname:website.default_hostname||"",
+    siteKey:Deno.env.get("BUSY_TURNSTILE_SITE_KEY")||"",
     endpoint:SUPABASE_URL+"/functions/v1/busy-website-form",
     enabled:website.public_form_enabled===true&&
       Deno.env.get("BUSY_WEBSITE_FORM_INTAKE_ENABLED")==="true"
