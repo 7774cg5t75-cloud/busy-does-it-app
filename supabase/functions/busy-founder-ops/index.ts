@@ -235,6 +235,19 @@ async function syncConnectedProviders(){
         {serviceKey:"github",status:"not_connected"},
         {serviceKey:"cloudflare",status:"not_connected"}
       ],noPurchases:true};
+  // An atomic database claim prevents repeated calls from exhausting provider
+  // API quotas. 30-minute window, even with multiple simultaneous requests.
+  const claim=await fetch(ROOT+"/rest/v1/rpc/busy_claim_founder_provider_window",{
+    method:"POST",headers:{...serviceHeaders(),"Content-Type":"application/json"},
+    body:"{}",signal:AbortSignal.timeout(8500)
+  }).catch(()=>null);
+  if(!claim?.ok)
+    return {scope:"founder_provider_refresh",status:"cooldown_unavailable",
+      observedAt:now.toISOString(),results:[],noPurchases:true};
+  const granted=await claim.json().catch(()=>null);
+  if(granted!==true)
+    return {scope:"founder_provider_refresh",status:"rate_limited",
+      observedAt:now.toISOString(),results:[],noPurchases:true};
   const [github,cloudflare]=await Promise.all([
     readGitHubUsage(env,fetch,now),readCloudflareTraffic(env,fetch,now)
   ]);
