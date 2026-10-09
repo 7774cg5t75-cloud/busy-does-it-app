@@ -7,7 +7,11 @@ import {renderOptInContactForm}
 import {validatedLeadInput,buildLeadDigest}
  from "../supabase/functions/busy-website-publish/leadWorkflow.mjs";
 
+const checkedAt=new Date().toISOString();
 const site={
+ health_status:"healthy",delivery_status:"active",
+ last_health_check_at:checkedAt,last_healthy_at:checkedAt,
+ last_observed_deployment_id:"33333333-3333-4333-8333-333333333333",
  id:"11111111-1111-4111-8111-111111111111",
  business_id:"22222222-2222-4222-8222-222222222222",
  current_live_deployment_id:"33333333-3333-4333-8333-333333333333",
@@ -25,6 +29,10 @@ assert.equal(formReadiness(site,{globalEnabled:false,hasSecret:true}).ready,fals
 assert.equal(formReadiness(site,{globalEnabled:true,hasSecret:false}).ready,false);
 assert.equal(formReadiness({...site,public_form_enabled:false},{globalEnabled:true,hasSecret:true}).ready,false);
 assert.equal(formReadiness({...site,current_live_deployment_id:null},{globalEnabled:true,hasSecret:true}).ready,false);
+assert.equal(formReadiness({...site,health_status:"degraded"},{globalEnabled:true,hasSecret:true}).ready,false);
+assert.equal(formReadiness({...site,delivery_status:"provisioning"},{globalEnabled:true,hasSecret:true}).ready,false);
+assert.equal(formReadiness({...site,last_observed_deployment_id:"00000000-0000-4000-8000-000000000000"},{globalEnabled:true,hasSecret:true}).ready,false);
+assert.equal(formReadiness({...site,last_health_check_at:"2020-01-01T00:00:00Z"},{globalEnabled:true,hasSecret:true}).ready,false);
 assert.equal(formReadiness({...site,business_id:"not-uuid"},{globalEnabled:true,hasSecret:true}).ready,false);
 const input={
  siteId:site.id,idempotencyKey:"web-123456789",
@@ -92,6 +100,8 @@ assert.ok(endpoint.includes('const ENABLED=Deno.env.get("BUSY_WEBSITE_FORM_INTAK
 assert.ok(endpoint.indexOf('if(!ENABLED||!CHALLENGE_SECRET||!service)')<
  endpoint.indexOf('const site=await service.from("busy_websites")'));
 assert.ok(endpoint.indexOf("verifiedChallenge(proof")<
+ endpoint.indexOf('const site=await service.from("busy_websites")'));
+assert.ok(endpoint.indexOf("verifiedChallenge(proof")<
  endpoint.indexOf('service.rpc("busy_claim_website_form_quota"'));
 assert.ok(endpoint.indexOf('service.rpc("busy_claim_website_form_quota"')<
  endpoint.indexOf('.from("busy_website_leads")'));
@@ -107,6 +117,7 @@ assert.ok(migration.includes("where public.busy_website_form_quota.submissions <
 assert.ok(migration.includes("busy-v379-form-quota-retention"));
 assert.ok(creator.includes("source='website_form' and created_by is null"));
 assert.ok(worker.includes('import {renderOptInContactForm} from "./formHtml.mjs"'));
+assert.ok(worker.includes('import {formReadiness} from "./formPolicy.mjs"'));
 assert.equal((worker.match(/renderOptInContactForm\(/g)||[]).length,3);
 assert.ok((worker.match(/page.id==="home"\|\|page.id==="contact"\?optedInFormHtml/g)||[]).length===4);
 assert.ok(app.includes("Challenge-verified website contacts"));
