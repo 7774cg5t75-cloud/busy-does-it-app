@@ -145,6 +145,7 @@ import {
 
 
 function Results({ s }) {
+  const [showDetailedResults, setShowDetailedResults] = useState(false);
   const actions = Object.entries(s.replyActions || {});
   const quoteActions = actions.filter(([, action]) => action?.type === "quote" && action?.done);
   const bookingActions = actions.filter(([, action]) => action?.type === "booking" && action?.done);
@@ -165,18 +166,35 @@ function Results({ s }) {
     <Shell
       s={s}
       noBack
-      title="What happened?"
-      subtitle="Everything on this screen now comes from customer, quote, booking, job or recorded outcome data saved in the prototype."
-      brandCue="Record-based results. No illustrative totals on the main screen."
+      title="Your results"
+      subtitle="See the work you've completed, the jobs you've booked and anything that needs following up."
     >
+      <Card eyebrow="YOUR BUSINESS AT A GLANCE"
+        title="How things are going"
+        body="Based on your saved records, not estimated earnings."
+        tone="blue"
+      >
+        <MetricRow left="Completed work recorded" right={`£${s.completedJobValue}`} strong={s.completedJobValue > 0} />
+        <MetricRow left="Confirmed bookings" right={String(confirmedBookings)} strong={confirmedBookings > 0} />
+        <MetricRow left="Value of booked jobs" right={`£${s.bookedWorkValue}`} />
+        <MetricRow left="Enquiries to follow up" right={String(s.staleEnquiryEntries.length)} strong={s.staleEnquiryEntries.length > 0} />
+      </Card>
+      <Button label="Customers & enquiries" primary onPress={() => s.go("workPipeline")} />
+      <Button label="Social Media" onPress={s.openSocialCentre} />
+      <Button
+        label={showDetailedResults ? "Hide detailed reports" : "Show detailed reports"}
+        onPress={() => setShowDetailedResults((value) => !value)}
+      />
+      {showDetailedResults ? (
+        <>
       <Card
         eyebrow="Value we can trace"
         title="Business value saved in separate, traceable buckets"
-        body="BUSY DOES IT does not add these figures into one headline total because the same job could appear in more than one stage. Attribution stays labelled instead of being presented as certainty."
+        body="A quote and a booking can relate to the same job, so BUSY shows their values separately rather than adding them together. Links to marketing only appear when supported by saved results."
         tone="green"
       >
         <MetricRow left="Completed work recorded" right={`£${s.completedJobValue}`} strong={s.completedJobValue > 0} />
-        <MetricRow left="Active pipeline" right={`£${s.pipelineWorkValue}`} strong={s.pipelineWorkValue > 0} />
+        <MetricRow left="Value of quotes and booked jobs" right={`£${s.pipelineWorkValue}`} strong={s.pipelineWorkValue > 0} />
         <MetricRow left="Completed value from prototype reactivation flow" right={`£${s.reactivationCompletedValue}`} />
         <MetricRow left="Post-attributed booking value" right={`£${s.postAttributedValue}`} strong={s.postAttributedValue > 0} />
         <MetricRow left="Finished-job posts approved" right={String(s.publishedPhotoPostCount)} />
@@ -232,7 +250,7 @@ function Results({ s }) {
       </Card>
 
       <Card
-        eyebrow="Opportunity Engine evidence"
+        eyebrow="Why BUSY makes these suggestions"
         title="Recorded outcomes now influence ranking and audience size"
         body="BUSY prefers service-specific evidence once the sample is usable. Small samples stay low-confidence and fall back to cautious planning assumptions rather than swinging recommendations aggressively."
         tone="blue"
@@ -252,7 +270,7 @@ function Results({ s }) {
       </Card>
 
       <Card
-        eyebrow="Operational Business Brain"
+        eyebrow="How BUSY learns from your business"
         title="Business-specific evidence now changes recommendations"
         body="Sample size, evidence freshness, owner feedback and hard owner rules are applied before marketing opportunities are ranked. Live customer obligations remain outside those marketing blocks."
         tone="green"
@@ -264,12 +282,12 @@ function Results({ s }) {
         />
         <MetricRow left="Owner rules" right={String(s.businessBrainRules?.length || 0)} />
         <MetricRow left="Recommendation feedback records" right={String(s.businessBrainFeedback?.length || 0)} />
-        <Button label="Open Business Brain" onPress={() => s.go("businessBrain")} />
+        <Button label="How BUSY learns" onPress={() => s.go("businessBrain")} />
       </Card>
 
       <Card
-        eyebrow="Customer pipeline"
-        title={`£${s.pipelineWorkValue} of customer work in the pipeline`}
+        eyebrow="Customers & enquiries"
+        title={`£${s.pipelineWorkValue} in active quotes and booked jobs`}
         body="This combines active quote value and confirmed booked-work value saved locally in the prototype."
         tone="green"
       >
@@ -318,14 +336,15 @@ function Results({ s }) {
           );
         })}
 
-      <Button label="Open customer pipeline" primary onPress={() => s.go("workPipeline")} />
-      <Button label="Open Social Control Centre" onPress={s.openSocialCentre} />
-      <Button label="Open Business Brain" onPress={() => s.go("businessBrain")} />
+      <Button label="Customers & enquiries" primary onPress={() => s.go("workPipeline")} />
+      <Button label="Social Media" onPress={s.openSocialCentre} />
+      <Button label="How BUSY learns" onPress={() => s.go("businessBrain")} />
       {s.completedBookingCount ? <Button label="Open work diary" onPress={() => s.go("bookings")} /> : null}
       {Object.keys(s.replyActions || {}).length ? (
         <Button label="View all customer activity" onPress={() => s.go("customerActivity")} />
       ) : null}
-
+        </>
+      ) : null}
     </Shell>
   );
 }
