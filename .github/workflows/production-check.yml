@@ -45,6 +45,7 @@ jobs:
           node scripts/check-plain-language-v385.mjs
           node scripts/check-calendar-first-work-v386.mjs
           node scripts/check-social-simplification-v387.mjs
+          node scripts/check-direct-create-post-v388.mjs
           node scripts/check-direct-home-post-v388.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
