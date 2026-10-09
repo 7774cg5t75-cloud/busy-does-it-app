@@ -16,41 +16,84 @@ function TalkToBusy({ s }) {
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const recorderState = useAudioRecorderState(audioRecorder, 200);
   const autoStartHandled = useRef(0);
+  // The native recording state may arrive a fraction of a second after the
+  // record() call. Keep local start/stop state so tapping Stop never silently
+  // does nothing while the recorder hook catches up.
+  const recorderTransitionRef = useRef(false);
+  const recordingStartedRef = useRef(false);
+  const [voiceStage, setVoiceStage] = useState("idle");
+  const [voiceMessage, setVoiceMessage] = useState("");
+  const isListening =
+    voiceStage === "recording" ||
+    (voiceStage === "idle" && recorderState.isRecording);
 
   const startRecording = async () => {
-    if (s.busyCommandStatus === "thinking" || recorderState.isRecording) return;
+    if (
+      s.busyCommandStatus === "thinking" ||
+      recorderTransitionRef.current ||
+      recordingStartedRef.current ||
+      recorderState.isRecording
+    ) return;
+    recorderTransitionRef.current = true;
+    setVoiceStage("starting");
+    setVoiceMessage("Preparing your microphone…");
     try {
       const permission = await AudioModule.requestRecordingPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert(
-          "Microphone permission needed",
-          "Allow microphone access to talk to BUSY. You can still type instead."
-        );
+        const message = "Microphone access is turned off. Enable it in iPhone Settings for BUSY DOES IT, or type instead.";
+        setVoiceStage("error");
+        setVoiceMessage(message);
+        Alert.alert("Microphone permission needed", message);
         return;
       }
       await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: true });
       await audioRecorder.prepareToRecordAsync();
       audioRecorder.record();
+      recordingStartedRef.current = true;
+      setVoiceStage("recording");
+      setVoiceMessage("Listening. Tap the square button when you finish speaking.");
     } catch (error) {
-      Alert.alert(
-        "BUSY could not start listening",
-        error?.message || "Try typing your request instead."
-      );
+      const message = error?.message || "BUSY couldn't start the microphone. You can type your request instead.";
+      setVoiceStage("error");
+      setVoiceMessage(message);
+      Alert.alert("BUSY could not start listening", message);
+    } finally {
+      recorderTransitionRef.current = false;
     }
   };
 
   const stopRecording = async () => {
-    if (!recorderState.isRecording) return;
+    if (recorderTransitionRef.current) return;
+    if (!recordingStartedRef.current && !recorderState.isRecording) {
+      setVoiceStage("error");
+      setVoiceMessage("No recording started. Tap the microphone and wait for 'Listening' before speaking.");
+      return;
+    }
+    recorderTransitionRef.current = true;
+    recordingStartedRef.current = false;
+    setVoiceStage("sending");
+    setVoiceMessage("Sending your recording to BUSY…");
     try {
       await audioRecorder.stop();
+      const recordedUri = audioRecorder.uri;
       await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: false });
-      if (!audioRecorder.uri) throw new Error("No voice recording was created.");
-      await s.submitBusyCommand({ audioUri: audioRecorder.uri });
+      if (!recordedUri) throw new Error("No recording file was created. Try again.");
+      const response = await s.submitBusyCommand({ audioUri: recordedUri });
+      if (response) {
+        setVoiceStage("idle");
+        setVoiceMessage("BUSY received your voice request. Your reply is shown below.");
+      } else {
+        setVoiceStage("error");
+        setVoiceMessage("BUSY couldn't complete that voice request. See the error below or try typing.");
+      }
     } catch (error) {
-      Alert.alert(
-        "BUSY could not process that recording",
-        error?.message || "Try again or type the request."
-      );
+      await setAudioModeAsync({ playsInSilentMode: true, allowsRecording: false }).catch(() => {});
+      const message = error?.message || "BUSY couldn't process the recording. Try again or type your request.";
+      setVoiceStage("error");
+      setVoiceMessage(message);
+      Alert.alert("BUSY could not process that recording", message);
+    } finally {
+      recorderTransitionRef.current = false;
     }
   };
 
@@ -136,37 +179,47 @@ function TalkToBusy({ s }) {
 
       <Card
         eyebrow="Voice"
-        title={recorderState.isRecording ? "BUSY is listening…" : "Talk naturally"}
-        body="You can ask a question, give an instruction, answer BUSY’s follow-up, or refine the last draft."
-        tone={recorderState.isRecording ? "amber" : "blue"}
+        title={isListening ? "BUSY is listening…" : voiceStage === "sending" ? "BUSY is processing your request…" : "Talk naturally"}
+        body="Say what you need, then tap the square to send. BUSY will show a response or an error here."
+        tone={isListening ? "amber" : voiceStage === "error" ? "amber" : "blue"}
       >
         <View style={styles.talkRecordingWrap}>
           <Pressable
-            onPress={recorderState.isRecording ? stopRecording : startRecording}
-            disabled={s.busyCommandStatus === "thinking"}
+            accessibilityRole="button"
+            accessibilityLabel={isListening ? "Stop recording and send to BUSY" : "Start voice recording"}
+            onPress={isListening ? stopRecording : startRecording}
+            disabled={s.busyCommandStatus === "thinking" || voiceStage === "starting" || voiceStage === "sending"}
             style={({ pressed }) => [
               styles.talkRecordingButton,
-              recorderState.isRecording && styles.talkRecordingButtonActive,
+              isListening && styles.talkRecordingButtonActive,
               pressed && styles.pressed,
             ]}
           >
             <Text style={styles.talkRecordingIcon}>
-              {recorderState.isRecording ? "■" : "🎙"}
+              {isListening ? "■" : "🎙"}
             </Text>
           </Pressable>
           <Text style={styles.talkRecordingLabel}>
-            {recorderState.isRecording
-              ? "Tap to stop"
-              : s.busyCommandStatus === "thinking"
-              ? "BUSY is thinking…"
+            {isListening
+              ? "Tap to stop and send"
+              : voiceStage === "starting"
+              ? "Starting microphone…"
+              : voiceStage === "sending" || s.busyCommandStatus === "thinking"
+              ? "BUSY is working…"
               : "Tap to talk"}
           </Text>
-          {recorderState.isRecording ? (
+          {isListening ? (
             <Text style={styles.talkRecordingTime}>
               {Math.max(0, Math.round((recorderState.durationMillis || 0) / 1000))} seconds
             </Text>
           ) : null}
         </View>
+        {voiceMessage ? (
+          <Text style={styles.talkVoiceNotice}>{voiceMessage}</Text>
+        ) : null}
+        {s.busyCommandError ? (
+          <Text style={styles.talkVoiceError}>BUSY says: {s.busyCommandError}</Text>
+        ) : null}
       </Card>
 
       <Card
