@@ -43,7 +43,8 @@ function buildWebsiteLaunchJourney({brand=null,draft=null,publishing=null}={}){
        "A deployment is not verified until the public site is checked"}
  ];
  let nextAction="brand";
- if(!editorReady)nextAction=businessReady?"build":"brand";
+ if(!businessReady)nextAction="brand";
+ else if(!editorReady)nextAction="build";
  else if(!prepared||p.draftChangedSinceHosted)nextAction="prepare";
  else if(!live)nextAction="review";
  else if(!verifiedLive)nextAction="verify";
