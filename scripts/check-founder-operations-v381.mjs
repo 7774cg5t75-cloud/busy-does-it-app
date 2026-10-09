@@ -60,6 +60,14 @@ assert.equal(supabase.latest.percentOfAllowance,2.9);
 assert.equal(cloudflare.latest,null);
 assert.equal(cloudflare.status,"not_measured");
 assert.equal(cloudflare.freshness,"not_measured");
+const coming=buildServiceInventory([{...observation,source:"founder_entered",
+ renewal_on:"2026-10-25"}],{checkedAt:"2026-10-09T10:20:00.000Z"});
+assert.equal(coming.services.find(x=>x.key==="supabase").renewalReview,"review_within_30_days");
+const overdue=buildServiceInventory([{...observation,source:"founder_entered",
+ renewal_on:"2026-10-01"}],{checkedAt:"2026-10-09T10:20:00.000Z"});
+assert.equal(overdue.services.find(x=>x.key==="supabase").renewalReview,"past_review_date");
+assert.equal(cloudflare.renewalReview,"not_recorded");
+
 const changed=buildServiceInventory([{...observation,source:"founder_entered",
   usage_value:480000}],{checkedAt:"2026-10-09T10:20:00.000Z"});
 assert.ok(changed.services.find(x=>x.key==="supabase").alert);
@@ -101,6 +109,10 @@ assert.ok(screen.includes("No surprise")||screen.includes("no charges"));
 assert.ok(screen.includes("Provider invoices automatically verified"));
 assert.ok(screen.includes("Founder-entered snapshot saved"));
 assert.ok(screen.includes("demo.busydoesit.co.uk"));
+assert.ok(screen.includes('Renewal review reminder'));
+assert.ok(screen.includes('const serviceLoader=React.useRef(s.fetchFounderServices)'));
+assert.ok(screen.includes('const stagingLoader=React.useRef(s.fetchFounderDemoLaunch)'));
+
 assert.ok(screen.includes("External HTTPS proof"));
 assert.ok(screen.includes("Open current business Website Management"));
 assert.ok(workflow.includes("node scripts/check-founder-operations-v381.mjs"));
