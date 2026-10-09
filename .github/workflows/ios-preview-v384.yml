@@ -1,0 +1,40 @@
+name: V3.84 iPhone preview build
+
+on:
+  push:
+    branches:
+      - v3.84
+    paths:
+      - .github/workflows/ios-preview-v384.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  signed-ios-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      CI: "1"
+    steps:
+      - name: Check out V3.84
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify expected app and signing configuration
+        run: |
+          node -e "const p=require('./package.json'),a=require('./app.json').expo; if(p.version!=='3.84.0'||a.version!=='3.84.0'||a.ios.buildNumber!=='4'||a.ios.bundleIdentifier!=='com.busydoesit.app'||!a.extra?.eas?.projectId)process.exit(1)"
+      - name: Verify Expo authorisation
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::EXPO_TOKEN is missing; V3.84 build has not been submitted."
+            exit 1
+          fi
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Queue signed V3.84 iOS preview using existing registered-device credentials
+        run: npx --yes eas-cli@latest build --platform ios --profile preview --non-interactive --no-wait
