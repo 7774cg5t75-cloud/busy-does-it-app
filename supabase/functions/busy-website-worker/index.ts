@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import {renderOptInContactForm} from "./formHtml.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -249,7 +250,8 @@ function renderWebsiteHtml(
   urls: Record<string, string>,
   page: any,
   deploymentId: string,
-  pageUrls: Record<string, string> = {}
+  pageUrls: Record<string, string> = {},
+  formMarkup: string = ""
 ) {
   const allSections = safeArray(draft?.sections).filter(
     (section: any) => section?.enabled !== false
@@ -320,7 +322,7 @@ function renderWebsiteHtml(
     structuredData
   ).replace(/</g, "\\u003c")}</script><style>:root{${cssVars}}*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.55;color:#1f2933;background:#fff}nav{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.96);border-bottom:1px solid #ececec}.nav-wrap{max-width:1080px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{font-weight:800;color:inherit;text-decoration:none}.nav-links{display:flex;gap:14px;flex-wrap:wrap}.nav-links a{color:inherit;text-decoration:none}.wrap{max-width:1080px;margin:0 auto;padding:64px 24px}section:nth-child(even){background:#f7f7f5}h1{font-size:clamp(2.4rem,7vw,4.8rem);line-height:1.04;margin:.2em 0}h2{font-size:2rem}h3{margin-top:0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}article{padding:22px;border:1px solid #e5e7eb;border-radius:18px;background:#fff}.cta{display:inline-block;margin-top:18px;padding:12px 18px;border-radius:999px;background:var(--brand-primary,#1f5eff);color:#fff;text-decoration:none}.hero-image{width:100%;max-height:620px;object-fit:cover;border-radius:22px;margin-bottom:28px}.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}.gallery-image{width:100%;height:260px;object-fit:cover;border-radius:16px}.mood-warm{background:#fffaf2}.mood-bold h1{font-weight:900}.mood-premium{letter-spacing:.01em}.hero-extra-large .wrap{padding-top:100px;padding-bottom:100px}.hero-medium .wrap{padding-top:44px;padding-bottom:44px}@media(max-width:700px){.nav-wrap{align-items:flex-start;flex-direction:column}.wrap{padding:42px 20px}.gallery-image{height:220px}}</style></head><body class="mood-${escapeHtml(
     theme?.mood || "clean"
-  )}">${navHtml}${sectionHtml}</body></html>`;
+  )}">${navHtml}${sectionHtml}${formMarkup}</body></html>`;
 }
 
 async function ensureBucket(
@@ -668,6 +670,13 @@ async function publishDeployment(job: any, deployment: any, website: any) {
   manifest.pages = [];
   manifest.publishedAt = new Date().toISOString();
 
+  const optedInFormHtml=renderOptInContactForm({
+    siteId:website.id,
+    siteKey:Deno.env.get("BUSY_TURNSTILE_SITE_KEY")||"",
+    endpoint:SUPABASE_URL+"/functions/v1/busy-website-form",
+    enabled:website.public_form_enabled===true&&
+      Deno.env.get("BUSY_WEBSITE_FORM_INTAKE_ENABLED")==="true"
+  });
   for (const page of pages) {
     const outputPath = clean(page?.outputPath, 300) || (page.id === "home" ? "index.html" : `${page.id}/index.html`);
     const versionPath = `${job.business_id}/${job.website_id}/deployments/${deployment.id}/${outputPath}`;
@@ -676,7 +685,9 @@ async function publishDeployment(job: any, deployment: any, website: any) {
       deployment.source_draft,
       buildAssetMap(manifest, "publicUrl"),
       page,
-      deployment.id
+      deployment.id,
+      {},
+      page.id==="home"||page.id==="contact"?optedInFormHtml:""
     );
     await uploadText(PUBLIC_BUCKET, versionPath, html, "31536000", true);
     await uploadText(PUBLIC_BUCKET, livePath, html, "60", true);
@@ -757,6 +768,12 @@ async function rollbackDeployment(job: any, target: any, website: any) {
 
   const manifest: any = target.manifest || {};
   const pages = pageList(target.source_draft);
+  const optedInFormHtml=renderOptInContactForm({
+    siteId:website.id,siteKey:Deno.env.get("BUSY_TURNSTILE_SITE_KEY")||"",
+    endpoint:SUPABASE_URL+"/functions/v1/busy-website-form",
+    enabled:website.public_form_enabled===true&&
+      Deno.env.get("BUSY_WEBSITE_FORM_INTAKE_ENABLED")==="true"
+  });
   for (const page of pages) {
     const outputPath = clean(page?.outputPath, 300) || (page.id === "home" ? "index.html" : `${page.id}/index.html`);
     const livePath = `${job.business_id}/${job.website_id}/live/${outputPath}`;
@@ -764,7 +781,9 @@ async function rollbackDeployment(job: any, target: any, website: any) {
       target.source_draft,
       buildAssetMap(manifest, "publicUrl"),
       page,
-      target.id
+      target.id,
+      {},
+      page.id==="home"||page.id==="contact"?optedInFormHtml:""
     );
     await uploadText(PUBLIC_BUCKET, livePath, html, "60", true);
   }
