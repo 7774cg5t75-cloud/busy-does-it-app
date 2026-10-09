@@ -12,11 +12,11 @@ const app=JSON.parse(read("app.json")).expo;
 const pkg=JSON.parse(read("package.json"));
 const checks=[
   ["Version and microphone permission",()=>{
-    assert.equal(pkg.version,"3.90.0");
+    assert.ok(["3.90.0","3.91.0"].includes(pkg.version));
     assert.equal(app.version,pkg.version);
-    assert.equal(app.ios.buildNumber,"10");
+    assert.equal(app.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));
     assert.equal(app.ios.bundleIdentifier,"com.busydoesit.app");
-    assert.ok(runtime.includes('const APP_VERSION = "3.90";'));
+    assert.ok(runtime.includes(`const APP_VERSION = "${pkg.version.slice(0,-2)}";`));
     assert.ok(JSON.stringify(app.plugins).includes("microphonePermission"));
   }],
   ["Recorder remains responsive while native state catches up",()=>{
