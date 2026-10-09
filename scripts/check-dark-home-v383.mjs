@@ -43,7 +43,7 @@ const checks = [
   }],
   ["real weekly booked-job summary", () => {
     assert.ok(home.includes("homeWeekBookings.length"));
-    assert.ok(home.includes('action.details.bookingStatus || "Confirmed"'));
+    assert.ok(home.includes('action.details?.bookingStatus || "Confirmed"'));
   }],
   ["important inbox and action routes retained", () => {
     assert.ok(home.includes("s.openBusyInbox"));
