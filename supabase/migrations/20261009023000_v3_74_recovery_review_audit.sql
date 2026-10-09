@@ -43,7 +43,7 @@ begin
   )
   select a.incident_key, a.source_transition_count,
     case
-      when new.status <> 'complete' or new.coverage ->> a.incident_key <> 'checked'
+      when new.status <> 'complete' or (new.coverage ->> a.incident_key) is distinct from 'checked'
         then 'unverified'
       when a.status = 'resolved' and a.affected_count = 0 and i.clear_checks >= 2
         then 'signal_cleared'
