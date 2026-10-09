@@ -1,5 +1,13 @@
 # busy-does-it-app
 
+## V3.77 — Customer Experience & Go-Live Engine (development)
+
+V3.77 provides a **six-step customer website launch journey**, using genuine Brand Brain, editor-draft, immutable hosted-preview, approved publish and externally recorded deployment-health state. Website Builder and Website Management now show the next useful step, and Go Live requires the customer to open and explicitly confirm review of the exact hosted preview.
+
+A freshly authenticated owner/admin approval must also pass a **server-side `launch_preflight`**: the selected artifact must be prepared, immutable and belong to the business's current main website. Existing explicit approval, queued publishing and rollback remain; restoring another website's deployment is now blocked. No internal preview or queued state is falsely labelled verified live. Subscription billing and suspension have **not** been enabled; cancellation and website/domain portability require a documented and implemented policy.
+
+Supabase `busy-website-publish` is **ACTIVE v18** with JWT verification. V3.77 regression checks are included in GitHub Actions, but full green CI and physical iPhone acceptance are **not yet confirmed**. A genuine customer-authorised staging website has **not** been published in this sweep; real end-to-end go-live verification is an outstanding milestone. See `docs/V3_77_CUSTOMER_GO_LIVE.md`.
+
 ## V3.76 — Evidence & Intelligence Engine (development)
 
 V3.76 adds a **private, bounded aggregate evidence history** behind the founder-only external Reality Check. It records no business or customer IDs, addresses, personal information, public URLs, provider tokens, posts or media. The database atomically allows at most one new check per 30-minute window, and hourly pruning removes history older than 30 days. The founder dashboard presents limited seven-day trends and potential repeated/shared symptoms, explicitly without claiming a verified shared provider fault. Scheduled customer-facing probes, real provider re-publishing, push/email alerts and billing actions remain disabled.
