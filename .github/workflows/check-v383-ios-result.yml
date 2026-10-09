@@ -29,7 +29,8 @@ jobs:
           set -euo pipefail
           if [ -z "$EXPO_TOKEN" ]; then echo "::error::EXPO_TOKEN missing"; exit 1; fi
           for attempt in $(seq 1 25); do
-            npx --yes eas-cli@latest build:view 3ff7d381-6bf5-4d67-b618-194f33782fde --json > /tmp/busy-ios.json
+            npx --yes eas-cli@latest build:list --platform ios --app-version 3.83.0 --limit 10 --json --non-interactive > /tmp/busy-ios-list.json
+            node -e 'const x=require("/tmp/busy-ios-list.json"); const b=(Array.isArray(x)?x:x.builds||[]).find(y=>y.id==="3ff7d381-6bf5-4d67-b618-194f33782fde"); if(!b){console.error("Build not found in EAS build list");process.exit(1)} require("fs").writeFileSync("/tmp/busy-ios.json",JSON.stringify(b));'
             node -e '
               const b=require("/tmp/busy-ios.json");
               console.log("BUILD STATUS: "+b.status);
