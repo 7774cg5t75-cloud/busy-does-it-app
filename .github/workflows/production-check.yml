@@ -38,6 +38,7 @@ jobs:
           node scripts/check-customer-success-v378.mjs
           node scripts/check-customer-success-v379.mjs
           node scripts/check-headquarters-v380.mjs
+          node scripts/check-founder-operations-v381.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs
