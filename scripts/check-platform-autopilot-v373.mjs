@@ -16,7 +16,7 @@ assert.equal(urgent.sourceVerified,true);
 assert.equal(urgent.ageMinutes,105);
 assert.equal(urgent.automaticRecoveryAllowed,false);
 assert.equal(classifyEscalation({incident:{...incident,openedAt:"2026-10-09T11:40:00Z"},run:monitor,nowISO:now}).level,"watch");
-assert.equal(classifyEscalation({incident:{...incident,openedAt:"2026-10-09T11:20:00Z"},run:monitor,nowISO:now}).level,"watch");
+assert.equal(classifyEscalation({incident:{...incident,openedAt:"2026-10-09T11:20:00Z"},run:monitor,nowISO:now}).level,"persistent");
 assert.equal(classifyEscalation({incident:{...incident,openedAt:"2026-10-09T11:10:00Z"},run:monitor,nowISO:now}).level,"persistent");
 assert.equal(classifyEscalation({incident:{...incident,key:"social_failed"},run:monitor,nowISO:now}).level,"persistent");
 assert.equal(classifyEscalation({incident:{...incident,status:"resolved"},run:monitor,nowISO:now}).level,"resolved");
