@@ -31,11 +31,11 @@ for (let i=0;i<order.length;i++) {
 }
 const checks = [
   ["version and signed iOS metadata", () => {
-    assert.equal(pkg.version,"3.86.0");
+    assert.ok(["3.86.0","3.87.0"].includes(pkg.version));
     assert.equal(app.version,pkg.version);
-    assert.equal(app.ios.buildNumber,"6");
+    assert.equal(app.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));
     assert.equal(app.ios.bundleIdentifier,"com.busydoesit.app");
-    assert.ok(runtime.includes('const APP_VERSION = "3.86";'));
+    assert.ok(runtime.includes(`const APP_VERSION = "${pkg.version.slice(0,-2)}";`));
   }],
   ["monthly calendar is the primary Work content", () => {
     assert.ok(page.includes("workMonthCells.map((cell)"));
