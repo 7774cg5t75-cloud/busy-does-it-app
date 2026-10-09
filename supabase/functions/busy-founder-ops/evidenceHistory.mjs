@@ -116,6 +116,6 @@ function buildEvidenceHistory({rows=null,nowISO=""}={}){
     budget:{minimumMinutesBetweenChecks:30,maxWebsiteHeadRequestsPerCheck:4,
       maxSocialRecordsPerCheck:12,maxBusinessAppsPerCheck:8,
       maxChecksPerDay:48,automaticScheduleEnabled:false},
-    note:"Seven-day aggregate sample history, retained for up to 30 days by daily pruning. Trend compares average issue observations per check, not distinct incidents or a complete customer census. No provider invoice cost is inferred."};
+    note:"Seven-day aggregate sample history, retained for up to 30 days by hourly pruning. Trend compares average issue observations per check, not distinct incidents or a complete customer census. No provider invoice cost is inferred."};
 }
 export {snapshotPayload,buildEvidenceHistory};
