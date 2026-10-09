@@ -43,6 +43,7 @@ jobs:
           node scripts/check-dark-home-v383.mjs
           node scripts/check-unified-dark-v384.mjs
           node scripts/check-plain-language-v385.mjs
+          node scripts/check-calendar-first-work-v386.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs
