@@ -18,12 +18,12 @@ Give the solo founder a private operational inventory of essential services and 
 
 ## Verified
 - Supabase migration `v381_founder_service_snapshots` applied successfully.
-- `busy-founder-ops` **ACTIVE version 12**, JWT verification **on**, with the extra `serviceRegister.mjs` helper.
+- `busy-founder-ops` **ACTIVE version 13**, JWT verification **on**, with the extra `serviceRegister.mjs` helper.
 - Database permissions checked: anonymous and authenticated clients **cannot select or insert** in the register; the protected backend service role can insert.
 - A transactional SQL fixture verified duplicate-keys reject second inserts, owner-entered records require `recorded_by`, and direct client privileges remain closed. Test fixture was **rolled back**.
 - Exactly one historical Supabase snapshot is retained; the SQL fixture left no new vendor records.
 - One user with verified founder-role app metadata exists, but no actual signed-in iPhone acceptance has been tested.
-- New `scripts/check-founder-operations-v381.mjs` passed **75 focused checks**, and is included in `.github/workflows/production-check.yml`.
+- New `scripts/check-founder-operations-v381.mjs` passed **86 focused checks**, and is included in `.github/workflows/production-check.yml`.
 - Staging check confirmed **zero** records for `demo.busydoesit.co.uk`. No hosted demo preview or real live website has been created; no DNS or domain settings were modified.
 - Full GitHub CI, on-device acceptance and interactive end-to-end founder account verification remain pending.
 
