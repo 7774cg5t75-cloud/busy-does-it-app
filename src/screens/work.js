@@ -688,7 +688,7 @@ function WorkHub({ s }) {
           }
       : nextOpenPlanningSlot
       ? {
-          title: `Next open half-day fits roughly ${nextOpenSlotCapacity || 1} ${capacityPlanningService?.name || "typical"} job${nextOpenSlotCapacity === 1 ? "" : "s"}`,
+          title: "You may have room for more work",
           body: "BUSY can see spare capacity, but it will not assume you want it filled. Creating demand remains an explicit owner decision until a work goal is active.",
           tone: "blue",
         }
