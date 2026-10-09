@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import {evaluateLaunchPreflight} from "./launchPreflight.mjs";
+import {validatedLeadInput,validTransition,buildLeadDigest} from "./leadWorkflow.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -1262,6 +1263,52 @@ async function safeRecovery(businessId: string) {
   };
 }
 
+/** V3.78 owner-scoped manual lead workflow; NOT a public website form.
+ * All calls pass the existing authenticated business owner/admin membership.
+ * There is no AI processing and no message is sent to the customer.
+ */
+async function listWebsiteLeads(businessId:string){
+  const result=await supabase.from("busy_website_leads")
+    .select("id,name,contact_method,contact_value,service_requested,notes,status,created_at")
+    .eq("business_id",businessId).order("created_at",{ascending:false}).limit(25);
+  if(result.error)throw result.error;
+  return buildLeadDigest(result.data);
+}
+async function addWebsiteLead(userId:string,businessId:string,body:any){
+  const checked=validatedLeadInput(body);
+  if(!checked.ok)throw new Error(checked.error);
+  const website=await websiteForBusiness(businessId);
+  const values={...checked.record,created_by:userId,business_id:businessId,
+    website_id:website?.id||null};
+  const inserted=await supabase.from("busy_website_leads")
+    .insert(values).select("id").single();
+  if(inserted.error){
+    if(inserted.error.code!=="23505")throw inserted.error;
+    const duplicate=await supabase.from("busy_website_leads")
+      .select("id").eq("business_id",businessId)
+      .eq("request_key",checked.record.request_key).maybeSingle();
+    if(duplicate.error||!duplicate.data?.id)
+      throw new Error("Could not verify duplicate lead request.");
+    return {created:false,reused:true};
+  }
+  return {created:true,reused:false};
+}
+async function updateWebsiteLead(businessId:string,body:any){
+  const id=cleanText(body?.id,80);
+  const expected=cleanText(body?.expectedStatus,20);
+  const next=cleanText(body?.nextStatus,20);
+  if(!/^[0-9a-f-]{36}$/i.test(id)||!validTransition(expected,next))
+    throw new Error("Invalid lead transition. Refresh your lead list.");
+  const update=await supabase.from("busy_website_leads")
+    .update({status:next,updated_at:new Date().toISOString()})
+    .eq("business_id",businessId).eq("id",id).eq("status",expected)
+    .select("id,status");
+  if(update.error)throw update.error;
+  if(!Array.isArray(update.data)||update.data.length!==1)
+    throw new Error("The lead changed or no longer exists. Refresh before trying again.");
+  return {updated:true,status:next,customerContactSent:false};
+}
+
 Deno.serve(async (request: Request) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (request.method !== "POST") return json(405, { error: "POST required" });
@@ -1275,6 +1322,9 @@ Deno.serve(async (request: Request) => {
       "prepare",
       "publish",
       "launch_preflight",
+      "lead_list",
+      "lead_add",
+      "lead_update",
       "rollback",
       "request_domain",
       "verify_domain",
@@ -1292,6 +1342,17 @@ Deno.serve(async (request: Request) => {
       cleanText(request.headers.get("x-busy-request-id"), 180) ||
       cleanText(body?.idempotencyKey, 180);
 
+    if(action==="lead_list"){
+      return json(200,{ok:true,leads:await listWebsiteLeads(businessId)});
+    }
+    if(action==="lead_add"){
+      return json(200,{ok:true,
+        result:await addWebsiteLead(user.id,businessId,body)});
+    }
+    if(action==="lead_update"){
+      return json(200,{ok:true,
+        result:await updateWebsiteLead(businessId,body)});
+    }
     if (action === "status") {
       return json(200, {
         ok: true,
