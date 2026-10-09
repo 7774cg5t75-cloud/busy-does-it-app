@@ -1,5 +1,11 @@
 # busy-does-it-app
 
+## V3.74 — Safe Recovery Rechecks and Private Audit (development)
+
+V3.74 builds on BUSY DOES IT's scheduled 15-minute aggregate incident watcher. Every completed scan automatically creates or updates a **founder-private recovery assessment**, showing when a recorded issue still requires review, has passed the first clean scan, or has cleared after two clean checks. Partial/unknown coverage is **not** treated as recovered. The founder dashboard displays this sanitized evidence; non-founders cannot read the recovery audit. A conservative replay policy still blocks all automatic website publishing, social reposting and Business App releases pending verified provider receipts, explicit approval and idempotency safeguards.
+
+The Supabase migration is applied, the founder reporting Edge Function is deployed with JWT enabled, and database transition/security fixtures were verified with the test data rolled back. V3.74 Node regression tests are committed into GitHub's production workflow but full successful CI and iPhone acceptance are **not yet confirmed**. See `docs/V3_74_SAFE_RECOVERY_AUDIT.md`.
+
 ## V3.73 — Escalation and Founder Push Readiness (development)
 
 V3.73 extends the monitored incident inbox with conservative `watch`, `persistent`, `urgent` and `unverified` classifications based on real background-scan coverage. The founder-only endpoint also reports the **authenticated founder account's own active push-device count** without leaking device tokens. A new pure delivery policy requires explicit opt-in, verified destination, fresh source data, quiet hours and a minimum 24-hour cooldown before any future sender may dispatch. The Founder Operations dashboard shows the escalation state and links to Production Bridge for device enrolment.
