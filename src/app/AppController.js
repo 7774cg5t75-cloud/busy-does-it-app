@@ -16043,10 +16043,12 @@ function App() {
   }
 
   const component = screens[screen] || HomeScreen;
+  // Home is opt-in dark; the existing forms and other screens remain light.
+  const isDarkHome = screen === "home";
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView style={[styles.safe, isDarkHome && { backgroundColor: "#0D131E" }]}>
+      <StatusBar barStyle={isDarkHome ? "light-content" : "dark-content"} />
       {React.createElement(component, { s: appState })}
     </SafeAreaView>
   );
