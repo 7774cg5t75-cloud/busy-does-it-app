@@ -47,6 +47,7 @@ function safeLeadRow(row){
     contactValue:row.contact_value,service:row.service_requested,
     notes:row.notes,status:row.status,createdAt:row.created_at,
     nextStep:leadSuggestion(row),source:row.source==="website_form"?"website_form":"owner_entered",
+    replyDraft:suggestedCustomerReply({service:row.service_requested}),
     messageSent:false,verifiedBooking:false};
 }
 function buildLeadDigest(rows){
