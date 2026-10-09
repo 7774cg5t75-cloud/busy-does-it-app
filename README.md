@@ -1,5 +1,9 @@
 # busy-does-it-app
 
+## V3.72 — Founder Reliability & Regression Gates (development)
+
+The founder dashboard now distinguishes current scans, stalled scans, partial source coverage, unavailable alert inbox information and alerts awaiting review. A zero-alert view never claims that public websites have been proven reachable. Account-switch handling prevents an earlier acknowledgement response from confusing the current account's screen. GitHub's existing production check now runs V3.69–V3.72 founder-monitor regressions on new commits. A V3.72 authenticated founder reporting update is deployed with JWT verification; external alert delivery, automatic provider recovery and £50 billing remain disabled. **Full CI result and native iPhone acceptance are not yet confirmed.** See `docs/V3_72_FOUNDER_RELIABILITY.md`.
+
 ## V3.71 — Founder Alert Inbox & Commercial Guardrails (development)
 
 BUSY's unattended V3.70 monitor now synchronises a **private, founder-only in-app alert inbox** every 15 minutes. Open, resolved and acknowledged states are tracked separately. Acknowledging an alert does not resolve or retry an incident; a reopened incident requires new acknowledgement. Founder role verification remains server-controlled, and customer roles cannot read or write inbox rows. The founder dashboard provides constrained class-specific review guidance without exposing customer data.
