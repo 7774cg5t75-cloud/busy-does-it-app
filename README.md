@@ -1,5 +1,13 @@
 # busy-does-it-app
 
+## V3.80 — BUSY Headquarters & First Website Demonstration (development)
+
+The `sites/busy-headquarters/` folder now contains an **actual draft of the BUSY DOES IT marketing website** (responsive homepage, style system and clearly unapproved privacy placeholder), plus a **fictional home-services demonstration website** in `demo/index.html` generated from `demo-brand-brain.mjs` using BUSY's real customer website-draft builder. Both are **source-controlled private development artifacts**, not deployed public websites. Customer sign-up/payment, real contact forms and subscription entitlement remain disabled; prices and legal details are intentionally provisional.
+
+V3.80 also adds **seven evidence-based website launch checks** to Website Management, verifying actual immutable hosted preview, approved live deployment, Cloudflare, HTTPS hostname and fresh matching health checks before ever describing a published site as externally verified. No website has been published, no root DNS changed, and no test business was created in a real customer workspace without owner approval.
+
+The `scripts/check-headquarters-v380.mjs` production regression script has passed **73 targeted assertions** and is wired into the existing GitHub production workflow, but the entire GitHub CI run, live Cloudflare DNS/SSL publication and iPhone acceptance are **still pending**. See `docs/V3_80_HEADQUARTERS_AND_FIRST_DEMO.md` for the approval-gated rollout.
+
 ## V3.79 — Secure Website Lead Capture (development)
 
 V3.79 connects the existing private lead inbox to a **fail-closed public website enquiry intake foundation**. Website forms are rendered only for specifically opted-in BUSY-owned live hosts after globally configured security controls, Cloudflare Turnstile site key, recent matching public deployment-health evidence, and a reviewed hosted preview. A new anonymous visitor function independently verifies the submitted challenge, exact origin/action and published site, then enforces a service-only atomic limit of 12 submissions per website per hour before writing a consent-confirmed `website_form` lead. Form submission is **disabled by default**, and zero BUSY customer websites are live as of this implementation. No new customer details have been captured, and no automatic replies are sent.
