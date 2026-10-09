@@ -1,5 +1,13 @@
 # busy-does-it-app
 
+## V3.79 — Secure Website Lead Capture (development)
+
+V3.79 connects the existing private lead inbox to a **fail-closed public website enquiry intake foundation**. Website forms are rendered only for specifically opted-in BUSY-owned live hosts after globally configured security controls, Cloudflare Turnstile site key, recent matching public deployment-health evidence, and a reviewed hosted preview. A new anonymous visitor function independently verifies the submitted challenge, exact origin/action and published site, then enforces a service-only atomic limit of 12 submissions per website per hour before writing a consent-confirmed `website_form` lead. Form submission is **disabled by default**, and zero BUSY customer websites are live as of this implementation. No new customer details have been captured, and no automatic replies are sent.
+
+The private Website Management dashboard now distinguishes verified website forms from owner-entered leads and shows deterministic **unsent** reply suggestions. No customer contact is converted automatically to a booking, quote, invoice or revenue claim. Supabase functions: `busy-website-form` **ACTIVE v3** (public handler, `verify_jwt=false`, guarded in code); `busy-website-publish` **ACTIVE v20** (owner/admin, JWT); `busy-website-worker` **ACTIVE v15** (JWT). Two private database migrations applied. The V3.79 regression script passed 72 targeted assertions, and transactional SQL tests verified quotas, tenant data access and no owner impersonation. Full GitHub CI, live Turnstile verification, privacy review and an approved staging-site publishing test remain release gates.
+
+See `docs/V3_79_SECURE_LEAD_CAPTURE.md` for activation restrictions and the remaining end-to-end launch requirements.
+
 ## V3.78 — Customer Success Engine 1.0 (development)
 
 V3.78 begins connecting website marketing activity to **real customer follow-up** while keeping evidence honest. Website Management now has an owner/admin-only **private enquiry inbox** for deliberately entered customer contacts, permission confirmation, duplicate-safe saves, and explicit reviewing/quoted/booked/closed stages. It distinguishes website-attributed events from personally recorded leads and from unverified booked statuses; no contact is automatically messaged.
