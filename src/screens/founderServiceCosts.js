@@ -36,6 +36,10 @@ function FounderServiceCosts({s,owner,enabled}){
   const [message,setMessage]=React.useState("");
   const scope=React.useRef(owner);
   const nonce=React.useRef(0);
+  const serviceLoader=React.useRef(s.fetchFounderServices);
+  const stagingLoader=React.useRef(s.fetchFounderDemoLaunch);
+  serviceLoader.current=s.fetchFounderServices;
+  stagingLoader.current=s.fetchFounderDemoLaunch;
   const key=React.useRef("");
   scope.current=owner;
   const update=(name,value)=>{
@@ -51,7 +55,7 @@ function FounderServiceCosts({s,owner,enabled}){
     }
     setData({owner,status:"loading",report:null,error:""});
     try{
-      const report=await s.fetchFounderServices();
+      const report=await serviceLoader.current();
       if(scope.current!==owner||request!==nonce.current)return;
       if(report?.scope!=="founder_service_register"||report?.privacy!=="founder_only"||
          !Array.isArray(report.services))throw Error("Invalid register response.");
@@ -61,7 +65,7 @@ function FounderServiceCosts({s,owner,enabled}){
       setData({owner,status:e?.status===403?"denied":"unavailable",
         report:null,error:"Private provider records are unavailable. Costs have not been estimated."});
     }
-  },[owner,enabled,s.fetchFounderServices]);
+  },[owner,enabled]);
   React.useEffect(()=>{
     if(enabled)refresh();
     return()=>{nonce.current++;};
@@ -78,7 +82,7 @@ function FounderServiceCosts({s,owner,enabled}){
     }
     setStaging({owner,status:"loading",data:null});
     try{
-      const data=await s.fetchFounderDemoLaunch();
+      const data=await stagingLoader.current();
       if(scope.current!==requestedOwner)return;
       if(data?.scope!=="founder_demo_staging"||
          data?.explicitGoLiveApprovalStillRequired!==true)return;
@@ -87,7 +91,7 @@ function FounderServiceCosts({s,owner,enabled}){
       if(scope.current===requestedOwner)
         setStaging({owner,status:"unavailable",data:null});
     }
-  },[owner,enabled,s.fetchFounderDemoLaunch]);
+  },[owner,enabled]);
   React.useEffect(()=>{loadStaging();},[loadStaging]);
   const save=async()=>{
     if(saving||!enabled||!owner)return;
