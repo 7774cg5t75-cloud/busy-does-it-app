@@ -2351,6 +2351,29 @@ function App() {
       throw Error("Invalid founder service register response.");
     return data;
   };
+  const fetchFounderDemoLaunch = async () => {
+    const ownerId=ownerSession?.userId||"";
+    const token=await ownerAccessToken();
+    if(!ownerId||!token)throw Error("Sign in to a verified founder account.");
+    const response=await fetchWithTimeout(
+      BUSY_SUPABASE_URL+"/functions/v1/busy-founder-ops",{
+        method:"POST",
+        headers:{apikey:BUSY_AI_TOKEN,Authorization:"Bearer "+token,
+          "Content-Type":"application/json"},
+        body:JSON.stringify({action:"demo_launch_status"})
+      },20000);
+    if(!response.ok){
+      const error=new Error("The founder staging status is currently unavailable.");
+      error.status=response.status;
+      throw error;
+    }
+    const data=await response.json();
+    if(data?.scope!=="founder_demo_staging"||
+       data?.explicitGoLiveApprovalStillRequired!==true||
+       data?.verifiedExternalHttps!==false)
+      throw Error("Unexpected staging evidence. No launch is confirmed.");
+    return data;
+  };
   const recordFounderService = async (snapshot) => {
     const ownerId=ownerSession?.userId||"";
     const token=await ownerAccessToken();
@@ -15413,6 +15436,7 @@ function App() {
     refreshProductionWatchStatus,
     fetchFounderOperations,
     fetchFounderServices,
+    fetchFounderDemoLaunch,
     recordFounderService,
     fetchExternalReality,
     acknowledgeFounderAlert,
