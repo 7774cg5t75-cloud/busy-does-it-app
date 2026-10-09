@@ -186,6 +186,11 @@ function FounderServiceCosts({s,owner,enabled}){
         <MetricRow left="Recorded cost" right={cost(row?.amountGbpPence)}/>
         <MetricRow left="Billing cadence" right={row?.billingCadence||"Not verified"}/>
         <MetricRow left="Renewal date" right={row?.renewalOn||"Not recorded"}/>
+        {item.renewalReview==="past_review_date"||item.renewalReview==="review_within_30_days"?(
+          <MetricRow left="Renewal review reminder"
+            right={item.renewalReview==="past_review_date"?
+              "Entered review date has passed":"Review within 30 days"}/>
+        ):null}
         <MetricRow left="Last observation"
           right={row?.observedAt?
             new Date(row.observedAt).toLocaleString("en-GB"):"None"}/>
