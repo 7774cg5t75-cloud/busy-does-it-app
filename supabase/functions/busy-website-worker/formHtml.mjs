@@ -6,7 +6,7 @@
 function renderOptInContactForm({siteId="",siteKey="",enabled=false,endpoint="",siteHostname=""}={}){
  if(enabled!==true||typeof siteId!=="string"||
    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(siteId)||
-   typeof siteHostname!=="string"||!new RegExp("^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\\\.busydoesit\\\\.co\\\\.uk$").test(siteHostname)||
+   !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.busydoesit\.co\.uk$/.test(siteHostname)||
    typeof siteKey!=="string"||!/^[a-zA-Z0-9_-]{10,200}$/.test(siteKey)||
    typeof endpoint!=="string"||
    !/^https:\/\/[a-z0-9-]+\.supabase\.co\/functions\/v1\/busy-website-form$/.test(endpoint))
