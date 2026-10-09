@@ -48,6 +48,7 @@ assert.equal(partial.status,"partial");
 assert.equal(partial.sourcesChecked,1);
 assert.equal(partial.openIncidents,null);
 assert.equal(partial.highPriorityIncidents,null);
+assert.equal(buildAutopilotDigest({run,incidents:null,verifiedRole:true,nowISO:at}).status,"partial");
 assert.equal(partial.sourceCoverage.social_failed,"unavailable");
 assert.equal(partial.sourceCoverage.app_failed,"unavailable");
 const noRun=buildAutopilotDigest({verifiedRole:true,nowISO:at});
