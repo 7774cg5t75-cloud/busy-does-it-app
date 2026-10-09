@@ -29,6 +29,7 @@ function parseGbp(s){
 }
 function FounderServiceCosts({s,owner,enabled}){
   const [data,setData]=React.useState({owner:"",status:"idle",report:null,error:""});
+  const [staging,setStaging]=React.useState({owner:"",status:"idle",data:null});
   const [selected,setSelected]=React.useState("supabase");
   const [form,setForm]=React.useState(initialForm);
   const [saving,setSaving]=React.useState(false);
@@ -69,6 +70,25 @@ function FounderServiceCosts({s,owner,enabled}){
     setSelected("supabase");setForm(initialForm());
     setSaving(false);setMessage("");key.current="";
   },[owner]);
+  const loadStaging=React.useCallback(async()=>{
+    const requestedOwner=owner;
+    if(!enabled||!owner){
+      setStaging({owner,status:"idle",data:null});
+      return;
+    }
+    setStaging({owner,status:"loading",data:null});
+    try{
+      const data=await s.fetchFounderDemoLaunch();
+      if(scope.current!==requestedOwner)return;
+      if(data?.scope!=="founder_demo_staging"||
+         data?.explicitGoLiveApprovalStillRequired!==true)return;
+      setStaging({owner,status:"ready",data});
+    }catch{
+      if(scope.current===requestedOwner)
+        setStaging({owner,status:"unavailable",data:null});
+    }
+  },[owner,enabled,s.fetchFounderDemoLaunch]);
+  React.useEffect(()=>{loadStaging();},[loadStaging]);
   const save=async()=>{
     if(saving||!enabled||!owner)return;
     const usage=parseWhole(form.usage),allowance=parseWhole(form.allowance),
@@ -121,6 +141,27 @@ function FounderServiceCosts({s,owner,enabled}){
       {current?<Text style={styles.sectionLabel}>
         {current.note} Every number below shows its source and observation date.
       </Text>:null}
+    </Card>
+    <Card eyebrow="V3.81 • First live website milestone"
+      title="demo.busydoesit.co.uk — controlled staging"
+      body="This checks for an actual website record and private hosted preview. The code-generated fictional demo is not a hosted customer website. Nothing will go publicly live without your approval of the exact preview."
+      footer="Read-only evidence, not a publish button. Your main busydoesit.co.uk website is also still a development draft."
+      tone="blue">
+      <MetricRow left="Staging website created"
+        right={staging.status==="ready"?
+          staging.data?.siteRecordAllocated?"Recorded":"Not recorded":"Not verified"}/>
+      <MetricRow left="Private hosted preview"
+        right={staging.status==="ready"?
+          staging.data?.privateHostedPreviewRecorded?"Recorded":"Not yet":"Not verified"}/>
+      <MetricRow left="Public publication"
+        right={staging.status==="ready"?
+          staging.data?.publicationRecorded?"Recorded (not externally checked)":"Not published":"Not verified"}/>
+      <MetricRow left="External HTTPS proof" right="Not verified in this report"/>
+      <MetricRow left="Approval before Go Live" right="Always required"/>
+      <Button label="Refresh demonstration staging status"
+        disabled={staging.status==="loading"||!enabled} onPress={loadStaging}/>
+      <Button label="Open current business Website Management"
+        disabled={!enabled} onPress={s.openWebsitePublishing}/>
     </Card>
     {services.map(item=>{
       const row=item.latest;
