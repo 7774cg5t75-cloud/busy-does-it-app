@@ -145,6 +145,9 @@ import {
 
 
 function SocialMediaCentre({ s }) {
+  const [socialList, setSocialList] = useState("Drafts");
+  const [showAllPosts, setShowAllPosts] = useState(false);
+  const [showSocialDetails, setShowSocialDetails] = useState(false);
   useEffect(() => {
     s.refreshSocialPublishingStatus({ quiet: true });
   }, []);
@@ -209,9 +212,7 @@ function SocialMediaCentre({ s }) {
   const workingDrafts = drafts.filter(
     (draft) => !draft.status || draft.status === "Draft"
   );
-  const publishedDrafts = drafts
-    .filter((draft) => draft.status === "Published")
-    .slice(0, 8);
+  const publishedDrafts = drafts.filter((draft) => draft.status === "Published");
   const outcomeReminders = (s.socialOutcomeReminders || []).slice(0, 5);
 
   const providerResultLine = (draft) => {
@@ -293,13 +294,112 @@ function SocialMediaCentre({ s }) {
     return "Not connected";
   };
 
+  const socialGroups = [
+    { key: "Drafts", items: workingDrafts },
+    { key: "Scheduled", items: scheduledDrafts },
+    { key: "Published", items: publishedDrafts },
+  ];
+  const currentGroup = socialGroups.find((group) => group.key === socialList) || socialGroups[0];
+  const visibleSocialPosts = showAllPosts ? currentGroup.items : currentGroup.items.slice(0, 3);
+
   return (
     <Shell
       s={s}
       title="Social Media"
-      subtitle="See what is ready to post, what is scheduled, what needs attention and what actually produced business results."
-      brandCue="One place for content, publishing status and outcome learning."
+      subtitle="Create, schedule and manage your posts."
     >
+      <Button label="+ Create a new post" primary onPress={s.startSocialFromPhone} />
+
+      <View style={styles.socialSummaryRow}>
+        <View style={styles.socialSummaryTile}>
+          <Text style={styles.socialSummaryNumber}>{workingDrafts.length}</Text>
+          <Text style={styles.socialSummaryLabel}>Drafts</Text>
+        </View>
+        <View style={styles.socialSummaryTile}>
+          <Text style={styles.socialSummaryNumber}>{scheduledDrafts.length}</Text>
+          <Text style={styles.socialSummaryLabel}>Scheduled</Text>
+        </View>
+        <View style={styles.socialSummaryTile}>
+          <Text style={styles.socialSummaryNumber}>{publishedDrafts.length}</Text>
+          <Text style={styles.socialSummaryLabel}>Published</Text>
+        </View>
+      </View>
+
+      {attentionDrafts.length || cloudFailed || s.socialPublishingError ? (
+        <Card
+          eyebrow="Needs attention"
+          title={attentionDrafts.length || cloudFailed
+            ? "Some posts need checking"
+            : "Connection status could not be refreshed"}
+          body={s.socialPublishingError || "Check failed or partly published posts before trying again. BUSY will not automatically post duplicates."}
+          tone="amber"
+        >
+          {attentionDrafts.slice(0, 3).map(renderDraftCard)}
+          {cloudFailed ? <Button label="Check publishing details" onPress={() => setShowSocialDetails(true)} /> : null}
+        </Card>
+      ) : null}
+
+      <Card eyebrow="Your accounts" title="Connected accounts" tone="blue">
+        <MetricRow
+          left="Facebook / Instagram"
+          right={providerLabel(meta, "Facebook / Instagram")}
+          strong={meta.status === "connected"}
+        />
+        <MetricRow
+          left="Google Business"
+          right={providerLabel(google, "Google Business")}
+          strong={google.status === "connected"}
+        />
+        <Button label="Manage accounts" onPress={() => s.go("connectedAccounts")} />
+      </Card>
+
+      <Text style={styles.sectionLabel}>Your posts</Text>
+      <View style={styles.socialFilterRow}>
+        {socialGroups.map((group) => (
+          <Pressable
+            key={group.key}
+            accessibilityRole="button"
+            accessibilityState={{ selected: socialList === group.key }}
+            onPress={() => {
+              setSocialList(group.key);
+              setShowAllPosts(false);
+            }}
+            style={[styles.socialFilterButton, socialList === group.key && styles.socialFilterSelected]}
+          >
+            <Text style={[styles.socialFilterText, socialList === group.key && styles.socialFilterTextSelected]}>
+              {group.key}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      {visibleSocialPosts.length ? visibleSocialPosts.map(renderDraftCard) : (
+        <View style={styles.socialEmptyState}>
+          <Text style={styles.socialEmptyTitle}>
+            {socialList === "Drafts" ? "No drafts yet" : socialList === "Scheduled" ? "Nothing scheduled" : "No published posts yet"}
+          </Text>
+          <Text style={styles.socialEmptyDetail}>
+            {socialList === "Drafts"
+              ? "Create a post from your photos to get started."
+              : socialList === "Scheduled"
+              ? "Posts you approve and schedule will appear here."
+              : "Once a post is published, you can find it here."}
+          </Text>
+        </View>
+      )}
+      {currentGroup.items.length > 3 ? (
+        <Button
+          label={showAllPosts ? "Show fewer posts" : `See all ${currentGroup.items.length} ${socialList.toLowerCase()} posts`}
+          onPress={() => setShowAllPosts((value) => !value)}
+        />
+      ) : null}
+
+      <Button
+        label={showSocialDetails ? "Hide more social media tools" : "More social media tools & details"}
+        onPress={() => setShowSocialDetails((value) => !value)}
+      />
+      {showSocialDetails ? (
+        <>
       <Card
         eyebrow="Posts and scheduling"
         title="Your posts in one place"
@@ -363,7 +463,6 @@ function SocialMediaCentre({ s }) {
         tone="blue"
       />
 
-      <Button label="Create something from my phone photos" primary onPress={s.startSocialFromPhone} />
 
       {jobs.length ? (
         <>
@@ -461,12 +560,6 @@ function SocialMediaCentre({ s }) {
         <MetricRow left="Recently published" right={String(publishedDrafts.length)} strong={publishedDrafts.length > 0} />
       </Card>
 
-      {attentionDrafts.length ? (
-        <>
-          <Text style={styles.sectionLabel}>Needs attention</Text>
-          {attentionDrafts.map(renderDraftCard)}
-        </>
-      ) : null}
 
       {scheduledDrafts.length ? (
         <>
@@ -552,7 +645,9 @@ function SocialMediaCentre({ s }) {
         <Button label="How BUSY learns" onPress={() => s.go("businessBrain")} />
       </Card>
 
-      <Button label="Back" onPress={s.back} />
+
+        </>
+      ) : null}
     </Shell>
   );
 }
