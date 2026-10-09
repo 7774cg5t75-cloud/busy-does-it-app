@@ -17,7 +17,7 @@
 
 ## Provider-readiness work (requires permission)
 - `providerReaders.mjs`: fixed-host read-only adapters (no caller-supplied arbitrary URL or account selection).
-- **GitHub:** user-level Actions minutes for the authenticated account's current UTC month, from GitHub billing usage summary; requires a secure `BUSY_GITHUB_BILLING_READ_TOKEN` with account Plan **read** permission plus `BUSY_GITHUB_BILLING_ACCOUNT`. This is an account-scoped usage observation and is NOT a GBP invoice. GitHub source-code repo access does not grant billing API access. GitHub documents: https://docs.github.com/en/rest/billing/usage .
+- **GitHub:** user- or organisation-level Actions minutes for the selected account's current UTC month, from the GitHub billing usage summary; requires `BUSY_GITHUB_BILLING_READ_TOKEN`, `BUSY_GITHUB_BILLING_ACCOUNT` and optional `BUSY_GITHUB_BILLING_SCOPE=organization` for an organisation. User-level scopes require the account Plan read permission; organisation-level scopes require relevant organisation Administration read permission. This is an account-scoped usage observation and is NOT a GBP invoice. GitHub source-code repo access does not grant billing API access. GitHub documents: https://docs.github.com/en/rest/billing/usage .
 - **Cloudflare:** Workers invocation/traffic observations from one account and a single named Worker during the previous hour, using its Analytics GraphQL API; requires `BUSY_CLOUDFLARE_ANALYTICS_READ_TOKEN`, `BUSY_CLOUDFLARE_ACCOUNT_TAG` and `BUSY_CLOUDFLARE_WORKER_SCRIPT`. Enforces one-account, fewer-than-100-series nontruncated results. These are **sampled operational observations, not billed usage**. Documentation: https://developers.cloudflare.com/analytics/graphql-api/tutorials/querying-workers-metrics/ .
 - Neither credential is requested from, stored by or displayed in the iOS app. They must be authorised separately through the provider and saved securely in the Supabase server environment. **No credential was created or activated in this sweep.**
 - The Founder dashboard has a button to **check configured read-only provider feeds**. This is on-demand rather than scheduled: external provider polling *cannot yet run unattended* until credentials and scheduling permission are in place. It fails closed if not configured.
@@ -43,8 +43,8 @@
 - Checked scheduler: telemetry hourly, retention daily and provider cooldown pruning daily all active.
 - Verified unauthenticated and ordinary authenticated clients cannot read the founder telemetry or provider-refresh slots or invoke either privileged RPC.
 - Transactional fixture (rolled back) confirmed first provider refresh claim succeeds, duplicate claim in the same window is refused, valid read-only provider provenance can be stored, and fake creator records are rejected.
-- V3.82 regression suite passed **113 focused assertions** (pure logic + mocks for real provider API response shapes + strict security/source checks), and production CI workflow includes it.
-- `busy-founder-ops` Edge Function is ACTIVE **v14**, with `verify_jwt=true` and the new helper modules.
+- V3.82 regression suite passed **122 focused assertions** (pure logic + mocks for real provider API response shapes + strict security/source checks), and production CI workflow includes it.
+- `busy-founder-ops` Edge Function is ACTIVE **v15**, with `verify_jwt=true` and the new helper modules.
 - GitHub CI complete run and device acceptance have **not** been confirmed. No real provider API credential or billing result has been verified. No real public demo website exists yet.
 
 ## What comes next
