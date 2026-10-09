@@ -29,10 +29,15 @@ function buildWebsiteLaunchProof(view={}){
   const liveMatched=approved&&website?.health_status==="healthy"&&
     website?.last_observed_deployment_id===live.id&&
     website?.last_healthy_at===website?.last_health_check_at&&evidenceFresh;
-  const domainMatched=!!host&&domain.activationReady===true&&
-    website?.delivery_status==="active"&&
-    view.defaultDomainHealth?.status==="healthy"&&
-    view.defaultDomainHealth?.observed_deployment_id===live?.id;
+  const domainChecked=Date.parse(view.defaultDomainHealth?.checked_at||"");
+  const domainFresh=Number.isFinite(domainChecked)&&domainChecked<=Date.now()&&
+    Date.now()-domainChecked<=48*3600000;
+  const domainMatched=!!host&&host===website?.default_hostname&&
+    domain.activationReady===true&&website?.delivery_status==="active"&&
+    view.defaultDomainHealth?.status==="healthy"&&domainFresh&&
+    view.defaultDomainHealth?.expected_deployment_id===live?.id&&
+    view.defaultDomainHealth?.observed_deployment_id===live?.id&&
+    exactBusyHost(view.defaultDomainHealth?.checked_url||"")===host;
   const checks=[
     {id:"editor",label:"Editable customer website draft",
       ready:!!view.websiteDraftPresent||!!view.draftChangedSinceHosted||
