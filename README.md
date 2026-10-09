@@ -6,7 +6,7 @@ BUSY's private **Founder Operations** now includes an inventory of **ten infrast
 
 The register uses a founder-only Supabase Edge Function and RLS-protected database table. User sessions must pass a **fresh server-side founder role check**; ordinary customers cannot inspect the platform's provider records. Saves are bounded, permissioned and duplicate-safe. The Founder dashboard also offers a read-only evidence check for `demo.busydoesit.co.uk`, where the system currently has **no actual hosted site record or private preview**. This does not publish, purchase or connect anything.
 
-Backend `busy-founder-ops` is **ACTIVE v12**. Focused V3.81 regression checks passed and are wired into GitHub CI; full workflow and native iPhone acceptance remain unverified. See `docs/V3_81_FOUNDER_SERVICE_CONTROL.md` for release gates and future provider billing/automatic monitoring plans.
+Backend `busy-founder-ops` is **ACTIVE v13**. Focused V3.81 regression checks passed and are wired into GitHub CI; full workflow and native iPhone acceptance remain unverified. See `docs/V3_81_FOUNDER_SERVICE_CONTROL.md` for release gates and future provider billing/automatic monitoring plans.
 
 ## V3.80 — BUSY Headquarters & First Website Demonstration (development)
 
