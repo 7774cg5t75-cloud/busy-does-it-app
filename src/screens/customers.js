@@ -349,7 +349,7 @@ function CustomerRecords({ s }) {
       })}
       <Button label="Quick capture" primary onPress={s.startQuickCapture} />
       <Button label="+ New enquiry manually" onPress={s.startNewEnquiry} />
-      <Button label="Open customer pipeline" onPress={() => s.go("workPipeline")} />
+      <Button label="Customers & enquiries" onPress={() => s.go("workPipeline")} />
       <Button label="+ Add previous customer" onPress={s.startNewCustomer} />
       {s.eligibleCustomers.length ? <Button label="Review customers worth contacting" onPress={() => s.go("eligibleCustomers")} /> : null}
       <Button label="Done" onPress={s.back} />
@@ -473,7 +473,7 @@ function CustomerDetail({ s }) {
 
       {journey ? (
         <Card
-          eyebrow="V3.31 • Customer Command Centre"
+          eyebrow="Customer details"
           title={journey.nextAction?.title || "Customer journey is up to date"}
           body={
             journey.nextAction?.body ||
