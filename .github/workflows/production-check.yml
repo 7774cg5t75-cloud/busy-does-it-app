@@ -24,6 +24,12 @@ jobs:
       - name: Validate production foundation
         run: node scripts/check-production.mjs
 
+      - name: Verify founder alerts and incident security regressions
+        run: |
+          node scripts/check-founder-operations.mjs
+          node scripts/check-platform-autopilot.mjs
+          node scripts/check-platform-autopilot-v371.mjs
+
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs
 
