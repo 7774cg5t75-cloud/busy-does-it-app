@@ -115,5 +115,11 @@ assert.ok(screen.includes('const stagingLoader=React.useRef(s.fetchFounderDemoLa
 
 assert.ok(screen.includes("External HTTPS proof"));
 assert.ok(screen.includes("Open current business Website Management"));
+assert.ok(screen.includes('const serviceLoader=React.useRef(s.fetchFounderServices)'));
+assert.ok(screen.includes('serviceLoader.current=s.fetchFounderServices'));
+assert.ok(screen.includes('},[owner,enabled]);'));
+assert.ok(screen.includes('request!==stagingNonce.current'));
+assert.ok(screen.includes('throw Error("Invalid staging evidence")'));
+
 assert.ok(workflow.includes("node scripts/check-founder-operations-v381.mjs"));
 console.log("V3.81 PASS: 10-vendor register, real log provenance, valid payment/usage inputs, founder-only server actions, private staging evidence and no false invoices.");
