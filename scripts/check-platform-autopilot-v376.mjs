@@ -15,7 +15,7 @@ assert.equal(clean.status,"complete");
 assert.equal(clean.website_sampled,3);
 assert.equal(clean.social_provider_accepted,2);
 assert.equal(clean.app_deployment_recorded,1);
-assert.equal(clean.completed_at,now.replace(".000",""));
+assert.equal(clean.completed_at,new Date(now).toISOString());
 assert.ok(!JSON.stringify(clean).includes("should never persist"));
 assert.ok(!JSON.stringify(clean).includes("sensitive-secret"));
 assert.equal(Object.keys(clean).length,15);
