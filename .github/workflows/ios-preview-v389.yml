@@ -4,7 +4,7 @@ on:
   push:
     branches: [v3.89]
     paths:
-      - .github/workflows/ios-preview-v388.yml
+      - .github/workflows/ios-preview-v389.yml
   workflow_dispatch:
 
 permissions:
