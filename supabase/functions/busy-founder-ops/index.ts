@@ -179,10 +179,11 @@ Deno.serve(async(req:Request)=>{
     return send(400,{error:"unsupported_action"});
   if(!ROOT||!SECRET_KEY)return send(503,{error:"platform_reporting_unavailable"});
   try{
-    const [{counts,usage},{monitorRun,monitorIncidents,alertRows}]=await Promise.all([
-      aggregates(),incidentData()
+    const [{counts,usage},{monitorRun,monitorIncidents,alertRows},founderDeviceCount]=await Promise.all([
+      aggregates(),incidentData(),
+      safely(()=>queryCount("busy_push_devices","id",{"user_id":"eq."+founder.id,"active":"eq.true"}))
     ]);
-    return send(200,buildFounderReport({counts,usage,monitorRun,monitorIncidents,alertRows,
+    return send(200,buildFounderReport({counts,usage,monitorRun,monitorIncidents,alertRows,founderDeviceCount,
       checkedAt:new Date().toISOString(),verifiedRole:true}));
   }catch{return send(503,{error:"platform_reporting_unavailable"});}
 });
