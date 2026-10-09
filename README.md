@@ -1,5 +1,13 @@
 # busy-does-it-app
 
+## V3.73 — Escalation and Founder Push Readiness (development)
+
+V3.73 extends the monitored incident inbox with conservative `watch`, `persistent`, `urgent` and `unverified` classifications based on real background-scan coverage. The founder-only endpoint also reports the **authenticated founder account's own active push-device count** without leaking device tokens. A new pure delivery policy requires explicit opt-in, verified destination, fresh source data, quiet hours and a minimum 24-hour cooldown before any future sender may dispatch. The Founder Operations dashboard shows the escalation state and links to Production Bridge for device enrolment.
+
+**Important:** No native founder push device is registered yet and **automatic push/email delivery is not enabled**. No customer publishing retries, hosting suspension or payments were activated. The V3.73 Edge Function is deployed with JWT verification. Regression tests were added to the GitHub workflow; full green CI and real-device acceptance still need confirmation.
+
+See `docs/V3_73_ESCALATION_NOTIFICATION_READINESS.md`.
+
 ## V3.72 — Founder Reliability & Regression Gates (development)
 
 The founder dashboard now distinguishes current scans, stalled scans, partial source coverage, unavailable alert inbox information and alerts awaiting review. A zero-alert view never claims that public websites have been proven reachable. Account-switch handling prevents an earlier acknowledgement response from confusing the current account's screen. GitHub's existing production check now runs V3.69–V3.72 founder-monitor regressions on new commits. A V3.72 authenticated founder reporting update is deployed with JWT verification; external alert delivery, automatic provider recovery and £50 billing remain disabled. **Full CI result and native iPhone acceptance are not yet confirmed.** See `docs/V3_72_FOUNDER_RELIABILITY.md`.
