@@ -27,8 +27,8 @@ function ExecutiveBriefing({ s }) {
   return (
     <Shell
       s={s}
-      title="Executive Briefing"
-      subtitle="What is happening now, what the saved pipeline suggests next, and what actually needs attention."
+      title="Business outlook"
+      subtitle="See your booked work, what may be coming next and anything worth checking."
       brandCue="Confirmed work stays separate from forecast ranges. BUSY shows confidence instead of pretending certainty."
     >
       <Card
@@ -173,7 +173,7 @@ function ExecutiveBriefing({ s }) {
       />
 
       <Button label="Ask BUSY about this outlook" primary onPress={s.askBusyAboutOutlook} />
-      <Button label="Open Business Memory" onPress={() => s.go("businessMemory")} />
+      <Button label="What BUSY remembers" onPress={() => s.go("businessMemory")} />
       <Button label="Open weekly Work plan" onPress={() => s.jump("workHub", "Work")} />
       <Button label="Back to Home" onPress={() => s.jump("home", "Home")} />
     </Shell>
