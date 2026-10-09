@@ -16,7 +16,7 @@ const expo = JSON.parse(read("app.json")).expo;
 
 const checks = [
   ["version matched without changing bundle ID", () => {
-    assert.ok(["3.85.0", "3.86.0"].includes(pkg.version));
+    assert.ok(["3.85.0", "3.86.0", "3.87.0"].includes(pkg.version));
     assert.equal(expo.version, pkg.version);
     assert.equal(expo.ios.bundleIdentifier, "com.busydoesit.app");
     assert.equal(expo.ios.buildNumber, String(Number(pkg.version.split(".")[1]) - 80));
@@ -59,7 +59,7 @@ const checks = [
   }],
   ["Home extra tools keep the same working destinations", () => {
     assert.ok(home.includes("See all BUSY tools +"));
-    assert.ok(home.includes('["Social Media", () => s.openSocialCentre()]'));
+    assert.ok(home.includes("onPress={s.openSocialCentre}"));
     assert.ok(home.includes('["Grow my business", () => s.go("growthCommandCentre")]'));
     assert.ok(home.includes('["Today’s priorities", () => s.go("dailyCommandCentre")]'));
   }],
