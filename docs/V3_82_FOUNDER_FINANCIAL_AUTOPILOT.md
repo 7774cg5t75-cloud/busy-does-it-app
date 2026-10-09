@@ -10,7 +10,7 @@
 ## Automatically working now (without new credentials)
 - Migration `20261009123000_v382_internal_telemetry.sql`: new private `busy_founder_auto_telemetry` table (RLS, direct anon/auth grants revoked).
 - Scheduled **every hour at minute 37 UTC** with `pg_cron`: aggregate BUSY's own AI request records over rolling 30 days, hosted-website request records over 30 days, prepared website versions, website live *records*, workspaces, and internal incident-monitor runs in the past 24 hours.
-- Six distinct, timestamped first-party metrics, individually labelled; unknown values are never converted to measured zero. The first backfill has run. Future pg_cron execution is scheduled, not claimed as independently observed until cron logs confirm it.
+- Six distinct, timestamped first-party metrics, individually labelled; unknown values are never converted to measured zero. The first backfill ran, and an additional scheduled collection completed at **11:37 UTC on 9 October 2026**, proving unattended hourly execution. The six real observations for that run were: AI request records 0, internal website request records 0, prepared website versions 0, live website records 0, workspaces 1, and incident-monitor scans in the prior 24 hours 48.
 - Built-in private retention job at 03:47 UTC prunes telemetry older than 90 days.
 - **These are not billable Supabase Edge Function invocations or provider AI tokens.** They cannot be compared directly with the 500,000 org-wide Edge Function allowance.
 - UI now shows measurements, timestamps/freshness, privacy caveats, provider connection gaps, and clearly labelled historical subscription details.
