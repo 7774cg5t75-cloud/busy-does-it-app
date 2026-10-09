@@ -296,14 +296,14 @@ function SocialMediaCentre({ s }) {
   return (
     <Shell
       s={s}
-      title="Social control centre"
+      title="Social Media"
       subtitle="See what is ready to post, what is scheduled, what needs attention and what actually produced business results."
       brandCue="One place for content, publishing status and outcome learning."
     >
       <Card
-        eyebrow="V3.8 • Social control centre"
-        title="Publishing is now organised around the owner's next action"
-        body="Ready-to-post jobs, drafts, schedules, provider results, failed destinations and outcome reminders are kept together in one workflow."
+        eyebrow="Posts and scheduling"
+        title="Your posts in one place"
+        body="Create posts, review drafts, see what is scheduled and check which posts were published."
         footer={
           liveEnabled
             ? "Live provider publishing safety switch: ON"
@@ -319,8 +319,8 @@ function SocialMediaCentre({ s }) {
 
       <Card
         eyebrow="Connection health"
-        title="Facebook / Instagram and Google Business are separate publishing authorities"
-        body="BUSY can prepare content before either provider is connected. Going public only becomes possible after the provider authorizes BUSY and the final live-publishing switch is deliberately enabled."
+        title="Check your connected accounts"
+        body="BUSY can prepare posts before accounts are connected. Publishing only works after you connect and approve the relevant account."
         tone={liveConnectedCount ? "green" : "blue"}
       >
         <MetricRow
@@ -549,7 +549,7 @@ function SocialMediaCentre({ s }) {
         <MetricRow left="Finished-job post outcomes" right={String(s.postEvidence?.sample || 0)} />
         <MetricRow left="Outcomes marked booking" right={String(s.postEvidence?.successes || 0)} />
         <MetricRow left="Evidence confidence" right={s.postEvidence?.confidence || "No evidence yet"} />
-        <Button label="Open Business Brain" onPress={() => s.go("businessBrain")} />
+        <Button label="How BUSY learns" onPress={() => s.go("businessBrain")} />
       </Card>
 
       <Button label="Back" onPress={s.back} />
@@ -691,7 +691,7 @@ function SocialCreator({ s }) {
         </>
       ) : null}
 
-      <Button label="Back to Social Control Centre" onPress={() => s.go("socialMedia")} />
+      <Button label="Back to Social Media" onPress={() => s.go("socialMedia")} />
     </Shell>
   );
 }
@@ -1041,7 +1041,7 @@ function SocialDraftReview({ s }) {
         />
       ) : null}
 
-      <Button label="Back to Social Control Centre" onPress={() => s.go("socialMedia")} />
+      <Button label="Back to Social Media" onPress={() => s.go("socialMedia")} />
     </Shell>
   );
 }
@@ -1157,7 +1157,7 @@ function BusinessBrain({ s }) {
   return (
     <Shell
       s={s}
-      title="Business Brain"
+      title="How BUSY learns"
       subtitle="The evidence, outcomes and owner choices BUSY is actually using to tailor this business."
       brandCue="Auditable learning: source, sample, confidence, freshness, choices and owner authority."
     >
@@ -1419,7 +1419,7 @@ function BusinessBrain({ s }) {
       />
 
       <Button label="Back to Home" primary onPress={() => s.jump("home", "Home")} />
-      <Button label="Social Control Centre" onPress={() => s.go("socialMedia")} />
+      <Button label="Social Media" onPress={() => s.go("socialMedia")} />
     </Shell>
   );
 }
