@@ -1,5 +1,13 @@
 # busy-does-it-app
 
+## V3.71 — Founder Alert Inbox & Commercial Guardrails (development)
+
+BUSY's unattended V3.70 monitor now synchronises a **private, founder-only in-app alert inbox** every 15 minutes. Open, resolved and acknowledged states are tracked separately. Acknowledging an alert does not resolve or retry an incident; a reopened incident requires new acknowledgement. Founder role verification remains server-controlled, and customer roles cannot read or write inbox rows. The founder dashboard provides constrained class-specific review guidance without exposing customer data.
+
+The backend migration and founder Edge Function are deployed. Rollback-safe database lifecycle tests and customer privilege checks passed. **External push/email alerts, autonomous recovery, subscription charges, live cancellation/hosting suspension and automatic AI cost blocking are NOT enabled.** V3.71 also introduces fail-safe subscription and usage policy helpers for later integration with verified billing and metering. An iPhone acceptance pass and full Node regression run are still required.
+
+See `docs/V3_71_FOUNDER_ALERTS_AND_COMMERCIAL_GUARDRAILS.md` for details and release gates.
+
 ## V3.70 — BUSY Platform Autopilot 1.0 (development)
 
 BUSY's **first unattended, server-side platform incident monitor** now operates in Supabase independently of the owner's iPhone. A private `pg_cron` job runs every **15 minutes**, scanning existing records for website job failures, expired website processing leases, failed/partially failed social publishing and failed Business Apps. It maintains low-noise grouped incident history, requires **two clean scans** before resolving an issue, and records incomplete data as unavailable rather than pretending there is no problem.
