@@ -1,5 +1,13 @@
 # busy-does-it-app
 
+## V3.78 — Customer Success Engine 1.0 (development)
+
+V3.78 begins connecting website marketing activity to **real customer follow-up** while keeping evidence honest. Website Management now has an owner/admin-only **private enquiry inbox** for deliberately entered customer contacts, permission confirmation, duplicate-safe saves, and explicit reviewing/quoted/booked/closed stages. It distinguishes website-attributed events from personally recorded leads and from unverified booked statuses; no contact is automatically messaged.
+
+Supabase `busy-website-publish` is **ACTIVE v19** with JWT verification and a business-scoped manual lead workflow. The `busy_website_leads` table is RLS-protected, inaccessible directly to ordinary customers and anonymous visitors, and has unique business/request keys. This is *not* yet a public website contact form, verified website lead conversion, payment collection or a real booking integration. Public visitor intake needs challenge verification, rate limits, privacy retention and a genuine approved hosted website deployment before enabling.
+
+A new V3.78 regression suite joins the existing GitHub CI workflow. Focused checks and database access controls have been verified; complete green GitHub CI, iPhone acceptance and real external website go-live tests remain pending. See `docs/V3_78_CUSTOMER_SUCCESS.md`.
+
 ## V3.77 — Customer Experience & Go-Live Engine (development)
 
 V3.77 provides a **six-step customer website launch journey**, using genuine Brand Brain, editor-draft, immutable hosted-preview, approved publish and externally recorded deployment-health state. Website Builder and Website Management now show the next useful step, and Go Live requires the customer to open and explicitly confirm review of the exact hosted preview.
