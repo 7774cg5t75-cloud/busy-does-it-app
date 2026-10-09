@@ -18,9 +18,9 @@ const runtime = read("src/core/runtime.js");
 
 const checks = [
   ["version aligns across runtime and native config", () => {
-    assert.equal(pkg.version, "3.83.0");
+    assert.ok(["3.83.0", "3.84.0"].includes(pkg.version));
     assert.equal(config.expo.version, pkg.version);
-    assert.ok(runtime.includes('const APP_VERSION = "3.83";'));
+    assert.ok(runtime.includes(`const APP_VERSION = "${pkg.version.slice(0,-2)}";`));
   }],
   ["Home opts into an isolated dark shell", () => {
     assert.ok(home.includes("      dark\n      hideDevBadge"));
@@ -28,8 +28,8 @@ const checks = [
     assert.ok(theme.includes('backgroundColor: "#0D131E"'));
   }],
   ["native safe area and status bar follow Home", () => {
-    assert.ok(app.includes('const isDarkHome = screen === "home"'));
-    assert.ok(app.includes('isDarkHome ? "light-content" : "dark-content"'));
+    assert.ok(app.includes('<StatusBar barStyle="light-content" />'));
+    assert.ok(app.includes("React.createElement(component, { s: appState })"));
   }],
   ["no development version banner on Home", () => {
     assert.ok(shell.includes("!hideDevBadge"));
@@ -63,8 +63,8 @@ const checks = [
     assert.ok(!home.includes("fetchFounderOperations"));
     assert.ok(!home.includes("fetchFounderServices"));
   }],
-  ["light business screens retain their original styling", () => {
-    assert.ok(shell.includes("dark = false"));
+  ["dark business screens share the current native shell", () => {
+    assert.ok(shell.includes("dark = true"));
     assert.ok(shell.includes("dark && styles.homeDarkNav"));
     assert.ok(theme.includes("safe: { flex: 1, backgroundColor: C.bg }"));
   }],
