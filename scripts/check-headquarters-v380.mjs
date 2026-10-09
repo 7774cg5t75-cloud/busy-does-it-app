@@ -87,7 +87,8 @@ const base={
  preview_storage_path:"private/preview.html"},
  liveDeployment:{id,published_at:stamp,public_storage_path:"public/index.html"},
  providerState:{activationReady:true},
- defaultDomainHealth:{status:"healthy",observed_deployment_id:id}
+ defaultDomainHealth:{status:"healthy",observed_deployment_id:id,
+  expected_deployment_id:id,checked_url:"https://demo.busydoesit.co.uk",checked_at:stamp}
 };
 assert.equal(buildWebsiteLaunchProof(base).verified,true);
 assert.equal(buildWebsiteLaunchProof(base).passed,7);
@@ -97,6 +98,14 @@ assert.equal(buildWebsiteLaunchProof({...base,website:{...base.website,health_st
 assert.equal(buildWebsiteLaunchProof({...base,website:{...base.website,last_observed_deployment_id:"old"}}).verified,false);
 assert.equal(buildWebsiteLaunchProof({...base,website:{...base.website,default_url:"https://attacker.net"}}).verified,false);
 assert.equal(buildWebsiteLaunchProof({...base,defaultDomainHealth:null}).verified,false);
+assert.equal(buildWebsiteLaunchProof({...base,defaultDomainHealth:{
+ ...base.defaultDomainHealth,expected_deployment_id:"other"}}).verified,false);
+assert.equal(buildWebsiteLaunchProof({...base,defaultDomainHealth:{
+ ...base.defaultDomainHealth,checked_url:"https://wrong.busydoesit.co.uk"}}).verified,false);
+assert.equal(buildWebsiteLaunchProof({...base,defaultDomainHealth:{
+ ...base.defaultDomainHealth,checked_at:"2020-01-01T00:00:00.000Z"}}).verified,false);
+assert.equal(buildWebsiteLaunchProof({...base,website:{
+ ...base.website,default_hostname:"different.busydoesit.co.uk"}}).verified,false);
 assert.equal(buildWebsiteLaunchProof({...base,website:{...base.website,
  last_healthy_at:"2020-01-01T00:00:00.000Z"}}).verified,false);
 assert.equal(buildWebsiteLaunchProof({...base,website:{...base.website,
