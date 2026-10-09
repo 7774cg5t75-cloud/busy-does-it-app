@@ -12989,6 +12989,31 @@ function App() {
     return data;
   };
 
+  // V3.78: owner/admin-only, explicitly recorded enquiries.
+  // No automatic messages or fictitious public form submissions.
+  const listWebsiteLeads=async()=>{
+    const result=await websitePublishingRequest("lead_list");
+    if(result?.leads?.status!=="available"||
+       !Array.isArray(result.leads.recent))
+      throw Error("Private lead list is unavailable.");
+    return result.leads;
+  };
+  const createWebsiteLead=async(input)=>{
+    if(!input?.idempotencyKey)throw Error("A unique lead request ID is required.");
+    const result=await websitePublishingRequest("lead_add",input);
+    if(!result?.ok||(!result?.result?.created&&!result?.result?.reused))
+      throw Error("BUSY could not confirm this enquiry was saved.");
+    return result.result;
+  };
+  const changeWebsiteLeadStatus=async(id,expectedStatus,nextStatus)=>{
+    const result=await websitePublishingRequest("lead_update",{
+      id,expectedStatus,nextStatus
+    });
+    if(!result?.ok||result?.result?.updated!==true)
+      throw Error("Lead change could not be confirmed.");
+    return result.result;
+  };
+
   const refreshWebsitePublishingStatus = async ({ quiet = false } = {}) => {
     if (!ownerSession?.accessToken || !cloudWorkspace?.businessId) {
       if (!quiet) setWebsitePublishingError("Sign in and connect the BUSY cloud workspace first.");
@@ -15148,6 +15173,9 @@ function App() {
     websiteDomainDraft,
     setWebsiteDomainDraft,
     refreshWebsitePublishingStatus,
+    listWebsiteLeads,
+    createWebsiteLead,
+    changeWebsiteLeadStatus,
     prepareHostedWebsite,
     openHostedWebsitePreview,
     confirmPublishHostedWebsite,
