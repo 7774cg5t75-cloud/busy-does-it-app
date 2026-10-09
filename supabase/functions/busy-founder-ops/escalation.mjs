@@ -18,7 +18,7 @@ function classifyEscalation({incident=null,run=null,nowISO=""}={}){
   const lastSeen=sourceTime(incident?.lastObservedAt||incident?.lastSeenAt);
   const good=now!==null&&scan!==null&&now>=scan&&now-scan<=45*60000&&
     run?.coverage?.[key]==="checked"&&opened!==null&&lastSeen!==null&&
-    opened<=now&&lastSeen<=now&&run?.status!=="partial";
+    opened<=now&&lastSeen<=now&&run?.status==="complete";
   const age=good?Math.floor((now-opened)/60000):null;
   if(!good)return {level:"unverified",ageMinutes:null,sourceVerified:false,automaticRecoveryAllowed:false};
   if(incident.status==="resolved")
