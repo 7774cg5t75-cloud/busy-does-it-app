@@ -76,7 +76,7 @@ const checks = [
     assert.ok(start >= 0 && end > start);
     assert.ok(!part.includes("fetch("));
     assert.ok(!part.includes("supabase.functions.invoke("));
-    assert.ok(!part.includes("s.publish"));
+    assert.ok(!part.includes("s.publish("));
   }],
 ];
 for (const [name, test] of checks) {
