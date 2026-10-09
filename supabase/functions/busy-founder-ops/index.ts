@@ -5,6 +5,7 @@ import {probeManagedWebsite,buildExternalRealityDigest} from "./externalReality.
 import {snapshotPayload} from "./evidenceHistory.mjs";
 import {validateServiceSnapshot,buildServiceInventory} from "./serviceRegister.mjs";
 import {digestAutomaticTelemetry} from "./autoTelemetry.mjs";
+import {readConfiguredProviders,readGitHubUsage,readCloudflareTraffic} from "./providerReaders.mjs";
 
 /**
  * V3.69 founder-only READ endpoint.
@@ -212,6 +213,59 @@ async function acknowledgeAlert(key:string,transition:number){
     rows[0]?.source_transition_count===transition;
 }
 
+/** Optional provider reads. Invoked only after fresh founder Auth.
+ * All URLs are fixed to documented GitHub/Cloudflare endpoints and credentials
+ * are retrieved exclusively from server env. No arbitrary caller targets.
+ */
+function providerEnv(){
+  return {
+    GITHUB_BILLING_READ_TOKEN:Deno.env.get("BUSY_GITHUB_BILLING_READ_TOKEN")||"",
+    GITHUB_BILLING_ACCOUNT:Deno.env.get("BUSY_GITHUB_BILLING_ACCOUNT")||"",
+    CLOUDFLARE_ANALYTICS_READ_TOKEN:Deno.env.get("BUSY_CLOUDFLARE_ANALYTICS_READ_TOKEN")||"",
+    CLOUDFLARE_ACCOUNT_TAG:Deno.env.get("BUSY_CLOUDFLARE_ACCOUNT_TAG")||"",
+    CLOUDFLARE_WORKER_SCRIPT:Deno.env.get("BUSY_CLOUDFLARE_WORKER_SCRIPT")||""
+  };
+}
+async function syncConnectedProviders(){
+  const env=providerEnv(),now=new Date();
+  const states=readConfiguredProviders(env);
+  if(!states.github&&!states.cloudflare)
+    return {scope:"founder_provider_refresh",status:"no_authorised_connections",
+      observedAt:now.toISOString(),results:[
+        {serviceKey:"github",status:"not_connected"},
+        {serviceKey:"cloudflare",status:"not_connected"}
+      ],noPurchases:true};
+  const [github,cloudflare]=await Promise.all([
+    readGitHubUsage(env,fetch,now),readCloudflareTraffic(env,fetch,now)
+  ]);
+  const results=[];
+  for(const record of [github,cloudflare]){
+    if(record.status!=="read_success"){
+      results.push(record);continue;
+    }
+    // Idempotent and at most one saved record per provider per UTC hour.
+    const slot=now.toISOString().slice(0,13).replace(/[T:-]/g,"");
+    const requestKey="api_"+record.serviceKey+"_"+slot;
+    const response=await fetch(ROOT+"/rest/v1/busy_founder_service_snapshots",{
+      method:"POST",
+      headers:{...serviceHeaders(),"Content-Type":"application/json",
+        Prefer:"resolution=ignore-duplicates,return=minimal"},
+      body:JSON.stringify({
+        service_key:record.serviceKey,request_key:requestKey,
+        source:"provider_api_readonly",plan_name:"",billing_status:"unknown",
+        billing_cadence:"unknown",usage_value:record.usageValue,
+        allowance_value:null,amount_gbp_pence:null,usage_unit:record.usageUnit,
+        renewal_on:null,observed_at:record.observedAt,
+        note:record.note,recorded_by:null
+      }),
+      signal:AbortSignal.timeout(8500)
+    }).catch(()=>null);
+    results.push({...record,status:response?.ok===true?"saved":"read_not_saved"});
+  }
+  return {scope:"founder_provider_refresh",status:"read_only_completed",
+    observedAt:now.toISOString(),results,noPurchases:true};
+}
+
 /** V3.81 restricted vendor ledger. Fixed REST paths only, bounded retrieval,
  * zero external provider API calls and no embedded provider billing secrets.
  */
@@ -252,8 +306,17 @@ async function getServiceInventory(){
     automaticUsage:digestAutomaticTelemetry(Array.isArray(autoRows)?autoRows:[]),
     providerConnections:{
       supabase:{status:"billing_not_connected",detail:"Scheduled first-party BUSY activity counts are active. Official Supabase billing quota requires a separate provider connection."},
-      github:{status:"billing_not_connected",detail:"The connected GitHub source-code app does not grant BUSY's server access to billing usage."},
-      cloudflare:{status:"billing_not_connected",detail:"Cloudflare account Analytics API requires a read-only provider authorisation."},
+      github:{status:readConfiguredProviders({
+        GITHUB_BILLING_READ_TOKEN:Deno.env.get("BUSY_GITHUB_BILLING_READ_TOKEN")||"",
+        GITHUB_BILLING_ACCOUNT:Deno.env.get("BUSY_GITHUB_BILLING_ACCOUNT")||""}).github?
+          "credentials_configured_unverified":"billing_not_connected",
+        detail:"GitHub account Billing API requires its own read-only account Plan permission; source-code access alone is insufficient."},
+      cloudflare:{status:readConfiguredProviders({
+        CLOUDFLARE_ANALYTICS_READ_TOKEN:Deno.env.get("BUSY_CLOUDFLARE_ANALYTICS_READ_TOKEN")||"",
+        CLOUDFLARE_ACCOUNT_TAG:Deno.env.get("BUSY_CLOUDFLARE_ACCOUNT_TAG")||"",
+        CLOUDFLARE_WORKER_SCRIPT:Deno.env.get("BUSY_CLOUDFLARE_WORKER_SCRIPT")||""}).cloudflare?
+          "credentials_configured_unverified":"billing_not_connected",
+        detail:"Cloudflare read-only Analytics token, account tag and exact Worker script are required. Analytics are not invoices."},
       ai:{status:"billing_not_connected",detail:"Supplier token usage and invoice costs are not available from BUSY internal AI request counts."}
     }
   };
@@ -307,6 +370,11 @@ Deno.serve(async(req:Request)=>{
     if(!ROOT||!SECRET_KEY)return send(503,{error:"platform_reporting_unavailable"});
     try{return send(200,await demoLaunchStatus());}
     catch{return send(503,{error:"demo_launch_status_unavailable"});}
+  }
+  if(action==="sync_connected_providers"&&Object.keys(payload).length===1){
+    if(!ROOT||!SECRET_KEY)return send(503,{error:"platform_reporting_unavailable"});
+    try{return send(200,await syncConnectedProviders());}
+    catch{return send(503,{error:"provider_reporting_unavailable"});}
   }
   if(action==="service_catalog"&&Object.keys(payload).length===1){
     if(!ROOT||!SECRET_KEY)return send(503,{error:"platform_reporting_unavailable"});
