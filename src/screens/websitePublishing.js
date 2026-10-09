@@ -890,6 +890,7 @@ function WebsitePublishing({ s }) {
         <MetricRow left="Live website updates" right="Always require approval"/>
       </Card>
 
+      // V3.78 • Enquiry follow-up baseline retained; V3.79 adds verified origin labels.
       <Card eyebrow="V3.79 • Lead Capture & Follow-up"
         title="Turn real conversations into organised opportunities"
         body="This secure inbox distinguishes owner-entered contacts from verified website form submissions. Website analytics clicks are not named leads, and a manually marked booked label is not proof of payment or completed work. Public forms remain disabled until the security and hosting gates are explicitly activated."
