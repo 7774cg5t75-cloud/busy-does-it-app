@@ -39,6 +39,78 @@ function WebsitePublishing({ s }) {
   const domain = view.domainState?.latest || null;
   const activeJob = view.activeJob || null;
   const changes = view.changeSummary?.items || [];
+  // V3.78 private lead follow-up, not an open website form.
+  const leadScope=(s.ownerSession?.userId||"")+":"+(s.cloudWorkspace?.businessId||"");
+  const leadScopeRef=React.useRef(leadScope);leadScopeRef.current=leadScope;
+  const [leads,setLeads]=React.useState({scope:"",status:"idle",result:null,error:""});
+  const [leadName,setLeadName]=React.useState("");
+  const [leadContact,setLeadContact]=React.useState("");
+  const [leadService,setLeadService]=React.useState("");
+  const [leadMethod,setLeadMethod]=React.useState("email");
+  const [leadPermission,setLeadPermission]=React.useState(false);
+  const [leadBusy,setLeadBusy]=React.useState("");
+  const [leadMessage,setLeadMessage]=React.useState("");
+  const leadRequestKey=React.useRef("");
+  const loadLeads=async()=>{
+    const requestedScope=leadScope;
+    if(!s.ownerSession?.userId||!s.cloudWorkspace?.businessId)return;
+    setLeads({scope:requestedScope,status:"loading",result:null,error:""});
+    try{
+      const result=await s.listWebsiteLeads();
+      if(leadScopeRef.current!==requestedScope)return;
+      setLeads({scope:requestedScope,status:"ready",result,error:""});
+    }catch(e){
+      if(leadScopeRef.current===requestedScope)
+        setLeads({scope:requestedScope,status:"unavailable",result:null,
+          error:e?.message||"Private enquiries could not be loaded."});
+    }
+  };
+  React.useEffect(()=>{
+    leadRequestKey.current="";
+    setLeadName("");setLeadContact("");setLeadService("");
+    setLeadPermission(false);setLeadBusy("");setLeadMessage("");
+    if(s.ownerSession?.userId&&s.cloudWorkspace?.businessId)loadLeads();
+    else setLeads({scope:leadScope,status:"idle",result:null,error:""});
+  },[leadScope]);
+  const saveLead=async()=>{
+    if(leadBusy||!leadPermission||!leadName.trim()||!leadContact.trim())return;
+    const scope=leadScope;
+    if(!leadRequestKey.current)
+      leadRequestKey.current="lead-"+Date.now()+"-"+Math.random().toString(36).slice(2,12);
+    setLeadBusy("saving");setLeadMessage("");
+    try{
+      const result=await s.createWebsiteLead({
+        idempotencyKey:leadRequestKey.current,
+        name:leadName,contactMethod:leadMethod,contactValue:leadContact,
+        service:leadService,notes:"",contactPermissionConfirmed:true
+      });
+      if(leadScopeRef.current!==scope)return;
+      setLeadMessage(result?.reused?
+        "An earlier save of this enquiry was found. No duplicate was created.":
+        "Enquiry recorded privately. Nothing was sent to the customer.");
+      leadRequestKey.current="";
+      setLeadName("");setLeadContact("");setLeadService("");setLeadPermission(false);
+      await loadLeads();
+    }catch(e){
+      if(leadScopeRef.current===scope)
+        setLeadMessage(e?.message||"The enquiry could not be saved. Retry safely.");
+    }finally{if(leadScopeRef.current===scope)setLeadBusy("");}
+  };
+  const advanceLead=async(item,nextStatus)=>{
+    if(leadBusy||!item?.id)return;
+    const scope=leadScope;
+    setLeadBusy(item.id);setLeadMessage("");
+    try{
+      await s.changeWebsiteLeadStatus(item.id,item.status,nextStatus);
+      if(leadScopeRef.current!==scope)return;
+      setLeadMessage("Progress updated. No customer message was sent.");
+      await loadLeads();
+    }catch(e){
+      if(leadScopeRef.current===scope)
+        setLeadMessage(e?.message||"Progress changed elsewhere. Refresh the list.");
+    }finally{if(leadScopeRef.current===scope)setLeadBusy("");}
+  };
+
   const seoChecks = view.seoAudit?.checks || [];
   const journey=buildWebsiteLaunchJourney({
     brand:s.brandBrain,draft:s.websiteDraft,publishing:view
@@ -61,7 +133,7 @@ function WebsitePublishing({ s }) {
       s={s}
       title="Website Management"
       subtitle="Edit privately, inspect the exact hosted version, then decide what becomes public."
-      brandCue="V3.77 • exact-preview approval • safe go-live preflight"
+      brandCue="V3.78 • customer success • verified outcomes"
     >
       <Card
         eyebrow="V3.77 • Website launch assistant"
@@ -818,6 +890,82 @@ function WebsitePublishing({ s }) {
         <MetricRow left="Live website updates" right="Always require approval"/>
       </Card>
 
+      <Card eyebrow="V3.78 • Enquiry follow-up"
+        title="Turn real conversations into organised opportunities"
+        body="This secure inbox currently records enquiries that you enter yourself. Website analytics events are not named leads, and a booked label is not proof of payment or completed work. Public contact forms and automatic customer replies are not enabled."
+        footer="Only an authorised business owner or admin can access this contact information."
+        tone="blue">
+        <MetricRow left="Website-attributed enquiry events"
+          right={view.enquiryView?.count==null?"Not measured":
+            String(view.enquiryView.count)+" events (not verified contacts)"}/>
+        <MetricRow left="Owner-entered leads (recent sample)"
+          right={leads.scope===leadScope&&leads.result?
+            String(leads.result.sampled)+" of up to 25":"Not measured"}/>
+        <MetricRow left="New leads awaiting review"
+          right={leads.scope===leadScope&&leads.result?
+            String(leads.result.counts?.new??0):"Not measured"}/>
+        <MetricRow left="Manually marked quoted"
+          right={leads.scope===leadScope&&leads.result?
+            String(leads.result.counts?.quoted??0):"Not measured"}/>
+        <MetricRow left="Manually marked booked"
+          right={leads.scope===leadScope&&leads.result?
+            String(leads.result.counts?.booked??0):"Not measured"}/>
+        <Button label={leads.status==="loading"?"Loading…":"Refresh private enquiries"}
+          disabled={leads.status==="loading"||!!leadBusy} onPress={loadLeads}/>
+        {leads.scope===leadScope&&leads.error?(
+          <Text style={styles.sectionLabel}>{leads.error}</Text>
+        ):null}
+        {leads.scope===leadScope&&(leads.result?.recent||[]).slice(0,8).map(item=>(
+          <Card key={item.id} eyebrow={"Enquiry • "+item.status}
+            title={item.name||"Customer enquiry"} body={item.service||"Service not specified"}
+            footer={item.nextStep} tone="blue">
+            <MetricRow left="Preferred contact" right={item.contactMethod}/>
+            <MetricRow left="Contact details" right={item.contactValue}/>
+            <MetricRow left="Message sent by BUSY" right="No"/>
+            {item.status==="new"?(
+              <Button label="Mark as reviewing"
+                disabled={!!leadBusy} onPress={()=>advanceLead(item,"reviewing")}/>
+            ):item.status==="reviewing"?(
+              <Button label="Mark as quoted (only after quoting)"
+                disabled={!!leadBusy} onPress={()=>advanceLead(item,"quoted")}/>
+            ):item.status==="quoted"?(
+              <Button label="Mark as booked (only after confirmation)"
+                disabled={!!leadBusy} onPress={()=>advanceLead(item,"booked")}/>
+            ):null}
+            {item.status!=="closed"?(
+              <Button label="Close this enquiry"
+                disabled={!!leadBusy} onPress={()=>advanceLead(item,"closed")}/>
+            ):null}
+          </Card>
+        ))}
+      </Card>
+      <Card eyebrow="V3.78 • Record a customer enquiry"
+        title="Save an enquiry you have permission to follow up"
+        body="Use this for an enquiry you have received through a legitimate business channel. Contact details remain private to your authorised workspace. BUSY won't send an automatic email or text."
+        tone="blue">
+        <Field label="Customer name" value={leadName} onChangeText={setLeadName}
+          placeholder="Customer's name"/>
+        <Button label={leadMethod==="email"?"Contact by email • switch to phone":"Contact by phone • switch to email"}
+          onPress={()=>{setLeadMethod(leadMethod==="email"?"phone":"email");setLeadContact("");}}/>
+        <Field label={leadMethod==="email"?"Email address":"Phone number"}
+          value={leadContact} onChangeText={setLeadContact}
+          autoCapitalize="none"
+          keyboardType={leadMethod==="email"?"email-address":"phone-pad"}
+          placeholder={leadMethod==="email"?"customer@example.co.uk":"07…"} />
+        <Field label="Service requested (optional)" value={leadService}
+          onChangeText={setLeadService} placeholder="e.g. gutter cleaning"/>
+        <Button label={leadPermission?
+          "✓ I confirm I have permission to contact this person":
+          "Confirm permission to contact this person"}
+          onPress={()=>setLeadPermission(!leadPermission)}/>
+        <Button label={leadBusy==="saving"?"Saving privately…":"Save enquiry without sending"}
+          primary disabled={!leadPermission||!leadName.trim()||
+            !leadContact.trim()||!!leadBusy||!s.ownerSession?.userId||
+            !s.cloudWorkspace?.businessId} onPress={saveLead}/>
+        {leadMessage?(
+          <Text style={styles.sectionLabel}>{leadMessage}</Text>
+        ):null}
+      </Card>
       <Button label="Website Builder" onPress={() => s.go("websiteBuilder")} />
       <Button label="Back to Home" onPress={() => s.jump("home", "Home")} />
     </Shell>
