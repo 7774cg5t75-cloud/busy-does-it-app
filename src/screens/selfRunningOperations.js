@@ -78,9 +78,9 @@ function SelfRunningOperations({s}){
   const cost=operations.costs||{};
   const usage=cost.websiteUsage||{};
   return <Shell s={s}
-    title="BUSY Operations & Reliability"
-    subtitle="Keep your business running with fewer interruptions: source checks, exception priorities and guided recovery."
-    brandCue="V3.68 • owner-scoped health • no automatic public actions">
+    title="System health"
+    subtitle="Check connected services, any problems and how to resolve them."
+    brandCue="These checks do not publish or change anything publicly.">
     <Card eyebrow="Your business • exceptions only"
       title={checks.busy?"Checking connected services…":operations.headline}
       body={ready?operations.truth:"BUSY is checking current authenticated status reports. Results from another business are never shown."}
