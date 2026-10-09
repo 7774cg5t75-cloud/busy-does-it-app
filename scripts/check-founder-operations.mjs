@@ -37,7 +37,11 @@ assert.equal(r.incidents.filter(x=>x.needsInspection).length,3);
 assert.equal(r.commercial.targetSubscriptionGbpPerMonth,50);
 for(const prop of ["payingSubscribers","grossMrrGbp","netMrrGbp","infrastructureCostGbp","aiCostGbp","marginGbp"])
   assert.equal(r.commercial[prop],null,prop);
-assert.equal(r.automation.enabled,false);
+assert.equal(r.automation.enabled,true);
+assert.equal(r.automation.alertDeliveryConfigured,false);
+assert.equal(r.autopilot.status,"not_started");
+assert.equal(r.autopilot.alerts.configured,false);
+assert.equal(r.autopilot.recovery.status,"observe_only");
 assert.equal(r.automation.alertDeliveryConfigured,false);
 assert.ok(!JSON.stringify(r).includes(uid));
 const partial=buildFounderReport({verifiedRole:true,
