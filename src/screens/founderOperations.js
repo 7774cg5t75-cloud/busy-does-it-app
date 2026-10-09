@@ -106,6 +106,9 @@ function FounderOperations({s}){
               <MetricRow left={item.key.replace(/_/g," ")+" • "+item.status+
                 (item.acknowledgedAt?" • acknowledged":"")}
                 right={show(item.count)}/>
+              {item.status==="open"&&item.reviewGuidance?(
+                <Text style={styles.sectionLabel}>{item.reviewGuidance}</Text>
+              ):null}
               {item.status==="open"&&!item.acknowledgedAt&&item.transition?(
                 <Button label={ackBusy===item.key?"Acknowledging…":"Acknowledge "+item.key.replace(/_/g," ")}
                   disabled={!!ackBusy} onPress={()=>acknowledge(item)}/>
