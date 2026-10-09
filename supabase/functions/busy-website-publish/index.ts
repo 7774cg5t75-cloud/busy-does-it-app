@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import {evaluateLaunchPreflight} from "./launchPreflight.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -850,6 +851,21 @@ async function prepare(
   return { ok: true, reused: false, website, deployment, job };
 }
 
+async function launchPreflight(businessId: string, deploymentId: string) {
+  if (!deploymentId) return evaluateLaunchPreflight();
+  const website=await websiteForBusiness(businessId);
+  if (!website?.id) return evaluateLaunchPreflight();
+  const result=await supabase
+    .from("busy_website_deployments")
+    .select("id,website_id,business_id,state,preview_storage_path,content_hash")
+    .eq("id",deploymentId)
+    .eq("business_id",businessId)
+    .eq("website_id",website.id)
+    .maybeSingle();
+  if(result.error)throw result.error;
+  return evaluateLaunchPreflight({website,deployment:result.data});
+}
+
 async function publish(
   userId: string,
   businessId: string,
@@ -870,11 +886,14 @@ async function publish(
     .maybeSingle();
   if (deployment.error) throw deployment.error;
   if (!deployment.data) throw new Error("That website version does not belong to this business.");
-  if (deployment.data.state === "live") {
-    return { ok: true, reused: true, deployment: deployment.data };
+  const website=await websiteForBusiness(businessId);
+  const preflight=evaluateLaunchPreflight({website,deployment:deployment.data});
+  if(preflight.alreadyLive) {
+    return {ok:true,reused:true,deployment:deployment.data};
   }
-  if (deployment.data.state !== "preview_ready") {
-    throw new Error("Preview the prepared website version before publishing it.");
+  if(!preflight.canApprove) {
+    throw new Error(preflight.issues[0]||
+      "The selected hosted version is not ready for a safe Go Live approval.");
   }
 
   await supabase
@@ -1251,6 +1270,7 @@ Deno.serve(async (request: Request) => {
     const writeActions = new Set([
       "prepare",
       "publish",
+      "launch_preflight",
       "rollback",
       "request_domain",
       "verify_domain",
@@ -1284,6 +1304,12 @@ Deno.serve(async (request: Request) => {
       return json(200, {
         ok: true,
         ...(await previewUrl(businessId, deploymentId)),
+      });
+    }
+    if (action === "launch_preflight") {
+      return json(200,{
+        ok:true,
+        preflight:await launchPreflight(businessId,cleanText(body?.deploymentId,80))
       });
     }
     if (action === "publish") {
