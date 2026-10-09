@@ -54,7 +54,7 @@ function FounderOperations({s}){
   const report=state.owner===owner&&state.status==="ready"?state.report:null;
   return <Shell s={s} title="Founder Operations"
     subtitle="Platform-wide aggregate status, restricted to a verified founder account."
-    brandCue="V3.73 • founder alerts • evidence-based escalation">
+    brandCue="V3.74 • safe recovery monitoring • audit trail">
     {!report?(
       <Card eyebrow="Founder access" title={state.status==="loading"?"Checking access…":
         state.status==="denied"?"Founder role not yet enabled":"Restricted dashboard"}
@@ -85,6 +85,27 @@ function FounderOperations({s}){
             right={report.reliability?.alertInboxIsVerified?"Verified":"Not verified"}/>
           <MetricRow left="Automatic external repairs" right="Disabled"/>
           <MetricRow left="Automatic push/email alerts" right="Disabled"/>
+        </Card>
+        <Card eyebrow="V3.74 • Verified recovery reviews"
+          title={report.recovery?.status==="available"?
+            "Automatic rechecks with a private audit trail":
+            "Recovery evidence needs inspection"}
+          body={report.recovery?.note||
+            "BUSY has not verified the private recovery audit. No external repair is assumed."}
+          tone={report.recovery?.status==="available"?"blue":"amber"}>
+          <MetricRow left="Recorded issues needing review"
+            right={show(report.recovery?.reviewCount)}/>
+          <MetricRow left="Waiting for a second clean scan"
+            right={show(report.recovery?.confirmingCount)}/>
+          <MetricRow left="Signals cleared after repeat checks"
+            right={show(report.recovery?.signalClearedCount)}/>
+          <MetricRow left="Unknown recovery evidence"
+            right={show(report.recovery?.unknownCount)}/>
+          <MetricRow left="Automatic publishing or job retries" right="Disabled"/>
+          {(report.recovery?.items||[]).slice(0,6).map(item=>
+            <MetricRow key={item.key+"-"+item.transition}
+              left={item.key.replace(/_/g," ")+" • "+item.assessment.replace(/_/g," ")}
+              right={item.monitoringVerified?"Scan verified":"Unverified"}/>)}
         </Card>
         <Card eyebrow="V3.73 • Phone alert readiness"
           title={report.notificationReadiness?.status==="no_registered_device"?
