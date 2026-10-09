@@ -1,5 +1,6 @@
 import {buildAutopilotDigest} from "./incidentReport.mjs";
 import {buildFounderAlertInbox} from "./alertInbox.mjs";
+import {buildFounderReliability} from "./reliability.mjs";
 
 /**
  * V3.69 trusted server-side founder reporting helpers.
@@ -53,6 +54,9 @@ function buildFounderReport({counts={},usage={},checkedAt="",verifiedRole=false,
     // Counts are totals across all tenants, never individual-customer detail.
     needsInspection:item.count===null ? null : item.count>0,
   }));
+  const autopilot=buildAutopilotDigest({run:monitorRun,incidents:monitorIncidents,
+    verifiedRole,nowISO:checkedAt});
+  const alertInbox=buildFounderAlertInbox({rows:alertRows,verifiedRole});
   return {
     version:1,
     checkedAt:typeof checkedAt==="string"?checkedAt:"",
@@ -82,8 +86,9 @@ function buildFounderReport({counts={},usage={},checkedAt="",verifiedRole=false,
       alertDeliveryConfigured:false,
       note:"Server-side aggregate incident monitoring is scheduled every 15 minutes. Incident delivery to your phone/email, privileged repairs and billing automation are not yet enabled.",
     },
-    autopilot:buildAutopilotDigest({run:monitorRun,incidents:monitorIncidents,verifiedRole,nowISO:checkedAt}),
-    alertInbox:buildFounderAlertInbox({rows:alertRows,verifiedRole}),
+    autopilot,
+    alertInbox,
+    reliability:buildFounderReliability({autopilot,alertInbox}),
     notes,
   };
 }
