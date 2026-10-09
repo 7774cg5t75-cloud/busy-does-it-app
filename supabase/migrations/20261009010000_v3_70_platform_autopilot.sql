@@ -37,9 +37,6 @@ alter table public.busy_platform_monitor_runs enable row level security;
 -- Edge Function can return bounded aggregate-only data.
 revoke all on public.busy_platform_incidents from public, anon, authenticated;
 revoke all on public.busy_platform_monitor_runs from public, anon, authenticated;
-revoke all on all sequences in schema public from anon, authenticated
-  -- New sequence privileges can still only be used via explicitly granted tables.
-;
 grant select on public.busy_platform_incidents to service_role;
 grant select on public.busy_platform_monitor_runs to service_role;
 
