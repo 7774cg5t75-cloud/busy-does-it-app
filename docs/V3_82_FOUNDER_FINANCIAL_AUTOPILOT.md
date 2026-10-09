@@ -44,7 +44,7 @@
 - Verified unauthenticated and ordinary authenticated clients cannot read the founder telemetry or provider-refresh slots or invoke either privileged RPC.
 - Transactional fixture (rolled back) confirmed first provider refresh claim succeeds, duplicate claim in the same window is refused, valid read-only provider provenance can be stored, and fake creator records are rejected.
 - V3.82 regression suite passed **122 focused assertions** (pure logic + mocks for real provider API response shapes + strict security/source checks), and production CI workflow includes it.
-- `busy-founder-ops` Edge Function is ACTIVE **v15**, with `verify_jwt=true` and the new helper modules.
+- `busy-founder-ops` Edge Function is ACTIVE **v16**, with `verify_jwt=true` and the new helper modules.
 - GitHub CI complete run and device acceptance have **not** been confirmed. No real provider API credential or billing result has been verified. No real public demo website exists yet.
 
 ## What comes next
