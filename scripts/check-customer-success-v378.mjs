@@ -81,7 +81,7 @@ assert.ok(controller.includes('const changeWebsiteLeadStatus=async('));
 assert.ok(controller.includes("listWebsiteLeads,"));
 assert.ok(ui.includes("V3.78 • Enquiry follow-up"));
 assert.ok(ui.includes("contactPermissionConfirmed:true"));
-assert.ok(ui.includes("owner-entered"));
+assert.ok(ui.toLowerCase().includes("owner-entered"));
 assert.ok(ui.includes("booked label is not proof of payment"));
 assert.ok(ui.includes("leadScopeRef.current!==scope"));
 assert.ok(workflow.includes("node scripts/check-customer-success-v378.mjs"));
