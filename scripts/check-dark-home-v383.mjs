@@ -54,7 +54,7 @@ const checks = [
   ["extra business tools accessible, not always on-screen", () => {
     assert.ok(home.includes("showOtherMoves ?"));
     assert.ok(home.includes("quickTools.map("));
-    for (const link of ["s.openSocialCentre()", "s.openWebsiteBuilder()", "s.openBusinessCreationJourney()", 's.go("businessMemory")', 's.go("businessActivityCentre")']) {
+    for (const link of ["onPress={s.openSocialCentre}", "s.openWebsiteBuilder()", "s.openBusinessCreationJourney()", 's.go("businessMemory")', 's.go("businessActivityCentre")']) {
       assert.ok(home.includes(link), link);
     }
   }],
