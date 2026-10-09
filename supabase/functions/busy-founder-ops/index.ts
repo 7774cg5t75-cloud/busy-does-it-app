@@ -3,6 +3,7 @@ import {isFounderUser,aggregateUsageRows,buildFounderReport} from "./report.mjs"
 import {VALID_KEYS} from "./alertInbox.mjs";
 import {probeManagedWebsite,buildExternalRealityDigest} from "./externalReality.mjs";
 import {snapshotPayload} from "./evidenceHistory.mjs";
+import {validateServiceSnapshot,buildServiceInventory} from "./serviceRegister.mjs";
 
 /**
  * V3.69 founder-only READ endpoint.
@@ -210,6 +211,44 @@ async function acknowledgeAlert(key:string,transition:number){
     rows[0]?.source_transition_count===transition;
 }
 
+/** V3.81 restricted vendor ledger. Fixed REST paths only, bounded retrieval,
+ * zero external provider API calls and no embedded provider billing secrets.
+ */
+async function getServiceInventory(){
+  const rows=await privilegedRows("busy_founder_service_snapshots",
+    "service_key,source,plan_name,billing_status,billing_cadence,usage_value,allowance_value,usage_unit,amount_gbp_pence,renewal_on,observed_at,note",
+    "recorded_at.desc",150);
+  return buildServiceInventory(rows);
+}
+async function recordServiceSnapshot(body:any, founderId:string){
+  const checked=validateServiceSnapshot(body);
+  if(!checked.ok)throw new Error(checked.error);
+  if(!SECRET_KEY)throw new Error("Founder reporting is not configured.");
+  const q=new URLSearchParams({select:"service_key,request_key,recorded_at"});
+  const response=await fetch(ROOT+"/rest/v1/busy_founder_service_snapshots?"+q,{
+    method:"POST",
+    headers:{...serviceHeaders(),"Content-Type":"application/json",
+      "Prefer":"return=representation"},
+    body:JSON.stringify({...checked.record,recorded_by:founderId,
+      observed_at:new Date().toISOString()}),
+    signal:AbortSignal.timeout(8500)
+  });
+  if(response.status===409){
+    // Request key is scoped by provider and never confirms a different write.
+    const existing=await privilegedRows("busy_founder_service_snapshots",
+      "service_key,request_key","recorded_at.desc",1,{
+        service_key:"eq."+checked.record.service_key,
+        request_key:"eq."+checked.record.request_key});
+    if(existing.length===1)return {stored:true,duplicate:true};
+    throw new Error("Could not verify this repeated snapshot.");
+  }
+  if(!response.ok)throw new Error("service_snapshot_unavailable");
+  const rows=await response.json().catch(()=>[]);
+  if(!Array.isArray(rows)||rows.length!==1||rows[0]?.request_key!==checked.record.request_key)
+    throw new Error("Provider usage save was not verified.");
+  return {stored:true,duplicate:false};
+}
+
 Deno.serve(async(req:Request)=>{
   if(req.method==="OPTIONS")return new Response(null,{status:204,headers});
   if(req.method!=="POST")return send(405,{error:"method_not_allowed"});
@@ -226,6 +265,19 @@ Deno.serve(async(req:Request)=>{
   if(!payload||typeof payload!=="object"||Array.isArray(payload))
     return send(400,{error:"unsupported_action"});
   const action=(payload as {action?:unknown}).action;
+  if(action==="service_catalog"&&Object.keys(payload).length===1){
+    if(!ROOT||!SECRET_KEY)return send(503,{error:"platform_reporting_unavailable"});
+    try{return send(200,await getServiceInventory());}
+    catch{return send(503,{error:"service_register_unavailable"});}
+  }
+  if(action==="record_service"&&Object.keys(payload).sort().join(",")==="action,snapshot"){
+    const item=payload as {snapshot?:unknown};
+    const checked=validateServiceSnapshot(item.snapshot);
+    if(!checked.ok)return send(400,{error:checked.error});
+    if(!ROOT||!SECRET_KEY)return send(503,{error:"platform_reporting_unavailable"});
+    try{return send(200,await recordServiceSnapshot(item.snapshot,founder.id));}
+    catch{return send(503,{error:"service_snapshot_unavailable"});}
+  }
   if(action==="acknowledge"){
     const item=payload as {key?:string,transition?:number};
     if(Object.keys(payload).sort().join(",")!=="action,key,transition"||
