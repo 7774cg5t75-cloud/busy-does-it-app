@@ -33,5 +33,5 @@ assert.ok(audio.includes("Your recording was saved, but BUSY couldn't send it"))
 assert.ok(backend.includes('if (contentType.includes("multipart/form-data"))'));
 assert.ok(backend.includes('const audio = form.get("audio");'));
 assert.ok(backend.includes("transcript = await transcribeAudio(audio);"));
-assert.ok(!audio.includes("retry"));
+assert.equal((audio.match(/expoFetch/g) || []).length,1);
 console.log("V3.91 voice file upload regression passed: Expo SDK57, authenticated multipart, no silent re-send or approvals.");
