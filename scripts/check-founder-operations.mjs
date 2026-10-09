@@ -73,7 +73,7 @@ assert.ok(edge.includes("isFounderUser(user)?user:null"));
 const gate=edge.indexOf("if(!founder)return send(403");
 const db=edge.indexOf("aggregates(),incidentData()");
 assert.ok(gate>0 && db>gate);
-assert.ok(edge.includes('if(action!=="summary"||Object.keys(payload).some(k=>k!=="action"))');
+assert.ok(edge.includes('if(action!=="summary"||Object.keys(payload).some(k=>k!=="action"))'));
 assert.ok(edge.includes('if(action==="acknowledge")'));
 assert.ok(edge.includes('status:"eq.open"'));
 assert.ok(edge.includes('Object.keys(payload).some(k=>k!=="action")'));
