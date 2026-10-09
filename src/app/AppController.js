@@ -2325,6 +2325,35 @@ function App() {
     return result;
   };
 
+
+  // V3.71 founder-only in-app alert acknowledgement. No incident resolution.
+  const acknowledgeFounderAlert = async (key,transition) => {
+    const validKeys=["website_failed","website_stalled","social_failed","app_failed"];
+    if(!validKeys.includes(key)||!Number.isSafeInteger(transition)||transition<1)
+      throw Error("Invalid founder alert.");
+    const ownerId=ownerSession?.userId||"";
+    const token=await ownerAccessToken();
+    if(!ownerId||!token)throw Error("A signed-in account is required.");
+    const response=await fetchWithTimeout(
+      BUSY_SUPABASE_URL+"/functions/v1/busy-founder-ops",{
+        method:"POST",
+        headers:{apikey:BUSY_AI_TOKEN,Authorization:"Bearer "+token,
+          "Content-Type":"application/json"},
+        body:JSON.stringify({action:"acknowledge",key,transition}),
+      },20000
+    );
+    if(!response.ok){
+      const error=new Error(response.status===409?
+        "This alert changed or was already acknowledged. Refresh to see its current state.":
+        "Alert acknowledgement was not confirmed.");
+      error.status=response.status;
+      throw error;
+    }
+    const result=await response.json();
+    if(result?.status!=="acknowledged")throw Error("Acknowledgement was not verified.");
+    return result;
+  };
+
   const signInOwner = async () => {
     const email = normalizeEmail(ownerEmail);
     if (!email || !email.includes("@")) {
@@ -15264,6 +15293,7 @@ function App() {
     useGoogleCalendarTime,
     refreshProductionWatchStatus,
     fetchFounderOperations,
+    acknowledgeFounderAlert,
     maskPushToken,
     openReleaseCoreIssue,
     openExecutivePriority,
