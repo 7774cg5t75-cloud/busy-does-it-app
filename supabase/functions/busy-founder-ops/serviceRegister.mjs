@@ -99,12 +99,19 @@ function formatSnapshot(row){
 function buildServiceInventory(rows,{checkedAt=new Date().toISOString()}={}){
  const valid=Array.isArray(rows)?rows.map(formatSnapshot).filter(Boolean):[];
  const result=SERVICES.map(service=>{
-   const history=valid.filter(x=>x.serviceKey===service.key).slice(0,5);
-   const latest=history[0]||null;
+   const vendorRows=valid.filter(x=>x.serviceKey===service.key);
+   const history=vendorRows.slice(0,5);
+   // Never let an automatic provider usage reading erase the founder's
+   // previously recorded subscription plan, cost or renewal reminder.
+   const latest=vendorRows.find(x=>x.usageValue!==null)||vendorRows[0]||null;
+   const subscription=vendorRows.find(x=>x.source==="founder_entered"&&
+     (x.planName||x.billingStatus!=="unknown"||x.amountGbpPence!==null||x.renewalOn))||
+     vendorRows.find(x=>x.source!=="provider_api_readonly"&&
+     (x.planName||x.billingStatus!=="unknown"||x.amountGbpPence!==null||x.renewalOn))||null;
    const age=latest?.observedAt?Date.parse(checkedAt)-Date.parse(latest.observedAt):NaN;
    const freshness=Number.isFinite(age)&&age>=0&&age<86400000?
      "within_24h":latest?"historical":"not_measured";
-   const renewalTime=latest?.renewalOn?Date.parse(latest.renewalOn+"T00:00:00.000Z"):NaN;
+   const renewalTime=subscription?.renewalOn?Date.parse(subscription.renewalOn+"T00:00:00.000Z"):NaN;
    const untilRenewal=Number.isFinite(renewalTime)?
      Math.ceil((renewalTime-Date.parse(checkedAt))/86400000):NaN;
    const renewalReview=Number.isFinite(untilRenewal)?
@@ -122,14 +129,14 @@ function buildServiceInventory(rows,{checkedAt=new Date().toISOString()}={}){
        renewalReview==="review_within_30_days"?
        "Founder-entered renewal/review date is within 30 days. Verify provider terms.":"";
    return {...service,status:latest?"snapshot_available":"not_measured",
-     latest,historyCount:history.length,freshness,renewalReview,
+     latest,subscription,historyCount:history.length,freshness,renewalReview,
      usageReviewLevel:threshold,
      alert:[usageReview,renewalAlert].filter(Boolean).join(" "),
      alertProvenance:threshold||renewalAlert?"historical_review_only":null
    };
  });
  return {scope:"founder_service_register",privacy:"founder_only",checkedAt,
-   sources:"Manual entries and individually labelled log samples, never provider billing APIs.",
+   sources:"Founder-entered plans, labelled historical log samples and, where expressly authorised, read-only provider API observations. None are verified invoices.",
    services:result,
    alertPolicy:"50/75/90% usage thresholds and 30-day renewals are in-app reviews of historical founder-entered or sampled information. Never claim provider-live warnings or send external alerts.",
    billsVerified:false,totalCostGbp:null,remainingCreditGbp:null,
