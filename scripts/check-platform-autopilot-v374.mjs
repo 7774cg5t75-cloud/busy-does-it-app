@@ -73,9 +73,10 @@ const sqlGates=[
 for(const gate of sqlGates)assert.ok(sql.includes(gate),gate);
 for(const disallowed of ["http_post","net.http_","busy_social_posts","busy_website_publish_jobs","busy_mini_apps"])
   assert.ok(!sql.includes(disallowed),disallowed);
+assert.ok(edge.indexOf("if(!founder)return send(403")>0);
 assert.ok(edge.indexOf("if(!founder)return send(403")<
-  edge.indexOf('safely(()=>privilegedRows("busy_platform_recovery_reviews"') ||
-  edge.includes('safely(()=>privilegedRows("busy_platform_recovery_reviews"'));
+  edge.indexOf('const [{counts,usage},{monitorRun,monitorIncidents,alertRows,recoveryRows}'));
+assert.ok(edge.includes('safely(()=>privilegedRows("busy_platform_recovery_reviews"'));
 // This SELECT's invocation must sit solely behind a freshly authorised
 // founder request. No user-supplied arbitrary filters or table names.
 assert.ok(edge.includes('const [{counts,usage},{monitorRun,monitorIncidents,alertRows,recoveryRows}'));
