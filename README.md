@@ -1,5 +1,13 @@
 # busy-does-it-app
 
+## V3.81 — Founder Service Control & Safe Demo Staging (development)
+
+BUSY's private **Founder Operations** now includes an inventory of **ten infrastructure and operating providers**: Supabase, Cloudflare, GitHub, Expo, Apple Developer, Meta, Google, AI, email delivery and payments. The founder can record the current plan, billing cadence, observed usage and allowance, cost in GBP, renewal dates and evidence notes as **manual historical snapshots**. A fixed starting record uses a verified **14,493 Edge Function request log count across BUSY and Slow Roast through 9 October 2026 at 09:20 UTC** against the shared Free organisation's 500,000 included monthly allowance. The snapshot is *not an official invoice, live usage feed or current billing-period balance*. Other providers remain unmeasured until their account data is verified, rather than appearing to cost £0.
+
+The register uses a founder-only Supabase Edge Function and RLS-protected database table. User sessions must pass a **fresh server-side founder role check**; ordinary customers cannot inspect the platform's provider records. Saves are bounded, permissioned and duplicate-safe. The Founder dashboard also offers a read-only evidence check for `demo.busydoesit.co.uk`, where the system currently has **no actual hosted site record or private preview**. This does not publish, purchase or connect anything.
+
+Backend `busy-founder-ops` is **ACTIVE v12**. Focused V3.81 regression checks passed and are wired into GitHub CI; full workflow and native iPhone acceptance remain unverified. See `docs/V3_81_FOUNDER_SERVICE_CONTROL.md` for release gates and future provider billing/automatic monitoring plans.
+
 ## V3.80 — BUSY Headquarters & First Website Demonstration (development)
 
 The `sites/busy-headquarters/` folder now contains an **actual draft of the BUSY DOES IT marketing website** (responsive homepage, style system and clearly unapproved privacy placeholder), plus a **fictional home-services demonstration website** in `demo/index.html` generated from `demo-brand-brain.mjs` using BUSY's real customer website-draft builder. Both are **source-controlled private development artifacts**, not deployed public websites. Customer sign-up/payment, real contact forms and subscription entitlement remain disabled; prices and legal details are intentionally provisional.
