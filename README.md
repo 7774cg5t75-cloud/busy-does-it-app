@@ -1,5 +1,10 @@
 # busy-does-it-app
 
+## V3.83 — Dark Home & Voice-first Simplification (development)
+
+Home now has an opt-in near-black look, a prominent Talk to BUSY action, a small real-data business summary, one reviewed next suggestion, and an expandable home for secondary tools. Existing business forms remain light for this pass, and the founder-only operations backend is unchanged. `3.83.0` is committed to branch `v3.83`; **the V3.82 app already installed on an iPhone will need a new native build**. GitHub CI now checks the V3.83 Home requirements; native acceptance remains pending. See `docs/V3_83_DARK_HOME.md`.
+
+
 ## V3.82 — Founder Financial Autopilot 1.0 (development)
 
 The private **Founder Service Control** now captures six **automatic first-party BUSY activity metrics hourly**, even when the iPhone app is closed, using a RLS-protected Supabase table, `pg_cron` and 90-day retention. Counts include internal AI request records, website requests, prepared/live website records, workspaces and incident scans; these are **not the official Supabase Edge Function billing balance**. The existing historical provider/renewal register remains separate and honest about source and freshness.
