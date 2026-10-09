@@ -52,12 +52,12 @@ function DailyCommandCentre({ s }) {
   return (
     <Shell
       s={s}
-      title="Daily Command Centre"
+      title="Today’s priorities"
       subtitle="One place for what matters now, what can wait, and what is worth watching."
-      brandCue="V3.30 • Live obligations first • optional growth second • explanations always available."
+      brandCue="Your most important tasks come first."
     >
       <Card
-        eyebrow="Morning picture"
+        eyebrow="Your day so far"
         title={centre.headline || "BUSY has checked the business"}
         body={
           centre.status === "Action needed"
