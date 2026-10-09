@@ -473,6 +473,8 @@ export const styles = StyleSheet.create({
   talkRecordingIcon: { fontSize: 42 },
   talkRecordingLabel: { color: C.ink, fontSize: 17, fontWeight: "900" },
   talkRecordingTime: { color: C.muted, fontSize: 13, marginTop: 5 },
+  talkVoiceNotice: { color: C.muted, fontSize: 14, lineHeight: 21, marginTop: 3, paddingHorizontal: 8, textAlign: "center" },
+  talkVoiceError: { color: C.amber, fontSize: 14, lineHeight: 21, marginTop: 8, padding: 10, backgroundColor: C.amberSoft, borderRadius: 12 },
   talkHistoryCard: { borderWidth: 1, borderColor: C.border, backgroundColor: C.card, borderRadius: 14, padding: 13, marginBottom: 9 },
   talkHistoryPrompt: { color: C.ink, fontSize: 14, fontWeight: "900" },
   talkHistoryReply: { color: C.muted, fontSize: 13, lineHeight: 18, marginTop: 5 },
