@@ -1,3 +1,5 @@
+import {buildAutopilotDigest} from "./incidentReport.mjs";
+
 /**
  * V3.69 trusted server-side founder reporting helpers.
  * Never use this module to authenticate via the client's user_metadata.
@@ -23,7 +25,7 @@ function aggregateUsageRows(rows, {exhaustive,field,maxRows=1000} = {}) {
   }
   return sum;
 }
-function buildFounderReport({counts={},usage={},checkedAt="",verifiedRole=false}={}) {
+function buildFounderReport({counts={},usage={},checkedAt="",verifiedRole=false,monitorRun=null,monitorIncidents=null}={}) {
   // Caller MUST independently authenticate before executing the DB reads.
   if(!verifiedRole)return null;
   const count=k=>safeNumber(counts[k]);
@@ -75,10 +77,11 @@ function buildFounderReport({counts={},usage={},checkedAt="",verifiedRole=false}
       reason:"No verified billing ledger or provider invoice feed is connected. Workspace count is not subscriber count.",
     },
     automation:{
-      enabled:false,
+      enabled:true,
       alertDeliveryConfigured:false,
-      note:"This dashboard reports on-demand data. No unattended cross-tenant monitor, automatic incident fix or paid subscription operation has been activated.",
+      note:"Server-side aggregate incident monitoring is scheduled every 15 minutes. Incident delivery to your phone/email, privileged repairs and billing automation are not yet enabled.",
     },
+    autopilot:buildAutopilotDigest({run:monitorRun,incidents:monitorIncidents,verifiedRole,nowISO:checkedAt}),
     notes,
   };
 }
