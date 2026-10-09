@@ -67,15 +67,15 @@ function FounderOperations({s}){
       if(data?.scope!=="founder_aggregate_sample"||data?.automaticRetryAllowed!==false)
         throw Error("Invalid external verification evidence");
       setReality({owner,status:"ready",data});
-    }catch{
+    }catch(e){
       if(current.current===requestedOwner&&realityNonce.current===nonce)
-        setReality({owner,status:"unavailable",data:null});
+        setReality({owner,status:e?.status===429?"rate_limited":"unavailable",data:null});
     }
   };
   const report=state.owner===owner&&state.status==="ready"?state.report:null;
   return <Shell s={s} title="Founder Operations"
     subtitle="Platform-wide aggregate status, restricted to a verified founder account."
-    brandCue="V3.75 • external evidence • no blind retries">
+    brandCue="V3.76 • evidence trends • bounded verification">
     {!report?(
       <Card eyebrow="Founder access" title={state.status==="loading"?"Checking access…":
         state.status==="denied"?"Founder role not yet enabled":"Restricted dashboard"}
@@ -107,6 +107,33 @@ function FounderOperations({s}){
           <MetricRow left="Automatic external repairs" right="Disabled"/>
           <MetricRow left="Automatic push/email alerts" right="Disabled"/>
         </Card>
+        <Card eyebrow="V3.76 • Evidence & Intelligence"
+          title={report.evidenceHistory?.status==="available"?
+            "Historical verification trends":"Historical evidence unavailable"}
+          body="BUSY retains only aggregated checks for up to 30 days, and compares recent samples without storing customers' website addresses, posts or personal information. Repeated observations may reflect the same underlying record."
+          tone={report.evidenceHistory?.status==="available"?"blue":"amber"}>
+          <MetricRow left="Verification snapshots (last 7 days)"
+            right={show(report.evidenceHistory?.snapshots7d)}/>
+          <MetricRow left="Latest snapshot"
+            right={report.evidenceHistory?.latestAt?
+              new Date(report.evidenceHistory.latestAt).toLocaleString("en-GB"):
+              "Not yet recorded"}/>
+          <MetricRow left="Recent sample trend"
+            right={(report.evidenceHistory?.trend||"unverified").replace(/_/g," ")}/>
+          <MetricRow left="Observed issues across samples (7 days)"
+            right={show(report.evidenceHistory?.sampledIssueObservations7d)}/>
+          <MetricRow left="Minimum time between external checks"
+            right={report.evidenceHistory?.budget?
+              report.evidenceHistory.budget.minimumMinutesBetweenChecks+" minutes":"Not verified"}/>
+          <MetricRow left="Unattended external checks" right="Disabled"/>
+          {(report.evidenceHistory?.diagnoses||[]).slice(0,3).map((item,i)=>
+            <Text key={item.kind+"-"+i} style={styles.sectionLabel}>
+              {item.note}
+            </Text>)}
+          <Text style={styles.sectionLabel}>
+            {report.evidenceHistory?.note||"No reliable evidence history has been retrieved."}
+          </Text>
+        </Card>
         <Card eyebrow="V3.75 • Reality Check Engine"
           title="Verify recorded results against external evidence"
           body="On request, BUSY tests a small sample of its own published website hosts by HTTPS, inspects real social-provider submission receipts, and compares Business App deployment version records. This cannot guarantee visual correctness, public social visibility or every customer's uptime."
@@ -115,6 +142,16 @@ function FounderOperations({s}){
             primary disabled={reality.status==="loading"||!owner} onPress={verifyExternal}/>
           {reality.status==="unavailable"?(
             <Text style={styles.sectionLabel}>Verification is currently unavailable. No outcome has been assumed.</Text>
+          ):null}
+          {reality.status==="rate_limited"?(
+            <Text style={styles.sectionLabel}>
+              An external check has already been claimed in this 30-minute period. BUSY will not repeat it. Refresh the founder snapshot to see saved history.
+            </Text>
+          ):null}
+          {reality.status==="ready"&&reality.data?.historyPersisted===false?(
+            <Text style={styles.sectionLabel}>
+              This verification was displayed but could not be saved in history. No stored result is being claimed.
+            </Text>
           ):null}
           {reality.owner===owner&&reality.status==="ready"&&reality.data?(
             <>
