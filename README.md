@@ -1,5 +1,16 @@
 # busy-does-it-app
 
+## V3.70 — BUSY Platform Autopilot 1.0 (development)
+
+BUSY's **first unattended, server-side platform incident monitor** now operates in Supabase independently of the owner's iPhone. A private `pg_cron` job runs every **15 minutes**, scanning existing records for website job failures, expired website processing leases, failed/partially failed social publishing and failed Business Apps. It maintains low-noise grouped incident history, requires **two clean scans** before resolving an issue, and records incomplete data as unavailable rather than pretending there is no problem.
+
+Your server-authorised **Founder Operations dashboard** now displays scan freshness, up to 12 recent aggregate incident records, and high-priority exception counts without exposing customer identities. Database tables have RLS enabled and direct normal-customer access revoked. We verified the deployed schedule, source coverage, rollback-safe simulated incident transitions, and access restrictions. GitHub CI adds security/continuity regression checks.
+
+**Not yet active:** automatic founder push/email notifications (the founder account has no enrolled push device), destructive/external service recovery, payment/subscriber counts, £50 charges, AI invoices, and profit. For each, BUSY must have genuine evidence and carefully controlled activation. Our standing product goal is a future **£50/month app delivering extraordinary value with minimal founder time**.
+
+Details: `docs/V3_70_PLATFORM_AUTOPILOT.md`.
+
+
 ## V3.69 — Founder Operations Security Foundation (development only)
 
 - Implements a **separate, server-authorised founder-only dashboard** linked discreetly from Production Bridge. Unlike the customer-level Operations & Reliability view, the new `busy-founder-ops` backend can return **aggregate platform-wide** health and business-workspace activity after a fresh authenticated Supabase Auth check.
