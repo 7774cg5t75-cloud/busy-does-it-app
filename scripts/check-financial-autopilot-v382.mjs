@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {METRICS,digestAutomaticTelemetry,usageReview} from "../supabase/functions/busy-founder-ops/autoTelemetry.mjs";
 import {buildServiceInventory} from "../supabase/functions/busy-founder-ops/serviceRegister.mjs";
+import {readConfiguredProviders,parseGitHubActionsUsage,parseCloudflareSample,
+  readGitHubUsage,readCloudflareTraffic}
+ from "../supabase/functions/busy-founder-ops/providerReaders.mjs";
 const now="2026-10-09T11:00:00.000Z";
 assert.equal(METRICS.length,6);
 assert.equal(new Set(METRICS.map(m=>m.key)).size,6);
@@ -53,6 +56,92 @@ assert.equal(renewal.services.find(s=>s.key==="supabase").renewalReview,"review_
 assert.equal(renewal.services.find(s=>s.key==="supabase").alertProvenance,"historical_review_only");
 assert.equal(renewal.billsVerified,false);
 assert.equal(renewal.totalCostGbp,null);
+assert.equal(readConfiguredProviders({}).github,false);
+assert.equal(readConfiguredProviders({}).cloudflare,false);
+assert.equal(readConfiguredProviders({
+ GITHUB_BILLING_READ_TOKEN:"abc",GITHUB_BILLING_ACCOUNT:"bad/owner"
+}).github,false);
+assert.equal(readConfiguredProviders({
+ GITHUB_BILLING_READ_TOKEN:"token",GITHUB_BILLING_ACCOUNT:"7774cg5t75-cloud",
+ CLOUDFLARE_ANALYTICS_READ_TOKEN:"token",CLOUDFLARE_ACCOUNT_TAG:"a".repeat(32),
+ CLOUDFLARE_WORKER_SCRIPT:"busy-worker"
+}).github,true);
+assert.equal(readConfiguredProviders({
+ CLOUDFLARE_ANALYTICS_READ_TOKEN:"token",CLOUDFLARE_ACCOUNT_TAG:"a".repeat(32),
+ CLOUDFLARE_WORKER_SCRIPT:"my-worker"
+}).cloudflare,true);
+assert.equal(parseGitHubActionsUsage({usageItems:[
+ {product:"Actions",unitType:"minutes",grossQuantity:10},
+ {product:"Actions",unitType:"minutes",grossQuantity:15},
+ {product:"Packages",unitType:"GB",grossQuantity:100}
+]}),25);
+assert.equal(parseGitHubActionsUsage({usageItems:[{
+ product:"Actions",unitType:"minutes",grossQuantity:"100"
+}]}),null);
+assert.equal(parseGitHubActionsUsage({usageItems:"untrusted"}),null);
+assert.equal(parseCloudflareSample({data:{viewer:{accounts:[{
+ workersInvocationsAdaptive:[{sum:{requests:4}},{sum:{requests:6}}]
+}]}}}),10);
+assert.equal(parseCloudflareSample({errors:[{message:"bad"}],
+ data:{viewer:{accounts:[{workersInvocationsAdaptive:[]}]}}}),null);
+assert.equal(parseCloudflareSample({data:{viewer:{accounts:[{
+ workersInvocationsAdaptive:Array.from({length:100},()=>({sum:{requests:1}}))
+}]}}}),null);
+{
+ let outbound=0;
+ const none=async()=>{outbound++;throw Error("Should not fetch");};
+ const git=await readGitHubUsage({},none,new Date(now));
+ const cloud=await readCloudflareTraffic({},none,new Date(now));
+ assert.equal(git.status,"not_connected");
+ assert.equal(cloud.status,"not_connected");
+ assert.equal(outbound,0);
+}
+{
+ const env={GITHUB_BILLING_READ_TOKEN:"read-secret",
+  GITHUB_BILLING_ACCOUNT:"7774cg5t75-cloud"};
+ let method="",url="";
+ const mock=async(u,opt)=>{url=u;method=opt?.method||"GET";return {
+  ok:true,json:async()=>({usageItems:[{product:"Actions",unitType:"minutes",grossQuantity:12}]})
+ }};
+ const got=await readGitHubUsage(env,mock,new Date(now));
+ assert.equal(got.status,"read_success");
+ assert.equal(got.usageValue,12);
+ assert.equal(got.usageUnit,"Actions minutes (month)");
+ assert.equal(method,"GET");
+ assert.ok(url.startsWith("https://api.github.com/users/7774cg5t75-cloud/settings/billing/usage/summary"));
+ assert.ok(!JSON.stringify(got).includes("read-secret"));
+}
+{
+ const env={CLOUDFLARE_ANALYTICS_READ_TOKEN:"cloud-secret",
+   CLOUDFLARE_ACCOUNT_TAG:"a".repeat(32),
+   CLOUDFLARE_WORKER_SCRIPT:"busy-worker"};
+ let method="",url="",posted;
+ const mock=async(u,opt)=>{url=u;method=opt?.method;posted=JSON.parse(opt.body);
+   return {ok:true,json:async()=>({data:{viewer:{accounts:[{
+     workersInvocationsAdaptive:[{sum:{requests:9}}]}]}}})};
+ };
+ const got=await readCloudflareTraffic(env,mock,new Date(now));
+ assert.equal(got.status,"read_success");
+ assert.equal(got.usageValue,9);
+ assert.equal(method,"POST");
+ assert.equal(url,"https://api.cloudflare.com/client/v4/graphql");
+ assert.equal(posted.variables.scriptName,"busy-worker");
+ assert.ok(!JSON.stringify(got).includes("cloud-secret"));
+ assert.ok(got.note.includes("NOT billable"));
+}
+const providerMigration=readFileSync(
+ new URL("../supabase/migrations/20261009124500_v382_provider_readonly_source.sql",import.meta.url),"utf8");
+const limiterMigration=readFileSync(
+ new URL("../supabase/migrations/20261009125500_v382_provider_refresh_limits.sql",import.meta.url),"utf8");
+assert.ok(providerMigration.includes("provider_api_readonly"));
+assert.ok(limiterMigration.includes("security invoker"));
+assert.ok(limiterMigration.includes("busy_claim_founder_provider_window"));
+assert.ok(limiterMigration.includes("revoke all on public.busy_founder_provider_refresh_slots from public,anon,authenticated"));
+const providerDigest=buildServiceInventory([{...observation,
+ source:"provider_api_readonly",usage_value:180,allowance_value:null}],{checkedAt:now});
+assert.equal(providerDigest.services.find(x=>x.key==="supabase").latest.source,"provider_api_readonly");
+assert.equal(providerDigest.services.find(x=>x.key==="supabase").latest.invoiceVerified,false);
+
 const migration=readFileSync(new URL("../supabase/migrations/20261009123000_v382_internal_telemetry.sql",import.meta.url),"utf8");
 const backend=readFileSync(new URL("../supabase/functions/busy-founder-ops/index.ts",import.meta.url),"utf8");
 const screen=readFileSync(new URL("../src/screens/founderServiceCosts.js",import.meta.url),"utf8");
@@ -72,6 +161,17 @@ assert.ok(backend.includes("automaticUsage:digestAutomaticTelemetry"));
 assert.ok(backend.includes('action==="service_catalog"'));
 assert.ok(backend.indexOf("authenticatedUser(req)")<backend.indexOf('action==="service_catalog"'));
 assert.ok(backend.includes('billing_not_connected'));
+assert.ok(backend.includes('action==="sync_connected_providers"'));
+assert.ok(backend.indexOf("authenticatedUser(req)")<backend.indexOf('action==="sync_connected_providers"'));
+assert.ok(backend.includes("busy_claim_founder_provider_window"));
+assert.ok(backend.includes('source:"provider_api_readonly"'));
+assert.ok(backend.includes('const env=providerEnv()'));
+assert.ok(screen.includes("Verify configured provider feeds now"));
+const controller=readFileSync(new URL("../src/app/AppController.js",import.meta.url),"utf8");
+assert.ok(controller.includes("const syncFounderConnectedProviders = async"));
+assert.ok(controller.includes('action:"sync_connected_providers"'));
+assert.ok(controller.includes("syncFounderConnectedProviders,"));
+
 assert.ok(screen.includes("V3.82 • Automatic monitoring"));
 assert.ok(screen.includes("updated by a server schedule"));
 assert.ok(screen.includes("They are NOT official Supabase Edge Function usage"));
