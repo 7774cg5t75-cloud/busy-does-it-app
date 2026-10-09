@@ -257,7 +257,7 @@ function BusyBrandLockup({ size = 38, centered = false, inverse = false }) {
   );
 }
 
-function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack = false, dark = false, hideDevBadge = false }) {
+function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack = false, dark = true, hideDevBadge = true }) {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
@@ -318,7 +318,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
   );
 }
 
-function BottomNav({ s, dark = false }) {
+function BottomNav({ s, dark = true }) {
   const items = [
     ["Home", "home"],
     ["Work", "workHub"],
