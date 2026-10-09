@@ -16,11 +16,18 @@
 ## What was actually verified
 - Applied Supabase migrations `v3_79_public_form_gates` and `v3_79_form_source_creator`.
 - Transactional SQL fixture (fully **ROLLED BACK**) verified: form gate default false; anon/authenticated roles have no table or quota RPC privileges; `website_form` accepts null creator only with an actual website; `owner_entered` refuses a null creator; twelve claims pass and the thirteenth is refused. No dummy customer/site remains stored.
-- Focused policy, form markup and origin-accuracy tests passed (15 checks). Regression test source parsing and prior backend validations checked. **Full GitHub CI execution is not yet confirmed green.**
-- Supabase `busy-website-form` is ACTIVE v2 with `verify_jwt=false` (required for anonymous visitors; safe because application checks deny disabled requests).
+- V3.79 committed regression script executed successfully against the current source (72 assertions), alongside the rolled-back SQL quota fixture. Regression test source parsing and prior backend validations checked. **Full GitHub CI execution is not yet confirmed green.**
+- Supabase `busy-website-form` is ACTIVE v3 with `verify_jwt=false` (required for anonymous visitors; safe because application checks deny disabled requests).
 - `busy-website-publish` is ACTIVE v20 with JWT verification and owner/admin lead listing.
-- `busy-website-worker` is ACTIVE v14 with JWT verification.
+- `busy-website-worker` is ACTIVE v15 with JWT verification.
 - Production database had zero live BUSY-hosted customer sites and zero opted-in public forms at inspection. Therefore there is **no real external visitor submission success to claim**.
+
+## Additional pre-activation safeguards
+
+- Public website form submissions now require **recent matching website health evidence**, including an active default domain route, matching observed/live deployment IDs, identical latest healthy/check timestamps, and a check no more than 48 hours old. A database `live` flag alone is never sufficient.
+- Challenge verification happens **before** any privileged website database lookup, so invalid visitors cannot cheaply hammer tenant records.
+- Public form HTML is added to both immutable hosted preview and public artifacts only after the opt-in/site-key/health checks; the preview stays non-submitting. No live form is enabled now.
+- A real browser and Turnstile test plus a published privacy policy remain mandatory before switching on any public submissions. Neither the frontend nor this release exposes a one-tap activate control.
 
 ## Security/privacy release gates before turning forms on
 
