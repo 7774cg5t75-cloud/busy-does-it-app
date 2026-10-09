@@ -148,7 +148,7 @@ import {
 const homeDark = StyleSheet.create({
   panel: { backgroundColor: "#171F2D", borderColor: "#2B384C", borderWidth: 1, borderRadius: 20, padding: 17, marginBottom: 12 },
   hero: { backgroundColor: "#17243A", borderColor: "#35527C" },
-  kicker: { color: "#90B8FF", fontSize: 12, fontWeight: "800", letterSpacing: 0.7, marginBottom: 7 },
+  kicker: { color: "#90B8FF", fontSize: 12, fontWeight: "800", letterSpacing: 0.7, marginBottom: 7, flexShrink: 1 },
   heading: { color: "#F4F7FE", fontSize: 21, lineHeight: 28, fontWeight: "900", marginBottom: 6 },
   description: { color: "#B4C0D2", fontSize: 14, lineHeight: 21 },
   micro: { color: "#9AAAC2", fontSize: 12, lineHeight: 18, marginTop: 9 },
@@ -165,10 +165,10 @@ const homeDark = StyleSheet.create({
   sectionHeading: { color: "#EAF0FC", fontSize: 18, fontWeight: "900", marginTop: 8, marginBottom: 10 },
   statRow: { flexDirection: "row", gap: 10, marginBottom: 12 },
   stat: { flex: 1, minWidth: 0, backgroundColor: "#171F2D", borderColor: "#2B384C", borderWidth: 1, borderRadius: 16, padding: 15 },
-  statValue: { color: "#FFFFFF", fontSize: 27, fontWeight: "900", marginBottom: 4 },
+  statValue: { color: "#FFFFFF", fontSize: 24, fontWeight: "900", marginBottom: 4 },
   statLabel: { color: "#B4C0D2", fontSize: 12, fontWeight: "700", lineHeight: 17 },
   inlineRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
-  badge: { color: "#7BE0AE", fontSize: 12, fontWeight: "800" },
+  badge: { color: "#7BE0AE", fontSize: 12, fontWeight: "800", flexShrink: 1, maxWidth: "35%", textAlign: "right" },
   divider: { height: 1, backgroundColor: "#303D52", marginVertical: 12 },
   toolRow: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#303D52", flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
   toolText: { color: "#EAF0FC", fontSize: 15, fontWeight: "700", flexShrink: 1 },
@@ -922,6 +922,9 @@ function HomeScreen({ s }) {
 
 
   const pendingInbox = s.inboxPendingItems?.length || 0;
+  const attentionCount = (s.dailyCommandCentre?.doNow?.length || 0) +
+    (s.autopilotNeedsInputItems?.length || 0) +
+    (s.diaryConflicts?.length || 0) + pendingInbox;
   const needsAttention = (s.dailyCommandCentre?.doNow?.length || 0) > 0 ||
     (s.autopilotNeedsInputItems?.length || 0) > 0 ||
     (s.diaryConflicts?.length || 0) > 0 ||
@@ -978,8 +981,8 @@ function HomeScreen({ s }) {
           <Text style={homeDark.statLabel}>Confirmed bookings · next 7 days</Text>
         </Pressable>
         <Pressable accessibilityRole="button" onPress={() => s.go("dailyCommandCentre")} style={homeDark.stat}>
-          <Text style={homeDark.statValue}>{needsAttention ? "Review" : "Clear"}</Text>
-          <Text style={homeDark.statLabel}>What needs your attention</Text>
+          <Text style={homeDark.statValue}>{attentionCount}</Text>
+          <Text style={homeDark.statLabel}>Items needing review</Text>
         </Pressable>
       </View>
 
@@ -987,7 +990,7 @@ function HomeScreen({ s }) {
         <View style={homeDark.panel}>
           <View style={homeDark.inlineRow}>
             <Text style={homeDark.kicker}>BUSY'S NEXT SUGGESTION</Text>
-            <Text style={homeDark.badge}>For your review</Text>
+            <Text style={homeDark.badge}>Review</Text>
           </View>
           <Text style={homeDark.heading}>
             {bestMove?.title || (pendingInbox ? "You have new items to review" : "Check your business priorities")}
