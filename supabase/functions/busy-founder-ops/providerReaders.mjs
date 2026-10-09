@@ -67,7 +67,7 @@ async function readCloudflareTraffic(env,fetcher=fetch,now=new Date()){
   // One hour prevents truncation for quiet accounts, but reject datasets that
   // reach the documented 100-row page limit rather than claiming full coverage.
   const start=new Date(now.getTime()-3600000).toISOString();
-  const query=`query GetWorkersAnalytics($accountTag: string!, $datetimeStart: Time!, $datetimeEnd: Time!, $scriptName: string!){
+  const query=`query GetWorkersAnalytics($accountTag: string, $datetimeStart: string, $datetimeEnd: string, $scriptName: string){
     viewer{accounts(filter:{accountTag:$accountTag}){
       workersInvocationsAdaptive(limit:100,filter:{scriptName:$scriptName,datetime_geq:$datetimeStart,datetime_leq:$datetimeEnd}){
         sum{requests}
