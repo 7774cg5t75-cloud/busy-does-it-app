@@ -68,9 +68,9 @@ function GrowthCommandCentre({s}){
     s.openBusinessCreationJourney();
   };
   return (
-    <Shell s={s} title="BUSY Growth Command Centre"
+    <Shell s={s} title="Grow my business"
       subtitle="Your saved business growth projects, their last private review stage and what needs attention next."
-      brandCue="V3.65 • owner-only cloud checkpoints • no automatic publishing">
+      brandCue="Review your saved projects before anything goes public.">
       <Card eyebrow="Project overview"
         title={busy?"Checking your private projects…":centre.counts.projects+" saved growth project"+(centre.counts.projects===1?"":"s")}
         body={centre.notice}
