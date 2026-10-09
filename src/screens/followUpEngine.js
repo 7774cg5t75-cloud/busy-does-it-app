@@ -31,9 +31,9 @@ function FollowUpEngine({ s }) {
   return (
     <Shell
       s={s}
-      title="Follow-up Engine"
-      subtitle="Who genuinely needs contact, who should be left alone, and what BUSY can prepare next."
-      brandCue="V3.33 • Prioritise first • prepare safely • no unrestricted sending."
+      title="Customer follow-ups"
+      subtitle="See who needs a reply, who is waiting and what BUSY can help you prepare."
+      brandCue="You stay in control of messages before they are sent."
     >
       <Card
         eyebrow="Communications Bridge"
@@ -162,7 +162,7 @@ function FollowUpEngine({ s }) {
       </Card>
 
       <Button label="Ask BUSY who I should chase today" onPress={() => s.askBusyAboutFollowUps()} />
-      <Button label="Communications Hub" onPress={s.openCommunicationsHub} />
+      <Button label="Messages & replies" onPress={s.openCommunicationsHub} />
       <Button label="Back to Work" onPress={() => s.jump("workHub", "Work")} />
     </Shell>
   );
