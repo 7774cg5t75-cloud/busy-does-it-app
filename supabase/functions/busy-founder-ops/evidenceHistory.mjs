@@ -88,8 +88,12 @@ function buildEvidenceHistory({rows=null,nowISO=""}={}){
      w.unhealthy*2>=w.sampled)
     diagnoses.push({kind:"possible_shared_website_symptom",level:"review",
       note:"Several sampled websites showed unreachable or mismatched deployments in the same check. Inspect shared infrastructure; a common provider fault is NOT confirmed."});
-  const last24=recent.filter(r=>Date.parse(r.at)>=now-86400000);
-  const prev24=recent.filter(r=>Date.parse(r.at)>=now-2*86400000&&
+  const complete=recent.filter(r=>r.status==="complete"&&
+    r.website.sampled!==null&&r.website.unhealthy!==null&&
+    r.social.sampled!==null&&r.social.issues!==null&&
+    r.apps.sampled!==null&&r.apps.issues!==null);
+  const last24=complete.filter(r=>Date.parse(r.at)>=now-86400000);
+  const prev24=complete.filter(r=>Date.parse(r.at)>=now-2*86400000&&
     Date.parse(r.at)<now-86400000);
   const issueTotals=items=>items.reduce((sum,r)=>sum+
     (r.website.unhealthy??0)+(r.social.issues??0)+(r.apps.issues??0),0);
@@ -111,7 +115,7 @@ function buildEvidenceHistory({rows=null,nowISO=""}={}){
       note:"Stored provider receipt anomalies appeared in multiple samples, possibly for the same posts. Public visibility has NOT been checked."});
   return {status:"available",retainedDays:30,snapshots7d:recent.length,
     latestAt:latest?.at||null,trend,
-    sampledIssueObservations7d:issueTotals(recent),
+    sampledIssueObservations7d:issueTotals(complete),
     diagnoses:diagnoses.slice(0,3),unattendedExternalChecksEnabled:false,
     budget:{minimumMinutesBetweenChecks:30,maxWebsiteHeadRequestsPerCheck:4,
       maxSocialRecordsPerCheck:12,maxBusinessAppsPerCheck:8,
