@@ -10,7 +10,7 @@ Continue toward a BUSY DOES IT service worth a future **£50/month** with less f
 - Same-generation scans preserve acknowledgement. Incident closure follows the established two-clean-scan rule. A reopened incident resets acknowledgement so the founder can review the new occurrence.
 - Extended the server-authorised `busy-founder-ops` Edge Function to return an allowlisted, bounded alert inbox and accept only a single, allowlisted `acknowledge` action with a transition-number optimistic lock. Every request requires a **fresh authenticated founder app_metadata check** before reading or updating records. JWT verification stays enabled.
 - Added founder dashboard alert counts, status, acknowledgement buttons and class-specific **safe review guidance**. No automated publishing, customer data mutation, payment charging or live content recovery was added.
-- Added pure, separately tested `subscriptionGuardrails.mjs` decision helpers for future verified paid-through periods, seven-day grace, post-grace review and metered usage soft/hard thresholds. All unverified data returns **unverified**; **no automatic suspension or hard stop is enabled**. This is groundwork, not a billing integration.
+- Added pure `subscriptionGuardrails.mjs` decision helpers with new regression test cases for future verified paid-through periods, seven-day grace, post-grace review and metered usage soft/hard thresholds. All unverified data returns **unverified**; **no automatic suspension or hard stop is enabled**. This is groundwork, not a billing integration.
 - Updated the development branch version to **3.71.0**.
 
 ## Commercial service-policy proposal (not yet active)
