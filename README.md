@@ -1,5 +1,10 @@
 # busy-does-it-app
 
+## V3.89 — Connected Accounts, without jargon
+
+Connected Accounts now leads with the signed-in business and real Facebook/Instagram or Google Business connection status, plus direct account actions. Prototype email, calendar, CRM, invoicing and advertising switches are accurately labelled as demos inside **Other services & demos**. OAuth, live publishing test protection, developer setup and detailed health reports remain intact behind **Advanced connection details**. The default screen is shorter and designed for larger iPhone display settings. See `docs/V3_89_CONNECTED_ACCOUNTS.md`; the signed V3.89 iPhone preview must still be tested before acceptance.
+
+
 
 ## V3.87 — One-tap Social Media & simpler posting (development)
 
