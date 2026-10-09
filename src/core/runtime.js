@@ -1,5 +1,5 @@
-const APP_VERSION = "3.89";
-const PROTOTYPE_BADGE = `Development v${APP_VERSION} • Connected Accounts Simplicity`;
+const APP_VERSION = "3.90";
+const PROTOTYPE_BADGE = `Development v${APP_VERSION} • Talk to BUSY Voice Reliability`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
