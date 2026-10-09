@@ -2326,6 +2326,54 @@ function App() {
   };
 
 
+  // V3.81: server-fresh founder grant required. No service provider
+  // API keys, prices or cross-business customer data are sent to this app.
+  const fetchFounderServices = async () => {
+    const ownerId=ownerSession?.userId||"";
+    const token=await ownerAccessToken();
+    if(!ownerId||!token)throw Error("Sign in to your founder account.");
+    const response=await fetchWithTimeout(
+      BUSY_SUPABASE_URL+"/functions/v1/busy-founder-ops",{
+        method:"POST",
+        headers:{apikey:BUSY_AI_TOKEN,Authorization:"Bearer "+token,
+          "Content-Type":"application/json"},
+        body:JSON.stringify({action:"service_catalog"})
+      },20000);
+    if(!response.ok){
+      const e=new Error(response.status===403?
+        "Verified founder access is required.":"Provider register unavailable.");
+      e.status=response.status;
+      throw e;
+    }
+    const data=await response.json();
+    if(data?.scope!=="founder_service_register"||
+       data?.privacy!=="founder_only"||!Array.isArray(data?.services))
+      throw Error("Invalid founder service register response.");
+    return data;
+  };
+  const recordFounderService = async (snapshot) => {
+    const ownerId=ownerSession?.userId||"";
+    const token=await ownerAccessToken();
+    if(!ownerId||!token)throw Error("Sign in to your founder account.");
+    const response=await fetchWithTimeout(
+      BUSY_SUPABASE_URL+"/functions/v1/busy-founder-ops",{
+        method:"POST",
+        headers:{apikey:BUSY_AI_TOKEN,Authorization:"Bearer "+token,
+          "Content-Type":"application/json"},
+        body:JSON.stringify({action:"record_service",snapshot})
+      },20000);
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok){
+      const e=new Error(response.status===403?
+        "Verified founder access required.":data?.error||"Service snapshot not saved.");
+      e.status=response.status;
+      throw e;
+    }
+    if(data?.stored!==true)
+      throw Error("The service snapshot could not be confirmed.");
+    return data;
+  };
+
   // V3.75 founder-authorised, manually requested read-only provider checks.
   const fetchExternalReality = async () => {
     const ownerId=ownerSession?.userId||"";
@@ -15364,6 +15412,8 @@ function App() {
     useGoogleCalendarTime,
     refreshProductionWatchStatus,
     fetchFounderOperations,
+    fetchFounderServices,
+    recordFounderService,
     fetchExternalReality,
     acknowledgeFounderAlert,
     maskPushToken,
