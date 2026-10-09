@@ -40,6 +40,7 @@ jobs:
           node scripts/check-headquarters-v380.mjs
           node scripts/check-founder-operations-v381.mjs
           node scripts/check-financial-autopilot-v382.mjs
+          node scripts/check-dark-home-v383.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs
