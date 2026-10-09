@@ -10,6 +10,8 @@ function FounderOperations({s}){
   const [state,setState]=React.useState({owner:"",status:"idle",report:null,message:""});
   const [ackBusy,setAckBusy]=React.useState("");
   const [ackError,setAckError]=React.useState("");
+  const [reality,setReality]=React.useState({owner:"",status:"idle",data:null});
+  const realityNonce=React.useRef(0);
   const nonce=React.useRef(0), current=React.useRef(owner),loader=React.useRef(s.fetchFounderOperations);
   current.current=owner;loader.current=s.fetchFounderOperations;
   const refresh=React.useCallback(async()=>{
@@ -37,6 +39,10 @@ function FounderOperations({s}){
   React.useEffect(()=>{
     setAckBusy("");setAckError("");
   },[owner]);
+  React.useEffect(()=>{
+    realityNonce.current+=1;
+    setReality({owner,status:"idle",data:null});
+  },[owner]);
   const acknowledge=async item=>{
     if(!owner||ackBusy||item.status!=="open"||item.acknowledgedAt)return;
     const requestedOwner=owner;
@@ -51,10 +57,25 @@ function FounderOperations({s}){
       if(current.current===requestedOwner)setAckBusy("");
     }
   };
+  const verifyExternal=async()=>{
+    if(!owner||reality.status==="loading")return;
+    const requestedOwner=owner,nonce=++realityNonce.current;
+    setReality({owner,status:"loading",data:null});
+    try{
+      const data=await s.fetchExternalReality();
+      if(current.current!==requestedOwner||realityNonce.current!==nonce)return;
+      if(data?.scope!=="founder_aggregate_sample"||data?.automaticRetryAllowed!==false)
+        throw Error("Invalid external verification evidence");
+      setReality({owner,status:"ready",data});
+    }catch{
+      if(current.current===requestedOwner&&realityNonce.current===nonce)
+        setReality({owner,status:"unavailable",data:null});
+    }
+  };
   const report=state.owner===owner&&state.status==="ready"?state.report:null;
   return <Shell s={s} title="Founder Operations"
     subtitle="Platform-wide aggregate status, restricted to a verified founder account."
-    brandCue="V3.74 • safe recovery monitoring • audit trail">
+    brandCue="V3.75 • external evidence • no blind retries">
     {!report?(
       <Card eyebrow="Founder access" title={state.status==="loading"?"Checking access…":
         state.status==="denied"?"Founder role not yet enabled":"Restricted dashboard"}
@@ -85,6 +106,49 @@ function FounderOperations({s}){
             right={report.reliability?.alertInboxIsVerified?"Verified":"Not verified"}/>
           <MetricRow left="Automatic external repairs" right="Disabled"/>
           <MetricRow left="Automatic push/email alerts" right="Disabled"/>
+        </Card>
+        <Card eyebrow="V3.75 • Reality Check Engine"
+          title="Verify recorded results against external evidence"
+          body="On request, BUSY tests a small sample of its own published website hosts by HTTPS, inspects real social-provider submission receipts, and compares Business App deployment version records. This cannot guarantee visual correctness, public social visibility or every customer's uptime."
+          tone="blue">
+          <Button label={reality.status==="loading"?"Checking real evidence…":"Check external evidence now"}
+            primary disabled={reality.status==="loading"||!owner} onPress={verifyExternal}/>
+          {reality.status==="unavailable"?(
+            <Text style={styles.sectionLabel}>Verification is currently unavailable. No outcome has been assumed.</Text>
+          ):null}
+          {reality.owner===owner&&reality.status==="ready"&&reality.data?(
+            <>
+              <MetricRow left="Published website hosts sampled"
+                right={show(reality.data.website?.sampled)}/>
+              <MetricRow left="Website deployment responses verified"
+                right={show(reality.data.website?.outcomes?.deployment_responding)}/>
+              <MetricRow left="Website mismatch or unreachable"
+                right={reality.data.website?.outcomes?
+                  show(reality.data.website.outcomes.mismatch+reality.data.website.outcomes.unreachable):
+                  "Not measured"}/>
+              <MetricRow left="Social post records sampled"
+                right={show(reality.data.social?.sampledPosts)}/>
+              <MetricRow left="Provider-accepted social destinations"
+                right={show(reality.data.social?.channels?.providerAccepted)}/>
+              <MetricRow left="Social receipts failed or unverified"
+                right={reality.data.social?.channels?
+                  show(reality.data.social.channels.failed+reality.data.social.channels.unverified):
+                  "Not measured"}/>
+              <MetricRow left="Live Business App records sampled"
+                right={show(reality.data.apps?.sampled)}/>
+              <MetricRow left="Business App deployments recorded"
+                right={show(reality.data.apps?.outcomes?.deployment_recorded)}/>
+              <Text style={styles.sectionLabel}>
+                {reality.data.website?.note||"Website evidence unavailable."}
+              </Text>
+              <Text style={styles.sectionLabel}>
+                {reality.data.social?.note||"Social evidence unavailable."}
+              </Text>
+              <Text style={styles.sectionLabel}>
+                {reality.data.apps?.note||"Business App evidence unavailable."}
+              </Text>
+            </>
+          ):null}
         </Card>
         <Card eyebrow="V3.74 • Verified recovery reviews"
           title={report.recovery?.status==="available"?
