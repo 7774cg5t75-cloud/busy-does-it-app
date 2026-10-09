@@ -89,7 +89,7 @@ const cronChecks=[
  ["bounded history retention",sql.includes("interval '30 days'")&&sql.includes("interval '90 days'")],
  ["no open SQL execution privilege",sql.includes("revoke all on function busy_platform_internal.run_monitor()")],
  ["server-only founder Auth",edge.includes("isFounderUser(user)?user:null")],
- ["auth before privileged incident query",edge.indexOf("if(!founder)return send(403")<edge.indexOf("await aggregates()")],
+ ["auth before privileged incident query",edge.indexOf("if(!founder)return send(403")<edge.indexOf("aggregates(),incidentData()")],
  ["incident limit 12",edge.includes('"last_observed_at.desc",12')],
  ["scan limit 1",edge.includes('"checked_at.desc",1')],
  ["aggregate scope output only",edge.includes("buildFounderReport({counts,usage,monitorRun,monitorIncidents")],
