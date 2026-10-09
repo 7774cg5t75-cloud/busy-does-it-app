@@ -1,0 +1,28 @@
+name: V3.70 Platform Autopilot checks
+on:
+  push:
+    branches: [v3.70]
+  pull_request:
+    paths:
+      - "supabase/functions/busy-founder-ops/**"
+      - "supabase/migrations/20261009010000_v3_70_platform_autopilot.sql"
+      - "src/screens/founderOperations.js"
+      - "scripts/check-platform-autopilot.mjs"
+      - ".github/workflows/check-platform-autopilot.yml"
+  workflow_dispatch:
+jobs:
+  autopilot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: V3.70 privacy and monitor regression
+        run: node scripts/check-platform-autopilot.mjs
+      - name: V3.69 founder Auth and billing accuracy regression
+        run: node scripts/check-founder-operations.mjs
+      - name: V3.68 owner-level recovery boundaries regression
+        run: node scripts/check-self-running-operations.mjs
+      - name: V3.67 verified publishing evidence regression
+        run: node scripts/check-verified-activity.mjs
