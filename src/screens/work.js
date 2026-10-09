@@ -781,8 +781,8 @@ function WorkHub({ s }) {
       s={s}
       noBack
       title="Work"
-      subtitle="BUSY keeps the week moving: protect live work, clear customer obligations, watch capacity and only then create more demand."
-      brandCue="Run the work you already have before buying more attention."
+      subtitle="See your bookings, look after customers and find more work when you need it."
+      brandCue="Your jobs and diary, all in one place."
     >
       <Card
         eyebrow="V3.29 • Work & Calendar 2.0"
@@ -1033,7 +1033,7 @@ function WorkHub({ s }) {
       <Card eyebrow="Today" title={todayBookings.length ? `${todayBookings.length} job${todayBookings.length === 1 ? "" : "s"} booked today` : "No booked jobs today"} tone={todayBookings.length ? "green" : "blue"}>
         <MetricRow left="New enquiries (<7 days)" right={String(s.freshEnquiryEntries.length)} onPress={s.freshEnquiryEntries.length ? () => s.go("workPipeline") : null} />
         <MetricRow left="Quiet enquiries (7+ days)" right={String(s.staleEnquiryEntries.length)} strong={s.staleEnquiryEntries.length > 0} onPress={s.staleEnquiryEntries.length ? () => s.go("staleEnquiries") : null} />
-        <MetricRow left="Work in pipeline" right={`£${s.pipelineWorkValue}`} strong={s.pipelineWorkValue > 0} onPress={s.pipelineWorkValue > 0 ? () => s.go("workPipeline") : null} />
+        <MetricRow left="Quotes and booked work" right={`£${s.pipelineWorkValue}`} strong={s.pipelineWorkValue > 0} onPress={s.pipelineWorkValue > 0 ? () => s.go("workPipeline") : null} />
         <MetricRow left="Active quote value" right={`£${s.activeQuoteValue}`} onPress={s.activeQuoteValue > 0 ? () => s.go("workPipeline") : null} />
         <MetricRow left="Booked work value" right={`£${s.bookedWorkValue}`} onPress={s.bookedWorkValue > 0 ? () => s.go("bookings") : null} />
         <MetricRow left="Overdue bookings" right={String(overdueBookings.length)} strong={overdueBookings.length > 0} onPress={overdueBookings.length ? () => s.go("bookings") : null} />
@@ -1319,14 +1319,14 @@ function WorkHub({ s }) {
         </Pressable>
       ) : null}
 
-      <Text style={styles.sectionLabel}>Add or manage work</Text>
+      <Text style={styles.sectionLabel}>Customers & enquiries</Text>
       <Button
         label={s.inboxPendingItems.length ? `BUSY Inbox • ${s.inboxPendingItems.length} waiting` : "BUSY Inbox"}
         primary
         onPress={s.openBusyInbox}
       />
-      <Button label="Quick capture from a message / note" onPress={s.startQuickCapture} />
-      <Button label="+ New enquiry manually" onPress={s.startNewEnquiry} />
+      <Button label="Add details from a message or note" onPress={s.startQuickCapture} />
+      <Button label="+ Add a new enquiry" onPress={s.startNewEnquiry} />
       {s.intakeLog.length ? (
         <Button label={`Intake history • ${s.intakeLog.length}`} onPress={() => s.go("intakeHistory")} />
       ) : null}
@@ -1336,9 +1336,9 @@ function WorkHub({ s }) {
       {s.dueQuoteEntries.length ? (
         <Button label={`Quote follow-ups due • ${s.dueQuoteEntries.length}`} onPress={() => s.go("staleQuotes")} />
       ) : null}
-      <Button label="Customer records" onPress={() => s.go("customerRecords")} />
+      <Button label="All customer records" onPress={() => s.go("customerRecords")} />
       <Button
-        label="Customer pipeline"
+        label="Customers & enquiries"
         onPress={() => s.go("workPipeline")}
       />
       <Button label="Full calendar & day details" onPress={() => s.go("workCalendar")} />
@@ -2001,13 +2001,13 @@ function WorkPipeline({ s }) {
   return (
     <Shell
       s={s}
-      title="Customer pipeline"
+      title="Customers & enquiries"
       subtitle="Every live customer sits in one clear stage, from first enquiry through to completed work."
       brandCue="One customer. One next step."
     >
       <Card
         eyebrow="Live customer work"
-        title={totalActive ? `${totalActive} active item${totalActive === 1 ? "" : "s"}` : "Pipeline clear"}
+        title={totalActive ? `${totalActive} enquiry, quote or job item${totalActive === 1 ? "" : "s"} to manage` : "Nothing waiting for you"}
         body="This view is built from the local customer records and actions already saved in BUSY DOES IT."
         footer={`£${s.pipelineWorkValue} currently in quotes + booked work`}
         tone={totalActive ? "green" : "blue"}
@@ -2042,7 +2042,7 @@ function WorkPipeline({ s }) {
       </View>
       {query || stageFilter !== "All" ? (
         <Text style={styles.helper}>
-          {visibleCount ? `Showing ${visibleCount} matching pipeline item${visibleCount === 1 ? "" : "s"}.` : "No pipeline items match those filters."}
+          {visibleCount ? `Showing ${visibleCount} matching item${visibleCount === 1 ? "" : "s"}.` : "Nothing matches those filters."}
         </Text>
       ) : null}
 
@@ -2113,7 +2113,7 @@ function WorkPipeline({ s }) {
       {!totalActive && !completed.length ? (
         <Card
           eyebrow="Nothing waiting"
-          title="No customer work in the pipeline yet"
+          title="No enquiries or jobs here yet"
           body="Add a new enquiry or start an action from a customer record."
           tone="blue"
         />
@@ -2121,7 +2121,7 @@ function WorkPipeline({ s }) {
 
       <Button label="+ New enquiry" primary onPress={s.startNewEnquiry} />
       <Button label="Work diary" onPress={() => s.go("bookings")} />
-      <Button label="Customer records" onPress={() => s.go("customerRecords")} />
+      <Button label="All customer records" onPress={() => s.go("customerRecords")} />
     </Shell>
   );
 }
@@ -3276,7 +3276,7 @@ function CustomerActivity({ s }) {
       ) : null}
 
       {s.completedBookingCount ? <Button label="Open bookings" onPress={() => s.go("bookings")} /> : null}
-      <Button label="Customer records" onPress={() => s.go("customerRecords")} />
+      <Button label="All customer records" onPress={() => s.go("customerRecords")} />
       <Button label="Done" primary onPress={s.back} />
     </Shell>
   );
