@@ -1,5 +1,10 @@
 # busy-does-it-app
 
+## V3.86 — Calendar-first Work (development)
+
+The Work tab is now designed around the everyday tasks: a compact weekly glance, a highlighted real priority (when there is one), the next saved booking, the existing tappable monthly calendar and **Customers & enquiries**. Detailed forecasts, Work metrics, multi-step plans and secondary tools remain available behind **More work tools and reports** rather than filling the default screen. No customer or backend functionality was removed. Regression checks now cover calendar navigation, route preservation and hidden advanced reports. Version `3.86.0`, iOS build number `6` still requires a signed preview build and native acceptance. See `docs/V3_86_CALENDAR_FIRST_WORK.md`.
+
+
 ## V3.85 — Plain-English navigation (development)
 
 Customer-facing navigation now says **Customers & enquiries**, **Social Media**, **Today's priorities**, **Customer follow-ups** and **Messages & replies** rather than technical labels. Results opens with four honest saved-record figures and hides deeper reports until requested. Settings opens with six everyday tasks and hides complex settings behind a reversible **Show more settings** button. All original screens, business data routes and approval gates are preserved, with a new focused CI regression script. The new version requires a signed iPhone build and in-app review; no live service or App Store release is implied. See `docs/V3_85_PLAIN_ENGLISH_NAVIGATION.md`.
