@@ -6,7 +6,7 @@ The private **Founder Service Control** now captures six **automatic first-party
 
 V3.82 adds guarded **read-only GitHub billing and Cloudflare Worker analytics adapters**, ready for founder-authorised provider credentials kept exclusively in the Supabase server environment. Optional founder-initiated usage refresh is limited to once per 30 minutes and stores results as provider API observations, not invoices or made-up GBP totals. **These external accounts are NOT yet connected and do NOT auto-poll**, and the dashboard displays this. It also surfaces 50/75/90% historical allowance review markers and 30-day renewal reviews, not fabricated live alerts. No purchases, subscription changes or public domain launches were made.
 
-Supabase migrations applied, `busy-founder-ops` ACTIVE v14 with verified JWT and fresh founder auth, the V3.82 focused test suite passed 113 checks, and it is wired into CI. Full Actions run and iPhone testing remain outstanding. See `docs/V3_82_FOUNDER_FINANCIAL_AUTOPILOT.md`.
+Supabase migrations applied, `busy-founder-ops` ACTIVE v15 with verified JWT and fresh founder auth, the V3.82 focused test suite passed 122 checks, and it is wired into CI. Full Actions run and iPhone testing remain outstanding. See `docs/V3_82_FOUNDER_FINANCIAL_AUTOPILOT.md`.
 
 ## V3.81 — Founder Service Control & Safe Demo Staging (development)
 
