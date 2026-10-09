@@ -968,6 +968,15 @@ function HomeScreen({ s }) {
           </View>
           <Text style={homeDark.chevron}>›</Text>
         </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Create a new social media post"
+          accessibilityHint="Opens the post creator to choose photos and prepare a post"
+          onPress={s.startSocialFromPhone}
+          style={({ pressed }) => [homeDark.actionButton, pressed && styles.pressed]}
+        >
+          <Text style={homeDark.actionText}>+ Create a post</Text>
+        </Pressable>
         <Pressable accessibilityRole="button" onPress={() => s.openTalkToBusy(false)} style={homeDark.outlineButton}>
           <Text style={homeDark.outlineText}>Type to BUSY instead</Text>
         </Pressable>
