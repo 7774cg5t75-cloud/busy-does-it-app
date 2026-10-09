@@ -144,6 +144,40 @@ import {
 } from "../components/ui";
 
 
+
+const homeDark = StyleSheet.create({
+  panel: { backgroundColor: "#171F2D", borderColor: "#2B384C", borderWidth: 1, borderRadius: 20, padding: 17, marginBottom: 12 },
+  hero: { backgroundColor: "#17243A", borderColor: "#35527C" },
+  kicker: { color: "#90B8FF", fontSize: 12, fontWeight: "800", letterSpacing: 0.7, marginBottom: 7 },
+  heading: { color: "#F4F7FE", fontSize: 21, lineHeight: 28, fontWeight: "900", marginBottom: 6 },
+  description: { color: "#B4C0D2", fontSize: 14, lineHeight: 21 },
+  micro: { color: "#9AAAC2", fontSize: 12, lineHeight: 18, marginTop: 9 },
+  micRow: { flexDirection: "row", alignItems: "center", gap: 13, marginTop: 16 },
+  micCircle: { width: 58, height: 58, borderRadius: 29, backgroundColor: "#3671E3", alignItems: "center", justifyContent: "center" },
+  micIcon: { fontSize: 29 },
+  voiceCopy: { flex: 1, minWidth: 0 },
+  voiceTitle: { color: "#FFFFFF", fontSize: 17, fontWeight: "900" },
+  voiceDetail: { color: "#B7C9E9", fontSize: 13, marginTop: 3, lineHeight: 18 },
+  outlineButton: { marginTop: 13, minHeight: 44, borderWidth: 1, borderColor: "#465872", borderRadius: 13, alignItems: "center", justifyContent: "center", paddingHorizontal: 12 },
+  outlineText: { color: "#E4ECFD", fontSize: 15, fontWeight: "800", textAlign: "center" },
+  actionButton: { marginTop: 13, minHeight: 48, borderRadius: 13, backgroundColor: "#3671E3", alignItems: "center", justifyContent: "center", paddingHorizontal: 13 },
+  actionText: { color: "#FFFFFF", fontSize: 15, fontWeight: "900", textAlign: "center" },
+  sectionHeading: { color: "#EAF0FC", fontSize: 18, fontWeight: "900", marginTop: 8, marginBottom: 10 },
+  statRow: { flexDirection: "row", gap: 10, marginBottom: 12 },
+  stat: { flex: 1, minWidth: 0, backgroundColor: "#171F2D", borderColor: "#2B384C", borderWidth: 1, borderRadius: 16, padding: 15 },
+  statValue: { color: "#FFFFFF", fontSize: 27, fontWeight: "900", marginBottom: 4 },
+  statLabel: { color: "#B4C0D2", fontSize: 12, fontWeight: "700", lineHeight: 17 },
+  inlineRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
+  badge: { color: "#7BE0AE", fontSize: 12, fontWeight: "800" },
+  divider: { height: 1, backgroundColor: "#303D52", marginVertical: 12 },
+  toolRow: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#303D52", flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
+  toolText: { color: "#EAF0FC", fontSize: 15, fontWeight: "700", flexShrink: 1 },
+  chevron: { color: "#8EAADE", fontSize: 20, fontWeight: "900" },
+  smallActionRow: { flexDirection: "row", gap: 10, marginTop: 12 },
+  smallAction: { flex: 1, backgroundColor: "#26344A", borderRadius: 13, paddingVertical: 13, paddingHorizontal: 8, alignItems: "center" },
+  smallActionText: { color: "#D7E7FF", fontSize: 13, fontWeight: "800", textAlign: "center" },
+});
+
 function HomeScreen({ s }) {
   const [showOtherMoves, setShowOtherMoves] = useState(false);
   const serviceName = s.selectedService?.name || s.services.find((x) => x.wanted)?.name || s.trade || "your priority service";
@@ -886,427 +920,175 @@ function HomeScreen({ s }) {
       );
     }) || null;
 
+
+  const pendingInbox = s.inboxPendingItems?.length || 0;
+  const needsAttention = (s.dailyCommandCentre?.doNow?.length || 0) > 0 ||
+    (s.autopilotNeedsInputItems?.length || 0) > 0 ||
+    (s.diaryConflicts?.length || 0) > 0 ||
+    pendingInbox > 0;
+  const quickTools = [
+    ["Daily Command Centre", () => s.go("dailyCommandCentre")],
+    ["Follow-up Engine", () => s.openFollowUpEngine()],
+    ["Communications Hub", () => s.openCommunicationsHub()],
+    ["Customer records", () => s.go("customerRecords")],
+    ["Social Media Centre", () => s.openSocialCentre()],
+    ["Build my business", () => s.openBusinessCreationJourney()],
+    [s.websiteDraft ? "Continue my website" : "Build my website", () => s.openWebsiteBuilder()],
+    ["BUSY Apps", () => s.openBusyAppsMarketplace()],
+    ["Business Memory", () => s.go("businessMemory")],
+    ["Growth Command Centre", () => s.go("growthCommandCentre")],
+    ["Operations & Reliability", () => s.go("selfRunningOperations")],
+    ["Verified activity & results", () => s.go("businessActivityCentre")],
+  ];
   return (
     <Shell
       s={s}
       noBack
-      title={`${s.homeCommandCentre?.greeting || "Hello"}`}
-      subtitle="Here’s what matters now. Everything else stays underneath until you need it."
-      brandCue="One assistant. One priority. Full reasoning when you want it."
+      dark
+      hideDevBadge
+      title={s.homeCommandCentre?.greeting || "Hello"}
+      subtitle="What can BUSY help you with today?"
     >
-
-
-
-
-      <Card
-        eyebrow="V3.68 • Low-maintenance business operations"
-        title="Let BUSY triage the interruptions"
-        body="One place for real source health checks, the few issues that need human review, safe reporting retries and usage visibility. BUSY never treats a failed status check as a confirmed outage."
-        footer="This private dashboard covers the signed-in business, not cross-customer platform administration or live subscription billing."
-        tone="blue"
-      >
-        <Button label="Open Operations & Reliability" primary onPress={() => s.go("selfRunningOperations")} />
-      </Card>
-
-      <Card
-        eyebrow="V3.67 • Verified Business Activity"
-        title="Know what genuinely finished"
-        body="Check provider-recorded website deployments, customer Business App releases and social publishing results in one read-only activity timeline. Failed destinations remain separate."
-        footer="BUSY does not mistake a draft, scheduled item or private editor handoff for a live result."
-        tone="blue"
-      >
-        <Button label="Open verified activity & results" onPress={() => s.go("businessActivityCentre")} />
-      </Card>
-
-      <Card
-        eyebrow="V3.65 • Business Growth Command Centre"
-        title="Pick up your business growth projects"
-        body="See the next private-draft step across your saved website, customer app and social media work. BUSY can help you resume without mistaking a saved draft for something published."
-        footer="Cloud progress is loaded only after signing in. No public provider is contacted or changed from this dashboard."
-        tone="blue"
-      >
-        <Button label="Open my Growth Command Centre" primary onPress={() => s.go("growthCommandCentre")} />
-      </Card>
-
-      <Card
-        eyebrow="V3.30 • Daily Command Centre"
-        title={s.dailyCommandCentre?.headline || (bestMove ? bestMove.title : "Nothing urgent needs forcing")}
-        body={
-          s.dailyCommandCentre?.status === "Action needed"
-            ? "BUSY has ranked the live business state into what needs doing now, what can wait until later today, and what is worth watching."
-            : "BUSY has checked customer work, the diary, approvals, record health and current risks without manufacturing a task."
-        }
-        footer={
-          s.dailyCommandCentre?.previousCheckpoint
-            ? (s.dailyCommandCentre?.changes?.length || 0)
-              ? `${s.dailyCommandCentre.changes.length} meaningful change${s.dailyCommandCentre.changes.length === 1 ? "" : "s"} since your last reviewed briefing`
-              : "Nothing material has changed since your last reviewed briefing."
-            : "Open the Daily Command Centre once to create a comparison baseline."
-        }
-        tone={s.dailyCommandCentre?.status === "Action needed" ? "amber" : "green"}
-      >
-        <MetricRow
-          left="Confirmed next 7 days"
-          right={`£${s.executiveBriefing?.confirmed7?.value || 0} • ${s.executiveBriefing?.confirmed7?.count || 0} booking${s.executiveBriefing?.confirmed7?.count === 1 ? "" : "s"}`}
-          strong={(s.executiveBriefing?.confirmed7?.value || 0) > 0}
-        />
-        <MetricRow
-          left="Do now"
-          right={String(s.dailyCommandCentre?.doNow?.length || 0)}
-          strong={(s.dailyCommandCentre?.doNow?.length || 0) > 0}
-        />
-        <MetricRow
-          left="Later today"
-          right={String(s.dailyCommandCentre?.laterToday?.length || 0)}
-        />
-        <MetricRow
-          left="Watch"
-          right={String(s.dailyCommandCentre?.watch?.length || 0)}
-        />
-        {(s.dailyCommandCentre?.doNow?.length || 0) ? (
-          <Button
-            label={s.dailyCommandCentre.doNow[0].actionLabel || "Handle top priority"}
-            primary
-            onPress={() => s.openDailyCommandItem(s.dailyCommandCentre.doNow[0])}
-          />
-        ) : (
-          <Button
-            label="Open Daily Command Centre"
-            primary
-            onPress={() => s.go("dailyCommandCentre")}
-          />
-        )}
-        <Button
-          label="See full daily picture"
-          onPress={() => s.go("dailyCommandCentre")}
-        />
-        <Button label="Executive forward view" onPress={() => s.go("executiveBriefing")} />
-      </Card>
-
-      <Card
-        eyebrow="Talk to BUSY"
-        title="Tell BUSY what you want to do"
-        body="Speak naturally. BUSY keeps the conversation in context and uses the same customer records, Business Memory, Executive Briefing and approval rules underneath."
-        footer={
-          s.busyCommandHistory?.length
-            ? `Last request: ${s.busyCommandHistory[0].transcript}`
-            : "Nothing is sent or published just because you spoke to BUSY"
-        }
-        tone="blue"
-      >
-        <View style={styles.talkHomeActions}>
-          <Pressable
-            onPress={() => s.openTalkToBusy(true)}
-            style={({ pressed }) => [styles.talkMicButton, pressed && styles.pressed]}
-          >
-            <Text style={styles.talkMicIcon}>🎙</Text>
-          </Pressable>
-          <View style={styles.talkHomeCopy}>
-            <Text style={styles.talkHomeTitle}>Tap and talk</Text>
-            <Text style={styles.talkHomeBody}>
-              “What should I do now?” • “Book John Friday at 2” • “Show me Tuesday”
-            </Text>
+      <View style={[homeDark.panel, homeDark.hero]}>
+        <Text style={homeDark.kicker}>YOUR BUSINESS ASSISTANT</Text>
+        <Text style={homeDark.description}>Ask, plan or get something done. BUSY keeps the complicated bits behind the scenes.</Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Talk to BUSY"
+          onPress={() => s.openTalkToBusy(true)}
+          style={({ pressed }) => [homeDark.micRow, pressed && styles.pressed]}
+        >
+          <View style={homeDark.micCircle}><Text style={homeDark.micIcon}>🎙</Text></View>
+          <View style={homeDark.voiceCopy}>
+            <Text style={homeDark.voiceTitle}>Talk to BUSY</Text>
+            <Text style={homeDark.voiceDetail}>Tap to speak naturally</Text>
           </View>
-        </View>
-        <Button label="Type to BUSY instead" onPress={() => s.openTalkToBusy(false)} />
-      </Card>
+          <Text style={homeDark.chevron}>›</Text>
+        </Pressable>
+        <Pressable accessibilityRole="button" onPress={() => s.openTalkToBusy(false)} style={homeDark.outlineButton}>
+          <Text style={homeDark.outlineText}>Type to BUSY instead</Text>
+        </Pressable>
+        <Text style={homeDark.micro}>Nothing is sent or published without the required approval.</Text>
+      </View>
 
-      {(s.autopilotApprovalItems?.length ||
-        s.autopilotNeedsInputItems?.length ||
-        s.diaryConflicts?.length ||
-        s.releaseCoreHealth?.issueCount) ? (
-        <Card
-          eyebrow="BUSY prepared / needs you"
-          title={
-            s.autopilotNeedsInputItems?.length || s.diaryConflicts?.length || s.releaseCoreHealth?.highCount
-              ? "A few things need owner judgement"
-              : "Prepared work is ready when you are"
-          }
-          body="The intelligence layers are still working underneath Home; they now surface here only when there is something useful to decide."
-          tone={
-            s.autopilotNeedsInputItems?.length || s.diaryConflicts?.length || s.releaseCoreHealth?.highCount
-              ? "amber"
-              : "green"
-          }
-        >
-          <MetricRow left="Prepared approvals" right={String(s.autopilotApprovalItems?.length || 0)} />
-          <MetricRow left="Owner-input items" right={String(s.autopilotNeedsInputItems?.length || 0)} strong={(s.autopilotNeedsInputItems?.length || 0) > 0} />
-          <MetricRow left="Diary conflicts" right={String(s.diaryConflicts?.length || 0)} strong={(s.diaryConflicts?.length || 0) > 0} />
-          <MetricRow left="Release-core issues" right={String(s.releaseCoreHealth?.issueCount || 0)} strong={(s.releaseCoreHealth?.highCount || 0) > 0} />
-          {(s.autopilotApprovalItems?.length || s.autopilotNeedsInputItems?.length) ? (
-            <Button label="Open Approval Inbox" primary onPress={() => s.go("autopilotCentre")} />
-          ) : null}
-          {(s.diaryConflicts?.length || !s.diaryConnection || s.diaryConnection.status !== "connected") ? (
-            <Button label="Open Proactive BUSY + diary" onPress={() => s.go("proactiveBusyCentre")} />
-          ) : null}
-          {(s.releaseCoreHealth?.issueCount || 0) ? (
-            <Button label="Review core health" onPress={() => s.go("releaseCore")} />
-          ) : null}
-        </Card>
-      ) : null}
+      <Text style={homeDark.sectionHeading}>Your day at a glance</Text>
+      <View style={homeDark.statRow}>
+        <Pressable accessibilityRole="button" onPress={() => s.jump("workHub", "Work")} style={homeDark.stat}>
+          <Text style={homeDark.statValue}>{homeWeekBookings.length}</Text>
+          <Text style={homeDark.statLabel}>Confirmed bookings · next 7 days</Text>
+        </Pressable>
+        <Pressable accessibilityRole="button" onPress={() => s.go("dailyCommandCentre")} style={homeDark.stat}>
+          <Text style={homeDark.statValue}>{needsAttention ? "Review" : "Clear"}</Text>
+          <Text style={homeDark.statLabel}>What needs your attention</Text>
+        </Pressable>
+      </View>
 
-      {s.operationalContinuity?.status !== "All clear" ? (
-        <Card
-          eyebrow="V3.27 • Continuity"
-          title={s.operationalContinuity?.headline || "BUSY can keep working while a connection recovers"}
-          body="A provider or connection issue is being isolated from the rest of the business. Customer records, planning and safe draft preparation can continue while the affected connection is recovered separately."
-          footer={`${(s.operationalContinuity?.highCount || 0) + (s.operationalContinuity?.reviewCount || 0)} important recovery item${((s.operationalContinuity?.highCount || 0) + (s.operationalContinuity?.reviewCount || 0)) === 1 ? "" : "s"} • no automatic duplicate sends or silent booking overwrites`}
-          tone={(s.operationalContinuity?.highCount || 0) > 0 ? "amber" : "blue"}
-        >
-          <MetricRow left="Continuity state" right={s.operationalContinuity?.status || "All clear"} strong />
-          <MetricRow left="What still works" right={String(s.operationalContinuity?.continueNow?.length || 0)} />
-          <Button label="Open Continuity Centre" primary onPress={() => s.go("operationalContinuity")} />
-        </Card>
-      ) : null}
-
-      <Card
-        eyebrow="BUSY underneath"
-        title="One assistant • several systems underneath"
-        body="Autopilot prepares. Business Memory learns. Executive Briefing forecasts. Proactive BUSY watches the clock. Home now keeps those systems out of the way unless they change what you should do."
-        tone="blue"
-      >
-        <MetricRow left="Autopilot" right={s.autopilotModeLabel || "Prepare for me"} />
-        <MetricRow left="Memory confidence" right={s.strongestBusinessMemoryPattern?.stage?.label || "Too early to tell"} />
-        <MetricRow left="Proactive reminders" right={s.proactiveNotificationsEnabled ? String(Object.keys(s.proactiveScheduledMap || {}).length) : "Off"} />
-        <MetricRow left="Diary" right={s.diaryConnection?.status === "connected" ? "Connected" : "Not connected"} />
-        <MetricRow left="Continuity" right={s.operationalContinuity?.status || "All clear"} />
-        <MetricRow left="Daily briefing" right={s.dailyCommandCentre?.status || "Clear"} />
-        <MetricRow
-          left="Communications"
-          right={
-            (s.communicationsHub?.counts?.needsAttention || 0) > 0
-              ? `${s.communicationsHub.counts.needsAttention} need attention`
-              : (s.communicationsHub?.counts?.awaitingCustomer || 0) > 0
-              ? `${s.communicationsHub.counts.awaitingCustomer} awaiting customer`
-              : "Clear"
-          }
-        />
-        <MetricRow
-          left="Follow-up Engine"
-          right={
-            Number(s.followUpEngine?.counts?.replyNow || 0) +
-              Number(s.followUpEngine?.counts?.followUpToday || 0) >
-            0
-              ? `${Number(s.followUpEngine?.counts?.replyNow || 0) + Number(s.followUpEngine?.counts?.followUpToday || 0)} ready now`
-              : (s.followUpEngine?.counts?.waiting || 0) > 0
-              ? `${s.followUpEngine.counts.waiting} waiting`
-              : "Clear"
-          }
-        />
-        <MetricRow
-          left="Brand Brain"
-          right={
-            s.brandBrain?.websiteReady
-              ? "Website foundation ready"
-              : `${Number(s.brandBrain?.completeness?.score || 0)}% complete`
-          }
-          strong={!!s.brandBrain?.websiteReady}
-        />
-        <MetricRow
-          left="Business Creation"
-          right={
-            s.businessCreationJourney?.readyCount
-              ? `${s.businessCreationJourney.readyCount}/${s.businessCreationJourney.totalSteps} stages prepared`
-              : "Ready for one guided brief"
-          }
-          strong={Number(s.businessCreationJourney?.readyCount || 0) >= 3}
-        />
-        <MetricRow
-          left="Website Builder"
-          right={
-            s.websiteDraft
-              ? `Draft generation ${s.websiteDraft.generation || 1}`
-              : "Ready to build"
-          }
-          strong={!!s.websiteDraft}
-        />
-        <MetricRow
-          left="Website hosting"
-          right={
-            s.websitePublishingView?.liveDeployment
-              ? `${s.websitePublishingView.publicStatus} • ${s.websitePublishingView.healthLabel || "health pending"}`
-              : s.websitePublishingView?.publicStatus || "Not checked"
-          }
-          strong={!!s.websitePublishingView?.liveDeployment}
-        />
-        <MetricRow
-          left="Website delivery"
-          right={s.websitePublishingView?.providerState?.label || "Not checked"}
-          strong={!!s.websitePublishingView?.providerState?.configured}
-        />
-        <MetricRow
-          left="Website signals"
-          right={
-            s.websitePublishingView?.analyticsView?.collecting
-              ? `${Number(s.websitePublishingView.analyticsView.visits || 0)} visits • ${Number(s.websitePublishingView.analyticsView.requests || 0)} requests`
-              : "Awaiting real provider signals"
-          }
-          strong={!!s.websitePublishingView?.analyticsView?.collecting}
-        />
-        <MetricRow
-          left="BUSY Apps"
-          right={
-            s.miniAppsView?.businessUnreadTotal
-              ? `${s.miniAppsView.businessUnreadTotal} unread message${s.miniAppsView.businessUnreadTotal === 1 ? "" : "s"}`
-              : s.miniAppsView?.unlinkedPendingRequests?.length
-              ? `${s.miniAppsView.unlinkedPendingRequests.length} request${s.miniAppsView.unlinkedPendingRequests.length === 1 ? "" : "s"} need review`
-              : s.miniAppsView?.statusLabel || "Not built"
-          }
-          strong={
-            !!s.miniAppsView?.hasLive ||
-            !!s.miniAppsView?.businessUnreadTotal ||
-            !!s.miniAppsView?.unlinkedPendingRequests?.length
-          }
-        />
-        {s.miniAppsView?.hasLive ? (
-          <MetricRow
-            left="Mini App journey • 30d"
-            right={`${Number(s.miniAppsView?.entryCounts?.byStage?.web_view || s.miniAppsView?.entryCounts?.byStage?.landing || 0)} web views • ${Number(s.miniAppsView?.entryCounts?.byStage?.action_intent || 0)} attempts • ${Number(s.miniAppsView?.guestRequestCount30 || 0)} guest requests`}
-          />
-        ) : null}
-        <Button label="Daily Command Centre" onPress={() => s.go("dailyCommandCentre")} />
-        <Button label="Follow-up Engine" onPress={() => s.openFollowUpEngine()} />
-        <Button label="Communications Hub" onPress={() => s.openCommunicationsHub()} />
-        <Button label="Executive Briefing" onPress={() => s.go("executiveBriefing")} />
-        <Button label="Business Memory" onPress={() => s.go("businessMemory")} />
-        <Button label="Brand & Business Identity" onPress={s.openBrandIdentity} />
-        <Button
-          label="Build my business with BUSY"
-          primary
-          onPress={s.openBusinessCreationJourney}
-        />
-        <Button label={s.websiteDraft ? "Website Builder & preview" : "Build my website"} onPress={s.openWebsiteBuilder} />
-        {s.websiteDraft ? (
-          <Button
-            label={s.websitePublishingView?.liveDeployment ? "Website publishing & live site" : "Prepare website hosting"}
-            onPress={s.openWebsitePublishing}
-          />
-        ) : null}
-        <Button label="BUSY Apps marketplace" onPress={s.openBusyAppsMarketplace} />
-        <Button
-          label={s.miniAppsView?.app ? "Manage my Mini App" : "Build my Mini App"}
-          onPress={s.openMiniAppBuilder}
-        />
-        {s.miniAppsView?.hasLive ? (
-          <Button label="Share my Mini App" onPress={s.openMiniAppShareCentre} />
-        ) : null}
-        <Button label="Continuity Centre" onPress={() => s.go("operationalContinuity")} />
-        <Button label="Release Core" onPress={() => s.go("releaseCore")} />
-      </Card>
-
-      {homeProactiveNotice ? (
-        <Button
-          label={`BUSY noticed something • ${homeProactiveNotice.title}`}
-          onPress={() => s.go("proactiveWatch")}
-        />
-      ) : null}
-
-      {nextBestMoves.length || otherMoves.length ? (
-        <Button
-          label={
-            showOtherMoves
-              ? "Hide other recommendations"
-              : `See other recommendations • ${nextBestMoves.length + otherMoves.length}`
-          }
-          onPress={() => setShowOtherMoves((value) => !value)}
-        />
-      ) : null}
-
-      {showOtherMoves
-        ? [...nextBestMoves, ...otherMoves].map((item) => (
-            <OpportunityCard
-              key={item.id}
-              {...item}
-              eyebrow={`#${item.rank} • ${item.eyebrow}`}
-              actionLabel={item.actionLabel || "Do it"}
-              onAction={() => {
-                if (item.canIgnore) s.recordOpportunityAccepted(item);
-                item.onAction?.();
+      {needsAttention || bestMove || s.activeWorkGoal || homeProactiveNotice ? (
+        <View style={homeDark.panel}>
+          <View style={homeDark.inlineRow}>
+            <Text style={homeDark.kicker}>BUSY'S NEXT SUGGESTION</Text>
+            <Text style={homeDark.badge}>For your review</Text>
+          </View>
+          <Text style={homeDark.heading}>
+            {bestMove?.title || (pendingInbox ? "You have new items to review" : "Check your business priorities")}
+          </Text>
+          <Text style={homeDark.description}>
+            {bestMove?.body || (s.activeWorkGoal?.label ? "Your work goal: " + s.activeWorkGoal.label : "BUSY has noticed something worth checking.")}
+          </Text>
+          {bestMove ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                if (bestMove.canIgnore) s.recordOpportunityAccepted(bestMove);
+                bestMove.onAction?.();
               }}
-              onIgnore={item.canIgnore ? () => s.openOpportunityFeedback(item) : undefined}
-            />
-          ))
-        : null}
+              style={homeDark.actionButton}
+            >
+              <Text style={homeDark.actionText}>{bestMove.actionLabel || "Review next step"}</Text>
+            </Pressable>
+          ) : (
+            <Pressable accessibilityRole="button" onPress={() => s.go("dailyCommandCentre")} style={homeDark.actionButton}>
+              <Text style={homeDark.actionText}>Review what matters</Text>
+            </Pressable>
+          )}
+          {pendingInbox > 0 ? (
+            <Pressable accessibilityRole="button" onPress={s.openBusyInbox} style={homeDark.outlineButton}>
+              <Text style={homeDark.outlineText}>BUSY Inbox · {pendingInbox} waiting</Text>
+            </Pressable>
+          ) : null}
+          {homeProactiveNotice ? (
+            <Pressable accessibilityRole="button" onPress={() => s.go("proactiveWatch")} style={homeDark.outlineButton}>
+              <Text style={homeDark.outlineText}>BUSY noticed something ›</Text>
+            </Pressable>
+          ) : null}
+        </View>
+      ) : (
+        <View style={homeDark.panel}>
+          <Text style={homeDark.heading}>You're up to date</Text>
+          <Text style={homeDark.description}>No urgent action has been identified. BUSY will surface something when it matters.</Text>
+        </View>
+      )}
 
-      {s.dismissedOpportunities.length ? (
-        <Button label="Restore ignored opportunities" onPress={s.restoreOpportunities} />
-      ) : null}
-
-      {s.activeWorkGoal && !s.workGoalFilled ? (
-        <Card
-          eyebrow="Active work goal"
-          title={s.activeWorkGoal.label}
-          body={
-            s.workGoalCapacityMismatch
-              ? `Capacity check needed: ${s.workGoalTargetJobs} bookings were requested, but ${s.workGoalPlanningService?.name || "the planning service"} at about ${formatDurationHours(s.workGoalDurationHours)} per job appears to fit only ${s.workGoalCapacityMax} in this ${s.activeWorkGoal.part || "slot"}.`
-              : s.activeWorkGoal.spreadAcrossSlots
-              ? s.workGoalPlanConflict
-                ? "One of the planned openings has since been taken by other work. Refresh the capacity plan before promoting further."
-                : s.workGoalPlanShortfall
-                ? `BUSY found room for ${s.workGoalTargetJobs - s.workGoalPlanShortfall} of ${s.workGoalTargetJobs} requested bookings in the next ${s.activeWorkGoal.planHorizonDays || 21} days. The remaining ${s.workGoalPlanShortfall} still need diary capacity.`
-                : `BUSY has spread ${s.workGoalTargetJobs} bookings across ${s.workGoalPlannedSlots.length} specific openings. ${s.workGoalRemainingJobs} still needed.`
-              : `Target: ${s.workGoalTargetJobs} suitable booking${s.workGoalTargetJobs === 1 ? "" : "s"}. ${s.workGoalRemainingJobs} still needed. BUSY will size the next action to the remaining gap and stop escalating when the target is covered.`
-          }
-          footer={
-            s.workGoalCapacityMismatch
-              ? "Review capacity before promoting"
-              : s.workGoalPlanConflict
-              ? "Diary changed • refresh plan"
-              : s.workGoalPlanShortfall
-              ? `${s.workGoalPlanShortfall} booking${s.workGoalPlanShortfall === 1 ? "" : "s"} still need capacity`
-              : s.workGoalBookedCount
-              ? `${s.workGoalBookedCount} of ${s.workGoalTargetJobs} booked`
-              : `${s.workGoalRemainingJobs} still needed`
-          }
-          tone={s.workGoalCapacityMismatch || s.workGoalPlanConflict || s.workGoalPlanShortfall ? "amber" : "blue"}
+      <View style={homeDark.panel}>
+        <View style={homeDark.inlineRow}>
+          <Text style={homeDark.heading}>Quick access</Text>
+          <Text style={homeDark.badge}>Your tools</Text>
+        </View>
+        <View style={homeDark.smallActionRow}>
+          <Pressable accessibilityRole="button" onPress={() => s.jump("workHub", "Work")} style={homeDark.smallAction}>
+            <Text style={homeDark.smallActionText}>Work & diary</Text>
+          </Pressable>
+          <Pressable accessibilityRole="button" onPress={() => s.go("workNow")} style={homeDark.smallAction}>
+            <Text style={homeDark.smallActionText}>Find more work</Text>
+          </Pressable>
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ expanded: showOtherMoves }}
+          onPress={() => setShowOtherMoves((value) => !value)}
+          style={homeDark.outlineButton}
         >
-          <MetricRow left="Matching confirmed bookings" right={String(s.workGoalBookedCount)} />
-          <MetricRow left="Recorded value" right={s.workGoalBookedValue ? `£${s.workGoalBookedValue}` : "£0"} />
-          <MetricRow left="Approved goal actions tried" right={String(s.workGoalAttempts.length)} />
-          {s.activeWorkGoal.spreadAcrossSlots
-            ? s.workGoalPlannedSlots.slice(0, 4).map((slot) => (
-                <MetricRow
-                  key={slot.id}
-                  left={slot.label}
-                  right={`${slot.bookedCount}/${slot.targetJobs}${slot.overbooked ? " • over" : slot.conflict ? " • changed" : ""}`}
-                  strong={slot.bookedCount >= slot.targetJobs && !slot.conflict}
-                />
-              ))
-            : null}
-          {s.workGoalAttemptRows.slice(-2).map((attempt) => (
-            <MetricRow key={attempt.id} left={attempt.label} right={attempt.outcome} strong={attempt.tone === "green"} />
-          ))}
-          <Button label={s.workGoalAttempts.length ? "Review next move" : "Review this work goal"} onPress={() => s.go("bestMove")} />
-          <Button label="Cancel work goal" onPress={s.clearWorkGoal} />
-        </Card>
-      ) : null}
-
-      {s.connectedIntakeKeys?.length ? (
-        <Button
-          label={`Connected intake • ${s.connectedIntakeKeys.length} source${s.connectedIntakeKeys.length === 1 ? "" : "s"} • ${s.connectedIntakePendingCount || 0} waiting`}
-          onPress={() => s.go("connectedAccounts")}
-        />
-      ) : null}
-
-      {(s.backgroundReadyCount || s.lifecycleWatchCount) ? (
-        <Button
-          label={`BUSY in the background • ${s.backgroundReadyCount || 0} ready • ${s.lifecycleWatchCount || 0} watched`}
-          onPress={() => s.go("backgroundWork")}
-        />
-      ) : null}
-
-      {s.inboxPendingItems.length ? (
-        <Button
-          label={`BUSY Inbox • ${s.inboxPendingItems.length} waiting`}
-          primary
-          onPress={s.openBusyInbox}
-        />
-      ) : null}
-      <Button label="I NEED MORE WORK" primary={!bestMove && !s.inboxPendingItems.length} onPress={() => s.go("workNow")} />
-      <Button label="Open work hub" primary={!s.inboxPendingItems.length && !!bestMove} onPress={() => s.jump("workHub", "Work")} />
-      <Button label="Customer records" onPress={() => s.go("customerRecords")} />
-      <Button label="Social Control Centre" onPress={s.openSocialCentre} />
-      <Button label="Update my business data" onPress={() => s.go("businessData")} />
+          <Text style={homeDark.outlineText}>{showOtherMoves ? "Hide extra tools −" : "Explore BUSY's other tools +"}</Text>
+        </Pressable>
+        {showOtherMoves ? (
+          <View style={{ marginTop: 7 }}>
+            {quickTools.map(([label, onPress]) => (
+              <Pressable accessibilityRole="button" key={label} onPress={onPress} style={homeDark.toolRow}>
+                <Text style={homeDark.toolText}>{label}</Text>
+                <Text style={homeDark.chevron}>›</Text>
+              </Pressable>
+            ))}
+            {rankedMoves.length > 1 ? (
+              <View style={{ marginTop: 16 }}>
+                <Text style={homeDark.kicker}>OTHER SUGGESTIONS</Text>
+                {rankedMoves.slice(1, 4).map((move) => (
+                  <View key={move.id} style={homeDark.toolRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={homeDark.toolText}>{move.title}</Text>
+                      <Text style={homeDark.micro}>{move.eyebrow}</Text>
+                    </View>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={move.actionLabel || "Review suggestion"}
+                      onPress={() => {
+                        if (move.canIgnore) s.recordOpportunityAccepted(move);
+                        move.onAction?.();
+                      }}
+                    >
+                      <Text style={homeDark.chevron}>›</Text>
+                    </Pressable>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+            {s.dismissedOpportunities?.length ? (
+              <Pressable accessibilityRole="button" onPress={s.restoreOpportunities} style={homeDark.outlineButton}>
+                <Text style={homeDark.outlineText}>Restore ignored suggestions</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
     </Shell>
   );
 }
