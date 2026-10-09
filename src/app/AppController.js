@@ -2326,7 +2326,34 @@ function App() {
   };
 
 
-  // V3.71 founder-only in-app alert acknowledgement. No incident resolution.
+  // V3.75 founder-authorised, manually requested read-only provider checks.
+  const fetchExternalReality = async () => {
+    const ownerId=ownerSession?.userId||"";
+    const token=await ownerAccessToken();
+    if(!ownerId||!token)throw Error("Sign in to your verified founder account.");
+    const response=await fetchWithTimeout(
+      BUSY_SUPABASE_URL+"/functions/v1/busy-founder-ops",{
+        method:"POST",
+        headers:{apikey:BUSY_AI_TOKEN,Authorization:"Bearer "+token,
+          "Content-Type":"application/json"},
+        body:JSON.stringify({action:"verify_external"}),
+      },20000
+    );
+    if(!response.ok){
+      const error=new Error(response.status===403?
+        "Founder authorisation is required.":"External verification is unavailable.");
+      error.status=response.status;
+      throw error;
+    }
+    const result=await response.json();
+    if(result?.scope!=="founder_aggregate_sample"||
+       result?.mode!=="on_demand_read_only"||
+       result?.automaticRetryAllowed!==false)
+      throw Error("Invalid external evidence response.");
+    return result;
+  };
+
+    // V3.71 founder-only in-app alert acknowledgement. No incident resolution.
   const acknowledgeFounderAlert = async (key,transition) => {
     const validKeys=["website_failed","website_stalled","social_failed","app_failed"];
     if(!validKeys.includes(key)||!Number.isSafeInteger(transition)||transition<1)
@@ -15293,6 +15320,7 @@ function App() {
     useGoogleCalendarTime,
     refreshProductionWatchStatus,
     fetchFounderOperations,
+    fetchExternalReality,
     acknowledgeFounderAlert,
     maskPushToken,
     openReleaseCoreIssue,
