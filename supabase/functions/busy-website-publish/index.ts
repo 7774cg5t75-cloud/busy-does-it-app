@@ -937,6 +937,10 @@ async function rollback(
   if (!deployment.data?.published_at || !deployment.data.public_storage_path) {
     throw new Error("Only a previously published website version can be restored.");
   }
+  const mainWebsite=await websiteForBusiness(businessId);
+  if(!mainWebsite?.id||deployment.data.website_id!==mainWebsite.id) {
+    throw new Error("Only this business's main website can be restored.");
+  }
 
   const job = await enqueueJob({
     businessId,
