@@ -39,7 +39,8 @@ function buildAutopilotDigest({run=null,incidents=null,verifiedRole=false,nowISO
   const open=history?.filter(r=>r.status==="open")||[];
   return {
     status:!lastScan?"not_started":!fresh?"stale":
-      (run?.status==="complete"&&scanned===4)?"monitoring":"partial",
+      (run?.status==="complete"&&scanned===4&&Array.isArray(incidents))?
+        "monitoring":"partial",
     enabled:lastScan!==null,
     cadenceMinutes:15,
     checkedAt:lastScan,
