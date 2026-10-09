@@ -244,14 +244,14 @@ function FounderServiceCosts({s,owner,enabled}){
         disabled={!enabled} onPress={s.openWebsitePublishing}/>
     </Card>
     {services.map(item=>{
-      const row=item.latest;
+      const row=item.latest,subscription=item.subscription;
       return <Card key={item.key} eyebrow={item.name}
         title={item.purpose}
         body={item.caveat}
         footer={item.scope+" • "+(row?.measurementType||"No observation yet")}
         tone={item.alert?"amber":"blue"}>
-        <MetricRow left="Plan" right={row?.planName||"Not verified"}/>
-        <MetricRow left="Subscription status" right={row?.billingStatus||"Unknown"}/>
+        <MetricRow left="Plan" right={subscription?.planName||"Not verified"}/>
+        <MetricRow left="Subscription status" right={subscription?.billingStatus||"Unknown"}/>
         <MetricRow left={"Usage • "+item.unit}
           right={row?.usageValue!=null?
             fnum(row.usageValue)+(row.allowanceValue!=null?
@@ -259,9 +259,9 @@ function FounderServiceCosts({s,owner,enabled}){
         {row?.percentOfAllowance!=null?
           <MetricRow left="Share of recorded allowance"
             right={row.percentOfAllowance+"% (historical)"} />:null}
-        <MetricRow left="Recorded cost" right={cost(row?.amountGbpPence)}/>
-        <MetricRow left="Billing cadence" right={row?.billingCadence||"Not verified"}/>
-        <MetricRow left="Renewal date" right={row?.renewalOn||"Not recorded"}/>
+        <MetricRow left="Recorded cost" right={cost(subscription?.amountGbpPence)}/>
+        <MetricRow left="Billing cadence" right={subscription?.billingCadence||"Not verified"}/>
+        <MetricRow left="Renewal date" right={subscription?.renewalOn||"Not recorded"}/>
         {item.renewalReview==="past_review_date"||item.renewalReview==="review_within_30_days"?(
           <MetricRow left="Renewal review reminder"
             right={item.renewalReview==="past_review_date"?
@@ -271,6 +271,8 @@ function FounderServiceCosts({s,owner,enabled}){
           right={row?.observedAt?
             new Date(row.observedAt).toLocaleString("en-GB"):"None"}/>
         <MetricRow left="Measurement source" right={row?.measurementType||"None"}/>
+        <MetricRow left="Plan/renewal information source"
+          right={subscription?.measurementType||"Not verified"}/>
         {row?.note?<Text style={styles.sectionLabel}>{row.note}</Text>:null}
         {item.alert?<Text style={styles.sectionLabel}>{item.alert}</Text>:null}
         <Button label={selected===item.key?"Selected for update":"Record "+item.name+" details"}
