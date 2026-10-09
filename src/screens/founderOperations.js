@@ -2,6 +2,7 @@ import React from "react";
 import {Text} from "react-native";
 import {Shell,Card,Button,MetricRow} from "../components/ui";
 import {styles} from "../theme/styles";
+import {FounderServiceCosts} from "./founderServiceCosts";
 
 /** V3.69: no platform metrics are read except from server-authorised aggregates. */
 const show=n=>Number.isSafeInteger(n)&&n>=0?n.toLocaleString("en-GB"):"Not measured";
@@ -75,7 +76,7 @@ function FounderOperations({s}){
   const report=state.owner===owner&&state.status==="ready"?state.report:null;
   return <Shell s={s} title="Founder Operations"
     subtitle="Platform-wide aggregate status, restricted to a verified founder account."
-    brandCue="V3.76 • evidence trends • bounded verification">
+    brandCue="V3.81 • founder subscriptions • usage & renewal control">
     {!report?(
       <Card eyebrow="Founder access" title={state.status==="loading"?"Checking access…":
         state.status==="denied"?"Founder role not yet enabled":"Restricted dashboard"}
@@ -95,6 +96,7 @@ function FounderOperations({s}){
           <MetricRow left="Workspaces with updated snapshots (7d)" right={show(report.metrics?.activeWorkspaces7d)}/>
           <Button label="Refresh platform snapshot" onPress={refresh}/>
         </Card>
+        <FounderServiceCosts s={s} owner={owner} enabled={!!report}/>
         <Card eyebrow="V3.72 • Operational confidence"
           title={report.reliability?.headline||"Monitoring evidence unavailable"}
           body={report.reliability?.note||
