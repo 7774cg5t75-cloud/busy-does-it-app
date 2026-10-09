@@ -3,6 +3,7 @@ import { Text } from "react-native";
 
 import { styles } from "../theme/styles";
 import { Shell, Card, Button, Field, MetricRow } from "../components/ui";
+import { buildWebsiteLaunchJourney } from "../core/websiteLaunchJourney";
 
 function readableSeconds(value) {
   const seconds = Number(value || 0);
@@ -39,14 +40,49 @@ function WebsitePublishing({ s }) {
   const activeJob = view.activeJob || null;
   const changes = view.changeSummary?.items || [];
   const seoChecks = view.seoAudit?.checks || [];
+  const journey=buildWebsiteLaunchJourney({
+    brand:s.brandBrain,draft:s.websiteDraft,publishing:view
+  });
+  const [openedHostedPreview,setOpenedHostedPreview]=React.useState("");
+  const [reviewedHostedPreview,setReviewedHostedPreview]=React.useState("");
+  React.useEffect(()=>{
+    setOpenedHostedPreview("");
+    setReviewedHostedPreview("");
+  },[preview?.id]);
+  const inspectHostedPreview=async()=>{
+    if(!preview?.id)return false;
+    const opened=await s.openHostedWebsitePreview(preview.id);
+    if(opened)setOpenedHostedPreview(preview.id);
+    return !!opened;
+  };
 
   return (
     <Shell
       s={s}
       title="Website Management"
       subtitle="Edit privately, inspect the exact hosted version, then decide what becomes public."
-      brandCue="V3.53 • release readiness • burst simulation • failure recovery • 10k-tenant capacity model."
+      brandCue="V3.77 • exact-preview approval • safe go-live preflight"
     >
+      <Card
+        eyebrow="V3.77 • Website launch assistant"
+        title={journey.isVerified?"BUSY has verified your live deployment":"Your launch journey"}
+        body="BUSY helps you prepare an accurate draft, view its exact hosted version, approve publication and verify the result. You decide when anything becomes public."
+        footer={journey.completedStages+" of "+journey.totalStages+
+          " milestones complete • Your website is never automatically published"}
+        tone={journey.isVerified?"green":"blue"}
+      >
+        {journey.stages.map(item=>(
+          <MetricRow key={item.id} left={item.title}
+            right={item.state==="complete"?"Done":
+              item.state==="ready"?"Next":
+              item.state==="needs_details"?"Needs facts":
+              item.state==="working"?"Processing":"Pending"}/>
+        ))}
+        {journey.missingCoreFacts.length?(
+          <Button label={"Review "+journey.missingCoreFacts.length+
+            " missing business details"} onPress={s.openBrandIdentity}/>
+        ):null}
+      </Card>
       <Card
         eyebrow="Website lifecycle"
         title={view.publicStatus || "Website status"}
@@ -81,7 +117,7 @@ function WebsitePublishing({ s }) {
           <Button
             label="Open exact hosted preview"
             disabled={!!s.websitePublishingAction}
-            onPress={() => s.openHostedWebsitePreview(preview.id)}
+            onPress={inspectHostedPreview}
           />
         ) : null}
         <Button
@@ -288,10 +324,31 @@ function WebsitePublishing({ s }) {
           <MetricRow left="Change summary" right={preview.change_label || "Website update"} strong />
           <MetricRow left="Prepared" right={readableDate(preview.prepared_at, "Ready")} />
           <MetricRow left="Pages" right={String(preview.page_count || 1)} />
+          <Text style={styles.sectionLabel}>
+            Please open the exact hosted preview and confirm the business name,
+            services, photographs, contact details and wording before approving.
+            Viewing the editable phone preview alone is not enough.
+          </Text>
           <Button
-            label={s.websitePublishingAction === "publish" ? "Publishing…" : "Review & approve Go Live"}
+            label={openedHostedPreview===preview.id?
+              "Hosted preview opened":"Open the exact hosted preview"}
+            disabled={!!s.websitePublishingAction}
+            onPress={inspectHostedPreview}
+          />
+          <Button
+            label={reviewedHostedPreview===preview.id?
+              "I've reviewed this exact preview ✓":"Confirm I reviewed this exact hosted preview"}
+            disabled={openedHostedPreview!==preview.id||
+              reviewedHostedPreview===preview.id||!!s.websitePublishingAction}
+            onPress={()=>setReviewedHostedPreview(preview.id)}
+          />
+          <Button
+            label={s.websitePublishingAction==="publish"?"Publishing…":
+              s.websitePublishingAction==="preflight"?"Verifying hosted version…":
+              "Review & approve Go Live"}
             primary
-            disabled={!view.canPublish || !!s.websitePublishingAction}
+            disabled={!view.canPublish||!!s.websitePublishingAction||
+              reviewedHostedPreview!==preview.id}
             onPress={() => s.confirmPublishHostedWebsite(preview.id)}
           />
         </Card>
@@ -748,6 +805,17 @@ function WebsitePublishing({ s }) {
           <MetricRow left="Current worker lease" right={readableDate(view.queueHealth.activeLeaseUntil)} />
         ) : null}
         <MetricRow left="Jobs seen" right={String(view.queueHealth?.totalMessages || 0)} />
+      </Card>
+
+      <Card
+        eyebrow="Hosting, subscriptions & cancellation"
+        title="Your website and your subscription are different things"
+        body="BUSY can prepare a website and set up a hosted preview without claiming payment has been taken. A verified subscription billing and entitlement system is not connected here yet. Therefore website access is not automatically suspended when a subscription ends."
+        footer="Customers should keep ownership of domains they own. Export, cancellation notices, grace periods and hosting access rules need to be finalised before paid launch."
+        tone="blue">
+        <MetricRow left="Verified paid subscription" right="Not yet connected"/>
+        <MetricRow left="Automatic cancellation suspension" right="Disabled"/>
+        <MetricRow left="Live website updates" right="Always require approval"/>
       </Card>
 
       <Button label="Website Builder" onPress={() => s.go("websiteBuilder")} />
