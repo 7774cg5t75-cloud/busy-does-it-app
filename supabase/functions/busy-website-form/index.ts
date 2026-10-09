@@ -61,19 +61,20 @@ Deno.serve(async(req)=>{
     const checked=validatedLeadInput(body);
     if(!checked.ok)return result(400,{error:checked.error},origin);
 
+    // Verify the single-use challenge before any database lookup. Unknown
+    // site IDs cannot drive unbounded privileged database reads from bots.
+    const proof=await verifyTurnstile(body.turnstileToken);
+    const claimedHostname=origin.slice("https://".length);
+    if(!verifiedChallenge(proof,claimedHostname))
+      return result(403,{error:"human_verification_required"},origin);
+
     const site=await service.from("busy_websites")
-      .select("id,business_id,default_hostname,current_live_deployment_id,public_form_enabled")
+      .select("id,business_id,default_hostname,current_live_deployment_id,public_form_enabled,health_status,delivery_status,last_health_check_at,last_healthy_at,last_observed_deployment_id")
       .eq("id",body.siteId).maybeSingle();
     if(site.error||!site.data)return result(404,{error:"website_form_unavailable"},origin);
     const gate=formReadiness(site.data,{globalEnabled:ENABLED,hasSecret:!!CHALLENGE_SECRET});
     if(!gate.ready||gate.expectedOrigin!==origin)
       return result(404,{error:"website_form_unavailable"},origin);
-
-    // One-time Cloudflare challenge must match the precise BUSINESS-owned
-    // published host, not merely a token accepted for some other website.
-    const proof=await verifyTurnstile(body.turnstileToken);
-    if(!verifiedChallenge(proof,site.data.default_hostname))
-      return result(403,{error:"human_verification_required"},origin);
 
     const quota=await service.rpc("busy_claim_website_form_quota",{p_website_id:site.data.id});
     if(quota.error||quota.data!==true)
