@@ -32,6 +32,7 @@ jobs:
           node scripts/check-platform-autopilot-v372.mjs
           node scripts/check-platform-autopilot-v373.mjs
           node scripts/check-platform-autopilot-v374.mjs
+          node scripts/check-platform-autopilot-v375.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs
