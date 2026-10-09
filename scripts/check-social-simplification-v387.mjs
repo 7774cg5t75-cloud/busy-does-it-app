@@ -19,11 +19,11 @@ assert.ok(socialStart>=0&&socialEnd>socialStart);
 const h=home.slice(homeStart,homeEnd), p=social.slice(socialStart,socialEnd);
 const checks=[
   ["version and Apple bundle ID remain consistent",()=>{
-    assert.equal(pkg.version,"3.87.0");
+    assert.ok(["3.87.0","3.88.0"].includes(pkg.version));
     assert.equal(app.version,pkg.version);
-    assert.equal(app.ios.buildNumber,"7");
+    assert.equal(app.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));
     assert.equal(app.ios.bundleIdentifier,"com.busydoesit.app");
-    assert.ok(runtime.includes('const APP_VERSION = "3.87";'));
+    assert.ok(runtime.includes(`const APP_VERSION = "${pkg.version.slice(0,-2)}";`));
   }],
   ["Social Media is one tap from Home above the daily summary",()=>{
     const iVoice=h.indexOf('accessibilityLabel="Talk to BUSY"');
