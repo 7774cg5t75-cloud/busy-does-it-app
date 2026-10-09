@@ -22,7 +22,7 @@ Preserve privacy-safe real-world verification *history*; identify patterns acros
 ## Verified in development
 - Both Supabase migrations `v3_76_evidence_snapshots` and `v3_76_evidence_retention` applied.
 - A rolled-back SQL fixture verified the first atomic claim succeeds and the second claim is blocked; authenticated clients have neither direct table access nor RPC execute permission, and the claimed row can be completed.
-- The new founder reporting Edge Function deployed **ACTIVE v10** with JWT enforcement.
+- The new founder reporting Edge Function deployed **ACTIVE v11** with JWT enforcement.
 - Pure JavaScript fixture verification checked data sanitisation, bounded counters, possible-shared-website symptom and conservative trend handling.
 
 ## Honest limitations & next release gates
