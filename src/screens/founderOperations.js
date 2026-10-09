@@ -55,6 +55,36 @@ function FounderOperations({s}){
           <MetricRow left="Workspaces with updated snapshots (7d)" right={show(report.metrics?.activeWorkspaces7d)}/>
           <Button label="Refresh platform snapshot" onPress={refresh}/>
         </Card>
+        <Card eyebrow="V3.70 • Platform Autopilot"
+          title={report.autopilot?.status==="monitoring"?
+            "Background incident checks running":
+            report.autopilot?.status==="partial"?"Some monitoring sources unavailable":
+            report.autopilot?.status==="stale"?"Background monitor needs inspection":
+            "Monitoring has not been verified"}
+          body="BUSY scans four aggregate problem categories every 15 minutes, even when your phone is off. Past failures are not automatically treated as a live outage."
+          tone={report.autopilot?.status==="monitoring"?"blue":"amber"}>
+          <MetricRow left="Last verified background scan" right={
+            report.autopilot?.checkedAt?
+              new Date(report.autopilot.checkedAt).toLocaleString("en-GB"):"Not verified"}/>
+          <MetricRow left="Sources checked" right={
+            report.autopilot?.sourcesChecked===null||
+            report.autopilot?.sourcesChecked===undefined?
+              "Not verified":report.autopilot.sourcesChecked+" / 4"}/>
+          <MetricRow left="Open grouped incidents" right={show(report.autopilot?.openIncidents)}/>
+          <MetricRow left="Priority incidents" right={show(report.autopilot?.highPriorityIncidents)}/>
+          {Array.isArray(report.autopilot?.incidents)&&
+            report.autopilot.incidents.length?(
+            <Text style={styles.sectionLabel}>Recent platform incident history:</Text>
+          ):null}
+          {(report.autopilot?.incidents||[]).slice(0,6).map(item=>
+            <MetricRow key={item.key}
+              left={item.title+" • "+(item.status==="open"?"Open":"Resolved")}
+              right={show(item.count)}/>)}
+          <Text style={styles.sectionLabel}>{report.autopilot?.alerts?.note||
+            "Notifications are not yet enabled."}</Text>
+          <Text style={styles.sectionLabel}>{report.autopilot?.recovery?.note||
+            "No automatic public or destructive recovery actions are allowed."}</Text>
+        </Card>
         <Card eyebrow="Incidents requiring oversight" title="Recorded failures and pending jobs"
           body="Counts are across the platform. They are not distinct customer incidents or proof that every affected system is offline."
           tone="blue">
@@ -75,7 +105,7 @@ function FounderOperations({s}){
           <MetricRow left="AI and cloud bills" right="Not connected"/>
           <MetricRow left="Profit or margin" right="Not connected"/>
         </Card>
-        <Card eyebrow="Operations autonomy" title="Unattended monitoring remains separate"
+        <Card eyebrow="Operations autonomy" title="Automatic detection active; delivery remains protected"
           body={report.automation?.note||"No automatic platform-wide incident handling is active."} tone="blue"/>
         {(report.notes||[]).length?(
           <Card eyebrow="Reporting limitations" title="Coverage notes" body={report.notes.join(" ")} tone="blue"/>
