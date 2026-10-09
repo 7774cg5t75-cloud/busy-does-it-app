@@ -1,5 +1,13 @@
 # busy-does-it-app
 
+## V3.82 — Founder Financial Autopilot 1.0 (development)
+
+The private **Founder Service Control** now captures six **automatic first-party BUSY activity metrics hourly**, even when the iPhone app is closed, using a RLS-protected Supabase table, `pg_cron` and 90-day retention. Counts include internal AI request records, website requests, prepared/live website records, workspaces and incident scans; these are **not the official Supabase Edge Function billing balance**. The existing historical provider/renewal register remains separate and honest about source and freshness.
+
+V3.82 adds guarded **read-only GitHub billing and Cloudflare Worker analytics adapters**, ready for founder-authorised provider credentials kept exclusively in the Supabase server environment. Optional founder-initiated usage refresh is limited to once per 30 minutes and stores results as provider API observations, not invoices or made-up GBP totals. **These external accounts are NOT yet connected and do NOT auto-poll**, and the dashboard displays this. It also surfaces 50/75/90% historical allowance review markers and 30-day renewal reviews, not fabricated live alerts. No purchases, subscription changes or public domain launches were made.
+
+Supabase migrations applied, `busy-founder-ops` ACTIVE v14 with verified JWT and fresh founder auth, the V3.82 focused test suite passed 113 checks, and it is wired into CI. Full Actions run and iPhone testing remain outstanding. See `docs/V3_82_FOUNDER_FINANCIAL_AUTOPILOT.md`.
+
 ## V3.81 — Founder Service Control & Safe Demo Staging (development)
 
 BUSY's private **Founder Operations** now includes an inventory of **ten infrastructure and operating providers**: Supabase, Cloudflare, GitHub, Expo, Apple Developer, Meta, Google, AI, email delivery and payments. The founder can record the current plan, billing cadence, observed usage and allowance, cost in GBP, renewal dates and evidence notes as **manual historical snapshots**. A fixed starting record uses a verified **14,493 Edge Function request log count across BUSY and Slow Roast through 9 October 2026 at 09:20 UTC** against the shared Free organisation's 500,000 included monthly allowance. The snapshot is *not an official invoice, live usage feed or current billing-period balance*. Other providers remain unmeasured until their account data is verified, rather than appearing to cost £0.
