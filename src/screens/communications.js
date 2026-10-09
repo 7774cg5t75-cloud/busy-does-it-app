@@ -33,12 +33,12 @@ function CommunicationsHub({ s }) {
   return (
     <Shell
       s={s}
-      title="Communications Hub"
+      title="Messages & replies"
       subtitle="One view of customer conversations, waiting replies and prepared next steps."
-      brandCue="V3.32 • Understand first • avoid duplicate chasing • sending still needs owner approval."
+      brandCue="BUSY can prepare replies, but sending still needs approval."
     >
       <Card
-        eyebrow="Unified Inbox 2.0"
+        eyebrow="Your conversations"
         title={
           counts.needsAttention
             ? `${counts.needsAttention} conversation${counts.needsAttention === 1 ? "" : "s"} need attention`
@@ -176,7 +176,7 @@ function CommunicationsHub({ s }) {
         label="Ask BUSY who needs a reply"
         onPress={() => s.askBusyAboutCommunications()}
       />
-      <Button label="Raw BUSY Inbox" onPress={s.openBusyInbox} />
+      <Button label="Incoming items" onPress={s.openBusyInbox} />
       <Button label="Back to Work" onPress={() => s.jump("workHub", "Work")} />
     </Shell>
   );
@@ -192,7 +192,7 @@ function CommunicationThread({ s }) {
         title="Conversation unavailable"
         subtitle="BUSY could not safely reopen that customer conversation."
       >
-        <Button label="Back to Communications" primary onPress={s.openCommunicationsHub} />
+        <Button label="Back to messages" primary onPress={s.openCommunicationsHub} />
       </Shell>
     );
   }
