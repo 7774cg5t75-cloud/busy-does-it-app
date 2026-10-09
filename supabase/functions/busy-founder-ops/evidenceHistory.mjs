@@ -95,10 +95,14 @@ function buildEvidenceHistory({rows=null,nowISO=""}={}){
     (r.website.unhealthy??0)+(r.social.issues??0)+(r.apps.issues??0),0);
   // Trend is an observational snapshot comparison, NOT a distinct-incident
   // count. It requires at least two completed samples in each time window.
-  const enough=last24.length>=2&&prev24.length>=2;
-  const trend=!enough?"insufficient_history":issueTotals(last24)>issueTotals(prev24)?
-    "more_sampled_issues":issueTotals(last24)<issueTotals(prev24)?
-      "fewer_sampled_issues":"unchanged_sampled_issues";
+  const hasAnySample=items=>items.some(r=>
+    (r.website.sampled??0)+(r.social.sampled??0)+(r.apps.sampled??0)>0);
+  const enough=last24.length>=2&&prev24.length>=2&&
+    hasAnySample(last24)&&hasAnySample(prev24);
+  const rate=items=>issueTotals(items)/items.length;
+  const trend=!enough?"insufficient_history":rate(last24)>rate(prev24)?
+    "more_issue_observations_per_check":rate(last24)<rate(prev24)?
+      "fewer_issue_observations_per_check":"unchanged_issue_observations_per_check";
   if(recent.filter(r=>r.website.unhealthy!==null&&r.website.unhealthy>0).length>=3)
     diagnoses.push({kind:"repeated_website_observations",level:"watch",
       note:"Website errors recurred in multiple samples. They may involve the same underlying deployment; distinct incidents cannot be inferred."});
@@ -112,6 +116,6 @@ function buildEvidenceHistory({rows=null,nowISO=""}={}){
     budget:{minimumMinutesBetweenChecks:30,maxWebsiteHeadRequestsPerCheck:4,
       maxSocialRecordsPerCheck:12,maxBusinessAppsPerCheck:8,
       maxChecksPerDay:48,automaticScheduleEnabled:false},
-    note:"Seven-day sample history, kept no longer than 30 days. Repeated observations may refer to the same record. No root cause or provider invoice cost is inferred."};
+    note:"Seven-day aggregate sample history, retained for up to 30 days by daily pruning. Trend compares average issue observations per check, not distinct incidents or a complete customer census. No provider invoice cost is inferred."};
 }
 export {snapshotPayload,buildEvidenceHistory};
