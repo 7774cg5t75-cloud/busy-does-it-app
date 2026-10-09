@@ -1,5 +1,11 @@
 # busy-does-it-app
 
+## V3.75 — Reality Check Engine (development)
+
+V3.75 introduces a **founder-authorised, on-demand Reality Check** in Founder Operations: bounded HTTPS HEAD probes of BUSY-owned website default hostnames with matching website/deployment headers, aggregate reconciliation of existing Facebook/Instagram/Google Business API submission receipts, and Business App live/public deployment version comparisons. The system returns **only aggregate samples and clear uncertainty labels**. Provider receipts are not represented as public-feed visibility, and deployment records are not presented as App Store/device verification.
+
+The founder-only Supabase reporting Edge Function was deployed with JWT verification; the app version is 3.75.0. No automatic external repairs or republishing were activated. Live BUSY website and Business App checks have no production deployments to exercise yet, and complete green GitHub CI and physical-device acceptance remain pending. See `docs/V3_75_REALITY_CHECK_ENGINE.md`.
+
 ## V3.74 — Safe Recovery Rechecks and Private Audit (development)
 
 V3.74 builds on BUSY DOES IT's scheduled 15-minute aggregate incident watcher. Every completed scan automatically creates or updates a **founder-private recovery assessment**, showing when a recorded issue still requires review, has passed the first clean scan, or has cleared after two clean checks. Partial/unknown coverage is **not** treated as recovered. The founder dashboard displays this sanitized evidence; non-founders cannot read the recovery audit. A conservative replay policy still blocks all automatic website publishing, social reposting and Business App releases pending verified provider receipts, explicit approval and idempotency safeguards.
