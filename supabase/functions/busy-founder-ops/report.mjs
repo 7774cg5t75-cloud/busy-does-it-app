@@ -1,6 +1,7 @@
 import {buildAutopilotDigest} from "./incidentReport.mjs";
 import {buildFounderAlertInbox} from "./alertInbox.mjs";
 import {buildFounderReliability} from "./reliability.mjs";
+import {notificationReadiness} from "./notificationReadiness.mjs";
 
 /**
  * V3.69 trusted server-side founder reporting helpers.
@@ -27,7 +28,7 @@ function aggregateUsageRows(rows, {exhaustive,field,maxRows=1000} = {}) {
   }
   return sum;
 }
-function buildFounderReport({counts={},usage={},checkedAt="",verifiedRole=false,monitorRun=null,monitorIncidents=null,alertRows=null}={}) {
+function buildFounderReport({counts={},usage={},checkedAt="",verifiedRole=false,monitorRun=null,monitorIncidents=null,alertRows=null,founderDeviceCount=null}={}) {
   // Caller MUST independently authenticate before executing the DB reads.
   if(!verifiedRole)return null;
   const count=k=>safeNumber(counts[k]);
@@ -56,7 +57,8 @@ function buildFounderReport({counts={},usage={},checkedAt="",verifiedRole=false,
   }));
   const autopilot=buildAutopilotDigest({run:monitorRun,incidents:monitorIncidents,
     verifiedRole,nowISO:checkedAt});
-  const alertInbox=buildFounderAlertInbox({rows:alertRows,verifiedRole});
+  const alertInbox=buildFounderAlertInbox({rows:alertRows,verifiedRole,
+    run:monitorRun,nowISO:checkedAt});
   return {
     version:1,
     checkedAt:typeof checkedAt==="string"?checkedAt:"",
@@ -88,6 +90,7 @@ function buildFounderReport({counts={},usage={},checkedAt="",verifiedRole=false,
     },
     autopilot,
     alertInbox,
+    notificationReadiness:notificationReadiness({devices:founderDeviceCount}),
     reliability:buildFounderReliability({autopilot,alertInbox}),
     notes,
   };
