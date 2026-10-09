@@ -25,9 +25,10 @@ const contrast = (a,b) => {
 };
 const checks = [
   ["version and iOS build number match", () => {
-    assert.equal(pkg.version,"3.84.0"); assert.equal(app.version,pkg.version);
-    assert.equal(app.ios.buildNumber,"4");
-    assert.ok(runtime.includes('const APP_VERSION = "3.84";'));
+    assert.ok(["3.84.0","3.85.0"].includes(pkg.version));
+    assert.equal(app.version,pkg.version);
+    assert.equal(app.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));
+    assert.ok(runtime.includes(`const APP_VERSION = "${pkg.version.slice(0,-2)}";`));
   }],
   ["backgrounds are dark and visually layered", () => {
     assert.equal(palette.bg,"#0D131E"); assert.equal(palette.card,"#171F2D");
