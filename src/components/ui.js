@@ -245,19 +245,19 @@ function BusyAssistantMark({ size = 38 }) {
   );
 }
 
-function BusyBrandLockup({ size = 38, centered = false }) {
+function BusyBrandLockup({ size = 38, centered = false, inverse = false }) {
   return (
     <View style={[styles.busyBrandLockup, centered && styles.busyBrandLockupCentered]}>
       <BusyAssistantMark size={size} />
       <View style={styles.busyWordmarkWrap}>
-        <Text style={[styles.busyWordmarkBusy, { fontSize: Math.max(17, Math.round(size * 0.48)) }]}>BUSY</Text>
+        <Text style={[styles.busyWordmarkBusy, inverse && styles.homeDarkText, { fontSize: Math.max(17, Math.round(size * 0.48)) }]}>BUSY</Text>
         <Text style={[styles.busyWordmarkDoes, { fontSize: Math.max(13, Math.round(size * 0.34)) }]}>DOES IT</Text>
       </View>
     </View>
   );
 }
 
-function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack = false }) {
+function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack = false, dark = false, hideDevBadge = false }) {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
@@ -276,27 +276,28 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
   }, []);
 
   return (
-    <View style={styles.shell}>
+    <View style={[styles.shell, dark && styles.homeDarkShell]}>
       <KeyboardAvoidingView
         style={styles.keyboardAvoider}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={0}
       >
         <ScrollView
-          style={styles.scroll}
+          style={[styles.scroll, dark && styles.homeDarkShell]}
           contentContainerStyle={[
             styles.scrollContent,
+            dark && styles.homeDarkContent,
             keyboardVisible && styles.scrollContentKeyboard,
           ]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
           automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
         >
-        <View style={styles.topRow}>
+        <View style={[styles.topRow, dark && styles.homeDarkTopRow]}>
           <View style={{ flex: 1, paddingRight: 12 }}>
-            <BusyBrandLockup size={36} />
-            <Text style={styles.tagline}>More work. Less fuss.</Text>
-            <Text style={styles.prototypeBadge}>{PROTOTYPE_BADGE}</Text>
+            <BusyBrandLockup size={36} inverse={dark} />
+            <Text style={[styles.tagline, dark && styles.homeDarkMuted]}>More work. Less fuss.</Text>
+            {!hideDevBadge ? <Text style={styles.prototypeBadge}>{PROTOTYPE_BADGE}</Text> : null}
           </View>
           {!noBack && s.history?.length > 0 ? (
             <Pressable onPress={s.back} style={styles.backPill}>
@@ -305,19 +306,19 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
           ) : null}
         </View>
 
-        {brandCue ? <Text style={styles.brandCue}>{brandCue}</Text> : null}
-        {title ? <Text style={styles.h1}>{title}</Text> : null}
-        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+        {brandCue ? <Text style={[styles.brandCue, dark && styles.homeDarkAccent]}>{brandCue}</Text> : null}
+        {title ? <Text style={[styles.h1, dark && styles.homeDarkHeading]}>{title}</Text> : null}
+        {subtitle ? <Text style={[styles.subtitle, dark && styles.homeDarkMuted]}>{subtitle}</Text> : null}
 
         {children}
         </ScrollView>
       </KeyboardAvoidingView>
-      {!noNav && !keyboardVisible ? <BottomNav s={s} /> : null}
+      {!noNav && !keyboardVisible ? <BottomNav s={s} dark={dark} /> : null}
     </View>
   );
 }
 
-function BottomNav({ s }) {
+function BottomNav({ s, dark = false }) {
   const items = [
     ["Home", "home"],
     ["Work", "workHub"],
@@ -325,7 +326,7 @@ function BottomNav({ s }) {
     ["Settings", "settings"],
   ];
   return (
-    <View style={styles.nav}>
+    <View style={[styles.nav, dark && styles.homeDarkNav]}>
       {items.map(([label, target]) => {
         const active = s.tab === label;
         return (
@@ -338,7 +339,7 @@ function BottomNav({ s }) {
             }}
           >
             <View style={[styles.navDot, active && styles.navDotActive]} />
-            <Text style={[styles.navText, active && styles.navTextActive]}>{label}</Text>
+            <Text style={[styles.navText, dark && styles.homeDarkNavText, active && styles.navTextActive, dark && active && styles.homeDarkNavActive]}>{label}</Text>
           </Pressable>
         );
       })}
