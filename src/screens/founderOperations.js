@@ -54,7 +54,7 @@ function FounderOperations({s}){
   const report=state.owner===owner&&state.status==="ready"?state.report:null;
   return <Shell s={s} title="Founder Operations"
     subtitle="Platform-wide aggregate status, restricted to a verified founder account."
-    brandCue="V3.72 • server-authorised • reliable aggregate monitoring">
+    brandCue="V3.73 • founder alerts • evidence-based escalation">
     {!report?(
       <Card eyebrow="Founder access" title={state.status==="loading"?"Checking access…":
         state.status==="denied"?"Founder role not yet enabled":"Restricted dashboard"}
@@ -85,6 +85,22 @@ function FounderOperations({s}){
             right={report.reliability?.alertInboxIsVerified?"Verified":"Not verified"}/>
           <MetricRow left="Automatic external repairs" right="Disabled"/>
           <MetricRow left="Automatic push/email alerts" right="Disabled"/>
+        </Card>
+        <Card eyebrow="V3.73 • Phone alert readiness"
+          title={report.notificationReadiness?.status==="no_registered_device"?
+            "Register your founder phone before enabling alerts":
+            report.notificationReadiness?.status==="unknown"?
+              "Phone notification registration unverified":
+              "Notification delivery still requires verification"}
+          body={report.notificationReadiness?.action||
+            "Founder push is not ready. No external delivery has been enabled."}
+          tone="blue">
+          <MetricRow left="Your active registered devices"
+            right={show(report.notificationReadiness?.registeredFounderDevices)}/>
+          <MetricRow left="Verified phone delivery"
+            right={report.notificationReadiness?.verifiedDelivery?"Yes":"Not verified"}/>
+          <MetricRow left="Automatic founder alerts" right="Not enabled"/>
+          <Button label="Open production push setup" onPress={()=>s.go("productionBridge")}/>
         </Card>
         <Card eyebrow="V3.70 • Platform Autopilot"
           title={report.autopilot?.status==="monitoring"?
@@ -123,11 +139,17 @@ function FounderOperations({s}){
           tone={report.alertInbox?.unread>0?"amber":"blue"}>
           <MetricRow left="Unacknowledged open alerts"
             right={show(report.alertInbox?.unread)}/>
+          <MetricRow left="Persistent or urgent recorded incidents"
+            right={show(report.alertInbox?.escalated)}/>
           {(report.alertInbox?.items||[]).map(item=>
             <React.Fragment key={item.key}>
               <MetricRow left={item.key.replace(/_/g," ")+" • "+item.status+
                 (item.acknowledgedAt?" • acknowledged":"")}
                 right={show(item.count)}/>
+              {item.status==="open"?(
+                <MetricRow left="Triage level • based on recorded failure age"
+                  right={item.escalation?.level||"unverified"}/>
+              ):null}
               {item.status==="open"&&item.reviewGuidance?(
                 <Text style={styles.sectionLabel}>{item.reviewGuidance}</Text>
               ):null}
