@@ -4,6 +4,7 @@ import {VALID_KEYS} from "./alertInbox.mjs";
 import {probeManagedWebsite,buildExternalRealityDigest} from "./externalReality.mjs";
 import {snapshotPayload} from "./evidenceHistory.mjs";
 import {validateServiceSnapshot,buildServiceInventory} from "./serviceRegister.mjs";
+import {digestAutomaticTelemetry} from "./autoTelemetry.mjs";
 
 /**
  * V3.69 founder-only READ endpoint.
@@ -240,10 +241,22 @@ async function demoLaunchStatus(){
   };
 }
 async function getServiceInventory(){
-  const rows=await privilegedRows("busy_founder_service_snapshots",
-    "service_key,source,plan_name,billing_status,billing_cadence,usage_value,allowance_value,usage_unit,amount_gbp_pence,renewal_on,observed_at,note",
-    "recorded_at.desc",150);
-  return buildServiceInventory(rows);
+  const [rows,autoRows]=await Promise.all([
+    privilegedRows("busy_founder_service_snapshots",
+      "service_key,source,plan_name,billing_status,billing_cadence,usage_value,allowance_value,usage_unit,amount_gbp_pence,renewal_on,observed_at,note",
+      "recorded_at.desc",150),
+    safely(()=>privilegedRows("busy_founder_auto_telemetry",
+      "metric_key,observed_hour,observed_at,value,source","observed_at.desc",180)),
+  ]);
+  return {...buildServiceInventory(rows),
+    automaticUsage:digestAutomaticTelemetry(Array.isArray(autoRows)?autoRows:[]),
+    providerConnections:{
+      supabase:{status:"billing_not_connected",detail:"Scheduled first-party BUSY activity counts are active. Official Supabase billing quota requires a separate provider connection."},
+      github:{status:"billing_not_connected",detail:"The connected GitHub source-code app does not grant BUSY's server access to billing usage."},
+      cloudflare:{status:"billing_not_connected",detail:"Cloudflare account Analytics API requires a read-only provider authorisation."},
+      ai:{status:"billing_not_connected",detail:"Supplier token usage and invoice costs are not available from BUSY internal AI request counts."}
+    }
+  };
 }
 async function recordServiceSnapshot(body:any, founderId:string){
   const checked=validateServiceSnapshot(body);
