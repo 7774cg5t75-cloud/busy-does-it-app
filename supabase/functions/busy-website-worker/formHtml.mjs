@@ -54,11 +54,11 @@ function renderOptInContactForm({siteId="",siteKey="",enabled=false,endpoint=""}
     method:"POST",headers:{"Content-Type":"application/json"},
     body:JSON.stringify({
      siteId:cfg.siteId,idempotencyKey:requestKey,
-     name:form.elements.name.value,contactMethod:"email",
-     contactValue:form.elements.email.value,
-     service:form.elements.service.value,notes:form.elements.notes.value,
-     contactPermissionConfirmed:form.elements.permission.checked,
-     turnstileToken:token.value,trap:form.elements.trap.value
+     name:form.elements.namedItem("name").value,contactMethod:"email",
+     contactValue:form.elements.namedItem("email").value,
+     service:form.elements.namedItem("service").value,notes:form.elements.namedItem("notes").value,
+     contactPermissionConfirmed:form.elements.namedItem("permission").checked,
+     turnstileToken:token.value,trap:form.elements.namedItem("trap").value
     })
    });
    var result=await response.json().catch(function(){return {};});
