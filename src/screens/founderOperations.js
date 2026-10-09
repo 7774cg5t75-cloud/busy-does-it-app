@@ -34,17 +34,27 @@ function FounderOperations({s}){
     refresh();
     return ()=>{nonce.current+=1;};
   },[refresh]);
+  React.useEffect(()=>{
+    setAckBusy("");setAckError("");
+  },[owner]);
   const acknowledge=async item=>{
     if(!owner||ackBusy||item.status!=="open"||item.acknowledgedAt)return;
+    const requestedOwner=owner;
     setAckError("");setAckBusy(item.key);
-    try{await s.acknowledgeFounderAlert(item.key,item.transition);await refresh();}
-    catch(e){setAckError(e?.message||"Could not confirm acknowledgement. Refresh and retry.");}
-    finally{setAckBusy("");}
+    try{
+      await s.acknowledgeFounderAlert(item.key,item.transition);
+      if(current.current===requestedOwner)await refresh();
+    }catch(e){
+      if(current.current===requestedOwner)
+        setAckError(e?.message||"Could not confirm acknowledgement. Refresh and retry.");
+    }finally{
+      if(current.current===requestedOwner)setAckBusy("");
+    }
   };
   const report=state.owner===owner&&state.status==="ready"?state.report:null;
   return <Shell s={s} title="Founder Operations"
     subtitle="Platform-wide aggregate status, restricted to a verified founder account."
-    brandCue="V3.71 • server-authorised • aggregate alerts • no customer details">
+    brandCue="V3.72 • server-authorised • reliable aggregate monitoring">
     {!report?(
       <Card eyebrow="Founder access" title={state.status==="loading"?"Checking access…":
         state.status==="denied"?"Founder role not yet enabled":"Restricted dashboard"}
@@ -63,6 +73,18 @@ function FounderOperations({s}){
           <MetricRow left="Business memberships" right={show(report.metrics?.businessMemberships)}/>
           <MetricRow left="Workspaces with updated snapshots (7d)" right={show(report.metrics?.activeWorkspaces7d)}/>
           <Button label="Refresh platform snapshot" onPress={refresh}/>
+        </Card>
+        <Card eyebrow="V3.72 • Operational confidence"
+          title={report.reliability?.headline||"Monitoring evidence unavailable"}
+          body={report.reliability?.note||
+            "No verified monitor or alert information is available. BUSY will not assume that the platform is healthy."}
+          tone={report.reliability?.status==="monitoring"?"blue":"amber"}>
+          <MetricRow left="Incident-monitor evidence"
+            right={report.reliability?.monitoringIsVerified?"Current":"Needs review"}/>
+          <MetricRow left="Private alert inbox"
+            right={report.reliability?.alertInboxIsVerified?"Verified":"Not verified"}/>
+          <MetricRow left="Automatic external repairs" right="Disabled"/>
+          <MetricRow left="Automatic push/email alerts" right="Disabled"/>
         </Card>
         <Card eyebrow="V3.70 • Platform Autopilot"
           title={report.autopilot?.status==="monitoring"?
