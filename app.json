@@ -2,7 +2,7 @@
   "expo": {
     "name": "Busy Does It",
     "slug": "busy-does-it",
-    "version": "3.89.0",
+    "version": "3.90.0",
     "plugins": [
       [
         "expo-audio",
@@ -30,12 +30,12 @@
     },
     "ios": {
       "bundleIdentifier": "com.busydoesit.app",
-      "buildNumber": "9",
+      "buildNumber": "10",
       "supportsTablet": true
     },
     "android": {
       "package": "com.busydoesit.app",
-      "versionCode": 9
+      "versionCode": 10
     },
     "extra": {
       "productionBridge": {
