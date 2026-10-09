@@ -926,7 +926,7 @@ function ConnectedAccounts({ s }) {
             disabled={busy || !ownerSignedIn}
             onPress={() => s.disconnectSocialProvider(provider)}
           />
-        ) : configured && !needsSelection && !checking ? (
+        ) : !connected && configured && !needsSelection && !checking ? (
           <Button
             label={providerBusy ? "Opening provider…" : `Connect ${label}`}
             primary
@@ -942,9 +942,14 @@ function ConnectedAccounts({ s }) {
     <Shell
       s={s}
       title="Connected accounts"
-      subtitle="V3.13 makes every Facebook, Instagram and future Google publishing record belong to the signed-in business rather than one shared prototype workspace."
-      brandCue="BUSY can prepare automatically. Public publishing still requires an authenticated owner and an approved post."
+      subtitle="See what's connected and manage the services BUSY uses for your business."
     >
+      {s.ownerSession?.accessToken ? (
+        <Card eyebrow="Your BUSY account" title="Signed in" body="Your connections belong to your business." tone="green">
+          <Text style={styles.connectBody}>{s.ownerSession.email || s.ownerEmail}</Text>
+        </Card>
+      ) : (
+        <>
       <Card
         eyebrow="V3.15 • Production-safe account controls"
         title={s.ownerSession?.accessToken ? "Account verified" : "BUSY account sign-in"}
@@ -1023,6 +1028,159 @@ function ConnectedAccounts({ s }) {
         {s.ownerAuthNotice ? <Text style={styles.cardFooter}>{s.ownerAuthNotice}</Text> : null}
       </Card>
 
+
+        </>
+      )}
+
+      {s.socialPublishingError ? (
+        <Card
+          eyebrow="Connection error"
+          title="BUSY could not complete the latest provider action"
+          body={s.socialPublishingError}
+          tone="amber"
+        />
+      ) : null}
+
+
+      <Text style={styles.sectionLabel}>Social Media</Text>
+      {renderProvider({
+        provider: "meta",
+        label: "Facebook & Instagram",
+        connection: meta,
+        configured: !!credentials.meta?.configured,
+      })}
+      {renderProvider({
+        provider: "google_business",
+        label: "Google Business",
+        connection: google,
+        configured: !!credentials.google_business?.configured,
+      })}
+      <Button
+        label={busy ? "Refreshing…" : "Refresh connection status"}
+        disabled={busy || !s.ownerSession?.accessToken}
+        onPress={s.refreshSocialPublishingStatus}
+      />
+      <Button label="Open Social Media" onPress={() => s.go("socialMedia")} />
+
+      <Button
+        label={showOtherConnections ? "Hide other services" : "Other services & demos"}
+        onPress={() => setShowOtherConnections((old) => !old)}
+      />
+      {showOtherConnections ? (
+        <>
+          <Card
+            eyebrow="Demo only"
+            title="Explore possible connections"
+            body="These email, calendar, job-system, invoicing and advertising switches are prototypes. Selecting one does NOT connect an external account or import real data."
+            tone="amber"
+          />
+      <Text style={styles.sectionLabel}>Incoming business sources</Text>
+      {intakeRows.map(renderPrototypeConnection)}
+
+      {s.connectedIntakeKeys.length ? (
+        <>
+          <Button label="Run prototype connected sync" onPress={s.runConnectedSourceDemoSync} />
+          <Button label="Test one journey across 4 sources" onPress={s.queueCrossSourceJourneyDemo} />
+        </>
+      ) : null}
+
+      <Text style={styles.sectionLabel}>Other demo marketing tools</Text>
+      {prototypeActionRows.map(renderPrototypeConnection)}
+
+
+        </>
+      ) : null}
+
+      <Button
+        label={showConnectionDiagnostics ? "Hide advanced connection details" : "Advanced connection details"}
+        onPress={() => setShowConnectionDiagnostics((old) => !old)}
+      />
+      {showConnectionDiagnostics ? (
+        <>
+          <Text style={styles.sectionLabel}>Security and developer information</Text>
+          {s.ownerSession?.accessToken ? (
+            <>
+      <Card
+        eyebrow="V3.15 • Production-safe account controls"
+        title={s.ownerSession?.accessToken ? "Account verified" : "BUSY account sign-in"}
+        body={
+          s.ownerSession?.accessToken
+            ? "This device has an authenticated Supabase session. The publishing server now resolves the business from that session and only returns that business's provider connections, drafts and publishing history."
+            : "Sign in to connect this device to a protected BUSY business workspace. Provider access alone is never enough to publish."
+        }
+        footer={s.ownerSession?.accessToken ? "Session + business membership are verified server-side" : "Each signed-in business gets its own protected data workspace"}
+        tone={s.ownerSession?.accessToken ? "green" : "amber"}
+      >
+        <View style={styles.ownerIdentityBlock}>
+          <Text style={styles.ownerIdentityLabel}>Account email</Text>
+          <Text style={styles.ownerIdentityValue}>{s.ownerSession?.email || s.ownerEmail}</Text>
+        </View>
+        <MetricRow left="Account status" right={s.ownerSession?.accessToken ? "Verified" : "Signed out"} strong={!!s.ownerSession?.accessToken} />
+        {s.ownerSession?.accessToken ? (
+          <>
+            <MetricRow left="Cloud data" right={s.cloudInitialised ? s.cloudSyncStatus : "Preparing…"} strong={s.cloudInitialised && !s.cloudSyncError} />
+            <MetricRow
+              left="Publishing tenant"
+              right={
+                s.socialPublishingStatus?.owner?.businessId
+                  ? s.socialPublishingStatus.owner.businessId === s.cloudWorkspace?.businessId
+                    ? "Matches this business"
+                    : "Blocked mismatch"
+                  : "Verified when publishing loads"
+              }
+              strong={
+                !!s.socialPublishingStatus?.owner?.businessId &&
+                s.socialPublishingStatus.owner.businessId === s.cloudWorkspace?.businessId
+              }
+            />
+            <MetricRow left="Sensitive action protection" right="Server rate limits active" strong />
+          </>
+        ) : null}
+        {!s.ownerSession?.accessToken ? (
+          <>
+            <Field
+              label="Email"
+              value={s.ownerEmail}
+              onChangeText={s.setOwnerEmail}
+              placeholder="you@yourbusiness.co.uk"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <Field
+              label="Password"
+              value={s.ownerPassword}
+              onChangeText={s.setOwnerPassword}
+              placeholder="Enter or choose a password"
+              secureTextEntry
+              autoCapitalize="none"
+            />
+            <Button
+              label={s.ownerAuthLoading ? "Signing in…" : "Sign in"}
+              primary
+              disabled={s.ownerAuthLoading}
+              onPress={s.signInOwner}
+            />
+            <Button
+              label={s.ownerAuthLoading ? "Please wait…" : "Create BUSY account"}
+              disabled={s.ownerAuthLoading}
+              onPress={s.createOwnerAccount}
+            />
+            <Button
+              label="Forgot password? Send recovery email"
+              disabled={s.ownerAuthLoading}
+              onPress={s.sendPasswordReset}
+            />
+          </>
+        ) : (
+          <Button label="Sign out" disabled={s.ownerAuthLoading} onPress={s.signOutOwner} />
+        )}
+        {s.ownerAuthError ? <Text style={styles.customerHistoryPhotoMeta}>{s.ownerAuthError}</Text> : null}
+        {s.ownerAuthNotice ? <Text style={styles.cardFooter}>{s.ownerAuthNotice}</Text> : null}
+      </Card>
+
+
+            </>
+          ) : null}
       <Card
         eyebrow="V3.13 • Tenant-scoped connection health"
         title={
@@ -1068,15 +1226,6 @@ function ConnectedAccounts({ s }) {
           )
         ) : null}
       </Card>
-
-      {s.socialPublishingError ? (
-        <Card
-          eyebrow="Connection error"
-          title="BUSY could not complete the latest provider action"
-          body={s.socialPublishingError}
-          tone="amber"
-        />
-      ) : null}
 
       {s.ownerSession?.accessToken && hasLiveProvider ? (
         <Card
@@ -1157,19 +1306,6 @@ function ConnectedAccounts({ s }) {
         />
       )}
 
-      <Text style={styles.sectionLabel}>Live social publishing</Text>
-      {renderProvider({
-        provider: "meta",
-        label: "Facebook / Instagram",
-        connection: meta,
-        configured: !!credentials.meta?.configured,
-      })}
-      {renderProvider({
-        provider: "google_business",
-        label: "Google Business",
-        connection: google,
-        configured: !!credentials.google_business?.configured,
-      })}
 
       <Card
         eyebrow="OAuth return"
@@ -1178,18 +1314,6 @@ function ConnectedAccounts({ s }) {
         tone="blue"
       />
 
-      <Text style={styles.sectionLabel}>Incoming business sources</Text>
-      {intakeRows.map(renderPrototypeConnection)}
-
-      {s.connectedIntakeKeys.length ? (
-        <>
-          <Button label="Run prototype connected sync" onPress={s.runConnectedSourceDemoSync} />
-          <Button label="Test one journey across 4 sources" onPress={s.queueCrossSourceJourneyDemo} />
-        </>
-      ) : null}
-
-      <Text style={styles.sectionLabel}>Other prototype marketing systems</Text>
-      {prototypeActionRows.map(renderPrototypeConnection)}
 
       <Card
         eyebrow="Authority boundary"
@@ -1199,7 +1323,9 @@ function ConnectedAccounts({ s }) {
         tone="green"
       />
 
-      <Button label="Social Control Centre" onPress={() => s.go("socialMedia")} />
+
+        </>
+      ) : null}
       <Button label="Open BUSY Inbox" onPress={s.openBusyInbox} />
       <Button label="Done" primary onPress={s.back} />
     </Shell>
