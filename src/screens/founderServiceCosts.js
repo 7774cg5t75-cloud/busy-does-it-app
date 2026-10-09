@@ -30,6 +30,7 @@ function parseGbp(s){
 function FounderServiceCosts({s,owner,enabled}){
   const [data,setData]=React.useState({owner:"",status:"idle",report:null,error:""});
   const [staging,setStaging]=React.useState({owner:"",status:"idle",data:null});
+  const [providerSync,setProviderSync]=React.useState({status:"idle",message:""});
   const [selected,setSelected]=React.useState("supabase");
   const [form,setForm]=React.useState(initialForm);
   const [saving,setSaving]=React.useState(false);
@@ -74,6 +75,7 @@ function FounderServiceCosts({s,owner,enabled}){
   React.useEffect(()=>{
     setSelected("supabase");setForm(initialForm());
     setSaving(false);setMessage("");key.current="";
+    setProviderSync({status:"idle",message:""});
   },[owner]);
   const loadStaging=React.useCallback(async()=>{
     const requestedOwner=owner,request=++stagingNonce.current;
@@ -98,6 +100,32 @@ function FounderServiceCosts({s,owner,enabled}){
     loadStaging();
     return ()=>{stagingNonce.current+=1;};
   },[loadStaging]);
+  const syncProviders=async()=>{
+    if(!enabled||!owner||providerSync.status==="loading")return;
+    const account=owner;
+    setProviderSync({status:"loading",message:""});
+    try{
+      const outcome=await s.syncFounderConnectedProviders();
+      if(scope.current!==account)return;
+      const successful=outcome.results?.filter(x=>x.status==="saved").length||0;
+      setProviderSync({status:"ready",message:
+        outcome.status==="no_authorised_connections"?
+        "No provider billing/analytics credentials are authorised yet. BUSY has not queried external accounts.":
+        outcome.status==="rate_limited"?
+        "Provider usage was checked recently. Try again after the 30-minute cooldown.":
+        outcome.status==="cooldown_unavailable"?
+        "Refresh limit could not be verified. No provider API request was made.":
+        successful>0?
+        successful+" read-only provider observation(s) recorded. This is not a GBP invoice.":
+        "No verified provider readings were saved. Check supplier account permissions."
+      });
+      if(successful>0)await refresh();
+    }catch(e){
+      if(scope.current===account)
+        setProviderSync({status:"unavailable",message:
+          "Provider usage could not be verified. Nothing has been charged or changed."});
+    }
+  };
   const save=async()=>{
     if(saving||!enabled||!owner)return;
     const usage=parseWhole(form.usage),allowance=parseWhole(form.allowance),
@@ -175,14 +203,24 @@ function FounderServiceCosts({s,owner,enabled}){
       body="Automatic BUSY activity counts are working, but we won't show guessed provider balances. The connections below require explicit authorisation to read each supplier's account, and no charges or plan changes are permitted."
       tone="blue">
       <MetricRow left="Supabase official monthly invocations" right="Provider billing not connected"/>
-      <MetricRow left="GitHub Actions billed usage" right="Provider billing not connected"/>
-      <MetricRow left="Cloudflare Workers billed usage" right="Provider billing not connected"/>
+      <MetricRow left="GitHub Actions billed usage"
+        right={current?.providerConnections?.github?.status==="credentials_configured_unverified"?
+          "Read-only credentials set; verify now":"Provider billing not connected"}/>
+      <MetricRow left="Cloudflare Workers activity"
+        right={current?.providerConnections?.cloudflare?.status==="credentials_configured_unverified"?
+          "Read-only credentials set; verify now":"Provider analytics not connected"}/>
       <MetricRow left="AI provider credits and invoice" right="Provider billing not connected"/>
       <MetricRow left="Automatic purchases, upgrades or renewals" right="Disabled"/>
       <Text style={styles.sectionLabel}>
         Existing GitHub source-control access is not the same as billing authorisation.
         Provider usage connections will be read-only and account-scoped.
       </Text>
+      <Button label={providerSync.status==="loading"?"Checking read-only provider feeds…":
+        "Verify configured provider feeds now"} primary
+        disabled={!enabled||providerSync.status==="loading"} onPress={syncProviders}/>
+      {providerSync.message?<Text style={styles.sectionLabel}>
+        {providerSync.message}
+      </Text>:null}
     </Card>
     <Card eyebrow="V3.81 • First live website milestone"
       title="demo.busydoesit.co.uk — controlled staging"
