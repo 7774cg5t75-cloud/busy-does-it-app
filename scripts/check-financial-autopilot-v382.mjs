@@ -109,6 +109,7 @@ assert.equal(parseCloudflareSample({data:{viewer:{accounts:[{
  assert.equal(got.usageUnit,"Actions minutes (month)");
  assert.equal(method,"GET");
  assert.ok(url.startsWith("https://api.github.com/users/7774cg5t75-cloud/settings/billing/usage/summary"));
+  assert.ok(url.includes("year=2026&month=10"));
  assert.ok(!JSON.stringify(got).includes("read-secret"));
 }
 {
@@ -126,8 +127,24 @@ assert.equal(parseCloudflareSample({data:{viewer:{accounts:[{
  assert.equal(method,"POST");
  assert.equal(url,"https://api.cloudflare.com/client/v4/graphql");
  assert.equal(posted.variables.scriptName,"busy-worker");
+  assert.ok(posted.query.includes("$datetimeStart: Time!"));
+  assert.ok(posted.query.includes("$datetimeEnd: Time!"));
+  assert.ok(posted.query.includes("$accountTag: string!"));
  assert.ok(!JSON.stringify(got).includes("cloud-secret"));
  assert.ok(got.note.includes("NOT billable"));
+}
+{
+  const org={GITHUB_BILLING_READ_TOKEN:"scoped-read-only",
+    GITHUB_BILLING_ACCOUNT:"7774cg5t75-cloud",
+    GITHUB_BILLING_SCOPE:"organization"};
+  let visited="";
+  const got=await readGitHubUsage(org,async(url)=>{visited=url;
+    return {ok:true,json:async()=>({usageItems:[
+      {product:"Actions",unitType:"minutes",grossQuantity:14}
+    ]})}},new Date(now));
+  assert.equal(got.status,"read_success");
+  assert.equal(got.usageValue,14);
+  assert.ok(visited.startsWith("https://api.github.com/organizations/7774cg5t75-cloud/settings/billing/usage/summary"));
 }
 const providerMigration=readFileSync(
  new URL("../supabase/migrations/20261009124500_v382_provider_readonly_source.sql",import.meta.url),"utf8");
@@ -166,6 +183,8 @@ assert.ok(backend.indexOf("authenticatedUser(req)")<backend.indexOf('action==="s
 assert.ok(backend.includes("busy_claim_founder_provider_window"));
 assert.ok(backend.includes('source:"provider_api_readonly"'));
 assert.ok(backend.includes('const env=providerEnv()'));
+assert.ok(backend.includes('BUSY_GITHUB_BILLING_SCOPE'));
+assert.ok(backend.includes('busy_claim_founder_provider_window'));
 assert.ok(screen.includes("Verify configured provider feeds now"));
 const controller=readFileSync(new URL("../src/app/AppController.js",import.meta.url),"utf8");
 assert.ok(controller.includes("const syncFounderConnectedProviders = async"));
