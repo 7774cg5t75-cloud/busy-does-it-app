@@ -8,6 +8,8 @@ const show=n=>Number.isSafeInteger(n)&&n>=0?n.toLocaleString("en-GB"):"Not measu
 function FounderOperations({s}){
   const owner=s.ownerSession?.userId||"";
   const [state,setState]=React.useState({owner:"",status:"idle",report:null,message:""});
+  const [ackBusy,setAckBusy]=React.useState("");
+  const [ackError,setAckError]=React.useState("");
   const nonce=React.useRef(0), current=React.useRef(owner),loader=React.useRef(s.fetchFounderOperations);
   current.current=owner;loader.current=s.fetchFounderOperations;
   const refresh=React.useCallback(async()=>{
@@ -32,10 +34,17 @@ function FounderOperations({s}){
     refresh();
     return ()=>{nonce.current+=1;};
   },[refresh]);
+  const acknowledge=async item=>{
+    if(!owner||ackBusy||item.status!=="open"||item.acknowledgedAt)return;
+    setAckError("");setAckBusy(item.key);
+    try{await s.acknowledgeFounderAlert(item.key,item.transition);await refresh();}
+    catch(e){setAckError(e?.message||"Could not confirm acknowledgement. Refresh and retry.");}
+    finally{setAckBusy("");}
+  };
   const report=state.owner===owner&&state.status==="ready"?state.report:null;
   return <Shell s={s} title="Founder Operations"
     subtitle="Platform-wide aggregate status, restricted to a verified founder account."
-    brandCue="V3.69 • server-authorised • read-only • no customer details">
+    brandCue="V3.71 • server-authorised • aggregate alerts • no customer details">
     {!report?(
       <Card eyebrow="Founder access" title={state.status==="loading"?"Checking access…":
         state.status==="denied"?"Founder role not yet enabled":"Restricted dashboard"}
@@ -84,6 +93,27 @@ function FounderOperations({s}){
             "Notifications are not yet enabled."}</Text>
           <Text style={styles.sectionLabel}>{report.autopilot?.recovery?.note||
             "No automatic public or destructive recovery actions are allowed."}</Text>
+        </Card>
+        <Card eyebrow="V3.71 • Private founder alert inbox"
+          title={report.alertInbox?.status==="available"?
+            "Platform alerts, awaiting your review":"Alert inbox unavailable"}
+          body="These are grouped aggregate system alerts, visible only inside this authenticated founder screen. Acknowledging one does not fix it or clear the underlying incident. Automatic external push/email delivery is not enabled."
+          tone={report.alertInbox?.unread>0?"amber":"blue"}>
+          <MetricRow left="Unacknowledged open alerts"
+            right={show(report.alertInbox?.unread)}/>
+          {(report.alertInbox?.items||[]).map(item=>
+            <React.Fragment key={item.key}>
+              <MetricRow left={item.key.replace(/_/g," ")+" • "+item.status+
+                (item.acknowledgedAt?" • acknowledged":"")}
+                right={show(item.count)}/>
+              {item.status==="open"&&!item.acknowledgedAt&&item.transition?(
+                <Button label={ackBusy===item.key?"Acknowledging…":"Acknowledge "+item.key.replace(/_/g," ")}
+                  disabled={!!ackBusy} onPress={()=>acknowledge(item)}/>
+              ):null}
+            </React.Fragment>)}
+          {ackError?<Text style={styles.sectionLabel}>{ackError}</Text>:null}
+          {report.alertInbox?.status==="available"&&!report.alertInbox?.items?.length?
+            <Text style={styles.sectionLabel}>No recorded alerts yet. The live monitor may still be running normally.</Text>:null}
         </Card>
         <Card eyebrow="Incidents requiring oversight" title="Recorded failures and pending jobs"
           body="Counts are across the platform. They are not distinct customer incidents or proof that every affected system is offline."
