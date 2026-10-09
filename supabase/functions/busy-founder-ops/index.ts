@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {isFounderUser,aggregateUsageRows,buildFounderReport} from "./report.mjs";
 import {VALID_KEYS} from "./alertInbox.mjs";
+import {probeManagedWebsite,buildExternalRealityDigest} from "./externalReality.mjs";
 
 /**
  * V3.69 founder-only READ endpoint.
@@ -99,9 +100,9 @@ async function aggregates(){
  * Platform data is server-only and returned AFTER a fresh Supabase Auth founder
  * role check. Never accept a user-provided business ID or arbitrary SQL filter.
  */
-async function privilegedRows(table:string,select:string,order:string,limit:number){
+async function privilegedRows(table:string,select:string,order:string,limit:number,filters:Record<string,string>={}){
   if(!SECRET_KEY)throw Error("platform reporting key not configured");
-  const query=new URLSearchParams({select,order,limit:String(limit)});
+  const query=new URLSearchParams({select,order,limit:String(limit),...filters});
   const reply=await fetch(ROOT+"/rest/v1/"+table+"?"+query,{
     headers:serviceHeaders(),signal:AbortSignal.timeout(8500)});
   if(!reply.ok)throw Error("platform incident reporting source unavailable");
@@ -129,6 +130,30 @@ async function incidentData(){
     alertRows:Array.isArray(alerts)?alerts:null,
     recoveryRows:Array.isArray(reviews)?reviews:null,
   };
+}
+
+
+/** Only a verified founder may reach this fixed, bounded set of read-only
+ * evidence checks. All URLs are generated from trusted, allowlisted BUSY
+ * hostnames in the database; never accept caller-supplied targets. */
+async function externalReality(){
+  const [sites,posts,apps]=await Promise.all([
+    safely(()=>privilegedRows("busy_websites",
+      "id,default_hostname,current_live_deployment_id","updated_at.desc",4,
+      {"current_live_deployment_id":"not.is.null"})),
+    safely(()=>privilegedRows("busy_social_posts",
+      "status,channels,provider_results","updated_at.desc",12,
+      {"status":"in.(Published,Partial failure,Failed)"})),
+    safely(()=>privilegedRows("busy_mini_apps",
+      "status,current_live_version_id,public_web_status,public_web_version_id",
+      "updated_at.desc",8,{"current_live_version_id":"not.is.null"})),
+  ]);
+  const websiteChecks=Array.isArray(sites)?
+    await Promise.all(sites.map(site=>probeManagedWebsite(site))):null;
+  return buildExternalRealityDigest({
+    websiteChecks,socialRows:posts,appRows:apps,
+    checkedAt:new Date().toISOString()
+  });
 }
 
 
@@ -178,6 +203,11 @@ Deno.serve(async(req:Request)=>{
       return ok?send(200,{status:"acknowledged"}):
         send(409,{error:"alert_changed_or_already_acknowledged"});
     }catch{return send(503,{error:"platform_reporting_unavailable"});}
+  }
+  if(action==="verify_external"&&Object.keys(payload).length===1){
+    if(!ROOT||!SECRET_KEY)return send(503,{error:"platform_reporting_unavailable"});
+    try{return send(200,await externalReality());}
+    catch{return send(503,{error:"external_evidence_unavailable"});}
   }
   if(action!=="summary"||Object.keys(payload).some(k=>k!=="action"))
     return send(400,{error:"unsupported_action"});
