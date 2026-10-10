@@ -58,7 +58,7 @@ for(const item of [
 ])yes(worker.includes(item),"Worker professionally renders saved website without invented media: "+item);
 for(const item of [
   'import { designForWebsite, designCss }',
-  'const design = designForWebsite({businessType:draft.businessType,theme:draft.theme});',
+  'const design = designForWebsite({businessType:draft.businessType,theme:draft.theme,plan});',
   'const layoutCss = designCss(design);',
   '<main id="main">',
   'hero-with-image":"hero-no-image',
