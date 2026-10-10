@@ -18,7 +18,7 @@ const runtime = read("src/core/runtime.js");
 
 const checks = [
   ["version aligns across runtime and native config", () => {
-    assert.ok(["3.83.0", "3.84.0", "3.85.0", "3.86.0", "3.87.0", "3.88.0", "3.89.0","3.90.0","3.91.0","3.92.0","3.93.0","3.94.0","3.95.0","3.96.0","3.97.0","3.98.0","3.99.0","3.100.0","3.101.0","3.102.0"].includes(pkg.version));
+    assert.ok(["3.83.0", "3.84.0", "3.85.0", "3.86.0", "3.87.0", "3.88.0", "3.89.0","3.90.0","3.91.0","3.92.0","3.93.0","3.94.0","3.95.0","3.96.0","3.97.0","3.98.0","3.99.0","3.100.0","3.101.0","3.102.0","3.103.0"].includes(pkg.version));
     assert.equal(config.expo.version, pkg.version);
     assert.ok(runtime.includes(`const APP_VERSION = "${pkg.version.slice(0,-2)}";`));
   }],
