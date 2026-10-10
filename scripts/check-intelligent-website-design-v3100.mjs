@@ -34,7 +34,7 @@ yes(!short.html.includes('id="testimonials"'),"No fabricated reviews");
 yes(!short.html.includes("10 years"),"No fabricated credentials");
 yes(!short.html.includes('href="tel:'),"No invented telephone");
 yes(!short.html.includes('href="mailto:'),"No invented email");
-yes(short.html.includes("Lawn care • Hedge trimming"),"Sparse page uses supplied service facts rather than repeating the category");
+yes(short.html.includes("Lawn mowing • Hedge trimming"),"Sparse page uses supplied service facts rather than repeating the category");
 yes(short.html.includes("Serving Exeter and surrounding villages"),"Sparse page reuses confirmed service area");
 yes(short.html.includes("Where we work"),"An area-only section is not falsely labelled as a contact option");
 yes(!short.html.includes("<h2>Get in touch</h2>"),"No empty get-in-touch section");
