@@ -54,6 +54,7 @@ jobs:
           node scripts/check-website-proof-v393.mjs
           node scripts/check-website-simplicity-v394.mjs
           node scripts/check-hosted-website-preview-v395.mjs
+          node scripts/check-website-brief-guide-v396.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs
