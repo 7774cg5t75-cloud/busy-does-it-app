@@ -13641,6 +13641,25 @@ function App() {
     return data.registrar;
   };
 
+  const recordWebsiteDesignFeedback=async(choice)=>{
+    if(!websiteDraft?.id||!["liked","rejected"].includes(choice))
+      throw Error("Select a website draft and a preference.");
+    const family=websiteDraft.theme?.designFamily||websiteDraft.designPlan?.family;
+    const requestKey="design-"+Date.now()+"-"+Math.random().toString(36).slice(2,14);
+    const result=await websitePublishingRequest("design_feedback_record",{
+      choice,family,draftVersion:String(websiteDraft.generation||1),requestKey});
+    if(!result?.ok||result.privateToBusiness!==true||(!result.saved&&!result.duplicate))
+      throw Error("BUSY could not confirm your private feedback.");
+    return result;
+  };
+  const readWebsiteDesignFeedback=async()=>{
+    const result=await websitePublishingRequest("design_feedback_read");
+    if(!result?.ok||result.businessId!==cloudWorkspace?.businessId||
+       result.summary?.scope!=="current_business_only")
+      throw Error("BUSY could not confirm feedback belongs to this business.");
+    return result.summary;
+  };
+
   const requestWebsiteDomain = async () => {
     const hostname = websiteDomainDraft.trim();
     if (!hostname) return false;
@@ -15557,6 +15576,8 @@ function App() {
     confirmRollbackWebsite,
     openLiveWebsite,
     requestWebsiteDomain,
+    recordWebsiteDesignFeedback,
+    readWebsiteDesignFeedback,
     checkWebsiteRegistrarSearch,
     inspectWebsiteDomainDns,
     verifyWebsiteDomain,

@@ -5,6 +5,7 @@ import {validatedLeadInput,validTransition,buildLeadDigest} from "./leadWorkflow
 import {isVerifiedDomainTxtAnswer} from "./domainOwnership.mjs";
 import {requestedDnsRecords,evaluateDnsAnswer,summarizeDnsChecks} from "./domainDnsDiagnostics.mjs";
 import {checkRegistrarDomain} from "./domainRegistrarGateway.mjs";
+import {validateDesignFeedback,designPreferenceSummary} from "./designFeedback.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -1353,6 +1354,8 @@ Deno.serve(async (request: Request) => {
       "request_domain",
       "inspect_domain_dns",
       "registrar_search",
+      "design_feedback_record",
+      "design_feedback_read",
       "verify_domain",
       "provision_domain",
       "recover",
@@ -1408,6 +1411,32 @@ Deno.serve(async (request: Request) => {
     }
     if (action === "rollback") {
       return json(200, await rollback(user.id, businessId, body, requestId));
+    }
+    if(action==="design_feedback_record"){
+      const checked=validateDesignFeedback(body);
+      if(!checked.ok)throw Error(checked.error);
+      const {data,error}=await supabase.from("busy_website_design_feedback")
+        .insert({...checked.record,business_id:businessId,created_by:user.id})
+        .select("id").single();
+      if(error){
+        if(error.code!=="23505")throw Error("Private design feedback is unavailable.");
+        const previous=await supabase.from("busy_website_design_feedback")
+          .select("id").eq("business_id",businessId)
+          .eq("request_key",checked.record.request_key).maybeSingle();
+        if(previous.error||!previous.data?.id)
+          throw Error("Could not confirm saved feedback.");
+        return json(200,{ok:true,saved:false,duplicate:true,privateToBusiness:true});
+      }
+      return json(200,{ok:true,saved:!!data?.id,duplicate:false,privateToBusiness:true});
+    }
+    if(action==="design_feedback_read"){
+      const {data,error}=await supabase.from("busy_website_design_feedback")
+        .select("design_family,preference,created_at")
+        .eq("business_id",businessId)
+        .order("created_at",{ascending:false}).limit(40);
+      if(error)throw Error("Private design feedback is unavailable.");
+      return json(200,{ok:true,businessId,
+        summary:designPreferenceSummary(data)});
     }
     if(action==="registrar_search"){
       // Read-only, owner/admin-scoped: no registrar provider is connected,

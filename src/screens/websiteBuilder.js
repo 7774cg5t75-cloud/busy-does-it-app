@@ -21,6 +21,8 @@ function WebsiteBuilder({ s }) {
   const [designOptionIndex,setDesignOptionIndex]=React.useState(0);
   const [showCustomization, setShowCustomization] = React.useState(false);
   const [showVisualAi, setShowVisualAi] = React.useState(false);
+  const [feedbackState,setFeedbackState]=React.useState({status:"idle",message:""});
+  const feedbackBusy=React.useRef(false);
   const hostedPreview = s.websitePublishingView?.previewDeployment || null;
   const hostedPreviewOutdated = !!s.websitePublishingView?.draftChangedSinceHosted;
   const deliveryProof=buildWebsiteLaunchProof({
@@ -61,6 +63,19 @@ function WebsiteBuilder({ s }) {
     maintain:"Manage my live website"
   }[journey.nextAction]||"Continue website setup";
 
+  const sendDesignPreference=async(choice)=>{
+    if(feedbackBusy.current||!draft?.id)return;
+    feedbackBusy.current=true;
+    setFeedbackState({status:"saving",message:""});
+    try{
+      await s.recordWebsiteDesignFeedback(choice);
+      setFeedbackState({status:"saved",
+        message:"Saved privately for this business. BUSY can use your preferences in future improvements; it has not retrained any AI model."});
+    }catch{
+      setFeedbackState({status:"unavailable",
+        message:"BUSY could not save your preference to the business workspace yet. Nothing has been shared."});
+    }finally{feedbackBusy.current=false;}
+  };
   const applyInstruction = () => {
     const text = instruction.trim();
     if (!text) return;
@@ -162,6 +177,20 @@ function WebsiteBuilder({ s }) {
             </>
           ) : null}
           <Button label="Preview this design" onPress={() => s.go("websitePreview")} />
+          <Text style={styles.cardBody}>
+            Help BUSY remember your style preferences for this business. This saves
+            a simple choice, not your photos or website text. It does not share
+            your preferences with other businesses.
+          </Text>
+          <Button label="I like this website style"
+            disabled={feedbackState.status==="saving"}
+            onPress={()=>sendDesignPreference("liked")}/>
+          <Button label="This style isn't for me"
+            disabled={feedbackState.status==="saving"}
+            onPress={()=>sendDesignPreference("rejected")}/>
+          {feedbackState.message?(
+            <Text style={styles.cardBody}>{feedbackState.message}</Text>
+          ):null}
         </Card>
       ) : null}
       {!qualityGuide.complete ? (
