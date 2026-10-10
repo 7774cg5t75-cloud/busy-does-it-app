@@ -1,0 +1,48 @@
+name: V3.97 iPhone repeatable website preview
+# Native acceptance build: preview can be reopened repeatedly without publishing.
+
+on:
+  push:
+    branches: [v3.97]
+    paths:
+      - .github/workflows/ios-preview-v397.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  signed-ios-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      CI: "1"
+    steps:
+      - name: Check out V3.97
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify V3.97 signed iPhone metadata
+        run: |
+          node -e "const p=require('./package.json'),a=require('./app.json').expo;if(p.version!=='3.97.0'||a.version!=='3.97.0'||a.ios.buildNumber!=='17'||a.ios.bundleIdentifier!=='com.busydoesit.app'||!a.extra?.eas?.projectId)process.exit(1)"
+      - name: Validate website navigation and release gates
+        run: |
+          node scripts/check-production.mjs
+          node scripts/check-website-proof-v393.mjs
+          node scripts/check-hosted-website-preview-v395.mjs
+          node scripts/check-repeat-hosted-preview-v397.mjs
+      - name: Check Expo credentials
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::Expo credentials are missing; signed build was not submitted."
+            exit 1
+          fi
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Export iPhone JavaScript bundle
+        run: npx expo export --platform ios --output-dir /tmp/busy-v397-ios-bundle
+      - name: Queue signed iOS preview for registered iPhone
+        run: npx --yes eas-cli@latest build --platform ios --profile preview --non-interactive --no-wait
