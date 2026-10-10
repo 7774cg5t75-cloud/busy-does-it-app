@@ -119,6 +119,51 @@ p{max-width:68ch;margin:0 0 18px}
 .mood-warm .hero-image{border-radius:80px 16px 80px 16px}
 .mood-bold h1{font-weight:950}
 .mood-clean .hero-image{border-radius:22px}
+
+/* Six genuinely different layout families, selected from recorded business
+   type + content evidence, with no extra downloaded fonts or stock imagery. */
+.family-conversion .hero{background:linear-gradient(125deg,var(--ink) 0%,#264D61 100%)}
+.family-conversion .cta{text-transform:uppercase;letter-spacing:.025em;border-radius:7px}
+.family-conversion .grid article{border-top:5px solid var(--accent);border-radius:10px;box-shadow:none}
+.family-conversion h2{font-weight:900}
+.family-organic .hero{background:linear-gradient(145deg,var(--ink),#285647)}
+.family-organic .hero-art{border-radius:62% 38% 29% 71%;transform:rotate(14deg)}
+.family-organic .grid article{border-radius:28px 10px 28px 10px}
+.family-portfolio .hero-image{border-radius:0 90px 0 90px}
+.family-portfolio #gallery{background:var(--paper)}
+.family-portfolio .gallery{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:11px}
+.family-portfolio .gallery-image{border-radius:5px;height:clamp(240px,31vw,390px)}
+.family-artisan .hero{background:#402B2A}
+.family-artisan .hero h1,.family-artisan h2{font-family:Georgia,"Times New Roman",serif;font-weight:600;letter-spacing:-.04em}
+.family-artisan .hero-art{border-radius:8%;transform:rotate(24deg);opacity:.16}
+.family-artisan .cta{border-radius:3px}
+.family-artisan .grid article{border:0;border-bottom:3px solid var(--accent);border-radius:0;box-shadow:none}
+.family-showcase .hero-with-image .wrap{grid-template-columns:minmax(0,.85fr) minmax(280px,1fr)}
+.family-showcase .hero-image{border-radius:3px;box-shadow:22px 22px 0 rgba(255,255,255,.09)}
+.family-showcase h2{font-family:Georgia,"Times New Roman",serif;font-weight:600}
+.family-boutique .hero{background:var(--soft);color:var(--ink)}
+.family-boutique .hero .kicker{color:var(--accent)}
+.family-boutique .hero .lead{color:#4D5365}
+.family-boutique .hero h1,.family-boutique h2{font-family:Georgia,"Times New Roman",serif;font-weight:500;letter-spacing:-.035em}
+.family-boutique .hero .cta{background:var(--ink);color:#fff!important}
+.family-boutique .hero-art{opacity:.34}
+.family-boutique .grid article{box-shadow:none;border-radius:5px}
+.family-editorial .hero{background:var(--paper);color:var(--ink)}
+.family-editorial .hero .kicker{color:var(--accent)}
+.family-editorial .hero .lead{color:#475569}
+.family-editorial .hero .cta{background:var(--accent);color:#fff!important}
+.family-editorial .hero-art{opacity:.24}
+.family-editorial .grid article{border-radius:3px;box-shadow:none;border-left:4px solid var(--accent)}
+.family-editorial h2{font-family:Georgia,"Times New Roman",serif;font-weight:600}
+.family-minimal .hero{background:var(--ink)}
+.family-minimal .hero .wrap{max-width:940px}
+.family-minimal .hero h1{font-size:clamp(3.2rem,9vw,7.1rem)}
+.family-minimal .hero-art{opacity:.11}
+.family-minimal .grid article{box-shadow:none;border-radius:5px}
+/* Focused landing pages have one clear visual rhythm and no empty filler. */
+.architecture-focused-landing .hero .wrap{min-height:440px;display:flex;flex-direction:column;justify-content:center}
+.architecture-focused-landing .hero-with-image .wrap{display:grid;min-height:0}
+.tier-rich .grid{gap:24px}
 .hero-extra-large .wrap{padding-block:clamp(100px,13vw,176px)}
 .hero-medium .wrap{padding-block:clamp(54px,7vw,96px)}
 @media(max-width:800px){
@@ -131,6 +176,11 @@ p{max-width:68ch;margin:0 0 18px}
  .hero h1{font-size:clamp(2.7rem,10.4vw,4.4rem)}
  .hero .wrap{padding-block:clamp(68px,11vw,95px)}
  section{padding-block:clamp(54px,12vw,78px)}
+}
+@media(max-width:800px){
+ .family-showcase .hero-with-image .wrap{grid-template-columns:1fr}
+ .architecture-focused-landing .hero .wrap{min-height:0}
+ .family-portfolio .hero-image{border-radius:18px}
 }
 @media(max-width:380px){.wrap{width:min(100% - 28px,var(--content))}.brand{font-size:1.05rem}.cta{width:100%}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
