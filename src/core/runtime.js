@@ -1,37 +1,39 @@
+import {busyRuntimeCloudConfig} from "./stagingRuntimeIsolation.mjs";
 const APP_VERSION = "3.105";
 const PROTOTYPE_BADGE = `Development v${APP_VERSION} • Hosted Website Visual Review Connection`;
-const BUSY_AI_URL = String(
-  process.env.EXPO_PUBLIC_BUSY_AI_URL ||
-    "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
-).trim();
-const BUSY_AI_TOKEN = String(
-  process.env.EXPO_PUBLIC_BUSY_AI_TOKEN ||
-    "sb_publishable_-u4GplmvwptxNjdrh2UqEg_672Lhe74"
-).trim();
-const BUSY_COMMAND_URL = "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-command";
-const BUSY_SOCIAL_URL =
-  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-social-content";
-const BUSY_SOCIAL_PUBLISH_URL =
-  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-social-publish";
-const BUSY_WEBSITE_PUBLISH_URL =
-  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-website-publish";
+const IS_STAGING_BUILD = process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT === "isolated-staging";
+const CLOUD_CONFIG = busyRuntimeCloudConfig({
+  environment:process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT||"",
+  productionSupabaseUrl:"https://qgkmuiipicazmcxxmoxv.supabase.co",
+  productionPublishableKey:String(process.env.EXPO_PUBLIC_BUSY_AI_TOKEN||
+    "sb_publishable_-u4GplmvwptxNjdrh2UqEg_672Lhe74").trim(),
+  productionAiUrl:String(process.env.EXPO_PUBLIC_BUSY_AI_URL||
+    "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake").trim(),
+  stagingSupabaseUrl:process.env.EXPO_PUBLIC_BUSY_STAGING_SUPABASE_URL||"",
+  stagingPublishableKey:process.env.EXPO_PUBLIC_BUSY_STAGING_PUBLISHABLE_KEY||"",
+  // An unrelated already-active project must never be used as staging.
+  otherProtectedSupabaseRef:"rtqqnqbrqpjondvcyann"
+});
+const BUSY_SUPABASE_URL = CLOUD_CONFIG.baseUrl;
+const BUSY_AI_URL = CLOUD_CONFIG.aiUrl;
+const BUSY_AI_TOKEN = CLOUD_CONFIG.publishableKey;
+const BUSY_COMMAND_URL = BUSY_SUPABASE_URL+"/functions/v1/busy-command";
+const BUSY_SOCIAL_URL = BUSY_SUPABASE_URL+"/functions/v1/busy-social-content";
+const BUSY_SOCIAL_PUBLISH_URL = BUSY_SUPABASE_URL+"/functions/v1/busy-social-publish";
+const BUSY_WEBSITE_PUBLISH_URL = BUSY_SUPABASE_URL+"/functions/v1/busy-website-publish";
 const BUSY_WEBSITE_DESIGN_REVIEW_URL =
-  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-website-design-review";
-const BUSY_MINI_APPS_URL =
-  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-mini-apps";
-const BUSY_MINI_APP_LINK_URL =
-  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-mini-app-link";
-const BUSY_SUPABASE_URL = "https://qgkmuiipicazmcxxmoxv.supabase.co";
-const BUSY_PUSH_DISPATCH_URL =
-  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-push-dispatch";
-const BUSY_CALENDAR_OAUTH_URL =
-  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-calendar-oauth";
-const BUSY_CALENDAR_SYNC_URL =
-  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-calendar-sync";
+  BUSY_SUPABASE_URL+"/functions/v1/busy-website-design-review";
+const BUSY_MINI_APPS_URL = BUSY_SUPABASE_URL+"/functions/v1/busy-mini-apps";
+const BUSY_MINI_APP_LINK_URL = BUSY_SUPABASE_URL+"/functions/v1/busy-mini-app-link";
+const BUSY_PUSH_DISPATCH_URL = BUSY_SUPABASE_URL+"/functions/v1/busy-push-dispatch";
+const BUSY_CALENDAR_OAUTH_URL = BUSY_SUPABASE_URL+"/functions/v1/busy-calendar-oauth";
+const BUSY_CALENDAR_SYNC_URL = BUSY_SUPABASE_URL+"/functions/v1/busy-calendar-sync";
 const BUSY_PRODUCTION_WATCH_URL =
-  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-production-watch";
-const OWNER_SESSION_KEY = "busy-owner-session-v3.6";
-const DEFAULT_OWNER_EMAIL = "busydoesitapp@gmail.com";
+  BUSY_SUPABASE_URL+"/functions/v1/busy-production-watch";
+const OWNER_SESSION_KEY = IS_STAGING_BUILD
+  ? "busy-owner-session-v3.128-isolated-staging"
+  : "busy-owner-session-v3.6";
+const DEFAULT_OWNER_EMAIL = IS_STAGING_BUILD ? "" : "busydoesitapp@gmail.com";
 const CLOUD_SCHEMA_VERSION = 1;
 
 function busyRequestId(prefix = "req") {
@@ -1412,8 +1414,8 @@ const previousCustomerGroups = [
 ];
 
 
-const LEGACY_STORAGE_KEY = "@busy-does-it-v05";
-const USER_CACHE_PREFIX = "@busy-does-it-user-v312:";
+const LEGACY_STORAGE_KEY = IS_STAGING_BUILD ? "@busy-stage-v3128-no-legacy" : "@busy-does-it-v05";
+const USER_CACHE_PREFIX = IS_STAGING_BUILD ? "@busy-stage-user-v3128:" : "@busy-does-it-user-v312:";
 const storageKeyForUser = (userId = "") =>
   userId ? `${USER_CACHE_PREFIX}${userId}` : "";
 
