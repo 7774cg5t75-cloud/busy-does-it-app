@@ -6,6 +6,7 @@ import { Shell, Card, Button, Field, MetricRow } from "../components/ui";
 import { buildWebsiteLaunchJourney } from "../core/websiteLaunchJourney";
 import { buildWebsiteLaunchProof } from "../core/websiteLaunchProof.mjs";
 import { domainDnsGuide } from "../core/websiteDomainGuide.mjs";
+import { websiteAddressChoices } from "../core/websiteAddressChoices.mjs";
 
 function readableSeconds(value) {
   const seconds = Number(value || 0);
@@ -37,6 +38,7 @@ function WebsitePublishing({ s }) {
   const view = s.websitePublishingView || {};
   const [showTechnicalDetails, setShowTechnicalDetails] = React.useState(false);
   const [showDomainSetup, setShowDomainSetup] = React.useState(false);
+  const [addressChoice,setAddressChoice]=React.useState("busy");
   const [dnsInspection,setDnsInspection]=React.useState({domainId:"",status:"idle",result:null,error:""});
   const [showEnquiries, setShowEnquiries] = React.useState(false);
   const [showNewEnquiry, setShowNewEnquiry] = React.useState(false);
@@ -45,6 +47,12 @@ function WebsitePublishing({ s }) {
   const preview = view.previewDeployment || null;
   const live = view.liveDeployment || null;
   const domain = view.domainState?.latest || null;
+  const addresses=websiteAddressChoices({mode:addressChoice,publishing:view});
+  const selectAddress=(mode)=>{
+    Keyboard.dismiss();
+    setAddressChoice(mode);
+    setShowDomainSetup(mode==="existing");
+  };
   const domainGuide=domainDnsGuide({domain,stage:view.domainState?.journey?.stage,
     records:view.domainState?.recordsToAdd});
   const dnsInspectionRef=React.useRef("");dnsInspectionRef.current=domain?.id||"";
@@ -221,25 +229,46 @@ function WebsitePublishing({ s }) {
           disabled={s.websitePublishingLoading} onPress={s.refreshWebsitePublishingStatus} />
         <Button label="Edit my website" onPress={() => s.go("websiteBuilder")} />
         <Button label="Choose or check my website address"
-          onPress={() => setShowDomainSetup(true)} />
+          onPress={() => selectAddress(domain?"existing":"busy")} />
       </Card>
       <Text style={styles.sectionLabel}>Your website address</Text>
-      <Text style={styles.cardBody}>
-        You can start with a BUSY website address and connect a domain you already own whenever you're ready.
-        A custom domain is optional, and it does not need to delay reviewing your design.
-      </Text>
-      {view.defaultAddressState?.address?.hostname ? (
-        <MetricRow left="BUSY address" right={view.defaultAddressState.address.hostname} />
-      ) : (
-        <Text style={styles.cardBody}>Your BUSY address will be confirmed as part of the approved publishing process.</Text>
-      )}
-      <Button
-        label={showDomainSetup ? "Hide domain setup" : domain ? "Manage my custom domain" : "Connect my own domain (optional)"}
-        onPress={() => toggleSection(setShowDomainSetup)}
-      />
-      {showDomainSetup ? (
+      <Card
+        eyebrow="Choose your address"
+        title="How would you like people to find your website?"
+        body="You can review and improve your website before deciding. Your choice never publishes it, and an existing BUSY address remains safe when connecting your own domain."
+        footer="No technical experience or separate domain purchase is needed to begin."
+        tone="blue"
+      >
+        {addresses.options.map((option)=>(
+          <Button key={option.id}
+            label={(addressChoice===option.id?"✓ ":"")+option.title}
+            primary={addressChoice===option.id}
+            onPress={()=>selectAddress(option.id)} />
+        ))}
+        <Text style={styles.sectionLabel}>{addresses.active.description}</Text>
+        <Text style={styles.cardBody}>{addresses.active.note}</Text>
+        {addresses.active.hostname ? (
+          <MetricRow left={addressChoice==="busy"?"BUSY address":"Your domain"}
+            right={addresses.active.hostname} strong />
+        ) : null}
+        {addressChoice==="busy" ? (
+          <Text style={styles.cardBody}>
+            Your BUSY address is confirmed only when BUSY has actually assigned one.
+            You can connect your own domain later without rebuilding the website.
+            A live address still requires publishing approval and independent delivery checks.
+          </Text>
+        ) : null}
+        {addressChoice==="new" ? (
+          <Text style={styles.cardBody}>
+            Searching, buying and renewing a new domain entirely within BUSY is planned.
+            Until a registrar is integrated, no domain availability, purchase price, or ownership
+            is being promised here. You can continue with a BUSY address for now.
+          </Text>
+        ) : null}
+      </Card>
+      {addressChoice==="existing"&&showDomainSetup ? (
         <>
-      <Text style={styles.sectionLabel}>Custom domain</Text>
+      <Text style={styles.sectionLabel}>Connect a domain you own</Text>
       <Card
         eyebrow="Your own domain • one ownership check"
         title={view.domainState?.journey?.label || "Connect a domain you already own"}
@@ -256,8 +285,8 @@ function WebsitePublishing({ s }) {
         }
         footer={
           view.domainState?.journey?.complete
-            ? "The customer-owned domain is now the preferred public website address."
-            : "BUSY never treats ownership, SSL, routing or live-site health as the same thing."
+            ? "Your existing domain has passed the required website connection checks."
+            : "You can keep your current registrar and email service. BUSY never treats ownership, SSL, routing or live-site health as the same thing."
         }
         tone={
           view.domainState?.journey?.complete

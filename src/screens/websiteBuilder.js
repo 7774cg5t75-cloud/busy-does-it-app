@@ -84,6 +84,7 @@ function WebsiteBuilder({ s }) {
         <MetricRow left="Public website" right={journey.isVerified ? "Verified" :
           s.websitePublishingView?.liveDeployment ? "Checking connection" : "Not published"} />
         <Button label={nextLabel} primary onPress={nextStep} />
+        <Button label="Choose a website address (optional)" onPress={s.openWebsitePublishing} />
         <Button label={draft ? "Make changes by talking to BUSY" : "Build it by talking to BUSY"}
           onPress={draft ? s.askBusyToEditWebsite : s.askBusyToBuildWebsite} />
         {draft ? (
