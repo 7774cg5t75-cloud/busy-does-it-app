@@ -1,6 +1,7 @@
 name: V3.104 private website before-and-after review QA
 # Code, browser screenshots, and DOM checks only: zero paid AI and EAS calls.
 # This run checks the final customer-safe review cycle and no-charge screenshot comparator.
+# Recompile updated draft helper and repeat original/candidate browser inspection.
 on:
   push:
     branches: [v3.104]
