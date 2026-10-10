@@ -37,7 +37,7 @@ function exportBundle(name,variables){
   "EXPO_PUBLIC_BUSY_STAGING_SUPABASE_URL",
   "EXPO_PUBLIC_BUSY_STAGING_PUBLISHABLE_KEY"
  ])delete inherited[key];
- const res=spawnSync("npx",["expo","export","--platform","ios","--no-bytecode","--output-dir",path],{
+ const res=spawnSync("npx",["expo","export","--platform","ios","--no-bytecode","--clear","--output-dir",path],{
    cwd:root,env:{...inherited,...variables},encoding:"utf8",timeout:180000,
    maxBuffer:6*1024*1024
  });
@@ -48,6 +48,12 @@ function exportBundle(name,variables){
  assert.ok(existsSync(path),name+" export path missing");
  return sources(path);
 }
+// Build normal first on a clean Metro cache, and clear it again for the
+// staging profile. This guards against stale EXPO_PUBLIC inlined transforms.
+const normal=exportBundle("normal",{});
+assert.ok(normal.bundleCount>0,"Normal iOS JS bundle files exist");
+assert.ok(!normal.combined.includes(stageKey),
+ "Normal iPhone build must not embed the staging public key");
 const stage=exportBundle("staging",env);
 assert.ok(stage.bundleCount>0,"Staging JS bundle files exist");
 assert.ok(stage.combined.includes("pnjdlogwegnqbsfpcofw.supabase.co"),
@@ -56,8 +62,4 @@ assert.ok(stage.combined.includes(stageKey),
  "Staging client is embedded with actual public publishable key");
 assert.ok(stage.combined.includes("Test real Busy sign-in"),
  "Staging login interface is included in the actual iOS JS export");
-const normal=exportBundle("normal",{});
-assert.ok(normal.bundleCount>0,"Normal iOS JS bundle files exist");
-assert.ok(!normal.combined.includes(stageKey),
- "Normal iPhone build must not embed the staging public key");
 console.log("V3.132 PASS: separate real staging and normal iOS JavaScript exports with expected stage public-key injection; both offline; no EAS/Apple signing performed.");
