@@ -10,6 +10,7 @@ import { websiteAddressChoices } from "../core/websiteAddressChoices.mjs";
 import { localDomainIdeas } from "../core/websiteDomainShopping.mjs";
 import { websiteDomainResponsibilities } from "../core/websiteDomainResponsibilities.mjs";
 import { websiteDomainLaunchGuide } from "../core/websiteDomainLaunchGuide.mjs";
+import { websiteDomainSwitchSafety } from "../core/websiteDomainSwitchSafety.mjs";
 
 function readableSeconds(value) {
   const seconds = Number(value || 0);
@@ -56,6 +57,7 @@ function WebsitePublishing({ s }) {
   const addresses=websiteAddressChoices({mode:addressChoice,publishing:view});
   const responsibility=websiteDomainResponsibilities({mode:addressChoice,connectedDomain:domain});
   const launchGuide=websiteDomainLaunchGuide({choice:addressChoice,publishing:view});
+  const domainSwitch=websiteDomainSwitchSafety(view);
   const domainIdeaPreview=localDomainIdeas(domainIdeaInput);
   const firstDomainIdea=domainIdeaPreview.ideas[0]?.domain||"";
   const registrarRequestRef=React.useRef("");registrarRequestRef.current=firstDomainIdea;
@@ -277,6 +279,9 @@ function WebsitePublishing({ s }) {
         <Text style={styles.cardBody}>{addresses.active.note}</Text>
         <Text style={styles.cardBody}>{responsibility.message}</Text>
         <Text style={styles.cardBody}>{"Next address step: "+launchGuide.next}</Text>
+        {addressChoice==="existing" ? (
+          <Text style={styles.cardBody}>{domainSwitch.message}</Text>
+        ) : null}
         {addresses.active.hostname ? (
           <MetricRow left={addressChoice==="busy"?"BUSY address":"Your domain"}
             right={addresses.active.hostname} strong />
