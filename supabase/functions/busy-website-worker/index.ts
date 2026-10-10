@@ -145,7 +145,7 @@ function renderSectionHtml(
     )}"><div class="wrap">${image ? `<img class="hero-image" src="${escapeHtml(
       image
     )}" alt="">` : ""}<p class="kicker">${escapeHtml(
-      draft.businessName
+      draft.brandLabel || draft.businessName
     )}</p><h1>${escapeHtml(section.title)}</h1><p>${escapeHtml(
       section.body
     )}</p>${
@@ -275,7 +275,7 @@ function renderWebsiteHtml(
   const navigation = safeArray(draft?.navigation);
   const navHtml = navigation.length
     ? `<nav aria-label="Main navigation"><div class="nav-wrap"><a class="brand" href="/">${escapeHtml(
-        draft?.businessName || "Home"
+        draft?.brandLabel || draft?.businessName || "Home"
       )}</a><div class="nav-links">${navigation
         .map(
           (item: any) =>
