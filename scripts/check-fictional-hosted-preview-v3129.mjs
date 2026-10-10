@@ -21,7 +21,7 @@ const eq=(x,y,m)=>{assert.deepEqual(x,y,m);n++};
 const yes=(x,m)=>{assert.ok(x,m);n++};
 const authFetch=async(url,opts)=>{
  calls++;
- eq(url,"https://abcdefghijklmnopqrst.supabase.co/auth/v1/user","Auth targets staging");
+ eq(url,"https://pnjdlogwegnqbsfpcofw.supabase.co/auth/v1/user","Auth targets staging");
  eq(opts.method,"GET","Auth read-only");
  eq(opts.redirect,"error","Auth redirects denied");
  eq(opts.headers.apikey,env.BUSY_STAGING_PUBLISHABLE_KEY,"Staging public key");
