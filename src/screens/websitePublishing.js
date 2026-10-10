@@ -11,6 +11,8 @@ import { localDomainIdeas } from "../core/websiteDomainShopping.mjs";
 import { websiteDomainResponsibilities } from "../core/websiteDomainResponsibilities.mjs";
 import { websiteDomainLaunchGuide } from "../core/websiteDomainLaunchGuide.mjs";
 import { websiteDomainSwitchSafety } from "../core/websiteDomainSwitchSafety.mjs";
+import { websitePublishApprovalGuide } from "../core/websitePublishApprovalGuide.mjs";
+import { websiteRecoveryCoach } from "../core/websiteRecoveryCoach.mjs";
 
 function readableSeconds(value) {
   const seconds = Number(value || 0);
@@ -100,6 +102,7 @@ function WebsitePublishing({ s }) {
     }
   };
   const activeJob = view.activeJob || null;
+  const recoveryCoach=websiteRecoveryCoach(view);
   const changes = view.changeSummary?.items || [];
   // V3.78 private lead follow-up, not an open website form.
   const leadScope=(s.ownerSession?.userId||"")+":"+(s.cloudWorkspace?.businessId||"");
@@ -186,7 +189,9 @@ function WebsitePublishing({ s }) {
   const [reviewedHostedPreview,setReviewedHostedPreview]=React.useState("");
   React.useEffect(()=>{
     setReviewedHostedPreview("");
-  },[preview?.id]);
+  },[preview?.id,preview?.content_hash,view.draftChangedSinceHosted]);
+  const approvalGuide=websitePublishApprovalGuide({preview,live,view,
+    openedId:openedHostedPreview,reviewedId:reviewedHostedPreview});
   const inspectHostedPreview=async()=>{
     if(!preview?.id)return false;
     return !!(await s.openHostedWebsitePreview(preview.id));
@@ -505,6 +510,7 @@ function WebsitePublishing({ s }) {
           <MetricRow left="Change summary" right={preview.change_label || "Website update"} strong />
           <MetricRow left="Prepared" right={readableDate(preview.prepared_at, "Ready")} />
           <MetricRow left="Pages" right={String(preview.page_count || 1)} />
+          <Text style={styles.sectionLabel}>{"Go Live safety: "+approvalGuide.next}</Text>
           <Text style={styles.sectionLabel}>
             Please open the exact hosted preview and confirm the business name,
             services, photographs, contact details and wording before approving.
@@ -529,7 +535,7 @@ function WebsitePublishing({ s }) {
               "Review & approve Go Live"}
             primary
             disabled={!view.canPublish||!!s.websitePublishingAction||
-              reviewedHostedPreview!==preview.id}
+              reviewedHostedPreview!==preview.id||!approvalGuide.readyForOwnerClick}
             onPress={() => s.confirmPublishHostedWebsite(preview.id)}
           />
         </Card>
@@ -841,6 +847,7 @@ function WebsitePublishing({ s }) {
                 strong
               />
             ) : null}
+            <Text style={styles.sectionLabel}>{recoveryCoach.message}</Text>
             {view.canRetrySafeRecovery ? (
               <Button
                 label={
@@ -848,7 +855,7 @@ function WebsitePublishing({ s }) {
                     ? "Running safe recovery…"
                     : "Run safe recovery now"
                 }
-                disabled={!!s.websitePublishingAction}
+                disabled={!!s.websitePublishingAction||!recoveryCoach.retryAvailable}
                 onPress={s.retryWebsiteRecovery}
               />
             ) : null}
