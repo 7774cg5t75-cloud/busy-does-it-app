@@ -12,6 +12,8 @@ on:
       - 'supabase/functions/busy-website-publish/index.ts'
       - 'supabase/functions/busy-website-worker/websiteOutcomeEvidence.mjs'
       - 'scripts/check-website-safe-pilot-v3118.mjs'
+      - 'scripts/check-website-operational-quality-v3117.mjs'
+      - '.github/workflows/production-check.yml'
       - 'scripts/check-website-outcome-browser-v3118.mjs'
       - '.github/workflows/website-pilot-outcomes-v3118.yml'
   workflow_dispatch:
