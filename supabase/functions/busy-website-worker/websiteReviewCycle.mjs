@@ -30,6 +30,11 @@ function hasMeasuredAudits(data){
    a.horizontalOverflowPixels>=0&&typeof a.headingVisible==="boolean"&&
    typeof a.navigationFits==="boolean"&&Number.isFinite(a.heroHeadingFontPx)&&
    a.heroHeadingFontPx>0))return false;
+ const hasCallToActionAudit=audits.some(a=>a.ctaAudit!==undefined);
+ if(hasCallToActionAudit&&!audits.every(a=>a.ctaAudit?.version===1&&
+   typeof a.ctaAudit.present==="boolean"&&
+   typeof a.ctaAudit.reachable==="boolean"&&
+   typeof a.ctaAudit.visible==="boolean"))return false;
  const hasQuality=audits.some(a=>a.qualityAudit!==undefined);
  if(!hasQuality)return true; // Legacy tests: never invent a quality assessment.
  return audits.every(a=>{
@@ -48,6 +53,9 @@ function visualRisks(data){
    if(a.headingVisible===false)problems.push(type+" heading hidden");
    if(a.navigationFits===false)problems.push(type+" navigation overflow");
    if(a.heroHeadingFontPx>0&&a.heroHeadingFontPx<22)problems.push(type+" heading too small");
+   if(a.ctaAudit?.version===1&&a.ctaAudit.present&&
+      (!a.ctaAudit.visible||!a.ctaAudit.reachable))
+     problems.push(type+" primary action cannot be used");
    const quality=a.qualityAudit;
    if(quality?.version===1){
      for(const [key,label] of qualityProblemMetrics)
@@ -76,6 +84,8 @@ function compareWebsiteAudits(before,after){
    // A new quality audit is required on both sides of the comparison.
    if(!!b.qualityAudit!==!!a.qualityAudit)
      return {valid:false,reason:"Both designs must use the same quality measurement version"};
+   if(!!b.ctaAudit!==!!a.ctaAudit)
+     return {valid:false,reason:"The two designs must both measure the primary call to action"};
    if(b.qualityAudit&&a.qualityAudit){
      for(const [key,label] of qualityProblemMetrics)
        if(a.qualityAudit[key]>b.qualityAudit[key])

@@ -9,6 +9,7 @@ import { domainDnsGuide } from "../core/websiteDomainGuide.mjs";
 import { websiteAddressChoices } from "../core/websiteAddressChoices.mjs";
 import { localDomainIdeas } from "../core/websiteDomainShopping.mjs";
 import { websiteDomainResponsibilities } from "../core/websiteDomainResponsibilities.mjs";
+import { websiteDomainLaunchGuide } from "../core/websiteDomainLaunchGuide.mjs";
 
 function readableSeconds(value) {
   const seconds = Number(value || 0);
@@ -54,6 +55,7 @@ function WebsitePublishing({ s }) {
   const domain = view.domainState?.latest || null;
   const addresses=websiteAddressChoices({mode:addressChoice,publishing:view});
   const responsibility=websiteDomainResponsibilities({mode:addressChoice,connectedDomain:domain});
+  const launchGuide=websiteDomainLaunchGuide({choice:addressChoice,publishing:view});
   const domainIdeaPreview=localDomainIdeas(domainIdeaInput);
   const firstDomainIdea=domainIdeaPreview.ideas[0]?.domain||"";
   const registrarRequestRef=React.useRef("");registrarRequestRef.current=firstDomainIdea;
@@ -274,6 +276,7 @@ function WebsitePublishing({ s }) {
         <Text style={styles.sectionLabel}>{addresses.active.description}</Text>
         <Text style={styles.cardBody}>{addresses.active.note}</Text>
         <Text style={styles.cardBody}>{responsibility.message}</Text>
+        <Text style={styles.cardBody}>{"Next address step: "+launchGuide.next}</Text>
         {addresses.active.hostname ? (
           <MetricRow left={addressChoice==="busy"?"BUSY address":"Your domain"}
             right={addresses.active.hostname} strong />

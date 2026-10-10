@@ -2,6 +2,7 @@ import React from "react";
 import {Text} from "react-native";
 import {Card,Button,Field,MetricRow} from "../components/ui";
 import {styles} from "../theme/styles";
+import {founderUsageEvidence} from "../core/founderUsageEvidence.mjs";
 
 /** V3.81: secure founder-only subscription/usage register.
  * Provider invoices are not automatically connected; saved snapshots remain
@@ -160,6 +161,7 @@ function FounderServiceCosts({s,owner,enabled}){
   };
   const current=data.owner===owner&&data.status==="ready"?data.report:null;
   const services=Array.isArray(current?.services)?current.services:[];
+  const evidence=founderUsageEvidence(current);
   const chosen=services.find(item=>item.key===selected);
   return <>
     <Card eyebrow="V3.82 • Founder Financial Autopilot"
@@ -169,6 +171,11 @@ function FounderServiceCosts({s,owner,enabled}){
       tone="blue">
       <MetricRow left="Listed technology and operating services"
         right={current?fnum(services.length):"Unavailable"}/>
+      <MetricRow left="Recent read-only provider observations"
+        right={evidence.status==="available"?fnum(evidence.readOnlyRecent):"Not verified"}/>
+      <MetricRow left="Services without a saved reading"
+        right={evidence.status==="available"?fnum(evidence.providersMissing):"Not verified"}/>
+      <Text style={styles.sectionLabel}>{evidence.message}</Text>
       <MetricRow left="Provider invoices automatically verified" right="None connected"/>
       <MetricRow left="Total actual running cost" right="Not verified"/>
       <MetricRow left="Actual renewal payments due" right="Check individual records"/>
