@@ -41,6 +41,11 @@ function busyRequestId(prefix = "req") {
 }
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = 15000, fetchImpl = fetch) {
+  if (IS_STAGING_BUILD && !CLOUD_CONFIG.configured) {
+    const error=new Error("Staging cloud setup is incomplete. BUSY has not contacted a live service.");
+    error.stageGuard=true;
+    throw error;
+  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
