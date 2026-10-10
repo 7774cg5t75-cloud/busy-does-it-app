@@ -1,0 +1,96 @@
+name: V3.124 connected cloud rehearsal, global architecture and private website intelligence
+on:
+  push:
+    branches: [v3.124]
+    paths:
+      - 'src/core/websiteAutomationBoundary.mjs'
+      - 'src/core/websiteStagingReadiness.mjs'
+      - 'src/core/websiteCloudIsolationEvidence.mjs'
+      - 'src/core/websiteRegionalReadiness.mjs'
+      - 'src/core/websiteRegionDisplay.mjs'
+      - 'src/core/websiteDecisionEvidence.mjs'
+      - 'src/screens/websiteBuilder.js'
+      - 'src/screens/founderOperations.js'
+      - 'src/domain/readOnlyStatusRecovery.mjs'
+      - 'src/core/websiteDraftFreshness.mjs'
+      - 'src/domain/websitePublishing.js'
+      - 'src/core/websiteCustomerSafetySummary.mjs'
+      - 'src/screens/websitePublishing.js'
+      - 'src/core/founderPrioritySummary.mjs'
+      - 'src/screens/founderOperations.js'
+      - 'src/core/websiteDesignAlternatives.mjs'
+      - 'scripts/check-website-integrated-recovery-v3123.mjs'
+      - 'scripts/check-website-staging-global-v3124.mjs'
+      - 'scripts/check-website-founder-private-preferences-v3123.mjs'
+      - 'scripts/check-website-resilience-v3121.mjs'
+      - 'scripts/check-website-connected-experience-v3119.mjs'
+      - 'scripts/check-website-boundaries-v3122.mjs'
+      - '.github/workflows/production-check.yml'
+      - '.github/workflows/website-integrated-recovery-v3124.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  integrated-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify real authenticated read recovery, generation safety and previous checks
+        run: |
+          node scripts/check-website-staging-global-v3124.mjs
+          node scripts/check-website-integrated-recovery-v3123.mjs
+          node scripts/check-website-founder-private-preferences-v3123.mjs
+          node scripts/check-website-boundaries-v3122.mjs
+          node scripts/check-website-resilience-v3121.mjs
+          node scripts/check-website-rehearsal-v3120.mjs
+          node scripts/check-website-connected-experience-v3119.mjs
+          node scripts/check-website-safe-pilot-v3118.mjs
+          node scripts/check-website-operational-quality-v3117.mjs
+      - name: Install mobile and browser dependencies in isolated cache
+        run: npm install --no-audit --no-fund --cache /tmp/busy-v3124-npm-cache
+      - name: Export iPhone JavaScript (no signed IPA produced)
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3124-ios-js
+      - name: Install offline Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Generate nine fictional business websites
+        run: node scripts/build-website-design-gallery-v3100.mjs /tmp/busy-v3124-sites
+      - name: Check real phone and desktop pages with bounded screenshot retry
+        run: |
+          for attempt in 1 2; do
+            if node scripts/check-website-resilience-browser-v3121.mjs /tmp/busy-v3124-sites /tmp/busy-v3124-browser; then
+              exit 0
+            fi
+            echo "Chromium capture failed on attempt $attempt. Only one retry allowed."
+            sleep 3
+          done
+          exit 1
+      - name: Review genuine original and alternative layouts
+        run: node scripts/check-website-guided-alternative-v3113.mjs /tmp/busy-v3124-sites /tmp/busy-v3124-alternatives
+      - name: Check fictional customer journey and recovery with real layouts
+        run: node scripts/check-website-rehearsal-browser-v3120.mjs /tmp/busy-v3124-sites /tmp/busy-v3124-alternatives /tmp/busy-v3124-lifecycle
+      - name: Check screenshot proof and distinct website identities
+        run: |
+          node scripts/check-website-first-fold-v3116.mjs /tmp/busy-v3124-sites /tmp/busy-v3124-fold
+          node scripts/check-website-rendered-diversity-v3112.mjs /tmp/busy-v3124-sites /tmp/busy-v3124-variety
+      - name: Check responsive layouts and keyboard use
+        run: |
+          node scripts/check-website-responsive-quality-v3109.mjs /tmp/busy-v3124-sites /tmp/busy-v3124-responsive
+          node scripts/check-website-keyboard-quality-v3110.mjs /tmp/busy-v3124-sites /tmp/busy-v3124-keyboard
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v3124-fictional-browser-customer-evidence
+          path: |
+            /tmp/busy-v3124-browser/
+            /tmp/busy-v3124-alternatives/
+            /tmp/busy-v3124-lifecycle/
+            /tmp/busy-v3124-fold/
+            /tmp/busy-v3124-variety/
+            /tmp/busy-v3124-responsive/
+            /tmp/busy-v3124-keyboard/
+          retention-days: 7
+      - name: Confirm scope
+        run: echo "Fictional offline browser and read-only policy checks. No production migrations, external writes, paid AI, DNS changes, enrolled customers or signed iOS app."
