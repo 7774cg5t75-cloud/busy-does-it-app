@@ -1,0 +1,65 @@
+name: V3.118 Safe pilot and honest website outcomes
+on:
+  push:
+    branches: [v3.118]
+    paths:
+      - 'src/core/websitePilotReadiness.mjs'
+      - 'src/core/websiteOutcomeGuidance.mjs'
+      - 'src/core/founderOperationalPriorities.mjs'
+      - 'src/screens/founderOperations.js'
+      - 'src/screens/websiteBuilder.js'
+      - 'supabase/functions/busy-website-publish/designFeedback.mjs'
+      - 'supabase/functions/busy-website-publish/index.ts'
+      - 'supabase/functions/busy-website-worker/websiteOutcomeEvidence.mjs'
+      - 'scripts/check-website-safe-pilot-v3118.mjs'
+      - 'scripts/check-website-outcome-browser-v3118.mjs'
+      - '.github/workflows/website-pilot-outcomes-v3118.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pilot-and-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify sandbox protections, outcome truth and founder priorities
+        run: |
+          node scripts/check-website-safe-pilot-v3118.mjs
+          node scripts/check-website-operational-quality-v3117.mjs
+          node scripts/check-website-controlled-rollout-v3116.mjs
+          node scripts/check-website-intelligence-v3115.mjs
+          node scripts/check-website-private-alternatives-v3113.mjs
+      - name: Install build dependencies with isolated cache
+        run: npm install --no-audit --no-fund --cache /tmp/busy-v3118-npm-cache
+      - name: Compile iPhone JS, not a signed native app
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3118-ios-js
+      - run: npx playwright install --with-deps chromium
+      - name: Generate fictional industry websites
+        run: node scripts/build-website-design-gallery-v3100.mjs /tmp/busy-v3118-gallery
+      - name: Measure original, alternative and broken design in Chromium
+        run: node scripts/check-website-guided-alternative-v3113.mjs /tmp/busy-v3118-gallery /tmp/busy-v3118-before-after
+      - name: Keep quality and customer-reported outcomes distinct
+        run: node scripts/check-website-outcome-browser-v3118.mjs /tmp/busy-v3118-before-after /tmp/busy-v3118-outcomes
+      - name: Check genuine screenshot evidence and covered actions
+        run: node scripts/check-website-first-fold-v3116.mjs /tmp/busy-v3118-gallery /tmp/busy-v3118-first-fold
+      - name: Check individuality, responsive screen sizes and keyboard access
+        run: |
+          node scripts/check-website-rendered-diversity-v3112.mjs /tmp/busy-v3118-gallery /tmp/busy-v3118-diversity
+          node scripts/check-website-responsive-quality-v3109.mjs /tmp/busy-v3118-gallery /tmp/busy-v3118-responsive
+          node scripts/check-website-keyboard-quality-v3110.mjs /tmp/busy-v3118-gallery /tmp/busy-v3118-keyboard
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v3118-fictional-browser-quality-evidence
+          path: |
+            /tmp/busy-v3118-before-after/
+            /tmp/busy-v3118-outcomes/
+            /tmp/busy-v3118-first-fold/
+            /tmp/busy-v3118-diversity/
+            /tmp/busy-v3118-responsive/
+            /tmp/busy-v3118-keyboard/
+          retention-days: 7
+      - run: echo "No customer pilot, production migration, paid AI, DNS changes, live publishing, real data or signed iOS binary."
