@@ -113,8 +113,12 @@ h1,h2,h3{line-height:1.12;letter-spacing:-.045em;overflow-wrap:break-word}
 h1{font-size:clamp(3rem,7.2vw,6.4rem);font-weight:800;max-width:900px;margin:.24em 0}
 h2{font-size:clamp(2rem,4vw,3.4rem);font-weight:780;max-width:850px;margin:0 0 25px}
 h3{font-size:clamp(1.15rem,2vw,1.4rem);margin:0 0 12px;letter-spacing:-.02em}
-p{max-width:68ch;margin:0 0 18px}
-.kicker,.eyebrow{font-size:.76rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+p{max-width:68ch;margin:0 0 18px;font-size:clamp(1rem,1.08vw,1.125rem)}
+/* Readable controls everywhere, including custom-domain-ready mobile sites.
+   Preserve every visual family; do not force one common layout. */
+nav .nav-links a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 8px}
+main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:44px;max-width:100%;overflow-wrap:anywhere}
+.kicker,.eyebrow{font-size:.875rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
 .hero{overflow:hidden;padding:0;background:var(--ink);color:#fff}
 .hero .wrap{padding-block:clamp(76px,10vw,140px)}
 .hero-content{position:relative;z-index:2;max-width:775px}
@@ -211,7 +215,7 @@ p{max-width:68ch;margin:0 0 18px}
 .visual-ornament-stripes .hero-art{border-radius:0;background:repeating-linear-gradient(115deg,var(--glow) 0,var(--glow) 10px,transparent 10px,transparent 25px);opacity:.12;transform:rotate(-8deg)}
 .visual-ornament-glow .hero-art{border-radius:50%;filter:blur(38px);opacity:.22}
 .visual-nav-underline .nav-links a{border-bottom:2px solid var(--line);padding-bottom:5px}
-.visual-nav-pill .nav-links a{background:var(--soft);padding:7px 13px;border-radius:80px;opacity:1}
+.visual-nav-pill .nav-links a{background:var(--soft);padding:10px 13px;border-radius:80px;opacity:1}
 .visual-type-refined h1,.visual-type-refined h2{font-family:Georgia,"Times New Roman",serif;font-weight:550;letter-spacing:-.03em}
 .visual-type-compact h1{font-size:clamp(2.8rem,6.4vw,5.2rem);letter-spacing:-.04em}
 .visual-type-compact h2{font-size:clamp(1.9rem,3.1vw,2.8rem)}

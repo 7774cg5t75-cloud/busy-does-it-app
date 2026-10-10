@@ -5,6 +5,7 @@ import { styles } from "../theme/styles";
 import { Shell, Card, Button, Field, MetricRow } from "../components/ui";
 import { buildWebsiteLaunchJourney } from "../core/websiteLaunchJourney";
 import { buildWebsiteLaunchProof } from "../core/websiteLaunchProof.mjs";
+import { domainDnsGuide } from "../core/websiteDomainGuide.mjs";
 
 function readableSeconds(value) {
   const seconds = Number(value || 0);
@@ -43,6 +44,8 @@ function WebsitePublishing({ s }) {
   const preview = view.previewDeployment || null;
   const live = view.liveDeployment || null;
   const domain = view.domainState?.latest || null;
+  const domainGuide=domainDnsGuide({domain,stage:view.domainState?.journey?.stage,
+    records:view.domainState?.recordsToAdd});
   const activeJob = view.activeJob || null;
   const changes = view.changeSummary?.items || [];
   // V3.78 private lead follow-up, not an open website form.
@@ -329,6 +332,7 @@ function WebsitePublishing({ s }) {
             : "blue"
         }
       >
+        <Text style={styles.sectionLabel}>{domainGuide.nextAction}</Text>
         {(view.domainState?.journey?.steps || []).map((step) => (
           <MetricRow
             key={step.id}
@@ -355,6 +359,7 @@ function WebsitePublishing({ s }) {
               autoCapitalize="none"
               placeholder="www.example.co.uk"
             />
+            <Text style={styles.cardBody}>{domainGuide.explanation} Enter exactly the address customers should use. For example, www.example.co.uk and example.co.uk are separate hostnames.</Text>
             <Button
               label={s.websitePublishingAction === "domain" ? "Creating verification…" : "Connect my domain"}
               disabled={!s.websiteDomainDraft.trim() || !!s.websitePublishingAction}
@@ -364,33 +369,24 @@ function WebsitePublishing({ s }) {
         ) : (
           <>
             <MetricRow left="Domain" right={domain.hostname} strong />
-            {domain.status === "pending_verification" ? (
-              <>
-                <MetricRow left="Add TXT record" right={`_busy-verify.${domain.hostname}`} />
-                <MetricRow left="TXT value" right={domain.verification_token || "Saved securely"} />
-                <Button
-                  label={s.websitePublishingAction === `verify-domain:${domain.id}` ? "Checking ownership…" : "I've added the TXT record • check now"}
-                  disabled={!!s.websitePublishingAction}
-                  onPress={() => s.verifyWebsiteDomain(domain.id)}
-                />
-              </>
-            ) : null}
-
-            {(view.domainState?.recordsToAdd || []).slice(0, 8).map((record, index) => (
-              <MetricRow
-                key={`${record.purpose || "dns"}-${record.type || ""}-${record.name || index}`}
-                left={
-                  record.purpose === "traffic_routing"
-                    ? `${record.type || "DNS"} • website traffic`
-                    : record.purpose === "ssl_certificate_validation"
-                    ? `${record.type || "DNS"} • HTTPS validation`
-                    : record.purpose === "cloudflare_hostname_ownership"
-                    ? `${record.type || "DNS"} • Cloudflare validation`
-                    : `${record.type || "DNS"} • required`
-                }
-                right={`${record.name || ""} → ${record.value || ""}`}
-              />
+            {domainGuide.records.map((record,index)=>(
+              <React.Fragment key={record.type+":"+record.name+":"+index}>
+                <Text style={styles.sectionLabel}>{record.label}</Text>
+                <MetricRow left="Record type" right={record.type} />
+                <MetricRow left="Record name" right={record.name} />
+                <MetricRow left="Record value" right={record.value} />
+              </React.Fragment>
             ))}
+            {domainGuide.records.length>0 ? (
+              <Text style={styles.cardBody}>{domainGuide.explanation}</Text>
+            ) : null}
+            {domain.status === "pending_verification" ? (
+              <Button
+                label={s.websitePublishingAction === `verify-domain:${domain.id}` ? "Checking ownership…" : "I've added the TXT record • check now"}
+                disabled={!!s.websitePublishingAction}
+                onPress={() => s.verifyWebsiteDomain(domain.id)}
+              />
+            ) : null}
 
             {domain.status !== "pending_verification" && !view.domainState?.journey?.complete ? (
               <Button

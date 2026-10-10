@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import {evaluateLaunchPreflight} from "./launchPreflight.mjs";
 import {validatedLeadInput,validTransition,buildLeadDigest} from "./leadWorkflow.mjs";
+import {isVerifiedDomainTxtAnswer} from "./domainOwnership.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -1059,16 +1060,12 @@ async function verifyDomain(businessId: string, domainId: string) {
     `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(
       verificationName
     )}&type=TXT`,
-    { headers: { Accept: "application/dns-json" } }
+    { headers: { Accept: "application/dns-json" },signal:AbortSignal.timeout(10000) }
   );
+  if(!response.ok)throw Error("Domain ownership check is temporarily unavailable. Your records were not changed.");
   const payload: any = await response.json().catch(() => ({}));
-  const answers = Array.isArray(payload?.Answer) ? payload.Answer : [];
-  const found = answers.some((answer: any) => {
-    const value = cleanText(answer?.data, 1000)
-      .replace(/^"/, "")
-      .replace(/"$/, "")
-      .replace(/"\s+"/g, "");
-    return value.includes(domain.data.verification_token);
+  const found = isVerifiedDomainTxtAnswer(payload,{
+    hostname:domain.data.hostname,token:domain.data.verification_token
   });
 
   if (!found) {
