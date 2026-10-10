@@ -6,6 +6,7 @@ on:
       - 'src/core/websiteRehearsalTimeline.mjs'
       - 'src/core/founderRehearsalGuidance.mjs'
       - 'src/screens/websiteBuilder.js'
+      - 'src/domain/websiteBuilder.js'
       - 'src/screens/founderOperations.js'
       - 'supabase/functions/busy-website-worker/websiteReviewAdvice.mjs'
       - 'scripts/check-website-rehearsal-v3120.mjs'
