@@ -14,6 +14,8 @@ on:
       - 'src/core/websiteDesignAlternatives.mjs'
       - 'scripts/check-website-integrated-recovery-v3123.mjs'
       - 'scripts/check-website-founder-private-preferences-v3123.mjs'
+      - 'scripts/check-website-resilience-v3121.mjs'
+      - 'scripts/check-website-connected-experience-v3119.mjs'
       - 'scripts/check-website-boundaries-v3122.mjs'
       - '.github/workflows/production-check.yml'
       - '.github/workflows/website-integrated-recovery-v3123.yml'
