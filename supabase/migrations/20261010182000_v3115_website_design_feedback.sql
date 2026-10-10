@@ -17,6 +17,6 @@ create index if not exists busy_design_feedback_scope_recent
  on public.busy_website_design_feedback(business_id,created_at desc);
 alter table public.busy_website_design_feedback enable row level security;
 revoke all on public.busy_website_design_feedback from public,anon,authenticated;
-grant select,insert on public.busy_website_design_feedback to service_role;
+grant select,insert,delete on public.busy_website_design_feedback to service_role;
 -- Server route requires fresh owner/admin membership; no direct client SQL.
 -- Cross-business aggregation/training has no route and is NOT authorized.

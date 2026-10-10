@@ -86,6 +86,8 @@ function compareWebsiteAudits(before,after){
      return {valid:false,reason:"Both designs must use the same quality measurement version"};
    if(!!b.ctaAudit!==!!a.ctaAudit)
      return {valid:false,reason:"The two designs must both measure the primary call to action"};
+   if(b.ctaAudit?.present===true&&a.ctaAudit?.present===false)
+     worsenedMetrics.push(type+" primary action removed");
    if(b.qualityAudit&&a.qualityAudit){
      for(const [key,label] of qualityProblemMetrics)
        if(a.qualityAudit[key]>b.qualityAudit[key])

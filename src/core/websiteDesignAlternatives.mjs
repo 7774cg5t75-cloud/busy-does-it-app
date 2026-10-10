@@ -33,7 +33,7 @@ const sector=draft=>{
  if(/clean|plumb|electric|builder|roof|pressure|repair|trade|handyman/.test(raw))return "trades";
  return "other";
 };
-function websiteDesignAlternative(draft){
+function websiteDesignAlternative(draft,{likedFamilies=[],rejectedFamilies=[]}={}){
  if(!draft?.id||!Array.isArray(draft.sections))
    return {available:false,reason:"Create your website draft first.",options:[]};
  const current=text(draft.theme?.designFamily||draft.designPlan?.family);
@@ -42,10 +42,18 @@ function websiteDesignAlternative(draft){
       image=>image?.approved!==false&&typeof image?.storagePath==="string"&&!!image.storagePath).length:0;
  const choices=[...families[sector(draft)]];
  if(approvedPhotos>0)choices.push("showcase","portfolio");
+ const known=new Set([...families[sector(draft)],"showcase","portfolio"]);
+ const liked=new Set(Array.isArray(likedFamilies)?likedFamilies.filter(x=>known.has(x)):[]);
+ const rejected=new Set(Array.isArray(rejectedFamilies)?rejectedFamilies.filter(x=>known.has(x)):[]);
  const options=[...new Set(choices)].filter(name=>name!==current&&
    (approvedPhotos>0||!["showcase","portfolio"].includes(name)))
    .map(name=>({family:name,title:styles[name].title,detail:styles[name].detail,
-     instruction:"try "+name+" design",ownerApprovalRequired:true,privateDraftOnly:true}));
+     instruction:"try "+name+" design",ownerApprovalRequired:true,privateDraftOnly:true}))
+   .sort((a,b)=>{
+     const preference=name=>(liked.has(name)&&!rejected.has(name)?2:0)-
+       (rejected.has(name)?1:0);
+     return preference(b.family)-preference(a.family);
+   });
  return {
    available:options.length>0,current:current||"custom",approvedPhotos,
    options,

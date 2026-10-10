@@ -1356,6 +1356,7 @@ Deno.serve(async (request: Request) => {
       "registrar_search",
       "design_feedback_record",
       "design_feedback_read",
+      "design_feedback_clear",
       "verify_domain",
       "provision_domain",
       "recover",
@@ -1428,6 +1429,13 @@ Deno.serve(async (request: Request) => {
         return json(200,{ok:true,saved:false,duplicate:true,privateToBusiness:true});
       }
       return json(200,{ok:true,saved:!!data?.id,duplicate:false,privateToBusiness:true});
+    }
+    if(action==="design_feedback_clear"){
+      const {error}=await supabase.from("busy_website_design_feedback")
+        .delete().eq("business_id",businessId);
+      if(error)throw Error("Could not clear private design preferences.");
+      return json(200,{ok:true,businessId,cleared:true,
+        aggregateLearning:false});
     }
     if(action==="design_feedback_read"){
       const {data,error}=await supabase.from("busy_website_design_feedback")

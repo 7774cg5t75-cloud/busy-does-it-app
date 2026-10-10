@@ -22,6 +22,7 @@ function WebsiteBuilder({ s }) {
   const [showCustomization, setShowCustomization] = React.useState(false);
   const [showVisualAi, setShowVisualAi] = React.useState(false);
   const [feedbackState,setFeedbackState]=React.useState({status:"idle",message:""});
+  const [savedStylePreferences,setSavedStylePreferences]=React.useState(null);
   const feedbackBusy=React.useRef(false);
   const hostedPreview = s.websitePublishingView?.previewDeployment || null;
   const hostedPreviewOutdated = !!s.websitePublishingView?.draftChangedSinceHosted;
@@ -33,7 +34,21 @@ function WebsiteBuilder({ s }) {
   });
   const missingDeliveryCheck=deliveryProof.checks.find(check=>!check.ready);
   const qualityGuide = websiteQualityGuidance({ brandBrain: brand, draft });
-  const designAlternative=websiteDesignAlternative(draft);
+  const designAlternative=websiteDesignAlternative(draft,{
+    likedFamilies:savedStylePreferences?.likedFamilies||[],
+    rejectedFamilies:savedStylePreferences?.rejectedFamilies||[]
+  });
+  React.useEffect(()=>{
+    let active=true;
+    setSavedStylePreferences(null);
+    if(draft?.id&&typeof s.readWebsiteDesignFeedback==="function"){
+      s.readWebsiteDesignFeedback().then(value=>{
+        if(active&&value?.scope==="current_business_only")
+          setSavedStylePreferences(value);
+      }).catch(()=>{if(active)setSavedStylePreferences(null);});
+    }
+    return()=>{active=false;};
+  },[draft?.id,s.cloudWorkspace?.businessId]);
   const designChoices=designAlternative.options||[];
   const selectedStyle=designChoices.length?designChoices[designOptionIndex%designChoices.length]:null;
   React.useEffect(()=>setDesignOptionIndex(0),
@@ -69,11 +84,26 @@ function WebsiteBuilder({ s }) {
     setFeedbackState({status:"saving",message:""});
     try{
       await s.recordWebsiteDesignFeedback(choice);
+      const updated=await s.readWebsiteDesignFeedback().catch(()=>null);
+      if(updated?.scope==="current_business_only")
+        setSavedStylePreferences(updated);
       setFeedbackState({status:"saved",
         message:"Saved privately for this business. BUSY can use your preferences in future improvements; it has not retrained any AI model."});
     }catch{
       setFeedbackState({status:"unavailable",
         message:"BUSY could not save your preference to the business workspace yet. Nothing has been shared."});
+    }finally{feedbackBusy.current=false;}
+  };
+  const clearPreferences=async()=>{
+    if(feedbackBusy.current)return;
+    feedbackBusy.current=true;
+    setFeedbackState({status:"saving",message:""});
+    try{
+      await s.clearWebsiteDesignFeedback();
+      setSavedStylePreferences(null);
+      setFeedbackState({status:"cleared",message:"Private style preferences cleared for this business."});
+    }catch{
+      setFeedbackState({status:"unavailable",message:"BUSY could not confirm preferences were cleared. No shared learning was enabled."});
     }finally{feedbackBusy.current=false;}
   };
   const applyInstruction = () => {
@@ -188,6 +218,10 @@ function WebsiteBuilder({ s }) {
           <Button label="This style isn't for me"
             disabled={feedbackState.status==="saving"}
             onPress={()=>sendDesignPreference("rejected")}/>
+          {savedStylePreferences?.eventCount>0?(
+            <Button label="Clear my saved style preferences"
+              disabled={feedbackState.status==="saving"} onPress={clearPreferences}/>
+          ):null}
           {feedbackState.message?(
             <Text style={styles.cardBody}>{feedbackState.message}</Text>
           ):null}

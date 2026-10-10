@@ -13652,6 +13652,13 @@ function App() {
       throw Error("BUSY could not confirm your private feedback.");
     return result;
   };
+  const clearWebsiteDesignFeedback=async()=>{
+    const result=await websitePublishingRequest("design_feedback_clear");
+    if(!result?.ok||result.businessId!==cloudWorkspace?.businessId||
+       result.cleared!==true||result.aggregateLearning!==false)
+      throw Error("BUSY could not confirm that your preferences were cleared.");
+    return result;
+  };
   const readWebsiteDesignFeedback=async()=>{
     const result=await websitePublishingRequest("design_feedback_read");
     if(!result?.ok||result.businessId!==cloudWorkspace?.businessId||
@@ -15578,6 +15585,7 @@ function App() {
     requestWebsiteDomain,
     recordWebsiteDesignFeedback,
     readWebsiteDesignFeedback,
+    clearWebsiteDesignFeedback,
     checkWebsiteRegistrarSearch,
     inspectWebsiteDomainDns,
     verifyWebsiteDomain,
