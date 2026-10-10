@@ -242,14 +242,14 @@ function WebsiteBuilder({ s }) {
           ) : null}
           <Button label="Preview this design" onPress={() => s.go("websitePreview")} />
           <Text style={styles.cardBody}>
-            Help BUSY remember your style preferences for this business. This saves
+            Help BUSY remember your current private website style for this business. This saves
             a simple choice, not your photos or website text. It does not share
             your preferences with other businesses.
           </Text>
-          <Button label="I like this website style"
+          <Button label="I like my current website style"
             disabled={feedbackState.status==="saving"}
             onPress={()=>sendDesignPreference("liked")}/>
-          <Button label="This style isn't for me"
+          <Button label="My current website style isn't for me"
             disabled={feedbackState.status==="saving"}
             onPress={()=>sendDesignPreference("rejected")}/>
           <Button label={showOutcomeFeedback?
