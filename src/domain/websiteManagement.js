@@ -48,17 +48,18 @@ function buildWebsitePageModel(draft = {}) {
   const ids = enabledSectionIds(draft);
   const has = (id) => ids.includes(id);
 
-  const homeIds = ids.slice();
-  const pages = [
-    {
-      id: "home",
-      path: "/",
-      outputPath: "index.html",
-      title: "Home",
-      enabled: true,
-      sectionIds: homeIds,
-    },
-  ];
+  const plan = draft?.designPlan || null;
+  const singlePage = plan?.architecture === "focused-landing";
+  const order = safeArray(plan?.sectionOrder).filter(id => ids.includes(id));
+  const allIds = [...order, ...ids.filter(id => !order.includes(id))];
+  const homeIds = singlePage ? allIds :
+    safeArray(plan?.homeSectionIds).length
+      ? allIds.filter(id => plan.homeSectionIds.includes(id))
+      : allIds;
+  const pages = [{
+    id: "home", path: "/", outputPath: "index.html",
+    title: "Home", enabled: true, sectionIds: homeIds,
+  }];
 
   const dedicated = [
     ["services", "Services", "/services", "services/index.html"],
@@ -68,7 +69,7 @@ function buildWebsitePageModel(draft = {}) {
     ["contact", "Contact", "/contact", "contact/index.html"],
   ];
 
-  dedicated.forEach(([id, title, path, outputPath]) => {
+  if (!singlePage) dedicated.forEach(([id, title, path, outputPath]) => {
     if (!has(id)) return;
     pages.push({
       id,
@@ -80,12 +81,12 @@ function buildWebsitePageModel(draft = {}) {
     });
   });
 
-  const navigation = pages
-    .filter((page) => page.id !== "faq")
-    .map((page) => ({
-      id: page.id,
-      label: page.title,
-      href: page.path,
+  const navigation = singlePage
+    ? [{id:"home",label:"Home",href:"#main"},
+      ...allIds.filter(id=>["services","about","gallery","contact"].includes(id))
+        .map(id=>({id,label:({services:"Services",about:"About",gallery:"Gallery",contact:"Contact"})[id],href:"#"+id}))]
+    : pages.filter(page=>page.id!=="faq").map(page=>({
+      id:page.id,label:page.title,href:page.path
     }));
 
   const pageSeo = {};
