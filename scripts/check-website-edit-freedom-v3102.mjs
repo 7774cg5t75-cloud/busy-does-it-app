@@ -73,7 +73,7 @@ yes(added.applied,"Customer can create a factual custom section");
 yes(added.draft.sections.some(s=>s.title==="Our approach"),"Custom section saved");
 yes(added.draft.html.includes("We provide local, careful garden maintenance."),"Custom section is visible");
 const customEdited=changed("change text of Our approach section to We focus on garden care and tidy outdoor spaces.",added.draft);
-yes(customEdited.applied,"Customer can edit the new section");
+yes(customEdited.applied,"Customer can edit the new section: "+customEdited.reason);
 yes(customEdited.draft.html.includes("We focus on garden care"),"Updated section text appears in HTML");
 const customMoved=changed("move Our approach before services",customEdited.draft);
 yes(customMoved.applied,"Custom sections can move in the page layout");
