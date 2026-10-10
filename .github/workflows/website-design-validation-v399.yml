@@ -1,0 +1,39 @@
+name: V3.99 free website design validation
+# Intentionally never calls Expo EAS. GitHub/Metro bundle validation uses no
+# paid iOS builds and no website publishing or worker deployment.
+
+on:
+  push:
+    branches: [v3.99]
+    paths:
+      - .github/workflows/website-design-validation-v399.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-design-without-eas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Run production and design regressions
+        run: |
+          node scripts/check-production.mjs
+          node scripts/check-professional-websites-v399.mjs
+          node scripts/check-repeat-hosted-preview-v397.mjs
+      - name: Install source dependencies
+        run: npm install --no-audit --no-fund
+      - name: Parse Edge Function Typescript without deployment
+        run: |
+          node --input-type=module -e 'import fs from "node:fs";import {parse} from "@babel/parser";const s=fs.readFileSync("supabase/functions/busy-website-worker/index.ts","utf8");parse(s,{sourceType:"module",plugins:["typescript"]});console.log("Website worker TypeScript syntax is valid.");'
+      - name: Compile iPhone JS only — no EAS cloud build
+        run: npx expo export --platform ios --output-dir /tmp/busy-v399-verified-js
+      - name: Confirm no cloud build or website publish attempted
+        run: echo "Compiled only. No Expo credits used; no website worker deployed; no customer site published."
