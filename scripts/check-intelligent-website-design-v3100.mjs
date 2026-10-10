@@ -97,7 +97,7 @@ yes(worker.includes("formMarkup"),"Opt-in forms unaffected");
 const ui=read("src/screens/websiteBuilder.js");
 yes(ui.includes("liveConceptHtml"),"Real website preview rendered inside app");
 const p=JSON.parse(read("package.json"));const expo=JSON.parse(read("app.json")).expo;
-yes(["3.100.0","3.101.0"].includes(p.version),"Version aligned");equal(expo.version,p.version);
+yes(["3.100.0","3.101.0","3.102.0"].includes(p.version),"Version aligned");equal(expo.version,p.version);
 equal(expo.ios.buildNumber,String(Number(p.version.split(".")[1])-80));equal(expo.android.versionCode,Number(p.version.split(".")[1])-80);
 yes(read(".github/workflows/production-check.yml").includes("check-intelligent-website-design-v3100.mjs"),"CI gate present");
 console.log("V3.100 PASS: "+checks+" intelligent-design choices, rich and sparse examples, safe edits and publication controls");
