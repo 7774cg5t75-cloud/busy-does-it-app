@@ -27,6 +27,16 @@
         "BUSY_BUILD_PROFILE": "production"
       },
       "channel": "production"
+    },
+    "staging": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "node": "22.13.0",
+      "channel": "staging",
+      "env": {
+        "BUSY_BUILD_PROFILE": "staging",
+        "EXPO_PUBLIC_BUSY_ENVIRONMENT": "isolated-staging"
+      }
     }
   },
   "submit": {
