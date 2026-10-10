@@ -3,6 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import {renderOptInContactForm} from "./formHtml.mjs";
 import {formReadiness} from "./formPolicy.mjs";
 import {designForWebsite, designCss} from "./designSystem.mjs";
+import {planWebsiteDesign} from "./designPlanner.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -260,6 +261,7 @@ function renderWebsiteHtml(
       ? allSections.filter((section: any) => allowed.has(section.id))
       : allSections;
   const theme = draft?.theme || {};
+  const plan = draft.designPlan || planWebsiteDesign({businessType:draft.businessType,businessName:draft.businessName,sections:allSections,theme});
   const design = designForWebsite({businessType:draft?.businessType,theme});
   const layoutCss = designCss(design);
   const seo = pageSeo(draft, page);
@@ -271,13 +273,15 @@ function renderWebsiteHtml(
         .map(
           (item: any) =>
             `<a href="${escapeHtml(
-              pageUrls[item.id] || relativePageHref(page, item.href || "/")
+              (String(item.href||"").startsWith("#") ? item.href : pageUrls[item.id] || relativePageHref(page, item.href || "/"))
             )}">${escapeHtml(item.label || item.id)}</a>`
         )
         .join("")}</div></div></nav>`
     : "";
 
-  const sectionHtml = sections
+  const sectionHtml = plan.sectionOrder
+    .map((id:string)=>sections.find((section:any)=>section.id===id))
+    .filter(Boolean)
     .filter((section: any) => {
       if(section.type==="services"||section.type==="testimonials"||section.type==="faq")
         return safeArray(section.items).some((item:any)=>clean(item?.title||item?.body));
@@ -313,7 +317,7 @@ function renderWebsiteHtml(
   const safeBusiness=escapeHtml(draft?.businessName||"Business website");
   const area=clean(draft?.serviceArea,260);
   const footer=`<footer class="site-footer"><div class="wrap"><strong>${safeBusiness}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer>`;
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="${design.ink}"><meta name="busy-deployment" content="${escapeHtml(deploymentId)}"><meta name="busy-page" content="${escapeHtml(page?.id||"home")}"><title>${escapeHtml(seo?.title||draft?.businessName||"Website")}</title><meta name="description" content="${escapeHtml(seo?.description||"")}"><script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g,"\\u003c")}</script><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector}"><a class="skip-link" href="#main">Skip to content</a>${navHtml}<main id="main">${sectionHtml}${formMarkup}</main>${footer}</body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="${design.ink}"><meta name="busy-deployment" content="${escapeHtml(deploymentId)}"><meta name="busy-page" content="${escapeHtml(page?.id||"home")}"><title>${escapeHtml(seo?.title||draft?.businessName||"Website")}</title><meta name="description" content="${escapeHtml(seo?.description||"")}"><script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g,"\\u003c")}</script><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture}"><a class="skip-link" href="#main">Skip to content</a>${navHtml}<main id="main">${sectionHtml}${formMarkup}</main>${footer}</body></html>`;
 
 }
 
