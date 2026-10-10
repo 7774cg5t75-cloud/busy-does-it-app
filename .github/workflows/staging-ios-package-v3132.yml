@@ -1,0 +1,73 @@
+name: V3.132 staging iPhone package preparation and live anonymous safety
+on:
+  push:
+    branches: [v3.132]
+    paths:
+      - 'App.js'
+      - 'eas.json'
+      - 'app.config.js'
+      - 'src/staging/**'
+      - 'src/core/stagingRuntimeIsolation.mjs'
+      - 'scripts/check-staging-ios-profile-v3132.mjs'
+      - 'scripts/check-staging-remote-anonymous-v3132.mjs'
+      - 'scripts/export-and-check-stage-ios-v3132.mjs'
+      - '.github/workflows/staging-ios-package-v3132.yml'
+  workflow_dispatch:
+    inputs:
+      approval_phrase:
+        description: 'To request an Expo signed staging iOS build (may consume build credits), type exact phrase'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  validate-staging-client:
+    runs-on: ubuntu-latest
+    timeout-minutes: 32
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify stand-alone iPhone staging bundle and no-production fallback
+        run: |
+          node scripts/check-staging-ios-profile-v3132.mjs
+          node scripts/check-real-staging-client-v3131.mjs
+          node scripts/check-staging-runtime-v3128.mjs
+          node scripts/check-staging-live-readiness-v3130.mjs
+      - name: Check real staging HTTPS Auth and REST reject anonymous callers
+        run: node scripts/check-staging-remote-anonymous-v3132.mjs
+      - name: Install Expo project dependencies (not EAS credentials)
+        run: npm install --no-audit --no-fund --cache /tmp/busy-v3132-npm-cache
+      - name: Export staging and normal iPhone JavaScript for source-level safety
+        run: node scripts/export-and-check-stage-ios-v3132.mjs
+      - name: Build boundary
+        run: |
+          echo "No user passwords, JWTs or service-role keys were used."
+          echo "No iPhone .ipa, EAS signing, Apple provisioning or cloud worker deployment."
+          echo "A signed build requires separate manual approval and Expo token."
+  request-signed-staging-ios:
+    if: github.event_name == 'workflow_dispatch' && inputs.approval_phrase == 'APPROVE_STAGING_IPHONE_BUILD_3132'
+    needs: validate-staging-client
+    environment: isolated-staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Require explicitly connected Expo account and separate build profile
+        run: |
+          test -n "$EXPO_TOKEN" || (echo "Missing EXPO_TOKEN in isolated-staging GitHub environment" && exit 3)
+          node scripts/check-staging-ios-profile-v3132.mjs
+      - name: Install Expo project packages and EAS CLI
+        run: |
+          npm install --no-audit --no-fund --cache /tmp/busy-v3132-npm-cache
+          npm install --no-save --no-audit --no-fund eas-cli
+      - name: Request signed separate iPhone staging build - no App Store submission
+        run: npx eas build --platform ios --profile staging --non-interactive --no-wait
+      - name: Explicit distribution scope
+        run: echo "Only a manually approved internal, standalone staging iOS build was requested; no production release."
