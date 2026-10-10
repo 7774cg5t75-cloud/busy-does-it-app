@@ -15,6 +15,11 @@ const allowed={
  "theme.spacing":["comfortable","generous"],
 };
 const split=path=>String(path||"").split(".");
+const respectsPhotoEvidence=(path,value,approvedPhotos)=>{
+ if(path!=="theme.heroLayout")return true;
+ const isImage=String(value).startsWith("image-");
+ return isImage?approvedPhotos>0:approvedPhotos<=0;
+};
 function normalizeVisualCritique(raw,{approvedPhotos=0}={}){
  if(!raw||typeof raw!=="object"||raw.reviewedScreenshots!==true)
   return {valid:false,reason:"No independently verified screenshot-based review",proposals:[]};
@@ -26,11 +31,7 @@ function normalizeVisualCritique(raw,{approvedPhotos=0}={}){
    if(!proposal||typeof proposal!=="object")continue;
    const path=String(proposal.path||"");
    if(!allowed[path]?.includes(proposal.value))continue;
-   if(path==="theme.heroLayout"){
-     const picture=String(proposal.value).startsWith("image-");
-     if(picture&&approvedPhotos<1)continue;
-     if(!picture&&approvedPhotos>0)continue;
-   }
+   if(!respectsPhotoEvidence(path,proposal.value,approvedPhotos))continue;
    if(proposals.some(p=>p.path===path))continue;
    proposals.push({path,value:proposal.value,reason:String(proposal.reason||"").slice(0,180)});
    if(proposals.length>=3)break;
@@ -52,12 +53,15 @@ function normalizeVisualCritique(raw,{approvedPhotos=0}={}){
 function applyApprovedVisualProposals(draft,report,{ownerApproved=false}={}){
  if(!ownerApproved||!report?.valid||report.source!=="actual-screenshot-review")
    return {applied:false,draft,reason:"Owner approval and real visual-review evidence are required"};
+ if(!draft?.id)return {applied:false,draft,reason:"A real private website draft is required"};
  let theme={...(draft?.theme||{})};
+ const approvedPhotos=Number(draft?.designPlan?.signals?.approvedPhotos||0);
  let count=0;
  for(const p of (Array.isArray(report.proposals)?report.proposals:[]).slice(0,3)){
    const valid=allowed[p.path]?.includes(p.value);
-   if(!valid)continue;
+   if(!valid||!respectsPhotoEvidence(p.path,p.value,approvedPhotos))continue;
    const [,field]=split(p.path);
+   if(theme[field]===p.value)continue; // Do not count a no-op as an improvement.
    theme[field]=p.value;
    count++;
  }

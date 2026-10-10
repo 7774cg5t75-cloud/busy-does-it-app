@@ -9,6 +9,15 @@ import {applyApprovedVisualProposals} from "./visualCriticContract.mjs";
 const array=x=>Array.isArray(x)?x:[];
 const clean=x=>String(x||"").trim();
 const idOf=draft=>[clean(draft?.id),clean(draft?.updatedAt),String(draft?.generation||0)].join("|");
+function hasMeasuredAudits(data){
+ // A screenshot alone does not prove that automated layout measurements ran.
+ return ["mobileAudit","desktopAudit"].every(key=>{
+   const a=data?.[key];
+   return a&&Number.isFinite(a.horizontalOverflowPixels)&&a.horizontalOverflowPixels>=0&&
+     typeof a.headingVisible==="boolean"&&typeof a.navigationFits==="boolean"&&
+     Number.isFinite(a.heroHeadingFontPx)&&a.heroHeadingFontPx>0;
+ });
+}
 function visualRisks(data){
  const m=data?.mobileAudit,d=data?.desktopAudit;
  if(!m||!d)return ["Both desktop and mobile screenshot measurements are required"];
@@ -23,9 +32,13 @@ function visualRisks(data){
 }
 function changesAreDesignOnly(original,revised){
  if(!original||!revised||original.id!==revised.id)return false;
- const keys=["businessName","businessType","brandLabel","serviceArea","description",
-   "sections","seo","publish","readiness","sourceSummary","slug"];
- return keys.every(k=>JSON.stringify(original[k])===JSON.stringify(revised[k]));
+ // The renderer may refresh derived markup, page navigation, review scores and
+ // revision metadata. Everything else belongs to the customer or tenant.
+ const regenerated=new Set(["theme","html","designPlan","designReview","pages",
+   "navigation","updatedAt","generation"]);
+ const keys=new Set([...Object.keys(original),...Object.keys(revised)]);
+ return [...keys].filter(k=>!regenerated.has(k))
+   .every(k=>JSON.stringify(original[k])===JSON.stringify(revised[k]));
 }
 async function runWebsiteDesignReviewCycle({
  draft,tenantId,allowedTenantId,consent=false,allowPaidReview=false,
@@ -41,6 +54,9 @@ async function runWebsiteDesignReviewCycle({
  const first=await captureScreenshots(draft,{stage:"original",tenantId,reviewId});
  if(!first?.mobile||!first?.desktop)
    return {status:"capture-failed",calls:0,reason:"Two private website screenshots are required"};
+ if(!hasMeasuredAudits(first))
+   return {status:"measurement-unavailable",calls:0,
+     reason:"Both screenshots need valid independently measured layout evidence before any AI credit is spent"};
  const initialRisks=visualRisks(first);
  const overview={mobileAudit:first.mobileAudit||null,desktopAudit:first.desktopAudit||null,
    issues:initialRisks,screenshotSource:first.source||"private-renderer"};
@@ -79,16 +95,30 @@ async function runWebsiteDesignReviewCycle({
  const second=await captureScreenshots(candidate,{stage:"candidate",tenantId,reviewId});
  if(!second?.mobile||!second?.desktop)
    return {...base,status:"candidate-capture-failed",reason:"Improved candidate could not be visually rechecked"};
+ if(!hasMeasuredAudits(second))
+   return {...base,status:"candidate-audit-unavailable",
+     reason:"New screenshots were captured but their mobile/desktop measurements were incomplete"};
  const revisedRisks=visualRisks(second);
+ const newlyIntroduced=revisedRisks.filter(issue=>!initialRisks.includes(issue));
+ const comparison={
+   originalProblemCount:initialRisks.length,
+   candidateProblemCount:revisedRisks.length,
+   improved:revisedRisks.length<initialRisks.length,
+   noNewMeasuredProblems:newlyIntroduced.length===0&&revisedRisks.length<=initialRisks.length,
+   newProblems:newlyIntroduced
+ };
+ // A visually attractive candidate must not be presented as an improvement
+ // when real screenshots reveal new regressions (including equal-count swaps).
+ if(!comparison.noNewMeasuredProblems)
+   return {...base,status:"candidate-rejected",comparison,
+     originalIssues:initialRisks,candidateIssues:revisedRisks,
+     reason:"The private candidate introduced a measured layout regression. The original draft was kept unchanged."};
  return {...base,status:"candidate-ready",candidate,
    revised:{mobileAudit:second.mobileAudit||null,desktopAudit:second.desktopAudit||null,
      issues:revisedRisks,screenshotSource:second.source||"private-renderer"},
-   comparison:{
-     originalProblemCount:initialRisks.length,
-     candidateProblemCount:revisedRisks.length,
-     improved:revisedRisks.length<initialRisks.length,
-     noNewMeasuredProblems:revisedRisks.length<=initialRisks.length
-   },
-   reason:"Private before/after comparison complete. Not automatically published. Fresh AI re-review needs another explicit reservation."};
+   comparison,
+   reason:comparison.improved
+     ?"The private candidate reduced measured layout problems. It is not published; a new AI review needs a fresh approved credit."
+     :"The candidate introduced no new measured layout problems. Visual preference remains the owner's decision; nothing was published."};
 }
-export {visualRisks,changesAreDesignOnly,runWebsiteDesignReviewCycle};
+export {hasMeasuredAudits,visualRisks,changesAreDesignOnly,runWebsiteDesignReviewCycle};
