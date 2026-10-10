@@ -22,7 +22,7 @@ function refFromUrl(s){
 function busyRuntimeCloudConfig({
  environment="",productionSupabaseUrl="",productionPublishableKey="",
  productionAiUrl="",stagingSupabaseUrl="",stagingPublishableKey="",
- otherProtectedSupabaseRef=""
+ otherProtectedSupabaseRef="",expectedStagingSupabaseRef=""
 }={}){
  const isolated=environment==="isolated-staging";
  if(!isolated){
@@ -35,6 +35,8 @@ function busyRuntimeCloudConfig({
  const candidate=refFromUrl(stagingSupabaseUrl);
  const prod=refFromUrl(productionSupabaseUrl);
  const separate=!!candidate&&!!prod&&REF.test(otherProtectedSupabaseRef)&&
+   (!expectedStagingSupabaseRef||
+     (REF.test(expectedStagingSupabaseRef)&&candidate===expectedStagingSupabaseRef))&&
    new Set([candidate,prod,otherProtectedSupabaseRef]).size===3;
  const configured=separate&&PUBLISHABLE.test(stagingPublishableKey);
  const baseUrl=configured?"https://"+candidate+".supabase.co":STOP_URL;
