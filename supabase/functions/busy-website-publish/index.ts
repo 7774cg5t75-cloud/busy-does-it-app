@@ -1444,7 +1444,7 @@ Deno.serve(async (request: Request) => {
     }
     if(action==="design_feedback_read"){
       const {data,error}=await supabase.from("busy_website_design_feedback")
-        .select("design_family,preference,created_at")
+        .select("design_family,preference,draft_version,created_at")
         .eq("business_id",businessId)
         .order("created_at",{ascending:false}).limit(40);
       if(error)throw Error("Private design feedback is unavailable.");

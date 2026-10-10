@@ -9,6 +9,7 @@ import { buildWebsiteLaunchProof } from "../core/websiteLaunchProof.mjs";
 import { websiteQualityGuidance } from "../core/websiteQualityGuidance.mjs";
 import { websiteDesignAlternative } from "../core/websiteDesignAlternatives.mjs";
 import { websiteCustomerJourney } from "../core/websiteCustomerJourney.mjs";
+import { websiteOutcomeGuidance } from "../core/websiteOutcomeGuidance.mjs";
 import { renderWebsiteHtml } from "../domain/websiteBuilder";
 
 function WebsiteBuilder({ s }) {
@@ -50,6 +51,10 @@ function WebsiteBuilder({ s }) {
     }
     return()=>{active=false;};
   },[draft?.id,s.cloudWorkspace?.businessId]);
+  const outcomeGuidance=websiteOutcomeGuidance(savedStylePreferences,{
+    currentFamily:draft?.theme?.designFamily||draft?.designPlan?.family||"",
+    currentRevision:String(draft?.generation||1)
+  });
   const designChoices=designAlternative.options||[];
   const selectedStyle=designChoices.length?designChoices[designOptionIndex%designChoices.length]:null;
   React.useEffect(()=>setDesignOptionIndex(0),
@@ -235,6 +240,9 @@ function WebsiteBuilder({ s }) {
                 disabled={feedbackState.status==="saving"}
                 onPress={()=>sendDesignPreference("reverted")}/>
             </>
+          ):null}
+          {savedStylePreferences?.eventCount>0?(
+            <Text style={styles.cardBody}>{outcomeGuidance.message}</Text>
           ):null}
           {savedStylePreferences?.eventCount>0?(
             <Button label="Clear my saved style preferences"

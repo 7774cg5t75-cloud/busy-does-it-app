@@ -38,9 +38,14 @@ function designPreferenceSummary(rows){
  const dislikes=[...latest].filter(([,choice])=>
    choice==="rejected"||choice==="reverted").map(([family])=>family);
  const outcomes=filtered.filter(x=>x.preference==="kept"||x.preference==="reverted");
+ const latestOwnerDecision=outcomes[0]?
+   {family:outcomes[0].design_family,choice:outcomes[0].preference,
+    draftVersion:typeof outcomes[0].draft_version==="string"?
+      outcomes[0].draft_version:null}:null;
  return {source:"owner_explicit_feedback",scope:"current_business_only",
   eventCount:filtered.length,likedFamilies:likes,rejectedFamilies:dislikes,
   ownerReportedOutcomeCount:outcomes.length,
+  latestOwnerDecision,
   measuredConversionLift:null,measuredRevenueChange:null,
   outcomeSource:"explicit_owner_report_not_traffic_analytics",
   mostRecent:filtered.length?{family:filtered[0].design_family,
