@@ -7,7 +7,7 @@ const backend=read("supabase/functions/busy-command/index.ts");
 const pkg=JSON.parse(read("package.json"));
 const app=JSON.parse(read("app.json")).expo;
 const snack=read("scripts/publish-snack.mjs");
-assert.ok(["3.91.0","3.92.0","3.93.0","3.94.0","3.95.0","3.96.0","3.97.0","3.98.0","3.99.0","3.100.0"].includes(pkg.version));
+assert.ok(["3.91.0","3.92.0","3.93.0","3.94.0","3.95.0","3.96.0","3.97.0","3.98.0","3.99.0","3.100.0","3.101.0"].includes(pkg.version));
 assert.equal(app.version,pkg.version);
 assert.equal(app.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));
 assert.equal(app.ios.bundleIdentifier,"com.busydoesit.app");
