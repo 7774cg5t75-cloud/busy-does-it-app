@@ -1,0 +1,66 @@
+name: V3.119 connected website journey, private intelligence and safe founder operations
+on:
+  push:
+    branches: [v3.119]
+    paths:
+      - 'src/core/websiteJourneyAssurance.mjs'
+      - 'src/core/websiteBrainCoaching.mjs'
+      - 'src/core/founderNextSafeAction.mjs'
+      - 'src/screens/websiteBuilder.js'
+      - 'src/screens/founderOperations.js'
+      - 'scripts/check-website-connected-experience-v3119.mjs'
+      - 'scripts/check-website-customer-journey-browser-v3119.mjs'
+      - '.github/workflows/website-connected-v3119.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  full-journey:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify real website journey and private intelligence decisions
+        run: |
+          node scripts/check-website-connected-experience-v3119.mjs
+          node scripts/check-website-safe-pilot-v3118.mjs
+          node scripts/check-website-operational-quality-v3117.mjs
+          node scripts/check-website-controlled-rollout-v3116.mjs
+          node scripts/check-website-intelligence-v3115.mjs
+          node scripts/check-website-private-alternatives-v3113.mjs
+      - name: Install dependencies with isolated cache
+        run: npm install --no-audit --no-fund --cache /tmp/busy-v3119-npm-cache
+      - name: Compile updated iPhone app JavaScript without publishing native app
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3119-ios-js
+      - run: npx playwright install --with-deps chromium
+      - name: Generate industry-specific fictional customer websites
+        run: node scripts/build-website-design-gallery-v3100.mjs /tmp/busy-v3119-gallery
+      - name: Verify real customer journey, content preservation, mobile/desktop screenshots
+        run: node scripts/check-website-customer-journey-browser-v3119.mjs /tmp/busy-v3119-gallery /tmp/busy-v3119-journey
+      - name: Compare rendered original and alternative website quality
+        run: node scripts/check-website-guided-alternative-v3113.mjs /tmp/busy-v3119-gallery /tmp/busy-v3119-alternatives
+      - name: Keep owner-reported outcomes separate from browser evidence
+        run: node scripts/check-website-outcome-browser-v3118.mjs /tmp/busy-v3119-alternatives /tmp/busy-v3119-outcomes
+      - name: Verify actual screenshot provenance and covered call-to-action detection
+        run: node scripts/check-website-first-fold-v3116.mjs /tmp/busy-v3119-gallery /tmp/busy-v3119-first-fold
+      - name: Check industry variety, responsive layouts and keyboard access
+        run: |
+          node scripts/check-website-rendered-diversity-v3112.mjs /tmp/busy-v3119-gallery /tmp/busy-v3119-diversity
+          node scripts/check-website-responsive-quality-v3109.mjs /tmp/busy-v3119-gallery /tmp/busy-v3119-responsive
+          node scripts/check-website-keyboard-quality-v3110.mjs /tmp/busy-v3119-gallery /tmp/busy-v3119-keyboard
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v3119-fictional-customer-experience-browser-evidence
+          path: |
+            /tmp/busy-v3119-journey/
+            /tmp/busy-v3119-alternatives/
+            /tmp/busy-v3119-outcomes/
+            /tmp/busy-v3119-first-fold/
+            /tmp/busy-v3119-diversity/
+            /tmp/busy-v3119-responsive/
+            /tmp/busy-v3119-keyboard/
+          retention-days: 7
+      - run: echo "This is an offline, fictional, source-branch sweep only. No deployment, payment, customer data, AI model training or signed native iOS release."
