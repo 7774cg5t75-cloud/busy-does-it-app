@@ -187,6 +187,12 @@ import { validateAiConversationDraft } from "../domain/conversationAiBoundary.mj
 import { buildWebsiteDraft, applyWebsiteInstruction } from "../domain/websiteBuilder";
 import { buildWebsitePublishingView } from "../domain/websitePublishing";
 import {
+  signedPreviewPath,
+  previewPagesFromManifest,
+  resolveHostedPreviewPage,
+  validHostedHtml,
+} from "../core/hostedPreviewSecurity.mjs";
+import {
   buildMiniAppProfileDraft,
   buildMiniAppsView,
 } from "../domain/miniApps";
@@ -281,6 +287,8 @@ function App() {
   const [websitePublishingAction, setWebsitePublishingAction] = useState("");
   const [websitePublishingError, setWebsitePublishingError] = useState("");
   const [websitePublishingNotice, setWebsitePublishingNotice] = useState("");
+  const [hostedWebsitePreview, setHostedWebsitePreview] = useState(null);
+  const [websitePreviewOpenedId, setWebsitePreviewOpenedId] = useState("");
   const [websiteDomainDraft, setWebsiteDomainDraft] = useState("");
   const [miniAppsStatus, setMiniAppsStatus] = useState({
     loaded: false,
@@ -6454,6 +6462,8 @@ function App() {
     setWebsitePublishingAction("");
     setWebsitePublishingError("");
     setWebsitePublishingNotice("");
+    setHostedWebsitePreview(null);
+    setWebsitePreviewOpenedId("");
     setWebsiteDomainDraft("");
     setMiniAppsStatus({
       loaded: false,
@@ -13197,16 +13207,62 @@ function App() {
     }
   };
 
+  // Supabase Storage deliberately responds with text/plain for HTML.
+  // Fetch the actual private deployment bytes and render them in BUSY's
+  // JavaScript-disabled native website viewer instead of opening Safari.
+  const readPrivateHostedPreviewHtml = async (url, deploymentId) => {
+    if (!signedPreviewPath(url, BUSY_SUPABASE_URL, deploymentId)) {
+      throw new Error("BUSY blocked an unrecognised private preview address.");
+    }
+    const response = await fetchWithTimeout(url, {
+      method: "GET",
+      headers: { Accept: "text/html, text/plain" },
+    }, 30000);
+    if (!response.ok) {
+      throw new Error("The saved website preview is unavailable. Try preparing the hosted preview again.");
+    }
+    const html = await response.text();
+    if (!validHostedHtml(html, deploymentId)) {
+      throw new Error("The hosted preview did not contain this website's expected HTML. BUSY will not display an unrelated page.");
+    }
+    return html;
+  };
+
   const openHostedWebsitePreview = async (deploymentId) => {
     if (!deploymentId) return false;
     setWebsitePublishingAction(`preview:${deploymentId}`);
     setWebsitePublishingError("");
     try {
-      const result = await websitePublishingRequest("preview_url", {
-        deploymentId,
-      });
+      const previewRow = websitePublishingView?.previewDeployment;
+      if (previewRow?.id !== deploymentId) {
+        throw new Error("That hosted version has changed. Refresh the website before opening it.");
+      }
+      const result = await websitePublishingRequest("preview_url", { deploymentId });
       if (!result?.previewUrl) throw new Error("Hosted preview URL is not ready yet.");
-      await Linking.openURL(result.previewUrl);
+      const homePath = signedPreviewPath(result.previewUrl, BUSY_SUPABASE_URL, deploymentId);
+      if (!homePath) throw new Error("The hosted preview address didn't pass BUSY's security checks.");
+      const manifestPages = previewPagesFromManifest(
+        previewRow?.manifest, BUSY_SUPABASE_URL, deploymentId
+      );
+      const home = manifestPages.find(page => page.path === homePath);
+      const pages = home ? manifestPages : [
+        { id: "home", path: homePath, url: result.previewUrl, label: "Home" },
+        ...manifestPages
+      ];
+      const html = await readPrivateHostedPreviewHtml(result.previewUrl, deploymentId);
+      const scope = (ownerSession?.userId || "") + ":" + (cloudWorkspace?.businessId || "");
+      setHostedWebsitePreview({
+        deploymentId,
+        scope,
+        pages,
+        pageId: home?.id || "home",
+        version: 1,
+        html,
+        loading: false,
+        error: "",
+      });
+      setWebsitePreviewOpenedId(deploymentId);
+      go("hostedWebsitePreview");
       return true;
     } catch (error) {
       setWebsitePublishingError(
@@ -13216,6 +13272,49 @@ function App() {
     } finally {
       setWebsitePublishingAction("");
     }
+  };
+
+  const openHostedWebsitePreviewPage = async (targetUrl) => {
+    const viewer = hostedWebsitePreview;
+    if (!viewer || viewer.loading) return false;
+    const scope = (ownerSession?.userId || "") + ":" + (cloudWorkspace?.businessId || "");
+    if (viewer.scope !== scope) {
+      setHostedWebsitePreview(null);
+      return false;
+    }
+    const page = resolveHostedPreviewPage(
+      targetUrl, viewer.pages, BUSY_SUPABASE_URL, viewer.deploymentId
+    );
+    if (!page) {
+      setHostedWebsitePreview(old => old?.scope === scope ? {
+        ...old, error: "External links are disabled in a private preview."
+      } : old);
+      return false;
+    }
+    if (page.id === viewer.pageId) return true;
+    setHostedWebsitePreview(old => old?.scope === scope ? {
+      ...old, loading: true, error: ""
+    } : old);
+    try {
+      const html = await readPrivateHostedPreviewHtml(page.url, viewer.deploymentId);
+      setHostedWebsitePreview(old =>
+        old?.scope === scope && old.deploymentId === viewer.deploymentId
+          ? { ...old, html, pageId: page.id, version: old.version + 1, loading: false, error: "" }
+          : old
+      );
+      return true;
+    } catch (error) {
+      setHostedWebsitePreview(old =>
+        old?.scope === scope && old.deploymentId === viewer.deploymentId
+          ? { ...old, loading: false, error: error?.message || "Could not load this website page." }
+          : old
+      );
+      return false;
+    }
+  };
+
+  const hostedWebsitePreviewLoadError = (message) => {
+    setHostedWebsitePreview(old => old ? { ...old, error: message } : old);
   };
 
   const followWebsiteGoLive = () => {
@@ -15289,7 +15388,11 @@ function App() {
     createWebsiteLead,
     changeWebsiteLeadStatus,
     prepareHostedWebsite,
+    hostedWebsitePreview,
+    websitePreviewOpenedId,
     openHostedWebsitePreview,
+    openHostedWebsitePreviewPage,
+    hostedWebsitePreviewLoadError,
     confirmPublishHostedWebsite,
     confirmRollbackWebsite,
     openLiveWebsite,
