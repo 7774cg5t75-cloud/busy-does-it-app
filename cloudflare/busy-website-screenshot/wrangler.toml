@@ -1,0 +1,13 @@
+name = "busy-website-screenshot"
+main = "worker.js"
+compatibility_date = "2026-10-10"
+compatibility_flags = ["nodejs_compat"]
+
+[browser]
+binding = "BROWSER"
+
+[vars]
+BUSY_SUPABASE_HOST = "qgkmuiipicazmcxxmoxv.supabase.co"
+
+# BUSY_SCREENSHOT_SECRET must be a Cloudflare Worker secret, never a [vars] value.
+# Browser Rendering is NOT enabled/deployed by checking this file into GitHub.
