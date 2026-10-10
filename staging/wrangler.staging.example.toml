@@ -1,0 +1,15 @@
+# V3.128 template ONLY. Copy into a protected deployment workspace after
+# explicit founder approval; this file does not create a Cloudflare Worker.
+# This serves ONLY a non-customer staging marker, not the Busy website app.
+name = "busy-isolated-staging-marker"
+main = "staging/isolated-staging-worker-v3128.mjs"
+compatibility_date = "2026-10-10"
+workers_dev = false
+# Deliberately no route, zone_id, account_id, custom_domain or API token.
+# Never reuse production Cloudflare resources. Obtain approved staging host
+# and set the following runtime variables in a separate staging environment:
+# BUSY_STAGING_SUPABASE_REF (public project ref)
+# BUSY_PRODUCTION_SUPABASE_REF (existing protected reference)
+# BUSY_OTHER_PROTECTED_SUPABASE_REF (other active project)
+# BUSY_STAGING_EXPECTED_HOST (exact separate staging hostname)
+# BUSY_STAGING_SOURCE_SHA (40-character pinned source commit)
