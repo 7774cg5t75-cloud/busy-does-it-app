@@ -12,6 +12,7 @@ const CLOUD_CONFIG = busyRuntimeCloudConfig({
   stagingSupabaseUrl:process.env.EXPO_PUBLIC_BUSY_STAGING_SUPABASE_URL||"",
   stagingPublishableKey:process.env.EXPO_PUBLIC_BUSY_STAGING_PUBLISHABLE_KEY||"",
   // An unrelated already-active project must never be used as staging.
+  expectedStagingSupabaseRef:"pnjdlogwegnqbsfpcofw",
   otherProtectedSupabaseRef:"rtqqnqbrqpjondvcyann"
 });
 const BUSY_SUPABASE_URL = CLOUD_CONFIG.baseUrl;
