@@ -26,8 +26,15 @@ function designPreferenceSummary(rows){
  const items=Array.isArray(rows)?rows:[];
  const filtered=items.filter(row=>FAMILIES.has(row?.design_family)&&
    CHOICES.has(row?.preference)).slice(0,40);
- const likes=[...new Set(filtered.filter(x=>x.preference==="liked").map(x=>x.design_family))];
- const dislikes=[...new Set(filtered.filter(x=>x.preference==="rejected").map(x=>x.design_family))];
+ // The database returns most-recent first. The newest preference for a
+ // particular style wins, rather than simultaneously "liked" and "rejected".
+ const latest=new Map();
+ for(const entry of filtered){
+   if(!latest.has(entry.design_family))
+     latest.set(entry.design_family,entry.preference);
+ }
+ const likes=[...latest].filter(([,choice])=>choice==="liked").map(([family])=>family);
+ const dislikes=[...latest].filter(([,choice])=>choice==="rejected").map(([family])=>family);
  return {source:"owner_explicit_feedback",scope:"current_business_only",
   eventCount:filtered.length,likedFamilies:likes,rejectedFamilies:dislikes,
   mostRecent:filtered.length?{family:filtered[0].design_family,

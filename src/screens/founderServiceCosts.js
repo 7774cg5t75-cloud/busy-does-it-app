@@ -3,6 +3,7 @@ import {Text} from "react-native";
 import {Card,Button,Field,MetricRow} from "../components/ui";
 import {styles} from "../theme/styles";
 import {founderUsageEvidence} from "../core/founderUsageEvidence.mjs";
+import {founderProviderReview} from "../core/founderProviderReview.mjs";
 
 /** V3.81: secure founder-only subscription/usage register.
  * Provider invoices are not automatically connected; saved snapshots remain
@@ -162,6 +163,7 @@ function FounderServiceCosts({s,owner,enabled}){
   const current=data.owner===owner&&data.status==="ready"?data.report:null;
   const services=Array.isArray(current?.services)?current.services:[];
   const evidence=founderUsageEvidence(current);
+  const providerReview=founderProviderReview(current);
   const chosen=services.find(item=>item.key===selected);
   return <>
     <Card eyebrow="V3.82 • Founder Financial Autopilot"
@@ -185,6 +187,22 @@ function FounderServiceCosts({s,owner,enabled}){
       {current?<Text style={styles.sectionLabel}>
         {current.note} Every number below shows its source and observation date.
       </Text>:null}
+    </Card>
+    <Card eyebrow="Provider account review"
+      title="What needs checking"
+      body="BUSY highlights missing or old supplier information so you can decide what to verify next. It won't guess your expenses, make payments or change a subscription."
+      footer="Read-only guidance, not automatic invoice monitoring."
+      tone="blue">
+      {providerReview.status==="available"?
+        providerReview.items.map(item=>(
+          <React.Fragment key={item.key}>
+            <MetricRow left={item.name}
+              right={item.source==="unmeasured"?"Not measured":
+                item.freshness==="within_24h"?"Recent observation":"Check source"}/>
+            <Text style={styles.sectionLabel}>{item.message}</Text>
+          </React.Fragment>
+        )):
+        <Text style={styles.sectionLabel}>Provider review is unavailable until the private register can be verified.</Text>}
     </Card>
     <Card eyebrow="V3.82 • Automatic monitoring"
       title="BUSY activity — updated by a server schedule"

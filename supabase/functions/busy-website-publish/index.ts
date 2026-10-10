@@ -1422,10 +1422,15 @@ Deno.serve(async (request: Request) => {
       if(error){
         if(error.code!=="23505")throw Error("Private design feedback is unavailable.");
         const previous=await supabase.from("busy_website_design_feedback")
-          .select("id").eq("business_id",businessId)
+          .select("id,design_family,preference,draft_version,created_by")
+          .eq("business_id",businessId)
           .eq("request_key",checked.record.request_key).maybeSingle();
-        if(previous.error||!previous.data?.id)
-          throw Error("Could not confirm saved feedback.");
+        if(previous.error||!previous.data?.id||
+           previous.data.design_family!==checked.record.design_family||
+           previous.data.preference!==checked.record.preference||
+           previous.data.draft_version!==checked.record.draft_version||
+           previous.data.created_by!==user.id)
+          throw Error("Feedback retry did not match the original request.");
         return json(200,{ok:true,saved:false,duplicate:true,privateToBusiness:true});
       }
       return json(200,{ok:true,saved:!!data?.id,duplicate:false,privateToBusiness:true});
