@@ -6,7 +6,8 @@ const fromSrc=collectJsFiles("src");
 const mjs=fromSrc.filter(x=>x.endsWith(".mjs"));
 assert.ok(mjs.length>=15,"Expected the V3.60+ domain ESM modules to be present");
 const files=snackSourceFiles();
-assert.equal(Object.keys(files).length,fromSrc.length+1);
+assert.equal(Object.keys(files).length,fromSrc.length+2);
+assert.ok(files["supabase/functions/busy-website-worker/designSystem.js"],"Shared design CSS must travel into the Snack preview too");
 assert.ok(files["App.js"]);
 for(const name of mjs){
   const target=toSnackPath(name);
