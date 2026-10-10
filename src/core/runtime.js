@@ -1,5 +1,5 @@
-const APP_VERSION = "3.104";
-const PROTOTYPE_BADGE = `Development v${APP_VERSION} • Safe Private Visual Review Cycle`;
+const APP_VERSION = "3.105";
+const PROTOTYPE_BADGE = `Development v${APP_VERSION} • Hosted Website Visual Review Connection`;
 const BUSY_AI_URL = String(
   process.env.EXPO_PUBLIC_BUSY_AI_URL ||
     "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-ai-intake"
@@ -15,6 +15,8 @@ const BUSY_SOCIAL_PUBLISH_URL =
   "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-social-publish";
 const BUSY_WEBSITE_PUBLISH_URL =
   "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-website-publish";
+const BUSY_WEBSITE_DESIGN_REVIEW_URL =
+  "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-website-design-review";
 const BUSY_MINI_APPS_URL =
   "https://qgkmuiipicazmcxxmoxv.supabase.co/functions/v1/busy-mini-apps";
 const BUSY_MINI_APP_LINK_URL =
@@ -1530,6 +1532,7 @@ export {
   BUSY_SOCIAL_URL,
   BUSY_SOCIAL_PUBLISH_URL,
   BUSY_WEBSITE_PUBLISH_URL,
+  BUSY_WEBSITE_DESIGN_REVIEW_URL,
   BUSY_MINI_APPS_URL,
   BUSY_MINI_APP_LINK_URL,
   BUSY_SUPABASE_URL,
