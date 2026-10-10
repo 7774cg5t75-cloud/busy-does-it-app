@@ -38,7 +38,7 @@ for(const x of ["Hair salon","Exterior cleaning","Festival catering"]){
 }
 const screen=readFileSync(new URL("../src/screens/websiteBuilder.js",import.meta.url),"utf8");
 ok(screen.includes("websiteDesignAlternative(draft)"),"Customer editor uses suggestions");
-ok(screen.includes("s.applyWebsiteChange(designAlternative.suggested.instruction)"),
+ok(screen.includes("s.applyWebsiteChange(selectedStyle.instruction)"),
  "Button uses private editor's tracked and undoable action");
 ok(screen.includes("Your business information, photos and"),"Plain-language scope warning");
 const generator=readFileSync(new URL("./build-website-design-gallery-v3100.mjs",import.meta.url),"utf8");
