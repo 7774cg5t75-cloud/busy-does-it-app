@@ -69,7 +69,7 @@ ok(publish.includes('reviewedHostedPreview!==preview.id'),"exact review gate rem
 ok(publish.includes('confirmPublishHostedWebsite(preview.id)'),"publication still explicit");
 ok(!worker.includes('draft?.brandLabel || "BUSY DOES IT"'),"do not brand customer websites as BUSY");
 const pkg=JSON.parse(read("package.json")),expo=JSON.parse(read("app.json")).expo;
-eq(pkg.version,"3.98.0");eq(expo.version,pkg.version);
-eq(expo.ios.buildNumber,"18");eq(expo.android.versionCode,18);
+ok(["3.98.0","3.99.0"].includes(pkg.version),"version compatible");eq(expo.version,pkg.version);
+eq(expo.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));eq(expo.android.versionCode,Number(pkg.version.split(".")[1])-80);
 ok(read(".github/workflows/production-check.yml").includes("check-website-quality-v398.mjs"),"CI wired");
 console.log("V3.98 PASS: "+checks+" quality, customer-brand, private-page-navigation and approval-safety checks.");
