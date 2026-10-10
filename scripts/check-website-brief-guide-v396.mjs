@@ -28,7 +28,7 @@ has(ui,'title={s.websiteConversationMode === "build"');
 has(ui,'What should I tell BUSY about my website?');
 has(ui,'How do I explain the changes I want?');
 has(ui,'Tell BUSY what your business does');
-for(const piece of ['who your customers are','services or products','area you serve','call, book or request a quote','style you like','photos, logo, reviews','EXAMPLE ONLY','gardening business in Exeter','Use your own real business details','Let BUSY guide me step by step','Ask me one question at a time','Use my confirmed business details','don\'t invent any missing facts','Don\'t publish anything','setTypedCommand(','not sent until you tap Ask BUSY']){
+for(const piece of ['who it helps','business offers','where you work','call, book or request a quote','colours, photos, logo, reviews','EXAMPLE:','gardening business in Exeter','Replace this with your real details','Let BUSY guide me step by step','Ask me one question at a time','Use my confirmed business details','don\'t invent any missing facts','Don\'t publish anything','setTypedCommand(','without sending anything']){
   has(ui,piece,"Website guidance: "+piece);
 }
 order(ui,'eyebrow="A little help before you start"','eyebrow="Voice"');
