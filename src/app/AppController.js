@@ -13254,6 +13254,7 @@ function App() {
         deploymentId,
         scope,
         pages,
+        brandName: String(previewRow?.source_draft?.businessName || websiteDraft?.businessName || "").trim().slice(0, 90),
         pageId: home?.id || "home",
         version: 1,
         html,
