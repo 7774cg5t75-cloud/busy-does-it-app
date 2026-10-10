@@ -4,6 +4,7 @@ import {showcaseBrandBrain} from "../sites/busy-headquarters/demo-brand-brain.mj
 import {buildWebsiteLaunchProof,exactBusyHost} from "../src/core/websiteLaunchProof.mjs";
 import {designForWebsite,designCss} from "../supabase/functions/busy-website-worker/designSystem.mjs";
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
+import {applyWebsiteVisualEdit} from "../supabase/functions/busy-website-worker/designEdits.mjs";
 import {planWebsiteDesign} from "../supabase/functions/busy-website-worker/designPlanner.mjs";
 
 const root=new URL("../",import.meta.url);
@@ -17,10 +18,11 @@ const source=stripExport(read("src/domain/websiteBuilder.js"))
  .replace(/^import \{ syncWebsitePageModel \} from "\.\/websiteManagement";\s*/,"")
  .replace(/^import \{ designForWebsite, designCss \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designSystem\.mjs";\s*/,"")
  .replace(/^import \{ planWebsiteDesign \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designPlanner\.mjs";\s*/,"")
- .replace(/^import \{ reviewWebsiteDesign \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designReview\.mjs";\s*/,"");
+ .replace(/^import \{ reviewWebsiteDesign \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designReview\.mjs";\s*/,"")
+ .replace(/^import \{ applyWebsiteVisualEdit \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designEdits\.mjs";\s*/,"");
 assert.ok(!source.includes("import { syncWebsitePageModel }"));
-const build=new Function("syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign",source+
- ";return {buildWebsiteDraft,renderWebsiteHtml};")(management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign);
+const build=new Function("syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign","applyWebsiteVisualEdit",source+
+ ";return {buildWebsiteDraft,renderWebsiteHtml};")(management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit);
 const draft=build.buildWebsiteDraft({brandBrain:showcaseBrandBrain});
 const committedDemo=read("sites/busy-headquarters/demo/index.html");
 assert.ok(draft.html.includes('class="hero hero-large'),"Current builder renders professionally styled pages.");
