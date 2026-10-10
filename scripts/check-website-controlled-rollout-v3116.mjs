@@ -109,7 +109,7 @@ eq(founderProviderReview().status,"unavailable","Missing founder report never de
 const founderScreen=readFileSync(new URL("../src/screens/founderServiceCosts.js",import.meta.url),"utf8");
 ok(founderScreen.includes('title="What needs checking"'),"Actual founder screen exposes next verification tasks");
 const domainScreen=readFileSync(new URL("../src/screens/websitePublishing.js",import.meta.url),"utf8");
-ok(domainScreen.includes("websiteDomainSwitchSafety(view)"),"Customer sees safe-domain handoff notice");
+ok(domainScreen.includes("websiteDomainSwitchSafety(view,launchProof)"),"Customer sees safe-domain handoff notice");
 ok(readFileSync(new URL("../.github/workflows/production-check.yml",import.meta.url),"utf8")
  .includes("check-website-controlled-rollout-v3116.mjs"),"Regression suite runs in production foundation");
 console.log("V3.116 PASS: "+n+" screenshot provenance, private learning, domain fallback and founder QA assertions.");
