@@ -16,7 +16,7 @@ const expo = JSON.parse(read("app.json")).expo;
 
 const checks = [
   ["version matched without changing bundle ID", () => {
-    assert.ok(["3.85.0", "3.86.0", "3.87.0", "3.88.0", "3.89.0","3.90.0","3.91.0","3.92.0","3.93.0","3.94.0","3.95.0","3.96.0"].includes(pkg.version));
+    assert.ok(["3.85.0", "3.86.0", "3.87.0", "3.88.0", "3.89.0","3.90.0","3.91.0","3.92.0","3.93.0","3.94.0","3.95.0","3.96.0","3.97.0"].includes(pkg.version));
     assert.equal(expo.version, pkg.version);
     assert.equal(expo.ios.bundleIdentifier, "com.busydoesit.app");
     assert.equal(expo.ios.buildNumber, String(Number(pkg.version.split(".")[1]) - 80));
