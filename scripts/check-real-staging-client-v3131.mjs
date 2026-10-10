@@ -116,7 +116,7 @@ await rejects(()=>service().inspector.signIn("other@example.invalid","any"),
 await rejects(()=>service({passwordRejected:true}).inspector.signIn(
  FIXTURES.a.email,"wrong-password"),"staging-sign-in-failed");
 await rejects(()=>service({wrongUser:true}).inspector.signIn(
- FIXTURES.a.email,"only-entered-on-test-device"),"staging-identity-unverified");
+ FIXTURES.a.email,"only-entered-on-test-device"),"staging-own-row-failed");
 await rejects(()=>service({leak:true}).inspector.signIn(
  FIXTURES.a.email,"only-entered-on-test-device"),
  "staging-cross-owner-denial-failed");
