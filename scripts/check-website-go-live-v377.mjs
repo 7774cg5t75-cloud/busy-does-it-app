@@ -43,8 +43,18 @@ assert.equal(liveNoProof.isVerified,false);
 const mismatch=buildWebsiteLaunchJourney({brand:brandReady,draft,publishing:{
  liveDeployment:{id:"old"},website:{current_live_deployment_id:"other",last_health_check_at:"2026-10-09T08:00:00Z"},healthStatus:"healthy"}});
 assert.equal(mismatch.isVerified,false);
-const verified=buildWebsiteLaunchJourney({brand:brandReady,draft,publishing:{
- liveDeployment:{id:"live1"},website:{current_live_deployment_id:"live1",last_health_check_at:"2026-10-09T08:00:00Z"},healthStatus:"healthy"}});
+// V3.93: a stale or self-reported healthy status never proves the
+// public HTTPS address serves the approved deployment.
+const weakEvidence={liveDeployment:{id:"live1"},
+ website:{current_live_deployment_id:"live1",last_health_check_at:"2026-10-09T08:00:00Z"},
+ healthStatus:"healthy"};
+const notVerified=buildWebsiteLaunchJourney({brand:brandReady,draft,publishing:weakEvidence});
+assert.equal(notVerified.currentStatus,"live_unverified");
+assert.equal(notVerified.isVerified,false);
+assert.equal(notVerified.isPublic,false);
+assert.equal(notVerified.nextAction,"verify");
+const verified=buildWebsiteLaunchJourney({brand:brandReady,draft,
+ publishing:weakEvidence,deliveryProof:{verified:true}});
 assert.equal(verified.currentStatus,"live_verified");
 assert.equal(verified.isVerified,true);
 assert.equal(verified.nextAction,"maintain");
