@@ -35,6 +35,7 @@ jobs:
           node scripts/check-real-staging-auth-v3128.mjs
           node scripts/check-staging-host-v3128.mjs
           node scripts/check-staging-hosted-evidence-v3128.mjs
+          node scripts/check-staging-runtime-v3128.mjs
           node scripts/check-website-exact-version-v3126.mjs
   read-only-real-staging-probe:
     if: github.event_name == 'workflow_dispatch' && inputs.approval_phrase == 'APPROVE_READ_ONLY_STAGING_AUTH_3128'
