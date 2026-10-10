@@ -13,7 +13,7 @@ const runtime=read("src/core/runtime.js");
 const ui=talk.slice(talk.indexOf("  return (\n    <Shell\n      s={s}"));
 const checks=[
 ["v3.92 package and runtime",()=>{
-  assert.ok(["3.92.0","3.93.0","3.94.0","3.95.0","3.96.0","3.97.0","3.98.0","3.99.0","3.100.0"].includes(pkg.version));
+  assert.ok(["3.92.0","3.93.0","3.94.0","3.95.0","3.96.0","3.97.0","3.98.0","3.99.0","3.100.0","3.101.0"].includes(pkg.version));
   assert.equal(expo.version,pkg.version);
   assert.equal(expo.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));
   assert.ok(runtime.includes('const APP_VERSION = "'+pkg.version.slice(0,-2)+'";'));
