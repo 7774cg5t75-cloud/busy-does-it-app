@@ -1,9 +1,10 @@
 name: V3.129 fictional authenticated staging preview bundle
 on:
   push:
-    branches: [v3.129]
+    branches: [v3.129, v3.130]
     paths:
       - 'staging/fictional-hosted-preview-worker-v3129.mjs'
+      - 'scripts/check-staging-live-readiness-v3130.mjs'
       - 'scripts/build-fictional-hosted-bundle-v3129.mjs'
       - 'scripts/check-fictional-hosted-preview-v3129.mjs'
       - 'scripts/check-website-hosted-browser-v3129.mjs'
