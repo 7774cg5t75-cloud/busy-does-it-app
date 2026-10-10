@@ -11,6 +11,7 @@ on:
       - 'scripts/check-staging-ios-profile-v3132.mjs'
       - 'scripts/check-staging-remote-anonymous-v3132.mjs'
       - 'scripts/export-and-check-stage-ios-v3132.mjs'
+      - '.github/workflows/production-check.yml'
       - '.github/workflows/staging-ios-package-v3132.yml'
   workflow_dispatch:
     inputs:
