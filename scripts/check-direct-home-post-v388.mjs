@@ -16,7 +16,7 @@ assert.ok(start>=0&&end>start);
 const body=home.slice(start,end);
 const check=[
   ["V3.88 version and iOS bundle",()=>{
-    assert.ok(["3.88.0","3.89.0","3.90.0","3.91.0","3.92.0","3.93.0","3.94.0"].includes(pkg.version));
+    assert.ok(["3.88.0","3.89.0","3.90.0","3.91.0","3.92.0","3.93.0","3.94.0","3.95.0"].includes(pkg.version));
     assert.equal(config.version,pkg.version);
     assert.equal(config.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));
     assert.equal(config.ios.bundleIdentifier,"com.busydoesit.app");
