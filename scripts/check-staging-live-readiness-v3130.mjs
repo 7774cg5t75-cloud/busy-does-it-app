@@ -42,6 +42,14 @@ eq(busyRuntimeCloudConfig({...p,expectedStagingSupabaseRef:""}).configured,
  true,"General helper remains backwards compatible with V3.128 fixtures");
 eq(busyRuntimeCloudConfig({...p,stagingPublishableKey:""}).configured,
  false,"Missing staging key never becomes production connection");
+const worker=load("staging/fictional-hosted-preview-worker-v3129.mjs");
+ok(worker.includes('APPROVED_STAGING_REF="pnjdlogwegnqbsfpcofw"'),
+ "Fictional HTTPS site worker must pin the same real staging project");
+ok(worker.includes("project===APPROVED_STAGING_REF"),
+ "Staging Worker refuses any other third project reference");
+const envExample=load(".env.staging.example");
+ok(envExample.includes("EXPO_PUBLIC_BUSY_STAGING_SUPABASE_URL=https://pnjdlogwegnqbsfpcofw.supabase.co"),
+ "Sample staging EAS environment uses only the newly-created public project URL");
 const runtime=load("src/core/runtime.js");
 ok(runtime.includes('expectedStagingSupabaseRef:"'+project+'"'),
  "Shared iPhone app runtime requires exactly connected staging project");
