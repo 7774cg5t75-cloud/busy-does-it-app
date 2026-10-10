@@ -1,0 +1,84 @@
+name: V3.128 isolated hosted staging and real Supabase Auth preparation
+on:
+  push:
+    branches: [v3.128]
+    paths:
+      - 'scripts/lib/stagingSupabaseAuthV3128.mjs'
+      - 'scripts/lib/stagingHostedVerificationV3128.mjs'
+      - 'scripts/check-real-staging-auth-v3128.mjs'
+      - 'scripts/check-staging-host-v3128.mjs'
+      - 'scripts/check-staging-hosted-evidence-v3128.mjs'
+      - 'scripts/run-real-staging-auth-v3128.mjs'
+      - 'scripts/run-hosted-staging-marker-v3128.mjs'
+      - 'staging/isolated-staging-worker-v3128.mjs'
+      - 'staging/wrangler.staging.example.toml'
+      - '.github/workflows/real-staging-auth-v3128.yml'
+  workflow_dispatch:
+    inputs:
+      approval_phrase:
+        description: "Manual read-only staging probe approval; no writes/deployments"
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  source-only-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Run no-network Auth identity and staging host boundary tests
+        run: |
+          node scripts/check-real-staging-auth-v3128.mjs
+          node scripts/check-staging-host-v3128.mjs
+          node scripts/check-staging-hosted-evidence-v3128.mjs
+          node scripts/check-website-exact-version-v3126.mjs
+  read-only-real-staging-probe:
+    if: github.event_name == 'workflow_dispatch' && inputs.approval_phrase == 'APPROVE_READ_ONLY_STAGING_AUTH_3128'
+    needs: source-only-safety
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: isolated-staging
+    # The isolated-staging GitHub Environment must have protected reviewers,
+    # short-lived fictional-user sessions and separate nonproduction credentials
+    # BEFORE anyone manually dispatches the workflow.
+    env:
+      BUSY_STAGING_AUTH_APPROVAL: ${{ inputs.approval_phrase }}
+      BUSY_STAGING_SOURCE_SHA: ${{ github.sha }}
+      BUSY_STAGING_PROJECT_REF: ${{ secrets.BUSY_STAGING_PROJECT_REF }}
+      BUSY_PRODUCTION_PROJECT_REF: ${{ secrets.BUSY_PRODUCTION_PROJECT_REF }}
+      BUSY_SLOWROAST_PROJECT_REF: ${{ secrets.BUSY_SLOWROAST_PROJECT_REF }}
+      BUSY_STAGING_PUBLISHABLE_KEY: ${{ secrets.BUSY_STAGING_PUBLISHABLE_KEY }}
+      BUSY_STAGING_OWNER_A_ID: ${{ secrets.BUSY_STAGING_OWNER_A_ID }}
+      BUSY_STAGING_OWNER_B_ID: ${{ secrets.BUSY_STAGING_OWNER_B_ID }}
+      BUSY_STAGING_ROW_A_ID: ${{ secrets.BUSY_STAGING_ROW_A_ID }}
+      BUSY_STAGING_ROW_B_ID: ${{ secrets.BUSY_STAGING_ROW_B_ID }}
+      BUSY_STAGING_OWNER_A_JWT: ${{ secrets.BUSY_STAGING_OWNER_A_JWT }}
+      BUSY_STAGING_OWNER_B_JWT: ${{ secrets.BUSY_STAGING_OWNER_B_JWT }}
+      BUSY_STAGING_REJECTED_JWT: ${{ secrets.BUSY_STAGING_REJECTED_JWT }}
+      BUSY_STAGING_HOST_ORIGIN: ${{ secrets.BUSY_STAGING_HOST_ORIGIN }}
+      BUSY_STAGING_EXPECTED_HOST: ${{ secrets.BUSY_STAGING_EXPECTED_HOST }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Confirm exact source SHA and credentials are present
+        run: |
+          test "$BUSY_STAGING_SOURCE_SHA" = "$GITHUB_SHA"
+          test -n "$BUSY_STAGING_PROJECT_REF"
+          test -n "$BUSY_STAGING_HOST_ORIGIN"
+          test -n "$BUSY_STAGING_OWNER_A_JWT"
+          test -n "$BUSY_STAGING_OWNER_B_JWT"
+      - name: Validate genuine Supabase Auth and read-only RLS observations
+        run: node scripts/run-real-staging-auth-v3128.mjs
+      - name: Verify separate HTTPS staging marker WITHOUT sending JWT
+        run: node scripts/run-hosted-staging-marker-v3128.mjs
+      - name: Explicit scope
+        run: |
+          echo "Manual GET-only observations requiring separate review."
+          echo "No production writes, customer data, paid AI, staging setup,"
+          echo "signed iOS build, DNS changes or automatic release approval."
