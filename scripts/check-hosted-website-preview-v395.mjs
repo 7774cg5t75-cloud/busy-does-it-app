@@ -79,7 +79,7 @@ ok(publishing.includes('s.websitePreviewOpenedId===preview?.id'),"Review opener 
 ok(publishing.includes("reviewedHostedPreview!==preview.id"),"Explicit approval remains gated");
 ok(routes.includes("hostedWebsitePreview: HostedWebsitePreview"),"native route exists");
 assert.equal(pkg.dependencies["react-native-webview"],"13.16.1");assertions++;
-assert.ok(["3.95.0","3.96.0"].includes(pkg.version));assertions++;
+assert.ok(["3.95.0","3.96.0","3.97.0"].includes(pkg.version));assertions++;
 assert.equal(config.version,pkg.version);assertions++;
 assert.equal(config.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));assertions++;
 ok(read(".github/workflows/production-check.yml").includes("check-hosted-website-preview-v395.mjs"),"CI wired");
