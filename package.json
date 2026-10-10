@@ -1,12 +1,15 @@
 {
   "name": "busy-does-it-app",
-  "version": "3.103.0",
+  "version": "3.104.0",
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
     "check:production": "node scripts/check-production.mjs",
     "check:website-scale": "node scripts/website-platform-simulation.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.58.2"
   },
   "dependencies": {
     "expo": "~57.0.23",
