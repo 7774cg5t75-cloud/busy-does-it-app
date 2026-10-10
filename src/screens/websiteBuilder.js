@@ -8,6 +8,7 @@ import { buildWebsiteLaunchJourney } from "../core/websiteLaunchJourney";
 import { buildWebsiteLaunchProof } from "../core/websiteLaunchProof.mjs";
 import { websiteQualityGuidance } from "../core/websiteQualityGuidance.mjs";
 import { websiteDesignAlternative } from "../core/websiteDesignAlternatives.mjs";
+import { websiteCustomerJourney } from "../core/websiteCustomerJourney.mjs";
 import { renderWebsiteHtml } from "../domain/websiteBuilder";
 
 function WebsiteBuilder({ s }) {
@@ -17,6 +18,7 @@ function WebsiteBuilder({ s }) {
   const [showWebsiteDetails, setShowWebsiteDetails] = React.useState(false);
   const [showQualityIdeas, setShowQualityIdeas] = React.useState(false);
   const [showDesignReview, setShowDesignReview] = React.useState(false);
+  const [designOptionIndex,setDesignOptionIndex]=React.useState(0);
   const [showCustomization, setShowCustomization] = React.useState(false);
   const [showVisualAi, setShowVisualAi] = React.useState(false);
   const hostedPreview = s.websitePublishingView?.previewDeployment || null;
@@ -30,6 +32,13 @@ function WebsiteBuilder({ s }) {
   const missingDeliveryCheck=deliveryProof.checks.find(check=>!check.ready);
   const qualityGuide = websiteQualityGuidance({ brandBrain: brand, draft });
   const designAlternative=websiteDesignAlternative(draft);
+  const designChoices=designAlternative.options||[];
+  const selectedStyle=designChoices.length?designChoices[designOptionIndex%designChoices.length]:null;
+  React.useEffect(()=>setDesignOptionIndex(0),
+    [draft?.id,draft?.theme?.designFamily,draft?.designPlan?.family]);
+  const customerJourney=websiteCustomerJourney({
+    journey,publishing:s.websitePublishingView,proof:deliveryProof,hasDraft:!!draft
+  });
   const nextStep=()=>{
     switch(journey.nextAction){
       case "brand":return s.openBrandIdentity();
@@ -85,6 +94,9 @@ function WebsiteBuilder({ s }) {
         ) : null}
         <MetricRow left="Public website" right={journey.isVerified ? "Verified" :
           s.websitePublishingView?.liveDeployment ? "Checking connection" : "Not published"} />
+        <Text style={styles.cardBody}>
+          {"Next: "+customerJourney.message}
+        </Text>
         <Button label={nextLabel} primary onPress={nextStep} />
         <Button label="Choose a website address (optional)" onPress={s.openWebsitePublishing} />
         <Button label={draft ? "Make changes by talking to BUSY" : "Build it by talking to BUSY"}
@@ -131,15 +143,18 @@ function WebsiteBuilder({ s }) {
               ))}
             </>
           ) : null}
-          {designAlternative.suggested ? (
+          {selectedStyle ? (
             <>
               <Text style={styles.cardBody}>
-                {"Next style to explore: "+designAlternative.suggested.title+
-                  ". "+designAlternative.suggested.detail}
+                {"Suggested look: "+selectedStyle.title+". "+selectedStyle.detail}
               </Text>
-              <Button
-                label={"Try "+designAlternative.suggested.title+" (private draft)"}
-                onPress={()=>s.applyWebsiteChange(designAlternative.suggested.instruction)} />
+              <Button label={"Try "+selectedStyle.title+" (private draft)"}
+                onPress={()=>s.applyWebsiteChange(selectedStyle.instruction)} />
+              {designChoices.length>1 ? (
+                <Button label="Show me another design style"
+                  onPress={()=>setDesignOptionIndex(current=>
+                    (current+1)%designChoices.length)} />
+              ) : null}
               <Text style={styles.cardBody}>
                 Only the private design changes. Your business information, photos and
                 published website stay as they are; you can undo the change in the editor.

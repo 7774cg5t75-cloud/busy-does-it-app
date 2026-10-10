@@ -71,7 +71,8 @@ function evaluateDomainPurchase({
  renewalsAcknowledged=false,registrantVerified=false,
  paymentAuthorized=false,checkoutIdempotencyKey=""
 }={}){
- const reasons=quoteReason(quote,{domain,businessId,now});
+ const quoteIssues=quoteReason(quote,{domain,businessId,now});
+ const reasons=[...quoteIssues];
  if(registrarEnabled!==true)reasons.push("Registrar purchases are not enabled in BUSY.");
  if(ownerApproved!==true)reasons.push("The business owner has not approved this purchase.");
  if(termsAccepted!==true)reasons.push("Registrar terms must be accepted.");
@@ -84,8 +85,9 @@ function evaluateDomainPurchase({
    canPrepareCheckout:reasons.length===0,
    canExecutePurchase:false, // No purchasing adapter, DB ledger or licensed reseller is connected.
    reasons,
-   transparentCharges:quote&&reasons.every(x=>!x.includes("Registration, tax")&&
-      !x.includes("Currency"))&&money(quote.registerMinor)&&money(quote.renewMinor)?
+   // Display quoted amounts only after *all* provider/tenant/freshness terms pass.
+   // An invalid foreign-tenant quote must not leak another customer's prices.
+   transparentCharges:quote&&quoteIssues.length===0?
       {currency:quote.currency,registerMinor:quote.registerMinor,
         taxMinor:quote.taxMinor,totalMinor:quote.totalMinor,
         renewMinor:quote.renewMinor,years:quote.years,premium:quote.premium}:null,

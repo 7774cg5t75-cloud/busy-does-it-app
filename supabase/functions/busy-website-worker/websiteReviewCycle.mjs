@@ -76,10 +76,17 @@ function compareWebsiteAudits(before,after){
    // A new quality audit is required on both sides of the comparison.
    if(!!b.qualityAudit!==!!a.qualityAudit)
      return {valid:false,reason:"Both designs must use the same quality measurement version"};
-   if(b.qualityAudit&&a.qualityAudit)
+   if(b.qualityAudit&&a.qualityAudit){
      for(const [key,label] of qualityProblemMetrics)
        if(a.qualityAudit[key]>b.qualityAudit[key])
          worsenedMetrics.push(type+" "+label+" increased");
+     if(a.qualityAudit.unassessedContrastCount>b.qualityAudit.unassessedContrastCount)
+       worsenedMetrics.push(type+" unassessed text contrast increased");
+     // Do not claim an improvement if the reviewer has lost measurable
+     // coverage of copy whose readability it previously assessed.
+     if(a.qualityAudit.assessedTextCount<b.qualityAudit.assessedTextCount)
+       worsenedMetrics.push(type+" inspected text coverage decreased");
+   }
  }
  const noNewMeasuredProblems=newProblems.length===0&&worsenedMetrics.length===0&&as.length<=bs.length;
  return {
