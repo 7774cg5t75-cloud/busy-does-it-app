@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {createClient} from "jsr:@supabase/supabase-js@2";
-import {normalizeVisualCritique} from "../busy-website-worker/visualCriticContract.mjs";
+import {normalizeVisualCritique} from "./visualCriticContract.mjs";
 
 /**
  * V3.105 authenticated, gated website screenshot visual critic.
