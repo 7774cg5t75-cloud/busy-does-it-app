@@ -13,7 +13,7 @@ const runtime=read("src/core/runtime.js");
 const ui=talk.slice(talk.indexOf("  return (\n    <Shell\n      s={s}"));
 const checks=[
 ["v3.92 package and runtime",()=>{
-  assert.ok(["3.92.0","3.93.0","3.94.0","3.95.0"].includes(pkg.version));
+  assert.ok(["3.92.0","3.93.0","3.94.0","3.95.0","3.96.0"].includes(pkg.version));
   assert.equal(expo.version,pkg.version);
   assert.equal(expo.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));
   assert.ok(runtime.includes('const APP_VERSION = "'+pkg.version.slice(0,-2)+'";'));
@@ -24,7 +24,7 @@ const checks=[
   const type=loc('eyebrow="Or type"'),quick=loc('showQuickAsks ? (');
   const history=loc('showConversation ? ('),audit=loc('showAdvanced ? (');
   assert.ok(mic<answer && answer<type && type<quick && quick<history && history<audit);
-  assert.ok(ui.includes('title={s.businessCreationConversationActive ? "Talk to BUSY'));
+  assert.ok(ui.includes('"Talk to BUSY • Build my business"'));
   assert.ok(!ui.includes('eyebrow="Operator 2.0 boundary"') || ui.indexOf('eyebrow="Operator 2.0 boundary"')>audit);
 }],
 ["Historical and advanced details start collapsed and can be expanded",()=>{
