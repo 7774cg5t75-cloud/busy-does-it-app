@@ -66,6 +66,46 @@ function applyWebsiteVisualEdit(draft,instruction){
    return apply("Updated your "+rows[at].title+" service description with your wording.");
  }
 
+ // New user-authored information sections are first-class website blocks.
+ // Only the owner's literal wording is used; this cannot create fake reviews.
+ match=text.match(/^(?:add|create) (?:a |new )?(?:text |information )?section (?:called|named) (.+?) (?:with (?:the )?(?:text|wording)|saying)\s+(.+)$/i);
+ if(match){
+   const title=clean(match[1]).slice(0,90),body=clean(match[2]).slice(0,2500);
+   if(!title||!body)return fail("Supply a section name and the exact text to display.");
+   if(sections.filter(s=>s.id.startsWith("custom-")).length>=12)
+     return fail("This website has reached its current custom-section limit. You can edit existing sections.");
+   const base="custom-"+slug(title).slice(0,65);
+   if(base==="custom-")return fail("Use a descriptive section name.");
+   let id=base, suffix=2;
+   while(sections.some(s=>s.id===id)){id=base+"-"+suffix++;if(suffix>30)return fail("Please choose another section name.");}
+   sections.splice(Math.max(1,sections.length-(sections.some(s=>s.id==="contact")?1:0)),0,{
+     id,type:"text",title,body,enabled:true
+   });
+   return apply("Added a private website section with your exact approved wording.");
+ }
+
+ match=text.match(/^(?:change|set|update) (?:the )?(?:text|wording|description) (?:of|in|for) (?:the )?(.+?) section (?:to|as)\s+(.+)$/i);
+ if(match){
+   const target=clean(match[1]).toLowerCase();
+   const index=sections.findIndex(s=>s.enabled!==false&&(clean(s.title).toLowerCase()===target||s.id===slug(target)));
+   if(index<0)return fail("BUSY could not identify that section exactly. Use the displayed section heading.");
+   if(["hero","testimonials","faq","gallery","services"].includes(sections[index].id))
+     return fail("That section uses individual fields. Change a specific item or use the section's dedicated controls.");
+   sections[index].body=clean(match[2]).slice(0,2500);
+   return apply("Changed the "+sections[index].title+" section to your exact wording.");
+ }
+
+ match=text.match(/^(?:remove|delete) (?:the )?(.+?) section$/i);
+ if(match){
+   const target=clean(match[1]).toLowerCase();
+   const index=sections.findIndex(s=>s.id.startsWith("custom-")&&(clean(s.title).toLowerCase()===target||s.id===slug(target)));
+   if(index<0)return fail("To avoid deleting critical information, only extra sections can be deleted directly. Other sections can be hidden.");
+   const title=sections[index].title;
+   sections.splice(index,1);
+   theme.sectionOrder=list(theme.sectionOrder).filter(id=>id!==existing[index]?.id);
+   return apply("Removed your extra "+title+" section from the private website.");
+ }
+
  // No image is added or replaced by URL/guess: photo changes require the
  // pre-existing approved media picker and image provenance safeguards.
  if(/^(?:replace|change|add|swap|upload) (?:the )?(?:hero |main |first |gallery )?(?:photo|image|picture)/i.test(text))
@@ -123,9 +163,14 @@ function applyWebsiteVisualEdit(draft,instruction){
    return apply("Moved the approved main photograph to the "+match[1]+".");
  }
 
- match=lower.match(/^(?:move|put) (?:the )?(services|about|gallery|testimonials|faq|contact)(?: section)? (before|above|after|below) (?:the )?(services|about|gallery|testimonials|faq|contact)(?: section)?$/);
+ match=lower.match(/^(?:move|put) (?:the )?(.+?)(?: section)? (before|above|after|below) (?:the )?(.+?)(?: section)?$/);
  if(match){
-   const from=match[1],to=match[3];
+   const resolve=(name)=>{
+     const label=clean(name).toLowerCase();
+     return sections.find(s=>s.enabled!==false&&(s.id===label||clean(s.title).toLowerCase()===label))?.id || "";
+   };
+   const from=resolve(match[1]),to=resolve(match[3]);
+   if(!from||!to)return fail("Choose the names of two existing website sections.");
    if(from===to)return fail("Choose two different sections.");
    if(find(from)<0||find(to)<0)return fail("Both sections must exist in your draft to move them.");
    const base=list(draft?.designPlan?.sectionOrder);
