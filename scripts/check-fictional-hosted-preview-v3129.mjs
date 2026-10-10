@@ -49,8 +49,8 @@ for(const site of artifacts){
  eq(createHash("sha256").update(body).digest("hex"),site.digest,"Exact response checksum");
  eq(r.headers.get("x-content-sha256"),site.digest,"Exact digest header");
  eq(r.headers.get("x-preview-revision"),String(site.revision),"Exact revision");
- yes(body.includes(site.slot==="a"?"Hillside Gardens":"Fire & Table Catering"),"Correct identity");
- yes(!body.includes(site.slot==="a"?"Fire & Table Catering":"Hillside Gardens"),"No foreign content");
+ yes(body.includes(site.slot==="a"?"Hillside Gardens":"Fire &amp; Table Catering"),"Correct escaped HTML identity");
+ yes(!body.includes(site.slot==="a"?"Fire &amp; Table Catering":"Hillside Gardens"),"No foreign content");
  yes(r.headers.get("content-security-policy").includes("default-src 'none'"),"Static-only CSP");
  yes(r.headers.get("x-robots-tag").includes("noindex"),"No indexing");
  eq(r.headers.get("cache-control"),"private, no-store, max-age=0","No public cache");
