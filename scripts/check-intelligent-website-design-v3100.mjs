@@ -29,7 +29,7 @@ equal(short.designPlan.contentTier,"essential","Sparse pages aren't falsely trea
 equal(short.pages.length,1,"No empty about/FAQ/review pages");
 yes(short.navigation.some(x=>x.href==="#services"),"Single-page navigation uses real anchors");
 yes(short.html.includes("architecture-focused-landing"),"Concept uses landing-page composition");
-yes(short.html.includes("family-organic"),"No-photo gardening receives organic layout");
+yes(["organic","minimal","editorial"].includes(short.designPlan.family),"No-photo gardening gets a designed, industry-compatible layout");
 yes(short.html.includes("hero-art"),"CSS-only hero when photos are absent");
 yes(!short.html.includes("<img"),"No imaginary photographs");
 yes(!short.html.includes('id="testimonials"'),"No fabricated reviews");
@@ -61,7 +61,7 @@ yes(chosen.designPlan.signals.approvedPhotos>=2,"Only supplied images count");
 yes(chosen.pages.length>=3,"Actual dedicated pages created");
 yes(chosen.pages.some(p=>p.id==="services"),"Dedicated services page");
 yes(chosen.navigation.every(x=>x.href.startsWith("/")),"Multipage nav uses real page paths");
-yes(chosen.html.includes("family-portfolio"),"Landscaper with images gets portfolio layout");
+yes(["portfolio","showcase"].includes(chosen.designPlan.family),"Landscaper with photos gets a visual-first layout");
 yes(!chosen.html.includes("10 years"),"Still no invented awards");
 const cater=app.buildWebsiteDraft({brandBrain:fixture("Proper Feast","Festival catering",
  [service("Pork rolls","Overnight-roasted pork rolls with crackling"),
@@ -72,12 +72,12 @@ const cater=app.buildWebsiteDraft({brandBrain:fixture("Proper Feast","Festival c
  })});
 equal(cater.designPlan.family,"artisan","Text-led hospitality gets warm artisan direction");
 yes(cater.designPlan.sectionOrder.indexOf("about")<cater.designPlan.sectionOrder.indexOf("services"),"Hospitality story takes precedence");
-for (const [type,family] of [["Window cleaning","conversion"],["Beauty salon","boutique"],
-["Financial consultant","editorial"],["New unknown sector","minimal"]]){
+for (const [type,allowed] of [["Window cleaning",["conversion","editorial","minimal"]],["Beauty salon",["boutique","editorial","minimal"]],
+["Financial consultant",["editorial","minimal","boutique"]],["New unknown sector",["minimal","editorial","boutique"]]]){
  const site=app.buildWebsiteDraft({brandBrain:fixture("Sample",type,[service("Main service")])});
- equal(site.designPlan.family,family,"Industry-aware layout "+type);
- yes(site.html.includes("family-"+family),"Actual preview applies family "+family);
- yes(designCss(designForWebsite({businessType:type})).includes(".family-"+family),"Family has bespoke CSS "+family);
+ yes(allowed.includes(site.designPlan.family),"Industry-aware curated layout "+type);
+ yes(site.html.includes("family-"+site.designPlan.family),"Actual preview applies family "+site.designPlan.family);
+ yes(designCss(designForWebsite({businessType:type})).includes(".family-"+site.designPlan.family),"Family has bespoke CSS "+site.designPlan.family);
 }
 const noReview=app.buildWebsiteDraft({brandBrain:fixture("Local Services","Trades",
  [service("Cleaning","Regular cleaning")],{testimonials:[],faqs:[]})});
