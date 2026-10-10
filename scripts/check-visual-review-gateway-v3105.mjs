@@ -22,7 +22,7 @@ for(const s of [
  'BUSY_WEBSITE_SCREENSHOT_RENDERER_SECRET','BUSY_WEBSITE_VISUAL_AI_MODEL',
  'OPENAI_API_KEY','busy_reserve_website_visual_ai_call',
  'busy_finish_website_visual_ai_call','body.ownerConsent!==true',
- 'requestKey','action==="status"','action==="review"',
+ 'requestKey','action==="status"','["status","review"].includes(action)',
  'imageFromTrustedRenderer(', 'runVision(', 'max_output_tokens:650',
  'store:false','status="completed"','p_state:status',
  'changesApplied:false','published:false',
