@@ -7,6 +7,7 @@ import {founderOperationalPriorities} from "../core/founderOperationalPriorities
 import {websiteReleaseReadiness} from "../core/websiteReleaseReadiness.mjs";
 import {websitePilotReadiness} from "../core/websitePilotReadiness.mjs";
 import {websiteStagingReadiness} from "../core/websiteStagingReadiness.mjs";
+import {founderStagingSummary} from "../core/founderStagingSummary.mjs";
 import {founderNextSafeAction} from "../core/founderNextSafeAction.mjs";
 import {founderRehearsalGuidance} from "../core/founderRehearsalGuidance.mjs";
 import {founderRecoveryReview} from "../core/founderRecoveryReview.mjs";
@@ -20,6 +21,7 @@ function FounderOperations({s}){
   const [state,setState]=React.useState({owner:"",status:"idle",report:null,message:""});
   const [ackBusy,setAckBusy]=React.useState("");
   const [showOperatingEvidence,setShowOperatingEvidence]=React.useState(false);
+  const [showStagingEvidence,setShowStagingEvidence]=React.useState(false);
   const [ackError,setAckError]=React.useState("");
   const [reality,setReality]=React.useState({owner:"",status:"idle",data:null});
   const realityNonce=React.useRef(0);
@@ -89,6 +91,7 @@ function FounderOperations({s}){
   const release=websiteReleaseReadiness();
   const pilot=websitePilotReadiness();
   const staged=websiteStagingReadiness();
+  const stagedPlan=founderStagingSummary();
   const rehearsal=founderRehearsalGuidance({priorities:operational,pilot,release});
   const incidentReview=founderRecoveryReview({priorities:operational,rehearsal});
   const safeAutomation=founderSafeAutomationSummary({priorities:operational});
@@ -165,7 +168,24 @@ function FounderOperations({s}){
           tone="blue">
           <MetricRow left="Independently verified staging checks"
             right={show(staged.passed)+" of "+show(staged.total)}/>
-          <Text style={styles.sectionLabel}>{"Next: "+staged.next}</Text>
+          <Text style={styles.sectionLabel}>{"Next: "+stagedPlan.next}</Text>
+          <MetricRow left="Actual cloud staging" right="Not verified"/>
+          <Button label={showStagingEvidence?"Hide staging checks":"Why isn't staging ready yet?"}
+            onPress={()=>setShowStagingEvidence(v=>!v)}/>
+          {showStagingEvidence?(
+            <>
+              <MetricRow left="Isolated environment config"
+                right={show(stagedPlan.environment.passed)+" of "+show(stagedPlan.environment.total)}/>
+              <MetricRow left="Hosted website rehearsal"
+                right={show(stagedPlan.journey.passed)+" of "+show(stagedPlan.journey.total)}/>
+              <Text style={styles.sectionLabel}>
+                {"Cloud gate: "+staged.next}
+              </Text>
+              <Text style={styles.sectionLabel}>
+                "Business App previews must match the immutable version and current draft. Real staging app verification is still outstanding."
+              </Text>
+            </>
+          ):null}
           <MetricRow left="Production credentials or writes" right="Not authorised"/>
         </Card>
         <Card eyebrow="Pre-release audit"
