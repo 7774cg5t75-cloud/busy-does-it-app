@@ -80,8 +80,6 @@ const nothing=websiteDomainSwitchSafety();
 eq(nothing.readyToRecommend,false,"No saved domain does not mean ready");
 eq(nothing.willSwitchAutomatically,false,"Safe transition never changes DNS");
 eq(nothing.willBuyOrTransferDomain,false,"Domain switching is not purchasing");
-eq(websiteDomainSwitchSafety(p,{verified:true,hostname:"someoneelse.busydoesit.co.uk"}).readyToRecommend,
- false,"Proof for another website is not accepted");
 const previous={hostname:"shop.busydoesit.co.uk",live:true};
 const target={hostname:"shop.co.uk"};
 const p={defaultAddressState:{address:previous},domainState:{latest:target,
@@ -89,6 +87,8 @@ const p={defaultAddressState:{address:previous},domainState:{latest:target,
  liveDeployment:{id:"live-a"},verifiedDeploymentId:"live-a"};
 eq(websiteDomainSwitchSafety(p,{verified:true,hostname:previous.hostname}).readyToRecommend,true,
  "Independent launch proof supports fallback and custom domain");
+eq(websiteDomainSwitchSafety(p,{verified:true,hostname:"someoneelse.busydoesit.co.uk"}).readyToRecommend,
+ false,"Proof for another website is not accepted");
 eq(websiteDomainSwitchSafety(p,{verified:false,hostname:previous.hostname}).readyToRecommend,false,
  "Unverified actual public delivery cannot approve domain switch");
 eq(websiteDomainSwitchSafety({...p,defaultAddressState:{address:{...previous,live:false}}},
