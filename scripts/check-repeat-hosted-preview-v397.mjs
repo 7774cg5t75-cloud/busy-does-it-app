@@ -43,7 +43,7 @@ includes(editor,'onPress={() => s.go("websiteBuilder")}');
 excludes(editor,'Prepare / publish website',"No single misleading publish action");
 excludes(editor,'Static website source is generated',"Hide source-code status from customer preview");
 ordered(editor,'title="Website preview"','eyebrow="Your private preview"');
-ordered(editor,'eyebrow="Your private preview"','{visible');
+ordered(editor,'eyebrow="Your private preview"','eyebrow="Your design"');
 ordered(editor,'eyebrow="Your private preview"','Website Management & Go Live');
 
 // Return CTA must match the actual screen in navigation history.
