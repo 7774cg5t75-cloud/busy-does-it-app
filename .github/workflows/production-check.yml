@@ -85,6 +85,7 @@ jobs:
           node scripts/check-website-integrated-recovery-v3123.mjs
           node scripts/check-website-founder-private-preferences-v3123.mjs
           node scripts/check-website-staging-global-v3124.mjs
+          node scripts/check-website-staging-execution-v3125.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs
