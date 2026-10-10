@@ -66,7 +66,7 @@ includes(publishing,'onPress={() => s.confirmPublishHostedWebsite(preview.id)}')
 includes(publishing,'reviewedHostedPreview!==preview.id');
 includes(publishing,'disabled={openedHostedPreview!==preview.id||');
 includes(workflow,'node scripts/check-repeat-hosted-preview-v397.mjs');
-assert.ok(["3.97.0","3.98.0","3.99.0","3.100.0"].includes(packageJson.version));count++;
+assert.ok(["3.97.0","3.98.0","3.99.0","3.100.0","3.101.0"].includes(packageJson.version));count++;
 assert.equal(expo.version,packageJson.version);count++;
 assert.equal(expo.ios.buildNumber,String(Number(packageJson.version.split(".")[1])-80));count++;
 assert.equal(expo.android.versionCode,Number(packageJson.version.split(".")[1])-80);count++;
