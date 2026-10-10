@@ -141,8 +141,11 @@ eq(stale.signedIn,false,"Late Auth response cannot resurrect signed-out identity
 const root=readFileSync(new URL("../App.js",import.meta.url),"utf8");
 yes(root.includes('process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT==="isolated-staging"'),
  "App boots into staging screen only with explicit EAS setting");
-yes(root.includes("isolated?StagingSignInScreen:BusyDoesItApp"),
- "Normal Busy Does It app stays default");
+yes(root.includes('? require("./src/staging/StagingSignInScreen").default')&&
+ root.includes(': require("./BusyDoesItApp").default'),
+ "Normal Busy Does It app stays default, staging loads only test UI");
+yes(!root.includes('import BusyDoesItApp'),
+ "Staging does not eagerly evaluate production AppController");
 const ui=readFileSync(new URL("../src/staging/StagingSignInScreen.js",import.meta.url),"utf8");
 yes(ui.includes("secureTextEntry"),"Password obscured on screen");
 yes(ui.includes('setPassword("");'),"Password cleared from UI upon submission");
