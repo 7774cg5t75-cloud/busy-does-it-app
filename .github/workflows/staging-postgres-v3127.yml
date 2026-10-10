@@ -1,0 +1,61 @@
+name: V3.127 disposable PostgreSQL row-level security verification
+on:
+  push:
+    branches: [v3.127]
+    paths:
+      - 'staging/**'
+      - 'scripts/check-staging-database-contract-v3127.mjs'
+      - 'src/core/websiteDeploymentSelection.mjs'
+      - '.github/workflows/production-check.yml'
+      - '.github/workflows/staging-postgres-v3127.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ephemeral-postgres-rls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: busy_ephemeral_ci_only_v3127
+          POSTGRES_DB: busy_staging_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d busy_staging_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      BUSY_EPHEMERAL_RLS_CI: ALLOW_DISPOSABLE_TEST_ONLY
+      PGHOST: 127.0.0.1
+      PGPORT: "5432"
+      PGDATABASE: busy_staging_ci
+      PGUSER: postgres
+      PGPASSWORD: busy_ephemeral_ci_only_v3127
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Check isolated source contract and exact preview checks
+        run: |
+          node scripts/check-staging-database-contract-v3127.mjs
+          node scripts/check-website-exact-version-v3126.mjs
+      - name: Ensure PostgreSQL client is available
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y postgresql-client
+          fi
+          psql --version
+      - name: Execute real, ephemeral SQL RLS checks for two fictional owners
+        run: bash staging/check-postgres-rls-v3127.sh
+      - name: State what these results do NOT prove
+        run: |
+          echo "Only PostgreSQL on disposable GitHub Actions service with emulated JWT claims."
+          echo "No real Supabase cloud/Auth/JWT, production/project credentials, migration,"
+          echo "signed iOS build, paid API, real customers or hosted HTTPS validation."
