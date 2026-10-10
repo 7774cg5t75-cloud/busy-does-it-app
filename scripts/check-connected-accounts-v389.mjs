@@ -5,7 +5,7 @@ const code=read("src/screens/settings.js");
 const page=code.slice(code.indexOf("function ConnectedAccounts({ s }) {"),code.indexOf("\nfunction Advanced({ s }) {"));
 const pkg=JSON.parse(read("package.json")),app=JSON.parse(read("app.json")).expo;
 const checks=[
-["version",()=>{assert.ok(["3.89.0","3.90.0","3.91.0"].includes(pkg.version));assert.equal(app.version,pkg.version);assert.equal(app.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));}],
+["version",()=>{assert.ok(["3.89.0","3.90.0","3.91.0","3.92.0"].includes(pkg.version));assert.equal(app.version,pkg.version);assert.equal(app.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));}],
 ["visible account cards",()=>{assert.ok(page.includes('label: "Facebook & Instagram"'));assert.ok(page.includes('label: "Google Business"'));}],
 ["extra details closed initially",()=>{for(const t of ["showOtherConnections","showConnectionDiagnostics","expandedProviders"])assert.ok(page.includes(t));assert.ok(page.includes("useState(false)"));}],
 ["honest demo labels",()=>{assert.ok(page.includes("Demo only — not connected"));assert.ok(page.includes("Try demo"));}],
