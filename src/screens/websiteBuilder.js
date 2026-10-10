@@ -11,6 +11,7 @@ import { websiteDesignAlternative } from "../core/websiteDesignAlternatives.mjs"
 import { websiteCustomerJourney } from "../core/websiteCustomerJourney.mjs";
 import { websiteOutcomeGuidance } from "../core/websiteOutcomeGuidance.mjs";
 import { websiteJourneyAssurance } from "../core/websiteJourneyAssurance.mjs";
+import { websiteOnboardingCoach } from "../core/websiteOnboardingCoach.mjs";
 import { websiteBrainCoaching } from "../core/websiteBrainCoaching.mjs";
 import { renderWebsiteHtml } from "../domain/websiteBuilder";
 
@@ -71,6 +72,7 @@ function WebsiteBuilder({ s }) {
   const assurance=websiteJourneyAssurance({
     journey,publishing:s.websitePublishingView,proof:deliveryProof,hasDraft:!!draft
   });
+  const onboarding=websiteOnboardingCoach({brand,journey,draft});
   const nextStep=()=>{
     // Use the SAME evidence-backed decision as the visible next-step text.
     // A newer private draft must not lead customers straight to the old live site.
@@ -164,6 +166,9 @@ function WebsiteBuilder({ s }) {
         <MetricRow left="Website journey"
           right={assurance.progress.completed+" / "+assurance.progress.total+" steps complete"}/>
         <Text style={styles.cardBody}>{customerJourney.message}</Text>
+        {!draft||brand.websiteReady!==true?(
+          <Text style={styles.cardBody}>{onboarding.message}</Text>
+        ):null}
         <Button label={nextLabel} primary onPress={nextStep} />
         <Button label="Choose a website address (optional)" onPress={s.openWebsitePublishing} />
         <Button label={draft ? "Make changes by talking to BUSY" : "Build it by talking to BUSY"}
@@ -172,7 +177,8 @@ function WebsiteBuilder({ s }) {
           <Button label="Preview my website draft" onPress={() => s.go("websitePreview")} />
         ) : null}
         {hostedPreview?.id && journey.nextAction !== "review" ? (
-          <Button label="View my hosted website again"
+          <Button label={hostedPreviewOutdated?
+            "View previous hosted version (not latest)":"View my hosted website again"}
             primary={!hostedPreviewOutdated && journey.nextAction !== "brand"}
             onPress={() => s.openHostedWebsitePreview(hostedPreview.id)} />
         ) : null}
