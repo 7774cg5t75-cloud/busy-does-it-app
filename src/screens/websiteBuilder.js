@@ -11,6 +11,8 @@ function WebsiteBuilder({ s }) {
   const brand = s.brandBrain || {};
   const [instruction, setInstruction] = React.useState("");
   const [showWebsiteDetails, setShowWebsiteDetails] = React.useState(false);
+  const hostedPreview = s.websitePublishingView?.previewDeployment || null;
+  const hostedPreviewOutdated = !!s.websitePublishingView?.draftChangedSinceHosted;
   const deliveryProof=buildWebsiteLaunchProof({
     ...(s.websitePublishingView||{}),websiteDraftPresent:!!draft
   });
@@ -22,8 +24,10 @@ function WebsiteBuilder({ s }) {
     switch(journey.nextAction){
       case "brand":return s.openBrandIdentity();
       case "build":return s.buildWebsiteFromBrandBrain();
-      case "prepare":
-      case "review":
+      case "prepare":return s.openWebsitePublishing();
+      case "review":return hostedPreview?.id
+        ? s.openHostedWebsitePreview(hostedPreview.id)
+        : s.openWebsitePublishing();
       case "verify":
       case "maintain":return s.openWebsitePublishing();
       default:return s.openBrandIdentity();
@@ -33,7 +37,7 @@ function WebsiteBuilder({ s }) {
     brand:"Complete business details",
     build:"Build my first draft",
     prepare:"Prepare the hosted version",
-    review:"Review the hosted preview",
+    review:"View hosted website preview",
     verify:"Check my live website",
     maintain:"Manage my live website"
   }[journey.nextAction]||"Continue website setup";
@@ -70,7 +74,17 @@ function WebsiteBuilder({ s }) {
         <Button label={draft ? "Make changes by talking to BUSY" : "Build it by talking to BUSY"}
           onPress={draft ? s.askBusyToEditWebsite : s.askBusyToBuildWebsite} />
         {draft ? (
-          <Button label="Preview my website" onPress={() => s.go("websitePreview")} />
+          <Button label="Preview my website draft" onPress={() => s.go("websitePreview")} />
+        ) : null}
+        {hostedPreview?.id ? (
+          <Button label="View my hosted website again"
+            primary={!hostedPreviewOutdated && journey.nextAction !== "brand"}
+            onPress={() => s.openHostedWebsitePreview(hostedPreview.id)} />
+        ) : null}
+        {hostedPreviewOutdated ? (
+          <Text style={styles.cardBody}>
+            Your saved hosted preview is an earlier version. Prepare a new preview after your edits when you're ready.
+          </Text>
         ) : null}
       </Card>
       {s.websitePublishingView?.liveDeployment&&!deliveryProof.verified?(
@@ -238,6 +252,11 @@ function WebsitePreview({ s }) {
     );
   }
 
+  const hosted = s.websitePublishingView?.previewDeployment || null;
+  const draftChangedSinceHosted = !!s.websitePublishingView?.draftChangedSinceHosted;
+  const openHosted = () => hosted?.id
+    ? s.openHostedWebsitePreview(hosted.id)
+    : s.openWebsitePublishing();
   const hero = (draft.sections || []).find((section) => section.id === "hero");
   const visible = (draft.sections || []).filter((section) => section.enabled !== false);
 
@@ -245,12 +264,30 @@ function WebsitePreview({ s }) {
     <Shell
       s={s}
       title="Website preview"
-      subtitle="A mobile preview of the editable website model."
-      brandCue="Editor preview • hosted preview, delivery and public Go Live remain separate V3.38 states."
+      subtitle="Check your design, open the hosted website and make changes whenever you like."
+      brandCue="BUSY DOES IT • Your website preview"
     >
       <View style={{ alignItems: "flex-start", marginBottom: 10 }}>
         <StatusChip label={draft.publicStatus} tone="blue" />
       </View>
+
+      <Card
+        eyebrow="Your private preview"
+        title={hosted ? "View your hosted website again" : "See your website in the browser"}
+        body={hosted
+          ? draftChangedSinceHosted
+            ? "You can still reopen the previous hosted version. Your recent draft changes will only appear after you prepare an updated hosted preview."
+            : "Open the real hosted version and browse its pages whenever you like. You do not have to publish your website."
+          : "This is an editable draft, not the finished hosted website. Prepare a private hosted preview to see its real pages before deciding whether to publish."}
+        footer="Previewing does not publish your website"
+        tone="blue"
+      >
+        <Button label={hosted ? "View hosted website again" : "Prepare private hosted preview"}
+          primary onPress={openHosted} />
+        {hosted && draftChangedSinceHosted ? (
+          <Button label="Prepare preview with my latest changes" onPress={s.openWebsitePublishing} />
+        ) : null}
+      </Card>
 
       <Card
         eyebrow={draft.businessName || "Business"}
@@ -301,16 +338,10 @@ function WebsitePreview({ s }) {
           </Card>
         ))}
 
-      <Card
-        eyebrow="Source"
-        title="Static website source is generated"
-        body="V3.38 packages this multi-page draft into an immutable hosted deployment while delivery/provider state remains separate. Approved images are copied into deployment-specific website assets before anything goes public."
-        footer={`${draft.html?.length || 0} source characters • editor source`}
-        tone="green"
-      />
-
-      <Button label="Prepare / publish website" primary onPress={s.openWebsitePublishing} />
-      <Button label="Edit website" onPress={() => s.go("websiteBuilder")} />
+      <Button label={hosted ? "View hosted website again" : "Prepare private hosted preview"}
+        primary onPress={openHosted} />
+      <Button label="Edit my website" onPress={() => s.go("websiteBuilder")} />
+      <Button label="Website Management & Go Live" onPress={s.openWebsitePublishing} />
       <Button label="Back to Home" onPress={() => s.jump("home", "Home")} />
     </Shell>
   );
