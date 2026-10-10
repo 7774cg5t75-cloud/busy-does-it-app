@@ -1,0 +1,69 @@
+name: V3.121 first-time customer, publication and recovery resilience
+on:
+  push:
+    branches: [v3.121]
+    paths:
+      - 'src/core/websitePublishApprovalGuide.mjs'
+      - 'src/core/websiteRecoveryCoach.mjs'
+      - 'src/core/websiteOnboardingCoach.mjs'
+      - 'src/core/founderRecoveryReview.mjs'
+      - 'src/screens/websiteBuilder.js'
+      - 'src/screens/websitePublishing.js'
+      - 'src/screens/founderOperations.js'
+      - 'scripts/check-website-resilience-v3121.mjs'
+      - 'scripts/check-website-resilience-browser-v3121.mjs'
+      - '.github/workflows/website-resilience-v3121.yml'
+      - '.github/workflows/production-check.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  customer-and-founder-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Test strict approval, safe recovery and earlier website journeys
+        run: |
+          node scripts/check-website-resilience-v3121.mjs
+          node scripts/check-website-rehearsal-v3120.mjs
+          node scripts/check-website-connected-experience-v3119.mjs
+          node scripts/check-website-safe-pilot-v3118.mjs
+          node scripts/check-repeat-hosted-preview-v397.mjs
+      - name: Install dependencies with isolated cache
+        run: npm install --no-audit --no-fund --cache /tmp/busy-v3121-npm-cache
+      - name: Compile actual iPhone JS (not signed native build)
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3121-ios-js
+      - run: npx playwright install --with-deps chromium
+      - name: Generate nine truly fictional business websites
+        run: node scripts/build-website-design-gallery-v3100.mjs /tmp/busy-v3121-sites
+      - name: Verify eighteen real browser views and deliberately broken links
+        run: node scripts/check-website-resilience-browser-v3121.mjs /tmp/busy-v3121-sites /tmp/busy-v3121-browser
+      - name: Evaluate original and alternative designs on mobile and desktop
+        run: node scripts/check-website-guided-alternative-v3113.mjs /tmp/busy-v3121-sites /tmp/busy-v3121-edits
+      - name: Recheck customer rehearsal, approval and safe website recovery
+        run: node scripts/check-website-rehearsal-browser-v3120.mjs /tmp/busy-v3121-sites /tmp/busy-v3121-edits /tmp/busy-v3121-lifecycle
+      - name: Check screenshot provenance and distinct website styles
+        run: |
+          node scripts/check-website-first-fold-v3116.mjs /tmp/busy-v3121-sites /tmp/busy-v3121-firstfold
+          node scripts/check-website-rendered-diversity-v3112.mjs /tmp/busy-v3121-sites /tmp/busy-v3121-diversity
+      - name: Check mobile responsiveness and keyboard accessibility
+        run: |
+          node scripts/check-website-responsive-quality-v3109.mjs /tmp/busy-v3121-sites /tmp/busy-v3121-responsive
+          node scripts/check-website-keyboard-quality-v3110.mjs /tmp/busy-v3121-sites /tmp/busy-v3121-keyboard
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v3121-fictional-customer-safety-browser-evidence
+          path: |
+            /tmp/busy-v3121-browser/
+            /tmp/busy-v3121-edits/
+            /tmp/busy-v3121-lifecycle/
+            /tmp/busy-v3121-firstfold/
+            /tmp/busy-v3121-diversity/
+            /tmp/busy-v3121-responsive/
+            /tmp/busy-v3121-keyboard/
+          retention-days: 7
+      - run: echo "No real customers, production migration, paid AI, domain changes, live publishing or signed iPhone release."
