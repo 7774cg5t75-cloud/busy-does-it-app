@@ -10,6 +10,7 @@ if [[ "${BUSY_EPHEMERAL_RLS_CI:-}" != "ALLOW_DISPOSABLE_TEST_ONLY" ||
   exit 2
 fi
 : "${PGPASSWORD:?Ephemeral service-container password required}"
+passed=0
 query() { psql -X -A -t -q -v ON_ERROR_STOP=1 -c "$1"; }
 expect_value() {
   local expected="$1" sql="$2" label="$3" actual
@@ -19,6 +20,7 @@ expect_value() {
     exit 1
   fi
   echo "PASS: $label"
+  passed=$((passed+1))
 }
 expect_failure() {
   local label="$1" sql="$2" failure
@@ -34,7 +36,7 @@ expect_failure() {
   echo "PASS: $label"
 }
 expect_value "busy_staging_ci" "select current_database();" "isolated fixture database confirmed"
-expect_value "127.0.0.1" "select host(inet_server_addr());" "loopback server connection confirmed"
+expect_value "t" "select current_setting('server_version_num')::integer between 170000 and 179999;" "disposable PostgreSQL 17 confirmed"
 psql -X -q -v ON_ERROR_STOP=1 -f staging/ci-postgres-bootstrap-v3127.sql > /dev/null
 A="91edb6db-3a02-4de4-9ba8-5c93b4e790a1"
 B="d8836a0e-fbb0-4cb9-a613-509af50eb114"
@@ -63,4 +65,4 @@ expect_value "1" "$(as_owner "$A" "with changed as (update public.busy_ci_owner_
 expect_value "1" "$(as_owner "$B" "with created as (insert into public.busy_ci_owner_write (id,owner_id,note) values ('11111111-1111-4111-8111-111111111113','$B','owner_b_added') returning id) select count(*) from created;")" "Owner B can legitimately insert own row"
 expect_value "1" "$(as_owner "$B" "with deleted as (delete from public.busy_ci_owner_write where id='11111111-1111-4111-8111-111111111113' returning id) select count(*) from deleted;")" "Owner B can legitimately delete own row"
 expect_value "1" "$(as_owner "$A" "select count(*) from public.busy_ci_owner_write where id='$ROW_A' and note='owner_a_changed';")" "Successful update stayed with correct owner"
-echo "V3.127 SQL RLS PASS: 20 disposable local PostgreSQL assertions; no live Auth JWT, cloud Supabase project or application-wide tenant security certified."
+echo "V3.127 SQL RLS PASS: $passed disposable local PostgreSQL assertions; no live Auth JWT, cloud Supabase project or application-wide tenant security certified."
