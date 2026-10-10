@@ -1,0 +1,66 @@
+name: V3.120 five-business offline customer website rehearsal
+on:
+  push:
+    branches: [v3.120]
+    paths:
+      - 'src/core/websiteRehearsalTimeline.mjs'
+      - 'src/core/founderRehearsalGuidance.mjs'
+      - 'src/screens/websiteBuilder.js'
+      - 'src/screens/founderOperations.js'
+      - 'supabase/functions/busy-website-worker/websiteReviewAdvice.mjs'
+      - 'scripts/check-website-rehearsal-v3120.mjs'
+      - 'scripts/check-website-rehearsal-browser-v3120.mjs'
+      - 'scripts/check-repeat-hosted-preview-v397.mjs'
+      - '.github/workflows/production-check.yml'
+      - '.github/workflows/website-rehearsal-v3120.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-rehearsal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify lifecycle approval, rollback, tenant safety and older regressions
+        run: |
+          node scripts/check-website-rehearsal-v3120.mjs
+          node scripts/check-website-connected-experience-v3119.mjs
+          node scripts/check-website-safe-pilot-v3118.mjs
+          node scripts/check-website-operational-quality-v3117.mjs
+          node scripts/check-repeat-hosted-preview-v397.mjs
+          node scripts/check-website-private-alternatives-v3113.mjs
+      - name: Install dependencies using isolated cache
+        run: npm install --no-audit --no-fund --cache /tmp/busy-v3120-npm-cache
+      - name: Compile actual iPhone JavaScript without signed native release
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3120-ios-js
+      - run: npx playwright install --with-deps chromium
+      - name: Generate fictional businesses using actual website generator
+        run: node scripts/build-website-design-gallery-v3100.mjs /tmp/busy-v3120-sites
+      - name: Review private original and alternative at mobile and desktop sizes
+        run: node scripts/check-website-guided-alternative-v3113.mjs /tmp/busy-v3120-sites /tmp/busy-v3120-reviewed
+      - name: Test five sites, owner consent and quality advice with actual Chromium
+        run: node scripts/check-website-rehearsal-browser-v3120.mjs /tmp/busy-v3120-sites /tmp/busy-v3120-reviewed /tmp/busy-v3120-rehearsal
+      - name: Recheck screenshot evidence, blocked CTAs and five design identities
+        run: |
+          node scripts/check-website-first-fold-v3116.mjs /tmp/busy-v3120-sites /tmp/busy-v3120-firstfold
+          node scripts/check-website-rendered-diversity-v3112.mjs /tmp/busy-v3120-sites /tmp/busy-v3120-diversity
+      - name: Check mobile responsiveness and keyboard accessibility
+        run: |
+          node scripts/check-website-responsive-quality-v3109.mjs /tmp/busy-v3120-sites /tmp/busy-v3120-responsive
+          node scripts/check-website-keyboard-quality-v3110.mjs /tmp/busy-v3120-sites /tmp/busy-v3120-keyboard
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v3120-five-fictional-businesses-and-approval-evidence
+          path: |
+            /tmp/busy-v3120-rehearsal/
+            /tmp/busy-v3120-reviewed/
+            /tmp/busy-v3120-firstfold/
+            /tmp/busy-v3120-diversity/
+            /tmp/busy-v3120-responsive/
+            /tmp/busy-v3120-keyboard/
+          retention-days: 7
+      - run: echo "Fictional source-code simulation only; no real domain, account, paid AI, cloud migration, DNS, signed IPA or customer publication."
