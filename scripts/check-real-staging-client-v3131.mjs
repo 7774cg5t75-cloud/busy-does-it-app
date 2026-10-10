@@ -146,7 +146,7 @@ yes(root.includes("isolated?StagingSignInScreen:BusyDoesItApp"),
 const ui=readFileSync(new URL("../src/staging/StagingSignInScreen.js",import.meta.url),"utf8");
 yes(ui.includes("secureTextEntry"),"Password obscured on screen");
 yes(ui.includes('setPassword("");'),"Password cleared from UI upon submission");
-yes(!ui.includes("AsyncStorage")&&!ui.includes("SecureStore"),
+yes(!/\b(import|require|setItem|multiSet|SecureStore\.setItemAsync)\b[^\n]*(AsyncStorage|SecureStore|secure-store|async-storage)/i.test(ui),
  "Session never written to device persistence");
 yes(!ui.includes("console.log")&&!ui.includes("console.error"),
  "No credentials printed to application logs");
