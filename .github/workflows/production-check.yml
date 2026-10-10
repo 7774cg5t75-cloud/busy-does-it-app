@@ -91,6 +91,7 @@ jobs:
           node scripts/check-real-staging-auth-v3128.mjs
           node scripts/check-staging-host-v3128.mjs
           node scripts/check-staging-hosted-evidence-v3128.mjs
+          node scripts/check-staging-runtime-v3128.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs
