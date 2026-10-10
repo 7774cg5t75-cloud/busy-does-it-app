@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
 import {runWebsiteDesignReviewCycle,changesAreDesignOnly,visualRisks} from "../supabase/functions/busy-website-worker/websiteReviewCycle.mjs";
 import {normalizeVisualCritique} from "../supabase/functions/busy-website-worker/visualCriticContract.mjs";
 let checks=0;
