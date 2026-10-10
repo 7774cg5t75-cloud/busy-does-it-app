@@ -5,6 +5,7 @@ import QRCode from "react-native-qrcode-svg";
 import { styles } from "../theme/styles";
 import { Shell, Card, Button, Field, MetricRow, StatusChip } from "../components/ui";
 import { miniAppModuleLabel } from "../domain/miniApps";
+import { businessAppPreviewProof } from "../core/businessAppPreviewProof.mjs";
 
 function readableDate(value, fallback = "Not yet") {
   if (!value) return fallback;
@@ -590,14 +591,12 @@ function MiniAppBuilder({ s }) {
     ? plan.missingFacts
     : [];
   const draftBuilt = !!view.draftConfig?.builderPlan;
-  const previewMatchesDraft =
-    !!view.previewVersion &&
-    Number(view.previewVersion?.source_draft_revision || 0) ===
-      Number(app?.draft_revision || 0);
+  // Exact immutable preview identity and positive revision matter; two
+  // absent revision numbers must never accidentally count as a current app.
+  const previewProof = businessAppPreviewProof({app,preview:view.previewVersion});
+  const previewMatchesDraft = previewProof.matches;
   const liveMatchesDraft =
-    !!view.liveVersion &&
-    Number(view.liveVersion?.source_draft_revision || 0) ===
-      Number(app?.draft_revision || 0);
+    businessAppPreviewProof({app,preview:view.liveVersion}).matches;
   const journeyLabel = !plan
     ? "Describe the app you want"
     : missingFacts.length
