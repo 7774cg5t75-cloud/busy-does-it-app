@@ -77,8 +77,10 @@ eq(coaching.next.title,"Check your business details","Real facts outrank visual 
 eq(coaching.aiModelRetrained,false,"No fake AI retraining");
 const anotherSuggestion=websiteBrainCoaching({summary:feedback,
  alternative:{suggested:{family:"minimal"}}});
-yes(!anotherSuggestion.explanation.includes("previously"),
- "Feedback rationale follows selected style, not first style in carousel");
+yes(anotherSuggestion.explanation.includes("previously rejected"),
+ "Rejection explanation follows selected style, not first style in carousel");
+yes(!anotherSuggestion.explanation.includes("previously liked"),
+ "A rejected style is never misrepresented as approved");
 eq(coaching.measuredSalesChange,null,"No invented sales lift");
 eq(coaching.sharedLearningEnabled,false,"Global memory remains disabled");
 const publicCoach=websiteBrainCoaching({summary:{...feedback,scope:"another-business"},
