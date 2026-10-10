@@ -17,6 +17,7 @@ function WebsiteBuilder({ s }) {
   const [showQualityIdeas, setShowQualityIdeas] = React.useState(false);
   const [showDesignReview, setShowDesignReview] = React.useState(false);
   const [showCustomization, setShowCustomization] = React.useState(false);
+  const [showVisualAi, setShowVisualAi] = React.useState(false);
   const hostedPreview = s.websitePublishingView?.previewDeployment || null;
   const hostedPreviewOutdated = !!s.websitePublishingView?.draftChangedSinceHosted;
   const deliveryProof=buildWebsiteLaunchProof({
@@ -189,6 +190,57 @@ function WebsiteBuilder({ s }) {
             <MetricRow left="Pages" right={String(draft.pages?.length || 1)} />
             <Button label="Preview website" primary onPress={() => s.go("websitePreview")} />
           </Card>
+          <Button label={showVisualAi ? "Hide visual AI review" : "Review how my website looks"}
+            onPress={() => setShowVisualAi(!showVisualAi)} />
+          {showVisualAi ? (
+            <Card eyebrow="BUSY visual design reviewer"
+              title="Check mobile and desktop design"
+              body="When enabled, BUSY privately examines screenshots of your exact hosted preview and suggests design-only improvements. You choose whether to apply them."
+              footer="A review may use one AI allowance, even if it fails. Nothing is published or edited automatically."
+              tone="blue">
+              <Button label="Check visual AI availability (free)"
+                onPress={s.checkWebsiteVisualReview} />
+              {s.websiteVisualReviewStatus ? (
+                <>
+                  <MetricRow left="Visual AI available"
+                    right={s.websiteVisualReviewStatus.enabled ? "Yes" : "Not enabled yet"} />
+                  <MetricRow left="Reviews remaining this month"
+                    right={String(s.websiteVisualReviewStatus.remaining||0)} />
+                </>
+              ) : null}
+              {s.websiteVisualReviewStatus?.enabled &&
+               Number(s.websiteVisualReviewStatus?.remaining||0)>0 ? (
+                <Button label="Use 1 review credit on my hosted website"
+                  onPress={s.requestWebsiteVisualReview} />
+              ) : null}
+              {s.websiteVisualReviewBusy ? (
+                <Text style={styles.cardBody}>BUSY is checking your website review request…</Text>
+              ) : null}
+              {s.websiteVisualReviewNotice ? (
+                <Text style={styles.cardBody}>{s.websiteVisualReviewNotice}</Text>
+              ) : null}
+              {s.websiteVisualReview?.report ? (
+                <>
+                  <Text style={styles.cardBody}>
+                    {s.websiteVisualReview.report.modelSummary || "Visual inspection complete."}
+                  </Text>
+                  {s.websiteVisualReview.report.proposals?.map((item,i)=>(
+                    <View key={item.path+":"+i} style={{marginTop:8}}>
+                      <Text style={styles.cardBody}>{item.reason || item.path+" → "+item.value}</Text>
+                    </View>
+                  ))}
+                  {s.websiteVisualReview.report.proposals?.length ? (
+                    <Button label="Approve design changes in my PRIVATE draft"
+                      onPress={s.approveWebsiteVisualSuggestions} />
+                  ) : (
+                    <Text style={styles.cardBody}>No safe visual changes suggested. Your website remains unchanged.</Text>
+                  )}
+                </>
+              ) : null}
+              <Button label="Open private hosted website preview"
+                onPress={s.openWebsitePublishing} />
+            </Card>
+          ) : null}
           <Text style={styles.sectionLabel}>Make changes</Text>
           <Card
             eyebrow="Your changes"
