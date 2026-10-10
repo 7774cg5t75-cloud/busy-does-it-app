@@ -13642,7 +13642,7 @@ function App() {
   };
 
   const recordWebsiteDesignFeedback=async(choice)=>{
-    if(!websiteDraft?.id||!["liked","rejected"].includes(choice))
+    if(!websiteDraft?.id||!["liked","rejected","kept","reverted"].includes(choice))
       throw Error("Select a website draft and a preference.");
     const family=websiteDraft.theme?.designFamily||websiteDraft.designPlan?.family;
     const requestKey="design-"+Date.now()+"-"+Math.random().toString(36).slice(2,14);

@@ -76,6 +76,7 @@ jobs:
           node scripts/check-website-multi-track-v3114.mjs
           node scripts/check-website-intelligence-v3115.mjs
           node scripts/check-website-controlled-rollout-v3116.mjs
+          node scripts/check-website-operational-quality-v3117.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs

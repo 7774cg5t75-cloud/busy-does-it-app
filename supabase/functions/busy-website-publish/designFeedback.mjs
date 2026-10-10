@@ -4,7 +4,7 @@
  * contact details or photos. No cross-business reuse or model training.
  */
 const FAMILIES=new Set(["conversion","minimal","editorial","organic","artisan","boutique","showcase","portfolio"]);
-const CHOICES=new Set(["liked","rejected"]);
+const CHOICES=new Set(["liked","rejected","kept","reverted"]);
 const REQUEST=/^design-[a-zA-Z0-9_-]{13,110}$/;
 const VERSION=/^[a-zA-Z0-9_|.:-]{1,128}$/;
 function validateDesignFeedback(body){
@@ -33,10 +33,16 @@ function designPreferenceSummary(rows){
    if(!latest.has(entry.design_family))
      latest.set(entry.design_family,entry.preference);
  }
- const likes=[...latest].filter(([,choice])=>choice==="liked").map(([family])=>family);
- const dislikes=[...latest].filter(([,choice])=>choice==="rejected").map(([family])=>family);
+ const likes=[...latest].filter(([,choice])=>
+   choice==="liked"||choice==="kept").map(([family])=>family);
+ const dislikes=[...latest].filter(([,choice])=>
+   choice==="rejected"||choice==="reverted").map(([family])=>family);
+ const outcomes=filtered.filter(x=>x.preference==="kept"||x.preference==="reverted");
  return {source:"owner_explicit_feedback",scope:"current_business_only",
   eventCount:filtered.length,likedFamilies:likes,rejectedFamilies:dislikes,
+  ownerReportedOutcomeCount:outcomes.length,
+  measuredConversionLift:null,measuredRevenueChange:null,
+  outcomeSource:"explicit_owner_report_not_traffic_analytics",
   mostRecent:filtered.length?{family:filtered[0].design_family,
     choice:filtered[0].preference}:null,
   globalLearningEnabled:false,modelRetrained:false,

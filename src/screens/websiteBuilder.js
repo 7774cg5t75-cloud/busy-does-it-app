@@ -21,6 +21,7 @@ function WebsiteBuilder({ s }) {
   const [designOptionIndex,setDesignOptionIndex]=React.useState(0);
   const [showCustomization, setShowCustomization] = React.useState(false);
   const [showVisualAi, setShowVisualAi] = React.useState(false);
+  const [showOutcomeFeedback,setShowOutcomeFeedback]=React.useState(false);
   const [feedbackState,setFeedbackState]=React.useState({status:"idle",message:""});
   const [savedStylePreferences,setSavedStylePreferences]=React.useState(null);
   const feedbackBusy=React.useRef(false);
@@ -218,6 +219,23 @@ function WebsiteBuilder({ s }) {
           <Button label="This style isn't for me"
             disabled={feedbackState.status==="saving"}
             onPress={()=>sendDesignPreference("rejected")}/>
+          <Button label={showOutcomeFeedback?
+            "Hide feedback about my changes":"Did this website style work for you?"}
+            onPress={()=>setShowOutcomeFeedback(v=>!v)}/>
+          {showOutcomeFeedback?(
+            <>
+              <Text style={styles.cardBody}>
+                Tell BUSY what you decided after trying this style.
+                These are your own choices, not measured visits, enquiries or sales.
+              </Text>
+              <Button label="I kept this style"
+                disabled={feedbackState.status==="saving"}
+                onPress={()=>sendDesignPreference("kept")}/>
+              <Button label="I changed back to another style"
+                disabled={feedbackState.status==="saving"}
+                onPress={()=>sendDesignPreference("reverted")}/>
+            </>
+          ):null}
           {savedStylePreferences?.eventCount>0?(
             <Button label="Clear my saved style preferences"
               disabled={feedbackState.status==="saving"} onPress={clearPreferences}/>
