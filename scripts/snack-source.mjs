@@ -48,7 +48,8 @@ function snackSourceFiles() {
   // Share the same design logic in native builds and the optional Snack fallback.
   const sourcePaths = ["BusyDoesItApp.js", ...collectJsFiles("src"),
     "supabase/functions/busy-website-worker/designSystem.mjs",
-    "supabase/functions/busy-website-worker/designPlanner.mjs"];
+    "supabase/functions/busy-website-worker/designPlanner.mjs",
+    "supabase/functions/busy-website-worker/designReview.mjs"];
   for(const sourcePath of sourcePaths) {
     const snackPath = toSnackPath(sourcePath);
     if(Object.prototype.hasOwnProperty.call(files,snackPath))
