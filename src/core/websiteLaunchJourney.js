@@ -5,7 +5,7 @@
  */
 const count=n=>Number.isSafeInteger(n)&&n>=0?n:0;
 const readyText=n=>n===1?"1 missing business detail":n+" missing business details";
-function buildWebsiteLaunchJourney({brand=null,draft=null,publishing=null}={}){
+function buildWebsiteLaunchJourney({brand=null,draft=null,publishing=null,deliveryProof=null}={}){
  const b=brand||{},p=publishing||{};
  const missing=Array.isArray(b.completeness?.coreMissing)?
    b.completeness.coreMissing.filter(x=>typeof x==="string"&&x.trim()).slice(0,8):[];
@@ -13,11 +13,10 @@ function buildWebsiteLaunchJourney({brand=null,draft=null,publishing=null}={}){
  const prepared=!!(p.previewDeployment?.id||p.liveDeployment?.id);
  const editorReady=!!draft;
  const live=!!p.liveDeployment?.id;
- const healthStatus=String(p.healthStatus||"");
- const verifiedLive=live&&healthStatus==="healthy"&&
-   !!(p.website?.last_health_check_at)&&
-   !!(p.website?.current_live_deployment_id)&&
-   p.website.current_live_deployment_id===p.liveDeployment.id;
+ // Only the independent, strict HTTPS/domain proof may promote a recorded
+ // publication to a verified public website. A stale 'healthy' flag alone is
+ // insufficient (see websiteLaunchProof.mjs).
+ const verifiedLive=live&&deliveryProof?.verified===true;
  const active=!!p.activeJob&&["queued","processing","retry_wait"].includes(p.activeJob.status);
  const previewFresh=!!p.previewDeployment?.id&&!p.draftChangedSinceHosted;
  const stages=[
