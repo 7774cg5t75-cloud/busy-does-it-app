@@ -29,8 +29,8 @@ const defs=[
 const assets=[];
 for(const d of defs){
  const html=await readFile(join(gallery,d.file),"utf8");
- assert.ok(html.includes(d.name),"Fictional fixture identity must be visible");
- assert.ok(!html.includes(defs.find(x=>x!==d).name),
+ assert.ok(html.includes(d.name.replaceAll("&","&amp;")),"Fictional fixture identity must be visible as escaped HTML");
+ assert.ok(!html.includes(defs.find(x=>x!==d).name.replaceAll("&","&amp;")),
   "Fictional businesses must not leak into each other's artifacts");
  assert.ok(html.length>200&&html.length<150000,"Bound asset size");
  assert.doesNotMatch(html,/<script\b|<iframe\b|<form\b/i,
