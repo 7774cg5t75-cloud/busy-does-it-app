@@ -14,6 +14,7 @@ on:
       - 'supabase/functions/busy-website-worker/websiteReviewCycle.mjs'
       - 'supabase/migrations/20261010182000_v3115_website_design_feedback.sql'
       - 'scripts/check-website-intelligence-v3115.mjs'
+      - 'scripts/check-website-private-alternatives-v3113.mjs'
       - 'scripts/check-website-cta-v3115.mjs'
       - '.github/workflows/website-intelligence-v3115.yml'
   workflow_dispatch:
