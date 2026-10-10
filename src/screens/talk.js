@@ -122,6 +122,7 @@ function TalkToBusy({ s }) {
   const recentTurns = Array.isArray(s.busyConversationTurns)
     ? s.busyConversationTurns.slice(-8)
     : [];
+  const previousAnswer = [...recentTurns].reverse().find((turn) => turn.role === "assistant") || null;
 
   return (
     <Shell
@@ -310,6 +311,13 @@ function TalkToBusy({ s }) {
         </Card>
       ) : null}
 
+      {!result && previousAnswer ? (
+        <View style={styles.talkLastReply}>
+          <Text style={styles.talkLastReplyHeading}>Last reply from BUSY</Text>
+          <Text style={styles.talkLastReplyText} numberOfLines={3}>{previousAnswer.content}</Text>
+        </View>
+      ) : null}
+
       <Card
         eyebrow="Or type"
         title={result?.needsClarification ? "Reply to BUSY" : "Type to BUSY instead"}
@@ -391,6 +399,7 @@ function TalkToBusy({ s }) {
         </>
       ) : null}
 
+      {recentTurns.length ? (
       <Pressable
         accessibilityRole="button"
         accessibilityState={{ expanded: showConversation }}
@@ -423,6 +432,8 @@ function TalkToBusy({ s }) {
       ) : null}
 
         </>
+      ) : null}
+
       ) : null}
 
       {s.busyUndoAction ? (
