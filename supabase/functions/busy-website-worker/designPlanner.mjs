@@ -27,6 +27,53 @@ function deriveSector(type){
  const text=clean(type).toLowerCase();
  return SECTOR_PATTERNS.find(([_,pattern])=>pattern.test(text))?.[0]||"neutral";
 }
+// A stable, non-secret design seed prevents random redesigns on every render.
+// It adds variation *within* a sector, not just across sectors. No tenant data
+// is fetched and no website names are published to a comparison service.
+function stableDesignSeed(value=""){
+ let hash=2166136261;
+ for(const character of clean(value).normalize("NFKC").toLowerCase()){
+   hash ^= character.charCodeAt(0);
+   hash=Math.imul(hash,16777619);
+ }
+ return hash>>>0;
+}
+const pick=(options,number)=>options[number % options.length];
+function selectVisualIdentity({businessName="",businessType="",theme={},family="",photos=0}={}){
+ const seed=stableDesignSeed([businessName,businessType].map(clean).join("::"));
+ const choose=(options,shift)=>pick(options,seed>>>shift);
+ const imageLayout = photos > 0
+   ? choose(["image-right","image-left","image-frame","image-feature"],4)
+   : choose(["type-left","type-center","type-right","type-poster"],4);
+ const choices = {
+   heroLayout:imageLayout,
+   cardLayout:choose(["cards","outlines","rows"],8),
+   ornament:choose(["ripple","arch","glow","stripes"],12),
+   navStyle:choose(["quiet","underline","pill"],16),
+   typography:choose(["confident","refined","compact"],20),
+   paletteVariant:choose(["a","b","c"],24),
+ };
+ const allowed={
+   heroLayout:photos > 0
+     ? ["image-right","image-left","image-frame","image-feature"]
+     : ["type-left","type-center","type-right","type-poster"],
+   cardLayout:["cards","outlines","rows"],
+   ornament:["ripple","arch","glow","stripes"],
+   navStyle:["quiet","underline","pill"],
+   typography:["confident","refined","compact"],
+   paletteVariant:["a","b","c"]
+ };
+ for(const [field,options] of Object.entries(allowed)){
+   if(options.includes(theme?.[field])) choices[field]=theme[field];
+ }
+ return {
+   ...choices,
+   fingerprint:[
+     family,choices.heroLayout,choices.cardLayout,choices.ornament,
+     choices.navStyle,choices.typography,choices.paletteVariant
+   ].join("|")
+ };
+}
 function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}}={}){
   const active=list(sections).filter(s=>s?.enabled!==false);
   const services=list(section(active,"services")?.items).filter(s=>clean(s?.title));
@@ -62,6 +109,7 @@ function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}
   else if(sector==="nature")family=photos?"portfolio":"organic";
   else if(sector==="professional")family="editorial";
   else family=photos>=2?"portfolio":"minimal";
+  const visualIdentity=selectVisualIdentity({businessName,businessType,theme,family,photos});
   // A short brief benefits from a confident typographic hero, not a blank
   // image placeholder, empty gallery or falsely completed features.
   const heroTreatment=photos?"photographic":"typographic";
@@ -91,7 +139,8 @@ function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}
   if(!descriptionWords&&aboutWords===0)gaps.push("business-description");
   // All statements below describe design decisions, NOT marketing claims.
   return {
-    version:1,architecture,contentTier,sector,family,heroTreatment,
+    version:2,architecture,contentTier,sector,family,heroTreatment,
+    visualIdentity,
     sectionOrder:visibleOrder,homeSectionIds,
     signals:{services:services.length,describedServices:serviceDescriptions,
       approvedPhotos:photos,aboutWords,faqCount,reviewCount,hasContact},
@@ -101,4 +150,4 @@ function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}
       :"BUSY chose a detailed homepage and separate pages because enough verified content is available.",
   };
 }
-export {deriveSector,planWebsiteDesign,photographicCount};
+export {deriveSector,planWebsiteDesign,photographicCount,stableDesignSeed,selectVisualIdentity};
