@@ -1,5 +1,6 @@
 import { syncWebsitePageModel } from "./websiteManagement";
 import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";
+import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";
 
 function clean(value = "") {
   return String(value || "").trim();
@@ -188,6 +189,7 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
       : null,
     theme: themeFromBrief(brief),
     sections,
+    designPlan: planWebsiteDesign({businessType:brief.businessType,businessName:brief.businessName,sections,theme:themeFromBrief(brief)}),
     seo: {
       title: clean(brief.businessName)
         ? `${clean(brief.businessName)} | ${clean(brief.businessType) || "Local business"}`
@@ -231,7 +233,8 @@ function sectionIndex(draft = {}, id = "") {
 }
 
 function withHtml(draft = {}) {
-  const modelled = syncWebsitePageModel(draft);
+  const refreshed={...draft,designPlan:planWebsiteDesign({businessType:draft.businessType,businessName:draft.businessName,sections:draft.sections,theme:draft.theme})};
+  const modelled = syncWebsitePageModel(refreshed);
   return {
     ...modelled,
     updatedAt: new Date().toISOString(),
@@ -457,7 +460,8 @@ function applyWebsiteInstruction(draft = {}, instruction = "") {
 
 function renderWebsiteHtml(draft = {}) {
   const sections = safeArray(draft.sections).filter(section => section?.enabled !== false);
-  const design = designForWebsite({businessType:draft.businessType,theme:draft.theme});
+  const plan = draft.designPlan || planWebsiteDesign({businessType:draft.businessType,businessName:draft.businessName,sections,theme:draft.theme});
+  const design = designForWebsite({businessType:draft.businessType,theme:draft.theme,plan});
   const layoutCss = designCss(design);
   // This is the editable concept HTML, not the signed hosted deployment.
   // Both use the same tested professional responsive styles and layout rules.
@@ -468,7 +472,8 @@ function renderWebsiteHtml(draft = {}) {
     const uri=String(asset?.uri||"").trim();
     return /^https:\/\/[^\s"'<>]+$/i.test(uri) ? uri : "";
   };
-  const sectionHtml = sections.map(section=>{
+  const orderedSections=plan.sectionOrder.map(id=>sections.find(s=>s.id===id)).filter(Boolean);
+  const sectionHtml = orderedSections.map(section=>{
     if(section.type==="hero"){
       const url=approvedImage(section.asset);
       const art=url
@@ -501,7 +506,7 @@ function renderWebsiteHtml(draft = {}) {
   const nav=safeArray(draft.navigation)
     .filter(item=>item?.id&&item?.label)
     .map(item=>`<a href="#${escapeHtml(item.id)}">${escapeHtml(item.label)}</a>`).join("");
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector}"><a class="skip-link" href="#main">Skip to content</a><nav><div class="wrap nav-wrap"><a class="brand" href="#main">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a><div class="nav-links">${nav}</div></div></nav><main id="main">${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture}"><a class="skip-link" href="#main">Skip to content</a><nav><div class="wrap nav-wrap"><a class="brand" href="#main">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a><div class="nav-links">${nav}</div></div></nav><main id="main">${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
 }
 
 export {
