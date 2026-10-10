@@ -107,6 +107,20 @@ function applyWebsiteVisualEdit(draft,instruction){
    return apply("Removed your extra "+title+" section from the private website.");
  }
 
+ // Owners may reuse their own saved gallery photograph in the hero.
+ // Never select an arbitrary remote URL or a photo from another customer.
+ match=lower.match(/^(?:use|make|set|choose) (?:the )?(?:approved |my )?(?:gallery )?(?:photo|picture|image) (\d{1,2}) (?:as|for) (?:the )?(?:hero|main|first)(?: photo| image| picture)?$/);
+ if(match){
+   const gallery=sections.find(s=>s.id==="gallery"&&s.enabled!==false);
+   const hero=sections.find(s=>s.id==="hero"&&s.enabled!==false);
+   const item=list(gallery?.items)[Number(match[1])-1];
+   const stored=clean(item?.storagePath);
+   if(!hero||!item||!stored||item?.approved===false)
+     return fail("Choose an existing, approved gallery photo number. BUSY will not use an unverified photograph.");
+   hero.asset={...item};
+   return apply("Selected your saved approved photo "+match[1]+" for the website hero.");
+ }
+
  // No image is added or replaced by URL/guess: photo changes require the
  // pre-existing approved media picker and image provenance safeguards.
  if(/^(?:replace|change|add|swap|upload) (?:the )?(?:hero |main |first |gallery )?(?:photo|image|picture)/i.test(text))
