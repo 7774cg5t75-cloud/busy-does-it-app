@@ -79,7 +79,8 @@ assert.ok(edge.includes('status:"new"')===false); // status is validated in help
 assert.ok(controller.includes('const createWebsiteLead=async(input)'));
 assert.ok(controller.includes('const changeWebsiteLeadStatus=async('));
 assert.ok(controller.includes("listWebsiteLeads,"));
-assert.ok(ui.includes("V3.78 • Enquiry follow-up"));
+assert.ok(ui.includes("Lead Capture & Follow-up"));
+assert.ok(ui.includes("showEnquiries ? ("));
 assert.ok(ui.includes("contactPermissionConfirmed:true"));
 assert.ok(ui.toLowerCase().includes("owner-entered"));
 assert.ok(ui.includes("booked label is not proof of payment"));
