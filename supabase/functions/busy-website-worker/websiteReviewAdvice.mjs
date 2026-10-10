@@ -42,6 +42,11 @@ function websiteReviewAdvice({before=null,after=null,originalDraft=null,candidat
   measuredConversionLift:null,measuredSalesLift:null,
   actualScreenshotsCompared:!!before?.mobileAudit&&!!before?.desktopAudit&&
     !!after?.mobileAudit&&!!after?.desktopAudit,
+  safeToSuggestPrivateChange:verdict.status==="measured-improvement"||
+    verdict.status==="safe-alternative",
+  needsNewMeasurement:verdict.status==="needs-review",
+  changesPreserveCustomerFacts:verdict.status!=="regression"||
+    !(verdict.reason||"").toLowerCase().includes("business facts"),
   note:"An objective layout check cannot decide whether a design is beautiful or commercially successful."};
 }
 export {websiteReviewAdvice};

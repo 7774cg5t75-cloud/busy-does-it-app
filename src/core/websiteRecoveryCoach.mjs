@@ -11,17 +11,18 @@ function websiteRecoveryCoach(view={}){
  const healthy=recovery.healthy===true&&view.healthStatus==="healthy";
  const ownerDns=recovery.ownerActionRequired===true;
  const auto=recovery.automatic===true;
- const retryAllowed=view.canRetrySafeRecovery===true&&!busy&&!ownerDns&&!auto;
+ const retryAllowed=view.canRetrySafeRecovery===true&&!busy&&!ownerDns&&!auto&&
+   !healthy&&typeof view.liveDeployment?.id==="string";
  const fallback=typeof recovery.lastKnownGoodDeployment?.id==="string"?
    recovery.lastKnownGoodDeployment.id:null;
  let status="verify",headline="Check website status",
    message="Refresh the website status before deciding whether any action is needed.";
- if(healthy){
-  status="healthy";headline="Website hosting checks are healthy";
-  message="BUSY has recorded healthy hosting checks. Public delivery still needs exact deployment verification.";
- }else if(busy){
+ if(busy){
   status="in-progress";headline="BUSY is still working on the website";
   message="Wait for the current job and refresh its status. Do not start another publish or recovery attempt.";
+ }else if(healthy){
+  status="healthy";headline="Website hosting checks are healthy";
+  message="BUSY has recorded healthy hosting checks. Public delivery still needs exact deployment verification.";
  }else if(ownerDns){
   status="owner-dns";headline="Your domain provider needs one check";
   message="Follow the domain's specific DNS instructions. Avoid replacing email records or purchasing a new domain.";

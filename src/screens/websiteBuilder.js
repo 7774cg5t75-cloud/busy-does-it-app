@@ -224,6 +224,9 @@ function WebsiteBuilder({ s }) {
               <Text style={styles.cardBody}>
                 {brainCoach.explanation}
               </Text>
+              {brainCoach.warning?(
+                <Text style={styles.cardBody}>{brainCoach.warning}</Text>
+              ):null}
               <Button label={"Try "+selectedStyle.title+" (private draft)"}
                 onPress={()=>s.applyWebsiteChange(selectedStyle.instruction)} />
               {designChoices.length>1 ? (

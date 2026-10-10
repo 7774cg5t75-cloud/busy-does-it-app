@@ -15,12 +15,16 @@ function websiteBrainCoaching({summary=null,alternative=null,quality=null}={}){
  return {scope:trusted?"current-business":"general-business-context",
   explanation:!selected?
    "Create a website first; BUSY will suggest styles from real business facts.":
-   liked&&!rejected?
+   rejected?
+   "You previously rejected this style. BUSY can show another option without changing your live website.":
+   liked?
    "BUSY suggested this because you previously liked or kept this style for your business.":
    "BUSY suggested this based on your business type and the current design.",
   next:advice?{title:advice.title,detail:advice.detail}:
    {title:"Review your private design",detail:"You approve changes before they go public."},
   warning:rejected?"You previously rejected this look. Try another available style.":null,
+  privateDraftOnly:true,needsOwnerApproval:true,
+  actionableResultProven:false,
   aiModelRetrained:false,sharedLearningEnabled:false,
   measuredSalesChange:null,measuredEnquiryChange:null};
 }
