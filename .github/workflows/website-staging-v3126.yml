@@ -1,0 +1,52 @@
+name: V3.126 exact preview and isolated loopback staging rehearsal
+on:
+  push:
+    branches: [v3.126]
+    paths:
+      - 'src/core/websiteDeploymentSelection.mjs'
+      - 'src/domain/websitePublishing.js'
+      - 'src/core/stagingCanaryReadEvidence.mjs'
+      - 'scripts/check-website-exact-version-v3126.mjs'
+      - 'scripts/check-website-loopback-v3126.mjs'
+      - 'scripts/build-website-design-gallery-v3100.mjs'
+      - 'staging/**'
+      - '.github/workflows/production-check.yml'
+      - '.github/workflows/website-staging-v3126.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fictional-loopback-staging:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Read-only, tenancy and exact deployment regression
+        run: |
+          node scripts/check-website-exact-version-v3126.mjs
+          node scripts/check-website-staging-execution-v3125.mjs
+          node scripts/check-website-staging-global-v3124.mjs
+          node scripts/check-website-integrated-recovery-v3123.mjs
+      - name: Install dependencies in isolated cache
+        run: npm install --no-audit --no-fund --cache /tmp/busy-v3126-npm-cache
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Render nine independently fictional websites
+        run: node scripts/build-website-design-gallery-v3100.mjs /tmp/busy-v3126-gallery
+      - name: Serve two fictional websites over authenticated loopback HTTP and inspect mobile and desktop
+        run: node scripts/check-website-loopback-v3126.mjs /tmp/busy-v3126-gallery /tmp/busy-v3126-evidence
+      - name: Export iPhone JavaScript without signing, publishing or deployment
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3126-ios-js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v3126-fictional-loopback-preview-and-browser-evidence
+          path: /tmp/busy-v3126-evidence/
+          retention-days: 7
+      - name: Report strict scope
+        run: |
+          echo "Loopback only: 127.0.0.1 with fictional tokens and sites."
+          echo "No Supabase cloud requests, real staging environment, RLS certifications,"
+          echo "production mutations, customer data, signed IPA, DNS, public website or payments."
