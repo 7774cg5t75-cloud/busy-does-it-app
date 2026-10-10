@@ -59,6 +59,7 @@ jobs:
           node scripts/check-website-quality-v398.mjs
           node scripts/check-professional-websites-v399.mjs
           node scripts/check-intelligent-website-design-v3100.mjs
+          node scripts/check-distinct-website-designs-v3101.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs
