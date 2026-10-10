@@ -1,0 +1,40 @@
+name: V3.125 isolated staging and exact-version guardrails
+on:
+  push:
+    branches: [v3.125]
+    paths:
+      - 'src/core/stagingEnvironmentGuard.mjs'
+      - 'src/core/websiteStagingJourneyEvidence.mjs'
+      - 'src/core/businessAppPreviewProof.mjs'
+      - 'src/core/founderStagingSummary.mjs'
+      - 'src/screens/miniApps.js'
+      - 'src/screens/founderOperations.js'
+      - 'scripts/check-website-staging-execution-v3125.mjs'
+      - 'scripts/check-website-staging-global-v3124.mjs'
+      - '.github/workflows/production-check.yml'
+      - '.github/workflows/website-staging-v3125.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  staging-source-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Source-only isolation, precise preview, and founder evidence tests
+        run: |
+          node scripts/check-website-staging-execution-v3125.mjs
+          node scripts/check-website-staging-global-v3124.mjs
+          node scripts/check-website-integrated-recovery-v3123.mjs
+          node scripts/check-website-boundaries-v3122.mjs
+      - name: Install dependency graph (no paid API calls)
+        run: npm install --no-audit --no-fund --cache /tmp/busy-v3125-npm-cache
+      - name: Validate iPhone JavaScript export without signing or publishing
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3125-ios-js
+      - name: Confirm exact verification scope
+        run: |
+          echo "Source-only test. No external cloud authentication, new Supabase project, real RLS probe, DNS changes, payments, public publication or signed IPA."
