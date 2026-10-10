@@ -47,8 +47,8 @@ eq(check({...view,activeJob:{status:"processing"}}).readyForOwnerClick,false,
  "Active publication blocks duplicate");
 eq(check().serverAuthorized,false,"UI check is not server consent");
 const source=readFileSync(new URL("../src/domain/websitePublishing.js",import.meta.url),"utf8");
-ok(source.includes('draftChangedSinceHosted === false &&\n      !activeJob,'),
- "Real core publish state blocks changed private draft");
+ok(source.includes('draftChangedSinceHosted === false &&\n      draftFreshness.verified === true &&\n      !activeJob,'),
+ "Real core publish state blocks changed private draft AND unverified hosted generation");
 ok(source.includes('!recoveryOwnerAction &&\n      !recoveryAutomatic &&\n      !!liveDeployment'),
  "Real core recovery denies competing automatic and manual retries");
 const base={liveDeployment:{id:"live-1"},healthStatus:"down",
