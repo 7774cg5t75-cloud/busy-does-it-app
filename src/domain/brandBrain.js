@@ -269,6 +269,7 @@ function buildBrandBrain({
     businessName: clean(businessName),
     businessType: clean(trade) || clean(verticalLabel),
     tagline: profile.tagline,
+    logoLabel: profile.logoLabel,
     description: profile.publicDescription,
     about: profile.story,
     differentiators: profile.differentiators,
