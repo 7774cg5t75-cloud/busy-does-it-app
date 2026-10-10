@@ -63,6 +63,7 @@ jobs:
           node scripts/check-website-edit-freedom-v3102.mjs
           node scripts/check-visual-critic-contract-v3102.mjs
           node scripts/check-real-website-vision-v3103.mjs
+          node scripts/check-website-review-cycle-v3104.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs
