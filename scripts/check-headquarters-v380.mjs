@@ -3,6 +3,7 @@ import {readFileSync} from "node:fs";
 import {showcaseBrandBrain} from "../sites/busy-headquarters/demo-brand-brain.mjs";
 import {buildWebsiteLaunchProof,exactBusyHost} from "../src/core/websiteLaunchProof.mjs";
 import {designForWebsite,designCss} from "../supabase/functions/busy-website-worker/designSystem.mjs";
+import {planWebsiteDesign} from "../supabase/functions/busy-website-worker/designPlanner.mjs";
 
 const root=new URL("../",import.meta.url);
 const read=path=>readFileSync(new URL(path,root),"utf8");
@@ -13,10 +14,11 @@ const management=new Function(stripExport(read("src/domain/websiteManagement.js"
  ";return {syncWebsitePageModel};")();
 const source=stripExport(read("src/domain/websiteBuilder.js"))
  .replace(/^import \{ syncWebsitePageModel \} from "\.\/websiteManagement";\s*/,"")
- .replace(/^import \{ designForWebsite, designCss \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designSystem\.mjs";\s*/,"");
+ .replace(/^import \{ designForWebsite, designCss \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designSystem\.mjs";\s*/,"")
+ .replace(/^import \{ planWebsiteDesign \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designPlanner\.mjs";\s*/,"");
 assert.ok(!source.includes("import { syncWebsitePageModel }"));
-const build=new Function("syncWebsitePageModel","designForWebsite","designCss",source+
- ";return {buildWebsiteDraft,renderWebsiteHtml};")(management.syncWebsitePageModel,designForWebsite,designCss);
+const build=new Function("syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign",source+
+ ";return {buildWebsiteDraft,renderWebsiteHtml};")(management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign);
 const draft=build.buildWebsiteDraft({brandBrain:showcaseBrandBrain});
 const committedDemo=read("sites/busy-headquarters/demo/index.html");
 assert.ok(draft.html.includes('class="hero hero-large'),"Current builder renders professionally styled pages.");
