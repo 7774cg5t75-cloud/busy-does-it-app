@@ -101,8 +101,9 @@ function applyWebsiteVisualEdit(draft,instruction){
    const index=sections.findIndex(s=>s.id.startsWith("custom-")&&(clean(s.title).toLowerCase()===target||s.id===slug(target)));
    if(index<0)return fail("To avoid deleting critical information, only extra sections can be deleted directly. Other sections can be hidden.");
    const title=sections[index].title;
+   const removedId=sections[index].id;
    sections.splice(index,1);
-   theme.sectionOrder=list(theme.sectionOrder).filter(id=>id!==existing[index]?.id);
+   theme.sectionOrder=list(theme.sectionOrder).filter(id=>id!==removedId);
    return apply("Removed your extra "+title+" section from the private website.");
  }
 
