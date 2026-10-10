@@ -13,6 +13,9 @@ import { Shell, Card, Button, MetricRow, StatusChip } from "../components/ui";
 
 function TalkToBusy({ s }) {
   const [typedCommand, setTypedCommand] = useState("");
+  const [showQuickAsks, setShowQuickAsks] = useState(false);
+  const [showConversation, setShowConversation] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const recorderState = useAudioRecorderState(audioRecorder, 200);
   const autoStartHandled = useRef(0);
@@ -123,64 +126,15 @@ function TalkToBusy({ s }) {
   return (
     <Shell
       s={s}
-      title={s.businessCreationConversationActive ? "Talk to BUSY • Build my business" : "BUSY Operator"}
-      subtitle={
-        s.businessCreationConversationActive
-          ? "Talk naturally about the business. BUSY remembers each answer, asks the next useful question and advances the private launch pack."
-          : "Run more of the day by talking naturally. BUSY keeps the current customer, booking and draft in context, then previews record changes before applying them."
-      }
-      brandCue={
-        s.businessCreationConversationActive
-          ? "V3.59 • conversational business creation • one question at a time • shared memory • nothing published automatically."
-          : "Voice-first, not authority-first. Booking/customer changes still ask for confirmation; messages, publishing and spend keep their separate approval gates."
-      }
+      title={s.businessCreationConversationActive ? "Talk to BUSY • Build my business" : "Talk to BUSY"}
+      subtitle={s.businessCreationConversationActive
+        ? "Tell BUSY about your business, one step at a time."
+        : "Speak or type naturally. BUSY keeps the complicated parts behind the scenes."}
     >
-      {recentTurns.length ? (
-        <Card
-          eyebrow="Current conversation"
-          title="BUSY remembers what you are talking about"
-          body="Follow up naturally — for example: “okay, use John”, “make that friendlier”, or “what would you do after that?”"
-          footer={`${recentTurns.length} recent turn${recentTurns.length === 1 ? "" : "s"} in context`}
-          tone="blue"
-        >
-          {recentTurns.slice(-4).map((turn) => (
-            <View key={turn.id} style={styles.operatorTurn}>
-              <Text style={styles.operatorTurnRole}>
-                {turn.role === "user" ? "YOU" : "BUSY"}
-              </Text>
-              <Text style={styles.operatorTurnText}>{turn.content}</Text>
-            </View>
-          ))}
-          <Button label="Start a fresh conversation" onPress={s.startNewBusyConversation} />
-        </Card>
-      ) : null}
-
-      {s.businessCreationConversationActive ? (
-        <Card
-          eyebrow="Business creation conversation"
-          title={s.businessCreationJourney?.nextQuestion?.question || "BUSY has the core facts it needs"}
-          body={
-            s.businessCreationJourney?.nextQuestion?.helper ||
-            "You can keep talking naturally, ask BUSY to prepare the launch pack, or return to the combined review."
-          }
-          footer="Your answers feed the shared business profile used by the website, Business App and marketing tools."
-          tone="green"
-        >
-          <Button
-            label="Return to launch-pack review"
-            onPress={() => s.go("businessCreationJourney")}
-          />
-          <Button
-            label="Finish business-creation conversation"
-            onPress={() => s.setBusinessCreationConversationActive(false)}
-          />
-        </Card>
-      ) : null}
-
       <Card
         eyebrow="Voice"
         title={isListening ? "BUSY is listening…" : voiceStage === "sending" ? "BUSY is processing your request…" : "Talk naturally"}
-        body="Say what you need, then tap the square to send. BUSY will show a response or an error here."
+        body="Tap the microphone, speak, then tap again to send."
         tone={isListening ? "amber" : voiceStage === "error" ? "amber" : "blue"}
       >
         <View style={styles.talkRecordingWrap}>
@@ -217,85 +171,32 @@ function TalkToBusy({ s }) {
         {voiceMessage ? (
           <Text style={styles.talkVoiceNotice}>{voiceMessage}</Text>
         ) : null}
+        <Text style={styles.talkSafetyText}>BUSY asks before changing records or publishing anything.</Text>
         {s.busyCommandError ? (
           <Text style={styles.talkVoiceError}>BUSY says: {s.busyCommandError}</Text>
         ) : null}
       </Card>
 
-      <Card
-        eyebrow="Or type"
-        title={result?.needsClarification ? "Answer BUSY" : "Tell BUSY what you want"}
-        body={
-          result?.needsClarification
-            ? result.clarificationQuestion || "BUSY needs one more detail."
-            : "Try: “move John to Friday at 3”, “cancel Sarah’s booking”, “add a note to Dave”, “show me Tuesday”, or “what should I do now?”"
-        }
-        tone={result?.needsClarification ? "amber" : "green"}
-      >
-        <TextInput
-          value={typedCommand}
-          onChangeText={setTypedCommand}
-          placeholder={result?.needsClarification ? "Your answer…" : "What do you want BUSY to do?"}
-          placeholderTextColor="#8A94A4"
-          multiline
-          style={styles.talkInput}
-          editable={s.busyCommandStatus !== "thinking"}
-        />
-        <Button
-          label={s.busyCommandStatus === "thinking" ? "BUSY is thinking…" : result?.needsClarification ? "Reply to BUSY" : "Ask BUSY"}
-          primary
-          disabled={!typedCommand.trim() || s.busyCommandStatus === "thinking"}
-          onPress={submitTyped}
-        />
-      </Card>
-
-      {!s.businessCreationConversationActive ? (
-      <Card
-        eyebrow="Quick asks"
-        title="Common daily commands"
-        body="These use the same Operator conversation, so you can follow up naturally after BUSY answers."
-        tone="blue"
-      >
-        <Button
-          label="Give me my daily briefing"
-          disabled={s.busyCommandStatus === "thinking"}
-          onPress={() => s.submitBusyCommand({ text: "Give me my daily briefing: what do I need to do now, what can wait until later today, and what should I watch?" })}
-        />
-        <Button
-          label="What should I do now?"
-          disabled={s.busyCommandStatus === "thinking"}
-          onPress={() => s.submitBusyCommand({ text: "What should I do now?" })}
-        />
-        <Button
-          label="Show me tomorrow"
-          disabled={s.busyCommandStatus === "thinking"}
-          onPress={() => s.submitBusyCommand({ text: "Show me tomorrow in the calendar" })}
-        />
-        <Button
-          label="What needs chasing?"
-          disabled={s.busyCommandStatus === "thinking"}
-          onPress={() => s.submitBusyCommand({ text: "What customer work needs chasing first?" })}
-        />
-        <Button
-          label="Who am I waiting to hear back from?"
-          disabled={s.busyCommandStatus === "thinking"}
-          onPress={() => s.submitBusyCommand({ text: "Who am I waiting to hear back from, and who actually needs a reply from me?" })}
-        />
-        <Button
-          label="Where have I got a gap?"
-          disabled={s.busyCommandStatus === "thinking"}
-          onPress={() => s.submitBusyCommand({ text: "Where have I got a sensible gap for another job?" })}
-        />
-      </Card>
-      ) : null}
-
-      {s.busyCommandError ? (
+      {s.businessCreationConversationActive ? (
         <Card
-          eyebrow="Could not complete that"
-          title="BUSY needs another try"
-          body={s.busyCommandError}
-          tone="amber"
-        />
+          eyebrow="Business creation conversation"
+          title={s.businessCreationJourney?.nextQuestion?.question || "BUSY has the core facts it needs"}
+          body={
+            s.businessCreationJourney?.nextQuestion?.helper ||
+            "You can keep talking naturally, ask BUSY to prepare the launch pack, or return to the combined review."
+          }
+          footer="Your answers feed the shared business profile used by the website, Business App and marketing tools."
+          tone="green"
+        >
+          <Button
+            label="Return to launch-pack review"
+            onPress={() => s.go("businessCreationJourney")}
+          />
+          <Button
+            label="Finish business-creation conversation"
+            onPress={() => s.setBusinessCreationConversationActive(false)}
+          />
+        </Card>
       ) : null}
 
       {result ? (
@@ -306,12 +207,12 @@ function TalkToBusy({ s }) {
               : result.needsClarification
               ? "One detail needed"
               : result.mode === "plan"
-              ? "BUSY Operator plan"
+              ? "BUSY’s plan"
               : result.requiresConfirmation
               ? "Preview before changing anything"
               : result.mode === "draft"
               ? "Draft prepared"
-              : "BUSY understood"
+              : "BUSY’s answer"
           }
           title={result.title || "BUSY has a next step"}
           body={
@@ -340,7 +241,7 @@ function TalkToBusy({ s }) {
               : "green"
           }
         >
-          <MetricRow left="Confidence" right={result.confidence || "Low"} />
+          {showAdvanced ? <MetricRow left="Confidence" right={result.confidence || "Low"} /> : null}
           {result.customerName ? <MetricRow left="Customer" right={result.customerName} /> : null}
           {result.service ? <MetricRow left="Service" right={result.service} /> : null}
           {result.date ? <MetricRow left="Date" right={result.date} /> : null}
@@ -409,6 +310,121 @@ function TalkToBusy({ s }) {
         </Card>
       ) : null}
 
+      <Card
+        eyebrow="Or type"
+        title={result?.needsClarification ? "Reply to BUSY" : "Type to BUSY instead"}
+        body={
+          result?.needsClarification
+            ? result.clarificationQuestion || "BUSY needs one more detail."
+            : "A question or an instruction — just use your own words."
+        }
+        tone={result?.needsClarification ? "amber" : "green"}
+      >
+        <TextInput
+          value={typedCommand}
+          onChangeText={setTypedCommand}
+          placeholder={result?.needsClarification ? "Your answer…" : "What do you want BUSY to do?"}
+          placeholderTextColor="#8A94A4"
+          multiline
+          style={styles.talkInput}
+          editable={s.busyCommandStatus !== "thinking"}
+        />
+        <Button
+          label={s.busyCommandStatus === "thinking" ? "BUSY is thinking…" : result?.needsClarification ? "Reply to BUSY" : "Ask BUSY"}
+          primary
+          disabled={!typedCommand.trim() || s.busyCommandStatus === "thinking"}
+          onPress={submitTyped}
+        />
+      </Card>
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: showQuickAsks }}
+        onPress={() => setShowQuickAsks((value) => !value)}
+        style={({ pressed }) => [styles.talkSectionToggle, pressed && styles.pressed]}
+      >
+        <Text style={styles.talkSectionToggleText}>{showQuickAsks ? "Hide Suggested questions" : "Suggested questions"}</Text>
+        <Text style={styles.talkSectionChevron}>{showQuickAsks ? "−" : "+"}</Text>
+      </Pressable>
+      {showQuickAsks ? (
+        <>
+      {!s.businessCreationConversationActive ? (
+      <Card
+        eyebrow="Quick asks"
+        title="Common daily commands"
+        body="These use the same Operator conversation, so you can follow up naturally after BUSY answers."
+        tone="blue"
+      >
+        <Button
+          label="Give me my daily briefing"
+          disabled={s.busyCommandStatus === "thinking"}
+          onPress={() => s.submitBusyCommand({ text: "Give me my daily briefing: what do I need to do now, what can wait until later today, and what should I watch?" })}
+        />
+        <Button
+          label="What should I do now?"
+          disabled={s.busyCommandStatus === "thinking"}
+          onPress={() => s.submitBusyCommand({ text: "What should I do now?" })}
+        />
+        <Button
+          label="Show me tomorrow"
+          disabled={s.busyCommandStatus === "thinking"}
+          onPress={() => s.submitBusyCommand({ text: "Show me tomorrow in the calendar" })}
+        />
+        <Button
+          label="What needs chasing?"
+          disabled={s.busyCommandStatus === "thinking"}
+          onPress={() => s.submitBusyCommand({ text: "What customer work needs chasing first?" })}
+        />
+        <Button
+          label="Who am I waiting to hear back from?"
+          disabled={s.busyCommandStatus === "thinking"}
+          onPress={() => s.submitBusyCommand({ text: "Who am I waiting to hear back from, and who actually needs a reply from me?" })}
+        />
+        <Button
+          label="Where have I got a gap?"
+          disabled={s.busyCommandStatus === "thinking"}
+          onPress={() => s.submitBusyCommand({ text: "Where have I got a sensible gap for another job?" })}
+        />
+      </Card>
+      ) : null}
+
+        </>
+      ) : null}
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: showConversation }}
+        onPress={() => setShowConversation((value) => !value)}
+        style={({ pressed }) => [styles.talkSectionToggle, pressed && styles.pressed]}
+      >
+        <Text style={styles.talkSectionToggleText}>{showConversation ? "Hide Earlier conversation" : "Earlier conversation"}</Text>
+        <Text style={styles.talkSectionChevron}>{showConversation ? "−" : "+"}</Text>
+      </Pressable>
+      {showConversation ? (
+        <>
+      {recentTurns.length ? (
+        <Card
+          eyebrow="Current conversation"
+          title="Earlier in this conversation"
+          body="BUSY uses recent messages as context so you can follow up without repeating everything."
+          footer={`${recentTurns.length} recent turn${recentTurns.length === 1 ? "" : "s"} in context`}
+          tone="blue"
+        >
+          {recentTurns.slice(-4).map((turn) => (
+            <View key={turn.id} style={styles.operatorTurn}>
+              <Text style={styles.operatorTurnRole}>
+                {turn.role === "user" ? "YOU" : "BUSY"}
+              </Text>
+              <Text style={styles.operatorTurnText}>{turn.content}</Text>
+            </View>
+          ))}
+          <Button label="Start a fresh conversation" onPress={s.startNewBusyConversation} />
+        </Card>
+      ) : null}
+
+        </>
+      ) : null}
+
       {s.busyUndoAction ? (
         <Card
           eyebrow="BUSY audit trail"
@@ -421,6 +437,17 @@ function TalkToBusy({ s }) {
         </Card>
       ) : null}
 
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: showAdvanced }}
+        onPress={() => setShowAdvanced((value) => !value)}
+        style={({ pressed }) => [styles.talkSectionToggle, pressed && styles.pressed]}
+      >
+        <Text style={styles.talkSectionToggleText}>{showAdvanced ? "Hide More details & history" : "More details & history"}</Text>
+        <Text style={styles.talkSectionChevron}>{showAdvanced ? "−" : "+"}</Text>
+      </Pressable>
+      {showAdvanced ? (
+        <>
       <Card
         eyebrow="Operator 2.0 boundary"
         title="More commands, same hard safety line"
@@ -456,6 +483,9 @@ function TalkToBusy({ s }) {
               <Text style={styles.talkHistoryReply}>{item.response}</Text>
             </View>
           ))}
+        </>
+      ) : null}
+
         </>
       ) : null}
 
