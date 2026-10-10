@@ -104,7 +104,7 @@ const falseAuth=await probeStagingSupabaseAuth(p,async(url,opts)=>{
 });
 eq(falseAuth.status,"blocked","Unexpected accepted anonymous Auth request fails");
 const script=readFileSync(new URL("./run-real-staging-auth-v3128.mjs",import.meta.url),"utf8");
-yes(script.includes("probeStagingSupabaseAuth({"),
+yes(script.includes("probeStagingSupabaseAuth(p)"),
  "Manual real cloud runner is wired to guarded probe");
 const wf=readFileSync(new URL("../.github/workflows/real-staging-auth-v3128.yml",import.meta.url),"utf8");
 yes(wf.includes("github.event_name == 'workflow_dispatch'"),
