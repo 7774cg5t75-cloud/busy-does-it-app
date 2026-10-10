@@ -55,7 +55,8 @@ function buildWebsiteLaunchJourney({brand=null,draft=null,publishing=null,delive
    missingCoreFacts:missing,
    currentStatus:!editorReady?"needs_draft":!prepared?"needs_hosted_preview":
      !live?"awaiting_customer_approval":verifiedLive?"live_verified":"live_unverified",
-   isPublic:live,
+   isPublic:verifiedLive,
+   publishedRecordExists:live,
    isVerified:verifiedLive,
    canClaimPublished:verifiedLive,
    subscription:{status:"unverified",billingEnforced:false,suspensionEnabled:false,
