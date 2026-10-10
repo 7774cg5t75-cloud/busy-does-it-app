@@ -64,4 +64,11 @@ yes(visualRisks({mobileAudit:first.mobileAudit,desktopAudit:first.desktopAudit})
 const poor=await runWebsiteDesignReviewCycle({...common,ownerApprovedSuggestions:true,
  visionReview:async()=>({status:"completed",source:"screenshot-ai",providerCalls:2,report})});
 equal(poor.status,"review-unverified","Reject multi-call violation");
+const migration=readFileSync(new URL("../supabase/migrations/20261010154000_v3_104_website_visual_ai_meter.sql",import.meta.url),"utf8");
+for(const marker of [
+ "enabled boolean not null default false","monthly_request_cap integer not null default 2",
+ "for update","busy_reserve_website_visual_ai_call","busy_finish_website_visual_ai_call",
+ "from public,anon,authenticated","to service_role","return null; -- duplicate request keys",
+ "unique (business_id, request_key)"
+])yes(migration.includes(marker),"Future tenant-owned, no-surprise AI usage gate: "+marker);
 console.log("V3.104 PASS: "+checks+" authenticated private review, charge reservation, owner consent, one AI call, safe candidate, browser recheck, no live edits.");
