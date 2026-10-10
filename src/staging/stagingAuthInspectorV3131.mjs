@@ -18,14 +18,6 @@ const FIXTURES={
   b:{email:"bdi-stage-owner-b@example.invalid",
      row:"0aa3150d-8e85-4ca3-bda2-f8f3dd6c9bcf",name:"Fire & Table Catering"}
 };
-const CONFIG=busyRuntimeCloudConfig({
-  environment:"isolated-staging",
-  productionSupabaseUrl:"https://"+LIVE+".supabase.co",
-  otherProtectedSupabaseRef:OTHER_PROTECTED,
-  expectedStagingSupabaseRef:STAGING,
-  stagingSupabaseUrl:"https://"+STAGING+".supabase.co",
-  stagingPublishableKey:"" // Clients must explicitly provide the build's key.
-});
 function validateStagingAuthConfig(p={}){
   const resolved=busyRuntimeCloudConfig({
     environment:p.environment,
