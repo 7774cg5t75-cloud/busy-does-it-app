@@ -113,7 +113,7 @@ eq(websiteReleaseReadiness({...all,global:false}).status,"blocked",
 eq(websiteReleaseReadiness(all).canClaimProductionReady,false,
  "Even checked boxes are not an independent production audit");
 const operations=readFileSync(new URL("../src/screens/founderOperations.js",import.meta.url),"utf8");
-ok(operations.includes("founderOperationalPriorities(report)")&&
+ok(operations.includes("founderOperationalPriorities(report,{nowISO:")&&
  operations.includes("websiteReleaseReadiness()"),"Actual founder page shows triage and pre-release gates");
 ok(readFileSync(new URL("../.github/workflows/production-check.yml",import.meta.url),"utf8")
  .includes("check-website-operational-quality-v3117.mjs"),"Test included in production regression checks");
