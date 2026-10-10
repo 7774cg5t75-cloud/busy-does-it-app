@@ -20,7 +20,7 @@ const ordered=(v,a,b)=>{assert.ok(v.indexOf(a)>=0&&v.indexOf(b)>v.indexOf(a),`${
 // The persistent immutable hosted version must have a direct reopen action on
 // both the Website Builder and editable preview screens, including after back.
 includes(websiteBuilder,'const hostedPreview = s.websitePublishingView?.previewDeployment || null;');
-includes(websiteBuilder,'case "review":return hostedPreview?.id');
+includes(websiteBuilder,'case "review":return assurance.hostedPreviewReady&&hostedPreview?.id');
 includes(websiteBuilder,'s.openHostedWebsitePreview(hostedPreview.id)');
 includes(websiteBuilder,'View my hosted website again');
 includes(websiteBuilder,'Preview my website draft');
