@@ -1,0 +1,39 @@
+name: V3.102 free website customization and review-guard validation
+# No EAS build, provider AI request, hosted worker deploy or public publication.
+on:
+  push:
+    branches: [v3.102]
+    paths:
+      - .github/workflows/website-customization-v3102-validation.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-source-and-worker-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: "1"
+    steps:
+      - name: Check out V3.102
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Run production and new website editing checks
+        run: |
+          node scripts/check-production.mjs
+          node scripts/check-website-edit-freedom-v3102.mjs
+          node scripts/check-visual-critic-contract-v3102.mjs
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Parse hosted website worker TypeScript
+        run: |
+          node --input-type=module -e 'import fs from "node:fs";import {parse} from "@babel/parser";parse(fs.readFileSync("supabase/functions/busy-website-worker/index.ts","utf8"),{sourceType:"module",plugins:["typescript"]});console.log("Website worker syntax valid.");'
+      - name: Compile iPhone JavaScript — not a paid Expo build
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3102-ios-js-only
+      - name: Confirm no usage-sensitive operations occurred
+        run: echo "No EAS build, no screenshot AI charges, no edge deployment and no website published."
