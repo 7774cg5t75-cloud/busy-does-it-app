@@ -1,5 +1,5 @@
 import React from "react";
-import { Text } from "react-native";
+import { Keyboard, Text } from "react-native";
 
 import { styles } from "../theme/styles";
 import { Shell, Card, Button, Field, MetricRow } from "../components/ui";
@@ -34,6 +34,11 @@ function readableBytes(value) {
 
 function WebsitePublishing({ s }) {
   const view = s.websitePublishingView || {};
+  const [showTechnicalDetails, setShowTechnicalDetails] = React.useState(false);
+  const [showDomainSetup, setShowDomainSetup] = React.useState(false);
+  const [showEnquiries, setShowEnquiries] = React.useState(false);
+  const [showNewEnquiry, setShowNewEnquiry] = React.useState(false);
+  const toggleSection = (setter) => { Keyboard.dismiss(); setter(previous => !previous); };
   const website = view.website || null;
   const preview = view.previewDeployment || null;
   const live = view.liveDeployment || null;
@@ -135,9 +140,396 @@ function WebsitePublishing({ s }) {
     <Shell
       s={s}
       title="Website Management"
-      subtitle="Edit privately, inspect the exact hosted version, then decide what becomes public."
-      brandCue="V3.80 • real deployment proof • approved customer websites"
+      subtitle="Prepare your website, check the preview and choose when to publish."
+      brandCue="BUSY DOES IT • Websites"
     >
+      <Card
+        eyebrow="Your website"
+        title={launchProof.verified
+          ? "Your website is live and verified"
+          : live
+          ? "Published • website connection still being checked"
+          : activeJob
+          ? "BUSY is working on your website"
+          : preview
+          ? "Your website is ready for review"
+          : s.websiteDraft
+          ? "Your website draft is ready"
+          : "Let's build your website"}
+        body={launchProof.verified
+          ? "BUSY has verified the approved version on your public website. You can make changes without affecting the live version until you approve them."
+          : live
+          ? "BUSY has recorded publication but has not yet verified the public website connection. Your website is not marked as verified until the real checks pass."
+          : preview
+          ? "Open the exact hosted preview and check the wording, photos, services and contact details. Nothing is public until you approve it."
+          : activeJob
+          ? "BUSY is preparing your website securely. You can refresh the status to see what happens next."
+          : s.websiteDraft
+          ? "Your draft is private. Prepare a hosted preview before deciding whether to publish."
+          : "Start with your business details. BUSY will prepare a website for you to review before anything goes public."}
+        footer={launchProof.verified
+          ? "Live website verified • changes always require your approval"
+          : "Nothing is published automatically"}
+        tone={launchProof.verified ? "green" : live && !launchProof.verified ? "amber" : "blue"}
+      >
+        {journey.missingCoreFacts.length ? (
+          <Button label="Complete my business details" onPress={s.openBrandIdentity} />
+        ) : null}
+        {view.canPrepare ? (
+          <Button
+            label={s.websitePublishingAction === "prepare" ? "Preparing preview…" :
+              preview && view.draftChangedSinceHosted ? "Prepare updated website preview" : "Prepare website preview"}
+            primary={!preview || !!view.draftChangedSinceHosted}
+            disabled={!!s.websitePublishingAction}
+            onPress={s.prepareHostedWebsite}
+          />
+        ) : null}
+        {preview ? (
+          <Button label="Open my hosted website preview"
+            primary={!live && !view.draftChangedSinceHosted}
+            disabled={!!s.websitePublishingAction}
+            onPress={inspectHostedPreview} />
+        ) : null}
+        {launchProof.verified && view.defaultAddressState?.address?.url ? (
+          <Button label="Open my live website" primary onPress={s.openDefaultWebsiteAddress} />
+        ) : null}
+        {live && !launchProof.verified ? (
+          <Text style={styles.sectionLabel}>
+            {"Next website connection check: " + (missingDeliveryCheck?.label || "Public delivery") +
+              ". BUSY will not label the website as verified without real evidence."}
+          </Text>
+        ) : null}
+        <Button label={s.websitePublishingLoading ? "Refreshing…" : "Refresh website status"}
+          disabled={s.websitePublishingLoading} onPress={s.refreshWebsitePublishingStatus} />
+        <Button label="Edit my website" onPress={() => s.go("websiteBuilder")} />
+      </Card>
+      {s.websitePublishingError ? (
+        <Card
+          eyebrow="Needs attention"
+          title="Nothing unsafe was applied"
+          body={s.websitePublishingError}
+          tone="amber"
+        />
+      ) : null}
+
+      {s.websitePublishingNotice ? (
+        <Card
+          eyebrow="Latest update"
+          title={view.publicStatus || "Website management"}
+          body={s.websitePublishingNotice}
+          tone="blue"
+        />
+      ) : null}
+      <Text style={styles.sectionLabel}>Preview and publish</Text>
+      {preview && preview.id !== live?.id ? (
+        <Card
+          eyebrow="Go Live gate"
+          title={`Publish v${preview.version_no}?`}
+          body="This is the only public approval. BUSY will publish exactly the immutable hosted version you previewed, then automatically allocate/verify the BUSY address, Cloudflare route and live deployment health."
+          footer="The current public version is retained as a rollback target. Infrastructure checks do not require another approval."
+          tone="amber"
+        >
+          <MetricRow left="Change summary" right={preview.change_label || "Website update"} strong />
+          <MetricRow left="Prepared" right={readableDate(preview.prepared_at, "Ready")} />
+          <MetricRow left="Pages" right={String(preview.page_count || 1)} />
+          <Text style={styles.sectionLabel}>
+            Please open the exact hosted preview and confirm the business name,
+            services, photographs, contact details and wording before approving.
+            Viewing the editable phone preview alone is not enough.
+          </Text>
+          <Button
+            label={openedHostedPreview===preview.id?
+              "Hosted preview opened":"Open the exact hosted preview"}
+            disabled={!!s.websitePublishingAction}
+            onPress={inspectHostedPreview}
+          />
+          <Button
+            label={reviewedHostedPreview===preview.id?
+              "I've reviewed this exact preview ✓":"Confirm I reviewed this exact hosted preview"}
+            disabled={openedHostedPreview!==preview.id||
+              reviewedHostedPreview===preview.id||!!s.websitePublishingAction}
+            onPress={()=>setReviewedHostedPreview(preview.id)}
+          />
+          <Button
+            label={s.websitePublishingAction==="publish"?"Publishing…":
+              s.websitePublishingAction==="preflight"?"Verifying hosted version…":
+              "Review & approve Go Live"}
+            primary
+            disabled={!view.canPublish||!!s.websitePublishingAction||
+              reviewedHostedPreview!==preview.id}
+            onPress={() => s.confirmPublishHostedWebsite(preview.id)}
+          />
+        </Card>
+      ) : null}
+      {live ? (
+        <>
+          <Text style={styles.sectionLabel}>Live website health</Text>
+          <Card
+            eyebrow={`Live v${live.version_no}`}
+            title={view.healthLabel || "Not checked yet"}
+            body={
+              view.healthStatus === "healthy"
+                ? "BUSY reached the public site and confirmed it is serving the expected immutable deployment."
+                : view.healthStatus === "degraded"
+                ? "The site responded, but BUSY could not confirm that it is serving the expected deployment."
+                : view.healthStatus === "down"
+                ? "BUSY could not verify a healthy public response. The previous deployment records remain intact."
+                : "The scheduled health worker will check the public site automatically. You can also run a check now."
+            }
+            footer={`Last checked: ${readableDate(website?.last_health_check_at)}`}
+            tone={view.healthStatus === "healthy" ? "green" : view.healthStatus === "down" || view.healthStatus === "degraded" ? "amber" : "blue"}
+          >
+            <MetricRow left="Expected deployment" right={`v${live.version_no}`} strong />
+            <MetricRow left="Last healthy" right={readableDate(website?.last_healthy_at)} />
+            {view.latestHealth ? (
+              <>
+                <MetricRow left="HTTP" right={String(view.latestHealth.http_status || "No response")} />
+                <MetricRow left="Response" right={`${Number(view.latestHealth.response_ms || 0)}ms`} />
+              </>
+            ) : null}
+            <Button
+              label={s.websitePublishingAction === "health" ? "Checking live site…" : "Check live site now"}
+              disabled={!view.canCheckHealth || !!s.websitePublishingAction}
+              onPress={s.runWebsiteHealthCheck}
+            />
+            <Button label="Open live website" primary onPress={s.openLiveWebsite} />
+          </Card>
+        </>
+      ) : null}
+      <Button
+        label={showDomainSetup ? "Hide domain setup" : domain ? "Manage my custom domain" : "Connect my own domain (optional)"}
+        onPress={() => toggleSection(setShowDomainSetup)}
+      />
+      {showDomainSetup ? (
+        <>
+      <Text style={styles.sectionLabel}>Custom domain</Text>
+      <Card
+        eyebrow="Your own domain • one ownership check"
+        title={view.domainState?.journey?.label || "Connect a domain you already own"}
+        body={
+          !domain
+            ? "Enter the domain you want customers to use. BUSY first proves ownership with one TXT record; after that it prepares the Cloudflare hostname, SSL and route automatically."
+            : view.domainState?.journey?.complete
+            ? "BUSY has proved ownership, Cloudflare routing, HTTPS and the exact live website through this customer-owned domain."
+            : view.domainState?.journey?.needsAttention
+            ? "Your approved BUSY website remains safe. The custom-domain setup has been isolated to the stage shown below, and BUSY will keep the default BUSY address separate."
+            : domain.status === "pending_verification"
+            ? "Add the ownership TXT record below, then check ownership once. BUSY takes over the provider setup after that."
+            : "Ownership is complete. BUSY is handling the Cloudflare hostname and SSL automatically; only the DNS records shown below still need to be added at the domain's DNS provider."
+        }
+        footer={
+          view.domainState?.journey?.complete
+            ? "The customer-owned domain is now the preferred public website address."
+            : "BUSY never treats ownership, SSL, routing or live-site health as the same thing."
+        }
+        tone={
+          view.domainState?.journey?.complete
+            ? "green"
+            : view.domainState?.journey?.needsAttention
+            ? "amber"
+            : "blue"
+        }
+      >
+        {(view.domainState?.journey?.steps || []).map((step) => (
+          <MetricRow
+            key={step.id}
+            left={step.label}
+            right={
+              step.status === "complete"
+                ? "Done"
+                : step.status === "working"
+                ? "Checking…"
+                : step.status === "error"
+                ? "Needs attention"
+                : "Waiting"
+            }
+            strong={step.status === "complete"}
+          />
+        ))}
+
+        {!domain ? (
+          <>
+            <Field
+              label="Domain"
+              value={s.websiteDomainDraft}
+              onChangeText={s.setWebsiteDomainDraft}
+              autoCapitalize="none"
+              placeholder="www.example.co.uk"
+            />
+            <Button
+              label={s.websitePublishingAction === "domain" ? "Creating verification…" : "Connect my domain"}
+              disabled={!s.websiteDomainDraft.trim() || !!s.websitePublishingAction}
+              onPress={s.requestWebsiteDomain}
+            />
+          </>
+        ) : (
+          <>
+            <MetricRow left="Domain" right={domain.hostname} strong />
+            {domain.status === "pending_verification" ? (
+              <>
+                <MetricRow left="Add TXT record" right={`_busy-verify.${domain.hostname}`} />
+                <MetricRow left="TXT value" right={domain.verification_token || "Saved securely"} />
+                <Button
+                  label={s.websitePublishingAction === `verify-domain:${domain.id}` ? "Checking ownership…" : "I've added the TXT record • check now"}
+                  disabled={!!s.websitePublishingAction}
+                  onPress={() => s.verifyWebsiteDomain(domain.id)}
+                />
+              </>
+            ) : null}
+
+            {(view.domainState?.recordsToAdd || []).slice(0, 8).map((record, index) => (
+              <MetricRow
+                key={`${record.purpose || "dns"}-${record.type || ""}-${record.name || index}`}
+                left={
+                  record.purpose === "traffic_routing"
+                    ? `${record.type || "DNS"} • website traffic`
+                    : record.purpose === "ssl_certificate_validation"
+                    ? `${record.type || "DNS"} • HTTPS validation`
+                    : record.purpose === "cloudflare_hostname_ownership"
+                    ? `${record.type || "DNS"} • Cloudflare validation`
+                    : `${record.type || "DNS"} • required`
+                }
+                right={`${record.name || ""} → ${record.value || ""}`}
+              />
+            ))}
+
+            {domain.status !== "pending_verification" && !view.domainState?.journey?.complete ? (
+              <Button
+                label={
+                  s.websitePublishingAction === `provision-domain:${domain.id}`
+                    ? "Checking domain setup…"
+                    : "Check domain setup now"
+                }
+                disabled={!!s.websitePublishingAction}
+                onPress={() => s.provisionWebsiteDomain(domain.id)}
+              />
+            ) : null}
+
+            {view.domainState?.journey?.lastError ? (
+              <MetricRow left="Latest provider message" right={view.domainState.journey.lastError} />
+            ) : null}
+
+            {view.canOpenCustomDomain ? (
+              <Button
+                label="Open customer-owned website"
+                primary
+                onPress={s.openCustomWebsiteDomain}
+              />
+            ) : null}
+          </>
+        )}
+      </Card>
+        </>
+      ) : null}
+      <Button
+        label={showEnquiries ? "Hide customer enquiries" : "Customer enquiries"}
+        onPress={() => toggleSection(setShowEnquiries)}
+      />
+      {showEnquiries ? (
+        <>
+      <Card eyebrow="V3.79 • Lead Capture & Follow-up"
+        title="Turn real conversations into organised opportunities"
+        body="This secure inbox distinguishes owner-entered contacts from verified website form submissions. Website analytics clicks are not named leads, and a manually marked booked label is not proof of payment or completed work. Public forms remain disabled until the security and hosting gates are explicitly activated."
+        footer="Only an authorised business owner or admin can access this contact information."
+        tone="blue">
+        <MetricRow left="Website-attributed enquiry events"
+          right={view.enquiryView?.count==null?"Not measured":
+            String(view.enquiryView.count)+" events (not verified contacts)"}/>
+        <MetricRow left="Recent leads (owner and website)"
+          right={leads.scope===leadScope&&leads.result?
+            String(leads.result.sampled)+" of up to 25":"Not measured"}/>
+        <MetricRow left="Challenge-verified website contacts"
+          right={leads.scope===leadScope&&leads.result?
+            String(leads.result.trackedWebsiteContacts??0)+" recent sample":"Not measured"}/>
+        <MetricRow left="Public contact form activation"
+          right={website?.public_form_enabled===true?
+            "Site opted in; platform readiness unverified":"Disabled"}/>
+        <MetricRow left="New leads awaiting review"
+          right={leads.scope===leadScope&&leads.result?
+            String(leads.result.counts?.new??0):"Not measured"}/>
+        <MetricRow left="Manually marked quoted"
+          right={leads.scope===leadScope&&leads.result?
+            String(leads.result.counts?.quoted??0):"Not measured"}/>
+        <MetricRow left="Manually marked booked"
+          right={leads.scope===leadScope&&leads.result?
+            String(leads.result.counts?.booked??0):"Not measured"}/>
+        <Button label={leads.status==="loading"?"Loading…":"Refresh private enquiries"}
+          disabled={leads.status==="loading"||!!leadBusy} onPress={loadLeads}/>
+        {leads.scope===leadScope&&leads.error?(
+          <Text style={styles.sectionLabel}>{leads.error}</Text>
+        ):null}
+        {leads.scope===leadScope&&(leads.result?.recent||[]).slice(0,8).map(item=>(
+          <Card key={item.id} eyebrow={"Enquiry • "+item.status}
+            title={item.name||"Customer enquiry"} body={item.service||"Service not specified"}
+            footer={item.nextStep} tone="blue">
+            <MetricRow left="Recorded from"
+              right={item.source==="website_form"?"Verified website form":"Entered by business"}/>
+            <MetricRow left="Preferred contact" right={item.contactMethod}/>
+            <MetricRow left="Contact details" right={item.contactValue}/>
+            <MetricRow left="Message sent by BUSY" right="No"/>
+            {item.replyDraft?.draft?(
+              <Text style={styles.sectionLabel}>
+                Suggested reply, NOT sent: {item.replyDraft.draft}
+              </Text>
+            ):null}
+            {item.status==="new"?(
+              <Button label="Mark as reviewing"
+                disabled={!!leadBusy} onPress={()=>advanceLead(item,"reviewing")}/>
+            ):item.status==="reviewing"?(
+              <Button label="Mark as quoted (only after quoting)"
+                disabled={!!leadBusy} onPress={()=>advanceLead(item,"quoted")}/>
+            ):item.status==="quoted"?(
+              <Button label="Mark as booked (only after confirmation)"
+                disabled={!!leadBusy} onPress={()=>advanceLead(item,"booked")}/>
+            ):null}
+            {item.status!=="closed"?(
+              <Button label="Close this enquiry"
+                disabled={!!leadBusy} onPress={()=>advanceLead(item,"closed")}/>
+            ):null}
+          </Card>
+        ))}
+      </Card>
+          <Button label={showNewEnquiry ? "Close new enquiry form" : "Record a customer enquiry"}
+            onPress={() => toggleSection(setShowNewEnquiry)} />
+          {showNewEnquiry ? (
+            <>
+      <Card eyebrow="V3.78 • Record a customer enquiry"
+        title="Save an enquiry you have permission to follow up"
+        body="Use this for an enquiry you have received through a legitimate business channel. Contact details remain private to your authorised workspace. BUSY won't send an automatic email or text."
+        tone="blue">
+        <Field label="Customer name" value={leadName} onChangeText={setLeadName}
+          placeholder="Customer's name"/>
+        <Button label={leadMethod==="email"?"Contact by email • switch to phone":"Contact by phone • switch to email"}
+          onPress={()=>{setLeadMethod(leadMethod==="email"?"phone":"email");setLeadContact("");}}/>
+        <Field label={leadMethod==="email"?"Email address":"Phone number"}
+          value={leadContact} onChangeText={setLeadContact}
+          autoCapitalize="none"
+          keyboardType={leadMethod==="email"?"email-address":"phone-pad"}
+          placeholder={leadMethod==="email"?"customer@example.co.uk":"07…"} />
+        <Field label="Service requested (optional)" value={leadService}
+          onChangeText={setLeadService} placeholder="e.g. gutter cleaning"/>
+        <Button label={leadPermission?
+          "✓ I confirm I have permission to contact this person":
+          "Confirm permission to contact this person"}
+          onPress={()=>setLeadPermission(!leadPermission)}/>
+        <Button label={leadBusy==="saving"?"Saving privately…":"Save enquiry without sending"}
+          primary disabled={!leadPermission||!leadName.trim()||
+            !leadContact.trim()||!!leadBusy||!s.ownerSession?.userId||
+            !s.cloudWorkspace?.businessId} onPress={saveLead}/>
+        {leadMessage?(
+          <Text style={styles.sectionLabel}>{leadMessage}</Text>
+        ):null}
+      </Card>
+            </>
+          ) : null}
+        </>
+      ) : null}
+      <Button
+        label={showTechnicalDetails ? "Hide advanced website details" : "Advanced hosting and technical details"}
+        onPress={() => toggleSection(setShowTechnicalDetails)}
+      />
+      {showTechnicalDetails ? (
+        <>
       <Card
         eyebrow="V3.77 • Website launch assistant"
         title={journey.isVerified?"BUSY has verified your live deployment":"Your launch journey"}
@@ -223,24 +615,6 @@ function WebsitePublishing({ s }) {
           onPress={s.refreshWebsitePublishingStatus}
         />
       </Card>
-
-      {s.websitePublishingError ? (
-        <Card
-          eyebrow="Needs attention"
-          title="Nothing unsafe was applied"
-          body={s.websitePublishingError}
-          tone="amber"
-        />
-      ) : null}
-
-      {s.websitePublishingNotice ? (
-        <Card
-          eyebrow="Latest update"
-          title={view.publicStatus || "Website management"}
-          body={s.websitePublishingNotice}
-          tone="blue"
-        />
-      ) : null}
 
       {live || !view.recoveryState?.healthy ? (
         <>
@@ -410,82 +784,6 @@ function WebsitePublishing({ s }) {
         </>
       ) : null}
 
-      {preview && preview.id !== live?.id ? (
-        <Card
-          eyebrow="Go Live gate"
-          title={`Publish v${preview.version_no}?`}
-          body="This is the only public approval. BUSY will publish exactly the immutable hosted version you previewed, then automatically allocate/verify the BUSY address, Cloudflare route and live deployment health."
-          footer="The current public version is retained as a rollback target. Infrastructure checks do not require another approval."
-          tone="amber"
-        >
-          <MetricRow left="Change summary" right={preview.change_label || "Website update"} strong />
-          <MetricRow left="Prepared" right={readableDate(preview.prepared_at, "Ready")} />
-          <MetricRow left="Pages" right={String(preview.page_count || 1)} />
-          <Text style={styles.sectionLabel}>
-            Please open the exact hosted preview and confirm the business name,
-            services, photographs, contact details and wording before approving.
-            Viewing the editable phone preview alone is not enough.
-          </Text>
-          <Button
-            label={openedHostedPreview===preview.id?
-              "Hosted preview opened":"Open the exact hosted preview"}
-            disabled={!!s.websitePublishingAction}
-            onPress={inspectHostedPreview}
-          />
-          <Button
-            label={reviewedHostedPreview===preview.id?
-              "I've reviewed this exact preview ✓":"Confirm I reviewed this exact hosted preview"}
-            disabled={openedHostedPreview!==preview.id||
-              reviewedHostedPreview===preview.id||!!s.websitePublishingAction}
-            onPress={()=>setReviewedHostedPreview(preview.id)}
-          />
-          <Button
-            label={s.websitePublishingAction==="publish"?"Publishing…":
-              s.websitePublishingAction==="preflight"?"Verifying hosted version…":
-              "Review & approve Go Live"}
-            primary
-            disabled={!view.canPublish||!!s.websitePublishingAction||
-              reviewedHostedPreview!==preview.id}
-            onPress={() => s.confirmPublishHostedWebsite(preview.id)}
-          />
-        </Card>
-      ) : null}
-
-      {live ? (
-        <>
-          <Text style={styles.sectionLabel}>Live website health</Text>
-          <Card
-            eyebrow={`Live v${live.version_no}`}
-            title={view.healthLabel || "Not checked yet"}
-            body={
-              view.healthStatus === "healthy"
-                ? "BUSY reached the public site and confirmed it is serving the expected immutable deployment."
-                : view.healthStatus === "degraded"
-                ? "The site responded, but BUSY could not confirm that it is serving the expected deployment."
-                : view.healthStatus === "down"
-                ? "BUSY could not verify a healthy public response. The previous deployment records remain intact."
-                : "The scheduled health worker will check the public site automatically. You can also run a check now."
-            }
-            footer={`Last checked: ${readableDate(website?.last_health_check_at)}`}
-            tone={view.healthStatus === "healthy" ? "green" : view.healthStatus === "down" || view.healthStatus === "degraded" ? "amber" : "blue"}
-          >
-            <MetricRow left="Expected deployment" right={`v${live.version_no}`} strong />
-            <MetricRow left="Last healthy" right={readableDate(website?.last_healthy_at)} />
-            {view.latestHealth ? (
-              <>
-                <MetricRow left="HTTP" right={String(view.latestHealth.http_status || "No response")} />
-                <MetricRow left="Response" right={`${Number(view.latestHealth.response_ms || 0)}ms`} />
-              </>
-            ) : null}
-            <Button
-              label={s.websitePublishingAction === "health" ? "Checking live site…" : "Check live site now"}
-              disabled={!view.canCheckHealth || !!s.websitePublishingAction}
-              onPress={s.runWebsiteHealthCheck}
-            />
-            <Button label="Open live website" primary onPress={s.openLiveWebsite} />
-          </Card>
-        </>
-      ) : null}
 
       <Text style={styles.sectionLabel}>SEO basics & page structure</Text>
       <Card
@@ -768,123 +1066,6 @@ function WebsitePublishing({ s }) {
         tone={view.enquiryView?.hasRealAttribution ? "green" : "blue"}
       />
 
-      <Text style={styles.sectionLabel}>Custom domain</Text>
-      <Card
-        eyebrow="Your own domain • one ownership check"
-        title={view.domainState?.journey?.label || "Connect a domain you already own"}
-        body={
-          !domain
-            ? "Enter the domain you want customers to use. BUSY first proves ownership with one TXT record; after that it prepares the Cloudflare hostname, SSL and route automatically."
-            : view.domainState?.journey?.complete
-            ? "BUSY has proved ownership, Cloudflare routing, HTTPS and the exact live website through this customer-owned domain."
-            : view.domainState?.journey?.needsAttention
-            ? "Your approved BUSY website remains safe. The custom-domain setup has been isolated to the stage shown below, and BUSY will keep the default BUSY address separate."
-            : domain.status === "pending_verification"
-            ? "Add the ownership TXT record below, then check ownership once. BUSY takes over the provider setup after that."
-            : "Ownership is complete. BUSY is handling the Cloudflare hostname and SSL automatically; only the DNS records shown below still need to be added at the domain's DNS provider."
-        }
-        footer={
-          view.domainState?.journey?.complete
-            ? "The customer-owned domain is now the preferred public website address."
-            : "BUSY never treats ownership, SSL, routing or live-site health as the same thing."
-        }
-        tone={
-          view.domainState?.journey?.complete
-            ? "green"
-            : view.domainState?.journey?.needsAttention
-            ? "amber"
-            : "blue"
-        }
-      >
-        {(view.domainState?.journey?.steps || []).map((step) => (
-          <MetricRow
-            key={step.id}
-            left={step.label}
-            right={
-              step.status === "complete"
-                ? "Done"
-                : step.status === "working"
-                ? "Checking…"
-                : step.status === "error"
-                ? "Needs attention"
-                : "Waiting"
-            }
-            strong={step.status === "complete"}
-          />
-        ))}
-
-        {!domain ? (
-          <>
-            <Field
-              label="Domain"
-              value={s.websiteDomainDraft}
-              onChangeText={s.setWebsiteDomainDraft}
-              autoCapitalize="none"
-              placeholder="www.example.co.uk"
-            />
-            <Button
-              label={s.websitePublishingAction === "domain" ? "Creating verification…" : "Connect my domain"}
-              disabled={!s.websiteDomainDraft.trim() || !!s.websitePublishingAction}
-              onPress={s.requestWebsiteDomain}
-            />
-          </>
-        ) : (
-          <>
-            <MetricRow left="Domain" right={domain.hostname} strong />
-            {domain.status === "pending_verification" ? (
-              <>
-                <MetricRow left="Add TXT record" right={`_busy-verify.${domain.hostname}`} />
-                <MetricRow left="TXT value" right={domain.verification_token || "Saved securely"} />
-                <Button
-                  label={s.websitePublishingAction === `verify-domain:${domain.id}` ? "Checking ownership…" : "I've added the TXT record • check now"}
-                  disabled={!!s.websitePublishingAction}
-                  onPress={() => s.verifyWebsiteDomain(domain.id)}
-                />
-              </>
-            ) : null}
-
-            {(view.domainState?.recordsToAdd || []).slice(0, 8).map((record, index) => (
-              <MetricRow
-                key={`${record.purpose || "dns"}-${record.type || ""}-${record.name || index}`}
-                left={
-                  record.purpose === "traffic_routing"
-                    ? `${record.type || "DNS"} • website traffic`
-                    : record.purpose === "ssl_certificate_validation"
-                    ? `${record.type || "DNS"} • HTTPS validation`
-                    : record.purpose === "cloudflare_hostname_ownership"
-                    ? `${record.type || "DNS"} • Cloudflare validation`
-                    : `${record.type || "DNS"} • required`
-                }
-                right={`${record.name || ""} → ${record.value || ""}`}
-              />
-            ))}
-
-            {domain.status !== "pending_verification" && !view.domainState?.journey?.complete ? (
-              <Button
-                label={
-                  s.websitePublishingAction === `provision-domain:${domain.id}`
-                    ? "Checking domain setup…"
-                    : "Check domain setup now"
-                }
-                disabled={!!s.websitePublishingAction}
-                onPress={() => s.provisionWebsiteDomain(domain.id)}
-              />
-            ) : null}
-
-            {view.domainState?.journey?.lastError ? (
-              <MetricRow left="Latest provider message" right={view.domainState.journey.lastError} />
-            ) : null}
-
-            {view.canOpenCustomDomain ? (
-              <Button
-                label="Open customer-owned website"
-                primary
-                onPress={s.openCustomWebsiteDomain}
-              />
-            ) : null}
-          </>
-        )}
-      </Card>
 
       <Text style={styles.sectionLabel}>Publishing infrastructure</Text>
       <Card
@@ -915,96 +1096,8 @@ function WebsitePublishing({ s }) {
         <MetricRow left="Live website updates" right="Always require approval"/>
       </Card>
 
-      // V3.78 • Enquiry follow-up baseline retained; V3.79 adds verified origin labels.
-      <Card eyebrow="V3.79 • Lead Capture & Follow-up"
-        title="Turn real conversations into organised opportunities"
-        body="This secure inbox distinguishes owner-entered contacts from verified website form submissions. Website analytics clicks are not named leads, and a manually marked booked label is not proof of payment or completed work. Public forms remain disabled until the security and hosting gates are explicitly activated."
-        footer="Only an authorised business owner or admin can access this contact information."
-        tone="blue">
-        <MetricRow left="Website-attributed enquiry events"
-          right={view.enquiryView?.count==null?"Not measured":
-            String(view.enquiryView.count)+" events (not verified contacts)"}/>
-        <MetricRow left="Recent leads (owner and website)"
-          right={leads.scope===leadScope&&leads.result?
-            String(leads.result.sampled)+" of up to 25":"Not measured"}/>
-        <MetricRow left="Challenge-verified website contacts"
-          right={leads.scope===leadScope&&leads.result?
-            String(leads.result.trackedWebsiteContacts??0)+" recent sample":"Not measured"}/>
-        <MetricRow left="Public contact form activation"
-          right={website?.public_form_enabled===true?
-            "Site opted in; platform readiness unverified":"Disabled"}/>
-        <MetricRow left="New leads awaiting review"
-          right={leads.scope===leadScope&&leads.result?
-            String(leads.result.counts?.new??0):"Not measured"}/>
-        <MetricRow left="Manually marked quoted"
-          right={leads.scope===leadScope&&leads.result?
-            String(leads.result.counts?.quoted??0):"Not measured"}/>
-        <MetricRow left="Manually marked booked"
-          right={leads.scope===leadScope&&leads.result?
-            String(leads.result.counts?.booked??0):"Not measured"}/>
-        <Button label={leads.status==="loading"?"Loading…":"Refresh private enquiries"}
-          disabled={leads.status==="loading"||!!leadBusy} onPress={loadLeads}/>
-        {leads.scope===leadScope&&leads.error?(
-          <Text style={styles.sectionLabel}>{leads.error}</Text>
-        ):null}
-        {leads.scope===leadScope&&(leads.result?.recent||[]).slice(0,8).map(item=>(
-          <Card key={item.id} eyebrow={"Enquiry • "+item.status}
-            title={item.name||"Customer enquiry"} body={item.service||"Service not specified"}
-            footer={item.nextStep} tone="blue">
-            <MetricRow left="Recorded from"
-              right={item.source==="website_form"?"Verified website form":"Entered by business"}/>
-            <MetricRow left="Preferred contact" right={item.contactMethod}/>
-            <MetricRow left="Contact details" right={item.contactValue}/>
-            <MetricRow left="Message sent by BUSY" right="No"/>
-            {item.replyDraft?.draft?(
-              <Text style={styles.sectionLabel}>
-                Suggested reply, NOT sent: {item.replyDraft.draft}
-              </Text>
-            ):null}
-            {item.status==="new"?(
-              <Button label="Mark as reviewing"
-                disabled={!!leadBusy} onPress={()=>advanceLead(item,"reviewing")}/>
-            ):item.status==="reviewing"?(
-              <Button label="Mark as quoted (only after quoting)"
-                disabled={!!leadBusy} onPress={()=>advanceLead(item,"quoted")}/>
-            ):item.status==="quoted"?(
-              <Button label="Mark as booked (only after confirmation)"
-                disabled={!!leadBusy} onPress={()=>advanceLead(item,"booked")}/>
-            ):null}
-            {item.status!=="closed"?(
-              <Button label="Close this enquiry"
-                disabled={!!leadBusy} onPress={()=>advanceLead(item,"closed")}/>
-            ):null}
-          </Card>
-        ))}
-      </Card>
-      <Card eyebrow="V3.78 • Record a customer enquiry"
-        title="Save an enquiry you have permission to follow up"
-        body="Use this for an enquiry you have received through a legitimate business channel. Contact details remain private to your authorised workspace. BUSY won't send an automatic email or text."
-        tone="blue">
-        <Field label="Customer name" value={leadName} onChangeText={setLeadName}
-          placeholder="Customer's name"/>
-        <Button label={leadMethod==="email"?"Contact by email • switch to phone":"Contact by phone • switch to email"}
-          onPress={()=>{setLeadMethod(leadMethod==="email"?"phone":"email");setLeadContact("");}}/>
-        <Field label={leadMethod==="email"?"Email address":"Phone number"}
-          value={leadContact} onChangeText={setLeadContact}
-          autoCapitalize="none"
-          keyboardType={leadMethod==="email"?"email-address":"phone-pad"}
-          placeholder={leadMethod==="email"?"customer@example.co.uk":"07…"} />
-        <Field label="Service requested (optional)" value={leadService}
-          onChangeText={setLeadService} placeholder="e.g. gutter cleaning"/>
-        <Button label={leadPermission?
-          "✓ I confirm I have permission to contact this person":
-          "Confirm permission to contact this person"}
-          onPress={()=>setLeadPermission(!leadPermission)}/>
-        <Button label={leadBusy==="saving"?"Saving privately…":"Save enquiry without sending"}
-          primary disabled={!leadPermission||!leadName.trim()||
-            !leadContact.trim()||!!leadBusy||!s.ownerSession?.userId||
-            !s.cloudWorkspace?.businessId} onPress={saveLead}/>
-        {leadMessage?(
-          <Text style={styles.sectionLabel}>{leadMessage}</Text>
-        ):null}
-      </Card>
+        </>
+      ) : null}
       <Button label="Website Builder" onPress={() => s.go("websiteBuilder")} />
       <Button label="Back to Home" onPress={() => s.jump("home", "Home")} />
     </Shell>
