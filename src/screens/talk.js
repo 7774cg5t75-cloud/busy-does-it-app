@@ -351,7 +351,7 @@ function TalkToBusy({ s }) {
         onPress={() => setShowQuickAsks((value) => !value)}
         style={({ pressed }) => [styles.talkSectionToggle, pressed && styles.pressed]}
       >
-        <Text style={styles.talkSectionToggleText}>{showQuickAsks ? "Hide Suggested questions" : "Suggested questions"}</Text>
+        <Text style={styles.talkSectionToggleText}>{showQuickAsks ? "Hide suggested questions" : "Suggested questions"}</Text>
         <Text style={styles.talkSectionChevron}>{showQuickAsks ? "−" : "+"}</Text>
       </Pressable>
       {showQuickAsks ? (
@@ -400,13 +400,14 @@ function TalkToBusy({ s }) {
       ) : null}
 
       {recentTurns.length ? (
+        <>
       <Pressable
         accessibilityRole="button"
         accessibilityState={{ expanded: showConversation }}
         onPress={() => setShowConversation((value) => !value)}
         style={({ pressed }) => [styles.talkSectionToggle, pressed && styles.pressed]}
       >
-        <Text style={styles.talkSectionToggleText}>{showConversation ? "Hide Earlier conversation" : "Earlier conversation"}</Text>
+        <Text style={styles.talkSectionToggleText}>{showConversation ? "Hide earlier conversation" : "Earlier conversation"}</Text>
         <Text style={styles.talkSectionChevron}>{showConversation ? "−" : "+"}</Text>
       </Pressable>
       {showConversation ? (
@@ -433,7 +434,7 @@ function TalkToBusy({ s }) {
 
         </>
       ) : null}
-
+        </>
       ) : null}
 
       {s.busyUndoAction ? (
@@ -454,7 +455,7 @@ function TalkToBusy({ s }) {
         onPress={() => setShowAdvanced((value) => !value)}
         style={({ pressed }) => [styles.talkSectionToggle, pressed && styles.pressed]}
       >
-        <Text style={styles.talkSectionToggleText}>{showAdvanced ? "Hide More details & history" : "More details & history"}</Text>
+        <Text style={styles.talkSectionToggleText}>{showAdvanced ? "Hide more details & history" : "More details & history"}</Text>
         <Text style={styles.talkSectionChevron}>{showAdvanced ? "−" : "+"}</Text>
       </Pressable>
       {showAdvanced ? (
