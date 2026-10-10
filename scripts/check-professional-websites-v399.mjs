@@ -80,7 +80,7 @@ yes(hosted.includes('javaScriptEnabled={false}'),"signed immutable preview remai
 yes(publish.includes('reviewedHostedPreview!==preview.id'),"customer Go Live still needs explicit approval");
 yes(fullApp.includes('readPrivateHostedPreviewHtml(result.previewUrl, deploymentId)'),"signed hosted preview still used");
 const pkg=JSON.parse(read("package.json")),app=JSON.parse(read("app.json")).expo;
-yes(["3.99.0","3.100.0","3.101.0","3.102.0"].includes(pkg.version),"Release version supported");
+yes(["3.99.0","3.100.0","3.101.0","3.102.0","3.103.0"].includes(pkg.version),"Release version supported");
 equal(app.version,pkg.version,"App matches release");
 equal(app.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80),"iOS build identity");
 equal(app.android.versionCode,Number(pkg.version.split(".")[1])-80,"Android version");
