@@ -36,7 +36,7 @@ jobs:
           node scripts/check-website-multi-track-v3114.mjs
           node scripts/check-website-private-alternatives-v3113.mjs
           node scripts/check-visual-review-gateway-v3105.mjs
-      - run: npm install --no-audit --no-fund
+      - run: npm install --no-audit --no-fund --cache /tmp/busy-v3116-npm-cache
       - name: iPhone JS compile, not native signed release
         run: npx expo export --platform ios --output-dir /tmp/busy-v3116-js
       - run: npx playwright install --with-deps chromium
