@@ -288,6 +288,7 @@ function renderWebsiteHtml(
       if(section.type==="gallery")
         return safeArray(section.items).some((item:any,index:number)=>!!urlForAsset(item,urls,index));
       if(section.type==="text")return !!clean(section.body);
+      if(section.type==="contact")return !!(clean(section.phone)||clean(section.email)||clean(section.body));
       return true;
     })
     .map((section: any, index: number) =>
