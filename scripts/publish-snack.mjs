@@ -31,6 +31,8 @@ const snackDependencies={
     "expo-notifications":{version:"0.32.17"},
     "expo-calendar":{version:"15.0.8"},
     "expo-constants":{version:"18.0.14"},
+    // Native WebView is bundled in Expo Go; use the SDK 54 compatible version here.
+    "react-native-webview":{version:"13.15.0"},
 };
 const missingPackages=validateSnackPackages(files,snackDependencies);
 if(missingPackages.length)throw Error("Cannot publish an incomplete Snack package graph:\n"+missingPackages.join("\n"));
