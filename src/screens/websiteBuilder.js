@@ -73,6 +73,11 @@ function WebsiteBuilder({ s }) {
         <MetricRow left="Business information"
           right={brand.websiteReady ? "Ready" : "Needs a quick check"} />
         <MetricRow left="Website draft" right={draft ? "Ready" : "Not built yet"} />
+        {draft?.designPlan ? (
+          <Text style={[styles.cardBody, { marginTop: 8 }]}>
+            {draft.designPlan.explanation}
+          </Text>
+        ) : null}
         <MetricRow left="Public website" right={journey.isVerified ? "Verified" :
           s.websitePublishingView?.liveDeployment ? "Checking connection" : "Not published"} />
         <Button label={nextLabel} primary onPress={nextStep} />
