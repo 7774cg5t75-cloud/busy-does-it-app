@@ -2,6 +2,7 @@ import { syncWebsitePageModel } from "./websiteManagement";
 import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";
 import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";
 import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";
+import { applyWebsiteVisualEdit } from "../../supabase/functions/busy-website-worker/designEdits.mjs";
 
 function clean(value = "") {
   return String(value || "").trim();
@@ -452,12 +453,16 @@ function applyWebsiteInstruction(draft = {}, instruction = "") {
   }
 
   if (!summary) {
+    const visualEdit = applyWebsiteVisualEdit(next, text);
+    if (visualEdit.applied) {
+      return {applied:true,reason:visualEdit.reason,draft:withHtml(visualEdit.draft)};
+    }
     const vagueSeasonal = /winter|summer|spring|autumn|seasonal|christmas|easter/i.test(lower);
     return {
       applied: false,
       reason: vagueSeasonal
         ? "BUSY can prepare seasonal website changes, but it needs a specific approved fact or existing service to emphasise. It will not invent seasonal services, prices or claims."
-        : "BUSY understood this as a website request, but the safe editor only applies supported exact wording, contact, service, layout and visibility changes automatically. Unsupported public copy is not guessed.",
+        : visualEdit.reason,
       draft,
     };
   }
