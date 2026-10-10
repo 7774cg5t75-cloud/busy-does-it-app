@@ -536,5 +536,5 @@ export {
   applyWebsiteInstruction,
   applyCoordinatedWebsiteCopy,
   renderWebsiteHtml,
-  rebuildPrivateWebsiteDraft:withHtml,
+  withHtml as rebuildPrivateWebsiteDraft,
 };
