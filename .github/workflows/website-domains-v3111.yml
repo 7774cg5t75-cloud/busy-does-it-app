@@ -1,0 +1,45 @@
+name: V3.111 domain-shopping safety and professional websites
+on:
+  push:
+    branches: [v3.111]
+    paths:
+      - 'src/core/websiteDomainShopping.mjs'
+      - 'src/screens/websitePublishing.js'
+      - 'scripts/check-website-domain-shopping-v3111.mjs'
+      - 'scripts/check-website-first-impression-v3111.mjs'
+      - '.github/workflows/website-domains-v3111.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  safe-domain-shopping-and-website-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Offline purchase-safety contracts and legacy rules
+        run: |
+          node scripts/check-website-domain-shopping-v3111.mjs
+          node scripts/check-website-address-choices-v3110.mjs
+      - run: npm install --no-audit --no-fund
+      - name: Validate the new app screen actually bundles into the iOS JS
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3111-js
+      - run: npx playwright install --with-deps chromium
+      - name: Generate individual fictional websites for browser QA
+        run: node scripts/build-website-design-gallery-v3100.mjs /tmp/busy-v3111-gallery
+      - name: Assess website first impressions for real layout regressions
+        run: node scripts/check-website-first-impression-v3111.mjs /tmp/busy-v3111-gallery /tmp/busy-v3111-evidence
+      - name: Check responsive and touch-target layout quality
+        run: node scripts/check-website-responsive-quality-v3109.mjs /tmp/busy-v3111-gallery /tmp/busy-v3111-responsive
+      - name: Preserve fictional browser evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3111-website-quality
+          path: |
+            /tmp/busy-v3111-evidence/
+            /tmp/busy-v3111-responsive/
+          retention-days: 7
+      - run: echo "No registrar purchase, domain registration, prices invented, paid AI, DNS updates or signed native build."
