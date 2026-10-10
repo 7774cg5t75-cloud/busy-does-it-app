@@ -67,6 +67,31 @@ const fakeService=changed("change description for Award Winning to We are the be
 yes(!fakeService.applied,"No invented service from approximate name");
 yes(site.designPlan.visualIdentity.fingerprint===changed("change about text to New copy").draft.designPlan.visualIdentity.fingerprint,
  "Changing wording does not randomly change business visual identity");
+// Website builders are not limited to pre-existing template sections.
+const added=changed("add section called Our approach with text We provide local, careful garden maintenance.");
+yes(added.applied,"Customer can create a factual custom section");
+yes(added.draft.sections.some(s=>s.title==="Our approach"),"Custom section saved");
+yes(added.draft.html.includes("We provide local, careful garden maintenance."),"Custom section is visible");
+const customEdited=changed("change text of Our approach section to We focus on garden care and tidy outdoor spaces.",added.draft);
+yes(customEdited.applied,"Customer can edit the new section");
+yes(customEdited.draft.html.includes("We focus on garden care"),"Updated section text appears in HTML");
+const customMoved=changed("move Our approach before services",customEdited.draft);
+yes(customMoved.applied,"Custom sections can move in the page layout");
+yes(customMoved.draft.html.indexOf("Our approach")<customMoved.draft.html.indexOf('id="services"'),"Rendered custom section order follows owner");
+const customRemoved=changed("remove Our approach section",customMoved.draft);
+yes(customRemoved.applied,"Customer can delete their own added section");
+yes(!customRemoved.draft.sections.some(s=>s.title==="Our approach"),"Removed section absent from draft");
+const fakeReview=changed("add section called Reviews with text Five-star rated by everyone.");
+yes(fakeReview.applied,"Owner can explicitly supply their own copy but it is not independently verified");
+yes(fakeReview.draft.sections.some(s=>s.type==="text"&&s.title==="Reviews"),"Owner-authored plain text is never misclassified as a verified testimonial");
+const appController=read("src/app/AppController.js"),screen=read("src/screens/websiteBuilder.js");
+for(const marker of ["websiteUndo","websiteRedo","const undoWebsiteChange","const redoWebsiteChange",
+ "setWebsiteRedo([]);","setWebsiteUndo((items) => [...items, websiteDraft].slice(-8))"]){
+ yes(appController.includes(marker),"Private draft history: "+marker);
+}
+yes(screen.includes("Undo last change"),"Undo button exposed to customers");
+yes(screen.includes("Redo change"),"Redo button exposed to customers");
+
 const worker=read("supabase/functions/busy-website-worker/index.ts");
 yes(worker.includes("plan.sectionOrder"),"Hosted renderer honours owned order");
 yes(worker.includes('name="busy-deployment"'),"Signed hosted preview markers unchanged");
