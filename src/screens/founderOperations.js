@@ -6,6 +6,7 @@ import {FounderServiceCosts} from "./founderServiceCosts";
 import {founderOperationalPriorities} from "../core/founderOperationalPriorities.mjs";
 import {websiteReleaseReadiness} from "../core/websiteReleaseReadiness.mjs";
 import {websitePilotReadiness} from "../core/websitePilotReadiness.mjs";
+import {founderNextSafeAction} from "../core/founderNextSafeAction.mjs";
 
 /** V3.69: no platform metrics are read except from server-authorised aggregates. */
 const show=n=>Number.isSafeInteger(n)&&n>=0?n.toLocaleString("en-GB"):"Not measured";
@@ -78,6 +79,7 @@ function FounderOperations({s}){
   };
   const report=state.owner===owner&&state.status==="ready"?state.report:null;
   const operational=founderOperationalPriorities(report,{nowISO:new Date().toISOString()});
+  const safeAction=founderNextSafeAction(operational);
   const release=websiteReleaseReadiness();
   const pilot=websitePilotReadiness();
 
@@ -115,6 +117,9 @@ function FounderOperations({s}){
               <Text style={styles.sectionLabel}>{item.next}</Text>
             </React.Fragment>
           ))}
+          <Text style={styles.sectionLabel}>
+            {"Next safe check: "+safeAction.title+". "+safeAction.message}
+          </Text>
           <MetricRow left="Automatic repairs" right="Disabled"/>
         </Card>
         <Card eyebrow="Safe pilot preparation"

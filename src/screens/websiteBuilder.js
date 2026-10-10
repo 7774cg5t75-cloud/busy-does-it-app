@@ -10,6 +10,8 @@ import { websiteQualityGuidance } from "../core/websiteQualityGuidance.mjs";
 import { websiteDesignAlternative } from "../core/websiteDesignAlternatives.mjs";
 import { websiteCustomerJourney } from "../core/websiteCustomerJourney.mjs";
 import { websiteOutcomeGuidance } from "../core/websiteOutcomeGuidance.mjs";
+import { websiteJourneyAssurance } from "../core/websiteJourneyAssurance.mjs";
+import { websiteBrainCoaching } from "../core/websiteBrainCoaching.mjs";
 import { renderWebsiteHtml } from "../domain/websiteBuilder";
 
 function WebsiteBuilder({ s }) {
@@ -61,6 +63,12 @@ function WebsiteBuilder({ s }) {
     [draft?.id,draft?.theme?.designFamily,draft?.designPlan?.family]);
   const customerJourney=websiteCustomerJourney({
     journey,publishing:s.websitePublishingView,proof:deliveryProof,hasDraft:!!draft
+  });
+  const assurance=websiteJourneyAssurance({
+    journey,publishing:s.websitePublishingView,proof:deliveryProof,hasDraft:!!draft
+  });
+  const brainCoach=websiteBrainCoaching({
+    summary:savedStylePreferences,alternative:designAlternative,quality:qualityGuide
   });
   const nextStep=()=>{
     switch(journey.nextAction){
@@ -146,8 +154,11 @@ function WebsiteBuilder({ s }) {
         <MetricRow left="Public website" right={journey.isVerified ? "Verified" :
           s.websitePublishingView?.liveDeployment ? "Checking connection" : "Not published"} />
         <Text style={styles.cardBody}>
-          {"Next: "+customerJourney.message}
+          {"Next: "+assurance.title+". "+assurance.detail}
         </Text>
+        <MetricRow left="Website journey"
+          right={assurance.progress.completed+" / "+assurance.progress.total+" steps complete"}/>
+        <Text style={styles.cardBody}>{customerJourney.message}</Text>
         <Button label={nextLabel} primary onPress={nextStep} />
         <Button label="Choose a website address (optional)" onPress={s.openWebsitePublishing} />
         <Button label={draft ? "Make changes by talking to BUSY" : "Build it by talking to BUSY"}
@@ -198,6 +209,9 @@ function WebsiteBuilder({ s }) {
             <>
               <Text style={styles.cardBody}>
                 {"Suggested look: "+selectedStyle.title+". "+selectedStyle.detail}
+              </Text>
+              <Text style={styles.cardBody}>
+                {brainCoach.explanation}
               </Text>
               <Button label={"Try "+selectedStyle.title+" (private draft)"}
                 onPress={()=>s.applyWebsiteChange(selectedStyle.instruction)} />
