@@ -165,6 +165,7 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
     status: "Draft",
     publicStatus: "Not published",
     businessName: clean(brief.businessName),
+    brandLabel: clean(brief.logoLabel).slice(0, 100) || clean(brief.businessName),
     businessType: clean(brief.businessType),
     serviceArea: clean(brief.serviceArea),
     description: clean(brief.description),
@@ -466,7 +467,7 @@ function renderWebsiteHtml(draft = {}) {
 
   const sectionHtml = sections.map((section) => {
     if (section.type === "hero") {
-      return `<section class="hero hero-${escapeHtml(theme.heroSize || "large")}"><div class="wrap"><p class="kicker">${escapeHtml(draft.businessName)}</p><h1>${escapeHtml(section.title)}</h1><p>${escapeHtml(section.body)}</p>${section.cta && section.ctaHref ? `<a class="cta" href="${escapeHtml(section.ctaHref)}">${escapeHtml(section.cta)}</a>` : ""}</div></section>`;
+      return `<section class="hero hero-${escapeHtml(theme.heroSize || "large")}"><div class="wrap"><p class="kicker">${escapeHtml(draft.brandLabel || draft.businessName)}</p><h1>${escapeHtml(section.title)}</h1><p>${escapeHtml(section.body)}</p>${section.cta && section.ctaHref ? `<a class="cta" href="${escapeHtml(section.ctaHref)}">${escapeHtml(section.cta)}</a>` : ""}</div></section>`;
     }
     if (section.type === "services") {
       return `<section id="services"><div class="wrap"><h2>${escapeHtml(section.title)}</h2><div class="grid">${safeArray(section.items).map((item) => `<article><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body)}</p></article>`).join("")}</div></div></section>`;
