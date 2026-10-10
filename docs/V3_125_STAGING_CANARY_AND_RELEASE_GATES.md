@@ -7,6 +7,11 @@
 - Founder Operations retains one clear next action; detail rows are optional and show all checks as unverified by default. No secrets, tenant data or URLs are shown.
 - Standard version CI additionally checks the V3.125 assertions; a separate isolated staging safety workflow runs the new and previous website/cloud/regional guard regressions and validates mobile JavaScript export.
 
+## Staging preflight aid
+- `.env.staging.example` is a nonfunctional example. It must **never** contain production credentials, and it cannot launch a staging host.
+- `node scripts/inspect-staging-config-v3125.mjs` validates nonsecret environment metadata: separate staging/production project roots, dedicated HTTPS host, preview build profile, source commit SHA, publishable-only key classification and explicit false production/paid/data flags. It prints check labels only, never key values or hosts. Without a separately supplied manifest it fails closed with exit code 2.
+- Passing this preflight is only configuration review, not an independent cloud test and not permission to apply SQL or deploy publicly.
+
 ## Setup to be approved before real staging
 1. Identify a genuinely **new, separate** Supabase nonproduction project with no relationship to the current customer database or production provider tokens. Record project refs in a founder-controlled offline deployment manifest; do not put secret keys in this repository.
 2. Configure an isolated nonproduction HTTPS website host and EAS preview build channel, pinned to the exact git commit. DNS and Cloudflare changes require a separate owner-approved action.
