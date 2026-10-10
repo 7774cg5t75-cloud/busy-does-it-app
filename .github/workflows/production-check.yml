@@ -82,6 +82,7 @@ jobs:
           node scripts/check-website-rehearsal-v3120.mjs
           node scripts/check-website-resilience-v3121.mjs
           node scripts/check-website-boundaries-v3122.mjs
+          node scripts/check-website-integrated-recovery-v3123.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs
