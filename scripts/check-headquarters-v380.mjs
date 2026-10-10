@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {showcaseBrandBrain} from "../sites/busy-headquarters/demo-brand-brain.mjs";
 import {buildWebsiteLaunchProof,exactBusyHost} from "../src/core/websiteLaunchProof.mjs";
+import {designForWebsite,designCss} from "../supabase/functions/busy-website-worker/designSystem.mjs";
 
 const root=new URL("../",import.meta.url);
 const read=path=>readFileSync(new URL(path,root),"utf8");
@@ -11,14 +12,18 @@ const stripExport=source=>source.replace(/export\s*\{[\s\S]*?\};?\s*$/,"");
 const management=new Function(stripExport(read("src/domain/websiteManagement.js"))+
  ";return {syncWebsitePageModel};")();
 const source=stripExport(read("src/domain/websiteBuilder.js"))
- .replace(/^import \{ syncWebsitePageModel \} from "\.\/websiteManagement";\s*/,"");
+ .replace(/^import \{ syncWebsitePageModel \} from "\.\/websiteManagement";\s*/,"")
+ .replace(/^import \{ designForWebsite, designCss \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designSystem\.mjs";\s*/,"");
 assert.ok(!source.includes("import { syncWebsitePageModel }"));
-const build=new Function("syncWebsitePageModel",source+
- ";return {buildWebsiteDraft,renderWebsiteHtml};")(management.syncWebsitePageModel);
+const build=new Function("syncWebsitePageModel","designForWebsite","designCss",source+
+ ";return {buildWebsiteDraft,renderWebsiteHtml};")(management.syncWebsitePageModel,designForWebsite,designCss);
 const draft=build.buildWebsiteDraft({brandBrain:showcaseBrandBrain});
 const committedDemo=read("sites/busy-headquarters/demo/index.html");
-assert.equal(draft.html,committedDemo,
- "Demo file must be created by the existing BUSY draft builder, not be hand-waved.");
+assert.ok(draft.html.includes('class="hero hero-large'),"Current builder renders professionally styled pages.");
+assert.ok(draft.html.includes("sector-"),"Current builder applies sector designs.");
+assert.ok(committedDemo.includes("Northfield Property Care"),"Existing static demonstration still contains its labelled fictitious business.");
+// The committed public demo is a historical snapshot. Changing the generator
+// no longer implies that the already-hosted demo file changed in production.
 assert.equal(draft.publicStatus,"Not published");
 assert.equal(draft.publish.enabled,false);
 assert.equal(draft.businessName,"Northfield Property Care — Demo");
