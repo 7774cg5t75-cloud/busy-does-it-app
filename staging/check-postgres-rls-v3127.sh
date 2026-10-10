@@ -34,6 +34,7 @@ expect_failure() {
     exit 1
   fi
   echo "PASS: $label"
+  passed=$((passed+1))
 }
 expect_value "busy_staging_ci" "select current_database();" "isolated fixture database confirmed"
 expect_value "t" "select current_setting('server_version_num')::integer between 170000 and 179999;" "disposable PostgreSQL 17 confirmed"
