@@ -16,6 +16,7 @@ function WebsiteBuilder({ s }) {
   const [showWebsiteDetails, setShowWebsiteDetails] = React.useState(false);
   const [showQualityIdeas, setShowQualityIdeas] = React.useState(false);
   const [showDesignReview, setShowDesignReview] = React.useState(false);
+  const [showCustomization, setShowCustomization] = React.useState(false);
   const hostedPreview = s.websitePublishingView?.previewDeployment || null;
   const hostedPreviewOutdated = !!s.websitePublishingView?.draftChangedSinceHosted;
   const deliveryProof=buildWebsiteLaunchProof({
@@ -192,8 +193,8 @@ function WebsiteBuilder({ s }) {
           <Card
             eyebrow="Your changes"
             title="Tell BUSY what you would like changed"
-            body="Ask for different wording, services, photos or colours. BUSY will use your saved business details rather than make up facts."
-            footer="Examples: “change the headline to…”, “update my opening hours to…”, “add gutter cleaning”, “put roof cleaning first”, or “make the main photo bigger”."
+            body="Change headings, your supplied text, service descriptions, colours, overall design and the order of website sections. For photos, select approved images. BUSY will not invent business facts."
+            footer="Examples: “change services heading to Our work”, “move about before services”, “use a minimal design”, or “make the main photo bigger”."
             tone="blue"
           >
             <Field
@@ -204,6 +205,17 @@ function WebsiteBuilder({ s }) {
             />
             <Button label="Apply change" primary onPress={applyInstruction} />
             <Button label="Tell BUSY by voice" onPress={s.askBusyToEditWebsite} />
+            <Button label={showCustomization ? "Hide quick design choices" : "Explore quick design choices"}
+              onPress={() => setShowCustomization(!showCustomization)} />
+            {showCustomization ? (
+              <>
+                <Text style={styles.cardBody}>Choose a look, then adjust it whenever you like.</Text>
+                <Button label="Try a minimalist design" onPress={() => s.applyWebsiteChange("use a minimal design")} />
+                <Button label="Try an editorial design" onPress={() => s.applyWebsiteChange("use an editorial design")} />
+                <Button label="Show services as rows" onPress={() => s.applyWebsiteChange("use service cards rows")} />
+                <Button label="Centre the main headline" onPress={() => s.applyWebsiteChange("center the main headline")} />
+              </>
+            ) : null}
           </Card>
         </>
       ) : null}
