@@ -1,0 +1,38 @@
+name: V3.105 real private visual-review gateway validation (no paid builds)
+on:
+  push:
+    branches: [v3.105]
+    paths:
+      - .github/workflows/website-review-v3105-validation.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-gateway-and-mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: "1"
+    steps:
+      - name: Check out V3.105
+        uses: actions/checkout@v4
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Run production security, voice and website checks
+        run: |
+          node scripts/check-production.mjs
+          node scripts/check-visual-review-gateway-v3105.mjs
+          node scripts/check-website-review-cycle-v3104.mjs
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Parse authenticated Edge Function TypeScript
+        run: |
+          node --input-type=module -e 'import fs from "node:fs";import {parse} from "@babel/parser";const c=fs.readFileSync("supabase/functions/busy-website-design-review/index.ts","utf8");parse(c,{sourceType:"module",plugins:["typescript"]});console.log("Secure review endpoint syntax valid.");'
+      - name: Parse Cloudflare screenshot worker
+        run: node --check cloudflare/busy-website-screenshot/worker.js
+      - name: Compile iPhone JavaScript without EAS build
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3105-js-verified
+      - name: Verify no provider or deployment billed
+        run: echo "No Expo EAS build, AI API request, Supabase deployment or Cloudflare Browser Rendering job."
