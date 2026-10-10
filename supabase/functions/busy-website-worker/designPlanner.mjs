@@ -115,7 +115,9 @@ function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}
   };
   const allowedFamilies=familyOptions[sector]||familyOptions.neutral;
   const familySeed=stableDesignSeed([businessName,businessType].map(clean).join("::"));
-  const family=allowedFamilies.includes(theme?.designFamily)
+  const allSupportedFamilies=["conversion","editorial","minimal","organic","artisan","showcase","boutique","portfolio"];
+  const photoCompatible=photos>0 || !["showcase","portfolio"].includes(theme?.designFamily);
+  const family=allSupportedFamilies.includes(theme?.designFamily) && photoCompatible
     ? theme.designFamily
     : allowedFamilies[(familySeed>>>4)%allowedFamilies.length];
   const visualIdentity=selectVisualIdentity({businessName,businessType,theme,family,photos});
@@ -130,7 +132,11 @@ function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}
         ? ["hero","about","services","testimonials","faq","gallery","contact"]
         : ["hero","services","about","gallery","testimonials","faq","contact"];
   const present=new Set(active.map(s=>clean(s.id)));
-  const visibleOrder=sectionOrder.filter(id=>present.has(id));
+  const requestedOrder=list(theme?.sectionOrder).filter(id=>typeof id==="string"&&present.has(id));
+  const chosenOrder=requestedOrder.length ? [
+    ...new Set(["hero",...requestedOrder.filter(id=>id!=="hero"),...sectionOrder])
+  ] : sectionOrder;
+  const visibleOrder=chosenOrder.filter(id=>present.has(id));
   for(const item of active)if(item?.id&&!visibleOrder.includes(item.id))visibleOrder.splice(
     Math.max(0,visibleOrder.length-1),0,item.id
   );
