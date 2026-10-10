@@ -235,7 +235,7 @@ function WebsitePublishing({ s }) {
       <Card
         eyebrow="Choose your address"
         title="How would you like people to find your website?"
-        body="You can review and improve your website before deciding. Your choice never publishes it, and an existing BUSY address remains safe when connecting your own domain."
+        body="You can review and improve your website before deciding. A custom domain is optional. Your choice never publishes anything, and an existing BUSY address remains safe when connecting your own domain."
         footer="No technical experience or separate domain purchase is needed to begin."
         tone="blue"
       >
