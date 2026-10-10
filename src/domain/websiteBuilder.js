@@ -1,6 +1,7 @@
 import { syncWebsitePageModel } from "./websiteManagement";
 import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";
 import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";
+import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";
 
 function clean(value = "") {
   return String(value || "").trim();
@@ -229,6 +230,7 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
   const modelled = syncWebsitePageModel(draft);
   return {
     ...modelled,
+    designReview: reviewWebsiteDesign({draft:modelled}),
     html: renderWebsiteHtml(modelled),
   };
 }
@@ -242,6 +244,7 @@ function withHtml(draft = {}) {
   const modelled = syncWebsitePageModel(refreshed);
   return {
     ...modelled,
+    designReview: reviewWebsiteDesign({draft:modelled}),
     updatedAt: new Date().toISOString(),
     html: renderWebsiteHtml(modelled),
   };
