@@ -1,5 +1,10 @@
 # busy-does-it-app
 
+## V3.92 — Talk to BUSY without scrolling past the conversation
+
+After the successful V3.91 native voice test, the Talk to BUSY screen now starts with the microphone and shows BUSY's current answer immediately under it. Typing is still available. Suggested questions, older conversation and operator diagnostics are collapsed until needed; undo and explicit confirmation remain accessible. Recording, transcription, server authentication, approval and publishing routes are unchanged. See `docs/V3_92_TALK_TO_BUSY_SIMPLIFICATION.md`. Native iPhone acceptance is required before marking visual/voice behaviour verified.
+
+
 ## V3.90 — Talk to BUSY microphone reliability
 
 A native iPhone test exposed a voice recording that appeared to do nothing after Stop. The Talk screen now tracks start and stop immediately instead of relying solely on the delayed native recorder-state hook. Recording, upload and Operator errors are visible beside the microphone, including permission or missing-audio failures. The existing authentication and no-automatic-publishing rules are unchanged. New CI checks pass, but real iPhone voice acceptance is still required before declaring the whole workflow working. See `docs/V3_90_VOICE_RELIABILITY.md`.
