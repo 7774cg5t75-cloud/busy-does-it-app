@@ -81,7 +81,8 @@ function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}
   const homeSectionIds=architecture==="focused-landing" ? visibleOrder :
     visibleOrder.filter(id=>["hero","services","contact"].includes(id)||
       (id==="gallery"&&family==="portfolio")||
-      (id==="about"&&["artisan","editorial","boutique"].includes(family)));
+      (id==="about"&&["artisan","editorial","boutique"].includes(family))||
+      (id==="testimonials"&&reviewCount>0));
   const gaps=[];
   if(!clean(businessName))gaps.push("business-name");
   if(!services.length)gaps.push("services");
