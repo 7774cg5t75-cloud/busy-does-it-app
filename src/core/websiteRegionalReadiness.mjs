@@ -27,7 +27,14 @@ function websiteRegionalReadiness({locale="",currency="",timeZone="",
   try{normalizedZone=new Intl.DateTimeFormat("en-GB",
     {timeZone}).resolvedOptions().timeZone;zoneValid=!!normalizedZone;}catch{}
  }
- const countryValid=ISO.test(countryCode);
+ let countryValid=false;
+ if(ISO.test(countryCode)){
+  try{
+   const label=new Intl.DisplayNames("en-GB",{type:"region"}).of(countryCode);
+   countryValid=!!label&&label!==countryCode&&
+     !/^unknown region$/i.test(label);
+  }catch{}
+ }
  const checks=[
   {id:"locale",passed:languageValid&&languageApproved===true,
    label:"Explicit locale chosen and customer-facing translation reviewed"},
