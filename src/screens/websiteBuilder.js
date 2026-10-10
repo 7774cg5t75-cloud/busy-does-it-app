@@ -1,11 +1,13 @@
 import React from "react";
-import { Image, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import { WebView } from "react-native-webview";
 
 import { styles } from "../theme/styles";
 import { Shell, Card, Button, Field, MetricRow, StatusChip } from "../components/ui";
 import { buildWebsiteLaunchJourney } from "../core/websiteLaunchJourney";
 import { buildWebsiteLaunchProof } from "../core/websiteLaunchProof.mjs";
 import { websiteQualityGuidance } from "../core/websiteQualityGuidance.mjs";
+import { renderWebsiteHtml } from "../domain/websiteBuilder";
 
 function WebsiteBuilder({ s }) {
   const draft = s.websiteDraft;
@@ -274,6 +276,7 @@ function WebsiteBuilder({ s }) {
 
 function WebsitePreview({ s }) {
   const draft = s.websiteDraft;
+  const liveConceptHtml = draft ? renderWebsiteHtml(draft) : "";
   if (!draft) {
     return (
       <Shell s={s} title="Website preview" subtitle="Build a website draft first.">
@@ -287,8 +290,6 @@ function WebsitePreview({ s }) {
   const openHosted = () => hosted?.id
     ? s.openHostedWebsitePreview(hosted.id)
     : s.openWebsitePublishing();
-  const hero = (draft.sections || []).find((section) => section.id === "hero");
-  const visible = (draft.sections || []).filter((section) => section.enabled !== false);
 
   return (
     <Shell
@@ -320,53 +321,41 @@ function WebsitePreview({ s }) {
       </Card>
 
       <Card
-        eyebrow={draft.businessName || "Business"}
-        title={hero?.title || draft.businessName || "Website"}
-        body={hero?.body || ""}
-        footer={hero?.cta || ""}
-        tone="green"
+        eyebrow="Your design"
+        title="This is how your website is taking shape"
+        body="See the real colours, typography and layout below. This editable design view is private; prepare a hosted preview to check the exact version before publishing."
+        tone="blue"
       >
-        {hero?.asset?.uri ? (
-          <Image
-            source={{ uri: hero.asset.uri }}
-            style={{ width: "100%", height: draft.theme?.heroSize === "extra-large" ? 280 : 190, borderRadius: 16, marginVertical: 10 }}
-            resizeMode="cover"
+        <View style={{
+          marginTop: 12, borderRadius: 16, overflow: "hidden",
+          borderWidth: 1, borderColor: "#344157",
+          backgroundColor: "#fff", height: 610,
+        }}>
+          <WebView
+            key={String(draft?.generation || 1) + ":" + String(draft?.updatedAt || "")}
+            source={{ html: liveConceptHtml, baseUrl: "about:blank" }}
+            style={{ flex: 1, backgroundColor: "#fff" }}
+            originWhitelist={["*"]}
+            javaScriptEnabled={false}
+            domStorageEnabled={false}
+            incognito
+            mixedContentMode="never"
+            allowFileAccess={false}
+            allowFileAccessFromFileURLs={false}
+            allowUniversalAccessFromFileURLs={false}
+            setSupportMultipleWindows={false}
+            onShouldStartLoadWithRequest={request=>{
+              const href=request?.url || "";
+              // Permit in-page anchor scrolling only; no arbitrary links
+              // or external-site navigation from the editable concept.
+              return href==="about:blank"||href.startsWith("about:blank#");
+            }}
           />
-        ) : null}
+        </View>
+        <Text style={[styles.cardBody, { marginTop: 10 }]}>
+          Scroll inside the preview to explore the design. You can change your wording, style or services before preparing a new hosted version.
+        </Text>
       </Card>
-
-      {visible
-        .filter((section) => section.id !== "hero")
-        .map((section) => (
-          <Card
-            key={section.id}
-            eyebrow={section.type}
-            title={section.title}
-            body={section.body || ""}
-            tone="blue"
-          >
-            {(section.items || []).slice(0, 8).map((item, index) => (
-              <View key={item.id || item.key || `${section.id}-${index}`} style={{ marginBottom: 12 }}>
-                {item.uri ? (
-                  <Image
-                    source={{ uri: item.uri }}
-                    style={{ width: "100%", height: 150, borderRadius: 14, marginBottom: 8 }}
-                    resizeMode="cover"
-                  />
-                ) : null}
-                {item.title ? <Text style={styles.cardTitle}>{item.title}</Text> : null}
-                {item.body ? <Text style={styles.cardBody}>{item.body}</Text> : null}
-              </View>
-            ))}
-            {section.type === "contact" ? (
-              <>
-                {section.phone ? <MetricRow left="Phone" right={section.phone} /> : null}
-                {section.email ? <MetricRow left="Email" right={section.email} /> : null}
-                {section.openingHours ? <MetricRow left="Hours" right={section.openingHours} /> : null}
-              </>
-            ) : null}
-          </Card>
-        ))}
 
       <Button label={hosted ? "View hosted website again" : "Prepare private hosted preview"}
         primary onPress={openHosted} />
