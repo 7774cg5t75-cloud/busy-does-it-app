@@ -601,6 +601,7 @@ function buildWebsitePublishingView({
       !!previewDeployment &&
       previewDeployment.state === "preview_ready" &&
       previewDeployment.id !== liveDeployment?.id &&
+      draftChangedSinceHosted === false &&
       !activeJob,
     canOpenLive: !!clean(website?.live_url),
     canOpenDefaultAddress: !!defaultAddress?.live,
@@ -621,6 +622,7 @@ function buildWebsitePublishingView({
     canRetrySafeRecovery:
       recoveryStage !== "healthy" &&
       !recoveryOwnerAction &&
+      !recoveryAutomatic &&
       !!liveDeployment &&
       !activeJob,
     recoveryState: {
