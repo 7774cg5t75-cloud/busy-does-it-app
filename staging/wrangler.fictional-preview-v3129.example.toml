@@ -1,0 +1,29 @@
+# V3.129 private fictional preview Worker - SOURCE TEMPLATE ONLY
+# Generated main entry is created by:
+# node scripts/build-website-design-gallery-v3100.mjs /tmp/busy-v3129-gallery
+# node scripts/build-fictional-hosted-bundle-v3129.mjs /tmp/busy-v3129-gallery staging/generated <exact-40-char-commit>
+#
+# Do not run wrangler deploy until the founder approves both Supabase staging
+# and Cloudflare staging hosting, confirms account plan and DNS, and provides
+# a NEW independent project with two fictional Auth users. Never choose a
+# production or customer-site Worker name/route.
+name = "busy-isolated-fictional-website-preview"
+main = "staging/generated/preview-worker.mjs"
+compatibility_date = "2026-10-10"
+workers_dev = false
+# No account ID, zone ID, route, custom domain or API token is set here.
+# Add ONLY an explicitly approved separate staging hostname afterward.
+#
+# Required staging Worker env vars, set with protected environment bindings:
+# BUSY_STAGING_SUPABASE_REF
+# BUSY_PRODUCTION_SUPABASE_REF
+# BUSY_OTHER_PROTECTED_SUPABASE_REF
+# BUSY_STAGING_EXPECTED_HOST
+# BUSY_STAGING_SOURCE_SHA       (MUST match generated manifest sourceCommit)
+# BUSY_STAGING_PUBLISHABLE_KEY  (only a public Supabase publishable key)
+# BUSY_STAGING_OWNER_A_ID      (fictional real Supabase test Auth user UUID)
+# BUSY_STAGING_OWNER_B_ID      (second fictional real Supabase test Auth UUID)
+#
+# Service-role key, database passwords, customer data and paid-provider tokens
+# must NEVER be added. Worker accepts GET/HEAD and validates real Supabase
+# Auth separately for each preview; a bare health endpoint proves ONLY config.
