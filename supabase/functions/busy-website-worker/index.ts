@@ -262,8 +262,16 @@ function renderWebsiteHtml(
       : allSections;
   const theme = draft?.theme || {};
   const plan = draft.designPlan || planWebsiteDesign({businessType:draft.businessType,businessName:draft.businessName,sections:allSections,theme});
-  const design = designForWebsite({businessType:draft?.businessType,theme});
+  const design = designForWebsite({businessType:draft?.businessType,theme,plan});
   const layoutCss = designCss(design);
+  const identity = plan?.visualIdentity || {};
+  const classes = [
+    "visual-hero-" + (identity.heroLayout || "type-left"),
+    "visual-cards-" + (identity.cardLayout || "cards"),
+    "visual-ornament-" + (identity.ornament || "ripple"),
+    "visual-nav-" + (identity.navStyle || "quiet"),
+    "visual-type-" + (identity.typography || "confident"),
+  ].join(" ");
   const seo = pageSeo(draft, page);
   const navigation = safeArray(draft?.navigation);
   const navHtml = navigation.length
@@ -318,7 +326,7 @@ function renderWebsiteHtml(
   const safeBusiness=escapeHtml(draft?.businessName||"Business website");
   const area=clean(draft?.serviceArea,260);
   const footer=`<footer class="site-footer"><div class="wrap"><strong>${safeBusiness}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer>`;
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="${design.ink}"><meta name="busy-deployment" content="${escapeHtml(deploymentId)}"><meta name="busy-page" content="${escapeHtml(page?.id||"home")}"><title>${escapeHtml(seo?.title||draft?.businessName||"Website")}</title><meta name="description" content="${escapeHtml(seo?.description||"")}"><script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g,"\\u003c")}</script><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture}"><a class="skip-link" href="#main">Skip to content</a>${navHtml}<main id="main">${sectionHtml}${formMarkup}</main>${footer}</body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="${design.ink}"><meta name="busy-deployment" content="${escapeHtml(deploymentId)}"><meta name="busy-page" content="${escapeHtml(page?.id||"home")}"><title>${escapeHtml(seo?.title||draft?.businessName||"Website")}</title><meta name="description" content="${escapeHtml(seo?.description||"")}"><script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g,"\\u003c")}</script><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes}"><a class="skip-link" href="#main">Skip to content</a>${navHtml}<main id="main">${sectionHtml}${formMarkup}</main>${footer}</body></html>`;
 
 }
 
