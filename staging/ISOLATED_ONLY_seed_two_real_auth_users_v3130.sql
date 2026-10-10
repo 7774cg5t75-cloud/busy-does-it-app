@@ -16,12 +16,12 @@ declare
   b uuid;
   owner_count integer;
 begin
-  select count(*), max(id) into owner_count,a
+  select count(*), (array_agg(id))[1] into owner_count,a
     from auth.users where email = 'bdi-stage-owner-a@example.invalid';
   if owner_count <> 1 or a is null then
     raise exception 'Expected precisely one fictional staging owner A Auth user';
   end if;
-  select count(*), max(id) into owner_count,b
+  select count(*), (array_agg(id))[1] into owner_count,b
     from auth.users where email = 'bdi-stage-owner-b@example.invalid';
   if owner_count <> 1 or b is null or a=b then
     raise exception 'Expected distinct fictional staging owner B Auth user';
