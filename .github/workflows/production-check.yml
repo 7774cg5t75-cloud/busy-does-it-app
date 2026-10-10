@@ -96,6 +96,7 @@ jobs:
           node scripts/check-hosted-preview-source-contract-v3129.mjs
           node scripts/check-staging-live-readiness-v3130.mjs
           node scripts/check-real-staging-client-v3131.mjs
+          node scripts/check-staging-ios-profile-v3132.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs
