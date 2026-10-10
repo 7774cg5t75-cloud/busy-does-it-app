@@ -71,6 +71,7 @@ jobs:
           node scripts/check-website-journey-v3109.mjs
           node scripts/check-website-address-choices-v3110.mjs
           node scripts/check-website-domain-shopping-v3111.mjs
+          node scripts/check-website-registrar-gateway-v3112.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs

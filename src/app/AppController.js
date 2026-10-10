@@ -13633,6 +13633,14 @@ function App() {
     }
   };
 
+  const checkWebsiteRegistrarSearch = async (domain) => {
+    const data=await websitePublishingRequest("registrar_search",{domain});
+    if(!data?.ok||data?.businessId!==cloudWorkspace?.businessId||
+       data?.registrar?.checkoutEnabled!==false)
+      throw Error("Could not confirm the safe domain-search status for this business.");
+    return data.registrar;
+  };
+
   const requestWebsiteDomain = async () => {
     const hostname = websiteDomainDraft.trim();
     if (!hostname) return false;
@@ -15549,6 +15557,7 @@ function App() {
     confirmRollbackWebsite,
     openLiveWebsite,
     requestWebsiteDomain,
+    checkWebsiteRegistrarSearch,
     inspectWebsiteDomainDns,
     verifyWebsiteDomain,
     provisionWebsiteDomain,

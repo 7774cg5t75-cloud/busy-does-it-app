@@ -4,6 +4,7 @@ import {evaluateLaunchPreflight} from "./launchPreflight.mjs";
 import {validatedLeadInput,validTransition,buildLeadDigest} from "./leadWorkflow.mjs";
 import {isVerifiedDomainTxtAnswer} from "./domainOwnership.mjs";
 import {requestedDnsRecords,evaluateDnsAnswer,summarizeDnsChecks} from "./domainDnsDiagnostics.mjs";
+import {checkRegistrarDomain} from "./domainRegistrarGateway.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -1351,6 +1352,7 @@ Deno.serve(async (request: Request) => {
       "rollback",
       "request_domain",
       "inspect_domain_dns",
+      "registrar_search",
       "verify_domain",
       "provision_domain",
       "recover",
@@ -1406,6 +1408,13 @@ Deno.serve(async (request: Request) => {
     }
     if (action === "rollback") {
       return json(200, await rollback(user.id, businessId, body, requestId));
+    }
+    if(action==="registrar_search"){
+      // Read-only, owner/admin-scoped: no registrar provider is connected,
+      // no customer identity or price is fabricated, and no purchase occurs.
+      const domain=cleanText(body?.domain,90);
+      return json(200,{ok:true,businessId,
+        registrar:await checkRegistrarDomain({domain,businessId,adapter:null})});
     }
     if (action === "request_domain") {
       const domain = await requestDomain(user.id, businessId, body);

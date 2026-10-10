@@ -42,6 +42,7 @@ function WebsitePublishing({ s }) {
   const [addressChoice,setAddressChoice]=React.useState("busy");
   const [domainIdeaInput,setDomainIdeaInput]=React.useState("");
   const [showDomainIdeas,setShowDomainIdeas]=React.useState(false);
+  const [registrarStatus,setRegistrarStatus]=React.useState({domain:"",status:"idle",message:""});
   const [dnsInspection,setDnsInspection]=React.useState({domainId:"",status:"idle",result:null,error:""});
   const [showEnquiries, setShowEnquiries] = React.useState(false);
   const [showNewEnquiry, setShowNewEnquiry] = React.useState(false);
@@ -52,11 +53,29 @@ function WebsitePublishing({ s }) {
   const domain = view.domainState?.latest || null;
   const addresses=websiteAddressChoices({mode:addressChoice,publishing:view});
   const domainIdeaPreview=localDomainIdeas(domainIdeaInput);
+  const firstDomainIdea=domainIdeaPreview.ideas[0]?.domain||"";
+  const registrarRequestRef=React.useRef("");registrarRequestRef.current=firstDomainIdea;
+  const checkRegistrar=async()=>{
+    if(!firstDomainIdea||registrarStatus.status==="loading")return;
+    const domainToCheck=firstDomainIdea;
+    setRegistrarStatus({domain:domainToCheck,status:"loading",message:""});
+    try{
+      const answer=await s.checkWebsiteRegistrarSearch(domainToCheck);
+      if(registrarRequestRef.current!==domainToCheck)return;
+      setRegistrarStatus({domain:domainToCheck,status:answer?.status||"not-connected",
+        message:answer?.message||"Registrar search is not available."});
+    }catch(error){
+      if(registrarRequestRef.current===domainToCheck)
+        setRegistrarStatus({domain:domainToCheck,status:"error",
+          message:error?.message||"BUSY could not check the registrar connection."});
+    }
+  };
   const selectAddress=(mode)=>{
     Keyboard.dismiss();
     setAddressChoice(mode);
     setShowDomainSetup(mode==="existing");
     setShowDomainIdeas(false);
+    setRegistrarStatus({domain:"",status:"idle",message:""});
   };
   const domainGuide=domainDnsGuide({domain,stage:view.domainState?.journey?.stage,
     records:view.domainState?.recordsToAdd});
@@ -273,6 +292,7 @@ function WebsitePublishing({ s }) {
             <Field label="Business name or domain idea"
               value={domainIdeaInput} onChangeText={(value)=>{
                 setDomainIdeaInput(value);setShowDomainIdeas(false);
+                setRegistrarStatus({domain:"",status:"idle",message:""});
               }} autoCapitalize="none" placeholder="e.g. Jenny's Hair Salon" />
             <Button label={showDomainIdeas?"Hide name ideas":"Show possible names (not availability)"}
               onPress={()=>setShowDomainIdeas(previous=>!previous)}
@@ -286,9 +306,24 @@ function WebsitePublishing({ s }) {
                     <Text style={styles.cardBody}>{idea.claim}</Text>
                   </React.Fragment>
                 ))}
+                {firstDomainIdea ? (
+                  <Button
+                    label={registrarStatus.status==="loading"
+                      ?"Checking registrar connection…"
+                      :"Check if live domain search is connected"}
+                    onPress={checkRegistrar}
+                    disabled={registrarStatus.status==="loading"||!!s.websitePublishingAction}
+                  />
+                ) : null}
+                {registrarStatus.domain===firstDomainIdea&&
+                  registrarStatus.status!=="idle"&&
+                  registrarStatus.status!=="loading" ? (
+                  <Text style={styles.cardBody}>{registrarStatus.message}</Text>
+                ) : null}
                 <Text style={styles.cardBody}>
-                  A future checkout must display verified live availability, the full first charge,
-                  renewal costs, ownership terms and payment approval before any registration.
+                  Before future domain purchases, BUSY must confirm genuine availability,
+                  the full first charge, renewal costs, ownership terms and your explicit
+                  payment approval. Searching here cannot register or buy a domain.
                 </Text>
               </>
             ) : null}
