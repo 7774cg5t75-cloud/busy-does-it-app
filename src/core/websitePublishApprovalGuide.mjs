@@ -26,7 +26,7 @@ function websitePublishApprovalGuide({preview=null,live=null,view=null,
  const ready=checks.every(x=>x.passed);
  const first=checks.find(x=>!x.passed);
  const next=!hasPreview?"Prepare a hosted preview from the private draft.":
-  !fresh?"Your draft has changed. Prepare and review a NEW hosted preview before Go Live.":
+  !fresh?"Your draft has changed. Prepare and review a new hosted preview before Go Live.":
   sameLive?"This version is already recorded as the live deployment.":
   busy?"Wait for the current publishing job. Refresh its status before continuing.":
   !serverReady?"Publishing is not currently allowed; refresh the status and resolve the server-reported issue.":
