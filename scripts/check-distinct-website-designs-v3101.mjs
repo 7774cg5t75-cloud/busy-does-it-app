@@ -85,7 +85,7 @@ ok(differing.checks.find(x=>x.id==="local-diversity").passed,"Distinct compariso
 ok(read("src/screens/websiteBuilder.js").includes("not an AI screenshot review"),"Customer isn't misled about AI review");
 ok(read("supabase/functions/busy-website-worker/index.ts").includes('visual-hero-'),"Hosting worker uses same visual identity");
 const pkg=JSON.parse(read("package.json")),cfg=JSON.parse(read("app.json")).expo;
-ok(["3.101.0","3.102.0","3.103.0"].includes(pkg.version),"Release version supported");eq(cfg.version,pkg.version);
+ok(["3.101.0","3.102.0","3.103.0","3.104.0"].includes(pkg.version),"Release version supported");eq(cfg.version,pkg.version);
 eq(cfg.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));eq(cfg.android.versionCode,Number(pkg.version.split(".")[1])-80);
 ok(read(".github/workflows/production-check.yml").includes("check-distinct-website-designs-v3101.mjs"),"CI coverage");
 console.log("V3.101 PASS:",n,"distinct per-business styles, repeatable edits, safe user overrides and truthful design review checks");
