@@ -19,7 +19,7 @@ const quick=screen.indexOf("Quick access",fallback);
 const daily=screen.indexOf("Your day at a glance",quick);
 const tests=[
  ["App and native build versions match",()=>{
-  assert.ok(["3.88.0","3.89.0","3.90.0","3.91.0","3.92.0","3.93.0","3.94.0","3.95.0","3.96.0","3.97.0","3.98.0"].includes(pkg.version));
+  assert.ok(["3.88.0","3.89.0","3.90.0","3.91.0","3.92.0","3.93.0","3.94.0","3.95.0","3.96.0","3.97.0","3.98.0","3.99.0"].includes(pkg.version));
   assert.equal(expo.version,pkg.version);
   assert.equal(expo.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));
   assert.equal(expo.ios.bundleIdentifier,"com.busydoesit.app");
