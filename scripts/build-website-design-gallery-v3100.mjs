@@ -43,6 +43,21 @@ const demos=[
    S("Business support","Practical administration and financial record support")],
   extra:{about:"We work with small organisations and independent professionals to simplify their record keeping. Our focus is on clear conversations and helping business owners understand what information they need to keep.",phone:"01234 000000"}},
 ];
+// Same trade, equivalent information: prove the result is not a single
+// BUSY-branded template wearing different business names.
+const sameTradeNames=[
+ ["06-coastal-cleaning","Coastal Shine Exterior Cleaning"],
+ ["07-village-cleaning","Westmoor Pressure Washing"],
+ ["08-city-cleaning","Exeter Surface Specialists"],
+ ["09-traditional-cleaning","Oakfield Exterior Care"]
+];
+for(const [file,name] of sameTradeNames){
+ demos.push({
+  file,name,type:"Exterior cleaning",
+  services:[S("Driveway cleaning"),S("Patio cleaning")],
+  extra:{serviceArea:"Devon"}
+ });
+}
 const output=process.argv[2]||"/tmp/busy-v3100-design-gallery";
 fs.mkdirSync(output,{recursive:true});
 for(const f of demos){
