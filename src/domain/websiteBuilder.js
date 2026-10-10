@@ -1,4 +1,5 @@
 import { syncWebsitePageModel } from "./websiteManagement";
+import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";
 
 function clean(value = "") {
   return String(value || "").trim();
@@ -455,36 +456,52 @@ function applyWebsiteInstruction(draft = {}, instruction = "") {
 }
 
 function renderWebsiteHtml(draft = {}) {
-  const sections = safeArray(draft.sections).filter((section) => section.enabled !== false);
-  const theme = draft.theme || {};
-  const moodClass = escapeHtml(theme.mood || "clean");
-  const primary = clean(theme.primary);
-  const secondary = clean(theme.secondary);
-  const cssVars = [
-    primary ? `--brand-primary:${escapeHtml(primary)};` : "",
-    secondary ? `--brand-secondary:${escapeHtml(secondary)};` : "",
-  ].filter(Boolean).join("");
-
-  const sectionHtml = sections.map((section) => {
-    if (section.type === "hero") {
-      return `<section class="hero hero-${escapeHtml(theme.heroSize || "large")}"><div class="wrap"><p class="kicker">${escapeHtml(draft.brandLabel || draft.businessName)}</p><h1>${escapeHtml(section.title)}</h1><p>${escapeHtml(section.body)}</p>${section.cta && section.ctaHref ? `<a class="cta" href="${escapeHtml(section.ctaHref)}">${escapeHtml(section.cta)}</a>` : ""}</div></section>`;
+  const sections = safeArray(draft.sections).filter(section => section?.enabled !== false);
+  const design = designForWebsite({businessType:draft.businessType,theme:draft.theme});
+  const layoutCss = designCss(design);
+  // This is the editable concept HTML, not the signed hosted deployment.
+  // Both use the same tested professional responsive styles and layout rules.
+  const hero=sections.find(section=>section.type==="hero");
+  const phone=sections.find(section=>section.type==="contact")?.phone||"";
+  const email=sections.find(section=>section.type==="contact")?.email||"";
+  const approvedImage = asset => {
+    const uri=String(asset?.uri||"").trim();
+    return /^https:\/\/[^\s"'<>]+$/i.test(uri) ? uri : "";
+  };
+  const sectionHtml = sections.map(section=>{
+    if(section.type==="hero"){
+      const url=approvedImage(section.asset);
+      const art=url
+        ? `<img class="hero-image" src="${escapeHtml(url)}" alt="${escapeHtml(draft.businessName||"Business photograph")}">`
+        : '<div class="hero-art" aria-hidden="true"></div>';
+      const kicker=clean(draft.businessType||draft.businessName);
+      const lead=clean(section.body) ? `<p class="lead">${escapeHtml(section.body)}</p>` : "";
+      const action=clean(section.cta)&&clean(section.ctaHref)
+        ? `<a class="cta" href="${escapeHtml(section.ctaHref)}">${escapeHtml(section.cta)}</a>` : "";
+      return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}"><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}</div>${art}</div></section>`;
     }
-    if (section.type === "services") {
-      return `<section id="services"><div class="wrap"><h2>${escapeHtml(section.title)}</h2><div class="grid">${safeArray(section.items).map((item) => `<article><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body)}</p></article>`).join("")}</div></div></section>`;
+    if(section.type==="services"||section.type==="faq"||section.type==="testimonials"){
+      const items=safeArray(section.items).filter(item=>clean(item?.title||item?.body));
+      if(!items.length)return "";
+      return `<section id="${escapeHtml(section.id)}"><div class="wrap"><h2>${escapeHtml(section.title)}</h2><div class="grid">${items.map(item=>`<article><h3>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p>${escapeHtml(item.body)}</p>`:""}</article>`).join("")}</div></div></section>`;
     }
-    if (section.type === "gallery") {
-      return `<section id="gallery"><div class="wrap"><h2>${escapeHtml(section.title)}</h2><p>${safeArray(section.items).length} approved business image${safeArray(section.items).length === 1 ? "" : "s"} selected for this draft.</p></div></section>`;
+    if(section.type==="gallery"){
+      const images=safeArray(section.items).map(approvedImage).filter(Boolean);
+      return images.length ? `<section id="gallery"><div class="wrap"><h2>${escapeHtml(section.title)}</h2><div class="gallery">${images.map(url=>`<img class="gallery-image" loading="lazy" src="${escapeHtml(url)}" alt="Customer-supplied photograph">`).join("")}</div></div></section>` : "";
     }
-    if (section.type === "testimonials" || section.type === "faq") {
-      return `<section id="${escapeHtml(section.id)}"><div class="wrap"><h2>${escapeHtml(section.title)}</h2>${safeArray(section.items).map((item) => `<article><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body)}</p></article>`).join("")}</div></section>`;
+    if(section.type==="contact"){
+      return `<section id="contact"><div class="wrap"><h2>${escapeHtml(section.title||"Get in touch")}</h2>${clean(section.body)?`<p>${escapeHtml(section.body)}</p>`:""}${clean(phone)?`<p><a href="tel:${escapeHtml(phone.replace(/\s+/g,""))}">${escapeHtml(phone)}</a></p>`:""}${clean(email)?`<p><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>`:""}${clean(section.openingHours)?`<p>${escapeHtml(section.openingHours)}</p>`:""}</div></section>`;
     }
-    if (section.type === "contact") {
-      return `<section id="contact"><div class="wrap"><h2>${escapeHtml(section.title)}</h2><p>${escapeHtml(section.body)}</p>${section.phone ? `<p>Phone: ${escapeHtml(section.phone)}</p>` : ""}${section.email ? `<p>Email: ${escapeHtml(section.email)}</p>` : ""}${section.openingHours ? `<p>${escapeHtml(section.openingHours)}</p>` : ""}</div></section>`;
-    }
-    return `<section id="${escapeHtml(section.id)}"><div class="wrap"><h2>${escapeHtml(section.title)}</h2><p>${escapeHtml(section.body).replace(/\n/g, "<br>")}</p></div></section>`;
+    return clean(section.body)
+      ? `<section id="${escapeHtml(section.id)}"><div class="wrap"><h2>${escapeHtml(section.title)}</h2><p>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></section>`
+      : "";
   }).join("");
-
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.title || draft.businessName || "Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.description || "")}"><style>:root{${cssVars}}body{margin:0;font-family:system-ui,-apple-system,sans-serif;line-height:1.55;color:#1f2933;background:#fff}.wrap{max-width:1080px;margin:0 auto;padding:64px 24px}section:nth-child(even){background:#f7f7f5}h1{font-size:clamp(2.5rem,8vw,5rem);line-height:1.02;margin:.2em 0}h2{font-size:2rem}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}article{padding:22px;border:1px solid #e5e7eb;border-radius:18px;background:#fff}.cta{display:inline-block;margin-top:18px;padding:12px 18px;border-radius:999px;background:var(--brand-primary,#1f5eff);color:#fff;text-decoration:none}.mood-warm{background:#fffaf2}.mood-bold h1{font-weight:900}.mood-premium{letter-spacing:.01em}.hero-extra-large .wrap{padding-top:110px;padding-bottom:110px}.hero-medium .wrap{padding-top:44px;padding-bottom:44px}</style></head><body class="mood-${moodClass}">${sectionHtml}</body></html>`;
+  const business=escapeHtml(draft.businessName||"Business website");
+  const area=clean(draft.serviceArea);
+  const nav=safeArray(draft.navigation)
+    .filter(item=>item?.id&&item?.label)
+    .map(item=>`<a href="#${escapeHtml(item.id)}">${escapeHtml(item.label)}</a>`).join("");
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector}"><a class="skip-link" href="#main">Skip to content</a><nav><div class="wrap nav-wrap"><a class="brand" href="#main">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a><div class="nav-links">${nav}</div></div></nav><main id="main">${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
 }
 
 export {
