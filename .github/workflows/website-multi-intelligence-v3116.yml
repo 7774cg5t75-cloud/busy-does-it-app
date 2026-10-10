@@ -1,0 +1,63 @@
+name: V3.116 trusted screenshots and four-area customer safety
+on:
+  push:
+    branches: [v3.116]
+    paths:
+      - 'src/core/websiteLearningReadiness.mjs'
+      - 'src/core/websiteDomainSwitchSafety.mjs'
+      - 'src/core/founderProviderReview.mjs'
+      - 'src/screens/websitePublishing.js'
+      - 'src/screens/founderServiceCosts.js'
+      - 'supabase/functions/busy-website-publish/designFeedback.mjs'
+      - 'supabase/functions/busy-website-publish/index.ts'
+      - 'supabase/functions/busy-website-design-review/screenshotProof.mjs'
+      - 'supabase/functions/busy-website-design-review/index.ts'
+      - 'cloudflare/busy-website-screenshot/worker.js'
+      - 'scripts/check-website-controlled-rollout-v3116.mjs'
+      - 'scripts/check-website-first-fold-v3116.mjs'
+      - '.github/workflows/website-multi-intelligence-v3116.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Test four independent areas and previous regression contracts
+        run: |
+          node scripts/check-website-controlled-rollout-v3116.mjs
+          node scripts/check-website-intelligence-v3115.mjs
+          node scripts/check-website-multi-track-v3114.mjs
+          node scripts/check-website-private-alternatives-v3113.mjs
+          node scripts/check-visual-review-gateway-v3105.mjs
+      - run: npm install --no-audit --no-fund
+      - name: iPhone JS compile, not native signed release
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3116-js
+      - run: npx playwright install --with-deps chromium
+      - name: Generate real fictional industry websites
+        run: node scripts/build-website-design-gallery-v3100.mjs /tmp/busy-v3116-gallery
+      - name: Verify screenshot provenance and detect obscured actions
+        run: node scripts/check-website-first-fold-v3116.mjs /tmp/busy-v3116-gallery /tmp/busy-v3116-fold
+      - name: Check private design alternatives before and after
+        run: node scripts/check-website-guided-alternative-v3113.mjs /tmp/busy-v3116-gallery /tmp/busy-v3116-alternative
+      - name: Check design diversity, mobile layout and accessible keyboard journey
+        run: |
+          node scripts/check-website-rendered-diversity-v3112.mjs /tmp/busy-v3116-gallery /tmp/busy-v3116-diversity
+          node scripts/check-website-responsive-quality-v3109.mjs /tmp/busy-v3116-gallery /tmp/busy-v3116-responsive
+          node scripts/check-website-keyboard-quality-v3110.mjs /tmp/busy-v3116-gallery /tmp/busy-v3116-keyboard
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v3116-offline-screenshot-evidence
+          path: |
+            /tmp/busy-v3116-fold/
+            /tmp/busy-v3116-alternative/
+            /tmp/busy-v3116-diversity/
+            /tmp/busy-v3116-responsive/
+            /tmp/busy-v3116-keyboard/
+          retention-days: 7
+      - run: echo "No paid AI, registrar, new live migration, DNS change or signed build."
