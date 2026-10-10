@@ -12,6 +12,7 @@ function WebsiteBuilder({ s }) {
   const brand = s.brandBrain || {};
   const [instruction, setInstruction] = React.useState("");
   const [showWebsiteDetails, setShowWebsiteDetails] = React.useState(false);
+  const [showQualityIdeas, setShowQualityIdeas] = React.useState(false);
   const hostedPreview = s.websitePublishingView?.previewDeployment || null;
   const hostedPreviewOutdated = !!s.websitePublishingView?.draftChangedSinceHosted;
   const deliveryProof=buildWebsiteLaunchProof({
@@ -92,24 +93,28 @@ function WebsiteBuilder({ s }) {
       {!qualityGuide.complete ? (
         <Card
           eyebrow="Make your website stronger"
-          title="A few details make a big difference"
-          body="BUSY will use what you've already told her. These are ideas to help improve the result, not compulsory steps."
+          title={qualityGuide.priority[0]?.title || "A few details can help"}
+          body={qualityGuide.priority[0]?.detail || "BUSY will use the facts you've already saved."}
+          footer="These are optional improvements, not reasons to prevent a preview."
           tone="blue"
         >
-          {qualityGuide.priority.map((item) => (
-            <View key={item.id} style={{ marginTop: 8 }}>
-              <Text style={[styles.cardTitle, { fontSize: 15 }]}>{item.title}</Text>
-              <Text style={styles.cardBody}>{item.detail}</Text>
-            </View>
-          ))}
-          {qualityGuide.remaining > 0 ? (
-            <Text style={[styles.cardBody, { marginTop: 9 }]}>
-              {"Plus " + qualityGuide.remaining + " more suggestion" + (qualityGuide.remaining === 1 ? "" : "s") + " in your business details."}
-            </Text>
-          ) : null}
           <Button label="Improve my business details" onPress={s.openBrandIdentity} />
-          <Button label={draft ? "Or just edit my website with BUSY" : "Or start talking to BUSY"}
-            onPress={draft ? s.askBusyToEditWebsite : s.askBusyToBuildWebsite} />
+          {qualityGuide.suggestions.length > 1 ? (
+            <Button label={showQualityIdeas ? "Hide website tips" : "See more website tips"}
+              onPress={() => setShowQualityIdeas(!showQualityIdeas)} />
+          ) : null}
+          {showQualityIdeas ? (
+            <>
+              {qualityGuide.suggestions.slice(1, 4).map((item) => (
+                <View key={item.id} style={{ marginTop: 8 }}>
+                  <Text style={[styles.cardTitle, { fontSize: 15 }]}>{item.title}</Text>
+                  <Text style={styles.cardBody}>{item.detail}</Text>
+                </View>
+              ))}
+              <Button label={draft ? "Continue editing with BUSY" : "Start talking to BUSY"}
+                onPress={draft ? s.askBusyToEditWebsite : s.askBusyToBuildWebsite} />
+            </>
+          ) : null}
         </Card>
       ) : null}
       {s.websitePublishingView?.liveDeployment&&!deliveryProof.verified?(
