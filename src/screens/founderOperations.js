@@ -3,6 +3,8 @@ import {Text} from "react-native";
 import {Shell,Card,Button,MetricRow} from "../components/ui";
 import {styles} from "../theme/styles";
 import {FounderServiceCosts} from "./founderServiceCosts";
+import {founderOperationalPriorities} from "../core/founderOperationalPriorities.mjs";
+import {websiteReleaseReadiness} from "../core/websiteReleaseReadiness.mjs";
 
 /** V3.69: no platform metrics are read except from server-authorised aggregates. */
 const show=n=>Number.isSafeInteger(n)&&n>=0?n.toLocaleString("en-GB"):"Not measured";
@@ -74,6 +76,9 @@ function FounderOperations({s}){
     }
   };
   const report=state.owner===owner&&state.status==="ready"?state.report:null;
+  const operational=founderOperationalPriorities(report);
+  const release=websiteReleaseReadiness();
+
   return <Shell s={s} title="Founder Operations"
     subtitle="Platform-wide aggregate status, restricted to a verified founder account."
     brandCue="V3.81 • founder subscriptions • usage & renewal control">
@@ -95,6 +100,29 @@ function FounderOperations({s}){
           <MetricRow left="Business memberships" right={show(report.metrics?.businessMemberships)}/>
           <MetricRow left="Workspaces with updated snapshots (7d)" right={show(report.metrics?.activeWorkspaces7d)}/>
           <Button label="Refresh platform snapshot" onPress={refresh}/>
+        </Card>
+
+        <Card eyebrow="Operational priorities"
+          title={operational.headline}
+          body="BUSY highlights verifiable problem counts and gaps in monitoring. These are on-demand founder checks, not automatically delivered alerts or repairs."
+          tone={operational.highPriorityCount>0?"amber":"blue"}>
+          {operational.items.slice(0,4).map(item=>(
+            <React.Fragment key={item.key}>
+              <MetricRow left={item.title}
+                right={item.count===null?"Unknown":show(item.count)}/>
+              <Text style={styles.sectionLabel}>{item.next}</Text>
+            </React.Fragment>
+          ))}
+          <MetricRow left="Automatic repairs" right="Disabled"/>
+        </Card>
+        <Card eyebrow="Pre-release audit"
+          title="Release readiness needs independent checks"
+          body="The master release checklist requires verified security, customer journeys, regional foundations and manual approval. A passing source-code build is not a production readiness certificate."
+          tone="blue">
+          <MetricRow left="Verified release gates"
+            right={show(release.passed)+" of "+show(release.total)}/>
+          <Text style={styles.sectionLabel}>{release.message}</Text>
+          <MetricRow left="Automatic production deployment" right="Disabled"/>
         </Card>
         <FounderServiceCosts s={s} owner={owner} enabled={!!report}/>
         <Card eyebrow="V3.72 • Operational confidence"
