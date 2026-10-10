@@ -76,7 +76,7 @@ function WebsiteBuilder({ s }) {
         {draft ? (
           <Button label="Preview my website draft" onPress={() => s.go("websitePreview")} />
         ) : null}
-        {hostedPreview?.id ? (
+        {hostedPreview?.id && journey.nextAction !== "review" ? (
           <Button label="View my hosted website again"
             primary={!hostedPreviewOutdated && journey.nextAction !== "brand"}
             onPress={() => s.openHostedWebsitePreview(hostedPreview.id)} />
