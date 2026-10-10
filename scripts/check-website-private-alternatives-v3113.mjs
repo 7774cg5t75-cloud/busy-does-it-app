@@ -37,7 +37,7 @@ for(const x of ["Hair salon","Exterior cleaning","Festival catering"]){
   "No made-up image suggestions for "+x);
 }
 const screen=readFileSync(new URL("../src/screens/websiteBuilder.js",import.meta.url),"utf8");
-ok(screen.includes("websiteDesignAlternative(draft)"),"Customer editor uses suggestions");
+ok(screen.includes("websiteDesignAlternative(draft,{"),"Customer editor uses suggestions");
 ok(screen.includes("s.applyWebsiteChange(selectedStyle.instruction)"),
  "Button uses private editor's tracked and undoable action");
 ok(screen.includes("Your business information, photos and"),"Plain-language scope warning");
