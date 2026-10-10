@@ -113,10 +113,11 @@ function WebsitePublishing({ s }) {
   };
 
   const seoChecks = view.seoAudit?.checks || [];
-  const journey=buildWebsiteLaunchJourney({
-    brand:s.brandBrain,draft:s.websiteDraft,publishing:view
-  });
   const launchProof=buildWebsiteLaunchProof({...view,websiteDraftPresent:!!s.websiteDraft});
+  const journey=buildWebsiteLaunchJourney({
+    brand:s.brandBrain,draft:s.websiteDraft,publishing:view,deliveryProof:launchProof
+  });
+  const missingDeliveryCheck=launchProof.checks.find(check=>!check.ready);
   const [openedHostedPreview,setOpenedHostedPreview]=React.useState("");
   const [reviewedHostedPreview,setReviewedHostedPreview]=React.useState("");
   React.useEffect(()=>{
@@ -172,6 +173,11 @@ function WebsitePublishing({ s }) {
         ))}
         <MetricRow left="Allocated BUSY hostname"
           right={launchProof.hostname||"Not allocated"}/>
+        {!launchProof.verified&&missingDeliveryCheck?(
+          <Text style={styles.sectionLabel}>
+            {"Next missing check: "+missingDeliveryCheck.label+". "+missingDeliveryCheck.detail}
+          </Text>
+        ):null}
         <Text style={styles.sectionLabel}>{launchProof.note}</Text>
       </Card>
       <Card
