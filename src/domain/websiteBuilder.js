@@ -468,6 +468,14 @@ function renderWebsiteHtml(draft = {}) {
   const plan = draft.designPlan || planWebsiteDesign({businessType:draft.businessType,businessName:draft.businessName,sections,theme:draft.theme});
   const design = designForWebsite({businessType:draft.businessType,theme:draft.theme,plan});
   const layoutCss = designCss(design);
+  const identity = plan?.visualIdentity || {};
+  const classes = [
+    "visual-hero-" + (identity.heroLayout || "type-left"),
+    "visual-cards-" + (identity.cardLayout || "cards"),
+    "visual-ornament-" + (identity.ornament || "ripple"),
+    "visual-nav-" + (identity.navStyle || "quiet"),
+    "visual-type-" + (identity.typography || "confident"),
+  ].join(" ");
   // This is the editable concept HTML, not the signed hosted deployment.
   // Both use the same tested professional responsive styles and layout rules.
   const hero=sections.find(section=>section.type==="hero");
@@ -512,7 +520,7 @@ function renderWebsiteHtml(draft = {}) {
   const nav=safeArray(draft.navigation)
     .filter(item=>item?.id&&item?.label)
     .map(item=>`<a href="#${escapeHtml(item.id)}">${escapeHtml(item.label)}</a>`).join("");
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture}"><a class="skip-link" href="#main">Skip to content</a><nav><div class="wrap nav-wrap"><a class="brand" href="#main">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a><div class="nav-links">${nav}</div></div></nav><main id="main">${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes}"><a class="skip-link" href="#main">Skip to content</a><nav><div class="wrap nav-wrap"><a class="brand" href="#main">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a><div class="nav-links">${nav}</div></div></nav><main id="main">${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
 }
 
 export {
