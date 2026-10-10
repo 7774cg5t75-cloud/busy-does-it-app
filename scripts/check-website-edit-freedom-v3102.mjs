@@ -92,6 +92,16 @@ for(const marker of ["websiteUndo","websiteRedo","const undoWebsiteChange","cons
 yes(screen.includes("Undo last change"),"Undo button exposed to customers");
 yes(screen.includes("Redo change"),"Redo button exposed to customers");
 
+const existingPhoto={storagePath:"owned/approved/photo-1.jpg",approved:true};
+const withPhoto={...site,sections:[...site.sections,{id:"gallery",title:"Gallery",type:"gallery",enabled:true,items:[existingPhoto]}]};
+const photoChange=changed("use gallery photo 1 as hero",withPhoto);
+yes(photoChange.applied,"Customer can choose their approved gallery photo as hero");
+yes(photoChange.draft.sections.find(s=>s.id==="hero").asset.storagePath==="owned/approved/photo-1.jpg","Photo stays customer-owned");
+const noPhoto=changed("use gallery photo 9 as hero",withPhoto);
+yes(!noPhoto.applied,"Missing gallery images are never substituted");
+const blockedExternal=changed("replace hero photo with an internet photo",withPhoto);
+yes(!blockedExternal.applied,"Never silently use unauthorised remote images");
+
 const worker=read("supabase/functions/busy-website-worker/index.ts");
 yes(worker.includes("plan.sectionOrder"),"Hosted renderer honours owned order");
 yes(worker.includes('name="busy-deployment"'),"Signed hosted preview markers unchanged");
