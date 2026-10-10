@@ -327,6 +327,8 @@ function App() {
   const [businessCreationError, setBusinessCreationError] = useState("");
   const [businessCreationAnswer, setBusinessCreationAnswer] = useState("");
   const [businessCreationConversationActive, setBusinessCreationConversationActive] = useState(false);
+  // Active only when the owner deliberately opened Talk from Website Builder.
+  const [websiteConversationMode, setWebsiteConversationMode] = useState("");
   const [miniAppBuilderPlan, setMiniAppBuilderPlan] = useState(null);
   const [miniAppFactAnswers, setMiniAppFactAnswers] = useState({});
   const [busyAppsSearch, setBusyAppsSearch] = useState("");
@@ -6564,6 +6566,7 @@ function App() {
     setBusyCommandResult(null);
     setBusyCommandError("");
     setBusyVoiceStartNonce(0);
+    setWebsiteConversationMode("");
     setBusyConversationTurns([]);
     setBusyOperatorSnapshot(null);
     setDailyCommandCheckpoint(null);
@@ -12846,8 +12849,10 @@ function App() {
     clearBusyCommandResult();
   };
 
-  const openTalkToBusy = (startVoice = false) => {
+  const openTalkToBusy = (startVoice = false, websiteMode = "") => {
     clearBusyCommandResult();
+    // A website-specific guide must never leak into a normal BUSY chat.
+    setWebsiteConversationMode(["build", "edit"].includes(websiteMode) ? websiteMode : "");
     if (startVoice) setBusyVoiceStartNonce(Date.now());
     go("talkToBusy");
   };
@@ -13058,23 +13063,17 @@ function App() {
   };
 
   const askBusyToBuildWebsite = () => {
-    openTalkToBusy(true);
-    setTimeout(() => {
-      if (!busyCommandStatus || busyCommandStatus === "idle") {
-        setWebsiteBuilderNotice('Say “BUSY, build me a website” and BUSY will use the Brand Brain.');
-      }
-    }, 80);
+    // Let the owner read the brief examples before the microphone starts.
+    // Never auto-record just because they tapped "Build it by talking".
+    setBusinessCreationConversationActive(false);
+    openTalkToBusy(false, "build");
     return true;
   };
 
   const askBusyToEditWebsite = () => {
     if (!websiteDraft) return askBusyToBuildWebsite();
-    openTalkToBusy(true);
-    setTimeout(() => {
-      setWebsiteBuilderNotice(
-        'Tell BUSY the change, for example “make the main photo bigger” or “make the website feel more premium”.'
-      );
-    }, 80);
+    setBusinessCreationConversationActive(false);
+    openTalkToBusy(false, "edit");
     return true;
   };
 
@@ -15425,6 +15424,7 @@ function App() {
     setBusinessCreationAnswer,
     businessCreationConversationActive,
     setBusinessCreationConversationActive,
+    websiteConversationMode,
     businessCreationAction,
     businessCreationNotice,
     businessCreationError,
