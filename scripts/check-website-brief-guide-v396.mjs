@@ -41,6 +41,6 @@ assert.ok(!guide.includes("s.submitBusyCommand("),"Example must never submit or 
 has(ci,"node scripts/check-website-brief-guide-v396.mjs");
 const pkg=JSON.parse(read("package.json"));
 const expo=JSON.parse(read("app.json")).expo;
-assert.ok(["3.96.0","3.97.0"].includes(pkg.version));assert.equal(expo.version,pkg.version);
+assert.ok(["3.96.0","3.97.0","3.98.0"].includes(pkg.version));assert.equal(expo.version,pkg.version);
 assert.equal(expo.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));assert.equal(expo.android.versionCode,Number(pkg.version.split(".")[1])-80);checks+=4;
 console.log("V3.96 PASS:",checks,"website brief guide, realistic example, safe optional prompt and no auto-record tests.");
