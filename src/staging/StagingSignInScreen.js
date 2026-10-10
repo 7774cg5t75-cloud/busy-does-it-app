@@ -79,7 +79,7 @@ export default function StagingSignInScreen(){
    <View style={styles.panel}>
     <Text style={styles.label}>Supabase connection</Text>
     <Text style={inspector.current.configured?styles.good:styles.warning}>
-      {inspector.current.configured?"Connected to the designated staging project":"Staging project key / URL not configured"}
+      {inspector.current.configured?"Configured for the designated staging project":"Staging project key / URL not configured"}
     </Text>
     <Text style={styles.info}>Real Supabase authentication • read-only business checks • no saved session</Text>
    </View>
