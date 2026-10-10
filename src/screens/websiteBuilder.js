@@ -5,6 +5,7 @@ import { styles } from "../theme/styles";
 import { Shell, Card, Button, Field, MetricRow, StatusChip } from "../components/ui";
 import { buildWebsiteLaunchJourney } from "../core/websiteLaunchJourney";
 import { buildWebsiteLaunchProof } from "../core/websiteLaunchProof.mjs";
+import { websiteQualityGuidance } from "../core/websiteQualityGuidance.mjs";
 
 function WebsiteBuilder({ s }) {
   const draft = s.websiteDraft;
@@ -20,6 +21,7 @@ function WebsiteBuilder({ s }) {
     brand, draft, publishing:s.websitePublishingView,deliveryProof
   });
   const missingDeliveryCheck=deliveryProof.checks.find(check=>!check.ready);
+  const qualityGuide = websiteQualityGuidance({ brandBrain: brand, draft });
   const nextStep=()=>{
     switch(journey.nextAction){
       case "brand":return s.openBrandIdentity();
@@ -87,6 +89,29 @@ function WebsiteBuilder({ s }) {
           </Text>
         ) : null}
       </Card>
+      {!qualityGuide.complete ? (
+        <Card
+          eyebrow="Make your website stronger"
+          title="A few details make a big difference"
+          body="BUSY will use what you've already told her. These are ideas to help improve the result, not compulsory steps."
+          tone="blue"
+        >
+          {qualityGuide.priority.map((item) => (
+            <View key={item.id} style={{ marginTop: 8 }}>
+              <Text style={[styles.cardTitle, { fontSize: 15 }]}>{item.title}</Text>
+              <Text style={styles.cardBody}>{item.detail}</Text>
+            </View>
+          ))}
+          {qualityGuide.remaining > 0 ? (
+            <Text style={[styles.cardBody, { marginTop: 9 }]}>
+              {"Plus " + qualityGuide.remaining + " more suggestion" + (qualityGuide.remaining === 1 ? "" : "s") + " in your business details."}
+            </Text>
+          ) : null}
+          <Button label="Improve my business details" onPress={s.openBrandIdentity} />
+          <Button label={draft ? "Or just edit my website with BUSY" : "Or start talking to BUSY"}
+            onPress={draft ? s.askBusyToEditWebsite : s.askBusyToBuildWebsite} />
+        </Card>
+      ) : null}
       {s.websitePublishingView?.liveDeployment&&!deliveryProof.verified?(
         <Card eyebrow="Public delivery check"
           title="Website version recorded — public address not verified yet"
