@@ -9,7 +9,11 @@ on:
       - 'src/domain/websitePublishing.js'
       - 'src/core/websiteCustomerSafetySummary.mjs'
       - 'src/screens/websitePublishing.js'
+      - 'src/core/founderPrioritySummary.mjs'
+      - 'src/screens/founderOperations.js'
+      - 'src/core/websiteDesignAlternatives.mjs'
       - 'scripts/check-website-integrated-recovery-v3123.mjs'
+      - 'scripts/check-website-founder-private-preferences-v3123.mjs'
       - 'scripts/check-website-boundaries-v3122.mjs'
       - '.github/workflows/production-check.yml'
       - '.github/workflows/website-integrated-recovery-v3123.yml'
@@ -28,6 +32,7 @@ jobs:
       - name: Verify real authenticated read recovery, generation safety and previous checks
         run: |
           node scripts/check-website-integrated-recovery-v3123.mjs
+          node scripts/check-website-founder-private-preferences-v3123.mjs
           node scripts/check-website-boundaries-v3122.mjs
           node scripts/check-website-resilience-v3121.mjs
           node scripts/check-website-rehearsal-v3120.mjs
