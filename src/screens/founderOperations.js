@@ -5,6 +5,7 @@ import {styles} from "../theme/styles";
 import {FounderServiceCosts} from "./founderServiceCosts";
 import {founderOperationalPriorities} from "../core/founderOperationalPriorities.mjs";
 import {websiteReleaseReadiness} from "../core/websiteReleaseReadiness.mjs";
+import {websitePilotReadiness} from "../core/websitePilotReadiness.mjs";
 
 /** V3.69: no platform metrics are read except from server-authorised aggregates. */
 const show=n=>Number.isSafeInteger(n)&&n>=0?n.toLocaleString("en-GB"):"Not measured";
@@ -76,8 +77,9 @@ function FounderOperations({s}){
     }
   };
   const report=state.owner===owner&&state.status==="ready"?state.report:null;
-  const operational=founderOperationalPriorities(report);
+  const operational=founderOperationalPriorities(report,{nowISO:new Date().toISOString()});
   const release=websiteReleaseReadiness();
+  const pilot=websitePilotReadiness();
 
   return <Shell s={s} title="Founder Operations"
     subtitle="Platform-wide aggregate status, restricted to a verified founder account."
@@ -114,6 +116,16 @@ function FounderOperations({s}){
             </React.Fragment>
           ))}
           <MetricRow left="Automatic repairs" right="Disabled"/>
+        </Card>
+        <Card eyebrow="Safe pilot preparation"
+          title="Closed test — checks needed"
+          body="Before BUSY touches real customer information, we need an isolated sandbox, owner approval, tested tenant isolation, fictional data, rollback and a dry run with no paid or live actions."
+          footer="This is a readiness plan. No sandbox or real test has been launched."
+          tone="blue">
+          <MetricRow left="Verified pilot safety checks"
+            right={show(pilot.passed)+" of "+show(pilot.total)}/>
+          <Text style={styles.sectionLabel}>{"Next verification: "+pilot.next}</Text>
+          <MetricRow left="Automatic customer pilot" right="Disabled"/>
         </Card>
         <Card eyebrow="Pre-release audit"
           title="Release readiness needs independent checks"
