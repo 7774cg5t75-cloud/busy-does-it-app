@@ -5,6 +5,7 @@
  */
 import {checkScope} from "./growthProjectCloud.mjs";
 import {readOne,PROVIDERS} from "./verifiedBusinessActivityCloud.mjs";
+import {websiteAutomationBoundary} from "../core/websiteAutomationBoundary.mjs";
 const isTransientReadError=e=>{
   const status=Number(e?.status||0);
   return status===408 || status===502 ||
@@ -23,7 +24,17 @@ async function readOnlyStatusWithRecovery(args,source,{pause=ms=>new Promise(res
       return {ok:true,data,attempts,recoveredRead:attempts===2};
     }catch(error){
       if(onAttempt)onAttempt({source,attempts,success:false});
-      const retry=attempts===1 && isTransientReadError(error);
+      // V3.123: apply the same explicit no-write retry boundary to actual
+      // authenticated business activity status reads, not only UI advice.
+      // checkScope and PROVIDERS are validated before the first call.
+      const status=Number(error?.status||0);
+      const networkFailure=status===0&&isTransientReadError(error);
+      const policy=websiteAutomationBoundary({
+        action:"business_activity_status_read",attempt:attempts,
+        httpStatus:status,verifiedNetworkFailure:networkFailure,
+        tenantAuthorized:true
+      });
+      const retry=isTransientReadError(error)&&policy.mayAutoRetryRead;
       if(!retry)return {ok:false,attempts,error:"Status could not be verified ("+(Number(error?.status)||"network")+").",recoveredRead:false};
       // Bounded wait to prevent hammering services and causing needless bills.
       await pause(250);

@@ -1,4 +1,5 @@
 import { buildSeoAudit } from "./websiteManagement";
+import {websiteDraftFreshness} from "../core/websiteDraftFreshness.mjs";
 
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
@@ -120,17 +121,11 @@ function buildWebsitePublishingView({
         (!latestDomain || item.domain_id === latestDomain.id)
     ) || null;
 
-  const draftGeneration = Number(websiteDraft?.generation || 0);
-  const hostedGeneration = Number(
-    previewDeployment?.source_generation ||
-      liveDeployment?.source_generation ||
-      latestDeployment?.source_generation ||
-      0
-  );
-  const draftChangedSinceHosted =
-    !!websiteDraft &&
-    !!latestDeployment &&
-    draftGeneration > hostedGeneration;
+  const draftFreshness=websiteDraftFreshness({
+    draft:websiteDraft,preview:previewDeployment,live:liveDeployment,
+    latest:latestDeployment
+  });
+  const draftChangedSinceHosted=draftFreshness.changed;
 
   const publicStatus = liveDeployment
     ? draftChangedSinceHosted
@@ -586,6 +581,7 @@ function buildWebsitePublishingView({
     seoAudit,
     changeSummary,
     draftChangedSinceHosted,
+    draftFreshness,
     pageCount: Number(
       previewDeployment?.page_count ||
         liveDeployment?.page_count ||
@@ -602,6 +598,7 @@ function buildWebsitePublishingView({
       previewDeployment.state === "preview_ready" &&
       previewDeployment.id !== liveDeployment?.id &&
       draftChangedSinceHosted === false &&
+      draftFreshness.verified === true &&
       !activeJob,
     canOpenLive: !!clean(website?.live_url),
     canOpenDefaultAddress: !!defaultAddress?.live,

@@ -6,17 +6,19 @@
  * rollback, posting, AI generation and user data writes NEVER auto retry.
  */
 const READS=new Set(["website_health_read","provider_status_read",
-  "founder_aggregate_read"]);
+  "founder_aggregate_read","business_activity_status_read"]);
 const WRITES=new Set(["website_publish","website_rollback","domain_dns_edit",
   "domain_purchase","social_post","business_data_write","provider_plan_change",
   "paid_ai_generate","customer_notification","booking_create"]);
 const TRANSIENT=new Set([408,502,503,504]);
 function websiteAutomationBoundary({action="",attempt=0,httpStatus=null,
- tenantAuthorized=false,customerApproval=false,production=false}={}){
+ tenantAuthorized=false,customerApproval=false,production=false,
+ verifiedNetworkFailure=false}={}){
  const valid=typeof action==="string"&&
    Number.isSafeInteger(attempt)&&attempt>=0&&attempt<10;
  const kind=READS.has(action)?"read":WRITES.has(action)?"write":"unknown";
- const transient=TRANSIENT.has(Number(httpStatus));
+ const transient=TRANSIENT.has(Number(httpStatus))||
+  (httpStatus===0&&verifiedNetworkFailure===true);
  const canAutoRetryStatusRead=valid&&kind==="read"&&
    tenantAuthorized===true&&attempt===1&&transient;
  const reason=kind==="write"?
