@@ -58,7 +58,7 @@ begin
   select id into found_id from public.busy_website_visual_ai_calls
     where business_id=p_business_id and request_key=p_request_key;
   if found_id is not null then
-    return found_id; -- idempotent; never spend twice for a retry
+    return null; -- duplicate request keys never authorise a second provider invocation
   end if;
   select count(*) into number_used from public.busy_website_visual_ai_calls
     where business_id=p_business_id and request_month=month_start
@@ -71,10 +71,8 @@ begin
   values (p_business_id,p_request_key,month_start,'reserved')
   on conflict (business_id,request_key) do nothing
   returning id into found_id;
-  if found_id is null then
-    select id into found_id from public.busy_website_visual_ai_calls
-      where business_id=p_business_id and request_key=p_request_key;
-  end if;
+  -- A concurrent duplicate must not receive permission to call the model.
+  if found_id is null then return null; end if;
   return found_id;
 end;
 $$;
