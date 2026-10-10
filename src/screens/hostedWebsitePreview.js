@@ -1,5 +1,5 @@
 import React from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { WebView } from "react-native-webview";
 
 import { styles } from "../theme/styles";
@@ -37,6 +37,35 @@ function HostedWebsitePreview({ s }) {
           Real hosted pages • Not public • Publishing requires your approval
         </Text>
         <Button label={backLabel} onPress={s.back} />
+        {Array.isArray(preview.pages) && preview.pages.length > 1 ? (
+          <View>
+            <Text style={{ color: "#ccd7e9", fontSize: 12, marginBottom: 7 }}>
+              Browse your website pages — you can return to them as often as you like
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ flexDirection: "row", gap: 8, paddingRight: 12 }}>
+              {preview.pages.map((page, index) => (
+                <Pressable
+                  key={page.path || page.id || index}
+                  accessibilityRole="button"
+                  accessibilityLabel={"Open " + (page.id === "home" ? "Home" : page.label || page.id || "Page") + " website page"}
+                  accessibilityState={{ selected: preview.pageId === page.id, disabled: !!preview.loading }}
+                  disabled={!!preview.loading}
+                  onPress={() => s.openHostedWebsitePreviewPage(page.url)}
+                  style={{
+                    paddingVertical: 9, paddingHorizontal: 13, borderRadius: 11,
+                    backgroundColor: preview.pageId === page.id ? "#e0ecff" : "#263448",
+                    borderWidth: 1, borderColor: preview.pageId === page.id ? "#8cbaff" : "#3b4a60",
+                  }}
+                >
+                  <Text style={{ color: preview.pageId === page.id ? "#15263f" : "#f0f5ff", fontWeight: "700", fontSize: 13 }}>
+                    {page.id === "home" ? "Home" : (page.label || page.id || "Page").replace(/-/g, " ").replace(/^./, x => x.toUpperCase())}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
         {preview.error ? <Text style={{ color: "#ffcc8d" }}>{preview.error}</Text> : null}
       </View>
       <View style={{ flex: 1, marginHorizontal: 8, marginBottom: 8, borderRadius: 12, overflow: "hidden", backgroundColor: "#fff" }}>
