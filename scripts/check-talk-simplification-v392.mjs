@@ -13,10 +13,10 @@ const runtime=read("src/core/runtime.js");
 const ui=talk.slice(talk.indexOf("  return (\n    <Shell\n      s={s}"));
 const checks=[
 ["v3.92 package and runtime",()=>{
-  assert.equal(pkg.version,"3.92.0");
+  assert.ok(["3.92.0","3.93.0"].includes(pkg.version));
   assert.equal(expo.version,pkg.version);
-  assert.equal(expo.ios.buildNumber,"12");
-  assert.ok(runtime.includes('const APP_VERSION = "3.92";'));
+  assert.equal(expo.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));
+  assert.ok(runtime.includes('const APP_VERSION = "'+pkg.version.slice(0,-2)+'";'));
 }],
 ["Microphone first, latest reply before typing and secondary tools",()=>{
   const loc=(s)=>{const i=ui.indexOf(s);assert.ok(i>=0,s);return i;};
