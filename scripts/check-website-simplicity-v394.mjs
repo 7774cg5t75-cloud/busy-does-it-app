@@ -42,6 +42,6 @@ ordered(publishing,'showNewEnquiry ? (','Customer name');
 has(workflow,'node scripts/check-website-simplicity-v394.mjs');
 const pkg=JSON.parse(read("package.json"));
 const expo=JSON.parse(read("app.json")).expo;
-assert.ok(["3.94.0","3.95.0"].includes(pkg.version));assert.equal(expo.version,pkg.version);
+assert.ok(["3.94.0","3.95.0","3.96.0"].includes(pkg.version));assert.equal(expo.version,pkg.version);
 assert.equal(expo.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));assert.equal(expo.android.versionCode,Number(pkg.version.split(".")[1])-80);assertions+=4;
 console.log("V3.94 PASS: "+assertions+" website simplicity and approval-preservation checks. No website was published.");
