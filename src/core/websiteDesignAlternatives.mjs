@@ -48,7 +48,8 @@ function websiteDesignAlternative(draft,{likedFamilies=[],rejectedFamilies=[]}={
  const options=[...new Set(choices)].filter(name=>name!==current&&
    (approvedPhotos>0||!["showcase","portfolio"].includes(name)))
    .map(name=>({family:name,title:styles[name].title,detail:styles[name].detail,
-     instruction:"try "+name+" design",ownerApprovalRequired:true,privateDraftOnly:true}))
+     instruction:"try "+name+" design",ownerApprovalRequired:true,privateDraftOnly:true,
+     previouslyRejected:rejected.has(name),recommended:!rejected.has(name)}))
    .sort((a,b)=>{
      const preference=name=>(liked.has(name)&&!rejected.has(name)?2:0)-
        (rejected.has(name)?1:0);
@@ -57,8 +58,12 @@ function websiteDesignAlternative(draft,{likedFamilies=[],rejectedFamilies=[]}={
  return {
    available:options.length>0,current:current||"custom",approvedPhotos,
    options,
-   suggested:options[0]||null,
-   reason:options.length?"Try a different visual direction without rewriting your services, contacts or other business facts.":
+   // Never automatically recommend a style this exact business rejected.
+   // It remains in options so an owner can deliberately try it if they wish.
+   suggested:options.find(option=>option.recommended)||null,
+   reason:options.some(option=>option.recommended)?
+     "Try a different visual direction without rewriting your services, contacts or other business facts.":
+     options.length?"Only styles you've previously rejected remain. You can still choose one manually.":
      "No safe alternative is currently available."
  };
 }
