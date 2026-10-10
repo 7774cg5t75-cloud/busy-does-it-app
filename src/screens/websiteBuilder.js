@@ -204,6 +204,13 @@ function WebsiteBuilder({ s }) {
               placeholder="e.g. Change the headline to Proper local service"
             />
             <Button label="Apply change" primary onPress={applyInstruction} />
+            {s.canUndoWebsite || s.canRedoWebsite ? (
+              <View>
+                {s.canUndoWebsite ? <Button label="Undo last change" onPress={s.undoWebsiteChange} /> : null}
+                {s.canRedoWebsite ? <Button label="Redo change" onPress={s.redoWebsiteChange} /> : null}
+              </View>
+            ) : null}
+
             <Button label="Tell BUSY by voice" onPress={s.askBusyToEditWebsite} />
             <Button label={showCustomization ? "Hide quick design choices" : "Explore quick design choices"}
               onPress={() => setShowCustomization(!showCustomization)} />
@@ -406,6 +413,7 @@ function WebsitePreview({ s }) {
         </Text>
       </Card>
 
+      {s.canUndoWebsite ? <Button label="Undo last website change" onPress={s.undoWebsiteChange} /> : null}
       <Button label={hosted ? "View hosted website again" : "Prepare private hosted preview"}
         primary onPress={openHosted} />
       <Button label="Edit my website" onPress={() => s.go("websiteBuilder")} />
