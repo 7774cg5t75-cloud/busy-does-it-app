@@ -1,0 +1,48 @@
+name: V3.131 separate iPhone staging real Auth login safety
+on:
+  push:
+    branches: [v3.131]
+    paths:
+      - 'App.js'
+      - 'src/staging/**'
+      - 'src/core/stagingRuntimeIsolation.mjs'
+      - 'app.config.js'
+      - 'eas.json'
+      - '.env.staging.example'
+      - 'scripts/check-real-staging-client-v3131.mjs'
+      - '.github/workflows/staging-native-auth-v3131.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  staging-auth-source-and-ios-export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Check offline sign-in, identity, tenant, logout and missing key tests
+        run: |
+          node scripts/check-real-staging-client-v3131.mjs
+          node scripts/check-staging-runtime-v3128.mjs
+          node scripts/check-staging-live-readiness-v3130.mjs
+      - name: Install Expo packages for source bundle export only
+        run: npm install --no-audit --no-fund --cache /tmp/busy-v3131-npm-cache
+      - name: Export isolated staging iOS JavaScript without passwords or cloud access
+        env:
+          EXPO_PUBLIC_BUSY_ENVIRONMENT: isolated-staging
+          EXPO_PUBLIC_BUSY_STAGING_SUPABASE_URL: https://pnjdlogwegnqbsfpcofw.supabase.co
+          EXPO_PUBLIC_BUSY_STAGING_PUBLISHABLE_KEY: sb_publishable_CI_ONLY_NOT_A_REAL_KEY_123456789
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3131-staging-ios
+      - name: Export existing nonstaging iOS app JavaScript
+        env:
+          EXPO_PUBLIC_BUSY_ENVIRONMENT: ''
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3131-normal-ios
+      - name: Explicit scope of this workflow
+        run: |
+          echo "Both Expo exports are OFFLINE and neither is a signed installable app."
+          echo "No Supabase Auth password exchange or external HTTP call was made."
+          echo "No EAS signing, hosted HTTPS, Cloudflare deployment or DNS update."
+          echo "No production database access, new charges or customer data."
