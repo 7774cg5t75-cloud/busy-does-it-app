@@ -102,13 +102,22 @@ function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}
   const architecture=richSignals>=1?"multi-page":"focused-landing";
   const contentTier=(richSignals>=2&&photos>=2&&services.length>=3)?"rich":
     architecture==="multi-page"?"established":"essential";
-  let family="editorial";
-  if(sector==="trades")family="conversion";
-  else if(sector==="hospitality")family=photos?"showcase":"artisan";
-  else if(sector==="wellness")family="boutique";
-  else if(sector==="nature")family=photos?"portfolio":"organic";
-  else if(sector==="professional")family="editorial";
-  else family=photos>=2?"portfolio":"minimal";
+  // Curated sector *families*, not one fixed template per trade.
+  // A stable name-based choice gives meaningful distinction between firms
+  // even if their recorded services and photographs are otherwise identical.
+  const familyOptions={
+    trades:["conversion","editorial","minimal"],
+    nature:photos>0?["portfolio","showcase"]:["organic","minimal","editorial"],
+    hospitality:photos>0?["showcase","artisan"]:["artisan","editorial","minimal"],
+    wellness:["boutique","editorial","minimal"],
+    professional:["editorial","minimal","boutique"],
+    neutral:photos>=2?["portfolio","editorial","minimal"]:["minimal","editorial","boutique"]
+  };
+  const allowedFamilies=familyOptions[sector]||familyOptions.neutral;
+  const familySeed=stableDesignSeed([businessName,businessType].map(clean).join("::"));
+  const family=allowedFamilies.includes(theme?.designFamily)
+    ? theme.designFamily
+    : allowedFamilies[(familySeed>>>4)%allowedFamilies.length];
   const visualIdentity=selectVisualIdentity({businessName,businessType,theme,family,photos});
   // A short brief benefits from a confident typographic hero, not a blank
   // image placeholder, empty gallery or falsely completed features.
