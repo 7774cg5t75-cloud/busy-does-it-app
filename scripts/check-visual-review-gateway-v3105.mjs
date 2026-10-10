@@ -62,8 +62,7 @@ for(const s of ["enabled boolean not null default false","monthly_request_cap in
  "return null; -- duplicate request keys"]){
  ok(meter.includes(s),"Deny-by-default billing: "+s);
 }
-assert.ok(pkg.version.startsWith("3.")&&Number(pkg.version.split(".")[1])>=105);
-assert.equal(app.version,pkg.version);
+assert.equal(pkg.version,"3.105.0");assert.equal(app.version,"3.105.0");
 assert.equal(app.ios.buildNumber,"25");assert.equal(app.android.versionCode,25);
 ok(read(".github/workflows/production-check.yml").includes("check-visual-review-gateway-v3105.mjs"),"Production CI includes authenticated review gate");
 console.log("V3.105 PASS: "+n+" hosted screenshot review readiness, secure tenant scoping, private-only approval and zero-surprise billing assertions.");

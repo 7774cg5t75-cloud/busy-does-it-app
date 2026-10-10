@@ -11,7 +11,7 @@ The private before/after reviewer could report that the candidate became worse b
 - Protect every non-derived draft field, including customer contact details, tenant IDs and owner IDs, against unexpected changes by the candidate builder. Only generated markup and legitimate derived design metadata may vary.
 - Enforce approved-photo provenance **again at application time**, even if a malformed or forged report reached a local client. Do not count identical theme tokens as an edit.
 - Keep the deployed Supabase critic and private worker contract in exact agreement, with new free Node regression checks added to the production GitHub workflow.
-- Update app/source version markers to V3.106. No new paid provider calls, signed iPhone build, database migration, Cloudflare deployment or website publication were performed by this sweep.
+- Retain the existing V3.105 native/app version markers until a later grouped signed iPhone release; the **V3.106 branch and safeguards** are separate source changes. No new paid provider calls, signed iPhone build, database migration, Cloudflare deployment or website publication were performed by this sweep.
 
 ## Exact boundary
 The genuinely hosted screenshot review integration remains disabled pending voluntary provider activation, permitted spend, customer opt-in and an end-to-end test. V3.106 improves the existing **reusable private visual-review engine** and its safety gates; it does not claim that a full two-pass AI renderer/automatic customer-site redesign is live. The customer-facing approval button currently applies allowed design tokens to a new **private draft**; it does not invoke this entire offline review cycle automatically. Future integration must preserve these stricter gates.
