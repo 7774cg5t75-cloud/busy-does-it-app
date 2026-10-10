@@ -66,8 +66,8 @@ includes(publishing,'onPress={() => s.confirmPublishHostedWebsite(preview.id)}')
 includes(publishing,'reviewedHostedPreview!==preview.id');
 includes(publishing,'disabled={openedHostedPreview!==preview.id||');
 includes(workflow,'node scripts/check-repeat-hosted-preview-v397.mjs');
-assert.equal(packageJson.version,"3.97.0");count++;
+assert.ok(["3.97.0","3.98.0"].includes(packageJson.version));count++;
 assert.equal(expo.version,packageJson.version);count++;
-assert.equal(expo.ios.buildNumber,"17");count++;
-assert.equal(expo.android.versionCode,17);count++;
+assert.equal(expo.ios.buildNumber,String(Number(packageJson.version.split(".")[1])-80));count++;
+assert.equal(expo.android.versionCode,Number(packageJson.version.split(".")[1])-80);count++;
 console.log("V3.97 PASS: "+count+" repeatable hosted preview navigation, clear publish separation and safety checks. No website published.");
