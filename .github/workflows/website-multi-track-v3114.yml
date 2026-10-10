@@ -10,6 +10,7 @@ on:
       - 'src/screens/websitePublishing.js'
       - 'supabase/functions/busy-website-worker/websiteReviewCycle.mjs'
       - 'scripts/check-website-multi-track-v3114.mjs'
+      - 'scripts/check-website-private-alternatives-v3113.mjs'
       - '.github/workflows/website-multi-track-v3114.yml'
   workflow_dispatch:
 permissions:
