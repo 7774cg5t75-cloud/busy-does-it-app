@@ -182,7 +182,7 @@ function FounderOperations({s}){
                 {"Cloud gate: "+staged.next}
               </Text>
               <Text style={styles.sectionLabel}>
-                "Business App previews must match the immutable version and current draft. Real staging app verification is still outstanding."
+                {"Business App previews must match the immutable version and current draft. Real staging app verification is still outstanding."}
               </Text>
             </>
           ):null}
