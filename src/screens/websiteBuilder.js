@@ -10,6 +10,7 @@ function WebsiteBuilder({ s }) {
   const draft = s.websiteDraft;
   const brand = s.brandBrain || {};
   const [instruction, setInstruction] = React.useState("");
+  const [showWebsiteDetails, setShowWebsiteDetails] = React.useState(false);
   const deliveryProof=buildWebsiteLaunchProof({
     ...(s.websitePublishingView||{}),websiteDraftPresent:!!draft
   });
@@ -48,27 +49,29 @@ function WebsiteBuilder({ s }) {
     <Shell
       s={s}
       title="Website Builder"
-      subtitle="Build from the Brand Brain instead of starting from a blank page."
-      brandCue="V3.77 • guided website launch • clear approval and verification"
+      subtitle="Tell BUSY about your business, preview your website and make it your own."
+      brandCue="BUSY DOES IT • Website Builder"
     >
-      <Card
-        eyebrow="V3.77 • Your website launch plan"
-        title={journey.isVerified?"Your published website has passed its deployment check":
-          "Your next step: "+nextLabel}
-        body="BUSY guides you from recording your business details to reviewing a private draft, approving the exact hosted version and checking the public site. You stay in control of Go Live."
-        footer={journey.completedStages+" of "+journey.totalStages+
-          " launch milestones complete • No automatic publishing"}
-        tone={journey.isVerified?"green":"blue"}
-      >
-        {journey.stages.map(item=>(
-          <MetricRow key={item.id}
-            left={item.title}
-            right={item.state==="complete"?"Done":
-              item.state==="needs_details"?"Add details":
-              item.state==="working"?"In progress":
-              item.state==="ready"?"Ready":"Next"}/>
-        ))}
-        <Button label={nextLabel} primary onPress={nextStep}/>
+      <Card eyebrow="Your website"
+        title={journey.isVerified ? "Your website is live and verified" :
+          s.websitePublishingView?.liveDeployment ? "Website published • connection being verified" :
+          draft ? "Your website is ready to edit" : "Let's create your website"}
+        body={draft
+          ? "Ask BUSY to make changes, check the preview, then choose whether to publish. Your current live website stays unchanged until you approve a new version."
+          : "BUSY uses your real business information to create a draft. You can review and change everything before anything is made public."}
+        footer="You always approve before anything goes public"
+        tone={journey.isVerified ? "green" : "blue"}>
+        <MetricRow left="Business information"
+          right={brand.websiteReady ? "Ready" : "Needs a quick check"} />
+        <MetricRow left="Website draft" right={draft ? "Ready" : "Not built yet"} />
+        <MetricRow left="Public website" right={journey.isVerified ? "Verified" :
+          s.websitePublishingView?.liveDeployment ? "Checking connection" : "Not published"} />
+        <Button label={nextLabel} primary onPress={nextStep} />
+        <Button label={draft ? "Make changes by talking to BUSY" : "Build it by talking to BUSY"}
+          onPress={draft ? s.askBusyToEditWebsite : s.askBusyToBuildWebsite} />
+        {draft ? (
+          <Button label="Preview my website" onPress={() => s.go("websitePreview")} />
+        ) : null}
       </Card>
       {s.websitePublishingView?.liveDeployment&&!deliveryProof.verified?(
         <Card eyebrow="Public delivery check"
@@ -82,8 +85,57 @@ function WebsiteBuilder({ s }) {
           <Button label="See delivery checks and recovery" onPress={s.openWebsitePublishing}/>
         </Card>
       ):null}
+      {s.websiteBuilderNotice ? (
+        <Card
+          eyebrow="BUSY website update"
+          title="Latest builder message"
+          body={s.websiteBuilderNotice}
+          tone="blue"
+        />
+      ) : null}
+      {draft ? (
+        <>
+          <Card
+            eyebrow="Website status"
+            title={draft.businessName || "Business website"}
+            body={draft.seo?.description || "No public description has been recorded yet."}
+            footer={s.websitePublishingView?.liveDeployment ? "A separate approved version is currently live." : "This editor draft is not public until an exact hosted version is approved."}
+            tone="blue"
+          >
+            <MetricRow left="Status" right={draft.status} />
+            <MetricRow left="Public status" right={draft.publicStatus} strong />
+            <MetricRow left="Theme" right={draft.theme?.mood || "clean"} />
+            <MetricRow left="Sections" right={String((draft.sections || []).filter((item) => item.enabled !== false).length)} />
+            <MetricRow left="Pages" right={String(draft.pages?.length || 1)} strong={(draft.pages?.length || 1) > 1} />
+            <MetricRow left="SEO basics" right={s.websitePublishingView?.seoAudit?.label || "Not checked"} />
+            <MetricRow left="HTML source" right={draft.html ? "Generated" : "Not generated"} />
+            <Button label="Preview website" primary onPress={() => s.go("websitePreview")} />
+          </Card>
+          <Text style={styles.sectionLabel}>Talk-style edits</Text>
+          <Card
+            eyebrow="Conversational website editing"
+            title="Tell BUSY what you want changed"
+            body="The editor now safely handles exact public wording/contact changes, adding or removing named services, changing service emphasis, section visibility and visual style. Vague claims are still not invented."
+            footer="Examples: “change the headline to…”, “update my opening hours to…”, “add gutter cleaning”, “put roof cleaning first”, or “make the main photo bigger”."
+            tone="blue"
+          >
+            <Field
+              label="Website change"
+              value={instruction}
+              onChangeText={setInstruction}
+              placeholder="e.g. Change the headline to Proper local service"
+            />
+            <Button label="Apply change" primary onPress={applyInstruction} />
+            <Button label="Tell BUSY by voice" onPress={s.askBusyToEditWebsite} />
+          </Card>
+        </>
+      ) : null}
+      <Button label={showWebsiteDetails ? "Hide extra website settings" : "More website settings"}
+        onPress={() => setShowWebsiteDetails(!showWebsiteDetails)} />
+      {showWebsiteDetails ? (
+        <>
       <Card
-        eyebrow="Website generation"
+        eyebrow="Website settings"
         title={draft ? "Your website draft exists" : "BUSY is ready to build the first draft"}
         body={
           draft
@@ -109,53 +161,8 @@ function WebsiteBuilder({ s }) {
           onPress={s.askBusyToBuildWebsite}
         />
       </Card>
-
-      {s.websiteBuilderNotice ? (
-        <Card
-          eyebrow="BUSY website update"
-          title="Latest builder message"
-          body={s.websiteBuilderNotice}
-          tone="blue"
-        />
-      ) : null}
-
-      {draft ? (
-        <>
-          <Card
-            eyebrow="Website status"
-            title={draft.businessName || "Business website"}
-            body={draft.seo?.description || "No public description has been recorded yet."}
-            footer={s.websitePublishingView?.liveDeployment ? "A separate approved version is currently live." : "This editor draft is not public until an exact hosted version is approved."}
-            tone="blue"
-          >
-            <MetricRow left="Status" right={draft.status} />
-            <MetricRow left="Public status" right={draft.publicStatus} strong />
-            <MetricRow left="Theme" right={draft.theme?.mood || "clean"} />
-            <MetricRow left="Sections" right={String((draft.sections || []).filter((item) => item.enabled !== false).length)} />
-            <MetricRow left="Pages" right={String(draft.pages?.length || 1)} strong={(draft.pages?.length || 1) > 1} />
-            <MetricRow left="SEO basics" right={s.websitePublishingView?.seoAudit?.label || "Not checked"} />
-            <MetricRow left="HTML source" right={draft.html ? "Generated" : "Not generated"} />
-            <Button label="Preview website" primary onPress={() => s.go("websitePreview")} />
-          </Card>
-
-          <Text style={styles.sectionLabel}>Talk-style edits</Text>
-          <Card
-            eyebrow="Conversational website editing"
-            title="Tell BUSY what you want changed"
-            body="The editor now safely handles exact public wording/contact changes, adding or removing named services, changing service emphasis, section visibility and visual style. Vague claims are still not invented."
-            footer="Examples: “change the headline to…”, “update my opening hours to…”, “add gutter cleaning”, “put roof cleaning first”, or “make the main photo bigger”."
-            tone="blue"
-          >
-            <Field
-              label="Website change"
-              value={instruction}
-              onChangeText={setInstruction}
-              placeholder="e.g. Change the headline to Proper local service"
-            />
-            <Button label="Apply change" primary onPress={applyInstruction} />
-            <Button label="Tell BUSY by voice" onPress={s.askBusyToEditWebsite} />
-          </Card>
-
+          {draft ? (
+            <>
           <Text style={styles.sectionLabel}>Page structure</Text>
           <Card
             eyebrow="Multi-page foundation"
@@ -196,7 +203,7 @@ function WebsiteBuilder({ s }) {
           ))}
 
           <Card
-            eyebrow="V3.38 • Website delivery & real-world signals"
+            eyebrow="Hosting and publication details"
             title={s.websitePublishingView?.publicStatus || "Draft only"}
             body="BUSY turns the editor draft into a private immutable multi-page preview, stores a plain-English change summary, and keeps the current live site untouched until you approve the exact version."
             footer="Normal public page views are served as static CDN files rather than running the BUSY app or AI."
@@ -217,9 +224,10 @@ function WebsiteBuilder({ s }) {
               onPress={s.openWebsitePublishing}
             />
           </Card>
+            </>
+          ) : null}
         </>
       ) : null}
-
       <Button label="Brand & Business Identity" onPress={s.openBrandIdentity} />
       <Button label="Back to Home" onPress={() => s.jump("home", "Home")} />
     </Shell>
