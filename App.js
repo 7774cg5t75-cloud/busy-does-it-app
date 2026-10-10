@@ -1,8 +1,11 @@
 /**
- * V3.131 stage-only test screen. Production and development app route to the
- * EXISTING BusyDoesItApp unchanged; staging has a separate EAS bundle/channel.
+ * The isolated staging installation loads ONLY its own Auth inspector at
+ * runtime. Metro may include other modules in the export, but importantly
+ * the production AppController import is never evaluated on staging.
+ * This prevents eager production-module side effects before the mode switch.
  */
-import BusyDoesItApp from "./BusyDoesItApp";
-import StagingSignInScreen from "./src/staging/StagingSignInScreen";
-const isolated=process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT==="isolated-staging";
-export default (isolated?StagingSignInScreen:BusyDoesItApp);
+const isStaging=process.env.EXPO_PUBLIC_BUSY_ENVIRONMENT==="isolated-staging";
+const SelectedApp=isStaging
+ ? require("./src/staging/StagingSignInScreen").default
+ : require("./BusyDoesItApp").default;
+export default SelectedApp;
