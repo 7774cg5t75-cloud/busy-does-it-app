@@ -36,12 +36,14 @@ const names=[
 ];
 const samples=names.map(nm=>site(nm));
 const fingerprints=new Set(samples.map(s=>s.designPlan.visualIdentity.fingerprint));
+const families=new Set(samples.map(s=>s.designPlan.family));
+ok(families.size>=3,"Similar trade businesses must span at least three genuinely different overall layout families");
 ok(fingerprints.size>=14,"20 same-sector businesses must NOT get one near-identical composition");
 eq(samples.length,20);
 for(const sample of samples){
  const second=site(sample.businessName);
  eq(sample.designPlan.visualIdentity,second.designPlan.visualIdentity,"Visual identity stable across runs");
- ok(sample.designPlan.visualIdentity.fingerprint.includes("conversion"),"Same sector can retain appropriate family");
+ ok(["conversion","editorial","minimal"].includes(sample.designPlan.family),"Same sector uses an appropriate but not fixed design family");
  ok(sample.html.includes("visual-hero-"+sample.designPlan.visualIdentity.heroLayout),"Chosen hero affects real HTML");
  ok(sample.html.includes("visual-cards-"+sample.designPlan.visualIdentity.cardLayout),"Chosen cards affect real HTML");
  ok(sample.html.includes("visual-nav-"+sample.designPlan.visualIdentity.navStyle),"Chosen navigation affects real HTML");
