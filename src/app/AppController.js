@@ -50,6 +50,7 @@ const {
   BUSY_SOCIAL_URL,
   BUSY_SOCIAL_PUBLISH_URL,
   BUSY_WEBSITE_PUBLISH_URL,
+  BUSY_WEBSITE_DESIGN_REVIEW_URL,
   BUSY_MINI_APPS_URL,
   BUSY_MINI_APP_LINK_URL,
   BUSY_SUPABASE_URL,
@@ -184,7 +185,8 @@ import {isBusinessActivityQuestion} from "../domain/businessActivityQuestions.mj
 import {loadVerifiedActivity} from "../domain/verifiedBusinessActivityCloud.mjs";
 import {buildVerifiedActivity,resultBrief} from "../domain/verifiedBusinessActivity.mjs";
 import { validateAiConversationDraft } from "../domain/conversationAiBoundary.mjs";
-import { buildWebsiteDraft, applyWebsiteInstruction } from "../domain/websiteBuilder";
+import { buildWebsiteDraft, applyWebsiteInstruction, rebuildPrivateWebsiteDraft } from "../domain/websiteBuilder";
+import { applyApprovedVisualProposals } from "../../supabase/functions/busy-website-worker/visualCriticContract.mjs";
 import { buildWebsitePublishingView } from "../domain/websitePublishing";
 import {
   signedPreviewPath,
@@ -291,6 +293,10 @@ function App() {
   const [websitePublishingNotice, setWebsitePublishingNotice] = useState("");
   const [hostedWebsitePreview, setHostedWebsitePreview] = useState(null);
   const [websitePreviewOpenedId, setWebsitePreviewOpenedId] = useState("");
+  const [websiteVisualReviewStatus,setWebsiteVisualReviewStatus]=useState(null);
+  const [websiteVisualReview,setWebsiteVisualReview]=useState(null);
+  const [websiteVisualReviewBusy,setWebsiteVisualReviewBusy]=useState(false);
+  const [websiteVisualReviewNotice,setWebsiteVisualReviewNotice]=useState("");
   const [websiteDomainDraft, setWebsiteDomainDraft] = useState("");
   const [miniAppsStatus, setMiniAppsStatus] = useState({
     loaded: false,
@@ -6470,6 +6476,10 @@ function App() {
     setWebsitePublishingNotice("");
     setHostedWebsitePreview(null);
     setWebsitePreviewOpenedId("");
+    setWebsiteVisualReviewStatus(null);
+    setWebsiteVisualReview(null);
+    setWebsiteVisualReviewNotice("");
+    setWebsiteVisualReviewBusy(false);
     setWebsiteDomainDraft("");
     setMiniAppsStatus({
       loaded: false,
@@ -13031,6 +13041,101 @@ function App() {
     return true;
   };
 
+  const websiteVisualReviewRequest=async(action,payload={})=>{
+    const token=await ownerAccessToken();
+    if(!token)throw Error("Sign in to your business before requesting a visual review.");
+    const businessId=cloudWorkspace?.businessId||"";
+    if(!businessId)throw Error("Select your business workspace first.");
+    const response=await fetchWithTimeout(BUSY_WEBSITE_DESIGN_REVIEW_URL,{
+      method:"POST",headers:{
+        apikey:BUSY_AI_TOKEN,Authorization:`Bearer ${token}`,
+        "Content-Type":"application/json",
+      },
+      body:JSON.stringify({action,businessId,...payload}),
+    },45000);
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw Error(data.error||"Visual website review is not available yet.");
+    return data;
+  };
+
+  const checkWebsiteVisualReview=async()=>{
+    if(websiteVisualReviewBusy)return false;
+    setWebsiteVisualReviewBusy(true);
+    setWebsiteVisualReviewNotice("");
+    try{
+      const result=await websiteVisualReviewRequest("status");
+      setWebsiteVisualReviewStatus(result);
+      setWebsiteVisualReviewNotice(result.message||"Review readiness checked.");
+      return !!result.enabled;
+    }catch(error){
+      setWebsiteVisualReviewNotice(error?.message||"BUSY could not check visual-review readiness.");
+      return false;
+    }finally{setWebsiteVisualReviewBusy(false);}
+  };
+
+  const requestWebsiteVisualReview=async()=>{
+    if(websiteVisualReviewBusy)return false;
+    const deployment=websitePublishingView?.previewDeployment;
+    if(!deployment?.id||websitePublishingView?.draftChangedSinceHosted||
+       !websiteDraft||!websiteVisualReviewStatus?.enabled||
+       Number(websiteVisualReviewStatus?.remaining||0)<1){
+      setWebsiteVisualReviewNotice("Prepare and check your latest private hosted preview. Review credits and provider connection must be available.");
+      return false;
+    }
+    setWebsiteVisualReviewBusy(true);
+    setWebsiteVisualReviewNotice("BUSY is examining the private website at mobile and desktop sizes.");
+    setWebsiteVisualReview(null);
+    try{
+      const result=await websiteVisualReviewRequest("review",{
+        deploymentId:deployment.id,ownerConsent:true,
+        requestKey:busyRequestId("website-visual"),
+      });
+      if(!result?.report?.valid||result?.published!==false||
+         result?.deploymentId!==deployment.id||
+         result?.businessId!==(cloudWorkspace?.businessId||"")){
+        throw Error("The visual review did not pass BUSY's business and deployment checks.");
+      }
+      setWebsiteVisualReview({...result,scope:(ownerSession?.userId||"")+":"+(cloudWorkspace?.businessId||""),
+        localDraftGeneration:websiteDraft.generation,
+        localDraftUpdatedAt:websiteDraft.updatedAt});
+      setWebsiteVisualReviewNotice(result.message||"Your private website review is ready.");
+      setWebsiteVisualReviewStatus(old=>old?{...old,remaining:Math.max(0,Number(old.remaining||0)-1)}:old);
+      return true;
+    }catch(error){
+      setWebsiteVisualReviewNotice(error?.message||"Visual review could not be completed. Check usage before retrying.");
+      return false;
+    }finally{setWebsiteVisualReviewBusy(false);}
+  };
+
+  const approveWebsiteVisualSuggestions=()=>{
+    const review=websiteVisualReview;
+    const scope=(ownerSession?.userId||"")+":"+(cloudWorkspace?.businessId||"");
+    const deployment=websitePublishingView?.previewDeployment;
+    if(!review?.report?.valid||!review?.report?.proposals?.length||
+       review.scope!==scope||!websiteDraft||!deployment||
+       deployment.id!==review.deploymentId||
+       websitePublishingView?.draftChangedSinceHosted||
+       Number(websiteDraft.generation)!==Number(review.localDraftGeneration)||
+       websiteDraft.updatedAt!==review.localDraftUpdatedAt||
+       Number(review.sourceGeneration)!==Number(websiteDraft.generation)){
+      setWebsiteVisualReviewNotice("Your draft or hosted preview has changed. Review the latest version before applying suggestions.");
+      return false;
+    }
+    const proposal=applyApprovedVisualProposals(websiteDraft,review.report,{ownerApproved:true});
+    if(!proposal.applied){
+      setWebsiteVisualReviewNotice(proposal.reason||"No safe design changes to apply.");
+      return false;
+    }
+    const next=rebuildPrivateWebsiteDraft(proposal.draft);
+    setWebsiteUndo(items=>[...items,websiteDraft].slice(-8));
+    setWebsiteRedo([]);
+    setWebsiteDraft(next);
+    setWebsiteVisualReview(null);
+    setWebsiteVisualReviewNotice("Approved design-only changes are in a NEW private draft. Preview it, then prepare a new hosted version. Nothing was published.");
+    go("websitePreview");
+    return true;
+  };
+
   const buildWebsiteFromBrandBrain = () => {
     const next = buildWebsiteDraft({
       brandBrain,
@@ -15401,6 +15506,13 @@ function App() {
     undoWebsiteChange,
     redoWebsiteChange,
     websiteBuilderNotice,
+    websiteVisualReviewStatus,
+    websiteVisualReview,
+    websiteVisualReviewBusy,
+    websiteVisualReviewNotice,
+    checkWebsiteVisualReview,
+    requestWebsiteVisualReview,
+    approveWebsiteVisualSuggestions,
     buildWebsiteFromBrandBrain,
     applyWebsiteChange,
     openWebsiteBuilder,
