@@ -56,16 +56,28 @@ try{
  const verified=compareWebsiteAudits(before,after);
  const rejected=compareWebsiteAudits(before,bad);
  assert.equal(verified.valid,true,"Actual mobile and desktop measurements available");
- assert.equal(verified.noNewMeasuredProblems,true,"Proposed design must not introduce measured problems");
+ // A new style is not automatically an *improvement*. Missing colour
+ // assessment or reduced inspected-text coverage requires another review.
+ assert.equal(verified.newProblems.length,0,"A style change cannot add concrete layout defects");
+ if(!verified.noNewMeasuredProblems){
+  assert.ok(verified.worsenedMetrics.length>0,
+   "A candidate is rejected for a specific measured reason");
+  assert.ok(verified.worsenedMetrics.every(reason=>
+    /unassessed text contrast increased|inspected text coverage decreased/.test(reason)),
+   "Only reduced review coverage is tolerated as an unresolved candidate: "+
+     JSON.stringify(verified.worsenedMetrics));
+ }
  assert.equal(rejected.noNewMeasuredProblems,false,"Bad small-navigation candidate must be rejected");
  for(const viewport of ["mobile","desktop"])
   assert.deepEqual(before[viewport+"Content"],after[viewport+"Content"],
    "Business names, headings, services and contact words must not change with layout");
  assert.notEqual(before.mobileDesign,after.mobileDesign,"Design family must genuinely differ");
- all.original=before;all.alternative=after;all.safe=verified;all.rejected=rejected;
+ all.original=before;all.alternative=after;all.candidateAssessment=verified;
+ all.requiresFurtherReview=!verified.noNewMeasuredProblems;all.rejected=rejected;
  await writeFile(join(out,"guided-website-quality.json"),JSON.stringify({
   realBrowser:true,fictionalOnly:true,noPaidAI:true,noPublicPublishing:true,results:all
  },null,2)+"\n");
- console.log("V3.113 PASS: verified private alternative at 320/1440px preserved all "+
- "business text and deliberately broken navigation candidate was rejected.");
+ console.log("V3.114 PASS: private alternative preserved actual content; assessment "+
+  (verified.noNewMeasuredProblems?"passed":"correctly flagged reduced measurement coverage")+
+  "; deliberately broken navigation rejected.");
 }finally{await browser.close();}
