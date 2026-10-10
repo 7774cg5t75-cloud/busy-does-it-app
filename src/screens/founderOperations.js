@@ -8,6 +8,7 @@ import {websiteReleaseReadiness} from "../core/websiteReleaseReadiness.mjs";
 import {websitePilotReadiness} from "../core/websitePilotReadiness.mjs";
 import {founderNextSafeAction} from "../core/founderNextSafeAction.mjs";
 import {founderRehearsalGuidance} from "../core/founderRehearsalGuidance.mjs";
+import {founderRecoveryReview} from "../core/founderRecoveryReview.mjs";
 
 /** V3.69: no platform metrics are read except from server-authorised aggregates. */
 const show=n=>Number.isSafeInteger(n)&&n>=0?n.toLocaleString("en-GB"):"Not measured";
@@ -84,6 +85,7 @@ function FounderOperations({s}){
   const release=websiteReleaseReadiness();
   const pilot=websitePilotReadiness();
   const rehearsal=founderRehearsalGuidance({priorities:operational,pilot,release});
+  const incidentReview=founderRecoveryReview({priorities:operational,rehearsal});
 
   return <Shell s={s} title="Founder Operations"
     subtitle="Platform-wide aggregate status, restricted to a verified founder account."
@@ -122,6 +124,7 @@ function FounderOperations({s}){
           <Text style={styles.sectionLabel}>
             {"Next safe check: "+safeAction.title+". "+safeAction.message}
           </Text>
+          <Text style={styles.sectionLabel}>{"Next recovery review: "+incidentReview.next}</Text>
           <MetricRow left="Automatic repairs" right="Disabled"/>
         </Card>
         <Card eyebrow="Safe pilot preparation"
