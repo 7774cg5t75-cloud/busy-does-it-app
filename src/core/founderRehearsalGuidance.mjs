@@ -5,7 +5,7 @@
  */
 function founderRehearsalGuidance({priorities=null,pilot=null,release=null}={}){
  const available=priorities?.status==="available"&&Array.isArray(priorities.items);
- const stale=!available||["stale","unverified"].includes(priorities?.freshness);
+ const stale=!available||priorities?.freshness!=="recent";
  const issueCount=available&&Number.isSafeInteger(priorities.highPriorityCount)
    ? priorities.highPriorityCount:null;
  const ready=pilot?.status==="ready-for-manual-sandbox-rehearsal"&&
@@ -29,8 +29,7 @@ function founderRehearsalGuidance({priorities=null,pilot=null,release=null}={}){
   customerNotificationSent:false,
   liveDeployAllowed:false,
   autonomousRepairAllowed:false,
-  publicReleaseReady:release?.status==="ready-for-manual-release-review"?
-   false:false,
+  publicReleaseReady:false,
   note:"This is read-only guidance; CI browser tests are not a real customer pilot."};
 }
 export {founderRehearsalGuidance};
