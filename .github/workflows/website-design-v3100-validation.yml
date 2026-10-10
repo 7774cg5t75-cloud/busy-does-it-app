@@ -1,5 +1,6 @@
 name: V3.100 no-credit visual and iPhone JS validation
 # This job never submits an Expo EAS build and never deploys a customer site.
+# Recheck screenshots after removing unsupported contact sections and strengthening sparse copy.
 on:
   push:
     branches: [v3.100]
