@@ -14,6 +14,7 @@ import { websiteJourneyAssurance } from "../core/websiteJourneyAssurance.mjs";
 import { websiteOnboardingCoach } from "../core/websiteOnboardingCoach.mjs";
 import { websiteBrainCoaching } from "../core/websiteBrainCoaching.mjs";
 import { websiteRegionalReadiness } from "../core/websiteRegionalReadiness.mjs";
+import { websiteDecisionEvidence } from "../core/websiteDecisionEvidence.mjs";
 import { renderWebsiteHtml } from "../domain/websiteBuilder";
 
 function WebsiteBuilder({ s }) {
@@ -70,6 +71,11 @@ function WebsiteBuilder({ s }) {
   const brainCoach=websiteBrainCoaching({
     summary:savedStylePreferences,
     alternative:{suggested:selectedStyle},quality:qualityGuide
+  });
+  const decisionEvidence=websiteDecisionEvidence({
+    summary:savedStylePreferences,option:selectedStyle,quality:qualityGuide,
+    currentBusinessId:s.cloudWorkspace?.businessId||"",
+    authorizedBusinessId:s.cloudWorkspace?.businessId||""
   });
   React.useEffect(()=>setDesignOptionIndex(0),
     [draft?.id,draft?.theme?.designFamily,draft?.designPlan?.family]);
@@ -229,7 +235,7 @@ function WebsiteBuilder({ s }) {
                 {"Suggested look: "+selectedStyle.title+". "+selectedStyle.detail}
               </Text>
               <Text style={styles.cardBody}>
-                {brainCoach.explanation}
+                {decisionEvidence.explanation}
               </Text>
               {brainCoach.warning?(
                 <Text style={styles.cardBody}>{brainCoach.warning}</Text>
