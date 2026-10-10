@@ -1,0 +1,44 @@
+name: V3.93 iPhone signed preview build
+# One-time signed iPhone preview submission, following the verified V3.93 source sweep.
+
+on:
+  push:
+    branches: [v3.93]
+    paths:
+      - .github/workflows/ios-preview-v393.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  signed-ios-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      CI: "1"
+    steps:
+      - name: Check out V3.93
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify app version and bundle identifier
+        run: |
+          node -e "const p=require('./package.json'),a=require('./app.json').expo;if(p.version!=='3.93.0'||a.version!=='3.93.0'||a.ios.buildNumber!=='13'||a.ios.bundleIdentifier!=='com.busydoesit.app'||!a.extra?.eas?.projectId)process.exit(1)"
+      - name: Verify website delivery release gates
+        run: |
+          node scripts/check-production.mjs
+          node scripts/check-website-proof-v393.mjs
+      - name: Confirm Expo credentials
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::EXPO_TOKEN not connected; build not submitted."
+            exit 1
+          fi
+      - name: Install project dependencies
+        run: npm install --no-audit --no-fund
+      - name: Queue signed iOS preview for registered iPhone
+        run: npx --yes eas-cli@latest build --platform ios --profile preview --non-interactive --no-wait
