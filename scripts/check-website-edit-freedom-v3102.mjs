@@ -99,6 +99,6 @@ const pub=read("src/screens/websitePublishing.js");
 yes(pub.includes("reviewedHostedPreview!==preview.id"),"Explicit go-live review gate remains");
 const pkg=JSON.parse(read("package.json")), app=JSON.parse(read("app.json")).expo;
 yes(["3.102.0","3.103.0"].includes(pkg.version),"Editing sweep supported");eq(app.version,pkg.version,"App version");
-eq(app.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80),"iOS metadata");eq(app.android.versionCode,Number(pkg.version.split(".")[1])-80),"Android metadata");
+eq(app.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80),"iOS metadata");eq(app.android.versionCode,Number(pkg.version.split(".")[1])-80,"Android metadata");
 yes(read(".github/workflows/production-check.yml").includes("check-website-edit-freedom-v3102.mjs"),"CI regression enforced");
 console.log("V3.102 PASS:",checks,"customer-directed section, content, identity and contrast-safe design edits; no publication.");
