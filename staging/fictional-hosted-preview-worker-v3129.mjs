@@ -5,6 +5,7 @@
  * The staging environment is fail-closed; no staging project or domain is
  * created or altered by importing this module. No website writes allowed.
  */
+const APPROVED_STAGING_REF="pnjdlogwegnqbsfpcofw";
 const REF=/^[a-z]{20}$/;
 const SHA=/^[a-f0-9]{40}$/i;
 const UUID=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i;
@@ -24,7 +25,7 @@ function stageBoundary(env={},url=null,sourceSha=""){
   prod=env.BUSY_PRODUCTION_SUPABASE_REF||"",
   other=env.BUSY_OTHER_PROTECTED_SUPABASE_REF||"",
   host=env.BUSY_STAGING_EXPECTED_HOST||"";
- return !!url&&
+ return !!url&&project===APPROVED_STAGING_REF&&
   [project,prod,other].every(x=>REF.test(x))&&
   new Set([project,prod,other]).size===3&&
   SHA.test(sourceSha)&&env.BUSY_STAGING_SOURCE_SHA===sourceSha&&
