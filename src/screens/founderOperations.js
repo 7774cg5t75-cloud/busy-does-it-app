@@ -182,6 +182,10 @@ function FounderOperations({s}){
               <MetricRow left="Separate iPhone staging profile" right="Source ready"/>
               <MetricRow left="Genuine Supabase staging Auth" right="Not connected"/>
               <MetricRow left="Separate staging HTTPS host" right="Not deployed"/>
+              <MetricRow left="Two fictional hosted previews" right="Source ready • not deployed"/>
+              <Text style={styles.sectionLabel}>
+                {"V3.129 packages two Busy-generated test sites behind a staging Supabase identity check. The separate project, live Auth and public HTTPS serving must still be independently approved and verified."}
+              </Text>
               <Text style={styles.sectionLabel}>
                 {"V3.128 prepares guarded sign-in tests and a staging-only iPhone build. A separate Supabase project and hosting approval are needed before cloud checks can count as verified."}
               </Text>
