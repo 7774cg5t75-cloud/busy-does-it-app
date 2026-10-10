@@ -129,7 +129,10 @@ try{
      body:document.body.innerText,
      overflow:document.documentElement.scrollWidth-innerWidth,
      heading:!!document.querySelector("main h1"),
-     hrefs:[...document.querySelectorAll('a[href^="#"]')].map(a=>a.getAttribute("href"))
+     validInternalLinks:[...document.querySelectorAll('a[href^="#"]')]
+       .map(a=>a.getAttribute("href"))
+       .filter(href=>href.length>1)
+       .every(href=>!!document.getElementById(decodeURIComponent(href.slice(1))))
     }));
     assert.ok(actual.body.includes(site.business),
       "Website includes correct fictional business identity");
@@ -137,8 +140,7 @@ try{
       "No other fictional tenant business information");
     assert.ok(actual.heading,"Website presents a real main heading");
     assert.ok(actual.overflow<=2,"No significant horizontal overflow");
-    assert.ok(actual.hrefs.filter(x=>x.length>1).every(x=>
-      actual.body!==null),"Internal links captured");
+    assert.equal(actual.validInternalLinks,true,"All internal links have destinations");
     assert.equal(external.length,0,"Rehearsal does not load external resources");
     const path=join(output,site.file.replace(".html","")+"-"+device+".png");
     await page.screenshot({path,fullPage:false});
