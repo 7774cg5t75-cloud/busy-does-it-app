@@ -49,7 +49,7 @@ function verifiedPreviewAssets(assets=[],sha=""){
     item.fictionalOnly===true;
   })&&assets[0].id!==assets[1].id;
 }
-function createFictionalHostedPreviewWorker({assets=[],sourceSha=""}={}){
+function createFictionalHostedPreviewWorker({assets=[],sourceSha="",authFetch=fetch}={}){
  const assetsValid=verifiedPreviewAssets(assets,sourceSha);
  const lookup=new Map(assetsValid?assets.map(item=>[item.id,item]):[]);
  const reply=(code,method="GET")=>new Response(method==="HEAD"?null:
@@ -79,7 +79,7 @@ function createFictionalHostedPreviewWorker({assets=[],sourceSha=""}={}){
    const authUrl="https://"+env.BUSY_STAGING_SUPABASE_REF+".supabase.co/auth/v1/user";
    let identity=null;
    try{
-    const response=await fetch(authUrl,{
+    const response=await authFetch(authUrl,{
      method:"GET",headers:{apikey:env.BUSY_STAGING_PUBLISHABLE_KEY,
       Authorization:auth,Accept:"application/json"},
      redirect:"error",cache:"no-store",
