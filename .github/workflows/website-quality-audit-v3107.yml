@@ -1,0 +1,40 @@
+name: V3.107 real-browser website quality and accessibility
+on:
+  push:
+    branches: [v3.107]
+    paths:
+      - 'scripts/lib/websiteQualityAudit-v3107.mjs'
+      - 'scripts/check-website-browser-quality-v3107.mjs'
+      - 'scripts/run-offline-website-visual-audit-v3104.mjs'
+      - 'scripts/build-website-design-gallery-v3100.mjs'
+      - 'supabase/functions/busy-website-worker/websiteReviewCycle.mjs'
+      - '.github/workflows/website-quality-audit-v3107.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fictional-browser-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Audit controlled accessibility regressions in real Chromium
+        run: node scripts/check-website-browser-quality-v3107.mjs /tmp/busy-v3107-accessibility
+      - name: Render fictional customer website comparisons
+        run: |
+          node scripts/build-website-design-gallery-v3100.mjs /tmp/busy-v3107-demo
+          node scripts/run-offline-website-visual-audit-v3104.mjs /tmp/busy-v3107-demo/01-gardening-minimal.html /tmp/busy-v3107-demo/01-gardening-minimal-candidate.html /tmp/busy-v3107-gallery-qa
+      - name: Keep fictional screenshot evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3107-fictional-accessibility-and-before-after
+          path: |
+            /tmp/busy-v3107-accessibility/
+            /tmp/busy-v3107-gallery-qa/
+          retention-days: 7
+      - run: echo "Offline Chromium only; no live sites, customer data, billable AI, Expo build or deployment."

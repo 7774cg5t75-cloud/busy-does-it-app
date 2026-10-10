@@ -9,13 +9,34 @@ import {applyApprovedVisualProposals} from "./visualCriticContract.mjs";
 const array=x=>Array.isArray(x)?x:[];
 const clean=x=>String(x||"").trim();
 const idOf=draft=>[clean(draft?.id),clean(draft?.updatedAt),String(draft?.generation||0)].join("|");
+// Quality measurements are optional for legacy V3.104 providers. When any
+// viewport declares V3.107 evidence all four viewports must provide it.
+const qualityCounters=["assessedTextCount","unassessedContrastCount",
+  "lowContrastCount","smallBodyTextCount","smallTouchTargetCount",
+  "unnamedControlsCount","missingInputLabelCount","missingImageAltCount","headingLevelSkips"];
+const qualityProblemMetrics=[
+ ["lowContrastCount","low text contrast"],
+ ["smallBodyTextCount","text too small"],
+ ["smallTouchTargetCount","small touch targets"],
+ ["unnamedControlsCount","unnamed controls"],
+ ["missingInputLabelCount","unlabelled form fields"],
+ ["missingImageAltCount","images without alternative text"],
+ ["headingLevelSkips","heading structure gaps"]
+];
 function hasMeasuredAudits(data){
  // A screenshot alone does not prove that automated layout measurements ran.
- return ["mobileAudit","desktopAudit"].every(key=>{
-   const a=data?.[key];
-   return a&&Number.isFinite(a.horizontalOverflowPixels)&&a.horizontalOverflowPixels>=0&&
-     typeof a.headingVisible==="boolean"&&typeof a.navigationFits==="boolean"&&
-     Number.isFinite(a.heroHeadingFontPx)&&a.heroHeadingFontPx>0;
+ const audits=["mobileAudit","desktopAudit"].map(key=>data?.[key]);
+ if(!audits.every(a=>a&&Number.isFinite(a.horizontalOverflowPixels)&&
+   a.horizontalOverflowPixels>=0&&typeof a.headingVisible==="boolean"&&
+   typeof a.navigationFits==="boolean"&&Number.isFinite(a.heroHeadingFontPx)&&
+   a.heroHeadingFontPx>0))return false;
+ const hasQuality=audits.some(a=>a.qualityAudit!==undefined);
+ if(!hasQuality)return true; // Legacy tests: never invent a quality assessment.
+ return audits.every(a=>{
+   const q=a.qualityAudit;
+   return q?.version===1&&qualityCounters.every(k=>
+     Number.isSafeInteger(q[k])&&q[k]>=0)&&
+     typeof q.hasDocumentLanguage==="boolean"&&typeof q.hasMainLandmark==="boolean";
  });
 }
 function visualRisks(data){
@@ -27,8 +48,46 @@ function visualRisks(data){
    if(a.headingVisible===false)problems.push(type+" heading hidden");
    if(a.navigationFits===false)problems.push(type+" navigation overflow");
    if(a.heroHeadingFontPx>0&&a.heroHeadingFontPx<22)problems.push(type+" heading too small");
+   const quality=a.qualityAudit;
+   if(quality?.version===1){
+     for(const [key,label] of qualityProblemMetrics)
+       if(quality[key]>0)problems.push(type+" "+label);
+     if(!quality.hasDocumentLanguage)problems.push(type+" document language missing");
+     if(!quality.hasMainLandmark)problems.push(type+" main landmark missing");
+   }
  }
  return problems;
+}
+/**
+ * One comparison contract shared by both the real-browser offline report and
+ * private candidate review engine. Counts must never conceal a worsening
+ * metric in the SAME failure category (e.g. 1 illegible button becoming 3).
+ */
+function compareWebsiteAudits(before,after){
+ if(!hasMeasuredAudits(before)||!hasMeasuredAudits(after))
+   return {valid:false,reason:"Complete mobile and desktop evidence required"};
+ const bs=visualRisks(before),as=visualRisks(after);
+ const newProblems=as.filter(x=>!bs.includes(x));
+ const worsenedMetrics=[];
+ for(const type of ["mobile","desktop"]){
+   const b=before[type+"Audit"],a=after[type+"Audit"];
+   if(a.horizontalOverflowPixels>b.horizontalOverflowPixels+2)
+     worsenedMetrics.push(type+" overflow increased");
+   // A new quality audit is required on both sides of the comparison.
+   if(!!b.qualityAudit!==!!a.qualityAudit)
+     return {valid:false,reason:"Both designs must use the same quality measurement version"};
+   if(b.qualityAudit&&a.qualityAudit)
+     for(const [key,label] of qualityProblemMetrics)
+       if(a.qualityAudit[key]>b.qualityAudit[key])
+         worsenedMetrics.push(type+" "+label+" increased");
+ }
+ const noNewMeasuredProblems=newProblems.length===0&&worsenedMetrics.length===0&&as.length<=bs.length;
+ return {
+   valid:true,
+   originalProblemCount:bs.length,candidateProblemCount:as.length,
+   improved:noNewMeasuredProblems&&as.length<bs.length,
+   noNewMeasuredProblems,newProblems,worsenedMetrics
+ };
 }
 function changesAreDesignOnly(original,revised){
  if(!original||!revised||original.id!==revised.id)return false;
@@ -99,14 +158,10 @@ async function runWebsiteDesignReviewCycle({
    return {...base,status:"candidate-audit-unavailable",
      reason:"New screenshots were captured but their mobile/desktop measurements were incomplete"};
  const revisedRisks=visualRisks(second);
- const newlyIntroduced=revisedRisks.filter(issue=>!initialRisks.includes(issue));
- const comparison={
-   originalProblemCount:initialRisks.length,
-   candidateProblemCount:revisedRisks.length,
-   improved:revisedRisks.length<initialRisks.length,
-   noNewMeasuredProblems:newlyIntroduced.length===0&&revisedRisks.length<=initialRisks.length,
-   newProblems:newlyIntroduced
- };
+ const comparison=compareWebsiteAudits(first,second);
+ if(!comparison.valid)
+   return {...base,status:"candidate-audit-unavailable",
+     reason:"The original and candidate measurements are not comparable"};
  // A visually attractive candidate must not be presented as an improvement
  // when real screenshots reveal new regressions (including equal-count swaps).
  if(!comparison.noNewMeasuredProblems)
@@ -121,4 +176,4 @@ async function runWebsiteDesignReviewCycle({
      ?"The private candidate reduced measured layout problems. It is not published; a new AI review needs a fresh approved credit."
      :"The candidate introduced no new measured layout problems. Visual preference remains the owner's decision; nothing was published."};
 }
-export {hasMeasuredAudits,visualRisks,changesAreDesignOnly,runWebsiteDesignReviewCycle};
+export {hasMeasuredAudits,visualRisks,compareWebsiteAudits,changesAreDesignOnly,runWebsiteDesignReviewCycle};

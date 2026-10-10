@@ -7,7 +7,8 @@ import {chromium} from "playwright";
 import {readFile,writeFile,mkdir} from "node:fs/promises";
 import {resolve,join} from "node:path";
 import {pathToFileURL} from "node:url";
-import {visualRisks} from "../supabase/functions/busy-website-worker/websiteReviewCycle.mjs";
+import {visualRisks,compareWebsiteAudits} from "../supabase/functions/busy-website-worker/websiteReviewCycle.mjs";
+import {measureWebsiteQuality} from "./lib/websiteQualityAudit-v3107.mjs";
 
 async function capture(browser,htmlPath,outputDir,label){
  const ret={};
@@ -53,6 +54,7 @@ async function capture(browser,htmlPath,outputDir,label){
            .filter(img=>img.complete&&!img.naturalWidth).length,
        };
      });
+     audit.qualityAudit=await measureWebsiteQuality(page);
      const screenshot=join(outputDir,label+"-"+size+".png");
      await page.screenshot({path:screenshot,fullPage:true});
      ret[size+"Audit"]=audit;
@@ -85,12 +87,14 @@ async function main(){
      comparison:candidate?{
        originalProblemCount:baseline.length,
        candidateProblemCount:candidate.issues.length,
-       noNewMeasuredProblems:candidate.issues.length<=baseline.length,
-       note:"Measured layout issues only; a vision model has not judged aesthetics."
+       ...compareWebsiteAudits(first,{
+         mobileAudit:candidate.mobileAudit,desktopAudit:candidate.desktopAudit
+       }),
+       note:"Browser-measured accessibility and layout checks only. This is not a complete WCAG audit or an AI judgement of aesthetics."
      }:null
    };
    await writeFile(join(out,"offline-visual-audit.json"),JSON.stringify(report,null,2)+"\n");
-   console.log("V3.104 real-browser audit:",report.original.issues.join(", ")||"no measured layout problems");
+   console.log("V3.107 real-browser audit:",report.original.issues.join(", ")||"no measured checks failed");
    console.log("Screenshots and measurements saved to",out);
  }finally{await browser.close();}
 }
