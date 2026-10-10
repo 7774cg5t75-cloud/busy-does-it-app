@@ -102,20 +102,14 @@ function WebsiteBuilder({ s }) {
             footer={s.websitePublishingView?.liveDeployment ? "A separate approved version is currently live." : "This editor draft is not public until an exact hosted version is approved."}
             tone="blue"
           >
-            <MetricRow left="Status" right={draft.status} />
-            <MetricRow left="Public status" right={draft.publicStatus} strong />
-            <MetricRow left="Theme" right={draft.theme?.mood || "clean"} />
-            <MetricRow left="Sections" right={String((draft.sections || []).filter((item) => item.enabled !== false).length)} />
-            <MetricRow left="Pages" right={String(draft.pages?.length || 1)} strong={(draft.pages?.length || 1) > 1} />
-            <MetricRow left="SEO basics" right={s.websitePublishingView?.seoAudit?.label || "Not checked"} />
-            <MetricRow left="HTML source" right={draft.html ? "Generated" : "Not generated"} />
+            <MetricRow left="Pages" right={String(draft.pages?.length || 1)} />
             <Button label="Preview website" primary onPress={() => s.go("websitePreview")} />
           </Card>
-          <Text style={styles.sectionLabel}>Talk-style edits</Text>
+          <Text style={styles.sectionLabel}>Make changes</Text>
           <Card
-            eyebrow="Conversational website editing"
-            title="Tell BUSY what you want changed"
-            body="The editor now safely handles exact public wording/contact changes, adding or removing named services, changing service emphasis, section visibility and visual style. Vague claims are still not invented."
+            eyebrow="Your changes"
+            title="Tell BUSY what you would like changed"
+            body="Ask for different wording, services, photos or colours. BUSY will use your saved business details rather than make up facts."
             footer="Examples: “change the headline to…”, “update my opening hours to…”, “add gutter cleaning”, “put roof cleaning first”, or “make the main photo bigger”."
             tone="blue"
           >
