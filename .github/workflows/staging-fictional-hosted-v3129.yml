@@ -1,0 +1,55 @@
+name: V3.129 fictional authenticated staging preview bundle
+on:
+  push:
+    branches: [v3.129]
+    paths:
+      - 'staging/fictional-hosted-preview-worker-v3129.mjs'
+      - 'scripts/build-fictional-hosted-bundle-v3129.mjs'
+      - 'scripts/check-fictional-hosted-preview-v3129.mjs'
+      - 'scripts/check-website-hosted-browser-v3129.mjs'
+      - 'scripts/check-hosted-preview-source-contract-v3129.mjs'
+      - 'scripts/build-website-design-gallery-v3100.mjs'
+      - '.github/workflows/staging-fictional-hosted-v3129.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-and-audit-fictional-hosted-previews:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: No-network staging code and approval-boundary checks
+        run: |
+          node scripts/check-hosted-preview-source-contract-v3129.mjs
+          node scripts/check-real-staging-auth-v3128.mjs
+          node scripts/check-staging-runtime-v3128.mjs
+      - name: Build nine sample websites from BUSY's actual design engine
+        run: node scripts/build-website-design-gallery-v3100.mjs /tmp/busy-v3129-gallery
+      - name: Package two fictional websites into an authenticated staging Worker
+        run: node scripts/build-fictional-hosted-bundle-v3129.mjs /tmp/busy-v3129-gallery staging/generated "$GITHUB_SHA"
+      - name: Test exact hosted HTML, owner isolation, denied writes and staging scope
+        run: node scripts/check-fictional-hosted-preview-v3129.mjs
+      - name: Install browser test dependencies
+        run: |
+          npm install --no-audit --no-fund --cache /tmp/busy-v3129-npm-cache
+          npx playwright install --with-deps chromium
+      - name: Browser review of bundled mobile and desktop fictional sites
+        run: node scripts/check-website-hosted-browser-v3129.mjs
+      - name: Upload fictional preview artifacts only - no credentials
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3129-fictional-authenticated-preview-bundle-not-deployed
+          path: |
+            staging/generated/preview-worker.mjs
+            staging/generated/preview-manifest.json
+            /tmp/busy-v3129-browser/
+          retention-days: 7
+      - name: Explicit deployment boundary
+        run: |
+          echo "No third Supabase project, real JWT or publicly hosted HTTPS site created."
+          echo "Bundle is a CI artifact and DOES NOT launch a Worker or customer website."
+          echo "No Cloudflare credentials, DNS, payment, live customer data or provider requests."
