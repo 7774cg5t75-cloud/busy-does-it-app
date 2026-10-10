@@ -14,6 +14,7 @@ import * as FollowUpScreens from "./followUpEngine";
 import * as BrandIdentityScreens from "./brandIdentity";
 import * as WebsiteBuilderScreens from "./websiteBuilder";
 import * as WebsitePublishingScreens from "./websitePublishing";
+import * as HostedWebsitePreviewScreens from "./hostedWebsitePreview";
 import * as MiniAppsScreens from "./miniApps";
 import * as BusinessCreationJourneyScreens from "./businessCreationJourney";
 import * as GrowthCommandCentreScreens from "./growthCommandCentre";
@@ -43,6 +44,7 @@ export * from "./followUpEngine";
 export * from "./brandIdentity";
 export * from "./websiteBuilder";
 export * from "./websitePublishing";
+export * from "./hostedWebsitePreview";
 export * from "./miniApps";
 export * from "./businessCreationJourney";
 export * from "./growthCommandCentre";
@@ -73,6 +75,7 @@ const allScreens = {
   ...BrandIdentityScreens,
   ...WebsiteBuilderScreens,
   ...WebsitePublishingScreens,
+  ...HostedWebsitePreviewScreens,
   ...MiniAppsScreens,
   ...BusinessCreationJourneyScreens,
   ...GrowthCommandCentreScreens,
@@ -114,6 +117,7 @@ const {
   WebsiteBuilder,
   WebsitePreview,
   WebsitePublishing,
+  HostedWebsitePreview,
   BusyAppsMarketplace,
   MiniAppBuilder,
   MiniAppPreview,
@@ -239,6 +243,7 @@ export const screens = {
   websiteBuilder: WebsiteBuilder,
   websitePreview: WebsitePreview,
   websitePublishing: WebsitePublishing,
+  hostedWebsitePreview: HostedWebsitePreview,
   busyAppsMarketplace: BusyAppsMarketplace,
   miniAppBuilder: MiniAppBuilder,
   miniAppPreview: MiniAppPreview,
