@@ -123,17 +123,16 @@ function WebsitePublishing({ s }) {
     brand:s.brandBrain,draft:s.websiteDraft,publishing:view,deliveryProof:launchProof
   });
   const missingDeliveryCheck=launchProof.checks.find(check=>!check.ready);
-  const [openedHostedPreview,setOpenedHostedPreview]=React.useState("");
+  // The native hosted viewer is a separate screen. Its successful opening
+  // must survive navigation back here before the owner can confirm review.
+  const openedHostedPreview=s.websitePreviewOpenedId===preview?.id?preview.id:"";
   const [reviewedHostedPreview,setReviewedHostedPreview]=React.useState("");
   React.useEffect(()=>{
-    setOpenedHostedPreview("");
     setReviewedHostedPreview("");
   },[preview?.id]);
   const inspectHostedPreview=async()=>{
     if(!preview?.id)return false;
-    const opened=await s.openHostedWebsitePreview(preview.id);
-    if(opened)setOpenedHostedPreview(preview.id);
-    return !!opened;
+    return !!(await s.openHostedWebsitePreview(preview.id));
   };
 
   return (
