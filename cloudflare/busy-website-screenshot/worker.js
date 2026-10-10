@@ -60,7 +60,9 @@ export default {
    if(png.byteLength>2100000)return new Response("Screenshot too large",{status:413});
    return new Response(png,{status:200,headers:{
      "Content-Type":"image/png","Cache-Control":"no-store",
-     "X-Content-Type-Options":"nosniff"
+     "X-Content-Type-Options":"nosniff",
+     "X-Busy-Deployment":deployment,
+     "X-Busy-Viewport":width+"x"+height
    }});
   }catch(err){
    return new Response("Private screenshot capture unavailable",{status:503});

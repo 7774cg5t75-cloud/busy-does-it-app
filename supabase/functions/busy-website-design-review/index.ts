@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {createClient} from "jsr:@supabase/supabase-js@2";
 import {normalizeVisualCritique} from "./visualCriticContract.mjs";
+import {checkScreenshotProof} from "./screenshotProof.mjs";
 
 /**
  * V3.105 authenticated, gated website screenshot visual critic.
@@ -46,14 +47,9 @@ async function imageFromTrustedRenderer(signedUrl:string,viewport:{width:number,
  });
  if(!render.ok)throw Error("Trusted screenshot renderer unavailable");
  const bytes=new Uint8Array(await render.arrayBuffer());
- if(bytes.byteLength<64||bytes.byteLength>2100000||
-   pngHeader.some((byte,i)=>bytes[i]!==byte)||
-   String.fromCharCode(...bytes.slice(12,16))!=="IHDR")
-   throw Error("Renderer returned invalid or oversized PNG");
- const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
- const w=view.getUint32(16),h=view.getUint32(20);
- if(w!==viewport.width||h<320||h>9500)
-   throw Error("Renderer returned an unexpected screenshot size");
+ const proof=checkScreenshotProof({
+   bytes,headers:render.headers,deploymentId:expectedDeployment,viewport});
+ if(!proof.valid)throw Error(proof.reason);
  let output="";for(let i=0;i<bytes.length;i+=32768)
    output+=String.fromCharCode(...bytes.subarray(i,i+32768));
  return btoa(output);
