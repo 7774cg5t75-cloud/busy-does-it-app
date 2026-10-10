@@ -52,6 +52,7 @@ jobs:
           node scripts/check-voice-upload-v391.mjs
           node scripts/check-talk-simplification-v392.mjs
           node scripts/check-website-proof-v393.mjs
+          node scripts/check-website-simplicity-v394.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs
