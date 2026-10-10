@@ -1,5 +1,6 @@
 import { buildSeoAudit } from "./websiteManagement";
 import {websiteDraftFreshness} from "../core/websiteDraftFreshness.mjs";
+import {selectRecordedWebsiteDeployment} from "../core/websiteDeploymentSelection.mjs";
 
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
@@ -72,18 +73,12 @@ function buildWebsitePublishingView({
   const queue = remote?.queue || null;
 
   const latestDeployment = deployments[0] || null;
-  const previewDeployment =
-    deployments.find(
-      (item) =>
-        item.id === website?.current_preview_deployment_id ||
-        item.state === "preview_ready"
-    ) || null;
-  const liveDeployment =
-    deployments.find(
-      (item) =>
-        item.id === website?.current_live_deployment_id ||
-        item.state === "live"
-    ) || null;
+  const previewDeployment = selectRecordedWebsiteDeployment({
+    deployments, website, kind:"preview"
+  });
+  const liveDeployment = selectRecordedWebsiteDeployment({
+    deployments, website, kind:"live"
+  });
 
   const previouslyPublished = deployments.filter(
     (item) =>
