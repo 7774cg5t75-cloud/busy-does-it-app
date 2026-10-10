@@ -36,6 +36,7 @@ jobs:
           node scripts/check-staging-host-v3128.mjs
           node scripts/check-staging-hosted-evidence-v3128.mjs
           node scripts/check-staging-runtime-v3128.mjs
+          node scripts/check-staging-source-inventory-v3128.mjs
           node scripts/check-website-exact-version-v3126.mjs
       - name: Install Expo dependencies only for staging JS export
         run: npm install --no-audit --no-fund --cache /tmp/busy-v3128-npm-cache
