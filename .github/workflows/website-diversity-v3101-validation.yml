@@ -1,0 +1,51 @@
+name: V3.101 no-credit website uniqueness visual QA
+# Does not call Expo EAS or publish customer websites.
+on:
+  push:
+    branches: [v3.101]
+    paths:
+      - .github/workflows/website-diversity-v3101-validation.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-design-diversity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out website design source
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Run production and uniqueness checks
+        run: |
+          node scripts/check-production.mjs
+          node scripts/check-distinct-website-designs-v3101.mjs
+      - name: Generate fictional business examples offline
+        run: node scripts/build-website-design-gallery-v3100.mjs /tmp/busy-v3101-visuals
+      - name: Install Chromium browser
+        run: npx --yes playwright@1.58.2 install --with-deps chromium
+      - name: Take mobile comparison screenshots
+        run: |
+          for path in /tmp/busy-v3101-visuals/*.html; do
+            name="${path%.html}"
+            npx --yes playwright@1.58.2 screenshot --browser chromium --viewport-size="390,844" --full-page "file://$path" "${name}-mobile.png"
+          done
+      - name: Take desktop screenshots of similar trades
+        run: |
+          for path in /tmp/busy-v3101-visuals/0[26789]-*.html; do
+            name="${path%.html}"
+            npx --yes playwright@1.58.2 screenshot --browser chromium --viewport-size="1440,900" --full-page "file://$path" "${name}-desktop.png"
+          done
+      - name: Upload comparison files
+        uses: actions/upload-artifact@v4
+        with:
+          name: busy-v3101-distinct-websites
+          path: /tmp/busy-v3101-visuals/
+          retention-days: 14
+      - name: Confirm no paid iOS builds
+        run: echo "Nine offline website examples compared. No Expo EAS build or public website publication."
