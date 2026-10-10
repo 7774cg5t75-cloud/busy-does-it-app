@@ -19,7 +19,7 @@ assert.ok(socialStart>=0&&socialEnd>socialStart);
 const h=home.slice(homeStart,homeEnd), p=social.slice(socialStart,socialEnd);
 const checks=[
   ["version and Apple bundle ID remain consistent",()=>{
-    assert.ok(["3.87.0","3.88.0","3.89.0","3.90.0","3.91.0","3.92.0","3.93.0","3.94.0","3.95.0","3.96.0","3.97.0","3.98.0","3.99.0","3.100.0","3.101.0","3.102.0"].includes(pkg.version));
+    assert.ok(["3.87.0","3.88.0","3.89.0","3.90.0","3.91.0","3.92.0","3.93.0","3.94.0","3.95.0","3.96.0","3.97.0","3.98.0","3.99.0","3.100.0","3.101.0","3.102.0","3.103.0"].includes(pkg.version));
     assert.equal(app.version,pkg.version);
     assert.equal(app.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80));
     assert.equal(app.ios.bundleIdentifier,"com.busydoesit.app");
