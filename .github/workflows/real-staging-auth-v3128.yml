@@ -3,6 +3,13 @@ on:
   push:
     branches: [v3.128]
     paths:
+      - 'src/core/stagingRuntimeIsolation.mjs'
+      - 'src/core/runtime.js'
+      - 'app.config.js'
+      - 'eas.json'
+      - '.env.staging.example'
+      - 'scripts/check-staging-runtime-v3128.mjs'
+      - 'scripts/check-staging-source-inventory-v3128.mjs'
       - 'scripts/lib/stagingSupabaseAuthV3128.mjs'
       - 'scripts/lib/stagingHostedVerificationV3128.mjs'
       - 'scripts/check-real-staging-auth-v3128.mjs'
