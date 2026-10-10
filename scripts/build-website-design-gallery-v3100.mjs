@@ -20,8 +20,8 @@ const builderSource=strip(read("src/domain/websiteBuilder.js"))
  .replace(/^import \{ planWebsiteDesign \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designPlanner\.mjs";\s*/,"")
  .replace(/^import \{ reviewWebsiteDesign \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designReview\.mjs";\s*/,"")
  .replace(/^import \{ applyWebsiteVisualEdit \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designEdits\.mjs";\s*/,"");
-const {buildWebsiteDraft}=Function("syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign","applyWebsiteVisualEdit",builderSource+
-  ";return {buildWebsiteDraft};")(model.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit);
+const {buildWebsiteDraft,applyWebsiteInstruction}=Function("syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign","applyWebsiteVisualEdit",builderSource+
+  ";return {buildWebsiteDraft,applyWebsiteInstruction};")(model.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit);
 const S=(name,description="")=>({id:name.toLowerCase().replace(/\W+/g,"-"),name,description});
 const demos=[
  {file:"01-gardening-minimal",name:"Hillside Gardens",type:"Gardening",
@@ -68,6 +68,15 @@ for(const f of demos){
  }});
  const target=path.join(output,f.file+".html");
  fs.writeFileSync(target,draft.html);
+ if(f.file==="01-gardening-minimal"){
+   // A separate private candidate of the SAME business, assembled from two
+   // owner-approved design-only instructions. Not an AI-generated improvement.
+   const first=applyWebsiteInstruction(draft,"use service cards outlines");
+   if(!first.applied)throw Error(first.reason);
+   const second=applyWebsiteInstruction(first.draft,"center the main headline");
+   if(!second.applied)throw Error(second.reason);
+   fs.writeFileSync(path.join(output,"01-gardening-minimal-candidate.html"),second.draft.html);
+ }
  console.log(f.file+": "+draft.designPlan.family+" / "+draft.designPlan.architecture+" / "+draft.pages.length+" page(s)");
 }
 console.log("Saved "+demos.length+" offline demonstration websites in "+output);
