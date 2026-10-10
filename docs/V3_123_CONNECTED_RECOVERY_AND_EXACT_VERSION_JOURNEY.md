@@ -16,3 +16,9 @@ The GitHub workflow also compiles iPhone JavaScript and runs Chromium browser te
 
 ## What remains
 No production Supabase learning migration, real user pilot, domain registration, new paid AI screenshot reviewer, public website publishing, supplier charge, automated customer action or signed iOS app was activated. Real staging deployment, tenant-policy testing, privacy/retention review, recovery monitoring, signed-device testing and the Global-Ready master release audit remain future manual gates.
+
+
+## 5. One founder priority and a more respectful Business Brain
+Founder Operations now presents one aggregate-evidence-based next priority rather than automatically expanding several rows and incident explanations. The owner can open "Why is this my next priority?" to inspect the source counters, freshness and guarded status-check guidance. Unknown or stale snapshots prompt refresh; actual failures prompt manual review; no privileged repair or external notification is triggered.
+
+Per-business website style preferences also affect suggestions more carefully. BUSY does not automatically recommend a style that the owner explicitly rejected, although the style remains available if the owner deliberately wants to try it. If all available styles were rejected, BUSY offers no preferred option and explains that choice rather than inventing a personalised recommendation. Clear-preferences, opt-in feedback and isolation remain unchanged.
