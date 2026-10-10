@@ -64,7 +64,7 @@ ok(brand.includes('logoLabel: profile.logoLabel'),"approved customer brand passe
 ok(draft.includes('brandLabel: clean(brief.logoLabel).slice(0, 100) || clean(brief.businessName)'),"text wordmark is business-owned, not BUSY default");
 ok(draft.includes('escapeHtml(draft.brandLabel||draft.businessName||"Business website")'),"editable HTML uses customer label");
 ok(worker.includes('draft?.brandLabel || draft?.businessName || "Home"'),"hosted HTML uses customer label in navigation");
-ok(worker.includes('draft.brandLabel || draft.businessName'),"hosted hero uses customer label");
+ok(worker.includes('const kicker=clean(draft.businessType'),"hosted hero uses actual recorded business category");
 ok(publish.includes('reviewedHostedPreview!==preview.id'),"exact review gate remains intact");
 ok(publish.includes('confirmPublishHostedWebsite(preview.id)'),"publication still explicit");
 ok(!worker.includes('draft?.brandLabel || "BUSY DOES IT"'),"do not brand customer websites as BUSY");
