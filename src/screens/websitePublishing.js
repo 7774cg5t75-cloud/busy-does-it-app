@@ -7,6 +7,7 @@ import { buildWebsiteLaunchJourney } from "../core/websiteLaunchJourney";
 import { buildWebsiteLaunchProof } from "../core/websiteLaunchProof.mjs";
 import { domainDnsGuide } from "../core/websiteDomainGuide.mjs";
 import { websiteAddressChoices } from "../core/websiteAddressChoices.mjs";
+import { localDomainIdeas } from "../core/websiteDomainShopping.mjs";
 
 function readableSeconds(value) {
   const seconds = Number(value || 0);
@@ -39,6 +40,8 @@ function WebsitePublishing({ s }) {
   const [showTechnicalDetails, setShowTechnicalDetails] = React.useState(false);
   const [showDomainSetup, setShowDomainSetup] = React.useState(false);
   const [addressChoice,setAddressChoice]=React.useState("busy");
+  const [domainIdeaInput,setDomainIdeaInput]=React.useState("");
+  const [showDomainIdeas,setShowDomainIdeas]=React.useState(false);
   const [dnsInspection,setDnsInspection]=React.useState({domainId:"",status:"idle",result:null,error:""});
   const [showEnquiries, setShowEnquiries] = React.useState(false);
   const [showNewEnquiry, setShowNewEnquiry] = React.useState(false);
@@ -48,10 +51,12 @@ function WebsitePublishing({ s }) {
   const live = view.liveDeployment || null;
   const domain = view.domainState?.latest || null;
   const addresses=websiteAddressChoices({mode:addressChoice,publishing:view});
+  const domainIdeaPreview=localDomainIdeas(domainIdeaInput);
   const selectAddress=(mode)=>{
     Keyboard.dismiss();
     setAddressChoice(mode);
     setShowDomainSetup(mode==="existing");
+    setShowDomainIdeas(false);
   };
   const domainGuide=domainDnsGuide({domain,stage:view.domainState?.journey?.stage,
     records:view.domainState?.recordsToAdd});
@@ -259,11 +264,35 @@ function WebsitePublishing({ s }) {
           </Text>
         ) : null}
         {addressChoice==="new" ? (
-          <Text style={styles.cardBody}>
-            Searching, buying and renewing a new domain entirely within BUSY is planned.
-            Until a registrar is integrated, no domain availability, purchase price, or ownership
-            is being promised here. You can continue with a BUSY address for now.
-          </Text>
+          <>
+            <Text style={styles.cardBody}>
+              Searching, buying and renewing domains inside BUSY is planned but not active.
+              Domain ideas below are generated on your device only: they have not been searched,
+              checked for availability or priced. You can continue with a BUSY address for now.
+            </Text>
+            <Field label="Business name or domain idea"
+              value={domainIdeaInput} onChangeText={(value)=>{
+                setDomainIdeaInput(value);setShowDomainIdeas(false);
+              }} autoCapitalize="none" placeholder="e.g. Jenny's Hair Salon" />
+            <Button label={showDomainIdeas?"Hide name ideas":"Show possible names (not availability)"}
+              onPress={()=>setShowDomainIdeas(previous=>!previous)}
+              disabled={!domainIdeaInput.trim()} />
+            {showDomainIdeas ? (
+              <>
+                <Text style={styles.cardBody}>{domainIdeaPreview.message}</Text>
+                {domainIdeaPreview.ideas.map(idea=>(
+                  <React.Fragment key={idea.domain}>
+                    <MetricRow left="Domain idea — not checked" right={idea.domain} />
+                    <Text style={styles.cardBody}>{idea.claim}</Text>
+                  </React.Fragment>
+                ))}
+                <Text style={styles.cardBody}>
+                  A future checkout must display verified live availability, the full first charge,
+                  renewal costs, ownership terms and payment approval before any registration.
+                </Text>
+              </>
+            ) : null}
+          </>
         ) : null}
       </Card>
       {addressChoice==="existing"&&showDomainSetup ? (
