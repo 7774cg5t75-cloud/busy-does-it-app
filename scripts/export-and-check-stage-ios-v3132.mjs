@@ -2,6 +2,8 @@
  * V3.132 verify two actual Expo iOS JS exports:
  * - staging: inlines only public staging-key config and shows the test gate
  * - normal: has no staging public API key in its bundled JavaScript
+ * These inspection exports use --no-bytecode to allow deterministic string checks.
+ * Actual signed iOS builds retain Expo's normal Hermes bytecode.
  * Signing, publishing and Expo account actions are NOT performed here.
  */
 import {spawnSync} from "node:child_process";
@@ -21,7 +23,7 @@ function sources(where){
   for(const name of readdirSync(path)){
    const f=join(path,name);
    if(statSync(f).isDirectory())scan(f);
-   else if(/\.(js|mjs|map)$/.test(f))strings.push(readFileSync(f,"utf8"));
+   else if(/\.(js|mjs|map|bundle)$/.test(f))strings.push(readFileSync(f,"utf8"));
   }
  }
  scan(where);
@@ -35,7 +37,7 @@ function exportBundle(name,variables){
   "EXPO_PUBLIC_BUSY_STAGING_SUPABASE_URL",
   "EXPO_PUBLIC_BUSY_STAGING_PUBLISHABLE_KEY"
  ])delete inherited[key];
- const res=spawnSync("npx",["expo","export","--platform","ios","--output-dir",path],{
+ const res=spawnSync("npx",["expo","export","--platform","ios","--no-bytecode","--output-dir",path],{
    cwd:root,env:{...inherited,...variables},encoding:"utf8",timeout:180000,
    maxBuffer:6*1024*1024
  });
