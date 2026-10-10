@@ -241,7 +241,7 @@ function sectionIndex(draft = {}, id = "") {
 }
 
 function withHtml(draft = {}) {
-  const refreshed={...draft,designPlan:planWebsiteDesign({businessType:draft.businessType,businessName:draft.businessName,sections:draft.sections,theme:draft.theme})};
+  const refreshed={...draft,generation:Number(draft.generation||0)+1,designPlan:planWebsiteDesign({businessType:draft.businessType,businessName:draft.businessName,sections:draft.sections,theme:draft.theme})};
   const modelled = syncWebsitePageModel(refreshed);
   return {
     ...modelled,
