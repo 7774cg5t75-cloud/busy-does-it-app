@@ -263,6 +263,8 @@ function App() {
   const [newBrandTestimonialText, setNewBrandTestimonialText] = useState("");
   const [newBrandTestimonialAttribution, setNewBrandTestimonialAttribution] = useState("");
   const [websiteDraft, setWebsiteDraft] = useState(null);
+  const [websiteUndo, setWebsiteUndo] = useState([]);
+  const [websiteRedo, setWebsiteRedo] = useState([]);
   const [websiteBuilderNotice, setWebsiteBuilderNotice] = useState("");
   const [websitePublishingStatus, setWebsitePublishingStatus] = useState({
     loaded: false,
@@ -6440,6 +6442,8 @@ function App() {
     setNewBrandTestimonialText("");
     setNewBrandTestimonialAttribution("");
     setWebsiteDraft(null);
+    setWebsiteUndo([]);
+    setWebsiteRedo([]);
     setWebsiteBuilderNotice("");
     setWebsitePublishingStatus({
       loaded: false,
@@ -13033,6 +13037,8 @@ function App() {
       previousDraft: websiteDraft,
       businessCreationIntelligence,
     });
+    if (websiteDraft) setWebsiteUndo((items) => [...items, websiteDraft].slice(-8));
+    setWebsiteRedo([]);
     setWebsiteDraft(next);
     setWebsiteBuilderNotice(
       brandBrain.websiteReady
@@ -13052,7 +13058,28 @@ function App() {
     const result = applyWebsiteInstruction(websiteDraft, instruction);
     setWebsiteBuilderNotice(result.reason || "");
     if (!result.applied) return false;
+    setWebsiteUndo((items) => [...items, websiteDraft].slice(-8));
+    setWebsiteRedo([]);
     setWebsiteDraft(result.draft);
+    return true;
+  };
+
+  const undoWebsiteChange = () => {
+    if (!websiteUndo.length || !websiteDraft) return false;
+    const previous=websiteUndo[websiteUndo.length - 1];
+    setWebsiteUndo((items)=>items.slice(0, -1));
+    setWebsiteRedo((items)=>[...items, websiteDraft].slice(-8));
+    setWebsiteDraft(previous);
+    setWebsiteBuilderNotice("Restored your previous private draft. Nothing has been published.");
+    return true;
+  };
+  const redoWebsiteChange = () => {
+    if (!websiteRedo.length || !websiteDraft) return false;
+    const next=websiteRedo[websiteRedo.length - 1];
+    setWebsiteRedo((items)=>items.slice(0, -1));
+    setWebsiteUndo((items)=>[...items, websiteDraft].slice(-8));
+    setWebsiteDraft(next);
+    setWebsiteBuilderNotice("Reapplied your private draft change. Review before publishing.");
     return true;
   };
 
@@ -15369,6 +15396,10 @@ function App() {
     askBusyAboutBrandIdentity,
     websiteDraft,
     setWebsiteDraft,
+    canUndoWebsite:websiteUndo.length>0,
+    canRedoWebsite:websiteRedo.length>0,
+    undoWebsiteChange,
+    redoWebsiteChange,
     websiteBuilderNotice,
     buildWebsiteFromBrandBrain,
     applyWebsiteChange,
