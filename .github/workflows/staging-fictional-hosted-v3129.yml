@@ -9,6 +9,7 @@ on:
       - 'scripts/check-website-hosted-browser-v3129.mjs'
       - 'scripts/check-hosted-preview-source-contract-v3129.mjs'
       - 'scripts/build-website-design-gallery-v3100.mjs'
+      - '.github/workflows/production-check.yml'
       - '.github/workflows/staging-fictional-hosted-v3129.yml'
   workflow_dispatch:
 permissions:
