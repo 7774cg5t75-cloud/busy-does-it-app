@@ -146,8 +146,9 @@ ok(websiteSource.includes("View previous hosted version (not latest)"),
 const founderSource=readFileSync(new URL("../src/screens/founderOperations.js",import.meta.url),"utf8");
 ok(founderSource.includes("founderRecoveryReview({"),
  "Founder dashboard shows aggregate incident review guidance");
-ok(founderSource.includes("Next recovery review:"),
- "Founder is offered next investigation, not unverified auto-repair");
+ok(founderSource.includes("Recovery evidence:")&&
+ founderSource.includes("Why is this my next priority?"),
+ "Founder can inspect recovery evidence behind an optional Why control");
 const workflow=readFileSync(new URL("../.github/workflows/production-check.yml",import.meta.url),"utf8");
 ok(workflow.includes("check-website-resilience-v3121.mjs"),
  "Normal production regression workflow runs all customer-recovery tests");

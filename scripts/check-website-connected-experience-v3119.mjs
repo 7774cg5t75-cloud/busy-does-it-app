@@ -141,7 +141,9 @@ yes(ui.includes("alternative:{suggested:selectedStyle}"),
 yes(ui.includes("assurance.progress.completed"),"Customer sees actual launch progress");
 const founder=readFileSync(new URL("../src/screens/founderOperations.js",import.meta.url),"utf8");
 yes(founder.includes("founderNextSafeAction(operational)"),"Real founder view includes next action");
-yes(founder.includes("Next safe check:"),"Next founder step is visible");
+yes(founder.includes("founderPrioritySummary({")&&
+ founder.includes("Why is this my next priority?"),
+ "Founder sees one safe next step with optional evidence");
 const prod=readFileSync(new URL("../.github/workflows/production-check.yml",import.meta.url),"utf8");
 yes(prod.includes("check-website-connected-experience-v3119.mjs"),
  "New checks included in standard production regression workflow");
