@@ -15,6 +15,7 @@ function WebsiteBuilder({ s }) {
   const [instruction, setInstruction] = React.useState("");
   const [showWebsiteDetails, setShowWebsiteDetails] = React.useState(false);
   const [showQualityIdeas, setShowQualityIdeas] = React.useState(false);
+  const [showDesignReview, setShowDesignReview] = React.useState(false);
   const hostedPreview = s.websitePublishingView?.previewDeployment || null;
   const hostedPreviewOutdated = !!s.websitePublishingView?.draftChangedSinceHosted;
   const deliveryProof=buildWebsiteLaunchProof({
@@ -97,6 +98,37 @@ function WebsiteBuilder({ s }) {
           </Text>
         ) : null}
       </Card>
+      {draft?.designReview ? (
+        <Card
+          eyebrow="Your website's individual design"
+          title={draft.designReview.status === "ready-for-visual-review"
+            ? "BUSY checked your design foundation"
+            : "BUSY has a few design suggestions"}
+          body={draft.designReview.summary}
+          footer="These are automatic design checks, not an AI screenshot review. Your website still needs visual inspection and your approval."
+          tone="blue"
+        >
+          <Button label={showDesignReview ? "Hide design feedback" : "View design feedback"}
+            onPress={() => setShowDesignReview(!showDesignReview)} />
+          {showDesignReview ? (
+            <>
+              <MetricRow left="Design foundation checks"
+                right={draft.designReview.score + " / 100"} />
+              <Text style={styles.cardBody}>
+                {"Chosen layout: " + String(draft.designPlan?.family || "custom") +
+                 " • " + String(draft.designPlan?.architecture || "landing page")}
+              </Text>
+              {draft.designReview.suggestions.slice(0, 3).map((item) => (
+                <View key={item.id} style={{ marginTop: 9 }}>
+                  <Text style={[styles.cardTitle, { fontSize: 15 }]}>{item.message}</Text>
+                  <Text style={styles.cardBody}>{item.detail}</Text>
+                </View>
+              ))}
+            </>
+          ) : null}
+          <Button label="Preview this design" onPress={() => s.go("websitePreview")} />
+        </Card>
+      ) : null}
       {!qualityGuide.complete ? (
         <Card
           eyebrow="Make your website stronger"
