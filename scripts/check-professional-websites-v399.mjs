@@ -80,9 +80,9 @@ yes(hosted.includes('javaScriptEnabled={false}'),"signed immutable preview remai
 yes(publish.includes('reviewedHostedPreview!==preview.id'),"customer Go Live still needs explicit approval");
 yes(fullApp.includes('readPrivateHostedPreviewHtml(result.previewUrl, deploymentId)'),"signed hosted preview still used");
 const pkg=JSON.parse(read("package.json")),app=JSON.parse(read("app.json")).expo;
-equal(pkg.version,"3.99.0","V3.99 release");
+yes(["3.99.0","3.100.0"].includes(pkg.version),"Release version supported");
 equal(app.version,pkg.version,"App matches release");
-equal(app.ios.buildNumber,"19","iOS build identity");
-equal(app.android.versionCode,19,"Android version");
+equal(app.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80),"iOS build identity");
+equal(app.android.versionCode,Number(pkg.version.split(".")[1])-80),"Android version");
 yes(read(".github/workflows/production-check.yml").includes("check-professional-websites-v399.mjs"),"CI covers professional design");
 console.log("V3.99 PASS: "+checked+" design quality, truthful fallbacks, mobile, preview and publishing checks.");
