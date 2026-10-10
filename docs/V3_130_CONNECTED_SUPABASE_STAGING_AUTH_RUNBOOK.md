@@ -40,3 +40,13 @@ The owner UUIDs are generated **by Supabase Auth**. After both users exist, inde
 The separate Pro organisation and Micro compute already exist (user created them). This sweep did not add Cloudflare costs, DNS, provider calls, client sessions, real Auth users, signed iPhone binary or public website hosting. The app is **not** yet ready for customer-facing staging or production launch. Supabase providers' usage-based costs can still accrue on a Pro account; review its billing and spending controls periodically.
 
 **Source check note:** \`scripts/check-staging-live-readiness-v3130.mjs\` and source-only CI assert project identity, code isolation and seed safety. They cannot independently certify a live Auth session; rely on actual Supabase connector SQL/advisors and later manual Auth HTTP probes for that evidence.
+
+## Verified addendum — two real staging Auth test users created
+
+The founder created the two fictional Auth accounts in the isolated staging dashboard. A read-only aggregate SQL verified exactly **2** users. The transactionally guarded seed in `staging/ISOLATED_ONLY_seed_two_real_auth_users_v3130.sql` initially exposed an unsupported `max(uuid)` aggregate; it was corrected to `(array_agg(id))[1]`, rerun successfully and linked two real Auth user IDs to the existing two immutable fictional canary row IDs.
+
+Live staging database audit then returned all eight security booleans `true`, **2** real Auth accounts and **2** canary rows. A separate read-only rollback transaction in `staging/ISOLATED_ONLY_check_two_owner_RLS_v3130.sql` simulated two distinct `authenticated` role/JWT `sub` settings and verified exactly **one visible canary record for each owner**. It does *not* verify a real Supabase-signed token, expiry, refresh, sign-out, password reset or HTTP Data API RLS — those require a client-side sign-in test with passwords entered by the human tester, never revealed to an assistant or checked into GitHub.
+
+After account creation, the Supabase security advisor introduced exactly **one advisory**, `auth_leaked_password_protection`: leaked-password checking is disabled. The user can enable this in the staging project's Authentication → Sign In / Providers → Email password settings (available on Pro). Re-run security advisors afterward; do not report zero current findings until it is enabled and verified. The row-level grants and privileged helper restrictions remain unchanged.
+
+No new paid resources, live production changes, staging Worker deployment, website publication, actual cloud Auth sign-in, or password/key handling happened during this step.
