@@ -50,7 +50,8 @@ function snackSourceFiles() {
     "supabase/functions/busy-website-worker/designSystem.mjs",
     "supabase/functions/busy-website-worker/designPlanner.mjs",
     "supabase/functions/busy-website-worker/designReview.mjs",
-    "supabase/functions/busy-website-worker/designEdits.mjs"];
+    "supabase/functions/busy-website-worker/designEdits.mjs",
+    "supabase/functions/busy-website-worker/visualCriticContract.mjs"];
   for(const sourcePath of sourcePaths) {
     const snackPath = toSnackPath(sourcePath);
     if(Object.prototype.hasOwnProperty.call(files,snackPath))
