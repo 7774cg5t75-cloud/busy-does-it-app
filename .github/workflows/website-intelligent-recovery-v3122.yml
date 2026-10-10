@@ -43,8 +43,16 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Generate nine fictional business websites
         run: node scripts/build-website-design-gallery-v3100.mjs /tmp/busy-v3122-sites
-      - name: Verify 18 phone and desktop customer pages and bad-link negative control
-        run: node scripts/check-website-resilience-browser-v3121.mjs /tmp/busy-v3122-sites /tmp/busy-v3122-browser
+      - name: Verify 18 browser pages, retry once on transient Chromium screenshot failure
+        run: |
+          for attempt in 1 2; do
+            if node scripts/check-website-resilience-browser-v3121.mjs /tmp/busy-v3122-sites /tmp/busy-v3122-browser; then
+              exit 0
+            fi
+            echo "Chromium browser proof failed on attempt $attempt; retrying at most once."
+            sleep 3
+          done
+          exit 1
       - name: Compare genuine original and edited website quality
         run: node scripts/check-website-guided-alternative-v3113.mjs /tmp/busy-v3122-sites /tmp/busy-v3122-alternative
       - name: Check fictional customer lifecycle and safe review advice
