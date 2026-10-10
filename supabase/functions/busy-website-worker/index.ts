@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import {renderOptInContactForm} from "./formHtml.mjs";
 import {formReadiness} from "./formPolicy.mjs";
+import {designForWebsite, designCss} from "./designSystem.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -139,22 +140,18 @@ function renderSectionHtml(
 ) {
   const theme = draft?.theme || {};
   if (section.type === "hero") {
-    const image = section.asset ? urlForAsset(section.asset, urls) : "";
-    return `<section class="hero hero-${escapeHtml(
-      theme.heroSize || "large"
-    )}"><div class="wrap">${image ? `<img class="hero-image" src="${escapeHtml(
-      image
-    )}" alt="">` : ""}<p class="kicker">${escapeHtml(
-      draft.brandLabel || draft.businessName
-    )}</p><h1>${escapeHtml(section.title)}</h1><p>${escapeHtml(
-      section.body
-    )}</p>${
-      section.cta && section.ctaHref
-        ? `<a class="cta" href="${escapeHtml(
-            section.ctaHref
-          )}">${escapeHtml(section.cta)}</a>`
-        : ""
-    }</div></section>`;
+    const image=section.asset?urlForAsset(section.asset,urls):"";
+    const imageMarkup=image
+      ? `<img class="hero-image" loading="eager" decoding="async" src="${escapeHtml(image)}" alt="${escapeHtml(draft.businessName||"Business photograph")}">`
+      : '<div class="hero-art" aria-hidden="true"></div>';
+    const kicker=clean(draft.businessType,140)||clean(draft.businessName,140);
+    const headline=clean(section.title,240)||clean(draft.businessName,240)||"Your business";
+    const lead=clean(section.body,1800)
+      ? `<p class="lead">${escapeHtml(section.body)}</p>` : "";
+    const action=clean(section.cta,120)&&clean(section.ctaHref,500)
+      ? `<a class="cta" href="${escapeHtml(section.ctaHref)}">${escapeHtml(section.cta)}</a>`
+      : "";
+    return `<section class="hero hero-${escapeHtml(theme.heroSize||"large")} ${image?"hero-with-image":"hero-no-image"}"><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}</div>${imageMarkup}</div></section>`;
   }
 
   const headingTag = isFirstSection ? "h1" : "h2";
@@ -263,14 +260,8 @@ function renderWebsiteHtml(
       ? allSections.filter((section: any) => allowed.has(section.id))
       : allSections;
   const theme = draft?.theme || {};
-  const primary = clean(theme?.primary, 100);
-  const secondary = clean(theme?.secondary, 100);
-  const cssVars = [
-    primary ? `--brand-primary:${escapeHtml(primary)};` : "",
-    secondary ? `--brand-secondary:${escapeHtml(secondary)};` : "",
-  ]
-    .filter(Boolean)
-    .join("");
+  const design = designForWebsite({businessType:draft?.businessType,theme});
+  const layoutCss = designCss(design);
   const seo = pageSeo(draft, page);
   const navigation = safeArray(draft?.navigation);
   const navHtml = navigation.length
@@ -287,6 +278,14 @@ function renderWebsiteHtml(
     : "";
 
   const sectionHtml = sections
+    .filter((section: any) => {
+      if(section.type==="services"||section.type==="testimonials"||section.type==="faq")
+        return safeArray(section.items).some((item:any)=>clean(item?.title||item?.body));
+      if(section.type==="gallery")
+        return safeArray(section.items).some((item:any,index:number)=>!!urlForAsset(item,urls,index));
+      if(section.type==="text")return !!clean(section.body);
+      return true;
+    })
     .map((section: any, index: number) =>
       renderSectionHtml(draft, section, urls, index === 0)
     )
@@ -311,19 +310,11 @@ function renderWebsiteHtml(
     if ((structuredData as any)[key] === undefined) delete (structuredData as any)[key];
   });
 
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="busy-deployment" content="${escapeHtml(
-    deploymentId
-  )}"><meta name="busy-page" content="${escapeHtml(
-    page?.id || "home"
-  )}"><title>${escapeHtml(
-    seo?.title || draft?.businessName || "Website"
-  )}</title><meta name="description" content="${escapeHtml(
-    seo?.description || ""
-  )}"><script type="application/ld+json">${JSON.stringify(
-    structuredData
-  ).replace(/</g, "\\u003c")}</script><style>:root{${cssVars}}*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.55;color:#1f2933;background:#fff}nav{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.96);border-bottom:1px solid #ececec}.nav-wrap{max-width:1080px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{font-weight:800;color:inherit;text-decoration:none}.nav-links{display:flex;gap:14px;flex-wrap:wrap}.nav-links a{color:inherit;text-decoration:none}.wrap{max-width:1080px;margin:0 auto;padding:64px 24px}section:nth-child(even){background:#f7f7f5}h1{font-size:clamp(2.4rem,7vw,4.8rem);line-height:1.04;margin:.2em 0}h2{font-size:2rem}h3{margin-top:0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}article{padding:22px;border:1px solid #e5e7eb;border-radius:18px;background:#fff}.cta{display:inline-block;margin-top:18px;padding:12px 18px;border-radius:999px;background:var(--brand-primary,#1f5eff);color:#fff;text-decoration:none}.hero-image{width:100%;max-height:620px;object-fit:cover;border-radius:22px;margin-bottom:28px}.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}.gallery-image{width:100%;height:260px;object-fit:cover;border-radius:16px}.mood-warm{background:#fffaf2}.mood-bold h1{font-weight:900}.mood-premium{letter-spacing:.01em}.hero-extra-large .wrap{padding-top:100px;padding-bottom:100px}.hero-medium .wrap{padding-top:44px;padding-bottom:44px}@media(max-width:700px){.nav-wrap{align-items:flex-start;flex-direction:column}.wrap{padding:42px 20px}.gallery-image{height:220px}}</style></head><body class="mood-${escapeHtml(
-    theme?.mood || "clean"
-  )}">${navHtml}${sectionHtml}${formMarkup}</body></html>`;
+  const safeBusiness=escapeHtml(draft?.businessName||"Business website");
+  const area=clean(draft?.serviceArea,260);
+  const footer=`<footer class="site-footer"><div class="wrap"><strong>${safeBusiness}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="${design.ink}"><meta name="busy-deployment" content="${escapeHtml(deploymentId)}"><meta name="busy-page" content="${escapeHtml(page?.id||"home")}"><title>${escapeHtml(seo?.title||draft?.businessName||"Website")}</title><meta name="description" content="${escapeHtml(seo?.description||"")}"><script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g,"\\u003c")}</script><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector}"><a class="skip-link" href="#main">Skip to content</a>${navHtml}<main id="main">${sectionHtml}${formMarkup}</main>${footer}</body></html>`;
+
 }
 
 async function ensureBucket(
