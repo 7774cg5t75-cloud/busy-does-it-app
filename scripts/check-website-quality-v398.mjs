@@ -55,9 +55,11 @@ ok(app.includes('brandName: String(previewRow?.source_draft?.businessName'),"cus
 ok(app.includes('resolveHostedPreviewPage('),"only signed manifest pages loaded");
 ok(security.includes('signedPreviewPath(page?.previewUrl, supabaseUrl, deploymentId)'),"page selector uses validated signed URLs");
 ok(builder.includes('websiteQualityGuidance({ brandBrain: brand, draft })'),"computed actual guidance");
-ok(builder.includes('qualityGuide.priority.map((item)'),"compact 3 suggestions");
+ok(builder.includes('qualityGuide.priority[0]?.title'),"only one compact tip initially");
+ok(builder.includes('showQualityIdeas ? ('),"extra tips collapsed until requested");
+ok(builder.includes('qualityGuide.suggestions.slice(1, 4).map((item)'),"optional extra tips available");
 ok(builder.includes('onPress={s.openBrandIdentity}'),"customer can improve real saved facts");
-ok(builder.includes('Or just edit my website with BUSY'),"not forced to complete suggestions");
+ok(builder.includes('Continue editing with BUSY'),"not forced to complete suggestions");
 ok(brand.includes('logoLabel: profile.logoLabel'),"approved customer brand passed into website brief");
 ok(draft.includes('brandLabel: clean(brief.logoLabel).slice(0, 100) || clean(brief.businessName)'),"text wordmark is business-owned, not BUSY default");
 ok(draft.includes('escapeHtml(draft.brandLabel || draft.businessName)'),"editable HTML uses customer label");
