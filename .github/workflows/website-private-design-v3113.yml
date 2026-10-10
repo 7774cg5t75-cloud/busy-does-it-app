@@ -9,6 +9,7 @@ on:
       - 'scripts/lib/domainRegistrarSandbox-v3113.mjs'
       - 'scripts/check-website-private-alternatives-v3113.mjs'
       - 'scripts/check-website-guided-alternative-v3113.mjs'
+      - 'scripts/check-website-rendered-diversity-v3112.mjs'
       - '.github/workflows/website-private-design-v3113.yml'
   workflow_dispatch:
 permissions:

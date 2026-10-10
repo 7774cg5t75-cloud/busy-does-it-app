@@ -10,7 +10,7 @@ import {join,resolve} from "node:path";
 const input=resolve(process.argv[2]||"/tmp/busy-v3112-gallery");
 const output=resolve(process.argv[3]||"/tmp/busy-v3112-diversity");
 await mkdir(output,{recursive:true});
-const files=(await readdir(input)).filter(x=>/^(?:01|02|03|04|05)-.*\.html$/.test(x)&&!x.includes("-candidate")).sort();
+const files=(await readdir(input)).filter(x=>/^(?:01|02|03|04|05)-.*\.html$/.test(x)&&!x.includes("-candidate")&&!x.includes("-guided-alternative")).sort();
 assert.equal(files.length,5,"Five different fictional industries required");
 const browser=await chromium.launch({headless:true}),records=[];
 try{
