@@ -40,7 +40,7 @@ const hosted=read("src/screens/hostedWebsitePreview.js");
 const fullApp=read("src/app/AppController.js");
 for(const item of [
   'import {designForWebsite, designCss} from "./designSystem.mjs";',
-  'const design = designForWebsite({businessType:draft?.businessType,theme});',
+  'const design = designForWebsite({businessType:draft?.businessType,theme,plan});',
   'const layoutCss = designCss(design);',
   'class="hero hero-',
   'hero-with-image":"hero-no-image',
