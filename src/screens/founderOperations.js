@@ -10,6 +10,7 @@ import {founderNextSafeAction} from "../core/founderNextSafeAction.mjs";
 import {founderRehearsalGuidance} from "../core/founderRehearsalGuidance.mjs";
 import {founderRecoveryReview} from "../core/founderRecoveryReview.mjs";
 import {founderSafeAutomationSummary} from "../core/founderSafeAutomationSummary.mjs";
+import {founderPrioritySummary} from "../core/founderPrioritySummary.mjs";
 
 /** V3.69: no platform metrics are read except from server-authorised aggregates. */
 const show=n=>Number.isSafeInteger(n)&&n>=0?n.toLocaleString("en-GB"):"Not measured";
@@ -17,6 +18,7 @@ function FounderOperations({s}){
   const owner=s.ownerSession?.userId||"";
   const [state,setState]=React.useState({owner:"",status:"idle",report:null,message:""});
   const [ackBusy,setAckBusy]=React.useState("");
+  const [showOperatingEvidence,setShowOperatingEvidence]=React.useState(false);
   const [ackError,setAckError]=React.useState("");
   const [reality,setReality]=React.useState({owner:"",status:"idle",data:null});
   const realityNonce=React.useRef(0);
@@ -88,6 +90,8 @@ function FounderOperations({s}){
   const rehearsal=founderRehearsalGuidance({priorities:operational,pilot,release});
   const incidentReview=founderRecoveryReview({priorities:operational,rehearsal});
   const safeAutomation=founderSafeAutomationSummary({priorities:operational});
+  const nextPriority=founderPrioritySummary({priorities:operational,
+    incidentReview,safeAutomation});
 
   return <Shell s={s} title="Founder Operations"
     subtitle="Platform-wide aggregate status, restricted to a verified founder account."
@@ -116,18 +120,28 @@ function FounderOperations({s}){
           title={operational.headline}
           body="BUSY highlights verifiable problem counts and gaps in monitoring. These are on-demand founder checks, not automatically delivered alerts or repairs."
           tone={operational.highPriorityCount>0?"amber":"blue"}>
-          {operational.items.slice(0,4).map(item=>(
-            <React.Fragment key={item.key}>
-              <MetricRow left={item.title}
-                right={item.count===null?"Unknown":show(item.count)}/>
-              <Text style={styles.sectionLabel}>{item.next}</Text>
-            </React.Fragment>
-          ))}
-          <Text style={styles.sectionLabel}>
-            {"Next safe check: "+safeAction.title+". "+safeAction.message}
-          </Text>
-          <Text style={styles.sectionLabel}>{"Next recovery review: "+incidentReview.next}</Text>
-          <Text style={styles.sectionLabel}>{safeAutomation.next}</Text>
+          <MetricRow left="Recorded problem categories"
+            right={show(nextPriority.count)}/>
+          <Text style={styles.sectionLabel}>{nextPriority.title}</Text>
+          <Text style={styles.cardBody}>{nextPriority.explanation}</Text>
+          <Button label={showOperatingEvidence?"Hide why BUSY suggests this":"Why is this my next priority?"}
+            onPress={()=>setShowOperatingEvidence(v=>!v)}/>
+          {showOperatingEvidence?(
+            <>
+              {operational.items.slice(0,4).map(item=>(
+                <React.Fragment key={item.key}>
+                  <MetricRow left={item.title}
+                    right={item.count===null?"Unknown":show(item.count)}/>
+                  <Text style={styles.sectionLabel}>{item.next}</Text>
+                </React.Fragment>
+              ))}
+              <Text style={styles.sectionLabel}>
+                {"Alternative next check: "+safeAction.title+". "+safeAction.message}
+              </Text>
+              <Text style={styles.sectionLabel}>{"Recovery evidence: "+incidentReview.next}</Text>
+              <Text style={styles.sectionLabel}>{safeAutomation.next}</Text>
+            </>
+          ):null}
           <MetricRow left="Automatic repairs" right="Disabled"/>
         </Card>
         <Card eyebrow="Safe pilot preparation"
