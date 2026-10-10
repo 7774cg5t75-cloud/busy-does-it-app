@@ -143,14 +143,14 @@ function TalkToBusy({ s }) {
             ? "What should I tell BUSY about my website?"
             : "How do I explain the changes I want?"}
           body={s.websiteConversationMode === "build"
-            ? "Tell BUSY what your business does, who your customers are, what services or products to show, the area you serve, and what visitors should do (call, book or request a quote). Describe the style you like and mention any photos, logo, reviews or special features. BUSY can use details you've already saved."
-            : "Say which page or section you want to improve, exactly what should change, and what should stay the same. You can ask about wording, photos, colours, layout or the order of your services."}
+            ? "Tell BUSY what your business offers, who it helps, where you work and whether visitors should call, book or request a quote. Mention any colours, photos, logo, reviews or features you want. BUSY can use your saved business details."
+            : "Say what you want to change — a page, wording, photos, colours, layout or service order — and what should stay the same."}
           tone="blue"
         >
-          <Text style={styles.sectionLabel}>
+          <Text style={[styles.cardBody, { marginTop: 10 }]}>
             {s.websiteConversationMode === "build"
-              ? "EXAMPLE ONLY: “I run a gardening business in Exeter. Show lawn care, hedge trimming and garden tidy-ups. Make it friendly and modern, with a green theme, photos of our work, reviews and a Request a Quote button.” Use your own real business details."
-              : "EXAMPLE ONLY: “On the home page, make the main photograph bigger, put the main service first and add a Request a Quote button. Keep the rest as it is.”"}
+              ? "EXAMPLE: “I run a gardening business in Exeter. Show lawn care and hedge trimming, use a friendly green design with work photos, and add a Request a Quote button.” Replace this with your real details."
+              : "EXAMPLE: “Make the home page photograph bigger, put my main service first and add a Request a Quote button. Keep everything else the same.”"}
           </Text>
           <Button
             label="Let BUSY guide me step by step"
@@ -161,7 +161,7 @@ function TalkToBusy({ s }) {
             )}
           />
           <Text style={styles.talkSafetyText}>
-            You can speak instead. You don't need to know everything — BUSY can ask for missing details. The guided message fills the typing box but is not sent until you tap Ask BUSY.
+            Not sure? BUSY can ask one question at a time. This button fills the typing box without sending anything.
           </Text>
         </Card>
       ) : null}
