@@ -102,7 +102,7 @@ a{color:inherit}a:focus-visible,button:focus-visible{outline:3px solid var(--acc
 .skip-link:focus{top:10px}
 nav{position:relative;z-index:9;background:var(--paper);border-bottom:1px solid var(--line)}
 .nav-wrap{min-height:84px;display:flex;align-items:center;justify-content:space-between;gap:25px}
-.brand{max-width:320px;text-decoration:none;font-weight:850;line-height:1.15;font-size:1.2rem;letter-spacing:-.04em;overflow-wrap:anywhere}
+.brand{max-width:320px;min-height:44px;display:inline-flex;align-items:center;text-decoration:none;font-weight:850;line-height:1.15;font-size:1.2rem;letter-spacing:-.04em;overflow-wrap:anywhere}
 .nav-links{display:flex;align-items:center;justify-content:flex-end;gap:clamp(10px,2.4vw,28px);flex-wrap:wrap}
 .nav-links a{text-decoration:none;font-size:.9rem;font-weight:650;opacity:.9}
 .nav-links a:hover{text-decoration:underline;text-underline-offset:6px}
