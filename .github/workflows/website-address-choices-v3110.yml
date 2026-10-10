@@ -1,0 +1,46 @@
+name: V3.110 simple addresses and professional website QA
+on:
+  push:
+    branches: [v3.110]
+    paths:
+      - 'src/core/websiteAddressChoices.mjs'
+      - 'src/screens/websitePublishing.js'
+      - 'src/screens/websiteBuilder.js'
+      - 'scripts/check-website-address-choices-v3110.mjs'
+      - 'scripts/check-website-keyboard-quality-v3110.mjs'
+      - '.github/workflows/website-address-choices-v3110.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  domain-choice-and-accessibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify choice state, false claims and no purchasing
+        run: |
+          node scripts/check-website-address-choices-v3110.mjs
+          node scripts/check-website-journey-v3109.mjs
+      - run: npm install --no-audit --no-fund
+      - name: Compile actual Expo iOS JS only, no native release
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3110-ios-js
+      - run: npx playwright install --with-deps chromium
+      - name: Generate genuinely different offline website designs
+        run: node scripts/build-website-design-gallery-v3100.mjs /tmp/busy-v3110-gallery
+      - name: Validate keyboard focus in phone and desktop browsers
+        run: node scripts/check-website-keyboard-quality-v3110.mjs /tmp/busy-v3110-gallery /tmp/busy-v3110-evidence
+      - name: Check responsive quality across five viewport widths
+        run: node scripts/check-website-responsive-quality-v3109.mjs /tmp/busy-v3110-gallery /tmp/busy-v3110-responsive
+      - name: Keep fictional browser evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3110-fictional-websites-accessibility
+          path: |
+            /tmp/busy-v3110-evidence/
+            /tmp/busy-v3110-responsive/
+          retention-days: 7
+      - run: echo "No registrar checkout, paid AI, Cloudflare changes, customer DNS updates, website publication or signed EAS build."
