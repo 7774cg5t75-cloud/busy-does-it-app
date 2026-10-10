@@ -55,7 +55,7 @@ function applyWebsiteVisualEdit(draft,instruction){
  }
 
  match=text.match(/^(?:change|set|update) (?:the )?(?:description|wording|text) (?:for|of) (.+?) (?:service )?(?:to|as)\s+(.+)$/i);
- if(match){
+ if(match && !/\ssection$/i.test(match[1])){
    const ix=find("services");
    if(ix<0)return fail("There is no existing services section to edit.");
    const target=clean(match[1]).toLowerCase();
