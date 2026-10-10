@@ -12853,7 +12853,7 @@ function App() {
     clearBusyCommandResult();
     // A website-specific guide must never leak into a normal BUSY chat.
     setWebsiteConversationMode(["build", "edit"].includes(websiteMode) ? websiteMode : "");
-    if (startVoice) setBusyVoiceStartNonce(Date.now());
+    setBusyVoiceStartNonce(startVoice ? Date.now() : 0);
     go("talkToBusy");
   };
 
