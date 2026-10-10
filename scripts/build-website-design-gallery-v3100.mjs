@@ -8,6 +8,7 @@ import path from "node:path";
 import {fileURLToPath} from "node:url";
 import {designForWebsite,designCss} from "../supabase/functions/busy-website-worker/designSystem.mjs";
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
+import {applyWebsiteVisualEdit} from "../supabase/functions/busy-website-worker/designEdits.mjs";
 import {planWebsiteDesign} from "../supabase/functions/busy-website-worker/designPlanner.mjs";
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const read=p=>fs.readFileSync(path.join(root,p),"utf8");
@@ -17,9 +18,10 @@ const builderSource=strip(read("src/domain/websiteBuilder.js"))
  .replace(/^import \{ syncWebsitePageModel \} from "\.\/websiteManagement";\s*/,"")
  .replace(/^import \{ designForWebsite, designCss \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designSystem\.mjs";\s*/,"")
  .replace(/^import \{ planWebsiteDesign \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designPlanner\.mjs";\s*/,"")
- .replace(/^import \{ reviewWebsiteDesign \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designReview\.mjs";\s*/,"");
-const {buildWebsiteDraft}=Function("syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign",builderSource+
-  ";return {buildWebsiteDraft};")(model.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign);
+ .replace(/^import \{ reviewWebsiteDesign \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designReview\.mjs";\s*/,"")
+ .replace(/^import \{ applyWebsiteVisualEdit \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designEdits\.mjs";\s*/,"");
+const {buildWebsiteDraft}=Function("syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign","applyWebsiteVisualEdit",builderSource+
+  ";return {buildWebsiteDraft};")(model.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit);
 const S=(name,description="")=>({id:name.toLowerCase().replace(/\W+/g,"-"),name,description});
 const demos=[
  {file:"01-gardening-minimal",name:"Hillside Gardens",type:"Gardening",
