@@ -39,7 +39,8 @@ function websiteStagingReadiness({environment="",businessA="",businessB="",
  const missing=checklist.filter(x=>!x.passed).map(x=>x.title);
  const passed=checklist.length-missing.length;
  return {status:missing.length?"blocked":"ready-for-manual-staging-review",
-   verifiedSource:realEvidence?"staging-live-checks":"not-live-cloud-verified",
+   verifiedSource:realEvidence?"claimed-staging-evidence-needs-independent-review":
+     "not-live-cloud-verified",
    passed,total:checklist.length,checks:checklist,missing,
    next:missing[0]||"Review each staging trace and approve only a new separately authorised testing run.",
    canRunAutomatically:false,canTouchProduction:false,

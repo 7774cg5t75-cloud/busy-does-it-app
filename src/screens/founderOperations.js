@@ -6,6 +6,7 @@ import {FounderServiceCosts} from "./founderServiceCosts";
 import {founderOperationalPriorities} from "../core/founderOperationalPriorities.mjs";
 import {websiteReleaseReadiness} from "../core/websiteReleaseReadiness.mjs";
 import {websitePilotReadiness} from "../core/websitePilotReadiness.mjs";
+import {websiteStagingReadiness} from "../core/websiteStagingReadiness.mjs";
 import {founderNextSafeAction} from "../core/founderNextSafeAction.mjs";
 import {founderRehearsalGuidance} from "../core/founderRehearsalGuidance.mjs";
 import {founderRecoveryReview} from "../core/founderRecoveryReview.mjs";
@@ -87,6 +88,7 @@ function FounderOperations({s}){
   const safeAction=founderNextSafeAction(operational);
   const release=websiteReleaseReadiness();
   const pilot=websitePilotReadiness();
+  const staged=websiteStagingReadiness();
   const rehearsal=founderRehearsalGuidance({priorities:operational,pilot,release});
   const incidentReview=founderRecoveryReview({priorities:operational,rehearsal});
   const safeAutomation=founderSafeAutomationSummary({priorities:operational});
@@ -156,6 +158,15 @@ function FounderOperations({s}){
             {"Recommended preparation: "+rehearsal.next}
           </Text>
           <MetricRow left="Automatic customer pilot" right="Disabled"/>
+        </Card>
+        <Card eyebrow="Controlled cloud rehearsal"
+          title="Real Supabase staging — not yet verified"
+          body="Before trying a genuine cloud customer journey, BUSY needs an isolated project, separate fictional owners, tested database access rules, rollback and founder approval. Browser simulations do not satisfy these checks."
+          tone="blue">
+          <MetricRow left="Independently verified staging checks"
+            right={show(staged.passed)+" of "+show(staged.total)}/>
+          <Text style={styles.sectionLabel}>{"Next: "+staged.next}</Text>
+          <MetricRow left="Production credentials or writes" right="Not authorised"/>
         </Card>
         <Card eyebrow="Pre-release audit"
           title="Release readiness needs independent checks"

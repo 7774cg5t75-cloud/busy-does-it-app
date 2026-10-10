@@ -13,6 +13,7 @@ import { websiteOutcomeGuidance } from "../core/websiteOutcomeGuidance.mjs";
 import { websiteJourneyAssurance } from "../core/websiteJourneyAssurance.mjs";
 import { websiteOnboardingCoach } from "../core/websiteOnboardingCoach.mjs";
 import { websiteBrainCoaching } from "../core/websiteBrainCoaching.mjs";
+import { websiteRegionalReadiness } from "../core/websiteRegionalReadiness.mjs";
 import { renderWebsiteHtml } from "../domain/websiteBuilder";
 
 function WebsiteBuilder({ s }) {
@@ -39,6 +40,12 @@ function WebsiteBuilder({ s }) {
   });
   const missingDeliveryCheck=deliveryProof.checks.find(check=>!check.ready);
   const qualityGuide = websiteQualityGuidance({ brandBrain: brand, draft });
+  const regional=websiteRegionalReadiness({
+    locale:brand?.websiteBrief?.locale||"",
+    currency:brand?.websiteBrief?.currency||"",
+    timeZone:brand?.websiteBrief?.timeZone||"",
+    countryCode:brand?.websiteBrief?.countryCode||""
+  });
   const designAlternative=websiteDesignAlternative(draft,{
     likedFamilies:savedStylePreferences?.likedFamilies||[],
     rejectedFamilies:savedStylePreferences?.rejectedFamilies||[]
@@ -432,6 +439,19 @@ function WebsiteBuilder({ s }) {
         onPress={() => setShowWebsiteDetails(!showWebsiteDetails)} />
       {showWebsiteDetails ? (
         <>
+      <Card
+        eyebrow="Global-Ready foundation"
+        title="Regional website settings are reviewed separately"
+        body="Languages, currencies, time zones and country rules must be explicitly confirmed before international launch. Phone location does not change billing or where customer data is stored."
+        tone="blue">
+        <MetricRow left="Display context checks"
+          right={regional.passed+" of "+regional.total}/>
+        <Text style={styles.cardBody}>
+          {"Regional status: "+(regional.status==="display-context-reviewed"?
+            "Display settings reviewed — legal and provider checks still needed":
+            "Not confirmed for international release")}
+        </Text>
+      </Card>
       <Card
         eyebrow="Website settings"
         title={draft ? "Your website draft exists" : "BUSY is ready to build the first draft"}

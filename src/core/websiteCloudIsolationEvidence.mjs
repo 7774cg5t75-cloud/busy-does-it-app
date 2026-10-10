@@ -29,10 +29,13 @@ function websiteCloudIsolationEvidence({tenantA="",tenantB="",observations=[],
   return {id:name,passed,reason:passed?"Observed expected isolation":"Missing or unsafe isolation evidence"};
  });
  const allPass=requirements.every(x=>x.passed);
+ // A plain source label is NOT attestation: real cloud evidence must be
+ // independently checked by a trusted harness and human release reviewer.
  const live=source==="verified_isolated_staging_trace";
- return {status:!allPass?"blocked":live?"evidence-for-manual-staging-review":"fixture-only",
+ return {status:!allPass?"blocked":live?"staging-traces-needing-independent-audit":"fixture-only",
   checks:requirements,passed:requirements.filter(x=>x.passed).length,total:requirements.length,
-  simulated:!live,realCloudVerified:allPass&&live,
+  simulated:!live,realCloudVerified:false,
+  claimedStagingTrace:allPass&&live,
   canTouchProduction:false,canMigrateProduction:false,
   canAuthorizeCustomerPilot:false,containsCustomerData:false,
   next:!allPass?"Verify every expected cross-tenant denial on a disposable isolated project.":
