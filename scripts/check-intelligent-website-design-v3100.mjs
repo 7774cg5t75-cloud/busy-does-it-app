@@ -3,6 +3,7 @@ import {readFileSync} from "node:fs";
 import {planWebsiteDesign,deriveSector} from "../supabase/functions/busy-website-worker/designPlanner.mjs";
 import {designForWebsite,designCss} from "../supabase/functions/busy-website-worker/designSystem.mjs";
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
+import {applyWebsiteVisualEdit} from "../supabase/functions/busy-website-worker/designEdits.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 let checks=0;
 const equal=(a,b,msg)=>{assert.deepEqual(a,b,msg);checks++;};
@@ -13,10 +14,11 @@ const websiteSource=read("src/domain/websiteBuilder.js")
   .replace(/^import \{ designForWebsite, designCss \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designSystem\.mjs";\s*/,"")
   .replace(/^import \{ planWebsiteDesign \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designPlanner\.mjs";\s*/,"")
  .replace(/^import \{ reviewWebsiteDesign \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designReview\.mjs";\s*/,"")
+ .replace(/^import \{ applyWebsiteVisualEdit \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designEdits\.mjs";\s*/,"")
   .replace(/export\s*\{[\s\S]*?\};?\s*$/,"");
-const app=Function("syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign",
+const app=Function("syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign","applyWebsiteVisualEdit",
   websiteSource+";return {buildWebsiteDraft,applyWebsiteInstruction,renderWebsiteHtml};")(
-  management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign
+  management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit
 );
 const service=(name,description="")=>({id:name.toLowerCase().replace(/\W+/g,"-"),name,description});
 const fixture=(name,type,services,details={})=>({
