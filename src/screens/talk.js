@@ -127,11 +127,44 @@ function TalkToBusy({ s }) {
   return (
     <Shell
       s={s}
-      title={s.businessCreationConversationActive ? "Talk to BUSY • Build my business" : "Talk to BUSY"}
-      subtitle={s.businessCreationConversationActive
+      title={s.websiteConversationMode === "build" ? "Talk to BUSY • Your website"
+        : s.websiteConversationMode === "edit" ? "Talk to BUSY • Improve my website"
+        : s.businessCreationConversationActive ? "Talk to BUSY • Build my business" : "Talk to BUSY"}
+      subtitle={s.websiteConversationMode
+        ? "Tell BUSY what you want, or let her ask you questions to get the details right."
+        : s.businessCreationConversationActive
         ? "Tell BUSY about your business, one step at a time."
         : "Speak or type naturally. BUSY keeps the complicated parts behind the scenes."}
     >
+      {s.websiteConversationMode ? (
+        <Card
+          eyebrow="A little help before you start"
+          title={s.websiteConversationMode === "build"
+            ? "What should I tell BUSY about my website?"
+            : "How do I explain the changes I want?"}
+          body={s.websiteConversationMode === "build"
+            ? "Tell BUSY what your business does, who your customers are, what services or products to show, the area you serve, and what visitors should do (call, book or request a quote). Describe the style you like and mention any photos, logo, reviews or special features. BUSY can use details you've already saved."
+            : "Say which page or section you want to improve, exactly what should change, and what should stay the same. You can ask about wording, photos, colours, layout or the order of your services."}
+          tone="blue"
+        >
+          <Text style={styles.sectionLabel}>
+            {s.websiteConversationMode === "build"
+              ? "EXAMPLE ONLY: “I run a gardening business in Exeter. Show lawn care, hedge trimming and garden tidy-ups. Make it friendly and modern, with a green theme, photos of our work, reviews and a Request a Quote button.” Use your own real business details."
+              : "EXAMPLE ONLY: “On the home page, make the main photograph bigger, put the main service first and add a Request a Quote button. Keep the rest as it is.”"}
+          </Text>
+          <Button
+            label="Let BUSY guide me step by step"
+            disabled={s.busyCommandStatus === "thinking"}
+            onPress={() => setTypedCommand(s.websiteConversationMode === "build"
+              ? "BUSY, please help me plan my business website. Ask me one question at a time about my customers, services, location, style, photos and how visitors should contact me. Use my confirmed business details and don't invent any missing facts. Don't publish anything."
+              : "BUSY, help me improve my website draft. Ask me one question at a time about the page, wording, style, photos or layout I want to change. Please do not make up business facts or publish anything."
+            )}
+          />
+          <Text style={styles.talkSafetyText}>
+            You can speak instead. You don't need to know everything — BUSY can ask for missing details. The guided message fills the typing box but is not sent until you tap Ask BUSY.
+          </Text>
+        </Card>
+      ) : null}
       <Card
         eyebrow="Voice"
         title={isListening ? "BUSY is listening…" : voiceStage === "sending" ? "BUSY is processing your request…" : "Talk naturally"}
@@ -178,7 +211,7 @@ function TalkToBusy({ s }) {
         ) : null}
       </Card>
 
-      {s.businessCreationConversationActive ? (
+      {s.businessCreationConversationActive && !s.websiteConversationMode ? (
         <Card
           eyebrow="Business creation conversation"
           title={s.businessCreationJourney?.nextQuestion?.question || "BUSY has the core facts it needs"}
@@ -331,7 +364,7 @@ function TalkToBusy({ s }) {
         <TextInput
           value={typedCommand}
           onChangeText={setTypedCommand}
-          placeholder={result?.needsClarification ? "Your answer…" : "What do you want BUSY to do?"}
+          placeholder={result?.needsClarification ? "Your answer…" : s.websiteConversationMode ? "Describe your ideal website or the changes you'd like…" : "What do you want BUSY to do?"}
           placeholderTextColor="#8A94A4"
           multiline
           style={styles.talkInput}
