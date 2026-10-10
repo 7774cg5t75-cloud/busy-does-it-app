@@ -4,14 +4,19 @@ import { Image, Text, View } from "react-native";
 import { styles } from "../theme/styles";
 import { Shell, Card, Button, Field, MetricRow, StatusChip } from "../components/ui";
 import { buildWebsiteLaunchJourney } from "../core/websiteLaunchJourney";
+import { buildWebsiteLaunchProof } from "../core/websiteLaunchProof.mjs";
 
 function WebsiteBuilder({ s }) {
   const draft = s.websiteDraft;
   const brand = s.brandBrain || {};
   const [instruction, setInstruction] = React.useState("");
-  const journey=buildWebsiteLaunchJourney({
-    brand, draft, publishing:s.websitePublishingView
+  const deliveryProof=buildWebsiteLaunchProof({
+    ...(s.websitePublishingView||{}),websiteDraftPresent:!!draft
   });
+  const journey=buildWebsiteLaunchJourney({
+    brand, draft, publishing:s.websitePublishingView,deliveryProof
+  });
+  const missingDeliveryCheck=deliveryProof.checks.find(check=>!check.ready);
   const nextStep=()=>{
     switch(journey.nextAction){
       case "brand":return s.openBrandIdentity();
@@ -65,6 +70,18 @@ function WebsiteBuilder({ s }) {
         ))}
         <Button label={nextLabel} primary onPress={nextStep}/>
       </Card>
+      {s.websitePublishingView?.liveDeployment&&!deliveryProof.verified?(
+        <Card eyebrow="Public delivery check"
+          title="Website version recorded — public address not verified yet"
+          body={"BUSY has a published version recorded, but has not proved its real HTTPS address is serving that exact version. Next missing evidence: "+
+            (missingDeliveryCheck?.label||"public delivery status")+
+            ". An old healthy flag is not enough."}
+          footer={deliveryProof.passed+" of "+deliveryProof.total+
+            " independent checks supported by evidence"}
+          tone="amber">
+          <Button label="See delivery checks and recovery" onPress={s.openWebsitePublishing}/>
+        </Card>
+      ):null}
       <Card
         eyebrow="Website generation"
         title={draft ? "Your website draft exists" : "BUSY is ready to build the first draft"}
