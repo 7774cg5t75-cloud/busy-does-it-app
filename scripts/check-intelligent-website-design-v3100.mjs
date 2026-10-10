@@ -34,6 +34,15 @@ yes(!short.html.includes('id="testimonials"'),"No fabricated reviews");
 yes(!short.html.includes("10 years"),"No fabricated credentials");
 yes(!short.html.includes('href="tel:'),"No invented telephone");
 yes(!short.html.includes('href="mailto:'),"No invented email");
+yes(short.html.includes("Lawn care • Hedge trimming"),"Sparse page uses supplied service facts rather than repeating the category");
+yes(short.html.includes("Serving Exeter and surrounding villages"),"Sparse page reuses confirmed service area");
+yes(short.html.includes("Where we work"),"An area-only section is not falsely labelled as a contact option");
+yes(!short.html.includes("<h2>Get in touch</h2>"),"No empty get-in-touch section");
+const noContactBrief=app.buildWebsiteDraft({brandBrain:fixture("Bare Basics","Beauty salon",[service("Hair styling")])});
+yes(!noContactBrief.sections.some(s=>s.id==="contact"),"No empty contact section generated");
+yes(!noContactBrief.navigation.some(n=>n.id==="contact"),"No broken empty contact link");
+yes(!noContactBrief.html.includes('id="contact"'),"No hidden empty contact content");
+
 const chosen = app.buildWebsiteDraft({brandBrain:fixture("Green Sites","Landscaping",
  [service("Landscape design","Thoughtful garden design and detailed planting plans"),
   service("Maintenance","Ongoing garden care and seasonal upkeep"),
