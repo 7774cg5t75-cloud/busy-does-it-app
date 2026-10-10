@@ -494,6 +494,20 @@ function renderWebsiteHtml(draft = {}) {
     return /^https:\/\/[^\s"'<>]+$/i.test(uri) ? uri : "";
   };
   const orderedSections=plan.sectionOrder.map(id=>sections.find(s=>s.id===id)).filter(Boolean);
+  // Only visible sections may be targets for customer navigation or the hero
+  // action. Optional empty contact/gallery blocks are intentionally omitted
+  // from the HTML, so linking to them would create a broken customer journey.
+  const renderedAnchors=new Set(["main"]);
+  for(const section of orderedSections){
+    const visible=section.type==="hero"?false:
+      ["services","faq","testimonials"].includes(section.type)?
+        safeArray(section.items).some(item=>clean(item?.title||item?.body)):
+      section.type==="gallery"?safeArray(section.items).some(asset=>approvedImage(asset)):
+      section.type==="contact"?!!(clean(section.body)||clean(section.phone)||clean(section.email)):
+      !!clean(section.body);
+    if(visible)renderedAnchors.add(
+      section.type==="contact"?"contact":section.type==="gallery"?"gallery":String(section.id||""));
+  }
   const sectionHtml = orderedSections.map(section=>{
     if(section.type==="hero"){
       const url=approvedImage(section.asset);
@@ -502,8 +516,16 @@ function renderWebsiteHtml(draft = {}) {
         : '<div class="hero-art" aria-hidden="true"></div>';
       const kicker=clean(draft.businessType||draft.businessName);
       const lead=clean(section.body) ? `<p class="lead">${escapeHtml(section.body)}</p>` : "";
-      const action=clean(section.cta)&&clean(section.ctaHref)
-        ? `<a class="cta" href="${escapeHtml(section.ctaHref)}">${escapeHtml(section.cta)}</a>` : "";
+      const wanted=clean(section.ctaHref);
+      const missingTarget=wanted.startsWith("#")&&!renderedAnchors.has(wanted.slice(1));
+      const safeFallback=renderedAnchors.has("services")?"#services":
+        [...renderedAnchors].find(id=>id!=="main")||"";
+      const fallbackHref=safeFallback.startsWith("#")?safeFallback:
+        safeFallback?"#"+safeFallback:"";
+      const actualHref=missingTarget?fallbackHref:wanted;
+      const actionText=missingTarget?"Explore our services":clean(section.cta);
+      const action=actionText&&actualHref
+        ? `<a class="cta" href="${escapeHtml(actualHref)}">${escapeHtml(actionText)}</a>` : "";
       return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}"><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}</div>${art}</div></section>`;
     }
     if(section.type==="services"||section.type==="faq"||section.type==="testimonials"){
@@ -526,7 +548,7 @@ function renderWebsiteHtml(draft = {}) {
   const business=escapeHtml(draft.businessName||"Business website");
   const area=clean(draft.serviceArea);
   const nav=safeArray(draft.navigation)
-    .filter(item=>item?.id&&item?.label)
+    .filter(item=>item?.id&&item?.label&&renderedAnchors.has(String(item.id)))
     .map(item=>`<a href="#${escapeHtml(item.id)}">${escapeHtml(item.label)}</a>`).join("");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes}"><a class="skip-link" href="#main">Skip to content</a><nav><div class="wrap nav-wrap"><a class="brand" href="#main">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a><div class="nav-links">${nav}</div></div></nav><main id="main">${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
 }
