@@ -79,6 +79,7 @@ jobs:
           node scripts/check-website-operational-quality-v3117.mjs
           node scripts/check-website-safe-pilot-v3118.mjs
           node scripts/check-website-connected-experience-v3119.mjs
+          node scripts/check-website-rehearsal-v3120.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs
