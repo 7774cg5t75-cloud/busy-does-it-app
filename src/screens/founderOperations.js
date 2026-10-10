@@ -180,17 +180,19 @@ function FounderOperations({s}){
                 right={show(stagedPlan.journey.passed)+" of "+show(stagedPlan.journey.total)}/>
               <MetricRow left="Disposable database isolation" right="GitHub CI only"/>
               <MetricRow left="Separate iPhone staging profile" right="Source ready"/>
-              <MetricRow left="Genuine Supabase staging Auth" right="Not connected"/>
+              <MetricRow left="Isolated Supabase staging project" right="Connected • RLS verified"/>
+              <MetricRow left="Staging test owners / canary" right="2 users • 2 rows"/>
+              <MetricRow left="Genuine Supabase staging Auth" right="Live sign-in pending"/>
               <MetricRow left="Separate staging HTTPS host" right="Not deployed"/>
               <MetricRow left="Two fictional hosted previews" right="Source ready • not deployed"/>
               <Text style={styles.sectionLabel}>
-                {"V3.129 packages two Busy-generated test sites behind a staging Supabase identity check. The separate project, live Auth and public HTTPS serving must still be independently approved and verified."}
+                {"V3.129 packages two Busy-generated fictional sites with an Auth-gated staging Worker. The cloud staging project exists, but no public Worker has been deployed and no real web identity request has been proven yet."}
               </Text>
               <Text style={styles.sectionLabel}>
-                {"V3.128 prepares guarded sign-in tests and a staging-only iPhone build. A separate Supabase project and hosting approval are needed before cloud checks can count as verified."}
+                {"V3.131 adds a separate iPhone staging login screen. Actual staging Supabase users and read-only RLS rows now exist; real password sign-in, signed test build, and HTTPS host still need end-to-end testing."}
               </Text>
               <Text style={styles.sectionLabel}>
-                {"The isolated PostgreSQL test checks fictional owner access and denied writes. It does not verify the real Supabase project, authentication or customer data."}
+                {"The new Supabase staging project has forced RLS and real Auth-owned fictional records. Simulated SQL role checks passed; signed JWT verification in the test app remains unverified."}
               </Text>
               <Text style={styles.sectionLabel}>
                 {"Cloud gate: "+staged.next}
