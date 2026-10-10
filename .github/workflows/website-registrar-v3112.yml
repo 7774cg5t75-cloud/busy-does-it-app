@@ -1,0 +1,50 @@
+name: V3.112 registrar safety and independent website design QA
+on:
+  push:
+    branches: [v3.112]
+    paths:
+      - 'supabase/functions/busy-website-publish/domainRegistrarGateway.mjs'
+      - 'supabase/functions/busy-website-publish/index.ts'
+      - 'src/app/AppController.js'
+      - 'src/screens/websitePublishing.js'
+      - 'scripts/check-website-registrar-gateway-v3112.mjs'
+      - 'scripts/check-website-rendered-diversity-v3112.mjs'
+      - '.github/workflows/website-registrar-v3112.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  registrar-and-website-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify registrar gateway and prior purchase safeguards
+        run: |
+          node scripts/check-website-registrar-gateway-v3112.mjs
+          node scripts/check-website-domain-shopping-v3111.mjs
+          node scripts/check-website-address-choices-v3110.mjs
+      - run: npm install --no-audit --no-fund
+      - name: Compile iPhone JavaScript, without a signed native build
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3112-ios-js
+      - run: npx playwright install --with-deps chromium
+      - name: Render individual fictional websites using the real generator
+        run: node scripts/build-website-design-gallery-v3100.mjs /tmp/busy-v3112-gallery
+      - name: Check real visual variety and design family identity
+        run: node scripts/check-website-rendered-diversity-v3112.mjs /tmp/busy-v3112-gallery /tmp/busy-v3112-visuals
+      - name: Check five screen sizes plus keyboard and accessible labelling
+        run: |
+          node scripts/check-website-responsive-quality-v3109.mjs /tmp/busy-v3112-gallery /tmp/busy-v3112-responsive
+          node scripts/check-website-keyboard-quality-v3110.mjs /tmp/busy-v3112-gallery /tmp/busy-v3112-keyboard
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v3112-offline-website-qa
+          path: |
+            /tmp/busy-v3112-visuals/
+            /tmp/busy-v3112-responsive/
+            /tmp/busy-v3112-keyboard/
+          retention-days: 7
+      - run: echo "No domain registration, paid API, live availability, DNS changes, customer publishing or EAS signed build."
