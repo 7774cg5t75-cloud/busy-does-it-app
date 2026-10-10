@@ -48,6 +48,10 @@ function themeFromBrief(brief = {}) {
 
 function buildSections(brief = {}) {
   const sections = [];
+  const serviceNames = safeArray(brief.services).map(s=>clean(s?.name)).filter(Boolean);
+  const contactAvailable = !!(clean(brief.phone) || clean(brief.email));
+  const area = clean(brief.serviceArea);
+  const factualServiceSummary = [serviceNames.slice(0, 2).join(" • "), area ? "Serving " + area : ""].filter(Boolean).join(" — ");
 
   sections.push({
     id: "hero",
@@ -57,6 +61,7 @@ function buildSections(brief = {}) {
     body:
       clean(brief.tagline) ||
       clean(brief.description) ||
+      factualServiceSummary ||
       clean(brief.businessType) ||
       "",
     cta: clean(brief.phone)
@@ -141,19 +146,19 @@ function buildSections(brief = {}) {
     });
   }
 
-  sections.push({
-    id: "contact",
-    type: "contact",
-    enabled: true,
-    title: "Get in touch",
-    body: clean(brief.serviceArea)
-      ? `Serving ${clean(brief.serviceArea)}`
-      : "",
-    phone: clean(brief.phone),
-    email: clean(brief.email),
-    openingHours: clean(brief.openingHours),
-    social: brief.social || {},
-  });
+  if (contactAvailable || area) {
+    sections.push({
+      id: "contact",
+      type: "contact",
+      enabled: true,
+      title: contactAvailable ? "Get in touch" : "Where we work",
+      body: area ? "Serving " + area : "",
+      phone: clean(brief.phone),
+      email: clean(brief.email),
+      openingHours: clean(brief.openingHours),
+      social: brief.social || {},
+    });
+  }
 
   return sections;
 }
@@ -495,6 +500,7 @@ function renderWebsiteHtml(draft = {}) {
       return images.length ? `<section id="gallery"><div class="wrap"><h2>${escapeHtml(section.title)}</h2><div class="gallery">${images.map(url=>`<img class="gallery-image" loading="lazy" src="${escapeHtml(url)}" alt="Customer-supplied photograph">`).join("")}</div></div></section>` : "";
     }
     if(section.type==="contact"){
+      if(!clean(section.body)&&!clean(phone)&&!clean(email))return "";
       return `<section id="contact"><div class="wrap"><h2>${escapeHtml(section.title||"Get in touch")}</h2>${clean(section.body)?`<p>${escapeHtml(section.body)}</p>`:""}${clean(phone)?`<p><a href="tel:${escapeHtml(phone.replace(/\s+/g,""))}">${escapeHtml(phone)}</a></p>`:""}${clean(email)?`<p><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>`:""}${clean(section.openingHours)?`<p>${escapeHtml(section.openingHours)}</p>`:""}</div></section>`;
     }
     return clean(section.body)
