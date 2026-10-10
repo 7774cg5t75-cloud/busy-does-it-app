@@ -57,7 +57,6 @@ function WebsitePublishing({ s }) {
   const addresses=websiteAddressChoices({mode:addressChoice,publishing:view});
   const responsibility=websiteDomainResponsibilities({mode:addressChoice,connectedDomain:domain});
   const launchGuide=websiteDomainLaunchGuide({choice:addressChoice,publishing:view});
-  const domainSwitch=websiteDomainSwitchSafety(view);
   const domainIdeaPreview=localDomainIdeas(domainIdeaInput);
   const firstDomainIdea=domainIdeaPreview.ideas[0]?.domain||"";
   const registrarRequestRef=React.useRef("");registrarRequestRef.current=firstDomainIdea;
@@ -176,6 +175,7 @@ function WebsitePublishing({ s }) {
 
   const seoChecks = view.seoAudit?.checks || [];
   const launchProof=buildWebsiteLaunchProof({...view,websiteDraftPresent:!!s.websiteDraft});
+  const domainSwitch=websiteDomainSwitchSafety(view,launchProof);
   const journey=buildWebsiteLaunchJourney({
     brand:s.brandBrain,draft:s.websiteDraft,publishing:view,deliveryProof:launchProof
   });

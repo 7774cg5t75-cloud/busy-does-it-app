@@ -80,17 +80,22 @@ const nothing=websiteDomainSwitchSafety();
 eq(nothing.readyToRecommend,false,"No saved domain does not mean ready");
 eq(nothing.willSwitchAutomatically,false,"Safe transition never changes DNS");
 eq(nothing.willBuyOrTransferDomain,false,"Domain switching is not purchasing");
+eq(websiteDomainSwitchSafety(p,{verified:true,hostname:"someoneelse.busydoesit.co.uk"}).readyToRecommend,
+ false,"Proof for another website is not accepted");
 const previous={hostname:"shop.busydoesit.co.uk",live:true};
 const target={hostname:"shop.co.uk"};
 const p={defaultAddressState:{address:previous},domainState:{latest:target,
  journey:{complete:true}},canOpenCustomDomain:true,
  liveDeployment:{id:"live-a"},verifiedDeploymentId:"live-a"};
-eq(websiteDomainSwitchSafety(p).readyToRecommend,true,"Proofs exist for fallback, destination, exact live deployment");
-eq(websiteDomainSwitchSafety({...p,verifiedDeploymentId:"old"}).readyToRecommend,false,
- "Stale health proof cannot approve a domain switch");
-eq(websiteDomainSwitchSafety({...p,defaultAddressState:{address:{...previous,live:false}}}).readyToRecommend,
+eq(websiteDomainSwitchSafety(p,{verified:true,hostname:previous.hostname}).readyToRecommend,true,
+ "Independent launch proof supports fallback and custom domain");
+eq(websiteDomainSwitchSafety(p,{verified:false,hostname:previous.hostname}).readyToRecommend,false,
+ "Unverified actual public delivery cannot approve domain switch");
+eq(websiteDomainSwitchSafety({...p,defaultAddressState:{address:{...previous,live:false}}},
+ {verified:true,hostname:previous.hostname}).readyToRecommend,
  false,"Original BUSY address must remain available");
-eq(websiteDomainSwitchSafety({...p,canOpenCustomDomain:false}).readyToRecommend,false,
+eq(websiteDomainSwitchSafety({...p,canOpenCustomDomain:false},
+ {verified:true,hostname:previous.hostname}).readyToRecommend,false,
  "Domain ownership without reachable website is not enough");
 const review=founderProviderReview({scope:"founder_service_register",privacy:"founder_only",
  services:[{key:"github",name:"GitHub",latest:{source:"provider_api_readonly"},freshness:"within_24h"},

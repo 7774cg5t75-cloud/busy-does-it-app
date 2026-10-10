@@ -2,7 +2,7 @@
  * Read-only customer domain switch safety: no DNS edits or purchases.
  * Existing BUSY address is retained until a separate approved decision.
  */
-function websiteDomainSwitchSafety(view={}){
+function websiteDomainSwitchSafety(view={},verifiedProof=null){
  const own=view?.domainState?.latest||null;
  const busy=view?.defaultAddressState?.address||null;
  const previous=typeof busy?.hostname==="string"?busy.hostname.trim():"";
@@ -10,8 +10,8 @@ function websiteDomainSwitchSafety(view={}){
  const fallbackReady=!!previous&&busy?.live===true;
  const targetReady=!!next&&view?.domainState?.journey?.complete===true&&
    view?.canOpenCustomDomain===true;
- const approvedSite=!!view?.liveDeployment?.id&&view?.liveDeployment?.id===
-   view?.verifiedDeploymentId;
+ const approvedSite=verifiedProof?.verified===true&&
+   verifiedProof?.hostname===previous&&!!view?.liveDeployment?.id;
  const checks=[
   {id:"fallback",passed:fallbackReady,label:"Original BUSY address confirmed"},
   {id:"destination",passed:targetReady,label:"Customer domain verified"},

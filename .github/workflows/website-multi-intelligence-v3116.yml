@@ -15,6 +15,7 @@ on:
       - 'cloudflare/busy-website-screenshot/worker.js'
       - 'scripts/check-website-controlled-rollout-v3116.mjs'
       - 'scripts/check-website-first-fold-v3116.mjs'
+      - 'src/core/websiteDomainSwitchSafety.mjs'
       - '.github/workflows/website-multi-intelligence-v3116.yml'
   workflow_dispatch:
 permissions:
