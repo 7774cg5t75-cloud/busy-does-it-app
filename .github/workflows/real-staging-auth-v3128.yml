@@ -37,6 +37,12 @@ jobs:
           node scripts/check-staging-hosted-evidence-v3128.mjs
           node scripts/check-staging-runtime-v3128.mjs
           node scripts/check-website-exact-version-v3126.mjs
+      - name: Install Expo dependencies only for staging JS export
+        run: npm install --no-audit --no-fund --cache /tmp/busy-v3128-npm-cache
+      - name: Export a disconnected isolated-staging iPhone JS bundle
+        env:
+          EXPO_PUBLIC_BUSY_ENVIRONMENT: isolated-staging
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3128-isolated-stage-ios-js
   read-only-real-staging-probe:
     if: github.event_name == 'workflow_dispatch' && inputs.approval_phrase == 'APPROVE_READ_ONLY_STAGING_AUTH_3128'
     needs: source-only-safety
