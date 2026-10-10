@@ -8,6 +8,12 @@ function websiteJourneyAssurance({journey=null,publishing=null,proof=null,hasDra
  const published=!!p.liveDeployment?.id;
  const verified=published&&j.isVerified===true&&proof?.verified===true;
  const processing=!!p.activeJob&&["queued","processing","retry_wait"].includes(p.activeJob.status);
+ const previewHash=p.previewDeployment?.content_hash;
+ const liveHash=p.liveDeployment?.content_hash;
+ const newPrivateVersion=published&&currentPreview&&
+   typeof previewHash==="string"&&previewHash.length>0&&
+   typeof liveHash==="string"&&liveHash.length>0&&
+   previewHash!==liveHash;
  const steps=Array.isArray(j.stages)?j.stages.filter(x=>x&&typeof x.state==="string"):[];
  const progress={completed:steps.filter(x=>x.state==="complete").length,total:steps.length};
  let action="brand",title="Check your business information",
@@ -21,6 +27,9 @@ function websiteJourneyAssurance({journey=null,publishing=null,proof=null,hasDra
  }else if(p.draftChangedSinceHosted===true||(!currentPreview&&!published)){
   action="prepare";title="Prepare a fresh hosted preview";
   detail="Your phone draft differs from the hosted version. Your public website remains unchanged.";
+ }else if(newPrivateVersion){
+  action="review";title="Review your updated hosted design";
+  detail="Your published website stays unchanged until you approve this new hosted version.";
  }else if(j.nextAction==="review"&&!published){
   action="review";title="Review the exact hosted website";
   detail="Inspect the hosted preview, then give separate Go Live approval.";

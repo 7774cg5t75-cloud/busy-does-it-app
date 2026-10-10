@@ -59,6 +59,10 @@ function WebsiteBuilder({ s }) {
   });
   const designChoices=designAlternative.options||[];
   const selectedStyle=designChoices.length?designChoices[designOptionIndex%designChoices.length]:null;
+  const brainCoach=websiteBrainCoaching({
+    summary:savedStylePreferences,
+    alternative:{suggested:selectedStyle},quality:qualityGuide
+  });
   React.useEffect(()=>setDesignOptionIndex(0),
     [draft?.id,draft?.theme?.designFamily,draft?.designPlan?.family]);
   const customerJourney=websiteCustomerJourney({
@@ -66,9 +70,6 @@ function WebsiteBuilder({ s }) {
   });
   const assurance=websiteJourneyAssurance({
     journey,publishing:s.websitePublishingView,proof:deliveryProof,hasDraft:!!draft
-  });
-  const brainCoach=websiteBrainCoaching({
-    summary:savedStylePreferences,alternative:designAlternative,quality:qualityGuide
   });
   const nextStep=()=>{
     switch(journey.nextAction){

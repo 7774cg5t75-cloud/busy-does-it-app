@@ -47,6 +47,11 @@ eq(assure(journey(brand,draft,changed,null),changed,null,true).action,"prepare",
 const live={...p,liveDeployment:{id:"live-a"}};
 eq(assure(journey(brand,draft,live,{verified:false}),live,{verified:false},true).action,
  "verify","Published record still needs real HTTPS delivery");
+const newVersion={...p,previewDeployment:{id:"preview-b",content_hash:"new-hash"},
+ liveDeployment:{id:"live-a",content_hash:"old-hash"}};
+eq(assure(journey(brand,draft,newVersion,{verified:true}),newVersion,
+ {verified:true},true).action,"review",
+ "New content hash requires explicit review while old website stays public");
 const proved=journey(brand,draft,live,{verified:true});
 eq(assure(proved,live,{verified:true},true).action,"maintain",
  "Matching real live delivery proof permits verified label");
@@ -70,6 +75,10 @@ eq(coaching.scope,"current-business","Feedback never used outside current busine
 yes(coaching.explanation.includes("previously"),"Plain language explains the recommendation");
 eq(coaching.next.title,"Check your business details","Real facts outrank visual polish");
 eq(coaching.aiModelRetrained,false,"No fake AI retraining");
+const anotherSuggestion=websiteBrainCoaching({summary:feedback,
+ alternative:{suggested:{family:"minimal"}}});
+yes(!anotherSuggestion.explanation.includes("previously"),
+ "Feedback rationale follows selected style, not first style in carousel");
 eq(coaching.measuredSalesChange,null,"No invented sales lift");
 eq(coaching.sharedLearningEnabled,false,"Global memory remains disabled");
 const publicCoach=websiteBrainCoaching({summary:{...feedback,scope:"another-business"},
@@ -109,6 +118,9 @@ eq(founderNextSafeAction(priorities).key,"website",
 eq(founderNextSafeAction(priorities).status,"review-failure",
  "Founder's next task is manual review, not automatically fixed");
 eq(founderNextSafeAction(priorities).notificationSent,false,"No false external alerts");
+eq(founderNextSafeAction(founderOperationalPriorities(report,
+ {nowISO:"2026-10-12T10:01:00Z"})).key,"snapshot",
+ "Stale founder snapshot requires refresh before evaluating old failures");
 const allClear={...report,metrics:{failedWebsiteJobs:0,failedSocialPosts:0,
  failedBusinessApps:0,pendingWebsiteJobs:0}};
 eq(founderNextSafeAction(founderOperationalPriorities(allClear,
@@ -122,6 +134,8 @@ eq(websiteReleaseReadiness().status,"blocked","Release readiness never inferred 
 const ui=readFileSync(new URL("../src/screens/websiteBuilder.js",import.meta.url),"utf8");
 yes(ui.includes("websiteJourneyAssurance({"),"Real customer screen uses verified journey");
 yes(ui.includes("websiteBrainCoaching({"),"Real customer screen explains personalized design");
+yes(ui.includes("alternative:{suggested:selectedStyle}"),
+ "Rationale follows the currently viewed customer-selected design");
 yes(ui.includes("assurance.progress.completed"),"Customer sees actual launch progress");
 const founder=readFileSync(new URL("../src/screens/founderOperations.js",import.meta.url),"utf8");
 yes(founder.includes("founderNextSafeAction(operational)"),"Real founder view includes next action");

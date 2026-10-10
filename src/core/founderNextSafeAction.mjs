@@ -7,8 +7,12 @@ function founderNextSafeAction(priorities){
   return {status:"unavailable",title:"Verify founder reporting",
    message:"No trusted aggregate snapshot is available.",
    automaticRepair:false,notificationSent:false};
- const item=priorities.items.find(x=>x.severity==="attention"&&x.count>0)||
-  priorities.items.find(x=>x.severity==="unverified")||null;
+ const stale=priorities.freshness==="stale"||
+   priorities.freshness==="unverified";
+ const item=stale?
+   priorities.items.find(x=>x.key==="snapshot")||null:
+   priorities.items.find(x=>x.severity==="attention"&&x.count>0)||
+   priorities.items.find(x=>x.severity==="unverified")||null;
  if(!item)return {status:"measured-no-issues",title:"Continue routine checks",
   message:"No failures in the measured counts does not prove every provider is healthy.",
   automaticRepair:false,notificationSent:false};
