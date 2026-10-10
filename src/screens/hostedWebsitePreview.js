@@ -32,7 +32,7 @@ function HostedWebsitePreview({ s }) {
   return (
     <View style={{ flex: 1, backgroundColor: "#0b1220" }}>
       <View style={{ paddingHorizontal: 15, paddingTop: 12, paddingBottom: 10, gap: 7 }}>
-        <Text style={{ color: "#fff", fontSize: 21, fontWeight: "700" }}>Your private website preview</Text>
+        <Text style={{ color: "#fff", fontSize: 21, fontWeight: "700" }}>{preview.brandName ? "Previewing " + preview.brandName : "Your private website preview"}</Text>
         <Text style={{ color: "#a9c4ef", fontSize: 13 }}>
           Real hosted pages • Not public • Publishing requires your approval
         </Text>
