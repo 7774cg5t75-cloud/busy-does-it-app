@@ -10,6 +10,7 @@ import {designForWebsite,designCss} from "../supabase/functions/busy-website-wor
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
 import {applyWebsiteVisualEdit} from "../supabase/functions/busy-website-worker/designEdits.mjs";
 import {planWebsiteDesign} from "../supabase/functions/busy-website-worker/designPlanner.mjs";
+import {websiteDesignAlternative} from "../src/core/websiteDesignAlternatives.mjs";
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const read=p=>fs.readFileSync(path.join(root,p),"utf8");
 const strip=s=>s.replace(/export\s*\{[\s\S]*?\};?\s*$/,"");
@@ -69,6 +70,11 @@ for(const f of demos){
  const target=path.join(output,f.file+".html");
  fs.writeFileSync(target,draft.html);
  if(f.file==="01-gardening-minimal"){
+   const alternative=websiteDesignAlternative(draft);
+   if(!alternative.suggested)throw Error("Expected a safe private layout alternative");
+   const explored=applyWebsiteInstruction(draft,alternative.suggested.instruction);
+   if(!explored.applied)throw Error("Guided layout was not applied: "+explored.reason);
+   fs.writeFileSync(path.join(output,"01-gardening-minimal-guided-alternative.html"),explored.draft.html);
    // A separate private candidate of the SAME business, assembled from two
    // owner-approved design-only instructions. Not an AI-generated improvement.
    const first=applyWebsiteInstruction(draft,"use service cards outlines");

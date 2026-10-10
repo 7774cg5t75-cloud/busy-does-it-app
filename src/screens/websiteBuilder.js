@@ -7,6 +7,7 @@ import { Shell, Card, Button, Field, MetricRow, StatusChip } from "../components
 import { buildWebsiteLaunchJourney } from "../core/websiteLaunchJourney";
 import { buildWebsiteLaunchProof } from "../core/websiteLaunchProof.mjs";
 import { websiteQualityGuidance } from "../core/websiteQualityGuidance.mjs";
+import { websiteDesignAlternative } from "../core/websiteDesignAlternatives.mjs";
 import { renderWebsiteHtml } from "../domain/websiteBuilder";
 
 function WebsiteBuilder({ s }) {
@@ -28,6 +29,7 @@ function WebsiteBuilder({ s }) {
   });
   const missingDeliveryCheck=deliveryProof.checks.find(check=>!check.ready);
   const qualityGuide = websiteQualityGuidance({ brandBrain: brand, draft });
+  const designAlternative=websiteDesignAlternative(draft);
   const nextStep=()=>{
     switch(journey.nextAction){
       case "brand":return s.openBrandIdentity();
@@ -127,6 +129,21 @@ function WebsiteBuilder({ s }) {
                   <Text style={styles.cardBody}>{item.detail}</Text>
                 </View>
               ))}
+            </>
+          ) : null}
+          {designAlternative.suggested ? (
+            <>
+              <Text style={styles.cardBody}>
+                {"Next style to explore: "+designAlternative.suggested.title+
+                  ". "+designAlternative.suggested.detail}
+              </Text>
+              <Button
+                label={"Try "+designAlternative.suggested.title+" (private draft)"}
+                onPress={()=>s.applyWebsiteChange(designAlternative.suggested.instruction)} />
+              <Text style={styles.cardBody}>
+                Only the private design changes. Your business information, photos and
+                published website stay as they are; you can undo the change in the editor.
+              </Text>
             </>
           ) : null}
           <Button label="Preview this design" onPress={() => s.go("websitePreview")} />
