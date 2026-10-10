@@ -1,0 +1,68 @@
+name: V3.103 Website visual review foundation — no Expo builds
+# Automatic runs use no vision provider or customer-site publishing.
+# Paid AI calls require three simultaneous explicit manual gates.
+on:
+  push:
+    branches: [v3.103]
+    paths:
+      - .github/workflows/website-visual-review-v3103.yml
+  workflow_dispatch:
+    inputs:
+      run_vision:
+        description: 'Analyse fictional example screenshots with AI?'
+        required: true
+        default: false
+        type: boolean
+      confirm_provider_costs:
+        description: 'I approve ONE billable vision request'
+        required: true
+        default: false
+        type: boolean
+permissions:
+  contents: read
+jobs:
+  free-visual-and-native-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: "1"
+    steps:
+      - name: Checkout V3.103
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Run production, website editing and mocked vision tests
+        run: |
+          node scripts/check-production.mjs
+          node scripts/check-real-website-vision-v3103.mjs
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Compile iPhone JavaScript without EAS charges
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3103-ios-js-only
+      - name: Generate fictional website examples offline
+        run: node scripts/build-website-design-gallery-v3100.mjs /tmp/busy-v3103-website-examples
+      - name: Install Playwright Chromium
+        run: npx --yes playwright@1.58.2 install --with-deps chromium
+      - name: Render actual mobile and desktop site screenshots
+        run: |
+          npx --yes playwright@1.58.2 screenshot --browser chromium --viewport-size="390,844" --full-page "file:///tmp/busy-v3103-website-examples/01-gardening-minimal.html" "/tmp/busy-v3103-website-examples/01-gardening-minimal-mobile.png"
+          npx --yes playwright@1.58.2 screenshot --browser chromium --viewport-size="1440,900" --full-page "file:///tmp/busy-v3103-website-examples/01-gardening-minimal.html" "/tmp/busy-v3103-website-examples/01-gardening-minimal-desktop.png"
+      - name: One optional vision review — only with explicit manual approval
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_vision == true && inputs.confirm_provider_costs == true && vars.BUSY_VISUAL_AI_ENABLED == 'true' }}
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          BUSY_VISION_MODEL: ${{ vars.BUSY_VISION_MODEL }}
+          BUSY_RUN_VISUAL_AI: "true"
+          BUSY_VISUAL_AI_OWNER_APPROVED: "true"
+        run: |
+          node scripts/run-website-visual-ai-v3103.mjs "/tmp/busy-v3103-website-examples/01-gardening-minimal-mobile.png" "/tmp/busy-v3103-website-examples/01-gardening-minimal-desktop.png" "/tmp/busy-v3103-website-examples/vision-review.json"
+      - name: Upload fictional screenshots and optional report
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3103-website-visual-qa
+          path: /tmp/busy-v3103-website-examples/
+          retention-days: 7
+      - name: Confirm iOS and public hosting untouched
+        run: echo "No EAS native build. No real customer site published. AI called only if approved and enabled."
