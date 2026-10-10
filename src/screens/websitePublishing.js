@@ -13,6 +13,7 @@ import { websiteDomainLaunchGuide } from "../core/websiteDomainLaunchGuide.mjs";
 import { websiteDomainSwitchSafety } from "../core/websiteDomainSwitchSafety.mjs";
 import { websitePublishApprovalGuide } from "../core/websitePublishApprovalGuide.mjs";
 import { websiteRecoveryCoach } from "../core/websiteRecoveryCoach.mjs";
+import { websiteCustomerSafetySummary } from "../core/websiteCustomerSafetySummary.mjs";
 
 function readableSeconds(value) {
   const seconds = Number(value || 0);
@@ -192,6 +193,10 @@ function WebsitePublishing({ s }) {
   },[preview?.id,preview?.content_hash,view.draftChangedSinceHosted]);
   const approvalGuide=websitePublishApprovalGuide({preview,live,view,
     openedId:openedHostedPreview,reviewedId:reviewedHostedPreview});
+  const customerSafety=websiteCustomerSafetySummary({publishing:view,
+    openedId:openedHostedPreview,reviewedId:reviewedHostedPreview,
+    businessReady:s.brandBrain?.websiteReady===true,
+    hasDraft:!!s.websiteDraft,publicDeliveryVerified:launchProof.verified});
   const inspectHostedPreview=async()=>{
     if(!preview?.id)return false;
     return !!(await s.openHostedWebsitePreview(preview.id));
@@ -233,6 +238,9 @@ function WebsitePublishing({ s }) {
           : "Nothing is published automatically"}
         tone={launchProof.verified ? "green" : live && !launchProof.verified ? "amber" : "blue"}
       >
+        <Text style={styles.sectionLabel}>
+          {"Next: "+customerSafety.next+". "+customerSafety.reason}
+        </Text>
         {journey.missingCoreFacts.length ? (
           <Button label="Complete my business details" onPress={s.openBrandIdentity} />
         ) : null}
