@@ -7,6 +7,7 @@ import {founderOperationalPriorities} from "../core/founderOperationalPriorities
 import {websiteReleaseReadiness} from "../core/websiteReleaseReadiness.mjs";
 import {websitePilotReadiness} from "../core/websitePilotReadiness.mjs";
 import {founderNextSafeAction} from "../core/founderNextSafeAction.mjs";
+import {founderRehearsalGuidance} from "../core/founderRehearsalGuidance.mjs";
 
 /** V3.69: no platform metrics are read except from server-authorised aggregates. */
 const show=n=>Number.isSafeInteger(n)&&n>=0?n.toLocaleString("en-GB"):"Not measured";
@@ -82,6 +83,7 @@ function FounderOperations({s}){
   const safeAction=founderNextSafeAction(operational);
   const release=websiteReleaseReadiness();
   const pilot=websitePilotReadiness();
+  const rehearsal=founderRehearsalGuidance({priorities:operational,pilot,release});
 
   return <Shell s={s} title="Founder Operations"
     subtitle="Platform-wide aggregate status, restricted to a verified founder account."
@@ -130,6 +132,9 @@ function FounderOperations({s}){
           <MetricRow left="Verified pilot safety checks"
             right={show(pilot.passed)+" of "+show(pilot.total)}/>
           <Text style={styles.sectionLabel}>{"Next verification: "+pilot.next}</Text>
+          <Text style={styles.sectionLabel}>
+            {"Recommended preparation: "+rehearsal.next}
+          </Text>
           <MetricRow left="Automatic customer pilot" right="Disabled"/>
         </Card>
         <Card eyebrow="Pre-release audit"

@@ -72,11 +72,14 @@ function WebsiteBuilder({ s }) {
     journey,publishing:s.websitePublishingView,proof:deliveryProof,hasDraft:!!draft
   });
   const nextStep=()=>{
-    switch(journey.nextAction){
+    // Use the SAME evidence-backed decision as the visible next-step text.
+    // A newer private draft must not lead customers straight to the old live site.
+    switch(assurance.action){
       case "brand":return s.openBrandIdentity();
       case "build":return s.buildWebsiteFromBrandBrain();
+      case "wait":
       case "prepare":return s.openWebsitePublishing();
-      case "review":return hostedPreview?.id
+      case "review":return assurance.hostedPreviewReady&&hostedPreview?.id
         ? s.openHostedWebsitePreview(hostedPreview.id)
         : s.openWebsitePublishing();
       case "verify":
@@ -87,11 +90,12 @@ function WebsiteBuilder({ s }) {
   const nextLabel={
     brand:"Complete business details",
     build:"Build my first draft",
+    wait:"Check website preparation",
     prepare:"Prepare the hosted version",
-    review:"View hosted website preview",
+    review:"Review my hosted website",
     verify:"Check my live website",
     maintain:"Manage my live website"
-  }[journey.nextAction]||"Continue website setup";
+  }[assurance.action]||"Continue website setup";
 
   const sendDesignPreference=async(choice)=>{
     if(feedbackBusy.current||!draft?.id)return;
