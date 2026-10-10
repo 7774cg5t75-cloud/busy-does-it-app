@@ -178,6 +178,10 @@ function FounderOperations({s}){
                 right={show(stagedPlan.environment.passed)+" of "+show(stagedPlan.environment.total)}/>
               <MetricRow left="Hosted website rehearsal"
                 right={show(stagedPlan.journey.passed)+" of "+show(stagedPlan.journey.total)}/>
+              <MetricRow left="Disposable database isolation" right="GitHub CI only"/>
+              <Text style={styles.sectionLabel}>
+                {"The isolated PostgreSQL test checks fictional owner access and denied writes. It does not verify the real Supabase project, authentication or customer data."}
+              </Text>
               <Text style={styles.sectionLabel}>
                 {"Cloud gate: "+staged.next}
               </Text>
