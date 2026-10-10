@@ -62,7 +62,7 @@ ok(builder.includes('onPress={s.openBrandIdentity}'),"customer can improve real 
 ok(builder.includes('Continue editing with BUSY'),"not forced to complete suggestions");
 ok(brand.includes('logoLabel: profile.logoLabel'),"approved customer brand passed into website brief");
 ok(draft.includes('brandLabel: clean(brief.logoLabel).slice(0, 100) || clean(brief.businessName)'),"text wordmark is business-owned, not BUSY default");
-ok(draft.includes('escapeHtml(draft.brandLabel || draft.businessName)'),"editable HTML uses customer label");
+ok(draft.includes('escapeHtml(draft.brandLabel||draft.businessName||"Business website")'),"editable HTML uses customer label");
 ok(worker.includes('draft?.brandLabel || draft?.businessName || "Home"'),"hosted HTML uses customer label in navigation");
 ok(worker.includes('draft.brandLabel || draft.businessName'),"hosted hero uses customer label");
 ok(publish.includes('reviewedHostedPreview!==preview.id'),"exact review gate remains intact");
