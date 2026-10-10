@@ -39,11 +39,38 @@ const withWhiteContrast = candidate => {
   }
   return hex;
 };
-function designForWebsite({businessType="",theme={}}={}){
+const PALETTE_ALTERNATIVES={
+ nature:{
+  b:{ink:"#183B34",accent:"#3E6252",soft:"#F3F5EA",glow:"#CBDDBF",paper:"#FEFDF8"},
+  c:{ink:"#34402C",accent:"#4A643B",soft:"#F4F5EA",glow:"#D5E3B9",paper:"#FCFDF8"}
+ },
+ trades:{
+  b:{ink:"#262E3E",accent:"#3D4F78",soft:"#F1F2F8",glow:"#C8D2EF",paper:"#FCFCFF"},
+  c:{ink:"#2F343B",accent:"#71533D",soft:"#F9F3EE",glow:"#E8D1BC",paper:"#FFFDFB"}
+ },
+ hospitality:{
+  b:{ink:"#38322B",accent:"#74603A",soft:"#F8F4E9",glow:"#E6D9B1",paper:"#FEFDF7"},
+  c:{ink:"#402C38",accent:"#755068",soft:"#F9F0F3",glow:"#E7D0DB",paper:"#FFFCFD"}
+ },
+ wellness:{
+  b:{ink:"#263A3C",accent:"#42666A",soft:"#EEF6F4",glow:"#C5E1D8",paper:"#FCFEFD"},
+  c:{ink:"#484039",accent:"#79624A",soft:"#F7F2EB",glow:"#E9DDC5",paper:"#FFFDF8"}
+ },
+ professional:{
+  b:{ink:"#30353E",accent:"#455A66",soft:"#F2F5F5",glow:"#CFDBE0",paper:"#FDFEFE"},
+  c:{ink:"#37332D",accent:"#68523E",soft:"#F6F3ED",glow:"#DDD2BC",paper:"#FFFDF8"}
+ },
+ neutral:{
+  b:{ink:"#293B3B",accent:"#416969",soft:"#ECF5F2",glow:"#CEE5DA",paper:"#FCFEFD"},
+  c:{ink:"#3B3542",accent:"#665274",soft:"#F5F0F6",glow:"#DDD2E8",paper:"#FEFBFE"}
+ }
+};
+function designForWebsite({businessType="",theme={},plan=null}={}){
   const sector=SECTORS.find(([,pattern])=>pattern.test(clean(businessType).toLowerCase()))?.[0]||"neutral";
   const mood=["clean","warm","bold","premium"].includes(clean(theme?.mood).toLowerCase())
     ? clean(theme.mood).toLowerCase() : "clean";
-  const base={...PALETTES[sector]};
+  const variant=["a","b","c"].includes(plan?.visualIdentity?.paletteVariant)?plan.visualIdentity.paletteVariant:"a";
+  const base={...PALETTES[sector],...(PALETTE_ALTERNATIVES[sector]?.[variant]||{})};
   if(mood==="premium"){
     base.ink=sector==="nature"?"#102E28":"#232C39";
     base.paper="#FCFAF7";
@@ -160,6 +187,41 @@ p{max-width:68ch;margin:0 0 18px}
 .family-minimal .hero h1{font-size:clamp(3.2rem,9vw,7.1rem)}
 .family-minimal .hero-art{opacity:.11}
 .family-minimal .grid article{box-shadow:none;border-radius:5px}
+
+/* Stable customer identity combinations: layout, rhythm and ornament are
+   independent within each industry. Every variation has a mobile fallback. */
+.visual-hero-type-center .hero-no-image .wrap{align-items:center;text-align:center}
+.visual-hero-type-center .hero-no-image .hero-content{margin-inline:auto}
+.visual-hero-type-center .hero-no-image .hero .lead{margin-inline:auto}
+.visual-hero-type-right .hero-no-image .wrap{align-items:flex-end;text-align:right}
+.visual-hero-type-right .hero-no-image .hero-content{margin-left:auto}
+.visual-hero-type-right .hero-no-image .hero .lead{margin-left:auto}
+.visual-hero-type-poster .hero-no-image h1{font-size:clamp(3.7rem,11vw,8.5rem);line-height:.95;max-width:1000px}
+.visual-hero-type-poster .hero-no-image .hero-art{right:-8%;top:-35%;width:54vw}
+.visual-hero-image-left .hero-with-image .hero-image{grid-column:1;grid-row:1}
+.visual-hero-image-left .hero-with-image .hero-content{grid-column:2;grid-row:1}
+.visual-hero-image-frame .hero-image{border-radius:4px!important;border:12px solid rgba(255,255,255,.11)}
+.visual-hero-image-feature .hero-with-image .wrap{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)}
+.visual-hero-image-feature .hero-image{height:clamp(320px,49vw,625px);border-radius:4px}
+.visual-cards-outlines .grid article{background:transparent;border:2px solid var(--line);box-shadow:none;border-radius:4px}
+.visual-cards-rows .grid{display:flex;flex-direction:column;gap:0}
+.visual-cards-rows .grid article{background:transparent;border:0;border-bottom:1px solid var(--line);box-shadow:none;border-radius:0;padding:24px 0}
+.visual-cards-rows .grid article h3{font-size:1.5rem}
+.visual-ornament-arch .hero-art{border-radius:240px 240px 4px 4px;transform:rotate(0deg)}
+.visual-ornament-stripes .hero-art{border-radius:0;background:repeating-linear-gradient(115deg,var(--glow) 0,var(--glow) 10px,transparent 10px,transparent 25px);opacity:.12;transform:rotate(-8deg)}
+.visual-ornament-glow .hero-art{border-radius:50%;filter:blur(38px);opacity:.22}
+.visual-nav-underline .nav-links a{border-bottom:2px solid var(--line);padding-bottom:5px}
+.visual-nav-pill .nav-links a{background:var(--soft);padding:7px 13px;border-radius:80px;opacity:1}
+.visual-type-refined h1,.visual-type-refined h2{font-family:Georgia,"Times New Roman",serif;font-weight:550;letter-spacing:-.03em}
+.visual-type-compact h1{font-size:clamp(2.8rem,6.4vw,5.2rem);letter-spacing:-.04em}
+.visual-type-compact h2{font-size:clamp(1.9rem,3.1vw,2.8rem)}
+@media(max-width:800px){
+ .visual-hero-image-left .hero-with-image .hero-content{grid-column:1;grid-row:1}
+ .visual-hero-image-left .hero-with-image .hero-image{grid-column:1;grid-row:2}
+ .visual-hero-image-feature .hero-with-image .wrap{grid-template-columns:1fr}
+ .visual-hero-type-poster .hero-no-image h1{font-size:clamp(3rem,11vw,5rem)}
+ .visual-hero-type-right .hero-no-image .wrap{align-items:flex-start;text-align:left}
+}
 /* Focused landing pages have one clear visual rhythm and no empty filler. */
 .architecture-focused-landing .hero .wrap{min-height:440px;display:flex;flex-direction:column;justify-content:center}
 .architecture-focused-landing .hero-with-image .wrap{display:grid;min-height:0}
