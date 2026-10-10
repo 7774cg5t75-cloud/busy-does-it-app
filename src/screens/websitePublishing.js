@@ -37,6 +37,7 @@ function WebsitePublishing({ s }) {
   const view = s.websitePublishingView || {};
   const [showTechnicalDetails, setShowTechnicalDetails] = React.useState(false);
   const [showDomainSetup, setShowDomainSetup] = React.useState(false);
+  const [dnsInspection,setDnsInspection]=React.useState({domainId:"",status:"idle",result:null,error:""});
   const [showEnquiries, setShowEnquiries] = React.useState(false);
   const [showNewEnquiry, setShowNewEnquiry] = React.useState(false);
   const toggleSection = (setter) => { Keyboard.dismiss(); setter(previous => !previous); };
@@ -46,6 +47,21 @@ function WebsitePublishing({ s }) {
   const domain = view.domainState?.latest || null;
   const domainGuide=domainDnsGuide({domain,stage:view.domainState?.journey?.stage,
     records:view.domainState?.recordsToAdd});
+  const dnsInspectionRef=React.useRef("");dnsInspectionRef.current=domain?.id||"";
+  React.useEffect(()=>setDnsInspection({domainId:domain?.id||"",status:"idle",result:null,error:""}),[domain?.id]);
+  const checkDns=async()=>{
+    const selected=domain?.id;
+    if(!selected||dnsInspection.status==="loading")return;
+    setDnsInspection({domainId:selected,status:"loading",result:null,error:""});
+    try{
+      const result=await s.inspectWebsiteDomainDns(selected);
+      if(dnsInspectionRef.current===selected)
+        setDnsInspection({domainId:selected,status:"done",result,error:""});
+    }catch(error){
+      if(dnsInspectionRef.current===selected)
+        setDnsInspection({domainId:selected,status:"error",result:null,error:error?.message||"DNS check unavailable."});
+    }
+  };
   const activeJob = view.activeJob || null;
   const changes = view.changeSummary?.items || [];
   // V3.78 private lead follow-up, not an open website form.
@@ -204,7 +220,158 @@ function WebsitePublishing({ s }) {
         <Button label={s.websitePublishingLoading ? "Refreshing…" : "Refresh website status"}
           disabled={s.websitePublishingLoading} onPress={s.refreshWebsitePublishingStatus} />
         <Button label="Edit my website" onPress={() => s.go("websiteBuilder")} />
+        <Button label="Choose or check my website address"
+          onPress={() => setShowDomainSetup(true)} />
       </Card>
+      <Text style={styles.sectionLabel}>Your website address</Text>
+      <Text style={styles.cardBody}>
+        You can start with a BUSY website address and connect a domain you already own whenever you're ready.
+        A custom domain is optional, and it does not need to delay reviewing your design.
+      </Text>
+      {view.defaultAddressState?.address?.hostname ? (
+        <MetricRow left="BUSY address" right={view.defaultAddressState.address.hostname} />
+      ) : (
+        <Text style={styles.cardBody}>Your BUSY address will be confirmed as part of the approved publishing process.</Text>
+      )}
+      <Button
+        label={showDomainSetup ? "Hide domain setup" : domain ? "Manage my custom domain" : "Connect my own domain (optional)"}
+        onPress={() => toggleSection(setShowDomainSetup)}
+      />
+      {showDomainSetup ? (
+        <>
+      <Text style={styles.sectionLabel}>Custom domain</Text>
+      <Card
+        eyebrow="Your own domain • one ownership check"
+        title={view.domainState?.journey?.label || "Connect a domain you already own"}
+        body={
+          !domain
+            ? "Enter the domain you want customers to use. BUSY first proves ownership with one TXT record; after that it prepares the Cloudflare hostname, SSL and route automatically."
+            : view.domainState?.journey?.complete
+            ? "BUSY has proved ownership, Cloudflare routing, HTTPS and the exact live website through this customer-owned domain."
+            : view.domainState?.journey?.needsAttention
+            ? "Your approved BUSY website remains safe. The custom-domain setup has been isolated to the stage shown below, and BUSY will keep the default BUSY address separate."
+            : domain.status === "pending_verification"
+            ? "Add the ownership TXT record below, then check ownership once. BUSY takes over the provider setup after that."
+            : "Ownership is complete. BUSY is handling the Cloudflare hostname and SSL automatically; only the DNS records shown below still need to be added at the domain's DNS provider."
+        }
+        footer={
+          view.domainState?.journey?.complete
+            ? "The customer-owned domain is now the preferred public website address."
+            : "BUSY never treats ownership, SSL, routing or live-site health as the same thing."
+        }
+        tone={
+          view.domainState?.journey?.complete
+            ? "green"
+            : view.domainState?.journey?.needsAttention
+            ? "amber"
+            : "blue"
+        }
+      >
+        <Text style={styles.sectionLabel}>{domainGuide.nextAction}</Text>
+        {(view.domainState?.journey?.steps || []).map((step) => (
+          <MetricRow
+            key={step.id}
+            left={step.label}
+            right={
+              step.status === "complete"
+                ? "Done"
+                : step.status === "working"
+                ? "Checking…"
+                : step.status === "error"
+                ? "Needs attention"
+                : "Waiting"
+            }
+            strong={step.status === "complete"}
+          />
+        ))}
+
+        {!domain ? (
+          <>
+            <Field
+              label="Domain"
+              value={s.websiteDomainDraft}
+              onChangeText={s.setWebsiteDomainDraft}
+              autoCapitalize="none"
+              placeholder="www.example.co.uk"
+            />
+            <Text style={styles.cardBody}>{domainGuide.explanation} Enter exactly the address customers should use. For example, www.example.co.uk and example.co.uk are separate hostnames.</Text>
+            <Button
+              label={s.websitePublishingAction === "domain" ? "Creating verification…" : "Connect my domain"}
+              disabled={!s.websiteDomainDraft.trim() || !!s.websitePublishingAction}
+              onPress={s.requestWebsiteDomain}
+            />
+          </>
+        ) : (
+          <>
+            <MetricRow left="Domain" right={domain.hostname} strong />
+            {domainGuide.records.map((record,index)=>(
+              <React.Fragment key={record.type+":"+record.name+":"+index}>
+                <Text style={styles.sectionLabel}>{record.label}</Text>
+                <MetricRow left="Record type" right={record.type} />
+                <MetricRow left="Record name" right={record.name} />
+                <MetricRow left="Record value" right={record.value} />
+              </React.Fragment>
+            ))}
+            {domainGuide.records.length>0 ? (
+              <Text style={styles.cardBody}>{domainGuide.explanation}</Text>
+            ) : null}
+            {domain.status === "pending_verification" ? (
+              <Button
+                label={s.websitePublishingAction === `verify-domain:${domain.id}` ? "Checking ownership…" : "I've added the TXT record • check now"}
+                disabled={!!s.websitePublishingAction}
+                onPress={() => s.verifyWebsiteDomain(domain.id)}
+              />
+            ) : null}
+
+            {domainGuide.records.length>0 ? (
+              <Button label={dnsInspection.status==="loading"?"Checking public DNS…":"Check my DNS records (no changes)"}
+                disabled={dnsInspection.status==="loading"||!!s.websitePublishingAction}
+                onPress={checkDns} />
+            ) : null}
+            {dnsInspection.domainId===domain.id&&dnsInspection.status==="error" ? (
+              <Text style={styles.cardBody}>{dnsInspection.error}</Text>
+            ) : null}
+            {dnsInspection.domainId===domain.id&&dnsInspection.status==="done" ? (
+              <>
+                <Text style={styles.sectionLabel}>{dnsInspection.result?.summary?.message||"DNS checked."}</Text>
+                {(dnsInspection.result?.checks||[]).map((item,i)=>(
+                  <Text key={item.type+":"+item.name+":"+i} style={styles.cardBody}>
+                    {item.type+" "+item.name+": "+(item.status==="matching"?"Found":
+                      item.status==="different"?"Different value":
+                      item.status==="not-visible"?"Waiting":"Unable to check")+". "+item.message}
+                  </Text>
+                ))}
+                <Text style={styles.cardBody}>Checking DNS does not activate hosting, prove HTTPS, or publish your website.</Text>
+              </>
+            ) : null}
+            {domain.status !== "pending_verification" && !view.domainState?.journey?.complete ? (
+              <Button
+                label={
+                  s.websitePublishingAction === `provision-domain:${domain.id}`
+                    ? "Checking domain setup…"
+                    : "Check domain setup now"
+                }
+                disabled={!!s.websitePublishingAction}
+                onPress={() => s.provisionWebsiteDomain(domain.id)}
+              />
+            ) : null}
+
+            {view.domainState?.journey?.lastError ? (
+              <MetricRow left="Latest provider message" right={view.domainState.journey.lastError} />
+            ) : null}
+
+            {view.canOpenCustomDomain ? (
+              <Button
+                label="Open customer-owned website"
+                primary
+                onPress={s.openCustomWebsiteDomain}
+              />
+            ) : null}
+          </>
+        )}
+      </Card>
+        </>
+      ) : null}
       {s.websitePublishingError ? (
         <Card
           eyebrow="Needs attention"
@@ -296,124 +463,6 @@ function WebsitePublishing({ s }) {
             />
             <Button label="Open live website" primary onPress={s.openLiveWebsite} />
           </Card>
-        </>
-      ) : null}
-      <Button
-        label={showDomainSetup ? "Hide domain setup" : domain ? "Manage my custom domain" : "Connect my own domain (optional)"}
-        onPress={() => toggleSection(setShowDomainSetup)}
-      />
-      {showDomainSetup ? (
-        <>
-      <Text style={styles.sectionLabel}>Custom domain</Text>
-      <Card
-        eyebrow="Your own domain • one ownership check"
-        title={view.domainState?.journey?.label || "Connect a domain you already own"}
-        body={
-          !domain
-            ? "Enter the domain you want customers to use. BUSY first proves ownership with one TXT record; after that it prepares the Cloudflare hostname, SSL and route automatically."
-            : view.domainState?.journey?.complete
-            ? "BUSY has proved ownership, Cloudflare routing, HTTPS and the exact live website through this customer-owned domain."
-            : view.domainState?.journey?.needsAttention
-            ? "Your approved BUSY website remains safe. The custom-domain setup has been isolated to the stage shown below, and BUSY will keep the default BUSY address separate."
-            : domain.status === "pending_verification"
-            ? "Add the ownership TXT record below, then check ownership once. BUSY takes over the provider setup after that."
-            : "Ownership is complete. BUSY is handling the Cloudflare hostname and SSL automatically; only the DNS records shown below still need to be added at the domain's DNS provider."
-        }
-        footer={
-          view.domainState?.journey?.complete
-            ? "The customer-owned domain is now the preferred public website address."
-            : "BUSY never treats ownership, SSL, routing or live-site health as the same thing."
-        }
-        tone={
-          view.domainState?.journey?.complete
-            ? "green"
-            : view.domainState?.journey?.needsAttention
-            ? "amber"
-            : "blue"
-        }
-      >
-        <Text style={styles.sectionLabel}>{domainGuide.nextAction}</Text>
-        {(view.domainState?.journey?.steps || []).map((step) => (
-          <MetricRow
-            key={step.id}
-            left={step.label}
-            right={
-              step.status === "complete"
-                ? "Done"
-                : step.status === "working"
-                ? "Checking…"
-                : step.status === "error"
-                ? "Needs attention"
-                : "Waiting"
-            }
-            strong={step.status === "complete"}
-          />
-        ))}
-
-        {!domain ? (
-          <>
-            <Field
-              label="Domain"
-              value={s.websiteDomainDraft}
-              onChangeText={s.setWebsiteDomainDraft}
-              autoCapitalize="none"
-              placeholder="www.example.co.uk"
-            />
-            <Text style={styles.cardBody}>{domainGuide.explanation} Enter exactly the address customers should use. For example, www.example.co.uk and example.co.uk are separate hostnames.</Text>
-            <Button
-              label={s.websitePublishingAction === "domain" ? "Creating verification…" : "Connect my domain"}
-              disabled={!s.websiteDomainDraft.trim() || !!s.websitePublishingAction}
-              onPress={s.requestWebsiteDomain}
-            />
-          </>
-        ) : (
-          <>
-            <MetricRow left="Domain" right={domain.hostname} strong />
-            {domainGuide.records.map((record,index)=>(
-              <React.Fragment key={record.type+":"+record.name+":"+index}>
-                <Text style={styles.sectionLabel}>{record.label}</Text>
-                <MetricRow left="Record type" right={record.type} />
-                <MetricRow left="Record name" right={record.name} />
-                <MetricRow left="Record value" right={record.value} />
-              </React.Fragment>
-            ))}
-            {domainGuide.records.length>0 ? (
-              <Text style={styles.cardBody}>{domainGuide.explanation}</Text>
-            ) : null}
-            {domain.status === "pending_verification" ? (
-              <Button
-                label={s.websitePublishingAction === `verify-domain:${domain.id}` ? "Checking ownership…" : "I've added the TXT record • check now"}
-                disabled={!!s.websitePublishingAction}
-                onPress={() => s.verifyWebsiteDomain(domain.id)}
-              />
-            ) : null}
-
-            {domain.status !== "pending_verification" && !view.domainState?.journey?.complete ? (
-              <Button
-                label={
-                  s.websitePublishingAction === `provision-domain:${domain.id}`
-                    ? "Checking domain setup…"
-                    : "Check domain setup now"
-                }
-                disabled={!!s.websitePublishingAction}
-                onPress={() => s.provisionWebsiteDomain(domain.id)}
-              />
-            ) : null}
-
-            {view.domainState?.journey?.lastError ? (
-              <MetricRow left="Latest provider message" right={view.domainState.journey.lastError} />
-            ) : null}
-
-            {view.canOpenCustomDomain ? (
-              <Button
-                label="Open customer-owned website"
-                primary
-                onPress={s.openCustomWebsiteDomain}
-              />
-            ) : null}
-          </>
-        )}
-      </Card>
         </>
       ) : null}
       <Button

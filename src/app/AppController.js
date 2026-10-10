@@ -13664,6 +13664,15 @@ function App() {
     });
   };
 
+  // Read-only public DNS inspection: no provider provisioning or state changes.
+  const inspectWebsiteDomainDns = async (domainId) => {
+    if(!domainId)throw Error("Select a domain first.");
+    const data=await websitePublishingRequest("inspect_domain_dns",{domainId});
+    if(!data?.ok||data?.diagnostics?.domainId!==domainId||data.diagnostics.readOnly!==true)
+      throw Error("BUSY could not verify the DNS check belongs to this business.");
+    return data.diagnostics;
+  };
+
   const verifyWebsiteDomain = async (domainId) => {
     if (!domainId) return false;
     setWebsitePublishingAction(`verify-domain:${domainId}`);
@@ -15540,6 +15549,7 @@ function App() {
     confirmRollbackWebsite,
     openLiveWebsite,
     requestWebsiteDomain,
+    inspectWebsiteDomainDns,
     verifyWebsiteDomain,
     provisionWebsiteDomain,
     refreshWebsiteSignals,

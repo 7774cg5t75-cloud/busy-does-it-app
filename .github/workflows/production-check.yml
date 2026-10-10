@@ -68,6 +68,7 @@ jobs:
           node scripts/check-website-visual-improvements-v3106.mjs
           node scripts/check-website-accessibility-contract-v3107.mjs
           node scripts/check-website-readability-and-domains-v3108.mjs
+          node scripts/check-website-journey-v3109.mjs
 
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs

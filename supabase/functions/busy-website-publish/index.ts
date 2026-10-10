@@ -3,6 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import {evaluateLaunchPreflight} from "./launchPreflight.mjs";
 import {validatedLeadInput,validTransition,buildLeadDigest} from "./leadWorkflow.mjs";
 import {isVerifiedDomainTxtAnswer} from "./domainOwnership.mjs";
+import {requestedDnsRecords,evaluateDnsAnswer,summarizeDnsChecks} from "./domainDnsDiagnostics.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -1045,6 +1046,31 @@ async function requestDomain(
   return inserted.data;
 }
 
+async function inspectDomainDns(businessId: string, domainId: string) {
+  // Owner/admin-only and exact business/domain row. No Cloudflare provisioning,
+  // no DNS mutations, no status writes, no provider request billable operation.
+  const result=await supabase.from("busy_website_domains").select("*")
+    .eq("id",domainId).eq("business_id",businessId).maybeSingle();
+  if(result.error)throw result.error;
+  if(!result.data)throw Error("This domain does not belong to the selected business.");
+  const records=requestedDnsRecords(result.data);
+  const checks=await Promise.all(records.map(async record=>{
+    let evidence;
+    try{
+      const url="https://cloudflare-dns.com/dns-query?name="+
+        encodeURIComponent(record.name)+"&type="+encodeURIComponent(record.type);
+      const response=await fetch(url,{headers:{Accept:"application/dns-json"},
+        signal:AbortSignal.timeout(8500)});
+      evidence=response.ok?await response.json():null;
+    }catch{evidence=null;}
+    return {...record,...evaluateDnsAnswer(record,evidence)};
+  }));
+  return {domainId:result.data.id,hostname:result.data.hostname,
+    readOnly:true,checkedAt:new Date().toISOString(),checks,
+    summary:summarizeDnsChecks(checks),
+    providerNotProvisioned:true,websiteHealthNotVerified:true};
+}
+
 async function verifyDomain(businessId: string, domainId: string) {
   const domain = await supabase
     .from("busy_website_domains")
@@ -1324,6 +1350,7 @@ Deno.serve(async (request: Request) => {
       "lead_update",
       "rollback",
       "request_domain",
+      "inspect_domain_dns",
       "verify_domain",
       "provision_domain",
       "recover",
@@ -1388,6 +1415,10 @@ Deno.serve(async (request: Request) => {
         verificationName: `_busy-verify.${domain.hostname}`,
         verificationValue: domain.verification_token,
       });
+    }
+    if(action==="inspect_domain_dns"){
+      const domainId=cleanText(body?.domainId,80);
+      return json(200,{ok:true,diagnostics:await inspectDomainDns(businessId,domainId)});
     }
     if (action === "verify_domain") {
       const domainId = cleanText(body?.domainId, 80);
