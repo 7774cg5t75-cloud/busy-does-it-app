@@ -13,12 +13,19 @@ import { Button } from "../components/ui";
  */
 function HostedWebsitePreview({ s }) {
   const preview = s.hostedWebsitePreview;
+  const returnScreen = Array.isArray(s.history) && s.history.length
+    ? s.history[s.history.length - 1] : "";
+  const backLabel = returnScreen === "websitePreview"
+    ? "Back to my website draft"
+    : returnScreen === "websiteBuilder"
+    ? "Back to Website Builder"
+    : "Back to Website Management";
   if (!preview?.html) {
     return (
       <View style={{ flex: 1, backgroundColor: "#0b1220", padding: 20 }}>
         <Text style={{ color: "#fff", fontSize: 23, fontWeight: "700" }}>Website preview unavailable</Text>
         <Text style={{ color: "#c4ccdc", marginVertical: 14 }}>Return to Website Management and open the hosted preview again.</Text>
-        <Button label="Back to Website Management" onPress={s.back} />
+        <Button label={backLabel} onPress={s.back} />
       </View>
     );
   }
@@ -29,7 +36,7 @@ function HostedWebsitePreview({ s }) {
         <Text style={{ color: "#a9c4ef", fontSize: 13 }}>
           Real hosted pages • Not public • Publishing requires your approval
         </Text>
-        <Button label="Back to Website Management" onPress={s.back} />
+        <Button label={backLabel} onPress={s.back} />
         {preview.error ? <Text style={{ color: "#ffcc8d" }}>{preview.error}</Text> : null}
       </View>
       <View style={{ flex: 1, marginHorizontal: 8, marginBottom: 8, borderRadius: 12, overflow: "hidden", backgroundColor: "#fff" }}>
