@@ -1,5 +1,6 @@
 name: V3.101 no-credit website uniqueness visual QA
 # Does not call Expo EAS or publish customer websites.
+# Re-compare after enabling substantially different overall families within the same trade.
 on:
   push:
     branches: [v3.101]
