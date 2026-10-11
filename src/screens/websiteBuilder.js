@@ -22,6 +22,7 @@ import {WebsiteLayoutControls} from "./websiteLayoutControls";
 import {WebsitePagesEditor} from "./websitePagesEditor";
 import {WebsiteTapEditor} from "./websiteTapEditor";
 import {makeTapToEditHtml,resolveTapToolbarAction} from "../core/websiteTapToEdit.mjs";
+import {recordWebsiteViewportEvidence,summarizeWebsiteViewportEvidence} from "../core/websiteViewportEvidence.mjs";
 import {makeWebsiteVisualCheckHtml,reviewWebsiteVisualCheck,CHANNEL as VISUAL_CHECK_CHANNEL} from "../core/websiteVisualCheck.mjs";
 
 function WebsiteBuilder({ s }) {
@@ -576,6 +577,7 @@ function WebsitePreview({ s }) {
   const [selectedEdit,setSelectedEdit]=React.useState(null);
   const [visualCheckOn,setVisualCheckOn]=React.useState(false);
   const [visualCheckResult,setVisualCheckResult]=React.useState(null);
+  const [viewportEvidence,setViewportEvidence]=React.useState(null);
   const [designCandidate,setDesignCandidate]=React.useState(null);
   const [candidateCheckOn,setCandidateCheckOn]=React.useState(false);
   const [candidateCheckResult,setCandidateCheckResult]=React.useState(null);
@@ -587,6 +589,7 @@ function WebsitePreview({ s }) {
     setCandidateCheckResult(null);setDesignCandidateNotice("");
     setShowOriginalComparison(false);
   },[selectedPageId,draft?.id,draft?.generation,previewSize]);
+  React.useEffect(()=>setViewportEvidence(null),[selectedPageId,draft?.id,draft?.generation]);
   const activePage=draft?.pages?.find(page=>page.id===selectedPageId)||
     draft?.pages?.find(page=>page.id==="home");
   const liveConceptHtml = draft ? renderWebsiteHtml(draft,activePage?.id||"home") : "";
@@ -613,7 +616,13 @@ function WebsitePreview({ s }) {
           if(report){setCandidateCheckResult(report);setCandidateCheckOn(false);}
         }else if(visualCheckOn){
           const report=reviewWebsiteVisualCheck(raw,inspectionKey);
-          if(report){setVisualCheckResult(report);setVisualCheckOn(false);}
+          if(report){
+            setVisualCheckResult(report);setVisualCheckOn(false);
+            setViewportEvidence(previous=>recordWebsiteViewportEvidence(previous,{
+              draftId:draft.id,generation:draft.generation,
+              pageId:activePage?.id||"home",report
+            }));
+          }
         }
         return;
       }
@@ -627,6 +636,9 @@ function WebsitePreview({ s }) {
         pageId:activePage?.id||"home",generation:draft.generation});
     }catch{ /* Untrusted or stale page messages never modify a website. */ }
   };
+  const pageReviewCoverage=summarizeWebsiteViewportEvidence(viewportEvidence,{
+    draftId:draft?.id,generation:draft?.generation,pageId:activePage?.id||"home"
+  });
   const layoutAdvice=visualCheckResult&&!designCandidate
     ?recommendMeasuredWebsiteChange({draft,pageId:activePage?.id,report:visualCheckResult}):null;
   const candidateComparison=designCandidate&&candidateCheckResult&&visualCheckResult
@@ -745,6 +757,9 @@ function WebsitePreview({ s }) {
           disabled={visualCheckOn||!!designCandidate}
           onPress={()=>{setSelectedEdit(null);setVisualCheckResult(null);
             setTapEditMode(false);setVisualCheckOn(true);}}/>
+        {pageReviewCoverage.checked.length?(
+         <Text style={styles.cardBody}>{pageReviewCoverage.message}</Text>
+        ):null}
         {visualCheckResult?(
           <View style={{marginVertical:10}}>
            <Text style={styles.cardBody}>{visualCheckResult.message}</Text>
