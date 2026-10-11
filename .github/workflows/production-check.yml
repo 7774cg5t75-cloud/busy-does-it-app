@@ -64,6 +64,7 @@ jobs:
           node scripts/check-website-direct-edit-v3133.mjs
           node scripts/check-website-layout-v3134.mjs
           node scripts/check-website-pages-v3135.mjs
+          node scripts/check-website-standalone-v3136.mjs
           node scripts/check-visual-critic-contract-v3102.mjs
           node scripts/check-real-website-vision-v3103.mjs
           node scripts/check-website-review-cycle-v3104.mjs
