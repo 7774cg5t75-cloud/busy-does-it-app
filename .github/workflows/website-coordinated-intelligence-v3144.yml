@@ -1,0 +1,61 @@
+name: V3.144 coordinated screenshot review and measured design improvements
+on:
+  push:
+    branches: [v3.144]
+    paths:
+      - 'src/core/websiteMeasuredDesignCoach.mjs'
+      - 'src/screens/websiteBuilder.js'
+      - 'src/app/AppController.js'
+      - 'src/domain/websiteBuilder.js'
+      - 'scripts/check-website-measured-coach-v3144.mjs'
+      - 'scripts/check-website-screenshot-loop-v3144.mjs'
+      - 'scripts/check-professional-websites-v399.mjs'
+      - 'scripts/check-website-tap-editor-v3138.mjs'
+      - 'scripts/check-website-visual-inspection-v3143.mjs'
+      - '.github/workflows/website-coordinated-intelligence-v3144.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  coordinated-intelligence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Safe private alternatives and business-scoped feedback
+        run: |
+          node scripts/check-website-measured-coach-v3144.mjs
+          node scripts/check-website-visual-inspection-v3143.mjs
+          node scripts/check-website-voice-reliability-v3142.mjs
+          node scripts/check-website-voice-selection-v3141.mjs
+          node scripts/check-website-context-v3140.mjs
+          node scripts/check-website-section-styling-v3139.mjs
+          node scripts/check-website-tap-editor-v3138.mjs
+          node scripts/check-website-layout-v3134.mjs
+          node scripts/check-website-pages-v3135.mjs
+          node scripts/check-website-standalone-v3136.mjs
+          node scripts/check-website-original-media-v3137.mjs
+          node scripts/check-professional-websites-v399.mjs
+          node scripts/check-production.mjs
+      - name: Install Chromium and app dependencies
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Capture actual fictional mobile and desktop screenshots, test one mocked AI response and measured recheck
+        run: |
+          node scripts/check-website-screenshot-loop-v3144.mjs
+          node scripts/check-website-visual-browser-v3143.mjs
+          node scripts/check-website-context-browser-v3140.mjs
+          node scripts/check-website-tap-browser-v3138.mjs
+          node scripts/check-website-section-browser-v3139.mjs
+      - name: Bundle unsigned iOS and Android JavaScript
+        run: |
+          npx expo export --platform ios --output-dir /tmp/busy-v3144-ios-js
+          npx expo export --platform android --output-dir /tmp/busy-v3144-android-js
+      - name: Verify deployment and spending boundary
+        run: echo "No public publishing, external AI call, production DB change, private user screenshot upload or signed device build."
