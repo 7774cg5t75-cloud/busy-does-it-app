@@ -49,7 +49,7 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
     subject.startsWith("phone")?field==="phone":
     subject==="email"?field==="email":subject==="hours"&&field==="openingHours";
   if(!valid)return failure("That instruction doesn't match the part you tapped. Choose its exact wording instead.");
-  return success("field",{sectionId,itemId:itemId||null,field,value:replacement[2]},
+  return success("field",{sectionId,itemId:itemId||null,field,value:replacement[1]},
    "Replace only the selected wording in your private draft.");
  }
  let m=text.match(/^(?:make|set) (?:this|that|the selected) (?:heading|title) (bigger|larger|smaller|normal)$/i);
