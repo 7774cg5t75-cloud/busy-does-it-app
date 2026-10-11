@@ -42,6 +42,48 @@ function makeWebsiteVisualCheckHtml(html,inspectionKey="preview"){
    var clipped=headings.filter(function(h){
     return h.scrollWidth>h.clientWidth+2||h.scrollHeight>h.clientHeight+2;
    }).length;
+   // V3.145 additional rendered evidence, never guess from brand palettes.
+   // Sample readable solid colour backgrounds only. Image/gradient/alpha
+   // backgrounds are explicitly "unassessed", not declared accessible.
+   function rgb(value){
+    var match=String(value||"").match(/^rgba?\\(\\s*(\\d+(?:\\.\\d+)?)\\s*,\\s*(\\d+(?:\\.\\d+)?)\\s*,\\s*(\\d+(?:\\.\\d+)?)\\s*(?:,\\s*([\\d.]+))?\\s*\\)$/i);
+    return match?[Number(match[1]),Number(match[2]),Number(match[3]),
+      match[4]===undefined?1:Number(match[4])]:null;
+   }
+   function luminance(c){
+    var t=c.slice(0,3).map(function(x){var v=x/255;
+      return v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4);});
+    return t[0]*.2126+t[1]*.7152+t[2]*.0722;
+   }
+   function backgroundFor(element){
+    var node=element;
+    while(node&&node.nodeType===1){
+     var st=getComputedStyle(node);
+     if(st.backgroundImage&&st.backgroundImage!=="none")return null;
+     var value=rgb(st.backgroundColor);
+     if(value&&value[3]>=.99)return value;
+     if(value&&value[3]>.01)return null;
+     node=node.parentElement;
+    }
+    return [255,255,255,1];
+   }
+   var samples=[].slice.call(document.querySelectorAll("main h1,main h2,main h3,main p,main li,main a,main button")).slice(0,120);
+   var lowContrast=0,contrastUnknown=0,contrastChecked=0,smallBodyText=0;
+   samples.forEach(function(node){
+    if(!node.textContent||!node.textContent.trim())return;
+    var bounds=node.getBoundingClientRect(),style=getComputedStyle(node);
+    if(bounds.width<=0||bounds.height<=0||style.visibility==="hidden"||style.display==="none")return;
+    var size=parseFloat(style.fontSize)||0;
+    if(/^(P|LI)$/.test(node.tagName)&&size>0&&size<14)smallBodyText++;
+    var front=rgb(style.color),back=backgroundFor(node);
+    if(!front||!back||front[3]<.99){contrastUnknown++;return;}
+    contrastChecked++;
+    var a=luminance(front),b=luminance(back);
+    var contrast=(Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+    var strong=style.fontWeight==="bold"||Number(style.fontWeight)>=700;
+    var threshold=size>=24||size>=18.66&&strong?3:4.5;
+    if(contrast<threshold)lowContrast++;
+   });
    var value={channel:"busy.website.visual-review.v1",key:${JSON.stringify(inspectionKey)},
     viewport:Math.max(0,Math.round(window.innerWidth)),
     width:Math.max(0,Math.round(document.documentElement.scrollWidth)),
@@ -49,6 +91,8 @@ function makeWebsiteVisualCheckHtml(html,inspectionKey="preview"){
     missingAlt:Math.min(99,missing),unloadedImages:Math.min(99,unloaded),
     smallTargets:Math.min(99,small),badAnchors:Math.min(99,anchors),
     clippedHeadings:Math.min(99,clipped),
+    lowContrast:Math.min(99,lowContrast),contrastUnknown:Math.min(99,contrastUnknown),
+    contrastChecked:Math.min(99,contrastChecked),smallBodyText:Math.min(99,smallBodyText),
     headings:Math.min(99,headings.length),
     sections:Math.min(99,count("main section"))};
    if(window.ReactNativeWebView&&typeof window.ReactNativeWebView.postMessage==="function")
@@ -66,7 +110,8 @@ function reviewWebsiteVisualCheck(message,inspectionKey="preview"){
    message.channel!==CHANNEL||message.key!==inspectionKey||
    JSON.stringify(message).length>700)return null;
  const fields=["viewport","width","overflow","images","missingAlt",
-  "unloadedImages","smallTargets","badAnchors","clippedHeadings","headings","sections"];
+  "unloadedImages","smallTargets","badAnchors","clippedHeadings","headings","sections",
+  "lowContrast","contrastUnknown","contrastChecked","smallBodyText"];
  const counts={};
  for(const field of fields){
   const n=message[field];
@@ -92,6 +137,15 @@ function reviewWebsiteVisualCheck(message,inspectionKey="preview"){
  if(counts.badAnchors)
   add("links","Some on-page links have no matching destination",
     "Review the page's sections and link destinations.");
+ if(counts.lowContrast)
+  add("contrast","Some text may be difficult to read",
+    "Check the colours of text against its background, especially on a phone.");
+ if(counts.smallBodyText)
+  add("readability","Some paragraph text may be too small",
+    "Consider larger body text or a roomier layout.");
+ if(counts.contrastUnknown)
+  add("contrast-unchecked","Some text is over a complex background",
+    "Manually verify text over photographs or gradients; this check cannot confirm its contrast.");
  if(counts.clippedHeadings)
   add("headings","A heading may be clipped",
     "Try a shorter heading or more generous layout.");
