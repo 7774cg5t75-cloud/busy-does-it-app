@@ -9,7 +9,7 @@ const list=v=>Array.isArray(v)?v:[];
 const scalar=(v,n)=>clean(v).slice(0,n);
 const fields=(obj,keys)=>Object.fromEntries(keys.map(([key,n])=>[key,scalar(obj?.[key],n)]));
 function publicSection(section={}){
- const type=["hero","services","faq","testimonials","gallery","contact","text"].includes(section.type)?section.type:"text";
+ const type=["hero","services","faq","testimonials","gallery","contact","text","photo-feature"].includes(section.type)?section.type:"text";
  const base={id:scalar(section.id,80),type,enabled:section.enabled!==false,
   ...fields(section,[["title",140],["body",2500]])};
  if(type==="hero")Object.assign(base,fields(section,[["cta",120],["ctaHref",120]]));
@@ -18,10 +18,10 @@ function publicSection(section={}){
   base.items=list(section.items).slice(0,80).map(item=>({
     id:scalar(item?.id,80),...fields(item,[["title",140],["body",2500]])}));
  }
- if(type==="hero"&&section.asset||type==="gallery"&&list(section.items).length){
+ if(["hero","photo-feature"].includes(type)&&section.asset||type==="gallery"&&list(section.items).length){
   // Export inventories rather than private storage paths, signed URLs or
   // server-specific credentials. Photos must be supplied by their owner.
-  const assets=type==="hero"?[section.asset]:list(section.items);
+  const assets=["hero","photo-feature"].includes(type)?[section.asset]:list(section.items);
   base.media=assets.filter(Boolean).slice(0,80).map((asset,i)=>({
    label:scalar(asset?.alt||asset?.name||"Customer photograph "+(i+1),140),
    originalFileRequired:true
