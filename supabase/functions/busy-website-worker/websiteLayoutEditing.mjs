@@ -69,6 +69,36 @@ function applyWebsiteLayoutOperation(draft,operation={}){
   hero.asset={...item};
   return ready("Selected your existing approved gallery photograph for the hero.");
  }
+ // V3.138: only previously approved gallery originals can be selected.
+ if(action==="choose-feature-photo"){
+  const feature=sections.find(x=>x.id===sectionId&&x.type==="photo-feature");
+  const gallery=sections.find(x=>x.id==="gallery");
+  const item=list(gallery?.items).find(x=>text(x?.storagePath)===operation.storagePath&&
+    text(x?.storagePath)&&x.approved!==false);
+  if(!feature||!item)return fail(draft,"Select a photo block and a photo already approved for this business.");
+  if(text(feature.asset?.storagePath)===operation.storagePath)
+   return fail(draft,"This photo is already used in that block.");
+  feature.asset={...item};
+  return ready("Replaced the selected photo block using your approved business photo.");
+ }
+ if(action==="move-gallery-photo"||action==="remove-gallery-photo"){
+  const gallery=sections.find(x=>x.id==="gallery"&&x.enabled!==false);
+  if(sectionId!=="gallery"||!gallery)
+   return fail(draft,"Select a visible gallery photo before arranging it.");
+  const at=operation.photoIndex;
+  if(!Number.isSafeInteger(at)||at<0||at>=list(gallery.items).length||
+     gallery.items[at]?.approved===false)
+   return fail(draft,"Select an approved photograph that is still in the gallery.");
+  if(action==="remove-gallery-photo"){
+   gallery.items.splice(at,1);
+   return ready("Removed that photograph from your private website gallery. Undo is available.");
+  }
+  const step=operation.direction==="up"?-1:operation.direction==="down"?1:0;
+  if(!step||at+step<0||at+step>=gallery.items.length)
+   return fail(draft,"That photograph is already at the edge of the gallery.");
+  [gallery.items[at],gallery.items[at+step]]=[gallery.items[at+step],gallery.items[at]];
+  return ready("Rearranged the private gallery photographs.");
+ }
  if(index<0||typeof sectionId!=="string"||!sectionId)
   return fail(draft,"Select an existing website section before changing its position or visibility.");
  const chosen=sections[index];
