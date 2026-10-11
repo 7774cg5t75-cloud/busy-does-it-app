@@ -4,15 +4,37 @@
  * downloads arbitrary URLs, reuses signed URLs, or exports tenant credentials.
  * All-or-nothing if any referenced photograph is unavailable.
  */
-import {makeWebsiteZip} from "./websiteZipArchive.mjs";
+import {makeWebsiteZip,crc32} from "./websiteZipArchive.mjs";
 const list=x=>Array.isArray(x)?x:[];
 const clean=x=>typeof x==="string"?x.trim():"";
 const IMAGE_MAX=9*1024*1024;
+const readBE32=(bytes,at)=>((bytes[at]*16777216)+(bytes[at+1]<<16)+(bytes[at+2]<<8)+bytes[at+3])>>>0;
+const readLE32=(bytes,at)=>(bytes[at]+(bytes[at+1]<<8)+(bytes[at+2]<<16)+(bytes[at+3]*16777216))>>>0;
+function pngValid(bytes){
+ if(bytes.length<45||![
+  0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a
+ ].every((v,i)=>bytes[i]===v))return false;
+ let offset=8,ihdr=false,idat=false,iend=false;
+ while(offset+12<=bytes.length){
+  const size=readBE32(bytes,offset),end=offset+12+size;
+  if(size>9*1024*1024||end>bytes.length)return false;
+  const type=String.fromCharCode(...bytes.subarray(offset+4,offset+8));
+  if(crc32(bytes.subarray(offset+4,offset+8+size))!==readBE32(bytes,offset+8+size))return false;
+  if(type==="IHDR"){if(ihdr||size!==13)return false;ihdr=true;}
+  if(type==="IDAT")idat=true;
+  if(type==="IEND"){if(size!==0||end!==bytes.length)return false;iend=true;break;}
+  offset=end;
+ }
+ return ihdr&&idat&&iend;
+}
 const mimeFromBytes=bytes=>{
- if(bytes.length>=4&&bytes[0]===0x89&&bytes[1]===0x50&&bytes[2]===0x4e&&bytes[3]===0x47)return "png";
- if(bytes.length>=4&&bytes[0]===0xff&&bytes[1]===0xd8&&bytes[2]===0xff)return "jpg";
- if(bytes.length>=12&&String.fromCharCode(...bytes.slice(0,4))==="RIFF"&&
-  String.fromCharCode(...bytes.slice(8,12))==="WEBP")return "webp";
+ if(!(bytes instanceof Uint8Array))return "";
+ if(pngValid(bytes))return "png";
+ if(bytes.length>20&&bytes[0]===0xff&&bytes[1]===0xd8&&bytes[2]===0xff&&
+    bytes.at(-2)===0xff&&bytes.at(-1)===0xd9)return "jpg";
+ if(bytes.length>=20&&String.fromCharCode(...bytes.slice(0,4))==="RIFF"&&
+   String.fromCharCode(...bytes.slice(8,12))==="WEBP"&&
+   readLE32(bytes,4)===bytes.length-8)return "webp";
  return "";
 };
 const keyOf=asset=>clean(asset?.storagePath)||clean(asset?.uri);
