@@ -11,6 +11,7 @@ on:
       - 'scripts/check-staging-ios-profile-v3132.mjs'
       - 'scripts/check-staging-remote-anonymous-v3132.mjs'
       - 'scripts/export-and-check-stage-ios-v3132.mjs'
+      - 'scripts/check-staging-native-aps-v3132.mjs'
       - '.github/workflows/production-check.yml'
       - '.github/workflows/staging-ios-package-v3132.yml'
   workflow_dispatch:
@@ -40,6 +41,8 @@ jobs:
         run: node scripts/check-staging-remote-anonymous-v3132.mjs
       - name: Install Expo project dependencies (not EAS credentials)
         run: npm install --no-audit --no-fund --cache /tmp/busy-v3132-npm-cache
+      - name: Verify real iOS entitlements against Ad Hoc provisioning capability
+        run: node scripts/check-staging-native-aps-v3132.mjs
       - name: Export staging and normal iPhone JavaScript for source-level safety
         run: node scripts/export-and-check-stage-ios-v3132.mjs
       - name: Build boundary
