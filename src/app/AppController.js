@@ -13274,6 +13274,55 @@ function App() {
       layoutEdit:applyWebsiteLayoutChange,renderPage:renderWebsiteHtml
     });
   };
+  // Optional AI intent translation. One metered request, explicit tap,
+  // no mutation. Returned model words are ALWAYS replanned locally against
+  // this precise page and draft generation before they can be previewed.
+  const interpretWebsitePageLanguage=async({pageId,generation,instruction}={})=>{
+    const current=websiteDraftRef.current;
+    const stillCurrent=()=>{
+      const now=websiteDraftRef.current;
+      return !!now?.id&&now.id===current?.id&&now.generation===generation&&
+        now.pages?.some(p=>p.id===pageId&&p.enabled!==false);
+    };
+    if(!stillCurrent()||typeof instruction!=="string"||
+       !instruction.trim()||instruction.length>400)
+      return {ok:false,reason:"Select a current page and a short description of your changes."};
+    const workspace=cloudWorkspace?.businessId||"";
+    const token=await ownerAccessToken();
+    if(!workspace||!token)return {ok:false,reason:"Sign in to your business to use AI interpretation."};
+    if(!stillCurrent())return {ok:false,reason:"Your website changed. No AI request was sent."};
+    const sectionIds=current.pages.find(p=>p.id===pageId)?.sectionIds||[];
+    const sections=(current.sections||[]).filter(p=>p.enabled!==false&&sectionIds.includes(p.id))
+      .slice(0,30).map(p=>({id:p.id,title:String(p.title||p.id).slice(0,100)}));
+    try{
+      const response=await fetchWithTimeout(BUSY_COMMAND_URL,{
+        method:"POST",headers:{apikey:BUSY_AI_TOKEN,Authorization:`Bearer ${token}`,
+          "Content-Type":"application/json",
+          "x-busy-request-id":busyRequestId("website-page-intent")},
+        body:JSON.stringify({mode:"website-page-intent-v1",ownerConsent:true,
+          businessId:workspace,sections,text:instruction})
+      },30000);
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw Error(String(data.error||"Language interpretation unavailable."));
+      if(data.mode!=="website-page-intent-v1"||data.requiresReview!==true||
+         data.action!==null||data.command!==null||data.changesApplied!==false)
+        throw Error("The AI result was not review-only. No changes were made.");
+      if(!stillCurrent())return {ok:false,reason:"Your website changed while BUSY was interpreting the request. No changes were applied."};
+      const canonical=String(data.canonicalInstruction||"").trim().slice(0,400);
+      if(!canonical)return {ok:false,reason:String(data.clarification||"BUSY needs more information.").slice(0,250)};
+      // Prevent unsupported or invented AI operations from reaching the draft.
+      const checked=planWebsitePageInstructions(current,{
+        draftId:current.id,pageId,generation,instruction:canonical
+      });
+      if(!checked.ok)return {ok:false,reason:"BUSY needs clarification: "+String(checked.reason||"The request is not supported.").slice(0,200)};
+      return {ok:true,canonical,steps:checked.steps.length,
+        reason:"BUSY interpreted "+checked.steps.length+" safe change(s). Check the wording and preview before applying. Nothing was saved.",
+        chargedRequest:true};
+    }catch(error){
+      return {ok:false,reason:String(error?.message||"BUSY could not interpret that request. No changes were made.").slice(0,250)};
+    }
+  };
+
   const applyWebsitePageInstruction = ({pageId,generation,instruction}={}) => {
     const current=websiteDraftRef.current;
     const plan=planWebsitePageInstructions(current,{
@@ -16012,6 +16061,7 @@ function App() {
     previewSelectedWebsiteInstruction,
     previewWebsitePageInstruction,
     applyWebsitePageInstruction,
+    interpretWebsitePageLanguage,
     transcribeSelectedWebsiteAudio,
     transcribeWebsitePageAudio,
     applyWebsiteLayoutAction,
