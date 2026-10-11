@@ -5,11 +5,13 @@
  * simulated AI vision reviewer or automatic approval to publish.
  */
 const CHANNEL="busy.website.visual-review.v1";
-function makeWebsiteVisualCheckHtml(html){
+function makeWebsiteVisualCheckHtml(html,inspectionKey="preview"){
  if(typeof html!=="string"||html.length>500000||
     !html.startsWith("<!doctype html>")||!html.includes("</body>")||
     /<script\b/i.test(html))
    throw Error("Only an app-owned static preview may be visually inspected.");
+ if(typeof inspectionKey!=="string"||!/^[a-zA-Z0-9._:-]{1,160}$/.test(inspectionKey))
+   throw Error("Invalid inspection identifier.");
  const script=`<script>(function(){
   "use strict";
   function count(selector){return document.querySelectorAll(selector).length;}
@@ -40,7 +42,7 @@ function makeWebsiteVisualCheckHtml(html){
    var clipped=headings.filter(function(h){
     return h.scrollWidth>h.clientWidth+2||h.scrollHeight>h.clientHeight+2;
    }).length;
-   var value={channel:"busy.website.visual-review.v1",
+   var value={channel:"busy.website.visual-review.v1",key:${JSON.stringify(inspectionKey)},
     viewport:Math.max(0,Math.round(window.innerWidth)),
     width:Math.max(0,Math.round(document.documentElement.scrollWidth)),
     overflow:Math.min(99,overflow),images:Math.min(99,imgs.length),
@@ -59,9 +61,10 @@ function makeWebsiteVisualCheckHtml(html){
  return html.replace("</body>",script+"</body>");
 }
 /** Clamp every untrusted bridge metric before turning it into a customer note. */
-function reviewWebsiteVisualCheck(message){
+function reviewWebsiteVisualCheck(message,inspectionKey="preview"){
  if(!message||typeof message!=="object"||Array.isArray(message)||
-   message.channel!==CHANNEL||JSON.stringify(message).length>700)return null;
+   message.channel!==CHANNEL||message.key!==inspectionKey||
+   JSON.stringify(message).length>700)return null;
  const fields=["viewport","width","overflow","images","missingAlt",
   "unloadedImages","smallTargets","badAnchors","clippedHeadings","headings","sections"];
  const counts={};
