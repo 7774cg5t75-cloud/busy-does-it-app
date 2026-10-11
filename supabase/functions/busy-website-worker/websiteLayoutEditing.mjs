@@ -59,6 +59,27 @@ function applyWebsiteLayoutOperation(draft,operation={}){
   theme[field]=value;
   return ready("Changed the website "+field+" to "+value+".");
  }
+ // V3.140: individual item headings are not section headings. Keep their
+ // appearance separate, or "make THIS heading bigger" affects every card.
+ if(action==="item-style"){
+  const itemId=operation.itemId;
+  const section=sections.find(x=>x?.id===sectionId&&x.enabled!==false);
+  if(!section||!["services","faq","testimonials"].includes(section.type)||
+     operation.field!=="headingScale"||
+     !["compact","normal","large"].includes(operation.value))
+   return fail(draft,"Select an existing service, question or testimonial heading.");
+  const matches=list(section.items).filter(item=>item?.id===itemId);
+  if(typeof itemId!=="string"||!itemId||matches.length!==1)
+   return fail(draft,"That exact heading no longer exists.");
+  const at=list(section.items).findIndex(item=>item.id===itemId);
+  const item=section.items[at],present=text(item?.appearance?.headingScale)||"normal";
+  if(present===operation.value)return fail(draft,"That heading already uses this size.");
+  const nextItem={...item};
+  if(operation.value==="normal")delete nextItem.appearance;
+  else nextItem.appearance={headingScale:operation.value};
+  section.items[at]=nextItem;
+  return ready("Resized only the selected card heading.");
+ }
  // V3.139 independent section styles. Never accept CSS, URLs or HTML.
  // The same enumerated tokens are emitted by the concept and hosted renderers.
  if(action==="section-style"||action==="reset-section-style"){
