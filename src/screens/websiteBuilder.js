@@ -15,7 +15,8 @@ import { websiteOnboardingCoach } from "../core/websiteOnboardingCoach.mjs";
 import { websiteBrainCoaching } from "../core/websiteBrainCoaching.mjs";
 import { websiteRegionalReadiness } from "../core/websiteRegionalReadiness.mjs";
 import { websiteDecisionEvidence } from "../core/websiteDecisionEvidence.mjs";
-import { renderWebsiteHtml } from "../domain/websiteBuilder";
+import { renderWebsiteHtml,applyWebsiteLayoutChange } from "../domain/websiteBuilder";
+import {recommendMeasuredWebsiteChange,compareWebsiteVisualReports,ownerDesignPreference} from "../core/websiteMeasuredDesignCoach.mjs";
 import {WebsiteContentEditor} from "./websiteContentEditor";
 import {WebsiteLayoutControls} from "./websiteLayoutControls";
 import {WebsitePagesEditor} from "./websitePagesEditor";
@@ -575,13 +576,26 @@ function WebsitePreview({ s }) {
   const [selectedEdit,setSelectedEdit]=React.useState(null);
   const [visualCheckOn,setVisualCheckOn]=React.useState(false);
   const [visualCheckResult,setVisualCheckResult]=React.useState(null);
-  React.useEffect(()=>{setSelectedEdit(null);setVisualCheckResult(null);setVisualCheckOn(false);},
-    [selectedPageId,draft?.id,draft?.generation,previewSize]);
+  const [designCandidate,setDesignCandidate]=React.useState(null);
+  const [candidateCheckOn,setCandidateCheckOn]=React.useState(false);
+  const [candidateCheckResult,setCandidateCheckResult]=React.useState(null);
+  const [designCandidateNotice,setDesignCandidateNotice]=React.useState("");
+  React.useEffect(()=>{
+    setSelectedEdit(null);setVisualCheckResult(null);setVisualCheckOn(false);
+    setDesignCandidate(null);setCandidateCheckOn(false);
+    setCandidateCheckResult(null);setDesignCandidateNotice("");
+  },[selectedPageId,draft?.id,draft?.generation,previewSize]);
   const activePage=draft?.pages?.find(page=>page.id===selectedPageId)||
     draft?.pages?.find(page=>page.id==="home");
   const liveConceptHtml = draft ? renderWebsiteHtml(draft,activePage?.id||"home") : "";
   const inspectionKey=[draft?.generation||1,activePage?.id||"home",previewSize].join(":");
-  const interactiveHtml=draft&&visualCheckOn
+  const candidateKey=designCandidate?
+    [draft?.generation||1,activePage?.id||"home",previewSize,"candidate",designCandidate.id].join(":"):"";
+  const candidateHtml=designCandidate?.draft
+    ?renderWebsiteHtml(designCandidate.draft,activePage?.id||"home"):"";
+  const interactiveHtml=draft&&designCandidate
+    ?candidateCheckOn?makeWebsiteVisualCheckHtml(candidateHtml,candidateKey):candidateHtml
+    :draft&&visualCheckOn
     ?makeWebsiteVisualCheckHtml(liveConceptHtml,inspectionKey)
     :draft&&tapEditMode
     ?makeTapToEditHtml(renderWebsiteHtml(draft,activePage?.id||"home",{editablePreview:true}))
@@ -590,15 +604,57 @@ function WebsitePreview({ s }) {
     if(!draft)return;
     try{
       const raw=JSON.parse(String(event?.nativeEvent?.data||""));
-      if(visualCheckOn&&raw?.channel===VISUAL_CHECK_CHANNEL){
-        const report=reviewWebsiteVisualCheck(raw,inspectionKey);
-        if(report){setVisualCheckResult(report);setVisualCheckOn(false);}
+      if(raw?.channel===VISUAL_CHECK_CHANNEL){
+        if(candidateCheckOn&&designCandidate){
+          const report=reviewWebsiteVisualCheck(raw,candidateKey);
+          if(report){setCandidateCheckResult(report);setCandidateCheckOn(false);}
+        }else if(visualCheckOn){
+          const report=reviewWebsiteVisualCheck(raw,inspectionKey);
+          if(report){setVisualCheckResult(report);setVisualCheckOn(false);}
+        }
         return;
       }
-      if(!tapEditMode||visualCheckOn)return;
+      if(!tapEditMode||visualCheckOn||designCandidate)return;
       const selected=resolveTapSelection(draft,activePage?.id||"home",raw);
       if(selected)setSelectedEdit({...selected,draftId:draft.id,pageId:activePage?.id||"home",generation:draft.generation});
     }catch{ /* Untrusted or stale page messages never modify a website. */ }
+  };
+  const layoutAdvice=visualCheckResult&&!designCandidate
+    ?recommendMeasuredWebsiteChange({draft,pageId:activePage?.id,report:visualCheckResult}):null;
+  const candidateComparison=designCandidate&&candidateCheckResult&&visualCheckResult
+    ?compareWebsiteVisualReports(visualCheckResult,candidateCheckResult):null;
+  const tryCandidate=()=>{
+    if(!layoutAdvice||!draft)return;
+    const result=applyWebsiteLayoutChange(draft,layoutAdvice.operation);
+    if(!result?.applied){
+      setDesignCandidateNotice(result?.reason||"That layout alternative could not be prepared.");
+      return;
+    }
+    // Don't modify the owner's real draft. Recheck the entire rendered private
+    // candidate on the SAME page and viewport, then offer an explicit Keep.
+    setDesignCandidate({...layoutAdvice,draft:result.draft,pageId:activePage?.id,
+      baseGeneration:draft.generation});
+    setCandidateCheckResult(null);setCandidateCheckOn(true);
+    setTapEditMode(false);setVisualCheckOn(false);setSelectedEdit(null);
+    setDesignCandidateNotice("Testing an alternative in a private preview. Your original design is unchanged.");
+  };
+  const discardCandidate=()=>{
+    if(designCandidate&&draft&&s.recordWebsiteDesignFeedback)
+      s.recordWebsiteDesignFeedback({draftId:draft.id,pageId:activePage?.id,
+        changeId:designCandidate.id,choice:"disliked"});
+    setDesignCandidate(null);setCandidateCheckOn(false);
+    setCandidateCheckResult(null);
+    setDesignCandidateNotice("Original design restored. Your preference stays with this draft only.");
+  };
+  const keepCandidate=()=>{
+    if(!candidateComparison?.valid||!candidateComparison.noNewMeasuredProblems||
+       designCandidate?.baseGeneration!==draft?.generation)return;
+    const saved=s.applyWebsiteLayoutAction(designCandidate.operation);
+    if(saved&&s.recordWebsiteDesignFeedback)
+      s.recordWebsiteDesignFeedback({draftId:draft.id,pageId:activePage?.id,
+        changeId:designCandidate.id,choice:"liked"});
+    if(saved){setDesignCandidate(null);setCandidateCheckResult(null);
+      setDesignCandidateNotice("Saved in your private draft. Undo remains available. Recheck other screen sizes before publishing.");}
   };
   if (!draft) {
     return (
@@ -673,7 +729,7 @@ function WebsitePreview({ s }) {
         <Button label={(previewSize==="phone"?"✓ ":"")+"Show phone-width layout"}
           onPress={()=>{setSelectedEdit(null);setPreviewSize("phone");}}/>
         <Button label={visualCheckOn?"Checking this rendered page…":"Check this page for layout problems"}
-          disabled={visualCheckOn}
+          disabled={visualCheckOn||!!designCandidate}
           onPress={()=>{setSelectedEdit(null);setVisualCheckResult(null);
             setTapEditMode(false);setVisualCheckOn(true);}}/>
         {visualCheckResult?(
@@ -687,8 +743,34 @@ function WebsitePreview({ s }) {
            <Text style={styles.cardBody}>
             {"Checked at "+visualCheckResult.counts.viewport+"px. This examines common layout problems, not design quality. Always inspect the hosted site on a real device before publishing."}
            </Text>
+           {layoutAdvice?(
+            <>
+             <Text style={styles.sectionLabel}>Optional safe design alternative</Text>
+             <Text style={styles.cardBody}>{layoutAdvice.explanation}</Text>
+             {ownerDesignPreference(draft,layoutAdvice.id)==="disliked"?
+              <Text style={styles.cardBody}>You previously rejected this look. BUSY won't recommend it as a preferred choice.</Text>:null}
+             <Button label={layoutAdvice.label+" — preview first"}
+              onPress={tryCandidate}/>
+            </>
+           ):null}
           </View>
         ):null}
+        {designCandidate?(
+         <View style={{marginVertical:12}}>
+          <Text style={styles.sectionLabel}>Testing a private alternative</Text>
+          <Text style={styles.cardBody}>
+           {candidateCheckOn?"BUSY is measuring the alternative at the same width…":
+            candidateComparison?.summary||"Preparing a new comparison…"}
+          </Text>
+          {candidateComparison?.valid&&candidateComparison.noNewMeasuredProblems?(
+            <Button label="Keep this design in my private draft"
+             onPress={keepCandidate}/>
+          ):null}
+          <Button label="Return to my original design" onPress={discardCandidate}/>
+          <Text style={styles.cardBody}>Nothing is published. These checks cannot guarantee visual quality on every device.</Text>
+         </View>
+        ):null}
+        {designCandidateNotice?<Text style={styles.cardBody}>{designCandidateNotice}</Text>:null}
         <View style={{
           marginTop: 12, borderRadius: 16, overflow: "hidden",
           borderWidth: 1, borderColor: "#344157", alignSelf:"center",
@@ -696,11 +778,11 @@ function WebsitePreview({ s }) {
           backgroundColor: "#fff", height: 610,
         }}>
           <WebView
-            key={String(draft?.generation || 1) + ":" + String(activePage?.id||"home") + ":" + String(draft?.updatedAt || "") + ":" + String(tapEditMode) + ":" + previewSize + ":" + String(visualCheckOn)}
+            key={String(draft?.generation || 1) + ":" + String(activePage?.id||"home") + ":" + String(draft?.updatedAt || "") + ":" + String(tapEditMode) + ":" + previewSize + ":" + String(visualCheckOn) + ":" + candidateKey + ":" + String(candidateCheckOn)}
             source={{ html: interactiveHtml, baseUrl: "about:blank" }}
             style={{ flex: 1, backgroundColor: "#fff" }}
             originWhitelist={["*"]}
-            javaScriptEnabled={tapEditMode||visualCheckOn}
+            javaScriptEnabled={tapEditMode||visualCheckOn||candidateCheckOn}
             javaScriptCanOpenWindowsAutomatically={false}
             onMessage={receiveTap}
             domStorageEnabled={false}
@@ -719,7 +801,7 @@ function WebsitePreview({ s }) {
           />
         </View>
         <Text style={[styles.cardBody, { marginTop: 10 }]}>
-          {visualCheckOn ? "Checking the rendered layout at this width. This may take a moment." : tapEditMode ? "Tap a website element to edit it in a simple panel. All changes have Undo." : "Scroll inside the preview to explore the design. You can change wording, style or services before preparing a hosted version."}
+          {candidateCheckOn ? "Reviewing the private alternative at this width…" : visualCheckOn ? "Checking the rendered layout at this width. This may take a moment." : tapEditMode ? "Tap a website element to edit it in a simple panel. All changes have Undo." : "Scroll inside the preview to explore the design. You can change wording, style or services before preparing a hosted version."}
         </Text>
       </Card>
 
