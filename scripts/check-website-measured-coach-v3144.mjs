@@ -54,6 +54,8 @@ const dislike=recordWebsiteOwnerDesignFeedback(liked.draft,{
  draftId:draft.id,pageId:"home",choice:"disliked",
  changeId:"compact-hero-title",at:"2026-10-11T12:01:00.000Z"});
 assert.equal(ownerDesignPreference(dislike.draft,"compact-hero-title"),"disliked");
+assert.equal(recommendMeasuredWebsiteChange({draft:dislike.draft,pageId:"home",report:clipped}),null,
+ "Busy stops proposing a style explicitly rejected for this website");
 for(const faulty of [
  {draftId:"another-tenant",pageId:"home",choice:"liked",changeId:"compact-hero-title"},
  {draftId:draft.id,pageId:"deleted-page",choice:"liked",changeId:"compact-hero-title"},
