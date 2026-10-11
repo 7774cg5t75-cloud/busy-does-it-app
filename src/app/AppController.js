@@ -1673,6 +1673,18 @@ function App() {
 
   const setBookingStatus = async (customerId, bookingStatus) => {
     const actionBefore = replyActions[customerId];
+    if(bookingStatus==="Confirmed"&&actionBefore?.details?.sourceMiniAppRequestId){
+      const day=String(actionBefore.details.bookingDate||"");
+      const time=String(actionBefore.details.bookingTime||"");
+      const timestamp=day+"T"+time+":00Z";
+      if(!/^20\d{2}-\d{2}-\d{2}$/.test(day)||
+         !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)||
+         !Number.isFinite(Date.parse(timestamp))||
+         new Date(timestamp).toISOString().slice(0,10)!==day){
+        setMiniAppsError("Choose a real diary date and time before confirming this Business App booking request.");
+        return false;
+      }
+    }
     updateReplyAction(customerId, (action) => ({
       ...action,
       done: true,
