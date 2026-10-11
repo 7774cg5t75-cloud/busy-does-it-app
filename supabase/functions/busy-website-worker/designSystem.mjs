@@ -245,8 +245,10 @@ h3.owner-item-heading-compact{font-size:clamp(1rem,1.7vw,1.2rem)}
    publishing and customer-owned ZIP. Strict finite class vocabulary only. */
 section.owner-heading-compact h1,
 section.owner-heading-compact h2{font-size:clamp(1.6rem,3vw,2.8rem)}
-section.owner-heading-large h1,
-section.owner-heading-large h2{font-size:clamp(2.5rem,6vw,4.8rem)}
+/* A larger heading must actually be larger than the default at phone
+   AND desktop widths. The original shared rule unintentionally shrank h1. */
+section.owner-heading-large h1{font-size:clamp(3.35rem,9.5vw,7.5rem)}
+section.owner-heading-large h2{font-size:clamp(2.4rem,5vw,4rem)}
 section.owner-align-center .wrap{text-align:center}
 section.owner-align-center .wrap > p,
 section.owner-align-center .wrap > h1,
@@ -277,8 +279,8 @@ section.owner-gallery-large .gallery-image{height:clamp(280px,37vw,450px)}
  section.owner-photo-right .photo-feature-grid img,
  section.owner-photo-right .photo-feature-grid > div{grid-column:auto;grid-row:auto}
  section.owner-align-center .wrap{text-align:center}
- section.owner-heading-large h1,
- section.owner-heading-large h2{font-size:clamp(2.3rem,8vw,3.8rem)}
+ section.owner-heading-large h1{font-size:clamp(3.2rem,11.5vw,5.4rem)}
+ section.owner-heading-large h2{font-size:clamp(2.35rem,5vw,3.5rem)}
 }
 
 /* Owner-controlled named design presets only, no arbitrary CSS. */
