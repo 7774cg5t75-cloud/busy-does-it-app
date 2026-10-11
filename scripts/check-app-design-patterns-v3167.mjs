@@ -71,7 +71,7 @@ assert.deepEqual(proposals.proposed.map(x=>x.field),
  ["navigationStyle","headerStyle","layoutDensity"]);
 assert.equal(proposals.proposed[0].score,61,
  "Independent measured and AI support plus positive saved owner feedback");
-assert.equal(proposals.preview.ownerApprovalRequired,true);
+assert.equal(proposals.preview.requiresOwnerApproval,true);
 assert.equal(proposals.noAutomaticApproval,true);
 assert.equal(proposals.noAutoPublish,true);
 assert.equal(proposals.noAIExpense,true);
