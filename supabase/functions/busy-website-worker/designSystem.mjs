@@ -227,6 +227,10 @@ main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:4
 
 /* V3.141: selected approved gallery image crop, independent of its siblings.
    The ID specificity beats section-wide photo focus presets. */
+/* V3.142: reveal the WHOLE original gallery photograph rather than
+   unexpectedly cropping business photos. Independent per image. */
+#gallery .gallery-image.owner-image-fit-contain{object-fit:contain;background:#edf0f4}
+#gallery .gallery-image.owner-image-fit-cover{object-fit:cover}
 #gallery .gallery-image.owner-image-crop-top{object-position:center top}
 #gallery .gallery-image.owner-image-crop-bottom{object-position:center bottom}
 #gallery .gallery-image.owner-image-crop-center{object-position:center center}
