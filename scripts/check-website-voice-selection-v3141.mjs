@@ -42,8 +42,8 @@ assert.ok(current(draft,heading),"Current exact heading, page and item accepted"
 assert.ok(current(draft,image),"Current exact gallery image accepted");
 assert.ok(!current(draft,{...image,draftId:"another-site"}),"Wrong website never authorizes transcription");
 assert.ok(!current(draft,{...image,generation:draft.generation+1}),"Rebuilt draft invalidates voice selection");
-assert.ok(!current(draft,{...image,pageId:"home"} )===false||draft.pages.some(p=>p.id==="home"&&p.sectionIds.includes("gallery")),
- "Wrong page must not pass when gallery is not on home");
+if(!draft.pages.find(p=>p.id==="home")?.sectionIds.includes("gallery"))
+ assert.equal(current(draft,{...image,pageId:"home"}),false,"Wrong page must not pass");
 assert.ok(!current(draft,{...image,photoIndex:999}),"Forged image index refused");
 assert.ok(!current(draft,{...heading,itemId:"unowned"}),"Other service card refused");
 assert.ok(!current(draft,{...image,field:"onClick"}),"Arbitrary DOM fields refused");
