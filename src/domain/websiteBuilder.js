@@ -1,5 +1,4 @@
 import { syncWebsitePageModel } from "./websiteManagement";
-import {preserveExportOriginals} from "../core/websiteOriginalMedia.mjs";
 import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";
 import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";
 import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";
@@ -173,7 +172,29 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
   // pages or their authored text. It is a content refresh, not a page deletion.
   const preserved=safeArray(previousDraft?.sections).filter(section=>
     ["text","photo-feature"].includes(section?.type)&&clean(section.id).startsWith("custom-"));
-  const sections=preserveExportOriginals(previousDraft,[...buildSections(brief),...preserved.map(section=>({...section}))]);
+  const rawSections=[...buildSections(brief),...preserved.map(section=>({...section}))];
+  // Keep already-backed-up source bytes attached to the SAME original image,
+  // even when factual Brand Brain wording gets regenerated. This helper lives
+  // in the domain module to support existing isolated browser test harnesses.
+  const previousOriginalPaths=new Map();
+  const assetKey=asset=>clean(asset?.storagePath)||clean(asset?.uri);
+  for(const section of safeArray(previousDraft?.sections)){
+    const photos=["hero","photo-feature"].includes(section?.type)?[section?.asset]:
+      section?.type==="gallery"?safeArray(section.items):[];
+    for(const asset of photos){
+      const key=assetKey(asset);
+      if(key&&clean(asset?.exportOriginalPath))previousOriginalPaths.set(key,asset.exportOriginalPath);
+    }
+  }
+  const restorePhoto=asset=>asset&&previousOriginalPaths.has(assetKey(asset))
+    ?{...asset,exportOriginalPath:previousOriginalPaths.get(assetKey(asset))}:asset;
+  const sections=rawSections.map(section=>{
+    if(["hero","photo-feature"].includes(section?.type))
+      return {...section,asset:restorePhoto(section.asset)};
+    if(section?.type==="gallery")
+      return {...section,items:safeArray(section.items).map(restorePhoto)};
+    return section;
+  });
   const theme=previousDraft?.theme&&typeof previousDraft.theme==="object"
     ? {...themeFromBrief(brief),...previousDraft.theme}
     : themeFromBrief(brief);
