@@ -13255,17 +13255,35 @@ function App() {
     return true;
   };
 
-  const applyWebsiteLayoutAction = (operation) => {
+  const applyWebsiteLayoutAction = (operation,options={}) => {
     if (!websiteDraft) {
       setWebsiteBuilderNotice("Build the first website draft before changing its layout.");
+      return false;
+    }
+    // Recheck the exact website version before keeping a measured candidate.
+    const requested=options?.ownerFeedback;
+    if(requested&&(requested.draftId!==websiteDraft.id||
+      Number(options.baseGeneration)!==Number(websiteDraft.generation))){
+      setWebsiteBuilderNotice("This website changed. Check the alternative again first.");
       return false;
     }
     const result = applyWebsiteLayoutChange(websiteDraft, operation);
     setWebsiteBuilderNotice(result.reason || "");
     if (!result.applied) return false;
+    let next=result.draft;
+    if(requested){
+      const recorded=recordWebsiteOwnerDesignFeedback(next,{
+        ...requested,at:new Date().toISOString()
+      });
+      if(!recorded.applied){
+        setWebsiteBuilderNotice("Could not save that design choice. No layout was changed.");
+        return false;
+      }
+      next=recorded.draft;
+    }
     setWebsiteUndo(items=>[...items, websiteDraft].slice(-8));
     setWebsiteRedo([]);
-    setWebsiteDraft(result.draft);
+    setWebsiteDraft(next);
     return true;
   };
 
