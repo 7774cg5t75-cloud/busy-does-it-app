@@ -584,7 +584,7 @@ function WebsitePreview({ s }) {
     try{
       const raw=JSON.parse(String(event?.nativeEvent?.data||""));
       const selected=resolveTapSelection(draft,activePage?.id||"home",raw);
-      if(selected)setSelectedEdit({...selected,pageId:activePage?.id||"home",generation:draft.generation});
+      if(selected)setSelectedEdit({...selected,draftId:draft.id,pageId:activePage?.id||"home",generation:draft.generation});
     }catch{ /* Untrusted or stale page messages never modify a website. */ }
   };
   if (!draft) {
@@ -696,7 +696,8 @@ function WebsitePreview({ s }) {
       <WebsiteTapEditor draft={draft} selection={selectedEdit}
         onClose={()=>setSelectedEdit(null)}
         onTextChange={s.applyWebsiteFieldChange}
-        onLayoutChange={s.applyWebsiteLayoutAction}/>
+        onLayoutChange={s.applyWebsiteLayoutAction}
+        onTranscribe={s.transcribeSelectedWebsiteAudio}/>
       {s.websiteBuilderNotice?<Text style={styles.cardBody}>{s.websiteBuilderNotice}</Text>:null}
       {s.canUndoWebsite ? <Button label="Undo last website change" onPress={s.undoWebsiteChange} /> : null}
       {s.canRedoWebsite ? <Button label="Redo website change" onPress={s.redoWebsiteChange} /> : null}
