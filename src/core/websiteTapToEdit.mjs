@@ -16,7 +16,7 @@ function makeTapToEditHtml(html){
     !html.includes("</body>")||/<script\b/i.test(html))
   throw Error("The private website preview is invalid for editing.");
  // This is a constant, app-owned script; no draft text is interpolated into JS.
- const css=\`<style id="busy-editor-selection-style">
+ const css=`<style id="busy-editor-selection-style">
   [data-busy-edit-section]{cursor:pointer}
   [data-busy-edit-section]:focus-visible{outline:2px solid #4489ed;outline-offset:3px}
   .busy-selected-for-edit{outline:2px solid #4489ed!important;outline-offset:3px!important;border-radius:5px}
@@ -31,8 +31,8 @@ function makeTapToEditHtml(html){
   .busy-selection-toolbar button[data-action="voice"]{background:#27476e;font-size:19px}
   .busy-selection-toolbar button[data-action="edit"]{font-size:14px;font-weight:700}
   @media (prefers-reduced-motion:reduce){.busy-selection-toolbar{transition:none}}
-  </style>\`;
- const script=\`<script>(function(){
+  </style>`;
+ const script=`<script>(function(){
   "use strict";
   var previous=null,toolbar=null,anchor=null;
   var labels={photo:"Replace",title:"Edit",body:"Edit",cta:"Edit",ctaHref:"Edit",
@@ -121,7 +121,7 @@ function makeTapToEditHtml(html){
   window.addEventListener("scroll",position,true);
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",setup,{once:true});
   else setup();
- })();</script>\`;
+ })();</script>`;
  return html.replace("</head>",css+"</head>").replace("</body>",script+"</body>");
 }
 function resolveTapSelection(draft,pageId,message){
