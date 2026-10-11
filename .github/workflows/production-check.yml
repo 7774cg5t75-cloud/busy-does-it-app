@@ -118,6 +118,9 @@ jobs:
       - name: Verify safe voice-to-website selection and single photo edits
         run: node scripts/check-website-voice-selection-v3141.mjs
 
+      - name: Verify V3.142 manual voice review, request cap and per-photo framing
+        run: node scripts/check-website-voice-reliability-v3142.mjs
+
       - name: Verify Expo Snack module dependency graph
         run: node scripts/check-snack-dependencies.mjs
 
