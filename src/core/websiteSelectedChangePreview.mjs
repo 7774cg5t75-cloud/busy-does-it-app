@@ -9,6 +9,8 @@ import {planSelectedWebsiteChanges,prepareSelectedWebsiteTransaction} from "./we
 import {selectedWebsiteVoiceContextIsCurrent} from "./websiteSelectedVoiceContext.mjs";
 const fail=reason=>({ok:false,reason});
 function previewSelectedWebsiteInstruction(draft,{selection,instruction}={},deps={}){
+ if(selection?.field!=="photo"&&selection?.photoIndex!==-1&&selection?.photoIndex!=null)
+  return fail("That selection is inconsistent. Tap the website part again.");
  if(!selectedWebsiteVoiceContextIsCurrent(draft,selection))
   return fail("Your website changed. Tap the part you want to edit again.");
  if(typeof instruction!=="string"||!instruction.trim()||instruction.length>400)
