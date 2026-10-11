@@ -139,7 +139,9 @@ jobs:
           node scripts/check-website-viewport-coverage-v3147.mjs
 
       - name: Verify V3.148 selected website before-after preview safeguards
-        run: node scripts/check-website-selection-preview-v3148.mjs
+        run: |
+          node scripts/check-website-selection-preview-v3148.mjs
+          node scripts/check-website-responsive-preview-v3148.mjs
 
       - name: Verify Expo Snack module dependency graph
         run: node scripts/check-snack-dependencies.mjs

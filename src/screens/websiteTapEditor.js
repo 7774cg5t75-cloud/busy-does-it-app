@@ -8,6 +8,7 @@ import {contextualEditExamples} from "../core/contextualEditingCore.mjs";
 import {ownerDesignPreference} from "../core/websiteMeasuredDesignCoach.mjs";
 import {WebsiteSelectedVoice} from "./websiteSelectedVoice";
 import {WebView} from "react-native-webview";
+import {withWebsitePreviewViewport} from "../core/websiteResponsivePreview.mjs";
 
 const names={
  section:"Section",title:"Heading",body:"Wording",cta:"Button text",ctaHref:"Button destination",
@@ -29,6 +30,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  const [showPhotoChoices,setShowPhotoChoices]=React.useState(false);
  const [selectedInstructionPreview,setSelectedInstructionPreview]=React.useState(null);
  const [showPreviewOriginal,setShowPreviewOriginal]=React.useState(false);
+ const [comparisonSize,setComparisonSize]=React.useState("phone");
  const section=list(draft?.sections).find(s=>s.id===selection?.sectionId);
  const item=selection?.itemId?list(section?.items).find(x=>x.id===selection.itemId):null;
  const target=item||section;
@@ -45,6 +47,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
   setShowPhotoChoices(initialMode==="edit"&&selection?.field==="photo");
   setSelectedInstructionPreview(null);
   setShowPreviewOriginal(false);
+  setComparisonSize("phone");
  },[key,draft?.updatedAt,initialMode]);
  const save=()=>{
   if(!selection||field==="photo")return;
@@ -261,15 +264,20 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
             <View style={{marginVertical:10}}>
              <Text style={styles.sectionLabel}>Private before-and-after preview</Text>
              <Text style={styles.cardBody}>{selectedInstructionPreview.summary}</Text>
+             <Text style={styles.cardBody}>Compare phone, tablet or desktop layouts before applying. Wider views are scaled down on your phone.</Text>
+             {["phone","tablet","desktop"].map(mode=>(
+              <Button key={mode} label={(comparisonSize===mode?"✓ ":"")+"Compare "+mode+" layout"}
+               onPress={()=>setComparisonSize(mode)}/>
+             ))}
              <Button label={showPreviewOriginal?"Show proposed changes":"Show original website"}
               onPress={()=>setShowPreviewOriginal(x=>!x)}/>
              <View style={{height:300,borderRadius:12,overflow:"hidden",borderWidth:1,borderColor:"#50617A"}}>
               <WebView
                key={selectedInstructionPreview.generation+":"+
-                (showPreviewOriginal?"original":"proposed")}
-               source={{html:showPreviewOriginal
+                (showPreviewOriginal?"original":"proposed")+":"+comparisonSize}
+               source={{html:withWebsitePreviewViewport(showPreviewOriginal
                 ?selectedInstructionPreview.originalHtml
-                :selectedInstructionPreview.candidateHtml,baseUrl:"about:blank"}}
+                :selectedInstructionPreview.candidateHtml,comparisonSize),baseUrl:"about:blank"}}
                javaScriptEnabled={false} domStorageEnabled={false} incognito
                javaScriptCanOpenWindowsAutomatically={false}
                allowFileAccess={false} mixedContentMode="never"
@@ -279,7 +287,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
                style={{backgroundColor:"#fff",flex:1}}
               />
              </View>
-             <Text style={styles.cardBody}>This is only a visual preview at this device width. Use the website layout checker and hosted preview before publishing.</Text>
+             <Text style={styles.cardBody}>This is a scaled visual preview of the {comparisonSize} layout, not real-device testing. Use the page checker and hosted preview before publishing.</Text>
             </View>
            ):null}
            <Button label={preparedInstruction?.ok&&preparedInstruction.steps.length>1

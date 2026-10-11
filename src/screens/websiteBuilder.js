@@ -23,6 +23,7 @@ import {WebsitePagesEditor} from "./websitePagesEditor";
 import {WebsiteTapEditor} from "./websiteTapEditor";
 import {makeTapToEditHtml,resolveTapToolbarAction} from "../core/websiteTapToEdit.mjs";
 import {recordWebsiteViewportEvidence,summarizeWebsiteViewportEvidence} from "../core/websiteViewportEvidence.mjs";
+import {withWebsitePreviewViewport,websitePreviewWidthNote} from "../core/websiteResponsivePreview.mjs";
 import {makeWebsiteVisualCheckHtml,reviewWebsiteVisualCheck,CHANNEL as VISUAL_CHECK_CHANNEL} from "../core/websiteVisualCheck.mjs";
 
 function WebsiteBuilder({ s }) {
@@ -598,7 +599,7 @@ function WebsitePreview({ s }) {
     [draft?.generation||1,activePage?.id||"home",previewSize,"candidate",designCandidate.id].join(":"):"";
   const candidateHtml=designCandidate?.draft
     ?renderWebsiteHtml(designCandidate.draft,activePage?.id||"home"):"";
-  const interactiveHtml=draft&&designCandidate
+  const unscaledInteractiveHtml=draft&&designCandidate
     ?showOriginalComparison?liveConceptHtml:
       candidateCheckOn?makeWebsiteVisualCheckHtml(candidateHtml,candidateKey):candidateHtml
     :draft&&visualCheckOn
@@ -606,6 +607,8 @@ function WebsitePreview({ s }) {
     :draft&&tapEditMode
     ?makeTapToEditHtml(renderWebsiteHtml(draft,activePage?.id||"home",{editablePreview:true}))
     :liveConceptHtml;
+  const interactiveHtml=unscaledInteractiveHtml
+    ?withWebsitePreviewViewport(unscaledInteractiveHtml,previewSize):"";
   const receiveTap=event=>{
     if(!draft)return;
     try{
@@ -753,6 +756,11 @@ function WebsitePreview({ s }) {
           onPress={()=>{setSelectedEdit(null);setPreviewSize("full");}}/>
         <Button label={(previewSize==="phone"?"✓ ":"")+"Show phone-width layout"}
           onPress={()=>{setSelectedEdit(null);setPreviewSize("phone");}}/>
+        <Button label={(previewSize==="tablet"?"✓ ":"")+"Show tablet-width layout"}
+          onPress={()=>{setSelectedEdit(null);setPreviewSize("tablet");}}/>
+        <Button label={(previewSize==="desktop"?"✓ ":"")+"Show desktop-width layout"}
+          onPress={()=>{setSelectedEdit(null);setPreviewSize("desktop");}}/>
+        <Text style={styles.cardBody}>One website adapts to all screens. Tablet and desktop layouts are scaled down on a phone. Use this device view for easier tapping and editing.</Text>
         <Button label={visualCheckOn?"Checking this rendered page…":"Check this page for layout problems"}
           disabled={visualCheckOn||!!designCandidate}
           onPress={()=>{setSelectedEdit(null);setVisualCheckResult(null);
@@ -769,7 +777,7 @@ function WebsitePreview({ s }) {
             </Text>
            ))}
            <Text style={styles.cardBody}>
-            {"Checked at "+visualCheckResult.counts.viewport+"px. This examines common layout problems, not design quality. Always inspect the hosted site on a real device before publishing."}
+            {"Checked at "+visualCheckResult.counts.viewport+"px. "+websitePreviewWidthNote(previewSize,visualCheckResult.counts.viewport)+" These checks are not design-quality approval. Always inspect the hosted site on a real device before publishing."}
            </Text>
            {layoutAdvice?(
             <>

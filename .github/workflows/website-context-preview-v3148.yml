@@ -10,6 +10,8 @@ on:
       - 'src/core/websiteTapToEdit.mjs'
       - 'src/screens/websiteTapEditor.js'
       - 'src/screens/websiteBuilder.js'
+      - 'src/core/websiteResponsivePreview.mjs'
+      - 'scripts/check-website-responsive-preview-v3148.mjs'
       - 'src/app/AppController.js'
       - 'scripts/check-website-selection-preview-v3148.mjs'
       - 'scripts/check-website-context-plan-v3147.mjs'
@@ -34,6 +36,7 @@ jobs:
       - name: Verify no-save before-and-after preview, atomic selected changes and older regressions
         run: |
           node scripts/check-website-selection-preview-v3148.mjs
+          node scripts/check-website-responsive-preview-v3148.mjs
           node scripts/check-website-context-plan-v3147.mjs
           node scripts/check-website-viewport-coverage-v3147.mjs
           node scripts/check-universal-context-toolbar-v3146.mjs
