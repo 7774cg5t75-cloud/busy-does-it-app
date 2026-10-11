@@ -177,6 +177,11 @@ jobs:
           node scripts/check-app-appearance-v3154.mjs
           node scripts/check-app-builder-dual-track-v3153.mjs
 
+      - name: Verify V3.155 native booking service and contextual App Builder security
+        run: |
+          node scripts/check-native-public-booking-v3155.mjs
+          node scripts/check-app-context-editor-v3155.mjs
+
       - name: Verify Expo Snack module dependency graph
         run: node scripts/check-snack-dependencies.mjs
 

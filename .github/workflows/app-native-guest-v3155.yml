@@ -1,0 +1,51 @@
+name: V3.155 Native customer functionality and safe contextual App Builder
+on:
+  push:
+    branches: [v3.155]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-customer-journey:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify public live-app projection, guest challenge, app editor and legacy protections
+        run: |
+          node scripts/check-native-public-booking-v3155.mjs
+          node scripts/check-app-context-editor-v3155.mjs
+          node scripts/check-standalone-native-v3154.mjs
+          node scripts/check-app-appearance-v3154.mjs
+          node scripts/check-app-builder-dual-track-v3153.mjs
+          node scripts/check-production.mjs
+      - name: Install Expo and native syntax parser
+        run: npm install --no-audit --no-fund
+      - name: Validate native customer screens and protected guest service TypeScript
+        run: |
+          node scripts/check-app-native-syntax-v3154.mjs
+          node scripts/check-native-public-booking-v3155.mjs
+          node scripts/check-app-context-editor-v3155.mjs
+      - name: Generate isolated native customer prototype
+        run: |
+          node scripts/prepare-standalone-prototype-v3154.mjs
+          test -f .tmp/standalone-prototype-v3154/nativeBusinessClient.js
+          test -f .tmp/standalone-prototype-v3154/nativeGuestRequests.js
+          test -f .tmp/standalone-prototype-v3154/nativeGuestProof.js
+          test -f .tmp/standalone-prototype-v3154/prototype.json
+      - name: Export independent iOS and Android native customer bundles
+        run: |
+          cd .tmp/standalone-prototype-v3154
+          ../../node_modules/.bin/expo export --platform ios --output-dir /tmp/bdi-v3155-customer-ios
+          ../../node_modules/.bin/expo export --platform android --output-dir /tmp/bdi-v3155-customer-android
+      - name: Export Busy iOS and Android JavaScript bundles
+        run: |
+          npx expo export --platform ios --output-dir /tmp/bdi-v3155-busy-ios
+          npx expo export --platform android --output-dir /tmp/bdi-v3155-busy-android
+      - name: Confirm release and paid operations remain disabled
+        run: echo "No live backend deployment, production customer publishing, signing, EAS build, Apple/Google submission or payment made."
