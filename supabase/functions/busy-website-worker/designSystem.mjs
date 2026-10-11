@@ -225,6 +225,46 @@ main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:4
 .visual-type-compact h1{font-size:clamp(2.8rem,6.4vw,5.2rem);letter-spacing:-.04em}
 .visual-type-compact h2{font-size:clamp(1.9rem,3.1vw,2.8rem)}
 
+/* V3.139: independent section controls shared by private preview, hosted
+   publishing and customer-owned ZIP. Strict finite class vocabulary only. */
+section.owner-heading-compact h1,
+section.owner-heading-compact h2{font-size:clamp(1.6rem,3vw,2.8rem)}
+section.owner-heading-large h1,
+section.owner-heading-large h2{font-size:clamp(2.5rem,6vw,4.8rem)}
+section.owner-align-center .wrap{text-align:center}
+section.owner-align-center .wrap > p,
+section.owner-align-center .wrap > h1,
+section.owner-align-center .wrap > h2,
+section.owner-align-center .photo-feature-grid p,
+section.owner-align-center .hero-content{margin-inline:auto}
+section.owner-align-center .grid{text-align:center}
+section.owner-space-compact:not(.hero){padding-block:clamp(28px,4vw,58px)}
+section.owner-space-generous:not(.hero){padding-block:clamp(94px,11vw,154px)}
+section.owner-space-compact.hero .wrap{padding-block:clamp(42px,6vw,76px)}
+section.owner-space-generous.hero .wrap{padding-block:clamp(110px,14vw,180px)}
+section.owner-crop-top .hero-image,
+section.owner-crop-top .gallery-image,
+section.owner-crop-top .photo-feature-grid img{object-position:center top}
+section.owner-crop-bottom .hero-image,
+section.owner-crop-bottom .gallery-image,
+section.owner-crop-bottom .photo-feature-grid img{object-position:center bottom}
+section.owner-crop-center .hero-image,
+section.owner-crop-center .gallery-image,
+section.owner-crop-center .photo-feature-grid img{object-position:center center}
+section.owner-photo-right .photo-feature-grid img{grid-column:2;grid-row:1}
+section.owner-photo-right .photo-feature-grid > div{grid-column:1;grid-row:1}
+section.owner-gallery-compact .gallery{grid-template-columns:repeat(auto-fit,minmax(min(100%,185px),1fr));gap:10px}
+section.owner-gallery-compact .gallery-image{height:clamp(175px,22vw,240px)}
+section.owner-gallery-large .gallery{grid-template-columns:repeat(auto-fit,minmax(min(100%,350px),1fr));gap:20px}
+section.owner-gallery-large .gallery-image{height:clamp(280px,37vw,450px)}
+@media(max-width:800px){
+ section.owner-photo-right .photo-feature-grid img,
+ section.owner-photo-right .photo-feature-grid > div{grid-column:auto;grid-row:auto}
+ section.owner-align-center .wrap{text-align:center}
+ section.owner-heading-large h1,
+ section.owner-heading-large h2{font-size:clamp(2.3rem,8vw,3.8rem)}
+}
+
 /* Owner-controlled named design presets only, no arbitrary CSS. */
 .rhythm-generous section:not(.hero){padding-block:clamp(85px,11vw,148px)}
 .rhythm-compact section:not(.hero){padding-block:clamp(36px,5vw,65px)}
