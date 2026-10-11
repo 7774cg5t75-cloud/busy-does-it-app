@@ -17,7 +17,8 @@ assert.ok(runtime.includes(`const APP_VERSION = "${pkg.version.slice(0,-2)}";`))
 assert.ok(runtime.includes("fetchImpl = fetch"));
 assert.ok(runtime.includes("return await fetchImpl(url,"));
 assert.ok(source.includes('import { fetch as expoFetch } from "expo/fetch";'));
-assert.ok(source.includes('import { File as ExpoFile } from "expo-file-system";'));
+assert.ok(/import \{ File as ExpoFile(?:, Paths as ExpoPaths)? \} from "expo-file-system";/.test(source),
+  "Voice upload and website export must share ExpoFile with verified ExpoPaths import when used");;
 const start=source.indexOf('if (audioUri) {',source.indexOf("const submitBusyCommand = async"));
 const end=source.indexOf('} else {',start);
 const audio=source.slice(start,end);
