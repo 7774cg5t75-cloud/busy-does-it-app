@@ -661,6 +661,7 @@ function WebsitePreview({ s }) {
   const [showPagePlanOriginal,setShowPagePlanOriginal]=React.useState(false);
   const [pagePlanNotice,setPagePlanNotice]=React.useState("");
   const [pageVoiceExpanded,setPageVoiceExpanded]=React.useState(false);
+  const [pageInterpretBusy,setPageInterpretBusy]=React.useState(false);
   const [showRecoveryTools,setShowRecoveryTools]=React.useState(false);
   const [confirmRecoveryRestore,setConfirmRecoveryRestore]=React.useState(false);
   React.useEffect(()=>{
@@ -856,6 +857,25 @@ function WebsitePreview({ s }) {
               setPagePlanNotice("Please read the transcript, then preview the proposed edits. No website changes were made.");
             }}/>
         ):null}
+        <Button label={pageInterpretBusy?"BUSY is interpreting…":
+           "Ask BUSY to understand my words (uses 1 daily AI request)"}
+          disabled={pageInterpretBusy||!pageInstruction.trim()}
+          onPress={async()=>{
+            if(pageInterpretBusy)return;
+            setPageInterpretBusy(true);setPagePlanPreview(null);
+            setPagePlanNotice("Checking what you meant. No website changes are being made.");
+            try{
+              const result=await s.interpretWebsitePageLanguage?.({
+                pageId:activePage?.id||"home",generation:draft.generation,
+                instruction:pageInstruction
+              });
+              if(result?.ok){
+                setPageInstruction(result.canonical);
+                setPagePlanNotice(result.reason);
+              }else setPagePlanNotice(result?.reason||"Interpretation unavailable. You can still use the exact editing controls.");
+            }finally{setPageInterpretBusy(false);}
+          }}/>
+        <Text style={styles.cardBody}>This optional AI interpretation needs an enabled provider and consumes one shared daily website voice/AI request. Typed exact instructions and private previews do not use AI credits. You always approve changes yourself.</Text>
         <Button label="Preview changes — do not save"
           onPress={()=>{
             setSelectedEdit(null);setTapEditMode(false);setVisualCheckOn(false);
