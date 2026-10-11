@@ -12,6 +12,7 @@ on:
       - 'src/screens/websiteBuilder.js'
       - 'src/core/websiteResponsivePreview.mjs'
       - 'scripts/check-website-responsive-preview-v3148.mjs'
+      - 'scripts/check-website-responsive-preview-browser-v3148.mjs'
       - 'src/app/AppController.js'
       - 'scripts/check-website-selection-preview-v3148.mjs'
       - 'scripts/check-website-context-plan-v3147.mjs'
@@ -61,6 +62,7 @@ jobs:
       - name: Check phone/tablet/desktop rendered previews, touch and visual quality
         run: |
           node scripts/check-website-selection-preview-browser-v3148.mjs
+          node scripts/check-website-responsive-preview-browser-v3148.mjs
           node scripts/check-website-context-plan-browser-v3147.mjs
           node scripts/check-universal-context-toolbar-browser-v3146.mjs
           node scripts/check-website-tap-browser-v3138.mjs
