@@ -23,7 +23,7 @@ for(const imp of [
 const {buildWebsiteDraft,renderWebsiteHtml,rebuildPrivateWebsiteDraft}=Function(
  "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign",
  "reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField",
- source+";return {buildWebsiteDraft,renderWebsiteHtml,rebuildPrivateWebsiteDraft};"
+ source+";return {buildWebsiteDraft,renderWebsiteHtml,rebuildPrivateWebsiteDraft:withHtml};"
 )(management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField);
 const brief={websiteReady:true,websiteBrief:{
  businessName:"Fictional Web Design Gardens",businessType:"Gardening",description:"Local garden design.",
