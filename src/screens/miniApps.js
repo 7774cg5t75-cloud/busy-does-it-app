@@ -1,5 +1,5 @@
 import React from "react";
-import { Image, Text, View, Dimensions, Platform, Alert } from "react-native";
+import { Image, Text, View, Dimensions, Platform, Alert, useWindowDimensions } from "react-native";
 import {captureRef} from "react-native-view-shot";
 import QRCode from "react-native-qrcode-svg";
 
@@ -15,6 +15,8 @@ import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.m
 import {proposeCoordinatedAppChanges,planAppVoiceInstructions} from "../core/appCoordinatedStudio.mjs";
 import {appDesignQualityReport} from "../core/appDesignQuality.mjs";
 import {auditBusinessAppUsability,compareBusinessAppDesign} from "../core/appUsabilityAudit.mjs";
+import {responsiveAppLayout,recommendResponsiveDesign}
+  from "../core/appResponsiveDesign.mjs";
 import {prepareAppDesignIteration,inspectApprovedAppIteration,proposeLowRiskDesignHints}
   from "../core/appDesignIteration.mjs";
 import {prepareAppVisualBatch} from "../core/appVisualComparison.mjs";
@@ -126,11 +128,20 @@ function MiniAppSurface({
     offerActiveToday
   );
   const presentation=config?.presentation||{};
+  const device=useWindowDimensions();
+  const [contentWidth,setContentWidth]=React.useState(0);
+  // The rendered customer-facing surface uses the actual measured available
+  // layout width. The first render uses the window as a provisional fallback.
+  const availableWidth=contentWidth||Math.max(250,Math.floor(device.width-40));
+  const responsive=responsiveAppLayout(config,availableWidth);
   const density=presentation.layoutDensity||"comfortable";
   const headerStyle=presentation.headerStyle||"refined";
 
   return (
-    <>
+    <View style={{width:"100%"}} onLayout={({nativeEvent})=>{
+      const width=Math.floor(nativeEvent.layout.width);
+      if(width>=250&&width!==contentWidth)setContentWidth(width);
+    }}>
       <Card
         eyebrow={config?.display?.category || profile.businessType || "Business App"}
         title={config?.display?.name || profile.businessName || "Business"}
@@ -144,7 +155,35 @@ function MiniAppSurface({
         tone={headerStyle==="bold"?"green":headerStyle==="quiet"?"blue":"green"}
       >
         <Text style={styles.cardBody}>{"App layout: "+density+" • Header: "+headerStyle+
-          " • Navigation: "+(presentation.navigationStyle||"tabs")}</Text>
+          " • Navigation: "+(responsive.ok?responsive.navigation:"list")+
+          " ("+(responsive.ok?responsive.tier.replaceAll("_"," "):"not measured")+")"}</Text>
+        {responsive.ok?(
+          <Text style={styles.cardBody}>
+            {"Layout width "+responsive.width+" points • "+
+              responsive.galleryColumns+" gallery column(s) • "+
+              responsive.serviceColumns+" service column(s)."}
+          </Text>
+        ):null}
+        {modules.length?(
+          <View style={{flexDirection:responsive.ok&&responsive.navigation==="list"?
+            "column":"row",flexWrap:"wrap",gap:8,marginBottom:12}}>
+            {modules.map(module=>(
+              <View key={"preview-navigation-"+module.key}
+                style={{minHeight:48,justifyContent:"center",borderRadius:10,
+                  borderColor:"#41536E",borderWidth:1,paddingHorizontal:12,
+                  paddingVertical:8,
+                  width:responsive.ok&&responsive.navigation==="list"?"100%":undefined}}>
+                <Text style={styles.cardBody}>
+                  {module.label||module.title||
+                    module.key.replaceAll("_"," ")}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ):null}
+        <Text style={styles.cardBody}>
+          Navigation labels are a visual preview; tap behaviour still needs device testing.
+        </Text>
         {heroUri.startsWith("https://") ? (
           <Image
             source={{ uri: heroUri }}
@@ -154,7 +193,7 @@ function MiniAppSurface({
             resizeMode="cover"
             style={{
               width: "100%",
-              height: presentation.imageScale==="large"?320:density==="compact"?172:density==="airy"?285:230,
+              height:responsive.ok?responsive.heroHeight:230,
               borderRadius:presentation.imageCorners==="square"?2:18,
               marginBottom: 14,
             }}
@@ -186,18 +225,19 @@ function MiniAppSurface({
             <View key={module.key}>
               <Text style={styles.sectionLabel}>Services</Text>
               {services.length ? (
-                services.map((service) => (
-                  <Card
-                    key={service.id || service.name}
-                    eyebrow="Service"
-                    title={service.name || "Service"}
-                    body={
-                      service.description ||
-                      "Contact the business for more information."
-                    }
-                    tone="blue"
-                  />
-                ))
+                <View style={{flexDirection:"row",flexWrap:"wrap",
+                  gap:responsive.ok?responsive.gap:12}}>
+                  {services.map((service,index) => (
+                    <View key={service.id||service.name||"service-"+index}
+                      style={{width:responsive.ok&&responsive.serviceColumns===2?
+                        "48%":"100%"}}>
+                      <Card eyebrow="Service" title={service.name||"Service"}
+                        body={service.description||
+                          "Contact the business for more information."}
+                        tone="blue"/>
+                    </View>
+                  ))}
+                </View>
               ) : (
                 <Card
                   eyebrow="Services"
@@ -215,7 +255,8 @@ function MiniAppSurface({
             <View key={module.key}>
               <Text style={styles.sectionLabel}>Gallery</Text>
               {gallery.length ? (
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                <View style={{flexDirection:"row",flexWrap:"wrap",
+                  gap:responsive.ok?responsive.gap:8}}>
                   {gallery.slice(0, 12).map((asset, index) => (
                     <Image
                       key={asset.key || asset.uri || `gallery-${index}`}
@@ -225,11 +266,9 @@ function MiniAppSurface({
                         asset.description||"Business gallery photo "+(index+1)).slice(0,140)}
                       resizeMode="cover"
                       style={{
-                        width:presentation.galleryLayout==="stack"?"100%":
-                          presentation.galleryLayout==="grid"?"48%":
-                          presentation.imageScale==="large"?"100%":"48%",
-                        height:presentation.galleryLayout==="stack"?245:
-                          presentation.imageScale==="large"?200:150,
+                        width:responsive.ok?(responsive.galleryColumns===3?"31%":
+                          responsive.galleryColumns===2?"48%":"100%"):"100%",
+                        height:responsive.ok?responsive.galleryHeight:205,
                         borderRadius:presentation.imageCorners==="square"?2:14,
                         marginBottom: 8,
                       }}
@@ -385,7 +424,7 @@ function MiniAppSurface({
 
         return null;
       })}
-    </>
+    </View>
   );
 }
 
