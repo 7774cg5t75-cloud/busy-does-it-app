@@ -168,7 +168,14 @@ function buildSections(brief = {}) {
 function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCreationIntelligence = null } = {}) {
   const brief = brandBrain.websiteBrief || {};
   const now = new Date().toISOString();
-  const sections = buildSections(brief);
+  // Rebuilding factual Brand Brain content must never discard owner-created
+  // pages or their authored text. It is a content refresh, not a page deletion.
+  const preserved=safeArray(previousDraft?.sections).filter(section=>
+    section?.type==="text"&&clean(section.id).startsWith("custom-"));
+  const sections=[...buildSections(brief),...preserved.map(section=>({...section}))];
+  const theme=previousDraft?.theme&&typeof previousDraft.theme==="object"
+    ? {...themeFromBrief(brief),...previousDraft.theme}
+    : themeFromBrief(brief);
   const draft = {
     id: previousDraft?.id || `website-${Date.now()}`,
     status: "Draft",
@@ -194,9 +201,12 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
             businessCreationIntelligence.ownerApprovalRequired !== false,
         }
       : null,
-    theme: themeFromBrief(brief),
+    theme,
+    customPages:safeArray(previousDraft?.customPages).map(page=>({
+      ...page,sectionIds:safeArray(page?.sectionIds).slice()
+    })),
     sections,
-    designPlan: planWebsiteDesign({businessType:brief.businessType,businessName:brief.businessName,sections,theme:themeFromBrief(brief)}),
+    designPlan: planWebsiteDesign({businessType:brief.businessType,businessName:brief.businessName,sections,theme}),
     seo: {
       title: clean(brief.businessName)
         ? `${clean(brief.businessName)} | ${clean(brief.businessType) || "Local business"}`
