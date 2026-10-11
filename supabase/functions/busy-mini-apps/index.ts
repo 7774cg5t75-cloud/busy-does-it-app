@@ -3,6 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { decideStandaloneEligibility } from "./standaloneEligibility.mjs";
 import { previewPrivateAppAppearance } from "./appAppearanceEditing.mjs";
 import { proposeAppSectionMove } from "./appSectionOrder.mjs";
+import { proposeCoordinatedAppChanges } from "./appCoordinatedStudio.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -1791,6 +1792,34 @@ async function movePrivateAppModule(businessId:string,body:any){
    movedModule:proposal.moduleKey,before:proposal.before,after:proposal.after};
 }
 
+/**
+ * One owner-approved edit transaction = one revision, for marketplace and
+ * standalone alike. Optimistic concurrency rejects stale approval/replay.
+ */
+async function applyCoordinatedPrivateAppEdits(businessId:string,body:any){
+ const app=await appForBusiness(businessId);
+ if(!app)throw new Error("Build your Business App draft first.");
+ const expected=Number(body?.expectedRevision);
+ if(!Number.isSafeInteger(expected)||expected<1||
+    expected!==Number(app.draft_revision)||body?.appId!==app.id||
+    body?.ownerApproved!==true)
+  throw new Error("Approve the current private draft before saving a coordinated edit.");
+ const plan=proposeCoordinatedAppChanges(app.draft_config,body?.operations);
+ if(!plan.ok)throw new Error(plan.reason);
+ const saved=await supabase.from("busy_mini_apps").update({
+   draft_config:plan.nextConfig,draft_revision:expected+1,
+   status:app.current_live_version_id?"update_pending":"draft",
+   updated_at:new Date().toISOString()
+ }).eq("id",app.id).eq("business_id",businessId)
+   .eq("draft_revision",expected).select("*").maybeSingle();
+ if(saved.error)throw saved.error;
+ if(!saved.data)throw new Error("The draft changed during approval. No old revision was overwritten.");
+ return {app:saved.data,appliedChangeCount:plan.changes.length,
+   changeSummary:plan.changes,undoOperations:plan.undoOperations,
+   privateOnly:true,neverPublishes:true,chargesCreated:false,
+   affectsLiveBookings:false,sharedConfigForStandalone:true};
+}
+
 async function setPrivateAppAppearance(businessId:string,body:any){
  const app=await appForBusiness(businessId);
  if(!app)throw new Error("Build the Business App draft first.");
@@ -3575,6 +3604,7 @@ Deno.serve(async (request: Request) => {
       "set_module",
       "set_appearance",
       "move_section",
+      "apply_coordinated_edits",
       "prepare_preview",
       "publish",
       "rollback",
@@ -3644,6 +3674,11 @@ Deno.serve(async (request: Request) => {
     if (action === "move_section") {
       return json(200,{ok:true,
         ...(await movePrivateAppModule(resolvedBusinessId,body)),
+        status:await ownerStatus(resolvedBusinessId)});
+    }
+    if (action === "apply_coordinated_edits") {
+      return json(200,{ok:true,
+        ...(await applyCoordinatedPrivateAppEdits(resolvedBusinessId,body)),
         status:await ownerStatus(resolvedBusinessId)});
     }
     if (action === "set_appearance") {
