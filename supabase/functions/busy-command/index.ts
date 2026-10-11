@@ -894,7 +894,9 @@ Deno.serve(async (request: Request) => {
       // V3.141: transcription-only route, intentionally separate from Operator.
       // A selected website element is kept on-device; no business content or
       // selector is sent to the model and NO action is generated or executed.
-      if(form.get("mode")==="website-selection-transcript-v1"){
+      const requestedWebsiteTranscriptMode=form.get("mode");
+      if(requestedWebsiteTranscriptMode==="website-selection-transcript-v1"||
+         requestedWebsiteTranscriptMode==="website-page-transcript-v1"){
         // Five-minute recording cap is enforced in the owner UI, while a
         // server size ceiling protects cloud usage against modified clients.
         if(audio.size>9_000_000||audio.size<100||
@@ -916,9 +918,9 @@ Deno.serve(async (request: Request) => {
           return json(503,{error:"Voice usage tracking is not ready. Try typing instead; no audio was transcribed."});
         const allowance=budget.data[0];
         if(allowance?.allowed!==true)
-          return json(429,{error:"Your 12 selected-website voice requests for today have been used. Type your changes or try tomorrow (UTC)."});
+          return json(429,{error:"Your 12 website voice requests for today have been used. Type your changes or try tomorrow (UTC)."});
         const transcript=await transcribeAudio(audio);
-        return json(200,{mode:"website-selection-transcript-v1",
+        return json(200,{mode:requestedWebsiteTranscriptMode,
           transcript:cleanText(transcript,400),requiresReview:true,
           voiceUsage:{used:Number(allowance.used)||0,remaining:Number(allowance.remaining)||0,
             dailyLimit:12,period:"UTC day"},
