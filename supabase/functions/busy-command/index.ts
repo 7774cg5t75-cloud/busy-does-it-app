@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import {createClient} from "jsr:@supabase/supabase-js@2";
 
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
 const OPENAI_TRANSCRIPTIONS_URL = "https://api.openai.com/v1/audio/transcriptions";
@@ -889,6 +890,26 @@ Deno.serve(async (request: Request) => {
       const audio = form.get("audio");
       if (!(audio instanceof File)) {
         return json(400, { error: "Audio file is required." });
+      }
+      // V3.141: transcription-only route, intentionally separate from Operator.
+      // A selected website element is kept on-device; no business content or
+      // selector is sent to the model and NO action is generated or executed.
+      if(form.get("mode")==="website-selection-transcript-v1"){
+        if(audio.size>2_500_000||audio.size<100||
+          !["audio/mp4","audio/m4a","audio/x-m4a","audio/aac","application/octet-stream",""].includes(audio.type))
+          return json(413,{error:"Choose a short M4A recording under 2.5 MB."});
+        const rawToken=(request.headers.get("Authorization")||"").replace(/^Bearer\\s+/i,"");
+        const url=Deno.env.get("SUPABASE_URL")||"";
+        const key=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"";
+        if(!rawToken||!url||!key)return json(401,{error:"Sign in again before using voice editing."});
+        const auth=createClient(url,key,{auth:{persistSession:false}});
+        const verified=await auth.auth.getUser(rawToken);
+        if(verified.error||!verified.data?.user?.id)
+          return json(401,{error:"Your editing session has expired. Sign in again."});
+        const transcript=await transcribeAudio(audio);
+        return json(200,{mode:"website-selection-transcript-v1",
+          transcript:cleanText(transcript,400),requiresReview:true,
+          action:null,command:null});
       }
       const rawContext = cleanText(form.get("context"), 100_000);
       const rawConversation = cleanText(form.get("conversation"), 45_000);
