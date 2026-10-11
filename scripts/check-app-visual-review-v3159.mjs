@@ -74,7 +74,7 @@ for(const marker of [
  'action==="visual_review_status"','action==="review_app_screenshot"',
  '"busy_app_visual_ai_limits"','"busy_app_visual_ai_calls"',
  '"busy_reserve_app_visual_ai_call"','"busy_finish_app_visual_ai_call"',
- 'body?.ownerConsent','store:false','max_output_tokens:620',
+ 'validateAppScreenshotReview(body)','store:false','max_output_tokens:620',
  '"data:image/jpeg;base64,"+input','app.id!==fields.appId',
  'Number(app.draft_revision)!==fields.revision',
  'p_business_id:businessId','p_draft_revision:fields.revision',
