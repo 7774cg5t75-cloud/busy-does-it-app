@@ -66,7 +66,7 @@ for(const item of [
 ])yes(local.includes(item),"Concept and public site use same design system: "+item);
 for(const item of [
   'import { WebView } from "react-native-webview";',
-  'const liveConceptHtml = draft ? renderWebsiteHtml(draft) : "";',
+  'const liveConceptHtml = draft ? renderWebsiteHtml(draft,activePage?.id||"home") : "";',
   'source={{ html: liveConceptHtml, baseUrl: "about:blank" }}',
   'javaScriptEnabled={false}',
   'domStorageEnabled={false}',
