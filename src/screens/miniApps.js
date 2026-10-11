@@ -26,7 +26,8 @@ import {auditStandaloneContrast} from "../core/appContrastAudit.mjs";
 import {appRequestJourney} from "../core/appRequestLifecycle.mjs";
 import {appVisibleCaptureReceipt,currentAppVisibleCapture} from "../core/appRenderedEvidence.mjs";
 import {mergeRenderedObservations,evaluateRenderedQuality,
- compareRenderedQuality,suggestMeasuredAppearance} from "../core/appRenderedQuality.mjs";
+ compareRenderedQuality,compareApprovedRevisionMeasurements,
+ suggestMeasuredAppearance} from "../core/appRenderedQuality.mjs";
 import {previewAppVisualSuggestion} from "../core/appVisualReviewContract.mjs";
 import {WebsiteSelectedVoice} from "./websiteSelectedVoice";
 
@@ -2260,6 +2261,13 @@ function MiniAppPreview({ s }) {
       viewportWidth:afterMeasuredWidth}):null;
   const geometryComparison=measuredBefore?.ok&&measuredAfter?.ok?
     compareRenderedQuality(measuredBefore,measuredAfter):null;
+  const priorMeasurement=designCheckpoint?.priorRenderedQuality||null;
+  const savedMeasurementReview=priorMeasurement&&measuredReport?.ok&&
+    designCheckpoint?.saveConfirmed===true?
+    compareApprovedRevisionMeasurements(priorMeasurement,measuredReport,{
+      appId,expectedBeforeRevision:designCheckpoint.beforeRevision,
+      verifiedSavedRevision:designCheckpoint.expectedAfterRevision
+    }):null;
   const measuredSuggestions=measuredReport?.ok?
     suggestMeasuredAppearance(config,measuredReport):null;
   const localDesignReport=measuredReport?.ok?{
@@ -2412,6 +2420,24 @@ function MiniAppPreview({ s }) {
           <Text style={styles.cardBody}>
             {iterationRecheck.nextAction}
           </Text>
+          {savedMeasurementReview?.ok?(
+            <>
+              <Text style={styles.sectionLabel}>V3.164 • New rendered geometry</Text>
+              <MetricRow left="Previously measured warnings"
+                right={String(savedMeasurementReview.beforeWarnings)}/>
+              <MetricRow left="Warnings in new private revision"
+                right={String(savedMeasurementReview.afterWarnings)}/>
+              <MetricRow left="No longer flagged"
+                right={String(savedMeasurementReview.noLongerFlagged.length)}/>
+              <MetricRow left="New warnings to inspect"
+                right={String(savedMeasurementReview.newlyFlagged.length)}/>
+              <Text style={styles.cardBody}>
+                Both revisions had real component layout observations at
+                the same width. This is not proof that images or accessibility
+                improved. Inspect the new screenshot before release.
+              </Text>
+            </>
+          ):null}
         </Card>
       ):null}
       {config&&appId&&revision>0?(
@@ -2577,12 +2603,44 @@ function MiniAppPreview({ s }) {
                       </Text>
                       <Text style={styles.sectionLabel}>Original private app</Text>
                       <View ref={originalComparisonRef} collapsable={false}>
-                        <MiniAppSurface config={config}/>
+                        <MiniAppSurface
+                          key={"original-"+proposedDesignKey+"-"+qualityEnabled}
+                          config={config}
+                          onQualityObservation={qualityEnabled?collectBefore:null}
+                          onMeasuredWidth={qualityEnabled?setBeforeMeasuredWidth:null}/>
                       </View>
                       <Text style={styles.sectionLabel}>Proposed private app</Text>
                       <View ref={proposedComparisonRef} collapsable={false}>
-                        <MiniAppSurface config={visualProposal.nextConfig}/>
+                        <MiniAppSurface
+                          key={"proposed-"+proposedDesignKey+"-"+qualityEnabled}
+                          config={visualProposal.nextConfig}
+                          onQualityObservation={qualityEnabled?collectAfter:null}
+                          onMeasuredWidth={qualityEnabled?setAfterMeasuredWidth:null}/>
                       </View>
+                      {geometryComparison?.ok?(
+                        <>
+                          <Text style={styles.sectionLabel}>Measured layout comparison</Text>
+                          <MetricRow left="Original component warnings"
+                            right={String(geometryComparison.beforeIssueCount)}/>
+                          <MetricRow left="Proposed component warnings"
+                            right={String(geometryComparison.afterIssueCount)}/>
+                          <MetricRow left="No longer flagged"
+                            right={String(geometryComparison.noLongerFlagged.length)}/>
+                          <MetricRow left="New flags"
+                            right={String(geometryComparison.newlyFlagged.length)}/>
+                          <Text style={styles.cardBody}>
+                            Based on native layout events at the same actual
+                            content width. The original is unchanged until
+                            you approve a private revision. No pixel-level
+                            screenshot comparison is implied.
+                          </Text>
+                        </>
+                      ):qualityEnabled?(
+                        <Text style={styles.cardBody}>
+                          Waiting for both original and proposed customer previews
+                          to report comparable native layout geometry.
+                        </Text>
+                      ):null}
                       <Button label={pairBusy?"Capturing / reviewing…":"Capture both rendered app views"}
                         disabled={pairBusy||!!s.miniAppsAction}
                         onPress={captureComparisonPair}/>
@@ -2638,7 +2696,9 @@ function MiniAppPreview({ s }) {
                           });
                           if(saved?.ok){
                             if(saved.newRevision===prepared.expectedAfterRevision)
-                              setDesignCheckpoint({...prepared,saveConfirmed:true});
+                              setDesignCheckpoint({...prepared,saveConfirmed:true,
+                                priorRenderedQuality:measuredReport?.ok?
+                                  measuredReport:null});
                             setVisualProposal(null);setVisualReport(null);setCapture(null);
                             setPairedCapture(null);setPairReview(null);
                             setVisualSelected([]);
