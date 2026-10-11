@@ -32,6 +32,7 @@ import {voiceUploadEligible} from "../core/websiteVoiceRecordingPolicy.mjs";
 import {planSelectedWebsiteChanges,prepareSelectedWebsiteTransaction} from "../core/websiteContextPlan.mjs";
 import {previewSelectedWebsiteInstruction as prepareWebsiteSelectionPreview} from "../core/websiteSelectedChangePreview.mjs";
 import {planWebsitePageInstructions,prepareWebsitePageInstructionPreview} from "../core/websitePageInstructions.mjs";
+import {makeWebsiteRecoveryPoint,restoreWebsiteRecoveryPoint as restoreWebsiteRecoverySnapshot} from "../core/websiteRecoveryPoint.mjs";
 
 try {
   Notifications.setNotificationHandler({
@@ -283,6 +284,7 @@ function App() {
   websiteDraftRef.current=websiteDraft;
   const [websiteUndo, setWebsiteUndo] = useState([]);
   const [websiteRedo, setWebsiteRedo] = useState([]);
+  const [websiteRecoveryPoint,setWebsiteRecoveryPoint]=useState(null);
   const [websiteBuilderNotice, setWebsiteBuilderNotice] = useState("");
   const [websitePublishingStatus, setWebsitePublishingStatus] = useState({
     loaded: false,
@@ -6466,6 +6468,7 @@ function App() {
     setWebsiteDraft(null);
     setWebsiteUndo([]);
     setWebsiteRedo([]);
+    setWebsiteRecoveryPoint(null);
     setWebsiteBuilderNotice("");
     setWebsitePublishingStatus({
       loaded: false,
@@ -13519,6 +13522,28 @@ function App() {
     }
   };
 
+  // In-memory, business-specific safety net; save and restore only on
+  // explicit owner taps. Restoring becomes one Undo entry and never publishes.
+  const saveWebsiteRecoveryPoint=()=>{
+    const result=makeWebsiteRecoveryPoint(websiteDraftRef.current,new Date().toISOString());
+    setWebsiteBuilderNotice(result.ok
+     ?"Saved a private recovery point for this website. It lasts only for this app session."
+     :result.reason);
+    if(result.ok)setWebsiteRecoveryPoint(result);
+    return result.ok;
+  };
+  const restoreWebsiteRecoveryPoint=()=>{
+    const current=websiteDraftRef.current;
+    const result=restoreWebsiteRecoverySnapshot(current,websiteRecoveryPoint,rebuildPrivateWebsiteDraft);
+    setWebsiteBuilderNotice(result.reason);
+    if(!result.applied)return false;
+    setWebsiteUndo(items=>[...items,current].slice(-8));
+    setWebsiteRedo([]);
+    websiteDraftRef.current=result.draft;
+    setWebsiteDraft(result.draft);
+    return true;
+  };
+
   const undoWebsiteChange = () => {
     if (!websiteUndo.length || !websiteDraft) return false;
     const previous=websiteUndo[websiteUndo.length - 1];
@@ -15896,6 +15921,9 @@ function App() {
     setWebsiteDraft,
     canUndoWebsite:websiteUndo.length>0,
     canRedoWebsite:websiteRedo.length>0,
+    websiteRecoveryPointAvailable:!!websiteRecoveryPoint?.ok&&websiteRecoveryPoint.draftId===websiteDraft?.id,
+    saveWebsiteRecoveryPoint,
+    restoreWebsiteRecoveryPoint,
     undoWebsiteChange,
     redoWebsiteChange,
     websiteBuilderNotice,

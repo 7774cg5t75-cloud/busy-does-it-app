@@ -588,6 +588,8 @@ function WebsitePreview({ s }) {
   const [pagePlanPreview,setPagePlanPreview]=React.useState(null);
   const [showPagePlanOriginal,setShowPagePlanOriginal]=React.useState(false);
   const [pagePlanNotice,setPagePlanNotice]=React.useState("");
+  const [showRecoveryTools,setShowRecoveryTools]=React.useState(false);
+  const [confirmRecoveryRestore,setConfirmRecoveryRestore]=React.useState(false);
   React.useEffect(()=>{
     setSelectedEdit(null);setVisualCheckResult(null);setVisualCheckOn(false);
     setDesignCandidate(null);setCandidateCheckOn(false);
@@ -595,6 +597,7 @@ function WebsitePreview({ s }) {
     setShowOriginalComparison(false);
   },[selectedPageId,draft?.id,draft?.generation,previewSize]);
   React.useEffect(()=>setViewportEvidence(null),[selectedPageId,draft?.id,draft?.generation]);
+  React.useEffect(()=>setConfirmRecoveryRestore(false),[draft?.id,draft?.generation]);
   React.useEffect(()=>{setPagePlanPreview(null);setPagePlanNotice("");setPageInstruction("");
     setShowPagePlanOriginal(false);},[selectedPageId,draft?.id,draft?.generation]);
   const activePage=draft?.pages?.find(page=>page.id===selectedPageId)||
@@ -929,6 +932,28 @@ function WebsitePreview({ s }) {
       {s.websiteBuilderNotice?<Text style={styles.cardBody}>{s.websiteBuilderNotice}</Text>:null}
       {s.canUndoWebsite ? <Button label="Undo last website change" onPress={s.undoWebsiteChange} /> : null}
       {s.canRedoWebsite ? <Button label="Redo website change" onPress={s.redoWebsiteChange} /> : null}
+      <Button label={showRecoveryTools?"Hide recovery options":"Protect or restore my website draft"}
+       onPress={()=>setShowRecoveryTools(x=>!x)}/>
+      {showRecoveryTools?(
+       <Card eyebrow="Private recovery point"
+         title="A safe place to come back to"
+         body="Save one temporary design checkpoint in this app session. Restore it if you experiment and change your mind. Your live website is never rolled back, and regular Undo remains available."
+         tone="blue">
+         <Button label="Save this design as my recovery point"
+          onPress={()=>{setConfirmRecoveryRestore(false);s.saveWebsiteRecoveryPoint?.();}}/>
+         {s.websiteRecoveryPointAvailable?(
+           confirmRecoveryRestore?(
+            <>
+             <Text style={styles.cardBody}>Restore the saved design as a new PRIVATE draft? This can be undone and will not change a published website.</Text>
+             <Button label="Yes, restore my saved design" onPress={()=>{
+               s.restoreWebsiteRecoveryPoint?.();setConfirmRecoveryRestore(false);
+             }}/>
+             <Button label="Cancel restoration" onPress={()=>setConfirmRecoveryRestore(false)}/>
+            </>
+           ):<Button label="Restore saved design" onPress={()=>setConfirmRecoveryRestore(true)}/>
+         ):null}
+       </Card>
+      ):null}
       <Button label={hosted ? "View hosted website again" : "Prepare private hosted preview"}
         primary onPress={openHosted} />
       <Button label="Edit my website" onPress={() => s.go("websiteBuilder")} />
