@@ -58,12 +58,16 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
  };
  const design=section?.appearance||{};
  const appearanceChoice=(field,value,label)=>{
-  const current=design[field]||{
+  const photoOnly=section?.type==="gallery"&&selection?.field==="photo"&&
+    field==="photoCrop"&&Number.isSafeInteger(photoIndex);
+  const current=(photoOnly?section?.items?.[photoIndex]?.appearance?.photoCrop:design[field])||{
    headingScale:"normal",textAlign:"left",sectionSpacing:"normal",
    photoCrop:"center",photoSide:"left",gallerySize:"comfortable"
   }[field];
   return <Button key={field+value} label={(current===value?"✓ ":"")+label}
-    onPress={()=>apply({action:"section-style",sectionId:section?.id,field,value})}/>;
+    onPress={()=>apply(photoOnly
+      ?{action:"image-style",sectionId:section?.id,photoIndex,field,value}
+      :{action:"section-style",sectionId:section?.id,field,value})}/>;
  };
  return (
   <Modal visible={!!selection} onRequestClose={onClose}
@@ -116,6 +120,11 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
              apply({action:"remove-gallery-photo",sectionId:"gallery",photoIndex});
             }}/>
            <Text style={styles.cardBody}>Removing a gallery photograph does not delete its original file. Undo restores the previous gallery draft.</Text>
+           {section?.items?.[photoIndex]?.storagePath?(
+            <Button label="Use this approved picture as the main website photo"
+             onPress={()=>apply({action:"choose-hero-photo",
+              storagePath:section.items[photoIndex].storagePath})}/>
+           ):null}
           </>
          ):(
           <>
@@ -179,9 +188,9 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
            {appearanceChoice("sectionSpacing","compact","Less space")}
            {appearanceChoice("sectionSpacing","normal","Normal space")}
            {appearanceChoice("sectionSpacing","generous","More breathing room")}
-           {["hero","photo-feature","gallery"].includes(section.type)?(
+           {(["hero","photo-feature"].includes(section.type)||section.type==="gallery"&&field==="photo")?(
             <>
-             <Text style={styles.sectionLabel}>Picture crop</Text>
+             <Text style={styles.sectionLabel}>{section.type==="gallery"?"Crop this photograph only":"Picture crop"}</Text>
              {appearanceChoice("photoCrop","top","Focus on the top")}
              {appearanceChoice("photoCrop","center","Focus on the middle")}
              {appearanceChoice("photoCrop","bottom","Focus on the bottom")}
