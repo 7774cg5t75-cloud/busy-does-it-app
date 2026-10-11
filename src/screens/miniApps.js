@@ -2348,6 +2348,75 @@ function MiniAppPreview({ s }) {
       plan.reason);
     setVirtualSamples({});setVirtualAiReview(null);setVirtualNotice("");
   };
+  // These captures are of customer-only views rendered at virtual widths.
+  // Real phone/tablet device QA remains outstanding.
+  const captureVirtualPair=async()=>{
+    const width=capturePreset?.width;
+    if(!width||!visualProposal?.ok||!virtualBeforeRef.current||
+       !virtualAfterRef.current||virtualBusy)return;
+    setVirtualBusy(true);setVirtualNotice("");setVirtualAiReview(null);
+    try{
+      if(!presetComparison?.ok)
+        throw Error("Wait for comparable native layout measurements at this width.");
+      const settings={format:"jpg",quality:0.25,result:"tmpfile"};
+      const beforeUri=await captureRef(virtualBeforeRef.current,settings);
+      const afterUri=await captureRef(virtualAfterRef.current,settings);
+      const getPixels=uri=>new Promise((resolve,reject)=>
+        Image.getSize(uri,(w,h)=>resolve({w,h}),reject));
+      const [firstPixels,secondPixels]=await Promise.all([
+        getPixels(beforeUri),getPixels(afterUri)
+      ]);
+      const makeReceipt=(uri,pixels)=>{
+        const file=new ExpoFile(uri);
+        if(!file.exists||Number(file.size)<512||Number(file.size)>590000||
+           pixels.w<Math.floor(width*PixelRatio.get()*0.85))
+          throw Error("This device could not verify the full layout-width image. A smaller width may work.");
+        return {uri,appId,revision,layoutWidth:width,
+          pixelWidth:Math.round(pixels.w),pixelHeight:Math.round(pixels.h),
+          sizeBytes:Number(file.size),scope:"public_app_only"};
+      };
+      const before=makeReceipt(beforeUri,firstPixels),
+        after=makeReceipt(afterUri,secondPixels);
+      const pair=validateViewportPair({appId,revision,
+        viewportId:capturePreset.id,before,after,operations:proposedOperations});
+      if(!pair.ok)throw Error(pair.reason);
+      if(Number(s.miniAppsView?.app?.draft_revision)!==revision||
+         s.miniAppsView?.app?.id!==appId)
+        throw Error("The app revision changed while capturing. No images were sent.");
+      setVirtualSamples(previous=>({...previous,[capturePreset.id]:{
+        pair,before,after,beforeQuality:presetBefore,afterQuality:presetAfter
+      }}));
+      setVirtualNotice("Captured both customer-only layouts at "+width+
+        " points. Images are temporary local files; no upload has happened.");
+    }catch(error){
+      setVirtualNotice(String(error?.message||
+        "This device could not capture both layouts. Nothing was uploaded.").slice(0,260));
+    }finally{setVirtualBusy(false);}
+  };
+  const consentToCompareVirtualWidth=()=>{
+    const sample=virtualSamples[virtualWidthId];
+    if(!sample?.pair?.ok||!visualProposal?.ok||virtualBusy||
+       visualAllowance?.enabled!==true||visualAllowance.remaining<1||
+       JSON.stringify(sample.pair.operations)!==JSON.stringify(proposedOperations))return;
+    Alert.alert("Review both screenshots with AI?",
+      "These TWO owner-approved customer-only screenshots show a simulated "+
+      capturePreset.width+"-point layout, NOT two tested physical devices. "+
+      "This uses ONE of your monthly AI reviews. Each additional width requires another explicit approval and review allowance. No app changes are applied.",
+      [{text:"Cancel",style:"cancel"},{text:"Approve one AI review",onPress:async()=>{
+        setVirtualBusy(true);setVirtualNotice("");setVirtualAiReview(null);
+        const result=await s.comparePrivateAppScreenshots?.({
+          appId,expectedRevision:revision,
+          beforeUri:sample.before.uri,afterUri:sample.after.uri,
+          operations:sample.pair.operations,captureScope:"public_app_only"
+        });
+        if(result?.ok){
+          setVirtualAiReview({viewportId:virtualWidthId,review:result.review});
+          setVisualAllowance(result.status);
+          setVirtualNotice("AI compared these owner-submitted virtual-width images. It did not inspect a physical tablet or certify layout quality.");
+        }else setVirtualNotice(result?.reason||"This review was unavailable. Nothing changed.");
+        setVirtualBusy(false);
+      }}]);
+  };
   const takeScreenCapture=async()=>{
     setCaptureBusy(true);setCaptureError("");setCapture(null);
     try{
