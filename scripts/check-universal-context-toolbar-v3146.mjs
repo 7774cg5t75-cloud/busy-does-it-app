@@ -4,7 +4,7 @@ import {ACTION_CHANNEL,contextualToolbarPolicy,resolveContextualToolbarAction} f
 import {CHANNEL,makeTapToEditHtml,resolveTapToolbarAction} from "../src/core/websiteTapToEdit.mjs";
 import {interpretSelectedWebsiteRequest} from "../src/core/websiteContextualEdit.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
-for(const [field,kind,primary] of [["photo","picture","Replace"],["title","heading","Edit"],["body","text","Edit"],["cta","button","Edit"],["email","text","Edit"]]){
+for(const [field,kind,primary] of [["section","section","Adjust"],["photo","picture","Replace"],["title","heading","Edit"],["body","text","Edit"],["cta","button","Edit"],["email","text","Edit"]]){
  const p=contextualToolbarPolicy(field);
  assert.equal(p.kind,kind);
  assert.equal(p.primary,primary);
@@ -28,6 +28,7 @@ for(const action of ["edit","voice","more"]){
  assert.deepEqual(resolved.selection,{sectionId:"hero",field:"title",itemId:null});
 }
 assert.equal(resolveTapToolbarAction(draft,"home",raw("photo","voice")).policy.kind,"picture");
+assert.equal(resolveTapToolbarAction(draft,"home",raw("section","voice")).selection.field,"section");
 const gallery=resolveTapToolbarAction(draft,"home",raw("photo","edit","gallery","","0"));
 assert.equal(gallery.selection.photoIndex,0);
 assert.equal(resolveTapToolbarAction(draft,"home",raw("title","more","services","design")).selection.itemId,"design");
@@ -56,7 +57,7 @@ assert.ok(screen.includes('onTranscribe={s.transcribeSelectedWebsiteAudio}'));
 assert.ok(screen.includes("javaScriptEnabled={tapEditMode||visualCheckOn||candidateCheckOn}"));
 const modal=read("src/screens/websiteTapEditor.js");
 assert.ok(modal.includes('setShowContextHelp(initialMode==="voice")'));
-assert.ok(modal.includes('setShowSectionDesign(initialMode==="more")'));
+assert.ok(modal.includes('setShowSectionDesign(initialMode==="more"||selection?.field==="section")'));
 assert.ok(modal.includes('setShowPhotoChoices(initialMode==="edit"&&selection?.field==="photo")'));
 assert.ok(modal.includes('startImmediately={initialMode==="voice"}'));
 const mic=read("src/screens/websiteSelectedVoice.js");
