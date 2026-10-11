@@ -94,6 +94,9 @@ function evaluateRenderedQuality({appId,revision,observations,viewportWidth}={})
  return {ok:true,kind:"local_rendered_app_inspection_v3164",appId,revision,
   viewportWidth:Math.round(viewportWidth),
   measuredComponents:sanitized.length,
+  measuredKeys:sanitized.map(x=>x.key).sort(),
+  imageKeysWithSourceDimensions:sanitized.filter(x=>x.kind.endsWith("_image")&&
+    measuredImageCrop(x)!==null).map(x=>x.key).sort(),
   measuredKinds:[...new Set(sanitized.map(x=>x.kind))],
   issues,issueCount:issues.length,
   unmeasuredImageCount:sanitized.filter(x=>x.kind.endsWith("_image")&&
@@ -104,12 +107,20 @@ function evaluateRenderedQuality({appId,revision,observations,viewportWidth}={})
   accessibilityCertified:false,customerDataCaptured:false,
   uploaded:false,privateOnly:true,autoPublished:false};
 }
+function compatibleMeasurements(before,after){
+ return Array.isArray(before?.measuredKeys)&&Array.isArray(after?.measuredKeys)&&
+  before.measuredKeys.length>0&&
+  JSON.stringify(before.measuredKeys)===JSON.stringify(after.measuredKeys)&&
+  JSON.stringify(before.imageKeysWithSourceDimensions)===
+   JSON.stringify(after.imageKeysWithSourceDimensions);
+}
 function compareRenderedQuality(before,after){
  if(before?.ok!==true||after?.ok!==true||
    before.kind!=="local_rendered_app_inspection_v3164"||
    after.kind!=="local_rendered_app_inspection_v3164"||
    before.appId!==after.appId||before.revision!==after.revision||
    before.viewportWidth!==after.viewportWidth||
+   !compatibleMeasurements(before,after)||
    before.measuredComponents<1||after.measuredComponents<1)
   return {ok:false,reason:"Compare two measured private renderings of the same app revision and content width."};
  const old=new Set(before.issues.map(x=>x.id));
@@ -142,8 +153,9 @@ function compareApprovedRevisionMeasurements(before,after,{
    after.revision!==verifiedSavedRevision||
    !Number.isSafeInteger(verifiedSavedRevision)||
    verifiedSavedRevision!==expectedBeforeRevision+1||
-   before.viewportWidth!==after.viewportWidth)
-  return {ok:false,reason:"A verified adjacent private draft revision with a matching measured content width is required."};
+   before.viewportWidth!==after.viewportWidth||
+   !compatibleMeasurements(before,after))
+  return {ok:false,reason:"A verified adjacent private revision and the same fully measured component keys and source-image coverage are required."};
  const first=new Set(before.issues.map(x=>x.id));
  const second=new Set(after.issues.map(x=>x.id));
  return {ok:true,kind:"verified_private_revision_geometry_recheck_v3164",
