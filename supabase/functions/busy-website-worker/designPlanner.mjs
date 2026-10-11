@@ -7,7 +7,7 @@ const clean=v=>String(v||"").trim();
 const list=v=>Array.isArray(v)?v:[];
 const section=(parts,id)=>list(parts).find(p=>p?.id===id&&p?.enabled!==false)||null;
 const words=v=>clean(v).split(/\s+/).filter(Boolean).length;
-const supportedPhoto=p=>!!(p && typeof p==="object" &&
+const supportedPhoto=p=>!!(p && typeof p==="object" && p.approved!==false &&
   (clean(p.storagePath) || /^https:\/\/[^\s"'<>]+$/i.test(clean(p.uri))));
 const photographicCount=(parts)=>{
   const hero=section(parts,"hero")?.asset;
@@ -124,7 +124,15 @@ function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}
   // A short brief benefits from a confident typographic hero, not a blank
   // image placeholder, empty gallery or falsely completed features.
   const heroTreatment=photos?"photographic":"typographic";
-  const sectionOrder=sector==="hospitality"&&aboutWords>=15
+  // Event caterers with enough *approved* food photographs need a menu/image-led
+  // introduction. A cafe with the same amount of text can remain story-led.
+  // Without confirmed photographs or services, never invent visual content.
+  const eventCateringWithPhotos=sector==="hospitality"&&
+    /cater|festival|hog roast|food truck|street food|food stall|mobile food/i.test(clean(businessType))&&
+    services.length>=2&&photos>=2;
+  const sectionOrder=eventCateringWithPhotos
+    ? ["hero","services","gallery","about","testimonials","faq","contact"]
+    : sector==="hospitality"&&aboutWords>=15
     ? ["hero","about","services","gallery","testimonials","faq","contact"]
     : (sector==="nature"||sector==="wellness")&&photos>=2
       ? ["hero","gallery","services","about","testimonials","faq","contact"]
@@ -144,7 +152,7 @@ function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}
   const homeSectionIds=architecture==="focused-landing" ? visibleOrder :
     visibleOrder.filter(id=>active.some(x=>x.id===id&&["text","photo-feature"].includes(x.type)&&id.startsWith("custom-"))||
       ["hero","services","contact"].includes(id)||
-      (id==="gallery"&&family==="portfolio")||
+      (id==="gallery"&&(family==="portfolio"||eventCateringWithPhotos))||
       (id==="about"&&["artisan","editorial","boutique"].includes(family))||
       (id==="testimonials"&&reviewCount>0));
   const gaps=[];
@@ -159,11 +167,13 @@ function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}
     visualIdentity,
     sectionOrder:visibleOrder,homeSectionIds,
     signals:{services:services.length,describedServices:serviceDescriptions,
-      approvedPhotos:photos,aboutWords,faqCount,reviewCount,hasContact},
+      approvedPhotos:photos,aboutWords,faqCount,reviewCount,hasContact,
+      eventCateringWithPhotos},
     missing:gaps,
     explanation:architecture==="focused-landing"
       ?"BUSY chose one polished, focused page so limited information doesn't create empty pages."
-      :"BUSY chose a detailed homepage and separate pages because enough verified content is available.",
+      :"BUSY chose a detailed homepage and separate pages because enough verified content is available."+
+       (eventCateringWithPhotos?" Approved event-food photos and real services appear early because this is event catering.":""),
   };
 }
 export {deriveSector,planWebsiteDesign,photographicCount,stableDesignSeed,selectVisualIdentity};

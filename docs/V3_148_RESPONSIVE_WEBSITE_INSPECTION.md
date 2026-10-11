@@ -28,3 +28,19 @@ between stacked mobile and wide desktop hero/navigation, that there is
 no sideways overflow or injected script, and that screenshots are captured.
 
 Not a signed iOS WebView test, hosted staging test or publication approval.
+
+## Deeper business-specific composition
+
+The planner now distinguishes photo-rich **event-catering** businesses from
+story-led cafés: when at least two real services and two approved photos exist,
+the event-catering homepage leads with its service/menu and photo gallery
+before the longer story. This is deterministic and based only on the business
+type and verified supplied content. Without real photographs it falls back
+to the previous composition. Explicit owner section-order preferences win,
+and an image marked `approved:false` never counts as a design signal.
+The shared native/hosted planner stays the single source of truth.
+
+`scripts/check-website-event-layout-v3148.mjs` tests industry distinction,
+photograph consent, deterministic layout, the owner override and unchanged
+private input. This does not generate imaginary photographs, testimonials,
+credentials, booking links or outside AI spending.

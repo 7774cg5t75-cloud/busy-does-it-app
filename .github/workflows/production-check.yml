@@ -142,6 +142,7 @@ jobs:
         run: |
           node scripts/check-website-selection-preview-v3148.mjs
           node scripts/check-website-responsive-preview-v3148.mjs
+          node scripts/check-website-event-layout-v3148.mjs
 
       - name: Verify Expo Snack module dependency graph
         run: node scripts/check-snack-dependencies.mjs
