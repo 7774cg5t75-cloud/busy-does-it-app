@@ -17,14 +17,14 @@ function recommendMeasuredWebsiteChange({draft,pageId,report}={}){
  const ids=new Set(array(report.issues).map(x=>x?.id));
  const active=id=>array(draft.sections).find(s=>s.id===id&&s.enabled!==false&&
     array(draft.pages.find(p=>p.id===pageId)?.sectionIds).includes(id));
- if(ids.has("headings")&&active("hero")&&
+ if(ids.has("headings")&&ownerDesignPreference(draft,"compact-hero-title")!=="disliked"&&active("hero")&&
     active("hero").appearance?.headingScale!=="compact"){
   return {id:"compact-hero-title",label:"Try a smaller main heading",
    explanation:"A heading may be clipped. Test a more compact main heading without changing your wording.",
    operation:{action:"section-style",sectionId:"hero",field:"headingScale",value:"compact"},
    source:"measured-layout-hint",notGuaranteed:true};
  }
- if(ids.has("overflow")&&active("services")&&draft.theme?.cardLayout!=="rows"){
+ if(ids.has("overflow")&&ownerDesignPreference(draft,"simpler-service-layout")!=="disliked"&&active("services")&&draft.theme?.cardLayout!=="rows"){
   return {id:"simpler-service-layout",label:"Try simpler service rows",
    explanation:"The page may be too wide. Test a one-column service arrangement.",
    operation:{action:"style",field:"cardLayout",value:"rows"},
