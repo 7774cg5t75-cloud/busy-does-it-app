@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {recommendMeasuredWebsiteChange,compareWebsiteVisualReports,
- recordWebsiteOwnerDesignFeedback,ownerDesignPreference} from "../src/core/websiteMeasuredDesignCoach.mjs";
+ recordWebsiteOwnerDesignFeedback,ownerDesignPreference,withoutPrivateWebsiteDesignFeedback} from "../src/core/websiteMeasuredDesignCoach.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 const draft={id:"customer-private-a",generation:12,publicStatus:"Not published",
  pages:[{id:"home",enabled:true,sectionIds:["hero","services"]}],
@@ -50,6 +50,8 @@ const liked=recordWebsiteOwnerDesignFeedback(draft,{draftId:draft.id,pageId:"hom
 assert.ok(liked.applied);
 assert.equal(ownerDesignPreference(liked.draft,"compact-hero-title"),"liked");
 assert.equal(draft.ownerDesignFeedback,undefined,"Original remains immutable");
+assert.equal(withoutPrivateWebsiteDesignFeedback(liked.draft).ownerDesignFeedback,undefined,
+ "Private preferences never enter public/site preparation payload");
 const dislike=recordWebsiteOwnerDesignFeedback(liked.draft,{
  draftId:draft.id,pageId:"home",choice:"disliked",
  changeId:"compact-hero-title",at:"2026-10-11T12:01:00.000Z"});
@@ -79,6 +81,8 @@ for(const token of ["applyWebsiteLayoutChange(draft,layoutAdvice.operation)",
 const controller=read("src/app/AppController.js");
 assert.ok(controller.includes("recordWebsiteOwnerDesignFeedback(websiteDraftRef.current"));
 assert.ok(controller.includes("setWebsiteDraft(current=>"));
+assert.ok(controller.includes("websiteDraft:withoutPrivateWebsiteDesignFeedback(websiteDraft)"),
+ "Public website/domain gateway cannot include owner-only feedback");
 assert.ok(!controller.includes("trainWebsiteModelFromFeedback"),"No unapproved self-training");
 const domain=read("src/domain/websiteBuilder.js");
 assert.ok(domain.includes("ownerDesignFeedback:safeArray(previousDraft?.ownerDesignFeedback)"));
