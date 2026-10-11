@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {ACTION_CHANNEL,contextualToolbarPolicy,resolveContextualToolbarAction} from "../src/core/contextualEditingCore.mjs";
+import {ACTION_CHANNEL,contextualToolbarPolicy,contextualEditExamples,resolveContextualToolbarAction} from "../src/core/contextualEditingCore.mjs";
 import {CHANNEL,makeTapToEditHtml,resolveTapToolbarAction} from "../src/core/websiteTapToEdit.mjs";
 import {interpretSelectedWebsiteRequest} from "../src/core/websiteContextualEdit.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
@@ -11,6 +11,14 @@ for(const [field,kind,primary] of [["section","section","Adjust"],["photo","pict
  assert.deepEqual(p.actions,["edit","voice","more"]);
 }
 assert.equal(contextualToolbarPolicy("rawHtml"),null);
+assert.deepEqual(contextualEditExamples({field:"section"}),["Centre this section","Give this section more space"]);
+assert.deepEqual(contextualEditExamples({field:"title",sectionType:"hero",compactHeadingPreference:"liked"}),
+ ["Make this heading smaller","Make this heading bigger"]);
+assert.deepEqual(contextualEditExamples({field:"title",sectionType:"hero",compactHeadingPreference:"disliked"}),
+ ["Make this heading bigger"],"Respect exact owner's rejected compact heading");
+assert.ok(contextualEditExamples({field:"photo",sectionType:"gallery"}).includes("Show this whole photograph"));
+assert.deepEqual(contextualEditExamples({field:"script"}),[],"Never recommend unsupported changes");
+
 const photo={id:"img1",approved:true,storagePath:"private/photo1.jpg"};
 const draft={id:"tenant-a-private",generation:14,publicStatus:"Not published",
  pages:[{id:"home",enabled:true,sectionIds:["hero","services","gallery"]}],
@@ -57,6 +65,7 @@ assert.ok(screen.includes('onTranscribe={s.transcribeSelectedWebsiteAudio}'));
 assert.ok(screen.includes("javaScriptEnabled={tapEditMode||visualCheckOn||candidateCheckOn}"));
 const modal=read("src/screens/websiteTapEditor.js");
 assert.ok(modal.includes('setShowContextHelp(initialMode==="voice")'));
+assert.ok(modal.includes("contextualEditExamples({")&&modal.includes("ownerDesignPreference(draft,"));
 assert.ok(modal.includes('setShowSectionDesign(initialMode==="more"||selection?.field==="section")'));
 assert.ok(modal.includes('setShowPhotoChoices(initialMode==="edit"&&selection?.field==="photo")'));
 assert.ok(modal.includes('startImmediately={initialMode==="voice"}'));
