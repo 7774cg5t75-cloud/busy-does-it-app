@@ -5,12 +5,13 @@
  * existing immutable layout transaction and exactly one Undo on approval.
  */
 import {splitSelectedWebsiteInstruction,prepareSelectedWebsiteTransaction} from "./websiteContextPlan.mjs";
+import {privateBuilderRevisionMatches} from "./privateBuilderBoundary.mjs";
 const list=x=>Array.isArray(x)?x:[];
 const fail=reason=>({ok:false,reason,steps:[]});
 const forbidden=/\b(publish|delete|remove|transfer|export|upload|send|buy|purchase)\b/i;
 function planWebsitePageInstructions(draft,{draftId,pageId,generation,instruction}={}){
- if(!draft?.id||draft.id!==draftId||!Number.isSafeInteger(generation)||
-   generation!==draft.generation)return fail("The website changed. Review the current draft again.");
+ if(!privateBuilderRevisionMatches(draft,{draftId,generation,pageId}))
+  return fail("The website or selected page changed. Review the current draft again.");
  const page=list(draft.pages).find(p=>p.id===pageId&&p.enabled!==false);
  if(!page)return fail("Choose a current website page.");
  const clauses=splitSelectedWebsiteInstruction(instruction);

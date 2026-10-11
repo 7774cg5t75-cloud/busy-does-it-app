@@ -11,10 +11,11 @@
  * reuse by future builders.
  */
 import {applyApprovedVisualProposals} from "../../supabase/functions/busy-website-worker/visualCriticContract.mjs";
+import {privateBuilderRevisionMatches,privateBuilderVisualIntegrity} from "./privateBuilderBoundary.mjs";
 const fail=reason=>({ok:false,reason,candidates:[]});
 function previewWebsiteAIStudio(draft,{report,pageId="home",sourceGeneration,
   draftId,deploymentId,reviewDeploymentId}={}, {rebuild,render}={}){
- if(!draft?.id||draft.id!==draftId||Number(draft.generation)!==Number(sourceGeneration)||
+ if(!privateBuilderRevisionMatches(draft,{draftId,generation:sourceGeneration,pageId})||
   !deploymentId||reviewDeploymentId!==deploymentId)
   return fail("This visual review is from a different website or revision.");
  if(!report?.valid||report.providerConfirmed!==true||
@@ -24,8 +25,6 @@ function previewWebsiteAIStudio(draft,{report,pageId="home",sourceGeneration,
   return fail("The website preview renderer is unavailable.");
  if(!Array.isArray(report.proposals)||!report.proposals.length||report.proposals.length>3)
   return fail("No supported design changes were suggested.");
- if(!draft.pages?.some(page=>page.id===pageId&&page.enabled!==false))
-  return fail("Choose a current page before reviewing a design.");
  let originalHtml;
  try{originalHtml=render(draft,pageId);}catch{return fail("Original website preview unavailable.");}
  const safeHtml=html=>typeof html==="string"&&html.length<500000&&
@@ -41,11 +40,9 @@ function previewWebsiteAIStudio(draft,{report,pageId="home",sourceGeneration,
   let next,html;
   try{next=rebuild(staged.draft);html=render(next,pageId);}catch{continue;}
   if(!next||next.id!==draft.id||next.generation<=draft.generation||!safeHtml(html))continue;
-  // AI is never permitted to change page content, contact details,
-  // photographs or owner-created sections, even in a temporary candidate.
-  if(JSON.stringify(next.sections)!==JSON.stringify(draft.sections)||
-     next.businessName!==draft.businessName||next.businessType!==draft.businessType)
-    continue;
+  // Reuse the same revision/presentation-only boundary future builders
+  // can adopt; reject changes to navigation, contacts, media or identities.
+  if(!privateBuilderVisualIntegrity(draft,next).ok)continue;
   candidates.push({count,html,description:report.proposals.slice(0,count)
     .map(p=>String(p.reason||p.path+" → "+p.value).slice(0,180)),
     generation:draft.generation,originalHtml});
