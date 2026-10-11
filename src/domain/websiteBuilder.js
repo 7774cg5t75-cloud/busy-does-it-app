@@ -617,7 +617,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     }
     if(section.type==="photo-feature"){
       const image=approvedImage(section.asset);
-      return image? `<section class="photo-feature" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid"><img loading="lazy" src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}"><div><h2>${escapeHtml(section.title)}</h2><p>${escapeHtml(section.body).replace(/\\n/g,"<br>")}</p></div></div></section>`:"";
+      return image? `<section class="photo-feature" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid"><img loading="lazy" src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}"><div><h2>${escapeHtml(section.title)}</h2><p>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></div></section>`:"";
     }
     if(section.type==="gallery"){
       const images=safeArray(section.items).map(approvedImage).filter(Boolean);
