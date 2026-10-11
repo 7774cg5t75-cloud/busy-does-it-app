@@ -1,9 +1,11 @@
 /** Private Business App appearance choices shared by client and server. */
 const OPTIONS=Object.freeze({headerStyle:["quiet","bold","refined"],
  layoutDensity:["comfortable","compact","airy"],navigationStyle:["tabs","list"],
- imageScale:["regular","large"]});
+ imageScale:["regular","large"],galleryLayout:["grid","stack"],
+ imageCorners:["rounded","square"]});
 const DEFAULTS=Object.freeze({headerStyle:"refined",layoutDensity:"comfortable",
- navigationStyle:"tabs",imageScale:"regular"});
+ navigationStyle:"tabs",imageScale:"regular",
+ galleryLayout:"grid",imageCorners:"rounded"});
 function previewPrivateAppAppearance(config,{field,value}={}){
  if(!config||typeof config!=="object"||!Array.isArray(config.modules))
   return {ok:false,reason:"Choose a current Business App draft."};
@@ -15,11 +17,13 @@ function previewPrivateAppAppearance(config,{field,value}={}){
   return {ok:false,reason:"The existing app appearance needs review."};
  if(current[field]===value)return {ok:false,reason:"This appearance is already selected."};
  // Preserve the shape of an older draft when editing an unrelated field.
- // A newly selected image scale appears only when it is explicitly changed.
+ // New settings must not appear in older drafts unless explicitly selected.
  const presentation={...current,[field]:value};
- if(field!=="imageScale"&&
-    !Object.prototype.hasOwnProperty.call(config.presentation||{},"imageScale"))
-  delete presentation.imageScale;
+ for(const optional of ["imageScale","galleryLayout","imageCorners"]){
+  if(optional!==field&&!Object.prototype.hasOwnProperty.call(
+     config.presentation||{},optional))
+   delete presentation[optional];
+ }
  return {ok:true,field,value,previous:current[field],
   nextConfig:{...config,presentation},
   privateOnly:true,ownerApprovalRequired:true,changesBooking:false,changesPayments:false};

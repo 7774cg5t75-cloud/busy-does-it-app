@@ -124,6 +124,18 @@ function planAppVoiceInstructions(config,instruction){
   if(/\b(photo|image|gallery|picture)s?\b.*\b(smaller|normal|regular)\b/i.test(p)){
    operations.push({kind:"appearance",field:"imageScale",value:"regular"});continue;
   }
+  if(/\b(grid|two columns?|side.by.side)\b.*\b(photos?|gallery|images?|pictures?)\b|\b(photos?|gallery|images?|pictures?)\b.*\b(grid|two columns?)\b/i.test(p)){
+   operations.push({kind:"appearance",field:"galleryLayout",value:"grid"});continue;
+  }
+  if(/\b(stack|one column|full.width)\b.*\b(photos?|gallery|images?|pictures?)\b|\b(photos?|gallery|images?|pictures?)\b.*\b(stack|one column|full.width)\b/i.test(p)){
+   operations.push({kind:"appearance",field:"galleryLayout",value:"stack"});continue;
+  }
+  if(/\b(square|sharp)\b.*\b(corners?|photos?|images?)\b|\b(corners?|photos?|images?)\b.*\b(square|sharp)\b/i.test(p)){
+   operations.push({kind:"appearance",field:"imageCorners",value:"square"});continue;
+  }
+  if(/\b(rounded|soft)\b.*\b(corners?|photos?|images?)\b|\b(corners?|photos?|images?)\b.*\b(rounded|soft)\b/i.test(p)){
+   operations.push({kind:"appearance",field:"imageCorners",value:"rounded"});continue;
+  }
   if(/\b(airy|spacious|roomier|more space)\b/i.test(p)){
    operations.push({kind:"appearance",field:"layoutDensity",value:"airy"});continue;
   }
