@@ -63,7 +63,7 @@ function verifyScreenshotPair(pair){
   typeof pair.desktop==="string"&&pair.desktop.length>80);
 }
 async function runPrivateWebsiteDesignLoop({html,deploymentId,firstReport,
- maxPasses=2,approvedPhotos=0,baseline},adapters={}){
+ maxPasses=2,approvedPhotos=0,baseline,deadlineAt=0},adapters={}){
  if(!Number.isSafeInteger(maxPasses)||maxPasses<1||maxPasses>MAX_PASSES)
   return failed("Design passes must be between one and three.");
  if(!validSource(html,deploymentId))return failed("Only an exact private hosted preview can be checked.");
@@ -79,6 +79,13 @@ async function runPrivateWebsiteDesignLoop({html,deploymentId,firstReport,
  const passes=[],changes=[],taken=new Set();
  let currentHtml=html,report=firstReport,reference=baseline;
  for(let i=0;i<maxPasses;i++){
+  // Do not begin an additional paid review if the provider may exceed the
+  // server budget. The final option remains the last reviewed safe candidate.
+  if(Number.isSafeInteger(deadlineAt)&&deadlineAt>0&&Date.now()+47000>deadlineAt){
+   passes.push({pass:i+1,status:"stopped",
+    reason:"Stopped before the next costly pass to respect the time budget."});
+   break;
+  }
   const proposals=Array.isArray(report.proposals)?report.proposals:[];
   let staged=null;
   for(const proposal of proposals){

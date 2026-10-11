@@ -193,6 +193,7 @@ Deno.serve(async(request:Request)=>{
     // Only the authenticated owner's previously hosted preview is accepted.
     // All candidate pages are server-generated from its immutable HTML and
     // kept in the same private deployment prefix until this request ends.
+    const studioDeadline=Date.now()+120000;
     let consumed=0,inputTokens=0,outputTokens=0;
     const stagedPaths:string[]=[];
     const studioScope=key.replace(/[^a-zA-Z0-9_-]/g,"-").slice(0,92);
@@ -239,7 +240,7 @@ Deno.serve(async(request:Request)=>{
       const first=await executeCharge("original",()=>runVision(baseline.mobile,baseline.desktop,approvedPhotos));
       const result=await runPrivateWebsiteDesignLoop({
         html:originalHtml,deploymentId,firstReport:first.proposal,
-        approvedPhotos,maxPasses:requestedPasses,baseline
+        approvedPhotos,maxPasses:requestedPasses,baseline,deadlineAt:studioDeadline
       },{
         captureCandidate:async({html,pass}:any)=>{
           if(!Number.isSafeInteger(pass)||pass<1||pass>requestedPasses)
