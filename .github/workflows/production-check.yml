@@ -161,6 +161,9 @@ jobs:
           node scripts/check-website-design-loop-v3151.mjs
           node scripts/check-website-conversation-v3151.mjs
 
+      - name: Verify final website design-only and customer-data integrity
+        run: node scripts/check-website-completion-integrity-v3152.mjs
+
       - name: Verify Expo Snack module dependency graph
         run: node scripts/check-snack-dependencies.mjs
 

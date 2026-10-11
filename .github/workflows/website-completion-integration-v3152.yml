@@ -1,0 +1,47 @@
+name: V3.152 final Website Builder integration and App Builder handover
+on:
+  push:
+    branches: [v3.152]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  website-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Check private ownership, design-only edits, conversation and recovery
+        run: |
+          node scripts/check-website-completion-integrity-v3152.mjs
+          node scripts/check-website-design-loop-v3151.mjs
+          node scripts/check-website-conversation-v3151.mjs
+          node scripts/check-website-ai-studio-v3150.mjs
+          node scripts/check-website-page-voice-v3150.mjs
+          node scripts/check-website-page-instructions-v3149.mjs
+          node scripts/check-website-recovery-v3149.mjs
+          node scripts/check-website-portfolio-v3149.mjs
+          node scripts/check-website-device-edits-v3149.mjs
+          node scripts/check-visual-review-gateway-v3105.mjs
+          node scripts/check-production.mjs
+      - name: Install browser and unsigned native requirements
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Verify final two-business screen-sized website journey
+        run: |
+          node scripts/check-website-completion-browser-v3152.mjs
+          node scripts/check-website-design-loop-browser-v3151.mjs
+          node scripts/check-website-ai-studio-browser-v3150.mjs
+          node scripts/check-website-device-style-browser-v3149.mjs
+      - name: Export unsigned iOS and Android JavaScript
+        run: |
+          npx expo export --platform ios --output-dir /tmp/bdi-v3152-ios
+          npx expo export --platform android --output-dir /tmp/bdi-v3152-android
+      - name: Confirm no customer deployment or provider use
+        run: echo "Website Builder feature integration checks only; no paid AI, publishing, migrations or signed device builds."
