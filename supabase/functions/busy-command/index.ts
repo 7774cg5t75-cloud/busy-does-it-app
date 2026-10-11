@@ -982,6 +982,49 @@ Deno.serve(async (request: Request) => {
       // V3.141: transcription-only route, intentionally separate from Operator.
       // A selected website element is kept on-device; no business content or
       // selector is sent to the model and NO action is generated or executed.
+      if(form.get("mode")==="app-selection-transcript-v1"){
+        // This is transcription ONLY. No selected business content, voice
+        // commands, AI-generated edits or private data are sent to the model.
+        if(audio.size>9_000_000||audio.size<100||
+          !["audio/mp4","audio/m4a","audio/x-m4a","audio/aac","application/octet-stream",""].includes(audio.type))
+          return json(413,{error:"Recording must be M4A and under 9 MB."});
+        const rawToken=(request.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"");
+        const url=Deno.env.get("SUPABASE_URL")||"";
+        const key=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"";
+        if(!rawToken||!url||!key)return json(401,{error:"Sign in again before voice editing."});
+        const auth=createClient(url,key,{auth:{persistSession:false}});
+        const verified=await auth.auth.getUser(rawToken);
+        if(verified.error||!verified.data?.user?.id)
+          return json(401,{error:"Your editing session has expired."});
+        const businessId=cleanText(form.get("businessId"),80);
+        const appId=cleanText(form.get("appId"),80);
+        const revision=Number(form.get("revision"));
+        const uuid=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i;
+        if(!uuid.test(businessId)||!uuid.test(appId)||
+           !Number.isSafeInteger(revision)||revision<1)
+          return json(400,{error:"Select the current Business App revision first."});
+        const owner=await auth.from("busy_business_memberships").select("role")
+          .eq("user_id",verified.data.user.id).eq("business_id",businessId)
+          .in("role",["owner","admin"]).maybeSingle();
+        if(owner.error||!owner.data)
+          return json(403,{error:"Business owner or admin permission is required."});
+        const current=await auth.from("busy_mini_apps").select("id,draft_revision")
+          .eq("business_id",businessId).eq("id",appId).maybeSingle();
+        if(current.error||!current.data||Number(current.data.draft_revision)!==revision)
+          return json(409,{error:"Your Business App revision changed. Refresh before recording."});
+        const budget=await auth.rpc("busy_reserve_app_voice_request",{
+          p_owner_user_id:verified.data.user.id,p_business_id:businessId});
+        if(budget.error||!Array.isArray(budget.data)||budget.data.length!==1)
+          return json(503,{error:"App voice usage tracking is not ready. Type instead."});
+        const allowance=budget.data[0];
+        if(allowance?.allowed!==true)
+          return json(429,{error:"Your 12 app voice requests for today are used. Type instead or return tomorrow (UTC)."});
+        const transcript=await transcribeAudio(audio);
+        return json(200,{mode:"app-selection-transcript-v1",transcript:cleanText(transcript,400),
+          requiresReview:true,changesApplied:false,
+          voiceUsage:{used:Number(allowance.used)||0,remaining:Number(allowance.remaining)||0,
+            dailyLimit:12,period:"UTC day"},action:null,command:null});
+      }
       if(form.get("mode")==="website-selection-transcript-v1"||
          form.get("mode")==="website-page-transcript-v1"){
         const requestedWebsiteTranscriptMode=form.get("mode");
