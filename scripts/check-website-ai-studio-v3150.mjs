@@ -47,7 +47,7 @@ for(const s of ["const previewWebsiteVisualAlternatives=","previewWebsiteAIStudi
 const ui=read("src/screens/websiteBuilder.js");
 for(const s of ["Have BUSY prepare private design alternatives",
  "Keep this reviewed alternative in my private draft",
- "They must be checked on real phone and desktop layouts",
+ "Tablet is a responsive preview, not a separate AI-reviewed screenshot",
  "aiStudio.deploymentId===s.websiteVisualReview.deploymentId"])
  assert.ok(ui.includes(s),"Customer approval and scope "+s);
 console.log("V3.150 STUDIO PASS: validated AI source, staged one to three design options, tenant and revision isolation, no media/content changes or publication.");
