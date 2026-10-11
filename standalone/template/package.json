@@ -1,0 +1,11 @@
+{
+  "name": "busy-standalone-prototype",
+  "version": "0.0.1",
+  "private": true,
+  "main": "node_modules/expo/AppEntry.js",
+  "dependencies": {
+    "expo": "~57.0.23",
+    "react": "19.2.3",
+    "react-native": "0.86.3"
+  }
+}
