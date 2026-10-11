@@ -97,7 +97,7 @@ for(const marker of ['checkPrivateAppVisualReview=async','reviewPrivateAppScreen
  assert.ok(controller.includes(marker),"Missing owner-confirmed local photo handoff: "+marker);
 for(const marker of ['captureRef(appSurfaceRef.current','collapsable={false}',
  'Ask AI to inspect this screenshot','Approve one AI review',
- 'previewAppVisualSuggestion(config,item)','Keep my original design',
+ 'prepareAppVisualBatch(config,chosen)','Keep my original design',
  'Move this service earlier','Move this service later',
  's.saveCoordinatedAppChanges','s.checkPrivateAppVisualReview'])
  assert.ok(ui.includes(marker),"Missing safe customer preview and choice: "+marker);
