@@ -65,7 +65,7 @@ check(migration.includes("REVOKE ALL ON FUNCTION")&&
 check(!migration.includes("transcript")||migration.includes("no audio"),
  "Only request counts are stored, never voice contents");
 const backend=read("supabase/functions/busy-command/index.ts");
-const from=backend.indexOf('if(form.get("mode")==="website-selection-transcript-v1")');
+const from=backend.indexOf('if(form.get("mode")==="website-selection-transcript-v1"');
 const to=backend.indexOf('const rawContext = cleanText(form.get("context")',from);
 const route=backend.slice(from,to);
 check(from>0&&to>from&&route.includes('auth.auth.getUser(rawToken)'),
