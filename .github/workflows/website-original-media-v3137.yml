@@ -39,7 +39,7 @@ jobs:
         with:
           deno-version: v2.x
       - name: Type check the authenticated original media gateway
-        run: deno check supabase/functions/busy-website-original-media/index.ts
+        run: deno check --node-modules-dir=auto supabase/functions/busy-website-original-media/index.ts
       - name: Install dependencies and verify native JS bundling
         run: |
           npm install --no-audit --no-fund
