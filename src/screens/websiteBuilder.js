@@ -17,6 +17,7 @@ import { websiteRegionalReadiness } from "../core/websiteRegionalReadiness.mjs";
 import { websiteDecisionEvidence } from "../core/websiteDecisionEvidence.mjs";
 import { renderWebsiteHtml } from "../domain/websiteBuilder";
 import {WebsiteContentEditor} from "./websiteContentEditor";
+import {WebsiteLayoutControls} from "./websiteLayoutControls";
 
 function WebsiteBuilder({ s }) {
   const draft = s.websiteDraft;
@@ -410,7 +411,7 @@ function WebsiteBuilder({ s }) {
             eyebrow="Your changes"
             title="Tell BUSY what you would like changed"
             body="Change headings, your supplied text, service descriptions, colours, overall design and the order of website sections. For photos, select approved images. BUSY will not invent business facts."
-            footer="Examples: “change services heading to Our work”, “move about before services”, “use a minimal design”, or “make the main photo bigger”."
+            footer="Try: “make the website more premium; move about before services; make the contact button stand out”. Separate changes with a semicolon."
             tone="blue"
           >
             <Field
@@ -441,6 +442,7 @@ function WebsiteBuilder({ s }) {
             ) : null}
           </Card>
           <WebsiteContentEditor draft={draft} onApply={s.applyWebsiteFieldChange}/>
+          <WebsiteLayoutControls draft={draft} onApply={s.applyWebsiteLayoutAction}/>
         </>
       ) : null}
       <Button label={showWebsiteDetails ? "Hide extra website settings" : "More website settings"}
