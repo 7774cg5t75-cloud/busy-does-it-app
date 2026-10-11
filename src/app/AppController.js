@@ -15050,7 +15050,7 @@ function App() {
       const x=miniAppVoiceScopeRef.current;
       return !!scope?.appId&&scope.appId===x.appId&&
         scope.revision===x.revision&&scope.businessId===x.businessId&&
-        ["header","spacing","navigation"].includes(scope.selectedPart);
+        ["header","spacing","navigation","whole_app"].includes(scope.selectedPart);
     };
     if(!current())return {ok:false,error:"Your private app changed. Select its current element again."};
     try{
@@ -15084,6 +15084,35 @@ function App() {
     }catch(error){
       return {ok:false,error:String(error?.message||"Voice transcription failed. Nothing was changed.").slice(0,240)};
     }
+  };
+
+  // Save a complete previewed batch atomically. This remains a private draft,
+  // never an app-store order, marketplace publish or booking action.
+  const saveCoordinatedAppChanges=async({operations,appId,expectedRevision}={})=>{
+    if(!miniAppsView?.app||miniAppsView.app.id!==appId||
+      Number(miniAppsView.app.draft_revision)!==Number(expectedRevision)){
+      setMiniAppsError("The private app changed. Review the newest version before editing.");return {ok:false};
+    }
+    setMiniAppsAction("coordinated-app-edits");setMiniAppsError("");
+    try{
+      const data=await miniAppsRequest("apply_coordinated_edits",{
+        operations,appId,expectedRevision,ownerApproved:true});
+      if(data?.ok!==true||data?.privateOnly!==true||
+         data?.neverPublishes!==true||data?.chargesCreated!==false||
+         data?.app?.id!==appId||
+         Number(data.app.draft_revision)!==Number(expectedRevision)+1||
+         data.appliedChangeCount!==operations.length||
+         !Array.isArray(data.undoOperations))
+        throw Error("Could not verify that the private batch was saved safely.");
+      applyMiniAppsStatus(data.status);
+      setMiniAppsNotice("Saved "+data.appliedChangeCount+
+        " coordinated app changes as one PRIVATE draft revision. No public app or booking changed.");
+      return {ok:true,undoOperations:data.undoOperations,
+        newRevision:Number(data.app.draft_revision)};
+    }catch(error){
+      setMiniAppsError(String(error?.message||"BUSY could not apply this app batch.").slice(0,230));
+      return {ok:false};
+    }finally{setMiniAppsAction("");}
   };
 
   const movePrivateAppSection=async({moduleKey,direction,appId,expectedRevision}={})=>{
@@ -16383,6 +16412,7 @@ function App() {
     describeMiniAppByVoice,
     toggleMiniAppModule,
     savePrivateAppAppearance,
+    saveCoordinatedAppChanges,
     movePrivateAppSection,
     transcribeSelectedAppAudio,
     prepareMiniAppPreview,

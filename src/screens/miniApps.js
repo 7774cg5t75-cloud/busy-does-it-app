@@ -11,6 +11,8 @@ import { planFunctionalBusinessApp } from "../core/appExperiencePlanner.mjs";
 import { previewPrivateAppAppearance,OPTIONS as appAppearanceOptions } from "../core/appAppearanceEditing.mjs";
 import { interpretSelectedAppAppearance } from "../core/appContextInstruction.mjs";
 import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.mjs";
+import {proposeCoordinatedAppChanges,planAppVoiceInstructions} from "../core/appCoordinatedStudio.mjs";
+import {appDesignQualityReport} from "../core/appDesignQuality.mjs";
 import {WebsiteSelectedVoice} from "./websiteSelectedVoice";
 
 function readableDate(value, fallback = "Not yet") {
@@ -140,7 +142,7 @@ function MiniAppSurface({
             resizeMode="cover"
             style={{
               width: "100%",
-              height: density==="compact"?172:density==="airy"?285:230,
+              height: presentation.imageScale==="large"?320:density==="compact"?172:density==="airy"?285:230,
               borderRadius: 18,
               marginBottom: 14,
             }}
@@ -208,8 +210,8 @@ function MiniAppSurface({
                       source={{ uri: asset.uri }}
                       resizeMode="cover"
                       style={{
-                        width: "48%",
-                        height: 150,
+                        width: presentation.imageScale==="large"?"100%":"48%",
+                        height: presentation.imageScale==="large"?245:150,
                         borderRadius: 14,
                         marginBottom: 8,
                       }}
@@ -596,6 +598,15 @@ function MiniAppBuilder({ s }) {
   const [appearanceInstructionNotice,setAppearanceInstructionNotice]=React.useState("");
   const [showAppVoice,setShowAppVoice]=React.useState(false);
   const [pendingMove,setPendingMove]=React.useState(null);
+  const [studioWords,setStudioWords]=React.useState("");
+  const [studioPreview,setStudioPreview]=React.useState(null);
+  const [studioNotice,setStudioNotice]=React.useState("");
+  const [studioCopyField,setStudioCopyField]=React.useState("tagline");
+  const [studioCopy,setStudioCopy]=React.useState("");
+  const [photoFrom,setPhotoFrom]=React.useState("1");
+  const [photoTo,setPhotoTo]=React.useState("2");
+  const [studioVoiceOpen,setStudioVoiceOpen]=React.useState(false);
+  const [studioUndo,setStudioUndo]=React.useState(null);
   const view = s.miniAppsView || {};
   const app = view.app;
   React.useEffect(()=>{
@@ -603,6 +614,10 @@ function MiniAppBuilder({ s }) {
     setStandaloneHandoff(null);
     setPendingAppearance(null);
     setAppearancePreviewOpen(false);
+    setStudioPreview(null);
+    setStudioUndo(null);
+    setStudioWords("");
+    setStudioNotice("");
   },[app?.id,s.cloudWorkspace?.businessId,s.ownerSession?.userId]);
   React.useEffect(()=>{
     setPendingAppearance(null);
@@ -610,6 +625,8 @@ function MiniAppBuilder({ s }) {
     setAppearanceInstructionNotice("");
     setShowAppVoice(false);
     setPendingMove(null);
+    setStudioPreview(null);
+    setStudioVoiceOpen(false);
   },[app?.draft_revision]);
   const modules = Array.isArray(view.catalog) ? view.catalog : [];
   const configuredModules = new Map(
@@ -643,6 +660,7 @@ function MiniAppBuilder({ s }) {
     catalog:view.catalog||[],
     profile:view.activeConfig?.publicProfile||{}
   });
+  const quality=appDesignQualityReport(view.draftConfig||view.activeConfig||{},view.catalog||[]);
   const liveMatchesDraft =
     businessAppPreviewProof({app,preview:view.liveVersion}).matches;
   const journeyLabel = !plan
@@ -1058,6 +1076,142 @@ function MiniAppBuilder({ s }) {
           <Button label="Preview Business App" onPress={s.openMiniAppPreview} />
         ) : null}
       </Card>
+
+      {app&&view.draftConfig?(
+        <Card eyebrow="V3.157 • Intelligent App Studio"
+          title="Tell BUSY several changes at once"
+          body="Describe the result you want. BUSY identifies only supported safe edits, checks the current private app, then shows the entire proposed customer view. If an instruction is unclear, nothing is applied."
+          footer="One approval saves the complete batch as ONE private revision. Undo reverses that batch without touching the live app."
+          tone="blue">
+          <Field label="App instructions" value={studioWords}
+            onChangeText={value=>{setStudioWords(value);setStudioPreview(null);}}
+            placeholder="Put bookings first, make the photos bigger and keep my existing colours"/>
+          <Button label="Preview these app changes together" disabled={!!s.miniAppsAction||!studioWords.trim()}
+            onPress={()=>{
+              const p=planAppVoiceInstructions(view.draftConfig,studioWords);
+              setStudioPreview(p.ok?p:null);
+              setStudioNotice(p.ok?
+                "Your complete private preview is ready. Nothing has been saved.":
+                p.reason||"BUSY needs more detail.");
+            }}/>
+          <Button label={studioVoiceOpen?"Close app microphone":"🎙 Say my whole-app changes"}
+            onPress={()=>setStudioVoiceOpen(x=>!x)}/>
+          {studioVoiceOpen&&s.cloudWorkspace?.businessId?(
+            <WebsiteSelectedVoice key={app.id+":"+app.draft_revision+":whole_app"}
+              editorKind="app" contextLabel="whole Business App draft"
+              selection={{appId:app.id,revision:app.draft_revision,
+                businessId:s.cloudWorkspace.businessId,selectedPart:"whole_app"}}
+              onTranscribe={(uri,scope)=>s.transcribeSelectedAppAudio?.(uri,scope)}
+              onTranscript={words=>{
+                setStudioWords(words);setStudioPreview(null);
+                setStudioNotice("Check what BUSY heard, then tap Preview. Nothing changed automatically.");
+              }}/>
+          ):null}
+          <Text style={styles.cardBody}>
+            Voice provides transcription only, within its existing daily allowance. BUSY asks before changing the private app.
+          </Text>
+          <Text style={styles.sectionLabel}>Or change supported public wording directly</Text>
+          {[
+            ["tagline","Tagline"],["about","About section"],["description","Description"]
+          ].map(([key,label])=>(
+            <Button key={key} label={(studioCopyField===key?"✓ ":"")+"Edit "+label}
+              onPress={()=>{setStudioCopyField(key);setStudioPreview(null);}}/>
+          ))}
+          <Field label={"Replacement "+studioCopyField+" (owner-approved copy)"}
+            value={studioCopy} onChangeText={setStudioCopy}
+            placeholder="Write the exact words you want customers to see"/>
+          <Button label="Preview exact wording" disabled={!studioCopy.trim()||!!s.miniAppsAction}
+            onPress={()=>{
+              const p=proposeCoordinatedAppChanges(view.draftConfig,
+                [{kind:"text",field:studioCopyField,value:studioCopy}]);
+              setStudioPreview(p.ok?p:null);setStudioNotice(p.ok?
+                "Owner-written wording is ready to preview, not yet saved.":p.reason);
+            }}/>
+          {Array.isArray(view.draftConfig.publicProfile?.assets?.gallery)&&
+            view.draftConfig.publicProfile.assets.gallery.length>=2?(
+            <>
+              <Text style={styles.sectionLabel}>Move an existing gallery photo</Text>
+              <Field label="Photo position to move (1 is first)" value={photoFrom}
+                onChangeText={setPhotoFrom}/>
+              <Field label="Move it to position" value={photoTo} onChangeText={setPhotoTo}/>
+              <Button label="Preview photo order" disabled={!!s.miniAppsAction}
+                onPress={()=>{
+                  const p=proposeCoordinatedAppChanges(view.draftConfig,[{
+                    kind:"photo",from:Number(photoFrom)-1,to:Number(photoTo)-1}]);
+                  setStudioPreview(p.ok?p:null);setStudioNotice(p.ok?
+                    "Gallery order preview ready; only existing approved imagery is reused.":p.reason);
+                }}/>
+            </>
+          ):null}
+          {studioNotice?<Text style={styles.cardBody}>{studioNotice}</Text>:null}
+          {studioPreview?.ok?(
+            <>
+              <Text style={styles.sectionLabel}>Proposed changes — not saved</Text>
+              {studioPreview.changes.map((change,index)=>(
+                <MetricRow key={"change-"+index} left={"Change "+(index+1)} right={change}/>
+              ))}
+              {studioPreview.preserved?.length?(
+                <Text style={styles.cardBody}>
+                  {"Kept unchanged: "+studioPreview.preserved.join("; ")}
+                </Text>
+              ):null}
+              <MiniAppSurface config={studioPreview.nextConfig}/>
+              <Button primary label={"Approve all "+studioPreview.changes.length+" private change(s)"}
+                disabled={!!s.miniAppsAction}
+                onPress={async()=>{
+                  const result=await s.saveCoordinatedAppChanges?.({
+                    appId:app.id,expectedRevision:app.draft_revision,
+                    operations:studioPreview.operations});
+                  if(result?.ok){
+                    setStudioUndo({operations:result.undoOperations,
+                      expectedRevision:result.newRevision});
+                    setStudioPreview(null);
+                    setStudioNotice("Saved as one PRIVATE revision. Your live app is unchanged.");
+                  }
+                }}/>
+              <Button label="Discard the whole proposed batch"
+                onPress={()=>{setStudioPreview(null);setStudioNotice("No changes saved.");}}/>
+            </>
+          ):null}
+          {studioUndo?.operations?.length&&
+            studioUndo.expectedRevision===app.draft_revision?(
+            <Button label="Undo my last approved batch" disabled={!!s.miniAppsAction}
+              onPress={async()=>{
+                const result=await s.saveCoordinatedAppChanges?.({
+                  appId:app.id,expectedRevision:studioUndo.expectedRevision,
+                  operations:studioUndo.operations});
+                if(result?.ok){
+                  setStudioUndo(null);
+                  setStudioNotice("Batch reversed in one new private revision. No public changes.");
+                }
+              }}/>
+          ):null}
+          <Text style={styles.cardBody}>
+            BUSY cannot treat unrecognised instructions as completed edits. Payments,
+            confirmed bookings, app-store submissions and live publishing remain separate approvals.
+          </Text>
+        </Card>
+      ):null}
+
+      {app&&view.draftConfig?(
+        <Card eyebrow="Customer-experience inspection"
+          title="What still needs checking?"
+          body="BUSY inspects the shared app configuration here. These are static checks, NOT evidence of a real rendered screenshot, successful booking submission or app-store acceptance."
+          tone="blue">
+          <MetricRow left="Supported shared runtime"
+            right={quality.ok?"Verified by schema":"Needs review"}/>
+          {quality.checks.filter(x=>!x.passed).map(item=>(
+            <MetricRow key={item.id} left={item.id.replaceAll("_"," ")}
+              right={item.detail}/>
+          ))}
+          <Text style={styles.cardBody}>
+            Before launch, inspect actual phone/tablet screenshots and test the
+            full request → acknowledgement → business decision → status journey.
+            The standalone app needs separate signing, provider accounts, device
+            testing, eligibility and store approval.
+          </Text>
+        </Card>
+      ):null}
 
       {app&&view.draftConfig?(
         <Card eyebrow="Edit how your app looks"
