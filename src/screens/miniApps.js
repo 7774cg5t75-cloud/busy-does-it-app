@@ -1,5 +1,6 @@
 import React from "react";
-import { Image, Text, View } from "react-native";
+import { Image, Text, View, Dimensions, Platform } from "react-native";
+import {captureScreen} from "react-native-view-shot";
 import QRCode from "react-native-qrcode-svg";
 
 import { styles } from "../theme/styles";
@@ -13,6 +14,8 @@ import { interpretSelectedAppAppearance } from "../core/appContextInstruction.mj
 import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.mjs";
 import {proposeCoordinatedAppChanges,planAppVoiceInstructions} from "../core/appCoordinatedStudio.mjs";
 import {appDesignQualityReport} from "../core/appDesignQuality.mjs";
+import {appRequestJourney} from "../core/appRequestLifecycle.mjs";
+import {appVisibleCaptureReceipt,currentAppVisibleCapture} from "../core/appRenderedEvidence.mjs";
 import {WebsiteSelectedVoice} from "./websiteSelectedVoice";
 
 function readableDate(value, fallback = "Not yet") {
@@ -607,6 +610,9 @@ function MiniAppBuilder({ s }) {
   const [photoTo,setPhotoTo]=React.useState("2");
   const [studioVoiceOpen,setStudioVoiceOpen]=React.useState(false);
   const [studioUndo,setStudioUndo]=React.useState(null);
+  const [serviceIndex,setServiceIndex]=React.useState(-1);
+  const [serviceName,setServiceName]=React.useState("");
+  const [serviceDescription,setServiceDescription]=React.useState("");
   const view = s.miniAppsView || {};
   const app = view.app;
   React.useEffect(()=>{
@@ -618,6 +624,7 @@ function MiniAppBuilder({ s }) {
     setStudioUndo(null);
     setStudioWords("");
     setStudioNotice("");
+    setServiceIndex(-1);setServiceName("");setServiceDescription("");
   },[app?.id,s.cloudWorkspace?.businessId,s.ownerSession?.userId]);
   React.useEffect(()=>{
     setPendingAppearance(null);
@@ -1088,7 +1095,7 @@ function MiniAppBuilder({ s }) {
       </Card>
 
       {app&&view.draftConfig?(
-        <Card eyebrow="V3.157 • Intelligent App Studio"
+        <Card eyebrow="V3.158 • Intelligent App Studio"
           title="Tell BUSY several changes at once"
           body="Describe the result you want. BUSY identifies only supported safe edits, checks the current private app, then shows the entire proposed customer view. If an instruction is unclear, nothing is applied."
           footer="One approval saves the complete batch as ONE private revision. Undo reverses that batch without touching the live app."
@@ -1137,6 +1144,52 @@ function MiniAppBuilder({ s }) {
               setStudioPreview(p.ok?p:null);setStudioNotice(p.ok?
                 "Owner-written wording is ready to preview, not yet saved.":p.reason);
             }}/>
+          {view.draftConfig.modules?.some(m=>m.key==="services"&&m.enabled===true)?(
+            <>
+              <Text style={styles.sectionLabel}>Edit individual services</Text>
+              <Text style={styles.cardBody}>
+                Add, change or remove a service, then review the whole private app before saving. Your live app will not be touched.
+              </Text>
+              <Button label={(serviceIndex===-1?"✓ ":"")+"Add a new service"}
+                onPress={()=>{setServiceIndex(-1);setServiceName("");setServiceDescription("");setStudioPreview(null);}}/>
+              {(view.draftConfig.publicProfile?.services||[]).slice(0,30).map((service,i)=>(
+                <Button key={service.id||"service-"+i} label={(serviceIndex===i?"✓ ":"")+
+                  (service.name||"Unnamed service")}
+                  onPress={()=>{setServiceIndex(i);setServiceName(service.name||"");
+                    setServiceDescription(service.description||"");setStudioPreview(null);}}/>
+              ))}
+              <Field label="Service name" value={serviceName} onChangeText={setServiceName}
+                placeholder="e.g. Cut and blow dry"/>
+              <Field label="Service description" value={serviceDescription}
+                onChangeText={setServiceDescription} placeholder="Explain this service"/>
+              <Button label={serviceIndex<0?"Preview new service":"Preview edited service"}
+                disabled={!!s.miniAppsAction||!serviceName.trim()}
+                onPress={()=>{
+                  const old=view.draftConfig.publicProfile?.services||[];
+                  const value=old.map(x=>({...x}));
+                  const row={id:serviceIndex<0?"owner_service_"+Date.now().toString(36):
+                    value[serviceIndex]?.id||"owner_service_"+Date.now().toString(36),
+                    name:serviceName,description:serviceDescription};
+                  if(serviceIndex<0)value.push(row);else value[serviceIndex]=row;
+                  const plan=proposeCoordinatedAppChanges(view.draftConfig,
+                    [{kind:"services",value}]);
+                  setStudioPreview(plan.ok?plan:null);
+                  setStudioNotice(plan.ok?"Review all services below before saving.":plan.reason);
+                }}/>
+              {serviceIndex>=0?(
+                <Button label="Preview removal of this service"
+                  disabled={!!s.miniAppsAction}
+                  onPress={()=>{
+                    const value=(view.draftConfig.publicProfile?.services||[])
+                      .filter((_,i)=>i!==serviceIndex).map(x=>({...x}));
+                    const plan=proposeCoordinatedAppChanges(view.draftConfig,
+                      [{kind:"services",value}]);
+                    setStudioPreview(plan.ok?plan:null);
+                    setStudioNotice(plan.ok?"Review the service removal below.":plan.reason);
+                  }}/>
+              ):null}
+            </>
+          ):null}
           {Array.isArray(view.draftConfig.publicProfile?.assets?.gallery)&&
             view.draftConfig.publicProfile.assets.gallery.length>=2?(
             <>
@@ -1685,7 +1738,27 @@ function MiniAppPreview({ s }) {
     view.draftConfig ||
     view.liveVersion?.config ||
     null;
-
+  const appId=view.app?.id||"";
+  const revision=Number(view.app?.draft_revision)||0;
+  const [capture,setCapture]=React.useState(null);
+  const [captureBusy,setCaptureBusy]=React.useState(false);
+  const [captureError,setCaptureError]=React.useState("");
+  React.useEffect(()=>{setCapture(null);setCaptureError("");},[appId,revision,view.previewVersion?.id]);
+  const takeScreenCapture=async()=>{
+    setCaptureBusy(true);setCaptureError("");setCapture(null);
+    try{
+      const uri=await captureScreen({format:"png",result:"tmpfile"});
+      const window=Dimensions.get("window");
+      const proof=appVisibleCaptureReceipt({appId,revision,screenshotUri:uri,
+        width:Math.round(window.width),height:Math.round(window.height),
+        platform:Platform.OS,capturedAt:new Date().toISOString()});
+      if(!proof.ok)throw Error(proof.reason||"Capture could not be checked.");
+      setCapture(proof);
+    }catch(error){
+      setCaptureError(String(error?.message||"Could not capture this device screen.").slice(0,250));
+    }finally{setCaptureBusy(false);}
+  };
+  const captureCurrent=currentAppVisibleCapture(capture,{appId,revision});
   return (
     <Shell
       s={s}
@@ -1700,6 +1773,29 @@ function MiniAppPreview({ s }) {
         footer="Opening this preview does not make anything public."
         tone="green"
       />
+      {config&&appId&&revision>0?(
+        <Card eyebrow="V3.158 • Real rendered screenshot"
+          title="Inspect what is actually on this device"
+          body="Capture the visible native app screen. This is a local screenshot of actual pixels, not an AI design review. Scroll and capture other sections separately."
+          footer="The capture stays in a temporary file on this device. No cloud upload or AI analysis happens here."
+          tone="blue">
+          <Button label={captureBusy?"Capturing screen…":"Capture visible screen"}
+            disabled={captureBusy} onPress={takeScreenCapture}/>
+          {captureError?<Text style={styles.cardBody}>{captureError}</Text>:null}
+          {captureCurrent?(
+            <>
+              <MetricRow left="Device screen" right={capture.platform+" • "+
+                capture.width+" × "+capture.height}/>
+              <Text style={styles.cardBody}>
+                Check readability, image cropping, touch targets and spacing.
+                This is not proof that the design works on other devices.
+              </Text>
+              <Image source={{uri:capture.uri}} resizeMode="contain"
+                style={{width:"100%",height:295,borderRadius:12,marginTop:10}}/>
+            </>
+          ):null}
+        </Card>
+      ):null}
       {config ? (
         <MiniAppSurface config={config} />
       ) : (
@@ -2026,6 +2122,7 @@ function MiniAppRequestDetail({ s }) {
   const ownerView = role === "business";
   const guestWebRequest = request?.request_origin === "guest_web";
   const link = request?.id ? s.miniAppsView?.linkByRequest?.get?.(request.id) || null : null;
+  const journey=request?appRequestJourney(request,link):null;
 
   const send = async () => {
     const body = draft.trim();
@@ -2107,6 +2204,18 @@ function MiniAppRequestDetail({ s }) {
             ) : null}
           </Card>
 
+          {journey?(
+            <Card eyebrow="Request progress" title={journey.type==="booking_request"?
+              "Booking request — follow the real diary":"Enquiry — follow the response"}
+              body={journey.customerMessage}
+              footer="The same tracked request is used in the marketplace and standalone app. Acceptance alone does not make an appointment."
+              tone={journey.confirmed?"green":"blue"}>
+              {journey.stages.map(step=>(
+                <MetricRow key={step.key} left={step.label}
+                  right={step.complete?"Recorded":"Waiting"}/>
+              ))}
+            </Card>
+          ):null}
           {ownerView && link?.bridge_state === "booking_draft" ? (
             <Card
               eyebrow="BUSY booking"

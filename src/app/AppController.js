@@ -1721,6 +1721,7 @@ function App() {
           customerRecordId: customerId,
           actionRecordId: `miniapp-booking-${sourceMiniAppRequestId}`,
           bridgeState: "booking_confirmed",
+          ownerApproved:true,
           metadata: {
             bookingDate: actionBefore?.details?.bookingDate || "",
             bookingTime: actionBefore?.details?.bookingTime || "",
