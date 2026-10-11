@@ -73,9 +73,14 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
   value:states.sectionSpacing[m[1].toLowerCase()]},"Adjust spacing around only this section.");
  if(field==="photo"){
   m=text.match(/^(?:focus|crop|show) (?:this|that|the selected) (?:photo|image|picture) (?:on |at |to )?(?:the )?(top|center|centre|bottom)$/i);
-  if(m)return success("layout",{action:"section-style",sectionId,field:"photoCrop",
-   value:m[1].toLowerCase()==="centre"?"center":m[1].toLowerCase()},
-   "Reposition the visible crop of the approved photo.");
+  if(m){
+   const value=m[1].toLowerCase()==="centre"?"center":m[1].toLowerCase();
+   if(section.type==="gallery")
+    return success("layout",{action:"image-style",sectionId,photoIndex:selection.photoIndex,
+      field:"photoCrop",value},"Reposition only this approved gallery photo.");
+   return success("layout",{action:"section-style",sectionId,field:"photoCrop",value},
+    "Reposition the selected main or feature photo.");
+  }
   m=text.match(/^(?:move|put) (?:this|that|the selected) (?:photo|image|picture) (?:to |on )?(?:the )?(left|right)$/i);
   if(m){
    const direction=m[1].toLowerCase();
