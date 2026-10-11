@@ -117,7 +117,7 @@ assert.equal(read("src/core/appCoordinatedStudio.mjs"),
  read("supabase/functions/busy-mini-apps/appCoordinatedStudio.mjs"));
 const screen=read("src/screens/miniApps.js");
 for(const marker of ["prepareAppDesignIteration","inspectApprovedAppIteration",
- "setDesignCheckpoint({...prepared,saveConfirmed:true})",
+ "setDesignCheckpoint({...prepared,saveConfirmed:true,",
  "resolvedStaticFlags","Capture visible screen (app only)",
  "Ask AI to inspect this screenshot","Approve one AI review",
  "proposeLowRiskDesignHints","Preview photo description changes",
