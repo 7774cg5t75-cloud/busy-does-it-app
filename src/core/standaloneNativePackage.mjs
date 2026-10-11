@@ -6,11 +6,12 @@
  * immutable app-preview schema. No passwords, business contact databases,
  * arbitrary AI code, signing keys or live payment interfaces enter the shell.
  */
+import {publicNativeRuntimePlan} from "./nativeAppRuntimePlan.mjs";
 const UUID=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i;
 const SAFE_MODULES=new Set(["business_profile","services","gallery","contact",
  "enquiry","booking_request","offers","loyalty"]);
 const safeName=value=>typeof value==="string"?value.trim().replace(/[\u0000-\u001f<>]/g,"").slice(0,48):"";
-function nativeShellDescriptor(manifest,{purpose="private_prototype"}={}){
+function nativeShellDescriptor(manifest,{purpose="private_prototype",runtimeEvidence=null}={}){
  if(purpose!=="private_prototype"||manifest?.ok!==true||
    manifest.kind!=="private_standalone_planning_manifest_v1"||
    !UUID.test(String(manifest.ownerAppId||""))||
@@ -38,6 +39,14 @@ function nativeShellDescriptor(manifest,{purpose="private_prototype"}={}){
   return {ok:false,reason:"An unsafe app name cannot be packaged."};
  const name=safeName(manifest.appName);
  if(!name)return {ok:false,reason:"A customer-facing app name is required."};
+ let liveRuntime=null;
+ if(runtimeEvidence){
+  const evidence=publicNativeRuntimePlan(runtimeEvidence);
+  if(!evidence.ok||evidence.runtime.expectedAppId!==manifest.ownerAppId||
+     evidence.runtime.expectedVersionId!==manifest.previewVersionId)
+    return {ok:false,reason:"Standalone public connection must match this immutable live app version."};
+  liveRuntime=evidence.runtime;
+ }
  const ident=manifest.ownerAppId.replaceAll("-","").slice(0,24);
  const publicScreens=manifest.screenSchema.screens.map(item=>({
   key:item.key,title:safeName(item.title)||item.key,
@@ -59,7 +68,7 @@ function nativeShellDescriptor(manifest,{purpose="private_prototype"}={}){
   screenSchema:{version:1,screens:publicScreens},
   // The offline project is never connected just because an owner asks.
   // Only separately verified published app packaging can activate runtime.
-  runtimeConnection:{enabled:false,endpoint:"",publicWebEndpoint:"",
+  runtimeConnection:liveRuntime||{enabled:false,endpoint:"",publicWebEndpoint:"",
     slug:"",expectedAppId:"",expectedVersionId:"",
     ownerApproved:false,liveOnly:true,canCollectPayments:false},
   signingConfigured:false,appStoreSubmitEnabled:false,
