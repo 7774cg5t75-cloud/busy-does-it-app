@@ -133,6 +133,11 @@ jobs:
       - name: Verify V3.146 universal contextual editing, voice intent, and scope
         run: node scripts/check-universal-context-toolbar-v3146.mjs
 
+      - name: Verify V3.147 atomic selected instructions and viewport honesty
+        run: |
+          node scripts/check-website-context-plan-v3147.mjs
+          node scripts/check-website-viewport-coverage-v3147.mjs
+
       - name: Verify Expo Snack module dependency graph
         run: node scripts/check-snack-dependencies.mjs
 
