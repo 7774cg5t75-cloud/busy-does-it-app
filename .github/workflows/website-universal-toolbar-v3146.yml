@@ -1,0 +1,66 @@
+name: V3.146 universal contextual editing and coordinated website checks
+on:
+  push:
+    branches: [v3.146]
+    paths:
+      - 'src/core/contextualEditingCore.mjs'
+      - 'src/core/websiteTapToEdit.mjs'
+      - 'src/screens/websiteBuilder.js'
+      - 'src/screens/websiteTapEditor.js'
+      - 'src/screens/websiteSelectedVoice.js'
+      - 'scripts/check-universal-context-toolbar-v3146.mjs'
+      - 'scripts/check-universal-context-toolbar-browser-v3146.mjs'
+      - 'scripts/check-website-tap-browser-v3138.mjs'
+      - 'scripts/check-website-tap-editor-v3138.mjs'
+      - 'scripts/check-website-context-browser-v3140.mjs'
+      - '.github/workflows/website-universal-toolbar-v3146.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  universal-context:
+    runs-on: ubuntu-latest
+    timeout-minutes: 48
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify contextual action security and historical website regressions
+        run: |
+          node scripts/check-universal-context-toolbar-v3146.mjs
+          node scripts/check-website-deeper-review-v3145.mjs
+          node scripts/check-website-measured-coach-v3144.mjs
+          node scripts/check-website-visual-inspection-v3143.mjs
+          node scripts/check-website-voice-reliability-v3142.mjs
+          node scripts/check-website-voice-selection-v3141.mjs
+          node scripts/check-website-context-v3140.mjs
+          node scripts/check-website-section-styling-v3139.mjs
+          node scripts/check-website-tap-editor-v3138.mjs
+          node scripts/check-website-layout-v3134.mjs
+          node scripts/check-website-pages-v3135.mjs
+          node scripts/check-website-standalone-v3136.mjs
+          node scripts/check-website-original-media-v3137.mjs
+          node scripts/check-professional-websites-v399.mjs
+          node scripts/check-production.mjs
+      - name: Install iOS and Android JS and browser dependencies
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Test real responsive contextual toolbar, screenshot quality and keyboard access
+        run: |
+          node scripts/check-universal-context-toolbar-browser-v3146.mjs
+          node scripts/check-website-tap-browser-v3138.mjs
+          node scripts/check-website-context-browser-v3140.mjs
+          node scripts/check-website-contrast-browser-v3145.mjs
+          node scripts/check-website-screenshot-loop-v3144.mjs
+          node scripts/check-website-visual-browser-v3143.mjs
+          node scripts/check-website-section-browser-v3139.mjs
+      - name: Compile unsigned iOS and Android JavaScript
+        run: |
+          npx expo export --platform ios --output-dir /tmp/busy-v3146-ios-js
+          npx expo export --platform android --output-dir /tmp/busy-v3146-android-js
+      - name: Confirm deployment and spending boundary
+        run: echo "No public website publishing, signed device build, real AI provider call, database migration or cloud deployment."
