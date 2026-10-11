@@ -52,14 +52,18 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
   return success("field",{sectionId,itemId:itemId||null,field,value:replacement[1]},
    "Replace only the selected wording in your private draft.");
  }
- let m=text.match(/^(?:make|set) (?:this|that|the selected) (?:heading|title) (bigger|larger|smaller|normal)$/i);
+ let m=text.match(/^(?:make|set) (?:this|that|the selected) (?:heading|title) (bigger|larger|smaller|normal)(?: (?:only )?on (phones?|mobile|desktop|computers?|wide screens?))?$/i);
  if(m){
   if(field!=="title")return failure("Tap the heading you want to resize.");
+  if(itemId&&m[2])return failure("Select the whole section to change phone or desktop headings.");
   if(itemId)return success("layout",{action:"item-style",sectionId,itemId,
     field:"headingScale",value:states.headingScale[m[1].toLowerCase()]},
     "Resize only the selected item heading.");
-  return success("layout",{action:"section-style",sectionId,field:"headingScale",
-    value:states.headingScale[m[1].toLowerCase()]},"Resize the selected section heading.");
+  const device=m[2]?/phone|mobile/i.test(m[2])?"mobile":"desktop":"";
+  return success("layout",{action:"section-style",sectionId,
+    field:device?device+"HeadingScale":"headingScale",
+    value:states.headingScale[m[1].toLowerCase()]},
+    "Resize the selected section heading"+(device?" on "+device+" only":"")+".");
  }
  m=text.match(/^(?:centre|center|left.align|align) (?:this|that|the selected) (?:section|text|heading|paragraph)(?: (?:to )?(left|centre|center))?$/i);
  if(m){
@@ -102,11 +106,13 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
       "Move only the selected photo/text block image on wide screens.");
    return failure("The main website photo has separate positioning controls; choose its crop instead.");
   }
-  m=text.match(/^(?:make|show) (?:this|that|the selected) (?:photo|image|picture) (?:bigger|larger|smaller)$/i);
+  m=text.match(/^(?:make|show) (?:this|that|the selected) (?:photo|image|picture) (bigger|larger|smaller)(?: (?:only )?on (phones?|mobile|desktop|computers?|wide screens?))?$/i);
   if(m){
    if(section.type==="gallery")
-    return success("layout",{action:"section-style",sectionId,field:"gallerySize",
-     value:/smaller/i.test(m[1])?"compact":"large"},"Change the gallery tile size.");
+    return success("layout",{action:"section-style",sectionId,
+     field:m[2]?(/phone|mobile/i.test(m[2])?"mobileGallerySize":"desktopGallerySize"):"gallerySize",
+     value:/smaller/i.test(m[1])?"compact":"large"},
+     "Change the gallery tile size"+(m[2]?" only on "+m[2]:"")+".");
    if(section.type==="hero")
     return success("layout",{action:"style",field:"heroSize",
      value:/smaller/i.test(m[1])?"medium":"extra-large"},"Change the main picture area.");

@@ -7,7 +7,7 @@
  * single immutable transaction is prepared.
  */
 import {interpretSelectedWebsiteRequest} from "./websiteContextualEdit.mjs";
-const MAX_STEPS=3;
+const MAX_STEPS=5;
 const MAX_CHARACTERS=400;
 const list=x=>Array.isArray(x)?x:[];
 const error=reason=>({ok:false,reason,steps:[]});
@@ -22,7 +22,7 @@ function splitSelectedWebsiteInstruction(text){
 }
 function planSelectedWebsiteChanges(draft,pageId,selection,instruction){
  const clauses=splitSelectedWebsiteInstruction(instruction);
- if(!clauses)return error("Ask for up to three short changes. Separate them with 'and then' or a semicolon.");
+ if(!clauses)return error("Ask for up to five short changes. Separate them with 'and then' or a semicolon.");
  const steps=[];
  const changed=new Set();
  for(let i=0;i<clauses.length;i++){
