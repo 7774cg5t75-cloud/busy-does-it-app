@@ -2397,9 +2397,12 @@ function MiniAppPreview({ s }) {
     try{
       let completed=0;
       for(const op of operations){
+        const suggestedSource=visualProposal?.explanations?.find(
+          x=>x.field===op.field)?.source;
         const source=context==="saved_revision"?"manual":
-          visualProposal?.explanations?.find(x=>x.field===op.field)?.source||
-          (visualReport?.ok?"ai":measuredReport?.ok?"measured":"responsive");
+          ["measured","ai","responsive","manual"].includes(suggestedSource)?
+            suggestedSource:
+          visualReport?.ok?"ai":measuredReport?.ok?"measured":"responsive";
         const result=await s.recordAppDesignPreference?.({
           appId,expectedRevision:revision,field:op.field,value:op.value,
           verdict,context,source,
@@ -2412,10 +2415,30 @@ function MiniAppPreview({ s }) {
           "Your private design feedback could not be saved.");
         completed++;
       }
-      await refreshDesignMemory();
-      setDesignMemoryNotice(completed+" preference(s) recorded for this business only. BUSY will consider them in future private suggestions.");
+      const fresh=await refreshDesignMemory();
       if(context==="preview"&&verdict!=="better"){
-        setVisualProposal(null);setVirtualSamples({});
+        const alternative=prepareOwnerAwareDesignExperiments(config,{
+          history:fresh?.ok?fresh.records:[],
+          measured:measuredSuggestions?.suggestions||[],
+          ai:visualReport?.suggestions||[],
+          responsive:responsiveSuggestions
+        });
+        const next=alternative?.preview?.ok?{
+          ...alternative.preview,
+          explanations:alternative.reasoning.map(x=>({
+            field:x.field,value:x.value,
+            source:["measured","ai","responsive"].includes(
+              alternative.proposed.find(p=>p.field===x.field)?.sources?.[0])?
+                alternative.proposed.find(p=>p.field===x.field).sources[0]:"manual",
+            why:x.why,tradeoff:x.tradeoff
+          }))
+        }:null;
+        setVisualProposal(next);setVirtualSamples({});
+        setDesignMemoryNotice(completed+" preference(s) remembered for this business. "+
+          (next?"Busy has prepared a DIFFERENT private option to review.":
+          "Busy won't repeat that rejected setting; no safe alternative is currently supported."));
+      }else{
+        setDesignMemoryNotice(completed+" preference(s) recorded for this business only. BUSY will consider them in future private suggestions.");
       }
     }catch(error){
       setDesignMemoryNotice(String(error?.message||
@@ -2443,15 +2466,18 @@ function MiniAppPreview({ s }) {
       ai:visualReport?.suggestions||[],
       responsive:responsiveSuggestions
     });
-    const plan=designMemory?.ok&&rankedDesign?.preview?.ok?
-      {...rankedDesign.preview,
-        explanations:rankedDesign.reasons.map(x=>({
-          field:x.field,value:x.value,source:x.source,
-          why:"Ranked using "+x.source+" evidence; "+x.ownerPreference+
-            ". Score is a rule-based ordering, not measured success.",
+    const plan=nextDesignExperiment?.preview?.ok?
+      {...nextDesignExperiment.preview,
+        explanations:nextDesignExperiment.reasoning.map(x=>({
+          field:x.field,value:x.value,
+          source:["measured","ai","responsive"].includes(
+            nextDesignExperiment.proposed.find(p=>p.field===x.field)?.sources?.[0])?
+              nextDesignExperiment.proposed.find(p=>p.field===x.field).sources[0]:"manual",
+          why:x.why+" "+x.ownerPreference+
+            ". This is a reasoned suggestion, not a proven improvement.",
           tradeoff:x.tradeoff
         }))}:designMemory?.ok?{ok:false,
-        reason:"No safe, new design choice remains after applying your recorded preferences."}:baseline;
+        reason:"Busy won't repeat an owner-rejected setting. No supported improvement remains from the current evidence."}:baseline;
     setVisualProposal(plan.ok?plan:null);
     setVisualSelected([]);
     setVisualNotice(plan.ok?
