@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { decideStandaloneEligibility } from "./standaloneEligibility.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -3539,6 +3540,22 @@ Deno.serve(async (request: Request) => {
     );
     const resolvedBusinessId = member.business_id;
 
+    if (action === "standalone_eligibility_status") {
+      // Server-sourced read only. Caller-supplied plan/tier/paid flags are
+      // deliberately ignored. Only a validated provider webhook may mint a
+      // qualifying entitlement row. No charge or build happens here.
+      const record=await supabase.from("busy_standalone_entitlements")
+        .select("business_id,source,provider_verified,external_subscription_id,status,allowance,used,period_end")
+        .eq("business_id",resolvedBusinessId).maybeSingle();
+      const eligibility=record.error?
+        {verified:false,eligible:false,remaining:0,status:"unavailable",
+         reason:"Standalone entitlement verification is unavailable; do not place an order.",
+         doesNotAuthorizePackaging:true,doesNotAuthorizeSubmission:true}:
+        decideStandaloneEligibility(record.data,{businessId:resolvedBusinessId,
+          nowISO:new Date().toISOString()});
+      return json(200,{ok:true,businessId:resolvedBusinessId,
+        eligibility,readOnly:true,providerCheckRequired:true});
+    }
     if (action === "owner_status") {
       return json(200, {
         ok: true,
