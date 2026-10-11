@@ -15,6 +15,8 @@ import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.m
 import {proposeCoordinatedAppChanges,planAppVoiceInstructions} from "../core/appCoordinatedStudio.mjs";
 import {appDesignQualityReport} from "../core/appDesignQuality.mjs";
 import {auditBusinessAppUsability,compareBusinessAppDesign} from "../core/appUsabilityAudit.mjs";
+import {prepareAppVisualBatch} from "../core/appVisualComparison.mjs";
+import {auditStandaloneContrast} from "../core/appContrastAudit.mjs";
 import {appRequestJourney} from "../core/appRequestLifecycle.mjs";
 import {appVisibleCaptureReceipt,currentAppVisibleCapture} from "../core/appRenderedEvidence.mjs";
 import {previewAppVisualSuggestion} from "../core/appVisualReviewContract.mjs";
@@ -682,6 +684,7 @@ function MiniAppBuilder({ s }) {
   });
   const quality=appDesignQualityReport(view.draftConfig||view.activeConfig||{},view.catalog||[]);
   const usability=auditBusinessAppUsability(view.draftConfig||view.activeConfig||{});
+  const measuredNativeContrast=auditStandaloneContrast();
   const liveMatchesDraft =
     businessAppPreviewProof({app,preview:view.liveVersion}).matches;
   const journeyLabel = !plan
@@ -1340,6 +1343,16 @@ function MiniAppBuilder({ s }) {
             right={String(usability.importantCount)}/>
           <MetricRow left="Manual accessibility checks remaining"
             right={String(usability.manualTestsNeeded)}/>
+          <Text style={styles.sectionLabel}>Standalone app colour contrast</Text>
+          {measuredNativeContrast.readings.filter(x=>x.threshold>0).map(item=>(
+            <MetricRow key={item.id} left={item.id.replaceAll("_"," ")}
+              right={item.ratio+":1 • "+(item.passes?"AA normal text":"Needs attention")}/>
+          ))}
+          <Text style={styles.cardBody}>
+            Contrast ratios are calculated only for the known native-app colours.
+            They do not measure text over photos, other themes or the displayed
+            screenshot. This is not an accessibility certification.
+          </Text>
           {usability.issues.filter(x=>x.severity!=="needs_test").slice(0,7).map(item=>(
             <MetricRow key={item.id} left={item.id.replaceAll("_"," ")}
               right={item.message}/>
@@ -1840,10 +1853,19 @@ function MiniAppPreview({ s }) {
   const [visualProposal,setVisualProposal]=React.useState(null);
   const [visualCompareSide,setVisualCompareSide]=React.useState("proposed");
   const [visualNotice,setVisualNotice]=React.useState("");
+  const [visualSelected,setVisualSelected]=React.useState([]);
+  const [pairedCapture,setPairedCapture]=React.useState(null);
+  const [pairBusy,setPairBusy]=React.useState(false);
+  const [pairReview,setPairReview]=React.useState(null);
+  const [pairNotice,setPairNotice]=React.useState("");
   const appSurfaceRef=React.useRef(null);
+  const originalComparisonRef=React.useRef(null);
+  const proposedComparisonRef=React.useRef(null);
   React.useEffect(()=>{
     setCapture(null);setCaptureError("");setVisualReport(null);
     setVisualProposal(null);setVisualAllowance(null);setVisualNotice("");
+    setVisualSelected([]);setPairedCapture(null);setPairReview(null);
+    setPairNotice("");setPairBusy(false);
   },[appId,revision,view.previewVersion?.id]);
   const takeScreenCapture=async()=>{
     setCaptureBusy(true);setCaptureError("");setCapture(null);
@@ -1867,6 +1889,57 @@ function MiniAppPreview({ s }) {
     }finally{setCaptureBusy(false);}
   };
   const captureCurrent=currentAppVisibleCapture(capture,{appId,revision});
+  const pairedCurrent=pairedCapture?.revision===revision&&
+    pairedCapture?.appId===appId&&visualProposal?.ok===true&&
+    JSON.stringify(pairedCapture.operations)===
+      JSON.stringify(visualProposal.operations||[visualProposal.operation]);
+  const captureComparisonPair=async()=>{
+    if(!visualProposal?.ok||!originalComparisonRef.current||
+       !proposedComparisonRef.current)return;
+    setPairBusy(true);setPairNotice("");setPairReview(null);setPairedCapture(null);
+    try{
+      const args={format:"jpg",quality:0.3,result:"tmpfile"};
+      // Both image sources are customer-only rendered views. Never capture
+      // the editor, owner profile, dashboard or any customer database.
+      const beforeUri=await captureRef(originalComparisonRef.current,args);
+      const afterUri=await captureRef(proposedComparisonRef.current,args);
+      const device=Dimensions.get("window");
+      const common={appId,revision,width:Math.round(device.width),
+        height:Math.round(device.height),platform:Platform.OS,
+        capturedAt:new Date().toISOString()};
+      const first=appVisibleCaptureReceipt({...common,screenshotUri:beforeUri});
+      const second=appVisibleCaptureReceipt({...common,screenshotUri:afterUri});
+      if(!first.ok||!second.ok)throw Error(first.reason||second.reason||
+        "The current preview could not be captured.");
+      setPairedCapture({appId,revision,beforeUri,afterUri,
+        operations:visualProposal.operations||[visualProposal.operation],
+        source:"two_native_customer_only_preview_views",
+        independentAuthenticityCheck:false,automatedPixelDiff:false});
+      setPairNotice("Two real local screenshots captured from the original and proposed app views. They have not been sent to AI.");
+    }catch(error){setPairNotice(String(error?.message||
+      "Both visible app previews require a development build.").slice(0,235));}
+    finally{setPairBusy(false);}
+  };
+  const consentToComparePair=()=>{
+    if(!pairedCurrent||visualAllowance?.enabled!==true||
+       visualAllowance.remaining<1||pairBusy)return;
+    Alert.alert("Compare these two private app screenshots with AI?",
+      "BUSY will send BOTH customer-facing images to the configured AI provider. This uses ONE of your business's monthly visual reviews. Images are not stored by BUSY; AI suggestions cannot edit or publish without another approval.",
+      [{text:"Cancel",style:"cancel"},{text:"Approve comparison",onPress:async()=>{
+        setPairBusy(true);setPairReview(null);setPairNotice("");
+        const result=await s.comparePrivateAppScreenshots?.({
+          appId,expectedRevision:revision,
+          beforeUri:pairedCapture.beforeUri,afterUri:pairedCapture.afterUri,
+          operations:pairedCapture.operations,captureScope:"public_app_only"
+        });
+        if(result?.ok){
+          setPairReview(result.review);setVisualAllowance(result.status);
+          setPairNotice("AI compared two owner-submitted previews. This is qualitative advice, not a measured pixel-difference test.");
+        }else setPairNotice(result?.reason||
+          "Comparison was unavailable. Your draft remains unchanged.");
+        setPairBusy(false);
+      }}]);
+  };
   const refreshVisualAllowance=async()=>{
     const status=await s.checkPrivateAppVisualReview?.();
     setVisualAllowance(status||{enabled:false,remaining:0,
@@ -1953,16 +2026,35 @@ function MiniAppPreview({ s }) {
                     <MetricRow key={"observed-"+i} left={"Observation "+(i+1)}
                       right={item}/>
                   ))}
+                  <Text style={styles.sectionLabel}>
+                    Choose up to three suggestions to preview together
+                  </Text>
                   {(visualReport.suggestions||[]).map((item,i)=>(
                     <Button key={"visual-proposal-"+i}
-                      label={"Preview "+item.field+": "+item.value}
+                      label={(visualSelected.includes(i)?"✓ ":"")+
+                        item.field+": "+item.value}
                       disabled={!!s.miniAppsAction}
                       onPress={()=>{
-                        const proposed=previewAppVisualSuggestion(config,item);
-                        setVisualProposal(proposed.ok?proposed:null);
-                        if(!proposed.ok)setVisualNotice(proposed.reason);
+                        setVisualSelected(previous=>previous.includes(i)?
+                          previous.filter(n=>n!==i):
+                          previous.length>=3?previous:[...previous,i]);
+                        setVisualProposal(null);setPairedCapture(null);
+                        setPairReview(null);setPairNotice("");
                       }}/>
                   ))}
+                  {visualReport.suggestions?.length?(
+                    <Button label={"Preview "+visualSelected.length+" design change(s) together"}
+                      disabled={!visualSelected.length||!!s.miniAppsAction}
+                      onPress={()=>{
+                        const chosen=visualReport.suggestions
+                          .filter((_,index)=>visualSelected.includes(index));
+                        const proposed=prepareAppVisualBatch(config,chosen);
+                        setVisualProposal(proposed.ok?proposed:null);
+                        setPairedCapture(null);setPairReview(null);
+                        setPairNotice("");
+                        if(!proposed.ok)setVisualNotice(proposed.reason);
+                      }}/>
+                  ):null}
                   {!visualReport.suggestions?.length?(
                     <Text style={styles.cardBody}>
                       No supported design change was proposed from this image.
@@ -1975,7 +2067,11 @@ function MiniAppPreview({ s }) {
                   {visualProposal?.ok?(
                     <>
                       <Text style={styles.sectionLabel}>Alternative private design</Text>
-                      <Text style={styles.cardBody}>{visualProposal.reason}</Text>
+                      <Text style={styles.cardBody}>
+                        {(visualProposal.changes||[]).join("; ")||
+                          visualProposal.reason||
+                          "Review this alternative against your current private draft."}
+                      </Text>
                       {(()=>{
                         const comparison=compareBusinessAppDesign(config,
                           visualProposal.nextConfig);
@@ -1997,19 +2093,70 @@ function MiniAppPreview({ s }) {
                         onPress={()=>setVisualCompareSide("proposed")}/>
                       <MiniAppSurface config={visualCompareSide==="original"?
                         config:visualProposal.nextConfig}/>
+                      <Text style={styles.sectionLabel}>Actual rendered before / after</Text>
                       <Text style={styles.cardBody}>
-                        These views are rendered from different configurations.
-                        They have not been compared using a second AI screenshot review.
+                        These are separate customer-only native preview surfaces.
+                        Scroll to inspect them before capturing. Captures are local
+                        unless you explicitly approve a two-image AI review.
                       </Text>
-                      <Button primary label="Approve this private design change"
+                      <Text style={styles.sectionLabel}>Original private app</Text>
+                      <View ref={originalComparisonRef} collapsable={false}>
+                        <MiniAppSurface config={config}/>
+                      </View>
+                      <Text style={styles.sectionLabel}>Proposed private app</Text>
+                      <View ref={proposedComparisonRef} collapsable={false}>
+                        <MiniAppSurface config={visualProposal.nextConfig}/>
+                      </View>
+                      <Button label={pairBusy?"Capturing / reviewing…":"Capture both rendered app views"}
+                        disabled={pairBusy||!!s.miniAppsAction}
+                        onPress={captureComparisonPair}/>
+                      {pairedCurrent?(
+                        <>
+                          <Text style={styles.sectionLabel}>Local before / after screenshots</Text>
+                          <Image source={{uri:pairedCapture.beforeUri}} resizeMode="contain"
+                            style={{width:"100%",height:245,marginBottom:8,borderRadius:12}}/>
+                          <Image source={{uri:pairedCapture.afterUri}} resizeMode="contain"
+                            style={{width:"100%",height:245,marginBottom:8,borderRadius:12}}/>
+                          {visualAllowance===null?(
+                            <Button label="Check my AI comparison allowance"
+                              onPress={refreshVisualAllowance}/>
+                          ):null}
+                          {visualAllowance?.enabled&&visualAllowance.remaining>0?(
+                            <Button label={pairBusy?"Comparing with AI…":"Ask AI to compare both screenshots"}
+                              disabled={pairBusy||!!s.miniAppsAction}
+                              onPress={consentToComparePair}/>
+                          ):null}
+                        </>
+                      ):null}
+                      {pairNotice?<Text style={styles.cardBody}>{pairNotice}</Text>:null}
+                      {pairReview?.ok?(
+                        <>
+                          <Text style={styles.sectionLabel}>AI before / after observations</Text>
+                          <Text style={styles.cardBody}>{pairReview.summary}</Text>
+                          {(pairReview.observations||[]).map((observation,i)=>(
+                            <MetricRow key={"pair-observation-"+i}
+                              left={"Finding "+(i+1)} right={observation}/>
+                          ))}
+                          <Text style={styles.cardBody}>
+                            AI did not independently authenticate the images,
+                            measure pixel differences or inspect other devices.
+                            Your existing design stays unchanged until approval.
+                          </Text>
+                        </>
+                      ):null}
+                      <Button primary label={"Approve "+(visualProposal.operations?.length||1)+
+                        " PRIVATE design change(s)"}
                         disabled={!!s.miniAppsAction}
                         onPress={async()=>{
                           const saved=await s.saveCoordinatedAppChanges?.({
                             appId,expectedRevision:revision,
-                            operations:[visualProposal.operation]
+                            operations:visualProposal.operations||
+                              [visualProposal.operation]
                           });
                           if(saved?.ok){
                             setVisualProposal(null);setVisualReport(null);setCapture(null);
+                            setPairedCapture(null);setPairReview(null);
+                            setVisualSelected([]);
                             setVisualNotice("The approved change was saved to your PRIVATE draft. Prepare another preview to inspect it.");
                           }else setVisualNotice("The private draft could not be safely updated. Refresh and retry.");
                         }}/>
