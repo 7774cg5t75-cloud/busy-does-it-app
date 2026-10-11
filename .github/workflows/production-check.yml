@@ -109,6 +109,9 @@ jobs:
       - name: Verify safe website tap-to-edit controls
         run: node scripts/check-website-tap-editor-v3138.mjs
 
+      - name: Verify individual website section appearance and safe commands
+        run: node scripts/check-website-section-styling-v3139.mjs
+
       - name: Verify Expo Snack module dependency graph
         run: node scripts/check-snack-dependencies.mjs
 
