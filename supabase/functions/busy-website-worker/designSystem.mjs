@@ -225,6 +225,13 @@ main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:4
 .visual-type-compact h1{font-size:clamp(2.8rem,6.4vw,5.2rem);letter-spacing:-.04em}
 .visual-type-compact h2{font-size:clamp(1.9rem,3.1vw,2.8rem)}
 
+/* V3.140: a tapped service, question or testimonial title has its own
+   size. Retain the website family's typeface and readable responsive limits. */
+h3.owner-item-heading-large{font-size:clamp(1.45rem,2.7vw,2rem)}
+h3.owner-item-heading-compact{font-size:clamp(1rem,1.7vw,1.2rem)}
+@media(max-width:800px){
+ h3.owner-item-heading-large{font-size:clamp(1.35rem,4.7vw,1.7rem)}
+}
 /* V3.139: independent section controls shared by private preview, hosted
    publishing and customer-owned ZIP. Strict finite class vocabulary only. */
 section.owner-heading-compact h1,
