@@ -11,7 +11,7 @@ import {voiceDurationState} from "../core/websiteVoiceRecordingPolicy.mjs";
  * not send any audio; only a separate user tap can request transcription.
  * Closing the editor discards the unsent recording, not the website draft.
  */
-function WebsiteSelectedVoice({selection,startImmediately=false,onTranscribe,onTranscript}){
+function WebsiteSelectedVoice({selection,startImmediately=false,onTranscribe,onTranscript,contextLabel="selected element"}){
  const recorder=useAudioRecorder(RecordingPresets.HIGH_QUALITY);
  const state=useAudioRecorderState(recorder,250);
  const working=React.useRef(false);
@@ -154,6 +154,7 @@ function WebsiteSelectedVoice({selection,startImmediately=false,onTranscribe,onT
  return <View style={{marginTop:12,marginBottom:10}}>
   <Text style={styles.sectionLabel}>Or say your change</Text>
   <Text style={styles.cardBody}>
+   {contextLabel==="page"?"This recording is for the entire current website page. Name the sections you want changed. No change is applied until you review, preview and approve. ":""}
    Tap Record, speak naturally, then tap Stop yourself. BUSY never stops because you pause.
    A clearly shown five-minute safety limit prevents accidental endless recording.
    Voice transcription uses a cloud service and may incur usage cost. There is a 12-request daily allowance for this editing mode (UTC).
@@ -178,7 +179,7 @@ function WebsiteSelectedVoice({selection,startImmediately=false,onTranscribe,onT
    </>
   ):(
    button(listening?"■ Stop recording — keep it for review":
-     busy?"BUSY is preparing…":"🎙 Start recording this part",
+     busy?"BUSY is preparing…":contextLabel==="page"?"🎙 Start recording page request":"🎙 Start recording this part",
      listening?()=>stop(false):start,busy,listening?"#9F4F3E":"#285B92")
   )}
   {message?<Text accessibilityRole="alert" style={styles.cardBody}>{message}</Text>:null}
