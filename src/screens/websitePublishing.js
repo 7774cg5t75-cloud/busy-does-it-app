@@ -524,6 +524,13 @@ function WebsitePublishing({ s }) {
             services, photographs, contact details and wording before approving.
             Viewing the editable phone preview alone is not enough.
           </Text>
+          <Button label="Check phone layout in my private design"
+            onPress={() => s.go("websitePreview")}/>
+          <Text style={styles.cardBody}>
+            The optional private layout check can flag clipped text, hard-to-tap
+            links or missing pictures. It does not replace reviewing the exact
+            hosted preview, which is still required for Go Live.
+          </Text>
           <Button
             label={openedHostedPreview===preview.id?
               "Hosted preview opened":"Open the exact hosted preview"}
