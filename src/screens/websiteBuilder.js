@@ -37,10 +37,18 @@ function WebsiteBuilder({ s }) {
   const [designOptionIndex,setDesignOptionIndex]=React.useState(0);
   const [showCustomization, setShowCustomization] = React.useState(false);
   const [showVisualAi, setShowVisualAi] = React.useState(false);
+  const [aiStudio,setAiStudio]=React.useState(null);
+  const [aiStudioChoice,setAiStudioChoice]=React.useState(0);
+  const [aiStudioShowOriginal,setAiStudioShowOriginal]=React.useState(false);
+  const [aiStudioWidth,setAiStudioWidth]=React.useState("phone");
+  const [aiStudioNotice,setAiStudioNotice]=React.useState("");
   const [showOutcomeFeedback,setShowOutcomeFeedback]=React.useState(false);
   const [feedbackState,setFeedbackState]=React.useState({status:"idle",message:""});
   const [savedStylePreferences,setSavedStylePreferences]=React.useState(null);
   const feedbackBusy=React.useRef(false);
+  React.useEffect(()=>{
+    setAiStudio(null);setAiStudioNotice("");setAiStudioShowOriginal(false);
+  },[draft?.id,draft?.generation,s.websiteVisualReview?.reviewId]);
   const hostedPreview = s.websitePublishingView?.previewDeployment || null;
   const hostedPreviewOutdated = !!s.websitePublishingView?.draftChangedSinceHosted;
   const deliveryProof=buildWebsiteLaunchProof({
@@ -403,8 +411,71 @@ function WebsiteBuilder({ s }) {
                     </View>
                   ))}
                   {s.websiteVisualReview.report.proposals?.length ? (
-                    <Button label="Approve design changes in my PRIVATE draft"
-                      onPress={s.approveWebsiteVisualSuggestions} />
+                    <>
+                      <Button label="Have BUSY prepare private design alternatives"
+                        onPress={()=>{
+                          const preview=s.previewWebsiteVisualAlternatives?.({pageId:"home"});
+                          setAiStudio(preview?.ok?preview:null);
+                          setAiStudioChoice(0);
+                          setAiStudioShowOriginal(false);
+                          setAiStudioNotice(preview?.message||preview?.reason||"No private alternatives are ready.");
+                        }}/>
+                      {aiStudioNotice?<Text style={styles.cardBody}>{aiStudioNotice}</Text>:null}
+                      {aiStudio?.ok&&aiStudio.draftId===draft.id&&
+                       aiStudio.generation===draft.generation&&
+                       aiStudio.deploymentId===s.websiteVisualReview.deploymentId?(
+                        <View style={{marginVertical:12}}>
+                          <Text style={styles.sectionLabel}>BUSY's private design studio</Text>
+                          <Text style={styles.cardBody}>
+                            BUSY has prepared safe variations from its actual screenshot-based AI critique.
+                            These alternatives have NOT yet been re-examined by the AI.
+                            They must be checked on real phone and desktop layouts before publishing.
+                          </Text>
+                          {aiStudio.candidates.map((candidate,i)=>(
+                            <Button key={String(i)}
+                              label={(aiStudioChoice===i?"✓ ":"")+"Alternative "+candidate.count+
+                                " — "+candidate.description.length+" design idea(s)"}
+                              onPress={()=>{setAiStudioChoice(i);setAiStudioShowOriginal(false);}}/>
+                          ))}
+                          <Button label={aiStudioShowOriginal?"Show BUSY's proposed design":"Show my original design"}
+                            onPress={()=>setAiStudioShowOriginal(x=>!x)}/>
+                          <Button label={(aiStudioWidth==="phone"?"✓ ":"")+"Preview phone"}
+                            onPress={()=>setAiStudioWidth("phone")}/>
+                          <Button label={(aiStudioWidth==="desktop"?"✓ ":"")+"Preview desktop"}
+                            onPress={()=>setAiStudioWidth("desktop")}/>
+                          <View style={{height:330,borderRadius:12,overflow:"hidden",
+                            borderColor:"#4A5D78",borderWidth:1}}>
+                            <WebView
+                              key={aiStudioChoice+":"+aiStudioWidth+":"+String(aiStudioShowOriginal)}
+                              source={{html:withWebsitePreviewViewport(aiStudioShowOriginal
+                                ?aiStudio.originalHtml:aiStudio.candidates[aiStudioChoice].html,
+                                aiStudioWidth),baseUrl:"about:blank"}}
+                              style={{flex:1,backgroundColor:"#fff"}}
+                              javaScriptEnabled={false} domStorageEnabled={false} incognito
+                              javaScriptCanOpenWindowsAutomatically={false}
+                              allowFileAccess={false} mixedContentMode="never"
+                              onShouldStartLoadWithRequest={req=>
+                                req?.url==="about:blank"||
+                                String(req?.url||"").startsWith("about:blank#")}/>
+                          </View>
+                          <Text style={styles.cardBody}>
+                            Nothing has been saved. The selected alternative is based on verified
+                            AI suggestions, not a guaranteed improvement. You decide.
+                          </Text>
+                          <Button label="Keep this reviewed alternative in my private draft"
+                            onPress={()=>{
+                              const selected=aiStudio.candidates[aiStudioChoice];
+                              const kept=s.approveWebsiteVisualSuggestions?.(selected?.count);
+                              if(kept)setAiStudio(null);
+                              else setAiStudioNotice("This review may be stale. Check the latest design before keeping it.");
+                            }}/>
+                          <Button label="Discard alternatives and keep original"
+                            onPress={()=>{setAiStudio(null);setAiStudioNotice("No changes made.");}}/>
+                        </View>
+                       ):null}
+                      <Button label="Approve all suggested design changes in my PRIVATE draft"
+                        onPress={s.approveWebsiteVisualSuggestions}/>
+                    </>
                   ) : (
                     <Text style={styles.cardBody}>No safe visual changes suggested. Your website remains unchanged.</Text>
                   )}
