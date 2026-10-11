@@ -64,7 +64,7 @@ check(refresh.sections.find(s=>s.id==="services").items.find(x=>x.id==="lawn").a
 const copied=ask(selected("services","body","hedge"),"change this text to Arrive by appointment");
 check(copied.ok&&copied.type==="field"&&copied.change.itemId==="hedge","Text replacement scoped to exact item");
 const copiedResult=apply(copied);
-check(copiedResult.applied&&copiedResult.draft.html.includes("Arrive by appointment"),"Existing structured content guard processes literal text");
+check(copiedResult.applied&&copiedResult.draft.sections.find(s=>s.id==="services")?.items.find(i=>i.id==="hedge")?.body==="Arrive by appointment","Existing structured content guard processes literal text on its correct page");
 const centre=ask(selected("about","body"),"Centre this section");
 check(centre.ok&&centre.change.sectionId==="about"&&centre.change.value==="center","Centre selected section only");
 const spacing=ask(selected("about","body"),"Give this section more space");
