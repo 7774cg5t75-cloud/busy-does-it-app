@@ -7,10 +7,13 @@ const ACTION_CHANNEL="busy.contextual-action.v1";
 const ACTIONS=Object.freeze(["edit","voice","more"]);
 const TYPES=Object.freeze({section:"section",photo:"picture",title:"heading",body:"text",
  cta:"button",ctaHref:"button",phone:"text",email:"text",openingHours:"text"});
+const PRIMARY_LABELS=Object.freeze(Object.fromEntries(
+ Object.entries(TYPES).map(([field,kind])=>
+   [field,kind==="picture"?"Replace":kind==="section"?"Adjust":"Edit"])));
 function contextualToolbarPolicy(type){
  const kind=TYPES[type]||null;
  if(!kind)return null;
- return Object.freeze({kind,primary:kind==="picture"?"Replace":kind==="section"?"Adjust":"Edit",
+ return Object.freeze({kind,primary:PRIMARY_LABELS[type],
   voiceLabel:"Talk to Busy about this "+kind,
   otherLabel:"More options for this "+kind,actions:ACTIONS});
 }
@@ -22,4 +25,4 @@ function resolveContextualToolbarAction(message,resolveSelection){
  if(!selection||!contextualToolbarPolicy(selection.field))return null;
  return {selection,action:message.action,policy:contextualToolbarPolicy(selection.field)};
 }
-export {ACTION_CHANNEL,ACTIONS,TYPES,contextualToolbarPolicy,resolveContextualToolbarAction};
+export {ACTION_CHANNEL,ACTIONS,TYPES,PRIMARY_LABELS,contextualToolbarPolicy,resolveContextualToolbarAction};
