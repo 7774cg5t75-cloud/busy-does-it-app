@@ -1,0 +1,64 @@
+name: V3.141 selected-website voice and photo safety
+on:
+  push:
+    branches: [v3.141]
+    paths:
+      - 'src/app/AppController.js'
+      - 'src/core/websiteSelectedVoiceContext.mjs'
+      - 'src/core/websiteContextualEdit.mjs'
+      - 'src/domain/websiteBuilder.js'
+      - 'src/screens/websiteSelectedVoice.js'
+      - 'src/screens/websiteTapEditor.js'
+      - 'src/screens/websiteBuilder.js'
+      - 'supabase/functions/busy-command/index.ts'
+      - 'supabase/functions/busy-website-worker/websiteLayoutEditing.mjs'
+      - 'supabase/functions/busy-website-worker/designSystem.mjs'
+      - 'supabase/functions/busy-website-worker/index.ts'
+      - 'scripts/check-website-voice-selection-v3141.mjs'
+      - '.github/workflows/website-selected-voice-v3141.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verified-selected-voice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify scope, consent, transcript-only contract, and older regressions
+        run: |
+          node scripts/check-website-voice-selection-v3141.mjs
+          node scripts/check-website-context-v3140.mjs
+          node scripts/check-website-section-styling-v3139.mjs
+          node scripts/check-website-tap-editor-v3138.mjs
+          node scripts/check-website-layout-v3134.mjs
+          node scripts/check-website-pages-v3135.mjs
+          node scripts/check-website-standalone-v3136.mjs
+          node scripts/check-website-original-media-v3137.mjs
+          node scripts/check-production.mjs
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check authenticated transcription-only Supabase function
+        run: deno check --node-modules-dir=auto supabase/functions/busy-command/index.ts
+      - name: Install Expo and browser deps without Deno node_modules collisions
+        run: |
+          rm -rf node_modules
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Browser test accessible tap and layout behavior
+        run: |
+          node scripts/check-website-context-browser-v3140.mjs
+          node scripts/check-website-tap-browser-v3138.mjs
+          node scripts/check-website-section-browser-v3139.mjs
+      - name: Bundle iOS and Android JavaScript (no signed build)
+        run: |
+          npx expo export --platform ios --output-dir /tmp/busy-v3141-ios-js
+          npx expo export --platform android --output-dir /tmp/busy-v3141-android-js
+      - name: Deployment boundary
+        run: echo "No live website, paid OpenAI transcription, Supabase deployment, DNS, or signed device build executed."
