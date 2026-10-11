@@ -8,6 +8,8 @@ on:
       - 'src/core/websiteVisualCheck.mjs'
       - 'scripts/check-website-visual-inspection-v3143.mjs'
       - 'scripts/check-website-visual-browser-v3143.mjs'
+      - 'scripts/check-professional-websites-v399.mjs'
+      - 'scripts/check-website-tap-editor-v3138.mjs'
       - '.github/workflows/website-visual-preview-v3143.yml'
   workflow_dispatch:
 permissions:
