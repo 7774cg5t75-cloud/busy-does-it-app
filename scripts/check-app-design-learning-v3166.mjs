@@ -45,6 +45,7 @@ assert.equal(JSON.stringify(history).includes(businessId),false);
 assert.equal(history.noAIModelRetrainingPerformed,undefined);
 const config={
  modules:["business_profile","gallery","services","contact"].map(key=>({key,enabled:true})),
+ navigation:["business_profile","gallery","services","contact"],
  presentation:{headerStyle:"refined",navigationStyle:"tabs",
   galleryLayout:"grid",layoutDensity:"compact",imageCorners:"rounded"},
  publicProfile:{services:[{name:"Service",description:"Safe"}]},
