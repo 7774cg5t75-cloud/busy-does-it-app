@@ -2202,6 +2202,13 @@ function MiniAppPreview({ s }) {
   const [pairReview,setPairReview]=React.useState(null);
   const [pairNotice,setPairNotice]=React.useState("");
   const [designCheckpoint,setDesignCheckpoint]=React.useState(null);
+  const [qualityEnabled,setQualityEnabled]=React.useState(false);
+  const [currentMeasurements,setCurrentMeasurements]=React.useState([]);
+  const [beforeMeasurements,setBeforeMeasurements]=React.useState([]);
+  const [afterMeasurements,setAfterMeasurements]=React.useState([]);
+  const [currentMeasuredWidth,setCurrentMeasuredWidth]=React.useState(0);
+  const [beforeMeasuredWidth,setBeforeMeasuredWidth]=React.useState(0);
+  const [afterMeasuredWidth,setAfterMeasuredWidth]=React.useState(0);
   const appSurfaceRef=React.useRef(null);
   const originalComparisonRef=React.useRef(null);
   const proposedComparisonRef=React.useRef(null);
@@ -2213,7 +2220,57 @@ function MiniAppPreview({ s }) {
     setVisualProposal(null);setVisualAllowance(null);setVisualNotice("");
     setVisualSelected([]);setPairedCapture(null);setPairReview(null);
     setPairNotice("");setPairBusy(false);
+    setQualityEnabled(false);setCurrentMeasurements([]);
+    setBeforeMeasurements([]);setAfterMeasurements([]);
+    setCurrentMeasuredWidth(0);setBeforeMeasuredWidth(0);setAfterMeasuredWidth(0);
   },[appId,revision,view.previewVersion?.id]);
+  // Only dimensions, counts and finite element IDs are kept in local React state.
+  const collectCurrent=React.useCallback(value=>{
+    setCurrentMeasurements(previous=>{
+      const result=mergeRenderedObservations(previous,value);
+      return result.ok&&result.changed?result.observations:previous;
+    });
+  },[]);
+  const collectBefore=React.useCallback(value=>{
+    setBeforeMeasurements(previous=>{
+      const result=mergeRenderedObservations(previous,value);
+      return result.ok&&result.changed?result.observations:previous;
+    });
+  },[]);
+  const collectAfter=React.useCallback(value=>{
+    setAfterMeasurements(previous=>{
+      const result=mergeRenderedObservations(previous,value);
+      return result.ok&&result.changed?result.observations:previous;
+    });
+  },[]);
+  const proposedDesignKey=JSON.stringify(visualProposal?.operations||
+    (visualProposal?.operation?[visualProposal.operation]:[]));
+  React.useEffect(()=>{
+    setBeforeMeasurements([]);setAfterMeasurements([]);
+    setBeforeMeasuredWidth(0);setAfterMeasuredWidth(0);
+  },[appId,revision,proposedDesignKey]);
+  const measuredReport=qualityEnabled&&currentMeasuredWidth>=250&&currentMeasurements.length?
+    evaluateRenderedQuality({appId,revision,observations:currentMeasurements,
+      viewportWidth:currentMeasuredWidth}):null;
+  const measuredBefore=qualityEnabled&&beforeMeasuredWidth>=250&&beforeMeasurements.length?
+    evaluateRenderedQuality({appId,revision,observations:beforeMeasurements,
+      viewportWidth:beforeMeasuredWidth}):null;
+  const measuredAfter=qualityEnabled&&afterMeasuredWidth>=250&&afterMeasurements.length?
+    evaluateRenderedQuality({appId,revision,observations:afterMeasurements,
+      viewportWidth:afterMeasuredWidth}):null;
+  const geometryComparison=measuredBefore?.ok&&measuredAfter?.ok?
+    compareRenderedQuality(measuredBefore,measuredAfter):null;
+  const measuredSuggestions=measuredReport?.ok?
+    suggestMeasuredAppearance(config,measuredReport):null;
+  const localDesignReport=measuredReport?.ok?{
+    ok:true,summary:"BUSY measured the actual layout of customer-only components. These are finite checks, not AI visual inspection.",
+    observations:measuredReport.issues.map(x=>x.message),
+    suggestions:(measuredSuggestions?.suggestions||[]).map(item=>({
+      kind:"appearance",field:item.field,value:item.value,
+      reason:item.why+" "+item.tradeoff
+    }))
+  }:null;
+  const displayedReview=visualReport?.ok?visualReport:localDesignReport;
   const takeScreenCapture=async()=>{
     setCaptureBusy(true);setCaptureError("");setCapture(null);
     try{
@@ -2358,7 +2415,49 @@ function MiniAppPreview({ s }) {
         </Card>
       ):null}
       {config&&appId&&revision>0?(
-        <Card eyebrow="V3.162 • Private app design reviewer"
+        <Card eyebrow="V3.164 • On-device visual quality"
+          title="Inspect what BUSY actually rendered"
+          body="Read local measurements of public-app navigation labels, service cards and photo frames. Nothing is uploaded; no customer text, photo URLs or image content enters this report."
+          footer="Wrapped labels and aspect-ratio cropping warnings are hints to inspect. This is not a completed accessibility test."
+          tone="blue">
+          <Button label={qualityEnabled?
+              "Stop local component inspection":"Inspect rendered layout (no AI cost)"}
+            onPress={()=>{
+              setQualityEnabled(v=>!v);
+              setCurrentMeasurements([]);setBeforeMeasurements([]);
+              setAfterMeasurements([]);setCurrentMeasuredWidth(0);
+              setBeforeMeasuredWidth(0);setAfterMeasuredWidth(0);
+            }}/>
+          {qualityEnabled?(
+            <>
+              <MetricRow left="Rendered components measured"
+                right={String(measuredReport?.ok?measuredReport.measuredComponents:0)}/>
+              <MetricRow left="Actual content width"
+                right={currentMeasuredWidth?currentMeasuredWidth+" layout points":"Waiting for layout"}/>
+              <MetricRow left="Warnings to review"
+                right={String(measuredReport?.ok?measuredReport.issueCount:0)}/>
+              {(measuredReport?.issues||[]).slice(0,8).map(issue=>(
+                <Text key={issue.id} style={styles.cardBody}>{issue.message}</Text>
+              ))}
+              {measuredReport?.unmeasuredImageCount?(
+                <Text style={styles.cardBody}>
+                  {measuredReport.unmeasuredImageCount+
+                    " images lack decoded source dimensions, so cropping cannot be assessed."}
+                </Text>
+              ):null}
+              {measuredSuggestions?.suggestions?.length?(
+                <Text style={styles.cardBody}>
+                  BUSY has identified supported alternatives to preview. Capture
+                  the private customer view below, choose an option and approve
+                  any change separately. Nothing is edited automatically.
+                </Text>
+              ):null}
+            </>
+          ):null}
+        </Card>
+      ):null}
+      {config&&appId&&revision>0?(
+        <Card eyebrow="V3.164 • Private app design reviewer"
           title="Inspect your real app preview"
           body="Capture ONLY the rendered customer-facing app area. Account controls, editing tools and private customer records are excluded. This is an owner-submitted screenshot, not independent device verification."
           footer="Local capture is free. AI review requires separate opt-in, configured usage allowance and approval for each submission."
@@ -2393,18 +2492,20 @@ function MiniAppPreview({ s }) {
                   onPress={approveVisualAI}/>
               ):null}
               {visualNotice?<Text style={styles.cardBody}>{visualNotice}</Text>:null}
-              {visualReport?.ok?(
+              {displayedReview?.ok?
                 <>
-                  <Text style={styles.sectionLabel}>AI design observations</Text>
-                  <Text style={styles.cardBody}>{visualReport.summary}</Text>
-                  {(visualReport.observations||[]).map((item,i)=>(
+                  <Text style={styles.sectionLabel}>
+                    {visualReport?.ok?"AI design observations":"Measured layout observations (no AI)"}
+                  </Text>
+                  <Text style={styles.cardBody}>{displayedReview.summary}</Text>
+                  {(displayedReview.observations||[]).map((item,i)=>(
                     <MetricRow key={"observed-"+i} left={"Observation "+(i+1)}
                       right={item}/>
                   ))}
                   <Text style={styles.sectionLabel}>
                     Choose up to three suggestions to preview together
                   </Text>
-                  {(visualReport.suggestions||[]).map((item,i)=>(
+                  {(displayedReview.suggestions||[]).map((item,i)=>(
                     <Button key={"visual-proposal-"+i}
                       label={(visualSelected.includes(i)?"✓ ":"")+
                         item.field+": "+item.value}
@@ -2417,11 +2518,11 @@ function MiniAppPreview({ s }) {
                         setPairReview(null);setPairNotice("");
                       }}/>
                   ))}
-                  {visualReport.suggestions?.length?(
+                  {displayedReview.suggestions?.length?(
                     <Button label={"Preview "+visualSelected.length+" design change(s) together"}
                       disabled={!visualSelected.length||!!s.miniAppsAction}
                       onPress={()=>{
-                        const chosen=visualReport.suggestions
+                        const chosen=displayedReview.suggestions
                           .filter((_,index)=>visualSelected.includes(index));
                         const proposed=prepareAppVisualBatch(config,chosen);
                         setVisualProposal(proposed.ok?proposed:null);
@@ -2430,7 +2531,7 @@ function MiniAppPreview({ s }) {
                         if(!proposed.ok)setVisualNotice(proposed.reason);
                       }}/>
                   ):null}
-                  {!visualReport.suggestions?.length?(
+                  {!displayedReview.suggestions?.length?(
                     <Text style={styles.cardBody}>
                       No supported design change was proposed from this image.
                     </Text>
@@ -2555,7 +2656,10 @@ function MiniAppPreview({ s }) {
       ):null}
       {config ? (
         <View ref={appSurfaceRef} collapsable={false}>
-          <MiniAppSurface config={config} />
+          <MiniAppSurface key={"current-"+appId+"-"+revision+"-"+qualityEnabled}
+            config={config}
+            onQualityObservation={qualityEnabled?collectCurrent:null}
+            onMeasuredWidth={qualityEnabled?setCurrentMeasuredWidth:null}/>
         </View>
       ) : (
         <Card
