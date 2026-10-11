@@ -21,6 +21,7 @@ import {WebsiteLayoutControls} from "./websiteLayoutControls";
 import {WebsitePagesEditor} from "./websitePagesEditor";
 import {WebsiteTapEditor} from "./websiteTapEditor";
 import {makeTapToEditHtml,resolveTapSelection} from "../core/websiteTapToEdit.mjs";
+import {makeWebsiteVisualCheckHtml,reviewWebsiteVisualCheck,CHANNEL as VISUAL_CHECK_CHANNEL} from "../core/websiteVisualCheck.mjs";
 
 function WebsiteBuilder({ s }) {
   const draft = s.websiteDraft;
@@ -572,17 +573,29 @@ function WebsitePreview({ s }) {
   const [tapEditMode,setTapEditMode]=React.useState(false);
   const [previewSize,setPreviewSize]=React.useState("full");
   const [selectedEdit,setSelectedEdit]=React.useState(null);
-  React.useEffect(()=>setSelectedEdit(null),[selectedPageId,draft?.id]);
+  const [visualCheckOn,setVisualCheckOn]=React.useState(false);
+  const [visualCheckResult,setVisualCheckResult]=React.useState(null);
+  React.useEffect(()=>{setSelectedEdit(null);setVisualCheckResult(null);setVisualCheckOn(false);},
+    [selectedPageId,draft?.id,draft?.generation,previewSize]);
   const activePage=draft?.pages?.find(page=>page.id===selectedPageId)||
     draft?.pages?.find(page=>page.id==="home");
   const liveConceptHtml = draft ? renderWebsiteHtml(draft,activePage?.id||"home") : "";
-  const interactiveHtml=draft&&tapEditMode
+  const inspectionKey=[draft?.generation||1,activePage?.id||"home",previewSize].join(":");
+  const interactiveHtml=draft&&visualCheckOn
+    ?makeWebsiteVisualCheckHtml(liveConceptHtml,inspectionKey)
+    :draft&&tapEditMode
     ?makeTapToEditHtml(renderWebsiteHtml(draft,activePage?.id||"home",{editablePreview:true}))
     :liveConceptHtml;
   const receiveTap=event=>{
-    if(!tapEditMode||!draft)return;
+    if(!draft)return;
     try{
       const raw=JSON.parse(String(event?.nativeEvent?.data||""));
+      if(visualCheckOn&&raw?.channel===VISUAL_CHECK_CHANNEL){
+        const report=reviewWebsiteVisualCheck(raw,inspectionKey);
+        if(report){setVisualCheckResult(report);setVisualCheckOn(false);}
+        return;
+      }
+      if(!tapEditMode||visualCheckOn)return;
       const selected=resolveTapSelection(draft,activePage?.id||"home",raw);
       if(selected)setSelectedEdit({...selected,draftId:draft.id,pageId:activePage?.id||"home",generation:draft.generation});
     }catch{ /* Untrusted or stale page messages never modify a website. */ }
@@ -644,7 +657,7 @@ function WebsitePreview({ s }) {
         body="Turn on editing, then tap a heading, paragraph, button or approved picture in the website below. BUSY will show simple controls for that exact part. This is your private draft only."
         tone="blue">
         <Button primary label={tapEditMode?"Finish tapping — view normally":"Start editing by tapping"}
-          onPress={()=>{setSelectedEdit(null);setTapEditMode(x=>!x);}}/>
+          onPress={()=>{setSelectedEdit(null);setVisualCheckOn(false);setTapEditMode(x=>!x);}}/>
         {tapEditMode?<Text style={styles.cardBody}>Editing is on. Tap highlighted website words or pictures to change them. Your website remains private until you approve publishing.</Text>:null}
       </Card>
 
@@ -659,6 +672,23 @@ function WebsitePreview({ s }) {
           onPress={()=>{setSelectedEdit(null);setPreviewSize("full");}}/>
         <Button label={(previewSize==="phone"?"✓ ":"")+"Show phone-width layout"}
           onPress={()=>{setSelectedEdit(null);setPreviewSize("phone");}}/>
+        <Button label={visualCheckOn?"Checking this rendered page…":"Check this page for layout problems"}
+          disabled={visualCheckOn}
+          onPress={()=>{setSelectedEdit(null);setVisualCheckResult(null);
+            setTapEditMode(false);setVisualCheckOn(true);}}/>
+        {visualCheckResult?(
+          <View style={{marginVertical:10}}>
+           <Text style={styles.cardBody}>{visualCheckResult.message}</Text>
+           {visualCheckResult.issues.map(item=>(
+            <Text key={item.id} style={styles.cardBody}>
+             {"• "+item.label+". "+item.detail}
+            </Text>
+           ))}
+           <Text style={styles.cardBody}>
+            {"Checked at "+visualCheckResult.counts.viewport+"px. This examines common layout problems, not design quality. Always inspect the hosted site on a real device before publishing."}
+           </Text>
+          </View>
+        ):null}
         <View style={{
           marginTop: 12, borderRadius: 16, overflow: "hidden",
           borderWidth: 1, borderColor: "#344157", alignSelf:"center",
@@ -666,11 +696,11 @@ function WebsitePreview({ s }) {
           backgroundColor: "#fff", height: 610,
         }}>
           <WebView
-            key={String(draft?.generation || 1) + ":" + String(activePage?.id||"home") + ":" + String(draft?.updatedAt || "") + ":" + String(tapEditMode) + ":" + previewSize}
+            key={String(draft?.generation || 1) + ":" + String(activePage?.id||"home") + ":" + String(draft?.updatedAt || "") + ":" + String(tapEditMode) + ":" + previewSize + ":" + String(visualCheckOn)}
             source={{ html: interactiveHtml, baseUrl: "about:blank" }}
             style={{ flex: 1, backgroundColor: "#fff" }}
             originWhitelist={["*"]}
-            javaScriptEnabled={tapEditMode}
+            javaScriptEnabled={tapEditMode||visualCheckOn}
             javaScriptCanOpenWindowsAutomatically={false}
             onMessage={receiveTap}
             domStorageEnabled={false}
@@ -689,7 +719,7 @@ function WebsitePreview({ s }) {
           />
         </View>
         <Text style={[styles.cardBody, { marginTop: 10 }]}>
-          {tapEditMode ? "Tap a website element to edit it in a simple panel. All changes have Undo." : "Scroll inside the preview to explore the design. You can change wording, style or services before preparing a hosted version."}
+          {visualCheckOn ? "Checking the rendered layout at this width. This may take a moment." : tapEditMode ? "Tap a website element to edit it in a simple panel. All changes have Undo." : "Scroll inside the preview to explore the design. You can change wording, style or services before preparing a hosted version."}
         </Text>
       </Card>
 
