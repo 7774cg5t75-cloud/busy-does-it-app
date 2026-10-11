@@ -1,7 +1,9 @@
-/** Private-only, finite Business App appearance editing. No generated code. */
+/** Private Business App appearance choices shared by client and server. */
 const OPTIONS=Object.freeze({headerStyle:["quiet","bold","refined"],
- layoutDensity:["comfortable","compact","airy"],navigationStyle:["tabs","list"]});
-const DEFAULTS=Object.freeze({headerStyle:"refined",layoutDensity:"comfortable",navigationStyle:"tabs"});
+ layoutDensity:["comfortable","compact","airy"],navigationStyle:["tabs","list"],
+ imageScale:["regular","large"]});
+const DEFAULTS=Object.freeze({headerStyle:"refined",layoutDensity:"comfortable",
+ navigationStyle:"tabs",imageScale:"regular"});
 function previewPrivateAppAppearance(config,{field,value}={}){
  if(!config||typeof config!=="object"||!Array.isArray(config.modules))
   return {ok:false,reason:"Choose a current Business App draft."};
