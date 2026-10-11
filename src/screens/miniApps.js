@@ -14,6 +14,7 @@ import { interpretSelectedAppAppearance } from "../core/appContextInstruction.mj
 import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.mjs";
 import {proposeCoordinatedAppChanges,planAppVoiceInstructions} from "../core/appCoordinatedStudio.mjs";
 import {appDesignQualityReport} from "../core/appDesignQuality.mjs";
+import {auditBusinessAppUsability,compareBusinessAppDesign} from "../core/appUsabilityAudit.mjs";
 import {appRequestJourney} from "../core/appRequestLifecycle.mjs";
 import {appVisibleCaptureReceipt,currentAppVisibleCapture} from "../core/appRenderedEvidence.mjs";
 import {previewAppVisualSuggestion} from "../core/appVisualReviewContract.mjs";
@@ -143,11 +144,14 @@ function MiniAppSurface({
         {heroUri.startsWith("https://") ? (
           <Image
             source={{ uri: heroUri }}
+            accessible={true} accessibilityRole="image"
+            accessibilityLabel={String(profile.assets?.hero?.alt||
+              "Business cover photo").slice(0,140)}
             resizeMode="cover"
             style={{
               width: "100%",
               height: presentation.imageScale==="large"?320:density==="compact"?172:density==="airy"?285:230,
-              borderRadius: 18,
+              borderRadius:presentation.imageCorners==="square"?2:18,
               marginBottom: 14,
             }}
           />
@@ -212,11 +216,17 @@ function MiniAppSurface({
                     <Image
                       key={asset.key || asset.uri || `gallery-${index}`}
                       source={{ uri: asset.uri }}
+                      accessible={true} accessibilityRole="image"
+                      accessibilityLabel={String(asset.alt||asset.caption||
+                        asset.description||"Business gallery photo "+(index+1)).slice(0,140)}
                       resizeMode="cover"
                       style={{
-                        width: presentation.imageScale==="large"?"100%":"48%",
-                        height: presentation.imageScale==="large"?245:150,
-                        borderRadius: 14,
+                        width:presentation.galleryLayout==="stack"?"100%":
+                          presentation.galleryLayout==="grid"?"48%":
+                          presentation.imageScale==="large"?"100%":"48%",
+                        height:presentation.galleryLayout==="stack"?245:
+                          presentation.imageScale==="large"?200:150,
+                        borderRadius:presentation.imageCorners==="square"?2:14,
                         marginBottom: 8,
                       }}
                     />
@@ -604,6 +614,7 @@ function MiniAppBuilder({ s }) {
   const [pendingMove,setPendingMove]=React.useState(null);
   const [studioWords,setStudioWords]=React.useState("");
   const [studioPreview,setStudioPreview]=React.useState(null);
+  const [studioComparisonSide,setStudioComparisonSide]=React.useState("proposed");
   const [studioNotice,setStudioNotice]=React.useState("");
   const [studioCopyField,setStudioCopyField]=React.useState("tagline");
   const [studioCopy,setStudioCopy]=React.useState("");
@@ -670,6 +681,7 @@ function MiniAppBuilder({ s }) {
     profile:view.activeConfig?.publicProfile||{}
   });
   const quality=appDesignQualityReport(view.draftConfig||view.activeConfig||{},view.catalog||[]);
+  const usability=auditBusinessAppUsability(view.draftConfig||view.activeConfig||{});
   const liveMatchesDraft =
     businessAppPreviewProof({app,preview:view.liveVersion}).matches;
   const journeyLabel = !plan
@@ -1247,7 +1259,34 @@ function MiniAppBuilder({ s }) {
                   {"Kept unchanged: "+studioPreview.preserved.join("; ")}
                 </Text>
               ):null}
-              <MiniAppSurface config={studioPreview.nextConfig}/>
+              {(()=>{
+                const beforeAfter=compareBusinessAppDesign(view.draftConfig,
+                  studioPreview.nextConfig);
+                return beforeAfter.ok?(
+                  <>
+                    <Text style={styles.sectionLabel}>Before and after comparison</Text>
+                    <Text style={styles.cardBody}>
+                      {beforeAfter.changeCount+" layout / navigation differences recorded. "+
+                        (beforeAfter.designOnly?"Only design settings changed.":
+                         "Public content or modules also changed; review everything.")}
+                    </Text>
+                    {beforeAfter.changes.slice(0,8).map(change=>(
+                      <MetricRow key={change.field} left={change.label}
+                        right={String(change.from)+" → "+String(change.to)}/>
+                    ))}
+                    <Button label={studioComparisonSide==="original"?"✓ Original design":"Show original design"}
+                      onPress={()=>setStudioComparisonSide("original")}/>
+                    <Button label={studioComparisonSide==="proposed"?"✓ Proposed design":"Show proposed design"}
+                      onPress={()=>setStudioComparisonSide("proposed")}/>
+                    <MiniAppSurface config={studioComparisonSide==="original"?
+                      view.draftConfig:studioPreview.nextConfig}/>
+                    <Text style={styles.cardBody}>
+                      These are two actual app components rendered in the private editor.
+                      No automated screenshot comparison or device accessibility test is implied.
+                    </Text>
+                  </>
+                ):<Text style={styles.cardBody}>{beforeAfter.reason}</Text>;
+              })()}
               <Button primary label={"Approve all "+studioPreview.changes.length+" private change(s)"}
                 disabled={!!s.miniAppsAction}
                 onPress={async()=>{
@@ -1296,6 +1335,24 @@ function MiniAppBuilder({ s }) {
             <MetricRow key={item.id} left={item.id.replaceAll("_"," ")}
               right={item.detail}/>
           ))}
+          <Text style={styles.sectionLabel}>V3.160 • Accessible app checklist</Text>
+          <MetricRow left="Static issues to review"
+            right={String(usability.importantCount)}/>
+          <MetricRow left="Manual accessibility checks remaining"
+            right={String(usability.manualTestsNeeded)}/>
+          {usability.issues.filter(x=>x.severity!=="needs_test").slice(0,7).map(item=>(
+            <MetricRow key={item.id} left={item.id.replaceAll("_"," ")}
+              right={item.message}/>
+          ))}
+          {usability.issues.filter(x=>x.severity==="needs_test").slice(0,5).map(item=>(
+            <MetricRow key={item.id} left={item.id.replaceAll("_"," ")}
+              right={item.suggestion}/>
+          ))}
+          <Text style={styles.cardBody}>
+            These are deterministic configuration checks, not a measured WCAG
+            audit. Test VoiceOver, TalkBack, large text, touch targets and
+            contrast on real devices before release.
+          </Text>
           <Text style={styles.cardBody}>
             Before launch, inspect actual phone/tablet screenshots and test the
             full request → acknowledgement → business decision → status journey.
@@ -1360,7 +1417,9 @@ function MiniAppBuilder({ s }) {
           {[
             ["headerStyle","Header",appAppearanceOptions.headerStyle],
             ["layoutDensity","Space around content",appAppearanceOptions.layoutDensity],
-            ["navigationStyle","Navigation look",appAppearanceOptions.navigationStyle]
+            ["navigationStyle","Navigation look",appAppearanceOptions.navigationStyle],
+            ["galleryLayout","Gallery layout",appAppearanceOptions.galleryLayout],
+            ["imageCorners","Photo corners",appAppearanceOptions.imageCorners]
           ].map(([field,label,values])=>(
             <View key={field} style={{marginTop:9}}>
               <Text style={styles.sectionLabel}>{label}</Text>
@@ -1779,6 +1838,7 @@ function MiniAppPreview({ s }) {
   const [visualReport,setVisualReport]=React.useState(null);
   const [visualBusy,setVisualBusy]=React.useState(false);
   const [visualProposal,setVisualProposal]=React.useState(null);
+  const [visualCompareSide,setVisualCompareSide]=React.useState("proposed");
   const [visualNotice,setVisualNotice]=React.useState("");
   const appSurfaceRef=React.useRef(null);
   React.useEffect(()=>{
@@ -1916,7 +1976,31 @@ function MiniAppPreview({ s }) {
                     <>
                       <Text style={styles.sectionLabel}>Alternative private design</Text>
                       <Text style={styles.cardBody}>{visualProposal.reason}</Text>
-                      <MiniAppSurface config={visualProposal.nextConfig}/>
+                      {(()=>{
+                        const comparison=compareBusinessAppDesign(config,
+                          visualProposal.nextConfig);
+                        return comparison.ok?(
+                          <>
+                            <MetricRow left="Change being compared"
+                              right={comparison.changes.map(x=>
+                                x.label+": "+x.from+" → "+x.to).join("; ")}/>
+                            <MetricRow left="Change affects customer records"
+                              right={comparison.designOnly?"No":"Review required"}/>
+                          </>
+                        ):null;
+                      })()}
+                      <Button label={visualCompareSide==="original"?
+                          "✓ Original design":"Show original design"}
+                        onPress={()=>setVisualCompareSide("original")}/>
+                      <Button label={visualCompareSide==="proposed"?
+                          "✓ Suggested design":"Show suggested design"}
+                        onPress={()=>setVisualCompareSide("proposed")}/>
+                      <MiniAppSurface config={visualCompareSide==="original"?
+                        config:visualProposal.nextConfig}/>
+                      <Text style={styles.cardBody}>
+                        These views are rendered from different configurations.
+                        They have not been compared using a second AI screenshot review.
+                      </Text>
                       <Button primary label="Approve this private design change"
                         disabled={!!s.miniAppsAction}
                         onPress={async()=>{
