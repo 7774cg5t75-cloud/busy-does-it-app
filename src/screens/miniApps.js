@@ -2421,12 +2421,14 @@ function MiniAppPreview({ s }) {
       }
       const fresh=await refreshDesignMemory();
       if(context==="preview"&&verdict!=="better"){
-        const alternative=prepareOwnerAwareDesignExperiments(config,{
-          history:fresh?.ok?fresh.records:[],
+        // Fail closed: when private memory cannot be reloaded, preparing
+        // another option from empty history could repeat the rejected style.
+        const alternative=fresh?.ok?prepareOwnerAwareDesignExperiments(config,{
+          history:fresh.records,
           measured:measuredSuggestions?.suggestions||[],
           ai:visualReport?.suggestions||[],
           responsive:responsiveSuggestions
-        });
+        }):null;
         const next=alternative?.preview?.ok?{
           ...alternative.preview,
           explanations:alternative.reasoning.map(x=>({
@@ -2439,8 +2441,10 @@ function MiniAppPreview({ s }) {
         }:null;
         setVisualProposal(next);setVirtualSamples({});
         setDesignMemoryNotice(completed+" preference(s) remembered for this business. "+
-          (next?"Busy has prepared a DIFFERENT private option to review.":
-          "Busy won't repeat that rejected setting; no safe alternative is currently supported."));
+          (!fresh?.ok?
+            "BUSY couldn't reload private memory yet, so she has NOT prepared another option that could repeat your rejection.":
+            next?"BUSY has prepared a DIFFERENT private option to review.":
+            "BUSY won't repeat that rejected setting; no safe alternative is currently supported."));
       }else{
         setDesignMemoryNotice(completed+" preference(s) recorded for this business only. BUSY will consider them in future private suggestions.");
       }
@@ -2684,7 +2688,9 @@ function MiniAppPreview({ s }) {
           footer="Owner feedback improves suggestion ranking. It does not retrain the AI model or prove a design is successful.">
           <Text style={styles.cardBody}>
             {nextDesignExperiment?.preview?.ok?
-              "BUSY has a private design idea based on checked layouts and your preferences. You decide whether to use it.":
+              designMemory?.ok?
+                "BUSY has a private design idea based on checked layouts and your business preferences. You decide whether to use it.":
+                "BUSY has a private design idea from layout checks. Personal design memory is not connected yet, so this idea is NOT preference-informed.":
               "BUSY is keeping your current design until there is a supported alternative worth reviewing."}
           </Text>
           {nextDesignExperiment?.preview?.ok?(
