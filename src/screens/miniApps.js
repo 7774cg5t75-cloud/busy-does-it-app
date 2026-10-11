@@ -9,6 +9,7 @@ import { businessAppPreviewProof } from "../core/businessAppPreviewProof.mjs";
 import { buildAppDistributionPlan,buildStandalonePrivateHandoff } from "../core/appDistributionChoices.mjs";
 import { planFunctionalBusinessApp } from "../core/appExperiencePlanner.mjs";
 import { previewPrivateAppAppearance,OPTIONS as appAppearanceOptions } from "../core/appAppearanceEditing.mjs";
+import { interpretSelectedAppAppearance } from "../core/appContextInstruction.mjs";
 
 function readableDate(value, fallback = "Not yet") {
   if (!value) return fallback;
@@ -590,6 +591,9 @@ function MiniAppBuilder({ s }) {
   const [standaloneEligibilityBusy,setStandaloneEligibilityBusy]=React.useState(false);
   const [pendingAppearance,setPendingAppearance]=React.useState(null);
   const [appearancePreviewOpen,setAppearancePreviewOpen]=React.useState(false);
+  const [selectedAppPart,setSelectedAppPart]=React.useState("header");
+  const [appearanceWords,setAppearanceWords]=React.useState("");
+  const [appearanceInstructionNotice,setAppearanceInstructionNotice]=React.useState("");
   const view = s.miniAppsView || {};
   const app = view.app;
   React.useEffect(()=>{
@@ -601,6 +605,7 @@ function MiniAppBuilder({ s }) {
   React.useEffect(()=>{
     setPendingAppearance(null);
     setAppearancePreviewOpen(false);
+    setAppearanceInstructionNotice("");
   },[app?.draft_revision]);
   const modules = Array.isArray(view.catalog) ? view.catalog : [];
   const configuredModules = new Map(
@@ -1055,6 +1060,38 @@ function MiniAppBuilder({ s }) {
           title="Change the private app design"
           body="Try a header style, spacing or navigation look. BUSY shows an unsaved customer preview first. Keeping it creates a new private draft revision, not a live update."
           tone="blue">
+          <Text style={styles.sectionLabel}>Select the part you want to change</Text>
+          {[
+            ["header","Header"],["spacing","Spacing"],["navigation","Navigation"]
+          ].map(([part,label])=>(
+            <Button key={part} label={(selectedAppPart===part?"✓ ":"")+"Edit "+label}
+              onPress={()=>{setSelectedAppPart(part);setPendingAppearance(null);
+                setAppearanceInstructionNotice("");}}/>
+          ))}
+          <Field label="Tell BUSY how to change the selected part"
+            value={appearanceWords} onChangeText={setAppearanceWords}
+            placeholder="e.g. Make the header bold, or use roomier spacing"/>
+          <Button label="Preview my described app change" disabled={!appearanceWords.trim()}
+            onPress={()=>{
+              const proposal=interpretSelectedAppAppearance(view.draftConfig,{
+                selected:selectedAppPart,text:appearanceWords
+              });
+              if(proposal.ok){
+                setPendingAppearance({field:proposal.field,value:proposal.value});
+                setAppearancePreviewOpen(true);
+                setAppearanceInstructionNotice("BUSY prepared one reviewable, private appearance change. Nothing is saved yet.");
+              }else{
+                setPendingAppearance(null);setAppearancePreviewOpen(false);
+                setAppearanceInstructionNotice(proposal.reason);
+              }
+            }}/>
+          {appearanceInstructionNotice?<Text style={styles.cardBody}>
+            {appearanceInstructionNotice}
+          </Text>:null}
+          <Text style={styles.cardBody}>
+            Typed selected-element instructions work now. App-specific microphone
+            transcription remains a separate provider-integrated feature; BUSY won't pretend it recorded speech.
+          </Text>
           {[
             ["headerStyle","Header",appAppearanceOptions.headerStyle],
             ["layoutDensity","Space around content",appAppearanceOptions.layoutDensity],
