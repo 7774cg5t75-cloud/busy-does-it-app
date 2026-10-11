@@ -3459,6 +3459,13 @@ async function markRequestLinked(
   if (!request.data) throw new Error("Business App request not found.");
   if(["declined","closed"].includes(request.data.status))
     throw new Error("A declined or closed request cannot silently reopen.");
+  // Check the intended request transition BEFORE writing a customer link or
+  // inserting events. Otherwise a rejected downgrade could still mutate data.
+  const intendedStatus=bridgeState==="booking_confirmed"?"accepted":
+    bridgeState==="closed"?"closed":"reviewing";
+  const beforeWrite=decideAppRequestTransition(request.data,intendedStatus,{
+    bridgeState:bridgeState==="booking_confirmed"?"booking_confirmed":""});
+  if(!beforeWrite.ok)throw new Error(beforeWrite.reason);
   if(bridgeState==="booking_confirmed"){
     const existing=await supabase.from("busy_mini_app_request_links")
       .select("customer_record_id,action_record_id,bridge_state")
@@ -3473,7 +3480,8 @@ async function markRequestLinked(
        existing.data.action_record_id!==actionRecordId||
        !/^20\d{2}-\d{2}-\d{2}$/.test(day)||
        !/^([01]\d|2[0-3]):[0-5]\d$/.test(hour)||
-       Number.isNaN(Date.parse(day+"T"+hour+":00Z")))
+       Number.isNaN(Date.parse(day+"T"+hour+":00Z"))||
+       new Date(day+"T"+hour+":00Z").toISOString().slice(0,10)!==day)
       throw new Error("A matching draft booking, date/time and explicit business confirmation are required.");
   }
   const linked = await supabase
