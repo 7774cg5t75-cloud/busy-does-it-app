@@ -12,6 +12,7 @@ try{
     if(/^https?:/i.test(request.url()))remote.push(request.url());
   });
   await page.goto("file://"+root+"/index.html",{waitUntil:"load"});
+  await page.waitForFunction(()=>[...document.images].every(img=>img.complete&&img.naturalWidth>0),null,{timeout:10000});
   const home=await page.evaluate(()=>({
    h1:document.querySelector("h1")?.textContent||"",
    links:[...document.querySelectorAll("nav a")].map(x=>({text:x.textContent,href:x.getAttribute("href")})),
@@ -28,6 +29,7 @@ try{
   await page.screenshot({path:"/tmp/busy-v3136-zip/evidence/home-"+width+".png",fullPage:true});
   await page.getByRole("link",{name:"Meet our makers"}).click();
   await page.waitForLoadState("load");
+  await page.waitForFunction(()=>[...document.images].every(img=>img.complete&&img.naturalWidth>0),null,{timeout:10000});
   const custom=await page.evaluate(()=>({
    h1:document.querySelector("h1")?.textContent||"",
    text:document.querySelector("main")?.textContent||"",
