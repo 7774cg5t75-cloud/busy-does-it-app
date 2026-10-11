@@ -1,0 +1,66 @@
+name: V3.142 manual voice and per-photo editing safety
+on:
+  push:
+    branches: [v3.142]
+    paths:
+      - 'src/app/AppController.js'
+      - 'src/core/websiteVoiceRecordingPolicy.mjs'
+      - 'src/core/websiteContextualEdit.mjs'
+      - 'src/domain/websiteBuilder.js'
+      - 'src/screens/websiteSelectedVoice.js'
+      - 'src/screens/websiteTapEditor.js'
+      - 'supabase/functions/busy-command/index.ts'
+      - 'supabase/functions/busy-website-worker/index.ts'
+      - 'supabase/functions/busy-website-worker/designSystem.mjs'
+      - 'supabase/functions/busy-website-worker/websiteLayoutEditing.mjs'
+      - 'supabase/migrations/20261011120000_busy_website_voice_usage.sql'
+      - 'scripts/check-website-voice-reliability-v3142.mjs'
+      - 'scripts/check-website-voice-selection-v3141.mjs'
+      - '.github/workflows/website-voice-reliability-v3142.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  voice-and-images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Test explicit voice send, timing and usage, whole-image editing and regressions
+        run: |
+          node scripts/check-website-voice-reliability-v3142.mjs
+          node scripts/check-website-voice-selection-v3141.mjs
+          node scripts/check-website-context-v3140.mjs
+          node scripts/check-website-section-styling-v3139.mjs
+          node scripts/check-website-tap-editor-v3138.mjs
+          node scripts/check-website-layout-v3134.mjs
+          node scripts/check-website-pages-v3135.mjs
+          node scripts/check-website-standalone-v3136.mjs
+          node scripts/check-website-original-media-v3137.mjs
+          node scripts/check-production.mjs
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check authenticated budgeted transcription service
+        run: deno check --node-modules-dir=auto supabase/functions/busy-command/index.ts
+      - name: Isolate Expo dependencies after Deno
+        run: |
+          rm -rf node_modules
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Browser-verify accessible tap editing and responsive page layouts
+        run: |
+          node scripts/check-website-context-browser-v3140.mjs
+          node scripts/check-website-tap-browser-v3138.mjs
+          node scripts/check-website-section-browser-v3139.mjs
+      - name: Bundle unsigned native iOS and Android JavaScript
+        run: |
+          npx expo export --platform ios --output-dir /tmp/busy-v3142-ios-js
+          npx expo export --platform android --output-dir /tmp/busy-v3142-android-js
+      - name: Deployment boundary
+        run: echo "Migration contract inspected but not applied. No voice spend, production publishing, DNS or EAS signed device build."
