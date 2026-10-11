@@ -1,5 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { publicNativeMiniAppProjection,validSlug } from "./publicNativeProjection.mjs";
+
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -594,6 +596,19 @@ Deno.serve(async (req: Request) => {
     const body = await req.json().catch(() => ({}));
     const action = clean(body?.action, 40);
 
+    if (action === "public_app") {
+      const slug=clean(body?.slug,100);
+      const expectedAppId=clean(body?.expectedAppId,80);
+      const expectedVersionId=clean(body?.expectedVersionId,80);
+      const uuid=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i;
+      if(!validSlug(slug)||!uuid.test(expectedAppId)||!uuid.test(expectedVersionId))
+        return json(400,{error:"Choose an exact approved public app version."});
+      const {app,version}=await liveApp(slug);
+      const projection=publicNativeMiniAppProjection(app,version,{
+        expectedAppId,expectedVersionId});
+      if(!projection.ok)return json(404,{error:"That exact public app version is not available."});
+      return json(200,projection);
+    }
     if (action === "challenge") {
       return json(200, {
         ok: true,
