@@ -1,0 +1,38 @@
+name: V3.154 Native standalone prototype and verified premium guardrails
+on:
+  push:
+    branches: [v3.154]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  standalone-foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Install Expo and JSX parser
+        run: npm install --no-audit --no-fund
+      - name: Verify verified-billing boundary and safe native screen specification
+        run: |
+          node scripts/check-standalone-native-v3154.mjs
+          node scripts/check-app-builder-dual-track-v3153.mjs
+          node scripts/check-builder-handoff-v3152.mjs
+          node scripts/check-production.mjs
+      - name: Generate isolated unsigned customer app project from a fictional brief
+        run: |
+          node scripts/prepare-standalone-prototype-v3154.mjs
+          test -f .tmp/standalone-prototype-v3154/App.js
+          test -f .tmp/standalone-prototype-v3154/prototype.json
+          node -e 'let a=require("./.tmp/standalone-prototype-v3154/prototype.json");if(a.signingConfigured||a.appStoreSubmitEnabled||a.buildIsProductionReady)throw Error("unsafe prototype");'
+      - name: Check actual BUSY iOS and Android unsigned JavaScript exports
+        run: |
+          npx expo export --platform ios --output-dir /tmp/bdi-v3154-ios
+          npx expo export --platform android --output-dir /tmp/bdi-v3154-android
+      - name: Check prototype is never a signed production app
+        run: echo "No EAS build, Apple or Google submission, signed IPA/APK, paid billing, live marketplace publication or credentials."

@@ -171,6 +171,11 @@ jobs:
           node scripts/check-app-builder-dual-track-v3153.mjs
           node scripts/check-builder-handoff-v3152.mjs
 
+      - name: Verify V3.154 server-verified premium entitlement and native shell
+        run: |
+          node scripts/check-standalone-native-v3154.mjs
+          node scripts/check-app-builder-dual-track-v3153.mjs
+
       - name: Verify Expo Snack module dependency graph
         run: node scripts/check-snack-dependencies.mjs
 
