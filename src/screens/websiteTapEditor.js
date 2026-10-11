@@ -1,5 +1,5 @@
 import React from "react";
-import {KeyboardAvoidingView,Modal,Platform,SafeAreaView,ScrollView,Text,TextInput,View} from "react-native";
+import {Image,KeyboardAvoidingView,Modal,Platform,SafeAreaView,ScrollView,Text,TextInput,View} from "react-native";
 import {Button,Card,Field} from "../components/ui";
 import {styles} from "../theme/styles";
 import {interpretSelectedWebsiteRequest} from "../core/websiteContextualEdit.mjs";
@@ -10,6 +10,11 @@ const names={
  phone:"Phone number",email:"Email address",openingHours:"Opening hours",photo:"Photograph"
 };
 const list=x=>Array.isArray(x)?x:[];
+// Photos are owner-approved media only; display only standard image schemes.
+const photoPreviewSource=asset=>{
+ const uri=typeof asset?.uri==="string"?asset.uri.trim():"";
+ return /^(https:\/\/|file:\/\/)/i.test(uri)?{uri}:null;
+};
 function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,onTranscribe}){
  const [value,setValue]=React.useState("");
  const [confirmRemove,setConfirmRemove]=React.useState(false);
@@ -17,6 +22,8 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
  const [showContextHelp,setShowContextHelp]=React.useState(false);
  const [contextRequest,setContextRequest]=React.useState("");
  const [contextNote,setContextNote]=React.useState("");
+ const [showPhotoChoices,setShowPhotoChoices]=React.useState(false);
+ const [showPhotoDesign,setShowPhotoDesign]=React.useState(false);
  const section=list(draft?.sections).find(s=>s.id===selection?.sectionId);
  const item=selection?.itemId?list(section?.items).find(x=>x.id===selection.itemId):null;
  const target=item||section;
@@ -30,6 +37,8 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
   setShowContextHelp(false);
   setContextRequest("");
   setContextNote("");
+  setShowPhotoChoices(false);
+  setShowPhotoDesign(false);
  },[key,draft?.updatedAt]);
  const save=()=>{
   if(!selection||field==="photo")return;
@@ -41,6 +50,8 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
  const gallery=list(draft?.sections).find(x=>x.id==="gallery");
  const photos=list(gallery?.items).filter(x=>x?.approved!==false&&typeof x.storagePath==="string"&&x.storagePath.length);
  const photoIndex=selection?.photoIndex??-1;
+ const selectedPhoto=section?.type==="gallery"?section?.items?.[photoIndex]:section?.asset;
+ const selectedPhotoSource=photoPreviewSource(selectedPhoto);
  const contextExamples=field==="title"
   ?["Make this heading bigger","Make this heading smaller"]:
   field==="photo"?
@@ -107,6 +118,14 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
        ):null}
        {selection&&field==="photo"?(
         <>
+         <Text style={styles.sectionLabel}>Currently selected photograph</Text>
+         {selectedPhotoSource?(
+          <Image source={selectedPhotoSource} resizeMode="contain"
+           accessibilityLabel={String(selectedPhoto?.alt||"Your selected business photograph").slice(0,120)}
+           style={{height:190,width:"100%",backgroundColor:"#202D40",borderRadius:12,marginBottom:10}}/>
+         ):(
+          <Text style={styles.cardBody}>A local thumbnail is not available for this approved photo. You can still view the exact framing in your website preview.</Text>
+         )}
          {section?.type==="gallery"?(
           <>
            <Text style={styles.cardBody}>{"Photo "+(photoIndex+1)+" of "+list(section.items).length+". Change its position or remove it from the draft gallery."}</Text>
@@ -128,12 +147,25 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
           </>
          ):(
           <>
-           <Text style={styles.cardBody}>Replace this picture using another photograph already approved for this business. No unverified image URLs or AI-generated photographs are used.</Text>
-           {photos.length?photos.slice(0,24).map((photo,i)=>(
-            <Button key={photo.storagePath} label={"Use approved photo "+(i+1)+(photo.alt?" • "+String(photo.alt).slice(0,35):"")}
-             onPress={()=>apply({action:section?.type==="hero"?"choose-hero-photo":"choose-feature-photo",
-              sectionId:section?.id,storagePath:photo.storagePath})}/>
-           )):<Text style={styles.cardBody}>Add an approved photograph to your business photo library before replacing this one.</Text>}
+           <Button label={showPhotoChoices?"Hide other approved pictures":"Choose another approved picture"}
+            onPress={()=>setShowPhotoChoices(x=>!x)}/>
+           {showPhotoChoices?(
+            <View>
+             <Text style={styles.cardBody}>Only your already-approved business photographs appear here. Tap one to replace this picture in your private draft.</Text>
+             {photos.length?photos.slice(0,24).map((photo,i)=>(
+              <View key={photo.storagePath||String(i)} style={{marginBottom:12}}>
+               {photoPreviewSource(photo)?(
+                <Image source={photoPreviewSource(photo)} resizeMode="cover"
+                 accessibilityLabel={String(photo.alt||"Approved photograph "+(i+1)).slice(0,120)}
+                 style={{width:92,height:74,borderRadius:9,backgroundColor:"#202D40"}}/>
+               ):null}
+               <Button label={"Use photo "+(i+1)+(photo.alt?" • "+String(photo.alt).slice(0,35):"")}
+                onPress={()=>apply({action:section?.type==="hero"?"choose-hero-photo":"choose-feature-photo",
+                 sectionId:section?.id,storagePath:photo.storagePath})}/>
+              </View>
+             )):<Text style={styles.cardBody}>Add an approved photograph to your business photo library before replacing this one.</Text>}
+            </View>
+           ):null}
            {section?.type==="hero"?(
             <>
              <Text style={styles.sectionLabel}>Show the best part of your main image</Text>
@@ -149,6 +181,10 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
        ):null}
        {selection&&section?(
         <>
+         {field==="photo"?(
+          <Button label={showPhotoDesign?"Hide picture layout options":"Adjust picture crop and size"}
+           onPress={()=>{setShowPhotoDesign(x=>!x);setShowSectionDesign(x=>!x);}}/>
+         ):null}
          <Button label={showContextHelp?"Hide instructions for this part":"Tell BUSY what to do with this part"}
           onPress={()=>{setContextNote("");setShowContextHelp(x=>!x);}}/>
          {showContextHelp?(
