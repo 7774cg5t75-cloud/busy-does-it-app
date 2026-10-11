@@ -570,6 +570,7 @@ function WebsitePreview({ s }) {
   const draft = s.websiteDraft;
   const [selectedPageId,setSelectedPageId] = React.useState("home");
   const [tapEditMode,setTapEditMode]=React.useState(false);
+  const [previewSize,setPreviewSize]=React.useState("full");
   const [selectedEdit,setSelectedEdit]=React.useState(null);
   React.useEffect(()=>setSelectedEdit(null),[selectedPageId,draft?.id]);
   const activePage=draft?.pages?.find(page=>page.id===selectedPageId)||
@@ -653,13 +654,19 @@ function WebsitePreview({ s }) {
         body="See the real colours, typography and layout below. This editable design view is private; prepare a hosted preview to check the exact version before publishing."
         tone="blue"
       >
+        <Text style={styles.sectionLabel}>Preview screen size</Text>
+        <Button label={(previewSize==="full"?"✓ ":"")+"Use this device's screen width"}
+          onPress={()=>{setSelectedEdit(null);setPreviewSize("full");}}/>
+        <Button label={(previewSize==="phone"?"✓ ":"")+"Show phone-width layout"}
+          onPress={()=>{setSelectedEdit(null);setPreviewSize("phone");}}/>
         <View style={{
           marginTop: 12, borderRadius: 16, overflow: "hidden",
-          borderWidth: 1, borderColor: "#344157",
+          borderWidth: 1, borderColor: "#344157", alignSelf:"center",
+          width:"100%",maxWidth:previewSize==="phone"?390:undefined,
           backgroundColor: "#fff", height: 610,
         }}>
           <WebView
-            key={String(draft?.generation || 1) + ":" + String(activePage?.id||"home") + ":" + String(draft?.updatedAt || "") + ":" + String(tapEditMode)}
+            key={String(draft?.generation || 1) + ":" + String(activePage?.id||"home") + ":" + String(draft?.updatedAt || "") + ":" + String(tapEditMode) + ":" + previewSize}
             source={{ html: interactiveHtml, baseUrl: "about:blank" }}
             style={{ flex: 1, backgroundColor: "#fff" }}
             originWhitelist={["*"]}
