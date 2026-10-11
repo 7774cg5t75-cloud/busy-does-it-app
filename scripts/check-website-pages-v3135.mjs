@@ -50,6 +50,15 @@ yes(engine.renderWebsiteHtml(p1.draft,first.id).includes("Our friendly team prep
 yes(engine.renderWebsiteHtml(p1.draft,first.id).includes("<h1>Meet the Team</h1>"),"Accessible page H1");
 eq(p1.draft.publicStatus,fixture.publicStatus,"No publication side effects");
 eq(JSON.stringify(fixture),original,"Original source not mutated");
+const refreshed=engine.buildWebsiteDraft({previousDraft:p1.draft,brandBrain:{
+ websiteReady:true,websiteBrief:{businessName:"Coastal Flower Studio",businessType:"Florist and events",
+ description:"The brand facts have been refreshed.",services:[{id:"one",name:"Wedding flowers"}],
+ email:"hello@flowers.example"}}});
+yes(refreshed.customPages.some(p=>p.id===first.id),"Brand Brain refresh preserves owner pages");
+yes(engine.renderWebsiteHtml(refreshed,first.id).includes("Our friendly team prepares arrangements."),
+ "Owner-written page wording survives rebuilding the business website");
+yes(refreshed.publicStatus==="Not published"&&refreshed.generation>p1.draft.generation,
+ "Refresh is another private draft generation, not a public update");
 const p2=change({action:"create-page",title:"Meet the Team",body:"A distinct second page."},p1.draft);
 yes(p2.applied,"Slug collisions get separate path");
 eq(p2.draft.customPages[1].slug,"meet-the-team-2","Stable collision resolution");
