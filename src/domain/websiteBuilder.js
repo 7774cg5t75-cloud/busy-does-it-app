@@ -639,7 +639,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     if(section.type==="services"||section.type==="faq"||section.type==="testimonials"){
       const items=safeArray(section.items).filter(item=>clean(item?.title||item?.body));
       if(!items.length)return "";
-      return `<section id="${escapeHtml(section.id)}"><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"} ${editAttrs(section,"title")} ${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><div class="grid">${items.map(item=>`<article><h3${editAttrs(section,"title",String(item.id||""))}>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p${editAttrs(section,"body",String(item.id||""))}>${escapeHtml(item.body)}</p>`:""}</article>`).join("")}</div></div></section>`;
+      return `<section id="${escapeHtml(section.id)}"><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><div class="grid">${items.map(item=>`<article><h3${editAttrs(section,"title",String(item.id||""))}>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p${editAttrs(section,"body",String(item.id||""))}>${escapeHtml(item.body)}</p>`:""}</article>`).join("")}</div></div></section>`;
     }
     if(section.type==="photo-feature"){
       const image=approvedImage(section.asset);
@@ -654,7 +654,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       return `<section id="contact"><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title||"Get in touch")}</h2>${clean(section.body)?`<p${editAttrs(section,"body")}>${escapeHtml(section.body)}</p>`:""}${clean(phone)?`<p><a${editAttrs(section,"phone")} href="tel:${escapeHtml(phone.replace(/\s+/g,""))}">${escapeHtml(phone)}</a></p>`:""}${clean(email)?`<p><a${editAttrs(section,"email")} href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>`:""}${clean(section.openingHours)?`<p${editAttrs(section,"openingHours")}>${escapeHtml(section.openingHours)}</p>`:""}</div></section>`;
     }
     return clean(section.body)
-      ? `<section id="${escapeHtml(section.id)}"><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"} ${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></section>`
+      ? `<section id="${escapeHtml(section.id)}"><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></section>`
       : "";
   }).join("");
   const business=escapeHtml(draft.businessName||"Business website");
