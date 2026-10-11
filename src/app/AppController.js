@@ -15038,6 +15038,28 @@ function App() {
     }
   };
 
+  const savePrivateAppAppearance = async ({field,value,appId,expectedRevision}={})=>{
+    if(!miniAppsView?.app||miniAppsView.app.id!==appId||
+       miniAppsView.app.draft_revision!==expectedRevision){
+      setMiniAppsError("This app has changed. Refresh before editing its appearance.");
+      return false;
+    }
+    setMiniAppsAction("set-appearance");
+    setMiniAppsError("");
+    try{
+      const data=await miniAppsRequest("set_appearance",{field,value,appId,expectedRevision});
+      if(data?.ok!==true||data?.privateOnly!==true||data?.neverPublishes!==true||
+         !data?.app||data.app.id!==appId||data.app.draft_revision!==expectedRevision+1)
+        throw new Error("The new private app revision could not be verified.");
+      applyMiniAppsStatus(data.status);
+      setMiniAppsNotice("Updated the private app appearance. Prepare a new immutable preview when ready; your live Business App has not changed.");
+      return true;
+    }catch(error){
+      setMiniAppsError(String(error?.message||"Could not save that private app style.").slice(0,240));
+      return false;
+    }finally{setMiniAppsAction("");}
+  };
+
   const toggleMiniAppModule = async (moduleKey, enabled) => {
     setMiniAppsAction(`module:${moduleKey}`);
     setMiniAppsError("");
@@ -16291,6 +16313,7 @@ function App() {
     applyMiniAppPlan,
     describeMiniAppByVoice,
     toggleMiniAppModule,
+    savePrivateAppAppearance,
     prepareMiniAppPreview,
     confirmPublishMiniApp,
     confirmMiniAppDiscoverable,
