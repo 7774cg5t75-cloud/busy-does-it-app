@@ -166,6 +166,11 @@ jobs:
           node scripts/check-builder-handoff-v3152.mjs
           node scripts/check-website-broad-businesses-v3152.mjs
 
+      - name: Verify V3.153 Marketplace and standalone App Builder boundaries
+        run: |
+          node scripts/check-app-builder-dual-track-v3153.mjs
+          node scripts/check-builder-handoff-v3152.mjs
+
       - name: Verify Expo Snack module dependency graph
         run: node scripts/check-snack-dependencies.mjs
 

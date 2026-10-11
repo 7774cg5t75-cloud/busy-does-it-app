@@ -1,0 +1,32 @@
+name: V3.153 Dual-track intelligent Business App Builder
+on:
+  push:
+    branches: [v3.153]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  dual-track-builder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify real modules, standalone disclosures, subscription and immutable preview gates
+        run: |
+          node scripts/check-app-builder-dual-track-v3153.mjs
+          node scripts/check-builder-handoff-v3152.mjs
+          node scripts/check-website-completion-integrity-v3152.mjs
+          node scripts/check-production.mjs
+      - name: Install app and Expo export dependencies
+        run: npm install --no-audit --no-fund
+      - name: Verify unsigned JavaScript exports for iOS and Android
+        run: |
+          npx expo export --platform ios --output-dir /tmp/bdi-v3153-ios
+          npx expo export --platform android --output-dir /tmp/bdi-v3153-android
+      - name: Explicit distribution boundary
+        run: echo "No paid subscriptions, Apple or Google registrations, signed native app builds, marketplace publication, real customers or App Store submissions."
