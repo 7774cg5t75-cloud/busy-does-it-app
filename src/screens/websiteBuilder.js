@@ -583,7 +583,7 @@ function WebsitePreview({ s }) {
     try{
       const raw=JSON.parse(String(event?.nativeEvent?.data||""));
       const selected=resolveTapSelection(draft,activePage?.id||"home",raw);
-      if(selected)setSelectedEdit(selected);
+      if(selected)setSelectedEdit({...selected,pageId:activePage?.id||"home",generation:draft.generation});
     }catch{ /* Untrusted or stale page messages never modify a website. */ }
   };
   if (!draft) {
