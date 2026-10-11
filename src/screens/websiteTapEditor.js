@@ -59,10 +59,10 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
  const design=section?.appearance||{};
  const appearanceChoice=(field,value,label)=>{
   const photoOnly=section?.type==="gallery"&&selection?.field==="photo"&&
-    field==="photoCrop"&&Number.isSafeInteger(photoIndex);
+    ["photoCrop","photoFit"].includes(field)&&Number.isSafeInteger(photoIndex);
   const current=(photoOnly?section?.items?.[photoIndex]?.appearance?.photoCrop:design[field])||{
    headingScale:"normal",textAlign:"left",sectionSpacing:"normal",
-   photoCrop:"center",photoSide:"left",gallerySize:"comfortable"
+   photoCrop:"center",photoFit:"cover",photoSide:"left",gallerySize:"comfortable"
   }[field];
   return <Button key={field+value} label={(current===value?"✓ ":"")+label}
     onPress={()=>apply(photoOnly
@@ -194,6 +194,13 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
              {appearanceChoice("photoCrop","top","Focus on the top")}
              {appearanceChoice("photoCrop","center","Focus on the middle")}
              {appearanceChoice("photoCrop","bottom","Focus on the bottom")}
+             {section.type==="gallery"?(
+              <>
+               <Text style={styles.sectionLabel}>How to fit this picture</Text>
+               {appearanceChoice("photoFit","contain","Show the entire photograph")}
+               {appearanceChoice("photoFit","cover","Fill the picture tile (crop edges)")}
+              </>
+             ):null}
             </>
            ):null}
            {section.type==="photo-feature"?(
