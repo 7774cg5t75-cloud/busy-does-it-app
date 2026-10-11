@@ -23,7 +23,7 @@ const handoff=buildStandalonePrivateHandoff({app,preview,plan,catalog,ownerConfi
 const descriptor=nativeShellDescriptor(handoff);
 if(!descriptor.ok)throw Error("Unsafe prototype: "+descriptor.reason);
 await mkdir(output,{recursive:true});
-for(const file of ["App.js","app.config.js","index.js","package.json"])
+for(const file of ["App.js","app.config.js","index.js","package.json","nativeBusinessClient.js","nativeGuestProof.js","nativeGuestRequests.js"])
  await copyFile(path.join(template,file),path.join(output,file));
 await writeFile(path.join(output,"prototype.json"),JSON.stringify(descriptor,null,2)+"\n",{mode:0o600});
 if((await stat(path.join(output,"App.js"))).size<500)throw Error("Native shell missing");

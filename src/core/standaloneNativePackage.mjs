@@ -57,6 +57,11 @@ function nativeShellDescriptor(manifest,{purpose="private_prototype"}={}){
   iosBundleIdentifier:"co.busydoesit.prototype.a"+ident,
   androidPackage:"co.busydoesit.prototype.a"+ident,
   screenSchema:{version:1,screens:publicScreens},
+  // The offline project is never connected just because an owner asks.
+  // Only separately verified published app packaging can activate runtime.
+  runtimeConnection:{enabled:false,endpoint:"",publicWebEndpoint:"",
+    slug:"",expectedAppId:"",expectedVersionId:"",
+    ownerApproved:false,liveOnly:true,canCollectPayments:false},
   signingConfigured:false,appStoreSubmitEnabled:false,
   developerRegistrationRequired:true,providerBillingVerified:false,
   buildIsProductionReady:false,
