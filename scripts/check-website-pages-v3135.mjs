@@ -58,6 +58,10 @@ const renamed=change({action:"rename-page",pageId:first.id,title:"Our People"},p
 yes(renamed.applied,"Owner can rename page");
 eq(renamed.draft.pages.find(p=>p.id===first.id).path,"/pages/meet-the-team","Existing link survives title change");
 yes(renamed.draft.seo.pages[first.id].title.includes("Our People"),"Renamed page SEO regenerates");
+const onlySection=p2.draft.customPages[0].sectionIds[0];
+const unsafeTransfer=change({action:"assign-section",pageId:second.id,sectionId:onlySection},p2.draft);
+yes(!unsafeTransfer.applied,"Cannot orphan another owner's configured page by moving its final section");
+eq(unsafeTransfer.draft,p2.draft,"Unsuccessful page transfer is atomic and preserves every page");
 const newSection=change({action:"add-page-section",pageId:first.id,title:"Our values",
  body:"We take care of every arrangement."},renamed.draft);
 yes(newSection.applied,"Owner adds page section");
