@@ -32,6 +32,7 @@ import {voiceUploadEligible} from "../core/websiteVoiceRecordingPolicy.mjs";
 import {planSelectedWebsiteChanges,prepareSelectedWebsiteTransaction} from "../core/websiteContextPlan.mjs";
 import {previewSelectedWebsiteInstruction as prepareWebsiteSelectionPreview} from "../core/websiteSelectedChangePreview.mjs";
 import {previewWebsiteAIStudio} from "../core/websiteAIStudio.mjs";
+import {privateBuilderVisualIntegrity} from "../core/privateBuilderBoundary.mjs";
 import {planWebsitePageInstructions,prepareWebsitePageInstructionPreview} from "../core/websitePageInstructions.mjs";
 import {makeWebsiteRecoveryPoint,restoreWebsiteRecoveryPoint as restoreWebsiteRecoverySnapshot} from "../core/websiteRecoveryPoint.mjs";
 
@@ -13236,7 +13237,17 @@ function App() {
       setWebsiteVisualReviewNotice(proposal.reason||"No safe design changes to apply.");
       return false;
     }
-    const next=rebuildPrivateWebsiteDraft(proposal.draft);
+    let next;
+    try{next=rebuildPrivateWebsiteDraft(proposal.draft);}
+    catch{
+      setWebsiteVisualReviewNotice("BUSY could not rebuild that private design safely. Your website is unchanged.");
+      return false;
+    }
+    const integrity=privateBuilderVisualIntegrity(websiteDraft,next);
+    if(!integrity.ok){
+      setWebsiteVisualReviewNotice("That design change touched data outside its approved appearance settings. No change was saved.");
+      return false;
+    }
     setWebsiteUndo(items=>[...items,websiteDraft].slice(-8));
     setWebsiteRedo([]);
     setWebsiteDraft(next);
