@@ -4,6 +4,7 @@ import {planWebsiteDesign} from "../supabase/functions/busy-website-worker/desig
 import {designForWebsite,designCss} from "../supabase/functions/busy-website-worker/designSystem.mjs";
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
 import {applyWebsiteVisualEdit} from "../supabase/functions/busy-website-worker/designEdits.mjs";
+import {editWebsiteDraftField} from "../src/core/websiteStructuredEditing.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 const strip=s=>s.replace(/export\s*\{[\s\S]*?\};?\s*$/,"");
 const model=Function(strip(read("src/domain/websiteManagement.js"))+";return {syncWebsitePageModel};")();
@@ -14,11 +15,12 @@ for(const exp of [
   'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
   'import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";',
   'import { applyWebsiteVisualEdit } from "../../supabase/functions/busy-website-worker/designEdits.mjs";',
+  'import { editWebsiteDraftField } from "../core/websiteStructuredEditing.mjs";',
 ]){ assert.ok(source.includes(exp),exp);source=source.replace(exp,"");}
 const {buildWebsiteDraft,applyWebsiteInstruction}=Function(
- "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign","applyWebsiteVisualEdit",
+ "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField",
  source+";return {buildWebsiteDraft,applyWebsiteInstruction};")(
- model.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit
+ model.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField
 );
 let checks=0;
 const yes=(v,msg)=>{assert.ok(v,msg);checks++};
