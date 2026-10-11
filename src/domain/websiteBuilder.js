@@ -598,9 +598,13 @@ function applyWebsitePageChange(draft = {}, change = {}) {
 function sectionAppearanceClasses(section){
   const fields={headingScale:["compact","large"],textAlign:["center"],
     sectionSpacing:["compact","generous"],photoCrop:["top","bottom"],
-    photoSide:["right"],gallerySize:["compact","large"]};
+    photoSide:["right"],gallerySize:["compact","large"],
+    mobileHeadingScale:["compact","large"],desktopHeadingScale:["compact","large"],
+    mobileGallerySize:["compact","large"],desktopGallerySize:["compact","large"]};
   const names={headingScale:"heading",textAlign:"align",
-    sectionSpacing:"space",photoCrop:"crop",photoSide:"photo",gallerySize:"gallery"};
+    sectionSpacing:"space",photoCrop:"crop",photoSide:"photo",gallerySize:"gallery",
+    mobileHeadingScale:"mobile-heading",desktopHeadingScale:"desktop-heading",
+    mobileGallerySize:"mobile-gallery",desktopGallerySize:"desktop-gallery"};
   const appearance=section?.appearance;
   if(!appearance||typeof appearance!=="object"||Array.isArray(appearance))return "";
   const output=[];

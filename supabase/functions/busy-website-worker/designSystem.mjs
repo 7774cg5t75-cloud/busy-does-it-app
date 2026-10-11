@@ -323,6 +323,27 @@ section.owner-gallery-large .gallery-image{height:clamp(280px,37vw,450px)}
  .family-portfolio .hero-image{border-radius:18px}
 }
 @media(max-width:380px){.wrap{width:min(100% - 28px,var(--content))}.brand{font-size:1.05rem}.cta{width:100%}}
+/* V3.149: finite viewport overrides, shared by exported and hosted sites */
+@media(max-width:600px){
+ section.owner-mobile-heading-compact h1{font-size:clamp(2.05rem,8vw,3rem)}
+ section.owner-mobile-heading-compact h2{font-size:clamp(1.7rem,6vw,2.4rem)}
+ section.owner-mobile-heading-large h1{font-size:clamp(3.3rem,12vw,5rem)}
+ section.owner-mobile-heading-large h2{font-size:clamp(2.5rem,9vw,3.6rem)}
+ section.owner-mobile-gallery-compact .gallery{grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:10px}
+ section.owner-mobile-gallery-compact .gallery-image{height:clamp(145px,44vw,200px)}
+ section.owner-mobile-gallery-large .gallery{grid-template-columns:1fr;gap:20px}
+ section.owner-mobile-gallery-large .gallery-image{height:clamp(290px,90vw,420px)}
+}
+@media(min-width:960px){
+ section.owner-desktop-heading-compact h1{font-size:clamp(2.6rem,5vw,4.1rem)}
+ section.owner-desktop-heading-compact h2{font-size:clamp(1.9rem,3vw,2.8rem)}
+ section.owner-desktop-heading-large h1{font-size:clamp(4.5rem,8vw,8rem)}
+ section.owner-desktop-heading-large h2{font-size:clamp(3rem,5vw,4.4rem)}
+ section.owner-desktop-gallery-compact .gallery{grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:11px}
+ section.owner-desktop-gallery-compact .gallery-image{height:230px}
+ section.owner-desktop-gallery-large .gallery{grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:24px}
+ section.owner-desktop-gallery-large .gallery-image{height:clamp(330px,32vw,460px)}
+}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 `;
 }

@@ -307,6 +307,14 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
            {appearanceChoice("headingScale","compact","Smaller heading")}
            {appearanceChoice("headingScale","normal","Normal heading")}
            {appearanceChoice("headingScale","large","Larger heading")}
+           <Text style={styles.sectionLabel}>Heading size only on phones</Text>
+           {appearanceChoice("mobileHeadingScale","compact","Smaller on phones")}
+           {appearanceChoice("mobileHeadingScale","normal","Default on phones")}
+           {appearanceChoice("mobileHeadingScale","large","Larger on phones")}
+           <Text style={styles.sectionLabel}>Heading size only on desktop</Text>
+           {appearanceChoice("desktopHeadingScale","compact","Smaller on desktop")}
+           {appearanceChoice("desktopHeadingScale","normal","Default on desktop")}
+           {appearanceChoice("desktopHeadingScale","large","Larger on desktop")}
            <Text style={styles.sectionLabel}>Text alignment</Text>
            {appearanceChoice("textAlign","left","Align words left")}
            {appearanceChoice("textAlign","center","Centre this section")}
@@ -342,6 +350,14 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
              {appearanceChoice("gallerySize","compact","Smaller photo tiles")}
              {appearanceChoice("gallerySize","comfortable","Normal photo tiles")}
              {appearanceChoice("gallerySize","large","Larger photo tiles")}
+             <Text style={styles.sectionLabel}>Gallery size on phones only</Text>
+             {appearanceChoice("mobileGallerySize","compact","Smaller on phones")}
+             {appearanceChoice("mobileGallerySize","comfortable","Default on phones")}
+             {appearanceChoice("mobileGallerySize","large","Larger on phones")}
+             <Text style={styles.sectionLabel}>Gallery size on desktop only</Text>
+             {appearanceChoice("desktopGallerySize","compact","Smaller on desktop")}
+             {appearanceChoice("desktopGallerySize","comfortable","Default on desktop")}
+             {appearanceChoice("desktopGallerySize","large","Larger on desktop")}
             </>
            ):null}
            <Button label="Restore original section style"

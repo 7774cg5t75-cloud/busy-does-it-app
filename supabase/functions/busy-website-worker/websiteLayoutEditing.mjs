@@ -119,7 +119,9 @@ function applyWebsiteLayoutOperation(draft,operation={}){
    sectionSpacing:["compact","normal","generous"],
    photoCrop:["top","center","bottom"],
    photoSide:["left","right"],
-   gallerySize:["comfortable","compact","large"]
+   gallerySize:["comfortable","compact","large"],
+   mobileHeadingScale:["normal","compact","large"],desktopHeadingScale:["normal","compact","large"],
+   mobileGallerySize:["comfortable","compact","large"],desktopGallerySize:["comfortable","compact","large"]
   };
   const supports={
    headingScale:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
@@ -127,7 +129,10 @@ function applyWebsiteLayoutOperation(draft,operation={}){
    sectionSpacing:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
    photoCrop:["hero","photo-feature","gallery"],
    photoSide:["photo-feature"],
-   gallerySize:["gallery"]
+   gallerySize:["gallery"],
+   mobileHeadingScale:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
+   desktopHeadingScale:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
+   mobileGallerySize:["gallery"],desktopGallerySize:["gallery"]
   };
   const existing=target.appearance&&typeof target.appearance==="object"&&!Array.isArray(target.appearance)
    ?target.appearance:{};
@@ -150,7 +155,8 @@ function applyWebsiteLayoutOperation(draft,operation={}){
    if(fields[name].includes(existing[name])&&supports[name].includes(target.type))
     next[name]=existing[name];
   const defaults={headingScale:"normal",textAlign:"left",sectionSpacing:"normal",
-    photoCrop:"center",photoSide:"left",gallerySize:"comfortable"};
+    photoCrop:"center",photoSide:"left",gallerySize:"comfortable",
+    mobileHeadingScale:"normal",desktopHeadingScale:"normal",mobileGallerySize:"comfortable",desktopGallerySize:"comfortable"};
   if(value===defaults[field])delete next[field];else next[field]=value;
   if(Object.keys(next).length)target.appearance=next;else delete target.appearance;
   return ready("Changed just this section's "+field+".");
