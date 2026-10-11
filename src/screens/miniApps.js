@@ -1,6 +1,7 @@
 import React from "react";
-import { Image, Text, View, Dimensions, Platform, Alert, useWindowDimensions } from "react-native";
+import { Image, Text, View, Dimensions, Platform, Alert, useWindowDimensions, ScrollView, PixelRatio } from "react-native";
 import {captureRef} from "react-native-view-shot";
+import {File as ExpoFile} from "expo-file-system";
 import QRCode from "react-native-qrcode-svg";
 
 import { styles } from "../theme/styles";
@@ -22,6 +23,8 @@ import {evaluateAppAcrossScreens,compareAppScreenQuality}
 import {prepareAppDesignIteration,inspectApprovedAppIteration,proposeLowRiskDesignHints}
   from "../core/appDesignIteration.mjs";
 import {prepareAppVisualBatch} from "../core/appVisualComparison.mjs";
+import {VIEWPORTS,getViewport,validateViewportPair,compareViewportSet,
+ coordinateVisualEvidence} from "../core/appVisualMultiViewport.mjs";
 import {auditStandaloneContrast} from "../core/appContrastAudit.mjs";
 import {appRequestJourney} from "../core/appRequestLifecycle.mjs";
 import {appVisibleCaptureReceipt,currentAppVisibleCapture} from "../core/appRenderedEvidence.mjs";
@@ -2210,6 +2213,17 @@ function MiniAppPreview({ s }) {
   const [currentMeasuredWidth,setCurrentMeasuredWidth]=React.useState(0);
   const [beforeMeasuredWidth,setBeforeMeasuredWidth]=React.useState(0);
   const [afterMeasuredWidth,setAfterMeasuredWidth]=React.useState(0);
+  const [virtualWidthId,setVirtualWidthId]=React.useState("small");
+  const [virtualBeforeObs,setVirtualBeforeObs]=React.useState([]);
+  const [virtualAfterObs,setVirtualAfterObs]=React.useState([]);
+  const [virtualBeforeWidth,setVirtualBeforeWidth]=React.useState(0);
+  const [virtualAfterWidth,setVirtualAfterWidth]=React.useState(0);
+  const [virtualSamples,setVirtualSamples]=React.useState({});
+  const [virtualBusy,setVirtualBusy]=React.useState(false);
+  const [virtualNotice,setVirtualNotice]=React.useState("");
+  const [virtualAiReview,setVirtualAiReview]=React.useState(null);
+  const virtualBeforeRef=React.useRef(null);
+  const virtualAfterRef=React.useRef(null);
   const appSurfaceRef=React.useRef(null);
   const originalComparisonRef=React.useRef(null);
   const proposedComparisonRef=React.useRef(null);
@@ -2224,6 +2238,10 @@ function MiniAppPreview({ s }) {
     setQualityEnabled(false);setCurrentMeasurements([]);
     setBeforeMeasurements([]);setAfterMeasurements([]);
     setCurrentMeasuredWidth(0);setBeforeMeasuredWidth(0);setAfterMeasuredWidth(0);
+    setVirtualWidthId("small");setVirtualSamples({});
+    setVirtualBeforeObs([]);setVirtualAfterObs([]);
+    setVirtualBeforeWidth(0);setVirtualAfterWidth(0);
+    setVirtualNotice("");setVirtualAiReview(null);setVirtualBusy(false);
   },[appId,revision,view.previewVersion?.id]);
   // Only dimensions, counts and finite element IDs are kept in local React state.
   const collectCurrent=React.useCallback(value=>{
@@ -2249,7 +2267,26 @@ function MiniAppPreview({ s }) {
   React.useEffect(()=>{
     setBeforeMeasurements([]);setAfterMeasurements([]);
     setBeforeMeasuredWidth(0);setAfterMeasuredWidth(0);
+    setVirtualSamples({});
   },[appId,revision,proposedDesignKey]);
+  const capturePreset=getViewport(virtualWidthId);
+  const collectVirtualBefore=React.useCallback(value=>{
+    setVirtualBeforeObs(previous=>{
+      const result=mergeRenderedObservations(previous,value);
+      return result.ok&&result.changed?result.observations:previous;
+    });
+  },[]);
+  const collectVirtualAfter=React.useCallback(value=>{
+    setVirtualAfterObs(previous=>{
+      const result=mergeRenderedObservations(previous,value);
+      return result.ok&&result.changed?result.observations:previous;
+    });
+  },[]);
+  React.useEffect(()=>{
+    setVirtualBeforeObs([]);setVirtualAfterObs([]);
+    setVirtualBeforeWidth(0);setVirtualAfterWidth(0);
+    setVirtualAiReview(null);setVirtualNotice("");
+  },[appId,revision,virtualWidthId,proposedDesignKey]);
   const measuredReport=qualityEnabled&&currentMeasuredWidth>=250&&currentMeasurements.length?
     evaluateRenderedQuality({appId,revision,observations:currentMeasurements,
       viewportWidth:currentMeasuredWidth}):null;
@@ -2278,7 +2315,39 @@ function MiniAppPreview({ s }) {
       reason:item.why+" "+item.tradeoff
     }))
   }:null;
-  const displayedReview=visualReport?.ok?visualReport:localDesignReport;
+  const displayedReview=visualReport?.ok?visualReport:localDesignReport||
+    (visualProposal?.ok?{ok:true,
+      summary:"BUSY has prepared an unsaved design plan for your approval.",
+      observations:[],suggestions:[]} : null);
+  const proposedOperations=visualProposal?.operations||
+    (visualProposal?.operation?[visualProposal.operation]:[]);
+  const presetBefore=virtualBeforeWidth===capturePreset?.width&&virtualBeforeObs.length?
+    evaluateRenderedQuality({appId,revision,viewportWidth:virtualBeforeWidth,
+      observations:virtualBeforeObs}):null;
+  const presetAfter=virtualAfterWidth===capturePreset?.width&&virtualAfterObs.length?
+    evaluateRenderedQuality({appId,revision,viewportWidth:virtualAfterWidth,
+      observations:virtualAfterObs}):null;
+  const presetComparison=presetBefore?.ok&&presetAfter?.ok?
+    compareRenderedQuality(presetBefore,presetAfter):null;
+  const recordedWidths=Object.entries(virtualSamples)
+    .filter(([id,v])=>getViewport(id)&&v?.beforeQuality?.ok&&v?.afterQuality?.ok)
+    .map(([viewportId,v])=>({viewportId,before:v.beforeQuality,after:v.afterQuality}));
+  const multiviewAssessment=recordedWidths.length?
+    compareViewportSet({appId,revision,results:recordedWidths}):null;
+  const responsiveSuggestions=recommendResponsiveDesign(config)?.suggestions||[];
+  const prepareCoordinatedReview=()=>{
+    const plan=coordinateVisualEvidence(config,{
+      measured:measuredSuggestions?.suggestions||[],
+      ai:visualReport?.suggestions||[],
+      responsive:responsiveSuggestions
+    });
+    setVisualProposal(plan.ok?plan:null);
+    setVisualSelected([]);
+    setVisualNotice(plan.ok?
+      "A coordinated PRIVATE alternative is ready. Review it at different widths and approve explicitly.":
+      plan.reason);
+    setVirtualSamples({});setVirtualAiReview(null);setVirtualNotice("");
+  };
   const takeScreenCapture=async()=>{
     setCaptureBusy(true);setCaptureError("");setCapture(null);
     try{
