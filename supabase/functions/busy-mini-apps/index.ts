@@ -7,6 +7,8 @@ import { proposeCoordinatedAppChanges } from "./appCoordinatedStudio.mjs";
 import {decideAppRequestTransition} from "./appRequestLifecycle.mjs";
 import {validateAppScreenshotReview,normalizeAppVisualAIResult}
  from "./appVisualReviewContract.mjs";
+import {prepareAppVisualBatch,validatePairedAppVisualRequest}
+ from "./appVisualComparison.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -3600,14 +3602,22 @@ async function appVisualReviewStatus(businessId:string){
   publicPreviewOnly:true,screenshotStorage:"not_stored",
   notAutomaticPublishing:true};
 }
-async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:string){
+async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:string,
+ mode:"single"|"comparison"="single"){
  if(!appVisualAiReady())throw Error("App screenshot AI is not enabled.");
  const fields=validateAppScreenshotReview(body);
  if(!fields.ok)throw Error(fields.reason);
+ const pair=mode==="comparison"?validatePairedAppVisualRequest(body):null;
+ if(mode==="comparison"&&!pair?.ok)throw Error(pair?.reason||
+  "Both public-only preview captures need owner approval.");
  const app=await appForBusiness(businessId);
  if(!app||app.id!==fields.appId||
     Number(app.draft_revision)!==fields.revision)
    throw Error("Private app revision changed. Capture the current customer preview again.");
+ const candidate=mode==="comparison"?
+  prepareAppVisualBatch(app.draft_config,pair?.operations):null;
+ if(mode==="comparison"&&!candidate?.ok)
+  throw Error(candidate?.reason||"Proposed design was not safe to compare.");
  const status=await appVisualReviewStatus(businessId);
  if(!status.enabled||status.remaining<1)
    throw Error("Private screenshot review is unavailable or its allowance has been reached.");
@@ -3621,6 +3631,15 @@ async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:s
     bytes[0]!==255||bytes[1]!==216||
     bytes[bytes.length-2]!==255||bytes[bytes.length-1]!==217)
   throw Error("A compressed JPEG screenshot under 590 KB is required.");
+ if(mode==="comparison"){
+  let after:Uint8Array;
+  try{after=Uint8Array.from(atob(pair.afterImageBase64),c=>c.charCodeAt(0));}
+  catch{throw Error("Second screenshot could not be decoded.");}
+  if(after.length<512||after.length>590000||
+     after[0]!==255||after[1]!==216||
+     after[after.length-2]!==255||after[after.length-1]!==217)
+    throw Error("The proposed preview must be a valid compressed JPEG under 590 KB.");
+ }
  if(!/^[a-zA-Z0-9:_-]{8,160}$/.test(requestKey))
   throw Error("A unique request key is required for metered image review.");
  const reservation=await supabase.rpc("busy_reserve_app_visual_ai_call",{
@@ -3633,8 +3652,13 @@ async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:s
  try{
   const model=Deno.env.get("BUSY_APP_VISUAL_AI_MODEL")||"";
   const prompt=[
-   "You are reviewing one owner-submitted screenshot showing ONLY a customer's private BUSY Business App preview.",
-   "You cannot authenticate the screenshot, inspect other devices, confirm app behaviour, or see invisible scrolling content.",
+   mode==="comparison"?
+    "You are comparing two owner-submitted private customer-only app previews: BEFORE and AFTER the proposed design edits, in that exact image order.":
+    "You are reviewing one owner-submitted screenshot showing ONLY a customer's private BUSY Business App preview.",
+   "You cannot authenticate either screenshot, inspect other devices, confirm app behaviour, or see invisible scrolling content.",
+   mode==="comparison"?
+    "Only comment on visible differences, trade-offs and remaining problems. Do not claim pixel-precise measurements or improvement without evidence. The AFTER design is not approved or live.":
+    "Review the screenshot for visible problems, without comparing it to an unseen alternative.",
    "Report only clearly visible issues of spacing, hierarchy, navigation, image size and legibility. Never infer prices, bookings or missing backend features.",
    "Never copy personal data or contact details from this screenshot into your answer.",
    "Return at most three supported design suggestions. You are NOT authorised to make edits.",
@@ -3648,8 +3672,13 @@ async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:s
    body:JSON.stringify({model,store:false,max_output_tokens:620,
     input:[{role:"user",content:[
      {type:"input_text",text:prompt},
-     {type:"input_image",image_url:"data:image/jpeg;base64,"+input,detail:"low"}
-    ]}]}),signal:AbortSignal.timeout(22000)
+     ...(mode==="comparison"?[{type:"input_text",text:"BEFORE: original customer-only app"}]:[]),
+     {type:"input_image",image_url:"data:image/jpeg;base64,"+input,detail:"low"},
+     ...(mode==="comparison"?[
+      {type:"input_text",text:"AFTER: proposed private design, NOT yet saved"},
+      {type:"input_image",image_url:"data:image/jpeg;base64,"+pair.afterImageBase64,detail:"low"}
+     ]:[])
+    ]}]}),signal:AbortSignal.timeout(30000)
   });
   if(!response.ok)throw Error("AI design review could not be completed.");
   const result=await response.json();
@@ -3661,13 +3690,18 @@ async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:s
     .map((v:any)=>v.text).join("\n");
   let parsed:any;
   try{parsed=JSON.parse(content);}catch{throw Error("AI returned an unreadable design review.");}
-  const proof=normalizeAppVisualAIResult(parsed,app.draft_config);
+  const proof=normalizeAppVisualAIResult(parsed,
+    mode==="comparison"?candidate.nextConfig:app.draft_config);
   if(!proof.ok)throw Error(proof.reason);
   completed=true;
   return {review:proof,appId:app.id,draftRevision:fields.revision,
    ownerConsentRecorded:true,privateOnly:true,chargesCreated:false,
-   screenshotStored:false,source:"owner_submitted_jpeg_ai_review",
-   noDeviceCoverageGuarantee:true};
+   screenshotStored:false,imagesSubmitted:mode==="comparison"?2:1,
+   comparisonMode:mode==="comparison",candidateDesignOnly:mode==="comparison"?true:null,
+   source:mode==="comparison"?"owner_submitted_two_jpeg_design_comparison":
+    "owner_submitted_jpeg_ai_review",
+   noDeviceCoverageGuarantee:true,measuredPixelDifference:false,
+   ownerMustApproveChanges:true};
  }finally{
   await supabase.rpc("busy_finish_app_visual_ai_call",{
    p_business_id:businessId,p_call_id:reservation.data,
@@ -3774,6 +3808,7 @@ Deno.serve(async (request: Request) => {
       "owner_request_detail",
       "visual_review_status",
       "review_app_screenshot",
+      "compare_app_screenshots",
     ]);
     const member = await membership(
       user.id,
@@ -3786,9 +3821,10 @@ Deno.serve(async (request: Request) => {
       return json(200,{ok:true,businessId:resolvedBusinessId,
        visualReview:await appVisualReviewStatus(resolvedBusinessId)});
     }
-    if(action==="review_app_screenshot"){
+    if(action==="review_app_screenshot"||action==="compare_app_screenshots"){
       return json(200,{ok:true,businessId:resolvedBusinessId,
-       ...(await reviewAppDesignScreenshot(resolvedBusinessId,body,requestId)),
+       ...(await reviewAppDesignScreenshot(resolvedBusinessId,body,requestId,
+         action==="compare_app_screenshots"?"comparison":"single")),
        visualReview:await appVisualReviewStatus(resolvedBusinessId)});
     }
     if (action === "standalone_eligibility_status") {
