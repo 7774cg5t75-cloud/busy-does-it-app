@@ -64,18 +64,25 @@ function applyWebsiteLayoutOperation(draft,operation={}){
  if(action==="image-style"){
   const gallery=sections.find(x=>x?.id===sectionId&&x.type==="gallery"&&x.enabled!==false);
   const n=operation.photoIndex;
+  const allowed={photoCrop:["top","center","bottom"],photoFit:["cover","contain"]};
   if(!gallery||sectionId!=="gallery"||!Number.isSafeInteger(n)||
      n<0||n>=list(gallery.items).length||gallery.items[n]?.approved===false||
-     operation.field!=="photoCrop"||
-     !["top","center","bottom"].includes(operation.value))
-   return fail(draft,"Select an approved photo in the gallery to adjust its crop.");
+     !Object.prototype.hasOwnProperty.call(allowed,operation.field)||
+     !allowed[operation.field].includes(operation.value))
+   return fail(draft,"Select an approved photo and a supported picture framing choice.");
   const photo=gallery.items[n];
-  const current=photo?.appearance?.photoCrop||"center";
-  if(current===operation.value)return fail(draft,"That image already has this crop.");
-  const next={...photo};
-  if(operation.value==="center")delete next.appearance;
-  else next.appearance={photoCrop:operation.value};
-  gallery.items[n]=next;
+  const defaults={photoCrop:"center",photoFit:"cover"};
+  const before=photo?.appearance&&typeof photo.appearance==="object"?photo.appearance:{};
+  const current=before[operation.field]||defaults[operation.field];
+  if(current===operation.value)return fail(draft,"That picture already uses this framing.");
+  const nextAppearance={};
+  for(const name of Object.keys(allowed))
+   if(allowed[name].includes(before[name])&&before[name]!==defaults[name])
+    nextAppearance[name]=before[name];
+  if(operation.value===defaults[operation.field])delete nextAppearance[operation.field];
+  else nextAppearance[operation.field]=operation.value;
+  gallery.items[n]={...photo,...(Object.keys(nextAppearance).length
+   ?{appearance:nextAppearance}:{appearance:undefined})};
   return ready("Adjusted only the selected gallery photograph.");
  }
  // V3.140: individual item headings are not section headings. Keep their
