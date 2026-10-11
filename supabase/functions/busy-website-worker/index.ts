@@ -62,6 +62,7 @@ function collectAssetRefs(draft: any) {
   const raw: any[] = [];
   safeArray(draft?.sections).forEach((section: any) => {
     if (section?.id === "hero" && section?.asset) raw.push(section.asset);
+    if (section?.type === "photo-feature" && section?.asset) raw.push(section.asset);
     if (section?.type === "gallery") {
       safeArray(section?.items).forEach((item: any) => raw.push(item));
     }
@@ -170,6 +171,11 @@ function renderSectionHtml(
       .join("")}</div></div></section>`;
   }
 
+  if (section.type === "photo-feature") {
+    const image=section.asset?urlForAsset(section.asset,urls):"";
+    if(!image)return "";
+    return `<section class="photo-feature" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid"><img loading="lazy" src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}"><div><${headingTag}>${escapeHtml(section.title)}</${headingTag}><p>${escapeHtml(section.body).replace(/\\n/g,"<br>")}</p></div></div></section>`;
+  }
   if (section.type === "gallery") {
     const images = safeArray(section.items)
       .map((item: any, index: number) => {
@@ -300,6 +306,7 @@ function renderWebsiteHtml(
     .filter((section: any) => {
       if(section.type==="services"||section.type==="testimonials"||section.type==="faq")
         return safeArray(section.items).some((item:any)=>clean(item?.title||item?.body));
+      if(section.type==="photo-feature")return !!urlForAsset(section.asset,urls);
       if(section.type==="gallery")
         return safeArray(section.items).some((item:any,index:number)=>!!urlForAsset(item,urls,index));
       if(section.type==="text")return !!clean(section.body);
