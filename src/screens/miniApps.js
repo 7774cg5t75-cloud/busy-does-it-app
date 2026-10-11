@@ -2665,7 +2665,9 @@ function MiniAppPreview({ s }) {
                   disabled={visualBusy||!!s.miniAppsAction}
                   onPress={approveVisualAI}/>
               ):null}
-              {visualNotice?<Text style={styles.cardBody}>{visualNotice}</Text>:null}
+            </>
+          ):null}
+          {visualNotice?<Text style={styles.cardBody}>{visualNotice}</Text>:null}
               {displayedReview?.ok?(
                 <>
                   <Text style={styles.sectionLabel}>
@@ -2705,9 +2707,10 @@ function MiniAppPreview({ s }) {
                         if(!proposed.ok)setVisualNotice(proposed.reason);
                       }}/>
                   ):null}
-                  {!displayedReview.suggestions?.length?(
+                  {!displayedReview.suggestions?.length&&!visualProposal?.ok?(
                     <Text style={styles.cardBody}>
-                      No supported design change was proposed from this image.
+                      No additional supported design suggestion was available
+                      from this review.
                     </Text>
                   ):null}
                   <Text style={styles.cardBody}>
@@ -3007,8 +3010,6 @@ function MiniAppPreview({ s }) {
                   ):null}
                 </>
               ):null}
-            </>
-          ):null}
         </Card>
       ):null}
       {config ? (
