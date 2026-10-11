@@ -7,6 +7,7 @@ import {validateNativeGuestRequest,sendNativeGuestRequest}
 import {verifiedPublicRuntime,validPublicRead,publicNativeApp,secureGuestRequestLink}
  from "../standalone/template/nativeBusinessClient.js";
 import {publicNativeRuntimePlan} from "../src/core/nativeAppRuntimePlan.mjs";
+import {nativeShellDescriptor} from "../src/core/standaloneNativePackage.mjs";
 import {publicNativeMiniAppProjection} from "../supabase/functions/busy-mini-app-guest/publicNativeProjection.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 const id=s=>"00000000-0000-4000-8000-"+s;
@@ -45,6 +46,38 @@ const runtime=publicNativeRuntimePlan({app,version,
  origin:"https://preview-project.supabase.co/",ownerApproved:true});
 assert.ok(runtime.ok,runtime.reason);
 assert.ok(verifiedPublicRuntime(runtime.runtime));
+
+const reviewedManifest={
+ ok:true,kind:"private_standalone_planning_manifest_v1",
+ ownerAppId:appId,previewVersionId:versionId,
+ previewVersionNo:1,sourceDraftRevision:1,
+ platformTargets:["ios","android"],appName:"Example Salon",
+ modules:["business_profile","booking_request"],
+ screenSchema:{ok:true,screens:[
+  {key:"business_profile",component:"BusinessIdentity",title:"About",customerRequest:false},
+  {key:"booking_request",component:"CustomerBookingRequest",title:"Book",customerRequest:true,
+    requiresBusinessConfirmation:true}
+ ]},
+ automaticallyPublished:false,packageProduced:false,appStoreSubmitted:false,
+ chargesCreated:false,requiresVerifiedBilling:true
+};
+const offline=nativeShellDescriptor(reviewedManifest);
+assert.equal(offline.ok,true);
+assert.equal(offline.runtimeConnection.enabled,false);
+const connected=nativeShellDescriptor(reviewedManifest,{runtimeEvidence:{
+ app,version,origin:"https://preview-project.supabase.co/",ownerApproved:true
+}});
+assert.equal(connected.ok,true,connected.reason);
+assert.equal(connected.runtimeConnection.enabled,true);
+assert.equal(connected.runtimeConnection.expectedVersionId,versionId);
+assert.equal(connected.signingConfigured,false);
+assert.equal(connected.buildIsProductionReady,false);
+const disconnected=nativeShellDescriptor(reviewedManifest,{runtimeEvidence:{
+ app,version:{...version,id:id("000000001157")},
+ origin:"https://preview-project.supabase.co/",ownerApproved:true
+}});
+assert.equal(disconnected.ok,false,"No version mismatch may enable native network access");
+
 for(const v of [
  {...runtime.runtime,endpoint:"https://evil.invalid/functions/v1/busy-mini-app-guest"},
  {...runtime.runtime,expectedVersionId:id("000000001157")},
