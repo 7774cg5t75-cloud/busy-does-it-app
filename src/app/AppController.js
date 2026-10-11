@@ -13303,6 +13303,47 @@ function App() {
     }
   };
 
+  // V3.150: the same bounded transcription provider, but with an exact
+  // page/revision scope instead of requiring a previously tapped element.
+  // Audio is never interpreted as an executable command by the service.
+  const transcribeWebsitePageAudio=async(audioUri,scope)=>{
+    const isCurrent=()=>{
+      const now=websiteDraftRef.current;
+      return !!now?.id&&now.id===scope?.draftId&&
+        now.generation===scope?.generation&&
+        now.pages?.some(p=>p.id===scope?.pageId&&p.enabled!==false);
+    };
+    if(!isCurrent())return {ok:false,error:"This website page has changed. Select it again."};
+    try{
+      const file=new ExpoFile(String(audioUri||""));
+      if(!file.exists||!voiceUploadEligible(Number(file.size||0)))
+        return {ok:false,error:"Recording must be under 9 MB. Nothing was sent."};
+      const token=await ownerAccessToken();
+      if(!token)return {ok:false,error:"Sign in again before transcribing."};
+      if(!isCurrent())return {ok:false,error:"The draft changed before sending. Nothing was sent."};
+      const form=new FormData();
+      form.append("mode","website-page-transcript-v1");
+      form.append("audio",file,`busy-website-page-${Date.now()}.m4a`);
+      const response=await fetchWithTimeout(BUSY_COMMAND_URL,{
+        method:"POST",headers:{apikey:BUSY_AI_TOKEN,Authorization:`Bearer ${token}`,
+          "x-busy-request-id":busyRequestId("website-page-transcript")},body:form
+      },45000,expoFetch);
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw Error(String(data.error||"Page transcription failed."));
+      if(data.mode!=="website-page-transcript-v1"||data.requiresReview!==true||
+         data.action!==null||data.command!==null||
+         !String(data.transcript||"").trim())
+        throw Error("The provider did not return review-only text.");
+      if(!isCurrent())return {ok:false,error:"Website changed while transcribing. Nothing was applied."};
+      const remaining=data.voiceUsage?.remaining;
+      return {ok:true,transcript:String(data.transcript).trim().slice(0,400),
+        remaining:Number.isInteger(remaining)&&remaining>=0&&remaining<=12?remaining:null,
+        dailyLimit:12};
+    }catch(error){
+      return {ok:false,error:String(error?.message||"Transcription failed. No changes were made.").slice(0,240)};
+    }
+  };
+
   // V3.144: explicit owner feedback stays attached to the current private
   // website draft; it is not a global learning signal or automatic retraining.
   const recordMeasuredWebsiteFeedback = ({draftId,pageId,changeId,choice}) => {
@@ -15942,6 +15983,7 @@ function App() {
     previewWebsitePageInstruction,
     applyWebsitePageInstruction,
     transcribeSelectedWebsiteAudio,
+    transcribeWebsitePageAudio,
     applyWebsiteLayoutAction,
     recordMeasuredWebsiteFeedback,
     applyWebsitePageAction,
