@@ -2374,7 +2374,11 @@ function MiniAppPreview({ s }) {
     designCheckpoint?.desiredAppearance?.some(op=>
       op.field===item.field&&op.value===item.value))?.verdict||null;
   const designOutcome=explainOwnerDesignOutcome({
-    verdict:savedOwnerVerdict,actuallySaved:iterationRecheck?.ok===true,
+    verdict:savedOwnerVerdict,
+    actuallySaved:designCheckpoint?.saveConfirmed===true&&
+      designCheckpoint?.expectedAfterRevision===revision&&
+      designCheckpoint?.desiredAppearance?.every(choice=>
+        config?.presentation?.[choice.field]===choice.value)===true,
     beforeWarnings:savedMeasurementReview?.ok?
       savedMeasurementReview.beforeWarnings:null,
     afterWarnings:savedMeasurementReview?.ok?
