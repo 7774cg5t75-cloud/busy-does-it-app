@@ -66,7 +66,7 @@ const fetched=await publicNativeApp(runtime.runtime,async(url,opts)=>{
 });
 assert.equal(fetched.ok,true);
 assert.equal((await publicNativeApp(runtime.runtime,async()=>({
- ok:true,json:async()=>({...pub,versionId:id("000000001157")}
+ ok:true,json:async()=>({...pub,versionId:id("000000001157")})
 }))).ok,false);
 const link=secureGuestRequestLink(runtime.runtime,"booking_request");
 assert.equal(link.ok,true);
