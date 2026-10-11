@@ -1,0 +1,54 @@
+name: V3.134 Website structure, appearance and real browser proofs
+on:
+  push:
+    branches: [v3.134]
+    paths:
+      - 'src/domain/websiteBuilder.js'
+      - 'src/app/AppController.js'
+      - 'src/screens/websiteBuilder.js'
+      - 'src/screens/websiteLayoutControls.js'
+      - 'supabase/functions/busy-website-worker/**'
+      - 'scripts/check-website-layout-v3134.mjs'
+      - 'scripts/check-website-layout-browser-v3134.mjs'
+      - 'scripts/snack-source.mjs'
+      - 'scripts/check-snack-dependencies.mjs'
+      - '.github/workflows/website-layout-v3134.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  private-website-source-and-rendering:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Test old and new exact owner edits without API calls
+        run: |
+          node scripts/check-website-edit-freedom-v3102.mjs
+          node scripts/check-website-direct-edit-v3133.mjs
+          BUSY_V3134_EXPORT_BROWSER_FIXTURE=1 node scripts/check-website-layout-v3134.mjs
+          node scripts/check-snack-dependencies.mjs
+          node scripts/check-production.mjs
+      - name: Install browser and Expo dependencies
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Check actual layout at mobile and desktop browser widths
+        run: node scripts/check-website-layout-browser-v3134.mjs
+      - name: Export real iOS JavaScript without signing or paying for EAS
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3134-ios-js-only
+      - name: Preserve private fictional visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3134-fictional-website-browser-screens
+          path: /tmp/busy-v3134-web/evidence/*.png
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Free, offline and private only
+        run: echo "No cloud publishing, paid AI use, live customer data, Supabase migration, DNS change or signed iOS build."
