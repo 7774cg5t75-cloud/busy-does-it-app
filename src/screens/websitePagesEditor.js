@@ -95,6 +95,20 @@ function WebsitePagesEditor({draft,onApply,onShare,onShareZip}){
         </View>
        </View>
        <Button label="Add section to page" onPress={addSection}/>
+       <Text style={styles.sectionLabel}>Add a photo and description</Text>
+       <Text style={styles.cardBody}>Choose an already approved gallery photograph. Your section heading and wording above are reused; you can edit them afterwards.</Text>
+       {(sections.find(x=>x.id==="gallery")?.items||[])
+         .filter(asset=>asset?.approved!==false&&asset?.storagePath)
+         .slice(0,12).map((asset,index)=>(
+          <Button key={asset.storagePath}
+           label={"Add approved photo "+(index+1)+" with the wording above"}
+           onPress={()=>{
+             if(apply({action:"add-photo-feature",pageId:selected,
+                 title:sectionTitle,body:sectionBody,storagePath:asset.storagePath})){
+               setSectionTitle("");setSectionBody("");
+             }
+           }}/>
+         ))}
        <Text style={styles.sectionLabel}>Move one of your existing text sections to this page</Text>
        {sections.filter(s=>s.id.startsWith("custom-")&&s.type==="text"&&s.enabled!==false&&!page.sectionIds.includes(s.id))
         .slice(0,30).map(s=>(
@@ -117,7 +131,7 @@ function WebsitePagesEditor({draft,onApply,onShare,onShareZip}){
        <Text style={styles.cardBody}>Share a portable JSON copy of your pages, wording and design choices using your iPhone's share sheet. The export contains public business details but NOT photographs, private customer data, passwords, hosting, domain configuration or working bookings/forms. It is not yet a ready-to-host website archive.</Text>
        <Button label="Share my website content (JSON)" onPress={onShare}/>
        <Text style={styles.sectionLabel}>Portable static website ZIP</Text>
-       <Text style={styles.cardBody}>On iPhone, you can also export a genuine ZIP with your page HTML, responsive styles and approved original photos **when those photo files remain available on this device**. If any original is cloud-only or missing, BUSY will stop instead of creating a broken website. This static export does not include working booking forms, cloud services, payments, DNS or your domain.</Text>
+       <Text style={styles.cardBody}>On iPhone, you can also export a genuine ZIP with your page HTML, responsive styles and approved original photos when those photo files remain available on this device. If any original is cloud-only or missing, BUSY will stop instead of creating a broken website. This static export does not include working booking forms, cloud services, payments, DNS or your domain.</Text>
        <Button label="Export my static website ZIP (iPhone)" onPress={onShareZip}/>
       </View>
      ):null}
