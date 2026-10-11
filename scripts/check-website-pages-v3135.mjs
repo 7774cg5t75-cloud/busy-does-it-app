@@ -98,6 +98,10 @@ yes(json.pages.some(p=>p.id===first.id)&&json.sections.some(s=>s.id===secId),"Pa
 yes(!sourceExport.json.includes("SUPER-SECRET-FIXTURE"),"No private session, customer or API credentials exported");
 yes(!sourceExport.json.includes("storagePath")&&!sourceExport.json.includes("accessToken"),"No cloud media paths or tokens");
 yes(sourceExport.limitations.some(x=>x.includes("Photographs")),"Owner sees honest export limitations");
+const oversizedSource=buildPortableWebsiteSource({...fixture,
+ sections:Array.from({length:151},(_,i)=>({id:"custom-"+i,type:"text",
+ title:"Owner text "+i,body:"Original owner text."}))});
+yes(!oversizedSource.ok,"Text export refuses to silently omit sections it cannot carry");
 const withPhoto={...fixture,sections:fixture.sections.map(s=>s.id==="hero"?{
  ...s,asset:{storagePath:"tenant-secret/image.png",uri:"https://signed.secret.example/token=supersecret",alt:"Our team"}
 }:s)};
