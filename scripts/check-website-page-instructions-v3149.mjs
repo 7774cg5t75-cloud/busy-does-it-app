@@ -53,5 +53,5 @@ assert.ok(originalCode.includes("prepareWebsitePageInstructionPreview(current"))
 assert.ok(originalCode.includes("planWebsitePageInstructions(current"));
 assert.ok(originalCode.includes("setWebsiteUndo(items=>[...items,current].slice(-8))"));
 assert.ok(ui.includes("Preview changes — do not save"));
-assert.ok(ui.includes("Apply "+pagePlanPreview.steps.length+" reviewed changes together"));
+assert.ok(ui.includes('pagePlanPreview.steps.length+" reviewed changes together"'));
 console.log("V3.149 PAGE PLAN PASS: exact named multi-section atomic changes, private preview, no cross-tenant or stale edits.");
