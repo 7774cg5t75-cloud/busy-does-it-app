@@ -219,6 +219,17 @@ main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:4
 .visual-type-refined h1,.visual-type-refined h2{font-family:Georgia,"Times New Roman",serif;font-weight:550;letter-spacing:-.03em}
 .visual-type-compact h1{font-size:clamp(2.8rem,6.4vw,5.2rem);letter-spacing:-.04em}
 .visual-type-compact h2{font-size:clamp(1.9rem,3.1vw,2.8rem)}
+
+/* Owner-controlled named design presets only, no arbitrary CSS. */
+.rhythm-generous section:not(.hero){padding-block:clamp(85px,11vw,148px)}
+.rhythm-compact section:not(.hero){padding-block:clamp(36px,5vw,65px)}
+.rhythm-generous .grid,.rhythm-generous .gallery{gap:clamp(22px,3vw,36px)}
+.rhythm-compact .grid,.rhythm-compact .gallery{gap:12px;margin-top:24px}
+.cta-strong .hero .cta{background:var(--accent);color:#fff!important;border:2px solid rgba(255,255,255,.72);box-shadow:0 12px 32px rgba(0,0,0,.23);outline:2px solid transparent;outline-offset:3px}
+.cta-strong .hero .cta:focus-visible{outline:3px solid var(--ink)}
+.photo-focus-top .hero-image{object-position:center top}
+.photo-focus-bottom .hero-image{object-position:center bottom}
+.photo-focus-center .hero-image{object-position:center center}
 @media(max-width:800px){
  .visual-hero-image-left .hero-with-image .hero-content{grid-column:1;grid-row:1}
  .visual-hero-image-left .hero-with-image .hero-image{grid-column:1;grid-row:2}
