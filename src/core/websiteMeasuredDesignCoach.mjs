@@ -81,5 +81,11 @@ function ownerDesignPreference(draft,changeId){
   .filter(e=>e?.draftId===draft?.id&&e.changeId===changeId);
  return rows.length?rows[rows.length-1].choice:null;
 }
+/** Owner feedback is a workspace preference, not public website content. */
+function withoutPrivateWebsiteDesignFeedback(draft){
+ if(!draft||typeof draft!=="object")return draft;
+ const {ownerDesignFeedback,...safe}=draft;
+ return safe;
+}
 export {recommendMeasuredWebsiteChange,compareWebsiteVisualReports,
- recordWebsiteOwnerDesignFeedback,ownerDesignPreference};
+ recordWebsiteOwnerDesignFeedback,ownerDesignPreference,withoutPrivateWebsiteDesignFeedback};
