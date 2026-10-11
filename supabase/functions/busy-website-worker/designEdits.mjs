@@ -1,3 +1,4 @@
+import {editWebsiteDraftField} from "./websiteStructuredEditing.mjs";
 /**
  * V3.102 — bounded, owner-directed visual and content edits.
  * Interpret explicit instructions only. No invented claims, photos or websites
@@ -23,6 +24,8 @@ const colourNames={
 };
 const fail=reason=>({applied:false,reason});
 function applyWebsiteVisualEdit(draft,instruction){
+  if(instruction&&typeof instruction==="object"&&instruction.kind==="structured")
+    return editWebsiteDraftField(draft,instruction);
  const text=clean(instruction);
  const lower=text.toLowerCase();
  const originalTheme=draft?.theme||{};
