@@ -3,6 +3,8 @@ import {Image,KeyboardAvoidingView,Modal,Platform,SafeAreaView,ScrollView,Text,T
 import {Button,Card,Field} from "../components/ui";
 import {styles} from "../theme/styles";
 import {interpretSelectedWebsiteRequest} from "../core/websiteContextualEdit.mjs";
+import {contextualEditExamples} from "../core/contextualEditingCore.mjs";
+import {ownerDesignPreference} from "../core/websiteMeasuredDesignCoach.mjs";
 import {WebsiteSelectedVoice} from "./websiteSelectedVoice";
 
 const names={
@@ -50,14 +52,11 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  const photoIndex=selection?.photoIndex??-1;
  const selectedPhoto=section?.type==="gallery"?section?.items?.[photoIndex]:section?.asset;
  const selectedPhotoSource=photoPreviewSource(selectedPhoto);
- const contextExamples=field==="title"
-  ?["Make this heading bigger","Make this heading smaller"]:
-  field==="photo"?
-    section?.type==="gallery"?["Move this photo to the right","Make this photo bigger"]:
-    section?.type==="photo-feature"?["Move this photo to the right","Crop this photo to the top"]:
-    ["Crop this photo to the top","Make this photo bigger"]:
-  field==="cta"?["Make this button stand out"]:
-  item?[]:["Centre this section","Give this section more space"];
+ const contextExamples=contextualEditExamples({
+  field,sectionType:section?.type,hasItem:!!item,
+  compactHeadingPreference:section?.type==="hero"&&field==="title"
+   ?ownerDesignPreference(draft,"compact-hero-title",selection?.pageId):null
+ });
  const applyContext=(instruction)=>{
   const result=interpretSelectedWebsiteRequest(draft,selection?.pageId,selection,instruction);
   if(!result.ok){setContextNote(result.reason);return;}
