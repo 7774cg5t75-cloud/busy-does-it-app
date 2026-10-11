@@ -115,6 +115,9 @@ jobs:
       - name: Verify exact context-aware website editing safety
         run: node scripts/check-website-context-v3140.mjs
 
+      - name: Verify safe voice-to-website selection and single photo edits
+        run: node scripts/check-website-voice-selection-v3141.mjs
+
       - name: Verify Expo Snack module dependency graph
         run: node scripts/check-snack-dependencies.mjs
 
