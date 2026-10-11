@@ -29,6 +29,7 @@ import * as Sharing from "expo-sharing";
 import {selectedWebsiteVoiceContextIsCurrent} from "../core/websiteSelectedVoiceContext.mjs";
 import {recordWebsiteOwnerDesignFeedback,withoutPrivateWebsiteDesignFeedback} from "../core/websiteMeasuredDesignCoach.mjs";
 import {voiceUploadEligible} from "../core/websiteVoiceRecordingPolicy.mjs";
+import {planSelectedWebsiteChanges,prepareSelectedWebsiteTransaction} from "../core/websiteContextPlan.mjs";
 
 try {
   Notifications.setNotificationHandler({
@@ -13198,6 +13199,30 @@ function App() {
     return true;
   };
 
+  // V3.147: all-or-nothing instruction for the EXACT selected website
+  // element. Re-parse against current private state (including revision) at
+  // approval time; never trust a message or cached operation list from voice.
+  const applySelectedWebsiteInstruction = ({selection,instruction}={}) => {
+    const current=websiteDraftRef.current;
+    if(!current||!selection||selection.draftId!==current.id){
+      const reason="That website selection is no longer current. Tap the part again.";
+      setWebsiteBuilderNotice(reason);
+      return {applied:false,reason};
+    }
+    const plan=planSelectedWebsiteChanges(current,selection.pageId,selection,instruction);
+    if(!plan.ok){setWebsiteBuilderNotice(plan.reason);return {applied:false,reason:plan.reason};}
+    const updated=prepareSelectedWebsiteTransaction(current,plan,{
+      fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange
+    });
+    setWebsiteBuilderNotice(updated.reason||"");
+    if(!updated.applied)return updated;
+    setWebsiteUndo(items=>[...items,current].slice(-8));
+    setWebsiteRedo([]);
+    websiteDraftRef.current=updated.draft;
+    setWebsiteDraft(updated.draft);
+    return updated;
+  };
+
   // V3.141: send audio to the authenticated transcription-only Operator
   // endpoint, never its command router. The owner reviews words locally before
   // applying a scoped instruction via the existing private Undo/Redo pipeline.
@@ -15846,6 +15871,7 @@ function App() {
     buildWebsiteFromBrandBrain,
     applyWebsiteChange,
     applyWebsiteFieldChange,
+    applySelectedWebsiteInstruction,
     transcribeSelectedWebsiteAudio,
     applyWebsiteLayoutAction,
     recordMeasuredWebsiteFeedback,
