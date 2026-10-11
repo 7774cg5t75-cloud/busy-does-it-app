@@ -1733,8 +1733,11 @@ function MiniAppBuilder({ s }) {
 
 function MiniAppPreview({ s }) {
   const view = s.miniAppsView || {};
+  const previewMatchesDraft=businessAppPreviewProof({
+    app:view.app,preview:view.previewVersion}).matches;
+  // A stale immutable preview must never pose as the current private draft.
   const config =
-    view.previewVersion?.config ||
+    (previewMatchesDraft?view.previewVersion?.config:null) ||
     view.draftConfig ||
     view.liveVersion?.config ||
     null;
@@ -1769,7 +1772,9 @@ function MiniAppPreview({ s }) {
       <Card
         eyebrow="Customer view"
         title="Review the experience, not the machinery"
-        body="Check the branding, services, imagery, offers, loyalty and customer actions below. BUSY will publish exactly this immutable version only if you approve Go Live."
+        body={previewMatchesDraft?
+          "This immutable preview matches your current private draft. Review it carefully before approving Go Live.":
+          "This is a PRIVATE draft or earlier live view. Prepare a fresh immutable preview after editing before any Go Live approval."}
         footer="Opening this preview does not make anything public."
         tone="green"
       />
@@ -1784,7 +1789,7 @@ function MiniAppPreview({ s }) {
           {captureError?<Text style={styles.cardBody}>{captureError}</Text>:null}
           {captureCurrent?(
             <>
-              <MetricRow left="Device screen" right={capture.platform+" • "+
+              <MetricRow left="Device window (layout points)" right={capture.platform+" • "+
                 capture.width+" × "+capture.height}/>
               <Text style={styles.cardBody}>
                 Check readability, image cropping, touch targets and spacing.
@@ -1806,7 +1811,7 @@ function MiniAppPreview({ s }) {
           tone="amber"
         />
       )}
-      {view.canPublish && view.previewVersion ? (
+      {previewMatchesDraft && view.canPublish && view.previewVersion ? (
         <Card
           eyebrow="Owner approval"
           title="Happy with what customers will see?"
