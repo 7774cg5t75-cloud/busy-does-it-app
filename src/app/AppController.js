@@ -13239,7 +13239,7 @@ function App() {
 
   // V3.144: explicit owner feedback stays attached to the current private
   // website draft; it is not a global learning signal or automatic retraining.
-  const recordWebsiteDesignFeedback = ({draftId,pageId,changeId,choice}) => {
+  const recordMeasuredWebsiteFeedback = ({draftId,pageId,changeId,choice}) => {
     if(!websiteDraftRef.current||websiteDraftRef.current.id!==draftId)return false;
     const checked=recordWebsiteOwnerDesignFeedback(websiteDraftRef.current,{
       draftId,pageId,changeId,choice,at:new Date().toISOString()
@@ -15830,7 +15830,7 @@ function App() {
     applyWebsiteFieldChange,
     transcribeSelectedWebsiteAudio,
     applyWebsiteLayoutAction,
-    recordWebsiteDesignFeedback,
+    recordMeasuredWebsiteFeedback,
     applyWebsitePageAction,
     shareWebsiteContent,
     shareStandaloneWebsiteZip,
