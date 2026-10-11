@@ -21,7 +21,7 @@ module.exports=({config})=>{
   ...original,
   name:"Busy Does It Staging",
   scheme:"busydoesit-staging",
-  plugins:stagingPlugins,
+  plugins:[...stagingPlugins,"./plugins/withIsolatedStagingNoPush.js"],
   ios:{...original.ios,bundleIdentifier:"com.busydoesit.app.staging",entitlements:stagingEntitlements},
   android:{...original.android,package:"com.busydoesit.app.staging"},
   extra:{...original.extra,busyEnvironment:"isolated-staging"}
