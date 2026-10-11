@@ -21,6 +21,6 @@ assert.ok(builder.includes("websitePreviewWidthNote(previewSize,visualCheckResul
 assert.ok(builder.includes("recordWebsiteViewportEvidence(previous"));
 assert.ok(editor.includes("withWebsitePreviewViewport(showPreviewOriginal"));
 assert.ok(editor.includes('setComparisonSize("phone")'));
-assert.ok(editor.includes("Compare "+'"'+mode+" layout"'));
+assert.ok(editor.includes('"Compare "+mode+" layout"'));
 assert.ok(read("src/domain/websiteBuilder.js").includes('content="width=device-width,initial-scale=1"'));
 console.log("V3.148 RESPONSIVE PASS: bounded phone/tablet/desktop visual modes, unchanged public renderer and honest browser-width wording.");
