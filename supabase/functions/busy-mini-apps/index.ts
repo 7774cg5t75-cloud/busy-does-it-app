@@ -9,6 +9,8 @@ import {validateAppScreenshotReview,normalizeAppVisualAIResult}
  from "./appVisualReviewContract.mjs";
 import {prepareAppVisualBatch,validatePairedAppVisualRequest}
  from "./appVisualComparison.mjs";
+import {ownerDesignHistory,writeDesignFeedback,eraseDesignHistory}
+ from "./appDesignLearningService.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -3809,6 +3811,9 @@ Deno.serve(async (request: Request) => {
       "visual_review_status",
       "review_app_screenshot",
       "compare_app_screenshots",
+      "design_learning_status",
+      "record_design_feedback",
+      "clear_design_feedback",
     ]);
     const member = await membership(
       user.id,
@@ -3817,6 +3822,20 @@ Deno.serve(async (request: Request) => {
     );
     const resolvedBusinessId = member.business_id;
 
+    if(action==="design_learning_status"){
+      return json(200,{ok:true,businessId:resolvedBusinessId,
+       history:await ownerDesignHistory(supabase,appForBusiness,resolvedBusinessId)});
+    }
+    if(action==="record_design_feedback"){
+      return json(200,{ok:true,businessId:resolvedBusinessId,
+       ...(await writeDesignFeedback(supabase,appForBusiness,
+         resolvedBusinessId,user.id,body,requestId))});
+    }
+    if(action==="clear_design_feedback"){
+      return json(200,{ok:true,businessId:resolvedBusinessId,
+       ...(await eraseDesignHistory(supabase,appForBusiness,
+         resolvedBusinessId,body))});
+    }
     if(action==="visual_review_status"){
       return json(200,{ok:true,businessId:resolvedBusinessId,
        visualReview:await appVisualReviewStatus(resolvedBusinessId)});
