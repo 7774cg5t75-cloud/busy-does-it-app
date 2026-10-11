@@ -8,6 +8,7 @@ import { miniAppModuleLabel } from "../domain/miniApps";
 import { businessAppPreviewProof } from "../core/businessAppPreviewProof.mjs";
 import { buildAppDistributionPlan,buildStandalonePrivateHandoff } from "../core/appDistributionChoices.mjs";
 import { planFunctionalBusinessApp } from "../core/appExperiencePlanner.mjs";
+import { previewPrivateAppAppearance,OPTIONS as appAppearanceOptions } from "../core/appAppearanceEditing.mjs";
 
 function readableDate(value, fallback = "Not yet") {
   if (!value) return fallback;
@@ -112,6 +113,9 @@ function MiniAppSurface({
   const offers = (Array.isArray(config?.offers) ? config.offers : []).filter(
     offerActiveToday
   );
+  const presentation=config?.presentation||{};
+  const density=presentation.layoutDensity||"comfortable";
+  const headerStyle=presentation.headerStyle||"refined";
 
   return (
     <>
@@ -125,15 +129,17 @@ function MiniAppSurface({
           "Public business information"
         }
         footer={profile.serviceArea || ""}
-        tone="green"
+        tone={headerStyle==="bold"?"green":headerStyle==="quiet"?"blue":"green"}
       >
+        <Text style={styles.cardBody}>{"App layout: "+density+" • Header: "+headerStyle+
+          " • Navigation: "+(presentation.navigationStyle||"tabs")}</Text>
         {heroUri.startsWith("https://") ? (
           <Image
             source={{ uri: heroUri }}
             resizeMode="cover"
             style={{
               width: "100%",
-              height: 230,
+              height: density==="compact"?172:density==="airy"?285:230,
               borderRadius: 18,
               marginBottom: 14,
             }}
@@ -386,6 +392,59 @@ function BusyAppsMarketplace({ s }) {
         />
       </Card>
 
+      {app&&view.draftConfig?(
+        <Card eyebrow="Edit how your app looks"
+          title="Change the private app design"
+          body="Try a header style, spacing or navigation look. BUSY shows an unsaved customer preview first. Keeping it creates a new private draft revision, not a live update."
+          tone="blue">
+          {[
+            ["headerStyle","Header",appAppearanceOptions.headerStyle],
+            ["layoutDensity","Space around content",appAppearanceOptions.layoutDensity],
+            ["navigationStyle","Navigation look",appAppearanceOptions.navigationStyle]
+          ].map(([field,label,values])=>(
+            <View key={field} style={{marginTop:9}}>
+              <Text style={styles.sectionLabel}>{label}</Text>
+              {values.map(value=>(
+                <Button key={value} label={
+                  (pendingAppearance?.field===field&&pendingAppearance?.value===value?"✓ ":"")+
+                  value.replaceAll("-"," ")}
+                  disabled={!!s.miniAppsAction}
+                  onPress={()=>{
+                    setPendingAppearance({field,value});
+                    setAppearancePreviewOpen(true);
+                  }}/>
+              ))}
+            </View>
+          ))}
+          {pendingAppearance?(()=>{
+            const proposal=previewPrivateAppAppearance(view.draftConfig,pendingAppearance);
+            return proposal.ok?(
+              <>
+                <MetricRow left="Proposed change"
+                  right={pendingAppearance.field+" • "+proposal.previous+" → "+proposal.value}/>
+                {appearancePreviewOpen?(
+                  <>
+                    <Text style={styles.cardBody}>Unsaved customer-view preview; no public changes have been made.</Text>
+                    <MiniAppSurface config={proposal.nextConfig}/>
+                  </>
+                ):null}
+                <Button label="Keep this appearance in my PRIVATE app"
+                  primary disabled={!!s.miniAppsAction}
+                  onPress={async()=>{
+                    const ok=await s.savePrivateAppAppearance?.({
+                      ...pendingAppearance,appId:app.id,
+                      expectedRevision:app.draft_revision
+                    });
+                    if(ok){setPendingAppearance(null);setAppearancePreviewOpen(false);}
+                  }}/>
+                <Button label="Discard appearance changes"
+                  onPress={()=>{setPendingAppearance(null);setAppearancePreviewOpen(false);}}/>
+              </>
+            ):<Text style={styles.cardBody}>{proposal.reason}</Text>;
+          })():null}
+        </Card>
+      ):null}
+
       {s.miniAppsError ? (
         <Card
           eyebrow="BUSY Apps"
@@ -582,12 +641,20 @@ function MiniAppBuilder({ s }) {
   const [standaloneHandoffNotice,setStandaloneHandoffNotice]=React.useState("");
   const [standaloneEligibility,setStandaloneEligibility]=React.useState(null);
   const [standaloneEligibilityBusy,setStandaloneEligibilityBusy]=React.useState(false);
+  const [pendingAppearance,setPendingAppearance]=React.useState(null);
+  const [appearancePreviewOpen,setAppearancePreviewOpen]=React.useState(false);
   const view = s.miniAppsView || {};
   const app = view.app;
   React.useEffect(()=>{
     setStandaloneEligibility(null);
     setStandaloneHandoff(null);
+    setPendingAppearance(null);
+    setAppearancePreviewOpen(false);
   },[app?.id,s.cloudWorkspace?.businessId,s.ownerSession?.userId]);
+  React.useEffect(()=>{
+    setPendingAppearance(null);
+    setAppearancePreviewOpen(false);
+  },[app?.draft_revision]);
   const modules = Array.isArray(view.catalog) ? view.catalog : [];
   const configuredModules = new Map(
     (view.modules || []).map((item) => [item.key, item])
