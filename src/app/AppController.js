@@ -31,6 +31,7 @@ import {recordWebsiteOwnerDesignFeedback,withoutPrivateWebsiteDesignFeedback} fr
 import {voiceUploadEligible} from "../core/websiteVoiceRecordingPolicy.mjs";
 import {planSelectedWebsiteChanges,prepareSelectedWebsiteTransaction} from "../core/websiteContextPlan.mjs";
 import {previewSelectedWebsiteInstruction as prepareWebsiteSelectionPreview} from "../core/websiteSelectedChangePreview.mjs";
+import {planWebsitePageInstructions,prepareWebsitePageInstructionPreview} from "../core/websitePageInstructions.mjs";
 
 try {
   Notifications.setNotificationHandler({
@@ -13233,6 +13234,33 @@ function App() {
     return updated;
   };
 
+  // V3.149: preview and re-approve an exact page-wide, named-section plan.
+  // Page instructions cannot publish, touch another site or execute AI actions.
+  const previewWebsitePageInstruction = ({pageId,generation,instruction}={}) => {
+    const current=websiteDraftRef.current;
+    return prepareWebsitePageInstructionPreview(current,{
+      draftId:current?.id,pageId,generation,instruction},{
+      layoutEdit:applyWebsiteLayoutChange,renderPage:renderWebsiteHtml
+    });
+  };
+  const applyWebsitePageInstruction = ({pageId,generation,instruction}={}) => {
+    const current=websiteDraftRef.current;
+    const plan=planWebsitePageInstructions(current,{
+      draftId:current?.id,pageId,generation,instruction
+    });
+    if(!plan.ok){setWebsiteBuilderNotice(plan.reason);return {applied:false,reason:plan.reason};}
+    const prepared=prepareSelectedWebsiteTransaction(current,plan,{
+      fieldEdit:()=>({applied:false}),layoutEdit:applyWebsiteLayoutChange
+    });
+    setWebsiteBuilderNotice(prepared.reason||"");
+    if(!prepared.applied)return prepared;
+    setWebsiteUndo(items=>[...items,current].slice(-8));
+    setWebsiteRedo([]);
+    websiteDraftRef.current=prepared.draft;
+    setWebsiteDraft(prepared.draft);
+    return prepared;
+  };
+
   // V3.141: send audio to the authenticated transcription-only Operator
   // endpoint, never its command router. The owner reviews words locally before
   // applying a scoped instruction via the existing private Undo/Redo pipeline.
@@ -15883,6 +15911,8 @@ function App() {
     applyWebsiteFieldChange,
     applySelectedWebsiteInstruction,
     previewSelectedWebsiteInstruction,
+    previewWebsitePageInstruction,
+    applyWebsitePageInstruction,
     transcribeSelectedWebsiteAudio,
     applyWebsiteLayoutAction,
     recordMeasuredWebsiteFeedback,

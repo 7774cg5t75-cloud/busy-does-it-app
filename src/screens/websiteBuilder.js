@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, View } from "react-native";
+import { Text, TextInput, View } from "react-native";
 import { WebView } from "react-native-webview";
 
 import { styles } from "../theme/styles";
@@ -584,6 +584,10 @@ function WebsitePreview({ s }) {
   const [candidateCheckResult,setCandidateCheckResult]=React.useState(null);
   const [designCandidateNotice,setDesignCandidateNotice]=React.useState("");
   const [showOriginalComparison,setShowOriginalComparison]=React.useState(false);
+  const [pageInstruction,setPageInstruction]=React.useState("");
+  const [pagePlanPreview,setPagePlanPreview]=React.useState(null);
+  const [showPagePlanOriginal,setShowPagePlanOriginal]=React.useState(false);
+  const [pagePlanNotice,setPagePlanNotice]=React.useState("");
   React.useEffect(()=>{
     setSelectedEdit(null);setVisualCheckResult(null);setVisualCheckOn(false);
     setDesignCandidate(null);setCandidateCheckOn(false);
@@ -591,6 +595,8 @@ function WebsitePreview({ s }) {
     setShowOriginalComparison(false);
   },[selectedPageId,draft?.id,draft?.generation,previewSize]);
   React.useEffect(()=>setViewportEvidence(null),[selectedPageId,draft?.id,draft?.generation]);
+  React.useEffect(()=>{setPagePlanPreview(null);setPagePlanNotice("");setPageInstruction("");
+    setShowPagePlanOriginal(false);},[selectedPageId,draft?.id,draft?.generation]);
   const activePage=draft?.pages?.find(page=>page.id===selectedPageId)||
     draft?.pages?.find(page=>page.id==="home");
   const liveConceptHtml = draft ? renderWebsiteHtml(draft,activePage?.id||"home") : "";
@@ -743,6 +749,69 @@ function WebsitePreview({ s }) {
         <Button primary label={tapEditMode?"Finish tapping — view normally":"Start editing by tapping"}
           onPress={()=>{setSelectedEdit(null);setVisualCheckOn(false);setTapEditMode(x=>!x);}}/>
         {tapEditMode?<Text style={styles.cardBody}>Tap any picture or words. A subtle outline and three small controls appear beside your selection. Nothing is published automatically.</Text>:null}
+      </Card>
+
+      <Card eyebrow="Change several parts together"
+        title="Tell BUSY which sections to adjust"
+        body="Use the section names visible on this page. BUSY checks each instruction, shows the original beside the proposed result and asks you to approve before saving. Unsupported or unclear instructions change nothing."
+        tone="blue">
+        <Text style={styles.cardBody}>Try: Move the services section up; make the hero heading smaller on phones; give the about section more space.</Text>
+        <TextInput value={pageInstruction}
+          onChangeText={value=>{setPageInstruction(value);setPagePlanPreview(null);setPagePlanNotice("");}}
+          multiline maxLength={400}
+          accessibilityLabel="Describe up to five named website page changes"
+          placeholder="Move the services section up; make the hero heading smaller on phones"
+          placeholderTextColor="#97A7BD"
+          style={{minHeight:95,padding:12,borderRadius:12,backgroundColor:"#202D40",color:"#F4F7FE",textAlignVertical:"top"}}/>
+        <Button label="Preview changes — do not save"
+          onPress={()=>{
+            setSelectedEdit(null);setTapEditMode(false);setVisualCheckOn(false);
+            const result=s.previewWebsitePageInstruction?.({
+              pageId:activePage?.id||"home",generation:draft.generation,
+              instruction:pageInstruction
+            });
+            setPagePlanPreview(result?.ok?result:null);
+            setPagePlanNotice(result?.ok?"Original unchanged — review below.":result?.reason||"This request could not be previewed.");
+            setShowPagePlanOriginal(false);
+          }}/>
+        {pagePlanPreview?.ok&&pagePlanPreview.draftId===draft.id&&
+         pagePlanPreview.generation===draft.generation&&
+         pagePlanPreview.pageId===(activePage?.id||"home")?(
+          <View style={{marginVertical:10}}>
+           <Text style={styles.cardBody}>{pagePlanPreview.summary}</Text>
+           {pagePlanPreview.steps.map((step,i)=>(
+             <Text key={String(i)} style={styles.cardBody}>{(i+1)+". "+step}</Text>
+           ))}
+           <Button label={showPagePlanOriginal?"Show proposed design":"Show original design"}
+            onPress={()=>setShowPagePlanOriginal(x=>!x)}/>
+           <View style={{height:325,borderRadius:12,overflow:"hidden",borderColor:"#4A5D78",borderWidth:1}}>
+            <WebView
+             key={String(pagePlanPreview.generation)+":"+previewSize+":"+String(showPagePlanOriginal)}
+             source={{html:withWebsitePreviewViewport(showPagePlanOriginal
+               ?pagePlanPreview.originalHtml:pagePlanPreview.candidateHtml,previewSize),baseUrl:"about:blank"}}
+             style={{flex:1,backgroundColor:"#fff"}}
+             javaScriptEnabled={false} domStorageEnabled={false} incognito
+             javaScriptCanOpenWindowsAutomatically={false}
+             allowFileAccess={false} mixedContentMode="never"
+             onShouldStartLoadWithRequest={req=>req?.url==="about:blank"||
+              String(req?.url||"").startsWith("about:blank#")}/>
+           </View>
+           <Text style={styles.cardBody}>Previewing does not save, consume AI credits or publish. Use the screen-size choices below to compare phone and desktop layouts.</Text>
+           <Button primary label={"Apply "+pagePlanPreview.steps.length+" reviewed changes together"}
+             onPress={()=>{
+              const result=s.applyWebsitePageInstruction?.({
+               pageId:pagePlanPreview.pageId,generation:pagePlanPreview.generation,
+               instruction:pageInstruction
+              });
+              setPagePlanNotice(result?.reason||"No changes were saved.");
+              setPagePlanPreview(null);
+             }}/>
+           <Button label="Discard — keep original" onPress={()=>{
+             setPagePlanPreview(null);setPagePlanNotice("No changes made.");
+           }}/>
+          </View>
+        ):null}
+        {pagePlanNotice?<Text style={styles.cardBody} accessibilityRole="alert">{pagePlanNotice}</Text>:null}
       </Card>
 
       <Card
