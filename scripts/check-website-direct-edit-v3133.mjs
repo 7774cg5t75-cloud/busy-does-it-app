@@ -74,7 +74,7 @@ yes(hours.draft.html.includes("Monday to Friday, 9–5"),"Opening hours shown on
 const cta=edit({sectionId:"hero",field:"cta",value:"Contact our team"});
 yes(cta.applied,"Owner can edit the hero CTA label");
 yes(cta.draft.html.includes("Contact our team"),"CTA label rendered");
-const ctaTarget=edit({sectionId:"hero",field:"ctaHref",value:"#contact"});
+const ctaTarget=edit({sectionId:"hero",field:"ctaHref",value:"#services"});
 yes(ctaTarget.applied,"Owner can select safe existing internal CTA destination");
 const blankBody=edit({sectionId:"about",field:"body",value:""});
 yes(blankBody.applied,"Owner can remove obsolete copy from private draft");
