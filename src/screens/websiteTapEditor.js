@@ -2,6 +2,7 @@ import React from "react";
 import {KeyboardAvoidingView,Modal,Platform,SafeAreaView,ScrollView,Text,TextInput,View} from "react-native";
 import {Button,Card,Field} from "../components/ui";
 import {styles} from "../theme/styles";
+import {interpretSelectedWebsiteRequest} from "../core/websiteContextualEdit.mjs";
 
 const names={
  title:"Heading",body:"Wording",cta:"Button text",ctaHref:"Button destination",
@@ -12,6 +13,9 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange})
  const [value,setValue]=React.useState("");
  const [confirmRemove,setConfirmRemove]=React.useState(false);
  const [showSectionDesign,setShowSectionDesign]=React.useState(false);
+ const [showContextHelp,setShowContextHelp]=React.useState(false);
+ const [contextRequest,setContextRequest]=React.useState("");
+ const [contextNote,setContextNote]=React.useState("");
  const section=list(draft?.sections).find(s=>s.id===selection?.sectionId);
  const item=selection?.itemId?list(section?.items).find(x=>x.id===selection.itemId):null;
  const target=item||section;
@@ -22,6 +26,9 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange})
   setValue(typeof target?.[field]==="string"?target[field]:"");
   setConfirmRemove(false);
   setShowSectionDesign(false);
+  setShowContextHelp(false);
+  setContextRequest("");
+  setContextNote("");
  },[key,draft?.updatedAt]);
  const save=()=>{
   if(!selection||field==="photo")return;
@@ -33,6 +40,21 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange})
  const gallery=list(draft?.sections).find(x=>x.id==="gallery");
  const photos=list(gallery?.items).filter(x=>x?.approved!==false&&typeof x.storagePath==="string"&&x.storagePath.length);
  const photoIndex=selection?.photoIndex??-1;
+ const contextExamples=field==="title"
+  ?["Make this heading bigger","Make this heading smaller"]:
+  field==="photo"?
+    section?.type==="gallery"?["Move this photo to the right","Make this photo bigger"]:
+    section?.type==="photo-feature"?["Move this photo to the right","Crop this photo to the top"]:
+    ["Crop this photo to the top","Make this photo bigger"]:
+  field==="cta"?["Make this button stand out"]:
+  item?[]:["Centre this section","Give this section more space"];
+ const applyContext=(instruction)=>{
+  const result=interpretSelectedWebsiteRequest(draft,selection?.pageId,selection,instruction);
+  if(!result.ok){setContextNote(result.reason);return;}
+  const applied=(result.type==="field"?onTextChange:onLayoutChange)?.(result.change)===true;
+  if(applied){setContextNote("");onClose?.();}
+  else setContextNote("BUSY couldn't apply that change. Check the website notice, or try a simpler request.");
+ };
  const design=section?.appearance||{};
  const appearanceChoice=(field,value,label)=>{
   const current=design[field]||{
@@ -117,6 +139,24 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange})
        ):null}
        {selection&&section?(
         <>
+         <Button label={showContextHelp?"Hide instructions for this part":"Tell BUSY what to do with this part"}
+          onPress={()=>{setContextNote("");setShowContextHelp(x=>!x);}}/>
+         {showContextHelp?(
+          <View>
+           <Text style={styles.cardBody}>BUSY knows exactly what you tapped. Try a suggested change or type one simple instruction. These common edits are instant and use no AI credits.</Text>
+           {contextExamples.map(example=>(
+            <Button key={example} label={example} onPress={()=>applyContext(example)}/>
+           ))}
+           <Field label="What would you like to change?" value={contextRequest}
+            onChangeText={setContextRequest}
+            placeholder={field==="title"?"Make this heading bigger":"Describe one change to this selected part"}
+            autoCapitalize="sentences"/>
+           <Button label="Apply to this selected part" primary
+            onPress={()=>applyContext(contextRequest)}/>
+           {contextNote?<Text style={styles.cardBody} accessibilityRole="alert">{contextNote}</Text>:null}
+           <Text style={styles.cardBody}>Unrecognised requests are never guessed or published. More advanced editing still uses the controls below.</Text>
+          </View>
+         ):null}
          <Button label={showSectionDesign?"Hide individual design choices":"Change how this section looks"}
           onPress={()=>setShowSectionDesign(x=>!x)}/>
          {showSectionDesign?(
