@@ -34,6 +34,8 @@ function nativeShellDescriptor(manifest,{purpose="private_prototype"}={}){
    manifest.chargesCreated!==false||
    manifest.requiresVerifiedBilling!==true)
   return {ok:false,reason:"This is not a validated, owner-reviewed standalone app prototype plan."};
+ if(typeof manifest.appName!=="string"||/[<>\u0000-\u001f]/.test(manifest.appName))
+  return {ok:false,reason:"An unsafe app name cannot be packaged."};
  const name=safeName(manifest.appName);
  if(!name)return {ok:false,reason:"A customer-facing app name is required."};
  const ident=manifest.ownerAppId.replaceAll("-","").slice(0,24);
