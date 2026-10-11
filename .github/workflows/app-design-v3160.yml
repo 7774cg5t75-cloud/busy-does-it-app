@@ -1,0 +1,46 @@
+name: V3.160 App Design Comparison and Usability
+on:
+  push:
+    branches: [v3.160]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  safe-app-design:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Safe design, usability and legacy regression checks
+        run: |
+          node scripts/check-app-design-v3160.mjs
+          node scripts/check-app-visual-review-v3159.mjs
+          node scripts/check-app-builder-v3158.mjs
+          node scripts/check-intelligent-app-studio-v3157.mjs
+          node scripts/check-app-voice-layout-v3156.mjs
+          node scripts/check-native-public-booking-v3155.mjs
+          node scripts/check-app-context-editor-v3155.mjs
+          node scripts/check-app-builder-dual-track-v3153.mjs
+          node scripts/check-standalone-native-v3154.mjs
+          node scripts/check-production.mjs
+      - name: Install native dependencies
+        run: npm install --no-audit --no-fund
+      - name: Validate native and edge syntax
+        run: node scripts/check-app-native-syntax-v3154.mjs
+      - name: Export Busy iOS and Android bundles
+        run: |
+          npx expo export --platform ios --output-dir /tmp/bdi-v3160-ios
+          npx expo export --platform android --output-dir /tmp/bdi-v3160-android
+      - name: Export standalone prototypes
+        run: |
+          node scripts/prepare-standalone-prototype-v3154.mjs
+          cd .tmp/standalone-prototype-v3154
+          ../../node_modules/.bin/expo export --platform ios --output-dir /tmp/bdi-v3160-standalone-ios
+          ../../node_modules/.bin/expo export --platform android --output-dir /tmp/bdi-v3160-standalone-android
+      - name: Release boundary
+        run: echo "Static accessibility advice is not WCAG proof. Private previews are not live apps; CI does not deploy services, sign binaries or publish to stores."
