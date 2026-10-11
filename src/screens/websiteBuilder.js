@@ -19,6 +19,8 @@ import { renderWebsiteHtml } from "../domain/websiteBuilder";
 import {WebsiteContentEditor} from "./websiteContentEditor";
 import {WebsiteLayoutControls} from "./websiteLayoutControls";
 import {WebsitePagesEditor} from "./websitePagesEditor";
+import {WebsiteTapEditor} from "./websiteTapEditor";
+import {makeTapToEditHtml,resolveTapSelection} from "../core/websiteTapToEdit.mjs";
 
 function WebsiteBuilder({ s }) {
   const draft = s.websiteDraft;
@@ -567,9 +569,23 @@ function WebsiteBuilder({ s }) {
 function WebsitePreview({ s }) {
   const draft = s.websiteDraft;
   const [selectedPageId,setSelectedPageId] = React.useState("home");
+  const [tapEditMode,setTapEditMode]=React.useState(false);
+  const [selectedEdit,setSelectedEdit]=React.useState(null);
+  React.useEffect(()=>setSelectedEdit(null),[selectedPageId,draft?.id]);
   const activePage=draft?.pages?.find(page=>page.id===selectedPageId)||
     draft?.pages?.find(page=>page.id==="home");
   const liveConceptHtml = draft ? renderWebsiteHtml(draft,activePage?.id||"home") : "";
+  const interactiveHtml=draft&&tapEditMode
+    ?makeTapToEditHtml(renderWebsiteHtml(draft,activePage?.id||"home",{editablePreview:true}))
+    :liveConceptHtml;
+  const receiveTap=event=>{
+    if(!tapEditMode||!draft)return;
+    try{
+      const raw=JSON.parse(String(event?.nativeEvent?.data||""));
+      const selected=resolveTapSelection(draft,activePage?.id||"home",raw);
+      if(selected)setSelectedEdit(selected);
+    }catch{ /* Untrusted or stale page messages never modify a website. */ }
+  };
   if (!draft) {
     return (
       <Shell s={s} title="Website preview" subtitle="Build a website draft first.">
@@ -623,6 +639,14 @@ function WebsitePreview({ s }) {
         ))}
       </Card>
 
+      <Card eyebrow="Edit by tapping" title="Tap anything you want to change"
+        body="Turn on editing, then tap a heading, paragraph, button or approved picture in the website below. BUSY will show simple controls for that exact part. This is your private draft only."
+        tone="blue">
+        <Button primary label={tapEditMode?"Finish tapping — view normally":"Start editing by tapping"}
+          onPress={()=>{setSelectedEdit(null);setTapEditMode(x=>!x);}}/>
+        {tapEditMode?<Text style={styles.cardBody}>Editing is on. Tap highlighted website words or pictures to change them. Your website remains private until you approve publishing.</Text>:null}
+      </Card>
+
       <Card
         eyebrow="Your design"
         title="This is how your website is taking shape"
@@ -635,11 +659,13 @@ function WebsitePreview({ s }) {
           backgroundColor: "#fff", height: 610,
         }}>
           <WebView
-            key={String(draft?.generation || 1) + ":" + String(activePage?.id||"home") + ":" + String(draft?.updatedAt || "")}
-            source={{ html: liveConceptHtml, baseUrl: "about:blank" }}
+            key={String(draft?.generation || 1) + ":" + String(activePage?.id||"home") + ":" + String(draft?.updatedAt || "") + ":" + String(tapEditMode)}
+            source={{ html: interactiveHtml, baseUrl: "about:blank" }}
             style={{ flex: 1, backgroundColor: "#fff" }}
             originWhitelist={["*"]}
-            javaScriptEnabled={false}
+            javaScriptEnabled={tapEditMode}
+            javaScriptCanOpenWindowsAutomatically={false}
+            onMessage={receiveTap}
             domStorageEnabled={false}
             incognito
             mixedContentMode="never"
@@ -656,11 +682,17 @@ function WebsitePreview({ s }) {
           />
         </View>
         <Text style={[styles.cardBody, { marginTop: 10 }]}>
-          Scroll inside the preview to explore the design. You can change your wording, style or services before preparing a new hosted version.
+          {tapEditMode ? "Tap a website element to edit it in a simple panel. All changes have Undo." : "Scroll inside the preview to explore the design. You can change wording, style or services before preparing a hosted version."}
         </Text>
       </Card>
 
+      <WebsiteTapEditor draft={draft} selection={selectedEdit}
+        onClose={()=>setSelectedEdit(null)}
+        onTextChange={s.applyWebsiteFieldChange}
+        onLayoutChange={s.applyWebsiteLayoutAction}/>
+      {s.websiteBuilderNotice?<Text style={styles.cardBody}>{s.websiteBuilderNotice}</Text>:null}
       {s.canUndoWebsite ? <Button label="Undo last website change" onPress={s.undoWebsiteChange} /> : null}
+      {s.canRedoWebsite ? <Button label="Redo website change" onPress={s.redoWebsiteChange} /> : null}
       <Button label={hosted ? "View hosted website again" : "Prepare private hosted preview"}
         primary onPress={openHosted} />
       <Button label="Edit my website" onPress={() => s.go("websiteBuilder")} />
