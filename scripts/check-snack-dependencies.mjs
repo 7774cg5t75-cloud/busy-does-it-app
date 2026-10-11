@@ -70,6 +70,13 @@ const miniApp=files["src/screens/miniApps.js"].contents;
 assert.ok(miniApp.includes('from "../components/snackQrFallback"'));
 assert.ok(!miniApp.includes('from "react-native-qrcode-svg"'));
 assert.ok(files["src/components/snackQrFallback.js"]);
+assert.ok(files["src/components/snackScreenCapture.js"]);
+assert.ok(miniApp.includes('from "../components/snackScreenCapture"'));
+assert.ok(!miniApp.includes('from "react-native-view-shot"'));
+assert.ok(files["src/components/snackScreenCapture.js"].contents.includes("requires a development build"));
+const captureExample=prepareSource('import {captureScreen} from "react-native-view-shot";',
+  {aiUrl:"",aiToken:""});
+assert.ok(captureExample.includes('from "../components/snackScreenCapture"'));
 assert.ok(files["src/components/snackQrFallback.js"].contents.includes("Open share link"));
 assert.ok(!files["src/components/snackQrFallback.js"].contents.includes("react-native-svg"));
 const importSample=prepareSource(

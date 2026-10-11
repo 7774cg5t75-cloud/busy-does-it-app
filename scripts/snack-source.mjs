@@ -36,6 +36,12 @@ function prepareSource(source, {aiUrl=process.env.EXPO_PUBLIC_BUSY_AI_URL||"",
       'import QRCode from "react-native-qrcode-svg";',
       'import QRCode from "../components/snackQrFallback";'
     )
+    // Real native screenshots require a development build. Expo Go Snack does
+    // not install this native capture module; fail honestly only when pressed.
+    .replaceAll(
+      'import {captureScreen} from "react-native-view-shot";',
+      'import {captureScreen} from "../components/snackScreenCapture";'
+    )
     .replaceAll("process.env.EXPO_PUBLIC_BUSY_AI_URL", JSON.stringify(aiUrl))
     .replaceAll("process.env.EXPO_PUBLIC_BUSY_AI_TOKEN", JSON.stringify(aiToken))
     // Snack maps every internal *.mjs file to *.js. Rewrite imports as well.
