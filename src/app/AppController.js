@@ -185,7 +185,8 @@ import {isBusinessActivityQuestion} from "../domain/businessActivityQuestions.mj
 import {loadVerifiedActivity} from "../domain/verifiedBusinessActivityCloud.mjs";
 import {buildVerifiedActivity,resultBrief} from "../domain/verifiedBusinessActivity.mjs";
 import { validateAiConversationDraft } from "../domain/conversationAiBoundary.mjs";
-import { buildWebsiteDraft, applyWebsiteInstruction, applyStructuredWebsiteEdit, applyWebsiteLayoutChange, rebuildPrivateWebsiteDraft } from "../domain/websiteBuilder";
+import { buildWebsiteDraft, applyWebsiteInstruction, applyStructuredWebsiteEdit, applyWebsiteLayoutChange, applyWebsitePageChange, rebuildPrivateWebsiteDraft } from "../domain/websiteBuilder";
+import {buildPortableWebsiteSource} from "../core/websiteSourceExport.mjs";
 import { applyApprovedVisualProposals } from "../../supabase/functions/busy-website-worker/visualCriticContract.mjs";
 import { buildWebsitePublishingView } from "../domain/websitePublishing";
 import {
@@ -13199,6 +13200,42 @@ function App() {
     return true;
   };
 
+  const applyWebsitePageAction=(operation)=>{
+    if(!websiteDraft){
+      setWebsiteBuilderNotice("Build a website draft before creating extra pages.");
+      return false;
+    }
+    const result=applyWebsitePageChange(websiteDraft,operation);
+    setWebsiteBuilderNotice(result.reason||"");
+    if(!result.applied)return false;
+    setWebsiteUndo(items=>[...items,websiteDraft].slice(-8));
+    setWebsiteRedo([]);
+    setWebsiteDraft(result.draft);
+    return true;
+  };
+  // Explicit user-initiated share. Source export contains public website
+  // business copy only; no private cloud tokens, customer records or images.
+  const shareWebsiteContent=async()=>{
+    const result=buildPortableWebsiteSource(websiteDraft||{});
+    if(!result.ok){
+      setWebsiteBuilderNotice(result.reason);
+      return false;
+    }
+    try{
+      const shared=await Share.share({message:result.json,
+        title:"My Busy Does It website content (JSON)"});
+      setWebsiteBuilderNotice(
+        shared?.action===Share.dismissedAction
+        ?"Website content sharing was cancelled. Nothing was uploaded by BUSY."
+        :"Website content was passed to your phone's share sheet. Check your chosen destination to confirm it was saved."
+      );
+      return shared?.action!==Share.dismissedAction;
+    }catch{
+      setWebsiteBuilderNotice("Unable to open the share sheet. Your website draft remains safe in BUSY.");
+      return false;
+    }
+  };
+
   const undoWebsiteChange = () => {
     if (!websiteUndo.length || !websiteDraft) return false;
     const previous=websiteUndo[websiteUndo.length - 1];
@@ -15590,6 +15627,8 @@ function App() {
     applyWebsiteChange,
     applyWebsiteFieldChange,
     applyWebsiteLayoutAction,
+    applyWebsitePageAction,
+    shareWebsiteContent,
     openWebsiteBuilder,
     askBusyToBuildWebsite,
     askBusyToEditWebsite,
