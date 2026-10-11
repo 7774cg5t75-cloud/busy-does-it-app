@@ -75,7 +75,9 @@ async function upload(req:Request,raw:any,userId:string,businessId:string){
  catch{return fail(400,"The original photograph could not be decoded.");}
  const mime=inspect(bytes);
  if(!mime)return fail(400,"Choose a JPEG, PNG or WebP original no larger than 9 MB.");
- const digest=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes)))
+ const digestInput=new Uint8Array(bytes.length);
+ digestInput.set(bytes);
+ const digest=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",digestInput.buffer)))
   .map(x=>x.toString(16).padStart(2,"0")).join("");
  const known=await supabase.from(TABLE).select("storage_path")
   .eq("business_id",businessId).eq("uploaded_by",userId).eq("sha256",digest).maybeSingle();
