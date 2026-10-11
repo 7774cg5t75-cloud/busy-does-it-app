@@ -35,6 +35,7 @@ function makeTapToEditHtml(html){
  const script=`<script>(function(){
   "use strict";
   var previous=null,toolbar=null,lastPointerY=null;
+  var touchHit=null,touchAt=0;
   var labels=${JSON.stringify(PRIMARY_LABELS)};
   function bridge(action){
    if(!previous)return;
@@ -125,10 +126,22 @@ function makeTapToEditHtml(html){
    // must not have to tab past the entire website to find the toolbar.
    if(toolbar&&!toolbar.hidden)toolbar.querySelector("button[data-action=edit]").focus();
   },true);
+  // Some mobile browsers enlarge tiny text touch targets and retarget a
+  // section-background tap onto the nearest paragraph. Preserve the element
+  // under the actual touch coordinate, without adding permanent controls.
+  document.addEventListener("pointerdown",function(event){
+   var hit=document.elementFromPoint(event.clientX,event.clientY);
+   touchHit=hit&&hit.closest&&hit.closest("[data-busy-edit-section]");
+   touchAt=Date.now();
+  },true);
   document.addEventListener("click",function(event){
    if(toolbar&&toolbar.contains(event.target))return;
    var element=event.target&&event.target.closest&&
      event.target.closest("[data-busy-edit-section]");
+   if(event.detail!==0&&touchHit&&Date.now()-touchAt<800&&
+      (!element||touchHit.contains(element)||element.contains(touchHit)))
+    element=touchHit;
+   touchHit=null;
    if(!element){close();return;}
    event.preventDefault();event.stopPropagation();select(element,event);
   },true);
