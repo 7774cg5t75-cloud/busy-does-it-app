@@ -50,6 +50,9 @@ try{
    const key=draft.generation+":"+currentPage.id+":full";
    const html=makeWebsiteVisualCheckHtml(renderWebsiteHtml(draft,currentPage.id),key);
    await page.setContent(html,{waitUntil:"load"});
+   // setContent uses document.write rather than a full navigation, so bind
+   // the simulated React Native bridge explicitly for this browser fixture.
+   await page.evaluate(()=>{window.ReactNativeWebView={postMessage:json=>window.__busyPreviewReport(json)};});
    await page.waitForFunction((required)=>!!window.__busyPreviewReport&&
      !!document.querySelector("main")&&
      // allow the exact app-owned audit delay; bridge flush is checked outside
@@ -81,6 +84,7 @@ try{
  const failHtml=makeWebsiteVisualCheckHtml('<!doctype html>'+malformed,"failure:home:phone");
  await page.route("https://example.invalid/**",route=>route.abort());
  await page.setContent(failHtml);
+ await page.evaluate(()=>{window.ReactNativeWebView={postMessage:json=>window.__busyPreviewReport(json)};});
  for(let i=0;i<30&&!captures.length;i++)await page.waitForTimeout(100);
  assert.equal(captures.length,1);
  const failed=reviewWebsiteVisualCheck(captures[0],"failure:home:phone");
