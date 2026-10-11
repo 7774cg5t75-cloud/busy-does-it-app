@@ -16,8 +16,9 @@ function reviewPrivateAppServices(config,services){
   if(!row||typeof row!=="object"||Array.isArray(row)||
    Object.keys(row).some(k=>!allowed.has(k))||
    !validText(row.name,120,true)||!validText(row.description??"",600)||
-   !(typeof row.id==="string"&&row.id.length<=80&&
-     (!row.id||/^[a-zA-Z0-9_-]{1,80}$/.test(row.id))))
+   !(row.id===undefined||
+     (typeof row.id==="string"&&row.id.length<=80&&
+      (!row.id||/^[a-zA-Z0-9_-]{1,80}$/.test(row.id)))))
    return {ok:false,reason:"Service details must be owner-written names and descriptions only."};
   const id=row.id||"",name=row.name.trim().toLocaleLowerCase("en");
   if(usedNames.has(name)||(id&&usedIds.has(id)))
@@ -28,7 +29,8 @@ function reviewPrivateAppServices(config,services){
  if(JSON.stringify(before)===JSON.stringify(services))
   return {ok:false,reason:"The service list is already up to date."};
  return {ok:true,nextConfig:{...config,publicProfile:{...config.publicProfile,
-  services:services.map(x=>({id:x.id,name:x.name,description:x.description??""}))}},
+  services:services.map(x=>({...x.id?{id:x.id}:{},name:x.name,
+   description:x.description??""}))}},
   previous:before,description:"Updated "+services.length+" owner-approved services",
   publicUntilApproved:false};
 }

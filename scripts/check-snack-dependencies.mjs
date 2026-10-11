@@ -74,6 +74,9 @@ assert.ok(files["src/components/snackScreenCapture.js"]);
 assert.ok(miniApp.includes('from "../components/snackScreenCapture"'));
 assert.ok(!miniApp.includes('from "react-native-view-shot"'));
 assert.ok(files["src/components/snackScreenCapture.js"].contents.includes("requires a development build"));
+assert.ok(miniApp.includes('from "../components/snackScreenCapture"'));
+const appCaptureExample=prepareSource('import {captureRef} from "react-native-view-shot";');
+assert.ok(appCaptureExample.includes('from "../components/snackScreenCapture"'));
 const captureExample=prepareSource('import {captureScreen} from "react-native-view-shot";',
   {aiUrl:"",aiToken:""});
 assert.ok(captureExample.includes('from "../components/snackScreenCapture"'));

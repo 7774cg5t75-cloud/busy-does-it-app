@@ -6,7 +6,11 @@
 import {previewPrivateAppAppearance} from "./appAppearanceEditing.mjs";
 const MAX_JPEG_BASE64=800000;
 const FIELDS=new Set(["headerStyle","layoutDensity","navigationStyle","imageScale"]);
-const text=(x,max)=>typeof x==="string"?x.trim().slice(0,max):"";
+// Public screenshots may still include phone/email contact information.
+ // Model observations must not repeat that information back as AI prose.
+const text=(x,max)=>typeof x==="string"?x.trim().slice(0,max)
+ .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,"[email withheld]")
+ .replace(/\+?\d[\d ()-]{7,}\d/g,"[phone withheld]"):"";
 const IDENT=/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
 function validateAppScreenshotReview(body){
  if(!IDENT.test(body?.appId||"")||

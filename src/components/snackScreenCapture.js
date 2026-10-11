@@ -2,4 +2,5 @@
 async function captureScreen(){
  throw new Error("Real screenshot capture requires a development build on iOS or Android. Expo Go Snack cannot capture these pixels.");
 }
-export {captureScreen};
+async function captureRef(){return captureScreen();}
+export {captureScreen,captureRef};

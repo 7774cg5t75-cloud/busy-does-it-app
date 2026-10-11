@@ -42,6 +42,10 @@ function prepareSource(source, {aiUrl=process.env.EXPO_PUBLIC_BUSY_AI_URL||"",
       'import {captureScreen} from "react-native-view-shot";',
       'import {captureScreen} from "../components/snackScreenCapture";'
     )
+    .replaceAll(
+      'import {captureRef} from "react-native-view-shot";',
+      'import {captureRef} from "../components/snackScreenCapture";'
+    )
     .replaceAll("process.env.EXPO_PUBLIC_BUSY_AI_URL", JSON.stringify(aiUrl))
     .replaceAll("process.env.EXPO_PUBLIC_BUSY_AI_TOKEN", JSON.stringify(aiToken))
     // Snack maps every internal *.mjs file to *.js. Rewrite imports as well.
