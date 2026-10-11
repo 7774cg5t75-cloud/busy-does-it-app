@@ -17,6 +17,8 @@ import {appDesignQualityReport} from "../core/appDesignQuality.mjs";
 import {auditBusinessAppUsability,compareBusinessAppDesign} from "../core/appUsabilityAudit.mjs";
 import {responsiveAppLayout,recommendResponsiveDesign}
   from "../core/appResponsiveDesign.mjs";
+import {evaluateAppAcrossScreens,compareAppScreenQuality}
+  from "../core/appResponsiveQuality.mjs";
 import {prepareAppDesignIteration,inspectApprovedAppIteration,proposeLowRiskDesignHints}
   from "../core/appDesignIteration.mjs";
 import {prepareAppVisualBatch} from "../core/appVisualComparison.mjs";
@@ -732,6 +734,7 @@ function MiniAppBuilder({ s }) {
   const usability=auditBusinessAppUsability(view.draftConfig||view.activeConfig||{});
   const nonAiDesignHints=proposeLowRiskDesignHints(view.draftConfig||view.activeConfig||{});
   const responsiveGuidance=recommendResponsiveDesign(view.draftConfig||view.activeConfig||{});
+  const responsiveQuality=evaluateAppAcrossScreens(view.draftConfig||view.activeConfig||{});
   const measuredNativeContrast=auditStandaloneContrast();
   const liveMatchesDraft =
     businessAppPreviewProof({app,preview:view.liveVersion}).matches;
@@ -1371,6 +1374,38 @@ function MiniAppBuilder({ s }) {
                       <MetricRow key={change.field} left={change.label}
                         right={String(change.from)+" → "+String(change.to)}/>
                     ))}
+                    {beforeAfter.designOnly?(()=>{
+                      const checked=compareAppScreenQuality(
+                        view.draftConfig,studioPreview.nextConfig);
+                      return checked.ok?(
+                        <>
+                          <Text style={styles.sectionLabel}>
+                            What would change across screen sizes?
+                          </Text>
+                          {checked.widths.map(sample=>(
+                            <View key={"quality-diff-"+sample.id}
+                              style={{marginBottom:9}}>
+                              <MetricRow left={sample.id.replaceAll("_"," ")+" ("+
+                                sample.assumedContentWidth+" pt)"}
+                                right={sample.differences.length?
+                                  sample.differences.length+" predicted layout change(s)":
+                                  "No layout-rule difference"}/>
+                              {sample.differences.map(d=>(
+                                <Text key={"change-"+d.feature}
+                                  style={styles.cardBody}>
+                                  {d.feature+": "+d.before+" → "+d.after}
+                                </Text>
+                              ))}
+                            </View>
+                          ))}
+                          <Text style={styles.cardBody}>
+                            Rules compare the proposed configurations at three
+                            sample widths. No extra AI request, screenshot test
+                            or automatic app change was performed.
+                          </Text>
+                        </>
+                      ):null;
+                    })():null}
                     <Button label={studioComparisonSide==="original"?"✓ Original design":"Show original design"}
                       onPress={()=>setStudioComparisonSide("original")}/>
                     <Button label={studioComparisonSide==="proposed"?"✓ Proposed design":"Show proposed design"}
@@ -1432,6 +1467,36 @@ function MiniAppBuilder({ s }) {
             <MetricRow key={item.id} left={item.id.replaceAll("_"," ")}
               right={item.detail}/>
           ))}
+          <Text style={styles.sectionLabel}>V3.163 • Cross-screen quality checks</Text>
+          {responsiveQuality.ok?(
+            <>
+              <MetricRow left="Example screen widths checked"
+                right={String(responsiveQuality.summary.screenProfiles)}/>
+              <MetricRow left="Runtime layout adaptations"
+                right={String(responsiveQuality.summary.responsiveAdaptations)}/>
+              <MetricRow left="Checks still needing a real device"
+                right={String(responsiveQuality.summary.needsDeviceReview)}/>
+              <MetricRow left="Important public-config concerns"
+                right={String(responsiveQuality.summary.supportedConfigurationConcerns)}/>
+              {responsiveQuality.assessments.map(screen=>(
+                <View key={"quality-screen-"+screen.id}
+                  style={{marginBottom:10}}>
+                  <Text style={styles.sectionLabel}>{screen.label}</Text>
+                  {screen.checks.filter(x=>x.result==="needs_device_review")
+                    .slice(0,3).map(item=>(
+                      <Text key={item.id} style={styles.cardBody}>
+                        {"Still needs checking: "+item.detail}
+                      </Text>
+                    ))}
+                </View>
+              ))}
+              <Text style={styles.cardBody}>
+                BUSY has assessed known layout rules, not measured screenshots,
+                tested booking forms or certified accessibility. Run the listed
+                real-device checks before publishing.
+              </Text>
+            </>
+          ):null}
           <Text style={styles.sectionLabel}>V3.163 • Design for every screen size</Text>
           <Text style={styles.cardBody}>
             BUSY compares three example content widths and predicts how your
