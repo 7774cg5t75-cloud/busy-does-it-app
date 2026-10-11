@@ -24,7 +24,7 @@ import * as Notifications from "expo-notifications";
 import * as Calendar from "expo-calendar/legacy";
 import Constants from "expo-constants";
 import { fetch as expoFetch } from "expo/fetch";
-import { File as ExpoFile } from "expo-file-system";
+import { File as ExpoFile, Paths as ExpoPaths } from "expo-file-system";
 
 try {
   Notifications.setNotificationHandler({
@@ -187,6 +187,8 @@ import {buildVerifiedActivity,resultBrief} from "../domain/verifiedBusinessActiv
 import { validateAiConversationDraft } from "../domain/conversationAiBoundary.mjs";
 import { buildWebsiteDraft, applyWebsiteInstruction, applyStructuredWebsiteEdit, applyWebsiteLayoutChange, applyWebsitePageChange, rebuildPrivateWebsiteDraft } from "../domain/websiteBuilder";
 import {buildPortableWebsiteSource} from "../core/websiteSourceExport.mjs";
+import {buildStandaloneWebsiteArchive} from "../core/websiteStandaloneArchive.mjs";
+import {renderWebsiteHtml} from "../domain/websiteBuilder";
 import { applyApprovedVisualProposals } from "../../supabase/functions/busy-website-worker/visualCriticContract.mjs";
 import { buildWebsitePublishingView } from "../domain/websitePublishing";
 import {
@@ -13236,6 +13238,56 @@ function App() {
     }
   };
 
+  const shareStandaloneWebsiteZip=async()=>{
+    if(!websiteDraft){
+      setWebsiteBuilderNotice("Build a private website draft before exporting its files.");
+      return false;
+    }
+    if(Platform.OS!=="ios"){
+      setWebsiteBuilderNotice("Standalone ZIP sharing currently needs an iPhone; Android export support is still pending.");
+      return false;
+    }
+    // No automatic remote download or blind trust in signed/cloud media URLs.
+    // This reader accepts only original media files available locally to the
+    // current app. A cloud-only image blocks export rather than being omitted.
+    const readOriginalPhoto=async asset=>{
+      const uri=String(asset?.uri||"").trim();
+      if(!/^(?:file|content):\/\//i.test(uri))
+        throw Error("The original photo is not stored on this phone.");
+      const source=new ExpoFile(uri);
+      if(Number(source.size||0)>9*1024*1024)
+        throw Error("Original photo exceeds 9 MB");
+      return source.bytes();
+    };
+    setWebsiteBuilderNotice("Preparing your own portable website ZIP. Checking every original photograph...");
+    try{
+      const archive=await buildStandaloneWebsiteArchive(websiteDraft,{
+        readPhoto:readOriginalPhoto,
+        renderPage:renderWebsiteHtml
+      });
+      if(!archive.ok){
+        setWebsiteBuilderNotice(archive.reason||
+          "The complete website ZIP could not be prepared. Your private draft is unchanged.");
+        return false;
+      }
+      const file=new ExpoFile(ExpoPaths.cache,archive.fileName);
+      file.create({overwrite:true});
+      file.write(archive.bytes);
+      const shared=await Share.share({
+        url:file.uri,
+        title:"Save my portable website ZIP",
+        message:"Complete static website archive (HTML and available approved original images)."
+      });
+      setWebsiteBuilderNotice(shared?.action===Share.dismissedAction
+        ?"Export was cancelled. Nothing was published or changed."
+        :"The ZIP was passed to the iPhone share sheet. Select Save to Files and confirm the file appears there.");
+      return shared?.action!==Share.dismissedAction;
+    }catch{
+      setWebsiteBuilderNotice("ZIP export could not be shared on this phone. Your website is unchanged. Try again or share your JSON content copy.");
+      return false;
+    }
+  };
+
   const undoWebsiteChange = () => {
     if (!websiteUndo.length || !websiteDraft) return false;
     const previous=websiteUndo[websiteUndo.length - 1];
@@ -15629,6 +15681,7 @@ function App() {
     applyWebsiteLayoutAction,
     applyWebsitePageAction,
     shareWebsiteContent,
+    shareStandaloneWebsiteZip,
     openWebsiteBuilder,
     askBusyToBuildWebsite,
     askBusyToEditWebsite,
