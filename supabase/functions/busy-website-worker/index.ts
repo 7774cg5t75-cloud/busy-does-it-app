@@ -134,6 +134,22 @@ function pageSeo(draft: any, page: any) {
   );
 }
 
+/** Match the private website generator's finite presentation tokens.
+ * No raw styles from user or AI content may reach rendered HTML. */
+function sectionAppearanceClasses(section: any) {
+  const fields: Record<string,string[]>={headingScale:["compact","large"],
+    textAlign:["center"],sectionSpacing:["compact","generous"],
+    photoCrop:["top","bottom"],photoSide:["right"],gallerySize:["compact","large"]};
+  const names:Record<string,string>={headingScale:"heading",textAlign:"align",
+    sectionSpacing:"space",photoCrop:"crop",photoSide:"photo",gallerySize:"gallery"};
+  const appearance=section?.appearance;
+  if(!appearance||typeof appearance!=="object"||Array.isArray(appearance))return "";
+  const output:string[]=[];
+  for(const field of Object.keys(fields)) {
+    if(fields[field].includes(appearance[field]))output.push("owner-"+names[field]+"-"+appearance[field]);
+  }
+  return output.join(" ");
+}
 function renderSectionHtml(
   draft: any,
   section: any,
@@ -141,6 +157,8 @@ function renderSectionHtml(
   isFirstSection: boolean
 ) {
   const theme = draft?.theme || {};
+  const sectionClasses=sectionAppearanceClasses(section);
+  const sectionAttrs=sectionClasses?` class="${sectionClasses}"`:"";
   if (section.type === "hero") {
     const image=section.asset?urlForAsset(section.asset,urls):"";
     const imageMarkup=image
@@ -153,13 +171,13 @@ function renderSectionHtml(
     const action=clean(section.cta,120)&&clean(section.ctaHref,500)
       ? `<a class="cta" href="${escapeHtml(section.ctaHref)}">${escapeHtml(section.cta)}</a>`
       : "";
-    return `<section class="hero hero-${escapeHtml(theme.heroSize||"large")} ${image?"hero-with-image":"hero-no-image"}"><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}</div>${imageMarkup}</div></section>`;
+    return `<section class="hero hero-${escapeHtml(theme.heroSize||"large")} ${image?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(headline)}</h1>${lead}${action}</div>${imageMarkup}</div></section>`;
   }
 
   const headingTag = isFirstSection ? "h1" : "h2";
 
   if (section.type === "services") {
-    return `<section id="services"><div class="wrap"><${headingTag}>${escapeHtml(
+    return `<section id="services"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(
       section.title
     )}</${headingTag}><div class="grid">${safeArray(section.items)
       .map(
@@ -174,7 +192,7 @@ function renderSectionHtml(
   if (section.type === "photo-feature") {
     const image=section.asset?urlForAsset(section.asset,urls):"";
     if(!image)return "";
-    return `<section class="photo-feature" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid"><img loading="lazy" src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}"><div><${headingTag}>${escapeHtml(section.title)}</${headingTag}><p>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></div></section>`;
+    return `<section class="photo-feature${sectionClasses?" "+sectionClasses:""}" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid"><img loading="lazy" src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}"><div><${headingTag}>${escapeHtml(section.title)}</${headingTag}><p>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></div></section>`;
   }
   if (section.type === "gallery") {
     const images = safeArray(section.items)
@@ -188,7 +206,7 @@ function renderSectionHtml(
       })
       .filter(Boolean)
       .join("");
-    return `<section id="gallery"><div class="wrap"><${headingTag}>${escapeHtml(
+    return `<section id="gallery"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(
       section.title
     )}</${headingTag}><div class="gallery">${images}</div></div></section>`;
   }
@@ -196,7 +214,7 @@ function renderSectionHtml(
   if (section.type === "testimonials" || section.type === "faq") {
     return `<section id="${escapeHtml(
       section.id
-    )}"><div class="wrap"><${headingTag}>${escapeHtml(
+    )}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(
       section.title
     )}</${headingTag}>${safeArray(section.items)
       .map(
@@ -209,7 +227,7 @@ function renderSectionHtml(
   }
 
   if (section.type === "contact") {
-    return `<section id="contact"><div class="wrap"><${headingTag}>${escapeHtml(
+    return `<section id="contact"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(
       section.title
     )}</${headingTag}><p>${escapeHtml(section.body)}</p>${
       section.phone
@@ -232,7 +250,7 @@ function renderSectionHtml(
 
   return `<section id="${escapeHtml(
     section.id
-  )}"><div class="wrap"><${headingTag}>${escapeHtml(
+  )}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(
     section.title
   )}</${headingTag}><p>${escapeHtml(section.body).replace(
     /\n/g,
