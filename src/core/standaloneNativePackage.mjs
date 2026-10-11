@@ -7,6 +7,7 @@
  * arbitrary AI code, signing keys or live payment interfaces enter the shell.
  */
 import {publicNativeRuntimePlan} from "./nativeAppRuntimePlan.mjs";
+import {OPTIONS as APP_LOOK,DEFAULTS as APP_DEFAULTS} from "./appAppearanceEditing.mjs";
 const UUID=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i;
 const SAFE_MODULES=new Set(["business_profile","services","gallery","contact",
  "enquiry","booking_request","offers","loyalty"]);
@@ -39,6 +40,13 @@ function nativeShellDescriptor(manifest,{purpose="private_prototype",runtimeEvid
   return {ok:false,reason:"An unsafe app name cannot be packaged."};
  const name=safeName(manifest.appName);
  if(!name)return {ok:false,reason:"A customer-facing app name is required."};
+ const submittedLook=manifest.appearance||{};
+ if(typeof submittedLook!=="object"||Array.isArray(submittedLook)||
+   Object.keys(submittedLook).some(k=>
+     !Object.prototype.hasOwnProperty.call(APP_LOOK,k)||
+     !APP_LOOK[k].includes(submittedLook[k])))
+  return {ok:false,reason:"Standalone layout must come from an approved, finite appearance."};
+ const appearance={...APP_DEFAULTS,...submittedLook};
  let liveRuntime=null;
  if(runtimeEvidence){
   const evidence=publicNativeRuntimePlan(runtimeEvidence);
@@ -62,6 +70,8 @@ function nativeShellDescriptor(manifest,{purpose="private_prototype",runtimeEvid
   sourcePreviewVersionId:manifest.previewVersionId,
   sourceDraftRevision:manifest.sourceDraftRevision,
   platformTargets:manifest.platformTargets,
+  appearance,appearanceSource:manifest.appearanceSource==="matching_immutable_private_preview"?
+    "matching_immutable_private_preview":"legacy_private_defaults",
   // Deliberately separate from busydoesit.app, and not a final customer ID.
   iosBundleIdentifier:"co.busydoesit.prototype.a"+ident,
   androidPackage:"co.busydoesit.prototype.a"+ident,

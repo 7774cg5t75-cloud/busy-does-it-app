@@ -10,6 +10,7 @@ import {SafeAreaView,ScrollView,View,Text,TextInput,Pressable,StatusBar,Image,
 import prototype from "./prototype.json";
 import {verifiedPublicRuntime,publicNativeApp} from "./nativeBusinessClient";
 import {sendNativeGuestRequest} from "./nativeGuestRequests";
+const LOOK=prototype.appearance||{};
 const COLORS={bg:"#101827",surface:"#1C293C",text:"#F1F6FF",muted:"#A3B5D0",
  accent:"#6E9EFF",line:"#394A64"};
 const box={backgroundColor:COLORS.surface,borderRadius:15,padding:17,marginBottom:12};
@@ -88,7 +89,7 @@ function LiveInfo({screen,app}){
   <Text style={{...t,fontSize:21,fontWeight:"700"}}>{app.title}</Text>
   <Text style={sub}>{app.tagline||app.about||"Contact this business for more information."}</Text>
   {app.heroUrl?<Image source={{uri:app.heroUrl}}
-    style={{height:190,borderRadius:12,marginTop:12}} resizeMode="cover"/>:null}
+    style={{height:LOOK.imageScale==="large"?285:190,borderRadius:12,marginTop:12}} resizeMode="cover"/>:null}
   {app.tagline&&app.about?<Text style={sub}>{app.about}</Text>:null}
  </View>;
  if(screen.key==="services")return <View style={box}>
@@ -101,7 +102,8 @@ function LiveInfo({screen,app}){
  if(screen.key==="gallery")return <View style={box}>
    <Text style={{...t,fontSize:20,fontWeight:"700"}}>Approved photos</Text>
    {app.gallery?.length?app.gallery.map((photo,i)=>
-     <Image key={i} source={{uri:photo.uri}} style={{height:190,borderRadius:11,marginTop:12}}/>
+     <Image key={i} source={{uri:photo.uri}}
+       style={{height:LOOK.imageScale==="large"?270:190,borderRadius:11,marginTop:12}}/>
     ):<Text style={sub}>No photographs have been approved for this app yet.</Text>}
  </View>;
  if(screen.key==="contact")return <View style={box}>
@@ -135,11 +137,15 @@ export default function App(){
  const chosen=pages.find(x=>x.key===current)||pages[0];
  return <SafeAreaView style={{flex:1,backgroundColor:COLORS.bg}}>
   <StatusBar barStyle="light-content"/>
-  <ScrollView contentContainerStyle={{padding:20,paddingBottom:55}}>
+  <ScrollView contentContainerStyle={{padding:LOOK.layoutDensity==="compact"?13:
+      LOOK.layoutDensity==="airy"?28:20,paddingBottom:55}}>
    <Text style={{color:COLORS.accent,fontSize:12,fontWeight:"700",letterSpacing:1}}>
     {connected?"LIVE PUBLIC BUSINESS APP":"PRIVATE APP PROTOTYPE"}</Text>
    <Text style={{color:COLORS.text,fontSize:28,fontWeight:"800",marginTop:9}}>
     {live?.title||prototype.appName}</Text>
+   <Text style={{color:COLORS.muted,fontSize:12,marginTop:5}}>
+    {"Native layout • "+(LOOK.headerStyle||"refined")+" header • "+(LOOK.navigationStyle||"tabs")+" navigation"}
+   </Text>
    {loading?<ActivityIndicator color={COLORS.accent} style={{marginTop:25}}/>:null}
    {error?<Text style={sub}>{error}</Text>:null}
    {!connected?<Text style={sub}>
@@ -156,6 +162,7 @@ export default function App(){
      {pages.map(item=><Pressable key={item.key} accessibilityRole="button"
       accessibilityLabel={"View "+item.title} onPress={()=>setCurrent(item.key)}
       style={{backgroundColor:item.key===chosen.key?COLORS.accent:COLORS.surface,
+       width:LOOK.navigationStyle==="list"?"100%":undefined,
        paddingHorizontal:13,paddingVertical:11,borderRadius:10}}>
       <Text style={{color:item.key===chosen.key?COLORS.bg:COLORS.text,
        fontWeight:"600"}}>{item.title}</Text>
