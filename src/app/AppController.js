@@ -185,7 +185,7 @@ import {isBusinessActivityQuestion} from "../domain/businessActivityQuestions.mj
 import {loadVerifiedActivity} from "../domain/verifiedBusinessActivityCloud.mjs";
 import {buildVerifiedActivity,resultBrief} from "../domain/verifiedBusinessActivity.mjs";
 import { validateAiConversationDraft } from "../domain/conversationAiBoundary.mjs";
-import { buildWebsiteDraft, applyWebsiteInstruction, applyStructuredWebsiteEdit, rebuildPrivateWebsiteDraft } from "../domain/websiteBuilder";
+import { buildWebsiteDraft, applyWebsiteInstruction, applyStructuredWebsiteEdit, applyWebsiteLayoutChange, rebuildPrivateWebsiteDraft } from "../domain/websiteBuilder";
 import { applyApprovedVisualProposals } from "../../supabase/functions/busy-website-worker/visualCriticContract.mjs";
 import { buildWebsitePublishingView } from "../domain/websitePublishing";
 import {
@@ -13185,6 +13185,20 @@ function App() {
     return true;
   };
 
+  const applyWebsiteLayoutAction = (operation) => {
+    if (!websiteDraft) {
+      setWebsiteBuilderNotice("Build the first website draft before changing its layout.");
+      return false;
+    }
+    const result = applyWebsiteLayoutChange(websiteDraft, operation);
+    setWebsiteBuilderNotice(result.reason || "");
+    if (!result.applied) return false;
+    setWebsiteUndo(items=>[...items, websiteDraft].slice(-8));
+    setWebsiteRedo([]);
+    setWebsiteDraft(result.draft);
+    return true;
+  };
+
   const undoWebsiteChange = () => {
     if (!websiteUndo.length || !websiteDraft) return false;
     const previous=websiteUndo[websiteUndo.length - 1];
@@ -15575,6 +15589,7 @@ function App() {
     buildWebsiteFromBrandBrain,
     applyWebsiteChange,
     applyWebsiteFieldChange,
+    applyWebsiteLayoutAction,
     openWebsiteBuilder,
     askBusyToBuildWebsite,
     askBusyToEditWebsite,
