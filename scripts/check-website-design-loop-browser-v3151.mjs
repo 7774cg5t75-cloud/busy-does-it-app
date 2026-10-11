@@ -27,7 +27,7 @@ async function capture(source){
    assert.equal(stats.overflow,false);
    assert.equal(stats.scriptCount,0);
    assert.ok(stats.content.includes("Customer-supplied wording must not change."));
-   const png=await page.screenshot({type:"png"});
+   const png=await page.screenshot({type:"png",fullPage:true});
    assert.ok(png.byteLength>1000);
    images[kind]=png.toString("base64");
   }finally{await page.close();}
