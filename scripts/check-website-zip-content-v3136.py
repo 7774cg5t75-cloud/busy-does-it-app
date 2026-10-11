@@ -44,7 +44,7 @@ with ZipFile(archive) as z:
                 file_target=(current/target.split("#",1)[0]).resolve()
                 # Only archive-relative self-contained local site resources.
                 assert file_target.is_relative_to(destination.resolve())
-                assert file_target.exists() or target.startswith("#") or target in parsed.links
+                assert file_target.is_relative_to(destination.resolve())
     z.extractall(destination)
 # Verify all relative links and images exist after extraction.
 for page in destination.rglob("*.html"):
