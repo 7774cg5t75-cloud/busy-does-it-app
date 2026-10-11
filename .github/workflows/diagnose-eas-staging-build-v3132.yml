@@ -1,0 +1,27 @@
+name: Diagnose existing failed Expo staging build (read-only)
+on:
+  push:
+    branches: [v3.132]
+    paths:
+      - '.github/workflows/diagnose-eas-staging-build-v3132.yml'
+      - 'scripts/diagnose-eas-staging-build-v3132.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect-failed-build:
+    environment: isolated-staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Read-only existing EAS build metadata (never start another build)
+        run: |
+          test -n "$EXPO_TOKEN" || (echo "Missing protected token" && exit 3)
+          npx --yes eas-cli@latest build:view 9a441a9b-a0c2-4cce-995c-2dfbc3e82564 --json > "$RUNNER_TEMP/failed-build.json"
+          node scripts/diagnose-eas-staging-build-v3132.mjs "$RUNNER_TEMP/failed-build.json"
