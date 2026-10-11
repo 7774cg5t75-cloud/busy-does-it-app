@@ -4,6 +4,7 @@ on:
     branches: [v3.148]
     paths:
       - 'src/core/websiteSelectedChangePreview.mjs'
+      - 'supabase/functions/busy-website-worker/designSystem.mjs'
       - 'src/core/websiteContextPlan.mjs'
       - 'src/core/websiteViewportEvidence.mjs'
       - 'src/core/websiteTapToEdit.mjs'
