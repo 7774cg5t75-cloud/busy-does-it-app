@@ -15,7 +15,7 @@ on:
       - 'scripts/check-website-viewport-coverage-v3147.mjs'
       - 'scripts/check-website-selection-preview-browser-v3148.mjs'
       - 'scripts/check-website-context-plan-browser-v3147.mjs'
-      - '.github/workflows/website-context-workflow-v3148.yml'
+      - '.github/workflows/website-context-preview-v3148.yml'
   workflow_dispatch:
 permissions:
   contents: read
