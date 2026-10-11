@@ -1,4 +1,5 @@
 import { syncWebsitePageModel } from "./websiteManagement";
+import {preserveExportOriginals} from "../core/websiteOriginalMedia.mjs";
 import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";
 import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";
 import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";
@@ -172,7 +173,7 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
   // pages or their authored text. It is a content refresh, not a page deletion.
   const preserved=safeArray(previousDraft?.sections).filter(section=>
     ["text","photo-feature"].includes(section?.type)&&clean(section.id).startsWith("custom-"));
-  const sections=[...buildSections(brief),...preserved.map(section=>({...section}))];
+  const sections=preserveExportOriginals(previousDraft,[...buildSections(brief),...preserved.map(section=>({...section}))]);
   const theme=previousDraft?.theme&&typeof previousDraft.theme==="object"
     ? {...themeFromBrief(brief),...previousDraft.theme}
     : themeFromBrief(brief);
