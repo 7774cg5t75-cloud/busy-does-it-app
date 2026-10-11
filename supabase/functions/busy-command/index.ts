@@ -895,9 +895,11 @@ Deno.serve(async (request: Request) => {
       // A selected website element is kept on-device; no business content or
       // selector is sent to the model and NO action is generated or executed.
       if(form.get("mode")==="website-selection-transcript-v1"){
-        if(audio.size>2_500_000||audio.size<100||
+        // Five-minute recording cap is enforced in the owner UI, while a
+        // server size ceiling protects cloud usage against modified clients.
+        if(audio.size>9_000_000||audio.size<100||
           !["audio/mp4","audio/m4a","audio/x-m4a","audio/aac","application/octet-stream",""].includes(audio.type))
-          return json(413,{error:"Choose a short M4A recording under 2.5 MB."});
+          return json(413,{error:"Voice recording must be M4A and under 9 MB."});
         const rawToken=(request.headers.get("Authorization")||"").replace(/^Bearer\\s+/i,"");
         const url=Deno.env.get("SUPABASE_URL")||"";
         const key=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"";
@@ -906,9 +908,20 @@ Deno.serve(async (request: Request) => {
         const verified=await auth.auth.getUser(rawToken);
         if(verified.error||!verified.data?.user?.id)
           return json(401,{error:"Your editing session has expired. Sign in again."});
+        // This RPC requires the service-role key and an atomic UTC-day usage
+        // reservation. It is intentionally fail-closed until the schema exists.
+        const budget=await auth.rpc("busy_reserve_website_voice_request",
+          {p_owner_user_id:verified.data.user.id});
+        if(budget.error||!Array.isArray(budget.data)||budget.data.length!==1)
+          return json(503,{error:"Voice usage tracking is not ready. Try typing instead; no audio was transcribed."});
+        const allowance=budget.data[0];
+        if(allowance?.allowed!==true)
+          return json(429,{error:"Your 12 selected-website voice requests for today have been used. Type your changes or try tomorrow (UTC)."});
         const transcript=await transcribeAudio(audio);
         return json(200,{mode:"website-selection-transcript-v1",
           transcript:cleanText(transcript,400),requiresReview:true,
+          voiceUsage:{used:Number(allowance.used)||0,remaining:Number(allowance.remaining)||0,
+            dailyLimit:12,period:"UTC day"},
           action:null,command:null});
       }
       const rawContext = cleanText(form.get("context"), 100_000);
