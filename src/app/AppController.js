@@ -35,6 +35,7 @@ import {previewWebsiteAIStudio} from "../core/websiteAIStudio.mjs";
 import {privateBuilderVisualIntegrity} from "../core/privateBuilderBoundary.mjs";
 import {planWebsitePageInstructions,prepareWebsitePageInstructionPreview} from "../core/websitePageInstructions.mjs";
 import {makeWebsiteRecoveryPoint,restoreWebsiteRecoveryPoint as restoreWebsiteRecoverySnapshot} from "../core/websiteRecoveryPoint.mjs";
+import {validateDesignFeedback,normalizeDesignHistory} from "../core/appDesignLearning.mjs";
 
 try {
   Notifications.setNotificationHandler({
@@ -15193,6 +15194,86 @@ function App() {
     }
   };
 
+  // V3.166 per-business design memory is private, bounded, opt-in per owner
+  // feedback action and never reused across an unauthenticated workspace.
+  const getAppDesignLearningStatus=async({appId}={})=>{
+    const currentBusiness=String(cloudWorkspace?.businessId||"");
+    if(!currentBusiness||miniAppsView?.app?.id!==appId)
+      return {ok:false,reason:"Open your signed-in private Business App."};
+    try{
+      const data=await miniAppsRequest("design_learning_status");
+      if(data?.ok!==true||data.businessId!==currentBusiness||
+         cloudWorkspace?.businessId!==currentBusiness||
+         data?.history?.appId!==appId||miniAppsView?.app?.id!==appId)
+        throw Error("Design history business scope changed; refresh before continuing.");
+      const history=normalizeDesignHistory(
+        (data.history.records||[]).map(x=>({
+          app_id:appId,draft_revision:x.draftRevision,
+          feedback_context:x.context,verdict:x.verdict,
+          field:x.field,value:x.value,evidence_source:x.source,
+          baseline_warnings:x.baselineWarnings,
+          proposed_warnings:x.proposedWarnings
+        })),appId);
+      if(!history.ok)throw Error("Private design feedback could not be validated.");
+      return {ok:true,records:history.records,privateOnly:true,
+        noCrossBusinessLearning:true,noModelRetraining:true};
+    }catch(error){
+      return {ok:false,records:[],reason:String(error?.message||
+        "Private design history is not yet available.").slice(0,235)};
+    }
+  };
+  const recordAppDesignPreference=async({
+    appId,expectedRevision,field,value,verdict,context="preview",
+    source="manual",baselineWarnings=null,proposedWarnings=null
+  }={})=>{
+    const businessId=String(cloudWorkspace?.businessId||"");
+    const current=()=>businessId&&cloudWorkspace?.businessId===businessId&&
+      miniAppsView?.app?.id===appId&&
+      Number(miniAppsView?.app?.draft_revision)===Number(expectedRevision);
+    const valid=validateDesignFeedback({
+      appId,expectedRevision,field,value,verdict,context,source,
+      baselineWarnings,proposedWarnings,ownerApproved:true
+    });
+    if(!valid.ok||!current())
+      return {ok:false,reason:valid.reason||"Open the current private draft again."};
+    try{
+      const response=await miniAppsRequest("record_design_feedback",{
+        appId,expectedRevision,field,value,verdict,context,source,
+        baselineWarnings,proposedWarnings,ownerApproved:true
+      });
+      if(!current()||response?.ok!==true||
+         response.businessId!==businessId||response.appId!==appId||
+         response.feedbackRecorded!==true||
+         Number(response.draftRevision)!==Number(expectedRevision)||
+         response.feedbackContext!==context||
+         response.publishedAppUnchanged!==true)
+        throw Error("BUSY could not verify this private owner feedback record.");
+      return {ok:true,saved:true};
+    }catch(error){
+      return {ok:false,reason:String(error?.message||
+        "Owner design feedback could not be saved.").slice(0,230)};
+    }
+  };
+  const clearAppDesignLearning=async({appId}={})=>{
+    const businessId=String(cloudWorkspace?.businessId||"");
+    if(!businessId||miniAppsView?.app?.id!==appId)
+      return {ok:false,reason:"Open the matching private Business App."};
+    try{
+      const response=await miniAppsRequest("clear_design_feedback",{
+        appId,ownerApproved:true
+      });
+      if(response?.ok!==true||response.businessId!==businessId||
+         cloudWorkspace?.businessId!==businessId||
+         response.appId!==appId||response.cleared!==true||
+         response.publicAppUnchanged!==true)
+        throw Error("BUSY could not verify that the right design history was cleared.");
+      return {ok:true,cleared:true};
+    }catch(error){
+      return {ok:false,reason:String(error?.message||
+        "Private design learning could not be cleared.").slice(0,230)};
+    }
+  };
+
   const saveCoordinatedAppChanges=async({operations,appId,expectedRevision}={})=>{
     if(!miniAppsView?.app||miniAppsView.app.id!==appId||
       Number(miniAppsView.app.draft_revision)!==Number(expectedRevision)){
@@ -16521,6 +16602,9 @@ function App() {
     checkPrivateAppVisualReview,
     reviewPrivateAppScreenshot,
     comparePrivateAppScreenshots,
+    getAppDesignLearningStatus,
+    recordAppDesignPreference,
+    clearAppDesignLearning,
     movePrivateAppSection,
     transcribeSelectedAppAudio,
     prepareMiniAppPreview,
