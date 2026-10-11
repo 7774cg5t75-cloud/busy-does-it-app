@@ -48,6 +48,12 @@ assert.ok(editor.includes('showPhotoChoices?"Hide other approved pictures"'));
 assert.ok(editor.includes('const [showPhotoChoices,setShowPhotoChoices]'));
 assert.ok(editor.includes("["+"photoCrop"+",")===false,
  "Selection controls should not construct arbitrary CSS");
+const publishing=read("src/screens/websitePublishing.js");
+assert.ok(publishing.includes("Check phone layout in my private design"),
+ "Owner can open the private mobile layout check from publishing review");
+assert.ok(publishing.includes("reviewedHostedPreview!==preview.id")&&
+ publishing.includes("confirmPublishHostedWebsite(preview.id)"),
+ "Real hosted version and explicit owner approval remain mandatory");
 const css=read("supabase/functions/busy-website-worker/designSystem.mjs");
 assert.ok(css.includes(".gallery-image")&&css.includes("object-fit:cover"),
  "Image frame diagnostics use real styling");
