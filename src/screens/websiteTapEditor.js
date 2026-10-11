@@ -3,6 +3,7 @@ import {Image,KeyboardAvoidingView,Modal,Platform,SafeAreaView,ScrollView,Text,T
 import {Button,Card,Field} from "../components/ui";
 import {styles} from "../theme/styles";
 import {interpretSelectedWebsiteRequest} from "../core/websiteContextualEdit.mjs";
+import {planSelectedWebsiteChanges} from "../core/websiteContextPlan.mjs";
 import {contextualEditExamples} from "../core/contextualEditingCore.mjs";
 import {ownerDesignPreference} from "../core/websiteMeasuredDesignCoach.mjs";
 import {WebsiteSelectedVoice} from "./websiteSelectedVoice";
@@ -17,7 +18,7 @@ const photoPreviewSource=asset=>{
  const uri=typeof asset?.uri==="string"?asset.uri.trim():"";
  return /^(https:\/\/|file:\/\/)/i.test(uri)?{uri}:null;
 };
-function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChange,onLayoutChange,onTranscribe}){
+function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChange,onLayoutChange,onApplyInstruction,onTranscribe}){
  const [value,setValue]=React.useState("");
  const [confirmRemove,setConfirmRemove]=React.useState(false);
  const [showSectionDesign,setShowSectionDesign]=React.useState(false);
@@ -57,7 +58,23 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
   compactHeadingPreference:section?.type==="hero"&&field==="title"
    ?ownerDesignPreference(draft,"compact-hero-title",selection?.pageId):null
  });
+ const preparedInstruction=contextRequest.trim()
+  ?planSelectedWebsiteChanges(draft,selection?.pageId,selection,contextRequest):null;
  const applyContext=(instruction)=>{
+  const plan=planSelectedWebsiteChanges(draft,selection?.pageId,selection,instruction);
+  if(!plan.ok){setContextNote(plan.reason);return;}
+  if(onApplyInstruction){
+   const applied=onApplyInstruction({selection,instruction});
+   if(applied?.applied===true){setContextNote("");onClose?.();return;}
+   setContextNote(applied?.reason||"BUSY couldn't safely make that change. Nothing was saved.");
+   return;
+  }
+  // Existing single-step fallback for screens not using the new controller.
+  // Never apply half a multi-step instruction.
+  if(plan.steps.length!==1){
+   setContextNote("This screen cannot safely apply several changes yet.");
+   return;
+  }
   const result=interpretSelectedWebsiteRequest(draft,selection?.pageId,selection,instruction);
   if(!result.ok){setContextNote(result.reason);return;}
   const applied=(result.type==="field"?onTextChange:onLayoutChange)?.(result.change)===true;
@@ -198,7 +215,20 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
             onChangeText={setContextRequest}
             placeholder={field==="title"?"Make this heading bigger":"Describe one change to this selected part"}
             autoCapitalize="sentences"/>
-           <Button label="Apply reviewed instruction to this part" primary
+           {preparedInstruction?.ok&&preparedInstruction.steps.length>1?(
+            <View style={{marginTop:8,marginBottom:8}}>
+             <Text style={styles.sectionLabel}>These changes will be saved together</Text>
+             {preparedInstruction.steps.map((step,i)=>(
+              <Text key={String(i)} style={styles.cardBody}>
+               {(i+1)+". "+step.spoken}
+              </Text>
+             ))}
+             <Text style={styles.cardBody}>If any step cannot be completed, nothing changes. One Undo restores the original.</Text>
+            </View>
+           ):null}
+           <Button label={preparedInstruction?.ok&&preparedInstruction.steps.length>1
+             ?"Apply "+preparedInstruction.steps.length+" changes together":
+             "Apply reviewed instruction to this part"} primary
             onPress={()=>applyContext(contextRequest)}/>
            {contextNote?<Text style={styles.cardBody} accessibilityRole="alert">{contextNote}</Text>:null}
            <Text style={styles.cardBody}>Unrecognised requests are never guessed or published. More advanced editing still uses the controls below.</Text>
