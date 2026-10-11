@@ -34,7 +34,7 @@ assert.equal(issues.passed,false);
 const preview=read("src/screens/websiteBuilder.js");
 assert.ok(preview.includes("reviewWebsiteVisualCheck(raw,inspectionKey)"),
  "Only matching WebView report reaches app UI");
-assert.ok(preview.includes("javaScriptEnabled={tapEditMode||visualCheckOn}"),
+assert.ok(preview.includes("javaScriptEnabled={tapEditMode||visualCheckOn||candidateCheckOn}"),
  "JavaScript only on explicit private editor/check actions");
 assert.ok(preview.includes("setVisualCheckOn(false)")&&
  preview.includes("setVisualCheckResult(null)"),
