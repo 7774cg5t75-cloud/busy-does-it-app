@@ -10,6 +10,7 @@ import { buildAppDistributionPlan,buildStandalonePrivateHandoff } from "../core/
 import { planFunctionalBusinessApp } from "../core/appExperiencePlanner.mjs";
 import { previewPrivateAppAppearance,OPTIONS as appAppearanceOptions } from "../core/appAppearanceEditing.mjs";
 import { interpretSelectedAppAppearance } from "../core/appContextInstruction.mjs";
+import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.mjs";
 
 function readableDate(value, fallback = "Not yet") {
   if (!value) return fallback;
@@ -102,9 +103,7 @@ function MiniAppSurface({
   loyaltyProgress = null,
 }) {
   const profile = config?.publicProfile || {};
-  const modules = Array.isArray(config?.modules)
-    ? config.modules.filter((item) => item.enabled)
-    : [];
+  const modules = orderedAppModules(config);
   const services = Array.isArray(profile?.services) ? profile.services : [];
   const gallery = Array.isArray(profile?.assets?.gallery)
     ? profile.assets.gallery.filter((item) => String(item?.uri || "").startsWith("https://"))

@@ -6,6 +6,7 @@
  * Never claim a booking is confirmed, enable a payment module, invent content
  * or expose owner/customer data through an unbounded component schema.
  */
+import {orderedAppModules} from "./appSectionOrder.mjs";
 const SUPPORTED=Object.freeze({
  business_profile:{component:"BusinessIdentity",publicRead:true},
  services:{component:"ServiceList",publicRead:true},
@@ -22,7 +23,7 @@ function appRuntimeScreenSchema(config={},catalog=[]){
  const available=new Map(catalog.filter(row=>row?.status==="available"&&
    typeof row.module_key==="string").map(row=>[row.module_key,row]));
  const screens=[],seen=new Set();
- for(const m of config.modules){
+ for(const m of orderedAppModules(config)){
   if(m?.enabled!==true)continue;
   if(typeof m.key!=="string"||!SUPPORTED[m.key]||
      !available.has(m.key)||seen.has(m.key))

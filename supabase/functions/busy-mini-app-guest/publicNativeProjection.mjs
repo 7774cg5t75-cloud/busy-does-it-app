@@ -17,9 +17,14 @@ function publicNativeMiniAppProjection(app,version,{expectedAppId,expectedVersio
   !version.config||typeof version.config!=="object")
   return {ok:false,reason:"This app version is not publicly available."};
  const config=version.config,profile=config.publicProfile||{};
- const moduleKeys=(Array.isArray(config.modules)?config.modules:[])
+ const enabled=(Array.isArray(config.modules)?config.modules:[])
   .filter(m=>m?.enabled===true&&PUBLIC_MODULES.has(m.key))
   .map(m=>m.key);
+ const order=Array.isArray(config.navigation)&&config.navigation.length===enabled.length&&
+   new Set(config.navigation).size===enabled.length&&
+   config.navigation.every(key=>enabled.includes(key))
+    ?config.navigation:enabled;
+ const moduleKeys=[...order];
  if(!moduleKeys.includes("business_profile"))
   return {ok:false,reason:"The business profile is not public."};
  const has=key=>moduleKeys.includes(key);
