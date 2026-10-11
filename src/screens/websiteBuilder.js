@@ -18,6 +18,7 @@ import { websiteDecisionEvidence } from "../core/websiteDecisionEvidence.mjs";
 import { renderWebsiteHtml } from "../domain/websiteBuilder";
 import {WebsiteContentEditor} from "./websiteContentEditor";
 import {WebsiteLayoutControls} from "./websiteLayoutControls";
+import {WebsitePagesEditor} from "./websitePagesEditor";
 
 function WebsiteBuilder({ s }) {
   const draft = s.websiteDraft;
@@ -443,6 +444,7 @@ function WebsiteBuilder({ s }) {
           </Card>
           <WebsiteContentEditor draft={draft} onApply={s.applyWebsiteFieldChange}/>
           <WebsiteLayoutControls draft={draft} onApply={s.applyWebsiteLayoutAction}/>
+          <WebsitePagesEditor draft={draft} onApply={s.applyWebsitePageAction} onShare={s.shareWebsiteContent}/>
         </>
       ) : null}
       <Button label={showWebsiteDetails ? "Hide extra website settings" : "More website settings"}
@@ -564,7 +566,10 @@ function WebsiteBuilder({ s }) {
 
 function WebsitePreview({ s }) {
   const draft = s.websiteDraft;
-  const liveConceptHtml = draft ? renderWebsiteHtml(draft) : "";
+  const [selectedPageId,setSelectedPageId] = React.useState("home");
+  const activePage=draft?.pages?.find(page=>page.id===selectedPageId)||
+    draft?.pages?.find(page=>page.id==="home");
+  const liveConceptHtml = draft ? renderWebsiteHtml(draft,activePage?.id||"home") : "";
   if (!draft) {
     return (
       <Shell s={s} title="Website preview" subtitle="Build a website draft first.">
@@ -608,6 +613,16 @@ function WebsitePreview({ s }) {
         ) : null}
       </Card>
 
+      <Card eyebrow="Select a page" title="Preview the actual page content"
+        body="Choose a page below. BUSY uses your saved page sections, headings and page-specific SEO in the private design preview."
+        tone="blue">
+        {(draft.pages||[]).map(page=>(
+          <Button key={page.id} label={(activePage?.id===page.id?"✓ ":"")+
+            (page.title||page.id)+" • "+(page.path||"/")}
+            onPress={()=>setSelectedPageId(page.id)}/>
+        ))}
+      </Card>
+
       <Card
         eyebrow="Your design"
         title="This is how your website is taking shape"
@@ -620,7 +635,7 @@ function WebsitePreview({ s }) {
           backgroundColor: "#fff", height: 610,
         }}>
           <WebView
-            key={String(draft?.generation || 1) + ":" + String(draft?.updatedAt || "")}
+            key={String(draft?.generation || 1) + ":" + String(activePage?.id||"home") + ":" + String(draft?.updatedAt || "")}
             source={{ html: liveConceptHtml, baseUrl: "about:blank" }}
             style={{ flex: 1, backgroundColor: "#fff" }}
             originWhitelist={["*"]}
