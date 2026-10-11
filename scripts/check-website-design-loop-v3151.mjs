@@ -77,7 +77,7 @@ for(const value of ["BUSY_WEBSITE_AUTONOMOUS_DESIGN_ENABLED",
  'bucket.remove(stagedPaths)',
  'published:false,changesApplied:false'])
  assert.ok(api.includes(value),"Provider boundary: "+value);
-for(const value of ["BUSY_WEBSITE_SCREENSHOT_SECRET",
+for(const value of ["BUSY_SCREENSHOT_SECRET",
  'page.setJavaScriptEnabled(false)',
  'parsed.pathname.includes("/deployments/"+deployment+"/")'])
  assert.ok(read("cloudflare/busy-website-screenshot/worker.js").includes(value));
