@@ -20,6 +20,7 @@ jobs:
         run: |
           node scripts/check-website-completion-integrity-v3152.mjs
           node scripts/check-builder-handoff-v3152.mjs
+          node scripts/check-website-broad-businesses-v3152.mjs
           node scripts/check-website-design-loop-v3151.mjs
           node scripts/check-website-conversation-v3151.mjs
           node scripts/check-website-ai-studio-v3150.mjs
