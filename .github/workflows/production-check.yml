@@ -187,6 +187,11 @@ jobs:
           node scripts/check-app-voice-layout-v3156.mjs
           node scripts/check-app-context-editor-v3155.mjs
 
+      - name: Verify V3.156 bounded app voice and shared section layout
+        run: |
+          node scripts/check-app-voice-layout-v3156.mjs
+          node scripts/check-app-context-editor-v3155.mjs
+
       - name: Verify Expo Snack module dependency graph
         run: node scripts/check-snack-dependencies.mjs
 
