@@ -1,0 +1,45 @@
+name: V3.151 bounded autonomous website designer and conversation
+on:
+  push:
+    branches: [v3.151]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  autonomous-private-design:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify bounded AI studio, multi-turn conversation and legacy safeguards
+        run: |
+          node scripts/check-website-design-loop-v3151.mjs
+          node scripts/check-website-conversation-v3151.mjs
+          node scripts/check-website-ai-studio-v3150.mjs
+          node scripts/check-website-page-voice-v3150.mjs
+          node scripts/check-website-page-instructions-v3149.mjs
+          node scripts/check-visual-review-gateway-v3105.mjs
+          node scripts/check-website-recovery-v3149.mjs
+          node scripts/check-website-portfolio-v3149.mjs
+          node scripts/check-website-voice-reliability-v3142.mjs
+          node scripts/check-production.mjs
+      - name: Install browser and unsigned native export dependencies
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Capture actual Chromium screenshots in autonomous loop
+        run: |
+          node scripts/check-website-design-loop-browser-v3151.mjs
+          node scripts/check-website-ai-studio-browser-v3150.mjs
+          node scripts/check-website-device-style-browser-v3149.mjs
+      - name: Export unsigned JavaScript for iOS and Android
+        run: |
+          npx expo export --platform ios --output-dir /tmp/bdi-v3151-ios
+          npx expo export --platform android --output-dir /tmp/bdi-v3151-android
+      - name: Confirm this run never deploys or buys AI reviews
+        run: echo "Tests use a mocked visual critic, no production provider or publication."
