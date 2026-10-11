@@ -392,59 +392,6 @@ function BusyAppsMarketplace({ s }) {
         />
       </Card>
 
-      {app&&view.draftConfig?(
-        <Card eyebrow="Edit how your app looks"
-          title="Change the private app design"
-          body="Try a header style, spacing or navigation look. BUSY shows an unsaved customer preview first. Keeping it creates a new private draft revision, not a live update."
-          tone="blue">
-          {[
-            ["headerStyle","Header",appAppearanceOptions.headerStyle],
-            ["layoutDensity","Space around content",appAppearanceOptions.layoutDensity],
-            ["navigationStyle","Navigation look",appAppearanceOptions.navigationStyle]
-          ].map(([field,label,values])=>(
-            <View key={field} style={{marginTop:9}}>
-              <Text style={styles.sectionLabel}>{label}</Text>
-              {values.map(value=>(
-                <Button key={value} label={
-                  (pendingAppearance?.field===field&&pendingAppearance?.value===value?"✓ ":"")+
-                  value.replaceAll("-"," ")}
-                  disabled={!!s.miniAppsAction}
-                  onPress={()=>{
-                    setPendingAppearance({field,value});
-                    setAppearancePreviewOpen(true);
-                  }}/>
-              ))}
-            </View>
-          ))}
-          {pendingAppearance?(()=>{
-            const proposal=previewPrivateAppAppearance(view.draftConfig,pendingAppearance);
-            return proposal.ok?(
-              <>
-                <MetricRow left="Proposed change"
-                  right={pendingAppearance.field+" • "+proposal.previous+" → "+proposal.value}/>
-                {appearancePreviewOpen?(
-                  <>
-                    <Text style={styles.cardBody}>Unsaved customer-view preview; no public changes have been made.</Text>
-                    <MiniAppSurface config={proposal.nextConfig}/>
-                  </>
-                ):null}
-                <Button label="Keep this appearance in my PRIVATE app"
-                  primary disabled={!!s.miniAppsAction}
-                  onPress={async()=>{
-                    const ok=await s.savePrivateAppAppearance?.({
-                      ...pendingAppearance,appId:app.id,
-                      expectedRevision:app.draft_revision
-                    });
-                    if(ok){setPendingAppearance(null);setAppearancePreviewOpen(false);}
-                  }}/>
-                <Button label="Discard appearance changes"
-                  onPress={()=>{setPendingAppearance(null);setAppearancePreviewOpen(false);}}/>
-              </>
-            ):<Text style={styles.cardBody}>{proposal.reason}</Text>;
-          })():null}
-        </Card>
-      ):null}
-
       {s.miniAppsError ? (
         <Card
           eyebrow="BUSY Apps"
@@ -1102,6 +1049,59 @@ function MiniAppBuilder({ s }) {
           <Button label="Preview Business App" onPress={s.openMiniAppPreview} />
         ) : null}
       </Card>
+
+      {app&&view.draftConfig?(
+        <Card eyebrow="Edit how your app looks"
+          title="Change the private app design"
+          body="Try a header style, spacing or navigation look. BUSY shows an unsaved customer preview first. Keeping it creates a new private draft revision, not a live update."
+          tone="blue">
+          {[
+            ["headerStyle","Header",appAppearanceOptions.headerStyle],
+            ["layoutDensity","Space around content",appAppearanceOptions.layoutDensity],
+            ["navigationStyle","Navigation look",appAppearanceOptions.navigationStyle]
+          ].map(([field,label,values])=>(
+            <View key={field} style={{marginTop:9}}>
+              <Text style={styles.sectionLabel}>{label}</Text>
+              {values.map(value=>(
+                <Button key={value} label={
+                  (pendingAppearance?.field===field&&pendingAppearance?.value===value?"✓ ":"")+
+                  value.replaceAll("-"," ")}
+                  disabled={!!s.miniAppsAction}
+                  onPress={()=>{
+                    setPendingAppearance({field,value});
+                    setAppearancePreviewOpen(true);
+                  }}/>
+              ))}
+            </View>
+          ))}
+          {pendingAppearance?(()=>{
+            const proposal=previewPrivateAppAppearance(view.draftConfig,pendingAppearance);
+            return proposal.ok?(
+              <>
+                <MetricRow left="Proposed change"
+                  right={pendingAppearance.field+" • "+proposal.previous+" → "+proposal.value}/>
+                {appearancePreviewOpen?(
+                  <>
+                    <Text style={styles.cardBody}>Unsaved customer-view preview; no public changes have been made.</Text>
+                    <MiniAppSurface config={proposal.nextConfig}/>
+                  </>
+                ):null}
+                <Button label="Keep this appearance in my PRIVATE app"
+                  primary disabled={!!s.miniAppsAction}
+                  onPress={async()=>{
+                    const ok=await s.savePrivateAppAppearance?.({
+                      ...pendingAppearance,appId:app.id,
+                      expectedRevision:app.draft_revision
+                    });
+                    if(ok){setPendingAppearance(null);setAppearancePreviewOpen(false);}
+                  }}/>
+                <Button label="Discard appearance changes"
+                  onPress={()=>{setPendingAppearance(null);setAppearancePreviewOpen(false);}}/>
+              </>
+            ):<Text style={styles.cardBody}>{proposal.reason}</Text>;
+          })():null}
+        </Card>
+      ):null}
 
       {s.miniAppsError ? (
         <Card
