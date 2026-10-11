@@ -11,6 +11,7 @@ const list=x=>Array.isArray(x)?x:[];
 function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange}){
  const [value,setValue]=React.useState("");
  const [confirmRemove,setConfirmRemove]=React.useState(false);
+ const [showSectionDesign,setShowSectionDesign]=React.useState(false);
  const section=list(draft?.sections).find(s=>s.id===selection?.sectionId);
  const item=selection?.itemId?list(section?.items).find(x=>x.id===selection.itemId):null;
  const target=item||section;
@@ -20,6 +21,7 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange})
  React.useEffect(()=>{
   setValue(typeof target?.[field]==="string"?target[field]:"");
   setConfirmRemove(false);
+  setShowSectionDesign(false);
  },[key,draft?.updatedAt]);
  const save=()=>{
   if(!selection||field==="photo")return;
@@ -31,6 +33,15 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange})
  const gallery=list(draft?.sections).find(x=>x.id==="gallery");
  const photos=list(gallery?.items).filter(x=>x?.approved!==false&&typeof x.storagePath==="string"&&x.storagePath.length);
  const photoIndex=selection?.photoIndex??-1;
+ const design=section?.appearance||{};
+ const appearanceChoice=(field,value,label)=>{
+  const current=design[field]||{
+   headingScale:"normal",textAlign:"left",sectionSpacing:"normal",
+   photoCrop:"center",photoSide:"left",gallerySize:"comfortable"
+  }[field];
+  return <Button key={field+value} label={(current===value?"✓ ":"")+label}
+    onPress={()=>apply({action:"section-style",sectionId:section?.id,field,value})}/>;
+ };
  return (
   <Modal visible={!!selection} onRequestClose={onClose}
    animationType="slide" presentationStyle="pageSheet">
@@ -102,6 +113,53 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange})
            ):null}
           </>
          )}
+        </>
+       ):null}
+       {selection&&section?(
+        <>
+         <Button label={showSectionDesign?"Hide individual design choices":"Change how this section looks"}
+          onPress={()=>setShowSectionDesign(x=>!x)}/>
+         {showSectionDesign?(
+          <View>
+           <Text style={styles.cardBody}>Change just this section. Other parts of your website keep their own design. Everything can be undone.</Text>
+           <Text style={styles.sectionLabel}>Heading size</Text>
+           {appearanceChoice("headingScale","compact","Smaller heading")}
+           {appearanceChoice("headingScale","normal","Normal heading")}
+           {appearanceChoice("headingScale","large","Larger heading")}
+           <Text style={styles.sectionLabel}>Text alignment</Text>
+           {appearanceChoice("textAlign","left","Align words left")}
+           {appearanceChoice("textAlign","center","Centre this section")}
+           <Text style={styles.sectionLabel}>Space around the section</Text>
+           {appearanceChoice("sectionSpacing","compact","Less space")}
+           {appearanceChoice("sectionSpacing","normal","Normal space")}
+           {appearanceChoice("sectionSpacing","generous","More breathing room")}
+           {["hero","photo-feature","gallery"].includes(section.type)?(
+            <>
+             <Text style={styles.sectionLabel}>Picture crop</Text>
+             {appearanceChoice("photoCrop","top","Focus on the top")}
+             {appearanceChoice("photoCrop","center","Focus on the middle")}
+             {appearanceChoice("photoCrop","bottom","Focus on the bottom")}
+            </>
+           ):null}
+           {section.type==="photo-feature"?(
+            <>
+             <Text style={styles.sectionLabel}>Photo and text arrangement</Text>
+             {appearanceChoice("photoSide","left","Picture on left")}
+             {appearanceChoice("photoSide","right","Picture on right")}
+            </>
+           ):null}
+           {section.type==="gallery"?(
+            <>
+             <Text style={styles.sectionLabel}>Gallery photograph size</Text>
+             {appearanceChoice("gallerySize","compact","Smaller photo tiles")}
+             {appearanceChoice("gallerySize","comfortable","Normal photo tiles")}
+             {appearanceChoice("gallerySize","large","Larger photo tiles")}
+            </>
+           ):null}
+           <Button label="Restore original section style"
+             onPress={()=>apply({action:"reset-section-style",sectionId:section?.id})}/>
+          </View>
+         ):null}
         </>
        ):null}
        <Button label="Cancel — leave website unchanged" onPress={onClose}/>
