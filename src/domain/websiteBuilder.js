@@ -513,8 +513,17 @@ function applyStructuredWebsiteEdit(draft = {}, patch = {}) {
   return result.applied ? {...result, draft: withHtml(result.draft)} : result;
 }
 
-function renderWebsiteHtml(draft = {}) {
-  const sections = safeArray(draft.sections).filter(section => section?.enabled !== false);
+function applyWebsitePageChange(draft = {}, change = {}) {
+  const result=applyWebsiteVisualEdit(draft,{...change,kind:"page"});
+  return result.applied?{...result,draft:withHtml(result.draft)}:result;
+}
+
+function renderWebsiteHtml(draft = {}, pageId = "home") {
+  const page=safeArray(draft.pages).find(p=>p?.id===pageId)||
+    safeArray(draft.pages).find(p=>p?.id==="home")||null;
+  const allowed=new Set(safeArray(page?.sectionIds));
+  const sections = safeArray(draft.sections).filter(section =>
+    section?.enabled !== false && (!page || allowed.has(section.id)));
   const plan = draft.designPlan || planWebsiteDesign({businessType:draft.businessType,businessName:draft.businessName,sections,theme:draft.theme});
   const design = designForWebsite({businessType:draft.businessType,theme:draft.theme,plan});
   const layoutCss = designCss(design);
@@ -538,7 +547,8 @@ function renderWebsiteHtml(draft = {}) {
     const uri=String(asset?.uri||"").trim();
     return /^https:\/\/[^\s"'<>]+$/i.test(uri) ? uri : "";
   };
-  const orderedSections=plan.sectionOrder.map(id=>sections.find(s=>s.id===id)).filter(Boolean);
+  const renderedOrder=page?.id==="home"||!page?plan.sectionOrder:safeArray(page.sectionIds);
+  const orderedSections=renderedOrder.map(id=>sections.find(s=>s.id===id)).filter(Boolean);
   // Only visible sections may be targets for customer navigation or the hero
   // action. Optional empty contact/gallery blocks are intentionally omitted
   // from the HTML, so linking to them would create a broken customer journey.
@@ -576,7 +586,7 @@ function renderWebsiteHtml(draft = {}) {
     if(section.type==="services"||section.type==="faq"||section.type==="testimonials"){
       const items=safeArray(section.items).filter(item=>clean(item?.title||item?.body));
       if(!items.length)return "";
-      return `<section id="${escapeHtml(section.id)}"><div class="wrap"><h2>${escapeHtml(section.title)}</h2><div class="grid">${items.map(item=>`<article><h3>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p>${escapeHtml(item.body)}</p>`:""}</article>`).join("")}</div></div></section>`;
+      return `<section id="${escapeHtml(section.id)}"><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><div class="grid">${items.map(item=>`<article><h3>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p>${escapeHtml(item.body)}</p>`:""}</article>`).join("")}</div></div></section>`;
     }
     if(section.type==="gallery"){
       const images=safeArray(section.items).map(approvedImage).filter(Boolean);
@@ -587,7 +597,7 @@ function renderWebsiteHtml(draft = {}) {
       return `<section id="contact"><div class="wrap"><h2>${escapeHtml(section.title||"Get in touch")}</h2>${clean(section.body)?`<p>${escapeHtml(section.body)}</p>`:""}${clean(phone)?`<p><a href="tel:${escapeHtml(phone.replace(/\s+/g,""))}">${escapeHtml(phone)}</a></p>`:""}${clean(email)?`<p><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>`:""}${clean(section.openingHours)?`<p>${escapeHtml(section.openingHours)}</p>`:""}</div></section>`;
     }
     return clean(section.body)
-      ? `<section id="${escapeHtml(section.id)}"><div class="wrap"><h2>${escapeHtml(section.title)}</h2><p>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></section>`
+      ? `<section id="${escapeHtml(section.id)}"><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><p>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></section>`
       : "";
   }).join("");
   const business=escapeHtml(draft.businessName||"Business website");
@@ -595,7 +605,7 @@ function renderWebsiteHtml(draft = {}) {
   const nav=safeArray(draft.navigation)
     .filter(item=>item?.id&&item?.label&&renderedAnchors.has(String(item.id)))
     .map(item=>`<a href="#${escapeHtml(item.id)}">${escapeHtml(item.label)}</a>`).join("");
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes}"><a class="skip-link" href="#main">Skip to content</a><nav><div class="wrap nav-wrap"><a class="brand" href="#main">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a><div class="nav-links">${nav}</div></div></nav><main id="main">${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.pages?.[page?.id]?.title||draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.pages?.[page?.id]?.description||draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes}"><a class="skip-link" href="#main">Skip to content</a><nav><div class="wrap nav-wrap"><a class="brand" href="#main">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a><div class="nav-links">${nav}</div></div></nav><main id="main">${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
 }
 
 export {
@@ -603,6 +613,7 @@ export {
   applyWebsiteInstruction,
   applyStructuredWebsiteEdit,
   applyWebsiteLayoutChange,
+  applyWebsitePageChange,
   applyCoordinatedWebsiteCopy,
   renderWebsiteHtml,
   withHtml as rebuildPrivateWebsiteDraft,
