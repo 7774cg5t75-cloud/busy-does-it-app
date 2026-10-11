@@ -74,7 +74,7 @@ for(const token of ["applyWebsiteLayoutChange(draft,layoutAdvice.operation)",
  "compareWebsiteVisualReports(visualCheckResult,candidateCheckResult)",
  "makeWebsiteVisualCheckHtml(candidateHtml,candidateKey)",
  "noNewMeasuredProblems","Return to my original design",
- "Keep this design in my private draft","recordWebsiteDesignFeedback"])
+ "Keep this design in my private draft","recordMeasuredWebsiteFeedback"])
  assert.ok(preview.includes(token),"Private candidate preview wiring: "+token);
 const controller=read("src/app/AppController.js");
 assert.ok(controller.includes("recordWebsiteOwnerDesignFeedback(websiteDraftRef.current"));
