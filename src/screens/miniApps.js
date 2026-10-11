@@ -25,6 +25,7 @@ import {prepareAppDesignIteration,inspectApprovedAppIteration,proposeLowRiskDesi
 import {prepareAppVisualBatch} from "../core/appVisualComparison.mjs";
 import {VIEWPORTS,getViewport,validateViewportPair,compareViewportSet,
  coordinateVisualEvidence} from "../core/appVisualMultiViewport.mjs";
+import {rankDesignSuggestions} from "../core/appDesignLearning.mjs";
 import {auditStandaloneContrast} from "../core/appContrastAudit.mjs";
 import {appRequestJourney} from "../core/appRequestLifecycle.mjs";
 import {appVisibleCaptureReceipt,currentAppVisibleCapture} from "../core/appRenderedEvidence.mjs";
@@ -2206,6 +2207,10 @@ function MiniAppPreview({ s }) {
   const [pairReview,setPairReview]=React.useState(null);
   const [pairNotice,setPairNotice]=React.useState("");
   const [designCheckpoint,setDesignCheckpoint]=React.useState(null);
+  const [designMemory,setDesignMemory]=React.useState(null);
+  const [designMemoryBusy,setDesignMemoryBusy]=React.useState(false);
+  const [designMemoryNotice,setDesignMemoryNotice]=React.useState("");
+  const [showDesignMemory,setShowDesignMemory]=React.useState(false);
   const [qualityEnabled,setQualityEnabled]=React.useState(false);
   const [currentMeasurements,setCurrentMeasurements]=React.useState([]);
   const [beforeMeasurements,setBeforeMeasurements]=React.useState([]);
@@ -2230,6 +2235,19 @@ function MiniAppPreview({ s }) {
   React.useEffect(()=>{
     setDesignCheckpoint(null);
   },[appId]);
+  React.useEffect(()=>{
+    let active=true;
+    setDesignMemory(null);setDesignMemoryNotice("");
+    if(appId&&revision>0){
+      s.getAppDesignLearningStatus?.({appId}).then(result=>{
+        if(active)setDesignMemory(result||{ok:false,records:[]});
+      }).catch(()=>{
+        if(active)setDesignMemory({ok:false,records:[],
+          reason:"Private design feedback is unavailable."});
+      });
+    }
+    return ()=>{active=false;};
+  },[appId,revision]);
   React.useEffect(()=>{
     setCapture(null);setCaptureError("");setVisualReport(null);
     setVisualProposal(null);setVisualAllowance(null);setVisualNotice("");
@@ -2335,12 +2353,84 @@ function MiniAppPreview({ s }) {
   const multiviewAssessment=recordedWidths.length?
     compareViewportSet({appId,revision,results:recordedWidths}):null;
   const responsiveSuggestions=recommendResponsiveDesign(config)?.suggestions||[];
+  const rankedDesign=rankDesignSuggestions(config,{
+    history:designMemory?.ok?designMemory.records:[],
+    measured:measuredSuggestions?.suggestions||[],
+    ai:visualReport?.suggestions||[],
+    responsive:responsiveSuggestions
+  });
+  const refreshDesignMemory=async()=>{
+    const response=await s.getAppDesignLearningStatus?.({appId});
+    setDesignMemory(response||{ok:false,records:[],
+      reason:"Private design history is unavailable."});
+    return response;
+  };
+  const recordDesignChoice=async(verdict,context="preview")=>{
+    const operations=context==="saved_revision"?
+      (designCheckpoint?.desiredAppearance||[]).map(x=>({
+        field:x.field,value:x.value
+      })):proposedOperations;
+    if(!Array.isArray(operations)||!operations.length||
+       operations.length>3||designMemoryBusy)return;
+    setDesignMemoryBusy(true);setDesignMemoryNotice("");
+    try{
+      let completed=0;
+      for(const op of operations){
+        const source=context==="saved_revision"?"manual":
+          visualProposal?.explanations?.find(x=>x.field===op.field)?.source||
+          (visualReport?.ok?"ai":measuredReport?.ok?"measured":"responsive");
+        const result=await s.recordAppDesignPreference?.({
+          appId,expectedRevision:revision,field:op.field,value:op.value,
+          verdict,context,source,
+          baselineWarnings:context==="preview"&&presetComparison?.ok?
+            presetComparison.beforeIssueCount:null,
+          proposedWarnings:context==="preview"&&presetComparison?.ok?
+            presetComparison.afterIssueCount:null
+        });
+        if(!result?.ok)throw Error(result?.reason||
+          "Your private design feedback could not be saved.");
+        completed++;
+      }
+      await refreshDesignMemory();
+      setDesignMemoryNotice(completed+" preference(s) recorded for this business only. BUSY will consider them in future private suggestions.");
+      if(context==="preview"&&verdict!=="better"){
+        setVisualProposal(null);setVirtualSamples({});
+      }
+    }catch(error){
+      setDesignMemoryNotice(String(error?.message||
+        "Design feedback was not saved.").slice(0,230));
+    }finally{setDesignMemoryBusy(false);}
+  };
+  const clearDesignMemory=()=>{
+    Alert.alert("Clear this business's design preferences?",
+      "BUSY will delete saved App Builder design feedback for this business. This does not change your private draft, existing published app, customer records or subscription.",
+      [{text:"Cancel",style:"cancel"},{text:"Clear feedback",
+        style:"destructive",onPress:async()=>{
+          setDesignMemoryBusy(true);
+          const cleared=await s.clearAppDesignLearning?.({appId});
+          if(cleared?.ok){
+            await refreshDesignMemory();
+            setDesignMemoryNotice("Private App Builder design preferences were cleared.");
+          }else setDesignMemoryNotice(cleared?.reason||
+            "BUSY could not clear design history.");
+          setDesignMemoryBusy(false);
+        }}]);
+  };
   const prepareCoordinatedReview=()=>{
-    const plan=coordinateVisualEvidence(config,{
+    const baseline=coordinateVisualEvidence(config,{
       measured:measuredSuggestions?.suggestions||[],
       ai:visualReport?.suggestions||[],
       responsive:responsiveSuggestions
     });
+    const plan=designMemory?.ok&&rankedDesign?.preview?.ok?
+      {...rankedDesign.preview,
+        explanations:rankedDesign.reasons.map(x=>({
+          field:x.field,value:x.value,source:x.source,
+          why:"Ranked using "+x.source+" evidence; "+x.ownerPreference+
+            ". Score is a rule-based ordering, not measured success.",
+          tradeoff:x.tradeoff
+        }))}:designMemory?.ok?{ok:false,
+        reason:"No safe, new design choice remains after applying your recorded preferences."}:baseline;
     setVisualProposal(plan.ok?plan:null);
     setVisualSelected([]);
     setVisualNotice(plan.ok?
