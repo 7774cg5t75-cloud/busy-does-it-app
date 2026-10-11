@@ -837,7 +837,7 @@ function MiniAppBuilder({ s }) {
             experience.unavailableGoalCapabilities.join(", ")+
             ". BUSY will not pretend these work."}</Text>
         ):null}
-        {experience.suggestedModules.filter(item=>item.suggested).slice(0,7).map(item=>
+        {experience.suggestedModules.filter(item=>item.suggested).slice(0,7).map(item=>(
           <MetricRow key={item.key} left={item.title} right={item.reason}/>
         ))}
       </Card>
