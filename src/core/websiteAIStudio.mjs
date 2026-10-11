@@ -10,7 +10,7 @@
  * Shared design decisions (not screenshot/evidence payloads) are suitable for
  * reuse by future builders.
  */
-import {applyApprovedVisualProposals} from "../../supabase/functions/busy-website-design-review/visualCriticContract.mjs";
+import {applyApprovedVisualProposals} from "../../supabase/functions/busy-website-worker/visualCriticContract.mjs";
 const fail=reason=>({ok:false,reason,candidates:[]});
 function previewWebsiteAIStudio(draft,{report,pageId="home",sourceGeneration,
   draftId,deploymentId,reviewDeploymentId}={}, {rebuild,render}={}){

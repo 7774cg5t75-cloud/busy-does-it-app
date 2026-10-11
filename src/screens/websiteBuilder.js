@@ -465,7 +465,7 @@ function WebsiteBuilder({ s }) {
                           <Button label="Keep this reviewed alternative in my private draft"
                             onPress={()=>{
                               const selected=aiStudio.candidates[aiStudioChoice];
-                              const kept=s.approveWebsiteVisualSuggestions?.(selected?.count);
+                              const kept=s.approveWebsiteVisualSuggestionCount?.(selected?.count);
                               if(kept)setAiStudio(null);
                               else setAiStudioNotice("This review may be stale. Check the latest design before keeping it.");
                             }}/>
@@ -473,7 +473,7 @@ function WebsiteBuilder({ s }) {
                             onPress={()=>{setAiStudio(null);setAiStudioNotice("No changes made.");}}/>
                         </View>
                        ):null}
-                      <Button label="Approve all suggested design changes in my PRIVATE draft"
+                      <Button label="Approve design changes in my PRIVATE draft"
                         onPress={s.approveWebsiteVisualSuggestions}/>
                     </>
                   ) : (

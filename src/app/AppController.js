@@ -13147,7 +13147,8 @@ function App() {
     },{rebuild:rebuildPrivateWebsiteDraft,render:renderWebsiteHtml});
   };
 
-  const approveWebsiteVisualSuggestions=(candidateCount=null)=>{
+  const approveWebsiteVisualSuggestions=()=>approveWebsiteVisualSuggestionCount(null);
+  const approveWebsiteVisualSuggestionCount=(candidateCount=null)=>{
     const review=websiteVisualReview;
     const scope=(ownerSession?.userId||"")+":"+(cloudWorkspace?.businessId||"");
     const deployment=websitePublishingView?.previewDeployment;
@@ -16003,6 +16004,7 @@ function App() {
     requestWebsiteVisualReview,
     previewWebsiteVisualAlternatives,
     approveWebsiteVisualSuggestions,
+    approveWebsiteVisualSuggestionCount,
     buildWebsiteFromBrandBrain,
     applyWebsiteChange,
     applyWebsiteFieldChange,

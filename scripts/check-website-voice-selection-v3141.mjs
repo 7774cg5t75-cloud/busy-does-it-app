@@ -103,7 +103,7 @@ assert.ok(!voice.includes("submitBusyCommand")&&!voice.includes("executeBusyComm
 assert.ok(voice.includes("requestRecordingPermissionsAsync")&&voice.includes("await recorder.stop()"));
 assert.ok(backend.includes('form.get("mode")==="website-selection-transcript-v1"'));
 assert.ok(backend.includes("auth.auth.getUser(rawToken)")&&backend.includes("audio.size>9_000_000"));
-const start=backend.indexOf('if(form.get("mode")==="website-selection-transcript-v1")');
+const start=backend.indexOf('if(form.get("mode")==="website-selection-transcript-v1"');
 const stop=backend.indexOf('const rawContext = cleanText(form.get("context")',start);
 assert.ok(stop>start&&backend.slice(start,stop).includes("command:null")&&
  !backend.slice(start,stop).includes("routeOperator("),
