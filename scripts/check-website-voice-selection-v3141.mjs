@@ -97,7 +97,7 @@ assert.ok(controller.includes("if(!selectionIsCurrent())return {ok:false,error:"
  "App revalidates selection after asynchronous transcription");
 assert.ok(preview.includes("draftId:draft.id")&&preview.includes("onTranscribe={s.transcribeSelectedWebsiteAudio}"));
 assert.ok(screen.includes('onTranscript={words=>')&&
- screen.includes('Review')&&screen.includes('Apply reviewed instruction'));
+ screen.includes('Please check these words carefully')&&screen.includes('Apply reviewed instruction'));
 assert.ok(!voice.includes("submitBusyCommand")&&!voice.includes("executeBusyCommand"),
  "Selected voice does not route into standard Operator actions");
 assert.ok(voice.includes("requestRecordingPermissionsAsync")&&voice.includes("await recorder.stop()"));
