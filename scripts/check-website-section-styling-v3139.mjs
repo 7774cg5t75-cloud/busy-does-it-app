@@ -59,13 +59,13 @@ assert.ok(gallerySize.applied&&gallerySize.draft.html.includes("owner-gallery-la
 const reset=applyWebsiteLayoutChange(gallerySize.draft,{action:"reset-section-style",sectionId:"services"});
 assert.ok(reset.applied);
 assert.equal(reset.draft.sections.find(s=>s.id==="services").appearance,undefined);
-assert.ok(!reset.draft.html.includes("owner-heading-large"));
+assert.ok(!reset.draft.html.includes('id="services" class="owner-heading-large"'),"Services reset removes the class while shared CSS stays available");
 assert.ok(reset.draft.html.includes("owner-gallery-large"),"Reset affects selected section only");
 const noChange=style(centered.draft,"services","textAlign","center");
 assert.ok(!noChange.applied);
 const defaultChoice=style(centered.draft,"services","textAlign","left");
 assert.ok(defaultChoice.applied);
-assert.ok(!defaultChoice.draft.html.includes("owner-align-center"));
+assert.ok(!defaultChoice.draft.html.includes('id="services" class="owner-heading-large owner-align-center"'),"Resetting alignment does not erase shared global CSS");
 assert.ok(defaultChoice.draft.html.includes("owner-heading-large"));
 for(const [sectionId,field,value] of [
  ["missing","textAlign","center"],
