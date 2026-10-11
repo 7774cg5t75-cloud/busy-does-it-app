@@ -38,7 +38,8 @@ function sanitizeRenderedObservation(raw){
 function mergeRenderedObservations(current,next){
  const valid=sanitizeRenderedObservation(next);
  if(!valid)return {ok:false,reason:"Only finite numeric measurements of public app elements are allowed."};
- const list=Array.isArray(current)?current.filter(x=>sanitizeRenderedObservation(x)).slice(0,64):[];
+ const list=Array.isArray(current)?current.map(sanitizeRenderedObservation)
+   .filter(Boolean).slice(0,64):[];
  const at=list.findIndex(x=>x.key===valid.key);
  if(at>=0){
   const previous=list[at];
