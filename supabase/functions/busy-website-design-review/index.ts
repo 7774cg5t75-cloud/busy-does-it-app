@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {createClient} from "jsr:@supabase/supabase-js@2";
 import {normalizeVisualCritique} from "./visualCriticContract.mjs";
 import {checkScreenshotProof} from "./screenshotProof.mjs";
+import {runPrivateWebsiteDesignLoop,MAX_PASSES,validSource} from "./designLoop.mjs";
 
 /**
  * V3.105 authenticated, gated website screenshot visual critic.
@@ -16,6 +17,7 @@ const RENDERER_SECRET=Deno.env.get("BUSY_WEBSITE_SCREENSHOT_RENDERER_SECRET")||"
 const VISION_KEY=Deno.env.get("OPENAI_API_KEY")||"";
 const VISION_MODEL=Deno.env.get("BUSY_WEBSITE_VISUAL_AI_MODEL")||"";
 const globallyEnabled=Deno.env.get("BUSY_WEBSITE_VISUAL_AI_ENABLED")==="true";
+const autonomousEnabled=Deno.env.get("BUSY_WEBSITE_AUTONOMOUS_DESIGN_ENABLED")==="true";
 const supabase=createClient(URL_BASE,SERVICE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
 const asText=(v:unknown,n=160)=>String(v||"").trim().slice(0,n);
 const json=(status:number,payload:unknown)=>new Response(JSON.stringify(payload),{
@@ -91,6 +93,35 @@ async function runVision(mobile:string,desktop:string,approvedPhotos:number){
  return {proposal,inputTokens:Math.max(0,Number(body.usage?.input_tokens)||0),
    outputTokens:Math.max(0,Number(body.usage?.output_tokens)||0)};
 }
+
+/** Model-only comparison of TWO separately captured private website states. */
+async function compareVision(before:any,after:any,approvedPhotos:number){
+ const instruction=[
+  "You are BUSY DOES IT's safety-conscious website design critic.",
+  "Images 1-2 show original mobile and desktop. Images 3-4 show new rendered mobile and desktop.",
+  "Only report 'better' if the new layout is visibly better in some important respect AND clearly no worse on BOTH devices.",
+  "Report 'worse' for regressions, cropped content, unclear CTAs, accessibility concerns or overflow. Use 'unclear' when subjective or evidence insufficient.",
+  "Never invent business facts or recommend changing text, photos, service claims, contact details or publishing.",
+  "Allowed next suggestions: theme.heroLayout (image-right,image-left,image-frame,image-feature,type-left,type-right,type-center,type-poster), theme.cardLayout (cards,outlines,rows), theme.navStyle (quiet,underline,pill), theme.ornament (ripple,arch,glow,stripes), theme.typography (confident,refined,compact), theme.spacing (comfortable,generous).",
+  "Return JSON only: {\"verdict\":\"better|worse|unclear\",\"reason\":\"short comparison reason\",\"summary\":\"short review\",\"proposals\":[{\"path\":\"theme.cardLayout\",\"value\":\"rows\",\"reason\":\"short reason\"}]}."
+ ].join("\n");
+ const response=await fetch("https://api.openai.com/v1/responses",{
+  method:"POST",headers:{"Authorization":"Bearer "+VISION_KEY,"Content-Type":"application/json"},
+  body:JSON.stringify({model:VISION_MODEL,store:false,max_output_tokens:670,
+   input:[{role:"user",content:[{type:"input_text",text:instruction},
+    ...[before.mobile,before.desktop,after.mobile,after.desktop].map(base64=>({
+      type:"input_image",image_url:"data:image/png;base64,"+base64,detail:"low"
+    }))]}]}),signal:AbortSignal.timeout(28000)
+ });
+ if(!response.ok)throw Error("AI comparison unavailable");
+ const body=await response.json(),parsed=extractResponse(body);
+ const normalized=normalizeVisualCritique({...parsed,reviewedScreenshots:true},{approvedPhotos});
+ if(!normalized.valid)throw Error("AI returned unsupported proposals");
+ return {...normalized,verdict:["better","worse","unclear"].includes(parsed.verdict)?
+   parsed.verdict:"unclear",reason:asText(parsed.reason,180),
+   reviewedScreenshots:true,inputTokens:Math.max(0,Number(body.usage?.input_tokens)||0),
+   outputTokens:Math.max(0,Number(body.usage?.output_tokens)||0)};
+}
 Deno.serve(async(request:Request)=>{
  if(request.method==="OPTIONS")return json(200,{ok:true});
  if(request.method!=="POST")return json(405,{error:"POST required"});
@@ -111,7 +142,7 @@ Deno.serve(async(request:Request)=>{
     .in("role",["owner","admin"]).maybeSingle();
   if(membership.error||!membership.data)return json(403,{error:"Business owner/admin access required"});
   const action=asText(body.action,24)||"status";
-  if(!["status","review"].includes(action))return json(400,{error:"Unsupported action"});
+  if(!["status","review","studio"].includes(action))return json(400,{error:"Unsupported action"});
   // Billing preferences and remaining allowance must never come from client.
   const limit=await supabase.from("busy_website_visual_ai_limits")
     .select("enabled,monthly_request_cap").eq("business_id",businessId).maybeSingle();
@@ -127,11 +158,20 @@ Deno.serve(async(request:Request)=>{
   if(action==="status")
     return json(200,{ok:true,enabled,remaining:Math.max(0,cap-used),monthlyLimit:cap,
       used,requiresOwnerConsent:true,modelReviewReady:ready(),
+      studioReady:enabled&&autonomousEnabled,maxStudioPasses:MAX_PASSES,
       message:enabled?"BUSY can review your private hosted website using one AI credit."
         :"Visual AI review is not enabled for this business yet. Existing website previews remain available."});
   if(!enabled)return json(503,{error:"Visual AI review is not enabled or configured"});
   if(body.ownerConsent!==true)return json(400,{error:"Owner consent required before sending screenshots to AI"});
   if(used>=cap)return json(429,{error:"Monthly website design review allowance reached"});
+  const requestedPasses=action==="studio"?Number(body.maxPasses):0;
+  if(action==="studio"){
+   if(!autonomousEnabled)return json(503,{error:"Autonomous visual re-review is not enabled. Existing preview and manual design editing remain available."});
+   if(!Number.isSafeInteger(requestedPasses)||requestedPasses<1||requestedPasses>MAX_PASSES)
+    return json(400,{error:"Choose one, two or three bounded review passes."});
+   if(cap-used<requestedPasses+1)
+    return json(429,{error:"A studio run needs up to "+(requestedPasses+1)+" remaining visual AI review credits. No credits were reserved."});
+  }
   if(!validUuid(deploymentId))return json(400,{error:"Select an existing hosted preview"});
   const website=await supabase.from("busy_websites").select("id,site_key")
     .eq("business_id",businessId).eq("site_key","main").maybeSingle();
@@ -149,6 +189,104 @@ Deno.serve(async(request:Request)=>{
   const key=asText(body.requestKey,160);
   if(key.length<8||key.length>160||!/^[a-zA-Z0-9:_-]+$/.test(key))
     return json(400,{error:"A unique request key is needed"});
+  if(action==="studio"){
+    // Only the authenticated owner's previously hosted preview is accepted.
+    // All candidate pages are server-generated from its immutable HTML and
+    // kept in the same private deployment prefix until this request ends.
+    let consumed=0,inputTokens=0,outputTokens=0;
+    const stagedPaths:string[]=[];
+    const studioScope=key.replace(/[^a-zA-Z0-9_-]/g,"-").slice(0,92);
+    const runId=studioScope+"-"+deploymentId.slice(0,8);
+    const bucket=supabase.storage.from("busy-website-preview");
+    const reserveCall=async(suffix:string)=>{
+      const reservation=await supabase.rpc("busy_reserve_website_visual_ai_call",{
+        p_business_id:businessId,p_request_key:key+":"+suffix});
+      if(reservation.error||!validUuid(String(reservation.data||"")))
+        throw Error("An additional metered visual review could not be reserved");
+      consumed++;
+      return String(reservation.data);
+    };
+    const executeCharge=async(label:string,task:()=>Promise<any>)=>{
+      const reserved=await reserveCall(label);
+      let state:"failed"|"completed"="failed",inTok=0,outTok=0;
+      try{
+        const response=await task();
+        inTok=Math.max(0,Number(response.inputTokens)||0);
+        outTok=Math.max(0,Number(response.outputTokens)||0);
+        inputTokens+=inTok;outputTokens+=outTok;
+        state="completed";return response;
+      }finally{
+        await supabase.rpc("busy_finish_website_visual_ai_call",{
+          p_business_id:businessId,p_call_id:reserved,p_state:state,
+          p_input_tokens:inTok,p_output_tokens:outTok
+        });
+      }
+    };
+    try{
+      const original=await bucket.download(deployment.data.preview_storage_path);
+      if(original.error||!original.data)throw Error("Original private hosted preview unavailable");
+      const originalHtml=await original.data.text();
+      if(!validSource(originalHtml,deploymentId))
+        throw Error("Original preview is not a safe, exact hosted website");
+      const signed=await bucket.createSignedUrl(deployment.data.preview_storage_path,600);
+      if(signed.error||!signed.data?.signedUrl)throw Error("Signing the hosted preview failed");
+      const baselineCapture=await Promise.all([
+        imageFromTrustedRenderer(signed.data.signedUrl,{width:390,height:844},deploymentId),
+        imageFromTrustedRenderer(signed.data.signedUrl,{width:1440,height:900},deploymentId)
+      ]);
+      const baseline={mobile:baselineCapture[0],desktop:baselineCapture[1],verified:true};
+      const approvedPhotos=Number(deployment.data.source_draft?.designPlan?.signals?.approvedPhotos||0);
+      const first=await executeCharge("original",()=>runVision(baseline.mobile,baseline.desktop,approvedPhotos));
+      const result=await runPrivateWebsiteDesignLoop({
+        html:originalHtml,deploymentId,firstReport:first.proposal,
+        approvedPhotos,maxPasses:requestedPasses,baseline
+      },{
+        captureCandidate:async({html,pass}:any)=>{
+          if(!Number.isSafeInteger(pass)||pass<1||pass>requestedPasses)
+            throw Error("Invalid design pass");
+          const path=prefix+"studio/"+runId+"/pass-"+pass+".html";
+          const uploaded=await bucket.upload(path,
+            new Blob([html],{type:"text/html"}),{
+              contentType:"text/html",cacheControl:"0",upsert:false
+            });
+          if(uploaded.error)throw Error("Temporary private design preview could not be saved");
+          stagedPaths.push(path);
+          const url=await bucket.createSignedUrl(path,600);
+          if(url.error||!url.data?.signedUrl)throw Error("Temporary preview could not be signed");
+          const [mobile,desktop]=await Promise.all([
+            imageFromTrustedRenderer(url.data.signedUrl,{width:390,height:844},deploymentId),
+            imageFromTrustedRenderer(url.data.signedUrl,{width:1440,height:900},deploymentId)
+          ]);
+          return {mobile,desktop,verified:true};
+        },
+        compareScreenshots:async({baseline,candidate,pass}:any)=>
+          executeCharge("compare-"+pass,()=>compareVision(baseline,candidate,approvedPhotos))
+      });
+      if(!result.ok)throw Error(result.reason);
+      return json(200,{ok:true,businessId,deploymentId,
+        sourceGeneration:deployment.data.source_generation,
+        passes:result.passes,completedPasses:result.completedPasses,
+        bestChanges:result.bestChanges,
+        report:{
+          valid:true,providerConfirmed:true,source:"actual-screenshot-review",
+          modelSummary:result.completedPasses
+            ?"BUSY inspected original and revised mobile and desktop screenshots across "+
+              result.completedPasses+" accepted pass(es). Owner approval is still required."
+            :"BUSY did not find a verified improvement. The original design should be kept.",
+          proposals:result.bestChanges,requiresOwnerReview:true
+        },
+        reviewCalls:consumed,usage:{inputTokens,outputTokens},
+        published:false,changesApplied:false,requiresOwnerApproval:true,
+        message:"BUSY completed a bounded, metered real-screenshot review. No website was edited or published."});
+    }finally{
+      // Fail closed and clean private temporary artifacts even if a chargeable
+      // provider fails. No screenshots or signed storage URLs are retained here.
+      if(stagedPaths.length){
+        const cleanup=await bucket.remove(stagedPaths);
+        if(cleanup.error)console.error("website-studio-cleanup",cleanup.error.message);
+      }
+    }
+  }
   const reserve=await supabase.rpc("busy_reserve_website_visual_ai_call",{
     p_business_id:businessId,p_request_key:key});
   if(reserve.error)return json(503,{error:"Could not reserve visual AI allowance"});
