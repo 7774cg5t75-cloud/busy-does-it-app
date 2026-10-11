@@ -14,7 +14,8 @@ for(const html of ["","bad","<!doctype html><body><script>alert(1)</script></bod
 assert.throws(()=>makeWebsiteVisualCheckHtml(literal,'"</script>'));
 const base={channel:CHANNEL,key:"12:home:phone",viewport:390,width:390,
  overflow:0,images:2,missingAlt:0,unloadedImages:0,smallTargets:0,
- badAnchors:0,clippedHeadings:0,headings:2,sections:3};
+ badAnchors:0,clippedHeadings:0,headings:2,sections:3,
+ lowContrast:0,smallBodyText:0,contrastUnknown:0,contrastChecked:2};
 const clean=reviewWebsiteVisualCheck(base,"12:home:phone");
 assert.ok(clean.passed&&clean.issues.length===0);
 assert.ok(clean.message.includes("Still inspect"));
