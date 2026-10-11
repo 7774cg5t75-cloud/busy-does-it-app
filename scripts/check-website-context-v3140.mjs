@@ -32,9 +32,12 @@ const brand={websiteReady:true,websiteBrief:{businessName:"Devon Gardens",busine
  photos:[photo,second],heroAsset:photo,faqs:[{id:"visits",question:"Can you visit?",answer:"Yes."}]}};
 const draft=buildWebsiteDraft({brandBrain:brand});
 const original=JSON.stringify(draft);
-const selected=(sectionId,field,itemId="",photoIndex=-1)=>({sectionId,field,itemId: itemId||null,
- photoIndex,pageId:"home",generation:draft.generation});
-const ask=(target,text,working=draft)=>interpret(working,"home",target,text);
+const selected=(sectionId,field,itemId="",photoIndex=-1)=>{
+ const page=draft.pages.find(p=>p.sectionIds.includes(sectionId));
+ return {sectionId,field,itemId:itemId||null,photoIndex,
+  pageId:page?.id||"home",generation:draft.generation};
+};
+const ask=(target,text,working=draft)=>interpret(working,target.pageId,target,text);
 const apply=plan=>plan.type==="field"?applyStructuredWebsiteEdit(draft,plan.change):
  applyWebsiteLayoutChange(draft,plan.change);
 let count=0;const check=(value,message)=>{assert.ok(value,message);count++;};
