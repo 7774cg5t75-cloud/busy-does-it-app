@@ -88,8 +88,11 @@ function LiveInfo({screen,app}){
  if(screen.key==="business_profile")return <View style={box}>
   <Text style={{...t,fontSize:21,fontWeight:"700"}}>{app.title}</Text>
   <Text style={sub}>{app.tagline||app.about||"Contact this business for more information."}</Text>
-  {app.heroUrl?<Image source={{uri:app.heroUrl}}
-    style={{height:LOOK.imageScale==="large"?285:190,borderRadius:12,marginTop:12}} resizeMode="cover"/>:null}
+  {app.heroUrl?<Image source={{uri:app.heroUrl}} accessible
+    accessibilityRole="image" accessibilityLabel="Business cover photo"
+    style={{height:LOOK.imageScale==="large"?285:190,
+      borderRadius:LOOK.imageCorners==="square"?2:12,marginTop:12}}
+    resizeMode="cover"/>:null}
   {app.tagline&&app.about?<Text style={sub}>{app.about}</Text>:null}
  </View>;
  if(screen.key==="services")return <View style={box}>
@@ -101,10 +104,15 @@ function LiveInfo({screen,app}){
  </View>;
  if(screen.key==="gallery")return <View style={box}>
    <Text style={{...t,fontSize:20,fontWeight:"700"}}>Approved photos</Text>
-   {app.gallery?.length?app.gallery.map((photo,i)=>
-     <Image key={i} source={{uri:photo.uri}}
-       style={{height:LOOK.imageScale==="large"?270:190,borderRadius:11,marginTop:12}}/>
-    ):<Text style={sub}>No photographs have been approved for this app yet.</Text>}
+   {app.gallery?.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>
+     {app.gallery.map((photo,i)=>
+       <Image key={i} source={{uri:photo.uri}} accessible accessibilityRole="image"
+        accessibilityLabel={String(photo.alt||photo.caption||"Business photo "+(i+1))}
+        style={{width:LOOK.galleryLayout==="stack"?"100%":
+          LOOK.imageScale==="large"&&LOOK.galleryLayout!=="grid"?"100%":"48%",
+          height:LOOK.galleryLayout==="stack"?270:LOOK.imageScale==="large"?220:190,
+          borderRadius:LOOK.imageCorners==="square"?2:11,marginTop:12}}/>
+     )}</View>:<Text style={sub}>No photographs have been approved for this app yet.</Text>}
  </View>;
  if(screen.key==="contact")return <View style={box}>
    <Text style={{...t,fontSize:20,fontWeight:"700"}}>Contact</Text>
