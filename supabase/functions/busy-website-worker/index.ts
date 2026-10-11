@@ -201,8 +201,9 @@ function renderSectionHtml(
     const images = safeArray(section.items)
       .map((item: any, index: number) => {
         const url = urlForAsset(item, urls, index);
-        const crop=["top","bottom"].includes(item?.appearance?.photoCrop)
-          ?" owner-image-crop-"+item.appearance.photoCrop:"";
+        const crop=(["top","bottom"].includes(item?.appearance?.photoCrop)
+          ?" owner-image-crop-"+item.appearance.photoCrop:"")+
+          (item?.appearance?.photoFit==="contain"?" owner-image-fit-contain":"");
         return url
           ? `<img class="gallery-image${crop}" src="${escapeHtml(
               url
