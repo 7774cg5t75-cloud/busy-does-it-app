@@ -21,7 +21,7 @@ import {WebsiteContentEditor} from "./websiteContentEditor";
 import {WebsiteLayoutControls} from "./websiteLayoutControls";
 import {WebsitePagesEditor} from "./websitePagesEditor";
 import {WebsiteTapEditor} from "./websiteTapEditor";
-import {makeTapToEditHtml,resolveTapSelection} from "../core/websiteTapToEdit.mjs";
+import {makeTapToEditHtml,resolveTapToolbarAction} from "../core/websiteTapToEdit.mjs";
 import {makeWebsiteVisualCheckHtml,reviewWebsiteVisualCheck,CHANNEL as VISUAL_CHECK_CHANNEL} from "../core/websiteVisualCheck.mjs";
 
 function WebsiteBuilder({ s }) {
@@ -618,8 +618,13 @@ function WebsitePreview({ s }) {
         return;
       }
       if(!tapEditMode||visualCheckOn||designCandidate)return;
-      const selected=resolveTapSelection(draft,activePage?.id||"home",raw);
-      if(selected)setSelectedEdit({...selected,draftId:draft.id,pageId:activePage?.id||"home",generation:draft.generation});
+      // Selection alone never opens a large editing modal. The context
+      // toolbar is the single obvious action surface; every message is
+      // revalidated against the exact enabled website page and element.
+      const resolved=resolveTapToolbarAction(draft,activePage?.id||"home",raw);
+      if(resolved)setSelectedEdit({...resolved.selection,
+        initialMode:resolved.action,draftId:draft.id,
+        pageId:activePage?.id||"home",generation:draft.generation});
     }catch{ /* Untrusted or stale page messages never modify a website. */ }
   };
   const layoutAdvice=visualCheckResult&&!designCandidate
@@ -718,11 +723,11 @@ function WebsitePreview({ s }) {
       </Card>
 
       <Card eyebrow="Edit by tapping" title="Tap anything you want to change"
-        body="Turn on editing, then tap a heading, paragraph, button or approved picture in the website below. BUSY will show simple controls for that exact part. This is your private draft only."
+        body="Start editing, tap the exact picture or words, then use the small floating toolbar to edit, talk to BUSY or see more options. Everything stays private."
         tone="blue">
         <Button primary label={tapEditMode?"Finish tapping — view normally":"Start editing by tapping"}
           onPress={()=>{setSelectedEdit(null);setVisualCheckOn(false);setTapEditMode(x=>!x);}}/>
-        {tapEditMode?<Text style={styles.cardBody}>Editing is on. Tap highlighted website words or pictures to change them. Your website remains private until you approve publishing.</Text>:null}
+        {tapEditMode?<Text style={styles.cardBody}>Tap any picture or words. A subtle outline and three small controls appear beside your selection. Nothing is published automatically.</Text>:null}
       </Card>
 
       <Card
@@ -817,11 +822,12 @@ function WebsitePreview({ s }) {
           />
         </View>
         <Text style={[styles.cardBody, { marginTop: 10 }]}>
-          {candidateCheckOn ? "Reviewing the private alternative at this width…" : showOriginalComparison ? "Your unchanged original design is shown." : visualCheckOn ? "Checking the rendered layout at this width. This may take a moment." : tapEditMode ? "Tap a website element to edit it in a simple panel. All changes have Undo." : "Scroll inside the preview to explore the design. You can change wording, style or services before preparing a hosted version."}
+          {candidateCheckOn ? "Reviewing the private alternative at this width…" : showOriginalComparison ? "Your unchanged original design is shown." : visualCheckOn ? "Checking the rendered layout at this width. This may take a moment." : tapEditMode ? "Tap what you want to change. Then choose Edit, the microphone, or More. All changes have Undo." : "Scroll inside the preview to explore the design. You can change wording, style or services before preparing a hosted version."}
         </Text>
       </Card>
 
       <WebsiteTapEditor draft={draft} selection={selectedEdit}
+        initialMode={selectedEdit?.initialMode||"edit"}
         onClose={()=>setSelectedEdit(null)}
         onTextChange={s.applyWebsiteFieldChange}
         onLayoutChange={s.applyWebsiteLayoutAction}
