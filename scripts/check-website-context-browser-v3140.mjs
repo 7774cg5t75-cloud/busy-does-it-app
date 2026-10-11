@@ -21,11 +21,14 @@ try{
   const heading=page.locator("h1[data-busy-edit-section]");
   await heading.focus();
   await heading.press("Enter");
+  await page.locator('.busy-selection-toolbar button[data-action="edit"]').click();
   await page.locator("p[data-busy-edit-section]").focus();
   await page.keyboard.press("Space");
+  await page.locator('.busy-selection-toolbar button[data-action="voice"]').click();
   const link=page.locator("a[data-busy-edit-section]");
   await link.focus();
   await link.press("Enter");
+  await page.locator('.busy-selection-toolbar button[data-action="more"]').click();
   await page.waitForFunction(()=>document.querySelectorAll(".busy-selected-for-edit").length===1);
   assert.deepEqual(selections.map(x=>x.field),["title","body","cta"],"Keyboard selects exact field at "+width);
   assert.equal(new URL(page.url()).hostname,"","Editor must not follow customer site links.");
