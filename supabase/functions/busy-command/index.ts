@@ -894,9 +894,9 @@ Deno.serve(async (request: Request) => {
       // V3.141: transcription-only route, intentionally separate from Operator.
       // A selected website element is kept on-device; no business content or
       // selector is sent to the model and NO action is generated or executed.
-      const requestedWebsiteTranscriptMode=form.get("mode");
-      if(requestedWebsiteTranscriptMode==="website-selection-transcript-v1"||
-         requestedWebsiteTranscriptMode==="website-page-transcript-v1"){
+      if(form.get("mode")==="website-selection-transcript-v1"||
+         form.get("mode")==="website-page-transcript-v1"){
+        const requestedWebsiteTranscriptMode=form.get("mode");
         // Five-minute recording cap is enforced in the owner UI, while a
         // server size ceiling protects cloud usage against modified clients.
         if(audio.size>9_000_000||audio.size<100||
