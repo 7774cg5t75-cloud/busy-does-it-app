@@ -847,6 +847,7 @@ function WebsitePreview({ s }) {
         onTextChange={s.applyWebsiteFieldChange}
         onLayoutChange={s.applyWebsiteLayoutAction}
         onApplyInstruction={s.applySelectedWebsiteInstruction}
+        onPreviewInstruction={s.previewSelectedWebsiteInstruction}
         onTranscribe={s.transcribeSelectedWebsiteAudio}/>
       {s.websiteBuilderNotice?<Text style={styles.cardBody}>{s.websiteBuilderNotice}</Text>:null}
       {s.canUndoWebsite ? <Button label="Undo last website change" onPress={s.undoWebsiteChange} /> : null}
