@@ -738,7 +738,7 @@ function MiniAppBuilder({ s }) {
                 !distributionPlan.requirements.filter(x=>["external-fees","external-accounts","store-approval","maintenance"].includes(x.id)).every(x=>x.passed)}
               onPress={()=>{
                 const next=buildStandalonePrivateHandoff({app,preview:view.previewVersion,
-                  plan:distributionPlan,ownerConfirmed:true});
+                  plan:distributionPlan,catalog:view.catalog||[],ownerConfirmed:true});
                 setStandaloneHandoff(next.ok?next:null);
                 setStandaloneHandoffNotice(next.ok
                   ?"Your private standalone plan is ready. This is NOT a downloadable or submitted app."

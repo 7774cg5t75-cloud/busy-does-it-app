@@ -6,6 +6,7 @@
  * store, or make an in-BUSY app discoverable.
  */
 import {businessAppPreviewProof} from "./businessAppPreviewProof.mjs";
+import {appRuntimeScreenSchema} from "./appRuntimeScreenSchema.mjs";
 const MODES=Object.freeze(["busy_marketplace","standalone"]);
 const COSTS=Object.freeze([
  {key:"apple",title:"Apple Developer membership",detail:"Apple may require an external developer membership and its own fees to publish an iPhone app. Paid separately; amount and renewal terms depend on Apple's current rules."},
@@ -59,7 +60,7 @@ function buildAppDistributionPlan({mode="busy_marketplace",app=null,preview=null
    "An app used within the Busy Does It marketplace, with business-owned booking requests and other enabled real modules. Listing requires a live approved version and an explicit owner decision."
  };
 }
-function buildStandalonePrivateHandoff({app,preview,plan,ownerConfirmed=false}={}){
+function buildStandalonePrivateHandoff({app,preview,plan,catalog,ownerConfirmed=false}={}){
  if(!plan?.ok||plan.mode!=="standalone"||!ownerConfirmed||
     !plan.proof?.matches||!businessAppPreviewProof({app,preview}).matches||
     !validPlatforms(plan.requestedPlatforms))
@@ -70,13 +71,14 @@ function buildStandalonePrivateHandoff({app,preview,plan,ownerConfirmed=false}={
  // A manifest contains ONLY safe descriptive configuration, never credentials,
  // customer records or arbitrary generated source code.
  const config=preview?.config||{};
- const modules=Array.isArray(config.modules)?config.modules.filter(m=>
-  m?.enabled===true&&typeof m.key==="string"&&/^[a-z_]{1,40}$/.test(m.key))
-  .slice(0,16).map(m=>m.key):[];
+ const runtime=appRuntimeScreenSchema(config,catalog);
+ if(!runtime.ok)return {ok:false,reason:runtime.reason};
+ const modules=runtime.screens.map(item=>item.key);
  return {ok:true,kind:"private_standalone_planning_manifest_v1",
   ownerAppId:app.id,previewVersionId:preview.id,
   previewVersionNo:preview.version_no,sourceDraftRevision:preview.source_draft_revision,
   platformTargets:plan.requestedPlatforms,appName:plan.name,modules,
+  screenSchema:runtime,
   requirements:plan.requirements.map(x=>({id:x.id,passed:x.passed})),
   customerDisclosuresAcknowledged:true,
   requiresVerifiedBilling:true,requiresDeveloperAccounts:true,
