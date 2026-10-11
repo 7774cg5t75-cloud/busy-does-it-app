@@ -33,7 +33,7 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
   if(!["hero","photo-feature","gallery"].includes(section.type)||
     section.type==="gallery"&&(!Number.isSafeInteger(n)||n<0||n>=list(section.items).length||
       section.items[n]?.approved===false)||
-    section.type!=="gallery"&&(!section.asset||section.asset.approved===false))
+    section.type!=="gallery"&&(!section.asset||section.asset.approved===false||n!==-1))
    return failure("That approved photograph is no longer available.");
  }
  const text=clean(instruction).replace(/\s+/g," ");
