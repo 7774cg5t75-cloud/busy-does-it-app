@@ -34,6 +34,35 @@ function applyWebsiteVisualEdit(draft,instruction){
     return editWebsitePages(draft,instruction);
  const text=clean(instruction);
  const lower=text.toLowerCase();
+ // V3.139: unambiguous owner requests for a SPECIFIC existing section.
+ // "This/that one" is deliberately not guessed; the tap editor carries IDs.
+ const namedSection=raw=>{
+  const title=clean(raw).toLowerCase();
+  const matches=list(draft?.sections).filter(section=>section?.enabled!==false&&
+    (clean(section?.id).toLowerCase()===title||clean(section?.title).toLowerCase()===title));
+  return matches.length===1?matches[0]:null;
+ };
+ const namedStyle=(raw,field,value)=>{
+  const section=namedSection(raw);
+  return section?applyWebsiteLayoutOperation(draft,{action:"section-style",
+   sectionId:section.id,field,value}):
+   fail("Choose one existing section by its exact heading, or tap it in the preview.");
+ };
+ let styleMatch=text.match(/^(?:make|set) (?:the )?(.+?) (?:section )?heading (?:bigger|larger|smaller)$/i);
+ if(styleMatch){
+  const value=/smaller$/i.test(text)?"compact":"large";
+  return namedStyle(styleMatch[1],"headingScale",value);
+ }
+ styleMatch=text.match(/^(?:center|centre) (?:the )?(.+?) section$/i);
+ if(styleMatch)return namedStyle(styleMatch[1],"textAlign","center");
+ styleMatch=text.match(/^(?:give|make) (?:the )?(.+?) section (?:more|less) (?:space|spacing|breathing room)$/i);
+ if(styleMatch)return namedStyle(styleMatch[1],"sectionSpacing",
+  /more (?:space|spacing|breathing room)$/i.test(text)?"generous":"compact");
+ styleMatch=text.match(/^(?:put|move) (?:the )?(.+?) (?:section )?(?:photo|picture|image) (?:on|to) (?:the )?(left|right)$/i);
+ if(styleMatch)return namedStyle(styleMatch[1],"photoSide",styleMatch[2].toLowerCase());
+ styleMatch=text.match(/^(?:make|show) (?:the )?gallery (?:pictures|photos|images) (?:bigger|larger|smaller)$/i);
+ if(styleMatch)return namedStyle("gallery","gallerySize",
+  /smaller$/i.test(text)?"compact":"large");
  // A small, explicitly supported vocabulary of reversible design requests.
  // Never treat arbitrary marketing copy as an executable instruction.
  if(/^(?:make|give) (?:the )?(?:booking|contact|main|hero) button (?:stand out|more prominent)$/i.test(text))
