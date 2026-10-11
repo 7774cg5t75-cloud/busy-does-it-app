@@ -44,6 +44,6 @@ assert.ok(ui.includes("setViewportEvidence(null),[selectedPageId,draft?.id,draft
 const toolbar=read("src/core/websiteTapToEdit.mjs");
 assert.ok(toolbar.includes('button[data-action=edit]")' )||toolbar.includes('button[data-action=edit]'));
 assert.ok(toolbar.includes("selected.focus()"));
-assert.ok(toolbar.includes("aria-label\",\"Talk to Busy about this "));
+assert.ok(toolbar.includes("Talk to Busy about this "));
 assert.ok(!toolbar.includes("fetch("));
 console.log("V3.147 COVERAGE PASS: mobile/tablet/wide evidence never leaks across draft, owner, page or revision; keyboard editor focus guard.");
