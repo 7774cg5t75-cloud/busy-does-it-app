@@ -15,7 +15,7 @@ for(const exp of [
   'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
   'import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";',
   'import { applyWebsiteVisualEdit } from "../../supabase/functions/busy-website-worker/designEdits.mjs";',
-  'import { editWebsiteDraftField } from "../core/websiteStructuredEditing.mjs";',
+
 ]){ assert.ok(source.includes(exp),exp);source=source.replace(exp,"");}
 const {buildWebsiteDraft,applyWebsiteInstruction}=Function(
  "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField",
