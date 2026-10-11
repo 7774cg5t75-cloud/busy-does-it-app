@@ -27,6 +27,7 @@ import { fetch as expoFetch } from "expo/fetch";
 import { File as ExpoFile, Paths as ExpoPaths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import {selectedWebsiteVoiceContextIsCurrent} from "../core/websiteSelectedVoiceContext.mjs";
+import {voiceUploadEligible} from "../core/websiteVoiceRecordingPolicy.mjs";
 
 try {
   Notifications.setNotificationHandler({
@@ -13204,8 +13205,8 @@ function App() {
     if(!selectionIsCurrent())return {ok:false,error:"Your website changed. Tap the part you want to edit again."};
     try{
       const file=new ExpoFile(String(audioUri||""));
-      if(!file.exists||Number(file.size||0)<100||Number(file.size||0)>2_500_000)
-        return {ok:false,error:"Record one short instruction, then stop before the recording reaches 2.5 MB."};
+      if(!file.exists||!voiceUploadEligible(Number(file.size||0)))
+        return {ok:false,error:"This recording exceeds the 9 MB upload allowance or is empty. No audio was sent. Record a shorter instruction."};
       const token=await ownerAccessToken();
       if(!token)return {ok:false,error:"Sign in again before using voice editing."};
       if(!selectionIsCurrent())return {ok:false,error:"The selected website part changed. Tap it again."};
@@ -13225,7 +13226,11 @@ function App() {
          !String(payload.transcript||"").trim())
         throw Error("The service did not return a transcription-only result. No change was made.");
       if(!selectionIsCurrent())return {ok:false,error:"Your website changed while BUSY was listening. Tap the part again; no edit was applied."};
-      return {ok:true,transcript:String(payload.transcript).trim().slice(0,400)};
+      const usage=payload.voiceUsage||{};
+      const remaining=Number.isInteger(usage.remaining)&&usage.remaining>=0&&
+        usage.remaining<=12?usage.remaining:null;
+      return {ok:true,transcript:String(payload.transcript).trim().slice(0,400),
+        remaining,dailyLimit:12};
     }catch(error){
       return {ok:false,error:String(error?.message||"Voice transcription failed. Your website was not changed.").slice(0,240)};
     }
