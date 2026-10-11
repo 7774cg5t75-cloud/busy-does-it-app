@@ -15101,6 +15101,55 @@ function App() {
 
   // Save a complete previewed batch atomically. This remains a private draft,
   // never an app-store order, marketplace publish or booking action.
+  // A one-off owner-consented design review. File bytes stay local until
+  // explicit approval, and only the PUBLIC-ONLY app preview can be submitted.
+  // The Edge service independently checks tenant, revision, allowance and AI.
+  const checkPrivateAppVisualReview=async()=>{
+    try{
+      const expectedBusiness=String(cloudWorkspace?.businessId||"");
+      if(!expectedBusiness)return {enabled:false,remaining:0,
+        reason:"Connect your business workspace first."};
+      const data=await miniAppsRequest("visual_review_status");
+      if(data?.ok!==true||data.businessId!==expectedBusiness||
+         cloudWorkspace?.businessId!==expectedBusiness)
+        throw Error("Private app visual review status could not be verified.");
+      return {...data.visualReview,businessId:expectedBusiness};
+    }catch(error){return {enabled:false,remaining:0,configured:false,
+      reason:String(error?.message||"AI visual review is not configured.").slice(0,230)};}
+  };
+  const reviewPrivateAppScreenshot=async({appId,expectedRevision,uri,captureScope}={})=>{
+    if(captureScope!=="public_app_only"||!miniAppsView?.app||
+       miniAppsView.app.id!==appId||
+       Number(miniAppsView.app.draft_revision)!==Number(expectedRevision))
+      return {ok:false,reason:"Capture the current public-only private app preview again."};
+    try{
+      const photo=new ExpoFile(String(uri||""));
+      if(!photo.exists||Number(photo.size)<512||Number(photo.size)>590000)
+        throw Error("Capture a small JPEG under 590 KB; nothing was sent.");
+      const imageBase64=await photo.base64();
+      if(typeof imageBase64!=="string"||imageBase64.length>800000)
+        throw Error("The image exceeds this business's safe review size limit.");
+      if(!miniAppsView?.app||miniAppsView.app.id!==appId||
+         Number(miniAppsView.app.draft_revision)!==Number(expectedRevision))
+        throw Error("The app changed during preparation; nothing was uploaded.");
+      const data=await miniAppsRequest("review_app_screenshot",{
+        appId,expectedRevision,imageBase64,
+        captureScope:"public_app_only",ownerConsent:true
+      });
+      if(data?.ok!==true||data.appId!==appId||
+         data.draftRevision!==expectedRevision||
+         data?.review?.ok!==true||data.privateOnly!==true||
+         data.screenshotStored!==false||
+         data?.review?.autoPublished!==false)
+        throw Error("BUSY could not verify the private design review response.");
+      return {ok:true,review:data.review,status:data.visualReview||null,
+        draftRevision:expectedRevision};
+    }catch(error){
+      return {ok:false,reason:String(error?.message||
+        "BUSY could not complete this private app visual review.").slice(0,250)};
+    }
+  };
+
   const saveCoordinatedAppChanges=async({operations,appId,expectedRevision}={})=>{
     if(!miniAppsView?.app||miniAppsView.app.id!==appId||
       Number(miniAppsView.app.draft_revision)!==Number(expectedRevision)){
@@ -16426,6 +16475,8 @@ function App() {
     toggleMiniAppModule,
     savePrivateAppAppearance,
     saveCoordinatedAppChanges,
+    checkPrivateAppVisualReview,
+    reviewPrivateAppScreenshot,
     movePrivateAppSection,
     transcribeSelectedAppAudio,
     prepareMiniAppPreview,
