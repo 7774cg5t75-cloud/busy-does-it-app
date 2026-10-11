@@ -4,7 +4,7 @@ import {Button,Card,Field} from "../components/ui";
 import {styles} from "../theme/styles";
 
 /** Private owner-managed pages. Built-in pages remain generated and protected. */
-function WebsitePagesEditor({draft,onApply,onShare,onShareZip}){
+function WebsitePagesEditor({draft,onApply,onShare,onShareZip,onBackup}){
  const [open,setOpen]=React.useState(false);
  const [selected,setSelected]=React.useState("");
  const [newTitle,setNewTitle]=React.useState("");
@@ -131,8 +131,10 @@ function WebsitePagesEditor({draft,onApply,onShare,onShareZip}){
        <Text style={styles.cardBody}>Share a portable JSON copy of your pages, wording and design choices using your iPhone's share sheet. The export contains public business details but NOT photographs, private customer data, passwords, hosting, domain configuration or working bookings/forms. It is not yet a ready-to-host website archive.</Text>
        <Button label="Share my website content (JSON)" onPress={onShare}/>
        <Text style={styles.sectionLabel}>Portable static website ZIP</Text>
-       <Text style={styles.cardBody}>On iPhone, you can also export a genuine ZIP with your page HTML, responsive styles and approved original photos when those photo files remain available on this device. If any original is cloud-only or missing, BUSY will stop instead of creating a broken website. This static export does not include working booking forms, cloud services, payments, DNS or your domain.</Text>
-       <Button label="Export my static website ZIP (iPhone)" onPress={onShareZip}/>
+       <Text style={styles.cardBody}>Save an optional private cloud backup of your approved website pictures while their originals are still on this device. Only a signed-in business owner or admin can transfer them. This does not change or publish your website.</Text>
+       <Button label="Privately back up my original photos" onPress={onBackup}/>
+       <Text style={styles.cardBody}>Export your real static HTML pages, styling and approved pictures as a ZIP to Files or a compatible app on iPhone or Android. Missing originals are retrieved only from your verified business-owned backups. If any photo cannot be recovered, BUSY stops rather than making an incomplete website. This ZIP does not transfer working booking forms, payments, cloud services or your domain.</Text>
+       <Button label="Export my static website ZIP" onPress={onShareZip}/>
       </View>
      ):null}
     </Card>

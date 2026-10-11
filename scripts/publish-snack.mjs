@@ -27,6 +27,7 @@ const snackDependencies={
     "expo-image-picker":{version:"17.0.11"},
     "expo-audio":{version:"1.1.1"},
     "expo-file-system":{version:"19.0.24"},
+    "expo-sharing":{version:"14.0.8"},
     "expo-secure-store":{version:"15.0.8"},
     "expo-notifications":{version:"0.32.17"},
     "expo-calendar":{version:"15.0.8"},

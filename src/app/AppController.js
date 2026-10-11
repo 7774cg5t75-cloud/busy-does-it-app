@@ -25,6 +25,7 @@ import * as Calendar from "expo-calendar/legacy";
 import Constants from "expo-constants";
 import { fetch as expoFetch } from "expo/fetch";
 import { File as ExpoFile, Paths as ExpoPaths } from "expo-file-system";
+import * as Sharing from "expo-sharing";
 
 try {
   Notifications.setNotificationHandler({
@@ -188,6 +189,8 @@ import { validateAiConversationDraft } from "../domain/conversationAiBoundary.mj
 import { buildWebsiteDraft, applyWebsiteInstruction, applyStructuredWebsiteEdit, applyWebsiteLayoutChange, applyWebsitePageChange, rebuildPrivateWebsiteDraft } from "../domain/websiteBuilder";
 import {buildPortableWebsiteSource} from "../core/websiteSourceExport.mjs";
 import {buildStandaloneWebsiteArchive} from "../core/websiteStandaloneArchive.mjs";
+import {sitePhotoAssets,attachExportOriginal,validExportOriginalPath}
+  from "../core/websiteOriginalMedia.mjs";
 import {renderWebsiteHtml} from "../domain/websiteBuilder";
 import { applyApprovedVisualProposals } from "../../supabase/functions/busy-website-worker/visualCriticContract.mjs";
 import { buildWebsitePublishingView } from "../domain/websitePublishing";
@@ -13238,28 +13241,116 @@ function App() {
     }
   };
 
+  // Never uploads automatically. A business owner explicitly makes a
+  // separate encrypted cloud copy, without changing the existing hosting path.
+  const backupWebsiteOriginals=async()=>{
+    if(!websiteDraft||!cloudWorkspace?.businessId){
+      setWebsiteBuilderNotice("Build your website and connect your business cloud workspace before backing up original photos.");
+      return false;
+    }
+    const businessId=cloudWorkspace.businessId;
+    const token=await ownerAccessToken();
+    if(!token){
+      setWebsiteBuilderNotice("Sign in again before backing up your website photos.");
+      return false;
+    }
+    const assets=sitePhotoAssets(websiteDraft).filter(({asset})=>
+      !validExportOriginalPath(asset.exportOriginalPath,businessId));
+    if(!assets.length){
+      setWebsiteBuilderNotice("All the currently approved website photographs already have a private original backup.");
+      return true;
+    }
+    if(assets.length>48){
+      setWebsiteBuilderNotice("Too many images for the current mobile backup. Keep your website to 48 approved originals.");
+      return false;
+    }
+    setWebsiteBuilderNotice("Backing up approved original website photographs privately. Nothing will be published.");
+    let copied=0,missing=0,bytesTotal=0,next=websiteDraft;
+    try{
+      for(const {key,asset} of assets){
+        const uri=String(asset?.uri||"").trim();
+        if(!/^(?:file|content):\/\//i.test(uri)){missing++;continue;}
+        try{
+          const local=new ExpoFile(uri);
+          const size=Number(local.size||0);
+          if(!size||size>9*1024*1024||bytesTotal+size>25*1024*1024){
+            missing++;continue;
+          }
+          const base64=await local.base64();
+          if(base64.length>12_600_000){missing++;continue;}
+          const response=await fetchWithTimeout(
+            BUSY_SUPABASE_URL+"/functions/v1/busy-website-original-media",{
+              method:"POST",
+              headers:{apikey:BUSY_AI_TOKEN,Authorization:`Bearer ${token}`,
+                "Content-Type":"application/json"},
+              body:JSON.stringify({action:"upload",businessId,photoBase64:base64})
+            },60000);
+          const data=await response.json().catch(()=>({}));
+          if(!response.ok||!data.ok||!validExportOriginalPath(data.storagePath,businessId)){
+            missing++;continue;
+          }
+          next=attachExportOriginal(next,key,data.storagePath);
+          copied++;bytesTotal+=size;
+        }catch{missing++;}
+      }
+      if(copied){
+        setWebsiteUndo(items=>[...items,websiteDraft].slice(-8));
+        setWebsiteRedo([]);
+        setWebsiteDraft(next);
+      }
+      setWebsiteBuilderNotice(copied+" original photograph"+(copied===1?"":"s")+
+        " securely backed up for future ZIP exports. "+
+        (missing?missing+" could not be backed up (missing locally, too large or cloud service unavailable). Reattach those originals and retry. ":"")+
+        "Your website has NOT been published or changed online.");
+      return copied>0&&missing===0;
+    }catch{
+      setWebsiteBuilderNotice("Backup could not finish. Your published website is untouched.");
+      return false;
+    }
+  };
+
   const shareStandaloneWebsiteZip=async()=>{
     if(!websiteDraft){
       setWebsiteBuilderNotice("Build a private website draft before exporting its files.");
       return false;
     }
-    if(Platform.OS!=="ios"){
-      setWebsiteBuilderNotice("Standalone ZIP sharing currently needs an iPhone; Android export support is still pending.");
+    if(Platform.OS==="web"||!(await Sharing.isAvailableAsync())){
+      setWebsiteBuilderNotice("File sharing is unavailable on this device. You can still share your website content JSON.");
       return false;
     }
-    // No automatic remote download or blind trust in signed/cloud media URLs.
-    // This reader accepts only original media files available locally to the
-    // current app. A cloud-only image blocks export rather than being omitted.
     const readOriginalPhoto=async asset=>{
       const uri=String(asset?.uri||"").trim();
-      if(!/^(?:file|content):\/\//i.test(uri))
-        throw Error("The original photo is not stored on this phone.");
-      const source=new ExpoFile(uri);
-      if(Number(source.size||0)>9*1024*1024)
-        throw Error("Original photo exceeds 9 MB");
-      return source.bytes();
+      if(/^(?:file|content):\/\//i.test(uri)){
+        try{
+          const source=new ExpoFile(uri);
+          if(Number(source.size||0)>9*1024*1024)throw Error("Original exceeds 9 MB");
+          return await source.bytes();
+        }catch{
+          // Missing local files may have an explicit tenant-owned backup.
+        }
+      }
+      const businessId=cloudWorkspace?.businessId||"";
+      const path=String(asset?.exportOriginalPath||"");
+      if(!validExportOriginalPath(path,businessId))
+        throw Error("Approved photo not available locally and no verified backup exists.");
+      const token=await ownerAccessToken();
+      if(!token)throw Error("Owner authentication required to retrieve a private original.");
+      const response=await fetchWithTimeout(
+        BUSY_SUPABASE_URL+"/functions/v1/busy-website-original-media",{
+          method:"POST",
+          headers:{apikey:BUSY_AI_TOKEN,Authorization:`Bearer ${token}`,
+            "Content-Type":"application/json"},
+          body:JSON.stringify({action:"download",businessId,storagePath:path})
+        },45000);
+      const length=Number(response.headers.get("content-length")||0);
+      if(!response.ok||length>9*1024*1024)
+        throw Error("Secure original photo retrieval failed.");
+      const bytes=new Uint8Array(await response.arrayBuffer());
+      if(!bytes.length||bytes.length>9*1024*1024)
+        throw Error("Original photo did not meet transfer limits.");
+      return bytes;
     };
-    setWebsiteBuilderNotice("Preparing your own portable website ZIP. Checking every original photograph...");
+    setWebsiteBuilderNotice("Preparing the complete static website ZIP; checking local and privately backed-up original photographs...");
     try{
       const archive=await buildStandaloneWebsiteArchive(websiteDraft,{
         readPhoto:readOriginalPhoto,
@@ -13273,17 +13364,12 @@ function App() {
       const file=new ExpoFile(ExpoPaths.cache,archive.fileName);
       file.create({overwrite:true});
       file.write(archive.bytes);
-      const shared=await Share.share({
-        url:file.uri,
-        title:"Save my portable website ZIP",
-        message:"Complete static website archive (HTML and available approved original images)."
-      });
-      setWebsiteBuilderNotice(shared?.action===Share.dismissedAction
-        ?"Export was cancelled. Nothing was published or changed."
-        :"The ZIP was passed to the iPhone share sheet. Select Save to Files and confirm the file appears there.");
-      return shared?.action!==Share.dismissedAction;
+      await Sharing.shareAsync(file.uri,{mimeType:"application/zip",UTI:"public.zip-archive",
+        dialogTitle:"Save my portable website ZIP"});
+      setWebsiteBuilderNotice("The static ZIP was passed to your device's share options. Confirm it was saved where you chose. Your live website is unchanged.");
+      return true;
     }catch{
-      setWebsiteBuilderNotice("ZIP export could not be shared on this phone. Your website is unchanged. Try again or share your JSON content copy.");
+      setWebsiteBuilderNotice("ZIP export could not be shared. Your website is unchanged. Try again or share the JSON content copy.");
       return false;
     }
   };
@@ -15682,6 +15768,7 @@ function App() {
     applyWebsitePageAction,
     shareWebsiteContent,
     shareStandaloneWebsiteZip,
+    backupWebsiteOriginals,
     openWebsiteBuilder,
     askBusyToBuildWebsite,
     askBusyToEditWebsite,

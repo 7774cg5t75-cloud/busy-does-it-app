@@ -1,0 +1,52 @@
+name: V3.137 tenant-private original photo backup and portable website export
+on:
+  push:
+    branches: [v3.137]
+    paths:
+      - 'src/core/websiteOriginalMedia.mjs'
+      - 'src/app/AppController.js'
+      - 'src/domain/websiteBuilder.js'
+      - 'src/screens/websiteBuilder.js'
+      - 'src/screens/websitePagesEditor.js'
+      - 'package.json'
+      - 'supabase/functions/busy-website-original-media/**'
+      - 'supabase/migrations/20261011000000_busy_website_original_media.sql'
+      - 'scripts/check-website-original-media-v3137.mjs'
+      - '.github/workflows/website-original-media-v3137.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cloud-original-export-boundaries:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verified tenant paths, immutable draft changes and no implicit publication
+        run: |
+          node scripts/check-website-original-media-v3137.mjs
+          node scripts/check-website-standalone-v3136.mjs
+          node scripts/check-website-pages-v3135.mjs
+          node scripts/check-website-layout-v3134.mjs
+          node scripts/check-website-direct-edit-v3133.mjs
+          node scripts/check-production.mjs
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type check the authenticated original media gateway
+        run: deno check --node-modules-dir=auto supabase/functions/busy-website-original-media/index.ts
+      - name: Install dependencies and verify native JS bundling
+        run: |
+          # Deno auto-installs a different dependency tree for type checking.
+          # Clear that isolated CI tree before npm builds the Expo package graph.
+          rm -rf node_modules
+          npm install --no-audit --no-fund
+          npx expo export --platform ios --output-dir /tmp/busy-v3137-ios-js
+          npx expo export --platform android --output-dir /tmp/busy-v3137-android-js
+      - name: Explicit deployment boundary
+        run: echo "No live Supabase migration, Edge Function deployment, production assets, publishing, paid AI or signed EAS build occurred."
