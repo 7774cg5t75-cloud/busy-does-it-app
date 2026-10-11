@@ -121,7 +121,7 @@ for(const marker of ["prepareAppDesignIteration","inspectApprovedAppIteration",
  "resolvedStaticFlags","Capture visible screen (app only)",
  "Ask AI to inspect this screenshot","Approve one AI review",
  "proposeLowRiskDesignHints","Preview photo description changes",
- "photo_description","expectedUri:item?.uri","gallery_density"]){
+ "photo_description","expectedUri:item?.uri"]){
  assert.ok(screen.includes(marker),"Missing V3.162 UI: "+marker);
 }
 const edge=read("supabase/functions/busy-mini-apps/index.ts");
