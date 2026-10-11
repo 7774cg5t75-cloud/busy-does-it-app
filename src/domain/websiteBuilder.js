@@ -173,6 +173,11 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
   const preserved=safeArray(previousDraft?.sections).filter(section=>
     ["text","photo-feature"].includes(section?.type)&&clean(section.id).startsWith("custom-"));
   const rawSections=[...buildSections(brief),...preserved.map(section=>({...section}))];
+  // Keep each section's individually approved visual choices when factual
+  // business information is refreshed. Never transfer styles to other IDs/types.
+  const previousLooks=new Map(safeArray(previousDraft?.sections).map(section=>
+    [String(section?.id||"")+":"+String(section?.type||""),section?.appearance]));
+
   // Keep already-backed-up source bytes attached to the SAME original image,
   // even when factual Brand Brain wording gets regenerated. This helper lives
   // in the domain module to support existing isolated browser test harnesses.
@@ -189,11 +194,14 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
   const restorePhoto=asset=>asset&&previousOriginalPaths.has(assetKey(asset))
     ?{...asset,exportOriginalPath:previousOriginalPaths.get(assetKey(asset))}:asset;
   const sections=rawSections.map(section=>{
+    const previous=previousLooks.get(String(section?.id||"")+":"+String(section?.type||""));
+    const retained=previous&&typeof previous==="object"&&!Array.isArray(previous)
+      ?{appearance:{...previous}}:{};
     if(["hero","photo-feature"].includes(section?.type))
-      return {...section,asset:restorePhoto(section.asset)};
+      return {...section,...retained,asset:restorePhoto(section.asset)};
     if(section?.type==="gallery")
-      return {...section,items:safeArray(section.items).map(restorePhoto)};
-    return section;
+      return {...section,...retained,items:safeArray(section.items).map(restorePhoto)};
+    return {...section,...retained};
   });
   const theme=previousDraft?.theme&&typeof previousDraft.theme==="object"
     ? {...themeFromBrief(brief),...previousDraft.theme}
@@ -550,6 +558,21 @@ function applyWebsitePageChange(draft = {}, change = {}) {
   return result.applied?{...result,draft:withHtml(result.draft)}:result;
 }
 
+/** Finite tokens only. Page HTML must not expose user-supplied raw style strings. */
+function sectionAppearanceClasses(section){
+  const fields={headingScale:["compact","large"],textAlign:["center"],
+    sectionSpacing:["compact","generous"],photoCrop:["top","bottom"],
+    photoSide:["right"],gallerySize:["compact","large"]};
+  const names={headingScale:"heading",textAlign:"align",
+    sectionSpacing:"space",photoCrop:"crop",photoSide:"photo",gallerySize:"gallery"};
+  const appearance=section?.appearance;
+  if(!appearance||typeof appearance!=="object"||Array.isArray(appearance))return "";
+  const output=[];
+  for(const field of Object.keys(fields)){
+    if(fields[field].includes(appearance[field]))output.push("owner-"+names[field]+"-"+appearance[field]);
+  }
+  return output.join(" ");
+}
 function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
   const page=safeArray(draft.pages).find(p=>p?.id===pageId)||
     safeArray(draft.pages).find(p=>p?.id==="home")||null;
@@ -615,6 +638,8 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       section.type==="contact"?"contact":section.type==="gallery"?"gallery":String(section.id||""));
   }
   const sectionHtml = orderedSections.map(section=>{
+    const sectionClasses=sectionAppearanceClasses(section);
+    const sectionAttrs=sectionClasses?` class="${sectionClasses}"`:"";
     if(section.type==="hero"){
       const url=approvedImage(section.asset);
       const art=url
@@ -634,27 +659,27 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       const actionText=missingTarget?"Explore our services":clean(section.cta);
       const action=actionText&&actualHref
         ? `<a class="cta"${editAttrs(section,"cta")} href="${escapeHtml(actualHref)}">${escapeHtml(actionText)}</a>` : "";
-      return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}"><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}</div>${art}</div></section>`;
+      return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}</div>${art}</div></section>`;
     }
     if(section.type==="services"||section.type==="faq"||section.type==="testimonials"){
       const items=safeArray(section.items).filter(item=>clean(item?.title||item?.body));
       if(!items.length)return "";
-      return `<section id="${escapeHtml(section.id)}"><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><div class="grid">${items.map(item=>`<article><h3${editAttrs(section,"title",String(item.id||""))}>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p${editAttrs(section,"body",String(item.id||""))}>${escapeHtml(item.body)}</p>`:""}</article>`).join("")}</div></div></section>`;
+      return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><div class="grid">${items.map(item=>`<article><h3${editAttrs(section,"title",String(item.id||""))}>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p${editAttrs(section,"body",String(item.id||""))}>${escapeHtml(item.body)}</p>`:""}</article>`).join("")}</div></div></section>`;
     }
     if(section.type==="photo-feature"){
       const image=approvedImage(section.asset);
-      return image? `<section class="photo-feature" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid"><img loading="lazy"${editAttrs(section,"photo")} src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}"><div><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></div></section>`:"";
+      return image? `<section class="photo-feature${sectionClasses?" "+sectionClasses:""}" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid"><img loading="lazy"${editAttrs(section,"photo")} src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}"><div><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></div></section>`:"";
     }
     if(section.type==="gallery"){
       const images=safeArray(section.items).map(approvedImage).filter(Boolean);
-      return images.length ? `<section id="gallery"><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><div class="gallery">${safeArray(section.items).map((asset,i)=>{const image=approvedImage(asset);return image?`<img class="gallery-image"${editAttrs(section,"photo","",String(i))} loading="lazy" src="${escapeHtml(image)}" alt="Customer-supplied photograph">`:"";}).join("")}</div></div></section>` : "";
+      return images.length ? `<section id="gallery"${sectionAttrs}><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><div class="gallery">${safeArray(section.items).map((asset,i)=>{const image=approvedImage(asset);return image?`<img class="gallery-image"${editAttrs(section,"photo","",String(i))} loading="lazy" src="${escapeHtml(image)}" alt="Customer-supplied photograph">`:"";}).join("")}</div></div></section>` : "";
     }
     if(section.type==="contact"){
       if(!clean(section.body)&&!clean(phone)&&!clean(email))return "";
-      return `<section id="contact"><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title||"Get in touch")}</h2>${clean(section.body)?`<p${editAttrs(section,"body")}>${escapeHtml(section.body)}</p>`:""}${clean(phone)?`<p><a${editAttrs(section,"phone")} href="tel:${escapeHtml(phone.replace(/\s+/g,""))}">${escapeHtml(phone)}</a></p>`:""}${clean(email)?`<p><a${editAttrs(section,"email")} href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>`:""}${clean(section.openingHours)?`<p${editAttrs(section,"openingHours")}>${escapeHtml(section.openingHours)}</p>`:""}</div></section>`;
+      return `<section id="contact"${sectionAttrs}><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title||"Get in touch")}</h2>${clean(section.body)?`<p${editAttrs(section,"body")}>${escapeHtml(section.body)}</p>`:""}${clean(phone)?`<p><a${editAttrs(section,"phone")} href="tel:${escapeHtml(phone.replace(/\s+/g,""))}">${escapeHtml(phone)}</a></p>`:""}${clean(email)?`<p><a${editAttrs(section,"email")} href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>`:""}${clean(section.openingHours)?`<p${editAttrs(section,"openingHours")}>${escapeHtml(section.openingHours)}</p>`:""}</div></section>`;
     }
     return clean(section.body)
-      ? `<section id="${escapeHtml(section.id)}"><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></section>`
+      ? `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></section>`
       : "";
   }).join("");
   const business=escapeHtml(draft.businessName||"Business website");
