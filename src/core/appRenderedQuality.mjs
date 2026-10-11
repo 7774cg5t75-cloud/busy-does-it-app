@@ -125,6 +125,37 @@ function compareRenderedQuality(before,after){
   automatedImagePixelDiff:false,realDeviceCoverageUnproven:true,
   noChangesSaved:true,ownerApprovalNeeded:true};
 }
+/**
+ * Compare only a server-confirmed private revision increment at the same
+ * measured content width. Both reports are locally collected, not telemetry.
+ * Warnings disappearing is not proof of photo or UI quality improvement.
+ */
+function compareApprovedRevisionMeasurements(before,after,{
+ appId,expectedBeforeRevision,verifiedSavedRevision
+}={}){
+ if(before?.ok!==true||after?.ok!==true||
+   before.kind!=="local_rendered_app_inspection_v3164"||
+   after.kind!=="local_rendered_app_inspection_v3164"||
+   before.appId!==appId||after.appId!==appId||
+   before.revision!==expectedBeforeRevision||
+   after.revision!==verifiedSavedRevision||
+   !Number.isSafeInteger(verifiedSavedRevision)||
+   verifiedSavedRevision!==expectedBeforeRevision+1||
+   before.viewportWidth!==after.viewportWidth)
+  return {ok:false,reason:"A verified adjacent private draft revision with a matching measured content width is required."};
+ const first=new Set(before.issues.map(x=>x.id));
+ const second=new Set(after.issues.map(x=>x.id));
+ return {ok:true,kind:"verified_private_revision_geometry_recheck_v3164",
+  previousRevision:expectedBeforeRevision,newRevision:verifiedSavedRevision,
+  measuredWidth:after.viewportWidth,
+  noLongerFlagged:[...first].filter(x=>!second.has(x)),
+  newlyFlagged:[...second].filter(x=>!first.has(x)),
+  beforeWarnings:before.issueCount,afterWarnings:after.issueCount,
+  comparableGeometryOnly:true,verifiedByNativeLayoutEvents:true,
+  pixelsCompared:false,photoSubjectPreservationVerified:false,
+  textTruncationProven:false,customerOutcomesVerified:false,
+  certifiedAccessible:false,publicChangesMade:false};
+}
 function suggestMeasuredAppearance(config,report){
  if(report?.ok!==true||!Array.isArray(config?.modules))
   return {ok:false,reason:"A current private report and supported app are required."};
@@ -149,4 +180,5 @@ function suggestMeasuredAppearance(config,report){
   noAutomaticEditing:true,chargeFree:true};
 }
 export {sanitizeRenderedObservation,mergeRenderedObservations,measuredImageCrop,
- evaluateRenderedQuality,compareRenderedQuality,suggestMeasuredAppearance};
+ evaluateRenderedQuality,compareRenderedQuality,
+ compareApprovedRevisionMeasurements,suggestMeasuredAppearance};
