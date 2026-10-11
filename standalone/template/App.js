@@ -18,7 +18,8 @@ const t={color:COLORS.text},sub={color:COLORS.muted,marginTop:9,fontSize:15,line
 function Button({title,onPress,disabled=false}){
  return <Pressable accessibilityRole="button" accessibilityLabel={title} disabled={disabled}
    onPress={onPress} style={{backgroundColor:disabled?COLORS.line:COLORS.accent,
-     padding:14,borderRadius:11,marginTop:12}}>
+     padding:14,minHeight:48,justifyContent:"center",
+     borderRadius:11,marginTop:12}}>
    <Text style={{color:disabled?COLORS.muted:COLORS.bg,fontSize:15,
      fontWeight:"700",textAlign:"center"}}>{title}</Text>
  </Pressable>;
@@ -32,6 +33,7 @@ function Field({title,value,onChange,multiline=false}){
     placeholderTextColor={COLORS.muted}
     style={{color:COLORS.text,backgroundColor:COLORS.bg,borderColor:COLORS.line,
       borderWidth:1,borderRadius:9,padding:12,marginTop:6,
+      minHeight:48,
       minHeight:multiline?92:45,textAlignVertical:"top"}}/>
  </View>;
 }
@@ -171,7 +173,9 @@ export default function App(){
       accessibilityLabel={"View "+item.title} onPress={()=>setCurrent(item.key)}
       style={{backgroundColor:item.key===chosen.key?COLORS.accent:COLORS.surface,
        width:LOOK.navigationStyle==="list"?"100%":undefined,
-       paddingHorizontal:13,paddingVertical:11,borderRadius:10}}>
+       minHeight:48,justifyContent:"center",
+       paddingHorizontal:13,paddingVertical:11,borderRadius:10}}
+       accessibilityState={{selected:item.key===chosen.key}}>
       <Text style={{color:item.key===chosen.key?COLORS.bg:COLORS.text,
        fontWeight:"600"}}>{item.title}</Text>
      </Pressable>)}
