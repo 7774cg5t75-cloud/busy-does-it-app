@@ -580,8 +580,14 @@ function MiniAppBuilder({ s }) {
   const [requestedPlatforms,setRequestedPlatforms]=React.useState(["ios","android"]);
   const [standaloneHandoff,setStandaloneHandoff]=React.useState(null);
   const [standaloneHandoffNotice,setStandaloneHandoffNotice]=React.useState("");
+  const [standaloneEligibility,setStandaloneEligibility]=React.useState(null);
+  const [standaloneEligibilityBusy,setStandaloneEligibilityBusy]=React.useState(false);
   const view = s.miniAppsView || {};
   const app = view.app;
+  React.useEffect(()=>{
+    setStandaloneEligibility(null);
+    setStandaloneHandoff(null);
+  },[app?.id,s.cloudWorkspace?.businessId,s.ownerSession?.userId]);
   const modules = Array.isArray(view.catalog) ? view.catalog : [];
   const configuredModules = new Map(
     (view.modules || []).map((item) => [item.key, item])
@@ -731,7 +737,21 @@ function MiniAppBuilder({ s }) {
                 }}/>
             ))}
             <MetricRow left="App preview matches current draft" right={previewProof.matches?"Yes":"Prepare new private preview"} strong/>
-            <MetricRow left="Standalone eligibility" right={distributionPlan.eligible.verified?"Verified":"Not yet verified"} />
+            <MetricRow left="Standalone eligibility"
+              right={standaloneEligibility?.verified&&standaloneEligibility?.businessId===s.cloudWorkspace?.businessId
+                ?standaloneEligibility.eligible?"Verified allowance available":"Verified but allowance used"
+                :"Not verified"}/>
+            <Button label={standaloneEligibilityBusy?"Checking secure billing record…":"Check my standalone subscription benefit"}
+              disabled={standaloneEligibilityBusy}
+              onPress={async()=>{
+                setStandaloneEligibilityBusy(true);
+                try{
+                  const result=await s.checkStandaloneEligibility?.();
+                  setStandaloneEligibility(result||null);
+                }finally{setStandaloneEligibilityBusy(false);}
+              }}/>
+            {standaloneEligibility?.reason?
+              <Text style={styles.cardBody}>{standaloneEligibility.reason}</Text>:null}
             <Text style={styles.cardBody}>This creates only a private planning specification. It cannot package, charge for, sign or submit an app. A verified higher-tier entitlement and further explicit approval will be required.</Text>
             <Button label="Prepare my private standalone-app requirements"
               disabled={!app||!previewProof.matches||
