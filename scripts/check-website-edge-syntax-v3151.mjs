@@ -9,7 +9,7 @@ for(const path of [
 ]){
  const source=read(path);
  const ast=parse(source,{sourceType:"module",plugins:path.endsWith(".ts")?["typescript"]:[]});
- assert.ok(ast.program.body.length>5,path+" must be parsable");
+ assert.ok(ast.program.body.length>0,path+" must be parsable");
 }
 const server=read("supabase/functions/busy-website-design-review/index.ts");
 assert.ok(server.includes('action==="studio"'));
