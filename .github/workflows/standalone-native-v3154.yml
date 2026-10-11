@@ -25,6 +25,8 @@ jobs:
           node scripts/check-app-builder-dual-track-v3153.mjs
           node scripts/check-builder-handoff-v3152.mjs
           node scripts/check-production.mjs
+      - name: Parse native screens and TypeScript app service safely
+        run: node scripts/check-app-native-syntax-v3154.mjs
       - name: Generate isolated unsigned customer app project from a fictional brief
         run: |
           node scripts/prepare-standalone-prototype-v3154.mjs

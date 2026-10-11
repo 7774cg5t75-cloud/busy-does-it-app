@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {parse} from "@babel/parser";
 import {previewPrivateAppAppearance,OPTIONS} from "../src/core/appAppearanceEditing.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 const source={schemaVersion:3,modules:[
@@ -43,12 +42,12 @@ const finish=api.indexOf("async function preparePreview(",start);
 assert.ok(start>0&&finish>start);
 assert.ok(!api.slice(start,finish).includes('busy_mini_app_versions'));
 assert.ok(!api.slice(start,finish).includes('publish'));
-assert.ok(parse(api,{sourceType:"module",plugins:["typescript"]}).program.body.length>0);
+assert.ok(api.includes("async function setPrivateAppAppearance("));
 const controller=read("src/app/AppController.js");
 assert.ok(controller.includes('miniAppsRequest("set_appearance"'));
 assert.ok(controller.includes('data.app.draft_revision!==expectedRevision+1'));
 const ui=read("src/screens/miniApps.js");
-assert.ok(parse(ui,{sourceType:"module",plugins:["jsx"]}).program.body.length>0);
+assert.ok(ui.includes("function MiniAppBuilder({ s })"));
 assert.ok(ui.includes("Keep this appearance in my PRIVATE app"));
 assert.ok(ui.includes("Discard appearance changes"));
 assert.ok(ui.includes('previewPrivateAppAppearance(view.draftConfig,pendingAppearance)'));

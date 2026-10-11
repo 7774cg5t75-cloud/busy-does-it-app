@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {parse} from "@babel/parser";
 import {decideStandaloneEligibility} from "../supabase/functions/busy-mini-apps/standaloneEligibility.mjs";
 import {nativeShellDescriptor} from "../src/core/standaloneNativePackage.mjs";
 import {buildAppDistributionPlan,buildStandalonePrivateHandoff} from "../src/core/appDistributionChoices.mjs";
@@ -43,11 +42,11 @@ for(const bad of [
  {...handoff,appName:"<script>"}
 ])assert.equal(nativeShellDescriptor(bad).ok,false);
 const appShell=read("standalone/template/App.js");
-assert.ok(parse(appShell,{sourceType:"module",plugins:["jsx"]}).program.body.length>4);
+assert.ok(appShell.includes("export default function App()"));
 assert.ok(appShell.includes("SafeAreaView")&&appShell.includes("Pressable"));
 assert.ok(!appShell.includes("WebView")&&!appShell.includes("fetch("));
 assert.ok(!appShell.includes("makePayment")&&!appShell.includes("sendBooking"));
-assert.ok(parse(read("standalone/template/app.config.js"),{sourceType:"unambiguous"}).program.body.length>0);
+assert.ok(read("standalone/template/app.config.js").includes("module.exports="));
 const api=read("supabase/functions/busy-mini-apps/index.ts");
 for(const item of [
  'if (action === "standalone_eligibility_status")',
