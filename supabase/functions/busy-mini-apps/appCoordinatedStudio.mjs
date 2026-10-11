@@ -5,6 +5,7 @@
  */
 import {enabledAppKeys,proposeAppSectionMove} from "./appSectionOrder.mjs";
 import {previewPrivateAppAppearance} from "./appAppearanceEditing.mjs";
+import {reviewPrivateAppServices} from "./appServiceCollection.mjs";
 const MAX_CHANGES=8;
 const TEXT_FIELDS=Object.freeze({tagline:180,about:1200,description:1000});
 const clean=v=>typeof v==="string"?v.trim():"";
@@ -66,6 +67,12 @@ function proposeCoordinatedAppChanges(config,operations){
    if(op.field==="tagline")after.display={...next.display,tagline:op.value};
    undo={kind:"text",field:op.field,value:prev};
    description="Updated public "+op.field;
+  }else if(op.kind==="services"){
+   const edit=reviewPrivateAppServices(next,op.value);
+   if(!edit.ok)return edit;
+   after=edit.nextConfig;
+   undo={kind:"services",value:edit.previous.map(x=>({...x}))};
+   description=edit.description;
   }else if(op.kind==="photo"){
    const arr=next.publicProfile?.assets?.gallery;
    if(!Array.isArray(arr)||arr.length<2||arr.length>40||
@@ -101,6 +108,12 @@ function planAppVoiceInstructions(config,instruction){
   }
   if(/\b(bookings?|appointments?)\b.*\b(first|top|home screen)\b|\b(first|top)\b.*\b(bookings?|appointments?)\b/i.test(p)){
    operations.push({kind:"first",moduleKey:"booking_request"});continue;
+  }
+  if(/\b(services?|gallery|photos?|contact|about|offers?)\b.*\b(first|top|home screen)\b|\b(first|top)\b.*\b(services?|gallery|photos?|contact|about|offers?)\b/i.test(p)){
+   const found=/\b(services?|gallery|photos?|contact|about|offers?)\b/i.exec(p)?.[0]?.toLowerCase();
+   const key=/service/.test(found)?"services":/photo|gallery/.test(found)?"gallery":
+     found==="about"?"business_profile":/offer/.test(found)?"offers":"contact";
+   operations.push({kind:"first",moduleKey:key});continue;
   }
   if(/\b(enquir(?:y|ies)|inquir(?:y|ies))\b.*\b(first|top)\b/i.test(p)){
    operations.push({kind:"first",moduleKey:"enquiry"});continue;
