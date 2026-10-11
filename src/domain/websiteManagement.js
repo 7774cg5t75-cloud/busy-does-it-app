@@ -52,10 +52,13 @@ function buildWebsitePageModel(draft = {}) {
   const singlePage = plan?.architecture === "focused-landing";
   const order = safeArray(plan?.sectionOrder).filter(id => ids.includes(id));
   const allIds = [...order, ...ids.filter(id => !order.includes(id))];
-  const homeIds = singlePage ? allIds :
+  // Page-only owner content remains on its dedicated page, not repeated
+  // as a surprise on the home page.
+  const homeCandidates=allIds.filter(id=>!sectionMap(draft).get(id)?.pageOnly);
+  const homeIds=singlePage?homeCandidates:
     safeArray(plan?.homeSectionIds).length
-      ? allIds.filter(id => plan.homeSectionIds.includes(id))
-      : allIds;
+      ? homeCandidates.filter(id=>plan.homeSectionIds.includes(id))
+      : homeCandidates;
   const pages = [{
     id: "home", path: "/", outputPath: "index.html",
     title: "Home", enabled: true, sectionIds: homeIds,
@@ -81,10 +84,26 @@ function buildWebsitePageModel(draft = {}) {
     });
   });
 
+  // Persist only canonical customer-owned pages and derive paths ourselves.
+  const usedPageIds=new Set();
+  safeArray(draft.customPages).slice(0,8).forEach(entry=>{
+    const slug=clean(entry?.slug),id=clean(entry?.id),title=clean(entry?.title);
+    if(!/^[a-z0-9][a-z0-9-]{1,68}$/.test(slug)||
+       id!=="page-"+slug||usedPageIds.has(id)||!title||title.length>80)return;
+    const ownedIds=[...new Set(safeArray(entry.sectionIds))]
+      .filter(sectionId=>ids.includes(sectionId)&&clean(sectionId).startsWith("custom-"))
+      .slice(0,12);
+    if(!ownedIds.length)return;
+    usedPageIds.add(id);
+    pages.push({id,slug,title,enabled:true,path:"/pages/"+slug,
+      outputPath:"pages/"+slug+"/index.html",sectionIds:ownedIds});
+  });
+
   const navigation = singlePage
     ? [{id:"home",label:"Home",href:"#main"},
-      ...allIds.filter(id=>["services","about","gallery","contact"].includes(id))
-        .map(id=>({id,label:({services:"Services",about:"About",gallery:"Gallery",contact:"Contact"})[id],href:"#"+id}))]
+      ...homeIds.filter(id=>["services","about","gallery","contact"].includes(id))
+        .map(id=>({id,label:({services:"Services",about:"About",gallery:"Gallery",contact:"Contact"})[id],href:"#"+id})),
+      ...pages.filter(page=>page.id.startsWith("page-")).map(page=>({id:page.id,label:page.title,href:page.path}))]
     : pages.filter(page=>page.id!=="faq").map(page=>({
       id:page.id,label:page.title,href:page.path
     }));
