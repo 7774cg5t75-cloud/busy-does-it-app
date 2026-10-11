@@ -21,6 +21,7 @@ import {WebsiteContentEditor} from "./websiteContentEditor";
 import {WebsiteLayoutControls} from "./websiteLayoutControls";
 import {WebsitePagesEditor} from "./websitePagesEditor";
 import {WebsiteTapEditor} from "./websiteTapEditor";
+import {WebsiteSelectedVoice} from "./websiteSelectedVoice";
 import {makeTapToEditHtml,resolveTapToolbarAction} from "../core/websiteTapToEdit.mjs";
 import {recordWebsiteViewportEvidence,summarizeWebsiteViewportEvidence,reviewWebsiteViewportPortfolio} from "../core/websiteViewportEvidence.mjs";
 import {withWebsitePreviewViewport,websitePreviewWidthNote} from "../core/websiteResponsivePreview.mjs";
@@ -588,6 +589,7 @@ function WebsitePreview({ s }) {
   const [pagePlanPreview,setPagePlanPreview]=React.useState(null);
   const [showPagePlanOriginal,setShowPagePlanOriginal]=React.useState(false);
   const [pagePlanNotice,setPagePlanNotice]=React.useState("");
+  const [pageVoiceExpanded,setPageVoiceExpanded]=React.useState(false);
   const [showRecoveryTools,setShowRecoveryTools]=React.useState(false);
   const [confirmRecoveryRestore,setConfirmRecoveryRestore]=React.useState(false);
   React.useEffect(()=>{
@@ -769,6 +771,20 @@ function WebsitePreview({ s }) {
           placeholder="Move the services section up; make the hero heading smaller on phones"
           placeholderTextColor="#97A7BD"
           style={{minHeight:95,padding:12,borderRadius:12,backgroundColor:"#202D40",color:"#F4F7FE",textAlignVertical:"top"}}/>
+        <Button label={pageVoiceExpanded?"Hide page microphone":"🎙 Talk to BUSY about this whole page"}
+          onPress={()=>setPageVoiceExpanded(value=>!value)}/>
+        {pageVoiceExpanded?(
+          <WebsiteSelectedVoice
+            key={draft.id+":"+draft.generation+":"+(activePage?.id||"home")}
+            contextLabel="page"
+            selection={{draftId:draft.id,generation:draft.generation,pageId:activePage?.id||"home"}}
+            onTranscribe={s.transcribeWebsitePageAudio}
+            onTranscript={words=>{
+              setPageInstruction(String(words||"").slice(0,400));
+              setPagePlanPreview(null);
+              setPagePlanNotice("Please read the transcript, then preview the proposed edits. No website changes were made.");
+            }}/>
+        ):null}
         <Button label="Preview changes — do not save"
           onPress={()=>{
             setSelectedEdit(null);setTapEditMode(false);setVisualCheckOn(false);
