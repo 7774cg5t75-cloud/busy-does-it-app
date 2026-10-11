@@ -2518,7 +2518,7 @@ function MiniAppPreview({ s }) {
                   onPress={approveVisualAI}/>
               ):null}
               {visualNotice?<Text style={styles.cardBody}>{visualNotice}</Text>:null}
-              {displayedReview?.ok?
+              {displayedReview?.ok?(
                 <>
                   <Text style={styles.sectionLabel}>
                     {visualReport?.ok?"AI design observations":"Measured layout observations (no AI)"}
