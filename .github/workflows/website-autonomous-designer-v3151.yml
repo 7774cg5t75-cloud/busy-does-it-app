@@ -32,6 +32,8 @@ jobs:
         run: |
           npm install --no-audit --no-fund
           npx playwright install --with-deps chromium
+      - name: Parse TypeScript edge endpoints and screenshot worker
+        run: node scripts/check-website-edge-syntax-v3151.mjs
       - name: Capture actual Chromium screenshots in autonomous loop
         run: |
           node scripts/check-website-design-loop-browser-v3151.mjs
