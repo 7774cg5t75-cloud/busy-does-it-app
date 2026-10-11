@@ -1,4 +1,5 @@
 import {editWebsiteDraftField} from "./websiteStructuredEditing.mjs";
+import {applyWebsiteLayoutOperation} from "./websiteLayoutEditing.mjs";
 /**
  * V3.102 — bounded, owner-directed visual and content edits.
  * Interpret explicit instructions only. No invented claims, photos or websites
@@ -26,8 +27,28 @@ const fail=reason=>({applied:false,reason});
 function applyWebsiteVisualEdit(draft,instruction){
   if(instruction&&typeof instruction==="object"&&instruction.kind==="structured")
     return editWebsiteDraftField(draft,instruction);
+  if(instruction&&typeof instruction==="object"&&instruction.kind==="layout")
+    return applyWebsiteLayoutOperation(draft,instruction);
  const text=clean(instruction);
  const lower=text.toLowerCase();
+ // A small, explicitly supported vocabulary of reversible design requests.
+ // Never treat arbitrary marketing copy as an executable instruction.
+ if(/^(?:make|give) (?:the )?(?:booking|contact|main|hero) button (?:stand out|more prominent)$/i.test(text))
+   return applyWebsiteLayoutOperation(draft,{action:"style",field:"ctaEmphasis",value:"strong"});
+ if(/^(?:make|give) (?:the )?(?:website|site|design) (?:more )?(?:spacious|roomy)$/i.test(text))
+   return applyWebsiteLayoutOperation(draft,{action:"style",field:"spacing",value:"generous"});
+ if(/^(?:make|give) (?:the )?(?:website|site|design) (?:more )?(?:compact|tight)$/i.test(text))
+   return applyWebsiteLayoutOperation(draft,{action:"style",field:"spacing",value:"compact"});
+ if(/^(?:make|use) (?:the )?(?:font|typography|headings) (?:more )?(?:elegant|refined)$/i.test(text))
+   return applyWebsiteLayoutOperation(draft,{action:"style",field:"typography",value:"refined"});
+ if(/^(?:duplicate|copy) (?:the )?(.+?)(?: section)?$/i.test(text)){
+  const target=text.match(/^(?:duplicate|copy) (?:the )?(.+?)(?: section)?$/i)?.[1]?.toLowerCase();
+  const match=list(draft?.sections).filter(x=>x?.id===target||clean(x?.title).toLowerCase()===target);
+  if(match.length===1)
+   return applyWebsiteLayoutOperation(draft,{action:"duplicate",sectionId:match[0].id});
+  return fail("BUSY needs one unambiguous section name to duplicate.");
+ }
+
  const originalTheme=draft?.theme||{};
  const existing=list(draft?.sections);
  const theme={...originalTheme};
