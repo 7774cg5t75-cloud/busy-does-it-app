@@ -178,6 +178,18 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
   const previousLooks=new Map(safeArray(previousDraft?.sections).map(section=>
     [String(section?.id||"")+":"+String(section?.type||""),section?.appearance]));
   const previousItemLooks=new Map();
+  const previousGalleryCrops=new Map();
+  for(const asset of safeArray(safeArray(previousDraft?.sections)
+    .find(section=>section?.id==="gallery")?.items)){
+    const key=String(asset?.id||"")+":"+String(asset?.storagePath||asset?.uri||"");
+    if(key!==":"&&["top","bottom"].includes(asset?.appearance?.photoCrop))
+      previousGalleryCrops.set(key,asset.appearance.photoCrop);
+  }
+  const restoreGalleryCrop=asset=>{
+    const key=String(asset?.id||"")+":"+String(asset?.storagePath||asset?.uri||"");
+    const crop=previousGalleryCrops.get(key);
+    return crop?{...asset,appearance:{photoCrop:crop}}:asset;
+  };
   for(const section of safeArray(previousDraft?.sections)){
     for(const item of safeArray(section?.items)){
       if(item?.id&&["compact","large"].includes(item?.appearance?.headingScale))
@@ -213,7 +225,7 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
       return {...section,...retained,asset:restorePhoto(section.asset)};
     if(section?.type==="gallery")
       return {...section,...retained,items:safeArray(section.items)
-        .map(asset=>restoreItemLook(section.id,restorePhoto(asset)))};
+        .map(asset=>restoreGalleryCrop(restoreItemLook(section.id,restorePhoto(asset))))};
     return {...section,...retained,
       ...(safeArray(section.items).length?{items:section.items
         .map(item=>restoreItemLook(section.id,item))}:{})};
@@ -652,6 +664,8 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     if(visible)renderedAnchors.add(
       section.type==="contact"?"contact":section.type==="gallery"?"gallery":String(section.id||""));
   }
+  const galleryPhotoClass=item=>["top","bottom"].includes(item?.appearance?.photoCrop)
+    ?" owner-image-crop-"+item.appearance.photoCrop:"";
   const itemHeadingClass=item=>item?.appearance?.headingScale==="large"
     ?' class="owner-item-heading-large"':
     item?.appearance?.headingScale==="compact"?' class="owner-item-heading-compact"':"";
@@ -690,7 +704,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     }
     if(section.type==="gallery"){
       const images=safeArray(section.items).map(approvedImage).filter(Boolean);
-      return images.length ? `<section id="gallery"${sectionAttrs}><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><div class="gallery">${safeArray(section.items).map((asset,i)=>{const image=approvedImage(asset);return image?`<img class="gallery-image"${editAttrs(section,"photo","",String(i))} loading="lazy" src="${escapeHtml(image)}" alt="Customer-supplied photograph">`:"";}).join("")}</div></div></section>` : "";
+      return images.length ? `<section id="gallery"${sectionAttrs}><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><div class="gallery">${safeArray(section.items).map((asset,i)=>{const image=approvedImage(asset);return image?`<img class="gallery-image${galleryPhotoClass(asset)}"${editAttrs(section,"photo","",String(i))} loading="lazy" src="${escapeHtml(image)}" alt="Customer-supplied photograph">`:"";}).join("")}</div></div></section>` : "";
     }
     if(section.type==="contact"){
       if(!clean(section.body)&&!clean(phone)&&!clean(email))return "";
