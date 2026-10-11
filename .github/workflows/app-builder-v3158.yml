@@ -1,0 +1,46 @@
+name: V3.158 Business App Editing, Evidence and Customer Journeys
+on:
+  push:
+    branches: [v3.158]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  intelligent-app-builder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: V3.158 service editing, real capture and request lifecycle tests
+        run: |
+          node scripts/check-app-builder-v3158.mjs
+          node scripts/check-intelligent-app-studio-v3157.mjs
+          node scripts/check-app-voice-layout-v3156.mjs
+          node scripts/check-native-public-booking-v3155.mjs
+          node scripts/check-app-context-editor-v3155.mjs
+          node scripts/check-app-builder-dual-track-v3153.mjs
+          node scripts/check-standalone-native-v3154.mjs
+          node scripts/check-production.mjs
+      - name: Install dependencies, including visible-screen capture
+        run: npm install --no-audit --no-fund
+      - name: Parse React Native and authenticated Edge code
+        run: |
+          node scripts/check-app-native-syntax-v3154.mjs
+          node scripts/check-app-builder-v3158.mjs
+      - name: Bundle Busy iOS and Android experiences
+        run: |
+          npx expo export --platform ios --output-dir /tmp/bdi-v3158-ios
+          npx expo export --platform android --output-dir /tmp/bdi-v3158-android
+      - name: Verify private standalone prototype still exports
+        run: |
+          node scripts/prepare-standalone-prototype-v3154.mjs
+          cd .tmp/standalone-prototype-v3154
+          ../../node_modules/.bin/expo export --platform ios --output-dir /tmp/bdi-v3158-standalone-ios
+          ../../node_modules/.bin/expo export --platform android --output-dir /tmp/bdi-v3158-standalone-android
+      - name: State release boundary
+        run: echo "CI does not deploy private Edge functions, sign app binaries, verify full booking journey, review AI screenshots or submit apps to stores."
