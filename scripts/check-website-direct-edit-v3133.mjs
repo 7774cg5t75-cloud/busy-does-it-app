@@ -16,7 +16,6 @@ for(const imp of [
  'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
  'import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";',
  'import { applyWebsiteVisualEdit } from "../../supabase/functions/busy-website-worker/designEdits.mjs";',
- 'import { editWebsiteDraftField } from "../core/websiteStructuredEditing.mjs";'
 ]){assert.ok(domain.includes(imp),"Expected domain import missing: "+imp);domain=domain.replace(imp,"");}
 const {buildWebsiteDraft,applyStructuredWebsiteEdit}=Function(
  "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign",
