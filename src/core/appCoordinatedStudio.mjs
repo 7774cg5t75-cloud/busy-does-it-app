@@ -6,6 +6,7 @@
 import {enabledAppKeys,proposeAppSectionMove} from "./appSectionOrder.mjs";
 import {previewPrivateAppAppearance} from "./appAppearanceEditing.mjs";
 import {reviewPrivateAppServices} from "./appServiceCollection.mjs";
+import {proposeGalleryImageDescription} from "./appGalleryDescription.mjs";
 const MAX_CHANGES=8;
 const TEXT_FIELDS=Object.freeze({tagline:180,about:1200,description:1000});
 const clean=v=>typeof v==="string"?v.trim():"";
@@ -20,7 +21,7 @@ function proposeCoordinatedAppChanges(config,operations){
  const changes=[],inverse=[];
  for(const op of operations){
   if(!op||typeof op!=="object"||Array.isArray(op)||
-     Object.keys(op).some(k=>!["kind","field","value","moduleKey","direction","index","from","to"].includes(k)))
+     Object.keys(op).some(k=>!["kind","field","value","moduleKey","direction","index","from","to","expectedUri"].includes(k)))
    return {ok:false,reason:"Unknown edit data was rejected."};
   let undo=null,after=null,description="";
   if(op.kind==="appearance"){
@@ -72,6 +73,15 @@ function proposeCoordinatedAppChanges(config,operations){
    if(!edit.ok)return edit;
    after=edit.nextConfig;
    undo={kind:"services",value:edit.previous.map(x=>({...x}))};
+   description=edit.description;
+  }else if(op.kind==="photo_description"){
+   const edit=proposeGalleryImageDescription(next,{
+     index:op.index,expectedUri:op.expectedUri,value:op.value
+   });
+   if(!edit.ok)return edit;
+   after=edit.nextConfig;
+   undo={kind:"photo_description",index:op.index,
+    expectedUri:op.expectedUri,value:edit.previous};
    description=edit.description;
   }else if(op.kind==="photo"){
    const arr=next.publicProfile?.assets?.gallery;
