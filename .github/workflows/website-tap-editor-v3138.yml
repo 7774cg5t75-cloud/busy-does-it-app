@@ -1,0 +1,49 @@
+name: V3.138 mobile-first website tap-to-edit checks
+on:
+  push:
+    branches: [v3.138]
+    paths:
+      - 'src/domain/websiteBuilder.js'
+      - 'src/core/websiteTapToEdit.mjs'
+      - 'src/screens/websiteBuilder.js'
+      - 'src/screens/websiteTapEditor.js'
+      - 'supabase/functions/busy-website-worker/websiteLayoutEditing.mjs'
+      - 'scripts/check-website-tap-editor-v3138.mjs'
+      - 'scripts/check-website-tap-browser-v3138.mjs'
+      - '.github/workflows/website-tap-editor-v3138.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  website-tap-edit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Test scoped tap editing, source renderer and reversible gallery
+        run: |
+          node scripts/check-website-tap-editor-v3138.mjs
+          node scripts/check-website-direct-edit-v3133.mjs
+          node scripts/check-website-layout-v3134.mjs
+          node scripts/check-website-pages-v3135.mjs
+          node scripts/check-website-standalone-v3136.mjs
+          node scripts/check-website-original-media-v3137.mjs
+          node scripts/check-snack-dependencies.mjs
+          node scripts/check-production.mjs
+      - name: Install Expo and Chromium tooling
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Verify actual private selector taps at phone and desktop width
+        run: node scripts/check-website-tap-browser-v3138.mjs
+      - name: Confirm native application JS compiles without EAS charges
+        run: |
+          npx expo export --platform ios --output-dir /tmp/busy-v3138-ios-js
+          npx expo export --platform android --output-dir /tmp/busy-v3138-android-js
+      - name: Deployment boundary
+        run: echo "No production publishing, cloud changes, AI spend or signed EAS build. Signed iPhone/Android touch QA is still required."
