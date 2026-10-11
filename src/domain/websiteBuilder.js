@@ -525,6 +525,9 @@ function renderWebsiteHtml(draft = {}) {
     "visual-ornament-" + (identity.ornament || "ripple"),
     "visual-nav-" + (identity.navStyle || "quiet"),
     "visual-type-" + (identity.typography || "confident"),
+    "rhythm-" + (["comfortable","compact","generous"].includes(draft?.theme?.spacing) ? draft.theme.spacing : "comfortable"),
+    "cta-" + (draft?.theme?.ctaEmphasis==="strong"?"strong":"normal"),
+    "photo-focus-" + (["top","bottom","center"].includes(draft?.theme?.photoFocus)?draft.theme.photoFocus:"center"),
   ].join(" ");
   // This is the editable concept HTML, not the signed hosted deployment.
   // Both use the same tested professional responsive styles and layout rules.
