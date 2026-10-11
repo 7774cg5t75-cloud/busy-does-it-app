@@ -36,7 +36,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
   setShowContextHelp(initialMode==="voice");
   setContextRequest("");
   setContextNote("");
-  setShowPhotoChoices(false);
+  setShowPhotoChoices(initialMode==="edit"&&selection?.field==="photo");
  },[key,draft?.updatedAt,initialMode]);
  const save=()=>{
   if(!selection||field==="photo")return;
@@ -88,10 +88,10 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
       <Text style={{color:"#B4C0D2",marginBottom:14}}>
        {title+" • "+(names[field]||"Selected element")}
       </Text>
-      <Card eyebrow="Private website change" title={field==="photo"?"Choose what to do with this picture":"Change the exact wording"}
+      <Card eyebrow="Private website change" title={initialMode==="voice"?"Talk to BUSY about this part":initialMode==="more"?"More ways to adjust this part":field==="photo"?"Replace this picture":"Change the exact wording"}
        body="Your edits stay in your private draft. Nothing is published automatically, and you can undo a saved change."
        tone="blue">
-       {selection&&field!=="photo"&&initialMode!=="voice"?(
+       {selection&&field!=="photo"&&initialMode==="edit"?(
         <>
          {field==="body"?(
           <View style={styles.fieldWrap}>
@@ -114,7 +114,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
          <Button label="Save to private website draft" primary onPress={save}/>
         </>
        ):null}
-       {selection&&field==="photo"&&initialMode!=="voice"?(
+       {selection&&field==="photo"&&initialMode==="edit"?(
         <>
          <Text style={styles.sectionLabel}>Currently selected photograph</Text>
          {selectedPhotoSource?(
