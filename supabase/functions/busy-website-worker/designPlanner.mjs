@@ -142,7 +142,7 @@ function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}
   );
   // Homepage is a tightly edited overview. Dedicated pages hold the rest.
   const homeSectionIds=architecture==="focused-landing" ? visibleOrder :
-    visibleOrder.filter(id=>active.some(x=>x.id===id&&x.type==="text"&&id.startsWith("custom-"))||
+    visibleOrder.filter(id=>active.some(x=>x.id===id&&["text","photo-feature"].includes(x.type)&&id.startsWith("custom-"))||
       ["hero","services","contact"].includes(id)||
       (id==="gallery"&&family==="portfolio")||
       (id==="about"&&["artisan","editorial","boutique"].includes(family))||
