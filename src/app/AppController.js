@@ -14462,6 +14462,30 @@ function App() {
     return data;
   };
 
+  // A read-only authenticated lookup. Only the service-side billing ledger
+  // is evidence of premium standalone eligibility. No client tier override.
+  const checkStandaloneEligibility=async()=>{
+    const expectedBusinessId=String(cloudWorkspace?.businessId||"");
+    if(!expectedBusinessId)return {verified:false,eligible:false,
+      reason:"Sign in to a business workspace to verify this benefit."};
+    try{
+      const data=await miniAppsRequest("standalone_eligibility_status");
+      if(data?.ok!==true||data.businessId!==expectedBusinessId||
+         data?.readOnly!==true||data?.providerCheckRequired!==true||
+         cloudWorkspace?.businessId!==expectedBusinessId)
+        return {verified:false,eligible:false,reason:"The business entitlement could not be verified."};
+      const e=data.eligibility||{};
+      return {verified:e.verified===true,eligible:e.verified===true&&e.eligible===true,
+        remaining:Number.isSafeInteger(e.remaining)&&e.remaining>0?e.remaining:0,
+        reason:String(e.reason||"Standalone eligibility is not verified.").slice(0,240),
+        businessId:expectedBusinessId,checkedAt:new Date().toISOString(),
+        authorizesBuild:false};
+    }catch(error){
+      return {verified:false,eligible:false,
+        reason:String(error?.message||"Verified billing status unavailable.").slice(0,200)};
+    }
+  };
+
   const refreshMiniAppsStatus = async ({ quiet = false } = {}) => {
     if (!ownerSession?.accessToken || !cloudWorkspace?.businessId) {
       if (!quiet) setMiniAppsError("Sign in and connect the BUSY cloud workspace first.");
@@ -16261,6 +16285,7 @@ function App() {
     openMiniAppLinkedBooking,
     awardMiniAppLoyaltyStamp,
     buildMiniAppFromBrandBrain,
+    checkStandaloneEligibility,
     planMiniAppFromBrief,
     answerMiniAppMissingFacts,
     applyMiniAppPlan,
