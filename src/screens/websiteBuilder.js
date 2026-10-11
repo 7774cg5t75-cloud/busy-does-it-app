@@ -22,7 +22,7 @@ import {WebsiteLayoutControls} from "./websiteLayoutControls";
 import {WebsitePagesEditor} from "./websitePagesEditor";
 import {WebsiteTapEditor} from "./websiteTapEditor";
 import {makeTapToEditHtml,resolveTapToolbarAction} from "../core/websiteTapToEdit.mjs";
-import {recordWebsiteViewportEvidence,summarizeWebsiteViewportEvidence} from "../core/websiteViewportEvidence.mjs";
+import {recordWebsiteViewportEvidence,summarizeWebsiteViewportEvidence,reviewWebsiteViewportPortfolio} from "../core/websiteViewportEvidence.mjs";
 import {withWebsitePreviewViewport,websitePreviewWidthNote} from "../core/websiteResponsivePreview.mjs";
 import {makeWebsiteVisualCheckHtml,reviewWebsiteVisualCheck,CHANNEL as VISUAL_CHECK_CHANNEL} from "../core/websiteVisualCheck.mjs";
 
@@ -651,6 +651,9 @@ function WebsitePreview({ s }) {
   const pageReviewCoverage=summarizeWebsiteViewportEvidence(viewportEvidence,{
     draftId:draft?.id,generation:draft?.generation,pageId:activePage?.id||"home"
   });
+  const crossScreenEvidence=reviewWebsiteViewportPortfolio(viewportEvidence,{
+    draftId:draft?.id,generation:draft?.generation,pageId:activePage?.id||"home"
+  });
   const layoutAdvice=visualCheckResult&&!designCandidate
     ?recommendMeasuredWebsiteChange({draft,pageId:activePage?.id,report:visualCheckResult}):null;
   const candidateComparison=designCandidate&&candidateCheckResult&&visualCheckResult
@@ -839,6 +842,9 @@ function WebsitePreview({ s }) {
             setTapEditMode(false);setVisualCheckOn(true);}}/>
         {pageReviewCoverage.checked.length?(
          <Text style={styles.cardBody}>{pageReviewCoverage.message}</Text>
+        ):null}
+        {pageReviewCoverage.checked.length?(
+          <Text style={styles.cardBody}>{crossScreenEvidence.message}</Text>
         ):null}
         {visualCheckResult?(
           <View style={{marginVertical:10}}>
