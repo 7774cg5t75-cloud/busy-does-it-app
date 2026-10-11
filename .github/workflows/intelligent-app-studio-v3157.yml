@@ -1,0 +1,43 @@
+name: V3.157 Intelligent App Builder 2.0
+on:
+  push:
+    branches: [v3.157]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  safe-app-studio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Test V3.157 shared intelligent app studio
+        run: |
+          node scripts/check-intelligent-app-studio-v3157.mjs
+          node scripts/check-app-voice-layout-v3156.mjs
+          node scripts/check-native-public-booking-v3155.mjs
+          node scripts/check-app-context-editor-v3155.mjs
+          node scripts/check-app-builder-dual-track-v3153.mjs
+          node scripts/check-standalone-native-v3154.mjs
+          node scripts/check-production.mjs
+      - name: Install pinned Expo and parser dependencies
+        run: npm install --no-audit --no-fund
+      - name: Parse native screens, controller and edge service
+        run: node scripts/check-app-native-syntax-v3154.mjs
+      - name: Export Busy iOS and Android JavaScript bundles
+        run: |
+          npx expo export --platform ios --output-dir /tmp/bdi-v3157-busy-ios
+          npx expo export --platform android --output-dir /tmp/bdi-v3157-busy-android
+      - name: Validate standalone configuration and Expo packages
+        run: |
+          node scripts/prepare-standalone-prototype-v3154.mjs
+          cd .tmp/standalone-prototype-v3154
+          ../../node_modules/.bin/expo export --platform ios --output-dir /tmp/bdi-v3157-standalone-ios
+          ../../node_modules/.bin/expo export --platform android --output-dir /tmp/bdi-v3157-standalone-android
+      - name: Explicit release boundary
+        run: echo "All previews remain private; this job does not deploy Supabase, sign binaries, charge, publish or submit an app."
