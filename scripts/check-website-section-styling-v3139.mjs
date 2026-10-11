@@ -102,6 +102,18 @@ assert.equal(rebuiltGallery.sections.find(s=>s.id==="gallery").appearance.galler
  "Default page styling survives Brand Brain factual rebuild");
 assert.equal(rebuiltGallery.sections.find(s=>s.id==="hero").appearance.photoCrop,"top",
  "Hero photo positioning preserved");
+// Voice and typed commands must resolve one exact section, never an ambiguous "that".
+const spokenHeading=applyWebsiteVisualEdit(first,"make the services heading larger");
+assert.ok(spokenHeading.applied&&spokenHeading.draft.sections.find(s=>s.id==="services").appearance.headingScale==="large");
+const spokenCentre=applyWebsiteVisualEdit(first,"centre the about section");
+assert.ok(spokenCentre.applied&&spokenCentre.draft.sections.find(s=>s.id==="about").appearance.textAlign==="center");
+const spokenGallery=applyWebsiteVisualEdit(first,"make gallery photos bigger");
+assert.ok(spokenGallery.applied&&spokenGallery.draft.sections.find(s=>s.id==="gallery").appearance.gallerySize==="large");
+const spokenSpacing=applyWebsiteVisualEdit(first,"give the contact section more space");
+assert.ok(spokenSpacing.applied&&spokenSpacing.draft.sections.find(s=>s.id==="contact").appearance.sectionSpacing==="generous");
+const spokenNoGuess=applyWebsiteVisualEdit(first,"centre that section");
+assert.equal(spokenNoGuess.applied,false,"Deictic selection must not be guessed");
+assert.equal(JSON.stringify(first),old,"Voice instructions never modify their source draft");
 const css=designCss(designForWebsite({businessType:"Garden design"}));
 for(const token of ["owner-heading-large","owner-heading-compact","owner-align-center",
  "owner-space-compact","owner-space-generous","owner-photo-right","owner-crop-top",
