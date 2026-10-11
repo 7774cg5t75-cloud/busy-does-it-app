@@ -27,7 +27,7 @@ import { fetch as expoFetch } from "expo/fetch";
 import { File as ExpoFile, Paths as ExpoPaths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import {selectedWebsiteVoiceContextIsCurrent} from "../core/websiteSelectedVoiceContext.mjs";
-import {recordWebsiteOwnerDesignFeedback} from "../core/websiteMeasuredDesignCoach.mjs";
+import {recordWebsiteOwnerDesignFeedback,withoutPrivateWebsiteDesignFeedback} from "../core/websiteMeasuredDesignCoach.mjs";
 import {voiceUploadEligible} from "../core/websiteVoiceRecordingPolicy.mjs";
 
 try {
@@ -13587,7 +13587,7 @@ function App() {
     setWebsitePublishingNotice("");
     try {
       const result = await websitePublishingRequest("prepare", {
-        websiteDraft,
+        websiteDraft:withoutPrivateWebsiteDesignFeedback(websiteDraft),
       });
       setWebsitePublishingNotice(
         result?.reused
@@ -13944,7 +13944,7 @@ function App() {
     try {
       const result = await websitePublishingRequest("request_domain", {
         hostname,
-        websiteDraft,
+        websiteDraft:withoutPrivateWebsiteDesignFeedback(websiteDraft),
       });
       setWebsitePublishingNotice(
         `Domain verification created. Add TXT record ${result?.verificationName || ""} with the value shown, then check ownership once. After ownership is proved, BUSY will prepare Cloudflare routing and SSL automatically.`
