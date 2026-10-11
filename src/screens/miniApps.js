@@ -15,6 +15,8 @@ import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.m
 import {proposeCoordinatedAppChanges,planAppVoiceInstructions} from "../core/appCoordinatedStudio.mjs";
 import {appDesignQualityReport} from "../core/appDesignQuality.mjs";
 import {auditBusinessAppUsability,compareBusinessAppDesign} from "../core/appUsabilityAudit.mjs";
+import {prepareAppDesignIteration,inspectApprovedAppIteration,proposeLowRiskDesignHints}
+  from "../core/appDesignIteration.mjs";
 import {prepareAppVisualBatch} from "../core/appVisualComparison.mjs";
 import {auditStandaloneContrast} from "../core/appContrastAudit.mjs";
 import {appRequestJourney} from "../core/appRequestLifecycle.mjs";
@@ -627,6 +629,9 @@ function MiniAppBuilder({ s }) {
   const [serviceIndex,setServiceIndex]=React.useState(-1);
   const [serviceName,setServiceName]=React.useState("");
   const [serviceDescription,setServiceDescription]=React.useState("");
+  const [accessiblePhotoNumber,setAccessiblePhotoNumber]=React.useState("1");
+  const [accessiblePhotoAlt,setAccessiblePhotoAlt]=React.useState("");
+  const [accessiblePhotoCaption,setAccessiblePhotoCaption]=React.useState("");
   const view = s.miniAppsView || {};
   const app = view.app;
   React.useEffect(()=>{
@@ -639,6 +644,8 @@ function MiniAppBuilder({ s }) {
     setStudioWords("");
     setStudioNotice("");
     setServiceIndex(-1);setServiceName("");setServiceDescription("");
+    setAccessiblePhotoNumber("1");
+    setAccessiblePhotoAlt("");setAccessiblePhotoCaption("");
   },[app?.id,s.cloudWorkspace?.businessId,s.ownerSession?.userId]);
   React.useEffect(()=>{
     setPendingAppearance(null);
@@ -684,6 +691,7 @@ function MiniAppBuilder({ s }) {
   });
   const quality=appDesignQualityReport(view.draftConfig||view.activeConfig||{},view.catalog||[]);
   const usability=auditBusinessAppUsability(view.draftConfig||view.activeConfig||{});
+  const nonAiDesignHints=proposeLowRiskDesignHints(view.draftConfig||view.activeConfig||{});
   const measuredNativeContrast=auditStandaloneContrast();
   const liveMatchesDraft =
     businessAppPreviewProof({app,preview:view.liveVersion}).matches;
@@ -1234,6 +1242,52 @@ function MiniAppBuilder({ s }) {
               ):null}
             </>
           ):null}
+          {view.draftConfig.modules?.some(x=>x.key==="gallery"&&x.enabled===true)&&
+            (view.draftConfig.publicProfile?.assets?.gallery||[]).length>0?(
+            <>
+              <Text style={styles.sectionLabel}>Make gallery photos accessible</Text>
+              <Text style={styles.cardBody}>
+                Describe what an approved photo shows, rather than adding marketing slogans.
+                BUSY keeps the existing picture and asks before saving any public wording.
+              </Text>
+              <Field label="Gallery photo number (1 is first)" value={accessiblePhotoNumber}
+                onChangeText={setAccessiblePhotoNumber}/>
+              <Button label="Load this photo's existing descriptions"
+                onPress={()=>{
+                  const asset=view.draftConfig.publicProfile?.assets?.gallery?.[
+                    Number(accessiblePhotoNumber)-1];
+                  if(!asset||asset.approved!==true&&asset.marketingOk!==true){
+                    setStudioNotice("Choose an existing approved gallery photo.");
+                    return;
+                  }
+                  setAccessiblePhotoAlt(String(asset.alt||""));
+                  setAccessiblePhotoCaption(String(asset.caption||""));
+                  setStudioPreview(null);
+                }}/>
+              <Field label="Image description for screen readers"
+                value={accessiblePhotoAlt} onChangeText={setAccessiblePhotoAlt}
+                placeholder="e.g. Hairdresser cutting a client's hair in the salon"/>
+              <Field label="Optional public caption"
+                value={accessiblePhotoCaption} onChangeText={setAccessiblePhotoCaption}
+                placeholder="e.g. Our team at work"/>
+              <Button label="Preview photo description changes"
+                disabled={!!s.miniAppsAction}
+                onPress={()=>{
+                  const index=Number(accessiblePhotoNumber)-1;
+                  const gallery=view.draftConfig.publicProfile?.assets?.gallery||[];
+                  const item=gallery[index];
+                  const plan=proposeCoordinatedAppChanges(view.draftConfig,[{
+                    kind:"photo_description",index,
+                    expectedUri:item?.uri,
+                    value:{alt:accessiblePhotoAlt,caption:accessiblePhotoCaption}
+                  }]);
+                  setStudioPreview(plan.ok?plan:null);
+                  setStudioNotice(plan.ok?
+                    "Preview the owner-written photo descriptions below, then approve or discard.":
+                    plan.reason);
+                }}/>
+            </>
+          ):null}
           {Array.isArray(view.draftConfig.publicProfile?.assets?.gallery)&&
             view.draftConfig.publicProfile.assets.gallery.length>=2?(
             <>
@@ -1338,6 +1392,31 @@ function MiniAppBuilder({ s }) {
             <MetricRow key={item.id} left={item.id.replaceAll("_"," ")}
               right={item.detail}/>
           ))}
+          <Text style={styles.sectionLabel}>V3.162 • Suggested design checks</Text>
+          {nonAiDesignHints.ok&&nonAiDesignHints.suggestions.length?(
+            <>
+              <Text style={styles.cardBody}>
+                BUSY found some possible improvements using configuration rules,
+                without AI charges. These are ideas to inspect, not proven fixes.
+              </Text>
+              {nonAiDesignHints.suggestions.map(hint=>(
+                <Button key={hint.field} label={"Preview "+hint.field+": "+hint.value}
+                  disabled={!!s.miniAppsAction}
+                  onPress={()=>{
+                    const p=proposeCoordinatedAppChanges(view.draftConfig,[{
+                      kind:"appearance",field:hint.field,value:hint.value
+                    }]);
+                    setStudioPreview(p.ok?p:null);
+                    setStudioNotice(p.ok?"A private alternative is ready in Intelligent App Studio above. Nothing was applied.":p.reason);
+                  }}/>
+              ))}
+            </>
+          ):(
+            <Text style={styles.cardBody}>
+              No supported one-click design hints from these static rules.
+              Real device checks may still reveal problems.
+            </Text>
+          )}
           <Text style={styles.sectionLabel}>V3.160 • Accessible app checklist</Text>
           <MetricRow left="Static issues to review"
             right={String(usability.importantCount)}/>
@@ -1858,9 +1937,13 @@ function MiniAppPreview({ s }) {
   const [pairBusy,setPairBusy]=React.useState(false);
   const [pairReview,setPairReview]=React.useState(null);
   const [pairNotice,setPairNotice]=React.useState("");
+  const [designCheckpoint,setDesignCheckpoint]=React.useState(null);
   const appSurfaceRef=React.useRef(null);
   const originalComparisonRef=React.useRef(null);
   const proposedComparisonRef=React.useRef(null);
+  React.useEffect(()=>{
+    setDesignCheckpoint(null);
+  },[appId]);
   React.useEffect(()=>{
     setCapture(null);setCaptureError("");setVisualReport(null);
     setVisualProposal(null);setVisualAllowance(null);setVisualNotice("");
@@ -1888,6 +1971,10 @@ function MiniAppPreview({ s }) {
       setCaptureError(String(error?.message||"Could not capture this device screen.").slice(0,250));
     }finally{setCaptureBusy(false);}
   };
+  const iterationRecheck=designCheckpoint?.ok?
+    inspectApprovedAppIteration(designCheckpoint,{
+      appId,revision,config,saveConfirmed:designCheckpoint.saveConfirmed
+    }):null;
   const captureCurrent=currentAppVisibleCapture(capture,{appId,revision});
   const pairedCurrent=pairedCapture?.revision===revision&&
     pairedCapture?.appId===appId&&visualProposal?.ok===true&&
@@ -1982,8 +2069,32 @@ function MiniAppPreview({ s }) {
         footer="Opening this preview does not make anything public."
         tone="green"
       />
+      {iterationRecheck?.ok?(
+        <Card eyebrow="V3.162 • Improvement cycle"
+          title="Recheck your approved private design"
+          body={iterationRecheck.allSettingsApplied?
+            "The approved design settings are present in the new private revision.":
+            "Some approved settings did not match the current draft. Review before proceeding."}
+          tone={iterationRecheck.allSettingsApplied?"green":"amber"}
+          footer="A configuration recheck is not visual proof. Capture the updated customer view below and approve another AI review separately if needed.">
+          <MetricRow left="Private draft revision" right={String(revision)}/>
+          <MetricRow left="Settings correctly applied"
+            right={iterationRecheck.settings.filter(x=>x.applied).length+
+              " of "+iterationRecheck.settings.length}/>
+          <MetricRow left="Configuration flags resolved"
+            right={String(iterationRecheck.resolvedStaticFlags.length)}/>
+          <MetricRow left="New configuration flags"
+            right={String(iterationRecheck.newStaticFlags.length)}/>
+          {iterationRecheck.newStaticFlags.map(key=>(
+            <MetricRow key={key} left="Review new warning" right={key.replaceAll("_"," ")}/>
+          ))}
+          <Text style={styles.cardBody}>
+            {iterationRecheck.nextAction}
+          </Text>
+        </Card>
+      ):null}
       {config&&appId&&revision>0?(
-        <Card eyebrow="V3.159 • Private app design reviewer"
+        <Card eyebrow="V3.162 • Private app design reviewer"
           title="Inspect your real app preview"
           body="Capture ONLY the rendered customer-facing app area. Account controls, editing tools and private customer records are excluded. This is an owner-submitted screenshot, not independent device verification."
           footer="Local capture is free. AI review requires separate opt-in, configured usage allowance and approval for each submission."
@@ -2148,12 +2259,21 @@ function MiniAppPreview({ s }) {
                         " PRIVATE design change(s)"}
                         disabled={!!s.miniAppsAction}
                         onPress={async()=>{
+                          const operations=visualProposal.operations||
+                            [visualProposal.operation];
+                          const prepared=prepareAppDesignIteration({
+                            appId,revision,config,operations
+                          });
+                          if(!prepared.ok){
+                            setPairNotice(prepared.reason);
+                            return;
+                          }
                           const saved=await s.saveCoordinatedAppChanges?.({
-                            appId,expectedRevision:revision,
-                            operations:visualProposal.operations||
-                              [visualProposal.operation]
+                            appId,expectedRevision:revision,operations
                           });
                           if(saved?.ok){
+                            if(saved.newRevision===prepared.expectedAfterRevision)
+                              setDesignCheckpoint({...prepared,saveConfirmed:true});
                             setVisualProposal(null);setVisualReport(null);setCapture(null);
                             setPairedCapture(null);setPairReview(null);
                             setVisualSelected([]);
