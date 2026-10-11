@@ -2626,6 +2626,57 @@ function MiniAppPreview({ s }) {
         footer="Opening this preview does not make anything public."
         tone="green"
       />
+      {config&&appId&&revision>0?(
+        <Card eyebrow="V3.166 • Your design preferences"
+          title="Busy remembers your design choices"
+          body="Only this business's supported layout choices, your feedback and limited measurement counts are used. No screenshots, private customer records or free-form notes are saved as learning history."
+          footer="Owner feedback improves suggestion ranking. It does not retrain the AI model or prove a design is successful.">
+          <Button label={showDesignMemory?
+              "Hide design memory details":"Why is Busy recommending these designs?"}
+            onPress={()=>setShowDesignMemory(x=>!x)}/>
+          {designMemoryNotice?(
+            <Text style={styles.cardBody}>{designMemoryNotice}</Text>
+          ):null}
+          {showDesignMemory?(
+            <>
+              {designMemory?.ok?(
+                <>
+                  <MetricRow left="Private design decisions remembered"
+                    right={String(designMemory.records.length)}/>
+                  <MetricRow left="Previously disliked choices suppressed"
+                    right={String(rankedDesign?.suppressedCount||0)}/>
+                  {(rankedDesign?.recommended||[]).slice(0,3).map(item=>(
+                    <View key={"learned-choice-"+item.field}>
+                      <MetricRow left={"Consider "+item.field} right={item.value}/>
+                      <Text style={styles.cardBody}>
+                        {item.reason+". "+item.ownerPreference+
+                          ". This is a recommendation, not a verified result."}
+                      </Text>
+                    </View>
+                  ))}
+                  {designMemory.records.slice(0,5).map((event,i)=>(
+                    <MetricRow key={"decision-"+i}
+                      left={event.field+" → "+event.value}
+                      right={event.verdict.replaceAll("_"," ")+
+                        " ("+(event.context==="preview"?"preview":"after saving")+")"}/>
+                  ))}
+                  <Button label={designMemoryBusy?
+                      "Updating history…":"Refresh private design history"}
+                    disabled={designMemoryBusy} onPress={refreshDesignMemory}/>
+                  <Button label="Clear this business's design feedback"
+                    disabled={designMemoryBusy||!!s.miniAppsAction}
+                    onPress={clearDesignMemory}/>
+                </>
+              ):(
+                <Text style={styles.cardBody}>
+                  {designMemory?.reason||
+                    "Loading this business's private design history. Live storage requires the new backend migration and deployment."}
+                </Text>
+              )}
+            </>
+          ):null}
+        </Card>
+      ):null}
       {iterationRecheck?.ok?(
         <Card eyebrow="V3.162 • Improvement cycle"
           title="Recheck your approved private design"
@@ -2648,6 +2699,24 @@ function MiniAppPreview({ s }) {
           <Text style={styles.cardBody}>
             {iterationRecheck.nextAction}
           </Text>
+          {iterationRecheck.allSettingsApplied?(
+            <>
+              <Text style={styles.sectionLabel}>How is the saved design?</Text>
+              <Text style={styles.cardBody}>
+                This is your judgement AFTER the design was saved to the
+                private draft, not a claim of improved bookings or sales.
+              </Text>
+              <Button label="Better — remember this preference"
+                disabled={designMemoryBusy||!!s.miniAppsAction}
+                onPress={()=>recordDesignChoice("better","saved_revision")}/>
+              <Button label="Worse — remember this preference"
+                disabled={designMemoryBusy||!!s.miniAppsAction}
+                onPress={()=>recordDesignChoice("worse","saved_revision")}/>
+              <Button label="Not quite right — try something else next time"
+                disabled={designMemoryBusy||!!s.miniAppsAction}
+                onPress={()=>recordDesignChoice("not_quite_right","saved_revision")}/>
+            </>
+          ):null}
           {savedMeasurementReview?.ok?(
             <>
               <Text style={styles.sectionLabel}>V3.164 • New rendered geometry</Text>
@@ -3068,6 +3137,20 @@ function MiniAppPreview({ s }) {
                           </Text>
                         </>
                       ):null}
+                      <Text style={styles.sectionLabel}>Your preference before saving</Text>
+                      <Text style={styles.cardBody}>
+                        BUSY can remember which version you favour. This
+                        does not apply or publish either version.
+                      </Text>
+                      <Button label="Prefer proposed design — remember"
+                        disabled={designMemoryBusy||!!s.miniAppsAction}
+                        onPress={()=>recordDesignChoice("better","preview")}/>
+                      <Button label="Keep original — remember what I disliked"
+                        disabled={designMemoryBusy||!!s.miniAppsAction}
+                        onPress={()=>recordDesignChoice("worse","preview")}/>
+                      <Button label="Try another design — remember"
+                        disabled={designMemoryBusy||!!s.miniAppsAction}
+                        onPress={()=>recordDesignChoice("not_quite_right","preview")}/>
                       <Button primary label={"Approve "+(visualProposal.operations?.length||1)+
                         " PRIVATE design change(s)"}
                         disabled={!!s.miniAppsAction}
