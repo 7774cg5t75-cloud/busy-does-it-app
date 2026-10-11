@@ -26,6 +26,7 @@ import Constants from "expo-constants";
 import { fetch as expoFetch } from "expo/fetch";
 import { File as ExpoFile, Paths as ExpoPaths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
+import {resolveTapSelection,CHANNEL as WEBSITE_TAP_CHANNEL} from "../core/websiteTapToEdit.mjs";
 
 try {
   Notifications.setNotificationHandler({
@@ -271,6 +272,10 @@ function App() {
   const [newBrandTestimonialText, setNewBrandTestimonialText] = useState("");
   const [newBrandTestimonialAttribution, setNewBrandTestimonialAttribution] = useState("");
   const [websiteDraft, setWebsiteDraft] = useState(null);
+  // Keep asynchronous voice transcription attached to the LATEST private
+  // draft, not a stale callback closure captured before recording.
+  const websiteDraftRef=useRef(null);
+  websiteDraftRef.current=websiteDraft;
   const [websiteUndo, setWebsiteUndo] = useState([]);
   const [websiteRedo, setWebsiteRedo] = useState([]);
   const [websiteBuilderNotice, setWebsiteBuilderNotice] = useState("");
@@ -13191,6 +13196,53 @@ function App() {
     return true;
   };
 
+  // V3.141: send audio to the authenticated transcription-only Operator
+  // endpoint, never its command router. The owner reviews words locally before
+  // applying a scoped instruction via the existing private Undo/Redo pipeline.
+  const transcribeSelectedWebsiteAudio = async (audioUri, selection) => {
+    const selectionIsCurrent = () => {
+      const draft=websiteDraftRef.current;
+      if (!draft||!selection||selection.draftId!==draft.id||
+          selection.pageId==null||selection.generation!==draft.generation)return false;
+      return !!resolveTapSelection(draft,selection.pageId,{
+        channel:WEBSITE_TAP_CHANNEL,
+        sectionId:selection.sectionId,
+        itemId:selection.itemId||"",
+        field:selection.field,
+        photoIndex:selection.field==="photo"&&selection.photoIndex>=0
+          ?String(selection.photoIndex):""
+      });
+    };
+    if(!selectionIsCurrent())return {ok:false,error:"Your website changed. Tap the part you want to edit again."};
+    try{
+      const file=new ExpoFile(String(audioUri||""));
+      if(!file.exists||Number(file.size||0)<100||Number(file.size||0)>2_500_000)
+        return {ok:false,error:"Record one short instruction, then stop before the recording reaches 2.5 MB."};
+      const token=await ownerAccessToken();
+      if(!token)return {ok:false,error:"Sign in again before using voice editing."};
+      if(!selectionIsCurrent())return {ok:false,error:"The selected website part changed. Tap it again."};
+      const form=new FormData();
+      form.append("mode","website-selection-transcript-v1");
+      form.append("audio",file,`busy-selected-website-${Date.now()}.m4a`);
+      const response=await fetchWithTimeout(BUSY_COMMAND_URL,{
+        method:"POST",
+        headers:{apikey:BUSY_AI_TOKEN,Authorization:`Bearer ${token}`,
+          "x-busy-request-id":busyRequestId("website-selected-transcript")},
+        body:form
+      },45000,expoFetch);
+      const payload=await response.json().catch(()=>({}));
+      if(!response.ok)throw Error(String(payload?.error||"Voice transcription is not available."));
+      if(payload?.mode!=="website-selection-transcript-v1"||
+         payload.requiresReview!==true||payload.command!==null||payload.action!==null||
+         !String(payload.transcript||"").trim())
+        throw Error("The service did not return a transcription-only result. No change was made.");
+      if(!selectionIsCurrent())return {ok:false,error:"Your website changed while BUSY was listening. Tap the part again; no edit was applied."};
+      return {ok:true,transcript:String(payload.transcript).trim().slice(0,400)};
+    }catch(error){
+      return {ok:false,error:String(error?.message||"Voice transcription failed. Your website was not changed.").slice(0,240)};
+    }
+  };
+
   const applyWebsiteLayoutAction = (operation) => {
     if (!websiteDraft) {
       setWebsiteBuilderNotice("Build the first website draft before changing its layout.");
@@ -15764,6 +15816,7 @@ function App() {
     buildWebsiteFromBrandBrain,
     applyWebsiteChange,
     applyWebsiteFieldChange,
+    transcribeSelectedWebsiteAudio,
     applyWebsiteLayoutAction,
     applyWebsitePageAction,
     shareWebsiteContent,
