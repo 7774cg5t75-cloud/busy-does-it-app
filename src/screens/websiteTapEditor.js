@@ -6,7 +6,7 @@ import {interpretSelectedWebsiteRequest} from "../core/websiteContextualEdit.mjs
 import {WebsiteSelectedVoice} from "./websiteSelectedVoice";
 
 const names={
- title:"Heading",body:"Wording",cta:"Button text",ctaHref:"Button destination",
+ section:"Section",title:"Heading",body:"Wording",cta:"Button text",ctaHref:"Button destination",
  phone:"Phone number",email:"Email address",openingHours:"Opening hours",photo:"Photograph"
 };
 const list=x=>Array.isArray(x)?x:[];
@@ -32,7 +32,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  React.useEffect(()=>{
   setValue(typeof target?.[field]==="string"?target[field]:"");
   setConfirmRemove(false);
-  setShowSectionDesign(initialMode==="more");
+  setShowSectionDesign(initialMode==="more"||selection?.field==="section");
   setShowContextHelp(initialMode==="voice");
   setContextRequest("");
   setContextNote("");
@@ -88,10 +88,10 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
       <Text style={{color:"#B4C0D2",marginBottom:14}}>
        {title+" • "+(names[field]||"Selected element")}
       </Text>
-      <Card eyebrow="Private website change" title={initialMode==="voice"?"Talk to BUSY about this part":initialMode==="more"?"More ways to adjust this part":field==="photo"?"Replace this picture":"Change the exact wording"}
+      <Card eyebrow="Private website change" title={initialMode==="voice"?"Talk to BUSY about this part":initialMode==="more"?"More ways to adjust this part":field==="section"?"Adjust this section":field==="photo"?"Replace this picture":"Change the exact wording"}
        body="Your edits stay in your private draft. Nothing is published automatically, and you can undo a saved change."
        tone="blue">
-       {selection&&field!=="photo"&&initialMode==="edit"?(
+       {selection&&field!=="photo"&&field!=="section"&&initialMode==="edit"?(
         <>
          {field==="body"?(
           <View style={styles.fieldWrap}>
