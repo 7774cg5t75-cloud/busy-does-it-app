@@ -5,7 +5,7 @@
  * approved field/layout actions with its existing undo and publish gates.
  */
 import {fieldChoices} from "./websiteStructuredEditing.mjs";
-import {resolveContextualToolbarAction} from "./contextualEditingCore.mjs";
+import {resolveContextualToolbarAction,PRIMARY_LABELS} from "./contextualEditingCore.mjs";
 const CHANNEL="busy.website.tap-to-edit.v1";
 const list=v=>Array.isArray(v)?v:[];
 const clean=v=>typeof v==="string"?v:"";
@@ -35,8 +35,7 @@ function makeTapToEditHtml(html){
  const script=`<script>(function(){
   "use strict";
   var previous=null,toolbar=null,lastPointerY=null;
-  var labels={section:"Adjust",photo:"Replace",title:"Edit",body:"Edit",cta:"Edit",ctaHref:"Edit",
-   phone:"Edit",email:"Edit",openingHours:"Edit"};
+  var labels=${JSON.stringify(PRIMARY_LABELS)};
   function bridge(action){
    if(!previous)return;
    var out={channel:"busy.website.tap-to-edit.v1",
