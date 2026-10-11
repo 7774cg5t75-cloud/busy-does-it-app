@@ -68,7 +68,7 @@ for(const item of [
   'import { WebView } from "react-native-webview";',
   'const liveConceptHtml = draft ? renderWebsiteHtml(draft,activePage?.id||"home") : "";',
   'source={{ html: interactiveHtml, baseUrl: "about:blank" }}',
-  'javaScriptEnabled={tapEditMode||visualCheckOn}',
+  'javaScriptEnabled={tapEditMode||visualCheckOn||candidateCheckOn}',
   'const [tapEditMode,setTapEditMode]=React.useState(false);',
   'domStorageEnabled={false}',
   'allowUniversalAccessFromFileURLs={false}',
