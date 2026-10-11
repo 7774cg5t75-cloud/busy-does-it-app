@@ -27,6 +27,7 @@ import { fetch as expoFetch } from "expo/fetch";
 import { File as ExpoFile, Paths as ExpoPaths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import {selectedWebsiteVoiceContextIsCurrent} from "../core/websiteSelectedVoiceContext.mjs";
+import {recordWebsiteOwnerDesignFeedback} from "../core/websiteMeasuredDesignCoach.mjs";
 import {voiceUploadEligible} from "../core/websiteVoiceRecordingPolicy.mjs";
 
 try {
@@ -13236,6 +13237,24 @@ function App() {
     }
   };
 
+  // V3.144: explicit owner feedback stays attached to the current private
+  // website draft; it is not a global learning signal or automatic retraining.
+  const recordWebsiteDesignFeedback = ({draftId,pageId,changeId,choice}) => {
+    if(!websiteDraftRef.current||websiteDraftRef.current.id!==draftId)return false;
+    const checked=recordWebsiteOwnerDesignFeedback(websiteDraftRef.current,{
+      draftId,pageId,changeId,choice,at:new Date().toISOString()
+    });
+    if(!checked.applied)return false;
+    setWebsiteDraft(current=>{
+      if(!current||current.id!==draftId)return current;
+      return recordWebsiteOwnerDesignFeedback(current,{
+        draftId,pageId,changeId,choice,at:new Date().toISOString()
+      }).draft;
+    });
+    setWebsiteBuilderNotice("Saved your design preference privately for this website. Nothing was shared or published.");
+    return true;
+  };
+
   const applyWebsiteLayoutAction = (operation) => {
     if (!websiteDraft) {
       setWebsiteBuilderNotice("Build the first website draft before changing its layout.");
@@ -15811,6 +15830,7 @@ function App() {
     applyWebsiteFieldChange,
     transcribeSelectedWebsiteAudio,
     applyWebsiteLayoutAction,
+    recordWebsiteDesignFeedback,
     applyWebsitePageAction,
     shareWebsiteContent,
     shareStandaloneWebsiteZip,
