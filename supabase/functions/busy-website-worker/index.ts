@@ -174,7 +174,7 @@ function renderSectionHtml(
   if (section.type === "photo-feature") {
     const image=section.asset?urlForAsset(section.asset,urls):"";
     if(!image)return "";
-    return `<section class="photo-feature" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid"><img loading="lazy" src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}"><div><${headingTag}>${escapeHtml(section.title)}</${headingTag}><p>${escapeHtml(section.body).replace(/\\n/g,"<br>")}</p></div></div></section>`;
+    return `<section class="photo-feature" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid"><img loading="lazy" src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}"><div><${headingTag}>${escapeHtml(section.title)}</${headingTag}><p>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></div></section>`;
   }
   if (section.type === "gallery") {
     const images = safeArray(section.items)
