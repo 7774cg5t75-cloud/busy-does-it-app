@@ -2611,13 +2611,23 @@ function MiniAppPreview({ s }) {
               ):null}
               {measuredSuggestions?.suggestions?.length?(
                 <Text style={styles.cardBody}>
-                  BUSY has identified supported alternatives to preview. Capture
-                  the private customer view below, choose an option and approve
-                  any change separately. Nothing is edited automatically.
+                  BUSY has identified supported alternatives to preview. Nothing
+                  is edited automatically.
                 </Text>
               ):null}
             </>
           ):null}
+          {(measuredSuggestions?.suggestions?.length||
+            visualReport?.suggestions?.length||responsiveSuggestions.length)?(
+            <Button label="Prepare coordinated design improvements"
+              disabled={virtualBusy||!!s.miniAppsAction}
+              onPress={prepareCoordinatedReview}/>
+          ):null}
+          <Text style={styles.cardBody}>
+            BUSY prioritises real local measurements, then separately consented
+            AI observations, then no-cost responsive rules. The result is an
+            unsaved plan with no more than three supported appearance changes.
+          </Text>
         </Card>
       ):null}
       {config&&appId&&revision>0?(
@@ -2778,6 +2788,155 @@ function MiniAppPreview({ s }) {
                           Waiting for both original and proposed customer previews
                           to report comparable native layout geometry.
                         </Text>
+                      ):null}
+                      <Text style={styles.sectionLabel}>
+                        V3.165 • Compare across three layout widths
+                      </Text>
+                      <Text style={styles.cardBody}>
+                        Select a width, inspect the actual native-rendered customer
+                        components and capture the original and proposed views.
+                        These are simulated layout widths on THIS device, not
+                        independent hardware tests. The tablet-width image may be
+                        unsupported on a narrow phone.
+                      </Text>
+                      <View style={{flexDirection:"row",flexWrap:"wrap",gap:6}}>
+                        {VIEWPORTS.map(item=>(
+                          <Button key={item.id}
+                            label={(virtualWidthId===item.id?"✓ ":"")+item.width+" pt"}
+                            disabled={virtualBusy}
+                            onPress={()=>setVirtualWidthId(item.id)}/>
+                        ))}
+                      </View>
+                      <MetricRow left="Selected virtual layout width"
+                        right={String(capturePreset?.width||0)+" points"}/>
+                      <Text style={styles.sectionLabel}>Original customer layout</Text>
+                      <ScrollView horizontal showsHorizontalScrollIndicator>
+                        <View ref={virtualBeforeRef} collapsable={false}
+                          style={{width:capturePreset?.width||320}}>
+                          <MiniAppSurface key={"width-before-"+virtualWidthId}
+                            config={config}
+                            onQualityObservation={collectVirtualBefore}
+                            onMeasuredWidth={setVirtualBeforeWidth}/>
+                        </View>
+                      </ScrollView>
+                      <Text style={styles.sectionLabel}>Proposed customer layout</Text>
+                      <ScrollView horizontal showsHorizontalScrollIndicator>
+                        <View ref={virtualAfterRef} collapsable={false}
+                          style={{width:capturePreset?.width||320}}>
+                          <MiniAppSurface key={"width-after-"+virtualWidthId}
+                            config={visualProposal.nextConfig}
+                            onQualityObservation={collectVirtualAfter}
+                            onMeasuredWidth={setVirtualAfterWidth}/>
+                        </View>
+                      </ScrollView>
+                      {presetComparison?.ok?(
+                        <>
+                          <MetricRow left="Original geometry warnings"
+                            right={String(presetComparison.beforeIssueCount)}/>
+                          <MetricRow left="Proposed geometry warnings"
+                            right={String(presetComparison.afterIssueCount)}/>
+                          <MetricRow left="Warnings no longer flagged"
+                            right={String(presetComparison.noLongerFlagged.length)}/>
+                          <MetricRow left="New warnings to inspect"
+                            right={String(presetComparison.newlyFlagged.length)}/>
+                        </>
+                      ):(
+                        <Text style={styles.cardBody}>
+                          Waiting for comparable component measurements from
+                          both customer-only views at this width.
+                        </Text>
+                      )}
+                      <Button label={virtualBusy?"Capturing layouts…":
+                        "Capture original and proposed at "+capturePreset?.width+" pt"}
+                        disabled={virtualBusy||!presetComparison?.ok||!!s.miniAppsAction}
+                        onPress={captureVirtualPair}/>
+                      {virtualSamples[virtualWidthId]?.pair?.ok?(
+                        <>
+                          <Text style={styles.sectionLabel}>
+                            Local screenshots at this width
+                          </Text>
+                          <Image source={{uri:virtualSamples[virtualWidthId].before.uri}}
+                            resizeMode="contain"
+                            style={{width:"100%",height:175,marginBottom:6}}/>
+                          <Image source={{uri:virtualSamples[virtualWidthId].after.uri}}
+                            resizeMode="contain"
+                            style={{width:"100%",height:175,marginBottom:6}}/>
+                          {visualAllowance===null?(
+                            <Button label="Check private AI review allowance"
+                              disabled={virtualBusy} onPress={refreshVisualAllowance}/>
+                          ):null}
+                          {visualAllowance?.enabled&&visualAllowance.remaining>0?(
+                            <Button label={virtualBusy?"Comparing with AI…":
+                              "Ask AI to compare these two screenshots (one credit)"}
+                              disabled={virtualBusy||!!s.miniAppsAction}
+                              onPress={consentToCompareVirtualWidth}/>
+                          ):null}
+                          {visualAllowance?.enabled===false?(
+                            <Text style={styles.cardBody}>
+                              {visualAllowance.reason||"Visual AI is not configured."}
+                            </Text>
+                          ):null}
+                        </>
+                      ):null}
+                      {virtualNotice?(
+                        <Text style={styles.cardBody}>{virtualNotice}</Text>
+                      ):null}
+                      {virtualAiReview?.viewportId===virtualWidthId&&
+                        virtualAiReview.review?.ok?(
+                        <>
+                          <Text style={styles.sectionLabel}>
+                            AI assessment for this one width
+                          </Text>
+                          <Text style={styles.cardBody}>
+                            {virtualAiReview.review.summary}
+                          </Text>
+                          {(virtualAiReview.review.observations||[]).map((finding,i)=>(
+                            <MetricRow key={"virtual-ai-"+i}
+                              left={"Finding "+(i+1)} right={finding}/>
+                          ))}
+                        </>
+                      ):null}
+                      {multiviewAssessment?.ok?(
+                        <>
+                          <Text style={styles.sectionLabel}>
+                            Local review across captured widths
+                          </Text>
+                          <MetricRow left="Simulated widths inspected"
+                            right={String(multiviewAssessment.inspectedWidthCount)}/>
+                          <MetricRow left="Warnings no longer flagged"
+                            right={String(multiviewAssessment.warningsNoLongerFlagged)}/>
+                          <MetricRow left="New warnings across captured widths"
+                            right={String(multiviewAssessment.newWarnings)}/>
+                          {multiviewAssessment.comparisons.map(result=>(
+                            <MetricRow key={result.viewportId}
+                              left={result.width+" pt layout"}
+                              right={result.beforeFlags+" → "+result.afterFlags+
+                                " geometry warnings"}/>
+                          ))}
+                          <Text style={styles.cardBody}>
+                            These comparisons do not validate text readability,
+                            photographs or interactions on separate physical devices.
+                            Nothing is published or automatically changed.
+                          </Text>
+                        </>
+                      ):null}
+                      {visualProposal.explanations?.length?(
+                        <>
+                          <Text style={styles.sectionLabel}>
+                            Why BUSY prepared these coordinated changes
+                          </Text>
+                          {visualProposal.explanations.map(item=>(
+                            <View key={"reason-"+item.field}>
+                              <Text style={styles.cardBody}>
+                                {item.field+": "+item.value+" ("+item.source+")"}
+                              </Text>
+                              <Text style={styles.cardBody}>{"Why: "+item.why}</Text>
+                              <Text style={styles.cardBody}>
+                                {"Trade-off: "+item.tradeoff}
+                              </Text>
+                            </View>
+                          ))}
+                        </>
                       ):null}
                       <Button label={pairBusy?"Capturing / reviewing…":"Capture both rendered app views"}
                         disabled={pairBusy||!!s.miniAppsAction}
