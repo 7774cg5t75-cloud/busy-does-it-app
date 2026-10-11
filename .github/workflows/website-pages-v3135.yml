@@ -1,0 +1,55 @@
+name: V3.135 website pages and portable content source (free)
+on:
+  push:
+    branches: [v3.135]
+    paths:
+      - 'src/domain/websiteManagement.js'
+      - 'src/domain/websiteBuilder.js'
+      - 'src/screens/websiteBuilder.js'
+      - 'src/screens/websitePagesEditor.js'
+      - 'src/core/websiteSourceExport.mjs'
+      - 'src/app/AppController.js'
+      - 'supabase/functions/busy-website-worker/**'
+      - 'scripts/check-website-pages-v3135.mjs'
+      - 'scripts/check-website-pages-browser-v3135.mjs'
+      - '.github/workflows/website-pages-v3135.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-browser-and-native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Prove source and create fictional multi-page fixtures
+        run: |
+          node scripts/check-website-edit-freedom-v3102.mjs
+          node scripts/check-website-direct-edit-v3133.mjs
+          node scripts/check-website-layout-v3134.mjs
+          BUSY_V3135_BROWSER_FIXTURES=1 node scripts/check-website-pages-v3135.mjs
+          node scripts/check-snack-dependencies.mjs
+          node scripts/check-production.mjs
+      - name: Install app dependencies and headless Chromium
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Render two fictional pages at iPhone and desktop widths
+        run: node scripts/check-website-pages-browser-v3135.mjs
+      - name: Compile iOS JavaScript without a paid EAS build
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3135-ios-js-only
+      - name: Save private fictional screenshot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3135-fictional-multipage-browser-evidence
+          path: /tmp/busy-v3135-pages/evidence/*.png
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Preserve deliberate staging and release boundaries
+        run: echo "No public website deployment, production migration, customer secrets, paid AI or signed EAS build."
