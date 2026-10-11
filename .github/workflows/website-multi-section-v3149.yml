@@ -38,6 +38,7 @@ jobs:
       - name: Check real browser responsive layouts and editing interactions
         run: |
           node scripts/check-website-responsive-preview-browser-v3148.mjs
+          node scripts/check-website-device-style-browser-v3149.mjs
           node scripts/check-website-selection-preview-browser-v3148.mjs
           node scripts/check-website-context-plan-browser-v3147.mjs
           node scripts/check-website-contrast-browser-v3145.mjs
