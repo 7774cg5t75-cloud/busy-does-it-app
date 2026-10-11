@@ -6,6 +6,8 @@ import { styles } from "../theme/styles";
 import { Shell, Card, Button, Field, MetricRow, StatusChip } from "../components/ui";
 import { miniAppModuleLabel } from "../domain/miniApps";
 import { businessAppPreviewProof } from "../core/businessAppPreviewProof.mjs";
+import { buildAppDistributionPlan,buildStandalonePrivateHandoff } from "../core/appDistributionChoices.mjs";
+import { planFunctionalBusinessApp } from "../core/appExperiencePlanner.mjs";
 
 function readableDate(value, fallback = "Not yet") {
   if (!value) return fallback;
@@ -573,6 +575,11 @@ function BusyAppsMarketplace({ s }) {
 }
 
 function MiniAppBuilder({ s }) {
+  const [distributionMode,setDistributionMode]=React.useState("busy_marketplace");
+  const [distributionAcks,setDistributionAcks]=React.useState({});
+  const [requestedPlatforms,setRequestedPlatforms]=React.useState(["ios","android"]);
+  const [standaloneHandoff,setStandaloneHandoff]=React.useState(null);
+  const [standaloneHandoffNotice,setStandaloneHandoffNotice]=React.useState("");
   const view = s.miniAppsView || {};
   const app = view.app;
   const modules = Array.isArray(view.catalog) ? view.catalog : [];
@@ -595,6 +602,18 @@ function MiniAppBuilder({ s }) {
   // absent revision numbers must never accidentally count as a current app.
   const previewProof = businessAppPreviewProof({app,preview:view.previewVersion});
   const previewMatchesDraft = previewProof.matches;
+  const distributionPlan=buildAppDistributionPlan({
+    mode:distributionMode,app,preview:view.previewVersion,
+    entitlement:null, // Not connected to an independently verified billing entitlement yet.
+    acknowledgements:distributionAcks,requestedPlatforms,
+    ownerApproval:false
+  });
+  const experience=planFunctionalBusinessApp({
+    businessName:view.displayName||s.businessName,
+    businessType:view.category||s.trade||"",
+    catalog:view.catalog||[],
+    profile:view.activeConfig?.publicProfile||{}
+  });
   const liveMatchesDraft =
     businessAppPreviewProof({app,preview:view.liveVersion}).matches;
   const journeyLabel = !plan
@@ -659,6 +678,99 @@ function MiniAppBuilder({ s }) {
       subtitle="Describe the customer experience you want. BUSY turns it into a controlled app plan using tested modules and the business facts it already knows."
       brandCue="V3.56 • shared business profile • intelligent module recommendations • owner-controlled publishing."
     >
+      <Card
+        eyebrow="Choose how customers use your app"
+        title="Inside Busy, standalone, or eventually both"
+        body="We are building both routes. Your business information and supported app modules can be shared, but independent downloadable apps need an additional packaging and store-distribution process."
+        footer="Standalone inclusion in a higher subscription is planned. No pricing, included allowance or eligibility is final until your verified subscription says so."
+        tone="blue"
+      >
+        <Button label={(distributionMode==="busy_marketplace"?"✓ ":"")+"App inside Busy Does It"}
+          onPress={()=>{setDistributionMode("busy_marketplace");setStandaloneHandoff(null);setStandaloneHandoffNotice("");}}/>
+        <Button label={(distributionMode==="standalone"?"✓ ":"")+"Standalone downloadable iPhone / Android app"}
+          onPress={()=>{setDistributionMode("standalone");setStandaloneHandoff(null);setStandaloneHandoffNotice("");}}/>
+        <Text style={styles.cardBody}>{distributionPlan.description}</Text>
+        {distributionMode==="busy_marketplace"?(
+          <>
+            <MetricRow left="Existing real features" right="Enquiries and booking requests" strong/>
+            <MetricRow left="Marketplace listing" right={view.isDiscoverable?"Live owner-approved listing":"Separate owner approval required"}/>
+            <Text style={styles.cardBody}>A booking request is not a confirmed appointment. BUSY never enables payment collection just because a customer asks for it.</Text>
+            <Text style={styles.cardBody}>Customers find published, explicitly listed Business Apps through the Busy Apps marketplace.</Text>
+          </>
+        ):(
+          <>
+            <Text style={styles.sectionLabel}>Before creating a standalone app</Text>
+            <Text style={styles.cardBody}>{distributionPlan.eligible.label}</Text>
+            {distributionPlan.costs.map(item=>(
+              <MetricRow key={item.key} left={item.title} right={item.detail}/>
+            ))}
+            <Text style={styles.cardBody}>Choose the platforms you may want. This does not place an order or sign you up to Apple or Google.</Text>
+            <Button label={(requestedPlatforms.includes("ios")?"✓ ":"")+"iPhone (iOS)"}
+              onPress={()=>{
+                setRequestedPlatforms(old=>old.includes("ios")?
+                  (old.length>1?old.filter(x=>x!=="ios"):old):[...old,"ios"]);
+                setStandaloneHandoff(null);
+              }}/>
+            <Button label={(requestedPlatforms.includes("android")?"✓ ":"")+"Android"}
+              onPress={()=>{
+                setRequestedPlatforms(old=>old.includes("android")?
+                  (old.length>1?old.filter(x=>x!=="android"):old):[...old,"android"]);
+                setStandaloneHandoff(null);
+              }}/>
+            <Text style={styles.sectionLabel}>Please review these separate-cost conditions</Text>
+            {[
+              ["externalFees","Developer registrations, app-store charges and external provider fees may cost extra."],
+              ["externalAccounts","I may need to create and maintain my own Apple, Google or other provider accounts."],
+              ["storeApproval","Apple and Google decide whether to accept an app; approval is not guaranteed."],
+              ["ongoingCosts","Store requirements, certificates, updates and third-party usage may create ongoing costs."]
+            ].map(([key,label])=>(
+              <Button key={key} label={(distributionAcks[key]?"✓ Reviewed: ":"Review: ")+label}
+                onPress={()=>{
+                  setDistributionAcks(prev=>({...prev,[key]:!prev[key]}));
+                  setStandaloneHandoff(null);setStandaloneHandoffNotice("");
+                }}/>
+            ))}
+            <MetricRow left="App preview matches current draft" right={previewProof.matches?"Yes":"Prepare new private preview"} strong/>
+            <MetricRow left="Standalone eligibility" right={distributionPlan.eligible.verified?"Verified":"Not yet verified"} />
+            <Text style={styles.cardBody}>This creates only a private planning specification. It cannot package, charge for, sign or submit an app. A verified higher-tier entitlement and further explicit approval will be required.</Text>
+            <Button label="Prepare my private standalone-app requirements"
+              disabled={!app||!previewProof.matches||
+                !distributionPlan.requirements.filter(x=>["external-fees","external-accounts","store-approval","maintenance"].includes(x.id)).every(x=>x.passed)}
+              onPress={()=>{
+                const next=buildStandalonePrivateHandoff({app,preview:view.previewVersion,
+                  plan:distributionPlan,ownerConfirmed:true});
+                setStandaloneHandoff(next.ok?next:null);
+                setStandaloneHandoffNotice(next.ok
+                  ?"Your private standalone plan is ready. This is NOT a downloadable or submitted app."
+                  :next.reason);
+              }}/>
+            {standaloneHandoffNotice?<Text style={styles.cardBody}>{standaloneHandoffNotice}</Text>:null}
+            {standaloneHandoff?.ok&&
+             standaloneHandoff.ownerAppId===app?.id&&
+             standaloneHandoff.previewVersionId===view.previewVersion?.id&&
+             standaloneHandoff.sourceDraftRevision===app?.draft_revision?(
+              <Card eyebrow="Private standalone plan"
+                title={standaloneHandoff.appName}
+                body={"Target platforms: "+standaloneHandoff.platformTargets.join(" and ")+
+                  ". Supported modules: "+(standaloneHandoff.modules.join(", ")||"None yet")}
+                footer="Build package not created • No app-store submission • No charges"
+                tone="blue"/>
+            ):null}
+          </>
+        )}
+      </Card>
+
+      <Card eyebrow="BUSY's functional app layout"
+        title={"Recommended: "+experience.layout.replaceAll("-"," ")}
+        body={"BUSY selected an app structure for "+(experience.businessType||"this business")+
+          " from currently available modules. Recommendations do not enable modules or change a live app."}
+        footer="This is a suggested private app experience, not a new hard-coded trade-specific app template."
+        tone="blue">
+        {experience.suggestedModules.filter(item=>item.suggested).slice(0,7).map(item=>(
+          <MetricRow key={item.key} left={item.title} right={item.reason}/>
+        ))}
+      </Card>
+
       <Card
         eyebrow="Your app journey"
         title={journeyLabel}
