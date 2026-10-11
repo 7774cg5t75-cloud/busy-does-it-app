@@ -124,6 +124,9 @@ jobs:
       - name: Verify V3.143 preview-only visual inspection and owner photo chooser
         run: node scripts/check-website-visual-inspection-v3143.mjs
 
+      - name: Verify V3.144 measured candidate review and explicit owner learning boundaries
+        run: node scripts/check-website-measured-coach-v3144.mjs
+
       - name: Verify Expo Snack module dependency graph
         run: node scripts/check-snack-dependencies.mjs
 
