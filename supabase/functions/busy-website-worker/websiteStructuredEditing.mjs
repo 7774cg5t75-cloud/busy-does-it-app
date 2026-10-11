@@ -16,6 +16,7 @@ const fieldChoices={
  gallery:["title"],
  contact:["title","body","phone","email","openingHours"],
  text:["title","body"],
+ "photo-feature":["title","body"],
 };
 const itemSections=new Set(["services","faq","testimonials"]);
 const bounds={title:140,body:2500,cta:120,ctaHref:120,phone:40,email:254,openingHours:250};
