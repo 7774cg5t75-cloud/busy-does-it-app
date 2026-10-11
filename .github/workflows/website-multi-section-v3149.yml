@@ -1,0 +1,48 @@
+name: V3.149 contextual pages responsive styling and private recovery
+on:
+  push:
+    branches: [v3.149]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  website-intelligence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Check new page planning and device-specific editing boundaries
+        run: |
+          node scripts/check-website-device-edits-v3149.mjs
+          node scripts/check-website-page-instructions-v3149.mjs
+          node scripts/check-website-context-plan-v3147.mjs
+          node scripts/check-website-selection-preview-v3148.mjs
+          node scripts/check-website-responsive-preview-v3148.mjs
+          node scripts/check-website-viewport-coverage-v3147.mjs
+          node scripts/check-universal-context-toolbar-v3146.mjs
+          node scripts/check-website-measured-coach-v3144.mjs
+          node scripts/check-website-section-styling-v3139.mjs
+          node scripts/check-website-voice-reliability-v3142.mjs
+          node scripts/check-production.mjs
+      - name: Install browser and unsigned export requirements
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Check real browser responsive layouts and editing interactions
+        run: |
+          node scripts/check-website-responsive-preview-browser-v3148.mjs
+          node scripts/check-website-selection-preview-browser-v3148.mjs
+          node scripts/check-website-context-plan-browser-v3147.mjs
+          node scripts/check-website-contrast-browser-v3145.mjs
+          node scripts/check-website-tap-browser-v3138.mjs
+      - name: Export unsigned iOS and Android JS
+        run: |
+          npx expo export --platform ios --output-dir /tmp/bdi-v3149-ios
+          npx expo export --platform android --output-dir /tmp/bdi-v3149-android
+      - name: Confirm no deployment
+        run: echo "No signed device build, customer website publish or provider spend."
