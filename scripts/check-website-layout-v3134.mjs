@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readFileSync,writeFileSync,mkdirSync} from "node:fs";
 import {applyWebsiteLayoutOperation} from "../supabase/functions/busy-website-worker/websiteLayoutEditing.mjs";
 import {planWebsiteDesign} from "../supabase/functions/busy-website-worker/designPlanner.mjs";
 import {designForWebsite,designCss} from "../supabase/functions/busy-website-worker/designSystem.mjs";
@@ -149,4 +149,14 @@ yes(controller.includes("applyWebsiteLayoutAction,")&&controller.includes("setWe
 yes(!controls.includes("fetch(")&&!controls.includes("publishWebsite"),"Layout editor does not publish remotely");
 yes(read(".github/workflows/production-check.yml").includes("check-website-layout-v3134.mjs"),"V3.134 checks enforced in production foundation CI");
 
+// Offline, fictional HTML fixture for an actual Chromium mobile/desktop pass.
+if(process.env.BUSY_V3134_EXPORT_BROWSER_FIXTURE==="1"){
+ const custom=edit({action:"add-text",title:"Our approach",
+   body:"This fictional business helps with local gardens."},site);
+ const strong=edit({action:"style",field:"ctaEmphasis",value:"strong"},custom.draft);
+ const spaced=edit({action:"style",field:"spacing",value:"generous"},strong.draft);
+ assert.ok(spaced.applied,"Browser evidence fixture must be valid");
+ mkdirSync("/tmp/busy-v3134-web",{recursive:true});
+ writeFileSync("/tmp/busy-v3134-web/index.html",spaced.draft.html,"utf8");
+}
 console.log("V3.134 WEBSITE LAYOUT PASS:",assertions,"private section, HTML, custom homepage, photo provenance, CSS, atomic commands, and release-safety assertions");
