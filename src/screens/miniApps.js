@@ -26,6 +26,8 @@ import {prepareAppVisualBatch} from "../core/appVisualComparison.mjs";
 import {VIEWPORTS,getViewport,validateViewportPair,compareViewportSet,
  coordinateVisualEvidence} from "../core/appVisualMultiViewport.mjs";
 import {rankDesignSuggestions} from "../core/appDesignLearning.mjs";
+import {buildOwnerDesignPatterns,prepareOwnerAwareDesignExperiments,
+ explainOwnerDesignOutcome} from "../core/appDesignPatterns.mjs";
 import {auditStandaloneContrast} from "../core/appContrastAudit.mjs";
 import {appRequestJourney} from "../core/appRequestLifecycle.mjs";
 import {appVisibleCaptureReceipt,currentAppVisibleCapture} from "../core/appRenderedEvidence.mjs";
@@ -2358,6 +2360,25 @@ function MiniAppPreview({ s }) {
     measured:measuredSuggestions?.suggestions||[],
     ai:visualReport?.suggestions||[],
     responsive:responsiveSuggestions
+  });
+  const ownerPatterns=buildOwnerDesignPatterns(
+    designMemory?.ok?designMemory.records:[]);
+  const nextDesignExperiment=prepareOwnerAwareDesignExperiments(config,{
+    history:designMemory?.ok?designMemory.records:[],
+    measured:measuredSuggestions?.suggestions||[],
+    ai:visualReport?.suggestions||[],
+    responsive:responsiveSuggestions
+  });
+  const savedOwnerVerdict=(designMemory?.records||[]).find(item=>
+    item.context==="saved_revision"&&item.draftRevision===revision&&
+    designCheckpoint?.desiredAppearance?.some(op=>
+      op.field===item.field&&op.value===item.value))?.verdict||null;
+  const designOutcome=explainOwnerDesignOutcome({
+    verdict:savedOwnerVerdict,actuallySaved:iterationRecheck?.ok===true,
+    beforeWarnings:savedMeasurementReview?.ok?
+      savedMeasurementReview.beforeWarnings:null,
+    afterWarnings:savedMeasurementReview?.ok?
+      savedMeasurementReview.afterWarnings:null
   });
   const refreshDesignMemory=async()=>{
     const response=await s.getAppDesignLearningStatus?.({appId});
