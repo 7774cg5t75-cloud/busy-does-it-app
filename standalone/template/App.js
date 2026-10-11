@@ -6,10 +6,11 @@
  */
 import React,{useState,useEffect} from "react";
 import {SafeAreaView,ScrollView,View,Text,TextInput,Pressable,StatusBar,Image,
- ActivityIndicator} from "react-native";
+ ActivityIndicator,useWindowDimensions} from "react-native";
 import prototype from "./prototype.json";
 import {verifiedPublicRuntime,publicNativeApp} from "./nativeBusinessClient";
 import {sendNativeGuestRequest} from "./nativeGuestRequests";
+import {responsiveAppLayout} from "./appResponsiveDesign.mjs";
 const LOOK=prototype.appearance||{};
 const COLORS={bg:"#101827",surface:"#1C293C",text:"#F1F6FF",muted:"#A3B5D0",
  accent:"#6E9EFF",line:"#394A64"};
@@ -86,23 +87,25 @@ function RequestScreen({screen,live,runtime}){
   )}
  </View>;
 }
-function LiveInfo({screen,app}){
+function LiveInfo({screen,app,layout}){
  if(screen.key==="business_profile")return <View style={box}>
   <Text style={{...t,fontSize:21,fontWeight:"700"}}>{app.title}</Text>
   <Text style={sub}>{app.tagline||app.about||"Contact this business for more information."}</Text>
   {app.heroUrl?<Image source={{uri:app.heroUrl}} accessible
     accessibilityRole="image" accessibilityLabel="Business cover photo"
-    style={{height:LOOK.imageScale==="large"?285:190,
+    style={{height:layout?.ok?layout.heroHeight:190,
       borderRadius:LOOK.imageCorners==="square"?2:12,marginTop:12}}
     resizeMode="cover"/>:null}
   {app.tagline&&app.about?<Text style={sub}>{app.about}</Text>:null}
  </View>;
  if(screen.key==="services")return <View style={box}>
    <Text style={{...t,fontSize:20,fontWeight:"700"}}>Services</Text>
-   {app.services?.length?app.services.map((service,i)=><View key={i} style={{marginTop:14}}>
-     <Text style={{...t,fontWeight:"700"}}>{service.name}</Text>
-     <Text style={sub}>{service.description||"Ask the business for details."}</Text>
-   </View>):<Text style={sub}>No public services are listed.</Text>}
+   {app.services?.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:12}}>
+     {app.services.map((service,i)=><View key={i} style={{marginTop:14,
+       width:layout?.serviceColumns===2?"48%":"100%"}}>
+       <Text style={{...t,fontWeight:"700"}}>{service.name}</Text>
+       <Text style={sub}>{service.description||"Ask the business for details."}</Text>
+     </View>)}</View>:<Text style={sub}>No public services are listed.</Text>}
  </View>;
  if(screen.key==="gallery")return <View style={box}>
    <Text style={{...t,fontSize:20,fontWeight:"700"}}>Approved photos</Text>
@@ -110,9 +113,9 @@ function LiveInfo({screen,app}){
      {app.gallery.map((photo,i)=>
        <Image key={i} source={{uri:photo.uri}} accessible accessibilityRole="image"
         accessibilityLabel={String(photo.alt||photo.caption||"Business photo "+(i+1))}
-        style={{width:LOOK.galleryLayout==="stack"?"100%":
-          LOOK.imageScale==="large"&&LOOK.galleryLayout!=="grid"?"100%":"48%",
-          height:LOOK.galleryLayout==="stack"?270:LOOK.imageScale==="large"?220:190,
+        style={{width:layout?.galleryColumns===3?"31%":
+          layout?.galleryColumns===2?"48%":"100%",
+          height:layout?.ok?layout.galleryHeight:190,
           borderRadius:LOOK.imageCorners==="square"?2:11,marginTop:12}}/>
      )}</View>:<Text style={sub}>No photographs have been approved for this app yet.</Text>}
  </View>;
@@ -128,6 +131,7 @@ function LiveInfo({screen,app}){
  </Text></View>;
 }
 export default function App(){
+ const viewport=useWindowDimensions();
  const runtime=prototype.runtimeConnection;
  const connected=verifiedPublicRuntime(runtime);
  const [current,setCurrent]=useState(prototype.screenSchema.screens[0].key);
@@ -145,16 +149,25 @@ export default function App(){
  const pages=live?prototype.screenSchema.screens.filter(s=>
   live.moduleKeys?.includes(s.key)):[];
  const chosen=pages.find(x=>x.key===current)||pages[0];
+ const outerPadding=LOOK.layoutDensity==="compact"?13:
+   LOOK.layoutDensity==="airy"?28:20;
+ const contentWidth=Math.max(250,Math.floor(viewport.width-2*outerPadding));
+ const responsive=responsiveAppLayout({
+  modules:prototype.screenSchema.screens.map(screen=>({
+   key:screen.key,enabled:!live||live.moduleKeys?.includes(screen.key)})),
+  navigation:prototype.screenSchema.screens.map(screen=>screen.key),
+  presentation:LOOK,
+  publicProfile:{services:live?.services||[],assets:{gallery:live?.gallery||[]}}
+ },contentWidth);
  return <SafeAreaView style={{flex:1,backgroundColor:COLORS.bg}}>
   <StatusBar barStyle="light-content"/>
-  <ScrollView contentContainerStyle={{padding:LOOK.layoutDensity==="compact"?13:
-      LOOK.layoutDensity==="airy"?28:20,paddingBottom:55}}>
+  <ScrollView contentContainerStyle={{padding:outerPadding,paddingBottom:55}}>
    <Text style={{color:COLORS.accent,fontSize:12,fontWeight:"700",letterSpacing:1}}>
     {connected?"LIVE PUBLIC BUSINESS APP":"PRIVATE APP PROTOTYPE"}</Text>
    <Text style={{color:COLORS.text,fontSize:28,fontWeight:"800",marginTop:9}}>
     {live?.title||prototype.appName}</Text>
    <Text style={{color:COLORS.muted,fontSize:12,marginTop:5}}>
-    {"Native layout • "+(LOOK.headerStyle||"refined")+" header • "+(LOOK.navigationStyle||"tabs")+" navigation"}
+    {"Native layout • "+(LOOK.headerStyle||"refined")+" header • "+(responsive.ok?responsive.navigation:"list")+" navigation"}
    </Text>
    {loading?<ActivityIndicator color={COLORS.accent} style={{marginTop:25}}/>:null}
    {error?<Text style={sub}>{error}</Text>:null}
@@ -168,11 +181,11 @@ export default function App(){
       Requests are sent through BUSY's protected business service. They
       never automatically confirm an appointment or take payment.
     </Text>
-    <View style={{flexDirection:"row",flexWrap:"wrap",marginBottom:15,gap:7}}>
+    <View style={{flexDirection:responsive.ok&&responsive.navigation==="list"?"column":"row",flexWrap:"wrap",marginBottom:15,gap:7}}>
      {pages.map(item=><Pressable key={item.key} accessibilityRole="button"
       accessibilityLabel={"View "+item.title} onPress={()=>setCurrent(item.key)}
       style={{backgroundColor:item.key===chosen.key?COLORS.accent:COLORS.surface,
-       width:LOOK.navigationStyle==="list"?"100%":undefined,
+       width:responsive.ok&&responsive.navigation==="list"?"100%":undefined,
        minHeight:48,justifyContent:"center",
        paddingHorizontal:13,paddingVertical:11,borderRadius:10}}
        accessibilityState={{selected:item.key===chosen.key}}>
@@ -182,7 +195,7 @@ export default function App(){
     </View>
     {["enquiry","booking_request"].includes(chosen.key)?
      <RequestScreen key={chosen.key} screen={chosen} live={live} runtime={runtime}/>:
-     <LiveInfo screen={chosen} app={live}/>}
+     <LiveInfo screen={chosen} app={live} layout={responsive}/>}
    </View>:null}
    <Text style={{color:COLORS.muted,fontSize:12,marginTop:20}}>
     No app-store submission or third-party payment is performed by this app.
