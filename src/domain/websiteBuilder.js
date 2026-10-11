@@ -249,6 +249,12 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
     generatedAt: previousDraft?.generatedAt || now,
     updatedAt: now,
     generation: Number(previousDraft?.generation || 0) + 1,
+    // Explicit owner feedback is scoped to this exact draft and never
+    // exported as public webpage content or sent across customers.
+    ownerDesignFeedback:safeArray(previousDraft?.ownerDesignFeedback)
+      .filter(e=>e?.draftId===previousDraft?.id&&
+        ["liked","disliked"].includes(e?.choice)&&
+        e?.scope==="this-website-draft-only").slice(-20),
     sourceVersion: "Business Creation Intelligence V3.56",
     sharedBusinessProfile: businessCreationIntelligence
       ? {
