@@ -46,7 +46,7 @@ assert.equal(proposal.ok,true);
 assert.equal(inspectApprovedAppIteration(pending,{
  appId:id,revision:12,config:proposal.nextConfig,saveConfirmed:true}).ok,false);
 assert.equal(inspectApprovedAppIteration(pending,{
- appId,revision:13,config:proposal.nextConfig,saveConfirmed:false}).ok,false);
+ appId:id,revision:13,config:proposal.nextConfig,saveConfirmed:false}).ok,false);
 const recheck=inspectApprovedAppIteration(pending,{
  appId:id,revision:13,config:proposal.nextConfig,saveConfirmed:true});
 assert.equal(recheck.ok,true,recheck.reason);
@@ -119,7 +119,7 @@ const screen=read("src/screens/miniApps.js");
 for(const marker of ["prepareAppDesignIteration","inspectApprovedAppIteration",
  "setDesignCheckpoint({...prepared,saveConfirmed:true})",
  "resolvedStaticFlags","Capture visible screen (app only)",
- "Ask AI to inspect this screenshot","ownerConsent",
+ "Ask AI to inspect this screenshot","Approve one AI review",
  "proposeLowRiskDesignHints","Preview photo description changes",
  "photo_description","expectedUri:item?.uri","gallery_density"]){
  assert.ok(screen.includes(marker),"Missing V3.162 UI: "+marker);
