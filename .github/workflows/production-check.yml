@@ -127,6 +127,9 @@ jobs:
       - name: Verify V3.144 measured candidate review and explicit owner learning boundaries
         run: node scripts/check-website-measured-coach-v3144.mjs
 
+      - name: Verify V3.145 measured contrast and owner-approved private design safety
+        run: node scripts/check-website-deeper-review-v3145.mjs
+
       - name: Verify Expo Snack module dependency graph
         run: node scripts/check-snack-dependencies.mjs
 
