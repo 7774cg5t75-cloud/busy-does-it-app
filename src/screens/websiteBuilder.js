@@ -444,7 +444,7 @@ function WebsiteBuilder({ s }) {
           </Card>
           <WebsiteContentEditor draft={draft} onApply={s.applyWebsiteFieldChange}/>
           <WebsiteLayoutControls draft={draft} onApply={s.applyWebsiteLayoutAction}/>
-          <WebsitePagesEditor draft={draft} onApply={s.applyWebsitePageAction} onShare={s.shareWebsiteContent} onShareZip={s.shareStandaloneWebsiteZip}/>
+          <WebsitePagesEditor draft={draft} onApply={s.applyWebsitePageAction} onShare={s.shareWebsiteContent} onShareZip={s.shareStandaloneWebsiteZip} onBackup={s.backupWebsiteOriginals}/>
         </>
       ) : null}
       <Button label={showWebsiteDetails ? "Hide extra website settings" : "More website settings"}
