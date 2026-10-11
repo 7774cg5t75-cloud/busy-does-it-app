@@ -10,7 +10,7 @@ const MAX_WEBSITE_VOICE_BYTES=9_000_000;
 const MIN_WEBSITE_VOICE_BYTES=100;
 const VALID_VOICE_TYPES=["audio/mp4","audio/m4a","audio/x-m4a","audio/aac","application/octet-stream",""];
 function voiceTime(milliseconds){
- const seconds=Math.max(0,Math.floor(Number(milliseconds)||0)/1000);
+ const seconds=Math.max(0,Math.floor((Number(milliseconds)||0)/1000));
  return String(Math.floor(seconds/60)).padStart(2,"0")+":"+
   String(seconds%60).padStart(2,"0");
 }
