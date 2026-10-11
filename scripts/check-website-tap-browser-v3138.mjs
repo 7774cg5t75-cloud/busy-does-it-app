@@ -22,8 +22,12 @@ try{
   await page.setContent(html);
   await page.evaluate(()=>{window.ReactNativeWebView={postMessage:window.__captureTap};});
   await page.locator('[data-busy-edit-section="hero"][data-busy-edit-field="title"]').click();
+  assert.equal(events.length,0,"Selecting alone opens no native modal");
+  await page.locator('.busy-selection-toolbar button[data-action="edit"]').click();
   await page.locator('[data-busy-edit-section="services"][data-busy-edit-item="design"]').click();
+  await page.locator('.busy-selection-toolbar button[data-action="voice"]').click();
   await page.locator('a[data-busy-edit-field="cta"]').click();
+  await page.locator('.busy-selection-toolbar button[data-action="more"]').click();
   await page.waitForFunction(()=>document.querySelectorAll(".busy-selected-for-edit").length===1);
   assert.deepEqual(events.map(e=>e.field),["title","body","cta"]);
   assert.equal(events[0].channel,CHANNEL);
