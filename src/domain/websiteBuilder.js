@@ -528,7 +528,7 @@ function applyWebsitePageChange(draft = {}, change = {}) {
   return result.applied?{...result,draft:withHtml(result.draft)}:result;
 }
 
-function renderWebsiteHtml(draft = {}, pageId = "home") {
+function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
   const page=safeArray(draft.pages).find(p=>p?.id===pageId)||
     safeArray(draft.pages).find(p=>p?.id==="home")||null;
   const allowed=new Set(safeArray(page?.sectionIds));
@@ -553,9 +553,24 @@ function renderWebsiteHtml(draft = {}, pageId = "home") {
   const hero=sections.find(section=>section.type==="hero");
   const phone=sections.find(section=>section.type==="contact")?.phone||"";
   const email=sections.find(section=>section.type==="contact")?.email||"";
+  const standalone=options?.standalone===true;
+  const prefix="../".repeat(clean(page?.outputPath||"index.html").split("/").length-1);
   const approvedImage = asset => {
+    if(standalone){
+      const key=clean(asset?.storagePath)||clean(asset?.uri);
+      const filename=options?.assetFiles?.[key]||"";
+      return /^assets\/[a-zA-Z0-9_.-]+\.(?:png|jpe?g|webp)$/.test(filename)
+        ?prefix+filename:"";
+    }
     const uri=String(asset?.uri||"").trim();
     return /^https:\/\/[^\s"'<>]+$/i.test(uri) ? uri : "";
+  };
+  const homePath=prefix+"index.html";
+  const linkToPage=id=>{
+    const target=safeArray(draft.pages).find(p=>p.id===id);
+    if(!target||!/^(?:index\.html|(?:[a-z0-9-]+\/)*index\.html)$/.test(target.outputPath||""))
+      return "";
+    return prefix+target.outputPath;
   };
   const renderedOrder=page?.id==="home"||!page?plan.sectionOrder:safeArray(page.sectionIds);
   const orderedSections=renderedOrder.map(id=>sections.find(s=>s.id===id)).filter(Boolean);
@@ -587,7 +602,9 @@ function renderWebsiteHtml(draft = {}, pageId = "home") {
         [...renderedAnchors].find(id=>id!=="main")||"";
       const fallbackHref=safeFallback.startsWith("#")?safeFallback:
         safeFallback?"#"+safeFallback:"";
-      const actualHref=missingTarget?fallbackHref:wanted;
+      const standaloneTarget=standalone&&wanted.startsWith("#")&&!renderedAnchors.has(wanted.slice(1))
+        ?(linkToPage(wanted.slice(1))?linkToPage(wanted.slice(1))+"#"+wanted.slice(1):""):"";
+      const actualHref=standaloneTarget||(missingTarget?fallbackHref:wanted);
       const actionText=missingTarget?"Explore our services":clean(section.cta);
       const action=actionText&&actualHref
         ? `<a class="cta" href="${escapeHtml(actualHref)}">${escapeHtml(actionText)}</a>` : "";
@@ -613,9 +630,18 @@ function renderWebsiteHtml(draft = {}, pageId = "home") {
   const business=escapeHtml(draft.businessName||"Business website");
   const area=clean(draft.serviceArea);
   const nav=safeArray(draft.navigation)
-    .filter(item=>item?.id&&item?.label&&renderedAnchors.has(String(item.id)))
-    .map(item=>`<a href="#${escapeHtml(item.id)}">${escapeHtml(item.label)}</a>`).join("");
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.pages?.[page?.id]?.title||draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.pages?.[page?.id]?.description||draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes}"><a class="skip-link" href="#main">Skip to content</a><nav><div class="wrap nav-wrap"><a class="brand" href="#main">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a><div class="nav-links">${nav}</div></div></nav><main id="main">${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
+    .filter(item=>item?.id&&item?.label&&(standalone||renderedAnchors.has(String(item.id))))
+    .map(item=>{
+      if(!standalone)
+        return `<a href="#${escapeHtml(item.id)}">${escapeHtml(item.label)}</a>`;
+      const pageLink=linkToPage(item.id);
+      const fragment=clean(item?.href);
+      const href=pageLink||(fragment.startsWith("#")?
+        (page?.id==="home"&&renderedAnchors.has(fragment.slice(1))
+          ?fragment:homePath+fragment):"");
+      return href?`<a href="${escapeHtml(href)}">${escapeHtml(item.label)}</a>`:"";
+    }).join("");
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.pages?.[page?.id]?.title||draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.pages?.[page?.id]?.description||draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes}"><a class="skip-link" href="#main">Skip to content</a><nav><div class="wrap nav-wrap"><a class="brand" href="${standalone?escapeHtml(homePath):"#main"}">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a><div class="nav-links">${nav}</div></div></nav><main id="main">${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
 }
 
 export {
