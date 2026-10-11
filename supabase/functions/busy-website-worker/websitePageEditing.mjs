@@ -58,6 +58,25 @@ function editWebsitePages(draft={},action={}){
   page.sectionIds.push(id);
   return change("Added owner-written content to "+page.title+".");
  }
+ if(action.action==="add-photo-feature"){
+  const title=clean(action.title),body=clean(action.body),photo=clean(action.storagePath);
+  const gallery=sections.find(x=>x.type==="gallery"&&x.enabled!==false);
+  const asset=list(gallery?.items).find(a=>a?.approved!==false&&
+    clean(a.storagePath)===photo&&photo);
+  if(!title||title.length>100||body.length>2500||!body)
+    return fail(draft,"Add a photo feature heading and your own short description.");
+  if(!asset)return fail(draft,"Choose an already approved photograph from this website's own gallery.");
+  if(sections.length>=40||page.sectionIds.length>=12)
+    return fail(draft,"This page has reached its current section limit.");
+  const root="custom-page-"+page.slug+"-"+slug(title);
+  if(!slug(title))return fail(draft,"Use a descriptive feature heading.");
+  let id=root,n=2;
+  while(sections.some(s=>s.id===id))id=root+"-"+n++;
+  sections.push({id,type:"photo-feature",enabled:true,pageOnly:true,
+    title,body,asset:{...asset}});
+  page.sectionIds.push(id);
+  return change("Added an approved photo-and-copy feature to "+page.title+".");
+ }
  if(action.action==="assign-section"){
   const id=action.sectionId,section=sectionBy(id);
   if(!section||section.enabled===false||!section.id.startsWith("custom-")||section.type!=="text")
@@ -78,7 +97,7 @@ function editWebsitePages(draft={},action={}){
   if(!page.sectionIds.includes(id))return fail(draft,"That section is not on this page.");
   if(page.sectionIds.length<=1)return fail(draft,"Keep at least one section on a page.");
   const section=sectionBy(id);
-  if(!section||section.type!=="text")return fail(draft,"Only your editable text sections can be removed from a page.");
+  if(!section||!["text","photo-feature"].includes(section.type))return fail(draft,"Only your own text and photo feature sections can be moved home.");
   page.sectionIds=page.sectionIds.filter(x=>x!==id);
   section.pageOnly=false; // Keep the customer's content on the home page.
   return change("Moved the section back to the home page without deleting it.");
