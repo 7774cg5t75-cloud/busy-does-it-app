@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { decideStandaloneEligibility } from "./standaloneEligibility.mjs";
 import { previewPrivateAppAppearance } from "./appAppearanceEditing.mjs";
+import { proposeAppSectionMove } from "./appSectionOrder.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -1765,6 +1766,29 @@ async function setModule(
     .single();
   if (updated.error) throw updated.error;
   return updated.data;
+}
+
+async function movePrivateAppModule(businessId:string,body:any){
+ const app=await appForBusiness(businessId);
+ if(!app)throw new Error("Build your Business App draft first.");
+ const expected=Number(body?.expectedRevision);
+ if(body?.appId!==app.id||!Number.isSafeInteger(expected)||expected<1||
+    Number(app.draft_revision)!==expected)
+  throw new Error("The private app changed. Refresh before moving a section.");
+ const proposal=proposeAppSectionMove(app.draft_config,{
+   moduleKey:body?.moduleKey,direction:body?.direction
+ });
+ if(!proposal.ok)throw new Error(proposal.reason);
+ const update=await supabase.from("busy_mini_apps").update({
+   draft_config:proposal.nextConfig,draft_revision:expected+1,
+   status:app.current_live_version_id?"update_pending":"draft",
+   updated_at:new Date().toISOString()
+ }).eq("id",app.id).eq("business_id",businessId)
+  .eq("draft_revision",expected).select("*").maybeSingle();
+ if(update.error)throw update.error;
+ if(!update.data)throw new Error("Another edit changed the app; no old version was saved.");
+ return {app:update.data,privateOnly:true,neverPublishes:true,
+   movedModule:proposal.moduleKey,before:proposal.before,after:proposal.after};
 }
 
 async function setPrivateAppAppearance(businessId:string,body:any){
@@ -3550,6 +3574,7 @@ Deno.serve(async (request: Request) => {
       "apply_app_plan",
       "set_module",
       "set_appearance",
+      "move_section",
       "prepare_preview",
       "publish",
       "rollback",
@@ -3615,6 +3640,11 @@ Deno.serve(async (request: Request) => {
         )),
         status: await ownerStatus(resolvedBusinessId),
       });
+    }
+    if (action === "move_section") {
+      return json(200,{ok:true,
+        ...(await movePrivateAppModule(resolvedBusinessId,body)),
+        status:await ownerStatus(resolvedBusinessId)});
     }
     if (action === "set_appearance") {
       return json(200,{ok:true,
