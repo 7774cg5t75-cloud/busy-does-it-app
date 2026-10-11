@@ -40,7 +40,7 @@ try{
   }));
   assert.deepEqual(state.tabIndices,[0,0,0],"Every editable element is keyboard reachable");
   assert.ok(state.roles.slice(0,2).every(x=>x==="button"),"Native text selections exposed as accessible buttons");
-  assert.ok(state.labels.every(x=>x?.startsWith("Edit website ")),"Accessible labels on editor targets");
+  assert.ok(state.labels.every(x=>x?.startsWith("Select website ")),"Accessible labels on editor targets");
   assert.ok(!state.overflow,"No horizontal overflow at "+width);
   await page.close();
  }
