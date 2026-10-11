@@ -78,7 +78,7 @@ const screen=read("src/screens/websiteBuilder.js");
 const modal=read("src/screens/websiteTapEditor.js");
 const controller=read("src/app/AppController.js");
 assert.ok(screen.includes("javaScriptEnabled={tapEditMode||visualCheckOn||candidateCheckOn}"));
-assert.ok(screen.includes("resolveTapSelection(draft"));
+assert.ok(screen.includes("resolveTapToolbarAction(draft"));
 assert.ok(screen.includes("onTextChange={s.applyWebsiteFieldChange}"));
 assert.ok(screen.includes("onLayoutChange={s.applyWebsiteLayoutAction}"));
 assert.ok(screen.includes("onShouldStartLoadWithRequest"));
