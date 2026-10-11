@@ -3,6 +3,7 @@ import { designForWebsite, designCss } from "../../supabase/functions/busy-websi
 import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";
 import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";
 import { applyWebsiteVisualEdit } from "../../supabase/functions/busy-website-worker/designEdits.mjs";
+import { editWebsiteDraftField } from "../core/websiteStructuredEditing.mjs";
 
 function clean(value = "") {
   return String(value || "").trim();
@@ -471,6 +472,15 @@ function applyWebsiteInstruction(draft = {}, instruction = "") {
   return { applied: true, reason: summary, draft: next };
 }
 
+/**
+ * Direct edits use stable IDs and literal owner-supplied copy rather than
+ * interpreting voice commands. Rebuild every derived representation privately.
+ */
+function applyStructuredWebsiteEdit(draft = {}, patch = {}) {
+  const result = editWebsiteDraftField(draft, patch);
+  return result.applied ? {...result, draft: withHtml(result.draft)} : result;
+}
+
 function renderWebsiteHtml(draft = {}) {
   const sections = safeArray(draft.sections).filter(section => section?.enabled !== false);
   const plan = draft.designPlan || planWebsiteDesign({businessType:draft.businessType,businessName:draft.businessName,sections,theme:draft.theme});
@@ -556,6 +566,7 @@ function renderWebsiteHtml(draft = {}) {
 export {
   buildWebsiteDraft,
   applyWebsiteInstruction,
+  applyStructuredWebsiteEdit,
   applyCoordinatedWebsiteCopy,
   renderWebsiteHtml,
   withHtml as rebuildPrivateWebsiteDraft,
