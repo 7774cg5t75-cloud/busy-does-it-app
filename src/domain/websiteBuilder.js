@@ -576,6 +576,10 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
   const phone=sections.find(section=>section.type==="contact")?.phone||"";
   const email=sections.find(section=>section.type==="contact")?.email||"";
   const standalone=options?.standalone===true;
+  const editablePreview=options?.editablePreview===true&&!standalone;
+  const editAttrs=(section,field,itemId="",photoIndex="")=>editablePreview
+    ? ` data-busy-edit-section="${escapeHtml(section.id)}" data-busy-edit-field="${escapeHtml(field)}" data-busy-edit-item="${escapeHtml(itemId)}" data-busy-edit-photo-index="${escapeHtml(photoIndex)}"`
+    : "";
   const prefix="../".repeat(clean(page?.outputPath||"index.html").split("/").length-1);
   const approvedImage = asset => {
     if(standalone){
@@ -614,10 +618,10 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     if(section.type==="hero"){
       const url=approvedImage(section.asset);
       const art=url
-        ? `<img class="hero-image" src="${escapeHtml(url)}" alt="${escapeHtml(draft.businessName||"Business photograph")}">`
+        ? `<img class="hero-image"${editAttrs(section,"photo")} src="${escapeHtml(url)}" alt="${escapeHtml(draft.businessName||"Business photograph")}">`
         : '<div class="hero-art" aria-hidden="true"></div>';
       const kicker=clean(draft.businessType||draft.businessName);
-      const lead=clean(section.body) ? `<p class="lead">${escapeHtml(section.body)}</p>` : "";
+      const lead=clean(section.body) ? `<p class="lead"${editAttrs(section,"body")}>${escapeHtml(section.body)}</p>` : "";
       const wanted=clean(section.ctaHref);
       const missingTarget=wanted.startsWith("#")&&!renderedAnchors.has(wanted.slice(1));
       const safeFallback=renderedAnchors.has("services")?"#services":
@@ -629,28 +633,28 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       const actualHref=standaloneTarget||(missingTarget?fallbackHref:wanted);
       const actionText=missingTarget?"Explore our services":clean(section.cta);
       const action=actionText&&actualHref
-        ? `<a class="cta" href="${escapeHtml(actualHref)}">${escapeHtml(actionText)}</a>` : "";
-      return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}"><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}</div>${art}</div></section>`;
+        ? `<a class="cta"${editAttrs(section,"cta")} href="${escapeHtml(actualHref)}">${escapeHtml(actionText)}</a>` : "";
+      return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}"><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}</div>${art}</div></section>`;
     }
     if(section.type==="services"||section.type==="faq"||section.type==="testimonials"){
       const items=safeArray(section.items).filter(item=>clean(item?.title||item?.body));
       if(!items.length)return "";
-      return `<section id="${escapeHtml(section.id)}"><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><div class="grid">${items.map(item=>`<article><h3>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p>${escapeHtml(item.body)}</p>`:""}</article>`).join("")}</div></div></section>`;
+      return `<section id="${escapeHtml(section.id)}"><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"} ${editAttrs(section,"title")} ${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><div class="grid">${items.map(item=>`<article><h3${editAttrs(section,"title",String(item.id||""))}>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p${editAttrs(section,"body",String(item.id||""))}>${escapeHtml(item.body)}</p>`:""}</article>`).join("")}</div></div></section>`;
     }
     if(section.type==="photo-feature"){
       const image=approvedImage(section.asset);
-      return image? `<section class="photo-feature" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid"><img loading="lazy" src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}"><div><h2>${escapeHtml(section.title)}</h2><p>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></div></section>`:"";
+      return image? `<section class="photo-feature" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid"><img loading="lazy"${editAttrs(section,"photo")} src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}"><div><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></div></section>`:"";
     }
     if(section.type==="gallery"){
       const images=safeArray(section.items).map(approvedImage).filter(Boolean);
-      return images.length ? `<section id="gallery"><div class="wrap"><h2>${escapeHtml(section.title)}</h2><div class="gallery">${images.map(url=>`<img class="gallery-image" loading="lazy" src="${escapeHtml(url)}" alt="Customer-supplied photograph">`).join("")}</div></div></section>` : "";
+      return images.length ? `<section id="gallery"><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><div class="gallery">${safeArray(section.items).map((asset,i)=>{const image=approvedImage(asset);return image?`<img class="gallery-image"${editAttrs(section,"photo","",String(i))} loading="lazy" src="${escapeHtml(image)}" alt="Customer-supplied photograph">`:"";}).join("")}</div></div></section>` : "";
     }
     if(section.type==="contact"){
       if(!clean(section.body)&&!clean(phone)&&!clean(email))return "";
-      return `<section id="contact"><div class="wrap"><h2>${escapeHtml(section.title||"Get in touch")}</h2>${clean(section.body)?`<p>${escapeHtml(section.body)}</p>`:""}${clean(phone)?`<p><a href="tel:${escapeHtml(phone.replace(/\s+/g,""))}">${escapeHtml(phone)}</a></p>`:""}${clean(email)?`<p><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>`:""}${clean(section.openingHours)?`<p>${escapeHtml(section.openingHours)}</p>`:""}</div></section>`;
+      return `<section id="contact"><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title||"Get in touch")}</h2>${clean(section.body)?`<p${editAttrs(section,"body")}>${escapeHtml(section.body)}</p>`:""}${clean(phone)?`<p><a${editAttrs(section,"phone")} href="tel:${escapeHtml(phone.replace(/\s+/g,""))}">${escapeHtml(phone)}</a></p>`:""}${clean(email)?`<p><a${editAttrs(section,"email")} href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>`:""}${clean(section.openingHours)?`<p${editAttrs(section,"openingHours")}>${escapeHtml(section.openingHours)}</p>`:""}</div></section>`;
     }
     return clean(section.body)
-      ? `<section id="${escapeHtml(section.id)}"><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><p>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></section>`
+      ? `<section id="${escapeHtml(section.id)}"><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"} ${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></section>`
       : "";
   }).join("");
   const business=escapeHtml(draft.businessName||"Business website");
