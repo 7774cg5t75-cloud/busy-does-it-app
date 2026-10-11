@@ -26,7 +26,7 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
     !["services","faq","testimonials"].includes(section.type)||
     list(section.items).filter(x=>x?.id===itemId).length!==1))
   return failure("That item is no longer available to edit.");
- if(!["title","body","cta","ctaHref","phone","email","openingHours","photo"].includes(field))
+ if(!["section","title","body","cta","ctaHref","phone","email","openingHours","photo"].includes(field))
   return failure("Tap a supported heading, text, button or photo.");
  if(field==="photo"){
   const n=selection.photoIndex;
