@@ -13072,7 +13072,7 @@ function App() {
         "Content-Type":"application/json",
       },
       body:JSON.stringify({action,businessId,...payload}),
-    },45000);
+    },action==="studio"?185000:45000);
     const data=await response.json().catch(()=>({}));
     if(!response.ok)throw Error(data.error||"Visual website review is not available yet.");
     return data;
@@ -13123,6 +13123,69 @@ function App() {
       return true;
     }catch(error){
       setWebsiteVisualReviewNotice(error?.message||"Visual review could not be completed. Check usage before retrying.");
+      return false;
+    }finally{setWebsiteVisualReviewBusy(false);}
+  };
+
+  // V3.151: owner-initiated, bounded paid review loop. It does NOT
+  // publish, deploy a live website or mutate a draft. Each iteration uses
+  // fresh trusted screenshots and a separate atomic AI-credit reservation.
+  const requestWebsiteAutonomousDesign=async(maxPasses=2)=>{
+    if(websiteVisualReviewBusy)return false;
+    const current=websiteDraftRef.current;
+    const deployment=websitePublishingView?.previewDeployment;
+    const expectedScope=(ownerSession?.userId||"")+":"+(cloudWorkspace?.businessId||"");
+    const needed=Number(maxPasses)+1;
+    if(!Number.isSafeInteger(maxPasses)||maxPasses<1||maxPasses>3||
+       !websiteVisualReviewStatus?.studioReady||
+       Number(websiteVisualReviewStatus?.remaining||0)<needed||
+       !current?.id||!deployment?.id||websitePublishingView?.draftChangedSinceHosted){
+      setWebsiteVisualReviewNotice("Prepare the latest private hosted website, enable the verified studio provider and allow up to "+needed+" AI credits before starting.");
+      return false;
+    }
+    const anchor={draftId:current.id,generation:current.generation,
+      updatedAt:current.updatedAt,deploymentId:deployment.id,scope:expectedScope};
+    const unchanged=()=>{
+      const now=websiteDraftRef.current;
+      return now?.id===anchor.draftId&&now.generation===anchor.generation&&
+        now.updatedAt===anchor.updatedAt&&
+        websitePublishingView?.previewDeployment?.id===anchor.deploymentId&&
+        !websitePublishingView?.draftChangedSinceHosted&&
+        (ownerSession?.userId||"")+":"+(cloudWorkspace?.businessId||"")===anchor.scope;
+    };
+    setWebsiteVisualReviewBusy(true);
+    setWebsiteVisualReview(null);
+    setWebsiteVisualReviewNotice("BUSY is privately comparing real screenshots. Up to "+
+      needed+" AI review credits can be used, including for unsuccessful passes.");
+    try{
+      const response=await websiteVisualReviewRequest("studio",{
+        deploymentId:anchor.deploymentId,ownerConsent:true,maxPasses,
+        requestKey:busyRequestId("website-autonomous-studio")
+      });
+      if(!response?.ok||response?.businessId!==(cloudWorkspace?.businessId||"")||
+         response.deploymentId!==anchor.deploymentId||
+         response.sourceGeneration!==anchor.generation||
+         response.published!==false||response.changesApplied!==false||
+         !response.report?.valid||!Number.isSafeInteger(response.reviewCalls)||
+         response.reviewCalls<1||response.reviewCalls>needed)
+        throw Error("The studio result did not pass owner, version or spending checks.");
+      // A draft edit during the request invalidates ALL results.
+      if(!unchanged()){
+        setWebsiteVisualReviewNotice("Your website changed during the review. The old result was discarded; no website was edited.");
+        return false;
+      }
+      setWebsiteVisualReview({...response,scope:expectedScope,
+        localDraftGeneration:anchor.generation,
+        localDraftUpdatedAt:anchor.updatedAt});
+      setWebsiteVisualReviewStatus(old=>old?{...old,
+        remaining:Math.max(0,Number(old.remaining||0)-response.reviewCalls)}:old);
+      setWebsiteVisualReviewNotice(response.completedPasses
+       ?"BUSY verified "+response.completedPasses+" private improvement pass(es) across real mobile and desktop screenshots. Review the alternatives before keeping any change."
+       :"BUSY did not verify a safer design improvement. Your existing website remains unchanged.");
+      return true;
+    }catch(error){
+      setWebsiteVisualReviewNotice(String(error?.message||
+       "The studio could not finish. Some AI credits may have been consumed. Check usage before retrying.").slice(0,300));
       return false;
     }finally{setWebsiteVisualReviewBusy(false);}
   };
@@ -16051,6 +16114,7 @@ function App() {
     websiteVisualReviewNotice,
     checkWebsiteVisualReview,
     requestWebsiteVisualReview,
+    requestWebsiteAutonomousDesign,
     previewWebsiteVisualAlternatives,
     approveWebsiteVisualSuggestions,
     approveWebsiteVisualSuggestionCount,
