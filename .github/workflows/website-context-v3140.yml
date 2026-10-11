@@ -1,0 +1,55 @@
+name: V3.140 contextual visual website editor checks
+on:
+  push:
+    branches: [v3.140]
+    paths:
+      - 'src/core/websiteContextualEdit.mjs'
+      - 'src/core/websiteTapToEdit.mjs'
+      - 'src/domain/websiteBuilder.js'
+      - 'src/screens/websiteBuilder.js'
+      - 'src/screens/websiteTapEditor.js'
+      - 'supabase/functions/busy-website-worker/index.ts'
+      - 'supabase/functions/busy-website-worker/designSystem.mjs'
+      - 'supabase/functions/busy-website-worker/websiteLayoutEditing.mjs'
+      - 'scripts/check-website-context-v3140.mjs'
+      - 'scripts/check-website-context-browser-v3140.mjs'
+      - '.github/workflows/website-context-v3140.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contextual-editor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify exact-selection commands and regression safety
+        run: |
+          node scripts/check-website-context-v3140.mjs
+          node scripts/check-website-section-styling-v3139.mjs
+          node scripts/check-website-tap-editor-v3138.mjs
+          node scripts/check-website-layout-v3134.mjs
+          node scripts/check-website-pages-v3135.mjs
+          node scripts/check-website-standalone-v3136.mjs
+          node scripts/check-website-original-media-v3137.mjs
+          node scripts/check-production.mjs
+      - name: Install isolated browser and Expo dependencies
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Browser-test accessible contextual selection on phone tablet desktop
+        run: |
+          node scripts/check-website-context-browser-v3140.mjs
+          node scripts/check-website-tap-browser-v3138.mjs
+          node scripts/check-website-section-browser-v3139.mjs
+      - name: Verify iOS and Android native JavaScript compilation
+        run: |
+          npx expo export --platform ios --output-dir /tmp/busy-v3140-ios-js
+          npx expo export --platform android --output-dir /tmp/busy-v3140-android-js
+      - name: Deployment boundary
+        run: echo "No production deployment, paid AI, EAS signed build, DNS or customer cloud data changed. Real device QA remains."
