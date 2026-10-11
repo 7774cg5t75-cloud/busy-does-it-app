@@ -30,7 +30,19 @@ try{
    "Escape returns keyboard focus to the selected element");
   const section=page.locator('section[data-busy-edit-field=section]');
   await section.tap({position:{x:4,y:120}}); // Tap empty left padding, not a nested heading or paragraph
-  assert.equal(await toolbar.locator('button[data-action=edit]').innerText(),"Adjust");
+  const selectedDetails=await page.evaluate(()=>{
+   const chosen=document.querySelector(".busy-selected-for-edit");
+   const area=document.querySelector("section[data-busy-edit-field=section]");
+   const rect=area.getBoundingClientRect();
+   const atPoint=document.elementFromPoint(rect.left+4,rect.top+120);
+   return {selectedField:chosen?.getAttribute("data-busy-edit-field"),
+    hidden:document.querySelector(".busy-selection-toolbar").hidden,
+    hitField:atPoint?.getAttribute("data-busy-edit-field"),
+    tag:atPoint?.tagName,rectTop:rect.top,rectLeft:rect.left,
+    innerWidth:window.innerWidth};
+  });
+  assert.equal(await toolbar.locator('button[data-action=edit]').innerText(),"Adjust",
+   "Whole-section touch must select the section: "+JSON.stringify(selectedDetails));
   await toolbar.locator('button[data-action=voice]').tap();
   assert.equal(seen.length,1);
   assert.equal(seen[0].field,"section");
