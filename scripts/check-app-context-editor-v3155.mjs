@@ -51,7 +51,7 @@ for(const expected of [
  'Preview my described app change',
  'savePrivateAppAppearance?.({'
 ])assert.ok(builder.includes(expected),"Builder-only UI "+expected);
-assert.ok(builder.includes("App-specific microphone"));
+assert.ok(builder.includes("App voice uses its own 12-request daily"));
 assert.ok(builder.includes("Nothing is saved yet."));
 const backend=read("supabase/functions/busy-mini-apps/index.ts");
 assert.ok(backend.includes('if (action === "set_appearance")'));
