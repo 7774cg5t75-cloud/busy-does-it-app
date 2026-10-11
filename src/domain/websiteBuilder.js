@@ -3,7 +3,6 @@ import { designForWebsite, designCss } from "../../supabase/functions/busy-websi
 import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";
 import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";
 import { applyWebsiteVisualEdit } from "../../supabase/functions/busy-website-worker/designEdits.mjs";
-import { editWebsiteDraftField } from "../core/websiteStructuredEditing.mjs";
 
 function clean(value = "") {
   return String(value || "").trim();
@@ -477,7 +476,7 @@ function applyWebsiteInstruction(draft = {}, instruction = "") {
  * interpreting voice commands. Rebuild every derived representation privately.
  */
 function applyStructuredWebsiteEdit(draft = {}, patch = {}) {
-  const result = editWebsiteDraftField(draft, patch);
+  const result = applyWebsiteVisualEdit(draft, {...patch, kind:"structured"});
   return result.applied ? {...result, draft: withHtml(result.draft)} : result;
 }
 
