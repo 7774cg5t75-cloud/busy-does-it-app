@@ -7,6 +7,7 @@ import {planSelectedWebsiteChanges} from "../core/websiteContextPlan.mjs";
 import {contextualEditExamples} from "../core/contextualEditingCore.mjs";
 import {ownerDesignPreference} from "../core/websiteMeasuredDesignCoach.mjs";
 import {WebsiteSelectedVoice} from "./websiteSelectedVoice";
+import {WebView} from "react-native-webview";
 
 const names={
  section:"Section",title:"Heading",body:"Wording",cta:"Button text",ctaHref:"Button destination",
@@ -18,7 +19,7 @@ const photoPreviewSource=asset=>{
  const uri=typeof asset?.uri==="string"?asset.uri.trim():"";
  return /^(https:\/\/|file:\/\/)/i.test(uri)?{uri}:null;
 };
-function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChange,onLayoutChange,onApplyInstruction,onTranscribe}){
+function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChange,onLayoutChange,onApplyInstruction,onPreviewInstruction,onTranscribe}){
  const [value,setValue]=React.useState("");
  const [confirmRemove,setConfirmRemove]=React.useState(false);
  const [showSectionDesign,setShowSectionDesign]=React.useState(false);
@@ -26,6 +27,8 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  const [contextRequest,setContextRequest]=React.useState("");
  const [contextNote,setContextNote]=React.useState("");
  const [showPhotoChoices,setShowPhotoChoices]=React.useState(false);
+ const [selectedInstructionPreview,setSelectedInstructionPreview]=React.useState(null);
+ const [showPreviewOriginal,setShowPreviewOriginal]=React.useState(false);
  const section=list(draft?.sections).find(s=>s.id===selection?.sectionId);
  const item=selection?.itemId?list(section?.items).find(x=>x.id===selection.itemId):null;
  const target=item||section;
@@ -40,6 +43,8 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
   setContextRequest("");
   setContextNote("");
   setShowPhotoChoices(initialMode==="edit"&&selection?.field==="photo");
+  setSelectedInstructionPreview(null);
+  setShowPreviewOriginal(false);
  },[key,draft?.updatedAt,initialMode]);
  const save=()=>{
   if(!selection||field==="photo")return;
@@ -60,6 +65,21 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  });
  const preparedInstruction=contextRequest.trim()
   ?planSelectedWebsiteChanges(draft,selection?.pageId,selection,contextRequest):null;
+ const previewContext=()=>{
+  if(!preparedInstruction?.ok||!onPreviewInstruction){
+   setContextNote(preparedInstruction?.reason||"Check your instruction before previewing.");
+   return;
+  }
+  const outcome=onPreviewInstruction({selection,instruction:contextRequest});
+  if(!outcome?.ok){
+   setSelectedInstructionPreview(null);
+   setContextNote(outcome?.reason||"That preview could not be prepared. No changes were made.");
+   return;
+  }
+  setSelectedInstructionPreview(outcome);
+  setShowPreviewOriginal(false);
+  setContextNote("Your private comparison is ready. Nothing has been saved or published.");
+ };
  const applyContext=(instruction)=>{
   const plan=planSelectedWebsiteChanges(draft,selection?.pageId,selection,instruction);
   if(!plan.ok){setContextNote(plan.reason);return;}
@@ -85,7 +105,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  const appearanceChoice=(field,value,label)=>{
   const photoOnly=section?.type==="gallery"&&selection?.field==="photo"&&
     ["photoCrop","photoFit"].includes(field)&&Number.isSafeInteger(photoIndex);
-  const current=(photoOnly?section?.items?.[photoIndex]?.appearance?.photoCrop:design[field])||{
+  const current=(photoOnly?section?.items?.[photoIndex]?.appearance?.[field]:design[field])||{
    headingScale:"normal",textAlign:"left",sectionSpacing:"normal",
    photoCrop:"center",photoFit:"cover",photoSide:"left",gallerySize:"comfortable"
   }[field];
@@ -209,10 +229,15 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
            <WebsiteSelectedVoice key={key} selection={selection} startImmediately={initialMode==="voice"} onTranscribe={onTranscribe}
             onTranscript={words=>{
               setContextRequest(words);
+              setSelectedInstructionPreview(null);
               setContextNote("Please check these words carefully. Nothing has changed yet.");
             }}/>
            <Field label="What would you like to change?" value={contextRequest}
-            onChangeText={setContextRequest}
+            onChangeText={words=>{
+             setContextRequest(words);
+             setSelectedInstructionPreview(null);
+             setContextNote("");
+            }}
             placeholder={field==="title"?"Make this heading bigger":"Describe one change to this selected part"}
             autoCapitalize="sentences"/>
            {preparedInstruction?.ok&&preparedInstruction.steps.length>1?(
@@ -224,6 +249,37 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
               </Text>
              ))}
              <Text style={styles.cardBody}>If any step cannot be completed, nothing changes. One Undo restores the original.</Text>
+            </View>
+           ):null}
+           {preparedInstruction?.ok&&onPreviewInstruction?(
+            <Button label="See these changes before saving" onPress={previewContext}/>
+           ):null}
+           {selectedInstructionPreview?.ok&&
+            selectedInstructionPreview.generation===draft?.generation&&
+            selectedInstructionPreview.draftId===draft?.id&&
+            selectedInstructionPreview.pageId===selection?.pageId?(
+            <View style={{marginVertical:10}}>
+             <Text style={styles.sectionLabel}>Private before-and-after preview</Text>
+             <Text style={styles.cardBody}>{selectedInstructionPreview.summary}</Text>
+             <Button label={showPreviewOriginal?"Show proposed changes":"Show original website"}
+              onPress={()=>setShowPreviewOriginal(x=>!x)}/>
+             <View style={{height:300,borderRadius:12,overflow:"hidden",borderWidth:1,borderColor:"#50617A"}}>
+              <WebView
+               key={selectedInstructionPreview.generation+":"+
+                (showPreviewOriginal?"original":"proposed")}
+               source={{html:showPreviewOriginal
+                ?selectedInstructionPreview.originalHtml
+                :selectedInstructionPreview.candidateHtml,baseUrl:"about:blank"}}
+               javaScriptEnabled={false} domStorageEnabled={false} incognito
+               javaScriptCanOpenWindowsAutomatically={false}
+               allowFileAccess={false} mixedContentMode="never"
+               originWhitelist={["about:blank"]}
+               onShouldStartLoadWithRequest={req=>
+                req?.url==="about:blank"||String(req?.url||"").startsWith("about:blank#")}
+               style={{backgroundColor:"#fff",flex:1}}
+              />
+             </View>
+             <Text style={styles.cardBody}>This is only a visual preview at this device width. Use the website layout checker and hosted preview before publishing.</Text>
             </View>
            ):null}
            <Button label={preparedInstruction?.ok&&preparedInstruction.steps.length>1
