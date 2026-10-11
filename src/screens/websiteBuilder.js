@@ -460,7 +460,7 @@ function WebsiteBuilder({ s }) {
                             BUSY has prepared safe variations from its actual screenshot-based AI critique.
                             {s.websiteVisualReview?.bestChanges
                               ?"BUSY compared temporary hosted candidates using NEW mobile and desktop AI screenshots. The examples below are local previews of those safe changes; please check your actual hosted site again after accepting."
-                              :"These alternatives have NOT been re-examined by the AI. They must be checked on real phone and desktop layouts before publishing."}
+                              :"These alternatives have NOT been re-examined by the AI. They must be checked on real layouts before publishing."}
                           </Text>
                           {aiStudio.candidates.map((candidate,i)=>(
                             <Button key={String(i)}
@@ -472,6 +472,8 @@ function WebsiteBuilder({ s }) {
                             onPress={()=>setAiStudioShowOriginal(x=>!x)}/>
                           <Button label={(aiStudioWidth==="phone"?"✓ ":"")+"Preview phone"}
                             onPress={()=>setAiStudioWidth("phone")}/>
+                          <Button label={(aiStudioWidth==="tablet"?"✓ ":"")+"Preview tablet"}
+                            onPress={()=>setAiStudioWidth("tablet")}/>
                           <Button label={(aiStudioWidth==="desktop"?"✓ ":"")+"Preview desktop"}
                             onPress={()=>setAiStudioWidth("desktop")}/>
                           <View style={{height:330,borderRadius:12,overflow:"hidden",
@@ -489,6 +491,9 @@ function WebsiteBuilder({ s }) {
                                 req?.url==="about:blank"||
                                 String(req?.url||"").startsWith("about:blank#")}/>
                           </View>
+                          <Text style={styles.cardBody}>
+                            Tablet is a responsive preview, not a separate AI-reviewed screenshot. Always inspect the actual hosted design on all devices before going live.
+                          </Text>
                           <Text style={styles.cardBody}>
                             Nothing has been saved. The selected alternative is based on verified
                             AI suggestions, not a guaranteed improvement. You decide.
