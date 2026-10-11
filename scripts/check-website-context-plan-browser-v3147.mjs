@@ -29,7 +29,7 @@ try{
   assert.equal(await page.evaluate(()=>document.activeElement?.tagName),"H1",
    "Escape returns keyboard focus to the selected element");
   const section=page.locator('section[data-busy-edit-field=section]');
-  await section.tap({position:{x:16,y:120}});
+  await section.tap({position:{x:4,y:120}}); // Tap empty left padding, not a nested heading or paragraph
   assert.equal(await toolbar.locator('button[data-action=edit]').innerText(),"Adjust");
   await toolbar.locator('button[data-action=voice]').tap();
   assert.equal(seen.length,1);
