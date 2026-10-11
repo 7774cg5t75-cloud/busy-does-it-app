@@ -235,13 +235,16 @@ function renderSectionHtml(
 }
 
 function relativePageHref(currentPage: any, targetPath: string) {
-  const target = clean(targetPath, 240) || "/";
-  const currentIsHome = !currentPage || currentPage.id === "home";
-  if (target === "/") return currentIsHome ? "./index.html" : "../index.html";
-  const segment = target.replace(/^\/+|\/+$/g, "");
-  return currentIsHome
-    ? `./${segment}/index.html`
-    : `../${segment}/index.html`;
+  // Works for /, /about and owner pages nested under /pages/<slug>.
+  // Full-URL signed preview links are supplied separately in pageUrls.
+  const target=clean(targetPath,240);
+  if(target!=="/"&&!/^\/[a-z0-9][a-z0-9/-]*$/i.test(target))
+    return "./index.html";
+  const output=clean(currentPage?.outputPath,240)||"index.html";
+  const directory=output.split("/").slice(0,-1).filter(Boolean);
+  const back="../".repeat(directory.length);
+  const segment=target.replace(/^\/+|\/+$/g,"");
+  return back+(segment?segment+"/index.html":"index.html");
 }
 
 function renderWebsiteHtml(
@@ -278,19 +281,20 @@ function renderWebsiteHtml(
   const seo = pageSeo(draft, page);
   const navigation = safeArray(draft?.navigation);
   const navHtml = navigation.length
-    ? `<nav aria-label="Main navigation"><div class="nav-wrap"><a class="brand" href="/">${escapeHtml(
+    ? `<nav aria-label="Main navigation"><div class="nav-wrap"><a class="brand" href="${escapeHtml(pageUrls.home || relativePageHref(page,"/"))}">${escapeHtml(
         draft?.brandLabel || draft?.businessName || "Home"
       )}</a><div class="nav-links">${navigation
         .map(
           (item: any) =>
             `<a href="${escapeHtml(
-              (String(item.href||"").startsWith("#") ? item.href : pageUrls[item.id] || relativePageHref(page, item.href || "/"))
+              (String(item.href||"").startsWith("#") && page.id==="home" ? item.href : pageUrls[item.id] || relativePageHref(page, item.href?.startsWith("#")?"/":item.href || "/"))
             )}">${escapeHtml(item.label || item.id)}</a>`
         )
         .join("")}</div></div></nav>`
     : "";
 
-  const sectionHtml = plan.sectionOrder
+  const renderedOrder=(page?.id==="home"?plan.sectionOrder:safeArray(page?.sectionIds));
+  const sectionHtml = renderedOrder
     .map((id:string)=>sections.find((section:any)=>section.id===id))
     .filter(Boolean)
     .filter((section: any) => {
