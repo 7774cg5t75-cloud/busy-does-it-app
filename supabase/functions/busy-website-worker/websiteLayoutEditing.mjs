@@ -59,6 +59,55 @@ function applyWebsiteLayoutOperation(draft,operation={}){
   theme[field]=value;
   return ready("Changed the website "+field+" to "+value+".");
  }
+ // V3.139 independent section styles. Never accept CSS, URLs or HTML.
+ // The same enumerated tokens are emitted by the concept and hosted renderers.
+ if(action==="section-style"||action==="reset-section-style"){
+  const matched=sections.filter(x=>x?.id===sectionId&&x?.enabled!==false);
+  if(matched.length!==1)
+   return fail(draft,"Choose one visible section of your website.");
+  const target=matched[0];
+  const fields={
+   headingScale:["compact","normal","large"],
+   textAlign:["left","center"],
+   sectionSpacing:["compact","normal","generous"],
+   photoCrop:["top","center","bottom"],
+   photoSide:["left","right"],
+   gallerySize:["comfortable","compact","large"]
+  };
+  const supports={
+   headingScale:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
+   textAlign:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
+   sectionSpacing:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
+   photoCrop:["hero","photo-feature","gallery"],
+   photoSide:["photo-feature"],
+   gallerySize:["gallery"]
+  };
+  const existing=target.appearance&&typeof target.appearance==="object"&&!Array.isArray(target.appearance)
+   ?target.appearance:{};
+  if(action==="reset-section-style"){
+   if(!Object.keys(existing).length)return fail(draft,"This section is already using its original design.");
+   delete target.appearance;
+   return ready("Restored the original look of this section.");
+  }
+  const field=operation.field,value=operation.value;
+  if(!Object.prototype.hasOwnProperty.call(fields,field)||
+     !fields[field].includes(value)||!supports[field].includes(target.type))
+   return fail(draft,"Choose an available design control for this exact section.");
+  if(field==="photoCrop"&&target.type!=="gallery"&&!text(target.asset?.storagePath))
+   return fail(draft,"Add an approved original photo before changing its crop.");
+  const before=Object.prototype.hasOwnProperty.call(existing,field)?existing[field]:"";
+  if(before===value)return fail(draft,"This section already uses that setting.");
+  // Discard unknown legacy metadata; never let appearance inject raw CSS.
+  const next={};
+  for(const name of Object.keys(fields))
+   if(fields[name].includes(existing[name])&&supports[name].includes(target.type))
+    next[name]=existing[name];
+  const defaults={headingScale:"normal",textAlign:"left",sectionSpacing:"normal",
+    photoCrop:"center",photoSide:"left",gallerySize:"comfortable"};
+  if(value===defaults[field])delete next[field];else next[field]=value;
+  if(Object.keys(next).length)target.appearance=next;else delete target.appearance;
+  return ready("Changed just this section's "+field+".");
+ }
  if(action==="choose-hero-photo"){
   const gallery=sections.find(s=>s.id==="gallery");
   const item=list(gallery?.items).find(x=>x?.storagePath===operation.storagePath&&x.approved!==false);
