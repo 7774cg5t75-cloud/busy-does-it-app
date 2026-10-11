@@ -287,7 +287,7 @@ function applyCoordinatedWebsiteCopy({ draft = null, approved = {}, serviceName 
   };
 }
 
-function applyWebsiteInstruction(draft = {}, instruction = "") {
+function applySingleWebsiteInstruction(draft = {}, instruction = "") {
   const text = clean(instruction);
   const lower = text.toLowerCase();
   if (!draft?.id || !text) {
@@ -472,6 +472,39 @@ function applyWebsiteInstruction(draft = {}, instruction = "") {
 }
 
 /**
+ * Bounded atomic multi-step instructions. A failed intermediate change must
+ * leave the owner's original private draft untouched. Use explicit "and then"
+ * or semicolon separators so copy such as "bread, cheese and wine" survives.
+ */
+function applyWebsiteInstruction(draft = {}, instruction = "") {
+  const raw=clean(instruction);
+  const parts=raw.split(/\s*;\s*|\s+and then\s+|,\s*(?:and )?then\s+/i).map(x=>x.trim());
+  if(parts.length===1)return applySingleWebsiteInstruction(draft,instruction);
+  if(parts.length>4||parts.some(x=>!x))
+    return {applied:false,draft,reason:"Give BUSY up to four complete changes separated by ';' or 'and then'."};
+  let candidate=draft;
+  const summaries=[];
+  for(let i=0;i<parts.length;i++){
+    const step=applySingleWebsiteInstruction(candidate,parts[i]);
+    if(!step.applied)return {applied:false,draft,
+      reason:"Nothing was changed: step "+(i+1)+" needs clarification. "+step.reason};
+    candidate=step.draft;
+    summaries.push(step.reason);
+  }
+  return {applied:true,draft:candidate,reason:
+    "Applied "+parts.length+" changes to your private website draft. Review before publishing."};
+}
+
+/**
+ * Structural and visual controls share the same private-only rebuild,
+ * section-order and undo boundary used for exact wording edits.
+ */
+function applyWebsiteLayoutChange(draft = {}, change = {}) {
+  const result=applyWebsiteVisualEdit(draft,{...change,kind:"layout"});
+  return result.applied?{...result,draft:withHtml(result.draft)}:result;
+}
+
+/**
  * Direct edits use stable IDs and literal owner-supplied copy rather than
  * interpreting voice commands. Rebuild every derived representation privately.
  */
@@ -566,6 +599,7 @@ export {
   buildWebsiteDraft,
   applyWebsiteInstruction,
   applyStructuredWebsiteEdit,
+  applyWebsiteLayoutChange,
   applyCoordinatedWebsiteCopy,
   renderWebsiteHtml,
   withHtml as rebuildPrivateWebsiteDraft,
