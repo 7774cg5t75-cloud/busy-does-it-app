@@ -159,6 +159,9 @@ function renderSectionHtml(
   const theme = draft?.theme || {};
   const sectionClasses=sectionAppearanceClasses(section);
   const sectionAttrs=sectionClasses?` class="${sectionClasses}"`:"";
+  const itemHeadingClass=(item:any)=>item?.appearance?.headingScale==="large"
+    ?' class="owner-item-heading-large"':
+    item?.appearance?.headingScale==="compact"?' class="owner-item-heading-compact"':"";
   if (section.type === "hero") {
     const image=section.asset?urlForAsset(section.asset,urls):"";
     const imageMarkup=image
@@ -182,7 +185,7 @@ function renderSectionHtml(
     )}</${headingTag}><div class="grid">${safeArray(section.items)
       .map(
         (item: any) =>
-          `<article><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(
+          `<article><h3${itemHeadingClass(item)}>${escapeHtml(item.title)}</h3><p>${escapeHtml(
             item.body
           )}</p></article>`
       )
@@ -219,7 +222,7 @@ function renderSectionHtml(
     )}</${headingTag}>${safeArray(section.items)
       .map(
         (item: any) =>
-          `<article><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(
+          `<article><h3${itemHeadingClass(item)}>${escapeHtml(item.title)}</h3><p>${escapeHtml(
             item.body
           )}</p></article>`
       )
