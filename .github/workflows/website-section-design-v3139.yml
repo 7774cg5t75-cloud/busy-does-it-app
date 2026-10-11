@@ -1,0 +1,48 @@
+name: V3.139 individual section design and responsive publishing parity
+on:
+  push:
+    branches: [v3.139]
+    paths:
+      - 'src/domain/websiteBuilder.js'
+      - 'src/screens/websiteTapEditor.js'
+      - 'supabase/functions/busy-website-worker/designSystem.mjs'
+      - 'supabase/functions/busy-website-worker/websiteLayoutEditing.mjs'
+      - 'supabase/functions/busy-website-worker/index.ts'
+      - 'scripts/check-website-section-styling-v3139.mjs'
+      - 'scripts/check-website-section-browser-v3139.mjs'
+      - '.github/workflows/website-section-design-v3139.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  section-design:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify safe section styling, draft preservation and renderer parity
+        run: |
+          node scripts/check-website-section-styling-v3139.mjs
+          node scripts/check-website-tap-editor-v3138.mjs
+          node scripts/check-website-layout-v3134.mjs
+          node scripts/check-website-pages-v3135.mjs
+          node scripts/check-website-standalone-v3136.mjs
+          node scripts/check-website-original-media-v3137.mjs
+          node scripts/check-production.mjs
+      - name: Install dependencies and browser
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Verify mobile tablet and desktop section layouts in Chromium
+        run: node scripts/check-website-section-browser-v3139.mjs
+      - name: Verify native JavaScript builds without cloud signing
+        run: |
+          npx expo export --platform ios --output-dir /tmp/busy-v3139-ios-js
+          npx expo export --platform android --output-dir /tmp/busy-v3139-android-js
+      - name: Confirm production boundary
+        run: echo "No signed builds, Supabase changes, public website publication, DNS, AI credits or live data modified."
