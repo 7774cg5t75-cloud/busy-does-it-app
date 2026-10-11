@@ -22,6 +22,7 @@ import {WebsiteLayoutControls} from "./websiteLayoutControls";
 import {WebsitePagesEditor} from "./websitePagesEditor";
 import {WebsiteTapEditor} from "./websiteTapEditor";
 import {WebsiteSelectedVoice} from "./websiteSelectedVoice";
+import {beginWebsiteConversation,addWebsiteConversationTurn,websiteConversationContext} from "../core/websiteDesignConversation.mjs";
 import {makeTapToEditHtml,resolveTapToolbarAction} from "../core/websiteTapToEdit.mjs";
 import {recordWebsiteViewportEvidence,summarizeWebsiteViewportEvidence,reviewWebsiteViewportPortfolio} from "../core/websiteViewportEvidence.mjs";
 import {withWebsitePreviewViewport,websitePreviewWidthNote} from "../core/websiteResponsivePreview.mjs";
@@ -692,6 +693,7 @@ function WebsitePreview({ s }) {
   const [pagePlanNotice,setPagePlanNotice]=React.useState("");
   const [pageVoiceExpanded,setPageVoiceExpanded]=React.useState(false);
   const [pageInterpretBusy,setPageInterpretBusy]=React.useState(false);
+  const [pageConversation,setPageConversation]=React.useState(null);
   const [showRecoveryTools,setShowRecoveryTools]=React.useState(false);
   const [confirmRecoveryRestore,setConfirmRecoveryRestore]=React.useState(false);
   React.useEffect(()=>{
@@ -703,7 +705,7 @@ function WebsitePreview({ s }) {
   React.useEffect(()=>setViewportEvidence(null),[selectedPageId,draft?.id,draft?.generation]);
   React.useEffect(()=>setConfirmRecoveryRestore(false),[draft?.id,draft?.generation]);
   React.useEffect(()=>{setPagePlanPreview(null);setPagePlanNotice("");setPageInstruction("");
-    setShowPagePlanOriginal(false);},[selectedPageId,draft?.id,draft?.generation]);
+    setPageConversation(null);setShowPagePlanOriginal(false);},[selectedPageId,draft?.id,draft?.generation,s.cloudWorkspace?.businessId]);
   const activePage=draft?.pages?.find(page=>page.id===selectedPageId)||
     draft?.pages?.find(page=>page.id==="home");
   const liveConceptHtml = draft ? renderWebsiteHtml(draft,activePage?.id||"home") : "";
@@ -895,16 +897,60 @@ function WebsitePreview({ s }) {
             setPageInterpretBusy(true);setPagePlanPreview(null);
             setPagePlanNotice("Checking what you meant. No website changes are being made.");
             try{
+              const scope={draftId:draft.id,pageId:activePage?.id||"home",
+                generation:draft.generation,workspaceId:s.cloudWorkspace?.businessId||""};
+              const started=pageConversation?.ok?pageConversation:beginWebsiteConversation(scope);
+              const asked=addWebsiteConversationTurn(started,scope,{role:"owner",text:pageInstruction});
+              if(!asked.ok){
+                setPagePlanNotice(asked.reason||"Please select a current page.");
+                return;
+              }
+              setPageConversation(asked);
+              const context=websiteConversationContext(asked,scope);
               const result=await s.interpretWebsitePageLanguage?.({
-                pageId:activePage?.id||"home",generation:draft.generation,
-                instruction:pageInstruction
+                pageId:scope.pageId,generation:scope.generation,
+                instruction:pageInstruction,conversationContext:context
               });
               if(result?.ok){
                 setPageInstruction(result.canonical);
+                setPageConversation(addWebsiteConversationTurn(asked,scope,{
+                  role:"busy",text:"Here is a safe draft plan to preview. Shall we try this design?"
+                }));
                 setPagePlanNotice(result.reason);
-              }else setPagePlanNotice(result?.reason||"Interpretation unavailable. You can still use the exact editing controls.");
+              }else{
+                const response=result?.clarification||result?.reason||
+                  "Interpretation unavailable. You can still use exact editing controls.";
+                setPageConversation(addWebsiteConversationTurn(asked,scope,{
+                  role:"busy",text:response
+                }));
+                setPagePlanNotice(response);
+                // Keep the response visible. The next typed or spoken
+                // message becomes a follow-up with this scoped context.
+                if(result?.clarification)setPageInstruction("");
+              }
             }finally{setPageInterpretBusy(false);}
           }}/>
+        {pageConversation?.ok&&pageConversation.scope.draftId===draft.id&&
+         pageConversation.scope.generation===draft.generation&&
+         pageConversation.scope.pageId===(activePage?.id||"home")?(
+          <View style={{marginVertical:8}}>
+            {pageConversation.turns.slice(-4).map((turn,i)=>(
+              <Text key={String(i)} style={styles.cardBody}>
+                {(turn.role==="busy"?"BUSY: ":"You: ")+turn.text}
+              </Text>
+            ))}
+            {(pageConversation.keepColours||pageConversation.keepPhotos)?(
+              <Text style={styles.cardBody}>
+                {"Keeping your "+[pageConversation.keepColours?"colours":null,
+                  pageConversation.keepPhotos?"photographs":null].filter(Boolean).join(" and ")+
+                  " unchanged throughout this conversation."}
+              </Text>
+            ):null}
+            <Button label="Start a fresh website conversation" onPress={()=>{
+              setPageConversation(null);setPagePlanNotice("");
+            }}/>
+          </View>
+        ):null}
         <Text style={styles.cardBody}>This optional AI interpretation needs an enabled provider and consumes one shared daily website voice/AI request. Typed exact instructions and private previews do not use AI credits. You always approve changes yourself.</Text>
         <Button label="Preview changes — do not save"
           onPress={()=>{
