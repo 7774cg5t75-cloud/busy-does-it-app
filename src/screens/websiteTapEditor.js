@@ -15,7 +15,7 @@ const photoPreviewSource=asset=>{
  const uri=typeof asset?.uri==="string"?asset.uri.trim():"";
  return /^(https:\/\/|file:\/\/)/i.test(uri)?{uri}:null;
 };
-function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,onTranscribe}){
+function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChange,onLayoutChange,onTranscribe}){
  const [value,setValue]=React.useState("");
  const [confirmRemove,setConfirmRemove]=React.useState(false);
  const [showSectionDesign,setShowSectionDesign]=React.useState(false);
@@ -32,12 +32,12 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
  React.useEffect(()=>{
   setValue(typeof target?.[field]==="string"?target[field]:"");
   setConfirmRemove(false);
-  setShowSectionDesign(false);
-  setShowContextHelp(false);
+  setShowSectionDesign(initialMode==="more");
+  setShowContextHelp(initialMode==="voice");
   setContextRequest("");
   setContextNote("");
   setShowPhotoChoices(false);
- },[key,draft?.updatedAt]);
+ },[key,draft?.updatedAt,initialMode]);
  const save=()=>{
   if(!selection||field==="photo")return;
   if(onTextChange?.({...selection,value})===true)onClose?.();
@@ -91,7 +91,7 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
       <Card eyebrow="Private website change" title={field==="photo"?"Choose what to do with this picture":"Change the exact wording"}
        body="Your edits stay in your private draft. Nothing is published automatically, and you can undo a saved change."
        tone="blue">
-       {selection&&field!=="photo"?(
+       {selection&&field!=="photo"&&initialMode!=="voice"?(
         <>
          {field==="body"?(
           <View style={styles.fieldWrap}>
@@ -114,7 +114,7 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
          <Button label="Save to private website draft" primary onPress={save}/>
         </>
        ):null}
-       {selection&&field==="photo"?(
+       {selection&&field==="photo"&&initialMode!=="voice"?(
         <>
          <Text style={styles.sectionLabel}>Currently selected photograph</Text>
          {selectedPhotoSource?(
@@ -179,6 +179,9 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
        ):null}
        {selection&&section?(
         <>
+         {initialMode==="voice"?(
+          <Text style={styles.cardBody}>You selected the exact {names[field]?.toLowerCase()||"website part"}. BUSY is ready to listen. Press the red Stop control when you're finished — pauses are fine.</Text>
+         ):null}
          <Button label={showContextHelp?"Hide instructions for this part":"Tell BUSY what to do with this part"}
           onPress={()=>{setContextNote("");setShowContextHelp(x=>!x);}}/>
          {showContextHelp?(
@@ -187,7 +190,7 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
            {contextExamples.map(example=>(
             <Button key={example} label={example} onPress={()=>applyContext(example)}/>
            ))}
-           <WebsiteSelectedVoice key={key} selection={selection} onTranscribe={onTranscribe}
+           <WebsiteSelectedVoice key={key} selection={selection} startImmediately={initialMode==="voice"} onTranscribe={onTranscribe}
             onTranscript={words=>{
               setContextRequest(words);
               setContextNote("Please check these words carefully. Nothing has changed yet.");
