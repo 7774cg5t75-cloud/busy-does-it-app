@@ -1,0 +1,47 @@
+name: V3.161 Private App Screenshot Comparison and Accessibility
+on:
+  push:
+    branches: [v3.161]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  app-design-compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Privacy, screenshot comparisons, contrast and historic app regression tests
+        run: |
+          node scripts/check-app-visual-comparison-v3161.mjs
+          node scripts/check-app-design-v3160.mjs
+          node scripts/check-app-visual-review-v3159.mjs
+          node scripts/check-app-builder-v3158.mjs
+          node scripts/check-intelligent-app-studio-v3157.mjs
+          node scripts/check-app-voice-layout-v3156.mjs
+          node scripts/check-native-public-booking-v3155.mjs
+          node scripts/check-app-context-editor-v3155.mjs
+          node scripts/check-app-builder-dual-track-v3153.mjs
+          node scripts/check-standalone-native-v3154.mjs
+          node scripts/check-production.mjs
+      - name: Install pinned Expo dependencies
+        run: npm install --no-audit --no-fund
+      - name: Parse native, controller and trusted Edge code
+        run: node scripts/check-app-native-syntax-v3154.mjs
+      - name: Export Busy for iOS and Android
+        run: |
+          npx expo export --platform ios --output-dir /tmp/bdi-v3161-ios
+          npx expo export --platform android --output-dir /tmp/bdi-v3161-android
+      - name: Independently export standalone prototype
+        run: |
+          node scripts/prepare-standalone-prototype-v3154.mjs
+          cd .tmp/standalone-prototype-v3154
+          ../../node_modules/.bin/expo export --platform ios --output-dir /tmp/bdi-v3161-standalone-ios
+          ../../node_modules/.bin/expo export --platform android --output-dir /tmp/bdi-v3161-standalone-android
+      - name: State deployment and evidence boundary
+        run: echo "Tests do not deploy Supabase, enable AI calls, inspect real device pixels, perform a certified accessibility audit, sign binaries or publish customer apps."
