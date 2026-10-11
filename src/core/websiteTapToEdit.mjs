@@ -34,7 +34,7 @@ function makeTapToEditHtml(html){
   </style>`;
  const script=`<script>(function(){
   "use strict";
-  var previous=null,toolbar=null,anchor=null;
+  var previous=null,toolbar=null,lastPointerY=null;
   var labels={section:"Adjust",photo:"Replace",title:"Edit",body:"Edit",cta:"Edit",ctaHref:"Edit",
    phone:"Edit",email:"Edit",openingHours:"Edit"};
   function bridge(action){
@@ -52,6 +52,7 @@ function makeTapToEditHtml(html){
    if(previous)previous.classList.remove("busy-selected-for-edit");
    previous=null;
    if(toolbar)toolbar.hidden=true;
+   lastPointerY=null;
   }
   function position(){
    if(!previous||!toolbar||toolbar.hidden)return;
@@ -59,6 +60,8 @@ function makeTapToEditHtml(html){
    var width=Math.max(toolbar.offsetWidth||185,185);
    var x=Math.min(Math.max(8,rect.left+(rect.width-width)/2),Math.max(8,window.innerWidth-width-8));
    var y=rect.bottom+8;
+   if((rect.bottom>window.innerHeight||rect.top<0)&&lastPointerY!==null)
+    y=Math.min(window.innerHeight-60,Math.max(5,lastPointerY+8));
    // Keep the toolbar immediately below when possible; if the selected
    // element is at the screen bottom, place it above instead.
    if(y+58>window.innerHeight&&rect.top>58)y=rect.top-58;
@@ -94,9 +97,10 @@ function makeTapToEditHtml(html){
        element.getAttribute("data-busy-edit-field")||"content")+" to edit");
     });
   }
-  function select(element){
+  function select(element,event){
    if(previous)previous.classList.remove("busy-selected-for-edit");
    previous=element;
+   lastPointerY=event&&typeof event.clientY==="number"?event.clientY:null;
    element.classList.add("busy-selected-for-edit");
    toolbar.firstChild.textContent=labels[element.getAttribute("data-busy-edit-field")]||"Edit";
    toolbar.hidden=false;
@@ -115,7 +119,7 @@ function makeTapToEditHtml(html){
    var element=event.target&&event.target.closest&&
      event.target.closest("[data-busy-edit-section]");
    if(!element){close();return;}
-   event.preventDefault();event.stopPropagation();select(element);
+   event.preventDefault();event.stopPropagation();select(element,event);
   },true);
   window.addEventListener("resize",position);
   window.addEventListener("scroll",position,true);
