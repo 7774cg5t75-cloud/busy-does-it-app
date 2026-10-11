@@ -84,6 +84,12 @@ assert.equal(comparison.afterIssueCount,1);
 assert.equal(comparison.noLongerFlagged.length,4);
 assert.equal(comparison.automatedImagePixelDiff,false);
 assert.equal(comparison.ownerApprovalNeeded,true);
+assert.deepEqual(before.measuredKeys,["gallery-0","hero","nav-0","service-0"]);
+assert.deepEqual(before.imageKeysWithSourceDimensions,["gallery-0","hero"]);
+assert.equal(compareRenderedQuality(before,{
+ ...after,measuredKeys:["gallery-0","hero","nav-0"]}).ok,false);
+assert.equal(compareRenderedQuality(before,{
+ ...after,imageKeysWithSourceDimensions:["gallery-0"]}).ok,false);
 assert.equal(compareRenderedQuality(before,{...after,viewportWidth:320}).ok,false);
 assert.equal(compareRenderedQuality(before,{...after,revision:5}).ok,false);
 assert.equal(compareRenderedQuality(before,{...after,appId:"different"}).ok,false);
