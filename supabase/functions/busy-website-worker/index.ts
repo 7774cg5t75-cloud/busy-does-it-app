@@ -271,6 +271,9 @@ function renderWebsiteHtml(
     "visual-ornament-" + (identity.ornament || "ripple"),
     "visual-nav-" + (identity.navStyle || "quiet"),
     "visual-type-" + (identity.typography || "confident"),
+    "rhythm-" + (["comfortable","compact","generous"].includes(draft?.theme?.spacing) ? draft.theme.spacing : "comfortable"),
+    "cta-" + (draft?.theme?.ctaEmphasis==="strong"?"strong":"normal"),
+    "photo-focus-" + (["top","bottom","center"].includes(draft?.theme?.photoFocus)?draft.theme.photoFocus:"center"),
   ].join(" ");
   const seo = pageSeo(draft, page);
   const navigation = safeArray(draft?.navigation);
