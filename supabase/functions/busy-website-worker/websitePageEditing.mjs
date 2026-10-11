@@ -66,6 +66,8 @@ function editWebsitePages(draft={},action={}){
   if(page.sectionIds.length>=12)return fail(draft,"This page has reached its section limit.");
   // Explicitly move, not duplicate: owner can always restore from another page.
   const previousPages=pages.filter(p=>p.sectionIds.includes(id));
+  if(previousPages.some(p=>p.sectionIds.length<=1))
+   return fail(draft,"That section is the only content on another page. Add a replacement section there first.");
   previousPages.forEach(p=>p.sectionIds=p.sectionIds.filter(x=>x!==id));
   page.sectionIds.push(id);
   section.pageOnly=true;
