@@ -15150,6 +15150,49 @@ function App() {
     }
   };
 
+  // V3.161 one-owner-consented, ONE-allowance paired visual comparison.
+  // The file paths are local to the development build; no image content is
+  // cached in business state, logs or the published app configuration.
+  const comparePrivateAppScreenshots=async({
+    appId,expectedRevision,beforeUri,afterUri,operations,captureScope
+  }={})=>{
+    const current=()=>miniAppsView?.app?.id===appId&&
+      Number(miniAppsView?.app?.draft_revision)===Number(expectedRevision);
+    if(captureScope!=="public_app_only"||!current()||
+      !Array.isArray(operations)||operations.length<1||operations.length>3)
+      return {ok:false,reason:"Refresh this app and capture two approved private previews."};
+    try{
+      const originals=[new ExpoFile(String(beforeUri||"")),
+        new ExpoFile(String(afterUri||""))];
+      if(originals.some(file=>!file.exists||Number(file.size)<512||
+         Number(file.size)>590000))
+        throw Error("Both public app captures must be JPEGs under 590 KB. No image was sent.");
+      const [imageBase64,compareImageBase64]=await Promise.all(
+        originals.map(file=>file.base64()));
+      if(!current()||[imageBase64,compareImageBase64].some(
+         x=>typeof x!=="string"||x.length>800000))
+        throw Error("The draft changed or screenshots were too large. Nothing was uploaded.");
+      const response=await miniAppsRequest("compare_app_screenshots",{
+        appId,expectedRevision,imageBase64,compareImageBase64,
+        candidateOperations:operations,captureScope:"public_app_only",
+        ownerConsent:true
+      });
+      if(response?.ok!==true||response.appId!==appId||
+         Number(response.draftRevision)!==Number(expectedRevision)||
+         response.comparisonMode!==true||response.imagesSubmitted!==2||
+         response?.review?.ok!==true||response.privateOnly!==true||
+         response.screenshotStored!==false||
+         response?.review?.autoPublished!==false)
+        throw Error("BUSY could not verify that this two-image review stayed private.");
+      if(!current())throw Error("The private app changed while comparing. Refresh.");
+      return {ok:true,review:response.review,status:response.visualReview||null,
+        imagesCompared:2,ownerApprovalStillNeeded:true};
+    }catch(error){
+      return {ok:false,reason:String(error?.message||
+        "The private visual comparison was unavailable. No changes were applied.").slice(0,245)};
+    }
+  };
+
   const saveCoordinatedAppChanges=async({operations,appId,expectedRevision}={})=>{
     if(!miniAppsView?.app||miniAppsView.app.id!==appId||
       Number(miniAppsView.app.draft_revision)!==Number(expectedRevision)){
@@ -16477,6 +16520,7 @@ function App() {
     saveCoordinatedAppChanges,
     checkPrivateAppVisualReview,
     reviewPrivateAppScreenshot,
+    comparePrivateAppScreenshots,
     movePrivateAppSection,
     transcribeSelectedAppAudio,
     prepareMiniAppPreview,
