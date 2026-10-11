@@ -163,6 +163,7 @@ jobs:
 
       - name: Verify final website design-only and customer-data integrity
         run: node scripts/check-website-completion-integrity-v3152.mjs
+          node scripts/check-builder-handoff-v3152.mjs
 
       - name: Verify Expo Snack module dependency graph
         run: node scripts/check-snack-dependencies.mjs
