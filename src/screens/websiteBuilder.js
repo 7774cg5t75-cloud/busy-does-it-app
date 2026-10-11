@@ -16,6 +16,7 @@ import { websiteBrainCoaching } from "../core/websiteBrainCoaching.mjs";
 import { websiteRegionalReadiness } from "../core/websiteRegionalReadiness.mjs";
 import { websiteDecisionEvidence } from "../core/websiteDecisionEvidence.mjs";
 import { renderWebsiteHtml } from "../domain/websiteBuilder";
+import {WebsiteContentEditor} from "./websiteContentEditor";
 
 function WebsiteBuilder({ s }) {
   const draft = s.websiteDraft;
@@ -439,6 +440,7 @@ function WebsiteBuilder({ s }) {
               </>
             ) : null}
           </Card>
+          <WebsiteContentEditor draft={draft} onApply={s.applyWebsiteFieldChange}/>
         </>
       ) : null}
       <Button label={showWebsiteDetails ? "Hide extra website settings" : "More website settings"}
