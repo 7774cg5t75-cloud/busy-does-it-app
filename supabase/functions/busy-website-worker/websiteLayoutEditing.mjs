@@ -59,6 +59,25 @@ function applyWebsiteLayoutOperation(draft,operation={}){
   theme[field]=value;
   return ready("Changed the website "+field+" to "+value+".");
  }
+ // V3.141: a photo tapped within a gallery is ONE image, not the
+ // entire gallery. Its focal point has its own reversible safe token.
+ if(action==="image-style"){
+  const gallery=sections.find(x=>x?.id===sectionId&&x.type==="gallery"&&x.enabled!==false);
+  const n=operation.photoIndex;
+  if(!gallery||sectionId!=="gallery"||!Number.isSafeInteger(n)||
+     n<0||n>=list(gallery.items).length||gallery.items[n]?.approved===false||
+     operation.field!=="photoCrop"||
+     !["top","center","bottom"].includes(operation.value))
+   return fail(draft,"Select an approved photo in the gallery to adjust its crop.");
+  const photo=gallery.items[n];
+  const current=photo?.appearance?.photoCrop||"center";
+  if(current===operation.value)return fail(draft,"That image already has this crop.");
+  const next={...photo};
+  if(operation.value==="center")delete next.appearance;
+  else next.appearance={photoCrop:operation.value};
+  gallery.items[n]=next;
+  return ready("Adjusted only the selected gallery photograph.");
+ }
  // V3.140: individual item headings are not section headings. Keep their
  // appearance separate, or "make THIS heading bigger" affects every card.
  if(action==="item-style"){
