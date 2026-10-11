@@ -76,7 +76,7 @@ for(const str of ["auditBusinessAppUsability","compareBusinessAppDesign",
  "imageCorners","accessibilityLabel={String(asset.alt"])
  assert.ok(ui.includes(str),"UI missing "+str);
 const native=read("standalone/template/App.js");
-for(const str of ["LOOK.galleryLayout","LOOK.imageCorners",'accessibilityRole="image"'])
+for(const str of ["layout?.galleryColumns===3","LOOK.imageCorners",'accessibilityRole="image"'])
  assert.ok(native.includes(str),"standalone missing "+str);
 assert.ok(read("supabase/functions/busy-mini-apps/index.ts")
  .includes("galleryLayout (grid,stack), imageCorners (rounded,square)"));

@@ -116,7 +116,8 @@ assert.equal(shell.screenSchema.screens[0].key,"booking_request");
 assert.equal(shell.signingConfigured,false);
 assert.equal(shell.appStoreSubmitEnabled,false);
 assert.equal(nativeShellDescriptor({...handoff,appearance:{imageScale:"huge"}}).ok,false);
-assert.ok(read("standalone/template/App.js").includes('LOOK.imageScale==="large"'));
+assert.ok(read("standalone/template/App.js").includes("responsiveAppLayout("));
+assert.ok(read("standalone/template/appResponsiveDesign.mjs").includes('scale==="large"'));
 assert.equal(read("src/core/appCoordinatedStudio.mjs"),
  read("supabase/functions/busy-mini-apps/appCoordinatedStudio.mjs"),
  "Client and trusted edge must implement the identical finite editing policy");
