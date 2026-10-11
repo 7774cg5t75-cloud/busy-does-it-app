@@ -660,6 +660,7 @@ function MiniAppBuilder({ s }) {
   const [studioWords,setStudioWords]=React.useState("");
   const [studioPreview,setStudioPreview]=React.useState(null);
   const [studioComparisonSide,setStudioComparisonSide]=React.useState("proposed");
+  const [showResponsiveDetails,setShowResponsiveDetails]=React.useState(false);
   const [studioNotice,setStudioNotice]=React.useState("");
   const [studioCopyField,setStudioCopyField]=React.useState("tagline");
   const [studioCopy,setStudioCopy]=React.useState("");
@@ -1467,7 +1468,17 @@ function MiniAppBuilder({ s }) {
             <MetricRow key={item.id} left={item.id.replaceAll("_"," ")}
               right={item.detail}/>
           ))}
-          <Text style={styles.sectionLabel}>V3.163 • Cross-screen quality checks</Text>
+          <Text style={styles.sectionLabel}>V3.163 • Designed for every screen</Text>
+          <Text style={styles.cardBody}>
+            BUSY adapts navigation, photographs and service layouts to available
+            screen width. You keep control of any permanent changes.
+          </Text>
+          <Button label={showResponsiveDetails?
+              "Hide Busy’s design reasoning":"Why does Busy choose different layouts?"}
+            onPress={()=>setShowResponsiveDetails(x=>!x)}/>
+          {showResponsiveDetails?(
+            <>
+              <Text style={styles.sectionLabel}>Cross-screen quality checks</Text>
           {responsiveQuality.ok?(
             <>
               <MetricRow left="Example screen widths checked"
@@ -1580,6 +1591,8 @@ function MiniAppBuilder({ s }) {
               BUSY needs an up-to-date private app draft to assess different widths.
             </Text>
           )}
+            </>
+          ):null}
           <Text style={styles.sectionLabel}>V3.162 • Suggested design checks</Text>
           {nonAiDesignHints.ok&&nonAiDesignHints.suggestions.length?(
             <>
