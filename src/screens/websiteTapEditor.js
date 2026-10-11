@@ -23,7 +23,6 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
  const [contextRequest,setContextRequest]=React.useState("");
  const [contextNote,setContextNote]=React.useState("");
  const [showPhotoChoices,setShowPhotoChoices]=React.useState(false);
- const [showPhotoDesign,setShowPhotoDesign]=React.useState(false);
  const section=list(draft?.sections).find(s=>s.id===selection?.sectionId);
  const item=selection?.itemId?list(section?.items).find(x=>x.id===selection.itemId):null;
  const target=item||section;
@@ -38,7 +37,6 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
   setContextRequest("");
   setContextNote("");
   setShowPhotoChoices(false);
-  setShowPhotoDesign(false);
  },[key,draft?.updatedAt]);
  const save=()=>{
   if(!selection||field==="photo")return;
@@ -181,10 +179,6 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
        ):null}
        {selection&&section?(
         <>
-         {field==="photo"?(
-          <Button label={showPhotoDesign?"Hide picture layout options":"Adjust picture crop and size"}
-           onPress={()=>{setShowPhotoDesign(x=>!x);setShowSectionDesign(x=>!x);}}/>
-         ):null}
          <Button label={showContextHelp?"Hide instructions for this part":"Tell BUSY what to do with this part"}
           onPress={()=>{setContextNote("");setShowContextHelp(x=>!x);}}/>
          {showContextHelp?(
@@ -208,7 +202,7 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,o
            <Text style={styles.cardBody}>Unrecognised requests are never guessed or published. More advanced editing still uses the controls below.</Text>
           </View>
          ):null}
-         <Button label={showSectionDesign?"Hide individual design choices":"Change how this section looks"}
+         <Button label={showSectionDesign?"Hide design controls":field==="photo"?"Adjust this picture and section":"Change how this section looks"}
           onPress={()=>setShowSectionDesign(x=>!x)}/>
          {showSectionDesign?(
           <View>
