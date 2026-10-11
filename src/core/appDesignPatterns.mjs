@@ -155,6 +155,11 @@ function prepareOwnerAwareDesignExperiments(config,{
  const fieldsWithAnyEvidence=new Set([...candidates.values()].map(c=>c.field));
  for(const field of fieldsWithAnyEvidence){
   if(scored.some(c=>c.field===field))continue;
+  const currentOpinion=lookup.get(keyOf(field,current[field]));
+  const hasMeasuredEvidence=[...candidates.values()].some(c=>
+    c.field===field&&c.sources.includes("measured"));
+  if(currentOpinion?.recentVerdict==="better"&&!hasMeasuredEvidence)
+   continue; // protect the currently liked style; no forced fallback
   const related=profile.choices.filter(x=>x.field===field);
   const liked=related.filter(x=>x.recentVerdict==="better"&&
     x.value!==current[field]);
