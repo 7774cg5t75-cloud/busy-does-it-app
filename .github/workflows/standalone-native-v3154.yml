@@ -33,6 +33,11 @@ jobs:
           test -f .tmp/standalone-prototype-v3154/App.js
           test -f .tmp/standalone-prototype-v3154/prototype.json
           node -e 'let a=require("./.tmp/standalone-prototype-v3154/prototype.json");if(a.signingConfigured||a.appStoreSubmitEnabled||a.buildIsProductionReady)throw Error("unsafe prototype");'
+      - name: Export the separately generated standalone native prototype without signing
+        run: |
+          cd .tmp/standalone-prototype-v3154
+          ../../node_modules/.bin/expo export --platform ios --output-dir /tmp/bdi-standalone-prototype-ios
+          ../../node_modules/.bin/expo export --platform android --output-dir /tmp/bdi-standalone-prototype-android
       - name: Check actual BUSY iOS and Android unsigned JavaScript exports
         run: |
           npx expo export --platform ios --output-dir /tmp/bdi-v3154-ios
