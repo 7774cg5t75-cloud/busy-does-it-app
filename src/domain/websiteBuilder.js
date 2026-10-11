@@ -177,6 +177,18 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
   // business information is refreshed. Never transfer styles to other IDs/types.
   const previousLooks=new Map(safeArray(previousDraft?.sections).map(section=>
     [String(section?.id||"")+":"+String(section?.type||""),section?.appearance]));
+  const previousItemLooks=new Map();
+  for(const section of safeArray(previousDraft?.sections)){
+    for(const item of safeArray(section?.items)){
+      if(item?.id&&["compact","large"].includes(item?.appearance?.headingScale))
+        previousItemLooks.set(String(section.id)+":"+String(item.id),
+          item.appearance.headingScale);
+    }
+  }
+  const restoreItemLook=(sectionId,item)=>{
+    const size=previousItemLooks.get(String(sectionId)+":"+String(item?.id));
+    return size?{...item,appearance:{headingScale:size}}:item;
+  };
 
   // Keep already-backed-up source bytes attached to the SAME original image,
   // even when factual Brand Brain wording gets regenerated. This helper lives
@@ -200,8 +212,11 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
     if(["hero","photo-feature"].includes(section?.type))
       return {...section,...retained,asset:restorePhoto(section.asset)};
     if(section?.type==="gallery")
-      return {...section,...retained,items:safeArray(section.items).map(restorePhoto)};
-    return {...section,...retained};
+      return {...section,...retained,items:safeArray(section.items)
+        .map(asset=>restoreItemLook(section.id,restorePhoto(asset)))};
+    return {...section,...retained,
+      ...(safeArray(section.items).length?{items:section.items
+        .map(item=>restoreItemLook(section.id,item))}:{})};
   });
   const theme=previousDraft?.theme&&typeof previousDraft.theme==="object"
     ? {...themeFromBrief(brief),...previousDraft.theme}
@@ -637,6 +652,9 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     if(visible)renderedAnchors.add(
       section.type==="contact"?"contact":section.type==="gallery"?"gallery":String(section.id||""));
   }
+  const itemHeadingClass=item=>item?.appearance?.headingScale==="large"
+    ?' class="owner-item-heading-large"':
+    item?.appearance?.headingScale==="compact"?' class="owner-item-heading-compact"':"";
   const sectionHtml = orderedSections.map(section=>{
     const sectionClasses=sectionAppearanceClasses(section);
     const sectionAttrs=sectionClasses?` class="${sectionClasses}"`:"";
@@ -664,7 +682,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     if(section.type==="services"||section.type==="faq"||section.type==="testimonials"){
       const items=safeArray(section.items).filter(item=>clean(item?.title||item?.body));
       if(!items.length)return "";
-      return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><div class="grid">${items.map(item=>`<article><h3${editAttrs(section,"title",String(item.id||""))}>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p${editAttrs(section,"body",String(item.id||""))}>${escapeHtml(item.body)}</p>`:""}</article>`).join("")}</div></div></section>`;
+      return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><div class="grid">${items.map(item=>`<article><h3${itemHeadingClass(item)}${editAttrs(section,"title",String(item.id||""))}>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p${editAttrs(section,"body",String(item.id||""))}>${escapeHtml(item.body)}</p>`:""}</article>`).join("")}</div></div></section>`;
     }
     if(section.type==="photo-feature"){
       const image=approvedImage(section.asset);
