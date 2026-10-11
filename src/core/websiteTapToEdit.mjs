@@ -101,17 +101,29 @@ function makeTapToEditHtml(html){
    previous=element;
    lastPointerY=event&&typeof event.clientY==="number"?event.clientY:null;
    element.classList.add("busy-selected-for-edit");
-   toolbar.firstChild.textContent=labels[element.getAttribute("data-busy-edit-field")]||"Edit";
+   var chosen=element.getAttribute("data-busy-edit-field")||"section";
+   toolbar.firstChild.textContent=labels[chosen]||"Edit";
+   toolbar.firstChild.setAttribute("aria-label",(labels[chosen]||"Edit")+" selected "+chosen);
+   toolbar.querySelector("button[data-action=voice]").setAttribute("aria-label",
+    "Talk to Busy about this "+(chosen==="photo"?"picture":chosen));
+   toolbar.querySelector("button[data-action=more]").setAttribute("aria-label",
+    "More options for selected "+chosen);
    toolbar.hidden=false;
    position();
   }
   document.addEventListener("keydown",function(event){
-   if(event.key==="Escape"){close();return;}
+   if(event.key==="Escape"){
+    if(previous){event.preventDefault();var selected=previous;close();selected.focus();}
+    return;
+   }
    if(event.key!=="Enter"&&event.key!==" ")return;
    var active=document.activeElement;
    if(!active||!active.matches||!active.matches("[data-busy-edit-section]"))return;
    event.preventDefault();
    active.click();
+   // Move keyboard focus to the one clear primary action; keyboard users
+   // must not have to tab past the entire website to find the toolbar.
+   if(toolbar&&!toolbar.hidden)toolbar.querySelector("button[data-action=edit]").focus();
   },true);
   document.addEventListener("click",function(event){
    if(toolbar&&toolbar.contains(event.target))return;
