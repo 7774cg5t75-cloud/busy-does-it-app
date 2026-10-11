@@ -178,17 +178,20 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
   const previousLooks=new Map(safeArray(previousDraft?.sections).map(section=>
     [String(section?.id||"")+":"+String(section?.type||""),section?.appearance]));
   const previousItemLooks=new Map();
-  const previousGalleryCrops=new Map();
+  const previousGalleryLooks=new Map();
   for(const asset of safeArray(safeArray(previousDraft?.sections)
     .find(section=>section?.id==="gallery")?.items)){
     const key=String(asset?.id||"")+":"+String(asset?.storagePath||asset?.uri||"");
-    if(key!==":"&&["top","bottom"].includes(asset?.appearance?.photoCrop))
-      previousGalleryCrops.set(key,asset.appearance.photoCrop);
+    const appearance={};
+    if(["top","bottom"].includes(asset?.appearance?.photoCrop))
+      appearance.photoCrop=asset.appearance.photoCrop;
+    if(asset?.appearance?.photoFit==="contain")appearance.photoFit="contain";
+    if(key!==":"&&Object.keys(appearance).length)previousGalleryLooks.set(key,appearance);
   }
-  const restoreGalleryCrop=asset=>{
+  const restoreGalleryLook=asset=>{
     const key=String(asset?.id||"")+":"+String(asset?.storagePath||asset?.uri||"");
-    const crop=previousGalleryCrops.get(key);
-    return crop?{...asset,appearance:{photoCrop:crop}}:asset;
+    const appearance=previousGalleryLooks.get(key);
+    return appearance?{...asset,appearance:{...appearance}}:asset;
   };
   for(const section of safeArray(previousDraft?.sections)){
     for(const item of safeArray(section?.items)){
@@ -225,7 +228,7 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
       return {...section,...retained,asset:restorePhoto(section.asset)};
     if(section?.type==="gallery")
       return {...section,...retained,items:safeArray(section.items)
-        .map(asset=>restoreGalleryCrop(restoreItemLook(section.id,restorePhoto(asset))))};
+        .map(asset=>restoreGalleryLook(restoreItemLook(section.id,restorePhoto(asset))))};
     return {...section,...retained,
       ...(safeArray(section.items).length?{items:section.items
         .map(item=>restoreItemLook(section.id,item))}:{})};
@@ -664,8 +667,10 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     if(visible)renderedAnchors.add(
       section.type==="contact"?"contact":section.type==="gallery"?"gallery":String(section.id||""));
   }
-  const galleryPhotoClass=item=>["top","bottom"].includes(item?.appearance?.photoCrop)
-    ?" owner-image-crop-"+item.appearance.photoCrop:"";
+  const galleryPhotoClass=item=>
+    (["top","bottom"].includes(item?.appearance?.photoCrop)
+      ?" owner-image-crop-"+item.appearance.photoCrop:"")+
+    (item?.appearance?.photoFit==="contain"?" owner-image-fit-contain":"");
   const itemHeadingClass=item=>item?.appearance?.headingScale==="large"
     ?' class="owner-item-heading-large"':
     item?.appearance?.headingScale==="compact"?' class="owner-item-heading-compact"':"";
