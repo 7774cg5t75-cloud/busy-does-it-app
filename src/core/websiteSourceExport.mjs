@@ -31,6 +31,10 @@ function publicSection(section={}){
 }
 function buildPortableWebsiteSource(draft={}){
  if(!draft?.id||!Array.isArray(draft.sections))return {ok:false,reason:"Build a website draft before exporting its content."};
+ if(draft.sections.length>150||draft.sections.some(section=>
+  ["services","faq","testimonials"].includes(section?.type)&&list(section.items).length>80||
+  section?.type==="gallery"&&list(section.items).length>80))
+  return {ok:false,reason:"Your website has too much content for this early text export. A complete file archive exporter is still needed."};
  const pages=list(draft.pages).filter(p=>p?.enabled!==false).map(p=>({
   id:scalar(p.id,80),title:scalar(p.title,80),
   path:scalar(p.path,100),outputPath:scalar(p.outputPath,140),
