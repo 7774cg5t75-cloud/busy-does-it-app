@@ -657,6 +657,7 @@ function MiniAppBuilder({ s }) {
   const experience=planFunctionalBusinessApp({
     businessName:view.displayName||s.businessName,
     businessType:view.category||s.trade||"",
+    businessGoals:s.miniAppBuildBrief||plan?.ownerRequest||"",
     catalog:view.catalog||[],
     profile:view.activeConfig?.publicProfile||{}
   });
@@ -827,7 +828,16 @@ function MiniAppBuilder({ s }) {
           " from currently available modules. Recommendations do not enable modules or change a live app."}
         footer="This is a suggested private app experience, not a new hard-coded trade-specific app template."
         tone="blue">
-        {experience.suggestedModules.filter(item=>item.suggested).slice(0,7).map(item=>(
+        {experience.understoodGoals?.length?(
+          <Text style={styles.cardBody}>{"Customer goals identified: "+
+            experience.understoodGoals.join(", ")}</Text>
+        ):null}
+        {experience.unavailableGoalCapabilities?.length?(
+          <Text style={styles.cardBody}>{"Not yet available: "+
+            experience.unavailableGoalCapabilities.join(", ")+
+            ". BUSY will not pretend these work."}</Text>
+        ):null}
+        {experience.suggestedModules.filter(item=>item.suggested).slice(0,7).map(item=>
           <MetricRow key={item.key} left={item.title} right={item.reason}/>
         ))}
       </Card>

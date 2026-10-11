@@ -16,24 +16,40 @@ const arrange=(row,keys)=>[...row].sort((a,b)=>{
  const ai=keys.indexOf(a.key),bi=keys.indexOf(b.key);
  return (ai<0?99:ai)-(bi<0?99:bi);
 });
-function planFunctionalBusinessApp({businessType="",businessName="",catalog=[],profile={}}={}){
+function planFunctionalBusinessApp({businessType="",businessName="",businessGoals="",catalog=[],profile={}}={}){
+ // Goals are read as evidence of desired CUSTOMER actions, not authority to
+ // enable paid, unavailable, unapproved or unimplemented features.
+ const goal=String(businessGoals).slice(0,600).toLowerCase();
+ const signals={
+  booking:/book|appointment|schedule|reserve|availability|slot/.test(goal),
+  gallery:/photo|picture|image|gallery|portfolio|our work|examples/.test(goal),
+  enquiry:/enquir|inquir|request a quote|message|contact|ask a question/.test(goal),
+  events:/festival|event|gig|ticket/.test(goal)
+ };
  const category=categories.find(([name,re])=>re.test(businessType))?.[0]||"other";
  const available=new Map((Array.isArray(catalog)?catalog:[])
   .filter(x=>x?.status==="available"&&typeof x.module_key==="string")
   .map(x=>[x.module_key,x]));
  const base=["business_profile","services","contact","enquiry"];
- const withBooking=["appointments","trades","professional"].includes(category);
+ const withBooking=["appointments","trades","professional"].includes(category)||signals.booking;
  const ordered=category==="food"?["business_profile","services","gallery","offers","contact","enquiry"]:
   category==="appointments"?["business_profile","services","booking_request","gallery","contact","enquiry"]:
   category==="trades"?["business_profile","services","enquiry","gallery","booking_request","contact"]:
   category==="creative"?["business_profile","gallery","services","enquiry","contact"]:
   category==="professional"?["business_profile","services","enquiry","booking_request","contact"]:
   ["business_profile","services","contact","enquiry","gallery"];
- const suggestions=ordered.filter(key=>available.has(key)).map(key=>{
+ // Dynamic reordering works for an unfamiliar trade as well as familiar ones.
+ const prioritised=ordered.filter(x=>x==="business_profile");
+ for(const key of [signals.booking?"booking_request":null,
+   signals.gallery?"gallery":null,signals.enquiry?"enquiry":null])
+  if(key&&ordered.includes(key)&&!prioritised.includes(key))prioritised.push(key);
+ const priorityOrder=[...prioritised,...ordered.filter(key=>!prioritised.includes(key))];
+ const suggestions=priorityOrder.filter(key=>available.has(key)).map(key=>{
   const row=available.get(key);
-  const requested=base.includes(key)||(key==="booking_request"&&withBooking);
+  const requested=base.includes(key)||(key==="booking_request"&&withBooking)||
+   (key==="gallery"&&(signals.gallery||category==="creative"));
   const ownerData=key==="gallery"?Array.isArray(profile?.assets?.gallery)&&
-   profile.assets.gallery.some(x=>x?.approved!==false):
+   profile.assets.gallery.some(x=>x?.approved===true||x?.marketingOk===true):
    key==="offers"?false:true;
   return {key,title:row.title||key,available:true,
    suggested:requested&&ownerData,
@@ -48,7 +64,11 @@ function planFunctionalBusinessApp({businessType="",businessName="",catalog=[],p
  // The section/navigation proposal is advisory only. No disabled modules
  // are enabled by this function; server catalogue and owner still control them.
  const imageRich=Array.isArray(profile?.assets?.gallery)&&profile.assets.gallery.length>=2;
- const layout=category==="food"?"events-first":
+ const layout=signals.events?"events-first":
+  signals.gallery&&imageRich?"gallery-first":
+  signals.booking?"service-first":
+  signals.enquiry&&category==="other"?"contact-first":
+  category==="food"?"events-first":
   category==="creative"&&imageRich?"gallery-first":
   category==="appointments"?"service-first":
   category==="trades"?"contact-first":"minimal";
@@ -56,6 +76,12 @@ function planFunctionalBusinessApp({businessType="",businessName="",catalog=[],p
   businessType:String(businessType).slice(0,120),category,
   layout:supportedLayouts.includes(layout)?layout:"minimal",
   suggestedModules:suggestions,visibleModuleKeys:suggestions.map(x=>x.key),
+  understoodGoals:Object.entries(signals).filter(([,yes])=>yes).map(([key])=>key),
+  unavailableGoalCapabilities:[
+   ...(signals.booking&&!available.has("booking_request")?["booking_request"]:[]),
+   ...(signals.gallery&&!available.has("gallery")?["gallery"]:[]),
+   ...(signals.enquiry&&!available.has("enquiry")?["enquiry"]:[])
+  ],
   excludedUnavailable:(Array.isArray(catalog)?catalog:[]).filter(x=>x?.status!=="available")
     .map(x=>x.module_key).filter(Boolean),
   ownerApprovalRequired:true,usesOnlyAvailableModules:true,

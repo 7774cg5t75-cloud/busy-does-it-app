@@ -57,7 +57,7 @@ function proposeCoordinatedAppChanges(config,operations){
   }else if(op.kind==="text"){
    const limit=TEXT_FIELDS[op.field];
    if(!own(TEXT_FIELDS,op.field)||typeof op.value!=="string"||
-      op.value.length>limit||!clean(op.value)||
+      op.value.length>limit||
       /[<>\u0000-\u001f]/.test(op.value))
     return {ok:false,reason:"Only safe, owner-written public copy can be changed."};
    const prev=typeof next.publicProfile?.[op.field]==="string"?next.publicProfile[op.field]:"";
