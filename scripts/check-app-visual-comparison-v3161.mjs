@@ -91,7 +91,7 @@ for(const key of ['"compare_app_screenshots"', 'validatePairedAppVisualRequest(b
  'Uint8Array.from(atob(pair.afterImageBase64)',
  'type:"input_image",image_url:"data:image/jpeg;base64,"+pair.afterImageBase64',
  'screenshotStored:false,imagesSubmitted:mode==="comparison"?2:1',
- 'mode==="comparison"?"comparison":"single"',
+ 'action==="compare_app_screenshots"?"comparison":"single"',
  '"busy_reserve_app_visual_ai_call"',
  'p_request_key:requestKey','store:false','ownerMustApproveChanges:true'])
  assert.ok(edge.includes(key),"Missing server comparison invariant: "+key);
