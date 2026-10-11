@@ -11,6 +11,7 @@ import { planFunctionalBusinessApp } from "../core/appExperiencePlanner.mjs";
 import { previewPrivateAppAppearance,OPTIONS as appAppearanceOptions } from "../core/appAppearanceEditing.mjs";
 import { interpretSelectedAppAppearance } from "../core/appContextInstruction.mjs";
 import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.mjs";
+import {WebsiteSelectedVoice} from "./websiteSelectedVoice";
 
 function readableDate(value, fallback = "Not yet") {
   if (!value) return fallback;
@@ -593,6 +594,8 @@ function MiniAppBuilder({ s }) {
   const [selectedAppPart,setSelectedAppPart]=React.useState("header");
   const [appearanceWords,setAppearanceWords]=React.useState("");
   const [appearanceInstructionNotice,setAppearanceInstructionNotice]=React.useState("");
+  const [showAppVoice,setShowAppVoice]=React.useState(false);
+  const [pendingMove,setPendingMove]=React.useState(null);
   const view = s.miniAppsView || {};
   const app = view.app;
   React.useEffect(()=>{
@@ -605,6 +608,8 @@ function MiniAppBuilder({ s }) {
     setPendingAppearance(null);
     setAppearancePreviewOpen(false);
     setAppearanceInstructionNotice("");
+    setShowAppVoice(false);
+    setPendingMove(null);
   },[app?.draft_revision]);
   const modules = Array.isArray(view.catalog) ? view.catalog : [];
   const configuredModules = new Map(
@@ -1065,7 +1070,7 @@ function MiniAppBuilder({ s }) {
           ].map(([part,label])=>(
             <Button key={part} label={(selectedAppPart===part?"✓ ":"")+"Edit "+label}
               onPress={()=>{setSelectedAppPart(part);setPendingAppearance(null);
-                setAppearanceInstructionNotice("");}}/>
+                setAppearanceInstructionNotice("");setShowAppVoice(false);}}/>
           ))}
           <Field label="Tell BUSY how to change the selected part"
             value={appearanceWords} onChangeText={setAppearanceWords}
@@ -1087,9 +1092,24 @@ function MiniAppBuilder({ s }) {
           {appearanceInstructionNotice?<Text style={styles.cardBody}>
             {appearanceInstructionNotice}
           </Text>:null}
+          <Button label={showAppVoice?"Close app microphone — discard unsent recording":
+              "🎙 Talk to BUSY about this selected app part"}
+            onPress={()=>setShowAppVoice(old=>!old)}/>
+          {showAppVoice&&s.cloudWorkspace?.businessId?(
+            <WebsiteSelectedVoice key={app.id+":"+app.draft_revision+":"+selectedAppPart}
+              editorKind="app" contextLabel="selected app design"
+              selection={{appId:app.id,revision:app.draft_revision,
+                businessId:s.cloudWorkspace.businessId,selectedPart}}
+              onTranscribe={(uri,scope)=>s.transcribeSelectedAppAudio?.(uri,scope)}
+              onTranscript={text=>{
+                setAppearanceWords(text);
+                setPendingAppearance(null);setAppearancePreviewOpen(false);
+                setAppearanceInstructionNotice("Check the transcribed words and tap Preview. Nothing was changed.");
+              }}/>
+          ):null}
           <Text style={styles.cardBody}>
-            Typed selected-element instructions work now. App-specific microphone
-            transcription remains a separate provider-integrated feature; BUSY won't pretend it recorded speech.
+            App voice uses its own 12-request daily per-business allowance (UTC).
+            Record, Stop and review explicitly. BUSY never applies a transcription on its own.
           </Text>
           {[
             ["headerStyle","Header",appAppearanceOptions.headerStyle],
@@ -1136,6 +1156,47 @@ function MiniAppBuilder({ s }) {
               </>
             ):<Text style={styles.cardBody}>{proposal.reason}</Text>;
           })():null}
+        </Card>
+      ):null}
+
+      {app&&view.draftConfig?(
+        <Card eyebrow="Arrange your app"
+          title="Move sections up or down"
+          body="Your sections work in both the BUSY marketplace app and its standalone native counterpart. Preview a one-position move before keeping it in your PRIVATE draft."
+          tone="blue">
+          {orderedAppModules(view.draftConfig).map((module,index,items)=>(
+            <View key={module.key} style={{marginTop:8}}>
+              <Text style={styles.cardBody}>{(index+1)+". "+module.key.replaceAll("_"," ")}</Text>
+              {index>0?<Button label={"Move "+module.key.replaceAll("_"," ")+" up"}
+                disabled={!!s.miniAppsAction}
+                onPress={()=>setPendingMove({moduleKey:module.key,direction:"up"})}/>:null}
+              {index<items.length-1?<Button label={"Move "+module.key.replaceAll("_"," ")+" down"}
+                disabled={!!s.miniAppsAction}
+                onPress={()=>setPendingMove({moduleKey:module.key,direction:"down"})}/>:null}
+            </View>
+          ))}
+          {pendingMove?(()=>{
+            const proposal=proposeAppSectionMove(view.draftConfig,pendingMove);
+            return proposal.ok?(
+              <>
+                <Text style={styles.cardBody}>
+                  {"Proposed order: "+proposal.after.map(x=>x.replaceAll("_"," ")).join(" → ")}
+                </Text>
+                <MiniAppSurface config={proposal.nextConfig}/>
+                <Button label="Keep new order in PRIVATE app"
+                  primary disabled={!!s.miniAppsAction}
+                  onPress={async()=>{
+                    const ok=await s.movePrivateAppSection?.({
+                      ...pendingMove,appId:app.id,expectedRevision:app.draft_revision});
+                    if(ok)setPendingMove(null);
+                  }}/>
+                <Button label="Discard section move" onPress={()=>setPendingMove(null)}/>
+              </>
+            ):<Text style={styles.cardBody}>{proposal.reason}</Text>;
+          })():null}
+          <Text style={styles.cardBody}>
+            Only a new private app draft is saved. Your existing published app and customer requests are unaffected.
+          </Text>
         </Card>
       ):null}
 
