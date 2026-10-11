@@ -26,7 +26,7 @@ import Constants from "expo-constants";
 import { fetch as expoFetch } from "expo/fetch";
 import { File as ExpoFile, Paths as ExpoPaths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import {resolveTapSelection,CHANNEL as WEBSITE_TAP_CHANNEL} from "../core/websiteTapToEdit.mjs";
+import {selectedWebsiteVoiceContextIsCurrent} from "../core/websiteSelectedVoiceContext.mjs";
 
 try {
   Notifications.setNotificationHandler({
@@ -13200,19 +13200,7 @@ function App() {
   // endpoint, never its command router. The owner reviews words locally before
   // applying a scoped instruction via the existing private Undo/Redo pipeline.
   const transcribeSelectedWebsiteAudio = async (audioUri, selection) => {
-    const selectionIsCurrent = () => {
-      const draft=websiteDraftRef.current;
-      if (!draft||!selection||selection.draftId!==draft.id||
-          selection.pageId==null||selection.generation!==draft.generation)return false;
-      return !!resolveTapSelection(draft,selection.pageId,{
-        channel:WEBSITE_TAP_CHANNEL,
-        sectionId:selection.sectionId,
-        itemId:selection.itemId||"",
-        field:selection.field,
-        photoIndex:selection.field==="photo"&&selection.photoIndex>=0
-          ?String(selection.photoIndex):""
-      });
-    };
+    const selectionIsCurrent=()=>selectedWebsiteVoiceContextIsCurrent(websiteDraftRef.current,selection);
     if(!selectionIsCurrent())return {ok:false,error:"Your website changed. Tap the part you want to edit again."};
     try{
       const file=new ExpoFile(String(audioUri||""));
