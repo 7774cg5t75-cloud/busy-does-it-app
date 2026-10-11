@@ -11,11 +11,12 @@ import {voiceDurationState} from "../core/websiteVoiceRecordingPolicy.mjs";
  * not send any audio; only a separate user tap can request transcription.
  * Closing the editor discards the unsent recording, not the website draft.
  */
-function WebsiteSelectedVoice({selection,onTranscribe,onTranscript}){
+function WebsiteSelectedVoice({selection,startImmediately=false,onTranscribe,onTranscript}){
  const recorder=useAudioRecorder(RecordingPresets.HIGH_QUALITY);
  const state=useAudioRecorderState(recorder,250);
  const working=React.useRef(false);
  const started=React.useRef(false);
+ const autoStarted=React.useRef(false);
  const alive=React.useRef(true);
  const [stage,setStage]=React.useState("idle");
  const [message,setMessage]=React.useState("");
@@ -62,6 +63,15 @@ function WebsiteSelectedVoice({selection,onTranscribe,onTranscript}){
    await setAudioModeAsync({playsInSilentMode:true,allowsRecording:false}).catch(()=>{});
   }finally{working.current=false;}
  };
+ // The owner explicitly tapped the selected element's toolbar microphone.
+ // Start the same guarded recording flow; no server upload happens until
+ // the owner later taps Send after pressing Stop.
+ React.useEffect(()=>{
+  if(startImmediately&&!autoStarted.current){
+   autoStarted.current=true;
+   void start();
+  }
+ },[startImmediately]);
  const stop=async(limitReached=false)=>{
   if(working.current||!started.current)return;
   working.current=true;
