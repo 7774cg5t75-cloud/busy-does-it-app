@@ -41,6 +41,7 @@ function WebsiteBuilder({ s }) {
   const [aiStudioChoice,setAiStudioChoice]=React.useState(0);
   const [aiStudioShowOriginal,setAiStudioShowOriginal]=React.useState(false);
   const [aiStudioWidth,setAiStudioWidth]=React.useState("phone");
+  const [designPasses,setDesignPasses]=React.useState(2);
   const [aiStudioNotice,setAiStudioNotice]=React.useState("");
   const [showOutcomeFeedback,setShowOutcomeFeedback]=React.useState(false);
   const [feedbackState,setFeedbackState]=React.useState({status:"idle",message:""});
@@ -387,6 +388,8 @@ function WebsiteBuilder({ s }) {
                     right={s.websiteVisualReviewStatus.enabled ? "Yes" : "Not enabled yet"} />
                   <MetricRow left="Reviews remaining this month"
                     right={String(s.websiteVisualReviewStatus.remaining||0)} />
+                  <MetricRow left="Autonomous screenshot studio"
+                    right={s.websiteVisualReviewStatus.studioReady?"Available":"Not enabled"} />
                 </>
               ) : null}
               {s.websiteVisualReviewStatus?.enabled &&
@@ -394,6 +397,32 @@ function WebsiteBuilder({ s }) {
                 <Button label="Use 1 review credit on my hosted website"
                   onPress={s.requestWebsiteVisualReview} />
               ) : null}
+              {s.websiteVisualReviewStatus?.studioReady ? (
+                <View style={{marginTop:12}}>
+                  <Text style={styles.sectionLabel}>Autonomous private design review</Text>
+                  <Text style={styles.cardBody}>
+                    BUSY can examine the original hosted website, create a safe
+                    design variant, capture NEW phone and desktop screenshots and
+                    have AI independently compare them. It stops if the result
+                    is worse, unclear or fails a safety check. It NEVER publishes.
+                  </Text>
+                  {[1,2,3].map(n=>(
+                    <Button key={String(n)}
+                      label={(designPasses===n?"✓ ":"")+n+" design pass"+(n===1?"":"es")+
+                        " — up to "+(n+1)+" AI review credits"}
+                      onPress={()=>setDesignPasses(n)}/>
+                  ))}
+                  <Button label={"Run up to "+designPasses+" private design passes"}
+                    disabled={s.websiteVisualReviewBusy||
+                      Number(s.websiteVisualReviewStatus.remaining||0)<designPasses+1}
+                    onPress={()=>s.requestWebsiteAutonomousDesign?.(designPasses)}/>
+                  <Text style={styles.cardBody}>
+                    Each attempted model review counts towards your monthly allowance,
+                    even if it fails. You explicitly start each run. Provider readiness
+                    and credits must be confirmed beforehand.
+                  </Text>
+                </View>
+              ):null}
               {s.websiteVisualReviewBusy ? (
                 <Text style={styles.cardBody}>BUSY is checking your website review request…</Text>
               ) : null}
@@ -428,8 +457,9 @@ function WebsiteBuilder({ s }) {
                           <Text style={styles.sectionLabel}>BUSY's private design studio</Text>
                           <Text style={styles.cardBody}>
                             BUSY has prepared safe variations from its actual screenshot-based AI critique.
-                            These alternatives have NOT yet been re-examined by the AI.
-                            They must be checked on real phone and desktop layouts before publishing.
+                            {s.websiteVisualReview?.bestChanges
+                              ?"BUSY compared temporary hosted candidates using NEW mobile and desktop AI screenshots. The examples below are local previews of those safe changes; please check your actual hosted site again after accepting."
+                              :"These alternatives have NOT been re-examined by the AI. They must be checked on real phone and desktop layouts before publishing."}
                           </Text>
                           {aiStudio.candidates.map((candidate,i)=>(
                             <Button key={String(i)}
