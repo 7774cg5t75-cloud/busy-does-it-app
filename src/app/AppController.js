@@ -31,6 +31,7 @@ import {recordWebsiteOwnerDesignFeedback,withoutPrivateWebsiteDesignFeedback} fr
 import {voiceUploadEligible} from "../core/websiteVoiceRecordingPolicy.mjs";
 import {planSelectedWebsiteChanges,prepareSelectedWebsiteTransaction} from "../core/websiteContextPlan.mjs";
 import {previewSelectedWebsiteInstruction as prepareWebsiteSelectionPreview} from "../core/websiteSelectedChangePreview.mjs";
+import {previewWebsiteAIStudio} from "../core/websiteAIStudio.mjs";
 import {planWebsitePageInstructions,prepareWebsitePageInstructionPreview} from "../core/websitePageInstructions.mjs";
 import {makeWebsiteRecoveryPoint,restoreWebsiteRecoveryPoint as restoreWebsiteRecoverySnapshot} from "../core/websiteRecoveryPoint.mjs";
 
@@ -13126,7 +13127,27 @@ function App() {
     }finally{setWebsiteVisualReviewBusy(false);}
   };
 
-  const approveWebsiteVisualSuggestions=()=>{
+  // Staging is read-only and rechecks the same authenticated deployment scope
+  // as the final approval function. No cloud or AI call happens here.
+  const previewWebsiteVisualAlternatives=({pageId="home"}={})=>{
+    const review=websiteVisualReview;
+    const scope=(ownerSession?.userId||"")+":"+(cloudWorkspace?.businessId||"");
+    const deployment=websitePublishingView?.previewDeployment;
+    if(!review?.report?.valid||review.scope!==scope||!websiteDraft||
+       !deployment||deployment.id!==review.deploymentId||
+       websitePublishingView?.draftChangedSinceHosted||
+       websiteDraft.generation!==review.localDraftGeneration||
+       websiteDraft.updatedAt!==review.localDraftUpdatedAt||
+       Number(review.sourceGeneration)!==Number(websiteDraft.generation))
+      return {ok:false,reason:"Your website or hosted review has changed. Review the current version first."};
+    return previewWebsiteAIStudio(websiteDraft,{
+      report:review.report,pageId,sourceGeneration:review.sourceGeneration,
+      draftId:websiteDraft.id,deploymentId:deployment.id,
+      reviewDeploymentId:review.deploymentId
+    },{rebuild:rebuildPrivateWebsiteDraft,render:renderWebsiteHtml});
+  };
+
+  const approveWebsiteVisualSuggestions=(candidateCount=null)=>{
     const review=websiteVisualReview;
     const scope=(ownerSession?.userId||"")+":"+(cloudWorkspace?.businessId||"");
     const deployment=websitePublishingView?.previewDeployment;
@@ -13140,7 +13161,13 @@ function App() {
       setWebsiteVisualReviewNotice("Your draft or hosted preview has changed. Review the latest version before applying suggestions.");
       return false;
     }
-    const proposal=applyApprovedVisualProposals(websiteDraft,review.report,{ownerApproved:true});
+    const chosen=candidateCount===null?review.report.proposals.length:candidateCount;
+    if(!Number.isSafeInteger(chosen)||chosen<1||chosen>review.report.proposals.length){
+      setWebsiteVisualReviewNotice("Choose one of the reviewed private design alternatives.");
+      return false;
+    }
+    const report={...review.report,proposals:review.report.proposals.slice(0,chosen)};
+    const proposal=applyApprovedVisualProposals(websiteDraft,report,{ownerApproved:true});
     if(!proposal.applied){
       setWebsiteVisualReviewNotice(proposal.reason||"No safe design changes to apply.");
       return false;
@@ -15974,6 +16001,7 @@ function App() {
     websiteVisualReviewNotice,
     checkWebsiteVisualReview,
     requestWebsiteVisualReview,
+    previewWebsiteVisualAlternatives,
     approveWebsiteVisualSuggestions,
     buildWebsiteFromBrandBrain,
     applyWebsiteChange,
