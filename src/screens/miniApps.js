@@ -731,6 +731,7 @@ function MiniAppBuilder({ s }) {
   const quality=appDesignQualityReport(view.draftConfig||view.activeConfig||{},view.catalog||[]);
   const usability=auditBusinessAppUsability(view.draftConfig||view.activeConfig||{});
   const nonAiDesignHints=proposeLowRiskDesignHints(view.draftConfig||view.activeConfig||{});
+  const responsiveGuidance=recommendResponsiveDesign(view.draftConfig||view.activeConfig||{});
   const measuredNativeContrast=auditStandaloneContrast();
   const liveMatchesDraft =
     businessAppPreviewProof({app,preview:view.liveVersion}).matches;
@@ -1431,6 +1432,89 @@ function MiniAppBuilder({ s }) {
             <MetricRow key={item.id} left={item.id.replaceAll("_"," ")}
               right={item.detail}/>
           ))}
+          <Text style={styles.sectionLabel}>V3.163 • Design for every screen size</Text>
+          <Text style={styles.cardBody}>
+            BUSY compares three example content widths and predicts how your
+            customer layout will adapt. These are engineering rules, not
+            screenshots or proof of appearance on those devices.
+          </Text>
+          {responsiveGuidance.ok?(
+            <>
+              {responsiveGuidance.screens.map(sample=>(
+                <View key={"responsive-"+sample.id}
+                  style={{marginBottom:12}}>
+                  <MetricRow left={sample.label+" ("+sample.assumedContentWidth+" pt)"}
+                    right={sample.layout.navigation+" menu • "+
+                      sample.layout.galleryColumns+" photo column(s) • "+
+                      sample.layout.serviceColumns+" service column(s)"}/>
+                  {sample.layout.reasons.slice(0,2).map((reason,index)=>(
+                    <Text key={"responsive-reason-"+index}
+                      style={styles.cardBody}>{reason}</Text>
+                  ))}
+                </View>
+              ))}
+              {responsiveGuidance.suggestions.length?(
+                <>
+                  <Text style={styles.sectionLabel}>
+                    BUSY's explained alternatives
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    These are supported options to compare, not automatic changes.
+                    BUSY keeps your wording, existing colours, booking setup and
+                    approved photographs unchanged.
+                  </Text>
+                  {responsiveGuidance.suggestions.map(item=>(
+                    <View key={"guide-"+item.field}
+                      style={{marginBottom:12}}>
+                      <MetricRow left={"Try "+item.field}
+                        right={item.value}/>
+                      <Text style={styles.cardBody}>
+                        {"Why: "+item.reason}
+                      </Text>
+                      <Text style={styles.cardBody}>
+                        {"Trade-off: "+item.tradeoff}
+                      </Text>
+                      <Button label={"Preview "+item.field+" in my private app"}
+                        disabled={!!s.miniAppsAction}
+                        onPress={()=>{
+                          const preview=proposeCoordinatedAppChanges(
+                            view.draftConfig,[{kind:"appearance",
+                              field:item.field,value:item.value}]);
+                          setStudioPreview(preview.ok?preview:null);
+                          setStudioNotice(preview.ok?
+                            "BUSY prepared this explained alternative in the Intelligent App Studio above. Review the original and proposed designs before approving.":
+                            preview.reason);
+                        }}/>
+                    </View>
+                  ))}
+                  {responsiveGuidance.suggestions.length>1?(
+                    <Button label="Preview all suggested layout changes together"
+                      disabled={!!s.miniAppsAction}
+                      onPress={()=>{
+                        const changes=responsiveGuidance.suggestions.map(item=>({
+                          kind:"appearance",field:item.field,value:item.value
+                        }));
+                        const preview=proposeCoordinatedAppChanges(
+                          view.draftConfig,changes);
+                        setStudioPreview(preview.ok?preview:null);
+                        setStudioNotice(preview.ok?
+                          "Multiple screen-size improvements are ready in the private Studio above. Each proposed change needs your approval.":
+                          preview.reason);
+                      }}/>
+                  ):null}
+                </>
+              ):(
+                <Text style={styles.cardBody}>
+                  The responsive rules found no supported style adjustment to
+                  recommend. Test the real customer journey and images on actual devices.
+                </Text>
+              )}
+            </>
+          ):(
+            <Text style={styles.cardBody}>
+              BUSY needs an up-to-date private app draft to assess different widths.
+            </Text>
+          )}
           <Text style={styles.sectionLabel}>V3.162 • Suggested design checks</Text>
           {nonAiDesignHints.ok&&nonAiDesignHints.suggestions.length?(
             <>
