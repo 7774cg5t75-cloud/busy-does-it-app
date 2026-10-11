@@ -16,7 +16,7 @@ import { websiteBrainCoaching } from "../core/websiteBrainCoaching.mjs";
 import { websiteRegionalReadiness } from "../core/websiteRegionalReadiness.mjs";
 import { websiteDecisionEvidence } from "../core/websiteDecisionEvidence.mjs";
 import { renderWebsiteHtml,applyWebsiteLayoutChange } from "../domain/websiteBuilder";
-import {recommendMeasuredWebsiteChange,compareWebsiteVisualReports,ownerDesignPreference} from "../core/websiteMeasuredDesignCoach.mjs";
+import {recommendMeasuredWebsiteChange,compareWebsiteVisualReports,ownerDesignPreference,describeWebsiteDesignComparison} from "../core/websiteMeasuredDesignCoach.mjs";
 import {WebsiteContentEditor} from "./websiteContentEditor";
 import {WebsiteLayoutControls} from "./websiteLayoutControls";
 import {WebsitePagesEditor} from "./websitePagesEditor";
@@ -580,10 +580,12 @@ function WebsitePreview({ s }) {
   const [candidateCheckOn,setCandidateCheckOn]=React.useState(false);
   const [candidateCheckResult,setCandidateCheckResult]=React.useState(null);
   const [designCandidateNotice,setDesignCandidateNotice]=React.useState("");
+  const [showOriginalComparison,setShowOriginalComparison]=React.useState(false);
   React.useEffect(()=>{
     setSelectedEdit(null);setVisualCheckResult(null);setVisualCheckOn(false);
     setDesignCandidate(null);setCandidateCheckOn(false);
     setCandidateCheckResult(null);setDesignCandidateNotice("");
+    setShowOriginalComparison(false);
   },[selectedPageId,draft?.id,draft?.generation,previewSize]);
   const activePage=draft?.pages?.find(page=>page.id===selectedPageId)||
     draft?.pages?.find(page=>page.id==="home");
@@ -594,7 +596,8 @@ function WebsitePreview({ s }) {
   const candidateHtml=designCandidate?.draft
     ?renderWebsiteHtml(designCandidate.draft,activePage?.id||"home"):"";
   const interactiveHtml=draft&&designCandidate
-    ?candidateCheckOn?makeWebsiteVisualCheckHtml(candidateHtml,candidateKey):candidateHtml
+    ?showOriginalComparison?liveConceptHtml:
+      candidateCheckOn?makeWebsiteVisualCheckHtml(candidateHtml,candidateKey):candidateHtml
     :draft&&visualCheckOn
     ?makeWebsiteVisualCheckHtml(liveConceptHtml,inspectionKey)
     :draft&&tapEditMode
@@ -623,6 +626,8 @@ function WebsitePreview({ s }) {
     ?recommendMeasuredWebsiteChange({draft,pageId:activePage?.id,report:visualCheckResult}):null;
   const candidateComparison=designCandidate&&candidateCheckResult&&visualCheckResult
     ?compareWebsiteVisualReports(visualCheckResult,candidateCheckResult):null;
+  const comparisonWords=candidateComparison
+    ?describeWebsiteDesignComparison(candidateComparison):null;
   const tryCandidate=()=>{
     if(!layoutAdvice||!draft)return;
     const result=applyWebsiteLayoutChange(draft,layoutAdvice.operation);
@@ -635,10 +640,12 @@ function WebsitePreview({ s }) {
     setDesignCandidate({...layoutAdvice,draft:result.draft,pageId:activePage?.id,
       baseGeneration:draft.generation});
     setCandidateCheckResult(null);setCandidateCheckOn(true);
+    setShowOriginalComparison(false);
     setTapEditMode(false);setVisualCheckOn(false);setSelectedEdit(null);
     setDesignCandidateNotice("Testing an alternative in a private preview. Your original design is unchanged.");
   };
   const discardCandidate=()=>{
+    setShowOriginalComparison(false);
     if(designCandidate&&draft&&s.recordMeasuredWebsiteFeedback)
       s.recordMeasuredWebsiteFeedback({draftId:draft.id,pageId:activePage?.id,
         changeId:designCandidate.id,choice:"disliked"});
@@ -649,10 +656,11 @@ function WebsitePreview({ s }) {
   const keepCandidate=()=>{
     if(!candidateComparison?.valid||!candidateComparison.noNewMeasuredProblems||
        designCandidate?.baseGeneration!==draft?.generation)return;
-    const saved=s.applyWebsiteLayoutAction(designCandidate.operation);
-    if(saved&&s.recordMeasuredWebsiteFeedback)
-      s.recordMeasuredWebsiteFeedback({draftId:draft.id,pageId:activePage?.id,
-        changeId:designCandidate.id,choice:"liked"});
+    const saved=s.applyWebsiteLayoutAction(designCandidate.operation,{
+      baseGeneration:designCandidate.baseGeneration,
+      ownerFeedback:{draftId:draft.id,pageId:activePage?.id,
+        changeId:designCandidate.id,choice:"liked"}
+    });
     if(saved){setDesignCandidate(null);setCandidateCheckResult(null);
       setDesignCandidateNotice("Saved in your private draft. Undo remains available. Recheck other screen sizes before publishing.");}
   };
@@ -760,8 +768,16 @@ function WebsitePreview({ s }) {
           <Text style={styles.sectionLabel}>Testing a private alternative</Text>
           <Text style={styles.cardBody}>
            {candidateCheckOn?"BUSY is measuring the alternative at the same width…":
-            candidateComparison?.summary||"Preparing a new comparison…"}
+            comparisonWords?.headline||"Preparing a new comparison…"}
           </Text>
+          <Text style={styles.cardBody}>{comparisonWords?.description||
+            "Your original is unchanged until you choose Keep."}</Text>
+          {comparisonWords?.facts.map((fact,i)=>(
+            <Text key={String(i)} style={styles.cardBody}>{fact}</Text>
+          ))}
+          <Button label={showOriginalComparison?"See proposed alternative":"See my original design"}
+           disabled={candidateCheckOn}
+           onPress={()=>setShowOriginalComparison(x=>!x)}/>
           {candidateComparison?.valid&&candidateComparison.noNewMeasuredProblems?(
             <Button label="Keep this design in my private draft"
              onPress={keepCandidate}/>
@@ -778,7 +794,7 @@ function WebsitePreview({ s }) {
           backgroundColor: "#fff", height: 610,
         }}>
           <WebView
-            key={String(draft?.generation || 1) + ":" + String(activePage?.id||"home") + ":" + String(draft?.updatedAt || "") + ":" + String(tapEditMode) + ":" + previewSize + ":" + String(visualCheckOn) + ":" + candidateKey + ":" + String(candidateCheckOn)}
+            key={String(draft?.generation || 1) + ":" + String(activePage?.id||"home") + ":" + String(draft?.updatedAt || "") + ":" + String(tapEditMode) + ":" + previewSize + ":" + String(visualCheckOn) + ":" + candidateKey + ":" + String(candidateCheckOn) + ":" + String(showOriginalComparison)}
             source={{ html: interactiveHtml, baseUrl: "about:blank" }}
             style={{ flex: 1, backgroundColor: "#fff" }}
             originWhitelist={["*"]}
@@ -801,7 +817,7 @@ function WebsitePreview({ s }) {
           />
         </View>
         <Text style={[styles.cardBody, { marginTop: 10 }]}>
-          {candidateCheckOn ? "Reviewing the private alternative at this width…" : visualCheckOn ? "Checking the rendered layout at this width. This may take a moment." : tapEditMode ? "Tap a website element to edit it in a simple panel. All changes have Undo." : "Scroll inside the preview to explore the design. You can change wording, style or services before preparing a hosted version."}
+          {candidateCheckOn ? "Reviewing the private alternative at this width…" : showOriginalComparison ? "Your unchanged original design is shown." : visualCheckOn ? "Checking the rendered layout at this width. This may take a moment." : tapEditMode ? "Tap a website element to edit it in a simple panel. All changes have Undo." : "Scroll inside the preview to explore the design. You can change wording, style or services before preparing a hosted version."}
         </Text>
       </Card>
 
