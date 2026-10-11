@@ -1,0 +1,47 @@
+name: V3.150 AI designer studio and natural website conversation
+on:
+  push:
+    branches: [v3.150]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  guarded-website-ai:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify autonomous candidate safety and page-wide speech/AI interpretation
+        run: |
+          node scripts/check-website-ai-studio-v3150.mjs
+          node scripts/check-website-page-voice-v3150.mjs
+          node scripts/check-website-page-instructions-v3149.mjs
+          node scripts/check-website-device-edits-v3149.mjs
+          node scripts/check-website-recovery-v3149.mjs
+          node scripts/check-website-portfolio-v3149.mjs
+          node scripts/check-website-voice-selection-v3141.mjs
+          node scripts/check-website-voice-reliability-v3142.mjs
+          node scripts/check-visual-review-gateway-v3105.mjs
+          node scripts/check-website-selection-preview-v3148.mjs
+          node scripts/check-production.mjs
+      - name: Install Expo JavaScript and Chromium requirements
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Check rendered mobile and desktop designs and editing
+        run: |
+          node scripts/check-website-device-style-browser-v3149.mjs
+          node scripts/check-website-responsive-preview-browser-v3148.mjs
+          node scripts/check-website-selection-preview-browser-v3148.mjs
+          node scripts/check-website-screenshot-loop-v3144.mjs
+      - name: Export unsigned native JavaScript
+        run: |
+          npx expo export --platform ios --output-dir /tmp/bdi-v3150-ios
+          npx expo export --platform android --output-dir /tmp/bdi-v3150-android
+      - name: Release boundary
+        run: echo "No live website publish, provider enrollment, paid AI request, signed iOS build or production deployment."
