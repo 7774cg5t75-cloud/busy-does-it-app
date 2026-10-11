@@ -331,6 +331,7 @@ function App() {
     catalog: [],
     publicProfile: null,
   });
+  const miniAppVoiceScopeRef=useRef({});
   const [miniAppsLoading, setMiniAppsLoading] = useState(false);
   const [miniAppsAction, setMiniAppsAction] = useState("");
   const [miniAppsError, setMiniAppsError] = useState("");
@@ -8192,6 +8193,11 @@ function App() {
     websiteDraft,
   });
   const miniAppsView = buildMiniAppsView(miniAppsStatus);
+  miniAppVoiceScopeRef.current={
+    appId:miniAppsStatus?.app?.id||"",
+    revision:Number(miniAppsStatus?.app?.draft_revision)||0,
+    businessId:cloudWorkspace?.businessId||""
+  };
   const businessCreationIntelligence = buildBusinessCreationIntelligence({
     brandBrain,
     websiteDraft,
@@ -15038,6 +15044,69 @@ function App() {
     }
   };
 
+  // Dedicated app voice mode: owner-approved transcript, never an AI command.
+  const transcribeSelectedAppAudio=async(audioUri,scope)=>{
+    const current=()=>{
+      const x=miniAppVoiceScopeRef.current;
+      return !!scope?.appId&&scope.appId===x.appId&&
+        scope.revision===x.revision&&scope.businessId===x.businessId&&
+        ["header","spacing","navigation"].includes(scope.selectedPart);
+    };
+    if(!current())return {ok:false,error:"Your private app changed. Select its current element again."};
+    try{
+      const file=new ExpoFile(String(audioUri||""));
+      if(!file.exists||!voiceUploadEligible(Number(file.size||0)))
+        return {ok:false,error:"Use an M4A recording under 9 MB. Nothing was sent."};
+      const token=await ownerAccessToken();
+      if(!token||!current())return {ok:false,error:"Sign in or reopen the current app first."};
+      const form=new FormData();
+      form.append("mode","app-selection-transcript-v1");
+      form.append("businessId",scope.businessId);
+      form.append("appId",scope.appId);
+      form.append("revision",String(scope.revision));
+      form.append("audio",file,"busy-app-"+Date.now()+".m4a");
+      const response=await fetchWithTimeout(BUSY_COMMAND_URL,{
+        method:"POST",
+        headers:{apikey:BUSY_AI_TOKEN,Authorization:`Bearer ${token}`,
+          "x-busy-request-id":busyRequestId("app-selection-transcript")},
+        body:form
+      },45000,expoFetch);
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw Error(String(data?.error||"App voice transcription unavailable."));
+      if(data.mode!=="app-selection-transcript-v1"||data.requiresReview!==true||
+         data.changesApplied!==false||data.action!==null||data.command!==null||
+         !String(data.transcript||"").trim())
+        throw Error("The service did not return transcription-only text.");
+      if(!current())return {ok:false,error:"The app changed while transcribing. Nothing was applied."};
+      const n=Number(data.voiceUsage?.remaining);
+      return {ok:true,transcript:String(data.transcript).trim().slice(0,400),
+        remaining:Number.isInteger(n)&&n>=0&&n<=12?n:null};
+    }catch(error){
+      return {ok:false,error:String(error?.message||"Voice transcription failed. Nothing was changed.").slice(0,240)};
+    }
+  };
+
+  const movePrivateAppSection=async({moduleKey,direction,appId,expectedRevision}={})=>{
+    if(!miniAppsView?.app||miniAppsView.app.id!==appId||
+      Number(miniAppsView.app.draft_revision)!==Number(expectedRevision)){
+      setMiniAppsError("Your app changed. Reopen the latest private draft.");return false;
+    }
+    setMiniAppsAction("move-section");setMiniAppsError("");
+    try{
+      const data=await miniAppsRequest("move_section",{moduleKey,direction,appId,expectedRevision});
+      if(data?.ok!==true||data.privateOnly!==true||data.neverPublishes!==true||
+         data.movedModule!==moduleKey||data.app?.id!==appId||
+         Number(data.app.draft_revision)!==Number(expectedRevision)+1)
+        throw Error("The new private section order could not be verified.");
+      applyMiniAppsStatus(data.status);
+      setMiniAppsNotice("Moved one section in your PRIVATE app. Your public app is unchanged; prepare a new preview if you want to publish later.");
+      return true;
+    }catch(error){
+      setMiniAppsError(String(error?.message||"BUSY could not move that section.").slice(0,230));
+      return false;
+    }finally{setMiniAppsAction("");}
+  };
+
   const savePrivateAppAppearance = async ({field,value,appId,expectedRevision}={})=>{
     if(!miniAppsView?.app||miniAppsView.app.id!==appId||
        miniAppsView.app.draft_revision!==expectedRevision){
@@ -16314,6 +16383,8 @@ function App() {
     describeMiniAppByVoice,
     toggleMiniAppModule,
     savePrivateAppAppearance,
+    movePrivateAppSection,
+    transcribeSelectedAppAudio,
     prepareMiniAppPreview,
     confirmPublishMiniApp,
     confirmMiniAppDiscoverable,
