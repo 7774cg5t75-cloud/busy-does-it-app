@@ -23,6 +23,23 @@ function makeTapToEditHtml(html){
  const script=`<script>(function(){
   "use strict";
   var previous=null;
+  // Keyboard and screen-reader discoverability for the private editing layer.
+  Array.prototype.forEach.call(document.querySelectorAll("[data-busy-edit-section]"),
+   function(element){
+    if(!element.hasAttribute("tabindex"))element.setAttribute("tabindex","0");
+    if(!element.hasAttribute("role")&&!/^(?:A|BUTTON)$/.test(element.tagName))
+     element.setAttribute("role","button");
+    element.setAttribute("aria-label","Edit website "+
+     (element.getAttribute("data-busy-edit-field")==="photo"?"photograph":
+      element.getAttribute("data-busy-edit-field")||"content"));
+   });
+  document.addEventListener("keydown",function(event){
+   if(event.key!=="Enter"&&event.key!==" ")return;
+   var active=document.activeElement;
+   if(!active||!active.matches||!active.matches("[data-busy-edit-section]"))return;
+   event.preventDefault();
+   active.click();
+  },true);
   document.addEventListener("click",function(event){
    var element=event.target&&event.target.closest&&
      event.target.closest("[data-busy-edit-section]");
