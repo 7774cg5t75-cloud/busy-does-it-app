@@ -5,6 +5,8 @@ import { previewPrivateAppAppearance } from "./appAppearanceEditing.mjs";
 import { proposeAppSectionMove } from "./appSectionOrder.mjs";
 import { proposeCoordinatedAppChanges } from "./appCoordinatedStudio.mjs";
 import {decideAppRequestTransition} from "./appRequestLifecycle.mjs";
+import {validateAppScreenshotReview,normalizeAppVisualAIResult}
+ from "./appVisualReviewContract.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -3560,6 +3562,121 @@ async function markRequestLinked(
   return linked.data;
 }
 
+/**
+ * V3.159: opt-in, owner-only, screenshot-based app design feedback.
+ * Consumes one server-reserved review credit. Does NOT store any screenshot,
+ * make app edits, confirm bookings, publish, bill or approve app distribution.
+ */
+const appVisualAiReady=()=>{
+ const model=Deno.env.get("BUSY_APP_VISUAL_AI_MODEL")||"";
+ return Deno.env.get("BUSY_APP_VISUAL_AI_ENABLED")==="true"&&
+  !!Deno.env.get("OPENAI_API_KEY")&&/^gpt-[a-z0-9.-]+$/i.test(model);
+};
+const utcMonthStart=()=>{
+ const date=new Date();date.setUTCDate(1);date.setUTCHours(0,0,0,0);
+ return date.toISOString();
+};
+async function appVisualReviewStatus(businessId:string){
+ const settings=await supabase.from("busy_app_visual_ai_limits")
+  .select("enabled,monthly_request_cap")
+  .eq("business_id",businessId).maybeSingle();
+ if(settings.error)return {enabled:false,remaining:0,monthlyLimit:0,
+   configured:false,reason:"The private app AI allowance has not been deployed.",
+   requiresOwnerConsent:true,noUnexpectedCharges:true};
+ const usage=await supabase.from("busy_app_visual_ai_calls")
+  .select("id",{head:true,count:"exact"}).eq("business_id",businessId)
+  .gte("created_at",utcMonthStart());
+ if(usage.error)return {enabled:false,remaining:0,monthlyLimit:0,
+  configured:false,reason:"Review usage could not be verified.",
+  requiresOwnerConsent:true,noUnexpectedCharges:true};
+ const cap=Math.max(0,Math.min(20,Number(settings.data?.monthly_request_cap)||0));
+ const used=Math.max(0,Number(usage.count)||0);
+ const enabled=settings.data?.enabled===true&&cap>0&&appVisualAiReady();
+ return {enabled,remaining:Math.max(0,cap-used),used,monthlyLimit:cap,
+  configured:!!settings.data&&appVisualAiReady(),
+  reason:enabled?"One review uses one of this business's approved monthly AI reviews.":
+   "App screenshot AI review is disabled or has not been configured for this business.",
+  requiresOwnerConsent:true,noUnexpectedCharges:true,
+  publicPreviewOnly:true,screenshotStorage:"not_stored",
+  notAutomaticPublishing:true};
+}
+async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:string){
+ if(!appVisualAiReady())throw Error("App screenshot AI is not enabled.");
+ const fields=validateAppScreenshotReview(body);
+ if(!fields.ok)throw Error(fields.reason);
+ const app=await appForBusiness(businessId);
+ if(!app||app.id!==fields.appId||
+    Number(app.draft_revision)!==fields.revision)
+   throw Error("Private app revision changed. Capture the current customer preview again.");
+ const status=await appVisualReviewStatus(businessId);
+ if(!status.enabled||status.remaining<1)
+   throw Error("Private screenshot review is unavailable or its allowance has been reached.");
+ const input=fields.imageBase64;
+ let bytes:Uint8Array;
+ try{bytes=Uint8Array.from(atob(input),c=>c.charCodeAt(0));}
+ catch{throw Error("Screenshot image could not be decoded.");}
+ // Only small native-generated JPEGs. No URLs, remote assets, GIFs, PDFs,
+ // arbitrary documents, or screenshots stored in Supabase.
+ if(bytes.length<512||bytes.length>590000||
+    bytes[0]!==255||bytes[1]!==216||
+    bytes[bytes.length-2]!==255||bytes[bytes.length-1]!==217)
+  throw Error("A compressed JPEG screenshot under 590 KB is required.");
+ if(!/^[a-zA-Z0-9:_-]{8,160}$/.test(requestKey))
+  throw Error("A unique request key is required for metered image review.");
+ const reservation=await supabase.rpc("busy_reserve_app_visual_ai_call",{
+  p_business_id:businessId,p_app_id:app.id,
+  p_draft_revision:fields.revision,p_request_key:requestKey
+ });
+ if(reservation.error||!reservation.data)
+  throw Error("Unable to reserve an app screenshot review credit. Nothing was sent to AI.");
+ let completed=false,inputTokens=0,outputTokens=0;
+ try{
+  const model=Deno.env.get("BUSY_APP_VISUAL_AI_MODEL")||"";
+  const prompt=[
+   "You are reviewing one owner-submitted screenshot showing ONLY a customer's private BUSY Business App preview.",
+   "You cannot authenticate the screenshot, inspect other devices, confirm app behaviour, or see invisible scrolling content.",
+   "Report only clearly visible issues of spacing, hierarchy, navigation, image size and legibility. Never infer prices, bookings or missing backend features.",
+   "Never copy personal data or contact details from this screenshot into your answer.",
+   "Return at most three supported design suggestions. You are NOT authorised to make edits.",
+   'Allowed fields and values: headerStyle (quiet,bold,refined), layoutDensity (comfortable,compact,airy), navigationStyle (tabs,list), imageScale (regular,large).',
+   'Return JSON only: {"summary":"...", "observations":["..."], "suggestions":[{"field":"layoutDensity","value":"airy","reason":"..."}]}.',
+   "If evidence is insufficient, return an empty suggestions array."
+  ].join("\n");
+  const response=await fetch("https://api.openai.com/v1/responses",{
+   method:"POST",headers:{Authorization:"Bearer "+Deno.env.get("OPENAI_API_KEY"),
+    "Content-Type":"application/json"},
+   body:JSON.stringify({model,store:false,max_output_tokens:620,
+    input:[{role:"user",content:[
+     {type:"input_text",text:prompt},
+     {type:"input_image",image_url:"data:image/jpeg;base64,"+input,detail:"low"}
+    ]}]}),signal:AbortSignal.timeout(22000)
+  });
+  if(!response.ok)throw Error("AI design review could not be completed.");
+  const result=await response.json();
+  inputTokens=Math.max(0,Math.round(Number(result.usage?.input_tokens)||0));
+  outputTokens=Math.max(0,Math.round(Number(result.usage?.output_tokens)||0));
+  const content=(Array.isArray(result?.output)?result.output:[])
+    .flatMap((v:any)=>Array.isArray(v?.content)?v.content:[])
+    .filter((v:any)=>v?.type==="output_text"&&typeof v.text==="string")
+    .map((v:any)=>v.text).join("\n");
+  let parsed:any;
+  try{parsed=JSON.parse(content);}catch{throw Error("AI returned an unreadable design review.");}
+  const proof=normalizeAppVisualAIResult(parsed,app.draft_config);
+  if(!proof.ok)throw Error(proof.reason);
+  completed=true;
+  return {review:proof,appId:app.id,draftRevision:fields.revision,
+   ownerConsentRecorded:true,privateOnly:true,chargesCreated:false,
+   screenshotStored:false,source:"owner_submitted_jpeg_ai_review",
+   noDeviceCoverageGuarantee:true};
+ }finally{
+  await supabase.rpc("busy_finish_app_visual_ai_call",{
+   p_business_id:businessId,p_call_id:reservation.data,
+   p_state:completed?"completed":"failed",
+   p_input_tokens:inputTokens,p_output_tokens:outputTokens
+  });
+ }
+}
+
 Deno.serve(async (request: Request) => {
   if (request.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -3655,6 +3772,8 @@ Deno.serve(async (request: Request) => {
       "mark_request_linked",
       "send_request_message",
       "owner_request_detail",
+      "visual_review_status",
+      "review_app_screenshot",
     ]);
     const member = await membership(
       user.id,
@@ -3663,6 +3782,15 @@ Deno.serve(async (request: Request) => {
     );
     const resolvedBusinessId = member.business_id;
 
+    if(action==="visual_review_status"){
+      return json(200,{ok:true,businessId:resolvedBusinessId,
+       visualReview:await appVisualReviewStatus(resolvedBusinessId)});
+    }
+    if(action==="review_app_screenshot"){
+      return json(200,{ok:true,businessId:resolvedBusinessId,
+       ...(await reviewAppDesignScreenshot(resolvedBusinessId,body,requestId)),
+       visualReview:await appVisualReviewStatus(resolvedBusinessId)});
+    }
     if (action === "standalone_eligibility_status") {
       // Server-sourced read only. Caller-supplied plan/tier/paid flags are
       // deliberately ignored. Only a validated provider webhook may mint a
