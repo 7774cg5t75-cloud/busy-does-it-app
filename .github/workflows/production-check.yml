@@ -130,6 +130,9 @@ jobs:
       - name: Verify V3.145 measured contrast and owner-approved private design safety
         run: node scripts/check-website-deeper-review-v3145.mjs
 
+      - name: Verify V3.146 universal contextual editing, voice intent, and scope
+        run: node scripts/check-universal-context-toolbar-v3146.mjs
+
       - name: Verify Expo Snack module dependency graph
         run: node scripts/check-snack-dependencies.mjs
 
