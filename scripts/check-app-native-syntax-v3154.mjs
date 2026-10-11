@@ -7,7 +7,9 @@ for(const [path,plugins] of [
  ["standalone/template/app.config.js",[]],
  ["src/screens/miniApps.js",["jsx"]],
  ["src/app/AppController.js",["jsx"]],
- ["supabase/functions/busy-mini-apps/index.ts",["typescript"]]
+ ["supabase/functions/busy-mini-apps/index.ts",["typescript"]],
+ ["supabase/functions/busy-command/index.ts",["typescript"]],
+ ["src/screens/websiteSelectedVoice.js",["jsx"]]
 ]){
  const ast=parse(read(path),{sourceType:"unambiguous",plugins});
  assert.ok(ast.program.body.length>0,path);

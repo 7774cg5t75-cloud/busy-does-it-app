@@ -1,0 +1,42 @@
+name: V3.156 App-specific voice and unified module editing
+on:
+  push:
+    branches: [v3.156]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  app-voice-and-section-order:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify private section order, native parity, scoped app voice and legacy safety
+        run: |
+          node scripts/check-app-voice-layout-v3156.mjs
+          node scripts/check-app-context-editor-v3155.mjs
+          node scripts/check-native-public-booking-v3155.mjs
+          node scripts/check-app-appearance-v3154.mjs
+          node scripts/check-app-builder-dual-track-v3153.mjs
+          node scripts/check-production.mjs
+      - name: Install app bundle and syntax validation requirements
+        run: npm install --no-audit --no-fund
+      - name: Parse native app, recorder, App Builder and owner/voice edge services
+        run: node scripts/check-app-native-syntax-v3154.mjs
+      - name: Build independent standalone customer prototype
+        run: |
+          node scripts/prepare-standalone-prototype-v3154.mjs
+          cd .tmp/standalone-prototype-v3154
+          ../../node_modules/.bin/expo export --platform ios --output-dir /tmp/bdi-v3156-customer-ios
+          ../../node_modules/.bin/expo export --platform android --output-dir /tmp/bdi-v3156-customer-android
+      - name: Export BUSY iOS and Android unsigned JavaScript
+        run: |
+          npx expo export --platform ios --output-dir /tmp/bdi-v3156-busy-ios
+          npx expo export --platform android --output-dir /tmp/bdi-v3156-busy-android
+      - name: Confirm no paid or live deployment occurred
+        run: echo "No signed device build, provider charges, microphone recordings, schema deployment, customer publication or store submission. Provider and real-device checks remain outstanding."
