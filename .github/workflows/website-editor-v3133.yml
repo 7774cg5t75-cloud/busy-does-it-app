@@ -1,0 +1,37 @@
+name: V3.133 website direct editor source and iPhone export (free)
+on:
+  push:
+    branches: [v3.133]
+    paths:
+      - 'src/core/websiteStructuredEditing.mjs'
+      - 'src/domain/websiteBuilder.js'
+      - 'src/screens/websiteBuilder.js'
+      - 'src/screens/websiteContentEditor.js'
+      - 'src/app/AppController.js'
+      - 'scripts/check-website-direct-edit-v3133.mjs'
+      - '.github/workflows/website-editor-v3133.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-and-native-export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Test existing and new website editing engines
+        run: |
+          node scripts/check-website-edit-freedom-v3102.mjs
+          node scripts/check-website-direct-edit-v3133.mjs
+          node scripts/check-production.mjs
+      - name: Install JavaScript dependencies only
+        run: npm install --no-audit --no-fund
+      - name: Export normal iPhone website editor JavaScript (no signed build)
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3133-ios-js-only
+      - name: Confirm private, non-billable test scope
+        run: echo "No cloud EAS build, no website publish, no DNS, no paid AI usage."
