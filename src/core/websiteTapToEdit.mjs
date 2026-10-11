@@ -149,6 +149,7 @@ function resolveTapSelection(draft,pageId,message){
   return {sectionId,field:"photo",photoIndex:section.type==="gallery"?photoIndex:-1};
  }
  if(message.photoIndex!=="")return null;
+ if(field==="section"&&!itemId)return {sectionId,field:"section",itemId:null};
  if(itemId){
   if(!["services","faq","testimonials"].includes(section.type)||
      !["title","body"].includes(field)||
