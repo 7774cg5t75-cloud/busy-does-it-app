@@ -1,0 +1,115 @@
+import React from "react";
+import {KeyboardAvoidingView,Modal,Platform,SafeAreaView,ScrollView,Text,TextInput,View} from "react-native";
+import {Button,Card,Field} from "../components/ui";
+import {styles} from "../theme/styles";
+
+const names={
+ title:"Heading",body:"Wording",cta:"Button text",ctaHref:"Button destination",
+ phone:"Phone number",email:"Email address",openingHours:"Opening hours",photo:"Photograph"
+};
+const list=x=>Array.isArray(x)?x:[];
+function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange}){
+ const [value,setValue]=React.useState("");
+ const [confirmRemove,setConfirmRemove]=React.useState(false);
+ const section=list(draft?.sections).find(s=>s.id===selection?.sectionId);
+ const item=selection?.itemId?list(section?.items).find(x=>x.id===selection.itemId):null;
+ const target=item||section;
+ const field=selection?.field||"";
+ const title=section?.title||"Website section";
+ const key=[selection?.sectionId,selection?.field,selection?.itemId,selection?.photoIndex].join(":");
+ React.useEffect(()=>{
+  setValue(typeof target?.[field]==="string"?target[field]:"");
+  setConfirmRemove(false);
+ },[key,draft?.updatedAt]);
+ const save=()=>{
+  if(!selection||field==="photo")return;
+  if(onTextChange?.({...selection,value})===true)onClose?.();
+ };
+ const apply=change=>{
+  if(onLayoutChange?.(change)===true)onClose?.();
+ };
+ const gallery=list(draft?.sections).find(x=>x.id==="gallery");
+ const photos=list(gallery?.items).filter(x=>x?.approved!==false&&typeof x.storagePath==="string"&&x.storagePath.length);
+ const photoIndex=selection?.photoIndex??-1;
+ return (
+  <Modal visible={!!selection} onRequestClose={onClose}
+   animationType="slide" presentationStyle="pageSheet">
+   <SafeAreaView style={{flex:1,backgroundColor:"#0D131E"}}>
+    <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==="ios"?"padding":undefined}>
+     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{padding:18,paddingBottom:40}}>
+      <Text style={{color:"#F4F7FE",fontSize:24,fontWeight:"800",marginBottom:6}}>Edit this part</Text>
+      <Text style={{color:"#B4C0D2",marginBottom:14}}>
+       {title+" • "+(names[field]||"Selected element")}
+      </Text>
+      <Card eyebrow="Private website change" title={field==="photo"?"Choose what to do with this picture":"Change the exact wording"}
+       body="Your edits stay in your private draft. Nothing is published automatically, and you can undo a saved change."
+       tone="blue">
+       {selection&&field!=="photo"?(
+        <>
+         {field==="body"?(
+          <View style={styles.fieldWrap}>
+           <Text style={styles.fieldLabel}>Your new wording</Text>
+           <View style={styles.fieldBox}>
+            <TextInput value={value} onChangeText={setValue}
+             style={[styles.fieldInput,{minHeight:135,textAlignVertical:"top"}]}
+             placeholderTextColor="#9AA3B2"
+             placeholder="Type the exact wording you want" multiline
+             textAlignVertical="top"/>
+           </View>
+          </View>
+         ):(
+          <Field label={names[field]||"Website wording"} value={value}
+           onChangeText={setValue}
+           autoCapitalize={field==="email"||field==="ctaHref"?"none":"sentences"}
+           keyboardType={field==="email"?"email-address":field==="phone"?"phone-pad":"default"}
+           placeholder="Write your replacement"/>
+         )}
+         <Button label="Save to private website draft" primary onPress={save}/>
+        </>
+       ):null}
+       {selection&&field==="photo"?(
+        <>
+         {section?.type==="gallery"?(
+          <>
+           <Text style={styles.cardBody}>{"Photo "+(photoIndex+1)+" of "+list(section.items).length+". Change its position or remove it from the draft gallery."}</Text>
+           <Button label="Move photograph left / earlier"
+            onPress={()=>apply({action:"move-gallery-photo",sectionId:"gallery",photoIndex,direction:"up"})}/>
+           <Button label="Move photograph right / later"
+            onPress={()=>apply({action:"move-gallery-photo",sectionId:"gallery",photoIndex,direction:"down"})}/>
+           <Button label={confirmRemove?"Confirm remove from gallery":"Remove from this gallery"}
+            onPress={()=>{
+             if(!confirmRemove){setConfirmRemove(true);return;}
+             apply({action:"remove-gallery-photo",sectionId:"gallery",photoIndex});
+            }}/>
+           <Text style={styles.cardBody}>Removing a gallery photograph does not delete its original file. Undo restores the previous gallery draft.</Text>
+          </>
+         ):(
+          <>
+           <Text style={styles.cardBody}>Replace this picture using another photograph already approved for this business. No unverified image URLs or AI-generated photographs are used.</Text>
+           {photos.length?photos.slice(0,24).map((photo,i)=>(
+            <Button key={photo.storagePath} label={"Use approved photo "+(i+1)+(photo.alt?" • "+String(photo.alt).slice(0,35):"")}
+             onPress={()=>apply({action:section?.type==="hero"?"choose-hero-photo":"choose-feature-photo",
+              sectionId:section?.id,storagePath:photo.storagePath})}/>
+           )):<Text style={styles.cardBody}>Add an approved photograph to your business photo library before replacing this one.</Text>}
+           {section?.type==="hero"?(
+            <>
+             <Text style={styles.sectionLabel}>Show the best part of your main image</Text>
+             <Button label="Show the top of the photo" onPress={()=>apply({action:"style",field:"photoFocus",value:"top"})}/>
+             <Button label="Centre the photo" onPress={()=>apply({action:"style",field:"photoFocus",value:"center"})}/>
+             <Button label="Show the bottom of the photo" onPress={()=>apply({action:"style",field:"photoFocus",value:"bottom"})}/>
+             <Button label="Make the photo larger" onPress={()=>apply({action:"style",field:"heroSize",value:"extra-large"})}/>
+            </>
+           ):null}
+          </>
+         )}
+        </>
+       ):null}
+       <Button label="Cancel — leave website unchanged" onPress={onClose}/>
+      </Card>
+     </ScrollView>
+    </KeyboardAvoidingView>
+   </SafeAreaView>
+  </Modal>
+ );
+}
+export {WebsiteTapEditor};
