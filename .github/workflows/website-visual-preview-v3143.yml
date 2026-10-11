@@ -1,0 +1,54 @@
+name: V3.143 visual preview and photo editor verification
+on:
+  push:
+    branches: [v3.143]
+    paths:
+      - 'src/screens/websiteTapEditor.js'
+      - 'src/screens/websiteBuilder.js'
+      - 'src/core/websiteVisualCheck.mjs'
+      - 'scripts/check-website-visual-inspection-v3143.mjs'
+      - 'scripts/check-website-visual-browser-v3143.mjs'
+      - '.github/workflows/website-visual-preview-v3143.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  visual-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Check guarded private visual inspection and website regressions
+        run: |
+          node scripts/check-website-visual-inspection-v3143.mjs
+          node scripts/check-website-voice-reliability-v3142.mjs
+          node scripts/check-website-voice-selection-v3141.mjs
+          node scripts/check-website-context-v3140.mjs
+          node scripts/check-website-section-styling-v3139.mjs
+          node scripts/check-website-tap-editor-v3138.mjs
+          node scripts/check-website-layout-v3134.mjs
+          node scripts/check-website-pages-v3135.mjs
+          node scripts/check-website-standalone-v3136.mjs
+          node scripts/check-website-original-media-v3137.mjs
+          node scripts/check-production.mjs
+      - name: Install Expo dependencies and Playwright Chromium
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Test actual rendered sites, mobile/tablet/desktop and deliberately broken layouts
+        run: |
+          node scripts/check-website-visual-browser-v3143.mjs
+          node scripts/check-website-context-browser-v3140.mjs
+          node scripts/check-website-tap-browser-v3138.mjs
+          node scripts/check-website-section-browser-v3139.mjs
+      - name: Export unsigned iOS and Android JavaScript
+        run: |
+          npx expo export --platform ios --output-dir /tmp/busy-v3143-ios-js
+          npx expo export --platform android --output-dir /tmp/busy-v3143-android-js
+      - name: Confirm no production change
+        run: echo "No deployment, photo upload, customer website publishing, signed device build, voice provider call or schema migration executed."
