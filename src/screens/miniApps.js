@@ -25,6 +25,8 @@ import {prepareAppVisualBatch} from "../core/appVisualComparison.mjs";
 import {auditStandaloneContrast} from "../core/appContrastAudit.mjs";
 import {appRequestJourney} from "../core/appRequestLifecycle.mjs";
 import {appVisibleCaptureReceipt,currentAppVisibleCapture} from "../core/appRenderedEvidence.mjs";
+import {mergeRenderedObservations,evaluateRenderedQuality,
+ compareRenderedQuality,suggestMeasuredAppearance} from "../core/appRenderedQuality.mjs";
 import {previewAppVisualSuggestion} from "../core/appVisualReviewContract.mjs";
 import {WebsiteSelectedVoice} from "./websiteSelectedVoice";
 
@@ -112,11 +114,68 @@ function offerActiveToday(offer = {}) {
   return (!start || today >= start) && (!end || today <= end);
 }
 
+
+/**
+ * V3.164 instrumentation is opt-in and stays entirely in this JS session.
+ * React Native provides REAL measured layout boxes and, where available,
+ * decoded image dimensions; public text and image URIs are NEVER recorded.
+ */
+function MeasuredPublicImage({source,style,observationKey,observationKind,
+ onObservation,accessibilityLabel}){
+ const frame=React.useRef(null),loaded=React.useRef(null);
+ const emit=()=>{
+  if(!onObservation||!frame.current)return;
+  onObservation({key:observationKey,kind:observationKind,
+    width:frame.current.width,height:frame.current.height,
+    ...(loaded.current?{sourceWidth:loaded.current.width,
+      sourceHeight:loaded.current.height}:{})});
+ };
+ return <Image source={source} style={style} resizeMode="cover"
+   accessible={true} accessibilityRole="image"
+   accessibilityLabel={accessibilityLabel}
+   onLayout={event=>{
+     const {width,height}=event.nativeEvent.layout;
+     frame.current={width,height};emit();
+   }}
+   onLoad={event=>{
+     const src=event.nativeEvent?.source;
+     if(src?.width>0&&src?.height>0)
+       loaded.current={width:src.width,height:src.height};
+     emit();
+   }}/>;
+}
+function MeasuredNavLabel({label,index,isList,onObservation}){
+ const frame=React.useRef(null),lines=React.useRef(null);
+ const emit=()=>{
+   if(!onObservation||!frame.current)return;
+   onObservation({key:"nav-"+index,kind:"navigation_label",
+     width:frame.current.width,height:frame.current.height,
+     ...(lines.current?{lineCount:lines.current}:{})});
+ };
+ return <View style={{minHeight:48,justifyContent:"center",borderRadius:10,
+     borderColor:"#41536E",borderWidth:1,paddingHorizontal:12,paddingVertical:8,
+     width:isList?"100%":undefined}}
+   onLayout={e=>{
+     const {width,height}=e.nativeEvent.layout;
+     frame.current={width,height};emit();
+   }}>
+   <Text style={styles.cardBody}
+     onTextLayout={e=>{
+       const count=e.nativeEvent?.lines?.length;
+       if(Number.isInteger(count)&&count>=1&&count<=20){
+         lines.current=count;emit();
+       }
+     }}>{label}</Text>
+ </View>;
+}
+
 function MiniAppSurface({
   config,
   interactive = false,
   s = null,
   loyaltyProgress = null,
+  onQualityObservation = null,
+  onMeasuredWidth = null,
 }) {
   const profile = config?.publicProfile || {};
   const modules = orderedAppModules(config);
@@ -142,7 +201,10 @@ function MiniAppSurface({
   return (
     <View style={{width:"100%"}} onLayout={({nativeEvent})=>{
       const width=Math.floor(nativeEvent.layout.width);
-      if(width>=250&&width!==contentWidth)setContentWidth(width);
+      if(width>=250&&width!==contentWidth){
+        setContentWidth(width);
+        onMeasuredWidth?.(width);
+      }
     }}>
       <Card
         eyebrow={config?.display?.category || profile.businessType || "Business App"}
@@ -169,17 +231,12 @@ function MiniAppSurface({
         {modules.length?(
           <View style={{flexDirection:responsive.ok&&responsive.navigation==="list"?
             "column":"row",flexWrap:"wrap",gap:8,marginBottom:12}}>
-            {modules.map(module=>(
-              <View key={"preview-navigation-"+module.key}
-                style={{minHeight:48,justifyContent:"center",borderRadius:10,
-                  borderColor:"#41536E",borderWidth:1,paddingHorizontal:12,
-                  paddingVertical:8,
-                  width:responsive.ok&&responsive.navigation==="list"?"100%":undefined}}>
-                <Text style={styles.cardBody}>
-                  {module.label||module.title||
-                    module.key.replaceAll("_"," ")}
-                </Text>
-              </View>
+            {modules.map((module,index)=>(
+              <MeasuredNavLabel key={"preview-navigation-"+module.key}
+                label={module.label||module.title||module.key.replaceAll("_"," ")}
+                index={index}
+                isList={responsive.ok&&responsive.navigation==="list"}
+                onObservation={onQualityObservation}/>
             ))}
           </View>
         ):null}
@@ -187,12 +244,12 @@ function MiniAppSurface({
           Navigation labels are a visual preview; tap behaviour still needs device testing.
         </Text>
         {heroUri.startsWith("https://") ? (
-          <Image
+          <MeasuredPublicImage
             source={{ uri: heroUri }}
-            accessible={true} accessibilityRole="image"
+            observationKey="hero" observationKind="hero_image"
+            onObservation={onQualityObservation}
             accessibilityLabel={String(profile.assets?.hero?.alt||
               "Business cover photo").slice(0,140)}
-            resizeMode="cover"
             style={{
               width: "100%",
               height:responsive.ok?responsive.heroHeight:230,
@@ -231,6 +288,12 @@ function MiniAppSurface({
                   gap:responsive.ok?responsive.gap:12}}>
                   {services.map((service,index) => (
                     <View key={service.id||service.name||"service-"+index}
+                      onLayout={event=>{
+                        if(!onQualityObservation)return;
+                        const {width,height}=event.nativeEvent.layout;
+                        onQualityObservation({key:"service-"+index,
+                          kind:"service_card",width,height});
+                      }}
                       style={{width:responsive.ok&&responsive.serviceColumns===2?
                         "48%":"100%"}}>
                       <Card eyebrow="Service" title={service.name||"Service"}
@@ -260,13 +323,13 @@ function MiniAppSurface({
                 <View style={{flexDirection:"row",flexWrap:"wrap",
                   gap:responsive.ok?responsive.gap:8}}>
                   {gallery.slice(0, 12).map((asset, index) => (
-                    <Image
+                    <MeasuredPublicImage
                       key={asset.key || asset.uri || `gallery-${index}`}
                       source={{ uri: asset.uri }}
-                      accessible={true} accessibilityRole="image"
+                      observationKey={"gallery-"+index} observationKind="gallery_image"
+                      onObservation={onQualityObservation}
                       accessibilityLabel={String(asset.alt||asset.caption||
                         asset.description||"Business gallery photo "+(index+1)).slice(0,140)}
-                      resizeMode="cover"
                       style={{
                         width:responsive.ok?(responsive.galleryColumns===3?"31%":
                           responsive.galleryColumns===2?"48%":"100%"):"100%",
