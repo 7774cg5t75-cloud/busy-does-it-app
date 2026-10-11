@@ -115,7 +115,9 @@ function WebsiteSelectedVoice({selection,onTranscribe,onTranscript}){
    onTranscript?.(result.transcript);
    setPendingUri("");
    setStage("idle");
-   setMessage("Transcription ready. Check the words below, then explicitly apply your change.");
+   setMessage("Transcription ready. Check the words below, then explicitly apply your change."+
+    (Number.isInteger(result.remaining)?" "+result.remaining+
+      " of 12 selected-website voice requests remain today (UTC).":""));
   }catch(error){
    // Never retry a chargeable upload automatically. The owner must start
    // a new recording or type a request; avoid repeated unknown charges.
@@ -144,7 +146,7 @@ function WebsiteSelectedVoice({selection,onTranscribe,onTranscript}){
   <Text style={styles.cardBody}>
    Tap Record, speak naturally, then tap Stop yourself. BUSY never stops because you pause.
    A clearly shown five-minute safety limit prevents accidental endless recording.
-   Voice transcription uses a cloud service and may incur usage cost.
+   Voice transcription uses a cloud service and may incur usage cost. There is a 12-request daily allowance for this editing mode (UTC).
   </Text>
   {listening?(
    <View accessibilityLiveRegion="polite">
@@ -160,7 +162,7 @@ function WebsiteSelectedVoice({selection,onTranscribe,onTranscript}){
   {stage==="review"?(
    <>
     <Text style={styles.cardBody}>{"Recorded "+voiceDurationState(elapsedAtStop).elapsed+
-      ". Sending uses transcription credits; no edits are applied automatically."}</Text>
+      ". Sending uses one of today\'s 12 voice requests; no edits are applied automatically."}</Text>
     {button("Send recording for transcription",send)}
     {button("Discard recording — do not send",discard,false,"#5A5665")}
    </>
