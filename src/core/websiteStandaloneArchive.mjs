@@ -32,7 +32,7 @@ function archiveRequirements(draft={}){
  const assets=[],seen=new Set();
  const visibleSections=draft.sections.filter(s=>s?.enabled!==false);
  for(const section of visibleSections){
-  const media=section?.type==="hero"?[section.asset]:
+  const media=["hero","photo-feature"].includes(section?.type)?[section.asset]:
     section?.type==="gallery"?list(section.items):[];
   for(const item of media){
    if(!item)continue;
