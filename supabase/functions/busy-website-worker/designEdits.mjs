@@ -1,5 +1,6 @@
 import {editWebsiteDraftField} from "./websiteStructuredEditing.mjs";
 import {applyWebsiteLayoutOperation} from "./websiteLayoutEditing.mjs";
+import {editWebsitePages} from "./websitePageEditing.mjs";
 /**
  * V3.102 — bounded, owner-directed visual and content edits.
  * Interpret explicit instructions only. No invented claims, photos or websites
@@ -29,6 +30,8 @@ function applyWebsiteVisualEdit(draft,instruction){
     return editWebsiteDraftField(draft,instruction);
   if(instruction&&typeof instruction==="object"&&instruction.kind==="layout")
     return applyWebsiteLayoutOperation(draft,instruction);
+  if(instruction&&typeof instruction==="object"&&instruction.kind==="page")
+    return editWebsitePages(draft,instruction);
  const text=clean(instruction);
  const lower=text.toLowerCase();
  // A small, explicitly supported vocabulary of reversible design requests.
