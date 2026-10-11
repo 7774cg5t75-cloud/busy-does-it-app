@@ -30,6 +30,7 @@ import {selectedWebsiteVoiceContextIsCurrent} from "../core/websiteSelectedVoice
 import {recordWebsiteOwnerDesignFeedback,withoutPrivateWebsiteDesignFeedback} from "../core/websiteMeasuredDesignCoach.mjs";
 import {voiceUploadEligible} from "../core/websiteVoiceRecordingPolicy.mjs";
 import {planSelectedWebsiteChanges,prepareSelectedWebsiteTransaction} from "../core/websiteContextPlan.mjs";
+import {previewSelectedWebsiteInstruction as prepareWebsiteSelectionPreview} from "../core/websiteSelectedChangePreview.mjs";
 
 try {
   Notifications.setNotificationHandler({
@@ -13199,6 +13200,15 @@ function App() {
     return true;
   };
 
+  // V3.148: optional local preview, no Undo entry, draft mutation, cloud
+  // request, or publication. Apply rechecks the SAME text against current state.
+  const previewSelectedWebsiteInstruction = ({selection,instruction}={})=>
+    prepareWebsiteSelectionPreview(websiteDraftRef.current,{selection,instruction},{
+      fieldEdit:applyStructuredWebsiteEdit,
+      layoutEdit:applyWebsiteLayoutChange,
+      renderPage:renderWebsiteHtml
+    });
+
   // V3.147: all-or-nothing instruction for the EXACT selected website
   // element. Re-parse against current private state (including revision) at
   // approval time; never trust a message or cached operation list from voice.
@@ -15872,6 +15882,7 @@ function App() {
     applyWebsiteChange,
     applyWebsiteFieldChange,
     applySelectedWebsiteInstruction,
+    previewSelectedWebsiteInstruction,
     transcribeSelectedWebsiteAudio,
     applyWebsiteLayoutAction,
     recordMeasuredWebsiteFeedback,
