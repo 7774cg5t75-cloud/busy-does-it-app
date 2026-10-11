@@ -36,6 +36,7 @@ jobs:
       - name: Check rendered mobile and desktop designs and editing
         run: |
           node scripts/check-website-device-style-browser-v3149.mjs
+          node scripts/check-website-ai-studio-browser-v3150.mjs
           node scripts/check-website-responsive-preview-browser-v3148.mjs
           node scripts/check-website-selection-preview-browser-v3148.mjs
           node scripts/check-website-screenshot-loop-v3144.mjs

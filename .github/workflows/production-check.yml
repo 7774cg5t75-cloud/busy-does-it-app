@@ -151,6 +151,11 @@ jobs:
           node scripts/check-website-recovery-v3149.mjs
           node scripts/check-website-portfolio-v3149.mjs
 
+      - name: Verify V3.150 consented AI website design and natural page voice
+        run: |
+          node scripts/check-website-ai-studio-v3150.mjs
+          node scripts/check-website-page-voice-v3150.mjs
+
       - name: Verify Expo Snack module dependency graph
         run: node scripts/check-snack-dependencies.mjs
 
