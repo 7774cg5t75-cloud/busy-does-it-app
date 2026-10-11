@@ -39,7 +39,7 @@ try{
   assert.match(custom.text,/Beautiful flowers arranged with care/);
   assert.equal(custom.overflow,false,"Nested photo feature has no horizontal overflow");
   assert.ok(custom.photo.some(x=>x.width===1&&x.src==="../../assets/photo-001.png"),
-   "Nested page finds the actual local image without internet");
+   "Nested page finds the actual local image without internet: "+JSON.stringify(custom.photo));
   assert.equal(custom.href,"../../index.html","Nested page links back to root");
   await page.screenshot({path:"/tmp/busy-v3136-zip/evidence/photo-page-"+width+".png",fullPage:true});
   await page.getByRole("link",{name:"Meadow Fictional Florists"}).click();
