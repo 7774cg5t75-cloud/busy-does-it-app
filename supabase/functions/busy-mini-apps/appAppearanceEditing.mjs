@@ -14,8 +14,14 @@ function previewPrivateAppAppearance(config,{field,value}={}){
     !OPTIONS[key].includes(current[key])))
   return {ok:false,reason:"The existing app appearance needs review."};
  if(current[field]===value)return {ok:false,reason:"This appearance is already selected."};
+ // Preserve the shape of an older draft when editing an unrelated field.
+ // A newly selected image scale appears only when it is explicitly changed.
+ const presentation={...current,[field]:value};
+ if(field!=="imageScale"&&
+    !Object.prototype.hasOwnProperty.call(config.presentation||{},"imageScale"))
+  delete presentation.imageScale;
  return {ok:true,field,value,previous:current[field],
-  nextConfig:{...config,presentation:{...current,[field]:value}},
+  nextConfig:{...config,presentation},
   privateOnly:true,ownerApprovalRequired:true,changesBooking:false,changesPayments:false};
 }
 export {OPTIONS,DEFAULTS,previewPrivateAppAppearance};

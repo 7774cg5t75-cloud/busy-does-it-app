@@ -23,7 +23,7 @@ const config={modules,navigation:modules.map(x=>x.key),
   contact:{email:"owner@example.test"},
   services:[{name:"Custom bowls",description:"Hand-crafted bowls"}],
   assets:{gallery:[{uri:"https://example.test/1.jpg",approved:true},
-   {uri:"https://example.test/2.jpg",approved:true}]}}},
+   {uri:"https://example.test/2.jpg",approved:true}]}},
  privateCustomerData:{doNotTouch:"secret"},payments:{enabled:false}};
 const json=JSON.stringify(config);
 const p=planAppVoiceInstructions(config,"Put bookings on the first screen, make the photos bigger and keep my existing colours");
