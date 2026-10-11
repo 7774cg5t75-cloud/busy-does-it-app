@@ -29,7 +29,7 @@ const {buildWebsiteDraft,renderWebsiteHtml,applyWebsitePageChange,applyStructure
 let assertions=0;
 const yes=(v,m)=>{assert.ok(v,m);assertions++};
 const eq=(a,b,m)=>{assert.deepEqual(a,b,m);assertions++};
-const png=new Uint8Array(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/yV0AAAAASUVORK5CYII=","base64"));
+const png=new Uint8Array(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGNIWeUGAALKAVUd7qGdAAAAAElFTkSuQmCC","base64"));
 const asset={id:"flower",key:"flower",storagePath:"fictional-private/photos/flower.png",uri:"file:///private/flower.png",approved:true,alt:"Roses in the garden"};
 const site=buildWebsiteDraft({brandBrain:{websiteReady:true,websiteBrief:{
  businessName:"Meadow Fictional Florists",businessType:"Florist",
