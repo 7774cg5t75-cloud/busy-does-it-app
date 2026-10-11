@@ -4,6 +4,7 @@ import { decideStandaloneEligibility } from "./standaloneEligibility.mjs";
 import { previewPrivateAppAppearance } from "./appAppearanceEditing.mjs";
 import { proposeAppSectionMove } from "./appSectionOrder.mjs";
 import { proposeCoordinatedAppChanges } from "./appCoordinatedStudio.mjs";
+import {decideAppRequestTransition} from "./appRequestLifecycle.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -3261,23 +3262,31 @@ async function updateRequestStatus(
   }
   const current = await supabase
     .from("busy_mini_app_requests")
-    .select("id,business_id,mini_app_id,consumer_user_id,request_origin,status")
+    .select("id,business_id,mini_app_id,consumer_user_id,request_origin,request_type,status")
     .eq("id", requestId)
     .eq("business_id", businessId)
     .maybeSingle();
   if (current.error) throw current.error;
   if (!current.data) throw new Error("Business App request not found.");
-  if (current.data.status === status) return current.data;
-
+  const linkedState=await supabase.from("busy_mini_app_request_links")
+    .select("bridge_state").eq("request_id",requestId)
+    .eq("business_id",businessId).maybeSingle();
+  if(linkedState.error)throw linkedState.error;
+  const decision=decideAppRequestTransition(current.data,status,{
+    bridgeState:linkedState.data?.bridge_state||""});
+  if(!decision.ok)throw new Error(decision.reason);
+  if(decision.noChange)return current.data;
   const now = new Date().toISOString();
   const updated = await supabase
     .from("busy_mini_app_requests")
     .update({ status, updated_at: now })
     .eq("id", requestId)
     .eq("business_id", businessId)
+    .eq("status",current.data.status)
     .select("*")
-    .single();
+    .maybeSingle();
   if (updated.error) throw updated.error;
+  if(!updated.data)throw new Error("Request was updated elsewhere. Refresh it before changing status.");
 
   const event = await supabase.from("busy_mini_app_request_events").insert({
     business_id: businessId,
@@ -3448,7 +3457,25 @@ async function markRequestLinked(
     .maybeSingle();
   if (request.error) throw request.error;
   if (!request.data) throw new Error("Business App request not found.");
-
+  if(["declined","closed"].includes(request.data.status))
+    throw new Error("A declined or closed request cannot silently reopen.");
+  if(bridgeState==="booking_confirmed"){
+    const existing=await supabase.from("busy_mini_app_request_links")
+      .select("customer_record_id,action_record_id,bridge_state")
+      .eq("request_id",requestId).eq("business_id",businessId).maybeSingle();
+    if(existing.error)throw existing.error;
+    const day=clean(body?.metadata?.bookingDate,30);
+    const hour=clean(body?.metadata?.bookingTime,20);
+    if(body?.ownerApproved!==true||
+       request.data.request_type!=="booking_request"||
+       !existing.data||!["booking_draft","booking_confirmed"].includes(existing.data.bridge_state)||
+       existing.data.customer_record_id!==customerRecordId||
+       existing.data.action_record_id!==actionRecordId||
+       !/^20\d{2}-\d{2}-\d{2}$/.test(day)||
+       !/^([01]\d|2[0-3]):[0-5]\d$/.test(hour)||
+       Number.isNaN(Date.parse(day+"T"+hour+":00Z")))
+      throw new Error("A matching draft booking, date/time and explicit business confirmation are required.");
+  }
   const linked = await supabase
     .from("busy_mini_app_request_links")
     .upsert(
@@ -3497,10 +3524,16 @@ async function markRequestLinked(
       : bridgeState === "closed"
       ? "closed"
       : "reviewing";
-  await supabase
-    .from("busy_mini_app_requests")
-    .update({ status: nextStatus, updated_at: new Date().toISOString() })
-    .eq("id", requestId);
+  const progressed=decideAppRequestTransition(request.data,nextStatus,{
+    bridgeState:bridgeState==="booking_confirmed"?"booking_confirmed":""});
+  if(!progressed.ok)throw new Error(progressed.reason);
+  const linkedStatus=await supabase.from("busy_mini_app_requests")
+    .update({status:nextStatus,updated_at:new Date().toISOString()})
+    .eq("id",requestId).eq("business_id",businessId)
+    .eq("status",request.data.status).select("id").maybeSingle();
+  if(linkedStatus.error)throw linkedStatus.error;
+  if(!linkedStatus.data&&!progressed.noChange)
+    throw new Error("Request status changed during linking; refresh before continuing.");
 
   if (
     request.data.consumer_user_id &&
