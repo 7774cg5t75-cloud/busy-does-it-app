@@ -11,7 +11,7 @@ import {voiceDurationState} from "../core/websiteVoiceRecordingPolicy.mjs";
  * not send any audio; only a separate user tap can request transcription.
  * Closing the editor discards the unsent recording, not the website draft.
  */
-function WebsiteSelectedVoice({selection,startImmediately=false,onTranscribe,onTranscript,contextLabel="selected element"}){
+function WebsiteSelectedVoice({selection,startImmediately=false,onTranscribe,onTranscript,contextLabel="selected element",editorKind="website"}){
  const recorder=useAudioRecorder(RecordingPresets.HIGH_QUALITY);
  const state=useAudioRecorderState(recorder,250);
  const working=React.useRef(false);
@@ -23,6 +23,7 @@ function WebsiteSelectedVoice({selection,startImmediately=false,onTranscribe,onT
  const [pendingUri,setPendingUri]=React.useState("");
  const [elapsedAtStop,setElapsedAtStop]=React.useState(0);
  const time=voiceDurationState(stage==="recording"?state.durationMillis:elapsedAtStop);
+ const forApp=editorKind==="app";
  React.useEffect(()=>{
   alive.current=true;
   return ()=>{
@@ -110,13 +111,13 @@ function WebsiteSelectedVoice({selection,startImmediately=false,onTranscribe,onT
   setPendingUri("");
   setElapsedAtStop(0);
   setStage("idle");
-  setMessage("Recording discarded. No audio was sent and no website was changed.");
+  setMessage("Recording discarded. No audio was sent and no builder change was made.");
  };
  const send=async()=>{
   if(stage!=="review"||!pendingUri||working.current)return;
   working.current=true;
   setStage("transcribing");
-  setMessage("Transcribing the recording for your review. No website changes are made.");
+  setMessage("Transcribing the recording for your review. No builder changes are made.");
   try{
    const result=await onTranscribe?.(pendingUri,selection);
    if(!alive.current)return;
@@ -127,7 +128,7 @@ function WebsiteSelectedVoice({selection,startImmediately=false,onTranscribe,onT
    setStage("idle");
    setMessage("Transcription ready. Check the words below, then explicitly apply your change."+
     (Number.isInteger(result.remaining)?" "+result.remaining+
-      " of 12 selected-website voice requests remain today (UTC).":""));
+      " of 12 "+(forApp?"app":"selected-website")+" voice requests remain today (UTC).":""));
   }catch(error){
    // Never retry a chargeable upload automatically. The owner must start
    // a new recording or type a request; avoid repeated unknown charges.
@@ -154,10 +155,11 @@ function WebsiteSelectedVoice({selection,startImmediately=false,onTranscribe,onT
  return <View style={{marginTop:12,marginBottom:10}}>
   <Text style={styles.sectionLabel}>Or say your change</Text>
   <Text style={styles.cardBody}>
-   {contextLabel==="page"?"This recording is for the entire current website page. Name the sections you want changed. No change is applied until you review, preview and approve. ":""}
+   {forApp?"This recording is only for the selected private app design element. BUSY returns text for your review and does not change or publish your app. ":
+    contextLabel==="page"?"This recording is for the entire current website page. Name the sections you want changed. No change is applied until you review, preview and approve. ":""}
    Tap Record, speak naturally, then tap Stop yourself. BUSY never stops because you pause.
    A clearly shown five-minute safety limit prevents accidental endless recording.
-   Voice transcription uses a cloud service and may incur usage cost. There is a 12-request daily allowance for this editing mode (UTC).
+   Voice transcription uses a cloud service and may incur usage cost. There is a separate 12-request daily allowance for this editing mode (UTC).
   </Text>
   {listening?(
    <View accessibilityLiveRegion="polite">
@@ -179,7 +181,7 @@ function WebsiteSelectedVoice({selection,startImmediately=false,onTranscribe,onT
    </>
   ):(
    button(listening?"■ Stop recording — keep it for review":
-     busy?"BUSY is preparing…":contextLabel==="page"?"🎙 Start recording page request":"🎙 Start recording this part",
+     busy?"BUSY is preparing…":forApp?"🎙 Start recording app change":contextLabel==="page"?"🎙 Start recording page request":"🎙 Start recording this part",
      listening?()=>stop(false):start,busy,listening?"#9F4F3E":"#285B92")
   )}
   {message?<Text accessibilityRole="alert" style={styles.cardBody}>{message}</Text>:null}
