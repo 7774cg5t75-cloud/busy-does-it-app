@@ -67,14 +67,17 @@ for(const item of [
 for(const item of [
   'import { WebView } from "react-native-webview";',
   'const liveConceptHtml = draft ? renderWebsiteHtml(draft,activePage?.id||"home") : "";',
-  'source={{ html: liveConceptHtml, baseUrl: "about:blank" }}',
-  'javaScriptEnabled={false}',
+  'source={{ html: interactiveHtml, baseUrl: "about:blank" }}',
+  'javaScriptEnabled={tapEditMode}',
+  'const [tapEditMode,setTapEditMode]=React.useState(false);',
   'domStorageEnabled={false}',
   'allowUniversalAccessFromFileURLs={false}',
   'href==="about:blank"||href.startsWith("about:blank#")',
   'Previewing does not publish your website',
   'Website Management & Go Live',
 ])yes(preview.includes(item),"Editable preview shows actual design safely: "+item);
+yes(preview.includes('const liveConceptHtml = draft ? renderWebsiteHtml(draft,activePage?.id||"home") : "";'),"Customer preview still derives from the same literal website renderer");
+yes(preview.includes('makeTapToEditHtml(renderWebsiteHtml(draft,activePage?.id||"home",{editablePreview:true}))'),"Editor script and annotations load only for the opt-in private draft view");
 yes(!preview.includes('Static website source is generated'),"No source-code presentation to customers");
 yes(hosted.includes('javaScriptEnabled={false}'),"signed immutable preview remains sandboxed");
 yes(publish.includes('reviewedHostedPreview!==preview.id'),"customer Go Live still needs explicit approval");
