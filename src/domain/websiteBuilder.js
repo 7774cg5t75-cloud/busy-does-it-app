@@ -171,7 +171,7 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
   // Rebuilding factual Brand Brain content must never discard owner-created
   // pages or their authored text. It is a content refresh, not a page deletion.
   const preserved=safeArray(previousDraft?.sections).filter(section=>
-    section?.type==="text"&&clean(section.id).startsWith("custom-"));
+    ["text","photo-feature"].includes(section?.type)&&clean(section.id).startsWith("custom-"));
   const sections=[...buildSections(brief),...preserved.map(section=>({...section}))];
   const theme=previousDraft?.theme&&typeof previousDraft.theme==="object"
     ? {...themeFromBrief(brief),...previousDraft.theme}
@@ -614,6 +614,10 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       const items=safeArray(section.items).filter(item=>clean(item?.title||item?.body));
       if(!items.length)return "";
       return `<section id="${escapeHtml(section.id)}"><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><div class="grid">${items.map(item=>`<article><h3>${escapeHtml(item.title)}</h3>${clean(item.body)?`<p>${escapeHtml(item.body)}</p>`:""}</article>`).join("")}</div></div></section>`;
+    }
+    if(section.type==="photo-feature"){
+      const image=approvedImage(section.asset);
+      return image? `<section class="photo-feature" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid"><img loading="lazy" src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}"><div><h2>${escapeHtml(section.title)}</h2><p>${escapeHtml(section.body).replace(/\\n/g,"<br>")}</p></div></div></section>`:"";
     }
     if(section.type==="gallery"){
       const images=safeArray(section.items).map(approvedImage).filter(Boolean);
