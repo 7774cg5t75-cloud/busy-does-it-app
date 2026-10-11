@@ -124,7 +124,7 @@ function WebsiteBuilder({ s }) {
     feedbackBusy.current=true;
     setFeedbackState({status:"saving",message:""});
     try{
-      await s.recordWebsiteDesignFeedback(choice);
+      await s.recordMeasuredWebsiteFeedback(choice);
       const updated=await s.readWebsiteDesignFeedback().catch(()=>null);
       if(updated?.scope==="current_business_only")
         setSavedStylePreferences(updated);
@@ -639,8 +639,8 @@ function WebsitePreview({ s }) {
     setDesignCandidateNotice("Testing an alternative in a private preview. Your original design is unchanged.");
   };
   const discardCandidate=()=>{
-    if(designCandidate&&draft&&s.recordWebsiteDesignFeedback)
-      s.recordWebsiteDesignFeedback({draftId:draft.id,pageId:activePage?.id,
+    if(designCandidate&&draft&&s.recordMeasuredWebsiteFeedback)
+      s.recordMeasuredWebsiteFeedback({draftId:draft.id,pageId:activePage?.id,
         changeId:designCandidate.id,choice:"disliked"});
     setDesignCandidate(null);setCandidateCheckOn(false);
     setCandidateCheckResult(null);
@@ -650,8 +650,8 @@ function WebsitePreview({ s }) {
     if(!candidateComparison?.valid||!candidateComparison.noNewMeasuredProblems||
        designCandidate?.baseGeneration!==draft?.generation)return;
     const saved=s.applyWebsiteLayoutAction(designCandidate.operation);
-    if(saved&&s.recordWebsiteDesignFeedback)
-      s.recordWebsiteDesignFeedback({draftId:draft.id,pageId:activePage?.id,
+    if(saved&&s.recordMeasuredWebsiteFeedback)
+      s.recordMeasuredWebsiteFeedback({draftId:draft.id,pageId:activePage?.id,
         changeId:designCandidate.id,choice:"liked"});
     if(saved){setDesignCandidate(null);setCandidateCheckResult(null);
       setDesignCandidateNotice("Saved in your private draft. Undo remains available. Recheck other screen sizes before publishing.");}
