@@ -3,13 +3,14 @@ import {KeyboardAvoidingView,Modal,Platform,SafeAreaView,ScrollView,Text,TextInp
 import {Button,Card,Field} from "../components/ui";
 import {styles} from "../theme/styles";
 import {interpretSelectedWebsiteRequest} from "../core/websiteContextualEdit.mjs";
+import {WebsiteSelectedVoice} from "./websiteSelectedVoice";
 
 const names={
  title:"Heading",body:"Wording",cta:"Button text",ctaHref:"Button destination",
  phone:"Phone number",email:"Email address",openingHours:"Opening hours",photo:"Photograph"
 };
 const list=x=>Array.isArray(x)?x:[];
-function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange}){
+function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange,onTranscribe}){
  const [value,setValue]=React.useState("");
  const [confirmRemove,setConfirmRemove]=React.useState(false);
  const [showSectionDesign,setShowSectionDesign]=React.useState(false);
@@ -143,15 +144,20 @@ function WebsiteTapEditor({draft,selection,onClose,onTextChange,onLayoutChange})
           onPress={()=>{setContextNote("");setShowContextHelp(x=>!x);}}/>
          {showContextHelp?(
           <View>
-           <Text style={styles.cardBody}>BUSY knows exactly what you tapped. Try a suggested change or type one simple instruction. These common edits are instant and use no AI credits.</Text>
+           <Text style={styles.cardBody}>BUSY knows exactly what you tapped. Try a suggested change, type an instruction or record your voice. Typed edits are local and use no AI credits; voice transcription uses a cloud service.</Text>
            {contextExamples.map(example=>(
             <Button key={example} label={example} onPress={()=>applyContext(example)}/>
            ))}
+           <WebsiteSelectedVoice key={key} selection={selection} onTranscribe={onTranscribe}
+            onTranscript={words=>{
+              setContextRequest(words);
+              setContextNote("Please check these words carefully. Nothing has changed yet.");
+            }}/>
            <Field label="What would you like to change?" value={contextRequest}
             onChangeText={setContextRequest}
             placeholder={field==="title"?"Make this heading bigger":"Describe one change to this selected part"}
             autoCapitalize="sentences"/>
-           <Button label="Apply to this selected part" primary
+           <Button label="Apply reviewed instruction to this part" primary
             onPress={()=>applyContext(contextRequest)}/>
            {contextNote?<Text style={styles.cardBody} accessibilityRole="alert">{contextNote}</Text>:null}
            <Text style={styles.cardBody}>Unrecognised requests are never guessed or published. More advanced editing still uses the controls below.</Text>
