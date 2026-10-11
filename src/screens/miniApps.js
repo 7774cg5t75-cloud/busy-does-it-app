@@ -2678,6 +2678,17 @@ function MiniAppPreview({ s }) {
           title="Busy remembers your design choices"
           body="Only this business's supported layout choices, your feedback and limited measurement counts are used. No screenshots, private customer records or free-form notes are saved as learning history."
           footer="Owner feedback improves suggestion ranking. It does not retrain the AI model or prove a design is successful.">
+          <Text style={styles.cardBody}>
+            {nextDesignExperiment?.preview?.ok?
+              "BUSY has a private design idea based on checked layouts and your preferences. You decide whether to use it.":
+              "BUSY is keeping your current design until there is a supported alternative worth reviewing."}
+          </Text>
+          {nextDesignExperiment?.preview?.ok?(
+            <Button label={"Preview Busy’s "+nextDesignExperiment.proposed.length+
+                " suggested improvement(s)"}
+              disabled={designMemoryBusy||!!s.miniAppsAction||virtualBusy}
+              onPress={prepareCoordinatedReview}/>
+          ):null}
           <Button label={showDesignMemory?
               "Hide design memory details":"Why is Busy recommending these designs?"}
             onPress={()=>setShowDesignMemory(x=>!x)}/>
@@ -2690,8 +2701,24 @@ function MiniAppPreview({ s }) {
                 <>
                   <MetricRow left="Private design decisions remembered"
                     right={String(designMemory.records.length)}/>
-                  <MetricRow left="Previously disliked choices suppressed"
-                    right={String(rankedDesign?.suppressedCount||0)}/>
+                  <MetricRow left="Disliked choices excluded"
+                    right={String(nextDesignExperiment?.suppressed?.length||0)}/>
+                  <MetricRow left="Repeated dislikes across revisions"
+                    right={String(ownerPatterns?.repeatedDislikeCount||0)}/>
+                  <MetricRow left="Mixed or changing preferences"
+                    right={String(ownerPatterns?.mixedPreferenceCount||0)}/>
+                  {(nextDesignExperiment?.reasoning||[]).slice(0,3).map((item,i)=>(
+                    <View key={"design-reason-"+i}>
+                      <MetricRow left={"BUSY proposes "+item.field} right={item.value}/>
+                      <Text style={styles.cardBody}>{"Why: "+item.why}</Text>
+                      <Text style={styles.cardBody}>{"Trade-off: "+item.tradeoff}</Text>
+                    </View>
+                  ))}
+                  {(nextDesignExperiment?.suppressed||[]).slice(0,3).map((item,i)=>(
+                    <Text key={"avoided-"+i} style={styles.cardBody}>
+                      {"Avoided "+item.field+": "+item.value+". "+item.reason}
+                    </Text>
+                  ))}
                   {(rankedDesign?.recommended||[]).slice(0,3).map(item=>(
                     <View key={"learned-choice-"+item.field}>
                       <MetricRow left={"Consider "+item.field} right={item.value}/>
@@ -2746,6 +2773,12 @@ function MiniAppPreview({ s }) {
           <Text style={styles.cardBody}>
             {iterationRecheck.nextAction}
           </Text>
+          {designOutcome?.ok?(
+            <Text style={styles.cardBody}>
+              {"BUSY's assessment: "+designOutcome.assessment.replaceAll("_"," ")+
+              ". Owner feedback and layout warnings cannot prove customer success."}
+            </Text>
+          ):null}
           {iterationRecheck.allSettingsApplied?(
             <>
               <Text style={styles.sectionLabel}>How is the saved design?</Text>
@@ -2823,12 +2856,10 @@ function MiniAppPreview({ s }) {
               ):null}
             </>
           ):null}
-          {(measuredSuggestions?.suggestions?.length||
-            visualReport?.suggestions?.length||responsiveSuggestions.length)?(
-            <Button label="Prepare coordinated design improvements"
-              disabled={virtualBusy||!!s.miniAppsAction}
-              onPress={prepareCoordinatedReview}/>
-          ):null}
+          <Text style={styles.cardBody}>
+            Use the simple recommendation above to prepare a private,
+            reversible design. Owner approval is required before saving.
+          </Text>
           <Text style={styles.cardBody}>
             BUSY prioritises real local measurements, then separately consented
             AI observations, then no-cost responsive rules. The result is an
