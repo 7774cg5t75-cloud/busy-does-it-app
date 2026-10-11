@@ -5,7 +5,7 @@
  */
 import {previewPrivateAppAppearance} from "./appAppearanceEditing.mjs";
 const MAX_JPEG_BASE64=800000;
-const FIELDS=new Set(["headerStyle","layoutDensity","navigationStyle","imageScale"]);
+const FIELDS=new Set(["headerStyle","layoutDensity","navigationStyle","imageScale","galleryLayout","imageCorners"]);
 // Public screenshots may still include phone/email contact information.
  // Model observations must not repeat that information back as AI prose.
 const text=(x,max)=>typeof x==="string"?x.trim().slice(0,max)

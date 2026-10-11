@@ -3638,7 +3638,7 @@ async function reviewAppDesignScreenshot(businessId:string,body:any,requestKey:s
    "Report only clearly visible issues of spacing, hierarchy, navigation, image size and legibility. Never infer prices, bookings or missing backend features.",
    "Never copy personal data or contact details from this screenshot into your answer.",
    "Return at most three supported design suggestions. You are NOT authorised to make edits.",
-   'Allowed fields and values: headerStyle (quiet,bold,refined), layoutDensity (comfortable,compact,airy), navigationStyle (tabs,list), imageScale (regular,large).',
+   'Allowed fields and values: headerStyle (quiet,bold,refined), layoutDensity (comfortable,compact,airy), navigationStyle (tabs,list), imageScale (regular,large), galleryLayout (grid,stack), imageCorners (rounded,square).',
    'Return JSON only: {"summary":"...", "observations":["..."], "suggestions":[{"field":"layoutDensity","value":"airy","reason":"..."}]}.',
    "If evidence is insufficient, return an empty suggestions array."
   ].join("\n");
