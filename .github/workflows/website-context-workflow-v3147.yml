@@ -1,0 +1,68 @@
+name: V3.147 selected multi-step editing and responsive review safety
+on:
+  push:
+    branches: [v3.147]
+    paths:
+      - 'src/core/websiteContextPlan.mjs'
+      - 'src/core/websiteViewportEvidence.mjs'
+      - 'src/core/websiteTapToEdit.mjs'
+      - 'src/screens/websiteTapEditor.js'
+      - 'src/screens/websiteBuilder.js'
+      - 'src/app/AppController.js'
+      - 'scripts/check-website-context-plan-v3147.mjs'
+      - 'scripts/check-website-viewport-coverage-v3147.mjs'
+      - 'scripts/check-website-context-plan-browser-v3147.mjs'
+      - '.github/workflows/website-context-workflow-v3147.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  context-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 48
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Verify selected multi-step transactions, viewport coverage and historical regressions
+        run: |
+          node scripts/check-website-context-plan-v3147.mjs
+          node scripts/check-website-viewport-coverage-v3147.mjs
+          node scripts/check-universal-context-toolbar-v3146.mjs
+          node scripts/check-website-deeper-review-v3145.mjs
+          node scripts/check-website-measured-coach-v3144.mjs
+          node scripts/check-website-visual-inspection-v3143.mjs
+          node scripts/check-website-voice-reliability-v3142.mjs
+          node scripts/check-website-voice-selection-v3141.mjs
+          node scripts/check-website-context-v3140.mjs
+          node scripts/check-website-section-styling-v3139.mjs
+          node scripts/check-website-tap-editor-v3138.mjs
+          node scripts/check-website-layout-v3134.mjs
+          node scripts/check-website-pages-v3135.mjs
+          node scripts/check-website-standalone-v3136.mjs
+          node scripts/check-website-original-media-v3137.mjs
+          node scripts/check-professional-websites-v399.mjs
+          node scripts/check-production.mjs
+      - name: Install native JS and Playwright Chromium requirements
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Verify narrow touch controls and full responsive visual quality
+        run: |
+          node scripts/check-website-context-plan-browser-v3147.mjs
+          node scripts/check-universal-context-toolbar-browser-v3146.mjs
+          node scripts/check-website-tap-browser-v3138.mjs
+          node scripts/check-website-context-browser-v3140.mjs
+          node scripts/check-website-contrast-browser-v3145.mjs
+          node scripts/check-website-screenshot-loop-v3144.mjs
+          node scripts/check-website-visual-browser-v3143.mjs
+          node scripts/check-website-section-browser-v3139.mjs
+      - name: Export unsigned native iOS and Android JavaScript
+        run: |
+          npx expo export --platform ios --output-dir /tmp/busy-v3147-ios-js
+          npx expo export --platform android --output-dir /tmp/busy-v3147-android-js
+      - name: Deployment and spending boundary
+        run: echo "No production publishing, signed build, paid model call, transcription request, hosted schema change or live domain update."
