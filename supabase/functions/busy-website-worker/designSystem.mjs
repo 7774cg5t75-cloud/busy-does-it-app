@@ -225,6 +225,11 @@ main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:4
 .visual-type-compact h1{font-size:clamp(2.8rem,6.4vw,5.2rem);letter-spacing:-.04em}
 .visual-type-compact h2{font-size:clamp(1.9rem,3.1vw,2.8rem)}
 
+/* V3.141: selected approved gallery image crop, independent of its siblings.
+   The ID specificity beats section-wide photo focus presets. */
+#gallery .gallery-image.owner-image-crop-top{object-position:center top}
+#gallery .gallery-image.owner-image-crop-bottom{object-position:center bottom}
+#gallery .gallery-image.owner-image-crop-center{object-position:center center}
 /* V3.140: a tapped service, question or testimonial title has its own
    size. Retain the website family's typeface and readable responsive limits. */
 h3.owner-item-heading-large{font-size:clamp(1.45rem,2.7vw,2rem)}
