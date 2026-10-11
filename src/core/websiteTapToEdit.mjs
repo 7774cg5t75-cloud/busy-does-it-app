@@ -35,7 +35,7 @@ function makeTapToEditHtml(html){
  const script=`<script>(function(){
   "use strict";
   var previous=null,toolbar=null,anchor=null;
-  var labels={photo:"Replace",title:"Edit",body:"Edit",cta:"Edit",ctaHref:"Edit",
+  var labels={section:"Adjust",photo:"Replace",title:"Edit",body:"Edit",cta:"Edit",ctaHref:"Edit",
    phone:"Edit",email:"Edit",openingHours:"Edit"};
   function bridge(action){
    if(!previous)return;
