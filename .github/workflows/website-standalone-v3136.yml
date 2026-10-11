@@ -1,0 +1,60 @@
+name: V3.136 verified portable website ZIP and photo blocks
+on:
+  push:
+    branches: [v3.136]
+    paths:
+      - 'src/core/websiteZipArchive.mjs'
+      - 'src/core/websiteStandaloneArchive.mjs'
+      - 'src/core/websiteSourceExport.mjs'
+      - 'src/domain/websiteBuilder.js'
+      - 'src/app/AppController.js'
+      - 'src/screens/websiteBuilder.js'
+      - 'src/screens/websitePagesEditor.js'
+      - 'supabase/functions/busy-website-worker/**'
+      - 'scripts/check-website-standalone-v3136.mjs'
+      - 'scripts/check-website-zip-content-v3136.py'
+      - 'scripts/check-website-zip-browser-v3136.mjs'
+      - '.github/workflows/website-standalone-v3136.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  self-hostable-static-export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Test website edit engines and build a fictional complete ZIP
+        run: |
+          node scripts/check-website-edit-freedom-v3102.mjs
+          node scripts/check-website-direct-edit-v3133.mjs
+          node scripts/check-website-layout-v3134.mjs
+          node scripts/check-website-pages-v3135.mjs
+          node scripts/check-website-standalone-v3136.mjs
+          node scripts/check-snack-dependencies.mjs
+          node scripts/check-production.mjs
+      - name: Validate archive using independent Python ZIP reader
+        run: python3 scripts/check-website-zip-content-v3136.py
+      - name: Install JS tooling and Chromium
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Verify offline links, original pictures and responsive layouts
+        run: node scripts/check-website-zip-browser-v3136.mjs
+      - name: Export real iOS JavaScript without signing or cloud builds
+        run: npx expo export --platform ios --output-dir /tmp/busy-v3136-ios-js-only
+      - name: Archive fictional offline screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3136-verified-static-website-browser-evidence
+          path: /tmp/busy-v3136-zip/evidence/*.png
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Confirm no production deployment or EAS charges
+        run: echo "No staging deploy, public publish, cloud photo read, DNS changes, paid AI or signed iOS build."
