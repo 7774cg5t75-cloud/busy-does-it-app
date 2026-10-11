@@ -1,6 +1,6 @@
 import React from "react";
-import { Image, Text, View, Dimensions, Platform } from "react-native";
-import {captureScreen} from "react-native-view-shot";
+import { Image, Text, View, Dimensions, Platform, Alert } from "react-native";
+import {captureRef} from "react-native-view-shot";
 import QRCode from "react-native-qrcode-svg";
 
 import { styles } from "../theme/styles";
@@ -16,6 +16,7 @@ import {proposeCoordinatedAppChanges,planAppVoiceInstructions} from "../core/app
 import {appDesignQualityReport} from "../core/appDesignQuality.mjs";
 import {appRequestJourney} from "../core/appRequestLifecycle.mjs";
 import {appVisibleCaptureReceipt,currentAppVisibleCapture} from "../core/appRenderedEvidence.mjs";
+import {previewAppVisualSuggestion} from "../core/appVisualReviewContract.mjs";
 import {WebsiteSelectedVoice} from "./websiteSelectedVoice";
 
 function readableDate(value, fallback = "Not yet") {
@@ -1176,6 +1177,34 @@ function MiniAppBuilder({ s }) {
                   setStudioPreview(plan.ok?plan:null);
                   setStudioNotice(plan.ok?"Review all services below before saving.":plan.reason);
                 }}/>
+              {serviceIndex>=0&&
+                (view.draftConfig.publicProfile?.services||[]).length>1?(
+                <>
+                  {[
+                    ["up","Move this service earlier"],
+                    ["down","Move this service later"]
+                  ].map(([direction,label])=>(
+                    <Button key={direction} label={"Preview: "+label}
+                      disabled={!!s.miniAppsAction}
+                      onPress={()=>{
+                        const previous=(view.draftConfig.publicProfile?.services||[])
+                          .map(x=>({...x}));
+                        const destination=serviceIndex+(direction==="up"?-1:1);
+                        if(destination<0||destination>=previous.length){
+                          setStudioNotice("The service is already at that end of the list.");
+                          return;
+                        }
+                        const [item]=previous.splice(serviceIndex,1);
+                        previous.splice(destination,0,item);
+                        const proposed=proposeCoordinatedAppChanges(view.draftConfig,
+                          [{kind:"services",value:previous}]);
+                        setStudioPreview(proposed.ok?proposed:null);
+                        setStudioNotice(proposed.ok?
+                          "Preview the reordered service list, then approve or discard.":proposed.reason);
+                      }}/>
+                  ))}
+                </>
+              ):null}
               {serviceIndex>=0?(
                 <Button label="Preview removal of this service"
                   disabled={!!s.miniAppsAction}
@@ -1746,22 +1775,64 @@ function MiniAppPreview({ s }) {
   const [capture,setCapture]=React.useState(null);
   const [captureBusy,setCaptureBusy]=React.useState(false);
   const [captureError,setCaptureError]=React.useState("");
-  React.useEffect(()=>{setCapture(null);setCaptureError("");},[appId,revision,view.previewVersion?.id]);
+  const [visualAllowance,setVisualAllowance]=React.useState(null);
+  const [visualReport,setVisualReport]=React.useState(null);
+  const [visualBusy,setVisualBusy]=React.useState(false);
+  const [visualProposal,setVisualProposal]=React.useState(null);
+  const [visualNotice,setVisualNotice]=React.useState("");
+  const appSurfaceRef=React.useRef(null);
+  React.useEffect(()=>{
+    setCapture(null);setCaptureError("");setVisualReport(null);
+    setVisualProposal(null);setVisualAllowance(null);setVisualNotice("");
+  },[appId,revision,view.previewVersion?.id]);
   const takeScreenCapture=async()=>{
     setCaptureBusy(true);setCaptureError("");setCapture(null);
     try{
-      const uri=await captureScreen({format:"png",result:"tmpfile"});
+      if(!appSurfaceRef.current)throw Error("Open the current customer-only app preview first.");
+      // Capture precisely the public app surface, excluding editor toolbars,
+      // account controls, messages and the rest of the device screen.
+      const uri=await captureRef(appSurfaceRef.current,{
+        format:"jpg",quality:0.4,result:"tmpfile"
+      });
       const window=Dimensions.get("window");
       const proof=appVisibleCaptureReceipt({appId,revision,screenshotUri:uri,
         width:Math.round(window.width),height:Math.round(window.height),
         platform:Platform.OS,capturedAt:new Date().toISOString()});
       if(!proof.ok)throw Error(proof.reason||"Capture could not be checked.");
-      setCapture(proof);
+      setCapture({...proof,captureScope:"public_app_only",mimeType:"image/jpeg"});
+      setVisualReport(null);setVisualProposal(null);
+      setVisualAllowance(null);setVisualNotice("");
     }catch(error){
       setCaptureError(String(error?.message||"Could not capture this device screen.").slice(0,250));
     }finally{setCaptureBusy(false);}
   };
   const captureCurrent=currentAppVisibleCapture(capture,{appId,revision});
+  const refreshVisualAllowance=async()=>{
+    const status=await s.checkPrivateAppVisualReview?.();
+    setVisualAllowance(status||{enabled:false,remaining:0,
+      reason:"App visual review is not available."});
+  };
+  const approveVisualAI=()=>{
+    if(!captureCurrent||capture?.captureScope!=="public_app_only"||
+      visualAllowance?.enabled!==true||visualAllowance.remaining<1||visualBusy)return;
+    Alert.alert("Send this private app preview to AI?",
+      "Only the owner-approved public-facing app preview image will be sent for a design-only review. One of this business's monthly AI reviews will be used. The screenshot will not be saved by BUSY. No changes are made automatically.",
+      [{text:"Cancel",style:"cancel"},{text:"Approve one AI review",
+        onPress:async()=>{
+          setVisualBusy(true);setVisualNotice("");setVisualProposal(null);
+          const result=await s.reviewPrivateAppScreenshot?.({
+            appId,expectedRevision:revision,uri:capture.uri,
+            captureScope:"public_app_only"
+          });
+          if(result?.ok){
+            setVisualReport(result.review);
+            setVisualAllowance(result.status);
+            setVisualNotice("AI inspected this owner-submitted image. Compare the suggestions yourself; nothing was applied.");
+          }else setVisualNotice(result?.reason||
+            "AI review was unavailable. Your existing private app has not changed.");
+          setVisualBusy(false);
+        }}]);
+  };
   return (
     <Shell
       s={s}
@@ -1779,12 +1850,12 @@ function MiniAppPreview({ s }) {
         tone="green"
       />
       {config&&appId&&revision>0?(
-        <Card eyebrow="V3.158 • Real rendered screenshot"
-          title="Inspect what is actually on this device"
-          body="Capture the visible native app screen. This is a local screenshot of actual pixels, not an AI design review. Scroll and capture other sections separately."
-          footer="The capture stays in a temporary file on this device. No cloud upload or AI analysis happens here."
+        <Card eyebrow="V3.159 • Private app design reviewer"
+          title="Inspect your real app preview"
+          body="Capture ONLY the rendered customer-facing app area. Account controls, editing tools and private customer records are excluded. This is an owner-submitted screenshot, not independent device verification."
+          footer="Local capture is free. AI review requires separate opt-in, configured usage allowance and approval for each submission."
           tone="blue">
-          <Button label={captureBusy?"Capturing screen…":"Capture visible screen"}
+          <Button label={captureBusy?"Capturing app preview…":"Capture visible screen (app only)"}
             disabled={captureBusy} onPress={takeScreenCapture}/>
           {captureError?<Text style={styles.cardBody}>{captureError}</Text>:null}
           {captureCurrent?(
@@ -1793,16 +1864,84 @@ function MiniAppPreview({ s }) {
                 capture.width+" × "+capture.height}/>
               <Text style={styles.cardBody}>
                 Check readability, image cropping, touch targets and spacing.
-                This is not proof that the design works on other devices.
+                This image contains the public preview only; no upload occurs
+                unless you separately approve an AI review.
               </Text>
               <Image source={{uri:capture.uri}} resizeMode="contain"
                 style={{width:"100%",height:295,borderRadius:12,marginTop:10}}/>
+              <Button label="Check my private AI design review allowance"
+                disabled={visualBusy}
+                onPress={refreshVisualAllowance}/>
+              {visualAllowance?(
+                <Text style={styles.cardBody}>
+                  {visualAllowance.enabled?
+                    visualAllowance.remaining+" of "+visualAllowance.monthlyLimit+
+                    " monthly reviews available.":visualAllowance.reason}
+                </Text>
+              ):null}
+              {visualAllowance?.enabled===true&&visualAllowance.remaining>0?(
+                <Button label={visualBusy?"Reviewing screenshot…":"Ask AI to inspect this screenshot"}
+                  disabled={visualBusy||!!s.miniAppsAction}
+                  onPress={approveVisualAI}/>
+              ):null}
+              {visualNotice?<Text style={styles.cardBody}>{visualNotice}</Text>:null}
+              {visualReport?.ok?(
+                <>
+                  <Text style={styles.sectionLabel}>AI design observations</Text>
+                  <Text style={styles.cardBody}>{visualReport.summary}</Text>
+                  {(visualReport.observations||[]).map((item,i)=>(
+                    <MetricRow key={"observed-"+i} left={"Observation "+(i+1)}
+                      right={item}/>
+                  ))}
+                  {(visualReport.suggestions||[]).map((item,i)=>(
+                    <Button key={"visual-proposal-"+i}
+                      label={"Preview "+item.field+": "+item.value}
+                      disabled={!!s.miniAppsAction}
+                      onPress={()=>{
+                        const proposed=previewAppVisualSuggestion(config,item);
+                        setVisualProposal(proposed.ok?proposed:null);
+                        if(!proposed.ok)setVisualNotice(proposed.reason);
+                      }}/>
+                  ))}
+                  {!visualReport.suggestions?.length?(
+                    <Text style={styles.cardBody}>
+                      No supported design change was proposed from this image.
+                    </Text>
+                  ):null}
+                  <Text style={styles.cardBody}>
+                    A single screenshot does not prove good design on other devices.
+                    BUSY has not edited, published or verified working bookings.
+                  </Text>
+                  {visualProposal?.ok?(
+                    <>
+                      <Text style={styles.sectionLabel}>Alternative private design</Text>
+                      <Text style={styles.cardBody}>{visualProposal.reason}</Text>
+                      <MiniAppSurface config={visualProposal.nextConfig}/>
+                      <Button primary label="Approve this private design change"
+                        disabled={!!s.miniAppsAction}
+                        onPress={async()=>{
+                          const saved=await s.saveCoordinatedAppChanges?.({
+                            appId,expectedRevision:revision,
+                            operations:[visualProposal.operation]
+                          });
+                          if(saved?.ok){
+                            setVisualProposal(null);setVisualReport(null);setCapture(null);
+                            setVisualNotice("The approved change was saved to your PRIVATE draft. Prepare another preview to inspect it.");
+                          }else setVisualNotice("The private draft could not be safely updated. Refresh and retry.");
+                        }}/>
+                      <Button label="Keep my original design" onPress={()=>setVisualProposal(null)}/>
+                    </>
+                  ):null}
+                </>
+              ):null}
             </>
           ):null}
         </Card>
       ):null}
       {config ? (
-        <MiniAppSurface config={config} />
+        <View ref={appSurfaceRef} collapsable={false}>
+          <MiniAppSurface config={config} />
+        </View>
       ) : (
         <Card
           eyebrow="Preview"
