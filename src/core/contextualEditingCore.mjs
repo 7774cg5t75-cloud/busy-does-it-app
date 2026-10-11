@@ -5,12 +5,12 @@
  */
 const ACTION_CHANNEL="busy.contextual-action.v1";
 const ACTIONS=Object.freeze(["edit","voice","more"]);
-const TYPES=Object.freeze({photo:"picture",title:"heading",body:"text",
+const TYPES=Object.freeze({section:"section",photo:"picture",title:"heading",body:"text",
  cta:"button",ctaHref:"button",phone:"text",email:"text",openingHours:"text"});
 function contextualToolbarPolicy(type){
  const kind=TYPES[type]||null;
  if(!kind)return null;
- return Object.freeze({kind,primary:kind==="picture"?"Replace":"Edit",
+ return Object.freeze({kind,primary:kind==="picture"?"Replace":kind==="section"?"Adjust":"Edit",
   voiceLabel:"Talk to Busy about this "+kind,
   otherLabel:"More options for this "+kind,actions:ACTIONS});
 }
