@@ -144,6 +144,13 @@ jobs:
           node scripts/check-website-responsive-preview-v3148.mjs
           node scripts/check-website-event-layout-v3148.mjs
 
+      - name: Verify V3.149 owner-controlled layout, page instructions and recovery
+        run: |
+          node scripts/check-website-device-edits-v3149.mjs
+          node scripts/check-website-page-instructions-v3149.mjs
+          node scripts/check-website-recovery-v3149.mjs
+          node scripts/check-website-portfolio-v3149.mjs
+
       - name: Verify Expo Snack module dependency graph
         run: node scripts/check-snack-dependencies.mjs
 

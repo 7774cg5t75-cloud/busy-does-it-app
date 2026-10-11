@@ -20,6 +20,8 @@ jobs:
         run: |
           node scripts/check-website-device-edits-v3149.mjs
           node scripts/check-website-page-instructions-v3149.mjs
+          node scripts/check-website-recovery-v3149.mjs
+          node scripts/check-website-portfolio-v3149.mjs
           node scripts/check-website-context-plan-v3147.mjs
           node scripts/check-website-selection-preview-v3148.mjs
           node scripts/check-website-responsive-preview-v3148.mjs
