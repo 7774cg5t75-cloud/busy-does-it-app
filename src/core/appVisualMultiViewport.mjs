@@ -17,7 +17,9 @@ const VIEWPORTS=Object.freeze([
 const SAFE_URI=/^(?:file:\/\/|\/(?:data|private|var)\/|content:\/\/)[^\s]+$/i;
 const UUID=/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
 const getViewport=id=>VIEWPORTS.find(x=>x.id===id)||null;
-const plain=v=>typeof v==="string"?v.trim().slice(0,180):"";
+const plain=v=>typeof v==="string"?v.trim().slice(0,180)
+ .replace(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi,"[email withheld]")
+ .replace(/\+?\d[\d ()-]{7,}\d/g,"[phone withheld]"):"";
 
 function validateViewportPair({appId,revision,viewportId,before,after,operations}={}){
  const profile=getViewport(viewportId);
@@ -32,7 +34,8 @@ function validateViewportPair({appId,revision,viewportId,before,after,operations
      !Number.isInteger(image.pixelWidth)||
      !Number.isInteger(image.pixelHeight)||image.pixelHeight<64||
      image.pixelWidth<profile.width||image.pixelWidth>profile.width*5||
-     image.pixelHeight>20000||image.sizeBytes<512||image.sizeBytes>590000||
+     image.pixelHeight>20000||!Number.isInteger(image.sizeBytes)||
+     image.sizeBytes<512||image.sizeBytes>590000||
      image.scope!=="public_app_only"||
      image.appId!==appId||image.revision!==revision)
    return {ok:false,reason:"The two local customer-only JPEG captures do not match this layout width and private revision."};
