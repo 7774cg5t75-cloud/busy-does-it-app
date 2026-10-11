@@ -37,4 +37,27 @@ function summarizeWebsiteViewportEvidence(state,{draftId,generation,pageId}={}){
  return {checked,outstanding,warnings,completePreviewWidths:outstanding.length===0,
   message,notAReleaseApproval:true};
 }
-export {classifyWidth,recordWebsiteViewportEvidence,summarizeWebsiteViewportEvidence};
+/**
+ * V3.149 — Compare actual screen-width measurements. This is DOM evidence,
+ * not a generative AI screenshot critique or permission to publish.
+ */
+function reviewWebsiteViewportPortfolio(state,{draftId,generation,pageId}={}){
+ const summary=summarizeWebsiteViewportEvidence(state,{draftId,generation,pageId});
+ const key=[draftId,generation,pageId].join(":");
+ const checks=state?.key===key?state.checks:{};
+ const missing=["phone","tablet","wide"].filter(x=>!summary.checked.includes(x));
+ const flagged=summary.checked.filter(x=>Array.isArray(checks[x]?.commonIssues)&&
+  checks[x].commonIssues.length>0);
+ const name={phone:"Phone",tablet:"Tablet",wide:"Desktop"};
+ const details=flagged.map(x=>name[x]+": "+checks[x].commonIssues.slice(0,3).join(", "));
+ const message=details.length
+  ?"These layouts have different measured problems: "+details.join("; ")+
+   ". Compare them and check the real hosted site."
+  :missing.length
+   ?"Checks still needed at: "+missing.map(x=>name[x]).join(", ")+
+    ". This is not proof of design quality."
+   :"No common measured warnings across phone, tablet and desktop. Inspect appearance and real devices before publishing.";
+ return {checked:summary.checked,missing,flagged,message,
+  measuredOnly:true,notAiAestheticReview:true,notReleaseApproval:true};
+}
+export {classifyWidth,recordWebsiteViewportEvidence,summarizeWebsiteViewportEvidence,reviewWebsiteViewportPortfolio};
