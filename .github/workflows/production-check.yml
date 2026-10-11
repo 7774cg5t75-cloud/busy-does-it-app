@@ -106,6 +106,9 @@ jobs:
       - name: Verify first-render Autopilot and inbox initialization
         run: node scripts/check-app-first-render.mjs
 
+      - name: Verify safe website tap-to-edit controls
+        run: node scripts/check-website-tap-editor-v3138.mjs
+
       - name: Verify Expo Snack module dependency graph
         run: node scripts/check-snack-dependencies.mjs
 
