@@ -73,8 +73,8 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
   value:states.sectionSpacing[m[1].toLowerCase()]},"Adjust spacing around only this section.");
  if(field==="photo"){
   if(section.type==="gallery"){
-   if(/^(?:show|fit) (?:this|that|the selected) (?:whole |entire )?(?:photo|image|picture) (?:completely|fully|entirely)?$/i.test(text)||
-      /^(?:show|fit) (?:the )?(?:whole|entire) (?:photo|image|picture)$/i.test(text))
+   if(/^(?:show|fit) (?:this|that|the selected) (?:whole |entire )?(?:photo|image|picture|photograph) (?:completely|fully|entirely)?$/i.test(text)||
+      /^(?:show|fit) (?:the )?(?:whole|entire) (?:photo|image|picture|photograph)$/i.test(text))
     return success("layout",{action:"image-style",sectionId,photoIndex:selection.photoIndex,
       field:"photoFit",value:"contain"},"Show the entire selected gallery picture.");
    if(/^(?:fill|crop) (?:this|that|the selected) (?:photo|image|picture) (?:frame|tile)$/i.test(text))
