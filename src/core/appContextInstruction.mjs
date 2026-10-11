@@ -21,7 +21,7 @@ function interpretSelectedAppAppearance(config,{selected,text}={}){
   else if(/\b(comfortable|normal|balanced)\b/.test(raw))value="comfortable";
  }else if(field==="navigationStyle"){
   if(/\b(list|vertical)\b/.test(raw))value="list";
-  else if(/\b(tab|horizontal)\b/.test(raw))value="tabs";
+  else if(/\b(tabs?|horizontal)\b/.test(raw))value="tabs";
  }
  if(!value)return {ok:false,reason:"Try describing a header as bold or subtle, spacing as roomy or compact, or navigation as tabs or a list."};
  const proof=previewPrivateAppAppearance(config,{field,value});
