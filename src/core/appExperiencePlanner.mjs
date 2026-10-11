@@ -42,7 +42,7 @@ function planFunctionalBusinessApp({businessType="",businessName="",businessGoal
  const prioritised=ordered.filter(x=>x==="business_profile");
  for(const key of [signals.booking?"booking_request":null,
    signals.gallery?"gallery":null,signals.enquiry?"enquiry":null])
-  if(key&&ordered.includes(key)&&!prioritised.includes(key))prioritised.push(key);
+  if(key&&available.has(key)&&!prioritised.includes(key))prioritised.push(key);
  const priorityOrder=[...prioritised,...ordered.filter(key=>!prioritised.includes(key))];
  const suggestions=priorityOrder.filter(key=>available.has(key)).map(key=>{
   const row=available.get(key);
