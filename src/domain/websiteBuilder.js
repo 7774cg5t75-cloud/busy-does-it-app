@@ -682,7 +682,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     item?.appearance?.headingScale==="compact"?' class="owner-item-heading-compact"':"";
   const sectionHtml = orderedSections.map(section=>{
     const sectionClasses=sectionAppearanceClasses(section);
-    const sectionAttrs=sectionClasses?` class="${sectionClasses}"`:"";
+    const sectionAttrs=(sectionClasses?` class="${sectionClasses}"`:"")+editAttrs(section,"section");
     if(section.type==="hero"){
       const url=approvedImage(section.asset);
       const art=url
@@ -702,7 +702,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       const actionText=missingTarget?"Explore our services":clean(section.cta);
       const action=actionText&&actualHref
         ? `<a class="cta"${editAttrs(section,"cta")} href="${escapeHtml(actualHref)}">${escapeHtml(actionText)}</a>` : "";
-      return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}</div>${art}</div></section>`;
+      return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"${editAttrs(section,"section")}><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}</div>${art}</div></section>`;
     }
     if(section.type==="services"||section.type==="faq"||section.type==="testimonials"){
       const items=safeArray(section.items).filter(item=>clean(item?.title||item?.body));
@@ -711,7 +711,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     }
     if(section.type==="photo-feature"){
       const image=approvedImage(section.asset);
-      return image? `<section class="photo-feature${sectionClasses?" "+sectionClasses:""}" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid"><img loading="lazy"${editAttrs(section,"photo")} src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}"><div><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></div></section>`:"";
+      return image? `<section class="photo-feature${sectionClasses?" "+sectionClasses:""}" id="${escapeHtml(section.id)}"${editAttrs(section,"section")}><div class="wrap photo-feature-grid"><img loading="lazy"${editAttrs(section,"photo")} src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}"><div><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></div></section>`:"";
     }
     if(section.type==="gallery"){
       const images=safeArray(section.items).map(approvedImage).filter(Boolean);
