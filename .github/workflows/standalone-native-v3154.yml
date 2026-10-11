@@ -21,6 +21,7 @@ jobs:
       - name: Verify verified-billing boundary and safe native screen specification
         run: |
           node scripts/check-standalone-native-v3154.mjs
+          node scripts/check-app-appearance-v3154.mjs
           node scripts/check-app-builder-dual-track-v3153.mjs
           node scripts/check-builder-handoff-v3152.mjs
           node scripts/check-production.mjs
