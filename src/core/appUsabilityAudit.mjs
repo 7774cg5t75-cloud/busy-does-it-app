@@ -18,7 +18,7 @@ function auditBusinessAppUsability(config){
    issues.push({id,severity,message,suggestion,kind:"static_configuration"});
  };
  if(!safe(profile.businessName)&&!safe(config?.display?.name))
-  add("identity","important","The app has no public business name.","Add the approved business name before release.");
+  add("business_identity","important","The app has no public business name.","Add the approved business name before release.");
  else passed.push("business_name_present");
  if(enabled.length>7)add("navigation_length","advisory",
   "There are many main sections for a small mobile screen.",
