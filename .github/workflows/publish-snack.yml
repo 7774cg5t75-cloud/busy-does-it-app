@@ -6,11 +6,13 @@ on:
       - 'v*'
     paths-ignore:
       - SNACK_PREVIEW.json
+      - 'docs/**'
   pull_request:
     branches:
       - main
     paths-ignore:
       - SNACK_PREVIEW.json
+      - 'docs/**'
   workflow_dispatch:
 
 permissions:
@@ -53,7 +55,22 @@ jobs:
             echo "Preview metadata unchanged"
           else
             git commit -m "Update Snack preview [skip ci]"
-            git push
+            # The development agent may have added another commit while the
+            # preview was uploading. Retry a normal fast-forward integration;
+            # never force-push or overwrite somebody else's work.
+            for attempt in 1 2 3; do
+              if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+                echo "Snack preview link saved"
+                break
+              fi
+              if [ "${attempt}" -eq 3 ]; then
+                echo "Could not safely update preview metadata after retries"
+                exit 1
+              fi
+              git fetch origin "${GITHUB_REF_NAME}"
+              git rebase "origin/${GITHUB_REF_NAME}"
+              sleep "${attempt}"
+            done
           fi
 
       - name: Upload preview metadata
