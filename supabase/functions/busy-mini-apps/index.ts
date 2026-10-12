@@ -1644,14 +1644,14 @@ async function ownerStatus(businessId: string) {
     supabase
       .from("busy_mini_app_requests")
       .select(
-        "id,version_id,module_key,request_type,status,payload,consumer_user_id,contact_name,contact_email,contact_phone,service_name,preferred_date_text,request_origin,identity_assurance,guest_proof_verified_at,business_unread_count,customer_unread_count,last_business_read_at,last_customer_read_at,created_at,updated_at"
+        "id,business_id,mini_app_id,version_id,module_key,request_type,status,payload,consumer_user_id,contact_name,contact_email,contact_phone,service_name,preferred_date_text,request_origin,identity_assurance,guest_proof_verified_at,business_unread_count,customer_unread_count,last_business_read_at,last_customer_read_at,created_at,updated_at"
       )
       .eq("mini_app_id", app.id)
       .order("created_at", { ascending: false })
       .limit(30),
     supabase
       .from("busy_mini_app_request_links")
-      .select("request_id,customer_record_id,action_record_id,bridge_state,linked_at,updated_at,metadata")
+      .select("request_id,business_id,customer_record_id,action_record_id,bridge_state,linked_at,updated_at,metadata")
       .eq("business_id", businessId)
       .order("linked_at", { ascending: false })
       .limit(100),
