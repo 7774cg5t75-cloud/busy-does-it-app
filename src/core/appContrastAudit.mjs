@@ -3,7 +3,7 @@
  * palette combinations. These are measured token ratios, NOT screenshot
  * OCR, image-on-image contrast or a full accessibility/WCAG certification.
  */
-import {nativePalette,DEFAULT_PALETTE} from "../../standalone/template/nativePalette.mjs";
+import {nativePalette,DEFAULT_PALETTE} from "./nativePalette.mjs";
 const NATIVE_SHELL_PALETTE=nativePalette(DEFAULT_PALETTE);
 function relativeLuminance(hex){
  if(typeof hex!=="string"||!/^#[a-f0-9]{6}$/i.test(hex))
