@@ -49,6 +49,8 @@ assert.equal(single.ownerEditsRequired,true);
 assert.equal(single.noPricesInvented,true);
 assert.equal(single.noPublishing,true);
 assert.equal(single.noGeneratedClaims,true);
+assert.equal(JSON.stringify(single).includes("Consultation"),false,
+ "Audit must not expose raw service wording");
 assert.equal(JSON.stringify(single).includes("do-not-read@example.invalid"),false);
 assert.equal(JSON.stringify(single).includes("Original description"),false);
 const site=reviewBusinessInformation({websiteDraft:web,brandBrain:brand});
@@ -71,6 +73,12 @@ assert.equal(both.websiteServiceCount,1);
 assert.equal(both.appServiceCount,3);
 assert.equal(JSON.stringify(both).includes("Original business description"),false);
 assert.equal(reviewBusinessInformation({}).ok,false);
+const disabled=mkApp();
+disabled.modules=disabled.modules.map(m=>m.key==="services"?{...m,enabled:false}:m);
+const disabledReview=reviewBusinessInformation({appConfig:disabled});
+assert.equal(disabledReview.appServicesEnabled,false);
+assert.equal(disabledReview.appServiceCount,null);
+assert.ok(!disabledReview.issues.some(x=>x.id==="no_services"));
 const noServices=inspectServices([],"app");
 assert.ok(noServices.issues.some(x=>x.id==="no_services"));
 const longServices=inspectServices(Array.from({length:34},(_,i)=>({
