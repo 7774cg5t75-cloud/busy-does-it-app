@@ -4032,15 +4032,18 @@ Deno.serve(async (request: Request) => {
       });
     }
     if (action === "mark_request_linked") {
-      return json(200, {
-        ok: true,
-        link: await markRequestLinked(
-          user.id,
-          resolvedBusinessId,
-          body
-        ),
-        status: await ownerStatus(resolvedBusinessId),
-      });
+      // The ledger transaction has committed before ownerStatus is loaded.
+      // A failed follow-up read must not turn a committed booking into an
+      // apparent failed write or encourage duplicate customer actions.
+      const link=await markRequestLinked(user.id,resolvedBusinessId,body);
+      try {
+        const status=await ownerStatus(resolvedBusinessId);
+        return json(200,{ok:true,link,status,statusRefreshRequired:false});
+      } catch (readError) {
+        console.warn("Work handoff saved; owner snapshot refresh pending.");
+        return json(200,{ok:true,link,statusRefreshRequired:true,
+          durableWriteCommitted:true,externalDeliveryVerified:false});
+      }
     }
     if (action === "update_request_status") {
       return json(200, {
