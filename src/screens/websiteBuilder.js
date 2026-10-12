@@ -31,6 +31,7 @@ import { renderWebsiteHtml,applyWebsiteLayoutChange } from "../domain/websiteBui
 import {recommendMeasuredWebsiteChange,compareWebsiteVisualReports,ownerDesignPreference,describeWebsiteDesignComparison} from "../core/websiteMeasuredDesignCoach.mjs";
 import {WebsiteContentEditor} from "./websiteContentEditor";
 import {WebsiteAppServiceCopy} from "./websiteAppServiceCopy";
+import {WebsiteAppBrandMatch} from "./websiteAppBrandMatch";
 import {WebsiteLayoutControls} from "./websiteLayoutControls";
 import {WebsitePagesEditor} from "./websitePagesEditor";
 import {WebsiteTapEditor} from "./websiteTapEditor";
@@ -770,6 +771,10 @@ function WebsiteBuilder({ s }) {
               </>
             ) : null}
           </Card>
+          <WebsiteAppBrandMatch website={draft}
+            app={s.miniAppsView?.app}
+            businessId={s.cloudWorkspace?.businessId}
+            onApply={s.applyBusinessAppBrandToWebsite}/>
           <WebsiteAppServiceCopy website={draft}
             app={s.miniAppsView?.app}
             businessId={s.cloudWorkspace?.businessId}
