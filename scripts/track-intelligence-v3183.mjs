@@ -63,6 +63,15 @@ const domains=[
  {id:"offline_staging_manifest_integrity",source:"scripts/verify-staging-install-v3186.mjs",
   wired:".github/workflows/gateway-staging-v3186.yml",signal:"node scripts/verify-staging-install-v3186.mjs",
   test:"scripts/check-gateway-outcomes-v3186.mjs"},
+ {id:"customer_outcome_proof_ladder",source:"src/core/customerOutcomeProofV3187.mjs",
+  wired:"src/domain/miniApps.js",signal:"reviewCustomerOutcomeProof({",
+  test:"scripts/check-outcome-proof-v3187.mjs"},
+ {id:"site_app_customer_action_coordination",source:"src/core/connectedCustomerJourneyV3187.mjs",
+  wired:"src/screens/miniApps.js",signal:"coordinateCustomerJourneyReview({",
+  test:"scripts/check-outcome-proof-v3187.mjs"},
+ {id:"isolated_staging_review_gate",source:"src/core/isolatedStagingRunbookV3187.mjs",
+  wired:"scripts/plan-isolated-staging-v3187.mjs",signal:"createStagingExecutionGate({",
+  test:"scripts/check-outcome-proof-v3187.mjs"},
  {id:"get_paid_owner_drafts",source:"src/core/getPaidIntelligenceV3183.mjs",
   wired:"src/components/GetPaidOwnerReview.js",signal:"prepareGetPaidQuoteDraft",test:"scripts/check-get-paid-v3183.mjs"}
 ];
@@ -86,7 +95,7 @@ const sourceLines=files.reduce((sum,f)=>sum+
  (f.text===""?0:f.text.endsWith("\n")?
   f.text.split("\n").length-1:f.text.split("\n").length),0);
 const report={kind:"busy_intelligence_source_inventory_v3183",
- branchExpected:"v3.186",countingRule:"physical lines in selected code extensions, including comments and blanks",
+ branchExpected:"v3.187",countingRule:"physical lines in selected code extensions, including comments and blanks",
  codeFiles:files.length,codePhysicalLines:sourceLines,
  coreFiles:byDir("src/core/"),serviceFiles:byDir("supabase/functions/"),
  scriptFiles:byDir("scripts/"),migrationFiles:byDir("supabase/migrations/"),
