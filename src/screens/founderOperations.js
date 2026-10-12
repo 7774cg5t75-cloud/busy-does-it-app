@@ -8,6 +8,7 @@ import {websiteReleaseReadiness} from "../core/websiteReleaseReadiness.mjs";
 import {websitePilotReadiness} from "../core/websitePilotReadiness.mjs";
 import {websiteStagingReadiness} from "../core/websiteStagingReadiness.mjs";
 import {founderStagingSummary} from "../core/founderStagingSummary.mjs";
+import {founderReadinessTriage} from "../core/founderReadinessTriage.mjs";
 import {founderNextSafeAction} from "../core/founderNextSafeAction.mjs";
 import {founderRehearsalGuidance} from "../core/founderRehearsalGuidance.mjs";
 import {founderRecoveryReview} from "../core/founderRecoveryReview.mjs";
@@ -92,6 +93,7 @@ function FounderOperations({s}){
   const pilot=websitePilotReadiness();
   const staged=websiteStagingReadiness();
   const stagedPlan=founderStagingSummary();
+  const stagingObservations=founderReadinessTriage();
   const rehearsal=founderRehearsalGuidance({priorities:operational,pilot,release});
   const incidentReview=founderRecoveryReview({priorities:operational,rehearsal});
   const safeAutomation=founderSafeAutomationSummary({priorities:operational});
@@ -170,6 +172,13 @@ function FounderOperations({s}){
             right={show(staged.passed)+" of "+show(staged.total)}/>
           <Text style={styles.sectionLabel}>{"Next: "+stagedPlan.next}</Text>
           <MetricRow left="Actual cloud staging" right="Not verified"/>
+          <MetricRow left="End-to-end application stages needing proof"
+            right={String(stagingObservations.unresolved)+" of 7"}/>
+          <Text style={styles.sectionLabel}>
+            These are unverified stages, not live error counts. The
+            application schema and Edge deployment must be checked
+            separately from the earlier two-user RLS canary.
+          </Text>
           <Button label={showStagingEvidence?"Hide staging checks":"Why isn't staging ready yet?"}
             onPress={()=>setShowStagingEvidence(v=>!v)}/>
           {showStagingEvidence?(
