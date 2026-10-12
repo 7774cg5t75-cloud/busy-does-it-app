@@ -54,6 +54,7 @@ declare
  v_work public.busy_mini_app_work_bookings%rowtype;
  v_day date;
  v_at time without time zone;
+ v_zone text;
 begin
  -- V3.180 locks the request, checks role, serializes competing writers and
  -- writes the request/link/event/unread atomically. A later failure in THIS
@@ -73,16 +74,20 @@ begin
    -- The earlier owner-approved V3.180 validation guards date/time.
    v_day:=(p_metadata->>'bookingDate')::date;
    v_at:=(p_metadata->>'bookingTime')::time;
+   v_zone:=coalesce(nullif(p_metadata->>'timeZone',''),'Europe/London');
+   if length(v_zone)>64 or not exists (
+      select 1 from pg_catalog.pg_timezone_names z where z.name=v_zone
+   ) then raise exception 'Invalid booking timezone'; end if;
    if v_request.status<>'accepted' or v_link.bridge_state<>'booking_confirmed'
       or p_owner_approved is distinct from true then
      raise exception 'Only approved accepted booking requests can enter BUSY Work';
    end if;
    insert into public.busy_mini_app_work_bookings (
      business_id,request_id,mini_app_id,customer_record_id,action_record_id,
-     calendar_date,calendar_time,state,confirmed_by
+     calendar_date,calendar_time,calendar_timezone,state,confirmed_by
    ) values (
      p_business_id,p_request_id,v_request.mini_app_id,p_customer_record_id,
-     p_action_record_id,v_day,v_at,'confirmed',p_actor_user_id
+     p_action_record_id,v_day,v_at,v_zone,'confirmed',p_actor_user_id
    )
    on conflict (request_id) do nothing;
    select * into v_work from public.busy_mini_app_work_bookings
@@ -91,7 +96,8 @@ begin
       v_work.mini_app_id<>v_request.mini_app_id or
       v_work.customer_record_id<>p_customer_record_id or
       v_work.action_record_id<>p_action_record_id or
-      v_work.calendar_date<>v_day or v_work.calendar_time<>v_at then
+      v_work.calendar_date<>v_day or v_work.calendar_time<>v_at or
+      v_work.calendar_timezone<>v_zone then
      raise exception 'Conflicting BUSY Work confirmation; no overwrite permitted';
    end if;
  elsif v_request.request_type='booking_request' and p_bridge_state='closed' then
@@ -124,3 +130,8 @@ grant execute on function public.busy_mark_mini_app_request_link_v3181(
 comment on function public.busy_mark_mini_app_request_link_v3181(
  uuid,uuid,uuid,text,text,text,boolean,jsonb) is
  'V3.181 atomic BUSY Work ledger + request/link/event/unread, not external calendar delivery.';
+
+-- After installing V3.181, prevent server callers from using the older
+-- atomic handoff without its Work-ledger counterpart.
+revoke execute on function public.busy_mark_mini_app_request_link_v3180(
+ uuid,uuid,uuid,text,text,text,boolean,jsonb) from service_role;
