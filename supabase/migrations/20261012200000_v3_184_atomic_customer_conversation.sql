@@ -24,7 +24,10 @@ begin
  select * into v_req from public.busy_mini_app_requests
   where id=p_request_id and business_id=p_business_id for update;
  if not found then raise exception 'Request unavailable for this business'; end if;
- if v_req.request_origin='guest_web' or v_req.consumer_user_id is null
+ -- Use optional-column-safe JSON inspection so the disposable early-schema
+ -- fixture is testable; real guest requests still require signed-in identity.
+ if coalesce(to_jsonb(v_req)->>'request_origin','')='guest_web'
+  or v_req.consumer_user_id is null
  then raise exception 'Guest enquiries have no in-app chat recipient'; end if;
  if p_sender_role='business' then
   if not exists(select 1 from public.busy_business_memberships m
