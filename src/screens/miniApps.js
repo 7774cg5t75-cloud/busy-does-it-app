@@ -265,16 +265,8 @@ function MiniAppSurface({
         <Text style={{color:brandColours.muted,marginTop:5}}>
           {config?.display?.tagline||profile.tagline||profile.description||"Your Business App"}
         </Text>
-        <View style={{backgroundColor:brandColours.surface,padding:10,
-          marginTop:12,borderRadius:9}}>
-          <Text style={{color:brandColours.text}}>Services and enquiries</Text>
-          <View style={{backgroundColor:brandColours.accent,padding:10,
-            borderRadius:8,marginTop:8,alignItems:"center"}}>
-            <Text style={{color:brandColours.bg,fontWeight:"700"}}>
-              Explore this business
-            </Text>
-          </View>
-        </View>
+        <View style={{backgroundColor:brandColours.accent,
+          height:4,borderRadius:3,marginTop:14}}/>
       </View>
       <Card
         eyebrow={config?.display?.category || profile.businessType || "Business App"}
