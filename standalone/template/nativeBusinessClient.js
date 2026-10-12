@@ -40,11 +40,20 @@ function validNativeExtras(payload){
   l!==null&&!payload.moduleKeys?.includes("loyalty"))return false;
  return true;
 }
+function safeNativeImageUrl(value){
+ if(typeof value!=="string"||value.length>1800||
+   /[\\s<>\\u0000-\\u001f\\u007f]/.test(value))return false;
+ try{
+  const u=new URL(value);
+  return u.protocol==="https:"&&!!u.hostname&&!u.username&&!u.password&&
+   !u.hash&&!u.port;
+ }catch{return false;}
+}
 function validPublicGallery(payload){
  if(!Array.isArray(payload?.gallery)||payload.gallery.length>15)return false;
  return payload.gallery.every(photo=>photo&&typeof photo==="object"&&
    typeof photo.uri==="string"&&photo.uri.length<=1800&&
-   /^https:\/\/[^\\s]+$/i.test(photo.uri)&&
+   safeNativeImageUrl(photo.uri)&&
    safePublicText(photo.alt,160)&&safePublicText(photo.caption,240));
 }
 function validPublicRead(payload,runtime){
