@@ -226,7 +226,7 @@ for(const key of ["businessBrainWorkQueue.mjs",
 const websiteUi=read("src/screens/websiteBuilder.js");
 for(const key of ["businessBrainWorkQueue.mjs",
  "prepareBusinessBrainWork({",
- "V3.175 • Business Brain's next actions",
+ "V3.177 • Business Brain website preferences",
  "No public changes, provider calls or spending"]){
  assert.ok(websiteUi.includes(key),"Website Builder missing: "+key);
 }
