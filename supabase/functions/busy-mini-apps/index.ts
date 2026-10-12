@@ -5,6 +5,7 @@ import { previewPrivateAppAppearance } from "./appAppearanceEditing.mjs";
 import { proposeAppSectionMove } from "./appSectionOrder.mjs";
 import { proposeCoordinatedAppChanges } from "./appCoordinatedStudio.mjs";
 import {decideAppRequestTransition} from "./appRequestLifecycle.mjs";
+import {sendAtomicConversation} from "./atomicConversationService.mjs";
 import {validateAppScreenshotReview,normalizeAppVisualAIResult}
  from "./appVisualReviewContract.mjs";
 import {prepareAppVisualBatch,validatePairedAppVisualRequest}
@@ -3196,86 +3197,54 @@ async function submitRequest(
   return { reused: false, request: inserted.data };
 }
 
-async function sendRequestMessage(userId: string, businessId: string, body: any, idempotencyKey: string) {
-  const requestId = clean(body?.requestId, 80);
-  const messageBody = clean(body?.message, 3000);
-  if (!requestId || !messageBody) throw new Error("Choose a request and enter a message first.");
-  const request = await supabase.from("busy_mini_app_requests").select("id,business_id,mini_app_id,consumer_user_id,request_origin,status").eq("id", requestId).eq("business_id", businessId).maybeSingle();
-  if (request.error) throw request.error;
-  if (!request.data) throw new Error("Business App request not found.");
-  if (request.data.request_origin === "guest_web" || !request.data.consumer_user_id) {
-    throw new Error("Guest web requests do not have a BUSY chat recipient. Use the customer's supplied contact details for replies.");
-  }
-  if (["declined", "closed"].includes(request.data.status)) throw new Error("That Business App request is closed for new messages.");
-  if (idempotencyKey) {
-    const existing = await supabase.from("busy_mini_app_request_messages").select("*").eq("request_id", requestId).eq("sender_user_id", userId).eq("idempotency_key", idempotencyKey).maybeSingle();
-    if (existing.error) throw existing.error;
-    if (existing.data) return { reused: true, message: existing.data };
-  }
-  const now = new Date().toISOString();
-  const inserted = await supabase.from("busy_mini_app_request_messages").insert({ business_id: businessId, request_id: requestId, mini_app_id: request.data.mini_app_id, sender_user_id: userId, sender_role: "business", body: messageBody, idempotency_key: idempotencyKey || null, created_at: now }).select("*").single();
-  if (inserted.error) {
-    if (inserted.error.code === "23505" && idempotencyKey) {
-      const raced = await supabase.from("busy_mini_app_request_messages").select("*").eq("request_id", requestId).eq("sender_user_id", userId).eq("idempotency_key", idempotencyKey).maybeSingle();
-      if (raced.error) throw raced.error;
-      if (raced.data) return { reused: true, message: raced.data };
-    }
-    throw inserted.error;
-  }
-  const movedToReviewing = request.data.status === "received";
-  await supabase.from("busy_mini_app_requests").update({ status: movedToReviewing ? "reviewing" : request.data.status, updated_at: now }).eq("id", requestId).eq("business_id", businessId);
-  if (movedToReviewing) {
-    await supabase.from("busy_mini_app_request_events").insert({
-      business_id: businessId,
-      request_id: requestId,
-      actor_user_id: userId,
-      event_type: "reviewing",
-      detail: { source: "business_message" },
-    });
-  }
-  await bumpUnread(requestId, "customer");
-  await notifyCustomerOfMiniAppRequest(
-    request.data,
-    "BUSY Apps • New reply",
-    "The business replied to your BUSY Apps request.",
-    `message:${inserted.data.id}`
-  );
-  return { reused: false, message: inserted.data };
+async function sendRequestMessage(
+ userId: string,businessId: string,body: any,idempotencyKey: string
+) {
+ const requestId=clean(body?.requestId,80);
+ const message=clean(body?.message,3000);
+ const saved=await sendAtomicConversation(supabase,{
+  actorUserId:userId,businessId,requestId,senderRole:"business",
+  message,idempotencyKey
+ });
+ if(!saved.reused){
+  try{
+   const request=await supabase.from("busy_mini_app_requests")
+    .select("id,business_id,mini_app_id,consumer_user_id")
+    .eq("id",requestId).eq("business_id",businessId).maybeSingle();
+   if(!request.error&&request.data?.consumer_user_id)
+    await notifyCustomerOfMiniAppRequest(request.data,
+     "BUSY Apps • New reply",
+     "The business saved a reply in your BUSY Apps conversation.",
+     "message:"+saved.message.id);
+  }catch(error){console.warn("Conversation saved; push delivery not verified.");}
+ }
+ return saved;
 }
 
-async function replyRequestMessage(userId: string, body: any, idempotencyKey: string) {
-  const requestId = clean(body?.requestId, 80);
-  const messageBody = clean(body?.message, 3000);
-  if (!requestId || !messageBody) throw new Error("Choose a request and enter a reply first.");
-  const request = await supabase.from("busy_mini_app_requests").select("id,business_id,mini_app_id,status").eq("id", requestId).eq("consumer_user_id", userId).maybeSingle();
-  if (request.error) throw request.error;
-  if (!request.data) throw new Error("That Business App request is not available.");
-  if (["declined", "closed"].includes(request.data.status)) throw new Error("That Business App request is closed for new messages.");
-  if (idempotencyKey) {
-    const existing = await supabase.from("busy_mini_app_request_messages").select("*").eq("request_id", requestId).eq("sender_user_id", userId).eq("idempotency_key", idempotencyKey).maybeSingle();
-    if (existing.error) throw existing.error;
-    if (existing.data) return { reused: true, message: existing.data };
-  }
-  const now = new Date().toISOString();
-  const inserted = await supabase.from("busy_mini_app_request_messages").insert({ business_id: request.data.business_id, request_id: requestId, mini_app_id: request.data.mini_app_id, sender_user_id: userId, sender_role: "customer", body: messageBody, idempotency_key: idempotencyKey || null, created_at: now }).select("*").single();
-  if (inserted.error) {
-    if (inserted.error.code === "23505" && idempotencyKey) {
-      const raced = await supabase.from("busy_mini_app_request_messages").select("*").eq("request_id", requestId).eq("sender_user_id", userId).eq("idempotency_key", idempotencyKey).maybeSingle();
-      if (raced.error) throw raced.error;
-      if (raced.data) return { reused: true, message: raced.data };
-    }
-    throw inserted.error;
-  }
-  await supabase.from("busy_mini_app_requests").update({ updated_at: now }).eq("id", requestId).eq("consumer_user_id", userId);
-  await bumpUnread(requestId, "business");
-  await trackConsumerApp(userId, request.data.mini_app_id, { action: true });
-  await notifyBusinessOfMiniAppRequest(
-    request.data,
+async function replyRequestMessage(
+ userId: string,body: any,idempotencyKey: string
+) {
+ const requestId=clean(body?.requestId,80);
+ const message=clean(body?.message,3000);
+ const scoped=await supabase.from("busy_mini_app_requests")
+  .select("id,business_id,mini_app_id,consumer_user_id")
+  .eq("id",requestId).eq("consumer_user_id",userId).maybeSingle();
+ if(scoped.error)throw scoped.error;
+ if(!scoped.data)throw new Error("The signed-in customer request is not available.");
+ const saved=await sendAtomicConversation(supabase,{
+  actorUserId:userId,businessId:scoped.data.business_id,
+  requestId,senderRole:"customer",message,idempotencyKey
+ });
+ if(!saved.reused){
+  try{
+   await trackConsumerApp(userId,scoped.data.mini_app_id,{action:true});
+   await notifyBusinessOfMiniAppRequest(scoped.data,
     "BUSY Apps • Customer replied",
-    "A customer replied to a BUSY Apps conversation.",
-    `message:${inserted.data.id}`
-  );
-  return { reused: false, message: inserted.data };
+    "A customer saved a reply to a BUSY Apps conversation.",
+    "message:"+saved.message.id);
+  }catch(error){console.warn("Customer reply saved; follow-up delivery unverified.");}
+ }
+ return saved;
 }
 
 async function updateRequestStatus(
@@ -3762,10 +3731,8 @@ Deno.serve(async (request: Request) => {
       });
     }
     if (action === "reply_request_message") {
-      return json(200, {
-        ok: true,
-        ...(await replyRequestMessage(user.id, body, requestId)),
-      });
+      return json(200,{ok:true,
+        ...(await replyRequestMessage(user.id,body,requestId))});
     }
 
     const writeActions = new Set([
@@ -3997,11 +3964,14 @@ Deno.serve(async (request: Request) => {
       });
     }
     if (action === "send_request_message") {
-      return json(200, {
-        ok: true,
-        ...(await sendRequestMessage(user.id, resolvedBusinessId, body, requestId)),
-        status: await ownerStatus(resolvedBusinessId),
-      });
+      const saved=await sendRequestMessage(user.id,resolvedBusinessId,body,requestId);
+      try{
+        return json(200,{ok:true,...saved,
+          status:await ownerStatus(resolvedBusinessId),statusRefreshRequired:false});
+      }catch(error){
+        console.warn("Saved owner reply; refreshing owner list later.");
+        return json(200,{ok:true,...saved,statusRefreshRequired:true});
+      }
     }
     if (action === "owner_request_detail") {
       return json(200, {
