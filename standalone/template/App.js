@@ -6,11 +6,12 @@
  */
 import React,{useState,useEffect} from "react";
 import {SafeAreaView,ScrollView,View,Text,TextInput,Pressable,StatusBar,Image,
- ActivityIndicator,useWindowDimensions} from "react-native";
+ ActivityIndicator,useWindowDimensions,Linking} from "react-native";
 import prototype from "./prototype.json";
 import {verifiedPublicRuntime,publicNativeApp} from "./nativeBusinessClient";
 import {sendNativeGuestRequest} from "./nativeGuestRequests";
 import {responsiveAppLayout} from "./appResponsiveDesign.mjs";
+import {nativeContactAction,searchPublicNativeServices} from "./nativeCustomerActions.mjs";
 const LOOK=prototype.appearance||{};
 const COLORS={bg:"#101827",surface:"#1C293C",text:"#F1F6FF",muted:"#A3B5D0",
  accent:"#6E9EFF",line:"#394A64"};
@@ -87,7 +88,28 @@ function RequestScreen({screen,live,runtime,initialService=""}){
   )}
  </View>;
 }
-function LiveInfo({screen,app,layout,onRequestService}){
+function ServicesInfo({app,layout,onRequestService}){
+ const [query,setQuery]=useState("");
+ const results=searchPublicNativeServices(app.services||[],query);
+ return <View style={box}>
+  <Text style={{...t,fontSize:20,fontWeight:"700"}}>Services</Text>
+  {app.services?.length>4?<TextInput accessibilityLabel="Search services"
+    value={query} onChangeText={setQuery}
+    placeholder="Find a service" placeholderTextColor={COLORS.muted}
+    style={{color:COLORS.text,backgroundColor:COLORS.bg,padding:12,
+      minHeight:48,borderRadius:9,marginTop:12}}/>:null}
+  {results.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:12}}>
+   {results.map((service,i)=><View key={i} style={{marginTop:14,
+     width:layout?.serviceColumns===2?"48%":"100%"}}>
+     <Text style={{...t,fontWeight:"700"}}>{service.name}</Text>
+     <Text style={sub}>{service.description||"Ask the business for details."}</Text>
+     {app.supportsBookingRequest&&app.moduleKeys?.includes("booking_request")?
+      <Button title={"Request "+service.name} onPress={()=>onRequestService?.(service.name)}/>:null}
+   </View>)}
+  </View>:<Text style={sub}>{query?"No services match your search.":"No public services are listed."}</Text>}
+ </View>;
+}
+function LiveInfo({screen,app,layout,onRequestService,onOpenContact,contactNotice}){
  if(screen.key==="business_profile")return <View style={box}>
   <Text style={{...t,fontSize:21,fontWeight:"700"}}>{app.title}</Text>
   <Text style={sub}>{app.tagline||app.about||"Contact this business for more information."}</Text>
@@ -98,27 +120,19 @@ function LiveInfo({screen,app,layout,onRequestService}){
     resizeMode="cover"/>:null}
   {app.tagline&&app.about?<Text style={sub}>{app.about}</Text>:null}
  </View>;
- if(screen.key==="services")return <View style={box}>
-   <Text style={{...t,fontSize:20,fontWeight:"700"}}>Services</Text>
-   {app.services?.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:12}}>
-     {app.services.map((service,i)=><View key={i} style={{marginTop:14,
-       width:layout?.serviceColumns===2?"48%":"100%"}}>
-       <Text style={{...t,fontWeight:"700"}}>{service.name}</Text>
-       <Text style={sub}>{service.description||"Ask the business for details."}</Text>
-       {app.supportsBookingRequest&&app.moduleKeys?.includes("booking_request")?
-        <Button title={"Request "+service.name} onPress={()=>onRequestService?.(service.name)}/>:null}
-     </View>)}</View>:<Text style={sub}>No public services are listed.</Text>}
- </View>;
+ if(screen.key==="services")return <ServicesInfo app={app} layout={layout} onRequestService={onRequestService}/>;
  if(screen.key==="gallery")return <View style={box}>
    <Text style={{...t,fontSize:20,fontWeight:"700"}}>Approved photos</Text>
    {app.gallery?.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>
      {app.gallery.map((photo,i)=>
-       <Image key={i} source={{uri:photo.uri}} accessible accessibilityRole="image"
+       <View key={i} style={{width:layout?.galleryColumns===3?"31%":
+         layout?.galleryColumns===2?"48%":"100%"}}>
+       <Image source={{uri:photo.uri}} accessible accessibilityRole="image"
         accessibilityLabel={String(photo.alt||photo.caption||"Business photo "+(i+1))}
-        style={{width:layout?.galleryColumns===3?"31%":
-          layout?.galleryColumns===2?"48%":"100%",
-          height:layout?.ok?layout.galleryHeight:190,
+        style={{width:"100%",height:layout?.ok?layout.galleryHeight:190,
           borderRadius:LOOK.imageCorners==="square"?2:11,marginTop:12}}/>
+       {photo.caption?<Text style={{...sub,fontSize:13}}>{photo.caption}</Text>:null}
+       </View>
      )}</View>:<Text style={sub}>No photographs have been approved for this app yet.</Text>}
  </View>;
  if(screen.key==="offers")return <View style={box}>
@@ -145,8 +159,14 @@ function LiveInfo({screen,app,layout,onRequestService}){
  if(screen.key==="contact")return <View style={box}>
    <Text style={{...t,fontSize:20,fontWeight:"700"}}>Contact</Text>
    {["phone","email","openingHours"].map(key=>app.contact?.[key]?
-    <Text key={key} style={sub}>{key==="openingHours"?"Opening hours":key+": "}
-       {app.contact[key]}</Text>:null)}
+    <View key={key}>
+     <Text style={sub}>{key==="openingHours"?"Opening hours":key+": "}
+        {app.contact[key]}</Text>
+     {["phone","email"].includes(key)&&nativeContactAction(app.contact,key).ok?
+      <Button title={key==="phone"?"Call the business":"Email the business"}
+       onPress={()=>onOpenContact?.(key)}/>:null}
+    </View>:null)}
+   {contactNotice?<Text style={sub}>{contactNotice}</Text>:null}
  </View>;
  return <View style={box}><Text style={sub}>
   This optional module requires its own public permission and runtime integration.
@@ -159,17 +179,20 @@ export default function App(){
  const connected=verifiedPublicRuntime(runtime);
  const [current,setCurrent]=useState(prototype.screenSchema.screens[0].key);
  const [requestedService,setRequestedService]=useState("");
+ const [refreshSequence,setRefreshSequence]=useState(0);
+ const [contactNotice,setContactNotice]=useState("");
  const [loading,setLoading]=useState(connected),[live,setLive]=useState(null),
   [error,setError]=useState("");
  useEffect(()=>{
   let active=true;
   if(!connected){setLoading(false);return ()=>{active=false;};}
+  setLoading(true);setError("");setLive(null);
   publicNativeApp(runtime).then(result=>{
    if(!active)return;
    setLive(result.ok?result.app:null);setError(result.ok?"":result.reason);setLoading(false);
   });
   return ()=>{active=false;};
- },[connected,runtime?.expectedVersionId]);
+ },[connected,runtime?.expectedVersionId,refreshSequence]);
  const pages=live?prototype.screenSchema.screens.filter(s=>
   live.moduleKeys?.includes(s.key)):[];
  const chosen=pages.find(x=>x.key===current)||pages[0];
@@ -187,14 +210,17 @@ export default function App(){
   <StatusBar barStyle="light-content"/>
   <ScrollView contentContainerStyle={{padding:outerPadding,paddingBottom:55}}>
    <Text style={{color:COLORS.accent,fontSize:12,fontWeight:"700",letterSpacing:1}}>
-    {connected?"LIVE PUBLIC BUSINESS APP":"PRIVATE APP PROTOTYPE"}</Text>
+    {live?"LIVE PUBLIC BUSINESS APP":connected?
+      "CHECKING LIVE CONNECTION":"PRIVATE APP PROTOTYPE"}</Text>
    <Text style={{color:COLORS.text,fontSize:28,fontWeight:"800",marginTop:9}}>
     {live?.title||prototype.appName}</Text>
    <Text style={{color:COLORS.muted,fontSize:12,marginTop:5}}>
     {"Native layout • "+(LOOK.headerStyle||"refined")+" header • "+(responsive.ok?responsive.navigation:"list")+" navigation"}
    </Text>
    {loading?<ActivityIndicator color={COLORS.accent} style={{marginTop:25}}/>:null}
-   {error?<Text style={sub}>{error}</Text>:null}
+   {error?<View><Text style={sub}>{error}</Text>
+    <Button title="Try loading this app again"
+     onPress={()=>setRefreshSequence(x=>x+1)}/></View>:null}
    {!connected?<Text style={sub}>
     This unsigned offline prototype is deliberately not connected to real
     customer records or bookings. A separate approved, published Business App
@@ -221,6 +247,14 @@ export default function App(){
      <RequestScreen key={chosen.key+":"+requestedService} screen={chosen} live={live}
       runtime={runtime} initialService={chosen.key==="booking_request"?requestedService:""}/>:
      <LiveInfo screen={chosen} app={live} layout={responsive}
+      contactNotice={contactNotice}
+      onOpenContact={key=>{
+       const action=nativeContactAction(live.contact,key);
+       if(!action.ok){setContactNotice(action.reason);return;}
+       setContactNotice("");
+       Linking.openURL(action.url).catch(()=>setContactNotice(
+        "This device could not open that contact method. Use the details shown above."));
+      }}
       onRequestService={serviceName=>{
        if(!live.supportsBookingRequest||!live.moduleKeys?.includes("booking_request"))return;
        setRequestedService(serviceName);setCurrent("booking_request");
