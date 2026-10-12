@@ -1,3 +1,4 @@
+import {validPrivateBuilderPair,reviewedPairIsCurrent} from "./ownerBuilderDraftGuardV3195.mjs";
 /**
  * V3.192 — owner-initiated, same-tenant copy of missing Business App services
  * into an existing PRIVATE website. No automatic/background synchronization.
@@ -11,11 +12,7 @@ const acceptable=(v,max,required=false)=>typeof v==="string"&&v.length<=max&&
  !/[<>\u0000-\u001f\u007f]/.test(v)&&(!required||!!v.trim());
 const makeSlug=v=>v.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,48);
 function planCopyMissingAppServices(website,app,{businessId}={}){
- if(!website?.id||!Number.isSafeInteger(website.generation)||website.generation<1||
-  !Array.isArray(website.sections)||!businessId||
-  app?.business_id!==businessId||typeof app?.id!=="string"||
-  !Number.isSafeInteger(app.draft_revision)||app.draft_revision<1||
-  !Array.isArray(app.draft_config?.modules)||
+ if(!validPrivateBuilderPair(website,app,businessId)||
   !app.draft_config.modules.some(m=>m?.key==="services"&&m.enabled===true))
   return {ok:false,reason:"Open a current website and Business App draft belonging to the same business."};
  const current=website.sections.filter(s=>s?.id==="services");
@@ -69,12 +66,10 @@ function planCopyMissingAppServices(website,app,{businessId}={}){
   changesBooking:false,addsNoProviders:true};
 }
 function confirmCopyMissingAppServices(website,app,{businessId,evidence}={}){
- if(!evidence||typeof evidence!=="object"||
-    evidence.sourceAppId!==app?.id||
-    evidence.sourceAppRevision!==app?.draft_revision||
-    evidence.targetWebsiteId!==website?.id||
-    evidence.targetWebsiteGeneration!==website?.generation||
-    evidence.businessId!==businessId)
+ if(!reviewedPairIsCurrent(website,app,businessId,evidence,{
+    appId:"sourceAppId",appRevision:"sourceAppRevision",
+    websiteId:"targetWebsiteId",websiteRevision:"targetWebsiteGeneration"
+  }))
   return {ok:false,reason:"The app, website or business selection has changed. Review the services again."};
  const current=planCopyMissingAppServices(website,app,{businessId});
  if(!current.ok)return current;
