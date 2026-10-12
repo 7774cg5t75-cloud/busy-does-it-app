@@ -5,6 +5,7 @@ import { previewPrivateAppAppearance } from "./appAppearanceEditing.mjs";
 import { proposeAppSectionMove } from "./appSectionOrder.mjs";
 import { proposeCoordinatedAppChanges } from "./appCoordinatedStudio.mjs";
 import {decideAppRequestTransition} from "./appRequestLifecycle.mjs";
+import {preflightRequestBridge} from "./requestBridgePreflight.mjs";
 import {validateAppScreenshotReview,normalizeAppVisualAIResult}
  from "./appVisualReviewContract.mjs";
 import {prepareAppVisualBatch,validatePairedAppVisualRequest}
@@ -3468,33 +3469,25 @@ async function markRequestLinked(
     .maybeSingle();
   if (request.error) throw request.error;
   if (!request.data) throw new Error("Business App request not found.");
-  if(["declined","closed"].includes(request.data.status))
-    throw new Error("A declined or closed request cannot silently reopen.");
-  // Check the intended request transition BEFORE writing a customer link or
-  // inserting events. Otherwise a rejected downgrade could still mutate data.
-  const intendedStatus=bridgeState==="booking_confirmed"?"accepted":
-    bridgeState==="closed"?"closed":"reviewing";
+  // Read the existing owner-scoped link for EVERY handoff, not only confirmations.
+  // Reject unsafe changes before any upsert, event or status update occurs.
+  const previous=await supabase.from("busy_mini_app_request_links")
+    .select("customer_record_id,action_record_id,bridge_state,metadata")
+    .eq("request_id",requestId).eq("business_id",businessId).maybeSingle();
+  if(previous.error)throw previous.error;
+  const review=preflightRequestBridge({
+    request:request.data,existing:previous.data||null,bridgeState,
+    customerRecordId,actionRecordId,metadata:body?.metadata,
+    ownerApproved:body?.ownerApproved===true
+  });
+  if(!review.ok)throw new Error(review.reason);
+  const intendedStatus=review.nextStatus;
   const beforeWrite=decideAppRequestTransition(request.data,intendedStatus,{
     bridgeState:bridgeState==="booking_confirmed"?"booking_confirmed":""});
   if(!beforeWrite.ok)throw new Error(beforeWrite.reason);
-  if(bridgeState==="booking_confirmed"){
-    const existing=await supabase.from("busy_mini_app_request_links")
-      .select("customer_record_id,action_record_id,bridge_state")
-      .eq("request_id",requestId).eq("business_id",businessId).maybeSingle();
-    if(existing.error)throw existing.error;
-    const day=clean(body?.metadata?.bookingDate,30);
-    const hour=clean(body?.metadata?.bookingTime,20);
-    if(body?.ownerApproved!==true||
-       request.data.request_type!=="booking_request"||
-       !existing.data||!["booking_draft","booking_confirmed"].includes(existing.data.bridge_state)||
-       existing.data.customer_record_id!==customerRecordId||
-       existing.data.action_record_id!==actionRecordId||
-       !/^20\d{2}-\d{2}-\d{2}$/.test(day)||
-       !/^([01]\d|2[0-3]):[0-5]\d$/.test(hour)||
-       Number.isNaN(Date.parse(day+"T"+hour+":00Z"))||
-       new Date(day+"T"+hour+":00Z").toISOString().slice(0,10)!==day)
-      throw new Error("A matching draft booking, date/time and explicit business confirmation are required.");
-  }
+  // An exact retry must not duplicate link events or customer notifications.
+  if(review.noChange)return previous.data;
+
   const linked = await supabase
     .from("busy_mini_app_request_links")
     .upsert(
