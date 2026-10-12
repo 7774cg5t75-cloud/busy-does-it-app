@@ -244,6 +244,7 @@ function MiniAppSurface({
   const responsive=responsiveAppLayout(config,availableWidth);
   const density=presentation.layoutDensity||"comfortable";
   const headerStyle=presentation.headerStyle||"refined";
+  const brandColours=nativePalette(presentation.brandPalette,presentation.brandAccent);
 
   return (
     <View style={{width:"100%"}} onLayout={({nativeEvent})=>{
@@ -253,6 +254,28 @@ function MiniAppSurface({
         onMeasuredWidth?.(width);
       }
     }}>
+      <View style={{backgroundColor:brandColours.bg,padding:14,
+        borderRadius:14,marginBottom:10}}>
+        <Text style={{color:brandColours.muted,fontSize:12}}>
+          {config?.display?.category||profile.businessType||"Business"}
+        </Text>
+        <Text style={{color:brandColours.text,fontWeight:"700",fontSize:20,marginTop:5}}>
+          {config?.display?.name||profile.businessName||"Business"}
+        </Text>
+        <Text style={{color:brandColours.muted,marginTop:5}}>
+          {config?.display?.tagline||profile.tagline||profile.description||"Your Business App"}
+        </Text>
+        <View style={{backgroundColor:brandColours.surface,padding:10,
+          marginTop:12,borderRadius:9}}>
+          <Text style={{color:brandColours.text}}>Services and enquiries</Text>
+          <View style={{backgroundColor:brandColours.accent,padding:10,
+            borderRadius:8,marginTop:8,alignItems:"center"}}>
+            <Text style={{color:brandColours.bg,fontWeight:"700"}}>
+              Explore this business
+            </Text>
+          </View>
+        </View>
+      </View>
       <Card
         eyebrow={config?.display?.category || profile.businessType || "Business App"}
         title={config?.display?.name || profile.businessName || "Business"}
@@ -766,6 +789,8 @@ function MiniAppBuilder({ s }) {
   const [standaloneEligibility,setStandaloneEligibility]=React.useState(null);
   const [standaloneEligibilityBusy,setStandaloneEligibilityBusy]=React.useState(false);
   const [pendingAppearance,setPendingAppearance]=React.useState(null);
+  const [showAllPalettes,setShowAllPalettes]=React.useState(false);
+  const [brandAccentDraft,setBrandAccentDraft]=React.useState("#FF8A56");
   const [appearancePreviewOpen,setAppearancePreviewOpen]=React.useState(false);
   const [selectedAppPart,setSelectedAppPart]=React.useState("header");
   const [appearanceWords,setAppearanceWords]=React.useState("");
@@ -2670,11 +2695,12 @@ function MiniAppBuilder({ s }) {
             ["navigationStyle","Navigation look",appAppearanceOptions.navigationStyle],
             ["galleryLayout","Gallery layout",appAppearanceOptions.galleryLayout],
             ["imageCorners","Photo corners",appAppearanceOptions.imageCorners],
-            ["brandPalette","Standalone app colours",appAppearanceOptions.brandPalette]
+            ["brandPalette","Business App colours",appAppearanceOptions.brandPalette.filter(x=>x!=="custom")]
           ].map(([field,label,values])=>(
             <View key={field} style={{marginTop:9}}>
               <Text style={styles.sectionLabel}>{label}</Text>
-              {values.map(value=>(
+              {((field==="brandPalette"&&!showAllPalettes)?
+                values.slice(0,8):values).map(value=>(
                 <Button key={value} label={
                   (pendingAppearance?.field===field&&pendingAppearance?.value===value?"✓ ":"")+
                   (field==="brandPalette"?(nativePaletteLabels[value]||value):value.replaceAll("-"," "))}
@@ -2684,6 +2710,26 @@ function MiniAppBuilder({ s }) {
                     setAppearancePreviewOpen(true);
                   }}/>
               ))}
+              {field==="brandPalette"?(
+                <>
+                  <Button label={showAllPalettes?
+                    "Show fewer colours":"Show all 20 colour schemes"}
+                    onPress={()=>setShowAllPalettes(v=>!v)}/>
+                  <Text style={styles.cardBody}>
+                    Have your own brand colour? Enter its exact six-digit hex code.
+                    Busy adjusts the supporting colours for readability.
+                  </Text>
+                  <Field label="My brand colour (example: #FF8A56)"
+                    value={brandAccentDraft} onChangeText={setBrandAccentDraft}
+                    placeholder="#FF8A56"/>
+                  <Button label="Preview my own brand colour"
+                    disabled={!!s.miniAppsAction}
+                    onPress={()=>{
+                      setPendingAppearance({field:"brandAccent",value:brandAccentDraft});
+                      setAppearancePreviewOpen(true);
+                    }}/>
+                </>
+              ):null}
             </View>
           ))}
           {pendingAppearance?(()=>{
@@ -2692,8 +2738,9 @@ function MiniAppBuilder({ s }) {
               <>
                 <MetricRow left="Proposed change"
                   right={pendingAppearance.field+" • "+proposal.previous+" → "+proposal.value}/>
-                {pendingAppearance.field==="brandPalette"?(()=>{
-                  const colours=nativePalette(proposal.value);
+                {["brandPalette","brandAccent"].includes(pendingAppearance.field)?(()=>{
+                  const colours=nativePalette(proposal.nextConfig.presentation.brandPalette,
+                    proposal.nextConfig.presentation.brandAccent);
                   return <View style={{backgroundColor:colours.bg,
                     padding:14,borderRadius:12,marginVertical:10}}>
                     <Text style={{color:colours.text,fontSize:18,fontWeight:"700"}}>
