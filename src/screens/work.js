@@ -160,7 +160,7 @@ function WorkHub({ s }) {
       customer: s.customers.find((item) => item.id === id) || s.lastSimulatedRecipients.find((item) => item.id === id),
     }))
     .filter((item) => item.customer);
-  const bookings = actionEntries
+  const localBookings = actionEntries
     .filter(([, action]) =>
       action?.type === "booking" &&
       action?.done &&
@@ -177,6 +177,29 @@ function WorkHub({ s }) {
         `${b.action.details.bookingDate}T${b.action.details.bookingTime || "00:00"}`
       )
     );
+  // V3.181: the Work overview uses the same durable bookings as the
+  // monthly calendar. Unavailable server data leaves local Work visible.
+  const bookings=s.workLedgerReview?.ok?
+    s.workLedgerReview.bookings.map(saved=>{
+      const customer=s.customers.find(x=>x.id===saved.customerId)||
+        s.lastSimulatedRecipients.find(x=>x.id===saved.customerId)||
+        {id:saved.customerId,name:saved.customerName||"BUSY customer",
+         service:saved.service||"Business App booking"};
+      return {
+        id:saved.customerId,
+        serverOnly:!!saved.serverWorkLedgerId&&saved.hasLocalSnapshot===false,
+        customer,
+        action:{type:"booking",done:true,details:{
+          bookingDate:saved.date,bookingTime:saved.time,
+          bookingStatus:"Confirmed",jobValue:saved.value||0,
+          sourceMiniAppRequestId:saved.sourceMiniAppRequestId||""
+        }}
+      };
+    }):localBookings;
+  const openBooking=(item)=>{
+    if(item?.serverOnly){s.go("miniAppBuilder");return;}
+    s.openSavedReplyAction(item.id);
+  };
   const overdueBookings = bookings.filter((item) => item.action.details.bookingDate < todayISO);
   const todayBookings = bookings.filter((item) => item.action.details.bookingDate === todayISO);
   const upcomingBookings = bookings.filter((item) => item.action.details.bookingDate > todayISO);
@@ -258,7 +281,7 @@ function WorkHub({ s }) {
       body: `${overdueBookings[0].customer.service} was booked for ${formatUKDate(overdueBookings[0].action.details.bookingDate)}. Complete, move or cancel it before creating more demand.`,
       label: "Open booking",
       tone: "amber",
-      action: () => s.openSavedReplyAction(overdueBookings[0].id),
+      action: () => openBooking(overdueBookings[0]),
     });
   }
   if (s.inboxNeedsAttentionItems?.length) {
@@ -806,7 +829,7 @@ function WorkHub({ s }) {
         </Card>
       ) : null}
       {nextBooking ? (
-        <Pressable accessibilityRole="button" onPress={() => s.openSavedReplyAction(nextBooking.id)} style={styles.workOverviewUpcoming}>
+        <Pressable accessibilityRole="button" onPress={() => openBooking(nextBooking)} style={styles.workOverviewUpcoming}>
           <Text style={styles.workOverviewEyebrow}>YOUR NEXT BOOKING</Text>
           <Text style={styles.workOverviewUpcomingTitle}>{nextBooking.customer.name}</Text>
           <Text style={styles.workOverviewHint}>
