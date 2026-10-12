@@ -62,7 +62,7 @@ function editWebsiteDraftCollection(draft,change={}){
    return fail("That entry has changed. Select it again before removing.",draft);
   next=items.filter(i=>i.id!==change.itemId);
  }
- const sections=draft.sections.map(x=>x!==section?x:{...x,items:next});
+ const sections=draft.sections.map(x=>x!==section?x:{...x,items:next,ownerEditedItems:true});
  return {applied:true,draft:{...draft,sections},
   reason:(change.action==="add-item"?"Added":"Removed")+
     " an entry in the PRIVATE "+section.type+" section. Nothing was published.",
