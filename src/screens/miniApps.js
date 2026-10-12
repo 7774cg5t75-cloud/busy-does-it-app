@@ -1716,6 +1716,34 @@ function MiniAppBuilder({ s }) {
                   </Text>
                 </>
               ):null}
+              {view.outcomeProof?.ok?(
+                <>
+                  <Text style={styles.sectionLabel}>
+                    V3.187 • What actually happened
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    {"Requests recorded: "+view.outcomeProof.counts.requests+
+                     " • owner replies saved: "+view.outcomeProof.counts.savedOwnerReplies+
+                     " • confirmed inside BUSY Work: "+
+                     view.outcomeProof.counts.acceptedBookingsWithWork+
+                     " • Work cancellations: "+view.outcomeProof.counts.cancelledWorkBookings+"."}
+                  </Text>
+                  {view.outcomeProof.priorities.slice(0,2).map(item=>(
+                    <Text key={"proof-"+item.id} style={styles.cardBody}>
+                      {item.next}
+                    </Text>
+                  ))}
+                  {view.outcomeProof.coveragePartial?(
+                    <Text style={styles.cardBody}>
+                      These figures cover a limited set of recent records, not every customer.
+                    </Text>
+                  ):null}
+                  <Text style={styles.cardBody}>
+                    BUSY cannot yet verify that a customer saw a notification,
+                    attended an appointment, paid, or was satisfied.
+                  </Text>
+                </>
+              ):null}
               {view.measuredOwnerActions?.ok?(
                 <>
                   <Text style={styles.sectionLabel}>
