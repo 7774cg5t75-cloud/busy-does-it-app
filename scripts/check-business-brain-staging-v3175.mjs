@@ -219,7 +219,7 @@ for(const key of ["businessBrainWorkQueue.mjs",
  "prepareBusinessBrainWork({","stagingRunnerHandoff.mjs",
  "compileStagingRunnerHandoff({",
  "Prepare a staging handoff (no live tests)",
- "V3.175 • Busy's prepared work",
+ "V3.176 • Busy's private work suggestions",
  "Network requests: zero; publishing: disabled."]){
  assert.ok(appUi.includes(key),"App Studio missing: "+key);
 }
