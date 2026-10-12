@@ -21,7 +21,7 @@ function WebsiteAppBrandMatch({website,app,businessId,onApply}){
      <Text style={{color:colours.text,fontWeight:"700"}}>
        {LABELS[chosen.paletteName]||"Your own brand colour"}
      </Text>
-     <View style={{backgroundColor:chosen.targetColour,padding:11,
+     <View style={{backgroundColor:colours.accent,padding:11,
        borderRadius:8,marginTop:9}}>
        <Text style={{color:colours.bg,fontWeight:"700"}}>Selected colour: {chosen.targetColour}</Text>
      </View>
