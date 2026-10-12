@@ -1090,6 +1090,14 @@ function WebsitePreview({ s }) {
         {pageReviewCoverage.checked.length?(
           <Text style={styles.cardBody}>{crossScreenEvidence.message}</Text>
         ):null}
+        {evidenceSummary?.ok?(
+          <Text style={styles.cardBody}>
+            {"V3.172 • Current-page evidence: "+
+              evidenceSummary.checked.length+" of 3 preview width groups checked. "+
+              evidenceSummary.nextAction+
+              " These measurements do not prove conversions or real-device accessibility."}
+          </Text>
+        ):null}
         {visualCheckResult?(
           <View style={{marginVertical:10}}>
            <Text style={styles.cardBody}>{visualCheckResult.message}</Text>
