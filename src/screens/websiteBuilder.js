@@ -12,6 +12,10 @@ import {websiteEvidenceSummary} from "../core/crossBuilderEvidence.mjs";
 import {reviewBusinessInformation} from "../core/businessInfoClarity.mjs";
 import {compareMeasuredWebsiteCandidates}
   from "../core/designEvidencePriorities.mjs";
+import {prepareDeviceReview}
+  from "../core/deviceReviewEvidence.mjs";
+import {prepareOwnerImprovementPlan}
+  from "../core/ownerImprovementPlan.mjs";
 import { websiteDesignAlternative } from "../core/websiteDesignAlternatives.mjs";
 import { websiteCustomerJourney } from "../core/websiteCustomerJourney.mjs";
 import { websiteOutcomeGuidance } from "../core/websiteOutcomeGuidance.mjs";
@@ -75,6 +79,15 @@ function WebsiteBuilder({ s }) {
   }):null;
   const websiteClarity=draft?reviewBusinessInformation({
     websiteDraft:draft,brandBrain:brand
+  }):null;
+  const ownerImprovementPlan=draft?prepareOwnerImprovementPlan({
+    goal:sharedJourneyGoal,websiteDraft:draft,brandBrain:brand,
+    websiteRevision:draft.generation||0
+  }):null;
+  const websiteDevicePlan=draft?prepareDeviceReview({
+    businessId:s.cloudWorkspace?.businessId||"",
+    surface:"website",draftId:draft.id||"",
+    revision:draft.generation||0
   }):null;
   const regional=websiteRegionalReadiness({
     locale:brand?.websiteBrief?.locale||"",
@@ -283,6 +296,26 @@ function WebsiteBuilder({ s }) {
                         </Text>
                       ))}
                     </>
+                  ):null}
+                  {ownerImprovementPlan?.ok?(
+                    <>
+                      <Text style={styles.sectionLabel}>
+                        V3.174 • Busy's top improvements
+                      </Text>
+                      {ownerImprovementPlan.actions.map(item=>(
+                        <View key={"web-next-"+item.id}>
+                          <MetricRow left={item.title} right="Owner review"/>
+                          <Text style={styles.cardBody}>{item.nextAction}</Text>
+                        </View>
+                      ))}
+                    </>
+                  ):null}
+                  {websiteDevicePlan?.ok?(
+                    <Text style={styles.cardBody}>
+                      {"Device checks prepared: "+websiteDevicePlan.checks.length+
+                        " for this exact private website revision. "+
+                        "No phone, tablet or screen reader has been verified yet."}
+                    </Text>
                   ):null}
                   <Text style={styles.cardBody}>
                     Website content improvements use your real business details.
