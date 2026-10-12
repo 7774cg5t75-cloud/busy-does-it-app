@@ -15,7 +15,7 @@ import {nativeContactAction,searchPublicNativeServices} from "./nativeCustomerAc
 import {nativePalette} from "./nativePalette.mjs";
 import {nativePreferredDates} from "./nativePreferredDates.mjs";
 const LOOK=prototype.appearance||{};
-const COLORS=nativePalette(LOOK.brandPalette);
+const COLORS=nativePalette(LOOK.brandPalette,LOOK.brandAccent);
 const box={backgroundColor:COLORS.surface,borderRadius:15,padding:17,marginBottom:12};
 const t={color:COLORS.text},sub={color:COLORS.muted,marginTop:9,fontSize:15,lineHeight:22};
 function Button({title,onPress,disabled=false}){
