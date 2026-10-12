@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {executeOfflineJourneyPreflight,prepareStagingExecutionManifest}
  from "../src/core/offlineStagingPreflight.mjs";
-import {SLOT,prepareDeviceReview,summarizeDeviceReview}
- from "../src/core/deviceReviewEvidence.mjs";
+import {SLOT,prepareDeviceReview,summarizeDeviceReview,
+ summarizeLocalAppCapture} from "../src/core/deviceReviewEvidence.mjs";
+import {appVisibleCaptureReceipt}
+ from "../src/core/appRenderedEvidence.mjs";
 import {prepareOwnerImprovementPlan}
  from "../src/core/ownerImprovementPlan.mjs";
 import {proposeCoordinatedAppChanges}
@@ -149,6 +151,39 @@ assert.equal(mixed.rejectedCount,5);
 assert.ok(mixed.flagged.includes("large_text"));
 assert.equal(mixed.remaining.length,4);
 assert.equal(JSON.stringify(mixed).includes("private customer name"),false);
+const capturedAppId="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const localUri="file:///private/tmp/busy-customer-only-photo.jpg";
+const sampleReceipt=appVisibleCaptureReceipt({
+ appId:capturedAppId,revision:4,screenshotUri:localUri,
+ width:390,height:844,platform:"ios",capturedAt:"2026-10-12T10:00:00.000Z"
+});
+assert.equal(sampleReceipt.ok,true);
+const localCapture=summarizeLocalAppCapture({
+ businessId:tenant,appId:capturedAppId,revision:4,
+ capture:{...sampleReceipt,captureScope:"public_app_only",mimeType:"image/jpeg"}
+});
+assert.equal(localCapture.ok,true);
+assert.equal(localCapture.screenshotActuallyCapturedLocally,true);
+assert.equal(localCapture.logicalWidth,390);
+assert.equal(localCapture.actualPixelContentAnalysed,false);
+assert.equal(localCapture.screenshotIndependentlyAuthenticated,false);
+assert.equal(localCapture.physicalDeviceAccessibilityTested,false);
+assert.equal(localCapture.noImageUpload,true);
+assert.equal(localCapture.notReleaseApproval,true);
+assert.equal(JSON.stringify(localCapture).includes(localUri),false);
+assert.equal(summarizeLocalAppCapture({
+ businessId:tenant,appId:capturedAppId,revision:5,
+ capture:{...sampleReceipt,captureScope:"public_app_only",mimeType:"image/jpeg"}
+}).ok,false);
+assert.equal(summarizeLocalAppCapture({
+ businessId:tenant,appId:capturedAppId,revision:4,
+ capture:{...sampleReceipt,captureScope:"owner_dashboard",mimeType:"image/jpeg"}
+}).ok,false);
+assert.equal(summarizeLocalAppCapture({
+ businessId:tenant,appId:capturedAppId,revision:4,
+ capture:{...sampleReceipt,uri:"https://example.invalid/a.jpg",
+  captureScope:"public_app_only",mimeType:"image/jpeg"}
+}).ok,false);
 assert.equal(summarizeDeviceReview({
  businessId:tenant,surface:"business_app",draftId:"app-draft",
  revision:5,observations}).accepted,0);
@@ -217,7 +252,7 @@ for(const token of ["offlineStagingPreflight.mjs",
  "executeOfflineJourneyPreflight({","deviceReviewEvidence.mjs",
  "prepareDeviceReview({","ownerImprovementPlan.mjs",
  "prepareOwnerImprovementPlan({","Busy's next improvements",
- "Live submissions: zero","Device review prepared"]){
+ "Live submissions: zero","Device review prepared","summarizeLocalAppCapture({","Local device capture recorded"]){
  assert.ok(ui.includes(token),"App Studio missing V3.174 integration: "+token);
 }
 const websiteUi=read("src/screens/websiteBuilder.js");
