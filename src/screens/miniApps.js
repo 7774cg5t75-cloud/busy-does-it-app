@@ -12,6 +12,7 @@ import { buildAppDistributionPlan,buildStandalonePrivateHandoff } from "../core/
 import { planFunctionalBusinessApp } from "../core/appExperiencePlanner.mjs";
 import { previewPrivateAppAppearance,OPTIONS as appAppearanceOptions } from "../core/appAppearanceEditing.mjs";
 import {nativePalette,LABELS as nativePaletteLabels} from "../core/nativePalette.mjs";
+import {BusinessBrandDnaPreview} from "./businessBrandDnaPreview";
 import {appVisualPresentation,TYPE_LABELS,SERVICE_LABELS} from "../core/appVisualPresentationV3194.mjs";
 import { interpretSelectedAppAppearance } from "../core/appContextInstruction.mjs";
 import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.mjs";
@@ -1095,6 +1096,8 @@ function MiniAppBuilder({ s }) {
       subtitle="Describe the customer experience you want. BUSY turns it into a controlled app plan using tested modules and the business facts it already knows."
       brandCue="V3.56 • shared business profile • intelligent module recommendations • owner-controlled publishing."
     >
+      <BusinessBrandDnaPreview website={s.websiteDraft}
+        app={app} businessId={s.cloudWorkspace?.businessId}/>
       <Card
         eyebrow="Choose how customers use your app"
         title="Inside Busy, standalone, or eventually both"
