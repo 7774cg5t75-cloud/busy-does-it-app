@@ -13,6 +13,7 @@ import {ownerDesignHistory,writeDesignFeedback,eraseDesignHistory}
  from "./appDesignLearningService.mjs";
 import {readOwnerBrainDecisions,recordOwnerBrainDecision,clearOwnerBrainDecisions}
  from "./brainOwnerDecisionsService.mjs";
+import {isolatedStagingGuard} from "./stagingConnectionGuard.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -3847,15 +3848,12 @@ Deno.serve(async (request: Request) => {
       // Denied on production by DEFAULT, even for owners. The two environment
       // values are configured only for an explicitly isolated Supabase project.
       // Caller-supplied environment, host or verified flags are ignored.
-      const configured=Deno.env.get("BUSY_STAGING_MODE")==="isolated"&&
-        Deno.env.get("BUSY_STAGING_PROJECT_REF")||"";
-      const configuredRef=String(configured);
-      const backendHost=new URL(SUPABASE_URL).hostname;
-      const actualRef=backendHost.endsWith(".supabase.co")?
-        backendHost.split(".")[0]:"";
-      if(!configuredRef||actualRef!==configuredRef||
-         !/^[a-z0-9]{16,32}$/.test(configuredRef))
-        throw Error("This server is not an approved isolated staging project.");
+      const stage=isolatedStagingGuard({
+        mode:Deno.env.get("BUSY_STAGING_MODE")||"",
+        projectRef:Deno.env.get("BUSY_STAGING_PROJECT_REF")||"",
+        supabaseUrl:SUPABASE_URL
+      });
+      if(!stage.ok)throw Error(stage.reason);
       const app=await appForBusiness(resolvedBusinessId);
       if(!app||app.id!==body?.appId||
         !Number.isSafeInteger(Number(body?.expectedRevision))||
