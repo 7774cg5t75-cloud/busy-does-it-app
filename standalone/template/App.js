@@ -13,11 +13,14 @@ import {sendNativeGuestRequest} from "./nativeGuestRequests";
 import {responsiveAppLayout} from "./appResponsiveDesign.mjs";
 import {nativeContactAction,searchPublicNativeServices} from "./nativeCustomerActions.mjs";
 import {nativePalette} from "./nativePalette.mjs";
+import {appVisualPresentation} from "./appVisualPresentationV3194.mjs";
 import {nativePreferredDates} from "./nativePreferredDates.mjs";
 const LOOK=prototype.appearance||{};
 const COLORS=nativePalette(LOOK.brandPalette,LOOK.brandAccent);
+const VISUAL=appVisualPresentation(LOOK);
 const box={backgroundColor:COLORS.surface,borderRadius:15,padding:17,marginBottom:12};
-const t={color:COLORS.text},sub={color:COLORS.muted,marginTop:9,fontSize:15,lineHeight:22};
+const t={color:COLORS.text},sub={color:COLORS.muted,marginTop:9,
+ fontSize:VISUAL.type.bodySize,lineHeight:VISUAL.type.bodySize+7};
 function Button({title,onPress,disabled=false}){
  return <Pressable accessibilityRole="button" accessibilityLabel={title} disabled={disabled}
    onPress={onPress} style={{backgroundColor:disabled?COLORS.line:COLORS.accent,
@@ -136,7 +139,7 @@ function ServicesInfo({app,layout,onRequestService}){
  const [query,setQuery]=useState("");
  const results=searchPublicNativeServices(app.services||[],query);
  return <View style={box}>
-  <Text style={{...t,fontSize:20,fontWeight:"700"}}>Services</Text>
+  <Text style={{...t,fontSize:VISUAL.type.sectionSize,fontWeight:VISUAL.type.sectionWeight}}>Services</Text>
   {app.services?.length>4?<TextInput accessibilityLabel="Search services"
     value={query} onChangeText={setQuery}
     placeholder="Find a service" placeholderTextColor={COLORS.muted}
@@ -144,8 +147,21 @@ function ServicesInfo({app,layout,onRequestService}){
       minHeight:48,borderRadius:9,marginTop:12}}/>:null}
   {results.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:12}}>
    {results.map((service,i)=><View key={i} style={{marginTop:14,
-     width:layout?.serviceColumns===2?"48%":"100%"}}>
-     <Text style={{...t,fontWeight:"700"}}>{service.name}</Text>
+     width:VISUAL.serviceColumns===1?"100%":
+       layout?.serviceColumns===2?"48%":"100%",
+     backgroundColor:VISUAL.serviceStyle==="cards"?COLORS.bg:COLORS.surface,
+     borderWidth:VISUAL.serviceStyle==="rows"?0:1,
+     borderColor:i===0&&VISUAL.featuredFirst?COLORS.accent:COLORS.line,
+     borderRadius:VISUAL.serviceStyle==="rows"?0:11,
+     padding:VISUAL.serviceStyle==="rows"?6:12,
+     borderBottomWidth:VISUAL.serviceStyle==="rows"?1:undefined,
+     borderBottomColor:VISUAL.serviceStyle==="rows"?COLORS.line:undefined}}>
+     {i===0&&VISUAL.featuredFirst?<Text style={{
+       color:COLORS.accent,fontWeight:"700",fontSize:12,marginBottom:6}}>
+       Featured service
+     </Text>:null}
+     <Text style={{...t,fontWeight:VISUAL.type.sectionWeight,
+       fontSize:VISUAL.type.bodySize+2}}>{service.name}</Text>
      <Text style={sub}>{service.description||"Ask the business for details."}</Text>
      {app.supportsBookingRequest&&app.moduleKeys?.includes("booking_request")?
       <Button title={"Request "+service.name}
@@ -157,7 +173,7 @@ function ServicesInfo({app,layout,onRequestService}){
   </View>:<Text style={sub}>{query?"No services match your search.":"No public services are listed."}</Text>}
  </View>;
 }
-function LiveInfo({screen,app,layout,onRequestService,onOpenContact,contactNotice}){
+function LiveInfo({screen,app,layout,onRequestService,onOpenContact,onOpenOfferEnquiry,contactNotice}){
  if(screen.key==="business_profile")return <View style={box}>
   <Text style={{...t,fontSize:21,fontWeight:"700"}}>{app.title}</Text>
   <Text style={sub}>{app.tagline||app.about||"Contact this business for more information."}</Text>
@@ -191,6 +207,9 @@ function LiveInfo({screen,app,layout,onRequestService,onOpenContact,contactNotic
       {offer.body?<Text style={sub}>{offer.body}</Text>:null}
       <Text style={sub}>{"Terms: "+offer.terms}</Text>
       {offer.endDate?<Text style={sub}>{"Ends "+offer.endDate}</Text>:null}
+      {app.supportsEnquiry&&app.moduleKeys?.includes("enquiry")?
+       <Button title={"Ask about "+offer.title}
+        onPress={()=>onOpenOfferEnquiry?.(offer.title)}/>:null}
     </View>):<Text style={sub}>No approved offer is active today.</Text>}
   </View>;
  if(screen.key==="loyalty")return <View style={box}>
@@ -228,6 +247,7 @@ export default function App(){
  const [current,setCurrent]=useState(prototype.screenSchema.screens[0].key);
  const [requestedService,setRequestedService]=useState("");
  const [requestedIntent,setRequestedIntent]=useState("");
+ const [requestedKind,setRequestedKind]=useState("service");
  const [refreshSequence,setRefreshSequence]=useState(0);
  const [contactNotice,setContactNotice]=useState("");
  const [loading,setLoading]=useState(connected),[live,setLive]=useState(null),
@@ -256,12 +276,18 @@ export default function App(){
   publicProfile:{services:live?.services||[],assets:{gallery:live?.gallery||[]}}
  },contentWidth);
  return <SafeAreaView style={{flex:1,backgroundColor:COLORS.bg}}>
-  <StatusBar barStyle="light-content"/>
+  <StatusBar barStyle={COLORS.text==="#14212B"?"dark-content":"light-content"}/>
   <ScrollView contentContainerStyle={{padding:outerPadding,paddingBottom:55}}>
    <Text style={{color:COLORS.accent,fontSize:12,fontWeight:"700",letterSpacing:1}}>
     {live?"LIVE PUBLIC BUSINESS APP":connected?
       "CHECKING LIVE CONNECTION":"PRIVATE APP PROTOTYPE"}</Text>
-   <Text style={{color:COLORS.text,fontSize:28,fontWeight:"800",marginTop:9}}>
+   <Text style={{color:COLORS.text,
+     fontSize:VISUAL.headerCompact?VISUAL.type.titleSize-5:
+       VISUAL.headerEmphasis?VISUAL.type.titleSize+4:VISUAL.type.titleSize,
+     fontWeight:VISUAL.type.titleWeight,
+     letterSpacing:VISUAL.type.titleSpacing,
+     textAlign:VISUAL.headerCentered?"center":"left",
+     marginTop:9}}>
     {live?.title||prototype.appName}</Text>
    <Text style={{color:COLORS.muted,fontSize:12,marginTop:5}}>
     {"Native layout • "+(LOOK.headerStyle||"refined")+" header • "+(responsive.ok?responsive.navigation:"list")+" navigation"}
@@ -282,7 +308,7 @@ export default function App(){
     </Text>
     <View style={{flexDirection:responsive.ok&&responsive.navigation==="list"?"column":"row",flexWrap:"wrap",marginBottom:15,gap:7}}>
      {pages.map(item=><Pressable key={item.key} accessibilityRole="button"
-      accessibilityLabel={"View "+item.title} onPress={()=>{setRequestedService("");setRequestedIntent("");setCurrent(item.key);}}
+      accessibilityLabel={"View "+item.title} onPress={()=>{setRequestedService("");setRequestedIntent("");setRequestedKind("service");setCurrent(item.key);}}
       style={{backgroundColor:item.key===chosen.key?COLORS.accent:COLORS.surface,
        width:responsive.ok&&responsive.navigation==="list"?"100%":undefined,
        minHeight:48,justifyContent:"center",
@@ -298,8 +324,15 @@ export default function App(){
       initialService={chosen.key==="booking_request"&&requestedIntent==="booking_request"?
        requestedService:""}
       initialMessage={chosen.key==="enquiry"&&requestedIntent==="enquiry"&&requestedService?
-       "I would like to know more about "+requestedService+".":""}/>:
+       requestedKind==="offer"?
+        "I would like to ask about the offer: "+requestedService+".":
+        "I would like to know more about "+requestedService+".":""}/>:
      <LiveInfo screen={chosen} app={live} layout={responsive}
+      onOpenOfferEnquiry={offerTitle=>{
+       if(!live.supportsEnquiry||!live.moduleKeys?.includes("enquiry"))return;
+       setRequestedService(offerTitle);setRequestedKind("offer");
+       setRequestedIntent("enquiry");setCurrent("enquiry");
+      }}
       contactNotice={contactNotice}
       onOpenContact={key=>{
        const action=nativeContactAction(live.contact,key);
@@ -314,7 +347,7 @@ export default function App(){
        if(intent==="enquiry"&&
           (!live.supportsEnquiry||!live.moduleKeys?.includes(intent)))return;
        if(!["booking_request","enquiry"].includes(intent))return;
-       setRequestedService(serviceName);setRequestedIntent(intent);
+       setRequestedService(serviceName);setRequestedIntent(intent);setRequestedKind("service");
        setCurrent(intent);
       }}/>}
    </View>:null}
