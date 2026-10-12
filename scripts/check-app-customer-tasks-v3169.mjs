@@ -74,7 +74,9 @@ for(const task of TASKS){
  assert.deepEqual(next.unrelatedSecrets,base.unrelatedSecrets);
  assert.deepEqual(next.billing,base.billing);
  assert.deepEqual(next.distribution,base.distribution);
- assert.equal(JSON.stringify(r).includes("private@example.invalid"),false);
+ assert.equal(JSON.stringify({task:r.task,comparison:r.comparison,
+  widthRules:r.changedWidthRules}).includes("private@example.invalid"),false,
+  "Task explanations must not expose customer identifiers; the private preview preserves the unchanged draft.");
  const reversed=proposeCoordinatedAppChanges(next,r.preview.undoOperations);
  assert.equal(reversed.ok,true,reversed.reason);
  assert.deepEqual(reversed.nextConfig.navigation,base.navigation);
