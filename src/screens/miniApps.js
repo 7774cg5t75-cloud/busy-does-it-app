@@ -30,6 +30,8 @@ import {buildOwnerDesignPatterns,prepareOwnerAwareDesignExperiments,
  explainOwnerDesignOutcome} from "../core/appDesignPatterns.mjs";
 import {INDUSTRY_PROFILES,prepareIndustryAwareAppReview}
   from "../core/appIndustryOrchestrator.mjs";
+import {TASKS,buildCustomerTaskDesignReport,proposeTaskFirstNavigation}
+  from "../core/appCustomerTaskDesign.mjs";
 import {auditStandaloneContrast} from "../core/appContrastAudit.mjs";
 import {appRequestJourney} from "../core/appRequestLifecycle.mjs";
 import {appVisibleCaptureReceipt,currentAppVisibleCapture} from "../core/appRenderedEvidence.mjs";
@@ -731,6 +733,7 @@ function MiniAppBuilder({ s }) {
   const [pendingMove,setPendingMove]=React.useState(null);
   const [studioWords,setStudioWords]=React.useState("");
   const [studioPreview,setStudioPreview]=React.useState(null);
+  const [selectedCustomerTask,setSelectedCustomerTask]=React.useState("book");
   const [studioComparisonSide,setStudioComparisonSide]=React.useState("proposed");
   const [showResponsiveDetails,setShowResponsiveDetails]=React.useState(false);
   const [studioNotice,setStudioNotice]=React.useState("");
@@ -757,6 +760,7 @@ function MiniAppBuilder({ s }) {
     setStudioUndo(null);
     setStudioWords("");
     setStudioNotice("");
+    setSelectedCustomerTask("book");
     setServiceIndex(-1);setServiceName("");setServiceDescription("");
     setAccessiblePhotoNumber("1");
     setAccessiblePhotoAlt("");setAccessiblePhotoCaption("");
@@ -805,6 +809,10 @@ function MiniAppBuilder({ s }) {
   });
   const quality=appDesignQualityReport(view.draftConfig||view.activeConfig||{},view.catalog||[]);
   const usability=auditBusinessAppUsability(view.draftConfig||view.activeConfig||{});
+  const customerTaskReport=view.draftConfig?
+    buildCustomerTaskDesignReport(view.draftConfig):null;
+  const customerTaskPlan=view.draftConfig?
+    proposeTaskFirstNavigation(view.draftConfig,selectedCustomerTask):null;
   const nonAiDesignHints=proposeLowRiskDesignHints(view.draftConfig||view.activeConfig||{});
   const responsiveGuidance=recommendResponsiveDesign(view.draftConfig||view.activeConfig||{});
   const responsiveQuality=evaluateAppAcrossScreens(view.draftConfig||view.activeConfig||{});
@@ -1240,6 +1248,72 @@ function MiniAppBuilder({ s }) {
           body="Describe the result you want. BUSY identifies only supported safe edits, checks the current private app, then shows the entire proposed customer view. If an instruction is unclear, nothing is applied."
           footer="One approval saves the complete batch as ONE private revision. Undo reverses that batch without touching the live app."
           tone="blue">
+          <Text style={styles.sectionLabel}>
+            V3.169 • What should customers be able to do first?
+          </Text>
+          <Text style={styles.cardBody}>
+            BUSY checks the actual enabled sections, not just the appearance.
+            Choose a customer goal; Busy will only suggest a change if the
+            relevant section already exists. No bookings or enquiries are created.
+          </Text>
+          {(customerTaskReport?.tasks||[]).map(item=>(
+            <Button key={"customer-task-"+item.id}
+              label={(selectedCustomerTask===item.id?"✓ ":"")+item.label}
+              disabled={!!s.miniAppsAction}
+              onPress={()=>{
+                setSelectedCustomerTask(item.id);
+                setStudioPreview(null);
+                setStudioNotice("");
+              }}/>
+          ))}
+          {customerTaskPlan?.task?.ok?(
+            <>
+              <MetricRow left="This customer action"
+                right={customerTaskPlan.task.status.replaceAll("_"," ")}/>
+              {customerTaskPlan.task.sectionPosition!==null?(
+                <MetricRow left="Currently in app navigation"
+                  right={"Position "+customerTaskPlan.task.sectionPosition}/>
+              ):null}
+              {(customerTaskPlan.task.blockers||[]).map((note,i)=>(
+                <Text key={"task-blocker-"+i} style={styles.cardBody}>
+                  {"Needs setup: "+note}
+                </Text>
+              ))}
+              {(customerTaskPlan.task.cautions||[]).map((note,i)=>(
+                <Text key={"task-caution-"+i} style={styles.cardBody}>{note}</Text>
+              ))}
+              {customerTaskPlan?.preview?.ok?(
+                <>
+                  <Text style={styles.cardBody}>
+                    {"BUSY suggests placing this action at position "+
+                     customerTaskPlan.comparison.afterPosition+
+                     " instead of "+customerTaskPlan.comparison.beforePosition+
+                     ". This is a navigation hypothesis, not proven task success."}
+                  </Text>
+                  <Button label="Preview a clearer customer journey"
+                    disabled={!!s.miniAppsAction}
+                    onPress={()=>{
+                      const fresh=proposeTaskFirstNavigation(
+                        view.draftConfig,selectedCustomerTask);
+                      setStudioPreview(fresh.preview?.ok?fresh.preview:null);
+                      setStudioComparisonSide("proposed");
+                      setStudioNotice(fresh.preview?.ok?
+                        "Compare the ORIGINAL and PROPOSED real app views below. Nothing is saved until you approve.":
+                        fresh.reason||"No safe preview was prepared.");
+                    }}/>
+                </>
+              ):(
+                <Text style={styles.cardBody}>{customerTaskPlan?.reason||
+                  "BUSY is keeping the existing customer journey."}</Text>
+              )}
+              <Text style={styles.cardBody}>
+                Marketplace and standalone apps use this same private draft.
+                Static navigation checks do not prove actual submissions,
+                accessibility, appointment confirmations or customer outcomes.
+              </Text>
+            </>
+          ):null}
+          <Text style={styles.sectionLabel}>Or tell Busy other changes</Text>
           <Field label="App instructions" value={studioWords}
             onChangeText={value=>{setStudioWords(value);setStudioPreview(null);}}
             placeholder="Put bookings first, make the photos bigger and keep my existing colours"/>
