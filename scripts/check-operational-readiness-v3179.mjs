@@ -92,9 +92,10 @@ eq(disagreement.inconsistentConfirmedStates,1);
 eq(disagreement.unlinkedRequests,1);
 ok(!summarizeStoredCustomerJourneys({app:null}).ok);
 const source=readFileSync(new URL("../supabase/functions/busy-mini-apps/index.ts",import.meta.url),"utf8");
-ok(source.includes('import {preflightRequestBridge}'));
-ok(source.includes("review.noChange"));
-ok(source.includes('eq("business_id",businessId).maybeSingle()'));
+ok(source.includes('supabase.rpc("busy_mark_mini_app_request_link_v3180"'));
+ok(source.includes("result.changed===true"));
+ok(!source.slice(source.indexOf("async function markRequestLinked("),
+ source.indexOf("/**\n * V3.159:")).includes(".upsert("));
 const domain=readFileSync(new URL("../src/domain/miniApps.js",import.meta.url),"utf8");
 ok(domain.includes("summarizeStoredCustomerJourneys({app,requests,links:requestLinks})"));
 const ui=readFileSync(new URL("../src/screens/miniApps.js",import.meta.url),"utf8");
