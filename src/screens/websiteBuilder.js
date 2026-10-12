@@ -30,6 +30,7 @@ import { websiteDecisionEvidence } from "../core/websiteDecisionEvidence.mjs";
 import { renderWebsiteHtml,applyWebsiteLayoutChange } from "../domain/websiteBuilder";
 import {recommendMeasuredWebsiteChange,compareWebsiteVisualReports,ownerDesignPreference,describeWebsiteDesignComparison} from "../core/websiteMeasuredDesignCoach.mjs";
 import {WebsiteContentEditor} from "./websiteContentEditor";
+import {WebsiteAppServiceCopy} from "./websiteAppServiceCopy";
 import {WebsiteLayoutControls} from "./websiteLayoutControls";
 import {WebsitePagesEditor} from "./websitePagesEditor";
 import {WebsiteTapEditor} from "./websiteTapEditor";
@@ -769,6 +770,10 @@ function WebsiteBuilder({ s }) {
               </>
             ) : null}
           </Card>
+          <WebsiteAppServiceCopy website={draft}
+            app={s.miniAppsView?.app}
+            businessId={s.cloudWorkspace?.businessId}
+            onApply={s.applyMissingAppServicesToWebsite}/>
           <WebsiteContentEditor draft={draft} onApply={s.applyWebsiteFieldChange}/>
           <WebsiteLayoutControls draft={draft} onApply={s.applyWebsiteLayoutAction}/>
           <WebsitePagesEditor draft={draft} onApply={s.applyWebsitePageAction} onShare={s.shareWebsiteContent} onShareZip={s.shareStandaloneWebsiteZip} onBackup={s.backupWebsiteOriginals}/>
