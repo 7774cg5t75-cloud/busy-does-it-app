@@ -12,6 +12,7 @@ import { buildAppDistributionPlan,buildStandalonePrivateHandoff } from "../core/
 import { planFunctionalBusinessApp } from "../core/appExperiencePlanner.mjs";
 import { previewPrivateAppAppearance,OPTIONS as appAppearanceOptions } from "../core/appAppearanceEditing.mjs";
 import {nativePalette,LABELS as nativePaletteLabels} from "../core/nativePalette.mjs";
+import {appVisualPresentation,TYPE_LABELS,SERVICE_LABELS} from "../core/appVisualPresentationV3194.mjs";
 import { interpretSelectedAppAppearance } from "../core/appContextInstruction.mjs";
 import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.mjs";
 import {proposeCoordinatedAppChanges,planAppVoiceInstructions} from "../core/appCoordinatedStudio.mjs";
@@ -245,6 +246,7 @@ function MiniAppSurface({
   const density=presentation.layoutDensity||"comfortable";
   const headerStyle=presentation.headerStyle||"refined";
   const brandColours=nativePalette(presentation.brandPalette,presentation.brandAccent);
+  const visual=appVisualPresentation(presentation);
 
   return (
     <View style={{width:"100%"}} onLayout={({nativeEvent})=>{
@@ -259,7 +261,12 @@ function MiniAppSurface({
         <Text style={{color:brandColours.muted,fontSize:12}}>
           {config?.display?.category||profile.businessType||"Business"}
         </Text>
-        <Text style={{color:brandColours.text,fontWeight:"700",fontSize:20,marginTop:5}}>
+        <Text style={{color:brandColours.text,
+          fontSize:visual.headerCompact?visual.type.titleSize-5:
+            visual.headerEmphasis?visual.type.titleSize+4:visual.type.titleSize,
+          fontWeight:visual.type.titleWeight,
+          letterSpacing:visual.type.titleSpacing,
+          textAlign:visual.headerCentered?"center":"left",marginTop:5}}> 
           {config?.display?.name||profile.businessName||"Business"}
         </Text>
         <Text style={{color:brandColours.muted,marginTop:5}}>
@@ -356,12 +363,30 @@ function MiniAppSurface({
                         onQualityObservation({key:"service-"+index,
                           kind:"service_card",width,height});
                       }}
-                      style={{width:responsive.ok&&responsive.serviceColumns===2?
-                        "48%":"100%"}}>
-                      <Card eyebrow="Service" title={service.name||"Service"}
-                        body={service.description||
-                          "Contact the business for more information."}
-                        tone="blue"/>
+                      style={{width:visual.serviceColumns===1?"100%":
+                        responsive.ok&&responsive.serviceColumns===2?"48%":"100%",
+                       padding:visual.serviceStyle==="rows"?4:0}}> 
+                      <View style={{backgroundColor:brandColours.surface,
+                        borderWidth:visual.serviceStyle==="rows"?0:1,
+                        borderBottomWidth:visual.serviceStyle==="rows"?1:undefined,
+                        borderColor:index===0&&visual.featuredFirst?
+                           brandColours.accent:brandColours.line,
+                        borderRadius:visual.serviceStyle==="rows"?0:12,
+                        padding:visual.serviceStyle==="rows"?9:15}}>
+                        {index===0&&visual.featuredFirst?<Text style={{
+                          color:brandColours.accent,fontSize:12,fontWeight:"700"}}>
+                          Featured service
+                        </Text>:null}
+                        <Text style={{color:brandColours.text,
+                          fontSize:visual.type.bodySize+2,
+                          fontWeight:visual.type.sectionWeight}}>
+                          {service.name||"Service"}
+                        </Text>
+                        <Text style={{color:brandColours.muted,marginTop:5,
+                          fontSize:visual.type.bodySize}}>
+                          {service.description||"Contact the business for more information."}
+                        </Text>
+                      </View>
                     </View>
                   ))}
                 </View>
@@ -2686,6 +2711,8 @@ function MiniAppBuilder({ s }) {
             ["layoutDensity","Space around content",appAppearanceOptions.layoutDensity],
             ["navigationStyle","Navigation look",appAppearanceOptions.navigationStyle],
             ["galleryLayout","Gallery layout",appAppearanceOptions.galleryLayout],
+            ["typeStyle","Headings and typography",appAppearanceOptions.typeStyle],
+            ["serviceStyle","Service presentation",appAppearanceOptions.serviceStyle],
             ["imageCorners","Photo corners",appAppearanceOptions.imageCorners],
             ["brandPalette","Business App colours",appAppearanceOptions.brandPalette.filter(x=>x!=="custom")]
           ].map(([field,label,values])=>(
@@ -2695,7 +2722,10 @@ function MiniAppBuilder({ s }) {
                 values.slice(0,8):values).map(value=>(
                 <Button key={value} label={
                   (pendingAppearance?.field===field&&pendingAppearance?.value===value?"✓ ":"")+
-                  (field==="brandPalette"?(nativePaletteLabels[value]||value):value.replaceAll("-"," "))}
+                  (field==="brandPalette"?(nativePaletteLabels[value]||value):
+                    field==="typeStyle"?(TYPE_LABELS[value]||value):
+                    field==="serviceStyle"?(SERVICE_LABELS[value]||value):
+                    value.replaceAll("-"," "))}
                   disabled={!!s.miniAppsAction}
                   onPress={()=>{
                     setPendingAppearance({field,value});
