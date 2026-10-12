@@ -30,7 +30,7 @@ import {buildOwnerDesignPatterns,prepareOwnerAwareDesignExperiments,
  explainOwnerDesignOutcome} from "../core/appDesignPatterns.mjs";
 import {INDUSTRY_PROFILES,prepareIndustryAwareAppReview}
   from "../core/appIndustryOrchestrator.mjs";
-import {TASKS,buildCustomerTaskDesignReport,proposeTaskFirstNavigation}
+import {buildCustomerTaskDesignReport,proposeTaskFirstNavigation}
   from "../core/appCustomerTaskDesign.mjs";
 import {auditStandaloneContrast} from "../core/appContrastAudit.mjs";
 import {appRequestJourney} from "../core/appRequestLifecycle.mjs";
@@ -734,6 +734,7 @@ function MiniAppBuilder({ s }) {
   const [studioWords,setStudioWords]=React.useState("");
   const [studioPreview,setStudioPreview]=React.useState(null);
   const [selectedCustomerTask,setSelectedCustomerTask]=React.useState("book");
+  const [showCustomerTaskReview,setShowCustomerTaskReview]=React.useState(false);
   const [studioComparisonSide,setStudioComparisonSide]=React.useState("proposed");
   const [showResponsiveDetails,setShowResponsiveDetails]=React.useState(false);
   const [studioNotice,setStudioNotice]=React.useState("");
@@ -761,6 +762,7 @@ function MiniAppBuilder({ s }) {
     setStudioWords("");
     setStudioNotice("");
     setSelectedCustomerTask("book");
+    setShowCustomerTaskReview(false);
     setServiceIndex(-1);setServiceName("");setServiceDescription("");
     setAccessiblePhotoNumber("1");
     setAccessiblePhotoAlt("");setAccessiblePhotoCaption("");
@@ -1248,15 +1250,20 @@ function MiniAppBuilder({ s }) {
           body="Describe the result you want. BUSY identifies only supported safe edits, checks the current private app, then shows the entire proposed customer view. If an instruction is unclear, nothing is applied."
           footer="One approval saves the complete batch as ONE private revision. Undo reverses that batch without touching the live app."
           tone="blue">
-          <Text style={styles.sectionLabel}>
-            V3.169 • What should customers be able to do first?
-          </Text>
-          <Text style={styles.cardBody}>
-            BUSY checks the actual enabled sections, not just the appearance.
-            Choose a customer goal; Busy will only suggest a change if the
-            relevant section already exists. No bookings or enquiries are created.
-          </Text>
-          {(customerTaskReport?.tasks||[]).map(item=>(
+          <Button label={showCustomerTaskReview?
+              "Hide customer journey ideas":"Help customers find what they need"}
+            onPress={()=>setShowCustomerTaskReview(x=>!x)}/>
+          {showCustomerTaskReview?(
+            <>
+              <Text style={styles.sectionLabel}>
+                What should customers be able to do first?
+              </Text>
+              <Text style={styles.cardBody}>
+                BUSY checks the actual enabled sections, not just the appearance.
+                Choose a customer goal; Busy only suggests moving an already
+                enabled section. No bookings or enquiries are created.
+              </Text>
+              {(customerTaskReport?.tasks||[]).map(item=>(
             <Button key={"customer-task-"+item.id}
               label={(selectedCustomerTask===item.id?"✓ ":"")+item.label}
               disabled={!!s.miniAppsAction}
@@ -1311,6 +1318,8 @@ function MiniAppBuilder({ s }) {
                 Static navigation checks do not prove actual submissions,
                 accessibility, appointment confirmations or customer outcomes.
               </Text>
+            </>
+          ):null}
             </>
           ):null}
           <Text style={styles.sectionLabel}>Or tell Busy other changes</Text>
