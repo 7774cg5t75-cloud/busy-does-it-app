@@ -39,6 +39,15 @@ const domains=[
   wired:"src/screens/miniApps.js",signal:"rankDesignSuggestions",test:"scripts/check-intelligent-app-studio-v3157.mjs"},
  {id:"website_app_fact_coordination",source:"src/core/coordinatedBuilderReviewV3180.mjs",
   wired:"src/screens/miniApps.js",signal:"prepareCoordinatedBuilderReview",test:"scripts/check-atomic-staging-v3180.mjs"},
+ {id:"atomic_owner_customer_conversation",source:"supabase/functions/busy-mini-apps/atomicConversationService.mjs",
+  wired:"supabase/functions/busy-mini-apps/index.ts",signal:"sendAtomicConversation(supabase",
+  test:"scripts/check-customer-journeys-v3184.mjs"},
+ {id:"stored_customer_journey_checkpoints",source:"src/core/storedJourneyCheckpointsV3184.mjs",
+  wired:"src/domain/miniApps.js",signal:"summarizeJourneyCheckpoints({",
+  test:"scripts/check-customer-journeys-v3184.mjs"},
+ {id:"safe_staging_migration_review",source:"src/core/stagingMigrationRiskV3184.mjs",
+  wired:"scripts/prepare-staging-install-v3180.mjs",signal:"reviewMigrationSideEffects(migrations)",
+  test:"scripts/check-customer-journeys-v3184.mjs"},
  {id:"get_paid_owner_drafts",source:"src/core/getPaidIntelligenceV3183.mjs",
   wired:"src/components/GetPaidOwnerReview.js",signal:"prepareGetPaidQuoteDraft",test:"scripts/check-get-paid-v3183.mjs"}
 ];
