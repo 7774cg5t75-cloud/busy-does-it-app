@@ -68,7 +68,11 @@ const domains=[
 ];
 const capabilities=domains.map(d=>{
  const implementation=source.has(d.source);
- const ownerSurface=source.get(d.wired)?.includes(d.signal)===true;
+ // Workflow YAML is deliberately excluded from code-line counting, but
+ // a concrete CI integration is still valid wiring evidence.
+ const wiring=source.get(d.wired)??(existsSync(join(root,d.wired))?
+  readFileSync(join(root,d.wired),"utf8"):"");
+ const ownerSurface=wiring.includes(d.signal);
  const testPresent=source.has(d.test);
  return {id:d.id,implementation,ownerSurface,testPresent,
   sourceAndOwnerWired:implementation&&ownerSurface,
