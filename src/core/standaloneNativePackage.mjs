@@ -43,8 +43,14 @@ function nativeShellDescriptor(manifest,{purpose="private_prototype",runtimeEvid
  const submittedLook=manifest.appearance||{};
  if(typeof submittedLook!=="object"||Array.isArray(submittedLook)||
    Object.keys(submittedLook).some(k=>
-     !Object.prototype.hasOwnProperty.call(APP_LOOK,k)||
-     !APP_LOOK[k].includes(submittedLook[k])))
+     (k==="brandAccent"?!(typeof submittedLook[k]==="string"&&
+       /^#[0-9a-fA-F]{6}$/.test(submittedLook[k])):
+       !Object.prototype.hasOwnProperty.call(APP_LOOK,k)||
+       !APP_LOOK[k].includes(submittedLook[k])) )||
+   (submittedLook.brandPalette==="custom"&&
+     !/^#[0-9a-fA-F]{6}$/.test(submittedLook.brandAccent||""))||
+   (submittedLook.brandAccent!==undefined&&
+     submittedLook.brandPalette!=="custom")
   return {ok:false,reason:"Standalone layout must come from an approved, finite appearance."};
  const appearance={...APP_DEFAULTS,...submittedLook};
  let liveRuntime=null;
