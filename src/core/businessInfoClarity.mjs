@@ -63,6 +63,31 @@ function reviewBusinessInformation({
  const issues=[
   ...(websiteInfo?.issues||[]),...(appInfo?.issues||[])
  ];
+ // V3.179 — compare normalized, already-approved facts IN MEMORY.
+ // Return only counts/flags: never copy owner service lists or names to findings.
+ const normaliseName=value=>clean(value).replace(/\s+/g," ").toLocaleLowerCase("en");
+ const websiteNames=new Set(capped(webBrief.services)
+   .map(x=>normaliseName(x?.name)).filter(Boolean));
+ const appNames=new Set(capped(appServices)
+   .map(x=>normaliseName(x?.name)).filter(Boolean));
+ const matchingServices=websiteInfo&&appInfo?
+   [...websiteNames].filter(n=>appNames.has(n)).length:null;
+ const websiteOnly=websiteInfo&&appInfo?
+   [...websiteNames].filter(n=>!appNames.has(n)).length:null;
+ const appOnly=websiteInfo&&appInfo?
+   [...appNames].filter(n=>!websiteNames.has(n)).length:null;
+ if(websiteInfo&&appInfo&&websiteInfo.count===appInfo.count&&
+    (websiteOnly>0||appOnly>0))issues.push({
+   id:"different_service_sets",surface:"both",position:null,priority:"review",
+   title:"Website and app list different services",
+   ownerAction:"Compare the approved service lists. Different selections may be intentional."});
+ const webName=website?normaliseName(websiteDraft.businessName||webBrief.businessName):"";
+ const appName=app?normaliseName(appConfig.publicProfile?.businessName||
+   appConfig.publicProfile?.name):"";
+ if(website&&app&&webName&&appName&&webName!==appName)issues.push({
+   id:"different_business_names",surface:"both",position:null,priority:"review",
+   title:"Business names differ between website and app",
+   ownerAction:"Check the owner's approved public name in both private editors."});
  if(website){
   const name=clean(websiteDraft.businessName)||clean(webBrief.businessName);
   if(!name)issues.push({id:"missing_business_name",surface:"website",
@@ -98,6 +123,11 @@ function reviewBusinessInformation({
   appServicesEnabled:!!appServicesEnabled,
   websiteCompleteDescriptions:websiteInfo?.completeServiceDescriptions??null,
   appCompleteDescriptions:appInfo?.completeServiceDescriptions??null,
+  matchingServiceNamesCount:matchingServices,
+  websiteOnlyServiceNamesCount:websiteOnly,
+  appOnlyServiceNamesCount:appOnly,
+  sharedBusinessNameAgrees:webName&&appName?webName===appName:null,
+  comparisonsArePrivateAndNotAutomaticSynchronisation:true,
   importantCount:issues.filter(i=>i.priority==="important").length,
   totalIssueCount:issues.length,issues:issues.slice(0,24),
   ownerEditsRequired:true,verifiedCustomerCopy:false,
