@@ -1680,6 +1680,31 @@ function MiniAppBuilder({ s }) {
                   ):null}
                 </>
               ):null}
+              {view.journeyEvidence?.ok?(
+                <>
+                  <Text style={styles.sectionLabel}>
+                    V3.179 • Recorded customer requests
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    {"Stored booking requests: "+view.journeyEvidence.bookingRequests+
+                      " • enquiries: "+view.journeyEvidence.enquiries+
+                      " • still pending: "+view.journeyEvidence.pending+
+                      " • not linked to a customer record: "+
+                      view.journeyEvidence.unlinkedRequests+"."}
+                  </Text>
+                  {view.journeyEvidence.inconsistentConfirmedStates>0?(
+                    <Text style={styles.cardBody}>
+                      {"Needs attention: "+
+                        view.journeyEvidence.inconsistentConfirmedStates+
+                        " booking states disagree with their owner links."}
+                    </Text>
+                  ):null}
+                  <Text style={styles.cardBody}>
+                    Recorded states are not proof that a reply reached the customer
+                    or that an appointment exists in a verified live diary.
+                  </Text>
+                </>
+              ):null}
               {businessBrainQueue?.ok?(
                 <>
                   <Text style={styles.sectionLabel}>
