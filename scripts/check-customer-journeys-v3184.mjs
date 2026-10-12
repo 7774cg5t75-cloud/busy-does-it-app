@@ -72,6 +72,7 @@ eq(synthetic.byCategory.scheduled_work,1);
 eq(synthetic.byCategory.extension_setup,1);
 eq(synthetic.byCategory.data_or_schema_destructiveness,0);
 const receipt={changed:true,databaseMessageSaved:true,providerDeliveryVerified:false,
+ deliveryIntentDurable:true,outboxId:"88888888-8888-4888-8888-888888888888",outboxState:"pending",
  message:{id:"m123",request_id:one,business_id:business,
  sender_user_id:actor,sender_role:"business"}};
 const rpcCalls=[];
@@ -82,7 +83,7 @@ const result=await sendAtomicConversation(stub,{
 });
 ok(result.databaseMessageSaved);eq(result.customerDeliveryVerified,false);
 eq(rpcCalls.length,1);
-eq(rpcCalls[0].name,"busy_send_mini_app_message_v3184");
+eq(rpcCalls[0].name,"busy_send_mini_app_message_v3185");
 eq(rpcCalls[0].body.p_request_id,one);
 eq(rpcCalls[0].body.p_body,"Hello");
 ok(!await sendAtomicConversation(stub,{
