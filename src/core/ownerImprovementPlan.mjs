@@ -69,7 +69,9 @@ function prepareOwnerImprovementPlan({
  }
  for(const finding of clarity.issues.filter(f=>f.priority==="review").slice(0,2)){
   const identifier=finding.id==="missing_service_description"?
-   "clarify_service_descriptions":finding.id==="different_service_counts"?
+   "clarify_service_descriptions":
+   ["different_service_counts","different_service_sets",
+    "different_business_names"].includes(finding.id)?
    "check_surface_consistency":"review_business_content";
   add(identifier,finding.surface,3,
    "Review the wording and presentation",
