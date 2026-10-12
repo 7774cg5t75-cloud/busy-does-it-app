@@ -133,7 +133,7 @@ const ui=read("src/screens/miniApps.js");
 for(const marker of ["appCustomerTaskDesign.mjs",
  "buildCustomerTaskDesignReport(view.draftConfig)",
  "proposeTaskFirstNavigation(view.draftConfig,selectedCustomerTask)",
- "V3.169 • What should customers be able to do first?",
+ "Help customers find what they need",
  "Preview a clearer customer journey",
  "setStudioPreview(fresh.preview?.ok?fresh.preview:null)",
  "Compare the ORIGINAL and PROPOSED real app views",
