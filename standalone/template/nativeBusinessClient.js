@@ -21,6 +21,25 @@ function verifiedPublicRuntime(runtime){
    !link.search&&!link.hash;
  }catch{return false;}
 }
+const safePublicText=(v,max)=>typeof v==="string"&&v.length<=max&&
+ !/[<>\\u0000-\\u001f\\u007f]/.test(v);
+function validNativeExtras(payload){
+ if(!Array.isArray(payload?.offers)||payload.offers.length>12||
+   payload.offers.some(o=>!o||!safePublicText(o.title,140)||!o.title.trim()||
+    !safePublicText(o.body,700)||!safePublicText(o.terms,800)||
+    !o.terms.trim()||!safePublicText(o.startDate,10)||
+    !safePublicText(o.endDate,10)))return false;
+ const l=payload.loyalty;
+ if(l!==null&&(!l||typeof l!=="object"||Array.isArray(l)||
+  !safePublicText(l.programName,120)||!l.programName.trim()||
+  !safePublicText(l.reward,300)||!l.reward.trim()||
+  !safePublicText(l.terms,700)||!l.terms.trim()||
+  !Number.isSafeInteger(l.targetStamps)||l.targetStamps<1||l.targetStamps>1000||
+  l.personalBalanceAvailable!==false||l.redemptionEnabled!==false))return false;
+ if(payload.offers.length>0&&!payload.moduleKeys?.includes("offers")||
+  l!==null&&!payload.moduleKeys?.includes("loyalty"))return false;
+ return true;
+}
 function validPublicRead(payload,runtime){
  if(!verifiedPublicRuntime(runtime)||payload?.ok!==true||
   payload.kind!=="public_native_app_v1"||
@@ -28,7 +47,8 @@ function validPublicRead(payload,runtime){
   payload.versionId!==runtime.expectedVersionId||
   payload.slug!==runtime.slug||
   !Array.isArray(payload.moduleKeys)||!payload.moduleKeys.includes("business_profile")||
-  payload.chargesEnabled!==false||payload.doesNotConfirmAppointments!==true)
+  payload.chargesEnabled!==false||payload.doesNotConfirmAppointments!==true||
+  !validNativeExtras(payload))
   return false;
  return true;
 }
