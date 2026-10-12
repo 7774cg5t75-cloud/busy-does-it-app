@@ -27,6 +27,8 @@ jobs:
           node scripts/check-builder-handoff-v3152.mjs
           node scripts/check-app-customer-tasks-v3169.mjs
           node scripts/check-connected-readiness-v3189.mjs
+          node scripts/prepare-staging-install-v3180.mjs
+          node scripts/verify-staging-install-v3186.mjs
           node scripts/check-evidence-readiness-v3188.mjs
           node scripts/check-production.mjs
       - name: Install pinned Expo dependencies
