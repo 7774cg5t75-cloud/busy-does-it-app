@@ -25,12 +25,31 @@ const collectionKinds=new Set(["services","faq"]);
 const publicWord=(s,max,required=false)=>typeof s==="string"&&s.length<=max&&
  !/[<>\u0000-\u001f\u007f]/.test(s)&&(!required||!!s.trim());
 function editWebsiteDraftCollection(draft,change={}){
- const permitted=new Set(["kind","action","sectionId","title","body","itemId","expectedTitle"]);
+ const permitted=new Set(["kind","action","sectionId","title","body","itemId","expectedTitle","direction"]);
  if(!change||typeof change!=="object"||Array.isArray(change)||
    Object.keys(change).some(k=>!permitted.has(k))||
-   !["add-item","remove-item"].includes(change.action)||
+   !["add-item","remove-item","move-item","create-collection"].includes(change.action)||
    typeof change.sectionId!=="string")
   return fail("Choose a supported FAQ or service entry.",draft);
+ if(change.action==="create-collection"){
+  if(!collectionKinds.has(change.sectionId)||
+    draft.sections.some(s=>s?.id===change.sectionId)||
+    typeof change.title!=="string"||!publicWord(change.title,140,true)||
+    typeof change.body!=="string"||!publicWord(change.body,1200,true)||
+    change.direction!==undefined||change.itemId!==undefined||
+    change.expectedTitle!==undefined)return fail(
+      "Choose a missing FAQ or Services section and give its first entry owner-written wording.",draft);
+  const title=clean(change.title),body=clean(change.body);
+  const id="owner-"+title.toLowerCase().replace(/[^a-z0-9]+/g,"-")
+    .replace(/^-+|-+$/g,"").slice(0,55);
+  if(id==="owner-")return fail("Use a name or question with letters or numbers.",draft);
+  const section={id:change.sectionId,type:change.sectionId,enabled:true,
+    title:change.sectionId==="faq"?"Frequently asked questions":"What we do",
+    body:"",items:[{id,title,body}],ownerEditedItems:true};
+  return {applied:true,draft:{...draft,sections:[...draft.sections,section]},
+    reason:"Created a new PRIVATE "+change.sectionId+" section with an owner-written entry. Nothing was published.",
+    privateOnly:true};
+ }
  const matches=draft.sections.filter(s=>s?.id===change.sectionId);
  if(matches.length!==1||!collectionKinds.has(matches[0]?.type)||
    matches[0].enabled===false)return fail("Choose an active Services or FAQ section.",draft);
@@ -52,10 +71,22 @@ function editWebsiteDraftCollection(draft,change={}){
   let id=base,n=2;
   while(items.some(x=>x.id===id)){id=base+"-"+n++;if(n>32)return fail("Too many matching entries.",draft);}
   next=[...items,{id,title,body}];
+ }else if(change.action==="move-item"){
+  if(typeof change.itemId!=="string"||!change.itemId||
+    typeof change.expectedTitle!=="string"||
+    !["up","down"].includes(change.direction)||
+    change.title!==undefined||change.body!==undefined)
+   return fail("Choose an exact FAQ or service and a direction.",draft);
+  const index=items.findIndex(i=>i.id===change.itemId&&i.title===change.expectedTitle);
+  if(index<0||items.filter(i=>i.id===change.itemId).length!==1)
+   return fail("That entry has changed. Select it again.",draft);
+  const to=index+(change.direction==="up"?-1:1);
+  if(to<0||to>=items.length)return fail("That entry is already at the end of the list.",draft);
+  next=[...items];const [moved]=next.splice(index,1);next.splice(to,0,moved);
  }else{
   if(typeof change.itemId!=="string"||!change.itemId||
     typeof change.expectedTitle!=="string"||
-    change.title!==undefined||change.body!==undefined)
+    change.title!==undefined||change.body!==undefined||change.direction!==undefined)
    return fail("Choose an exact existing entry to remove.",draft);
   const matching=items.filter(i=>i.id===change.itemId);
   if(matching.length!==1||matching[0].title!==change.expectedTitle)
@@ -64,7 +95,7 @@ function editWebsiteDraftCollection(draft,change={}){
  }
  const sections=draft.sections.map(x=>x!==section?x:{...x,items:next,ownerEditedItems:true});
  return {applied:true,draft:{...draft,sections},
-  reason:(change.action==="add-item"?"Added":"Removed")+
+  reason:(change.action==="add-item"?"Added":change.action==="move-item"?"Moved":"Removed")+
     " an entry in the PRIVATE "+section.type+" section. Nothing was published.",
   privateOnly:true};
 }
@@ -74,7 +105,7 @@ function editWebsiteDraftField(draft,change={}){
   return fail("Build a private website draft before editing its content.",draft);
  if(!change||typeof change!=="object"||Array.isArray(change))
   return fail("Choose a website field to edit.",draft);
- if(change.action==="add-item"||change.action==="remove-item")
+ if(["add-item","remove-item","move-item","create-collection"].includes(change.action))
   return editWebsiteDraftCollection(draft,change);
  const {sectionId,itemId,field,value}=change;
  if(typeof sectionId!=="string"||!sectionId||typeof field!=="string"||!(field in bounds)||
@@ -99,7 +130,8 @@ function editWebsiteDraftField(draft,change={}){
    return fail("Testimonial wording cannot be blank. You may remove it through the dedicated controls.",draft);
   if(newValue===clean(matches[0][field]))return fail("That text is already saved.",draft);
   sections=draft.sections.map(s=>s!==section?s:{
-   ...s,items:list(s.items).map(item=>item.id===itemId?{...item,[field]:newValue}:item)
+   ...s,...(collectionKinds.has(section.type)?{ownerEditedItems:true}:{}),
+   items:list(s.items).map(item=>item.id===itemId?{...item,[field]:newValue}:item)
   });
   description="Updated "+section.type+" item "+field+" in your private website draft.";
  }else{
