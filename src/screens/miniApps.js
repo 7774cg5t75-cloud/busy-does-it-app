@@ -2441,13 +2441,15 @@ function MiniAppPreview({ s }) {
           ai:visualReport?.suggestions||[],
           responsive:responsiveSuggestions
         };
-        const alternative=fresh?.ok?(designIndustry==="general"?
+        const alternative=fresh?.ok?(visualProposal?.industryId==="general"||
+          !visualProposal?.industryId?
           prepareOwnerAwareDesignExperiments(config,freshOptions):
           prepareIndustryAwareAppReview(config,{
-            ...freshOptions,industry:designIndustry
+            ...freshOptions,industry:visualProposal.industryId
           })):null;
         const next=alternative?.preview?.ok?{
           ...alternative.preview,
+          industryId:visualProposal?.industryId||"general",
           explanations:alternative.reasoning.map(x=>({
             field:x.field,value:x.value,
             source:["measured","ai","responsive"].includes(
@@ -2485,16 +2487,16 @@ function MiniAppPreview({ s }) {
           setDesignMemoryBusy(false);
         }}]);
   };
-  const prepareCoordinatedReview=()=>{
+  const prepareCoordinatedReview=(useIndustry=false)=>{
+    const profile=useIndustry===true&&designMemory?.ok?designIndustry:"general";
     const baseline=coordinateVisualEvidence(config,{
       measured:measuredSuggestions?.suggestions||[],
       ai:visualReport?.suggestions||[],
       responsive:responsiveSuggestions
     });
-    const guided=designIndustry==="general"||!designMemory?.ok?
-      nextDesignExperiment:industryDesignReview;
+    const guided=profile==="general"?nextDesignExperiment:industryDesignReview;
     const plan=guided?.preview?.ok?
-      {...guided.preview,
+      {...guided.preview,industryId:profile,
         explanations:guided.reasoning.map(x=>({
           field:x.field,value:x.value,
           source:["measured","ai","responsive"].includes(
@@ -2757,7 +2759,7 @@ function MiniAppPreview({ s }) {
                   ):null}
                   <Button label="Compare the proposed design with my original"
                     disabled={designMemoryBusy||!!s.miniAppsAction||virtualBusy}
-                    onPress={prepareCoordinatedReview}/>
+                    onPress={()=>prepareCoordinatedReview(true)}/>
                 </>
               ):(
                 <Text style={styles.cardBody}>
