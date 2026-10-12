@@ -36,6 +36,8 @@ import {privateBuilderVisualIntegrity} from "../core/privateBuilderBoundary.mjs"
 import {planWebsitePageInstructions,prepareWebsitePageInstructionPreview} from "../core/websitePageInstructions.mjs";
 import {makeWebsiteRecoveryPoint,restoreWebsiteRecoveryPoint as restoreWebsiteRecoverySnapshot} from "../core/websiteRecoveryPoint.mjs";
 import {validateDesignFeedback,normalizeDesignHistory} from "../core/appDesignLearning.mjs";
+import {validateOwnerBrainWrite,normalizeOwnerBrainHistory}
+ from "../core/brainOwnerDecisionsContract.mjs";
 
 try {
   Notifications.setNotificationHandler({
@@ -15196,6 +15198,96 @@ function App() {
 
   // V3.166 per-business design memory is private, bounded, opt-in per owner
   // feedback action and never reused across an unauthenticated workspace.
+  // V3.176: strictly owner/admin authenticated current-draft preferences.
+  // Backend checks membership and revision again; no client business claims
+  // may grant DB access.
+  const getAppBrainDecisions=async({appId,expectedRevision}={})=>{
+    const businessId=String(cloudWorkspace?.businessId||"");
+    if(!businessId||miniAppsView?.app?.id!==appId||
+       Number(miniAppsView.app.draft_revision)!==Number(expectedRevision))
+      return {ok:false,records:[],reason:"Open the current private Business App."};
+    try{
+      const response=await miniAppsRequest("brain_owner_decisions",{
+        appId,expectedRevision
+      });
+      if(response?.ok!==true||response.businessId!==businessId||
+         cloudWorkspace?.businessId!==businessId||
+         miniAppsView?.app?.id!==appId||
+         Number(miniAppsView?.app?.draft_revision)!==Number(expectedRevision)||
+         response.history?.appId!==appId||
+         Number(response.history?.draftRevision)!==Number(expectedRevision))
+        throw Error("Private owner-decision scope changed. Refresh this app.");
+      const history=normalizeOwnerBrainHistory({
+        records:response.history.records||[],appId,
+        appRevision:Number(expectedRevision),businessId
+      });
+      if(!history.ok)throw Error("Private owner-decision history is invalid.");
+      return {ok:true,records:history.records,
+        appId,revision:Number(expectedRevision),businessId};
+    }catch(error){
+      return {ok:false,records:[],
+        reason:String(error?.message||
+          "Owner decision storage has not been deployed.").slice(0,220)};
+    }
+  };
+  const recordAppBrainOwnerDecision=async({
+    appId,expectedRevision,goal,actionId,decision
+  }={})=>{
+    const businessId=String(cloudWorkspace?.businessId||"");
+    const validation=validateOwnerBrainWrite({
+      appId,expectedRevision,goal,actionId,decision,
+      surface:"app",ownerApproved:true
+    });
+    if(!validation.ok||!businessId||
+       miniAppsView?.app?.id!==appId||
+       Number(miniAppsView?.app?.draft_revision)!==Number(expectedRevision))
+      return {ok:false,reason:validation.reason||
+        "This app draft has changed; reload it before recording a preference."};
+    try{
+      const response=await miniAppsRequest("record_brain_owner_decision",{
+        ...validation
+      });
+      if(response?.ok!==true||response.businessId!==businessId||
+         cloudWorkspace?.businessId!==businessId||
+         miniAppsView?.app?.id!==appId||
+         Number(miniAppsView?.app?.draft_revision)!==Number(expectedRevision)||
+         response.appId!==appId||
+         Number(response.draftRevision)!==Number(expectedRevision)||
+         response.ownerDecisionRecorded!==true||
+         response.workItemNotExecuted!==true||
+         response.publishedAppUnchanged!==true)
+        throw Error("BUSY could not verify the saved owner decision.");
+      return {ok:true,saved:true,decision,actionId};
+    }catch(error){
+      return {ok:false,
+        reason:String(error?.message||
+          "Your preference could not be saved.").slice(0,220)};
+    }
+  };
+  const checkIsolatedAppStagingConnection=async({appId,expectedRevision}={})=>{
+    const businessId=String(cloudWorkspace?.businessId||"");
+    if(!businessId||miniAppsView?.app?.id!==appId||
+       Number(miniAppsView?.app?.draft_revision)!==Number(expectedRevision))
+      return {ok:false,reason:"Open the current private Business App first."};
+    try{
+      const result=await miniAppsRequest("staging_connection_probe",{
+        appId,expectedRevision
+      });
+      if(result?.ok!==true||result.businessId!==businessId||
+         cloudWorkspace?.businessId!==businessId||
+         result.appId!==appId||
+         Number(result.draftRevision)!==Number(expectedRevision)||
+         result.stagingConnectionVerified!==true||
+         result.noRequestsSubmitted!==true||
+         result.productionEndpointsUsed!==false)
+        throw Error("The staging probe response could not be verified.");
+      return {ok:true,stagingConnectionVerified:true,
+        noRequestsSubmitted:true,liveDeliveryVerified:false};
+    }catch(error){
+      return {ok:false,reason:String(error?.message||
+        "Isolated staging isn't configured on this server.").slice(0,220)};
+    }
+  };
   const getAppDesignLearningStatus=async({appId}={})=>{
     const currentBusiness=String(cloudWorkspace?.businessId||"");
     if(!currentBusiness||miniAppsView?.app?.id!==appId)
@@ -16603,6 +16695,9 @@ function App() {
     reviewPrivateAppScreenshot,
     comparePrivateAppScreenshots,
     getAppDesignLearningStatus,
+    getAppBrainDecisions,
+    recordAppBrainOwnerDecision,
+    checkIsolatedAppStagingConnection,
     recordAppDesignPreference,
     clearAppDesignLearning,
     movePrivateAppSection,
