@@ -89,7 +89,7 @@ const domains=[
   wired:"standalone/template/App.js",signal:'if(screen.key==="offers")',
   test:"scripts/check-builders-v3190.mjs"},
  {id:"native_service_to_booking_navigation",source:"standalone/template/App.js",
-  wired:"standalone/template/App.js",signal:"onRequestService?.(service.name)",
+  wired:"standalone/template/App.js",signal:'onRequestService?.(service.name,"booking_request")',
   test:"scripts/check-builders-v3190.mjs"},
  {id:"website_owner_collection_edits",source:"supabase/functions/busy-website-worker/websiteStructuredEditing.mjs",
   wired:"src/screens/websiteContentEditor.js",signal:'action:"add-item"',
@@ -103,6 +103,15 @@ const domains=[
  {id:"website_owner_created_sections",source:"supabase/functions/busy-website-worker/websiteStructuredEditing.mjs",
   wired:"src/screens/websiteContentEditor.js",signal:'action:"create-collection"',
   test:"scripts/check-major-builders-v3191.mjs"},
+ {id:"native_custom_brand_appearance",source:"src/core/nativePalette.mjs",
+  wired:"src/screens/miniApps.js",signal:'field:"brandAccent",value:brandAccentDraft',
+  test:"scripts/check-major-builders-v3193.mjs"},
+ {id:"website_app_brand_review_and_undo",source:"src/core/ownerBuilderBrandBridgeV3193.mjs",
+  wired:"src/app/AppController.js",signal:"confirmMatchAppBrandToWebsite(current,app,{businessId,evidence})",
+  test:"scripts/check-major-builders-v3193.mjs"},
+ {id:"native_service_enquiry_navigation",source:"standalone/template/App.js",
+  wired:"standalone/template/App.js",signal:'onRequestService?.(service.name,"enquiry")',
+  test:"scripts/check-major-builders-v3193.mjs"},
  {id:"get_paid_owner_drafts",source:"src/core/getPaidIntelligenceV3183.mjs",
   wired:"src/components/GetPaidOwnerReview.js",signal:"prepareGetPaidQuoteDraft",test:"scripts/check-get-paid-v3183.mjs"}
 ];
@@ -126,7 +135,7 @@ const sourceLines=files.reduce((sum,f)=>sum+
  (f.text===""?0:f.text.endsWith("\n")?
   f.text.split("\n").length-1:f.text.split("\n").length),0);
 const report={kind:"busy_intelligence_source_inventory_v3183",
- branchExpected:"v3.191",countingRule:"physical lines in selected code extensions, including comments and blanks",
+ branchExpected:"v3.193",countingRule:"physical lines in selected code extensions, including comments and blanks",
  codeFiles:files.length,codePhysicalLines:sourceLines,
  coreFiles:byDir("src/core/"),serviceFiles:byDir("supabase/functions/"),
  scriptFiles:byDir("scripts/"),migrationFiles:byDir("supabase/migrations/"),
