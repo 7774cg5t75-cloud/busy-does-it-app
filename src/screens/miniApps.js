@@ -54,6 +54,8 @@ import {prepareOwnerImprovementPlan}
   from "../core/ownerImprovementPlan.mjs";
 import {prepareBusinessBrainWork}
   from "../core/businessBrainWorkQueue.mjs";
+import {assessBrainOutcomeEvidence}
+  from "../core/businessBrainOutcomeEvidence.mjs";
 import {compileStagingRunnerHandoff}
   from "../core/stagingRunnerHandoff.mjs";
 import {compareAppGoalCandidate}
@@ -766,6 +768,8 @@ function MiniAppBuilder({ s }) {
   const [showJourneyPractice,setShowJourneyPractice]=React.useState(false);
   const [stagingHandoff,setStagingHandoff]=React.useState(null);
   const [stagingProbe,setStagingProbe]=React.useState(null);
+  const [stagingSyntheticResult,setStagingSyntheticResult]=React.useState(null);
+  const [stagingSyntheticBusy,setStagingSyntheticBusy]=React.useState(false);
   const [brainOwnerHistory,setBrainOwnerHistory]=React.useState(null);
   const [brainOwnerNotice,setBrainOwnerNotice]=React.useState("");
   const [brainOwnerBusy,setBrainOwnerBusy]=React.useState(false);
@@ -800,6 +804,7 @@ function MiniAppBuilder({ s }) {
     setShowJourneyPractice(false);
     setStagingHandoff(null);
     setStagingProbe(null);
+    setStagingSyntheticResult(null);
     setBrainOwnerHistory(null);
     setBrainOwnerNotice("");
     setServiceIndex(-1);setServiceName("");setServiceDescription("");
@@ -929,6 +934,14 @@ function MiniAppBuilder({ s }) {
       brainOwnerHistory?.businessId===s.cloudWorkspace?.businessId?
       brainOwnerHistory.records:[]
   }):null;
+  const syntheticEvidence=stagingSyntheticResult?.ok?
+    assessBrainOutcomeEvidence({
+      businessId:s.cloudWorkspace?.businessId||"",
+      appId:app?.id||"",revision:Number(app?.draft_revision)||0,
+      evidence:stagingSyntheticResult,
+      routeKind:selectedCustomerTask==="enquire"?"enquiry":"booking_request",
+      channel:"busy_marketplace"
+    }):null;
   const nonAiDesignHints=proposeLowRiskDesignHints(view.draftConfig||view.activeConfig||{});
   const responsiveGuidance=recommendResponsiveDesign(view.draftConfig||view.activeConfig||{});
   const responsiveQuality=evaluateAppAcrossScreens(view.draftConfig||view.activeConfig||{});
@@ -1572,6 +1585,47 @@ function MiniAppBuilder({ s }) {
                 </Text>
               ):stagingProbe?.reason?(
                 <Text style={styles.cardBody}>{stagingProbe.reason}</Text>
+              ):null}
+              {view.draftConfig&&app?.draft_revision>0&&
+               ["book","enquire"].includes(selectedCustomerTask)&&
+               typeof s.runIsolatedSyntheticAppJourney==="function"?(
+                <Button label="Run isolated synthetic database check"
+                  disabled={stagingSyntheticBusy||!!s.miniAppsAction}
+                  onPress={()=>{
+                    Alert.alert("Run a synthetic staging check?",
+                      "Only a specially configured isolated staging project can run this. It writes a test-only record, not a customer request. No messages are sent.",[
+                        {text:"Cancel",style:"cancel"},
+                        {text:"Run test",onPress:async()=>{
+                          setStagingSyntheticBusy(true);
+                          setStagingSyntheticResult(null);
+                          try{
+                            const result=await s.runIsolatedSyntheticAppJourney({
+                              appId:app.id,expectedRevision:Number(app.draft_revision),
+                              journeyKind:selectedCustomerTask==="enquire"?
+                                "enquiry":"booking_request",
+                              channel:"busy_marketplace"
+                            });
+                            setStagingSyntheticResult(result);
+                          }catch(error){
+                            setStagingSyntheticResult({ok:false,
+                              reason:String(error?.message||
+                                "Isolated staging check unavailable.").slice(0,190)});
+                          }finally{setStagingSyntheticBusy(false);}
+                        }}
+                      ]);
+                  }}/>
+              ):null}
+              {syntheticEvidence?.ok?(
+                <Text style={styles.cardBody}>
+                  {"V3.177 • "+
+                    (syntheticEvidence.syntheticStagingEvidencePresented?
+                      "Isolated test-only database write/read verified. ":
+                      "Staging evidence doesn't match this current app. ")+
+                    "This does NOT verify customer bookings, enquiry delivery, "+
+                    "messages or sales."}
+                </Text>
+              ):stagingSyntheticResult?.reason?(
+                <Text style={styles.cardBody}>{stagingSyntheticResult.reason}</Text>
               ):null}
               {businessBrainQueue?.ok?(
                 <>
