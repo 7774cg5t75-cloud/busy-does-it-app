@@ -1625,6 +1625,7 @@ async function ownerStatus(businessId: string) {
       requestLinks: [],
       workBookingLedger:{rows:[],truncated:false,verifiedExternalCalendar:false},
       messageCheckpoints:{rows:[],truncated:false},
+      messageDeliveryOutbox:{rows:[],truncated:false},
       requestCount30: 0,
       guestRequestCount30: 0,
       entrySummary: [],
@@ -1634,7 +1635,7 @@ async function ownerStatus(businessId: string) {
   }
 
   const entrySince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const [versions, requests, requestLinks, entrySummary, requestCount30, guestRequestCount30, workBookingLedger, messageCheckpoints] = await Promise.all([
+  const [versions, requests, requestLinks, entrySummary, requestCount30, guestRequestCount30, workBookingLedger, messageCheckpoints, messageDeliveryOutbox] = await Promise.all([
     supabase
       .from("busy_mini_app_versions")
       .select(
@@ -1678,6 +1679,10 @@ async function ownerStatus(businessId: string) {
       .select("id,business_id,mini_app_id,request_id,sender_role")
       .eq("business_id",businessId).eq("mini_app_id",app.id)
       .order("created_at",{ascending:false}).limit(150),
+    supabase.from("busy_mini_app_message_delivery_outbox")
+      .select("id,business_id,mini_app_id,request_id,message_id,recipient_role,state,attempt_count,submitted_token_count,created_at")
+      .eq("business_id",businessId).eq("mini_app_id",app.id)
+      .order("created_at",{ascending:false}).limit(100),
   ]);
   if (versions.error) throw versions.error;
   if (requests.error) throw requests.error;
@@ -1686,6 +1691,7 @@ async function ownerStatus(businessId: string) {
   if (requestCount30.error) throw requestCount30.error;
   if (guestRequestCount30.error) throw guestRequestCount30.error;
   if(messageCheckpoints.error)throw messageCheckpoints.error;
+  if(messageDeliveryOutbox.error)throw messageDeliveryOutbox.error;
   return {
     app,
     versions: versions.data || [],
@@ -1694,6 +1700,8 @@ async function ownerStatus(businessId: string) {
     workBookingLedger,
     messageCheckpoints:{rows:messageCheckpoints.data||[],
       truncated:(messageCheckpoints.data||[]).length>=150},
+    messageDeliveryOutbox:{rows:messageDeliveryOutbox.data||[],
+      truncated:(messageDeliveryOutbox.data||[]).length>=100},
     entrySummary: entrySummary.data || [],
     requestCount30: Number(requestCount30.count || 0),
     guestRequestCount30: Number(guestRequestCount30.count || 0),
@@ -3205,6 +3213,17 @@ async function submitRequest(
   return { reused: false, request: inserted.data };
 }
 
+// Provider submission status is only an attempt record; even a positive Expo
+// HTTP response cannot prove the customer's device displayed a notification.
+async function recordConversationPushAttempt(businessId:string,outboxId:string,sentCount:number){
+ try{
+  const result=await supabase.rpc("busy_record_mini_app_push_submission_v3185",{
+   p_business_id:businessId,p_outbox_id:outboxId,
+   p_submitted_count:Math.min(100,Math.max(0,Math.trunc(sentCount||0)))
+  });
+  if(result.error)console.warn("Push attempt status needs reconciliation.");
+ }catch(error){console.warn("Push submission evidence was not saved.");}
+}
 async function sendRequestMessage(
  userId: string,businessId: string,body: any,idempotencyKey: string
 ) {
@@ -3215,16 +3234,20 @@ async function sendRequestMessage(
   message,idempotencyKey
  });
  if(!saved.reused){
+  let submitted=0;
   try{
    const request=await supabase.from("busy_mini_app_requests")
     .select("id,business_id,mini_app_id,consumer_user_id")
     .eq("id",requestId).eq("business_id",businessId).maybeSingle();
-   if(!request.error&&request.data?.consumer_user_id)
-    await notifyCustomerOfMiniAppRequest(request.data,
+   if(!request.error&&request.data?.consumer_user_id){
+    const attempt=await notifyCustomerOfMiniAppRequest(request.data,
      "BUSY Apps • New reply",
      "The business saved a reply in your BUSY Apps conversation.",
      "message:"+saved.message.id);
-  }catch(error){console.warn("Conversation saved; push delivery not verified.");}
+    submitted=Number(attempt?.sent||0);
+   }
+  }catch(error){console.warn("Conversation saved; customer push unverified.");}
+  await recordConversationPushAttempt(businessId,saved.outboxId,submitted);
  }
  return saved;
 }
@@ -3244,13 +3267,16 @@ async function replyRequestMessage(
   requestId,senderRole:"customer",message,idempotencyKey
  });
  if(!saved.reused){
+  let submitted=0;
   try{
    await trackConsumerApp(userId,scoped.data.mini_app_id,{action:true});
-   await notifyBusinessOfMiniAppRequest(scoped.data,
+   const attempt=await notifyBusinessOfMiniAppRequest(scoped.data,
     "BUSY Apps • Customer replied",
     "A customer saved a reply to a BUSY Apps conversation.",
     "message:"+saved.message.id);
-  }catch(error){console.warn("Customer reply saved; follow-up delivery unverified.");}
+   submitted=Number(attempt?.sent||0);
+  }catch(error){console.warn("Customer reply saved; provider submission unverified.");}
+  await recordConversationPushAttempt(scoped.data.business_id,saved.outboxId,submitted);
  }
  return saved;
 }
