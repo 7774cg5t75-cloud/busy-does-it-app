@@ -60,7 +60,7 @@ function selectVisualIdentity({businessName="",businessType="",theme={},family="
    cardLayout:["cards","outlines","rows"],
    ornament:["ripple","arch","glow","stripes"],
    navStyle:["quiet","underline","pill"],
-   typography:["confident","refined","compact"],
+   typography:["confident","refined","compact","editorial","friendly"],
    paletteVariant:["a","b","c"]
  };
  for(const [field,options] of Object.entries(allowed)){
