@@ -37,7 +37,7 @@ const contrast=(a,b)=>{
  const x=luminance(a),y=luminance(b);
  return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05);
 };
-eq(OPTIONS.brandPalette,Object.keys(PALETTES));
+eq(OPTIONS.brandPalette,[...Object.keys(PALETTES),"custom"]);
 eq(read("src/core/appAppearanceEditing.mjs"),
  read("supabase/functions/busy-mini-apps/appAppearanceEditing.mjs"),
  "Public appearance options must be byte-identical in owner UI and trusted Edge.");
@@ -60,7 +60,7 @@ for(const [key,colours] of Object.entries(PALETTES)){
 eq(distinct.size,Object.keys(PALETTES).length);
 const config={modules:[{key:"business_profile",enabled:true}],
  presentation:{headerStyle:"refined",layoutDensity:"comfortable",navigationStyle:"tabs"}};
-for(const colour of OPTIONS.brandPalette){
+for(const colour of Object.keys(PALETTES)){
  const preview=previewPrivateAppAppearance(config,{field:"brandPalette",value:colour});
  if(colour!==DEFAULT_PALETTE){
   yes(preview.ok,"preview "+colour);
@@ -86,7 +86,7 @@ eq(descriptor.signingConfigured,false);
 eq(nativeShellDescriptor({...manifest,appearance:{brandPalette:"<script>"}}).ok,false);
 eq(nativeShellDescriptor({...manifest,appearance:{brandPalette:"unknown"}}).ok,false);
 const shell=read("standalone/template/App.js");
-yes(shell.includes("const COLORS=nativePalette(LOOK.brandPalette)"));
+yes(shell.includes("const COLORS=nativePalette(LOOK.brandPalette,LOOK.brandAccent)"));
 yes(shell.includes("nativePreferredDates(new Date(),7)"));
 yes(shell.includes("inFlight.current=true"));
 yes(shell.includes("possibleDuplicateRetry"));
