@@ -18,10 +18,14 @@ function WebsiteContentEditor({draft,onApply}){
  const [sectionId,setSectionId]=React.useState("");
  const [selection,setSelection]=React.useState(null);
  const [value,setValue]=React.useState("");
+ const [newEntryTitle,setNewEntryTitle]=React.useState("");
+ const [newEntryBody,setNewEntryBody]=React.useState("");
+ const [confirmRemoval,setConfirmRemoval]=React.useState(null);
  const section=(draft?.sections||[]).find(s=>s.id===sectionId)||null;
  const change=(field,itemId=null)=>{
   const target=itemId?selectedItem(section,itemId):section;
   if(!target)return;
+  setConfirmRemoval(null);
   setSelection({sectionId,field,itemId});
   setValue(display(target[field]));
  };
@@ -46,6 +50,9 @@ function WebsiteContentEditor({draft,onApply}){
          setSectionId(s.id);
          setSelection(null);
          setValue("");
+         setConfirmRemoval(null);
+         setNewEntryTitle("");
+         setNewEntryBody("");
         }}/>
      ))}
      {section ? (
@@ -65,6 +72,54 @@ function WebsiteContentEditor({draft,onApply}){
             onPress={()=>change("body",item.id)}/>
          </View>
         )):null}
+      </View>
+     ):null}
+     {section&&["services","faq"].includes(section.type)?(
+      <View>
+       <Text style={styles.sectionLabel}>
+         {section.type==="services"?"Add a service":"Add a FAQ"}
+       </Text>
+       <Field label={section.type==="services"?"Service name":"Question"}
+         value={newEntryTitle} onChangeText={setNewEntryTitle}
+         placeholder={section.type==="services"?"Name your service":"Enter your question"}/>
+       <View style={styles.fieldWrap}>
+        <Text style={styles.fieldLabel}>
+         {section.type==="services"?"Service description":"Answer"}
+        </Text>
+        <View style={styles.fieldBox}>
+         <TextInput value={newEntryBody} onChangeText={setNewEntryBody}
+          multiline numberOfLines={3} textAlignVertical="top"
+          placeholder="Your exact wording"
+          placeholderTextColor="#9AA3B2"
+          style={[styles.fieldInput,{minHeight:95,textAlignVertical:"top"}]}/>
+        </View>
+       </View>
+       <Button label={section.type==="services"?"Add service to private draft":"Add FAQ to private draft"}
+        onPress={()=>{
+         if(onApply?.({action:"add-item",sectionId:section.id,
+          title:newEntryTitle,body:newEntryBody})===true){
+          setNewEntryTitle("");setNewEntryBody("");setConfirmRemoval(null);
+         }
+        }}/>
+       {(section.items||[]).map((item,i)=>(
+        <View key={"remove-"+(item.id||i)}>
+         <Button label={confirmRemoval?.id===item.id?
+            "Confirm removing "+item.title:"Remove "+item.title}
+          onPress={()=>{
+           if(confirmRemoval?.id!==item.id){
+            setConfirmRemoval({id:item.id,title:item.title});return;
+           }
+           if(onApply?.({action:"remove-item",sectionId:section.id,
+            itemId:item.id,expectedTitle:item.title})===true)
+            setConfirmRemoval(null);
+          }}/>
+        </View>
+       ))}
+       {confirmRemoval?<Button label="Keep this entry"
+        onPress={()=>setConfirmRemoval(null)}/>:null}
+       <Text style={styles.cardBody}>
+        Your changes stay private until you publish and can be reversed with website Undo.
+       </Text>
       </View>
      ):null}
      {selection&&selection.sectionId===sectionId ? (
