@@ -11,6 +11,7 @@ import { businessAppPreviewProof } from "../core/businessAppPreviewProof.mjs";
 import { buildAppDistributionPlan,buildStandalonePrivateHandoff } from "../core/appDistributionChoices.mjs";
 import { planFunctionalBusinessApp } from "../core/appExperiencePlanner.mjs";
 import { previewPrivateAppAppearance,OPTIONS as appAppearanceOptions } from "../core/appAppearanceEditing.mjs";
+import {nativePalette,LABELS as nativePaletteLabels} from "../../standalone/template/nativePalette.mjs";
 import { interpretSelectedAppAppearance } from "../core/appContextInstruction.mjs";
 import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.mjs";
 import {proposeCoordinatedAppChanges,planAppVoiceInstructions} from "../core/appCoordinatedStudio.mjs";
@@ -2666,14 +2667,15 @@ function MiniAppBuilder({ s }) {
             ["layoutDensity","Space around content",appAppearanceOptions.layoutDensity],
             ["navigationStyle","Navigation look",appAppearanceOptions.navigationStyle],
             ["galleryLayout","Gallery layout",appAppearanceOptions.galleryLayout],
-            ["imageCorners","Photo corners",appAppearanceOptions.imageCorners]
+            ["imageCorners","Photo corners",appAppearanceOptions.imageCorners],
+            ["brandPalette","Standalone app colours",appAppearanceOptions.brandPalette]
           ].map(([field,label,values])=>(
             <View key={field} style={{marginTop:9}}>
               <Text style={styles.sectionLabel}>{label}</Text>
               {values.map(value=>(
                 <Button key={value} label={
                   (pendingAppearance?.field===field&&pendingAppearance?.value===value?"✓ ":"")+
-                  value.replaceAll("-"," ")}
+                  (field==="brandPalette"?(nativePaletteLabels[value]||value):value.replaceAll("-"," "))}
                   disabled={!!s.miniAppsAction}
                   onPress={()=>{
                     setPendingAppearance({field,value});
@@ -2688,6 +2690,28 @@ function MiniAppBuilder({ s }) {
               <>
                 <MetricRow left="Proposed change"
                   right={pendingAppearance.field+" • "+proposal.previous+" → "+proposal.value}/>
+                {pendingAppearance.field==="brandPalette"?(()=>{
+                  const colours=nativePalette(proposal.value);
+                  return <View style={{backgroundColor:colours.bg,
+                    padding:14,borderRadius:12,marginVertical:10}}>
+                    <Text style={{color:colours.text,fontSize:18,fontWeight:"700"}}>
+                      {view.draftConfig.display?.name||"Your business app"}
+                    </Text>
+                    <Text style={{color:colours.muted,marginTop:7}}>
+                      Native screen colour preview • owner approval required
+                    </Text>
+                    <View style={{backgroundColor:colours.surface,
+                      borderRadius:8,padding:11,marginTop:10}}>
+                      <Text style={{color:colours.text}}>Service information</Text>
+                      <View style={{backgroundColor:colours.accent,borderRadius:7,
+                       marginTop:8,padding:11,alignItems:"center"}}>
+                       <Text style={{color:colours.bg,fontWeight:"700"}}>
+                         Request a booking
+                       </Text>
+                      </View>
+                    </View>
+                  </View>;
+                })():null}
                 {appearancePreviewOpen?(
                   <>
                     <Text style={styles.cardBody}>Unsaved customer-view preview; no public changes have been made.</Text>
