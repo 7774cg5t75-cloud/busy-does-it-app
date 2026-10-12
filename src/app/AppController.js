@@ -204,6 +204,7 @@ import {loadVerifiedActivity} from "../domain/verifiedBusinessActivityCloud.mjs"
 import {buildVerifiedActivity,resultBrief} from "../domain/verifiedBusinessActivity.mjs";
 import { validateAiConversationDraft } from "../domain/conversationAiBoundary.mjs";
 import { buildWebsiteDraft, applyWebsiteInstruction, applyStructuredWebsiteEdit, applyWebsiteLayoutChange, applyWebsitePageChange, rebuildPrivateWebsiteDraft } from "../domain/websiteBuilder";
+import {confirmCopyMissingAppServices} from "../core/ownerBuilderServiceBridgeV3192.mjs";
 import {buildPortableWebsiteSource} from "../core/websiteSourceExport.mjs";
 import {buildStandaloneWebsiteArchive} from "../core/websiteStandaloneArchive.mjs";
 import {sitePhotoAssets,attachExportOriginal,validExportOriginalPath}
@@ -13354,6 +13355,28 @@ function App() {
     return true;
   };
 
+  // V3.192: explicit, same-business private copy from current Business App
+  // into current website. Recheck app+website revisions and exact reviewed
+  // words at the tap; no service can override existing website wording.
+  const applyMissingAppServicesToWebsite = evidence => {
+    const current=websiteDraftRef.current;
+    const app=miniAppsStatus?.app;
+    const businessId=cloudWorkspace?.businessId||"";
+    const check=confirmCopyMissingAppServices(current,app,{businessId,evidence});
+    if(!check.ok){
+      setWebsiteBuilderNotice(check.reason||"Review the service copy again.");
+      return false;
+    }
+    const result=rebuildPrivateWebsiteDraft(check.nextDraft);
+    setWebsiteUndo(items=>[...items,current].slice(-8));
+    setWebsiteRedo([]);
+    websiteDraftRef.current=result;
+    setWebsiteDraft(result);
+    setWebsiteBuilderNotice("Added "+check.addedCount+
+      " Business App service(s) to your private website. Existing wording was preserved. Nothing was published.");
+    return true;
+  };
+
   // V3.148: optional local preview, no Undo entry, draft mutation, cloud
   // request, or publication. Apply rechecks the SAME text against current state.
   const previewSelectedWebsiteInstruction = ({selection,instruction}={})=>
@@ -16782,6 +16805,7 @@ function App() {
     buildWebsiteFromBrandBrain,
     applyWebsiteChange,
     applyWebsiteFieldChange,
+    applyMissingAppServicesToWebsite,
     applySelectedWebsiteInstruction,
     previewSelectedWebsiteInstruction,
     previewWebsitePageInstruction,
