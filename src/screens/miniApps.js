@@ -32,6 +32,8 @@ import {INDUSTRY_PROFILES,prepareIndustryAwareAppReview}
   from "../core/appIndustryOrchestrator.mjs";
 import {buildCustomerTaskDesignReport,proposeTaskFirstNavigation}
   from "../core/appCustomerTaskDesign.mjs";
+import {runCustomerJourneyPractice}
+  from "../core/appCustomerJourneyPractice.mjs";
 import {auditStandaloneContrast} from "../core/appContrastAudit.mjs";
 import {appRequestJourney} from "../core/appRequestLifecycle.mjs";
 import {appVisibleCaptureReceipt,currentAppVisibleCapture} from "../core/appRenderedEvidence.mjs";
@@ -735,6 +737,7 @@ function MiniAppBuilder({ s }) {
   const [studioPreview,setStudioPreview]=React.useState(null);
   const [selectedCustomerTask,setSelectedCustomerTask]=React.useState("book");
   const [showCustomerTaskReview,setShowCustomerTaskReview]=React.useState(false);
+  const [showJourneyPractice,setShowJourneyPractice]=React.useState(false);
   const [studioComparisonSide,setStudioComparisonSide]=React.useState("proposed");
   const [showResponsiveDetails,setShowResponsiveDetails]=React.useState(false);
   const [studioNotice,setStudioNotice]=React.useState("");
@@ -763,6 +766,7 @@ function MiniAppBuilder({ s }) {
     setStudioNotice("");
     setSelectedCustomerTask("book");
     setShowCustomerTaskReview(false);
+    setShowJourneyPractice(false);
     setServiceIndex(-1);setServiceName("");setServiceDescription("");
     setAccessiblePhotoNumber("1");
     setAccessiblePhotoAlt("");setAccessiblePhotoCaption("");
@@ -815,6 +819,8 @@ function MiniAppBuilder({ s }) {
     buildCustomerTaskDesignReport(view.draftConfig):null;
   const customerTaskPlan=view.draftConfig?
     proposeTaskFirstNavigation(view.draftConfig,selectedCustomerTask):null;
+  const practiceReport=view.draftConfig?
+    runCustomerJourneyPractice(view.draftConfig):null;
   const nonAiDesignHints=proposeLowRiskDesignHints(view.draftConfig||view.activeConfig||{});
   const responsiveGuidance=recommendResponsiveDesign(view.draftConfig||view.activeConfig||{});
   const responsiveQuality=evaluateAppAcrossScreens(view.draftConfig||view.activeConfig||{});
@@ -1318,6 +1324,51 @@ function MiniAppBuilder({ s }) {
                 Static navigation checks do not prove actual submissions,
                 accessibility, appointment confirmations or customer outcomes.
               </Text>
+              <Button label={showJourneyPractice?
+                  "Hide practice journey checks":"Check sample booking & enquiry journeys"}
+                onPress={()=>setShowJourneyPractice(x=>!x)}/>
+              {showJourneyPractice&&practiceReport?.ok?(
+                <>
+                  <Text style={styles.sectionLabel}>
+                    V3.170 • Practice journeys (fictional, offline)
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    BUSY runs imaginary booking and enquiry states through the
+                    existing request rules. This does not submit a request,
+                    message a customer or confirm a real booking.
+                  </Text>
+                  <MetricRow left="Practice cases checked"
+                    right={String(practiceReport.ranCount)+
+                      " of "+String(practiceReport.scenarioCount)}/>
+                  <MetricRow left="Passed offline safeguards"
+                    right={String(practiceReport.passedCount)}/>
+                  <MetricRow left="Offline failures"
+                    right={String(practiceReport.failedCount)}/>
+                  {practiceReport.unavailableCount?(
+                    <Text style={styles.cardBody}>
+                      {practiceReport.unavailableCount+
+                        " case(s) could not run because a tracked feature is not enabled."}
+                    </Text>
+                  ):null}
+                  {(practiceReport.results||[]).map(item=>(
+                    <MetricRow key={"practice-"+item.id}
+                      left={item.label}
+                      right={!item.ran?"Needs feature setup":
+                        item.passed?"Practice passed":"Practice failed"}/>
+                  ))}
+                  <Text style={styles.sectionLabel}>Still required before release</Text>
+                  {(practiceReport.releaseChecklist||[]).map(item=>(
+                    <Text key={"release-"+item.id} style={styles.cardBody}>
+                      {"Not verified: "+item.label}
+                    </Text>
+                  ))}
+                  <Text style={styles.cardBody}>
+                    These are offline state-machine exercises, not end-to-end
+                    customer tests. The business owner retains final approval
+                    before any publishing or external action.
+                  </Text>
+                </>
+              ):null}
             </>
           ):null}
             </>
