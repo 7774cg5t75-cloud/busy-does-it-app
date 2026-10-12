@@ -21,6 +21,7 @@ function WebsiteContentEditor({draft,onApply}){
  const [newEntryTitle,setNewEntryTitle]=React.useState("");
  const [newEntryBody,setNewEntryBody]=React.useState("");
  const [confirmRemoval,setConfirmRemoval]=React.useState(null);
+ const [createKind,setCreateKind]=React.useState("");
  const section=(draft?.sections||[]).find(s=>s.id===sectionId)||null;
  const change=(field,itemId=null)=>{
   const target=itemId?selectedItem(section,itemId):section;
@@ -48,6 +49,7 @@ function WebsiteContentEditor({draft,onApply}){
       <Button key={s.id} label={(sectionId===s.id?"✓ ":"")+"Edit "+(s.title||s.id)}
         onPress={()=>{
          setSectionId(s.id);
+         setCreateKind("");
          setSelection(null);
          setValue("");
          setConfirmRemoval(null);
@@ -55,6 +57,46 @@ function WebsiteContentEditor({draft,onApply}){
          setNewEntryBody("");
         }}/>
      ))}
+     {["services","faq"].filter(kind=>!(draft?.sections||[])
+       .some(item=>item.id===kind)).map(kind=>(
+       <Button key={"new-section-"+kind} label={
+        "Create "+(kind==="faq"?"FAQs":"Services")+" section"}
+        onPress={()=>{
+         setCreateKind(kind);setSectionId("");setSelection(null);
+         setNewEntryTitle("");setNewEntryBody("");
+        }}/>
+     ))}
+     {createKind?(
+      <View>
+       <Text style={styles.sectionLabel}>
+        {"First "+(createKind==="faq"?"FAQ":"service")+" for your new section"}
+       </Text>
+       <Field label={createKind==="faq"?"Question":"Service name"}
+        value={newEntryTitle} onChangeText={setNewEntryTitle}
+        placeholder="Use your exact wording"/>
+       <View style={styles.fieldWrap}>
+        <Text style={styles.fieldLabel}>
+         {createKind==="faq"?"Answer":"Service description"}
+        </Text>
+        <View style={styles.fieldBox}>
+         <TextInput value={newEntryBody} onChangeText={setNewEntryBody}
+          multiline numberOfLines={3} textAlignVertical="top"
+          placeholder="What should visitors know?"
+          placeholderTextColor="#9AA3B2"
+          style={[styles.fieldInput,{minHeight:95,textAlignVertical:"top"}]}/>
+        </View>
+       </View>
+       <Button label="Create section in private draft" onPress={()=>{
+        const kind=createKind;
+        if(onApply?.({action:"create-collection",sectionId:kind,
+         title:newEntryTitle,body:newEntryBody})===true){
+         setSectionId(kind);setCreateKind("");
+         setNewEntryTitle("");setNewEntryBody("");
+        }
+       }}/>
+       <Button label="Cancel new section" onPress={()=>setCreateKind("")}/>
+      </View>
+     ):null}
      {section ? (
       <View>
        <Text style={styles.sectionLabel}>Editing: {section.title||section.id}</Text>
@@ -70,6 +112,23 @@ function WebsiteContentEditor({draft,onApply}){
             onPress={()=>change("title",item.id)}/>
           <Button label="Edit description / answer / testimonial"
             onPress={()=>change("body",item.id)}/>
+          {["services","faq"].includes(section.type)?(
+           <View>
+            {index>0?<Button label={"Move "+item.title+" up"}
+             onPress={()=>{
+              setConfirmRemoval(null);
+              onApply?.({action:"move-item",sectionId:section.id,
+               itemId:item.id,expectedTitle:item.title,direction:"up"});
+             }}/>:null}
+            {index<(section.items||[]).length-1?
+             <Button label={"Move "+item.title+" down"}
+              onPress={()=>{
+               setConfirmRemoval(null);
+               onApply?.({action:"move-item",sectionId:section.id,
+                itemId:item.id,expectedTitle:item.title,direction:"down"});
+              }}/>:null}
+           </View>
+          ):null}
          </View>
         )):null}
       </View>
