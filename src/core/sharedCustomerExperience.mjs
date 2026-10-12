@@ -28,7 +28,8 @@ const webAction={
 };
 function reviewSharedCustomerGoal({
  goal="enquire",websiteDraft=null,brandBrain={},appConfig=null,
- websiteJourney=null,websitePublishing=null,websiteProof=null
+ websiteJourney=null,websitePublishing=null,websiteProof=null,
+ scope=null
 }={}){
  if(!GOALS.includes(goal))return {ok:false,reason:"Choose a supported customer goal."};
  const availableWebsite=websiteDraft&&typeof websiteDraft==="object"&&
@@ -36,6 +37,16 @@ function reviewSharedCustomerGoal({
   websiteDraft.id.length>0;
  const availableApp=appConfig&&typeof appConfig==="object"&&
   Array.isArray(appConfig.modules);
+ // Two surfaces can be reviewed together only when their identity has
+ // already been checked against one authenticated business workspace.
+ // The pure module still does NOT authenticate the caller or query tenants.
+ const both=!!availableWebsite&&!!availableApp;
+ const sameBusiness=typeof scope?.authorizedBusinessId==="string"&&
+  scope.authorizedBusinessId.length>0&&
+  scope.websiteBusinessId===scope.authorizedBusinessId&&
+  scope.appBusinessId===scope.authorizedBusinessId;
+ if(both&&!sameBusiness)return {ok:false,
+  reason:"Choose one current business workspace before comparing website and app drafts. Cross-business drafts cannot be combined."};
  if(!availableWebsite&&!availableApp)return {
   ok:false,reason:"A current private website or Business App draft is required."};
  const findings=[];
