@@ -112,6 +112,14 @@ const domains=[
  {id:"native_service_enquiry_navigation",source:"standalone/template/App.js",
   wired:"standalone/template/App.js",signal:'onRequestService?.(service.name,"enquiry")',
   test:"scripts/check-major-builders-v3193.mjs"},
+ {id:"owner_brand_dna_private_reuse",source:"src/core/businessBrandDnaV3195.mjs",
+  wired:"src/screens/businessBrandDnaPreview.js",
+  signal:"buildBusinessBrandDnaSnapshot({website,app,businessId})",
+  test:"scripts/check-major-builders-v3195.mjs"},
+ {id:"private_builder_revision_guard",source:"src/core/ownerBuilderDraftGuardV3195.mjs",
+  wired:"src/core/ownerBuilderBrandBridgeV3193.mjs",
+  signal:"validPrivateBuilderPair(website,app,businessId)",
+  test:"scripts/check-major-builders-v3195.mjs"},
  {id:"get_paid_owner_drafts",source:"src/core/getPaidIntelligenceV3183.mjs",
   wired:"src/components/GetPaidOwnerReview.js",signal:"prepareGetPaidQuoteDraft",test:"scripts/check-get-paid-v3183.mjs"}
 ];
@@ -135,7 +143,7 @@ const sourceLines=files.reduce((sum,f)=>sum+
  (f.text===""?0:f.text.endsWith("\n")?
   f.text.split("\n").length-1:f.text.split("\n").length),0);
 const report={kind:"busy_intelligence_source_inventory_v3183",
- branchExpected:"v3.193",countingRule:"physical lines in selected code extensions, including comments and blanks",
+ branchExpected:"v3.195",countingRule:"physical lines in selected code extensions, including comments and blanks",
  codeFiles:files.length,codePhysicalLines:sourceLines,
  coreFiles:byDir("src/core/"),serviceFiles:byDir("supabase/functions/"),
  scriptFiles:byDir("scripts/"),migrationFiles:byDir("supabase/migrations/"),
