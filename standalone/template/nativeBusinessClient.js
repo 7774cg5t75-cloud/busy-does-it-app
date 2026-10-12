@@ -22,7 +22,7 @@ function verifiedPublicRuntime(runtime){
  }catch{return false;}
 }
 const safePublicText=(v,max)=>typeof v==="string"&&v.length<=max&&
- !/[<>\\u0000-\\u001f\\u007f]/.test(v);
+ !/[<>\u0000-\u001f\u007f]/.test(v);
 function validNativeExtras(payload){
  if(!Array.isArray(payload?.offers)||payload.offers.length>12||
    payload.offers.some(o=>!o||!safePublicText(o.title,140)||!o.title.trim()||
