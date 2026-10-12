@@ -4004,12 +4004,15 @@ function MiniAppRequestDetail({ s }) {
           {ownerView && link?.bridge_state === "booking_confirmed" ? (
             <Card
               eyebrow="BUSY booking"
-              title="Booking confirmed"
-              body="The linked BUSY booking is confirmed and the customer's Business App request has been updated to accepted."
-              tone="green"
+              title={experienceMessage?.confirmationRecorded?
+                "Booking confirmed":"Check booking request status"}
+              body={experienceMessage?.confirmationRecorded?
+                "The linked diary confirms a booking and the customer request is accepted.":
+                "The linked diary has a confirmation marker, but this request does not yet agree. Verify the two records before informing the customer."}
+              tone={experienceMessage?.confirmationRecorded?"green":"amber"}
             >
               <Button
-                label="Open confirmed BUSY booking"
+                label="Open linked BUSY booking"
                 onPress={() => s.openMiniAppLinkedBooking(request.id)}
               />
             </Card>
