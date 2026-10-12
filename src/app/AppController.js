@@ -13357,6 +13357,20 @@ function App() {
     return true;
   };
 
+  // V3.195: one private-website commit path for reviewed cross-builder
+  // edits. Undo, Redo, current ref and notice must remain synchronized.
+  const commitReviewedBuilderDraft=(current,nextDraft,notice)=>{
+    if(!current||!nextDraft||!Array.isArray(nextDraft.sections)||
+      !Number.isSafeInteger(nextDraft.generation)||
+      nextDraft.generation<=current.generation)return false;
+    setWebsiteUndo(items=>[...items,current].slice(-8));
+    setWebsiteRedo([]);
+    websiteDraftRef.current=nextDraft;
+    setWebsiteDraft(nextDraft);
+    setWebsiteBuilderNotice(notice);
+    return true;
+  };
+
   // V3.192: explicit, same-business private copy from current Business App
   // into current website. Recheck app+website revisions and exact reviewed
   // words at the tap; no service can override existing website wording.
@@ -13370,13 +13384,8 @@ function App() {
       return false;
     }
     const result=rebuildPrivateWebsiteDraft(check.nextDraft);
-    setWebsiteUndo(items=>[...items,current].slice(-8));
-    setWebsiteRedo([]);
-    websiteDraftRef.current=result;
-    setWebsiteDraft(result);
-    setWebsiteBuilderNotice("Added "+check.addedCount+
+    return commitReviewedBuilderDraft(current,result,"Added "+check.addedCount+
       " Business App service(s) to your private website. Existing wording was preserved. Nothing was published.");
-    return true;
   };
 
   // V3.193 exact same-business approved brand match, fully private and Undo-able.
@@ -13398,12 +13407,8 @@ function App() {
       setWebsiteBuilderNotice(updated.reason||"The selected colour could not be applied.");
       return false;
     }
-    setWebsiteUndo(items=>[...items,current].slice(-8));
-    setWebsiteRedo([]);
-    websiteDraftRef.current=updated.draft;
-    setWebsiteDraft(updated.draft);
-    setWebsiteBuilderNotice("Coordinated the brand colour in your PRIVATE website. Your Business App remains unchanged; publish separately if you choose.");
-    return true;
+    return commitReviewedBuilderDraft(current,updated.draft,
+      "Coordinated the brand colour in your PRIVATE website. Your Business App remains unchanged; publish separately if you choose.");
   };
 
   // V3.194: explicit owner-approved compatible typography, same-tenant and
@@ -13424,12 +13429,8 @@ function App() {
       setWebsiteBuilderNotice(updated.reason||"This website font change needs review.");
       return false;
     }
-    setWebsiteUndo(items=>[...items,current].slice(-8));
-    setWebsiteRedo([]);
-    websiteDraftRef.current=updated.draft;
-    setWebsiteDraft(updated.draft);
-    setWebsiteBuilderNotice("Updated the PRIVATE website typography from your Business App style. Neither builder was published.");
-    return true;
+    return commitReviewedBuilderDraft(current,updated.draft,
+      "Updated the PRIVATE website typography from your Business App style. Neither builder was published.");
   };
 
   // V3.148: optional local preview, no Undo entry, draft mutation, cloud
