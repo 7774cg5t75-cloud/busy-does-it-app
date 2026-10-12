@@ -369,21 +369,26 @@ function MiniAppSurface({
                 <View style={{flexDirection:"row",flexWrap:"wrap",
                   gap:responsive.ok?responsive.gap:8}}>
                   {gallery.slice(0, 12).map((asset, index) => (
-                    <MeasuredPublicImage
-                      key={asset.key || asset.uri || `gallery-${index}`}
-                      source={{ uri: asset.uri }}
-                      observationKey={"gallery-"+index} observationKind="gallery_image"
-                      onObservation={onQualityObservation}
-                      accessibilityLabel={String(asset.alt||asset.caption||
-                        asset.description||"Business gallery photo "+(index+1)).slice(0,140)}
-                      style={{
-                        width:responsive.ok?(responsive.galleryColumns===3?"31%":
-                          responsive.galleryColumns===2?"48%":"100%"):"100%",
-                        height:responsive.ok?responsive.galleryHeight:205,
-                        borderRadius:presentation.imageCorners==="square"?2:14,
-                        marginBottom: 8,
-                      }}
-                    />
+                    <View key={asset.key || asset.uri || `gallery-${index}`}
+                      style={{width:responsive.ok?(responsive.galleryColumns===3?"31%":
+                        responsive.galleryColumns===2?"48%":"100%"):"100%"}}>
+                      <MeasuredPublicImage
+                        source={{ uri: asset.uri }}
+                        observationKey={"gallery-"+index} observationKind="gallery_image"
+                        onObservation={onQualityObservation}
+                        accessibilityLabel={String(asset.alt||asset.caption||
+                          asset.description||"Business gallery photo "+(index+1)).slice(0,140)}
+                        style={{
+                          width:"100%",
+                          height:responsive.ok?responsive.galleryHeight:205,
+                          borderRadius:presentation.imageCorners==="square"?2:14,
+                          marginBottom:asset.caption?4:8,
+                        }}
+                      />
+                      {asset.caption?<Text style={styles.cardBody}>
+                        {String(asset.caption).slice(0,240)}
+                      </Text>:null}
+                    </View>
                   ))}
                 </View>
               ) : (
