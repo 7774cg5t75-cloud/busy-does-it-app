@@ -92,6 +92,16 @@ eq(priority.customerOutcomeConversionRate,null);
 eq(priority.saleRevenueMeasured,false);
 eq(priority.noAutomaticCustomerContact,true);
 eq(priority.independentDeviceDeliveryMeasured,false);
+const offlineGateway=recommendMeasuredOwnerActions({
+ journey:{ok:true,counts:{acceptedBookingsMissingWork:3,
+  requestsAwaitingOwnerReply:1}},work:{ok:true,counts:{}},
+ gateway:null,notification:null
+});
+ok(offlineGateway.ok);
+eq(offlineGateway.highestPriority.id,"accepted_request_missing_work");
+eq(offlineGateway.gatewayEvidenceUnavailable,true);
+eq(offlineGateway.notificationEvidenceUnavailable,true);
+eq(offlineGateway.coveragePartial,true);
 const noIssues=choose({}, {}, {}, {});
 eq(noIssues.highestPriority.id,"review_external_delivery");
 eq(noIssues.zeroIssuesDoesNotGuaranteeSuccess,true);
