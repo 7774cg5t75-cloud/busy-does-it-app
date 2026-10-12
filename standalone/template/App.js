@@ -40,9 +40,9 @@ function Field({title,value,onChange,multiline=false}){
       minHeight:multiline?92:45,textAlignVertical:"top"}}/>
  </View>;
 }
-function RequestScreen({screen,live,runtime,initialService=""}){
+function RequestScreen({screen,live,runtime,initialService="",initialMessage=""}){
  const [input,setInput]=useState({name:"",email:"",phone:"",service:initialService,
-  preferredDate:"",message:"",note:""});
+  preferredDate:"",message:initialMessage,note:""});
  const [busy,setBusy]=useState(false),[result,setResult]=useState(null);
  const [possibleDuplicateRetry,setPossibleDuplicateRetry]=useState(false);
  const inFlight=React.useRef(false);
@@ -148,7 +148,11 @@ function ServicesInfo({app,layout,onRequestService}){
      <Text style={{...t,fontWeight:"700"}}>{service.name}</Text>
      <Text style={sub}>{service.description||"Ask the business for details."}</Text>
      {app.supportsBookingRequest&&app.moduleKeys?.includes("booking_request")?
-      <Button title={"Request "+service.name} onPress={()=>onRequestService?.(service.name)}/>:null}
+      <Button title={"Request "+service.name}
+       onPress={()=>onRequestService?.(service.name,"booking_request")}/>:null}
+     {app.supportsEnquiry&&app.moduleKeys?.includes("enquiry")?
+      <Button title={"Ask about "+service.name}
+       onPress={()=>onRequestService?.(service.name,"enquiry")}/>:null}
    </View>)}
   </View>:<Text style={sub}>{query?"No services match your search.":"No public services are listed."}</Text>}
  </View>;
@@ -223,6 +227,7 @@ export default function App(){
  const connected=verifiedPublicRuntime(runtime);
  const [current,setCurrent]=useState(prototype.screenSchema.screens[0].key);
  const [requestedService,setRequestedService]=useState("");
+ const [requestedIntent,setRequestedIntent]=useState("");
  const [refreshSequence,setRefreshSequence]=useState(0);
  const [contactNotice,setContactNotice]=useState("");
  const [loading,setLoading]=useState(connected),[live,setLive]=useState(null),
@@ -277,7 +282,7 @@ export default function App(){
     </Text>
     <View style={{flexDirection:responsive.ok&&responsive.navigation==="list"?"column":"row",flexWrap:"wrap",marginBottom:15,gap:7}}>
      {pages.map(item=><Pressable key={item.key} accessibilityRole="button"
-      accessibilityLabel={"View "+item.title} onPress={()=>setCurrent(item.key)}
+      accessibilityLabel={"View "+item.title} onPress={()=>{setRequestedService("");setRequestedIntent("");setCurrent(item.key);}}
       style={{backgroundColor:item.key===chosen.key?COLORS.accent:COLORS.surface,
        width:responsive.ok&&responsive.navigation==="list"?"100%":undefined,
        minHeight:48,justifyContent:"center",
@@ -288,8 +293,12 @@ export default function App(){
      </Pressable>)}
     </View>
     {["enquiry","booking_request"].includes(chosen.key)?
-     <RequestScreen key={chosen.key+":"+requestedService} screen={chosen} live={live}
-      runtime={runtime} initialService={chosen.key==="booking_request"?requestedService:""}/>:
+     <RequestScreen key={chosen.key+":"+requestedService+":"+requestedIntent}
+      screen={chosen} live={live} runtime={runtime}
+      initialService={chosen.key==="booking_request"&&requestedIntent==="booking_request"?
+       requestedService:""}
+      initialMessage={chosen.key==="enquiry"&&requestedIntent==="enquiry"&&requestedService?
+       "I would like to know more about "+requestedService+".":""}/>:
      <LiveInfo screen={chosen} app={live} layout={responsive}
       contactNotice={contactNotice}
       onOpenContact={key=>{
@@ -299,9 +308,14 @@ export default function App(){
        Linking.openURL(action.url).catch(()=>setContactNotice(
         "This device could not open that contact method. Use the details shown above."));
       }}
-      onRequestService={serviceName=>{
-       if(!live.supportsBookingRequest||!live.moduleKeys?.includes("booking_request"))return;
-       setRequestedService(serviceName);setCurrent("booking_request");
+      onRequestService={(serviceName,intent)=>{
+       if(intent==="booking_request"&&
+          (!live.supportsBookingRequest||!live.moduleKeys?.includes(intent)))return;
+       if(intent==="enquiry"&&
+          (!live.supportsEnquiry||!live.moduleKeys?.includes(intent)))return;
+       if(!["booking_request","enquiry"].includes(intent))return;
+       setRequestedService(serviceName);setRequestedIntent(intent);
+       setCurrent(intent);
       }}/>}
    </View>:null}
    <Text style={{color:COLORS.muted,fontSize:12,marginTop:20}}>
