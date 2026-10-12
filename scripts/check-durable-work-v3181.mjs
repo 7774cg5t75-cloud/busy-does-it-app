@@ -84,4 +84,17 @@ const guard=read("staging/ISOLATED_ONLY_readiness_v3181.sql");
 const meaningful=guard.replace(/--[^\n]*/g,"");
 ok(!/\b(create|alter|drop|insert|update|delete|grant|revoke)\s+(?:table|function|role|extension|into)\b/i.test(meaningful));
 ok(guard.includes("to_regclass"));
+const edgeBlock=edge.slice(edge.indexOf("async function updateRequestStatus("),
+  edge.indexOf("async function awardLoyaltyStamp("));
+ok(edgeBlock.includes("await markRequestLinked(userId,businessId"));
+ok(edgeBlock.includes('if(status==="accepted"&&current.data.status!=="accepted")'));
+ok(edge.includes('durableWriteCommitted:true,externalDeliveryVerified:false'));
+ok(edge.includes("statusRefreshRequired:true"));
+const bookingBlock=controller.slice(controller.indexOf("  const setBookingStatus = async ("),
+ controller.indexOf("  const markBookingCompleted ="));
+ok(bookingBlock.includes("if(linked.status)applyMiniAppsStatus(linked)"));
+ok(bookingBlock.includes("else await refreshMiniAppsStatus({quiet:true})"));
+const workScreen=read("src/screens/work.js");
+ok(workScreen.includes("s.workLedgerReview.bookings.map"));
+ok(workScreen.includes('s.go("miniAppBuilder")'));
 console.log("V3.181 "+checks+" focused assertions PASS; real rollback checks run separately in PostgreSQL CI.");
