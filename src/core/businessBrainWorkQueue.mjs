@@ -42,11 +42,11 @@ function prepareBusinessBrainWork({
    record?.websiteRevision!==websiteRevision)
    continue;
   // Input order comes from the trusted owner-specific store, oldest first.
-  decisions.set(record.actionId,record.decision);
+  decisions.set(record.actionId+"|"+record.surface,record.decision);
  }
  const suppressed=[],jobs=[];
  for(const action of plan.actions){
-  const ownerDecision=decisions.get(action.id)||"not_decided";
+  const ownerDecision=decisions.get(action.id+"|"+action.surface)||"not_decided";
   if(ownerDecision==="rejected"||ownerDecision==="postponed"){
    suppressed.push({id:action.id,reason:ownerDecision==="rejected"?
      "Owner rejected this proposal for the current revision.":
