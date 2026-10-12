@@ -7,6 +7,7 @@
 do $$
 declare response jsonb; r uuid:='66666666-6666-4666-8666-666666666666';
  owner_id uuid:='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+ initial_business_unread integer;
  customer_id uuid:='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
  tenant uuid:='11111111-1111-4111-8111-111111111111';
  rejected boolean;
@@ -55,10 +56,13 @@ begin
    owner_id,tenant,r,'business','Different body','retry-owner-one');
  exception when others then rejected:=true;end;
  if not rejected then raise exception 'Conflicting body replay accepted';end if;
+ select coalesce(business_unread_count,0) into initial_business_unread
+ from public.busy_mini_app_requests where id=r;
  response:=public.busy_send_mini_app_message_v3184(
    customer_id,tenant,r,'customer','Tuesday is good.','retry-consumer-one');
  if response->>'changed'<>'true' or
-  (select business_unread_count from public.busy_mini_app_requests where id=r)<>2 then
+  (select business_unread_count from public.busy_mini_app_requests where id=r)
+   <>initial_business_unread+1 then
   raise exception 'Customer reply or business unread failed';end if;
  rejected:=false;
  begin
