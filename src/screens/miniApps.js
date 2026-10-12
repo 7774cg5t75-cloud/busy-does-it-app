@@ -56,6 +56,8 @@ import {prepareBusinessBrainWork}
   from "../core/businessBrainWorkQueue.mjs";
 import {assessBrainOutcomeEvidence}
   from "../core/businessBrainOutcomeEvidence.mjs";
+import {evaluateReleaseReadiness}
+  from "../core/releaseReadinessIntelligence.mjs";
 import {compileStagingRunnerHandoff}
   from "../core/stagingRunnerHandoff.mjs";
 import {compareAppGoalCandidate}
@@ -770,6 +772,8 @@ function MiniAppBuilder({ s }) {
   const [stagingProbe,setStagingProbe]=React.useState(null);
   const [stagingSyntheticResult,setStagingSyntheticResult]=React.useState(null);
   const [stagingSyntheticBusy,setStagingSyntheticBusy]=React.useState(false);
+  const [stagingInstallAudit,setStagingInstallAudit]=React.useState(null);
+  const [stagingInstallBusy,setStagingInstallBusy]=React.useState(false);
   const [brainOwnerHistory,setBrainOwnerHistory]=React.useState(null);
   const [brainOwnerNotice,setBrainOwnerNotice]=React.useState("");
   const [brainOwnerBusy,setBrainOwnerBusy]=React.useState(false);
@@ -805,6 +809,7 @@ function MiniAppBuilder({ s }) {
     setStagingHandoff(null);
     setStagingProbe(null);
     setStagingSyntheticResult(null);
+    setStagingInstallAudit(null);
     setBrainOwnerHistory(null);
     setBrainOwnerNotice("");
     setServiceIndex(-1);setServiceName("");setServiceDescription("");
@@ -941,6 +946,13 @@ function MiniAppBuilder({ s }) {
       evidence:stagingSyntheticResult,
       routeKind:selectedCustomerTask==="enquire"?"enquiry":"booking_request",
       channel:"busy_marketplace"
+    }):null;
+  const launchReadiness=app?.id&&app?.draft_revision?
+    evaluateReleaseReadiness({
+      businessId:s.cloudWorkspace?.businessId||"",
+      appId:app.id,draftRevision:Number(app.draft_revision),
+      installAudit:stagingInstallAudit,
+      syntheticEvidence:stagingSyntheticResult
     }):null;
   const nonAiDesignHints=proposeLowRiskDesignHints(view.draftConfig||view.activeConfig||{});
   const responsiveGuidance=recommendResponsiveDesign(view.draftConfig||view.activeConfig||{});
@@ -1626,6 +1638,47 @@ function MiniAppBuilder({ s }) {
                 </Text>
               ):stagingSyntheticResult?.reason?(
                 <Text style={styles.cardBody}>{stagingSyntheticResult.reason}</Text>
+              ):null}
+              {launchReadiness?.ok?(
+                <>
+                  <Text style={styles.sectionLabel}>
+                    V3.178 • Launch-readiness checks
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    {"Release status: NOT READY. "+
+                      launchReadiness.unresolvedMandatoryGates+
+                      " mandatory checks remain unverified. "+
+                      launchReadiness.nextPriority}
+                  </Text>
+                  <Button label="Check staging installation (read only)"
+                    disabled={stagingInstallBusy||!!s.miniAppsAction||
+                      typeof s.checkIsolatedAppInstallAudit!=="function"}
+                    onPress={async()=>{
+                      setStagingInstallBusy(true);
+                      setStagingInstallAudit(null);
+                      try{
+                        const result=await s.checkIsolatedAppInstallAudit({
+                          appId:app.id,expectedRevision:Number(app.draft_revision)
+                        });
+                        setStagingInstallAudit(result);
+                      }catch(error){
+                        setStagingInstallAudit({ok:false,reason:String(error?.message||
+                          "Staging is not installed.").slice(0,200)});
+                      }finally{setStagingInstallBusy(false);}
+                    }}/>
+                  {stagingInstallAudit?.ok?(
+                    <Text style={styles.cardBody}>
+                      {"Staging tables reachable: "+
+                        launchReadiness.visibleStagingTables+" of "+
+                        launchReadiness.totalStagingTables+
+                        ". This does not verify RLS, bookings or delivery."}
+                    </Text>
+                  ):stagingInstallAudit?.reason?(
+                    <Text style={styles.cardBody}>
+                      {stagingInstallAudit.reason}
+                    </Text>
+                  ):null}
+                </>
               ):null}
               {businessBrainQueue?.ok?(
                 <>
