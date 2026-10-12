@@ -97,8 +97,8 @@ const packager=read("scripts/prepare-standalone-prototype-v3154.mjs");
 yes(packager.includes('"nativePalette.mjs"'));
 yes(packager.includes('"nativePreferredDates.mjs"'));
 const appUi=read("src/screens/miniApps.js");
-yes(appUi.includes('["brandPalette","Standalone app colours",appAppearanceOptions.brandPalette]'));
-yes(appUi.includes('nativePalette(proposal.value)'));
+yes(appUi.includes('["brandPalette","Business App colours",appAppearanceOptions.brandPalette.filter(x=>x!=="custom")]'));
+yes(appUi.includes('nativePalette(proposal.nextConfig.presentation.brandPalette,'));
 // Date shortcuts are preferences only. Leap years and UK DST changes must
 // retain consecutive local calendar dates, not browser availability claims.
 eq(nativePreferredDates(new Date(2026,1,27,11,0),3).map(x=>x.value),
