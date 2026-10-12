@@ -85,6 +85,15 @@ const domains=[
   wired:".github/workflows/connected-intelligence-v3189.yml",
   signal:"node scripts/review-staging-dependencies-v3189.mjs",
   test:"scripts/check-connected-readiness-v3189.mjs"},
+ {id:"native_public_owner_approved_offers",source:"supabase/functions/busy-mini-app-guest/publicNativeExtrasV3190.mjs",
+  wired:"standalone/template/App.js",signal:'if(screen.key==="offers")',
+  test:"scripts/check-builders-v3190.mjs"},
+ {id:"native_service_to_booking_navigation",source:"standalone/template/App.js",
+  wired:"standalone/template/App.js",signal:"onRequestService?.(service.name)",
+  test:"scripts/check-builders-v3190.mjs"},
+ {id:"website_owner_collection_edits",source:"supabase/functions/busy-website-worker/websiteStructuredEditing.mjs",
+  wired:"src/screens/websiteContentEditor.js",signal:'action:"add-item"',
+  test:"scripts/check-builders-v3190.mjs"},
  {id:"get_paid_owner_drafts",source:"src/core/getPaidIntelligenceV3183.mjs",
   wired:"src/components/GetPaidOwnerReview.js",signal:"prepareGetPaidQuoteDraft",test:"scripts/check-get-paid-v3183.mjs"}
 ];
@@ -108,7 +117,7 @@ const sourceLines=files.reduce((sum,f)=>sum+
  (f.text===""?0:f.text.endsWith("\n")?
   f.text.split("\n").length-1:f.text.split("\n").length),0);
 const report={kind:"busy_intelligence_source_inventory_v3183",
- branchExpected:"v3.189",countingRule:"physical lines in selected code extensions, including comments and blanks",
+ branchExpected:"v3.190",countingRule:"physical lines in selected code extensions, including comments and blanks",
  codeFiles:files.length,codePhysicalLines:sourceLines,
  coreFiles:byDir("src/core/"),serviceFiles:byDir("supabase/functions/"),
  scriptFiles:byDir("scripts/"),migrationFiles:byDir("supabase/migrations/"),
