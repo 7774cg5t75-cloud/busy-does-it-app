@@ -1,0 +1,47 @@
+name: V3.190 Builders Functional Completeness
+on:
+  push:
+    branches: [v3.190]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  low-cost-builder-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Builder enhancements and previous customer contracts
+        run: |
+          node scripts/check-builders-v3190.mjs
+          node scripts/check-native-public-booking-v3155.mjs
+          node scripts/check-standalone-native-v3154.mjs
+          node scripts/check-website-direct-edit-v3133.mjs
+          node scripts/check-website-pages-v3135.mjs
+          node scripts/check-website-completion-integrity-v3152.mjs
+          node scripts/check-builder-handoff-v3152.mjs
+          node scripts/check-app-customer-tasks-v3169.mjs
+          node scripts/check-connected-readiness-v3189.mjs
+          node scripts/check-evidence-readiness-v3188.mjs
+          node scripts/check-production.mjs
+      - name: Install pinned Expo dependencies
+        run: npm install --no-audit --no-fund
+      - name: Parse native and edge source
+        run: node scripts/check-app-native-syntax-v3154.mjs
+      - name: Export Busy iOS and Android
+        run: |
+          npx expo export --platform ios --output-dir /tmp/bdi-v3190-ios
+          npx expo export --platform android --output-dir /tmp/bdi-v3190-android
+      - name: Export standalone iOS and Android
+        run: |
+          node scripts/prepare-standalone-prototype-v3154.mjs
+          cd .tmp/standalone-prototype-v3154
+          ../../node_modules/.bin/expo export --platform ios --output-dir /tmp/bdi-v3190-standalone-ios
+          ../../node_modules/.bin/expo export --platform android --output-dir /tmp/bdi-v3190-standalone-android
+      - name: Verification limits
+        run: echo "No paid AI calls, live customer tests, hosted staging changes, app signing or publishing. Exports are unsigned JS assets only."
