@@ -72,6 +72,13 @@ const native=read("standalone/template/App.js");
 yes(native.includes('screen.key==="offers"'));
 yes(native.includes('screen.key==="loyalty"'));
 yes(native.includes("This app does not award stamps or redeem rewards automatically."));
+yes(native.includes('initialService={chosen.key==="booking_request"?requestedService:""}'));
+yes(native.includes('service:initialService'));
+yes(native.includes('setCurrent("booking_request")'));
+yes(native.includes('onRequestService?.(service.name)'));
+yes(native.includes('app.supportsBookingRequest&&app.moduleKeys?.includes("booking_request")'));
+yes(!native.includes("submitAutomatically"));
+
 const draft={id:"private-website",sections:[
  {id:"services",type:"services",enabled:true,items:[
    {id:"roses",title:"Rose arrangements",body:"Delivered locally"}]},
