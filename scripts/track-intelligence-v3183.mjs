@@ -72,6 +72,12 @@ const domains=[
  {id:"isolated_staging_review_gate",source:"src/core/isolatedStagingRunbookV3187.mjs",
   wired:"scripts/plan-isolated-staging-v3187.mjs",signal:"createStagingExecutionGate({",
   test:"scripts/check-outcome-proof-v3187.mjs"},
+ {id:"sampled_customer_evidence_completeness",source:"src/core/customerEvidenceCompletenessV3188.mjs",
+  wired:"src/domain/miniApps.js",signal:"assessOwnerEvidenceCompleteness({",
+  test:"scripts/check-evidence-readiness-v3188.mjs"},
+ {id:"isolated_staging_operator_preflight",source:"src/core/isolatedStagingPreflightV3188.mjs",
+  wired:"scripts/review-staging-preflight-v3188.mjs",signal:"assessIsolatedStagingSnapshot({",
+  test:"scripts/check-evidence-readiness-v3188.mjs"},
  {id:"get_paid_owner_drafts",source:"src/core/getPaidIntelligenceV3183.mjs",
   wired:"src/components/GetPaidOwnerReview.js",signal:"prepareGetPaidQuoteDraft",test:"scripts/check-get-paid-v3183.mjs"}
 ];
@@ -95,7 +101,7 @@ const sourceLines=files.reduce((sum,f)=>sum+
  (f.text===""?0:f.text.endsWith("\n")?
   f.text.split("\n").length-1:f.text.split("\n").length),0);
 const report={kind:"busy_intelligence_source_inventory_v3183",
- branchExpected:"v3.187",countingRule:"physical lines in selected code extensions, including comments and blanks",
+ branchExpected:"v3.188",countingRule:"physical lines in selected code extensions, including comments and blanks",
  codeFiles:files.length,codePhysicalLines:sourceLines,
  coreFiles:byDir("src/core/"),serviceFiles:byDir("supabase/functions/"),
  scriptFiles:byDir("scripts/"),migrationFiles:byDir("supabase/migrations/"),
