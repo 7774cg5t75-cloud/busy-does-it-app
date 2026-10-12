@@ -172,7 +172,24 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
   // pages or their authored text. It is a content refresh, not a page deletion.
   const preserved=safeArray(previousDraft?.sections).filter(section=>
     ["text","photo-feature"].includes(section?.type)&&clean(section.id).startsWith("custom-"));
-  const rawSections=[...buildSections(brief),...preserved.map(section=>({...section}))];
+  // A deliberate owner add/remove is authoritative for that private collection.
+  // A later Brand Brain refresh must not silently restore a removed service/FAQ
+  // or delete a newly added one. Unedited collections still update from the brief.
+  const ownedCollections=safeArray(previousDraft?.sections).filter(section=>
+    section?.ownerEditedItems===true&&
+    ["services","faq"].includes(section.type)&&section.id===section.type&&
+    Array.isArray(section.items)&&section.items.length<=30);
+  const generated=buildSections(brief);
+  const keepOwnerItems=section=>{
+    const prior=ownedCollections.find(old=>old.id===section.id&&old.type===section.type);
+    return prior?{...section,items:prior.items.map(item=>({...item})),
+      ownerEditedItems:true}:section;
+  };
+  const rawSections=[...generated.map(keepOwnerItems),
+    ...ownedCollections.filter(old=>!generated.some(s=>
+      s.id===old.id&&s.type===old.type)).map(s=>({...s,
+       items:s.items.map(item=>({...item}))})),
+    ...preserved.map(section=>({...section}))];
   // Keep each section's individually approved visual choices when factual
   // business information is refreshed. Never transfer styles to other IDs/types.
   const previousLooks=new Map(safeArray(previousDraft?.sections).map(section=>
