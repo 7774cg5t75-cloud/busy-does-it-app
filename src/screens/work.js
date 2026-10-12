@@ -1559,6 +1559,30 @@ function WorkCalendar({ s }) {
       brandCue="V3.29 • Tap a day to see jobs, value, open capacity, follow-ups, external commitments and BUSY’s suggested next move."
     >
       <Card eyebrow="Work & Calendar 2.0" title={monthTitle} tone="blue">
+        {s.workLedgerReview?.ok?(
+          <>
+            <MetricRow left="BUSY Business App bookings saved on server"
+              right={String(s.workLedgerReview.counts.serverConfirmed)}/>
+            {s.workLedgerReview.counts.serverOnly>0?(
+              <Text style={styles.cardBody}>
+                {"BUSY recovered "+
+                  s.workLedgerReview.counts.serverOnly+
+                  " saved Business App booking(s) missing from this device's local snapshot."}
+              </Text>
+            ):null}
+            {s.workLedgerReview.needsOwnerReview?(
+              <Text style={styles.cardBody}>
+                "A booking differs from the device copy or the server list is
+                incomplete. Review the customer record before rescheduling."
+              </Text>
+            ):null}
+            <Text style={styles.cardBody}>
+              Saved in BUSY Work. External calendar delivery still needs
+              a separate check.
+            </Text>
+          </>
+        ):null}
+
         <View style={styles.workCalendarMonthNav}>
           <Pressable
             accessibilityRole="button"
