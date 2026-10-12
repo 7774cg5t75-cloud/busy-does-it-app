@@ -210,7 +210,7 @@ assert.equal(restored.ok,true);
 assert.deepEqual(restored.nextConfig.navigation,base.navigation);
 assert.equal(JSON.stringify(base),originalApp);
 assert.equal(JSON.stringify(website),originalWeb);
-assert.equal(JSON.stringify(brand.privateNotes),"do not echo this note");
+assert.equal(brand.privateNotes,"do not echo this note");
 
 const ui=read("src/screens/miniApps.js");
 for(const token of ["offlineStagingPreflight.mjs",
