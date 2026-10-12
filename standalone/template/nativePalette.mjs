@@ -1,1 +1,3 @@
-/** V3.192 developer-template alias: source of truth is src/core/nativePalette.mjs.\n * The unsigned export copies that canonical file to this same relative path. */\nexport {PALETTES,LABELS,DEFAULT_PALETTE,nativePalette} from "../../src/core/nativePalette.mjs";\n
+/** V3.192 developer-template alias to the one authoritative palette source.
+ * The standalone export copies that canonical source to this relative path. */
+export {PALETTES,LABELS,DEFAULT_PALETTE,nativePalette} from "../../src/core/nativePalette.mjs";
