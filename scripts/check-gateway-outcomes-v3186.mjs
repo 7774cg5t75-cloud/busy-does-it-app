@@ -44,7 +44,7 @@ const evidence=reviewPushGatewayReceipts({
  ticket(uuids[1],[{status:"error",message:"invalid_device"}]),
  ticket(uuids[3],[{status:"ok"},{status:"wat"}]),
  ticket(uuids[4],[{status:"ok"}]),
- ticket(uuids[0],[{status:"ok"}],other)
+ {...ticket(uuids[0],[{status:"ok"}]),notification_key:"miniapp:"+other+":message:"+uuids[0]}
  ]});
 ok(evidence.ok);
 eq(evidence.counts.messagesReviewed,5);
