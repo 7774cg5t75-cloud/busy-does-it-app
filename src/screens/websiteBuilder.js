@@ -9,6 +9,9 @@ import { buildWebsiteLaunchProof } from "../core/websiteLaunchProof.mjs";
 import { websiteQualityGuidance } from "../core/websiteQualityGuidance.mjs";
 import {GOALS as SHARED_GOALS,reviewSharedCustomerGoal} from "../core/sharedCustomerExperience.mjs";
 import {websiteEvidenceSummary} from "../core/crossBuilderEvidence.mjs";
+import {reviewBusinessInformation} from "../core/businessInfoClarity.mjs";
+import {compareMeasuredWebsiteCandidates}
+  from "../core/designEvidencePriorities.mjs";
 import { websiteDesignAlternative } from "../core/websiteDesignAlternatives.mjs";
 import { websiteCustomerJourney } from "../core/websiteCustomerJourney.mjs";
 import { websiteOutcomeGuidance } from "../core/websiteOutcomeGuidance.mjs";
@@ -26,7 +29,7 @@ import {WebsiteTapEditor} from "./websiteTapEditor";
 import {WebsiteSelectedVoice} from "./websiteSelectedVoice";
 import {beginWebsiteConversation,addWebsiteConversationTurn,websiteConversationContext} from "../core/websiteDesignConversation.mjs";
 import {makeTapToEditHtml,resolveTapToolbarAction} from "../core/websiteTapToEdit.mjs";
-import {recordWebsiteViewportEvidence,summarizeWebsiteViewportEvidence,reviewWebsiteViewportPortfolio} from "../core/websiteViewportEvidence.mjs";
+import {classifyWidth,recordWebsiteViewportEvidence,summarizeWebsiteViewportEvidence,reviewWebsiteViewportPortfolio} from "../core/websiteViewportEvidence.mjs";
 import {withWebsitePreviewViewport,websitePreviewWidthNote} from "../core/websiteResponsivePreview.mjs";
 import {makeWebsiteVisualCheckHtml,reviewWebsiteVisualCheck,CHANNEL as VISUAL_CHECK_CHANNEL} from "../core/websiteVisualCheck.mjs";
 
@@ -69,6 +72,9 @@ function WebsiteBuilder({ s }) {
     goal:sharedJourneyGoal,websiteDraft:draft,brandBrain:brand,
     websiteJourney:journey,websitePublishing:s.websitePublishingView,
     websiteProof:deliveryProof
+  }):null;
+  const websiteClarity=draft?reviewBusinessInformation({
+    websiteDraft:draft,brandBrain:brand
   }):null;
   const regional=websiteRegionalReadiness({
     locale:brand?.websiteBrief?.locale||"",
@@ -262,6 +268,22 @@ function WebsiteBuilder({ s }) {
                       <Text style={styles.cardBody}>{item.ownerAction}</Text>
                     </View>
                   ))}
+                  {websiteClarity?.ok&&["services","book"].includes(sharedJourneyGoal)?(
+                    <>
+                      <Text style={styles.sectionLabel}>V3.173 • Service information</Text>
+                      <MetricRow left="Clearly described services"
+                        right={websiteClarity.websiteCompleteDescriptions+
+                          " of "+websiteClarity.websiteServiceCount}/>
+                      {websiteClarity.issues.filter(x=>x.surface==="website")
+                        .slice(0,4).map((issue,i)=>(
+                        <Text key={"website-info-"+i} style={styles.cardBody}>
+                          {issue.title+
+                            (issue.position?" (service "+issue.position+")":"")+
+                            ". "+issue.ownerAction}
+                        </Text>
+                      ))}
+                    </>
+                  ):null}
                   <Text style={styles.cardBody}>
                     Website content improvements use your real business details.
                     A visible contact button is not evidence that an enquiry
@@ -827,6 +849,17 @@ function WebsitePreview({ s }) {
     ?compareWebsiteVisualReports(visualCheckResult,candidateCheckResult):null;
   const comparisonWords=candidateComparison
     ?describeWebsiteDesignComparison(candidateComparison):null;
+  const measuredPriority=designCandidate&&candidateComparison&&
+    draft?.id&&visualCheckResult&&candidateCheckResult?
+    compareMeasuredWebsiteCandidates({
+      draftId:draft.id,generation:draft.generation,
+      pageId:activePage?.id||"home",
+      checks:[{draftId:draft.id,generation:designCandidate.baseGeneration,
+        pageId:designCandidate.pageId||"home",
+        widthGroup:classifyWidth(visualCheckResult.counts.viewport),
+        captureSource:"current_private_webview_dom",
+        original:visualCheckResult,candidate:candidateCheckResult}]
+    }):null;
   const tryCandidate=()=>{
     if(!layoutAdvice||!draft)return;
     const result=applyWebsiteLayoutChange(draft,layoutAdvice.operation);
@@ -1130,6 +1163,15 @@ function WebsitePreview({ s }) {
           </Text>
           <Text style={styles.cardBody}>{comparisonWords?.description||
             "Your original is unchanged until you choose Keep."}</Text>
+          {measuredPriority?.ok?(
+            <Text style={styles.cardBody}>
+              {"V3.173 • Evidence review: "+
+                measuredPriority.checkedWidthGroups.length+
+                " of 3 widths have a comparable current-revision report. "+
+                measuredPriority.recommendation.replaceAll("_"," ")+
+                ". A single width cannot establish that the design improved on every screen."}
+            </Text>
+          ):null}
           {comparisonWords?.facts.map((fact,i)=>(
             <Text key={String(i)} style={styles.cardBody}>{fact}</Text>
           ))}
