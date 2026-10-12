@@ -8,8 +8,10 @@ const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const clean=(value,max=120)=>String(value||"").replace(/[\x00-\x1f\x7f]/g," ")
   .replace(/\s+/g," ").trim().slice(0,max);
 function readPence(value){
- const raw=String(value??"").trim().replace(/^£\s*/,"").replace(/,/g,"");
- if(!/^\d{1,7}(?:\.\d{1,2})?$/.test(raw))return null;
+ const display=String(value??"").trim().replace(/^£\s*/,"");
+ // A comma is accepted only as a thousands separator, never as stray digits.
+ if(!/^(?:\d{1,7}|\d{1,3}(?:,\d{3}){1,2})(?:\.\d{1,2})?$/.test(display))return null;
+ const raw=display.replace(/,/g,"");
  const [whole,fraction=""]=raw.split(".");
  const minor=Number(whole)*100+Number(fraction.padEnd(2,"0")||0);
  return Number.isSafeInteger(minor)&&minor>=100&&minor<=100000000?minor:null;
