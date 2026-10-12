@@ -1716,6 +1716,34 @@ function MiniAppBuilder({ s }) {
                   </Text>
                 </>
               ):null}
+              {view.pushGatewayEvidence?.ok?(
+                <>
+                  <Text style={styles.sectionLabel}>
+                    V3.186 • Notification gateway evidence
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    {"Expo accepted submissions for "+
+                      view.pushGatewayEvidence.counts.gatewayAcceptedMessages+
+                      " saved message(s) • rejected: "+
+                      view.pushGatewayEvidence.counts.gatewayRejectedMessages+
+                      " • incomplete or ambiguous tickets: "+
+                      (view.pushGatewayEvidence.counts.mixedOrUnknownGatewayTickets+
+                       view.pushGatewayEvidence.counts.submittedNoSavedGatewayTicket)+"."}
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    {view.pushGatewayEvidence.nextOwnerReview}
+                  </Text>
+                  {view.pushGatewayEvidence.coveragePartial?(
+                    <Text style={styles.cardBody}>
+                      This is a partial sample; don't infer other messages succeeded.
+                    </Text>
+                  ):null}
+                  <Text style={styles.cardBody}>
+                    Gateway acceptance is not confirmation of phone delivery,
+                    notification display or a customer reading the reply.
+                  </Text>
+                </>
+              ):null}
               {view.deliveryEvidence?.ok?(
                 <>
                   <Text style={styles.sectionLabel}>
