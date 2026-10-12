@@ -70,6 +70,7 @@ function buildMiniAppsView(remote = {}) {
   const versions = safeArray(remote?.versions);
   const requests = safeArray(remote?.requests);
   const requestLinks = safeArray(remote?.requestLinks);
+  const workBookingLedger=remote?.workBookingLedger&&Array.isArray(remote.workBookingLedger.rows)?remote.workBookingLedger:null;
   const journeyEvidence = summarizeStoredCustomerJourneys({app,requests,links:requestLinks});
   const observedOutcomes=reviewBusinessBrainObservedOutcomes({businessId:app?.business_id||"",appId:app?.id||"",requests,links:requestLinks,nowISO:new Date().toISOString()});
   const requestCount30 = Math.max(0, Number(remote?.requestCount30 || 0));
@@ -232,6 +233,7 @@ function buildMiniAppsView(remote = {}) {
     versions,
     requests,
     requestLinks,
+    workBookingLedger,
     journeyEvidence,
     observedOutcomes,
     requestCount30,
