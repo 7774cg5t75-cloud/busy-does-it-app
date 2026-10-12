@@ -1,4 +1,5 @@
 import {summarizeStoredCustomerJourneys} from "../core/storedCustomerJourneys.mjs";
+import {reviewBusinessBrainObservedOutcomes} from "../core/businessBrainMeasuredOutcomes.mjs";
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -70,6 +71,7 @@ function buildMiniAppsView(remote = {}) {
   const requests = safeArray(remote?.requests);
   const requestLinks = safeArray(remote?.requestLinks);
   const journeyEvidence = summarizeStoredCustomerJourneys({app,requests,links:requestLinks});
+  const observedOutcomes=reviewBusinessBrainObservedOutcomes({businessId:app?.business_id||"",appId:app?.id||"",requests,links:requestLinks,nowISO:new Date().toISOString()});
   const requestCount30 = Math.max(0, Number(remote?.requestCount30 || 0));
   const guestRequestCount30 = Math.max(0, Number(remote?.guestRequestCount30 || 0));
   const entrySummary = safeArray(remote?.entrySummary);
@@ -231,6 +233,7 @@ function buildMiniAppsView(remote = {}) {
     requests,
     requestLinks,
     journeyEvidence,
+    observedOutcomes,
     requestCount30,
     guestRequestCount30,
     entrySummary,
