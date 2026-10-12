@@ -1,3 +1,4 @@
+import {publicNativeOffers,publicNativeLoyalty} from "./publicNativeExtrasV3190.mjs";
 /**
  * V3.155 public native Business App projection.
  *
@@ -9,7 +10,7 @@
 const str=(v,max=200)=>typeof v==="string"?v.trim().slice(0,max):"";
 const safeUrl=v=>typeof v==="string"&&v.length<=1800&&/^https:\/\//i.test(v)?v:"";
 const validSlug=s=>typeof s==="string"&&/^[a-z0-9][a-z0-9-]{1,98}$/.test(s);
-const PUBLIC_MODULES=new Set(["business_profile","services","gallery","contact","enquiry","booking_request"]);
+const PUBLIC_MODULES=new Set(["business_profile","services","gallery","contact","enquiry","booking_request","offers","loyalty"]);
 function publicNativeMiniAppProjection(app,version,{expectedAppId,expectedVersionId}={}){
  if(!app||!version||app.status!=="live"||
   app.id!==expectedAppId||version.id!==expectedVersionId||
@@ -39,12 +40,14 @@ function publicNativeMiniAppProjection(app,version,{expectedAppId,expectedVersio
   phone:str(profile.contact?.phone,80),email:str(profile.contact?.email,180),
   openingHours:str(profile.contact?.openingHours,260)
  }:null;
+ const offers=has("offers")?publicNativeOffers(config):[];
+ const loyalty=has("loyalty")?publicNativeLoyalty(config):null;
  const result={ok:true,kind:"public_native_app_v1",
   appId:app.id,versionId:version.id,slug:app.public_slug,
   title:str(config.display?.name||profile.businessName||app.display_name,120),
   tagline:str(config.display?.tagline||profile.tagline,260),
   about:str(profile.about||profile.description,1200),
-  services,gallery,contact,moduleKeys,
+  services,gallery,contact,offers,loyalty,moduleKeys,
   heroUrl:safeUrl(profile.assets?.hero?.uri),
   supportsEnquiry:has("enquiry"),supportsBookingRequest:has("booking_request"),
   bookingsAlwaysRequireBusinessConfirmation:true,
