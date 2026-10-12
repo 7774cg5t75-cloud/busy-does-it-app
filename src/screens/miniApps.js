@@ -54,6 +54,8 @@ import {prepareOwnerImprovementPlan}
   from "../core/ownerImprovementPlan.mjs";
 import {prepareBusinessBrainWork}
   from "../core/businessBrainWorkQueue.mjs";
+import {prepareCoordinatedBuilderReview}
+  from "../core/coordinatedBuilderReviewV3180.mjs";
 import {assessBrainOutcomeEvidence}
   from "../core/businessBrainOutcomeEvidence.mjs";
 import {evaluateReleaseReadiness}
@@ -930,6 +932,15 @@ function MiniAppBuilder({ s }) {
   const ownerImprovementPlan=view.draftConfig?prepareOwnerImprovementPlan({
     goal:selectedCustomerTask,appConfig:view.draftConfig,
     appRevision:app?.draft_revision||0}):null;
+  const coordinatedBuilders=s.websiteDraft&&view.draftConfig&&
+    app?.business_id===s.cloudWorkspace?.businessId?
+    prepareCoordinatedBuilderReview({
+      businessId:s.cloudWorkspace.businessId,
+      appBusinessId:app.business_id,websiteBusinessId:s.cloudWorkspace.businessId,
+      websiteDraft:s.websiteDraft,brandBrain:s.brandBrain||{},
+      appConfig:view.draftConfig,websiteRevision:Number(s.websiteDraft.generation)||0,
+      appRevision:Number(app.draft_revision)||0
+    }):null;
   const businessBrainQueue=view.draftConfig?prepareBusinessBrainWork({
     businessId:s.cloudWorkspace?.businessId||"",
     goal:selectedCustomerTask,appConfig:view.draftConfig,
@@ -1702,6 +1713,49 @@ function MiniAppBuilder({ s }) {
                   <Text style={styles.cardBody}>
                     Recorded states are not proof that a reply reached the customer
                     or that an appointment exists in a verified live diary.
+                  </Text>
+                </>
+              ):null}
+              {view.observedOutcomes?.ok?(
+                <>
+                  <Text style={styles.sectionLabel}>
+                    V3.180 • What recorded requests tell Busy
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    {"Requests waiting: "+view.observedOutcomes.metrics.awaitingOwner+
+                     " • over 48 hours: "+
+                     view.observedOutcomes.metrics.awaitingOver48Hours+
+                     " • owner-marked bookings: "+
+                     view.observedOutcomes.metrics.ownerMarkedBookings+"."}
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    {view.observedOutcomes.nextOwnerReview.why}
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    Busy's figures come from stored requests, not verified
+                    customer conversion, external diary delivery or revenue.
+                  </Text>
+                </>
+              ):null}
+              {coordinatedBuilders?.ok?(
+                <>
+                  <Text style={styles.sectionLabel}>
+                    V3.180 • Keep website and app facts coordinated
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    {"Shared services: "+
+                      coordinatedBuilders.sharedServiceOverlapCount+
+                      " • differences to review: "+
+                      coordinatedBuilders.unresolvedFactChecks+"."}
+                  </Text>
+                  {coordinatedBuilders.actions.slice(0,3).map(item=>(
+                    <Text key={"builder-review-"+item.key} style={styles.cardBody}>
+                      {item.title+". "+item.next}
+                    </Text>
+                  ))}
+                  <Text style={styles.cardBody}>
+                    Local review only. Busy won't copy descriptions, change
+                    your design or publish either surface without approval.
                   </Text>
                 </>
               ):null}
