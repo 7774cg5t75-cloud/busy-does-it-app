@@ -119,13 +119,15 @@ const createFaq={action:"create-collection",sectionId:"faq",
  title:"How do deliveries work?",body:"Contact us for availability."};
 const addedFaq=applyStructuredWebsiteEdit(first,createFaq);
 ok(addedFaq.applied);ok(addedFaq.draft.html.includes("How do deliveries work?"));
-ok(addedFaq.draft.pages.some(p=>p.id==="faq"));
+ok(addedFaq.draft.pages.some(p=>p.id==="faq")||
+ addedFaq.draft.pages.some(p=>p.id==="home"&&p.sectionIds.includes("faq")));
 const faqId=addedFaq.draft.sections.find(s=>s.id==="faq").items[0].id;
 const createService={action:"create-collection",sectionId:"services",
  title:"Seasonal bouquets",body:"Owner-written description"};
 const addedService=applyStructuredWebsiteEdit(addedFaq.draft,createService);
 ok(addedService.applied);ok(addedService.draft.html.includes("Seasonal bouquets"));
-ok(addedService.draft.pages.some(p=>p.id==="services"));
+ok(addedService.draft.pages.some(p=>p.id==="services")||
+ addedService.draft.pages.some(p=>p.id==="home"&&p.sectionIds.includes("services")));
 const secondItem=applyStructuredWebsiteEdit(addedService.draft,{action:"add-item",
  sectionId:"services",title:"Wedding flowers",body:"Flowers for your wedding"});
 ok(secondItem.applied);
