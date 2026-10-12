@@ -23,7 +23,7 @@ const bounds={title:140,body:2500,cta:120,ctaHref:120,phone:40,email:254,opening
 const fail=(reason,draft)=>({applied:false,reason,draft});
 const collectionKinds=new Set(["services","faq"]);
 const publicWord=(s,max,required=false)=>typeof s==="string"&&s.length<=max&&
- !/[<>\\u0000-\\u001f\\u007f]/.test(s)&&(!required||!!s.trim());
+ !/[<>\u0000-\u001f\u007f]/.test(s)&&(!required||!!s.trim());
 function editWebsiteDraftCollection(draft,change={}){
  const permitted=new Set(["kind","action","sectionId","title","body","itemId","expectedTitle"]);
  if(!change||typeof change!=="object"||Array.isArray(change)||
