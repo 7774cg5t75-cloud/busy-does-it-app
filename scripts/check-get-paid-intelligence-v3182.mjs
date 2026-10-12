@@ -15,6 +15,7 @@ assert.equal(prepareGetPaidQuoteDraft({businessId:"wrong",customer,brief:"£125"
 assert.equal(prepareGetPaidQuoteDraft({businessId:b,customer:{...customer,name:""},brief:"£125"}).ok,false);
 assert.equal(prepareGetPaidQuoteDraft({businessId:b,customer,brief:"Quote £125 or £150"}).ok,false);
 assert.equal(prepareGetPaidQuoteDraft({businessId:b,customer,brief:"Quote £0"}).ok,false);
+assert.equal(prepareGetPaidQuoteDraft({businessId:b,customer,brief:"£1,2 is wrong"}).ok,false);
 assert.equal(prepareGetPaidQuoteDraft({businessId:b,customer,brief:"£125 including VAT and excluding VAT"}).ok,false);
 const updated=prepareGetPaidQuoteDraft({businessId:b,customer,brief:"Please quote £165",currentAmount:"125"});
 assert.equal(updated.ok,true);
@@ -23,7 +24,7 @@ const existing=prepareGetPaidQuoteDraft({businessId:b,customer,brief:"Please pre
 assert.equal(existing.amountPence,12550);
 assert.equal(existing.amountSource,"existing_owner_quote_field");
 const due=reviewGetPaidNextStep({businessId:b,customer,action:{type:"quote",done:true,details:{
- quoteStatus:"Sent",followUpDueDate:"2026-10-10"}},nowISO:"2026-10-12T10:00:00Z"});
+ quoteStatus:"Sent",followUpDueDate:"2026-10-10"}},nowISO:"2026-10-12T10:00:00Z",todayISO:"2026-10-12"});
 assert.equal(due.ok,true);
 assert.equal(due.priority,"attention");
 assert.equal(due.reminderSent,false);
