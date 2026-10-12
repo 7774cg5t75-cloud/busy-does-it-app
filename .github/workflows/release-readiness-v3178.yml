@@ -1,0 +1,64 @@
+name: V3.178 Release Readiness Intelligence
+on:
+  push:
+    branches: [v3.178]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  rendered-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: V3.178 release-blocking checks, staging schema audit, owner scope and inherited regressions
+        run: |
+          node scripts/check-release-readiness-v3178.mjs
+          node scripts/check-verified-outcomes-v3177.mjs
+          node scripts/check-authenticated-brain-staging-v3176.mjs
+          node scripts/check-business-brain-staging-v3175.mjs
+          node scripts/check-offline-staging-device-v3174.mjs
+          node scripts/check-multi-feature-intelligence-v3173.mjs
+          node scripts/check-shared-customer-journeys-v3172.mjs
+          node scripts/check-app-customer-experience-v3171.mjs
+          node scripts/check-app-customer-journeys-v3170.mjs
+          node scripts/check-app-customer-tasks-v3169.mjs
+          node scripts/check-app-industry-v3168.mjs
+          node scripts/check-app-design-patterns-v3167.mjs
+          node scripts/check-app-design-learning-v3166.mjs
+          node scripts/check-app-visual-multiwidth-v3165.mjs
+          node scripts/check-app-rendered-quality-v3164.mjs
+          node scripts/check-responsive-app-v3163.mjs
+          node scripts/check-app-design-iteration-v3162.mjs
+          node scripts/check-app-visual-comparison-v3161.mjs
+          node scripts/check-app-design-v3160.mjs
+          node scripts/check-app-visual-review-v3159.mjs
+          node scripts/check-app-builder-v3158.mjs
+          node scripts/check-intelligent-app-studio-v3157.mjs
+          node scripts/check-app-voice-layout-v3156.mjs
+          node scripts/check-native-public-booking-v3155.mjs
+          node scripts/check-app-context-editor-v3155.mjs
+          node scripts/check-app-builder-dual-track-v3153.mjs
+          node scripts/check-standalone-native-v3154.mjs
+          node scripts/check-production.mjs
+      - name: Install pinned Expo dependencies
+        run: npm install --no-audit --no-fund
+      - name: Parse React Native and Edge source
+        run: node scripts/check-app-native-syntax-v3154.mjs
+      - name: Export Busy iOS and Android
+        run: |
+          npx expo export --platform ios --output-dir /tmp/bdi-v3178-ios
+          npx expo export --platform android --output-dir /tmp/bdi-v3178-android
+      - name: Independently export standalone iOS and Android
+        run: |
+          node scripts/prepare-standalone-prototype-v3154.mjs
+          cd .tmp/standalone-prototype-v3154
+          ../../node_modules/.bin/expo export --platform ios --output-dir /tmp/bdi-v3178-standalone-ios
+          ../../node_modules/.bin/expo export --platform android --output-dir /tmp/bdi-v3178-standalone-android
+      - name: Explicit release boundary
+        run: echo "Native layout event tests are not executed on a real iPhone in CI; no OCR, no pixel review, no accessibility certification, no Edge deployment, and no app signing."
