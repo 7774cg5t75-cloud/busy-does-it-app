@@ -3,6 +3,7 @@ import {reviewBusinessBrainObservedOutcomes} from "../core/businessBrainMeasured
 import {assessDurableWorkOutcomes} from "../core/durableWorkOutcomeEvidenceV3181.mjs";
 import {summarizeJourneyCheckpoints} from "../core/storedJourneyCheckpointsV3184.mjs";
 import {reviewMessageDeliveryIntents} from "../core/messageDeliveryEvidenceV3185.mjs";
+import {recommendMeasuredOwnerActions} from "../core/measuredCustomerActionPriorityV3186.mjs";
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -91,6 +92,11 @@ function buildMiniAppsView(remote = {}) {
       messagesTruncated:messageCheckpoints.truncated===true}):null;
   const journeyEvidence = summarizeStoredCustomerJourneys({app,requests,links:requestLinks});
   const observedOutcomes=reviewBusinessBrainObservedOutcomes({businessId:app?.business_id||"",appId:app?.id||"",requests,links:requestLinks,nowISO:new Date().toISOString()});
+  const measuredOwnerActions=journeyCheckpoints?.ok&&durableWorkEvidence?.ok&&
+    deliveryEvidence?.ok&&remote?.pushGatewayEvidence?.ok?
+    recommendMeasuredOwnerActions({journey:journeyCheckpoints,
+      work:durableWorkEvidence,gateway:remote.pushGatewayEvidence,
+      notification:deliveryEvidence}):null;
   const requestCount30 = Math.max(0, Number(remote?.requestCount30 || 0));
   const guestRequestCount30 = Math.max(0, Number(remote?.guestRequestCount30 || 0));
   const entrySummary = safeArray(remote?.entrySummary);
@@ -255,6 +261,7 @@ function buildMiniAppsView(remote = {}) {
     durableWorkEvidence,
     journeyCheckpoints,
     deliveryEvidence,
+    measuredOwnerActions,
     pushGatewayEvidence:remote?.pushGatewayEvidence?.ok===true?remote.pushGatewayEvidence:null,
     journeyEvidence,
     observedOutcomes,
