@@ -54,6 +54,7 @@ function preflightRequestBridge({
    return fail("Confirm a matching existing booking draft, date, time and explicit owner approval.");
  }
  const noChange=!!existing&&prior===bridgeState&&
+   (existing.action_record_id||"")===actionRecordId&&
    request.status===nextStatus&&
    (bridgeState!=="booking_confirmed"||
     (existing.metadata?.bookingDate===metadata?.bookingDate&&
