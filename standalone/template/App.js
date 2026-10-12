@@ -119,6 +119,27 @@ function LiveInfo({screen,app,layout}){
           borderRadius:LOOK.imageCorners==="square"?2:11,marginTop:12}}/>
      )}</View>:<Text style={sub}>No photographs have been approved for this app yet.</Text>}
  </View>;
+ if(screen.key==="offers")return <View style={box}>
+   <Text style={{...t,fontSize:20,fontWeight:"700"}}>Current offers</Text>
+   {app.offers?.length?app.offers.map((offer,i)=><View key={i}
+      style={{paddingVertical:13,borderBottomColor:COLORS.line,borderBottomWidth:1}}>
+      <Text style={{...t,fontWeight:"700",fontSize:17}}>{offer.title}</Text>
+      {offer.body?<Text style={sub}>{offer.body}</Text>:null}
+      <Text style={sub}>{"Terms: "+offer.terms}</Text>
+      {offer.endDate?<Text style={sub}>{"Ends "+offer.endDate}</Text>:null}
+    </View>):<Text style={sub}>No approved offer is active today.</Text>}
+  </View>;
+ if(screen.key==="loyalty")return <View style={box}>
+   <Text style={{...t,fontSize:20,fontWeight:"700"}}>Loyalty rewards</Text>
+   {app.loyalty?<View>
+     <Text style={{...t,fontWeight:"700",marginTop:12}}>{app.loyalty.programName}</Text>
+     <Text style={sub}>{"The business offers: "+app.loyalty.reward}</Text>
+     <Text style={sub}>{"Programme target: "+app.loyalty.targetStamps+" eligible stamps or visits."}</Text>
+     <Text style={sub}>{"Terms: "+app.loyalty.terms}</Text>
+     <Text style={sub}>Ask the business to check your personal progress and eligibility.
+       This app does not award stamps or redeem rewards automatically.</Text>
+   </View>:<Text style={sub}>No verified public loyalty details are available.</Text>}
+  </View>;
  if(screen.key==="contact")return <View style={box}>
    <Text style={{...t,fontSize:20,fontWeight:"700"}}>Contact</Text>
    {["phone","email","openingHours"].map(key=>app.contact?.[key]?
