@@ -33,6 +33,7 @@ import {WebsiteContentEditor} from "./websiteContentEditor";
 import {WebsiteAppServiceCopy} from "./websiteAppServiceCopy";
 import {WebsiteAppBrandMatch} from "./websiteAppBrandMatch";
 import {WebsiteAppTypographyMatch} from "./websiteAppTypographyMatch";
+import {BusinessBrandDnaPreview} from "./businessBrandDnaPreview";
 import {WebsiteLayoutControls} from "./websiteLayoutControls";
 import {WebsitePagesEditor} from "./websitePagesEditor";
 import {WebsiteTapEditor} from "./websiteTapEditor";
@@ -772,6 +773,9 @@ function WebsiteBuilder({ s }) {
               </>
             ) : null}
           </Card>
+          <BusinessBrandDnaPreview website={draft}
+            app={s.miniAppsView?.app}
+            businessId={s.cloudWorkspace?.businessId}/>
           <WebsiteAppTypographyMatch website={draft}
             app={s.miniAppsView?.app}
             businessId={s.cloudWorkspace?.businessId}
