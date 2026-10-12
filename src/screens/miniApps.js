@@ -1716,6 +1716,34 @@ function MiniAppBuilder({ s }) {
                   </Text>
                 </>
               ):null}
+              {view.journeyCheckpoints?.ok?(
+                <>
+                  <Text style={styles.sectionLabel}>
+                    V3.184 • Customer journey checkpoints
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    {"Requests needing an owner reply: "+
+                      view.journeyCheckpoints.counts.requestsAwaitingOwnerReply+
+                      " • requests with saved owner replies: "+
+                      view.journeyCheckpoints.counts.ownerRepliesSaved+
+                      " • confirmed with a saved Work record: "+
+                      view.journeyCheckpoints.counts.ownerConfirmedAndWorkSaved+"."}
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    {view.journeyCheckpoints.nextOwnerReview}
+                  </Text>
+                  {view.journeyCheckpoints.coveragePartial?(
+                    <Text style={styles.cardBody}>
+                      Only recent records were checked. Earlier messages and bookings
+                      need a separate review before concluding nothing is missing.
+                    </Text>
+                  ):null}
+                  <Text style={styles.cardBody}>
+                    Saved replies are not proof that notifications reached customers,
+                    and a Work booking is not proof that a job was completed.
+                  </Text>
+                </>
+              ):null}
               {view.durableWorkEvidence?.ok?(
                 <>
                   <Text style={styles.sectionLabel}>
