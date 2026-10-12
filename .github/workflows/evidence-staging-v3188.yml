@@ -1,0 +1,85 @@
+name: V3.188 Evidence Quality and Staging Access Gates
+on:
+  push:
+    branches: [v3.188]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  durable-work-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: ci_disposable_only_v3181
+          POSTGRES_DB: busy_v3181_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d busy_v3181_ci"
+          --health-interval 5s --health-timeout 3s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      - name: Transactional Work ledger cancellation, replay and fault injection
+        env:
+          PGPASSWORD: ci_disposable_only_v3181
+        run: |
+          psql -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 5432 \
+            -U postgres -d busy_v3181_ci -f staging/ci-tenant-role-revocation-v3188.sql
+  native-and-package-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: V3.188 revocation, sampled evidence, staging preflight and previous regressions
+        run: |
+          node scripts/prepare-staging-install-v3180.mjs
+          node scripts/verify-staging-install-v3186.mjs
+          node scripts/plan-isolated-staging-v3187.mjs
+          node scripts/review-staging-preflight-v3188.mjs
+          node scripts/check-evidence-readiness-v3188.mjs
+          node scripts/check-outcome-proof-v3187.mjs
+          node scripts/check-gateway-outcomes-v3186.mjs
+          node scripts/check-message-integrity-v3185.mjs
+          node scripts/check-customer-journeys-v3184.mjs
+          node scripts/track-intelligence-v3183.mjs
+          node scripts/check-get-paid-v3183.mjs
+          node scripts/audit-architecture-v3183.mjs
+          node scripts/check-durable-work-v3181.mjs
+          node scripts/prepare-staging-install-v3180.mjs
+          node scripts/check-atomic-staging-v3180.mjs
+          node scripts/check-operational-readiness-v3179.mjs
+          node scripts/check-release-readiness-v3178.mjs
+          node scripts/check-verified-outcomes-v3177.mjs
+          node scripts/check-authenticated-brain-staging-v3176.mjs
+          node scripts/check-business-brain-staging-v3175.mjs
+          node scripts/check-shared-customer-journeys-v3172.mjs
+          node scripts/check-calendar-first-work-v386.mjs
+          node scripts/check-native-public-booking-v3155.mjs
+          node scripts/check-standalone-native-v3154.mjs
+          node scripts/check-production.mjs
+      - name: Install pinned Expo dependencies
+        run: npm install --no-audit --no-fund
+      - name: Parse React Native and Edge source
+        run: node scripts/check-app-native-syntax-v3154.mjs
+      - name: Export Busy iOS and Android
+        run: |
+          npx expo export --platform ios --output-dir /tmp/bdi-v3188-ios
+          npx expo export --platform android --output-dir /tmp/bdi-v3188-android
+      - name: Export standalone app iOS and Android
+        run: |
+          node scripts/prepare-standalone-prototype-v3154.mjs
+          cd .tmp/standalone-prototype-v3154
+          ../../node_modules/.bin/expo export --platform ios --output-dir /tmp/bdi-v3188-standalone-ios
+          ../../node_modules/.bin/expo export --platform android --output-dir /tmp/bdi-v3188-standalone-android
+      - name: Verification boundary
+        run: echo "No real Supabase staging install, external calendar notification, paid provider call, release or production data was touched."
