@@ -16946,6 +16946,7 @@ function App() {
     businessMemoryLastReviewAt,
     executiveBriefing,
     workCalendarIntelligence,
+    workLedgerReview:durableWorkReview,
     dailyCommandCentre,
     communicationsHub,
     followUpEngine,
