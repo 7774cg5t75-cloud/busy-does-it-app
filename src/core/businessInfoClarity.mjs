@@ -37,8 +37,8 @@ function inspectServices(services,surface){
  return {count:Array.isArray(services)?services.length:0,
   issues:issues.slice(0,40),completeServiceDescriptions:rows.filter(x=>
    clean(x?.name)&&clean(x?.description)).length,
-  // Internal use only for cross-surface structural comparison.
-  names:[...names.keys()].slice(0,30)};
+  // Service names are NEVER returned; they remain only in local comparison state.
+  identifiersReturned:false};
 }
 function reviewBusinessInformation({
  websiteDraft=null,brandBrain={},appConfig=null,scope=null
@@ -57,7 +57,9 @@ function reviewBusinessInformation({
  const webBrief=brandBrain?.websiteBrief||{};
  const websiteInfo=website?inspectServices(webBrief.services,"website"):null;
  const appServices=appConfig?.publicProfile?.services;
- const appInfo=app?inspectServices(appServices,"app"):null;
+ const appServicesEnabled=app&&appConfig.modules.some(m=>
+  m?.key==="services"&&m?.enabled===true);
+ const appInfo=appServicesEnabled?inspectServices(appServices,"app"):null;
  const issues=[
   ...(websiteInfo?.issues||[]),...(appInfo?.issues||[])
  ];
@@ -93,6 +95,7 @@ function reviewBusinessInformation({
   websitePresent:!!website,appPresent:!!app,
   websiteServiceCount:websiteInfo?.count??null,
   appServiceCount:appInfo?.count??null,
+  appServicesEnabled:!!appServicesEnabled,
   websiteCompleteDescriptions:websiteInfo?.completeServiceDescriptions??null,
   appCompleteDescriptions:appInfo?.completeServiceDescriptions??null,
   importantCount:issues.filter(i=>i.priority==="important").length,
