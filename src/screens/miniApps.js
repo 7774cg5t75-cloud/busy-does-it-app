@@ -1728,6 +1728,28 @@ function MiniAppBuilder({ s }) {
                   </Text>
                 </>
               ):null}
+              {view.evidenceCompleteness?.ok?(
+                <>
+                  <Text style={styles.sectionLabel}>
+                    V3.188 • How certain is Busy?
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    {view.evidenceCompleteness.requestSnapshotComplete?
+                      "Recent requests checked.":
+                      "Only some recent requests could be checked."}
+                    {" A missing reply or Work entry in this sample is a check to make, not proof it never happened."}
+                  </Text>
+                  {view.evidenceCompleteness.reviewSignals.slice(0,2).map(item=>(
+                    <Text key={"evidence-"+item.id} style={styles.cardBody}>
+                      {item.title+". "+item.next}
+                    </Text>
+                  ))}
+                  <Text style={styles.cardBody}>
+                    Busy won't act on incomplete evidence or claim verified sales,
+                    notification delivery or completed appointments.
+                  </Text>
+                </>
+              ):null}
               {view.outcomeProof?.ok?(
                 <>
                   <Text style={styles.sectionLabel}>
