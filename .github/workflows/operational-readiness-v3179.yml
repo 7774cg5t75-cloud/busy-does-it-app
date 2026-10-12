@@ -1,0 +1,46 @@
+name: V3.179 Operational Readiness
+on:
+  push:
+    branches: [v3.179]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  operational-safety-and-exports:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: V3.179 actual migration dependency and request state regression
+        run: |
+          node scripts/check-operational-readiness-v3179.mjs
+          node scripts/prepare-staging-install-v3179.mjs
+          node scripts/check-release-readiness-v3178.mjs
+          node scripts/check-verified-outcomes-v3177.mjs
+          node scripts/check-authenticated-brain-staging-v3176.mjs
+          node scripts/check-business-brain-staging-v3175.mjs
+          node scripts/check-shared-customer-journeys-v3172.mjs
+          node scripts/check-native-public-booking-v3155.mjs
+          node scripts/check-standalone-native-v3154.mjs
+          node scripts/check-production.mjs
+      - name: Install pinned Expo dependencies
+        run: npm install --no-audit --no-fund
+      - name: Parse app and Edge import graph
+        run: node scripts/check-app-native-syntax-v3154.mjs
+      - name: Export main iOS / Android app
+        run: |
+          npx expo export --platform ios --output-dir /tmp/bdi-v3179-ios
+          npx expo export --platform android --output-dir /tmp/bdi-v3179-android
+      - name: Export independent standalone iOS / Android prototype
+        run: |
+          node scripts/prepare-standalone-prototype-v3154.mjs
+          cd .tmp/standalone-prototype-v3154
+          ../../node_modules/.bin/expo export --platform ios --output-dir /tmp/bdi-v3179-standalone-ios
+          ../../node_modules/.bin/expo export --platform android --output-dir /tmp/bdi-v3179-standalone-android
+      - name: Verification boundaries
+        run: echo "No staging SQL, live Edge invocation, external delivery, real device run, production deployment or signing was performed."
