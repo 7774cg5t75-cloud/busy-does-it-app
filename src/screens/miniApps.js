@@ -1716,6 +1716,33 @@ function MiniAppBuilder({ s }) {
                   </Text>
                 </>
               ):null}
+              {view.deliveryEvidence?.ok?(
+                <>
+                  <Text style={styles.sectionLabel}>
+                    V3.185 • Customer notification checks
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    {"Messages awaiting submission check: "+
+                      view.deliveryEvidence.counts.pending+
+                      " • no push submission evidence: "+
+                      view.deliveryEvidence.counts.submissionWithoutProviderReceipt+
+                      " • submitted, customer delivery unverified: "+
+                      view.deliveryEvidence.counts.submittedButDeliveryUnverified+"."}
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    {view.deliveryEvidence.nextOwnerReview}
+                  </Text>
+                  {view.deliveryEvidence.coveragePartial?(
+                    <Text style={styles.cardBody}>
+                      This is a limited set of recent notifications.
+                    </Text>
+                  ):null}
+                  <Text style={styles.cardBody}>
+                    A saved BUSY reply is available in the conversation even
+                    if a push notification never reaches the customer's phone.
+                  </Text>
+                </>
+              ):null}
               {view.journeyCheckpoints?.ok?(
                 <>
                   <Text style={styles.sectionLabel}>
