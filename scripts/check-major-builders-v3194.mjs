@@ -91,7 +91,7 @@ const native=read("standalone/template/App.js");
 const market=read("src/screens/miniApps.js");
 for(const marker of[
  'const VISUAL=appVisualPresentation(LOOK)',
- 'fontSize:VISUAL.type.titleSize',
+ 'VISUAL.type.titleSize-5:',
  'fontWeight:VISUAL.type.titleWeight',
  'VISUAL.headerCentered?"center":"left"',
  'VISUAL.serviceColumns===1?"100%"',
