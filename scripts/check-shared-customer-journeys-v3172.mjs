@@ -41,6 +41,18 @@ const brand={websiteBrief:{
  completeness:{coreMissing:[]},privateCustomers:[{name:"not-output"}]};
 const originalApp=app(),appSnapshot=JSON.stringify(originalApp);
 const webSnapshot=JSON.stringify(web),brandSnapshot=JSON.stringify(brand);
+const sameWorkspace={
+ authorizedBusinessId:"owner-business-scoped",
+ websiteBusinessId:"owner-business-scoped",
+ appBusinessId:"owner-business-scoped"
+};
+assert.equal(reviewSharedCustomerGoal({
+ goal:"book",websiteDraft:web,appConfig:originalApp
+}).ok,false,"Missing tenant context must fail closed");
+assert.equal(reviewSharedCustomerGoal({
+ goal:"book",websiteDraft:web,appConfig:originalApp,
+ scope:{...sameWorkspace,appBusinessId:"another-business"}
+}).ok,false,"Cross-business drafts must never merge");
 assert.deepEqual(GOALS,["book","enquire","services","photos","offers","rewards"]);
 assert.equal(reviewSharedCustomerGoal({goal:"invented",websiteDraft:web}).ok,false);
 assert.equal(reviewSharedCustomerGoal({goal:"book"}).ok,false);
@@ -49,7 +61,7 @@ for(const goal of GOALS){
   brandBrain:brand,appConfig:originalApp,
   websiteJourney:{nextAction:"review",isVerified:false},
   websitePublishing:{previewDeployment:{id:"preview"},draftChangedSinceHosted:false},
-  websiteProof:{verified:false}});
+  websiteProof:{verified:false},scope:sameWorkspace});
  assert.equal(result.ok,true,goal);
  assert.equal(result.goal,goal);
  assert.equal(result.websitePresent,true);
