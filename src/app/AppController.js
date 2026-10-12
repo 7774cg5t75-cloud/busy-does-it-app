@@ -15264,6 +15264,26 @@ function App() {
           "Your preference could not be saved.").slice(0,220)};
     }
   };
+  const clearAppBrainOwnerDecisions=async({appId,expectedRevision}={})=>{
+    const businessId=String(cloudWorkspace?.businessId||"");
+    if(!businessId||miniAppsView?.app?.id!==appId||
+       Number(miniAppsView?.app?.draft_revision)!==Number(expectedRevision))
+      return {ok:false,reason:"Open this private app again before clearing history."};
+    try{
+      const response=await miniAppsRequest("clear_brain_owner_decisions",{
+        appId,expectedRevision,ownerApproved:true
+      });
+      if(response?.ok!==true||response.businessId!==businessId||
+         cloudWorkspace?.businessId!==businessId||
+         response.appId!==appId||response.cleared!==true||
+         response.publishedAppUnchanged!==true)
+        throw Error("BUSY could not confirm the private history was cleared.");
+      return {ok:true,cleared:true};
+    }catch(error){
+      return {ok:false,reason:String(error?.message||
+        "Could not clear saved owner feedback.").slice(0,220)};
+    }
+  };
   const checkIsolatedAppStagingConnection=async({appId,expectedRevision}={})=>{
     const businessId=String(cloudWorkspace?.businessId||"");
     if(!businessId||miniAppsView?.app?.id!==appId||
@@ -16697,6 +16717,7 @@ function App() {
     getAppDesignLearningStatus,
     getAppBrainDecisions,
     recordAppBrainOwnerDecision,
+    clearAppBrainOwnerDecisions,
     checkIsolatedAppStagingConnection,
     recordAppDesignPreference,
     clearAppDesignLearning,
