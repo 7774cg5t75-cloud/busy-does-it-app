@@ -1,6 +1,7 @@
 import {summarizeStoredCustomerJourneys} from "../core/storedCustomerJourneys.mjs";
 import {reviewBusinessBrainObservedOutcomes} from "../core/businessBrainMeasuredOutcomes.mjs";
 import {assessDurableWorkOutcomes} from "../core/durableWorkOutcomeEvidenceV3181.mjs";
+import {summarizeJourneyCheckpoints} from "../core/storedJourneyCheckpointsV3184.mjs";
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -73,6 +74,13 @@ function buildMiniAppsView(remote = {}) {
   const requestLinks = safeArray(remote?.requestLinks);
   const workBookingLedger=remote?.workBookingLedger&&Array.isArray(remote.workBookingLedger.rows)?remote.workBookingLedger:null;
   const durableWorkEvidence=workBookingLedger?assessDurableWorkOutcomes({businessId:app?.business_id||"",appId:app?.id||"",requests,ledger:workBookingLedger}):null;
+  const messageCheckpoints=remote?.messageCheckpoints&&
+    Array.isArray(remote.messageCheckpoints.rows)?remote.messageCheckpoints:null;
+  const journeyCheckpoints=messageCheckpoints&&workBookingLedger?
+    summarizeJourneyCheckpoints({businessId:app?.business_id||"",
+      appId:app?.id||"",requests,links:requestLinks,
+      work:workBookingLedger.rows,messages:messageCheckpoints.rows,
+      messagesTruncated:messageCheckpoints.truncated===true}):null;
   const journeyEvidence = summarizeStoredCustomerJourneys({app,requests,links:requestLinks});
   const observedOutcomes=reviewBusinessBrainObservedOutcomes({businessId:app?.business_id||"",appId:app?.id||"",requests,links:requestLinks,nowISO:new Date().toISOString()});
   const requestCount30 = Math.max(0, Number(remote?.requestCount30 || 0));
@@ -237,6 +245,7 @@ function buildMiniAppsView(remote = {}) {
     requestLinks,
     workBookingLedger,
     durableWorkEvidence,
+    journeyCheckpoints,
     journeyEvidence,
     observedOutcomes,
     requestCount30,
