@@ -205,6 +205,7 @@ import {buildVerifiedActivity,resultBrief} from "../domain/verifiedBusinessActiv
 import { validateAiConversationDraft } from "../domain/conversationAiBoundary.mjs";
 import { buildWebsiteDraft, applyWebsiteInstruction, applyStructuredWebsiteEdit, applyWebsiteLayoutChange, applyWebsitePageChange, rebuildPrivateWebsiteDraft } from "../domain/websiteBuilder";
 import {confirmCopyMissingAppServices} from "../core/ownerBuilderServiceBridgeV3192.mjs";
+import {confirmMatchAppBrandToWebsite} from "../core/ownerBuilderBrandBridgeV3193.mjs";
 import {buildPortableWebsiteSource} from "../core/websiteSourceExport.mjs";
 import {buildStandaloneWebsiteArchive} from "../core/websiteStandaloneArchive.mjs";
 import {sitePhotoAssets,attachExportOriginal,validExportOriginalPath}
@@ -13377,6 +13378,33 @@ function App() {
     return true;
   };
 
+  // V3.193 exact same-business approved brand match, fully private and Undo-able.
+  // Recompute from CURRENT app and website; no saved preview can override a
+  // later owner change or import anything from a different business.
+  const applyBusinessAppBrandToWebsite=evidence=>{
+    const current=websiteDraftRef.current;
+    const app=miniAppsStatus?.app;
+    const businessId=cloudWorkspace?.businessId||"";
+    const check=confirmMatchAppBrandToWebsite(current,app,{businessId,evidence});
+    if(!check.ok){
+      setWebsiteBuilderNotice(check.reason||"Review the current brand colours first.");
+      return false;
+    }
+    const updated=applyWebsiteLayoutChange(current,{
+      action:"brand-colour",value:check.targetColour
+    });
+    if(!updated.applied){
+      setWebsiteBuilderNotice(updated.reason||"The selected colour could not be applied.");
+      return false;
+    }
+    setWebsiteUndo(items=>[...items,current].slice(-8));
+    setWebsiteRedo([]);
+    websiteDraftRef.current=updated.draft;
+    setWebsiteDraft(updated.draft);
+    setWebsiteBuilderNotice("Coordinated the brand colour in your PRIVATE website. Your Business App remains unchanged; publish separately if you choose.");
+    return true;
+  };
+
   // V3.148: optional local preview, no Undo entry, draft mutation, cloud
   // request, or publication. Apply rechecks the SAME text against current state.
   const previewSelectedWebsiteInstruction = ({selection,instruction}={})=>
@@ -16806,6 +16834,7 @@ function App() {
     applyWebsiteChange,
     applyWebsiteFieldChange,
     applyMissingAppServicesToWebsite,
+    applyBusinessAppBrandToWebsite,
     applySelectedWebsiteInstruction,
     previewSelectedWebsiteInstruction,
     previewWebsitePageInstruction,
