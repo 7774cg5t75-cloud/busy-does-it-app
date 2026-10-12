@@ -1624,6 +1624,7 @@ async function ownerStatus(businessId: string) {
       requests: [],
       requestLinks: [],
       workBookingLedger:{rows:[],truncated:false,verifiedExternalCalendar:false},
+      messageCheckpoints:{rows:[],truncated:false},
       requestCount30: 0,
       guestRequestCount30: 0,
       entrySummary: [],
@@ -1633,7 +1634,7 @@ async function ownerStatus(businessId: string) {
   }
 
   const entrySince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const [versions, requests, requestLinks, entrySummary, requestCount30, guestRequestCount30, workBookingLedger] = await Promise.all([
+  const [versions, requests, requestLinks, entrySummary, requestCount30, guestRequestCount30, workBookingLedger, messageCheckpoints] = await Promise.all([
     supabase
       .from("busy_mini_app_versions")
       .select(
@@ -1673,6 +1674,10 @@ async function ownerStatus(businessId: string) {
       .eq("request_origin", "guest_web")
       .gte("created_at", entrySince),
     ownerWorkBookingLedger(businessId,app.id),
+    supabase.from("busy_mini_app_request_messages")
+      .select("id,business_id,mini_app_id,request_id,sender_role")
+      .eq("business_id",businessId).eq("mini_app_id",app.id)
+      .order("created_at",{ascending:false}).limit(150),
   ]);
   if (versions.error) throw versions.error;
   if (requests.error) throw requests.error;
@@ -1680,12 +1685,15 @@ async function ownerStatus(businessId: string) {
   if (entrySummary.error) throw entrySummary.error;
   if (requestCount30.error) throw requestCount30.error;
   if (guestRequestCount30.error) throw guestRequestCount30.error;
+  if(messageCheckpoints.error)throw messageCheckpoints.error;
   return {
     app,
     versions: versions.data || [],
     requests: requests.data || [],
     requestLinks: requestLinks.data || [],
     workBookingLedger,
+    messageCheckpoints:{rows:messageCheckpoints.data||[],
+      truncated:(messageCheckpoints.data||[]).length>=150},
     entrySummary: entrySummary.data || [],
     requestCount30: Number(requestCount30.count || 0),
     guestRequestCount30: Number(guestRequestCount30.count || 0),
