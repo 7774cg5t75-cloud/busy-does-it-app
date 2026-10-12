@@ -206,6 +206,7 @@ import { validateAiConversationDraft } from "../domain/conversationAiBoundary.mj
 import { buildWebsiteDraft, applyWebsiteInstruction, applyStructuredWebsiteEdit, applyWebsiteLayoutChange, applyWebsitePageChange, rebuildPrivateWebsiteDraft } from "../domain/websiteBuilder";
 import {confirmCopyMissingAppServices} from "../core/ownerBuilderServiceBridgeV3192.mjs";
 import {confirmMatchAppBrandToWebsite} from "../core/ownerBuilderBrandBridgeV3193.mjs";
+import {confirmMatchAppTypeToWebsite} from "../core/ownerBuilderTypographyBridgeV3194.mjs";
 import {buildPortableWebsiteSource} from "../core/websiteSourceExport.mjs";
 import {buildStandaloneWebsiteArchive} from "../core/websiteStandaloneArchive.mjs";
 import {sitePhotoAssets,attachExportOriginal,validExportOriginalPath}
@@ -13405,6 +13406,32 @@ function App() {
     return true;
   };
 
+  // V3.194: explicit owner-approved compatible typography, same-tenant and
+  // exact current draft revisions, applied to PRIVATE website with Undo.
+  const applyBusinessAppTypographyToWebsite=evidence=>{
+    const current=websiteDraftRef.current;
+    const app=miniAppsStatus?.app;
+    const businessId=cloudWorkspace?.businessId||"";
+    const check=confirmMatchAppTypeToWebsite(current,app,{businessId,evidence});
+    if(!check.ok){
+      setWebsiteBuilderNotice(check.reason||"Review the latest typography first.");
+      return false;
+    }
+    const updated=applyWebsiteLayoutChange(current,{
+      action:"style",field:"typography",value:check.webTypography
+    });
+    if(!updated.applied){
+      setWebsiteBuilderNotice(updated.reason||"This website font change needs review.");
+      return false;
+    }
+    setWebsiteUndo(items=>[...items,current].slice(-8));
+    setWebsiteRedo([]);
+    websiteDraftRef.current=updated.draft;
+    setWebsiteDraft(updated.draft);
+    setWebsiteBuilderNotice("Updated the PRIVATE website typography from your Business App style. Neither builder was published.");
+    return true;
+  };
+
   // V3.148: optional local preview, no Undo entry, draft mutation, cloud
   // request, or publication. Apply rechecks the SAME text against current state.
   const previewSelectedWebsiteInstruction = ({selection,instruction}={})=>
@@ -16835,6 +16862,7 @@ function App() {
     applyWebsiteFieldChange,
     applyMissingAppServicesToWebsite,
     applyBusinessAppBrandToWebsite,
+    applyBusinessAppTypographyToWebsite,
     applySelectedWebsiteInstruction,
     previewSelectedWebsiteInstruction,
     previewWebsitePageInstruction,
