@@ -13,6 +13,7 @@ import {sendNativeGuestRequest} from "./nativeGuestRequests";
 import {responsiveAppLayout} from "./appResponsiveDesign.mjs";
 import {nativeContactAction,searchPublicNativeServices} from "./nativeCustomerActions.mjs";
 import {nativePalette} from "./nativePalette.mjs";
+import {nativePreferredDates} from "./nativePreferredDates.mjs";
 const LOOK=prototype.appearance||{};
 const COLORS=nativePalette(LOOK.brandPalette);
 const box={backgroundColor:COLORS.surface,borderRadius:15,padding:17,marginBottom:12};
@@ -43,16 +44,30 @@ function RequestScreen({screen,live,runtime,initialService=""}){
  const [input,setInput]=useState({name:"",email:"",phone:"",service:initialService,
   preferredDate:"",message:"",note:""});
  const [busy,setBusy]=useState(false),[result,setResult]=useState(null);
+ const [possibleDuplicateRetry,setPossibleDuplicateRetry]=useState(false);
+ const inFlight=React.useRef(false);
+ const dateChoices=React.useMemo(()=>nativePreferredDates(new Date(),7),[]);
  const type=screen.key==="booking_request"?"booking_request":"enquiry";
  const enabled=type==="booking_request"?live?.supportsBookingRequest:live?.supportsEnquiry;
- const set=(key)=>(value)=>{setInput(prev=>({...prev,[key]:value}));setResult(null);};
+ const set=(key)=>(value)=>{
+  if(result?.ok)return;
+  setInput(prev=>({...prev,[key]:value}));
+  if(!result?.mayHaveBeenReceived){
+   setResult(null);setPossibleDuplicateRetry(false);
+  }
+ };
  const send=async()=>{
-  if(busy||!enabled)return;
-  setBusy(true);setResult(null);
+  if(inFlight.current||busy||!enabled||result?.ok||
+    result?.mayHaveBeenReceived&&!possibleDuplicateRetry)return;
+  inFlight.current=true;
+  setBusy(true);setResult(null);setPossibleDuplicateRetry(false);
   try{
    const next=await sendNativeGuestRequest(runtime,live,type,input);
    setResult(next);
-  }finally{setBusy(false);}
+  }catch{
+   setResult({ok:false,mayHaveBeenReceived:true,
+    reason:"The connection failed. Your request may have reached the business."});
+  }finally{inFlight.current=false;setBusy(false);}
  };
  return <View style={box}>
   <Text style={{...t,fontWeight:"700",fontSize:20}}>{screen.title}</Text>
@@ -66,6 +81,20 @@ function RequestScreen({screen,live,runtime,initialService=""}){
     <Field title="Phone number (optional)" value={input.phone} onChange={set("phone")}/>
     {type==="booking_request"?<>
       <Field title="Service you want" value={input.service} onChange={set("service")}/>
+      <Text style={{...sub,fontSize:13}}>Choose a preferred day, or type a different date below. These are NOT available appointment slots.</Text>
+      <View style={{flexDirection:"row",flexWrap:"wrap",gap:7,marginTop:8}}>
+       {dateChoices.map(day=><Pressable key={day.value} accessibilityRole="button"
+         accessibilityLabel={"Prefer "+day.label}
+         accessibilityState={{selected:input.preferredDate===day.value}}
+         onPress={()=>set("preferredDate")(day.value)}
+         style={{backgroundColor:input.preferredDate===day.value?COLORS.accent:COLORS.bg,
+           borderColor:COLORS.line,borderWidth:1,paddingVertical:11,paddingHorizontal:12,
+           minHeight:46,borderRadius:8}}>
+         <Text style={{color:input.preferredDate===day.value?COLORS.bg:COLORS.text}}>
+          {day.label}
+         </Text>
+       </Pressable>)}
+      </View>
       <Field title="Preferred date (optional)" value={input.preferredDate}
        onChange={set("preferredDate")}/>
       <Field title="Notes (optional)" value={input.note}
@@ -78,12 +107,27 @@ function RequestScreen({screen,live,runtime,initialService=""}){
     {busy?<ActivityIndicator color={COLORS.accent} style={{marginTop:15}}/>:null}
     <Button title={busy?"Verifying and sending…":
       type==="booking_request"?"Send booking REQUEST":"Send enquiry"}
-      disabled={busy} onPress={send}/>
+      disabled={busy||result?.ok===true||
+       (result?.mayHaveBeenReceived===true&&!possibleDuplicateRetry)} onPress={send}/>
     {result?<Text accessibilityRole="text"
        style={{color:result.ok?"#91E1B8":"#FFD8A8",marginTop:15}}>
        {result.ok?result.message:result.reason}
        {result.ok?" Keep this confirmation for your records.":""}
      </Text>:null}
+    {result?.ok?<Button title="Start a separate new request"
+       onPress={()=>{
+        setInput({name:"",email:"",phone:"",service:initialService,
+         preferredDate:"",message:"",note:""});
+        setResult(null);setPossibleDuplicateRetry(false);
+       }}/>:null}
+    {result?.mayHaveBeenReceived&&!possibleDuplicateRetry?<View>
+      <Text style={sub}>
+       Don't send repeatedly unless you have checked with the business:
+       an earlier request might already have been recorded.
+      </Text>
+      <Button title="I understand — allow one more attempt"
+       onPress={()=>setPossibleDuplicateRetry(true)}/>
+     </View>:null}
    </>
   )}
  </View>;
