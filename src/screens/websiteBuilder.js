@@ -32,6 +32,7 @@ import {recommendMeasuredWebsiteChange,compareWebsiteVisualReports,ownerDesignPr
 import {WebsiteContentEditor} from "./websiteContentEditor";
 import {WebsiteAppServiceCopy} from "./websiteAppServiceCopy";
 import {WebsiteAppBrandMatch} from "./websiteAppBrandMatch";
+import {WebsiteAppTypographyMatch} from "./websiteAppTypographyMatch";
 import {WebsiteLayoutControls} from "./websiteLayoutControls";
 import {WebsitePagesEditor} from "./websitePagesEditor";
 import {WebsiteTapEditor} from "./websiteTapEditor";
@@ -771,6 +772,10 @@ function WebsiteBuilder({ s }) {
               </>
             ) : null}
           </Card>
+          <WebsiteAppTypographyMatch website={draft}
+            app={s.miniAppsView?.app}
+            businessId={s.cloudWorkspace?.businessId}
+            onApply={s.applyBusinessAppTypographyToWebsite}/>
           <WebsiteAppBrandMatch website={draft}
             app={s.miniAppsView?.app}
             businessId={s.cloudWorkspace?.businessId}
