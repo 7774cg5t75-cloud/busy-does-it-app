@@ -42,7 +42,7 @@ function validNativeExtras(payload){
 }
 function safeNativeImageUrl(value){
  if(typeof value!=="string"||value.length>1800||
-   /[\\s<>\\u0000-\\u001f\\u007f]/.test(value))return false;
+   /[\s<>\u0000-\u001f\u007f]/.test(value))return false;
  try{
   const u=new URL(value);
   return u.protocol==="https:"&&!!u.hostname&&!u.username&&!u.password&&
