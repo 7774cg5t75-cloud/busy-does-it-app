@@ -3,10 +3,8 @@
  * palette combinations. These are measured token ratios, NOT screenshot
  * OCR, image-on-image contrast or a full accessibility/WCAG certification.
  */
-const NATIVE_SHELL_PALETTE=Object.freeze({
- bg:"#101827",surface:"#1C293C",text:"#F1F6FF",
- muted:"#A3B5D0",accent:"#6E9EFF",line:"#394A64"
-});
+import {nativePalette,DEFAULT_PALETTE} from "../../standalone/template/nativePalette.mjs";
+const NATIVE_SHELL_PALETTE=nativePalette(DEFAULT_PALETTE);
 function relativeLuminance(hex){
  if(typeof hex!=="string"||!/^#[a-f0-9]{6}$/i.test(hex))
   throw Error("Choose a supported six-digit hexadecimal colour.");
@@ -40,6 +38,6 @@ function auditStandaloneContrast(palette=NATIVE_SHELL_PALETTE){
   otherColorsChecked:false,imagesChecked:false,
   textScalingChecked:false,screenReaderChecked:false,
   touchTargetsMeasured:false,accessibilityCertified:false,
-  note:"Ratios apply to these fixed native-shell colours only; overlays, images, platform states, and real devices require separate checks."};
+  note:"Ratios apply to the selected native palette tokens only; overlays, images, platform states, and real devices require separate checks."};
 }
 export {NATIVE_SHELL_PALETTE,relativeLuminance,measuredContrast,auditStandaloneContrast};
