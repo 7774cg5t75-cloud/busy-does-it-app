@@ -6,6 +6,8 @@ import {isVerifiedDomainTxtAnswer} from "./domainOwnership.mjs";
 import {requestedDnsRecords,evaluateDnsAnswer,summarizeDnsChecks} from "./domainDnsDiagnostics.mjs";
 import {checkRegistrarDomain} from "./domainRegistrarGateway.mjs";
 import {validateDesignFeedback,designPreferenceSummary} from "./designFeedback.mjs";
+import {readWebsiteBrainHistory,recordWebsiteBrainChoice,clearWebsiteBrainHistory}
+ from "./websiteBrainChoicesService.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -1357,6 +1359,9 @@ Deno.serve(async (request: Request) => {
       "design_feedback_record",
       "design_feedback_read",
       "design_feedback_clear",
+      "website_brain_owner_decisions",
+      "record_website_brain_decision",
+      "clear_website_brain_decisions",
       "verify_domain",
       "provision_domain",
       "recover",
@@ -1412,6 +1417,21 @@ Deno.serve(async (request: Request) => {
     }
     if (action === "rollback") {
       return json(200, await rollback(user.id, businessId, body, requestId));
+    }
+    if(action==="website_brain_owner_decisions"){
+      return json(200,{ok:true,businessId,
+        history:await readWebsiteBrainHistory(
+          supabase,websiteForBusiness,businessId,user.id,body)});
+    }
+    if(action==="record_website_brain_decision"){
+      return json(200,{ok:true,businessId,
+        ...(await recordWebsiteBrainChoice(
+          supabase,websiteForBusiness,businessId,user.id,body,requestId))});
+    }
+    if(action==="clear_website_brain_decisions"){
+      return json(200,{ok:true,businessId,
+        ...(await clearWebsiteBrainHistory(
+          supabase,websiteForBusiness,businessId,user.id,body))});
     }
     if(action==="design_feedback_record"){
       const checked=validateDesignFeedback(body);
