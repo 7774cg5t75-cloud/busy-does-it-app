@@ -12,9 +12,9 @@ import {verifiedPublicRuntime,publicNativeApp} from "./nativeBusinessClient";
 import {sendNativeGuestRequest} from "./nativeGuestRequests";
 import {responsiveAppLayout} from "./appResponsiveDesign.mjs";
 import {nativeContactAction,searchPublicNativeServices} from "./nativeCustomerActions.mjs";
+import {nativePalette} from "./nativePalette.mjs";
 const LOOK=prototype.appearance||{};
-const COLORS={bg:"#101827",surface:"#1C293C",text:"#F1F6FF",muted:"#A3B5D0",
- accent:"#6E9EFF",line:"#394A64"};
+const COLORS=nativePalette(LOOK.brandPalette);
 const box={backgroundColor:COLORS.surface,borderRadius:15,padding:17,marginBottom:12};
 const t={color:COLORS.text},sub={color:COLORS.muted,marginTop:9,fontSize:15,lineHeight:22};
 function Button({title,onPress,disabled=false}){
