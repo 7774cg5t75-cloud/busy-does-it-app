@@ -1716,6 +1716,29 @@ function MiniAppBuilder({ s }) {
                   </Text>
                 </>
               ):null}
+              {view.measuredOwnerActions?.ok?(
+                <>
+                  <Text style={styles.sectionLabel}>
+                    V3.186 • What Busy thinks needs attention
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    {view.measuredOwnerActions.highestPriority.recommendation}
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    {view.measuredOwnerActions.highestPriority.why}
+                  </Text>
+                  {view.measuredOwnerActions.coveragePartial?(
+                    <Text style={styles.cardBody}>
+                      Evidence covers limited and potentially different time windows.
+                      The absence of a warning is not proof every request succeeded.
+                    </Text>
+                  ):null}
+                  <Text style={styles.cardBody}>
+                    A suggestion only. Busy will not contact customers, change
+                    bookings or report revenue without verified evidence.
+                  </Text>
+                </>
+              ):null}
               {view.pushGatewayEvidence?.ok?(
                 <>
                   <Text style={styles.sectionLabel}>
