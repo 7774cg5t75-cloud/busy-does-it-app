@@ -40,6 +40,13 @@ function validNativeExtras(payload){
   l!==null&&!payload.moduleKeys?.includes("loyalty"))return false;
  return true;
 }
+function validPublicGallery(payload){
+ if(!Array.isArray(payload?.gallery)||payload.gallery.length>15)return false;
+ return payload.gallery.every(photo=>photo&&typeof photo==="object"&&
+   typeof photo.uri==="string"&&photo.uri.length<=1800&&
+   /^https:\/\/[^\\s]+$/i.test(photo.uri)&&
+   safePublicText(photo.alt,160)&&safePublicText(photo.caption,240));
+}
 function validPublicRead(payload,runtime){
  if(!verifiedPublicRuntime(runtime)||payload?.ok!==true||
   payload.kind!=="public_native_app_v1"||
@@ -48,7 +55,7 @@ function validPublicRead(payload,runtime){
   payload.slug!==runtime.slug||
   !Array.isArray(payload.moduleKeys)||!payload.moduleKeys.includes("business_profile")||
   payload.chargesEnabled!==false||payload.doesNotConfirmAppointments!==true||
-  !validNativeExtras(payload))
+  !validNativeExtras(payload)||!validPublicGallery(payload))
   return false;
  return true;
 }
