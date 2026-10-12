@@ -44,6 +44,11 @@ for(const task of TASKS){
  const r=proposeTaskFirstNavigation(base,task.id);
  assert.equal(r.ok,true,r.reason);
  assert.equal(r.blocked,false);
+ if(r.task.sectionPosition===2){
+   assert.equal(r.preview,null,
+    task.id+" already follows About and should remain unchanged");
+   continue;
+ }
  assert.ok(r.preview?.ok,task.id+" should propose a reversible navigation edit");
  assert.equal(r.preview.privateOnly,true);
  assert.equal(r.preview.requiresOwnerApproval,true);
