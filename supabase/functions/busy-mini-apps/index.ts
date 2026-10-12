@@ -11,6 +11,8 @@ import {prepareAppVisualBatch,validatePairedAppVisualRequest}
  from "./appVisualComparison.mjs";
 import {ownerDesignHistory,writeDesignFeedback,eraseDesignHistory}
  from "./appDesignLearningService.mjs";
+import {readOwnerBrainDecisions,recordOwnerBrainDecision,clearOwnerBrainDecisions}
+ from "./brainOwnerDecisionsService.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -3814,6 +3816,10 @@ Deno.serve(async (request: Request) => {
       "design_learning_status",
       "record_design_feedback",
       "clear_design_feedback",
+      "brain_owner_decisions",
+      "record_brain_owner_decision",
+      "clear_brain_owner_decisions",
+      "staging_connection_probe",
     ]);
     const member = await membership(
       user.id,
@@ -3822,6 +3828,50 @@ Deno.serve(async (request: Request) => {
     );
     const resolvedBusinessId = member.business_id;
 
+    if(action==="brain_owner_decisions"){
+      return json(200,{ok:true,businessId:resolvedBusinessId,
+       history:await readOwnerBrainDecisions(supabase,appForBusiness,
+         resolvedBusinessId,user.id,body)});
+    }
+    if(action==="record_brain_owner_decision"){
+      return json(200,{ok:true,businessId:resolvedBusinessId,
+       ...(await recordOwnerBrainDecision(supabase,appForBusiness,
+         resolvedBusinessId,user.id,body,requestId))});
+    }
+    if(action==="clear_brain_owner_decisions"){
+      return json(200,{ok:true,businessId:resolvedBusinessId,
+       ...(await clearOwnerBrainDecisions(supabase,appForBusiness,
+         resolvedBusinessId,user.id,body))});
+    }
+    if(action==="staging_connection_probe"){
+      // Denied on production by DEFAULT, even for owners. The two environment
+      // values are configured only for an explicitly isolated Supabase project.
+      // Caller-supplied environment, host or verified flags are ignored.
+      const configured=Deno.env.get("BUSY_STAGING_MODE")==="isolated"&&
+        Deno.env.get("BUSY_STAGING_PROJECT_REF")||"";
+      const configuredRef=String(configured);
+      const backendHost=new URL(SUPABASE_URL).hostname;
+      const actualRef=backendHost.endsWith(".supabase.co")?
+        backendHost.split(".")[0]:"";
+      if(!configuredRef||actualRef!==configuredRef||
+         !/^[a-z0-9]{16,32}$/.test(configuredRef))
+        throw Error("This server is not an approved isolated staging project.");
+      const app=await appForBusiness(resolvedBusinessId);
+      if(!app||app.id!==body?.appId||
+        !Number.isSafeInteger(Number(body?.expectedRevision))||
+        Number(app.draft_revision)!==Number(body.expectedRevision)||
+        Number(app.draft_revision)<1)
+        throw Error("Reopen the current private Business App before probing staging.");
+      return json(200,{
+        ok:true,businessId:resolvedBusinessId,appId:app.id,
+        draftRevision:Number(app.draft_revision),
+        stagingConnectionVerified:true,serverIdentityChecked:true,
+        ownerMembershipVerified:true,readOnlyDatabaseCheck:true,
+        noRequestsSubmitted:true,bookingDeliveryVerified:false,
+        enquiryDeliveryVerified:false,diaryConfirmed:false,
+        realDeviceTested:false,productionEndpointsUsed:false
+      });
+    }
     if(action==="design_learning_status"){
       return json(200,{ok:true,businessId:resolvedBusinessId,
        history:await ownerDesignHistory(supabase,appForBusiness,resolvedBusinessId)});
