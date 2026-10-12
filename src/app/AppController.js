@@ -1710,8 +1710,14 @@ function App() {
         });
         if(!linked?.link?.atomicHandoff)
           throw Error("The atomic handoff receipt was not confirmed.");
-        applyMiniAppsStatus(linked);
-        setMiniAppsNotice("The Business App request was updated atomically. "+
+        // A remote ledger write may be committed even when re-reading the
+        // owner snapshot fails. Keep the current app UI instead of clearing it.
+        if(linked.status)applyMiniAppsStatus(linked);
+        else await refreshMiniAppsStatus({quiet:true});
+        setMiniAppsNotice(linked.statusRefreshRequired?
+          "BUSY saved the booking; its latest Work status is still refreshing. "+
+          "External calendar delivery has not been checked.":
+          "The Business App request was updated atomically. "+
           "External calendar and customer delivery remain unverified.");
       }catch(error){
         setMiniAppsError(error?.message||
