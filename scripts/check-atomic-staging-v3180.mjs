@@ -94,7 +94,7 @@ const start=edge.indexOf("async function markRequestLinked("),
  end=edge.indexOf("/**\n * V3.159:",start);
 ok(start>0&&end>start);
 const handoff=edge.slice(start,end);
-ok(handoff.includes('supabase.rpc("busy_mark_mini_app_request_link_v3180"'));
+ok(handoff.includes('supabase.rpc("busy_mark_mini_app_request_link_v3181"'));
 ok(handoff.includes("result.notificationPending"));
 ok(!handoff.includes(".upsert("));
 ok(!handoff.includes("busy_mini_app_request_events"));
