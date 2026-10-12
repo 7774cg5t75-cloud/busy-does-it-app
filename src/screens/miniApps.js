@@ -2435,12 +2435,17 @@ function MiniAppPreview({ s }) {
       if(context==="preview"&&verdict!=="better"){
         // Fail closed: when private memory cannot be reloaded, preparing
         // another option from empty history could repeat the rejected style.
-        const alternative=fresh?.ok?prepareOwnerAwareDesignExperiments(config,{
-          history:fresh.records,
+        const freshOptions={
+          history:fresh?.records||[],
           measured:measuredSuggestions?.suggestions||[],
           ai:visualReport?.suggestions||[],
           responsive:responsiveSuggestions
-        }):null;
+        };
+        const alternative=fresh?.ok?(designIndustry==="general"?
+          prepareOwnerAwareDesignExperiments(config,freshOptions):
+          prepareIndustryAwareAppReview(config,{
+            ...freshOptions,industry:designIndustry
+          })):null;
         const next=alternative?.preview?.ok?{
           ...alternative.preview,
           explanations:alternative.reasoning.map(x=>({
@@ -2486,7 +2491,8 @@ function MiniAppPreview({ s }) {
       ai:visualReport?.suggestions||[],
       responsive:responsiveSuggestions
     });
-    const guided=designIndustry==="general"?nextDesignExperiment:industryDesignReview;
+    const guided=designIndustry==="general"||!designMemory?.ok?
+      nextDesignExperiment:industryDesignReview;
     const plan=guided?.preview?.ok?
       {...guided.preview,
         explanations:guided.reasoning.map(x=>({
@@ -2728,7 +2734,13 @@ function MiniAppPreview({ s }) {
                   {"Before release: "+issue.message}
                 </Text>
               ))}
-              {industryDesignReview?.preview?.ok&&designIndustry!=="general"?(
+              {!designMemory?.ok&&designIndustry!=="general"?(
+                <Text style={styles.cardBody}>
+                  Private design preferences are not connected yet. BUSY will not
+                  guess which styles you previously rejected. Your current draft is safe.
+                </Text>
+              ):null}
+              {designMemory?.ok&&industryDesignReview?.preview?.ok&&designIndustry!=="general"?(
                 <>
                   <Text style={styles.cardBody}>
                     {"BUSY has "+industryDesignReview.proposed.length+
