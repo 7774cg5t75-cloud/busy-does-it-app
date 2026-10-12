@@ -10,7 +10,7 @@ import {
  * Extracted from the large Work screen: one private, approval-only Get Paid
  * assistant. No network calls, autonomous sends, invoices or payment requests.
  */
-export default function GetPaidOwnerReview({s,customer,saved,type,bookingStatus=""}){
+export default function GetPaidOwnerReview({s,customer,saved,type,bookingStatus="",todayISO=""}){
   const [quoteBrief,setQuoteBrief]=useState("");
   useEffect(()=>{setQuoteBrief("");},[customer?.id]);
   const businessId=s.cloudWorkspace?.businessId||"";
@@ -20,7 +20,7 @@ export default function GetPaidOwnerReview({s,customer,saved,type,bookingStatus=
   if(type!=="quote"&&type!=="booking")return null;
   const outcome=reviewGetPaidNextStep({
     businessId,customer,action:{...saved,type},
-    todayISO:new Date().toLocaleDateString("en-CA"),
+    todayISO,
     ownerCustomerVerified:owned
   });
   const draft=type==="quote"&&quoteBrief.trim()?prepareGetPaidQuoteDraft({
