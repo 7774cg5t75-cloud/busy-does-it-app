@@ -52,6 +52,10 @@ import {prepareDeviceReview,summarizeLocalAppCapture}
   from "../core/deviceReviewEvidence.mjs";
 import {prepareOwnerImprovementPlan}
   from "../core/ownerImprovementPlan.mjs";
+import {prepareBusinessBrainWork}
+  from "../core/businessBrainWorkQueue.mjs";
+import {compileStagingRunnerHandoff}
+  from "../core/stagingRunnerHandoff.mjs";
 import {compareAppGoalCandidate}
   from "../core/designEvidencePriorities.mjs";
 import {describeRequestExperience}
@@ -760,6 +764,7 @@ function MiniAppBuilder({ s }) {
   const [selectedCustomerTask,setSelectedCustomerTask]=React.useState("book");
   const [showCustomerTaskReview,setShowCustomerTaskReview]=React.useState(false);
   const [showJourneyPractice,setShowJourneyPractice]=React.useState(false);
+  const [stagingHandoff,setStagingHandoff]=React.useState(null);
   const [studioComparisonSide,setStudioComparisonSide]=React.useState("proposed");
   const [showResponsiveDetails,setShowResponsiveDetails]=React.useState(false);
   const [studioNotice,setStudioNotice]=React.useState("");
@@ -789,6 +794,7 @@ function MiniAppBuilder({ s }) {
     setSelectedCustomerTask("book");
     setShowCustomerTaskReview(false);
     setShowJourneyPractice(false);
+    setStagingHandoff(null);
     setServiceIndex(-1);setServiceName("");setServiceDescription("");
     setAccessiblePhotoNumber("1");
     setAccessiblePhotoAlt("");setAccessiblePhotoCaption("");
@@ -881,6 +887,11 @@ function MiniAppBuilder({ s }) {
   const ownerImprovementPlan=view.draftConfig?prepareOwnerImprovementPlan({
     goal:selectedCustomerTask,appConfig:view.draftConfig,
     appRevision:app?.draft_revision||0}):null;
+  const businessBrainQueue=view.draftConfig?prepareBusinessBrainWork({
+    businessId:s.cloudWorkspace?.businessId||"",
+    goal:selectedCustomerTask,appConfig:view.draftConfig,
+    appRevision:app?.draft_revision||0
+  }):null;
   const nonAiDesignHints=proposeLowRiskDesignHints(view.draftConfig||view.activeConfig||{});
   const responsiveGuidance=recommendResponsiveDesign(view.draftConfig||view.activeConfig||{});
   const responsiveQuality=evaluateAppAcrossScreens(view.draftConfig||view.activeConfig||{});
@@ -1479,23 +1490,55 @@ function MiniAppBuilder({ s }) {
                     "A separate owner-approved isolated staging runner is required."}
                 </Text>
               ):null}
-              {ownerImprovementPlan?.ok?(
+              {view.draftConfig&&app?.draft_revision>0?(
+                <Button label="Prepare a staging handoff (no live tests)"
+                  disabled={!!s.miniAppsAction}
+                  onPress={()=>{
+                    const prepared=compileStagingRunnerHandoff({
+                      appConfig:view.draftConfig,
+                      businessId:s.cloudWorkspace?.businessId||"",
+                      draftRevision:app.draft_revision,
+                      environment:"isolated_staging",
+                      runLabel:"busy_owner_review_v3175",
+                      ownerApproved:true
+                    });
+                    setStagingHandoff(prepared);
+                  }}/>
+              ):null}
+              {stagingHandoff?.ok?(
+                <Text style={styles.cardBody}>
+                  {"V3.175 • "+stagingHandoff.routeCount+
+                    " staging routes documented. "+
+                    stagingHandoff.nextStep+
+                    " Network requests: zero; publishing: disabled."}
+                </Text>
+              ):stagingHandoff?.reason?(
+                <Text style={styles.cardBody}>{stagingHandoff.reason}</Text>
+              ):null}
+              {businessBrainQueue?.ok?(
                 <>
                   <Text style={styles.sectionLabel}>
-                    V3.174 • Busy's next improvements
+                    V3.175 • Busy's prepared work
                   </Text>
                   <Text style={styles.cardBody}>
-                    Busy has prepared up to three coordinated owner-review
-                    actions. These are suggestions only; nothing is saved
-                    or published automatically.
+                    Busy has prepared a short, private work queue for this
+                    business and app revision. Suggestions are not saved or
+                    carried out until you make changes in the editor.
                   </Text>
-                  {ownerImprovementPlan.actions.map(action=>(
-                    <View key={"owner-next-"+action.id}>
-                      <MetricRow left={action.title} right="Your decision"/>
-                      <Text style={styles.cardBody}>{action.nextAction}</Text>
+                  {businessBrainQueue.items.map(item=>(
+                    <View key={"brain-work-"+item.id}>
+                      <MetricRow left={item.title} right="Not executed"/>
+                      <Text style={styles.cardBody}>{item.reason}</Text>
+                      <Text style={styles.cardBody}>{item.nextStep}</Text>
                     </View>
                   ))}
                 </>
+              ):ownerImprovementPlan?.ok?(
+                <Text style={styles.cardBody}>
+                  Busy has prepared owner-review ideas. Connect the private
+                  workspace and a current app revision to use the Business
+                  Brain work queue.
+                </Text>
               ):null}
               {offlinePreflight?.ok?(
                 <Text style={styles.cardBody}>
