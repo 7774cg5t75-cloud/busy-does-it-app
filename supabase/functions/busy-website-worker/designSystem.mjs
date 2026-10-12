@@ -224,6 +224,12 @@ main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:4
 .visual-type-refined h1,.visual-type-refined h2{font-family:Georgia,"Times New Roman",serif;font-weight:550;letter-spacing:-.03em}
 .visual-type-compact h1{font-size:clamp(2.8rem,6.4vw,5.2rem);letter-spacing:-.04em}
 .visual-type-compact h2{font-size:clamp(1.9rem,3.1vw,2.8rem)}
+.visual-type-editorial h1,.visual-type-editorial h2{font-family:Georgia,"Times New Roman",serif;font-weight:500;letter-spacing:-.052em}
+.visual-type-editorial h1{font-size:clamp(3rem,9vw,7rem)}
+.visual-type-editorial .lead{font-size:clamp(1.1rem,1.6vw,1.35rem);line-height:1.75}
+.visual-type-friendly h1,.visual-type-friendly h2{font-family:ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:750;letter-spacing:-.02em}
+.visual-type-friendly h1{font-size:clamp(2.9rem,7vw,5.8rem)}
+.visual-type-friendly .cta{border-radius:22px}
 
 /* V3.141: selected approved gallery image crop, independent of its siblings.
    The ID specificity beats section-wide photo focus presets. */
