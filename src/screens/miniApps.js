@@ -986,7 +986,8 @@ function MiniAppBuilder({ s }) {
   const nonAiDesignHints=proposeLowRiskDesignHints(view.draftConfig||view.activeConfig||{});
   const responsiveGuidance=recommendResponsiveDesign(view.draftConfig||view.activeConfig||{});
   const responsiveQuality=evaluateAppAcrossScreens(view.draftConfig||view.activeConfig||{});
-  const measuredNativeContrast=auditStandaloneContrast();
+  const measuredNativeContrast=auditStandaloneContrast(nativePalette(
+    (view.draftConfig||view.activeConfig)?.presentation?.brandPalette));
   const liveMatchesDraft =
     businessAppPreviewProof({app,preview:view.liveVersion}).matches;
   const journeyLabel = !plan
@@ -2584,7 +2585,7 @@ function MiniAppBuilder({ s }) {
               right={item.ratio+":1 • "+(item.passes?"AA normal text":"Needs attention")}/>
           ))}
           <Text style={styles.cardBody}>
-            Contrast ratios are calculated only for the known native-app colours.
+            Contrast ratios are calculated for the selected native colour palette.
             They do not measure text over photos, other themes or the displayed
             screenshot. This is not an accessibility certification.
           </Text>
