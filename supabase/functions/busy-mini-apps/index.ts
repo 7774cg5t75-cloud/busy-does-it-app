@@ -6,6 +6,7 @@ import { proposeAppSectionMove } from "./appSectionOrder.mjs";
 import { proposeCoordinatedAppChanges } from "./appCoordinatedStudio.mjs";
 import {decideAppRequestTransition} from "./appRequestLifecycle.mjs";
 import {sendAtomicConversation} from "./atomicConversationService.mjs";
+import {reviewPushGatewayReceipts} from "./pushGatewayReceiptEvidence.mjs";
 import {validateAppScreenshotReview,normalizeAppVisualAIResult}
  from "./appVisualReviewContract.mjs";
 import {prepareAppVisualBatch,validatePairedAppVisualRequest}
@@ -1626,6 +1627,7 @@ async function ownerStatus(businessId: string) {
       workBookingLedger:{rows:[],truncated:false,verifiedExternalCalendar:false},
       messageCheckpoints:{rows:[],truncated:false},
       messageDeliveryOutbox:{rows:[],truncated:false},
+      pushGatewayEvidence:{ok:false,reason:"No Business App is configured."},
       requestCount30: 0,
       guestRequestCount30: 0,
       entrySummary: [],
@@ -1692,6 +1694,35 @@ async function ownerStatus(businessId: string) {
   if (guestRequestCount30.error) throw guestRequestCount30.error;
   if(messageCheckpoints.error)throw messageCheckpoints.error;
   if(messageDeliveryOutbox.error)throw messageDeliveryOutbox.error;
+  // Reconcile saved gateway submission tickets in a read-only, tenant-scoped
+  // query. An unavailable query remains UNKNOWN, never a false zero success.
+  let pushGatewayEvidence={ok:false,
+    reason:"Gateway evidence could not be checked; saved replies remain available."};
+  const intentRows=messageDeliveryOutbox.data||[];
+  if(intentRows.length){
+    const keys=intentRows.map(x=>
+      "miniapp:"+x.request_id+":message:"+x.message_id);
+    try{
+      const delivered=await supabase.from("busy_push_deliveries")
+        .select("business_id,notification_key,provider_receipts")
+        .eq("business_id",businessId)
+        .in("notification_key",keys)
+        .limit(400);
+      if(!delivered.error){
+        pushGatewayEvidence=reviewPushGatewayReceipts({
+          businessId,appId:app.id,outboxRows:intentRows,
+          deliveryRows:delivered.data||[],
+          outboxTruncated:intentRows.length>=100,
+          deliveryTruncated:(delivered.data||[]).length>=400
+        });
+      }
+    }catch(error){console.warn("Gateway receipt review is not available.");}
+  }else{
+    pushGatewayEvidence=reviewPushGatewayReceipts({
+      businessId,appId:app.id,outboxRows:[],deliveryRows:[]
+    });
+  }
+
   return {
     app,
     versions: versions.data || [],
@@ -1702,6 +1733,7 @@ async function ownerStatus(businessId: string) {
       truncated:(messageCheckpoints.data||[]).length>=150},
     messageDeliveryOutbox:{rows:messageDeliveryOutbox.data||[],
       truncated:(messageDeliveryOutbox.data||[]).length>=100},
+    pushGatewayEvidence,
     entrySummary: entrySummary.data || [],
     requestCount30: Number(requestCount30.count || 0),
     guestRequestCount30: Number(guestRequestCount30.count || 0),
