@@ -169,7 +169,7 @@ const ui=read("src/screens/miniApps.js");
 for(const anchor of ["appRequestCommunication.mjs",
  "appCustomerExperienceReview.mjs",
  "describeRequestExperience(request,link,",
- "experienceMessage?.confirmationRecorded?","experienceMessage?.inconsistentRecords?",
+ "experienceMessage?.confirmationRecorded?","experienceMessage.inconsistentRecords?",
  "reviewCustomerExperience(view.draftConfig,{goal:selectedCustomerTask})",
  "How Busy would improve this","customerExperience.improvements.map",
  "practiceReport.releaseChecklist||[]","Preview a clearer customer journey"]){
