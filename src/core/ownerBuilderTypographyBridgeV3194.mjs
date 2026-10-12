@@ -1,3 +1,4 @@
+import {validPrivateBuilderPair,reviewedPairIsCurrent} from "./ownerBuilderDraftGuardV3195.mjs";
 /**
  * V3.194 owner-approved, same-business private typography coordination.
  * This is an approximate shared style identity, not shared font files.
@@ -10,14 +11,9 @@ const WEBSITE_TYPE=Object.freeze({
 });
 function planMatchAppTypeToWebsite(website,app,{businessId}={}){
  const p=app?.draft_config?.presentation||{};
- if(typeof businessId!=="string"||!businessId||app?.business_id!==businessId||
-  typeof app?.id!=="string"||!app.id||
-  !Number.isSafeInteger(app.draft_revision)||app.draft_revision<1||
-  !Array.isArray(app.draft_config?.modules)||
-  !website?.id||!Number.isSafeInteger(website.generation)||
-  website.generation<1||!Array.isArray(website.sections)||
-  p.typeStyle!==undefined&&
-   !Object.prototype.hasOwnProperty.call(WEBSITE_TYPE,p.typeStyle))
+ if(!validPrivateBuilderPair(website,app,businessId)||
+    p.typeStyle!==undefined&&
+    !Object.prototype.hasOwnProperty.call(WEBSITE_TYPE,p.typeStyle))
   return {ok:false,reason:"Open current private App and Website drafts for the same business."};
  const typeStyle=appVisualPresentation(p).typeStyle;
  const webTypography=WEBSITE_TYPE[typeStyle];
@@ -32,10 +28,7 @@ function planMatchAppTypeToWebsite(website,app,{businessId}={}){
   changesContent:false,changesCustomerData:false};
 }
 function confirmMatchAppTypeToWebsite(website,app,{businessId,evidence}={}){
- if(!evidence||evidence.businessId!==businessId||
-   evidence.appId!==app?.id||evidence.appRevision!==app?.draft_revision||
-   evidence.websiteId!==website?.id||
-   evidence.websiteGeneration!==website?.generation)
+ if(!reviewedPairIsCurrent(website,app,businessId,evidence))
   return {ok:false,reason:"The Business App or website has changed. Review again."};
  const now=planMatchAppTypeToWebsite(website,app,{businessId});
  if(!now.ok||now.reviewEvidence!==evidence.reviewEvidence||
