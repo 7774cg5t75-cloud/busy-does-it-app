@@ -1691,6 +1691,33 @@ function App() {
         return false;
       }
     }
+    // Commit the server-side request/link/event/status before changing the
+    // local calendar. A failed RPC must not create a false local confirmation.
+    const sourceMiniAppRequestId=actionBefore?.details?.sourceMiniAppRequestId||"";
+    if(sourceMiniAppRequestId&&["Confirmed","Cancelled"].includes(bookingStatus)){
+      try{
+        const linked=await miniAppsRequest("mark_request_linked",{
+          requestId:sourceMiniAppRequestId,
+          customerRecordId:customerId,
+          actionRecordId:`miniapp-booking-${sourceMiniAppRequestId}`,
+          bridgeState:bookingStatus==="Confirmed"?"booking_confirmed":"closed",
+          ownerApproved:bookingStatus==="Confirmed",
+          metadata:bookingStatus==="Confirmed"?{
+            bookingDate:actionBefore?.details?.bookingDate||"",
+            bookingTime:actionBefore?.details?.bookingTime||""
+          }:{}
+        });
+        if(!linked?.link?.atomicHandoff)
+          throw Error("The atomic handoff receipt was not confirmed.");
+        applyMiniAppsStatus(linked);
+        setMiniAppsNotice("The Business App request was updated atomically. "+
+          "External calendar and customer delivery remain unverified.");
+      }catch(error){
+        setMiniAppsError(error?.message||
+          "The Business App request could not be updated; the local booking remains unchanged.");
+        return false;
+      }
+    }
     updateReplyAction(customerId, (action) => ({
       ...action,
       done: true,
@@ -1730,32 +1757,6 @@ function App() {
       value: actionBefore?.details?.sourceQuoteAmount || actionBefore?.details?.jobValue || "",
     });
 
-    const sourceMiniAppRequestId =
-      actionBefore?.details?.sourceMiniAppRequestId || "";
-    if (sourceMiniAppRequestId && bookingStatus === "Confirmed") {
-      try {
-        const linked = await miniAppsRequest("mark_request_linked", {
-          requestId: sourceMiniAppRequestId,
-          customerRecordId: customerId,
-          actionRecordId: `miniapp-booking-${sourceMiniAppRequestId}`,
-          bridgeState: "booking_confirmed",
-          ownerApproved:true,
-          metadata: {
-            bookingDate: actionBefore?.details?.bookingDate || "",
-            bookingTime: actionBefore?.details?.bookingTime || "",
-          },
-        });
-        applyMiniAppsStatus(linked);
-        setMiniAppsNotice(
-          "BUSY confirmed the diary booking and updated the customer's Business App request status."
-        );
-      } catch (error) {
-        setMiniAppsError(
-          error?.message ||
-            "The booking was confirmed in BUSY, but the Business App request status could not be updated."
-        );
-      }
-    }
     setTimeout(() => saveBusinessCloud({ quiet: true }), 250);
   };
 
