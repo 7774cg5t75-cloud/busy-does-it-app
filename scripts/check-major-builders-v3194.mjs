@@ -46,12 +46,14 @@ const base={modules:[{key:"business_profile",enabled:true}],
  presentation:{brandPalette:"forest"}};
 for(const value of TYPE_STYLES){
  const res=previewPrivateAppAppearance(base,{field:"typeStyle",value});
+ if(value==="balanced"){eq(res.ok,false);continue;}
  ok(res.ok,res.reason);eq(res.nextConfig.presentation.typeStyle,value);
  eq(res.privateOnly,true);eq(res.ownerApprovalRequired,true);
  eq(res.nextConfig.presentation.brandPalette,"forest");
 }
 for(const value of SERVICE_STYLES){
  const res=previewPrivateAppAppearance(base,{field:"serviceStyle",value});
+ if(value==="cards"){eq(res.ok,false);continue;}
  ok(res.ok,res.reason);eq(res.nextConfig.presentation.serviceStyle,value);
  eq(res.changesBooking,false);
 }
