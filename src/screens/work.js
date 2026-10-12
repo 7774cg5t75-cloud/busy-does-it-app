@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import {prepareGetPaidQuoteDraft,reviewGetPaidNextStep}
+  from "../core/getPaidIntelligenceV3182.mjs";
 import {
   SafeAreaView,
   ScrollView,
@@ -3533,7 +3535,9 @@ function ReplyActions({ s }) {
 }
 
 function ReplyActionDetail({ s }) {
+  const [quoteBrief,setQuoteBrief]=useState("");
   const customer = s.selectedReplyCustomer;
+  useEffect(()=>setQuoteBrief(""),[customer?.id]);
   if (!customer) {
     return (
       <Shell s={s} title="Action unavailable" subtitle="That customer record is no longer available.">
@@ -3555,6 +3559,16 @@ function ReplyActionDetail({ s }) {
   const bookingStatus = saved.details?.bookingStatus || (saved.done ? "Confirmed" : "Draft");
   const reminderStatus = saved.details?.reminderStatus || "Scheduled";
   const todayISO = dateToISO(new Date());
+  const getPaidNext=["quote","booking"].includes(type)?
+    reviewGetPaidNextStep({
+      businessId:s.cloudWorkspace?.businessId||"",customer,
+      action:{...saved,type},nowISO:new Date().toISOString()
+    }):null;
+  const preparedQuote=type==="quote"&&quoteBrief.trim()?
+    prepareGetPaidQuoteDraft({
+      businessId:s.cloudWorkspace?.businessId||"",customer,
+      brief:quoteBrief,currentAmount:s.actionQuoteAmount
+    }):null;
 
   const suggestedBookingDate = nextDateForSlot(s.quietSlot);
   const suggestedBookingTime = defaultTimeForSlot(s.quietSlot);
@@ -3648,6 +3662,37 @@ function ReplyActionDetail({ s }) {
               : `Suggested from your saved ${customer.service.toLowerCase()} service price. Check it before using it.`}
           </Text>
         </View>
+        <Card
+          eyebrow="Get Paid • early foundation"
+          title="Let Busy prepare a quote"
+          body="Describe the job and agreed price in everyday words, or use your keyboard microphone to dictate. Busy will prepare an editable draft from this customer's saved service. This does not send a quote, create an invoice or take payment."
+          tone="blue"
+        />
+        <Field
+          label="Tell Busy about the quote (private)"
+          value={quoteBrief}
+          onChangeText={setQuoteBrief}
+          placeholder="e.g. Replace a tap for £125, materials included"
+        />
+        {quoteBrief.trim() ? preparedQuote?.ok ? (
+          <>
+            <Card
+              eyebrow="Owner review • not sent"
+              title={`Proposed quote: £${preparedQuote.amountDisplay}`}
+              body={preparedQuote.message}
+              footer={preparedQuote.vatNote+" • "+preparedQuote.reviewChecks.join(" ")}
+              tone="blue"
+            />
+            <Button label="Use this editable quote"
+              onPress={()=>{
+                s.setActionQuoteAmount(preparedQuote.amountDisplay);
+                s.setActionQuoteMessage(preparedQuote.message);
+                setQuoteBrief("");
+              }}/>
+          </>
+        ) : (
+          <Text style={styles.cardBody}>{preparedQuote?.reason}</Text>
+        ) : null}
         <Field label="Quote amount" value={s.actionQuoteAmount} onChangeText={s.setActionQuoteAmount} keyboardType="number-pad" prefix="£" />
         <Text style={styles.fieldLabel}>Draft reply</Text>
         <TextInput multiline value={s.actionQuoteMessage} onChangeText={s.setActionQuoteMessage} style={styles.messageInput} />
@@ -3698,6 +3743,13 @@ function ReplyActionDetail({ s }) {
           />
         ) : null}
 
+        {getPaidNext?.ok&&saved.done ? (
+          <Card eyebrow="Busy's suggested next step"
+            title={getPaidNext.next}
+            body={getPaidNext.why}
+            footer="Suggestion only • no payment or invoice verified • owner approval required"
+            tone="blue"/>
+        ) : null}
         {saved.done && quoteStatus === "Prepared" ? (
           <Button label="Mark quote as sent" onPress={() => s.setQuoteStatus(customer.id, "Sent")} />
         ) : null}
@@ -3758,6 +3810,13 @@ function ReplyActionDetail({ s }) {
           />
         ) : null}
 
+        {getPaidNext?.ok&&saved.done&&bookingStatus==="Completed" ? (
+          <Card eyebrow="Get Paid • after the job"
+            title={getPaidNext.next}
+            body={getPaidNext.why}
+            footer="Not an invoice or payment record; check existing accounts before billing"
+            tone="blue"/>
+        ) : null}
         <View
           style={[
             styles.suggestionBox,
