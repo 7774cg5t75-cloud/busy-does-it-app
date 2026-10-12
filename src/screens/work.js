@@ -1572,8 +1572,8 @@ function WorkCalendar({ s }) {
             ):null}
             {s.workLedgerReview.needsOwnerReview?(
               <Text style={styles.cardBody}>
-                "A booking differs from the device copy or the server list is
-                incomplete. Review the customer record before rescheduling."
+                A booking differs from the device copy, or the server list is
+                incomplete. Review the customer record before rescheduling.
               </Text>
             ):null}
             <Text style={styles.cardBody}>
