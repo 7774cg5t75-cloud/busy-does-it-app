@@ -56,6 +56,7 @@ import {prepareBusinessBrainWork}
   from "../core/businessBrainWorkQueue.mjs";
 import {prepareCoordinatedBuilderReview}
   from "../core/coordinatedBuilderReviewV3180.mjs";
+import {coordinateCustomerJourneyReview} from "../core/connectedCustomerJourneyV3187.mjs";
 import {assessBrainOutcomeEvidence}
   from "../core/businessBrainOutcomeEvidence.mjs";
 import {evaluateReleaseReadiness}
@@ -940,6 +941,17 @@ function MiniAppBuilder({ s }) {
       websiteDraft:s.websiteDraft,brandBrain:s.brandBrain||{},
       appConfig:view.draftConfig,websiteRevision:Number(s.websiteDraft.generation)||0,
       appRevision:Number(app.draft_revision)||0
+    }):null;
+  const connectedJourney=coordinatedBuilders?.ok?
+    coordinateCustomerJourneyReview({
+      goal:["book","enquire","services"].includes(selectedCustomerTask)?
+        selectedCustomerTask:"book",
+      businessId:s.cloudWorkspace?.businessId||"",
+      websiteBusinessId:s.cloudWorkspace?.businessId||"",
+      appBusinessId:app?.business_id||"",
+      websiteRevision:Number(s.websiteDraft?.generation)||0,
+      appRevision:Number(app?.draft_revision)||0,
+      builderReview:coordinatedBuilders,outcomeProof:view.outcomeProof
     }):null;
   const businessBrainQueue=view.draftConfig?prepareBusinessBrainWork({
     businessId:s.cloudWorkspace?.businessId||"",
@@ -1912,6 +1924,22 @@ function MiniAppBuilder({ s }) {
                   <Text style={styles.cardBody}>
                     Local review only. Busy won't copy descriptions, change
                     your design or publish either surface without approval.
+                  </Text>
+                </>
+              ):null}
+              {connectedJourney?.ok?(
+                <>
+                  <Text style={styles.sectionLabel}>
+                    V3.187 • One joined-up customer journey
+                  </Text>
+                  {connectedJourney.actions.slice(0,3).map(item=>(
+                    <Text key={"customer-route-"+item.id} style={styles.cardBody}>
+                      {item.title+". "+item.next}
+                    </Text>
+                  ))}
+                  <Text style={styles.cardBody}>
+                    BUSY only prepares checks here. Websites and apps can
+                    look different, and you'll approve any actual changes.
                   </Text>
                 </>
               ):null}
