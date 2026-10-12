@@ -48,7 +48,7 @@ import {prepareStagingJourneyRun}
   from "../core/stagingJourneyPreparation.mjs";
 import {executeOfflineJourneyPreflight}
   from "../core/offlineStagingPreflight.mjs";
-import {prepareDeviceReview}
+import {prepareDeviceReview,summarizeLocalAppCapture}
   from "../core/deviceReviewEvidence.mjs";
 import {prepareOwnerImprovementPlan}
   from "../core/ownerImprovementPlan.mjs";
@@ -2936,6 +2936,10 @@ function MiniAppPreview({ s }) {
       appId,revision,config,saveConfirmed:designCheckpoint.saveConfirmed
     }):null;
   const captureCurrent=currentAppVisibleCapture(capture,{appId,revision});
+  const localDeviceEvidence=captureCurrent?summarizeLocalAppCapture({
+    businessId:s.cloudWorkspace?.businessId||"",
+    appId,revision,capture
+  }):null;
   const pairedCurrent=pairedCapture?.revision===revision&&
     pairedCapture?.appId===appId&&visualProposal?.ok===true&&
     JSON.stringify(pairedCapture.operations)===
@@ -3312,6 +3316,15 @@ function MiniAppPreview({ s }) {
             <>
               <MetricRow left="Device window (layout points)" right={capture.platform+" • "+
                 capture.width+" × "+capture.height}/>
+              {localDeviceEvidence?.ok?(
+                <Text style={styles.cardBody}>
+                  {"V3.174 • Local device capture recorded for "+
+                    localDeviceEvidence.logicalWidth+
+                    " layout points on "+localDeviceEvidence.platform+
+                    ". The screenshot is still local. Other devices, full "+
+                    "screen scrolling and accessibility remain unverified."}
+                </Text>
+              ):null}
               <Text style={styles.cardBody}>
                 Check readability, image cropping, touch targets and spacing.
                 This image contains the public preview only; no upload occurs
