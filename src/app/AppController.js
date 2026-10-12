@@ -38,6 +38,9 @@ import {makeWebsiteRecoveryPoint,restoreWebsiteRecoveryPoint as restoreWebsiteRe
 import {validateDesignFeedback,normalizeDesignHistory} from "../core/appDesignLearning.mjs";
 import {validateOwnerBrainWrite,normalizeOwnerBrainHistory}
  from "../core/brainOwnerDecisionsContract.mjs";
+import {currentPreparedWebsiteRevision,validateWebsiteBrainChoice,
+ normalizeWebsiteBrainHistory}
+ from "../core/websiteBrainChoiceContract.mjs";
 
 try {
   Notifications.setNotificationHandler({
@@ -14238,6 +14241,80 @@ function App() {
     return data.registrar;
   };
 
+  // V3.177: never store a local-only website preference. The publisher
+  // authenticates the owner and rechecks the latest server-prepared draft.
+  const websiteBrainRevision=()=>currentPreparedWebsiteRevision({
+    draft:websiteDraft,
+    hostedPreview:websitePublishingView?.previewDeployment,
+    draftChangedSinceHosted:websitePublishingView?.draftChangedSinceHosted
+  });
+  const getWebsiteBrainOwnerDecisions=async()=>{
+    const meta=websiteBrainRevision();
+    if(!meta.ok)return {ok:false,records:[],reason:meta.reason};
+    const businessId=String(cloudWorkspace?.businessId||"");
+    try{
+      const response=await websitePublishingRequest("website_brain_owner_decisions",meta);
+      if(!response?.ok||response.businessId!==businessId||
+         cloudWorkspace?.businessId!==businessId)
+        throw Error("Website owner history business scope changed.");
+      const checked=normalizeWebsiteBrainHistory({
+        history:response.history,businessId,draft:websiteDraft,
+        hostedPreview:websitePublishingView?.previewDeployment
+      });
+      if(!checked.ok||!websiteBrainRevision().ok)
+        throw Error("Website version changed. Refresh before reading feedback.");
+      return {ok:true,records:checked.records,revision:meta.expectedGeneration,
+        draftId:meta.draftId,deploymentId:meta.deploymentId,businessId};
+    }catch(error){
+      return {ok:false,records:[],
+        reason:String(error?.message||"Website history is not deployed.").slice(0,220)};
+    }
+  };
+  const recordWebsiteBrainOwnerDecision=async({goal,actionId,decision}={})=>{
+    const meta=websiteBrainRevision();
+    const validation=validateWebsiteBrainChoice({
+      draft:websiteDraft,hostedPreview:websitePublishingView?.previewDeployment,
+      draftChangedSinceHosted:websitePublishingView?.draftChangedSinceHosted,
+      goal,actionId,decision,ownerApproved:true
+    });
+    if(!validation.ok||!meta.ok)return {ok:false,reason:validation.reason||meta.reason};
+    const businessId=String(cloudWorkspace?.businessId||"");
+    try{
+      const response=await websitePublishingRequest("record_website_brain_decision",validation);
+      const still=websiteBrainRevision();
+      if(!still.ok||still.deploymentId!==meta.deploymentId||
+         still.expectedGeneration!==meta.expectedGeneration||
+         cloudWorkspace?.businessId!==businessId||
+         response?.businessId!==businessId||response?.saved!==true||
+         response?.deploymentId!==meta.deploymentId||
+         response?.websiteRevision!==meta.expectedGeneration||
+         response?.publicWebsiteUnchanged!==true)
+        throw Error("Owner preference couldn't be verified for this website revision.");
+      return {ok:true,saved:true,decision,actionId};
+    }catch(error){
+      return {ok:false,reason:String(error?.message||
+        "Website choice couldn't be saved.").slice(0,220)};
+    }
+  };
+  const clearWebsiteBrainOwnerDecisions=async()=>{
+    const meta=websiteBrainRevision();
+    if(!meta.ok)return {ok:false,reason:meta.reason};
+    const businessId=String(cloudWorkspace?.businessId||"");
+    try{
+      const response=await websitePublishingRequest("clear_website_brain_decisions",{
+        ...meta,ownerApproved:true
+      });
+      if(!websiteBrainRevision().ok||response?.ok!==true||
+         response?.businessId!==businessId||
+         response?.deploymentId!==meta.deploymentId||
+         response?.publicWebsiteUnchanged!==true||response?.cleared!==true)
+        throw Error("BUSY could not confirm your private website history was cleared.");
+      return {ok:true,cleared:true};
+    }catch(error){
+      return {ok:false,reason:String(error?.message||
+        "Could not clear private website decisions.").slice(0,220)};
+    }
+  };
   const recordWebsiteDesignFeedback=async(choice)=>{
     if(!websiteDraft?.id||!["liked","rejected","kept","reverted"].includes(choice))
       throw Error("Select a website draft and a preference.");
@@ -15282,6 +15359,33 @@ function App() {
     }catch(error){
       return {ok:false,reason:String(error?.message||
         "Could not clear saved owner feedback.").slice(0,220)};
+    }
+  };
+  const runIsolatedSyntheticAppJourney=async({
+    appId,expectedRevision,journeyKind="booking_request",channel="busy_marketplace"
+  }={})=>{
+    const businessId=String(cloudWorkspace?.businessId||"");
+    if(!businessId||miniAppsView?.app?.id!==appId||
+       Number(miniAppsView?.app?.draft_revision)!==Number(expectedRevision)||
+       !["booking_request","enquiry"].includes(journeyKind)||
+       !["busy_marketplace","standalone","guest_web"].includes(channel))
+      return {ok:false,reason:"Open the current private app and choose a safe test route."};
+    try{
+      const response=await miniAppsRequest("staging_synthetic_round_trip",{
+        appId,expectedRevision,journeyKind,channel,ownerApproved:true
+      });
+      if(response?.ok!==true||response.businessId!==businessId||
+         cloudWorkspace?.businessId!==businessId||
+         response?.appId!==appId||response?.draftRevision!==expectedRevision||
+         response?.journeyKind!==journeyKind||response?.channel!==channel||
+         response?.syntheticDatabaseRoundTripVerified!==true||
+         response?.noCustomerRequestCreated!==true||
+         response?.noCustomerMessagesSent!==true)
+        throw Error("BUSY could not verify this staging-only test result.");
+      return {ok:true,...response};
+    }catch(error){
+      return {ok:false,reason:String(error?.message||
+        "This staging-only test isn't configured.").slice(0,220)};
     }
   };
   const checkIsolatedAppStagingConnection=async({appId,expectedRevision}={})=>{
@@ -16621,6 +16725,9 @@ function App() {
     openLiveWebsite,
     requestWebsiteDomain,
     recordWebsiteDesignFeedback,
+    getWebsiteBrainOwnerDecisions,
+    recordWebsiteBrainOwnerDecision,
+    clearWebsiteBrainOwnerDecisions,
     readWebsiteDesignFeedback,
     clearWebsiteDesignFeedback,
     checkWebsiteRegistrarSearch,
@@ -16716,6 +16823,7 @@ function App() {
     comparePrivateAppScreenshots,
     getAppDesignLearningStatus,
     getAppBrainDecisions,
+    runIsolatedSyntheticAppJourney,
     recordAppBrainOwnerDecision,
     clearAppBrainOwnerDecisions,
     checkIsolatedAppStagingConnection,
