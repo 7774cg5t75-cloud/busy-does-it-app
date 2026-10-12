@@ -1716,6 +1716,28 @@ function MiniAppBuilder({ s }) {
                   </Text>
                 </>
               ):null}
+              {view.durableWorkEvidence?.ok?(
+                <>
+                  <Text style={styles.sectionLabel}>
+                    V3.181 • Real saved Work-booking evidence
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    {"Confirmed in BUSY Work: "+
+                      view.durableWorkEvidence.counts.savedConfirmedWork+
+                      " • cancellations saved: "+
+                      view.durableWorkEvidence.counts.savedCancelledWork+
+                      " • accepted requests missing saved Work: "+
+                      view.durableWorkEvidence.counts.acceptedMissingWork+"."}
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    {view.durableWorkEvidence.nextOwnerReview}
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    These are server-saved records, not proof of an externally
+                    delivered calendar event, completed job or customer payment.
+                  </Text>
+                </>
+              ):null}
               {view.observedOutcomes?.ok?(
                 <>
                   <Text style={styles.sectionLabel}>
