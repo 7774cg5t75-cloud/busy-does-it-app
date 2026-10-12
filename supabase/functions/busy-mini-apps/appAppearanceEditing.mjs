@@ -2,10 +2,11 @@
 const OPTIONS=Object.freeze({headerStyle:["quiet","bold","refined"],
  layoutDensity:["comfortable","compact","airy"],navigationStyle:["tabs","list"],
  imageScale:["regular","large"],galleryLayout:["grid","stack"],
- imageCorners:["rounded","square"]});
+ imageCorners:["rounded","square"],
+ brandPalette:["midnight","forest","terracotta","violet","coastal"]});
 const DEFAULTS=Object.freeze({headerStyle:"refined",layoutDensity:"comfortable",
  navigationStyle:"tabs",imageScale:"regular",
- galleryLayout:"grid",imageCorners:"rounded"});
+ galleryLayout:"grid",imageCorners:"rounded",brandPalette:"midnight"});
 function previewPrivateAppAppearance(config,{field,value}={}){
  if(!config||typeof config!=="object"||!Array.isArray(config.modules))
   return {ok:false,reason:"Choose a current Business App draft."};
@@ -19,7 +20,7 @@ function previewPrivateAppAppearance(config,{field,value}={}){
  // Preserve the shape of an older draft when editing an unrelated field.
  // New settings must not appear in older drafts unless explicitly selected.
  const presentation={...current,[field]:value};
- for(const optional of ["imageScale","galleryLayout","imageCorners"]){
+ for(const optional of ["imageScale","galleryLayout","imageCorners","brandPalette"]){
   if(optional!==field&&!Object.prototype.hasOwnProperty.call(
      config.presentation||{},optional))
    delete presentation[optional];
