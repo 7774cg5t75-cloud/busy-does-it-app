@@ -50,7 +50,7 @@ function nativeShellDescriptor(manifest,{purpose="private_prototype",runtimeEvid
    (submittedLook.brandPalette==="custom"&&
      !/^#[0-9a-fA-F]{6}$/.test(submittedLook.brandAccent||""))||
    (submittedLook.brandAccent!==undefined&&
-     submittedLook.brandPalette!=="custom")
+     submittedLook.brandPalette!=="custom"))
   return {ok:false,reason:"Standalone layout must come from an approved, finite appearance."};
  const appearance={...APP_DEFAULTS,...submittedLook};
  let liveRuntime=null;
