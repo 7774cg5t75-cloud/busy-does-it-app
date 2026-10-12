@@ -1731,22 +1731,20 @@ function MiniAppBuilder({ s }) {
               {view.evidenceCompleteness?.ok?(
                 <>
                   <Text style={styles.sectionLabel}>
-                    V3.188 • How certain is Busy?
+                    Busy's next check
                   </Text>
                   <Text style={styles.cardBody}>
-                    {view.evidenceCompleteness.requestSnapshotComplete?
-                      "Recent requests checked.":
-                      "Only some recent requests could be checked."}
-                    {" A missing reply or Work entry in this sample is a check to make, not proof it never happened."}
+                    {view.ownerNextAction?.ok&&view.ownerNextAction.suggestions.length?
+                      view.ownerNextAction.suggestions[0].title:
+                      "No problems spotted in the recent sample."}
                   </Text>
-                  {view.evidenceCompleteness.reviewSignals.slice(0,2).map(item=>(
-                    <Text key={"evidence-"+item.id} style={styles.cardBody}>
-                      {item.title+". "+item.next}
-                    </Text>
-                  ))}
                   <Text style={styles.cardBody}>
-                    Busy won't act on incomplete evidence or claim verified sales,
-                    notification delivery or completed appointments.
+                    {view.ownerNextAction?.ok&&view.ownerNextAction.suggestions.length?
+                      view.ownerNextAction.suggestions[0].next:
+                      "An incomplete sample cannot prove that every task is finished."}
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    Nothing will be changed or sent without checking the original record.
                   </Text>
                 </>
               ):null}
