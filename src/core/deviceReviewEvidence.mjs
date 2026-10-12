@@ -1,3 +1,5 @@
+import {appVisibleCaptureReceipt,currentAppVisibleCapture}
+  from "./appRenderedEvidence.mjs";
 /**
  * V3.174 — private device-review evidence ledger (metadata only).
  * It does NOT capture a screenshot, record a device or certify accessibility.
@@ -83,4 +85,43 @@ function summarizeDeviceReview({businessId="",surface="website",draftId="",
   notProductionReleaseProof:true,noRawCustomerOrDeviceData:true,
   noCustomerContact:true,noAutomaticApproval:true};
 }
-export {SLOT,prepareDeviceReview,summarizeDeviceReview};
+/**
+ * Use an existing on-device BUSY App Preview pixel capture, without returning
+ * its local URI, timestamps, raw pixels or business identifiers to UI reports.
+ * This is actual local capture evidence, but NOT independent server/device
+ * authentication, a complete screen or an accessibility review.
+ */
+function summarizeLocalAppCapture({businessId="",appId="",revision=0,
+ capture=null}={}){
+ if(!UUID.test(businessId)||!UUID.test(appId)||!Number.isSafeInteger(revision)||
+    revision<1||!currentAppVisibleCapture(capture,{appId,revision})||
+    capture?.captureScope!=="public_app_only"||
+    capture?.realDevicePixelCapture!==true||
+    capture?.captureIsLocal!==true||
+    capture?.mimeType!=="image/jpeg"){
+  return {ok:false,reason:"A current public-app-only local capture is required."};
+ }
+ const validated=appVisibleCaptureReceipt({
+  appId,revision,screenshotUri:capture.uri,
+  width:capture.width,height:capture.height,
+  platform:capture.platform,capturedAt:capture.capturedAt
+ });
+ if(!validated.ok)return {ok:false,reason:validated.reason};
+ return {ok:true,kind:"local_app_pixel_capture_summary_v3174",
+  surface:"business_app",revision,
+  platform:validated.platform,logicalWidth:validated.width,
+  logicalHeight:validated.height,
+  samePrivateRevision:true,
+  screenshotActuallyCapturedLocally:true,
+  publicAppSurfaceOnly:true,
+  fullScrollingAppCaptured:false,
+  actualPixelContentAnalysed:false,
+  screenshotIndependentlyAuthenticated:false,
+  physicalDeviceAccessibilityTested:false,
+  independentDeviceModelVerified:false,
+  otherDeviceWidthsStillNeedReview:true,
+  noRawScreenshotUriReturned:true,noBusinessOrCustomerDataReturned:true,
+  noImageUpload:true,noAutomaticPublishing:true,
+  notReleaseApproval:true};
+}
+export {SLOT,prepareDeviceReview,summarizeDeviceReview,summarizeLocalAppCapture};
