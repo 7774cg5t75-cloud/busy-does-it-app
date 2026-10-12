@@ -46,6 +46,12 @@ import {reviewBusinessInformation}
   from "../core/businessInfoClarity.mjs";
 import {prepareStagingJourneyRun}
   from "../core/stagingJourneyPreparation.mjs";
+import {executeOfflineJourneyPreflight}
+  from "../core/offlineStagingPreflight.mjs";
+import {prepareDeviceReview}
+  from "../core/deviceReviewEvidence.mjs";
+import {prepareOwnerImprovementPlan}
+  from "../core/ownerImprovementPlan.mjs";
 import {compareAppGoalCandidate}
   from "../core/designEvidencePriorities.mjs";
 import {describeRequestExperience}
@@ -862,6 +868,19 @@ function MiniAppBuilder({ s }) {
     compareAppGoalCandidate({before:view.draftConfig,
       after:customerTaskPlan.preview.nextConfig,
       goal:selectedCustomerTask}):null;
+  const offlinePreflight=view.draftConfig&&["book","enquire"].includes(selectedCustomerTask)?
+    executeOfflineJourneyPreflight({
+      appConfig:view.draftConfig,
+      kind:selectedCustomerTask==="enquire"?"enquiry":"booking_request",
+      channel:"busy_marketplace",businessId:s.cloudWorkspace?.businessId||"",
+      draftRevision:app?.draft_revision||0}):null;
+  const nativeDeviceChecklist=view.draftConfig?prepareDeviceReview({
+    businessId:s.cloudWorkspace?.businessId||"",surface:"business_app",
+    draftId:app?.id||"",revision:app?.draft_revision||0
+  }):null;
+  const ownerImprovementPlan=view.draftConfig?prepareOwnerImprovementPlan({
+    goal:selectedCustomerTask,appConfig:view.draftConfig,
+    appRevision:app?.draft_revision||0}):null;
   const nonAiDesignHints=proposeLowRiskDesignHints(view.draftConfig||view.activeConfig||{});
   const responsiveGuidance=recommendResponsiveDesign(view.draftConfig||view.activeConfig||{});
   const responsiveQuality=evaluateAppAcrossScreens(view.draftConfig||view.activeConfig||{});
@@ -1458,6 +1477,44 @@ function MiniAppBuilder({ s }) {
                     stagedDryRun.caseCount+
                     " practice cases prepared; zero executed. "+
                     "A separate owner-approved isolated staging runner is required."}
+                </Text>
+              ):null}
+              {ownerImprovementPlan?.ok?(
+                <>
+                  <Text style={styles.sectionLabel}>
+                    V3.174 • Busy's next improvements
+                  </Text>
+                  <Text style={styles.cardBody}>
+                    Busy has prepared up to three coordinated owner-review
+                    actions. These are suggestions only; nothing is saved
+                    or published automatically.
+                  </Text>
+                  {ownerImprovementPlan.actions.map(action=>(
+                    <View key={"owner-next-"+action.id}>
+                      <MetricRow left={action.title} right="Your decision"/>
+                      <Text style={styles.cardBody}>{action.nextAction}</Text>
+                    </View>
+                  ))}
+                </>
+              ):null}
+              {offlinePreflight?.ok?(
+                <Text style={styles.cardBody}>
+                  {"Offline staging preflight: "+
+                    offlinePreflight.passedFixtureCases+" of "+
+                    offlinePreflight.executedFixtureCases+
+                    " fictional state checks passed; "+
+                    offlinePreflight.blockedFixtureCases+
+                    " blocked. "+
+                    "Live submissions: zero. A trusted staging runner is still required."}
+                </Text>
+              ):null}
+              {nativeDeviceChecklist?.ok?(
+                <Text style={styles.cardBody}>
+                  {"Device review prepared: "+
+                    nativeDeviceChecklist.checks.length+
+                    " checks for phone, Android, tablet, large text and "+
+                    "screen reader. No device capture or accessibility "+
+                    "certification has been performed."}
                 </Text>
               ):null}
               <Button label={showJourneyPractice?
