@@ -7,6 +7,8 @@ import { Shell, Card, Button, Field, MetricRow, StatusChip } from "../components
 import { buildWebsiteLaunchJourney } from "../core/websiteLaunchJourney";
 import { buildWebsiteLaunchProof } from "../core/websiteLaunchProof.mjs";
 import { websiteQualityGuidance } from "../core/websiteQualityGuidance.mjs";
+import {GOALS as SHARED_GOALS,reviewSharedCustomerGoal} from "../core/sharedCustomerExperience.mjs";
+import {websiteEvidenceSummary} from "../core/crossBuilderEvidence.mjs";
 import { websiteDesignAlternative } from "../core/websiteDesignAlternatives.mjs";
 import { websiteCustomerJourney } from "../core/websiteCustomerJourney.mjs";
 import { websiteOutcomeGuidance } from "../core/websiteOutcomeGuidance.mjs";
@@ -33,6 +35,8 @@ function WebsiteBuilder({ s }) {
   const brand = s.brandBrain || {};
   const [instruction, setInstruction] = React.useState("");
   const [showWebsiteDetails, setShowWebsiteDetails] = React.useState(false);
+  const [showJourneyIdeas,setShowJourneyIdeas]=React.useState(false);
+  const [sharedJourneyGoal,setSharedJourneyGoal]=React.useState("enquire");
   const [showQualityIdeas, setShowQualityIdeas] = React.useState(false);
   const [showDesignReview, setShowDesignReview] = React.useState(false);
   const [designOptionIndex,setDesignOptionIndex]=React.useState(0);
@@ -61,6 +65,11 @@ function WebsiteBuilder({ s }) {
   });
   const missingDeliveryCheck=deliveryProof.checks.find(check=>!check.ready);
   const qualityGuide = websiteQualityGuidance({ brandBrain: brand, draft });
+  const sharedJourneyReport=draft?reviewSharedCustomerGoal({
+    goal:sharedJourneyGoal,websiteDraft:draft,brandBrain:brand,
+    websiteJourney:journey,websitePublishing:s.websitePublishingView,
+    websiteProof:deliveryProof
+  }):null;
   const regional=websiteRegionalReadiness({
     locale:brand?.websiteBrief?.locale||"",
     currency:brand?.websiteBrief?.currency||"",
@@ -221,6 +230,49 @@ function WebsiteBuilder({ s }) {
           </Text>
         ) : null}
       </Card>
+      {draft?(
+        <Card eyebrow="V3.172 • Customer experience"
+          title="Make it easier for customers"
+          body="BUSY reviews what a visitor needs to do. These are private suggestions, not proof that forms or bookings work."
+          footer="You remain in control of changes and publication."
+          tone="blue">
+          <Button label={showJourneyIdeas?
+              "Hide customer experience ideas":"What should my website help customers do?"}
+            onPress={()=>setShowJourneyIdeas(x=>!x)}/>
+          {showJourneyIdeas?(
+            <>
+              {SHARED_GOALS.map(goal=>(
+                <Button key={"web-goal-"+goal}
+                  label={(sharedJourneyGoal===goal?"✓ ":"")+({
+                    book:"Request bookings",enquire:"Send enquiries",
+                    services:"Understand services",photos:"View photos",
+                    offers:"Find offers",rewards:"See loyalty rewards"
+                  }[goal])}
+                  onPress={()=>setSharedJourneyGoal(goal)}/>
+              ))}
+              {sharedJourneyReport?.ok?(
+                <>
+                  <Text style={styles.cardBody}>
+                    {sharedJourneyReport.websiteAction.instruction}
+                  </Text>
+                  {sharedJourneyReport.findings.map(item=>(
+                    <View key={"web-finding-"+item.id}>
+                      <MetricRow left={item.title}
+                        right={item.priority==="important"?"Needs checking":"Suggestion"}/>
+                      <Text style={styles.cardBody}>{item.ownerAction}</Text>
+                    </View>
+                  ))}
+                  <Text style={styles.cardBody}>
+                    Website content improvements use your real business details.
+                    A visible contact button is not evidence that an enquiry
+                    is delivered. No website is published automatically.
+                  </Text>
+                </>
+              ):null}
+            </>
+          ):null}
+        </Card>
+      ):null}
       {draft?.designReview ? (
         <Card
           eyebrow="Your website's individual design"
@@ -765,6 +817,10 @@ function WebsitePreview({ s }) {
   const crossScreenEvidence=reviewWebsiteViewportPortfolio(viewportEvidence,{
     draftId:draft?.id,generation:draft?.generation,pageId:activePage?.id||"home"
   });
+  const evidenceSummary=draft?websiteEvidenceSummary({
+    viewportState:viewportEvidence,draftId:draft.id,
+    generation:draft.generation,pageId:activePage?.id||"home"
+  }):null;
   const layoutAdvice=visualCheckResult&&!designCandidate
     ?recommendMeasuredWebsiteChange({draft,pageId:activePage?.id,report:visualCheckResult}):null;
   const candidateComparison=designCandidate&&candidateCheckResult&&visualCheckResult
