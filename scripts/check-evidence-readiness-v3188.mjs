@@ -95,8 +95,8 @@ const source=read("src/domain/miniApps.js");
 const screen=read("src/screens/miniApps.js");
 ok(source.includes("assessOwnerEvidenceCompleteness({"));
 ok(source.includes("evidenceCompleteness,"));
-ok(screen.includes("V3.188 • How certain is Busy?"));
-ok(screen.includes("view.evidenceCompleteness.reviewSignals"));
+ok(screen.includes("Busy\'s next check"));
+ok(screen.includes("view.ownerNextAction.suggestions"));
 const sql=read("staging/ci-tenant-role-revocation-v3188.sql");
 for(const needle of ["ci-full-customer-journey-v3187.sql",
  "delete from public.busy_business_memberships",
