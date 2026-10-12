@@ -11,7 +11,7 @@ import { businessAppPreviewProof } from "../core/businessAppPreviewProof.mjs";
 import { buildAppDistributionPlan,buildStandalonePrivateHandoff } from "../core/appDistributionChoices.mjs";
 import { planFunctionalBusinessApp } from "../core/appExperiencePlanner.mjs";
 import { previewPrivateAppAppearance,OPTIONS as appAppearanceOptions } from "../core/appAppearanceEditing.mjs";
-import {nativePalette,LABELS as nativePaletteLabels} from "../../standalone/template/nativePalette.mjs";
+import {nativePalette,LABELS as nativePaletteLabels} from "../core/nativePalette.mjs";
 import { interpretSelectedAppAppearance } from "../core/appContextInstruction.mjs";
 import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.mjs";
 import {proposeCoordinatedAppChanges,planAppVoiceInstructions} from "../core/appCoordinatedStudio.mjs";
