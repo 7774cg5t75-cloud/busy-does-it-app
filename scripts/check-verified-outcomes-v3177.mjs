@@ -31,7 +31,7 @@ const db={from(table){
  const api={
   select(){return this},
   eq(k,v){conditions.push([k,v]);return this},
-  order(k,v){desc=v?.ascending===false;this.sortKey=k;return this},
+  order(k,v){if(!this.sortKey){desc=v?.ascending===false;this.sortKey=k;}return this},
   limit(n){take=n;return this},
   insert(v){kind="insert";insertData=v;return this},
   delete(){kind="delete";return this},
