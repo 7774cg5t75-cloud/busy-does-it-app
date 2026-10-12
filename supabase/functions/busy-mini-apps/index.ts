@@ -5,7 +5,6 @@ import { previewPrivateAppAppearance } from "./appAppearanceEditing.mjs";
 import { proposeAppSectionMove } from "./appSectionOrder.mjs";
 import { proposeCoordinatedAppChanges } from "./appCoordinatedStudio.mjs";
 import {decideAppRequestTransition} from "./appRequestLifecycle.mjs";
-import {preflightRequestBridge} from "./requestBridgePreflight.mjs";
 import {validateAppScreenshotReview,normalizeAppVisualAIResult}
  from "./appVisualReviewContract.mjs";
 import {prepareAppVisualBatch,validatePairedAppVisualRequest}
@@ -3445,123 +3444,62 @@ async function requestBridgePlan(
   };
 }
 
+/**
+ * V3.180: one owner-scoped, locked Postgres RPC handles the request, link,
+ * audit event and customer-unread transition atomically.
+ * Fail closed if the migration is not installed; never fall back to writes.
+ * Customer push is explicitly best-effort AFTER COMMIT, never proof of delivery.
+ */
 async function markRequestLinked(
-  userId: string,
-  businessId: string,
-  body: any
+  userId: string, businessId: string, body: any
 ) {
-  const requestId = clean(body?.requestId, 80);
-  const customerRecordId = clean(body?.customerRecordId, 160);
-  const actionRecordId = clean(body?.actionRecordId, 160);
-  const bridgeState = clean(body?.bridgeState, 40) || "linked";
-  if (!requestId || !customerRecordId) {
-    throw new Error("Request and customer record IDs are required.");
-  }
-  if (!["linked","enquiry_linked","booking_draft","booking_confirmed","closed"].includes(bridgeState)) {
-    throw new Error("Unsupported BUSY bridge state.");
-  }
-
-  const request = await supabase
-    .from("busy_mini_app_requests")
-    .select("id,request_type,mini_app_id,consumer_user_id,status")
-    .eq("id", requestId)
-    .eq("business_id", businessId)
-    .maybeSingle();
-  if (request.error) throw request.error;
-  if (!request.data) throw new Error("Business App request not found.");
-  // Read the existing owner-scoped link for EVERY handoff, not only confirmations.
-  // Reject unsafe changes before any upsert, event or status update occurs.
-  const previous=await supabase.from("busy_mini_app_request_links")
-    .select("customer_record_id,action_record_id,bridge_state,metadata")
-    .eq("request_id",requestId).eq("business_id",businessId).maybeSingle();
-  if(previous.error)throw previous.error;
-  const review=preflightRequestBridge({
-    request:request.data,existing:previous.data||null,bridgeState,
-    customerRecordId,actionRecordId,metadata:body?.metadata,
-    ownerApproved:body?.ownerApproved===true
+  const requestId=clean(body?.requestId,80);
+  const customerRecordId=clean(body?.customerRecordId,160);
+  const actionRecordId=clean(body?.actionRecordId,160);
+  const bridgeState=clean(body?.bridgeState,40)||"linked";
+  if(!/^[0-9a-f]{8}-[0-9a-f-]{27,36}$/i.test(requestId)||
+     !customerRecordId||
+     !["linked","enquiry_linked","booking_draft","booking_confirmed","closed"]
+       .includes(bridgeState))
+    throw new Error("Choose a valid, current Business App request handoff.");
+  const metadata=body?.metadata&&typeof body.metadata==="object"&&
+    !Array.isArray(body.metadata)?body.metadata:{};
+  const rpc=await supabase.rpc("busy_mark_mini_app_request_link_v3180",{
+    p_business_id:businessId,p_request_id:requestId,
+    p_actor_user_id:userId,p_customer_record_id:customerRecordId,
+    p_action_record_id:actionRecordId||null,p_bridge_state:bridgeState,
+    p_owner_approved:body?.ownerApproved===true,p_metadata:metadata
   });
-  if(!review.ok)throw new Error(review.reason);
-  const intendedStatus=review.nextStatus;
-  const beforeWrite=decideAppRequestTransition(request.data,intendedStatus,{
-    bridgeState:bridgeState==="booking_confirmed"?"booking_confirmed":""});
-  if(!beforeWrite.ok)throw new Error(beforeWrite.reason);
-  // An exact retry must not duplicate link events or customer notifications.
-  if(review.noChange)return previous.data;
+  if(rpc.error)throw rpc.error;
+  const result=rpc.data;
+  if(!result||typeof result.changed!=="boolean"||
+    result.link?.request_id!==requestId||
+    result.link?.business_id!==businessId||
+    result.independentDiaryDeliveryVerified!==false)
+    throw new Error("Invalid atomic handoff receipt. Refresh this request.");
 
-  const linked = await supabase
-    .from("busy_mini_app_request_links")
-    .upsert(
-      {
-        business_id: businessId,
-        request_id: requestId,
-        customer_record_id: customerRecordId,
-        action_record_id: actionRecordId || null,
-        bridge_state: bridgeState,
-        linked_by: userId,
-        updated_at: new Date().toISOString(),
-        metadata:
-          body?.metadata && typeof body.metadata === "object"
-            ? body.metadata
-            : {},
-      },
-      { onConflict: "request_id" }
-    )
-    .select("*")
-    .single();
-  if (linked.error) throw linked.error;
-
-  const eventType =
-    bridgeState === "booking_draft"
-      ? "booking_draft"
-      : bridgeState === "booking_confirmed"
-      ? "booking_confirmed"
-      : "linked_customer";
-  const event = await supabase
-    .from("busy_mini_app_request_events")
-    .insert({
-      business_id: businessId,
-      request_id: requestId,
-      actor_user_id: userId,
-      event_type: eventType,
-      detail: {
-        customerRecordId,
-        actionRecordId: actionRecordId || null,
-      },
-    });
-  if (event.error) throw event.error;
-
-  const nextStatus =
-    bridgeState === "booking_confirmed"
-      ? "accepted"
-      : bridgeState === "closed"
-      ? "closed"
-      : "reviewing";
-  const progressed=decideAppRequestTransition(request.data,nextStatus,{
-    bridgeState:bridgeState==="booking_confirmed"?"booking_confirmed":""});
-  if(!progressed.ok)throw new Error(progressed.reason);
-  const linkedStatus=await supabase.from("busy_mini_app_requests")
-    .update({status:nextStatus,updated_at:new Date().toISOString()})
-    .eq("id",requestId).eq("business_id",businessId)
-    .eq("status",request.data.status).select("id").maybeSingle();
-  if(linkedStatus.error)throw linkedStatus.error;
-  if(!linkedStatus.data&&!progressed.noChange)
-    throw new Error("Request status changed during linking; refresh before continuing.");
-
-  if (
-    request.data.consumer_user_id &&
-    request.data.status !== nextStatus &&
-    ["accepted", "closed"].includes(nextStatus)
-  ) {
-    await bumpUnread(requestId, "customer");
-    await notifyCustomerOfMiniAppRequest(
-      { ...request.data, business_id: businessId },
-      "BUSY Apps • Booking update",
-      nextStatus === "accepted" ? "Your BUSY Apps booking request has been confirmed." : "Your BUSY Apps request has been closed.",
-      `status:${nextStatus}`
-    );
+  // Never claim delivery on the basis of a DB commit. Failed push cannot
+  // undo the committed status, and retrying the RPC is safe/idempotent.
+  if(result.changed===true&&result.notificationPending===true){
+    try{
+      const scoped=await supabase.from("busy_mini_app_requests")
+        .select("id,business_id,mini_app_id,consumer_user_id,request_type")
+        .eq("id",requestId).eq("business_id",businessId).maybeSingle();
+      if(!scoped.error&&scoped.data?.consumer_user_id)
+        await notifyCustomerOfMiniAppRequest(
+          scoped.data,"BUSY Apps • Request update",
+          result.nextStatus==="accepted"?
+            "Your booking request was marked confirmed by the business.":
+            "Your BUSY Apps request has been closed.",
+          "status:"+result.nextStatus);
+    }catch(error){
+      // The DB transaction succeeded. Actual push provider success needs
+      // separate receipts/alerting; do not mask success as a failed booking.
+      console.warn("Request stored; customer notification not verified.");
+    }
   }
-
-  return linked.data;
+  return {...result.link,atomicHandoff:true,
+    independentlyVerifiedDiary:false,customerDeliveryVerified:false};
 }
 
 /**
