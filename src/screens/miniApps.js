@@ -1423,7 +1423,8 @@ function MiniAppBuilder({ s }) {
                     ". No real customer journey was executed here."}
                 </Text>
               ):null}
-              {serviceClarity?.ok&&["services","book"].includes(selectedCustomerTask)?(
+              {serviceClarity?.ok&&serviceClarity.appServicesEnabled&&
+                ["services","book"].includes(selectedCustomerTask)?(
                 <>
                   <Text style={styles.sectionLabel}>V3.173 • Service clarity</Text>
                   <MetricRow left="Services with clear descriptions"
