@@ -114,7 +114,7 @@ ok(!fragment.includes('.from("busy_mini_app_request_messages").insert('));
 ok(edge.includes("statusRefreshRequired:true"));
 const controller=read("src/app/AppController.js");
 ok(controller.includes('if(data?.databaseMessageSaved!==true)'));
-ok(controller.includes("Push delivery has not been verified"));
+ok(controller.includes("Notification delivery is not verified"));
 const domain=read("src/domain/miniApps.js");
 ok(domain.includes("summarizeJourneyCheckpoints({"));
 const screen=read("src/screens/miniApps.js");
