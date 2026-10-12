@@ -255,6 +255,7 @@ function buildMiniAppsView(remote = {}) {
     durableWorkEvidence,
     journeyCheckpoints,
     deliveryEvidence,
+    pushGatewayEvidence:remote?.pushGatewayEvidence?.ok===true?remote.pushGatewayEvidence:null,
     journeyEvidence,
     observedOutcomes,
     requestCount30,
