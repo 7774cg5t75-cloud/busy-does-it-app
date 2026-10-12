@@ -119,6 +119,7 @@ assert.equal(proposeTaskFirstNavigation(noOffers,"offers").blocked,true);
 const noRewards=makeConfig(keys.filter(x=>x!=="loyalty"));
 assert.equal(proposeTaskFirstNavigation(noRewards,"rewards").blocked,true);
 const trivial=makeConfig(["business_profile","booking_request","contact"]);
+trivial.navigation=["business_profile","booking_request","contact"];
 assert.equal(proposeTaskFirstNavigation(trivial,"book").preview,null);
 assert.equal(proposeTaskFirstNavigation(trivial,"book").blocked,false);
 assert.equal(compareStaticJourney(base,one.preview.nextConfig,"book").earlierInNavigation,true);
