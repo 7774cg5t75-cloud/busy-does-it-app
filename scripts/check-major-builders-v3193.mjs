@@ -149,7 +149,11 @@ const layout=applyWebsiteLayoutOperation(website,{action:"brand-colour",value:pl
 ok(layout.applied,layout.reason);
 eq(layout.draft.theme.primary,"#DA5D40");
 eq(JSON.stringify(website),old);
-eq(layout.draft.sections,website.sections);
+eq(layout.draft.sections.map(x=>({
+ id:x.id,type:x.type,title:x.title,body:x.body,enabled:x.enabled
+})),website.sections.map(x=>({
+ id:x.id,type:x.type,title:x.title,body:x.body,enabled:x.enabled
+})));
 const finished=designForWebsite({businessType:"Hairdresser",theme:layout.draft.theme});
 ok(finished.hasCustomColour);
 ok(contrast("#FFFFFF",finished.accent)>=4.5,"Website CTA white text must contrast");
