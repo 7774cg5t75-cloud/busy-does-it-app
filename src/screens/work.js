@@ -1787,9 +1787,10 @@ function WorkCalendar({ s }) {
 
       {selectedBookings.map((booking) => (
         <Pressable
-          key={booking.customerId}
+          key={booking.serverWorkLedgerId||[booking.customerId,booking.date,booking.time].join("-")}
           accessibilityRole="button"
-          onPress={() => s.openSavedReplyAction(booking.customerId)}
+          onPress={() => booking.serverWorkLedgerId&&!booking.hasLocalSnapshot?
+            s.go("miniAppBuilder"):s.openSavedReplyAction(booking.customerId)}
           style={styles.workCalendarBookingCard}
         >
           <View style={{ flex: 1, minWidth: 0 }}>
