@@ -98,6 +98,8 @@ eq(searchPublicNativeServices(pub.services,"bouq").length,1);
 eq(searchPublicNativeServices(pub.services,"EVENTS")[0].name,"Arrangements");
 eq(searchPublicNativeServices(pub.services,"unused").length,0);
 eq(searchPublicNativeServices(pub.services,"x".repeat(81)).length,0);
+ok(read("scripts/prepare-standalone-prototype-v3154.mjs")
+ .includes('"nativeCustomerActions.mjs"'),"Native helper must be copied into unsigned standalone app exports.");
 const native=read("standalone/template/App.js");
 for(const marker of ['onPress={()=>onOpenContact?.(key)}',
  'Linking.openURL(action.url)','setRefreshSequence(x=>x+1)',
