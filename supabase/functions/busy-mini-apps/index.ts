@@ -1596,6 +1596,20 @@ async function ensureApp(
   throw created.error;
 }
 
+// V3.181 durable BUSY Work bookings for this authenticated owner business.
+// Never return raw customer messages or contact details through this list.
+async function ownerWorkBookingLedger(businessId: string, miniAppId: string) {
+  const earliest=new Date(Date.now()-90*86400000).toISOString().slice(0,10);
+  const result=await supabase.from("busy_mini_app_work_bookings")
+    .select("id,business_id,mini_app_id,request_id,customer_record_id,action_record_id,calendar_date,calendar_time,state,updated_at")
+    .eq("business_id",businessId).eq("mini_app_id",miniAppId)
+    .gte("calendar_date",earliest)
+    .order("calendar_date",{ascending:true}).limit(200);
+  if(result.error)throw result.error;
+  return {rows:result.data||[],truncated:(result.data||[]).length>=200,
+    scope:"authenticated_owner_business",verifiedExternalCalendar:false};
+}
+
 async function ownerStatus(businessId: string) {
   const [app, catalog, profile] = await Promise.all([
     appForBusiness(businessId),
@@ -1608,6 +1622,7 @@ async function ownerStatus(businessId: string) {
       versions: [],
       requests: [],
       requestLinks: [],
+      workBookingLedger:{rows:[],truncated:false,verifiedExternalCalendar:false},
       requestCount30: 0,
       guestRequestCount30: 0,
       entrySummary: [],
@@ -1617,7 +1632,7 @@ async function ownerStatus(businessId: string) {
   }
 
   const entrySince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const [versions, requests, requestLinks, entrySummary, requestCount30, guestRequestCount30] = await Promise.all([
+  const [versions, requests, requestLinks, entrySummary, requestCount30, guestRequestCount30, workBookingLedger] = await Promise.all([
     supabase
       .from("busy_mini_app_versions")
       .select(
@@ -1656,6 +1671,7 @@ async function ownerStatus(businessId: string) {
       .eq("mini_app_id", app.id)
       .eq("request_origin", "guest_web")
       .gte("created_at", entrySince),
+    ownerWorkBookingLedger(businessId,app.id),
   ]);
   if (versions.error) throw versions.error;
   if (requests.error) throw requests.error;
@@ -1668,6 +1684,7 @@ async function ownerStatus(businessId: string) {
     versions: versions.data || [],
     requests: requests.data || [],
     requestLinks: requestLinks.data || [],
+    workBookingLedger,
     entrySummary: entrySummary.data || [],
     requestCount30: Number(requestCount30.count || 0),
     guestRequestCount30: Number(guestRequestCount30.count || 0),
@@ -3464,7 +3481,7 @@ async function markRequestLinked(
     throw new Error("Choose a valid, current Business App request handoff.");
   const metadata=body?.metadata&&typeof body.metadata==="object"&&
     !Array.isArray(body.metadata)?body.metadata:{};
-  const rpc=await supabase.rpc("busy_mark_mini_app_request_link_v3180",{
+  const rpc=await supabase.rpc("busy_mark_mini_app_request_link_v3181",{
     p_business_id:businessId,p_request_id:requestId,
     p_actor_user_id:userId,p_customer_record_id:customerRecordId,
     p_action_record_id:actionRecordId||null,p_bridge_state:bridgeState,
@@ -3475,7 +3492,11 @@ async function markRequestLinked(
   if(!result||typeof result.changed!=="boolean"||
     result.link?.request_id!==requestId||
     result.link?.business_id!==businessId||
-    result.independentDiaryDeliveryVerified!==false)
+    result.independentDiaryDeliveryVerified!==false||
+    result.ledgerSource!=="business_app_request_v3181"||
+    result.externalCalendarDelivered!==false||
+    (bridgeState==="booking_confirmed"&&
+      (result.workLedgerDurable!==true||result.workLedgerState!=="confirmed")))
     throw new Error("Invalid atomic handoff receipt. Refresh this request.");
 
   // Never claim delivery on the basis of a DB commit. Failed push cannot
@@ -3499,6 +3520,9 @@ async function markRequestLinked(
     }
   }
   return {...result.link,atomicHandoff:true,
+    workLedgerState:result.workLedgerState,
+    workLedgerDurable:result.workLedgerDurable===true,
+    serverWorkLedgerId:result.workLedgerId||null,
     independentlyVerifiedDiary:false,customerDeliveryVerified:false};
 }
 
