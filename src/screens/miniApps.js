@@ -987,7 +987,8 @@ function MiniAppBuilder({ s }) {
   const responsiveGuidance=recommendResponsiveDesign(view.draftConfig||view.activeConfig||{});
   const responsiveQuality=evaluateAppAcrossScreens(view.draftConfig||view.activeConfig||{});
   const measuredNativeContrast=auditStandaloneContrast(nativePalette(
-    (view.draftConfig||view.activeConfig)?.presentation?.brandPalette));
+    (view.draftConfig||view.activeConfig)?.presentation?.brandPalette,
+    (view.draftConfig||view.activeConfig)?.presentation?.brandAccent));
   const liveMatchesDraft =
     businessAppPreviewProof({app,preview:view.liveVersion}).matches;
   const journeyLabel = !plan
