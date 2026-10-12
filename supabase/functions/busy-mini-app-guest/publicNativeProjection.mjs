@@ -9,6 +9,8 @@ import {publicNativeOffers,publicNativeLoyalty} from "./publicNativeExtrasV3190.
  */
 const str=(v,max=200)=>typeof v==="string"?v.trim().slice(0,max):"";
 const safeUrl=v=>typeof v==="string"&&v.length<=1800&&/^https:\/\//i.test(v)?v:"";
+const publicDescription=(v,max)=>typeof v==="string"&&v.length<=max&&
+ !/[<>\u0000-\u001f\u007f]/.test(v)?v.trim():"";
 const validSlug=s=>typeof s==="string"&&/^[a-z0-9][a-z0-9-]{1,98}$/.test(s);
 const PUBLIC_MODULES=new Set(["business_profile","services","gallery","contact","enquiry","booking_request","offers","loyalty"]);
 function publicNativeMiniAppProjection(app,version,{expectedAppId,expectedVersionId}={}){
@@ -35,7 +37,9 @@ function publicNativeMiniAppProjection(app,version,{expectedAppId,expectedVersio
   })).filter(s=>s.name):[];
  const gallery=has("gallery")&&Array.isArray(profile.assets?.gallery)?
   profile.assets.gallery.filter(x=>x?.approved===true||x?.marketingOk===true)
-   .map(x=>({uri:safeUrl(x?.uri)})).filter(x=>x.uri).slice(0,15):[];
+   .map(x=>({uri:safeUrl(x?.uri),
+    alt:publicDescription(x?.alt,160),caption:publicDescription(x?.caption,240)}))
+   .filter(x=>x.uri).slice(0,15):[];
  const contact=has("contact")?{
   phone:str(profile.contact?.phone,80),email:str(profile.contact?.email,180),
   openingHours:str(profile.contact?.openingHours,260)
