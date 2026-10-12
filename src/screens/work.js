@@ -3562,7 +3562,7 @@ function ReplyActionDetail({ s }) {
   const getPaidNext=["quote","booking"].includes(type)?
     reviewGetPaidNextStep({
       businessId:s.cloudWorkspace?.businessId||"",customer,
-      action:{...saved,type},nowISO:new Date().toISOString()
+      action:{...saved,type},nowISO:new Date().toISOString(),todayISO
     }):null;
   const preparedQuote=type==="quote"&&quoteBrief.trim()?
     prepareGetPaidQuoteDraft({
