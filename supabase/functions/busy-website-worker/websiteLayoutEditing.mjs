@@ -47,6 +47,19 @@ function applyWebsiteLayoutOperation(draft,operation={}){
   theme.sectionOrder=ids;
   return ready("Added "+title+" as a new owner-written section.");
  }
+ if(action==="brand-colour"){
+  const colour=operation.value;
+  if(typeof colour!=="string"||!/^#[0-9a-fA-F]{6}$/.test(colour)||
+    Object.keys(operation).some(k=>!["action","value","kind"].includes(k)))
+   return fail(draft,"Only a validated, reviewed six-digit brand colour can be used.");
+  const hex=colour.toUpperCase();
+  if(text(theme.primary).toUpperCase()===hex)
+   return fail(draft,"This website already uses that brand colour.");
+  // The central website design factory enforces white-button-text contrast;
+  // this action changes a private theme token, never injects CSS.
+  theme.primary=hex;
+  return ready("Updated the website's brand colour");
+ }
  if(action==="style"){
   const {field,value}=operation;
   if(!Object.prototype.hasOwnProperty.call(allow,field)||!allow[field].includes(value))
