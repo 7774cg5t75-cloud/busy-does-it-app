@@ -25,7 +25,7 @@ function prepareGetPaidQuoteDraft({
   return {ok:false,reason:"Describe the agreed quote and amount in a short, private brief."};
  const amounts=[];
  const patterns=[
-  /(?:£\s*|\bGBP\s+)(\d{1,7}(?:,\d{3})*(?:\.\d{1,2})?)(?![\d.])/gi,
+  /(?:£\s*|\bGBP\s+)(\d{1,7}(?:,\d{3})*(?:\.\d{1,2})?)(?![\d]|[.,]\d)/gi,
   /\b(\d{1,7}(?:,\d{3})*(?:\.\d{1,2})?)\s+pounds?\b/gi
  ];
  for(const pattern of patterns){
@@ -73,13 +73,14 @@ function prepareGetPaidQuoteDraft({
   noCrossBusinessLearning:true,noModelRetraining:true};
 }
 function reviewGetPaidNextStep({
- businessId="",customer=null,action=null,nowISO=""
+ businessId="",customer=null,action=null,nowISO="",todayISO=""
 }={}){
  if(!UUID.test(businessId)||!clean(customer?.id,100)||
    !action||!["quote","booking"].includes(action.type))
   return {ok:false,reason:"Review a current quote or booking for this business."};
  const now=Date.parse(nowISO);
- const today=Number.isFinite(now)?new Date(now).toISOString().slice(0,10):"";
+ const today=/^\d{4}-\d{2}-\d{2}$/.test(todayISO)?todayISO:
+  Number.isFinite(now)?new Date(now).toISOString().slice(0,10):"";
  const d=action.details||{};
  let next="Review the customer's current details",why="No verified payment data is connected.",priority="review";
  if(action.type==="quote"){
