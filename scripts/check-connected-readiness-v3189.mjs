@@ -43,6 +43,22 @@ eq(conflict.confirmedInBusyWork,false);
 yes(!reviewSingleJourney({...base,work:[{business_id:
  "22222222-2222-4222-8222-222222222222",request_id:id,state:"confirmed"}]}).ok);
 yes(!reviewSingleJourney({...base,messages:"malformed"}).ok);
+yes(!reviewSingleJourney({...base,complete:null}).ok);
+yes(!reviewSingleJourney({...base,messages:[{business_id:business,
+ request_id:id,sender_role:"invented"}]}).ok);
+const duplicateWork=reviewSingleJourney({...base,complete,work:[
+ ...base.work,{business_id:business,request_id:id,state:"cancelled"}]});
+eq(duplicateWork.confirmedInBusyWork,false);
+yes(duplicateWork.issues.includes("competing_records"));
+const enquiry=reviewSingleJourney({...base,complete,request:{
+ ...base.request,request_type:"enquiry"}});
+eq(enquiry.confirmedInBusyWork,false);
+const cancelled=reviewSingleJourney({...base,complete,
+ request:{...base.request,status:"closed"},
+ work:[{business_id:business,request_id:id,state:"cancelled"}],
+ links:[]});
+eq(cancelled.cancelledInBusyWork,true);
+eq(cancelled.automaticActionAllowed,false);
 const uncertainty=assessAmbiguousTaskOutcome({transportUnknown:true,databaseSaved:true});
 eq(uncertainty.stage,"needs_same_key_readback");
 eq(uncertainty.safeToRetryWithNewKey,false);
