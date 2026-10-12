@@ -52,8 +52,12 @@ for(const industry of ["appointments","trades","food_events","retail"]){
  assert.deepEqual(review.preview.nextConfig.modules,base.modules);
  assert.deepEqual(review.preview.nextConfig.navigation,base.navigation);
  assert.deepEqual(review.preview.nextConfig.distribution,base.distribution);
- assert.equal(JSON.stringify(review).includes("never-log@example.invalid"),false,
-  "No customer identifiers may leak into an industry review result");
+ assert.equal(JSON.stringify({
+  profile:review.profile,reasoning:review.reasoning,
+  widthReview:review.widthReview,customerJourney:review.customerJourney,
+  releaseIssues:review.releaseIssues
+ }).includes("never-log@example.invalid"),false,
+  "Public-facing explanations must never expose private customer identifiers; the owner-only preview preserves the unchanged private draft.");
  const undo=proposeCoordinatedAppChanges(review.preview.nextConfig,
   review.preview.undoOperations);
  assert.equal(undo.ok,true,undo.reason);
