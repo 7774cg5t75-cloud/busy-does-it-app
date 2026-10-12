@@ -84,7 +84,7 @@ for(const key of ["security definer","for update",
  ok(sql.toLowerCase().includes(key.toLowerCase()));
 }
 const ci=read("staging/ci-atomic-handoff-v3180.sql");
-for(const key of ["PostgreSQL","ci_handoff_failure_v3180",
+for(const key of ["postgres","ci_handoff_failure_v3180",
  "PARTIAL COMMIT","Cross-tenant write was accepted",
  "Idempotent replay failed"]){
  ok(ci.toLowerCase().includes(key.toLowerCase()));
