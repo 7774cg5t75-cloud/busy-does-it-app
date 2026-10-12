@@ -44,6 +44,8 @@ function prepareBusinessBrainWork({
   // Input order comes from the trusted owner-specific store, oldest first.
   decisions.set(record.actionId+"|"+record.surface,record.decision);
  }
+ const decisionCounts={approved:0,rejected:0,postponed:0};
+ for(const decision of decisions.values())decisionCounts[decision]++;
  const suppressed=[],jobs=[];
  for(const action of plan.actions){
   const ownerDecision=decisions.get(action.id+"|"+action.surface)||"not_decided";
@@ -75,6 +77,10 @@ function prepareBusinessBrainWork({
   preparedCount:jobs.length,capacity:3,
   allActionsFromCurrentBusinessOnly:true,
   ownerDecisionRequired:true,previousOwnerChoicesHonoured:true,
+  decisionEvidence:{...decisionCounts,
+   source:"current_revision_owner_choices_not_customer_outcomes",
+   customerResultsMeasured:0,performanceImprovementProven:false,
+   receiptAttributionVerified:false},
   noModelWeightTraining:true,noCrossTenantLearning:true,
   approvedMeansPermissionToPrepareNotExecute:true,
   noAutomaticEdits:true,noAutomaticPublishing:true,
