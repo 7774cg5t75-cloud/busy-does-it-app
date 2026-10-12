@@ -175,7 +175,7 @@ for(const imp of [
 const {rebuildPrivateWebsiteDraft}=Function(
  "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign",
  "reviewWebsiteDesign","applyWebsiteVisualEdit",
- domain+";return {rebuildPrivateWebsiteDraft};"
+ domain+";return {rebuildPrivateWebsiteDraft:withHtml};"
 )(management.syncWebsitePageModel,designForWebsite,designCss,
  planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit);
 const rebuilt=rebuildPrivateWebsiteDraft({...fresh.nextDraft,businessName:"Example Flowers",
