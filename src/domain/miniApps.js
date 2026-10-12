@@ -5,6 +5,7 @@ import {summarizeJourneyCheckpoints} from "../core/storedJourneyCheckpointsV3184
 import {reviewMessageDeliveryIntents} from "../core/messageDeliveryEvidenceV3185.mjs";
 import {recommendMeasuredOwnerActions} from "../core/measuredCustomerActionPriorityV3186.mjs";
 import {reviewCustomerOutcomeProof} from "../core/customerOutcomeProofV3187.mjs";
+import {assessOwnerEvidenceCompleteness} from "../core/customerEvidenceCompletenessV3188.mjs";
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -93,6 +94,10 @@ function buildMiniAppsView(remote = {}) {
       messagesTruncated:messageCheckpoints.truncated===true,
       workTruncated:workBookingLedger.truncated===true,
       requestsTruncated:requests.length>=30}):null;
+  const evidenceCompleteness=outcomeProof?.ok?
+    assessOwnerEvidenceCompleteness({outcomeProof,
+      messageSnapshot:messageCheckpoints,workSnapshot:workBookingLedger,
+      requestSnapshotLimit:30}):null;
   const journeyCheckpoints=messageCheckpoints&&workBookingLedger?
     summarizeJourneyCheckpoints({businessId:app?.business_id||"",
       appId:app?.id||"",requests,links:requestLinks,
@@ -268,6 +273,7 @@ function buildMiniAppsView(remote = {}) {
     durableWorkEvidence,
     journeyCheckpoints,
     outcomeProof,
+    evidenceCompleteness,
     deliveryEvidence,
     measuredOwnerActions,
     pushGatewayEvidence:remote?.pushGatewayEvidence?.ok===true?remote.pushGatewayEvidence:null,
