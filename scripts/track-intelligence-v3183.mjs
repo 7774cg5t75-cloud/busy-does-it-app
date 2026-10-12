@@ -1,0 +1,73 @@
+/**
+ * V3.183 — source-level intelligence inventory. This measures implementations
+ * and wiring, NOT model IQ, real customer results, production availability or
+ * proof that external providers completed a requested action.
+ */
+import {readFileSync,existsSync,readdirSync,statSync} from "node:fs";
+import {join} from "node:path";
+import {fileURLToPath} from "node:url";
+const root=fileURLToPath(new URL("../",import.meta.url));
+const EXT=/\.(?:js|jsx|mjs|cjs|ts|tsx|sql|py|sh|html|css)$/;
+function filesAt(dir){
+ const result=[];
+ function visit(folder){
+  for(const entry of readdirSync(folder,{withFileTypes:true})){
+   if([".git","node_modules",".expo",".tmp","dist","build"].includes(entry.name))continue;
+   const path=join(folder,entry.name);
+   if(entry.isDirectory())visit(path);
+   else if(entry.isFile()&&EXT.test(entry.name))
+    result.push({path:path.slice(root.length),text:readFileSync(path,"utf8")});
+  }
+ }
+ visit(dir);
+ return result;
+}
+const files=filesAt(root);
+const source=new Map(files.map(x=>[x.path,x.text]));
+const domains=[
+ {id:"business_brain_owner_choices",source:"src/core/businessBrainWorkQueue.mjs",
+  wired:"src/screens/miniApps.js",signal:"businessBrainQueue",test:"scripts/check-business-brain-staging-v3175.mjs"},
+ {id:"business_brain_stored_outcomes",source:"src/core/businessBrainMeasuredOutcomes.mjs",
+  wired:"src/domain/miniApps.js",signal:"reviewBusinessBrainObservedOutcomes",test:"scripts/check-atomic-staging-v3180.mjs"},
+ {id:"work_booking_evidence",source:"src/core/durableWorkOutcomeEvidenceV3181.mjs",
+  wired:"src/domain/miniApps.js",signal:"assessDurableWorkOutcomes",test:"scripts/check-durable-work-v3181.mjs"},
+ {id:"booking_reconciliation",source:"src/core/workBookingReconciliationV3181.mjs",
+  wired:"src/app/AppController.js",signal:"reconcileWorkBookingLedger",test:"scripts/check-durable-work-v3181.mjs"},
+ {id:"website_measured_design",source:"src/core/websiteMeasuredDesignCoach.mjs",
+  wired:"src/screens/websiteBuilder.js",signal:"compareWebsiteVisualReports",test:"scripts/check-website-outcome-browser-v3118.mjs"},
+ {id:"app_design_feedback",source:"src/core/appDesignLearning.mjs",
+  wired:"src/screens/miniApps.js",signal:"rankDesignSuggestions",test:"scripts/check-intelligent-app-studio-v3157.mjs"},
+ {id:"website_app_fact_coordination",source:"src/core/coordinatedBuilderReviewV3180.mjs",
+  wired:"src/screens/miniApps.js",signal:"prepareCoordinatedBuilderReview",test:"scripts/check-atomic-staging-v3180.mjs"},
+ {id:"get_paid_owner_drafts",source:"src/core/getPaidIntelligenceV3183.mjs",
+  wired:"src/components/GetPaidOwnerReview.js",signal:"prepareGetPaidQuoteDraft",test:"scripts/check-get-paid-v3183.mjs"}
+];
+const capabilities=domains.map(d=>{
+ const implementation=source.has(d.source);
+ const ownerSurface=source.get(d.wired)?.includes(d.signal)===true;
+ const testPresent=source.has(d.test);
+ return {id:d.id,implementation,ownerSurface,testPresent,
+  sourceAndOwnerWired:implementation&&ownerSurface,
+  evidenceLevel:"static_source_inventory_only",
+  hostedEndToEndVerified:false,realCustomerOutcomesVerified:false,
+  underlyingModelRetrained:false};
+});
+const paths=files.map(x=>x.path);
+const byDir=prefix=>files.filter(x=>x.path.startsWith(prefix)).length;
+const sourceLines=files.reduce((sum,f)=>sum+
+ (f.text===""?0:f.text.endsWith("\n")?
+  f.text.split("\n").length-1:f.text.split("\n").length),0);
+const report={kind:"busy_intelligence_source_inventory_v3183",
+ branchExpected:"v3.183",countingRule:"physical lines in selected code extensions, including comments and blanks",
+ codeFiles:files.length,codePhysicalLines:sourceLines,
+ coreFiles:byDir("src/core/"),serviceFiles:byDir("supabase/functions/"),
+ scriptFiles:byDir("scripts/"),migrationFiles:byDir("supabase/migrations/"),
+ surveyedCapabilities:capabilities,
+ wiredSourceCapabilities:capabilities.filter(x=>x.sourceAndOwnerWired).length,
+ areasNeedingWiring:capabilities.filter(x=>!x.sourceAndOwnerWired).map(x=>x.id),
+ testsPresentForSample:capabilities.filter(x=>x.testPresent).length,
+ realStagingAppInstalled:false,realCustomerJourneysProven:false,
+ calibratedIQScore:null,selfTrainingVerified:false,
+ trackedCodeIsNotProofOfIntelligence:true};
+console.log(JSON.stringify(report,null,2));
+export {report};
