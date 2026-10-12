@@ -28,6 +28,8 @@ import {VIEWPORTS,getViewport,validateViewportPair,compareViewportSet,
 import {rankDesignSuggestions} from "../core/appDesignLearning.mjs";
 import {buildOwnerDesignPatterns,prepareOwnerAwareDesignExperiments,
  explainOwnerDesignOutcome} from "../core/appDesignPatterns.mjs";
+import {INDUSTRY_PROFILES,prepareIndustryAwareAppReview}
+  from "../core/appIndustryOrchestrator.mjs";
 import {auditStandaloneContrast} from "../core/appContrastAudit.mjs";
 import {appRequestJourney} from "../core/appRequestLifecycle.mjs";
 import {appVisibleCaptureReceipt,currentAppVisibleCapture} from "../core/appRenderedEvidence.mjs";
@@ -2213,6 +2215,8 @@ function MiniAppPreview({ s }) {
   const [designMemoryBusy,setDesignMemoryBusy]=React.useState(false);
   const [designMemoryNotice,setDesignMemoryNotice]=React.useState("");
   const [showDesignMemory,setShowDesignMemory]=React.useState(false);
+  const [designIndustry,setDesignIndustry]=React.useState("general");
+  const [showIndustryReview,setShowIndustryReview]=React.useState(false);
   const [qualityEnabled,setQualityEnabled]=React.useState(false);
   const [currentMeasurements,setCurrentMeasurements]=React.useState([]);
   const [beforeMeasurements,setBeforeMeasurements]=React.useState([]);
@@ -2236,6 +2240,7 @@ function MiniAppPreview({ s }) {
   const proposedComparisonRef=React.useRef(null);
   React.useEffect(()=>{
     setDesignCheckpoint(null);
+    setDesignIndustry("general");setShowIndustryReview(false);
   },[appId]);
   React.useEffect(()=>{
     let active=true;
@@ -2369,6 +2374,13 @@ function MiniAppPreview({ s }) {
     ai:visualReport?.suggestions||[],
     responsive:responsiveSuggestions
   });
+  const industryDesignReview=prepareIndustryAwareAppReview(config,{
+    industry:designIndustry,
+    history:designMemory?.ok?designMemory.records:[],
+    measured:measuredSuggestions?.suggestions||[],
+    ai:visualReport?.suggestions||[],
+    responsive:responsiveSuggestions
+  });
   const savedOwnerVerdict=(designMemory?.records||[]).find(item=>
     item.context==="saved_revision"&&item.draftRevision===revision&&
     designCheckpoint?.desiredAppearance?.some(op=>
@@ -2474,13 +2486,14 @@ function MiniAppPreview({ s }) {
       ai:visualReport?.suggestions||[],
       responsive:responsiveSuggestions
     });
-    const plan=nextDesignExperiment?.preview?.ok?
-      {...nextDesignExperiment.preview,
-        explanations:nextDesignExperiment.reasoning.map(x=>({
+    const guided=designIndustry==="general"?nextDesignExperiment:industryDesignReview;
+    const plan=guided?.preview?.ok?
+      {...guided.preview,
+        explanations:guided.reasoning.map(x=>({
           field:x.field,value:x.value,
           source:["measured","ai","responsive"].includes(
-            nextDesignExperiment.proposed.find(p=>p.field===x.field)?.sources?.[0])?
-              nextDesignExperiment.proposed.find(p=>p.field===x.field).sources[0]:"manual",
+            guided.proposed.find(p=>p.field===x.field)?.sources?.[0])?
+              guided.proposed.find(p=>p.field===x.field).sources[0]:"manual",
           why:x.why+" "+x.ownerPreference+
             ". This is a reasoned suggestion, not a proven improvement.",
           tradeoff:x.tradeoff
@@ -2681,6 +2694,74 @@ function MiniAppPreview({ s }) {
         footer="Opening this preview does not make anything public."
         tone="green"
       />
+      {config&&appId&&revision>0?(
+        <Card eyebrow="V3.168 • Intelligent app creation"
+          title="Tailor this app to your business"
+          body="BUSY can compare design ideas for different types of businesses. Choose the type yourself: no industry is inferred from private customer information."
+          footer="This never enables bookings, sends customer messages, changes your draft or publishes an app.">
+          <Button label={showIndustryReview?
+              "Hide business design options":"Choose business type & review"}
+            onPress={()=>setShowIndustryReview(x=>!x)}/>
+          {showIndustryReview?(
+            <>
+              {INDUSTRY_PROFILES.map(profile=>(
+                <Button key={"industry-"+profile.id}
+                  label={(designIndustry===profile.id?"✓ ":"")+profile.label}
+                  onPress={()=>{
+                    setDesignIndustry(profile.id);
+                    setVisualProposal(null);setVisualSelected([]);
+                    setVirtualSamples({});setVisualNotice("");
+                  }}/>
+              ))}
+              <Text style={styles.cardBody}>
+                {industryDesignReview?.profile?.description||
+                  "This draft needs a valid business type."}
+              </Text>
+              {(industryDesignReview?.customerJourney?.steps||[]).map(step=>(
+                <View key={"industry-journey-"+step.id}>
+                  <MetricRow left={step.label} right={step.status.replaceAll("_"," ")}/>
+                  <Text style={styles.cardBody}>{step.detail}</Text>
+                </View>
+              ))}
+              {industryDesignReview?.releaseIssues?.map(issue=>(
+                <Text key={"industry-issue-"+issue.id} style={styles.cardBody}>
+                  {"Before release: "+issue.message}
+                </Text>
+              ))}
+              {industryDesignReview?.preview?.ok&&designIndustry!=="general"?(
+                <>
+                  <Text style={styles.cardBody}>
+                    {"BUSY has "+industryDesignReview.proposed.length+
+                    " reversible appearance idea(s). All require your approval."}
+                  </Text>
+                  {industryDesignReview.widthReview?.ok?(
+                    <Text style={styles.cardBody}>
+                      {"Rules-based layout checks at 320, 390 and 820 points: "+
+                        industryDesignReview.widthReview.beforeWarnings+
+                        " warning(s) before, "+
+                        industryDesignReview.widthReview.afterWarnings+
+                        " after. These are not visual screenshots or real-device tests."}
+                    </Text>
+                  ):null}
+                  <Button label="Compare the proposed design with my original"
+                    disabled={designMemoryBusy||!!s.miniAppsAction||virtualBusy}
+                    onPress={prepareCoordinatedReview}/>
+                </>
+              ):(
+                <Text style={styles.cardBody}>
+                  BUSY is keeping your current design. There is no supported new
+                  appearance change to suggest for this selection.
+                </Text>
+              )}
+              <Text style={styles.cardBody}>
+                BUSY marketplace and standalone packages use the same underlying
+                app draft. Store acceptance and real booking/enquiry delivery
+                still require separate end-to-end testing.
+              </Text>
+            </>
+          ):null}
+        </Card>
+      ):null}
       {config&&appId&&revision>0?(
         <Card eyebrow="V3.166 • Your design preferences"
           title="Busy remembers your design choices"
