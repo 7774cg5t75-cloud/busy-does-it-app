@@ -6,6 +6,7 @@ import {reviewMessageDeliveryIntents} from "../core/messageDeliveryEvidenceV3185
 import {recommendMeasuredOwnerActions} from "../core/measuredCustomerActionPriorityV3186.mjs";
 import {reviewCustomerOutcomeProof} from "../core/customerOutcomeProofV3187.mjs";
 import {assessOwnerEvidenceCompleteness} from "../core/customerEvidenceCompletenessV3188.mjs";
+import {prepareOwnerNextAction} from "../core/ownerNextActionV3189.mjs";
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -98,6 +99,7 @@ function buildMiniAppsView(remote = {}) {
     assessOwnerEvidenceCompleteness({outcomeProof,
       messageSnapshot:messageCheckpoints,workSnapshot:workBookingLedger,
       requestSnapshotLimit:30}):null;
+  const ownerNextAction=prepareOwnerNextAction({outcomeProof,evidenceCompleteness});
   const journeyCheckpoints=messageCheckpoints&&workBookingLedger?
     summarizeJourneyCheckpoints({businessId:app?.business_id||"",
       appId:app?.id||"",requests,links:requestLinks,
@@ -274,6 +276,7 @@ function buildMiniAppsView(remote = {}) {
     journeyCheckpoints,
     outcomeProof,
     evidenceCompleteness,
+    ownerNextAction,
     deliveryEvidence,
     measuredOwnerActions,
     pushGatewayEvidence:remote?.pushGatewayEvidence?.ok===true?remote.pushGatewayEvidence:null,
