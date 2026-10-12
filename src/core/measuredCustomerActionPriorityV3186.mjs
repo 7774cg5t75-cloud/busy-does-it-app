@@ -11,8 +11,11 @@ function recommendMeasuredOwnerActions({
 }={}){
  const valid=x=>x?.ok===true&&x.counts&&typeof x.counts==="object"&&
   Object.values(x.counts).every(v=>Number.isSafeInteger(v)&&v>=0);
- if(!valid(journey)||!valid(work)||!valid(gateway)||!valid(notification))
-  return {ok:false,reason:"Stored results are incomplete; no recommendation may be asserted."};
+ if(!valid(journey)||!valid(work))
+  return {ok:false,reason:"Booking and request evidence is incomplete; no recommendation may be asserted."};
+ // Delivery evidence can be temporarily offline without blocking an owner
+ // from seeing an independently proven booking conflict or waiting customer.
+ const hasGateway=valid(gateway),hasNotification=valid(notification);
  const checks=[
   {
    id:"work_booking_conflict",severity:"critical",
@@ -36,8 +39,9 @@ function recommendMeasuredOwnerActions({
   },
   {
    id:"unconfirmed_push_submission",severity:"medium",
-   count:(gateway.counts.gatewayRejectedMessages||0)+
-     (notification.counts.pendingOver60Minutes||0),
+   count:hasGateway&&hasNotification?
+     (gateway.counts.gatewayRejectedMessages||0)+
+       (notification.counts.pendingOver60Minutes||0):0,
    recommendation:"Review the saved conversations with rejected or pending push submissions.",
    why:"The reply may exist in BUSY even when a phone notification did not leave the system."
   }
@@ -45,6 +49,7 @@ function recommendMeasuredOwnerActions({
  const rank={critical:0,high:1,medium:2,low:3};
  checks.sort((a,b)=>rank[a.severity]-rank[b.severity]||b.count-a.count);
  const partial=!!(journey.coveragePartial||work.evidencePartial||
+   !hasGateway||!hasNotification||
    gateway.coveragePartial||notification.coveragePartial);
  return {
   ok:true,kind:"measured_customer_action_priority_v3186",
@@ -56,6 +61,8 @@ function recommendMeasuredOwnerActions({
   },
   source:"business_scoped_stored_journey_and_gateway_snapshot",
   samplesMayHaveDifferentWindows:true,
+  gatewayEvidenceUnavailable:!hasGateway,
+  notificationEvidenceUnavailable:!hasNotification,
   coveragePartial:partial,zeroIssuesDoesNotGuaranteeSuccess:true,
   customerOutcomeConversionRate:null,
   saleRevenueMeasured:false,customerReadReceiptsMeasured:false,
