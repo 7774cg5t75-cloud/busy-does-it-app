@@ -107,6 +107,12 @@ for(const marker of ['onPress={()=>onOpenContact?.(key)}',
  'accessibilityLabel={String(photo.alt||photo.caption||"Business photo "+(i+1))}'])
  ok(native.includes(marker),"Native UI wiring missing: "+marker);
 ok(!native.includes("Automatically confirm your booking"));
+const marketplace=read("src/screens/miniApps.js");
+ok(marketplace.includes("{String(asset.caption).slice(0,240)}"),
+ "Marketplace Business App must show approved gallery captions too.");
+ok(marketplace.includes('accessibilityLabel={String(asset.alt||asset.caption||'),
+ "Marketplace Business App must preserve owner-authored accessibility text.");
+
 
 const seed={brandBrain:{websiteReady:true,websiteBrief:{
  businessName:"Florist Demo",businessType:"Florist",
