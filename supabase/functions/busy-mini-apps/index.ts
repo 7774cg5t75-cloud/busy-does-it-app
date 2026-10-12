@@ -15,6 +15,7 @@ import {readOwnerBrainDecisions,recordOwnerBrainDecision,clearOwnerBrainDecision
  from "./brainOwnerDecisionsService.mjs";
 import {isolatedStagingGuard} from "./stagingConnectionGuard.mjs";
 import {runSyntheticStagingProbe} from "./stagingSyntheticService.mjs";
+import {auditIsolatedStagingInstall} from "./stagingInstallAudit.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -3823,6 +3824,7 @@ Deno.serve(async (request: Request) => {
       "clear_brain_owner_decisions",
       "staging_connection_probe",
       "staging_synthetic_round_trip",
+      "staging_install_audit",
     ]);
     const member = await membership(
       user.id,
@@ -3845,6 +3847,17 @@ Deno.serve(async (request: Request) => {
       return json(200,{ok:true,businessId:resolvedBusinessId,
        ...(await clearOwnerBrainDecisions(supabase,appForBusiness,
          resolvedBusinessId,user.id,body))});
+    }
+    if(action==="staging_install_audit"){
+      const staged=isolatedStagingGuard({
+        mode:Deno.env.get("BUSY_STAGING_MODE")||"",
+        projectRef:Deno.env.get("BUSY_STAGING_PROJECT_REF")||"",
+        supabaseUrl:SUPABASE_URL
+      });
+      if(!staged.ok)throw Error(staged.reason);
+      return json(200,{ok:true,businessId:resolvedBusinessId,
+        ...(await auditIsolatedStagingInstall(supabase,appForBusiness,
+          resolvedBusinessId,body))});
     }
     if(action==="staging_synthetic_round_trip"){
       const stage=isolatedStagingGuard({
