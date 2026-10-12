@@ -38,8 +38,8 @@ function Field({title,value,onChange,multiline=false}){
       minHeight:multiline?92:45,textAlignVertical:"top"}}/>
  </View>;
 }
-function RequestScreen({screen,live,runtime}){
- const [input,setInput]=useState({name:"",email:"",phone:"",service:"",
+function RequestScreen({screen,live,runtime,initialService=""}){
+ const [input,setInput]=useState({name:"",email:"",phone:"",service:initialService,
   preferredDate:"",message:"",note:""});
  const [busy,setBusy]=useState(false),[result,setResult]=useState(null);
  const type=screen.key==="booking_request"?"booking_request":"enquiry";
@@ -87,7 +87,7 @@ function RequestScreen({screen,live,runtime}){
   )}
  </View>;
 }
-function LiveInfo({screen,app,layout}){
+function LiveInfo({screen,app,layout,onRequestService}){
  if(screen.key==="business_profile")return <View style={box}>
   <Text style={{...t,fontSize:21,fontWeight:"700"}}>{app.title}</Text>
   <Text style={sub}>{app.tagline||app.about||"Contact this business for more information."}</Text>
@@ -105,6 +105,8 @@ function LiveInfo({screen,app,layout}){
        width:layout?.serviceColumns===2?"48%":"100%"}}>
        <Text style={{...t,fontWeight:"700"}}>{service.name}</Text>
        <Text style={sub}>{service.description||"Ask the business for details."}</Text>
+       {app.supportsBookingRequest&&app.moduleKeys?.includes("booking_request")?
+        <Button title={"Request "+service.name} onPress={()=>onRequestService?.(service.name)}/>:null}
      </View>)}</View>:<Text style={sub}>No public services are listed.</Text>}
  </View>;
  if(screen.key==="gallery")return <View style={box}>
@@ -156,6 +158,7 @@ export default function App(){
  const runtime=prototype.runtimeConnection;
  const connected=verifiedPublicRuntime(runtime);
  const [current,setCurrent]=useState(prototype.screenSchema.screens[0].key);
+ const [requestedService,setRequestedService]=useState("");
  const [loading,setLoading]=useState(connected),[live,setLive]=useState(null),
   [error,setError]=useState("");
  useEffect(()=>{
@@ -215,8 +218,13 @@ export default function App(){
      </Pressable>)}
     </View>
     {["enquiry","booking_request"].includes(chosen.key)?
-     <RequestScreen key={chosen.key} screen={chosen} live={live} runtime={runtime}/>:
-     <LiveInfo screen={chosen} app={live} layout={responsive}/>}
+     <RequestScreen key={chosen.key+":"+requestedService} screen={chosen} live={live}
+      runtime={runtime} initialService={chosen.key==="booking_request"?requestedService:""}/>:
+     <LiveInfo screen={chosen} app={live} layout={responsive}
+      onRequestService={serviceName=>{
+       if(!live.supportsBookingRequest||!live.moduleKeys?.includes("booking_request"))return;
+       setRequestedService(serviceName);setCurrent("booking_request");
+      }}/>}
    </View>:null}
    <Text style={{color:COLORS.muted,fontSize:12,marginTop:20}}>
     No app-store submission or third-party payment is performed by this app.
