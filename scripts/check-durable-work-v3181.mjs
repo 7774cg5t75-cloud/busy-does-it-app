@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {reconcileWorkBookingLedger} from "../src/core/workBookingReconciliationV3181.mjs";
+import {assessDurableWorkOutcomes} from "../src/core/durableWorkOutcomeEvidenceV3181.mjs";
 let checks=0;
 function eq(a,b){assert.deepEqual(a,b);checks++;}
 function ok(x){assert.ok(x);checks++;}
@@ -97,4 +98,28 @@ ok(bookingBlock.includes("else await refreshMiniAppsStatus({quiet:true})"));
 const workScreen=read("src/screens/work.js");
 ok(workScreen.includes("s.workLedgerReview.bookings.map"));
 ok(workScreen.includes('s.go("miniAppBuilder")'));
+// Business Brain must use tenant-scoped stored evidence, never personal data.
+const observed=assessDurableWorkOutcomes({
+ businessId:business,appId:app,
+ requests:[
+ {id:id1,business_id:business,mini_app_id:app,request_type:"booking_request",
+  status:"accepted",contact_name:"PRIVATE_LEAK"},
+ {id:id2,business_id:business,mini_app_id:app,request_type:"booking_request",
+  status:"accepted"},
+ {id:id3,business_id:business,mini_app_id:app,request_type:"booking_request",
+  status:"closed"},
+ {id:"77777777-7777-4777-8777-777777777777",business_id:wrong,
+  mini_app_id:app,request_type:"booking_request",status:"accepted"}
+ ],ledger:{rows:[row(id1),row(id3)]}
+});
+ok(observed.ok);
+eq(observed.counts.recentBookingRequests,3);
+eq(observed.counts.acceptedRecentBookings,2);
+eq(observed.counts.acceptedMissingWork,1);
+eq(observed.counts.cancelledButStillActive,1);
+ok(!JSON.stringify(observed).includes("PRIVATE_LEAK"));
+eq(observed.realSalesMeasured,false);
+eq(observed.completedJobsMeasured,false);
+ok(!assessDurableWorkOutcomes({businessId:business,appId:app,requests:[],
+ ledger:{rows:[{...row(id1),business_id:wrong}]}}).ok);
 console.log("V3.181 "+checks+" focused assertions PASS; real rollback checks run separately in PostgreSQL CI.");
