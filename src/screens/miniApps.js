@@ -42,6 +42,12 @@ import {appDesignEvidenceComparison}
   from "../core/crossBuilderEvidence.mjs";
 import {stagingJourneyTestPlan}
   from "../core/stagingJourneyContract.mjs";
+import {reviewBusinessInformation}
+  from "../core/businessInfoClarity.mjs";
+import {prepareStagingJourneyRun}
+  from "../core/stagingJourneyPreparation.mjs";
+import {compareAppGoalCandidate}
+  from "../core/designEvidencePriorities.mjs";
 import {describeRequestExperience}
   from "../core/appRequestCommunication.mjs";
 import {auditStandaloneContrast} from "../core/appContrastAudit.mjs";
@@ -843,6 +849,19 @@ function MiniAppBuilder({ s }) {
     kind:selectedCustomerTask==="enquire"?"enquiry":"booking_request",
     channel:"busy_marketplace"
   });
+  const serviceClarity=view.draftConfig?
+    reviewBusinessInformation({appConfig:view.draftConfig}):null;
+  const stagedDryRun=view.draftConfig&&["book","enquire"].includes(selectedCustomerTask)?
+    prepareStagingJourneyRun({
+      kind:selectedCustomerTask==="enquire"?"enquiry":"booking_request",
+      channel:"busy_marketplace",businessId:s.cloudWorkspace?.businessId||"",
+      draftRevision:app?.draft_revision||0,
+      environment:"dry_run"
+    }):null;
+  const comparativeEvidence=customerTaskPlan?.preview?.ok?
+    compareAppGoalCandidate({before:view.draftConfig,
+      after:customerTaskPlan.preview.nextConfig,
+      goal:selectedCustomerTask}):null;
   const nonAiDesignHints=proposeLowRiskDesignHints(view.draftConfig||view.activeConfig||{});
   const responsiveGuidance=recommendResponsiveDesign(view.draftConfig||view.activeConfig||{});
   const responsiveQuality=evaluateAppAcrossScreens(view.draftConfig||view.activeConfig||{});
@@ -1402,6 +1421,42 @@ function MiniAppBuilder({ s }) {
                     " separate checks are still unverified for "+
                     selectedCustomerTask+
                     ". No real customer journey was executed here."}
+                </Text>
+              ):null}
+              {serviceClarity?.ok&&["services","book"].includes(selectedCustomerTask)?(
+                <>
+                  <Text style={styles.sectionLabel}>V3.173 • Service clarity</Text>
+                  <MetricRow left="Services with clear descriptions"
+                    right={serviceClarity.appCompleteDescriptions+" of "+serviceClarity.appServiceCount}/>
+                  {(serviceClarity.issues||[]).filter(issue=>issue.surface==="app")
+                    .slice(0,4).map((issue,i)=>(
+                    <Text key={"service-clarity-"+i} style={styles.cardBody}>
+                      {issue.title+
+                        (issue.position?" (service "+issue.position+")":"")+
+                        ". "+issue.ownerAction}
+                    </Text>
+                  ))}
+                  <Text style={styles.cardBody}>
+                    Busy does not invent your services, prices or business claims.
+                    Make wording changes in the private service editor.
+                  </Text>
+                </>
+              ):null}
+              {comparativeEvidence?.ok?(
+                <Text style={styles.cardBody}>
+                  {"V3.173 • Evidence review: "+
+                    comparativeEvidence.widths.length+
+                    " predicted layout widths; recommendation: "+
+                    comparativeEvidence.recommendation.replaceAll("_"," ")+
+                    ". Not actual customer testing."}
+                </Text>
+              ):null}
+              {stagedDryRun?.ok?(
+                <Text style={styles.cardBody}>
+                  {"V3.173 • Ready-to-review staging plan: "+
+                    stagedDryRun.caseCount+
+                    " practice cases prepared; zero executed. "+
+                    "A separate owner-approved isolated staging runner is required."}
                 </Text>
               ):null}
               <Button label={showJourneyPractice?
