@@ -6,7 +6,7 @@
  * Never touches customer request, notification, diary, publishing or payment
  * tables. This is a genuine isolated staging DB write/read, NOT customer E2E.
  */
-const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const KINDS=new Set(["booking_request","enquiry"]);
 const CHANNELS=new Set(["busy_marketplace","standalone","guest_web"]);
 async function runSyntheticStagingProbe(
