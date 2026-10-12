@@ -13,7 +13,7 @@ async function sendAtomicConversation(supabase,{
    typeof idempotencyKey!=="string"||
    !/^[A-Za-z0-9:_-]{8,180}$/.test(idempotencyKey))
   throw new Error("Choose a signed-in customer conversation with a valid reply and request ID.");
- const result=await supabase.rpc("busy_send_mini_app_message_v3184",{
+ const result=await supabase.rpc("busy_send_mini_app_message_v3185",{
   p_actor_user_id:actorUserId,p_business_id:businessId,
   p_request_id:requestId,p_sender_role:senderRole,p_body:message,
   p_idempotency_key:idempotencyKey
@@ -23,6 +23,8 @@ async function sendAtomicConversation(supabase,{
  if(!value||typeof value.changed!=="boolean"||
    value.databaseMessageSaved!==true||
    value.providerDeliveryVerified!==false||
+   value.deliveryIntentDurable!==true||
+   typeof value.outboxId!=="string"||
    value.message?.request_id!==requestId||
    value.message?.business_id!==businessId||
    value.message?.sender_user_id!==actorUserId||
@@ -30,6 +32,8 @@ async function sendAtomicConversation(supabase,{
   throw new Error("The saved reply receipt could not be verified. Refresh the conversation.");
  return {reused:value.changed===false,message:value.message,
    databaseMessageSaved:true,customerDeliveryVerified:false,
-   providerDeliveryVerified:false};
+   providerDeliveryVerified:false,
+   outboxId:value.outboxId,outboxState:value.outboxState,
+   deliveryIntentDurable:true};
 }
 export {sendAtomicConversation};
