@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {PALETTES,DEFAULT_PALETTE,nativePalette}
- from "../standalone/template/nativePalette.mjs";
+ from "../src/core/nativePalette.mjs";
 import {nativePreferredDates}
  from "../standalone/template/nativePreferredDates.mjs";
 import {OPTIONS,DEFAULTS,previewPrivateAppAppearance}
