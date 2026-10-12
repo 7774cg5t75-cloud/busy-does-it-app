@@ -34,6 +34,10 @@ import {buildCustomerTaskDesignReport,proposeTaskFirstNavigation}
   from "../core/appCustomerTaskDesign.mjs";
 import {runCustomerJourneyPractice}
   from "../core/appCustomerJourneyPractice.mjs";
+import {reviewCustomerExperience}
+  from "../core/appCustomerExperienceReview.mjs";
+import {describeRequestExperience}
+  from "../core/appRequestCommunication.mjs";
 import {auditStandaloneContrast} from "../core/appContrastAudit.mjs";
 import {appRequestJourney} from "../core/appRequestLifecycle.mjs";
 import {appVisibleCaptureReceipt,currentAppVisibleCapture} from "../core/appRenderedEvidence.mjs";
@@ -821,6 +825,8 @@ function MiniAppBuilder({ s }) {
     proposeTaskFirstNavigation(view.draftConfig,selectedCustomerTask):null;
   const practiceReport=view.draftConfig?
     runCustomerJourneyPractice(view.draftConfig):null;
+  const customerExperience=view.draftConfig?
+    reviewCustomerExperience(view.draftConfig,{goal:selectedCustomerTask}):null;
   const nonAiDesignHints=proposeLowRiskDesignHints(view.draftConfig||view.activeConfig||{});
   const responsiveGuidance=recommendResponsiveDesign(view.draftConfig||view.activeConfig||{});
   const responsiveQuality=evaluateAppAcrossScreens(view.draftConfig||view.activeConfig||{});
@@ -1324,6 +1330,39 @@ function MiniAppBuilder({ s }) {
                 Static navigation checks do not prove actual submissions,
                 accessibility, appointment confirmations or customer outcomes.
               </Text>
+              {customerExperience?.ok?(
+                <>
+                  <Text style={styles.sectionLabel}>V3.171 • How Busy would improve this</Text>
+                  <Text style={styles.cardBody}>
+                    These are preparation steps for your selected customer goal.
+                    Nothing has been changed, published or sent to customers.
+                  </Text>
+                  {customerExperience.improvements.length?(
+                    customerExperience.improvements.map(item=>(
+                      <View key={"cx-finding-"+item.id}>
+                        <MetricRow left={item.title}
+                          right={item.priority==="important"?"Needs checking":"Suggested"}/>
+                        <Text style={styles.cardBody}>{item.ownerAction}</Text>
+                      </View>
+                    ))
+                  ):(
+                    <Text style={styles.cardBody}>
+                      No additional supported change was identified.
+                      Actual customer testing is still required.
+                    </Text>
+                  )}
+                  {customerExperience.navigationPreview?.ok&&
+                    !customerTaskPlan?.preview?.ok?(
+                    <Button label="Compare Busy's suggested section order"
+                      disabled={!!s.miniAppsAction}
+                      onPress={()=>{
+                        setStudioPreview(customerExperience.navigationPreview);
+                        setStudioComparisonSide("proposed");
+                        setStudioNotice("This is only a private proposal. Review both versions and approve or discard below.");
+                      }}/>
+                  ):null}
+                </>
+              ):null}
               <Button label={showJourneyPractice?
                   "Hide practice journey checks":"Check sample booking & enquiry journeys"}
                 onPress={()=>setShowJourneyPractice(x=>!x)}/>
@@ -3834,6 +3873,8 @@ function MiniAppRequestDetail({ s }) {
   const guestWebRequest = request?.request_origin === "guest_web";
   const link = request?.id ? s.miniAppsView?.linkByRequest?.get?.(request.id) || null : null;
   const journey=request?appRequestJourney(request,link):null;
+  const experienceMessage=request?describeRequestExperience(request,link,{
+    audience:ownerView?"business":"customer"}):null;
 
   const send = async () => {
     const body = draft.trim();
@@ -3872,8 +3913,10 @@ function MiniAppRequestDetail({ s }) {
                   ].filter(Boolean).join(" • ")
                 : request.payload?.message || "Customer enquiry"
             }
-            footer={`Status: ${String(request.status || "received").replaceAll("_", " ")}`}
-            tone={request.status === "accepted" ? "green" : ["declined", "closed"].includes(request.status) ? "amber" : "blue"}
+            footer={experienceMessage?.ok?"Status: "+experienceMessage.title:
+              `Status: ${String(request.status || "received").replaceAll("_", " ")}`}
+            tone={experienceMessage?.confirmationRecorded?"green":
+              ["declined", "closed"].includes(request.status)?"amber":"blue"}
           >
             {ownerView ? (
               <>
@@ -3916,15 +3959,30 @@ function MiniAppRequestDetail({ s }) {
           </Card>
 
           {journey?(
-            <Card eyebrow="Request progress" title={journey.type==="booking_request"?
-              "Booking request — follow the real diary":"Enquiry — follow the response"}
-              body={journey.customerMessage}
+            <Card eyebrow="Request progress" title={experienceMessage?.ok?
+                experienceMessage.title:journey.type==="booking_request"?
+                "Booking request — follow the real diary":"Enquiry — follow the response"}
+              body={experienceMessage?.ok?
+                experienceMessage.explanation:journey.customerMessage}
               footer="The same tracked request is used in the marketplace and standalone app. Acceptance alone does not make an appointment."
-              tone={journey.confirmed?"green":"blue"}>
-              {journey.stages.map(step=>(
+              tone={experienceMessage?.confirmationRecorded?"green":"blue"}>
+              {(experienceMessage?.ok?experienceMessage.stageLabels:
+                journey.stages).map(step=>(
                 <MetricRow key={step.key} left={step.label}
                   right={step.complete?"Recorded":"Waiting"}/>
               ))}
+              {experienceMessage?.ok?(
+                <>
+                  <Text style={styles.sectionLabel}>What happens next?</Text>
+                  <Text style={styles.cardBody}>{experienceMessage.nextStep}</Text>
+                  {experienceMessage.inconsistentRecords?(
+                    <Text style={styles.cardBody}>
+                      BUSY cannot verify this booking from the request and diary
+                      statuses shown here. Check both records before confirming.
+                    </Text>
+                  ):null}
+                </>
+              ):null}
             </Card>
           ):null}
           {ownerView && link?.bridge_state === "booking_draft" ? (
