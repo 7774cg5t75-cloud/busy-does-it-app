@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, TextInput, View } from "react-native";
+import { Text, TextInput, View, Alert } from "react-native";
 import { WebView } from "react-native-webview";
 
 import { styles } from "../theme/styles";
@@ -18,6 +18,7 @@ import {prepareOwnerImprovementPlan}
   from "../core/ownerImprovementPlan.mjs";
 import {prepareBusinessBrainWork}
   from "../core/businessBrainWorkQueue.mjs";
+import {currentPreparedWebsiteRevision} from "../core/websiteBrainChoiceContract.mjs";
 import { websiteDesignAlternative } from "../core/websiteDesignAlternatives.mjs";
 import { websiteCustomerJourney } from "../core/websiteCustomerJourney.mjs";
 import { websiteOutcomeGuidance } from "../core/websiteOutcomeGuidance.mjs";
@@ -46,6 +47,9 @@ function WebsiteBuilder({ s }) {
   const [showWebsiteDetails, setShowWebsiteDetails] = React.useState(false);
   const [showJourneyIdeas,setShowJourneyIdeas]=React.useState(false);
   const [sharedJourneyGoal,setSharedJourneyGoal]=React.useState("enquire");
+  const [webBrainHistory,setWebBrainHistory]=React.useState(null);
+  const [webBrainNotice,setWebBrainNotice]=React.useState("");
+  const [webBrainSaving,setWebBrainSaving]=React.useState(false);
   const [showQualityIdeas, setShowQualityIdeas] = React.useState(false);
   const [showDesignReview, setShowDesignReview] = React.useState(false);
   const [designOptionIndex,setDesignOptionIndex]=React.useState(0);
@@ -66,6 +70,31 @@ function WebsiteBuilder({ s }) {
   },[draft?.id,draft?.generation,s.websiteVisualReview?.reviewId]);
   const hostedPreview = s.websitePublishingView?.previewDeployment || null;
   const hostedPreviewOutdated = !!s.websitePublishingView?.draftChangedSinceHosted;
+  const webBrainRevision=currentPreparedWebsiteRevision({
+    draft,hostedPreview,draftChangedSinceHosted:hostedPreviewOutdated
+  });
+  React.useEffect(()=>{
+    let active=true;
+    setWebBrainHistory(null);setWebBrainNotice("");
+    if(showJourneyIdeas&&webBrainRevision.ok&&
+       typeof s.getWebsiteBrainOwnerDecisions==="function"){
+      s.getWebsiteBrainOwnerDecisions().then(response=>{
+        if(!active)return;
+        if(response?.ok&&response.deploymentId===hostedPreview?.id&&
+           response.draftId===draft?.id&&
+           response.revision===draft?.generation&&
+           response.businessId===s.cloudWorkspace?.businessId)
+          setWebBrainHistory(response);
+        else setWebBrainNotice(response?.reason||
+          "Website preference storage is not yet available.");
+      }).catch(error=>{
+        if(active)setWebBrainNotice(String(error?.message||
+          "Could not load saved website decisions.").slice(0,180));
+      });
+    }
+    return ()=>{active=false;};
+  },[showJourneyIdeas,draft?.id,draft?.generation,
+     hostedPreview?.id,s.cloudWorkspace?.businessId,hostedPreviewOutdated]);
   const deliveryProof=buildWebsiteLaunchProof({
     ...(s.websitePublishingView||{}),websiteDraftPresent:!!draft
   });
@@ -89,7 +118,12 @@ function WebsiteBuilder({ s }) {
   const businessBrainQueue=draft?prepareBusinessBrainWork({
     businessId:s.cloudWorkspace?.businessId||"",
     goal:sharedJourneyGoal,websiteDraft:draft,brandBrain:brand,
-    websiteRevision:draft.generation||0
+    websiteRevision:draft.generation||0,
+    ownerDecisions:webBrainHistory?.businessId===s.cloudWorkspace?.businessId&&
+      webBrainHistory?.deploymentId===hostedPreview?.id&&
+      webBrainHistory?.draftId===draft?.id&&
+      webBrainHistory?.revision===draft?.generation?
+        webBrainHistory.records:[]
   }):null;
   const websiteDevicePlan=draft?prepareDeviceReview({
     businessId:s.cloudWorkspace?.businessId||"",
@@ -307,15 +341,70 @@ function WebsiteBuilder({ s }) {
                   {businessBrainQueue?.ok?(
                     <>
                       <Text style={styles.sectionLabel}>
-                        V3.175 • Business Brain's next actions
+                        V3.177 • Business Brain website preferences
                       </Text>
+                      <Text style={styles.cardBody}>
+                        BUSY can remember decisions only for a server-prepared
+                        current website revision. Nothing is changed or published
+                        by remembering a preference.
+                      </Text>
+                      {!webBrainRevision.ok?(
+                        <Text style={styles.cardBody}>{webBrainRevision.reason}</Text>
+                      ):null}
+                      {webBrainNotice?(
+                        <Text style={styles.cardBody}>{webBrainNotice}</Text>
+                      ):null}
                       {businessBrainQueue.items.map(item=>(
                         <View key={"web-brain-next-"+item.id}>
                           <MetricRow left={item.title} right="For your review"/>
                           <Text style={styles.cardBody}>{item.reason}</Text>
                           <Text style={styles.cardBody}>{item.nextStep}</Text>
+                          {webBrainHistory&&webBrainRevision.ok&&
+                           !webBrainSaving&&
+                           typeof s.recordWebsiteBrainOwnerDecision==="function"?(
+                            <Button label="Not useful — remember this"
+                              onPress={async()=>{
+                                setWebBrainSaving(true);
+                                try{
+                                  const response=await s.recordWebsiteBrainOwnerDecision({
+                                    goal:sharedJourneyGoal,actionId:item.id,
+                                    decision:"rejected"
+                                  });
+                                  if(!response?.ok)throw Error(response?.reason||"Save failed");
+                                  const current=await s.getWebsiteBrainOwnerDecisions();
+                                  if(!current?.ok)throw Error(current?.reason||
+                                    "Saved, but preferences couldn't be reloaded.");
+                                  setWebBrainHistory(current);
+                                  setWebBrainNotice("Your choice is saved privately.");
+                                }catch(error){
+                                  setWebBrainNotice(String(error?.message||
+                                    "Couldn't save this choice.").slice(0,180));
+                                }finally{setWebBrainSaving(false);}
+                              }}/>
+                          ):null}
                         </View>
                       ))}
+                      {webBrainHistory&&webBrainRevision.ok&&
+                       typeof s.clearWebsiteBrainOwnerDecisions==="function"?(
+                        <Button label="Clear saved website decisions"
+                          onPress={()=>{
+                            Alert.alert("Clear website decisions?",
+                              "This will erase private choices without changing your live website.",[
+                              {text:"Cancel",style:"cancel"},
+                              {text:"Clear",style:"destructive",onPress:async()=>{
+                                setWebBrainSaving(true);
+                                try{
+                                  const result=await s.clearWebsiteBrainOwnerDecisions();
+                                  if(!result?.ok)throw Error(result?.reason||"Clear failed");
+                                  setWebBrainHistory(null);
+                                  setWebBrainNotice("Private website decisions cleared.");
+                                }catch(error){
+                                  setWebBrainNotice(String(error?.message||
+                                    "Couldn't clear your choices.").slice(0,180));
+                                }finally{setWebBrainSaving(false);}
+                              }}]);
+                          }}/>
+                       ):null}
                       <Text style={styles.cardBody}>
                         No public changes, provider calls or spending are
                         authorised by these suggestions.
@@ -323,9 +412,8 @@ function WebsiteBuilder({ s }) {
                     </>
                   ):ownerImprovementPlan?.ok?(
                     <Text style={styles.cardBody}>
-                      BUSY can prepare owner-review priorities for this
-                      website. A connected business scope and current revision
-                      are required for a Business Brain work queue.
+                      BUSY can prepare review ideas. Owner preferences need
+                      a signed-in business and server-prepared website version.
                     </Text>
                   ):null}
                   {websiteDevicePlan?.ok?(
