@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import GetPaidOwnerReview from "../components/GetPaidOwnerReview";
 import {
   SafeAreaView,
   ScrollView,
@@ -3672,6 +3673,7 @@ function ReplyActionDetail({ s }) {
               : `Suggested from your saved ${customer.service.toLowerCase()} service price. Check it before using it.`}
           </Text>
         </View>
+        <GetPaidOwnerReview s={s} customer={customer} saved={saved} type="quote" />
         <Field label="Quote amount" value={s.actionQuoteAmount} onChangeText={s.setActionQuoteAmount} keyboardType="number-pad" prefix="£" />
         <Text style={styles.fieldLabel}>Draft reply</Text>
         <TextInput multiline value={s.actionQuoteMessage} onChangeText={s.setActionQuoteMessage} style={styles.messageInput} />
@@ -3782,6 +3784,8 @@ function ReplyActionDetail({ s }) {
           />
         ) : null}
 
+        <GetPaidOwnerReview s={s} customer={customer} saved={saved}
+          type="booking" bookingStatus={bookingStatus} />
         <View
           style={[
             styles.suggestionBox,
