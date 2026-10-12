@@ -7,7 +7,7 @@
  * customer messages and never shared across businesses.
  */
 import {prepareOwnerImprovementPlan} from "./ownerImprovementPlan.mjs";
-const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ALLOWED_DECISIONS=["approved","rejected","postponed"];
 const ALLOWED_SURFACES=["app","website","both"];
 function prepareBusinessBrainWork({
