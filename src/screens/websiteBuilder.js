@@ -16,6 +16,8 @@ import {prepareDeviceReview}
   from "../core/deviceReviewEvidence.mjs";
 import {prepareOwnerImprovementPlan}
   from "../core/ownerImprovementPlan.mjs";
+import {prepareBusinessBrainWork}
+  from "../core/businessBrainWorkQueue.mjs";
 import { websiteDesignAlternative } from "../core/websiteDesignAlternatives.mjs";
 import { websiteCustomerJourney } from "../core/websiteCustomerJourney.mjs";
 import { websiteOutcomeGuidance } from "../core/websiteOutcomeGuidance.mjs";
@@ -81,6 +83,11 @@ function WebsiteBuilder({ s }) {
     websiteDraft:draft,brandBrain:brand
   }):null;
   const ownerImprovementPlan=draft?prepareOwnerImprovementPlan({
+    goal:sharedJourneyGoal,websiteDraft:draft,brandBrain:brand,
+    websiteRevision:draft.generation||0
+  }):null;
+  const businessBrainQueue=draft?prepareBusinessBrainWork({
+    businessId:s.cloudWorkspace?.businessId||"",
     goal:sharedJourneyGoal,websiteDraft:draft,brandBrain:brand,
     websiteRevision:draft.generation||0
   }):null;
@@ -297,18 +304,29 @@ function WebsiteBuilder({ s }) {
                       ))}
                     </>
                   ):null}
-                  {ownerImprovementPlan?.ok?(
+                  {businessBrainQueue?.ok?(
                     <>
                       <Text style={styles.sectionLabel}>
-                        V3.174 • Busy's top improvements
+                        V3.175 • Business Brain's next actions
                       </Text>
-                      {ownerImprovementPlan.actions.map(item=>(
-                        <View key={"web-next-"+item.id}>
-                          <MetricRow left={item.title} right="Owner review"/>
-                          <Text style={styles.cardBody}>{item.nextAction}</Text>
+                      {businessBrainQueue.items.map(item=>(
+                        <View key={"web-brain-next-"+item.id}>
+                          <MetricRow left={item.title} right="For your review"/>
+                          <Text style={styles.cardBody}>{item.reason}</Text>
+                          <Text style={styles.cardBody}>{item.nextStep}</Text>
                         </View>
                       ))}
+                      <Text style={styles.cardBody}>
+                        No public changes, provider calls or spending are
+                        authorised by these suggestions.
+                      </Text>
                     </>
+                  ):ownerImprovementPlan?.ok?(
+                    <Text style={styles.cardBody}>
+                      BUSY can prepare owner-review priorities for this
+                      website. A connected business scope and current revision
+                      are required for a Business Brain work queue.
+                    </Text>
                   ):null}
                   {websiteDevicePlan?.ok?(
                     <Text style={styles.cardBody}>
