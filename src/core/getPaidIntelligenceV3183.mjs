@@ -57,7 +57,7 @@ function prepareGetPaidQuoteDraft({
  const changedExisting=fallback!==null&&fallback!==pence;
  const vatNote=includesVat?"VAT included, as stated in the owner's brief":
    excludesVat?"VAT excluded, as stated in the owner's brief":"VAT treatment not specified";
- return {ok:true,kind:"get_paid_private_quote_v3182",
+ return {ok:true,kind:"get_paid_private_quote_v3183",
   customerId:clean(customer.id,100),
   amountPence:pence,amountDisplay:total,currency:"GBP",
   serviceSource:"current_business_customer_record",
@@ -75,6 +75,7 @@ function prepareGetPaidQuoteDraft({
   createdInvoice:false,paymentLinkCreated:false,
   quoteSent:false,customerContacted:false,paymentTaken:false,
   providerFeesKnown:false,providerTermsMustBeShownBeforeConnecting:true,
+  localOwnerScopeChecked:true,externalOwnershipNotIndependentlyVerified:true,
   noNetworkRequests:true,noCustomerDataShared:true,
   noCrossBusinessLearning:true,noModelRetraining:true};
 }
@@ -130,7 +131,7 @@ function reviewGetPaidNextStep({
    why="A draft booking does not establish that work or payment is owed.";
   }
  }
- return {ok:true,kind:"get_paid_owner_next_step_v3182",
+ return {ok:true,kind:"get_paid_owner_next_step_v3183",
   next,why,priority,ownerOnly:true,
   quoteAndBookingStatesOwnerRecordedNotVerifiedExternalFacts:true,
   invoiceCreated:false,invoiceSent:false,paymentLinkCreated:false,
