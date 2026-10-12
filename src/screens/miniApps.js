@@ -765,6 +765,10 @@ function MiniAppBuilder({ s }) {
   const [showCustomerTaskReview,setShowCustomerTaskReview]=React.useState(false);
   const [showJourneyPractice,setShowJourneyPractice]=React.useState(false);
   const [stagingHandoff,setStagingHandoff]=React.useState(null);
+  const [stagingProbe,setStagingProbe]=React.useState(null);
+  const [brainOwnerHistory,setBrainOwnerHistory]=React.useState(null);
+  const [brainOwnerNotice,setBrainOwnerNotice]=React.useState("");
+  const [brainOwnerBusy,setBrainOwnerBusy]=React.useState(false);
   const [studioComparisonSide,setStudioComparisonSide]=React.useState("proposed");
   const [showResponsiveDetails,setShowResponsiveDetails]=React.useState(false);
   const [studioNotice,setStudioNotice]=React.useState("");
@@ -795,6 +799,9 @@ function MiniAppBuilder({ s }) {
     setShowCustomerTaskReview(false);
     setShowJourneyPractice(false);
     setStagingHandoff(null);
+    setStagingProbe(null);
+    setBrainOwnerHistory(null);
+    setBrainOwnerNotice("");
     setServiceIndex(-1);setServiceName("");setServiceDescription("");
     setAccessiblePhotoNumber("1");
     setAccessiblePhotoAlt("");setAccessiblePhotoCaption("");
@@ -808,6 +815,32 @@ function MiniAppBuilder({ s }) {
     setStudioPreview(null);
     setStudioVoiceOpen(false);
   },[app?.draft_revision]);
+  React.useEffect(()=>{
+    let valid=true;
+    const businessId=s.cloudWorkspace?.businessId||"";
+    const appId=app?.id||"";
+    const revision=Number(app?.draft_revision)||0;
+    setBrainOwnerHistory(null);
+    setBrainOwnerNotice("");
+    if(showCustomerTaskReview&&businessId&&appId&&revision>0&&
+       typeof s.getAppBrainDecisions==="function"){
+      s.getAppBrainDecisions({appId,expectedRevision:revision})
+        .then(result=>{
+          if(!valid)return;
+          if(result?.ok&&result.appId===appId&&
+             Number(result.revision)===revision&&
+             result.businessId===businessId)
+            setBrainOwnerHistory(result);
+          else setBrainOwnerNotice(result?.reason||
+             "Private preferences are unavailable until V3.176 is deployed.");
+        }).catch(error=>{
+          if(valid)setBrainOwnerNotice(String(error?.message||
+            "Owner decisions couldn't be loaded.").slice(0,200));
+        });
+    }
+    return ()=>{valid=false;};
+  },[showCustomerTaskReview,app?.id,app?.draft_revision,
+     s.cloudWorkspace?.businessId]);
   const modules = Array.isArray(view.catalog) ? view.catalog : [];
   const configuredModules = new Map(
     (view.modules || []).map((item) => [item.key, item])
@@ -890,7 +923,11 @@ function MiniAppBuilder({ s }) {
   const businessBrainQueue=view.draftConfig?prepareBusinessBrainWork({
     businessId:s.cloudWorkspace?.businessId||"",
     goal:selectedCustomerTask,appConfig:view.draftConfig,
-    appRevision:app?.draft_revision||0
+    appRevision:app?.draft_revision||0,
+    ownerDecisions:brainOwnerHistory?.appId===app?.id&&
+      Number(brainOwnerHistory?.revision)===Number(app?.draft_revision)&&
+      brainOwnerHistory?.businessId===s.cloudWorkspace?.businessId?
+      brainOwnerHistory.records:[]
   }):null;
   const nonAiDesignHints=proposeLowRiskDesignHints(view.draftConfig||view.activeConfig||{});
   const responsiveGuidance=recommendResponsiveDesign(view.draftConfig||view.activeConfig||{});
@@ -1515,29 +1552,109 @@ function MiniAppBuilder({ s }) {
               ):stagingHandoff?.reason?(
                 <Text style={styles.cardBody}>{stagingHandoff.reason}</Text>
               ):null}
+              {view.draftConfig&&app?.draft_revision>0&&
+                typeof s.checkIsolatedAppStagingConnection==="function"?(
+                <Button label="Check isolated staging connection (read only)"
+                  disabled={!!s.miniAppsAction}
+                  onPress={async()=>{
+                    setStagingProbe({busy:true});
+                    const result=await s.checkIsolatedAppStagingConnection({
+                      appId:app.id,expectedRevision:Number(app.draft_revision)
+                    });
+                    setStagingProbe(result);
+                  }}/>
+              ):null}
+              {stagingProbe?.ok?(
+                <Text style={styles.cardBody}>
+                  Staging owner access and private app revision were checked
+                  by the isolated server. No bookings, enquiries or messages
+                  were sent. Full end-to-end testing is still required.
+                </Text>
+              ):stagingProbe?.reason?(
+                <Text style={styles.cardBody}>{stagingProbe.reason}</Text>
+              ):null}
               {businessBrainQueue?.ok?(
                 <>
                   <Text style={styles.sectionLabel}>
-                    V3.175 • Busy's prepared work
+                    V3.176 • Busy's private work suggestions
                   </Text>
                   <Text style={styles.cardBody}>
-                    Busy has prepared a short, private work queue for this
-                    business and app revision. Suggestions are not saved or
-                    carried out until you make changes in the editor.
+                    Busy can remember your explicit decisions for this app
+                    revision, when private storage is available. Remembering
+                    feedback doesn't change or publish your app.
                   </Text>
+                  {brainOwnerNotice?(
+                    <Text style={styles.cardBody}>{brainOwnerNotice}</Text>
+                  ):null}
                   {businessBrainQueue.items.map(item=>(
                     <View key={"brain-work-"+item.id}>
                       <MetricRow left={item.title} right="Not executed"/>
                       <Text style={styles.cardBody}>{item.reason}</Text>
                       <Text style={styles.cardBody}>{item.nextStep}</Text>
+                      {brainOwnerHistory?.appId===app?.id&&
+                        !brainOwnerBusy&&
+                        typeof s.recordAppBrainOwnerDecision==="function"?(
+                        <>
+                          <Button label="Not useful — remember my choice"
+                            disabled={!!s.miniAppsAction}
+                            onPress={async()=>{
+                              setBrainOwnerBusy(true);
+                              const expectedRevision=Number(app?.draft_revision)||0;
+                              const appId=app?.id;
+                              try{
+                                const answer=await s.recordAppBrainOwnerDecision({
+                                  appId,expectedRevision,
+                                  goal:selectedCustomerTask,actionId:item.id,
+                                  decision:"rejected"
+                                });
+                                if(!answer?.ok)throw Error(answer?.reason||"Saving failed");
+                                const latest=await s.getAppBrainDecisions({
+                                  appId,expectedRevision
+                                });
+                                if(!latest?.ok)throw Error(latest?.reason||
+                                  "Feedback saved; refresh this draft to reload it.");
+                                setBrainOwnerHistory(latest);
+                                setBrainOwnerNotice("Preference saved to your private Business Brain history.");
+                              }catch(error){
+                                setBrainOwnerNotice(String(error?.message||
+                                  "Your decision could not be saved.").slice(0,200));
+                              }finally{setBrainOwnerBusy(false);}
+                            }}/>
+                        </>
+                      ):null}
                     </View>
                   ))}
+                  {brainOwnerHistory?.appId===app?.id&&
+                    typeof s.clearAppBrainOwnerDecisions==="function"?(
+                    <Button label="Clear my saved Business Brain choices"
+                      disabled={brainOwnerBusy||!!s.miniAppsAction}
+                      onPress={()=>{
+                        Alert.alert("Clear saved decisions?",
+                          "This removes your private owner choices for this app. It won't change the published app.",[
+                          {text:"Cancel",style:"cancel"},
+                          {text:"Clear",style:"destructive",onPress:async()=>{
+                            setBrainOwnerBusy(true);
+                            try{
+                              const response=await s.clearAppBrainOwnerDecisions({
+                                appId:app.id,expectedRevision:Number(app.draft_revision)
+                              });
+                              if(!response?.ok)throw Error(response?.reason||
+                                "Clearing private decisions failed.");
+                              setBrainOwnerHistory(null);
+                              setBrainOwnerNotice("Private decisions cleared. Reopen these suggestions to refresh.");
+                            }catch(error){
+                              setBrainOwnerNotice(String(error?.message||
+                                "Couldn't clear private decisions.").slice(0,200));
+                            }finally{setBrainOwnerBusy(false);}
+                          }}
+                        ]);
+                      }}/>
+                  ):null}
                 </>
               ):ownerImprovementPlan?.ok?(
                 <Text style={styles.cardBody}>
-                  Busy has prepared owner-review ideas. Connect the private
-                  workspace and a current app revision to use the Business
-                  Brain work queue.
+                  Busy has prepared review ideas. A current private app
+                  revision and connected business are needed to remember choices.
                 </Text>
               ):null}
               {offlinePreflight?.ok?(
