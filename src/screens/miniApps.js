@@ -36,6 +36,12 @@ import {runCustomerJourneyPractice}
   from "../core/appCustomerJourneyPractice.mjs";
 import {reviewCustomerExperience}
   from "../core/appCustomerExperienceReview.mjs";
+import {reviewSharedCustomerGoal}
+  from "../core/sharedCustomerExperience.mjs";
+import {appDesignEvidenceComparison}
+  from "../core/crossBuilderEvidence.mjs";
+import {stagingJourneyTestPlan}
+  from "../core/stagingJourneyContract.mjs";
 import {describeRequestExperience}
   from "../core/appRequestCommunication.mjs";
 import {auditStandaloneContrast} from "../core/appContrastAudit.mjs";
@@ -827,6 +833,16 @@ function MiniAppBuilder({ s }) {
     runCustomerJourneyPractice(view.draftConfig):null;
   const customerExperience=view.draftConfig?
     reviewCustomerExperience(view.draftConfig,{goal:selectedCustomerTask}):null;
+  const sharedAppJourney=view.draftConfig?reviewSharedCustomerGoal({
+    goal:selectedCustomerTask,appConfig:view.draftConfig
+  }):null;
+  const appEvidence=customerTaskPlan?.preview?.ok?
+    appDesignEvidenceComparison({before:view.draftConfig,
+      after:customerTaskPlan.preview.nextConfig,goal:selectedCustomerTask}):null;
+  const stagingPlan=stagingJourneyTestPlan({
+    kind:selectedCustomerTask==="enquire"?"enquiry":"booking_request",
+    channel:"busy_marketplace"
+  });
   const nonAiDesignHints=proposeLowRiskDesignHints(view.draftConfig||view.activeConfig||{});
   const responsiveGuidance=recommendResponsiveDesign(view.draftConfig||view.activeConfig||{});
   const responsiveQuality=evaluateAppAcrossScreens(view.draftConfig||view.activeConfig||{});
@@ -1362,6 +1378,31 @@ function MiniAppBuilder({ s }) {
                       }}/>
                   ):null}
                 </>
+              ):null}
+              {sharedAppJourney?.ok?(
+                <Text style={styles.cardBody}>
+                  {"V3.172 • Shared website/app review: "+
+                    sharedAppJourney.totalFindings+
+                    " owner-review step(s) for this goal. "+
+                    "This app review uses only this business's current App Builder draft."}
+                </Text>
+              ):null}
+              {appEvidence?.ok?(
+                <Text style={styles.cardBody}>
+                  {"Predicted navigation at "+
+                    appEvidence.profiles.map(x=>x.logicalWidth).join(", ")+
+                    " layout points. Moving a section earlier isn't proof "+
+                    "that a real customer completes the task faster."}
+                </Text>
+              ):null}
+              {stagingPlan?.ok&&
+                ["book","enquire"].includes(selectedCustomerTask)?(
+                <Text style={styles.cardBody}>
+                  {"Staging readiness: "+stagingPlan.requiredCount+
+                    " separate checks are still unverified for "+
+                    selectedCustomerTask+
+                    ". No real customer journey was executed here."}
+                </Text>
               ):null}
               <Button label={showJourneyPractice?
                   "Hide practice journey checks":"Check sample booking & enquiry journeys"}
