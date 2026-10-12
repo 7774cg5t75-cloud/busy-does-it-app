@@ -3297,12 +3297,29 @@ async function updateRequestStatus(
   if (current.error) throw current.error;
   if (!current.data) throw new Error("Business App request not found.");
   const linkedState=await supabase.from("busy_mini_app_request_links")
-    .select("bridge_state").eq("request_id",requestId)
+    .select("bridge_state,customer_record_id,action_record_id,metadata").eq("request_id",requestId)
     .eq("business_id",businessId).maybeSingle();
   if(linkedState.error)throw linkedState.error;
   const decision=decideAppRequestTransition(current.data,status,{
     bridgeState:linkedState.data?.bridge_state||""});
   if(!decision.ok)throw new Error(decision.reason);
+  // V3.181: no alternative status-only path is allowed to declare a booking
+  // confirmed or close a linked booking while leaving the Work ledger active.
+  if(current.data.request_type==="booking_request"){
+    if(status==="accepted"&&current.data.status!=="accepted")
+      throw new Error("Confirm the booking from BUSY Work so the durable calendar entry is saved.");
+    if(status==="closed"&&linkedState.data?.customer_record_id){
+      await markRequestLinked(userId,businessId,{
+        requestId,customerRecordId:linkedState.data.customer_record_id,
+        actionRecordId:linkedState.data.action_record_id||"",
+        bridgeState:"closed",metadata:{}
+      });
+      const closed=await supabase.from("busy_mini_app_requests")
+        .select("*").eq("business_id",businessId).eq("id",requestId).single();
+      if(closed.error)throw closed.error;
+      return closed.data;
+    }
+  }
   if(decision.noChange)return current.data;
   const now = new Date().toISOString();
   const updated = await supabase
