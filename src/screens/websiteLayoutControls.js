@@ -45,6 +45,8 @@ function WebsiteLayoutControls({draft,onApply}){
        <Button label="Elegant headings" onPress={()=>apply({action:"style",field:"typography",value:"refined"})}/>
        <Button label="Bold clear headings" onPress={()=>apply({action:"style",field:"typography",value:"confident"})}/>
        <Button label="Compact headings" onPress={()=>apply({action:"style",field:"typography",value:"compact"})}/>
+       <Button label="Editorial serif headings" onPress={()=>apply({action:"style",field:"typography",value:"editorial"})}/>
+       <Button label="Friendly rounded headings" onPress={()=>apply({action:"style",field:"typography",value:"friendly"})}/>
        <Text style={styles.sectionLabel}>Spacing</Text>
        <Button label="More breathing space" onPress={()=>apply({action:"style",field:"spacing",value:"generous"})}/>
        <Button label="Comfortable spacing" onPress={()=>apply({action:"style",field:"spacing",value:"comfortable"})}/>
