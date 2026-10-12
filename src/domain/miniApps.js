@@ -2,6 +2,7 @@ import {summarizeStoredCustomerJourneys} from "../core/storedCustomerJourneys.mj
 import {reviewBusinessBrainObservedOutcomes} from "../core/businessBrainMeasuredOutcomes.mjs";
 import {assessDurableWorkOutcomes} from "../core/durableWorkOutcomeEvidenceV3181.mjs";
 import {summarizeJourneyCheckpoints} from "../core/storedJourneyCheckpointsV3184.mjs";
+import {reviewMessageDeliveryIntents} from "../core/messageDeliveryEvidenceV3185.mjs";
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -76,6 +77,13 @@ function buildMiniAppsView(remote = {}) {
   const durableWorkEvidence=workBookingLedger?assessDurableWorkOutcomes({businessId:app?.business_id||"",appId:app?.id||"",requests,ledger:workBookingLedger}):null;
   const messageCheckpoints=remote?.messageCheckpoints&&
     Array.isArray(remote.messageCheckpoints.rows)?remote.messageCheckpoints:null;
+  const deliveryOutbox=remote?.messageDeliveryOutbox&&
+    Array.isArray(remote.messageDeliveryOutbox.rows)?remote.messageDeliveryOutbox:null;
+  const deliveryEvidence=deliveryOutbox?reviewMessageDeliveryIntents({
+    businessId:app?.business_id||"",appId:app?.id||"",
+    rows:deliveryOutbox.rows,truncated:deliveryOutbox.truncated===true,
+    nowISO:new Date().toISOString()
+  }):null;
   const journeyCheckpoints=messageCheckpoints&&workBookingLedger?
     summarizeJourneyCheckpoints({businessId:app?.business_id||"",
       appId:app?.id||"",requests,links:requestLinks,
@@ -246,6 +254,7 @@ function buildMiniAppsView(remote = {}) {
     workBookingLedger,
     durableWorkEvidence,
     journeyCheckpoints,
+    deliveryEvidence,
     journeyEvidence,
     observedOutcomes,
     requestCount30,
