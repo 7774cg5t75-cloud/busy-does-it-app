@@ -185,6 +185,7 @@ import {
   validateOperatorCommand,
 } from "../domain/operator2";
 import { buildWorkCalendarIntelligence } from "../domain/workCalendar2";
+import {reconcileWorkBookingLedger} from "../core/workBookingReconciliationV3181.mjs";
 import { buildDailyCommandCentre } from "../domain/dailyCommandCentre";
 import { buildCustomerJourney2 } from "../domain/customerJourney2";
 import { buildCommunicationsHub } from "../domain/communicationsHub";
@@ -9075,7 +9076,7 @@ function App() {
   const executiveEnd30ISO = addDaysFromISO(executiveTodayISO, 29);
   const executiveStart7ISO = addDaysFromISO(executiveTodayISO, -6);
 
-  const executiveConfirmedBookings = Object.entries(replyActions || {})
+  const executiveLocalConfirmedBookings = Object.entries(replyActions || {})
     .map(([customerId, action]) => {
       if (
         action?.type !== "booking" ||
@@ -9091,6 +9092,7 @@ function App() {
         services.find((item) => item.name === customer.service) || null;
       return {
         customerId,
+        sourceMiniAppRequestId:action.details?.sourceMiniAppRequestId||"",
         customerName: customer.name || "Customer",
         service: customer.service || "Service",
         date: action.details.bookingDate,
@@ -9110,6 +9112,18 @@ function App() {
       String(a.date).localeCompare(String(b.date)) ||
       String(a.time).localeCompare(String(b.time))
     );
+
+  // Durable server ledger overrides Business App dates/status on refresh.
+  // Local-only non-App bookings remain visible; cancellation tombstones hide
+  // stale local Business App "Confirmed" entries without rewriting cloud state.
+  const durableWorkReview=reconcileWorkBookingLedger({
+    businessId:cloudWorkspace?.businessId||"",
+    appId:miniAppsView?.app?.id||"",
+    ledger:miniAppsView?.workBookingLedger,
+    localBookings:executiveLocalConfirmedBookings
+  });
+  const executiveConfirmedBookings=durableWorkReview.ok?
+    durableWorkReview.bookings:executiveLocalConfirmedBookings;
 
   const executiveBookings7 = executiveConfirmedBookings.filter(
     (item) => item.date >= executiveTodayISO && item.date <= executiveEnd7ISO
@@ -14515,6 +14529,7 @@ function App() {
       versions: Array.isArray(data?.versions) ? data.versions : [],
       requests: Array.isArray(data?.requests) ? data.requests : [],
       requestLinks: Array.isArray(data?.requestLinks) ? data.requestLinks : [],
+      workBookingLedger: data?.workBookingLedger?.rows&&Array.isArray(data.workBookingLedger.rows)?data.workBookingLedger:null,
       requestCount30: Math.max(0, Number(data?.requestCount30 || 0)),
       guestRequestCount30: Math.max(0, Number(data?.guestRequestCount30 || 0)),
       entrySummary: Array.isArray(data?.entrySummary) ? data.entrySummary : [],
