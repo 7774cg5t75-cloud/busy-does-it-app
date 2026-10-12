@@ -16122,14 +16122,20 @@ function App() {
     setMiniAppsError("");
     try {
       const data = await miniAppsRequest("send_request_message", { requestId, message: body });
-      applyMiniAppsStatus(data);
-      if (
-        selectedMiniAppRequestDetail?.request?.id === requestId &&
-        selectedMiniAppRequestRole === "business"
-      ) {
-        await loadMiniAppRequestDetail(requestId, "business", { navigate: false });
+      if(data?.databaseMessageSaved!==true)
+        throw Error("BUSY could not verify that the customer reply was saved.");
+      if(data.status)applyMiniAppsStatus(data);
+      try {
+        if(data.statusRefreshRequired)await refreshMiniAppsStatus({quiet:true});
+        if (
+          selectedMiniAppRequestDetail?.request?.id === requestId &&
+          selectedMiniAppRequestRole === "business"
+        ) await loadMiniAppRequestDetail(requestId,"business",{navigate:false});
+      } catch(refreshError){
+        // The chat row is already committed. A failed follow-up read cannot
+        // reclassify it as an unsaved message or invite an unsafe resend.
       }
-      setMiniAppsNotice("Message sent to the customer inside BUSY Apps.");
+      setMiniAppsNotice("Reply saved to the BUSY conversation. Push delivery has not been verified.");
       return true;
     } catch (error) {
       setMiniAppsError(error?.message || "BUSY could not send that customer message.");
@@ -16145,15 +16151,19 @@ function App() {
     setMiniAppsAction(`customer-message:${requestId}`);
     setMiniAppsError("");
     try {
-      await miniAppsRequest("reply_request_message", { requestId, message: body }, { includeBusiness: false });
-      await loadMyBusyApps({ quiet: true });
-      if (
-        selectedMiniAppRequestDetail?.request?.id === requestId &&
-        selectedMiniAppRequestRole === "customer"
-      ) {
-        await loadMiniAppRequestDetail(requestId, "customer", { navigate: false });
+      const receipt=await miniAppsRequest("reply_request_message",
+        {requestId,message:body},{includeBusiness:false});
+      if(receipt?.databaseMessageSaved!==true)
+        throw Error("BUSY could not verify that the customer reply was saved.");
+      try {
+        await loadMyBusyApps({quiet:true});
+        if(selectedMiniAppRequestDetail?.request?.id===requestId&&
+          selectedMiniAppRequestRole==="customer")
+          await loadMiniAppRequestDetail(requestId,"customer",{navigate:false});
+      } catch(refreshError){
+        // Saved in Postgres, independent list refresh is not proof of delivery.
       }
-      setMiniAppsNotice("Reply sent to the business through BUSY.");
+      setMiniAppsNotice("Reply saved in BUSY. Notification delivery is not independently verified.");
       return true;
     } catch (error) {
       setMiniAppsError(error?.message || "BUSY could not send that reply.");
