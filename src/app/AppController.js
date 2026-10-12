@@ -15388,6 +15388,42 @@ function App() {
         "This staging-only test isn't configured.").slice(0,220)};
     }
   };
+  // Owner-triggered read-only staging installation audit, never production.
+  const checkIsolatedAppInstallAudit=async({appId,expectedRevision}={})=>{
+    const businessId=String(cloudWorkspace?.businessId||"");
+    if(!businessId||miniAppsView?.app?.id!==appId||
+       Number(miniAppsView?.app?.draft_revision)!==Number(expectedRevision))
+      return {ok:false,reason:"Open your current private Business App before checking staging."};
+    try{
+      const response=await miniAppsRequest("staging_install_audit",{
+        appId,expectedRevision
+      });
+      const ids=["apps","website_deployments","app_owner_history",
+        "website_owner_history","synthetic_qa"];
+      const rows=response?.checks;
+      if(response?.ok!==true||response?.businessId!==businessId||
+         cloudWorkspace?.businessId!==businessId||
+         response?.appId!==appId||
+         Number(response?.draftRevision)!==Number(expectedRevision)||
+         response?.kind!=="isolated_staging_install_audit_v3178"||
+         response?.source!=="authenticated_staging_server_schema_read_only"||
+         response?.readOnly!==true||response?.sourceRowsReturned!==false||
+         !Array.isArray(rows)||rows.length!==ids.length||
+         new Set(rows.map(x=>x.id)).size!==ids.length||
+         rows.some(x=>!ids.includes(x.id)||
+          !["reachable","unavailable"].includes(x.status)))
+        throw Error("Staging installation report could not be verified for this app.");
+      return {ok:true,businessId,appId,draftRevision:Number(expectedRevision),
+        kind:response.kind,source:response.source,readOnly:true,
+        sourceRowsReturned:false,checks:rows,
+        installationReadyForSyntheticTesting:
+          rows.every(x=>x.status==="reachable"),
+        customerJourneyVerified:false};
+    }catch(error){
+      return {ok:false,reason:String(error?.message||
+        "Isolated staging is not configured or installed yet.").slice(0,220)};
+    }
+  };
   const checkIsolatedAppStagingConnection=async({appId,expectedRevision}={})=>{
     const businessId=String(cloudWorkspace?.businessId||"");
     if(!businessId||miniAppsView?.app?.id!==appId||
@@ -16827,6 +16863,7 @@ function App() {
     recordAppBrainOwnerDecision,
     clearAppBrainOwnerDecisions,
     checkIsolatedAppStagingConnection,
+    checkIsolatedAppInstallAudit,
     recordAppDesignPreference,
     clearAppDesignLearning,
     movePrivateAppSection,
