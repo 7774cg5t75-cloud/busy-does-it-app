@@ -92,8 +92,7 @@ function buildMiniAppsView(remote = {}) {
       messagesTruncated:messageCheckpoints.truncated===true}):null;
   const journeyEvidence = summarizeStoredCustomerJourneys({app,requests,links:requestLinks});
   const observedOutcomes=reviewBusinessBrainObservedOutcomes({businessId:app?.business_id||"",appId:app?.id||"",requests,links:requestLinks,nowISO:new Date().toISOString()});
-  const measuredOwnerActions=journeyCheckpoints?.ok&&durableWorkEvidence?.ok&&
-    deliveryEvidence?.ok&&remote?.pushGatewayEvidence?.ok?
+  const measuredOwnerActions=journeyCheckpoints?.ok&&durableWorkEvidence?.ok?
     recommendMeasuredOwnerActions({journey:journeyCheckpoints,
       work:durableWorkEvidence,gateway:remote.pushGatewayEvidence,
       notification:deliveryEvidence}):null;
