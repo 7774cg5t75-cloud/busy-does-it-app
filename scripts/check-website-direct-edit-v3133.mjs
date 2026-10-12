@@ -38,6 +38,33 @@ const eq=(v,w,why)=>{assert.deepEqual(v,w,why);total++};
 const edit=(patch,draft=owner)=>applyStructuredWebsiteEdit(draft,patch);
 const original=JSON.stringify(owner);
 
+const ownerAddedFaq=applyStructuredWebsiteEdit(owner,{
+ action:"add-item",sectionId:"faq",
+ title:"Can you help at weekends?",body:"Please ask us about weekend availability."
+});
+yes(ownerAddedFaq.applied,"FAQ can be added without an AI provider");
+yes(ownerAddedFaq.draft.html.includes("Can you help at weekends?"),
+ "New FAQ appears in the regenerated private HTML");
+const rebuildWithoutOriginalFaqs=buildWebsiteDraft({
+ brandBrain:{websiteReady:true,websiteBrief:{businessName:"Rosemary Gardens",faqs:[],services:[]}},
+ previousDraft:ownerAddedFaq.draft
+});
+yes(rebuildWithoutOriginalFaqs.sections.find(s=>s.id==="faq")?.items.some(
+ i=>i.title==="Can you help at weekends?"),"Owner-edited FAQ survives a later Brand Brain refresh");
+const removeId=ownerAddedFaq.draft.sections.find(s=>s.id==="faq").items.find(
+ i=>i.title==="Can you help at weekends?").id;
+const ownerRemovedFaq=applyStructuredWebsiteEdit(ownerAddedFaq.draft,{
+ action:"remove-item",sectionId:"faq",itemId:removeId,expectedTitle:"Can you help at weekends?"
+});
+yes(ownerRemovedFaq.applied,"Owner can remove an added FAQ privately");
+const rebuildRemovedFaqs=buildWebsiteDraft({
+ brandBrain:{websiteReady:true,websiteBrief:{businessName:"Rosemary Gardens",faqs:[],services:[]}},
+ previousDraft:ownerRemovedFaq.draft
+});
+yes(!rebuildRemovedFaqs.sections.find(s=>s.id==="faq")?.items.some(
+ i=>i.title==="Can you help at weekends?"),"Removed FAQ is not resurrected by a brief refresh");
+
+
 const hero=edit({sectionId:"hero",field:"title",value:"Trusted coastal garden care"});
 yes(hero.applied,"Hero heading edited by stable section ID");
 yes(hero.draft.html.includes("Trusted coastal garden care"),"Updated hero heading in actual HTML");
