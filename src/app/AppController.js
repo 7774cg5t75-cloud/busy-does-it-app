@@ -18,6 +18,7 @@ import {
   Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {prepareDurableMessageAttempt,clearDurableMessageAttempt} from "../core/durableMessageRetryV3185.mjs";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 import * as Notifications from "expo-notifications";
@@ -376,6 +377,7 @@ function App() {
   const [myBusyAppsLoading, setMyBusyAppsLoading] = useState(false);
   const [selectedMiniAppRequestRole, setSelectedMiniAppRequestRole] = useState("");
   const [selectedMiniAppRequestDetail, setSelectedMiniAppRequestDetail] = useState(null);
+  const miniAppMessageInFlightRef=useRef(new Set());
   const [miniAppRequestHistoryLoading, setMiniAppRequestHistoryLoading] = useState(false);
   const [miniAppsNotificationStatus, setMiniAppsNotificationStatus] = useState({
     state: "unknown",
@@ -14547,7 +14549,7 @@ function App() {
   const miniAppsRequest = async (
     action,
     payload = {},
-    { includeBusiness = true } = {}
+    { includeBusiness = true, requestKey = "" } = {}
   ) => {
     const token = await ownerAccessToken();
     if (!token) throw new Error("Sign in again before using BUSY Apps.");
@@ -14564,7 +14566,7 @@ function App() {
           apikey: BUSY_AI_TOKEN,
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
-          "x-busy-request-id": busyRequestId(`mini-app-${action}`),
+          "x-busy-request-id": requestKey || busyRequestId(`mini-app-${action}`),
         },
         body: JSON.stringify({
           action,
@@ -16115,60 +16117,86 @@ function App() {
     }
   };
 
+  // SecureStore retains a stable server idempotency key for an ambiguous
+  // transport result. The key is scoped to the actual signed-in account
+  // and request; edited uncertain messages are blocked, never silently resent.
   const sendMiniAppRequestMessage = async (requestId, message) => {
-    const body = String(message || "").trim();
-    if (!requestId || !body) return false;
+    const body=String(message||"").trim();
+    const actorUserId=ownerSession?.userId||"";
+    const businessId=cloudWorkspace?.businessId||"";
+    const activeKey="business:"+actorUserId+":"+businessId+":"+requestId;
+    if(!requestId||!body||miniAppMessageInFlightRef.current.has(activeKey))
+      return false;
+    miniAppMessageInFlightRef.current.add(activeKey);
     setMiniAppsAction(`owner-message:${requestId}`);
     setMiniAppsError("");
-    try {
-      const data = await miniAppsRequest("send_request_message", { requestId, message: body });
+    try{
+      const attempt=await prepareDurableMessageAttempt(SecureStore,{
+        actorUserId,businessId,role:"business",requestId,message:body
+      },()=>busyRequestId("mini-app-owner-reply"));
+      if(!attempt.ok)throw Error(attempt.reason);
+      const data=await miniAppsRequest("send_request_message",
+        {requestId,message:body},{requestKey:attempt.key});
       if(data?.databaseMessageSaved!==true)
-        throw Error("BUSY could not verify that the customer reply was saved.");
+        throw Error("BUSY could not verify the message receipt. Retry the same text.");
+      const cleared=await clearDurableMessageAttempt(SecureStore,attempt);
       if(data.status)applyMiniAppsStatus(data);
-      try {
+      try{
         if(data.statusRefreshRequired)await refreshMiniAppsStatus({quiet:true});
-        if (
-          selectedMiniAppRequestDetail?.request?.id === requestId &&
-          selectedMiniAppRequestRole === "business"
-        ) await loadMiniAppRequestDetail(requestId,"business",{navigate:false});
-      } catch(refreshError){
-        // The chat row is already committed. A failed follow-up read cannot
-        // reclassify it as an unsaved message or invite an unsafe resend.
-      }
-      setMiniAppsNotice("Reply saved to the BUSY conversation. Push delivery has not been verified.");
+        if(selectedMiniAppRequestDetail?.request?.id===requestId&&
+          selectedMiniAppRequestRole==="business")
+          await loadMiniAppRequestDetail(requestId,"business",{navigate:false});
+      }catch(refreshError){ /* Database receipt remains authoritative. */ }
+      setMiniAppsNotice(cleared?
+        "Reply saved in BUSY. Notification delivery is not verified.":
+        "Reply saved. Secure retry cleanup needs checking before sending identical text again.");
       return true;
-    } catch (error) {
-      setMiniAppsError(error?.message || "BUSY could not send that customer message.");
+    }catch(error){
+      setMiniAppsError(error?.message||
+        "Reply outcome is uncertain. Retry the same text; BUSY will use the same request ID.");
       return false;
-    } finally {
+    }finally{
+      miniAppMessageInFlightRef.current.delete(activeKey);
       setMiniAppsAction("");
     }
   };
 
   const replyBusyAppRequestMessage = async (requestId, message) => {
-    const body = String(message || "").trim();
-    if (!requestId || !body) return false;
+    const body=String(message||"").trim();
+    const actorUserId=ownerSession?.userId||"";
+    const activeKey="customer:"+actorUserId+":"+requestId;
+    if(!requestId||!body||miniAppMessageInFlightRef.current.has(activeKey))
+      return false;
+    miniAppMessageInFlightRef.current.add(activeKey);
     setMiniAppsAction(`customer-message:${requestId}`);
     setMiniAppsError("");
-    try {
+    try{
+      const attempt=await prepareDurableMessageAttempt(SecureStore,{
+        actorUserId,role:"customer",requestId,message:body
+      },()=>busyRequestId("mini-app-customer-reply"));
+      if(!attempt.ok)throw Error(attempt.reason);
       const receipt=await miniAppsRequest("reply_request_message",
-        {requestId,message:body},{includeBusiness:false});
+        {requestId,message:body},
+        {includeBusiness:false,requestKey:attempt.key});
       if(receipt?.databaseMessageSaved!==true)
-        throw Error("BUSY could not verify that the customer reply was saved.");
-      try {
+        throw Error("BUSY could not verify the customer reply receipt. Retry the same text.");
+      const cleared=await clearDurableMessageAttempt(SecureStore,attempt);
+      try{
         await loadMyBusyApps({quiet:true});
         if(selectedMiniAppRequestDetail?.request?.id===requestId&&
-          selectedMiniAppRequestRole==="customer")
+           selectedMiniAppRequestRole==="customer")
           await loadMiniAppRequestDetail(requestId,"customer",{navigate:false});
-      } catch(refreshError){
-        // Saved in Postgres, independent list refresh is not proof of delivery.
-      }
-      setMiniAppsNotice("Reply saved in BUSY. Notification delivery is not independently verified.");
+      }catch(refreshError){ /* Commit and push are separate outcomes. */ }
+      setMiniAppsNotice(cleared?
+        "Reply saved in BUSY. Notification delivery is not independently verified.":
+        "Reply saved. Check this conversation before sending the same text again.");
       return true;
-    } catch (error) {
-      setMiniAppsError(error?.message || "BUSY could not send that reply.");
+    }catch(error){
+      setMiniAppsError(error?.message||
+        "Reply outcome is uncertain. Retry the original text with the same request ID.");
       return false;
-    } finally {
+    }finally{
+      miniAppMessageInFlightRef.current.delete(activeKey);
       setMiniAppsAction("");
     }
   };
