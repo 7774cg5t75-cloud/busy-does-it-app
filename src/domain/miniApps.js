@@ -1,3 +1,4 @@
+import {summarizeStoredCustomerJourneys} from "../core/storedCustomerJourneys.mjs";
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -68,6 +69,7 @@ function buildMiniAppsView(remote = {}) {
   const versions = safeArray(remote?.versions);
   const requests = safeArray(remote?.requests);
   const requestLinks = safeArray(remote?.requestLinks);
+  const journeyEvidence = summarizeStoredCustomerJourneys({app,requests,links:requestLinks});
   const requestCount30 = Math.max(0, Number(remote?.requestCount30 || 0));
   const guestRequestCount30 = Math.max(0, Number(remote?.guestRequestCount30 || 0));
   const entrySummary = safeArray(remote?.entrySummary);
@@ -228,6 +230,7 @@ function buildMiniAppsView(remote = {}) {
     versions,
     requests,
     requestLinks,
+    journeyEvidence,
     requestCount30,
     guestRequestCount30,
     entrySummary,
