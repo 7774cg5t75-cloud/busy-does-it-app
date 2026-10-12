@@ -3673,7 +3673,7 @@ function ReplyActionDetail({ s }) {
               : `Suggested from your saved ${customer.service.toLowerCase()} service price. Check it before using it.`}
           </Text>
         </View>
-        <GetPaidOwnerReview s={s} customer={customer} saved={saved} type="quote" />
+        <GetPaidOwnerReview s={s} customer={customer} saved={saved} type="quote" todayISO={todayISO} />
         <Field label="Quote amount" value={s.actionQuoteAmount} onChangeText={s.setActionQuoteAmount} keyboardType="number-pad" prefix="£" />
         <Text style={styles.fieldLabel}>Draft reply</Text>
         <TextInput multiline value={s.actionQuoteMessage} onChangeText={s.setActionQuoteMessage} style={styles.messageInput} />
@@ -3785,7 +3785,7 @@ function ReplyActionDetail({ s }) {
         ) : null}
 
         <GetPaidOwnerReview s={s} customer={customer} saved={saved}
-          type="booking" bookingStatus={bookingStatus} />
+          type="booking" bookingStatus={bookingStatus} todayISO={todayISO} />
         <View
           style={[
             styles.suggestionBox,
