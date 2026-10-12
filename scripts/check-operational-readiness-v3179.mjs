@@ -7,6 +7,7 @@ import {founderReadinessTriage} from "../src/core/founderReadinessTriage.mjs";
 import {preflightRequestBridge,validBookingDate}
  from "../supabase/functions/busy-mini-apps/requestBridgePreflight.mjs";
 import {summarizeStoredCustomerJourneys} from "../src/core/storedCustomerJourneys.mjs";
+import {reviewBusinessInformation} from "../src/core/businessInfoClarity.mjs";
 let checks=0;
 const ok=(x)=>{assert.ok(x);checks++;};
 const eq=(a,b)=>{assert.deepEqual(a,b);checks++;};
@@ -100,6 +101,29 @@ const ui=readFileSync(new URL("../src/screens/miniApps.js",import.meta.url),"utf
 ok(ui.includes("Recorded customer requests"));
 const founderUI=readFileSync(new URL("../src/screens/founderOperations.js",import.meta.url),"utf8");
 ok(founderUI.includes("stagingObservations.unresolved"));
+const cross=reviewBusinessInformation({
+ websiteDraft:{id:"website-1",sections:[],businessName:"Example Website"},
+ brandBrain:{websiteBrief:{businessName:"Example Website",description:"Private draft",
+  services:[{name:"First Service",description:"Owner approved"}]}},
+ appConfig:{modules:[{key:"services",enabled:true}],
+  publicProfile:{businessName:"Example App",
+   services:[{name:"Different Service",description:"Owner approved"}]}},
+ scope:{authorizedBusinessId:business,websiteBusinessId:business,
+  appBusinessId:business}
+});
+ok(cross.ok);eq(cross.matchingServiceNamesCount,0);
+eq(cross.websiteOnlyServiceNamesCount,1);
+eq(cross.appOnlyServiceNamesCount,1);
+eq(cross.sharedBusinessNameAgrees,false);
+ok(cross.issues.some(i=>i.id==="different_service_sets"));
+ok(cross.issues.some(i=>i.id==="different_business_names"));
+ok(!JSON.stringify(cross).includes("First Service"));
+ok(!JSON.stringify(cross).includes("Example Website"));
+ok(!reviewBusinessInformation({
+ websiteDraft:{id:"website-1",sections:[]},
+ appConfig:{modules:[]},scope:{authorizedBusinessId:business,
+ websiteBusinessId:business,appBusinessId:"22222222-2222-4222-8222-222222222222"}
+}).ok);
 console.log("V3.179 "+checks+" assertions passed (pure logic, source wiring and static migrations only).");
 console.log("Staging inventory: "+report.migrationCount+" migrations; "+
  report.missingBaseline.length+" unprovided baseline tables; "+
