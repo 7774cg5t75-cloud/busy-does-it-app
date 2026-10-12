@@ -153,6 +153,10 @@ const rejected=prepareBusinessBrainWork({...current,ownerDecisions:decisions});
 assert.equal(rejected.ok,true);
 assert.ok(!rejected.items.some(x=>x.id===first.id));
 assert.ok(rejected.suppressed.some(x=>x.id===first.id));
+const wrongSurface=prepareBusinessBrainWork({...current,
+ ownerDecisions:[{...decisions[0],surface:first.surface==="app"?"website":"app"}]});
+assert.ok(wrongSurface.items.some(x=>x.id===first.id),
+ "A decision about a different surface must not suppress this action");
 const wrongTenant=prepareBusinessBrainWork({...current,
  ownerDecisions:[{...decisions[0],businessId:other}]});
 assert.ok(wrongTenant.items.some(x=>x.id===first.id));
