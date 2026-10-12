@@ -2,7 +2,7 @@
  * deployment, matching current local draft and authenticated Edge check.
  * On-device metadata can never grant authorisation on its own.
  */
-const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const GOALS=["book","enquire","services","photos","offers","rewards"];
 const ACTIONS=["fix_approved_facts","verify_customer_path","review_navigation_layout",
  "clarify_service_descriptions","check_surface_consistency",
