@@ -38,6 +38,13 @@ const contrast=(a,b)=>{
  return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05);
 };
 eq(OPTIONS.brandPalette,Object.keys(PALETTES));
+eq(read("src/core/appAppearanceEditing.mjs"),
+ read("supabase/functions/busy-mini-apps/appAppearanceEditing.mjs"),
+ "Public appearance options must be byte-identical in owner UI and trusted Edge.");
+yes(read("supabase/functions/busy-mini-apps/index.ts").includes('action === "set_appearance"')||
+ read("supabase/functions/busy-mini-apps/index.ts").includes('action==="set_appearance"'),
+ "Trusted appearance update action stays connected.");
+
 eq(DEFAULTS.brandPalette,DEFAULT_PALETTE);
 eq(nativePalette("definitely-not-a-real-palette"),PALETTES.midnight);
 const distinct=new Set();
