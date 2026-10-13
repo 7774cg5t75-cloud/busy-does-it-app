@@ -18,7 +18,7 @@ const website={
   {id:"about",type:"text",enabled:true,title:"About"},
   {id:"faq",type:"faq",enabled:true,items:[{title:"Question",body:"Answer"}]},
   {id:"services",type:"services",enabled:true,items:[{title:"Pitch hire"}]},
-  {id:"gallery",type:"gallery",enabled:true,items:[]},
+  {id:"gallery",type:"gallery",enabled:true,items:[{approved:true,storagePath:"business/approved-work.jpg"}]},
   {id:"contact",type:"contact",enabled:true,email:"hello@example.test"}
  ],
  designPlan:{sectionOrder:["hero","about","faq","services","gallery","contact"]},
