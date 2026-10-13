@@ -92,6 +92,14 @@ for(const context of ["signed_in_submission","signed_in_receipt","owner_update"]
  equal(p.verifiedSaved,true);
  equal(p.sourceChannel,"signed_in");
 }
+const ownerGuest=evaluateStoredRequestProof({
+ request:makeRequest({request_origin:"guest_web"}),context:"owner_update",
+ businessId:UUID1,appId:UUID2,requestId:UUID3
+});
+equal(ownerGuest.ok,true);
+equal(ownerGuest.sourceChannel,"guest_web",
+ "Owner updates retain the origin of a guest request.");
+equal(ownerGuest.externalDeliveryVerified,false);
 equal(evaluate(signedRow).ok,false,
  "A signed-in identity must not be displayed as a guest receipt.");
 equal(evaluateStoredRequestProof({request:makeRequest(),context:"signed_in_receipt",
