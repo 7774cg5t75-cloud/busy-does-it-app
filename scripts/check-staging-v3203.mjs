@@ -81,6 +81,9 @@ const env={BDI_STAGING_TENANT_READ_APPROVAL:APPROVAL,
  BDI_STAGING_OWNER_A_JWT:tokenA,BDI_STAGING_OWNER_B_JWT:tokenB,
  BDI_STAGING_PUBLISHABLE_KEY:"sb_publishable_STAGING_PUBLIC_TEST_VALID"};
 eq(checkTenantProbeConfig({env,argv:["--verify-owners-read-only"]}).runAllowed,true);
+const inspected=JSON.stringify(checkTenantProbeConfig({env,argv:["--verify-owners-read-only"]}));
+ok(!inspected.includes(tokenA));ok(!inspected.includes(tokenB));
+ok(!inspected.includes(env.BDI_STAGING_PUBLISHABLE_KEY));
 let calls=0;
 const noOp=await runTenantReadProbe({argv:[],env:{},fetchImpl:()=>{calls++;throw Error("No network allowed");}});
 ok(noOp.ok);eq(noOp.requestsMade,0);eq(calls,0);
