@@ -13,6 +13,7 @@ import { planFunctionalBusinessApp } from "../core/appExperiencePlanner.mjs";
 import { previewPrivateAppAppearance,OPTIONS as appAppearanceOptions } from "../core/appAppearanceEditing.mjs";
 import {nativePalette,LABELS as nativePaletteLabels} from "../core/nativePalette.mjs";
 import {BusinessBrandDnaPreview} from "./businessBrandDnaPreview";
+import {WebsiteToAppDesignTransfer} from "./websiteToAppDesignTransfer";
 import {appVisualPresentation,TYPE_LABELS,SERVICE_LABELS} from "../core/appVisualPresentationV3194.mjs";
 import { interpretSelectedAppAppearance } from "../core/appContextInstruction.mjs";
 import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.mjs";
@@ -1098,6 +1099,9 @@ function MiniAppBuilder({ s }) {
     >
       <BusinessBrandDnaPreview website={s.websiteDraft}
         app={app} businessId={s.cloudWorkspace?.businessId}/>
+      <WebsiteToAppDesignTransfer website={s.websiteDraft} app={app}
+        businessId={s.cloudWorkspace?.businessId}
+        onSave={s.saveCoordinatedAppChanges} busy={s.miniAppsAction}/>
       <Card
         eyebrow="Choose how customers use your app"
         title="Inside Busy, standalone, or eventually both"
