@@ -15,7 +15,7 @@ const MAX_REQUEST=1400,MAX_REQUESTED=18;
 const clean=value=>typeof value==="string"?value.trim():"";
 const list=value=>Array.isArray(value)?value:[];
 const INTENTS=Object.freeze([
- ["gallery",/\b(?:photo(?:graph|s)?|pictures?|images?|portfolios?|galler(?:y|ies)|showcase (?:our )?work)\b/i],
+ ["gallery",/\b(?:photo(?:graph)?s?|pictures?|images?|portfolios?|galler(?:y|ies)|showcase (?:our )?work)\b/i],
  ["faq",/\b(?:faq|frequently asked|questions and answers)\b/i],
  ["testimonials",/\b(?:testimonials?|customer reviews?|client reviews?)\b/i],
  ["services",/\b(?:services?|service list|treatments?|menu|menus|what we (?:do|offer))\b/i],
