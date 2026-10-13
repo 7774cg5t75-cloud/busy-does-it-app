@@ -16418,8 +16418,9 @@ function App() {
     miniAppMessageInFlightRef.current.add(activeKey);
     setMiniAppsAction(`owner-message:${requestId}`);
     setMiniAppsError("");
+    let attempt=null;
     try{
-      const attempt=await prepareDurableMessageAttempt(SecureStore,{
+      attempt=await prepareDurableMessageAttempt(SecureStore,{
         actorUserId,businessId,role:"business",requestId,message:body
       },()=>busyRequestId("mini-app-owner-reply"));
       if(!attempt.ok)throw Error(attempt.reason);
@@ -16440,8 +16441,23 @@ function App() {
         "Reply saved. Secure retry cleanup needs checking before sending identical text again.");
       return true;
     }catch(error){
-      setMiniAppsError(error?.message||
-        "Reply outcome is uncertain. Retry the same text; BUSY will use the same request ID.");
+      if(attempt?.ok){
+        const recovered=await recoverExactSavedReply({
+          storage:SecureStore,attempt,requestId,body,role:"business",
+          checkReceipt:fields=>miniAppsRequest("owner_message_receipt",fields)
+        });
+        if(recovered.ok){
+          setLatestCommunicationEvidence(recovered.evidence);
+          setMiniAppsNotice(recovered.secureRetryReferenceCleared?
+            "BUSY checked your earlier reply: it was saved. Notification delivery is not verified.":
+            "The saved reply was found; secure retry cleanup still needs checking.");
+          try{await loadMiniAppRequestDetail(requestId,"business",{navigate:false});}
+          catch{}
+          return true;
+        }
+      }
+      setMiniAppsError("BUSY could not yet confirm that the reply was saved. "+
+        "Check the conversation before retrying the same text and secure reply ID.");
       return false;
     }finally{
       miniAppMessageInFlightRef.current.delete(activeKey);
@@ -16458,8 +16474,9 @@ function App() {
     miniAppMessageInFlightRef.current.add(activeKey);
     setMiniAppsAction(`customer-message:${requestId}`);
     setMiniAppsError("");
+    let attempt=null;
     try{
-      const attempt=await prepareDurableMessageAttempt(SecureStore,{
+      attempt=await prepareDurableMessageAttempt(SecureStore,{
         actorUserId,role:"customer",requestId,message:body
       },()=>busyRequestId("mini-app-customer-reply"));
       if(!attempt.ok)throw Error(attempt.reason);
@@ -16480,8 +16497,24 @@ function App() {
         "Reply saved. Check this conversation before sending the same text again.");
       return true;
     }catch(error){
-      setMiniAppsError(error?.message||
-        "Reply outcome is uncertain. Retry the original text with the same request ID.");
+      if(attempt?.ok){
+        const recovered=await recoverExactSavedReply({
+          storage:SecureStore,attempt,requestId,body,role:"customer",
+          checkReceipt:fields=>miniAppsRequest("customer_message_receipt",
+            fields,{includeBusiness:false})
+        });
+        if(recovered.ok){
+          setLatestCommunicationEvidence(recovered.evidence);
+          setMiniAppsNotice(recovered.secureRetryReferenceCleared?
+            "BUSY found your saved reply. Notification delivery is not verified.":
+            "Your saved reply was found; secure retry cleanup still needs checking.");
+          try{await loadMiniAppRequestDetail(requestId,"customer",{navigate:false});}
+          catch{}
+          return true;
+        }
+      }
+      setMiniAppsError("BUSY could not yet confirm that the reply was saved. "+
+        "Check this conversation before retrying the same text and secure reply ID.");
       return false;
     }finally{
       miniAppMessageInFlightRef.current.delete(activeKey);
