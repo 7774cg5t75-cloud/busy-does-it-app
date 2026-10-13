@@ -14771,7 +14771,7 @@ function App() {
     let createdApp=null;
     try{
       const built=await miniAppsRequest("build_draft",{
-        profileDraft:reviewed.profileDraft
+        profileDraft:reviewed.profileDraft,expectedNoExistingApp:true
       });
       if(built?.ok!==true||!built?.app||built?.app.business_id!==businessId||
          typeof built.app.id!=="string"||
