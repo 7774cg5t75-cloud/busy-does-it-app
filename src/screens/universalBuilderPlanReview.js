@@ -34,7 +34,7 @@ function UniversalBuilderPlanReview({
  const appId=app?.id||"",appRevision=app?.draft_revision||0;
  React.useEffect(()=>{
   setReport(null);setNotice("");setShowDependencies(false);
- },[businessId,siteId,siteRevision,appId,appRevision]);
+ },[businessId,businessType,siteId,siteRevision,appId,appRevision]);
  React.useEffect(()=>{setGoal("");setOpen(false);},
   [businessId]);
  const review=()=>{
