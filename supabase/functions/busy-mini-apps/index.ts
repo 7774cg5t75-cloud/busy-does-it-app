@@ -3604,32 +3604,41 @@ async function updateRequestStatus(
   if (updated.error) throw updated.error;
   if(!updated.data)throw new Error("Request was updated elsewhere. Refresh it before changing status.");
 
-  const event = await supabase.from("busy_mini_app_request_events").insert({
-    business_id: businessId,
-    request_id: requestId,
-    actor_user_id: userId,
-    event_type: status,
-    detail: { source: "business_review" },
-  });
-  if (event.error) throw event.error;
-
-  if (current.data.consumer_user_id) {
-    await bumpUnread(requestId, "customer");
-    const statusText = status === "accepted"
-      ? "Your request has been accepted."
-      : status === "declined"
-      ? "The business updated your request as declined."
-      : status === "closed"
-      ? "The business closed this request."
-      : "The business is reviewing your request.";
-    await notifyCustomerOfMiniAppRequest(
-      updated.data,
-      "BUSY Apps • Request update",
-      statusText,
-      `status:${status}`
-    );
+  // V3.213 POST-COMMIT: the conditional UPDATE above is already durable.
+  // Event/unread/provider failures must never look like a failed DB write,
+  // leading the owner to retry or wrongly infer that the status was lost.
+  const requestEvidence=verifiedRequestEvidence(
+   updated.data,businessId,current.data.mini_app_id,"owner_update");
+  let eventRecorded=false,unreadRecorded=false,notificationAttempted=false;
+  try{
+   const event=await supabase.from("busy_mini_app_request_events").insert({
+    business_id:businessId,request_id:requestId,actor_user_id:userId,
+    event_type:status,detail:{source:"business_review"}
+   });
+   eventRecorded=!event.error;
+  }catch{ /* Recorded request remains durable. */ }
+  if(!eventRecorded)console.warn("Saved request status; status event needs reconciliation.");
+  if(current.data.consumer_user_id){
+   try{
+    await bumpUnread(requestId,"customer");
+    unreadRecorded=true;
+   }catch{console.warn("Saved request status; customer unread count needs reconciliation.");}
+   const statusText=status==="accepted"?
+    "Your enquiry has been accepted by the business.":
+    status==="declined"?"The business declined your request.":
+    status==="closed"?"The business closed your request.":
+    "The business is reviewing your request.";
+   try{
+    await notifyCustomerOfMiniAppRequest(updated.data,
+      "BUSY Apps • Request update",statusText,`status:${status}`);
+    notificationAttempted=true;
+   }catch{console.warn("Saved request status; customer notification needs reconciliation.");}
   }
-  return updated.data;
+  return {...updated.data,requestEvidence,
+   statusUpdateSaved:true,eventRecorded,unreadRecorded,
+   notificationAttempted,notificationDeliveryVerified:false,
+   externalCalendarDelivered:false,statusRefreshRequired:false,
+   noAutomaticRetry:true};
 }
 
 async function awardLoyaltyStamp(
@@ -4357,15 +4366,19 @@ Deno.serve(async (request: Request) => {
       }
     }
     if (action === "update_request_status") {
-      return json(200, {
-        ok: true,
-        request: await updateRequestStatus(
-          user.id,
-          resolvedBusinessId,
-          body
-        ),
-        status: await ownerStatus(resolvedBusinessId),
-      });
+      // The save cannot be rolled back by a later owner dashboard read.
+      const request=await updateRequestStatus(
+       user.id,resolvedBusinessId,body);
+      try{
+       return json(200,{ok:true,request,
+        status:await ownerStatus(resolvedBusinessId),
+        statusRefreshRequired:false});
+      }catch{
+       console.warn("Request status saved; dashboard refresh pending.");
+       return json(200,{ok:true,request,statusRefreshRequired:true,
+        durableStatusWriteConfirmed:request.statusUpdateSaved===true,
+        externalDeliveryVerified:false});
+      }
     }
 
     return json(400, { error: "Unknown BUSY Apps action." });
