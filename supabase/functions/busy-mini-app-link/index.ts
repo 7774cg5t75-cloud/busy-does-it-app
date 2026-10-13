@@ -179,12 +179,36 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  if (intent) {
-    if (intent === "enquiry" || intent === "booking_request") {
-      await recordEntry(app.data, source, "action_intent");
+  if (intent === "enquiry" || intent === "booking_request") {
+    // V3.214: an approved website handoff MUST NOT promise a public
+    // customer action that has since been disabled in the live app.
+    // A private app draft, outdated site link or guessed slug is never
+    // authority for an active guest enquiry or booking request.
+    const version = await supabase
+      .from("busy_mini_app_versions")
+      .select("id,config")
+      .eq("id", app.data.current_live_version_id)
+      .eq("mini_app_id", app.data.id)
+      .maybeSingle();
+    if (version.error || !version.data?.id) {
+      return page(503,
+        "<!doctype html><title>BUSY DOES IT</title><p>This business action cannot be verified right now.</p>");
     }
+    const config=version.data.config||{};
+    const enabled=Array.isArray(config.modules)&&
+      config.modules.some((m:any)=>m?.key===intent&&m.enabled===true);
+    const servicesReady=intent!=="booking_request"||
+      (Array.isArray(config.publicProfile?.services)&&
+       config.publicProfile.services.some((s:any)=>
+         typeof s?.name==="string"&&!!s.name.trim()));
+    if (!enabled || !servicesReady) {
+      return page(404,
+        "<!doctype html><title>BUSY DOES IT</title><p>This business is not currently accepting that type of request in BUSY.</p>");
+    }
+    await recordEntry(app.data, source, "action_intent");
     return page(200, handoffPage(app.data, source, intent));
   }
+  if (intent) return page(200, handoffPage(app.data, source, intent));
 
   const publicWebUrl = clean(app.data.public_web_url, 2000);
   const webReady =
