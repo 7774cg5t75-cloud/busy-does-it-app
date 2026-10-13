@@ -386,6 +386,8 @@ function App() {
   const [selectedMiniAppRequestRole, setSelectedMiniAppRequestRole] = useState("");
   const [selectedMiniAppRequestDetail, setSelectedMiniAppRequestDetail] = useState(null);
   const miniAppMessageInFlightRef=useRef(new Set());
+  const customerRequestPendingRef=useRef(null);
+  const customerRequestInFlightRef=useRef(false);
   const [miniAppRequestHistoryLoading, setMiniAppRequestHistoryLoading] = useState(false);
   const [miniAppsNotificationStatus, setMiniAppsNotificationStatus] = useState({
     state: "unknown",
@@ -16058,31 +16060,46 @@ function App() {
 
   const submitBusyAppRequest = async (requestType, payload = {}) => {
     const slug = selectedBusyAppDetail?.app?.slug || "";
-    if (!slug) return false;
+    if (!slug || customerRequestInFlightRef.current) return false;
+    // Keep one request key for the SAME in-memory draft after an ambiguous
+    // network error. A repeated tap cannot create a second customer request.
+    const signature=JSON.stringify([
+      ownerSession?.userId||"",slug,requestType,payload
+    ]);
+    const pending=customerRequestPendingRef.current;
+    if(!pending||pending.signature!==signature){
+      customerRequestPendingRef.current={
+        signature,requestKey:busyRequestId("customer-request")
+      };
+    }
+    const key=customerRequestPendingRef.current.requestKey;
+    customerRequestInFlightRef.current=true;
     setMiniAppsAction(`request:${requestType}`);
     setMiniAppsError("");
     setMiniAppsNotice("");
     try {
       const data = await miniAppsRequest(
         "submit_request",
-        {
-          slug,
-          requestType,
-          payload,
-        },
-        { includeBusiness: false }
+        {slug,requestType,payload},
+        {includeBusiness:false,requestKey:key}
       );
-      setMiniAppsNotice(
-        requestType === "booking_request"
-          ? "Booking request sent through BUSY. It is a request, not a confirmed appointment yet."
-          : "Enquiry sent through BUSY."
-      );
-      await loadMyBusyApps({ quiet: true });
-      return !!data?.request;
-    } catch (error) {
-      setMiniAppsError(error?.message || "BUSY could not send that request.");
+      if(!data?.request?.id||data?.ok!==true)
+        throw Error("The customer request was not verified. Check My BUSY Apps before trying again.");
+      // The durable saved record is established. Provider delivery, calendar
+      // acceptance and business replies are separate stages, never implied.
+      customerRequestPendingRef.current=null;
+      setMiniAppsNotice(requestType==="booking_request"?
+        "Booking request saved in BUSY. The business still needs to review it; no appointment is confirmed.":
+        "Enquiry saved in BUSY. You can check its status in My BUSY Apps.");
+      try{await loadMyBusyApps({quiet:true});}
+      catch{ /* Saved request is still acknowledged independently. */ }
+      return true;
+    }catch(error){
+      setMiniAppsError("BUSY could not confirm the latest request result. "+
+        "Check My BUSY Apps before retrying; retrying unchanged details uses the same request ID.");
       return false;
-    } finally {
+    }finally{
+      customerRequestInFlightRef.current=false;
       setMiniAppsAction("");
     }
   };
