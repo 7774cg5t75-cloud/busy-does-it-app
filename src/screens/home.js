@@ -530,7 +530,6 @@ function HomeScreen({ s }) {
       onAction:()=>s.openMiniAppBuilder(),
       canIgnore:true
     }]:[]),
-[
     ...(s.postJobBundleOpportunity
       ? [{
           id: `job-photo-review-bundle-${s.postJobBundleOpportunity.jobId}`,
