@@ -34,6 +34,7 @@ import {WebsiteAppServiceCopy} from "./websiteAppServiceCopy";
 import {WebsiteAppBrandMatch} from "./websiteAppBrandMatch";
 import {WebsiteAppTypographyMatch} from "./websiteAppTypographyMatch";
 import {BusinessBrandDnaPreview} from "./businessBrandDnaPreview";
+import {UniversalBuilderPlanReview} from "./universalBuilderPlanReview";
 import {AppToWebsiteDesignTransfer} from "./appToWebsiteDesignTransfer";
 import {WebsiteLayoutControls} from "./websiteLayoutControls";
 import {WebsitePagesEditor} from "./websitePagesEditor";
@@ -295,6 +296,12 @@ function WebsiteBuilder({ s }) {
           </Text>
         ) : null}
       </Card>
+      <UniversalBuilderPlanReview surface="website"
+        businessId={s.cloudWorkspace?.businessId||""}
+        businessType={draft?.businessType||brand?.websiteBrief?.businessType||s.trade||""}
+        website={draft} app={s.miniAppsView?.app}
+        catalog={s.miniAppsView?.catalog||s.miniAppsStatus?.catalog||[]}
+        initialGoal={brand?.websiteBrief?.description||""}/>
       {draft?(
         <Card eyebrow="V3.172 • Customer experience"
           title="Make it easier for customers"
