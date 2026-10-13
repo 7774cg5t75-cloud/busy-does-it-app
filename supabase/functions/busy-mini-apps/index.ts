@@ -1765,8 +1765,8 @@ async function buildDraft(
   // atomically, never "ensure" a raced row and then overwrite its data.
   // A missing migration is a safe failure: no fallback to the old race.
   if(body?.expectedNoExistingApp===true){
-    const current=await appForBusiness(businessId);
-    if(current)throw new Error(
+    const existing=await appForBusiness(businessId);
+    if(existing)throw new Error(
       "A Business App already exists. Open its current private draft.");
     const revision=Number(storedProfile?.revision||0);
     const firstConfig=buildConfig(profile,catalog,revision,null);
