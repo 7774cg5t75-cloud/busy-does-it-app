@@ -1,5 +1,12 @@
 # busy-does-it-app
 
+## Permanent product architecture — universal website and app creation
+
+**North star:** Build a system capable of creating almost any kind of legitimate business website or app, rather than confining BUSY to a fixed list of industries or templates. Compose reusable, security-reviewed business capabilities across website, BUSY marketplace and optional standalone app delivery. An unfamiliar business must have a flexible route to a bespoke experience; unsupported functionality must be identified honestly, not simulated.
+
+This is a **long-term target, not a claim that every capability works today**. The canonical specification, capability truth states, owner controls and build-first development policy live in [ARCHITECTURE.md](ARCHITECTURE.md) under **Permanent architecture decision — Universal Business Website & App Composition**.
+
+
 ## V3.92 — Talk to BUSY without scrolling past the conversation
 
 After the successful V3.91 native voice test, the Talk to BUSY screen now starts with the microphone and shows BUSY's current answer immediately under it. Typing is still available. Suggested questions, older conversation and operator diagnostics are collapsed until needed; undo and explicit confirmation remain accessible. Recording, transcription, server authentication, approval and publishing routes are unchanged. See `docs/V3_92_TALK_TO_BUSY_SIMPLIFICATION.md`. Native iPhone acceptance is required before marking visual/voice behaviour verified.
