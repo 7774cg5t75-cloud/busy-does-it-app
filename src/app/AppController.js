@@ -16135,7 +16135,7 @@ function App() {
         }
       }catch{ /* Failed readback proves nothing; retain same request key. */ }
       setMiniAppsError("BUSY couldn't confirm whether the request saved. "+
-        "Check My BUSY Apps before trying again. Retrying unchanged details uses the same request ID.");
+        "Check My BUSY Apps before retrying. Retrying unchanged details uses the same request ID.");
       return false;
     }finally{
       customerRequestInFlightRef.current=false;
