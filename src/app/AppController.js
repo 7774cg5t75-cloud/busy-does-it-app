@@ -344,6 +344,9 @@ function App() {
     versions: [],
     requests: [],
     requestLinks: [],
+    messageCheckpoints:null,
+    messageDeliveryOutbox:null,
+    pushGatewayEvidence:null,
     requestCount30: 0,
     guestRequestCount30: 0,
     entrySummary: [],
@@ -14683,6 +14686,11 @@ function App() {
       requests: Array.isArray(data?.requests) ? data.requests : [],
       requestLinks: Array.isArray(data?.requestLinks) ? data.requestLinks : [],
       workBookingLedger: data?.workBookingLedger?.rows&&Array.isArray(data.workBookingLedger.rows)?data.workBookingLedger:null,
+      messageCheckpoints:data?.messageCheckpoints?.rows&&Array.isArray(data.messageCheckpoints.rows)?
+        {rows:data.messageCheckpoints.rows,truncated:data.messageCheckpoints.truncated===true}:null,
+      messageDeliveryOutbox:data?.messageDeliveryOutbox?.rows&&Array.isArray(data.messageDeliveryOutbox.rows)?
+        {rows:data.messageDeliveryOutbox.rows,truncated:data.messageDeliveryOutbox.truncated===true}:null,
+      pushGatewayEvidence:data?.pushGatewayEvidence||null,
       requestCount30: Math.max(0, Number(data?.requestCount30 || 0)),
       guestRequestCount30: Math.max(0, Number(data?.guestRequestCount30 || 0)),
       entrySummary: Array.isArray(data?.entrySummary) ? data.entrySummary : [],
