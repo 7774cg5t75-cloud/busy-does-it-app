@@ -14,7 +14,8 @@ import {reviewSharedRequestJourney} from "../core/sharedRequestJourneyV3212.mjs"
  * A REAL owner-facing, zero-provider preview of reuse opportunities.
  * Never stores, publishes or silently changes a customer's work.
  */
-function BusinessBrandDnaPreview({website,app,businessId,catalog=[]}){
+function BusinessBrandDnaPreview({website,app,businessId,catalog=[],
+ onApplyWebsiteLayout=null}){
  const [open,setOpen]=React.useState(false);
  const [channel,setChannel]=React.useState("social");
  const [copyDraft,setCopyDraft]=React.useState(null);
@@ -22,9 +23,10 @@ function BusinessBrandDnaPreview({website,app,businessId,catalog=[]}){
  const [showJourney,setShowJourney]=React.useState(false);
  const [showRequestReview,setShowRequestReview]=React.useState(false);
  const [requestKind,setRequestKind]=React.useState("enquiry");
+ const [contactNotice,setContactNotice]=React.useState("");
  React.useEffect(()=>{
   setCopyDraft(null);setCampaignReview(null);setShowJourney(false);
-  setShowRequestReview(false);
+  setShowRequestReview(false);setContactNotice("");
  },[businessId,website?.id,website?.generation,app?.id,app?.draft_revision,channel]);
  const journey=reviewBuilderJourneyContinuity({website,app,businessId});
  const requestReport=showRequestReview?reviewSharedRequestJourney({
@@ -89,6 +91,36 @@ function BusinessBrandDnaPreview({website,app,businessId,catalog=[]}){
              {requestReport.gaps.length>5?<Text style={styles.cardBody}>
                {"Plus "+(requestReport.gaps.length-5)+" further release checks."}
              </Text>:null}
+             {typeof onApplyWebsiteLayout==="function"&&
+               requestReport.website.heroPointsToContact&&
+               website?.theme?.ctaEmphasis!=="strong"?<View>
+               <Button label="Make my existing contact button easier to spot"
+                 onPress={()=>{
+                   const fresh=reviewSharedRequestJourney({
+                     businessId,website,app,catalog,kind:requestKind});
+                   if(!fresh.ok||!fresh.website.heroPointsToContact||
+                      fresh.source.websiteGeneration!==website?.generation||
+                      fresh.source.appRevision!==app?.draft_revision){
+                     setContactNotice("The current website changed. Review this customer path again.");
+                     setShowRequestReview(false);return;
+                   }
+                   const applied=onApplyWebsiteLayout({
+                     action:"style",field:"ctaEmphasis",value:"strong"
+                   },{
+                     expectedWebsiteId:website.id,
+                     expectedGeneration:website.generation,
+                     expectedBusinessId:businessId
+                   });
+                   setContactNotice(applied===true?
+                     "Saved privately. Your live website remains unchanged; Undo is available.":
+                     "The private change was not accepted. Check the current website before retrying.");
+                 }}/>
+               <Text style={styles.cardBody}>
+                 This only emphasises your already-existing, owner-approved contact link.
+                 It does not create a request form or send a customer message.
+               </Text>
+               </View>:null}
+             {contactNotice?<Text style={styles.cardBody}>{contactNotice}</Text>:null}
              {requestReport.responsive.appWidths.length?<Text style={styles.cardBody}>
                {"Static app layout rules checked at "+
                 requestReport.responsive.appWidths.map(r=>r.logicalWidth+"pt").join(", ")+
