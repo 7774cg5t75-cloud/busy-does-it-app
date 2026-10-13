@@ -8,21 +8,28 @@ import {SUPPORTED,prepareBrandedCopyPreview}
  from "../core/brandedContentDraftV3198.mjs";
 import {reviewCrossChannelBrandContent} from "../core/brandCampaignReviewV3200.mjs";
 import {reviewBuilderJourneyContinuity} from "../core/builderJourneyContinuityV3209.mjs";
+import {reviewSharedRequestJourney} from "../core/sharedRequestJourneyV3212.mjs";
 
 /**
  * A REAL owner-facing, zero-provider preview of reuse opportunities.
  * Never stores, publishes or silently changes a customer's work.
  */
-function BusinessBrandDnaPreview({website,app,businessId}){
+function BusinessBrandDnaPreview({website,app,businessId,catalog=[]}){
  const [open,setOpen]=React.useState(false);
  const [channel,setChannel]=React.useState("social");
  const [copyDraft,setCopyDraft]=React.useState(null);
  const [campaignReview,setCampaignReview]=React.useState(null);
  const [showJourney,setShowJourney]=React.useState(false);
+ const [showRequestReview,setShowRequestReview]=React.useState(false);
+ const [requestKind,setRequestKind]=React.useState("enquiry");
  React.useEffect(()=>{
   setCopyDraft(null);setCampaignReview(null);setShowJourney(false);
+  setShowRequestReview(false);
  },[businessId,website?.id,website?.generation,app?.id,app?.draft_revision,channel]);
  const journey=reviewBuilderJourneyContinuity({website,app,businessId});
+ const requestReport=showRequestReview?reviewSharedRequestJourney({
+  businessId,website,app,catalog,kind:requestKind
+ }):null;
  const dna=buildBusinessBrandDnaSnapshot({website,app,businessId});
  if(!dna.ok)return null;
  const brief=planBrandDnaContentBrief(dna,{channel,
@@ -59,6 +66,42 @@ function BusinessBrandDnaPreview({website,app,businessId}){
            <Text key={item.id} style={styles.cardBody}>
              {"Review: "+item.text}
            </Text>)}
+         <Button label={showRequestReview?
+           "Hide customer request checks":"Check enquiry and booking journeys"}
+           onPress={()=>setShowRequestReview(v=>!v)}/>
+         {showRequestReview?<View>
+           <View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>
+             <Button label={(requestKind==="enquiry"?"✓ ":"")+"Enquiries"}
+               onPress={()=>setRequestKind("enquiry")}/>
+             <Button label={(requestKind==="booking_request"?"✓ ":"")+"Booking requests"}
+               onPress={()=>setRequestKind("booking_request")}/>
+           </View>
+           {requestReport?.ok?<View>
+             <Text style={styles.cardBody}>{requestReport.summary}</Text>
+             <Text style={styles.cardBody}>
+               {"Website: "+requestReport.customerActions.website.replaceAll("_"," ")+
+                " • App: "+requestReport.customerActions.app.replaceAll("_"," ")}
+             </Text>
+             {requestReport.gaps.slice(0,5).map(gap=>
+               <Text key={gap} style={styles.cardBody}>
+                 {"To verify: "+gap.replaceAll("_"," ")}
+               </Text>)}
+             {requestReport.gaps.length>5?<Text style={styles.cardBody}>
+               {"Plus "+(requestReport.gaps.length-5)+" further release checks."}
+             </Text>:null}
+             {requestReport.responsive.appWidths.length?<Text style={styles.cardBody}>
+               {"Static app layout rules checked at "+
+                requestReport.responsive.appWidths.map(r=>r.logicalWidth+"pt").join(", ")+
+                "; not real screenshots or device tests."}
+             </Text>:null}
+             <Text style={styles.cardBody}>
+               A website Contact section is not a verified enquiry form.
+               An app booking request is not a confirmed diary appointment.
+             </Text>
+           </View>:<Text style={styles.cardBody}>
+             {requestReport?.reason||"Current private drafts and a verified module list are required."}
+           </Text>}
+         </View>:null}
          <Text style={styles.cardBody}>
            These are private draft checks, not proof of a real customer journey.
            Nothing is transferred, published, booked or sent.
