@@ -198,11 +198,6 @@ function UniversalBuilderPlanReview({
        <Text style={styles.cardBody}>
          BUSY has prepared a private plan and, if you approve, can reorder only existing sections. New capabilities and server integrations still need separate implementation and testing. No booking, payment, message or public site was created.
        </Text>
-       <Text style={styles.cardBody}>
-         BUSY has only prepared a plan. Screens and server integrations still
-         need separate implementation and testing. No booking, payment,
-         customer message, public website or downloadable app was created.
-       </Text>
      </View>:null}
    </Card>:null}
  </View>;
