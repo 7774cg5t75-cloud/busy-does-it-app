@@ -181,6 +181,35 @@ const homeDark = StyleSheet.create({
 
 function HomeScreen({ s }) {
   const [showOtherMoves, setShowOtherMoves] = useState(false);
+  const [verifiedAppBenefit,setVerifiedAppBenefit]=useState(null);
+  // One read-only, tenant-scoped check while an opportunity is relevant.
+  // No paid API, notification, subscription change or automatic creation.
+  useEffect(()=>{
+    const businessId=s.cloudWorkspace?.businessId||"";
+    const opportunity=recommendOwnerBusinessApp({
+      businessId,website:s.websiteDraft,app:s.miniAppsView?.app,
+      businessType:s.trade||s.brandProfile?.businessType||"",
+      services:s.services
+    });
+    if(!opportunity.show||typeof s.checkStandaloneEligibility!=="function"){
+      setVerifiedAppBenefit(null);
+      return;
+    }
+    let active=true;
+    setVerifiedAppBenefit(null);
+    Promise.resolve().then(()=>s.checkStandaloneEligibility())
+      .then(result=>{
+        if(!active)return;
+        if(result?.businessId===businessId&&result.verified===true&&
+          result.eligible===true&&Number(result.remaining)>0){
+          setVerifiedAppBenefit(result);
+        }
+      }).catch(()=>{/* No positive subscription claim on lookup failure. */});
+    return ()=>{active=false;};
+  },[s.cloudWorkspace?.businessId,s.websiteDraft?.id,
+     s.websiteDraft?.generation,s.miniAppsView?.app?.id,
+     s.trade]);
+
   const serviceName = s.selectedService?.name || s.services.find((x) => x.wanted)?.name || s.trade || "your priority service";
   const customerCount = s.customers.length;
   const eligibleCount = s.eligibleCustomers.length;
@@ -507,7 +536,7 @@ function HomeScreen({ s }) {
     businessId:s.cloudWorkspace?.businessId||"",
     website:s.websiteDraft,app:s.miniAppsView?.app,
     businessType:s.trade||s.brandProfile?.businessType||"",
-    services:s.services
+    services:s.services,entitlement:verifiedAppBenefit
   });
   const marketingMoves = [
     ...(appOpportunity.show?[{
@@ -516,13 +545,13 @@ function HomeScreen({ s }) {
       eyebrow:"An idea for your business",
       title:appOpportunity.headline,
       body:appOpportunity.reason,
-      footer:"An app can be prepared privately. Check your verified plan for any included standalone benefit.",
+      footer:appOpportunity.entitlementText,
       status:"Optional",
       tone:"blue",
       why:"Based on your existing website and business type — not a guarantee of extra customers. Your subscription allowance must be checked before claiming inclusion.",
       evidence:[
         ["Existing website","Private website draft available"],
-        ["Standalone benefit","Not yet verified"],
+        ["Standalone benefit",appOpportunity.entitlementVerified?"Provider-verified available":"Not verified as included"],
         ["Publishing","Separate owner approval required"],
         ["Extra charges","App-store accounts or distribution may cost extra"]
       ],
