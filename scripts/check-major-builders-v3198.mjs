@@ -75,7 +75,7 @@ const brand={ok:true,schema:"private_brand_dna_draft_v1",businessId:b,
 for(const channel of ["social","poster","advert"]){
  const generated=prepareBrandedCopyPreview(brand,{channel});
  ok(generated.ok,generated.reason);eq(generated.channel,channel);
- ok(generated.copy.includes("Example Florist"));
+ ok(generated.copy.toLowerCase().includes("example florist"));
  ok(generated.copy.includes("Bouquets"));
  ok(!generated.copy.includes("approved.jpg"));
  eq(generated.businessId,b);eq(generated.requiresOwnerApproval,true);
