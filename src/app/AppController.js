@@ -26,6 +26,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {prepareDurableMessageAttempt,clearDurableMessageAttempt} from "../core/durableMessageRetryV3185.mjs";
 import {recoverExactSavedReply} from "../core/recoverSavedReplyV3205.mjs";
 import {reviewCommunicationOutcome} from "../core/requestCommunicationOutcomeV3205.mjs";
+import {checkCurrentOwnerFollowup} from "../core/followupProofV3207.mjs";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 import * as Notifications from "expo-notifications";
@@ -394,6 +395,8 @@ function App() {
   const [selectedMiniAppRequestDetail, setSelectedMiniAppRequestDetail] = useState(null);
   const miniAppMessageInFlightRef=useRef(new Set());
   const [latestCommunicationEvidence,setLatestCommunicationEvidence]=useState(null);
+  const [ownerFollowupReview,setOwnerFollowupReview]=useState(null);
+  const [ownerFollowupBusy,setOwnerFollowupBusy]=useState(false);
   const [latestCustomerRequestOutcome,setLatestCustomerRequestOutcome]=useState(null);
   const customerRequestPendingRef=useRef(null);
   const customerRequestInFlightRef=useRef(false);
@@ -519,6 +522,15 @@ function App() {
   const [socialPublishingError, setSocialPublishingError] = useState("");
   const [socialPublishingAction, setSocialPublishingAction] = useState("");
   const [ownerSession, setOwnerSession] = useState(null);
+  const liveOwnerFollowupScopeRef=useRef("");
+  liveOwnerFollowupScopeRef.current=[
+    ownerSession?.userId||"",cloudWorkspace?.businessId||"",
+    selectedMiniAppRequestRole||"",selectedMiniAppRequestDetail?.request?.id||"",
+    selectedMiniAppRequestDetail?.request?.mini_app_id||""
+  ].join(":");
+  useEffect(()=>{setOwnerFollowupReview(null);},[
+    ownerSession?.userId,cloudWorkspace?.businessId
+  ]);
   useEffect(()=>{setLatestCommunicationEvidence(null);},[ownerSession?.userId]);
   const activeCustomerRequestScopeRef=useRef("");
   activeCustomerRequestScopeRef.current=[
@@ -16324,6 +16336,7 @@ function App() {
     { before = "", append = false, navigate = true } = {}
   ) => {
     if (!requestId) return false;
+    if(navigate&&!append)setOwnerFollowupReview(null);
     const ownerView = role === "business";
     setMiniAppRequestHistoryLoading(true);
     setMiniAppsError("");
@@ -16391,6 +16404,61 @@ function App() {
       setMiniAppsError("BUSY could not independently verify the request in this business inbox. Refresh the conversation before taking another action.");
       return false;
     }finally{setMiniAppsAction("");}
+  };
+
+  // A dashboard suggestion is a prompt to CHECK, not permission to send.
+  // This fetch is authenticated and read-only, scoped to the same current
+  // owner, business, app and conversation. A fresh check is repeated on
+  // the actual "Use draft" action, rejecting changes in saved records.
+  const checkOwnerFollowup=async(requestId,{expectedStamp=null}={})=>{
+    const detail=selectedMiniAppRequestDetail?.request;
+    const owner=ownerSession?.userId||"";
+    const businessId=cloudWorkspace?.businessId||"";
+    const appId=detail?.mini_app_id||"";
+    const scope=[owner,businessId,"business",requestId,appId].join(":");
+    if(!owner||!businessId||!appId||detail?.id!==requestId||
+      selectedMiniAppRequestRole!=="business"||
+      liveOwnerFollowupScopeRef.current!==scope)
+      return {ok:false,reason:"Open your current signed-in business conversation."};
+    setOwnerFollowupBusy(true);
+    setMiniAppsError("");
+    try{
+      const current=await miniAppsRequest("owner_followup_check",{requestId});
+      if(liveOwnerFollowupScopeRef.current!==scope)
+        throw Error("The current signed-in conversation changed.");
+      const verified=checkCurrentOwnerFollowup({
+        businessId,appId,requestId,result:current,
+        previousStamp:expectedStamp
+      });
+      if(!verified.ok){
+        setOwnerFollowupReview(null);
+        setMiniAppsNotice(verified.changedSinceReview?
+          "This customer conversation changed. Check its latest messages again before preparing your reply.":
+          "Busy could not verify a current safe follow-up suggestion.");
+        return verified;
+      }
+      setOwnerFollowupReview(verified);
+      return verified;
+    }catch{
+      if(liveOwnerFollowupScopeRef.current===scope){
+        setOwnerFollowupReview(null);
+        setMiniAppsError("Busy could not check the latest saved messages. "+
+          "Review the conversation yourself before replying.");
+      }
+      return {ok:false,reason:"Fresh follow-up evidence unavailable."};
+    }finally{setOwnerFollowupBusy(false);}
+  };
+  const prepareVerifiedOwnerFollowupDraft=async(requestId,expectedStamp)=>{
+    if(typeof expectedStamp!=="string"||!expectedStamp)
+      return {ok:false,reason:"Check the latest conversation first."};
+    const verified=await checkOwnerFollowup(requestId,{
+      expectedStamp
+    });
+    if(!verified.ok||!verified.mayPrepareDraft||!verified.draft)
+      return {ok:false,reason:verified.reason||
+        "The request no longer needs a suggested reply."};
+    return {ok:true,draft:verified.draft,
+      readOnlyVerified:true,ownerStillMustSend:true};
   };
 
   const openOwnerMiniAppRequest = (requestId) =>
@@ -17263,6 +17331,10 @@ function App() {
     toggleBusyAppFavorite,
     sendMiniAppRequestMessage,
     verifyOwnerRequestInbox,
+    checkOwnerFollowup,
+    prepareVerifiedOwnerFollowupDraft,
+    ownerFollowupReview,
+    ownerFollowupBusy,
     latestCommunicationEvidence,
     replyBusyAppRequestMessage,
     bridgeMiniAppRequestIntoBusy,
