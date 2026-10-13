@@ -159,7 +159,8 @@ const ui=read("src/screens/businessBrandDnaPreview.js");
 ok(ui.includes("buildBusinessBrandDnaSnapshot({website,app,businessId})"));
 ok(ui.includes("planBrandDnaContentBrief(dna,{channel,"));
 ok(ui.includes("onPress={()=>setChannel(key)}"));
-ok(ui.includes("No content has been generated or published."));
+// V3.198 can now prepare a PRIVATE text draft; no publication remains guaranteed.
+ok(ui.includes("Nothing has been published."));
 ok(read("src/screens/websiteBuilder.js").includes("<BusinessBrandDnaPreview website={draft}"));
 ok(read("src/screens/miniApps.js").includes("<BusinessBrandDnaPreview website={s.websiteDraft}"));
 // Architectural consolidation must stay wired in the reviewed actions.
