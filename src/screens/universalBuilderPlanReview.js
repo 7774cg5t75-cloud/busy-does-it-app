@@ -4,6 +4,8 @@ import {Card,Button,Field} from "../components/ui";
 import {styles} from "../theme/styles";
 import {planUniversalBuilderRequest}
  from "../core/universalBuilderPlanV3210.mjs";
+import {planUniversalAppNavigation,confirmUniversalAppNavigation}
+ from "../core/universalAppNavigationV3211.mjs";
 
 /**
  * One simple opt-in planning entry point in BOTH builders.
@@ -23,17 +25,22 @@ const initial=value=>typeof value==="string"?
  value.trim().slice(0,1400):"";
 function UniversalBuilderPlanReview({
  businessId="",businessType="",website=null,app=null,catalog=[],
- surface="website",initialGoal=""
+ surface="website",initialGoal="",
+ onApplyWebsiteComposition=null,onSaveAppChanges=null,busy=false
 }){
  const [open,setOpen]=React.useState(false);
  const [goal,setGoal]=React.useState("");
  const [report,setReport]=React.useState(null);
  const [showDependencies,setShowDependencies]=React.useState(false);
  const [notice,setNotice]=React.useState("");
+ const [reviewedGoal,setReviewedGoal]=React.useState("");
+ const [navigationReview,setNavigationReview]=React.useState(null);
+ const [working,setWorking]=React.useState(false);
  const siteId=website?.id||"",siteRevision=website?.generation||0;
  const appId=app?.id||"",appRevision=app?.draft_revision||0;
  React.useEffect(()=>{
   setReport(null);setNotice("");setShowDependencies(false);
+  setReviewedGoal("");setNavigationReview(null);
  },[businessId,businessType,siteId,siteRevision,appId,appRevision]);
  React.useEffect(()=>{setGoal("");setOpen(false);},
   [businessId]);
@@ -43,14 +50,74 @@ function UniversalBuilderPlanReview({
    request:source,businessId,businessType,website,app,catalog
   });
   setReport(next.ok?next:null);
+  setReviewedGoal(next.ok?source:"");
+  setNavigationReview(null);
   setNotice(next.ok?"":next.reason);
   setShowDependencies(false);
  };
  const matching=report?.ok&&report.businessId===(businessId||null)&&
+  report.businessType===String(businessType||"").trim()&&
   report.source.websiteId===(siteId||null)&&
   report.source.websiteRevision===(siteRevision||null)&&
   report.source.appId===(appId||null)&&
   report.source.appRevision===(appRevision||null);
+ const proposeWebsiteChange=()=>{
+  if(!matching||surface!=="website"||!website?.id||
+    !report.sectionPlan?.changesSuggested||working)return;
+  const fresh=planUniversalBuilderRequest({request:reviewedGoal,businessId,
+   businessType,website,app,catalog});
+  if(!fresh.ok||fresh.source.websiteId!==report.source.websiteId||
+    fresh.source.websiteRevision!==report.source.websiteRevision||
+    fresh.source.appRevision!==report.source.appRevision||
+    JSON.stringify(fresh.detectedGoals)!==JSON.stringify(report.detectedGoals)||
+    JSON.stringify(fresh.sectionPlan?.before)!==
+      JSON.stringify(report.sectionPlan.before)||
+    JSON.stringify(fresh.sectionPlan?.proposed)!==
+      JSON.stringify(report.sectionPlan.proposed)){
+    setReport(null);
+    setNotice("The website or approved requirements changed. Review the current plan again.");
+    return;
+  }
+  const applied=onApplyWebsiteComposition?.({
+   action:"apply-reviewed-composition",websiteId:website.id,
+   expectedGeneration:website.generation,expectedBusinessId:businessId,
+   before:[...fresh.sectionPlan.before],
+   proposed:[...fresh.sectionPlan.proposed]
+  });
+  setReport(null);setNavigationReview(null);
+  setNotice(applied===true?
+    "Saved the reviewed order to your private website draft. Your live website was not changed. Use Undo to reverse it.":
+    "The website change was not verified. No new layout was accepted. Recheck the latest private draft.");
+ };
+ const prepareAppOrder=()=>{
+  if(!matching||surface!=="app"||working)return;
+  const next=planUniversalAppNavigation({request:reviewedGoal,businessId,
+   app,website,catalog});
+  setNavigationReview(next.ok?next:null);
+  setNotice(next.ok?(next.preview?"":next.reason):next.reason);
+ };
+ const approveAppOrder=async()=>{
+  if(!matching||!navigationReview?.preview||working||busy)return;
+  const fresh=confirmUniversalAppNavigation({businessId,request:reviewedGoal,
+   app,website,catalog,review:navigationReview});
+  if(!fresh.ok){
+   setNavigationReview(null);setNotice(fresh.reason);return;
+  }
+  setWorking(true);
+  try{
+   const result=await onSaveAppChanges?.({
+    operations:fresh.preview.operations,appId:fresh.appId,
+    expectedRevision:fresh.appRevision
+   });
+   setReport(null);setNavigationReview(null);
+   setNotice(result?.ok===true?
+    "Saved one new private app revision. Real customers and published apps are unchanged.":
+    "The app change was not verified. Refresh the latest private draft before another attempt.");
+  }catch{
+   setReport(null);setNavigationReview(null);
+   setNotice("The app save result is uncertain. Refresh the current app before retrying.");
+  }finally{setWorking(false);}
+ };
  const requested=matching?
   report.capabilities.filter(x=>x.explicitlyRequested):[];
  const supporting=matching?
@@ -58,7 +125,8 @@ function UniversalBuilderPlanReview({
  return <View>
    <Button label={open?"Hide my website and app requirements":
      "What else can BUSY build for my business?"}
-     onPress={()=>{setOpen(x=>!x);setReport(null);setNotice("");}}/>
+     onPress={()=>{setOpen(x=>!x);setReport(null);
+       setReviewedGoal("");setNavigationReview(null);setNotice("");}}/>
    {open?<Card eyebrow="Universal Builder • private preparation"
      title="Describe what customers should be able to do"
      body="Busy can break down a new idea, reuse existing building blocks and tell you which parts still need building. Every legitimate business can start here."
@@ -72,7 +140,7 @@ function UniversalBuilderPlanReview({
          {"BUSY can use your current business brief if you leave this blank."}
        </Text>:null}
      <Button primary label="Plan the requirements (no AI credits)"
-       onPress={review}/>
+       disabled={working||!!busy} onPress={review}/>
      {notice?<Text style={styles.cardBody}>{notice}</Text>:null}
      {matching?<View>
        <Text style={styles.cardBody}>{report.summary}</Text>
@@ -106,9 +174,30 @@ function UniversalBuilderPlanReview({
          {report.sectionPlan.changesSuggested?
           <Text style={styles.cardBody}>
            {"Private suggested order: "+report.sectionPlan.proposed.join(" → ")+
-            ". Nothing has been changed. Use the existing section arrangement controls to approve changes one by one."}
+            ". Nothing has been changed until you explicitly approve."}
           </Text>:null}
+         {report.sectionPlan.changesSuggested&&typeof onApplyWebsiteComposition==="function"?(
+           <Button primary label="Approve this private website section order"
+             disabled={working||!!busy} onPress={proposeWebsiteChange}/>
+         ):null}
        </View>:null}
+       {surface==="app"&&app?.id&&typeof onSaveAppChanges==="function"?<View>
+         <Button label="Review app navigation for these requirements"
+           disabled={working||!!busy} onPress={prepareAppOrder}/>
+         {navigationReview?.preview?<View>
+           <Text style={styles.sectionLabel}>Before — current private app</Text>
+           <Text style={styles.cardBody}>{navigationReview.preview.before.join(" → ").replaceAll("_"," ")}</Text>
+           <Text style={styles.sectionLabel}>After — proposed private app</Text>
+           <Text style={styles.cardBody}>{navigationReview.preview.after.join(" → ").replaceAll("_"," ")}</Text>
+           <Button primary label={working?"Saving…":"Approve one private app navigation change"}
+             disabled={working||!!busy} onPress={approveAppOrder}/>
+           <Button label="Keep the original app navigation"
+             onPress={()=>{setNavigationReview(null);setNotice("Nothing was changed.");}}/>
+         </View>:null}
+       </View>:null}
+       <Text style={styles.cardBody}>
+         BUSY has prepared a private plan and, if you approve, can reorder only existing sections. New capabilities and server integrations still need separate implementation and testing. No booking, payment, message or public site was created.
+       </Text>
        <Text style={styles.cardBody}>
          BUSY has only prepared a plan. Screens and server integrations still
          need separate implementation and testing. No booking, payment,
