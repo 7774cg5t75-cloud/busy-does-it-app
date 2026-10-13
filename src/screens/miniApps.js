@@ -4581,7 +4581,7 @@ function BusyAppDetail({ s }) {
             business replied, or an appointment was confirmed.
           </Text>
           <Button label="Review My BUSY Apps"
-            onPress={()=>s.go("myBusyApps")}/>
+            onPress={()=>s.go("busyAppsMarketplace")}/>
         </Card>
       ):null}
 
