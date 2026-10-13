@@ -1137,7 +1137,8 @@ function MiniAppBuilder({ s }) {
         onRefresh={s.refreshMiniAppsStatus}
         busy={s.miniAppsAction}/>
       <BusinessBrandDnaPreview website={s.websiteDraft}
-        app={app} businessId={s.cloudWorkspace?.businessId}/>
+        app={app} businessId={s.cloudWorkspace?.businessId}
+        catalog={view.catalog||s.miniAppsStatus?.catalog||[]}/>
       <UniversalBuilderPlanReview surface="app"
         businessId={s.cloudWorkspace?.businessId||""}
         businessType={view.category||s.trade||""}
