@@ -301,7 +301,8 @@ function WebsiteBuilder({ s }) {
         businessType={draft?.businessType||brand?.websiteBrief?.businessType||s.trade||""}
         website={draft} app={s.miniAppsView?.app}
         catalog={s.miniAppsView?.catalog||s.miniAppsStatus?.catalog||[]}
-        initialGoal={brand?.websiteBrief?.description||""}/>
+        initialGoal={brand?.websiteBrief?.description||""}
+        onApplyWebsiteComposition={s.applyWebsiteLayoutAction}/>
       {draft?(
         <Card eyebrow="V3.172 • Customer experience"
           title="Make it easier for customers"
