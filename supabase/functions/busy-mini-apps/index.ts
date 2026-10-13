@@ -1750,7 +1750,7 @@ async function ownerStatus(businessId: string) {
       .gte("created_at", entrySince),
     ownerWorkBookingLedger(businessId,app.id),
     supabase.from("busy_mini_app_request_messages")
-      .select("id,business_id,mini_app_id,request_id,sender_role")
+      .select("id,business_id,mini_app_id,request_id,sender_role,created_at")
       .eq("business_id",businessId).eq("mini_app_id",app.id)
       .order("created_at",{ascending:false}).limit(150),
     supabase.from("busy_mini_app_message_delivery_outbox")
