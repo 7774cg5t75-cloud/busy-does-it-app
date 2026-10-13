@@ -22,11 +22,13 @@ function evaluateStoredRequestProof({request=null,link=null,businessId="",
    request.mini_app_id!==appId||!TYPE.has(request.request_type)||
    !STATUS.has(request.status))
   return fail("The stored request identity, workspace, type or status could not be verified.");
- const guest=context.startsWith("guest_");
- if(guest&&request.request_origin!=="guest_web")
+ const guest=request.request_origin==="guest_web";
+ if(context.startsWith("guest_")&&!guest)
   return fail("Only an exact guest browser request receipt can be used here.");
  if(context.startsWith("signed_in_")&&request.request_origin!=="signed_in")
   return fail("This signed-in receipt belongs to a different request channel.");
+ if(!["guest_web","signed_in"].includes(request.request_origin))
+  return fail("This request does not have a verified channel of origin.");
  if(link!==null&&link!==undefined&&(
     typeof link!=="object"||
     link.request_id!==requestId||
