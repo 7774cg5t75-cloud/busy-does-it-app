@@ -48,6 +48,12 @@ Business Brand DNA displays this distinction; no new main navigation or giant we
 
 GitHub Actions workflow \`.github/workflows/builders-major-v3214.yml\` adds this suite to the V3.213–V3.210 and previous security/architecture/staging checks and unsigned iOS/Android JS exports. These checks cannot establish real public behaviour until CI, staging and actual devices/providers have been exercised.
 
+## Additional live-version continuity safeguard
+
+A Business App with a published `current_live_version_id` remains publicly reachable while the owner prepares a newer **private** draft (status `update_pending`). V3.214 aligns the public link, guest challenge/intake, signed-in customer detail and marketplace browsing with that condition. Each request entry still resolves the **immutable current published version** and checks its `state = live`; never use `draft_config` as visitor authority. This prevents owner edits from making an otherwise published handoff disappear.
+
+The V3.214 focused suite explicitly checks the public handlers retain these guards. No database migration or live deploy was performed, so this source change is not verified as working on a hosted website or live Business App.
+
 ## Where V3.215 should go
 
 1. Progressively prepare a genuinely transactional website enquiry adapter using the same scoped request storage and owner inbox, with verified published-site ownership, origin/auth challenge, anti-abuse limits, consent and privacy, idempotency and authoritative stored receipts. A new database write endpoint or migration requires separate review, isolated staging and owner approval.
