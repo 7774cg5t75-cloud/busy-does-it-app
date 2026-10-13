@@ -13735,6 +13735,17 @@ function App() {
       setWebsiteBuilderNotice("Build the first website draft before changing its layout.");
       return false;
     }
+    // Optional version-scoped owner-reviewed contact-route changes must
+    // recheck the exact private draft and signed-in workspace at apply time.
+    if(options?.expectedWebsiteId!==undefined&&(
+       options.expectedWebsiteId!==websiteDraft.id||
+       !Number.isSafeInteger(options.expectedGeneration)||
+       options.expectedGeneration!==websiteDraft.generation||
+       !options.expectedBusinessId||
+       options.expectedBusinessId!==cloudWorkspace?.businessId)){
+      setWebsiteBuilderNotice("Your website or business changed. Review the current customer path again.");
+      return false;
+    }
     // Recheck the exact website version before keeping a measured candidate.
     const requested=options?.ownerFeedback;
     if(requested&&(requested.draftId!==websiteDraft.id||
