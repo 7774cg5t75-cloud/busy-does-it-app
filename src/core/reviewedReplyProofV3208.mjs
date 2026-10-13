@@ -12,7 +12,12 @@ function interpretSavedOwnerReply({
  const deny=reason=>({ok:false,reason,noMessageDeliveryClaim:true});
  if(![businessId,appId,requestId].every(x=>ID.test(x))||
     response?.ok!==true||response?.databaseMessageSaved!==true||
-    !ID.test(response?.message?.id||""))
+    response?.providerDeliveryVerified!==false||
+    !ID.test(response?.message?.id||"")||
+    response.message.business_id!==businessId||
+    response.message.mini_app_id!==appId||
+    response.message.request_id!==requestId||
+    response.message.sender_role!=="business")
    return deny("The owner reply has not been verified as saved.");
  const readback=response?.postSendEvidence;
  const readbackValid=readback?.ok===true&&
