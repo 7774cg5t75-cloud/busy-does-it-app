@@ -68,6 +68,66 @@ function applyWebsiteLayoutOperation(draft,operation={}){
   theme.sectionOrder=[...proposed];
   return ready("Applied the owner-reviewed customer-first section order");
  }
+ // V3.214: owner-approved handoff to an EXISTING public Business App.
+ // A link is not a website form, customer request or confirmed booking.
+ // The AppController must independently recompute current live-version proof.
+ if(action==="connect-app-request"||action==="disconnect-app-request"){
+  const fields=["kind","action","websiteId","expectedGeneration",
+    "expectedBusinessId","intent","url","appId","liveVersionId","slug"];
+  if(Object.keys(operation).some(key=>!fields.includes(key))||
+     operation.websiteId!==draft.id||
+     !Number.isSafeInteger(operation.expectedGeneration)||
+     operation.expectedGeneration!==draft.generation||
+     typeof operation.expectedBusinessId!=="string"||
+     !operation.expectedBusinessId||
+     (draft.businessId&&operation.expectedBusinessId!==draft.businessId)||
+     !["enquiry","booking_request"].includes(operation.intent))
+   return fail(draft,"The approved website, business or action changed. Review the current handoff.");
+  const activeContact=sections.find(s=>s.id==="contact"&&s.type==="contact"&&
+    s.enabled!==false&&(text(s.phone)||text(s.email)));
+  if(!activeContact)return fail(draft,
+    "Keep visible, owner-approved contact details before connecting an external customer request.");
+  const existing={...(theme.appRequestLinks||{})};
+  if(action==="disconnect-app-request"){
+   if(Object.keys(operation).some(k=>!["kind","action","websiteId",
+       "expectedGeneration","expectedBusinessId","intent"].includes(k))||
+      !existing[operation.intent])
+    return fail(draft,"There is no matching active handoff in this private website.");
+   delete existing[operation.intent];
+   if(Object.keys(existing).length)theme.appRequestLinks=existing;
+   else delete theme.appRequestLinks;
+   return ready("Removed the reviewed Business App customer-request link");
+  }
+  const slug=operation.slug,url=operation.url;
+  if(typeof slug!=="string"||
+     !/^[a-z0-9](?:[a-z0-9-]{0,78}[a-z0-9])?$/.test(slug)||
+     typeof url!=="string"||url.length>420||
+     typeof operation.appId!=="string"||!operation.appId||
+     typeof operation.liveVersionId!=="string"||!operation.liveVersionId)
+   return fail(draft,"The public Business App link is incomplete.");
+  let parsed;
+  try{parsed=new URL(url);}catch{return fail(draft,"Invalid public Business App link.");}
+  const expected="/functions/v1/busy-mini-app-link";
+  if(parsed.protocol!=="https:"||parsed.username||parsed.password||parsed.port||
+     !/^[a-z0-9-]{6,80}\.supabase\.co$/.test(parsed.hostname)||
+     parsed.pathname!==expected||parsed.hash||
+     parsed.searchParams.size!==3||
+     parsed.searchParams.get("slug")!==slug||
+     parsed.searchParams.get("source")!=="web"||
+     parsed.searchParams.get("intent")!==operation.intent||
+     [...parsed.searchParams.keys()].some(k=>
+       !["slug","source","intent"].includes(k)))
+   return fail(draft,"Only BUSY's verified HTTPS customer-request handoff is allowed.");
+  const link={
+   intent:operation.intent,url,slug,appId:operation.appId,
+   liveVersionId:operation.liveVersionId,ownerApproved:true
+  };
+  if(JSON.stringify(existing[operation.intent])===JSON.stringify(link))
+   return fail(draft,"That public Business App link is already connected.");
+  existing[operation.intent]=link;
+  theme.appRequestLinks=existing;
+  return ready("Connected the owner-approved public Business App request handoff");
+ }
  if(action==="add-text"){
   const title=text(operation.title),body=text(operation.body);
   if(!title||!body||title.length>100||body.length>2500||!slug(title))
