@@ -8,6 +8,8 @@ import {requestTransitionEvidence,reviewSharedRequestJourney,TYPES}
  from "../src/core/sharedRequestJourneyV3212.mjs";
 import {decideAppRequestTransition,appRequestJourney}
  from "../src/core/appRequestLifecycle.mjs";
+import {applyWebsiteLayoutOperation}
+ from "../supabase/functions/busy-website-worker/websiteLayoutEditing.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 let checks=0;
 const ok=(value,msg)=>{assert.ok(value,msg);checks++;};
@@ -207,4 +209,28 @@ ok(read("src/core/universalCapabilityCatalogV3210.mjs")
  .includes("Website form delivery needs approved hosting"));
 ok(read("src/core/appRequestLifecycle.mjs")
  .includes('bridgeState!=="booking_confirmed"'));
+const improve=applyWebsiteLayoutOperation(website(),{
+ action:"style",field:"ctaEmphasis",value:"strong"
+});
+ok(improve.applied,"A recorded real hero contact CTA can be made prominent privately.");
+eq(improve.draft.theme.ctaEmphasis,"strong");
+eq(website().theme.ctaEmphasis,undefined,"The original website fixture is not mutated.");
+const withoutLink=website();withoutLink.sections[0].ctaHref="";
+eq(applyWebsiteLayoutOperation(withoutLink,{
+ action:"style",field:"ctaEmphasis",value:"strong"
+}).applied,false,"No CTA may be promoted without a recorded target.");
+const uiController=read("src/app/AppController.js");
+const websiteUI=read("src/screens/websiteBuilder.js");
+ok(uiController.includes("options.expectedGeneration!==websiteDraft.generation"),
+ "Reviewed CTA changes are checked against the current website generation.");
+ok(uiController.includes("options.expectedBusinessId!==cloudWorkspace?.businessId"),
+ "Reviewed CTA changes are checked against the current signed-in business.");
+ok(websiteUI.includes("onApplyWebsiteLayout={s.applyWebsiteLayoutAction}"),
+ "The shared review reuses the existing private editor/undo controller.");
+ok(ui.includes('field:"ctaEmphasis",value:"strong"'));
+ok(ui.includes("requestReport.website.heroPointsToContact"));
+ok(ui.includes("This only emphasises your already-existing, owner-approved contact link."));
+ok(ui.includes("expectedGeneration:website.generation"));
+ok(ui.includes("expectedWebsiteId:website.id"));
+ok(ui.includes("expectedBusinessId:businessId"));
 console.log("V3.212 "+checks+" assertions PASS: privacy-scoped shared requests, real runtime and owner facts, booking state boundaries, three-width static UX risks, UI wiring.");
