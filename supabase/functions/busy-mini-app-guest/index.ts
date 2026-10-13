@@ -136,9 +136,10 @@ async function liveApp(slug: string) {
 
   const version = await supabase
     .from("busy_mini_app_versions")
-    .select("id,version_no,config")
+    .select("id,version_no,config,state")
     .eq("id", app.data.current_live_version_id)
     .eq("mini_app_id", app.data.id)
+    .eq("state", "live")
     .maybeSingle();
   if (version.error) throw version.error;
   if (!version.data?.id) {
