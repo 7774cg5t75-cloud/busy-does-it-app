@@ -117,6 +117,13 @@ const anchor=reviewSharedRequestJourney({
 });
 eq(anchor.website.heroPointsToContact,false);
 ok(anchor.gaps.includes("website_hero_contact_route"));
+const missingButtonLabel=website();missingButtonLabel.sections[0].cta="";
+const unlabelled=reviewSharedRequestJourney({
+ businessId,website:missingButtonLabel,app:app(),catalog:catalogue
+});
+eq(unlabelled.website.heroPointsToContact,false,
+ "A missing accessible contact button label cannot justify CTA promotion.");
+ok(unlabelled.gaps.includes("website_hero_contact_route"));
 const hidden=website();hidden.sections.find(s=>s.id==="contact").enabled=false;
 eq(reviewSharedRequestJourney({
  businessId,website:hidden,app:app(),catalog:catalogue
