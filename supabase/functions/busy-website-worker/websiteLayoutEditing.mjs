@@ -41,6 +41,8 @@ function applyWebsiteLayoutOperation(draft,operation={}){
    "expectedBusinessId","before","proposed"];
   if(Object.keys(operation).some(key=>!allowedFields.includes(key))||
     typeof operation.websiteId!=="string"||operation.websiteId!==draft.id||
+    typeof operation.expectedBusinessId!=="string"||
+    !operation.expectedBusinessId||operation.expectedBusinessId.length>128||
     !Number.isSafeInteger(operation.expectedGeneration)||
     operation.expectedGeneration!==draft.generation||
     (typeof draft.businessId==="string"&&draft.businessId&&
