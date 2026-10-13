@@ -5,6 +5,7 @@ import {styles} from "../theme/styles";
 import {prepareFirstAppFromWebsite,confirmFirstAppFromWebsite}
  from "../core/firstAppFromWebsiteV3197.mjs";
 import {recommendOwnerBusinessApp} from "../core/ownerAppOpportunityV3197.mjs";
+import {suggestAppCustomerJourney} from "../core/industryAppJourneyV3198.mjs";
 
 /** No app required up front. An explicit approval creates only a private
  * draft through the existing authenticated Edge build_draft action. */
@@ -24,6 +25,8 @@ function FirstAppFromWebsite({website,app,businessId,businessType,
  const plan=prepareFirstAppFromWebsite({website,app,businessId,mode});
  const opportunity=recommendOwnerBusinessApp({businessId,website,app,
   businessType,services,entitlement:benefit});
+ const customerJourney=suggestAppCustomerJourney({
+  businessType:website.businessType||businessType});
  return <Card eyebrow="Reuse your existing website"
   title="Create my first Business App from this website"
   body="Busy can prepare a real private app using your website's reviewed business facts. Choose how closely to match its design before anything is saved."
@@ -31,6 +34,11 @@ function FirstAppFromWebsite({website,app,businessId,businessType,
   {opportunity.show?<Text style={styles.cardBody}>
    {"Why this might help: "+opportunity.reason}
   </Text>:null}
+  <Text style={styles.cardBody}>
+   {"Busy’s design goal: "+customerJourney.customerNeed+
+    " She will only use customer actions that the actual app supports. "+
+    "Booking requests, quotes and orders are not assumed to work until verified."}
+  </Text>
   <Button label={open?"Hide my app preparation":"Prepare an app from my website"}
    onPress={()=>{setOpen(v=>!v);setReview(null);setNotice("");}}/>
   {open?<View>
@@ -80,8 +88,10 @@ function FirstAppFromWebsite({website,app,businessId,businessType,
         const result=await onCreate?.(current);
         if(result?.ok===true){
           setReview(null);
-          setNotice(result.appearanceApplied===false?
-           "Your private app draft was created, but not every design change was saved. Check the current app before publishing.":
+          setNotice(result.alreadyExists===true?
+           "Busy found an existing private app and will not create a duplicate. Open it to finish reviewing its design.":
+           result.appearanceApplied===false?
+           "A private app exists, but the latest design still needs checking. Review it before publishing.":
            "Your private Business App is ready for review. Nothing was published.");
         }else{
           setReview(null);
@@ -109,7 +119,7 @@ function FirstAppFromWebsite({website,app,businessId,businessType,
       }catch{setNotice("Subscription verification is unavailable. No included benefit has been assumed.");}
       finally{setChecking(false);}
     }}/>
-   {benefit?.verified===true&&benefit?.eligible===true?
+   {opportunity.entitlementVerified===true?
     <Text style={styles.cardBody}>
       A provider-verified creation allowance is available for this business
       this period. App-store accounts and distribution may cost extra.
