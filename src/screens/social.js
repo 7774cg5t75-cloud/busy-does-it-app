@@ -18,6 +18,8 @@ import {
   Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {prepareSocialBrandHandoff,confirmSocialBrandHandoff}
+ from "../core/socialBrandHandoffV3199.mjs";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 
@@ -653,6 +655,33 @@ function SocialMediaCentre({ s }) {
 }
 
 function SocialCreator({ s }) {
+  const [brandReview,setBrandReview]=useState(null);
+  const [brandedCaptionAccepted,setBrandedCaptionAccepted]=useState(false);
+  const businessId=s.cloudWorkspace?.businessId||"";
+  const brandWebsite=s.websiteDraft;
+  const brandApp=s.miniAppsStatus?.app;
+  useEffect(()=>{
+    setBrandReview(null);setBrandedCaptionAccepted(false);
+  },[businessId,brandWebsite?.id,brandWebsite?.generation,
+    brandApp?.id,brandApp?.draft_revision]);
+  const currentBrandInput=()=>({website:brandWebsite,app:brandApp,businessId});
+  const applyBrandCaption=()=>{
+    const verified=confirmSocialBrandHandoff({...currentBrandInput(),
+      evidence:brandReview});
+    if(!verified.ok){setBrandReview(verified);setBrandedCaptionAccepted(false);return;}
+    const apply=()=>{
+      s.setSocialDraftText(verified.copy);
+      setBrandedCaptionAccepted(true);
+      setBrandReview(null);
+    };
+    if(s.socialDraftText.trim()&&s.socialDraftText.trim()!==verified.copy.trim()){
+      Alert.alert("Replace your caption?",
+        "You have wording in this post. Using your brand caption will replace those edits.",[
+        {text:"Keep my wording",style:"cancel"},
+        {text:"Use branded wording",onPress:apply}
+      ]);
+    }else apply();
+  };
   const result = s.socialAiResult;
   const photos = s.socialCreatePhotos || [];
   const analysing = s.socialAiStatus === "analysing";
@@ -709,6 +738,43 @@ function SocialCreator({ s }) {
         placeholderTextColor="#9AA3B2"
         style={styles.messageInput}
       />
+
+      {brandWebsite?.id&&brandApp?.id&&businessId?<Card
+        eyebrow="Your Business Brand DNA"
+        title="Use your existing branding in this post"
+        body="Busy can prepare a caption using the approved details in your website and app. Review it, then use it with your selected photos. This does not call paid AI or publish anything."
+        tone="blue">
+        <Button label="Prepare my branded caption"
+          disabled={analysing}
+          onPress={()=>{
+            setBrandedCaptionAccepted(false);
+            setBrandReview(prepareSocialBrandHandoff(currentBrandInput()));
+          }}/>
+        {brandReview?<View>
+          {brandReview.ok?<View>
+            <Text style={styles.sectionLabel}>Review your branded wording</Text>
+            <Text selectable style={styles.cardBody}>{brandReview.copy}</Text>
+            <Button label="Use this wording in my post"
+              onPress={applyBrandCaption}/>
+          </View>:<Text style={styles.cardBody}>{brandReview.reason}</Text>}
+        </View>:null}
+        {brandedCaptionAccepted&&!ready?<View>
+          <Text style={styles.fieldLabel}>Your editable branded caption</Text>
+          <TextInput multiline value={s.socialDraftText}
+            onChangeText={s.setSocialDraftText}
+            style={styles.messageInput}
+            placeholder="Review and edit your business caption"
+            placeholderTextColor="#9AA3B2"/>
+          <Button primary
+            label={photos.length?"Save branded post draft & review":"Choose photos to save this draft"}
+            disabled={!photos.length||!s.socialDraftText.trim()||analysing}
+            onPress={s.saveGeneratedSocialDraft}/>
+          <Text style={styles.cardBody}>
+            Nothing is scheduled or published. The existing social workflow
+            currently requires selected photos to save a post draft.
+          </Text>
+        </View>:null}
+      </Card>:null}
 
       <Button
         label={analysing ? "BUSY is looking at the photos…" : ready ? "Analyse again" : "Create with BUSY AI"}
