@@ -69,6 +69,8 @@ eq(edited.draft.generation,8,"The private controller wraps withHtml to bump the 
 for(const wrong of [
  {...op,websiteId:"another"},
  {...op,expectedBusinessId:"another"},
+ {...op,expectedBusinessId:""},
+ {...op,expectedBusinessId:null},
  {...op,expectedGeneration:7},
  {...op,before:["hero","services","about","gallery","contact"]},
  {...op,proposed:["hero","gallery","unknown","services","contact"]},
