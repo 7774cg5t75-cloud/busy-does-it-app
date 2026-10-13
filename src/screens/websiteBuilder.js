@@ -34,6 +34,7 @@ import {WebsiteAppServiceCopy} from "./websiteAppServiceCopy";
 import {WebsiteAppBrandMatch} from "./websiteAppBrandMatch";
 import {WebsiteAppTypographyMatch} from "./websiteAppTypographyMatch";
 import {BusinessBrandDnaPreview} from "./businessBrandDnaPreview";
+import {WebsiteAppHandoffReview} from "./websiteAppHandoffReview";
 import {UniversalBuilderPlanReview} from "./universalBuilderPlanReview";
 import {AppToWebsiteDesignTransfer} from "./appToWebsiteDesignTransfer";
 import {WebsiteLayoutControls} from "./websiteLayoutControls";
@@ -790,6 +791,12 @@ function WebsiteBuilder({ s }) {
             businessId={s.cloudWorkspace?.businessId}
             catalog={s.miniAppsView?.catalog||s.miniAppsStatus?.catalog||[]}
             onApplyWebsiteLayout={s.applyWebsiteLayoutAction}/>
+          <WebsiteAppHandoffReview businessId={s.cloudWorkspace?.businessId||""}
+            website={draft} app={s.miniAppsView?.app}
+            liveVersion={s.miniAppsView?.liveVersion}
+            catalog={s.miniAppsView?.catalog||[]}
+            endpoint={s.websiteAppHandoffEndpoint||""}
+            onApply={s.applyWebsiteLayoutAction}/>
           <WebsiteAppTypographyMatch website={draft}
             app={s.miniAppsView?.app}
             businessId={s.cloudWorkspace?.businessId}
