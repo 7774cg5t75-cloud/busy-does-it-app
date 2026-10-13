@@ -1,5 +1,12 @@
 # busy-does-it-app
 
+## V3.212 — Shared Customer Request Intelligence (development)
+
+The universal website/app architecture now shares one evidence-limited model for customer **enquiries and booking requests**. A website Contact section is clearly distinguished from a real transactional request endpoint; an app request screen is distinguished from saved customer delivery; and a booking request is never mistaken for a confirmed appointment. Both builders can explain missing prerequisites in their existing Brand DNA review. A recorded, suitable website contact button can be made more prominent through **explicit, revision-checked private approval and the existing undo system**.
+
+The new V3.212 regression suite and inherited unsigned export checks are on branch v3.212. No live public website form, new server-side request write, staging migration, real notification, provider charge or paid mobile build was deployed as part of this sweep. See [V3.212 shared customer request architecture](docs/V3_212_SHARED_CUSTOMER_REQUEST_INTELLIGENCE.md).
+
+
 ## V3.211 — Reviewed Universal Builder Integration (development)
 
 V3.210 introduced shared capability understanding. V3.211 connects its recommendations to the **real private website and Business App editing paths**, always behind a second, explicit owner approval. Website section proposals now save atomically through the existing private layout controller and undo history; supported Business App navigation changes reuse the existing verified module catalogue and server-checked revision save. Empty galleries/services are not recommended as prominent sections, unsupported features are not enabled, and no live assets change.
