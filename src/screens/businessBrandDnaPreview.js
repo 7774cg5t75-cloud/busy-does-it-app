@@ -6,6 +6,7 @@ import {buildBusinessBrandDnaSnapshot,planBrandDnaContentBrief}
  from "../core/businessBrandDnaV3195.mjs";
 import {SUPPORTED,prepareBrandedCopyPreview}
  from "../core/brandedContentDraftV3198.mjs";
+import {reviewCrossChannelBrandContent} from "../core/brandCampaignReviewV3200.mjs";
 
 /**
  * A REAL owner-facing, zero-provider preview of reuse opportunities.
@@ -15,8 +16,10 @@ function BusinessBrandDnaPreview({website,app,businessId}){
  const [open,setOpen]=React.useState(false);
  const [channel,setChannel]=React.useState("social");
  const [copyDraft,setCopyDraft]=React.useState(null);
- React.useEffect(()=>setCopyDraft(null),[
-  businessId,website?.id,website?.generation,app?.id,app?.draft_revision,channel]);
+ const [campaignReview,setCampaignReview]=React.useState(null);
+ React.useEffect(()=>{
+  setCopyDraft(null);setCampaignReview(null);
+ },[businessId,website?.id,website?.generation,app?.id,app?.draft_revision,channel]);
  const dna=buildBusinessBrandDnaSnapshot({website,app,businessId});
  if(!dna.ok)return null;
  const brief=planBrandDnaContentBrief(dna,{channel,
@@ -43,6 +46,36 @@ function BusinessBrandDnaPreview({website,app,businessId}){
     {dna.conflicts.map((item,i)=><Text key={i} style={styles.cardBody}>
       {"Needs review: "+item}
     </Text>)}
+    <Text style={styles.sectionLabel}>
+     Prepare a consistent business identity across content
+    </Text>
+    <Button label="Review three branded content drafts together"
+      onPress={()=>setCampaignReview(reviewCrossChannelBrandContent({
+        businessId,website,app
+      }))}/>
+    {campaignReview?<View>
+      {!campaignReview.ok?
+        <Text style={styles.cardBody}>{campaignReview.reason}</Text>:
+        <View>
+          <Text style={styles.cardBody}>
+            {"Prepared "+campaignReview.channelCount+
+             " private drafts for "+campaignReview.businessName+
+             ". Nothing has been posted or paid for."}
+          </Text>
+          {campaignReview.drafts.map(p=><View key={p.channel}>
+            <Text style={styles.sectionLabel}>{p.channel.toUpperCase()+" — private copy"}</Text>
+            <Text selectable style={styles.cardBody}>{p.text}</Text>
+          </View>)}
+          {campaignReview.checklist.filter(p=>p.status!=="static_pass").map(c=>
+            <Text key={c.id} style={styles.cardBody}>
+              {"Still to check: "+c.label}
+            </Text>)}
+          <Text style={styles.cardBody}>
+            These are text drafts only. Check accuracy, images, rights and
+            permission before creating or publishing a finished campaign.
+          </Text>
+        </View>}
+    </View>:null}
     <Text style={styles.sectionLabel}>
      Example reuse briefs — previews only
     </Text>
