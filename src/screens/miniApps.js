@@ -1241,11 +1241,21 @@ function MiniAppBuilder({ s }) {
           " from currently available modules. Recommendations do not enable modules or change a live app."}
         footer="This is a suggested private app experience, not a new hard-coded trade-specific app template."
         tone="blue">
-        {experience.understoodGoals?.length?(
+        <Text style={styles.cardBody}>{experience.layoutReason}</Text>
+         {experience.understoodGoals?.length?(
           <Text style={styles.cardBody}>{"Customer goals identified: "+
             experience.understoodGoals.join(", ")}</Text>
         ):null}
-        {experience.unavailableGoalCapabilities?.length?(
+        {experience.missingOwnerFacts?.length?(
+           <Text style={styles.cardBody}>
+             {"Before showing these features, BUSY needs: "+
+              experience.missingOwnerFacts.map(x=>x==="approved_gallery_photos"?
+                "approved photographs":x==="approved_offer_terms"?
+                "approved offer terms":"owner details").join(", ")+
+              ". No photographs or offer terms will be invented."}
+           </Text>
+         ):null}
+         {experience.unavailableGoalCapabilities?.length?(
           <Text style={styles.cardBody}>{"Not yet available: "+
             experience.unavailableGoalCapabilities.join(", ")+
             ". BUSY will not pretend these work."}</Text>
