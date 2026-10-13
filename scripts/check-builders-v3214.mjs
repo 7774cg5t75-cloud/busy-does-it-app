@@ -261,4 +261,17 @@ const removed=applyWebsiteLayoutOperation(applied.draft,{
 ok(removed.applied);
 ok(!renderer(removed.draft).includes("busy-app-request-link"),
  "Owner removal reverses private rendered handoff.");
+const continuity=read("src/core/sharedRequestJourneyV3212.mjs");
+const brandUi=read("src/screens/businessBrandDnaPreview.js");
+for(const marker of [
+ "handoffMatchesCurrentApp",
+ "private_app_handoff_configured_public_click_unverified",
+ "website_public_handoff_click_and_delivery_unverified",
+ "ownerApprovedAppHandoffInPrivateDraft",
+ "handoffPublicVisitVerified:false"
+])ok(continuity.includes(marker),"Shared journey must distinguish private link from public receipt: "+marker);
+ok(brandUi.includes("ownerApprovedAppHandoffInPrivateDraft"),
+ "Business Brand DNA should tell owners about a private linked app.");
+ok(brandUi.includes("Public website publication,"),
+ "Shared owner review must not claim actual publication.");
 console.log("V3.214 "+checks+" assertions PASS: live-app handoff, owner approval/undo, malicious URL rejection, stale business/version/module checks, renderer and Edge live action gates.");
