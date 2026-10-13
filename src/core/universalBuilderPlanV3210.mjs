@@ -135,8 +135,32 @@ function planWebsiteSectionComposition(website,explicit=[]){
  if(ownerOrder.length)return {ok:true,reason:"An owner-chosen section order is already recorded. BUSY will not replace it.",
   before:order,proposed:[...order],changesSuggested:false,ownerOrderPreserved:true,
   privatePreviewOnly:true,noEditApplied:true};
- const desired=[];
- const push=id=>{if(existing.has(id)&&!desired.includes(id))desired.push(id);};
+ const desired=[],missingContent=[];
+ const hasContent=id=>{
+  const block=list(website.sections).find(section=>section?.id===id&&
+    section.enabled!==false);
+  if(!block)return false;
+  if(id==="gallery")return list(block.items).some(photo=>photo?.approved!==false&&
+    (typeof photo?.storagePath==="string"&&!!photo.storagePath.trim()||
+     typeof photo?.uri==="string"&&/^https:\/\/[^\s"'<>]+$/i.test(photo.uri)));
+  if(id==="services")return list(block.items).some(item=>
+    typeof item?.title==="string"&&!!item.title.trim());
+  if(id==="faq")return list(block.items).some(item=>
+    typeof item?.title==="string"&&!!item.title.trim()&&
+    typeof item?.body==="string"&&!!item.body.trim());
+  if(id==="testimonials")return list(block.items).some(item=>
+    typeof item?.body==="string"&&!!item.body.trim());
+  if(id==="contact")return !!(clean(block.phone)||clean(block.email));
+  return true;
+ };
+ const push=id=>{
+  if(!existing.has(id))return;
+  if(!hasContent(id)){
+   if(!missingContent.includes(id))missingContent.push(id);
+   return;
+  }
+  if(!desired.includes(id))desired.push(id);
+ };
  for(const id of explicit){
   if(["gallery"].includes(id))push("gallery");
   if(["services","catalogue","course_content"].includes(id))push("services");
@@ -151,7 +175,8 @@ function planWebsiteSectionComposition(website,explicit=[]){
   ...rest];
  const changesSuggested=JSON.stringify(order)!==JSON.stringify(proposed);
  return {ok:true,before:order,proposed,
-  priorityExistingSections:desired,changesSuggested,ownerOrderPreserved:false,
+  priorityExistingSections:desired,contentNotYetReady:missingContent,
+  changesSuggested,ownerOrderPreserved:false,
   reason:changesSuggested?
    "A private section-order alternative follows the stated customer goal; review before making any change.":
    "The relevant existing sections are already prominent or no safe reorder applies.",
