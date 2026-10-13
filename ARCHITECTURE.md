@@ -2,6 +2,48 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+
+## Permanent architecture decision — Universal Business Website & App Composition
+**Adopted: 13 October 2026. Status: long-term architectural requirement, not a claim that every capability is currently implemented.**
+**Guiding ambition: Build a system capable of creating almost any kind of business website or app — not merely an excellent fixed-template website builder.**
+
+### Scope and product invariant
+- **Any legitimate business, in any industry, must be able to begin creating a website or app.** Industry detection is advisory: it helps BUSY infer useful components and design choices but must never be a restrictive eligibility whitelist or a required preset.
+- The customer describes the desired outcome in ordinary language. BUSY plans, composes, generates, reviews and refines a distinctive experience based on that business's real needs, available information, permissions and entitlements. Unrecognised, cross-industry and novel business models must have a flexible fallback and a route to bespoke requirements.
+- Website and Business App builders are **two delivery surfaces over reusable business capabilities**, not two isolated feature factories. Where practical, build booking requests, forms, accounts, search, catalogue, commerce, memberships, subscriptions, content, workflow, customer communication and reporting primitives once; provide surface-specific presentation and distribution adapters.
+- Do **not** equate "any business may use the builder" with "every conceivable website feature already works". Complex custom integrations, specialised infrastructure, regulated industries and yet-unknown requirements can be unsupported or require external vendors, licences, verification or owner setup. BUSY must state those limits accurately rather than fabricate working functionality.
+- The owner retains control of brand identity, facts, content, domain, costs, approved capabilities and final publication. Generated designs must be individually suited to the business, not a new set of slightly different compulsory templates.
+
+### Target capability-composition architecture
+These layers describe the intended direction. Their presence in this document **does not mean the layers or their full contracts have shipped**.
+
+1. **Business understanding and Design DNA.** Build a tenant-scoped brief from owner-approved identity, services, goals, tone, visual language, assets, accessibility needs and business-specific constraints. Reuse that evidence across website, in-BUSY Business App, optional standalone app and approved marketing content. Record provenance and conflicts; never invent testimonials, pricing, approvals, credentials, business hours or photo rights.
+2. **Versioned capability catalogue.** Develop reusable, independently testable modules for layout/design, information pages, galleries, enquiries, booking requests, verified appointments, accounts, catalogue, checkout/payment handoffs, memberships, messaging, uploads, search, portals, accessibility and analytics. Each capability's target contract should declare its identifier/version, accepted business data, dependencies, supported surfaces, tenant scope, permissions, provider requirements, costs, regulatory conditions, tests and actual readiness state.
+3. **Planning and orchestration.** Translate an owner request into a dependency-aware plan combining existing supported capabilities; flag missing information or capabilities; propose safe alternatives or a reviewed extension when necessary. BUSY should explain *why* a particular design, navigation or workflow fits the business. An industry profile may prioritise suggestions but may neither fabricate owner facts nor make an unavailable capability available.
+4. **Shared workflows and surface adapters.** Use common business rules and independently verified server-owned transitions for actionable functions. Render and adapt them appropriately for responsive websites, the BUSY marketplace mini-app runtime and an optional separately packaged native app. A website contact button is not an enquiry receipt; a booking request is not a confirmed appointment; a checkout design is not evidence that money was collected.
+5. **Constrained extension mechanism.** When a feature cannot be composed from existing modules, BUSY may prepare a versioned specification and, eventually, reviewed new functionality through a sandboxed/permissioned development process. Do not treat arbitrary AI-generated code as trusted executable website, database or payment logic. Require scoped permissions, threat modelling, dependency/security review, resource and cost limits, automated regression tests, rollback support and owner approval before any activation.
+
+### Capability honesty and safe execution
+- Track **planned → prototype → implemented → automated checks passed → staging integration verified → approved live deployment → real outcome verified** as distinct evidence states. These are not interchangeable. Every builder and the Business Brain must communicate the strongest *actually verified* state, not its hoped-for state.
+- Recheck the authorised tenant, current draft revision, enabled module catalogue, entitlements, provider permissions and approved immutable content at the point of applying a change. The client-side preview is never an authorisation boundary.
+- Keep sensitive operations server-side behind least-privilege access and tenant isolation; use idempotency/transactional boundaries where appropriate for bookings, billing, form intake, customer records and messages. Do not automatically enable payments, send communications, register accounts, buy domains or publish sites because an owner requested a draft.
+- Respect opt-in consent, licensing, GDPR/privacy, accessibility, provider/platform rules and industry-specific legal requirements. A feature requiring specialist certification, manual approval or an unsupported external provider remains unavailable until the real conditions are met.
+- Keep customer ownership, editable content, transparent subscription/credit consumption, export/portability where practicable, and explicit separate third-party or app-store costs as product constraints.
+
+### Autonomous quality and continuous intelligence
+- Prefer generation and revision driven by **actual business content**, responsive layouts and independently collected design evidence, not hardcoded industry stereotypes or invented confidence scores.
+- Compare alternative website and app experiences across mobile, tablet and desktop; preserve owner-authored edits, design preferences, version history and reversible private proposals. Screen measurements and synthetic tests are evidence of those limited checks only, never proof of real-world usability or revenue.
+- Make per-business memory and outcome-based evaluation foundational. Learn from owner-approved feedback and independently verified outcomes with revision/source tracking. Any cross-business aggregated learning must be explicit opt-in, privacy-protected and tenant-safe; it is not automatic model retraining.
+- Keep the customer-facing interface radically simple: describe the goal, see BUSY's prepared result, optionally make changes by voice/text or directly on an element, then approve. Hide technical complexity unless it helps an informed decision.
+
+### Permanent build-first development and acceptance policy
+- Continue substantial, multi-workstream sweeps improving website composition, Business App functionality, shared primitives, AI planning, design quality and maintainability. **Do not stop at a finite list of industries, templates or modules.**
+- Before implementing a capability, look for an existing reusable component or server boundary. Run low-cost static/type/syntax/security/regression and representative offline/unsigned-export checks each sweep; perform deeper code-health reviews periodically and full architectural reviews at milestones.
+- Pursue theoretical completeness **until meaningful improvements become difficult to identify without real-world feedback**. At that point, explicitly tell the owner and recommend the separate, extensive hands-on/staging/paid-device testing and stabilisation phase. Do not substitute lengthy manual testing for ongoing cheap automated checks while building rapidly.
+- Even after exhaustive theoretical preparation, real user journeys, physical devices, public-hosting behaviour, payment/booking/provider delivery and app-store release remain **unproven until independently exercised**. Do not call the platform finished or production-ready based only on code volume, proposals, source inspection or passing mocked tests.
+- Preserve the north star: **"You tell Busy what needs doing. Busy does it."** The deciding quality measure is correctly completed, independently verified work with minimal business-owner effort.
+
+
 ## V3.46 Production Domain Activation
 ### BUSY-owned platform domain
 - The platform root defaults to `busydoesit.co.uk`. Default BUSY websites use first-level hostnames such as `site-<slug>-<business-suffix>.busydoesit.co.uk`; `sites.busydoesit.co.uk` is reserved as the SaaS CNAME target and `origin.busydoesit.co.uk` as the fallback-origin record.
