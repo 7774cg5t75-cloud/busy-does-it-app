@@ -183,6 +183,10 @@ ok(firstUi.includes("No website images, private contacts or customers are copied
 ok(appUi.includes("<FirstAppFromWebsite website={s.websiteDraft}"));
 ok(appUi.includes("onCreate={s.createPrivateAppFromWebsite}"));
 ok(home.includes("recommendOwnerBusinessApp({"));
+ok(home.includes("s.checkStandaloneEligibility()"));
+ok(home.includes("result?.businessId===businessId&&result.verified===true"));
+ok(home.includes("entitlement:verifiedAppBenefit"));
+ok(home.includes("appOpportunity.entitlementVerified"));
 ok(home.includes('actionLabel:"Explore an app"'));
 ok(home.includes('canIgnore:true'));
 ok(!home.includes('id:"app-benefit",free:true'));
