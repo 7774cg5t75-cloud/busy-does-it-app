@@ -74,7 +74,8 @@ const retry=evaluateCustomerRequestOutcome({businessAppId:app,
 ok(retry.ok);
 for(const change of [
  {businessAppId:other},
- {customerUserId:other},
+ // Readback is bound by the server's authenticated user filter.
+ // User ID is intentionally absent from the privacy-minimal receipt.
  {requestType:"enquiry"},
  {response:{ok:true,found:false,verifiedSaved:false}},
  {response:{ok:true,...receipt,receipt:{...receipt.receipt,appId:other}}},
@@ -89,6 +90,11 @@ eq(evaluateCustomerRequestOutcome({businessAppId:app,
  customerUserId:user,requestType:"booking_request",
  response:{ok:true,request:{id:req,mini_app_id:app,consumer_user_id:user,
   request_type:"booking_request",status:"received"}},
+ evidenceSource:"submit_response"}).ok,false);
+eq(evaluateCustomerRequestOutcome({businessAppId:app,
+ customerUserId:other,requestType:"booking_request",
+ response:{ok:true,reused:true,request:{id:req,mini_app_id:app,
+  consumer_user_id:user,request_type:"booking_request",status:"received"}},
  evidenceSource:"submit_response"}).ok,false);
 const noOp=await runStagingCustomerReceiptRead({
  argv:[],env:{},fetchImpl:()=>{throw Error("No network allowed");}
