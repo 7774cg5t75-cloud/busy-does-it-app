@@ -1,4 +1,5 @@
 import { syncWebsitePageModel } from "./websiteManagement";
+import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";
 import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";
 import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";
 import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";
@@ -740,7 +741,26 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     }
     if(section.type==="contact"){
       if(!clean(section.body)&&!clean(phone)&&!clean(email))return "";
-      return `<section id="contact"${sectionAttrs}><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title||"Get in touch")}</h2>${clean(section.body)?`<p${editAttrs(section,"body")}>${escapeHtml(section.body)}</p>`:""}${clean(phone)?`<p><a${editAttrs(section,"phone")} href="tel:${escapeHtml(phone.replace(/\s+/g,""))}">${escapeHtml(phone)}</a></p>`:""}${clean(email)?`<p><a${editAttrs(section,"email")} href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>`:""}${clean(section.openingHours)?`<p${editAttrs(section,"openingHours")}>${escapeHtml(section.openingHours)}</p>`:""}</div></section>`;
+      // V3.214: no website-hosted form; connect only a canonical, approved
+     // live Business App handoff. The server rechecks the live action on visit.
+     const handoffs=["enquiry","booking_request"].map(kind=>{
+       const link=draft.theme?.appRequestLinks?.[kind];
+       if(link?.ownerApproved!==true||link.intent!==kind||
+         !link.appId||!link.liveVersionId||!link.slug||
+         typeof link.url!=="string")return "";
+       let verified="";
+       try{
+         const u=new URL(link.url);
+         verified=canonicalWebsiteHandoffUrl({
+           endpoint:u.origin+u.pathname,slug:link.slug,kind
+         });
+       }catch{return "";}
+       if(verified!==link.url)return "";
+       const label=kind==="enquiry"?"Send an enquiry through BUSY":
+         "Request a booking through BUSY";
+       return `<p><a class="busy-app-request-link" href="${escapeHtml(verified)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a></p>`;
+     }).filter(Boolean).join("");
+     return `<section id="contact"${sectionAttrs}><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title||"Get in touch")}</h2>${clean(section.body)?`<p${editAttrs(section,"body")}>${escapeHtml(section.body)}</p>`:""}${clean(phone)?`<p><a${editAttrs(section,"phone")} href="tel:${escapeHtml(phone.replace(/\s+/g,""))}">${escapeHtml(phone)}</a></p>`:""}${clean(email)?`<p><a${editAttrs(section,"email")} href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>`:""}${handoffs}${clean(section.openingHours)?`<p${editAttrs(section,"openingHours")}>${escapeHtml(section.openingHours)}</p>`:""}</div></section>`;
     }
     return clean(section.body)
       ? `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}${editAttrs(section,"title")}>${escapeHtml(section.title)}</${page?.id!=="home"&&orderedSections[0]===section?"h1":"h2"}><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></section>`
