@@ -7,6 +7,7 @@ import {recommendMeasuredOwnerActions} from "../core/measuredCustomerActionPrior
 import {reviewCustomerOutcomeProof} from "../core/customerOutcomeProofV3187.mjs";
 import {assessOwnerEvidenceCompleteness} from "../core/customerEvidenceCompletenessV3188.mjs";
 import {prepareOwnerNextAction} from "../core/ownerNextActionV3189.mjs";
+import {evaluateOwnerRequestFollowUps} from "../core/ownerRequestFollowUpsV3206.mjs";
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -83,6 +84,14 @@ function buildMiniAppsView(remote = {}) {
     Array.isArray(remote.messageCheckpoints.rows)?remote.messageCheckpoints:null;
   const deliveryOutbox=remote?.messageDeliveryOutbox&&
     Array.isArray(remote.messageDeliveryOutbox.rows)?remote.messageDeliveryOutbox:null;
+  const followUpIntelligence=app&&messageCheckpoints?
+    evaluateOwnerRequestFollowUps({
+      businessId:app.business_id,appId:app.id,
+      requests,messages:messageCheckpoints.rows,
+      messagesTruncated:messageCheckpoints.truncated===true,
+      requestsTruncated:requests.length>=30,
+      nowISO:new Date().toISOString()
+    }):null;
   const deliveryEvidence=deliveryOutbox?reviewMessageDeliveryIntents({
     businessId:app?.business_id||"",appId:app?.id||"",
     rows:deliveryOutbox.rows,truncated:deliveryOutbox.truncated===true,
@@ -277,6 +286,7 @@ function buildMiniAppsView(remote = {}) {
     outcomeProof,
     evidenceCompleteness,
     ownerNextAction,
+    followUpIntelligence,
     deliveryEvidence,
     measuredOwnerActions,
     pushGatewayEvidence:remote?.pushGatewayEvidence?.ok===true?remote.pushGatewayEvidence:null,
