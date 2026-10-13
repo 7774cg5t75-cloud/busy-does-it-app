@@ -16358,6 +16358,33 @@ function App() {
     }
   };
 
+  // A request can fall off the recent 30-row inbox page. Independently
+  // check one authenticated owner-scoped row without changing unread state.
+  const verifyOwnerRequestInbox=async(requestId)=>{
+    const expected=selectedMiniAppRequestDetail?.request;
+    const businessId=cloudWorkspace?.businessId||"";
+    if(!expected||expected.id!==requestId||
+       expected.business_id!==businessId||
+       !expected.mini_app_id)return false;
+    setMiniAppsAction("verify-inbox:"+requestId);
+    setMiniAppsError("");
+    try{
+      const saved=await miniAppsRequest("owner_inbox_receipt",{requestId});
+      const verdict=reviewCommunicationOutcome({
+        kind:"owner_inbox",businessId,appId:expected.mini_app_id,
+        requestId,receipt:saved
+      });
+      if(!verdict.ok||cloudWorkspace?.businessId!==businessId)
+        throw Error("The exact owner inbox receipt was not verified.");
+      setLatestCommunicationEvidence(verdict);
+      setMiniAppsNotice("This request is saved in the correct BUSY business inbox. A delivered notification or owner reply is not proven.");
+      return true;
+    }catch{
+      setMiniAppsError("BUSY could not independently verify the request in this business inbox. Refresh the conversation before taking another action.");
+      return false;
+    }finally{setMiniAppsAction("");}
+  };
+
   const openOwnerMiniAppRequest = (requestId) =>
     loadMiniAppRequestDetail(requestId, "business");
 
@@ -17227,6 +17254,8 @@ function App() {
     loadEarlierMiniAppRequestMessages,
     toggleBusyAppFavorite,
     sendMiniAppRequestMessage,
+    verifyOwnerRequestInbox,
+    latestCommunicationEvidence,
     replyBusyAppRequestMessage,
     bridgeMiniAppRequestIntoBusy,
     openMiniAppLinkedBooking,
