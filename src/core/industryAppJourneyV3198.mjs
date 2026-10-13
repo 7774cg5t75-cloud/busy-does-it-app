@@ -8,7 +8,7 @@ const REGIMES=Object.freeze({
   priority:["booking_request","services","contact"],
   need:"Make it straightforward for customers to request a suitable appointment."},
  trade:{pattern:/plumb|electric|repair|mechanic|builder|clean|contractor|garden|trade/,
-  priority:["enquiry","services","contact"],
+  priority:["enquiry","services","booking_request","contact"],
   need:"Make it easy for customers to describe the work they need."},
  food:{pattern:/food|restaurant|cafe|café|takeaway|bakery|cater|festival|stall|roast/,
   priority:["offers","services","enquiry"],
