@@ -138,7 +138,7 @@ eq(after.sections.map(x=>x.title),website.sections.map(x=>x.title));
 eq(after.sections.find(x=>x.id==="services").items[0].body,
  website.sections.find(x=>x.id==="services").items[0].body);
 eq(after.theme.primary,nativePalette("forest").accent);
-eq(after.theme.typography,"editorial");
+eq(after.theme.typography,"confident");
 eq(after.theme.cardLayout,"cards");
 // Shared Brand DNA snapshot remains the source of business context;
 // transfer planners never mutate the source or publish on behalf of owner.
