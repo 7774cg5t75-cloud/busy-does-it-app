@@ -100,7 +100,8 @@ ok(preferences.options.find(x=>x.family==="showcase")?.previouslyRejected);
 eq(preferences.suggested?.family,"editorial");
 eq(selectVisualIdentity({businessName:"Example",businessType:"photography"}).fingerprint,
  selectVisualIdentity({businessName:"Example",businessType:"photography"}).fingerprint);
-const pub={assets:{gallery:[{approved:true,uri:"https://example.test/real.jpg"}]},
+const pub={assets:{gallery:[{approved:true,uri:"https://example.test/real.jpg"},
+ {approved:true,uri:"https://example.test/real-2.jpg"}]},
  offers:[]};
 const photographer=planFunctionalBusinessApp({businessType:"photography studio",
  businessGoals:"Show our photo portfolio",catalog:allCatalog,profile:pub});
