@@ -19,7 +19,7 @@ const arrange=(row,keys)=>[...row].sort((a,b)=>{
  const ai=keys.indexOf(a.key),bi=keys.indexOf(b.key);
  return (ai<0?99:ai)-(bi<0?99:bi);
 });
-function planFunctionalBusinessApp({businessType="",businessName="",businessGoals="",catalog=[],profile={}}={}){
+function planFunctionalBusinessApp({businessType="",businessName="",businessGoals="",catalog=[],profile={},offerTerms=[]}={}){
  // Goals are read as evidence of desired CUSTOMER actions, not authority to
  // enable paid, unavailable, unapproved or unimplemented features.
  const goal=String(businessGoals).slice(0,600).toLowerCase();
@@ -38,8 +38,14 @@ function planFunctionalBusinessApp({businessType="",businessName="",businessGoal
  // A suggested request is never a confirmed appointment.
  const withBooking=["appointments","learning"].includes(category)||signals.booking;
  const approvedPhotos=Array.isArray(profile?.assets?.gallery)?
-  profile.assets.gallery.filter(x=>x?.approved===true||x?.marketingOk===true):[];
- const approvedOffers=Array.isArray(profile?.offers)&&profile.offers.some(
+  profile.assets.gallery.filter(x=>(x?.approved===true||x?.marketingOk===true)&&
+   ((typeof x?.uri==="string"&&/^https:\/\/[^\s"'<>]+$/i.test(x.uri))||
+    (typeof x?.storagePath==="string"&&!!x.storagePath.trim()))):[];
+ // Offers live in the actual private app configuration, not necessarily
+ // in publicProfile. Only reviewed owner terms can unlock an offer suggestion.
+ const terms=Array.isArray(offerTerms)?offerTerms:
+  Array.isArray(profile?.offers)?profile.offers:[];
+ const approvedOffers=terms.some(
   x=>x?.approved===true&&typeof x?.title==="string"&&!!x.title.trim());
  const ordered=category==="food"?["business_profile","services","gallery","offers","contact","enquiry"]:
   category==="appointments"?["business_profile","services","booking_request","gallery","contact","enquiry"]:
