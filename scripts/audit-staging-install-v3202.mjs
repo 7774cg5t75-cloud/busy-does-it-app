@@ -20,7 +20,8 @@ const migrations=readdirSync(join(ROOT,"supabase/migrations"))
  .map(name=>({name,sql:readFileSync(join(ROOT,"supabase/migrations",name),"utf8")}));
 const baselineSql=readFileSync(join(ROOT,"staging/ISOLATED_ONLY_business_core_v3180.sql"),"utf8");
 const report=prepareStagingInstallSequence({
- ...observation,migrations,baselineSql,packageVerified:packageCheck.ok
+ ...observation,tables:observation.publicTables,
+ migrations,baselineSql,packageVerified:packageCheck.ok
 });
 if(!report.ok)throw Error("Staging installation dependency report blocked: "+report.reason);
 mkdirSync(DEST,{recursive:true});
