@@ -16187,16 +16187,26 @@ function App() {
         requestId,
         status,
       });
-      applyMiniAppsStatus(data);
-      if (
-        selectedMiniAppRequestDetail?.request?.id === requestId &&
-        selectedMiniAppRequestRole === "business"
-      ) {
-        await loadMiniAppRequestDetail(requestId, "business", { navigate: false });
+      // A committed owner status is not undone if the dashboard snapshot or
+      // follow-up readback fails. Do not clear the request inbox with an
+      // incomplete response, and never invite a duplicate status action.
+      if(data?.ok!==true||data?.request?.id!==requestId||
+         data.request.status!==status)
+        throw Error("The saved request status could not be matched. Refresh the exact request.");
+      if(data?.status&&data?.statusRefreshRequired!==true)
+        applyMiniAppsStatus(data);
+      let detailVerified=true;
+      if(selectedMiniAppRequestDetail?.request?.id===requestId&&
+         selectedMiniAppRequestRole==="business"){
+        try{await loadMiniAppRequestDetail(requestId,"business",{navigate:false});}
+        catch{detailVerified=false;}
       }
+      setMiniAppsNotice(data?.statusRefreshRequired||!detailVerified?
+        "BUSY saved the request status, but the latest inbox view still needs refreshing. Do not repeat this action.":
+        "BUSY saved your request status. Provider notification delivery is not yet verified.");
       return true;
     } catch (error) {
-      setMiniAppsError(error?.message || "BUSY could not update that request.");
+      setMiniAppsError(error?.message || "BUSY could not verify the request status. Check the latest saved request before retrying.");
       return false;
     } finally {
       setMiniAppsAction("");
