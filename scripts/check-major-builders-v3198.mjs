@@ -82,8 +82,7 @@ for(const channel of ["social","poster","advert"]){
  eq(generated.neverPublishes,true);eq(generated.providerCallsMade,false);
  eq(generated.advertisingCampaignNotCreated,true);
 }
-for(const channel of ["video","website","app",""],
-){
+for(const channel of ["video","website","app",""]){
  eq(prepareBrandedCopyPreview(brand,{channel}).ok,false);
 }
 eq(prepareBrandedCopyPreview({...brand,conflicts:["App and website name differ."]}).ok,false);
