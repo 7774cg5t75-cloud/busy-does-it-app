@@ -92,6 +92,13 @@ These layers describe the intended direction. Their presence in this document **
 - Product principle: **the customer asks for more visibility; BUSY does the specialist work, explains material decisions in plain English and reports honest results without guaranteeing Google rankings, AI citations or revenue.**
 
 
+## Current universal-builder implementation checkpoint — V3.211
+
+- V3.210: a versioned, evidence-limited capability catalogue and one industry-neutral requirements planner support both website and Business App draft preparation.
+- V3.211: approved **existing website section composition** now enters the existing private edit/undo/rebuild path, with draft/workspace/revision and exact-order checks. A separate owner review can prioritise **existing runtime-verified app screens** through the pre-existing server-mediated, optimistic-concurrency private coordinated-edit route.
+- These changes do not extend the catalogue's actual transactional runtime, activate payments or customer account systems, or prove a real hosted booking/enquiry or device outcome. See docs/V3_211_REVIEWED_BUILDER_INTEGRATION.md.
+- The next milestones are progressively more real reusable cross-surface server-owned functions, safe extension points, visual evaluation and verifiable outcomes; never confuse a planned capability with a completed task.
+
 ## V3.46 Production Domain Activation
 ### BUSY-owned platform domain
 - The platform root defaults to `busydoesit.co.uk`. Default BUSY websites use first-level hostnames such as `site-<slug>-<business-suffix>.busydoesit.co.uk`; `sites.busydoesit.co.uk` is reserved as the SaaS CNAME target and `origin.busydoesit.co.uk` as the fallback-origin record.
