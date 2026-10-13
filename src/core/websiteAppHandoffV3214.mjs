@@ -64,7 +64,8 @@ function planWebsiteAppRequestHandoff({
  if(kind==="booking_request"&&
     !liveConfig.publicProfile.services.some(x=>typeof x?.name==="string"&&!!x.name.trim()))
   return no("Add real services to the published Business App before linking bookings.");
- const contact=website.sections?.find(s=>s?.id==="contact"&&s.enabled!==false);
+ const contact=Array.isArray(website.sections)?
+  website.sections.find(s=>s?.id==="contact"&&s.enabled!==false):null;
  if(!contact||contact.type!=="contact"||
     !(typeof contact.email==="string"&&contact.email.trim()||
       typeof contact.phone==="string"&&contact.phone.trim()))
