@@ -25,7 +25,7 @@ The builder shows a succinct reason for its layout and names any missing approve
 
 A new version-scoped same-business review checks only the two existing private drafts and a bounded allowlist of facts. It looks for different business names, completely mismatched service names, contact/enquiry gaps, a potential booking-request handoff and possible approved-image reuse. The report contains counts and owner review suggestions, not customer data or raw business copy.
 
-The existing Brand DNA section in **both** builders has one optional check button. It does not transfer content, copy photos, enable features or edit/publish anything. Wrong workspace, stale revisions and invalid app enabled-navigation combinations fail closed.
+The existing Brand DNA section in **both** builders has one optional check button. It does not transfer content, copy photos, enable features or edit/publish anything. An explicitly wrong workspace, missing or invalid draft revision, and invalid enabled-navigation combinations fail closed. A locally valid revision is not independent server-side freshness proof; a future owner-approved edit must still recheck the server's current revision.
 
 ## 4. Automated tests and checks
 
