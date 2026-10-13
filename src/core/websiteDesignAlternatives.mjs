@@ -5,6 +5,7 @@
  * and approved image evidence. They are owner-triggered and never auto-edit
  * business facts, contact details, approved media or public deployments.
  */
+import {deriveSector,photographicCount} from "../../supabase/functions/busy-website-worker/designPlanner.mjs";
 const text=x=>String(x||"").trim().toLowerCase();
 const families={
   trades:["conversion","minimal","editorial","organic"],
@@ -12,6 +13,10 @@ const families={
   hospitality:["artisan","editorial","organic","boutique"],
   wellness:["boutique","minimal","editorial","organic"],
   professional:["editorial","minimal","boutique","conversion"],
+  creative:["portfolio","editorial","showcase","minimal"],
+  retail:["showcase","artisan","minimal","editorial"],
+  learning:["editorial","conversion","minimal","boutique"],
+  events:["conversion","editorial","showcase","boutique"],
   other:["minimal","editorial","organic","conversion","artisan"]
 };
 const styles={
@@ -25,21 +30,18 @@ const styles={
   portfolio:{title:"Visual portfolio",detail:"A gallery-led layout using real approved work."}
 };
 const sector=draft=>{
- const raw=text(draft?.businessType||draft?.designPlan?.sector||draft?.designPlan?.signals?.businessType);
- if(/garden|landscap|farm|floris|horticult/.test(raw))return "nature";
- if(/cater|food|restaurant|bakery|chef|festival|coffee|hotel/.test(raw))return "hospitality";
- if(/beauty|hair|salon|spa|therapy|wellness|massage|fitness/.test(raw))return "wellness";
- if(/account|consult|bookkeep|law|finance|architect|agency|tutor/.test(raw))return "professional";
- if(/clean|plumb|electric|builder|roof|pressure|repair|trade|handyman/.test(raw))return "trades";
- return "other";
+ const raw=text(draft?.businessType||draft?.designPlan?.sector||
+   draft?.designPlan?.signals?.businessType);
+ const result=Object.keys(families).includes(raw)?raw:deriveSector(raw);
+ return result==="neutral"?"other":result;
 };
 function websiteDesignAlternative(draft,{likedFamilies=[],rejectedFamilies=[]}={}){
  if(!draft?.id||!Array.isArray(draft.sections))
    return {available:false,reason:"Create your website draft first.",options:[]};
  const current=text(draft.theme?.designFamily||draft.designPlan?.family);
- const approvedPhotos=Array.isArray(draft.sections.find(s=>s.id==="gallery")?.items)?
-   draft.sections.find(s=>s.id==="gallery").items.filter(
-      image=>image?.approved!==false&&typeof image?.storagePath==="string"&&!!image.storagePath).length:0;
+ // Share the rendered site's hero/gallery approval rule: no unapproved assets
+ // can unlock showcase or portfolio alternatives.
+ const approvedPhotos=photographicCount(draft.sections);
  const choices=[...families[sector(draft)]];
  if(approvedPhotos>0)choices.push("showcase","portfolio");
  const known=new Set([...families[sector(draft)],"showcase","portfolio"]);
