@@ -19,6 +19,7 @@ import {isolatedStagingGuard} from "./stagingConnectionGuard.mjs";
 import {runSyntheticStagingProbe} from "./stagingSyntheticService.mjs";
 import {auditIsolatedStagingInstall} from "./stagingInstallAudit.mjs";
 import {checkCustomerRequestReplay} from "./customerRequestReplayV3203.mjs";
+import {validRequestReceiptKey,prepareCustomerReceipt} from "./customerRequestReceiptV3204.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -3138,6 +3139,34 @@ async function appDetail(
   };
 }
 
+// Read-only, independently authenticated receipt lookup. Avoid changing read
+// timestamps, touching notifications, or treating a lost HTTP response as
+// proof a new request must be sent. Never return the original contact payload.
+async function customerRequestReceipt(userId:string,body:any){
+ const slug=clean(body?.slug,100);
+ const requestKey=clean(body?.requestKey,180);
+ const requestType=clean(body?.requestType,40);
+ if(!slug||!validRequestReceiptKey(requestKey)||
+   !["booking_request","enquiry"].includes(requestType))
+   throw new Error("Choose the original signed-in request to check.");
+ const app=await supabase.from("busy_mini_apps")
+  .select("id,public_slug").eq("public_slug",slug).maybeSingle();
+ if(app.error)throw app.error;
+ if(!app.data)return {found:false,verifiedSaved:false,
+   notificationDeliveryVerified:false,calendarBookingConfirmed:false};
+ const request=await supabase.from("busy_mini_app_requests")
+  .select("id,mini_app_id,consumer_user_id,idempotency_key,request_type,status")
+  .eq("mini_app_id",app.data.id)
+  .eq("consumer_user_id",userId)
+  .eq("idempotency_key",requestKey)
+  .maybeSingle();
+ if(request.error)throw request.error;
+ const verdict=prepareCustomerReceipt({userId,appId:app.data.id,
+  slug,requestType,requestKey,row:request.data});
+ if(!verdict.ok)throw new Error("The stored request did not match this customer action.");
+ return verdict;
+}
+
 async function submitRequest(
   userId: string,
   body: any,
@@ -3860,6 +3889,10 @@ Deno.serve(async (request: Request) => {
         )),
         apps: await myBusyApps(user.id),
       });
+    }
+    if (action === "request_receipt") {
+      return json(200,{ok:true,
+        ...(await customerRequestReceipt(user.id,body))});
     }
     if (action === "submit_request") {
       return json(200, {
