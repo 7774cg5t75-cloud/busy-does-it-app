@@ -27,6 +27,7 @@ import {prepareDurableMessageAttempt,clearDurableMessageAttempt} from "../core/d
 import {recoverExactSavedReply} from "../core/recoverSavedReplyV3205.mjs";
 import {reviewCommunicationOutcome} from "../core/requestCommunicationOutcomeV3205.mjs";
 import {checkCurrentOwnerFollowup} from "../core/followupProofV3207.mjs";
+import {interpretSavedOwnerReply} from "../core/reviewedReplyProofV3208.mjs";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 import * as Notifications from "expo-notifications";
@@ -16457,7 +16458,8 @@ function App() {
     if(!verified.ok||!verified.mayPrepareDraft||!verified.draft)
       return {ok:false,reason:verified.reason||
         "The request no longer needs a suggested reply."};
-    return {ok:true,draft:verified.draft,
+    return {ok:true,draft:verified.draft,sourceStamp:verified.sourceStamp,
+      businessId:verified.businessId,appId:verified.appId,requestId,
       readOnlyVerified:true,ownerStillMustSend:true};
   };
 
@@ -16511,7 +16513,9 @@ function App() {
   // SecureStore retains a stable server idempotency key for an ambiguous
   // transport result. The key is scoped to the actual signed-in account
   // and request; edited uncertain messages are blocked, never silently resent.
-  const sendMiniAppRequestMessage = async (requestId, message) => {
+  const sendMiniAppRequestMessage = async (requestId, message, {
+    reviewedFollowupStamp=null
+  }={}) => {
     const body=String(message||"").trim();
     const actorUserId=ownerSession?.userId||"";
     const businessId=cloudWorkspace?.businessId||"";
@@ -16528,10 +16532,18 @@ function App() {
       },()=>busyRequestId("mini-app-owner-reply"));
       if(!attempt.ok)throw Error(attempt.reason);
       const data=await miniAppsRequest("send_request_message",
-        {requestId,message:body},{requestKey:attempt.key});
+        {requestId,message:body,
+         ...(reviewedFollowupStamp!==null?{reviewedFollowupStamp}:{})},
+        {requestKey:attempt.key});
       if(data?.databaseMessageSaved!==true)
         throw Error("BUSY could not verify the message receipt. Retry the same text.");
       const cleared=await clearDurableMessageAttempt(SecureStore,attempt);
+      const appId=selectedMiniAppRequestDetail?.request?.mini_app_id||"";
+      const verifiedPostSend=interpretSavedOwnerReply({
+        businessId,appId,requestId,response:data
+      });
+      if(verifiedPostSend.ok)setLatestCommunicationEvidence(verifiedPostSend);
+      setOwnerFollowupReview(null);
       if(data.status)applyMiniAppsStatus(data);
       try{
         if(data.statusRefreshRequired)await refreshMiniAppsStatus({quiet:true});
@@ -16540,6 +16552,8 @@ function App() {
           await loadMiniAppRequestDetail(requestId,"business",{navigate:false});
       }catch(refreshError){ /* Database receipt remains authoritative. */ }
       setMiniAppsNotice(cleared?
+        verifiedPostSend.ok&&verifiedPostSend.waitingForCustomerAtReadback?
+        "Reply saved. Busy checked the latest message; wait for the customer. Notification delivery remains unverified.":
         "Reply saved in BUSY. Notification delivery is not verified.":
         "Reply saved. Secure retry cleanup needs checking before sending identical text again.");
       return true;
@@ -16551,6 +16565,7 @@ function App() {
         });
         if(recovered.ok){
           setLatestCommunicationEvidence(recovered.evidence);
+          setOwnerFollowupReview(null);
           setMiniAppsNotice(recovered.secureRetryReferenceCleared?
             "BUSY checked your earlier reply: it was saved. Notification delivery is not verified.":
             "The saved reply was found; secure retry cleanup still needs checking.");
