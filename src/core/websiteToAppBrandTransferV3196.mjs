@@ -149,7 +149,7 @@ function confirmWebsiteToAppDesign({website,app,businessId,evidence}={}){
   return {ok:false,reason:"The website, app or business changed. Review the latest design first."};
  const current=planWebsiteToAppDesign({website,app,businessId,
   mode:evidence?.mode,
-  includeServices:evidence?.operations?.some(op=>op?.kind==="services")});
+  includeServices:evidence?.includeServices===true});
  if(!current.ok||current.exactPreview!==evidence.exactPreview||
    JSON.stringify(current.operations)!==JSON.stringify(evidence.operations))
   return {ok:false,reason:"The proposed app changes no longer match the reviewed design."};
