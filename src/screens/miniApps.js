@@ -1142,7 +1142,9 @@ function MiniAppBuilder({ s }) {
         businessId={s.cloudWorkspace?.businessId||""}
         businessType={view.category||s.trade||""}
         website={s.websiteDraft} app={app} catalog={view.catalog||[]}
-        initialGoal={s.miniAppBuildBrief||plan?.ownerRequest||""}/>
+        initialGoal={s.miniAppBuildBrief||plan?.ownerRequest||""}
+        onSaveAppChanges={s.saveCoordinatedAppChanges}
+        busy={!!s.miniAppsAction}/>
       <WebsiteToAppDesignTransfer website={s.websiteDraft} app={app}
         businessId={s.cloudWorkspace?.businessId}
         onSave={s.saveCoordinatedAppChanges} busy={s.miniAppsAction}/>
