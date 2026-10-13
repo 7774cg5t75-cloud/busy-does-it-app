@@ -102,8 +102,10 @@ function applyWebsiteLayoutOperation(draft,operation={}){
   if(typeof slug!=="string"||
      !/^[a-z0-9](?:[a-z0-9-]{0,78}[a-z0-9])?$/.test(slug)||
      typeof url!=="string"||url.length>420||
-     typeof operation.appId!=="string"||!operation.appId||
-     typeof operation.liveVersionId!=="string"||!operation.liveVersionId)
+     typeof operation.appId!=="string"||
+     !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(operation.appId)||
+     typeof operation.liveVersionId!=="string"||
+     !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(operation.liveVersionId))
    return fail(draft,"The public Business App link is incomplete.");
   let parsed;
   try{parsed=new URL(url);}catch{return fail(draft,"Invalid public Business App link.");}
@@ -111,7 +113,9 @@ function applyWebsiteLayoutOperation(draft,operation={}){
   if(parsed.protocol!=="https:"||parsed.username||parsed.password||parsed.port||
      !/^[a-z0-9-]{6,80}\.supabase\.co$/.test(parsed.hostname)||
      parsed.pathname!==expected||parsed.hash||
-     parsed.searchParams.size!==3||
+     [...parsed.searchParams.keys()].length!==3||
+     url!==parsed.origin+expected+"?slug="+encodeURIComponent(slug)+
+       "&source=web&intent="+encodeURIComponent(operation.intent)||
      parsed.searchParams.get("slug")!==slug||
      parsed.searchParams.get("source")!=="web"||
      parsed.searchParams.get("intent")!==operation.intent||
