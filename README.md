@@ -1,5 +1,12 @@
 # busy-does-it-app
 
+## V3.213 — Shared Backend Request Receipts and Recovery (development)
+
+The existing signed-in Business App and public guest mini-app request services now use **one identical, minimal saved-request proof contract**, with exact request/business/app scope and careful booking confirmation states. The owner request status path no longer mistakes a failed post-save event, notification or dashboard refresh for a failed committed request status. The customer/owner experience preserves exact idempotent recovery instead of suggesting duplicate actions.
+
+This sweep **does not create a transactional contact form for the generated website builder**; that remains a separate, security-reviewed integration step. The new tests and inherited mobile/source workflow are committed, without staging deployment, production database changes, signed builds or customer notifications. See [V3.213 technical notes](docs/V3_213_SHARED_REQUEST_RECEIPTS_AND_RECOVERY.md) and [master architecture](ARCHITECTURE.md).
+
+
 ## V3.212 — Shared Customer Request Intelligence (development)
 
 The universal website/app architecture now shares one evidence-limited model for customer **enquiries and booking requests**. A website Contact section is clearly distinguished from a real transactional request endpoint; an app request screen is distinguished from saved customer delivery; and a booking request is never mistaken for a confirmed appointment. Both builders can explain missing prerequisites in their existing Brand DNA review. A recorded, suitable website contact button can be made more prominent through **explicit, revision-checked private approval and the existing undo system**.
