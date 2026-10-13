@@ -22,6 +22,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 
 import * as Core from "../core/runtime";
+import {recommendOwnerBusinessApp} from "../core/ownerAppOpportunityV3197.mjs";
 const {
   APP_VERSION,
   PROTOTYPE_BADGE,
@@ -500,7 +501,36 @@ function HomeScreen({ s }) {
     });
   }
 
+  // An occasional, dismissible idea based on business facts. Never imply
+  // standalone tier coverage before authenticated provider verification.
+  const appOpportunity=recommendOwnerBusinessApp({
+    businessId:s.cloudWorkspace?.businessId||"",
+    website:s.websiteDraft,app:s.miniAppsView?.app,
+    businessType:s.trade||s.brandProfile?.businessType||"",
+    services:s.services
+  });
   const marketingMoves = [
+    ...(appOpportunity.show?[{
+      id:"app-opportunity-"+appOpportunity.businessId,
+      score:47,
+      eyebrow:"An idea for your business",
+      title:appOpportunity.headline,
+      body:appOpportunity.reason,
+      footer:"An app can be prepared privately. Check your verified plan for any included standalone benefit.",
+      status:"Optional",
+      tone:"blue",
+      why:"Based on your existing website and business type — not a guarantee of extra customers. Your subscription allowance must be checked before claiming inclusion.",
+      evidence:[
+        ["Existing website","Private website draft available"],
+        ["Standalone benefit","Not yet verified"],
+        ["Publishing","Separate owner approval required"],
+        ["Extra charges","App-store accounts or distribution may cost extra"]
+      ],
+      actionLabel:"Explore an app",
+      onAction:()=>s.openMiniAppBuilder(),
+      canIgnore:true
+    }]:[]),
+[
     ...(s.postJobBundleOpportunity
       ? [{
           id: `job-photo-review-bundle-${s.postJobBundleOpportunity.jobId}`,
