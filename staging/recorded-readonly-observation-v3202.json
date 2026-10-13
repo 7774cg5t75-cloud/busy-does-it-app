@@ -1,0 +1,23 @@
+{
+  "kind": "recorded_staging_read_only_observation_v3202",
+  "projectRef": "pnjdlogwegnqbsfpcofw",
+  "projectName": "Busy Does It Staging",
+  "source": "direct_supabase_staging_read_only",
+  "observedAt": "2026-10-13T07:53:21.964Z",
+  "publicTables": ["busy_staging_rls_canary"],
+  "ledger": ["20261010224121", "20261010224205"],
+  "extensions": ["pgcrypto"],
+  "canaryPreserved": true,
+  "canaryRowsObserved": 2,
+  "canaryRlsForced": true,
+  "canaryPolicyCount": 1,
+  "anonymousSelectGranted": false,
+  "authenticatedSelectGranted": true,
+  "authAccountsObserved": 2,
+  "firstAppRpcObserved": false,
+  "realJwtCrossTenantTested": false,
+  "schemaInstalled": false,
+  "backupRestoreTested": false,
+  "approvalToInstallGranted": false,
+  "liveObservationMustBeRefreshedBeforeInstall": true
+}
