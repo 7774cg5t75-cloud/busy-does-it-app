@@ -52,6 +52,9 @@ function applyWebsiteLayoutOperation(draft,operation={}){
   const rendered=list(draft.designPlan?.sectionOrder).filter(id=>activeIds.includes(id));
   const before=[...new Set([...rendered,...activeIds])];
   const proposed=operation.proposed;
+  if(Array.isArray(theme.sectionOrder)&&
+     JSON.stringify(theme.sectionOrder)===JSON.stringify(proposed))
+   return fail(draft,"This owner-reviewed order is already selected.");
   if(!Array.isArray(operation.before)||!Array.isArray(proposed)||
     before.length<2||proposed.length!==before.length||
     JSON.stringify(operation.before)!==JSON.stringify(before)||
