@@ -10,7 +10,7 @@
 const STAGING_REF="pnjdlogwegnqbsfpcofw";
 const BASE=Object.freeze([
  "busy_businesses","busy_business_memberships",
- "busy_mini_app_module_catalog","busy_mini_apps",
+ "busy_public_business_profiles","busy_mini_app_module_catalog","busy_mini_apps",
  "busy_mini_app_versions","busy_mini_app_requests"
 ]);
 const JOURNEY=Object.freeze([
