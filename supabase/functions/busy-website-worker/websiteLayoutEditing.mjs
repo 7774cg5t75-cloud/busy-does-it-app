@@ -33,6 +33,32 @@ function applyWebsiteLayoutOperation(draft,operation={}){
  const active=()=>sections.filter(s=>s.enabled!==false).map(s=>s.id);
  const order=()=>[...new Set([...list(theme.sectionOrder),...active()])]
    .filter(id=>sections.some(s=>s.id===id&&s.enabled!==false));
+ // V3.211: ONE atomic, reversible private reordering from an owner-reviewed
+ // universal-builder plan. Caller must pass the exact observed draft revision
+ // and exact before-order. No untrusted CSS, content, new sections or services.
+ if(action==="apply-reviewed-composition"){
+  const allowedFields=["kind","action","websiteId","expectedGeneration",
+   "expectedBusinessId","before","proposed"];
+  if(Object.keys(operation).some(key=>!allowedFields.includes(key))||
+    typeof operation.websiteId!=="string"||operation.websiteId!==draft.id||
+    !Number.isSafeInteger(operation.expectedGeneration)||
+    operation.expectedGeneration!==draft.generation||
+    (typeof draft.businessId==="string"&&draft.businessId&&
+      operation.expectedBusinessId!==draft.businessId))
+   return fail(draft,"The reviewed website version or business changed. Review the latest draft first.");
+  const before=order();
+  const proposed=operation.proposed;
+  if(!Array.isArray(operation.before)||!Array.isArray(proposed)||
+    before.length<2||proposed.length!==before.length||
+    JSON.stringify(operation.before)!==JSON.stringify(before)||
+    proposed[0]!=="hero"||before[0]!=="hero"||
+    new Set(proposed).size!==before.length||
+    proposed.some(id=>typeof id!=="string"||!before.includes(id))||
+    proposed.every((id,i)=>id===before[i]))
+   return fail(draft,"The reviewed sections are no longer a different exact ordering of visible sections.");
+  theme.sectionOrder=[...proposed];
+  return ready("Applied the owner-reviewed customer-first section order");
+ }
  if(action==="add-text"){
   const title=text(operation.title),body=text(operation.body);
   if(!title||!body||title.length>100||body.length>2500||!slug(title))
