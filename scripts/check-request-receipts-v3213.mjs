@@ -161,7 +161,7 @@ for(const token of [
  'data?.request?.id!==requestId',
  'data.request.status!==status',
  'Do not repeat this action.',
- 'provider notification delivery is not yet verified'
+ 'Provider notification delivery is not yet verified'
 ])ok(client.includes(token),"Owner action response: "+token);
 ok(!guestSrc.includes('bookingConfirmed: link.data?.bridge_state === "booking_confirmed"'),
  "Guest must not claim booking confirmation from link alone.");
