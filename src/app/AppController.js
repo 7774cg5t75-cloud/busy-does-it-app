@@ -24,6 +24,8 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {prepareDurableMessageAttempt,clearDurableMessageAttempt} from "../core/durableMessageRetryV3185.mjs";
+import {recoverExactSavedReply} from "../core/recoverSavedReplyV3205.mjs";
+import {reviewCommunicationOutcome} from "../core/requestCommunicationOutcomeV3205.mjs";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 import * as Notifications from "expo-notifications";
@@ -388,6 +390,7 @@ function App() {
   const [selectedMiniAppRequestRole, setSelectedMiniAppRequestRole] = useState("");
   const [selectedMiniAppRequestDetail, setSelectedMiniAppRequestDetail] = useState(null);
   const miniAppMessageInFlightRef=useRef(new Set());
+  const [latestCommunicationEvidence,setLatestCommunicationEvidence]=useState(null);
   const [latestCustomerRequestOutcome,setLatestCustomerRequestOutcome]=useState(null);
   const customerRequestPendingRef=useRef(null);
   const customerRequestInFlightRef=useRef(false);
@@ -513,6 +516,7 @@ function App() {
   const [socialPublishingError, setSocialPublishingError] = useState("");
   const [socialPublishingAction, setSocialPublishingAction] = useState("");
   const [ownerSession, setOwnerSession] = useState(null);
+  useEffect(()=>{setLatestCommunicationEvidence(null);},[ownerSession?.userId]);
   const activeCustomerRequestScopeRef=useRef("");
   activeCustomerRequestScopeRef.current=[
     ownerSession?.userId||"",selectedBusyAppDetail?.app?.id||"",
