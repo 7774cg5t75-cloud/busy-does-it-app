@@ -9,13 +9,21 @@ const PALETTES = {
   wellness:     { ink:"#3F3441", accent:"#795075", soft:"#F6EFF5", line:"#E7DCE8", glow:"#EAD8E8", paper:"#FDFBFD" },
   professional: { ink:"#162B46", accent:"#244E75", soft:"#EFF4F9", line:"#DBE5EF", glow:"#C9DEEF", paper:"#FBFCFE" },
   trades:       { ink:"#172D3B", accent:"#205978", soft:"#EEF4F7", line:"#DBE5EB", glow:"#C7DFE8", paper:"#FAFDFE" },
+  creative:     { ink:"#302B3B", accent:"#675184", soft:"#F5F1F9", line:"#E8DFF0", glow:"#DED0E8", paper:"#FEFCFF" },
+  retail:       { ink:"#3E302A", accent:"#79553D", soft:"#F9F1EA", line:"#EADDD0", glow:"#F2DAC3", paper:"#FFFDF9" },
+  learning:     { ink:"#19373E", accent:"#306876", soft:"#ECF5F6", line:"#D3E6E9", glow:"#CBE5DF", paper:"#FBFEFE" },
+  events:       { ink:"#302D45", accent:"#56488A", soft:"#F3F1FA", line:"#DFDCF0", glow:"#D4CBEF", paper:"#FCFBFF" },
   neutral:      { ink:"#283344", accent:"#3D536F", soft:"#F2F4F7", line:"#E0E6EB", glow:"#E0E8F2", paper:"#FCFDFE" },
 };
 const SECTORS = [
   ["nature", /garden|landscap|horticultur|lawn|tree|floris|farm|outdoor/],
   ["hospitality", /cater|food|restaurant|bakery|baker|festival|coffee|cafe|hog roast|chef|hotel/],
   ["wellness", /beauty|salon|spa|wellness|massage|hair|nail|therap|fitness|yoga/],
-  ["professional", /account|consult|bookkeep|law|legal|finance|architect|agency|design|coach|tutor/],
+  ["creative", /photograph|videograph|film studio|illustrat|artist|potter|ceramic|music studio|recording studio|craft studio|graphic design/],
+  ["retail", /retail|bookshop|gift shop|jewel|clothing|fashion|boutique shop|independent shop|shopkeeper/],
+  ["learning", /school|tutor|lesson|training|education|academy|instructor|workshop leader|driving instruct/],
+  ["events", /event plan|wedding plan|event venue|conference|theatre|event production|entertainment|performer/],
+  ["professional", /account|consult|bookkeep|law|legal|finance|architect|agency|design|coach/],
   ["trades", /clean|pressure wash|window|electric|plumb|repair|roof|build|handyman|construction|paint|decorat|maintenan/]
 ];
 const clean = v => String(v || "").trim();
@@ -59,6 +67,22 @@ const PALETTE_ALTERNATIVES={
  professional:{
   b:{ink:"#30353E",accent:"#455A66",soft:"#F2F5F5",glow:"#CFDBE0",paper:"#FDFEFE"},
   c:{ink:"#37332D",accent:"#68523E",soft:"#F6F3ED",glow:"#DDD2BC",paper:"#FFFDF8"}
+ },
+ creative:{
+  b:{ink:"#263E47",accent:"#426A78",soft:"#EDF5F7",glow:"#C7E3E9",paper:"#FCFEFF"},
+  c:{ink:"#45352D",accent:"#78563A",soft:"#F9F4EC",glow:"#EADAC5",paper:"#FFFEFA"}
+ },
+ retail:{
+  b:{ink:"#302C3C",accent:"#65518C",soft:"#F5F1F9",glow:"#D9D0EC",paper:"#FDFBFF"},
+  c:{ink:"#2D3A32",accent:"#4D7256",soft:"#F1F6F0",glow:"#CEE4D1",paper:"#FDFEFC"}
+ },
+ learning:{
+  b:{ink:"#2E384D",accent:"#465C83",soft:"#F0F3FA",glow:"#CFDCF0",paper:"#FBFCFF"},
+  c:{ink:"#34412E",accent:"#547143",soft:"#F3F6EE",glow:"#D6E7CB",paper:"#FDFEFC"}
+ },
+ events:{
+  b:{ink:"#3E2D39",accent:"#824D6A",soft:"#FAF0F5",glow:"#EBD1DE",paper:"#FFFDFE"},
+  c:{ink:"#283D43",accent:"#3D7280",soft:"#EFF6F7",glow:"#CCE3E8",paper:"#FCFEFE"}
  },
  neutral:{
   b:{ink:"#293B3B",accent:"#416969",soft:"#ECF5F2",glow:"#CEE5DA",paper:"#FCFEFD"},
