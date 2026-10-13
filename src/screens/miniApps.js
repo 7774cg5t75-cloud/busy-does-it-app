@@ -4567,6 +4567,23 @@ function BusyAppDetail({ s }) {
           tone="green"
         />
       ) : null}
+      {s.latestCustomerRequestOutcome?.ok===true&&
+        s.latestCustomerRequestOutcome.businessAppId===detail?.app?.id?(
+        <Card eyebrow="What Busy has verified"
+          title="Your request is saved"
+          body={s.latestCustomerRequestOutcome.evidenceLevel===
+            "authenticated_customer_readback"?
+            "Busy checked the saved request after an interrupted response.":
+            "The server confirmed the saved request."}
+          tone="blue">
+          <Text style={styles.cardBody}>
+            This does not yet verify that a notification arrived, the
+            business replied, or an appointment was confirmed.
+          </Text>
+          <Button label="Review My BUSY Apps"
+            onPress={()=>s.go("myBusyApps")}/>
+        </Card>
+      ):null}
 
       {s.miniAppsError ? (
         <Card
