@@ -2909,7 +2909,7 @@ async function directorySearch(queryText = "") {
     .select(
       "id,business_id,public_slug,display_name,category,tagline,current_live_version_id,updated_at"
     )
-    .eq("status", "live")
+    .in("status", ["live", "update_pending"])
     .eq("discoverable", true)
     .order("display_name", { ascending: true })
     .limit(30);
