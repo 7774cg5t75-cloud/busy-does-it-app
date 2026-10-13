@@ -22,6 +22,7 @@ import {checkCustomerRequestReplay} from "./customerRequestReplayV3203.mjs";
 import {validRequestReceiptKey,prepareCustomerReceipt} from "./customerRequestReceiptV3204.mjs";
 import {classifyMessageReceipt,validateMessageReceiptContext} from "./messageReceiptV3205.mjs";
 import {classifyOwnerInboxReceipt} from "./ownerInboxReceiptV3205.mjs";
+import {decideFreshOwnerFollowup} from "./freshOwnerFollowupV3207.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -467,6 +468,34 @@ async function exactOwnerInboxReceipt(
  });
  if(!verdict.ok)throw Error(verdict.reason);
  return verdict;
+}
+
+// One request, at most two newest messages. Read-only: does not mark
+// the request read, send a message, change Work or contact a provider.
+async function currentOwnerFollowup(businessId:string,body:any){
+ const requestId=clean(body?.requestId,80);
+ const app=await appForBusiness(businessId);
+ if(!app?.id)throw Error("No Business App exists in this workspace.");
+ const request=await supabase.from("busy_mini_app_requests")
+  .select("id,business_id,mini_app_id,request_type,status,request_origin,consumer_user_id,created_at,updated_at")
+  .eq("business_id",businessId).eq("mini_app_id",app.id)
+  .eq("id",requestId).maybeSingle();
+ if(request.error)throw request.error;
+ if(!request.data)throw Error("The customer request is not available to this business.");
+ const messages=await supabase.from("busy_mini_app_request_messages")
+  .select("id,business_id,mini_app_id,request_id,sender_role,created_at")
+  .eq("business_id",businessId).eq("mini_app_id",app.id)
+  .eq("request_id",requestId)
+  .order("created_at",{ascending:false})
+  .order("id",{ascending:false})
+  .limit(2);
+ if(messages.error)throw messages.error;
+ const recommendation=decideFreshOwnerFollowup({
+  businessId,appId:app.id,requestId,row:request.data,
+  messages:messages.data||[],nowISO:new Date().toISOString()
+ });
+ if(!recommendation.ok)throw Error(recommendation.reason);
+ return recommendation;
 }
 
 async function customerRequestDetail(userId: string, body: any) {
@@ -4212,6 +4241,12 @@ Deno.serve(async (request: Request) => {
         throw Error("Owner or admin permissions are required.");
       return json(200,{ok:true,...(await exactMessageReceipt(
         user.id,resolvedBusinessId,"business",body))});
+    }
+    if (action === "owner_followup_check") {
+      if(!["owner","admin"].includes(member.role))
+        throw Error("Owner or admin permissions are required.");
+      return json(200,{ok:true,
+        ...(await currentOwnerFollowup(resolvedBusinessId,body))});
     }
     if (action === "owner_inbox_receipt") {
       if(!["owner","admin"].includes(member.role))
