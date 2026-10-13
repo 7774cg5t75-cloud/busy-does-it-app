@@ -53,7 +53,11 @@ function detectRequestedCapabilities(request){
  const found=[];
  for(const [id,re] of INTENTS){
   const match=re.exec(request);
-  if(match&&!negativeMatch(request,match.index))found.push(id);
+  // Visitor uploads do not imply a ready owner-approved public portfolio.
+  const visitorUpload=id==="gallery"&&
+   /\b(?:upload|submit|send)\s+(?:their\s+|own\s+|some\s+)?(?:photos?|images?|pictures?|files?)\b/i.test(request)&&
+   !/\b(?:show|display|portfolio|galler(?:y|ies))\b/i.test(request);
+  if(match&&!negativeMatch(request,match.index)&&!visitorUpload)found.push(id);
  }
  // Deposits and donations are separate explicitly approved workflows, never
  // a synonym for generic payment collection or evidence of charge authority.
