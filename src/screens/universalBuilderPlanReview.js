@@ -171,6 +171,11 @@ function UniversalBuilderPlanReview({
        {surface==="website"&&report.sectionPlan?.ok?<View>
          <Text style={styles.sectionLabel}>Existing website section priorities</Text>
          <Text style={styles.cardBody}>{report.sectionPlan.reason}</Text>
+         {report.sectionPlan.contentNotYetReady?.length?
+          <Text style={styles.cardBody}>
+           {"Before featuring these sections more prominently, add approved content: "+
+            report.sectionPlan.contentNotYetReady.join(", ")+". No empty sections will be promoted."}
+          </Text>:null}
          {report.sectionPlan.changesSuggested?
           <Text style={styles.cardBody}>
            {"Private suggested order: "+report.sectionPlan.proposed.join(" → ")+
