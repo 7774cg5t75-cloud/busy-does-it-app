@@ -84,6 +84,13 @@ function BusinessBrandDnaPreview({website,app,businessId,catalog=[],
                {"Website: "+requestReport.customerActions.website.replaceAll("_"," ")+
                 " • App: "+requestReport.customerActions.app.replaceAll("_"," ")}
              </Text>
+             {requestReport.website.ownerApprovedAppHandoffInPrivateDraft?
+               <Text style={styles.cardBody}>
+                 Your private website now includes an owner-approved route to a
+                 published Business App request. Public website publication,
+                 the visitor's click and actual saved/delivered requests still
+                 require separate verification.
+               </Text>:null}
              {requestReport.gaps.slice(0,5).map(gap=>
                <Text key={gap} style={styles.cardBody}>
                  {"To verify: "+gap.replaceAll("_"," ")}
