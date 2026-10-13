@@ -20,7 +20,11 @@ const SECTOR_PATTERNS=[
  ["nature",/garden|landscap|lawn|tree|floris|horticultur|farm|outdoor/],
  ["hospitality",/cater|food|restaurant|bakery|baker|festival|coffee|cafe|hog roast|chef|hotel/],
  ["wellness",/beauty|salon|spa|wellness|massage|hair|nail|therap|fitness|yoga/],
- ["professional",/account|consult|bookkeep|law|legal|finance|architect|agency|design|coach|tutor/],
+ ["creative",/photograph|videograph|film studio|illustrat|artist|potter|ceramic|music studio|recording studio|craft studio|graphic design/],
+ ["retail",/retail|bookshop|gift shop|jewel|clothing|fashion|boutique shop|independent shop|shopkeeper/],
+ ["learning",/school|tutor|lesson|training|education|academy|instructor|workshop leader|driving instruct/],
+ ["events",/event plan|wedding plan|event venue|conference|theatre|event production|entertainment|performer/],
+ ["professional",/account|consult|bookkeep|law|legal|finance|architect|agency|design|coach/],
  ["trades",/clean|wash|window|electric|plumb|repair|roof|build|handyman|construction|paint|decorat|maintenan/]
 ];
 function deriveSector(type){
@@ -111,6 +115,10 @@ function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}
     hospitality:photos>0?["showcase","artisan"]:["artisan","editorial","minimal"],
     wellness:["boutique","editorial","minimal"],
     professional:["editorial","minimal","boutique"],
+    creative:photos>=2?["portfolio","showcase","editorial"]:["editorial","boutique","minimal"],
+    retail:photos>=2?["showcase","portfolio","artisan"]:["artisan","minimal","editorial"],
+    learning:["editorial","minimal","conversion"],
+    events:photos>=2?["showcase","conversion","editorial"]:["conversion","editorial","boutique"],
     neutral:photos>=2?["portfolio","editorial","minimal"]:["minimal","editorial","boutique"]
   };
   const allowedFamilies=familyOptions[sector]||familyOptions.neutral;
@@ -138,6 +146,14 @@ function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}
       ? ["hero","gallery","services","about","testimonials","faq","contact"]
       : sector==="professional"&&aboutWords>=20
         ? ["hero","about","services","testimonials","faq","gallery","contact"]
+      : sector==="creative"&&photos>=2
+        ? ["hero","gallery","services","about","testimonials","faq","contact"]
+      : sector==="retail"&&photos>=2
+        ? ["hero","services","gallery","about","faq","testimonials","contact"]
+      : sector==="learning"&&faqCount>=2
+        ? ["hero","services","faq","about","testimonials","gallery","contact"]
+      : sector==="events"&&photos>=2
+        ? ["hero","gallery","services","about","faq","testimonials","contact"]
         : ["hero","services","about","gallery","testimonials","faq","contact"];
   const present=new Set(active.map(s=>clean(s.id)));
   const requestedOrder=list(theme?.sectionOrder).filter(id=>typeof id==="string"&&present.has(id));
@@ -173,7 +189,9 @@ function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}
     explanation:architecture==="focused-landing"
       ?"BUSY chose one polished, focused page so limited information doesn't create empty pages."
       :"BUSY chose a detailed homepage and separate pages because enough verified content is available."+
-       (eventCateringWithPhotos?" Approved event-food photos and real services appear early because this is event catering.":""),
+       (eventCateringWithPhotos?" Approved event-food photos and real services appear early because this is event catering.":"")+
+       (["creative","retail","learning","events"].includes(sector)?
+        " BUSY chose a "+sector+"-appropriate layout using only recorded sections and approved assets.":""),
   };
 }
 export {deriveSector,planWebsiteDesign,photographicCount,stableDesignSeed,selectVisualIdentity};
