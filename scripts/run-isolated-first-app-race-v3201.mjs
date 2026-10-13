@@ -81,7 +81,7 @@ async function runIsolatedRace({
   networkRequests:calls,firstAppCreationAttempted:true,
   noCustomerRequestsSent:true,
   noSecretsLogged:true,noProductionConnections:true,
-  externalSystemsUnaffected:true};
+  externalProviderCalls:0,isolatedStagingDatabaseMayContainSyntheticDraft:true};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  runIsolatedRace().then(result=>{
