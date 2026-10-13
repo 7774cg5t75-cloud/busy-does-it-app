@@ -2887,7 +2887,7 @@ async function setDiscoverable(
     throw new Error("Owner approval is required before changing marketplace visibility.");
   }
   const app = await appForBusiness(businessId);
-  if (!app?.current_live_version_id || app.status !== "live") {
+  if (!app?.current_live_version_id || !["live","update_pending"].includes(app.status)) {
     throw new Error("Publish a live Business App before listing it in BUSY Apps.");
   }
   const updated = await supabase
@@ -3016,7 +3016,7 @@ async function myBusyApps(userId: string) {
   return history
     .map((item: any) => {
       const app = map.get(item.mini_app_id) as any;
-      if (!app?.current_live_version_id || app.status !== "live") return null;
+      if (!app?.current_live_version_id || !["live","update_pending"].includes(app.status)) return null;
       return {
         id: app.id,
         slug: app.public_slug,
@@ -3079,7 +3079,7 @@ async function setConsumerFavorite(
     .eq("public_slug", slug)
     .maybeSingle();
   if (app.error) throw app.error;
-  if (!app.data?.id || app.data.status !== "live" || !app.data.current_live_version_id) {
+  if (!app.data?.id || !["live","update_pending"].includes(app.data.status) || !app.data.current_live_version_id) {
     throw new Error("That BUSY Business App is not currently live.");
   }
   await trackConsumerApp(userId, app.data.id);
@@ -3193,7 +3193,7 @@ async function appDetail(
     .from("busy_mini_apps")
     .select("*")
     .eq("public_slug", slug)
-    .eq("status", "live")
+    .in("status", ["live", "update_pending"])
     .maybeSingle();
   if (app.error) throw app.error;
   if (!app.data?.current_live_version_id) {
@@ -3201,8 +3201,10 @@ async function appDetail(
   }
   const version = await supabase
     .from("busy_mini_app_versions")
-    .select("id,version_no,config,published_at")
+    .select("id,mini_app_id,state,version_no,config,published_at")
     .eq("id", app.data.current_live_version_id)
+    .eq("mini_app_id", app.data.id)
+    .eq("state", "live")
     .maybeSingle();
   if (version.error) throw version.error;
   if (!version.data) throw new Error("Live Business App version not found.");
