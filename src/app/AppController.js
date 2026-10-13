@@ -390,11 +390,6 @@ function App() {
   const miniAppMessageInFlightRef=useRef(new Set());
   const customerRequestPendingRef=useRef(null);
   const customerRequestInFlightRef=useRef(false);
-  useEffect(()=>{
-    // Never reuse an unfinished request key across a sign-in identity change.
-    customerRequestPendingRef.current=null;
-    customerRequestInFlightRef.current=false;
-  },[ownerSession?.userId]);
   const [miniAppRequestHistoryLoading, setMiniAppRequestHistoryLoading] = useState(false);
   const [miniAppsNotificationStatus, setMiniAppsNotificationStatus] = useState({
     state: "unknown",
@@ -517,6 +512,15 @@ function App() {
   const [socialPublishingError, setSocialPublishingError] = useState("");
   const [socialPublishingAction, setSocialPublishingAction] = useState("");
   const [ownerSession, setOwnerSession] = useState(null);
+  const activeCustomerRequestScopeRef=useRef("");
+  activeCustomerRequestScopeRef.current=[
+    ownerSession?.userId||"",selectedBusyAppDetail?.app?.id||"",
+    selectedBusyAppDetail?.app?.slug||""
+  ].join(":");
+  useEffect(()=>{
+    customerRequestPendingRef.current=null;
+    customerRequestInFlightRef.current=false;
+  },[ownerSession?.userId]);
   const [ownerEmail, setOwnerEmail] = useState(DEFAULT_OWNER_EMAIL);
   const [ownerPassword, setOwnerPassword] = useState("");
   const [ownerAuthLoading, setOwnerAuthLoading] = useState(false);
@@ -16081,9 +16085,9 @@ function App() {
       };
     }
     const key=customerRequestPendingRef.current.requestKey;
-    const scopeStillCurrent=()=>ownerSession?.userId===customerUserId&&
-      selectedBusyAppDetail?.app?.slug===slug&&
-      selectedBusyAppDetail?.app?.id===appId;
+    const expectedScope=[customerUserId,appId,slug].join(":");
+    const scopeStillCurrent=()=>
+      activeCustomerRequestScopeRef.current===expectedScope;
     customerRequestInFlightRef.current=true;
     setMiniAppsAction(`request:${requestType}`);
     setMiniAppsError("");
