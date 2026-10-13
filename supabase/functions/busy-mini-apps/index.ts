@@ -1761,13 +1761,41 @@ async function buildDraft(
     );
   }
 
-  // V3.197 owner-approved website-first creation must never overwrite
-  // a private app created meanwhile on another device. This opt-in guard
-  // does not weaken the established ordinary refresh-draft workflow.
+  // V3.199: the FIRST-app path must create the complete private draft
+  // atomically, never "ensure" a raced row and then overwrite its data.
+  // A missing migration is a safe failure: no fallback to the old race.
   if(body?.expectedNoExistingApp===true){
-    const existing=await appForBusiness(businessId);
-    if(existing)throw new Error(
-      "A Business App already exists. Review the existing private draft rather than starting a second one.");
+    const current=await appForBusiness(businessId);
+    if(current)throw new Error(
+      "A Business App already exists. Open its current private draft.");
+    const revision=Number(storedProfile?.revision||0);
+    const firstConfig=buildConfig(profile,catalog,revision,null);
+    const base=slugify(profile.businessName||"business");
+    const suffix=businessId.replaceAll("-","").slice(0,8);
+    const publicSlug=`${base}-${suffix}`.slice(0,80);
+    const result=await supabase.rpc("busy_create_first_mini_app_draft_v3199",{
+      p_business_id:businessId,p_actor_user_id:userId,
+      p_public_slug:publicSlug,
+      p_display_name:profile.businessName,
+      p_category:profile.businessType,p_tagline:profile.tagline,
+      p_profile_revision:revision,p_draft_config:firstConfig
+    });
+    if(result.error)throw new Error(
+      "Private app creation was not confirmed. Check the latest app status before retrying.");
+    const created=result.data;
+    if(created?.created!==true){
+      throw new Error("An app was created elsewhere. Open the existing private draft.");
+    }
+    const app=created.app;
+    if(app?.business_id!==businessId||app?.app_key!=="main"||
+       typeof app?.id!=="string"||
+       !Number.isSafeInteger(Number(app?.draft_revision))||
+       Number(app.draft_revision)<2||
+       app?.discoverable!==false||
+       app?.status!=="draft")
+      throw new Error("First app creation returned unverifiable private state.");
+    return {app,source:"atomic_first_private_app_v3199",
+      atomicFirstCreate:true,privateOnly:true,neverPublishes:true};
   }
   const app = await ensureApp(businessId, userId, profile);
   const config = buildConfig(
