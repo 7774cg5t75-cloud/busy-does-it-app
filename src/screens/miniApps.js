@@ -1812,6 +1812,47 @@ function MiniAppBuilder({ s }) {
                   ):null}
                 </>
               ):null}
+              {view.followUpIntelligence?.ok?(
+                <Card eyebrow="Busy keeps an eye on enquiries"
+                  title={view.followUpIntelligence.counts.needsReply?
+                    view.followUpIntelligence.counts.needsReply+
+                    " customer request(s) to review":
+                    "Customer replies are under review"}
+                  body="Busy compares signed-in customer requests with saved conversation activity. Review the suggestion before sending anything."
+                  tone={view.followUpIntelligence.counts.needsReply?"amber":"blue"}>
+                  <MetricRow left="May need a reply"
+                    right={String(view.followUpIntelligence.counts.needsReply)}/>
+                  <MetricRow left="Waiting after business reply"
+                    right={String(view.followUpIntelligence.counts.waiting)}/>
+                  <MetricRow left="Needs manual checking"
+                    right={String(view.followUpIntelligence.counts.manualReview+
+                      view.followUpIntelligence.counts.unknown)}/>
+                  {view.followUpIntelligence.items.filter(item=>
+                    item.category==="needsReply").slice(0,3).map(item=>(
+                    <View key={"followup-"+item.requestId}>
+                      <Text style={styles.sectionLabel}>
+                        {item.requestType==="booking_request"?
+                          "Booking request needs review":"Enquiry needs review"}
+                      </Text>
+                      <Text style={styles.cardBody}>{item.why}</Text>
+                      <Button label="Open request and prepare reply"
+                        onPress={()=>s.openOwnerMiniAppRequest(item.requestId)}
+                        disabled={!!s.miniAppsAction}/>
+                    </View>
+                  ))}
+                  {view.followUpIntelligence.messageHistoryIncomplete||
+                     view.followUpIntelligence.limitedToRecentRequests?(
+                    <Text style={styles.cardBody}>
+                      Only recent records were checked. Open individual
+                      conversations before concluding older requests are answered.
+                    </Text>
+                  ):null}
+                  <Text style={styles.cardBody}>
+                    Nothing is sent automatically. Guest enquiries require
+                    review of their separate contact method.
+                  </Text>
+                </Card>
+              ):null}
               {view.journeyEvidence?.ok?(
                 <>
                   <Text style={styles.sectionLabel}>
@@ -4764,6 +4805,10 @@ function MiniAppRequestDetail({ s }) {
   const [draft, setDraft] = React.useState("");
   const ownerView = role === "business";
   const guestWebRequest = request?.request_origin === "guest_web";
+  const followUpSuggestion=request?.id?
+    s.miniAppsView?.followUpIntelligence?.items?.find(item=>
+      item.requestId===request.id&&
+      item.appId===request.mini_app_id):null;
   const link = request?.id ? s.miniAppsView?.linkByRequest?.get?.(request.id) || null : null;
   const journey=request?appRequestJourney(request,link):null;
   const experienceMessage=request?describeRequestExperience(request,link,{
@@ -4899,6 +4944,33 @@ function MiniAppRequestDetail({ s }) {
                 A saved record is not proof that a notification arrived or
                 that the customer saw a reply. Booking confirmation requires
                 its own verified diary entry.
+              </Text>
+            </Card>
+          ):null}
+          {ownerView&&followUpSuggestion?.category==="needsReply"&&
+            !!followUpSuggestion.replyDraft&&!guestWebRequest?(
+            <Card eyebrow="Busy can prepare your reply"
+              title="Review this suggestion"
+              body={followUpSuggestion.why}
+              tone="blue">
+              <Text style={styles.cardBody}>
+                {followUpSuggestion.replyDraft}
+              </Text>
+              <Button label="Use as an editable draft"
+                disabled={!!s.miniAppsAction}
+                onPress={()=>{
+                  const apply=()=>setDraft(followUpSuggestion.replyDraft);
+                  if(draft.trim()){
+                    Alert.alert("Replace your current reply?",
+                      "Busy will replace your unsent text, but won't send anything.",[
+                       {text:"Keep my text",style:"cancel"},
+                       {text:"Use suggested draft",onPress:apply}
+                      ]);
+                  }else apply();
+                }}/>
+              <Text style={styles.cardBody}>
+                Read and adjust this message yourself. Sending requires
+                a separate, explicit action.
               </Text>
             </Card>
           ):null}
