@@ -34,7 +34,17 @@ function requestTransitionEvidence({kind="enquiry",status="received",
  const journey=appRequestJourney(record,{bridge_state:bridgeState});
  const next=nextStatus?decideAppRequestTransition(record,nextStatus,
   {bridgeState}):null;
- return {ok:true,kind,status,journey,proposedTransition:next,
+ // Deliberately never pass the raw, potentially "confirmed:true" synthetic
+ // journey into customer-facing evidence. The state machine is only an
+ // illustrative rule evaluation until a signed-in server readback proves it.
+ const guardedJourney={type:journey.type,status:journey.status,
+  confirmed:false,
+  stages:journey.stages.map(s=>({key:s.key,label:s.label,complete:false})),
+  customerMessage:"Example only — no actual customer request or diary receipt was fetched.",
+  requiresHumanConfirmation:kind==="booking_request"};
+ return {ok:true,kind,status,journey:guardedJourney,
+  hypotheticalRuleWouldConfirm:journey.confirmed===true,
+  proposedTransition:next,
   bookingProofWouldBeRequired:kind==="booking_request"&&
    (status==="accepted"||nextStatus==="accepted"),
   exampleOnly:true,serverReceiptNotQueried:true,independentProof:false,
