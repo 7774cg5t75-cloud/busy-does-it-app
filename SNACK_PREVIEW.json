@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-10-13T19:27:46.557Z",
-  "id": "WBL4dEJgBz0HndrNoiIhH",
-  "webUrl": "https://snack.expo.dev/WBL4dEJgBz0HndrNoiIhH",
-  "expoUrl": "exp://u.expo.dev/933fd9c0-1666-11e7-afca-d980795c5824?runtime-version=exposdk%3A54.0.0&channel-name=production&snack=WBL4dEJgBz0HndrNoiIhH",
-  "sourceBranch": "v3.213",
-  "sourceCommit": "45a259ef99cd591b7e6ab5ac5477b5229fba66d0",
+  "generatedAt": "2026-10-13T21:52:52.124Z",
+  "id": "n4QGkpHJKAaN_qTaaPCei",
+  "webUrl": "https://snack.expo.dev/n4QGkpHJKAaN_qTaaPCei",
+  "expoUrl": "exp://u.expo.dev/933fd9c0-1666-11e7-afca-d980795c5824?runtime-version=exposdk%3A54.0.0&channel-name=production&snack=n4QGkpHJKAaN_qTaaPCei",
+  "sourceBranch": "v3.214",
+  "sourceCommit": "36d38ea71b4eb246fed2e4d2f39ac2553809f354",
   "appVersion": "3.105.0",
-  "exportedModules": 266,
+  "exportedModules": 267,
   "importClosureVerified": true
 }
