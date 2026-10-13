@@ -18,6 +18,7 @@ import {readOwnerBrainDecisions,recordOwnerBrainDecision,clearOwnerBrainDecision
 import {isolatedStagingGuard} from "./stagingConnectionGuard.mjs";
 import {runSyntheticStagingProbe} from "./stagingSyntheticService.mjs";
 import {auditIsolatedStagingInstall} from "./stagingInstallAudit.mjs";
+import {checkCustomerRequestReplay} from "./customerRequestReplayV3203.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -3191,6 +3192,30 @@ async function submitRequest(
     throw new Error("Choose or enter the service you want to request.");
   }
 
+  // A valid idempotent retry is not a NEW customer action and must be
+  // reconciled before the hourly new-request limit. Never reuse a key with
+  // different sanitized details or the wrong business.
+  if (requestId) {
+    const existing = await supabase
+      .from("busy_mini_app_requests")
+      .select("*")
+      .eq("mini_app_id", detail.app.id)
+      .eq("consumer_user_id", userId)
+      .eq("idempotency_key", requestId)
+      .maybeSingle();
+    if (existing.error) throw existing.error;
+    if (existing.data) {
+      const replay=checkCustomerRequestReplay({
+        existing:existing.data,businessId:detail.app.business_id,
+        appId:detail.app.id,consumerUserId:userId,
+        requestType,moduleKey,payload
+      });
+      if(!replay.ok)throw Error(replay.reason);
+      return {reused:true,request:existing.data,
+        notificationDeliveryVerified:false};
+    }
+  }
+
   const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
   const recent = await supabase
     .from("busy_mini_app_requests")
@@ -3201,18 +3226,6 @@ async function submitRequest(
   if (recent.error) throw recent.error;
   if (Number(recent.count || 0) >= 10) {
     throw new Error("Too many Business App requests. Try again later.");
-  }
-
-  if (requestId) {
-    const existing = await supabase
-      .from("busy_mini_app_requests")
-      .select("*")
-      .eq("mini_app_id", detail.app.id)
-      .eq("consumer_user_id", userId)
-      .eq("idempotency_key", requestId)
-      .maybeSingle();
-    if (existing.error) throw existing.error;
-    if (existing.data) return { reused: true, request: existing.data };
   }
 
   const appRow = await supabase
@@ -3255,30 +3268,52 @@ async function submitRequest(
         .eq("idempotency_key", requestId)
         .maybeSingle();
       if (raced.error) throw raced.error;
-      if (raced.data) return { reused: true, request: raced.data };
+      if (raced.data) {
+        const replay=checkCustomerRequestReplay({
+          existing:raced.data,businessId:appRow.data.business_id,
+          appId:detail.app.id,consumerUserId:userId,
+          requestType,moduleKey,payload
+        });
+        if(!replay.ok)throw Error(replay.reason);
+        return {reused:true,request:raced.data,
+          notificationDeliveryVerified:false};
+      }
     }
     throw inserted.error;
   }
 
-  const event = await supabase
-    .from("busy_mini_app_request_events")
-    .insert({
-      business_id: appRow.data.business_id,
-      request_id: inserted.data.id,
-      actor_user_id: userId,
-      event_type: "received",
-      detail: { requestType, source: "busy_mini_app" },
+  // The INSERT above has committed. If a later event/analytics/provider
+  // step fails, a 400 response would encourage an owner/customer to retry
+  // a real saved request and could create a duplicate with a different key.
+  // Return the saved request with an honest, separately verified status.
+  let eventRecorded=false;
+  try{
+    const event=await supabase.from("busy_mini_app_request_events").insert({
+      business_id:appRow.data.business_id,
+      request_id:inserted.data.id,
+      actor_user_id:userId,event_type:"received",
+      detail:{requestType,source:"busy_mini_app"}
     });
-  if (event.error) throw event.error;
-
-  await trackConsumerApp(userId, detail.app.id, { action: true });
-  await notifyBusinessOfMiniAppRequest(
-    inserted.data,
-    requestType === "booking_request" ? "BUSY Apps • New booking request" : "BUSY Apps • New enquiry",
-    "A customer sent a new request through your BUSY Business App.",
-    "received"
-  );
-  return { reused: false, request: inserted.data };
+    eventRecorded=!event.error;
+  }catch{}
+  if(!eventRecorded)console.warn("Customer request saved; event write unverified.");
+  try{await trackConsumerApp(userId,detail.app.id,{action:true});}
+  catch{console.warn("Customer request saved; consumer analytics unavailable.");}
+  let notificationAttempted=false;
+  try{
+    await notifyBusinessOfMiniAppRequest(
+      inserted.data,
+      requestType==="booking_request"?"BUSY Apps • New booking request":"BUSY Apps • New enquiry",
+      "A customer sent a new request through your BUSY Business App.",
+      "received"
+    );
+    notificationAttempted=true;
+  }catch{console.warn("Customer request saved; provider notification attempt unverified.");}
+  return {reused:false,request:inserted.data,
+    savedRequestConfirmed:true,eventRecorded,
+    notificationAttempted,notificationDeliveryVerified:false,
+    businessInboxReadbackVerified:false,
+    ownerActionStillRequired:true};
 }
 
 // Provider submission status is only an attempt record; even a positive Expo
