@@ -15,6 +15,7 @@ import {enabledAppKeys} from "./appSectionOrder.mjs";
 import {appRequestJourney,decideAppRequestTransition}
  from "./appRequestLifecycle.mjs";
 import {evaluateResponsiveApp} from "./appResponsiveDesign.mjs";
+import {canonicalWebsiteHandoffUrl} from "./websiteAppHandoffV3214.mjs";
 
 const TYPES=Object.freeze(["enquiry","booking_request"]);
 const clean=v=>typeof v==="string"?v.trim():"";
@@ -75,8 +76,24 @@ function reviewSharedRequestJourney({
  const webServices=list(websiteSections.find(s=>s?.id==="services")?.items).some(
   s=>typeof s?.title==="string"&&!!s.title.trim());
  const taskReady=appAvailable&&(kind!=="booking_request"||appServices);
+ const savedLink=website?.theme?.appRequestLinks?.[kind];
+ let handoffMatchesCurrentApp=false;
+ if(hasContact&&savedLink?.ownerApproved===true&&
+   savedLink.intent===kind&&savedLink.appId===app.id&&
+   savedLink.liveVersionId===app.current_live_version_id&&
+   ["live","update_pending"].includes(app.status)&&
+   typeof savedLink.url==="string"){
+  try{
+   const u=new URL(savedLink.url);
+   handoffMatchesCurrentApp=savedLink.url===canonicalWebsiteHandoffUrl({
+    endpoint:u.origin+u.pathname,slug:savedLink.slug,kind
+   });
+  }catch{/* No trustworthy active website handoff proof. */}
+ }
  const customerActions={
-  website:hasContact?"public_contact_details_only":"contact_information_missing",
+  website:handoffMatchesCurrentApp?
+   "private_app_handoff_configured_public_click_unverified":
+   hasContact?"public_contact_details_only":"contact_information_missing",
   app:taskReady?"private_app_request_module_present":
    !runtime.ok?"runtime_not_verified":
    appAvailable?"owner_service_information_needed":
@@ -90,6 +107,7 @@ function reviewSharedRequestJourney({
   ...(!runtime.ok?["app_supported_runtime"]:[]),
   ...(!appAvailable?["app_request_module"]:[]),
   "website_transactional_request_endpoint_unverified",
+  ...(handoffMatchesCurrentApp?["website_public_handoff_click_and_delivery_unverified"]:[]),
   "real_customer_submission_unverified",
   "owner_receipt_and_reply_unverified",
   ...(kind==="booking_request"?[
@@ -116,7 +134,11 @@ function reviewSharedRequestJourney({
   requestKind:kind,businessId,
   source:{websiteId:website.id,websiteGeneration:website.generation,
    appId:app.id,appRevision:app.draft_revision},
-  customerActions,website:{publicContactVisible:hasContact,
+  customerActions,website:{
+   ownerApprovedAppHandoffInPrivateDraft:handoffMatchesCurrentApp,
+   handoffPublicVisitVerified:false,
+   handoffDeliveryVerified:false,
+   publicContactVisible:hasContact,
    heroPointsToContact:hasValidContactAnchor,
    contactPriority:priority,recordedServices:webServices,
    transactionalFormVerified:false},
