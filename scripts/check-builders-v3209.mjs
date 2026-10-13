@@ -122,12 +122,12 @@ eq(noGallery.suggestedModules.find(x=>x.key==="gallery")?.suggested,false);
 eq(noGallery.layout!=="gallery-first",true);
 const offers=planFunctionalBusinessApp({businessType:"independent bookshop",
  businessGoals:"Show our special offers",catalog:allCatalog,
- profile:{offers:[{title:"Sale",approved:false}]}});
+ offerTerms:[{title:"Sale",approved:false}]});
 eq(offers.suggestedModules.find(x=>x.key==="offers")?.suggested,false);
 ok(offers.missingOwnerFacts.includes("approved_offer_terms"));
 const approvedOffers=planFunctionalBusinessApp({businessType:"independent bookshop",
  businessGoals:"Show our special offers",catalog:allCatalog,
- profile:{offers:[{title:"Owner approved promotion",approved:true}]}});
+ offerTerms:[{title:"Owner approved promotion",approved:true}]});
 eq(approvedOffers.suggestedModules.find(x=>x.key==="offers")?.suggested,true);
 const disabled=allCatalog.map(x=>x.module_key==="booking_request"?{...x,status:"planned"}:x);
 const waiting=planFunctionalBusinessApp({businessType:"driving instructor",
