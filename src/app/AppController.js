@@ -388,6 +388,7 @@ function App() {
   const [selectedMiniAppRequestRole, setSelectedMiniAppRequestRole] = useState("");
   const [selectedMiniAppRequestDetail, setSelectedMiniAppRequestDetail] = useState(null);
   const miniAppMessageInFlightRef=useRef(new Set());
+  const [latestCustomerRequestOutcome,setLatestCustomerRequestOutcome]=useState(null);
   const customerRequestPendingRef=useRef(null);
   const customerRequestInFlightRef=useRef(false);
   const [miniAppRequestHistoryLoading, setMiniAppRequestHistoryLoading] = useState(false);
@@ -520,6 +521,7 @@ function App() {
   useEffect(()=>{
     customerRequestPendingRef.current=null;
     customerRequestInFlightRef.current=false;
+    setLatestCustomerRequestOutcome(null);
   },[ownerSession?.userId]);
   const [ownerEmail, setOwnerEmail] = useState(DEFAULT_OWNER_EMAIL);
   const [ownerPassword, setOwnerPassword] = useState("");
@@ -16104,6 +16106,7 @@ function App() {
       if(!verified.ok||!scopeStillCurrent())
         throw Error("The saved request response could not be verified against your account.");
       customerRequestPendingRef.current=null;
+      setLatestCustomerRequestOutcome(verified);
       setMiniAppsNotice(customerRequestNotice(verified));
       // A My Apps refresh is optional and must never invalidate saved proof.
       try{await loadMyBusyApps({quiet:true});}catch{}
@@ -16124,6 +16127,7 @@ function App() {
           });
           if(verified.ok&&scopeStillCurrent()){
             customerRequestPendingRef.current=null;
+            setLatestCustomerRequestOutcome(verified);
             setMiniAppsNotice(customerRequestNotice(verified));
             try{await loadMyBusyApps({quiet:true});}catch{}
             return true;
@@ -17155,6 +17159,7 @@ function App() {
     miniAppsAction,
     miniAppsError,
     miniAppsNotice,
+    latestCustomerRequestOutcome,
     miniAppBuildBrief,
     setMiniAppBuildBrief,
     miniAppBuilderPlan,
