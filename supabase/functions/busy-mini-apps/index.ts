@@ -23,6 +23,7 @@ import {validRequestReceiptKey,prepareCustomerReceipt} from "./customerRequestRe
 import {classifyMessageReceipt,validateMessageReceiptContext} from "./messageReceiptV3205.mjs";
 import {classifyOwnerInboxReceipt} from "./ownerInboxReceiptV3205.mjs";
 import {decideFreshOwnerFollowup} from "./freshOwnerFollowupV3207.mjs";
+import {guardReviewedOwnerSend,validateOwnerReplyAfterSave} from "./reviewedOwnerSendV3208.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -3460,6 +3461,19 @@ async function sendRequestMessage(
 ) {
  const requestId=clean(body?.requestId,80);
  const message=clean(body?.message,3000);
+ const reviewedStamp=body?.reviewedFollowupStamp;
+ // A manually typed reply remains the separate existing owner action. For
+ // Busy-prepared replies a stamped approval MUST be freshly checked here.
+ if(reviewedStamp!==undefined){
+  if(typeof reviewedStamp!=="string"||reviewedStamp.length>600)
+   throw Error("The reviewed follow-up reference is invalid.");
+  const fresh=await currentOwnerFollowup(businessId,{requestId});
+  const guarded=guardReviewedOwnerSend({
+   businessId,appId:fresh.appId,requestId,
+   expectedSourceStamp:reviewedStamp,fresh:{ok:true,...fresh}
+  });
+  if(!guarded.ok)throw Error(guarded.reason);
+ }
  const saved=await sendAtomicConversation(supabase,{
   actorUserId:userId,businessId,requestId,senderRole:"business",
   message,idempotencyKey
@@ -4255,13 +4269,26 @@ Deno.serve(async (request: Request) => {
         resolvedBusinessId,member.role,body))});
     }
     if (action === "send_request_message") {
+      if(body?.reviewedFollowupStamp!==undefined&&
+        !["owner","admin"].includes(member.role))
+        throw Error("Only the signed-in business owner may send a reviewed follow-up.");
       const saved=await sendRequestMessage(user.id,resolvedBusinessId,body,requestId);
+      // Post-commit readback is informational, not proof of push delivery.
+      let postSendEvidence=null;
       try{
-        return json(200,{ok:true,...saved,
+        const fresh=await currentOwnerFollowup(resolvedBusinessId,body);
+        postSendEvidence=validateOwnerReplyAfterSave({
+          businessId:resolvedBusinessId,appId:fresh.appId,
+          requestId:clean(body?.requestId,80),sent:saved,
+          current:{ok:true,...fresh}
+        });
+      }catch{ /* Message saved; readback availability is separate. */ }
+      try{
+        return json(200,{ok:true,...saved,postSendEvidence,
           status:await ownerStatus(resolvedBusinessId),statusRefreshRequired:false});
       }catch(error){
         console.warn("Saved owner reply; refreshing owner list later.");
-        return json(200,{ok:true,...saved,statusRefreshRequired:true});
+        return json(200,{ok:true,...saved,postSendEvidence,statusRefreshRequired:true});
       }
     }
     if (action === "owner_request_detail") {
