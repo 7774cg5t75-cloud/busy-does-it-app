@@ -58,7 +58,12 @@ const edited=applyWebsiteLayoutOperation(web,op);
 ok(edited.applied,edited.reason);
 eq(edited.draft.theme.sectionOrder,requirements.sectionPlan.proposed);
 eq(web.theme.sectionOrder,undefined,"Source remains unchanged for undo history.");
-eq(edited.draft.sections,web.sections,"Only ordering metadata can change.");
+eq(edited.draft.sections.map(({items,...section})=>section),
+ web.sections.map(({items,...section})=>section),
+ "A composition edit must preserve every original section field.");
+eq(edited.draft.sections.map(s=>s.items||[]),
+ web.sections.map(s=>s.items||[]),
+ "A composition edit must preserve all section items and copy.");
 eq(edited.draft.businessId,id);
 eq(edited.draft.generation,8,"The private controller wraps withHtml to bump the generation.");
 for(const wrong of [
