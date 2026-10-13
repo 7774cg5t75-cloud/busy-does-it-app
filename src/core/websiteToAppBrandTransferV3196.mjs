@@ -51,7 +51,9 @@ function planWebsiteToAppDesign({website,app,businessId,mode="adapt",
  includeServices=false}={}){
  if(!MODES.includes(mode)||typeof includeServices!=="boolean")
   return {ok:false,reason:"Choose a supported transfer approach."};
- if(!validPrivateBuilderPair(website,app,businessId))
+ if(!validPrivateBuilderPair(website,app,businessId)||
+   (website.business_id&&website.business_id!==businessId)||
+   (website.businessId&&website.businessId!==businessId))
   return {ok:false,reason:"Open a current website and Business App draft for the same business."};
  const config=app.draft_config;
  if(mode==="new")return {ok:true,kind:"private_website_to_app_design_v3196",
