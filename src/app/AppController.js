@@ -207,6 +207,7 @@ import { buildWebsiteDraft, applyWebsiteInstruction, applyStructuredWebsiteEdit,
 import {confirmCopyMissingAppServices} from "../core/ownerBuilderServiceBridgeV3192.mjs";
 import {confirmMatchAppBrandToWebsite} from "../core/ownerBuilderBrandBridgeV3193.mjs";
 import {confirmMatchAppTypeToWebsite} from "../core/ownerBuilderTypographyBridgeV3194.mjs";
+import {confirmAppToWebsiteDesign} from "../core/appToWebsiteBrandTransferV3196.mjs";
 import {buildPortableWebsiteSource} from "../core/websiteSourceExport.mjs";
 import {buildStandaloneWebsiteArchive} from "../core/websiteStandaloneArchive.mjs";
 import {sitePhotoAssets,attachExportOriginal,validExportOriginalPath}
@@ -13433,6 +13434,48 @@ function App() {
       "Updated the PRIVATE website typography from your Business App style. Neither builder was published.");
   };
 
+  // V3.196: apply an explicitly reviewed App -> Website design transfer
+  // as ONE private website Undo transaction, rechecking BOTH draft revisions
+  // and the exact content/appearance to be added before any mutation.
+  const applyAppDesignToWebsite=evidence=>{
+    const current=websiteDraftRef.current;
+    const app=miniAppsStatus?.app;
+    const businessId=cloudWorkspace?.businessId||"";
+    const check=confirmAppToWebsiteDesign({website:current,app,businessId,evidence});
+    if(!check.ok){
+      setWebsiteBuilderNotice(check.reason||"Review the latest builder designs.");
+      return false;
+    }
+    let next=current;
+    for(const operation of check.operations){
+      const result=applyWebsiteLayoutChange(next,operation);
+      if(!result.applied){
+        setWebsiteBuilderNotice(result.reason||"Could not safely prepare this website.");
+        return false;
+      }
+      next=result.draft;
+    }
+    if(check.serviceCopyCount){
+      const reviewed=check.proposedDraft.sections.find(s=>s?.id==="services");
+      if(!reviewed){
+        setWebsiteBuilderNotice("Missing reviewed services. No change was saved.");
+        return false;
+      }
+      next=rebuildPrivateWebsiteDraft({...next,
+        sections:next.sections.some(s=>s.id==="services")?
+          next.sections.map(s=>s.id==="services"?reviewed:s):
+          [...next.sections,reviewed]});
+    }
+    // If a private style operation produced no generation bump, regenerate
+    // the full private website before the only owner commit.
+    if(!Number.isSafeInteger(next.generation)||
+       next.generation<=current.generation)
+      next=rebuildPrivateWebsiteDraft(next);
+    return commitReviewedBuilderDraft(current,next,
+      "Applied "+check.changes.length+
+      " reviewed Business App design change(s) to your PRIVATE website. Nothing public changed.");
+  };
+
   // V3.148: optional local preview, no Undo entry, draft mutation, cloud
   // request, or publication. Apply rechecks the SAME text against current state.
   const previewSelectedWebsiteInstruction = ({selection,instruction}={})=>
@@ -16864,6 +16907,7 @@ function App() {
     applyMissingAppServicesToWebsite,
     applyBusinessAppBrandToWebsite,
     applyBusinessAppTypographyToWebsite,
+    applyAppDesignToWebsite,
     applySelectedWebsiteInstruction,
     previewSelectedWebsiteInstruction,
     previewWebsitePageInstruction,
