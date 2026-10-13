@@ -68,7 +68,8 @@ function reviewSharedRequestJourney({
  const contact=websiteSections.find(s=>s?.id==="contact");
  const hasContact=!!(clean(contact?.phone)||clean(contact?.email));
  const hero=websiteSections.find(s=>s?.id==="hero");
- const hasValidContactAnchor=hasContact&&clean(hero?.ctaHref)==="#contact";
+ const hasValidContactAnchor=hasContact&&clean(hero?.ctaHref)==="#contact"&&
+  !!clean(hero?.cta);
  const appServices=list(app.draft_config?.publicProfile?.services).some(
   s=>typeof s?.name==="string"&&!!s.name.trim());
  const webServices=list(websiteSections.find(s=>s?.id==="services")?.items).some(
