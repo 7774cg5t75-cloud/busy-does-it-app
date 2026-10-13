@@ -208,7 +208,11 @@ function planUniversalBuilderRequest({
    website:assessSurfaceCapability(def,"website",{website,app,catalog,businessId}),
    app:assessSurfaceCapability(def,"app",{website,app,catalog,businessId}),
    requiresExternalProvider:def.externalProviderNeeded===true,
-   financialRisk:def.financialRisk===true,ownerApprovalRequired:true,
+   financialRisk:def.financialRisk===true,
+   customerRequestType:def.customerRequestType||null,
+   authoritativeReceiptRequired:def.authoritativeReceiptRequired===true,
+   independentDiaryConfirmationRequired:def.independentDiaryConfirmationRequired===true,
+   ownerApprovalRequired:true,
    noLiveEvidence:true};
  });
  const supportedInWebsite=capabilities.filter(c=>c.website.presentInDraft).length;
