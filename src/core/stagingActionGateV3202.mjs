@@ -6,7 +6,7 @@
  * Client gate is NOT security authority; Edge still independently enforces
  * staging environment, owner role, draft identity and approved action.
  */
-const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 function assessSyntheticStagingAction({
  businessId="",app=null,probe=null,install=null
 }={}){
