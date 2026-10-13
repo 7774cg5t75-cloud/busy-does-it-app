@@ -175,7 +175,11 @@ for(const [status,bridge,expected] of [
 ]){
  const result=requestTransitionEvidence({kind:"booking_request",status,bridgeState:bridge});
  ok(result.ok,result.reason);
- eq(result.journey.confirmed,expected);
+ eq(result.journey.confirmed,false,
+  "An untrusted sample must never carry a booking confirmed claim.");
+ eq(result.hypotheticalRuleWouldConfirm,expected,
+  "Only an explicitly hypothetical rule result may reflect a synthetic confirmation.");
+ ok(result.journey.stages.every(s=>s.complete===false));
  eq(result.realBookingConfirmed,false);
  eq(result.independentProof,false);
  eq(result.serverReceiptNotQueried,true);
