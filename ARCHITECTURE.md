@@ -106,6 +106,13 @@ These layers describe the intended direction. Their presence in this document **
 - No live public website request endpoint, external notification, authenticated shared receipt adapter or independent diary commit has been deployed. These remain explicit prerequisites, not inferred capabilities.
 - Detailed technical scope and limitations: docs/V3_212_SHARED_CUSTOMER_REQUEST_INTELLIGENCE.md.
 
+## Universal builder checkpoint — V3.213 backend request receipts
+
+- **Request verification must come from one server-owned record, not presentation or retry success.** V3.213 makes the signed-in Business App and guest mini-app Edge services share byte-identical minimal, business/app/request-origin-scoped saved-receipt rules. Guest booking confirmation requires consistent accepted request and same-business link, and still does not prove an independently delivered calendar or notification.
+- Existing signed-in idempotent request and guest transactional intake remain the real implemented paths. The generated website builder has **not** acquired a public request-submission endpoint; exposing one requires owner-approved, authenticated/site-origin-safe, abuse-controlled, idempotent server adapter and independent staging tests.
+- For committed owner request-status changes, downstream event, unread, push and dashboard refresh failures are separate outcomes and must not be presented as a lost database write or trigger blind retries. Future atomic outbox/compare-and-send guarantees require a reviewed migration and deployment.
+- Implementation and evidence limits: docs/V3_213_SHARED_REQUEST_RECEIPTS_AND_RECOVERY.md.
+
 ## V3.46 Production Domain Activation
 ### BUSY-owned platform domain
 - The platform root defaults to `busydoesit.co.uk`. Default BUSY websites use first-level hostnames such as `site-<slug>-<business-suffix>.busydoesit.co.uk`; `sites.busydoesit.co.uk` is reserved as the SaaS CNAME target and `origin.busydoesit.co.uk` as the fallback-origin record.
