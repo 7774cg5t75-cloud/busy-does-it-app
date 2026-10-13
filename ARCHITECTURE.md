@@ -120,6 +120,8 @@ These layers describe the intended direction. Their presence in this document **
 - The same evidence state is visible in Business Brand DNA without conflating a private draft link with a tested live visitor journey. Detailed source, tests and outstanding public intake milestones: docs/V3_214_WEBSITE_APP_REQUEST_HANDOFF.md.
 - Next: build a genuine website-hosted request service only with source-of-truth site ownership, visitor anti-abuse protections, transactional idempotent save/recovery, privacy and consent, owner inbox/approval and isolated staging evidence. Do not bypass existing shared request state/booking safeguards or activate integrations based on screenshots or AI proposals.
 
+- **V3.214 published-version continuity:** a current live Business App version must remain usable through public link, guest challenge/intake, signed-in discovery and marketplace browsing while the owner edits an unpublished draft (`update_pending`). Public data comes from the immutable `current_live_version_id` with a verified live version state, never the draft. Owner-approved website enquiry/booking links are separate handoffs to that verified public app, not hosted website forms.
+
 ## V3.46 Production Domain Activation
 ### BUSY-owned platform domain
 - The platform root defaults to `busydoesit.co.uk`. Default BUSY websites use first-level hostnames such as `site-<slug>-<business-suffix>.busydoesit.co.uk`; `sites.busydoesit.co.uk` is reserved as the SaaS CNAME target and `origin.busydoesit.co.uk` as the fallback-origin record.
