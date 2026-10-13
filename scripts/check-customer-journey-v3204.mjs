@@ -79,7 +79,7 @@ for(const change of [
  {response:{ok:true,found:false,verifiedSaved:false}},
  {response:{ok:true,...receipt,receipt:{...receipt.receipt,appId:other}}},
  {response:{ok:true,...receipt,receipt:{...receipt.receipt,status:"fake"}}},
- {response:{ok:false,...receipt}},
+ {response:{...receipt,ok:false}},
  {evidenceSource:"untrusted_mock"},
 ])eq(evaluateCustomerRequestOutcome({businessAppId:app,
  customerUserId:user,requestType:"booking_request",
