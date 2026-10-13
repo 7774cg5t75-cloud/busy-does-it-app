@@ -8,6 +8,7 @@ import {validPrivateBuilderPair,reviewedPairIsCurrent}
  from "./ownerBuilderDraftGuardV3195.mjs";
 import {safeHex,PALETTES,nativePalette} from "./nativePalette.mjs";
 import {proposeCoordinatedAppChanges} from "./appCoordinatedStudio.mjs";
+import {suggestAppCustomerJourney} from "./industryAppJourneyV3198.mjs";
 
 const MODES=Object.freeze(["match","adapt","new"]);
 const W2A_TYPE=Object.freeze({
@@ -21,16 +22,8 @@ const SAFE_TEXT=s=>typeof s==="string"&&s.length<=600&&
  !/[<>\u0000-\u001f\u007f]/.test(s);
 const valueOf=(value,max=600)=>SAFE_TEXT(value)&&value.length<=max?value.trim():"";
 function recommendedAppFirstSection(type,config){
- const keys=new Set(config?.modules?.filter(m=>m?.enabled===true).map(m=>m.key)||[]);
- const t=(typeof type==="string"?type:"").toLowerCase();
- const candidates=/hair|salon|barber|beauty|nail|therap|clinic/.test(t)?
-   ["booking_request","services","contact"]:
-  /food|restaurant|cafe|café|takeaway|bakery|cater|festival|stall/.test(t)?
-   ["offers","services","enquiry"]:
-  /plumb|electric|repair|mechanic|builder|clean|contractor/.test(t)?
-   ["enquiry","services","booking_request"]:
-   ["services","contact","enquiry"];
- return candidates.find(k=>keys.has(k))||null;
+ // Only suggest a primary action when that module is genuinely enabled.
+ return suggestAppCustomerJourney({businessType:type,appConfig:config}).primaryModule;
 }
 function websiteOwnerServices(website){
  const section=website?.sections?.find(s=>s?.id==="services"&&
@@ -97,7 +90,9 @@ function planWebsiteToAppDesign({website,app,businessId,mode="adapt",
    config.modules.filter(m=>m.enabled===true).map(m=>m.key);
   if(priority&&nav.includes(priority)&&nav[0]!==priority){
    operations.push({kind:"first",moduleKey:priority});
-   explanations.push("Place "+priority.replaceAll("_"," ")+" first for this business type, without enabling new modules.");
+   const journey=suggestAppCustomerJourney({
+      businessType:website.businessType,appConfig:config});
+    explanations.push("Why: "+journey.explanation+" "+journey.cautions.join(" ")+" No modules are enabled by this change.");
   }
  }
  if(includeServices){
