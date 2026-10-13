@@ -134,7 +134,10 @@ function UniversalBuilderPlanReview({
      tone="blue">
      <Field label="What should your website or app do?"
        placeholder="e.g. Customers book pitches, pay deposits, get a confirmation"
-       value={goal} onChangeText={setGoal}/>
+       value={goal} onChangeText={next=>{
+         setGoal(next);setReport(null);setReviewedGoal("");
+         setNavigationReview(null);setNotice("");
+       }}/>
      {initial(initialGoal)&&!goal.trim()?
        <Text style={styles.cardBody}>
          {"BUSY can use your current business brief if you leave this blank."}
