@@ -133,7 +133,7 @@ function planWebsiteToAppDesign({website,app,businessId,mode="adapt",
   mode,businessId,sourceWebsiteId:website.id,
   sourceWebsiteGeneration:website.generation,
   targetAppId:app.id,targetAppRevision:app.draft_revision,
-  operations:reviewed,changes:[...preview.changes],
+  operations:reviewed,includeServices,changes:[...preview.changes],
   previewConfig:preview.nextConfig,explanations,skipped,
   industryPriority:mode==="adapt"?
     recommendedAppFirstSection(website.businessType,config):null,
