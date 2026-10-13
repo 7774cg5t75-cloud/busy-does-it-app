@@ -13,6 +13,7 @@ import { planFunctionalBusinessApp } from "../core/appExperiencePlanner.mjs";
 import { previewPrivateAppAppearance,OPTIONS as appAppearanceOptions } from "../core/appAppearanceEditing.mjs";
 import {nativePalette,LABELS as nativePaletteLabels} from "../core/nativePalette.mjs";
 import {BusinessBrandDnaPreview} from "./businessBrandDnaPreview";
+import {UniversalBuilderPlanReview} from "./universalBuilderPlanReview";
 import {WebsiteToAppDesignTransfer} from "./websiteToAppDesignTransfer";
 import {FirstAppFromWebsite} from "./firstAppFromWebsite";
 import {IndustryFirstExperienceReview} from "./industryFirstExperienceReview";
@@ -1137,6 +1138,11 @@ function MiniAppBuilder({ s }) {
         busy={s.miniAppsAction}/>
       <BusinessBrandDnaPreview website={s.websiteDraft}
         app={app} businessId={s.cloudWorkspace?.businessId}/>
+      <UniversalBuilderPlanReview surface="app"
+        businessId={s.cloudWorkspace?.businessId||""}
+        businessType={view.category||s.trade||""}
+        website={s.websiteDraft} app={app} catalog={view.catalog||[]}
+        initialGoal={s.miniAppBuildBrief||plan?.ownerRequest||""}/>
       <WebsiteToAppDesignTransfer website={s.websiteDraft} app={app}
         businessId={s.cloudWorkspace?.businessId}
         onSave={s.saveCoordinatedAppChanges} busy={s.miniAppsAction}/>
