@@ -20,6 +20,8 @@ import {runSyntheticStagingProbe} from "./stagingSyntheticService.mjs";
 import {auditIsolatedStagingInstall} from "./stagingInstallAudit.mjs";
 import {checkCustomerRequestReplay} from "./customerRequestReplayV3203.mjs";
 import {validRequestReceiptKey,prepareCustomerReceipt} from "./customerRequestReceiptV3204.mjs";
+import {classifyMessageReceipt,validateMessageReceiptContext} from "./messageReceiptV3205.mjs";
+import {classifyOwnerInboxReceipt} from "./ownerInboxReceiptV3205.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -397,6 +399,74 @@ async function requestConversationPage(requestRow: any, body: any) {
     events: events.data || [],
     nextBefore: rows.length >= limit ? rows[rows.length - 1]?.created_at || "" : "",
   };
+}
+
+// Strictly read only. The authenticated actor is checked against the
+// actual business membership or signed-in request customer BEFORE accessing
+// the message. No message text or private request data leaves the receipt.
+async function exactMessageReceipt(
+ actorUserId:string,businessId:string,role:"business"|"customer",body:any
+){
+ const requestId=clean(body?.requestId,80);
+ const key=clean(body?.requestKey,180);
+ const message=clean(body?.message,3000);
+ const context=validateMessageReceiptContext({
+  actorUserId,businessId,requestId,role,key,body:message
+ });
+ if(!context.ok)throw Error(context.reason);
+ let requestQuery=supabase.from("busy_mini_app_requests")
+  .select("id,business_id,mini_app_id,consumer_user_id,request_origin")
+  .eq("id",requestId);
+ if(role==="business")requestQuery=requestQuery.eq("business_id",businessId);
+ else requestQuery=requestQuery.eq("consumer_user_id",actorUserId);
+ const request=await requestQuery.maybeSingle();
+ if(request.error)throw request.error;
+ if(!request.data||
+   (role==="business"&&request.data.business_id!==businessId)||
+   (role==="customer"&&request.data.consumer_user_id!==actorUserId)||
+   request.data.request_origin==="guest_web")
+  throw Error("This signed-in conversation is not available.");
+ const stored=await supabase.from("busy_mini_app_request_messages")
+  .select("id,business_id,mini_app_id,request_id,sender_user_id,sender_role,idempotency_key,body")
+  .eq("business_id",request.data.business_id).eq("request_id",requestId)
+  .eq("sender_user_id",actorUserId).eq("sender_role",role)
+  .eq("idempotency_key",key).maybeSingle();
+ if(stored.error)throw stored.error;
+ let outbox=null;
+ if(stored.data){
+  const delivery=await supabase.from("busy_mini_app_message_delivery_outbox")
+   .select("id,business_id,mini_app_id,request_id,message_id,recipient_role,state,provider_delivery_verified")
+   .eq("business_id",request.data.business_id)
+   .eq("request_id",requestId).eq("message_id",stored.data.id).maybeSingle();
+  if(delivery.error)throw delivery.error;
+  outbox=delivery.data;
+ }
+ const receipt=classifyMessageReceipt({
+  actorUserId,businessId:request.data.business_id,
+  requestId,role,key,body:message,message:stored.data,outbox
+ });
+ if(!receipt.ok)throw Error(receipt.reason);
+ return receipt;
+}
+
+// One-by-one owner inbox verification, independent of the list's 30-row
+// pagination and without changing any read/unread flags.
+async function exactOwnerInboxReceipt(
+ businessId:string,role:string,body:any
+){
+ const requestId=clean(body?.requestId,80);
+ const app=await appForBusiness(businessId);
+ if(!app?.id)throw Error("No Business App exists in this workspace.");
+ const query=await supabase.from("busy_mini_app_requests")
+  .select("id,business_id,mini_app_id,request_type,status")
+  .eq("id",requestId).eq("business_id",businessId)
+  .eq("mini_app_id",app.id).maybeSingle();
+ if(query.error)throw query.error;
+ const verdict=classifyOwnerInboxReceipt({
+  businessId,appId:app.id,requestId,membershipRole:role,row:query.data
+ });
+ if(!verdict.ok)throw Error(verdict.reason);
+ return verdict;
 }
 
 async function customerRequestDetail(userId: string, body: any) {
@@ -3900,6 +3970,10 @@ Deno.serve(async (request: Request) => {
         ...(await submitRequest(user.id, body, requestId)),
       });
     }
+    if (action === "customer_message_receipt") {
+      return json(200,{ok:true,...(await exactMessageReceipt(
+       user.id,"","customer",body))});
+    }
     if (action === "reply_request_message") {
       return json(200,{ok:true,
         ...(await replyRequestMessage(user.id,body,requestId))});
@@ -4132,6 +4206,18 @@ Deno.serve(async (request: Request) => {
         app: await setDiscoverable(resolvedBusinessId, body),
         status: await ownerStatus(resolvedBusinessId),
       });
+    }
+    if (action === "owner_message_receipt") {
+      if(!["owner","admin"].includes(member.role))
+        throw Error("Owner or admin permissions are required.");
+      return json(200,{ok:true,...(await exactMessageReceipt(
+        user.id,resolvedBusinessId,"business",body))});
+    }
+    if (action === "owner_inbox_receipt") {
+      if(!["owner","admin"].includes(member.role))
+        throw Error("Owner or admin permissions are required.");
+      return json(200,{ok:true,...(await exactOwnerInboxReceipt(
+        resolvedBusinessId,member.role,body))});
     }
     if (action === "send_request_message") {
       const saved=await sendRequestMessage(user.id,resolvedBusinessId,body,requestId);
