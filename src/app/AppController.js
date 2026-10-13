@@ -66,6 +66,7 @@ try {
   // Notification presentation is optional in unsupported preview environments.
 }
 
+import {planWebsiteAppRequestHandoff} from "../core/websiteAppHandoffV3214.mjs";
 import * as Core from "../core/runtime";
 const {
   APP_VERSION,
@@ -13746,6 +13747,35 @@ function App() {
       setWebsiteBuilderNotice("Your website or business changed. Review the current customer path again.");
       return false;
     }
+    // V3.214: client UI intent isn't authority to link arbitrary URLs,
+    // other tenants, unpublished app drafts or disabled live modules.
+    if(operation?.action==="connect-app-request"){
+      const proof=planWebsiteAppRequestHandoff({
+        businessId:cloudWorkspace?.businessId||"",
+        website:websiteDraft,app:miniAppsView?.app,
+        liveVersion:miniAppsView?.liveVersion,
+        catalog:miniAppsView?.catalog||[],
+        endpoint:BUSY_MINI_APP_LINK_URL,kind:operation.intent
+      });
+      if(!proof.ok||operation.websiteId!==proof.websiteId||
+        operation.expectedGeneration!==proof.websiteGeneration||
+        operation.expectedBusinessId!==proof.businessId||
+        operation.appId!==proof.appId||
+        operation.liveVersionId!==proof.appLiveVersionId||
+        operation.url!==proof.url||
+        operation.slug!==miniAppsView?.app?.public_slug){
+        setWebsiteBuilderNotice(proof.reason||
+          "The public Business App changed. Review the current website handoff first.");
+        return false;
+      }
+    }
+    if(operation?.action==="disconnect-app-request"&&(
+       operation.expectedBusinessId!==cloudWorkspace?.businessId||
+       operation.websiteId!==websiteDraft.id||
+       operation.expectedGeneration!==websiteDraft.generation)){
+      setWebsiteBuilderNotice("The website changed. Review the current app handoff again.");
+      return false;
+    }
     // Recheck the exact website version before keeping a measured candidate.
     const requested=options?.ownerFeedback;
     if(requested&&(requested.draftId!==websiteDraft.id||
@@ -17360,6 +17390,7 @@ function App() {
     miniAppsNotificationStatus,
     miniAppsNotificationAction,
     miniAppShareLinks,
+    websiteAppHandoffEndpoint:BUSY_MINI_APP_LINK_URL,
     refreshMiniAppsStatus,
     loadMyBusyApps,
     enableMiniAppNotifications,
