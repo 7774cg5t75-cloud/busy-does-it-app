@@ -15,6 +15,7 @@ import {nativePalette,LABELS as nativePaletteLabels} from "../core/nativePalette
 import {BusinessBrandDnaPreview} from "./businessBrandDnaPreview";
 import {WebsiteToAppDesignTransfer} from "./websiteToAppDesignTransfer";
 import {FirstAppFromWebsite} from "./firstAppFromWebsite";
+import {suggestFirstAppNextStep} from "../core/firstAppNextStepV3199.mjs";
 import {appVisualPresentation,TYPE_LABELS,SERVICE_LABELS} from "../core/appVisualPresentationV3194.mjs";
 import { interpretSelectedAppAppearance } from "../core/appContextInstruction.mjs";
 import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.mjs";
@@ -1104,6 +1105,19 @@ function MiniAppBuilder({ s }) {
         onCreate={s.createPrivateAppFromWebsite}
         onCheckBenefit={s.checkStandaloneEligibility}
         busy={s.miniAppsAction}/>
+      {(()=>{const next=suggestFirstAppNextStep({
+        website:s.websiteDraft,app,businessId:s.cloudWorkspace?.businessId
+      });return next.show?<Card eyebrow="What Busy recommends next"
+        title={next.title} body={next.why}
+        footer={next.action} tone="blue">
+        <Text style={styles.cardBody}>
+          This is a private, explainable recommendation based on your actual
+          app draft. It does not enable features or publish anything.
+        </Text>
+        <Button label="Check my latest private app status"
+          disabled={!!s.miniAppsAction}
+          onPress={()=>s.refreshMiniAppsStatus()}/>
+      </Card>:null;})()}
       <BusinessBrandDnaPreview website={s.websiteDraft}
         app={app} businessId={s.cloudWorkspace?.businessId}/>
       <WebsiteToAppDesignTransfer website={s.websiteDraft} app={app}
