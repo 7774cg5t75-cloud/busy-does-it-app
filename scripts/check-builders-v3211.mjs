@@ -72,7 +72,7 @@ for(const wrong of [
  {...op,expectedGeneration:7},
  {...op,before:["hero","services","about","gallery","contact"]},
  {...op,proposed:["hero","gallery","unknown","services","contact"]},
- {...op,proposed:["hero","services","about","gallery","contact"]},
+ {...op,proposed:["hero","about","services","gallery","contact"]},
  {...op,proposed:["gallery","hero","about","services","contact"]},
  {...op,proposed:["hero","gallery","gallery","services","contact"]},
  {...op,proposed:["hero","gallery","services","contact"]},
