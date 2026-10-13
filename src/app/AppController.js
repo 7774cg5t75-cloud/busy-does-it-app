@@ -1,3 +1,5 @@
+import {confirmFirstAppFromWebsite} from "../core/firstAppFromWebsiteV3197.mjs";
+import {planWebsiteToAppDesign} from "../core/websiteToAppBrandTransferV3196.mjs";
 import React, { useEffect, useRef, useState } from "react";
 import {
   SafeAreaView,
@@ -344,6 +346,7 @@ function App() {
     publicProfile: null,
   });
   const miniAppVoiceScopeRef=useRef({});
+  const firstAppFromWebsiteInFlightRef=useRef(false);
   const [miniAppsLoading, setMiniAppsLoading] = useState(false);
   const [miniAppsAction, setMiniAppsAction] = useState("");
   const [miniAppsError, setMiniAppsError] = useState("");
@@ -14750,6 +14753,79 @@ function App() {
     }
   };
 
+  // V3.197: create the FIRST PRIVATE app from an explicitly reviewed site.
+  // The server authenticates this business and builds the draft; a separate
+  // validated atomic edit applies matching design only AFTER creation.
+  // Two server steps are not falsely described as one transaction.
+  const createPrivateAppFromWebsite=async evidence=>{
+    const businessId=cloudWorkspace?.businessId||"";
+    const reviewed=confirmFirstAppFromWebsite({
+      website:websiteDraftRef.current,app:miniAppsStatus?.app,
+      businessId,evidence});
+    if(!reviewed.ok)return {ok:false,reason:reviewed.reason};
+    if(firstAppFromWebsiteInFlightRef.current||miniAppsAction)
+      return {ok:false,reason:"An app action is already running. Wait for it to finish."};
+    firstAppFromWebsiteInFlightRef.current=true;
+    setMiniAppsAction("first-app-from-website");
+    setMiniAppsError("");setMiniAppsNotice("");
+    let createdApp=null;
+    try{
+      const built=await miniAppsRequest("build_draft",{
+        profileDraft:reviewed.profileDraft
+      });
+      if(built?.ok!==true||!built?.app||built?.app.business_id!==businessId||
+         typeof built.app.id!=="string"||
+         !Number.isSafeInteger(built.app.draft_revision)||
+         built.app.draft_revision<1||built.status?.app?.id!==built.app.id)
+       throw Error("The private Business App creation could not be verified.");
+      createdApp=built.app;
+      // Always expose the created app even if the optional appearance update
+      // fails: the customer must not be encouraged to build a duplicate.
+      applyMiniAppsStatus(built.status);
+      if(websiteDraftRef.current?.id!==reviewed.websiteId||
+         websiteDraftRef.current?.generation!==reviewed.websiteGeneration||
+         cloudWorkspace?.businessId!==businessId){
+        setMiniAppsNotice("Your private app was created, but the website changed. Review its design manually.");
+        return {ok:true,appearanceApplied:false,partial:true};
+      }
+      const design=planWebsiteToAppDesign({
+        website:websiteDraftRef.current,app:createdApp,businessId,
+        mode:reviewed.mode,includeServices:false
+      });
+      if(!design.ok){
+        setMiniAppsNotice("Private app created from your reviewed website information. Check its appearance before publishing.");
+        return {ok:true,appearanceApplied:false,partial:false};
+      }
+      const response=await miniAppsRequest("apply_coordinated_edits",{
+        operations:design.operations,appId:createdApp.id,
+        expectedRevision:createdApp.draft_revision,ownerApproved:true
+      });
+      if(response?.ok!==true||response.privateOnly!==true||
+        response.neverPublishes!==true||response.chargesCreated!==false||
+        response.app?.id!==createdApp.id||
+        Number(response.app.draft_revision)!==Number(createdApp.draft_revision)+1||
+        response.appliedChangeCount!==design.operations.length||
+        response.status?.app?.id!==createdApp.id)
+        throw Error("The private app was created, but its design revision could not be verified.");
+      applyMiniAppsStatus(response.status);
+      setMiniAppsNotice("Created your PRIVATE Business App using your website branding. Review the customer preview before any publication.");
+      return {ok:true,appearanceApplied:true,appId:createdApp.id};
+    }catch(error){
+      const reason=String(error?.message||
+       "The website-to-app creation could not be verified.").slice(0,240);
+      if(createdApp){
+        setMiniAppsNotice("A private app exists, but some design changes may be incomplete. Review the current draft before doing anything else.");
+        return {ok:true,appearanceApplied:false,partial:true,reason};
+      }
+      setMiniAppsError(reason);
+      return {ok:false,reason:reason+
+        " Check your latest private Business App status before retrying."};
+    }finally{
+      firstAppFromWebsiteInFlightRef.current=false;
+      setMiniAppsAction("");
+    }
+  };
+
   const buildMiniAppFromBrandBrain = async () => {
     setMiniAppsAction("build");
     setMiniAppsError("");
@@ -17032,6 +17108,7 @@ function App() {
     openMiniAppLinkedBooking,
     awardMiniAppLoyaltyStamp,
     buildMiniAppFromBrandBrain,
+    createPrivateAppFromWebsite,
     checkStandaloneEligibility,
     planMiniAppFromBrief,
     answerMiniAppMissingFacts,
