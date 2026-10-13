@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { publicNativeMiniAppProjection,validSlug } from "./publicNativeProjection.mjs";
+import {evaluateStoredRequestProof} from "./requestReceiptProofV3213.mjs";
 
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
@@ -509,12 +510,20 @@ async function submitGuestRequest(req: Request, body: any) {
   const requestId = String(created.data || "");
   const requestRow = await supabase
     .from("busy_mini_app_requests")
-    .select("id,business_id,mini_app_id,request_type,status,created_at,updated_at")
+    .select("id,business_id,mini_app_id,request_type,status,request_origin,created_at,updated_at")
     .eq("id", requestId)
     .eq("mini_app_id", app.id)
     .maybeSingle();
   if (requestRow.error) throw requestRow.error;
   if (!requestRow.data) throw new Error("BUSY could not confirm the saved guest request.");
+  // This readback is independent of the challenge write response. A failed
+  // provider notification can never turn a committed request into a second
+  // guest submission or into a claim of actual device delivery.
+  const saved=evaluateStoredRequestProof({
+    request:requestRow.data,context:"guest_submission",
+    businessId:app.business_id,appId:app.id,requestId
+  });
+  if(!saved.ok)throw new Error("BUSY cannot verify the committed guest request. Check the existing browser receipt before retrying.");
 
   await notifyBusiness({ ...requestRow.data, public_slug: app.public_slug });
 
@@ -529,6 +538,12 @@ async function submitGuestRequest(req: Request, body: any) {
     guestAccessToken,
     assurance: "guest_browser_challenge",
     contactVerification: "self_reported",
+    savedRequestConfirmed:saved.verifiedSaved,
+    requestEvidence:{...saved,
+      statusLabel:saved.statusLabel},
+    notificationDelivered:false,
+    bookingConfirmed:false,
+    retryMayCreateDuplicate:false
   };
 }
 
@@ -560,14 +575,25 @@ async function guestStatus(body: any) {
       .maybeSingle(),
     supabase
       .from("busy_mini_app_request_links")
-      .select("bridge_state,updated_at")
+      .select("request_id,business_id,bridge_state,updated_at")
       .eq("request_id", requestId)
+      .eq("business_id",request.data.business_id)
       .maybeSingle(),
   ]);
   if (app.error) throw app.error;
   if (link.error) throw link.error;
+  // An untrusted link state ALONE is not a verified appointment.
+  // Require the independently read customer request to be accepted and the
+  // business-scoped link to agree, or expose no booking confirmation.
+  const evidence=evaluateStoredRequestProof({
+    context:"guest_status",request:request.data,link:link.data||null,
+    businessId:request.data.business_id,appId:request.data.mini_app_id,
+    requestId
+  });
+  if(!evidence.ok)throw new Error("The browser request status cannot be verified from its original business receipt.");
 
   return {
+    requestEvidence:evidence,
     request: {
       id: request.data.id,
       type: request.data.request_type,
@@ -579,7 +605,10 @@ async function guestStatus(body: any) {
       updatedAt: request.data.updated_at,
       businessName: app.data?.display_name || "Business",
       businessSlug: app.data?.public_slug || "",
-      bookingConfirmed: link.data?.bridge_state === "booking_confirmed",
+      bookingConfirmed: evidence.bookingMarkedConfirmedInBusy,
+      bookingStateNeedsReview: !evidence.bookingStateConsistent,
+      externalCalendarDelivered: false,
+      ownerReplyDelivered: false,
     },
   };
 }
