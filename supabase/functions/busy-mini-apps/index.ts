@@ -20,6 +20,7 @@ import {runSyntheticStagingProbe} from "./stagingSyntheticService.mjs";
 import {auditIsolatedStagingInstall} from "./stagingInstallAudit.mjs";
 import {checkCustomerRequestReplay} from "./customerRequestReplayV3203.mjs";
 import {validRequestReceiptKey,prepareCustomerReceipt} from "./customerRequestReceiptV3204.mjs";
+import {evaluateStoredRequestProof} from "./requestReceiptProofV3213.mjs";
 import {classifyMessageReceipt,validateMessageReceiptContext} from "./messageReceiptV3205.mjs";
 import {classifyOwnerInboxReceipt} from "./ownerInboxReceiptV3205.mjs";
 import {decideFreshOwnerFollowup} from "./freshOwnerFollowupV3207.mjs";
@@ -3242,6 +3243,16 @@ async function appDetail(
 // Read-only, independently authenticated receipt lookup. Avoid changing read
 // timestamps, touching notifications, or treating a lost HTTP response as
 // proof a new request must be sent. Never return the original contact payload.
+function verifiedRequestEvidence(row:any,businessId:string,appId:string,
+ context:"signed_in_submission"|"signed_in_receipt"|"owner_update"){
+ const proof=evaluateStoredRequestProof({
+  request:row,businessId,appId,requestId:row?.id||"",context
+ });
+ if(!proof.ok)throw Error("The stored request identity could not be verified. Recheck its original receipt.");
+ return proof;
+}
+// A read-only lookup; original signed-in identity and exact request key are
+// resolved by the server before requesting this minimised evidence.
 async function customerRequestReceipt(userId:string,body:any){
  const slug=clean(body?.slug,100);
  const requestKey=clean(body?.requestKey,180);
@@ -3250,12 +3261,12 @@ async function customerRequestReceipt(userId:string,body:any){
    !["booking_request","enquiry"].includes(requestType))
    throw new Error("Choose the original signed-in request to check.");
  const app=await supabase.from("busy_mini_apps")
-  .select("id,public_slug").eq("public_slug",slug).maybeSingle();
+  .select("id,business_id,public_slug").eq("public_slug",slug).maybeSingle();
  if(app.error)throw app.error;
  if(!app.data)return {found:false,verifiedSaved:false,
    notificationDeliveryVerified:false,calendarBookingConfirmed:false};
  const request=await supabase.from("busy_mini_app_requests")
-  .select("id,mini_app_id,consumer_user_id,idempotency_key,request_type,status")
+  .select("id,business_id,mini_app_id,consumer_user_id,idempotency_key,request_type,status,request_origin")
   .eq("mini_app_id",app.data.id)
   .eq("consumer_user_id",userId)
   .eq("idempotency_key",requestKey)
@@ -3264,7 +3275,10 @@ async function customerRequestReceipt(userId:string,body:any){
  const verdict=prepareCustomerReceipt({userId,appId:app.data.id,
   slug,requestType,requestKey,row:request.data});
  if(!verdict.ok)throw new Error("The stored request did not match this customer action.");
- return verdict;
+ if(!verdict.found)return verdict;
+ const requestEvidence=verifiedRequestEvidence(
+  request.data,app.data.business_id,app.data.id,"signed_in_receipt");
+ return {...verdict,requestEvidence};
 }
 
 async function submitRequest(
@@ -3340,8 +3354,11 @@ async function submitRequest(
         requestType,moduleKey,payload
       });
       if(!replay.ok)throw Error(replay.reason);
+      const requestEvidence=verifiedRequestEvidence(
+       existing.data,detail.app.business_id,detail.app.id,"signed_in_submission");
       return {reused:true,request:existing.data,
-        notificationDeliveryVerified:false};
+        savedRequestConfirmed:true,requestEvidence,
+        notificationDeliveryVerified:false,retryMayCreateDuplicate:false};
     }
   }
 
@@ -3404,16 +3421,22 @@ async function submitRequest(
           requestType,moduleKey,payload
         });
         if(!replay.ok)throw Error(replay.reason);
+        const requestEvidence=verifiedRequestEvidence(
+         raced.data,appRow.data.business_id,detail.app.id,"signed_in_submission");
         return {reused:true,request:raced.data,
-          notificationDeliveryVerified:false};
+          savedRequestConfirmed:true,requestEvidence,
+          notificationDeliveryVerified:false,retryMayCreateDuplicate:false};
       }
     }
     throw inserted.error;
   }
 
-  // The INSERT above has committed. If a later event/analytics/provider
-  // step fails, a 400 response would encourage an owner/customer to retry
-  // a real saved request and could create a duplicate with a different key.
+  // The insert has committed. Reconcile its exact business/app identity before
+  // treating a success response as an independently checked saved receipt.
+  const requestEvidence=verifiedRequestEvidence(
+   inserted.data,appRow.data.business_id,detail.app.id,"signed_in_submission");
+  // Later event/provider failure must never invite another request with a
+  // different key after the durable write.
   // Return the saved request with an honest, separately verified status.
   let eventRecorded=false;
   try{
@@ -3439,9 +3462,9 @@ async function submitRequest(
     notificationAttempted=true;
   }catch{console.warn("Customer request saved; provider notification attempt unverified.");}
   return {reused:false,request:inserted.data,
-    savedRequestConfirmed:true,eventRecorded,
+    savedRequestConfirmed:true,requestEvidence,eventRecorded,
     notificationAttempted,notificationDeliveryVerified:false,
-    businessInboxReadbackVerified:false,
+    retryMayCreateDuplicate:false,businessInboxReadbackVerified:false,
     ownerActionStillRequired:true};
 }
 
