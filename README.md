@@ -1,5 +1,12 @@
 # busy-does-it-app
 
+## V3.211 — Reviewed Universal Builder Integration (development)
+
+V3.210 introduced shared capability understanding. V3.211 connects its recommendations to the **real private website and Business App editing paths**, always behind a second, explicit owner approval. Website section proposals now save atomically through the existing private layout controller and undo history; supported Business App navigation changes reuse the existing verified module catalogue and server-checked revision save. Empty galleries/services are not recommended as prominent sections, unsupported features are not enabled, and no live assets change.
+
+The new offline regression suite and inherited unsigned export workflow are defined on the V3.211 branch. This is **not** proof that live website visitors can complete bookings, payments or real provider delivery. See [V3.211 integration details](docs/V3_211_REVIEWED_BUILDER_INTEGRATION.md) and the permanent [universal-builder architecture](ARCHITECTURE.md).
+
+
 ## V3.210 — Universal Builder Intelligence 1.0 (development)
 
 Busy now has a common **versioned capability planning foundation** for both website and Business App creation. A business can describe an unfamiliar or complex website/app requirement in plain English and receive a private, dependency-aware plan distinguishing existing website sections and controlled app modules from functionality that still needs design, providers, owner approval or actual implementation. The shared UI is available within both builders and can suggest **review-only website section priorities** without modifying or publishing the private draft.
