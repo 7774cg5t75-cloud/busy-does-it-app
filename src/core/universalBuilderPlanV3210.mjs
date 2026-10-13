@@ -101,7 +101,13 @@ function assessSurfaceCapability(capability,surface,{website,app,catalog=[],busi
    presentInDraft:false,liveVerified:false,moduleKey:descriptor.id};
   const matchingApp=app&&(!businessId||app.business_id===businessId)&&
    Number.isSafeInteger(app.draft_revision)&&app.draft_revision>0;
-  const enabled=matchingApp&&list(app.draft_config?.modules).some(
+  // The controlled app runtime additionally rejects offers without approved
+  // terms; do not mark the app draft as even privately configured if that
+  // exact runtime precondition is absent.
+  const termsReady=descriptor.id!=="offers"||
+   list(app?.draft_config?.offers).some(x=>x?.approved===true&&
+    typeof x?.title==="string"&&!!x.title.trim());
+  const enabled=matchingApp&&termsReady&&list(app.draft_config?.modules).some(
    module=>module?.key===descriptor.id&&module.enabled===true)&&
    enabledAppKeys(app.draft_config).ok;
   return {status:enabled?"present_in_private_draft":"available_module_needs_owner_setup",
