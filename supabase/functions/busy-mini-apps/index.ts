@@ -3433,8 +3433,13 @@ async function submitRequest(
 
   // The insert has committed. Reconcile its exact business/app identity before
   // treating a success response as an independently checked saved receipt.
-  const requestEvidence=verifiedRequestEvidence(
-   inserted.data,appRow.data.business_id,detail.app.id,"signed_in_submission");
+  let requestEvidence:any=null;
+  try{
+   requestEvidence=verifiedRequestEvidence(
+    inserted.data,appRow.data.business_id,detail.app.id,"signed_in_submission");
+  }catch{
+   console.warn("Customer request inserted; exact receipt still needs an authenticated readback.");
+  }
   // Later event/provider failure must never invite another request with a
   // different key after the durable write.
   // Return the saved request with an honest, separately verified status.
@@ -3462,7 +3467,10 @@ async function submitRequest(
     notificationAttempted=true;
   }catch{console.warn("Customer request saved; provider notification attempt unverified.");}
   return {reused:false,request:inserted.data,
-    savedRequestConfirmed:true,requestEvidence,eventRecorded,
+    savedRequestConfirmed:requestEvidence?.verifiedSaved===true,
+    requestEvidence:requestEvidence||{ok:false,verifiedSaved:false,
+     requiresReadOnlyReceiptCheck:true,noNewSubmissionNeeded:true},
+    eventRecorded,
     notificationAttempted,notificationDeliveryVerified:false,
     retryMayCreateDuplicate:false,businessInboxReadbackVerified:false,
     ownerActionStillRequired:true};
@@ -3607,8 +3615,13 @@ async function updateRequestStatus(
   // V3.213 POST-COMMIT: the conditional UPDATE above is already durable.
   // Event/unread/provider failures must never look like a failed DB write,
   // leading the owner to retry or wrongly infer that the status was lost.
-  const requestEvidence=verifiedRequestEvidence(
-   updated.data,businessId,current.data.mini_app_id,"owner_update");
+  let requestEvidence:any=null;
+  try{
+   requestEvidence=verifiedRequestEvidence(
+    updated.data,businessId,current.data.mini_app_id,"owner_update");
+  }catch{
+   console.warn("Owner status was committed; independent receipt identity needs rechecking.");
+  }
   let eventRecorded=false,unreadRecorded=false,notificationAttempted=false;
   try{
    const event=await supabase.from("busy_mini_app_request_events").insert({
@@ -3634,7 +3647,9 @@ async function updateRequestStatus(
     notificationAttempted=true;
    }catch{console.warn("Saved request status; customer notification needs reconciliation.");}
   }
-  return {...updated.data,requestEvidence,
+  return {...updated.data,
+   requestEvidence:requestEvidence||{ok:false,verifiedSaved:false,
+    requiresReadOnlyReceiptCheck:true},
    statusUpdateSaved:true,eventRecorded,unreadRecorded,
    notificationAttempted,notificationDeliveryVerified:false,
    externalCalendarDelivered:false,statusRefreshRequired:false,
