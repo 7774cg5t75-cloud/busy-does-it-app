@@ -35,9 +35,10 @@ function checkTenantProbeConfig({env={},argv=[]}={}){
   ![jwtA,jwtB].every(x=>TOKEN.test(x)&&x.length>30)||
   jwtA===jwtB||!/^sb_publishable_[A-Za-z0-9_-]{15,}$/.test(key))
   return blocked("Exact staging test identities, credentials and operator approval required.");
+ // The config result is deliberately safe to inspect or log; never
+ // return actual JWTs or even the publishable key from validation helpers.
  return {ok:true,kind:"tenant_read_config_v3203",runAllowed:true,
-  ownerA:a,ownerB:b,businessA:ba,businessB:bb,
-  jwtA,jwtB,key,neverProduction:true};
+  ownerA:a,ownerB:b,businessA:ba,businessB:bb,neverProduction:true};
 }
 function sanitizeOwnerStatus({result={},businessId="",ownerId="",name=""}={}){
  if(result?.ok!==true||result?.businessId!==businessId||
@@ -69,7 +70,7 @@ async function runTenantReadProbe({
   const response=await fetchImpl(HOST+"/auth/v1/user",{
     method:"GET",redirect:"error",cache:"no-store",
     signal:AbortSignal.timeout(10000),
-    headers:{apikey:config.key,Authorization:"Bearer "+token}
+    headers:{apikey:env.BDI_STAGING_PUBLISHABLE_KEY,Authorization:"Bearer "+token}
   });
   if(response?.status!==200)return null;
   const data=await response.json().catch(()=>null);
@@ -80,7 +81,7 @@ async function runTenantReadProbe({
   const response=await fetchImpl(SAFE_EDGE,{
    method:"POST",redirect:"error",cache:"no-store",
    signal:AbortSignal.timeout(10000),
-   headers:{apikey:config.key,Authorization:"Bearer "+token,
+   headers:{apikey:env.BDI_STAGING_PUBLISHABLE_KEY,Authorization:"Bearer "+token,
     "Content-Type":"application/json"},
    body:JSON.stringify({action:"owner_status",businessId})
   });
@@ -88,13 +89,13 @@ async function runTenantReadProbe({
   return await response.json().catch(()=>({ok:false}));
  }
  // A forged JWT-shaped string never counts: verify BOTH with Supabase Auth.
- const [idA,idB]=await Promise.all([readAuth(config.jwtA),readAuth(config.jwtB)]);
+ const [idA,idB]=await Promise.all([readAuth(env.BDI_STAGING_OWNER_A_JWT),readAuth(env.BDI_STAGING_OWNER_B_JWT)]);
  if(idA!==config.ownerA||idB!==config.ownerB)return {
   ...blocked("One or both Supabase Auth identities are unverified."),
   requestsMade:calls};
  const [ownA,ownB]=await Promise.all([
-  ownerStatus(config.jwtA,config.businessA),
-  ownerStatus(config.jwtB,config.businessB)]);
+  ownerStatus(env.BDI_STAGING_OWNER_A_JWT,config.businessA),
+  ownerStatus(env.BDI_STAGING_OWNER_B_JWT,config.businessB)]);
  const a=sanitizeOwnerStatus({result:ownA,businessId:config.businessA,
   ownerId:idA,name:NAME_A});
  const b=sanitizeOwnerStatus({result:ownB,businessId:config.businessB,
@@ -103,8 +104,8 @@ async function runTenantReadProbe({
   requestsMade:calls};
  // Only after verifying BOTH synthetic workspaces may cross-tenant denial be tested.
  const [wrongA,wrongB]=await Promise.all([
-  ownerStatus(config.jwtA,config.businessB),
-  ownerStatus(config.jwtB,config.businessA)]);
+  ownerStatus(env.BDI_STAGING_OWNER_A_JWT,config.businessB),
+  ownerStatus(env.BDI_STAGING_OWNER_B_JWT,config.businessA)]);
  const denied=response=>response?.ok!==true&&[400,401,403,404].includes(
   response?.httpStatus);
  const crossBlocked=denied(wrongA)&&denied(wrongB);
