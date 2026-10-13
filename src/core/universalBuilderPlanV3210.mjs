@@ -160,9 +160,11 @@ function planUniversalBuilderRequest({
  if(!validOwnerText(request)||typeof businessType!=="string"||
    businessType.length>160||typeof businessId!=="string"||businessId.length>128)
   return {ok:false,reason:"Enter a short plain-language requirement (up to 1,400 characters)."};
- if(website?.businessId&&businessId&&website.businessId!==businessId)
+ if((website||app)&&!businessId)
+  return {ok:false,reason:"Choose the signed-in business workspace before reviewing a private draft."};
+ if(website?.businessId&&website.businessId!==businessId)
   return {ok:false,reason:"The website belongs to a different business workspace."};
- if(app?.business_id&&businessId&&app.business_id!==businessId)
+ if(app&&app.business_id!==businessId)
   return {ok:false,reason:"The Business App belongs to a different business workspace."};
  const goal=clean(request);
  const explicit=detectRequestedCapabilities(goal);
