@@ -169,7 +169,7 @@ Deno.serve(async (req: Request) => {
       "id,business_id,public_slug,display_name,category,status,current_live_version_id,public_web_url,public_web_version_id,public_web_status"
     )
     .eq("public_slug", slug)
-    .eq("status", "live")
+    .in("status", ["live", "update_pending"])
     .maybeSingle();
 
   if (app.error || !app.data?.id || !app.data.current_live_version_id) {
