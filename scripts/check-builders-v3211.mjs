@@ -88,6 +88,29 @@ const anotherDraft={...web,sections:web.sections.map(s=>s.id==="gallery"?
   {...s,enabled:false}:s)};
 eq(applyWebsiteLayoutOperation(anotherDraft,op).applied,false,
  "Hidden sections make the reviewed operation stale.");
+// A section that exists but has no approved/usable business information
+// is not a good customer-first experience; it stays editable, not promoted.
+const emptyGallery={...web,sections:web.sections.map(s=>s.id==="gallery"?
+ {...s,items:[]}:s)};
+const emptyPlan=planUniversalBuilderRequest({request,businessId:id,
+ website:emptyGallery,app,catalog});
+ok(emptyPlan.ok);
+ok(emptyPlan.sectionPlan.contentNotYetReady.includes("gallery"));
+ok(emptyPlan.sectionPlan.proposed.indexOf("gallery")>
+ emptyPlan.sectionPlan.proposed.indexOf("services"));
+const incompleteService={...web,sections:web.sections.map(s=>s.id==="services"?
+ {...s,items:[]}:s)};
+const missingService=planUniversalBuilderRequest({request,businessId:id,
+ website:incompleteService,app,catalog});
+ok(missingService.sectionPlan.contentNotYetReady.includes("services"));
+const visitorUpload=planUniversalBuilderRequest({
+ request:"Let customers upload images and vote in competitions.",
+ businessId:id,website:web,app,catalog
+});
+ok(visitorUpload.detectedGoals.includes("uploads"));
+ok(visitorUpload.detectedGoals.includes("voting"));
+ok(!visitorUpload.detectedGoals.includes("gallery"),
+ "A customer upload should not imply an approved public gallery.");
 const appReview=planUniversalAppNavigation({businessId:id,request,
  app,website:web,catalog});
 ok(appReview.ok,appReview.reason);
