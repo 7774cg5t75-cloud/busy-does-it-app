@@ -53,6 +53,8 @@ import {reviewBusinessInformation}
   from "../core/businessInfoClarity.mjs";
 import {prepareStagingJourneyRun}
   from "../core/stagingJourneyPreparation.mjs";
+import {assessSyntheticStagingAction}
+  from "../core/stagingActionGateV3202.mjs";
 import {executeOfflineJourneyPreflight}
   from "../core/offlineStagingPreflight.mjs";
 import {prepareDeviceReview,summarizeLocalAppCapture}
@@ -850,6 +852,10 @@ function MiniAppBuilder({ s }) {
   const [accessiblePhotoCaption,setAccessiblePhotoCaption]=React.useState("");
   const view = s.miniAppsView || {};
   const app = view.app;
+  const syntheticStagingGate=assessSyntheticStagingAction({
+    businessId:s.cloudWorkspace?.businessId||"",app,
+    probe:stagingProbe,install:stagingInstallAudit
+  });
   React.useEffect(()=>{
     setStandaloneEligibility(null);
     setStandaloneHandoff(null);
@@ -880,6 +886,9 @@ function MiniAppBuilder({ s }) {
     setPendingMove(null);
     setStudioPreview(null);
     setStudioVoiceOpen(false);
+    setStagingProbe(null);
+    setStagingInstallAudit(null);
+    setStagingSyntheticResult(null);
   },[app?.draft_revision]);
   React.useEffect(()=>{
     let valid=true;
@@ -1710,8 +1719,17 @@ function MiniAppBuilder({ s }) {
                ["book","enquire"].includes(selectedCustomerTask)&&
                typeof s.runIsolatedSyntheticAppJourney==="function"?(
                 <Button label="Run isolated synthetic database check"
-                  disabled={stagingSyntheticBusy||!!s.miniAppsAction}
+                  disabled={stagingSyntheticBusy||!!s.miniAppsAction||
+                    !syntheticStagingGate.ok}
                   onPress={()=>{
+                    const current=assessSyntheticStagingAction({
+                      businessId:s.cloudWorkspace?.businessId||"",
+                      app,probe:stagingProbe,install:stagingInstallAudit
+                    });
+                    if(!current.ok){
+                      setStagingSyntheticResult({ok:false,reason:current.why});
+                      return;
+                    }
                     Alert.alert("Run a synthetic staging check?",
                       "Only a specially configured isolated staging project can run this. It writes a test-only record, not a customer request. No messages are sent.",[
                         {text:"Cancel",style:"cancel"},
@@ -1735,6 +1753,12 @@ function MiniAppBuilder({ s }) {
                       ]);
                   }}/>
               ):null}
+              {!syntheticStagingGate.ok&&
+                typeof s.runIsolatedSyntheticAppJourney==="function"?(
+                  <Text style={styles.cardBody}>
+                    {"Before a synthetic check: "+syntheticStagingGate.why}
+                  </Text>
+                ):null}
               {syntheticEvidence?.ok?(
                 <Text style={styles.cardBody}>
                   {"V3.177 • "+
