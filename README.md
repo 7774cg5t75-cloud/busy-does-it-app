@@ -1,5 +1,12 @@
 # busy-does-it-app
 
+## V3.210 — Universal Builder Intelligence 1.0 (development)
+
+Busy now has a common **versioned capability planning foundation** for both website and Business App creation. A business can describe an unfamiliar or complex website/app requirement in plain English and receive a private, dependency-aware plan distinguishing existing website sections and controlled app modules from functionality that still needs design, providers, owner approval or actual implementation. The shared UI is available within both builders and can suggest **review-only website section priorities** without modifying or publishing the private draft.
+
+The first catalogue covers 27 capabilities; this is an extensible starting point, **not 27 fully implemented or live-tested customer features**. The V3.210 focused regression suite and inherited source/native export checks live in the new branch workflow. No database migration, Edge release, paid mobile build, payment charge or real customer traffic is included. See [V3.210 development notes](docs/V3_210_UNIVERSAL_BUILDER_INTELLIGENCE.md) and the permanent [universal builder architecture](ARCHITECTURE.md).
+
+
 ## Permanent product architecture — universal website and app creation
 
 **North star:** Build a system capable of creating almost any kind of legitimate business website or app, rather than confining BUSY to a fixed list of industries or templates. Compose reusable, security-reviewed business capabilities across website, BUSY marketplace and optional standalone app delivery. An unfamiliar business must have a flexible route to a bespoke experience; unsupported functionality must be identified honestly, not simulated.
