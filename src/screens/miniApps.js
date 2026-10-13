@@ -4803,7 +4803,12 @@ function MiniAppRequestDetail({ s }) {
   const request = detail.request || null;
   const role = s.selectedMiniAppRequestRole || "customer";
   const [draft, setDraft] = React.useState("");
+  const [reviewedReplyStamp,setReviewedReplyStamp]=React.useState(null);
   const ownerView = role === "business";
+  React.useEffect(()=>{
+    setReviewedReplyStamp(null);
+    setDraft("");
+  },[request?.id,role]);
   const guestWebRequest = request?.request_origin === "guest_web";
   const followUpSuggestion=request?.id?
     s.miniAppsView?.followUpIntelligence?.items?.find(item=>
@@ -4817,10 +4822,18 @@ function MiniAppRequestDetail({ s }) {
   const send = async () => {
     const body = draft.trim();
     if (!request?.id || !body) return;
+    const stamp=ownerView&&
+      reviewedReplyStamp?.requestId===request.id&&
+      reviewedReplyStamp?.appId===request.mini_app_id?
+      reviewedReplyStamp.sourceStamp:null;
     const ok = ownerView
-      ? await s.sendMiniAppRequestMessage(request.id, body)
+      ? await s.sendMiniAppRequestMessage(request.id, body,
+          {reviewedFollowupStamp:stamp})
       : await s.replyBusyAppRequestMessage(request.id, body);
-    if (ok) setDraft("");
+    if (ok) {
+      setDraft("");
+      setReviewedReplyStamp(null);
+    }
   };
 
   return (
@@ -4979,8 +4992,15 @@ function MiniAppRequestDetail({ s }) {
                           const apply=async()=>{
                             const confirmed=await s.prepareVerifiedOwnerFollowupDraft(
                               request.id,stamp);
-                            if(confirmed?.ok){
+                            if(confirmed?.ok&&confirmed.sourceStamp&&
+                               confirmed.requestId===request.id&&
+                               confirmed.appId===request.mini_app_id){
                               setDraft(confirmed.draft);
+                              setReviewedReplyStamp({
+                                requestId:request.id,
+                                appId:request.mini_app_id,
+                                sourceStamp:confirmed.sourceStamp
+                              });
                             }else{
                               Alert.alert("Review the latest conversation",
                                 confirmed?.reason||
@@ -5122,6 +5142,13 @@ function MiniAppRequestDetail({ s }) {
                   placeholder={ownerView ? "Write a customer update…" : "Write a reply…"}
                   multiline
                 />
+                {ownerView&&reviewedReplyStamp?.requestId===request.id?(
+                  <Text style={styles.cardBody}>
+                    Busy will check the latest customer conversation once
+                    more before sending this reviewed follow-up. If anything
+                    has changed, the reply will need another review.
+                  </Text>
+                ):null}
                 <Button
                   label={s.miniAppsAction?.includes("message:") ? "Sending…" : "Send message"}
                   primary
