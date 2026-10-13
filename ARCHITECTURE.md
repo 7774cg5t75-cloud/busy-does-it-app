@@ -45,6 +45,29 @@ These layers describe the intended direction. Their presence in this document **
 
 
 
+## Permanent architecture decision — Release-wide integration contract
+**Adopted: 13 October 2026. Status: mandatory acceptance criterion for the initial public release and all subsequent releases; this is a policy, not evidence that full integration currently works.**
+
+### Non-negotiable launch requirement
+- **Everything included in Busy Does It's first public release must work together as one coherent, reliable product, wherever features are meaningfully related.** The initial product may have a bounded feature set, and new capabilities may follow after launch, but no advertised launch feature may be an isolated demonstration that fails when the customer uses it with another advertised capability.
+- Customers should describe outcomes in ordinary language while BUSY coordinates the Website Builder, Business Apps, Business Brain, Design DNA, bookings/calendar, customers/enquiries, content, marketing/discoverability, communications and Get Paid as appropriate to the requested task, supported permissions and enabled subscription.
+- Do not claim that *all* features have to connect directly to *all* other features when no useful business relationship exists. Instead explicitly identify and verify every **relevant, supported cross-feature workflow and data handoff**. Shared business data must not diverge silently between surfaces.
+- Keep a single canonical, tenant-isolated representation of approved business facts, identity, brand, customers, permissions and source-of-truth workflow states, with explicit ownership, versioning and provenance. Reuse services/events/contracts and policy checks rather than duplicating business logic in each screen or channel.
+
+### Integrated-workflow acceptance, not just isolated feature checks
+- Maintain a **launch feature inventory** with each feature's implemented/verified readiness, linked capabilities, dependencies, provider prerequisites, customer-facing promises, and relevant end-to-end journeys. Track a cross-feature **integration matrix** and assign each handoff an owner and automated regression coverage.
+- Exercise customer journeys spanning multiple systems, including as applicable: create a business and reuse its Design DNA on website/app/social content; website or app enquiry to CRM to notification/follow-up; website or app booking to validated availability to calendar and customer record; quote/invoice/payment status to owner-approved customer communication; website publish/domain routing to searchable public content and measurable marketing outcomes.
+- Treat state changes as real outcomes only with authenticated, authorised, tenant-scoped server-side receipts; use idempotency, retries, compensating actions/rollback and visible error states for partially failed provider operations. No silent data loss, phantom bookings, falsely marked payments, duplicated communications, cross-tenant leakage or "success" screens after failed delivery.
+- Validate shared data synchronisation and permissions across iPhone/iPad/web/hosted sites and marketplace/standalone app surfaces as applicable, including offline/interrupted flows, subscriptions/credits, permissions revoked, external provider outages and failed actions.
+- Continue low-cost automated type/lint/build/security/unit/contract/integration/regression checks during substantial build-first sweeps; expand cheap cross-feature tests as capabilities are added. Preserve the agreed transition to deep human/device/provider/staging testing once theoretical improvements slow down. Automated mocks alone do **not** certify launch readiness.
+- Before the public release, run **real end-to-end staging and representative production-path verification** for all advertised, interconnected journeys, with evidence of expected results and recovery from failures. Verify what works, what remains unsupported and what third-party setup/costs are required.
+
+### Release gate and scope discipline
+- **No release while any included, advertised feature or required cross-feature connection is known to be broken, misleading or unverified.** Fix and verify the issue; otherwise explicitly propose removing/deferring the affected *entire customer promise* from launch scope for the owner's approval, rather than quietly shipping a disconnected or fake capability.
+- New post-launch features follow the same integration contract before they become available as supported product capabilities. Document integration evidence and sign-off, not just lines of code, passing isolated tests or optimistic development summaries.
+- Product north star: **One connected BUSY. One source of truth. Real completed outcomes. The customer shouldn't have to connect the dots.**
+
+
 ## Permanent architecture decision — Search and AI discoverability (Get More Customers)
 **Adopted: 13 October 2026. Status: product requirement and future delivery direction, not a claim of an implemented SEO/GEO service.**
 
