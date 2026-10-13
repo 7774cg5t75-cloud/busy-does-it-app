@@ -186,9 +186,10 @@ Deno.serve(async (req: Request) => {
     // authority for an active guest enquiry or booking request.
     const version = await supabase
       .from("busy_mini_app_versions")
-      .select("id,config")
+      .select("id,config,state")
       .eq("id", app.data.current_live_version_id)
       .eq("mini_app_id", app.data.id)
+      .eq("state", "live")
       .maybeSingle();
     if (version.error || !version.data?.id) {
       return page(503,
