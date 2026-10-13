@@ -41,7 +41,7 @@ function evaluateCustomerRequestOutcome({
     r.status==="declined"?"declined":
     r.status==="closed"?"closed":"accepted_not_independent_booking_proof";
  return {ok:true,kind:"customer_request_outcome_v3204",
-  requestId:r.id,requestType,stage:customerStage,
+  requestId:r.id,requestType,businessAppId,stage:customerStage,
   evidenceLevel:evidenceSource==="read_only_customer_receipt"?
     "authenticated_customer_readback":"authenticated_submission_response",
   canClaimSavedRequest:true,canClaimNotificationDelivery:false,
