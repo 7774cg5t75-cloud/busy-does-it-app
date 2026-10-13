@@ -13,6 +13,8 @@ import {planFunctionalBusinessApp}
  from "../src/core/appExperiencePlanner.mjs";
 import {reviewBuilderJourneyContinuity}
  from "../src/core/builderJourneyContinuityV3209.mjs";
+import {validPrivateBuilderPair}
+ from "../src/core/ownerBuilderDraftGuardV3195.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 let checks=0;
 const eq=(a,b,message)=>{assert.deepEqual(a,b,message);checks++};
@@ -138,6 +140,8 @@ ok(!waiting.visibleModuleKeys.includes("booking_request"));
 eq(waiting.canConfirmBooking,false);
 eq(waiting.canEnablePayments,false);
 const two=app();
+eq(validPrivateBuilderPair({...creative,businessId:"different"},two,businessId),false,
+ "The Brand DNA handoff must reject an explicit wrong-tenant website.");
 const aligned=reviewBuilderJourneyContinuity({website:creative,app:two,businessId});
 ok(aligned.ok,aligned.reason);
 eq(aligned.source.websiteGeneration,8);eq(aligned.source.appRevision,5);
