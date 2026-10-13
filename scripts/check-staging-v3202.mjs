@@ -12,7 +12,8 @@ import {STAGING_REF}
  from "../src/core/stagingSchemaReadinessV3201.mjs";
 const ROOT=fileURLToPath(new URL("../",import.meta.url));
 const read=p=>readFileSync(join(ROOT,p),"utf8");
-const observed=JSON.parse(read("staging/recorded-readonly-observation-v3202.json"));
+const recorded=JSON.parse(read("staging/recorded-readonly-observation-v3202.json"));
+const observed={...recorded,tables:recorded.publicTables};
 const migrations=readdirSync(join(ROOT,"supabase/migrations"))
  .filter(n=>n.endsWith(".sql")).sort()
  .map(name=>({name,sql:read("supabase/migrations/"+name)}));
@@ -47,7 +48,7 @@ ok(plan.missingExtensions.includes("pg_net"));
 for(const bad of [
  {projectRef:"wrong"},
  {source:"unverified_user_notes"},
- {publicTables:[]},
+ {tables:[]},
  {tables:["busy_staging_rls_canary","busy_mini_apps"]},
  {ledger:[...observed.ledger,"20261013120000"]},
  {canaryPreserved:false},
