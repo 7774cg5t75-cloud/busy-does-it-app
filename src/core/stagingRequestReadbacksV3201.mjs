@@ -6,7 +6,7 @@
  * A saved request is not a sent reply or delivered notification.
  * An accepted booking status is never proof of a confirmed diary entry.
  */
-const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const bad=(reason)=>({ok:false,reason,realDeliveryProven:false,
  evidenceCanTriggerAutomaticMessages:false});
 function assessStagingRequestReadbacks({
