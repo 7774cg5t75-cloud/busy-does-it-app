@@ -127,7 +127,7 @@ async function liveApp(slug: string) {
       "id,business_id,public_slug,display_name,category,status,current_live_version_id"
     )
     .eq("public_slug", slug)
-    .eq("status", "live")
+    .in("status", ["live", "update_pending"])
     .maybeSingle();
   if (app.error) throw app.error;
   if (!app.data?.id || !app.data.current_live_version_id) {
