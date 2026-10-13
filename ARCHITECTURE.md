@@ -44,6 +44,31 @@ These layers describe the intended direction. Their presence in this document **
 - Preserve the north star: **"You tell Busy what needs doing. Busy does it."** The deciding quality measure is correctly completed, independently verified work with minimal business-owner effort.
 
 
+
+## Permanent architecture decision — Search and AI discoverability (Get More Customers)
+**Adopted: 13 October 2026. Status: product requirement and future delivery direction, not a claim of an implemented SEO/GEO service.**
+
+### Customer-facing promise
+- Owners should be able to ask, in everyday language, **"Busy, help more customers find my business"**. BUSY should plan, explain simply, prepare and (where authorised) execute an integrated discoverability workflow inside **Get More Customers**. The owner should **not** need to understand SEO, GEO (generative engine optimisation), AEO, schema markup, backlinks or individual search-platform mechanics.
+- Cover both **traditional search visibility** (including Google/Bing and relevant local search surfaces) and **AI-assisted discovery** (search answer engines and AI assistants that may cite or recommend public businesses). These are related, not separate customer products or guaranteed placement mechanisms.
+- Treat discoverability as an ongoing, outcome-focused business service that cooperates with the Website Builder, App Builder, Business Brain, brand Design DNA, listings, marketing content and analytics rather than an isolated SEO checklist.
+
+### Intended shared capability system
+1. **Verified business foundation.** Reuse owner-approved business identity, service/location coverage, opening hours, qualifications, contact details, brand language and website ownership. Detect conflicts across website, directory listings and business profiles; request corrections instead of inventing facts, reviews or credentials.
+2. **Technical and content discoverability.** Assess public indexing/crawlability, canonical URLs, redirects, robots/sitemaps, mobile performance, accessibility, metadata, internal linking, useful service/location pages and supported structured data (e.g. LocalBusiness where applicable). Make improvements through the common website publishing workflow; changes remain drafts until owner-authorised publication.
+3. **Local trust and real-world reputation.** Help maintain accurate listings and eligible business profiles, encourage authentic customer feedback in provider-compliant ways, identify legitimate partnerships, earned coverage and useful citations/brand mentions. Avoid link schemes, purchased manipulative backlinks, fabricated mentions, review gating and unsolicited mass outreach.
+4. **AI answer discoverability.** Produce clear, accurate, sourceable public business information and helpful content that AI search systems can independently discover. Where meaningful, monitor public AI-answer appearances or citations using transparent, repeatable samples; record prompt, engine, date, locale and sampling limitations. **No platform controls or guarantees that an AI assistant will include, cite or recommend a particular business.** Do not market speculative metadata tricks as proven ranking factors.
+5. **Measurement and feedback.** Where accounts/permissions allow, integrate provider-supported performance signals (search impressions/clicks, indexed coverage, local actions, qualified enquiries/bookings and attributed conversions); separate verified analytics from estimates, model-generated suggestions and anecdotal AI mention tests. Log interventions, owner approvals, source provenance, costs, changes and observed outcomes in tenant-scoped feedback to evaluate real improvement over time.
+6. **Autonomous planning with permission boundaries.** BUSY prioritises opportunities by business relevance, evidence, effort and expected value, prepares easy-to-understand proposals, and can safely perform low-risk authorised tasks. Publishing, paid campaigns, directory claims, public outreach, third-party account changes, spending and reputationally sensitive actions require the appropriate explicit consent/approval, provider access and rollback/receipts.
+
+### Delivery sequence and acceptance
+- **Foundation:** common public business facts, discovery readiness checks and website publishing-integrated fixes; transparent explanation of which checks actually ran.
+- **Connected optimisation:** approved local-profile/listing workflows, provider-authorised search analytics, content recommendations, safe execution and clear before/after measurement.
+- **Advanced learning:** privacy-safe prioritisation by observed business outcomes, and carefully qualified AI-answer visibility sampling; opt-in aggregated improvement only with tenant isolation and privacy controls.
+- Require representative integration and staging tests before treating any provider operation as functional. Track capability readiness separately for planned, implemented, automated-verified, provider-tested and real-outcome-verified.
+- Product principle: **the customer asks for more visibility; BUSY does the specialist work, explains material decisions in plain English and reports honest results without guaranteeing Google rankings, AI citations or revenue.**
+
+
 ## V3.46 Production Domain Activation
 ### BUSY-owned platform domain
 - The platform root defaults to `busydoesit.co.uk`. Default BUSY websites use first-level hostnames such as `site-<slug>-<business-suffix>.busydoesit.co.uk`; `sites.busydoesit.co.uk` is reserved as the SaaS CNAME target and `origin.busydoesit.co.uk` as the fallback-origin record.
