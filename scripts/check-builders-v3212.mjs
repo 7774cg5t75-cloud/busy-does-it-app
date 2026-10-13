@@ -10,6 +10,10 @@ import {decideAppRequestTransition,appRequestJourney}
  from "../src/core/appRequestLifecycle.mjs";
 import {applyWebsiteLayoutOperation}
  from "../supabase/functions/busy-website-worker/websiteLayoutEditing.mjs";
+import {getUniversalCapability}
+ from "../src/core/universalCapabilityCatalogV3210.mjs";
+import {planUniversalBuilderRequest}
+ from "../src/core/universalBuilderPlanV3210.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 let checks=0;
 const ok=(value,msg)=>{assert.ok(value,msg);checks++;};
@@ -209,6 +213,28 @@ ok(read("src/core/universalCapabilityCatalogV3210.mjs")
  .includes("Website form delivery needs approved hosting"));
 ok(read("src/core/appRequestLifecycle.mjs")
  .includes('bridgeState!=="booking_confirmed"'));
+for(const [kind,diary] of [["enquiry",false],["booking_request",true]]){
+ const record=getUniversalCapability(kind);
+ eq(record.customerRequestType,kind);
+ eq(record.sharedRequestContract,"v3212");
+ eq(record.authoritativeReceiptRequired,true);
+ eq(record.independentDiaryConfirmationRequired===true,diary);
+ const plan=planUniversalBuilderRequest({
+  request:kind==="booking_request"?"Customers should request bookings":
+   "Customers send an enquiry",
+  businessId,businessType:"independent business",
+  website:website(),app:app(),catalog:catalogue
+ });
+ ok(plan.ok,plan.reason);
+ const capability=plan.capabilities.find(x=>x.id===kind);
+ ok(capability,"Shared request capability must be discoverable by both builders.");
+ eq(capability.customerRequestType,kind);
+ eq(capability.authoritativeReceiptRequired,true);
+ eq(capability.independentDiaryConfirmationRequired,diary);
+}
+ok(read("src/screens/universalBuilderPlanReview.js")
+ .includes("item.authoritativeReceiptRequired"),
+ "Shared planner must disclose request receipt limitations.");
 const improve=applyWebsiteLayoutOperation(website(),{
  action:"style",field:"ctaEmphasis",value:"strong"
 });
