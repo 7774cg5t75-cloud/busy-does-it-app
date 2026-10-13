@@ -135,7 +135,7 @@ ok(recoveredCustomer.ok);
 eq(recoveredCustomer.role,"customer");
 for(const wrong of [
  {requestId:other},
- {receipt:{ok:false,...positive}},
+ {receipt:{...positive,ok:false}},
  {receipt:{...positive,found:false}},
  {receipt:{...positive,messageSavedVerified:false}},
  {receipt:{...positive,notificationDeliveredVerified:true}},
