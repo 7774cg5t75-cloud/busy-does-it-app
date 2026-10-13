@@ -15,11 +15,7 @@ const categories=[
  ["events",/event plan|wedding plan|event venue|conference|theatre|event production|entertainment|performer/i],
  ["professional",/account|consult|law|legal|architect|bookkeep|advisor|coaching/i]
 ];
-const arrange=(row,keys)=>[...row].sort((a,b)=>{
- const ai=keys.indexOf(a.key),bi=keys.indexOf(b.key);
- return (ai<0?99:ai)-(bi<0?99:bi);
-});
-function planFunctionalBusinessApp({businessType="",businessName="",businessGoals="",catalog=[],profile={},offerTerms=[]}={}){
+function planFunctionalBusinessApp({businessType="",businessName="",businessGoals="",catalog=[],profile={},offerTerms=null}={}){
  // Goals are read as evidence of desired CUSTOMER actions, not authority to
  // enable paid, unavailable, unapproved or unimplemented features.
  const goal=String(businessGoals).slice(0,600).toLowerCase();
