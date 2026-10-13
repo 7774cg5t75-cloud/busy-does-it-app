@@ -1,4 +1,5 @@
 import {confirmFirstAppFromWebsite} from "../core/firstAppFromWebsiteV3197.mjs";
+import {reconcileFirstAppReadback} from "../core/firstAppRecoveryV3198.mjs";
 import {planWebsiteToAppDesign} from "../core/websiteToAppBrandTransferV3196.mjs";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -14770,6 +14771,17 @@ function App() {
     setMiniAppsError("");setMiniAppsNotice("");
     let createdApp=null;
     try{
+      // A retry must first inspect the authenticated server state: the
+      // previous attempt may have succeeded while its response was lost.
+      const before=await miniAppsRequest("owner_status");
+      const preflight=reconcileFirstAppReadback({status:before,businessId});
+      if(!preflight.ok)throw Error(preflight.reason);
+      if(preflight.exists){
+        applyMiniAppsStatus(before);
+        setMiniAppsNotice("A private Business App already exists. Open it to finish reviewing its website design; Busy has not overwritten it.");
+        return {ok:true,alreadyExists:true,appearanceApplied:false,
+          partial:true,appId:preflight.appId};
+      }
       const built=await miniAppsRequest("build_draft",{
         profileDraft:reviewed.profileDraft,expectedNoExistingApp:true
       });
@@ -14813,13 +14825,30 @@ function App() {
     }catch(error){
       const reason=String(error?.message||
        "The website-to-app creation could not be verified.").slice(0,240);
+      // A timeout after build_draft (or after appearance save) is ambiguous.
+      // Never interpret it as permission to create a second app.
+      try{
+        const latest=await miniAppsRequest("owner_status");
+        const verified=reconcileFirstAppReadback({status:latest,businessId});
+        if(verified.ok&&verified.exists&&
+            (!createdApp||verified.appId===createdApp.id)){
+          applyMiniAppsStatus(latest);
+          setMiniAppsNotice("A private Business App exists. The last design step needs owner review; no repeat creation or publication was attempted.");
+          return {ok:true,alreadyExists:!createdApp,appearanceApplied:false,
+            partial:true,appId:verified.appId,reason};
+        }
+      }catch{
+        // The original authenticated create response is still evidence when
+        // available, but an unknown response must never be called success.
+      }
       if(createdApp){
-        setMiniAppsNotice("A private app exists, but some design changes may be incomplete. Review the current draft before doing anything else.");
-        return {ok:true,appearanceApplied:false,partial:true,reason};
+        setMiniAppsNotice("A private app was created, but its latest design could not be checked. Reopen the current draft before editing.");
+        return {ok:true,appearanceApplied:false,partial:true,
+          appId:createdApp.id,reason};
       }
       setMiniAppsError(reason);
       return {ok:false,reason:reason+
-        " Check your latest private Business App status before retrying."};
+        " Busy could not confirm whether the request succeeded. Refresh the authenticated Business App status before retrying."};
     }finally{
       firstAppFromWebsiteInFlightRef.current=false;
       setMiniAppsAction("");
