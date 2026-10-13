@@ -1761,6 +1761,14 @@ async function buildDraft(
     );
   }
 
+  // V3.197 owner-approved website-first creation must never overwrite
+  // a private app created meanwhile on another device. This opt-in guard
+  // does not weaken the established ordinary refresh-draft workflow.
+  if(body?.expectedNoExistingApp===true){
+    const existing=await appForBusiness(businessId);
+    if(existing)throw new Error(
+      "A Business App already exists. Review the existing private draft rather than starting a second one.");
+  }
   const app = await ensureApp(businessId, userId, profile);
   const config = buildConfig(
     profile,
