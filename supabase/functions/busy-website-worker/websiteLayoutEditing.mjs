@@ -46,7 +46,11 @@ function applyWebsiteLayoutOperation(draft,operation={}){
     (typeof draft.businessId==="string"&&draft.businessId&&
       operation.expectedBusinessId!==draft.businessId))
    return fail(draft,"The reviewed website version or business changed. Review the latest draft first.");
-  const before=order();
+  const activeIds=active();
+  // The visible design order is the actual before-preview seen by the owner;
+  // the raw section array may be stored in a different order.
+  const rendered=list(draft.designPlan?.sectionOrder).filter(id=>activeIds.includes(id));
+  const before=[...new Set([...rendered,...activeIds])];
   const proposed=operation.proposed;
   if(!Array.isArray(operation.before)||!Array.isArray(proposed)||
     before.length<2||proposed.length!==before.length||
