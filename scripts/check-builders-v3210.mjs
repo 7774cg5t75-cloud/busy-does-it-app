@@ -198,6 +198,9 @@ eq(approved.capabilities.find(c=>c.id==="offers").app.status,
  "present_in_private_draft");
 for(const invalid of [
  {request:"Show bookings",businessId:"another-business",website,app,catalog},
+ {request:"Show bookings",businessId:"",website,app,catalog},
+ {request:"Show bookings",businessId:id,website,
+  app:{...app,business_id:null},catalog},
  {request:"Show bookings",businessId:id,
   website:{...website,businessId:"other"},app,catalog},
  {request:"Show bookings",businessId:id,website,
