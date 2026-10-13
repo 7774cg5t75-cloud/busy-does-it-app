@@ -15,6 +15,7 @@ import {nativePalette,LABELS as nativePaletteLabels} from "../core/nativePalette
 import {BusinessBrandDnaPreview} from "./businessBrandDnaPreview";
 import {WebsiteToAppDesignTransfer} from "./websiteToAppDesignTransfer";
 import {FirstAppFromWebsite} from "./firstAppFromWebsite";
+import {IndustryFirstExperienceReview} from "./industryFirstExperienceReview";
 import {suggestFirstAppNextStep} from "../core/firstAppNextStepV3199.mjs";
 import {appVisualPresentation,TYPE_LABELS,SERVICE_LABELS} from "../core/appVisualPresentationV3194.mjs";
 import { interpretSelectedAppAppearance } from "../core/appContextInstruction.mjs";
@@ -1118,6 +1119,12 @@ function MiniAppBuilder({ s }) {
           disabled={!!s.miniAppsAction}
           onPress={()=>s.refreshMiniAppsStatus()}/>
       </Card>:null;})()}
+      <IndustryFirstExperienceReview
+        businessId={s.cloudWorkspace?.businessId}
+        app={app} catalog={s.miniAppsStatus?.catalog||[]}
+        onSave={s.saveCoordinatedAppChanges}
+        onRefresh={s.refreshMiniAppsStatus}
+        busy={s.miniAppsAction}/>
       <BusinessBrandDnaPreview website={s.websiteDraft}
         app={app} businessId={s.cloudWorkspace?.businessId}/>
       <WebsiteToAppDesignTransfer website={s.websiteDraft} app={app}
