@@ -947,7 +947,8 @@ function MiniAppBuilder({ s }) {
     businessType:view.category||s.trade||"",
     businessGoals:s.miniAppBuildBrief||plan?.ownerRequest||"",
     catalog:view.catalog||[],
-    profile:view.activeConfig?.publicProfile||{}
+    profile:view.draftConfig?.publicProfile||view.activeConfig?.publicProfile||{},
+    offerTerms:view.draftConfig?.offers||view.activeConfig?.offers||[]
   });
   const quality=appDesignQualityReport(view.draftConfig||view.activeConfig||{},view.catalog||[]);
   const usability=auditBusinessAppUsability(view.draftConfig||view.activeConfig||{});
