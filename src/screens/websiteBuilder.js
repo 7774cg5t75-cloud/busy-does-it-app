@@ -788,7 +788,8 @@ function WebsiteBuilder({ s }) {
           <BusinessBrandDnaPreview website={draft}
             app={s.miniAppsView?.app}
             businessId={s.cloudWorkspace?.businessId}
-            catalog={s.miniAppsView?.catalog||s.miniAppsStatus?.catalog||[]}/>
+            catalog={s.miniAppsView?.catalog||s.miniAppsStatus?.catalog||[]}
+            onApplyWebsiteLayout={s.applyWebsiteLayoutAction}/>
           <WebsiteAppTypographyMatch website={draft}
             app={s.miniAppsView?.app}
             businessId={s.cloudWorkspace?.businessId}
