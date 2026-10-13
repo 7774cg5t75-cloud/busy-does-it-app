@@ -19,7 +19,7 @@ const photographicCount=(parts)=>{
 const SECTOR_PATTERNS=[
  ["nature",/garden|landscap|lawn|tree|floris|horticultur|farm|outdoor/],
  ["hospitality",/cater|food|restaurant|bakery|baker|festival|coffee|cafe|hog roast|chef|hotel/],
- ["wellness",/beauty|salon|spa|wellness|massage|hair|nail|therap|fitness|yoga/],
+ ["wellness",/beauty|salon|barber|spa|wellness|massage|hair|nail|therap|fitness|yoga/],
  ["creative",/photograph|videograph|film studio|illustrat|artist|potter|ceramic|music studio|recording studio|craft studio|graphic design/],
  ["retail",/retail|bookshop|gift shop|jewel|clothing|fashion|boutique shop|independent shop|shopkeeper/],
  ["learning",/school|tutor|lesson|training|education|academy|instructor|workshop leader|driving instruct/],
