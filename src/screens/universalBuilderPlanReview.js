@@ -158,6 +158,12 @@ function UniversalBuilderPlanReview({
          {item.requiresExternalProvider?<Text style={styles.cardBody}>
            External provider, permissions and separate costs may be needed.
          </Text>:null}
+         {item.authoritativeReceiptRequired?<Text style={styles.cardBody}>
+           A visible request screen is not evidence of a saved customer request,
+           owner follow-up or delivered reply.
+           {item.independentDiaryConfirmationRequired?
+             " Booking requests also need independently confirmed availability and a diary receipt.":""}
+         </Text>:null}
        </View>)}
        {supporting.length?<View>
          <Button label={showDependencies?
