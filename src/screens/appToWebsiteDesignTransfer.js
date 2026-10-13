@@ -1,0 +1,72 @@
+import React from "react";
+import {View,Text} from "react-native";
+import {Card,Button} from "../components/ui";
+import {styles} from "../theme/styles";
+import {planAppToWebsiteDesign,confirmAppToWebsiteDesign}
+ from "../core/appToWebsiteBrandTransferV3196.mjs";
+
+function AppToWebsiteDesignTransfer({website,app,businessId,onApply}){
+ const [open,setOpen]=React.useState(false);
+ const [mode,setMode]=React.useState("adapt");
+ const [withServices,setWithServices]=React.useState(false);
+ const [review,setReview]=React.useState(null);
+ const [notice,setNotice]=React.useState("");
+ React.useEffect(()=>{setReview(null);setNotice("");},
+  [website?.id,website?.generation,app?.id,app?.draft_revision,businessId]);
+ if(!website?.id||!app?.id||!businessId)return null;
+ const plan=planAppToWebsiteDesign({website,app,businessId,
+  mode,includeServices:withServices});
+ return <Card eyebrow="Make your website feel like your app"
+  title="Reuse my Business App's design"
+  body="Carry across selected design choices as one private website edit. Never automatically overwrite your existing website or publish changes."
+  tone="blue">
+  <Button label={open?"Hide design choices":"Explore app-to-website transfer"}
+   onPress={()=>{setOpen(v=>!v);setReview(null);}}/>
+  {open?<View style={{gap:7}}>
+    {[
+     ["match","Match the app's style closely"],
+     ["adapt","Keep my brand, adapt for a website"],
+     ["new","Keep a completely different website design"]
+    ].map(([key,label])=><Button key={key}
+      label={(mode===key?"✓ ":"")+label}
+      onPress={()=>{setMode(key);setReview(null);setNotice("");}}/>)}
+    {mode!=="new"?<Button
+     label={(withServices?"✓ ":"")+"Also add missing app services"}
+     onPress={()=>{setWithServices(x=>!x);setReview(null);setNotice("");}}/>:null}
+    {mode==="new"?<Text style={styles.cardBody}>
+     Your website and Business App can have completely different designs.
+     Nothing needs changing.
+    </Text>:plan.ok?<Button label="Review exact website changes"
+     onPress={()=>{setReview({...plan});setNotice("");}}/>:
+     <Text style={styles.cardBody}>{plan.reason}</Text>}
+    {review?<View style={{gap:5}}>
+     <Text style={styles.sectionLabel}>Everything that will change</Text>
+     {review.changes.map((line,i)=><Text key={i} style={styles.cardBody}>
+       {(i+1)+". "+line}
+     </Text>)}
+     {review.explanations?.map((line,i)=><Text key={i} style={styles.cardBody}>
+       {"Why: "+line}
+     </Text>)}
+     {review.skipped?.map((line,i)=><Text key={i} style={styles.cardBody}>
+       {"Left unchanged: "+line}
+     </Text>)}
+     <Text style={styles.cardBody}>
+      Existing website wording and customer records will be preserved.
+      The new website draft stays private and can be undone.
+     </Text>
+     <Button primary label="Approve this PRIVATE website change"
+      onPress={()=>{
+       const check=confirmAppToWebsiteDesign({website,app,businessId,evidence:review});
+       if(!check.ok){setNotice(check.reason);setReview(null);return;}
+       const applied=onApply?.(review);
+       if(applied===true){setNotice("Website draft updated. Nothing was published.");setReview(null);}
+       else {setNotice("Website has changed. Review the latest draft.");setReview(null);}
+      }}/>
+     <Button label="Cancel — leave my website unchanged"
+      onPress={()=>{setReview(null);setNotice("No change was applied.");}}/>
+    </View>:null}
+    {notice?<Text style={styles.cardBody}>{notice}</Text>:null}
+  </View>:null}
+ </Card>;
+}
+export {AppToWebsiteDesignTransfer};
