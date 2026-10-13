@@ -4947,30 +4947,61 @@ function MiniAppRequestDetail({ s }) {
               </Text>
             </Card>
           ):null}
-          {ownerView&&followUpSuggestion?.category==="needsReply"&&
-            !!followUpSuggestion.replyDraft&&!guestWebRequest?(
-            <Card eyebrow="Busy can prepare your reply"
-              title="Review this suggestion"
-              body={followUpSuggestion.why}
+          {ownerView&&!guestWebRequest&&!["declined","closed"].includes(request.status)?(
+            <Card eyebrow="Busy checks before recommending"
+              title="Check if this request needs a reply"
+              body={followUpSuggestion?.category==="needsReply"?
+                "The recent activity suggests this customer may need a reply. Busy must check the current saved messages first.":
+                "Busy will check the latest recorded activity in this exact conversation before suggesting anything."}
               tone="blue">
+              <Button label={s.ownerFollowupBusy?
+                "Checking saved messages…":"Check latest conversation"}
+                disabled={!!s.miniAppsAction||!!s.ownerFollowupBusy}
+                onPress={()=>s.checkOwnerFollowup(request.id)}/>
+              {s.ownerFollowupReview?.ok&&
+                s.ownerFollowupReview.requestId===request.id&&
+                s.ownerFollowupReview.businessId===request.business_id&&
+                s.ownerFollowupReview.appId===request.mini_app_id?(
+                <View>
+                  <Text style={styles.cardBody}>
+                    {s.ownerFollowupReview.why}
+                  </Text>
+                  {s.ownerFollowupReview.mayPrepareDraft?(
+                    <View>
+                      <Text style={styles.sectionLabel}>Private reply suggestion</Text>
+                      <Text style={styles.cardBody}>
+                        {s.ownerFollowupReview.draft}
+                      </Text>
+                      <Button label="Use as an editable draft"
+                        disabled={!!s.miniAppsAction||!!s.ownerFollowupBusy}
+                        onPress={()=>{
+                          const stamp=s.ownerFollowupReview.sourceStamp;
+                          const apply=async()=>{
+                            const confirmed=await s.prepareVerifiedOwnerFollowupDraft(
+                              request.id,stamp);
+                            if(confirmed?.ok){
+                              setDraft(confirmed.draft);
+                            }else{
+                              Alert.alert("Review the latest conversation",
+                                confirmed?.reason||
+                                "Busy couldn't verify that this reply is still appropriate.");
+                            }
+                          };
+                          if(draft.trim()){
+                            Alert.alert("Replace your current reply?",
+                              "Busy will check the current saved messages again before replacing your unsent text. Nothing will be sent.",[
+                                {text:"Keep my text",style:"cancel"},
+                                {text:"Recheck and use draft",onPress:apply}
+                              ]);
+                          }else apply();
+                        }}/>
+                    </View>
+                  ):null}
+                </View>
+              ):null}
               <Text style={styles.cardBody}>
-                {followUpSuggestion.replyDraft}
-              </Text>
-              <Button label="Use as an editable draft"
-                disabled={!!s.miniAppsAction}
-                onPress={()=>{
-                  const apply=()=>setDraft(followUpSuggestion.replyDraft);
-                  if(draft.trim()){
-                    Alert.alert("Replace your current reply?",
-                      "Busy will replace your unsent text, but won't send anything.",[
-                       {text:"Keep my text",style:"cancel"},
-                       {text:"Use suggested draft",onPress:apply}
-                      ]);
-                  }else apply();
-                }}/>
-              <Text style={styles.cardBody}>
-                Read and adjust this message yourself. Sending requires
-                a separate, explicit action.
+                Busy only prepares text. You decide whether to send it.
+                A saved reply is not proof a notification was delivered.
               </Text>
             </Card>
           ):null}
