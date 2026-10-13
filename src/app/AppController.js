@@ -15692,8 +15692,9 @@ function App() {
          result.noRequestsSubmitted!==true||
          result.productionEndpointsUsed!==false)
         throw Error("The staging probe response could not be verified.");
-      return {ok:true,stagingConnectionVerified:true,
-        noRequestsSubmitted:true,liveDeliveryVerified:false};
+      return {ok:true,businessId,appId,draftRevision:Number(expectedRevision),
+        stagingConnectionVerified:true,noRequestsSubmitted:true,
+        liveDeliveryVerified:false};
     }catch(error){
       return {ok:false,reason:String(error?.message||
         "Isolated staging isn't configured on this server.").slice(0,220)};
