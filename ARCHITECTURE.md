@@ -113,6 +113,13 @@ These layers describe the intended direction. Their presence in this document **
 - For committed owner request-status changes, downstream event, unread, push and dashboard refresh failures are separate outcomes and must not be presented as a lost database write or trigger blind retries. Future atomic outbox/compare-and-send guarantees require a reviewed migration and deployment.
 - Implementation and evidence limits: docs/V3_213_SHARED_REQUEST_RECEIPTS_AND_RECOVERY.md.
 
+## Universal builder checkpoint — V3.214 website-to-live-app request handoff
+
+- V3.214 adds a **real, owner-approved private website link** to the already-existing public live Business App enquiry and booking-request journey. The owner-scoped planner requires a current website/business/revision, real contact information, exact live app version and enabled supported module. The existing private editor/rebuild/undo/owner approval route saves or removes that exact canonical HTTPS link; only separately approved website publication can make it public.
+- The public Business App handoff Edge handler independently checks the **current live version's module** at click time and rejects unavailable actions. The website renderer verifies owner approval and exact canonical destination before exposing a link. This does **not** install a public website form, create a new request, deliver a notification or independently confirm a diary booking.
+- The same evidence state is visible in Business Brand DNA without conflating a private draft link with a tested live visitor journey. Detailed source, tests and outstanding public intake milestones: docs/V3_214_WEBSITE_APP_REQUEST_HANDOFF.md.
+- Next: build a genuine website-hosted request service only with source-of-truth site ownership, visitor anti-abuse protections, transactional idempotent save/recovery, privacy and consent, owner inbox/approval and isolated staging evidence. Do not bypass existing shared request state/booking safeguards or activate integrations based on screenshots or AI proposals.
+
 ## V3.46 Production Domain Activation
 ### BUSY-owned platform domain
 - The platform root defaults to `busydoesit.co.uk`. Default BUSY websites use first-level hostnames such as `site-<slug>-<business-suffix>.busydoesit.co.uk`; `sites.busydoesit.co.uk` is reserved as the SaaS CNAME target and `origin.busydoesit.co.uk` as the fallback-origin record.
