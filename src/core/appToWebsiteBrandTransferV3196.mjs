@@ -20,7 +20,9 @@ function planAppToWebsiteDesign({website,app,businessId,mode="adapt",
  includeServices=false}={}){
  if(!["match","adapt","new"].includes(mode)||typeof includeServices!=="boolean")
   return {ok:false,reason:"Choose a supported branding approach."};
- if(!validPrivateBuilderPair(website,app,businessId))
+ if(!validPrivateBuilderPair(website,app,businessId)||
+   (website.business_id&&website.business_id!==businessId)||
+   (website.businessId&&website.businessId!==businessId))
   return {ok:false,reason:"Open current private drafts from the same business."};
  const base={ok:true,kind:"private_app_to_website_design_v3196",mode,businessId,
   sourceAppId:app.id,sourceAppRevision:app.draft_revision,
