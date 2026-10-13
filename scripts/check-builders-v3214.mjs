@@ -199,4 +199,66 @@ for(const term of [
 ])ok(edge.includes(term),"Live Edge link safety "+term);
 ok(!rendered.includes('<form action="/functions/v1/'),
  "No imaginary website submission form.");
+// Exercise the actual website HTML renderer while stubbing unrelated design
+// dependencies. No browser, remote fetch or executable visitor content.
+const rendererSource=read("src/domain/websiteBuilder.js");
+const rendererStart=rendererSource.indexOf("function renderWebsiteHtml(");
+const rendererEnd=rendererSource.indexOf("\nexport {",rendererStart);
+ok(rendererStart>0&&rendererEnd>rendererStart,"Find actual website renderer.");
+const escapeHtml=value=>String(value??"")
+ .replaceAll("&","&amp;").replaceAll("<","&lt;")
+ .replaceAll(">","&gt;").replaceAll('"',"&quot;")
+ .replaceAll("'","&#39;");
+const renderer=Function("safeArray","clean","escapeHtml","designForWebsite",
+ "designCss","planWebsiteDesign","sectionAppearanceClasses",
+ "canonicalWebsiteHandoffUrl","URL",
+ rendererSource.slice(rendererStart,rendererEnd)+"\nreturn renderWebsiteHtml;"
+)(
+ value=>Array.isArray(value)?value:[],
+ value=>String(value??"").trim(),escapeHtml,
+ ()=>({mood:"quiet",sector:"general"}),()=>"/* test styles */",
+ ()=>({sectionOrder:["hero","services","contact"],family:"classic",
+  contentTier:"complete",architecture:"simple"}),
+ ()=>"",canonicalWebsiteHandoffUrl,URL
+);
+const sample=website();
+sample.designPlan={sectionOrder:["hero","services","contact"],
+ family:"classic",contentTier:"complete",architecture:"simple"};
+const approved=plan("enquiry");
+const applied=applyWebsiteLayoutOperation(sample,{
+ action:"connect-app-request",websiteId:approved.websiteId,
+ expectedGeneration:approved.websiteGeneration,expectedBusinessId:businessId,
+ intent:"enquiry",slug:app().public_slug,appId,liveVersionId:liveId,
+ url:approved.url
+});
+ok(applied.applied);
+const html=renderer(applied.draft,"home");
+ok(html.includes('class="busy-app-request-link"'));
+ok(html.includes("Send an enquiry through BUSY"));
+ok(html.includes("intent=enquiry"));
+ok(html.includes("source=web"));
+ok(html.includes("rel=\\"noopener noreferrer\\""));
+ok(html.includes("https://abcdefghijklmnopqrst.supabase.co/functions/v1/busy-mini-app-link"));
+ok(!html.includes("<form"),"The website must not pretend to submit a form.");
+ok(!html.includes("intent=booking_request"),"Only the owner-approved action is rendered.");
+const badHtml=renderer({...applied.draft,theme:{...applied.draft.theme,
+ appRequestLinks:{enquiry:{...applied.draft.theme.appRequestLinks.enquiry,
+ url:"javascript:alert(document.cookie)"}}}},"home");
+ok(!badHtml.includes("busy-app-request-link"),"Reject dangerous stored URLs at render time.");
+const unapprovedHtml=renderer({...applied.draft,theme:{...applied.draft.theme,
+ appRequestLinks:{enquiry:{...applied.draft.theme.appRequestLinks.enquiry,
+ ownerApproved:false}}}},"home");
+ok(!unapprovedHtml.includes("busy-app-request-link"),"Owner consent remains required at render.");
+const hiddenContact=structuredClone(applied.draft);
+hiddenContact.sections.find(x=>x.id==="contact").enabled=false;
+ok(!renderer(hiddenContact).includes("busy-app-request-link"),
+ "A hidden contact section must not create an orphan CTA.");
+const removed=applyWebsiteLayoutOperation(applied.draft,{
+ action:"disconnect-app-request",websiteId:applied.draft.id,
+ expectedGeneration:applied.draft.generation,expectedBusinessId:businessId,
+ intent:"enquiry"
+});
+ok(removed.applied);
+ok(!renderer(removed.draft).includes("busy-app-request-link"),
+ "Owner removal reverses private rendered handoff.");
 console.log("V3.214 "+checks+" assertions PASS: live-app handoff, owner approval/undo, malicious URL rejection, stale business/version/module checks, renderer and Edge live action gates.");
