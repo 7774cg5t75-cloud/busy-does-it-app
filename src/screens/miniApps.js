@@ -4878,6 +4878,30 @@ function MiniAppRequestDetail({ s }) {
               ):null}
             </Card>
           ):null}
+          {ownerView?(
+            <Card eyebrow="BUSY verification"
+              title="Check the customer request reached this business"
+              body="Busy can check the exact saved request in your authenticated business inbox, including older requests not shown in the recent list."
+              tone="blue">
+              <Button label="Verify this request in my inbox"
+                disabled={!!s.miniAppsAction}
+                onPress={()=>s.verifyOwnerRequestInbox(request.id)}/>
+            </Card>
+          ):null}
+          {s.latestCommunicationEvidence?.ok&&
+            s.latestCommunicationEvidence.requestId===request.id?(
+            <Card eyebrow="What Busy verified"
+              title={s.latestCommunicationEvidence.kind==="business_request_inbox_evidence_v3205"?
+                "Saved in this business inbox":"Reply saved in BUSY"}
+              body={s.latestCommunicationEvidence.summary}
+              tone="blue">
+              <Text style={styles.cardBody}>
+                A saved record is not proof that a notification arrived or
+                that the customer saw a reply. Booking confirmation requires
+                its own verified diary entry.
+              </Text>
+            </Card>
+          ):null}
           {ownerView && link?.bridge_state === "booking_draft" ? (
             <Card
               eyebrow="BUSY booking"
