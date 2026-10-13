@@ -16198,8 +16198,11 @@ function App() {
       let detailVerified=true;
       if(selectedMiniAppRequestDetail?.request?.id===requestId&&
          selectedMiniAppRequestRole==="business"){
-        try{await loadMiniAppRequestDetail(requestId,"business",{navigate:false});}
-        catch{detailVerified=false;}
+        try{
+          const refreshed=await loadMiniAppRequestDetail(
+            requestId,"business",{navigate:false});
+          detailVerified=refreshed===true;
+        }catch{detailVerified=false;}
       }
       setMiniAppsNotice(data?.statusRefreshRequired||!detailVerified?
         "BUSY saved the request status, but the latest inbox view still needs refreshing. Do not repeat this action.":
