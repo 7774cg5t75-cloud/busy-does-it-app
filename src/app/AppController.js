@@ -1,5 +1,7 @@
 import {confirmFirstAppFromWebsite} from "../core/firstAppFromWebsiteV3197.mjs";
 import {reconcileFirstAppReadback} from "../core/firstAppRecoveryV3198.mjs";
+import {evaluateCustomerRequestOutcome,customerRequestNotice}
+ from "../core/customerJourneyOutcomeV3204.mjs";
 import {planWebsiteToAppDesign} from "../core/websiteToAppBrandTransferV3196.mjs";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -388,6 +390,11 @@ function App() {
   const miniAppMessageInFlightRef=useRef(new Set());
   const customerRequestPendingRef=useRef(null);
   const customerRequestInFlightRef=useRef(false);
+  useEffect(()=>{
+    // Never reuse an unfinished request key across a sign-in identity change.
+    customerRequestPendingRef.current=null;
+    customerRequestInFlightRef.current=false;
+  },[ownerSession?.userId]);
   const [miniAppRequestHistoryLoading, setMiniAppRequestHistoryLoading] = useState(false);
   const [miniAppsNotificationStatus, setMiniAppsNotificationStatus] = useState({
     state: "unknown",
@@ -16060,12 +16067,13 @@ function App() {
 
   const submitBusyAppRequest = async (requestType, payload = {}) => {
     const slug = selectedBusyAppDetail?.app?.slug || "";
-    if (!slug || customerRequestInFlightRef.current) return false;
+    const appId = selectedBusyAppDetail?.app?.id || "";
+    const customerUserId = ownerSession?.userId || "";
+    if (!slug || !appId || !customerUserId ||
+        customerRequestInFlightRef.current) return false;
     // Keep one request key for the SAME in-memory draft after an ambiguous
-    // network error. A repeated tap cannot create a second customer request.
-    const signature=JSON.stringify([
-      ownerSession?.userId||"",slug,requestType,payload
-    ]);
+    // network error. Repeated taps cannot create simultaneous requests.
+    const signature=JSON.stringify([customerUserId,slug,appId,requestType,payload]);
     const pending=customerRequestPendingRef.current;
     if(!pending||pending.signature!==signature){
       customerRequestPendingRef.current={
@@ -16073,30 +16081,53 @@ function App() {
       };
     }
     const key=customerRequestPendingRef.current.requestKey;
+    const scopeStillCurrent=()=>ownerSession?.userId===customerUserId&&
+      selectedBusyAppDetail?.app?.slug===slug&&
+      selectedBusyAppDetail?.app?.id===appId;
     customerRequestInFlightRef.current=true;
     setMiniAppsAction(`request:${requestType}`);
     setMiniAppsError("");
     setMiniAppsNotice("");
     try {
       const data = await miniAppsRequest(
-        "submit_request",
-        {slug,requestType,payload},
+        "submit_request",{slug,requestType,payload},
         {includeBusiness:false,requestKey:key}
       );
-      if(!data?.request?.id||data?.ok!==true)
-        throw Error("The customer request was not verified. Check My BUSY Apps before trying again.");
-      // The durable saved record is established. Provider delivery, calendar
-      // acceptance and business replies are separate stages, never implied.
+      const verified=evaluateCustomerRequestOutcome({
+        businessAppId:appId,customerUserId,requestType,
+        response:data,evidenceSource:"submit_response"
+      });
+      if(!verified.ok||!scopeStillCurrent())
+        throw Error("The saved request response could not be verified against your account.");
       customerRequestPendingRef.current=null;
-      setMiniAppsNotice(requestType==="booking_request"?
-        "Booking request saved in BUSY. The business still needs to review it; no appointment is confirmed.":
-        "Enquiry saved in BUSY. You can check its status in My BUSY Apps.");
-      try{await loadMyBusyApps({quiet:true});}
-      catch{ /* Saved request is still acknowledged independently. */ }
+      setMiniAppsNotice(customerRequestNotice(verified));
+      // A My Apps refresh is optional and must never invalidate saved proof.
+      try{await loadMyBusyApps({quiet:true});}catch{}
       return true;
     }catch(error){
-      setMiniAppsError("BUSY could not confirm the latest request result. "+
-        "Check My BUSY Apps before retrying; retrying unchanged details uses the same request ID.");
+      // Read-only owner-independent customer receipt: this prevents
+      // an interrupted HTTP reply from silently making another request.
+      // It does not submit messages, mark notifications delivered, or
+      // mutate unread status.
+      try{
+        if(scopeStillCurrent()){
+          const receipt=await miniAppsRequest("request_receipt",
+            {slug,requestType,requestKey:key},
+            {includeBusiness:false});
+          const verified=evaluateCustomerRequestOutcome({
+            businessAppId:appId,customerUserId,requestType,
+            response:receipt,evidenceSource:"read_only_customer_receipt"
+          });
+          if(verified.ok&&scopeStillCurrent()){
+            customerRequestPendingRef.current=null;
+            setMiniAppsNotice(customerRequestNotice(verified));
+            try{await loadMyBusyApps({quiet:true});}catch{}
+            return true;
+          }
+        }
+      }catch{ /* Failed readback proves nothing; retain same request key. */ }
+      setMiniAppsError("BUSY couldn't confirm whether the request saved. "+
+        "Check My BUSY Apps before trying again. Retrying unchanged details uses the same request ID.");
       return false;
     }finally{
       customerRequestInFlightRef.current=false;
