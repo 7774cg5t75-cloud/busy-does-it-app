@@ -14,6 +14,7 @@ import { previewPrivateAppAppearance,OPTIONS as appAppearanceOptions } from "../
 import {nativePalette,LABELS as nativePaletteLabels} from "../core/nativePalette.mjs";
 import {BusinessBrandDnaPreview} from "./businessBrandDnaPreview";
 import {WebsiteToAppDesignTransfer} from "./websiteToAppDesignTransfer";
+import {FirstAppFromWebsite} from "./firstAppFromWebsite";
 import {appVisualPresentation,TYPE_LABELS,SERVICE_LABELS} from "../core/appVisualPresentationV3194.mjs";
 import { interpretSelectedAppAppearance } from "../core/appContextInstruction.mjs";
 import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.mjs";
@@ -1097,6 +1098,12 @@ function MiniAppBuilder({ s }) {
       subtitle="Describe the customer experience you want. BUSY turns it into a controlled app plan using tested modules and the business facts it already knows."
       brandCue="V3.56 • shared business profile • intelligent module recommendations • owner-controlled publishing."
     >
+      <FirstAppFromWebsite website={s.websiteDraft}
+        app={app} businessId={s.cloudWorkspace?.businessId}
+        businessType={s.trade} services={s.miniAppProfileDraft?.services||s.services}
+        onCreate={s.createPrivateAppFromWebsite}
+        onCheckBenefit={s.checkStandaloneEligibility}
+        busy={s.miniAppsAction}/>
       <BusinessBrandDnaPreview website={s.websiteDraft}
         app={app} businessId={s.cloudWorkspace?.businessId}/>
       <WebsiteToAppDesignTransfer website={s.websiteDraft} app={app}
