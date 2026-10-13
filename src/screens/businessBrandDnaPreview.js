@@ -7,6 +7,7 @@ import {buildBusinessBrandDnaSnapshot,planBrandDnaContentBrief}
 import {SUPPORTED,prepareBrandedCopyPreview}
  from "../core/brandedContentDraftV3198.mjs";
 import {reviewCrossChannelBrandContent} from "../core/brandCampaignReviewV3200.mjs";
+import {reviewBuilderJourneyContinuity} from "../core/builderJourneyContinuityV3209.mjs";
 
 /**
  * A REAL owner-facing, zero-provider preview of reuse opportunities.
@@ -17,9 +18,11 @@ function BusinessBrandDnaPreview({website,app,businessId}){
  const [channel,setChannel]=React.useState("social");
  const [copyDraft,setCopyDraft]=React.useState(null);
  const [campaignReview,setCampaignReview]=React.useState(null);
+ const [showJourney,setShowJourney]=React.useState(false);
  React.useEffect(()=>{
-  setCopyDraft(null);setCampaignReview(null);
+  setCopyDraft(null);setCampaignReview(null);setShowJourney(false);
  },[businessId,website?.id,website?.generation,app?.id,app?.draft_revision,channel]);
+ const journey=reviewBuilderJourneyContinuity({website,app,businessId});
  const dna=buildBusinessBrandDnaSnapshot({website,app,businessId});
  if(!dna.ok)return null;
  const brief=planBrandDnaContentBrief(dna,{channel,
@@ -46,7 +49,23 @@ function BusinessBrandDnaPreview({website,app,businessId}){
     {dna.conflicts.map((item,i)=><Text key={i} style={styles.cardBody}>
       {"Needs review: "+item}
     </Text>)}
-    <Text style={styles.sectionLabel}>
+    {journey.ok?<View>
+       <Button label={showJourney?"Hide website and app journey review":
+         "Check how my website and app work together"}
+         onPress={()=>setShowJourney(value=>!value)}/>
+       {showJourney?<View>
+         <Text style={styles.cardBody}>{journey.summary}</Text>
+         {journey.recommendations.map(item=>
+           <Text key={item.id} style={styles.cardBody}>
+             {"Review: "+item.text}
+           </Text>)}
+         <Text style={styles.cardBody}>
+           These are private draft checks, not proof of a real customer journey.
+           Nothing is transferred, published, booked or sent.
+         </Text>
+       </View>:null}
+     </View>:null}
+     <Text style={styles.sectionLabel}>
      Prepare a consistent business identity across content
     </Text>
     <Button label="Review three branded content drafts together"
