@@ -174,7 +174,7 @@ for(const path of [
 }
 const ctrl=read("src/app/AppController.js");
 ok(ctrl.includes("const commitReviewedBuilderDraft="));
-eq((ctrl.match(/commitReviewedBuilderDraft\(current,/g)||[]).length,3);
+eq((ctrl.match(/commitReviewedBuilderDraft\(current,/g)||[]).length,4);
 ok(ctrl.includes("setWebsiteUndo(items=>[...items,current].slice(-8))"));
 ok(ctrl.includes("confirmMatchAppBrandToWebsite(current,app,{businessId,evidence})"));
 ok(ctrl.includes("confirmMatchAppTypeToWebsite(current,app,{businessId,evidence})"));
