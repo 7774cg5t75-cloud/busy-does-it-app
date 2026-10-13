@@ -99,6 +99,13 @@ These layers describe the intended direction. Their presence in this document **
 - These changes do not extend the catalogue's actual transactional runtime, activate payments or customer account systems, or prove a real hosted booking/enquiry or device outcome. See docs/V3_211_REVIEWED_BUILDER_INTEGRATION.md.
 - The next milestones are progressively more real reusable cross-surface server-owned functions, safe extension points, visual evaluation and verifiable outcomes; never confuse a planned capability with a completed task.
 
+## Universal builder checkpoint — V3.212 shared customer requests
+
+- Reuse the current Business App request state machine for future website and app enquiries and booking requests. Both builder surfaces must require one authoritative owner/tenant scoped request, authenticated receipt and independent booking confirmation. A website Contact link is not a transactional form.
+- V3.212 adds the privacy-minimal review-only cross-surface contract, coordinated owner-facing readiness explanations, synthetically unverified status examples, static app width checks, and a version-checked private website contact-emphasis adjustment with existing undo.
+- No live public website request endpoint, external notification, authenticated shared receipt adapter or independent diary commit has been deployed. These remain explicit prerequisites, not inferred capabilities.
+- Detailed technical scope and limitations: docs/V3_212_SHARED_CUSTOMER_REQUEST_INTELLIGENCE.md.
+
 ## V3.46 Production Domain Activation
 ### BUSY-owned platform domain
 - The platform root defaults to `busydoesit.co.uk`. Default BUSY websites use first-level hostnames such as `site-<slug>-<business-suffix>.busydoesit.co.uk`; `sites.busydoesit.co.uk` is reserved as the SaaS CNAME target and `origin.busydoesit.co.uk` as the fallback-origin record.
