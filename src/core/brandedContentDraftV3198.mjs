@@ -1,0 +1,44 @@
+/**
+ * V3.198: real, deterministic, private brand-aware COPY previews for three
+ * channels. This is deliberately not an AI-provider call, image generation,
+ * ad campaign, social posting or approval to use third-party media.
+ * All included facts originate in the current owner-readable Brand DNA.
+ */
+import {planBrandDnaContentBrief} from "./businessBrandDnaV3195.mjs";
+const SUPPORTED=Object.freeze(["social","poster","advert"]);
+const short=(v,max)=>typeof v==="string"&&v.length<=max&&
+ !/[<>\u0000-\u001f\u007f]/.test(v)?v.trim():"";
+function prepareBrandedCopyPreview(snapshot,{channel="social"}={}){
+ if(!SUPPORTED.includes(channel))
+  return {ok:false,reason:"Choose social post, poster or advert for a text draft."};
+ const brief=planBrandDnaContentBrief(snapshot,{channel,
+  goal:"Prepare factual brand-matched copy for an owner-reviewed draft"});
+ if(!brief.ok)return brief;
+ if(snapshot.conflicts.length)
+  return {ok:false,reason:"Resolve the website and app brand differences before preparing shared branded copy.",
+   conflicts:[...snapshot.conflicts],requiresOwnerReview:true};
+ const name=short(brief.businessName,140);
+ const tagline=short(brief.tagline,220);
+ const about=short(brief.about,900);
+ const names=brief.services.slice(0,3).map(s=>short(s.name,120)).filter(Boolean);
+ if(!name)return {ok:false,reason:"Add an owner-approved business name."};
+ if(!tagline&&!about&&!names.length)
+  return {ok:false,reason:"Add a brand description or approved services before preparing meaningful copy."};
+ const copy=channel==="social"?
+  [name,tagline,about,names.length?"Services: "+names.join(" • "):"",
+   "Find out more about "+name+"."].filter(Boolean).join("\n\n"):
+  channel==="poster"?
+  [name.toUpperCase(),tagline,about,names.length?"Services: "+names.join(" • "):"",
+   "Ask us for more information."].filter(Boolean).join("\n\n"):
+  [name,tagline,about,names.length?"Explore: "+names.join(" • "):"",
+   "Learn more about "+name+"."].filter(Boolean).join("\n\n");
+ return {ok:true,kind:"private_branded_copy_v3198",businessId:brief.businessId,
+  source:{...brief.source},channel,copy,
+  brandColour:brief.brandColour,ownerChosenTone:brief.voice,
+  includedServiceCount:names.length,usedOwnerProvidedFactsOnly:true,
+  requiresOwnerApproval:true,privateOnly:true,neverPublishes:true,
+  advertisingCampaignNotCreated:true,providerCallsMade:false,
+  noAutomaticMediaReuse:true,noPricesOrReviewsInvented:true,
+  needsHumanCopyAndComplianceReview:true};
+}
+export {SUPPORTED,prepareBrandedCopyPreview};
