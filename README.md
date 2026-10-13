@@ -7,6 +7,9 @@ A business owner can now review and approve a **private website Contact link** t
 **This is a secure handoff to an existing Business App, not a newly built website-hosted transactional form.** No customer requests, confirmations, notifications, payments, migrations, Edge deployments or paid mobile builds were performed. See [V3.214 technical notes](docs/V3_214_WEBSITE_APP_REQUEST_HANDOFF.md) and the permanent [universal architecture](ARCHITECTURE.md).
 
 
+**Published version continuity:** customer-facing links and guest intake resolve a confirmed live version even if a newer private Business App draft is being edited. See the [V3.214 implementation notes](docs/V3_214_WEBSITE_APP_REQUEST_HANDOFF.md). This requires deployment and real-world verification before claiming the public behaviour works.
+
+
 ## V3.213 — Shared Backend Request Receipts and Recovery (development)
 
 The existing signed-in Business App and public guest mini-app request services now use **one identical, minimal saved-request proof contract**, with exact request/business/app scope and careful booking confirmation states. The owner request status path no longer mistakes a failed post-save event, notification or dashboard refresh for a failed committed request status. The customer/owner experience preserves exact idempotent recovery instead of suggesting duplicate actions.
