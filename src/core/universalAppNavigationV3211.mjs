@@ -36,7 +36,9 @@ function planUniversalAppNavigation({businessId="",request="",app=null,website=n
  const serviceReady=Array.isArray(profile.services)&&profile.services.some(
    s=>typeof s?.name==="string"&&!!s.name.trim());
  const galleryReady=Array.isArray(profile.assets?.gallery)&&profile.assets.gallery.some(
-   x=>x?.approved===true&&(typeof x.uri==="string"||typeof x.storagePath==="string"));
+   x=>x?.approved===true&&
+     ((typeof x.uri==="string"&&/^https:\/\/[^\s"'<>]+$/i.test(x.uri))||
+      (typeof x.storagePath==="string"&&!!x.storagePath.trim())));
  const offersReady=Array.isArray(config.offers)&&config.offers.some(
    x=>x?.approved===true&&typeof x.title==="string"&&!!x.title.trim());
  const candidateIds=requirements.detectedGoals.filter(id=>allowed[id]&&
