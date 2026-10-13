@@ -237,7 +237,7 @@ ok(html.includes('class="busy-app-request-link"'));
 ok(html.includes("Send an enquiry through BUSY"));
 ok(html.includes("intent=enquiry"));
 ok(html.includes("source=web"));
-ok(html.includes("rel=\\"noopener noreferrer\\""));
+ok(html.includes('rel="noopener noreferrer"'));
 ok(html.includes("https://abcdefghijklmnopqrst.supabase.co/functions/v1/busy-mini-app-link"));
 ok(!html.includes("<form"),"The website must not pretend to submit a form.");
 ok(!html.includes("intent=booking_request"),"Only the owner-approved action is rendered.");
