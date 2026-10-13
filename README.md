@@ -1,5 +1,12 @@
 # busy-does-it-app
 
+## V3.214 — Website-to-Live-App Requests (development)
+
+A business owner can now review and approve a **private website Contact link** that sends visitors to an **already-live BUSY Business App enquiry or booking-request action**. BUSY verifies business ownership, the published app/version and module, canonical HTTPS destination and existing contact information; the public link handler independently rechecks the currently live module before offering the action. Owners can remove or undo the private edit, and publication remains a separate approval.
+
+**This is a secure handoff to an existing Business App, not a newly built website-hosted transactional form.** No customer requests, confirmations, notifications, payments, migrations, Edge deployments or paid mobile builds were performed. See [V3.214 technical notes](docs/V3_214_WEBSITE_APP_REQUEST_HANDOFF.md) and the permanent [universal architecture](ARCHITECTURE.md).
+
+
 ## V3.213 — Shared Backend Request Receipts and Recovery (development)
 
 The existing signed-in Business App and public guest mini-app request services now use **one identical, minimal saved-request proof contract**, with exact request/business/app scope and careful booking confirmation states. The owner request status path no longer mistakes a failed post-save event, notification or dashboard refresh for a failed committed request status. The customer/owner experience preserves exact idempotent recovery instead of suggesting duplicate actions.
