@@ -197,6 +197,25 @@ for(const term of [
  '.eq("mini_app_id", app.data.id)',
  'return page(404,'
 ])ok(edge.includes(term),"Live Edge link safety "+term);
+// A live app must remain usable while the owner privately edits the NEXT
+// version. Every public entry path resolves only current_live_version_id and
+// verifies the immutable version's own state, not draft_config.
+const guestEdge=read("supabase/functions/busy-mini-app-guest/index.ts");
+const ownerEdge=read("supabase/functions/busy-mini-apps/index.ts");
+for(const [name,source] of [
+ ["guest",guestEdge],["public link",edge],["signed-in consumer",ownerEdge]
+]){
+ ok(source.includes('"update_pending"'),
+   "An already-published app must survive private edits: "+name);
+}
+ok(guestEdge.includes('.in("status", ["live", "update_pending"])'));
+ok(edge.includes('.in("status", ["live", "update_pending"])'));
+ok(guestEdge.includes('.eq("state", "live")'));
+ok(edge.includes('.eq("state", "live")'));
+ok(ownerEdge.includes('.eq("state", "live")'));
+ok(ownerEdge.includes('.in("status", ["live", "update_pending"])'));
+ok(!ownerEdge.includes('.eq("public_slug", slug)\n    .eq("status", "live")'),
+  "Consumer app detail must not disappear when private edits are pending.");
 ok(!rendered.includes('<form action="/functions/v1/'),
  "No imaginary website submission form.");
 // Exercise the actual website HTML renderer while stubbing unrelated design
