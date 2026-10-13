@@ -90,8 +90,9 @@ for(const change of [
  eq(result.ok,false,"A stale or unsafe owner-reviewed reply must be blocked.");
  eq(result.maySend,false);
 }
-const sent={databaseMessageSaved:true,message:{id:messageId},
- providerDeliveryVerified:false};
+const sent={databaseMessageSaved:true,message:{id:messageId,
+ business_id:businessId,mini_app_id:appId,request_id:requestId,
+ sender_role:"business"},providerDeliveryVerified:false};
 const after=decideFreshOwnerFollowup({businessId,appId,requestId,row,
  messages:[m(messageId,"business","2026-10-13T09:00:00Z")],nowISO:at});
 const complete=validateOwnerReplyAfterSave({businessId,appId,requestId,
@@ -132,8 +133,13 @@ for(const change of [
  {businessId:userId},{appId:userId},{requestId:userId},
  {response:null},
  {response:{ok:false,...sent,postSendEvidence:complete}},
- {response:{ok:true,databaseMessageSaved:false,message:{id:messageId}}},
- {response:{ok:true,databaseMessageSaved:true,message:{id:"invalid"}}}
+ {response:{ok:true,databaseMessageSaved:false,message:{...sent.message}}},
+ {response:{ok:true,databaseMessageSaved:true,message:{...sent.message,id:"invalid"}}},
+ {response:{ok:true,...sent,message:{...sent.message,business_id:userId}}},
+ {response:{ok:true,...sent,message:{...sent.message,mini_app_id:userId}}},
+ {response:{ok:true,...sent,message:{...sent.message,request_id:userId}}},
+ {response:{ok:true,...sent,message:{...sent.message,sender_role:"customer"}}},
+ {response:{ok:true,...sent,providerDeliveryVerified:true}}
 ]){
  const verdict=interpretSavedOwnerReply({businessId,appId,requestId,
  response:{ok:true,...sent,postSendEvidence:complete},...change});
