@@ -159,7 +159,7 @@ for(const pattern of [
  '"Check latest conversation"',
  '"Recheck and use draft"',
  '"Keep my text"',
- '"Nothing is sent"',
+ '"Nothing will be sent."',
  's.ownerFollowupReview.businessId===request.business_id'
 ])ok(ui.includes(pattern),"Owner UI must independently review current conversation: "+pattern);
 ok(!ui.includes("setDraft(followUpSuggestion.replyDraft)"));
