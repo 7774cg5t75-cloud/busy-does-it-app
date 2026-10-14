@@ -147,7 +147,8 @@ const edge=read("supabase/functions/busy-mini-apps/index.ts");
 const controller=read("src/app/AppController.js");
 ok(edge.includes('import {checkCustomerRequestReplay} from "./customerRequestReplayV3203.mjs"'));
 ok(edge.includes("if(!replay.ok)throw Error(replay.reason)"));
-ok(edge.includes("savedRequestConfirmed:true,eventRecorded,"));
+ok(edge.includes("savedRequestConfirmed:requestEvidence?.verifiedSaved===true,"));
+ok(edge.includes("eventRecorded,"));
 ok(edge.includes("notificationDeliveryVerified:false"));
 ok(edge.indexOf("if (requestId) {",edge.indexOf("async function submitRequest("))<
  edge.indexOf("const since = new Date(",edge.indexOf("async function submitRequest(")));
