@@ -79,4 +79,5 @@ jobs:
           ../../node_modules/.bin/expo export --platform ios --output-dir /tmp/bdi-v3219-standalone-ios
           ../../node_modules/.bin/expo export --platform android --output-dir /tmp/bdi-v3219-standalone-android
       - name: Note limits
-        run: echo "V3.219: staging catalog read-only evidence; no public endpoint, migrations, customer data, provider messages or signed builds."
+        run: |
+          echo "V3.219: staging catalog read-only evidence; no public endpoint, migrations, customer data, provider messages or signed builds."
