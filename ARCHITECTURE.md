@@ -2,6 +2,17 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.226 — Atomic guest alert intent and honest owner delivery evidence
+
+- **Both masters checked BEFORE development:** latest saved Word product master V22.6 (sections 33, 42, 52, 53), latest GitHub ARCHITECTURE.md and development policy. Preserve one Business App and shared business/customer request truth, plain-language one-step owner UX, privacy, app/website integration and zero surprise charges.
+- **Durable outbox beside original request source, NOT a second request engine:** new additive migration 20261014151000_v3_226_guest_notification_intent.sql inserts one unique, tenant-scoped pending guest alert INTENT from an AFTER INSERT trigger on the existing shared Business App request table. It shares the original transaction and therefore cannot silently lose intent between request commit and a post-commit Edge notification call. The actual guest Edge handler now performs exact saved-request and outbox readbacks, with no direct Expo push provider call. Fail closed on missing/mismatched outbox; never invite duplicate request submission.
+- **Strict status honesty:** persisted intent != provider accepted != delivered != customer read != booking confirmed. No dispatch worker, provider acknowledgement, retry lease runner or mobile-device delivery is implemented. Future dispatcher requires bounded, database-atomic lease, idempotency, retry safety, independent acceptance/delivery evidence and explicit activation approval.
+- **Real private owner visibility:** existing authenticated owner/admin Business App queue reuses the same request/outbox business+app scope to show pending and retry_wait totals, never private contact fields. The existing one-action inbox card now warns that guest alerts are not confirmed delivered; no extra screen, background polling or automated messages.
+- **Security:** private outbox FORCE RLS, revoked direct anonymous and signed-in client access and trigger-function EXECUTE, trusted server-only Edge reads with existing membership gates. No user-supplied raw payload enters notification intent; no cron, pg_net or provider calls in migration.
+- **Verification:** scripts/check-outbox-v3226.mjs has 126 new focused assertions; disposable PostgreSQL 16 integration test applies the real V3.226 migration alongside original guest RPC and rolls back all temporary data, checking same-tenant unique pending intent for each saved request. Inherited historical migration audits now count 65 actual SQL migration files (plus isolated-only staging baseline) without dropping security coverage. Source CI never proves real hosted staging Auth/JWT, provider delivery or customer bookings.
+- **Release gate:** fresh isolated staging SELECT found only its original RLS canary and two canary migration entries. No schema installed and no Edge deployment initiated; migration dependency order, extensions, backup/restore, genuine Auth/JWT and explicit owner phase approval are still required. Detailed report: docs/V3_226_DURABLE_GUEST_ALERT_INTENTS_AND_OWNER_DELIVERY_TRUTH.md.
+
+
 ## Retail commerce and evidence-led customer success — Wix advert learnings
 
 **Owner-approved product guidance, 14 October 2026; saved master V22.7, Sections 52.6–52.7.** A Wix shop/customer-success advert reinforces two existing goals; the stated turnover is a marketing claim, not proof of profit or causal value from Wix.
