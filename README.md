@@ -1,5 +1,14 @@
 # busy-does-it-app
 
+## V3.225 — Real Guest Request SQL Rehearsal and Simpler Owner Inbox
+
+Both masters were read first. This major sweep reuses the actual Business App request engine: a **disposable PostgreSQL 16 integration test** runs the real existing V3.45 guest request RPC together with ten original prerequisite migration SQL bodies and the isolated business baseline. The CI-only assembly omits scheduled cron work, checks one stored enquiry/event, idempotent replay, separate businesses, expired requests and full ROLLBACK. No real Supabase database was changed.
+
+The authenticated Business App Edge handler now offers a **read-only owner_queue_summary** of new/reviewing requests based on scoped server database queries; the existing mobile Business App screen has an on-demand **Check customer requests** action and opens the original request when needed. No automatic messages, extra customer database, provider charges or AI-model calls. Backend/UI source is committed but not deployed to the uninstalled isolated staging request backend.
+
+Full report and architecture health: [V3.225 real guest RPC & owner inbox](docs/V3_225_REAL_GUEST_RPC_OWNER_QUEUE_AND_ARCHITECTURE_HEALTH.md). GitHub CI includes the inherited V3.224 and source security tests. Real staging installation, genuine two-tenant Auth/JWT isolation, durable notification outbox, browser testing and signed native builds remain separately gated.
+
+
 ## V3.224 — Safer Guest App Requests & Real Disposable Postgres Tests
 
 Both the latest **saved product master V22.5** and the GitHub architecture were reviewed first. This substantial development sweep strengthens the actual `busy-mini-app-guest` Edge handler: a guest submission must match the original server-read, saved request's tenant, app, challenge, type, payload, contacts and idempotency key before we confirm it. Already-consumed sequential replays no longer attempt another owner notification; concurrent exactly-once delivery still requires a durable outbox.
