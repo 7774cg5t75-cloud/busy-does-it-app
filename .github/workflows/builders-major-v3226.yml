@@ -127,7 +127,7 @@ jobs:
             tee /tmp/v3224_disposable_pg_assert.log
           grep -q 'V3.224_EPHEMERAL_BASELINE_ROLLBACK_PASS' /tmp/v3224_disposable_pg_assert.log
           node scripts/prepare-disposable-guest-rpc-v3225.mjs
-          cat /tmp/bdi-v3226-disposable-guest/guest-rpc-rollback.sql |
+          cat /tmp/bdi-v3225-disposable-guest/guest-rpc-rollback.sql |
             docker exec -i "$CID" psql -U postgres -d postgres -v ON_ERROR_STOP=1 |
             tee /tmp/v3225_disposable_rpc_assert.log
           grep -q 'V3.225_EPHEMERAL_GUEST_RPC_ROLLBACK_PASS' /tmp/v3225_disposable_rpc_assert.log
