@@ -1,3 +1,4 @@
+import {websiteBuilderTestHarnessV3222} from "./lib/website-builder-test-harness-v3222.mjs";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {splitSelectedWebsiteInstruction,planSelectedWebsiteChanges,
@@ -8,21 +9,8 @@ import {planWebsiteDesign} from "../supabase/functions/busy-website-worker/desig
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
 import {applyWebsiteVisualEdit} from "../supabase/functions/busy-website-worker/designEdits.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
-const strip=s=>s.replace(/export\s*\{[\s\S]*?\};?\s*$/,"");
-const m=Function(strip(read("src/domain/websiteManagement.js"))+";return {syncWebsitePageModel};")();
-let src=strip(read("src/domain/websiteBuilder.js"));
-for(const imp of [
- 'import { syncWebsitePageModel } from "./websiteManagement";',
- 'import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";',
- 'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
- 'import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";',
- 'import { applyWebsiteVisualEdit } from "../../supabase/functions/busy-website-worker/designEdits.mjs";'
-]){assert.ok(src.includes(imp));src=src.replace(imp,"");}
-const {buildWebsiteDraft,applyWebsiteLayoutChange,applyStructuredWebsiteEdit}=Function(
- "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign",
- "reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField",
- src+";return {buildWebsiteDraft,applyWebsiteLayoutChange,applyStructuredWebsiteEdit};"
-)(m.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField);
+const {buildWebsiteDraft,applyWebsiteLayoutChange,applyStructuredWebsiteEdit}=websiteBuilderTestHarnessV3222(["buildWebsiteDraft","applyWebsiteLayoutChange","applyStructuredWebsiteEdit"]);
+
 const photo={id:"ph1",approved:true,storagePath:"owner/private.jpg",uri:"https://example.test/photo.jpg"};
 const draft=buildWebsiteDraft({brandBrain:{websiteReady:true,websiteBrief:{
  businessName:"Devon Garden Studio",businessType:"Garden design",
