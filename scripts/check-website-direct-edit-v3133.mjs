@@ -1,3 +1,4 @@
+import {websiteBuilderTestHarnessV3222} from "./lib/website-builder-test-harness-v3222.mjs";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {editWebsiteDraftField} from "../src/core/websiteStructuredEditing.mjs";
@@ -8,23 +9,8 @@ import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/des
 import {applyWebsiteVisualEdit} from "../supabase/functions/busy-website-worker/designEdits.mjs";
 
 const read=path=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
-const strip=s=>s.replace(/export\s*\{[\s\S]*?\};?\s*$/,"");
-const management=Function(strip(read("src/domain/websiteManagement.js"))+";return {syncWebsitePageModel};")();
-let domain=strip(read("src/domain/websiteBuilder.js"));
-for(const imp of [
- 'import { syncWebsitePageModel } from "./websiteManagement";',
- 'import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";',
- 'import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";',
- 'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
- 'import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";',
- 'import { applyWebsiteVisualEdit } from "../../supabase/functions/busy-website-worker/designEdits.mjs";',
+const {buildWebsiteDraft,applyStructuredWebsiteEdit}=websiteBuilderTestHarnessV3222(["buildWebsiteDraft","applyStructuredWebsiteEdit"]);
 
-]){assert.ok(domain.includes(imp),"Expected domain import missing: "+imp);domain=domain.replace(imp,"");}
-const {buildWebsiteDraft,applyStructuredWebsiteEdit}=Function(
- "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign",
- "reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField","canonicalWebsiteHandoffUrl",
- domain+";return {buildWebsiteDraft,applyStructuredWebsiteEdit};"
-)(management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField,canonicalWebsiteHandoffUrl);
 const owner=buildWebsiteDraft({brandBrain:{websiteReady:true,websiteBrief:{
  businessName:"Rosemary Gardens",businessType:"Garden design",phone:"01234 567890",
  email:"team@rosemary.example",serviceArea:"Torbay",
