@@ -1,5 +1,14 @@
 # busy-does-it-app
 
+## V3.218 — Atomic Request Safety, Recovery and Universal Business Intelligence (development)
+
+V3.218 strengthens the *future* website-native customer request path without activating it. A non-deployable Postgres schema proposal and pure readiness reviewer define owner-consent approvals, server challenges, uniquely scoped idempotency, reuse of the existing Business App request table/inbox and a distinct notification outbox. The SQL proposal is **outside live migrations** and intentionally raises an exception before any DDL.
+
+New source modules model safe duplicate-key/replay handling, interrupted submissions and conservative verified-request readback. The Business Brain gains privacy-minimal, same-business outcome priorities, while the Website Builder gains optional industry-neutral advice explaining how existing website and Business App features can connect.
+
+**No live native website form, new Edge endpoint, migration, customer submission, confirmed appointment, provider send or paid build was executed.** V3.218 passed **179 focused source-level assertions** in an isolated V8 compatibility run. The GitHub Actions workflow is configured to run this suite plus inherited regression/security checks and unsigned iOS/Android exports, but full Node/Expo CI and real staging must still be independently verified. [V3.218 technical report](docs/V3_218_ATOMIC_REQUEST_RECOVERY_AND_UNIVERSAL_BRAIN.md) · [Master architecture](ARCHITECTURE.md).
+
+
 ## V3.217 — Transactional Request Design and Business Intelligence (development)
 
 V3.217 builds on the V3.216 inactive website-intake boundary with **a private owner-reviewed form specification**, an explicitly non-executable server transaction plan to reuse the existing Business App request/inbox system, a conservative guest request receipt reviewer, and an evidence-aware next-step Business Brain. The website editor shows a simple optional draft purpose/notice/retention review and static phone/tablet/desktop accessibility guidance.
