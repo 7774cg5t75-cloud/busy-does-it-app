@@ -14,6 +14,8 @@ import {planBusinessJourneyNextStepV3217}
  from "../core/businessJourneyCoachV3217.mjs";
 import {adviseVerifiedCustomerJourneyV3219}
  from "../core/customerJourneyActionV3219.mjs";
+import {adviseConnectedCustomerJourneyV3220}
+ from "../core/connectedJourneyAdviceV3220.mjs";
 import {planUniversalCustomerJourneyV3218}
  from "../core/universalCustomerJourneyV3218.mjs";
 import {WebsiteFormSpecReviewV3217}
@@ -56,6 +58,10 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
  const evidenceAction=adviseVerifiedCustomerJourneyV3219({
    businessId,website,app,liveVersion,catalog,endpoint,
    businessType,description
+ });
+ const primaryAdvice=adviseConnectedCustomerJourneyV3220({
+  businessId,website,app,liveVersion,catalog,endpoint,
+  businessType,description,publishing,deliveryProof
  });
  const current=latest.ok&&linked?.ownerApproved===true&&
   linked.url===latest.url&&linked.appId===latest.appId&&
@@ -139,20 +145,23 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
      </View>:<Text style={styles.cardBody}>
        {"Not ready to link: "+latest.reason}
      </Text>}
-     <Text style={styles.cardBody}>
-       {"BUSY suggestion: "+advice.goal+". "+advice.explanation}
-     </Text>
-     <Text style={styles.cardBody}>
-       {"Suggested next step: "+journeyCoach.title+". "+journeyCoach.reason}
-     </Text>
-     {evidenceAction.ok?<Text style={styles.cardBody}>
-       {"BUSY's suggested action: "+evidenceAction.title+". "+evidenceAction.reason}
+     {primaryAdvice.ok?<Text style={styles.cardBody}>
+       {"BUSY recommends: "+primaryAdvice.headline+". "+primaryAdvice.detail}
      </Text>:null}
      <Button label={showConnectedPlan?
         "Hide connected customer journey":"How would BUSY connect my website and app?"}
        onPress={()=>setShowConnectedPlan(v=>!v)}/>
      {showConnectedPlan&&connectedPlan.ok?<View>
        <Text style={styles.cardBody}>{connectedPlan.summary}</Text>
+       <Text style={styles.cardBody}>
+         {"BUSY suggestion: "+advice.goal+". "+advice.explanation}
+       </Text>
+       <Text style={styles.cardBody}>
+         {"Suggested next step: "+journeyCoach.title+". "+journeyCoach.reason}
+       </Text>
+       {evidenceAction.ok?<Text style={styles.cardBody}>
+         {"BUSY's suggested action: "+evidenceAction.title+". "+evidenceAction.reason}
+       </Text>:null}
        {connectedPlan.steps.map(step=><View key={step.id}>
          <Text style={styles.sectionLabel}>{step.title}</Text>
          <Text style={styles.cardBody}>{step.reason}</Text>
