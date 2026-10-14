@@ -13,6 +13,8 @@ import {reviewSharedCustomerReceiptV3217}
  from "../src/core/customerJourneyEvidenceV3217.mjs";
 import {planBusinessJourneyNextStepV3217}
  from "../src/core/businessJourneyCoachV3217.mjs";
+import {reviewCustomerFormResponsiveV3217}
+ from "../src/core/customerFormResponsiveV3217.mjs";
 const source=path=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
 let checks=0;
 const ok=(x,m)=>{assert.ok(x,m);checks++;};
@@ -223,6 +225,27 @@ const unknown=planBusinessJourneyNextStepV3217({
 ok(unknown.ok);
 eq(unknown.capability,"enquiry");
 eq(unknown.nextActionIsRecommendationOnly,true);
+const layouts=reviewCustomerFormResponsiveV3217({form:plan});
+ok(layouts.ok);
+eq(layouts.layouts.length,3);
+eq(layouts.minimumTouchTarget,48);
+eq(layouts.minBodyFontPixels,16);
+eq(layouts.screenshotsCaptured,false);
+eq(layouts.realBrowserTested,false);
+eq(layouts.colourContrastMeasured,false);
+eq(layouts.screenReaderTested,false);
+eq(layouts.publicFormEnabled,false);
+eq(layouts.visitorConsentMustNotBePrechecked,true);
+eq(layouts.layouts[0].columns,1);
+eq(layouts.layouts[1].columns,2);
+eq(layouts.layouts[2].columns,2);
+ok(layouts.layouts.every(x=>x.rows.every(r=>r.visibleLabel&&
+ r.minTapHeight>=48&&r.keyboardAccessibleTarget)));
+eq(reviewCustomerFormResponsiveV3217({form:bookingPlan})
+ .layouts[0].submitLabel,"Send booking request");
+eq(reviewCustomerFormResponsiveV3217({form:bookingPlan})
+ .layouts[0].submitOutcomeNotice,"A request is not a confirmed appointment.");
+eq(reviewCustomerFormResponsiveV3217({form:null}).ok,false);
 const ui=source("src/screens/websiteAppHandoffReview.js");
 ok(ui.includes("WebsiteFormSpecReviewV3217"));
 ok(ui.includes("planBusinessJourneyNextStepV3217"));
@@ -230,6 +253,8 @@ ok(ui.includes("nativeForm.safeExplanation"));
 const formUi=source("src/screens/websiteFormSpecReviewV3217.js");
 ok(formUi.includes("No form or privacy notice is published"));
 ok(formUi.includes("Check that my proposal is still unchanged"));
+ok(formUi.includes("reviewCustomerFormResponsiveV3217"));
+ok(formUi.includes("Screenshots and accessibility tests are still required"));
 const guard=source("supabase/functions/busy-website-request-intake/requestTransactionDesignV3217.mjs");
 ok(guard.includes("existingGuestRpcReusableWithoutChange:false"));
 ok(guard.includes("transactionExecutable:false"));
