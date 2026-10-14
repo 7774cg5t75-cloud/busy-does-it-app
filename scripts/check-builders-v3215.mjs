@@ -204,4 +204,12 @@ ok(!renderer.includes("<form action="),"No fictional website-native form.");
 ok(read("supabase/functions/busy-mini-app-guest/index.ts")
  .includes("busy_mini_app_create_guest_request"),
  "Real guest intake still uses its server-side transactional procedure.");
+const css=read("supabase/functions/busy-website-worker/designSystem.mjs");
+ok(css.includes(".busy-app-request-link{display:inline-flex;"),
+ "Published website link must be a real touch-sized action.");
+ok(css.includes(".busy-app-request-link:focus-visible"),
+ "Keyboard users must see a focus indication.");
+ok(css.includes("min-height:48px"),"Handoff actions must have a sufficient touch target.");
+ok(css.includes("@media(max-width:380px){.busy-app-request-link{width:100%}}"),
+ "Long action labels should fit narrow phones.");
 console.log("V3.215 "+count+" assertions PASS: exact immutable app/version-bound web links, server fail-closed route, stale owner links, native intake readiness and no fabricated website forms.");
