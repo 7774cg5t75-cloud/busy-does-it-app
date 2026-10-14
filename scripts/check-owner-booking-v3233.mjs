@@ -6,6 +6,7 @@
  */
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
+import {execFileSync} from "node:child_process";
 import {classifyBookingRevisionV3233 as server}
  from "../supabase/functions/busy-mini-apps/ownerBookingRevisionV3233.mjs";
 import {assessBookingCancelReadbackV3233 as client}
@@ -117,4 +118,15 @@ ok(ui.includes("ownerView && ownerRequestActionsV3233({request,link}).canDecline
 const pg=read("staging/ci-linked-booking-close-v3232.sql");
 ok(pg.includes("V3.232_ATOMIC_OWNER_BOOKING_CLOSE_AND_FAULT_ROLLBACK_PASS"));
 ok(pg.includes("PARTIAL COMMIT after durable Work cancellation failure"));
+execFileSync(process.execPath,["scripts/prepare-booking-staging-v3233.mjs"],{stdio:"pipe"});
+const staging=JSON.parse(readFileSync("/tmp/bdi-v3233-booking-stage/review.json","utf8"));
+eq(staging.originalRealTenantScenarios.length,11);
+eq(staging.additionalScenarios.length,11);
+ok(staging.sourceHashes.every(v=>/^[0-9a-f]{64}$/.test(v.sha256)));
+ok(staging.additionalScenarios.every(v=>v.status==="not_verified"&&v.approvalRequired));
+eq(staging.actualJwtTested,false);
+eq(staging.ownerApprovedInstall,false);
+eq(staging.remoteProjectContacted,false);
+eq(staging.hostedSqlExecuted,false);
+eq(staging.providerNotified,false);
 console.log("V3.233: "+count+" offline exact owner cancellation and shared UX assertions passed.");
