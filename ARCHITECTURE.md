@@ -2,6 +2,17 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.217 — Future native website request transaction and owner authority
+
+- Universal website and app composition still shares ONE business-owned customer request system. The existing guest mini-app RPC requires its mini-app challenge and cannot be treated as a website-native submission RPC; a new server-owned, atomic website source adapter and receipt origin must be reviewed and implemented first. Do not create a shadow customer database or claim that any native site form currently operates.
+- Inactive V3.217 transaction design rechecks exact published website/deployment and same-business, immutable published app version, owner-approved form binding, supported request action and service before planning an atomic challenge + scoped idempotency + save + readback + inbox + separate notification outbox. All execution flags remain FALSE. New Edge endpoint, schema, migrations and real staging proof are outstanding.
+- Local owner form specification tracks current private website generation, proposed fields, purpose, notice, retention, and exact deployment candidate; it is NOT a saved privacy approval or customer consent. A change invalidates the previous private comparison. Publication is a separate explicit server-authorised action.
+- Pure guest receipt review can describe a saved Business App guest request only after an independently authorised server readback. A future website-native receipt needs its own server-backed origin and receipt contract. Internal acceptance does not prove diary/calendar or notification delivery; an unknown commit must reconcile before a second create.
+- Business Brain uses owner intent, real available module evidence and scope-checked saved request evidence to suggest ONE useful next step without autonomous messaging or invented outcomes. Unknown industries remain eligible.
+- Responsive future form estimates are not pixel measurements, colour-contrast audits, browser screenshots or screen-reader acceptance. Keep the interface optional and lightweight.
+- V3.217 focused offline source checks and inherited GitHub workflow are distinct from independently successful full CI or public staging verification. See docs/V3_217_TRANSACTIONAL_REQUEST_DESIGN_AND_BUSINESS_COACH.md.
+
+
 ## V3.216 — Site-origin request trust boundary and industry-neutral advice
 
 - Native website enquiries stay INACTIVE. A new pure server pre-commit guard defines exact published site/deployment identity, owner-approved consent, browser challenge scope, anti-replay/idempotency and bounded visitor fields. Its ok state is only a *preflight result*: it may not commit, create a receipt, confirm bookings or claim provider delivery. No Edge endpoint, migration or tenant-owned request storage is deployed by this version.
