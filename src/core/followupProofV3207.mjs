@@ -3,6 +3,7 @@
  * old 30-row overview, before filling an editable customer reply.
  * No network, persistence, sending or external side effects here.
  */
+import {verifyOwnerNextStepV3234} from "./followupNextActionV3234.mjs";
 const ID=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 const CATEGORIES=new Set(["needsReply","waiting","closed","manual","unknown"]);
 const reject=reason=>({ok:false,reason,mayPrepareDraft:false,
@@ -36,9 +37,16 @@ function checkCurrentOwnerFollowup({
  if(previousStamp!==null&&previousStamp!==result.sourceStamp)
   return {...reject("The conversation changed. Review the latest evidence before preparing a reply."),
    changedSinceReview:true};
+ // Present next-step evidence must match the exact stamped conversation.
+ // Absent legacy evidence keeps older offline source fixtures compatible.
+ const nextStep=result.nextAction===undefined?null:
+  verifyOwnerNextStepV3234({businessId,appId,requestId,
+   decision:result,nextAction:result.nextAction});
+ if(nextStep&&!nextStep.ok)return reject(nextStep.reason);
  return {ok:true,kind:"owner_followup_review_v3207",
   businessId,appId,requestId,
   category:result.category,why:result.why,
+  nextStep:nextStep?.ok?nextStep:null,
   sourceStamp:result.sourceStamp,
   requestType:result.requestType,
   draft:canPrepare?result.replyDraft:null,
