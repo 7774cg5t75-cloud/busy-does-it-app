@@ -6,6 +6,10 @@ import {planUniversalBuilderRequest}
  from "../core/universalBuilderPlanV3210.mjs";
 import {planUniversalAppNavigation,confirmUniversalAppNavigation}
  from "../core/universalAppNavigationV3211.mjs";
+import {reviewUniversalBuilderNextStepV3236}
+ from "../core/sharedBuilderNextStepV3236.mjs";
+import {reviewSharedBuilderDesignDirectionsV3236}
+ from "../core/sharedBuilderDesignDirectionsV3236.mjs";
 
 /**
  * One simple opt-in planning entry point in BOTH builders.
@@ -32,6 +36,7 @@ function UniversalBuilderPlanReview({
  const [goal,setGoal]=React.useState("");
  const [report,setReport]=React.useState(null);
  const [showDependencies,setShowDependencies]=React.useState(false);
+ const [showDesignDirections,setShowDesignDirections]=React.useState(false);
  const [notice,setNotice]=React.useState("");
  const [reviewedGoal,setReviewedGoal]=React.useState("");
  const [navigationReview,setNavigationReview]=React.useState(null);
@@ -40,7 +45,7 @@ function UniversalBuilderPlanReview({
  const appId=app?.id||"",appRevision=app?.draft_revision||0;
  React.useEffect(()=>{
   setReport(null);setNotice("");setShowDependencies(false);
-  setReviewedGoal("");setNavigationReview(null);
+  setReviewedGoal("");setNavigationReview(null);setShowDesignDirections(false);
  },[businessId,businessType,siteId,siteRevision,appId,appRevision]);
  React.useEffect(()=>{setGoal("");setOpen(false);},
   [businessId]);
@@ -53,7 +58,7 @@ function UniversalBuilderPlanReview({
   setReviewedGoal(next.ok?source:"");
   setNavigationReview(null);
   setNotice(next.ok?"":next.reason);
-  setShowDependencies(false);
+  setShowDependencies(false);setShowDesignDirections(false);
  };
  const matching=report?.ok&&report.businessId===(businessId||null)&&
   report.businessType===String(businessType||"").trim()&&
@@ -118,6 +123,12 @@ function UniversalBuilderPlanReview({
    setNotice("The app save result is uncertain. Refresh the current app before retrying.");
   }finally{setWorking(false);}
  };
+ const guidance=matching?reviewUniversalBuilderNextStepV3236({
+  plan:report,businessId,website,app,surface
+ }):null;
+ const design=matching?reviewSharedBuilderDesignDirectionsV3236({
+  plan:report,businessId,website,app,surface
+ }):null;
  const requested=matching?
   report.capabilities.filter(x=>x.explicitlyRequested):[];
  const supporting=matching?
@@ -126,7 +137,7 @@ function UniversalBuilderPlanReview({
    <Button label={open?"Hide my website and app requirements":
      "What else can BUSY build for my business?"}
      onPress={()=>{setOpen(x=>!x);setReport(null);
-       setReviewedGoal("");setNavigationReview(null);setNotice("");}}/>
+       setReviewedGoal("");setNavigationReview(null);setNotice("");setShowDesignDirections(false);}}/>
    {open?<Card eyebrow="Universal Builder • private preparation"
      title="Describe what customers should be able to do"
      body="Busy can break down a new idea, reuse existing building blocks and tell you which parts still need building. Every legitimate business can start here."
@@ -136,7 +147,7 @@ function UniversalBuilderPlanReview({
        placeholder="e.g. Customers book pitches, pay deposits, get a confirmation"
        value={goal} onChangeText={next=>{
          setGoal(next);setReport(null);setReviewedGoal("");
-         setNavigationReview(null);setNotice("");
+         setNavigationReview(null);setNotice("");setShowDesignDirections(false);
        }}/>
      {initial(initialGoal)&&!goal.trim()?
        <Text style={styles.cardBody}>
@@ -147,6 +158,30 @@ function UniversalBuilderPlanReview({
      {notice?<Text style={styles.cardBody}>{notice}</Text>:null}
      {matching?<View>
        <Text style={styles.cardBody}>{report.summary}</Text>
+       {guidance?.ok&&guidance.recommended?<View>
+         <Text style={styles.sectionLabel}>BUSY's suggested next step</Text>
+         <Text style={styles.cardBody}>{guidance.recommended.title}</Text>
+         <Text style={styles.cardBody}>{guidance.recommended.reason}</Text>
+         <Text style={styles.cardBody}>{guidance.recommended.next}</Text>
+         <Text style={styles.cardBody}>
+           Nothing has been changed. A private draft is not proof that customers can complete this task.
+         </Text>
+       </View>:null}
+       {design?.ok&&design.optionCount===2?<View>
+         <Button label={showDesignDirections?
+           "Hide design approaches":"Compare two design approaches"}
+           onPress={()=>setShowDesignDirections(x=>!x)}/>
+         {showDesignDirections?<View>
+           {design.directions.map(choice=><View key={choice.id}>
+             <Text style={styles.sectionLabel}>{choice.title}</Text>
+             <Text style={styles.cardBody}>{choice.focus}</Text>
+             <Text style={styles.cardBody}>{choice.decisionTradeoff}</Text>
+           </View>)}
+           <Text style={styles.cardBody}>
+             These are planning ideas, not rendered designs. BUSY must compare real phone, tablet and desktop previews before recommending a visual change. You approve all edits.
+           </Text>
+         </View>:null}
+       </View>:null}
        {requested.map(item=><View key={item.id}>
          <Text style={styles.sectionLabel}>{item.title}</Text>
          <Text style={styles.cardBody}>
