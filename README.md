@@ -1,5 +1,16 @@
 # busy-does-it-app
 
+## V3.223 — Master-reviewed staging business schema and safer Business Brain evidence
+
+**Master architecture checked before implementation:** reuse Busy-owned builder, Business Brain, shared requests, customer approvals, Brand DNA and staging gates before introducing new code or open-source dependencies. No core system was replaced.
+
+This source-only sweep compares the pre-existing V3.180 staging-only business/member baseline against the historical V3.25 bridge schema reference (not a current production export), reports sensitive field names that must not be copied, adds read-only catalog queries and a SHA-256 source-pinned **hypothetical** before/after rollback review packet. The actual separate staging database still contains only the RLS canary and its two original migration ledger entries. No phase-one migration, restore, customer record or website-native form was executed.
+
+BUSY now reuses the V3.218 and V3.222 owner-outcome engines with a stronger report period/freshness gate before suggesting that an owner review waiting enquiries. An uncertain saved request or stale published app link still takes priority. All advice remains private, owner-controlled and unverified until a proper authorised server readback exists.
+
+V3.223's GitHub workflow adds real-worktree source compatibility, rollback denial, read-only SQL and freshness regressions before inherited checks, keeps unsigned exports manual and avoids paid builds. See [technical report](docs/V3_223_MASTER_LED_STAGING_PARITY_AND_OUTCOME_EVIDENCE.md). Source CI success is not a real staging transaction or signed mobile build.
+
+
 ## V3.222 — Shared Builder Harness, Green Production CI and Evidence-led Business Brain
 
 This substantial sweep consolidates **16 independent historic website-builder test loaders** into one shared, fail-closed Node harness that injects the real published Business App handoff and design dependencies, reducing repeat CI breakage without weakening runtime security checks. It also adds a stricter read-only staging phase-1 drift reviewer and connects BUSY's one-step website/app recommendation to scoped outcomes (uncertain requests and stale app versions are prioritised before new marketing or editing suggestions).
