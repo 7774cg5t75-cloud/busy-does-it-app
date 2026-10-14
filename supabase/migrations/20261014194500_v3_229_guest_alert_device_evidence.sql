@@ -82,9 +82,9 @@ begin
   if pg_catalog.jsonb_typeof(v_row)<>'object' or
      (select pg_catalog.count(*) from pg_catalog.jsonb_object_keys(v_row) as keys(k))<>4 or
      not (v_row ?& array['slot','device_hash','state','ticket_id'])
-  then return false; end if;
+  then raise exception 'Invalid device evidence shape'; end if;
   if (v_row->>'slot') !~ '^(0|[1-9]|1[0-9])$'
-  then return false; end if;
+  then raise exception 'Invalid device slot'; end if;
   v_slot:=(v_row->>'slot')::integer;
   v_device_hash:=v_row->>'device_hash';
   v_state:=v_row->>'state';
@@ -94,7 +94,7 @@ begin
       or (v_state='accepted' and
           (v_ticket is null or v_ticket !~ '^[A-Za-z0-9_-]{5,120}$'))
       or (v_state<>'accepted' and v_ticket is not null)
-  then return false; end if;
+  then raise exception 'Invalid device evidence value'; end if;
   insert into public.busy_mini_app_guest_alert_device_attempts_v3229
    (intent_id,attempt_no,recipient_slot,device_hmac_sha256,
      gateway_state,ticket_id,ticket_expires_at)
