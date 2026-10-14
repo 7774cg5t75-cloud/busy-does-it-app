@@ -1,5 +1,12 @@
 # busy-does-it-app
 
+## V3.216 — Website Intake Trust Boundary and Connected Business Intelligence (development)
+
+From V3.215, V3.216 adds an **inactive server-side website request preflight contract** for exact current published site ownership, approved consent wording, one-time browser challenge, rate-limit evidence, source-bound idempotency and bounded visitor information. It deliberately creates **no live public form or saved enquiry** and does not deploy a new endpoint, database migration or provider action. Any eventual submission must use the existing tenant-scoped request inbox and independently verified receipts.
+
+The Website Builder's existing optional website/app handoff review now shows a plain-English proposed form and verification checklist plus industry-neutral Business Brain customer-action guidance, including a safe fallback for unusual business types. No paid AI, signed iOS/Android build, live website edit or customer notification was requested. The focused V3.216 regression suite has 259 source assertions in an isolated test harness; full Node/Expo CI and real staging remain to be independently confirmed. See [V3.216 technical notes](docs/V3_216_SITE_ORIGIN_INTAKE_AND_CAPABILITY_ADVICE.md) and [architecture](ARCHITECTURE.md).
+
+
 ## V3.215 — Immutable Website Handoff and Enquiry Readiness (development)
 
 New owner-approved website enquiry/booking handoff links now include the **exact published Business App ID and immutable version ID**. The public link handler re-verifies those IDs and its enabled customer action on every website click, failing closed when a slug or published app changes. Legacy unbound website links require owner reapproval and a separate website republication. The existing guest browser challenge, request save, receipts and owner inbox remain the underlying customer workflow.
