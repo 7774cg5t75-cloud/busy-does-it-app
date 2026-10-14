@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { publicNativeMiniAppProjection,validSlug } from "./publicNativeProjection.mjs";
 import {evaluateStoredRequestProof} from "./requestReceiptProofV3213.mjs";
+import {verifyStoredGuestSubmissionV3224} from "./guestStoredPayloadV3224.mjs";
 
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
@@ -511,12 +512,22 @@ async function submitGuestRequest(req: Request, body: any) {
   const requestId = String(created.data || "");
   const requestRow = await supabase
     .from("busy_mini_app_requests")
-    .select("id,business_id,mini_app_id,request_type,status,request_origin,created_at,updated_at")
+    .select("id,business_id,mini_app_id,version_id,guest_challenge_id,request_type,status,request_origin,identity_assurance,idempotency_key,payload,contact_name,contact_email,contact_phone,service_name,preferred_date_text,created_at,updated_at")
     .eq("id", requestId)
     .eq("mini_app_id", app.id)
     .maybeSingle();
   if (requestRow.error) throw requestRow.error;
   if (!requestRow.data) throw new Error("BUSY could not confirm the saved guest request.");
+  // The RPC may return a previously saved request for the same consumed
+  // challenge. Never claim the new payload was saved unless the stored
+  // source-scoped request matches THIS sanitized submission exactly.
+  const storedMatch=verifyStoredGuestSubmissionV3224({
+    row:requestRow.data,sanitized:safe,
+    requestId,businessId:app.business_id,appId:app.id,
+    challengeId,requestType,idempotencyKey
+  });
+  if(!storedMatch.ok)
+    throw new Error("BUSY found a different request under this browser receipt. Check the original receipt before retrying.");
   // This readback is independent of the challenge write response. A failed
   // provider notification can never turn a committed request into a second
   // guest submission or into a claim of actual device delivery.
@@ -526,7 +537,13 @@ async function submitGuestRequest(req: Request, body: any) {
   });
   if(!saved.ok)throw new Error("BUSY cannot verify the committed guest request. Check the existing browser receipt before retrying.");
 
-  await notifyBusiness({ ...requestRow.data, public_slug: app.public_slug });
+  // A normal sequential replay has an already-consumed challenge; do not
+  // attempt a duplicate provider notification in that case. Concurrent
+  // replays still need an atomic durable outbox to guarantee exactly-once.
+  const mayAttemptNotification = challenge.data.state !== "consumed" &&
+    storedMatch.mayNotifyOwner === true;
+  if(mayAttemptNotification)
+    await notifyBusiness({ ...requestRow.data, public_slug: app.public_slug });
 
   return {
     request: {
@@ -543,6 +560,8 @@ async function submitGuestRequest(req: Request, body: any) {
     requestEvidence:{...saved,
       statusLabel:saved.statusLabel},
     notificationDelivered:false,
+    notificationAttemptedByThisCall:mayAttemptNotification,
+    notificationDeduplicationGuaranteed:false,
     bookingConfirmed:false,
     retryMayCreateDuplicate:false
   };
