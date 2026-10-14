@@ -1,5 +1,14 @@
 # Busy Does It code architecture
 
+## V3.228 — verified enquiry advice, mixed-device safety and complete staging source review
+
+- **Two-master preflight:** Reviewed latest saved Word product master V22.13, this technical master, the engineering sweep policy and actual V3.227 code. No change to tiers, credit budget, product promise or paid provider permission. Maintain one shared Website/App customer-request system and Business Brain, not duplicate databases or shadow agents.
+- **Push delivery truth:** Reworked `dispatchReceiptV3227.mjs` to recognise full gateway acceptance only when *every* expected device ticket is structurally valid and accepted. A mixed accepted/rejected response is **uncertain/manual review**, not a successful group send and never blindly auto-resend; provider tickets are NOT device delivery proof. Worker remains source-only, disabled, unscheduled and undeployed; per-device receipt reconciliation remains unimplemented pending reviewed schema/provider work.
+- **Practical owner intelligence:** `ownerNextStepV3228.mjs` draws one grounded next action from the authenticated owner queue and original tenant-scoped guest-alert counts. The original `owner_queue_summary` Edge route invokes it after server reads; the existing Business App inbox displays its plain-language guidance. Business/app mismatch, invalid counts and missing original receipts fail closed. It cannot send replies, confirm bookings or expose customer contacts.
+- **Installation review discipline:** `prepare-staging-gates-v3228.mjs` hashes all **66** original versioned migration files plus seven critical business/staging source files, with risk hints and explicit unverified approval gates, producing non-executable JSON in `/tmp`. Historical staging canary state is not live authority; real schema parity, backups/restores, genuine owner A/B JWT isolation and **separate, phase-specific owner installation approval** remain mandatory.
+- **Checks and limitations:** `check-customer-journey-v3228.mjs` and `builders-major-v3228.yml` extend inherited source + disposable PostgreSQL rollback checks. GitHub Actions success must be checked for the final commit. No hosted schema/Edge deployment, real push, paid build or product content publication occurred. Report: `docs/V3_228_CUSTOMER_ENQUIRY_TRUTH_AND_STAGING_REVIEW.md`.
+
+
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
 ## Hybrid AI, owner-shot and human-creator video — one Get More Customers pipeline
