@@ -30,6 +30,7 @@ import {ownerGuestAlertEvidenceV3226} from "./ownerGuestAlertEvidenceV3226.mjs";
 import {ownerGuestAlertEvidenceV3227} from "./ownerGuestAlertEvidenceV3227.mjs";
 import {chooseOwnerRequestNextStepV3228} from "./ownerNextStepV3228.mjs";
 import {verifyOwnerRequestFreshnessV3231} from "./ownerRequestFreshnessV3231.mjs";
+import {classifyBookingClosureEvidenceV3232} from "./bookingCloseEvidenceV3232.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -3910,14 +3911,15 @@ async function markRequestLinked(
     result.independentDiaryDeliveryVerified!==false||
     result.ledgerSource!=="business_app_request_v3181"||
     result.externalCalendarDelivered!==false||
-    (guardClose&&(result.freshOwnerRevisionVerified!==true||
-      result.atomicBookingCloseVerified!==true||
-      result.nextStatus!=="closed"||
-      result.workLedgerState==="confirmed"))||
     (bridgeState==="booking_confirmed"&&
       (result.workLedgerDurable!==true||result.workLedgerState!=="confirmed")))
     throw new Error("Invalid atomic handoff receipt. Refresh this request.");
 
+  // Keep owner request, Work cancellation and provider outcomes distinct.
+  const closure=guardClose?classifyBookingClosureEvidenceV3232({
+    businessId,requestId,result}):null;
+  if(guardClose&&!closure?.ok)
+    throw Error(closure?.reason||"Original Work booking closure needs review.");
   // Never claim delivery on the basis of a DB commit. Failed push cannot
   // undo the committed status, and retrying the RPC is safe/idempotent.
   if(result.changed===true&&result.notificationPending===true){
@@ -3939,7 +3941,7 @@ async function markRequestLinked(
     }
   }
   return {...result.link,atomicHandoff:true,
-    atomicBookingCloseVerified:guardClose&&result.atomicBookingCloseVerified===true,
+    atomicBookingCloseVerified:guardClose&&closure?.ok===true,
     workLedgerState:result.workLedgerState,
     workLedgerDurable:result.workLedgerDurable===true,
     serverWorkLedgerId:result.workLedgerId||null,
