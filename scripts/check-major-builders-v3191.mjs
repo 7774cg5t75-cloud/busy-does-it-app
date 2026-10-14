@@ -16,6 +16,7 @@ import {reviewWebsiteDesign}
  from "../supabase/functions/busy-website-worker/designReview.mjs";
 import {applyWebsiteVisualEdit}
  from "../supabase/functions/busy-website-worker/designEdits.mjs";
+import {canonicalWebsiteHandoffUrl} from "../src/core/websiteAppHandoffV3214.mjs";
 const read=path=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
 const strip=s=>s.replace(/export\s*\{[\s\S]*?\};?\s*$/,"");
 const management=Function(strip(read("src/domain/websiteManagement.js"))+
@@ -23,6 +24,7 @@ const management=Function(strip(read("src/domain/websiteManagement.js"))+
 let domain=strip(read("src/domain/websiteBuilder.js"));
 for(const imp of [
  'import { syncWebsitePageModel } from "./websiteManagement";',
+ 'import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";',
  'import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";',
  'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
  'import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";',
@@ -33,10 +35,10 @@ for(const imp of [
 }
 const {buildWebsiteDraft,applyStructuredWebsiteEdit}=Function(
  "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign",
- "reviewWebsiteDesign","applyWebsiteVisualEdit",
+ "reviewWebsiteDesign","applyWebsiteVisualEdit","canonicalWebsiteHandoffUrl",
  domain+";return {buildWebsiteDraft,applyStructuredWebsiteEdit};"
 )(management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,
- reviewWebsiteDesign,applyWebsiteVisualEdit);
+ reviewWebsiteDesign,applyWebsiteVisualEdit,canonicalWebsiteHandoffUrl);
 
 const id=tail=>"00000000-0000-4000-8000-"+tail;
 let n=0;
