@@ -5,6 +5,7 @@ import {planWebsiteDesign} from "../supabase/functions/busy-website-worker/desig
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
 import {applyWebsiteVisualEdit} from "../supabase/functions/busy-website-worker/designEdits.mjs";
 import {editWebsiteDraftField} from "../src/core/websiteStructuredEditing.mjs";
+import {canonicalWebsiteHandoffUrl} from "../src/core/websiteAppHandoffV3214.mjs";
 
 const read=path=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
 const strip=s=>s.replace(/export\s*\{[\s\S]*?\};?\s*$/,"");
@@ -12,6 +13,7 @@ const management=Function(strip(read("src/domain/websiteManagement.js"))+";retur
 let code=strip(read("src/domain/websiteBuilder.js"));
 for(const imp of [
  'import { syncWebsitePageModel } from "./websiteManagement";',
+ 'import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";',
  'import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";',
  'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
  'import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";',
@@ -19,9 +21,9 @@ for(const imp of [
 ]){assert.ok(code.includes(imp),"Expected website domain import");code=code.replace(imp,"");}
 const {buildWebsiteDraft,applyWebsiteLayoutChange,renderWebsiteHtml,applyWebsitePageChange}=
  Function("syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign",
- "reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField",
+ "reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField","canonicalWebsiteHandoffUrl",
  code+";return {buildWebsiteDraft,applyWebsiteLayoutChange,renderWebsiteHtml,applyWebsitePageChange};"
-)(management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField);
+)(management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField,canonicalWebsiteHandoffUrl);
 const photo={id:"p1",approved:true,uri:"https://media.example.test/private/rose.jpg",
  storagePath:"business/camera/rose.jpg",alt:"Owner photograph"};
 const photo2={id:"p2",approved:true,uri:"https://media.example.test/private/ivy.jpg",
