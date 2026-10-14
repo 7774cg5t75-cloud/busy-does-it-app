@@ -5,6 +5,8 @@ import {styles} from "../theme/styles";
 import {planPrivateWebsiteFormApprovalV3217,
  comparePrivateApprovalReviewV3217}
  from "../core/websiteFormApprovalV3217.mjs";
+import {reviewCustomerFormResponsiveV3217}
+ from "../core/customerFormResponsiveV3217.mjs";
 
 /** Optional private proposal only. Explicitly does NOT save or approve a form. */
 function WebsiteFormSpecReviewV3217({businessId="",website=null,
@@ -26,6 +28,7 @@ function WebsiteFormSpecReviewV3217({businessId="",website=null,
     .flatMap(x=>Array.isArray(x.items)?x.items:[])
     .map(x=>String(x?.title||"").trim()).filter(Boolean).slice(0,50):[]};
  const current=planPrivateWebsiteFormApprovalV3217(args);
+ const responsive=reviewCustomerFormResponsiveV3217({form:current});
  const matching=snapshot?comparePrivateApprovalReviewV3217({
   prepared:snapshot,current}):null;
  const update=(setter)=>(value)=>{
@@ -56,6 +59,12 @@ function WebsiteFormSpecReviewV3217({businessId="",website=null,
     <Text style={styles.cardBody}>
       {"Prerequisites remaining: "+(current.additionalPrerequisites||[]).join(", ")}
     </Text>
+    {responsive.ok?<Text style={styles.cardBody}>
+      {"Estimated layouts: "+responsive.layouts.map(x=>x.id+
+        " "+x.columns+" column"+(x.columns===1?"":"s")).join(" • ")+
+       ". Each input needs a visible label, keyboard access and a "+
+       responsive.minimumTouchTarget+"px tap area. Screenshots and accessibility tests are still required."}
+    </Text>:null}
     <Button label="Review this private form proposal"
      onPress={()=>{setSnapshot(current.ok?current:null);
       setNoticeMessage(current.ok?"Review prepared locally. Nothing has been stored or approved.":current.reason);}}/>
