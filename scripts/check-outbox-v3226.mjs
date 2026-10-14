@@ -114,7 +114,7 @@ ok(owner.includes('countGuestIntents("pending")'));
 ok(owner.includes('countGuestIntents("retry_wait")'));
 ok(owner.includes('if(!["owner","admin"].includes(member.role))'));
 const ui=read("src/screens/miniApps.js");
-ok(ui.includes('Guest alerts not confirmed delivered'));
+ok(ui.includes('Alerts awaiting provider confirmation'));
 ok(ui.includes('guestAlerts?.businessId===app.business_id'));
 ok(ui.includes('guestAlerts?.appId===app.id'));
 const source=read("scripts/prepare-disposable-outbox-v3226.mjs");
