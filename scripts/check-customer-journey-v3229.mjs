@@ -113,7 +113,7 @@ ok(source.includes("sqlExecutedByThisScript:false"));
 ok(!source.includes("https://"));
 execFileSync(process.execPath,["scripts/prepare-phase-one-approval-v3229.mjs"],{stdio:"pipe"});
 const phase=JSON.parse(readFileSync("/tmp/bdi-v3229-phase-one-review/approval-review.json","utf8"));
-eq(phase.fullHistory.versionedMigrations,67);
+eq(phase.fullHistory.versionedMigrations,68);
 eq(phase.source.proposedObjects,["busy_businesses","busy_business_memberships"]);
 ok(/^[a-f0-9]{64}$/.test(phase.source.sha256));
 eq(phase.canExecute,false);eq(phase.ownerApproved,false);

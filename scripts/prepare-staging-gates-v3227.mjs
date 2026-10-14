@@ -14,7 +14,7 @@ if(snapshot.projectRef!=="pnjdlogwegnqbsfpcofw"||
  "20261010224121,20261010224205")
  throw Error("Historical snapshot changed; STOP and independently reconcile staging.");
 const sqlFiles=readdirSync("supabase/migrations").filter(x=>x.endsWith(".sql")).sort();
-if(sqlFiles.length!==67||
+if(sqlFiles.length!==68||
  !sqlFiles.includes("20261014151000_v3_226_guest_notification_intent.sql")||
  !sqlFiles.includes("20261014170000_v3_227_guest_alert_dispatch_leases.sql"))
  throw Error("Staging migration inventory changed; inspect all dependencies.");
@@ -60,4 +60,4 @@ const packet={
 const target="/tmp/bdi-v3227-staging-gates";
 mkdirSync(target,{recursive:true});
 writeFileSync(target+"/approval-review.json",JSON.stringify(packet,null,2)+"\n");
-console.log("V3.227 isolated staging review prepared: 67 migration SHA gates, NO SQL execution, no approval.");
+console.log("V3.227 isolated staging review prepared: 68 migration SHA gates, NO SQL execution, no approval.");

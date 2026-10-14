@@ -514,7 +514,7 @@ async function ownerQueueSummaryV3225(businessId:string){
  if(!proof.ok)throw Error(proof.reason);
  // One underlying tenant-scoped outbox per saved guest request. No push
  // is sent by this route or the guest submission endpoint.
- const countGuestIntents=async(state:"pending"|"retry_wait"|"claimed"|"manual_review")=>{
+ const countGuestIntents=async(state:"pending"|"retry_wait"|"claimed"|"manual_review"|"provider_accepted")=>{
   const result=await supabase
     .from("busy_mini_app_guest_notification_intents")
     .select("id",{head:true,count:"exact"})
@@ -524,12 +524,13 @@ async function ownerQueueSummaryV3225(businessId:string){
    throw result.error||Error("Guest notification queue is unavailable.");
   return result.count;
  };
- const [pending,retryWait,claimed,manualReview]=await Promise.all([
+ const [pending,retryWait,claimed,manualReview,gatewayAccepted]=await Promise.all([
   countGuestIntents("pending"),countGuestIntents("retry_wait"),
-  countGuestIntents("claimed"),countGuestIntents("manual_review")
+  countGuestIntents("claimed"),countGuestIntents("manual_review"),
+  countGuestIntents("provider_accepted")
  ]);
  const guestAlerts=ownerGuestAlertEvidenceV3227({
-  businessId,appId:app.id,pending,retryWait,claimed,manualReview
+  businessId,appId:app.id,pending,retryWait,claimed,manualReview,gatewayAccepted
  });
  if(!guestAlerts.ok)throw Error(guestAlerts.reason);
  const nextStep=chooseOwnerRequestNextStepV3228({queue:proof,alerts:guestAlerts});

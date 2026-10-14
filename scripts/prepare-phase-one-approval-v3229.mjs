@@ -15,7 +15,7 @@ if(obs.projectRef!=="pnjdlogwegnqbsfpcofw"||
  obs.appliedMigrations.join(",")!=="20261010224121,20261010224205")
  throw Error("Recorded canary changed: stop, no approval implied.");
 const files=readdirSync("supabase/migrations").filter(x=>x.endsWith(".sql")).sort();
-if(files.length!==67||!files.at(-1).includes("v3_229_guest_alert_device_evidence"))
+if(files.length!==68||!files.at(-1).includes("v3_230_push_service_receipt_truth"))
  throw Error("Phase dependencies drifted: inspect new migrations first.");
 const baselinePath="staging/ISOLATED_ONLY_business_core_v3180.sql";
 const baseline=read(baselinePath);

@@ -3130,6 +3130,10 @@ function MiniAppBuilder({ s }) {
                         left="Alerts awaiting provider confirmation"
                         right={String(s.ownerQueueSummary.guestAlerts.needsProviderReview||0)}
                       />
+                      <MetricRow
+                        left="Alerts accepted by push gateway (not phone delivery)"
+                        right={String(s.ownerQueueSummary.guestAlerts.gatewayAcceptedCount||0)}
+                      />
                       <Text style={styles.cardBody}>
                         {s.ownerQueueSummary.guestAlerts.explanation}
                         {s.ownerQueueSummary.guestAlerts.manualReview>0 ?

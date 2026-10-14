@@ -20,7 +20,7 @@ const read=p=>readFileSync(join(ROOT,p),"utf8");
 const observation=JSON.parse(read("staging/recorded-readonly-observation-v3220.json"));
 const names=readdirSync(join(ROOT,"supabase/migrations"))
  .filter(name=>name.endsWith(".sql")).sort();
-if(names.length!==67)throw Error("Source migrations changed. Review new SQL and update explicit test baseline before regenerating.");
+if(names.length!==68)throw Error("Source migrations changed. Review new SQL and update explicit test baseline before regenerating.");
 const migrations=names.map(name=>({name,sql:read("supabase/migrations/"+name)}));
 const baseline=read("staging/ISOLATED_ONLY_business_core_v3180.sql");
 const plan=reconcileStagingBootstrapV3220({

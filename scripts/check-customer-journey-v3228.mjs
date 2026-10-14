@@ -79,7 +79,7 @@ ok(screen.includes("BUSY suggests: "));
 ok(screen.includes("nextStep?.businessId===app.business_id"));
 execFileSync(process.execPath,["scripts/prepare-staging-gates-v3228.mjs"],{stdio:"pipe"});
 const m=JSON.parse(readFileSync("/tmp/bdi-v3228-staging-review/source-manifest.json","utf8"));
-eq(m.completeMigrationCount,67);eq(m.migrations.length,67);
+eq(m.completeMigrationCount,68);eq(m.migrations.length,68);
 eq(m.critical.length,7);
 ok(m.migrations.every(x=>/^[a-f0-9]{64}$/.test(x.sha256)));
 ok(m.critical.every(x=>/^[a-f0-9]{64}$/.test(x.sha256)));
