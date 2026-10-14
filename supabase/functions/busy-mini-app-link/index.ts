@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import {verifyPublishedWebsiteIntent} from "./websiteRequestLinkGuardV3215.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -186,7 +187,7 @@ Deno.serve(async (req: Request) => {
     // authority for an active guest enquiry or booking request.
     const version = await supabase
       .from("busy_mini_app_versions")
-      .select("id,config,state")
+      .select("id,mini_app_id,config,state")
       .eq("id", app.data.current_live_version_id)
       .eq("mini_app_id", app.data.id)
       .eq("state", "live")
@@ -194,6 +195,17 @@ Deno.serve(async (req: Request) => {
     if (version.error || !version.data?.id) {
       return page(503,
         "<!doctype html><title>BUSY DOES IT</title><p>This business action cannot be verified right now.</p>");
+    }
+    // V3.215: an owner's website link must be bound to its exact approved
+    // app and immutable live version. Slug reuse, app republishing, altered
+    // query parameters, or absent ID pins must fail before entry recording.
+    // Existing QR/share/deep-link intents keep their independent flow.
+    if(source==="web"){
+      const bound=verifyPublishedWebsiteIntent({
+        url:req.url,app:app.data,version:version.data
+      });
+      if(!bound.ok)return page(409,
+        "<!doctype html><title>BUSY DOES IT</title><p>This website request link needs the business to review its current published app. No request has been submitted.</p>");
     }
     const config=version.data.config||{};
     const enabled=Array.isArray(config.modules)&&
