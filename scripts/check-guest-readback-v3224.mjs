@@ -93,11 +93,11 @@ ok(edge.includes('import {verifyStoredGuestSubmissionV3224}'));
 ok(edge.includes("const storedMatch=verifyStoredGuestSubmissionV3224({"));
 ok(edge.includes("if(!storedMatch.ok)"));
 ok(edge.includes("row:requestRow.data,sanitized:safe"));
-ok(edge.includes("challenge.data.state !== \"consumed\""));
+ok(edge.includes("const queued=await supabase"));
 ok(edge.includes("notificationDeduplicationGuaranteed:false"));
 ok(edge.includes('payload,contact_name,contact_email,contact_phone'));
 ok(edge.indexOf("const storedMatch=verifyStoredGuestSubmissionV3224(")<
- edge.indexOf("await notifyBusiness({ ...requestRow.data"));
+ edge.indexOf("const queued=await supabase"));
 const probe=read("staging/CI_ONLY_v3224_assert_rollback.sql");
 ok(probe.includes("rollback;"));
 ok(probe.includes("relforcerowsecurity"));
