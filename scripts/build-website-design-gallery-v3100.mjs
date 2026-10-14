@@ -11,18 +11,20 @@ import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/des
 import {applyWebsiteVisualEdit} from "../supabase/functions/busy-website-worker/designEdits.mjs";
 import {planWebsiteDesign} from "../supabase/functions/busy-website-worker/designPlanner.mjs";
 import {websiteDesignAlternative} from "../src/core/websiteDesignAlternatives.mjs";
+import {canonicalWebsiteHandoffUrl} from "../src/core/websiteAppHandoffV3214.mjs";
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"..");
 const read=p=>fs.readFileSync(path.join(root,p),"utf8");
 const strip=s=>s.replace(/export\s*\{[\s\S]*?\};?\s*$/,"");
 const model=Function(strip(read("src/domain/websiteManagement.js"))+";return {syncWebsitePageModel};")();
 const builderSource=strip(read("src/domain/websiteBuilder.js"))
  .replace(/^import \{ syncWebsitePageModel \} from "\.\/websiteManagement";\s*/,"")
+ .replace(/^import \{canonicalWebsiteHandoffUrl\} from "\.\.\/core\/websiteAppHandoffV3214\.mjs";\s*/,"")
  .replace(/^import \{ designForWebsite, designCss \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designSystem\.mjs";\s*/,"")
  .replace(/^import \{ planWebsiteDesign \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designPlanner\.mjs";\s*/,"")
  .replace(/^import \{ reviewWebsiteDesign \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designReview\.mjs";\s*/,"")
  .replace(/^import \{ applyWebsiteVisualEdit \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designEdits\.mjs";\s*/,"");
-const {buildWebsiteDraft,applyWebsiteInstruction}=Function("syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign","applyWebsiteVisualEdit",builderSource+
-  ";return {buildWebsiteDraft,applyWebsiteInstruction};")(model.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit);
+const {buildWebsiteDraft,applyWebsiteInstruction}=Function("syncWebsitePageModel","canonicalWebsiteHandoffUrl","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign","applyWebsiteVisualEdit",builderSource+
+  ";return {buildWebsiteDraft,applyWebsiteInstruction};")(model.syncWebsitePageModel,canonicalWebsiteHandoffUrl,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit);
 const S=(name,description="")=>({id:name.toLowerCase().replace(/\W+/g,"-"),name,description});
 const demos=[
  {file:"01-gardening-minimal",name:"Hillside Gardens",type:"Gardening",
