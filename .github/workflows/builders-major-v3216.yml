@@ -76,4 +76,5 @@ jobs:
           ../../node_modules/.bin/expo export --platform ios --output-dir /tmp/bdi-v3216-standalone-ios
           ../../node_modules/.bin/expo export --platform android --output-dir /tmp/bdi-v3216-standalone-android
       - name: Note limits
-        run: echo "V3.216 is preflight and offline checks only: the new website intake module is NOT a deployed endpoint; no customer data, provider sends, migrations or signed builds."
+        run: |
+          echo "V3.216 is preflight and offline checks only: the new website intake module is NOT a deployed endpoint; no customer data, provider sends, migrations or signed builds."
