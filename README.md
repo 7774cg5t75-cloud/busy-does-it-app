@@ -1,5 +1,14 @@
 # busy-does-it-app
 
+## V3.222 — Shared Builder Harness, Green Production CI and Evidence-led Business Brain
+
+This substantial sweep consolidates **16 independent historic website-builder test loaders** into one shared, fail-closed Node harness that injects the real published Business App handoff and design dependencies, reducing repeat CI breakage without weakening runtime security checks. It also adds a stricter read-only staging phase-1 drift reviewer and connects BUSY's one-step website/app recommendation to scoped outcomes (uncertain requests and stale app versions are prioritised before new marketing or editing suggestions).
+
+**Verified in GitHub Actions on V3.222:** the new shared-harness suite passed **71 checks**, staging/Business Brain suite passed **86 checks**, inherited migration-source and app security suites passed, and the separate **Production foundation check** completed successfully. The Snack source checker validated **294 modules with zero unresolved relative imports**. The actual staging database was read-only inspected and still contains only its RLS canary and two canary migrations; real Business App transactions are NOT installed or enabled there.
+
+No database migrations, customer form activation, messages, provider purchases, public website publication or paid signed builds were initiated. Heavy unsigned export jobs in this branch remain opt-in workflow dispatch. Full report: [V3.222 technical record](docs/V3_222_SHARED_BUILDER_HARNESS_STAGING_AND_BUSINESS_EVIDENCE.md).
+
+
 ## V3.221 — CI Stabilisation and First-Phase Staging Safety
 
 This substantial sweep repairs outdated website builder test harnesses and historical workflow YAML, restores a missing pure request-receipt module in the Snack source graph, and configures CI to cancel superseded runs. Normal branch pushes perform lightweight source and inherited safety tests; the heavier unsigned Expo exports in V3.221's builder workflow require manual dispatch.
