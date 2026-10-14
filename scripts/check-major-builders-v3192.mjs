@@ -22,7 +22,6 @@ import {applyWebsiteVisualEdit}
 import {canonicalWebsiteHandoffUrl} from "../src/core/websiteAppHandoffV3214.mjs";
 
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
-const strip=s=>s.replace(/export\s*\{[\s\S]*?\};?\s*$/,"");
 let assertions=0;
 const eq=(a,b,label="same")=>{assert.deepEqual(a,b,label);assertions++};
 const yes=(a,label="expected true")=>{assert.ok(a,label);assertions++};
