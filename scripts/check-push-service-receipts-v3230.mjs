@@ -89,7 +89,7 @@ const screen=read("src/screens/miniApps.js");
 ok(screen.includes("Alerts accepted by push gateway (not phone delivery)"));
 execFileSync(process.execPath,["scripts/prepare-phase-one-approval-v3229.mjs"],{stdio:"pipe"});
 const source=JSON.parse(readFileSync("/tmp/bdi-v3229-phase-one-review/approval-review.json","utf8"));
-eq(source.fullHistory.versionedMigrations,68);
+eq(source.fullHistory.versionedMigrations,69);
 eq(source.canExecute,false);eq(source.ownerApproved,false);
 eq(source.SQLExecuted,false);
 console.log("V3.230: "+n+" offline receipt, privacy, owner view and staging gate assertions passed.");
