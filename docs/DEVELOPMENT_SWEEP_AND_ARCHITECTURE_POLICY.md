@@ -2,6 +2,20 @@
 
 **Standing owner development instruction (12 October 2026).** Apply in future Busy Does It development sweeps, especially while completing the **App Builder first** and **Website Builder second**. This policy is intended to persist across ChatGPT sessions and future branches; include it by branching from the latest verified development branch.
 
+## Mandatory two-master preflight (owner decision, 14 October 2026)
+
+Before planning or beginning **any substantial sweep**, read both (1) the **latest saved Busy Does It product master** (the owner's versioned Word master, normally in ChatGPT Library or supplied by the owner) and (2) GitHub **`ARCHITECTURE.md`**, alongside the latest relevant source, prior sweep results and actual CI/staging evidence. Never rely on an outdated file copy or assume the two stay synced automatically. If the product master is inaccessible, disclose that limitation rather than claiming it was checked.
+
+- **Product master defines desired outcomes:** every-business website/app creation, genuine business value, business-owner simplicity, ownership, tiers and costs, customer satisfaction, and reducing the founder's ongoing workload.
+- **GitHub master defines technical truth:** current implemented functionality and proof level, reusable modules, schema, security/tenant controls, integrations, staged deployments, release blockers and technical quality.
+- **Resolve conflicts consciously:** don't silently let technical convenience shrink the agreed product ambition, and don't claim a requested capability already works just because it is in the vision master.
+- **Route every "save to the master" request:** product/experience/commercial decisions to the saved master; code/architecture/security/testing decisions to GitHub; lasting cross-cutting principles to both (concise cross-references). Version the saved copy, confirm commits, and never claim Library upload unless it actually succeeded.
+- **Choose the fastest *responsible* route:** produce a short gap-and-dependencies review, prioritise genuine end-to-end customer outcomes and reuse of existing or safely integrated open-source components, and group complementary work into substantial sweeps. Preserve correctness, maintainability, privacy, security, accessibility, tenant isolation, honest provider evidence, reversibility and cost controls even if quality work takes longer. Avoid fragile speed-driven hacks **and** unnecessary overengineering.
+- **Plan explicit verification:** state which outcomes can be proven by code tests, which need isolated staging, and which need separately approved paid external provider/device/publication tests. Check impact and regression risk, owner control/undo, and long-term maintenance before implementation.
+- **After each substantial sweep:** compare delivered and still-missing outcomes with both masters, update the appropriate records, and identify the next highest-value dependency rather than allowing the roadmap to drift.
+
+This preflight is a **required step**, not a suggestion. The owner prefers taking longer to implement the right long-term solution over shortcuts that cause maintenance debt or fail customers. See root `ARCHITECTURE.md`, section "Permanent policy — dual-master governance and outcome-first sweep planning".
+
 ## Development priorities
 
 1. Build both marketplace Business Apps and independently downloadable standalone apps as completely as practical in code before undertaking expensive comprehensive live/customer tests. App Builder receives the larger share of feature-development effort.
