@@ -7,12 +7,14 @@ import {planWebsiteDesign} from "../supabase/functions/busy-website-worker/desig
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
 import {applyWebsiteVisualEdit} from "../supabase/functions/busy-website-worker/designEdits.mjs";
 import {editWebsiteDraftField} from "../src/core/websiteStructuredEditing.mjs";
+import {canonicalWebsiteHandoffUrl} from "../src/core/websiteAppHandoffV3214.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 const strip=s=>s.replace(/export\s*\{[\s\S]*?\};?\s*$/,"");
 const manager=Function(strip(read("src/domain/websiteManagement.js"))+";return {syncWebsitePageModel};")();
 let source=strip(read("src/domain/websiteBuilder.js"));
 for(const imp of [
  'import { syncWebsitePageModel } from "./websiteManagement";',
+ 'import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";',
  'import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";',
  'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
  'import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";',
@@ -20,9 +22,9 @@ for(const imp of [
 ]){assert.ok(source.includes(imp),"Old website builder import changed");source=source.replace(imp,"");}
 const {buildWebsiteDraft,applyWebsiteLayoutChange,renderWebsiteHtml}=Function(
  "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign",
- "reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField",
+ "reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField","canonicalWebsiteHandoffUrl",
  source+";return {buildWebsiteDraft,applyWebsiteLayoutChange,renderWebsiteHtml};"
-)(manager.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField);
+)(manager.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField,canonicalWebsiteHandoffUrl);
 const photo=(id)=>({id,storagePath:"tenant/photos/"+id+".jpg",uri:"https://example.test/"+id+".jpg",approved:true});
 const brand={websiteReady:true,websiteBrief:{
  businessName:"Example Garden Studio",businessType:"Garden design",serviceArea:"Devon",
