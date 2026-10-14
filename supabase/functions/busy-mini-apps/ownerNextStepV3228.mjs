@@ -16,8 +16,13 @@ function chooseOwnerRequestNextStepV3228({queue=null,alerts=null}={}){
    queue.pendingTotal!==queue.received+queue.reviewing||
    alerts.manualReview>alerts.needsProviderReview)
   return deny("The request and alert state counts conflict.");
- if(queue.received>0&&!uuid.test(queue.latestRequestId))
-  return deny("The latest request needs its original receipt.");
+ if(queue.pendingTotal>0&&
+   (!uuid.test(queue.latestRequestId)||
+    queue.latestRequestStatus!==(queue.received>0?"received":"reviewing")))
+  return deny("The original request no longer matches the current priority queue.");
+ if(queue.pendingTotal===0&&
+   (queue.latestRequestId!==null||queue.latestRequestStatus!==null))
+  return deny("An empty queue cannot contain a current request.");
  const action=queue.received>0?"review_new_enquiry":
   alerts.manualReview>0?"check_uncertain_alerts":
   queue.reviewing>0?"continue_reviewing":

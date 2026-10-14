@@ -494,8 +494,9 @@ async function guestStatus(body: any) {
   const [app, link] = await Promise.all([
     supabase
       .from("busy_mini_apps")
-      .select("display_name,public_slug")
+      .select("display_name,public_slug,business_id")
       .eq("id", request.data.mini_app_id)
+      .eq("business_id",request.data.business_id)
       .maybeSingle(),
     supabase
       .from("busy_mini_app_request_links")
@@ -505,6 +506,7 @@ async function guestStatus(body: any) {
       .maybeSingle(),
   ]);
   if (app.error) throw app.error;
+  if (!app.data) throw new Error("The original business app for this request could not be verified.");
   if (link.error) throw link.error;
   // An untrusted link state ALONE is not a verified appointment.
   // Require the independently read customer request to be accepted and the

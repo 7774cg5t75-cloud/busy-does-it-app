@@ -501,8 +501,9 @@ async function ownerQueueSummaryV3225(businessId:string){
   const r=await supabase.from("busy_mini_app_requests")
    .select("id,business_id,mini_app_id,request_type,status,created_at")
    .eq("business_id",businessId).eq("mini_app_id",app.id)
-   .in("status",["received","reviewing"])
-   .order("created_at",{ascending:false}).limit(1).maybeSingle();
+   .eq("status",received>0?"received":"reviewing")
+   .order("created_at",{ascending:false})
+   .order("id",{ascending:false}).limit(1).maybeSingle();
   if(r.error)throw r.error;
   if(!r.data)throw Error("The inbox changed during verification. Refresh.");
   latest=r.data;

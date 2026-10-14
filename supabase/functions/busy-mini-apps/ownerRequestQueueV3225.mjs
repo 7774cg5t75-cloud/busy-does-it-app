@@ -24,6 +24,11 @@ function classifyOwnerRequestQueueV3225({
    !["enquiry","booking_request"].includes(latest.request_type)))
   return fail("The latest request must be scoped to the same business and app.");
  if(total>0&&latest===null)return fail("Cannot explain an active queue without a scoped request readback.");
+ // Focus must be a received request if any are new. Opening a newer
+ // already-reviewing request would point the owner at the wrong customer.
+ const focusedStatus=received>0?"received":reviewing>0?"reviewing":null;
+ if(latest && (total===0||latest.status!==focusedStatus))
+  return fail("The latest request does not match the queue's priority status.");
  const next=received>0?"review_new_requests":
   reviewing>0?"continue_reviewing_requests":"no_pending_requests";
  return {ok:true,kind:"owner_request_queue_v3225",
@@ -36,6 +41,7 @@ function classifyOwnerRequestQueueV3225({
    reviewing>0?"Some requests are being reviewed. Check their details before taking further action.":
    "The current Business App inbox has no requests marked received or reviewing.",
   latestRequestId:latest?.id||null,
+  latestRequestStatus:latest?.status||null,
   countsSourcedByCaller:true,independentlyVerifiedByThisFunction:false,
   // The authenticated Edge action, not this pure module, verifies role
   // and obtains real exact-count query results from Supabase.

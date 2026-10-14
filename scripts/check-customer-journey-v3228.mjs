@@ -46,7 +46,7 @@ const R="cccccccc-cccc-4ccc-8ccc-cccccccccccc";
 const Q=(received=1,reviewing=0)=>queue({
  businessId:B,appId:A,received,reviewing,
  latest:received+reviewing?{id:R,business_id:B,mini_app_id:A,
-  request_type:"enquiry",status:"received"}:null});
+  request_type:"enquiry",status:received>0?"received":"reviewing"}:null});
 const G=(manualReview=0,pending=0)=>alerts({
  businessId:B,appId:A,pending,retryWait:0,claimed:0,manualReview});
 const first=next({queue:Q(),alerts:G(1)});

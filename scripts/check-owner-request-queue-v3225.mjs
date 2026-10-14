@@ -31,7 +31,7 @@ eq(x.bookingConfirmed,false);
 eq(x.providerDelivered,false);
 eq(x.independentlyVerifiedByThisFunction,false);
 eq(x.ownerApprovalRequiredForReply,true);
-const review=classify({...data(),received:0,reviewing:2});
+const review=classify({...data(),received:0,reviewing:2,latest:{...latest(),status:"reviewing"}});
 eq(review.nextAction,"continue_reviewing_requests");
 eq(review.pendingTotal,2);
 const empty=classify({...data(),received:0,reviewing:0,latest:null});
