@@ -166,7 +166,7 @@ for(const phrase of [
  'async function customerRequestReceipt(userId:string,body:any)',
  '.eq("consumer_user_id",userId)',
  '.eq("idempotency_key",requestKey)',
- '.select("id,mini_app_id,consumer_user_id,idempotency_key,request_type,status")',
+ '.select("id,business_id,mini_app_id,consumer_user_id,idempotency_key,request_type,status,request_origin")',
  'if (action === "request_receipt")',
  '...(await customerRequestReceipt(user.id,body))'
 ])ok(edge.includes(phrase),"Missing tenant-scoped receipt server guard: "+phrase);
