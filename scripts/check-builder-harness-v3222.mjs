@@ -66,8 +66,10 @@ for(const name of scripts){
    name+" still has a bespoke builder loader.");
  ok(!test.includes("const strip="),
    name+" should not have a stale source-stripper.");
- ok(!test.includes('read("src/domain/websiteBuilder.js")'),
-   name+" should not evaluate a partial production module.");
+ ok(!test.includes('Function("syncWebsitePageModel"')&&
+    !test.includes('domain+";return {')&&
+    !test.includes('source+";return {'),
+   name+" must not evaluate a partially stripped production builder.");
 }
 const websiteSource=read("src/domain/websiteBuilder.js");
 ok(websiteSource.includes('import {canonicalWebsiteHandoffUrl}'));
