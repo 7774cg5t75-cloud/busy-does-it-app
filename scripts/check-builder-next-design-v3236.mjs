@@ -115,7 +115,7 @@ eq(unfamiliar.a.recommended.action,"plan_missing_capability");
 const noApp=make("Customers enquire",{app:null});
 const withoutApp=next({plan:noApp,businessId:B,website,app:null,surface:"app"});
 ok(withoutApp.ok);
-eq(withoutApp.recommended.action,"review_runtime_support");
+eq(withoutApp.recommended.action,"configure_supported_module");
 // Incorrect current revisions, tenant, role proxies or fabricated live
 // evidence cannot grant even a recommendation as if it were current.
 for(const change of [
