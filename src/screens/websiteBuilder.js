@@ -48,6 +48,8 @@ import {withWebsitePreviewViewport,websitePreviewWidthNote} from "../core/websit
 import {makeWebsiteVisualCheckHtml,reviewWebsiteVisualCheck,CHANNEL as VISUAL_CHECK_CHANNEL} from "../core/websiteVisualCheck.mjs";
 import {recordPrivateWebsiteCandidateWidthV3239,reviewPrivateWebsiteCandidateWidthsV3239}
  from "../core/privateWebsiteCandidateWidthV3239.mjs";
+import {inspectCurrentWebsiteCandidateV3240}
+ from "../core/websiteCurrentCandidateV3240.mjs";
 
 function WebsiteBuilder({ s }) {
   const draft = s.websiteDraft;
@@ -1059,8 +1061,16 @@ function WebsitePreview({ s }) {
   }):null;
   const layoutAdvice=visualCheckResult&&!designCandidate
     ?recommendMeasuredWebsiteChange({draft,pageId:activePage?.id,report:visualCheckResult}):null;
+  const currentCandidateEvidence=designCandidate&&privateWidthEvidence&&
+    ["phone","tablet","desktop"].includes(previewSize)?
+    inspectCurrentWebsiteCandidateV3240(privateWidthEvidence,{
+      businessId:s.cloudWorkspace?.businessId,website:draft,
+      pageId:activePage?.id||"home",candidateId:designCandidate.id,
+      baseGeneration:designCandidate.baseGeneration,mode:previewSize
+    }):null;
   const candidateComparison=designCandidate&&candidateCheckResult&&visualCheckResult
-    ?compareWebsiteVisualReports(visualCheckResult,candidateCheckResult):null;
+    ?compareWebsiteVisualReports(visualCheckResult,candidateCheckResult):
+    currentCandidateEvidence?.ok?currentCandidateEvidence.comparison:null;
   const comparisonWords=candidateComparison
     ?describeWebsiteDesignComparison(candidateComparison):null;
   const privateWidthReview=designCandidate&&privateWidthEvidence?
@@ -1109,6 +1119,8 @@ function WebsitePreview({ s }) {
   const keepCandidate=()=>{
     if(!candidateComparison?.valid||!candidateComparison.noNewMeasuredProblems||
        privateWidthReview?.hasRegressions===true||
+       currentCandidateEvidence?.ok===true&&
+        currentCandidateEvidence.safeForPrivateApproval!==true||
        designCandidate?.baseGeneration!==draft?.generation)return;
     const saved=s.applyWebsiteLayoutAction(designCandidate.operation,{
       baseGeneration:designCandidate.baseGeneration,

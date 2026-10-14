@@ -23,6 +23,7 @@ import { interpretSelectedAppAppearance } from "../core/appContextInstruction.mj
 import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.mjs";
 import {proposeCoordinatedAppChanges,planAppVoiceInstructions} from "../core/appCoordinatedStudio.mjs";
 import {appDesignQualityReport} from "../core/appDesignQuality.mjs";
+import {reviewAppGoalDesignV3240} from "../core/appGoalDesignReviewV3240.mjs";
 import {auditBusinessAppUsability,compareBusinessAppDesign} from "../core/appUsabilityAudit.mjs";
 import {responsiveAppLayout,recommendResponsiveDesign}
   from "../core/appResponsiveDesign.mjs";
@@ -1044,6 +1045,11 @@ function MiniAppBuilder({ s }) {
     }):null;
   const nonAiDesignHints=proposeLowRiskDesignHints(view.draftConfig||view.activeConfig||{});
   const responsiveGuidance=recommendResponsiveDesign(view.draftConfig||view.activeConfig||{});
+  const appGoalDesign=view.draftConfig&&app?.draft_revision?
+    reviewAppGoalDesignV3240({
+      businessId:s.cloudWorkspace?.businessId||"",app,
+      website:s.websiteDraft||null,goal:selectedCustomerTask
+    }):null;
   const responsiveQuality=evaluateAppAcrossScreens(view.draftConfig||view.activeConfig||{});
   const measuredNativeContrast=auditStandaloneContrast(nativePalette(
     (view.draftConfig||view.activeConfig)?.presentation?.brandPalette,
@@ -2625,6 +2631,24 @@ function MiniAppBuilder({ s }) {
                 BUSY has assessed known layout rules, not measured screenshots,
                 tested booking forms or certified accessibility. Run the listed
                 real-device checks before publishing.
+              </Text>
+            </>
+          ):null}
+          {appGoalDesign?.ok?(
+            <>
+              <Text style={styles.sectionLabel}>V3.240 • BUSY’s design decision</Text>
+              <Text style={styles.cardBody}>{appGoalDesign.recommendation}</Text>
+              <Text style={styles.cardBody}>{"Customer goal: "+selectedCustomerTask+
+                ". Current private capability: "+appGoalDesign.task.status.replaceAll("_"," ")+
+                ". This does not confirm a real booking or enquiry."}</Text>
+              <Text style={styles.cardBody}>{appGoalDesign.brand.note}</Text>
+              {appGoalDesign.potentialNewStaticAdvisories?(
+                <Text style={styles.cardBody}>
+                  A possible new width-specific advisory needs inspection before keeping any design.
+                </Text>
+              ):null}
+              <Text style={styles.cardBody}>
+                These are predictions for three example layout widths, not native screenshots or customer task tests. Use the existing private design-preview controls below to inspect the alternative and approve it yourself.
               </Text>
             </>
           ):null}

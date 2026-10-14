@@ -1,5 +1,19 @@
 # Busy Does It code architecture
 
+## V3.240 — contextual App Builder design intelligence, shared Brand DNA and safe responsive reuse
+
+**Master-first checkpoint:** Retains owner-approved V22.17 context-aware visual agent, V22.18 Business Brain priorities, V3.239 private website multiview measurements, and the permanent principles of one reusable builder engine, tenant isolation, owner approval and verified customer outcomes.
+
+- A new **pure, bounded** \`appGoalDesignReviewV3240.mjs\` coordinates three already-supported app systems: responsive width rules, task readiness and the existing finite coordinated App Studio. It reports one contextual recommendation and compares existing vs possible design rules at 320/390/820 logical points. It never calls the remote model, fabricates native screenshots, creates new app capabilities or edits an owner draft.
+- Business Design DNA is consumed through the ORIGINAL \`buildBusinessBrandDnaSnapshot\` when an exact private website/app pair is available. The report exports only a generic conflict count/status and human-readable caution; business names, photos, brand colour values and other owner-only fields never enter the new decision object. A stale/foreign pair is treated as unverified, not assumed to be the same business.
+- The existing App Builder's opt-in **Why does BUSY choose different layouts?** disclosure now shows the task-specific decision, brand consistency caution and current limitations alongside the already-supported preview/apply controls. No second design page, invisible publishing or new pricing UI.
+- The original V3.239 website multiwidth notebook is preserved. \`websiteCurrentCandidateV3240.mjs\` safely reuses measured original/candidate at the selected width after navigation to another preview size, provided tenant/draft/page/version/candidate are unchanged. Source-bound full portfolio and any detected regression remain gating signals. The app owner alone may approve a private undoable change; hosted/live publishing is separate.
+- A V3.240 five-sweep code-health checkpoint audits changed-source import edges, unsupported privileged calls, tenant/revision guards and the differences between simulated layouts, actual native screenshot evidence and customer journey receipts. It inherits V3.239, V3.238 browser PNG fixture tests, production foundation and both disposable PostgreSQL fixtures. Do not claim the fixture proves real user/device operation.
+- No hosted staging installation, SQL migration, provider send, charge, paid EAS build or production publishing. Later real iOS/Android and authenticated staging evidence must be approved and performed separately.
+
+**Primary sources:** \`docs/V3_240_DESIGN_INTELLIGENCE_AND_CODE_HEALTH.md\`, \`scripts/check-builder-intelligence-v3240.mjs\`, \`scripts/audit-builder-changes-v3240.mjs\`.
+
+
 ## V3.239 — one retained private candidate, source-bound multiwidth WebView reviews and shared builder clarity
 
 **Two-master principle:** Continue the V22.17 context-aware visual-design agent and V22.18 GitHub Business Brain priorities using the *existing* website/app builders and master; this is source-only builder development, not live customer experience proof.
