@@ -19,7 +19,8 @@ const rules=[
   capability:"enquiry"}
 ];
 function adviseCustomerCapabilityV3216({
- businessType="",description="",catalog=[],publishedModules=[]
+ businessType="",description="",catalog=[],publishedModules=[],
+ businessId="",app=null,liveVersion=null
 }={}){
  const phrase=clean(businessType)+" "+clean(description);
  const matched=rules.find(r=>r.matches.test(phrase));
@@ -29,7 +30,14 @@ function adviseCustomerCapabilityV3216({
    suggestion.capability&&x?.status==="available"):null;
  const isPublished=Array.isArray(publishedModules)&&publishedModules.some(x=>
    x?.key===suggestion.capability&&x?.enabled===true);
- const actual=status&&isPublished;
+ // A catalogue entry or client-side draft is not a live deployment proof.
+ // Verify the exact published immutable app/version pair and owner scope.
+ const liveBound=!!businessId&&!!app&&!!liveVersion&&
+   app.business_id===businessId&&
+   ["live","update_pending"].includes(app.status)&&
+   app.current_live_version_id===liveVersion.id&&
+   liveVersion.mini_app_id===app.id&&liveVersion.state==="live";
+ const actual=status&&isPublished&&liveBound;
  return {ok:true,goal:suggestion.goal,capability:suggestion.capability,
    industryRestrictionsApplied:false,unknownIndustryFallback:!matched,
    verifiedAvailableInCurrentBusinessApp:!!actual,
