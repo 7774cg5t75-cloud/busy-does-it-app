@@ -51,7 +51,10 @@ const regressed=add(notebook,{...source,mode:"tablet",variant:"candidate",
 ok(regressed.ok);
 const checked=review(regressed.state,source);
 ok(checked.ok);eq(checked.complete,true);
-eq(checked.eligibleForOwnerReview,false);
+// An unchanged tablet is neutral; improvements elsewhere can still justify
+// owner inspection, provided no measured regressions are introduced.
+eq(checked.hasRegressions,false);
+eq(checked.eligibleForOwnerReview,true);
 // A worsening on any size must prevent a claim of overall improvement.
 const badBaseline=add(regressed.state,{...source,mode:"tablet",
  variant:"original",report:report("tablet",false)});
