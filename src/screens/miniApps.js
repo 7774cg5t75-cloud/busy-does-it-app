@@ -5064,6 +5064,13 @@ function MiniAppRequestDetail({ s }) {
                 s.ownerFollowupReview.businessId===request.business_id&&
                 s.ownerFollowupReview.appId===request.mini_app_id?(
                 <View>
+                  {s.ownerFollowupReview.nextStep?.ok?(
+                    <Card eyebrow="BUSY suggests"
+                      title={s.ownerFollowupReview.nextStep.title}
+                      body={s.ownerFollowupReview.nextStep.explanation}
+                      footer="Suggestion only. BUSY has not contacted the customer or confirmed a booking."
+                      tone="blue" />
+                  ):null}
                   <Text style={styles.cardBody}>
                     {s.ownerFollowupReview.why}
                   </Text>
