@@ -122,6 +122,13 @@ These layers describe the intended direction. Their presence in this document **
 
 - **V3.214 published-version continuity:** a current live Business App version must remain usable through public link, guest challenge/intake, signed-in discovery and marketplace browsing while the owner edits an unpublished draft (`update_pending`). Public data comes from the immutable `current_live_version_id` with a verified live version state, never the draft. Owner-approved website enquiry/booking links are separate handoffs to that verified public app, not hosted website forms.
 
+## Universal builder checkpoint — V3.215 immutable website request links
+
+- Owner-approved website → published Business App enquiry/booking links now **pin the exact app UUID and immutable current live version UUID**, not a reusable public slug alone. The public Edge redirect independently rejects altered/old/mis-scoped web intent links, missing modules and republished app versions **before recording a handoff intent**. Previously approved unbound website links require new owner review and website republication before the stricter route can accept them.
+- A generated website's existing Contact block still is **not a transactional enquiry form**. Read-only website enquiry readiness explains tenant-bound published-site identity, abuse/challenge, privacy/consent, bounded fields, idempotency, stored receipts, owner inbox and isolated browser/device testing, keeping unimplemented steps false rather than displaying an imaginary full capability.
+- Owner handoff links now have keyboard-visible focus, accessible touch-sized styling and a narrow-phone fallback. Static CSS and offline regressions are not measured visual quality or evidence of public customer submissions.
+- Details and deployment prerequisites: docs/V3_215_IMMUTABLE_WEBSITE_HANDOFF_AND_INTAKE_READINESS.md.
+
 ## V3.46 Production Domain Activation
 ### BUSY-owned platform domain
 - The platform root defaults to `busydoesit.co.uk`. Default BUSY websites use first-level hostnames such as `site-<slug>-<business-suffix>.busydoesit.co.uk`; `sites.busydoesit.co.uk` is reserved as the SaaS CNAME target and `origin.busydoesit.co.uk` as the fallback-origin record.
