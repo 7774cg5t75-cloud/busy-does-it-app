@@ -2,6 +2,16 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.220 — Staging-first infrastructure evidence, safe recovery, simple owner guidance
+
+- The **real isolated staging project** still has only busy_staging_rls_canary and two canary migration versions, plus pgcrypto. The source repository has **64 versioned SQL migrations** referencing base business and membership tables. Reuse staging/ISOLATED_ONLY_business_core_v3180.sql as a *candidate for manual staging-only approval*, not an authoritative copy of production.
+- The offline V3.220 bootstrap reconciler reuses established migration dependency/risk scanners and divides the 65 source SQL files into five separately reviewed phases. A local-only SHA-256 manifest records the exact source bytes. A recorded read-only Supabase snapshot can become stale and cannot prove migration safety, owner consent, JWT isolation, backup restoration or real request behaviour.
+- No phase review, even with every Boolean marked true, may automatically apply SQL, install pg_cron/pg_net/pgmq, deploy an Edge function, publish a website or claim independent request completion. Review schedule/HTTP/provider privileges, security-definer routines, grants, partial installs, existing migration ledger and rollback before approval; repeat the independent target read at install time.
+- Universal website/app composition remains **any-industry**, source-scoped and proof-level aware. Owner-facing guidance presents one clear next action; deeper reasons are optional. An immutable app version change requires explicit handoff reapproval and separately approved website republish, never a silent redirect.
+- Request recovery and notification delivery must be separately evidenced: unknown commit → reconcile existing receipt; verified saved request → owner inbox verification; attempted or purportedly delivered provider notification → independent provider proof; request accepted in BUSY ≠ confirmed external diary entry. No automatic duplicates, retries or provider charges.
+- V3.220 worktree regression is configured to parse all 64 source migration SQL files in GitHub CI. Focused V8 contract testing is not a substitute for Node/Expo builds or PostgreSQL Auth/JWT/RLS and full rollback validation. See docs/V3_220_STAGING_BOOTSTRAP_AND_CONNECTED_CUSTOMER_JOURNEYS.md.
+
+
 ## V3.219 — Actual staging schema gates and verifiable customer outcomes
 
 - **Verified external observation, 14 October 2026:** the separate Busy Does It Staging Supabase project has only busy_staging_rls_canary in its public schema. The shared business membership, Business App, immutable version, guest challenge and request tables and associated app RPC are absent in staging. This is not an active live staging request platform, regardless of source-level tests. Read-only catalog queries are documented for repeatability.
