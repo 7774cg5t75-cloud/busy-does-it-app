@@ -69,4 +69,5 @@ jobs:
           ../../node_modules/.bin/expo export --platform ios --output-dir /tmp/bdi-v3209-standalone-ios
           ../../node_modules/.bin/expo export --platform android --output-dir /tmp/bdi-v3209-standalone-android
       - name: Note limits
-        run: echo "V3.209 is source and offline checks only; no database, Edge deploy, paid provider, signed binary, store submission or real customer traffic."
+        run: |
+          echo "V3.209 is source and offline checks only; no database, Edge deploy, paid provider, signed binary, store submission or real customer traffic."
