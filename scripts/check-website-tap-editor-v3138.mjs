@@ -1,3 +1,4 @@
+import {websiteBuilderTestHarnessV3222} from "./lib/website-builder-test-harness-v3222.mjs";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {makeTapToEditHtml,resolveTapSelection,CHANNEL} from "../src/core/websiteTapToEdit.mjs";
@@ -8,22 +9,8 @@ import {designForWebsite,designCss} from "../supabase/functions/busy-website-wor
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
 import {applyWebsiteVisualEdit} from "../supabase/functions/busy-website-worker/designEdits.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
-const strip=s=>s.replace(/export\s*\{[\s\S]*?\};?\s*$/,"");
-const m=Function(strip(read("src/domain/websiteManagement.js"))+";return {syncWebsitePageModel};")();
-let source=strip(read("src/domain/websiteBuilder.js"));
-for(const imp of [
- 'import { syncWebsitePageModel } from "./websiteManagement";',
- 'import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";',
- 'import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";',
- 'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
- 'import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";',
- 'import { applyWebsiteVisualEdit } from "../../supabase/functions/busy-website-worker/designEdits.mjs";'
-]){assert.ok(source.includes(imp),"Expected original builder import");source=source.replace(imp,"");}
-const {buildWebsiteDraft,renderWebsiteHtml,applyStructuredWebsiteEdit,applyWebsiteLayoutChange}=Function(
- "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign",
- "applyWebsiteVisualEdit","editWebsiteDraftField","canonicalWebsiteHandoffUrl",
- source+";return {buildWebsiteDraft,renderWebsiteHtml,applyStructuredWebsiteEdit,applyWebsiteLayoutChange};"
-)(m.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField,canonicalWebsiteHandoffUrl);
+const {buildWebsiteDraft,renderWebsiteHtml,applyStructuredWebsiteEdit,applyWebsiteLayoutChange}=websiteBuilderTestHarnessV3222(["buildWebsiteDraft","renderWebsiteHtml","applyStructuredWebsiteEdit","applyWebsiteLayoutChange"]);
+
 const a={id:"rose-1",storagePath:"private/rose-1.jpg",uri:"https://example.test/rose.jpg",approved:true,alt:"Roses"};
 const b={id:"rose-2",storagePath:"private/rose-2.jpg",uri:"https://example.test/hedge.jpg",approved:true,alt:"Hedge"};
 const site=buildWebsiteDraft({brandBrain:{websiteReady:true,websiteBrief:{
