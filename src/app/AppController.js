@@ -1,4 +1,5 @@
 import {confirmFirstAppFromWebsite} from "../core/firstAppFromWebsiteV3197.mjs";
+import {interpretOwnerStatusAfterErrorV3231} from "../core/ownerStatusRecoveryV3231.mjs";
 import {reconcileFirstAppReadback} from "../core/firstAppRecoveryV3198.mjs";
 import {evaluateCustomerRequestOutcome,customerRequestNotice}
  from "../core/customerJourneyOutcomeV3204.mjs";
@@ -16244,12 +16245,15 @@ function App() {
   const updateMiniAppRequestStatus = async (requestId, status, expectedRequest) => {
     setMiniAppsAction(`request-status:${requestId}`);
     setMiniAppsError("");
+    let attempted=false;
+    const originalBusinessId=cloudWorkspace?.businessId||"";
     try {
       // The owner approves a specific saved snapshot, NOT whatever state
       // may have arrived after their screen was opened.
       if(expectedRequest?.id!==requestId||
          !expectedRequest?.status||!expectedRequest?.updated_at)
         throw Error("Open the latest customer request before changing its status.");
+      attempted=true;
       const data = await miniAppsRequest("update_request_status", {
         requestId,status,
         expectedStatus:expectedRequest.status,
@@ -16277,7 +16281,26 @@ function App() {
         "BUSY saved your request status. Provider notification delivery is not yet verified.");
       return true;
     } catch (error) {
-      setMiniAppsError(error?.message || "BUSY could not verify the request status. Check the latest saved request before retrying.");
+      // A timeout, ambiguous server response or competing update is NOT
+      // licence to submit the status write again. Read the existing
+      // owner-only receipt once, then communicate what is actually known.
+      if(attempted&&originalBusinessId&&
+         cloudWorkspace?.businessId===originalBusinessId){
+        try{
+          const receipt=await miniAppsRequest("owner_inbox_receipt",{requestId});
+          if(cloudWorkspace?.businessId===originalBusinessId){
+            const recovery=interpretOwnerStatusAfterErrorV3231({
+              businessId:originalBusinessId,requestId,
+              desiredStatus:status,receipt
+            });
+            if(recovery.kind!=="unverified"){
+              setMiniAppsError(recovery.ownerText);
+              return false;
+            }
+          }
+        }catch{ /* Only read-back attempt; never repeat original write. */ }
+      }
+      setMiniAppsError(error?.message || "BUSY could not verify the request status. Refresh the saved request before taking another action.");
       return false;
     } finally {
       setMiniAppsAction("");
