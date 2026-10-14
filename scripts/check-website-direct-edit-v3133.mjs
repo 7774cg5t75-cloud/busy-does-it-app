@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {editWebsiteDraftField} from "../src/core/websiteStructuredEditing.mjs";
+import {canonicalWebsiteHandoffUrl} from "../src/core/websiteAppHandoffV3214.mjs";
 import {planWebsiteDesign} from "../supabase/functions/busy-website-worker/designPlanner.mjs";
 import {designForWebsite,designCss} from "../supabase/functions/busy-website-worker/designSystem.mjs";
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
@@ -12,6 +13,7 @@ const management=Function(strip(read("src/domain/websiteManagement.js"))+";retur
 let domain=strip(read("src/domain/websiteBuilder.js"));
 for(const imp of [
  'import { syncWebsitePageModel } from "./websiteManagement";',
+ 'import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";',
  'import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";',
  'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
  'import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";',
@@ -20,9 +22,9 @@ for(const imp of [
 ]){assert.ok(domain.includes(imp),"Expected domain import missing: "+imp);domain=domain.replace(imp,"");}
 const {buildWebsiteDraft,applyStructuredWebsiteEdit}=Function(
  "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign",
- "reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField",
+ "reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField","canonicalWebsiteHandoffUrl",
  domain+";return {buildWebsiteDraft,applyStructuredWebsiteEdit};"
-)(management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField);
+)(management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField,canonicalWebsiteHandoffUrl);
 const owner=buildWebsiteDraft({brandBrain:{websiteReady:true,websiteBrief:{
  businessName:"Rosemary Gardens",businessType:"Garden design",phone:"01234 567890",
  email:"team@rosemary.example",serviceArea:"Torbay",
