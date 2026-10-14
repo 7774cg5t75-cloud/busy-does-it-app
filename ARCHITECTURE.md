@@ -1,5 +1,20 @@
 # Busy Does It code architecture
 
+## V3.238 — real offline Chromium visual comparison with source and integrity receipts
+
+**Working master:** V22.17 context-aware owner-controlled visual design-agent requirement; V22.18 GitHub-recorded Business Brain priorities; original Website Builder, universal planner, coordinated options and visual inspector remain authoritative. No new competing renderer, subscription configuration or billing layer.
+
+1. **Real browser evidence for fictional designs:** New automated GitHub Actions Chromium job uses the ORIGINAL build-website-design-gallery-v3100.mjs renderer and its safe same-business coordinated design-only alternative, not a newly invented mock website engine. It produces separate original and candidate PNG screenshots at 390, 768 and 1440 CSS pixels (phone, tablet, desktop). Existing websiteVisualCheck.mjs collects true browser layout counters for the exact capture key, and the original V3.237 multiwidth comparator rejects new measured warnings at any tested width.
+2. **Reproducible artifact integrity without false provenance:** New scripts/lib/verifyBuilderVisualArtifactsV3238.mjs binds the capture manifest to fictional tenant ID, private draft ID, exact source revision, enabled page, HTML SHA-256 digests, six PNG byte digests and six layout-report digests. It checks PNG dimensions from actual local byte headers. Tampering, mixed businesses, missing files, stale revisions and mismatched capture widths must fail closed. This is a CI fixture integrity check, **NOT** a signed or independently attested device capture; hashes alone cannot authenticate origin.
+3. **Regression demonstration:** The browser runner deliberately renders a broken over-wide design on a phone and checks that the original visual inspector reports overflow. It separately tests mismatched screenshot hashes, modified metrics, cross-business source and stale website revisions. The original private builder version and owner locks are never edited, published or transmitted.
+4. **CI and artifacts:** The V3.238 workflow inherits V3.237 original production foundation, extensive builder/Work regressions and two disposable PostgreSQL fixtures. A separate browser job installs pinned Playwright, captures actual offline fictional screenshots and uploads only the fictional images/receipt for seven days. No credentials, hosted staging, paid EAS native builds, provider AI requests, real user data or remote deployment. Exported Snack preview is still a separate check.
+5. **Customer-facing truth:** The existing Website/App shared design-recommendation screen continues to say real customer versions are not rendered or measured by that screen. This sweep strengthens actual *development* visual evidence, but does not make an owner preview automatically an approved customer deployment or prove any real customer task succeeded.
+
+**Next legitimate gate:** Connect approved current private owner source/revisions with safe in-app/browser capture, review real before/after screenshots at several widths, verify app/native experience separately, check real authorised customer journeys and require explicit owner approval before any private draft update or public publishing. Do not quietly copy a fictional CI result into a customer's design quality score.
+
+**Documents and tests:** docs/V3_238_REAL_BROWSER_BUILDER_VISUAL_EVIDENCE.md, scripts/check-builder-visual-receipt-v3238.mjs, scripts/check-builder-browser-evidence-v3238.mjs and .github/workflows/builders-major-v3238.yml.
+
+
 ## V3.237 — evidence-led design review priority across the original builders
 
 **Owner product goals:** Word master V22.17 coordinated visual design-agent direction; GitHub V22.18 Business Brain/Work context and the permanent "simple interface, deeper intelligence" rule. No second app/site generator is introduced.
