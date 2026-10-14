@@ -1,6 +1,6 @@
 /**
  * V3.221 read-only bootstrap + SQL side-effects + Business Brain regression.
- * Includes all 65 actual migration files, never runs SQL or sends providers.
+ * Includes all 66 actual migration files, never runs SQL or sends providers.
  */
 import assert from "node:assert/strict";
 import {readFileSync,readdirSync} from "node:fs";
@@ -63,11 +63,11 @@ ok(badGrant.dangerousSourceSignals.includes("public_open_grants"));
 eq(badGrant.approvedToInstall,false);
 const names=readdirSync(join(ROOT,"supabase/migrations"))
  .filter(x=>x.endsWith(".sql")).sort();
-eq(names.length,65);
+eq(names.length,66);
 const migrations=names.map(name=>({name,sql:read("supabase/migrations/"+name)}));
 const report=reviewStagingSqlSideEffectsV3221(migrations);
 ok(report.ok,report.reason);
-eq(report.migrationCount,65);
+eq(report.migrationCount,66);
 ok(report.sideEffectReviewFileCount>25);
 ok(report.sourceRiskFindingCount>40);
 ok(report.categories.privileged_function>0);
