@@ -2,6 +2,15 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## Retail commerce and evidence-led customer success — Wix advert learnings
+
+**Owner-approved product guidance, 14 October 2026; saved master V22.7, Sections 52.6–52.7.** A Wix shop/customer-success advert reinforces two existing goals; the stated turnover is a marketing claim, not proof of profit or causal value from Wix.
+
+- **Real retail functionality over attractive shopfronts:** Extend current V3.210 reusable universal capabilities and Get Paid, Busy Customers and Busy Supplies with tenant-scoped products/variants, authorised imagery, inventory, cart, checkout, verified payment state, orders, fulfilment, delivery/collection, returns, refunds, relevant tax/shipping rules and customer communications. A drawn checkout, provider authorisation, settled payment and fulfilled order are different evidence levels; test duplicate payments, stock races, webhooks, failures and retries.
+- **One shared operational truth:** website, marketplace Business App and optional standalone app should use the same authoritative product, order, customer, payment and inventory records and owner approvals. Avoid parallel stores. Explore existing commerce/stock/payment integrations via replaceable reviewed adapters rather than replicating a mature commerce platform needlessly. Preserve ownership, portability, clear third-party charges and business types that do not need shops.
+- **Ethical customer case studies:** Obtain explicit customer consent and source-backed before/after outcomes, time saved and real customer journeys. Distinguish revenue vs profit, estimated vs verified, and correlation vs attribution. Never fabricate testimonials or imply a website builder caused a customer's entire commercial success. Reuse existing Business Brain verified outcomes, Get More Customers and privacy/audit policies; enable correction/withdrawal and explicit public approvals.
+- **Rollout discipline:** These are planned expansions, not currently verified live functionality. Prioritise actual staging/tenancy and end-to-end delivery foundations before calling any retail transaction or customer proof complete; continue lightweight CI and quality-first multi-topic sweeps.
+
 ## V3.225 — Real existing guest RPC rehearsal, owner-action inbox and architecture health
 
 - **Dual-master preflight completed first:** current saved Word master V22.5 and GitHub architecture/sweep policy. Preserve one reusable Business App runtime, shared tenant-scoped request data, affordable operation, owner approval and verified end-to-end customer outcomes. No product/pricing decision or Word-master edit in this technical sweep.
