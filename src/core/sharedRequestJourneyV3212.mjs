@@ -86,7 +86,8 @@ function reviewSharedRequestJourney({
   try{
    const u=new URL(savedLink.url);
    handoffMatchesCurrentApp=savedLink.url===canonicalWebsiteHandoffUrl({
-    endpoint:u.origin+u.pathname,slug:savedLink.slug,kind
+    endpoint:u.origin+u.pathname,slug:savedLink.slug,kind,
+     appId:savedLink.appId,liveVersionId:savedLink.liveVersionId
    });
   }catch{/* No trustworthy active website handoff proof. */}
  }
