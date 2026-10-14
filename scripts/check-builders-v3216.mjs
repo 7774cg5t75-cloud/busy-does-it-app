@@ -182,6 +182,21 @@ same(adviseCustomerCapabilityV3216({businessType:"Restaurant"}).capability,
  "booking_request");
 same(adviseCustomerCapabilityV3216({businessType:"Online store"}).capability,
  "catalogue");
+same(adviseCustomerCapabilityV3216({
+ businessType:"Restaurant",description:"We do not take bookings"
+}).capability,"enquiry","Do not force industry booking stereotypes.");
+same(adviseCustomerCapabilityV3216({
+ businessType:"Restaurant",description:"We do not take bookings"
+}).explicitlyDeclinedBookings,true);
+same(adviseCustomerCapabilityV3216({
+ businessType:"Restaurant",description:"We only want enquiries, not bookings"
+}).suggestionEvidenceSource,"stated_business_goal");
+same(adviseCustomerCapabilityV3216({
+ businessType:"Plumber",description:"Please help customers book appointments"
+}).capability,"booking_request","Explicit owner goal beats industry hint.");
+same(adviseCustomerCapabilityV3216({
+ businessType:"Plumber",description:"We want an online shop for parts"
+}).capability,"catalogue","Owner description wins over trade stereotype.");
 const businessWebsite={id:"private-site",businessId:BID,generation:5,
  sections:[],theme:{}};
 const planInput={businessId:BID,website:businessWebsite,kind:"enquiry"};
