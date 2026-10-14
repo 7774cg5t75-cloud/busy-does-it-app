@@ -5,12 +5,14 @@ import {designForWebsite,designCss} from "../supabase/functions/busy-website-wor
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
 import {applyWebsiteVisualEdit} from "../supabase/functions/busy-website-worker/designEdits.mjs";
 import {editWebsiteDraftField} from "../src/core/websiteStructuredEditing.mjs";
+import {canonicalWebsiteHandoffUrl} from "../src/core/websiteAppHandoffV3214.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 const strip=s=>s.replace(/export\s*\{[\s\S]*?\};?\s*$/,"");
 const model=Function(strip(read("src/domain/websiteManagement.js"))+";return {syncWebsitePageModel};")();
 let source=strip(read("src/domain/websiteBuilder.js"));
 for(const exp of [
   'import { syncWebsitePageModel } from "./websiteManagement";',
+ 'import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";',
   'import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";',
   'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
   'import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";',
@@ -18,9 +20,9 @@ for(const exp of [
 
 ]){ assert.ok(source.includes(exp),exp);source=source.replace(exp,"");}
 const {buildWebsiteDraft,applyWebsiteInstruction}=Function(
- "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField",
+ "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField","canonicalWebsiteHandoffUrl",
  source+";return {buildWebsiteDraft,applyWebsiteInstruction};")(
- model.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField
+ model.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField,canonicalWebsiteHandoffUrl
 );
 let checks=0;
 const yes=(v,msg)=>{assert.ok(v,msg);checks++};
