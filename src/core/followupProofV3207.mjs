@@ -4,6 +4,7 @@
  * No network, persistence, sending or external side effects here.
  */
 import {verifyOwnerNextStepV3234} from "./followupNextActionV3234.mjs";
+import {verifyOwnerOutcomeEvidenceV3235} from "./ownerOutcomeProofV3235.mjs";
 const ID=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 const CATEGORIES=new Set(["needsReply","waiting","closed","manual","unknown"]);
 const reject=reason=>({ok:false,reason,mayPrepareDraft:false,
@@ -43,10 +44,17 @@ function checkCurrentOwnerFollowup({
   verifyOwnerNextStepV3234({businessId,appId,requestId,
    decision:result,nextAction:result.nextAction});
  if(nextStep&&!nextStep.ok)return reject(nextStep.reason);
+ // Backward compatible with earlier offline fixtures; malformed PRESENT
+ // outcome evidence is never allowed into the owner screen.
+ const outcome=result.outcomeEvidence===undefined?null:
+  verifyOwnerOutcomeEvidenceV3235({businessId,appId,requestId,
+   followup:result,evidence:result.outcomeEvidence});
+ if(outcome&&!outcome.ok)return reject(outcome.reason);
  return {ok:true,kind:"owner_followup_review_v3207",
   businessId,appId,requestId,
   category:result.category,why:result.why,
   nextStep:nextStep?.ok?nextStep:null,
+  outcomeEvidence:outcome?.ok?outcome:null,
   sourceStamp:result.sourceStamp,
   requestType:result.requestType,
   draft:canPrepare?result.replyDraft:null,
