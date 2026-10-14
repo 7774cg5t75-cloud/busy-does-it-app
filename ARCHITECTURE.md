@@ -2,6 +2,16 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.224 — Actual guest-request replay integrity and disposable PostgreSQL rollback proof
+
+- **Both masters checked before implementation:** saved Word product master **V22.5**, especially single shared Business App backend, end-to-end functional workflows, customer ownership and quality-first dual-master governance; GitHub architecture, sweep policy and latest V3.223 evidence. Technical improvement only: no Word product-master version change.
+- **Real Edge handler improved, not deployed:** the existing `busy-mini-app-guest` handler now independently reads back the full server-scoped stored request after the transactional guest-request RPC, and confirms exact guest challenge, business/app/request identity, contact metadata, sanitized request payload, request kind/origin/assurance and optional idempotency key before claiming it saved *the submitted* data. Replayed challenges can reference previously committed requests; never silently call a different payload a successful new submission.
+- **Sequential replay notification restraint:** if the original challenge was already consumed, avoid a second unverified provider-notification attempt. Concurrent submission races remain possible and **exactly-once notification delivery is not proven**; preserve the future durable, atomic outbox requirement. A verified saved request is NOT a delivered notification, completed booking, external calendar entry or active native website form.
+- **Real low-cost database test:** a new V3.224 GitHub Actions PostgreSQL 16 Docker job runs the existing **staging-only** V3.180 business/member SQL in a *single disposable transaction*, checks FK/table creation, FORCEd RLS, direct-client grant denials and service_role access, then rolls back all created tables, temporary auth users and mock roles. Verified `V3.224_EPHEMERAL_BASELINE_ROLLBACK_PASS` on GitHub. This is real Postgres DDL/transaction verification but *not* a genuine Supabase staging install, real JWT/RLS tenant isolation or recovery from an actual deployed migration.
+- **Continuous quality:** 177 V3.224 source assertions passed; inherited development source tests and separate Production Foundation checks succeeded; no deployment, staging/production write, signed build, customer contact or charge. The first disposable-job failure was a test-only constant-folded divide-by-zero expression; the corrected rerun passed. Detailed record: docs/V3_224_GUEST_REQUEST_REPLAY_AND_DISPOSABLE_STAGING_BASELINE.md.
+- **Next blocked milestone:** separately approved actual staging install and reversible restore procedure, verified two-tenant Auth/JWT, atomic guest request/idempotency and durable notification evidence. Keep universal customer experience simple, reuse one Business App request engine, and never confuse source CI with hosted readiness.
+
+
 ## V3.223 — Master-first architectural checkpoint: parity, rollback boundaries, honest outcomes
 
 - **Master read first:** V3.222 and the permanent open-source strategy were reviewed before coding. Reuse existing V3.180 staging-only base schema, V3.220–V3.222 phase guards and V3.218/V3.222 Business Brain; no duplicate CRM/request database, editor, learning engine or unreviewed open-source installation.
