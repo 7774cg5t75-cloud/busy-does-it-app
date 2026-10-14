@@ -12,6 +12,8 @@ import {adviseCustomerCapabilityV3216}
  from "../core/customerCapabilityAdviceV3216.mjs";
 import {planBusinessJourneyNextStepV3217}
  from "../core/businessJourneyCoachV3217.mjs";
+import {planUniversalCustomerJourneyV3218}
+ from "../core/universalCustomerJourneyV3218.mjs";
 import {WebsiteFormSpecReviewV3217}
  from "./websiteFormSpecReviewV3217";
 
@@ -24,9 +26,10 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
  const [notice,setNotice]=React.useState("");
  const [reviewed,setReviewed]=React.useState(false);
  const [showFormReadiness,setShowFormReadiness]=React.useState(false);
+ const [showConnectedPlan,setShowConnectedPlan]=React.useState(false);
  React.useEffect(()=>{
   setOpen(false);setReviewed(false);setNotice("");
-  setShowFormReadiness(false);
+  setShowFormReadiness(false);setShowConnectedPlan(false);
  },[businessId,website?.id,website?.generation,app?.id,
   app?.current_live_version_id,liveVersion?.id]);
  const latest=planWebsiteAppRequestHandoff({
@@ -43,6 +46,10 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
   businessId,app,liveVersion});
  const journeyCoach=planBusinessJourneyNextStepV3217({
    businessType,description,businessId,website,app,liveVersion,catalog
+ });
+ const connectedPlan=planUniversalCustomerJourneyV3218({
+   businessId,website,app,liveVersion,catalog,endpoint,
+   businessType,description,publishing,deliveryProof
  });
  const current=latest.ok&&linked?.ownerApproved===true&&
   linked.url===latest.url&&linked.appId===latest.appId&&
@@ -132,6 +139,20 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
      <Text style={styles.cardBody}>
        {"Suggested next step: "+journeyCoach.title+". "+journeyCoach.reason}
      </Text>
+     <Button label={showConnectedPlan?
+        "Hide connected customer journey":"How would BUSY connect my website and app?"}
+       onPress={()=>setShowConnectedPlan(v=>!v)}/>
+     {showConnectedPlan&&connectedPlan.ok?<View>
+       <Text style={styles.cardBody}>{connectedPlan.summary}</Text>
+       {connectedPlan.steps.map(step=><View key={step.id}>
+         <Text style={styles.sectionLabel}>{step.title}</Text>
+         <Text style={styles.cardBody}>{step.reason}</Text>
+       </View>)}
+       <Text style={styles.cardBody}>
+         Nothing is published or sent. Website forms still require a tested
+         server transaction and explicit owner approval.
+       </Text>
+     </View>:null}
      <Button label={showFormReadiness?
         "Hide built-in website form readiness":
         "What would my own website enquiry form need?"}
