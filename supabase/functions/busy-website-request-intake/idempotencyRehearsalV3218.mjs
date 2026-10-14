@@ -14,12 +14,14 @@ function decision({scope=null,keyDigest="",payloadDigest="",
  ledger=null,challenge=null,now=""}={}){
  if(!scope||!UUID.test(scope.businessId)||!UUID.test(scope.websiteId)||
    !UUID.test(scope.deploymentId)||!UUID.test(scope.appId)||
+   !UUID.test(scope.appVersionId)||!UUID.test(scope.approvalId)||
    !TYPES.has(scope.requestType)||!HASH.test(keyDigest)||
    !HASH.test(payloadDigest))
   return fail("Missing valid server-owned request scope or opaque digests.");
  // Never allow a browser-provided row or idempotency key to cross business,
  // website, deployment or request type.
- const dimensions=["businessId","websiteId","deploymentId","requestType"];
+ const dimensions=["businessId","websiteId","deploymentId",
+   "appId","appVersionId","approvalId","requestType"];
  if(ledger!==null){
   if(!ledger||typeof ledger!=="object"||
      dimensions.some(k=>ledger[k]!==scope[k])||
@@ -29,7 +31,8 @@ function decision({scope=null,keyDigest="",payloadDigest="",
     return fail("An idempotency key cannot be reused for a different payload.","conflict");
   if(ledger.state==="committed"&&UUID.test(ledger.requestId))
    return {ok:true,kind:"idempotency_rehearsal_v3218",
-    disposition:"lookup_existing_receipt",requestIdHint:ledger.requestId,
+    disposition:"lookup_existing_receipt",hasExistingRequestId:true,
+    existingRequestIdHidden:true,
     independentServerReadbackRequired:true,mayInsert:false,
     verifiedSaved:false,publicEndpointEnabled:false,
     bookingConfirmed:false,notificationDelivered:false,
