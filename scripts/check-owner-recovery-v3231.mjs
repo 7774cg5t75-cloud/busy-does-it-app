@@ -86,7 +86,7 @@ ok(!native.includes("autoRetryOwnerStatusV3231"));
 const ui=read("src/screens/miniApps.js");
 ok(ui.includes('s.updateMiniAppRequestStatus(request.id, "reviewing", request)'));
 ok(ui.includes('s.updateMiniAppRequestStatus(request.id, "declined", request)'));
-ok(ui.includes('!link && request.status === "received" ? ('));
+ok(ui.includes('actions.canReview ? ('));
 const fixture=read("staging/CI_ONLY_v3231_owner_status_cas.sql");
 ok(fixture.includes("V3.231_EPHEMERAL_OWNER_CAS_AND_TENANT_SCOPE_PASS"));
 ok(fixture.includes("v_first.business_id"));
