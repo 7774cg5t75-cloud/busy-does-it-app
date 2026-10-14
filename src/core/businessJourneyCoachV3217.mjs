@@ -19,6 +19,9 @@ function planBusinessJourneyNextStepV3217({
  const verifiedReceipt=!!savedReceipt&&savedReceipt.ok===true&&
    savedReceipt.verifiedSaved===true&&
    savedReceipt.sourceChannel==="guest_web"&&
+   savedReceipt.trustedServerReadbackClaimed===true&&
+   savedReceipt.businessId===businessId&&
+   savedReceipt.appId===app?.id&&
    savedReceipt.publicWebsiteSubmissionVerified===false;
  let action="prepare_business";
  let title="Tell BUSY what customers need to do";
