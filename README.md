@@ -1,5 +1,14 @@
 # busy-does-it-app
 
+## V3.221 — CI Stabilisation and First-Phase Staging Safety
+
+This substantial sweep repairs outdated website builder test harnesses and historical workflow YAML, restores a missing pure request-receipt module in the Snack source graph, and configures CI to cancel superseded runs. Normal branch pushes perform lightweight source and inherited safety tests; the heavier unsigned Expo exports in V3.221's builder workflow require manual dispatch.
+
+A real V3.221 GitHub Actions run passed **71 focused worktree assertions** covering staging-only business RLS source requirements, privileged/cron/network migration-risk signals across **64 actual SQL migrations**, cross-business handoff security and evidence-aware owner recommendations. A separate graph test validated **292 Snack modules with no missing relative imports**. This does NOT mean real Postgres staging migrations, full production-foundation CI, authenticated RLS, device testing or signed builds passed.
+
+The Business Brain now chooses one practical website/app next step: verify uncertain saved requests, ask the owner to refresh stale app links, or review available published modules. **No database writes, customer messages, publication, migration or paid build were initiated.** Full details: [V3.221 technical report](docs/V3_221_CI_STABILISATION_AND_STAGING_FIRST_PHASE.md).
+
+
 ## V3.220 — Exact Staging Bootstrap and Simpler Connected Customer Journeys (development)
 
 V3.220 inspects the **real isolated Busy Does It Staging database** read-only, reconciles its two canary migrations and missing Business App schema with **64 actual SQL migration filenames** and the existing *staging-only* business-core baseline. The new offline manifest generator checksums the baseline and all 64 source files, divides them into five independent review phases and never connects to or modifies Supabase. Source risk analysis and phase approval/rollback checks fail closed; user-supplied approvals cannot activate execution.
