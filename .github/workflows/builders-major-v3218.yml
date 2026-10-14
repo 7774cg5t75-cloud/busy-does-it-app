@@ -78,4 +78,5 @@ jobs:
           ../../node_modules/.bin/expo export --platform ios --output-dir /tmp/bdi-v3218-standalone-ios
           ../../node_modules/.bin/expo export --platform android --output-dir /tmp/bdi-v3218-standalone-android
       - name: Note limits
-        run: echo "V3.218 is source-only: SQL proposal intentionally aborts and is outside migrations; no public endpoint, production writes, provider messages or signed builds."
+        run: |
+          echo "V3.218 is source-only: SQL proposal intentionally aborts and is outside migrations; no public endpoint, production writes, provider messages or signed builds."
