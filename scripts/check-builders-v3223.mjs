@@ -206,5 +206,14 @@ ok(script.includes("ephemeralDatabaseCreated:false"));
 ok(!script.includes("tools.mcp__Supabase__"));
 const sql=read("staging/ISOLATED_ONLY_business_core_v3180.sql");
 ok(!sql.includes("drop table cascade"));
+const catalogQuery=read("staging/READ_ONLY_v3223_phase_one_schema_contract.sql");
+const noComments=catalogQuery.replace(/--[^\n]*/g,"").trim();
+ok(!/\b(?:create|alter|drop|truncate|insert|update|delete|grant|revoke|execute|call|do)\s+(?:table|function|schema|role|extension|policy|from|into)?/i
+ .test(noComments),"Metadata query must remain read-only.");
+ok(noComments.toLowerCase().startsWith("select "));
+ok(catalogQuery.includes("relforcerowsecurity"));
+ok(catalogQuery.includes("supabase_migrations.schema_migrations"));
+ok(catalogQuery.includes("busy_business_memberships"));
+
 console.log("V3.223 staging-source parity, no-SQL recovery and evidence freshness: "+
  checks+" focused assertions passed; no remote database mutations.");
