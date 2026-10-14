@@ -51,7 +51,7 @@ for(const bad of [[H[0],"short"],["invalid"],Array(21).fill(H[0])]){
  eq(x.ok,false);eq(x.mayPersist,false);
 }
 for(const bad of [null,[],[accepted[0]],[
- {status:"ok",id:"wrong id with spaces"},accepted[1]]){
+ {status:"ok",id:"wrong id with spaces"},accepted[1]]]){
  const x=evidence({deviceHashes:H,tickets:bad,responseOk:true});
  eq(x.outcome,"uncertain");eq(x.notificationDelivered,false);
 }
