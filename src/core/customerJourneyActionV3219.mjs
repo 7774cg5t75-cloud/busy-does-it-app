@@ -9,6 +9,13 @@ function adviseVerifiedCustomerJourneyV3219({
  businessId="",website=null,app=null,liveVersion=null,catalog=[],
  businessType="",description="",pendingWrite="none",endpoint=""
 }={}){
+ if(!businessId||website?.businessId!==businessId||
+   (app&&app.business_id!==businessId))
+  return {ok:false,reason:"Choose the current business website and app.",
+   action:"verify_business_scope",readOnly:true,sendAllowed:false,
+   providerSpendAllowed:false,publicFormActive:false,
+   independentlyVerifiedCustomerOutcome:false,bookingConfirmed:false,
+   providerDeliveryVerified:false,customerDataIncluded:false};
  const coach=planBusinessJourneyNextStepV3217({
   businessId,website,app,liveVersion,catalog,businessType,description});
  const linkedKinds=["enquiry","booking_request"].filter(kind=>
