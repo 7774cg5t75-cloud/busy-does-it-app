@@ -95,7 +95,8 @@ async function runOnce(){
     const check=classifyGuestAlertProviderTicketsV3227({
       responseOk:response.ok,tickets,expectedCount:tokens.length
     });
-    outcome=check.outcome;
+    outcome=check.outcome==="provider_accepted"?"provider_accepted":
+      check.outcome==="definitively_rejected"?"definitively_rejected":"uncertain";
     if(check.providerAccepted){
       // Store a digest of gateway tickets, NOT the raw Expo tokens, customer
       // identity or the receipts; even acceptance is NOT delivery evidence.
