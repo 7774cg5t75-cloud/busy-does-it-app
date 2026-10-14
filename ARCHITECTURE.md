@@ -2,6 +2,17 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.218 — Unique request scope, replay recovery and evidence-first Business Brain
+
+- A website-native submission must use server-fetched published website + deployment + **exact owner approval revision**, approved immutable Business App version and tenant-aware guest proof; website Origin alone never authenticates. Existing busy_mini_app_requests remains the intended customer request record/inbox. The current Business App guest RPC cannot safely be reused for website-native input without a distinct new challenge and origin contract.
+- Source-only schema and intentionally aborting SQL proposal define four future concepts: owner-approved form/notice, single-use challenge, unique **business+website+deployment+approval+type+key-digest** idempotency ledger and independent notification outbox. The SQL is stored in docs/sql-proposals, NOT migrations, and must be reconciled with the actual staging schema and RLS before real migration work. No database changes or public endpoint were made.
+- The pure idempotency reviewer never grants a write: fresh requests require an atomic Postgres RPC, a matching committed replay requires independently authorised readback, pending/unknown outcomes require reconciliation before retry, and key reuse with a different payload or another approval/tenant/version is denied. Do not expose replayed request IDs to an unverified browser.
+- Request recovery distinguishes commit-uncertain, server-read saved request, owner inbox proof and provider outbox state. A saved guest request is not proof of a native website form, delivered notification or verified diary appointment. The module itself does not authenticate its server inputs; only authorised handlers can.
+- New bounded Business Brain outcome-priority planning uses same-business, source-labelled aggregate counts as hypotheses; it never queries data, shares between tenants, retrains a model, sends, charges or publishes. Any future verified rollup and customer-facing insights require a real server-owned evidence pipeline.
+- Universal customer-action composition recommends reuse of actually published app modules and owner-reviewed private website handoff, with an industry-neutral fallback and no false native website form. Optional guidance sits in existing Website Builder review.
+- V3.218 focused source assertions and inherited GitHub workflow were added. An isolated V8 run is NOT a complete Node/Expo, PostgreSQL, real browser, signed build or provider delivery verification. Technical details and activation gates: docs/V3_218_ATOMIC_REQUEST_RECOVERY_AND_UNIVERSAL_BRAIN.md.
+
+
 ## V3.217 — Future native website request transaction and owner authority
 
 - Universal website and app composition still shares ONE business-owned customer request system. The existing guest mini-app RPC requires its mini-app challenge and cannot be treated as a website-native submission RPC; a new server-owned, atomic website source adapter and receipt origin must be reviewed and implemented first. Do not create a shadow customer database or claim that any native site form currently operates.
