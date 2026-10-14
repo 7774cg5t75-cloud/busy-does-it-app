@@ -13,7 +13,7 @@ if(old.projectRef!=="pnjdlogwegnqbsfpcofw"||
  old.appliedMigrations.join(",")!=="20261010224121,20261010224205")
  throw Error("Historic canary evidence drifted. STOP.");
 const names=readdirSync("supabase/migrations").filter(n=>n.endsWith(".sql")).sort();
-if(names.length!==66||
+if(names.length!==67||
  !names.includes("20261014151000_v3_226_guest_notification_intent.sql")||
  !names.includes("20261014170000_v3_227_guest_alert_dispatch_leases.sql"))
  throw Error("Migration dependency inventory drifted. STOP.");
@@ -64,4 +64,4 @@ const packet={
 const output="/tmp/bdi-v3228-staging-review";
 mkdirSync(output,{recursive:true});
 writeFileSync(output+"/source-manifest.json",JSON.stringify(packet,null,2)+"\n");
-console.log("V3.228: hashed all 66 migrations plus seven critical files; no hosted side effects.");
+console.log("V3.228: hashed all 67 migrations plus seven critical files; no hosted side effects.");
