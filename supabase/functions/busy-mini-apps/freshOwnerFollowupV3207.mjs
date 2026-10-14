@@ -74,6 +74,8 @@ function decideFreshOwnerFollowup({
   category,why,sourceStamp,
   latestMessageRole:latest?.sender_role||"none",
   checkedMessageCount:messages.length,
+  latestRecordedActivityAt:latestTime!==null&&
+    latestTime>=created?latest.created_at:row.created_at,
   canOfferDraft:!!suggestion,replyDraft:suggestion,
   ownerApprovalRequired:true,
   canAutoSend:false,autoPublished:false,noMessagesChanged:true,
