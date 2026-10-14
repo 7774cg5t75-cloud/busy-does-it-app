@@ -3102,6 +3102,46 @@ function MiniAppBuilder({ s }) {
             </Card>
           ) : null}
 
+          {app?.id ? (
+            <Card
+              eyebrow="Business App inbox"
+              title="Requests needing attention"
+              body="Check your saved customer requests without sending messages or changing any booking."
+              footer="A booking request is not a confirmed appointment."
+            >
+              {s.ownerQueueSummary?.ok===true &&
+               s.ownerQueueSummary?.appId===app.id &&
+               s.ownerQueueSummary?.businessId===app.business_id ? (
+                <>
+                  <MetricRow
+                    left="New requests"
+                    right={String(s.ownerQueueSummary.received||0)}
+                    strong={Number(s.ownerQueueSummary.received||0)>0}
+                  />
+                  <MetricRow
+                    left="Being reviewed"
+                    right={String(s.ownerQueueSummary.reviewing||0)}
+                  />
+                  <Text style={styles.cardBody}>
+                    {s.ownerQueueSummary.explanation}
+                  </Text>
+                  {s.ownerQueueSummary.latestRequestId ? (
+                    <Button
+                      label="Open latest request"
+                      disabled={!!s.ownerQueueBusy}
+                      onPress={()=>s.openOwnerMiniAppRequest(s.ownerQueueSummary.latestRequestId)}
+                    />
+                  ) : null}
+                </>
+              ) : null}
+              <Button
+                label={s.ownerQueueBusy?"Checking requests…":"Check customer requests"}
+                disabled={!!s.ownerQueueBusy || !!s.miniAppsAction}
+                onPress={s.checkOwnerRequestQueue}
+              />
+            </Card>
+          ) : null}
+
           {view.pendingRequests?.length ? (
             <>
               <Text style={styles.sectionLabel}>Customer requests</Text>
