@@ -2,6 +2,16 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.216 — Site-origin request trust boundary and industry-neutral advice
+
+- Native website enquiries stay INACTIVE. A new pure server pre-commit guard defines exact published site/deployment identity, owner-approved consent, browser challenge scope, anti-replay/idempotency and bounded visitor fields. Its ok state is only a *preflight result*: it may not commit, create a receipt, confirm bookings or claim provider delivery. No Edge endpoint, migration or tenant-owned request storage is deployed by this version.
+- A future website submission route must fetch site, deployment, approval and challenge records independently on the server, atomically consume the one-time challenge and use the existing tenant-scoped Business App request RPC/inbox and V3.213 saved-receipt semantics. Never trust an Origin header by itself or allow visitor-supplied tenant authority. Notifications and diary acceptance require independent evidence.
+- The Website Builder's existing optional handoff panel can explain proposed fields, customer consent, remaining verification and mobile accessibility without enabling a public form or modifying a live site. The existing owner-approved immutable Business App link remains the interim path.
+- The Business Brain suggests a practical customer action based on the business brief with an unrestricted fallback for any other industry. Suggestions may only be labelled available if supported by owner-scoped published module evidence and the existing guard. Recommendation is not publication, permission or successful outcome.
+- V3.216 focused offline contract checks feed a dedicated GitHub Actions job alongside inherited architecture/security checks and unsigned iOS/Android exports. **Real CI results, deployed edge/data migrations and staging browser outcomes remain separate evidence states.**
+- See docs/V3_216_SITE_ORIGIN_INTAKE_AND_CAPABILITY_ADVICE.md. Permanent universal-builder architecture and the three-layer learning/verification model remain authoritative.
+
+
 
 ## Permanent architecture decision — Universal Business Website & App Composition
 **Adopted: 13 October 2026. Status: long-term architectural requirement, not a claim that every capability is currently implemented.**
