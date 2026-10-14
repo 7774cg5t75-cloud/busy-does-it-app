@@ -5,6 +5,7 @@ import {buildWebsiteLaunchProof,exactBusyHost} from "../src/core/websiteLaunchPr
 import {designForWebsite,designCss} from "../supabase/functions/busy-website-worker/designSystem.mjs";
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
 import {applyWebsiteVisualEdit} from "../supabase/functions/busy-website-worker/designEdits.mjs";
+import {canonicalWebsiteHandoffUrl} from "../src/core/websiteAppHandoffV3214.mjs";
 import {planWebsiteDesign} from "../supabase/functions/busy-website-worker/designPlanner.mjs";
 
 const root=new URL("../",import.meta.url);
@@ -16,13 +17,15 @@ const management=new Function(stripExport(read("src/domain/websiteManagement.js"
  ";return {syncWebsitePageModel};")();
 const source=stripExport(read("src/domain/websiteBuilder.js"))
  .replace(/^import \{ syncWebsitePageModel \} from "\.\/websiteManagement";\s*/,"")
+ .replace(/^import \{canonicalWebsiteHandoffUrl\} from "\.\.\/core\/websiteAppHandoffV3214\.mjs";\s*/,"")
  .replace(/^import \{ designForWebsite, designCss \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designSystem\.mjs";\s*/,"")
  .replace(/^import \{ planWebsiteDesign \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designPlanner\.mjs";\s*/,"")
  .replace(/^import \{ reviewWebsiteDesign \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designReview\.mjs";\s*/,"")
  .replace(/^import \{ applyWebsiteVisualEdit \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designEdits\.mjs";\s*/,"");
 assert.ok(!source.includes("import { syncWebsitePageModel }"));
-const build=new Function("syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign","applyWebsiteVisualEdit",source+
- ";return {buildWebsiteDraft,renderWebsiteHtml};")(management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit);
+assert.ok(!source.includes("import {canonicalWebsiteHandoffUrl}"),"Always inject real canonical handoff helper into this isolated legacy harness.");
+const build=new Function("syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign","applyWebsiteVisualEdit","canonicalWebsiteHandoffUrl",source+
+ ";return {buildWebsiteDraft,renderWebsiteHtml};")(management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,canonicalWebsiteHandoffUrl);
 const draft=build.buildWebsiteDraft({brandBrain:showcaseBrandBrain});
 const committedDemo=read("sites/busy-headquarters/demo/index.html");
 assert.ok(draft.html.includes('class="hero hero-large'),"Current builder renders professionally styled pages.");
