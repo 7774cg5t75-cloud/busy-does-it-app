@@ -1,5 +1,12 @@
 # busy-does-it-app
 
+## V3.217 — Transactional Request Design and Business Intelligence (development)
+
+V3.217 builds on the V3.216 inactive website-intake boundary with **a private owner-reviewed form specification**, an explicitly non-executable server transaction plan to reuse the existing Business App request/inbox system, a conservative guest request receipt reviewer, and an evidence-aware next-step Business Brain. The website editor shows a simple optional draft purpose/notice/retention review and static phone/tablet/desktop accessibility guidance.
+
+This work **does not** activate native website submissions, add a DB migration or endpoint, approve customer consent, verify a calendar booking, send notifications, publish websites or use paid AI/native builds. A V3.217 focused suite passed **169 source-level assertions in an isolated V8 check**; the configured GitHub Actions workflow also includes the inherited V3.216 and earlier checks plus unsigned platform exports, but actual Node/Expo CI and staging deployment are not independently confirmed. See [V3.217 technical report](docs/V3_217_TRANSACTIONAL_REQUEST_DESIGN_AND_BUSINESS_COACH.md) and [master architecture](ARCHITECTURE.md).
+
+
 ## V3.216 — Website Intake Trust Boundary and Connected Business Intelligence (development)
 
 From V3.215, V3.216 adds an **inactive server-side website request preflight contract** for exact current published site ownership, approved consent wording, one-time browser challenge, rate-limit evidence, source-bound idempotency and bounded visitor information. It deliberately creates **no live public form or saved enquiry** and does not deploy a new endpoint, database migration or provider action. Any eventual submission must use the existing tenant-scoped request inbox and independently verified receipts.
