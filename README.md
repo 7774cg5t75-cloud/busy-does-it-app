@@ -1,5 +1,14 @@
 # busy-does-it-app
 
+## V3.226 — Durable Guest Alert Intent and Honest Owner Status
+
+Both masters checked first (saved Word product master V22.6 and GitHub technical architecture). Real Business App guest-request functionality now has a versioned, additive database transaction hook that creates one pending **notification intent per original saved guest request**, with no duplicate request database. The actual Edge handler verifies that the saved request and its tenant-scoped outbox row match; it no longer tries to send Expo push notifications from the guest submission itself.
+
+The existing private Business App inbox shows **guest alerts not confirmed delivered**, using read-only owner/admin-scoped server counts. No automatic sends, paid provider requests or background polling. Source CI plus disposable Postgres 16 test include real guest RPC, atomic outbox assertions and full rollback; deployed staging requests, provider acceptance and signed iOS/Android builds are still separate gates.
+
+See [V3.226 technical checkpoint](docs/V3_226_DURABLE_GUEST_ALERT_INTENTS_AND_OWNER_DELIVERY_TRUTH.md). No hosted staging/production migrations or public publication were initiated.
+
+
 ## V3.225 — Real Guest Request SQL Rehearsal and Simpler Owner Inbox
 
 Both masters were read first. This major sweep reuses the actual Business App request engine: a **disposable PostgreSQL 16 integration test** runs the real existing V3.45 guest request RPC together with ten original prerequisite migration SQL bodies and the isolated business baseline. The CI-only assembly omits scheduled cron work, checks one stored enquiry/event, idempotent replay, separate businesses, expired requests and full ROLLBACK. No real Supabase database was changed.
