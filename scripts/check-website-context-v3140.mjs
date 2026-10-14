@@ -3,6 +3,7 @@ import {readFileSync} from "node:fs";
 import {interpretSelectedWebsiteRequest as interpret} from "../src/core/websiteContextualEdit.mjs";
 import {applyWebsiteLayoutOperation} from "../supabase/functions/busy-website-worker/websiteLayoutEditing.mjs";
 import {editWebsiteDraftField} from "../src/core/websiteStructuredEditing.mjs";
+import {canonicalWebsiteHandoffUrl} from "../src/core/websiteAppHandoffV3214.mjs";
 import {designForWebsite,designCss} from "../supabase/functions/busy-website-worker/designSystem.mjs";
 import {planWebsiteDesign} from "../supabase/functions/busy-website-worker/designPlanner.mjs";
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
@@ -13,6 +14,7 @@ const manager=Function(strip(read("src/domain/websiteManagement.js"))+";return {
 let source=strip(read("src/domain/websiteBuilder.js"));
 for(const imp of [
  'import { syncWebsitePageModel } from "./websiteManagement";',
+ 'import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";',
  'import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";',
  'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
  'import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";',
@@ -20,9 +22,9 @@ for(const imp of [
 ]){assert.ok(source.includes(imp),"Domain module must retain existing import");source=source.replace(imp,"");}
 const {buildWebsiteDraft,applyWebsiteLayoutChange,applyStructuredWebsiteEdit,renderWebsiteHtml}=Function(
  "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign",
- "applyWebsiteVisualEdit","editWebsiteDraftField",
+ "applyWebsiteVisualEdit","editWebsiteDraftField","canonicalWebsiteHandoffUrl",
  source+";return {buildWebsiteDraft,applyWebsiteLayoutChange,applyStructuredWebsiteEdit,renderWebsiteHtml};"
-)(manager.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField);
+)(manager.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField,canonicalWebsiteHandoffUrl);
 const photo={id:"p1",approved:true,uri:"https://example.test/p1.jpg",storagePath:"business/owner/p1.jpg"};
 const second={id:"p2",approved:true,uri:"https://example.test/p2.jpg",storagePath:"business/owner/p2.jpg"};
 const brand={websiteReady:true,websiteBrief:{businessName:"Devon Gardens",businessType:"Garden design",
