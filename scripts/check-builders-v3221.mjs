@@ -140,7 +140,7 @@ eq(missing.action,"prepare_supported_module");
 eq(missing.availableCapabilityOnlyWhenVerified,false);
 eq(missing.publicationAllowed,false);
 const screen=read("src/screens/websiteAppHandoffReview.js");
-ok(screen.includes("chooseOwnerNextActionV3222"));
+ok(screen.includes("chooseOwnerNextActionV3223"));
 ok(screen.includes("BUSY recommends: "));
 ok(screen.includes("showConnectedPlan&&connectedPlan.ok"));
 const source=read("scripts/snack-source.mjs");
