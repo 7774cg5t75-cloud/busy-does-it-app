@@ -18,9 +18,11 @@ const check=(v,message)=>{assert.ok(v,message);checks++};
 for(const path of paths){
  const content=read(path);
  check(content.length>200&&content.length<400000,"Bounded source: "+path);
- check(!/eval\\(|new Function\\(|https?:\\/\\/api\\.openai\\.com/i.test(content),
+ check(!content.includes("eval(")&&!content.includes("new Function(")&&
+   !content.includes("api.openai.com"),
   "No new untrusted execution or direct paid provider: "+path);
- check(!/publishWebsiteAutomatically\\(|forcePublishMiniApp\\(/.test(content),
+ check(!content.includes("publishWebsiteAutomatically(")&&
+   !content.includes("forcePublishMiniApp("),
   "No automatic public release: "+path);
 }
 const app=read(paths[0]),web=read(paths[1]);
