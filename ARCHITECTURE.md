@@ -1,5 +1,15 @@
 # Busy Does It code architecture
 
+## V3.232 — revision-locked atomic Work booking close, safe original receipt and 69-migration parity
+
+- **Both current masters read:** The saved owner Word master V22.14 `Ask Busy First / Optional Services`, this GitHub technical master, standing architecture policy, V3.231 source, verified CI and staging evidence. No additional pricing, optional purchase, credit wallet, data system or provider activation.
+- **Real linked-booking race fixed in SOURCE:** Additive SQL `busy_close_linked_booking_current_v3232` holds the original request `FOR UPDATE` while checking business, owner/admin membership, exact clicked `status` and `updated_at`, then invokes the real V3.181 durable Work booking closure in one database transaction. This prevents an earlier screen's close action from racing a newer owner update; any ledger fault rolls back request/link/events/diary together. Not an alternative booking confirmation API.
+- **Original authenticated route, no duplicate systems:** Existing `update_request_status` passes the owner-visible revision to that new RPC only for a linked booking closure; other status transitions and Work confirmations retain their original paths. Successful closure is reported from the transactional receipt, without a fallible post-commit SQL read. The phone and external calendar remain **not verified delivered**, and clients cannot directly execute the new RPC.
+- **Refactor for maintainability:** Small pure `bookingCloseEvidenceV3232.mjs` validates exact-tenant closure receipts and Work state `cancelled` versus closed draft `not_applicable`. Large Business App route retains authentication, while receipt semantics move into an independently testable module.
+- **Regressions / limits:** New 108 offline checks and inherited source suites passed. PostgreSQL 17 job executes the actual V3.180/181 Work transaction plus V3.232 revision wrapper; verifies wrong owner/stale/replayed clicks, valid booking/draft closure and Work UPDATE failure rollback. Existing PostgreSQL 16 full guest/notification/revision fixture continues to pass. 69 versioned migrations plus isolated staging baseline hashed/reconciled. Hosted staging is canary-only; genuine owner A/B Supabase Auth/JWT/RLS, real backup restore, actual staged user journey, real providers and owner-approved installation are **not yet verified or performed**.
+- **Report:** `docs/V3_232_ATOMIC_BOOKING_CLOSE_AND_WORK_CONSISTENCY.md`. Check final GitHub Actions after documentation commits before declaring release readiness. Continue simplifying huge files selectively; avoid mass rewrites or paid builds.
+
+
 ## V3.231 — original request revision gates, safe status readback and genuine Auth/JWT rehearsal planning
 
 - **Current two masters checked:** Latest Word product master **V22.14 Ask Busy First / Optional Services** (not V22.13), this technical master and the sweep/code-health policy. New commercial rules remain product requirements, NOT implemented billing/add-on availability or approval for purchases. Reuse original entitlements/credit/payments for later work.
