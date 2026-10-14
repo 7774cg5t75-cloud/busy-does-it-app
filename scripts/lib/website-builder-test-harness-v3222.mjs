@@ -72,6 +72,6 @@ function websiteBuilderTestHarnessV3222(names=[]){
   "Unexpected website builder export; update harness deliberately.");
  // Every test uses real imported dependencies, not dummy stubs.
  return Function(...Object.keys(deps),code+
-  "\nreturn {"+names.join(",")+"};")(...Object.values(deps));
+  "\nreturn {"+names.map(n=>n==="rebuildPrivateWebsiteDraft"?"rebuildPrivateWebsiteDraft:withHtml":n).join(",")+"};")(...Object.values(deps));
 }
 export {websiteBuilderTestHarnessV3222,EXPECTED,AVAILABLE};
