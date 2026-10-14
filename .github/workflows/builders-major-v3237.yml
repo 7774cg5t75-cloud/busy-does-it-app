@@ -1,0 +1,207 @@
+name: V3.237 Shared Builder Customer Task and Design Intelligence
+on:
+  push:
+    branches: [v3.237]
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  app-intelligence-and-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+      - name: Staging preflight, no-network rehearsal and previous builder contracts
+        run: |
+          node scripts/check-builder-design-evidence-v3237.mjs
+          node scripts/check-builder-next-design-v3236.mjs
+          node scripts/check-owner-outcome-v3235.mjs
+          node scripts/check-owner-next-action-v3234.mjs
+          node scripts/check-owner-booking-v3233.mjs
+          node scripts/check-booking-close-v3232.mjs
+          node scripts/check-owner-recovery-v3231.mjs
+          node scripts/check-push-service-receipts-v3230.mjs
+          node scripts/check-customer-journey-v3229.mjs
+          node scripts/check-customer-journey-v3228.mjs
+          node scripts/check-dispatch-v3227.mjs
+          node scripts/check-staging-gates-v3227.mjs
+          node scripts/prepare-staging-gates-v3227.mjs
+          node scripts/check-outbox-v3226.mjs
+          node scripts/check-owner-request-queue-v3225.mjs
+          node scripts/check-guest-readback-v3224.mjs
+          node scripts/check-builders-v3223.mjs
+          node scripts/prepare-phase-one-review-v3223.mjs
+          node scripts/check-builder-harness-v3222.mjs
+          node scripts/check-builders-v3222.mjs
+          node scripts/check-builders-v3221.mjs
+          node scripts/check-snack-graph-v3221.mjs
+          node scripts/prepare-staging-bootstrap-v3220.mjs
+          node scripts/check-builders-v3220.mjs
+          node scripts/check-builders-v3219.mjs
+          node scripts/check-builders-v3218.mjs
+          node scripts/check-builders-v3217.mjs
+          node scripts/check-builders-v3216.mjs
+          node scripts/check-builders-v3215.mjs
+          node scripts/check-builders-v3214.mjs
+          node scripts/check-request-receipts-v3213.mjs
+          node scripts/check-builders-v3212.mjs
+          node scripts/check-builders-v3211.mjs
+          node scripts/check-builders-v3210.mjs
+          node scripts/check-builders-v3209.mjs
+          node scripts/check-reviewed-owner-send-v3208.mjs
+          node scripts/check-fresh-followups-v3207.mjs
+          node scripts/check-owner-followups-v3206.mjs
+          node scripts/check-communications-v3205.mjs
+          node scripts/check-customer-journey-v3204.mjs
+          node scripts/check-message-integrity-v3185.mjs
+          node scripts/check-staging-v3203.mjs
+          node scripts/check-staging-v3202.mjs
+          node scripts/check-staging-verification-v3201.mjs
+          node scripts/check-major-builders-v3200.mjs
+          node scripts/check-major-builders-v3199.mjs
+          node scripts/check-major-builders-v3198.mjs
+          node scripts/check-major-builders-v3197.mjs
+          node scripts/check-major-builders-v3196.mjs
+          node scripts/check-major-builders-v3195.mjs
+          node scripts/audit-architecture-v3195.mjs
+          node scripts/check-major-builders-v3194.mjs
+          node scripts/check-major-builders-v3193.mjs
+          node scripts/check-major-builders-v3192.mjs
+          node scripts/check-major-builders-v3191.mjs
+          node scripts/check-builders-v3190.mjs
+          node scripts/check-app-customer-tasks-v3169.mjs
+          node scripts/check-native-public-booking-v3155.mjs
+          node scripts/check-standalone-native-v3154.mjs
+          node scripts/check-website-direct-edit-v3133.mjs
+          node scripts/check-website-pages-v3135.mjs
+          node scripts/check-website-completion-integrity-v3152.mjs
+          node scripts/check-builder-handoff-v3152.mjs
+          node scripts/check-connected-readiness-v3189.mjs
+          node scripts/prepare-staging-install-v3180.mjs
+          node scripts/verify-staging-install-v3186.mjs
+          node scripts/audit-staging-install-v3202.mjs
+          node scripts/audit-staging-risks-v3203.mjs
+          node scripts/check-evidence-readiness-v3188.mjs
+          node scripts/check-production.mjs
+      - name: Install pinned Expo dependencies
+        if: github.event_name == 'workflow_dispatch'
+        run: npm install --no-audit --no-fund
+      - name: Parse iOS Android and edge source
+        if: github.event_name == 'workflow_dispatch'
+        run: node scripts/check-app-native-syntax-v3154.mjs
+      - name: Export Busy iOS and Android JS
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          npx expo export --platform ios --output-dir /tmp/bdi-v3229-ios
+          npx expo export --platform android --output-dir /tmp/bdi-v3229-android
+      - name: Export standalone iOS and Android JS
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          node scripts/prepare-standalone-prototype-v3154.mjs
+          cd .tmp/standalone-prototype-v3154
+          ../../node_modules/.bin/expo export --platform ios --output-dir /tmp/bdi-v3229-standalone-ios
+          ../../node_modules/.bin/expo export --platform android --output-dir /tmp/bdi-v3229-standalone-android
+      - name: Note limits
+        run: |
+          echo "V3.232: linked booking closures checked inside the durable Work transaction; hosted staging untouched, provider sends and paid builds disabled."
+
+  disposable-staging-core-rollback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: fixture-only-do-not-reuse
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply and ROLLBACK staging core + real guest RPC in ephemeral container only
+        run: |
+          set -euo pipefail
+          test "${GITHUB_EVENT_NAME}" != "workflow_dispatch" || echo "Using same ephemeral SQL-only fixture"
+          CID="$(docker ps --filter ancestor=postgres:16 --format '{{.ID}}' | head -n 1)"
+          test -n "$CID"
+          cat staging/CI_ONLY_v3224_prepare.sql               staging/ISOLATED_ONLY_business_core_v3180.sql               staging/CI_ONLY_v3224_assert_rollback.sql |
+            docker exec -i "$CID" psql -U postgres -d postgres -v ON_ERROR_STOP=1 |
+            tee /tmp/v3224_disposable_pg_assert.log
+          grep -q 'V3.224_EPHEMERAL_BASELINE_ROLLBACK_PASS' /tmp/v3224_disposable_pg_assert.log
+          node scripts/prepare-disposable-guest-rpc-v3225.mjs
+          cat /tmp/bdi-v3225-disposable-guest/guest-rpc-rollback.sql |
+            docker exec -i "$CID" psql -U postgres -d postgres -v ON_ERROR_STOP=1 |
+            tee /tmp/v3225_disposable_rpc_assert.log
+          grep -q 'V3.225_EPHEMERAL_GUEST_RPC_ROLLBACK_PASS' /tmp/v3225_disposable_rpc_assert.log
+          node scripts/prepare-disposable-outbox-v3226.mjs
+          cat /tmp/bdi-v3226-disposable-outbox/outbox-rollback.sql |
+            docker exec -i "$CID" psql -U postgres -d postgres -v ON_ERROR_STOP=1 |
+            tee /tmp/v3226_disposable_outbox_assert.log
+          grep -q 'V3.226_EPHEMERAL_ATOMIC_OUTBOX_ROLLBACK_PASS' /tmp/v3226_disposable_outbox_assert.log
+          node scripts/prepare-disposable-dispatch-v3227.mjs
+          cat /tmp/bdi-v3227-dispatch/dispatch-rollback.sql |
+            docker exec -i "$CID" psql -U postgres -d postgres -v ON_ERROR_STOP=1 |
+            tee /tmp/v3227_disposable_dispatch_assert.log
+          grep -q 'V3.227_EPHEMERAL_DISPATCH_ROLLBACK_PASS' /tmp/v3227_disposable_dispatch_assert.log
+          grep -q 'V3.227_DISPATCH_LEASES_AND_NO_DUPLICATE_SEND_PASS' /tmp/v3227_disposable_dispatch_assert.log
+          node scripts/prepare-disposable-device-evidence-v3229.mjs
+          cat /tmp/bdi-v3229-device-evidence/device-evidence-rollback.sql |
+            docker exec -i "$CID" psql -U postgres -d postgres -v ON_ERROR_STOP=1 |
+            tee /tmp/v3229_disposable_device_assert.log
+          grep -q 'V3.229_PER_DEVICE_EVIDENCE_TRANSACTION_PASS' /tmp/v3229_disposable_device_assert.log
+          grep -q 'V3.229_EPHEMERAL_DEVICE_EVIDENCE_ROLLBACK_PASS' /tmp/v3229_disposable_device_assert.log
+          node scripts/prepare-disposable-receipts-v3230.mjs
+          cat /tmp/bdi-v3230-receipt-test/all-rollback.sql |
+            docker exec -i "$CID" psql -U postgres -d postgres -v ON_ERROR_STOP=1 |
+            tee /tmp/v3230_disposable_receipt_assert.log
+          grep -q 'V3.230_PUSH_SERVICE_RECEIPTS_MONOTONE_AND_PRIVATE_PASS' /tmp/v3230_disposable_receipt_assert.log
+          grep -q 'V3.230_EPHEMERAL_RECEIPT_ROLLBACK_PASS' /tmp/v3230_disposable_receipt_assert.log
+          node scripts/prepare-disposable-owner-cas-v3231.mjs
+          cat /tmp/bdi-v3231-owner-cas/rollback.sql |
+            docker exec -i "$CID" psql -U postgres -d postgres -v ON_ERROR_STOP=1 |
+            tee /tmp/v3231_disposable_owner_assert.log
+          grep -q 'V3.231_EPHEMERAL_OWNER_CAS_AND_TENANT_SCOPE_PASS' /tmp/v3231_disposable_owner_assert.log
+          grep -q 'V3.231_EPHEMERAL_OWNER_FRESHNESS_ROLLBACK_PASS' /tmp/v3231_disposable_owner_assert.log
+          echo "Disposable PostgreSQL passed. No real Supabase project contacted."
+
+  disposable-durable-booking-close:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: fixture-only-v3232
+          POSTGRES_DB: busy_v3232_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d busy_v3232_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client for disposable fixture only
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      - name: Test real original Work RPC, stale-owner close, fault rollback
+        env:
+          PGPASSWORD: fixture-only-v3232
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 5432 -U postgres -d busy_v3232_ci \
+            -f staging/ci-linked-booking-close-v3232.sql \
+            | tee /tmp/bdi_v3232_booking_close_assertions.log
+          grep -q 'V3.232_ATOMIC_OWNER_BOOKING_CLOSE_AND_FAULT_ROLLBACK_PASS' /tmp/bdi_v3232_booking_close_assertions.log
+          grep -q 'V3.232_DISPOSABLE_DURABLE_WORK_ROLLBACK_PASS' /tmp/bdi_v3232_booking_close_assertions.log
+      - name: Source-only boundary
+        run: echo "Fake fixture users and SQL are disposed. No hosted staging SQL, real JWT, customer notifications or provider calls."

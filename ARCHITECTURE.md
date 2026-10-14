@@ -1,5 +1,17 @@
 # Busy Does It code architecture
 
+## V3.237 — evidence-led design review priority across the original builders
+
+**Owner product goals:** Word master V22.17 coordinated visual design-agent direction; GitHub V22.18 Business Brain/Work context and the permanent "simple interface, deeper intelligence" rule. No second app/site generator is introduced.
+
+- \`sharedBuilderDesignDecisionV3237.mjs\` reuses exactly the current V3.210 universal capability plan, V3.236 source revision and locked-element contracts, and V3.236 alternative design directions. It derives a **planning review order** from the original current private capability statuses. Only recommend leading with a customer-task design where the task is actually configured in the private surface and no requested blocker is present; **not** as evidence of live customer completion or rendered design quality.
+- One bounded cross-builder review notes mismatched website/app capability statuses and compares brand colour only for two explicitly custom HEX tokens; platform differences may be intentional and owner choices always win. No current brand value, locked element name or private business record is disclosed in summary metadata.
+- The **same existing** \`universalBuilderPlanReview.js\` screen in Website Builder and Business App Builder adds simple reasoned comparison text within the original opt-in disclosure; no duplicate dashboards or automatic design edits.
+- \`sharedBuilderMultiwidthEvidenceV3237.mjs\` prepares a STRICT original-versus-candidate, same-source, same-page, phone/tablet/desktop DOM regression gate using the original V3.144 measured layout comparator. A regression on any size disqualifies even a review preference. The module **does not gather real screenshots**, prove caller provenance, score aesthetics, perform device QA or authorise deployment. Synthetic CI fixtures are not real rendering evidence.
+- No new SQL, provider connection, customer changes, charge, publish or model self-training. The staging/source/live truth separation and tenant/role approval rules remain intact. Before claiming the visual improvement agent is finished, obtain authorised version-matched hosted screenshots, actual customer-journey evidence and owner approval.
+- See \`docs/V3_237_GROUNDED_BUILDER_DECISIONS_AND_RESPONSIVE_EVIDENCE.md\` and \`scripts/check-builder-design-evidence-v3237.mjs\`.
+
+
 ## Permanent Work and Business Brain refinement — intelligent priorities, capacity and in-context action (monday.com-inspired)
 
 **Owner-approved refinement (14 October 2026; product Word master V22.18, Sections 26 and 49).** A monday.com advert showing AI prioritisation and work assignment motivates improving Busy's **existing** Business Brain, Work/Calendar, Inbox/Enquiries, Busy Jobs and optional Busy Team capabilities. It is a comparison benchmark, **not** a confirmed monday.com integration, evidence of every advertised feature, or a decision to build separate task boards, staff databases or a second AI agent. The customer promise remains one calm assistant that prepares and verifies useful work.

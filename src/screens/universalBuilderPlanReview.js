@@ -10,6 +10,8 @@ import {reviewUniversalBuilderNextStepV3236}
  from "../core/sharedBuilderNextStepV3236.mjs";
 import {reviewSharedBuilderDesignDirectionsV3236}
  from "../core/sharedBuilderDesignDirectionsV3236.mjs";
+import {reviewSharedBuilderDesignDecisionV3237}
+ from "../core/sharedBuilderDesignDecisionV3237.mjs";
 
 /**
  * One simple opt-in planning entry point in BOTH builders.
@@ -129,6 +131,9 @@ function UniversalBuilderPlanReview({
  const design=matching?reviewSharedBuilderDesignDirectionsV3236({
   plan:report,businessId,website,app,surface
  }):null;
+ const designDecision=matching?reviewSharedBuilderDesignDecisionV3237({
+  plan:report,businessId,website,app,surface
+ }):null;
  const requested=matching?
   report.capabilities.filter(x=>x.explicitlyRequested):[];
  const supporting=matching?
@@ -172,11 +177,24 @@ function UniversalBuilderPlanReview({
            "Hide design approaches":"Compare two design approaches"}
            onPress={()=>setShowDesignDirections(x=>!x)}/>
          {showDesignDirections?<View>
+           {designDecision?.ok&&designDecision.recommendedDirection?<View>
+             <Text style={styles.sectionLabel}>BUSY would review this approach first</Text>
+             <Text style={styles.cardBody}>{designDecision.options.find(x=>x.id===designDecision.recommendedDirection)?.title}</Text>
+             <Text style={styles.cardBody}>{designDecision.reason}</Text>
+           </View>:null}
            {design.directions.map(choice=><View key={choice.id}>
              <Text style={styles.sectionLabel}>{choice.title}</Text>
              <Text style={styles.cardBody}>{choice.focus}</Text>
              <Text style={styles.cardBody}>{choice.decisionTradeoff}</Text>
+             {designDecision?.options.find(x=>x.id===choice.id)?.why.map((why,i)=><Text key={choice.id+"-why-"+i} style={styles.cardBody}>{why}</Text>)}
+             {designDecision?.options.find(x=>x.id===choice.id)?.blockers.map((warning,i)=><Text key={choice.id+"-limit-"+i} style={styles.cardBody}>{"Check first: "+warning}</Text>)}
            </View>)}
+           {designDecision?.alignment.length?<View>
+             <Text style={styles.sectionLabel}>Website and app differences to check</Text>
+             {designDecision.alignment.slice(0,3).map(item=><Text key={item.capabilityId} style={styles.cardBody}>{item.note}</Text>)}
+           </View>:null}
+           {designDecision?.brandEvidence?<Text style={styles.cardBody}>{designDecision.brandEvidence.note}</Text>:null}
+           <Text style={styles.cardBody}>Neither approach has been rendered or measured here. The preferred direction is a task-planning choice, not a visual quality score.</Text>
            <Text style={styles.cardBody}>
              These are planning ideas, not rendered designs. BUSY must compare real phone, tablet and desktop previews before recommending a visual change. You approve all edits.
            </Text>
