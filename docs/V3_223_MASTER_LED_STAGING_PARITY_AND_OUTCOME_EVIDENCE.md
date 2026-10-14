@@ -8,6 +8,14 @@ Before creating the v3.223 branch I read the GitHub ARCHITECTURE.md, README.md, 
 
 Reuse: V3.180 staging-only baseline, V3.221 source/RLS checks, V3.220–V3.222 staging gates, V3.218 aggregate Business Brain, V3.222 single-action planner, actual V3.222 GitHub test infrastructure. No unreviewed new external library added.
 
+### Mandatory two-master governance — separately verified
+
+During the sweep an updated standing GitHub policy required **both** the owner's saved Word product master and GitHub's technical master. The GitHub architecture and competitive strategy were checked before coding. The latest available saved Library document, **Busy_Does_It_Master_V22_4_AI_Builders_Open_Source(1).docx** (living product master V22.4, dated 14 October 2026), was located and read **after the branch had already been started**. This ordering is explicitly recorded rather than claiming full dual-master preflight was completed first.
+
+The product master's product vision, section 33 (shared marketplace mini-app architecture), section 34 (privacy-first learning), and section 52 (intelligent website/app builders and safe open-source reuse) align with V3.223: one Business App runtime, one shared tenant-scoped customer data model, real verified connected outcomes, user ownership, owner approvals and simple advice. The app-builder business backend remains the primary release blocker and must receive proper functional investment, not just more source-only planning.
+
+V3.223 introduces **no new product/pricing/experience decision** requiring a new Word-master version; the existing V22.4 Word master is left unchanged, and this technical checkpoint is committed to GitHub only. Future substantial sweeps must first check **both** masters before creating a development branch. Do not claim the two stay automatically synchronised.
+
 ## Real isolated staging check
 
 On 14 October 2026 an authorised SELECT-only check of Busy Does It Staging (project ref pnjdlogwegnqbsfpcofw) again found only busy_staging_rls_canary with RLS enabled and migration versions 20261010224121 and 20261010224205. The shared customer request tables, Business App backend and guest RPC are still absent. Only metadata were queried: no customer rows, email, credentials or production data.
