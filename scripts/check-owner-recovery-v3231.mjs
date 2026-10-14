@@ -97,7 +97,7 @@ ok(assembler.includes("V3.231_EPHEMERAL_OWNER_FRESHNESS_ROLLBACK_PASS"));
 ok(assembler.includes("actualStagingContacted:false"));
 execFileSync(process.execPath,["scripts/prepare-two-business-auth-v3231.mjs"],{stdio:"pipe"});
 const packet=JSON.parse(readFileSync("/tmp/bdi-v3231-real-auth-review/two-business-plan.json","utf8"));
-eq(packet.versionedMigrationCount,68);
+eq(packet.versionedMigrationCount,69);
 eq(packet.scenarios.length,11);
 ok(packet.scenarios.every(x=>x.status==="not_verified"&&x.requiresRealAuthJwt));
 ok(packet.sourceFiles.every(x=>/^[a-f0-9]{64}$/.test(x.sha256)));
