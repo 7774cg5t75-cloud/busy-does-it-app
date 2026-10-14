@@ -50,4 +50,4 @@ select case when to_regclass('public.busy_businesses') is null
  and not exists (select 1 from pg_roles where rolname in
   ('service_role','anon','authenticated'))
  then 'V3.224_EPHEMERAL_BASELINE_ROLLBACK_PASS'
- else (1/0)::text end as disposable_rollback_result;
+ else 'V3.224_EPHEMERAL_ROLLBACK_FAILED' end as disposable_rollback_result;
