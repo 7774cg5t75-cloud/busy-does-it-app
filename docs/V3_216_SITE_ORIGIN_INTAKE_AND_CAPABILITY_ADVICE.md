@@ -23,6 +23,7 @@ Path: supabase/functions/busy-website-request-intake/siteOriginGuardV3216.mjs.
 
 ## 3. Reusable business capability intelligence
 - src/core/customerCapabilityAdviceV3216.mjs suggests a practical first customer action for hospitality/appointment businesses, trades, retailers, events and arbitrary/unknown industries, with a safe generic fallback.
+- Explicit owner goals take precedence over industry hints, and an owner who declines bookings will not be pushed into booking suggestions. This is deterministic advice, not AI model training or proof of a real customer outcome.
 - Suggestions are **not** app entitlements or active capabilities. They distinguish a potentially available catalogue module from an actually enabled published module; a separate live version check is still necessary before handoff or publication.
 - Existing Brand DNA/website business brief informs the Website Builder guidance without customer data, third-party AI requests or extra provider credits. Future outcome-feedback learning must use verified real receipts and consent, not fabricated success labels.
 
@@ -32,7 +33,7 @@ src/core/sharedRequestJourneyV3212.mjs adds future website requirements to the e
 Booking request ≠ booked appointment. Inbox saved state ≠ customer or owner notification delivered. The existing app receipt/booking constraints remain authoritative.
 
 ## 5. Testing and branch policy
-scripts/check-builders-v3216.mjs adds 274 source assertions across wrong tenant, fake browser business identity, recycled/stale deployment, missing approval, origin mismatch, consent version, challenge replay, expiry, abuse-limit denial, bogus service, excessive input, unknown industry, owner guidance, source-only proof distinctions and real/no-live state invariants. These were additionally exercised with a lightweight isolated V8 compatibility harness; **that is not a substitute for running real Node or Expo**.
+scripts/check-builders-v3216.mjs adds 279 source assertions across wrong tenant, fake browser business identity, recycled/stale deployment, missing approval, origin mismatch, consent version, challenge replay, expiry, abuse-limit denial, bogus service, excessive input, unknown industry, owner guidance, source-only proof distinctions and real/no-live state invariants. These were additionally exercised with a lightweight isolated V8 compatibility harness; **that is not a substitute for running real Node or Expo**.
 
 .github/workflows/builders-major-v3216.yml runs new V3.216 tests before inherited V3.215 and earlier suites, security/staging/architecture checks, and unsigned iOS/Android Expo exports, using GitHub Actions rather than paid signed device builds. GitHub Actions results must be checked; file presence is not evidence CI ran.
 
