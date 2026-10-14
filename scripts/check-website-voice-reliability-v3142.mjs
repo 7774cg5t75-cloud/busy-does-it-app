@@ -8,12 +8,14 @@ import {planWebsiteDesign} from "../supabase/functions/busy-website-worker/desig
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
 import {applyWebsiteVisualEdit} from "../supabase/functions/busy-website-worker/designEdits.mjs";
 import {editWebsiteDraftField} from "../src/core/websiteStructuredEditing.mjs";
+import {canonicalWebsiteHandoffUrl} from "../src/core/websiteAppHandoffV3214.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 const strip=s=>s.replace(/export\s*\{[\s\S]*?\};?\s*$/,"");
 const management=Function(strip(read("src/domain/websiteManagement.js"))+";return {syncWebsitePageModel};")();
 let source=strip(read("src/domain/websiteBuilder.js"));
 for(const imp of [
  'import { syncWebsitePageModel } from "./websiteManagement";',
+ 'import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";',
  'import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";',
  'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
  'import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";',
@@ -21,9 +23,9 @@ for(const imp of [
 ]){assert.ok(source.includes(imp),"Domain import changed");source=source.replace(imp,"");}
 const {buildWebsiteDraft,renderWebsiteHtml,applyWebsiteLayoutChange}=Function(
  "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign",
- "reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField",
+ "reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField","canonicalWebsiteHandoffUrl",
  source+";return {buildWebsiteDraft,renderWebsiteHtml,applyWebsiteLayoutChange};"
-)(management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField);
+)(management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField,canonicalWebsiteHandoffUrl);
 const check=(pass,name)=>assert.ok(pass,name);
 check(MAX_WEBSITE_VOICE_MS===300000&&VOICE_WARNING_MS===240000,"Five-minute cap and one-minute warning");
 check(voiceTime(125030)==="02:05","Readable mm:ss elapsed timer");
