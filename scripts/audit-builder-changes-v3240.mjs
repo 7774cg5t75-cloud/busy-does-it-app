@@ -32,7 +32,7 @@ for(const name of ["evaluateResponsiveApp","recommendResponsiveDesign",
  "enabledAppKeys"]){
  check(app.includes(name),"Reuse established app/brand intelligence: "+name);
 }
-for(const t of ["app.business_id!==businessId","app.draft_revision",
+for(const t of ["app?.business_id!==businessId","app.draft_revision",
  "ownerApprovalRequired:true","mayPublish:false","realDeviceVerified:false",
  "noNativeScreenshots:true","noCrossBusinessLearning:true"]){
  check(app.includes(t),"Keep app decision guards: "+t);

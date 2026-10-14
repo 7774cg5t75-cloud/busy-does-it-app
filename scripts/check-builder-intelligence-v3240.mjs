@@ -56,6 +56,9 @@ eq(report.noCrossBusinessLearning,true);
 eq(JSON.stringify({app,website}),before);
 for(const sensitive of ["Fictional Gardeners","https://example.test/approved-a.jpg",
  "#AABBCC","Clear advice"])yes(!JSON.stringify(report).includes(sensitive));
+const foreignColumn=appReview({businessId:B,app,
+ website:{...website,business_id:OTHER},goal:"services"});
+yes(foreignColumn.ok);eq(foreignColumn.brand.status,"pair_not_verified");
 const noWeb=appReview({businessId:B,app,goal:"services"});
 yes(noWeb.ok);
 eq(noWeb.brand.status,"website_draft_not_supplied");
@@ -120,6 +123,7 @@ const regress=current(oldCleared.state,{...source,mode:"phone"});
 yes(regress.ok);eq(regress.safeForPrivateApproval,false);
 eq(regress.portfolio.hasRegressions,true);
 for(const altered of [
+ {...source,mode:"phone",website:{...website,business_id:OTHER}},
  {...source,mode:"full"},{...source,mode:"phone",businessId:OTHER},
  {...source,mode:"phone",pageId:"unknown"},
  {...source,mode:"phone",candidateId:"different"},

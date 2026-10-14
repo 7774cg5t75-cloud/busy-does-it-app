@@ -54,8 +54,10 @@ function reviewAppGoalDesignV3240({
  // The existing brand snapshot is valid ONLY if the two private drafts are
  // scoped to this same tenant. Never return actual company copy, colours,
  // media links or private owner feedback in this explainability report.
- const snapshot=website?buildBusinessBrandDnaSnapshot({
-  businessId,website,app}):null;
+ const safeWebsite=website&&(!website.business_id||
+  website.business_id===businessId)?website:null;
+ const snapshot=safeWebsite?buildBusinessBrandDnaSnapshot({
+  businessId,website:safeWebsite,app}):null;
  const brand=snapshot?.ok?{
   status:snapshot.conflicts.length?"owner_review_needed":"shared_identity_available",
   conflictCount:snapshot.conflicts.length,

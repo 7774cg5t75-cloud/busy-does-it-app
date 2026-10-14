@@ -11,6 +11,8 @@ const no=reason=>({ok:false,reason,safeForPrivateApproval:false,
  screenshotEvidence:false,mayPublish:false});
 function inspectCurrentWebsiteCandidateV3240(state,{businessId,website,
  pageId,candidateId,baseGeneration,mode}={}){
+ if(website?.business_id&&website.business_id!==businessId)
+  return no("This website belongs to another business workspace.");
  if(!Object.hasOwn(PREVIEW_WIDTHS,mode))return no("Choose a measured phone, tablet or desktop layout.");
  const review=reviewPrivateWebsiteCandidateWidthsV3239(state,{
   businessId,website,pageId,candidateId,baseGeneration});
