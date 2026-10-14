@@ -75,7 +75,7 @@ as $$
 declare
  v_count integer;
 begin
- if p_intent_id is null or p_lease_token is null
+ if p_intent_id is null or p_lease_token is null or p_outcome is null
     or p_outcome not in ('provider_accepted','definitively_rejected','uncertain')
     or (p_outcome='provider_accepted' and
         (p_receipt_sha256 is null or
