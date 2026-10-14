@@ -3241,7 +3241,7 @@ function MiniAppBuilder({ s }) {
                         }
                       />
                     ) : null}
-                    {!link && request.status !== "reviewing" ? (
+                    {!link && request.status === "received" ? (
                       <Button
                         label="Mark reviewing"
                         disabled={!!s.miniAppsAction}
@@ -3254,7 +3254,7 @@ function MiniAppBuilder({ s }) {
                         }
                       />
                     ) : null}
-                    {!link ? (
+                    {!link && ["received","reviewing"].includes(request.status) ? (
                       <Button
                         label="Decline request"
                         disabled={!!s.miniAppsAction}
@@ -4979,7 +4979,7 @@ function MiniAppRequestDetail({ s }) {
                 onPress={() => s.bridgeMiniAppRequestIntoBusy(request.id)}
               />
             ) : null}
-            {ownerView && !link && request.status !== "reviewing" && !["declined", "closed"].includes(request.status) ? (
+            {ownerView && !link && request.status === "received" ? (
               <Button
                 label="Mark reviewing"
                 disabled={!!s.miniAppsAction}
