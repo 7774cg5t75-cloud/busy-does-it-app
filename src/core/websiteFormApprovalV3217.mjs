@@ -68,7 +68,7 @@ function planPrivateWebsiteFormApprovalV3217({
   additionalPrerequisites:blocked,
   readyForSeparateOwnerAndLegalReview:blocked.length===0,
   noticeRevisionIssued:false,customerConsentCollected:false,
-  formSchemaStored:false,ownerApprovalRecorded:false,
+  formSchemaStored:false,serverApprovalStored:false,ownerApprovalRecorded:false,
   publicFormEnabled:false,customerDataCollected:false,
   readOnly:true,requiresIndependentServerRevisionCheck:true,
   requiresExplicitOwnerApproval:true,
