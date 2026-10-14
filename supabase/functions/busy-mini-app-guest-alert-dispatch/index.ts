@@ -4,7 +4,7 @@ import {classifyGuestAlertProviderTicketsV3227}
  from "./dispatchReceiptV3227.mjs";
 
 /**
- * V3.227 SOURCE ONLY. NOT deployed or scheduled. DISABLED BY DEFAULT.
+ * V3.228 SOURCE ONLY. NOT deployed or scheduled. DISABLED BY DEFAULT.
  * One request-scoped, service-only leased alert per authorised invocation.
  * Never send a customer notification, use customer contact data, or trust
  * a body-supplied request ID. Unknown provider outcomes are quarantined.
@@ -95,6 +95,8 @@ async function runOnce(){
     const check=classifyGuestAlertProviderTicketsV3227({
       responseOk:response.ok,tickets,expectedCount:tokens.length
     });
+    // A mixed-device response remains uncertain. The provider might
+    // already have sent some pushes; never silently auto-resend them.
     outcome=check.outcome==="provider_accepted"?"provider_accepted":
       check.outcome==="definitively_rejected"?"definitively_rejected":"uncertain";
     if(check.providerAccepted){

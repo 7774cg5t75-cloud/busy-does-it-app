@@ -3138,7 +3138,12 @@ function MiniAppBuilder({ s }) {
                     </>
                   ) : null}
                   <Text style={styles.cardBody}>
-                    {s.ownerQueueSummary.explanation}
+                    {s.ownerQueueSummary.nextStep?.evidenceFromAuthenticatedEndpoint===true &&
+                          s.ownerQueueSummary.nextStep?.businessId===app.business_id &&
+                          s.ownerQueueSummary.nextStep?.appId===app.id ?
+                          "BUSY suggests: "+s.ownerQueueSummary.nextStep.title+
+                          ". "+s.ownerQueueSummary.nextStep.explanation+"\n" : ""}
+                         {s.ownerQueueSummary.explanation}
                   </Text>
                   {s.ownerQueueSummary.latestRequestId ? (
                     <Button

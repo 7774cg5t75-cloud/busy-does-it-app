@@ -28,6 +28,7 @@ import {guardReviewedOwnerSend,validateOwnerReplyAfterSave} from "./reviewedOwne
 import {classifyOwnerRequestQueueV3225} from "./ownerRequestQueueV3225.mjs";
 import {ownerGuestAlertEvidenceV3226} from "./ownerGuestAlertEvidenceV3226.mjs";
 import {ownerGuestAlertEvidenceV3227} from "./ownerGuestAlertEvidenceV3227.mjs";
+import {chooseOwnerRequestNextStepV3228} from "./ownerNextStepV3228.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -530,7 +531,9 @@ async function ownerQueueSummaryV3225(businessId:string){
   businessId,appId:app.id,pending,retryWait,claimed,manualReview
  });
  if(!guestAlerts.ok)throw Error(guestAlerts.reason);
- return {...proof,available:true,guestAlerts,
+ const nextStep=chooseOwnerRequestNextStepV3228({queue:proof,alerts:guestAlerts});
+ if(!nextStep.ok)throw Error(nextStep.reason);
+ return {...proof,available:true,guestAlerts,nextStep,
   countsFromServerReadback:true,
   authenticatedMembershipCheckedAtEndpoint:true,
   separatelyVerifiedDeliveredNotifications:false};

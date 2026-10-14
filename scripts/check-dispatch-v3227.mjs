@@ -13,14 +13,14 @@ let n=0;
 const ok=(v,m)=>{assert.ok(v,m);n++};
 const eq=(a,b,m)=>{assert.deepEqual(a,b,m);n++};
 const accepted=classify({responseOk:true,expectedCount:2,
- tickets:[{status:"ok",id:"ticket-abcdef12345"},{status:"error",message:"Invalid token"}]});
+ tickets:[{status:"ok",id:"ticket-abcdef12345"},{status:"ok",id:"ticket-abcdef54321"}]});
 eq(accepted.outcome,"provider_accepted");
 eq(accepted.providerAccepted,true);
 eq(accepted.notificationDelivered,false);
 eq(accepted.deviceReceiptChecked,false);
 eq(accepted.safeToRetryAutomatically,false);
 eq(accepted.customerDataReturned,false);
-eq(accepted.acceptedTicketCount,1);
+eq(accepted.acceptedTicketCount,2);
 const denied=classify({responseOk:true,expectedCount:2,
  tickets:[{status:"error",message:"Invalid token"},{status:"error",message:"Device unknown"}]});
 eq(denied.outcome,"definitively_rejected");
