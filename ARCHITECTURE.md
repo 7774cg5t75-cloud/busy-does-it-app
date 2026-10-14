@@ -2,6 +2,17 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.219 — Actual staging schema gates and verifiable customer outcomes
+
+- **Verified external observation, 14 October 2026:** the separate Busy Does It Staging Supabase project has only busy_staging_rls_canary in its public schema. The shared business membership, Business App, immutable version, guest challenge and request tables and associated app RPC are absent in staging. This is not an active live staging request platform, regardless of source-level tests. Read-only catalog queries are documented for repeatability.
+- Stage the actual existing business/app foundation BEFORE native website request intake. Compare migration dependency order and history, verify two-tenant membership/RLS isolation, live guest challenge/RPC and saved request readback; test a safe backup/restore and rollback before further migrations. The code only proposes these stages and NEVER grants deployment authority from source metadata alone.
+- Website-to-app handoff recovery is owner-controlled: canonical HTTPS destination + business slug + immutable app/version + enabled module must match the current published version. Stale/forged/rotated links require owner review and separately approved website republication, never invisible redirects or auto-saves.
+- An interrupted request's committed/unknown state must be reconciled through the original authenticated request receipt before suggesting any new submission. A browser result, preview or proposed transaction is not independent saved-request proof.
+- Notification-outbox evidence separates queued, attempted, provider-accepted, failed, dead-letter and purported delivered states. Actual provider cryptographic/receipt verification cannot be established by a caller-set Boolean. Keep notification delivery distinct from accepted bookings, confirmed diary events and customer replies.
+- Business Brain now prioritises a short, scoped next action (check an uncertain saved request, review stale app version, or act on verified available modules) in the existing Website Builder. No cross-tenant reuse, hidden publication, provider spend or fabricated outcomes.
+- V3.219 source regressions and inherited unsigned export workflow are configured; independently confirmed full CI, deployment and actual browser outcomes remain outstanding. See docs/V3_219_STAGING_AUDIT_RECOVERY_AND_OUTBOX.md.
+
+
 ## V3.218 — Unique request scope, replay recovery and evidence-first Business Brain
 
 - A website-native submission must use server-fetched published website + deployment + **exact owner approval revision**, approved immutable Business App version and tenant-aware guest proof; website Origin alone never authenticates. Existing busy_mini_app_requests remains the intended customer request record/inbox. The current Business App guest RPC cannot safely be reused for website-native input without a distinct new challenge and origin contract.
