@@ -5,6 +5,7 @@
  */
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
+import {execFileSync} from "node:child_process";
 import {verifyOwnerRequestFreshnessV3231 as fresh}
  from "../supabase/functions/busy-mini-apps/ownerRequestFreshnessV3231.mjs";
 import {interpretOwnerStatusAfterErrorV3231 as recover}
@@ -94,4 +95,15 @@ ok(fixture.includes("updated_at=v_first.updated_at"));
 const assembler=read("scripts/prepare-disposable-owner-cas-v3231.mjs");
 ok(assembler.includes("V3.231_EPHEMERAL_OWNER_FRESHNESS_ROLLBACK_PASS"));
 ok(assembler.includes("actualStagingContacted:false"));
+execFileSync(process.execPath,["scripts/prepare-two-business-auth-v3231.mjs"],{stdio:"pipe"});
+const packet=JSON.parse(readFileSync("/tmp/bdi-v3231-real-auth-review/two-business-plan.json","utf8"));
+eq(packet.versionedMigrationCount,68);
+eq(packet.scenarios.length,11);
+ok(packet.scenarios.every(x=>x.status==="not_verified"&&x.requiresRealAuthJwt));
+ok(packet.sourceFiles.every(x=>/^[a-f0-9]{64}$/.test(x.sha256)));
+eq(packet.approvedForInstall,false);
+eq(packet.approvedForLiveAuthTest,false);
+eq(packet.realJwtTested,false);
+eq(packet.sqlExecuted,false);
+eq(packet.maySend,false);
 console.log("V3.231: "+count+" offline stale-click, readback and tenant-contract assertions passed.");
