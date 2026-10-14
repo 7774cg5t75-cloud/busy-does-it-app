@@ -1,5 +1,14 @@
 # busy-does-it-app
 
+## V3.219 — Real Staging Audit, Version Recovery and Delivery Reconciliation (development)
+
+A **read-only inspection of the separate Busy Does It Staging Supabase database** on 14 October 2026 found that the public staging schema currently contains only the RLS canary; the existing Business App membership, app, version, request and guest challenge tables are not installed. That means genuine staging customer enquiry/booking transactions are **not yet ready to test**, regardless of how much source-level work passes.
+
+V3.219 adds a fail-closed compatibility and migration/rollback bootstrap planner, exact published website-to-app version/link recovery, source-scoped outbox/provider-notification reconciliation and a short evidence-aware Business Brain next step within the Website Builder. A repeatable SELECT-only staging query is retained in the repo. The new regression suite passed **102 focused source-level assertions** in an isolated compatibility test; full GitHub Actions/Node/Expo and real device integration remain separate verification steps.
+
+**No migrations, app schema writes, Edge deployment, public native website forms, customer notifications, signed builds or paid AI actions were executed.** See [V3.219 report](docs/V3_219_STAGING_AUDIT_RECOVERY_AND_OUTBOX.md) and [read-only inspection queries](docs/staging/V3_219_READ_ONLY_SCHEMA_INSPECTION.sql).
+
+
 ## V3.218 — Atomic Request Safety, Recovery and Universal Business Intelligence (development)
 
 V3.218 strengthens the *future* website-native customer request path without activating it. A non-deployable Postgres schema proposal and pure readiness reviewer define owner-consent approvals, server challenges, uniquely scoped idempotency, reuse of the existing Business App request table/inbox and a distinct notification outbox. The SQL proposal is **outside live migrations** and intentionally raises an exception before any DDL.
