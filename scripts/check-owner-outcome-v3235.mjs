@@ -5,6 +5,7 @@
  */
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
+import {execFileSync} from "node:child_process";
 import {readCurrentOwnerFollowupV3235 as readCurrent}
  from "../supabase/functions/busy-mini-apps/ownerFollowupReadbackV3235.mjs";
 import {verifyOwnerOutcomeEvidenceV3235 as verify}
@@ -156,4 +157,17 @@ ok(screen.includes("Nothing is sent automatically"));
 const oldProof=code("src/core/followupProofV3207.mjs");
 ok(oldProof.includes("verifyOwnerOutcomeEvidenceV3235"));
 ok(oldProof.includes("outcomeEvidence:outcome?.ok?outcome:null"));
+execFileSync(process.execPath,["scripts/prepare-outcome-staging-v3235.mjs"],{stdio:"pipe"});
+const plan=JSON.parse(readFileSync("/tmp/bdi-v3235-outcome-stage/review.json","utf8"));
+eq(plan.priorRealJWTScenarios.length,11);
+eq(plan.priorBookingScenarios.length,11);
+eq(plan.priorFollowupScenarios.length,12);
+eq(plan.realOutcomeScenarios.length,8);
+eq(plan.versionedSqlMigrations,69);
+ok(plan.realOutcomeScenarios.every(x=>x.status==="not_verified"&&x.liveOwnerApprovalNeeded));
+ok(plan.sourceHashes.every(x=>/^[a-f0-9]{64}$/.test(x.sha256)));
+for(const k of ["canInstall","ownerApproved","hostedSqlExecuted",
+ "realAuthJWTTested","backupRestoreProved","providerContacted",
+ "paidBuildUsed","productionTouched","actualUserOutcomeVerified"])
+ eq(plan[k],false);
 console.log("V3.235: "+n+" exact tenant readback, saved outcome truth, code health and owner UI assertions passed.");
