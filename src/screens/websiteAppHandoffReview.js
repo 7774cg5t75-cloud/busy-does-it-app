@@ -35,7 +35,8 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
  const nativePlan=planWebsiteIntakeV3216({businessId,website,app,
   liveVersion,catalog,endpoint,publishing,deliveryProof,kind});
  const advice=adviseCustomerCapabilityV3216({businessType,description,
-  catalog,publishedModules:liveVersion?.config?.modules});
+  catalog,publishedModules:liveVersion?.config?.modules,
+  businessId,app,liveVersion});
  const current=latest.ok&&linked?.ownerApproved===true&&
   linked.url===latest.url&&linked.appId===latest.appId&&
   linked.liveVersionId===latest.appLiveVersionId;
