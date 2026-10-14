@@ -3151,7 +3151,7 @@ function MiniAppBuilder({ s }) {
                   </Text>
                   {s.ownerQueueSummary.latestRequestId ? (
                     <Button
-                      label="Open latest request"
+                      label={s.ownerQueueSummary.received>0?"Open new request":"Continue request review"}
                       disabled={!!s.ownerQueueBusy}
                       onPress={()=>s.openOwnerMiniAppRequest(s.ownerQueueSummary.latestRequestId)}
                     />
