@@ -27,6 +27,7 @@ import {decideFreshOwnerFollowup} from "./freshOwnerFollowupV3207.mjs";
 import {guardReviewedOwnerSend,validateOwnerReplyAfterSave} from "./reviewedOwnerSendV3208.mjs";
 import {classifyOwnerRequestQueueV3225} from "./ownerRequestQueueV3225.mjs";
 import {ownerGuestAlertEvidenceV3226} from "./ownerGuestAlertEvidenceV3226.mjs";
+import {ownerGuestAlertEvidenceV3227} from "./ownerGuestAlertEvidenceV3227.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -511,7 +512,7 @@ async function ownerQueueSummaryV3225(businessId:string){
  if(!proof.ok)throw Error(proof.reason);
  // One underlying tenant-scoped outbox per saved guest request. No push
  // is sent by this route or the guest submission endpoint.
- const countGuestIntents=async(state:"pending"|"retry_wait")=>{
+ const countGuestIntents=async(state:"pending"|"retry_wait"|"claimed"|"manual_review")=>{
   const result=await supabase
     .from("busy_mini_app_guest_notification_intents")
     .select("id",{head:true,count:"exact"})
@@ -521,11 +522,12 @@ async function ownerQueueSummaryV3225(businessId:string){
    throw result.error||Error("Guest notification queue is unavailable.");
   return result.count;
  };
- const [pending,retryWait]=await Promise.all([
-  countGuestIntents("pending"),countGuestIntents("retry_wait")
+ const [pending,retryWait,claimed,manualReview]=await Promise.all([
+  countGuestIntents("pending"),countGuestIntents("retry_wait"),
+  countGuestIntents("claimed"),countGuestIntents("manual_review")
  ]);
- const guestAlerts=ownerGuestAlertEvidenceV3226({
-  businessId,appId:app.id,pending,retryWait
+ const guestAlerts=ownerGuestAlertEvidenceV3227({
+  businessId,appId:app.id,pending,retryWait,claimed,manualReview
  });
  if(!guestAlerts.ok)throw Error(guestAlerts.reason);
  return {...proof,available:true,guestAlerts,
