@@ -752,7 +752,8 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
        try{
          const u=new URL(link.url);
          verified=canonicalWebsiteHandoffUrl({
-           endpoint:u.origin+u.pathname,slug:link.slug,kind
+           endpoint:u.origin+u.pathname,slug:link.slug,kind,
+            appId:link.appId,liveVersionId:link.liveVersionId
          });
        }catch{return "";}
        if(verified!==link.url)return "";
