@@ -31,6 +31,7 @@ import {ownerGuestAlertEvidenceV3227} from "./ownerGuestAlertEvidenceV3227.mjs";
 import {chooseOwnerRequestNextStepV3228} from "./ownerNextStepV3228.mjs";
 import {verifyOwnerRequestFreshnessV3231} from "./ownerRequestFreshnessV3231.mjs";
 import {classifyBookingClosureEvidenceV3232} from "./bookingCloseEvidenceV3232.mjs";
+import {classifyBookingRevisionV3233} from "./ownerBookingRevisionV3233.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -476,6 +477,34 @@ async function exactOwnerInboxReceipt(
  });
  if(!verdict.ok)throw Error(verdict.reason);
  return verdict;
+}
+
+/** V3.233 read-only authenticated owner booking freshness, no PII or writes. */
+async function ownerBookingRevisionV3233(businessId:string,body:any){
+ const requestId=clean(body?.requestId,80);
+ const app=await appForBusiness(businessId);
+ if(!app?.id)throw Error("Current Business App is unavailable.");
+ const request=await supabase.from("busy_mini_app_requests")
+  .select("id,business_id,mini_app_id,request_type,status,updated_at")
+  .eq("id",requestId).eq("business_id",businessId)
+  .eq("mini_app_id",app.id).maybeSingle();
+ if(request.error)throw request.error;
+ if(!request.data)throw Error("The original booking request is unavailable.");
+ const [link,work]=await Promise.all([
+  supabase.from("busy_mini_app_request_links")
+   .select("request_id,business_id,bridge_state")
+   .eq("request_id",requestId).eq("business_id",businessId).maybeSingle(),
+  supabase.from("busy_mini_app_work_bookings")
+   .select("request_id,business_id,state")
+   .eq("request_id",requestId).eq("business_id",businessId).maybeSingle()
+ ]);
+ if(link.error||work.error)throw Error("The original Work booking could not be checked.");
+ const check=classifyBookingRevisionV3233({
+  businessId,appId:app.id,requestId,request:request.data,
+  link:link.data,work:work.data
+ });
+ if(!check.ok)throw Error(check.reason);
+ return check;
 }
 
 // Owner-only, actual database-sourced counts. No customer names, contacts,
@@ -3887,6 +3916,10 @@ async function markRequestLinked(
   const metadata=body?.metadata&&typeof body.metadata==="object"&&
     !Array.isArray(body.metadata)?body.metadata:{};
   const guardClose=body?.ownerStatusRevisionGuard===true;
+  // V3.233: direct Work-screen callers must NEVER bypass the V3.232
+  // atomic revision guard by invoking the original close handoff.
+  if(bridgeState==="closed"&&!guardClose)
+    throw Error("Refresh and approve the current booking before cancelling it.");
   if(guardClose&&bridgeState!=="closed")
     throw Error("Revision guarding here is limited to linked booking closures.");
   const rpc=guardClose
@@ -4430,6 +4463,12 @@ Deno.serve(async (request: Request) => {
         throw Error("Owner or admin permissions are required.");
       return json(200,{ok:true,...(await exactOwnerInboxReceipt(
         resolvedBusinessId,member.role,body))});
+    }
+    if (action === "owner_booking_revision") {
+      if(!["owner","admin"].includes(member.role))
+        throw Error("Owner or admin permissions are required.");
+      return json(200,{ok:true,revision:await ownerBookingRevisionV3233(
+        resolvedBusinessId,body)});
     }
     if (action === "send_request_message") {
       if(body?.reviewedFollowupStamp!==undefined&&
