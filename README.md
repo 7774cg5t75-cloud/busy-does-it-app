@@ -1,5 +1,14 @@
 # busy-does-it-app
 
+## V3.224 — Safer Guest App Requests & Real Disposable Postgres Tests
+
+Both the latest **saved product master V22.5** and the GitHub architecture were reviewed first. This substantial development sweep strengthens the actual `busy-mini-app-guest` Edge handler: a guest submission must match the original server-read, saved request's tenant, app, challenge, type, payload, contacts and idempotency key before we confirm it. Already-consumed sequential replays no longer attempt another owner notification; concurrent exactly-once delivery still requires a durable outbox.
+
+A **real PostgreSQL 16 disposable GitHub Actions job** now installs the existing staging-only baseline with synthetic users in one transaction, checks RLS/permissions, then proves full rollback without touching hosted Supabase. GitHub passed **177 new guest-request assertions** and the disposable SQL rollback marker, alongside inherited checks. The separate Production Foundation workflow also passed on the development branch.
+
+**Not activated:** no real staging schema install, Auth/JWT two-business live tests, deployed Edge handler, public native website form, provider delivery, published site or paid signed build. See [V3.224 technical report](docs/V3_224_GUEST_REQUEST_REPLAY_AND_DISPOSABLE_STAGING_BASELINE.md).
+
+
 ## V3.223 — Master-reviewed staging business schema and safer Business Brain evidence
 
 **Master architecture checked before implementation:** reuse Busy-owned builder, Business Brain, shared requests, customer approvals, Brand DNA and staging gates before introducing new code or open-source dependencies. No core system was replaced.
