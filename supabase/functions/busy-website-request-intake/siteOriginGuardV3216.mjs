@@ -57,6 +57,13 @@ function strictVisitorFields(kind,payload){
 function verifySiteOriginIntakeV3216({request=null,serverFacts=null,now=""}={}){
   if(!request||typeof request!=="object"||Array.isArray(request)||!serverFacts||
     typeof serverFacts!=="object")return deny("Missing verified published website facts.");
+  // The browser must never nominate a tenant, website row, app, provider,
+  // notification or approval state. Those are strictly server-resolved.
+  const keys=["origin","requestType","idempotencyKey",
+    "consentRevision","consentAccepted","payload"];
+  if(Object.keys(request).some(k=>!keys.includes(k))||
+     keys.some(k=>!own(request,k)))
+    return deny("Unexpected visitor metadata or missing request fields.");
   const {website,deployment,approval,challenge}=serverFacts;
   if(!website||!deployment||!approval||!challenge)
     return deny("The server must resolve all four independent records.");
