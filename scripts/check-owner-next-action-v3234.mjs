@@ -118,9 +118,13 @@ const nowStale=check({businessId:B,appId:A,requestId:R,
 eq(nowStale.ok,false);
 const source=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 const edge=source("supabase/functions/busy-mini-apps/index.ts");
-ok(edge.includes("chooseOwnerConversationActionV3234({"));
-ok(edge.includes("if(!nextAction.ok)throw Error(nextAction.reason)"));
-ok(edge.includes("return {...recommendation,nextAction};"));
+const extracted=source("supabase/functions/busy-mini-apps/ownerFollowupReadbackV3235.mjs");
+ok(edge.includes("readCurrentOwnerFollowupV3235({"));
+ok(extracted.includes("chooseOwnerConversationActionV3234({"));
+ok(extracted.includes("if(!nextAction.ok)throw Error(nextAction.reason)"));
+ok(extracted.includes("return {...decision,nextAction,outcomeEvidence};"));
+ok(extracted.includes('.limit(2)'));
+ok(extracted.includes('.eq("business_id",businessId)'));
 ok(edge.includes('if (action === "owner_followup_check")'));
 ok(edge.includes('if(!["owner","admin"].includes(member.role))'));
 ok(edge.includes("guardReviewedOwnerSend({"));
