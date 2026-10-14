@@ -16,8 +16,8 @@ import {adviseVerifiedCustomerJourneyV3219}
  from "../core/customerJourneyActionV3219.mjs";
 import {adviseConnectedCustomerJourneyV3220}
  from "../core/connectedJourneyAdviceV3220.mjs";
-import {chooseBusinessJourneyDecisionV3221}
- from "../core/businessJourneyDecisionV3221.mjs";
+import {chooseOwnerNextActionV3222}
+ from "../core/businessNextActionEvidenceV3222.mjs";
 import {planUniversalCustomerJourneyV3218}
  from "../core/universalCustomerJourneyV3218.mjs";
 import {WebsiteFormSpecReviewV3217}
@@ -65,7 +65,7 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
   businessId,website,app,liveVersion,catalog,endpoint,
   businessType,description,publishing,deliveryProof
  });
- const nextDecision=chooseBusinessJourneyDecisionV3221({
+ const nextDecision=chooseOwnerNextActionV3222({
    businessId,website,app,liveVersion,catalog,endpoint,
    businessType,description,publishing,deliveryProof
  });
@@ -152,7 +152,7 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
        {"Not ready to link: "+latest.reason}
      </Text>}
      {nextDecision.ok?<Text style={styles.cardBody}>
-       {"BUSY recommends: "+nextDecision.title+". "+nextDecision.why}
+       {"BUSY recommends: "+nextDecision.title+". "+nextDecision.reason}
      </Text>:primaryAdvice.ok?<Text style={styles.cardBody}>
        {"BUSY recommends: "+primaryAdvice.headline+". "+primaryAdvice.detail}
      </Text>:null}
