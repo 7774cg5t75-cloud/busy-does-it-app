@@ -2,8 +2,6 @@
 -- staging-only business baseline. Rollback MUST remove all created objects.
 \set ON_ERROR_STOP on
 do $$
-declare
- v tablespace;
 begin
  if not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace
   where n.nspname='public' and c.relname='busy_businesses'
