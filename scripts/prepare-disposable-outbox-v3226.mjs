@@ -19,8 +19,8 @@ if(fixture.split(before).length!==2||fixture.split(rollback).length!==2||
  !assertions.includes("Atomic notification intent count"))
  throw Error("Immutable V3.225 test assembly changed; review guest outbox SQL ordering.");
 const sql=fixture.replace(before,
- migration+"\n\n"+before)
- .replace(rollback,"\n"+assertions+rollback)
+ ()=>migration+"\n\n"+before)
+ .replace(rollback,()=>"\n"+assertions+rollback)
  .replace("select 'V3.225_EPHEMERAL_GUEST_RPC_ROLLBACK_PASS' as disposable_guest_rpc_result;",
  "select 'V3.226_EPHEMERAL_ATOMIC_OUTBOX_ROLLBACK_PASS' as disposable_guest_rpc_result;");
 if(sql.includes("cron.schedule(")||sql.includes("cron.unschedule(")||sql.includes("net.http_post("))
