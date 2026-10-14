@@ -2,6 +2,15 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.221 — Reusable evidence boundaries and code health
+
+- **Staging-first safety:** V3.180's isolated-only business/membership baseline is inspected, not applied. Review source FK, supported member roles, FORCEd RLS and direct-client permission denial, plus dangerous SQL patterns; these are preliminary signals, not actual SQL execution permission. The 64-migration side-effect inventory flags privileged functions, schedule, pg_net/HTTP, extension and potential destructive operations for independent manual review and rollback/restore.
+- **No implicit DB migration authority:** Only a separately authorised, explicitly scoped isolated-staging action after refreshed target inspection, exact source review, tested backup/rollback and authenticated tenant RLS proof could install a phase. Neither this version nor the source review functions obtain those authorisations.
+- **North-star customer evidence:** one short owner recommendation should come from current owner intent, same-business website/app, exact immutable published app version and genuinely available modules. A possibly saved request outranks other suggestions; unknown commits require readback, not duplicate creation. Status fields never imply provider delivery, calendar booking, customer replies or a published native website intake form.
+- **CI quality:** The Snack source graph includes the shared V3.213 receipt validator. Test harnesses must inject current canonicalWebsiteHandoffUrl instead of evaluating a stripped/partial websiteBuilder module or weakening its link checks. V3.221 source and Snack graph tests passed in Actions, while independently full green Production foundation check remains outstanding.
+- **Economical iteration:** cancel superseded checks on fast development branches. Normal V3.221 changes run source/security assertions; heavier unsigned exports are reserved for manually requested workflow dispatch. Do not use paid native signing until an intentional stabilisation/test milestone. Details: docs/V3_221_CI_STABILISATION_AND_STAGING_FIRST_PHASE.md.
+
+
 ## V3.220 — Staging-first infrastructure evidence, safe recovery, simple owner guidance
 
 - The **real isolated staging project** still has only busy_staging_rls_canary and two canary migration versions, plus pgcrypto. The source repository has **64 versioned SQL migrations** referencing base business and membership tables. Reuse staging/ISOLATED_ONLY_business_core_v3180.sql as a *candidate for manual staging-only approval*, not an authoritative copy of production.
