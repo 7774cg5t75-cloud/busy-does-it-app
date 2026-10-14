@@ -16241,13 +16241,19 @@ function App() {
     }
   };
 
-  const updateMiniAppRequestStatus = async (requestId, status) => {
+  const updateMiniAppRequestStatus = async (requestId, status, expectedRequest) => {
     setMiniAppsAction(`request-status:${requestId}`);
     setMiniAppsError("");
     try {
+      // The owner approves a specific saved snapshot, NOT whatever state
+      // may have arrived after their screen was opened.
+      if(expectedRequest?.id!==requestId||
+         !expectedRequest?.status||!expectedRequest?.updated_at)
+        throw Error("Open the latest customer request before changing its status.");
       const data = await miniAppsRequest("update_request_status", {
-        requestId,
-        status,
+        requestId,status,
+        expectedStatus:expectedRequest.status,
+        expectedUpdatedAt:expectedRequest.updated_at,
       });
       // A committed owner status is not undone if the dashboard snapshot or
       // follow-up readback fails. Do not clear the request inbox with an

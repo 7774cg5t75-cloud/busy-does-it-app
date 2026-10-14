@@ -29,6 +29,7 @@ import {classifyOwnerRequestQueueV3225} from "./ownerRequestQueueV3225.mjs";
 import {ownerGuestAlertEvidenceV3226} from "./ownerGuestAlertEvidenceV3226.mjs";
 import {ownerGuestAlertEvidenceV3227} from "./ownerGuestAlertEvidenceV3227.mjs";
 import {chooseOwnerRequestNextStepV3228} from "./ownerNextStepV3228.mjs";
+import {verifyOwnerRequestFreshnessV3231} from "./ownerRequestFreshnessV3231.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -3640,12 +3641,20 @@ async function updateRequestStatus(
   }
   const current = await supabase
     .from("busy_mini_app_requests")
-    .select("id,business_id,mini_app_id,consumer_user_id,request_origin,request_type,status")
+    .select("id,business_id,mini_app_id,consumer_user_id,request_origin,request_type,status,updated_at")
     .eq("id", requestId)
     .eq("business_id", businessId)
     .maybeSingle();
   if (current.error) throw current.error;
   if (!current.data) throw new Error("Business App request not found.");
+  // The clicked snapshot MUST still match the original persisted row.
+  // Reject stale clicks BEFORE any linked Work operation or side effect.
+  const freshness=verifyOwnerRequestFreshnessV3231({
+    businessId,requestId,stored:current.data,
+    expectedStatus:clean(body?.expectedStatus,40),
+    expectedUpdatedAt:clean(body?.expectedUpdatedAt,45)
+  });
+  if(!freshness.ok)throw Error(freshness.reason);
   const linkedState=await supabase.from("busy_mini_app_request_links")
     .select("bridge_state,customer_record_id,action_record_id,metadata").eq("request_id",requestId)
     .eq("business_id",businessId).maybeSingle();
@@ -3677,7 +3686,8 @@ async function updateRequestStatus(
     .update({ status, updated_at: now })
     .eq("id", requestId)
     .eq("business_id", businessId)
-    .eq("status",current.data.status)
+    .eq("status",freshness.expectedStatus)
+    .eq("updated_at",freshness.expectedUpdatedAt)
     .select("*")
     .maybeSingle();
   if (updated.error) throw updated.error;

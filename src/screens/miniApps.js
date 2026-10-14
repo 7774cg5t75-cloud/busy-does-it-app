@@ -3248,7 +3248,8 @@ function MiniAppBuilder({ s }) {
                         onPress={() =>
                           s.updateMiniAppRequestStatus(
                             request.id,
-                            "reviewing"
+                            "reviewing",
+                            request
                           )
                         }
                       />
@@ -3260,7 +3261,8 @@ function MiniAppBuilder({ s }) {
                         onPress={() =>
                           s.updateMiniAppRequestStatus(
                             request.id,
-                            "declined"
+                            "declined",
+                            request
                           )
                         }
                       />
@@ -4981,14 +4983,14 @@ function MiniAppRequestDetail({ s }) {
               <Button
                 label="Mark reviewing"
                 disabled={!!s.miniAppsAction}
-                onPress={() => s.updateMiniAppRequestStatus(request.id, "reviewing")}
+                onPress={() => s.updateMiniAppRequestStatus(request.id, "reviewing", request)}
               />
             ) : null}
             {ownerView && !["declined", "closed", "accepted"].includes(request.status) ? (
               <Button
                 label="Decline request"
                 disabled={!!s.miniAppsAction}
-                onPress={() => s.updateMiniAppRequestStatus(request.id, "declined")}
+                onPress={() => s.updateMiniAppRequestStatus(request.id, "declined", request)}
               />
             ) : null}
           </Card>
