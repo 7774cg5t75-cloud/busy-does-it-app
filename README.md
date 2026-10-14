@@ -1,5 +1,14 @@
 # busy-does-it-app
 
+## V3.220 — Exact Staging Bootstrap and Simpler Connected Customer Journeys (development)
+
+V3.220 inspects the **real isolated Busy Does It Staging database** read-only, reconciles its two canary migrations and missing Business App schema with **64 actual SQL migration filenames** and the existing *staging-only* business-core baseline. The new offline manifest generator checksums the baseline and all 64 source files, divides them into five independent review phases and never connects to or modifies Supabase. Source risk analysis and phase approval/rollback checks fail closed; user-supplied approvals cannot activate execution.
+
+Customer-facing improvements combine the universal website/app plan into a **single useful BUSY recommendation** by default, with deeper reasoning optional. New owner-request priority logic separately reviews saved request, owner inbox and notification state without treating an attempted send or booking request as completed.
+
+A new GitHub workflow runs V3.220's full-worktree SQL source tests before inherited security, builder and unsigned platform-export tests. Focused isolated V8 contract checks passed; **full real Node CI, migration apply/rollback, two-tenant JWT/RLS and browser/device verification remain unconfirmed**. No public website-native form, migration, outbound provider action, paid AI call or signed build was initiated. [Technical report](docs/V3_220_STAGING_BOOTSTRAP_AND_CONNECTED_CUSTOMER_JOURNEYS.md).
+
+
 ## V3.219 — Real Staging Audit, Version Recovery and Delivery Reconciliation (development)
 
 A **read-only inspection of the separate Busy Does It Staging Supabase database** on 14 October 2026 found that the public staging schema currently contains only the RLS canary; the existing Business App membership, app, version, request and guest challenge tables are not installed. That means genuine staging customer enquiry/booking transactions are **not yet ready to test**, regardless of how much source-level work passes.
