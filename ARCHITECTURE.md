@@ -2,6 +2,28 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## Permanent policy — dual-master governance and outcome-first sweep planning
+
+**Owner-approved standing instruction (14 October 2026): Two complementary masters, checked before EVERY substantial sweep.** The **saved, versioned Busy Does It product master (currently V22.4 as of this decision)** governs customer promise, business vision, product scope, commercial principles, UX simplicity and long-term goals. This repository's `ARCHITECTURE.md` and linked technical/sweep policies govern code architecture, implementation status, reuse decisions, security, verification and delivery. Do not claim they are automatically synchronised. Locate and READ the latest available version of BOTH plus current repository branch/code **before** proposing or beginning the next substantial sweep. Do not substitute conversation memory for retrieval.
+
+**When the owner says "save to the master", classify and route intelligently:**
+- Product idea, vision, customer experience, service design, pricing/tier value or long-term requirement: update the saved product master; update GitHub architecture too **only** if the decision implies lasting technical contracts or implementation direction.
+- Technical design, engineering pattern, development principle, test/quality policy, security/reliability requirement or detailed code decision: update GitHub's master/policies; summarise in the saved product master **only** if it has strategic or customer-facing implications.
+- Cross-cutting goals, product-engineering principles or planning/governance rules: record a concise matching decision in **BOTH** masters with a link/cross-reference and clear authority. Do not mindlessly duplicate entire documents.
+- Preserve the existing saved master via a new version and provide the exact downloadable artefact; only claim Library synchronisation when an actual upload succeeds. New technical documentation should be committed on the latest appropriate development branch, not assumed to be merged into `main`.
+
+**Mandatory pre-sweep procedure:**
+1. **Retrieve both masters, inspect latest GitHub branch, recent sweeps and code**; compare against the owner's latest approved product vision, staged implementation and outstanding release gates.
+2. Build a concise **vision-to-reality gap assessment**: what's already working/verified; implemented but unverified; merely designed; missing; and which existing modules/open-source building blocks can be reused.
+3. Prioritise the **fastest responsible path to genuine customer outcomes**: reduce owner workload, maximise practical intelligence and simplicity, leverage existing components, group substantial related tasks, and resolve dependencies. Assess impact, confidence, reversibility, security, cost, testability, and maintenance burden. **Long-term correctness, reliability, security, accessibility, ownership and coherent architecture outrank short-term speed.** Spend additional engineering time if it avoids fragile shortcuts, quality debt and expensive rework; avoid unjustified gold-plating.
+4. Present a substantial multi-topic sweep with clear scope, affected shared systems, evidence/acceptance tests, cost/spend constraints and real blockers. Differentiate code implementation from staging and paid external verification. Require explicit approval for production data changes, paid actions, irreversible operations and deployment.
+5. Execute with lightweight CI/security/regression checks and deeper architectural review at agreed intervals; verify actual outcomes at the correct boundary, and give honest status. **Never call a mock, a source check or an unsigned export a verified live service.**
+6. **Reconcile both masters after meaningful decisions and completed sweeps**: document product-level changes in the saved master when necessary, technical changes in GitHub, and any planned/remaining work with its proof level. Where the two disagree, treat the saved product master as the authority on vision and GitHub as authority on observed implementation; flag the conflict and resolve consciously rather than silently redefining the goal.
+
+**Perpetual north star:** "Every new version should bring us closer to an app customers love using and a business that requires less and less of my time to operate." "You tell Busy what needs doing. Busy does it." Measure progress by dependable, independently evidenced end-to-end work—not lines of code, frameworks or visually convincing demos.
+
+See [Major Sweep and Code Architecture Review Policy](docs/DEVELOPMENT_SWEEP_AND_ARCHITECTURE_POLICY.md) and [AI Builder Competitive Learnings & Open-Source Integration Strategy](docs/AI_BUILDER_COMPETITIVE_LEARNINGS_AND_OPEN_SOURCE_STRATEGY.md).
+
 ## V3.222 — Maintainable production-backed test semantics and outcome-first advice
 
 - **One reviewed website Node harness:** scripts/lib/website-builder-test-harness-v3222.mjs source-checks exact websiteBuilder imports and injects the actual Brand/site, canonical published-app handoff, design planner/reviewer and safe edit functions. Sixteen older suites now reuse it; test-only Function evaluation uses exclusively checked-in source, not customer input. An unreviewed new import or entry point must fail rather than silently omit security.
