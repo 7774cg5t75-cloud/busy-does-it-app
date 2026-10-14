@@ -113,14 +113,18 @@ function applyWebsiteLayoutOperation(draft,operation={}){
   if(parsed.protocol!=="https:"||parsed.username||parsed.password||parsed.port||
      !/^[a-z0-9-]{6,80}\.supabase\.co$/.test(parsed.hostname)||
      parsed.pathname!==expected||parsed.hash||
-     [...parsed.searchParams.keys()].length!==3||
+     [...parsed.searchParams.keys()].length!==5||
      url!==parsed.origin+expected+"?slug="+encodeURIComponent(slug)+
-       "&source=web&intent="+encodeURIComponent(operation.intent)||
+       "&source=web&intent="+encodeURIComponent(operation.intent)+
+       "&appId="+encodeURIComponent(operation.appId)+
+       "&versionId="+encodeURIComponent(operation.liveVersionId)||
      parsed.searchParams.get("slug")!==slug||
      parsed.searchParams.get("source")!=="web"||
      parsed.searchParams.get("intent")!==operation.intent||
+     parsed.searchParams.get("appId")!==operation.appId||
+     parsed.searchParams.get("versionId")!==operation.liveVersionId||
      [...parsed.searchParams.keys()].some(k=>
-       !["slug","source","intent"].includes(k)))
+       !["slug","source","intent","appId","versionId"].includes(k)))
    return fail(draft,"Only BUSY's verified HTTPS customer-request handoff is allowed.");
   const link={
    intent:operation.intent,url,slug,appId:operation.appId,
