@@ -2,9 +2,11 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import {classifyGuestAlertProviderTicketsV3227}
  from "./dispatchReceiptV3227.mjs";
+import {buildGuestDeviceGatewayEvidenceV3229}
+ from "./deviceGatewayEvidenceV3229.mjs";
 
 /**
- * V3.228 SOURCE ONLY. NOT deployed or scheduled. DISABLED BY DEFAULT.
+ * V3.229 SOURCE ONLY. NOT deployed or scheduled. DISABLED BY DEFAULT.
  * One request-scoped, service-only leased alert per authorised invocation.
  * Never send a customer notification, use customer contact data, or trust
  * a body-supplied request ID. Unknown provider outcomes are quarantined.
@@ -34,6 +36,13 @@ async function authorised(request:Request){
  for(let i=0;i<a.length;i++)different|=a.charCodeAt(i)^b.charCodeAt(i);
  return different===0;
 }
+const deviceTokenHmac=async(token:string)=>{
+ const key=await crypto.subtle.importKey("raw",
+  new TextEncoder().encode(secret),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+ const signed=new Uint8Array(await crypto.subtle.sign("HMAC",key,
+  new TextEncoder().encode(token)));
+ return [...signed].map(b=>b.toString(16).padStart(2,"0")).join("");
+};
 const validExpoToken=(v:unknown):v is string=>
  typeof v==="string"&&v.length<=260&&
  (/^ExponentPushToken\[[\w-]{10,}\]$/.test(v)||
@@ -53,6 +62,7 @@ async function runOnce(){
   throw Error("Claim did not return a fully scoped intent.");
  let outcome:"provider_accepted"|"definitively_rejected"|"uncertain"="uncertain";
  let digest:string|null=null;
+ let deviceResults:Array<{slot:number,device_hash:string,state:string,ticket_id:string|null}>=[];
  try{
   const request=await store.from("busy_mini_app_requests")
    .select("id,business_id,mini_app_id,request_origin,request_type,status")
@@ -67,7 +77,7 @@ async function runOnce(){
   if(members.error)throw Error("Owner membership lookup unavailable.");
   const userIds=[...new Set((members.data||[]).map((x:any)=>x.user_id))]
    .filter(x=>typeof x==="string"&&uuid.test(x));
-  if(userIds.length<1){outcome="definitively_rejected";}
+  if(userIds.length<1){outcome="uncertain";}
   else{
    const devices=await store.from("busy_push_devices")
     .select("expo_push_token").in("user_id",userIds)
@@ -75,7 +85,7 @@ async function runOnce(){
    if(devices.error)throw Error("Owner devices are unavailable.");
    const tokens=[...new Set((devices.data||[]).map((x:any)=>x.expo_push_token))]
     .filter(validExpoToken);
-   if(tokens.length<1){outcome="definitively_rejected";}
+   if(tokens.length<1){outcome="uncertain";}
    else{
     const response=await fetch(EXPO,{
      method:"POST",
@@ -95,11 +105,17 @@ async function runOnce(){
     const check=classifyGuestAlertProviderTicketsV3227({
       responseOk:response.ok,tickets,expectedCount:tokens.length
     });
-    // A mixed-device response remains uncertain. The provider might
-    // already have sent some pushes; never silently auto-resend them.
-    outcome=check.outcome==="provider_accepted"?"provider_accepted":
-      check.outcome==="definitively_rejected"?"definitively_rejected":"uncertain";
-    if(check.providerAccepted){
+    const hashes=await Promise.all(tokens.map(deviceTokenHmac));
+    const mapped=buildGuestDeviceGatewayEvidenceV3229({
+      deviceHashes:hashes,tickets,responseOk:response.ok
+    });
+    if(!mapped.ok||!Array.isArray(mapped.items))
+      throw Error("Device evidence could not be checked.");
+    deviceResults=mapped.items;
+    // Both classifiers must agree; any malformed or duplicated ticket
+    // remains uncertain, never mistakenly accepted by the whole batch.
+    outcome=check.outcome===mapped.outcome?mapped.outcome:"uncertain";
+    if(outcome==="provider_accepted"){
       // Store a digest of gateway tickets, NOT the raw Expo tokens, customer
       // identity or the receipts; even acceptance is NOT delivery evidence.
       digest=await sha(JSON.stringify(tickets));
@@ -107,12 +123,15 @@ async function runOnce(){
    }
   }
  }catch{
-  // Transport may have reached provider before failing. Never blindly retry.
+  // Provider might have accepted before transport failed. If the evidence
+  // mapping was interrupted, do not pretend to know recipient outcomes.
   outcome="uncertain";digest=null;
+  deviceResults=[];
  }
- const saved=await store.rpc("busy_guest_alert_complete_v3227",{
+ const saved=await store.rpc("busy_guest_alert_finalize_attempt_v3229",{
   p_intent_id:item.intent_id,p_lease_token:item.lease_token,
-  p_outcome:outcome,p_receipt_sha256:digest
+  p_outcome:outcome,p_receipt_sha256:digest,
+  p_device_results:deviceResults
  });
  if(saved.error||saved.data!==true)
   throw Error("Provider attempt cannot be safely reconciled. Keep the lease for manual review.");
@@ -120,6 +139,7 @@ async function runOnce(){
   providerAccepted:outcome==="provider_accepted",
   delivered:false,deviceReceiptVerified:false,
   originalRequestSaved:true,bookingConfirmed:false,
+  privateDeviceEvidenceRows:deviceResults.length,
   customerDetailsReturned:false};
 }
 Deno.serve(async(request:Request)=>{
