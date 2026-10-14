@@ -80,4 +80,5 @@ jobs:
           ../../node_modules/.bin/expo export --platform ios --output-dir /tmp/bdi-v3220-standalone-ios
           ../../node_modules/.bin/expo export --platform android --output-dir /tmp/bdi-v3220-standalone-android
       - name: Note limits
-        run: echo "V3.220: full worktree SQL dependency/risk source tests and no-execution staging plans. No migration applied, website endpoint, provider send or signed build."
+        run: |
+          echo "V3.220: full worktree SQL dependency/risk source tests and no-execution staging plans. No migration applied, website endpoint, provider send or signed build."
