@@ -26,7 +26,7 @@ const plan=prepareStagingInstallSequence({...observed,migrations,
 ok(plan.ok,plan.reason);
 eq(plan.projectRef,STAGING_REF);
 eq(plan.migrationCount,migrations.length);
-eq(plan.migrationCount,64);
+eq(plan.migrationCount,65);
 eq(plan.expectedFileCount,65);
 eq(plan.phases.length,4);
 eq(plan.phases.map(x=>x.orderedStep),[1,2,3,4]);
