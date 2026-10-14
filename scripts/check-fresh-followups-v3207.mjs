@@ -135,14 +135,20 @@ const controller=read("src/app/AppController.js");
 const helper=read("src/core/followupProofV3207.mjs");
 for(const pattern of [
  'async function currentOwnerFollowup(businessId:string,body:any)',
- '.select("id,business_id,mini_app_id,request_type,status,request_origin,consumer_user_id,created_at,updated_at")',
- '.eq("business_id",businessId).eq("mini_app_id",app.id)',
- '.eq("request_id",requestId)',
- '.limit(2)',
+ 'readCurrentOwnerFollowupV3235({',
  'if (action === "owner_followup_check")',
  'if(!["owner","admin"].includes(member.role))',
  '...(await currentOwnerFollowup(resolvedBusinessId,body))'
-])ok(edge.includes(pattern),"Server must perform genuine owner-scoped readback: "+pattern);
+])ok(edge.includes(pattern),"Edge owner-only route lost: "+pattern);
+const readback=read("supabase/functions/busy-mini-apps/ownerFollowupReadbackV3235.mjs");
+for(const pattern of [
+ '.select("id,business_id,mini_app_id,request_type,status,request_origin,consumer_user_id,created_at,updated_at")',
+ '.eq("business_id",businessId).eq("mini_app_id",appId)',
+ '.eq("request_id",requestId)',
+ '.limit(2)',
+ 'classifyOwnerOutcomeEvidenceV3235',
+ 'return {...decision,nextAction,outcomeEvidence};'
+])ok(readback.includes(pattern),"Extracted genuine owner-scoped readback lost: "+pattern);
 for(const pattern of [
  'const checkOwnerFollowup=async(',
  '"owner_followup_check"',
