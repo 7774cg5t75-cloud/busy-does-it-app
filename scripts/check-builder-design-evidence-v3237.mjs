@@ -58,7 +58,9 @@ for(const option of a.options){
  eq(option.ownerMustApprove,true);eq(option.requiresScreenshots,true);
 }
 const web=decide({plan:enquiry,businessId:B,website,app,surface:"website"});
-ok(web.ok);eq(web.recommendedDirection,"task_first");
+ok(web.ok);eq(web.recommendedDirection,"calm_clarity");
+// The website does not have a verified enquiry form; a contact section must
+// never be misrepresented as a working customer-enquiry handoff.
 eq(web.ownerLocksObserved,1);
 const missingWeb=decide({plan:make("Customers book appointments"),
  businessId:B,website,app,surface:"website"});
