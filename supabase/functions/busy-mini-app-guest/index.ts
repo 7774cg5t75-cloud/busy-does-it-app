@@ -3,11 +3,11 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { publicNativeMiniAppProjection,validSlug } from "./publicNativeProjection.mjs";
 import {evaluateStoredRequestProof} from "./requestReceiptProofV3213.mjs";
 import {verifyStoredGuestSubmissionV3224} from "./guestStoredPayloadV3224.mjs";
+import {verifyGuestNotificationIntentV3226} from "./guestNotificationIntentV3226.mjs";
 
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
@@ -314,118 +314,11 @@ function sanitizePayload(requestType: string, raw: any) {
   };
 }
 
-function validExpoPushToken(value: unknown) {
-  const token = clean(value, 260);
-  return token.startsWith("ExponentPushToken[") || token.startsWith("ExpoPushToken[");
-}
 
-async function notifyBusiness(requestRow: any) {
-  try {
-    const members = await supabase
-      .from("busy_business_memberships")
-      .select("user_id")
-      .eq("business_id", requestRow.business_id)
-      .in("role", ["owner", "admin"]);
-    if (members.error) throw members.error;
-    const userIds = [
-      ...new Set((members.data || []).map((row: any) => clean(row.user_id, 80)).filter(Boolean)),
-    ].slice(0, 20);
-
-    for (const userId of userIds) {
-      const notificationKey = `miniapp:${requestRow.id}:guest-received`;
-      const claimed = await supabase
-        .from("busy_push_deliveries")
-        .insert({
-          user_id: userId,
-          business_id: requestRow.business_id,
-          notification_key: notificationKey,
-          notification_kind: "mini_app_request",
-          route_data: {
-            route: "mini_app_request",
-            role: "business",
-            requestId: requestRow.id,
-            slug: requestRow.public_slug || "",
-            businessId: requestRow.business_id,
-          },
-          provider_receipts: [],
-          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        })
-        .select("id")
-        .single();
-
-      if (claimed.error) {
-        if (claimed.error.code === "23505") continue;
-        continue;
-      }
-
-      const devices = await supabase
-        .from("busy_push_devices")
-        .select("expo_push_token")
-        .eq("user_id", userId)
-        .eq("active", true)
-        .limit(8);
-      if (devices.error) {
-        await supabase.from("busy_push_deliveries").delete().eq("id", claimed.data.id);
-        continue;
-      }
-
-      const tokens = [
-        ...new Set(
-          (devices.data || [])
-            .map((row: any) => clean(row.expo_push_token, 260))
-            .filter(validExpoPushToken)
-        ),
-      ];
-      if (!tokens.length) {
-        await supabase.from("busy_push_deliveries").delete().eq("id", claimed.data.id);
-        continue;
-      }
-
-      try {
-        const response = await fetch(EXPO_PUSH_URL, {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Accept-Encoding": "gzip, deflate",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(
-            tokens.map((to) => ({
-              to,
-              sound: "default",
-              title:
-                requestRow.request_type === "booking_request"
-                  ? "BUSY Apps • New web booking request"
-                  : "BUSY Apps • New web enquiry",
-              body: "A customer sent a guest request through your public BUSY Mini App.",
-              data: {
-                route: "mini_app_request",
-                role: "business",
-                requestId: requestRow.id,
-                slug: requestRow.public_slug || "",
-                businessId: requestRow.business_id,
-              },
-            }))
-          ),
-        });
-        const payload: any = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error("Expo rejected the notification.");
-        await supabase
-          .from("busy_push_deliveries")
-          .update({ provider_receipts: payload?.data || [] })
-          .eq("id", claimed.data.id);
-      } catch {
-        await supabase.from("busy_push_deliveries").delete().eq("id", claimed.data.id);
-      }
-    }
-  } catch (error) {
-    console.error(
-      "BUSY guest request notification failed",
-      error instanceof Error ? error.message : error
-    );
-  }
-}
-
+// V3.226: do not send push notifications inside the public guest request
+// response. The database trigger durably queues ONE request-scoped intent in
+// the same transaction; a separately approved server dispatcher is needed
+// before any attempt at provider delivery. No direct retry/sends here.
 async function submitGuestRequest(req: Request, body: any) {
   const challengeId = clean(body?.challengeId, 80);
   const token = clean(body?.token, 300);
@@ -537,13 +430,22 @@ async function submitGuestRequest(req: Request, body: any) {
   });
   if(!saved.ok)throw new Error("BUSY cannot verify the committed guest request. Check the existing browser receipt before retrying.");
 
-  // A normal sequential replay has an already-consumed challenge; do not
-  // attempt a duplicate provider notification in that case. Concurrent
-  // replays still need an atomic durable outbox to guarantee exactly-once.
-  const mayAttemptNotification = challenge.data.state !== "consumed" &&
-    storedMatch.mayNotifyOwner === true;
-  if(mayAttemptNotification)
-    await notifyBusiness({ ...requestRow.data, public_slug: app.public_slug });
+  // An INSERT trigger created this record atomically with the saved guest
+  // request. Treat missing/cross-tenant intent as uncertain, never silently
+  // substitute a second request or claim push delivery.
+  const queued=await supabase
+    .from("busy_mini_app_guest_notification_intents")
+    .select("id,request_id,business_id,mini_app_id,event_kind,state,attempt_count")
+    .eq("request_id",requestId)
+    .eq("business_id",app.business_id)
+    .eq("mini_app_id",app.id)
+    .maybeSingle();
+  if(queued.error)throw queued.error;
+  const intent=verifyGuestNotificationIntentV3226({
+    intent:queued.data,requestId,businessId:app.business_id,appId:app.id
+  });
+  if(!intent.ok)
+    throw new Error("BUSY saved the request but cannot verify the owner alert queue. Check the original receipt; do not submit again.");
 
   return {
     request: {
@@ -560,7 +462,9 @@ async function submitGuestRequest(req: Request, body: any) {
     requestEvidence:{...saved,
       statusLabel:saved.statusLabel},
     notificationDelivered:false,
-    notificationAttemptedByThisCall:mayAttemptNotification,
+    notificationIntentSaved:intent.intentDurableAsReadBack,
+    notificationQueueState:intent.queueState,
+    notificationAttemptedByThisCall:false,
     notificationDeduplicationGuaranteed:false,
     bookingConfirmed:false,
     retryMayCreateDuplicate:false
