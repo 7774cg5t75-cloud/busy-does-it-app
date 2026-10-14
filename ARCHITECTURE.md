@@ -2,6 +2,19 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## Permanent Get More Customers refinement — coordinated, evidence-led marketing
+
+**Product-source decision (14 October 2026; saved Busy Does It Product Master V22.6, Section 42).** A competitor review of Holo (https://tryholo.ai/, company-published marketing descriptions) reinforces the existing Get More Customers roadmap. This is a **design constraint and candidate capability plan, not implemented code, proof of competitor results or authority to run paid services**.
+
+- **Reuse the shared Business Brain and Design/Brand DNA** across the website, in-BUSY/standalone app, social content, emails, paid campaigns, search and video. Owner-authorised existing-website intake may propose brand facts with source/provenance, image rights, tenant scope and explicit correction/approval. Do not create a second competing brand profile or marketing record.
+- **Canonical campaign/work package:** one same-business, revisioned brief should connect owner goal, audience/region, supported channels, assets, creative variants, website landing destination, calendar slots, publishing tasks, spend/AI-credit bounds and meaningful business capacity. Every task has separate status and provider confirmation: proposed, prepared, pending approval, scheduled, provider accepted/live, failed or reconciled. Never infer delivery from drafted plans.
+- **Prepared-work queue and bounded autonomy:** Busy may prepare useful recommended marketing work without unsolicited public action; owner reviews concise Approve / Edit / Dismiss controls. Any later autopilot needs explicit granular time/channel/content/budget permissions, cancellation/pause, consent expiration, escalation, audit and server-side enforcement. Never silently change offers, launch ads, respond publicly or increase spend.
+- **Continuous improvement from real evidence:** make comparisons from permitted business-scoped outcome events and actual provider receipts, with strength/provenance explicitly marked. Distinguish ad-platform estimates from independently proven website enquiries, bookings or payments. Diagnose broken funnels or lack of capacity before buying traffic; do not optimise against invented conversions or guarantee ROI.
+- **Fair pricing and safe market intelligence:** surface external ad spend separately from subscription and creative/AI credits; quote paid generations before use and reuse existing assets. Research trends/competitor approaches only via lawful, appropriate sources; do not copy protected creatives, scrape private data, spam communities or train across businesses without proper consent.
+- **Differentiation:** marketing is not a separate generation silo: integrate existing Website Builder, App Builder, booking/customer journeys, CRM, calendar, Get Paid and Get More Customers, so Busy can prepare a plan, execute owner-approved work and verify what really occurred.
+
+Keep the existing architecture, V3.198 branded-content groundwork, V3.210 universal capabilities, source/proof-level contracts, GitHub CI/staging gates and both-master governance authoritative. Compare against current code before each sweep; deliver verifiable pieces rather than duplicative intelligence frameworks. See saved product master V22.6, Section 42. Holo claims must be independently evaluated; no Holo proprietary code or creative may be copied.
+
 ## V3.224 — Actual guest-request replay integrity and disposable PostgreSQL rollback proof
 
 - **Both masters checked before implementation:** saved Word product master **V22.5**, especially single shared Business App backend, end-to-end functional workflows, customer ownership and quality-first dual-master governance; GitHub architecture, sweep policy and latest V3.223 evidence. Technical improvement only: no Word product-master version change.
