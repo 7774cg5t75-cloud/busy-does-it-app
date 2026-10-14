@@ -3122,6 +3122,19 @@ function MiniAppBuilder({ s }) {
                     left="Being reviewed"
                     right={String(s.ownerQueueSummary.reviewing||0)}
                   />
+                  {s.ownerQueueSummary.guestAlerts?.ok===true &&
+                   s.ownerQueueSummary.guestAlerts?.businessId===app.business_id &&
+                   s.ownerQueueSummary.guestAlerts?.appId===app.id ? (
+                    <>
+                      <MetricRow
+                        left="Guest alerts not confirmed delivered"
+                        right={String(s.ownerQueueSummary.guestAlerts.totalAwaitingDelivery||0)}
+                      />
+                      <Text style={styles.cardBody}>
+                        {s.ownerQueueSummary.guestAlerts.explanation}
+                      </Text>
+                    </>
+                  ) : null}
                   <Text style={styles.cardBody}>
                     {s.ownerQueueSummary.explanation}
                   </Text>
