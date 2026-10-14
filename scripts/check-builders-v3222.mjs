@@ -146,7 +146,7 @@ ok(noModule.ok);
 eq(noModule.action,"prepare_supported_module");
 eq(noModule.mayActAutomatically,false);
 const source=read("src/screens/websiteAppHandoffReview.js");
-ok(source.includes("chooseBusinessJourneyDecisionV3221"));
+ok(source.includes("chooseOwnerNextActionV3222"));
 ok(source.includes("BUSY recommends:"));
 ok(!existsSync(new URL("../supabase/functions/busy-website-request-intake/index.ts",import.meta.url)));
 console.log("V3.222 focused staging and Business Brain contract: "+n+
