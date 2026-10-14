@@ -27,13 +27,13 @@ function adviseCustomerCapabilityV3216({
  // The owner's stated task takes precedence over an industry stereotype.
  // Negated actions must NOT be offered merely because the industry commonly
  // uses them. These are local, low-cost heuristics, never AI outcome proof.
- const bookingRejected=/(?:no|never|without|not|don't|do not)\\s+(?:accept\\s+|take\\s+|offer\\s+)?(?:online\\s+)?(?:booking|bookings|appointments?|reservations?)/.test(goalText);
+ const bookingRejected=/(?:no|never|without|not|don't|do not)\s+(?:accept\s+|take\s+|offer\s+)?(?:online\s+)?(?:booking|bookings|appointments?|reservations?)/.test(goalText);
  const explicit=[
-  {matches:/\\b(?:enquir(?:y|ies)|inquir(?:y|ies)|quote|quotes|estimate|contact us)\\b/,
+  {matches:/\b(?:enquir(?:y|ies)|inquir(?:y|ies)|quote|quotes|estimate|contact us)\b/,
    goal:"Help customers send an enquiry or ask for a quote",capability:"enquiry"},
-  {matches:/\\b(?:appointments?|bookings?|reservations?|book a|reserve a)\\b/,
+  {matches:/\b(?:appointments?|bookings?|reservations?|book a|reserve a)\b/,
    goal:"Help customers request an appointment or reservation",capability:"booking_request"},
-  {matches:/\\b(?:catalogue|catalog|online shop|sell products|product range)\\b/,
+  {matches:/\b(?:catalogue|catalog|online shop|sell products|product range)\b/,
    goal:"Help customers browse a product or service catalogue",capability:"catalogue"}
  ];
  const requested=explicit.find(x=>x.matches.test(goalText)&&
