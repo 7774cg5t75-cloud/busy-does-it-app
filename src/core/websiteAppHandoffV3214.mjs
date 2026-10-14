@@ -23,11 +23,21 @@ function canonicalAppLinkEndpoint(value){
   return url.origin+url.pathname;
  }catch{return "";}
 }
-function canonicalWebsiteHandoffUrl({endpoint="",slug="",kind=""}={}){
+function canonicalWebsiteHandoffUrl({
+ endpoint="",slug="",kind="",appId="",liveVersionId=""
+}={}){
  const base=canonicalAppLinkEndpoint(endpoint);
  if(!base||!SLUG.test(slug)||!KIND.includes(kind))return "";
- return base+"?slug="+encodeURIComponent(slug)+
+ if((appId||liveVersionId)&&(!UUID.test(appId)||!UUID.test(liveVersionId)))
+  return "";
+ const legacy=base+"?slug="+encodeURIComponent(slug)+
   "&source=web&intent="+encodeURIComponent(kind);
+ // New V3.215 links are pinned to the EXACT owner-reviewed published app,
+ // not a reusable slug. Legacy URL construction remains for offline parsing
+ // and recovery but new owner approval ALWAYS includes the immutable IDs.
+ return appId&&liveVersionId?
+  legacy+"&appId="+encodeURIComponent(appId)+
+   "&versionId="+encodeURIComponent(liveVersionId):legacy;
 }
 function planWebsiteAppRequestHandoff({
  businessId="",website=null,app=null,liveVersion=null,
@@ -71,7 +81,8 @@ function planWebsiteAppRequestHandoff({
       typeof contact.phone==="string"&&contact.phone.trim()))
   return no("Add real, visible owner-approved contact details to the website before adding a handoff.");
  const url=canonicalWebsiteHandoffUrl({
-  endpoint,slug:app.public_slug,kind});
+  endpoint,slug:app.public_slug,kind,
+  appId:app.id,liveVersionId:liveVersion.id});
  if(!url)return no("A trusted public Business App HTTPS link is not configured.");
  return {ok:true,kind:"website_app_request_handoff_v3214",
   businessId,websiteId:website.id,websiteGeneration:website.generation,
@@ -82,6 +93,7 @@ function planWebsiteAppRequestHandoff({
   contactSectionId:"contact",reviewedOwnerApprovalRequired:true,
   currentAppLiveVersionVerifiedFromOwnerSnapshot:true,
   serverWillRecheckLiveVersionOnVisit:true,
+  exactPublishedAppPinnedInLink:true,requiresReapprovalOnAppRepublish:true,
   publicEnquiryFormInstalled:false,bookingConfirmed:false,
   liveWebsiteUpdated:false,customerRequestCreated:false,
   chargedCustomer:false,providerDeliveryVerified:false,
