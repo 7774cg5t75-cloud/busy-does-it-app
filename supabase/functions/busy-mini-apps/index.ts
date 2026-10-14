@@ -25,6 +25,7 @@ import {classifyMessageReceipt,validateMessageReceiptContext} from "./messageRec
 import {classifyOwnerInboxReceipt} from "./ownerInboxReceiptV3205.mjs";
 import {decideFreshOwnerFollowup} from "./freshOwnerFollowupV3207.mjs";
 import {guardReviewedOwnerSend,validateOwnerReplyAfterSave} from "./reviewedOwnerSendV3208.mjs";
+import {classifyOwnerRequestQueueV3225} from "./ownerRequestQueueV3225.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -470,6 +471,46 @@ async function exactOwnerInboxReceipt(
  });
  if(!verdict.ok)throw Error(verdict.reason);
  return verdict;
+}
+
+// Owner-only, actual database-sourced counts. No customer names, contacts,
+ // message bodies or arbitrary untrusted rollup JSON are returned.
+async function ownerQueueSummaryV3225(businessId:string){
+ const app=await appForBusiness(businessId);
+ if(!app?.id)return {available:false,businessId,readOnly:true,
+   nextAction:"prepare_business_app",pendingTotal:0,
+   customerDetailsIncluded:false,bookingConfirmed:false,
+   providerDelivered:false};
+ const queryCount=async(status:"received"|"reviewing")=>{
+  const r=await supabase.from("busy_mini_app_requests")
+   .select("id",{head:true,count:"exact"})
+   .eq("business_id",businessId).eq("mini_app_id",app.id)
+   .eq("status",status);
+  if(r.error||!Number.isSafeInteger(r.count)||r.count<0)
+   throw r.error||Error("The current inbox count is unavailable.");
+  return r.count;
+ };
+ const [received,reviewing]=await Promise.all([
+  queryCount("received"),queryCount("reviewing")
+ ]);
+ let latest=null;
+ if(received+reviewing>0){
+  const r=await supabase.from("busy_mini_app_requests")
+   .select("id,business_id,mini_app_id,request_type,status,created_at")
+   .eq("business_id",businessId).eq("mini_app_id",app.id)
+   .in("status",["received","reviewing"])
+   .order("created_at",{ascending:false}).limit(1).maybeSingle();
+  if(r.error)throw r.error;
+  if(!r.data)throw Error("The inbox changed during verification. Refresh.");
+  latest=r.data;
+ }
+ const proof=classifyOwnerRequestQueueV3225({
+  businessId,appId:app.id,received,reviewing,latest
+ });
+ if(!proof.ok)throw Error(proof.reason);
+ return {...proof,available:true,countsFromServerReadback:true,
+  authenticatedMembershipCheckedAtEndpoint:true,
+  separatelyVerifiedDeliveredNotifications:false};
 }
 
 // One request, at most two newest messages. Read-only: does not mark
@@ -4310,6 +4351,12 @@ Deno.serve(async (request: Request) => {
         throw Error("Owner or admin permissions are required.");
       return json(200,{ok:true,
         ...(await currentOwnerFollowup(resolvedBusinessId,body))});
+    }
+    if (action === "owner_queue_summary") {
+      if(!["owner","admin"].includes(member.role))
+        throw Error("Owner or admin permissions are required.");
+      return json(200,{ok:true,
+        ...(await ownerQueueSummaryV3225(resolvedBusinessId))});
     }
     if (action === "owner_inbox_receipt") {
       if(!["owner","admin"].includes(member.role))
