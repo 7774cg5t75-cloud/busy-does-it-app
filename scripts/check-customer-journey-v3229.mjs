@@ -6,6 +6,7 @@
  */
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
+import {execFileSync} from "node:child_process";
 import {buildGuestDeviceGatewayEvidenceV3229 as evidence}
  from "../supabase/functions/busy-mini-app-guest-alert-dispatch/deviceGatewayEvidenceV3229.mjs";
 import {classifyGuestAlertProviderTicketsV3227 as classify}
@@ -110,4 +111,12 @@ const source=read("scripts/prepare-disposable-device-evidence-v3229.mjs");
 ok(source.includes("V3.229_EPHEMERAL_DEVICE_EVIDENCE_ROLLBACK_PASS"));
 ok(source.includes("sqlExecutedByThisScript:false"));
 ok(!source.includes("https://"));
-console.log("V3.229: "+checks+" offline privacy, gateway, exact inbox and SQL source checks passed.");
+execFileSync(process.execPath,["scripts/prepare-phase-one-approval-v3229.mjs"],{stdio:"pipe"});
+const phase=JSON.parse(readFileSync("/tmp/bdi-v3229-phase-one-review/approval-review.json","utf8"));
+eq(phase.fullHistory.versionedMigrations,67);
+eq(phase.source.proposedObjects,["busy_businesses","busy_business_memberships"]);
+ok(/^[a-f0-9]{64}$/.test(phase.source.sha256));
+eq(phase.canExecute,false);eq(phase.ownerApproved,false);
+eq(phase.SQLExecuted,false);eq(phase.remoteProjectReadByScript,false);
+eq(phase.realBackupRestoreTested,false);eq(phase.realJwtRlsTested,false);
+console.log("V3.229: "+checks+" offline privacy, gateway, exact inbox and staged phase-one review checks passed.");
