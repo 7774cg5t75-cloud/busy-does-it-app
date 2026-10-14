@@ -1,5 +1,5 @@
 import React from "react";
-import {Text,View} from "react-native";
+import {Text,TextInput,View} from "react-native";
 import {Card,Button,Field} from "../components/ui";
 import {styles} from "../theme/styles";
 import {planPrivateWebsiteFormApprovalV3217,
@@ -46,12 +46,22 @@ function WebsiteFormSpecReviewV3217({businessId="",website=null,
     <Field label="Why will you use customer information?"
      placeholder="For example: Respond to customer enquiries about our services"
      value={purpose} onChangeText={update(setPurpose)}/>
-    <Field label="Your proposed privacy notice (review before using)"
-     placeholder="Explain how you will use and keep enquiry details"
-     value={notice} onChangeText={update(setNotice)}/>
+    <View style={styles.fieldWrap}>
+      <Text style={styles.fieldLabel}>
+        Your proposed privacy notice (review before using)
+      </Text>
+      <View style={styles.fieldBox}>
+        <TextInput value={notice} onChangeText={update(setNotice)}
+          placeholder="Explain how you will use and keep enquiry details"
+          placeholderTextColor="#9AA3B2" multiline
+          accessibilityLabel="Proposed privacy notice"
+          style={[styles.fieldInput,{minHeight:96,textAlignVertical:"top"}]}/>
+      </View>
+    </View>
     <Field label="Proposed retention (days, 1–730)"
      placeholder="90"
-     value={days} onChangeText={update(setDays)}/>
+     value={days} keyboardType="number-pad" autoCapitalize="none"
+     onChangeText={update(setDays)}/>
     <Text style={styles.cardBody}>
       {"Fields: "+(current.fieldKeys||[]).join(", ")+
        ". Customers must provide a contact method; unneeded fields should be removed before approval."}
