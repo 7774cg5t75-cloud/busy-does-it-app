@@ -1,5 +1,14 @@
 # busy-does-it-app
 
+## V3.227 — Safe Guest Alert Dispatcher & Staging Installation Approval Packet
+
+Both masters checked first: the latest Word product master is **V22.8** (including automatic website search visibility + Get More Customers) and the GitHub technical master is authoritative for what is actually implemented. This version **extends** the original Business App customer-request table/outbox with server-only claim/ack/quarantine SQL and a separate **DISABLED by default** one-request-at-a-time Expo push dispatcher source. A provider gateway acceptance is NOT device delivery, and uncertain/lost results are quarantined rather than automatically resent.
+
+The existing owner Business App screen shows pending, retrying, in-flight and manual-review guest alert counts with honest wording. A new /tmp SHA-pinned review packet provides explicit isolated-staging installation prerequisites but grants **no installation permission**. GitHub Actions verifies the actual transactional guest request/notification outbox/claim/ack with real disposable PostgreSQL 16 and source/security regressions. **Not deployed:** hosted staging schema, worker, providers, real Auth/JWT multi-tenant tests or signed iOS/Android builds.
+
+See [V3.227 technical report](docs/V3_227_SAFE_GUEST_ALERT_DISPATCH_AND_STAGING_APPROVAL_READINESS.md). No new product pricing/tier decision was made; the Word master remains V22.8.
+
+
 ## V3.226 — Durable Guest Alert Intent and Honest Owner Status
 
 Both masters checked first (saved Word product master V22.6 and GitHub technical architecture). Real Business App guest-request functionality now has a versioned, additive database transaction hook that creates one pending **notification intent per original saved guest request**, with no duplicate request database. The actual Edge handler verifies that the saved request and its tenant-scoped outbox row match; it no longer tries to send Expo push notifications from the guest submission itself.
