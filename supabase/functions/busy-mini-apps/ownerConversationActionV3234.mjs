@@ -30,7 +30,9 @@ function chooseOwnerConversationActionV3234({
     typeof decision.sourceStamp!=="string"||decision.sourceStamp.length<40||
     decision.sourceStamp.length>600)
   return deny("The current saved conversation cannot be matched to its owner.");
- const last=Date.parse(request.updated_at||"");
+ // Request.updated_at can change when an owner merely opens an inbox.
+ // Follow-up age must use the original latest saved conversation activity.
+ const last=Date.parse(decision.latestRecordedActivityAt||"");
  const elapsed=Number.isFinite(last)&&last>0&&last<=now+60000?
    Math.max(0,Math.floor((now-last)/3600000)):null;
  let action="refresh_conversation",title="Check the latest conversation";
@@ -66,7 +68,7 @@ function chooseOwnerConversationActionV3234({
  return {ok:true,kind:"owner_next_action_v3234",
   businessId,appId,requestId,action,title,explanation,urgency,
   basedOnCurrentSourceStamp:decision.sourceStamp,
-  hoursSinceRequestUpdate:elapsed,
+  hoursSinceLatestRecordedActivity:elapsed,
   ownerApprovalRequired:true,source:"authenticated_exact_request_and_two_messages",
   maySend:false,mayConfirmBooking:false,mayCharge:false,
   customerNotified:false,externalDeliveryVerified:false,
