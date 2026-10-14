@@ -158,6 +158,12 @@ main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:4
 .hero-no-image .hero-content{max-width:840px}
 .cta{display:inline-flex;align-items:center;justify-content:center;min-height:50px;max-width:100%;padding:14px 24px;margin-top:20px;background:var(--accent);border-radius:12px;color:#fff!important;text-decoration:none;font-weight:800;line-height:1.3;overflow-wrap:anywhere}
 .cta:hover{filter:brightness(1.07);box-shadow:0 12px 25px rgba(0,0,0,.15)}
+/* V3.215: owner-approved request handoff is an actual touch-sized,
+   keyboard-focusable link, not a tiny buried text hyperlink or a mock form. */
+.busy-app-request-link{display:inline-flex;align-items:center;justify-content:center;text-align:center;min-height:48px;max-width:100%;padding:12px 19px;background:var(--accent);border-radius:12px;color:#fff!important;text-decoration:none;font-weight:700;line-height:1.45;overflow-wrap:anywhere}
+.busy-app-request-link:hover{filter:brightness(1.07)}
+.busy-app-request-link:focus-visible{outline:3px solid var(--ink);outline-offset:4px}
+@media(max-width:380px){.busy-app-request-link{width:100%}}
 .hero .cta{background:#fff;color:var(--ink)!important}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr));gap:18px;margin-top:38px}
 .grid article,section article{background:#fff;border:1px solid var(--line);border-radius:19px;padding:clamp(23px,3vw,34px);box-shadow:0 11px 38px rgba(10,24,38,.045)}
