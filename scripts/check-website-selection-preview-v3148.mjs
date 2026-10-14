@@ -1,3 +1,4 @@
+import {websiteBuilderTestHarnessV3222} from "./lib/website-builder-test-harness-v3222.mjs";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {previewSelectedWebsiteInstruction} from "../src/core/websiteSelectedChangePreview.mjs";
@@ -7,21 +8,8 @@ import {planWebsiteDesign} from "../supabase/functions/busy-website-worker/desig
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
 import {applyWebsiteVisualEdit} from "../supabase/functions/busy-website-worker/designEdits.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
-const strip=s=>s.replace(/export\s*\{[\s\S]*?\};?\s*$/,"");
-const m=Function(strip(read("src/domain/websiteManagement.js"))+";return {syncWebsitePageModel};")();
-let src=strip(read("src/domain/websiteBuilder.js"));
-for(const imp of [
- 'import { syncWebsitePageModel } from "./websiteManagement";',
- 'import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";',
- 'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
- 'import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";',
- 'import { applyWebsiteVisualEdit } from "../../supabase/functions/busy-website-worker/designEdits.mjs";'
-]){assert.ok(src.includes(imp),"Existing website imports unchanged");src=src.replace(imp,"");}
-const {buildWebsiteDraft,applyWebsiteLayoutChange,applyStructuredWebsiteEdit,renderWebsiteHtml}=Function(
- "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign",
- "reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField",
- src+";return {buildWebsiteDraft,applyWebsiteLayoutChange,applyStructuredWebsiteEdit,renderWebsiteHtml};"
-)(m.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField);
+const {buildWebsiteDraft,applyWebsiteLayoutChange,applyStructuredWebsiteEdit,renderWebsiteHtml}=websiteBuilderTestHarnessV3222(["buildWebsiteDraft","applyWebsiteLayoutChange","applyStructuredWebsiteEdit","renderWebsiteHtml"]);
+
 const pic={id:"p1",approved:true,storagePath:"private/owner/p1.jpg",uri:"https://example.test/owner.jpg"};
 const draft=buildWebsiteDraft({brandBrain:{websiteReady:true,websiteBrief:{
  businessName:"Devon Gardens",businessType:"Garden design",
