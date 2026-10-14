@@ -7,12 +7,14 @@ import {designForWebsite,designCss} from "../supabase/functions/busy-website-wor
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
 import {applyWebsiteVisualEdit} from "../supabase/functions/busy-website-worker/designEdits.mjs";
 import {editWebsiteDraftField} from "../src/core/websiteStructuredEditing.mjs";
+import {canonicalWebsiteHandoffUrl} from "../src/core/websiteAppHandoffV3214.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 const strip=s=>s.replace(/export\s*\{[\s\S]*?\};?\s*$/,"");
 const management=Function(strip(read("src/domain/websiteManagement.js"))+";return {syncWebsitePageModel,buildWebsitePageModel};")();
 let source=strip(read("src/domain/websiteBuilder.js"));
 for(const imp of [
  'import { syncWebsitePageModel } from "./websiteManagement";',
+ 'import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";',
  'import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";',
  'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
  'import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";',
@@ -21,8 +23,8 @@ for(const imp of [
  assert.ok(source.includes(imp),"Expected original builder import "+imp);
  source=source.replace(imp,"");
 }
-const engine=Function("syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField",source+";return {buildWebsiteDraft,applyWebsitePageChange,renderWebsiteHtml,applyStructuredWebsiteEdit};")(
- management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField);
+const engine=Function("syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField","canonicalWebsiteHandoffUrl",source+";return {buildWebsiteDraft,applyWebsitePageChange,renderWebsiteHtml,applyStructuredWebsiteEdit};")(
+ management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField,canonicalWebsiteHandoffUrl);
 const fixture=engine.buildWebsiteDraft({brandBrain:{websiteReady:true,websiteBrief:{
  businessName:"Coastal Flower Studio",businessType:"Florist and events",serviceArea:"Devon",
  tagline:"Beautiful arrangements for special days",description:"Thoughtful arrangements and flowers.",
