@@ -5071,6 +5071,11 @@ function MiniAppRequestDetail({ s }) {
                       footer="Suggestion only. BUSY has not contacted the customer or confirmed a booking."
                       tone="blue" />
                   ):null}
+                  {s.ownerFollowupReview.outcomeEvidence?.ok?(
+                    <Text style={styles.cardBody}>
+                      {s.ownerFollowupReview.outcomeEvidence.summary}
+                    </Text>
+                  ):null}
                   <Text style={styles.cardBody}>
                     {s.ownerFollowupReview.why}
                   </Text>
