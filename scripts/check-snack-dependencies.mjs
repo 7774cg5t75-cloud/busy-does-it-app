@@ -6,7 +6,10 @@ const fromSrc=collectJsFiles("src");
 const mjs=fromSrc.filter(x=>x.endsWith(".mjs"));
 assert.ok(mjs.length>=15,"Expected the V3.60+ domain ESM modules to be present");
 const files=snackSourceFiles();
-assert.equal(Object.keys(files).length,fromSrc.length+9);
+assert.equal(Object.keys(files).length,fromSrc.length+10,
+ "Snack must include the additional pure shared request-receipt validator.");
+assert.ok(files["supabase/functions/busy-mini-app-guest/requestReceiptProofV3213.js"],
+ "Do not omit source-scoped saved-request receipt validation from Snack.");
 assert.ok(files["supabase/functions/busy-website-worker/visualCriticContract.js"],"Design-only AI guard must be in native and Snack sources");
 assert.ok(files["supabase/functions/busy-website-worker/designEdits.js"],"Safe website editing module is packaged");
 assert.ok(files["supabase/functions/busy-website-worker/websiteStructuredEditing.js"],"Customer direct-field editing module is packaged for Expo Snack and native");
