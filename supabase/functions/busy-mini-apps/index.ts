@@ -32,6 +32,7 @@ import {chooseOwnerRequestNextStepV3228} from "./ownerNextStepV3228.mjs";
 import {verifyOwnerRequestFreshnessV3231} from "./ownerRequestFreshnessV3231.mjs";
 import {classifyBookingClosureEvidenceV3232} from "./bookingCloseEvidenceV3232.mjs";
 import {classifyBookingRevisionV3233} from "./ownerBookingRevisionV3233.mjs";
+import {chooseOwnerConversationActionV3234} from "./ownerConversationActionV3234.mjs";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -597,7 +598,13 @@ async function currentOwnerFollowup(businessId:string,body:any){
   messages:messages.data||[],nowISO:new Date().toISOString()
  });
  if(!recommendation.ok)throw Error(recommendation.reason);
- return recommendation;
+ const nextAction=chooseOwnerConversationActionV3234({
+  businessId,appId:app.id,requestId,decision:recommendation,
+  request:request.data,nowISO:new Date().toISOString()
+ });
+ if(!nextAction.ok)throw Error(nextAction.reason);
+ // This is an owner's read-only recommendation, never permission to send.
+ return {...recommendation,nextAction};
 }
 
 async function customerRequestDetail(userId: string, body: any) {
