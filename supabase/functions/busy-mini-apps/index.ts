@@ -3668,15 +3668,26 @@ async function updateRequestStatus(
     if(status==="accepted"&&current.data.status!=="accepted")
       throw new Error("Confirm the booking from BUSY Work so the durable calendar entry is saved.");
     if(status==="closed"&&linkedState.data?.customer_record_id){
-      await markRequestLinked(userId,businessId,{
+      const linked=await markRequestLinked(userId,businessId,{
         requestId,customerRecordId:linkedState.data.customer_record_id,
         actionRecordId:linkedState.data.action_record_id||"",
-        bridgeState:"closed",metadata:{}
+        bridgeState:"closed",metadata:{},
+        ownerStatusRevisionGuard:true,
+        expectedStatus:freshness.expectedStatus,
+        expectedUpdatedAt:freshness.expectedUpdatedAt
       });
-      const closed=await supabase.from("busy_mini_app_requests")
-        .select("*").eq("business_id",businessId).eq("id",requestId).single();
-      if(closed.error)throw closed.error;
-      return closed.data;
+      if(linked.atomicBookingCloseVerified!==true||
+         linked.workLedgerState==="confirmed")
+        throw Error("Durable Work closure is not verified.");
+      // PostgreSQL committed the original request, event, link and ledger.
+      // Never turn a successful write into a failed result merely because
+      // the owner dashboard's later SELECT is temporarily unavailable.
+      return {id:requestId,business_id:businessId,
+        mini_app_id:current.data.mini_app_id,status:"closed",
+        statusUpdateSaved:true,atomicBookingClosureCommitted:true,
+        workLedgerState:linked.workLedgerState,
+        requestReadbackPending:true,externalCalendarDelivered:false,
+        notificationDeliveryVerified:false,noAutomaticRetry:true};
     }
   }
   if(decision.noChange)return current.data;
@@ -3874,12 +3885,23 @@ async function markRequestLinked(
     throw new Error("Choose a valid, current Business App request handoff.");
   const metadata=body?.metadata&&typeof body.metadata==="object"&&
     !Array.isArray(body.metadata)?body.metadata:{};
-  const rpc=await supabase.rpc("busy_mark_mini_app_request_link_v3181",{
-    p_business_id:businessId,p_request_id:requestId,
-    p_actor_user_id:userId,p_customer_record_id:customerRecordId,
-    p_action_record_id:actionRecordId||null,p_bridge_state:bridgeState,
-    p_owner_approved:body?.ownerApproved===true,p_metadata:metadata
-  });
+  const guardClose=body?.ownerStatusRevisionGuard===true;
+  if(guardClose&&bridgeState!=="closed")
+    throw Error("Revision guarding here is limited to linked booking closures.");
+  const rpc=guardClose
+    ? await supabase.rpc("busy_close_linked_booking_current_v3232",{
+        p_business_id:businessId,p_request_id:requestId,
+        p_actor_user_id:userId,p_customer_record_id:customerRecordId,
+        p_action_record_id:actionRecordId||null,
+        p_expected_status:clean(body?.expectedStatus,40),
+        p_expected_updated_at:clean(body?.expectedUpdatedAt,45)
+      })
+    : await supabase.rpc("busy_mark_mini_app_request_link_v3181",{
+        p_business_id:businessId,p_request_id:requestId,
+        p_actor_user_id:userId,p_customer_record_id:customerRecordId,
+        p_action_record_id:actionRecordId||null,p_bridge_state:bridgeState,
+        p_owner_approved:body?.ownerApproved===true,p_metadata:metadata
+      });
   if(rpc.error)throw rpc.error;
   const result=rpc.data;
   if(!result||typeof result.changed!=="boolean"||
@@ -3888,6 +3910,10 @@ async function markRequestLinked(
     result.independentDiaryDeliveryVerified!==false||
     result.ledgerSource!=="business_app_request_v3181"||
     result.externalCalendarDelivered!==false||
+    (guardClose&&(result.freshOwnerRevisionVerified!==true||
+      result.atomicBookingCloseVerified!==true||
+      result.nextStatus!=="closed"||
+      result.workLedgerState==="confirmed"))||
     (bridgeState==="booking_confirmed"&&
       (result.workLedgerDurable!==true||result.workLedgerState!=="confirmed")))
     throw new Error("Invalid atomic handoff receipt. Refresh this request.");
@@ -3913,6 +3939,7 @@ async function markRequestLinked(
     }
   }
   return {...result.link,atomicHandoff:true,
+    atomicBookingCloseVerified:guardClose&&result.atomicBookingCloseVerified===true,
     workLedgerState:result.workLedgerState,
     workLedgerDurable:result.workLedgerDurable===true,
     serverWorkLedgerId:result.workLedgerId||null,
