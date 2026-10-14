@@ -2,6 +2,20 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+
+## Permanent development principle — intelligent reuse and open-source integration
+
+**Owner-approved permanent rule (14 October 2026):** **Build fast. Build properly. Reuse intelligently. Improve continuously.** Our existing Website Builder, Business App Builder, Business Brain, Brand DNA, universal capability catalogue, reliable workflow contracts, ownership/export protections, approval/versioning and publishing work are important assets. **Do not discard or unnecessarily rewrite them simply because open-source alternatives exist.** Incorporate useful external technology **alongside** Busy-owned code when it demonstrably accelerates progress or produces a better customer outcome.
+
+1. **Before every substantial sweep, inventory what Busy already has.** Reuse and strengthen existing components and shared services first; avoid parallel visual editors, duplicate data stores, conflicting design schemas and redundant intelligence engines.
+2. **Prefer proven, appropriately licensed open-source building blocks** when there is a genuine gap: evaluate fit, licence/attribution and third-party dependencies, maintenance and security posture, compatibility with Expo/React Native and hosted React/web, performance, accessibility, touch/mobile use and long-term portability. No proprietary competitor source or copyrighted assets may be copied without rights.
+3. **Integrate through narrow, replaceable adapters.** Consider Puck (open-source React component editor, MIT) and GrapesJS (open-source HTML/web editor framework, BSD 3-Clause) for an *optional hosted website editor proof of concept*. Neither replaces the native app renderer or Busy's own data model, Business Brain, Brand DNA, permission boundaries, owner approvals or publishing workflow. Check exact version and plugin licences before use.
+4. **Compare instead of blindly replacing.** Prototype safely; evaluate the current editor vs Puck vs GrapesJS on real Busy sections, round-trip design fidelity, voice/typed element editing, responsive views, undo, revision safety, security, performance, costs and maintenance. Adopt/replace only with demonstrated net gain and rollback plan.
+5. **Apply competitor learnings beyond editors:** industry-neutral custom features, more distinctive designs, context-aware conversational editing, functional backend-linked app creation, real browser/transaction testing, customer-approved existing-site/data import, standalone distribution and continuous verified improvements after publication.
+6. **Keep practical results authoritative.** Source-level checks or visually persuasive previews never prove real bookings, payments, form delivery, native-app publication or secure staging. Require owner approval, tenant isolation, server-side proof and proper end-to-end tests. Respect staging dependencies, provider costs and our build-first/lightweight-check cadence.
+
+Detailed competitor comparisons, candidate integrations, architecture boundaries, adoption checklist and sequenced plan: **[AI Builder Competitive Learnings & Open-Source Integration Strategy](docs/AI_BUILDER_COMPETITIVE_LEARNINGS_AND_OPEN_SOURCE_STRATEGY.md)**. This document is a permanent planning reference, not an assertion that the candidate tools have been installed or the future capabilities implemented.
+
 ## V3.221 — Reusable evidence boundaries and code health
 
 - **Staging-first safety:** V3.180's isolated-only business/membership baseline is inspected, not applied. Review source FK, supported member roles, FORCEd RLS and direct-client permission denial, plus dangerous SQL patterns; these are preliminary signals, not actual SQL execution permission. The 64-migration side-effect inventory flags privileged functions, schedule, pg_net/HTTP, extension and potential destructive operations for independent manual review and rollback/restore.
