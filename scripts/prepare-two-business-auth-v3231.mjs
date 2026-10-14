@@ -13,8 +13,8 @@ if(old.projectRef!=="pnjdlogwegnqbsfpcofw"||
  old.appliedMigrations.join(",")!=="20261010224121,20261010224205")
  throw Error("Historical staging canary mismatch; stop for live attestation.");
 const migrations=readdirSync("supabase/migrations").filter(n=>n.endsWith(".sql")).sort();
-if(migrations.length!==68||
- !migrations.at(-1).includes("v3_230_push_service_receipt_truth"))
+if(migrations.length!==69||
+ !migrations.at(-1).includes("v3_232_scoped_booking_close_revision"))
  throw Error("Unexpected migration dependencies; stop and reconcile.");
 const hash=src=>createHash("sha256").update(src).digest("hex");
 const critical=[
