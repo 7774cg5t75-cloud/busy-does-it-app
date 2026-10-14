@@ -70,7 +70,7 @@ for(const pair of [
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 const worker=read("supabase/functions/busy-mini-app-guest-alert-dispatch/index.ts");
 ok(worker.includes("BUSY_GUEST_ALERT_DISPATCH_ENABLED"));
-ok(worker.includes('outcome=check.outcome==="provider_accepted"'));
+ok(worker.includes('outcome=check.outcome===mapped.outcome?mapped.outcome:"uncertain"'));
 const owner=read("supabase/functions/busy-mini-apps/index.ts");
 ok(owner.includes("chooseOwnerRequestNextStepV3228({queue:proof,alerts:guestAlerts})"));
 ok(owner.includes('if(!["owner","admin"].includes(member.role))'));

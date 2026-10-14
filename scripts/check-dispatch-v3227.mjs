@@ -98,7 +98,7 @@ for(const key of [
  'if(!(await authorised(request)))',
  'busy_guest_alert_claim_one_v3227',
  'busy_guest_alert_quarantine_expired_v3227',
- 'busy_guest_alert_complete_v3227',
+ 'busy_guest_alert_finalize_attempt_v3229',
  'AbortSignal.timeout(12000)',
  'outcome="uncertain"',
  'notificationDelivered', // note worker uses "delivered:false"
