@@ -32,7 +32,7 @@ src/core/sharedRequestJourneyV3212.mjs adds future website requirements to the e
 Booking request ≠ booked appointment. Inbox saved state ≠ customer or owner notification delivered. The existing app receipt/booking constraints remain authoritative.
 
 ## 5. Testing and branch policy
-scripts/check-builders-v3216.mjs adds 259 source assertions across wrong tenant, fake browser business identity, recycled/stale deployment, missing approval, origin mismatch, consent version, challenge replay, expiry, abuse-limit denial, bogus service, excessive input, unknown industry, owner guidance, source-only proof distinctions and real/no-live state invariants. These were additionally exercised with a lightweight isolated V8 compatibility harness; **that is not a substitute for running real Node or Expo**.
+scripts/check-builders-v3216.mjs adds 274 source assertions across wrong tenant, fake browser business identity, recycled/stale deployment, missing approval, origin mismatch, consent version, challenge replay, expiry, abuse-limit denial, bogus service, excessive input, unknown industry, owner guidance, source-only proof distinctions and real/no-live state invariants. These were additionally exercised with a lightweight isolated V8 compatibility harness; **that is not a substitute for running real Node or Expo**.
 
 .github/workflows/builders-major-v3216.yml runs new V3.216 tests before inherited V3.215 and earlier suites, security/staging/architecture checks, and unsigned iOS/Android Expo exports, using GitHub Actions rather than paid signed device builds. GitHub Actions results must be checked; file presence is not evidence CI ran.
 
