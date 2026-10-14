@@ -1,5 +1,12 @@
 # busy-does-it-app
 
+## V3.215 — Immutable Website Handoff and Enquiry Readiness (development)
+
+New owner-approved website enquiry/booking handoff links now include the **exact published Business App ID and immutable version ID**. The public link handler re-verifies those IDs and its enabled customer action on every website click, failing closed when a slug or published app changes. Legacy unbound website links require owner reapproval and a separate website republication. The existing guest browser challenge, request save, receipts and owner inbox remain the underlying customer workflow.
+
+The Website Builder also shows a small, optional **native website enquiry form readiness review**, clearly separating existing app links from missing origin checks, consent, abuse protections, transactional receipts and real staging tests. Real handoff buttons are now keyboard-visible and 48px touch-sized. **No native website submission form is yet active.** No migrations, Edge deployment, new payments, paid builds or site publication occurred. [V3.215 full technical notes](docs/V3_215_IMMUTABLE_WEBSITE_HANDOFF_AND_INTAKE_READINESS.md).
+
+
 ## V3.214 — Website-to-Live-App Requests (development)
 
 A business owner can now review and approve a **private website Contact link** that sends visitors to an **already-live BUSY Business App enquiry or booking-request action**. BUSY verifies business ownership, the published app/version and module, canonical HTTPS destination and existing contact information; the public link handler independently rechecks the currently live module before offering the action. Owners can remove or undo the private edit, and publication remains a separate approval.
