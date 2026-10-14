@@ -88,7 +88,7 @@ eq(auditStagingSchemaV3219({...metadata(),source:"website_user_claim"}).ok,false
 eq(auditStagingSchemaV3219({...metadata(),environment:"production"}).ok,false);
 eq(auditStagingSchemaV3219({...metadata(),columns:{foo:["bad field name"]}}).ok,false);
 eq(auditStagingSchemaV3219({...metadata(),tables:["inject;sql"]}).ok,false);
-eq(auditStagingSchemaV3219({...metaComplete(),
+eq(auditStagingSchemaV3219({...metaComplete,
  columns:{...metaComplete.columns,busy_mini_app_requests:["id"]}})
  .sourceMetadataLooksCompatible,false);
 eq(auditStagingSchemaV3219({...metaComplete,functions:[]})
