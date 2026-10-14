@@ -356,6 +356,8 @@ function App() {
     catalog: [],
     publicProfile: null,
   });
+  const [ownerQueueSummary,setOwnerQueueSummary]=useState(null);
+  const [ownerQueueBusy,setOwnerQueueBusy]=useState(false);
   const miniAppVoiceScopeRef=useRef({});
   const firstAppFromWebsiteInFlightRef=useRef(false);
   const [miniAppsLoading, setMiniAppsLoading] = useState(false);
@@ -14835,6 +14837,36 @@ function App() {
     }
   };
 
+  // On-demand, owner-controlled and read-only. Counts come from the
+  // authenticated Business App Edge endpoint, NEVER from the client rollup.
+  const checkOwnerRequestQueue=async()=>{
+    const businessId=cloudWorkspace?.businessId||"";
+    const appId=miniAppsStatus?.app?.id||"";
+    if(!ownerSession?.accessToken||!businessId||!appId){
+      setMiniAppsError("Connect your business and open its Business App first.");
+      setOwnerQueueSummary(null);
+      return false;
+    }
+    if(ownerQueueBusy)return false;
+    setOwnerQueueBusy(true);
+    setMiniAppsError("");
+    try{
+      const proof=await miniAppsRequest("owner_queue_summary");
+      if(proof?.ok!==true||proof?.readOnly!==true||
+         proof?.businessId!==businessId||proof?.appId!==appId||
+         proof?.countsFromServerReadback!==true||
+         proof?.authenticatedMembershipCheckedAtEndpoint!==true||
+         cloudWorkspace?.businessId!==businessId)
+        throw Error("BUSY could not confirm this business's current inbox.");
+      setOwnerQueueSummary(proof);
+      return true;
+    }catch(error){
+      setOwnerQueueSummary(null);
+      setMiniAppsError(error?.message||"The current inbox count is unavailable.");
+      return false;
+    }finally{setOwnerQueueBusy(false);}
+  };
+
   // V3.197: create the FIRST PRIVATE app from an explicitly reviewed site.
   // The server authenticates this business and builds the draft; a separate
   // validated atomic edit applies matching design only AFTER creation.
@@ -17334,6 +17366,8 @@ function App() {
     openCustomWebsiteDomain,
     openWebsitePublishing,
     miniAppsStatus,
+    ownerQueueSummary,
+    ownerQueueBusy,
     miniAppsView,
     businessCreationIntelligence,
     businessCreationJourney,
@@ -17392,6 +17426,7 @@ function App() {
     miniAppShareLinks,
     websiteAppHandoffEndpoint:BUSY_MINI_APP_LINK_URL,
     refreshMiniAppsStatus,
+    checkOwnerRequestQueue,
     loadMyBusyApps,
     enableMiniAppNotifications,
     disableMiniAppNotifications,
