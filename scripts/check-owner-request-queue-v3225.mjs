@@ -64,5 +64,18 @@ ok(code.includes('.eq("business_id",businessId)'));
 ok(code.includes('.eq("mini_app_id",app.id)'));
 ok(code.includes('classifyOwnerRequestQueueV3225({'));
 ok(!code.includes('owner_queue_summary") {\n      return json(200,{ok:true,...body}'));
+const controller=read("src/app/AppController.js");
+ok(controller.includes('miniAppsRequest("owner_queue_summary")'));
+ok(controller.includes("proof?.countsFromServerReadback!==true"));
+ok(controller.includes("proof?.authenticatedMembershipCheckedAtEndpoint!==true"));
+ok(controller.includes("checkOwnerRequestQueue,"));
+ok(controller.includes("setOwnerQueueSummary(null)"));
+const screen=read("src/screens/miniApps.js");
+ok(screen.includes('title="Requests needing attention"'));
+ok(screen.includes("s.ownerQueueSummary?.appId===app.id"));
+ok(screen.includes("s.ownerQueueSummary?.businessId===app.business_id"));
+ok(screen.includes("onPress={s.checkOwnerRequestQueue}"));
+ok(screen.includes("onPress={()=>s.openOwnerMiniAppRequest("));
+ok(screen.includes("A booking request is not a confirmed appointment."));
 console.log("V3.225 owner queue readback contract: "+count+
  " assertions passed; no live request or reply created.");
