@@ -31,6 +31,13 @@ function strictVisitorFields(kind,payload){
   if(!TYPES.includes(kind)||!payload||typeof payload!=="object"||
      Array.isArray(payload)||Object.keys(payload).length>FIELDS.length||
      Object.keys(payload).some(k=>!FIELDS.includes(k)))return deny("Unexpected visitor fields.");
+  // Never silently discard an oversized optional value: reject it before
+  // normalization so client and server cannot disagree on saved contents.
+  const limits={name:160,email:250,phone:50,message:5000,
+    service:240,preferredDate:240};
+  if(Object.keys(payload).some(k=>typeof payload[k]!=="string"||
+     payload[k].length>limits[k]))
+    return deny("Visitor information exceeds the approved field limits.");
   const name=clean(payload.name,160),email=clean(payload.email,250),
     phone=clean(payload.phone,50),message=clean(payload.message,5000),
     service=clean(payload.service,240),preferredDate=clean(payload.preferredDate,240);
