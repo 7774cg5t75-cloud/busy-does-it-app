@@ -796,7 +796,9 @@ function WebsiteBuilder({ s }) {
             liveVersion={s.miniAppsView?.liveVersion}
             catalog={s.miniAppsView?.catalog||[]}
             endpoint={s.websiteAppHandoffEndpoint||""}
-            onApply={s.applyWebsiteLayoutAction}/>
+            onApply={s.applyWebsiteLayoutAction}
+            publishing={s.websitePublishingView}
+            deliveryProof={deliveryProof}/>
           <WebsiteAppTypographyMatch website={draft}
             app={s.miniAppsView?.app}
             businessId={s.cloudWorkspace?.businessId}
