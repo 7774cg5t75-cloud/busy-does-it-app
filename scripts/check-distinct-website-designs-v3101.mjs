@@ -4,18 +4,20 @@ import {planWebsiteDesign,selectVisualIdentity} from "../supabase/functions/busy
 import {designForWebsite,designCss} from "../supabase/functions/busy-website-worker/designSystem.mjs";
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
 import {applyWebsiteVisualEdit} from "../supabase/functions/busy-website-worker/designEdits.mjs";
+import {canonicalWebsiteHandoffUrl} from "../src/core/websiteAppHandoffV3214.mjs";
 
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 const strip=s=>s.replace(/export\s*\{[\s\S]*?\};?\s*$/,"");
 const m=Function(strip(read("src/domain/websiteManagement.js"))+";return {syncWebsitePageModel};")();
 const builder=strip(read("src/domain/websiteBuilder.js"))
  .replace(/^import \{ syncWebsitePageModel \} from "\.\/websiteManagement";\s*/,"")
+ .replace(/^import \{canonicalWebsiteHandoffUrl\} from "\.\.\/core\/websiteAppHandoffV3214\.mjs";\s*/,"")
  .replace(/^import \{ designForWebsite, designCss \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designSystem\.mjs";\s*/,"")
  .replace(/^import \{ planWebsiteDesign \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designPlanner\.mjs";\s*/,"")
  .replace(/^import \{ reviewWebsiteDesign \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designReview\.mjs";\s*/,"")
  .replace(/^import \{ applyWebsiteVisualEdit \} from "\.\.\/\.\.\/supabase\/functions\/busy-website-worker\/designEdits\.mjs";\s*/,"");
-const app=Function("syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign","applyWebsiteVisualEdit",
- builder+";return {buildWebsiteDraft,applyWebsiteInstruction};")(m.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit);
+const app=Function("syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign","applyWebsiteVisualEdit","canonicalWebsiteHandoffUrl",
+ builder+";return {buildWebsiteDraft,applyWebsiteInstruction};")(m.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,canonicalWebsiteHandoffUrl);
 let n=0;
 const ok=(x,msg)=>{assert.ok(x,msg);n++};
 const eq=(a,b,msg)=>{assert.deepEqual(a,b,msg);n++};
