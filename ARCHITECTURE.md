@@ -2,6 +2,15 @@
 
 This branch restructures the large single-file prototype into domain modules without intentionally changing product behaviour.
 
+## V3.222 — Maintainable production-backed test semantics and outcome-first advice
+
+- **One reviewed website Node harness:** scripts/lib/website-builder-test-harness-v3222.mjs source-checks exact websiteBuilder imports and injects the actual Brand/site, canonical published-app handoff, design planner/reviewer and safe edit functions. Sixteen older suites now reuse it; test-only Function evaluation uses exclusively checked-in source, not customer input. An unreviewed new import or entry point must fail rather than silently omit security.
+- **CI progress verified:** at a V3.222 commit the new 71-check shared-harness suite, 86-check staging/intelligence suite, inherited builder and SQL source regressions and independent Production foundation check all succeeded in GitHub Actions. No conclusion about signed mobile builds, real server requests or provider delivery follows from source CI.
+- **Staging phase drift:** the 14 October read-only separate staging observation still shows only busy_staging_rls_canary and two canary migration versions. The V3.222 evidence contract refuses changed ledgers, unexpected extra tables or partial business/member installation and prescribes refreshed authorised target inspection, source migration/side-effect review, rollback test, two-tenant Auth/JWT and phase-specific owner approval. Execution authority is ALWAYS false; no schema was applied.
+- **BUSY's next action:** a conservative, single recommendation prioritises uncertain saved-request readback, stale immutable app links, owner-review of waiting customer enquiries from appropriately scoped *labelled* outcome rollups, then actual available modules or a missing-capability plan. Pure local source labels are not independent backend proof. No automatic send, publish, booking, billing or cross-tenant aggregated training.
+- **Credit discipline:** rapid edits keep offline source and safety checks; heavyweight unsigned Expo exports remain manually dispatched and signed native builds require an explicit release decision. Technical detail: docs/V3_222_SHARED_BUILDER_HARNESS_STAGING_AND_BUSINESS_EVIDENCE.md.
+
+
 
 ## Permanent development principle — intelligent reuse and open-source integration
 
