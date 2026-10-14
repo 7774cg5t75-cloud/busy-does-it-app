@@ -156,6 +156,15 @@ function reviewSharedRequestJourney({
    authenticatedTenantServerBoundaryRequired:true,
    idempotentReceiptRequired:true,
    ownerInboxAndReplyReceiptRequired:true,
+   // V3.216: website-native intake remains separately guarded and disabled.
+   // These are requirements, not attested runtime or browser facts.
+   websiteOriginMustBeServerResolved:true,
+   ownerApprovedFieldsAndPrivacyRevisionRequired:true,
+   visitorConsentAndSingleUseChallengeRequired:true,
+   idempotentAtomicChallengeConsumptionRequired:true,
+   websiteIntakeEndpointActive:false,
+   websiteNativeRequestReceiptVerified:false,
+   providerNotificationIndependentlyVerified:false,
    ...(kind==="booking_request"?{
      confirmedAvailabilityRequired:true,
      diaryCommitAndBookingReceiptRequired:true
