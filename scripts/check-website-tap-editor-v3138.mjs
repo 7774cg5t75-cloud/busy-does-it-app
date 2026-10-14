@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {makeTapToEditHtml,resolveTapSelection,CHANNEL} from "../src/core/websiteTapToEdit.mjs";
 import {editWebsiteDraftField} from "../src/core/websiteStructuredEditing.mjs";
+import {canonicalWebsiteHandoffUrl} from "../src/core/websiteAppHandoffV3214.mjs";
 import {planWebsiteDesign} from "../supabase/functions/busy-website-worker/designPlanner.mjs";
 import {designForWebsite,designCss} from "../supabase/functions/busy-website-worker/designSystem.mjs";
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
@@ -12,6 +13,7 @@ const m=Function(strip(read("src/domain/websiteManagement.js"))+";return {syncWe
 let source=strip(read("src/domain/websiteBuilder.js"));
 for(const imp of [
  'import { syncWebsitePageModel } from "./websiteManagement";',
+ 'import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";',
  'import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";',
  'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
  'import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";',
@@ -19,9 +21,9 @@ for(const imp of [
 ]){assert.ok(source.includes(imp),"Expected original builder import");source=source.replace(imp,"");}
 const {buildWebsiteDraft,renderWebsiteHtml,applyStructuredWebsiteEdit,applyWebsiteLayoutChange}=Function(
  "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign","reviewWebsiteDesign",
- "applyWebsiteVisualEdit","editWebsiteDraftField",
+ "applyWebsiteVisualEdit","editWebsiteDraftField","canonicalWebsiteHandoffUrl",
  source+";return {buildWebsiteDraft,renderWebsiteHtml,applyStructuredWebsiteEdit,applyWebsiteLayoutChange};"
-)(m.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField);
+)(m.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField,canonicalWebsiteHandoffUrl);
 const a={id:"rose-1",storagePath:"private/rose-1.jpg",uri:"https://example.test/rose.jpg",approved:true,alt:"Roses"};
 const b={id:"rose-2",storagePath:"private/rose-2.jpg",uri:"https://example.test/hedge.jpg",approved:true,alt:"Hedge"};
 const site=buildWebsiteDraft({brandBrain:{websiteReady:true,websiteBrief:{
