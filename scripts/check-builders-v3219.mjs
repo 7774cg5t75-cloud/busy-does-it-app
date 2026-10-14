@@ -15,6 +15,8 @@ import {adviseVerifiedCustomerJourneyV3219}
  from "../src/core/customerJourneyActionV3219.mjs";
 import {canonicalWebsiteHandoffUrl}
  from "../src/core/websiteAppHandoffV3214.mjs";
+import {planStagingBootstrapV3219}
+ from "../src/core/stagingRollbackPlanV3219.mjs";
 const source=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 let checks=0;
 const ok=(v,m)=>{assert.ok(v,m);checks++;};
@@ -191,5 +193,29 @@ ok(sql.includes("RAISE EXCEPTION"));
 const intro=source("src/core/stagingSchemaGateV3219.mjs");
 ok(intro.includes("stagingReady:false"));
 ok(intro.includes("websiteIntakeDeployAllowed:false"));
+const bootstrap=planStagingBootstrapV3219({schemaAudit:measured});
+ok(bootstrap.ok);
+eq(bootstrap.missingBaseTables.length,5);
+eq(bootstrap.stages.length,8);
+eq(bootstrap.selfReportedChecksPassing,0);
+eq(bootstrap.applyMigrationNow,false);
+eq(bootstrap.deployApproved,false);
+eq(bootstrap.noDatabaseChanges,true);
+eq(bootstrap.automaticRollbackAllowed,false);
+eq(bootstrap.sourceAssertionIsNotIndependentProof,true);
+const claimed=planStagingBootstrapV3219({schemaAudit:full,
+ sourceMigrationsReviewed:true,ownerMembershipRlsTested:true,
+ guestRpcTested:true,backupRestoreTested:true,concurrentReplayTested:true,
+ mobileBrowserTested:true,approvalRecorded:true});
+eq(claimed.selfReportedChecksPassing,8);
+eq(claimed.deployApproved,false);
+eq(claimed.applyMigrationNow,false);
+eq(claimed.externalStagingTestsVerifiedByThisModule,false);
+eq(claimed.noPaidBuilds,true);
+const missingEvenIfOtherClaims=planStagingBootstrapV3219({
+ schemaAudit:measured,backupRestoreTested:true,
+ ownerMembershipRlsTested:true});
+eq(missingEvenIfOtherClaims.missingBaseTables.length,5);
+eq(missingEvenIfOtherClaims.deployApproved,false);
 console.log("V3.219 focused offline regression passed: "+checks+
  " assertions; staging remains source-blocked and no real customer transaction created.");
