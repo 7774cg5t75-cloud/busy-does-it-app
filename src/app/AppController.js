@@ -1,5 +1,6 @@
 import {confirmFirstAppFromWebsite} from "../core/firstAppFromWebsiteV3197.mjs";
 import {interpretOwnerStatusAfterErrorV3231} from "../core/ownerStatusRecoveryV3231.mjs";
+import {assessBookingCancelReadbackV3233} from "../core/bookingCancelReadbackV3233.mjs";
 import {reconcileFirstAppReadback} from "../core/firstAppRecoveryV3198.mjs";
 import {evaluateCustomerRequestOutcome,customerRequestNotice}
  from "../core/customerJourneyOutcomeV3204.mjs";
@@ -1745,32 +1746,83 @@ function App() {
     // local calendar. A failed RPC must not create a false local confirmation.
     const sourceMiniAppRequestId=actionBefore?.details?.sourceMiniAppRequestId||"";
     if(sourceMiniAppRequestId&&["Confirmed","Cancelled"].includes(bookingStatus)){
+      const originalBusinessId=cloudWorkspace?.businessId||"";
+      let cancellationWriteAttempted=false;
       try{
-        const linked=await miniAppsRequest("mark_request_linked",{
-          requestId:sourceMiniAppRequestId,
-          customerRecordId:customerId,
-          actionRecordId:`miniapp-booking-${sourceMiniAppRequestId}`,
-          bridgeState:bookingStatus==="Confirmed"?"booking_confirmed":"closed",
-          ownerApproved:bookingStatus==="Confirmed",
-          metadata:bookingStatus==="Confirmed"?{
-            bookingDate:actionBefore?.details?.bookingDate||"",
-            bookingTime:actionBefore?.details?.bookingTime||""
-          }:{}
-        });
-        if(!linked?.link?.atomicHandoff)
-          throw Error("The atomic handoff receipt was not confirmed.");
-        // A remote ledger write may be committed even when re-reading the
-        // owner snapshot fails. Keep the current app UI instead of clearing it.
-        if(linked.status)applyMiniAppsStatus(linked);
-        else await refreshMiniAppsStatus({quiet:true});
+        let linked;
+        if(bookingStatus==="Cancelled"){
+          // Owner has tapped Cancel, but Work's old local action alone
+          // cannot authorise a stale request/diary mutation.
+          const snapshot=await miniAppsRequest("owner_booking_revision",{
+            requestId:sourceMiniAppRequestId
+          });
+          if(!originalBusinessId||cloudWorkspace?.businessId!==originalBusinessId)
+            throw Error("The active business changed. Reopen its booking.");
+          const approved=assessBookingCancelReadbackV3233({
+            businessId:originalBusinessId,requestId:sourceMiniAppRequestId,
+            response:snapshot,
+            localBookingStatus:actionBefore?.details?.bookingStatus||""
+          });
+          if(!approved.ok)throw Error(approved.reason);
+          cancellationWriteAttempted=true;
+          const result=await miniAppsRequest("update_request_status",{
+            requestId:sourceMiniAppRequestId,status:"closed",
+            expectedStatus:approved.expectedStatus,
+            expectedUpdatedAt:approved.expectedUpdatedAt
+          });
+          if(result?.ok!==true||result?.request?.id!==sourceMiniAppRequestId||
+             result.request.status!=="closed"||
+             result.request.atomicBookingClosureCommitted!==true)
+            throw Error("BUSY cannot verify the saved booking closure. Check the original request.");
+          linked={link:{atomicHandoff:true},status:result.status,
+            statusRefreshRequired:result.statusRefreshRequired===true};
+        }else{
+          linked=await miniAppsRequest("mark_request_linked",{
+            requestId:sourceMiniAppRequestId,
+            customerRecordId:customerId,
+            actionRecordId:`miniapp-booking-${sourceMiniAppRequestId}`,
+            bridgeState:"booking_confirmed",ownerApproved:true,
+            metadata:{
+              bookingDate:actionBefore?.details?.bookingDate||"",
+              bookingTime:actionBefore?.details?.bookingTime||""
+            }
+          });
+          if(!linked?.link?.atomicHandoff||
+             linked.link.workLedgerState!=="confirmed"||
+             linked.link.workLedgerDurable!==true)
+            throw Error("The durable Work booking confirmation is not verified.");
+        }
+        // Post-commit dashboard refresh is best effort; it must never
+        // reclassify a saved booking as a failed action.
+        try{
+          if(linked.status)applyMiniAppsStatus(linked);
+          else await refreshMiniAppsStatus({quiet:true});
+        }catch{ /* Original transaction is already saved. */ }
         setMiniAppsNotice(linked.statusRefreshRequired?
-          "BUSY saved the booking; its latest Work status is still refreshing. "+
+          "BUSY saved the Work change; the latest inbox is still refreshing. "+
           "External calendar delivery has not been checked.":
-          "The Business App request was updated atomically. "+
+          "The Business App request and Work record were saved together. "+
           "External calendar and customer delivery remain unverified.");
       }catch(error){
+        if(cancellationWriteAttempted&&originalBusinessId&&
+           cloudWorkspace?.businessId===originalBusinessId){
+          // Network failure could happen AFTER the transaction committed.
+          // One read-only check, never silently submit Cancel again.
+          try{
+            const observed=await miniAppsRequest("owner_booking_revision",{
+              requestId:sourceMiniAppRequestId
+            });
+            const state=observed?.revision;
+            if(observed?.ok===true&&state?.businessId===originalBusinessId&&
+               state?.requestId===sourceMiniAppRequestId&&
+               state?.alreadyClosed===true){
+              setMiniAppsError("The original request now shows closed. BUSY cannot tell which action closed it. Check the latest Work booking before updating your local calendar.");
+              return false;
+            }
+          }catch{ /* Stay uncertain; do not retry. */ }
+        }
         setMiniAppsError(error?.message||
-          "The Business App request could not be updated; the local booking remains unchanged.");
+          "BUSY could not verify the latest Work booking. Open the current request before trying again.");
         return false;
       }
     }
