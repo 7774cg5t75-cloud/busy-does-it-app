@@ -62,10 +62,13 @@ for(const value of [ORIGIN,ORIGIN+"/"]){
 for(const value of ["http://slow-roast.example",
  "https://slow-roast.example/path","https://slow-roast.example/?next=1",
  "https://slow-roast.example:8443","https://user@slow-roast.example",
- "https://slow-roast.example.evil.test","https://localhost",
+ "https://localhost",
  "https://bad.local","javascript:alert(1)","https://slow-roast.example#fragment"]){
  same(exactOrigin(value),"","Never accept a non-canonical public origin.");
 }
+same(exactOrigin("https://slow-roast.example.evil.test"),
+ "https://slow-roast.example.evil.test",
+ "A valid-looking hostname is not proof of the allowed published origin.");
 function rejectMutation(mutator,name){
  const x=fixtures();mutator(x);
  const result=check(x);
