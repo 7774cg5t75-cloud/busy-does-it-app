@@ -22,10 +22,29 @@ function adviseCustomerCapabilityV3216({
  businessType="",description="",catalog=[],publishedModules=[],
  businessId="",app=null,liveVersion=null
 }={}){
- const phrase=clean(businessType)+" "+clean(description);
- const matched=rules.find(r=>r.matches.test(phrase));
+ const goalText=clean(description);
+ const industryText=clean(businessType);
+ // The owner's stated task takes precedence over an industry stereotype.
+ // Negated actions must NOT be offered merely because the industry commonly
+ // uses them. These are local, low-cost heuristics, never AI outcome proof.
+ const bookingRejected=/(?:no|never|without|not|don't|do not)\\s+(?:accept\\s+|take\\s+|offer\\s+)?(?:online\\s+)?(?:booking|bookings|appointments?|reservations?)/.test(goalText);
+ const explicit=[
+  {matches:/\\b(?:enquir(?:y|ies)|inquir(?:y|ies)|quote|quotes|estimate|contact us)\\b/,
+   goal:"Help customers send an enquiry or ask for a quote",capability:"enquiry"},
+  {matches:/\\b(?:appointments?|bookings?|reservations?|book a|reserve a)\\b/,
+   goal:"Help customers request an appointment or reservation",capability:"booking_request"},
+  {matches:/\\b(?:catalogue|catalog|online shop|sell products|product range)\\b/,
+   goal:"Help customers browse a product or service catalogue",capability:"catalogue"}
+ ];
+ const requested=explicit.find(x=>x.matches.test(goalText)&&
+   !(bookingRejected&&x.capability==="booking_request"));
+ const industry=rules.find(r=>r.matches.test(industryText+" "+goalText)&&
+   !(bookingRejected&&r.capability==="booking_request"));
+ const matched=requested||industry;
  const suggestion=matched||{goal:"Help visitors contact your business easily",
    capability:"enquiry"};
+ const evidenceSource=requested?"stated_business_goal":
+   industry?"industry_hint":"universal_fallback";
  const status=Array.isArray(catalog)?catalog.find(x=>x?.module_key===
    suggestion.capability&&x?.status==="available"):null;
  const isPublished=Array.isArray(publishedModules)&&publishedModules.some(x=>
@@ -40,6 +59,7 @@ function adviseCustomerCapabilityV3216({
  const actual=status&&isPublished&&liveBound;
  return {ok:true,goal:suggestion.goal,capability:suggestion.capability,
    industryRestrictionsApplied:false,unknownIndustryFallback:!matched,
+   suggestionEvidenceSource:evidenceSource,explicitlyDeclinedBookings:bookingRejected,
    verifiedAvailableInCurrentBusinessApp:!!actual,
    recommendationOnly:true,requiresOwnerReview:true,
    shouldSuggestStandaloneApp:false,customerRequestCreated:false,
