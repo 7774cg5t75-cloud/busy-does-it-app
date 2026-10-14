@@ -1,0 +1,28 @@
+{
+  "kind": "read_only_busy_staging_v3220",
+  "projectRef": "pnjdlogwegnqbsfpcofw",
+  "projectName": "Busy Does It Staging",
+  "source": "direct_supabase_staging_read_only",
+  "observedAt": "2026-10-14",
+  "publicTables": [
+    "busy_staging_rls_canary"
+  ],
+  "appliedMigrations": [
+    "20261010224121",
+    "20261010224205"
+  ],
+  "installedExtensions": [
+    "pgcrypto"
+  ],
+  "observedFunctions": [],
+  "rlsTables": [
+    "busy_staging_rls_canary"
+  ],
+  "recordedMetadataOnly": true,
+  "appTablesInstalled": false,
+  "readOnly": true,
+  "tenantRlsProven": false,
+  "rollbackVerified": false,
+  "installationApproved": false,
+  "realCustomerRequestTested": false
+}
