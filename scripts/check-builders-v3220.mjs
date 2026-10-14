@@ -26,7 +26,7 @@ const snapshot=JSON.parse(read("staging/recorded-readonly-observation-v3220.json
 const filename="staging/ISOLATED_ONLY_business_core_v3180.sql";
 const base=read(filename);
 const names=rdir("supabase/migrations").filter(n=>n.endsWith(".sql")).sort();
-eq(names.length,64);
+eq(names.length,65);
 ok(names.includes("20261007082234_v3_39_busy_apps_marketplace_foundation.sql"));
 ok(names.includes("20261007161000_v3_45_guest_mini_app_requests.sql"));
 ok(names.includes("20261012211000_v3_185_durable_message_delivery_intent.sql"));
@@ -34,7 +34,7 @@ const migrations=names.map(name=>({name,sql:read("supabase/migrations/"+name)}))
 const arg=()=>({...snapshot,baseSchemaSql:base,migrationFiles:migrations});
 const plan=reconcileStagingBootstrapV3220(arg());
 ok(plan.ok,plan.reason);
-eq(plan.sourceMigrationCount,64);
+eq(plan.sourceMigrationCount,65);
 eq(plan.sourceDependencyCount,0);
 eq(plan.canaryCompatible,true);
 eq(plan.baseSchemaFile,filename);
@@ -198,4 +198,4 @@ ok(screen.includes("BUSY recommends: "));
 ok(screen.includes("showConnectedPlan&&connectedPlan.ok"));
 ok(screen.includes("BUSY's suggested action: "));
 console.log("V3.220 worktree regression: "+count+
- " assertions passed, all 64 real SQL migration sources inspected locally, no database operation performed.");
+ " assertions passed, all 65 real SQL migration sources inspected locally, no database operation performed.");
