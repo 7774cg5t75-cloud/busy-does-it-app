@@ -31,7 +31,8 @@ function reviewSharedCustomerReceiptV3217({
    status:writeOutcome==="unknown"?"commit_uncertain":"not_verified",
    shouldCheckExistingReceiptFirst:writeOutcome==="unknown"};
  return {ok:true,kind:"shared_customer_receipt_v3217",
-  source,verifiedSaved:proof.verifiedSaved===true,
+  source,businessId,appId,verifiedSaved:proof.verifiedSaved===true,
+  trustedServerReadbackClaimed:true,
   status:"saved_in_business_app",requestId,
   requestType:proof.requestType,
   internalRequestStatus:proof.status,
