@@ -17,7 +17,7 @@ function ok(v,m){assert.ok(v,m);checks++;}
 const files=readdirSync(join(ROOT,"supabase/migrations")).filter(x=>x.endsWith(".sql")).sort()
  .map(name=>({name,sql:read("supabase/migrations/"+name)}));
 const report=compileMigrationRiskLedger(files);
-ok(report.ok,report.reason);eq(report.fileCount,65);
+ok(report.ok,report.reason);eq(report.fileCount,66);
 eq(report.approvedToInstall,false);eq(report.executedSql,false);
 ok(report.filesFlagged>30);ok(report.sideEffectSensitiveFiles>1);
 ok(report.categories.privileged_function>0);
