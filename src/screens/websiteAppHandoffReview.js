@@ -12,6 +12,8 @@ import {adviseCustomerCapabilityV3216}
  from "../core/customerCapabilityAdviceV3216.mjs";
 import {planBusinessJourneyNextStepV3217}
  from "../core/businessJourneyCoachV3217.mjs";
+import {adviseVerifiedCustomerJourneyV3219}
+ from "../core/customerJourneyActionV3219.mjs";
 import {planUniversalCustomerJourneyV3218}
  from "../core/universalCustomerJourneyV3218.mjs";
 import {WebsiteFormSpecReviewV3217}
@@ -50,6 +52,10 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
  const connectedPlan=planUniversalCustomerJourneyV3218({
    businessId,website,app,liveVersion,catalog,endpoint,
    businessType,description,publishing,deliveryProof
+ });
+ const evidenceAction=adviseVerifiedCustomerJourneyV3219({
+   businessId,website,app,liveVersion,catalog,endpoint,
+   businessType,description
  });
  const current=latest.ok&&linked?.ownerApproved===true&&
   linked.url===latest.url&&linked.appId===latest.appId&&
@@ -139,6 +145,9 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
      <Text style={styles.cardBody}>
        {"Suggested next step: "+journeyCoach.title+". "+journeyCoach.reason}
      </Text>
+     {evidenceAction.ok?<Text style={styles.cardBody}>
+       {"BUSY's suggested action: "+evidenceAction.title+". "+evidenceAction.reason}
+     </Text>:null}
      <Button label={showConnectedPlan?
         "Hide connected customer journey":"How would BUSY connect my website and app?"}
        onPress={()=>setShowConnectedPlan(v=>!v)}/>
