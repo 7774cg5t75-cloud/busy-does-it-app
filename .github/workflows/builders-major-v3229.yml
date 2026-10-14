@@ -142,7 +142,7 @@ jobs:
             tee /tmp/v3226_disposable_outbox_assert.log
           grep -q 'V3.226_EPHEMERAL_ATOMIC_OUTBOX_ROLLBACK_PASS' /tmp/v3226_disposable_outbox_assert.log
           node scripts/prepare-disposable-dispatch-v3227.mjs
-          cat /tmp/bdi-v3229-dispatch/dispatch-rollback.sql |
+          cat /tmp/bdi-v3227-dispatch/dispatch-rollback.sql |
             docker exec -i "$CID" psql -U postgres -d postgres -v ON_ERROR_STOP=1 |
             tee /tmp/v3227_disposable_dispatch_assert.log
           grep -q 'V3.227_EPHEMERAL_DISPATCH_ROLLBACK_PASS' /tmp/v3227_disposable_dispatch_assert.log
