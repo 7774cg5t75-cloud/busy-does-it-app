@@ -59,9 +59,9 @@ ok(ctl.includes('Open the latest customer request before changing its status.'))
 const screen=code("src/screens/miniApps.js");
 ok(screen.includes('s.updateMiniAppRequestStatus(request.id, "reviewing", request)'));
 ok(screen.includes('s.updateMiniAppRequestStatus(request.id, "declined", request)'));
-ok(screen.includes('!link && request.status === "received" ? ('));
-ok(screen.includes('!link && ["received","reviewing"].includes(request.status) ? ('));
-ok(screen.includes('ownerView && !link && request.status === "received" ? ('));
+ok(screen.includes('actions.canReview ? ('));
+ok(screen.includes('actions.canDecline ? ('));
+ok(screen.includes('ownerView && ownerRequestActionsV3233({request,link}).canReview ? ('));
 const sql=code("staging/CI_ONLY_v3231_owner_status_cas.sql");
 ok(sql.includes("V3.231_EPHEMERAL_OWNER_CAS_AND_TENANT_SCOPE_PASS"));
 ok(sql.includes("business_id=v_other.business_id"));
