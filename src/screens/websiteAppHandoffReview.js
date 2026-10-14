@@ -6,11 +6,15 @@ import {planWebsiteAppRequestHandoff}
  from "../core/websiteAppHandoffV3214.mjs";
 import {websiteEnquiryReadinessV3215}
  from "../core/websiteEnquiryReadinessV3215.mjs";
+import {planWebsiteIntakeV3216}
+ from "../core/websiteIntakePlanningV3216.mjs";
+import {adviseCustomerCapabilityV3216}
+ from "../core/customerCapabilityAdviceV3216.mjs";
 
 /** Optional two-step private owner handoff review; no new web form. */
 function WebsiteAppHandoffReview({businessId="",website=null,app=null,
  liveVersion=null,catalog=[],endpoint="",onApply=null,
- publishing=null,deliveryProof=null}){
+ publishing=null,deliveryProof=null,businessType="",description=""}){
  const [open,setOpen]=React.useState(false);
  const [kind,setKind]=React.useState("enquiry");
  const [notice,setNotice]=React.useState("");
@@ -28,6 +32,10 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
   businessId,website,app,liveVersion,catalog,endpoint,
   publishing,deliveryProof
  });
+ const nativePlan=planWebsiteIntakeV3216({businessId,website,app,
+  liveVersion,catalog,endpoint,publishing,deliveryProof,kind});
+ const advice=adviseCustomerCapabilityV3216({businessType,description,
+  catalog,publishedModules:liveVersion?.config?.modules});
  const current=latest.ok&&linked?.ownerApproved===true&&
   linked.url===latest.url&&linked.appId===latest.appId&&
   linked.liveVersionId===latest.appLiveVersionId;
@@ -110,6 +118,9 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
      </View>:<Text style={styles.cardBody}>
        {"Not ready to link: "+latest.reason}
      </Text>}
+     <Text style={styles.cardBody}>
+       {"BUSY suggestion: "+advice.goal+". "+advice.explanation}
+     </Text>
      <Button label={showFormReadiness?
         "Hide built-in website form readiness":
         "What would my own website enquiry form need?"}
@@ -125,6 +136,23 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
          <Text key={check.id} style={styles.cardBody}>
            {"To develop or verify: "+check.title+". "+check.detail}
          </Text>)}
+       <Text style={styles.sectionLabel}>
+         Proposed customer form (not live)
+       </Text>
+       {nativePlan.proposedFields?.map(field=><Text key={field.key}
+         style={styles.cardBody}>{"• "+field.label}</Text>)}
+       <Text style={styles.cardBody}>
+         Customers must provide a name, either email or phone, and an enquiry
+         message or requested service. BUSY will require an owner-reviewed
+         privacy notice and explicit visitor agreement before any submission.
+       </Text>
+       <Text style={styles.cardBody}>
+         {"V3.216 preparation: "+nativePlan.completedSourceChecks+
+          " of "+nativePlan.stages.length+" source checks, with zero live browser tests. "+
+          nativePlan.mobileGuidance}
+       </Text>
+       {nativePlan.stages?.filter(step=>!step.ready).slice(0,3).map(step=><Text
+          key={step.id} style={styles.cardBody}>{"Still to verify: "+step.name}</Text>)}
        <Text style={styles.cardBody}>
          For now, the approved Business App handoff is the supported path.
          The public link rechecks its exact app and version when clicked.
