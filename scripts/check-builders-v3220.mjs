@@ -46,7 +46,7 @@ eq(plan.websiteFormEnabled,false);
 eq(plan.productionTouched,false);
 eq(plan.liveProjectIntrospectionByThisModule,false);
 eq(plan.phases.length,5);
-eq(plan.phases.reduce((s,x)=>s+x.fileCount,0),65);
+eq(plan.phases.reduce((s,x)=>s+x.fileCount,0),66);
 ok(plan.phases.every(x=>x.applied===false&&x.canApplyAutomatically===false));
 ok(plan.phases.some(x=>x.id==="04_guest_requests"&&x.fileCount===3));
 ok(plan.phases.some(x=>x.id==="01_baseline"&&x.paths[0]===filename));
