@@ -59,6 +59,9 @@ CREATE TABLE busy_website_request_idempotency_v1 (
   business_id uuid NOT NULL,
   website_id uuid NOT NULL,
   deployment_id uuid NOT NULL,
+  approval_id uuid NOT NULL,
+  app_id uuid NOT NULL,
+  app_version_id uuid NOT NULL,
   request_type text NOT NULL CHECK (request_type IN ('enquiry','booking_request')),
   key_digest bytea NOT NULL,
   payload_digest bytea NOT NULL,
@@ -66,7 +69,7 @@ CREATE TABLE busy_website_request_idempotency_v1 (
   state text NOT NULL CHECK (state IN ('claiming','committed','unknown')),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (business_id, website_id, deployment_id, request_type, key_digest),
+  UNIQUE (business_id, website_id, deployment_id, approval_id, request_type, key_digest),
   CHECK (state <> 'committed' OR request_id IS NOT NULL)
 );
 CREATE TABLE busy_website_request_outbox_v1 (
