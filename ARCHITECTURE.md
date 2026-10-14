@@ -1,5 +1,18 @@
 # Busy Does It code architecture
 
+## V3.239 — one retained private candidate, source-bound multiwidth WebView reviews and shared builder clarity
+
+**Two-master principle:** Continue the V22.17 context-aware visual-design agent and V22.18 GitHub Business Brain priorities using the *existing* website/app builders and master; this is source-only builder development, not live customer experience proof.
+
+- The original \`WebsitePreview\` previously cleared its private candidate whenever an owner tapped another screen size. V3.239 retains the same prepared candidate when changing width; current single-width report state is discarded on every width change to prevent accidental cross-width comparisons. Selecting another page, source revision, business or candidate still discards stale evidence.
+- \`privateWebsiteCandidateWidthV3239.mjs\` validates exact business UUID, website ID/generation, enabled page, safe candidate identifier, actual first-party local WebView measured width (close to intended 390/768/1280), known issue IDs and bounded numeric metrics. No private business content, raw screenshots or owner locks are saved in its temporary state. Each original and candidate report is held independently for phone, tablet and desktop.
+- The original preview's owner-controlled **Check original at this width / Check alternative at this width** actions now collect those reports. The shared V3.144 comparator checks each matching pair; when all three are available the original V3.237 source/revision-scoped evaluator checks across widths. Any captured measured regression at another size prevents keeping the candidate via the current private approval route. A single-width safe proposal can still be saved privately, clearly labelled as only a partial responsive check; Undo remains available. Public publishing remains separate and requires approval.
+- The existing shared builder design directions surface the original V3.237 evidence-needed wording to both Website and App Builder customers under the opt-in disclosure; an App Builder screen is **not** mistaken for a website DOM viewport or proved native screenshot.
+- No arbitrary generated scripts, paid vision calls, new database migrations, customer communications, automatic publishing, cross-tenant learning or AI self-training. Real device/WebView results are local self-reports, not externally authenticated screenshots or WCAG certification. Hosted phase-one SQL, genuine JWT, customer task tests and production remain gated.
+
+**Verification:** \`scripts/check-private-responsive-review-v3239.mjs\` plus inherited builder/Work/production/PostgreSQL tests, and V3.238 fictional offline Chromium capture/manifest tests. See \`docs/V3_239_PRIVATE_RESPONSIVE_BUILDER_REVIEW.md\`.
+
+
 ## V3.238 — real offline Chromium visual comparison with source and integrity receipts
 
 **Working master:** V22.17 context-aware owner-controlled visual design-agent requirement; V22.18 GitHub-recorded Business Brain priorities; original Website Builder, universal planner, coordinated options and visual inspector remain authoritative. No new competing renderer, subscription configuration or billing layer.

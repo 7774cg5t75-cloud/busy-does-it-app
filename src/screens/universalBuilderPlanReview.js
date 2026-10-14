@@ -195,8 +195,12 @@ function UniversalBuilderPlanReview({
            </View>:null}
            {designDecision?.brandEvidence?<Text style={styles.cardBody}>{designDecision.brandEvidence.note}</Text>:null}
            <Text style={styles.cardBody}>Neither approach has been rendered or measured here. The preferred direction is a task-planning choice, not a visual quality score.</Text>
+           {designDecision?.ok&&designDecision.evidenceNeeded?.length?<View>
+             <Text style={styles.sectionLabel}>What still needs checking</Text>
+             {designDecision.evidenceNeeded.map((step,i)=><Text key={"proof-"+i} style={styles.cardBody}>{"• "+step}</Text>)}
+           </View>:null}
            <Text style={styles.cardBody}>
-             These are planning ideas, not rendered designs. BUSY must compare real phone, tablet and desktop previews before recommending a visual change. You approve all edits.
+             These are planning ideas, not rendered designs. Check on real devices before calling this a visual improvement. BUSY must compare the actual customer journey and obtain your approval before applying edits.
            </Text>
          </View>:null}
        </View>:null}

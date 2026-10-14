@@ -46,6 +46,8 @@ import {makeTapToEditHtml,resolveTapToolbarAction} from "../core/websiteTapToEdi
 import {classifyWidth,recordWebsiteViewportEvidence,summarizeWebsiteViewportEvidence,reviewWebsiteViewportPortfolio} from "../core/websiteViewportEvidence.mjs";
 import {withWebsitePreviewViewport,websitePreviewWidthNote} from "../core/websiteResponsivePreview.mjs";
 import {makeWebsiteVisualCheckHtml,reviewWebsiteVisualCheck,CHANNEL as VISUAL_CHECK_CHANNEL} from "../core/websiteVisualCheck.mjs";
+import {recordPrivateWebsiteCandidateWidthV3239,reviewPrivateWebsiteCandidateWidthsV3239}
+ from "../core/privateWebsiteCandidateWidthV3239.mjs";
 
 function WebsiteBuilder({ s }) {
   const draft = s.websiteDraft;
@@ -947,6 +949,7 @@ function WebsitePreview({ s }) {
   const [designCandidate,setDesignCandidate]=React.useState(null);
   const [candidateCheckOn,setCandidateCheckOn]=React.useState(false);
   const [candidateCheckResult,setCandidateCheckResult]=React.useState(null);
+  const [privateWidthEvidence,setPrivateWidthEvidence]=React.useState(null);
   const [designCandidateNotice,setDesignCandidateNotice]=React.useState("");
   const [showOriginalComparison,setShowOriginalComparison]=React.useState(false);
   const [pageInstruction,setPageInstruction]=React.useState("");
@@ -961,9 +964,16 @@ function WebsitePreview({ s }) {
   React.useEffect(()=>{
     setSelectedEdit(null);setVisualCheckResult(null);setVisualCheckOn(false);
     setDesignCandidate(null);setCandidateCheckOn(false);
-    setCandidateCheckResult(null);setDesignCandidateNotice("");
+    setCandidateCheckResult(null);setPrivateWidthEvidence(null);setDesignCandidateNotice("");
     setShowOriginalComparison(false);
-  },[selectedPageId,draft?.id,draft?.generation,previewSize]);
+  },[selectedPageId,draft?.id,draft?.generation,s.cloudWorkspace?.businessId]);
+  React.useEffect(()=>{
+    // Keep the SAME private design candidate when switching screen width;
+    // old single-width measurements must never be reused at another width.
+    setVisualCheckOn(false);setVisualCheckResult(null);
+    setCandidateCheckOn(false);setCandidateCheckResult(null);
+    setShowOriginalComparison(false);
+  },[previewSize]);
   React.useEffect(()=>setViewportEvidence(null),[selectedPageId,draft?.id,draft?.generation]);
   React.useEffect(()=>setConfirmRecoveryRestore(false),[draft?.id,draft?.generation]);
   React.useEffect(()=>{setPagePlanPreview(null);setPagePlanNotice("");setPageInstruction("");
@@ -977,7 +987,8 @@ function WebsitePreview({ s }) {
   const candidateHtml=designCandidate?.draft
     ?renderWebsiteHtml(designCandidate.draft,activePage?.id||"home"):"";
   const unscaledInteractiveHtml=draft&&designCandidate
-    ?showOriginalComparison?liveConceptHtml:
+    ?showOriginalComparison?(visualCheckOn?
+      makeWebsiteVisualCheckHtml(liveConceptHtml,inspectionKey):liveConceptHtml):
       candidateCheckOn?makeWebsiteVisualCheckHtml(candidateHtml,candidateKey):candidateHtml
     :draft&&visualCheckOn
     ?makeWebsiteVisualCheckHtml(liveConceptHtml,inspectionKey)
@@ -993,11 +1004,31 @@ function WebsitePreview({ s }) {
       if(raw?.channel===VISUAL_CHECK_CHANNEL){
         if(candidateCheckOn&&designCandidate){
           const report=reviewWebsiteVisualCheck(raw,candidateKey);
-          if(report){setCandidateCheckResult(report);setCandidateCheckOn(false);}
+          if(report){
+            setCandidateCheckResult(report);setCandidateCheckOn(false);
+            setPrivateWidthEvidence(previous=>{
+              const updated=recordPrivateWebsiteCandidateWidthV3239(previous,{
+                businessId:s.cloudWorkspace?.businessId,website:draft,
+                pageId:activePage?.id||"home",candidateId:designCandidate.id,
+                baseGeneration:designCandidate.baseGeneration,
+                mode:previewSize,variant:"candidate",report
+              });
+              return updated.ok?updated.state:previous;
+            });
+          }
         }else if(visualCheckOn){
           const report=reviewWebsiteVisualCheck(raw,inspectionKey);
           if(report){
             setVisualCheckResult(report);setVisualCheckOn(false);
+            if(designCandidate)setPrivateWidthEvidence(previous=>{
+              const updated=recordPrivateWebsiteCandidateWidthV3239(previous,{
+                businessId:s.cloudWorkspace?.businessId,website:draft,
+                pageId:activePage?.id||"home",candidateId:designCandidate.id,
+                baseGeneration:designCandidate.baseGeneration,
+                mode:previewSize,variant:"original",report
+              });
+              return updated.ok?updated.state:previous;
+            });
             setViewportEvidence(previous=>recordWebsiteViewportEvidence(previous,{
               draftId:draft.id,generation:draft.generation,
               pageId:activePage?.id||"home",report
@@ -1032,6 +1063,12 @@ function WebsitePreview({ s }) {
     ?compareWebsiteVisualReports(visualCheckResult,candidateCheckResult):null;
   const comparisonWords=candidateComparison
     ?describeWebsiteDesignComparison(candidateComparison):null;
+  const privateWidthReview=designCandidate&&privateWidthEvidence?
+    reviewPrivateWebsiteCandidateWidthsV3239(privateWidthEvidence,{
+      businessId:s.cloudWorkspace?.businessId,website:draft,
+      pageId:activePage?.id||"home",candidateId:designCandidate.id,
+      baseGeneration:designCandidate.baseGeneration
+    }):null;
   const measuredPriority=designCandidate&&candidateComparison&&
     draft?.id&&visualCheckResult&&candidateCheckResult?
     compareMeasuredWebsiteCandidates({
@@ -1054,6 +1091,7 @@ function WebsitePreview({ s }) {
     // candidate on the SAME page and viewport, then offer an explicit Keep.
     setDesignCandidate({...layoutAdvice,draft:result.draft,pageId:activePage?.id,
       baseGeneration:draft.generation});
+    setPrivateWidthEvidence(null);
     setCandidateCheckResult(null);setCandidateCheckOn(true);
     setShowOriginalComparison(false);
     setTapEditMode(false);setVisualCheckOn(false);setSelectedEdit(null);
@@ -1065,11 +1103,12 @@ function WebsitePreview({ s }) {
       s.recordMeasuredWebsiteFeedback({draftId:draft.id,pageId:activePage?.id,
         changeId:designCandidate.id,choice:"disliked"});
     setDesignCandidate(null);setCandidateCheckOn(false);
-    setCandidateCheckResult(null);
+    setCandidateCheckResult(null);setPrivateWidthEvidence(null);
     setDesignCandidateNotice("Original design restored. Your preference stays with this draft only.");
   };
   const keepCandidate=()=>{
     if(!candidateComparison?.valid||!candidateComparison.noNewMeasuredProblems||
+       privateWidthReview?.hasRegressions===true||
        designCandidate?.baseGeneration!==draft?.generation)return;
     const saved=s.applyWebsiteLayoutAction(designCandidate.operation,{
       baseGeneration:designCandidate.baseGeneration,
@@ -1077,6 +1116,7 @@ function WebsitePreview({ s }) {
         changeId:designCandidate.id,choice:"liked"}
     });
     if(saved){setDesignCandidate(null);setCandidateCheckResult(null);
+      setPrivateWidthEvidence(null);
       setDesignCandidateNotice("Saved in your private draft. Undo remains available. Recheck other screen sizes before publishing.");}
   };
   if (!draft) {
@@ -1296,9 +1336,11 @@ function WebsitePreview({ s }) {
         <Button label={(previewSize==="desktop"?"✓ ":"")+"Show desktop-width layout"}
           onPress={()=>{setSelectedEdit(null);setPreviewSize("desktop");}}/>
         <Text style={styles.cardBody}>One website adapts to all screens. Tablet and desktop layouts are scaled down on a phone. Use this device view for easier tapping and editing.</Text>
-        <Button label={visualCheckOn?"Checking this rendered page…":"Check this page for layout problems"}
-          disabled={visualCheckOn||!!designCandidate}
+        <Button label={visualCheckOn?"Checking this rendered page…":designCandidate?
+          "Check original at this width":"Check this page for layout problems"}
+          disabled={visualCheckOn||candidateCheckOn}
           onPress={()=>{setSelectedEdit(null);setVisualCheckResult(null);
+            setShowOriginalComparison(!!designCandidate);
             setTapEditMode(false);setVisualCheckOn(true);}}/>
         {pageReviewCoverage.checked.length?(
          <Text style={styles.cardBody}>{pageReviewCoverage.message}</Text>
@@ -1355,18 +1397,34 @@ function WebsitePreview({ s }) {
                 ". A single width cannot establish that the design improved on every screen."}
             </Text>
           ):null}
+          <Text style={styles.sectionLabel}>Measured across screen sizes</Text>
+          <Text style={styles.cardBody}>{privateWidthReview?.ok?
+            privateWidthReview.summary:
+            "You can compare this same private alternative on phone, tablet and desktop. Check the original and alternative at each width. These are WebView layout measurements, not independent screenshots."}</Text>
+          {privateWidthReview?.ok&&privateWidthReview.checked.map(check=>(
+            <Text key={check.device} style={styles.cardBody}>
+              {check.device+": "+check.originalWarnings+" original warnings, "+
+               check.candidateWarnings+" alternative warnings"+
+               (check.newMeasuredProblems.length?" — regression found":"")}
+            </Text>
+          ))}
+          <Button label={candidateCheckOn?"Checking alternative…":"Check alternative at this width"}
+            disabled={candidateCheckOn||visualCheckOn}
+            onPress={()=>{setShowOriginalComparison(false);setCandidateCheckResult(null);
+              setCandidateCheckOn(true);}}/>
           {comparisonWords?.facts.map((fact,i)=>(
             <Text key={String(i)} style={styles.cardBody}>{fact}</Text>
           ))}
           <Button label={showOriginalComparison?"See proposed alternative":"See my original design"}
            disabled={candidateCheckOn}
            onPress={()=>setShowOriginalComparison(x=>!x)}/>
-          {candidateComparison?.valid&&candidateComparison.noNewMeasuredProblems?(
+          {candidateComparison?.valid&&candidateComparison.noNewMeasuredProblems&&
+           privateWidthReview?.hasRegressions!==true?(
             <Button label="Keep this design in my private draft"
              onPress={keepCandidate}/>
           ):null}
           <Button label="Return to my original design" onPress={discardCandidate}/>
-          <Text style={styles.cardBody}>Nothing is published. These checks cannot guarantee visual quality on every device.</Text>
+          <Text style={styles.cardBody}>Checking one width allows a private, undoable change, not a claim of full responsive quality. Check on real devices before calling this a visual improvement. No customer website has been independently screenshot-tested here.</Text>
          </View>
         ):null}
         {designCandidateNotice?<Text style={styles.cardBody}>{designCandidateNotice}</Text>:null}
