@@ -7,14 +7,14 @@ import {planBusinessJourneyNextStepV3217} from "./businessJourneyCoachV3217.mjs"
 import {reviewWebsiteAppVersionDriftV3219} from "./publishedVersionRecoveryV3219.mjs";
 function adviseVerifiedCustomerJourneyV3219({
  businessId="",website=null,app=null,liveVersion=null,catalog=[],
- businessType="",description="",pendingWrite="none"
+ businessType="",description="",pendingWrite="none",endpoint=""
 }={}){
  const coach=planBusinessJourneyNextStepV3217({
   businessId,website,app,liveVersion,catalog,businessType,description});
  const linkedKinds=["enquiry","booking_request"].filter(kind=>
    website?.theme?.appRequestLinks?.[kind]?.ownerApproved===true);
  const drift=linkedKinds.map(kind=>reviewWebsiteAppVersionDriftV3219({
-  businessId,website,app,liveVersion,kind,pendingWrite}));
+  businessId,website,app,liveVersion,kind,pendingWrite,endpoint}));
  const stale=drift.find(x=>x.ok&&(x.requiresSeparateWebsiteRepublish===true));
  const uncertain=["unknown","committed"].includes(pendingWrite);
  const action=uncertain?"check_existing_receipt":
