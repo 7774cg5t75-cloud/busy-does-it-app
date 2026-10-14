@@ -20,7 +20,7 @@ const INTENTS=Object.freeze([
  ["testimonials",/\b(?:testimonials?|customer reviews?|client reviews?)\b/i],
  ["services",/\b(?:services?|service list|treatments?|menu|menus|what we (?:do|offer))\b/i],
  ["contact",/\b(?:contact details?|phone number|opening hours|address|find us|location map)\b/i],
- ["enquiry",/\b(?:enquir(?:y|ies)|inquir(?:y|ies)|quot(?:e|es)|contact forms?|send (?:a )?message|lead forms?)\b/i],
+ ["enquiry",/\b(?:enquir(?:e|es|ed|ing|y|ies)|inquir(?:e|es|ed|ing|y|ies)|quot(?:e|es)|contact forms?|send (?:a )?message|lead forms?)\b/i],
  ["booking_request",/\b(?:book(?:ings?|able)?|reservations?|reserve|appointments?|hire|rentals?|pitches|pitch booking)\b/i],
  ["availability",/\b(?:availability|available (?:dates?|pitches|rooms?|slots?|stock)|realtime (?:slots?|stock)|real.time (?:slots?|stock)|calendar availability|inventory|capacity)\b/i],
  ["accounts",/\b(?:sign.?in|log.?in|logins?|user accounts?|customer accounts?|register (?:an )?account|customer profiles?|member login)\b/i],
