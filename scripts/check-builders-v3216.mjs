@@ -127,7 +127,10 @@ const denialCases=[
  ["customer message missing",x=>x.request.payload.message=""],
  ["unexpected sensitive visitor field",x=>x.request.payload.creditCard="123"],
  ["nested unknown field",x=>x.request.payload.metadata={businessId:BAD}],
- ["oversized message",x=>x.request.payload.message="X".repeat(5001)]
+ ["oversized message",x=>x.request.payload.message="X".repeat(5001)],
+ ["oversized optional email",x=>{x.request.payload.phone="+44 7700 900123";x.request.payload.email="x".repeat(251);}],
+ ["oversized optional phone",x=>x.request.payload.phone="2".repeat(51)],
+ ["unexpected payload type",x=>x.request.payload.phone={hidden:true}]
 ];
 for(const [name,mutate] of denialCases)rejectMutation(mutate,name);
 const booking=fixtures();
@@ -150,10 +153,24 @@ rejectMutation(x=>{
 yes(strictVisitorFields("booking_request",booking.request.payload).ok);
 same(strictVisitorFields("enquiry",{...booking.request.payload}).ok,false);
 const appCatalog=[{module_key:"enquiry",status:"available"}];
-const understood=adviseCustomerCapabilityV3216({businessType:"Plumber",
- catalog:appCatalog,publishedModules:[{key:"enquiry",enabled:true}]});
+const appRef="55555555-5555-4555-8555-555555555555";
+const versionRef="66666666-6666-4666-8666-666666666666";
+const fullLive={businessType:"Plumber",businessId:BID,
+ app:{id:appRef,business_id:BID,status:"live",
+  current_live_version_id:versionRef},
+ liveVersion:{id:versionRef,mini_app_id:appRef,state:"live"},
+ catalog:appCatalog,publishedModules:[{key:"enquiry",enabled:true}]};
+const understood=adviseCustomerCapabilityV3216(fullLive);
 same(understood.capability,"enquiry");
 same(understood.verifiedAvailableInCurrentBusinessApp,true);
+same(adviseCustomerCapabilityV3216({...fullLive,
+ liveVersion:{...fullLive.liveVersion,state:"draft"}})
+ .verifiedAvailableInCurrentBusinessApp,false);
+same(adviseCustomerCapabilityV3216({...fullLive,businessId:BAD})
+ .verifiedAvailableInCurrentBusinessApp,false);
+same(adviseCustomerCapabilityV3216({...fullLive,
+ app:{...fullLive.app,current_live_version_id:BAD}})
+ .verifiedAvailableInCurrentBusinessApp,false);
 same(understood.recommendationOnly,true);
 same(understood.providerSpendAuthorised,false);
 const unknown=adviseCustomerCapabilityV3216({businessType:"Novel creative cooperative"});
