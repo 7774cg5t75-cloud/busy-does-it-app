@@ -10,6 +10,10 @@ import {planWebsiteIntakeV3216}
  from "../core/websiteIntakePlanningV3216.mjs";
 import {adviseCustomerCapabilityV3216}
  from "../core/customerCapabilityAdviceV3216.mjs";
+import {planBusinessJourneyNextStepV3217}
+ from "../core/businessJourneyCoachV3217.mjs";
+import {WebsiteFormSpecReviewV3217}
+ from "./websiteFormSpecReviewV3217";
 
 /** Optional two-step private owner handoff review; no new web form. */
 function WebsiteAppHandoffReview({businessId="",website=null,app=null,
@@ -37,6 +41,9 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
  const advice=adviseCustomerCapabilityV3216({businessType,description,
   catalog,publishedModules:liveVersion?.config?.modules,
   businessId,app,liveVersion});
+ const journeyCoach=planBusinessJourneyNextStepV3217({
+   businessType,description,businessId,website,app,liveVersion,catalog
+ });
  const current=latest.ok&&linked?.ownerApproved===true&&
   linked.url===latest.url&&linked.appId===latest.appId&&
   linked.liveVersionId===latest.appLiveVersionId;
@@ -122,6 +129,9 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
      <Text style={styles.cardBody}>
        {"BUSY suggestion: "+advice.goal+". "+advice.explanation}
      </Text>
+     <Text style={styles.cardBody}>
+       {"Suggested next step: "+journeyCoach.title+". "+journeyCoach.reason}
+     </Text>
      <Button label={showFormReadiness?
         "Hide built-in website form readiness":
         "What would my own website enquiry form need?"}
@@ -154,6 +164,8 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
        </Text>
        {nativePlan.stages?.filter(step=>!step.ready).slice(0,3).map(step=><Text
           key={step.id} style={styles.cardBody}>{"Still to verify: "+step.name}</Text>)}
+       <WebsiteFormSpecReviewV3217 businessId={businessId}
+         website={website} publishing={publishing} kind={kind}/>
        <Text style={styles.cardBody}>
          For now, the approved Business App handoff is the supported path.
          The public link rechecks its exact app and version when clicked.
