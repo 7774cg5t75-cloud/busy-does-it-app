@@ -8,12 +8,14 @@ import {designForWebsite,designCss} from "../supabase/functions/busy-website-wor
 import {reviewWebsiteDesign} from "../supabase/functions/busy-website-worker/designReview.mjs";
 import {applyWebsiteVisualEdit} from "../supabase/functions/busy-website-worker/designEdits.mjs";
 import {editWebsiteDraftField} from "../src/core/websiteStructuredEditing.mjs";
+import {canonicalWebsiteHandoffUrl} from "../src/core/websiteAppHandoffV3214.mjs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 const strip=s=>s.replace(/export\s*\{[\s\S]*?\};?\s*$/,"");
 const management=Function(strip(read("src/domain/websiteManagement.js"))+";return {syncWebsitePageModel};")();
 let domain=strip(read("src/domain/websiteBuilder.js"));
 for(const imp of [
  'import { syncWebsitePageModel } from "./websiteManagement";',
+ 'import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";',
  'import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";',
  'import { planWebsiteDesign } from "../../supabase/functions/busy-website-worker/designPlanner.mjs";',
  'import { reviewWebsiteDesign } from "../../supabase/functions/busy-website-worker/designReview.mjs";',
@@ -23,9 +25,9 @@ for(const imp of [
 }
 const {buildWebsiteDraft,renderWebsiteHtml,applyWebsitePageChange,applyStructuredWebsiteEdit}=Function(
  "syncWebsitePageModel","designForWebsite","designCss","planWebsiteDesign",
- "reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField",
+ "reviewWebsiteDesign","applyWebsiteVisualEdit","editWebsiteDraftField","canonicalWebsiteHandoffUrl",
  domain+";return {buildWebsiteDraft,renderWebsiteHtml,applyWebsitePageChange,applyStructuredWebsiteEdit};"
-)(management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField);
+)(management.syncWebsitePageModel,designForWebsite,designCss,planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,editWebsiteDraftField,canonicalWebsiteHandoffUrl);
 let assertions=0;
 const yes=(v,m)=>{assert.ok(v,m);assertions++};
 const eq=(a,b,m)=>{assert.deepEqual(a,b,m);assertions++};
