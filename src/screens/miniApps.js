@@ -3127,11 +3127,13 @@ function MiniAppBuilder({ s }) {
                    s.ownerQueueSummary.guestAlerts?.appId===app.id ? (
                     <>
                       <MetricRow
-                        left="Guest alerts not confirmed delivered"
-                        right={String(s.ownerQueueSummary.guestAlerts.totalAwaitingDelivery||0)}
+                        left="Alerts awaiting provider confirmation"
+                        right={String(s.ownerQueueSummary.guestAlerts.needsProviderReview||0)}
                       />
                       <Text style={styles.cardBody}>
                         {s.ownerQueueSummary.guestAlerts.explanation}
+                        {s.ownerQueueSummary.guestAlerts.manualReview>0 ?
+                          " Please review uncertain alerts in your Business App." : ""}
                       </Text>
                     </>
                   ) : null}
