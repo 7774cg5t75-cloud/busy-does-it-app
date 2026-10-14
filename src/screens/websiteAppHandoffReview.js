@@ -16,6 +16,8 @@ import {adviseVerifiedCustomerJourneyV3219}
  from "../core/customerJourneyActionV3219.mjs";
 import {adviseConnectedCustomerJourneyV3220}
  from "../core/connectedJourneyAdviceV3220.mjs";
+import {chooseBusinessJourneyDecisionV3221}
+ from "../core/businessJourneyDecisionV3221.mjs";
 import {planUniversalCustomerJourneyV3218}
  from "../core/universalCustomerJourneyV3218.mjs";
 import {WebsiteFormSpecReviewV3217}
@@ -62,6 +64,10 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
  const primaryAdvice=adviseConnectedCustomerJourneyV3220({
   businessId,website,app,liveVersion,catalog,endpoint,
   businessType,description,publishing,deliveryProof
+ });
+ const nextDecision=chooseBusinessJourneyDecisionV3221({
+   businessId,website,app,liveVersion,catalog,endpoint,
+   businessType,description,publishing,deliveryProof
  });
  const current=latest.ok&&linked?.ownerApproved===true&&
   linked.url===latest.url&&linked.appId===latest.appId&&
@@ -145,7 +151,9 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
      </View>:<Text style={styles.cardBody}>
        {"Not ready to link: "+latest.reason}
      </Text>}
-     {primaryAdvice.ok?<Text style={styles.cardBody}>
+     {nextDecision.ok?<Text style={styles.cardBody}>
+       {"BUSY recommends: "+nextDecision.title+". "+nextDecision.why}
+     </Text>:primaryAdvice.ok?<Text style={styles.cardBody}>
        {"BUSY recommends: "+primaryAdvice.headline+". "+primaryAdvice.detail}
      </Text>:null}
      <Button label={showConnectedPlan?
