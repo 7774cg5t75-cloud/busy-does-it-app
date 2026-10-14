@@ -79,6 +79,7 @@ import {describeRequestExperience}
   from "../core/appRequestCommunication.mjs";
 import {auditStandaloneContrast} from "../core/appContrastAudit.mjs";
 import {appRequestJourney} from "../core/appRequestLifecycle.mjs";
+import {ownerRequestActionsV3233} from "../core/ownerRequestActionsV3233.mjs";
 import {appVisibleCaptureReceipt,currentAppVisibleCapture} from "../core/appRenderedEvidence.mjs";
 import {mergeRenderedObservations,evaluateRenderedQuality,
  compareRenderedQuality,compareApprovedRevisionMeasurements,
@@ -3171,6 +3172,7 @@ function MiniAppBuilder({ s }) {
               <Text style={styles.sectionLabel}>Customer requests</Text>
               {view.pendingRequests.slice(0, 10).map((request) => {
                 const link = view.linkByRequest?.get?.(request.id) || null;
+                const actions=ownerRequestActionsV3233({request,link});
                 return (
                   <Card
                     key={request.id}
@@ -3241,7 +3243,7 @@ function MiniAppBuilder({ s }) {
                         }
                       />
                     ) : null}
-                    {!link && request.status === "received" ? (
+                    {actions.canReview ? (
                       <Button
                         label="Mark reviewing"
                         disabled={!!s.miniAppsAction}
@@ -3254,7 +3256,7 @@ function MiniAppBuilder({ s }) {
                         }
                       />
                     ) : null}
-                    {!link && ["received","reviewing"].includes(request.status) ? (
+                    {actions.canDecline ? (
                       <Button
                         label="Decline request"
                         disabled={!!s.miniAppsAction}
@@ -3268,7 +3270,7 @@ function MiniAppBuilder({ s }) {
                       />
                     ) : null}
 
-                    {link?.bridge_state === "booking_draft" ? (
+                    {actions.showDraftBooking ? (
                       <Button
                         label="Open BUSY booking to confirm"
                         primary
@@ -3277,7 +3279,7 @@ function MiniAppBuilder({ s }) {
                         }
                       />
                     ) : null}
-                    {link?.bridge_state === "booking_confirmed" ? (
+                    {actions.showConfirmedBooking ? (
                       <Button
                         label="Open confirmed BUSY booking"
                         onPress={() =>
@@ -4979,14 +4981,14 @@ function MiniAppRequestDetail({ s }) {
                 onPress={() => s.bridgeMiniAppRequestIntoBusy(request.id)}
               />
             ) : null}
-            {ownerView && !link && request.status === "received" ? (
+            {ownerView && ownerRequestActionsV3233({request,link}).canReview ? (
               <Button
                 label="Mark reviewing"
                 disabled={!!s.miniAppsAction}
                 onPress={() => s.updateMiniAppRequestStatus(request.id, "reviewing", request)}
               />
             ) : null}
-            {ownerView && !["declined", "closed", "accepted"].includes(request.status) ? (
+            {ownerView && ownerRequestActionsV3233({request,link}).canDecline ? (
               <Button
                 label="Decline request"
                 disabled={!!s.miniAppsAction}
