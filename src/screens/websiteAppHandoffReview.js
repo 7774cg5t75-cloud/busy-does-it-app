@@ -4,21 +4,30 @@ import {Card,Button} from "../components/ui";
 import {styles} from "../theme/styles";
 import {planWebsiteAppRequestHandoff}
  from "../core/websiteAppHandoffV3214.mjs";
+import {websiteEnquiryReadinessV3215}
+ from "../core/websiteEnquiryReadinessV3215.mjs";
 
 /** Optional two-step private owner handoff review; no new web form. */
 function WebsiteAppHandoffReview({businessId="",website=null,app=null,
- liveVersion=null,catalog=[],endpoint="",onApply=null}){
+ liveVersion=null,catalog=[],endpoint="",onApply=null,
+ publishing=null,deliveryProof=null}){
  const [open,setOpen]=React.useState(false);
  const [kind,setKind]=React.useState("enquiry");
  const [notice,setNotice]=React.useState("");
  const [reviewed,setReviewed]=React.useState(false);
+ const [showFormReadiness,setShowFormReadiness]=React.useState(false);
  React.useEffect(()=>{
   setOpen(false);setReviewed(false);setNotice("");
+  setShowFormReadiness(false);
  },[businessId,website?.id,website?.generation,app?.id,
   app?.current_live_version_id,liveVersion?.id]);
  const latest=planWebsiteAppRequestHandoff({
   businessId,website,app,liveVersion,catalog,endpoint,kind});
  const linked=website?.theme?.appRequestLinks?.[kind]||null;
+ const nativeForm=websiteEnquiryReadinessV3215({
+  businessId,website,app,liveVersion,catalog,endpoint,
+  publishing,deliveryProof
+ });
  const current=latest.ok&&linked?.ownerApproved===true&&
   linked.url===latest.url&&linked.appId===latest.appId&&
   linked.liveVersionId===latest.appLiveVersionId;
@@ -101,10 +110,30 @@ function WebsiteAppHandoffReview({businessId="",website=null,app=null,
      </View>:<Text style={styles.cardBody}>
        {"Not ready to link: "+latest.reason}
      </Text>}
+     <Button label={showFormReadiness?
+        "Hide built-in website form readiness":
+        "What would my own website enquiry form need?"}
+       onPress={()=>setShowFormReadiness(v=>!v)}/>
+     {showFormReadiness?<View>
+       <Text style={styles.cardBody}>{nativeForm.safeExplanation}</Text>
+       <Text style={styles.cardBody}>
+         {"Requirements with source evidence: "+nativeForm.verifiedPrerequisites+
+         " of "+nativeForm.totalPrerequisites+
+         ". A built-in website form is not enabled."}
+       </Text>
+       {nativeForm.requirements.filter(check=>!check.ready).slice(0,5).map(check=>
+         <Text key={check.id} style={styles.cardBody}>
+           {"To develop or verify: "+check.title+". "+check.detail}
+         </Text>)}
+       <Text style={styles.cardBody}>
+         For now, the approved Business App handoff is the supported path.
+         The public link rechecks its exact app and version when clicked.
+       </Text>
+     </View>:null}
      {linked?<View>
        <Text style={styles.cardBody}>
          {current?"The private draft links to the current live app.":
-           "A previously reviewed link exists, but its current live-version evidence is incomplete or has changed. The public link still checks availability."}
+           "The stored link no longer matches the current published app evidence. Visitors using the old link may be asked to contact the business. Review and approve a new version, then separately republish the website."}
        </Text>
        <Button label="Remove this handoff from my private website" onPress={disconnect}/>
      </View>:null}
