@@ -91,11 +91,11 @@ eq(auditStagingSchemaV3219({...metadata(),tables:["inject;sql"]}).ok,false);
 eq(auditStagingSchemaV3219({...metaComplete(),
  columns:{...metaComplete.columns,busy_mini_app_requests:["id"]}})
  .sourceMetadataLooksCompatible,false);
-eq(auditStagingSchemaV3219({...metaComplete(),functions:[]})
+eq(auditStagingSchemaV3219({...metaComplete,functions:[]})
  .sourceCompatibilityChecksPassed,5);
-eq(auditStagingSchemaV3219({...metaComplete(),rlsTables:[]})
+eq(auditStagingSchemaV3219({...metaComplete,rlsTables:[]})
  .sourceCompatibilityChecksPassed,5);
-eq(auditStagingSchemaV3219({...metaComplete(),migrationHistoryReviewed:false})
+eq(auditStagingSchemaV3219({...metaComplete,migrationHistoryReviewed:false})
  .sourceCompatibilityChecksPassed,5);
 const driftArgs=()=>({businessId:BID,website:site(),
  app:liveApp(),liveVersion:version(),kind:"enquiry",endpoint:ENDPOINT});
