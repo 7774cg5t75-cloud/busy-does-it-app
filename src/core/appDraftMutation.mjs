@@ -22,7 +22,7 @@ async function executeAppDraftMutation({action,payload,scope,isCurrent,send}={})
  const status=privateAppEditSource({businessId:scope.businessId,app:statusApp});
  if(data?.ok!==true||!actual||!status||JSON.stringify(actual)!==JSON.stringify(status)||
   base&&(actual.appId!==base.appId||actual.revision!==base.revision+1)||
-  plan&&actual.configStamp!==privateAppEditSource({businessId:scope.businessId,app,config:plan.nextConfig})?.configStamp||!base&&actual.revision!==1)
+  plan&&actual.configStamp!==privateAppEditSource({businessId:scope.businessId,app,config:plan.nextConfig})?.configStamp||!base&&actual.revision!==(action==='apply_app_plan'?2:1))
   throw Error('The private draft receipt could not be verified. Refresh before trying again; no request was replayed.');
  return data;
 }

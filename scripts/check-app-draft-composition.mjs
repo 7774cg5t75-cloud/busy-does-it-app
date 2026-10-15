@@ -17,6 +17,14 @@ const saved={...app,draft_revision:5,draft_config:p.nextConfig};
 assert.equal((await mutate({action:'set_module',payload:{moduleKey:'contact',enabled:false},scope,isCurrent:()=>current,send:async(action,args)=>{calls++;assert.equal(args.expectedRevision,4);assert.equal(args.appId,id);return {ok:true,app:saved,status:{app:saved}};}})).app,saved);
 await assert.rejects(mutate({action:'set_module',payload:{moduleKey:'contact',enabled:false},scope,isCurrent:()=>current,send:async()=>{current=false;return {ok:true,app:saved,status:{app:saved}};}}),/workspace changed/);current=true;
 await assert.rejects(mutate({action:'set_module',payload:{moduleKey:'contact',enabled:false},scope,isCurrent:()=>true,send:async()=>({ok:true,app:{...saved,business_id:'other'},status:{app:saved}})}),/receipt/);
+// First build inserts revision 1; applying the first reviewed plan performs
+// the existing initial draft + conditional plan update and returns revision 2.
+for(const [action,revision] of [['build_draft',1],['apply_app_plan',2]]){
+ const first={...app,draft_revision:revision};
+ assert.equal((await mutate({action,payload:{},scope:{...scope,app:null},isCurrent:()=>true,send:async()=>({ok:true,app:first,status:{app:first}})})).app.draft_revision,revision);
+ const wrong={...first,draft_revision:revision+1};
+ await assert.rejects(mutate({action,payload:{},scope:{...scope,app:null},isCurrent:()=>true,send:async()=>({ok:true,app:wrong,status:{app:wrong}})}),/receipt/);
+}
 // Execute the actual trusted setModule implementation with a fluent fake DB;
 // verify its source-revision guard and exact conditional-write predicates.
 const edge=readFileSync('supabase/functions/busy-mini-apps/index.ts','utf8');const start=edge.indexOf('function requireAppDraftRevision('),end=edge.indexOf('async function movePrivateAppModule(',start);
