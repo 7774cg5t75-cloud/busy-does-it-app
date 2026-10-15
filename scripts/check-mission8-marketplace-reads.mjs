@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {createMarketplaceReadActions} from '../src/core/marketplaceReadActions.mjs';
+const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
+let context;const calls=[],events=[],scheduled=[];const transport=[];
+context={ownerScope:{userId:'first'},request:async(...args)=>{calls.push(args);return transport.shift().promise;},schedule:f=>scheduled.push(f)};
+for(const name of ['setMyBusyAppsLoading','setMyBusyApps','setMyBusyAppRequests','setMiniAppsNotificationStatus','setMiniAppsError','setBusyAppsSearching','setBusyAppsResults','setMiniAppsAction','setSelectedBusyAppDetail','go'])context[name]=v=>events.push([name,v]);
+const actions=createMarketplaceReadActions(()=>context);
+const a=deferred(),b=deferred();transport.push(a,b);const old=actions.searchBusyApps('older'),newer=actions.searchBusyApps('latest');b.resolve({apps:['new']});assert.equal(await newer,true);a.resolve({apps:['stale']});assert.equal(await old,false);assert.equal(events.filter(e=>e[0]==='setBusyAppsResults').length,1);assert.equal(events.find(e=>e[0]==='setBusyAppsResults')[1][0],'new');
+const mine=deferred();transport.push(mine);const pending=actions.loadMyBusyApps();const before=events.length;context={...context,ownerScope:{userId:'second'}};assert.equal(calls.at(-1)[2].isCurrent(),false);mine.resolve({apps:['private-first-account'],requests:['private']});assert.equal(await pending,false);assert.equal(events.length,before);
+const open=deferred();transport.push(open);const opening=actions.openBusyAppDetail('correct');open.resolve({app:{id:'app',slug:'correct'},version:{id:'v1'}});assert.equal(await opening,true);assert.equal(scheduled.length,1);context={...context,ownerScope:{userId:'first'}};const callsBefore=calls.length;scheduled[0]();assert.equal(calls.length,callsBefore,'scheduled refresh must not run for another owner or an owner round trip');
+const mismatched=deferred();transport.push(mismatched);const bad=actions.openBusyAppDetail('expected');const detailCount=events.filter(e=>e[0]==='setSelectedBusyAppDetail').length;mismatched.resolve({app:{id:'app',slug:'another'},version:{id:'v2'}});assert.equal(await bad,false);assert.equal(events.filter(e=>e[0]==='setSelectedBusyAppDetail').length,detailCount);
+console.log('PASS: original marketplace read adapter rejects stale search, foreign-account lists, owner round trips, stale delayed refresh and mismatched app details. No HTTP/provider execution.');

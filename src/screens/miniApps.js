@@ -4604,6 +4604,11 @@ function MiniAppPreview({ s }) {
 }
 
 function BusyAppDetail({ s }) {
+  // A different account, app or published version starts a separate form.
+  const detail=s.selectedBusyAppDetail;
+  return <BusyAppDetailForm key={[s.ownerSession?.userId||"",detail?.app?.id||"",detail?.version?.id||""].join(":")} s={s}/>;
+}
+function BusyAppDetailForm({ s }) {
   const detail = s.selectedBusyAppDetail || {};
   const config = detail?.version?.config || null;
   const [name, setName] = React.useState("");
@@ -4620,7 +4625,11 @@ function BusyAppDetail({ s }) {
       .map((item) => item.key)
   );
 
+  const formLive=React.useRef(null),formAlive=React.useRef(true);
+  formLive.current=JSON.stringify([name,email,phone,service,date,note,message]);
+  React.useEffect(()=>{formAlive.current=true;return()=>{formAlive.current=false;};},[]);
   const submitBooking = async () => {
+    const reviewed=formLive.current;
     const ok = await s.submitBusyAppRequest("booking_request", {
       name: name.trim(),
       email: email.trim(),
@@ -4629,7 +4638,7 @@ function BusyAppDetail({ s }) {
       preferredDate: date.trim(),
       note: note.trim(),
     });
-    if (ok) {
+    if (ok&&formAlive.current&&formLive.current===reviewed) {
       setService("");
       setDate("");
       setNote("");
@@ -4637,6 +4646,7 @@ function BusyAppDetail({ s }) {
   };
 
   const submitEnquiry = async () => {
+    const reviewed=formLive.current;
     const ok = await s.submitBusyAppRequest("enquiry", {
       name: name.trim(),
       email: email.trim(),
@@ -4644,7 +4654,7 @@ function BusyAppDetail({ s }) {
       service: service.trim(),
       message: message.trim(),
     });
-    if (ok) setMessage("");
+    if (ok&&formAlive.current&&formLive.current===reviewed) setMessage("");
   };
 
   return (
