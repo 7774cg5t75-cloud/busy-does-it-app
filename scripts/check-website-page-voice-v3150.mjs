@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 const backend=read("supabase/functions/busy-command/index.ts");
-const ctl=read("src/app/AppController.js");
+const ctl=read("src/app/AppController.js")+read("src/core/websiteVoiceActions.mjs");
 const screen=read("src/screens/websiteBuilder.js");
 const microphone=read("src/screens/websiteSelectedVoice.js");
 for(const s of ['form.get("mode")==="website-page-transcript-v1"',

@@ -1,3 +1,4 @@
+import {coordinatedWebsiteAlternatives} from "../core/websiteCoordinatedAlternatives.mjs";
 import {beginWebsiteMeasurementAttempt,currentWebsiteMeasurementAttempt} from "../core/websiteMeasurementAttempt.mjs";
 import {currentWebsiteDesignCandidate,privateWebsiteReviewProgress} from "../core/privateWebsiteReviewProgress.mjs";
 import React from "react";
@@ -77,7 +78,11 @@ function WebsiteBuilder({ s }) {
   const [showOutcomeFeedback,setShowOutcomeFeedback]=React.useState(false);
   const [feedbackState,setFeedbackState]=React.useState({status:"idle",message:""});
   const [savedStylePreferences,setSavedStylePreferences]=React.useState(null);
-  const feedbackBusy=React.useRef(false);
+  const feedbackBusy=React.useRef(null),feedbackScopeRef=React.useRef(null),feedbackAlive=React.useRef(true);
+  const feedbackKey=[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft?.id,draft?.generation].join(":");
+  if(feedbackScopeRef.current?.key!==feedbackKey){feedbackScopeRef.current={key:feedbackKey};feedbackBusy.current=null;}
+  const feedbackScope=feedbackScopeRef.current;
+  React.useEffect(()=>{feedbackAlive.current=true;return()=>{feedbackAlive.current=false;};},[]);
   React.useEffect(()=>{
     setAiStudio(null);setAiStudioNotice("");setAiStudioShowOriginal(false);
   },[draft?.id,draft?.generation,s.websiteVisualReview?.reviewId]);
@@ -163,7 +168,7 @@ function WebsiteBuilder({ s }) {
       }).catch(()=>{if(active)setSavedStylePreferences(null);});
     }
     return()=>{active=false;};
-  },[draft?.id,s.cloudWorkspace?.businessId]);
+  },[draft?.id,s.cloudWorkspace?.businessId,s.ownerSession?.userId]);
   const outcomeGuidance=websiteOutcomeGuidance(savedStylePreferences,{
     currentFamily:draft?.theme?.designFamily||draft?.designPlan?.family||"",
     currentRevision:String(draft?.generation||1)
@@ -216,31 +221,42 @@ function WebsiteBuilder({ s }) {
 
   const sendDesignPreference=async(choice)=>{
     if(feedbackBusy.current||!draft?.id)return;
-    feedbackBusy.current=true;
+    if(feedbackScopeRef.current!==feedbackScope||!feedbackAlive.current)return;
+    const task={};feedbackBusy.current=task;
+    const current=()=>feedbackAlive.current&&feedbackScopeRef.current===feedbackScope;
     setFeedbackState({status:"saving",message:""});
     try{
-      await s.recordMeasuredWebsiteFeedback(choice);
+      const receipt=await s.recordWebsiteDesignFeedback(choice);
+      if(!current())return;
+      if(receipt?.ok!==true)throw Error("Private feedback was not confirmed.");
       const updated=await s.readWebsiteDesignFeedback().catch(()=>null);
+      if(!current())return;
       if(updated?.scope==="current_business_only")
         setSavedStylePreferences(updated);
       setFeedbackState({status:"saved",
         message:"Saved privately for this business. BUSY can use your preferences in future improvements; it has not retrained any AI model."});
     }catch{
+      if(!current())return;
       setFeedbackState({status:"unavailable",
         message:"BUSY could not save your preference to the business workspace yet. Nothing has been shared."});
-    }finally{feedbackBusy.current=false;}
+    }finally{if(feedbackBusy.current===task)feedbackBusy.current=null;}
   };
   const clearPreferences=async()=>{
     if(feedbackBusy.current)return;
-    feedbackBusy.current=true;
+    if(feedbackScopeRef.current!==feedbackScope||!feedbackAlive.current)return;
+    const task={};feedbackBusy.current=task;
+    const current=()=>feedbackAlive.current&&feedbackScopeRef.current===feedbackScope;
     setFeedbackState({status:"saving",message:""});
     try{
-      await s.clearWebsiteDesignFeedback();
+      const receipt=await s.clearWebsiteDesignFeedback();
+      if(!current())return;
+      if(receipt?.ok!==true||receipt.cleared!==true)throw Error("Private feedback clearing was not confirmed.");
       setSavedStylePreferences(null);
       setFeedbackState({status:"cleared",message:"Private style preferences cleared for this business."});
     }catch{
+      if(!current())return;
       setFeedbackState({status:"unavailable",message:"BUSY could not confirm preferences were cleared. No shared learning was enabled."});
-    }finally{feedbackBusy.current=false;}
+    }finally{if(feedbackBusy.current===task)feedbackBusy.current=null;}
   };
   const applyInstruction = () => {
     const text = instruction.trim();
@@ -1152,21 +1168,22 @@ function WebsitePreview({ s }) {
         captureSource:"current_private_webview_dom",
         original:visualCheckResult,candidate:candidateCheckResult}]
     }):null;
-  const tryCandidate=()=>{
-    if(!layoutAdvice||!draft)return;
-    const result=applyWebsiteLayoutChange(draft,layoutAdvice.operation);
+  const coordinatedAdvice=coordinatedWebsiteAlternatives(draft,activePage?.id,visualCheckResult);
+  const tryCandidate=(advice=layoutAdvice)=>{
+    if(!advice||!draft)return;
+    const result=applyWebsiteLayoutChange(draft,advice.operation);
     if(!result?.applied){
       setDesignCandidateNotice(result?.reason||"That layout alternative could not be prepared.");
       return;
     }
     // Don't modify the owner's real draft. Recheck the entire rendered private
     // candidate on the SAME page and viewport, then offer an explicit Keep.
-    setDesignCandidate({...layoutAdvice,draft:result.draft,pageId:activePage?.id,
+    setDesignCandidate({...advice,draft:result.draft,pageId:activePage?.id,
       businessId:s.cloudWorkspace?.businessId,websiteId:draft.id,ownerId:s.ownerSession?.userId||"",
       baseGeneration:draft.generation});
     const baseline=recordPrivateWebsiteCandidateWidthV3239(null,{
       businessId:s.cloudWorkspace?.businessId,website:draft,pageId:activePage?.id||"home",
-      candidateId:layoutAdvice.id,baseGeneration:draft.generation,
+      candidateId:advice.id,baseGeneration:draft.generation,
       mode:previewSize,variant:"original",report:visualCheckResult});
     setPrivateWidthEvidence(baseline.ok?baseline.state:null);
     startCapture("candidate");
@@ -1460,11 +1477,18 @@ function WebsitePreview({ s }) {
              {ownerDesignPreference(draft,layoutAdvice.id)==="disliked"?
               <Text style={styles.cardBody}>You previously rejected this look. BUSY won't recommend it as a preferred choice.</Text>:null}
              <Button label={layoutAdvice.label+" — preview first"}
-              onPress={tryCandidate}/>
+              onPress={()=>tryCandidate()}/>
             </>
            ):null}
           </View>
         ):null}
+        {visualCheckResult&&!designCandidate&&!visualCheckOn?coordinatedAdvice.map(advice=>(
+          <View key={advice.id} style={{marginVertical:8}}>
+            <Text style={styles.sectionLabel}>{advice.label}</Text>
+            <Text style={styles.cardBody}>{advice.explanation+" "+advice.tradeoff+" This is a design hypothesis; measure both versions before keeping it."}</Text>
+            <Button label="Compare this coordinated look" onPress={()=>tryCandidate(advice)}/>
+          </View>
+        )):null}
         {designCandidate?(
          <View style={{marginVertical:12}}>
           <Text style={styles.sectionLabel}>Testing a private alternative</Text>
@@ -1572,8 +1596,9 @@ function WebsitePreview({ s }) {
       {showRecoveryTools?(
        <Card eyebrow="Private recovery point"
          title="A safe place to come back to"
-         body="Save one temporary design checkpoint in this app session. Restore it if you experiment and change your mind. Your live website is never rolled back, and regular Undo remains available."
+         body="Keep a private design checkpoint and recent Undo/Redo in encrypted device storage where available. Recovery requires this exact business and draft revision; expired, changed or oversized histories cannot be restored. Your live website is never rolled back."
          tone="blue">
+         <Text style={styles.cardBody}>{s.websiteRecoveryNotice||"Device recovery is being checked. Keep this app open until saving is confirmed."}</Text>
          <Button label="Save this design as my recovery point"
           onPress={()=>{setConfirmRecoveryRestore(false);s.saveWebsiteRecoveryPoint?.();}}/>
          {s.websiteRecoveryPointAvailable?(

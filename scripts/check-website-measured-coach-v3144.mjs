@@ -72,7 +72,7 @@ for(let i=0;i<40;i++)growing=recordWebsiteOwnerDesignFeedback(growing,{
 assert.equal(growing.ownerDesignFeedback.length,20,"Bounded per-draft feedback memory");
 assert.equal(JSON.stringify(draft),base);
 const preview=read("src/screens/websiteBuilder.js");
-for(const token of ["applyWebsiteLayoutChange(draft,layoutAdvice.operation)",
+for(const token of ["applyWebsiteLayoutChange(draft,advice.operation)",
  "compareWebsiteVisualReports(visualCheckResult,candidateCheckResult)",
  "makeWebsiteVisualCheckHtml(candidateHtml,candidateKey)",
  "noNewMeasuredProblems","Return to my original design",

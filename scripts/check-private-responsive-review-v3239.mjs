@@ -99,7 +99,7 @@ for(const excerpt of [
  "Measured across screen sizes",
  "setPreviewSize(\"tablet\")",
  "setPreviewSize(\"desktop\")",
- "applyWebsiteLayoutChange(draft,layoutAdvice.operation)",
+ "applyWebsiteLayoutChange(draft,advice.operation)",
  "Keep this design in my private draft",
  "Return to my original design"
 ])ok(sourceFile.includes(excerpt));

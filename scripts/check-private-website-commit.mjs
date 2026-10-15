@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {checkPrivateWebsiteDraftCommit as check} from '../src/core/privateWebsiteDraftCommit.mjs';
-const current={id:'site',generation:4,publicStatus:'Published separately',sections:[{id:'hero',type:'hero',title:'Owner title',enabled:true}],theme:{}};
+const current={businessId:'business-a',id:'site',generation:4,publicStatus:'Published separately',sections:[{id:'hero',type:'hero',title:'Owner title',enabled:true}],theme:{}};
 const candidate={...current,generation:5,sections:[{...current.sections[0],title:'Reviewed title'}]};
 const args={current,candidate,live:current,scopeCurrent:true,businessId:'business-a'};
 assert.equal(check(args).applied,true);

@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {coordinatedWebsiteAlternatives as alternatives} from '../src/core/websiteCoordinatedAlternatives.mjs';
+import {applyWebsiteLayoutOperation as apply} from '../supabase/functions/busy-website-worker/websiteLayoutEditing.mjs';
+import {websiteBuilderTestHarnessV3222 as harness} from './lib/website-builder-test-harness-v3222.mjs';
+const {buildWebsiteDraft,applyWebsiteLayoutChange}=harness(['buildWebsiteDraft','applyWebsiteLayoutChange']);
+const draft=buildWebsiteDraft({brandBrain:{websiteBrief:{businessName:'Fixture studio',businessType:'Design studio',description:'Owner words'}}}),pageId=draft.pages[0].id;
+const report={counts:{viewport:390},issues:[]};const choices=alternatives(draft,pageId,report);assert.ok(choices.length);
+const result=applyWebsiteLayoutChange(draft,choices[0].operation);assert.equal(result.applied,true);assert.deepEqual(result.draft.sections,draft.sections);assert.equal(result.draft.theme.primary,draft.theme.primary);assert.equal(result.draft.publicStatus,draft.publicStatus);assert.equal(result.draft.generation,draft.generation+1);
+assert.equal(alternatives(draft,pageId,null).length,0);assert.equal(alternatives(draft,'foreign',report).length,0);
+assert.equal(apply(draft,{action:'style-group',operations:[{action:'style',field:'spacing',value:'generous'},{action:'brand-colour',value:'#ffffff'}]}).applied,false);
+assert.equal(apply(draft,{action:'style-group',operations:[{action:'style-group',operations:[]}]}).applied,false);
+const locked={...draft,theme:{...draft.theme,lockedSections:['hero']}};assert.equal(alternatives(locked,pageId,report).length,0);
+const failed=apply(draft,{action:'style-group',operations:[{action:'style',field:'spacing',value:'generous'},{action:'style',field:'typography',value:'malicious'}]});assert.equal(failed.applied,false);assert.equal(failed.draft,draft);
+const rejected={...draft,ownerDesignFeedback:[{draftId:draft.id,pageId,changeId:choices[0].id,choice:'disliked'}]};assert.equal(alternatives(rejected,pageId,report).some(c=>c.id===choices[0].id),false);
+console.log('PASS: real coordinated renderer, content/colour/public-state preservation, no partial mutation, bounded finite operations, lock and owner-feedback rejection. No browser screenshot evidence.');

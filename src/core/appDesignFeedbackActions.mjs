@@ -1,12 +1,13 @@
 import {validateDesignFeedback} from './appDesignLearning.mjs';
 import {privateAppEditSource} from './privateAppEditSession.mjs';
+import {createPrivateFeedbackAttempt} from './privateFeedbackAttempt.mjs';
 // Original feedback endpoint/ledger, with live-scope transport guards and stable
-// request identity. No retry queue, new learning store or training operation.
+// per-attempt request identity. No retry queue, new learning history or training.
 function feedbackBody(payload){
  const {appId,expectedRevision,field,value,verdict,context='preview',source='manual',baselineWarnings=null,proposedWarnings=null}=payload;
  return {appId,expectedRevision,field,value,verdict,context,source,baselineWarnings,proposedWarnings,ownerApproved:true};
 }
-function createAppDesignFeedbackActions(getScope){
+function createAppDesignFeedbackActions(getScope,{storage,newKey}={}){
  let pending=false;
  async function run(kind,payload,send,reviewed){
   const scope=getScope(),base=privateAppEditSource({businessId:scope?.businessId,app:scope?.app});
@@ -23,20 +24,24 @@ function createAppDesignFeedbackActions(getScope){
   if(kind==='record'){
    const valid=validateDesignFeedback(body);if(!valid.ok||body.expectedRevision!==base.revision)return fail(valid.reason||'The app revision changed.');
   }
-  const requestKey=kind==='record'?['df1',scope.userId,base.appId,base.revision,body.field,body.value,
-   body.context==='preview'?'p':'s',{better:'b',worse:'w',not_quite_right:'n'}[body.verdict],body.source,
-   body.baselineWarnings??'none',body.proposedWarnings??'none'].join(':'):'';
-  if(kind==='record'&&!/^[a-zA-Z0-9:_-]{8,160}$/.test(requestKey))return fail('A stable private feedback reference could not be prepared.');
   pending=true;
   try{
+   const attempt=createPrivateFeedbackAttempt(storage,scope,{newKey});
+   let requestKey,cleanupUnavailable=false;
+   if(kind==='record')requestKey=await attempt.prepare(body);
+   else{try{requestKey=await attempt.capture();}catch{cleanupUnavailable=true;}}
+   if(!current())return fail('The owner or private app changed before feedback was sent.');
    const action=kind==='record'?'record_design_feedback':'clear_design_feedback';
-   const response=await send(action,body,{isCurrent:current,...requestKey?{requestKey}:{}});
+   const response=await send(action,body,{isCurrent:current,...kind==='record'?{requestKey}:{}});
    if(!current()||response?.ok!==true||response.businessId!==base.businessId||response.appId!==base.appId||
     (kind==='record'?(response.feedbackRecorded!==true||response.draftRevision!==base.revision||
      response.feedbackContext!==body.context||response.publishedAppUnchanged!==true):
      response.cleared!==true||response.publicAppUnchanged!==true))return fail('The feedback result could not be verified. Check the current private history before another action.');
-   return kind==='record'?{ok:true,saved:true}:{ok:true,cleared:true};
-  }catch{return fail('Feedback confirmation is unavailable. Check the current private history before repeating; no action was replayed.');}
+   let recoveryPending=cleanupUnavailable;
+   try{await attempt.complete(requestKey);}catch{recoveryPending=true;}
+   if(!current())return fail('The owner or private app changed while confirming feedback. No result was applied.');
+   return kind==='record'?{ok:true,saved:true,recoveryPending}:{ok:true,cleared:true,recoveryPending};
+  }catch(error){return fail(String(error?.message||'Feedback confirmation is unavailable. Check private history before repeating; no action was replayed.').slice(0,300));}
   finally{pending=false;}
  }
  return {record:(payload,send,reviewed)=>run('record',payload,send,reviewed),clear:(payload,send,reviewed)=>run('clear',payload,send,reviewed)};

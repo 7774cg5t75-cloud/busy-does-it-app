@@ -72,7 +72,7 @@ assert.ok(stylesheet.includes("#gallery .gallery-image.owner-image-crop-top"),"L
 const worker=read("supabase/functions/busy-website-worker/index.ts");
 assert.ok(worker.includes('owner-image-crop-')&&worker.includes('class="gallery-image${crop}"'),
  "Hosted renderer emits same per-photo class, not only private preview");
-const controller=read("src/app/AppController.js");
+const controller=read("src/app/AppController.js")+read("src/core/websiteVoiceActions.mjs");
 const screen=read("src/screens/websiteTapEditor.js");
 const voice=read("src/screens/websiteSelectedVoice.js");
 const preview=read("src/screens/websiteBuilder.js");

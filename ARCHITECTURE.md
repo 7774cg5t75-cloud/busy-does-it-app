@@ -1,3 +1,9 @@
+## Mission 5 — durable recovery and connected builder completion (15 October 2026)
+
+Seven functional sweeps continue from draft PR #11 (348b60aa), preserving draft PRs #10/#11 unmerged. The original website history now has bounded, encrypted exact-source restart continuity and explicit immediate-predecessor recovery. Existing asynchronous lanes protect voice, export, hosted preparation, preview and approval; cached drafts need verified business provenance before content operations. Busy prepares goal-specific missing App facts through Studio, compares coordinated website typography/layout/spacing using the original measured candidate flow, and reuses empty service descriptions without overwriting owner copy. Website-to-app transfer shares Studio checkpoint/Undo. Focused voice and storage adapters improve reuse; owner feedback now distinguishes ambiguous retries from genuinely new opinions and uses the correct website ledger handler.
+
+No new engine/schema/provider/dependency or public change. Product Master V22.18 remains the product vision. Device storage limits, process-death recovery, hosted security/concurrency and real browser/customer acceptance remain unverified. See `docs/BUILDER_MISSION5_2026_10_15.md`, its check manifest and `docs/ARCHITECTURE_HEALTH_MISSION5_2026_10_15.md` for actual evidence and release limits.
+
 ## Mission 4 — reviewed integration and dependent completion sweeps (15 October 2026)
 
 PR #10 review reproduced and corrected uncertain undo revival, incomplete profile/copy lock targets, omitted module decisions, raced first-plan adoption and sparse copy/service inverses. Its original 97/106 + nine EPERM baseline is independently reproduced; direct ESM composition now runs those same offline packet assertions without subprocesses or changed security controls. The 108-script review set passes.

@@ -1,3 +1,4 @@
+import {fillMissingBuilderDescriptions} from "./builderServiceDescriptions.mjs";
 /**
  * V3.196: owner-reviewed website -> private Business App design transfer.
  * Maps existing first-party builder choices into already-supported atomic
@@ -41,8 +42,8 @@ function websiteOwnerServices(website){
  return chosen;
 }
 function planWebsiteToAppDesign({website,app,businessId,mode="adapt",
- includeServices=false}={}){
- if(!MODES.includes(mode)||typeof includeServices!=="boolean")
+ includeServices=false,fillDescriptions=false}={}){
+ if(!MODES.includes(mode)||typeof includeServices!=="boolean"||typeof fillDescriptions!=="boolean")
   return {ok:false,reason:"Choose a supported transfer approach."};
  if(!validPrivateBuilderPair(website,app,businessId)||
    (website.business_id&&website.business_id!==businessId)||
@@ -112,11 +113,16 @@ function planWebsiteToAppDesign({website,app,businessId,mode="adapt",
       Object.keys(x).some(k=>!["id","name","description"].includes(k)))||
       existing.length+additions.length>30){
     skipped.push("Existing app service details require manual review; left untouched.");
-   }else if(additions.length){
-    const next=[...existing.map(x=>({...x})),...additions];
+   }else {
+    const repair=fillDescriptions?fillMissingBuilderDescriptions(existing,incoming):{ok:true,next:existing,filled:[]};
+    if(!repair.ok)return repair;
+    if(!additions.length&&!repair.filled.length){skipped.push("All named website services are already in the app.");}
+    else{
+    const next=[...repair.next.map(x=>({...x})),...additions];
     operations.push({kind:"services",value:next});
-    explanations.push("Copy "+additions.length+" missing website service(s), preserving existing app services.");
-   }else skipped.push("All named website services are already in the app.");
+    explanations.push("Copy "+additions.length+" missing website service(s), preserving existing app services. Filled "+repair.filled.length+" previously empty description(s).");
+    }
+   }
   }
  }
  if(operations.length>8)return {ok:false,reason:"Too many changes for one safe app draft update."};
@@ -128,7 +134,7 @@ function planWebsiteToAppDesign({website,app,businessId,mode="adapt",
   mode,businessId,sourceWebsiteId:website.id,
   sourceWebsiteGeneration:website.generation,
   targetAppId:app.id,targetAppRevision:app.draft_revision,
-  operations:reviewed,includeServices,changes:[...preview.changes],
+  operations:reviewed,includeServices,fillDescriptions,changes:[...preview.changes],
   previewConfig:preview.nextConfig,explanations,skipped,
   industryPriority:mode==="adapt"?
     recommendedAppFirstSection(website.businessType,config):null,
@@ -144,7 +150,7 @@ function confirmWebsiteToAppDesign({website,app,businessId,evidence}={}){
   return {ok:false,reason:"The website, app or business changed. Review the latest design first."};
  const current=planWebsiteToAppDesign({website,app,businessId,
   mode:evidence?.mode,
-  includeServices:evidence?.includeServices===true});
+  includeServices:evidence?.includeServices===true,fillDescriptions:evidence?.fillDescriptions===true});
  if(!current.ok||current.exactPreview!==evidence.exactPreview||
    JSON.stringify(current.operations)!==JSON.stringify(evidence.operations))
   return {ok:false,reason:"The proposed app changes no longer match the reviewed design."};

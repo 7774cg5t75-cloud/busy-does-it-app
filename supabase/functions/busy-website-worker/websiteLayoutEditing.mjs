@@ -369,6 +369,15 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
  return fail(draft,"Unsupported layout change. No website content was modified.");
 }
 function applyWebsiteLayoutOperation(draft,operation){
+ if(operation?.action==='style-group'){
+  const ops=operation.operations;
+  if(!Array.isArray(ops)||!ops.length||ops.length>4||Object.keys(operation).some(k=>!['action','operations','kind'].includes(k))||
+   ops.some(op=>!op||!['style','section-style'].includes(op.action)||Object.keys(op).some(k=>!['action','sectionId','field','value'].includes(k))))
+   return fail(draft,'Choose up to four supported appearance changes.');
+  let next=draft;
+  for(const op of ops){const result=applyWebsiteLayoutOperation(next,op);if(!result.applied)return fail(draft,result.reason);next=result.draft;}
+  return protectWebsiteOwnerLocks(draft,{applied:true,draft:next,reason:'Prepared coordinated appearance changes. All business content and brand colours remain unchanged.'});
+ }
  return protectWebsiteOwnerLocks(draft,applyWebsiteLayoutOperationUnchecked(draft,operation));
 }
 export {applyWebsiteLayoutOperation,websiteLayoutLockReason,allow as websiteAppearanceOptions};
