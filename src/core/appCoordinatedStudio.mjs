@@ -5,7 +5,7 @@ import {appEditLockReason} from "./appOwnerLocks.mjs";
  * It cannot enable modules, confirm requests, charge, publish or submit apps.
  */
 import {enabledAppKeys,proposeAppSectionMove} from "./appSectionOrder.mjs";
-import {previewPrivateAppAppearance,DEFAULTS} from "./appAppearanceEditing.mjs";
+import {previewPrivateAppAppearance,publicAppAppearance} from "./appAppearanceEditing.mjs";
 import {reviewPrivateAppServices} from "./appServiceCollection.mjs";
 import {proposeGalleryImageDescription} from "./appGalleryDescription.mjs";
 const MAX_CHANGES=8;
@@ -31,13 +31,23 @@ function proposeCoordinatedAppChanges(config,operations){
    const edit=previewPrivateAppAppearance(next,{field:op.field,value:op.value});
    if(!edit.ok)return edit;
    after=edit.nextConfig;
-   const prior=next.presentation||{};
-   undo=["brandPalette","brandAccent"].includes(op.field)?
-    prior.brandPalette==="custom"?
-     {kind:"appearance",field:"brandAccent",value:prior.brandAccent}:
-     {kind:"appearance",field:"brandPalette",value:prior.brandPalette||DEFAULTS.brandPalette}:
-    {kind:"appearance",field:op.field,value:edit.previous};
+   undo={kind:"restore_appearance",value:own(next,"presentation")?
+    JSON.parse(JSON.stringify(next.presentation)):null};
    description=op.field+": "+edit.previous+" → "+edit.value;
+  }else if(op.kind==="restore_appearance"){
+   if(op.value!==null&&!publicAppAppearance(op.value).ok||
+      !publicAppAppearance(next.presentation||{}).ok||
+      JSON.stringify(next.presentation?.ownerLockedElements||[])!==
+       JSON.stringify(op.value?.ownerLockedElements||[]))
+    return {ok:false,reason:"Only a validated appearance snapshot with unchanged owner locks can be restored."};
+   if(JSON.stringify(next.presentation??null)===JSON.stringify(op.value))
+    return {ok:false,reason:"This appearance is already restored."};
+   undo={kind:"restore_appearance",value:own(next,"presentation")?
+    JSON.parse(JSON.stringify(next.presentation)):null};
+   after={...next};
+   if(op.value===null)delete after.presentation;
+   else after.presentation=JSON.parse(JSON.stringify(op.value));
+   description="Restored the reviewed private appearance";
   }else if(op.kind==="move"){
    const edit=proposeAppSectionMove(next,{moduleKey:op.moduleKey,direction:op.direction});
    if(!edit.ok)return edit;

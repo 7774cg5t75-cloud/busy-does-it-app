@@ -992,7 +992,7 @@ function WebsitePreview({ s }) {
   const sourceKey=[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft?.id,
     draft?.generation,activePage?.id||"home"].join(":");
   const candidateIsCurrent=currentWebsiteDesignCandidate(designCandidate,{
-    businessId:s.cloudWorkspace?.businessId,website:draft,pageId:activePage?.id||"home"});
+    businessId:s.cloudWorkspace?.businessId,website:draft,pageId:activePage?.id||"home",ownerId:s.ownerSession?.userId||""});
   const inspectionKey=["review",captureEpoch.current,"original",captureSequence.original].join(":");
   const candidateKey=designCandidate?
     ["review",captureEpoch.current,"candidate",captureSequence.candidate].join(":"):"";
@@ -1102,7 +1102,7 @@ function WebsitePreview({ s }) {
     }):null;
   const designReviewProgress=privateWebsiteReviewProgress(privateWidthEvidence,{
     businessId:s.cloudWorkspace?.businessId,website:draft,pageId:activePage?.id||"home",
-    candidate:designCandidate,mode:previewSize});
+    candidate:designCandidate,mode:previewSize,ownerId:s.ownerSession?.userId||""});
   const candidateComparison=candidateIsCurrent&&candidateReportIsCurrent&&originalReportIsCurrent
     ?compareWebsiteVisualReports(visualCheckResult,candidateCheckResult):
     currentCandidateEvidence?.ok?currentCandidateEvidence.comparison:null;
@@ -1135,7 +1135,7 @@ function WebsitePreview({ s }) {
     // Don't modify the owner's real draft. Recheck the entire rendered private
     // candidate on the SAME page and viewport, then offer an explicit Keep.
     setDesignCandidate({...layoutAdvice,draft:result.draft,pageId:activePage?.id,
-      businessId:s.cloudWorkspace?.businessId,websiteId:draft.id,
+      businessId:s.cloudWorkspace?.businessId,websiteId:draft.id,ownerId:s.ownerSession?.userId||"",
       baseGeneration:draft.generation});
     const baseline=recordPrivateWebsiteCandidateWidthV3239(null,{
       businessId:s.cloudWorkspace?.businessId,website:draft,pageId:activePage?.id||"home",

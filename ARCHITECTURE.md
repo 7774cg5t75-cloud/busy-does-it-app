@@ -1,5 +1,9 @@
 # Busy Does It code architecture
 
+## PR #10 follow-up review — 15 October 2026
+
+Rechecked V22.18, current source and development policy. Original mission remains draft/unmerged. Review fixes enforce locks on indirectly displaced modules and appearance groups, restore the exact sparse appearance through the existing private CAS editor, and bind website candidate approval to the signed-in owner. Client/Edge helper copies stay identical. See `docs/BUILDER_PR10_FOLLOWUP_2026_10_15.md` for reproduced defects, evidence and subsequent sweeps. No production/provider/deployment actions.
+
 ## Extended builder completion mission — isolated development, 15 October 2026
 
 Product preflight: supplied Word Master V22.18 (all 53 sections), current V3.240 architecture and DEVELOPMENT_SWEEP_AND_ARCHITECTURE_POLICY.md. Historical V3.8 passages in the Word master are not current implementation evidence. App Builder first; preserve marketplace and standalone paths, simple owner decisions, shared Brand DNA and verified outcomes.

@@ -15,7 +15,7 @@ function enabledAppKeys(config){
  return {ok:true,keys:[...nav]};
 }
 function proposeAppSectionMove(config,{moduleKey,direction}={}){
- const locked=appEditLockReason(config,{kind:"move",moduleKey});
+ const locked=appEditLockReason(config,{kind:"move",moduleKey,direction});
  if(locked)return {ok:false,reason:locked};
  const valid=enabledAppKeys(config);if(!valid.ok)return valid;
  if(typeof moduleKey!=="string"||!["up","down"].includes(direction))

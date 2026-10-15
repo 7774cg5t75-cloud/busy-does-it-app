@@ -1,14 +1,14 @@
 import {reviewPrivateWebsiteCandidateWidthsV3239} from "./privateWebsiteCandidateWidthV3239.mjs";
 import {inspectCurrentWebsiteCandidateV3240} from "./websiteCurrentCandidateV3240.mjs";
 
-function currentWebsiteDesignCandidate(candidate,{businessId,website,pageId}={}){
- return !!candidate&&!!businessId&&candidate.businessId===businessId&&
+function currentWebsiteDesignCandidate(candidate,{businessId,website,pageId,ownerId}={}){
+ return !!candidate&&!!businessId&&(ownerId===undefined||!!ownerId&&candidate.ownerId===ownerId)&&candidate.businessId===businessId&&
   candidate.websiteId===website?.id&&candidate.baseGeneration===website?.generation&&
   candidate.pageId===pageId&&(!website.businessId||website.businessId===businessId)&&
   (!website.business_id||website.business_id===businessId);
 }
-function privateWebsiteReviewProgress(state,{businessId,website,pageId,candidate,mode}={}){
- if(!currentWebsiteDesignCandidate(candidate,{businessId,website,pageId}))
+function privateWebsiteReviewProgress(state,{businessId,website,pageId,candidate,mode,ownerId}={}){
+ if(!currentWebsiteDesignCandidate(candidate,{businessId,website,pageId,ownerId}))
   return {ok:false,mayKeep:false,next:null,reason:"The private design changed. Prepare it again in the current business."};
  const args={businessId,website,pageId,candidateId:candidate.id,baseGeneration:candidate.baseGeneration};
  const review=state?reviewPrivateWebsiteCandidateWidthsV3239(state,args):null;
