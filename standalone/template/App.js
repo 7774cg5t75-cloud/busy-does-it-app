@@ -39,8 +39,7 @@ function Field({title,value,onChange,multiline=false}){
     placeholderTextColor={COLORS.muted}
     style={{color:COLORS.text,backgroundColor:COLORS.bg,borderColor:COLORS.line,
       borderWidth:1,borderRadius:9,padding:12,marginTop:6,
-      minHeight:48,
-      minHeight:multiline?92:45,textAlignVertical:"top"}}/>
+      minHeight:multiline?92:48,textAlignVertical:"top"}}/>
  </View>;
 }
 function RequestScreen({screen,live,runtime,initialService="",initialMessage=""}){
@@ -249,6 +248,7 @@ export default function App(){
  const [requestedIntent,setRequestedIntent]=useState("");
  const [requestedKind,setRequestedKind]=useState("service");
  const [refreshSequence,setRefreshSequence]=useState(0);
+ const [measuredFrameWidth,setMeasuredFrameWidth]=useState(0);
  const [contactNotice,setContactNotice]=useState("");
  const [loading,setLoading]=useState(connected),[live,setLive]=useState(null),
   [error,setError]=useState("");
@@ -267,7 +267,7 @@ export default function App(){
  const chosen=pages.find(x=>x.key===current)||pages[0];
  const outerPadding=LOOK.layoutDensity==="compact"?13:
    LOOK.layoutDensity==="airy"?28:20;
- const contentWidth=Math.max(250,Math.floor(viewport.width-2*outerPadding));
+ const contentWidth=Math.max(250,Math.floor((measuredFrameWidth||viewport.width)-2*outerPadding));
  const responsive=responsiveAppLayout({
   modules:prototype.screenSchema.screens.map(screen=>({
    key:screen.key,enabled:!live||live.moduleKeys?.includes(screen.key)})),
@@ -277,7 +277,10 @@ export default function App(){
  },contentWidth);
  return <SafeAreaView style={{flex:1,backgroundColor:COLORS.bg}}>
   <StatusBar barStyle={COLORS.text==="#14212B"?"dark-content":"light-content"}/>
-  <ScrollView contentContainerStyle={{padding:outerPadding,paddingBottom:55}}>
+  <ScrollView onLayout={({nativeEvent})=>{
+    const width=Math.floor(nativeEvent.layout.width);
+    if(width>=250&&width!==measuredFrameWidth)setMeasuredFrameWidth(width);
+   }} contentContainerStyle={{padding:outerPadding,paddingBottom:55}}>
    <Text style={{color:COLORS.accent,fontSize:12,fontWeight:"700",letterSpacing:1}}>
     {live?"LIVE PUBLIC BUSINESS APP":connected?
       "CHECKING LIVE CONNECTION":"PRIVATE APP PROTOTYPE"}</Text>

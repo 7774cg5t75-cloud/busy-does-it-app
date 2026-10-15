@@ -28,6 +28,13 @@ Product preflight: supplied Word Master V22.18 (all 53 sections), current V3.240
 - The original portfolio validator revalidates stored metrics and rejects improvements earned by dropping existing measured sections, headings or images. These are local DOM observations, not independent screenshots or proof of customer task completion.
 - Verification: new guided-progress/content-retention/stale-key tests pass; inherited V3.144 measured coach, V3.145 coordinated review, V3.148 responsive preview, V3.239 and V3.240 tests pass. No website deployed, customer data queried or provider called.
 
+### Sweep 4 — branded standalone handoff and reversible appearance parity
+
+- `publicAppAppearance` supplies one finite appearance validator/projection for standalone handoff and native descriptors. A supported custom brand colour now survives the full immutable preview → handoff → unsigned descriptor path; valid private owner locks stay in the editor and are excluded from public package metadata. Unknown fields, inconsistent palette/accent values and malformed locks fail closed.
+- Original coordinated appearance undo now restores custom palette/colour combinations using supported commands. Previously switching from custom to a preset emitted an unsupported `brandPalette:custom` inverse, and switching to custom could emit an empty inverse accent. New tests execute forward and inverse plans and verify exact restoration for those transitions.
+- The standalone template uses measured container width after layout, with the existing window fallback, so constrained/native split layouts feed the same responsive engine as marketplace previews. Removed a duplicate `minHeight` that reduced single-line inputs below the intended minimum.
+- Verification: new full handoff/custom-colour/undo tests, V3.193's 305 branding assertions, V3.154 standalone eligibility, V3.157, new prior-sweep tests and native/Edge parser checks pass. No billing entitlement activated, binary signed, store account accessed or deployment performed.
+
 ## V3.240 — contextual App Builder design intelligence, shared Brand DNA and safe responsive reuse
 
 **Master-first checkpoint:** Retains owner-approved V22.17 context-aware visual agent, V22.18 Business Brain priorities, V3.239 private website multiview measurements, and the permanent principles of one reusable builder engine, tenant isolation, owner approval and verified customer outcomes.

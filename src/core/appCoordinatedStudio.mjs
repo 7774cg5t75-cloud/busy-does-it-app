@@ -5,7 +5,7 @@ import {appEditLockReason} from "./appOwnerLocks.mjs";
  * It cannot enable modules, confirm requests, charge, publish or submit apps.
  */
 import {enabledAppKeys,proposeAppSectionMove} from "./appSectionOrder.mjs";
-import {previewPrivateAppAppearance} from "./appAppearanceEditing.mjs";
+import {previewPrivateAppAppearance,DEFAULTS} from "./appAppearanceEditing.mjs";
 import {reviewPrivateAppServices} from "./appServiceCollection.mjs";
 import {proposeGalleryImageDescription} from "./appGalleryDescription.mjs";
 const MAX_CHANGES=8;
@@ -31,7 +31,12 @@ function proposeCoordinatedAppChanges(config,operations){
    const edit=previewPrivateAppAppearance(next,{field:op.field,value:op.value});
    if(!edit.ok)return edit;
    after=edit.nextConfig;
-   undo={kind:"appearance",field:op.field,value:edit.previous};
+   const prior=next.presentation||{};
+   undo=["brandPalette","brandAccent"].includes(op.field)?
+    prior.brandPalette==="custom"?
+     {kind:"appearance",field:"brandAccent",value:prior.brandAccent}:
+     {kind:"appearance",field:"brandPalette",value:prior.brandPalette||DEFAULTS.brandPalette}:
+    {kind:"appearance",field:op.field,value:edit.previous};
    description=op.field+": "+edit.previous+" → "+edit.value;
   }else if(op.kind==="move"){
    const edit=proposeAppSectionMove(next,{moduleKey:op.moduleKey,direction:op.direction});

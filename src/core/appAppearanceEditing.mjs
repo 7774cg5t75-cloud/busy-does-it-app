@@ -58,4 +58,18 @@ function previewPrivateAppAppearance(config,{field,value}={}){
   privateOnly:true,ownerApprovalRequired:true,changesBooking:false,
   changesPayments:false};
 }
-export {OPTIONS,DEFAULTS,previewPrivateAppAppearance};
+// Safe distribution projection: edit-only owner metadata stays in the draft.
+function publicAppAppearance(presentation={}){
+ if(!presentation||typeof presentation!=="object"||Array.isArray(presentation)||
+    !appOwnerLocks({presentation}).ok)
+  return {ok:false,reason:"The approved app appearance needs review."};
+ const {ownerLockedElements,...look}=presentation;
+ if(Object.keys(look).some(key=>key==="brandAccent"?
+    typeof look[key]!=="string"||!HEX.test(look[key]):
+    !owned(OPTIONS,key)||!OPTIONS[key].includes(look[key]))||
+    (look.brandPalette==="custom"&&!HEX.test(look.brandAccent||""))||
+    (look.brandAccent!==undefined&&look.brandPalette!=="custom"))
+  return {ok:false,reason:"Use a supported appearance and a valid custom brand colour."};
+ return {ok:true,appearance:{...DEFAULTS,...look}};
+}
+export {OPTIONS,DEFAULTS,previewPrivateAppAppearance,publicAppAppearance};
