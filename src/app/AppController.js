@@ -1,3 +1,5 @@
+import {createAppDesignFeedbackActions} from "../core/appDesignFeedbackActions.mjs";
+import {createPrivateWebsiteAsyncGate} from "../core/privateWebsiteAsyncGate.mjs";
 import {checkPrivateWebsiteDraftCommit} from "../core/privateWebsiteDraftCommit.mjs";
 import {useWebsiteDraftHistory} from "../screens/useWebsiteDraftHistory";
 import {executeAppDraftMutation} from "../core/appDraftMutation.mjs";
@@ -51,7 +53,7 @@ import {previewWebsiteAIStudio} from "../core/websiteAIStudio.mjs";
 import {privateBuilderVisualIntegrity} from "../core/privateBuilderBoundary.mjs";
 import {planWebsitePageInstructions,prepareWebsitePageInstructionPreview} from "../core/websitePageInstructions.mjs";
 import {makeWebsiteRecoveryPoint,restoreWebsiteRecoveryPoint as restoreWebsiteRecoverySnapshot} from "../core/websiteRecoveryPoint.mjs";
-import {validateDesignFeedback,normalizeDesignHistory} from "../core/appDesignLearning.mjs";
+import {normalizeDesignHistory} from "../core/appDesignLearning.mjs";
 import {validateOwnerBrainWrite,normalizeOwnerBrainHistory}
  from "../core/brainOwnerDecisionsContract.mjs";
 import {currentPreparedWebsiteRevision,validateWebsiteBrainChoice,
@@ -364,6 +366,7 @@ function App() {
   const miniAppVoiceScopeRef=useRef({});
   const firstAppFromWebsiteInFlightRef=useRef(false);
   const privateAppEditInFlightRef=useRef(false);
+  const appDesignFeedbackActionsRef=useRef(null);
   const privateAppEditScopeRef=useRef(null);
   const [miniAppsLoading, setMiniAppsLoading] = useState(false);
   const [miniAppsAction, setMiniAppsAction] = useState("");
@@ -559,6 +562,11 @@ function App() {
   const [ownerAuthReady, setOwnerAuthReady] = useState(false);
   const [cloudWorkspace, setCloudWorkspace] = useState(null);
   const websiteHistoryScope={ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||""};
+  const websiteAsyncContextRef=useRef(null),websiteAsyncGateRef=useRef(null);
+  if(!websiteAsyncGateRef.current)websiteAsyncGateRef.current=createPrivateWebsiteAsyncGate();
+  useEffect(()=>{setWebsiteVisualReview(null);setWebsiteVisualReviewStatus(null);
+    setWebsiteVisualReviewNotice("");setWebsiteVisualReviewBusy(false);
+  },[ownerSession?.userId,cloudWorkspace?.businessId]);
   const {websiteUndo,websiteRedo,websiteRecoveryPoint,setWebsiteUndo,setWebsiteRedo,setWebsiteRecoveryPoint,websiteHistoryIsCurrent}=
     useWebsiteDraftHistory({...websiteHistoryScope,websiteId:websiteDraft?.id||""});
   const [cloudInitialised, setCloudInitialised] = useState(false);
@@ -8326,6 +8334,10 @@ function App() {
     remote: websitePublishingStatus,
     websiteDraft,
   });
+  websiteAsyncContextRef.current={...websiteHistoryScope,draft:websiteDraft,
+    deploymentId:websitePublishingView?.previewDeployment?.id||"",
+    draftChangedSinceHosted:websitePublishingView?.draftChangedSinceHosted===true};
+  websiteAsyncGateRef.current.setContext(websiteAsyncContextRef.current);
   const miniAppsView = buildMiniAppsView(miniAppsStatus);
   miniAppVoiceScopeRef.current={
     appId:miniAppsStatus?.app?.id||"",
@@ -13217,36 +13229,44 @@ function App() {
     return true;
   };
 
-  const websiteVisualReviewRequest=async(action,payload={})=>{
+  const websiteTaskContext=()=>({...websiteAsyncContextRef.current,draft:websiteDraftRef.current});
+  const websiteTaskCurrent=task=>websiteAsyncGateRef.current.current(task,websiteTaskContext());
+  const websiteBeginTask=lane=>websiteAsyncGateRef.current.begin(lane,{
+    ...websiteHistoryScope,draft:websiteDraft,deploymentId:websitePublishingView?.previewDeployment?.id||"",
+    draftChangedSinceHosted:websitePublishingView?.draftChangedSinceHosted===true
+  },websiteTaskContext());
+  const websiteVisualReviewRequest=async(action,payload={},task)=>{
+    if(!websiteTaskCurrent(task))throw Error("The website workspace changed before this request.");
     const token=await ownerAccessToken();
+    if(!websiteTaskCurrent(task))throw Error("The website workspace changed before this request.");
     if(!token)throw Error("Sign in to your business before requesting a visual review.");
-    const businessId=cloudWorkspace?.businessId||"";
-    if(!businessId)throw Error("Select your business workspace first.");
+    const businessId=task.context.businessId;
     const response=await fetchWithTimeout(BUSY_WEBSITE_DESIGN_REVIEW_URL,{
-      method:"POST",headers:{
-        apikey:BUSY_AI_TOKEN,Authorization:`Bearer ${token}`,
-        "Content-Type":"application/json",
-      },
-      body:JSON.stringify({action,businessId,...payload}),
+      method:"POST",headers:{apikey:BUSY_AI_TOKEN,Authorization:`Bearer ${token}`,"Content-Type":"application/json"},
+      body:JSON.stringify({...payload,action,businessId}),
     },action==="studio"?185000:45000);
     const data=await response.json().catch(()=>({}));
+    if(!websiteTaskCurrent(task))throw Error("The website changed while checking the request. No result was applied.");
     if(!response.ok)throw Error(data.error||"Visual website review is not available yet.");
     return data;
   };
 
   const checkWebsiteVisualReview=async()=>{
     if(websiteVisualReviewBusy)return false;
+    const task=websiteBeginTask("visual");
+    if(!task)return false;
     setWebsiteVisualReviewBusy(true);
     setWebsiteVisualReviewNotice("");
     try{
-      const result=await websiteVisualReviewRequest("status");
+      const result=await websiteVisualReviewRequest("status",{},task);
       setWebsiteVisualReviewStatus(result);
       setWebsiteVisualReviewNotice(result.message||"Review readiness checked.");
       return !!result.enabled;
     }catch(error){
+      if(!websiteTaskCurrent(task))return false;
       setWebsiteVisualReviewNotice(error?.message||"BUSY could not check visual-review readiness.");
       return false;
-    }finally{setWebsiteVisualReviewBusy(false);}
+    }finally{if(websiteAsyncGateRef.current.finish(task))setWebsiteVisualReviewBusy(false);}
   };
 
   const requestWebsiteVisualReview=async()=>{
@@ -13258,6 +13278,8 @@ function App() {
       setWebsiteVisualReviewNotice("Prepare and check your latest private hosted preview. Review credits and provider connection must be available.");
       return false;
     }
+    const task=websiteBeginTask("visual");
+    if(!task)return false;
     setWebsiteVisualReviewBusy(true);
     setWebsiteVisualReviewNotice("BUSY is examining the private website at mobile and desktop sizes.");
     setWebsiteVisualReview(null);
@@ -13265,7 +13287,7 @@ function App() {
       const result=await websiteVisualReviewRequest("review",{
         deploymentId:deployment.id,ownerConsent:true,
         requestKey:busyRequestId("website-visual"),
-      });
+      },task);
       if(!result?.report?.valid||result?.published!==false||
          result?.deploymentId!==deployment.id||
          result?.businessId!==(cloudWorkspace?.businessId||"")){
@@ -13278,9 +13300,10 @@ function App() {
       setWebsiteVisualReviewStatus(old=>old?{...old,remaining:Math.max(0,Number(old.remaining||0)-1)}:old);
       return true;
     }catch(error){
+      if(!websiteTaskCurrent(task))return false;
       setWebsiteVisualReviewNotice(error?.message||"Visual review could not be completed. Check usage before retrying.");
       return false;
-    }finally{setWebsiteVisualReviewBusy(false);}
+    }finally{if(websiteAsyncGateRef.current.finish(task))setWebsiteVisualReviewBusy(false);}
   };
 
   // V3.151: owner-initiated, bounded paid review loop. It does NOT
@@ -13309,6 +13332,8 @@ function App() {
         !websitePublishingView?.draftChangedSinceHosted&&
         (ownerSession?.userId||"")+":"+(cloudWorkspace?.businessId||"")===anchor.scope;
     };
+    const task=websiteBeginTask("visual");
+    if(!task)return false;
     setWebsiteVisualReviewBusy(true);
     setWebsiteVisualReview(null);
     setWebsiteVisualReviewNotice("BUSY is privately comparing real screenshots. Up to "+
@@ -13317,7 +13342,7 @@ function App() {
       const response=await websiteVisualReviewRequest("studio",{
         deploymentId:anchor.deploymentId,ownerConsent:true,maxPasses,
         requestKey:busyRequestId("website-autonomous-studio")
-      });
+      },task);
       if(!response?.ok||response?.businessId!==(cloudWorkspace?.businessId||"")||
          response.deploymentId!==anchor.deploymentId||
          response.sourceGeneration!==anchor.generation||
@@ -13326,7 +13351,7 @@ function App() {
          response.reviewCalls<1||response.reviewCalls>needed)
         throw Error("The studio result did not pass owner, version or spending checks.");
       // A draft edit during the request invalidates ALL results.
-      if(!unchanged()){
+      if(!websiteTaskCurrent(task)||!unchanged()){
         setWebsiteVisualReviewNotice("Your website changed during the review. The old result was discarded; no website was edited.");
         return false;
       }
@@ -13340,10 +13365,11 @@ function App() {
        :"BUSY did not verify a safer design improvement. Your existing website remains unchanged.");
       return true;
     }catch(error){
+      if(!websiteTaskCurrent(task))return false;
       setWebsiteVisualReviewNotice(String(error?.message||
        "The studio could not finish. Some AI credits may have been consumed. Check usage before retrying.").slice(0,300));
       return false;
-    }finally{setWebsiteVisualReviewBusy(false);}
+    }finally{if(websiteAsyncGateRef.current.finish(task))setWebsiteVisualReviewBusy(false);}
   };
 
   // Staging is read-only and rechecks the same authenticated deployment scope
@@ -13897,13 +13923,18 @@ function App() {
       setWebsiteBuilderNotice("Build your website and connect your business cloud workspace before backing up original photos.");
       return false;
     }
-    const businessId=cloudWorkspace.businessId;
+    const task=websiteBeginTask("media");
+    if(!task)return false;
+    const original=task.context.draft;
+    const businessId=task.context.businessId;
+    try{
     const token=await ownerAccessToken();
+    if(!websiteTaskCurrent(task))return false;
     if(!token){
       setWebsiteBuilderNotice("Sign in again before backing up your website photos.");
       return false;
     }
-    const assets=sitePhotoAssets(websiteDraft).filter(({asset})=>
+    const assets=sitePhotoAssets(original).filter(({asset})=>
       !validExportOriginalPath(asset.exportOriginalPath,businessId));
     if(!assets.length){
       setWebsiteBuilderNotice("All the currently approved website photographs already have a private original backup.");
@@ -13914,9 +13945,10 @@ function App() {
       return false;
     }
     setWebsiteBuilderNotice("Backing up approved original website photographs privately. Nothing will be published.");
-    let copied=0,missing=0,bytesTotal=0,next=websiteDraft;
+    let copied=0,missing=0,bytesTotal=0,next=original;
     try{
       for(const {key,asset} of assets){
+        if(!websiteTaskCurrent(task))return false;
         const uri=String(asset?.uri||"").trim();
         if(!/^(?:file|content):\/\//i.test(uri)){missing++;continue;}
         try{
@@ -13926,6 +13958,7 @@ function App() {
             missing++;continue;
           }
           const base64=await local.base64();
+          if(!websiteTaskCurrent(task))return false;
           if(base64.length>12_600_000){missing++;continue;}
           const response=await fetchWithTimeout(
             BUSY_SUPABASE_URL+"/functions/v1/busy-website-original-media",{
@@ -13935,6 +13968,7 @@ function App() {
               body:JSON.stringify({action:"upload",businessId,photoBase64:base64})
             },60000);
           const data=await response.json().catch(()=>({}));
+          if(!websiteTaskCurrent(task))return false;
           if(!response.ok||!data.ok||!validExportOriginalPath(data.storagePath,businessId)){
             missing++;continue;
           }
@@ -13942,10 +13976,12 @@ function App() {
           copied++;bytesTotal+=size;
         }catch{missing++;}
       }
+      if(!websiteTaskCurrent(task))return false;
       if(copied){
-        setWebsiteUndo(items=>[...items,websiteDraft].slice(-8));
+        setWebsiteUndo(items=>[...items,original].slice(-8));
         setWebsiteRedo([]);
-        setWebsiteDraft(next);
+        next=rebuildPrivateWebsiteDraft(next);
+        websiteDraftRef.current=next;setWebsiteDraft(next);
       }
       setWebsiteBuilderNotice(copied+" original photograph"+(copied===1?"":"s")+
         " securely backed up for future ZIP exports. "+
@@ -13953,9 +13989,12 @@ function App() {
         "Your website has NOT been published or changed online.");
       return copied>0&&missing===0;
     }catch{
+      if(!websiteTaskCurrent(task))return false;
       setWebsiteBuilderNotice("Backup could not finish. Your published website is untouched.");
       return false;
     }
+    }catch{if(websiteTaskCurrent(task))setWebsiteBuilderNotice("Private backup could not start. Check your current workspace and try again.");return false;
+    }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
   const shareStandaloneWebsiteZip=async()=>{
@@ -15911,56 +15950,17 @@ function App() {
         "Private design history is not yet available.").slice(0,235)};
     }
   };
-  const recordAppDesignPreference=async({
-    appId,expectedRevision,field,value,verdict,context="preview",
-    source="manual",baselineWarnings=null,proposedWarnings=null
-  }={})=>{
-    const businessId=String(cloudWorkspace?.businessId||"");
-    const current=()=>businessId&&cloudWorkspace?.businessId===businessId&&
-      miniAppsView?.app?.id===appId&&
-      Number(miniAppsView?.app?.draft_revision)===Number(expectedRevision);
-    const valid=validateDesignFeedback({
-      appId,expectedRevision,field,value,verdict,context,source,
-      baselineWarnings,proposedWarnings,ownerApproved:true
-    });
-    if(!valid.ok||!current())
-      return {ok:false,reason:valid.reason||"Open the current private draft again."};
-    try{
-      const response=await miniAppsRequest("record_design_feedback",{
-        appId,expectedRevision,field,value,verdict,context,source,
-        baselineWarnings,proposedWarnings,ownerApproved:true
-      });
-      if(!current()||response?.ok!==true||
-         response.businessId!==businessId||response.appId!==appId||
-         response.feedbackRecorded!==true||
-         Number(response.draftRevision)!==Number(expectedRevision)||
-         response.feedbackContext!==context||
-         response.publishedAppUnchanged!==true)
-        throw Error("BUSY could not verify this private owner feedback record.");
-      return {ok:true,saved:true};
-    }catch(error){
-      return {ok:false,reason:String(error?.message||
-        "Owner design feedback could not be saved.").slice(0,230)};
-    }
+  const recordAppDesignPreference=async(payload={})=>{
+    if(!appDesignFeedbackActionsRef.current)appDesignFeedbackActionsRef.current=
+      createAppDesignFeedbackActions(()=>privateAppEditScopeRef.current);
+    return appDesignFeedbackActionsRef.current.record(payload,miniAppsRequest,{
+      ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||""});
   };
-  const clearAppDesignLearning=async({appId}={})=>{
-    const businessId=String(cloudWorkspace?.businessId||"");
-    if(!businessId||miniAppsView?.app?.id!==appId)
-      return {ok:false,reason:"Open the matching private Business App."};
-    try{
-      const response=await miniAppsRequest("clear_design_feedback",{
-        appId,ownerApproved:true
-      });
-      if(response?.ok!==true||response.businessId!==businessId||
-         cloudWorkspace?.businessId!==businessId||
-         response.appId!==appId||response.cleared!==true||
-         response.publicAppUnchanged!==true)
-        throw Error("BUSY could not verify that the right design history was cleared.");
-      return {ok:true,cleared:true};
-    }catch(error){
-      return {ok:false,reason:String(error?.message||
-        "Private design learning could not be cleared.").slice(0,230)};
-    }
+  const clearAppDesignLearning=async(payload={})=>{
+    if(!appDesignFeedbackActionsRef.current)appDesignFeedbackActionsRef.current=
+      createAppDesignFeedbackActions(()=>privateAppEditScopeRef.current);
+    return appDesignFeedbackActionsRef.current.clear(payload,miniAppsRequest,{
+      ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||""});
   };
 
   const saveCoordinatedAppChanges=async({operations,appId,expectedRevision,source}={})=>{

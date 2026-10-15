@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {reviewAppGoalDesignV3240 as review} from '../src/core/appGoalDesignReviewV3240.mjs';
+const businessId='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+const keys=['business_profile','services','booking_request','contact'];
+const config={modules:keys.map(key=>({key,enabled:true})),navigation:keys,publicProfile:{businessType:'Hair salon',services:[{name:'Owner haircut'}]}};
+const app={id:'cccccccc-cccc-4ccc-8ccc-cccccccccccc',business_id:businessId,draft_revision:4,draft_config:config};
+const r=review({businessId,app,goal:'book'});assert.equal(r.businessContext.industry,'appointment');assert.equal(r.businessContext.considered,1);assert.equal(r.operations.some(x=>x.field==='navigationStyle'&&x.value==='list'),true);assert.equal(r.potentialNewStaticAdvisories,false);
+const manual={...app,draft_config:{...config,presentation:{navigationStyle:'tabs'}}};assert.equal(review({businessId,app:manual,goal:'book'}).businessContext.considered,0);
+const locked={...app,draft_config:{...config,presentation:{ownerLockedElements:['navigation']}}};assert.equal(review({businessId,app:locked,goal:'book'}).operations.some(x=>x.field==='navigationStyle'),false);
+const history={ok:true,businessId,ownerId:'owner',appId:app.id,revision:4,records:[{field:'navigationStyle',value:'list',verdict:'worse',draftRevision:4,context:'preview',source:'manual'}]};assert.equal(review({businessId,app,goal:'book',ownerId:'owner',ownerDesignHistory:history}).operations.some(x=>x.field==='navigationStyle'),false);
+const untyped={...app,draft_config:{...config,publicProfile:{...config.publicProfile,businessType:''}}};const site={id:'site',businessId,generation:1,businessType:'Hair salon',sections:[]};assert.equal(review({businessId,app:untyped,website:site,goal:'book'}).businessContext.industry,'appointment');assert.equal(review({businessId,app:untyped,website:{...site,businessId:'other'},goal:'book'}).businessContext.industry,'general');
+assert.equal(r.mayPublish,false);assert.equal(r.actualCustomerOutcome,false);assert.equal(r.brandChoicesNotApplied,true);
+console.log('PASS: original industry hints improve sparse supplied-context decisions, preserve manual styles/locks/feedback/brand, respect paired website scope and reject new static advisories. Deterministic planning only.');

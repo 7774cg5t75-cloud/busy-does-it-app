@@ -1,3 +1,4 @@
+import {editAppOwnerLocks} from "./appOwnerLockEditing.mjs";
 import {PROFILE_TEXT_LIMITS,captureAppProfileField,restoreAppProfileField} from "./appProfileFieldUndo.mjs";
 import {appEditLockReason} from "./appOwnerLocks.mjs";
 /**
@@ -17,6 +18,7 @@ function proposeCoordinatedAppChanges(config,operations){
  if(!config||typeof config!=="object"||!Array.isArray(config.modules)||
     !Array.isArray(operations)||!operations.length||operations.length>MAX_CHANGES)
   return {ok:false,reason:"Select 1 to 8 supported private app changes."};
+ if(operations.some(op=>op?.kind==="owner_locks")&&operations.length!==1)return {ok:false,reason:"Review owner locks separately from content edits."};
  const valid=enabledAppKeys(config);
  if(!valid.ok)return valid;
  let next=config;
@@ -25,10 +27,13 @@ function proposeCoordinatedAppChanges(config,operations){
   if(!op||typeof op!=="object"||Array.isArray(op)||
      Object.keys(op).some(k=>!["kind","field","value","moduleKey","direction","index","from","to","expectedUri"].includes(k)))
    return {ok:false,reason:"Unknown edit data was rejected."};
-  const locked=appEditLockReason(next,op);
+  const locked=op.kind==="owner_locks"?null:appEditLockReason(next,op);
   if(locked)return {ok:false,reason:locked};
   let undo=null,after=null,description="";
-  if(op.kind==="appearance"){
+  if(op.kind==="owner_locks"){
+   const edit=editAppOwnerLocks(next,op);if(!edit.ok)return edit;
+   after=edit.nextConfig;undo=edit.undo;description="Editing protection: "+(after.presentation?.ownerLockedElements?.length?after.presentation.ownerLockedElements.join(", "):"no locks")+". Customer content is unchanged.";
+  }else if(op.kind==="appearance"){
    const edit=previewPrivateAppAppearance(next,{field:op.field,value:op.value});
    if(!edit.ok)return edit;
    after=edit.nextConfig;

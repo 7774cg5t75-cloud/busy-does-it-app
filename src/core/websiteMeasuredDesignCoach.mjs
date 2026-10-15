@@ -1,4 +1,4 @@
-import {websiteLayoutLockReason} from '../../supabase/functions/busy-website-worker/websiteLayoutEditing.mjs';
+import {websiteLayoutLockReason,applyWebsiteLayoutOperation} from '../../supabase/functions/busy-website-worker/websiteLayoutEditing.mjs';
 /**
  * V3.144: small, owner-controlled suggestions derived ONLY from measured
  * DOM-layout findings, never an invented screenshot AI judgement.
@@ -20,25 +20,36 @@ function recommendMeasuredWebsiteChange({draft,pageId,report}={}){
  const active=id=>array(draft.sections).find(s=>s.id===id&&s.enabled!==false&&
     array(draft.pages.find(p=>p.id===pageId)?.sectionIds).includes(id));
  const candidates=[];
- if(ids.has("headings")&&ownerDesignPreference(draft,"compact-hero-title",pageId)!=="disliked"&&active("hero")&&
-    active("hero").appearance?.headingScale!=="compact"){
-  candidates.push({id:"compact-hero-title",label:"Try a smaller main heading",
-   explanation:"A heading may be clipped. Test a more compact main heading without changing your wording.",
-   operation:{action:"section-style",sectionId:"hero",field:"headingScale",value:"compact"},
-   source:"measured-layout-hint",notGuaranteed:true});
+ const located=Array.isArray(report.targets?.clippedSectionIds);
+ const headingIds=located?report.targets.clippedSectionIds:["hero"];
+ if(ids.has("headings"))for(const sectionId of headingIds){
+  const section=active(sectionId);if(!section)continue;
+  const id=sectionId==="hero"?"compact-hero-title":"compact-measured-title";
+  if(ownerDesignPreference(draft,id,pageId)==="disliked")continue;
+  const width=report.counts.viewport;
+  const field=located&&width<=600?"mobileHeadingScale":located&&width>=960?"desktopHeadingScale":"headingScale";
+  if(section.appearance?.[field]==="compact")continue;
+  candidates.push({id,label:sectionId==="hero"?"Try a smaller main heading":"Try a smaller measured section heading",
+   explanation:located?"A clipped heading was measured in this section. Test a compact heading at this screen size without changing your wording.":
+    "A heading may be clipped. Test a more compact main heading without changing your wording.",
+   operation:{action:"section-style",sectionId,field,value:"compact"},
+   tradeoff:located?"Other screen-size overrides and all content stay unchanged; this heading still needs remeasuring.":"The heading becomes less prominent; remeasure before keeping it.",
+   targetSectionId:sectionId,source:"measured-layout-hint",notGuaranteed:true});
  }
- if(ids.has("overflow")&&ownerDesignPreference(draft,"simpler-service-layout",pageId)!=="disliked"&&active("services")&&
-    draft.theme?.cardLayout!=="rows"){
+ const overflowLocated=Array.isArray(report.targets?.overflowSectionIds);
+ if(ids.has("overflow")&&(!overflowLocated||report.targets.overflowSectionIds.includes("services"))&&
+    ownerDesignPreference(draft,"simpler-service-layout",pageId)!=="disliked"&&active("services")&&draft.theme?.cardLayout!=="rows"){
   candidates.push({id:"simpler-service-layout",label:"Try simpler service rows",
-   explanation:"The page may be too wide. Test a one-column service arrangement.",
-   operation:{action:"style",field:"cardLayout",value:"rows"},
-   source:"measured-layout-hint",notGuaranteed:true});
+   explanation:"The service area may be too wide. Test a one-column service arrangement.",
+   tradeoff:"This changes the shared card layout across pages. All wording and imagery stay unchanged; check the other widths.",
+   operation:{action:"style",field:"cardLayout",value:"rows"},source:"measured-layout-hint",notGuaranteed:true});
  }
  // A previously liked change may be suggested FIRST, but only if an
  // independently measured problem actually justifies trying it again.
  candidates.sort((a,b)=>Number(ownerDesignPreference(draft,b.id,pageId)==="liked")-
    Number(ownerDesignPreference(draft,a.id,pageId)==="liked"));
- return candidates.find(candidate=>!websiteLayoutLockReason(draft,candidate.operation))||null;
+ return candidates.find(candidate=>!websiteLayoutLockReason(draft,candidate.operation)&&
+  applyWebsiteLayoutOperation(draft,candidate.operation).applied)||null;
 }
 function compareWebsiteVisualReports(original,candidate){
  if(!original?.counts||!candidate?.counts)return {valid:false,reason:"Two measured preview results required"};

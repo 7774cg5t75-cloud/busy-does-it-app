@@ -1,3 +1,5 @@
+import {AppOwnerLockControls} from "./appOwnerLockControls";
+import {AppBusinessFactRefresh} from "./appBusinessFactRefresh";
 import {useOwnerDesignMemory} from "./useOwnerDesignMemory";
 import React from "react";
 import { Image, Text, View, Dimensions, Platform, Alert, useWindowDimensions, ScrollView, PixelRatio } from "react-native";
@@ -843,6 +845,7 @@ function MiniAppBuilder({ s }) {
   const [showResponsiveDetails,setShowResponsiveDetails]=React.useState(false);
   const [studioCopyField,setStudioCopyField]=React.useState("tagline");
   const [studioCopy,setStudioCopy]=React.useState("");
+  const [showFactRefresh,setShowFactRefresh]=React.useState(false);
   const [photoFrom,setPhotoFrom]=React.useState("1");
   const [photoTo,setPhotoTo]=React.useState("2");
   const [studioVoiceOpen,setStudioVoiceOpen]=React.useState(false);
@@ -1523,12 +1526,18 @@ function MiniAppBuilder({ s }) {
             s.miniAppsAction === "build"
               ? "Refreshing business facts…"
               : app
-              ? "Refresh draft from Business Brain facts"
+              ? "Review saved business fact updates"
               : "Quick-build from Business Brain facts"
           }
           disabled={!!s.miniAppsAction}
-          onPress={s.buildMiniAppFromBrandBrain}
+          onPress={()=>app?setShowFactRefresh(value=>!value):s.buildMiniAppFromBrandBrain()}
         />
+        {app&&showFactRefresh?(<>
+          <AppBusinessFactRefresh key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision,s.miniAppsStatus?.publicProfile?.revision].join(":")}
+            businessId={s.cloudWorkspace?.businessId||""} app={app}
+            profileRecord={s.miniAppsStatus?.publicProfile} busy={!!s.miniAppsAction||studio.pending}
+            onPreview={setStudioPreview} onNotice={setStudioNotice}/>
+        </>):null}
         {view.activeConfig ? (
           <Button label="Preview Business App" onPress={s.openMiniAppPreview} />
         ) : null}
@@ -2300,6 +2309,9 @@ function MiniAppBuilder({ s }) {
           ):null}
             </>
           ):null}
+          <AppOwnerLockControls key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(":")}
+            config={view.draftConfig} onPreview={setStudioPreview} onNotice={setStudioNotice}
+            busy={!!s.miniAppsAction||studio.pending}/>
           <Text style={styles.sectionLabel}>Or tell Busy other changes</Text>
           <Field label="App instructions" value={studioWords}
             onChangeText={value=>{setStudioWords(value);setStudioPreview(null);}}
@@ -2583,6 +2595,7 @@ function MiniAppBuilder({ s }) {
                 ". Current private capability: "+appGoalDesign.task.status.replaceAll("_"," ")+
                 ". This does not confirm a real booking or enquiry."}</Text>
               <Text style={styles.cardBody}>{appGoalDesign.brand.note}</Text>
+              {appGoalDesign.businessContext.considered?<Text style={styles.cardBody}>{appGoalDesign.businessContext.note}</Text>:null}
               {appGoalDesign.contentReadiness.blockers.map((reason,index)=>(
                 <Text key={"goal-content-"+index} style={styles.cardBody}>{reason}</Text>))}
               {appGoalDesign.visualTradeoffs.map(choice=>(
