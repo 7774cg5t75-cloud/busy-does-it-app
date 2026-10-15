@@ -154,7 +154,9 @@ ok(edge.indexOf("if (requestId) {",edge.indexOf("async function submitRequest(")
  edge.indexOf("const since = new Date(",edge.indexOf("async function submitRequest(")));
 ok(controller.includes('requestKey:key'));
 ok(controller.includes('customerRequestPendingRef.current=null;'));
-ok(controller.includes('customerRequestInFlightRef.current=true;'));
+ok(controller.includes('customerRequestInFlightRef.current=attempt;'));
+ok(controller.includes('customerRequestInFlightRef.current===attempt'));
+ok(controller.includes('isCurrent:scopeStillCurrent'));
 ok(controller.includes('Check My BUSY Apps before retrying'));
 const sql=read("staging/READ_ONLY_v3203_post_phase_attestation.sql");
 ok(sql.includes("busy_create_first_mini_app_draft_v3199"));
