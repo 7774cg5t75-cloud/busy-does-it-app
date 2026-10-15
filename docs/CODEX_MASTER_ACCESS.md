@@ -12,6 +12,15 @@
 | `AGENTS.md` | Standing instructions for Codex work in this repository | Automatically applicable when this file is present on the working branch. |
 | `docs/CODEX_PRODUCT_BRIEF.md` | Public, abbreviated orientation | Accessible in Git; **not** a replacement for the complete Word master. |
 
+### Latest owner-approved product master — V22.21 (15 October 2026)
+
+- **Owner-approved permanent goal:** BUSY must support both website-creation and owner-authorised, subscription-based improvements to a customer's **existing external website**. It should preserve existing site, hosting and domain where appropriate, offer compatible everyday edits without an agency-style per-change fee, and explain unsupported/locked providers honestly.
+- **Word filename:** `Busy_Does_It_Master_V22_21_Existing_Website_Management.docx`. Private ChatGPT Library upload **confirmed** at `/Busy_Does_It_Master_V22_21_Existing_Website_Management.docx`.
+- **SHA-256 of generated Word bytes:** `7b1c5f64fbe6aabcd9cbb75ddbdf082531a504f3bbbb42518bb8810cf7e2730b`.
+- **Provenance and preservation:** Derived from V22.20, retains the complete existing product plan and all **19 tables**, adds the first-class existing-site management journey within Section 29 and clarifies website freedom. DOCX structurally validated and visually rendered (86 pages; changed pages checked).
+- **GitHub technical reference:** This branch's `ARCHITECTURE.md` — "Permanent architecture decision — manage an existing customer website" plus existing website, search and security/release contracts.
+- **Implementation status:** Requirements/documentation only; no claims of working WordPress/Shopify/Webflow or third-party CMS write integrations, real-site publish verification or production subscription entitlements. New Codex tasks **must be supplied this private Word file or verify current authorised private read access**; a ChatGPT Library upload does not automatically mount in Codex.
+
 ### Latest owner-approved product master — V22.20 (15 October 2026)
 
 - **Decision:** Provide the practical benefits of leading specialist tools through one extraordinarily capable, plain-language BUSY assistant. This is a cross-platform quality/delivery standard, with an immediate Get More Customers use case; Semrush and Opinly are comparison benchmarks only.
