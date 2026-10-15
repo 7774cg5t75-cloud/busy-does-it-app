@@ -563,6 +563,7 @@ function App() {
   const customerRequestEpochKey=[activeCustomerRequestScopeRef.current,selectedBusyAppDetail?.version?.id||""].join(":");
   if(customerRequestEpochRef.current?.key!==customerRequestEpochKey)
     customerRequestEpochRef.current={key:customerRequestEpochKey};
+  const customerRequestRenderEpoch=customerRequestEpochRef.current;
   useEffect(()=>{
     customerRequestPendingRef.current=null;
     customerRequestInFlightRef.current=false;
@@ -15855,7 +15856,7 @@ function App() {
     const slug = selectedBusyAppDetail?.app?.slug || "";
     const appId = selectedBusyAppDetail?.app?.id || "";
     const customerUserId = ownerSession?.userId || "";
-    if (!slug || !appId || !customerUserId ||
+    if (!slug || !appId || !customerUserId ||customerRequestRenderEpoch!==customerRequestEpochRef.current||
         customerRequestInFlightRef.current?.epoch===customerRequestEpochRef.current) return false;
     // Keep one request key for the SAME in-memory draft after an ambiguous
     // network error. Repeated taps cannot create simultaneous requests.
@@ -15868,7 +15869,7 @@ function App() {
     }
     const key=customerRequestPendingRef.current.requestKey;
     const expectedScope=[customerUserId,appId,slug].join(":");
-    const epoch=customerRequestEpochRef.current;
+    const epoch=customerRequestRenderEpoch;
     const scopeStillCurrent=()=>
       activeCustomerRequestScopeRef.current===expectedScope&&customerRequestEpochRef.current===epoch;
     const attempt={epoch};
