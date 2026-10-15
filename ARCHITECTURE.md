@@ -1,3 +1,7 @@
+## PR #10 follow-up: guarded Studio and recoverable website measurement (15 October 2026)
+
+The private Studio lifecycle is extracted into `appStudioSession.mjs` with a thin React hook; selective approval, exact scoped receipts and undo reuse the original planner/CAS editor. Goal recommendations optionally consume current same-owner design history through the existing pattern engine and history endpoint. Website checks use expiring scope/width/variant tokens with cancellation and timeout recovery; measured suggestions share the original layout engine's appearance-lock guard. No new backend, persistent ledger, migration or deployment. See `docs/BUILDER_PR10_FOLLOWUP_2026_10_15.md` and its exact 95-script check manifest for verified outcomes and remaining device/hosted evidence.
+
 # Busy Does It code architecture
 
 ## PR #10 follow-up review — 15 October 2026

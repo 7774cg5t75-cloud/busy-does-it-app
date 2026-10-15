@@ -24,6 +24,7 @@ context=initial;session.setContext(context);session.prepare(proposal);
 const switched=session.approve(()=>new Promise(resolve=>{complete=resolve;}));
 session.setContext({...initial,ownerId:'owner-b'});complete({ok:true});await switched;assert.equal(session.snapshot().undo,null);assert.equal(session.snapshot().notice,'');
 session.setContext(initial);session.prepare(proposal);await session.approve(async()=>({ok:true,newRevision:5,undoOperations:proposal.undoOperations,status:{app:{...app,draft_revision:5,draft_config:config}}}));assert.equal(session.snapshot().canUndo,false);assert.equal(session.snapshot().uncertain,true);
+session.prepare(proposal);await session.approve(async()=>({ok:true,newRevision:5,undoOperations:proposal.undoOperations,status:{app:{...app,id:'dddddddd-dddd-4ddd-8ddd-dddddddddddd',draft_revision:5,draft_config:proposal.nextConfig}}}));assert.equal(session.snapshot().canUndo,false);assert.equal(session.snapshot().uncertain,true);
 session.prepare(proposal);let updates=0;session.attach(()=>updates++);const unmounted=session.approve(()=>new Promise(resolve=>{complete=resolve;}));const count=updates;session.detach();complete({ok:false});await unmounted;assert.equal(updates,count);
 session.setContext(initial);
 session.prepare(propose(config,[{kind:'appearance',field:'layoutDensity',value:'airy'},{kind:'appearance',field:'headerStyle',value:'bold'}]));

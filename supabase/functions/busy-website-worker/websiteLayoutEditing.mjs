@@ -17,9 +17,24 @@ const allow={
  heroSize:["medium","large","extra-large"],
  photoFocus:["center","top","bottom"],
 };
+// Shared guard for measured appearance proposals and their actual application.
+// Global theme changes can affect every locked section, so require an explicit
+// owner unlock first. This policy covers appearance operations only.
+function websiteLayoutLockReason(draft,operation={}){
+ const raw=draft?.theme?.lockedSections;
+ if(!['style','section-style','reset-section-style'].includes(operation?.action))return '';
+ if(raw===undefined)return '';
+ if(!Array.isArray(raw)||raw.length>100||raw.some(id=>typeof id!=='string'||!id||id.length>128))
+  return 'Review the website section locks before changing its appearance.';
+ if(raw.length&&(operation.action==='style'||raw.includes(operation.sectionId)))
+  return 'Unlock the affected website section before changing its appearance.';
+ return '';
+}
 function applyWebsiteLayoutOperation(draft,operation={}){
  if(!draft?.id||!Array.isArray(draft.sections))return fail(draft,"Build a website draft before changing its layout.");
  if(!operation||typeof operation!=="object"||Array.isArray(operation))return fail(draft,"Choose a website layout action.");
+ const lockReason=websiteLayoutLockReason(draft,operation);
+ if(lockReason)return fail(draft,lockReason);
  const {action,sectionId}=operation;
  const sections=draft.sections.map(s=>({...s,items:list(s.items).map(i=>({...i}))}));
  const theme={...(draft.theme||{})};
@@ -365,4 +380,4 @@ function applyWebsiteLayoutOperation(draft,operation={}){
  }
  return fail(draft,"Unsupported layout change. No website content was modified.");
 }
-export {applyWebsiteLayoutOperation,allow as websiteAppearanceOptions};
+export {applyWebsiteLayoutOperation,websiteLayoutLockReason,allow as websiteAppearanceOptions};

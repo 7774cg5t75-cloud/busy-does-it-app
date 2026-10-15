@@ -1,3 +1,4 @@
+import {beginWebsiteMeasurementAttempt,currentWebsiteMeasurementAttempt} from "../core/websiteMeasurementAttempt.mjs";
 import {currentWebsiteDesignCandidate,privateWebsiteReviewProgress} from "../core/privateWebsiteReviewProgress.mjs";
 import React from "react";
 import { Text, TextInput, View, Alert } from "react-native";
@@ -955,6 +956,8 @@ function WebsitePreview({ s }) {
   const [captureSequence,setCaptureSequence]=React.useState({original:0,candidate:0});
   const [requestedReview,setRequestedReview]=React.useState(null);
   const [activeCapture,setActiveCapture]=React.useState(null);
+  const activeCaptureRef=React.useRef(null);
+  activeCaptureRef.current=activeCapture;
   const captureEpoch=React.useRef(Date.now().toString(36));
   const [privateWidthEvidence,setPrivateWidthEvidence]=React.useState(null);
   const [designCandidateNotice,setDesignCandidateNotice]=React.useState("");
@@ -970,12 +973,13 @@ function WebsitePreview({ s }) {
   const [confirmRecoveryRestore,setConfirmRecoveryRestore]=React.useState(false);
   React.useEffect(()=>{
     setSelectedEdit(null);setVisualCheckResult(null);setVisualCheckOn(false);
-    setRequestedReview(null);
+    setRequestedReview(null);activeCaptureRef.current=null;setActiveCapture(null);
     setDesignCandidate(null);setCandidateCheckOn(false);
     setCandidateCheckResult(null);setPrivateWidthEvidence(null);setDesignCandidateNotice("");
     setShowOriginalComparison(false);
   },[selectedPageId,draft?.id,draft?.generation,s.cloudWorkspace?.businessId,s.ownerSession?.userId]);
   React.useEffect(()=>{
+    activeCaptureRef.current=null;setActiveCapture(null);
     // Keep the SAME private design candidate when switching screen width;
     // old single-width measurements must never be reused at another width.
     setVisualCheckOn(false);setVisualCheckResult(null);
@@ -996,6 +1000,26 @@ function WebsitePreview({ s }) {
   const inspectionKey=["review",captureEpoch.current,"original",captureSequence.original].join(":");
   const candidateKey=designCandidate?
     ["review",captureEpoch.current,"candidate",captureSequence.candidate].join(":"):"";
+  const startCapture=variant=>{
+    const sequence=captureSequence[variant]+1;
+    const key=["review",captureEpoch.current,variant,sequence].join(":");
+    const attempt=beginWebsiteMeasurementAttempt({sourceKey,mode:previewSize,variant,key});
+    activeCaptureRef.current=attempt;setActiveCapture(attempt);
+    setCaptureSequence(previous=>({...previous,[variant]:sequence}));
+  };
+  const stopCapture=message=>{
+    activeCaptureRef.current=null;setActiveCapture(null);
+    setVisualCheckOn(false);setCandidateCheckOn(false);setRequestedReview(null);
+    if(message)setDesignCandidateNotice(message);
+  };
+  React.useEffect(()=>{
+    if(!activeCapture||(!visualCheckOn&&!candidateCheckOn))return;
+    const timer=setTimeout(()=>{
+      if(activeCaptureRef.current?.key!==activeCapture.key)return;
+      stopCapture("The layout check did not finish. Your draft is unchanged. Retry this width when the preview is ready.");
+    },Math.max(0,activeCapture.expiresAt-Date.now()));
+    return ()=>clearTimeout(timer);
+  },[activeCapture,visualCheckOn,candidateCheckOn]);
   const requestReview=(mode,variant)=>{
     setRequestedReview({mode,variant,sourceKey});
     setPreviewSize(mode);
@@ -1006,8 +1030,7 @@ function WebsitePreview({ s }) {
     if(requestedReview.mode!==previewSize)return;
     if(requestedReview.variant==="candidate"&&!candidateIsCurrent){setRequestedReview(null);return;}
     const variant=requestedReview.variant;
-    setActiveCapture({sourceKey,mode:previewSize,variant});
-    setCaptureSequence(previous=>({...previous,[variant]:previous[variant]+1}));
+    startCapture(variant);
     setSelectedEdit(null);setTapEditMode(false);
     setShowOriginalComparison(variant==="original"&&candidateIsCurrent);
     setVisualCheckOn(variant==="original");setCandidateCheckOn(variant==="candidate");
@@ -1016,7 +1039,6 @@ function WebsitePreview({ s }) {
   },[requestedReview,previewSize,sourceKey,candidateIsCurrent]);
   const candidateHtml=candidateIsCurrent&&designCandidate?.draft
     ?renderWebsiteHtml(designCandidate.draft,activePage?.id||"home"):"";
-  const captureIsCurrent=activeCapture?.sourceKey===sourceKey&&activeCapture?.mode===previewSize;
   const unscaledInteractiveHtml=draft&&candidateIsCurrent
     ?showOriginalComparison?(visualCheckOn?
       makeWebsiteVisualCheckHtml(liveConceptHtml,inspectionKey):liveConceptHtml):
@@ -1033,10 +1055,13 @@ function WebsitePreview({ s }) {
     try{
       const raw=JSON.parse(String(event?.nativeEvent?.data||""));
       if(raw?.channel===VISUAL_CHECK_CHANNEL){
-        if(!captureIsCurrent)return;
+        if(!currentWebsiteMeasurementAttempt(activeCaptureRef.current,{sourceKey,mode:previewSize,
+          variant:candidateCheckOn?"candidate":"original",key:raw.key}))return;
         if(candidateCheckOn&&designCandidate){
           const report=reviewWebsiteVisualCheck(raw,candidateKey);
+          if(!report){stopCapture("This measurement was incomplete. Retry the private preview; nothing was saved.");return;}
           if(report){
+            activeCaptureRef.current=null;setActiveCapture(null);
             setCandidateCheckResult({...report,reviewSourceKey:sourceKey,reviewMode:previewSize,candidateId:designCandidate.id});setCandidateCheckOn(false);
             setPrivateWidthEvidence(previous=>{
               const updated=recordPrivateWebsiteCandidateWidthV3239(previous,{
@@ -1050,7 +1075,9 @@ function WebsitePreview({ s }) {
           }
         }else if(visualCheckOn){
           const report=reviewWebsiteVisualCheck(raw,inspectionKey);
+          if(!report){stopCapture("This measurement was incomplete. Retry the private preview; nothing was saved.");return;}
           if(report){
+            activeCaptureRef.current=null;setActiveCapture(null);
             setVisualCheckResult({...report,reviewSourceKey:sourceKey,reviewMode:previewSize});setVisualCheckOn(false);
             if(designCandidate)setPrivateWidthEvidence(previous=>{
               const updated=recordPrivateWebsiteCandidateWidthV3239(previous,{
@@ -1142,14 +1169,14 @@ function WebsitePreview({ s }) {
       candidateId:layoutAdvice.id,baseGeneration:draft.generation,
       mode:previewSize,variant:"original",report:visualCheckResult});
     setPrivateWidthEvidence(baseline.ok?baseline.state:null);
-    setActiveCapture({sourceKey,mode:previewSize,variant:"candidate"});
-    setCaptureSequence(previous=>({...previous,candidate:previous.candidate+1}));
+    startCapture("candidate");
     setCandidateCheckResult(null);setCandidateCheckOn(true);
     setShowOriginalComparison(false);
     setTapEditMode(false);setVisualCheckOn(false);setSelectedEdit(null);
     setDesignCandidateNotice("Testing an alternative in a private preview. Your original design is unchanged.");
   };
   const discardCandidate=()=>{
+    stopCapture();
     setShowOriginalComparison(false);
     if(designCandidate&&draft&&s.recordMeasuredWebsiteFeedback)
       s.recordMeasuredWebsiteFeedback({draftId:draft.id,pageId:activePage?.id,
@@ -1159,7 +1186,7 @@ function WebsitePreview({ s }) {
     setDesignCandidateNotice("Original design restored. Your preference stays with this draft only.");
   };
   const keepCandidate=()=>{
-    if(!candidateIsCurrent||!designReviewProgress.mayKeep||
+    if(visualCheckOn||candidateCheckOn||requestedReview||!candidateIsCurrent||!designReviewProgress.mayKeep||
        !candidateComparison?.valid||!candidateComparison.noNewMeasuredProblems||
        privateWidthReview?.hasRegressions===true||
        currentCandidateEvidence?.ok===true&&
@@ -1397,6 +1424,9 @@ function WebsitePreview({ s }) {
           "Check original at this width":"Check this page for layout problems"}
           disabled={visualCheckOn||candidateCheckOn}
           onPress={()=>requestReview(previewSize,"original")}/>
+        {visualCheckOn||candidateCheckOn?(
+          <Button label="Stop this layout check" onPress={()=>stopCapture("Layout check stopped. Your draft is unchanged.")}/>
+        ):null}
         {pageReviewCoverage.checked.length?(
          <Text style={styles.cardBody}>{pageReviewCoverage.message}</Text>
         ):null}
@@ -1481,6 +1511,7 @@ function WebsitePreview({ s }) {
           {candidateIsCurrent&&designReviewProgress.mayKeep&&candidateComparison?.valid&&
            candidateComparison.noNewMeasuredProblems&&privateWidthReview?.hasRegressions!==true?(
             <Button label="Keep this design in my private draft"
+             disabled={visualCheckOn||candidateCheckOn||!!requestedReview}
              onPress={keepCandidate}/>
           ):null}
           <Button label="Return to my original design" onPress={discardCandidate}/>
@@ -1502,6 +1533,8 @@ function WebsitePreview({ s }) {
             javaScriptEnabled={tapEditMode||visualCheckOn||candidateCheckOn}
             javaScriptCanOpenWindowsAutomatically={false}
             onMessage={receiveTap}
+            onError={()=>stopCapture("The preview could not load. Your draft is unchanged. Reload the preview before checking again.")}
+            onContentProcessDidTerminate={()=>stopCapture("The preview stopped. Your draft is unchanged; reload before checking again.")}
             domStorageEnabled={false}
             incognito
             mixedContentMode="never"

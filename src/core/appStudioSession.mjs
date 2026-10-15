@@ -44,7 +44,8 @@ function createAppStudioSession(){
    const sameCommands=JSON.stringify(result?.undoOperations)===JSON.stringify(expectedPlan.undoOperations);
    const stillRelated=live&&(live.revision===source.revision&&live.configStamp===source.configStamp||
     live.revision===source.revision+1&&live.configStamp===savedSource?.configStamp);
-   if(result?.ok===true&&savedSource?.revision===source.revision+1&&
+   if(result?.ok===true&&savedSource?.appId===source.appId&&
+      savedSource.businessId===source.businessId&&savedSource.revision===source.revision+1&&
       result.newRevision===savedSource.revision&&sameCommands&&stillRelated&&inverse){
     preview=null;undo=kind==='undo'?null:inverse;uncertain=false;
     notice=kind==='undo'?'Batch reversed in one new private revision. No public changes.':

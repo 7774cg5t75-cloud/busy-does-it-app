@@ -1,3 +1,4 @@
+import {websiteLayoutLockReason} from '../../supabase/functions/busy-website-worker/websiteLayoutEditing.mjs';
 /**
  * V3.144: small, owner-controlled suggestions derived ONLY from measured
  * DOM-layout findings, never an invented screenshot AI judgement.
@@ -37,7 +38,7 @@ function recommendMeasuredWebsiteChange({draft,pageId,report}={}){
  // independently measured problem actually justifies trying it again.
  candidates.sort((a,b)=>Number(ownerDesignPreference(draft,b.id,pageId)==="liked")-
    Number(ownerDesignPreference(draft,a.id,pageId)==="liked"));
- return candidates[0]||null;
+ return candidates.find(candidate=>!websiteLayoutLockReason(draft,candidate.operation))||null;
 }
 function compareWebsiteVisualReports(original,candidate){
  if(!original?.counts||!candidate?.counts)return {valid:false,reason:"Two measured preview results required"};
