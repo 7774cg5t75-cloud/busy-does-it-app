@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createPrivateWebsiteAsyncGate as create} from '../src/core/privateWebsiteAsyncGate.mjs';
-const draft={id:'site',generation:4},initial={ownerId:'owner-a',businessId:'business-a',draft,deploymentId:'deployment',draftChangedSinceHosted:false};
+const draft={businessId:'business-a',id:'site',generation:4},initial={ownerId:'owner-a',businessId:'business-a',draft,deploymentId:'deployment',draftChangedSinceHosted:false};
 const gate=create();let context=initial;const t=gate.begin('visual',initial);assert.ok(t);assert.equal(gate.begin('visual',initial),null);assert.equal(gate.current(t,initial),true);assert.equal(gate.current(t,{...initial,draft:{...draft}}),false);
 gate.setContext({...initial,ownerId:'owner-b'});gate.setContext(initial);assert.equal(gate.current(t,initial),false);assert.equal(gate.begin('visual',{...initial,ownerId:'old'},initial),null);
 const source=readFileSync('src/app/AppController.js','utf8'),a=source.indexOf('  const websiteVisualReviewRequest='),b=source.indexOf('  const checkWebsiteVisualReview=',a);let release,fetches=0;
@@ -15,3 +15,5 @@ const gateRef={current:gate};
 const backup=Function('websiteDraft','cloudWorkspace','websiteBeginTask','websiteAsyncGateRef','websiteTaskCurrent','ownerAccessToken','sitePhotoAssets','validExportOriginalPath','setWebsiteBuilderNotice','ExpoFile','fetchWithTimeout','BUSY_SUPABASE_URL','BUSY_AI_TOKEN','attachExportOriginal','setWebsiteUndo','setWebsiteRedo','setWebsiteDraft','rebuildPrivateWebsiteDraft','websiteDraftRef',source.slice(c,d).replace('  const backupWebsiteOriginals=','return '))(draft,{businessId:'business-a'},lane=>gate.begin(lane,initial,context),gateRef,task=>gate.current(task,context),async()=>'fixture-token',()=>[{key:'photo',asset:{uri:'file://fixture'}}],()=>false,()=>{},class{get size(){return 10;}base64(){return new Promise(r=>{localDone=r;});}},async()=>{uploads++;throw Error('must not upload');},'https://fixture.invalid','fixture-key',()=>{},()=>mutations++,()=>mutations++,()=>mutations++,x=>x,{current:draft});
 const work=backup();await new Promise(r=>setTimeout(r,0));context={...initial,draft:{...draft,generation:5}};localDone('fixture-base64');assert.equal(await work,false);assert.equal(uploads,0);assert.equal(mutations,0);
 console.log('PASS: exact owner/draft/deployment scope, round-trip invalidation, duplicate lanes, actual review transport pre-token/payload guards and actual delayed backup cancellation. No provider/storage request made.');
+
+assert.equal(gate.begin("voice",{...initial,draft:{id:"unbound"}}),null);

@@ -1,4 +1,4 @@
-import {bindWebsiteDraftScope} from "../core/websiteDraftScope.mjs";
+import {bindWebsiteDraftScope,websiteDraftHasScope} from "../core/websiteDraftScope.mjs";
 import {createWebsiteVoiceActions} from "../core/websiteVoiceActions.mjs";
 import {createAppDesignFeedbackActions} from "../core/appDesignFeedbackActions.mjs";
 import {createPrivateWebsiteAsyncGate} from "../core/privateWebsiteAsyncGate.mjs";
@@ -13245,10 +13245,10 @@ function App() {
     if(!websiteTaskCurrent(task))throw Error("The website changed while this operation was running. Its result was not applied.");
     return result;
   };
-  const websiteBeginTask=lane=>websiteAsyncGateRef.current.begin(lane,{
+  const websiteBeginTask=(lane,options)=>websiteAsyncGateRef.current.begin(lane,{
     ...websiteHistoryScope,draft:websiteDraft,deploymentId:websitePublishingView?.previewDeployment?.id||"",
     draftChangedSinceHosted:websitePublishingView?.draftChangedSinceHosted===true
-  },websiteTaskContext());
+  },websiteTaskContext(),options);
   const websiteVisualReviewRequest=async(action,payload={},task)=>{
     if(!websiteTaskCurrent(task))throw Error("The website workspace changed before this request.");
     const token=await ownerAccessToken();
@@ -14027,6 +14027,7 @@ function App() {
     const task=websiteBeginTask("request");
     if(!task)throw Error("The website workspace changed or another hosting request is in progress.");
     try{
+    if(payload.websiteDraft&&!websiteDraftHasScope(payload.websiteDraft,task.context.businessId))throw Error("Open this business's verified website before sending its content.");
     const token = await websiteTaskAwait(task,()=>ownerAccessToken());
     if (!token) throw new Error("Sign in again before managing website hosting.");
     const businessId = cloudWorkspace?.businessId || "";
@@ -14131,7 +14132,7 @@ function App() {
   };
 
   const prepareHostedWebsite = async () => {
-    const task=websiteBeginTask("hosting");if(!task)return false;
+    const task=websiteBeginTask("hosting",{deploymentBound:false});if(!task)return false;
     try{
     if (!websiteDraft) {
       setWebsitePublishingError("Build the website draft before preparing a hosted preview.");
