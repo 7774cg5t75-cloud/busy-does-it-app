@@ -1,3 +1,4 @@
+import {executePrivateAppBatch} from "../core/privateAppEditSession.mjs";
 import {confirmFirstAppFromWebsite} from "../core/firstAppFromWebsiteV3197.mjs";
 import {interpretOwnerStatusAfterErrorV3231} from "../core/ownerStatusRecoveryV3231.mjs";
 import {assessBookingCancelReadbackV3233} from "../core/bookingCancelReadbackV3233.mjs";
@@ -362,6 +363,8 @@ function App() {
   const [ownerQueueBusy,setOwnerQueueBusy]=useState(false);
   const miniAppVoiceScopeRef=useRef({});
   const firstAppFromWebsiteInFlightRef=useRef(false);
+  const privateAppEditInFlightRef=useRef(false);
+  const privateAppEditScopeRef=useRef(null);
   const [miniAppsLoading, setMiniAppsLoading] = useState(false);
   const [miniAppsAction, setMiniAppsAction] = useState("");
   const [miniAppsError, setMiniAppsError] = useState("");
@@ -8326,6 +8329,8 @@ function App() {
     revision:Number(miniAppsStatus?.app?.draft_revision)||0,
     businessId:cloudWorkspace?.businessId||""
   };
+  privateAppEditScopeRef.current={businessId:cloudWorkspace?.businessId||"",
+    userId:ownerSession?.userId||"",app:miniAppsView.app};
   const businessCreationIntelligence = buildBusinessCreationIntelligence({
     brandBrain,
     websiteDraft,
@@ -14811,7 +14816,7 @@ function App() {
   const miniAppsRequest = async (
     action,
     payload = {},
-    { includeBusiness = true, requestKey = "" } = {}
+    { includeBusiness = true, requestKey = "", isCurrent = null } = {}
   ) => {
     const token = await ownerAccessToken();
     if (!token) throw new Error("Sign in again before using BUSY Apps.");
@@ -14820,6 +14825,7 @@ function App() {
       throw new Error("BUSY needs the business cloud workspace before managing your Business App.");
     }
 
+    if(isCurrent&&!isCurrent())throw Error("The business workspace changed before the request was sent.");
     const response = await fetchWithTimeout(
       BUSY_MINI_APPS_URL,
       {
@@ -15944,31 +15950,34 @@ function App() {
     }
   };
 
-  const saveCoordinatedAppChanges=async({operations,appId,expectedRevision}={})=>{
-    if(!miniAppsView?.app||miniAppsView.app.id!==appId||
-      Number(miniAppsView.app.draft_revision)!==Number(expectedRevision)){
-      setMiniAppsError("The private app changed. Review the newest version before editing.");return {ok:false};
-    }
+  const saveCoordinatedAppChanges=async({operations,appId,expectedRevision,source}={})=>{
+    const captured=privateAppEditScopeRef.current;
+    if(privateAppEditInFlightRef.current)return {ok:false,reason:"A private app save is already being checked."};
+    const isCurrent=()=>{
+      const live=privateAppEditScopeRef.current;
+      return !!captured?.userId&&live?.userId===captured.userId&&
+        live.businessId===captured.businessId&&live.app?.id===appId&&
+        live.app?.business_id===captured.businessId&&
+        live.app?.draft_revision===expectedRevision;
+    };
+    if(!isCurrent())return {ok:false,reason:"Open and review the current private app before editing."};
+    privateAppEditInFlightRef.current=true;
     setMiniAppsAction("coordinated-app-edits");setMiniAppsError("");
     try{
-      const data=await miniAppsRequest("apply_coordinated_edits",{
-        operations,appId,expectedRevision,ownerApproved:true});
-      if(data?.ok!==true||data?.privateOnly!==true||
-         data?.neverPublishes!==true||data?.chargesCreated!==false||
-         data?.app?.id!==appId||
-         Number(data.app.draft_revision)!==Number(expectedRevision)+1||
-         data.appliedChangeCount!==operations.length||
-         !Array.isArray(data.undoOperations))
-        throw Error("Could not verify that the private batch was saved safely.");
-      applyMiniAppsStatus(data.status);
-      setMiniAppsNotice("Saved "+data.appliedChangeCount+
-        " coordinated app changes as one PRIVATE draft revision. No public app or booking changed.");
-      return {ok:true,undoOperations:data.undoOperations,
-        newRevision:Number(data.app.draft_revision)};
-    }catch(error){
-      setMiniAppsError(String(error?.message||"BUSY could not apply this app batch.").slice(0,230));
-      return {ok:false};
-    }finally{setMiniAppsAction("");}
+      const result=await executePrivateAppBatch({
+        businessId:captured.businessId,app:captured.app,operations,source,isCurrent,
+        write:payload=>miniAppsRequest("apply_coordinated_edits",payload,{isCurrent}),
+        readStatus:()=>miniAppsRequest("owner_status",{},{isCurrent})
+      });
+      if(!isCurrent())return {ok:false,reason:"The workspace changed. Reopen the original app to check its draft."};
+      if(result.status)applyMiniAppsStatus(result.status);
+      if(result.ok)setMiniAppsNotice("Saved the approved changes as one PRIVATE draft revision. Undo is available; publication is separate.");
+      else setMiniAppsError(result.reason);
+      return result;
+    }finally{
+      privateAppEditInFlightRef.current=false;
+      setMiniAppsAction(value=>value==="coordinated-app-edits"?"":value);
+    }
   };
 
   const movePrivateAppSection=async({moduleKey,direction,appId,expectedRevision}={})=>{

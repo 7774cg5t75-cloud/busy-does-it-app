@@ -23,6 +23,7 @@ import { interpretSelectedAppAppearance } from "../core/appContextInstruction.mj
 import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.mjs";
 import {proposeCoordinatedAppChanges,planAppVoiceInstructions} from "../core/appCoordinatedStudio.mjs";
 import {appDesignQualityReport} from "../core/appDesignQuality.mjs";
+import {bindPrivateAppProposal,currentPrivateAppProposal} from "../core/privateAppEditSession.mjs";
 import {reviewAppGoalDesignV3240} from "../core/appGoalDesignReviewV3240.mjs";
 import {auditBusinessAppUsability,compareBusinessAppDesign} from "../core/appUsabilityAudit.mjs";
 import {responsiveAppLayout,recommendResponsiveDesign}
@@ -825,7 +826,8 @@ function MiniAppBuilder({ s }) {
   const [showAppVoice,setShowAppVoice]=React.useState(false);
   const [pendingMove,setPendingMove]=React.useState(null);
   const [studioWords,setStudioWords]=React.useState("");
-  const [studioPreview,setStudioPreview]=React.useState(null);
+  const [studioPreview,setStudioPreviewState]=React.useState(null);
+  const [studioSaveUncertain,setStudioSaveUncertain]=React.useState(false);
   const [selectedCustomerTask,setSelectedCustomerTask]=React.useState("book");
   const [showCustomerTaskReview,setShowCustomerTaskReview]=React.useState(false);
   const [showJourneyPractice,setShowJourneyPractice]=React.useState(false);
@@ -855,6 +857,16 @@ function MiniAppBuilder({ s }) {
   const [accessiblePhotoCaption,setAccessiblePhotoCaption]=React.useState("");
   const view = s.miniAppsView || {};
   const app = view.app;
+  const studioContext={businessId:s.cloudWorkspace?.businessId||"",app,config:view.draftConfig};
+  const setStudioPreview=proposal=>{
+    setStudioSaveUncertain(false);
+    setStudioPreviewState(proposal?bindPrivateAppProposal(proposal,studioContext):null);
+    setStudioComparisonSide("proposed");
+  };
+  const studioIsCurrent=currentPrivateAppProposal(studioPreview,studioContext);
+  const studioAsyncScope=React.useRef("");
+  studioAsyncScope.current=[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app?.id].join(":");
+
   const syntheticStagingGate=assessSyntheticStagingAction({
     businessId:s.cloudWorkspace?.businessId||"",app,
     probe:stagingProbe,install:stagingInstallAudit
@@ -2475,7 +2487,7 @@ function MiniAppBuilder({ s }) {
             </>
           ):null}
           {studioNotice?<Text style={styles.cardBody}>{studioNotice}</Text>:null}
-          {studioPreview?.ok?(
+          {studioPreview?.ok&&studioIsCurrent?(
             <>
               <Text style={styles.sectionLabel}>Proposed changes — not saved</Text>
               {studioPreview.changes.map((change,index)=>(
@@ -2547,16 +2559,22 @@ function MiniAppBuilder({ s }) {
                 ):<Text style={styles.cardBody}>{beforeAfter.reason}</Text>;
               })()}
               <Button primary label={"Approve all "+studioPreview.changes.length+" private change(s)"}
-                disabled={!!s.miniAppsAction}
+                disabled={!!s.miniAppsAction||studioSaveUncertain||!studioIsCurrent}
                 onPress={async()=>{
+                  if(!studioIsCurrent||studioSaveUncertain)return;
+                  const scope=studioAsyncScope.current;
                   const result=await s.saveCoordinatedAppChanges?.({
-                    appId:app.id,expectedRevision:app.draft_revision,
-                    operations:studioPreview.operations});
+                    appId:studioPreview.source.appId,expectedRevision:studioPreview.source.revision,
+                    source:studioPreview.source,operations:studioPreview.operations});
+                  if(scope!==studioAsyncScope.current)return;
                   if(result?.ok){
                     setStudioUndo({operations:result.undoOperations,
                       expectedRevision:result.newRevision});
                     setStudioPreview(null);
                     setStudioNotice("Saved as one PRIVATE revision. Your live app is unchanged.");
+                  }else{
+                    setStudioSaveUncertain(true);
+                    setStudioNotice(result?.reason||"Save not confirmed. Refresh the private app before preparing another approval.");
                   }
                 }}/>
               <Button label="Discard the whole proposed batch"
@@ -2567,9 +2585,11 @@ function MiniAppBuilder({ s }) {
             studioUndo.expectedRevision===app.draft_revision?(
             <Button label="Undo my last approved batch" disabled={!!s.miniAppsAction}
               onPress={async()=>{
+                const scope=studioAsyncScope.current;
                 const result=await s.saveCoordinatedAppChanges?.({
                   appId:app.id,expectedRevision:studioUndo.expectedRevision,
                   operations:studioUndo.operations});
+                if(scope!==studioAsyncScope.current)return;
                 if(result?.ok){
                   setStudioUndo(null);
                   setStudioNotice("Batch reversed in one new private revision. No public changes.");
@@ -2642,6 +2662,18 @@ function MiniAppBuilder({ s }) {
                 ". Current private capability: "+appGoalDesign.task.status.replaceAll("_"," ")+
                 ". This does not confirm a real booking or enquiry."}</Text>
               <Text style={styles.cardBody}>{appGoalDesign.brand.note}</Text>
+              {appGoalDesign.operations.length&&!appGoalDesign.task.needsSetup?(
+                <Button label="Preview BUSY’s recommended private design"
+                  disabled={!!s.miniAppsAction}
+                  onPress={()=>{
+                    const proposal=proposeCoordinatedAppChanges(view.draftConfig,
+                      appGoalDesign.operations);
+                    setStudioPreview(proposal.ok?proposal:null);
+                    setStudioNotice(proposal.ok?
+                      "Recommended design prepared in the App Studio above. Compare the original, then approve or discard.":proposal.reason);
+                  }}/>
+              ):null}
+
               {appGoalDesign.potentialNewStaticAdvisories?(
                 <Text style={styles.cardBody}>
                   A possible new width-specific advisory needs inspection before keeping any design.

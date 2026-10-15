@@ -1,5 +1,18 @@
 # Busy Does It code architecture
 
+## Extended builder completion mission — isolated development, 15 October 2026
+
+Product preflight: supplied Word Master V22.18 (all 53 sections), current V3.240 architecture and DEVELOPMENT_SWEEP_AND_ARCHITECTURE_POLICY.md. Historical V3.8 passages in the Word master are not current implementation evidence. App Builder first; preserve marketplace and standalone paths, simple owner decisions, shared Brand DNA and verified outcomes.
+
+### Sweep 1 — source-bound private App Studio and interrupted-save recovery
+
+- The existing goal-aware design disclosure now prepares its exact supported operations in the original App Studio, with the original rendered comparison, explicit owner approval and undo.
+- `privateAppEditSession.mjs` binds previews to business/app/revision/configuration and validates actual save receipts against the approved configuration, expected inverse edits and same-business returned status. A synchronous controller lock prevents duplicate batch saves; fresh session/workspace checks also run after obtaining a token and before accepting asynchronous results.
+- After an uncertain write, perform one authenticated read-only owner-status lookup, never replay the mutation automatically. A matching current draft is an observation, not proof that this attempt saved it; no undo authority is inferred. Unconfirmed approvals are disabled until a new proposal is prepared.
+- Shared client/Edge appearance editing now preserves missing unrelated legacy fields instead of inserting default header/navigation properties during a spacing change.
+- Verification: new transport-injected session tests pass; inherited V3.157 Studio, V3.160 design, V3.240 intelligence and native/Edge syntax checks pass. No hosted JWT/device execution, deployment, migrations, provider calls or paid builds. Child-process EPERM remains an environment restriction.
+
+
 ## V3.240 — contextual App Builder design intelligence, shared Brand DNA and safe responsive reuse
 
 **Master-first checkpoint:** Retains owner-approved V22.17 context-aware visual agent, V22.18 Business Brain priorities, V3.239 private website multiview measurements, and the permanent principles of one reusable builder engine, tenant isolation, owner approval and verified customer outcomes.

@@ -44,8 +44,7 @@ function previewPrivateAppAppearance(config,{field,value}={}){
  if(isBrand)presentation.brandPalette="custom";
  else if(field==="brandPalette")delete presentation.brandAccent;
  // Preserve older draft shape when touching an unrelated appearance choice.
- for(const optional of ["imageScale","galleryLayout","imageCorners",
-   "brandPalette","brandAccent","typeStyle","serviceStyle"]){
+ for(const optional of [...Object.keys(DEFAULTS),"brandAccent"]){
   if(optional!==field&&!(isBrand&&optional==="brandPalette")&&
     !owned(config.presentation||{},optional))
    delete presentation[optional];
