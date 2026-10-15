@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {planWebsiteToAppDesign as plan,confirmWebsiteToAppDesign as confirm} from '../src/core/websiteToAppBrandTransferV3196.mjs';
+import {proposeCoordinatedAppChanges} from '../src/core/appCoordinatedStudio.mjs';
+const businessId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+const website={id:'private',businessId,generation:3,theme:{primary:'#334455',typography:'editorial'},sections:[{id:'services',type:'services',enabled:true,items:[{id:'one',title:'Consultation',body:'Existing website detail'},{id:'two',title:'Review',body:'A follow-up review'}]}]};
+const config={modules:['business_profile','services','booking_request'].map(key=>({key,enabled:true})),navigation:['business_profile','services','booking_request'],presentation:{brandPalette:'plum',typeStyle:'balanced'},publicProfile:{services:[{id:'owner-id',name:'Consultation',description:'Owner customised description'}]}};
+const app={id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',business_id:businessId,draft_revision:2,draft_config:config};const input={website,app,businessId,includeDesign:false,includeServices:true,fillDescriptions:true};
+const proposal=plan(input);assert.equal(proposal.ok,true,proposal.reason);assert.deepEqual(proposal.operations.map(x=>x.kind),['services']);assert.deepEqual(proposal.previewConfig.presentation,config.presentation);assert.deepEqual(proposal.previewConfig.navigation,config.navigation);assert.equal(proposal.previewConfig.publicProfile.services[0].description,'Owner customised description');assert.equal(proposal.previewConfig.publicProfile.services[0].id,'owner-id');assert.equal(proposal.previewConfig.publicProfile.services[1].name,'Review');
+const approved=confirm({...input,evidence:proposal});assert.equal(approved.ok,true);const forward=proposeCoordinatedAppChanges(config,approved.operations);assert.deepEqual(proposeCoordinatedAppChanges(forward.nextConfig,forward.undoOperations).nextConfig,config);
+assert.equal(confirm({...input,website:{...website,generation:4},evidence:proposal}).ok,false);
+assert.equal(plan({...input,website:{...website,businessId:undefined}}).ok,false);assert.equal(plan({...input,website:{...website,businessId:'foreign'}}).ok,false);
+assert.equal(plan({...input,includeServices:false}).ok,false);
+const empty={...app,draft_config:{...config,publicProfile:{services:[{id:'owner-id',name:'Consultation',description:''}]}}};assert.equal(plan({...input,app:empty}).previewConfig.publicProfile.services[0].description,'Existing website detail');
+const contacts={...website,sections:[...website.sections,{id:'contact',type:'contact',enabled:true,phone:'07700900123',email:'website@example.test'}]};
+const contactApp={...app,draft_config:{...config,publicProfile:{...config.publicProfile,contact:{email:'custom-app@example.test'}}}};
+const copied=plan({...input,website:contacts,app:contactApp,includeContacts:true});assert.equal(copied.ok,true);assert.equal(copied.previewConfig.publicProfile.contact.phone,'07700900123');assert.equal(copied.previewConfig.publicProfile.contact.email,'custom-app@example.test');assert.equal(confirm({...input,website:contacts,app:contactApp,evidence:copied}).ok,true);
+assert.equal(plan({...input,website:{...contacts,businessId:undefined},includeContacts:true}).ok,false);
+console.log('PASS: existing website-to-app planner prepares content-only service reuse, preserves owner branding/navigation/custom copy/IDs, exact Studio Undo and source/tenant checks. No save or publication.');

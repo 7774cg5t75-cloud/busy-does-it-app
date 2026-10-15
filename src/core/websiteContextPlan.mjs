@@ -1,3 +1,4 @@
+import {splitBuilderInstructionClauses} from './builderInstructionClauses.mjs';
 /**
  * V3.147: an intentionally bounded multi-step contextual website instruction.
  *
@@ -13,12 +14,7 @@ const list=x=>Array.isArray(x)?x:[];
 const error=reason=>({ok:false,reason,steps:[]});
 function splitSelectedWebsiteInstruction(text){
  if(typeof text!=="string"||!text.trim()||text.length>MAX_CHARACTERS)return null;
- const cleaned=text.trim().replace(/\s+/g," ");
- // Preserve literal wording such as "change this heading to Fish and Chips".
- // Only split a simple 'and' if the following clause starts with a known verb.
- const parts=cleaned.split(/\s*;\s*|\s+and then\s+|,\s*then\s+|\s+and\s+(?=(?:make|set|centre|center|align|give|move|put|focus|crop|show|fill)\b)/i)
-  .map(x=>x.trim());
- return parts.length&&parts.length<=MAX_STEPS&&parts.every(Boolean)?parts:null;
+ return splitBuilderInstructionClauses(text,{website:true,max:MAX_STEPS});
 }
 function planSelectedWebsiteChanges(draft,pageId,selection,instruction){
  const clauses=splitSelectedWebsiteInstruction(instruction);

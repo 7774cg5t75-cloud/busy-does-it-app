@@ -1,3 +1,4 @@
+import {enqueuePrivateCheckpoint} from './privateCheckpointQueue.mjs';
 /**
  * V3.185 — private, durable request key for uncertain mobile message delivery.
  *
@@ -18,8 +19,8 @@ function stableMessageSlot({actorUserId="",businessId="",role="",requestId=""}={
     (role==="business"&&!businessId))return "";
  return "bdi_msg_retry_v3185_"+role+"_"+actorUserId+"_"+(businessId||"customer")+"_"+requestId;
 }
-function textChecksum(value){
- if(typeof value!=="string"||!value.trim()||value.length>3000)return "";
+function textChecksum(value,max=3000){
+ if(typeof value!=="string"||!value.trim()||value.length>max||!Number.isInteger(max)||max<1||max>12000)return "";
  // Two independent 32-bit accumulators; used only for local draft comparison.
  // Database uses exact body equality so checksum collisions cannot rewrite text.
  let a=2166136261,b=0x9e3779b9;
@@ -39,28 +40,30 @@ async function prepareDurableMessageAttempt(storage,fields={},makeKey){
   typeof storage.setItemAsync!=="function"||
   typeof storage.deleteItemAsync!=="function")
   return {ok:false,reason:"Encrypted retry storage is unavailable; no reply was sent."};
- try {
+ return enqueuePrivateCheckpoint(slot,async()=>{try {
   const raw=await storage.getItemAsync(slot);
   if(raw){
    const saved=JSON.parse(raw);
-   if(!saved||!KEY.test(saved.key)||typeof saved.checksum!=="string")
+   if(!saved||saved.v!==1||typeof saved.key!=="string"||!KEY.test(saved.key)||typeof saved.checksum!=="string")
     return {ok:false,reason:"An earlier reply needs checking before sending another."};
    if(saved.checksum!==checksum)
     return {ok:false,reason:"Your previous reply might have been saved. Retry the original text or check the conversation before changing it."};
    return {ok:true,slot,key:saved.key,retrying:true};
   }
   const key=makeKey();
-  if(!KEY.test(key))
+  if(typeof key!=="string"||!KEY.test(key))
    return {ok:false,reason:"Could not safely generate a unique reply reference."};
   await storage.setItemAsync(slot,JSON.stringify({v:1,key,checksum}));
   return {ok:true,slot,key,retrying:false};
  }catch(error){
   return {ok:false,reason:"Could not access secure reply-retry storage. No new message was submitted."};
- }
+ }});
 }
 async function clearDurableMessageAttempt(storage,attempt){
  if(!attempt?.ok||!attempt.slot)return false;
- try{await storage.deleteItemAsync(attempt.slot);return true;}
- catch{return false;}
+ return enqueuePrivateCheckpoint(attempt.slot,async()=>{
+  try{const raw=await storage.getItemAsync(attempt.slot);if(raw){const saved=JSON.parse(raw);if(saved.v!==1||saved.key!==attempt.key)return false;}await storage.deleteItemAsync(attempt.slot);return true;}
+  catch{return false;}
+ });
 }
 export {stableMessageSlot,textChecksum,prepareDurableMessageAttempt,clearDurableMessageAttempt};

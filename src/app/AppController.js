@@ -1,3 +1,7 @@
+import {validateNativeGuestRequest} from "../../standalone/template/nativeCustomerActions.mjs";
+import {createAppNotificationActions} from "../core/appNotificationActions.mjs";
+import {createRequestConversationActions} from "../core/requestConversationActions.mjs";
+import {createCustomerRequestAttempt} from "../core/customerRequestAttempt.mjs";
 import {createMarketplaceReadActions} from "../core/marketplaceReadActions.mjs";
 import {createWebsiteLiveActions} from "../core/websiteLiveActions.mjs";
 import {createBusinessCacheRecoveryActions} from "../core/businessCacheRecoveryActions.mjs";
@@ -578,6 +582,10 @@ function App() {
   const [businessCacheRecovery,setBusinessCacheRecovery]=useState(null);
   const cloudOwnerScopeRef=useRef(null),businessCacheScopeRef=useRef(null),preservedBusinessCacheRef=useRef(null);
   if(cloudOwnerScopeRef.current?.userId!==(ownerSession?.userId||""))cloudOwnerScopeRef.current={userId:ownerSession?.userId||""};
+  const businessWorkspaceScopeRef=useRef(null);
+  if(businessWorkspaceScopeRef.current?.ownerScope!==cloudOwnerScopeRef.current||businessWorkspaceScopeRef.current?.businessId!==(cloudWorkspace?.businessId||""))
+    businessWorkspaceScopeRef.current={ownerScope:cloudOwnerScopeRef.current,businessId:cloudWorkspace?.businessId||""};
+  const renderedBusinessWorkspaceScope=businessWorkspaceScopeRef.current;
   useEffect(()=>{setCloudInitialising(false);},[ownerSession?.userId]);
   const snapshotIdentityRef=useRef(null),snapshotContextRef=useRef(null),snapshotSessionRef=useRef(null),snapshotRestoreRef=useRef(null);
   const snapshotKey=[ownerSession?.userId||"",cloudWorkspace?.businessId||""].join(":");
@@ -10930,9 +10938,10 @@ function App() {
     const route = String(data?.route || "");
     if (route === "mini_app_request" && data.requestId) {
       if (String(data?.role || "") === "customer") {
-        await openCustomerMiniAppRequest(String(data.requestId));
+        return await openCustomerMiniAppRequest(String(data.requestId));
       } else {
-        await openOwnerMiniAppRequest(String(data.requestId));
+        if(data.businessId&&data.businessId!==cloudWorkspace?.businessId)return false;
+        return await openOwnerMiniAppRequest(String(data.requestId));
       }
       return true;
     }
@@ -10960,15 +10969,23 @@ function App() {
     return true;
   };
 
+  const notificationRouteRef=useRef(null);
+  notificationRouteRef.current={route:handleProactiveNotificationRoute,workspaceScope:businessWorkspaceScopeRef.current,ownerScope:cloudOwnerScopeRef.current,businessId:cloudWorkspace?.businessId||""};
   useEffect(() => {
     if (!hydrated) return;
     const handleResponse = async (response) => {
       const notification = response?.notification;
       const identifier = notification?.request?.identifier || "";
-      if (identifier && notificationHandledRef.current === identifier) return;
-      if (identifier) notificationHandledRef.current = identifier;
+      const context=notificationRouteRef.current;
+      if(!context?.ownerScope?.userId)return;
+      const key=[context.ownerScope.userId,context.businessId,identifier].join(":");
+      if(identifier&&notificationHandledRef.current?.key===key&&notificationHandledRef.current?.workspaceScope===context.workspaceScope)return;
+      const attempt={key,workspaceScope:context.workspaceScope};if(identifier)notificationHandledRef.current=attempt;
       const data = notification?.request?.content?.data || {};
-      await handleProactiveNotificationRoute(data);
+      const opened=await Promise.resolve(context.route(data)).catch(()=>false);
+      if(!opened||notificationRouteRef.current.workspaceScope!==context.workspaceScope||notificationRouteRef.current.ownerScope!==context.ownerScope||notificationRouteRef.current.businessId!==context.businessId){
+        if(notificationHandledRef.current===attempt)notificationHandledRef.current="";return;
+      }
       appendProactiveNotificationLog({
         kind: "opened",
         title: notification?.request?.content?.title || "Notification opened",
@@ -10986,7 +11003,7 @@ function App() {
       .catch(() => {});
 
     return () => subscription?.remove?.();
-  }, [hydrated]);
+  }, [hydrated,ownerSession?.userId,cloudWorkspace?.businessId]);
 
   const diaryBookingFingerprint = (booking) =>
     JSON.stringify([
@@ -15858,16 +15875,14 @@ function App() {
     const customerUserId = ownerSession?.userId || "";
     if (!slug || !appId || !customerUserId ||customerRequestRenderEpoch!==customerRequestEpochRef.current||
         customerRequestInFlightRef.current?.epoch===customerRequestEpochRef.current) return false;
+    const validatedRequest=validateNativeGuestRequest(requestType,payload);
+    if(!validatedRequest.ok){setMiniAppsError(validatedRequest.reason);return false;}
     // Keep one request key for the SAME in-memory draft after an ambiguous
     // network error. Repeated taps cannot create simultaneous requests.
     const signature=JSON.stringify([customerUserId,slug,appId,requestType,payload]);
-    const pending=customerRequestPendingRef.current;
-    if(!pending||pending.signature!==signature){
-      customerRequestPendingRef.current={
-        signature,requestKey:busyRequestId("customer-request")
-      };
-    }
-    const key=customerRequestPendingRef.current.requestKey;
+    const durable=createCustomerRequestAttempt(SecureStore,{userId:customerUserId,appId,
+      versionId:selectedBusyAppDetail?.version?.id,requestType},()=>busyRequestId("customer-request"));
+    let key="",differentDraft=false;
     const expectedScope=[customerUserId,appId,slug].join(":");
     const epoch=customerRequestRenderEpoch;
     const scopeStillCurrent=()=>
@@ -15878,6 +15893,11 @@ function App() {
     setMiniAppsError("");
     setMiniAppsNotice("");
     try {
+      const prepared=await durable.prepare(payload);
+      if(!scopeStillCurrent())return false;
+      key=prepared.key;differentDraft=prepared.blocked;
+      customerRequestPendingRef.current={signature,requestKey:key};
+      if(differentDraft)throw Error('An earlier request needs checking before changed details can be sent.');
       const data = await miniAppsRequest(
         "submit_request",{slug,requestType,payload},
         {includeBusiness:false,requestKey:key,isCurrent:scopeStillCurrent}
@@ -15888,9 +15908,11 @@ function App() {
       });
       if(!verified.ok||!scopeStillCurrent())
         throw Error("The saved request response could not be verified against your account.");
+      const cleared=await durable.complete(key).catch(()=>false);
+      if(!scopeStillCurrent())return false;
       if(customerRequestPendingRef.current?.requestKey===key)customerRequestPendingRef.current=null;
       setLatestCustomerRequestOutcome(verified);
-      setMiniAppsNotice(customerRequestNotice(verified));
+      setMiniAppsNotice(customerRequestNotice(verified)+(cleared?"":" The device retry reference could not be cleared; check the earlier request before sending another."));
       // A My Apps refresh is optional and must never invalidate saved proof.
       try{await loadMyBusyApps({quiet:true});}catch{}
       return scopeStillCurrent();
@@ -15900,7 +15922,7 @@ function App() {
       // It does not submit messages, mark notifications delivered, or
       // mutate unread status.
       try{
-        if(scopeStillCurrent()){
+        if(key&&scopeStillCurrent()){
           const receipt=await miniAppsRequest("request_receipt",
             {slug,requestType,requestKey:key},
             {includeBusiness:false,isCurrent:scopeStillCurrent});
@@ -15909,15 +15931,18 @@ function App() {
             response:receipt,evidenceSource:"read_only_customer_receipt"
           });
           if(verified.ok&&scopeStillCurrent()){
+            const cleared=await durable.complete(key).catch(()=>false);
+            if(!scopeStillCurrent())return false;
             if(customerRequestPendingRef.current?.requestKey===key)customerRequestPendingRef.current=null;
             setLatestCustomerRequestOutcome(verified);
-            setMiniAppsNotice(customerRequestNotice(verified));
+            setMiniAppsNotice(customerRequestNotice(verified)+(differentDraft?" Your new details have not been sent. Review them before sending a separate request.":""));
             try{await loadMyBusyApps({quiet:true});}catch{}
-            return scopeStillCurrent();
+            return scopeStillCurrent()&&!differentDraft;
           }
         }
       }catch{ /* Failed readback proves nothing; retain same request key. */ }
-      if(scopeStillCurrent())setMiniAppsError("BUSY couldn't confirm whether the request saved. "+
+      if(scopeStillCurrent())setMiniAppsError(!key?(error?.message||"Secure request recovery is unavailable. Nothing new was sent."):differentDraft?
+        "An earlier request is still unconfirmed. Check the earlier request or retry its original details before sending different information.":"BUSY couldn't confirm whether the request saved. "+
         "Check My BUSY Apps before retrying. Retrying unchanged details uses the same request ID.");
       return false;
     }finally{
@@ -15926,6 +15951,27 @@ function App() {
         if(scopeStillCurrent())setMiniAppsAction("");
       }
     }
+  };
+
+  const checkBusyAppRequestRecovery=async(requestType)=>{
+    const app=selectedBusyAppDetail?.app,customerUserId=ownerSession?.userId;
+    const epoch=customerRequestRenderEpoch;
+    const current=()=>customerRequestEpochRef.current===epoch;
+    if(!current()||!app?.id||!customerUserId||customerRequestInFlightRef.current?.epoch===epoch)return false;
+    const attempt={epoch};customerRequestInFlightRef.current=attempt;
+    setMiniAppsAction("recover:"+requestType);setMiniAppsError("");
+    try{
+      const durable=createCustomerRequestAttempt(SecureStore,{userId:customerUserId,appId:app.id,versionId:selectedBusyAppDetail?.version?.id,requestType});
+      const saved=await durable.pending();if(!current())return false;
+      if(!saved){setMiniAppsNotice("No earlier pending request reference is stored for this app and action.");return false;}
+      const receipt=await miniAppsRequest("request_receipt",{slug:app.slug,requestType,requestKey:saved.key},{includeBusiness:false,isCurrent:current});
+      if(!current())return false;
+      const verified=evaluateCustomerRequestOutcome({businessAppId:app.id,customerUserId,requestType,response:receipt,evidenceSource:"read_only_customer_receipt"});
+      if(!verified.ok){setMiniAppsError("The earlier request is not yet confirmed. Its reference is preserved; no new request was sent.");return false;}
+      const cleared=await durable.complete(saved.key).catch(()=>false);if(!current())return false;
+      setLatestCustomerRequestOutcome(verified);setMiniAppsNotice(customerRequestNotice(verified)+" Your current form has not been sent."+(cleared?"":" The device retry reference is still retained."));return true;
+    }catch(error){if(current())setMiniAppsError(error?.message||"The earlier request could not be checked. Its reference is preserved.");return false;}
+    finally{if(customerRequestInFlightRef.current===attempt){customerRequestInFlightRef.current=false;if(current())setMiniAppsAction("");}}
   };
 
   const updateMiniAppRequestStatus = async (requestId, status, expectedRequest) => {
@@ -15993,159 +16039,20 @@ function App() {
     }
   };
 
-  const enableMiniAppNotifications = async () => {
-    if (productionBridgeRuntime.expoGoPreview) {
-      setMiniAppsNotificationStatus((current) => ({
-        ...current,
-        state: "needs_development_build",
-        message: "Remote request notifications are tested in the native development build. Unread badges still work in Expo Go.",
-      }));
-      return false;
-    }
-    if (!productionBridgeRuntime.easProjectId) {
-      setMiniAppsNotificationStatus((current) => ({
-        ...current,
-        state: "needs_eas_project",
-        message: "BUSY needs its EAS project link before this device can receive remote push.",
-      }));
-      return false;
-    }
-    setMiniAppsNotificationAction("enable");
-    try {
-      const existing = await Notifications.getPermissionsAsync();
-      let permission = existing?.status || "undetermined";
-      if (permission !== "granted") {
-        const requested = await Notifications.requestPermissionsAsync();
-        permission = requested?.status || "denied";
-      }
-      if (permission !== "granted") throw new Error("Notification permission was not granted.");
-      const expoToken = (
-        await Notifications.getExpoPushTokenAsync({
-          projectId: productionBridgeRuntime.easProjectId,
-        })
-      )?.data;
-      if (!expoToken) throw new Error("Expo did not return a push token.");
-      const data = await miniAppsRequest(
-        "register_notification_device",
-        {
-          expoPushToken: expoToken,
-          platform: Platform.OS,
-          appVersion: APP_VERSION,
-          deviceLabel: `${Platform.OS} BUSY Apps device`,
-        },
-        { includeBusiness: false }
-      );
-      const activeDeviceCount = Number(data?.notification?.activeDeviceCount || 0);
-      setMiniAppsNotificationStatus({
-        state: activeDeviceCount > 0 ? "enabled" : "disabled",
-        activeDeviceCount,
-        token: expoToken,
-        message: activeDeviceCount > 0
-          ? "This device will receive BUSY Apps request updates."
-          : "BUSY could not confirm this notification device.",
-      });
-      return activeDeviceCount > 0;
-    } catch (error) {
-      setMiniAppsNotificationStatus((current) => ({
-        ...current,
-        state: "error",
-        message: error?.message || "BUSY could not enable request notifications.",
-      }));
-      return false;
-    } finally {
-      setMiniAppsNotificationAction("");
-    }
-  };
+  const appNotificationContextRef=useRef(null),appNotificationActionsRef=useRef(null);
+  appNotificationContextRef.current={ownerScope:cloudOwnerScopeRef.current,runtime:productionBridgeRuntime,
+    status:miniAppsNotificationStatus,notifications:Notifications,platform:Platform.OS,appVersion:APP_VERSION,
+    request:miniAppsRequest,setStatus:setMiniAppsNotificationStatus,setAction:setMiniAppsNotificationAction};
+  if(!appNotificationActionsRef.current)appNotificationActionsRef.current=createAppNotificationActions(()=>appNotificationContextRef.current);
+  const {enableMiniAppNotifications,disableMiniAppNotifications}=appNotificationActionsRef.current;
 
-  const disableMiniAppNotifications = async () => {
-    if (productionBridgeRuntime.expoGoPreview || !productionBridgeRuntime.easProjectId) return false;
-    setMiniAppsNotificationAction("disable");
-    try {
-      let expoToken = miniAppsNotificationStatus.token || "";
-      if (!expoToken) {
-        const permission = await Notifications.getPermissionsAsync();
-        if (permission?.status !== "granted") throw new Error("This device has no active notification permission.");
-        expoToken = (
-          await Notifications.getExpoPushTokenAsync({
-            projectId: productionBridgeRuntime.easProjectId,
-          })
-        )?.data || "";
-      }
-      if (!expoToken) throw new Error("BUSY could not identify this device's push token.");
-      const data = await miniAppsRequest(
-        "disable_notification_device",
-        { expoPushToken: expoToken },
-        { includeBusiness: false }
-      );
-      const activeDeviceCount = Number(data?.notification?.activeDeviceCount || 0);
-      setMiniAppsNotificationStatus({
-        state: activeDeviceCount > 0 ? "enabled" : "disabled",
-        activeDeviceCount,
-        token: "",
-        message: activeDeviceCount > 0
-          ? `Notifications remain active on ${activeDeviceCount} other device${activeDeviceCount === 1 ? "" : "s"}.`
-          : "Request notifications are off on this device.",
-      });
-      return true;
-    } catch (error) {
-      setMiniAppsNotificationStatus((current) => ({
-        ...current,
-        message: error?.message || "BUSY could not disable request notifications on this device.",
-      }));
-      return false;
-    } finally {
-      setMiniAppsNotificationAction("");
-    }
-  };
-
-  const loadMiniAppRequestDetail = async (
-    requestId,
-    role,
-    { before = "", append = false, navigate = true } = {}
-  ) => {
-    if (!requestId) return false;
-    if(navigate&&!append)setOwnerFollowupReview(null);
-    const ownerView = role === "business";
-    setMiniAppRequestHistoryLoading(true);
-    setMiniAppsError("");
-    try {
-      const data = await miniAppsRequest(
-        ownerView ? "owner_request_detail" : "customer_request_detail",
-        { requestId, before, limit: 30 },
-        { includeBusiness: ownerView }
-      );
-      if (data?.status) applyMiniAppsStatus(data);
-      const detail = data?.detail || null;
-      if (!detail?.request?.id) throw new Error("BUSY could not load that request conversation.");
-      setSelectedMiniAppRequestRole(ownerView ? "business" : "customer");
-      setSelectedMiniAppRequestDetail((current) => {
-        if (!append || current?.request?.id !== detail.request.id) return detail;
-        const messageMap = new Map(
-          [...(current.messages || []), ...(detail.messages || [])].map((item) => [item.id, item])
-        );
-        return {
-          ...detail,
-          messages: [...messageMap.values()],
-          events: Array.isArray(detail.events) ? detail.events : current.events || [],
-        };
-      });
-      if (ownerView) {
-        await refreshMiniAppsStatus({ quiet: true });
-      } else {
-        await loadMyBusyApps({ quiet: true });
-      }
-      if (navigate) {
-        setTab("Home");
-        go("miniAppRequestDetail");
-      }
-      return true;
-    } catch (error) {
-      setMiniAppsError(error?.message || "BUSY could not load that request conversation.");
-      return false;
-    } finally {
-      setMiniAppRequestHistoryLoading(false);
-    }
-  };
+  const requestConversationContextRef=useRef(null),requestConversationActionsRef=useRef(null);
+  requestConversationContextRef.current={ownerScope:cloudOwnerScopeRef.current,workspaceScope:businessWorkspaceScopeRef.current,businessId:cloudWorkspace?.businessId||"",
+    detail:selectedMiniAppRequestDetail,role:selectedMiniAppRequestRole,request:miniAppsRequest,
+    setOwnerFollowupReview,setMiniAppRequestHistoryLoading,setMiniAppsError,setSelectedMiniAppRequestRole,
+    setSelectedMiniAppRequestDetail,setTab,go,applyMiniAppsStatus,loadMyBusyApps};
+  if(!requestConversationActionsRef.current)requestConversationActionsRef.current=createRequestConversationActions(()=>requestConversationContextRef.current);
+  const {loadMiniAppRequestDetail}=requestConversationActionsRef.current;
 
   // A request can fall off the recent 30-row inbox page. Independently
   // check one authenticated owner-scoped row without changing unread state.
@@ -16289,6 +16196,10 @@ function App() {
     const activeKey="business:"+actorUserId+":"+businessId+":"+requestId;
     if(!requestId||!body||miniAppMessageInFlightRef.current.has(activeKey))
       return false;
+    const expectedRequest=selectedMiniAppRequestDetail?.request;
+    const expectedScope=[actorUserId,cloudWorkspace?.businessId||"","business",requestId,expectedRequest?.mini_app_id||""].join(":");
+    const scopeStillCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&liveOwnerFollowupScopeRef.current===expectedScope;
+    if(expectedRequest?.id!==requestId||selectedMiniAppRequestRole!=="business"||!scopeStillCurrent())return false;
     miniAppMessageInFlightRef.current.add(activeKey);
     setMiniAppsAction(`owner-message:${requestId}`);
     setMiniAppsError("");
@@ -16298,13 +16209,16 @@ function App() {
         actorUserId,businessId,role:"business",requestId,message:body
       },()=>busyRequestId("mini-app-owner-reply"));
       if(!attempt.ok)throw Error(attempt.reason);
+      if(!scopeStillCurrent())return false;
       const data=await miniAppsRequest("send_request_message",
         {requestId,message:body,
          ...(reviewedFollowupStamp!==null?{reviewedFollowupStamp}:{})},
-        {requestKey:attempt.key});
+        {requestKey:attempt.key,isCurrent:scopeStillCurrent});
       if(data?.databaseMessageSaved!==true)
         throw Error("BUSY could not verify the message receipt. Retry the same text.");
+      if(!scopeStillCurrent())return false;
       const cleared=await clearDurableMessageAttempt(SecureStore,attempt);
+      if(!scopeStillCurrent())return false;
       const appId=selectedMiniAppRequestDetail?.request?.mini_app_id||"";
       const verifiedPostSend=interpretSavedOwnerReply({
         businessId,appId,requestId,response:data
@@ -16318,6 +16232,7 @@ function App() {
           selectedMiniAppRequestRole==="business")
           await loadMiniAppRequestDetail(requestId,"business",{navigate:false});
       }catch(refreshError){ /* Database receipt remains authoritative. */ }
+      if(!scopeStillCurrent())return false;
       setMiniAppsNotice(cleared?
         verifiedPostSend.ok&&verifiedPostSend.waitingForCustomerAtReadback?
         "Reply saved. Busy checked the latest message; wait for the customer. Notification delivery remains unverified.":
@@ -16325,12 +16240,13 @@ function App() {
         "Reply saved. Secure retry cleanup needs checking before sending identical text again.");
       return true;
     }catch(error){
+      if(!scopeStillCurrent())return false;
       if(attempt?.ok){
         const recovered=await recoverExactSavedReply({
           storage:SecureStore,attempt,requestId,body,role:"business",
-          checkReceipt:fields=>miniAppsRequest("owner_message_receipt",fields)
+          checkReceipt:fields=>miniAppsRequest("owner_message_receipt",fields,{isCurrent:scopeStillCurrent})
         });
-        if(recovered.ok){
+        if(recovered.ok&&scopeStillCurrent()){
           setLatestCommunicationEvidence(recovered.evidence);
           setOwnerFollowupReview(null);
           setMiniAppsNotice(recovered.secureRetryReferenceCleared?
@@ -16341,12 +16257,13 @@ function App() {
           return true;
         }
       }
+      if(!scopeStillCurrent())return false;
       setMiniAppsError("BUSY could not yet confirm that the reply was saved. "+
         "Check the conversation before retrying the same text and secure reply ID.");
       return false;
     }finally{
       miniAppMessageInFlightRef.current.delete(activeKey);
-      setMiniAppsAction("");
+      if(scopeStillCurrent())setMiniAppsAction("");
     }
   };
 
@@ -16356,6 +16273,10 @@ function App() {
     const activeKey="customer:"+actorUserId+":"+requestId;
     if(!requestId||!body||miniAppMessageInFlightRef.current.has(activeKey))
       return false;
+    const expectedRequest=selectedMiniAppRequestDetail?.request;
+    const expectedScope=[actorUserId,cloudWorkspace?.businessId||"","customer",requestId,expectedRequest?.mini_app_id||""].join(":");
+    const scopeStillCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&liveOwnerFollowupScopeRef.current===expectedScope;
+    if(expectedRequest?.id!==requestId||selectedMiniAppRequestRole!=="customer"||!scopeStillCurrent())return false;
     miniAppMessageInFlightRef.current.add(activeKey);
     setMiniAppsAction(`customer-message:${requestId}`);
     setMiniAppsError("");
@@ -16365,30 +16286,35 @@ function App() {
         actorUserId,role:"customer",requestId,message:body
       },()=>busyRequestId("mini-app-customer-reply"));
       if(!attempt.ok)throw Error(attempt.reason);
+      if(!scopeStillCurrent())return false;
       const receipt=await miniAppsRequest("reply_request_message",
         {requestId,message:body},
-        {includeBusiness:false,requestKey:attempt.key});
+        {includeBusiness:false,requestKey:attempt.key,isCurrent:scopeStillCurrent});
       if(receipt?.databaseMessageSaved!==true)
         throw Error("BUSY could not verify the customer reply receipt. Retry the same text.");
+      if(!scopeStillCurrent())return false;
       const cleared=await clearDurableMessageAttempt(SecureStore,attempt);
+      if(!scopeStillCurrent())return false;
       try{
         await loadMyBusyApps({quiet:true});
         if(selectedMiniAppRequestDetail?.request?.id===requestId&&
            selectedMiniAppRequestRole==="customer")
           await loadMiniAppRequestDetail(requestId,"customer",{navigate:false});
       }catch(refreshError){ /* Commit and push are separate outcomes. */ }
+      if(!scopeStillCurrent())return false;
       setMiniAppsNotice(cleared?
         "Reply saved in BUSY. Notification delivery is not independently verified.":
         "Reply saved. Check this conversation before sending the same text again.");
       return true;
     }catch(error){
+      if(!scopeStillCurrent())return false;
       if(attempt?.ok){
         const recovered=await recoverExactSavedReply({
           storage:SecureStore,attempt,requestId,body,role:"customer",
           checkReceipt:fields=>miniAppsRequest("customer_message_receipt",
-            fields,{includeBusiness:false})
+            fields,{includeBusiness:false,isCurrent:scopeStillCurrent})
         });
-        if(recovered.ok){
+        if(recovered.ok&&scopeStillCurrent()){
           setLatestCommunicationEvidence(recovered.evidence);
           setMiniAppsNotice(recovered.secureRetryReferenceCleared?
             "BUSY found your saved reply. Notification delivery is not verified.":
@@ -16398,12 +16324,13 @@ function App() {
           return true;
         }
       }
+      if(!scopeStillCurrent())return false;
       setMiniAppsError("BUSY could not yet confirm that the reply was saved. "+
         "Check this conversation before retrying the same text and secure reply ID.");
       return false;
     }finally{
       miniAppMessageInFlightRef.current.delete(activeKey);
-      setMiniAppsAction("");
+      if(scopeStillCurrent())setMiniAppsAction("");
     }
   };
 
@@ -17161,6 +17088,7 @@ function App() {
     shareMiniAppCustomerLink,
     openMiniAppCustomerLink,
     submitBusyAppRequest,
+    checkBusyAppRequestRecovery,
     updateMiniAppRequestStatus,
     openBusyAppsMarketplace,
     openMiniAppBuilder,

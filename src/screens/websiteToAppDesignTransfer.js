@@ -11,7 +11,9 @@ import {planWebsiteToAppDesign,confirmWebsiteToAppDesign}
 function WebsiteToAppDesignTransfer({website,app,businessId,onPreview,busy}){
  const [open,setOpen]=React.useState(false);
  const [mode,setMode]=React.useState("adapt");
+ const [includeDesign,setIncludeDesign]=React.useState(true);
  const [includeServices,setIncludeServices]=React.useState(false);
+ const [includeContacts,setIncludeContacts]=React.useState(false);
  const [fillDescriptions,setFillDescriptions]=React.useState(false);
  const live=React.useRef(null),alive=React.useRef(true);live.current={website,app,businessId};
  React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
@@ -21,7 +23,7 @@ function WebsiteToAppDesignTransfer({website,app,businessId,onPreview,busy}){
   website?.id,website?.generation,app?.id,app?.draft_revision,businessId]);
  if(!website?.id||!app?.id||!businessId)return null;
  const preview=planWebsiteToAppDesign({
-  website,app,businessId,mode,includeServices,fillDescriptions
+  website,app,businessId,mode,includeServices,fillDescriptions,includeDesign,includeContacts
  });
  return <Card eyebrow="Build faster with your existing website"
    title="Use my website's design for this app"
@@ -30,7 +32,9 @@ function WebsiteToAppDesignTransfer({website,app,businessId,onPreview,busy}){
    <Button label={open?"Hide design transfer":"See how Busy could reuse my website"}
     onPress={()=>{setOpen(v=>!v);setReview(null);setNotice("");}}/>
    {open?<View>
-    <Text style={styles.sectionLabel}>How closely should Busy match?</Text>
+    <Button label={(includeDesign?"":"✓ ")+"Only reuse website services — keep my app design"}
+      disabled={!!busy} onPress={()=>{setIncludeDesign(x=>!x);setIncludeServices(true);setMode("adapt");setReview(null);setNotice("");}}/>
+    {includeDesign?<><Text style={styles.sectionLabel}>How closely should Busy match?</Text>
     <View style={{marginTop:8,gap:8}}>
      {[
       ["match","Match my website closely"],
@@ -40,9 +44,12 @@ function WebsiteToAppDesignTransfer({website,app,businessId,onPreview,busy}){
        label={(mode===key?"✓ ":"")+label}
        onPress={()=>{setMode(key);setReview(null);setNotice("");}}/>)}
     </View>
-    {mode!=="new"?<Button
+    </>:<Text style={styles.cardBody}>Your app colours, typography, layout and navigation will stay exactly as they are.</Text>}
+    {includeDesign&&mode!=="new"?<Button
      label={(includeServices?"✓ ":"")+"Also copy missing website services"}
      onPress={()=>{setIncludeServices(v=>!v);setReview(null);setNotice("");}}/>:null}
+    {mode!=="new"?<Button label={(includeContacts?"✓ ":"")+"Fill missing app contact details from my website"}
+      onPress={()=>{setIncludeContacts(x=>!x);setReview(null);setNotice("");}}/>:null}
     {includeServices?<Button label={(fillDescriptions?"✓ ":"")+"Fill only empty descriptions of matching services"}
       onPress={()=>{setFillDescriptions(x=>!x);setReview(null);}}/>:null}
     {mode==="new"?<Text style={styles.cardBody}>

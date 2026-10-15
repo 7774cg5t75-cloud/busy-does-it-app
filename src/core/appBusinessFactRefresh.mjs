@@ -10,12 +10,19 @@ function reviewAppBusinessFactRefresh({businessId,app,profileRecord,selected=nul
  if(!source||record?.business_id!==businessId||!Number.isSafeInteger(record.revision)||record.revision<1||
   record.revision<Number(config.sourceProfileRevision||0)||!record.profile||typeof record.profile!=='object'||Array.isArray(record.profile))
   return fail('Refresh the current business’s saved public profile before comparing facts.');
- if(selected!==null&&(!Array.isArray(selected)||selected.length>34||selected.some(x=>typeof x!=='string')))return fail('Choose supported fact changes.');
+ if(selected!==null&&(!Array.isArray(selected)||selected.length>37||selected.some(x=>typeof x!=='string')))return fail('Choose supported fact changes.');
  const rows=[],textOps=[],old=config.publicProfile||{},fresh=record.profile;
  for(const field of ['tagline','about','description']){
   const value=fresh[field];if(typeof value!=='string'||!value.trim()||value===old[field])continue;
   const op={kind:'text',field,value},checked=proposeCoordinatedAppChanges(config,[op]);
   rows.push({id:'text:'+field,label:field,before:old[field]??'',after:value,conflict:!!old[field],
+   allowed:checked.ok,reason:checked.ok?'':checked.reason,op});
+ }
+ for(const field of ['phone','email','openingHours']){
+  const value=fresh.contact?.[field],previous=old.contact?.[field];
+  if(typeof value!=='string'||!value.trim()||value===previous)continue;
+  const op={kind:'contact',field,value},checked=proposeCoordinatedAppChanges(config,[op]);
+  rows.push({id:'contact:'+field,label:field,before:previous??'',after:value,conflict:!!previous,
    allowed:checked.ok,reason:checked.ok?'':checked.reason,op});
  }
  const prior=Array.isArray(old.services)?old.services:[];

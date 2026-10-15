@@ -9,7 +9,7 @@ function appOwnerLocks(config){
 }
 function appEditLockReason(config,op){
  if(op?.kind==="restore_photo_description")op={...op,kind:"photo_description"};
- if(op?.kind==="restore_public_field")op={...op,kind:op.field==="services"?"services":"text"};
+ if(op?.kind==="restore_public_field")op={...op,kind:op.field==="services"?"services":op.field==="contact"?"contact":"text"};
  const parsed=appOwnerLocks(config);
  if(!parsed.ok)return parsed.reason;
  const groups={headerStyle:["header"],typeStyle:["header","copy","typography"],
@@ -34,6 +34,7 @@ function appEditLockReason(config,op){
   }
   for(const key of before)if(before.indexOf(key)!==after.indexOf(key))targets.push(key);
  }else if(op?.kind==="text")targets.push("copy","business_profile",op.field,...(op.field==="tagline"?["header"]:[]));
+ else if(op?.kind==="contact")targets.push("contact","copy","business_profile",op.field);
  else if(op?.kind==="services")targets.push("services","copy");
  else if(["photo","photo_description"].includes(op?.kind))targets.push("gallery","photos",...(op.kind==="photo_description"?["copy"]:[]));
  return parsed.locks.some(x=>x==="all"||targets.includes(x))?

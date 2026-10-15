@@ -115,13 +115,15 @@ function buildWebsitePageModel(draft = {}) {
         ? businessType
         : page.title;
     const areaSuffix = serviceArea ? ` • ${serviceArea}` : "";
+    const owned=draft.seo?.ownerPages?.[page.id];
+    const safeMetadata=(value,max)=>typeof value==='string'&&value.trim()&&value.length<=max&&!/[<>\u0000-\u001f\u007f]/.test(value);
     pageSeo[page.id] = {
       path: page.path,
       title:
-        page.id === "home"
+        safeMetadata(owned?.title,70)?owned.title.trim():page.id === "home"
           ? `${businessName} | ${businessType}`.slice(0, 70)
           : `${page.title} | ${businessName}`.slice(0, 70),
-      description: (
+      description: safeMetadata(owned?.description,160)?owned.description.trim():(
         pageDescription(draft, page.sectionIds) +
         (page.id === "home" && serviceArea ? ` Serving ${serviceArea}.` : "")
       )

@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {proposeCoordinatedAppChanges as plan} from '../src/core/appCoordinatedStudio.mjs';
+import {reviewAppBusinessFactRefresh as review} from '../src/core/appBusinessFactRefresh.mjs';
+import fs from 'node:fs';
+const businessId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';const config={modules:[{key:'business_profile',enabled:true},{key:'contact',enabled:true}],navigation:['business_profile','contact'],publicProfile:{about:'Keep',services:[],contact:{phone:'01234567890',email:'owner@example.test',openingHours:'Weekdays',social:{facebook:'https://example.test'}}}};
+for(const original of [config,{...config,publicProfile:{...config.publicProfile,contact:null}},{...config,publicProfile:{about:'Keep'}},{...config,publicProfile:null}]){
+ const change=plan(original,[{kind:'contact',field:'phone',value:'07700900123'}]);assert.equal(change.ok,true,change.reason);const undo=plan(change.nextConfig,change.undoOperations);assert.equal(undo.ok,true,undo.reason);assert.deepEqual(undo.nextConfig,original);
+}
+assert.equal(plan(config,[{kind:'contact',field:'email',value:'broken'}]).ok,false);assert.equal(plan(config,[{kind:'contact',field:'social',value:'javascript:bad'}]).ok,false);assert.equal(plan({...config,presentation:{ownerLockedElements:['contact']}},[{kind:'contact',field:'phone',value:'07700900123'}]).ok,false);
+const app={id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',business_id:businessId,draft_revision:2,draft_config:config};const profileRecord={business_id:businessId,revision:3,profile:{services:[],contact:{phone:'07700900123'}}};const result=review({businessId,app,profileRecord});assert.equal(result.rows.find(x=>x.id==='contact:phone').conflict,true);assert.equal(result.preview,null);const selected=review({businessId,app,profileRecord,selected:['contact:phone']});assert.equal(selected.preview.nextConfig.publicProfile.contact.phone,'07700900123');assert.equal(selected.preview.nextConfig.publicProfile.contact.email,'owner@example.test');
+for(const file of ['appContactPolicy.mjs','appProfileFieldUndo.mjs','appCoordinatedStudio.mjs','appOwnerLocks.mjs'])assert.equal(fs.readFileSync(new URL('../src/core/'+file,import.meta.url),'utf8'),fs.readFileSync(new URL('../supabase/functions/busy-mini-apps/'+file,import.meta.url),'utf8'));
+console.log('PASS: original shared Studio contact editing, exact sparse/null parent Undo, preserved other contact fields, validation/locks, explicit saved-fact replacement and client/Edge byte parity. No server deployment.');
