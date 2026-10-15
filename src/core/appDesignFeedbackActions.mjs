@@ -2,6 +2,10 @@ import {validateDesignFeedback} from './appDesignLearning.mjs';
 import {privateAppEditSource} from './privateAppEditSession.mjs';
 // Original feedback endpoint/ledger, with live-scope transport guards and stable
 // request identity. No retry queue, new learning store or training operation.
+function feedbackBody(payload){
+ const {appId,expectedRevision,field,value,verdict,context='preview',source='manual',baselineWarnings=null,proposedWarnings=null}=payload;
+ return {appId,expectedRevision,field,value,verdict,context,source,baselineWarnings,proposedWarnings,ownerApproved:true};
+}
 function createAppDesignFeedbackActions(getScope){
  let pending=false;
  async function run(kind,payload,send,reviewed){
@@ -14,7 +18,7 @@ function createAppDesignFeedbackActions(getScope){
   };
   if(!base||!current()||payload?.appId!==base.appId||reviewed&&
     (reviewed.ownerId!==scope.userId||reviewed.businessId!==scope.businessId))return fail('Open the current signed-in private app before changing feedback.');
-  const body=kind==='record'?{...payload,context:payload.context||'preview',source:payload.source||'manual',ownerApproved:true}:
+  const body=kind==='record'?feedbackBody(payload):
    {appId:base.appId,ownerApproved:true};
   if(kind==='record'){
    const valid=validateDesignFeedback(body);if(!valid.ok||body.expectedRevision!==base.revision)return fail(valid.reason||'The app revision changed.');

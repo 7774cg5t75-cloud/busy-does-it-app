@@ -15,3 +15,7 @@ const stale=actions.clear({appId},()=>new Promise(r=>{finish=r;}),reviewed);scop
 scope=initial;const before=calls;assert.equal((await actions.record({...args,expectedRevision:3},send,reviewed)).ok,false);assert.equal(calls,before);
 assert.equal((await actions.clear({appId},async()=>({ok:true,businessId,appId,cleared:true,publicAppUnchanged:true}),reviewed)).ok,true);
 console.log('PASS: scoped feedback/clear receipts, actor/revision changes, duplicate in-flight rejection and stable original-ledger request identity. Fake transport; hosted uniqueness remains unverified.');
+const injected=await actions.record({...args,action:'clear_design_feedback',businessId:'foreign'},async(action,body)=>{
+ assert.equal(action,'record_design_feedback');assert.equal(Object.hasOwn(body,'action'),false);assert.equal(Object.hasOwn(body,'businessId'),false);return receipt;
+},reviewed);assert.equal(injected.ok,true);
+const sentBefore=calls;assert.equal((await actions.record({...args,source:null},send,reviewed)).ok,false);assert.equal(calls,sentBefore);
