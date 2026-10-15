@@ -1,3 +1,4 @@
+import {currentWebsiteDesignCandidate,privateWebsiteReviewProgress} from "../core/privateWebsiteReviewProgress.mjs";
 import React from "react";
 import { Text, TextInput, View, Alert } from "react-native";
 import { WebView } from "react-native-webview";
@@ -951,6 +952,10 @@ function WebsitePreview({ s }) {
   const [designCandidate,setDesignCandidate]=React.useState(null);
   const [candidateCheckOn,setCandidateCheckOn]=React.useState(false);
   const [candidateCheckResult,setCandidateCheckResult]=React.useState(null);
+  const [captureSequence,setCaptureSequence]=React.useState({original:0,candidate:0});
+  const [requestedReview,setRequestedReview]=React.useState(null);
+  const [activeCapture,setActiveCapture]=React.useState(null);
+  const captureEpoch=React.useRef(Date.now().toString(36));
   const [privateWidthEvidence,setPrivateWidthEvidence]=React.useState(null);
   const [designCandidateNotice,setDesignCandidateNotice]=React.useState("");
   const [showOriginalComparison,setShowOriginalComparison]=React.useState(false);
@@ -965,10 +970,11 @@ function WebsitePreview({ s }) {
   const [confirmRecoveryRestore,setConfirmRecoveryRestore]=React.useState(false);
   React.useEffect(()=>{
     setSelectedEdit(null);setVisualCheckResult(null);setVisualCheckOn(false);
+    setRequestedReview(null);
     setDesignCandidate(null);setCandidateCheckOn(false);
     setCandidateCheckResult(null);setPrivateWidthEvidence(null);setDesignCandidateNotice("");
     setShowOriginalComparison(false);
-  },[selectedPageId,draft?.id,draft?.generation,s.cloudWorkspace?.businessId]);
+  },[selectedPageId,draft?.id,draft?.generation,s.cloudWorkspace?.businessId,s.ownerSession?.userId]);
   React.useEffect(()=>{
     // Keep the SAME private design candidate when switching screen width;
     // old single-width measurements must never be reused at another width.
@@ -983,12 +989,35 @@ function WebsitePreview({ s }) {
   const activePage=draft?.pages?.find(page=>page.id===selectedPageId)||
     draft?.pages?.find(page=>page.id==="home");
   const liveConceptHtml = draft ? renderWebsiteHtml(draft,activePage?.id||"home") : "";
-  const inspectionKey=[draft?.generation||1,activePage?.id||"home",previewSize].join(":");
+  const sourceKey=[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft?.id,
+    draft?.generation,activePage?.id||"home"].join(":");
+  const candidateIsCurrent=currentWebsiteDesignCandidate(designCandidate,{
+    businessId:s.cloudWorkspace?.businessId,website:draft,pageId:activePage?.id||"home"});
+  const inspectionKey=["review",captureEpoch.current,"original",captureSequence.original].join(":");
   const candidateKey=designCandidate?
-    [draft?.generation||1,activePage?.id||"home",previewSize,"candidate",designCandidate.id].join(":"):"";
-  const candidateHtml=designCandidate?.draft
+    ["review",captureEpoch.current,"candidate",captureSequence.candidate].join(":"):"";
+  const requestReview=(mode,variant)=>{
+    setRequestedReview({mode,variant,sourceKey});
+    setPreviewSize(mode);
+  };
+  React.useEffect(()=>{
+    if(!requestedReview)return;
+    if(requestedReview.sourceKey!==sourceKey){setRequestedReview(null);return;}
+    if(requestedReview.mode!==previewSize)return;
+    if(requestedReview.variant==="candidate"&&!candidateIsCurrent){setRequestedReview(null);return;}
+    const variant=requestedReview.variant;
+    setActiveCapture({sourceKey,mode:previewSize,variant});
+    setCaptureSequence(previous=>({...previous,[variant]:previous[variant]+1}));
+    setSelectedEdit(null);setTapEditMode(false);
+    setShowOriginalComparison(variant==="original"&&candidateIsCurrent);
+    setVisualCheckOn(variant==="original");setCandidateCheckOn(variant==="candidate");
+    if(variant==="original")setVisualCheckResult(null);else setCandidateCheckResult(null);
+    setRequestedReview(null);
+  },[requestedReview,previewSize,sourceKey,candidateIsCurrent]);
+  const candidateHtml=candidateIsCurrent&&designCandidate?.draft
     ?renderWebsiteHtml(designCandidate.draft,activePage?.id||"home"):"";
-  const unscaledInteractiveHtml=draft&&designCandidate
+  const captureIsCurrent=activeCapture?.sourceKey===sourceKey&&activeCapture?.mode===previewSize;
+  const unscaledInteractiveHtml=draft&&candidateIsCurrent
     ?showOriginalComparison?(visualCheckOn?
       makeWebsiteVisualCheckHtml(liveConceptHtml,inspectionKey):liveConceptHtml):
       candidateCheckOn?makeWebsiteVisualCheckHtml(candidateHtml,candidateKey):candidateHtml
@@ -1000,14 +1029,15 @@ function WebsitePreview({ s }) {
   const interactiveHtml=unscaledInteractiveHtml
     ?withWebsitePreviewViewport(unscaledInteractiveHtml,previewSize):"";
   const receiveTap=event=>{
-    if(!draft)return;
+    if(!draft||designCandidate&&!candidateIsCurrent)return;
     try{
       const raw=JSON.parse(String(event?.nativeEvent?.data||""));
       if(raw?.channel===VISUAL_CHECK_CHANNEL){
+        if(!captureIsCurrent)return;
         if(candidateCheckOn&&designCandidate){
           const report=reviewWebsiteVisualCheck(raw,candidateKey);
           if(report){
-            setCandidateCheckResult(report);setCandidateCheckOn(false);
+            setCandidateCheckResult({...report,reviewSourceKey:sourceKey,reviewMode:previewSize,candidateId:designCandidate.id});setCandidateCheckOn(false);
             setPrivateWidthEvidence(previous=>{
               const updated=recordPrivateWebsiteCandidateWidthV3239(previous,{
                 businessId:s.cloudWorkspace?.businessId,website:draft,
@@ -1021,7 +1051,7 @@ function WebsitePreview({ s }) {
         }else if(visualCheckOn){
           const report=reviewWebsiteVisualCheck(raw,inspectionKey);
           if(report){
-            setVisualCheckResult(report);setVisualCheckOn(false);
+            setVisualCheckResult({...report,reviewSourceKey:sourceKey,reviewMode:previewSize});setVisualCheckOn(false);
             if(designCandidate)setPrivateWidthEvidence(previous=>{
               const updated=recordPrivateWebsiteCandidateWidthV3239(previous,{
                 businessId:s.cloudWorkspace?.businessId,website:draft,
@@ -1059,7 +1089,9 @@ function WebsitePreview({ s }) {
     viewportState:viewportEvidence,draftId:draft.id,
     generation:draft.generation,pageId:activePage?.id||"home"
   }):null;
-  const layoutAdvice=visualCheckResult&&!designCandidate
+  const originalReportIsCurrent=visualCheckResult?.reviewSourceKey===sourceKey&&visualCheckResult?.reviewMode===previewSize;
+  const candidateReportIsCurrent=candidateCheckResult?.reviewSourceKey===sourceKey&&candidateCheckResult?.reviewMode===previewSize&&candidateCheckResult?.candidateId===designCandidate?.id;
+  const layoutAdvice=originalReportIsCurrent&&!designCandidate
     ?recommendMeasuredWebsiteChange({draft,pageId:activePage?.id,report:visualCheckResult}):null;
   const currentCandidateEvidence=designCandidate&&privateWidthEvidence&&
     ["phone","tablet","desktop"].includes(previewSize)?
@@ -1068,7 +1100,10 @@ function WebsitePreview({ s }) {
       pageId:activePage?.id||"home",candidateId:designCandidate.id,
       baseGeneration:designCandidate.baseGeneration,mode:previewSize
     }):null;
-  const candidateComparison=designCandidate&&candidateCheckResult&&visualCheckResult
+  const designReviewProgress=privateWebsiteReviewProgress(privateWidthEvidence,{
+    businessId:s.cloudWorkspace?.businessId,website:draft,pageId:activePage?.id||"home",
+    candidate:designCandidate,mode:previewSize});
+  const candidateComparison=candidateIsCurrent&&candidateReportIsCurrent&&originalReportIsCurrent
     ?compareWebsiteVisualReports(visualCheckResult,candidateCheckResult):
     currentCandidateEvidence?.ok?currentCandidateEvidence.comparison:null;
   const comparisonWords=candidateComparison
@@ -1100,8 +1135,15 @@ function WebsitePreview({ s }) {
     // Don't modify the owner's real draft. Recheck the entire rendered private
     // candidate on the SAME page and viewport, then offer an explicit Keep.
     setDesignCandidate({...layoutAdvice,draft:result.draft,pageId:activePage?.id,
+      businessId:s.cloudWorkspace?.businessId,websiteId:draft.id,
       baseGeneration:draft.generation});
-    setPrivateWidthEvidence(null);
+    const baseline=recordPrivateWebsiteCandidateWidthV3239(null,{
+      businessId:s.cloudWorkspace?.businessId,website:draft,pageId:activePage?.id||"home",
+      candidateId:layoutAdvice.id,baseGeneration:draft.generation,
+      mode:previewSize,variant:"original",report:visualCheckResult});
+    setPrivateWidthEvidence(baseline.ok?baseline.state:null);
+    setActiveCapture({sourceKey,mode:previewSize,variant:"candidate"});
+    setCaptureSequence(previous=>({...previous,candidate:previous.candidate+1}));
     setCandidateCheckResult(null);setCandidateCheckOn(true);
     setShowOriginalComparison(false);
     setTapEditMode(false);setVisualCheckOn(false);setSelectedEdit(null);
@@ -1117,13 +1159,16 @@ function WebsitePreview({ s }) {
     setDesignCandidateNotice("Original design restored. Your preference stays with this draft only.");
   };
   const keepCandidate=()=>{
-    if(!candidateComparison?.valid||!candidateComparison.noNewMeasuredProblems||
+    if(!candidateIsCurrent||!designReviewProgress.mayKeep||
+       !candidateComparison?.valid||!candidateComparison.noNewMeasuredProblems||
        privateWidthReview?.hasRegressions===true||
        currentCandidateEvidence?.ok===true&&
         currentCandidateEvidence.safeForPrivateApproval!==true||
        designCandidate?.baseGeneration!==draft?.generation)return;
     const saved=s.applyWebsiteLayoutAction(designCandidate.operation,{
       baseGeneration:designCandidate.baseGeneration,
+      expectedBusinessId:designCandidate.businessId,expectedWebsiteId:designCandidate.websiteId,
+      expectedGeneration:designCandidate.baseGeneration,
       ownerFeedback:{draftId:draft.id,pageId:activePage?.id,
         changeId:designCandidate.id,choice:"liked"}
     });
@@ -1351,9 +1396,7 @@ function WebsitePreview({ s }) {
         <Button label={visualCheckOn?"Checking this rendered page…":designCandidate?
           "Check original at this width":"Check this page for layout problems"}
           disabled={visualCheckOn||candidateCheckOn}
-          onPress={()=>{setSelectedEdit(null);setVisualCheckResult(null);
-            setShowOriginalComparison(!!designCandidate);
-            setTapEditMode(false);setVisualCheckOn(true);}}/>
+          onPress={()=>requestReview(previewSize,"original")}/>
         {pageReviewCoverage.checked.length?(
          <Text style={styles.cardBody}>{pageReviewCoverage.message}</Text>
         ):null}
@@ -1410,6 +1453,12 @@ function WebsitePreview({ s }) {
             </Text>
           ):null}
           <Text style={styles.sectionLabel}>Measured across screen sizes</Text>
+          {designReviewProgress.ok?<Text style={styles.cardBody}>{designReviewProgress.nextLabel}</Text>:null}
+          {designReviewProgress.ok&&designReviewProgress.next&&!designReviewProgress.hasRegressions?(
+            <Button label={designReviewProgress.nextLabel}
+              disabled={visualCheckOn||candidateCheckOn}
+              onPress={()=>requestReview(designReviewProgress.next.mode,designReviewProgress.next.variant)}/>
+          ):null}
           <Text style={styles.cardBody}>{privateWidthReview?.ok?
             privateWidthReview.summary:
             "You can compare this same private alternative on phone, tablet and desktop. Check the original and alternative at each width. These are WebView layout measurements, not independent screenshots."}</Text>
@@ -1422,16 +1471,15 @@ function WebsitePreview({ s }) {
           ))}
           <Button label={candidateCheckOn?"Checking alternative…":"Check alternative at this width"}
             disabled={candidateCheckOn||visualCheckOn}
-            onPress={()=>{setShowOriginalComparison(false);setCandidateCheckResult(null);
-              setCandidateCheckOn(true);}}/>
+            onPress={()=>requestReview(previewSize,"candidate")}/>
           {comparisonWords?.facts.map((fact,i)=>(
             <Text key={String(i)} style={styles.cardBody}>{fact}</Text>
           ))}
           <Button label={showOriginalComparison?"See proposed alternative":"See my original design"}
            disabled={candidateCheckOn}
            onPress={()=>setShowOriginalComparison(x=>!x)}/>
-          {candidateComparison?.valid&&candidateComparison.noNewMeasuredProblems&&
-           privateWidthReview?.hasRegressions!==true?(
+          {candidateIsCurrent&&designReviewProgress.mayKeep&&candidateComparison?.valid&&
+           candidateComparison.noNewMeasuredProblems&&privateWidthReview?.hasRegressions!==true?(
             <Button label="Keep this design in my private draft"
              onPress={keepCandidate}/>
           ):null}

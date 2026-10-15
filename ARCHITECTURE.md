@@ -20,6 +20,14 @@ Product preflight: supplied Word Master V22.18 (all 53 sections), current V3.240
 - `AppStudioComparison` extracts the original comparison from the oversized builder screen and renders the same marketplace component at selectable 320/390/820-point widths with original/proposed controls. Wider frames scroll rather than pretending to be physical tablet screenshots. The standalone engine retains identical responsive rules.
 - Verification: new task/lock/parity tests pass, plus V3.157, V3.160, V3.163, V3.240, the V3.240 structural audit and native/Edge syntax. Two historical UI-marker tests now follow the explicitly imported comparison component; their original assertions remain. Device usability and hosted authorisation remain unverified.
 
+### Sweep 3 — guided responsive website review and safer visual evidence
+
+- The original Website Preview now offers the next missing original/candidate check across phone, tablet and desktop. It seeds the candidate notebook with the already captured baseline instead of asking owners to repeat it. Width switches preserve the candidate and trigger the selected review in the new width.
+- Each measurement run has a bounded unique local key, plus an in-memory account/business/draft/page/version/width guard. Earlier reports cannot satisfy a later request. No private tenant identity is embedded in the WebView report key.
+- Keeping a design uses current source-bound named-width evidence and passes exact website/business/generation guards to the existing private editor. The device-width view remains available, but named-width approval requires measuring a named width. Partial checks remain explicitly partial and cannot override a regression elsewhere.
+- The original portfolio validator revalidates stored metrics and rejects improvements earned by dropping existing measured sections, headings or images. These are local DOM observations, not independent screenshots or proof of customer task completion.
+- Verification: new guided-progress/content-retention/stale-key tests pass; inherited V3.144 measured coach, V3.145 coordinated review, V3.148 responsive preview, V3.239 and V3.240 tests pass. No website deployed, customer data queried or provider called.
+
 ## V3.240 — contextual App Builder design intelligence, shared Brand DNA and safe responsive reuse
 
 **Master-first checkpoint:** Retains owner-approved V22.17 context-aware visual agent, V22.18 Business Brain priorities, V3.239 private website multiview measurements, and the permanent principles of one reusable builder engine, tenant isolation, owner approval and verified customer outcomes.

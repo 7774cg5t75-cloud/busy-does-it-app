@@ -91,8 +91,17 @@ function reviewPrivateWebsiteCandidateWidthsV3239(state,{businessId,website,
   if(!original||!candidate){
    incomplete.push(mode);continue;
   }
+  if(!boundedReport(original,mode)||!boundedReport(candidate,mode))
+   return reject("Stored layout measurements are incomplete or no longer match their width.");
   const compared=compareWebsiteVisualReports(original,candidate);
   if(!compared.valid)return reject("The original and alternative need comparable measurements.");
+  // Layout-only improvements cannot earn approval by hiding existing content.
+  for(const field of ["sections","headings","images"]){
+   if(candidate.counts[field]<original.counts[field]){
+    compared.regressions.push("Existing "+field+" disappeared from the measured page");
+    compared.noNewMeasuredProblems=false;compared.improved=false;
+   }
+  }
   checked.push({device:mode,originalWarnings:compared.originalProblemCount,
    candidateWarnings:compared.candidateProblemCount,
    newMeasuredProblems:[...compared.regressions].slice(0,15),
