@@ -18,7 +18,7 @@
 - **Private Word file:** `Busy_Does_It_Master_V22_20_Specialist_Grade_One_Busy_Assistant.docx`.
 - **SHA-256 of generated Word bytes:** `95015604442c959cccb4eda0296b67f457116545b14916031fc58bd78504cb95`.
 - **Validation:** Derived from owner-approved V22.19; existing content and all 19 tables preserved, ten paragraphs added including Section 42 specialist-grade outcome principle; DOCX rendered with 85 pages and new subsection visually checked. No application code, integrations, deployment or ranking improvements were made.
-- **Private access:** V22.20 is generated in ChatGPT conversation; confirm a persistent Library upload separately. Attach the document to a new Codex mission unless current Codex has verified read access to the updated private source.
+- **Private access:** V22.20 is confirmed uploaded to the owner's private ChatGPT Library at `/Busy_Does_It_Master_V22_20_Specialist_Grade_One_Busy_Assistant.docx` (15 October 2026). This is **not** proof of access by any new Codex thread: attach the Word document to that task or grant an authorised private source and verify the actual read.
 - **GitHub reference:** This branch's `ARCHITECTURE.md`, permanent product direction and existing search-discoverability/site-health contracts.
 
 ### New owner-approved product master revision — V22.19 (15 October 2026)
