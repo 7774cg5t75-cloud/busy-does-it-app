@@ -22,7 +22,7 @@ function retainAppDraftDesign(previous,rebuilt){
  const next={...rebuilt};
  // Keep the established Studio, plan and distribution settings when refreshing
  // approved business facts. Applying a new plan explicitly replaces its fields.
- for(const key of ['presentation','builderPlan','offers','loyalty'])
+ for(const key of ['schemaVersion','surface','presentation','builderPlan','offers','loyalty'])
   if(Object.prototype.hasOwnProperty.call(previous,key))next[key]=previous[key];
  const enabled=(next.modules||[]).filter(x=>x.enabled===true).map(x=>x.key);
  next.navigation=[...new Set([...(previous.navigation||[]).filter(k=>enabled.includes(k)),...enabled])];

@@ -1,8 +1,8 @@
 import {bindPrivateAppProposal,currentPrivateAppProposal,privateAppEditSource} from './privateAppEditSession.mjs';
 import {proposeCoordinatedAppChanges} from './appCoordinatedStudio.mjs';
 
-// Ephemeral editor lifecycle over the original planner/save service. No storage,
-// provider, publication, billing or new data ledger. Receipt evidence stays exact.
+// Original planner/save lifecycle with optional encrypted-device checkpoints.
+// No provider, publication, billing or new backend ledger. Receipts stay exact.
 function createAppStudioSession({checkpoint=null}={}){
  let context={},owner='',epoch=0,listener=null,pending=false;
  let preview=null,undo=null,notice='',uncertain=false,recoveryReady=!checkpoint,recoveryError='';

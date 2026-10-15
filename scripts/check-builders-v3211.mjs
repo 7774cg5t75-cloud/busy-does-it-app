@@ -207,10 +207,12 @@ for(const fragment of [
 ok(websiteUI.includes("onApplyWebsiteComposition={s.applyWebsiteLayoutAction}"));
 ok(appUI.includes("onSaveAppChanges={s.saveCoordinatedAppChanges}"));
 ok(trusted.includes("applyWebsiteLayoutChange(websiteDraft, operation)"));
-ok(trusted.includes("setWebsiteUndo(items=>[...items, websiteDraft]"));
+ok(trusted.includes("setWebsiteUndo(items=>[...items,current]"));
 ok(trusted.includes('miniAppsRequest("apply_coordinated_edits"'));
 ok(trusted.includes("Number(data.app.draft_revision)!==Number(expectedRevision)+1"));
 ok(read("src/core/universalBuilderPlanV3210.mjs").includes("planWebsiteSectionComposition"));
 ok(read("supabase/functions/busy-website-worker/websiteLayoutEditing.mjs")
  .includes('if(action==="apply-reviewed-composition"){'));
 console.log("V3.211 "+checks+" assertions PASS: atomic website approval, revision/tenant checks, real app catalogue, no unsupported modules, undo and two-builder source wiring.");
+
+assert.ok(trusted.includes("checkPrivateWebsiteDraftCommit({current,candidate:nextDraft"));

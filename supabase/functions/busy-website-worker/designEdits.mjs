@@ -85,7 +85,7 @@ function applyWebsiteVisualEditUnchecked(draft,instruction){
  const originalTheme=draft?.theme||{};
  const existing=list(draft?.sections);
  const theme={...originalTheme};
- const sections=existing.map(s=>({...s,items:list(s.items).map(x=>({...x}))}));
+ const sections=existing.map(s=>({...s,...(Array.isArray(s.items)?{items:s.items.map(x=>({...x}))}:{})}));
  const find=id=>sections.findIndex(s=>s.id===id&&s.enabled!==false);
  const apply=(message)=>({applied:true,reason:message,
    draft:{...draft,theme,sections}});

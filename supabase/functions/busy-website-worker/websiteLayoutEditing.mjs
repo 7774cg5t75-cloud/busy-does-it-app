@@ -24,7 +24,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
  const lockReason=websiteLayoutLockReason(draft,operation);
  if(lockReason)return fail(draft,lockReason);
  const {action,sectionId}=operation;
- const sections=draft.sections.map(s=>({...s,items:list(s.items).map(i=>({...i}))}));
+ const sections=draft.sections.map(s=>({...s,...(Array.isArray(s.items)?{items:s.items.map(i=>({...i}))}:{})}));
  const theme={...(draft.theme||{})};
  const index=sections.findIndex(s=>s.id===sectionId);
  const ready=(reason)=>({applied:true,draft:{...draft,sections,theme},reason:reason+" Only the private website draft was changed."});

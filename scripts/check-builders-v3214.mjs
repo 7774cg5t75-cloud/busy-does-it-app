@@ -178,7 +178,7 @@ for(const term of [
  'operation.liveVersionId!==proof.appLiveVersionId',
  'operation.url!==proof.url',
  'websiteAppHandoffEndpoint:BUSY_MINI_APP_LINK_URL',
- "setWebsiteUndo(items=>[...items, websiteDraft]"
+ "setWebsiteUndo(items=>[...items,current]"
 ])ok(controller.includes(term),"Owner-controller proof check "+term);
 ok(websiteUI.includes('<WebsiteAppHandoffReview businessId='));
 ok(websiteUI.includes('liveVersion={s.miniAppsView?.liveVersion}'));
@@ -294,3 +294,5 @@ ok(brandUi.includes("ownerApprovedAppHandoffInPrivateDraft"),
 ok(brandUi.includes("Public website publication,"),
  "Shared owner review must not claim actual publication.");
 console.log("V3.214 "+checks+" assertions PASS: live-app handoff, owner approval/undo, malicious URL rejection, stale business/version/module checks, renderer and Edge live action gates.");
+
+assert.ok(controller.includes("checkPrivateWebsiteDraftCommit({current,candidate:nextDraft"));
