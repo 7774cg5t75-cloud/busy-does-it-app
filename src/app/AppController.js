@@ -567,8 +567,8 @@ function App() {
   useEffect(()=>{setWebsiteVisualReview(null);setWebsiteVisualReviewStatus(null);
     setWebsiteVisualReviewNotice("");setWebsiteVisualReviewBusy(false);
   },[ownerSession?.userId,cloudWorkspace?.businessId]);
-  const {websiteUndo,websiteRedo,websiteRecoveryPoint,setWebsiteUndo,setWebsiteRedo,setWebsiteRecoveryPoint,websiteHistoryIsCurrent}=
-    useWebsiteDraftHistory({...websiteHistoryScope,websiteId:websiteDraft?.id||""});
+  const {websiteRecoveryNotice,websiteUndo,websiteRedo,websiteRecoveryPoint,setWebsiteUndo,setWebsiteRedo,setWebsiteRecoveryPoint,websiteHistoryIsCurrent}=
+    useWebsiteDraftHistory({...websiteHistoryScope,websiteId:websiteDraft?.id||"",draft:websiteDraft});
   const [cloudInitialised, setCloudInitialised] = useState(false);
   const [cloudInitialising, setCloudInitialising] = useState(false);
   const [cloudSyncStatus, setCloudSyncStatus] = useState("Local only");
@@ -14068,7 +14068,7 @@ function App() {
     if(!websiteHistoryIsCurrent())return false;
     const result=makeWebsiteRecoveryPoint(websiteDraftRef.current,new Date().toISOString(),websiteHistoryScope);
     setWebsiteBuilderNotice(result.ok
-     ?"Saved a private recovery point for this website. It lasts only for this app session."
+     ?"Saved a private recovery point. Check device recovery status below before closing the app."
      :result.reason);
     if(result.ok)setWebsiteRecoveryPoint(result);
     return result.ok;
@@ -17391,6 +17391,7 @@ function App() {
     setWebsiteDraft,
     canUndoWebsite:websiteUndo.length>0,
     canRedoWebsite:websiteRedo.length>0,
+    websiteRecoveryNotice,
     websiteRecoveryPointAvailable:!!websiteRecoveryPoint?.ok&&websiteRecoveryPoint.draftId===websiteDraft?.id,
     saveWebsiteRecoveryPoint,
     restoreWebsiteRecoveryPoint,

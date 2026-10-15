@@ -1,9 +1,9 @@
 // The existing eight-entry private undo/redo stacks, scoped to one active editor.
 function createWebsiteDraftHistory(){
- let key='',undo=[],redo=[],point=null;
+ let key='',identity='',epoch=0,undo=[],redo=[],point=null;
  function setScope(scope){
   const next=JSON.stringify([scope.ownerId||'',scope.businessId||'',scope.websiteId||'']);
-  if(next!==key){key=next;undo=[];redo=[];point=null;}
+  if(next!==identity){identity=next;key=next+':'+(++epoch);undo=[];redo=[];point=null;}
   return key;
  }
  const update=(field,value,expected)=>{

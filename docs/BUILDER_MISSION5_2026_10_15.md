@@ -1,0 +1,9 @@
+# Mission 5 — dependent builder development
+
+Preflight: GitHub PR #10 remains draft/unmerged at 0cb5c60cc0999336817f487932723d30aeac1524; PR #11 remains draft/unmerged at 348b60aa37f873a006382110cb2bc354270d22a3. Latest numbered branch: v3.240. Local starting tree 6d20e7ce matches PR #11. Read current architecture, permanent development policy and supplied Word Product Master V22.18 builder/recovery/intelligence requirements. No newer product master supplied. Product ambition is not implementation evidence.
+
+## 1. Durable existing website history
+
+Extended the existing eight-entry history rather than adding another stack. Encrypted SecureStore envelopes bind owner/business/website and exact compact draft, expire after seven days, serialise writes across remounts using the extracted original App checkpoint queue, and omit derived HTML. The most recent history that fits the 60,000-character bound is retained; oversized drafts/points or native write errors are explicitly reported. Exact-source reload restores Undo/Redo/point. If the draft cache lags by exactly the encrypted head's immediate predecessor, offer that head through the existing explicitly approved recovery point; never auto-apply it. Other revision/content mismatches are rejected. Restoring uses the original renderer/rebuild, advances generation, preserves current locks and public status, and cannot publish. Workspace round trips no longer revive old history callbacks.
+
+Tests: check-website-durable-history, check-app-studio-checkpoint, check-website-history-safety and native syntax passed. Tests use actual domain/history/checkpoint code with fake storage; physical SecureStore capacity, app termination and hosted cloud revision races remain unverified. No network/provider activity, deployment or additional spend. Private draft persistence still uses existing owner cache; encrypted history complements it and refuses unrelated revisions.

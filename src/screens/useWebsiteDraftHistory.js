@@ -1,12 +1,41 @@
 import React from 'react';
+import * as SecureStore from 'expo-secure-store';
+import {createWebsiteHistoryCheckpoint,websiteHistoryCheckpointKey} from '../core/websiteHistoryCheckpoint.mjs';
 import {createWebsiteDraftHistory} from '../core/websiteDraftHistory.mjs';
 function useWebsiteDraftHistory(scope){
  const history=React.useRef(null),[,redraw]=React.useState(0);
+ const [recovery,setRecovery]=React.useState({key:'',ready:false,notice:''});
+ const live=React.useRef(scope);live.current=scope;
  if(!history.current)history.current=createWebsiteDraftHistory();
  const editor=history.current,key=editor.setScope(scope);
  const set=field=>value=>{if(editor.update(field,value,key))redraw(n=>n+1);};
  const state=editor.snapshot();
- return {websiteUndo:state.undo,websiteRedo:state.redo,websiteRecoveryPoint:state.point,
+ const storageKey=websiteHistoryCheckpointKey(scope);
+ React.useEffect(()=>{
+  let active=true;const source=scope.draft;
+  setRecovery({key,ready:false,notice:''});
+  if(!storageKey||!source)return;
+  const store=createWebsiteHistoryCheckpoint(SecureStore,scope);
+  store.load(source).then(saved=>{
+   if(!active||!editor.isCurrent(key))return;
+   if(live.current.draft!==source){setRecovery({key,ready:true,notice:'The draft changed during recovery. Saved history was not applied.'});return;}
+   if(saved&&editor.snapshot().undo.length===0&&editor.snapshot().redo.length===0&&!editor.snapshot().point){
+    for(const field of ['undo','redo','point'])editor.update(field,saved[field],key);
+    redraw(n=>n+1);
+   }
+   setRecovery({key,ready:true,notice:saved?.interrupted?'An interrupted private edit is available under Restore saved design. Review it before publishing.':saved?'Restored encrypted history for this exact private draft.':''});
+  }).catch(error=>{if(active&&editor.isCurrent(key))setRecovery({key,ready:true,notice:String(error.message)});});
+  return ()=>{active=false;};
+ },[key,storageKey]);
+ React.useEffect(()=>{
+  if(recovery.key!==key||!recovery.ready||!storageKey||!scope.draft)return;
+  let active=true;
+  createWebsiteHistoryCheckpoint(SecureStore,scope).save(scope.draft,state).then(count=>{
+   if(active&&editor.isCurrent(key))setRecovery(old=>({...old,notice:`Encrypted device recovery saved (${count.undo} Undo, ${count.redo} Redo). Live websites are unchanged.`}));
+  }).catch(error=>{if(active&&editor.isCurrent(key))setRecovery(old=>({...old,notice:'Device recovery unavailable: '+String(error.message)}));});
+  return ()=>{active=false;};
+ },[key,storageKey,recovery.ready,scope.draft,state.undo,state.redo,state.point]);
+ return {websiteRecoveryNotice:recovery.key===key?recovery.notice:'',websiteUndo:state.undo,websiteRedo:state.redo,websiteRecoveryPoint:state.point,
   websiteHistoryIsCurrent:()=>editor.isCurrent(key),setWebsiteUndo:set('undo'),setWebsiteRedo:set('redo'),setWebsiteRecoveryPoint:set('point')};
 }
 export {useWebsiteDraftHistory};

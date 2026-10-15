@@ -1,20 +1,16 @@
 // Encrypted device continuity, using the same SecureStore contract as existing
 // private conversation/message recovery. No server state or replay authority.
+import {enqueuePrivateCheckpoint} from './privateCheckpointQueue.mjs';
 const UUID=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 const MAX_CHARS=60000,MAX_AGE=7*24*60*60*1000;
 function appStudioCheckpointKey({ownerId,businessId,app}={}){
  return [ownerId,businessId,app?.id].every(x=>UUID.test(x||''))?
   `busy_studio_v1_${ownerId}_${businessId}_${app.id}`:'';
 }
-const queues=new Map();
 function createAppStudioCheckpoint(storage,context,{now=Date.now}={}){
  const key=appStudioCheckpointKey(context);
  // Same-scope remounts join outstanding native writes rather than racing them.
- const enqueue=work=>{
-  const task=(queues.get(key)||Promise.resolve()).then(work);
-  const tail=task.catch(()=>{});queues.set(key,tail);
-  tail.then(()=>{if(queues.get(key)===tail)queues.delete(key);});return task;
- };
+ const enqueue=work=>enqueuePrivateCheckpoint(key,work);
  return {
   load:()=>enqueue(async()=>{
    if(!key)throw Error('Open the signed-in private app to restore its draft.');

@@ -1572,8 +1572,9 @@ function WebsitePreview({ s }) {
       {showRecoveryTools?(
        <Card eyebrow="Private recovery point"
          title="A safe place to come back to"
-         body="Save one temporary design checkpoint in this app session. Restore it if you experiment and change your mind. Your live website is never rolled back, and regular Undo remains available."
+         body="Keep a private design checkpoint and recent Undo/Redo in encrypted device storage where available. Recovery requires this exact business and draft revision; expired, changed or oversized histories cannot be restored. Your live website is never rolled back."
          tone="blue">
+         <Text style={styles.cardBody}>{s.websiteRecoveryNotice||"Device recovery is being checked. Keep this app open until saving is confirmed."}</Text>
          <Button label="Save this design as my recovery point"
           onPress={()=>{setConfirmRecoveryRestore(false);s.saveWebsiteRecoveryPoint?.();}}/>
          {s.websiteRecoveryPointAvailable?(
