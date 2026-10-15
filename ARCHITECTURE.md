@@ -1,4 +1,51 @@
+## Mission 3 — secure continuity, scoped history and task-grounded decisions (15 October 2026)
+
+Continues draft PR #10 from remote 2254f637 (latest numbered base remains v3.240). Six functional sweeps extend original systems: encrypted App Studio proposal/undo checkpoints and non-replayed interrupted intents; one website lock invariant across existing editors; preserved app composition and conditional module/rebuild/plan writes; task-relevant, content-ready goal recommendations; scoped website history with monotonic Undo; and one guarded private website commit boundary. No deployment, schema execution, new dependency, provider call or production approval. Client/server changes need compatible staging validation. See `docs/BUILDER_MISSION3_2026_10_15.md`, `docs/ARCHITECTURE_HEALTH_MISSION3_2026_10_15.md` and the Mission 3 check manifest for evidence and limitations.
+
+## PR #10 follow-up: guarded Studio and recoverable website measurement (15 October 2026)
+
+The private Studio lifecycle is extracted into `appStudioSession.mjs` with a thin React hook; selective approval, exact scoped receipts and undo reuse the original planner/CAS editor. Goal recommendations optionally consume current same-owner design history through the existing pattern engine and history endpoint. Website checks use expiring scope/width/variant tokens with cancellation and timeout recovery; measured suggestions share the original layout engine's appearance-lock guard. No new backend, persistent ledger, migration or deployment. See `docs/BUILDER_PR10_FOLLOWUP_2026_10_15.md` and its exact 95-script check manifest for verified outcomes and remaining device/hosted evidence.
+
 # Busy Does It code architecture
+
+## PR #10 follow-up review — 15 October 2026
+
+Rechecked V22.18, current source and development policy. Original mission remains draft/unmerged. Review fixes enforce locks on indirectly displaced modules and appearance groups, restore the exact sparse appearance through the existing private CAS editor, and bind website candidate approval to the signed-in owner. Client/Edge helper copies stay identical. See `docs/BUILDER_PR10_FOLLOWUP_2026_10_15.md` for reproduced defects, evidence and subsequent sweeps. No production/provider/deployment actions.
+
+## Extended builder completion mission — isolated development, 15 October 2026
+
+Product preflight: supplied Word Master V22.18 (all 53 sections), current V3.240 architecture and DEVELOPMENT_SWEEP_AND_ARCHITECTURE_POLICY.md. Historical V3.8 passages in the Word master are not current implementation evidence. App Builder first; preserve marketplace and standalone paths, simple owner decisions, shared Brand DNA and verified outcomes.
+
+### Sweep 1 — source-bound private App Studio and interrupted-save recovery
+
+- The existing goal-aware design disclosure now prepares its exact supported operations in the original App Studio, with the original rendered comparison, explicit owner approval and undo.
+- `privateAppEditSession.mjs` binds previews to business/app/revision/configuration and validates actual save receipts against the approved configuration, expected inverse edits and same-business returned status. A synchronous controller lock prevents duplicate batch saves; fresh session/workspace checks also run after obtaining a token and before accepting asynchronous results.
+- After an uncertain write, perform one authenticated read-only owner-status lookup, never replay the mutation automatically. A matching current draft is an observation, not proof that this attempt saved it; no undo authority is inferred. Unconfirmed approvals are disabled until a new proposal is prepared.
+- Shared client/Edge appearance editing now preserves missing unrelated legacy fields instead of inserting default header/navigation properties during a spacing change.
+- Verification: new transport-injected session tests pass; inherited V3.157 Studio, V3.160 design, V3.240 intelligence and native/Edge syntax checks pass. No hosted JWT/device execution, deployment, migrations, provider calls or paid builds. Child-process EPERM remains an environment restriction.
+
+
+### Sweep 2 — task-led, owner-respecting design and explicit-width previews
+
+- Existing `reviewAppGoalDesignV3240` now reuses `proposeTaskFirstNavigation`: a configured booking/enquiry goal can be brought earlier while preserving business identity first. At most three coordinated operations are proposed. Missing/fallback capabilities receive setup guidance instead of decorative changes that imply availability.
+- Original `presentation.ownerLockedElements` metadata is validated and enforced by the client and byte-identical Edge editor, including direct appearance and coordinated content/order operations. Goal recommendations skip locked options. This closes the previous gap where the shared design directions acknowledged locks but the original appearance editor rejected that metadata or coordinated order edits ignored it.
+- `AppStudioComparison` extracts the original comparison from the oversized builder screen and renders the same marketplace component at selectable 320/390/820-point widths with original/proposed controls. Wider frames scroll rather than pretending to be physical tablet screenshots. The standalone engine retains identical responsive rules.
+- Verification: new task/lock/parity tests pass, plus V3.157, V3.160, V3.163, V3.240, the V3.240 structural audit and native/Edge syntax. Two historical UI-marker tests now follow the explicitly imported comparison component; their original assertions remain. Device usability and hosted authorisation remain unverified.
+
+### Sweep 3 — guided responsive website review and safer visual evidence
+
+- The original Website Preview now offers the next missing original/candidate check across phone, tablet and desktop. It seeds the candidate notebook with the already captured baseline instead of asking owners to repeat it. Width switches preserve the candidate and trigger the selected review in the new width.
+- Each measurement run has a bounded unique local key, plus an in-memory account/business/draft/page/version/width guard. Earlier reports cannot satisfy a later request. No private tenant identity is embedded in the WebView report key.
+- Keeping a design uses current source-bound named-width evidence and passes exact website/business/generation guards to the existing private editor. The device-width view remains available, but named-width approval requires measuring a named width. Partial checks remain explicitly partial and cannot override a regression elsewhere.
+- The original portfolio validator revalidates stored metrics and rejects improvements earned by dropping existing measured sections, headings or images. These are local DOM observations, not independent screenshots or proof of customer task completion.
+- Verification: new guided-progress/content-retention/stale-key tests pass; inherited V3.144 measured coach, V3.145 coordinated review, V3.148 responsive preview, V3.239 and V3.240 tests pass. No website deployed, customer data queried or provider called.
+
+### Sweep 4 — branded standalone handoff and reversible appearance parity
+
+- `publicAppAppearance` supplies one finite appearance validator/projection for standalone handoff and native descriptors. A supported custom brand colour now survives the full immutable preview → handoff → unsigned descriptor path; valid private owner locks stay in the editor and are excluded from public package metadata. Unknown fields, inconsistent palette/accent values and malformed locks fail closed.
+- Original coordinated appearance undo now restores custom palette/colour combinations using supported commands. Previously switching from custom to a preset emitted an unsupported `brandPalette:custom` inverse, and switching to custom could emit an empty inverse accent. New tests execute forward and inverse plans and verify exact restoration for those transitions.
+- The standalone template uses measured container width after layout, with the existing window fallback, so constrained/native split layouts feed the same responsive engine as marketplace previews. Removed a duplicate `minHeight` that reduced single-line inputs below the intended minimum.
+- Verification: new full handoff/custom-colour/undo tests, V3.193's 305 branding assertions, V3.154 standalone eligibility, V3.157, new prior-sweep tests and native/Edge parser checks pass. No billing entitlement activated, binary signed, store account accessed or deployment performed.
 
 ## V3.240 — contextual App Builder design intelligence, shared Brand DNA and safe responsive reuse
 

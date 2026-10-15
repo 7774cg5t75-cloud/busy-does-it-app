@@ -7,7 +7,7 @@
  * arbitrary AI code, signing keys or live payment interfaces enter the shell.
  */
 import {publicNativeRuntimePlan} from "./nativeAppRuntimePlan.mjs";
-import {OPTIONS as APP_LOOK,DEFAULTS as APP_DEFAULTS} from "./appAppearanceEditing.mjs";
+import {publicAppAppearance} from "./appAppearanceEditing.mjs";
 const UUID=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i;
 const SAFE_MODULES=new Set(["business_profile","services","gallery","contact",
  "enquiry","booking_request","offers","loyalty"]);
@@ -41,18 +41,11 @@ function nativeShellDescriptor(manifest,{purpose="private_prototype",runtimeEvid
  const name=safeName(manifest.appName);
  if(!name)return {ok:false,reason:"A customer-facing app name is required."};
  const submittedLook=manifest.appearance||{};
- if(typeof submittedLook!=="object"||Array.isArray(submittedLook)||
-   Object.keys(submittedLook).some(k=>
-     (k==="brandAccent"?!(typeof submittedLook[k]==="string"&&
-       /^#[0-9a-fA-F]{6}$/.test(submittedLook[k])):
-       !Object.prototype.hasOwnProperty.call(APP_LOOK,k)||
-       !APP_LOOK[k].includes(submittedLook[k])) )||
-   (submittedLook.brandPalette==="custom"&&
-     !/^#[0-9a-fA-F]{6}$/.test(submittedLook.brandAccent||""))||
-   (submittedLook.brandAccent!==undefined&&
-     submittedLook.brandPalette!=="custom"))
-  return {ok:false,reason:"Standalone layout must come from an approved, finite appearance."};
- const appearance={...APP_DEFAULTS,...submittedLook};
+ if(Object.hasOwn(submittedLook,"ownerLockedElements"))
+  return {ok:false,reason:"Private owner edit metadata cannot enter a native package."};
+ const checkedLook=publicAppAppearance(submittedLook);
+ if(!checkedLook.ok)return checkedLook;
+ const appearance=checkedLook.appearance;
  let liveRuntime=null;
  if(runtimeEvidence){
   const evidence=publicNativeRuntimePlan(runtimeEvidence);

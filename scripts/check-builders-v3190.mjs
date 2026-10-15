@@ -113,7 +113,9 @@ yes(websiteUi.includes('action:"remove-item"'));
 yes(websiteUi.includes('expectedTitle:item.title'));
 yes(websiteUi.includes("Add FAQ to private draft"));
 const appController=read("src/app/AppController.js");
-yes(appController.includes("setWebsiteUndo(items=>[...items, websiteDraft].slice(-8))"));
+yes(appController.includes("setWebsiteUndo(items=>[...items,current].slice(-8))"));
 yes(appController.includes("applyStructuredWebsiteEdit(websiteDraft, patch)"));
 console.log("V3.190 "+assertions+
  " native public content, client schema, website editing and safe owner UI assertions PASS.");
+
+assert.ok(appController.includes("checkPrivateWebsiteDraftCommit({current,candidate:nextDraft"));

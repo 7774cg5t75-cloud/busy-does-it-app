@@ -128,7 +128,9 @@ for(const marker of ['useWindowDimensions','responsiveAppLayout(',
  'responsive.ok&&responsive.navigation==="list"',
  'layout={responsive}', 'import {responsiveAppLayout} from "./appResponsiveDesign.mjs"'])
  assert.ok(template.includes(marker),"Standalone layout must adapt: "+marker);
-const screen=read("src/screens/miniApps.js");
+const builder=read("src/screens/miniApps.js");
+assert.ok(builder.includes("<AppStudioComparison"));
+const screen=builder+read("src/screens/appStudioComparison.js");
 for(const marker of ["useWindowDimensions","onLayout={({nativeEvent})=>",
  "responsiveAppLayout(config,availableWidth)",
  "responsive.ok?responsive.heroHeight",

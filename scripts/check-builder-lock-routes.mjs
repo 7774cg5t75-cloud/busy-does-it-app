@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {applyWebsiteVisualEdit as voice} from '../supabase/functions/busy-website-worker/designEdits.mjs';
+import {applyWebsiteLayoutOperation as layout} from '../supabase/functions/busy-website-worker/websiteLayoutEditing.mjs';
+import {editWebsiteDraftField as field,editWebsiteDraftCollection as collection} from '../supabase/functions/busy-website-worker/websiteStructuredEditing.mjs';
+import {editWebsitePages as page} from '../supabase/functions/busy-website-worker/websitePageEditing.mjs';
+import {reviewPrivateAppServices as services} from '../src/core/appServiceCollection.mjs';
+import {proposeGalleryImageDescription as photo} from '../src/core/appGalleryDescription.mjs';
+const draft={id:'website',theme:{lockedSections:['services'],sectionOrder:['hero','services','contact']},sections:[{id:'hero',type:'hero',enabled:true,title:'Hello',body:'Original'},{id:'services',type:'services',enabled:true,title:'Services',items:[{id:'one',title:'Gardening',body:'Original'}]},{id:'contact',type:'contact',enabled:true,title:'Contact',body:'Original'}],customPages:[{id:'custom',slug:'custom',title:'More',sectionIds:['services']}]};
+const original=JSON.stringify(draft);
+const attempts=[d=>field(d,{sectionId:'services',field:'title',value:'Changed'}),d=>collection(d,{action:'add-item',sectionId:'services',title:'Mowing',body:'Owner wording'}),d=>voice(d,'change services heading to Changed'),d=>voice(d,'change description for Gardening to Changed'),d=>layout(d,{action:'hide',sectionId:'services'}),d=>layout(d,{action:'move',sectionId:'contact',direction:'up'}),d=>layout(d,{action:'brand-colour',value:'#123456'}),d=>page(d,{action:'rename-page',pageId:'custom',title:'Changed'})];
+for(const attempt of attempts){const unlocked={...draft,theme:{...draft.theme,lockedSections:[]}};assert.equal(attempt(unlocked).applied,true);const r=attempt(draft);assert.equal(r.applied,false);assert.equal(JSON.stringify(draft),original);}
+assert.equal(field(draft,{sectionId:'hero',field:'title',value:'Owner headline'}).applied,true);
+const sparse={...draft,theme:{lockedSections:['hero'],sectionOrder:['hero','services','contact']}};
+assert.equal(layout(sparse,{action:'section-style',sectionId:'services',field:'headingScale',value:'compact'}).applied,true);
+assert.equal(voice(sparse,'change services heading to Owner services').applied,true);
+const malformed={...draft,theme:{lockedSections:'services'}};assert.equal(field(malformed,{sectionId:'hero',field:'title',value:'Changed'}).applied,false);
+const app={modules:[{key:'services',enabled:true},{key:'gallery',enabled:true}],presentation:{ownerLockedElements:['services','gallery']},publicProfile:{services:[{name:'Original',description:''}],assets:{gallery:[{uri:'https://example.test/photo',approved:true}]}}};
+assert.equal(services(app,[{name:'Changed',description:''}]).ok,false);assert.equal(photo(app,{index:0,expectedUri:'https://example.test/photo',value:{alt:'Owner alt',caption:null}}).ok,false);
+for(const name of ['appOwnerLocks','appServiceCollection','appGalleryDescription'])assert.equal(readFileSync(`src/core/${name}.mjs`,'utf8'),readFileSync(`supabase/functions/busy-mini-apps/${name}.mjs`,'utf8'));
+console.log('PASS: structured/collection/voice/layout/page lock guards, indirect displacement, unchanged originals, malformed lock fail-closed and direct App helper/Edge parity. Offline only.');

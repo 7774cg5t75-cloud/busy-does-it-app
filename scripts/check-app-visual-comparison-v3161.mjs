@@ -7,6 +7,8 @@ import {measuredContrast,relativeLuminance,auditStandaloneContrast,
 import {proposeCoordinatedAppChanges} from "../src/core/appCoordinatedStudio.mjs";
 import {normalizeAppVisualAIResult} from "../src/core/appVisualReviewContract.mjs";
 import {compareBusinessAppDesign} from "../src/core/appUsabilityAudit.mjs";
+import {nativePalette,DEFAULT_PALETTE} from "../src/core/nativePalette.mjs";
+import {nativePalette as templateNativePalette} from "../standalone/template/nativePalette.mjs";
 const read=path=>readFileSync(new URL("../"+path,import.meta.url),"utf8");
 const appId="00000000-0000-4000-8000-000000000161";
 const draft={modules:["business_profile","gallery","services","booking_request"].map(
@@ -77,8 +79,13 @@ assert.equal(colour.accessibilityCertified,false);
 assert.equal(colour.textScalingChecked,false);
 assert.equal(colour.readings.length,6);
 assert.equal(colour.readings.some(x=>x.id==="inactive_button_label"&&x.passes===null),true);
+// V3.192+ uses one imported palette engine rather than inline tokens.
+assert.ok(read("standalone/template/App.js").includes('import {nativePalette} from "./nativePalette.mjs"'));
+assert.ok(read("standalone/template/App.js").includes('const COLORS=nativePalette(LOOK.brandPalette,LOOK.brandAccent)'));
+assert.ok(read("scripts/prepare-standalone-prototype-v3154.mjs").includes('"src","core","nativePalette.mjs"'));
+assert.deepEqual(templateNativePalette(DEFAULT_PALETTE),nativePalette(DEFAULT_PALETTE));
 for(const key of ["bg","surface","text","muted","accent","line"])
- assert.ok(read("standalone/template/App.js").includes(key+':"'+NATIVE_SHELL_PALETTE[key]+'"'),
+ assert.equal(nativePalette(DEFAULT_PALETTE)[key],NATIVE_SHELL_PALETTE[key],
   "Colour audit must match actually rendered standalone token: "+key);
 const native=read("standalone/template/App.js");
 assert.ok(native.includes("minHeight:48"));
@@ -106,6 +113,6 @@ for(const key of ["originalComparisonRef","proposedComparisonRef",
  "Ask AI to compare both screenshots","Approve comparison",
  "prepareAppVisualBatch(config,chosen)",
  "Capture both rendered app views","Approve ",
- "auditStandaloneContrast()"])
+ "auditStandaloneContrast(nativePalette("])
  assert.ok(ui.includes(key),"Missing comparison UI: "+key);
 console.log("V3.161 PASS: 3-change private batch, reversible approvals, two local captures, opt-in single-metered AI comparison, real native palette contrast and accessibility checks.");

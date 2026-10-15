@@ -1,3 +1,7 @@
+import {checkPrivateWebsiteDraftCommit} from "../core/privateWebsiteDraftCommit.mjs";
+import {useWebsiteDraftHistory} from "../screens/useWebsiteDraftHistory";
+import {executeAppDraftMutation} from "../core/appDraftMutation.mjs";
+import {executePrivateAppBatch} from "../core/privateAppEditSession.mjs";
 import {confirmFirstAppFromWebsite} from "../core/firstAppFromWebsiteV3197.mjs";
 import {interpretOwnerStatusAfterErrorV3231} from "../core/ownerStatusRecoveryV3231.mjs";
 import {assessBookingCancelReadbackV3233} from "../core/bookingCancelReadbackV3233.mjs";
@@ -308,9 +312,6 @@ function App() {
   // draft, not a stale callback closure captured before recording.
   const websiteDraftRef=useRef(null);
   websiteDraftRef.current=websiteDraft;
-  const [websiteUndo, setWebsiteUndo] = useState([]);
-  const [websiteRedo, setWebsiteRedo] = useState([]);
-  const [websiteRecoveryPoint,setWebsiteRecoveryPoint]=useState(null);
   const [websiteBuilderNotice, setWebsiteBuilderNotice] = useState("");
   const [websitePublishingStatus, setWebsitePublishingStatus] = useState({
     loaded: false,
@@ -362,6 +363,8 @@ function App() {
   const [ownerQueueBusy,setOwnerQueueBusy]=useState(false);
   const miniAppVoiceScopeRef=useRef({});
   const firstAppFromWebsiteInFlightRef=useRef(false);
+  const privateAppEditInFlightRef=useRef(false);
+  const privateAppEditScopeRef=useRef(null);
   const [miniAppsLoading, setMiniAppsLoading] = useState(false);
   const [miniAppsAction, setMiniAppsAction] = useState("");
   const [miniAppsError, setMiniAppsError] = useState("");
@@ -555,6 +558,9 @@ function App() {
   const [ownerAuthNotice, setOwnerAuthNotice] = useState("");
   const [ownerAuthReady, setOwnerAuthReady] = useState(false);
   const [cloudWorkspace, setCloudWorkspace] = useState(null);
+  const websiteHistoryScope={ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||""};
+  const {websiteUndo,websiteRedo,websiteRecoveryPoint,setWebsiteUndo,setWebsiteRedo,setWebsiteRecoveryPoint,websiteHistoryIsCurrent}=
+    useWebsiteDraftHistory({...websiteHistoryScope,websiteId:websiteDraft?.id||""});
   const [cloudInitialised, setCloudInitialised] = useState(false);
   const [cloudInitialising, setCloudInitialising] = useState(false);
   const [cloudSyncStatus, setCloudSyncStatus] = useState("Local only");
@@ -8326,6 +8332,8 @@ function App() {
     revision:Number(miniAppsStatus?.app?.draft_revision)||0,
     businessId:cloudWorkspace?.businessId||""
   };
+  privateAppEditScopeRef.current={businessId:cloudWorkspace?.businessId||"",
+    userId:ownerSession?.userId||"",app:miniAppsView.app};
   const businessCreationIntelligence = buildBusinessCreationIntelligence({
     brandBrain,
     websiteDraft,
@@ -13410,9 +13418,9 @@ function App() {
       previousDraft: websiteDraft,
       businessCreationIntelligence,
     });
-    if (websiteDraft) setWebsiteUndo((items) => [...items, websiteDraft].slice(-8));
-    setWebsiteRedo([]);
-    setWebsiteDraft(next);
+    if(websiteDraft){
+      if(!commitReviewedBuilderDraft(websiteDraft,next,"Refreshed the private website draft."))return false;
+    }else{setWebsiteRedo([]);websiteDraftRef.current=next;setWebsiteDraft(next);}
     setWebsiteBuilderNotice(
       brandBrain.websiteReady
         ? "Website draft rebuilt from the latest Brand Brain."
@@ -13431,10 +13439,7 @@ function App() {
     const result = applyWebsiteInstruction(websiteDraft, instruction);
     setWebsiteBuilderNotice(result.reason || "");
     if (!result.applied) return false;
-    setWebsiteUndo((items) => [...items, websiteDraft].slice(-8));
-    setWebsiteRedo([]);
-    setWebsiteDraft(result.draft);
-    return true;
+    return commitReviewedBuilderDraft(websiteDraft,result.draft,result.reason||"");
   };
 
   // Owner edits one exact website content field without prompt parsing.
@@ -13447,18 +13452,15 @@ function App() {
     const result = applyStructuredWebsiteEdit(websiteDraft, patch);
     setWebsiteBuilderNotice(result.reason || "");
     if (!result.applied) return false;
-    setWebsiteUndo(items=>[...items, websiteDraft].slice(-8));
-    setWebsiteRedo([]);
-    setWebsiteDraft(result.draft);
-    return true;
+    return commitReviewedBuilderDraft(websiteDraft,result.draft,result.reason||"");
   };
 
   // V3.195: one private-website commit path for reviewed cross-builder
   // edits. Undo, Redo, current ref and notice must remain synchronized.
   const commitReviewedBuilderDraft=(current,nextDraft,notice)=>{
-    if(!current||!nextDraft||!Array.isArray(nextDraft.sections)||
-      !Number.isSafeInteger(nextDraft.generation)||
-      nextDraft.generation<=current.generation)return false;
+    const checked=checkPrivateWebsiteDraftCommit({current,candidate:nextDraft,
+      live:websiteDraftRef.current,scopeCurrent:websiteHistoryIsCurrent(),businessId:websiteHistoryScope.businessId});
+    if(!checked.applied){setWebsiteBuilderNotice(checked.reason);return false;}
     setWebsiteUndo(items=>[...items,current].slice(-8));
     setWebsiteRedo([]);
     websiteDraftRef.current=nextDraft;
@@ -13852,10 +13854,7 @@ function App() {
       }
       next=recorded.draft;
     }
-    setWebsiteUndo(items=>[...items, websiteDraft].slice(-8));
-    setWebsiteRedo([]);
-    setWebsiteDraft(next);
-    return true;
+    return commitReviewedBuilderDraft(websiteDraft,next,result.reason||"");
   };
 
   const applyWebsitePageAction=(operation)=>{
@@ -13866,10 +13865,7 @@ function App() {
     const result=applyWebsitePageChange(websiteDraft,operation);
     setWebsiteBuilderNotice(result.reason||"");
     if(!result.applied)return false;
-    setWebsiteUndo(items=>[...items,websiteDraft].slice(-8));
-    setWebsiteRedo([]);
-    setWebsiteDraft(result.draft);
-    return true;
+    return commitReviewedBuilderDraft(websiteDraft,result.draft,result.reason||"");
   };
   // Explicit user-initiated share. Source export contains public website
   // business copy only; no private cloud tokens, customer records or images.
@@ -14030,7 +14026,8 @@ function App() {
   // In-memory, business-specific safety net; save and restore only on
   // explicit owner taps. Restoring becomes one Undo entry and never publishes.
   const saveWebsiteRecoveryPoint=()=>{
-    const result=makeWebsiteRecoveryPoint(websiteDraftRef.current,new Date().toISOString());
+    if(!websiteHistoryIsCurrent())return false;
+    const result=makeWebsiteRecoveryPoint(websiteDraftRef.current,new Date().toISOString(),websiteHistoryScope);
     setWebsiteBuilderNotice(result.ok
      ?"Saved a private recovery point for this website. It lasts only for this app session."
      :result.reason);
@@ -14038,8 +14035,10 @@ function App() {
     return result.ok;
   };
   const restoreWebsiteRecoveryPoint=()=>{
+    if(!websiteHistoryIsCurrent())return false;
     const current=websiteDraftRef.current;
-    const result=restoreWebsiteRecoverySnapshot(current,websiteRecoveryPoint,rebuildPrivateWebsiteDraft);
+    if(current!==websiteDraft)return false;
+    const result=restoreWebsiteRecoverySnapshot(current,websiteRecoveryPoint,rebuildPrivateWebsiteDraft,websiteHistoryScope);
     setWebsiteBuilderNotice(result.reason);
     if(!result.applied)return false;
     setWebsiteUndo(items=>[...items,current].slice(-8));
@@ -14049,24 +14048,25 @@ function App() {
     return true;
   };
 
-  const undoWebsiteChange = () => {
-    if (!websiteUndo.length || !websiteDraft) return false;
-    const previous=websiteUndo[websiteUndo.length - 1];
-    setWebsiteUndo((items)=>items.slice(0, -1));
-    setWebsiteRedo((items)=>[...items, websiteDraft].slice(-8));
-    setWebsiteDraft(previous);
-    setWebsiteBuilderNotice("Restored your previous private draft. Nothing has been published.");
-    return true;
+  const restoreWebsiteHistoryEntry=(direction)=>{
+    if(!websiteHistoryIsCurrent())return false;
+    const current=websiteDraftRef.current;
+    if(current!==websiteDraft)return false;
+    const entries=direction==="undo"?websiteUndo:websiteRedo;
+    if(!current||!entries.length)return false;
+    const point=makeWebsiteRecoveryPoint(entries[entries.length-1],new Date().toISOString(),websiteHistoryScope);
+    const result=restoreWebsiteRecoverySnapshot(current,point,rebuildPrivateWebsiteDraft,websiteHistoryScope);
+    setWebsiteBuilderNotice(result.reason);
+    if(!result.applied)return false;
+    if(direction==="undo"){
+      setWebsiteUndo(items=>items.slice(0,-1));setWebsiteRedo(items=>[...items,current].slice(-8));
+    }else{
+      setWebsiteRedo(items=>items.slice(0,-1));setWebsiteUndo(items=>[...items,current].slice(-8));
+    }
+    websiteDraftRef.current=result.draft;setWebsiteDraft(result.draft);return true;
   };
-  const redoWebsiteChange = () => {
-    if (!websiteRedo.length || !websiteDraft) return false;
-    const next=websiteRedo[websiteRedo.length - 1];
-    setWebsiteRedo((items)=>items.slice(0, -1));
-    setWebsiteUndo((items)=>[...items, websiteDraft].slice(-8));
-    setWebsiteDraft(next);
-    setWebsiteBuilderNotice("Reapplied your private draft change. Review before publishing.");
-    return true;
-  };
+  const undoWebsiteChange = () => restoreWebsiteHistoryEntry("undo");
+  const redoWebsiteChange = () => restoreWebsiteHistoryEntry("redo");
 
   const openWebsiteBuilder = () => {
     setTab("Home");
@@ -14811,7 +14811,7 @@ function App() {
   const miniAppsRequest = async (
     action,
     payload = {},
-    { includeBusiness = true, requestKey = "" } = {}
+    { includeBusiness = true, requestKey = "", isCurrent = null } = {}
   ) => {
     const token = await ownerAccessToken();
     if (!token) throw new Error("Sign in again before using BUSY Apps.");
@@ -14820,6 +14820,7 @@ function App() {
       throw new Error("BUSY needs the business cloud workspace before managing your Business App.");
     }
 
+    if(isCurrent&&!isCurrent())throw Error("The business workspace changed before the request was sent.");
     const response = await fetchWithTimeout(
       BUSY_MINI_APPS_URL,
       {
@@ -15021,18 +15022,31 @@ function App() {
     }
   };
 
+  const mutateCurrentAppDraft=async(action,payload)=>{
+    const captured=privateAppEditScopeRef.current;
+    if(privateAppEditInFlightRef.current)throw Error("A private app edit is already being checked.");
+    const isCurrent=()=>{
+      const live=privateAppEditScopeRef.current;
+      return !!captured?.userId&&live?.userId===captured.userId&&live.businessId===captured.businessId&&
+        live.app?.id===captured.app?.id&&live.app?.draft_revision===captured.app?.draft_revision;
+    };
+    privateAppEditInFlightRef.current=true;
+    try{return await executeAppDraftMutation({action,payload,scope:captured,isCurrent,send:miniAppsRequest});}
+    finally{privateAppEditInFlightRef.current=false;}
+  };
+
   const buildMiniAppFromBrandBrain = async () => {
     setMiniAppsAction("build");
     setMiniAppsError("");
     setMiniAppsNotice("");
     try {
-      const data = await miniAppsRequest("build_draft", {
+      const data = await mutateCurrentAppDraft("build_draft", {
         profileDraft: miniAppProfileDraft,
       });
       applyMiniAppsStatus(data);
       setMiniAppsNotice(
         data?.source === "shared_public_profile_plus_owner_draft"
-          ? "BUSY rebuilt the Business App draft from the shared public business profile plus your current approved Brand Brain facts."
+          ? "BUSY refreshed the approved business facts while retaining the app’s current appearance, navigation, offers and loyalty settings."
           : "BUSY created the first Business App draft from your approved public Brand Brain facts."
       );
       return true;
@@ -15143,7 +15157,7 @@ function App() {
     setMiniAppsError("");
     setMiniAppsNotice("");
     try {
-      const data = await miniAppsRequest("apply_app_plan", {
+      const data = await mutateCurrentAppDraft("apply_app_plan", {
         ownerRequest: miniAppBuildBrief,
         factAnswers: miniAppFactAnswers,
         plan: miniAppBuilderPlan,
@@ -15866,16 +15880,21 @@ function App() {
         "Isolated staging isn't configured on this server.").slice(0,220)};
     }
   };
-  const getAppDesignLearningStatus=async({appId}={})=>{
-    const currentBusiness=String(cloudWorkspace?.businessId||"");
-    if(!currentBusiness||miniAppsView?.app?.id!==appId)
-      return {ok:false,reason:"Open your signed-in private Business App."};
+  const getAppDesignLearningStatus=async({appId,expectedRevision}={})=>{
+    const scope=privateAppEditScopeRef.current;
+    const currentBusiness=scope?.businessId||"";
+    const revision=expectedRevision??scope?.app?.draft_revision;
+    const current=()=>{
+      const live=privateAppEditScopeRef.current;
+      return !!scope?.userId&&live?.userId===scope.userId&&
+        live.businessId===currentBusiness&&live.app?.id===appId&&
+        live.app?.business_id===currentBusiness&&live.app?.draft_revision===revision;
+    };
+    if(!currentBusiness||!current())return {ok:false,reason:"Open your current signed-in private Business App."};
     try{
-      const data=await miniAppsRequest("design_learning_status");
-      if(data?.ok!==true||data.businessId!==currentBusiness||
-         cloudWorkspace?.businessId!==currentBusiness||
-         data?.history?.appId!==appId||miniAppsView?.app?.id!==appId)
-        throw Error("Design history business scope changed; refresh before continuing.");
+      const data=await miniAppsRequest("design_learning_status",{},{isCurrent:current});
+      if(!current()||data?.ok!==true||data.businessId!==currentBusiness||data?.history?.appId!==appId)
+        throw Error("Design history scope changed; refresh before continuing.");
       const history=normalizeDesignHistory(
         (data.history.records||[]).map(x=>({
           app_id:appId,draft_revision:x.draftRevision,
@@ -15884,8 +15903,8 @@ function App() {
           baseline_warnings:x.baselineWarnings,
           proposed_warnings:x.proposedWarnings
         })),appId);
-      if(!history.ok)throw Error("Private design feedback could not be validated.");
-      return {ok:true,records:history.records,privateOnly:true,
+      if(!history.ok||history.records.some(x=>x.draftRevision>revision))throw Error("Private design feedback could not be validated.");
+      return {ok:true,businessId:currentBusiness,ownerId:scope.userId,appId,revision,records:history.records,privateOnly:true,
         noCrossBusinessLearning:true,noModelRetraining:true};
     }catch(error){
       return {ok:false,records:[],reason:String(error?.message||
@@ -15944,31 +15963,34 @@ function App() {
     }
   };
 
-  const saveCoordinatedAppChanges=async({operations,appId,expectedRevision}={})=>{
-    if(!miniAppsView?.app||miniAppsView.app.id!==appId||
-      Number(miniAppsView.app.draft_revision)!==Number(expectedRevision)){
-      setMiniAppsError("The private app changed. Review the newest version before editing.");return {ok:false};
-    }
+  const saveCoordinatedAppChanges=async({operations,appId,expectedRevision,source}={})=>{
+    const captured=privateAppEditScopeRef.current;
+    if(privateAppEditInFlightRef.current)return {ok:false,reason:"A private app save is already being checked."};
+    const isCurrent=()=>{
+      const live=privateAppEditScopeRef.current;
+      return !!captured?.userId&&live?.userId===captured.userId&&
+        live.businessId===captured.businessId&&live.app?.id===appId&&
+        live.app?.business_id===captured.businessId&&
+        live.app?.draft_revision===expectedRevision;
+    };
+    if(!isCurrent())return {ok:false,reason:"Open and review the current private app before editing."};
+    privateAppEditInFlightRef.current=true;
     setMiniAppsAction("coordinated-app-edits");setMiniAppsError("");
     try{
-      const data=await miniAppsRequest("apply_coordinated_edits",{
-        operations,appId,expectedRevision,ownerApproved:true});
-      if(data?.ok!==true||data?.privateOnly!==true||
-         data?.neverPublishes!==true||data?.chargesCreated!==false||
-         data?.app?.id!==appId||
-         Number(data.app.draft_revision)!==Number(expectedRevision)+1||
-         data.appliedChangeCount!==operations.length||
-         !Array.isArray(data.undoOperations))
-        throw Error("Could not verify that the private batch was saved safely.");
-      applyMiniAppsStatus(data.status);
-      setMiniAppsNotice("Saved "+data.appliedChangeCount+
-        " coordinated app changes as one PRIVATE draft revision. No public app or booking changed.");
-      return {ok:true,undoOperations:data.undoOperations,
-        newRevision:Number(data.app.draft_revision)};
-    }catch(error){
-      setMiniAppsError(String(error?.message||"BUSY could not apply this app batch.").slice(0,230));
-      return {ok:false};
-    }finally{setMiniAppsAction("");}
+      const result=await executePrivateAppBatch({
+        businessId:captured.businessId,app:captured.app,operations,source,isCurrent,
+        write:payload=>miniAppsRequest("apply_coordinated_edits",payload,{isCurrent}),
+        readStatus:()=>miniAppsRequest("owner_status",{},{isCurrent})
+      });
+      if(!isCurrent())return {ok:false,reason:"The workspace changed. Reopen the original app to check its draft."};
+      if(result.status)applyMiniAppsStatus(result.status);
+      if(result.ok)setMiniAppsNotice("Saved the approved changes as one PRIVATE draft revision. Undo is available; publication is separate.");
+      else setMiniAppsError(result.reason);
+      return result;
+    }finally{
+      privateAppEditInFlightRef.current=false;
+      setMiniAppsAction(value=>value==="coordinated-app-edits"?"":value);
+    }
   };
 
   const movePrivateAppSection=async({moduleKey,direction,appId,expectedRevision}={})=>{
@@ -15978,7 +16000,7 @@ function App() {
     }
     setMiniAppsAction("move-section");setMiniAppsError("");
     try{
-      const data=await miniAppsRequest("move_section",{moduleKey,direction,appId,expectedRevision});
+      const data=await mutateCurrentAppDraft("move_section",{moduleKey,direction,appId,expectedRevision});
       if(data?.ok!==true||data.privateOnly!==true||data.neverPublishes!==true||
          data.movedModule!==moduleKey||data.app?.id!==appId||
          Number(data.app.draft_revision)!==Number(expectedRevision)+1)
@@ -16001,7 +16023,7 @@ function App() {
     setMiniAppsAction("set-appearance");
     setMiniAppsError("");
     try{
-      const data=await miniAppsRequest("set_appearance",{field,value,appId,expectedRevision});
+      const data=await mutateCurrentAppDraft("set_appearance",{field,value,appId,expectedRevision});
       if(data?.ok!==true||data?.privateOnly!==true||data?.neverPublishes!==true||
          !data?.app||data.app.id!==appId||data.app.draft_revision!==expectedRevision+1)
         throw new Error("The new private app revision could not be verified.");
@@ -16018,7 +16040,7 @@ function App() {
     setMiniAppsAction(`module:${moduleKey}`);
     setMiniAppsError("");
     try {
-      const data = await miniAppsRequest("set_module", {
+      const data = await mutateCurrentAppDraft("set_module", {
         moduleKey,
         enabled,
       });

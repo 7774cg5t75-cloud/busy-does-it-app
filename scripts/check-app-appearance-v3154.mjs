@@ -44,7 +44,7 @@ assert.ok(!api.slice(start,finish).includes('busy_mini_app_versions'));
 assert.ok(!api.slice(start,finish).includes('publish'));
 assert.ok(api.includes("async function setPrivateAppAppearance("));
 const controller=read("src/app/AppController.js");
-assert.ok(controller.includes('miniAppsRequest("set_appearance"'));
+assert.ok(controller.includes('mutateCurrentAppDraft("set_appearance"') && controller.includes('send:miniAppsRequest') && controller.includes('executeAppDraftMutation({action,payload'));
 assert.ok(controller.includes('data.app.draft_revision!==expectedRevision+1'));
 const ui=read("src/screens/miniApps.js");
 assert.ok(ui.includes("function MiniAppBuilder({ s })"));

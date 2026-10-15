@@ -5,7 +5,6 @@
  */
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {execFileSync} from "node:child_process";
 import {classifyBookingClosureEvidenceV3232 as classify}
  from "../supabase/functions/busy-mini-apps/bookingCloseEvidenceV3232.mjs";
 let n=0;
@@ -81,7 +80,7 @@ for(const needle of ["V3.232_ATOMIC_OWNER_BOOKING_CLOSE_AND_FAULT_ROLLBACK_PASS"
  "ci_v3232_fail_work_cancel","PARTIAL COMMIT",
  "Cross-tenant actor closed draft","Stale draft close accepted",
  "Confirmed booking closure was not atomic"])ok(script.includes(needle));
-execFileSync(process.execPath,["scripts/prepare-two-business-auth-v3231.mjs"],{stdio:"pipe"});
+await import("./prepare-two-business-auth-v3231.mjs");
 const packet=JSON.parse(readFileSync("/tmp/bdi-v3231-real-auth-review/two-business-plan.json","utf8"));
 eq(packet.versionedMigrationCount,69);
 eq(packet.realJwtTested,false);eq(packet.sqlExecuted,false);

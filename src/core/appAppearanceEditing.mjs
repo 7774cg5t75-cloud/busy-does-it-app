@@ -1,3 +1,4 @@
+import {appOwnerLocks,appEditLockReason} from "./appOwnerLocks.mjs";
 /** V3.193 owner-controlled Business App appearance. Exact same code on
  * client and trusted Edge; acceptance and save use the same security rules. */
 const OPTIONS=Object.freeze({
@@ -24,13 +25,15 @@ function previewPrivateAppAppearance(config,{field,value}={}){
  if(!config||typeof config!=="object"||Array.isArray(config)||
    !Array.isArray(config.modules))
   return {ok:false,reason:"Choose a current Business App draft."};
+ const locked=appEditLockReason(config,{kind:"appearance",field});
+ if(locked)return {ok:false,reason:locked};
  const isBrand=field==="brandAccent";
  if(isBrand?typeof value!=="string"||!HEX.test(value):
     !owned(OPTIONS,field)||!OPTIONS[field].includes(value)||
      field==="brandPalette"&&value==="custom")
   return {ok:false,reason:"Choose a supported palette, or enter your brand colour as #RRGGBB."};
  const current={...DEFAULTS,...config.presentation};
- if(Object.keys(current).some(key=>key==="brandAccent"?
+ if(!appOwnerLocks(config).ok||Object.keys(current).some(key=>key==="ownerLockedElements"?false:key==="brandAccent"?
       typeof current[key]!=="string"||!HEX.test(current[key]):
       !owned(OPTIONS,key)||!OPTIONS[key].includes(current[key]))||
     current.brandPalette==="custom"&&!HEX.test(current.brandAccent||""))
@@ -44,8 +47,7 @@ function previewPrivateAppAppearance(config,{field,value}={}){
  if(isBrand)presentation.brandPalette="custom";
  else if(field==="brandPalette")delete presentation.brandAccent;
  // Preserve older draft shape when touching an unrelated appearance choice.
- for(const optional of ["imageScale","galleryLayout","imageCorners",
-   "brandPalette","brandAccent","typeStyle","serviceStyle"]){
+ for(const optional of [...Object.keys(DEFAULTS),"brandAccent"]){
   if(optional!==field&&!(isBrand&&optional==="brandPalette")&&
     !owned(config.presentation||{},optional))
    delete presentation[optional];
@@ -56,4 +58,18 @@ function previewPrivateAppAppearance(config,{field,value}={}){
   privateOnly:true,ownerApprovalRequired:true,changesBooking:false,
   changesPayments:false};
 }
-export {OPTIONS,DEFAULTS,previewPrivateAppAppearance};
+// Safe distribution projection: edit-only owner metadata stays in the draft.
+function publicAppAppearance(presentation={}){
+ if(!presentation||typeof presentation!=="object"||Array.isArray(presentation)||
+    !appOwnerLocks({presentation}).ok)
+  return {ok:false,reason:"The approved app appearance needs review."};
+ const {ownerLockedElements,...look}=presentation;
+ if(Object.keys(look).some(key=>key==="brandAccent"?
+    typeof look[key]!=="string"||!HEX.test(look[key]):
+    !owned(OPTIONS,key)||!OPTIONS[key].includes(look[key]))||
+    (look.brandPalette==="custom"&&!HEX.test(look.brandAccent||""))||
+    (look.brandAccent!==undefined&&look.brandPalette!=="custom"))
+  return {ok:false,reason:"Use a supported appearance and a valid custom brand colour."};
+ return {ok:true,appearance:{...DEFAULTS,...look}};
+}
+export {OPTIONS,DEFAULTS,previewPrivateAppAppearance,publicAppAppearance};

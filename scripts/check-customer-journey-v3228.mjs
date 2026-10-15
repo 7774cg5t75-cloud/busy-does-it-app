@@ -4,7 +4,6 @@
  */
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {execFileSync} from "node:child_process";
 import {classifyGuestAlertProviderTicketsV3227 as classify}
  from "../supabase/functions/busy-mini-app-guest-alert-dispatch/dispatchReceiptV3227.mjs";
 import {chooseOwnerRequestNextStepV3228 as next}
@@ -77,7 +76,7 @@ ok(owner.includes('if(!["owner","admin"].includes(member.role))'));
 const screen=read("src/screens/miniApps.js");
 ok(screen.includes("BUSY suggests: "));
 ok(screen.includes("nextStep?.businessId===app.business_id"));
-execFileSync(process.execPath,["scripts/prepare-staging-gates-v3228.mjs"],{stdio:"pipe"});
+await import("./prepare-staging-gates-v3228.mjs");
 const m=JSON.parse(readFileSync("/tmp/bdi-v3228-staging-review/source-manifest.json","utf8"));
 eq(m.completeMigrationCount,69);eq(m.migrations.length,69);
 eq(m.critical.length,7);

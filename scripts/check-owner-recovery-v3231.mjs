@@ -5,7 +5,6 @@
  */
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {execFileSync} from "node:child_process";
 import {verifyOwnerRequestFreshnessV3231 as fresh}
  from "../supabase/functions/busy-mini-apps/ownerRequestFreshnessV3231.mjs";
 import {interpretOwnerStatusAfterErrorV3231 as recover}
@@ -95,7 +94,7 @@ ok(fixture.includes("updated_at=v_first.updated_at"));
 const assembler=read("scripts/prepare-disposable-owner-cas-v3231.mjs");
 ok(assembler.includes("V3.231_EPHEMERAL_OWNER_FRESHNESS_ROLLBACK_PASS"));
 ok(assembler.includes("actualStagingContacted:false"));
-execFileSync(process.execPath,["scripts/prepare-two-business-auth-v3231.mjs"],{stdio:"pipe"});
+await import("./prepare-two-business-auth-v3231.mjs");
 const packet=JSON.parse(readFileSync("/tmp/bdi-v3231-real-auth-review/two-business-plan.json","utf8"));
 eq(packet.versionedMigrationCount,69);
 eq(packet.scenarios.length,11);

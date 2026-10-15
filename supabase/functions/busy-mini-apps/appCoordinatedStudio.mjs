@@ -1,14 +1,16 @@
+import {PROFILE_TEXT_LIMITS,captureAppProfileField,restoreAppProfileField} from "./appProfileFieldUndo.mjs";
+import {appEditLockReason} from "./appOwnerLocks.mjs";
 /**
  * V3.157 — finite, reversible, atomic private Business App editing plan.
  * This module is shared byte-for-byte between the client and the trusted edge.
  * It cannot enable modules, confirm requests, charge, publish or submit apps.
  */
 import {enabledAppKeys,proposeAppSectionMove} from "./appSectionOrder.mjs";
-import {previewPrivateAppAppearance} from "./appAppearanceEditing.mjs";
+import {previewPrivateAppAppearance,publicAppAppearance} from "./appAppearanceEditing.mjs";
 import {reviewPrivateAppServices} from "./appServiceCollection.mjs";
 import {proposeGalleryImageDescription} from "./appGalleryDescription.mjs";
 const MAX_CHANGES=8;
-const TEXT_FIELDS=Object.freeze({tagline:180,about:1200,description:1000});
+const TEXT_FIELDS=PROFILE_TEXT_LIMITS;
 const clean=v=>typeof v==="string"?v.trim():"";
 const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
 function proposeCoordinatedAppChanges(config,operations){
@@ -23,13 +25,30 @@ function proposeCoordinatedAppChanges(config,operations){
   if(!op||typeof op!=="object"||Array.isArray(op)||
      Object.keys(op).some(k=>!["kind","field","value","moduleKey","direction","index","from","to","expectedUri"].includes(k)))
    return {ok:false,reason:"Unknown edit data was rejected."};
+  const locked=appEditLockReason(next,op);
+  if(locked)return {ok:false,reason:locked};
   let undo=null,after=null,description="";
   if(op.kind==="appearance"){
    const edit=previewPrivateAppAppearance(next,{field:op.field,value:op.value});
    if(!edit.ok)return edit;
    after=edit.nextConfig;
-   undo={kind:"appearance",field:op.field,value:edit.previous};
+   undo={kind:"restore_appearance",value:own(next,"presentation")?
+    JSON.parse(JSON.stringify(next.presentation)):null};
    description=op.field+": "+edit.previous+" → "+edit.value;
+  }else if(op.kind==="restore_appearance"){
+   if(op.value!==null&&!publicAppAppearance(op.value).ok||
+      !publicAppAppearance(next.presentation||{}).ok||
+      JSON.stringify(next.presentation?.ownerLockedElements||[])!==
+       JSON.stringify(op.value?.ownerLockedElements||[]))
+    return {ok:false,reason:"Only a validated appearance snapshot with unchanged owner locks can be restored."};
+   if(JSON.stringify(next.presentation??null)===JSON.stringify(op.value))
+    return {ok:false,reason:"This appearance is already restored."};
+   undo={kind:"restore_appearance",value:own(next,"presentation")?
+    JSON.parse(JSON.stringify(next.presentation)):null};
+   after={...next};
+   if(op.value===null)delete after.presentation;
+   else after.presentation=JSON.parse(JSON.stringify(op.value));
+   description="Restored the reviewed private appearance";
   }else if(op.kind==="move"){
    const edit=proposeAppSectionMove(next,{moduleKey:op.moduleKey,direction:op.direction});
    if(!edit.ok)return edit;
@@ -56,7 +75,14 @@ function proposeCoordinatedAppChanges(config,operations){
    after={...next,navigation:[...op.value]};
    undo={kind:"navigation",value:order.keys};
    description="Changed section order";
+  }else if(op.kind==="restore_public_field"){
+   const restored=restoreAppProfileField(next,op);
+   if(!restored.ok)return restored;
+   after=restored.nextConfig;undo={kind:"restore_public_field",field:op.field,value:restored.previous};
+   description="Restored the reviewed public "+op.field;
   }else if(op.kind==="text"){
+   const snapshot=captureAppProfileField(next,op.field);
+   if(!snapshot)return {ok:false,reason:"Review the existing public field before editing it."};
    const limit=TEXT_FIELDS[op.field];
    if(!own(TEXT_FIELDS,op.field)||typeof op.value!=="string"||
       op.value.length>limit||
@@ -66,13 +92,15 @@ function proposeCoordinatedAppChanges(config,operations){
    if(prev===op.value)return {ok:false,reason:"This wording is already in the app."};
    after={...next,publicProfile:{...next.publicProfile,[op.field]:op.value}};
    if(op.field==="tagline")after.display={...next.display,tagline:op.value};
-   undo={kind:"text",field:op.field,value:prev};
+   undo={kind:"restore_public_field",field:op.field,value:snapshot};
    description="Updated public "+op.field;
   }else if(op.kind==="services"){
+   const snapshot=captureAppProfileField(next,"services");
+   if(!snapshot)return {ok:false,reason:"Review the existing public services before editing them."};
    const edit=reviewPrivateAppServices(next,op.value);
    if(!edit.ok)return edit;
    after=edit.nextConfig;
-   undo={kind:"services",value:edit.previous.map(x=>({...x}))};
+   undo={kind:"restore_public_field",field:"services",value:snapshot};
    description=edit.description;
   }else if(op.kind==="photo_description"){
    const edit=proposeGalleryImageDescription(next,{

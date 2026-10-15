@@ -1,3 +1,4 @@
+import {protectWebsiteOwnerLocks} from "./websiteOwnerLocks.mjs";
 import {editWebsiteDraftField} from "./websiteStructuredEditing.mjs";
 import {applyWebsiteLayoutOperation} from "./websiteLayoutEditing.mjs";
 import {editWebsitePages} from "./websitePageEditing.mjs";
@@ -25,7 +26,7 @@ const colourNames={
  gold:"#97702B",brown:"#78533D"
 };
 const fail=reason=>({applied:false,reason});
-function applyWebsiteVisualEdit(draft,instruction){
+function applyWebsiteVisualEditUnchecked(draft,instruction){
   if(instruction&&typeof instruction==="object"&&instruction.kind==="structured")
     return editWebsiteDraftField(draft,instruction);
   if(instruction&&typeof instruction==="object"&&instruction.kind==="layout")
@@ -84,7 +85,7 @@ function applyWebsiteVisualEdit(draft,instruction){
  const originalTheme=draft?.theme||{};
  const existing=list(draft?.sections);
  const theme={...originalTheme};
- const sections=existing.map(s=>({...s,items:list(s.items).map(x=>({...x}))}));
+ const sections=existing.map(s=>({...s,...(Array.isArray(s.items)?{items:s.items.map(x=>({...x}))}:{})}));
  const find=id=>sections.findIndex(s=>s.id===id&&s.enabled!==false);
  const apply=(message)=>({applied:true,reason:message,
    draft:{...draft,theme,sections}});
@@ -257,3 +258,5 @@ function applyWebsiteVisualEdit(draft,instruction){
  return fail("BUSY can safely adjust headings, supplied wording, services, colours, layout families and section order. More detailed visual edits and photo changes need dedicated controls.");
 }
 export {applyWebsiteVisualEdit};
+
+function applyWebsiteVisualEdit(draft,change){return protectWebsiteOwnerLocks(draft,applyWebsiteVisualEditUnchecked(draft,change));}

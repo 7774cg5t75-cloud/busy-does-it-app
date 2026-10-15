@@ -7,7 +7,7 @@
  */
 import {businessAppPreviewProof} from "./businessAppPreviewProof.mjs";
 import {appRuntimeScreenSchema} from "./appRuntimeScreenSchema.mjs";
-import {OPTIONS as APP_LOOK,DEFAULTS as APP_DEFAULTS} from "./appAppearanceEditing.mjs";
+import {publicAppAppearance} from "./appAppearanceEditing.mjs";
 const MODES=Object.freeze(["busy_marketplace","standalone"]);
 const COSTS=Object.freeze([
  {key:"apple",title:"Apple Developer membership",detail:"Apple may require an external developer membership and its own fees to publish an iPhone app. Paid separately; amount and renewal terms depend on Apple's current rules."},
@@ -77,12 +77,9 @@ function buildStandalonePrivateHandoff({app,preview,plan,catalog,ownerConfirmed=
  const modules=runtime.screens.map(item=>item.key);
  // Exact finite owner-approved presentation crosses into the offline native
  // shell. The preview is immutable and is checked against the draft revision.
- const chosen=config.presentation||{};
- if(!chosen||typeof chosen!=="object"||Array.isArray(chosen)||
-   Object.keys(chosen).some(k=>!Object.prototype.hasOwnProperty.call(APP_LOOK,k)||
-     !APP_LOOK[k].includes(chosen[k])))
-  return {ok:false,reason:"The approved app appearance needs review before native packaging."};
- const appearance={...APP_DEFAULTS,...chosen};
+ const look=publicAppAppearance(config.presentation||{});
+ if(!look.ok)return look;
+ const appearance=look.appearance;
  return {ok:true,kind:"private_standalone_planning_manifest_v1",
   appearance,appearanceSource:"matching_immutable_private_preview",
   ownerAppId:app.id,previewVersionId:preview.id,

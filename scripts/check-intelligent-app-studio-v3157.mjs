@@ -45,7 +45,7 @@ assert.equal(runtime.screens[0].key,"booking_request");
 const undone=proposeCoordinatedAppChanges(p.nextConfig,p.undoOperations);
 assert.equal(undone.ok,true,undone.reason);
 assert.deepEqual(undone.nextConfig.navigation,config.navigation);
-assert.equal(undone.nextConfig.presentation.imageScale,"regular");
+assert.deepEqual(undone.nextConfig,config,"Undo must restore the original sparse configuration exactly");
 assert.equal(undone.nextConfig.display.tagline,config.display.tagline);
 const copy=proposeCoordinatedAppChanges(config,[
  {kind:"text",field:"tagline",value:"Fresh owner-approved tagline"},

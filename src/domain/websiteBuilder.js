@@ -1,3 +1,4 @@
+import {protectWebsiteOwnerLocks} from "../../supabase/functions/busy-website-worker/websiteOwnerLocks.mjs";
 import { syncWebsitePageModel } from "./websiteManagement";
 import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";
 import { designForWebsite, designCss } from "../../supabase/functions/busy-website-worker/designSystem.mjs";
@@ -350,7 +351,7 @@ function withHtml(draft = {}) {
  * Updates ONLY the private website service copy. Publication still uses the
  * existing immutable hosted release and independent owner approval process.
  */
-function applyCoordinatedWebsiteCopy({ draft = null, approved = {}, serviceName = "", text = "" } = {}) {
+function applyCoordinatedWebsiteCopyUnchecked({ draft = null, approved = {}, serviceName = "", text = "" } = {}) {
   const name = clean(serviceName).slice(0, 120);
   const body = clean(text).slice(0, 800);
   const allowed = safeArray(approved?.services).some((service) =>
@@ -570,7 +571,7 @@ function applySingleWebsiteInstruction(draft = {}, instruction = "") {
  * leave the owner's original private draft untouched. Use explicit "and then"
  * or semicolon separators so copy such as "bread, cheese and wine" survives.
  */
-function applyWebsiteInstruction(draft = {}, instruction = "") {
+function applyWebsiteInstructionUnchecked(draft = {}, instruction = "") {
   const raw=clean(instruction);
   const parts=raw.split(/\s*;\s*|\s+and then\s+|,\s*(?:and )?then\s+/i).map(x=>x.trim());
   if(parts.length===1)return applySingleWebsiteInstruction(draft,instruction);
@@ -783,6 +784,10 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     }).join("");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(draft.seo?.pages?.[page?.id]?.title||draft.seo?.title||draft.businessName||"Website")}</title><meta name="description" content="${escapeHtml(draft.seo?.pages?.[page?.id]?.description||draft.seo?.description||"")}"><style>${layoutCss}</style></head><body class="mood-${design.mood} sector-${design.sector} family-${plan.family} tier-${plan.contentTier} architecture-${plan.architecture} ${classes}"><a class="skip-link" href="#main">Skip to content</a><nav><div class="wrap nav-wrap"><a class="brand" href="${standalone?escapeHtml(homePath):"#main"}">${escapeHtml(draft.brandLabel||draft.businessName||"Business website")}</a><div class="nav-links">${nav}</div></div></nav><main id="main">${sectionHtml}</main><footer class="site-footer"><div class="wrap"><strong>${business}</strong>${area?`<span>${escapeHtml(area)}</span>`:""}</div></footer></body></html>`;
 }
+
+
+function applyWebsiteInstruction(draft,instruction){return protectWebsiteOwnerLocks(draft,applyWebsiteInstructionUnchecked(draft,instruction));}
+function applyCoordinatedWebsiteCopy(args={}){return protectWebsiteOwnerLocks(args.draft,applyCoordinatedWebsiteCopyUnchecked(args));}
 
 export {
   buildWebsiteDraft,

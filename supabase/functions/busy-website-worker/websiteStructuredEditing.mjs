@@ -1,3 +1,4 @@
+import {protectWebsiteOwnerLocks} from "./websiteOwnerLocks.mjs";
 /**
  * Owner-directed structured website copy edits (V3.133).
  * No AI call, public publish, remote URL, invented facts or media mutation.
@@ -24,7 +25,7 @@ const fail=(reason,draft)=>({applied:false,reason,draft});
 const collectionKinds=new Set(["services","faq"]);
 const publicWord=(s,max,required=false)=>typeof s==="string"&&s.length<=max&&
  !/[<>\u0000-\u001f\u007f]/.test(s)&&(!required||!!s.trim());
-function editWebsiteDraftCollection(draft,change={}){
+function editWebsiteDraftCollectionUnchecked(draft,change={}){
  const permitted=new Set(["kind","action","sectionId","title","body","itemId","expectedTitle","direction"]);
  if(!change||typeof change!=="object"||Array.isArray(change)||
    Object.keys(change).some(k=>!permitted.has(k))||
@@ -100,7 +101,7 @@ function editWebsiteDraftCollection(draft,change={}){
   privateOnly:true};
 }
 
-function editWebsiteDraftField(draft,change={}){
+function editWebsiteDraftFieldUnchecked(draft,change={}){
  if(!draft?.id||!Array.isArray(draft?.sections))
   return fail("Build a private website draft before editing its content.",draft);
  if(!change||typeof change!=="object"||Array.isArray(change))
@@ -155,3 +156,7 @@ function editWebsiteDraftField(draft,change={}){
  return {applied:true,reason:description+" Nothing has been published.",draft:{...draft,sections}};
 }
 export {editWebsiteDraftField,editWebsiteDraftCollection,fieldChoices};
+
+function editWebsiteDraftField(draft,change){return protectWebsiteOwnerLocks(draft,editWebsiteDraftFieldUnchecked(draft,change));}
+
+function editWebsiteDraftCollection(draft,change){return protectWebsiteOwnerLocks(draft,editWebsiteDraftCollectionUnchecked(draft,change));}

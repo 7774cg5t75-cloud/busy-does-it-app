@@ -28,8 +28,7 @@ assert.equal(changed.nextConfig.customerRecords,config.customerRecords);
 assert.equal(changed.nextConfig.payments,config.payments);
 const undo=proposeCoordinatedAppChanges(changed.nextConfig,changed.undoOperations);
 assert.equal(undo.ok,true,undo.reason);
-assert.equal(undo.nextConfig.presentation.galleryLayout,"grid");
-assert.equal(undo.nextConfig.presentation.imageCorners,"rounded");
+assert.deepEqual(undo.nextConfig,config,"Undo restores the exact original sparse appearance and content");
 assert.equal(JSON.stringify(config),original);
 const voice=planAppVoiceInstructions(config,"Make the gallery a stack and use square photo corners");
 assert.equal(voice.ok,true,voice.reason);
@@ -69,7 +68,10 @@ assert.equal(read("src/core/appCoordinatedStudio.mjs"),
  read("supabase/functions/busy-mini-apps/appCoordinatedStudio.mjs"));
 assert.equal(read("src/core/appVisualReviewContract.mjs"),
  read("supabase/functions/busy-mini-apps/appVisualReviewContract.mjs"));
-const ui=read("src/screens/miniApps.js");
+const builder=read("src/screens/miniApps.js");
+assert.ok(builder.includes('import {AppStudioComparison} from "./appStudioComparison"'));
+assert.ok(builder.includes("<AppStudioComparison"));
+const ui=builder+read("src/screens/appStudioComparison.js");
 for(const str of ["auditBusinessAppUsability","compareBusinessAppDesign",
  "Before and after comparison","Show original design","Show proposed design",
  "Show suggested design","Accessible app checklist","galleryLayout",

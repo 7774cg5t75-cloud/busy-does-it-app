@@ -1,3 +1,4 @@
+import {appEditLockReason} from "./appOwnerLocks.mjs";
 /** V3.156: one-position, reviewable section reorder for BOTH Business App routes.
  * Navigation must be an exact permutation of enabled, known module keys. */
 function enabledAppKeys(config){
@@ -14,6 +15,8 @@ function enabledAppKeys(config){
  return {ok:true,keys:[...nav]};
 }
 function proposeAppSectionMove(config,{moduleKey,direction}={}){
+ const locked=appEditLockReason(config,{kind:"move",moduleKey,direction});
+ if(locked)return {ok:false,reason:locked};
  const valid=enabledAppKeys(config);if(!valid.ok)return valid;
  if(typeof moduleKey!=="string"||!["up","down"].includes(direction))
   return {ok:false,reason:"Choose a section and move it one position."};

@@ -76,7 +76,7 @@ yes(fakeReview.applied,"Owner can explicitly supply their own copy but it is not
 yes(fakeReview.draft.sections.some(s=>s.type==="text"&&s.title==="Reviews"),"Owner-authored plain text is never misclassified as a verified testimonial");
 const appController=read("src/app/AppController.js"),screen=read("src/screens/websiteBuilder.js");
 for(const marker of ["websiteUndo","websiteRedo","const undoWebsiteChange","const redoWebsiteChange",
- "setWebsiteRedo([]);","setWebsiteUndo((items) => [...items, websiteDraft].slice(-8))"]){
+ "setWebsiteRedo([]);","setWebsiteUndo(items=>[...items,current].slice(-8))"]){
  yes(appController.includes(marker),"Private draft history: "+marker);
 }
 yes(screen.includes("Undo last change"),"Undo button exposed to customers");
@@ -102,3 +102,5 @@ yes(["3.102.0","3.103.0","3.104.0","3.105.0"].includes(pkg.version),"Editing swe
 eq(app.ios.buildNumber,String(Number(pkg.version.split(".")[1])-80),"iOS metadata");eq(app.android.versionCode,Number(pkg.version.split(".")[1])-80,"Android metadata");
 yes(read(".github/workflows/production-check.yml").includes("check-website-edit-freedom-v3102.mjs"),"CI regression enforced");
 console.log("V3.102 PASS:",checks,"customer-directed section, content, identity and contrast-safe design edits; no publication.");
+
+assert.ok(appController.includes("checkPrivateWebsiteDraftCommit({current,candidate:nextDraft"));

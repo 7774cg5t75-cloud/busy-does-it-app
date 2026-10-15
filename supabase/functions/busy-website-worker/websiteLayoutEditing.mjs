@@ -1,3 +1,4 @@
+import {websiteLayoutLockReason,protectWebsiteOwnerLocks} from "./websiteOwnerLocks.mjs";
 /**
  * V3.134 — exact structural and appearance operations on a PRIVATE website draft.
  * Bounded operations; no network, remote images, fabricated reviews, AI costs,
@@ -17,11 +18,13 @@ const allow={
  heroSize:["medium","large","extra-large"],
  photoFocus:["center","top","bottom"],
 };
-function applyWebsiteLayoutOperation(draft,operation={}){
+function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
  if(!draft?.id||!Array.isArray(draft.sections))return fail(draft,"Build a website draft before changing its layout.");
  if(!operation||typeof operation!=="object"||Array.isArray(operation))return fail(draft,"Choose a website layout action.");
+ const lockReason=websiteLayoutLockReason(draft,operation);
+ if(lockReason)return fail(draft,lockReason);
  const {action,sectionId}=operation;
- const sections=draft.sections.map(s=>({...s,items:list(s.items).map(i=>({...i}))}));
+ const sections=draft.sections.map(s=>({...s,...(Array.isArray(s.items)?{items:s.items.map(i=>({...i}))}:{})}));
  const theme={...(draft.theme||{})};
  const index=sections.findIndex(s=>s.id===sectionId);
  const ready=(reason)=>({applied:true,draft:{...draft,sections,theme},reason:reason+" Only the private website draft was changed."});
@@ -365,4 +368,7 @@ function applyWebsiteLayoutOperation(draft,operation={}){
  }
  return fail(draft,"Unsupported layout change. No website content was modified.");
 }
-export {applyWebsiteLayoutOperation,allow as websiteAppearanceOptions};
+function applyWebsiteLayoutOperation(draft,operation){
+ return protectWebsiteOwnerLocks(draft,applyWebsiteLayoutOperationUnchecked(draft,operation));
+}
+export {applyWebsiteLayoutOperation,websiteLayoutLockReason,allow as websiteAppearanceOptions};

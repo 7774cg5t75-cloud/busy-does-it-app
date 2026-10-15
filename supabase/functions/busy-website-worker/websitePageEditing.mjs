@@ -1,3 +1,4 @@
+import {protectWebsiteOwnerLocks} from "./websiteOwnerLocks.mjs";
 /**
  * V3.135 owner-managed custom website pages.
  * Pure, deterministic, private draft only. Uses paths under /pages/
@@ -8,7 +9,7 @@ const list=v=>Array.isArray(v)?v:[];
 const slug=v=>clean(v).normalize("NFKD").toLowerCase().replace(/[\u0300-\u036f]/g,"")
  .replace(/&/g,"-and-").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,55).replace(/-+$/,"");
 const fail=(draft,reason)=>({applied:false,draft,reason});
-function editWebsitePages(draft={},action={}){
+function editWebsitePagesUnchecked(draft={},action={}){
  if(!draft?.id||!Array.isArray(draft.sections))return fail(draft,"Build a private website draft first.");
  if(!action||typeof action!=="object"||Array.isArray(action))return fail(draft,"Choose a page action.");
  const pages=list(draft.customPages).map(p=>({...p,sectionIds:[...list(p.sectionIds)]}));
@@ -121,3 +122,5 @@ function editWebsitePages(draft={},action={}){
  return fail(draft,"Unsupported page operation. Nothing was changed.");
 }
 export {editWebsitePages};
+
+function editWebsitePages(draft,change){return protectWebsiteOwnerLocks(draft,editWebsitePagesUnchecked(draft,change));}

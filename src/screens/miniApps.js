@@ -1,3 +1,4 @@
+import {useOwnerDesignMemory} from "./useOwnerDesignMemory";
 import React from "react";
 import { Image, Text, View, Dimensions, Platform, Alert, useWindowDimensions, ScrollView, PixelRatio } from "react-native";
 import {captureRef} from "react-native-view-shot";
@@ -12,6 +13,7 @@ import { buildAppDistributionPlan,buildStandalonePrivateHandoff } from "../core/
 import { planFunctionalBusinessApp } from "../core/appExperiencePlanner.mjs";
 import { previewPrivateAppAppearance,OPTIONS as appAppearanceOptions } from "../core/appAppearanceEditing.mjs";
 import {nativePalette,LABELS as nativePaletteLabels} from "../core/nativePalette.mjs";
+import {AppStudioComparison} from "./appStudioComparison";
 import {BusinessBrandDnaPreview} from "./businessBrandDnaPreview";
 import {UniversalBuilderPlanReview} from "./universalBuilderPlanReview";
 import {WebsiteToAppDesignTransfer} from "./websiteToAppDesignTransfer";
@@ -23,11 +25,12 @@ import { interpretSelectedAppAppearance } from "../core/appContextInstruction.mj
 import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.mjs";
 import {proposeCoordinatedAppChanges,planAppVoiceInstructions} from "../core/appCoordinatedStudio.mjs";
 import {appDesignQualityReport} from "../core/appDesignQuality.mjs";
+import {usePrivateAppStudio} from "./usePrivateAppStudio";
 import {reviewAppGoalDesignV3240} from "../core/appGoalDesignReviewV3240.mjs";
 import {auditBusinessAppUsability,compareBusinessAppDesign} from "../core/appUsabilityAudit.mjs";
 import {responsiveAppLayout,recommendResponsiveDesign}
   from "../core/appResponsiveDesign.mjs";
-import {evaluateAppAcrossScreens,compareAppScreenQuality}
+import {evaluateAppAcrossScreens}
   from "../core/appResponsiveQuality.mjs";
 import {prepareAppDesignIteration,inspectApprovedAppIteration,proposeLowRiskDesignHints}
   from "../core/appDesignIteration.mjs";
@@ -825,7 +828,6 @@ function MiniAppBuilder({ s }) {
   const [showAppVoice,setShowAppVoice]=React.useState(false);
   const [pendingMove,setPendingMove]=React.useState(null);
   const [studioWords,setStudioWords]=React.useState("");
-  const [studioPreview,setStudioPreview]=React.useState(null);
   const [selectedCustomerTask,setSelectedCustomerTask]=React.useState("book");
   const [showCustomerTaskReview,setShowCustomerTaskReview]=React.useState(false);
   const [showJourneyPractice,setShowJourneyPractice]=React.useState(false);
@@ -838,15 +840,12 @@ function MiniAppBuilder({ s }) {
   const [brainOwnerHistory,setBrainOwnerHistory]=React.useState(null);
   const [brainOwnerNotice,setBrainOwnerNotice]=React.useState("");
   const [brainOwnerBusy,setBrainOwnerBusy]=React.useState(false);
-  const [studioComparisonSide,setStudioComparisonSide]=React.useState("proposed");
   const [showResponsiveDetails,setShowResponsiveDetails]=React.useState(false);
-  const [studioNotice,setStudioNotice]=React.useState("");
   const [studioCopyField,setStudioCopyField]=React.useState("tagline");
   const [studioCopy,setStudioCopy]=React.useState("");
   const [photoFrom,setPhotoFrom]=React.useState("1");
   const [photoTo,setPhotoTo]=React.useState("2");
   const [studioVoiceOpen,setStudioVoiceOpen]=React.useState(false);
-  const [studioUndo,setStudioUndo]=React.useState(null);
   const [serviceIndex,setServiceIndex]=React.useState(-1);
   const [serviceName,setServiceName]=React.useState("");
   const [serviceDescription,setServiceDescription]=React.useState("");
@@ -855,6 +854,14 @@ function MiniAppBuilder({ s }) {
   const [accessiblePhotoCaption,setAccessiblePhotoCaption]=React.useState("");
   const view = s.miniAppsView || {};
   const app = view.app;
+  const studio=usePrivateAppStudio({businessId:s.cloudWorkspace?.businessId||"",
+    ownerId:s.ownerSession?.userId||"",app,config:view.draftConfig},s.saveCoordinatedAppChanges);
+  const studioPreview=studio.preview,studioNotice=studio.notice;
+  const setStudioPreview=studio.prepare,setStudioNotice=studio.setNotice;
+  const studioIsCurrent=!!studio.preview;
+  const goalMemory=useOwnerDesignMemory({businessId:s.cloudWorkspace?.businessId||"",
+    ownerId:s.ownerSession?.userId||"",appId:app?.id,revision:app?.draft_revision},s.getAppDesignLearningStatus);
+
   const syntheticStagingGate=assessSyntheticStagingAction({
     businessId:s.cloudWorkspace?.businessId||"",app,
     probe:stagingProbe,install:stagingInstallAudit
@@ -865,7 +872,6 @@ function MiniAppBuilder({ s }) {
     setPendingAppearance(null);
     setAppearancePreviewOpen(false);
     setStudioPreview(null);
-    setStudioUndo(null);
     setStudioWords("");
     setStudioNotice("");
     setSelectedCustomerTask("book");
@@ -1048,7 +1054,8 @@ function MiniAppBuilder({ s }) {
   const appGoalDesign=view.draftConfig&&app?.draft_revision?
     reviewAppGoalDesignV3240({
       businessId:s.cloudWorkspace?.businessId||"",app,
-      website:s.websiteDraft||null,goal:selectedCustomerTask
+      website:s.websiteDraft||null,goal:selectedCustomerTask,
+      ownerId:s.ownerSession?.userId||"",ownerDesignHistory:goalMemory.memory
     }):null;
   const responsiveQuality=evaluateAppAcrossScreens(view.draftConfig||view.activeConfig||{});
   const measuredNativeContrast=auditStandaloneContrast(nativePalette(
@@ -2474,107 +2481,41 @@ function MiniAppBuilder({ s }) {
                 }}/>
             </>
           ):null}
+          {!studio.recoveryReady?<Text style={styles.cardBody}>Checking your encrypted private Studio checkpoint…</Text>:null}
+          {studio.recoveryError?<Text style={styles.cardBody}>{studio.recoveryError}</Text>:null}
+          {studio.interrupted?<Button label="Refresh current private app" disabled={!!s.miniAppsAction}
+            onPress={()=>s.refreshMiniAppsStatus?.()}/>:null}
           {studioNotice?<Text style={styles.cardBody}>{studioNotice}</Text>:null}
-          {studioPreview?.ok?(
+          {studioPreview?.ok&&studioIsCurrent?(
             <>
               <Text style={styles.sectionLabel}>Proposed changes — not saved</Text>
               {studioPreview.changes.map((change,index)=>(
-                <MetricRow key={"change-"+index} left={"Change "+(index+1)} right={change}/>
+                <View key={"change-"+index}>
+                  <MetricRow left={"Change "+(index+1)} right={change}/>
+                  <Button label={"Leave out change "+(index+1)}
+                    disabled={studio.pending||studio.uncertain||!!s.miniAppsAction}
+                    onPress={()=>studio.removeChange(index)}/>
+                </View>
               ))}
               {studioPreview.preserved?.length?(
                 <Text style={styles.cardBody}>
                   {"Kept unchanged: "+studioPreview.preserved.join("; ")}
                 </Text>
               ):null}
-              {(()=>{
-                const beforeAfter=compareBusinessAppDesign(view.draftConfig,
-                  studioPreview.nextConfig);
-                return beforeAfter.ok?(
-                  <>
-                    <Text style={styles.sectionLabel}>Before and after comparison</Text>
-                    <Text style={styles.cardBody}>
-                      {beforeAfter.changeCount+" layout / navigation differences recorded. "+
-                        (beforeAfter.designOnly?"Only design settings changed.":
-                         "Public content or modules also changed; review everything.")}
-                    </Text>
-                    {beforeAfter.changes.slice(0,8).map(change=>(
-                      <MetricRow key={change.field} left={change.label}
-                        right={String(change.from)+" → "+String(change.to)}/>
-                    ))}
-                    {beforeAfter.designOnly?(()=>{
-                      const checked=compareAppScreenQuality(
-                        view.draftConfig,studioPreview.nextConfig);
-                      return checked.ok?(
-                        <>
-                          <Text style={styles.sectionLabel}>
-                            What would change across screen sizes?
-                          </Text>
-                          {checked.widths.map(sample=>(
-                            <View key={"quality-diff-"+sample.id}
-                              style={{marginBottom:9}}>
-                              <MetricRow left={sample.id.replaceAll("_"," ")+" ("+
-                                sample.assumedContentWidth+" pt)"}
-                                right={sample.differences.length?
-                                  sample.differences.length+" predicted layout change(s)":
-                                  "No layout-rule difference"}/>
-                              {sample.differences.map(d=>(
-                                <Text key={"change-"+d.feature}
-                                  style={styles.cardBody}>
-                                  {d.feature+": "+d.before+" → "+d.after}
-                                </Text>
-                              ))}
-                            </View>
-                          ))}
-                          <Text style={styles.cardBody}>
-                            Rules compare the proposed configurations at three
-                            sample widths. No extra AI request, screenshot test
-                            or automatic app change was performed.
-                          </Text>
-                        </>
-                      ):null;
-                    })():null}
-                    <Button label={studioComparisonSide==="original"?"✓ Original design":"Show original design"}
-                      onPress={()=>setStudioComparisonSide("original")}/>
-                    <Button label={studioComparisonSide==="proposed"?"✓ Proposed design":"Show proposed design"}
-                      onPress={()=>setStudioComparisonSide("proposed")}/>
-                    <MiniAppSurface config={studioComparisonSide==="original"?
-                      view.draftConfig:studioPreview.nextConfig}/>
-                    <Text style={styles.cardBody}>
-                      These are two actual app components rendered in the private editor.
-                      No automated screenshot comparison or device accessibility test is implied.
-                    </Text>
-                  </>
-                ):<Text style={styles.cardBody}>{beforeAfter.reason}</Text>;
-              })()}
+              <AppStudioComparison key={studioPreview.source.configStamp+":"+JSON.stringify(studioPreview.operations)}
+                original={view.draftConfig} proposed={studioPreview.nextConfig}
+                renderSurface={config=><MiniAppSurface config={config}/>}/>
               <Button primary label={"Approve all "+studioPreview.changes.length+" private change(s)"}
-                disabled={!!s.miniAppsAction}
-                onPress={async()=>{
-                  const result=await s.saveCoordinatedAppChanges?.({
-                    appId:app.id,expectedRevision:app.draft_revision,
-                    operations:studioPreview.operations});
-                  if(result?.ok){
-                    setStudioUndo({operations:result.undoOperations,
-                      expectedRevision:result.newRevision});
-                    setStudioPreview(null);
-                    setStudioNotice("Saved as one PRIVATE revision. Your live app is unchanged.");
-                  }
-                }}/>
-              <Button label="Discard the whole proposed batch"
-                onPress={()=>{setStudioPreview(null);setStudioNotice("No changes saved.");}}/>
+                disabled={!!s.miniAppsAction||!studio.canApprove}
+                onPress={studio.approve}/>
+              <Button label="Discard the whole proposed batch" disabled={studio.pending}
+                onPress={studio.discard}/>
             </>
           ):null}
-          {studioUndo?.operations?.length&&
-            studioUndo.expectedRevision===app.draft_revision?(
-            <Button label="Undo my last approved batch" disabled={!!s.miniAppsAction}
-              onPress={async()=>{
-                const result=await s.saveCoordinatedAppChanges?.({
-                  appId:app.id,expectedRevision:studioUndo.expectedRevision,
-                  operations:studioUndo.operations});
-                if(result?.ok){
-                  setStudioUndo(null);
-                  setStudioNotice("Batch reversed in one new private revision. No public changes.");
-                }
-              }}/>
+          {studio.undo?(
+            <Button label="Undo my last approved batch"
+              disabled={!!s.miniAppsAction||!studio.canUndo}
+              onPress={studio.undoLast}/>
           ):null}
           <Text style={styles.cardBody}>
             BUSY cannot treat unrecognised instructions as completed edits. Payments,
@@ -2642,6 +2583,30 @@ function MiniAppBuilder({ s }) {
                 ". Current private capability: "+appGoalDesign.task.status.replaceAll("_"," ")+
                 ". This does not confirm a real booking or enquiry."}</Text>
               <Text style={styles.cardBody}>{appGoalDesign.brand.note}</Text>
+              {appGoalDesign.contentReadiness.blockers.map((reason,index)=>(
+                <Text key={"goal-content-"+index} style={styles.cardBody}>{reason}</Text>))}
+              {appGoalDesign.visualTradeoffs.map(choice=>(
+                <Text key={"goal-relevance-"+choice.field} style={styles.cardBody}>
+                  {choice.goalRelevance+" "+choice.tradeoff}
+                </Text>))}
+              <Button label={goalMemory.busy?"Loading saved choices…":"Use my saved design choices"}
+                disabled={goalMemory.busy||!!s.miniAppsAction} onPress={goalMemory.refresh}/>
+              {goalMemory.notice?<Text style={styles.cardBody}>{goalMemory.notice}</Text>:null}
+              {appGoalDesign.ownerMemory.used?<Text style={styles.cardBody}>{
+                appGoalDesign.ownerMemory.suppressedCount+" suggested choice(s) set aside to respect your saved preferences."}</Text>:null}
+
+              {appGoalDesign.operations.length&&!appGoalDesign.task.needsSetup?(
+                <Button label="Preview BUSY’s recommended private design"
+                  disabled={!!s.miniAppsAction}
+                  onPress={()=>{
+                    const proposal=proposeCoordinatedAppChanges(view.draftConfig,
+                      appGoalDesign.operations);
+                    setStudioPreview(proposal.ok?proposal:null);
+                    setStudioNotice(proposal.ok?
+                      "Recommended design prepared in the App Studio above. Compare the original, then approve or discard.":proposal.reason);
+                  }}/>
+              ):null}
+
               {appGoalDesign.potentialNewStaticAdvisories?(
                 <Text style={styles.cardBody}>
                   A possible new width-specific advisory needs inspection before keeping any design.
