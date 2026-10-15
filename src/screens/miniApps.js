@@ -4719,7 +4719,8 @@ function BusyAppDetailForm({ s }) {
 
 
 
-      {s.miniAppsNotice ? (
+      {s.miniAppsNotice&&(!s.latestCustomerRequestOutcome?.ok||
+        s.latestCustomerRequestOutcome.businessAppId===detail?.app?.id) ? (
         <Card
           eyebrow="BUSY"
           title="Request update"

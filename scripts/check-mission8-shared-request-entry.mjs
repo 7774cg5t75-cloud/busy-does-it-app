@@ -16,6 +16,9 @@ for(const width of [320,820]){
  field('Request Consultation').props.onPress();field('Name').props.onChangeText('Fixture customer');field('Email').props.onChangeText('fixture@example.test');
  const dateRow=walk(tree).find(n=>n.props?.accessibilityLabel==='Preferred date suggestions');assert.ok(dateRow);const dateButton=walk(dateRow.props.children).find(n=>typeof n.props?.onPress==='function');dateButton.props.onPress();tree=runtime.render(Form,{s:state});
  assert.equal(field('Service').props.value,'Consultation');assert.match(field('Preferred date').props.value,/^\d{4}-\d{2}-\d{2}$/);assert.equal(field('Send booking request').props.disabled,false);await field('Send booking request').props.onPress();assert.equal(sent[0][1].service,'Consultation');assert.equal(sent[0][0],'booking_request');
+ const previousNotice={...state,miniAppsNotice:'Saved earlier request',latestCustomerRequestOutcome:{ok:true,businessAppId:'another-app'}};
+ const otherTree=runtime.render(Form,{s:previousNotice});assert.equal(walk(otherTree).some(n=>n.props?.title==='Request update'),false,'old app request notice cannot appear for the new app');
+ const sameTree=runtime.render(Form,{s:{...previousNotice,latestCustomerRequestOutcome:{ok:true,businessAppId:'fixture-app'}}});assert.equal(walk(sameTree).some(n=>n.props?.title==='Request update'),true);
  assert.ok(walk(tree).some(n=>JSON.stringify(n.props?.children||'').includes('not available appointment slots')));
 }
 console.log('PASS: shared standalone/marketplace request validator, no silent field truncation, approved service selection and preferred-date submission through actual marketplace form at narrow/tablet logical widths. No native/provider verification.');
