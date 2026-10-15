@@ -4,10 +4,9 @@
  * no installs, account creations, provider calls or paid signing.
  */
 import {readFileSync,writeFileSync,mkdirSync} from "node:fs";
-import {execFileSync} from "node:child_process";
 import {createHash} from "node:crypto";
 const read=p=>readFileSync(p,"utf8");
-execFileSync(process.execPath,["scripts/prepare-outcome-staging-v3235.mjs"],{stdio:"pipe"});
+await import("./prepare-outcome-staging-v3235.mjs");
 const previous=JSON.parse(read("/tmp/bdi-v3235-outcome-stage/review.json"));
 if(previous.stagingProjectRef!=="pnjdlogwegnqbsfpcofw"||
  previous.priorRealJWTScenarios.length!==11||

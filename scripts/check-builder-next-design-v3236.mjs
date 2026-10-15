@@ -5,7 +5,6 @@
  */
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {execFileSync} from "node:child_process";
 import {planUniversalBuilderRequest}
  from "../src/core/universalBuilderPlanV3210.mjs";
 import {reviewUniversalBuilderNextStepV3236 as next}
@@ -159,7 +158,7 @@ ok(legacy.includes("allLiveOutcomesUnverified:true"));
 ok(legacy.includes("ownerApprovalRequired:true"));
 ok(!file("src/core/sharedBuilderNextStepV3236.mjs").includes("fetch("));
 ok(!file("src/core/sharedBuilderDesignDirectionsV3236.mjs").includes("fetch("));
-execFileSync(process.execPath,["scripts/prepare-builder-staging-v3236.mjs"],{stdio:"pipe"});
+await import("./prepare-builder-staging-v3236.mjs");
 const packet=JSON.parse(readFileSync("/tmp/bdi-v3236-builder-review/packet.json","utf8"));
 eq(packet.scenarioCount,52);
 eq(packet.additionalBuilderScenarios.length,10);

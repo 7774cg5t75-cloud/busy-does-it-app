@@ -6,7 +6,6 @@
  */
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {execFileSync} from "node:child_process";
 import {buildGuestDeviceGatewayEvidenceV3229 as evidence}
  from "../supabase/functions/busy-mini-app-guest-alert-dispatch/deviceGatewayEvidenceV3229.mjs";
 import {classifyGuestAlertProviderTicketsV3227 as classify}
@@ -111,7 +110,7 @@ const source=read("scripts/prepare-disposable-device-evidence-v3229.mjs");
 ok(source.includes("V3.229_EPHEMERAL_DEVICE_EVIDENCE_ROLLBACK_PASS"));
 ok(source.includes("sqlExecutedByThisScript:false"));
 ok(!source.includes("https://"));
-execFileSync(process.execPath,["scripts/prepare-phase-one-approval-v3229.mjs"],{stdio:"pipe"});
+await import("./prepare-phase-one-approval-v3229.mjs");
 const phase=JSON.parse(readFileSync("/tmp/bdi-v3229-phase-one-review/approval-review.json","utf8"));
 eq(phase.fullHistory.versionedMigrations,69);
 eq(phase.source.proposedObjects,["busy_businesses","busy_business_memberships"]);

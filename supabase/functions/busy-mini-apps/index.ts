@@ -1621,7 +1621,7 @@ async function applyBusinessAppPlan(
     safeArray(existingApp?.draft_config?.offers),
     existingApp?.draft_config?.loyalty || null
   );
-  const app = existingApp || (await ensureApp(businessId, userId, profile));
+  const app = existingApp || (await ensureApp(businessId, userId, profile,{requireNew:true}));
   if(existingApp)requireAppDraftRevision(app,body);
   const base = buildConfig(
     profile,
@@ -1769,9 +1769,11 @@ async function appForBusiness(businessId: string) {
 async function ensureApp(
   businessId: string,
   userId: string,
-  profile: any
+  profile: any,
+  {requireNew=false}={}
 ) {
   const existing = await appForBusiness(businessId);
+  if(existing&&requireNew)throw Error("An app was created elsewhere. Review the existing private draft first.");
   if (existing) return existing;
 
   const base = slugify(profile?.businessName || "business");
@@ -1792,6 +1794,7 @@ async function ensureApp(
     .single();
   if (!created.error) return created.data;
 
+  if(created.error.code==="23505"&&requireNew)throw Error("An app was created elsewhere. Review the existing private draft first.");
   if (created.error.code === "23505") {
     const raced = await appForBusiness(businessId);
     if (raced) return raced;
@@ -2049,6 +2052,8 @@ async function setModule(
   if (!app) throw new Error("Build the Business App draft first.");
 
   requireAppDraftRevision(app,body);
+  if(typeof body?.enabled!=="boolean"||body.enabled!==enabled)
+    throw Error("Choose an explicit enabled decision before changing this module.");
   const module = catalog.find(
     (item: any) => item.module_key === moduleKey
   );

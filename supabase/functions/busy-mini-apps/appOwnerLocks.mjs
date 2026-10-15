@@ -31,9 +31,9 @@ function appEditLockReason(config,op){
    if(from>=0&&to>=0&&to<after.length)[after[from],after[to]]=[after[to],after[from]];
   }
   for(const key of before)if(before.indexOf(key)!==after.indexOf(key))targets.push(key);
- }else if(op?.kind==="text")targets.push("copy",op.field);
- else if(op?.kind==="services")targets.push("services");
- else if(["photo","photo_description"].includes(op?.kind))targets.push("gallery","photos");
+ }else if(op?.kind==="text")targets.push("copy","business_profile",op.field,...(op.field==="tagline"?["header"]:[]));
+ else if(op?.kind==="services")targets.push("services","copy");
+ else if(["photo","photo_description"].includes(op?.kind))targets.push("gallery","photos",...(op.kind==="photo_description"?["copy"]:[]));
  return parsed.locks.some(x=>x==="all"||targets.includes(x))?
   "This change affects an owner-locked element. Keep it unchanged or review the lock separately.":null;
 }

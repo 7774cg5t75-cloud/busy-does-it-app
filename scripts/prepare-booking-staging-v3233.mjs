@@ -5,10 +5,9 @@
  * No network, API keys, user creation, SQL execution or provider calls.
  */
 import {readFileSync,writeFileSync,mkdirSync} from "node:fs";
-import {execFileSync} from "node:child_process";
 import {createHash} from "node:crypto";
 const read=p=>readFileSync(p,"utf8");
-execFileSync(process.execPath,["scripts/prepare-two-business-auth-v3231.mjs"],{stdio:"pipe"});
+await import("./prepare-two-business-auth-v3231.mjs");
 const old=JSON.parse(read("/tmp/bdi-v3231-real-auth-review/two-business-plan.json"));
 if(old.expectedProjectRef!=="pnjdlogwegnqbsfpcofw"||
  old.versionedMigrationCount!==69||old.scenarios.length!==11||

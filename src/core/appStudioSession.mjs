@@ -65,12 +65,12 @@ function createAppStudioSession({checkpoint=null}={}){
      'Saved as one PRIVATE revision. Your live app is unchanged.';
     return result;
    }
-   uncertain=true;interrupted=true;
+   undo=null;uncertain=true;interrupted=true;
    notice=result?.reason||'Save confirmation is uncertain. Check the current private draft before another approval.';
    return {...result,ok:false};
   }catch{
    if(epoch!==startEpoch)return {ok:false};
-   uncertain=true;interrupted=true;notice=recoveryError||'Save confirmation was interrupted. Check the current private draft before another approval.';
+   undo=null;uncertain=true;interrupted=true;notice=recoveryError||'Save confirmation was interrupted. Check the current private draft before another approval.';
    return {ok:false};
   }finally{pending=false;if(epoch===startEpoch)changed();else notify();}
  }

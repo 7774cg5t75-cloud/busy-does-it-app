@@ -5,10 +5,9 @@
  * creates users or runs SQL. No source test can approve hosted installation.
  */
 import {readFileSync,writeFileSync,mkdirSync} from "node:fs";
-import {execFileSync} from "node:child_process";
 import {createHash} from "node:crypto";
 const read=p=>readFileSync(p,"utf8");
-execFileSync(process.execPath,["scripts/prepare-booking-staging-v3233.mjs"],{stdio:"pipe"});
+await import("./prepare-booking-staging-v3233.mjs");
 const base=JSON.parse(read("/tmp/bdi-v3233-booking-stage/review.json"));
 if(base.expectedProjectRef!=="pnjdlogwegnqbsfpcofw"||
  base.additionalScenarios.length!==11||base.ownerApprovedInstall!==false||

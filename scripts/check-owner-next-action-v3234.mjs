@@ -6,7 +6,6 @@
  */
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {execFileSync} from "node:child_process";
 import {decideFreshOwnerFollowup}
  from "../supabase/functions/busy-mini-apps/freshOwnerFollowupV3207.mjs";
 import {chooseOwnerConversationActionV3234 as suggest}
@@ -140,7 +139,7 @@ ok(proof.includes("verifyOwnerNextStepV3234"));
 ok(proof.includes("nextStep:nextStep?.ok?nextStep:null"));
 const fresh=source("supabase/functions/busy-mini-apps/freshOwnerFollowupV3207.mjs");
 ok(fresh.includes("latestRecordedActivityAt:latestTime"));
-execFileSync(process.execPath,["scripts/prepare-followup-staging-v3234.mjs"],{stdio:"pipe"});
+await import("./prepare-followup-staging-v3234.mjs");
 const packet=JSON.parse(readFileSync("/tmp/bdi-v3234-followup-stage/review.json","utf8"));
 eq(packet.inheritedOriginalJWTScenarios.length,11);
 eq(packet.inheritedBookingScenarios.length,11);

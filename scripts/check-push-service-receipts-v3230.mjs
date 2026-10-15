@@ -5,7 +5,6 @@
  */
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-import {execFileSync} from "node:child_process";
 import {classifyPushServiceReceiptV3230 as receipt}
  from "../supabase/functions/busy-mini-app-guest-alert-dispatch/pushServiceReceiptV3230.mjs";
 import {ownerGuestAlertEvidenceV3227 as summary}
@@ -87,7 +86,7 @@ ok(owner.includes('countGuestIntents("provider_accepted")'));
 ok(owner.includes("gatewayAccepted"));
 const screen=read("src/screens/miniApps.js");
 ok(screen.includes("Alerts accepted by push gateway (not phone delivery)"));
-execFileSync(process.execPath,["scripts/prepare-phase-one-approval-v3229.mjs"],{stdio:"pipe"});
+await import("./prepare-phase-one-approval-v3229.mjs");
 const source=JSON.parse(readFileSync("/tmp/bdi-v3229-phase-one-review/approval-review.json","utf8"));
 eq(source.fullHistory.versionedMigrations,69);
 eq(source.canExecute,false);eq(source.ownerApproved,false);

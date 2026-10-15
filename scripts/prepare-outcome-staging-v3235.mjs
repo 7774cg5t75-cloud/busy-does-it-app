@@ -3,10 +3,9 @@
  * register. No fake signed-in tests can count as live JWT/RLS evidence.
  */
 import {readFileSync,writeFileSync,mkdirSync} from "node:fs";
-import {execFileSync} from "node:child_process";
 import {createHash} from "node:crypto";
 const read=p=>readFileSync(p,"utf8");
-execFileSync(process.execPath,["scripts/prepare-followup-staging-v3234.mjs"],{stdio:"pipe"});
+await import("./prepare-followup-staging-v3234.mjs");
 const prior=JSON.parse(read("/tmp/bdi-v3234-followup-stage/review.json"));
 if(prior.stagingProjectRef!=="pnjdlogwegnqbsfpcofw"||
  prior.inheritedOriginalJWTScenarios.length!==11||

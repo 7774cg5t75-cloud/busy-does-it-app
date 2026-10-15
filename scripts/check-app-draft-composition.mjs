@@ -33,6 +33,6 @@ let filters=[],updates=0;
 const db={from:()=>({update:()=>{updates++;return db;}}),eq:(...args)=>{filters.push(args);return db;},select:()=>db,single:async()=>({data:saved,error:null})};
 const set=Function('appForBusiness','moduleCatalog','loyaltyReady','proposeAppModuleToggle','supabase',code+';return setModule;')(async()=>app,async()=>config.modules.map(x=>({module_key:x.key,status:x.status})),()=>true,toggle,db);
 await assert.rejects(set(businessId,'contact',false,{appId:id,expectedRevision:3}),/private app changed/);assert.equal(updates,0);
-await set(businessId,'contact',false,{appId:id,expectedRevision:4});assert.deepEqual(filters,[['id',id],['business_id',businessId],['draft_revision',4]]);
+await set(businessId,'contact',false,{appId:id,expectedRevision:4,enabled:false});assert.deepEqual(filters,[['id',id],['business_id',businessId],['draft_revision',4]]);
 for(const name of ['appDraftComposition','appOwnerLocks'])assert.equal(readFileSync(`src/core/${name}.mjs`,'utf8'),readFileSync(`supabase/functions/busy-mini-apps/${name}.mjs`,'utf8'));
 console.log('PASS: preserved Studio/plan state, stable toggle order, lock displacement, exact tenant/revision receipt, stale response rejection and actual Edge toggle CAS predicates. Fake transport/database only.');
