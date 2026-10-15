@@ -1,3 +1,4 @@
+import {appEditLockReason} from "./appOwnerLocks.mjs";
 /**
  * V3.162: update owner-approved public gallery accessibility descriptions
  * without changing images, media approval, order, private data or remote URLs.
@@ -5,6 +6,8 @@
 const text=(value,max)=>value===null||typeof value==="string"&&
  value.length<=max&&!/[<>\u0000-\u001f]/.test(value);
 function proposeGalleryImageDescription(config,{index,expectedUri,value}={}){
+ const locked=appEditLockReason(config,{kind:"photo_description"});
+ if(locked)return {ok:false,reason:locked};
  const gallery=config?.publicProfile?.assets?.gallery;
  if(!Array.isArray(config?.modules)||
    !config.modules.some(m=>m.key==="gallery"&&m.enabled===true)||

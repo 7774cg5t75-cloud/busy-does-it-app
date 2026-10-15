@@ -1,3 +1,4 @@
+import {preflightRequestBridge} from "../supabase/functions/busy-mini-apps/requestBridgePreflight.mjs";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {reviewPrivateAppServices} from "../src/core/appServiceCollection.mjs";
@@ -93,10 +94,13 @@ assert.equal(read("src/core/appCoordinatedStudio.mjs"),
  read("supabase/functions/busy-mini-apps/appCoordinatedStudio.mjs"));
 const edge=read("supabase/functions/busy-mini-apps/index.ts");
 for(const term of ['decideAppRequestTransition(current.data,status',
- 'body?.ownerApproved!==true','existing.data.action_record_id!==actionRecordId',
- '.eq("status",current.data.status)','apply_coordinated_edits',
+ 'body?.ownerApproved!==true','busy_mark_mini_app_request_link_v3181',
+ '.eq("status",freshness.expectedStatus)', '.eq("updated_at",freshness.expectedUpdatedAt)','apply_coordinated_edits',
  '.eq("draft_revision",expected)'])
  assert.ok(edge.includes(term),"Backend safety not wired: "+term);
+assert.ok(read("supabase/migrations/20261012193000_v3_181_durable_work_booking_ledger.sql").includes("busy_mark_mini_app_request_link_v3180"));
+assert.ok(read("supabase/migrations/20261012183000_v3_180_atomic_business_app_handoff.sql").includes("v_prior.action_record_id is distinct from p_action_record_id"));
+assert.equal(preflightRequestBridge({request:{request_type:"booking_request",status:"reviewing"},existing:{bridge_state:"booking_draft",customer_record_id:"customer",action_record_id:"original"},bridgeState:"booking_draft",customerRecordId:"customer",actionRecordId:"different"}).ok,false);
 const ui=read("src/screens/miniApps.js"),controller=read("src/app/AppController.js");
 for(const term of ["Capture visible screen","appVisibleCaptureReceipt",
  "Preview edited service","Preview removal of this service",
