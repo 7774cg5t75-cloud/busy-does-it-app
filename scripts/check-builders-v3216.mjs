@@ -158,7 +158,7 @@ const versionRef="66666666-6666-4666-8666-666666666666";
 const fullLive={businessType:"Plumber",businessId:BID,
  app:{id:appRef,business_id:BID,status:"live",
   current_live_version_id:versionRef},
- liveVersion:{id:versionRef,mini_app_id:appRef,state:"live"},
+ liveVersion:{id:versionRef,mini_app_id:appRef,state:"live",config:{modules:[{key:"enquiry",enabled:true}]}},
  catalog:appCatalog,publishedModules:[{key:"enquiry",enabled:true}]};
 const understood=adviseCustomerCapabilityV3216(fullLive);
 same(understood.capability,"enquiry");

@@ -30,6 +30,9 @@ function planBusinessJourneyNextStepV3217({
    action="review_existing_request";
    title="Review a saved customer request in BUSY";
    reason="An independently read-back Business App guest request exists. Replies and bookings still need separate checks.";
+ }else if(advice.needsClarification){
+   action="clarify_customer_goal";title="Which customer action should BUSY help with?";
+   reason="Your instructions exclude or conflict about the available actions. Nothing has been selected or enabled.";
  }else if(!currentOwner||!hasContact){
    action="check_contact_details";
    title="Check your approved contact details";

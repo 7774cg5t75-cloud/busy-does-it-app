@@ -19,6 +19,21 @@ function planUniversalCustomerJourneyV3218({
  const advice=adviseCustomerCapabilityV3216({businessType,description,
   businessId,app,liveVersion,catalog,
   publishedModules:liveVersion?.config?.modules});
+ if(advice.needsClarification||advice.capability==='catalogue')return {
+  ok:true,kind:'universal_customer_journey_v3218',businessId,
+  anyLegitimateIndustryEligible:true,requestedBusinessGoal:advice.goal,
+  recommendedCapability:advice.capability,suggestionBasedOn:advice.suggestionEvidenceSource,
+  industryHintNotRequirement:true,actualPublishedAppModuleIndicated:false,
+  ownerApprovedHandoffInPrivateDraft:false,handoffNeedsOwnerReview:true,
+  handoffCanBePrepared:false,publicHandoffClickVerified:false,websiteNativeIntakePlanned:false,
+  nativeWebsiteFormActive:false,publicFormActive:false,bookingConfirmed:false,
+  providerDeliveryVerified:false,noCustomerRequestCreated:true,noCustomerDataIncluded:true,
+  noExternalCalls:true,ownerApprovalRequired:true,
+  steps:[{id:'customer_goal',title:advice.needsClarification?'Clarify the customer action':'Review catalogue capability separately',
+   readiness:'owner_review_required',reason:advice.needsClarification?
+    'BUSY will not substitute an action you declined.':'An enquiry link is not a product catalogue or checkout.'}],
+  summary:advice.needsClarification?'Choose the action you want before preparing a connected journey.':
+   'Catalogue setup needs its own supported capability; BUSY will not substitute an enquiry form.'};
  const intent=advice.capability==="booking_request"?"booking_request":"enquiry";
  const handoff=planWebsiteAppRequestHandoff({businessId,website,app,
    liveVersion,catalog,endpoint,kind:intent});
