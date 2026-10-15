@@ -643,5 +643,10 @@
     "script": "scripts/check-business-snapshot-restore.mjs",
     "result": "pass",
     "exit": 0
+  },
+  {
+    "script": "scripts/check-controller-render-order.mjs",
+    "result": "pass",
+    "exit": 0
   }
 ]

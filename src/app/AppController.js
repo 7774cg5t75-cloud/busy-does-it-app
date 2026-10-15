@@ -537,6 +537,7 @@ function App() {
   const [socialPublishingLoading, setSocialPublishingLoading] = useState(false);
   const [socialPublishingError, setSocialPublishingError] = useState("");
   const [socialPublishingAction, setSocialPublishingAction] = useState("");
+  const [cloudWorkspace, setCloudWorkspace] = useState(null);
   const [ownerSession, setOwnerSession] = useState(null);
   const liveOwnerFollowupScopeRef=useRef("");
   liveOwnerFollowupScopeRef.current=[
@@ -564,7 +565,6 @@ function App() {
   const [ownerAuthError, setOwnerAuthError] = useState("");
   const [ownerAuthNotice, setOwnerAuthNotice] = useState("");
   const [ownerAuthReady, setOwnerAuthReady] = useState(false);
-  const [cloudWorkspace, setCloudWorkspace] = useState(null);
   const cloudOwnerScopeRef=useRef(null);
   if(cloudOwnerScopeRef.current?.userId!==(ownerSession?.userId||""))cloudOwnerScopeRef.current={userId:ownerSession?.userId||""};
   useEffect(()=>{setCloudInitialising(false);},[ownerSession?.userId]);

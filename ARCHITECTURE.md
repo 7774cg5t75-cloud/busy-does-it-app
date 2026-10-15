@@ -1,5 +1,6 @@
 ## Builder Mission 6 — source-bound recovery and useful content completion (2026-10-15)
 
+- Integration review also repaired an inherited render-time `cloudWorkspace` declaration-order defect. A new immediate-reference audit and executed scope-initialisation regression catches it; the final offline suite is 130/130, without native/staging verification.
 - Based on the permanent-instruction branch after draft PR #12; predecessors remain draft/unmerged. See `docs/BUILDER_MISSION6_2026_10_15.md` for evidence and release gates.
 - `businessSnapshotSession.mjs` coordinates the existing authenticated business snapshot CAS save and source-bound restore. It validates receipts, suppresses confirmed no-op/duplicate writes and observes a lost receipt once without mutation replay. First-row creation now ignores duplicates and adopts a verified winning snapshot. Restore requires an exact single-use owner/business/local-source confirmation and cannot race a save.
 - The existing App goal assistant prepares first services and approved photo descriptions as original Studio proposals. Shared client/Edge finite photo-description inverses preserve absent/null/empty fields and enforce the same locks, approved URI and scope. No media approval, module activation, public content or customer record is changed automatically.
