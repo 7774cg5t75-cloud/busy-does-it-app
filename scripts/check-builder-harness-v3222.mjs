@@ -11,7 +11,8 @@ const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 let n=0;
 const ok=(x,m)=>{assert.ok(x,m);n++;};
 const eq=(a,b,m)=>{assert.deepEqual(a,b,m);n++;};
-eq(EXPECTED.length,6);
+eq(EXPECTED.length,7);
+ok(EXPECTED.some(x=>x.includes("protectWebsiteOwnerLocks")));
 ok(EXPECTED.some(x=>x.includes("canonicalWebsiteHandoffUrl")));
 ok(AVAILABLE.has("rebuildPrivateWebsiteDraft"));
 const funcs=websiteBuilderTestHarnessV3222([

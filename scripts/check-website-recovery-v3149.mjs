@@ -18,7 +18,7 @@ assert.equal(restoreWebsiteRecoveryPoint(current,{...point,draftId:"another-owne
 assert.equal(restoreWebsiteRecoveryPoint(current,point,()=>{throw Error("offline");}).applied,false);
 const c=read("src/app/AppController.js");
 assert.ok(c.includes("setWebsiteRecoveryPoint(null)"),"Logout clears session recovery");
-assert.ok(c.includes("restoreWebsiteRecoverySnapshot(current,websiteRecoveryPoint,rebuildPrivateWebsiteDraft)"));
+assert.ok(c.includes("restoreWebsiteRecoverySnapshot(current,websiteRecoveryPoint,rebuildPrivateWebsiteDraft,websiteHistoryScope)"));
 assert.ok(c.includes("setWebsiteUndo(items=>[...items,current].slice(-8))"));
 assert.ok(!read("src/core/websiteRecoveryPoint.mjs").includes("fetch("));
 const ui=read("src/screens/websiteBuilder.js");

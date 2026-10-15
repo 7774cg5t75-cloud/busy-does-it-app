@@ -1,3 +1,4 @@
+import {useWebsiteDraftHistory} from "../screens/useWebsiteDraftHistory";
 import {executeAppDraftMutation} from "../core/appDraftMutation.mjs";
 import {executePrivateAppBatch} from "../core/privateAppEditSession.mjs";
 import {confirmFirstAppFromWebsite} from "../core/firstAppFromWebsiteV3197.mjs";
@@ -310,9 +311,6 @@ function App() {
   // draft, not a stale callback closure captured before recording.
   const websiteDraftRef=useRef(null);
   websiteDraftRef.current=websiteDraft;
-  const [websiteUndo, setWebsiteUndo] = useState([]);
-  const [websiteRedo, setWebsiteRedo] = useState([]);
-  const [websiteRecoveryPoint,setWebsiteRecoveryPoint]=useState(null);
   const [websiteBuilderNotice, setWebsiteBuilderNotice] = useState("");
   const [websitePublishingStatus, setWebsitePublishingStatus] = useState({
     loaded: false,
@@ -559,6 +557,9 @@ function App() {
   const [ownerAuthNotice, setOwnerAuthNotice] = useState("");
   const [ownerAuthReady, setOwnerAuthReady] = useState(false);
   const [cloudWorkspace, setCloudWorkspace] = useState(null);
+  const websiteHistoryScope={ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||""};
+  const {websiteUndo,websiteRedo,websiteRecoveryPoint,setWebsiteUndo,setWebsiteRedo,setWebsiteRecoveryPoint,websiteHistoryIsCurrent}=
+    useWebsiteDraftHistory({...websiteHistoryScope,websiteId:websiteDraft?.id||""});
   const [cloudInitialised, setCloudInitialised] = useState(false);
   const [cloudInitialising, setCloudInitialising] = useState(false);
   const [cloudSyncStatus, setCloudSyncStatus] = useState("Local only");
@@ -14036,7 +14037,8 @@ function App() {
   // In-memory, business-specific safety net; save and restore only on
   // explicit owner taps. Restoring becomes one Undo entry and never publishes.
   const saveWebsiteRecoveryPoint=()=>{
-    const result=makeWebsiteRecoveryPoint(websiteDraftRef.current,new Date().toISOString());
+    if(!websiteHistoryIsCurrent())return false;
+    const result=makeWebsiteRecoveryPoint(websiteDraftRef.current,new Date().toISOString(),websiteHistoryScope);
     setWebsiteBuilderNotice(result.ok
      ?"Saved a private recovery point for this website. It lasts only for this app session."
      :result.reason);
@@ -14044,8 +14046,10 @@ function App() {
     return result.ok;
   };
   const restoreWebsiteRecoveryPoint=()=>{
+    if(!websiteHistoryIsCurrent())return false;
     const current=websiteDraftRef.current;
-    const result=restoreWebsiteRecoverySnapshot(current,websiteRecoveryPoint,rebuildPrivateWebsiteDraft);
+    if(current!==websiteDraft)return false;
+    const result=restoreWebsiteRecoverySnapshot(current,websiteRecoveryPoint,rebuildPrivateWebsiteDraft,websiteHistoryScope);
     setWebsiteBuilderNotice(result.reason);
     if(!result.applied)return false;
     setWebsiteUndo(items=>[...items,current].slice(-8));
@@ -14055,24 +14059,25 @@ function App() {
     return true;
   };
 
-  const undoWebsiteChange = () => {
-    if (!websiteUndo.length || !websiteDraft) return false;
-    const previous=websiteUndo[websiteUndo.length - 1];
-    setWebsiteUndo((items)=>items.slice(0, -1));
-    setWebsiteRedo((items)=>[...items, websiteDraft].slice(-8));
-    setWebsiteDraft(previous);
-    setWebsiteBuilderNotice("Restored your previous private draft. Nothing has been published.");
-    return true;
+  const restoreWebsiteHistoryEntry=(direction)=>{
+    if(!websiteHistoryIsCurrent())return false;
+    const current=websiteDraftRef.current;
+    if(current!==websiteDraft)return false;
+    const entries=direction==="undo"?websiteUndo:websiteRedo;
+    if(!current||!entries.length)return false;
+    const point=makeWebsiteRecoveryPoint(entries[entries.length-1],new Date().toISOString(),websiteHistoryScope);
+    const result=restoreWebsiteRecoverySnapshot(current,point,rebuildPrivateWebsiteDraft,websiteHistoryScope);
+    setWebsiteBuilderNotice(result.reason);
+    if(!result.applied)return false;
+    if(direction==="undo"){
+      setWebsiteUndo(items=>items.slice(0,-1));setWebsiteRedo(items=>[...items,current].slice(-8));
+    }else{
+      setWebsiteRedo(items=>items.slice(0,-1));setWebsiteUndo(items=>[...items,current].slice(-8));
+    }
+    websiteDraftRef.current=result.draft;setWebsiteDraft(result.draft);return true;
   };
-  const redoWebsiteChange = () => {
-    if (!websiteRedo.length || !websiteDraft) return false;
-    const next=websiteRedo[websiteRedo.length - 1];
-    setWebsiteRedo((items)=>items.slice(0, -1));
-    setWebsiteUndo((items)=>[...items, websiteDraft].slice(-8));
-    setWebsiteDraft(next);
-    setWebsiteBuilderNotice("Reapplied your private draft change. Review before publishing.");
-    return true;
-  };
+  const undoWebsiteChange = () => restoreWebsiteHistoryEntry("undo");
+  const redoWebsiteChange = () => restoreWebsiteHistoryEntry("redo");
 
   const openWebsiteBuilder = () => {
     setTab("Home");
