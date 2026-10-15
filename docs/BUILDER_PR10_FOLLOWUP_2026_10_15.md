@@ -21,3 +21,11 @@ Ten targeted review assertions now pass, including additional attempts to remove
 Owners can leave out a single proposed change and immediately see the remaining batch recomputed through the same planner. Removing all changes disables approval. Original/proposed comparison stays the original shared renderer. No persistent second record store, new backend or automatic save was added; session continuity across app restart remains out of scope.
 
 New tests cover successful approve/undo with updated props, duplicate actions, edits while saving, lost approval and undo confirmations, malformed receipts, owner changes, unmount and removal of individual changes. Native/Edge parse, inherited Studio, exact-undo design and Snack dependency closure checks pass. Two historical tests now demand exact original sparse configuration instead of added default fields.
+
+## Functional sweep: owner-grounded goal intelligence
+
+The existing goal-aware design review consumes the existing bounded owner design-pattern engine. An explicit owner action loads saved choices through the existing read-only design-history endpoint. Rejected options and liked currently active settings can suppress generic responsive suggestions; only original supported rule choices enter the goal proposal, not synthesized alternatives. The output contains counts and policy evidence, not private history text or promises of visual improvement.
+
+History is bound to business, signed-in owner, app and current draft revision. Wrong scope, future revisions, malformed or oversized records are ignored. The existing controller history reader now checks live refs before the request and after its response; its previous closure comparisons could not detect an owner/workspace change during the await. The React adapter cancels old-scope results and deduplicates repeated same-scope loads. No model call, table, cross-business learning or automatic edit is added.
+
+Tests exercise actual current-vs-rejected goal recommendations, preferred current choices, foreign/stale/future snapshots and the real extracted controller function with delayed simulated responses. Existing V3.166 feedback, goal-editing, V3.240 intelligence and native syntax tests pass. Hosted access and actual owner feedback remain unverified.

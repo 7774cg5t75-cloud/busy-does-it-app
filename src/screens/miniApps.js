@@ -1,3 +1,4 @@
+import {useOwnerDesignMemory} from "./useOwnerDesignMemory";
 import React from "react";
 import { Image, Text, View, Dimensions, Platform, Alert, useWindowDimensions, ScrollView, PixelRatio } from "react-native";
 import {captureRef} from "react-native-view-shot";
@@ -858,6 +859,8 @@ function MiniAppBuilder({ s }) {
   const studioPreview=studio.preview,studioNotice=studio.notice;
   const setStudioPreview=studio.prepare,setStudioNotice=studio.setNotice;
   const studioIsCurrent=!!studio.preview;
+  const goalMemory=useOwnerDesignMemory({businessId:s.cloudWorkspace?.businessId||"",
+    ownerId:s.ownerSession?.userId||"",appId:app?.id,revision:app?.draft_revision},s.getAppDesignLearningStatus);
 
   const syntheticStagingGate=assessSyntheticStagingAction({
     businessId:s.cloudWorkspace?.businessId||"",app,
@@ -1051,7 +1054,8 @@ function MiniAppBuilder({ s }) {
   const appGoalDesign=view.draftConfig&&app?.draft_revision?
     reviewAppGoalDesignV3240({
       businessId:s.cloudWorkspace?.businessId||"",app,
-      website:s.websiteDraft||null,goal:selectedCustomerTask
+      website:s.websiteDraft||null,goal:selectedCustomerTask,
+      ownerId:s.ownerSession?.userId||"",ownerDesignHistory:goalMemory.memory
     }):null;
   const responsiveQuality=evaluateAppAcrossScreens(view.draftConfig||view.activeConfig||{});
   const measuredNativeContrast=auditStandaloneContrast(nativePalette(
@@ -2575,6 +2579,12 @@ function MiniAppBuilder({ s }) {
                 ". Current private capability: "+appGoalDesign.task.status.replaceAll("_"," ")+
                 ". This does not confirm a real booking or enquiry."}</Text>
               <Text style={styles.cardBody}>{appGoalDesign.brand.note}</Text>
+              <Button label={goalMemory.busy?"Loading saved choices…":"Use my saved design choices"}
+                disabled={goalMemory.busy||!!s.miniAppsAction} onPress={goalMemory.refresh}/>
+              {goalMemory.notice?<Text style={styles.cardBody}>{goalMemory.notice}</Text>:null}
+              {appGoalDesign.ownerMemory.used?<Text style={styles.cardBody}>{
+                appGoalDesign.ownerMemory.suppressedCount+" suggested choice(s) set aside to respect your saved preferences."}</Text>:null}
+
               {appGoalDesign.operations.length&&!appGoalDesign.task.needsSetup?(
                 <Button label="Preview BUSY’s recommended private design"
                   disabled={!!s.miniAppsAction}

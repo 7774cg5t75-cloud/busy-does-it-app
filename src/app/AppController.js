@@ -15872,16 +15872,21 @@ function App() {
         "Isolated staging isn't configured on this server.").slice(0,220)};
     }
   };
-  const getAppDesignLearningStatus=async({appId}={})=>{
-    const currentBusiness=String(cloudWorkspace?.businessId||"");
-    if(!currentBusiness||miniAppsView?.app?.id!==appId)
-      return {ok:false,reason:"Open your signed-in private Business App."};
+  const getAppDesignLearningStatus=async({appId,expectedRevision}={})=>{
+    const scope=privateAppEditScopeRef.current;
+    const currentBusiness=scope?.businessId||"";
+    const revision=expectedRevision??scope?.app?.draft_revision;
+    const current=()=>{
+      const live=privateAppEditScopeRef.current;
+      return !!scope?.userId&&live?.userId===scope.userId&&
+        live.businessId===currentBusiness&&live.app?.id===appId&&
+        live.app?.business_id===currentBusiness&&live.app?.draft_revision===revision;
+    };
+    if(!currentBusiness||!current())return {ok:false,reason:"Open your current signed-in private Business App."};
     try{
-      const data=await miniAppsRequest("design_learning_status");
-      if(data?.ok!==true||data.businessId!==currentBusiness||
-         cloudWorkspace?.businessId!==currentBusiness||
-         data?.history?.appId!==appId||miniAppsView?.app?.id!==appId)
-        throw Error("Design history business scope changed; refresh before continuing.");
+      const data=await miniAppsRequest("design_learning_status",{},{isCurrent:current});
+      if(!current()||data?.ok!==true||data.businessId!==currentBusiness||data?.history?.appId!==appId)
+        throw Error("Design history scope changed; refresh before continuing.");
       const history=normalizeDesignHistory(
         (data.history.records||[]).map(x=>({
           app_id:appId,draft_revision:x.draftRevision,
@@ -15890,8 +15895,8 @@ function App() {
           baseline_warnings:x.baselineWarnings,
           proposed_warnings:x.proposedWarnings
         })),appId);
-      if(!history.ok)throw Error("Private design feedback could not be validated.");
-      return {ok:true,records:history.records,privateOnly:true,
+      if(!history.ok||history.records.some(x=>x.draftRevision>revision))throw Error("Private design feedback could not be validated.");
+      return {ok:true,businessId:currentBusiness,ownerId:scope.userId,appId,revision,records:history.records,privateOnly:true,
         noCrossBusinessLearning:true,noModelRetraining:true};
     }catch(error){
       return {ok:false,records:[],reason:String(error?.message||

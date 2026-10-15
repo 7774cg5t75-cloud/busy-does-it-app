@@ -1,3 +1,4 @@
+import {applyGoalOwnerMemory} from "./appGoalOwnerMemory.mjs";
 /**
  * V3.240 — evidence-labelled, cross-builder Business App design decisions.
  * Reuses the original public-only responsive planner, task readiness, private
@@ -16,7 +17,7 @@ const GOALS=new Set(["book","enquire","services","photos","offers","rewards"]);
 const fail=reason=>({ok:false,reason,maySave:false,mayPublish:false,
  realDeviceVerified:false,actualCustomerOutcome:false});
 function reviewAppGoalDesignV3240({
- businessId="",app=null,website=null,goal="services"
+ businessId="",app=null,website=null,goal="services",ownerId="",ownerDesignHistory=null
 }={}){
  if(!UUID.test(businessId)||!UUID.test(app?.id||"")||
   app?.business_id!==businessId||
@@ -33,8 +34,11 @@ function reviewAppGoalDesignV3240({
  const taskBlocked=task.status==="setup_needed"||task.status==="limited_fallback_unverified";
  const nav=taskBlocked?null:proposeTaskFirstNavigation(config,goal);
  const navigation=nav?.preview?.operations||[];
- const allowed=guidance.suggestions.filter(x=>!appEditLockReason(config,
+ const unlocked=guidance.suggestions.filter(x=>!appEditLockReason(config,
   {kind:"appearance",field:x.field}));
+ const ownerMemory=applyGoalOwnerMemory(config,unlocked,ownerDesignHistory,{
+  businessId,ownerId,appId:app.id,revision:app.draft_revision});
+ const allowed=ownerMemory.choices;
  const suggested=taskBlocked?[]:allowed.slice(0,3-navigation.length).map(x=>({
   kind:"appearance",field:x.field,value:x.value}));
  let batch=null,after=null;
@@ -93,7 +97,8 @@ function reviewAppGoalDesignV3240({
   businessId,source:{appId:app.id,revision:app.draft_revision,
    websiteId:snapshot?.ok?website.id:null,
    websiteRevision:snapshot?.ok?website.generation:null},
-  goal,taskNavigationProposed:navigation.length>0,ownerLockedChoicesSkipped:guidance.suggestions.length-allowed.length,task:{status:task.status,module:task.targetModule||null,
+  goal,taskNavigationProposed:navigation.length>0,ownerLockedChoicesSkipped:guidance.suggestions.length-unlocked.length,
+  ownerMemory:{used:ownerMemory.used,recordsUsed:ownerMemory.recordsUsed,suppressedCount:ownerMemory.suppressedCount,opinionNotProof:true},task:{status:task.status,module:task.targetModule||null,
    position:task.sectionPosition,cautionCount:task.cautions.length,
    actionVerified:false,needsSetup:blocked},
   brand,comparison:original,
