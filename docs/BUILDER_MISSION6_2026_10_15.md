@@ -19,3 +19,9 @@ The existing goal assistant can now prepare a first owner-written service when a
 Fixed a real inverse defect: photo descriptions with explicitly null fields previously returned as absent fields after undo. A finite description restoration operation now preserves absent/null/empty values exactly, enforces the original image identity/approval/locks, and is identical in the client and trusted Edge planner. Older servers safely reject the new operation until a compatible staged rollout; no deployment performed.
 
 Passed actual planner regressions: guided completion, exact undo/redo and Edge parity; existing goal content, design iteration, intelligent Studio, profile undo and native syntax checks. These are offline tests, not rendered accessibility, device or hosted journey evidence.
+
+## Sweep 3 — Website domain/status operation isolation
+
+Extracted the existing domain request, verification, provision, DNS diagnostic and traffic-status handlers from the oversized controller into a focused adapter. They retain the original authenticated publishing request and provider contracts. Hosting actions now reserve the existing gate synchronously, check scope after asynchronous steps, suppress foreign-workspace errors/cleanup, and stop delayed read-only polling when the reviewed draft/workspace changes. DNS diagnostics cannot return a switched-workspace result. No provider action was executed during development.
+
+The new fake-transport regression executes these actual handlers for duplicate actions, successful paths, workspace switches and obsolete timers. Integrated suite at this checkpoint: 128/128 passed, zero failures or blocked checks. Hosted domain/provider behaviour remains unverified; existing runtime provider capabilities are unchanged.
