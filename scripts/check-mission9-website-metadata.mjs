@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {websiteBuilderTestHarnessV3222} from './lib/website-builder-test-harness-v3222.mjs';
+const engine=websiteBuilderTestHarnessV3222(['buildWebsiteDraft','applyWebsitePageChange','renderWebsiteHtml','applyStructuredWebsiteEdit']);
+const brandBrain={websiteReady:true,websiteBrief:{businessName:'Fixture Studio',businessType:'Consultations',description:'Owner business description',email:'fixture@example.test',services:[{name:'Consultation',description:'Owner-written detail'}]}};
+const draft=engine.buildWebsiteDraft({brandBrain});const action={action:'edit-page-metadata',pageId:'home',expectedWebsiteId:draft.id,expectedGeneration:draft.generation,title:'Owner search title & advice',description:'Accurate owner introduction for customers.'};
+const changed=engine.applyWebsitePageChange(draft,action);assert.equal(changed.applied,true,changed.reason);assert.equal(changed.draft.seo.pages.home.title,action.title);assert.ok(engine.renderWebsiteHtml(changed.draft,'home').includes('<title>Owner search title &amp; advice</title>'));assert.ok(engine.renderWebsiteHtml(changed.draft,'home').includes('Accurate owner introduction for customers.'));
+const refresh=engine.buildWebsiteDraft({brandBrain,previousDraft:changed.draft});assert.equal(refresh.seo.pages.home.title,action.title,'owner metadata survives business-fact regeneration');
+assert.equal(engine.applyWebsitePageChange(refresh,action).applied,false,'old source generation is rejected');
+assert.equal(engine.applyWebsitePageChange(draft,{...action,title:'<script>'}).applied,false);assert.equal(engine.applyWebsitePageChange(draft,{...action,description:'x'.repeat(161)}).applied,false);
+const locked={...draft,theme:{...draft.theme,lockedSections:['all']}};assert.equal(engine.applyWebsitePageChange(locked,action).applied,false);
+const reset=engine.applyWebsitePageChange(changed.draft,{action:'reset-page-metadata',pageId:'home',expectedWebsiteId:changed.draft.id,expectedGeneration:changed.draft.generation});assert.equal(reset.applied,true);assert.notEqual(reset.draft.seo.pages.home.title,action.title);assert.equal(reset.draft.publicStatus,draft.publicStatus);
+assert.equal(engine.applyWebsitePageChange(draft,{...action,pageId:'__proto__'}).applied,false);
+console.log('PASS: actual Website page editor/model/HTML preserve owner search titles/descriptions through regeneration, reject stale/hostile/locked edits, reset explicitly and retain private publication boundary. Local HTML only.');

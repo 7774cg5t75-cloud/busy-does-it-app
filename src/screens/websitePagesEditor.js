@@ -6,6 +6,8 @@ import {styles} from "../theme/styles";
 /** Private owner-managed pages. Built-in pages remain generated and protected. */
 function WebsitePagesEditor({draft,onApply,onShare,onShareZip,onBackup}){
  const [open,setOpen]=React.useState(false);
+ const [metadata,setMetadata]=React.useState(null);
+ const [metadataTitle,setMetadataTitle]=React.useState(''),[metadataDescription,setMetadataDescription]=React.useState('');
  const [selected,setSelected]=React.useState("");
  const [newTitle,setNewTitle]=React.useState("");
  const [newBody,setNewBody]=React.useState("");
@@ -44,8 +46,20 @@ function WebsitePagesEditor({draft,onApply,onShare,onShareZip,onBackup}){
      <Text style={styles.sectionLabel}>Your pages</Text>
      {(draft?.pages||[]).map(item=>(
       <Button key={item.id} label={(item.id===selected?"✓ ":"")+(item.title||item.id)+" • "+(item.path||"/")}
-       onPress={()=>item.id.startsWith("page-")?selectPage(item):setSelected("")}/>
+       onPress={()=>{
+        if(item.id.startsWith("page-"))selectPage(item);else setSelected("");
+        setMetadata({pageId:item.id,expectedWebsiteId:draft.id,expectedGeneration:draft.generation});
+        setMetadataTitle(draft.seo?.pages?.[item.id]?.title||'');setMetadataDescription(draft.seo?.pages?.[item.id]?.description||'');
+       }}/>
      ))}
+     {metadata?<View>
+      <Text style={styles.sectionLabel}>How this page is described in search</Text>
+      <Text style={styles.cardBody}>Use accurate wording. This changes your private page title and description; it does not prove indexing or ranking improvements.</Text>
+      <Field label="Search title (up to 70 characters)" value={metadataTitle} onChangeText={setMetadataTitle}/>
+      <Field label="Search description (up to 160 characters)" value={metadataDescription} onChangeText={setMetadataDescription}/>
+      <Button label="Save private page search details" onPress={()=>{if(apply({...metadata,action:'edit-page-metadata',title:metadataTitle,description:metadataDescription}))setMetadata(null);}}/>
+      <Button label="Restore automatic page search details" onPress={()=>{if(apply({...metadata,action:'reset-page-metadata'}))setMetadata(null);}}/>
+     </View>:null}
      <Text style={styles.sectionLabel}>Create a new page</Text>
      <Field label="Page title" value={newTitle} onChangeText={setNewTitle}
        placeholder="e.g. Meet our team"/>

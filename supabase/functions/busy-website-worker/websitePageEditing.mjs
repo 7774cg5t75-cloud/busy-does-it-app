@@ -1,4 +1,4 @@
-import {protectWebsiteOwnerLocks} from "./websiteOwnerLocks.mjs";
+import {protectWebsiteOwnerLocks,websiteOwnerLocks} from "./websiteOwnerLocks.mjs";
 /**
  * V3.135 owner-managed custom website pages.
  * Pure, deterministic, private draft only. Uses paths under /pages/
@@ -12,6 +12,26 @@ const fail=(draft,reason)=>({applied:false,draft,reason});
 function editWebsitePagesUnchecked(draft={},action={}){
  if(!draft?.id||!Array.isArray(draft.sections))return fail(draft,"Build a private website draft first.");
  if(!action||typeof action!=="object"||Array.isArray(action))return fail(draft,"Choose a page action.");
+ if(['edit-page-metadata','reset-page-metadata'].includes(action.action)){
+  if(action.expectedWebsiteId!==draft.id||action.expectedGeneration!==draft.generation)return fail(draft,'The website changed. Select the page again before editing its search details.');
+  if(typeof action.pageId!=='string'||!/^(?:home|services|about|gallery|faq|contact|page-[a-z0-9][a-z0-9-]{1,68})$/.test(action.pageId))return fail(draft,'Choose a supported page identifier.');
+  const target=list(draft.pages).find(p=>p.id===action.pageId&&p.enabled!==false);
+  if(!target)return fail(draft,'Choose a current website page.');
+  const locks=websiteOwnerLocks(draft);
+  if(!locks.ok||locks.locks.includes('all')||list(target.sectionIds).some(id=>locks.locks.includes(id)))return fail(draft,'Review the page section locks before changing its search details.');
+  const old=draft.seo?.ownerPages;
+  if(old!==undefined&&(!old||typeof old!=='object'||Array.isArray(old)||Object.keys(old).length>14))return fail(draft,'Review the existing page search details first.');
+  const ownerPages={...old};
+  if(action.action==='reset-page-metadata'){
+   if(!Object.prototype.hasOwnProperty.call(ownerPages,action.pageId))return fail(draft,'This page already uses automatic search details.');
+   delete ownerPages[action.pageId];
+  }else{
+   const safe=(v,max)=>typeof v==='string'&&!!v.trim()&&v.length<=max&&!/[<>\u0000-\u001f\u007f]/.test(v);
+   if(!safe(action.title,70)||!safe(action.description,160))return fail(draft,'Use an accurate title up to 70 characters and description up to 160 characters.');
+   ownerPages[action.pageId]={title:action.title.trim(),description:action.description.trim()};
+  }
+  return {applied:true,draft:{...draft,seo:{...draft.seo,ownerPages}},reason:'Updated owner-written search details in the private draft. Public search results are not verified.'};
+ }
  const pages=list(draft.customPages).map(p=>({...p,sectionIds:[...list(p.sectionIds)]}));
  const sections=draft.sections.map(s=>({...s}));
  const sectionBy=id=>sections.find(s=>s.id===id);

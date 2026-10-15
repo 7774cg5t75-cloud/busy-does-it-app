@@ -1,3 +1,4 @@
+import {validAppContactSnapshot} from './appContactPolicy.mjs';
 import {validatePrivateAppServices} from './appServiceCollection.mjs';
 const PROFILE_TEXT_LIMITS=Object.freeze({tagline:180,about:1200,description:1000});
 const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
@@ -15,11 +16,11 @@ function validField(snapshot,field){
   !['object','null','absent'].includes(snapshot.parent)||typeof snapshot.present!=='boolean'||
   snapshot.present&&snapshot.parent!=='object'||snapshot.present!==own(snapshot,'value'))return false;
  if(!snapshot.present||snapshot.value===null)return true;
- return field==='services'?validatePrivateAppServices(snapshot.value,{allowIncompleteNames:true}).ok:
+ return field==='contact'?validAppContactSnapshot(snapshot.value):field==='services'?validatePrivateAppServices(snapshot.value,{allowIncompleteNames:true}).ok:
   own(PROFILE_TEXT_LIMITS,field)&&typeof snapshot.value==='string'&&snapshot.value.length<=PROFILE_TEXT_LIMITS[field]&&!/[<>\u0000-\u001f]/.test(snapshot.value);
 }
 function captureAppProfileField(config,field){
- if(!own(PROFILE_TEXT_LIMITS,field)&&field!=='services')return null;
+ if(!own(PROFILE_TEXT_LIMITS,field)&&!['services','contact'].includes(field))return null;
  const profile=captureField(config.publicProfile,field),display=field==='tagline'?captureField(config.display,'tagline'):null;
  if(!validField(profile,field)||field==='tagline'&&!validField(display,'tagline'))return null;
  return {...profile,...display?{display}:{}};
@@ -34,7 +35,7 @@ function restoreAppProfileField(config,{field,value}={}){
  if(!value||typeof value!=='object'||Array.isArray(value)||
   Object.keys(value).some(k=>!['parent','present','value','display'].includes(k)))return fail();
  const {display,...profile}=value;
- if(!validField(profile,field)||(!own(PROFILE_TEXT_LIMITS,field)&&field!=='services')||
+ if(!validField(profile,field)||(!own(PROFILE_TEXT_LIMITS,field)&&!['services','contact'].includes(field))||
   (field==='tagline'?!validField(display,'tagline'):display!==undefined))return fail();
  const previous=captureAppProfileField(config,field);if(!previous||JSON.stringify(previous)===JSON.stringify(value))return fail();
  try{

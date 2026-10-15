@@ -1,3 +1,4 @@
+import {AppContactEditor} from "./appContactEditor";
 import {validateNativeGuestRequest,searchPublicNativeServices} from "../../standalone/template/nativeCustomerActions.mjs";
 import {nativePreferredDates} from "../../standalone/template/nativePreferredDates.mjs";
 import {bindAppControlReview,appControlReviewCurrent} from "../core/appControlReview.mjs";
@@ -2346,6 +2347,9 @@ function MiniAppBuilder({ s }) {
           <Text style={styles.cardBody}>
             Voice provides transcription only, within its existing daily allowance. BUSY asks before changing the private app.
           </Text>
+          <AppContactEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(':')}
+            businessId={s.cloudWorkspace?.businessId||''} app={app} busy={!!s.miniAppsAction||studio.pending}
+            onPreview={setStudioPreview} onNotice={setStudioNotice}/>
           <Text style={styles.sectionLabel}>Or change supported public wording directly</Text>
           {[
             ["tagline","Tagline"],["about","About section"],["description","Description"]
@@ -4755,6 +4759,11 @@ function BusyAppDetailForm({ s }) {
         />
       ) : null}
 
+      {typeof s.checkBusyAppRequestRecovery==="function"?<Card title="Earlier request interrupted?" body="Check your saved reference without sending another request. Your contact details are not stored in this recovery reference.">
+        {['enquiry','booking_request'].filter(type=>enabled.has(type)).map(type=><Button key={type}
+          label={type==='enquiry'?'Check earlier enquiry':'Check earlier booking request'} disabled={!!s.miniAppsAction}
+          onPress={()=>s.checkBusyAppRequestRecovery(type)}/>)}
+      </Card>:null}
       {(enabled.has("booking_request") || enabled.has("enquiry")) ? (
         <>
           <Text style={styles.sectionLabel}>Your contact details</Text>
@@ -4925,11 +4934,17 @@ function MiniAppShareCentre({ s }) {
 }
 
 function MiniAppRequestDetail({ s }) {
+ const request=s.selectedMiniAppRequestDetail?.request;
+ return <MiniAppRequestDetailForm key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.selectedMiniAppRequestRole,request?.id].join(':')} s={s}/>;
+}
+function MiniAppRequestDetailForm({ s }) {
   const detail = s.selectedMiniAppRequestDetail || {};
   const request = detail.request || null;
   const role = s.selectedMiniAppRequestRole || "customer";
   const [draft, setDraft] = React.useState("");
   const [reviewedReplyStamp,setReviewedReplyStamp]=React.useState(null);
+  const liveReply=React.useRef(null),replyAlive=React.useRef(true);liveReply.current=draft;
+  React.useEffect(()=>{replyAlive.current=true;return()=>{replyAlive.current=false;};},[]);
   const ownerView = role === "business";
   React.useEffect(()=>{
     setReviewedReplyStamp(null);
@@ -4946,6 +4961,7 @@ function MiniAppRequestDetail({ s }) {
     audience:ownerView?"business":"customer"}):null;
 
   const send = async () => {
+    const originalDraft=draft;
     const body = draft.trim();
     if (!request?.id || !body) return;
     const stamp=ownerView&&
@@ -4956,7 +4972,7 @@ function MiniAppRequestDetail({ s }) {
       ? await s.sendMiniAppRequestMessage(request.id, body,
           {reviewedFollowupStamp:stamp})
       : await s.replyBusyAppRequestMessage(request.id, body);
-    if (ok) {
+    if (ok&&replyAlive.current&&liveReply.current===originalDraft) {
       setDraft("");
       setReviewedReplyStamp(null);
     }

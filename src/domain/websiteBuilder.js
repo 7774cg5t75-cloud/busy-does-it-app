@@ -300,6 +300,7 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
         : "",
       description: clean(brief.description).slice(0, 160),
       pages: {},
+      ...(previousDraft?.seo?.ownerPages?{ownerPages:JSON.parse(JSON.stringify(previousDraft.seo.ownerPages))}:{}),
       schemaType: "LocalBusiness",
     },
     readiness: {

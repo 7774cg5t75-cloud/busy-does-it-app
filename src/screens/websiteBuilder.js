@@ -837,7 +837,7 @@ function WebsiteBuilder({ s }) {
             onApply={s.applyMissingAppServicesToWebsite}/>
           <WebsiteContentEditor draft={draft} onApply={s.applyWebsiteFieldChange}/>
           <WebsiteLayoutControls draft={draft} onApply={s.applyWebsiteLayoutAction}/>
-          <WebsitePagesEditor draft={draft} onApply={s.applyWebsitePageAction} onShare={s.shareWebsiteContent} onShareZip={s.shareStandaloneWebsiteZip} onBackup={s.backupWebsiteOriginals}/>
+          <WebsitePagesEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft?.id].join(":")} draft={draft} onApply={s.applyWebsitePageAction} onShare={s.shareWebsiteContent} onShareZip={s.shareStandaloneWebsiteZip} onBackup={s.backupWebsiteOriginals}/>
         </>
       ) : null}
       <Button label={showWebsiteDetails ? "Hide extra website settings" : "More website settings"}

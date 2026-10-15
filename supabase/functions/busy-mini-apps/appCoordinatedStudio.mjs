@@ -1,3 +1,5 @@
+import {splitBuilderInstructionClauses} from './builderInstructionClauses.mjs';
+import {validAppContactEdit} from './appContactPolicy.mjs';
 import {editAppOwnerLocks} from "./appOwnerLockEditing.mjs";
 import {PROFILE_TEXT_LIMITS,captureAppProfileField,restoreAppProfileField} from "./appProfileFieldUndo.mjs";
 import {appEditLockReason} from "./appOwnerLocks.mjs";
@@ -99,6 +101,13 @@ function proposeCoordinatedAppChanges(config,operations){
    if(op.field==="tagline")after.display={...next.display,tagline:op.value};
    undo={kind:"restore_public_field",field:op.field,value:snapshot};
    description="Updated public "+op.field;
+  }else if(op.kind==="contact"){
+   const snapshot=captureAppProfileField(next,'contact');
+   if(!snapshot||!validAppContactEdit(op.field,op.value))return {ok:false,reason:'Review the supported owner-written contact field and existing contact details.'};
+   const value=op.value.trim();
+   if(next.publicProfile?.contact?.[op.field]===value)return {ok:false,reason:'This contact detail is already saved.'};
+   after={...next,publicProfile:{...next.publicProfile,contact:{...next.publicProfile?.contact,[op.field]:value}}};
+   undo={kind:'restore_public_field',field:'contact',value:snapshot};description='Updated public '+op.field;
   }else if(op.kind==="services"){
    const snapshot=captureAppProfileField(next,"services");
    if(!snapshot)return {ok:false,reason:"Review the existing public services before editing them."};
@@ -142,10 +151,20 @@ function proposeCoordinatedAppChanges(config,operations){
 function planAppVoiceInstructions(config,instruction){
  const phrase=clean(instruction);
  if(!phrase||phrase.length>400)return {ok:false,reason:"Describe up to 400 characters of app changes."};
- const pieces=phrase.split(/\s*,\s*|\s+and\s+|\s*;\s*/i).map(s=>s.trim()).filter(Boolean);
+ const pieces=splitBuilderInstructionClauses(phrase,{max:MAX_CHANGES});
+ if(!pieces)return {ok:false,needsClarification:true,reason:"Use balanced quotes and up to eight complete changes."};
  if(pieces.length>MAX_CHANGES)return {ok:false,reason:"Describe up to eight changes at once."};
  const operations=[],unresolved=[],preserved=[];
  for(let p of pieces){
+  // Literal copy is data. Commands outside its exact quoted value still fail.
+  const literal=/^(?:set|change|update)(?: my| our| the)? (tagline|about|description|phone|email|opening hours) (?:to|as) ["“'‘]([\s\S]*)["”'’]$/i.exec(p);
+  if(literal){
+   const field=literal[1].toLowerCase(),value=literal[2];
+   if(/["“”]/.test(value)||/(?:^|[^a-z0-9])['‘’]|['‘’](?:[^a-z0-9]|$)/i.test(value)){unresolved.push(p);continue;}
+   operations.push(['phone','email','opening hours'].includes(field)?
+    {kind:'contact',field:field==='opening hours'?'openingHours':field,value}:
+    {kind:'text',field,value});continue;
+  }
   if(/^keep (my |the |our )?(existing |current )?(colou?rs?|branding|logo|other things)/i.test(p)){
    preserved.push(p);continue;
   }
@@ -202,7 +221,7 @@ function planAppVoiceInstructions(config,instruction){
  if(unresolved.length)return {ok:false,needsClarification:true,unresolved,preserved,
   supportedOperations:operations,reason:"BUSY needs clarification before combining these changes: "+unresolved.join("; ")};
  if(!operations.length)return {ok:false,reason:"Nothing needs changing; your existing design stays as it is."};
- const targets=operations.map(op=>op.kind==='appearance'?'appearance:'+op.field:'navigation');
+ const targets=operations.map(op=>['appearance','text','contact'].includes(op.kind)?op.kind+':'+op.field:'navigation');
  if(new Set(targets).size!==targets.length)return {ok:false,needsClarification:true,reason:'Choose one instruction for each app setting before preparing the changes.'};
  const result=proposeCoordinatedAppChanges(config,operations);
  return {...result,instruction:phrase,preserved};

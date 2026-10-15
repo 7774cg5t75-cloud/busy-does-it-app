@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {planAppVoiceInstructions as interpret,proposeCoordinatedAppChanges as plan} from '../src/core/appCoordinatedStudio.mjs';
+import {splitSelectedWebsiteInstruction} from '../src/core/websiteContextPlan.mjs';
+import {splitBuilderInstructionClauses as split} from '../src/core/builderInstructionClauses.mjs';
+import fs from 'node:fs';
+const config={modules:[{key:'business_profile',enabled:true},{key:'contact',enabled:true}],navigation:['business_profile','contact'],publicProfile:{tagline:'Keep original',contact:{phone:'01234567890',email:'old@example.test'}}};
+const result=interpret(config,'set tagline to "Care and advice, simply" and set phone to "07700900123" and set email to "owner@example.test"');assert.equal(result.ok,true,result.reason);assert.equal(result.operations.length,3);assert.equal(result.nextConfig.publicProfile.tagline,'Care and advice, simply');assert.equal(result.nextConfig.publicProfile.contact.phone,'07700900123');assert.deepEqual(plan(result.nextConfig,result.undoOperations).nextConfig,config);
+assert.equal(interpret(config,'set tagline to "Don\'t miss our advice"').ok,true);assert.equal(interpret(config,'do not set phone to "07700900123"').ok,false);assert.equal(interpret(config,'set phone to "07700900123" and publish').ok,false);assert.equal(interpret(config,'set phone to "07700900123" and set phone to "07700900456"').ok,false);assert.equal(interpret(config,'set email to "invalid"').ok,false);assert.equal(interpret(config,'set tagline to "missing quote').ok,false);
+assert.deepEqual(splitSelectedWebsiteInstruction('set heading to "Care and then advice; simply" and then make it larger'),['set heading to "Care and then advice; simply"','make it larger']);assert.deepEqual(split('make header bold and make spacing airy'),['make header bold','make spacing airy']);assert.equal(split('set tagline to "broken'),null);
+for(const file of ['appCoordinatedStudio.mjs','builderInstructionClauses.mjs'])assert.equal(fs.readFileSync(new URL('../src/core/'+file,import.meta.url),'utf8'),fs.readFileSync(new URL('../supabase/functions/busy-mini-apps/'+file,import.meta.url),'utf8'));
+assert.equal(interpret(config,"set tagline to 'safe' publish 'now'").ok,false);
+assert.equal(interpret(config,'set tagline to ‘Don’t miss coffee and cake’ and set phone to “07700900123”').ok,true);
+console.log('PASS: shared quote-aware builder clauses, real coordinated App copy/contact proposals with exact inverse, safe negation/ambiguity/unsupported action rejection and Website literal-copy preservation. No transcription or AI call.');
