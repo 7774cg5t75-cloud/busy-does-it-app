@@ -169,7 +169,7 @@ const proof=websiteEnquiryReadinessV3215({businessId:BID,website:website(),
   website:{current_live_deployment_id:"dep"}},
  deliveryProof:{verified:true}
 });
-eq(proof.currentWebsiteLiveVersionVerified,true);
+eq(proof.currentWebsiteLiveVersionVerified,false,"A caller boolean and deployment ID alone are not live delivery evidence.");
 eq(proof.nativeWebsiteFormImplemented,false);
 eq(proof.liveWebsiteContainsApprovedHandoffVerified,false);
 const changed=websiteEnquiryReadinessV3215({businessId:BID,website:website(),

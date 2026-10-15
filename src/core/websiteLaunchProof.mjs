@@ -1,3 +1,5 @@
+import {websiteDraftHasScope} from './websiteDraftScope.mjs';
+import {websiteDraftFreshness} from './websiteDraftFreshness.mjs';
 /** V3.80 read-only delivery proof. It does not publish, configure DNS, charge, or
  * grant approvals. Never equate a queued publish job or CDN storage URL to a
  * proven HTTPS customer-facing site.
@@ -70,4 +72,14 @@ function buildWebsiteLaunchProof(view={}){
     note:"Read-only evidence about this business website. This does not verify the separate BUSY headquarters at busydoesit.co.uk. Never treat an internal preview or a queued job as proof of public delivery."
   };
 }
-export {exactBusyHost,buildWebsiteLaunchProof};
+// Recompute evidence from the same current owner snapshot; a caller-provided
+// `verified:true` or a newer private preview cannot prove the live source.
+function currentWebsiteLiveEvidence({businessId='',draft=null,publishing=null}={}){
+ const website=publishing?.website,live=publishing?.liveDeployment;
+ if(!websiteDraftHasScope(draft,businessId)||!website?.id||website.business_id!==businessId||
+  !live?.id||live.business_id!==businessId||live.website_id!==website.id||
+  website.current_live_deployment_id!==live.id)return false;
+ const freshness=websiteDraftFreshness({draft,live});
+ return freshness.verified===true&&freshness.changed===false&&buildWebsiteLaunchProof(publishing).verified===true;
+}
+export {exactBusyHost,buildWebsiteLaunchProof,currentWebsiteLiveEvidence};

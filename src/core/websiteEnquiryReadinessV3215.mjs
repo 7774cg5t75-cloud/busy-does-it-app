@@ -1,3 +1,5 @@
+import {currentWebsiteLiveEvidence} from './websiteLaunchProof.mjs';
+import {websiteDraftHasScope} from './websiteDraftScope.mjs';
 /**
  * V3.215 - bounded, privacy-minimal roadmap for transactional WEBSITE enquiry.
  * This is intentionally only evidence/planning. A Business App guest challenge
@@ -30,18 +32,14 @@ const checks=({siteProof=false,unchanged=false,linked=false,approved=false}={})=
 ];
 function websiteEnquiryReadinessV3215({
  businessId="",website=null,app=null,liveVersion=null,catalog=[],
- endpoint="",publishing=null,deliveryProof=null
+ endpoint="",publishing=null,deliveryProof=null,kind="enquiry"
 }={}){
  const owner=typeof businessId==="string"&&businessId.length>0&&
-  website?.businessId===businessId;
+  websiteDraftHasScope(website,businessId);
  const existing=planWebsiteAppRequestHandoff({
-  businessId,website,app,liveVersion,catalog,endpoint,kind:"enquiry"
+  businessId,website,app,liveVersion,catalog,endpoint,kind
  });
- const sameLiveSite=asBool(deliveryProof?.verified)&&
-   publishing?.draftChangedSinceHosted===false&&
-   !!publishing?.liveDeployment?.id&&
-   publishing?.website?.current_live_deployment_id===
-     publishing.liveDeployment.id;
+ const sameLiveSite=currentWebsiteLiveEvidence({businessId,draft:website,publishing});
  const stages=checks({
   siteProof:sameLiveSite,unchanged:sameLiveSite,
   linked:existing.ok,approved:owner

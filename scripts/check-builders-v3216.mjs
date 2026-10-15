@@ -216,7 +216,7 @@ const withDeployment=planWebsiteIntakeV3216({...planInput,
  publishing:{liveDeployment:{id:DEP},
  website:{current_live_deployment_id:DEP},draftChangedSinceHosted:false},
  deliveryProof:{verified:true}});
-same(withDeployment.completedSourceChecks,1);
+same(withDeployment.completedSourceChecks,0,"Caller claims cannot replace scoped live-source and health evidence.");
 same(withDeployment.completedStagingChecks,0);
 same(withDeployment.publicFormEnabled,false);
 const withStale=planWebsiteIntakeV3216({...planInput,
