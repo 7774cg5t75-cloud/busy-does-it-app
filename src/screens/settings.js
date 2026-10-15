@@ -441,7 +441,7 @@ function AccountData({ s }) {
       >
         <MetricRow left="Cloud status" right={s.cloudSyncStatus} strong={s.cloudInitialised && !s.cloudSyncError} />
         <MetricRow left="Cloud revision" right={String(s.cloudRevision || 0)} />
-        <MetricRow left="Local cache" right={s.ownerSession?.userId ? "Private to this account" : "Unavailable"} />
+        <MetricRow left="Local cache" right={s.businessCacheStatus || "Awaiting business verification"} />
       </Card>
 
       {s.cloudConflict ? (
@@ -458,6 +458,9 @@ function AccountData({ s }) {
         />
       ) : null}
 
+      {s.businessCacheRecovery?<Card eyebrow="Private device recovery" title="An earlier device copy is preserved"
+        body="Its cloud revision differs from the current business copy. Export it for comparison before deciding whether to discard it. Busy will not overwrite either copy automatically."
+        ><Button label="Export earlier device copy" onPress={s.exportBusinessCacheRecovery}/><Button label="Discard earlier copy…" onPress={s.discardBusinessCacheRecovery}/></Card>:null}
       <Text style={styles.sectionLabel}>Recovery</Text>
       <Button
         label={s.cloudInitialising ? "Restoring…" : "Restore latest cloud copy"}

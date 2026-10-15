@@ -1,0 +1,8 @@
+import assert from 'node:assert/strict';
+import {createBusinessCacheRecoveryActions as create} from '../src/core/businessCacheRecoveryActions.mjs';
+const businessId='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',ownerId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+function setup(){let ownerScope={},payload={businessName:'Current'},recovery={ownerScope,businessId,ownerId,revision:2,payload:{businessName:'Earlier'}},callback,removed=0,shared,notices=[];const actions=create({getCurrent:()=>({ownerScope,businessId,recovery,payload}),ownerKey:x=>'cache-'+x,share:async raw=>shared=JSON.parse(raw),remove:async(key,current)=>{assert.equal(current(),true);assert.match(key,/business:/);removed++;},confirm:f=>callback=f,onChange:()=>recovery=null,onNotice:x=>notices.push(x)});return {actions,get removed(){return removed;},get shared(){return shared;},get notices(){return notices;},confirm:()=>callback(),edit:()=>payload={businessName:'New'},switch:()=>ownerScope={},get recovery(){return recovery;}};}
+const exportable=setup();assert.equal(await exportable.actions.exportCopy(),true);assert.equal(exportable.shared.data.businessName,'Earlier');assert.equal(exportable.removed,0);
+for(const action of ['edit','switch']){const s=setup();s.actions.discardCopy();s[action]();assert.equal(await s.confirm(),false);assert.equal(s.removed,0);assert.ok(s.recovery);}
+const discard=setup();assert.equal(discard.actions.discardCopy(),true);assert.equal(discard.removed,0);assert.equal(await discard.confirm(),true);assert.equal(discard.removed,1);assert.equal(await discard.confirm(),false);assert.equal(discard.recovery,null);
+console.log('PASS: explicit scoped recovery export/discard, retained copy on stale owner/local edits, one-use approval, no remote write or automatic restore.');

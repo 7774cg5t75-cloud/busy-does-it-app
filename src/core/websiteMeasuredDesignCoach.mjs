@@ -57,7 +57,14 @@ function compareWebsiteVisualReports(original,candidate){
   return {valid:false,reason:"Original and candidate must use the same viewport"};
  if(!Array.isArray(original.issues)||!Array.isArray(candidate.issues))
   return {valid:false,reason:"Missing original or candidate layout warnings"};
- const regressions=[];
+ for(const report of [original,candidate])if(!Number.isFinite(report.counts.viewport)||report.counts.viewport<250||report.counts.viewport>3000||!Number.isFinite(report.counts.width)||report.counts.width<0)
+  return {valid:false,reason:"Valid measured viewport and page widths are required."};
+ const regressions=[],reducedMeasurements=[];
+ for(const field of ['sections','headings','images']){
+  if(![original,candidate].some(r=>Object.hasOwn(r.counts,field)))continue;
+  if(![original,candidate].every(r=>Number.isSafeInteger(r.counts[field])&&r.counts[field]>=0))return {valid:false,reason:'Content measurement coverage must be available for both designs.'};
+  if(candidate.counts[field]<original.counts[field])regressions.push('Fewer '+field+' were checked');
+ }
  const newer=["lowContrast","smallBodyText","contrastUnknown","contrastChecked"];
  const enhanced=newer.some(k=>Object.prototype.hasOwnProperty.call(original.counts,k)||
    Object.prototype.hasOwnProperty.call(candidate.counts,k));
@@ -71,6 +78,7 @@ function compareWebsiteVisualReports(original,candidate){
   if(!Number.isSafeInteger(before)||!Number.isSafeInteger(after)||before<0||after<0)
    return {valid:false,reason:"Incomplete measured layout counters"};
   if(after>before)regressions.push(id+" increased");
+  if(after<before)reducedMeasurements.push({id,before,after});
  }
  if(candidate.counts.width>original.counts.width+2)
   regressions.push("Page width increased");
@@ -83,14 +91,15 @@ function compareWebsiteVisualReports(original,candidate){
  const fixed=original.issues.map(x=>x?.id).filter(id=>
   !candidate.issues.some(y=>y?.id===id));
  return {valid:true,noNewMeasuredProblems:regressions.length===0,
-  improved:regressions.length===0&&afterProblems<beforeProblems,
+  improved:regressions.length===0&&(afterProblems<beforeProblems||reducedMeasurements.length>0),
+  reducedMeasurements,
   originalProblemCount:beforeProblems,candidateProblemCount:afterProblems,regressions,
   resolvedWarnings:fixed,remainingWarnings:candidate.issues.map(x=>x.id),
   evidence:"same-width-rendered-dom",
   summary:regressions.length
    ?"The candidate introduced a measured warning. Keep the original design.":
-   afterProblems<beforeProblems
-    ?"The candidate reduced measured warnings at this width. Check other devices before keeping it.":
+   afterProblems<beforeProblems||reducedMeasurements.length>0
+    ?"The candidate reduced measured problems at this width. Remaining warnings and other screen sizes still need review.":
     "No new measured warnings at this width, but improvement is not proven. Decide which look you prefer."};
 }
 /** Explicit on-device customer feedback, not model training or global sharing. */
@@ -131,7 +140,8 @@ function describeWebsiteDesignComparison(comparison){
    :improved?"Some measured problems improved at this width. Please also check another screen size."
    :"No new measured problems were found, but this isn't proof the new design is more attractive.",
   facts:["Original: "+before+" layout warning"+(before===1?"":"s"),
-    "Alternative: "+after+" layout warning"+(after===1?"":"s")],
+    "Alternative: "+after+" layout warning"+(after===1?"":"s"),
+    ...(improved&&before===after?(comparison.reducedMeasurements||[]).map(x=>x.id+": "+x.before+" → "+x.after):[])],
   mayKeep:safe,
   improved,
   evidence:"rendered layout, not AI screenshot scoring"};

@@ -1,3 +1,4 @@
+import {bindAppControlReview,appControlReviewCurrent} from "../core/appControlReview.mjs";
 import {AppGoalContentAssistant} from "./appGoalContentAssistant";
 import {AppOwnerLockControls} from "./appOwnerLockControls";
 import {AppBusinessFactRefresh} from "./appBusinessFactRefresh";
@@ -858,6 +859,8 @@ function MiniAppBuilder({ s }) {
   const [accessiblePhotoCaption,setAccessiblePhotoCaption]=React.useState("");
   const view = s.miniAppsView || {};
   const app = view.app;
+  const controlContext={ownerId:s.ownerSession?.userId||"",businessId:s.cloudWorkspace?.businessId||"",app};
+  const liveControlContext=React.useRef(null);liveControlContext.current=controlContext;
   const studio=usePrivateAppStudio({businessId:s.cloudWorkspace?.businessId||"",
     ownerId:s.ownerSession?.userId||"",app,config:view.draftConfig},s.saveCoordinatedAppChanges);
   const studioPreview=studio.preview,studioNotice=studio.notice;
@@ -2804,7 +2807,7 @@ function MiniAppBuilder({ s }) {
                 selected:selectedAppPart,text:appearanceWords
               });
               if(proposal.ok){
-                setPendingAppearance({field:proposal.field,value:proposal.value});
+                setPendingAppearance(bindAppControlReview({field:proposal.field,value:proposal.value},controlContext));
                 setAppearancePreviewOpen(true);
                 setAppearanceInstructionNotice("BUSY prepared one reviewable, private appearance change. Nothing is saved yet.");
               }else{
@@ -2822,7 +2825,7 @@ function MiniAppBuilder({ s }) {
             <WebsiteSelectedVoice key={app.id+":"+app.draft_revision+":"+selectedAppPart}
               editorKind="app" contextLabel="selected app design"
               selection={{appId:app.id,revision:app.draft_revision,
-                businessId:s.cloudWorkspace.businessId,selectedPart}}
+                businessId:s.cloudWorkspace.businessId,selectedPart:selectedAppPart}}
               onTranscribe={(uri,scope)=>s.transcribeSelectedAppAudio?.(uri,scope)}
               onTranscript={text=>{
                 setAppearanceWords(text);
@@ -2856,7 +2859,7 @@ function MiniAppBuilder({ s }) {
                     value.replaceAll("-"," "))}
                   disabled={!!s.miniAppsAction}
                   onPress={()=>{
-                    setPendingAppearance({field,value});
+                    setPendingAppearance(bindAppControlReview({field,value},controlContext));
                     setAppearancePreviewOpen(true);
                   }}/>
               ))}
@@ -2875,7 +2878,7 @@ function MiniAppBuilder({ s }) {
                   <Button label="Preview my own brand colour"
                     disabled={!!s.miniAppsAction}
                     onPress={()=>{
-                      setPendingAppearance({field:"brandAccent",value:brandAccentDraft});
+                      setPendingAppearance(bindAppControlReview({field:"brandAccent",value:brandAccentDraft},controlContext));
                       setAppearancePreviewOpen(true);
                     }}/>
                 </>
@@ -2883,7 +2886,7 @@ function MiniAppBuilder({ s }) {
             </View>
           ))}
           {pendingAppearance?(()=>{
-            const proposal=previewPrivateAppAppearance(view.draftConfig,pendingAppearance);
+            const proposal=appControlReviewCurrent(pendingAppearance,controlContext)?previewPrivateAppAppearance(view.draftConfig,pendingAppearance):{ok:false,reason:"This appearance preview is outdated. Prepare it again."};
             return proposal.ok?(
               <>
                 <MetricRow left="Proposed change"
@@ -2920,11 +2923,12 @@ function MiniAppBuilder({ s }) {
                 <Button label="Keep this appearance in my PRIVATE app"
                   primary disabled={!!s.miniAppsAction}
                   onPress={async()=>{
+                    if(!appControlReviewCurrent(pendingAppearance,liveControlContext.current))return;
                     const ok=await s.savePrivateAppAppearance?.({
-                      ...pendingAppearance,appId:app.id,
-                      expectedRevision:app.draft_revision
+                      field:pendingAppearance.field,value:pendingAppearance.value,appId:app.id,
+                      expectedRevision:pendingAppearance.reviewSource.revision
                     });
-                    if(ok){setPendingAppearance(null);setAppearancePreviewOpen(false);}
+                    if(ok&&appControlReviewCurrent(pendingAppearance,liveControlContext.current)){setPendingAppearance(null);setAppearancePreviewOpen(false);}
                   }}/>
                 <Button label="Discard appearance changes"
                   onPress={()=>{setPendingAppearance(null);setAppearancePreviewOpen(false);}}/>
@@ -2944,14 +2948,14 @@ function MiniAppBuilder({ s }) {
               <Text style={styles.cardBody}>{(index+1)+". "+module.key.replaceAll("_"," ")}</Text>
               {index>0?<Button label={"Move "+module.key.replaceAll("_"," ")+" up"}
                 disabled={!!s.miniAppsAction}
-                onPress={()=>setPendingMove({moduleKey:module.key,direction:"up"})}/>:null}
+                onPress={()=>setPendingMove(bindAppControlReview({moduleKey:module.key,direction:"up"},controlContext))}/>:null}
               {index<items.length-1?<Button label={"Move "+module.key.replaceAll("_"," ")+" down"}
                 disabled={!!s.miniAppsAction}
-                onPress={()=>setPendingMove({moduleKey:module.key,direction:"down"})}/>:null}
+                onPress={()=>setPendingMove(bindAppControlReview({moduleKey:module.key,direction:"down"},controlContext))}/>:null}
             </View>
           ))}
           {pendingMove?(()=>{
-            const proposal=proposeAppSectionMove(view.draftConfig,pendingMove);
+            const proposal=appControlReviewCurrent(pendingMove,controlContext)?proposeAppSectionMove(view.draftConfig,pendingMove):{ok:false,reason:"This section preview is outdated. Prepare it again."};
             return proposal.ok?(
               <>
                 <Text style={styles.cardBody}>
@@ -2961,9 +2965,10 @@ function MiniAppBuilder({ s }) {
                 <Button label="Keep new order in PRIVATE app"
                   primary disabled={!!s.miniAppsAction}
                   onPress={async()=>{
+                    if(!appControlReviewCurrent(pendingMove,liveControlContext.current))return;
                     const ok=await s.movePrivateAppSection?.({
-                      ...pendingMove,appId:app.id,expectedRevision:app.draft_revision});
-                    if(ok)setPendingMove(null);
+                      moduleKey:pendingMove.moduleKey,direction:pendingMove.direction,appId:app.id,expectedRevision:pendingMove.reviewSource.revision});
+                    if(ok&&appControlReviewCurrent(pendingMove,liveControlContext.current))setPendingMove(null);
                   }}/>
                 <Button label="Discard section move" onPress={()=>setPendingMove(null)}/>
               </>

@@ -7,20 +7,20 @@ function createPrivateWebsiteAsyncGate(){
  function setContext(context){
   const next=identity(context);if(next!==principal){principal=next;epoch++;active.clear();}
  }
- const sameSource=(a,b,deploymentBound)=>identity(a)===identity(b)&&a?.draft===b?.draft&&(!deploymentBound||a?.deploymentId===b?.deploymentId&&a?.draftChangedSinceHosted===b?.draftChangedSinceHosted);
- function begin(lane,reviewed,context=reviewed,{deploymentBound=['visual','preview','hosting'].includes(lane)}={}){
+ const sameSource=(a,b,deploymentBound,liveBound=false)=>identity(a)===identity(b)&&a?.draft===b?.draft&&(!deploymentBound||a?.deploymentId===b?.deploymentId&&a?.draftChangedSinceHosted===b?.draftChangedSinceHosted)&&(!liveBound||a?.liveDeploymentId===b?.liveDeploymentId);
+ function begin(lane,reviewed,context=reviewed,{deploymentBound=['visual','preview','hosting'].includes(lane),liveBound=false}={}){
   setContext(context);
-  if(!sameSource(reviewed,context,deploymentBound))return null;
+  if(!sameSource(reviewed,context,deploymentBound,liveBound))return null;
   if(!['visual','media','language','voice','export','status','hosting','preview','request','snapshot'].includes(lane)||!context?.ownerId||!context.businessId||active.has(lane))return null;
   const draft=context.draft;
   if(draft&&(draft.businessId&&draft.businessId!==context.businessId||draft.business_id&&draft.business_id!==context.businessId))return null;
   if(draft&&!['status','snapshot','request'].includes(lane)&&!websiteDraftHasScope(draft,context.businessId))return null;
-  const token={lane,epoch,principal,deploymentBound,context:{...context}};active.set(lane,token);return token;
+  const token={lane,epoch,principal,deploymentBound,liveBound,context:{...context}};active.set(lane,token);return token;
  }
  function sourceCurrent(token,context){
   setContext(context);
   return !!token&&token.epoch===epoch&&token.principal===identity(context)&&
-   sameSource(token.context,context,token.deploymentBound);
+   sameSource(token.context,context,token.deploymentBound,token.liveBound);
  }
  const owns=token=>!!token&&active.get(token.lane)===token;
  const current=(token,context)=>sourceCurrent(token,context)&&owns(token);

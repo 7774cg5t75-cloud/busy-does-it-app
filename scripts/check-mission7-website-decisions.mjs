@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {compareWebsiteVisualReports as compare,describeWebsiteDesignComparison as describe} from '../src/core/websiteMeasuredDesignCoach.mjs';
+import {coordinatedWebsiteAlternatives as alternatives} from '../src/core/websiteCoordinatedAlternatives.mjs';
+import {websiteBuilderTestHarnessV3222 as harness} from './lib/website-builder-test-harness-v3222.mjs';
+const metrics={viewport:390,width:390,overflow:0,unloadedImages:0,missingAlt:0,smallTargets:0,badAnchors:0,clippedHeadings:5,images:2,headings:3,sections:4};
+const report=counts=>({counts,issues:[{id:'headings'}]});
+const partial=compare(report(metrics),report({...metrics,clippedHeadings:1}));assert.equal(partial.improved,true);assert.equal(partial.resolvedWarnings.length,0);assert.deepEqual(partial.reducedMeasurements,[{id:'headings',before:5,after:1}]);assert.ok(describe(partial).facts.some(x=>x.includes('5 → 1')));
+assert.equal(compare(report(metrics),report({...metrics,clippedHeadings:1,sections:3})).noNewMeasuredProblems,false);
+assert.equal(compare(report(metrics),report({...metrics,clippedHeadings:1,images:1})).improved,false);
+assert.equal(compare(report({...metrics,width:NaN}),report(metrics)).valid,false);
+const {buildWebsiteDraft}=harness(['buildWebsiteDraft']);const draft=buildWebsiteDraft({brandBrain:{websiteBrief:{businessName:'Owner studio',businessType:'Photography',description:'Owner facts'}}});
+draft.sections.push({id:'gallery',type:'gallery',enabled:true,items:[{uri:'https://example.test/approved.jpg',approved:true}]});
+const pageId=draft.pages[0].id,measured={counts:{viewport:390},issues:[]};const choices=alternatives(draft,pageId,measured);assert.ok(choices.some(x=>x.id==='coordinated-visual'));
+const liked={...draft,ownerDesignFeedback:[{draftId:draft.id,pageId,changeId:'coordinated-reading',choice:'liked'}]};assert.equal(alternatives(liked,pageId,measured)[0].id,'coordinated-reading');
+assert.equal(alternatives(draft,pageId,{...measured,issues:[{id:'links'}]}).length,0);
+assert.equal(alternatives(draft,pageId,{counts:{viewport:NaN},issues:[]}).length,0);
+assert.equal(choices[0].measuredImprovementProven,false);assert.equal(choices[0].decisionEvidence.viewport,390);
+console.log('PASS: measured partial progress, no hidden-content improvement, valid geometry, owner preference ordering and content-problem-first design hypotheses. Fixture reports, not browser evidence.');
