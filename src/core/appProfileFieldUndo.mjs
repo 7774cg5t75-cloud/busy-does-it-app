@@ -7,13 +7,15 @@ function captureField(object,field){
  return {parent:object===undefined?'absent':object===null?'null':'object',present:!!object&&own(object,field),
   ...object&&own(object,field)?{value:clone(object[field])}:{}};
 }
+// A bounded historical private draft may have empty service names. Only the
+// snapshot path accepts those; new Services edits still require complete names.
 function validField(snapshot,field){
  if(!snapshot||typeof snapshot!=='object'||Array.isArray(snapshot)||
   Object.keys(snapshot).some(k=>!['parent','present','value'].includes(k))||
   !['object','null','absent'].includes(snapshot.parent)||typeof snapshot.present!=='boolean'||
   snapshot.present&&snapshot.parent!=='object'||snapshot.present!==own(snapshot,'value'))return false;
  if(!snapshot.present||snapshot.value===null)return true;
- return field==='services'?validatePrivateAppServices(snapshot.value).ok:
+ return field==='services'?validatePrivateAppServices(snapshot.value,{allowIncompleteNames:true}).ok:
   own(PROFILE_TEXT_LIMITS,field)&&typeof snapshot.value==='string'&&snapshot.value.length<=PROFILE_TEXT_LIMITS[field]&&!/[<>\u0000-\u001f]/.test(snapshot.value);
 }
 function captureAppProfileField(config,field){

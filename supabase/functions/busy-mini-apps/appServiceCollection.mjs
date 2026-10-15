@@ -24,21 +24,21 @@ function reviewPrivateAppServices(config,services){
   previous:before,description:"Updated "+services.length+" owner-approved services",
   publicUntilApproved:false};
 }
-function validatePrivateAppServices(services){
+function validatePrivateAppServices(services,{allowIncompleteNames=false}={}){
  if(!Array.isArray(services)||services.length>30)return {ok:false,reason:"Up to 30 owner-approved services can be edited."};
  const usedIds=new Set(),usedNames=new Set();
  for(const row of services){
   if(!row||typeof row!=="object"||Array.isArray(row)||
    Object.keys(row).some(k=>!allowed.has(k))||
-   !validText(row.name,120,true)||!validText(row.description??"",600)||
+   !validText(row.name,120,!allowIncompleteNames)||!validText(row.description??"",600)||
    !(row.id===undefined||
      (typeof row.id==="string"&&row.id.length<=80&&
       (!row.id||/^[a-zA-Z0-9_-]{1,80}$/.test(row.id)))))
    return {ok:false,reason:"Service details must be owner-written names and descriptions only."};
   const id=row.id||"",name=row.name.trim().toLocaleLowerCase("en");
-  if(usedNames.has(name)||(id&&usedIds.has(id)))
+  if(name&&usedNames.has(name)||(id&&usedIds.has(id)))
    return {ok:false,reason:"Each service needs its own name and identifier."};
-  usedNames.add(name);if(id)usedIds.add(id);
+  if(name)usedNames.add(name);if(id)usedIds.add(id);
  }
  return {ok:true};
 }
