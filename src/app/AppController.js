@@ -1,3 +1,5 @@
+import {bindWebsiteDraftScope} from "../core/websiteDraftScope.mjs";
+import {createWebsiteVoiceActions} from "../core/websiteVoiceActions.mjs";
 import {createAppDesignFeedbackActions} from "../core/appDesignFeedbackActions.mjs";
 import {createPrivateWebsiteAsyncGate} from "../core/privateWebsiteAsyncGate.mjs";
 import {checkPrivateWebsiteDraftCommit} from "../core/privateWebsiteDraftCommit.mjs";
@@ -2266,7 +2268,7 @@ function App() {
     advanced,
   });
 
-  const applyCloudSnapshot = (saved) => {
+  const applyCloudSnapshot = (saved,websiteBusinessId="") => {
     if (!saved || typeof saved !== "object") return;
     if (typeof saved.onboardingComplete === "boolean") setOnboardingComplete(saved.onboardingComplete);
     if (saved.businessName) setBusinessName(saved.businessName);
@@ -2293,7 +2295,7 @@ function App() {
       });
     }
     if (saved.websiteDraft && typeof saved.websiteDraft === "object") {
-      setWebsiteDraft(saved.websiteDraft);
+      setWebsiteDraft(bindWebsiteDraftScope(saved.websiteDraft,websiteBusinessId));
     } else if (saved.websiteDraft === null) {
       setWebsiteDraft(null);
     }
@@ -2820,7 +2822,7 @@ function App() {
       const hasCloudData = payload && Object.keys(payload).length > 0;
 
       if (hasCloudData) {
-        applyCloudSnapshot(payload);
+        applyCloudSnapshot(payload,businessId);
         setCloudRevision(Number(snapshot?.revision) || 1);
         setCloudLastSyncedAt(snapshot?.updated_at || new Date().toISOString());
         setCloudConflict(null);
@@ -2863,15 +2865,18 @@ function App() {
 
   const fetchCloudSnapshot = async (tokenOverride = "") => {
     if (!cloudWorkspace?.businessId) return null;
-    const token = tokenOverride || (await ownerAccessToken());
+    const task=websiteBeginTask("snapshot");if(!task)throw Error("The business workspace changed or another snapshot read is in progress.");
+    try{
+    const token = tokenOverride || (await websiteTaskAwait(task,()=>ownerAccessToken()));
     if (!token) throw new Error("Sign in again before reading cloud data.");
-    const rows = await busyDataRequest(
+    const rows = await websiteTaskAwait(task,()=>busyDataRequest(
       `busy_business_snapshots?business_id=eq.${encodeURIComponent(
         cloudWorkspace.businessId
       )}&select=payload,schema_version,revision,updated_at`,
       { token }
-    );
+    ));
     return Array.isArray(rows) ? rows[0] || null : rows;
+    }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
   const saveBusinessCloud = async ({ quiet = false } = {}) => {
@@ -2945,7 +2950,7 @@ function App() {
       if (!remote?.payload || typeof remote.payload !== "object") {
         throw new Error("No cloud backup is available for this business yet.");
       }
-      applyCloudSnapshot(remote.payload);
+      applyCloudSnapshot(remote.payload,cloudWorkspace.businessId);
       setCloudRevision(Number(remote.revision) || 1);
       setCloudLastSyncedAt(remote.updated_at || new Date().toISOString());
       setCloudConflict(null);
@@ -12841,6 +12846,7 @@ function App() {
         const nextDraft = buildWebsiteDraft({
           brandBrain,
           previousDraft: websiteDraft,
+          businessId:cloudWorkspace?.businessId||"",
         });
         if(websiteDraft){if(!commitReviewedBuilderDraft(websiteDraft,nextDraft,"Prepared a private website revision."))return false;}
         else{websiteDraftRef.current=nextDraft;setWebsiteDraft(nextDraft);}
@@ -12876,7 +12882,7 @@ function App() {
           jump("websiteBuilder", "Home");
           return false;
         }
-        setWebsiteDraft(result.draft);
+        if(!commitReviewedBuilderDraft(websiteDraft,result.draft,result.reason||""))return false;
         markBusyCommandApplied(
           command,
           "Website draft updated",
@@ -13437,9 +13443,7 @@ function App() {
       setWebsiteVisualReviewNotice("That design change touched data outside its approved appearance settings. No change was saved.");
       return false;
     }
-    setWebsiteUndo(items=>[...items,websiteDraft].slice(-8));
-    setWebsiteRedo([]);
-    setWebsiteDraft(next);
+    if(!commitReviewedBuilderDraft(websiteDraft,next,"Prepared reviewed visual changes."))return false;
     setWebsiteVisualReview(null);
     setWebsiteVisualReviewNotice("Approved design-only changes are in a NEW private draft. Preview it, then prepare a new hosted version. Nothing was published.");
     go("websitePreview");
@@ -13450,6 +13454,7 @@ function App() {
     const next = buildWebsiteDraft({
       brandBrain,
       previousDraft: websiteDraft,
+      businessId:cloudWorkspace?.businessId||"",
       businessCreationIntelligence,
     });
     if(websiteDraft){
@@ -13633,12 +13638,11 @@ function App() {
     });
     setWebsiteBuilderNotice(updated.reason||"");
     if(!updated.applied)return updated;
-    setWebsiteUndo(items=>[...items,current].slice(-8));
-    setWebsiteRedo([]);
-    websiteDraftRef.current=updated.draft;
-    setWebsiteDraft(updated.draft);
+    if(!commitReviewedBuilderDraft(current,updated.draft,updated.reason||""))return {applied:false,reason:"The current business draft changed."};
     return updated;
   };
+
+  const {interpretWebsitePageLanguage,transcribeSelectedWebsiteAudio,transcribeWebsitePageAudio}=createWebsiteVoiceActions({websiteBeginTask,websiteTaskAwait,websiteTaskCurrent,websiteAsyncGateRef,websiteDraftRef,cloudWorkspace,ownerAccessToken,fetchWithTimeout,BUSY_COMMAND_URL,BUSY_AI_TOKEN,busyRequestId,selectedWebsiteVoiceContextIsCurrent,ExpoFile,voiceUploadEligible,expoFetch});
 
   // V3.149: preview and re-approve an exact page-wide, named-section plan.
   // Page instructions cannot publish, touch another site or execute AI actions.
@@ -13652,63 +13656,7 @@ function App() {
   // Optional AI intent translation. One metered request, explicit tap,
   // no mutation. Returned model words are ALWAYS replanned locally against
   // this precise page and draft generation before they can be previewed.
-  const interpretWebsitePageLanguage=async({pageId,generation,instruction,conversationContext}={})=>{
-    const task=websiteBeginTask("language");if(!task)return {ok:false,reason:"The website changed. Review your latest draft."};
-    try{
-    const current=websiteDraftRef.current;
-    const stillCurrent=()=>{
-      const now=websiteDraftRef.current;
-      return !!now?.id&&now.id===current?.id&&now.generation===generation&&
-        now.pages?.some(p=>p.id===pageId&&p.enabled!==false);
-    };
-    if(!stillCurrent()||typeof instruction!=="string"||
-       !instruction.trim()||instruction.length>400)
-      return {ok:false,reason:"Select a current page and a short description of your changes."};
-    const workspace=cloudWorkspace?.businessId||"";
-    const token=await websiteTaskAwait(task,async()=>(ownerAccessToken()));
-    if(!workspace||!token)return {ok:false,reason:"Sign in to your business to use AI interpretation."};
-    if(!stillCurrent())return {ok:false,reason:"Your website changed. No AI request was sent."};
-    const sectionIds=current.pages.find(p=>p.id===pageId)?.sectionIds||[];
-    const sections=(current.sections||[]).filter(p=>p.enabled!==false&&sectionIds.includes(p.id))
-      .slice(0,30).map(p=>({id:p.id,title:String(p.title||p.id).slice(0,100)}));
-    // Local conversation is only context. The server never treats its
-    // history as instructions to execute, and this app validates the result.
-    const history=Array.isArray(conversationContext?.history)
-      ?conversationContext.history.slice(-5).filter(turn=>
-        ["owner","busy"].includes(turn?.role)&&typeof turn.text==="string"&&
-        turn.text.trim().length>0&&turn.text.length<=400):[];
-    const preserve={keepColours:conversationContext?.keepColours===true,
-      keepPhotos:conversationContext?.keepPhotos===true};
-    try{
-      const response=await websiteTaskAwait(task,async()=>(fetchWithTimeout(BUSY_COMMAND_URL,{
-        method:"POST",headers:{apikey:BUSY_AI_TOKEN,Authorization:`Bearer ${token}`,
-          "Content-Type":"application/json",
-          "x-busy-request-id":busyRequestId("website-page-intent")},
-        body:JSON.stringify({mode:"website-page-intent-v1",ownerConsent:true,
-          businessId:workspace,sections,text:instruction,history,preserve})
-      },30000)));
-      const data=await websiteTaskAwait(task,async()=>(response.json().catch(()=>({}))));
-      if(!response.ok)throw Error(String(data.error||"Language interpretation unavailable."));
-      if(data.mode!=="website-page-intent-v1"||data.requiresReview!==true||
-         data.action!==null||data.command!==null||data.changesApplied!==false)
-        throw Error("The AI result was not review-only. No changes were made.");
-      if(!stillCurrent())return {ok:false,reason:"Your website changed while BUSY was interpreting the request. No changes were applied."};
-      const canonical=String(data.canonicalInstruction||"").trim().slice(0,400);
-      if(!canonical)return {ok:false,clarification:String(data.clarification||"Could you clarify how you want the page to look?").slice(0,250),reason:"BUSY needs a little more detail. No changes were made."};
-      // Prevent unsupported or invented AI operations from reaching the draft.
-      const checked=planWebsitePageInstructions(current,{
-        draftId:current.id,pageId,generation,instruction:canonical
-      });
-      if(!checked.ok)return {ok:false,reason:"BUSY needs clarification: "+String(checked.reason||"The request is not supported.").slice(0,200)};
-      return {ok:true,canonical,steps:checked.steps.length,
-        reason:"BUSY interpreted "+checked.steps.length+" safe change(s). Check the wording and preview before applying. Nothing was saved.",
-        chargedRequest:true};
-    }catch(error){if(!websiteTaskCurrent(task))return {ok:false,reason:"The website changed. Review your latest draft."};
-      return {ok:false,reason:String(error?.message||"BUSY could not interpret that request. No changes were made.").slice(0,250)};
-    }
 
-    }catch{return {ok:false,reason:"The website operation could not complete. Review your current draft before retrying."};}finally{websiteAsyncGateRef.current.finish(task);}
-  };
 
   const applyWebsitePageInstruction = ({pageId,generation,instruction}={}) => {
     const current=websiteDraftRef.current;
@@ -13721,100 +13669,19 @@ function App() {
     });
     setWebsiteBuilderNotice(prepared.reason||"");
     if(!prepared.applied)return prepared;
-    setWebsiteUndo(items=>[...items,current].slice(-8));
-    setWebsiteRedo([]);
-    websiteDraftRef.current=prepared.draft;
-    setWebsiteDraft(prepared.draft);
+    if(!commitReviewedBuilderDraft(current,prepared.draft,prepared.reason||""))return {applied:false,reason:"The current business draft changed."};
     return prepared;
   };
 
   // V3.141: send audio to the authenticated transcription-only Operator
   // endpoint, never its command router. The owner reviews words locally before
   // applying a scoped instruction via the existing private Undo/Redo pipeline.
-  const transcribeSelectedWebsiteAudio = async (audioUri, selection) => {
-    const task=websiteBeginTask("voice");if(!task)return {ok:false,error:"The website changed. Select it again."};
-    try{
-    const selectionIsCurrent=()=>selectedWebsiteVoiceContextIsCurrent(websiteDraftRef.current,selection);
-    if(!selectionIsCurrent())return {ok:false,error:"Your website changed. Tap the part you want to edit again."};
-    try{
-      const file=new ExpoFile(String(audioUri||""));
-      if(!file.exists||!voiceUploadEligible(Number(file.size||0)))
-        return {ok:false,error:"This recording exceeds the 9 MB upload allowance or is empty. No audio was sent. Record a shorter instruction."};
-      const token=await websiteTaskAwait(task,async()=>(ownerAccessToken()));
-      if(!token)return {ok:false,error:"Sign in again before using voice editing."};
-      if(!selectionIsCurrent())return {ok:false,error:"The selected website part changed. Tap it again."};
-      const form=new FormData();
-      form.append("mode","website-selection-transcript-v1");
-      form.append("audio",file,`busy-selected-website-${Date.now()}.m4a`);
-      const response=await websiteTaskAwait(task,async()=>(fetchWithTimeout(BUSY_COMMAND_URL,{
-        method:"POST",
-        headers:{apikey:BUSY_AI_TOKEN,Authorization:`Bearer ${token}`,
-          "x-busy-request-id":busyRequestId("website-selected-transcript")},
-        body:form
-      },45000,expoFetch)));
-      const payload=await websiteTaskAwait(task,async()=>(response.json().catch(()=>({}))));
-      if(!response.ok)throw Error(String(payload?.error||"Voice transcription is not available."));
-      if(payload?.mode!=="website-selection-transcript-v1"||
-         payload.requiresReview!==true||payload.command!==null||payload.action!==null||
-         !String(payload.transcript||"").trim())
-        throw Error("The service did not return a transcription-only result. No change was made.");
-      if(!selectionIsCurrent())return {ok:false,error:"Your website changed while BUSY was listening. Tap the part again; no edit was applied."};
-      const usage=payload.voiceUsage||{};
-      const remaining=Number.isInteger(usage.remaining)&&usage.remaining>=0&&
-        usage.remaining<=12?usage.remaining:null;
-      return {ok:true,transcript:String(payload.transcript).trim().slice(0,400),
-        remaining,dailyLimit:12};
-    }catch(error){if(!websiteTaskCurrent(task))return {ok:false,error:"The website changed. Select it again."};
-      return {ok:false,error:String(error?.message||"Voice transcription failed. Your website was not changed.").slice(0,240)};
-    }
 
-    }finally{websiteAsyncGateRef.current.finish(task);}
-  };
 
   // V3.150: the same bounded transcription provider, but with an exact
   // page/revision scope instead of requiring a previously tapped element.
   // Audio is never interpreted as an executable command by the service.
-  const transcribeWebsitePageAudio=async(audioUri,scope)=>{
-    const task=websiteBeginTask("voice");if(!task)return {ok:false,error:"The website changed. Select it again."};
-    try{
-    const isCurrent=()=>{
-      const now=websiteDraftRef.current;
-      return !!now?.id&&now.id===scope?.draftId&&
-        now.generation===scope?.generation&&
-        now.pages?.some(p=>p.id===scope?.pageId&&p.enabled!==false);
-    };
-    if(!isCurrent())return {ok:false,error:"This website page has changed. Select it again."};
-    try{
-      const file=new ExpoFile(String(audioUri||""));
-      if(!file.exists||!voiceUploadEligible(Number(file.size||0)))
-        return {ok:false,error:"Recording must be under 9 MB. Nothing was sent."};
-      const token=await websiteTaskAwait(task,async()=>(ownerAccessToken()));
-      if(!token)return {ok:false,error:"Sign in again before transcribing."};
-      if(!isCurrent())return {ok:false,error:"The draft changed before sending. Nothing was sent."};
-      const form=new FormData();
-      form.append("mode","website-page-transcript-v1");
-      form.append("audio",file,`busy-website-page-${Date.now()}.m4a`);
-      const response=await websiteTaskAwait(task,async()=>(fetchWithTimeout(BUSY_COMMAND_URL,{
-        method:"POST",headers:{apikey:BUSY_AI_TOKEN,Authorization:`Bearer ${token}`,
-          "x-busy-request-id":busyRequestId("website-page-transcript")},body:form
-      },45000,expoFetch)));
-      const data=await websiteTaskAwait(task,async()=>(response.json().catch(()=>({}))));
-      if(!response.ok)throw Error(String(data.error||"Page transcription failed."));
-      if(data.mode!=="website-page-transcript-v1"||data.requiresReview!==true||
-         data.action!==null||data.command!==null||
-         !String(data.transcript||"").trim())
-        throw Error("The provider did not return review-only text.");
-      if(!isCurrent())return {ok:false,error:"Website changed while transcribing. Nothing was applied."};
-      const remaining=data.voiceUsage?.remaining;
-      return {ok:true,transcript:String(data.transcript).trim().slice(0,400),
-        remaining:Number.isInteger(remaining)&&remaining>=0&&remaining<=12?remaining:null,
-        dailyLimit:12};
-    }catch(error){if(!websiteTaskCurrent(task))return {ok:false,error:"The website changed. Select it again."};
-      return {ok:false,error:String(error?.message||"Transcription failed. No changes were made.").slice(0,240)};
-    }
 
-    }finally{websiteAsyncGateRef.current.finish(task);}
-  };
 
   // V3.144: explicit owner feedback stays attached to the current private
   // website draft; it is not a global learning signal or automatic retraining.
@@ -14477,13 +14344,14 @@ function App() {
       return false;
     }
     setWebsitePublishingAction("");
+    let approvalUsed=false;
     Alert.alert(
       "Put this exact website version live?",
       `You are approving website v${deployment.version_no} to become public. BUSY has verified the selected immutable hosted preview belongs to this business. This is NOT a verified public deployment yet. The previous live version, if any, remains available for rollback.`,
       [
         {text:"Cancel",style:"cancel"},
         {text:"Approve & go live",
-          onPress:()=>{if(websiteTaskSourceCurrent(task))return publishHostedWebsite(deploymentId);return false;}}
+          onPress:()=>{if(approvalUsed||!websiteTaskSourceCurrent(task))return false;approvalUsed=true;return publishHostedWebsite(deploymentId);}}
       ]
     );
     return true;
@@ -15589,9 +15457,11 @@ function App() {
     const nextWebsite = buildWebsiteDraft({
       brandBrain,
       previousDraft: websiteDraft,
+      businessId:cloudWorkspace?.businessId||"",
       businessCreationIntelligence,
     });
-    setWebsiteDraft(nextWebsite);
+    if(websiteDraft){if(!commitReviewedBuilderDraft(websiteDraft,nextWebsite,"Prepared shared business details."))return false;}
+    else{websiteDraftRef.current=nextWebsite;setWebsiteDraft(nextWebsite);}
     setMiniAppBuildBrief(
       businessCreationBrief ||
         "Refresh the Business App using the latest approved shared business profile."
@@ -15628,10 +15498,12 @@ function App() {
       const nextWebsite = buildWebsiteDraft({
         brandBrain,
         previousDraft: websiteDraft,
+      businessId:cloudWorkspace?.businessId||"",
         businessCreationIntelligence,
       });
-      setWebsiteDraft(nextWebsite);
-      websiteOk = true;
+      if(websiteDraft){websiteOk=commitReviewedBuilderDraft(websiteDraft,nextWebsite,"Prepared shared business details.");}
+      else{websiteDraftRef.current=nextWebsite;setWebsiteDraft(nextWebsite);websiteOk=true;}
+      if(!websiteOk)throw Error("The website changed or contains protected owner content. Review it before preparing the journey.");
 
       setSocialBrief(brief);
       setSocialSourceContext({

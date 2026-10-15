@@ -69,7 +69,7 @@ check(route.includes('return json(429,')&&route.includes('dailyLimit:12'),
  "Clear daily use budget and exhaustion");
 check(!route.includes("routeOperator(")&&route.includes("command:null"),
  "Selected voice is transcription-only");
-const controller=read("src/app/AppController.js");
+const controller=read("src/app/AppController.js")+read("src/core/websiteVoiceActions.mjs");
 check(controller.includes('voiceUploadEligible(Number(file.size||0))')&&
  controller.includes('selectedWebsiteVoiceContextIsCurrent(websiteDraftRef.current,selection)'),
  "Client volume and stale selection checks");

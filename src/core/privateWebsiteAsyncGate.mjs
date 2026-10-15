@@ -10,7 +10,7 @@ function createPrivateWebsiteAsyncGate(){
  function begin(lane,reviewed,context=reviewed){
   setContext(context);
   if(!sameSource(reviewed,context))return null;
-  if(!['visual','media','language','voice','export','status','hosting','preview','request'].includes(lane)||!context?.ownerId||!context.businessId||active.has(lane))return null;
+  if(!['visual','media','language','voice','export','status','hosting','preview','request','snapshot'].includes(lane)||!context?.ownerId||!context.businessId||active.has(lane))return null;
   const draft=context.draft;
   if(draft&&(draft.businessId&&draft.businessId!==context.businessId||draft.business_id&&draft.business_id!==context.businessId))return null;
   const token={lane,epoch,principal,context:{...context}};active.set(lane,token);return token;

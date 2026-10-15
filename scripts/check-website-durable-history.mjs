@@ -4,7 +4,7 @@ import {createWebsiteDraftHistory} from '../src/core/websiteDraftHistory.mjs';
 import {websiteBuilderTestHarnessV3222 as harness} from './lib/website-builder-test-harness-v3222.mjs';
 import {makeWebsiteRecoveryPoint,restoreWebsiteRecoveryPoint} from '../src/core/websiteRecoveryPoint.mjs';
 const {buildWebsiteDraft,rebuildPrivateWebsiteDraft}=harness(['buildWebsiteDraft','rebuildPrivateWebsiteDraft']);
-const before=buildWebsiteDraft({brandBrain:{websiteBrief:{businessName:'Fixture',description:'Owner text'}}});
+const before=buildWebsiteDraft({businessId:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',brandBrain:{websiteBrief:{businessName:'Fixture',description:'Owner text'}}});
 const draft=rebuildPrivateWebsiteDraft(before),scope={ownerId:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',businessId:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',websiteId:draft.id};
 const data=new Map(),storage={getItemAsync:async k=>data.get(k),setItemAsync:async(k,v)=>data.set(k,v)};
 const store=checkpoint(storage,scope,{now:()=>1000});

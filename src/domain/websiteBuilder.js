@@ -167,7 +167,7 @@ function buildSections(brief = {}) {
   return sections;
 }
 
-function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCreationIntelligence = null } = {}) {
+function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCreationIntelligence = null, businessId = "" } = {}) {
   const brief = brandBrain.websiteBrief || {};
   const now = new Date().toISOString();
   // Rebuilding factual Brand Brain content must never discard owner-created
@@ -257,8 +257,10 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
     : themeFromBrief(brief);
   const draft = {
     id: previousDraft?.id || `website-${Date.now()}`,
+    ...((previousDraft?.businessId||businessId)?{businessId:previousDraft?.businessId||businessId}:{}),
+    ...(previousDraft?.business_id?{business_id:previousDraft.business_id}:{}),
     status: "Draft",
-    publicStatus: "Not published",
+    publicStatus: previousDraft?.publicStatus || "Not published",
     businessName: clean(brief.businessName),
     brandLabel: clean(brief.logoLabel).slice(0, 100) || clean(brief.businessName),
     businessType: clean(brief.businessType),

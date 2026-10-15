@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {bindWebsiteDraftScope as bind,websiteDraftHasScope as bound} from '../src/core/websiteDraftScope.mjs';
+import {createWebsiteHistoryCheckpoint as checkpoint} from '../src/core/websiteHistoryCheckpoint.mjs';
+import {checkPrivateWebsiteDraftCommit as check} from '../src/core/privateWebsiteDraftCommit.mjs';
+import {websiteBuilderTestHarnessV3222 as harness} from './lib/website-builder-test-harness-v3222.mjs';
+const {buildWebsiteDraft:build,applyWebsiteInstruction:edit}=harness(['buildWebsiteDraft','applyWebsiteInstruction']);
+const businessId='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',legacy=build({brandBrain:{websiteBrief:{businessName:'Fixture'}}});
+assert.equal(bound(legacy,businessId),false);const current=bind(legacy,businessId);assert.equal(bound(current,businessId),true);assert.throws(()=>bind({...current,business_id:'foreign'},businessId),/another/);
+const publicDraft={...current,publicStatus:'Published independently'};const regenerated=build({brandBrain:{websiteBrief:{businessName:'Fixture'}},previousDraft:publicDraft,businessId});assert.equal(regenerated.businessId,businessId);assert.equal(regenerated.publicStatus,publicDraft.publicStatus);
+const edited=edit(current,'make it warmer');assert.equal(edited.applied,true);assert.equal(check({current,candidate:edited.draft,live:current,scopeCurrent:true,businessId}).applied,true);
+const unbound={...edited.draft};delete unbound.businessId;assert.equal(check({current,candidate:unbound,live:current,scopeCurrent:true,businessId}).applied,false);
+let writes=0;await assert.rejects(()=>checkpoint({setItemAsync:async()=>writes++},{ownerId:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',businessId,websiteId:legacy.id}).save(legacy,{undo:[],redo:[],point:null}),/current business/);assert.equal(writes,0);
+console.log('PASS: authenticated website provenance, foreign alias rejection, unbound-cache editing/persistence rejection and preserved public status across real regeneration.');

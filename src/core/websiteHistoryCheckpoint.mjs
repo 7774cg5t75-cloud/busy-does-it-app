@@ -1,4 +1,5 @@
 import {enqueuePrivateCheckpoint} from './privateCheckpointQueue.mjs';
+import {websiteDraftHasScope} from './websiteDraftScope.mjs';
 const UUID=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 const MAX=60000,AGE=7*24*60*60*1000;
 // HTML is derived by the original renderer, never executable recovery authority.
@@ -9,7 +10,7 @@ function websiteHistoryCheckpointKey(s={}){
   `busy_website_history_v1_${identity(s).join('_')}`:'';
 }
 function validDraft(d,s){return d?.id===s.websiteId&&Number.isSafeInteger(d.generation)&&d.generation>=1&&Array.isArray(d.sections)&&
- ![d.businessId,d.business_id].some(id=>id&&id!==s.businessId);}
+ websiteDraftHasScope(d,s.businessId);}
 function createWebsiteHistoryCheckpoint(storage,scope,{now=Date.now}={}){
  const key=websiteHistoryCheckpointKey(scope);
  return {

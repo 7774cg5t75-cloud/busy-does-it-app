@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {parse} from '@babel/parser';
 import {createPrivateWebsiteAsyncGate} from '../src/core/privateWebsiteAsyncGate.mjs';
-const source=readFileSync('src/app/AppController.js','utf8'),ast=parse(source,{sourceType:'module',plugins:['jsx']}),functions={};
+const source=readFileSync('src/app/AppController.js','utf8').replace('import {createWebsiteVoiceActions} from "../core/websiteVoiceActions.mjs";','')+'\n'+readFileSync('src/core/websiteVoiceActions.mjs','utf8'),ast=parse(source,{sourceType:'module',plugins:['jsx']}),functions={};
 function walk(n){if(!n||typeof n!=='object')return;if(n.type==='VariableDeclarator'&&n.id?.name&&n.init?.type==='ArrowFunctionExpression')functions[n.id.name]=source.slice(n.init.start,n.init.end);for(const[k,v]of Object.entries(n))if(!['loc','start','end'].includes(k)){if(Array.isArray(v))v.forEach(walk);else if(v&&typeof v==='object')walk(v);}}
 walk(ast);const compile=(name,env)=>Function(...Object.keys(env),'return '+functions[name])(...Object.values(env));
 const draft={id:'site',generation:3,pages:[{id:'home'}]},initial={ownerId:'a',businessId:'b',draft,deploymentId:'d',draftChangedSinceHosted:false};
