@@ -2481,6 +2481,10 @@ function MiniAppBuilder({ s }) {
                 }}/>
             </>
           ):null}
+          {!studio.recoveryReady?<Text style={styles.cardBody}>Checking your encrypted private Studio checkpoint…</Text>:null}
+          {studio.recoveryError?<Text style={styles.cardBody}>{studio.recoveryError}</Text>:null}
+          {studio.interrupted?<Button label="Refresh current private app" disabled={!!s.miniAppsAction}
+            onPress={()=>s.refreshMiniAppsStatus?.()}/>:null}
           {studioNotice?<Text style={styles.cardBody}>{studioNotice}</Text>:null}
           {studioPreview?.ok&&studioIsCurrent?(
             <>
