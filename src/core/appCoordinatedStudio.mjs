@@ -1,3 +1,4 @@
+import {appEditLockReason} from "./appOwnerLocks.mjs";
 /**
  * V3.157 — finite, reversible, atomic private Business App editing plan.
  * This module is shared byte-for-byte between the client and the trusted edge.
@@ -23,6 +24,8 @@ function proposeCoordinatedAppChanges(config,operations){
   if(!op||typeof op!=="object"||Array.isArray(op)||
      Object.keys(op).some(k=>!["kind","field","value","moduleKey","direction","index","from","to","expectedUri"].includes(k)))
    return {ok:false,reason:"Unknown edit data was rejected."};
+  const locked=appEditLockReason(next,op);
+  if(locked)return {ok:false,reason:locked};
   let undo=null,after=null,description="";
   if(op.kind==="appearance"){
    const edit=previewPrivateAppAppearance(next,{field:op.field,value:op.value});

@@ -13,6 +13,13 @@ Product preflight: supplied Word Master V22.18 (all 53 sections), current V3.240
 - Verification: new transport-injected session tests pass; inherited V3.157 Studio, V3.160 design, V3.240 intelligence and native/Edge syntax checks pass. No hosted JWT/device execution, deployment, migrations, provider calls or paid builds. Child-process EPERM remains an environment restriction.
 
 
+### Sweep 2 — task-led, owner-respecting design and explicit-width previews
+
+- Existing `reviewAppGoalDesignV3240` now reuses `proposeTaskFirstNavigation`: a configured booking/enquiry goal can be brought earlier while preserving business identity first. At most three coordinated operations are proposed. Missing/fallback capabilities receive setup guidance instead of decorative changes that imply availability.
+- Original `presentation.ownerLockedElements` metadata is validated and enforced by the client and byte-identical Edge editor, including direct appearance and coordinated content/order operations. Goal recommendations skip locked options. This closes the previous gap where the shared design directions acknowledged locks but the original appearance editor rejected that metadata or coordinated order edits ignored it.
+- `AppStudioComparison` extracts the original comparison from the oversized builder screen and renders the same marketplace component at selectable 320/390/820-point widths with original/proposed controls. Wider frames scroll rather than pretending to be physical tablet screenshots. The standalone engine retains identical responsive rules.
+- Verification: new task/lock/parity tests pass, plus V3.157, V3.160, V3.163, V3.240, the V3.240 structural audit and native/Edge syntax. Two historical UI-marker tests now follow the explicitly imported comparison component; their original assertions remain. Device usability and hosted authorisation remain unverified.
+
 ## V3.240 — contextual App Builder design intelligence, shared Brand DNA and safe responsive reuse
 
 **Master-first checkpoint:** Retains owner-approved V22.17 context-aware visual agent, V22.18 Business Brain priorities, V3.239 private website multiview measurements, and the permanent principles of one reusable builder engine, tenant isolation, owner approval and verified customer outcomes.

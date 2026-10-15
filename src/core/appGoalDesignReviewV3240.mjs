@@ -5,7 +5,9 @@
  */
 import {evaluateResponsiveApp,recommendResponsiveDesign}
  from "./appResponsiveDesign.mjs";
-import {taskReadiness} from "./appCustomerTaskDesign.mjs";
+import {appEditLockReason} from "./appOwnerLocks.mjs";
+import {proposeCoordinatedAppChanges} from "./appCoordinatedStudio.mjs";
+import {taskReadiness,proposeTaskFirstNavigation} from "./appCustomerTaskDesign.mjs";
 import {prepareAppVisualBatch} from "./appVisualComparison.mjs";
 import {buildBusinessBrandDnaSnapshot} from "./businessBrandDnaV3195.mjs";
 import {enabledAppKeys} from "./appSectionOrder.mjs";
@@ -28,12 +30,19 @@ function reviewAppGoalDesignV3240({
  const before=evaluateResponsiveApp(config);
  if(!task.ok||!guidance.ok||!before.ok)
   return fail("Current customer action or responsive design is not ready for review.");
- const suggested=guidance.suggestions.slice(0,3).map(x=>({
+ const taskBlocked=task.status==="setup_needed"||task.status==="limited_fallback_unverified";
+ const nav=taskBlocked?null:proposeTaskFirstNavigation(config,goal);
+ const navigation=nav?.preview?.operations||[];
+ const allowed=guidance.suggestions.filter(x=>!appEditLockReason(config,
+  {kind:"appearance",field:x.field}));
+ const suggested=taskBlocked?[]:allowed.slice(0,3-navigation.length).map(x=>({
   kind:"appearance",field:x.field,value:x.value}));
  let batch=null,after=null;
- if(suggested.length){
-  batch=prepareAppVisualBatch(config,suggested);
-  if(!batch.ok)return fail("Supported design alternatives need review.");
+ if(suggested.length||navigation.length){
+  const appearance=suggested.length?prepareAppVisualBatch(config,suggested):null;
+  if(appearance&&!appearance.ok)return fail("Supported design alternatives need review.");
+  batch=proposeCoordinatedAppChanges(config,[...navigation,...(appearance?.operations||[])]);
+  if(!batch.ok)return fail(batch.reason);
   after=evaluateResponsiveApp(batch.nextConfig);
   if(!after.ok)return fail("The proposed design could not be checked across screen sizes.");
  }
@@ -77,13 +86,14 @@ function reviewAppGoalDesignV3240({
   hasNewAdvisories?
    "Compare the proposed design carefully: a static screen-width advisory was introduced.":
   operations.length?
+   navigation.length?"Review an alternative that makes the requested customer action easier to find, alongside compatible layout changes. This does not verify task completion.":
    "Review the coordinated layout alternative. It is a static prediction, not a demonstrated visual improvement.":
    "The existing responsive rules found no supported design change worth proposing.";
  return {ok:true,kind:"private_app_goal_design_review_v3240",
   businessId,source:{appId:app.id,revision:app.draft_revision,
    websiteId:snapshot?.ok?website.id:null,
    websiteRevision:snapshot?.ok?website.generation:null},
-  goal,task:{status:task.status,module:task.targetModule||null,
+  goal,taskNavigationProposed:navigation.length>0,ownerLockedChoicesSkipped:guidance.suggestions.length-allowed.length,task:{status:task.status,module:task.targetModule||null,
    position:task.sectionPosition,cautionCount:task.cautions.length,
    actionVerified:false,needsSetup:blocked},
   brand,comparison:original,
@@ -92,7 +102,7 @@ function reviewAppGoalDesignV3240({
   potentialNewStaticAdvisories:hasNewAdvisories,
   onlyExistingSupportedFields:true,
   protectedCustomerContent:true,
-  visualTradeoffs:guidance.suggestions.slice(0,3).map(x=>({
+  visualTradeoffs:allowed.filter(x=>suggested.some(op=>op.field===x.field)).map(x=>({
    field:x.field,why:x.reason,tradeoff:x.tradeoff})),
   recommendation,ownerApprovalRequired:true,
   planningOnly:true,noNativeScreenshots:true,noWebsiteScreenshots:true,

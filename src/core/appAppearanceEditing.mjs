@@ -1,3 +1,4 @@
+import {appOwnerLocks,appEditLockReason} from "./appOwnerLocks.mjs";
 /** V3.193 owner-controlled Business App appearance. Exact same code on
  * client and trusted Edge; acceptance and save use the same security rules. */
 const OPTIONS=Object.freeze({
@@ -24,13 +25,15 @@ function previewPrivateAppAppearance(config,{field,value}={}){
  if(!config||typeof config!=="object"||Array.isArray(config)||
    !Array.isArray(config.modules))
   return {ok:false,reason:"Choose a current Business App draft."};
+ const locked=appEditLockReason(config,{kind:"appearance",field});
+ if(locked)return {ok:false,reason:locked};
  const isBrand=field==="brandAccent";
  if(isBrand?typeof value!=="string"||!HEX.test(value):
     !owned(OPTIONS,field)||!OPTIONS[field].includes(value)||
      field==="brandPalette"&&value==="custom")
   return {ok:false,reason:"Choose a supported palette, or enter your brand colour as #RRGGBB."};
  const current={...DEFAULTS,...config.presentation};
- if(Object.keys(current).some(key=>key==="brandAccent"?
+ if(!appOwnerLocks(config).ok||Object.keys(current).some(key=>key==="ownerLockedElements"?false:key==="brandAccent"?
       typeof current[key]!=="string"||!HEX.test(current[key]):
       !owned(OPTIONS,key)||!OPTIONS[key].includes(current[key]))||
     current.brandPalette==="custom"&&!HEX.test(current.brandAccent||""))

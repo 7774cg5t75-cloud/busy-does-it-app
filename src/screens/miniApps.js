@@ -12,6 +12,7 @@ import { buildAppDistributionPlan,buildStandalonePrivateHandoff } from "../core/
 import { planFunctionalBusinessApp } from "../core/appExperiencePlanner.mjs";
 import { previewPrivateAppAppearance,OPTIONS as appAppearanceOptions } from "../core/appAppearanceEditing.mjs";
 import {nativePalette,LABELS as nativePaletteLabels} from "../core/nativePalette.mjs";
+import {AppStudioComparison} from "./appStudioComparison";
 import {BusinessBrandDnaPreview} from "./businessBrandDnaPreview";
 import {UniversalBuilderPlanReview} from "./universalBuilderPlanReview";
 import {WebsiteToAppDesignTransfer} from "./websiteToAppDesignTransfer";
@@ -28,7 +29,7 @@ import {reviewAppGoalDesignV3240} from "../core/appGoalDesignReviewV3240.mjs";
 import {auditBusinessAppUsability,compareBusinessAppDesign} from "../core/appUsabilityAudit.mjs";
 import {responsiveAppLayout,recommendResponsiveDesign}
   from "../core/appResponsiveDesign.mjs";
-import {evaluateAppAcrossScreens,compareAppScreenQuality}
+import {evaluateAppAcrossScreens}
   from "../core/appResponsiveQuality.mjs";
 import {prepareAppDesignIteration,inspectApprovedAppIteration,proposeLowRiskDesignHints}
   from "../core/appDesignIteration.mjs";
@@ -840,7 +841,6 @@ function MiniAppBuilder({ s }) {
   const [brainOwnerHistory,setBrainOwnerHistory]=React.useState(null);
   const [brainOwnerNotice,setBrainOwnerNotice]=React.useState("");
   const [brainOwnerBusy,setBrainOwnerBusy]=React.useState(false);
-  const [studioComparisonSide,setStudioComparisonSide]=React.useState("proposed");
   const [showResponsiveDetails,setShowResponsiveDetails]=React.useState(false);
   const [studioNotice,setStudioNotice]=React.useState("");
   const [studioCopyField,setStudioCopyField]=React.useState("tagline");
@@ -861,7 +861,6 @@ function MiniAppBuilder({ s }) {
   const setStudioPreview=proposal=>{
     setStudioSaveUncertain(false);
     setStudioPreviewState(proposal?bindPrivateAppProposal(proposal,studioContext):null);
-    setStudioComparisonSide("proposed");
   };
   const studioIsCurrent=currentPrivateAppProposal(studioPreview,studioContext);
   const studioAsyncScope=React.useRef("");
@@ -2498,66 +2497,9 @@ function MiniAppBuilder({ s }) {
                   {"Kept unchanged: "+studioPreview.preserved.join("; ")}
                 </Text>
               ):null}
-              {(()=>{
-                const beforeAfter=compareBusinessAppDesign(view.draftConfig,
-                  studioPreview.nextConfig);
-                return beforeAfter.ok?(
-                  <>
-                    <Text style={styles.sectionLabel}>Before and after comparison</Text>
-                    <Text style={styles.cardBody}>
-                      {beforeAfter.changeCount+" layout / navigation differences recorded. "+
-                        (beforeAfter.designOnly?"Only design settings changed.":
-                         "Public content or modules also changed; review everything.")}
-                    </Text>
-                    {beforeAfter.changes.slice(0,8).map(change=>(
-                      <MetricRow key={change.field} left={change.label}
-                        right={String(change.from)+" → "+String(change.to)}/>
-                    ))}
-                    {beforeAfter.designOnly?(()=>{
-                      const checked=compareAppScreenQuality(
-                        view.draftConfig,studioPreview.nextConfig);
-                      return checked.ok?(
-                        <>
-                          <Text style={styles.sectionLabel}>
-                            What would change across screen sizes?
-                          </Text>
-                          {checked.widths.map(sample=>(
-                            <View key={"quality-diff-"+sample.id}
-                              style={{marginBottom:9}}>
-                              <MetricRow left={sample.id.replaceAll("_"," ")+" ("+
-                                sample.assumedContentWidth+" pt)"}
-                                right={sample.differences.length?
-                                  sample.differences.length+" predicted layout change(s)":
-                                  "No layout-rule difference"}/>
-                              {sample.differences.map(d=>(
-                                <Text key={"change-"+d.feature}
-                                  style={styles.cardBody}>
-                                  {d.feature+": "+d.before+" → "+d.after}
-                                </Text>
-                              ))}
-                            </View>
-                          ))}
-                          <Text style={styles.cardBody}>
-                            Rules compare the proposed configurations at three
-                            sample widths. No extra AI request, screenshot test
-                            or automatic app change was performed.
-                          </Text>
-                        </>
-                      ):null;
-                    })():null}
-                    <Button label={studioComparisonSide==="original"?"✓ Original design":"Show original design"}
-                      onPress={()=>setStudioComparisonSide("original")}/>
-                    <Button label={studioComparisonSide==="proposed"?"✓ Proposed design":"Show proposed design"}
-                      onPress={()=>setStudioComparisonSide("proposed")}/>
-                    <MiniAppSurface config={studioComparisonSide==="original"?
-                      view.draftConfig:studioPreview.nextConfig}/>
-                    <Text style={styles.cardBody}>
-                      These are two actual app components rendered in the private editor.
-                      No automated screenshot comparison or device accessibility test is implied.
-                    </Text>
-                  </>
-                ):<Text style={styles.cardBody}>{beforeAfter.reason}</Text>;
-              })()}
+              <AppStudioComparison key={studioPreview.source.configStamp+":"+JSON.stringify(studioPreview.operations)}
+                original={view.draftConfig} proposed={studioPreview.nextConfig}
+                renderSurface={config=><MiniAppSurface config={config}/>}/>
               <Button primary label={"Approve all "+studioPreview.changes.length+" private change(s)"}
                 disabled={!!s.miniAppsAction||studioSaveUncertain||!studioIsCurrent}
                 onPress={async()=>{

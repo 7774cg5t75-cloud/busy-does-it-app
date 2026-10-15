@@ -69,7 +69,10 @@ assert.equal(read("src/core/appCoordinatedStudio.mjs"),
  read("supabase/functions/busy-mini-apps/appCoordinatedStudio.mjs"));
 assert.equal(read("src/core/appVisualReviewContract.mjs"),
  read("supabase/functions/busy-mini-apps/appVisualReviewContract.mjs"));
-const ui=read("src/screens/miniApps.js");
+const builder=read("src/screens/miniApps.js");
+assert.ok(builder.includes('import {AppStudioComparison} from "./appStudioComparison"'));
+assert.ok(builder.includes("<AppStudioComparison"));
+const ui=builder+read("src/screens/appStudioComparison.js");
 for(const str of ["auditBusinessAppUsability","compareBusinessAppDesign",
  "Before and after comparison","Show original design","Show proposed design",
  "Show suggested design","Accessible app checklist","galleryLayout",
