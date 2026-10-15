@@ -21,7 +21,7 @@ assert.equal(progress(state,{...context,mode:'full'}).mayKeep,false);
 for(const field of ['sections','headings','images']){
  const hidden=metric('tablet');hidden.counts[field]=1;
  const replaced=record(state,{businessId,website,pageId:'home',candidateId:candidate.id,baseGeneration:3,mode:'tablet',variant:'candidate',report:hidden});
- assert.ok(replaced.ok);r=progress(replaced.state,context);assert.equal(r.hasRegressions,true);assert.equal(r.mayKeep,false);
+ assert.ok(replaced.ok);r=progress(replaced.state,context);assert.equal(r.hasRegressions,true);assert.equal(r.mayKeep,false);assert.equal(r.review.eligibleForOwnerReview,false);
 }
 const corrupt=structuredClone(state);corrupt.records.tablet.original.counts.viewport=390;
 assert.equal(review(corrupt,{businessId,website,pageId:'home',candidateId:candidate.id,baseGeneration:3}).ok,false);

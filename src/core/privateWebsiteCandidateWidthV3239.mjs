@@ -124,7 +124,7 @@ function reviewPrivateWebsiteCandidateWidthsV3239(state,{businessId,website,
   businessId,websiteId:website.id,revision:website.generation,pageId,
   candidateId,checked,incomplete,
   complete:incomplete.length===0,hasRegressions,
-  eligibleForOwnerReview:allWidthReview?.eligibleForOwnerReview===true,
+  eligibleForOwnerReview:!hasRegressions&&allWidthReview?.eligibleForOwnerReview===true,
   allWidthReview,
   summary:hasRegressions?
    "At least one checked screen became worse. Keep your original design.":
