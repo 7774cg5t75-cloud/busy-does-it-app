@@ -12,6 +12,15 @@
 | `AGENTS.md` | Standing instructions for Codex work in this repository | Automatically applicable when this file is present on the working branch. |
 | `docs/CODEX_PRODUCT_BRIEF.md` | Public, abbreviated orientation | Accessible in Git; **not** a replacement for the complete Word master. |
 
+### Latest owner-approved product master — V22.22 (15 October 2026)
+
+- **Owner-approved addition:** qualified B2B prospect discovery and safe, optional owner-controlled outreach integrated into `Get More Customers`, with company/source checks, channel-specific permission gates, UK GDPR/PECR safeguards, authenticated sending, suppression, honest replies-to-CRM/booking and measured business outcomes. Explee AI is inspiration, not an approved integration or validated results source.
+- **Private Word file:** `Busy_Does_It_Master_V22_22_Qualified_Leads_and_Safe_Outreach.docx` (uploaded successfully to the private ChatGPT Library under `/Busy_Does_It_Master_V22_22_Qualified_Leads_and_Safe_Outreach.docx`).
+- **SHA-256 (original generated DOCX):** `6688f7ee5f26ea798bfcfa69459d02f1910a6b077d6abf724db2fc5f2abeb6b4`.
+- **Source/preservation:** built from checksum-verified V22.21; 19 tables and prior product decisions retained, 14 paragraphs added within Section 42, structurally validated and rendered across 87 pages; key added pages visually reviewed. New product scope only; *no implemented automated outreach, provider sends, real customers, live booking confirmation, new app code or deployment*.
+- **GitHub counterpart:** this branch's `ARCHITECTURE.md`, "Permanent architecture decision — qualified prospect discovery and safe outreach", reusing the existing marketing, CRM, Work/calendar, security/consent and end-to-end outcome evidence contracts.
+- **Codex access:** private Library storage does not guarantee access in a new Codex thread. Attach V22.22 or verify separately granted read access before planning substantial implementation.
+
 ### Latest owner-approved product master — V22.21 (15 October 2026)
 
 - **Owner-approved permanent goal:** BUSY must support both website-creation and owner-authorised, subscription-based improvements to a customer's **existing external website**. It should preserve existing site, hosting and domain where appropriate, offer compatible everyday edits without an agency-style per-change fee, and explain unsupported/locked providers honestly.
