@@ -1,3 +1,4 @@
+import {AppBusinessFactRefresh} from "./appBusinessFactRefresh";
 import {useOwnerDesignMemory} from "./useOwnerDesignMemory";
 import React from "react";
 import { Image, Text, View, Dimensions, Platform, Alert, useWindowDimensions, ScrollView, PixelRatio } from "react-native";
@@ -843,6 +844,7 @@ function MiniAppBuilder({ s }) {
   const [showResponsiveDetails,setShowResponsiveDetails]=React.useState(false);
   const [studioCopyField,setStudioCopyField]=React.useState("tagline");
   const [studioCopy,setStudioCopy]=React.useState("");
+  const [showFactRefresh,setShowFactRefresh]=React.useState(false);
   const [photoFrom,setPhotoFrom]=React.useState("1");
   const [photoTo,setPhotoTo]=React.useState("2");
   const [studioVoiceOpen,setStudioVoiceOpen]=React.useState(false);
@@ -1523,12 +1525,18 @@ function MiniAppBuilder({ s }) {
             s.miniAppsAction === "build"
               ? "Refreshing business facts…"
               : app
-              ? "Refresh draft from Business Brain facts"
+              ? "Review saved business fact updates"
               : "Quick-build from Business Brain facts"
           }
           disabled={!!s.miniAppsAction}
-          onPress={s.buildMiniAppFromBrandBrain}
+          onPress={()=>app?setShowFactRefresh(value=>!value):s.buildMiniAppFromBrandBrain()}
         />
+        {app&&showFactRefresh?(<>
+          <AppBusinessFactRefresh key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision,s.miniAppsStatus?.publicProfile?.revision].join(":")}
+            businessId={s.cloudWorkspace?.businessId||""} app={app}
+            profileRecord={s.miniAppsStatus?.publicProfile} busy={!!s.miniAppsAction||studio.pending}
+            onPreview={setStudioPreview} onNotice={setStudioNotice}/>
+        </>):null}
         {view.activeConfig ? (
           <Button label="Preview Business App" onPress={s.openMiniAppPreview} />
         ) : null}
