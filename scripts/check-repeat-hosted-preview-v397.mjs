@@ -56,8 +56,8 @@ includes(viewer,'onPress={s.back}');
 
 // Confirm the server-authorised, exact-deployment HTML read and separate Go Live
 // review still protect repeatedly opened previews.
-includes(app,'const result = await websitePublishingRequest("preview_url", { deploymentId });');
-includes(app,'const html = await readPrivateHostedPreviewHtml(result.previewUrl, deploymentId);');
+includes(app,'const result = await websiteTaskAwait(task,async()=>(websitePublishingRequest("preview_url", { deploymentId })));');
+includes(app,'const html = await websiteTaskAwait(task,async()=>(readPrivateHostedPreviewHtml(result.previewUrl, deploymentId)));');
 includes(app,'setWebsitePreviewOpenedId(deploymentId);');
 includes(app,'go("hostedWebsitePreview");');
 includes(core,'signedPreviewPath(');

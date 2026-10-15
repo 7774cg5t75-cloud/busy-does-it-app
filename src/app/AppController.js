@@ -12842,7 +12842,8 @@ function App() {
           brandBrain,
           previousDraft: websiteDraft,
         });
-        setWebsiteDraft(nextDraft);
+        if(websiteDraft){if(!commitReviewedBuilderDraft(websiteDraft,nextDraft,"Prepared a private website revision."))return false;}
+        else{websiteDraftRef.current=nextDraft;setWebsiteDraft(nextDraft);}
         setWebsiteBuilderNotice(
           brandBrain.websiteReady
             ? "BUSY built the website draft from the recorded Brand Brain."
@@ -13231,6 +13232,13 @@ function App() {
 
   const websiteTaskContext=()=>({...websiteAsyncContextRef.current,draft:websiteDraftRef.current});
   const websiteTaskCurrent=task=>websiteAsyncGateRef.current.current(task,websiteTaskContext());
+  const websiteTaskSourceCurrent=task=>websiteAsyncGateRef.current.sourceCurrent(task,websiteTaskContext());
+  const websiteTaskAwait=async(task,work)=>{
+    if(!websiteTaskCurrent(task))throw Error("The website workspace changed. Nothing further was sent.");
+    const result=await work();
+    if(!websiteTaskCurrent(task))throw Error("The website changed while this operation was running. Its result was not applied.");
+    return result;
+  };
   const websiteBeginTask=lane=>websiteAsyncGateRef.current.begin(lane,{
     ...websiteHistoryScope,draft:websiteDraft,deploymentId:websitePublishingView?.previewDeployment?.id||"",
     draftChangedSinceHosted:websitePublishingView?.draftChangedSinceHosted===true
@@ -13645,6 +13653,8 @@ function App() {
   // no mutation. Returned model words are ALWAYS replanned locally against
   // this precise page and draft generation before they can be previewed.
   const interpretWebsitePageLanguage=async({pageId,generation,instruction,conversationContext}={})=>{
+    const task=websiteBeginTask("language");if(!task)return {ok:false,reason:"The website changed. Review your latest draft."};
+    try{
     const current=websiteDraftRef.current;
     const stillCurrent=()=>{
       const now=websiteDraftRef.current;
@@ -13655,7 +13665,7 @@ function App() {
        !instruction.trim()||instruction.length>400)
       return {ok:false,reason:"Select a current page and a short description of your changes."};
     const workspace=cloudWorkspace?.businessId||"";
-    const token=await ownerAccessToken();
+    const token=await websiteTaskAwait(task,async()=>(ownerAccessToken()));
     if(!workspace||!token)return {ok:false,reason:"Sign in to your business to use AI interpretation."};
     if(!stillCurrent())return {ok:false,reason:"Your website changed. No AI request was sent."};
     const sectionIds=current.pages.find(p=>p.id===pageId)?.sectionIds||[];
@@ -13670,14 +13680,14 @@ function App() {
     const preserve={keepColours:conversationContext?.keepColours===true,
       keepPhotos:conversationContext?.keepPhotos===true};
     try{
-      const response=await fetchWithTimeout(BUSY_COMMAND_URL,{
+      const response=await websiteTaskAwait(task,async()=>(fetchWithTimeout(BUSY_COMMAND_URL,{
         method:"POST",headers:{apikey:BUSY_AI_TOKEN,Authorization:`Bearer ${token}`,
           "Content-Type":"application/json",
           "x-busy-request-id":busyRequestId("website-page-intent")},
         body:JSON.stringify({mode:"website-page-intent-v1",ownerConsent:true,
           businessId:workspace,sections,text:instruction,history,preserve})
-      },30000);
-      const data=await response.json().catch(()=>({}));
+      },30000)));
+      const data=await websiteTaskAwait(task,async()=>(response.json().catch(()=>({}))));
       if(!response.ok)throw Error(String(data.error||"Language interpretation unavailable."));
       if(data.mode!=="website-page-intent-v1"||data.requiresReview!==true||
          data.action!==null||data.command!==null||data.changesApplied!==false)
@@ -13693,9 +13703,11 @@ function App() {
       return {ok:true,canonical,steps:checked.steps.length,
         reason:"BUSY interpreted "+checked.steps.length+" safe change(s). Check the wording and preview before applying. Nothing was saved.",
         chargedRequest:true};
-    }catch(error){
+    }catch(error){if(!websiteTaskCurrent(task))return {ok:false,reason:"The website changed. Review your latest draft."};
       return {ok:false,reason:String(error?.message||"BUSY could not interpret that request. No changes were made.").slice(0,250)};
     }
+  
+    }catch{return {ok:false,reason:"The website operation could not complete. Review your current draft before retrying."};}finally{websiteAsyncGateRef.current.finish(task);}
   };
 
   const applyWebsitePageInstruction = ({pageId,generation,instruction}={}) => {
@@ -13720,25 +13732,27 @@ function App() {
   // endpoint, never its command router. The owner reviews words locally before
   // applying a scoped instruction via the existing private Undo/Redo pipeline.
   const transcribeSelectedWebsiteAudio = async (audioUri, selection) => {
+    const task=websiteBeginTask("voice");if(!task)return {ok:false,error:"The website changed. Select it again."};
+    try{
     const selectionIsCurrent=()=>selectedWebsiteVoiceContextIsCurrent(websiteDraftRef.current,selection);
     if(!selectionIsCurrent())return {ok:false,error:"Your website changed. Tap the part you want to edit again."};
     try{
       const file=new ExpoFile(String(audioUri||""));
       if(!file.exists||!voiceUploadEligible(Number(file.size||0)))
         return {ok:false,error:"This recording exceeds the 9 MB upload allowance or is empty. No audio was sent. Record a shorter instruction."};
-      const token=await ownerAccessToken();
+      const token=await websiteTaskAwait(task,async()=>(ownerAccessToken()));
       if(!token)return {ok:false,error:"Sign in again before using voice editing."};
       if(!selectionIsCurrent())return {ok:false,error:"The selected website part changed. Tap it again."};
       const form=new FormData();
       form.append("mode","website-selection-transcript-v1");
       form.append("audio",file,`busy-selected-website-${Date.now()}.m4a`);
-      const response=await fetchWithTimeout(BUSY_COMMAND_URL,{
+      const response=await websiteTaskAwait(task,async()=>(fetchWithTimeout(BUSY_COMMAND_URL,{
         method:"POST",
         headers:{apikey:BUSY_AI_TOKEN,Authorization:`Bearer ${token}`,
           "x-busy-request-id":busyRequestId("website-selected-transcript")},
         body:form
-      },45000,expoFetch);
-      const payload=await response.json().catch(()=>({}));
+      },45000,expoFetch)));
+      const payload=await websiteTaskAwait(task,async()=>(response.json().catch(()=>({}))));
       if(!response.ok)throw Error(String(payload?.error||"Voice transcription is not available."));
       if(payload?.mode!=="website-selection-transcript-v1"||
          payload.requiresReview!==true||payload.command!==null||payload.action!==null||
@@ -13750,15 +13764,19 @@ function App() {
         usage.remaining<=12?usage.remaining:null;
       return {ok:true,transcript:String(payload.transcript).trim().slice(0,400),
         remaining,dailyLimit:12};
-    }catch(error){
+    }catch(error){if(!websiteTaskCurrent(task))return {ok:false,error:"The website changed. Select it again."};
       return {ok:false,error:String(error?.message||"Voice transcription failed. Your website was not changed.").slice(0,240)};
     }
+  
+    }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
   // V3.150: the same bounded transcription provider, but with an exact
   // page/revision scope instead of requiring a previously tapped element.
   // Audio is never interpreted as an executable command by the service.
   const transcribeWebsitePageAudio=async(audioUri,scope)=>{
+    const task=websiteBeginTask("voice");if(!task)return {ok:false,error:"The website changed. Select it again."};
+    try{
     const isCurrent=()=>{
       const now=websiteDraftRef.current;
       return !!now?.id&&now.id===scope?.draftId&&
@@ -13770,17 +13788,17 @@ function App() {
       const file=new ExpoFile(String(audioUri||""));
       if(!file.exists||!voiceUploadEligible(Number(file.size||0)))
         return {ok:false,error:"Recording must be under 9 MB. Nothing was sent."};
-      const token=await ownerAccessToken();
+      const token=await websiteTaskAwait(task,async()=>(ownerAccessToken()));
       if(!token)return {ok:false,error:"Sign in again before transcribing."};
       if(!isCurrent())return {ok:false,error:"The draft changed before sending. Nothing was sent."};
       const form=new FormData();
       form.append("mode","website-page-transcript-v1");
       form.append("audio",file,`busy-website-page-${Date.now()}.m4a`);
-      const response=await fetchWithTimeout(BUSY_COMMAND_URL,{
+      const response=await websiteTaskAwait(task,async()=>(fetchWithTimeout(BUSY_COMMAND_URL,{
         method:"POST",headers:{apikey:BUSY_AI_TOKEN,Authorization:`Bearer ${token}`,
           "x-busy-request-id":busyRequestId("website-page-transcript")},body:form
-      },45000,expoFetch);
-      const data=await response.json().catch(()=>({}));
+      },45000,expoFetch)));
+      const data=await websiteTaskAwait(task,async()=>(response.json().catch(()=>({}))));
       if(!response.ok)throw Error(String(data.error||"Page transcription failed."));
       if(data.mode!=="website-page-transcript-v1"||data.requiresReview!==true||
          data.action!==null||data.command!==null||
@@ -13791,9 +13809,11 @@ function App() {
       return {ok:true,transcript:String(data.transcript).trim().slice(0,400),
         remaining:Number.isInteger(remaining)&&remaining>=0&&remaining<=12?remaining:null,
         dailyLimit:12};
-    }catch(error){
+    }catch(error){if(!websiteTaskCurrent(task))return {ok:false,error:"The website changed. Select it again."};
       return {ok:false,error:String(error?.message||"Transcription failed. No changes were made.").slice(0,240)};
     }
+  
+    }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
   // V3.144: explicit owner feedback stays attached to the current private
@@ -13896,24 +13916,28 @@ function App() {
   // Explicit user-initiated share. Source export contains public website
   // business copy only; no private cloud tokens, customer records or images.
   const shareWebsiteContent=async()=>{
+    const task=websiteBeginTask("export");if(!task)return false;
+    try{
     const result=buildPortableWebsiteSource(websiteDraft||{});
     if(!result.ok){
       setWebsiteBuilderNotice(result.reason);
       return false;
     }
     try{
-      const shared=await Share.share({message:result.json,
-        title:"My Busy Does It website content (JSON)"});
+      const shared=await websiteTaskAwait(task,async()=>(Share.share({message:result.json,
+        title:"My Busy Does It website content (JSON)"})));
       setWebsiteBuilderNotice(
         shared?.action===Share.dismissedAction
         ?"Website content sharing was cancelled. Nothing was uploaded by BUSY."
         :"Website content was passed to your phone's share sheet. Check your chosen destination to confirm it was saved."
       );
       return shared?.action!==Share.dismissedAction;
-    }catch{
+    }catch{if(!websiteTaskCurrent(task))return false;
       setWebsiteBuilderNotice("Unable to open the share sheet. Your website draft remains safe in BUSY.");
       return false;
     }
+  
+    }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
   // Never uploads automatically. A business owner explicitly makes a
@@ -13998,11 +14022,13 @@ function App() {
   };
 
   const shareStandaloneWebsiteZip=async()=>{
+    const task=websiteBeginTask("export");if(!task)return false;
+    try{
     if(!websiteDraft){
       setWebsiteBuilderNotice("Build a private website draft before exporting its files.");
       return false;
     }
-    if(Platform.OS==="web"||!(await Sharing.isAvailableAsync())){
+    if(Platform.OS==="web"||!(await websiteTaskAwait(task,async()=>(Sharing.isAvailableAsync())))){
       setWebsiteBuilderNotice("File sharing is unavailable on this device. You can still share your website content JSON.");
       return false;
     }
@@ -14012,8 +14038,8 @@ function App() {
         try{
           const source=new ExpoFile(uri);
           if(Number(source.size||0)>9*1024*1024)throw Error("Original exceeds 9 MB");
-          return await source.bytes();
-        }catch{
+          return await websiteTaskAwait(task,async()=>(source.bytes()));
+        }catch{if(!websiteTaskCurrent(task))return false;
           // Missing local files may have an explicit tenant-owned backup.
         }
       }
@@ -14021,29 +14047,29 @@ function App() {
       const path=String(asset?.exportOriginalPath||"");
       if(!validExportOriginalPath(path,businessId))
         throw Error("Approved photo not available locally and no verified backup exists.");
-      const token=await ownerAccessToken();
+      const token=await websiteTaskAwait(task,async()=>(ownerAccessToken()));
       if(!token)throw Error("Owner authentication required to retrieve a private original.");
-      const response=await fetchWithTimeout(
+      const response=await websiteTaskAwait(task,async()=>(fetchWithTimeout(
         BUSY_SUPABASE_URL+"/functions/v1/busy-website-original-media",{
           method:"POST",
           headers:{apikey:BUSY_AI_TOKEN,Authorization:`Bearer ${token}`,
             "Content-Type":"application/json"},
           body:JSON.stringify({action:"download",businessId,storagePath:path})
-        },45000);
+        },45000)));
       const length=Number(response.headers.get("content-length")||0);
       if(!response.ok||length>9*1024*1024)
         throw Error("Secure original photo retrieval failed.");
-      const bytes=new Uint8Array(await response.arrayBuffer());
+      const bytes=new Uint8Array(await websiteTaskAwait(task,async()=>(response.arrayBuffer())));
       if(!bytes.length||bytes.length>9*1024*1024)
         throw Error("Original photo did not meet transfer limits.");
       return bytes;
     };
     setWebsiteBuilderNotice("Preparing the complete static website ZIP; checking local and privately backed-up original photographs...");
     try{
-      const archive=await buildStandaloneWebsiteArchive(websiteDraft,{
+      const archive=await websiteTaskAwait(task,async()=>(buildStandaloneWebsiteArchive(websiteDraft,{
         readPhoto:readOriginalPhoto,
         renderPage:renderWebsiteHtml
-      });
+      })));
       if(!archive.ok){
         setWebsiteBuilderNotice(archive.reason||
           "The complete website ZIP could not be prepared. Your private draft is unchanged.");
@@ -14052,14 +14078,16 @@ function App() {
       const file=new ExpoFile(ExpoPaths.cache,archive.fileName);
       file.create({overwrite:true});
       file.write(archive.bytes);
-      await Sharing.shareAsync(file.uri,{mimeType:"application/zip",UTI:"public.zip-archive",
-        dialogTitle:"Save my portable website ZIP"});
+      await websiteTaskAwait(task,async()=>(Sharing.shareAsync(file.uri,{mimeType:"application/zip",UTI:"public.zip-archive",
+        dialogTitle:"Save my portable website ZIP"})));
       setWebsiteBuilderNotice("The static ZIP was passed to your device's share options. Confirm it was saved where you chose. Your live website is unchanged.");
       return true;
-    }catch{
+    }catch{if(!websiteTaskCurrent(task))return false;
       setWebsiteBuilderNotice("ZIP export could not be shared. Your website is unchanged. Try again or share the JSON content copy.");
       return false;
     }
+  
+    }catch{return false;}finally{websiteAsyncGateRef.current.finish(task);}
   };
 
   // In-memory, business-specific safety net; save and restore only on
@@ -14129,12 +14157,15 @@ function App() {
   };
 
   const websitePublishingRequest = async (action, payload = {}) => {
-    const token = await ownerAccessToken();
+    const task=websiteBeginTask("request");
+    if(!task)throw Error("The website workspace changed or another hosting request is in progress.");
+    try{
+    const token = await websiteTaskAwait(task,()=>ownerAccessToken());
     if (!token) throw new Error("Sign in again before managing website hosting.");
     const businessId = cloudWorkspace?.businessId || "";
     if (!businessId) throw new Error("BUSY needs the business cloud workspace before publishing.");
 
-    const response = await fetchWithTimeout(
+    const response = await websiteTaskAwait(task,()=>fetchWithTimeout(
       BUSY_WEBSITE_PUBLISH_URL,
       {
         method: "POST",
@@ -14145,20 +14176,21 @@ function App() {
           "x-busy-request-id": busyRequestId(`website-${action}`),
         },
         body: JSON.stringify({
+          ...payload,
           action,
           businessId,
-          ...payload,
         }),
       },
       30000
-    );
-    const data = await response.json().catch(() => ({}));
+    ));
+    const data = await websiteTaskAwait(task,()=>response.json().catch(() => ({})));
     if (!response.ok) {
       throw new Error(
         data?.error || `BUSY website publishing returned ${response.status}.`
       );
     }
     return data;
+    }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
   // V3.78: owner/admin-only, explicitly recorded enquiries.
@@ -14187,6 +14219,8 @@ function App() {
   };
 
   const refreshWebsitePublishingStatus = async ({ quiet = false } = {}) => {
+    const task=websiteBeginTask("status");if(!task)return false;
+    try{
     if (!ownerSession?.accessToken || !cloudWorkspace?.businessId) {
       if (!quiet) setWebsitePublishingError("Sign in and connect the BUSY cloud workspace first.");
       return false;
@@ -14194,7 +14228,7 @@ function App() {
     if (!quiet) setWebsitePublishingLoading(true);
     setWebsitePublishingError("");
     try {
-      const data = await websitePublishingRequest("status");
+      const data = await websiteTaskAwait(task,async()=>(websitePublishingRequest("status")));
       setWebsitePublishingStatus({
         loaded: true,
         role: data?.role || "",
@@ -14217,17 +14251,21 @@ function App() {
         publicProfile: data?.publicProfile || null,
       });
       return true;
-    } catch (error) {
+    } catch (error) {if(!websiteTaskCurrent(task))return false;
       setWebsitePublishingError(
         error?.message || "BUSY could not load website publishing status."
       );
       return false;
-    } finally {
+    } finally {if(websiteAsyncGateRef.current.owns(task)){
       if (!quiet) setWebsitePublishingLoading(false);
-    }
+    }}
+  
+    }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
   const prepareHostedWebsite = async () => {
+    const task=websiteBeginTask("hosting");if(!task)return false;
+    try{
     if (!websiteDraft) {
       setWebsitePublishingError("Build the website draft before preparing a hosted preview.");
       return false;
@@ -14236,25 +14274,27 @@ function App() {
     setWebsitePublishingError("");
     setWebsitePublishingNotice("");
     try {
-      const result = await websitePublishingRequest("prepare", {
+      const result = await websiteTaskAwait(task,async()=>(websitePublishingRequest("prepare", {
         websiteDraft:withoutPrivateWebsiteDesignFeedback(websiteDraft),
-      });
+      })));
       setWebsitePublishingNotice(
         result?.reused
           ? "This exact website version was already prepared, so BUSY reused the immutable deployment."
           : "BUSY queued this website version for a private hosted preview."
       );
-      await refreshWebsitePublishingStatus({ quiet: true });
+      await websiteTaskAwait(task,async()=>(refreshWebsitePublishingStatus({ quiet: true })));
       setTimeout(() => refreshWebsitePublishingStatus({ quiet: true }), 1200);
       return true;
-    } catch (error) {
+    } catch (error) {if(!websiteTaskCurrent(task))return false;
       setWebsitePublishingError(
         error?.message || "BUSY could not prepare the hosted website preview."
       );
       return false;
-    } finally {
+    } finally {if(websiteAsyncGateRef.current.owns(task)){
       setWebsitePublishingAction("");
-    }
+    }}
+  
+    }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
   // Supabase Storage deliberately responds with text/plain for HTML.
@@ -14279,6 +14319,8 @@ function App() {
   };
 
   const openHostedWebsitePreview = async (deploymentId) => {
+    const task=websiteBeginTask("preview");if(!task)return false;
+    try{
     if (!deploymentId) return false;
     setWebsitePublishingAction(`preview:${deploymentId}`);
     setWebsitePublishingError("");
@@ -14287,7 +14329,7 @@ function App() {
       if (previewRow?.id !== deploymentId) {
         throw new Error("That hosted version has changed. Refresh the website before opening it.");
       }
-      const result = await websitePublishingRequest("preview_url", { deploymentId });
+      const result = await websiteTaskAwait(task,async()=>(websitePublishingRequest("preview_url", { deploymentId })));
       if (!result?.previewUrl) throw new Error("Hosted preview URL is not ready yet.");
       const homePath = signedPreviewPath(result.previewUrl, BUSY_SUPABASE_URL, deploymentId);
       if (!homePath) throw new Error("The hosted preview address didn't pass BUSY's security checks.");
@@ -14299,7 +14341,7 @@ function App() {
         { id: "home", path: homePath, url: result.previewUrl, label: "Home" },
         ...manifestPages
       ];
-      const html = await readPrivateHostedPreviewHtml(result.previewUrl, deploymentId);
+      const html = await websiteTaskAwait(task,async()=>(readPrivateHostedPreviewHtml(result.previewUrl, deploymentId)));
       const scope = (ownerSession?.userId || "") + ":" + (cloudWorkspace?.businessId || "");
       setHostedWebsitePreview({
         deploymentId,
@@ -14315,17 +14357,21 @@ function App() {
       setWebsitePreviewOpenedId(deploymentId);
       go("hostedWebsitePreview");
       return true;
-    } catch (error) {
+    } catch (error) {if(!websiteTaskCurrent(task))return false;
       setWebsitePublishingError(
         error?.message || "BUSY could not open the hosted website preview."
       );
       return false;
-    } finally {
+    } finally {if(websiteAsyncGateRef.current.owns(task)){
       setWebsitePublishingAction("");
-    }
+    }}
+  
+    }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
   const openHostedWebsitePreviewPage = async (targetUrl) => {
+    const task=websiteBeginTask("preview");if(!task)return false;
+    try{
     const viewer = hostedWebsitePreview;
     if (!viewer || viewer.loading) return false;
     const scope = (ownerSession?.userId || "") + ":" + (cloudWorkspace?.businessId || "");
@@ -14347,14 +14393,14 @@ function App() {
       ...old, loading: true, error: ""
     } : old);
     try {
-      const html = await readPrivateHostedPreviewHtml(page.url, viewer.deploymentId);
+      const html = await websiteTaskAwait(task,async()=>(readPrivateHostedPreviewHtml(page.url, viewer.deploymentId)));
       setHostedWebsitePreview(old =>
         old?.scope === scope && old.deploymentId === viewer.deploymentId
           ? { ...old, html, pageId: page.id, version: old.version + 1, loading: false, error: "" }
           : old
       );
       return true;
-    } catch (error) {
+    } catch (error) {if(!websiteTaskCurrent(task))return false;
       setHostedWebsitePreview(old =>
         old?.scope === scope && old.deploymentId === viewer.deploymentId
           ? { ...old, loading: false, error: error?.message || "Could not load this website page." }
@@ -14362,6 +14408,8 @@ function App() {
       );
       return false;
     }
+  
+    }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
   const hostedWebsitePreviewLoadError = (message) => {
@@ -14375,32 +14423,38 @@ function App() {
   };
 
   const publishHostedWebsite = async (deploymentId) => {
+    const task=websiteBeginTask("hosting");if(!task)return false;
+    try{
     if (!deploymentId) return false;
     setWebsitePublishingAction("publish");
     setWebsitePublishingError("");
     setWebsitePublishingNotice("");
     try {
-      await websitePublishingRequest("publish", {
+      await websiteTaskAwait(task,async()=>(websitePublishingRequest("publish", {
         deploymentId,
         ownerApproved: true,
-      });
+      })));
       setWebsitePublishingNotice(
         "Go Live approved. BUSY is publishing the exact previewed version and will automatically verify its BUSY address, Cloudflare route and live deployment health."
       );
-      await refreshWebsitePublishingStatus({ quiet: true });
+      await websiteTaskAwait(task,async()=>(refreshWebsitePublishingStatus({ quiet: true })));
       followWebsiteGoLive();
       return true;
-    } catch (error) {
+    } catch (error) {if(!websiteTaskCurrent(task))return false;
       setWebsitePublishingError(
         error?.message || "BUSY could not publish that website version."
       );
       return false;
-    } finally {
+    } finally {if(websiteAsyncGateRef.current.owns(task)){
       setWebsitePublishingAction("");
-    }
+    }}
+  
+    }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
   const confirmPublishHostedWebsite = async (deploymentId) => {
+    const task=websiteBeginTask("hosting");if(!task)return false;
+    try{
     const deployment=websitePublishingView.deployments.find(
       (item)=>item.id===deploymentId
     );
@@ -14409,14 +14463,14 @@ function App() {
     setWebsitePublishingAction("preflight");
     let preflight;
     try{
-      const result=await websitePublishingRequest("launch_preflight",{deploymentId});
+      const result=await websiteTaskAwait(task,async()=>(websitePublishingRequest("launch_preflight",{deploymentId})));
       preflight=result?.preflight;
       if(preflight?.canApprove!==true||preflight?.publicDeliveryVerified!==false){
         const reason=Array.isArray(preflight?.issues)?
           preflight.issues.filter(x=>typeof x==="string").slice(0,1)[0]:"";
         throw Error(reason||"The exact hosted website version is not ready. Refresh and prepare it again.");
       }
-    }catch(error){
+    }catch(error){if(!websiteTaskCurrent(task))return false;
       setWebsitePublishingError(error?.message||
         "BUSY couldn't verify the exact hosted version. Nothing was published.");
       setWebsitePublishingAction("");
@@ -14429,36 +14483,42 @@ function App() {
       [
         {text:"Cancel",style:"cancel"},
         {text:"Approve & go live",
-          onPress:()=>publishHostedWebsite(deploymentId)}
+          onPress:()=>{if(websiteTaskSourceCurrent(task))return publishHostedWebsite(deploymentId);return false;}}
       ]
     );
     return true;
+  
+    }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
   const rollbackWebsite = async (deploymentId) => {
+    const task=websiteBeginTask("hosting");if(!task)return false;
+    try{
     if (!deploymentId) return false;
     setWebsitePublishingAction(`rollback:${deploymentId}`);
     setWebsitePublishingError("");
     setWebsitePublishingNotice("");
     try {
-      await websitePublishingRequest("rollback", {
+      await websiteTaskAwait(task,async()=>(websitePublishingRequest("rollback", {
         deploymentId,
         ownerApproved: true,
-      });
+      })));
       setWebsitePublishingNotice(
         "Rollback approved. BUSY is restoring that immutable version and re-checking the real public delivery path automatically."
       );
-      await refreshWebsitePublishingStatus({ quiet: true });
+      await websiteTaskAwait(task,async()=>(refreshWebsitePublishingStatus({ quiet: true })));
       followWebsiteGoLive();
       return true;
-    } catch (error) {
+    } catch (error) {if(!websiteTaskCurrent(task))return false;
       setWebsitePublishingError(
         error?.message || "BUSY could not restore that website version."
       );
       return false;
-    } finally {
+    } finally {if(websiteAsyncGateRef.current.owns(task)){
       setWebsitePublishingAction("");
-    }
+    }}
+  
+    }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
   const confirmRollbackWebsite = (deploymentId, versionNo) => {
