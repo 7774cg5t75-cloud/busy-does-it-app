@@ -10,7 +10,7 @@ function appGoalContentQuestions(config,goal){
   locked:!!appEditLockReason(config,{kind:'text',field:'about'})});
  if(['book','services'].includes(goal)){
   const services=profile.services;
-  if((services===undefined||Array.isArray(services)&&services.length===0)&&config?.modules?.some(m=>m.key==='services'&&m.enabled===true)){
+  if((services==null||Array.isArray(services)&&services.length===0)&&config?.modules?.some(m=>m.key==='services'&&m.enabled===true)){
    const locked=!!appEditLockReason(config,{kind:'services'});
    questions.push({id:'first-service-name',label:'What is the first service customers can request?',max:120,locked});
    questions.push({id:'first-service-description',label:'What does this service include?',max:600,locked});

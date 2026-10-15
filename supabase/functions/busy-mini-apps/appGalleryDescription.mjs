@@ -43,6 +43,7 @@ function proposeGalleryImageDescription(config,{index,expectedUri,value,allowUnc
    !text(value.alt,160)||!text(value.caption,240))
   return {ok:false,reason:"Choose an approved current gallery image and short, safe descriptions."};
  const prior=gallery[index];
+ if(["alt","caption"].some(k=>own(prior,k)&&!text(prior[k],k==="alt"?160:240)))return {ok:false,reason:"Review the existing image descriptions before changing them."};
  const alt=value.alt,caption=value.caption;
  if(!allowUnchanged&&(prior.alt??null)===alt&&(prior.caption??null)===caption)
   return {ok:false,reason:"These image descriptions are already set."};

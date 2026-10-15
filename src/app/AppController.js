@@ -568,7 +568,7 @@ function App() {
   const cloudOwnerScopeRef=useRef(null);
   if(cloudOwnerScopeRef.current?.userId!==(ownerSession?.userId||""))cloudOwnerScopeRef.current={userId:ownerSession?.userId||""};
   useEffect(()=>{setCloudInitialising(false);},[ownerSession?.userId]);
-  const snapshotIdentityRef=useRef(null),snapshotContextRef=useRef(null),snapshotSessionRef=useRef(null);
+  const snapshotIdentityRef=useRef(null),snapshotContextRef=useRef(null),snapshotSessionRef=useRef(null),snapshotRestoreRef=useRef(null);
   const snapshotKey=[ownerSession?.userId||"",cloudWorkspace?.businessId||""].join(":");
   if(snapshotIdentityRef.current?.key!==snapshotKey)snapshotIdentityRef.current={key:snapshotKey};
   if(!snapshotSessionRef.current)snapshotSessionRef.current=createBusinessSnapshotSession();
@@ -2931,44 +2931,50 @@ function App() {
     return saveBusinessCloud();
   };
 
-  const restoreLatestCloudCopy = async () => {
-    if (!ownerSession?.accessToken || !cloudWorkspace?.businessId) return false;
+  const restoreLatestCloudCopy = async (confirmation = null) => {
+    if (!ownerSession?.accessToken || !cloudWorkspace?.businessId || snapshotRestoreRef.current) return false;
+    const identity=snapshotIdentityRef.current;
+    const ticket=confirmation||snapshotSessionRef.current.prepareRestore(()=>snapshotContextRef.current);
+    if(!ticket)return false;
+    const task={identity};snapshotRestoreRef.current=task;
     setCloudInitialising(true);
     setCloudSyncError("");
     setCloudSyncStatus("Restoring…");
     try {
-      const remote = await fetchCloudSnapshot();
-      if (!remote?.payload || typeof remote.payload !== "object") {
-        throw new Error("No cloud backup is available for this business yet.");
-      }
-      applyCloudSnapshot(remote.payload,cloudWorkspace.businessId);
-      setCloudRevision(Number(remote.revision) || 1);
-      setCloudLastSyncedAt(remote.updated_at || new Date().toISOString());
+      const result=await snapshotSessionRef.current.restore({ticket,getCurrent:()=>snapshotContextRef.current,
+        ownerAccessToken,request:busyDataRequest,schemaVersion:CLOUD_SCHEMA_VERSION});
+      if(snapshotIdentityRef.current!==identity)return false;
+      if(!result.ok)throw Error(result.reason);
+      applyCloudSnapshot(result.payload,result.businessId);
+      setCloudRevision(result.revision);
+      setCloudLastSyncedAt(result.updatedAt);
       setCloudConflict(null);
       setCloudSyncStatus("Cloud restored");
-      const key = storageKeyForUser(ownerSession.userId || "");
-      if (key) {
-        await AsyncStorage.setItem(key, JSON.stringify(remote.payload)).catch(() => {});
-      }
+      // The existing scoped persistence effect saves restored local state.
       return true;
     } catch (error) {
+      if(snapshotIdentityRef.current!==identity)return false;
       setCloudSyncError(error?.message || "Cloud restore failed.");
       setCloudSyncStatus("Restore needs attention");
       return false;
     } finally {
-      setCloudInitialising(false);
+      if(snapshotRestoreRef.current===task)snapshotRestoreRef.current=null;
+      if(snapshotIdentityRef.current===identity)setCloudInitialising(false);
     }
   };
 
   const confirmRestoreLatestCloudCopy = () => {
+    const ticket=snapshotSessionRef.current.prepareRestore(()=>snapshotContextRef.current);
+    if(!ticket)return false;
     Alert.alert(
       "Restore the latest cloud copy?",
       "This replaces the business data currently shown on this device with the latest saved cloud copy. Export first if you want to keep a copy of the current device data.",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Restore cloud copy", onPress: restoreLatestCloudCopy },
+        { text: "Restore cloud copy", onPress: () => restoreLatestCloudCopy(ticket) },
       ]
     );
+    return true;
   };
 
   const exportBusinessData = async () => {

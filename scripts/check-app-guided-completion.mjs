@@ -5,8 +5,8 @@ import {proposeCoordinatedAppChanges as edge} from '../supabase/functions/busy-m
 const businessId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const wrap=config=>({businessId,app:{id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',business_id:businessId,draft_revision:3,draft_config:config}});
 const base={navigation:['business_profile','services','gallery'],modules:[{key:'business_profile',enabled:true},{key:'services',enabled:true},{key:'gallery',enabled:true}],publicProfile:{about:'Keep owner copy'}};
-for(const services of [undefined,[]]){
- const config={...base,publicProfile:{...base.publicProfile,...(services?{services}:{})}};
+for(const services of [undefined,null,[]]){
+ const config={...base,publicProfile:{...base.publicProfile,...(services!==undefined?{services}:{})}};
  const result=prepare({...wrap(config),goal:'book',answers:{'first-service-name':'Consultation','first-service-description':'Discuss the next step'}});
  assert.equal(result.ok,true);assert.equal(result.nextConfig.publicProfile.services[0].name,'Consultation');
  assert.deepEqual(plan(result.nextConfig,result.undoOperations).nextConfig,config);
