@@ -1,3 +1,4 @@
+import {executeAppDraftMutation} from "../core/appDraftMutation.mjs";
 import {executePrivateAppBatch} from "../core/privateAppEditSession.mjs";
 import {confirmFirstAppFromWebsite} from "../core/firstAppFromWebsiteV3197.mjs";
 import {interpretOwnerStatusAfterErrorV3231} from "../core/ownerStatusRecoveryV3231.mjs";
@@ -15027,18 +15028,31 @@ function App() {
     }
   };
 
+  const mutateCurrentAppDraft=async(action,payload)=>{
+    const captured=privateAppEditScopeRef.current;
+    if(privateAppEditInFlightRef.current)throw Error("A private app edit is already being checked.");
+    const isCurrent=()=>{
+      const live=privateAppEditScopeRef.current;
+      return !!captured?.userId&&live?.userId===captured.userId&&live.businessId===captured.businessId&&
+        live.app?.id===captured.app?.id&&live.app?.draft_revision===captured.app?.draft_revision;
+    };
+    privateAppEditInFlightRef.current=true;
+    try{return await executeAppDraftMutation({action,payload,scope:captured,isCurrent,send:miniAppsRequest});}
+    finally{privateAppEditInFlightRef.current=false;}
+  };
+
   const buildMiniAppFromBrandBrain = async () => {
     setMiniAppsAction("build");
     setMiniAppsError("");
     setMiniAppsNotice("");
     try {
-      const data = await miniAppsRequest("build_draft", {
+      const data = await mutateCurrentAppDraft("build_draft", {
         profileDraft: miniAppProfileDraft,
       });
       applyMiniAppsStatus(data);
       setMiniAppsNotice(
         data?.source === "shared_public_profile_plus_owner_draft"
-          ? "BUSY rebuilt the Business App draft from the shared public business profile plus your current approved Brand Brain facts."
+          ? "BUSY refreshed the approved business facts while retaining the app’s current appearance, navigation, offers and loyalty settings."
           : "BUSY created the first Business App draft from your approved public Brand Brain facts."
       );
       return true;
@@ -15149,7 +15163,7 @@ function App() {
     setMiniAppsError("");
     setMiniAppsNotice("");
     try {
-      const data = await miniAppsRequest("apply_app_plan", {
+      const data = await mutateCurrentAppDraft("apply_app_plan", {
         ownerRequest: miniAppBuildBrief,
         factAnswers: miniAppFactAnswers,
         plan: miniAppBuilderPlan,
@@ -15992,7 +16006,7 @@ function App() {
     }
     setMiniAppsAction("move-section");setMiniAppsError("");
     try{
-      const data=await miniAppsRequest("move_section",{moduleKey,direction,appId,expectedRevision});
+      const data=await mutateCurrentAppDraft("move_section",{moduleKey,direction,appId,expectedRevision});
       if(data?.ok!==true||data.privateOnly!==true||data.neverPublishes!==true||
          data.movedModule!==moduleKey||data.app?.id!==appId||
          Number(data.app.draft_revision)!==Number(expectedRevision)+1)
@@ -16015,7 +16029,7 @@ function App() {
     setMiniAppsAction("set-appearance");
     setMiniAppsError("");
     try{
-      const data=await miniAppsRequest("set_appearance",{field,value,appId,expectedRevision});
+      const data=await mutateCurrentAppDraft("set_appearance",{field,value,appId,expectedRevision});
       if(data?.ok!==true||data?.privateOnly!==true||data?.neverPublishes!==true||
          !data?.app||data.app.id!==appId||data.app.draft_revision!==expectedRevision+1)
         throw new Error("The new private app revision could not be verified.");
@@ -16032,7 +16046,7 @@ function App() {
     setMiniAppsAction(`module:${moduleKey}`);
     setMiniAppsError("");
     try {
-      const data = await miniAppsRequest("set_module", {
+      const data = await mutateCurrentAppDraft("set_module", {
         moduleKey,
         enabled,
       });

@@ -1,3 +1,4 @@
+import {appConfigLockReason,retainAppDraftDesign,proposeAppModuleToggle} from "./appDraftComposition.mjs";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { decideStandaloneEligibility } from "./standaloneEligibility.mjs";
@@ -836,7 +837,7 @@ function buildConfig(
     };
   });
 
-  return {
+  const rebuilt = {
     schemaVersion: 1,
     surface: "busy_mini_app",
     sourceProfileRevision: Math.max(0, Number(profileRevision) || 0),
@@ -851,6 +852,9 @@ function buildConfig(
       .filter((item: any) => item.enabled)
       .map((item: any) => item.key),
   };
+  const retained=retainAppDraftDesign(previousConfig,rebuilt);
+  if(!retained.ok)throw Error(retained.reason);
+  return retained.nextConfig;
 }
 
 const appPlanSchema = {
@@ -1618,6 +1622,7 @@ async function applyBusinessAppPlan(
     existingApp?.draft_config?.loyalty || null
   );
   const app = existingApp || (await ensureApp(businessId, userId, profile));
+  if(existingApp)requireAppDraftRevision(app,body);
   const base = buildConfig(
     profile,
     catalog,
@@ -1654,11 +1659,14 @@ async function applyBusinessAppPlan(
     offers: plan.offers,
     loyalty: plan.loyalty,
     modules,
-    navigation: modules
-      .filter((item: any) => item.enabled)
-      .map((item: any) => item.key),
+    navigation: [...new Set([
+      ...safeArray(app.draft_config?.navigation).filter((key:any)=>modules.some((m:any)=>m.key===key&&m.enabled)),
+      ...modules.filter((m:any)=>m.enabled).map((m:any)=>m.key)
+    ])],
   };
 
+  const lockReason=appConfigLockReason(app.draft_config,config);
+  if(lockReason)throw Error(lockReason);
   const updated = await supabase
     .from("busy_mini_apps")
     .update({
@@ -1673,6 +1681,8 @@ async function applyBusinessAppPlan(
       updated_at: new Date().toISOString(),
     })
     .eq("id", app.id)
+    .eq("business_id",businessId)
+    .eq("draft_revision",Number(app.draft_revision))
     .select("*")
     .single();
   if (updated.error) throw updated.error;
@@ -1989,6 +1999,7 @@ async function buildDraft(
       atomicFirstCreate:true,privateOnly:true,neverPublishes:true};
   }
   const app = await ensureApp(businessId, userId, profile);
+  requireAppDraftRevision(app,body);
   const config = buildConfig(
     profile,
     catalog,
@@ -2009,6 +2020,8 @@ async function buildDraft(
       updated_at: new Date().toISOString(),
     })
     .eq("id", app.id)
+    .eq("business_id",businessId)
+    .eq("draft_revision",Number(app.draft_revision))
     .select("*")
     .single();
   if (updated.error) throw updated.error;
@@ -2018,10 +2031,16 @@ async function buildDraft(
   };
 }
 
+function requireAppDraftRevision(app:any,body:any){
+ if(body?.appId!==app.id||!Number.isSafeInteger(body?.expectedRevision)||
+    body.expectedRevision!==Number(app.draft_revision))
+  throw Error("The private app changed. Refresh and review it before rebuilding or changing modules.");
+}
 async function setModule(
   businessId: string,
   moduleKey: string,
-  enabled: boolean
+  enabled: boolean,
+  body: any
 ) {
   const [app, catalog] = await Promise.all([
     appForBusiness(businessId),
@@ -2029,6 +2048,7 @@ async function setModule(
   ]);
   if (!app) throw new Error("Build the Business App draft first.");
 
+  requireAppDraftRevision(app,body);
   const module = catalog.find(
     (item: any) => item.module_key === moduleKey
   );
@@ -2049,15 +2069,9 @@ async function setModule(
     );
   }
 
-  const config = {
-    ...(app.draft_config || {}),
-    modules: safeArray(app.draft_config?.modules).map((item: any) =>
-      item.key === moduleKey ? { ...item, enabled } : item
-    ),
-  };
-  config.navigation = safeArray(config.modules)
-    .filter((item: any) => item.enabled)
-    .map((item: any) => item.key);
+  const proposal=proposeAppModuleToggle(app.draft_config,{moduleKey,enabled});
+  if(!proposal.ok)throw Error(proposal.reason);
+  const config=proposal.nextConfig;
 
   const updated = await supabase
     .from("busy_mini_apps")
@@ -2068,9 +2082,12 @@ async function setModule(
       updated_at: new Date().toISOString(),
     })
     .eq("id", app.id)
+    .eq("business_id",businessId)
+    .eq("draft_revision",body.expectedRevision)
     .select("*")
     .single();
   if (updated.error) throw updated.error;
+  if(!updated.data)throw Error("Another edit changed the app. Refresh before trying again.");
   return updated.data;
 }
 
@@ -4392,7 +4409,8 @@ Deno.serve(async (request: Request) => {
       const app = await setModule(
         resolvedBusinessId,
         clean(body?.moduleKey, 80),
-        body?.enabled === true
+        body?.enabled === true,
+        body
       );
       return json(200, {
         ok: true,

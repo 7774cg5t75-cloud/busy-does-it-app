@@ -64,6 +64,7 @@ function snackSourceFiles() {
     "supabase/functions/busy-website-worker/designEdits.mjs",
     "supabase/functions/busy-website-worker/websiteStructuredEditing.mjs",
     "supabase/functions/busy-website-worker/websiteLayoutEditing.mjs",
+    "supabase/functions/busy-website-worker/websiteOwnerLocks.mjs",
     "supabase/functions/busy-website-worker/websitePageEditing.mjs",
     "supabase/functions/busy-website-worker/visualCriticContract.mjs"];
   for(const sourcePath of sourcePaths) {
