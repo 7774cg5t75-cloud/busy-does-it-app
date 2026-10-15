@@ -32,7 +32,7 @@ function proposeCoordinatedAppChanges(config,operations){
   let undo=null,after=null,description="";
   if(op.kind==="owner_locks"){
    const edit=editAppOwnerLocks(next,op);if(!edit.ok)return edit;
-   after=edit.nextConfig;undo=edit.undo;description="Updated owner-controlled editing locks";
+   after=edit.nextConfig;undo=edit.undo;description="Editing protection: "+(after.presentation?.ownerLockedElements?.length?after.presentation.ownerLockedElements.join(", "):"no locks")+". Customer content is unchanged.";
   }else if(op.kind==="appearance"){
    const edit=previewPrivateAppAppearance(next,{field:op.field,value:op.value});
    if(!edit.ok)return edit;

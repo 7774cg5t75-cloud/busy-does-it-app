@@ -4,7 +4,7 @@ import {parse} from '@babel/parser';
 import {proposeCoordinatedAppChanges as plan} from '../src/core/appCoordinatedStudio.mjs';
 const base={modules:['business_profile','services'].map(key=>({key,enabled:true})),navigation:['business_profile','services']};
 for(const config of [base,{...base,presentation:null},{...base,presentation:{}},{...base,presentation:{layoutDensity:'airy',ownerLockedElements:['all']}}]){
- const p=plan(config,[{kind:'owner_locks',value:['copy']}]);assert.equal(p.ok,true);assert.deepEqual(plan(p.nextConfig,p.undoOperations).nextConfig,config);assert.equal(plan(p.nextConfig,[{kind:'text',field:'about',value:'No'}]).ok,false);
+ const p=plan(config,[{kind:'owner_locks',value:['copy']}]);assert.equal(p.ok,true);assert.match(p.changes[0],/Editing protection: copy/);assert.deepEqual(plan(p.nextConfig,p.undoOperations).nextConfig,config);assert.equal(plan(p.nextConfig,[{kind:'text',field:'about',value:'No'}]).ok,false);
 }
 const legacy={...base,presentation:{ownerLockedElements:['approved-logo']}};const cleared=plan(legacy,[{kind:'owner_locks',value:[]}]);assert.equal(cleared.ok,true);assert.deepEqual(plan(cleared.nextConfig,cleared.undoOperations).nextConfig,legacy);
 const locked={...base,presentation:{ownerLockedElements:['all']}};assert.equal(plan(locked,[{kind:'owner_locks',value:[]}]).ok,true);

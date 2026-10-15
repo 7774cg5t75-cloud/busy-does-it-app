@@ -14,3 +14,5 @@ assert.equal(current(r,{...ctx,profileRecord:{...profileRecord,revision:6}}),fal
 const locked=review({...ctx,app:{...app,draft_config:{...config,presentation:{ownerLockedElements:['copy']}}}});assert.equal(locked.preview,null);assert.equal(locked.rows.every(x=>!x.allowed),true);
 parse(readFileSync('src/screens/appBusinessFactRefresh.js','utf8'),{sourceType:'module',plugins:['jsx']});
 console.log('PASS: scoped saved-fact comparison, safe additions, explicit conflict replacement, exact inverse, retained identity/settings, stale source/tenant/lock rejection and UI syntax. Fixture facts only.');
+
+assert.equal(review({...ctx,profileRecord:{...profileRecord,profile:{services:[{name:"Mowing"},{name:"Ｍｏｗｉｎｇ"}]}}}).ok,false);

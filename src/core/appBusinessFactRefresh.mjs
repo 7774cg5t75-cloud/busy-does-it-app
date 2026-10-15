@@ -24,7 +24,9 @@ function reviewAppBusinessFactRefresh({businessId,app,profileRecord,selected=nul
  if(!validatePrivateAppServices(prior).ok)return fail('Review the app’s current services before importing facts.');
  const seen=new Set();
  for(const item of prior){if(typeof item?.name!=='string'||seen.has(name(item.name)))return fail('Review the app’s current service names before importing facts.');seen.add(name(item.name));}
+ const offeredNames=new Set();
  for(const item of offered){
+  const key=name(item.name);if(offeredNames.has(key))return fail('Review duplicate normalised saved service names.');offeredNames.add(key);
   const at=prior.findIndex(x=>name(x.name)===name(item.name));
   const next={...item};
   if(at>=0&&same({name:prior[at].name,description:prior[at].description||''},{name:item.name,description:item.description||''}))continue;
