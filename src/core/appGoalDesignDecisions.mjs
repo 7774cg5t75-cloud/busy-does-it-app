@@ -1,3 +1,6 @@
+import {industryOf} from './industryAppJourneyV3198.mjs';
+import {suggestionsForIndustry} from './appIndustryOrchestrator.mjs';
+import {validPrivateBuilderPair} from './ownerBuilderDraftGuardV3195.mjs';
 import {evaluateResponsiveApp} from './appResponsiveDesign.mjs';
 import {proposeCoordinatedAppChanges} from './appCoordinatedStudio.mjs';
 // Task relevance over the original finite responsive choices. No generated
@@ -15,6 +18,24 @@ function appGoalContentReadiness(config,goal){
    blockers.push('Add suitable owner-approved photos before prioritising the gallery design.');
  }
  return {ready:blockers.length===0,blockers};
+}
+function appGoalBusinessContextChoices(config,goal,responsive,{businessId,app,website}={}){
+ const type=config.publicProfile?.businessType||config.display?.category||
+  (validPrivateBuilderPair(website,app,businessId)?website.businessType:"");
+ const industry=industryOf(type),profile={appointment:"appointments",trade:"trades",food:"food_events"}[industry]||"general";
+ const approvedPhotos=(config.publicProfile?.assets?.gallery||[]).filter(x=>x?.approved===true||x?.marketingOk===true).length;
+ const hints=suggestionsForIndustry(config,profile).filter(choice=>
+  !Object.prototype.hasOwnProperty.call(config.presentation||{},choice.field)&&
+  (["navigationStyle","layoutDensity"].includes(choice.field)||
+   goal==="photos"&&approvedPhotos>=2&&["galleryLayout","imageScale"].includes(choice.field))&&
+  !responsive.some(x=>x.field===choice.field));
+ // One low-priority industry hypothesis at most; current facts/feedback and
+ // original width checks still decide whether it is worth proposing.
+ hints.sort((a,b)=>Number(goal==="photos"&&["galleryLayout","imageScale"].includes(b.field))-Number(goal==="photos"&&["galleryLayout","imageScale"].includes(a.field)));
+ const additions=hints.slice(0,1).map(choice=>({...choice,contextSource:"supplied-business-type"}));
+ return {choices:[...responsive,...additions],industry,considered:additions.length,
+  note:additions.length?"One suggestion also considers the business type you supplied. Existing styles and brand colours stay owner-controlled.":
+   "The current design and selected customer task take priority over generic industry styling."};
 }
 function selectAppGoalDesignChoices(config,goal,suggestions){
  const baseline=evaluateResponsiveApp(config);
@@ -35,4 +56,4 @@ function selectAppGoalDesignChoices(config,goal,suggestions){
    'Keep existing information separated and readable.'}));
  return {choices,excludedCount:suggestions.length-choices.length};
 }
-export {appGoalContentReadiness,selectAppGoalDesignChoices};
+export {appGoalContentReadiness,selectAppGoalDesignChoices,appGoalBusinessContextChoices};

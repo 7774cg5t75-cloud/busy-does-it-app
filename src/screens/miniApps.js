@@ -2595,6 +2595,7 @@ function MiniAppBuilder({ s }) {
                 ". Current private capability: "+appGoalDesign.task.status.replaceAll("_"," ")+
                 ". This does not confirm a real booking or enquiry."}</Text>
               <Text style={styles.cardBody}>{appGoalDesign.brand.note}</Text>
+              {appGoalDesign.businessContext.considered?<Text style={styles.cardBody}>{appGoalDesign.businessContext.note}</Text>:null}
               {appGoalDesign.contentReadiness.blockers.map((reason,index)=>(
                 <Text key={"goal-content-"+index} style={styles.cardBody}>{reason}</Text>))}
               {appGoalDesign.visualTradeoffs.map(choice=>(

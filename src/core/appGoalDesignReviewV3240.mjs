@@ -1,4 +1,4 @@
-import {appGoalContentReadiness,selectAppGoalDesignChoices} from "./appGoalDesignDecisions.mjs";
+import {appGoalContentReadiness,selectAppGoalDesignChoices,appGoalBusinessContextChoices} from "./appGoalDesignDecisions.mjs";
 import {applyGoalOwnerMemory} from "./appGoalOwnerMemory.mjs";
 /**
  * V3.240 — evidence-labelled, cross-builder Business App design decisions.
@@ -36,7 +36,8 @@ function reviewAppGoalDesignV3240({
  const taskBlocked=!content.ready||task.status==="setup_needed"||task.status==="limited_fallback_unverified";
  const nav=taskBlocked?null:proposeTaskFirstNavigation(config,goal);
  const navigation=nav?.preview?.operations||[];
- const unlocked=guidance.suggestions.filter(x=>!appEditLockReason(config,
+ const businessContext=appGoalBusinessContextChoices(config,goal,guidance.suggestions,{businessId,app,website});
+ const unlocked=businessContext.choices.filter(x=>!appEditLockReason(config,
   {kind:"appearance",field:x.field}));
  const ownerMemory=applyGoalOwnerMemory(config,unlocked,ownerDesignHistory,{
   businessId,ownerId,appId:app.id,revision:app.draft_revision});
@@ -100,8 +101,9 @@ function reviewAppGoalDesignV3240({
   businessId,source:{appId:app.id,revision:app.draft_revision,
    websiteId:snapshot?.ok?website.id:null,
    websiteRevision:snapshot?.ok?website.generation:null},
+  businessContext:{industry:businessContext.industry,considered:businessContext.considered,note:businessContext.note,hypothesisNotProof:true},
   contentReadiness:{...content},taskChoicesExcluded:decisions.excludedCount,
-  goal,taskNavigationProposed:navigation.length>0,ownerLockedChoicesSkipped:guidance.suggestions.length-unlocked.length,
+  goal,taskNavigationProposed:navigation.length>0,ownerLockedChoicesSkipped:businessContext.choices.length-unlocked.length,
   ownerMemory:{used:ownerMemory.used,recordsUsed:ownerMemory.recordsUsed,suppressedCount:ownerMemory.suppressedCount,opinionNotProof:true},task:{status:task.status,module:task.targetModule||null,
    position:task.sectionPosition,cautionCount:task.cautions.length,
    actionVerified:false,needsSetup:blocked},
