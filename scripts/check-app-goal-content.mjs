@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {appGoalContentQuestions as questions,prepareAppGoalContent as prepare} from '../src/core/appGoalContentPreparation.mjs';
+import {proposeCoordinatedAppChanges as plan} from '../src/core/appCoordinatedStudio.mjs';
+import {appGoalContentReadiness} from '../src/core/appGoalDesignDecisions.mjs';
+const businessId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+const config={navigation:['business_profile','services','booking_request'],modules:[{key:'business_profile',enabled:true},{key:'services',enabled:true},{key:'booking_request',enabled:true}],publicProfile:{services:[{id:'owner',name:'Consultation',description:''},{id:'keep',name:'Follow-up',description:'Keep exactly'}]}};
+const app={id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',business_id:businessId,draft_revision:4,draft_config:config};
+assert.deepEqual(questions(config,'book').map(x=>x.id),['about','service:0']);
+const preview=prepare({businessId,app,goal:'book',answers:{about:'Owner words','service:0':'An initial discussion'}});
+assert.equal(preview.ok,true);assert.equal(preview.nextConfig.publicProfile.services[1].description,'Keep exactly');assert.equal(preview.nextConfig.publicProfile.services[0].id,'owner');
+assert.deepEqual(plan(preview.nextConfig,preview.undoOperations).nextConfig,config);
+assert.equal(prepare({businessId,app,goal:'book',answers:{'service:1':'Overwrite'}}).ok,false);
+assert.equal(prepare({businessId,app:{...app,business_id:'foreign'},goal:'book',answers:{about:'Safe'}}).ok,false);
+assert.equal(prepare({businessId,app:{...app,draft_config:{...config,presentation:{ownerLockedElements:['copy']}}},goal:'book',answers:{about:'No'}}).ok,false);
+assert.equal(prepare({businessId,app,goal:'book',answers:{about:'<script>'}}).ok,false);
+assert.equal(appGoalContentReadiness({publicProfile:{services:[]}},'book').ready,false);
+assert.equal(questions({...config,publicProfile:{...config.publicProfile,about:'Already provided'}},'photos').length,0);
+console.log('PASS: goal-specific missing questions, real Studio proposal/inverse, exact custom service preservation, lock/tenant/hostile-field rejection and incomplete booking-content gating.');

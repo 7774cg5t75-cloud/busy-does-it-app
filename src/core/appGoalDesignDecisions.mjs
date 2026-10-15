@@ -7,10 +7,10 @@ import {proposeCoordinatedAppChanges} from './appCoordinatedStudio.mjs';
 // business facts or media, provider use, style score or new design engine.
 function appGoalContentReadiness(config,goal){
  const blockers=[];
- if(goal==='services'){
+ if(goal==='services'||goal==='book'){
   const services=config?.publicProfile?.services;
   if(!Array.isArray(services)||!services.length||services.some(x=>typeof x?.name!=='string'||!x.name.trim()))
-   blockers.push('Add and review real service names before prioritising the Services design.');
+   blockers.push('Add and review real service names before prioritising this customer action.');
  }
  if(goal==='photos'){
   const photos=config?.publicProfile?.assets?.gallery;

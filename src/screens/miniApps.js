@@ -1,3 +1,4 @@
+import {AppGoalContentAssistant} from "./appGoalContentAssistant";
 import {AppOwnerLockControls} from "./appOwnerLockControls";
 import {AppBusinessFactRefresh} from "./appBusinessFactRefresh";
 import {useOwnerDesignMemory} from "./useOwnerDesignMemory";
@@ -2598,6 +2599,10 @@ function MiniAppBuilder({ s }) {
               {appGoalDesign.businessContext.considered?<Text style={styles.cardBody}>{appGoalDesign.businessContext.note}</Text>:null}
               {appGoalDesign.contentReadiness.blockers.map((reason,index)=>(
                 <Text key={"goal-content-"+index} style={styles.cardBody}>{reason}</Text>))}
+              <AppGoalContentAssistant key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision,selectedCustomerTask].join(":")}
+                businessId={s.cloudWorkspace?.businessId||""} ownerId={s.ownerSession?.userId||""} app={app} goal={selectedCustomerTask}
+                busy={!!s.miniAppsAction||studio.pending} onPreview={setStudioPreview} onNotice={setStudioNotice}
+                onSavedFacts={()=>setShowFactRefresh(true)}/>
               {appGoalDesign.visualTradeoffs.map(choice=>(
                 <Text key={"goal-relevance-"+choice.field} style={styles.cardBody}>
                   {choice.goalRelevance+" "+choice.tradeoff}

@@ -13706,7 +13706,7 @@ function App() {
     }catch(error){if(!websiteTaskCurrent(task))return {ok:false,reason:"The website changed. Review your latest draft."};
       return {ok:false,reason:String(error?.message||"BUSY could not interpret that request. No changes were made.").slice(0,250)};
     }
-  
+
     }catch{return {ok:false,reason:"The website operation could not complete. Review your current draft before retrying."};}finally{websiteAsyncGateRef.current.finish(task);}
   };
 
@@ -13767,7 +13767,7 @@ function App() {
     }catch(error){if(!websiteTaskCurrent(task))return {ok:false,error:"The website changed. Select it again."};
       return {ok:false,error:String(error?.message||"Voice transcription failed. Your website was not changed.").slice(0,240)};
     }
-  
+
     }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
@@ -13812,7 +13812,7 @@ function App() {
     }catch(error){if(!websiteTaskCurrent(task))return {ok:false,error:"The website changed. Select it again."};
       return {ok:false,error:String(error?.message||"Transcription failed. No changes were made.").slice(0,240)};
     }
-  
+
     }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
@@ -13936,7 +13936,7 @@ function App() {
       setWebsiteBuilderNotice("Unable to open the share sheet. Your website draft remains safe in BUSY.");
       return false;
     }
-  
+
     }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
@@ -14086,7 +14086,7 @@ function App() {
       setWebsiteBuilderNotice("ZIP export could not be shared. Your website is unchanged. Try again or share the JSON content copy.");
       return false;
     }
-  
+
     }catch{return false;}finally{websiteAsyncGateRef.current.finish(task);}
   };
 
@@ -14259,7 +14259,7 @@ function App() {
     } finally {if(websiteAsyncGateRef.current.owns(task)){
       if (!quiet) setWebsitePublishingLoading(false);
     }}
-  
+
     }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
@@ -14293,7 +14293,7 @@ function App() {
     } finally {if(websiteAsyncGateRef.current.owns(task)){
       setWebsitePublishingAction("");
     }}
-  
+
     }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
@@ -14365,7 +14365,7 @@ function App() {
     } finally {if(websiteAsyncGateRef.current.owns(task)){
       setWebsitePublishingAction("");
     }}
-  
+
     }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
@@ -14408,7 +14408,7 @@ function App() {
       );
       return false;
     }
-  
+
     }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
@@ -14448,7 +14448,7 @@ function App() {
     } finally {if(websiteAsyncGateRef.current.owns(task)){
       setWebsitePublishingAction("");
     }}
-  
+
     }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
@@ -14487,7 +14487,7 @@ function App() {
       ]
     );
     return true;
-  
+
     }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
@@ -14517,7 +14517,7 @@ function App() {
     } finally {if(websiteAsyncGateRef.current.owns(task)){
       setWebsitePublishingAction("");
     }}
-  
+
     }finally{websiteAsyncGateRef.current.finish(task);}
   };
 
