@@ -1,3 +1,4 @@
+import {coordinatedWebsiteAlternatives} from "../core/websiteCoordinatedAlternatives.mjs";
 import {beginWebsiteMeasurementAttempt,currentWebsiteMeasurementAttempt} from "../core/websiteMeasurementAttempt.mjs";
 import {currentWebsiteDesignCandidate,privateWebsiteReviewProgress} from "../core/privateWebsiteReviewProgress.mjs";
 import React from "react";
@@ -1152,21 +1153,22 @@ function WebsitePreview({ s }) {
         captureSource:"current_private_webview_dom",
         original:visualCheckResult,candidate:candidateCheckResult}]
     }):null;
-  const tryCandidate=()=>{
-    if(!layoutAdvice||!draft)return;
-    const result=applyWebsiteLayoutChange(draft,layoutAdvice.operation);
+  const coordinatedAdvice=coordinatedWebsiteAlternatives(draft,activePage?.id,visualCheckResult);
+  const tryCandidate=(advice=layoutAdvice)=>{
+    if(!advice||!draft)return;
+    const result=applyWebsiteLayoutChange(draft,advice.operation);
     if(!result?.applied){
       setDesignCandidateNotice(result?.reason||"That layout alternative could not be prepared.");
       return;
     }
     // Don't modify the owner's real draft. Recheck the entire rendered private
     // candidate on the SAME page and viewport, then offer an explicit Keep.
-    setDesignCandidate({...layoutAdvice,draft:result.draft,pageId:activePage?.id,
+    setDesignCandidate({...advice,draft:result.draft,pageId:activePage?.id,
       businessId:s.cloudWorkspace?.businessId,websiteId:draft.id,ownerId:s.ownerSession?.userId||"",
       baseGeneration:draft.generation});
     const baseline=recordPrivateWebsiteCandidateWidthV3239(null,{
       businessId:s.cloudWorkspace?.businessId,website:draft,pageId:activePage?.id||"home",
-      candidateId:layoutAdvice.id,baseGeneration:draft.generation,
+      candidateId:advice.id,baseGeneration:draft.generation,
       mode:previewSize,variant:"original",report:visualCheckResult});
     setPrivateWidthEvidence(baseline.ok?baseline.state:null);
     startCapture("candidate");
@@ -1460,11 +1462,18 @@ function WebsitePreview({ s }) {
              {ownerDesignPreference(draft,layoutAdvice.id)==="disliked"?
               <Text style={styles.cardBody}>You previously rejected this look. BUSY won't recommend it as a preferred choice.</Text>:null}
              <Button label={layoutAdvice.label+" — preview first"}
-              onPress={tryCandidate}/>
+              onPress={()=>tryCandidate()}/>
             </>
            ):null}
           </View>
         ):null}
+        {visualCheckResult&&!designCandidate&&!visualCheckOn?coordinatedAdvice.map(advice=>(
+          <View key={advice.id} style={{marginVertical:8}}>
+            <Text style={styles.sectionLabel}>{advice.label}</Text>
+            <Text style={styles.cardBody}>{advice.explanation+" "+advice.tradeoff+" This is a design hypothesis; measure both versions before keeping it."}</Text>
+            <Button label="Compare this coordinated look" onPress={()=>tryCandidate(advice)}/>
+          </View>
+        )):null}
         {designCandidate?(
          <View style={{marginVertical:12}}>
           <Text style={styles.sectionLabel}>Testing a private alternative</Text>
