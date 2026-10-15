@@ -1,3 +1,4 @@
+import {createAppDesignFeedbackActions} from "../core/appDesignFeedbackActions.mjs";
 import {createPrivateWebsiteAsyncGate} from "../core/privateWebsiteAsyncGate.mjs";
 import {checkPrivateWebsiteDraftCommit} from "../core/privateWebsiteDraftCommit.mjs";
 import {useWebsiteDraftHistory} from "../screens/useWebsiteDraftHistory";
@@ -52,7 +53,7 @@ import {previewWebsiteAIStudio} from "../core/websiteAIStudio.mjs";
 import {privateBuilderVisualIntegrity} from "../core/privateBuilderBoundary.mjs";
 import {planWebsitePageInstructions,prepareWebsitePageInstructionPreview} from "../core/websitePageInstructions.mjs";
 import {makeWebsiteRecoveryPoint,restoreWebsiteRecoveryPoint as restoreWebsiteRecoverySnapshot} from "../core/websiteRecoveryPoint.mjs";
-import {validateDesignFeedback,normalizeDesignHistory} from "../core/appDesignLearning.mjs";
+import {normalizeDesignHistory} from "../core/appDesignLearning.mjs";
 import {validateOwnerBrainWrite,normalizeOwnerBrainHistory}
  from "../core/brainOwnerDecisionsContract.mjs";
 import {currentPreparedWebsiteRevision,validateWebsiteBrainChoice,
@@ -365,6 +366,7 @@ function App() {
   const miniAppVoiceScopeRef=useRef({});
   const firstAppFromWebsiteInFlightRef=useRef(false);
   const privateAppEditInFlightRef=useRef(false);
+  const appDesignFeedbackActionsRef=useRef(null);
   const privateAppEditScopeRef=useRef(null);
   const [miniAppsLoading, setMiniAppsLoading] = useState(false);
   const [miniAppsAction, setMiniAppsAction] = useState("");
@@ -15948,56 +15950,17 @@ function App() {
         "Private design history is not yet available.").slice(0,235)};
     }
   };
-  const recordAppDesignPreference=async({
-    appId,expectedRevision,field,value,verdict,context="preview",
-    source="manual",baselineWarnings=null,proposedWarnings=null
-  }={})=>{
-    const businessId=String(cloudWorkspace?.businessId||"");
-    const current=()=>businessId&&cloudWorkspace?.businessId===businessId&&
-      miniAppsView?.app?.id===appId&&
-      Number(miniAppsView?.app?.draft_revision)===Number(expectedRevision);
-    const valid=validateDesignFeedback({
-      appId,expectedRevision,field,value,verdict,context,source,
-      baselineWarnings,proposedWarnings,ownerApproved:true
-    });
-    if(!valid.ok||!current())
-      return {ok:false,reason:valid.reason||"Open the current private draft again."};
-    try{
-      const response=await miniAppsRequest("record_design_feedback",{
-        appId,expectedRevision,field,value,verdict,context,source,
-        baselineWarnings,proposedWarnings,ownerApproved:true
-      });
-      if(!current()||response?.ok!==true||
-         response.businessId!==businessId||response.appId!==appId||
-         response.feedbackRecorded!==true||
-         Number(response.draftRevision)!==Number(expectedRevision)||
-         response.feedbackContext!==context||
-         response.publishedAppUnchanged!==true)
-        throw Error("BUSY could not verify this private owner feedback record.");
-      return {ok:true,saved:true};
-    }catch(error){
-      return {ok:false,reason:String(error?.message||
-        "Owner design feedback could not be saved.").slice(0,230)};
-    }
+  const recordAppDesignPreference=async(payload={})=>{
+    if(!appDesignFeedbackActionsRef.current)appDesignFeedbackActionsRef.current=
+      createAppDesignFeedbackActions(()=>privateAppEditScopeRef.current);
+    return appDesignFeedbackActionsRef.current.record(payload,miniAppsRequest,{
+      ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||""});
   };
-  const clearAppDesignLearning=async({appId}={})=>{
-    const businessId=String(cloudWorkspace?.businessId||"");
-    if(!businessId||miniAppsView?.app?.id!==appId)
-      return {ok:false,reason:"Open the matching private Business App."};
-    try{
-      const response=await miniAppsRequest("clear_design_feedback",{
-        appId,ownerApproved:true
-      });
-      if(response?.ok!==true||response.businessId!==businessId||
-         cloudWorkspace?.businessId!==businessId||
-         response.appId!==appId||response.cleared!==true||
-         response.publicAppUnchanged!==true)
-        throw Error("BUSY could not verify that the right design history was cleared.");
-      return {ok:true,cleared:true};
-    }catch(error){
-      return {ok:false,reason:String(error?.message||
-        "Private design learning could not be cleared.").slice(0,230)};
-    }
+  const clearAppDesignLearning=async(payload={})=>{
+    if(!appDesignFeedbackActionsRef.current)appDesignFeedbackActionsRef.current=
+      createAppDesignFeedbackActions(()=>privateAppEditScopeRef.current);
+    return appDesignFeedbackActionsRef.current.clear(payload,miniAppsRequest,{
+      ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||""});
   };
 
   const saveCoordinatedAppChanges=async({operations,appId,expectedRevision,source}={})=>{

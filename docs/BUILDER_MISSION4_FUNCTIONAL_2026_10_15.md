@@ -41,3 +41,11 @@ The goal reviewer now reuses the existing industry classifier and industry desig
 Current content, owner locks, scoped saved feedback and original three-width checks still decide whether any hypothesis becomes a Studio proposal. Brand colours are never changed by this route; unsupported capabilities are never activated. The UI explains the limited supporting role of business context. A small appointment app can now receive a justified navigation alternative even when the older generic five-section threshold would offer none.
 
 Tests cover sparse appointment context, explicit style preservation, owner locks/rejected choices, same-business website context and foreign references. Existing V3.240 goal intelligence, feedback and task-decision suites pass. This is deterministic decision support; neither a visual preference nor an industry classification proves a booking, conversion or customer journey succeeded.
+
+## Functional sweep 6 — scoped feedback mutations and stable learning identity
+
+The old feedback record/clear controller handlers compared closure values across awaits. They now delegate to one extracted action adapter over the existing feedback endpoints, validator and ledger. It binds the reviewed owner/workspace, exact app/config/revision and live transport guards, and rejects duplicate in-flight actions. Late replies cannot be treated as another workspace's successful feedback operation.
+
+Recording the same owner/design/revision/verdict/source/counts reuses a stable bounded request key, leveraging the existing database unique(business_id, request_key) constraint rather than adding a ledger or replay queue. Lost confirmation is not automatically replayed or declared saved. Explicit history clearing remains an owner-approved operation and does not change app/customer data. This supports dependable per-business preference intelligence without claiming model retraining.
+
+Tests verify scope/revision changes during record/clear, old-owner callbacks, duplicate actions, exact receipts and stable request keys. Fixture transport does not prove hosted uniqueness; the existing schema constraint and server validator remain in force. The historical V3.166 source check follows the extracted adapter and original transport while retaining its privacy/security/runtime assertions. Native parser and dependency closure pass.

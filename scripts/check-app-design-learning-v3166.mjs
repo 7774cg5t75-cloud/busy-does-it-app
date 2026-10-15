@@ -116,10 +116,12 @@ for(const needle of ['enable row level security',
 const ctrl=read("src/app/AppController.js");
 for(const needle of ['getAppDesignLearningStatus=async',
  'recordAppDesignPreference=async','clearAppDesignLearning=async',
- 'miniAppsRequest("record_design_feedback"','miniAppsRequest("clear_design_feedback"',
- 'validateDesignFeedback({','data.history.records',
- 'response.publishedAppUnchanged!==true'])
+ '.record(payload,miniAppsRequest','.clear(payload,miniAppsRequest','data.history.records'])
  assert.ok(ctrl.includes(needle),"Missing owner feedback client: "+needle);
+const actions=read("src/core/appDesignFeedbackActions.mjs");
+for(const needle of ["'record_design_feedback'","'clear_design_feedback'",'validateDesignFeedback(body)',
+ 'response.publishedAppUnchanged!==true','isCurrent:current'])
+ assert.ok(actions.includes(needle),"Missing extracted owner feedback guard: "+needle);
 const ui=read("src/screens/miniApps.js");
 for(const needle of ['rankDesignSuggestions(config,',
  'designMemory?.ok?designMemory.records:[]',
