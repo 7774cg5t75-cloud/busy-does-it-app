@@ -2934,7 +2934,8 @@ function App() {
   const restoreLatestCloudCopy = async (confirmation = null) => {
     if (!ownerSession?.accessToken || !cloudWorkspace?.businessId || snapshotRestoreRef.current) return false;
     const identity=snapshotIdentityRef.current;
-    const ticket=confirmation||snapshotSessionRef.current.prepareRestore(()=>snapshotContextRef.current);
+    if(!confirmation)return confirmRestoreLatestCloudCopy();
+    const ticket=confirmation;
     if(!ticket)return false;
     const task={identity};snapshotRestoreRef.current=task;
     setCloudInitialising(true);
