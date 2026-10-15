@@ -70,7 +70,8 @@ assert.equal(planWebsitePageInstructions(draft,{
 }).ok,false);
 const ctl=read("src/app/AppController.js");
 assert.ok(ctl.includes("privateBuilderVisualIntegrity(websiteDraft,next)"));
-assert.ok(ctl.includes("setWebsiteUndo(items=>[...items,websiteDraft].slice(-8))"));
+assert.ok(ctl.includes('commitReviewedBuilderDraft(websiteDraft,next,"Prepared reviewed visual changes.")'));
+assert.ok(ctl.includes("setWebsiteUndo(items=>[...items,current].slice(-8))"));
 const contract=read("supabase/functions/busy-website-design-review/designLoop.mjs");
 assert.ok(contract.includes("published:false,changesApplied:false"));
 console.log("V3.152 INTEGRITY PASS: preview and final Keep are owner/revision-bound, never change business facts, photos, navigation, SEO, publication or custom CSS.");

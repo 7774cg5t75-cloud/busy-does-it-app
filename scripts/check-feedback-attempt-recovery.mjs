@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {createAppDesignFeedbackActions as actions} from '../src/core/appDesignFeedbackActions.mjs';
+const businessId='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',appId='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+const scope={userId:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',businessId,app:{id:appId,business_id:businessId,draft_revision:4,draft_config:{modules:[{key:'business_profile',enabled:true}],navigation:['business_profile']}}};
+const args={appId,expectedRevision:4,field:'navigationStyle',value:'list',verdict:'better',context:'preview',source:'manual'};
+const receipt={ok:true,businessId,appId,draftRevision:4,feedbackRecorded:true,feedbackContext:'preview',publishedAppUnchanged:true};
+const data=new Map(),storage={getItemAsync:async k=>data.get(k)||null,setItemAsync:async(k,v)=>data.set(k,v),deleteItemAsync:async k=>data.delete(k)};
+let n=0;const opts={storage,newKey:()=>`fixture-feedback-${++n}`},keys=[];
+const lost=await actions(()=>scope,opts).record(args,async(a,b,o)=>{keys.push(o.requestKey);throw Error('lost receipt');});assert.equal(lost.ok,false);assert.equal(data.size,1);
+const resumed=actions(()=>scope,opts);let sends=0;
+assert.equal((await resumed.record({...args,verdict:'worse'},async()=>{sends++;return receipt;})).ok,false);assert.equal(sends,0);
+assert.equal((await resumed.record(args,async(a,b,o)=>{keys.push(o.requestKey);return receipt;})).ok,true);assert.equal(keys[0],keys[1]);assert.equal(data.size,0);
+for(const verdict of ['worse','better'])assert.equal((await resumed.record({...args,verdict},async(a,b,o)=>{keys.push(o.requestKey);return receipt;})).ok,true);
+assert.notEqual(keys.at(-1),keys[0],'returning to a confirmed earlier opinion is a new owner decision');assert.equal(new Set(keys).size,3);
+let writes=0;const locked=actions(()=>scope,{storage:{...storage,setItemAsync:async()=>{throw Error('device locked');}}});assert.equal((await locked.record(args,async()=>{writes++;return receipt;})).ok,false);assert.equal(writes,0);
+console.log('PASS: actual feedback action persists before send, reuses unknown-attempt key after remount, blocks conflicting unknown action and records changed-back opinions distinctly. Fake SecureStore/transport only.');

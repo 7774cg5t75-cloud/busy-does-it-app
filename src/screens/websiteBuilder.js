@@ -78,7 +78,11 @@ function WebsiteBuilder({ s }) {
   const [showOutcomeFeedback,setShowOutcomeFeedback]=React.useState(false);
   const [feedbackState,setFeedbackState]=React.useState({status:"idle",message:""});
   const [savedStylePreferences,setSavedStylePreferences]=React.useState(null);
-  const feedbackBusy=React.useRef(false);
+  const feedbackBusy=React.useRef(null),feedbackScopeRef=React.useRef(null),feedbackAlive=React.useRef(true);
+  const feedbackKey=[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft?.id,draft?.generation].join(":");
+  if(feedbackScopeRef.current?.key!==feedbackKey){feedbackScopeRef.current={key:feedbackKey};feedbackBusy.current=null;}
+  const feedbackScope=feedbackScopeRef.current;
+  React.useEffect(()=>{feedbackAlive.current=true;return()=>{feedbackAlive.current=false;};},[]);
   React.useEffect(()=>{
     setAiStudio(null);setAiStudioNotice("");setAiStudioShowOriginal(false);
   },[draft?.id,draft?.generation,s.websiteVisualReview?.reviewId]);
@@ -164,7 +168,7 @@ function WebsiteBuilder({ s }) {
       }).catch(()=>{if(active)setSavedStylePreferences(null);});
     }
     return()=>{active=false;};
-  },[draft?.id,s.cloudWorkspace?.businessId]);
+  },[draft?.id,s.cloudWorkspace?.businessId,s.ownerSession?.userId]);
   const outcomeGuidance=websiteOutcomeGuidance(savedStylePreferences,{
     currentFamily:draft?.theme?.designFamily||draft?.designPlan?.family||"",
     currentRevision:String(draft?.generation||1)
@@ -217,31 +221,42 @@ function WebsiteBuilder({ s }) {
 
   const sendDesignPreference=async(choice)=>{
     if(feedbackBusy.current||!draft?.id)return;
-    feedbackBusy.current=true;
+    if(feedbackScopeRef.current!==feedbackScope||!feedbackAlive.current)return;
+    const task={};feedbackBusy.current=task;
+    const current=()=>feedbackAlive.current&&feedbackScopeRef.current===feedbackScope;
     setFeedbackState({status:"saving",message:""});
     try{
-      await s.recordMeasuredWebsiteFeedback(choice);
+      const receipt=await s.recordWebsiteDesignFeedback(choice);
+      if(!current())return;
+      if(receipt?.ok!==true)throw Error("Private feedback was not confirmed.");
       const updated=await s.readWebsiteDesignFeedback().catch(()=>null);
+      if(!current())return;
       if(updated?.scope==="current_business_only")
         setSavedStylePreferences(updated);
       setFeedbackState({status:"saved",
         message:"Saved privately for this business. BUSY can use your preferences in future improvements; it has not retrained any AI model."});
     }catch{
+      if(!current())return;
       setFeedbackState({status:"unavailable",
         message:"BUSY could not save your preference to the business workspace yet. Nothing has been shared."});
-    }finally{feedbackBusy.current=false;}
+    }finally{if(feedbackBusy.current===task)feedbackBusy.current=null;}
   };
   const clearPreferences=async()=>{
     if(feedbackBusy.current)return;
-    feedbackBusy.current=true;
+    if(feedbackScopeRef.current!==feedbackScope||!feedbackAlive.current)return;
+    const task={};feedbackBusy.current=task;
+    const current=()=>feedbackAlive.current&&feedbackScopeRef.current===feedbackScope;
     setFeedbackState({status:"saving",message:""});
     try{
-      await s.clearWebsiteDesignFeedback();
+      const receipt=await s.clearWebsiteDesignFeedback();
+      if(!current())return;
+      if(receipt?.ok!==true||receipt.cleared!==true)throw Error("Private feedback clearing was not confirmed.");
       setSavedStylePreferences(null);
       setFeedbackState({status:"cleared",message:"Private style preferences cleared for this business."});
     }catch{
+      if(!current())return;
       setFeedbackState({status:"unavailable",message:"BUSY could not confirm preferences were cleared. No shared learning was enabled."});
-    }finally{feedbackBusy.current=false;}
+    }finally{if(feedbackBusy.current===task)feedbackBusy.current=null;}
   };
   const applyInstruction = () => {
     const text = instruction.trim();

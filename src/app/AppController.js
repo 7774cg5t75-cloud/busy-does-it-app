@@ -15884,13 +15884,13 @@ function App() {
   };
   const recordAppDesignPreference=async(payload={})=>{
     if(!appDesignFeedbackActionsRef.current)appDesignFeedbackActionsRef.current=
-      createAppDesignFeedbackActions(()=>privateAppEditScopeRef.current);
+      createAppDesignFeedbackActions(()=>privateAppEditScopeRef.current,{storage:SecureStore});
     return appDesignFeedbackActionsRef.current.record(payload,miniAppsRequest,{
       ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||""});
   };
   const clearAppDesignLearning=async(payload={})=>{
     if(!appDesignFeedbackActionsRef.current)appDesignFeedbackActionsRef.current=
-      createAppDesignFeedbackActions(()=>privateAppEditScopeRef.current);
+      createAppDesignFeedbackActions(()=>privateAppEditScopeRef.current,{storage:SecureStore});
     return appDesignFeedbackActionsRef.current.clear(payload,miniAppsRequest,{
       ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||""});
   };
