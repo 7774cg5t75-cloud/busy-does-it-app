@@ -57,6 +57,8 @@ function snackSourceFiles() {
   const files = {};
   // Share the same design logic in native builds and the optional Snack fallback.
   const sourcePaths = ["BusyDoesItApp.js", ...collectJsFiles("src"),
+    "standalone/template/nativeCustomerActions.mjs",
+    "standalone/template/nativePreferredDates.mjs",
     "supabase/functions/busy-mini-app-guest/requestReceiptProofV3213.mjs",
     "supabase/functions/busy-website-worker/designSystem.mjs",
     "supabase/functions/busy-website-worker/designPlanner.mjs",
