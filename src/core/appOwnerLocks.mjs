@@ -8,6 +8,7 @@ function appOwnerLocks(config){
  return {ok:true,locks};
 }
 function appEditLockReason(config,op){
+ if(op?.kind==="restore_public_field")op={...op,kind:op.field==="services"?"services":"text"};
  const parsed=appOwnerLocks(config);
  if(!parsed.ok)return parsed.reason;
  const groups={headerStyle:["header"],typeStyle:["header","copy","typography"],
