@@ -563,6 +563,9 @@ function App() {
   const [ownerAuthNotice, setOwnerAuthNotice] = useState("");
   const [ownerAuthReady, setOwnerAuthReady] = useState(false);
   const [cloudWorkspace, setCloudWorkspace] = useState(null);
+  const cloudOwnerScopeRef=useRef(null);
+  if(cloudOwnerScopeRef.current?.userId!==(ownerSession?.userId||""))cloudOwnerScopeRef.current={userId:ownerSession?.userId||""};
+  useEffect(()=>{setCloudInitialising(false);},[ownerSession?.userId]);
   const websiteHistoryScope={ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||""};
   const websiteAsyncContextRef=useRef(null),websiteAsyncGateRef=useRef(null);
   if(!websiteAsyncGateRef.current)websiteAsyncGateRef.current=createPrivateWebsiteAsyncGate();
@@ -2770,6 +2773,10 @@ function App() {
   };
 
   const initialiseBusinessCloud = async (sessionOverride = null) => {
+    const ownerScope=cloudOwnerScopeRef.current;
+    const currentOwner=()=>cloudOwnerScopeRef.current===ownerScope&&ownerScope.userId===(sessionOverride||ownerSession)?.userId;
+    if(!currentOwner())return false;
+    const ownerAwait=async work=>{if(!currentOwner())throw Error("The signed-in owner changed.");const result=await work();if(!currentOwner())throw Error("The signed-in owner changed.");return result;};
     if (cloudInitialising) return false;
     setCloudInitialising(true);
     setCloudAttempted(false);
@@ -2780,25 +2787,25 @@ function App() {
       const session = sessionOverride || ownerSession;
       const token =
         session?.accessToken ||
-        (await ownerAccessToken());
+        (await ownerAwait(async()=>(ownerAccessToken())));
       if (!token) throw new Error("Sign in before connecting cloud data.");
 
       const userId = session?.userId || ownerSession?.userId || "";
       const userCacheKey = storageKeyForUser(userId);
       if (userCacheKey) {
         try {
-          const cached = await AsyncStorage.getItem(userCacheKey);
+          const cached = await ownerAwait(async()=>(AsyncStorage.getItem(userCacheKey)));
           if (cached) applyCloudSnapshot(JSON.parse(cached));
         } catch (error) {
           // A bad cache must never block the cloud copy from restoring.
         }
       }
 
-      const ensured = await busyDataRequest("rpc/busy_ensure_business", {
+      const ensured = await ownerAwait(async()=>(busyDataRequest("rpc/busy_ensure_business", {
         method: "POST",
         token,
         body: { p_name: businessName || null },
-      });
+      })));
       const row = Array.isArray(ensured) ? ensured[0] : ensured;
       const businessId = row?.business_id;
       if (!businessId) throw new Error("BUSY could not create or find this business workspace.");
@@ -2810,10 +2817,10 @@ function App() {
       };
       setCloudWorkspace(workspace);
 
-      const snapshots = await busyDataRequest(
+      const snapshots = await ownerAwait(async()=>(busyDataRequest(
         `busy_business_snapshots?business_id=eq.${encodeURIComponent(businessId)}&select=payload,schema_version,revision,updated_at`,
         { token }
-      );
+      )));
       const snapshot = Array.isArray(snapshots) ? snapshots[0] : snapshots;
       const payload =
         snapshot?.payload && typeof snapshot.payload === "object"
@@ -2829,7 +2836,7 @@ function App() {
         setCloudSyncStatus("Cloud restored");
       } else {
         const localPayload = buildPersistentSnapshot();
-        const saved = await busyDataRequest(
+        const saved = await ownerAwait(async()=>(busyDataRequest(
           "busy_business_snapshots?on_conflict=business_id",
           {
             method: "POST",
@@ -2843,7 +2850,7 @@ function App() {
               updated_at: new Date().toISOString(),
             },
           }
-        );
+        )));
         const savedRow = Array.isArray(saved) ? saved[0] : saved;
         setCloudRevision(Number(savedRow?.revision) || 1);
         setCloudLastSyncedAt(savedRow?.updated_at || new Date().toISOString());
@@ -2853,14 +2860,14 @@ function App() {
 
       setCloudInitialised(true);
       return true;
-    } catch (error) {
+    } catch (error) {if(!currentOwner())return false;
       setCloudSyncError(error?.message || "Cloud workspace could not be loaded.");
       setCloudSyncStatus("Cloud unavailable");
       return false;
-    } finally {
+    } finally {if(currentOwner()){
       setCloudAttempted(true);
       setCloudInitialising(false);
-    }
+    }}
   };
 
   const fetchCloudSnapshot = async (tokenOverride = "") => {

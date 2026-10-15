@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {parse} from '@babel/parser';
+const source=readFileSync('src/app/AppController.js','utf8');let code;
+function walk(n){if(!n||typeof n!=='object')return;if(n.type==='VariableDeclarator'&&n.id?.name==='initialiseBusinessCloud')code=source.slice(n.init.start,n.init.end);for(const[k,v]of Object.entries(n))if(!['loc','start','end'].includes(k)){if(Array.isArray(v))v.forEach(walk);else if(v&&typeof v==='object')walk(v);}}walk(parse(source,{sourceType:'module',plugins:['jsx']}));
+let finish,applied=0,workspace=0;const ref={current:{userId:'owner-a'}},noop=()=>{};
+const env={cloudOwnerScopeRef:ref,ownerSession:{userId:'owner-a',accessToken:'fixture'},cloudInitialising:false,setCloudInitialising:noop,setCloudAttempted:noop,setCloudConflict:noop,setCloudSyncError:noop,setCloudSyncStatus:noop,storageKeyForUser:()=>'',ownerAccessToken:async()=>'fixture',busyDataRequest:()=>new Promise(r=>finish=r),businessName:'Fixture',setCloudWorkspace:()=>workspace++,applyCloudSnapshot:()=>applied++,setCloudRevision:noop,setCloudLastSyncedAt:noop,setCloudInitialised:noop};
+const init=Function(...Object.keys(env),'return '+code)(...Object.values(env));const pending=init();ref.current={userId:'owner-b'};finish([{business_id:'business-a'}]);assert.equal(await pending,false);assert.equal(workspace,0);assert.equal(applied,0);
+ref.current={userId:'owner-a'};const roundTrip=init();ref.current={userId:'owner-b'};ref.current={userId:'owner-a'};finish([{business_id:'business-a'}]);assert.equal(await roundTrip,false);assert.equal(workspace,0);
+console.log('PASS: actual cloud initialisation rejects late prior-owner and owner-round-trip responses before assigning a workspace or applying its website. Fake authenticated transport only.');
