@@ -2583,6 +2583,12 @@ function MiniAppBuilder({ s }) {
                 ". Current private capability: "+appGoalDesign.task.status.replaceAll("_"," ")+
                 ". This does not confirm a real booking or enquiry."}</Text>
               <Text style={styles.cardBody}>{appGoalDesign.brand.note}</Text>
+              {appGoalDesign.contentReadiness.blockers.map((reason,index)=>(
+                <Text key={"goal-content-"+index} style={styles.cardBody}>{reason}</Text>))}
+              {appGoalDesign.visualTradeoffs.map(choice=>(
+                <Text key={"goal-relevance-"+choice.field} style={styles.cardBody}>
+                  {choice.goalRelevance+" "+choice.tradeoff}
+                </Text>))}
               <Button label={goalMemory.busy?"Loading saved choices…":"Use my saved design choices"}
                 disabled={goalMemory.busy||!!s.miniAppsAction} onPress={goalMemory.refresh}/>
               {goalMemory.notice?<Text style={styles.cardBody}>{goalMemory.notice}</Text>:null}

@@ -31,3 +31,11 @@ Module toggles use a shared client/Edge planner, keep relative order, preserve a
 Approved public business facts are intentionally refreshed by the explicit rebuild action; this does not introduce an automatic merge of arbitrary public copy. Locked facts fail closed rather than being silently replaced. Existing first-app creation paths remain separate. Client/server updates must be released compatibly; no server was deployed here.
 
 Tests cover retained settings, stable enable/disable order, indirectly shifted locks, changed-profile lock rejection, foreign/stale receipt rejection and byte-identical helpers. The actual TypeScript setModule function is transpiled and executed against an injected fake DB to verify that stale versions cause no write and the conditional update includes app/business/revision. Parser and dependency graph checks pass. These are local simulations, not live database concurrency or customer evidence.
+
+## Sweep 4 — fewer, task-relevant and content-grounded decisions
+
+The existing goal-design reviewer selects from the original responsive suggestions by the chosen customer task. Gallery changes are reserved for the photo goal; service readability and actionable navigation take priority for their goals. Supported alternatives introducing any new static width advisory are excluded. Existing scoped owner-feedback filtering runs first; final edits use the original planner/Studio.
+
+A services/gallery goal with missing service names or no approved usable photos gives concrete content setup guidance instead of cosmetic alternatives. The UI explains each included choice's purpose and trade-off. This is deterministic public-config reasoning, not measured conversion or model retraining. The shared same-business draft-pair guard checks both camelCase and snake_case website tenant fields across Brand DNA consumers.
+
+Tests cover task ranking, irrelevant-choice suppression, missing/unapproved content, rejected static regressions and conflicting tenant aliases. Existing goal editing, feedback, V3.240 intelligence and native parser checks pass. No AI call, customer record, service activation or additional design engine. One shell process creation was interrupted by an exec-server disconnect; the runtime reported connected/running on recheck, and work resumed without changing protections.

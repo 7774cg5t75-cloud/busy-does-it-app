@@ -10,6 +10,7 @@ function validPrivateBuilderPair(website,app,businessId){
    // Some private website drafts do not carry a tenant field. If a tenant
    // is explicitly present it must NEVER disagree with the owner workspace.
    (!website.businessId||website.businessId===businessId)&&
+   (!website.business_id||website.business_id===businessId)&&
    Number.isSafeInteger(website.generation)&&website.generation>=1&&
    Array.isArray(website.sections)&&
    app!==null&&typeof app==="object"&&!Array.isArray(app)&&

@@ -1,3 +1,4 @@
+import {appGoalContentReadiness,selectAppGoalDesignChoices} from "./appGoalDesignDecisions.mjs";
 import {applyGoalOwnerMemory} from "./appGoalOwnerMemory.mjs";
 /**
  * V3.240 — evidence-labelled, cross-builder Business App design decisions.
@@ -31,14 +32,16 @@ function reviewAppGoalDesignV3240({
  const before=evaluateResponsiveApp(config);
  if(!task.ok||!guidance.ok||!before.ok)
   return fail("Current customer action or responsive design is not ready for review.");
- const taskBlocked=task.status==="setup_needed"||task.status==="limited_fallback_unverified";
+ const content=appGoalContentReadiness(config,goal);
+ const taskBlocked=!content.ready||task.status==="setup_needed"||task.status==="limited_fallback_unverified";
  const nav=taskBlocked?null:proposeTaskFirstNavigation(config,goal);
  const navigation=nav?.preview?.operations||[];
  const unlocked=guidance.suggestions.filter(x=>!appEditLockReason(config,
   {kind:"appearance",field:x.field}));
  const ownerMemory=applyGoalOwnerMemory(config,unlocked,ownerDesignHistory,{
   businessId,ownerId,appId:app.id,revision:app.draft_revision});
- const allowed=ownerMemory.choices;
+ const decisions=selectAppGoalDesignChoices(config,goal,ownerMemory.choices);
+ const allowed=decisions.choices;
  const suggested=taskBlocked?[]:allowed.slice(0,3-navigation.length).map(x=>({
   kind:"appearance",field:x.field,value:x.value}));
  let batch=null,after=null;
@@ -82,10 +85,10 @@ function reviewAppGoalDesignV3240({
    conflictCount:null,websiteRevision:null,
    note:website?"The website and app could not be verified as a current same-business pair.":
     "A current website draft can help BUSY preserve the same brand across both builders."};
- const blocked=task.status==="setup_needed"||
+ const blocked=!content.ready||task.status==="setup_needed"||
   task.status==="limited_fallback_unverified";
  const operations=batch?.operations||[];
- const recommendation=blocked?
+ const recommendation=!content.ready?content.blockers.join(" "):blocked?
   "Make the requested customer action genuinely available and testable before making it prominent.":
   hasNewAdvisories?
    "Compare the proposed design carefully: a static screen-width advisory was introduced.":
@@ -97,6 +100,7 @@ function reviewAppGoalDesignV3240({
   businessId,source:{appId:app.id,revision:app.draft_revision,
    websiteId:snapshot?.ok?website.id:null,
    websiteRevision:snapshot?.ok?website.generation:null},
+  contentReadiness:{...content},taskChoicesExcluded:decisions.excludedCount,
   goal,taskNavigationProposed:navigation.length>0,ownerLockedChoicesSkipped:guidance.suggestions.length-unlocked.length,
   ownerMemory:{used:ownerMemory.used,recordsUsed:ownerMemory.recordsUsed,suppressedCount:ownerMemory.suppressedCount,opinionNotProof:true},task:{status:task.status,module:task.targetModule||null,
    position:task.sectionPosition,cautionCount:task.cautions.length,
@@ -108,7 +112,7 @@ function reviewAppGoalDesignV3240({
   onlyExistingSupportedFields:true,
   protectedCustomerContent:true,
   visualTradeoffs:allowed.filter(x=>suggested.some(op=>op.field===x.field)).map(x=>({
-   field:x.field,why:x.reason,tradeoff:x.tradeoff})),
+   field:x.field,why:x.reason,goalRelevance:x.goalRelevance,tradeoff:x.tradeoff})),
   recommendation,ownerApprovalRequired:true,
   planningOnly:true,noNativeScreenshots:true,noWebsiteScreenshots:true,
   simulatedLogicalWidths:true,realDeviceVerified:false,
