@@ -1,3 +1,5 @@
+import {validateNativeGuestRequest,searchPublicNativeServices} from "../../standalone/template/nativeCustomerActions.mjs";
+import {nativePreferredDates} from "../../standalone/template/nativePreferredDates.mjs";
 import {bindAppControlReview,appControlReviewCurrent} from "../core/appControlReview.mjs";
 import {AppGoalContentAssistant} from "./appGoalContentAssistant";
 import {AppOwnerLockControls} from "./appOwnerLockControls";
@@ -4628,7 +4630,13 @@ function BusyAppDetailForm({ s }) {
   const formLive=React.useRef(null),formAlive=React.useRef(true);
   formLive.current=JSON.stringify([name,email,phone,service,date,note,message]);
   React.useEffect(()=>{formAlive.current=true;return()=>{formAlive.current=false;};},[]);
+  const requestInput={name,email,phone,service,preferredDate:date,note,message};
+  const bookingReady=validateNativeGuestRequest('booking_request',requestInput);
+  const enquiryReady=validateNativeGuestRequest('enquiry',requestInput);
+  const serviceChoices=searchPublicNativeServices(config?.publicProfile?.services||[],service.slice(0,80)).slice(0,8);
+  const preferredDates=React.useMemo(()=>nativePreferredDates(new Date(),7),[]);
   const submitBooking = async () => {
+    if(!bookingReady.ok)return false;
     const reviewed=formLive.current;
     const ok = await s.submitBusyAppRequest("booking_request", {
       name: name.trim(),
@@ -4646,6 +4654,7 @@ function BusyAppDetailForm({ s }) {
   };
 
   const submitEnquiry = async () => {
+    if(!enquiryReady.ok)return false;
     const reviewed=formLive.current;
     const ok = await s.submitBusyAppRequest("enquiry", {
       name: name.trim(),
@@ -4773,16 +4782,23 @@ function BusyAppDetailForm({ s }) {
       {enabled.has("booking_request") ? (
         <>
           <Text style={styles.sectionLabel}>Request a booking</Text>
-          <Field label="Service" value={service} onChangeText={setService} placeholder="e.g. Haircut" />
+          <Text style={styles.cardBody}>Choose a listed service or describe what you need. The business will review your request.</Text>
+          {serviceChoices.map((item,index)=><Button key={"request-service-"+index} label={"Request "+item.name}
+            disabled={!!s.miniAppsAction} onPress={()=>setService(item.name)}/>)}
+          <Field label="Service" value={service} onChangeText={setService} placeholder="Service you want" />
+          <Text style={styles.cardBody}>Preferred dates only — these are not available appointment slots.</Text>
+          <ScrollView horizontal accessibilityLabel="Preferred date suggestions" showsHorizontalScrollIndicator>
+            {preferredDates.map(day=><View key={"preferred-"+day.value} style={{marginRight:8}}><Button label={day.label}
+              disabled={!!s.miniAppsAction} onPress={()=>setDate(day.value)}/></View>)}
+          </ScrollView>
           <Field label="Preferred date" value={date} onChangeText={setDate} placeholder="e.g. Friday afternoon" />
           <Field label="Note" value={note} onChangeText={setNote} placeholder="Anything the business should know" multiline />
+          {!bookingReady.ok?<Text style={styles.cardBody}>{bookingReady.reason}</Text>:null}
           <Button
             label={s.miniAppsAction === "request:booking_request" ? "Sending…" : "Send booking request"}
             primary
             disabled={
-              !name.trim() ||
-              (!email.trim() && !phone.trim()) ||
-              !service.trim() ||
+              !bookingReady.ok ||
               !!s.miniAppsAction
             }
             onPress={submitBooking}
@@ -4794,12 +4810,11 @@ function BusyAppDetailForm({ s }) {
         <>
           <Text style={styles.sectionLabel}>Send an enquiry</Text>
           <Field label="Message" value={message} onChangeText={setMessage} placeholder="What would you like to ask?" multiline />
+          {!enquiryReady.ok?<Text style={styles.cardBody}>{enquiryReady.reason}</Text>:null}
           <Button
             label={s.miniAppsAction === "request:enquiry" ? "Sending…" : "Send enquiry"}
             disabled={
-              !name.trim() ||
-              (!email.trim() && !phone.trim()) ||
-              !message.trim() ||
+              !enquiryReady.ok ||
               !!s.miniAppsAction
             }
             onPress={submitEnquiry}
