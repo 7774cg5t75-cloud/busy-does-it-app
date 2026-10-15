@@ -1,3 +1,4 @@
+import {AppOwnerLockControls} from "./appOwnerLockControls";
 import {AppBusinessFactRefresh} from "./appBusinessFactRefresh";
 import {useOwnerDesignMemory} from "./useOwnerDesignMemory";
 import React from "react";
@@ -2308,6 +2309,9 @@ function MiniAppBuilder({ s }) {
           ):null}
             </>
           ):null}
+          <AppOwnerLockControls key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(":")}
+            config={view.draftConfig} onPreview={setStudioPreview} onNotice={setStudioNotice}
+            busy={!!s.miniAppsAction||studio.pending}/>
           <Text style={styles.sectionLabel}>Or tell Busy other changes</Text>
           <Field label="App instructions" value={studioWords}
             onChangeText={value=>{setStudioWords(value);setStudioPreview(null);}}
