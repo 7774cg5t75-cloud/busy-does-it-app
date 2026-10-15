@@ -13,3 +13,11 @@ Lock checks now examine every displaced module and related appearance groups, in
 Website candidates also carry the signed-in owner into immediate render/apply gating, rather than relying only on a later effect clearing state. The owner is not exported in WebView metric keys.
 
 Ten targeted review assertions now pass, including additional attempts to remove locks or smuggle unsupported properties via restore. The historical Studio test now asserts exact full original configuration restoration rather than requiring insertion of a default imageScale; this strengthens the undo contract. Inherited Studio, V3.239 website, V3.240 intelligence, new save/session, standalone parity and native/Edge parser checks pass.
+
+## Functional sweep: one Studio lifecycle and selective approval
+
+`appStudioSession.mjs` owns the ephemeral original Studio proposal/approval/undo lifecycle; `usePrivateAppStudio` is its small React adapter. It reuses the original planner, source binding and save service. The oversized builder no longer has separate, inconsistent approval and undo response handlers. Duplicate approval/undo/discard while pending is rejected synchronously; uncertain undo is disabled; old-owner responses and unmounted callbacks are ignored. Exact returned revision/configuration/inverse evidence is checked before enabling undo.
+
+Owners can leave out a single proposed change and immediately see the remaining batch recomputed through the same planner. Removing all changes disables approval. Original/proposed comparison stays the original shared renderer. No persistent second record store, new backend or automatic save was added; session continuity across app restart remains out of scope.
+
+New tests cover successful approve/undo with updated props, duplicate actions, edits while saving, lost approval and undo confirmations, malformed receipts, owner changes, unmount and removal of individual changes. Native/Edge parse, inherited Studio, exact-undo design and Snack dependency closure checks pass. Two historical tests now demand exact original sparse configuration instead of added default fields.

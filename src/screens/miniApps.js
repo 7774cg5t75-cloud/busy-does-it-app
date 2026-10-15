@@ -24,7 +24,7 @@ import { interpretSelectedAppAppearance } from "../core/appContextInstruction.mj
 import {orderedAppModules,proposeAppSectionMove} from "../core/appSectionOrder.mjs";
 import {proposeCoordinatedAppChanges,planAppVoiceInstructions} from "../core/appCoordinatedStudio.mjs";
 import {appDesignQualityReport} from "../core/appDesignQuality.mjs";
-import {bindPrivateAppProposal,currentPrivateAppProposal} from "../core/privateAppEditSession.mjs";
+import {usePrivateAppStudio} from "./usePrivateAppStudio";
 import {reviewAppGoalDesignV3240} from "../core/appGoalDesignReviewV3240.mjs";
 import {auditBusinessAppUsability,compareBusinessAppDesign} from "../core/appUsabilityAudit.mjs";
 import {responsiveAppLayout,recommendResponsiveDesign}
@@ -827,8 +827,6 @@ function MiniAppBuilder({ s }) {
   const [showAppVoice,setShowAppVoice]=React.useState(false);
   const [pendingMove,setPendingMove]=React.useState(null);
   const [studioWords,setStudioWords]=React.useState("");
-  const [studioPreview,setStudioPreviewState]=React.useState(null);
-  const [studioSaveUncertain,setStudioSaveUncertain]=React.useState(false);
   const [selectedCustomerTask,setSelectedCustomerTask]=React.useState("book");
   const [showCustomerTaskReview,setShowCustomerTaskReview]=React.useState(false);
   const [showJourneyPractice,setShowJourneyPractice]=React.useState(false);
@@ -842,13 +840,11 @@ function MiniAppBuilder({ s }) {
   const [brainOwnerNotice,setBrainOwnerNotice]=React.useState("");
   const [brainOwnerBusy,setBrainOwnerBusy]=React.useState(false);
   const [showResponsiveDetails,setShowResponsiveDetails]=React.useState(false);
-  const [studioNotice,setStudioNotice]=React.useState("");
   const [studioCopyField,setStudioCopyField]=React.useState("tagline");
   const [studioCopy,setStudioCopy]=React.useState("");
   const [photoFrom,setPhotoFrom]=React.useState("1");
   const [photoTo,setPhotoTo]=React.useState("2");
   const [studioVoiceOpen,setStudioVoiceOpen]=React.useState(false);
-  const [studioUndo,setStudioUndo]=React.useState(null);
   const [serviceIndex,setServiceIndex]=React.useState(-1);
   const [serviceName,setServiceName]=React.useState("");
   const [serviceDescription,setServiceDescription]=React.useState("");
@@ -857,14 +853,11 @@ function MiniAppBuilder({ s }) {
   const [accessiblePhotoCaption,setAccessiblePhotoCaption]=React.useState("");
   const view = s.miniAppsView || {};
   const app = view.app;
-  const studioContext={businessId:s.cloudWorkspace?.businessId||"",app,config:view.draftConfig};
-  const setStudioPreview=proposal=>{
-    setStudioSaveUncertain(false);
-    setStudioPreviewState(proposal?bindPrivateAppProposal(proposal,studioContext):null);
-  };
-  const studioIsCurrent=currentPrivateAppProposal(studioPreview,studioContext);
-  const studioAsyncScope=React.useRef("");
-  studioAsyncScope.current=[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app?.id].join(":");
+  const studio=usePrivateAppStudio({businessId:s.cloudWorkspace?.businessId||"",
+    ownerId:s.ownerSession?.userId||"",app,config:view.draftConfig},s.saveCoordinatedAppChanges);
+  const studioPreview=studio.preview,studioNotice=studio.notice;
+  const setStudioPreview=studio.prepare,setStudioNotice=studio.setNotice;
+  const studioIsCurrent=!!studio.preview;
 
   const syntheticStagingGate=assessSyntheticStagingAction({
     businessId:s.cloudWorkspace?.businessId||"",app,
@@ -876,7 +869,6 @@ function MiniAppBuilder({ s }) {
     setPendingAppearance(null);
     setAppearancePreviewOpen(false);
     setStudioPreview(null);
-    setStudioUndo(null);
     setStudioWords("");
     setStudioNotice("");
     setSelectedCustomerTask("book");
@@ -2490,7 +2482,12 @@ function MiniAppBuilder({ s }) {
             <>
               <Text style={styles.sectionLabel}>Proposed changes — not saved</Text>
               {studioPreview.changes.map((change,index)=>(
-                <MetricRow key={"change-"+index} left={"Change "+(index+1)} right={change}/>
+                <View key={"change-"+index}>
+                  <MetricRow left={"Change "+(index+1)} right={change}/>
+                  <Button label={"Leave out change "+(index+1)}
+                    disabled={studio.pending||studio.uncertain||!!s.miniAppsAction}
+                    onPress={()=>studio.removeChange(index)}/>
+                </View>
               ))}
               {studioPreview.preserved?.length?(
                 <Text style={styles.cardBody}>
@@ -2501,42 +2498,16 @@ function MiniAppBuilder({ s }) {
                 original={view.draftConfig} proposed={studioPreview.nextConfig}
                 renderSurface={config=><MiniAppSurface config={config}/>}/>
               <Button primary label={"Approve all "+studioPreview.changes.length+" private change(s)"}
-                disabled={!!s.miniAppsAction||studioSaveUncertain||!studioIsCurrent}
-                onPress={async()=>{
-                  if(!studioIsCurrent||studioSaveUncertain)return;
-                  const scope=studioAsyncScope.current;
-                  const result=await s.saveCoordinatedAppChanges?.({
-                    appId:studioPreview.source.appId,expectedRevision:studioPreview.source.revision,
-                    source:studioPreview.source,operations:studioPreview.operations});
-                  if(scope!==studioAsyncScope.current)return;
-                  if(result?.ok){
-                    setStudioUndo({operations:result.undoOperations,
-                      expectedRevision:result.newRevision});
-                    setStudioPreview(null);
-                    setStudioNotice("Saved as one PRIVATE revision. Your live app is unchanged.");
-                  }else{
-                    setStudioSaveUncertain(true);
-                    setStudioNotice(result?.reason||"Save not confirmed. Refresh the private app before preparing another approval.");
-                  }
-                }}/>
-              <Button label="Discard the whole proposed batch"
-                onPress={()=>{setStudioPreview(null);setStudioNotice("No changes saved.");}}/>
+                disabled={!!s.miniAppsAction||!studio.canApprove}
+                onPress={studio.approve}/>
+              <Button label="Discard the whole proposed batch" disabled={studio.pending}
+                onPress={studio.discard}/>
             </>
           ):null}
-          {studioUndo?.operations?.length&&
-            studioUndo.expectedRevision===app.draft_revision?(
-            <Button label="Undo my last approved batch" disabled={!!s.miniAppsAction}
-              onPress={async()=>{
-                const scope=studioAsyncScope.current;
-                const result=await s.saveCoordinatedAppChanges?.({
-                  appId:app.id,expectedRevision:studioUndo.expectedRevision,
-                  operations:studioUndo.operations});
-                if(scope!==studioAsyncScope.current)return;
-                if(result?.ok){
-                  setStudioUndo(null);
-                  setStudioNotice("Batch reversed in one new private revision. No public changes.");
-                }
-              }}/>
+          {studio.undo?(
+            <Button label="Undo my last approved batch"
+              disabled={!!s.miniAppsAction||!studio.canUndo}
+              onPress={studio.undoLast}/>
           ):null}
           <Text style={styles.cardBody}>
             BUSY cannot treat unrecognised instructions as completed edits. Payments,
