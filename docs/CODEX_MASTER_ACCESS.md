@@ -12,13 +12,22 @@
 | `AGENTS.md` | Standing instructions for Codex work in this repository | Automatically applicable when this file is present on the working branch. |
 | `docs/CODEX_PRODUCT_BRIEF.md` | Public, abbreviated orientation | Accessible in Git; **not** a replacement for the complete Word master. |
 
+### Latest owner-approved product master — V22.20 (15 October 2026)
+
+- **Decision:** Provide the practical benefits of leading specialist tools through one extraordinarily capable, plain-language BUSY assistant. This is a cross-platform quality/delivery standard, with an immediate Get More Customers use case; Semrush and Opinly are comparison benchmarks only.
+- **Private Word file:** `Busy_Does_It_Master_V22_20_Specialist_Grade_One_Busy_Assistant.docx`.
+- **SHA-256 of generated Word bytes:** `95015604442c959cccb4eda0296b67f457116545b14916031fc58bd78504cb95`.
+- **Validation:** Derived from owner-approved V22.19; existing content and all 19 tables preserved, ten paragraphs added including Section 42 specialist-grade outcome principle; DOCX rendered with 85 pages and new subsection visually checked. No application code, integrations, deployment or ranking improvements were made.
+- **Private access:** V22.20 is generated in ChatGPT conversation; confirm a persistent Library upload separately. Attach the document to a new Codex mission unless current Codex has verified read access to the updated private source.
+- **GitHub reference:** This branch's `ARCHITECTURE.md`, permanent product direction and existing search-discoverability/site-health contracts.
+
 ### New owner-approved product master revision — V22.19 (15 October 2026)
 
 - **Approved addition:** Evidence-led SEO/site-health diagnosis, safe website repairs and verification of actual published results (product master Section 41; corresponding public technical contract in `ARCHITECTURE.md`).
 - **New Word filename:** `Busy_Does_It_Master_V22_19_Evidence_Led_SEO_Diagnostics_and_Repair.docx`.
 - **SHA-256 of newly generated Word bytes:** `30cbb123f044720fc62fbf13296f19cce9490a35f04618a3e6b38e07c9218808`.
 - **Validation:** original V22.18 source matched the verified SHA-256 below; V22.19 preserves the 19 original tables, revises the version/date and adds an evidence-based subsection. It was structurally checked and visually rendered in the originating ChatGPT conversation.
-- **Private source status:** the V22.19 DOCX has been generated in the owner's ChatGPT conversation. **Upload to the persistent private Library has not been confirmed** (an attempted upload failed with a container-session error). Do **not** claim it is in the Library, mounted in Codex or publicly hosted; the owner must supply the file/authorised private source to a new Codex thread. The V22.18 Library checkpoint below remains the most recent independently verified stored source until a later Library upload is confirmed.
+- **Private source status:** V22.19 was subsequently confirmed in the owner's private ChatGPT Library at `/Busy_Does_It_Master_V22_19_Evidence_Led_SEO_Diagnostics_and_Repair.docx` on 15 October 2026. This does **not** imply automatic access from any separate Codex task. V22.20 supersedes it as the product master if the newer private document is available.
 - **Implementation status:** documentation/requirements only. No implemented SEO crawler, Google connection, repair, ranking result or production readiness is implied by the document revision.
 
 ### Most recent owner-approved Word master **verified during this setup**
