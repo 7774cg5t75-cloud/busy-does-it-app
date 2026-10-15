@@ -1166,7 +1166,7 @@ function MiniAppBuilder({ s }) {
         busy={!!s.miniAppsAction}/>
       <WebsiteToAppDesignTransfer website={s.websiteDraft} app={app}
         businessId={s.cloudWorkspace?.businessId}
-        onSave={s.saveCoordinatedAppChanges} busy={s.miniAppsAction}/>
+        onPreview={setStudioPreview} busy={!!s.miniAppsAction||studio.pending}/>
       <Card
         eyebrow="Choose how customers use your app"
         title="Inside Busy, standalone, or eventually both"

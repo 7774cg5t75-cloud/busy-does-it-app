@@ -153,14 +153,14 @@ const websiteUI=read("src/screens/websiteBuilder.js");
 const ctrl=read("src/app/AppController.js");
 const edge=read("supabase/functions/busy-mini-apps/index.ts");
 for(const str of ["Match my website closely","Keep my brand, adapt for an app",
- "Start fresh","Review my website-to-app design","onSave?.({operations:verified.operations",
+ "Start fresh","Review my website-to-app design","onPreview?.(proposal)",
  "confirmWebsiteToAppDesign({website,app,businessId,evidence:review})"])
  ok(owner.includes(str),"Missing Website->App owner experience "+str);
 for(const str of ["Match the app's style closely","Keep my brand, adapt for a website",
  "Approve this PRIVATE website change","confirmAppToWebsiteDesign({website,app,businessId,evidence:review})"])
  ok(site.includes(str),"Missing App->Website owner experience "+str);
 ok(mini.includes("<WebsiteToAppDesignTransfer website={s.websiteDraft}"));
-ok(mini.includes("onSave={s.saveCoordinatedAppChanges}"));
+ok(mini.includes("onPreview={setStudioPreview}"));
 ok(websiteUI.includes("<AppToWebsiteDesignTransfer website={draft}"));
 ok(websiteUI.includes("onApply={s.applyAppDesignToWebsite}"));
 ok(ctrl.includes("const applyAppDesignToWebsite=evidence=>"));

@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {fillMissingBuilderDescriptions as fill} from '../src/core/builderServiceDescriptions.mjs';
+import {planCopyMissingAppServices as toWeb,confirmCopyMissingAppServices as confirmWeb} from '../src/core/ownerBuilderServiceBridgeV3192.mjs';
+import {planWebsiteToAppDesign as toApp,confirmWebsiteToAppDesign as confirmApp} from '../src/core/websiteToAppBrandTransferV3196.mjs';
+import {proposeCoordinatedAppChanges as plan} from '../src/core/appCoordinatedStudio.mjs';
+const businessId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',app={id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',business_id:businessId,draft_revision:4,draft_config:{modules:[{key:'business_profile',enabled:true},{key:'services',enabled:true}],navigation:['business_profile','services'],presentation:{},publicProfile:{services:[{id:'a',name:'Visit',description:'App explanation'},{id:'b',name:'Follow-up',description:''}]}}};
+const website={id:'site',generation:2,businessId,businessType:'Consulting',sections:[{id:'services',type:'services',enabled:true,items:[{id:'w1',title:'Visit',body:''},{id:'w2',title:'Follow-up',body:'Website explanation'},{id:'w3',title:'Keep',body:'My custom copy'}]}],theme:{primary:'#123456'}};
+const web=toWeb(website,app,{businessId,fillDescriptions:true});assert.equal(web.ok,true);assert.equal(web.addedCount,0);assert.equal(web.filledCount,1);assert.equal(web.nextDraft.sections[0].items[0].id,'w1');assert.equal(web.nextDraft.sections[0].items[2].body,'My custom copy');assert.equal(confirmWeb(website,app,{businessId,evidence:web}).ok,true);
+assert.equal(confirmWeb({...website,sections:[{...website.sections[0],items:website.sections[0].items.map(x=>({...x,body:'Owner changed'}))}]},app,{businessId,evidence:web}).ok,false);
+const appPlan=toApp({website,app,businessId,mode:'match',includeServices:true,fillDescriptions:true});assert.equal(appPlan.ok,true);assert.equal(appPlan.previewConfig.publicProfile.services[0].description,'App explanation');assert.equal(appPlan.previewConfig.publicProfile.services[1].description,'Website explanation');assert.equal(appPlan.previewConfig.publicProfile.services[1].id,'b');assert.equal(confirmApp({website,app,businessId,evidence:appPlan}).ok,true);
+const edit=plan(app.draft_config,appPlan.operations);assert.equal(edit.ok,true);assert.deepEqual(plan(edit.nextConfig,edit.undoOperations).nextConfig,app.draft_config);
+assert.equal(fill([{name:'Visit',description:''},{name:'Ｖｉｓｉｔ',description:''}],[]).ok,false);
+assert.equal(toWeb({...website,business_id:'foreign'},app,{businessId,fillDescriptions:true}).ok,false);
+assert.equal(toApp({website,app:{...app,draft_config:{...app.draft_config,presentation:{ownerLockedElements:['services']}}},businessId,includeServices:true,fillDescriptions:true}).ok,false);
+console.log('PASS: both existing bridges reuse empty descriptions, preserve custom text/IDs, reject changed evidence/tenants/ambiguous names/locks, and original Studio inverse restores exact app.');

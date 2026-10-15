@@ -1,3 +1,4 @@
+import {fillMissingBuilderDescriptions} from "./builderServiceDescriptions.mjs";
 import {validPrivateBuilderPair,reviewedPairIsCurrent} from "./ownerBuilderDraftGuardV3195.mjs";
 /**
  * V3.192 — owner-initiated, same-tenant copy of missing Business App services
@@ -11,7 +12,8 @@ const clean=v=>typeof v==="string"?v.trim():"";
 const acceptable=(v,max,required=false)=>typeof v==="string"&&v.length<=max&&
  !/[<>\u0000-\u001f\u007f]/.test(v)&&(!required||!!v.trim());
 const makeSlug=v=>v.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,48);
-function planCopyMissingAppServices(website,app,{businessId}={}){
+function planCopyMissingAppServices(website,app,{businessId,fillDescriptions=false}={}){
+ if(typeof fillDescriptions!=="boolean")return {ok:false,reason:"Choose whether to fill empty descriptions."};
  if(!validPrivateBuilderPair(website,app,businessId)||
   !app.draft_config.modules.some(m=>m?.key==="services"&&m.enabled===true))
   return {ok:false,reason:"Open a current website and Business App draft belonging to the same business."};
@@ -22,7 +24,10 @@ function planCopyMissingAppServices(website,app,{businessId}={}){
  const incoming=app.draft_config.publicProfile?.services;
  if(!Array.isArray(incoming)||!incoming.length||incoming.length>30)
   return {ok:false,reason:"Add real services in the private Business App before copying."};
- const existing=current[0]?.items||[];
+ const original=current[0]?.items||[];
+ const repair=fillDescriptions?fillMissingBuilderDescriptions(original,incoming,{targetName:"title",targetBody:"body"}):{ok:true,next:original,filled:[]};
+ if(!repair.ok)return repair;
+ const existing=repair.next;
  if(!Array.isArray(existing)||existing.length>30||
     existing.some(s=>!s||typeof s.id!=="string"||!s.id||
       typeof s.title!=="string"))
@@ -48,7 +53,7 @@ function planCopyMissingAppServices(website,app,{businessId}={}){
   usedIds.add(id);known.add(lower);
   added.push({id,title:name,body});
  }
- if(!added.length)return {ok:false,reason:"Your website already contains every named app service."};
+ if(!added.length&&!repair.filled.length)return {ok:false,reason:"Your website already contains every named app service."};
  const servicesSection=current[0]?
   {...current[0],items:[...existing.map(x=>({...x})),...added],ownerEditedItems:true}:
   {id:"services",type:"services",title:"Our services",enabled:true,
@@ -59,9 +64,9 @@ function planCopyMissingAppServices(website,app,{businessId}={}){
  return {ok:true,kind:"private_cross_builder_service_copy_v3192",
   sourceAppId:app.id,sourceAppRevision:app.draft_revision,
   targetWebsiteId:website.id,targetWebsiteGeneration:website.generation,
-  businessId,added:added.map(x=>({title:x.title,body:x.body})),
+  businessId,fillDescriptions,filledDescriptions:repair.filled,added:added.map(x=>({title:x.title,body:x.body})),
   skippedExisting:skipped,nextDraft:{...website,sections},
-  addedCount:added.length,preservesExistingWebsiteCopy:true,
+  filledCount:repair.filled.length,addedCount:added.length,preservesExistingWebsiteCopy:true,
   privateOnly:true,requiresOwnerApproval:true,autoPublishes:false,
   changesBooking:false,addsNoProviders:true};
 }
@@ -71,11 +76,11 @@ function confirmCopyMissingAppServices(website,app,{businessId,evidence}={}){
     websiteId:"targetWebsiteId",websiteRevision:"targetWebsiteGeneration"
   }))
   return {ok:false,reason:"The app, website or business selection has changed. Review the services again."};
- const current=planCopyMissingAppServices(website,app,{businessId});
+ const current=planCopyMissingAppServices(website,app,{businessId,fillDescriptions:evidence?.fillDescriptions===true});
  if(!current.ok)return current;
  // Source text may change without revision in a buggy client. Still refuse an
  // approval that no longer matches the actual preview the owner accepted.
- if(JSON.stringify(current.added)!==JSON.stringify(evidence.added))
+ if(JSON.stringify(current.added)!==JSON.stringify(evidence.added)||JSON.stringify(current.filledDescriptions)!==JSON.stringify(evidence.filledDescriptions||[]))
   return {ok:false,reason:"Service wording changed. Review it again before copying."};
  return current;
 }
