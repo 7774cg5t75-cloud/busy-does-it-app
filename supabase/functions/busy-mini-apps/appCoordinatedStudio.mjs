@@ -9,7 +9,7 @@ import {appEditLockReason} from "./appOwnerLocks.mjs";
 import {enabledAppKeys,proposeAppSectionMove} from "./appSectionOrder.mjs";
 import {previewPrivateAppAppearance,publicAppAppearance} from "./appAppearanceEditing.mjs";
 import {reviewPrivateAppServices} from "./appServiceCollection.mjs";
-import {proposeGalleryImageDescription} from "./appGalleryDescription.mjs";
+import {proposeGalleryImageDescription,restoreGalleryDescription} from "./appGalleryDescription.mjs";
 const MAX_CHANGES=8;
 const TEXT_FIELDS=PROFILE_TEXT_LIMITS;
 const clean=v=>typeof v==="string"?v.trim():"";
@@ -107,14 +107,14 @@ function proposeCoordinatedAppChanges(config,operations){
    after=edit.nextConfig;
    undo={kind:"restore_public_field",field:"services",value:snapshot};
    description=edit.description;
-  }else if(op.kind==="photo_description"){
-   const edit=proposeGalleryImageDescription(next,{
+  }else if(["photo_description","restore_photo_description"].includes(op.kind)){
+   const edit=(op.kind==="restore_photo_description"?restoreGalleryDescription:proposeGalleryImageDescription)(next,{
      index:op.index,expectedUri:op.expectedUri,value:op.value
    });
    if(!edit.ok)return edit;
    after=edit.nextConfig;
-   undo={kind:"photo_description",index:op.index,
-    expectedUri:op.expectedUri,value:edit.previous};
+   undo={kind:"restore_photo_description",index:op.index,
+    expectedUri:op.expectedUri,value:edit.previousSnapshot};
    description=edit.description;
   }else if(op.kind==="photo"){
    const arr=next.publicProfile?.assets?.gallery;
