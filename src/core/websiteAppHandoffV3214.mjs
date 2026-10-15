@@ -1,3 +1,4 @@
+import {websiteDraftHasScope} from './websiteDraftScope.mjs';
 /**
  * V3.214 website -> published Business App customer-request HANDOFF.
  * Draft-only, owner-initiated: reuse the existing live mini-app link
@@ -46,13 +47,13 @@ function planWebsiteAppRequestHandoff({
  if(!KIND.includes(kind))return no("Choose a supported enquiry or booking request.");
  if(!UUID.test(businessId)||!website||typeof website.id!=="string"||
     !website.id||!Number.isSafeInteger(website.generation)||
-    website.generation<1||website.businessId&&website.businessId!==businessId)
+    website.generation<1||!websiteDraftHasScope(website,businessId))
   return no("Open the current website draft in the correct business workspace.");
  if(!app||app.business_id!==businessId||!UUID.test(app.id)||
     !UUID.test(app.current_live_version_id)||
     !["live","update_pending"].includes(app.status)||
     !liveVersion||liveVersion.id!==app.current_live_version_id||
-    liveVersion.mini_app_id&&liveVersion.mini_app_id!==app.id||
+    liveVersion.mini_app_id!==app.id||
     !["live"].includes(liveVersion.state))
   return no("Publish a Business App version before adding a working customer-request handoff.");
  const key=kind;

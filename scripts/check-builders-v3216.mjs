@@ -158,7 +158,7 @@ const versionRef="66666666-6666-4666-8666-666666666666";
 const fullLive={businessType:"Plumber",businessId:BID,
  app:{id:appRef,business_id:BID,status:"live",
   current_live_version_id:versionRef},
- liveVersion:{id:versionRef,mini_app_id:appRef,state:"live"},
+ liveVersion:{id:versionRef,mini_app_id:appRef,state:"live",config:{modules:[{key:"enquiry",enabled:true}]}},
  catalog:appCatalog,publishedModules:[{key:"enquiry",enabled:true}]};
 const understood=adviseCustomerCapabilityV3216(fullLive);
 same(understood.capability,"enquiry");
@@ -216,7 +216,7 @@ const withDeployment=planWebsiteIntakeV3216({...planInput,
  publishing:{liveDeployment:{id:DEP},
  website:{current_live_deployment_id:DEP},draftChangedSinceHosted:false},
  deliveryProof:{verified:true}});
-same(withDeployment.completedSourceChecks,1);
+same(withDeployment.completedSourceChecks,0,"Caller claims cannot replace scoped live-source and health evidence.");
 same(withDeployment.completedStagingChecks,0);
 same(withDeployment.publicFormEnabled,false);
 const withStale=planWebsiteIntakeV3216({...planInput,

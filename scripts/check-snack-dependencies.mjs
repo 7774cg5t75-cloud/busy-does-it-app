@@ -6,8 +6,10 @@ const fromSrc=collectJsFiles("src");
 const mjs=fromSrc.filter(x=>x.endsWith(".mjs"));
 assert.ok(mjs.length>=15,"Expected the V3.60+ domain ESM modules to be present");
 const files=snackSourceFiles();
-assert.equal(Object.keys(files).length,fromSrc.length+10,
- "Snack must include the additional pure shared request-receipt validator.");
+assert.ok(files["standalone/template/nativeCustomerActions.js"],"Shared customer validation must be included");
+assert.ok(files["standalone/template/nativePreferredDates.js"],"Shared preferred-date helper must be included");
+assert.equal(Object.keys(files).length,fromSrc.length+13,
+ "Snack must include the entry point, ten shared worker modules and two shared customer helpers.");
 assert.ok(files["supabase/functions/busy-mini-app-guest/requestReceiptProofV3213.js"],
  "Do not omit source-scoped saved-request receipt validation from Snack.");
 assert.ok(files["supabase/functions/busy-website-worker/visualCriticContract.js"],"Design-only AI guard must be in native and Snack sources");

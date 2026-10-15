@@ -26,7 +26,7 @@ function planWebsiteIntakeV3216({businessId="",website=null,
  app=null,liveVersion=null,catalog=[],endpoint="",publishing=null,
  deliveryProof=null,kind="enquiry"}={}){
  const before=websiteEnquiryReadinessV3215({businessId,website,
-   app,liveVersion,catalog,endpoint,publishing,deliveryProof});
+   app,liveVersion,catalog,endpoint,publishing,deliveryProof,kind});
  if(!TYPE.includes(kind))return {ok:false,reason:"Choose enquiries or booking requests.",
    publicFormEnabled:false,customerRequestSaved:false,readOnly:true};
  const owner=before.ok===true;

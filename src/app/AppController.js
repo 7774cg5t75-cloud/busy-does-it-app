@@ -1,3 +1,4 @@
+import {createMarketplaceReadActions} from "../core/marketplaceReadActions.mjs";
 import {createWebsiteLiveActions} from "../core/websiteLiveActions.mjs";
 import {createBusinessCacheRecoveryActions} from "../core/businessCacheRecoveryActions.mjs";
 import {enqueuePrivateCheckpoint} from "../core/privateCheckpointQueue.mjs";
@@ -553,11 +554,16 @@ function App() {
     ownerSession?.userId,cloudWorkspace?.businessId
   ]);
   useEffect(()=>{setLatestCommunicationEvidence(null);},[ownerSession?.userId]);
+  const customerRequestEpochRef=useRef(null);
   const activeCustomerRequestScopeRef=useRef("");
   activeCustomerRequestScopeRef.current=[
     ownerSession?.userId||"",selectedBusyAppDetail?.app?.id||"",
     selectedBusyAppDetail?.app?.slug||""
   ].join(":");
+  const customerRequestEpochKey=[activeCustomerRequestScopeRef.current,selectedBusyAppDetail?.version?.id||""].join(":");
+  if(customerRequestEpochRef.current?.key!==customerRequestEpochKey)
+    customerRequestEpochRef.current={key:customerRequestEpochKey};
+  const customerRequestRenderEpoch=customerRequestEpochRef.current;
   useEffect(()=>{
     customerRequestPendingRef.current=null;
     customerRequestInFlightRef.current=false;
@@ -15838,58 +15844,20 @@ function App() {
     return true;
   };
 
-  const searchBusyApps = async (query = busyAppsSearch) => {
-    setBusyAppsSearching(true);
-    setMiniAppsError("");
-    try {
-      const data = await miniAppsRequest(
-        "directory_search",
-        { query: String(query || "").trim() },
-        { includeBusiness: false }
-      );
-      setBusyAppsResults(Array.isArray(data?.apps) ? data.apps : []);
-      return true;
-    } catch (error) {
-      setMiniAppsError(error?.message || "BUSY could not search the app marketplace.");
-      return false;
-    } finally {
-      setBusyAppsSearching(false);
-    }
-  };
-
-  const openBusyAppDetail = async (slug, source = "marketplace", intent = "") => {
-    if (!slug) return false;
-    setMiniAppsAction(`open:${slug}`);
-    setMiniAppsError("");
-    try {
-      const data = await miniAppsRequest(
-        "app_detail",
-        { slug, source },
-        { includeBusiness: false }
-      );
-      setSelectedBusyAppDetail({
-        ...data,
-        entryIntent: ["enquiry", "booking_request"].includes(String(intent || ""))
-          ? String(intent)
-          : "",
-      });
-      go("busyAppDetail");
-      setTimeout(() => loadMyBusyApps({ quiet: true }), 80);
-      return true;
-    } catch (error) {
-      setMiniAppsError(error?.message || "BUSY could not open that Business App.");
-      return false;
-    } finally {
-      setMiniAppsAction("");
-    }
-  };
+  const marketplaceReadContextRef=useRef(null),marketplaceReadActionsRef=useRef(null);
+  marketplaceReadContextRef.current={ownerScope:cloudOwnerScopeRef.current,request:miniAppsRequest,
+    setMyBusyAppsLoading,setMyBusyApps,setMyBusyAppRequests,setMiniAppsNotificationStatus,setMiniAppsError,
+    setBusyAppsSearching,setBusyAppsResults,setMiniAppsAction,setSelectedBusyAppDetail,go,schedule:setTimeout};
+  if(!marketplaceReadActionsRef.current)marketplaceReadActionsRef.current=createMarketplaceReadActions(()=>marketplaceReadContextRef.current);
+  const {loadMyBusyApps,openBusyAppDetail}=marketplaceReadActionsRef.current;
+  const searchBusyApps=(query=busyAppsSearch)=>marketplaceReadActionsRef.current.searchBusyApps(query);
 
   const submitBusyAppRequest = async (requestType, payload = {}) => {
     const slug = selectedBusyAppDetail?.app?.slug || "";
     const appId = selectedBusyAppDetail?.app?.id || "";
     const customerUserId = ownerSession?.userId || "";
-    if (!slug || !appId || !customerUserId ||
-        customerRequestInFlightRef.current) return false;
+    if (!slug || !appId || !customerUserId ||customerRequestRenderEpoch!==customerRequestEpochRef.current||
+        customerRequestInFlightRef.current?.epoch===customerRequestEpochRef.current) return false;
     // Keep one request key for the SAME in-memory draft after an ambiguous
     // network error. Repeated taps cannot create simultaneous requests.
     const signature=JSON.stringify([customerUserId,slug,appId,requestType,payload]);
@@ -15901,16 +15869,18 @@ function App() {
     }
     const key=customerRequestPendingRef.current.requestKey;
     const expectedScope=[customerUserId,appId,slug].join(":");
+    const epoch=customerRequestRenderEpoch;
     const scopeStillCurrent=()=>
-      activeCustomerRequestScopeRef.current===expectedScope;
-    customerRequestInFlightRef.current=true;
+      activeCustomerRequestScopeRef.current===expectedScope&&customerRequestEpochRef.current===epoch;
+    const attempt={epoch};
+    customerRequestInFlightRef.current=attempt;
     setMiniAppsAction(`request:${requestType}`);
     setMiniAppsError("");
     setMiniAppsNotice("");
     try {
       const data = await miniAppsRequest(
         "submit_request",{slug,requestType,payload},
-        {includeBusiness:false,requestKey:key}
+        {includeBusiness:false,requestKey:key,isCurrent:scopeStillCurrent}
       );
       const verified=evaluateCustomerRequestOutcome({
         businessAppId:appId,customerUserId,requestType,
@@ -15918,12 +15888,12 @@ function App() {
       });
       if(!verified.ok||!scopeStillCurrent())
         throw Error("The saved request response could not be verified against your account.");
-      customerRequestPendingRef.current=null;
+      if(customerRequestPendingRef.current?.requestKey===key)customerRequestPendingRef.current=null;
       setLatestCustomerRequestOutcome(verified);
       setMiniAppsNotice(customerRequestNotice(verified));
       // A My Apps refresh is optional and must never invalidate saved proof.
       try{await loadMyBusyApps({quiet:true});}catch{}
-      return true;
+      return scopeStillCurrent();
     }catch(error){
       // Read-only owner-independent customer receipt: this prevents
       // an interrupted HTTP reply from silently making another request.
@@ -15933,26 +15903,28 @@ function App() {
         if(scopeStillCurrent()){
           const receipt=await miniAppsRequest("request_receipt",
             {slug,requestType,requestKey:key},
-            {includeBusiness:false});
+            {includeBusiness:false,isCurrent:scopeStillCurrent});
           const verified=evaluateCustomerRequestOutcome({
             businessAppId:appId,customerUserId,requestType,
             response:receipt,evidenceSource:"read_only_customer_receipt"
           });
           if(verified.ok&&scopeStillCurrent()){
-            customerRequestPendingRef.current=null;
+            if(customerRequestPendingRef.current?.requestKey===key)customerRequestPendingRef.current=null;
             setLatestCustomerRequestOutcome(verified);
             setMiniAppsNotice(customerRequestNotice(verified));
             try{await loadMyBusyApps({quiet:true});}catch{}
-            return true;
+            return scopeStillCurrent();
           }
         }
       }catch{ /* Failed readback proves nothing; retain same request key. */ }
-      setMiniAppsError("BUSY couldn't confirm whether the request saved. "+
+      if(scopeStillCurrent())setMiniAppsError("BUSY couldn't confirm whether the request saved. "+
         "Check My BUSY Apps before retrying. Retrying unchanged details uses the same request ID.");
       return false;
     }finally{
-      customerRequestInFlightRef.current=false;
-      setMiniAppsAction("");
+      if(customerRequestInFlightRef.current===attempt){
+        customerRequestInFlightRef.current=false;
+        if(scopeStillCurrent())setMiniAppsAction("");
+      }
     }
   };
 
@@ -16018,40 +15990,6 @@ function App() {
       return false;
     } finally {
       setMiniAppsAction("");
-    }
-  };
-
-  const loadMyBusyApps = async ({ quiet = false } = {}) => {
-    if (!ownerSession?.accessToken) return false;
-    if (!quiet) setMyBusyAppsLoading(true);
-    try {
-      const data = await miniAppsRequest(
-        "my_apps",
-        {},
-        { includeBusiness: false }
-      );
-      setMyBusyApps(Array.isArray(data?.apps) ? data.apps : []);
-      setMyBusyAppRequests(
-        Array.isArray(data?.requests) ? data.requests : []
-      );
-      const activeDeviceCount = Number(data?.notification?.activeDeviceCount || 0);
-      setMiniAppsNotificationStatus((current) => ({
-        ...current,
-        state: activeDeviceCount > 0 ? "enabled" : "disabled",
-        activeDeviceCount,
-        message:
-          activeDeviceCount > 0
-            ? `Request notifications are active on ${activeDeviceCount} device${activeDeviceCount === 1 ? "" : "s"}.`
-            : current.message || "Request notifications are not enabled on a device yet.",
-      }));
-      return true;
-    } catch (error) {
-      setMiniAppsError(
-        error?.message || "BUSY could not load My BUSY Apps."
-      );
-      return false;
-    } finally {
-      if (!quiet) setMyBusyAppsLoading(false);
     }
   };
 

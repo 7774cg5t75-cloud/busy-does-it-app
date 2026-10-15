@@ -28,4 +28,30 @@ function searchPublicNativeServices(services,query=""){
    (!q||(item.name+" "+(typeof item.description==="string"?item.description:""))
      .toLocaleLowerCase("en").includes(q)));
 }
-export {nativeContactAction,searchPublicNativeServices};
+const clean=(v,max)=>typeof v==="string"?v.trim().slice(0,max):"";
+function validateNativeGuestRequest(type,payload){
+ if(!["enquiry","booking_request"].includes(type))
+  return {ok:false,reason:"Choose an enquiry or booking request."};
+ const limits={name:160,email:240,phone:80,service:240,preferredDate:240,message:5000,note:3000};
+ for(const [key,max]of Object.entries(limits)){
+  if(type==='booking_request'&&key==='message'||type==='enquiry'&&['preferredDate','note'].includes(key))continue;
+  const value=payload?.[key];
+  if(value!==undefined&&(typeof value!=='string'||value.length>max||/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value)))
+   return {ok:false,reason:'Review the '+key+' field before sending. Details must fit the supported limit.'};
+ }
+ const p={
+  name:clean(payload?.name,160),email:clean(payload?.email,240),
+  phone:clean(payload?.phone,80),service:clean(payload?.service,240),
+  preferredDate:clean(payload?.preferredDate,240),message:clean(payload?.message,5000),
+  note:clean(payload?.note,3000)
+ };
+ if(!p.name||(!p.email&&!p.phone))return {ok:false,reason:"Enter your name and email or phone."};
+ if(p.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email))
+  return {ok:false,reason:"Enter a valid email address."};
+ if(p.phone&&p.phone.replace(/\D/g,"").length<7)
+  return {ok:false,reason:"Enter a phone number with at least seven digits."};
+ if(type==="booking_request"&&!p.service)return {ok:false,reason:"Enter the service you want to request."};
+ if(type==="enquiry"&&!p.message)return {ok:false,reason:"Write your enquiry before sending."};
+ return {ok:true,payload:p};
+}
+export {nativeContactAction,searchPublicNativeServices,validateNativeGuestRequest};
