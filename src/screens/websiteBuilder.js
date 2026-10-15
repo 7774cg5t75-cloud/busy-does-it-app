@@ -1456,6 +1456,7 @@ function WebsitePreview({ s }) {
             <>
              <Text style={styles.sectionLabel}>Optional safe design alternative</Text>
              <Text style={styles.cardBody}>{layoutAdvice.explanation}</Text>
+             {layoutAdvice.tradeoff?<Text style={styles.cardBody}>{layoutAdvice.tradeoff}</Text>:null}
              {ownerDesignPreference(draft,layoutAdvice.id)==="disliked"?
               <Text style={styles.cardBody}>You previously rejected this look. BUSY won't recommend it as a preferred choice.</Text>:null}
              <Button label={layoutAdvice.label+" — preview first"}

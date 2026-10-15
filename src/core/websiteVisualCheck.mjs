@@ -17,13 +17,14 @@ function makeWebsiteVisualCheckHtml(html,inspectionKey="preview"){
   function count(selector){return document.querySelectorAll(selector).length;}
   function check(){
    var all=[].slice.call(document.querySelectorAll("main *"));
-   var overflow=all.filter(function(node){
+   var overflowNodes=all.filter(function(node){
     if(!node.getBoundingClientRect)return false;
     var rect=node.getBoundingClientRect();
     var style=window.getComputedStyle(node);
     return style.position!=="fixed"&&style.visibility!=="hidden"&&
       rect.width>0&&(rect.left< -2||rect.right>window.innerWidth+2);
-   }).length;
+   });
+   var overflow=overflowNodes.length;
    var imgs=[].slice.call(document.querySelectorAll("main img"));
    var missing=imgs.filter(function(img){return !img.getAttribute("alt")}).length;
    var unloaded=imgs.filter(function(img){return img.complete&&img.naturalWidth===0}).length;
@@ -39,9 +40,16 @@ function makeWebsiteVisualCheckHtml(html,inspectionKey="preview"){
       !document.getElementById(href.slice(1));
    }).length;
    var headings=[].slice.call(document.querySelectorAll("main h1,main h2,main h3"));
-   var clipped=headings.filter(function(h){
+   var clippedNodes=headings.filter(function(h){
     return h.scrollWidth>h.clientWidth+2||h.scrollHeight>h.clientHeight+2;
-   }).length;
+   });
+   var clipped=clippedNodes.length;
+   function sectionIds(nodes){
+    var ids=[];nodes.forEach(function(node){
+     var section=node.closest&&node.closest("section"),id=section&&section.id;
+     if(typeof id==="string"&&/^[a-zA-Z][a-zA-Z0-9_-]{0,79}$/.test(id)&&ids.indexOf(id)<0&&ids.length<6)ids.push(id);
+    });return ids;
+   }
    // V3.145 additional rendered evidence, never guess from brand palettes.
    // Sample readable solid colour backgrounds only. Image/gradient/alpha
    // backgrounds are explicitly "unassessed", not declared accessible.
@@ -91,6 +99,7 @@ function makeWebsiteVisualCheckHtml(html,inspectionKey="preview"){
     missingAlt:Math.min(99,missing),unloadedImages:Math.min(99,unloaded),
     smallTargets:Math.min(99,small),badAnchors:Math.min(99,anchors),
     clippedHeadings:Math.min(99,clipped),
+    clippedSectionIds:sectionIds(clippedNodes),overflowSectionIds:sectionIds(overflowNodes),
     lowContrast:Math.min(99,lowContrast),contrastUnknown:Math.min(99,contrastUnknown),
     contrastChecked:Math.min(99,contrastChecked),smallBodyText:Math.min(99,smallBodyText),
     headings:Math.min(99,headings.length),
@@ -108,7 +117,7 @@ function makeWebsiteVisualCheckHtml(html,inspectionKey="preview"){
 function reviewWebsiteVisualCheck(message,inspectionKey="preview"){
  if(!message||typeof message!=="object"||Array.isArray(message)||
    message.channel!==CHANNEL||message.key!==inspectionKey||
-   JSON.stringify(message).length>700)return null;
+   JSON.stringify(message).length>1800)return null;
  const fields=["viewport","width","overflow","images","missingAlt",
   "unloadedImages","smallTargets","badAnchors","clippedHeadings","headings","sections",
   "lowContrast","contrastUnknown","contrastChecked","smallBodyText"];
@@ -120,6 +129,14 @@ function reviewWebsiteVisualCheck(message,inspectionKey="preview"){
  }
  if(counts.viewport<250||counts.viewport>3000||
     counts.width<0||counts.width>100000)return null;
+ const targets={};
+ for(const [key,counter] of [["clippedSectionIds","clippedHeadings"],["overflowSectionIds","overflow"]]){
+  if(message[key]===undefined)continue;
+  const ids=message[key];
+  if(!Array.isArray(ids)||ids.length>6||ids.length>counts[counter]||new Set(ids).size!==ids.length||
+   ids.some(id=>typeof id!=="string"||!/^[a-zA-Z][a-zA-Z0-9_-]{0,79}$/.test(id)))return null;
+  targets[key]=[...ids];
+ }
  const issues=[];
  const add=(id,label,detail)=>issues.push({id,label,detail});
  if(counts.width>counts.viewport+2||counts.overflow)
@@ -152,7 +169,7 @@ function reviewWebsiteVisualCheck(message,inspectionKey="preview"){
  if(!counts.headings||!counts.sections)
   add("empty","This page may be missing key content",
     "Review the selected page and its visibility settings.");
- return {issues,counts,
+ return {issues,counts,...Object.keys(targets).length?{targets}:{},
   passed:issues.length===0,
   message:issues.length
    ?issues.length+" layout item"+(issues.length===1?"":"s")+" to check before publishing."
