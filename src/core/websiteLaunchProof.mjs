@@ -78,7 +78,8 @@ function currentWebsiteLiveEvidence({businessId='',draft=null,publishing=null}={
  const website=publishing?.website,live=publishing?.liveDeployment;
  if(!websiteDraftHasScope(draft,businessId)||!website?.id||website.business_id!==businessId||
   !live?.id||live.business_id!==businessId||live.website_id!==website.id||
-  website.current_live_deployment_id!==live.id)return false;
+  website.current_live_deployment_id!==live.id||live.source_draft?.id!==draft.id||
+  !websiteDraftHasScope(live.source_draft,businessId))return false;
  const freshness=websiteDraftFreshness({draft,live});
  return freshness.verified===true&&freshness.changed===false&&buildWebsiteLaunchProof(publishing).verified===true;
 }
