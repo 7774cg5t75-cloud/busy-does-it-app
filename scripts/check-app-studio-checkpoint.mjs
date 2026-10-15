@@ -20,6 +20,7 @@ fail=false;restored.prepare(proposal);let finish;
 const pending=restored.approve(()=>{writes++;return new Promise(resolve=>{finish=resolve;});});await tick();assert.equal(writes,1);
 const interrupted=await create();assert.equal(interrupted.snapshot().interrupted,true);assert.equal(interrupted.snapshot().canApprove,false);assert.equal(interrupted.snapshot().canUndo,false);assert.equal(writes,1);
 const saved={...scope.app,draft_revision:5,draft_config:proposal.nextConfig};finish({ok:true,status:{app:saved},newRevision:5,undoOperations:proposal.undoOperations});assert.equal((await pending).ok,true);await tick();
+restored.setContext({...scope,app:saved});restored.prepare(null);await tick();
 const recoveredUndo=await create({...scope,app:saved});assert.equal(recoveredUndo.snapshot().canUndo,true);assert.equal(recoveredUndo.snapshot().canApprove,false);
 assert.equal((await create({...scope,app:{...saved,draft_revision:6}})).snapshot().canUndo,false);
 recoveredUndo.discard();await tick();assert.equal((await create({...scope,app:saved})).snapshot().undo,null);

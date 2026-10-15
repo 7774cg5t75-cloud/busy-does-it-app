@@ -1,3 +1,4 @@
+import {checkPrivateWebsiteDraftCommit} from "../core/privateWebsiteDraftCommit.mjs";
 import {useWebsiteDraftHistory} from "../screens/useWebsiteDraftHistory";
 import {executeAppDraftMutation} from "../core/appDraftMutation.mjs";
 import {executePrivateAppBatch} from "../core/privateAppEditSession.mjs";
@@ -13417,9 +13418,9 @@ function App() {
       previousDraft: websiteDraft,
       businessCreationIntelligence,
     });
-    if (websiteDraft) setWebsiteUndo((items) => [...items, websiteDraft].slice(-8));
-    setWebsiteRedo([]);
-    setWebsiteDraft(next);
+    if(websiteDraft){
+      if(!commitReviewedBuilderDraft(websiteDraft,next,"Refreshed the private website draft."))return false;
+    }else{setWebsiteRedo([]);websiteDraftRef.current=next;setWebsiteDraft(next);}
     setWebsiteBuilderNotice(
       brandBrain.websiteReady
         ? "Website draft rebuilt from the latest Brand Brain."
@@ -13438,10 +13439,7 @@ function App() {
     const result = applyWebsiteInstruction(websiteDraft, instruction);
     setWebsiteBuilderNotice(result.reason || "");
     if (!result.applied) return false;
-    setWebsiteUndo((items) => [...items, websiteDraft].slice(-8));
-    setWebsiteRedo([]);
-    setWebsiteDraft(result.draft);
-    return true;
+    return commitReviewedBuilderDraft(websiteDraft,result.draft,result.reason||"");
   };
 
   // Owner edits one exact website content field without prompt parsing.
@@ -13454,18 +13452,15 @@ function App() {
     const result = applyStructuredWebsiteEdit(websiteDraft, patch);
     setWebsiteBuilderNotice(result.reason || "");
     if (!result.applied) return false;
-    setWebsiteUndo(items=>[...items, websiteDraft].slice(-8));
-    setWebsiteRedo([]);
-    setWebsiteDraft(result.draft);
-    return true;
+    return commitReviewedBuilderDraft(websiteDraft,result.draft,result.reason||"");
   };
 
   // V3.195: one private-website commit path for reviewed cross-builder
   // edits. Undo, Redo, current ref and notice must remain synchronized.
   const commitReviewedBuilderDraft=(current,nextDraft,notice)=>{
-    if(!current||!nextDraft||!Array.isArray(nextDraft.sections)||
-      !Number.isSafeInteger(nextDraft.generation)||
-      nextDraft.generation<=current.generation)return false;
+    const checked=checkPrivateWebsiteDraftCommit({current,candidate:nextDraft,
+      live:websiteDraftRef.current,scopeCurrent:websiteHistoryIsCurrent(),businessId:websiteHistoryScope.businessId});
+    if(!checked.applied){setWebsiteBuilderNotice(checked.reason);return false;}
     setWebsiteUndo(items=>[...items,current].slice(-8));
     setWebsiteRedo([]);
     websiteDraftRef.current=nextDraft;
@@ -13859,10 +13854,7 @@ function App() {
       }
       next=recorded.draft;
     }
-    setWebsiteUndo(items=>[...items, websiteDraft].slice(-8));
-    setWebsiteRedo([]);
-    setWebsiteDraft(next);
-    return true;
+    return commitReviewedBuilderDraft(websiteDraft,next,result.reason||"");
   };
 
   const applyWebsitePageAction=(operation)=>{
@@ -13873,10 +13865,7 @@ function App() {
     const result=applyWebsitePageChange(websiteDraft,operation);
     setWebsiteBuilderNotice(result.reason||"");
     if(!result.applied)return false;
-    setWebsiteUndo(items=>[...items,websiteDraft].slice(-8));
-    setWebsiteRedo([]);
-    setWebsiteDraft(result.draft);
-    return true;
+    return commitReviewedBuilderDraft(websiteDraft,result.draft,result.reason||"");
   };
   // Explicit user-initiated share. Source export contains public website
   // business copy only; no private cloud tokens, customer records or images.

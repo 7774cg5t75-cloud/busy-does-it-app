@@ -44,7 +44,7 @@ function createAppStudioSession({checkpoint=null}={}){
   try{
    // Durable intent precedes the only mutation. Storage failure sends nothing.
    await persist();
-   if(epoch!==startEpoch)return {ok:false,reason:'The editor workspace changed.'};
+   if(epoch!==startEpoch||!currentPrivateAppProposal(proposal,context))return {ok:false,reason:'The editor workspace changed.'};
    const result=await save({appId:source.appId,expectedRevision:source.revision,
     source,operations:proposal.operations});
    if(epoch!==startEpoch)return {ok:false,reason:'The editor workspace changed.'};
@@ -95,7 +95,7 @@ function createAppStudioSession({checkpoint=null}={}){
    };
    if(saved){
     if(!['review','confirmed','submitting'].includes(saved.phase))throw Error('Unsupported Studio checkpoint.');
-    preview=recover(saved.preview);undo=saved.phase==='confirmed'?recover(saved.undo):null;
+    preview=recover(saved.preview);undo=saved.phase!=='submitting'?recover(saved.undo):null;
     if(saved.phase==='submitting'){
      interrupted=true;uncertain=true;recoveryPhase='submitting';
      notice='An earlier save or undo may have finished. Refresh the private app and prepare a fresh preview; no operation was replayed.';
