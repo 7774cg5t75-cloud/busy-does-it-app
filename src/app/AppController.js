@@ -1,3 +1,5 @@
+import {createWebsiteDomainActions} from "../core/websiteDomainActions.mjs";
+import {createBusinessSnapshotSession} from "../core/businessSnapshotSession.mjs";
 import {bindWebsiteDraftScope,websiteDraftHasScope} from "../core/websiteDraftScope.mjs";
 import {createWebsiteVoiceActions} from "../core/websiteVoiceActions.mjs";
 import {createAppDesignFeedbackActions} from "../core/appDesignFeedbackActions.mjs";
@@ -535,6 +537,7 @@ function App() {
   const [socialPublishingLoading, setSocialPublishingLoading] = useState(false);
   const [socialPublishingError, setSocialPublishingError] = useState("");
   const [socialPublishingAction, setSocialPublishingAction] = useState("");
+  const [cloudWorkspace, setCloudWorkspace] = useState(null);
   const [ownerSession, setOwnerSession] = useState(null);
   const liveOwnerFollowupScopeRef=useRef("");
   liveOwnerFollowupScopeRef.current=[
@@ -562,10 +565,13 @@ function App() {
   const [ownerAuthError, setOwnerAuthError] = useState("");
   const [ownerAuthNotice, setOwnerAuthNotice] = useState("");
   const [ownerAuthReady, setOwnerAuthReady] = useState(false);
-  const [cloudWorkspace, setCloudWorkspace] = useState(null);
   const cloudOwnerScopeRef=useRef(null);
   if(cloudOwnerScopeRef.current?.userId!==(ownerSession?.userId||""))cloudOwnerScopeRef.current={userId:ownerSession?.userId||""};
   useEffect(()=>{setCloudInitialising(false);},[ownerSession?.userId]);
+  const snapshotIdentityRef=useRef(null),snapshotContextRef=useRef(null),snapshotSessionRef=useRef(null),snapshotRestoreRef=useRef(null);
+  const snapshotKey=[ownerSession?.userId||"",cloudWorkspace?.businessId||""].join(":");
+  if(snapshotIdentityRef.current?.key!==snapshotKey)snapshotIdentityRef.current={key:snapshotKey};
+  if(!snapshotSessionRef.current)snapshotSessionRef.current=createBusinessSnapshotSession();
   const websiteHistoryScope={ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||""};
   const websiteAsyncContextRef=useRef(null),websiteAsyncGateRef=useRef(null);
   if(!websiteAsyncGateRef.current)websiteAsyncGateRef.current=createPrivateWebsiteAsyncGate();
@@ -2271,6 +2277,9 @@ function App() {
     advanced,
   });
 
+  snapshotContextRef.current={identity:snapshotIdentityRef.current,ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||"",
+    revision:cloudRevision,ready:cloudInitialised,getPayload:buildPersistentSnapshot};
+
   const applyCloudSnapshot = (saved,websiteBusinessId="") => {
     if (!saved || typeof saved !== "object") return;
     if (typeof saved.onboardingComplete === "boolean") setOnboardingComplete(saved.onboardingComplete);
@@ -2841,7 +2850,7 @@ function App() {
           {
             method: "POST",
             token,
-            prefer: "resolution=merge-duplicates,return=representation",
+            prefer: "resolution=ignore-duplicates,return=representation",
             body: {
               business_id: businessId,
               payload: localPayload,
@@ -2851,11 +2860,19 @@ function App() {
             },
           }
         )));
-        const savedRow = Array.isArray(saved) ? saved[0] : saved;
-        setCloudRevision(Number(savedRow?.revision) || 1);
+        let savedRow = Array.isArray(saved) ? saved[0] : saved;
+        const reusedExisting=!savedRow;
+        if(!savedRow){
+          const raced=await ownerAwait(()=>busyDataRequest(`busy_business_snapshots?business_id=eq.${encodeURIComponent(businessId)}&select=business_id,payload,schema_version,revision,updated_at`,{token}));
+          savedRow=Array.isArray(raced)?raced[0]:raced;
+          if(savedRow?.business_id!==businessId||!Number.isSafeInteger(savedRow.revision)||!savedRow.payload)throw Error("Could not verify the existing business snapshot. No replacement was sent.");
+          applyCloudSnapshot(savedRow.payload,businessId);
+        }
+        if(savedRow?.business_id!==businessId||!Number.isSafeInteger(savedRow.revision))throw Error("Could not confirm the initial business snapshot.");
+        setCloudRevision(savedRow.revision);
         setCloudLastSyncedAt(savedRow?.updated_at || new Date().toISOString());
         setCloudConflict(null);
-        setCloudSyncStatus("Local data backed up");
+        setCloudSyncStatus(reusedExisting?"Existing cloud copy restored":"Local data backed up");
       }
 
       setCloudInitialised(true);
@@ -2887,54 +2904,21 @@ function App() {
   };
 
   const saveBusinessCloud = async ({ quiet = false } = {}) => {
-    if (!cloudWorkspace?.businessId || !ownerSession?.accessToken || !cloudInitialised) return false;
-    if (!quiet) setCloudSyncStatus("Syncing…");
-    setCloudSyncError("");
-    try {
-      const token = await ownerAccessToken();
-      if (!token) throw new Error("Sign in again before syncing cloud data.");
-      const expectedRevision = Math.max(1, Number(cloudRevision) || 1);
-      const nextRevision = expectedRevision + 1;
-      const now = new Date().toISOString();
-      const saved = await busyDataRequest(
-        `busy_business_snapshots?business_id=eq.${encodeURIComponent(
-          cloudWorkspace.businessId
-        )}&revision=eq.${expectedRevision}`,
-        {
-          method: "PATCH",
-          token,
-          prefer: "return=representation",
-          body: {
-            payload: buildPersistentSnapshot(),
-            schema_version: CLOUD_SCHEMA_VERSION,
-            revision: nextRevision,
-            updated_at: now,
-          },
-        }
-      );
-      const savedRow = Array.isArray(saved) ? saved[0] : saved;
-      if (!savedRow) {
-        const remote = await fetchCloudSnapshot(token);
-        setCloudConflict({
-          remoteRevision: Number(remote?.revision) || 0,
-          remoteUpdatedAt: remote?.updated_at || "",
-        });
-        setCloudSyncStatus("Newer cloud copy found");
-        setCloudSyncError(
-          "BUSY stopped this save because another device or session changed the cloud copy. Restore the latest cloud copy before continuing."
-        );
-        return false;
-      }
-      setCloudRevision(Number(savedRow?.revision) || nextRevision);
-      setCloudLastSyncedAt(savedRow?.updated_at || now);
-      setCloudConflict(null);
-      setCloudSyncStatus("Up to date");
+    const identity=snapshotIdentityRef.current;
+    if(!quiet)setCloudSyncStatus("Syncing…");
+    const result=await snapshotSessionRef.current.save({getCurrent:()=>snapshotContextRef.current,
+      ownerAccessToken,request:busyDataRequest,schemaVersion:CLOUD_SCHEMA_VERSION});
+    if(snapshotIdentityRef.current!==identity)return false;
+    if(result.revision){setCloudRevision(result.revision);setCloudLastSyncedAt(result.updatedAt||cloudLastSyncedAt);}
+    if(result.ok){
+      setCloudConflict(null);setCloudSyncError("");
+      setCloudSyncStatus(result.localChangesRemain?"Earlier copy saved; newer changes remain":"Up to date");
       return true;
-    } catch (error) {
-      setCloudSyncError(error?.message || "Cloud sync failed.");
-      setCloudSyncStatus("Sync needs attention");
-      return false;
     }
+    if(result.conflict||result.uncertain&&!result.observedMatch)setCloudConflict({remoteRevision:result.remoteRevision||0,remoteUpdatedAt:result.remoteUpdatedAt||"",uncertain:result.uncertain===true});
+    setCloudSyncError(result.reason||"Save could not be confirmed.");
+    setCloudSyncStatus(result.observedMatch?"Cloud copy observed; confirmation lost":result.conflict?"Newer cloud copy found":"Sync needs attention");
+    return false;
   };
 
   const syncCloudNow = async () => {
@@ -2947,44 +2931,51 @@ function App() {
     return saveBusinessCloud();
   };
 
-  const restoreLatestCloudCopy = async () => {
-    if (!ownerSession?.accessToken || !cloudWorkspace?.businessId) return false;
+  const restoreLatestCloudCopy = async (confirmation = null) => {
+    if (!ownerSession?.accessToken || !cloudWorkspace?.businessId || snapshotRestoreRef.current) return false;
+    const identity=snapshotIdentityRef.current;
+    if(!confirmation)return confirmRestoreLatestCloudCopy();
+    const ticket=confirmation;
+    if(!ticket)return false;
+    const task={identity};snapshotRestoreRef.current=task;
     setCloudInitialising(true);
     setCloudSyncError("");
     setCloudSyncStatus("Restoring…");
     try {
-      const remote = await fetchCloudSnapshot();
-      if (!remote?.payload || typeof remote.payload !== "object") {
-        throw new Error("No cloud backup is available for this business yet.");
-      }
-      applyCloudSnapshot(remote.payload,cloudWorkspace.businessId);
-      setCloudRevision(Number(remote.revision) || 1);
-      setCloudLastSyncedAt(remote.updated_at || new Date().toISOString());
+      const result=await snapshotSessionRef.current.restore({ticket,getCurrent:()=>snapshotContextRef.current,
+        ownerAccessToken,request:busyDataRequest,schemaVersion:CLOUD_SCHEMA_VERSION});
+      if(snapshotIdentityRef.current!==identity)return false;
+      if(!result.ok)throw Error(result.reason);
+      applyCloudSnapshot(result.payload,result.businessId);
+      setCloudRevision(result.revision);
+      setCloudLastSyncedAt(result.updatedAt);
       setCloudConflict(null);
       setCloudSyncStatus("Cloud restored");
-      const key = storageKeyForUser(ownerSession.userId || "");
-      if (key) {
-        await AsyncStorage.setItem(key, JSON.stringify(remote.payload)).catch(() => {});
-      }
+      // The existing scoped persistence effect saves restored local state.
       return true;
     } catch (error) {
+      if(snapshotIdentityRef.current!==identity)return false;
       setCloudSyncError(error?.message || "Cloud restore failed.");
       setCloudSyncStatus("Restore needs attention");
       return false;
     } finally {
-      setCloudInitialising(false);
+      if(snapshotRestoreRef.current===task)snapshotRestoreRef.current=null;
+      if(snapshotIdentityRef.current===identity)setCloudInitialising(false);
     }
   };
 
   const confirmRestoreLatestCloudCopy = () => {
+    const ticket=snapshotSessionRef.current.prepareRestore(()=>snapshotContextRef.current);
+    if(!ticket)return false;
     Alert.alert(
       "Restore the latest cloud copy?",
       "This replaces the business data currently shown on this device with the latest saved cloud copy. Export first if you want to keep a copy of the current device data.",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Restore cloud copy", onPress: restoreLatestCloudCopy },
+        { text: "Restore cloud copy", onPress: () => restoreLatestCloudCopy(ticket) },
       ]
     );
+    return true;
   };
 
   const exportBusinessData = async () => {
@@ -3064,6 +3055,7 @@ function App() {
     cloudWorkspace?.businessId,
     ownerSession?.accessToken,
     cloudConflict,
+    cloudRevision,
     onboardingComplete,
     businessName,
     trade,
@@ -14596,125 +14588,7 @@ function App() {
     return result.summary;
   };
 
-  const requestWebsiteDomain = async () => {
-    const hostname = websiteDomainDraft.trim();
-    if (!hostname) return false;
-    setWebsitePublishingAction("domain");
-    setWebsitePublishingError("");
-    try {
-      const result = await websitePublishingRequest("request_domain", {
-        hostname,
-        websiteDraft:withoutPrivateWebsiteDesignFeedback(websiteDraft),
-      });
-      setWebsitePublishingNotice(
-        `Domain verification created. Add TXT record ${result?.verificationName || ""} with the value shown, then check ownership once. After ownership is proved, BUSY will prepare Cloudflare routing and SSL automatically.`
-      );
-      await refreshWebsitePublishingStatus({ quiet: true });
-      return true;
-    } catch (error) {
-      setWebsitePublishingError(
-        error?.message || "BUSY could not start domain verification."
-      );
-      return false;
-    } finally {
-      setWebsitePublishingAction("");
-    }
-  };
-
-  const followCustomDomain = () => {
-    [1500, 5000, 12000, 25000].forEach((delay) => {
-      setTimeout(() => refreshWebsitePublishingStatus({ quiet: true }), delay);
-    });
-  };
-
-  // Read-only public DNS inspection: no provider provisioning or state changes.
-  const inspectWebsiteDomainDns = async (domainId) => {
-    if(!domainId)throw Error("Select a domain first.");
-    const data=await websitePublishingRequest("inspect_domain_dns",{domainId});
-    if(!data?.ok||data?.diagnostics?.domainId!==domainId||data.diagnostics.readOnly!==true)
-      throw Error("BUSY could not verify the DNS check belongs to this business.");
-    return data.diagnostics;
-  };
-
-  const verifyWebsiteDomain = async (domainId) => {
-    if (!domainId) return false;
-    setWebsitePublishingAction(`verify-domain:${domainId}`);
-    setWebsitePublishingError("");
-    try {
-      const result = await websitePublishingRequest("verify_domain", {
-        domainId,
-      });
-      setWebsitePublishingNotice(
-        result?.verified
-          ? result?.activation?.error
-            ? "Domain ownership is verified. BUSY could not continue the provider step immediately, so the background reconciler will retry safely."
-            : "Domain ownership is verified. BUSY has started the Cloudflare hostname, DNS-routing and SSL setup automatically."
-          : "The verification TXT record is not visible in public DNS yet. Nothing was changed."
-      );
-      await refreshWebsitePublishingStatus({ quiet: true });
-      if (result?.verified) followCustomDomain();
-      return !!result?.verified;
-    } catch (error) {
-      setWebsitePublishingError(
-        error?.message || "BUSY could not verify that domain."
-      );
-      return false;
-    } finally {
-      setWebsitePublishingAction("");
-    }
-  };
-
-  const provisionWebsiteDomain = async (domainId) => {
-    if (!domainId) return false;
-    setWebsitePublishingAction(`provision-domain:${domainId}`);
-    setWebsitePublishingError("");
-    setWebsitePublishingNotice("");
-    try {
-      const result = await websitePublishingRequest("provision_domain", {
-        domainId,
-      });
-      const configured = !!result?.provider?.configured;
-      setWebsitePublishingNotice(
-        configured
-          ? "BUSY refreshed this domain with Cloudflare. Add any DNS records still shown below; BUSY will continue checking routing, SSL and the exact live deployment automatically."
-          : "The BUSY-side Cloudflare adapter is ready, but the server connection is not complete yet. No unsafe routing change was made."
-      );
-      await refreshWebsitePublishingStatus({ quiet: true });
-      if (configured) followCustomDomain();
-      return configured;
-    } catch (error) {
-      setWebsitePublishingError(
-        error?.message || "BUSY could not prepare external website routing."
-      );
-      return false;
-    } finally {
-      setWebsitePublishingAction("");
-    }
-  };
-
-  const refreshWebsiteSignals = async () => {
-    setWebsitePublishingAction("signals");
-    setWebsitePublishingError("");
-    setWebsitePublishingNotice("");
-    try {
-      const result = await websitePublishingRequest("refresh_signals");
-      const configured = !!result?.signals?.configured;
-      setWebsitePublishingNotice(
-        configured
-          ? "BUSY refreshed the current external website traffic signals and updated the tenant usage rollup."
-          : "Real traffic collection is ready on the BUSY side, but Cloudflare analytics credentials are not connected yet. No traffic numbers were invented."
-      );
-      await refreshWebsitePublishingStatus({ quiet: true });
-      return configured;
-    } catch (error) {
-      setWebsitePublishingError(
-        error?.message || "BUSY could not refresh website traffic signals."
-      );
-      return false;
-    } finally {
-      setWebsitePublishingAction("");
-    }
-  };
+  const {requestWebsiteDomain,verifyWebsiteDomain,provisionWebsiteDomain,refreshWebsiteSignals,inspectWebsiteDomainDns}=createWebsiteDomainActions({websiteDomainDraft,websiteDraft,withoutPrivateWebsiteDesignFeedback,websiteBeginTask,websiteTaskAwait,websiteTaskCurrent,websiteTaskSourceCurrent,websiteAsyncGateRef,websitePublishingRequest,refreshWebsitePublishingStatus,setWebsitePublishingAction,setWebsitePublishingError,setWebsitePublishingNotice,setTimeout});
 
   const openDefaultWebsiteAddress = async () => {
     const url = websitePublishingView?.defaultAddressState?.address?.url || "";

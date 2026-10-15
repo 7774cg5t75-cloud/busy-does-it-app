@@ -1,0 +1,652 @@
+[
+  {
+    "script": "scripts/check-builder-intelligence-v3240.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/audit-builder-changes-v3240.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-private-responsive-review-v3239.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builder-visual-receipt-v3238.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builder-design-evidence-v3237.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builder-next-design-v3236.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-owner-outcome-v3235.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-owner-next-action-v3234.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-owner-booking-v3233.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-booking-close-v3232.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-owner-recovery-v3231.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-push-service-receipts-v3230.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-customer-journey-v3229.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-customer-journey-v3228.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-dispatch-v3227.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-staging-gates-v3227.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/prepare-staging-gates-v3227.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-outbox-v3226.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-owner-request-queue-v3225.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-guest-readback-v3224.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builders-v3223.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/prepare-phase-one-review-v3223.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builder-harness-v3222.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builders-v3222.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builders-v3221.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-snack-graph-v3221.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/prepare-staging-bootstrap-v3220.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builders-v3220.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builders-v3219.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builders-v3218.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builders-v3217.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builders-v3216.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builders-v3215.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builders-v3214.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-request-receipts-v3213.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builders-v3212.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builders-v3211.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builders-v3210.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builders-v3209.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-reviewed-owner-send-v3208.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-fresh-followups-v3207.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-owner-followups-v3206.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-communications-v3205.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-customer-journey-v3204.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-message-integrity-v3185.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-staging-v3203.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-staging-v3202.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-staging-verification-v3201.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-major-builders-v3200.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-major-builders-v3199.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-major-builders-v3198.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-major-builders-v3197.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-major-builders-v3196.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-major-builders-v3195.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/audit-architecture-v3195.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-major-builders-v3194.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-major-builders-v3193.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-major-builders-v3192.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-major-builders-v3191.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builders-v3190.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-customer-tasks-v3169.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-native-public-booking-v3155.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-standalone-native-v3154.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-direct-edit-v3133.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-pages-v3135.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-completion-integrity-v3152.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builder-handoff-v3152.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-connected-readiness-v3189.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/prepare-staging-install-v3180.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/verify-staging-install-v3186.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/audit-staging-install-v3202.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/audit-staging-risks-v3203.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-evidence-readiness-v3188.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-production.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-private-app-edit-session.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-goal-editing.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-private-website-review-progress.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-distribution-parity.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-intelligent-app-studio-v3157.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-design-v3160.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-responsive-app-v3163.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-appearance-v3154.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-context-editor-v3155.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-visual-comparison-v3161.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-visual-multiwidth-v3165.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-design-learning-v3166.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-measured-coach-v3144.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-responsive-preview-v3148.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-deeper-review-v3145.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-native-syntax-v3154.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-studio-component.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builder-review-regressions.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-studio-session.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-goal-owner-memory.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-measurement-recovery.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-studio-checkpoint.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builder-lock-routes.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-draft-composition.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-layout-v3134.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-edit-freedom-v3102.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-builder-v3158.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-design-iteration-v3162.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-goal-decisions.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-history-safety.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-recovery-v3149.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-private-website-commit.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-mission4-review-regressions.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-profile-undo.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-fact-refresh.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-owner-lock-editing.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-async-safety.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-targeted-coach.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-business-context.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-feedback-actions.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-durable-history.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-legacy-async.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-goal-content.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-coordinated-alternatives.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builder-description-reuse.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-builder-mission5-integration.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-history-hook.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-feedback-attempt-recovery.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-style-feedback.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-cloud-website-owner-race.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-business-snapshot-session.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-cloud-snapshot-create-race.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-app-guided-completion.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-website-domain-actions.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-business-snapshot-restore.mjs",
+    "result": "pass",
+    "exit": 0
+  },
+  {
+    "script": "scripts/check-controller-render-order.mjs",
+    "result": "pass",
+    "exit": 0
+  }
+]
