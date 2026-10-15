@@ -4,7 +4,10 @@ import {ownerDesignPreference} from './websiteMeasuredDesignCoach.mjs';
 // Finite alternatives for the EXISTING measured candidate lifecycle. Industry
 // is a hypothesis; current-render checks and the owner's choice stay decisive.
 function coordinatedWebsiteAlternatives(draft,pageId,report){
- if(!draft?.id||!draft.pages?.some(p=>p.id===pageId&&p.enabled!==false)||!report?.counts||!Array.isArray(report.issues))return [];
+ if(!draft?.id||!draft.pages?.some(p=>p.id===pageId&&p.enabled!==false)||!report?.counts||!Array.isArray(report.issues)||!Number.isFinite(report.counts.viewport)||report.counts.viewport<250||report.counts.viewport>3000)return [];
+ const issueIds=report.issues.map(x=>x?.id);
+ // Restyling cannot repair missing originals, factual descriptions or links.
+ if(issueIds.length&&issueIds.every(id=>['photos','descriptions','links'].includes(id)))return [];
  const sector=deriveSector(draft.businessType||''),photos=photographicCount(draft.sections),theme=draft.theme||{};
  const directions=[{id:'coordinated-reading',label:'Clear information, calm rhythm',
   explanation:'Compare readable service rows, restrained headings and consistent spacing. '+
@@ -13,11 +16,17 @@ function coordinatedWebsiteAlternatives(draft,pageId,report){
  if(photos>0)directions.push({id:'coordinated-visual',label:'Visual story with breathing room',
   explanation:'Use your existing approved photos with editorial headings, separated cards and generous spacing. No images or colours are replaced.',
   settings:{typography:'editorial',cardLayout:'cards',spacing:'generous'},tradeoff:'Uses more vertical space on phones; inspect tablet and desktop rhythm too.'});
+ directions.sort((a,b)=>{
+  const liked=d=>ownerDesignPreference(draft,d.id,pageId)==='liked'?4:0;
+  const relevant=d=>d.id==='coordinated-reading'&&issueIds.some(id=>['overflow','headings','readability'].includes(id))?2:
+   d.id==='coordinated-visual'&&photos>0&&['creative','hospitality','events','retail'].includes(sector)?1:0;
+  return liked(b)+relevant(b)-liked(a)-relevant(a);
+ });
  return directions.filter(d=>ownerDesignPreference(draft,d.id,pageId)!=='disliked').map(d=>{
   const operations=Object.entries(d.settings).filter(([field,value])=>theme[field]!==value).map(([field,value])=>({action:'style',field,value}));
   const operation={action:'style-group',operations};
   return {...d,operation,source:'current-draft-and-business-type-hypothesis',notGuaranteed:true,
-   industry:sector,measuredImprovementProven:false,available:operations.length>0&&applyWebsiteLayoutOperation(draft,operation).applied};
+   industry:sector,measuredImprovementProven:false,decisionEvidence:{viewport:report.counts.viewport,issueIds,approvedPhotoCount:photos,ownerPreference:ownerDesignPreference(draft,d.id,pageId)||null},available:operations.length>0&&applyWebsiteLayoutOperation(draft,operation).applied};
  }).filter(d=>d.available).slice(0,2);
 }
 export {coordinatedWebsiteAlternatives};

@@ -149,6 +149,9 @@ function planAppVoiceInstructions(config,instruction){
   if(/^keep (my |the |our )?(existing |current )?(colou?rs?|branding|logo|other things)/i.test(p)){
    preserved.push(p);continue;
   }
+  if(/\b(not|never|avoid|without|don't|don’t|publish|delete|remove|send|purchase|pay|charge)\b/i.test(p)){
+   unresolved.push(p);continue;
+  }
   if(/\b(bookings?|appointments?)\b.*\b(first|top|home screen)\b|\b(first|top)\b.*\b(bookings?|appointments?)\b/i.test(p)){
    operations.push({kind:"first",moduleKey:"booking_request"});continue;
   }
@@ -199,6 +202,8 @@ function planAppVoiceInstructions(config,instruction){
  if(unresolved.length)return {ok:false,needsClarification:true,unresolved,preserved,
   supportedOperations:operations,reason:"BUSY needs clarification before combining these changes: "+unresolved.join("; ")};
  if(!operations.length)return {ok:false,reason:"Nothing needs changing; your existing design stays as it is."};
+ const targets=operations.map(op=>op.kind==='appearance'?'appearance:'+op.field:'navigation');
+ if(new Set(targets).size!==targets.length)return {ok:false,needsClarification:true,reason:'Choose one instruction for each app setting before preparing the changes.'};
  const result=proposeCoordinatedAppChanges(config,operations);
  return {...result,instruction:phrase,preserved};
 }

@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';import {createWebsiteLiveActions as create} from '../src/core/websiteLiveActions.mjs';import {createPrivateWebsiteAsyncGate as gateFactory} from '../src/core/privateWebsiteAsyncGate.mjs';
+function setup(){const gate=gateFactory();let live={ownerId:'owner',businessId:'business',draft:{id:'site',businessId:'business'},deploymentId:'preview',liveDeploymentId:'live'},reviewed={...live},approval,wait,rollback=0,notices=[],writes=0,refresh=0,requests=[];
+ const current=t=>gate.current(t,live);let result={ok:true,health:{ok:true,checked:1},recovery:{ok:true,actions:[{area:'health',ok:true}]}};
+ const actions=create({websitePublishingView:{liveDeployment:{id:'live'},deployments:[{id:'previous',business_id:'business',version_no:2}]},
+  websiteBeginTask:(lane,options)=>gate.begin(lane,reviewed,live,options),websiteTaskAwait:async(t,fn)=>{if(!current(t))throw Error('stale');const r=await fn();if(!current(t))throw Error('stale');return r;},websiteTaskCurrent:current,websiteTaskSourceCurrent:t=>gate.sourceCurrent(t,live),websiteAsyncGateRef:{current:gate},
+  websitePublishingRequest:async(kind)=>{requests.push(kind);writes++;return wait?await wait:result;},refreshWebsitePublishingStatus:async()=>refresh++,followWebsiteGoLive:()=>{},rollbackWebsite:async()=>{rollback++;return true;},Alert:{alert:(title,body,buttons)=>approval=buttons[1].onPress},setWebsitePublishingAction:()=>{},setWebsitePublishingError:x=>notices.push(x),setWebsitePublishingNotice:x=>notices.push(x)});
+ return {actions,notices,requests,get writes(){return writes;},get rollback(){return rollback;},approve:()=>approval(),setResult:x=>result=x,block:()=>{let release;wait=new Promise(r=>release=r);return release;},switch:()=>{live={...live,ownerId:'other'};gate.setContext(live);},changeLive:()=>live={...live,liveDeploymentId:'new-live'}};
+}
+for(const name of ['runWebsiteHealthCheck','retryWebsiteRecovery']){
+ const s=setup(),release=s.block(),pending=s.actions[name]();assert.equal(await s.actions[name](),false);assert.equal(s.writes,1);assert.equal(s.requests[0],name==='runWebsiteHealthCheck'?'health_check':'recover');s.changeLive();const before=s.notices.length;release({ok:true,health:{ok:true,checked:1},recovery:{ok:true,actions:[]}});assert.equal(await pending,false);assert.equal(s.notices.length,before);
+ const good=setup();assert.equal(await good.actions[name](),true);
+}
+const empty=setup();empty.setResult({ok:true,health:{ok:true,checked:0}});assert.equal(await empty.actions.runWebsiteHealthCheck(),false);assert.ok(empty.notices.some(x=>x.includes('not verified')));
+const partial=setup();partial.setResult({ok:true,recovery:{ok:true,actions:[{ok:false}]}});assert.equal(await partial.actions.retryWebsiteRecovery(),false);
+const rollback=setup();assert.equal(rollback.actions.confirmRollbackWebsite('foreign'),false);assert.equal(rollback.actions.confirmRollbackWebsite('previous'),true);assert.equal(rollback.rollback,0);assert.equal(await rollback.approve(),true);assert.equal(await rollback.approve(),false);assert.equal(rollback.rollback,1);
+const stale=setup();stale.actions.confirmRollbackWebsite('previous');stale.switch();assert.equal(await stale.approve(),false);assert.equal(stale.rollback,0);
+console.log('PASS: actual live-check/recovery adapter rejects duplicates and changed deployments, reports incomplete evidence honestly, and binds rollback approval to one exact scoped intent. No provider execution.');

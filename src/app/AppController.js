@@ -1,3 +1,7 @@
+import {createWebsiteLiveActions} from "../core/websiteLiveActions.mjs";
+import {createBusinessCacheRecoveryActions} from "../core/businessCacheRecoveryActions.mjs";
+import {enqueuePrivateCheckpoint} from "../core/privateCheckpointQueue.mjs";
+import {businessCacheKey,encodeBusinessCache,decodeBusinessCache,selectBusinessCache,completeBusinessSnapshot} from "../core/businessCache.mjs";
 import {createWebsiteDomainActions} from "../core/websiteDomainActions.mjs";
 import {createBusinessSnapshotSession} from "../core/businessSnapshotSession.mjs";
 import {bindWebsiteDraftScope,websiteDraftHasScope} from "../core/websiteDraftScope.mjs";
@@ -565,7 +569,8 @@ function App() {
   const [ownerAuthError, setOwnerAuthError] = useState("");
   const [ownerAuthNotice, setOwnerAuthNotice] = useState("");
   const [ownerAuthReady, setOwnerAuthReady] = useState(false);
-  const cloudOwnerScopeRef=useRef(null);
+  const [businessCacheRecovery,setBusinessCacheRecovery]=useState(null);
+  const cloudOwnerScopeRef=useRef(null),businessCacheScopeRef=useRef(null),preservedBusinessCacheRef=useRef(null);
   if(cloudOwnerScopeRef.current?.userId!==(ownerSession?.userId||""))cloudOwnerScopeRef.current={userId:ownerSession?.userId||""};
   useEffect(()=>{setCloudInitialising(false);},[ownerSession?.userId]);
   const snapshotIdentityRef=useRef(null),snapshotContextRef=useRef(null),snapshotSessionRef=useRef(null),snapshotRestoreRef=useRef(null);
@@ -588,6 +593,7 @@ function App() {
   const [cloudRevision, setCloudRevision] = useState(0);
   const [cloudAttempted, setCloudAttempted] = useState(false);
   const [cloudConflict, setCloudConflict] = useState(null);
+  const [cloudSavePreparation,setCloudSavePreparation]=useState(0);
   const [accountClosurePhrase, setAccountClosurePhrase] = useState("");
   const [accountClosureEmail, setAccountClosureEmail] = useState("");
   const [accountClosureBusy, setAccountClosureBusy] = useState(false);
@@ -756,170 +762,14 @@ function App() {
   }, []);
 
   useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const raw = await AsyncStorage.getItem(LEGACY_STORAGE_KEY);
-        if (!active || !raw) return;
-        const saved = JSON.parse(raw);
-        if (typeof saved.onboardingComplete === "boolean") setOnboardingComplete(saved.onboardingComplete);
-        if (saved.businessName) setBusinessName(saved.businessName);
-        if (saved.trade) setTrade(saved.trade);
-        const savedVerticalId = saved.verticalId || "exterior-cleaning";
-        setVerticalId(savedVerticalId);
-        if (saved.postcode) setPostcode(saved.postcode);
-        if (saved.radius) setRadius(saved.radius);
-        if (saved.quietSlot) setQuietSlot(saved.quietSlot);
-        if (typeof saved.quietSlotConfirmed === "boolean") setQuietSlotConfirmed(saved.quietSlotConfirmed);
-        if (saved.activeWorkGoal && typeof saved.activeWorkGoal === "object") {
-          setActiveWorkGoal(saved.activeWorkGoal);
-          if (saved.activeWorkGoal.label) setSelectedGap(saved.activeWorkGoal.label);
-          if (saved.activeWorkGoal.targetJobs) setWorkGoalTargetDraft(Number(saved.activeWorkGoal.targetJobs) || 1);
-        }
-        if (saved.unansweredReviewCount !== undefined) setUnansweredReviewCount(String(saved.unansweredReviewCount));
-        if (saved.recentPhotoCountNeeded !== undefined) setRecentPhotoCountNeeded(String(saved.recentPhotoCountNeeded));
-        if (Array.isArray(saved.customers)) setCustomers(saved.customers);
-        if (Array.isArray(saved.lastSimulatedRecipients)) setLastSimulatedRecipients(saved.lastSimulatedRecipients);
-        if (Array.isArray(saved.reactivationRuns)) setReactivationRuns(saved.reactivationRuns);
-        if (saved.replyActions && typeof saved.replyActions === "object") {
-          const migratedReplyActions = Object.fromEntries(
-            Object.entries(saved.replyActions).map(([id, action]) => [
-              id,
-              action?.type ? action : { ...action, done: false },
-            ])
-          );
-          setReplyActions(migratedReplyActions);
-        }
-        if (Array.isArray(saved.services)) {
-          const pack = getVerticalPack(saved.verticalId || "exterior-cleaning");
-          setServices(
-            saved.services.map((item) => {
-              const packService = pack.services.find((candidate) => candidate.name === item.name);
-              return {
-                ...item,
-                repeatMonths:
-                  item.repeatMonths !== undefined
-                    ? item.repeatMonths
-                    : packService?.repeatMonths ?? pack.defaultRepeatMonths,
-                durationHours:
-                  Number(item.durationHours) > 0
-                    ? Number(item.durationHours)
-                    : Number(packService?.durationHours) > 0
-                    ? Number(packService.durationHours)
-                    : 2,
-              };
-            })
-          );
-        }
-        if (typeof saved.alwaysAsk === "boolean") setAlwaysAsk(saved.alwaysAsk);
-        if (typeof saved.customerContact === "boolean") setCustomerContact(saved.customerContact);
-        if (saved.testLimit) setTestLimit(saved.testLimit);
-        if (saved.weeklyLimit) setWeeklyLimit(saved.weeklyLimit);
-        if (saved.connectedAccounts) setConnectedAccounts({ ...connectionSeed, ...saved.connectedAccounts });
-        if (Array.isArray(saved.dismissedOpportunities)) setDismissedOpportunities(saved.dismissedOpportunities);
-        if (saved.selectedServiceId) setSelectedServiceId(saved.selectedServiceId);
-        if (Array.isArray(saved.intakeLog)) setIntakeLog(saved.intakeLog);
-        if (Array.isArray(saved.inboxItems)) setInboxItems(saved.inboxItems);
-        if (Array.isArray(saved.connectionSyncLog)) setConnectionSyncLog(saved.connectionSyncLog);
-        if (Array.isArray(saved.socialDrafts)) setSocialDrafts(saved.socialDrafts);
-        if (saved.socialPreferredChannels && typeof saved.socialPreferredChannels === "object") {
-          setSocialPreferredChannels({
-            facebook: !!saved.socialPreferredChannels.facebook,
-            instagram: !!saved.socialPreferredChannels.instagram,
-            googleBusiness: !!saved.socialPreferredChannels.googleBusiness,
-          });
-        }
-        if (Array.isArray(saved.businessBrainRules)) setBusinessBrainRules(saved.businessBrainRules);
-        if (Array.isArray(saved.businessBrainFeedback)) setBusinessBrainFeedback(saved.businessBrainFeedback);
-        if (saved.proactiveNoticeState && typeof saved.proactiveNoticeState === "object") {
-          setProactiveNoticeState(saved.proactiveNoticeState);
-        }
-        if (Array.isArray(saved.busyCommandHistory)) {
-          setBusyCommandHistory(saved.busyCommandHistory.slice(0, 20));
-        }
-        if (Array.isArray(saved.busyConversationTurns)) {
-          setBusyConversationTurns(saved.busyConversationTurns.slice(-18));
-        }
-        if (saved.busyOperatorSnapshot && typeof saved.busyOperatorSnapshot === "object") {
-          setBusyOperatorSnapshot(saved.busyOperatorSnapshot);
-        }
-        if (saved.dailyCommandCheckpoint && typeof saved.dailyCommandCheckpoint === "object") {
-          setDailyCommandCheckpoint(saved.dailyCommandCheckpoint);
-        }
-        if (Array.isArray(saved.busyActionAudit)) {
-          setBusyActionAudit(saved.busyActionAudit.slice(0, 30));
-        }
-        if (["off", "prepare", "trusted"].includes(saved.autopilotMode)) {
-          setAutopilotMode(saved.autopilotMode);
-        }
-        if (saved.autopilotLastCheckAt) setAutopilotLastCheckAt(saved.autopilotLastCheckAt);
-        if (saved.autopilotLastSignature) setAutopilotLastSignature(saved.autopilotLastSignature);
-        if (saved.autopilotSnoozed && typeof saved.autopilotSnoozed === "object") {
-          setAutopilotSnoozed(saved.autopilotSnoozed);
-        }
-        if (Array.isArray(saved.autopilotPreparedLog)) {
-          setAutopilotPreparedLog(saved.autopilotPreparedLog.slice(0, 30));
-        }
-        if (Array.isArray(saved.businessMemoryHistory)) {
-          setBusinessMemoryHistory(saved.businessMemoryHistory.slice(0, 24));
-        }
-        if (saved.businessMemoryLastReviewAt) {
-          setBusinessMemoryLastReviewAt(saved.businessMemoryLastReviewAt);
-        }
-        if (typeof saved.proactiveNotificationsEnabled === "boolean") {
-          setProactiveNotificationsEnabled(saved.proactiveNotificationsEnabled);
-        }
-        if (saved.proactiveNotificationPermission) {
-          setProactiveNotificationPermission(saved.proactiveNotificationPermission);
-        }
-        if (saved.proactiveMorningTime) setProactiveMorningTime(saved.proactiveMorningTime);
-        if (typeof saved.proactiveQuietHoursEnabled === "boolean") {
-          setProactiveQuietHoursEnabled(saved.proactiveQuietHoursEnabled);
-        }
-        if (saved.proactiveQuietStart) setProactiveQuietStart(saved.proactiveQuietStart);
-        if (saved.proactiveQuietEnd) setProactiveQuietEnd(saved.proactiveQuietEnd);
-        if (saved.proactiveJobReminderMinutes !== undefined) {
-          setProactiveJobReminderMinutes(Number(saved.proactiveJobReminderMinutes) || 60);
-        }
-        if (saved.proactiveScheduledMap && typeof saved.proactiveScheduledMap === "object") {
-          setProactiveScheduledMap(saved.proactiveScheduledMap);
-        }
-        if (Array.isArray(saved.proactiveNotificationLog)) {
-          setProactiveNotificationLog(saved.proactiveNotificationLog.slice(0, 40));
-        }
-        if (saved.diaryConnection && typeof saved.diaryConnection === "object") {
-          setDiaryConnection({
-            status: saved.diaryConnection.status || "disconnected",
-            calendarId: saved.diaryConnection.calendarId || "",
-            title: saved.diaryConnection.title || "",
-            source: saved.diaryConnection.source || "",
-            lastSyncAt: saved.diaryConnection.lastSyncAt || "",
-          });
-        }
-        if (saved.diaryEventMap && typeof saved.diaryEventMap === "object") {
-          setDiaryEventMap(saved.diaryEventMap);
-        }
-        if (saved.recordFilingMode === "review" || saved.recordFilingMode === "safe") {
-          setRecordFilingMode(saved.recordFilingMode);
-        }
-        if (typeof saved.advanced === "boolean") setAdvanced(saved.advanced);
-        if (saved.onboardingComplete) {
-          setScreen("home");
-          setTab("Home");
-        }
-      } catch (e) {
-        // Prototype persistence should never block the app from opening.
-      } finally {
-        if (active) setHydrated(true);
-      }
-    })();
-    return () => {
-      active = false;
-    };
+    // Legacy unscoped cache remains untouched for deliberate owner recovery.
+    // Never display its private records before account/business verification.
+    setHydrated(true);
   }, []);
 
   useEffect(() => {
-    if (!hydrated || !ownerAuthReady || !ownerSession?.userId) return;
+    if (!hydrated || !ownerAuthReady || !ownerSession?.userId || !cloudInitialised || cloudInitialising ||
+      businessCacheScopeRef.current?.ownerScope!==cloudOwnerScopeRef.current || businessCacheScopeRef.current?.businessId!==cloudWorkspace?.businessId || businessCacheScopeRef.current?.blocked || preservedBusinessCacheRef.current) return;
     const data = {
       onboardingComplete,
       businessName,
@@ -980,11 +830,16 @@ function App() {
       recordFilingMode,
       advanced,
     };
-    const userCacheKey = storageKeyForUser(ownerSession.userId);
+    const userCacheKey = businessCacheKey(storageKeyForUser(ownerSession.userId),cloudWorkspace?.businessId);
     if (userCacheKey) {
-      AsyncStorage.setItem(userCacheKey, JSON.stringify(data)).catch(() => {});
+      try{
+        const writeScope=cloudOwnerScopeRef.current,writeBusiness=cloudWorkspace.businessId;
+        const encoded=encodeBusinessCache({ownerId:ownerSession.userId,businessId:cloudWorkspace.businessId,revision:cloudRevision,payload:data});
+        enqueuePrivateCheckpoint(userCacheKey,()=>AsyncStorage.setItem(userCacheKey,encoded)).catch(()=>{if(cloudOwnerScopeRef.current===writeScope&&snapshotContextRef.current?.businessId===writeBusiness)setCloudSyncError("The private device copy could not be saved. Your cloud copy is unchanged.");});
+      }catch{setCloudSyncError("The device copy could not be verified for this business.");}
     }
   }, [
+    businessCacheRecovery,cloudWorkspace?.businessId,cloudRevision,cloudInitialised,cloudInitialising,
     hydrated,
     ownerAuthReady,
     ownerSession?.userId,
@@ -2282,13 +2137,16 @@ function App() {
 
   const applyCloudSnapshot = (saved,websiteBusinessId="") => {
     if (!saved || typeof saved !== "object") return;
+    // Validate nested provenance before any state mutation.
+    if(saved.websiteDraft&&websiteBusinessId)bindWebsiteDraftScope(saved.websiteDraft,websiteBusinessId);
+    saved=completeBusinessSnapshot(saved);
     if (typeof saved.onboardingComplete === "boolean") setOnboardingComplete(saved.onboardingComplete);
-    if (saved.businessName) setBusinessName(saved.businessName);
-    if (saved.trade) setTrade(saved.trade);
+    if (typeof saved.businessName === "string") setBusinessName(saved.businessName);
+    if (typeof saved.trade === "string") setTrade(saved.trade);
     const savedVerticalId = saved.verticalId || "exterior-cleaning";
     setVerticalId(savedVerticalId);
-    if (saved.postcode) setPostcode(saved.postcode);
-    if (saved.radius) setRadius(saved.radius);
+    if (typeof saved.postcode === "string") setPostcode(saved.postcode);
+    if (typeof saved.radius === "string") setRadius(saved.radius);
     if (saved.brandProfile && typeof saved.brandProfile === "object") {
       setBrandProfile({
         ...BRAND_PROFILE_SEED,
@@ -2311,7 +2169,7 @@ function App() {
     } else if (saved.websiteDraft === null) {
       setWebsiteDraft(null);
     }
-    if (saved.quietSlot) setQuietSlot(saved.quietSlot);
+    if (typeof saved.quietSlot === "string") setQuietSlot(saved.quietSlot);
     if (typeof saved.quietSlotConfirmed === "boolean") setQuietSlotConfirmed(saved.quietSlotConfirmed);
     if (saved.activeWorkGoal && typeof saved.activeWorkGoal === "object") {
       setActiveWorkGoal(saved.activeWorkGoal);
@@ -2351,11 +2209,11 @@ function App() {
     }
     if (typeof saved.alwaysAsk === "boolean") setAlwaysAsk(saved.alwaysAsk);
     if (typeof saved.customerContact === "boolean") setCustomerContact(saved.customerContact);
-    if (saved.testLimit) setTestLimit(saved.testLimit);
-    if (saved.weeklyLimit) setWeeklyLimit(saved.weeklyLimit);
+    if (typeof saved.testLimit === "string") setTestLimit(saved.testLimit);
+    if (typeof saved.weeklyLimit === "string") setWeeklyLimit(saved.weeklyLimit);
     if (saved.connectedAccounts) setConnectedAccounts({ ...connectionSeed, ...saved.connectedAccounts });
     if (Array.isArray(saved.dismissedOpportunities)) setDismissedOpportunities(saved.dismissedOpportunities);
-    if (saved.selectedServiceId) setSelectedServiceId(saved.selectedServiceId);
+    if (typeof saved.selectedServiceId === "string") setSelectedServiceId(saved.selectedServiceId);
     if (Array.isArray(saved.intakeLog)) setIntakeLog(saved.intakeLog);
     if (Array.isArray(saved.inboxItems)) setInboxItems(saved.inboxItems);
     if (Array.isArray(saved.connectionSyncLog)) setConnectionSyncLog(saved.connectionSyncLog);
@@ -2380,18 +2238,18 @@ function App() {
     }
     if (saved.busyOperatorSnapshot && typeof saved.busyOperatorSnapshot === "object") {
       setBusyOperatorSnapshot(saved.busyOperatorSnapshot);
-    }
+    } else if(saved.busyOperatorSnapshot===null)setBusyOperatorSnapshot(null);
     if (saved.dailyCommandCheckpoint && typeof saved.dailyCommandCheckpoint === "object") {
       setDailyCommandCheckpoint(saved.dailyCommandCheckpoint);
-    }
+    } else if(saved.dailyCommandCheckpoint===null)setDailyCommandCheckpoint(null);
     if (Array.isArray(saved.busyActionAudit)) {
       setBusyActionAudit(saved.busyActionAudit.slice(0, 30));
     }
     if (["off", "prepare", "trusted"].includes(saved.autopilotMode)) {
       setAutopilotMode(saved.autopilotMode);
     }
-    if (saved.autopilotLastCheckAt) setAutopilotLastCheckAt(saved.autopilotLastCheckAt);
-    if (saved.autopilotLastSignature) setAutopilotLastSignature(saved.autopilotLastSignature);
+    if (typeof saved.autopilotLastCheckAt === "string") setAutopilotLastCheckAt(saved.autopilotLastCheckAt);
+    if (typeof saved.autopilotLastSignature === "string") setAutopilotLastSignature(saved.autopilotLastSignature);
     if (saved.autopilotSnoozed && typeof saved.autopilotSnoozed === "object") {
       setAutopilotSnoozed(saved.autopilotSnoozed);
     }
@@ -2401,7 +2259,7 @@ function App() {
     if (Array.isArray(saved.businessMemoryHistory)) {
       setBusinessMemoryHistory(saved.businessMemoryHistory.slice(0, 24));
     }
-    if (saved.businessMemoryLastReviewAt) {
+    if (typeof saved.businessMemoryLastReviewAt === "string") {
       setBusinessMemoryLastReviewAt(saved.businessMemoryLastReviewAt);
     }
     if (typeof saved.proactiveNotificationsEnabled === "boolean") {
@@ -2800,16 +2658,6 @@ function App() {
       if (!token) throw new Error("Sign in before connecting cloud data.");
 
       const userId = session?.userId || ownerSession?.userId || "";
-      const userCacheKey = storageKeyForUser(userId);
-      if (userCacheKey) {
-        try {
-          const cached = await ownerAwait(async()=>(AsyncStorage.getItem(userCacheKey)));
-          if (cached) applyCloudSnapshot(JSON.parse(cached));
-        } catch (error) {
-          // A bad cache must never block the cloud copy from restoring.
-        }
-      }
-
       const ensured = await ownerAwait(async()=>(busyDataRequest("rpc/busy_ensure_business", {
         method: "POST",
         token,
@@ -2826,11 +2674,18 @@ function App() {
       };
       setCloudWorkspace(workspace);
 
+      const cacheKey=businessCacheKey(storageKeyForUser(userId),businessId);
+      let cached=null,cacheBlocked=false;
+      if(cacheKey){try{
+        const raw=await ownerAwait(()=>enqueuePrivateCheckpoint(cacheKey,()=>AsyncStorage.getItem(cacheKey)));
+        cached=decodeBusinessCache(raw,{ownerId:userId,businessId});cacheBlocked=!!raw&&!cached;
+      }catch{cacheBlocked=true;/* Never overwrite an unreadable earlier copy. */}}
       const snapshots = await ownerAwait(async()=>(busyDataRequest(
-        `busy_business_snapshots?business_id=eq.${encodeURIComponent(businessId)}&select=payload,schema_version,revision,updated_at`,
+        `busy_business_snapshots?business_id=eq.${encodeURIComponent(businessId)}&select=business_id,payload,schema_version,revision,updated_at`,
         { token }
       )));
       const snapshot = Array.isArray(snapshots) ? snapshots[0] : snapshots;
+      if(snapshot&&(snapshot.business_id!==businessId||!Number.isSafeInteger(snapshot.revision)||snapshot.revision<1||snapshot.schema_version!==CLOUD_SCHEMA_VERSION))throw Error("The cloud snapshot could not be verified for this business.");
       const payload =
         snapshot?.payload && typeof snapshot.payload === "object"
           ? snapshot.payload
@@ -2838,13 +2693,21 @@ function App() {
       const hasCloudData = payload && Object.keys(payload).length > 0;
 
       if (hasCloudData) {
-        applyCloudSnapshot(payload,businessId);
+        const selected=selectBusinessCache(cached,{payload,revision:Number(snapshot.revision)||1});
+        preservedBusinessCacheRef.current=selected.preserve?{...cached,ownerScope}:null;
+        setBusinessCacheRecovery(selected.preserve?{businessId,revision:cached.revision}:null);
+        applyCloudSnapshot(selected.payload,businessId);
+        businessCacheScopeRef.current={ownerScope,businessId,blocked:cacheBlocked};
         setCloudRevision(Number(snapshot?.revision) || 1);
         setCloudLastSyncedAt(snapshot?.updated_at || new Date().toISOString());
         setCloudConflict(null);
-        setCloudSyncStatus("Cloud restored");
+        setCloudSyncStatus(selected.preserve?"Cloud restored; earlier device copy preserved":selected.local?"Private device edits recovered":"Cloud restored");
       } else {
-        const localPayload = buildPersistentSnapshot();
+        if(cached){preservedBusinessCacheRef.current={...cached,ownerScope};setBusinessCacheRecovery({businessId,revision:cached.revision});throw Error("A private device copy is preserved, but its cloud revision is missing. Review recovery before creating a replacement.");}
+        if(cacheBlocked)throw Error("An unverified device copy is preserved. Review it before creating a new cloud snapshot.");
+        preservedBusinessCacheRef.current=null;setBusinessCacheRecovery(null);
+        const previousScope=businessCacheScopeRef.current;
+        const localPayload=previousScope&&(previousScope.ownerScope!==ownerScope||previousScope.businessId!==businessId)?completeBusinessSnapshot({businessName:workspace.name}):snapshotContextRef.current.getPayload();
         const saved = await ownerAwait(async()=>(busyDataRequest(
           "busy_business_snapshots?on_conflict=business_id",
           {
@@ -2875,6 +2738,8 @@ function App() {
         setCloudSyncStatus(reusedExisting?"Existing cloud copy restored":"Local data backed up");
       }
 
+      businessCacheScopeRef.current={ownerScope,businessId,blocked:cacheBlocked};
+      if(cacheBlocked)setCloudSyncError("An unreadable or unverified device copy was preserved. Automatic device-cache replacement is paused.");
       setCloudInitialised(true);
       return true;
     } catch (error) {if(!currentOwner())return false;
@@ -2905,10 +2770,13 @@ function App() {
 
   const saveBusinessCloud = async ({ quiet = false } = {}) => {
     const identity=snapshotIdentityRef.current;
+    if(snapshotSessionRef.current.isBusy(identity))return false;
     if(!quiet)setCloudSyncStatus("Syncing…");
     const result=await snapshotSessionRef.current.save({getCurrent:()=>snapshotContextRef.current,
       ownerAccessToken,request:busyDataRequest,schemaVersion:CLOUD_SCHEMA_VERSION});
     if(snapshotIdentityRef.current!==identity)return false;
+    if(result.busy)return false;
+    if(result.prepareAgain&&result.notSent){setCloudSavePreparation(n=>n+1);setCloudSyncStatus("Newer changes waiting to save");return false;}
     if(result.revision){setCloudRevision(result.revision);setCloudLastSyncedAt(result.updatedAt||cloudLastSyncedAt);}
     if(result.ok){
       setCloudConflict(null);setCloudSyncError("");
@@ -2977,6 +2845,19 @@ function App() {
     );
     return true;
   };
+
+  const businessCacheRecoveryActionsRef=useRef(null);
+  if(!businessCacheRecoveryActionsRef.current)businessCacheRecoveryActionsRef.current=createBusinessCacheRecoveryActions({
+    getCurrent:()=>({ownerScope:cloudOwnerScopeRef.current,businessId:snapshotContextRef.current?.businessId,
+      recovery:preservedBusinessCacheRef.current,payload:snapshotContextRef.current?.getPayload()}),
+    ownerKey:storageKeyForUser,share:async message=>{const result=await Share.share({title:"BUSY private recovery copy",message});return {cancelled:result.action===Share.dismissedAction};},
+    remove:(key,current)=>enqueuePrivateCheckpoint(key,()=>{if(!current())throw Error("The workspace changed.");return AsyncStorage.removeItem(key);}),
+    confirm:work=>Alert.alert("Discard the earlier device copy?","Export it first if you need it. Your current work and cloud copy will stay unchanged.",[
+      {text:"Cancel",style:"cancel"},{text:"Discard earlier copy",style:"destructive",onPress:work}]),
+    onChange:()=>{preservedBusinessCacheRef.current=null;setBusinessCacheRecovery(null);},onNotice:setCloudSyncError
+  });
+
+  const {exportCopy:exportBusinessCacheRecovery,discardCopy:discardBusinessCacheRecovery}=businessCacheRecoveryActionsRef.current;
 
   const exportBusinessData = async () => {
     const exportPayload = {
@@ -3056,6 +2937,7 @@ function App() {
     ownerSession?.accessToken,
     cloudConflict,
     cloudRevision,
+    cloudSavePreparation,
     onboardingComplete,
     businessName,
     trade,
@@ -3193,12 +3075,20 @@ function App() {
     setAccountClosureError("");
     try {
       const currentUserCacheKey = storageKeyForUser(ownerSession?.userId || "");
+      const scopedCacheKey=businessCacheKey(currentUserCacheKey,cloudWorkspace?.businessId);
       await socialPublishRequest("delete_account", {
         confirmation: "DELETE",
         confirmationEmail: signedInEmail,
       });
 
       await persistOwnerSession(null);
+      if(currentUserCacheKey){
+        const prefix=currentUserCacheKey+":business:";
+        const keys=await AsyncStorage.getAllKeys().catch(()=>[]);
+        const scopedKeys=keys.filter(key=>key.startsWith(prefix)&&businessCacheKey(currentUserCacheKey,key.slice(prefix.length))===key);
+        if(scopedCacheKey&&!scopedKeys.includes(scopedCacheKey))scopedKeys.push(scopedCacheKey);
+        await Promise.all(scopedKeys.map(key=>enqueuePrivateCheckpoint(key,()=>AsyncStorage.removeItem(key)).catch(()=>{})));
+      }
       if (currentUserCacheKey) {
         await AsyncStorage.removeItem(currentUserCacheKey).catch(() => {});
       }
@@ -6591,8 +6481,8 @@ function App() {
   };
 
   const resetPrototype = async ({ preserveUserCache = false } = {}) => {
-    await AsyncStorage.removeItem(LEGACY_STORAGE_KEY).catch(() => {});
-    const currentUserCache = storageKeyForUser(ownerSession?.userId || "");
+    if(!preserveUserCache)await AsyncStorage.removeItem(LEGACY_STORAGE_KEY).catch(() => {});
+    const currentUserCache = businessCacheKey(storageKeyForUser(ownerSession?.userId || ""),cloudWorkspace?.businessId);
     if (currentUserCache && !preserveUserCache) {
       await AsyncStorage.removeItem(currentUserCache).catch(() => {});
     }
@@ -8340,6 +8230,7 @@ function App() {
   });
   websiteAsyncContextRef.current={...websiteHistoryScope,draft:websiteDraft,
     deploymentId:websitePublishingView?.previewDeployment?.id||"",
+    liveDeploymentId:websitePublishingView?.liveDeployment?.id||"",
     draftChangedSinceHosted:websitePublishingView?.draftChangedSinceHosted===true};
   websiteAsyncGateRef.current.setContext(websiteAsyncContextRef.current);
   const miniAppsView = buildMiniAppsView(miniAppsStatus);
@@ -13246,6 +13137,7 @@ function App() {
   };
   const websiteBeginTask=(lane,options)=>websiteAsyncGateRef.current.begin(lane,{
     ...websiteHistoryScope,draft:websiteDraft,deploymentId:websitePublishingView?.previewDeployment?.id||"",
+    liveDeploymentId:websitePublishingView?.liveDeployment?.id||"",
     draftChangedSinceHosted:websitePublishingView?.draftChangedSinceHosted===true
   },websiteTaskContext(),options);
   const websiteVisualReviewRequest=async(action,payload={},task)=>{
@@ -14150,7 +14042,7 @@ function App() {
           : "BUSY queued this website version for a private hosted preview."
       );
       await websiteTaskAwait(task,async()=>(refreshWebsitePublishingStatus({ quiet: true })));
-      setTimeout(() => refreshWebsitePublishingStatus({ quiet: true }), 1200);
+      setTimeout(() => {if(websiteTaskSourceCurrent(task))refreshWebsitePublishingStatus({ quiet: true });}, 1200);
       return true;
     } catch (error) {if(!websiteTaskCurrent(task))return false;
       setWebsitePublishingError(
@@ -14283,9 +14175,9 @@ function App() {
     setHostedWebsitePreview(old => old ? { ...old, error: message } : old);
   };
 
-  const followWebsiteGoLive = () => {
+  const followWebsiteGoLive = (task) => {
     [1200, 3000, 7000, 15000].forEach((delay) => {
-      setTimeout(() => refreshWebsitePublishingStatus({ quiet: true }), delay);
+      setTimeout(() => {if(websiteTaskSourceCurrent({...task,deploymentBound:false,liveBound:false}))refreshWebsitePublishingStatus({ quiet: true });}, delay);
     });
   };
 
@@ -14305,7 +14197,7 @@ function App() {
         "Go Live approved. BUSY is publishing the exact previewed version and will automatically verify its BUSY address, Cloudflare route and live deployment health."
       );
       await websiteTaskAwait(task,async()=>(refreshWebsitePublishingStatus({ quiet: true })));
-      followWebsiteGoLive();
+      followWebsiteGoLive(task);
       return true;
     } catch (error) {if(!websiteTaskCurrent(task))return false;
       setWebsitePublishingError(
@@ -14375,7 +14267,7 @@ function App() {
         "Rollback approved. BUSY is restoring that immutable version and re-checking the real public delivery path automatically."
       );
       await websiteTaskAwait(task,async()=>(refreshWebsitePublishingStatus({ quiet: true })));
-      followWebsiteGoLive();
+      followWebsiteGoLive(task);
       return true;
     } catch (error) {if(!websiteTaskCurrent(task))return false;
       setWebsitePublishingError(
@@ -14387,21 +14279,6 @@ function App() {
     }}
 
     }finally{websiteAsyncGateRef.current.finish(task);}
-  };
-
-  const confirmRollbackWebsite = (deploymentId, versionNo) => {
-    Alert.alert(
-      "Restore this previous website?",
-      `This will make website v${versionNo || "?"} the public live version again. The current version will stay in deployment history.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Approve rollback",
-          onPress: () => rollbackWebsite(deploymentId),
-        },
-      ]
-    );
-    return true;
   };
 
   const openLiveWebsite = async () => {
@@ -14423,62 +14300,11 @@ function App() {
     }
   };
 
-  const runWebsiteHealthCheck = async () => {
-    if (!websitePublishingView?.liveDeployment) {
-      setWebsitePublishingError("Publish a website version before checking the live site.");
-      return false;
-    }
-    setWebsitePublishingAction("health");
-    setWebsitePublishingError("");
-    setWebsitePublishingNotice("");
-    try {
-      await websitePublishingRequest("health_check");
-      setWebsitePublishingNotice(
-        "BUSY checked the live website response and verified which immutable deployment is actually being served."
-      );
-      await refreshWebsitePublishingStatus({ quiet: true });
-      return true;
-    } catch (error) {
-      setWebsitePublishingError(
-        error?.message || "BUSY could not complete the live website health check."
-      );
-      return false;
-    } finally {
-      setWebsitePublishingAction("");
-    }
-  };
-
-  const retryWebsiteRecovery = async () => {
-    if (!websitePublishingView?.liveDeployment) {
-      setWebsitePublishingError("Publish a website version before running hosting recovery.");
-      return false;
-    }
-    setWebsitePublishingAction("recover");
-    setWebsitePublishingError("");
-    setWebsitePublishingNotice("");
-    try {
-      const result = await websitePublishingRequest("recover");
-      const actions = Array.isArray(result?.recovery?.actions)
-        ? result.recovery.actions
-        : [];
-      const failed = actions.filter((item) => item?.ok === false);
-      setWebsitePublishingNotice(
-        failed.length
-          ? "BUSY ran the safe recovery checks. Some external delivery checks still need time, so background retries will continue without changing the approved website content."
-          : "BUSY rechecked the hosting platform, custom-domain provider state and live website delivery. Background monitoring will continue automatically."
-      );
-      await refreshWebsitePublishingStatus({ quiet: true });
-      followWebsiteGoLive();
-      return true;
-    } catch (error) {
-      setWebsitePublishingError(
-        error?.message || "BUSY could not run the safe hosting recovery checks."
-      );
-      return false;
-    } finally {
-      setWebsitePublishingAction("");
-    }
-  };
+  const {confirmRollbackWebsite,runWebsiteHealthCheck,retryWebsiteRecovery}=createWebsiteLiveActions({
+    websitePublishingView,websiteBeginTask,websiteTaskAwait,websiteTaskCurrent,websiteTaskSourceCurrent,websiteAsyncGateRef,
+    websitePublishingRequest,refreshWebsitePublishingStatus,followWebsiteGoLive,rollbackWebsite,Alert,
+    setWebsitePublishingAction,setWebsitePublishingError,setWebsitePublishingNotice
+  });
 
   const checkWebsiteRegistrarSearch = async (domain) => {
     const data=await websitePublishingRequest("registrar_search",{domain});
@@ -17631,6 +17457,9 @@ function App() {
     ownerAuthError,
     ownerAuthNotice,
     ownerAuthReady,
+    businessCacheRecovery:businessCacheRecovery?.businessId===cloudWorkspace?.businessId&&preservedBusinessCacheRef.current?.ownerScope===cloudOwnerScopeRef.current?businessCacheRecovery:null,
+    businessCacheStatus:businessCacheScopeRef.current?.ownerScope===cloudOwnerScopeRef.current&&businessCacheScopeRef.current?.businessId===cloudWorkspace?.businessId?(businessCacheScopeRef.current.blocked?"Unverified earlier copy preserved":"Verified for this business"):"Awaiting business verification",
+    exportBusinessCacheRecovery,discardBusinessCacheRecovery,
     cloudWorkspace,
     growthProjectCloudArgs: conversationCloudArgs,
     growthProjectFocus,

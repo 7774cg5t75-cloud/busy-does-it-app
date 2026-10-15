@@ -5,6 +5,7 @@ const pkg = readJson("package.json");
 const app = readJson("app.json").expo || {};
 const eas = readJson("eas.json");
 const controllerSource = fs.readFileSync("src/app/AppController.js", "utf8");
+const websiteLiveActionsSource = fs.readFileSync("src/core/websiteLiveActions.mjs", "utf8");
 const snackPublisherSource = fs.readFileSync("scripts/publish-snack.mjs", "utf8");
 const snackSourceHelper = fs.readFileSync("scripts/snack-source.mjs", "utf8");
 const supabaseConfigSource = fs.readFileSync("supabase/config.toml", "utf8");
@@ -123,7 +124,7 @@ const checks = [
   ["V3.51 safe recovery orchestration", websitePublishApiSource.includes("safeRecovery") && websitePublishApiSource.includes('action === "recover"')],
   ["V3.51 recovery intelligence model", websitePublishingDomainSource.includes("recoveryState") && websitePublishingDomainSource.includes("owner_dns_action") && websitePublishingDomainSource.includes("lastKnownGoodDeployment")],
   ["V3.51 owner recovery centre", websitePublishingScreenSource.includes("Hosting intelligence & recovery") && websitePublishingScreenSource.includes("Run safe recovery now")],
-  ["V3.51 recovery action wired to app", controllerSource.includes("retryWebsiteRecovery") && controllerSource.includes('websitePublishingRequest("recover")')],
+  ["V3.51 recovery action wired to app", controllerSource.includes("retryWebsiteRecovery") && controllerSource.includes("createWebsiteLiveActions") && websiteLiveActionsSource.includes("retryWebsiteRecovery:()=>run('recover')") && websiteLiveActionsSource.includes('websitePublishingRequest(kind)')],
   ["V3.52 one active operation per website", websiteScaleMigrationSource.includes("busy_website_publish_jobs_one_active_website_idx") && websitePublishApiSource.includes("another website operation")],
   ["V3.52 atomic worker leases", websiteScaleMigrationSource.includes("busy_claim_website_publish_job") && websiteWorkerSource.includes("p_processing_token") && websiteWorkerSource.includes("lease_held")],
   ["V3.52 stale jobs self-recover", websiteScaleMigrationSource.includes("busy_recover_stale_website_publish_jobs") && websiteWorkerSource.includes("staleRecovered")],

@@ -1,14 +1,8 @@
+import {canonicalJsonValue as canonical} from "./stableJson.mjs";
 import {proposeCoordinatedAppChanges} from "./appCoordinatedStudio.mjs";
 
 // Private, in-memory proposal identity. Never persisted, logged or sent to AI.
 const uuid=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
-function canonical(value){
- if(Array.isArray(value))return value.map(canonical);
- if(value&&typeof value==="object")return Object.fromEntries(
-  Object.keys(value).sort().filter(k=>value[k]!==undefined)
-   .map(k=>[k,canonical(value[k])]));
- return value;
-}
 const same=(a,b)=>JSON.stringify(canonical(a))===JSON.stringify(canonical(b));
 function privateAppEditSource({businessId,app,config=app?.draft_config}={}){
  if(!uuid.test(businessId||"")||!uuid.test(app?.id||"")||

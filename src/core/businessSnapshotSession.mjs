@@ -1,7 +1,8 @@
+import {stableJson} from "./stableJson.mjs";
 // The original authenticated snapshot REST/CAS route. No second backend,
 // persistence queue, migration or automatic mutation retry.
 const uuid=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
-const stamp=v=>JSON.stringify(v);
+const stamp=stableJson;
 const rowOf=rows=>Array.isArray(rows)?rows.length===1?rows[0]:null:rows;
 function createBusinessSnapshotSession(){
  let pending=null,observed=null;
@@ -41,7 +42,7 @@ function createBusinessSnapshotSession(){
   const start=getCurrent(),fail=reason=>({ok:false,reason});
   const current=()=>{const live=getCurrent();return live?.identity===start?.identity&&live.ownerId===start.ownerId&&live.businessId===start.businessId&&live.revision===start.revision&&live.ready===true;};
   if(!uuid.test(start?.ownerId||'')||!uuid.test(start?.businessId||'')||!Number.isSafeInteger(start.revision)||start.revision<1||!start.ready)return fail('Open the current signed-in business before saving.');
-  if(pending?.identity===start.identity)return fail('This business save is already being checked.');
+  if(pending?.identity===start.identity)return {...fail('This business save is already being checked.'),busy:true};
   let payload,payloadStamp;
   try{payload=JSON.parse(stamp(start.getPayload()));payloadStamp=stamp(payload);}catch{return fail('The local copy could not be prepared safely. Nothing was sent.');}
   if(observed?.identity===start.identity&&observed.revision===start.revision&&observed.stamp===payloadStamp)return {ok:true,unchanged:true,revision:start.revision};
@@ -57,7 +58,7 @@ function createBusinessSnapshotSession(){
    token=await ownerAccessToken();
    if(!current())return fail('The owner or business changed before saving.');
    if(!token)return fail('Sign in again before saving.');
-   if(stamp(getCurrent().getPayload())!==payloadStamp)return fail('Your work changed while preparing the save. Save the latest version.');
+   if(stamp(getCurrent().getPayload())!==payloadStamp)return {...fail('Your work changed while preparing the save. The latest copy is waiting.'),prepareAgain:true,notSent:true};
    const updatedAt=now(),revision=start.revision+1;
    sent=true;
    const result=await request(`busy_business_snapshots?business_id=eq.${encodeURIComponent(start.businessId)}&revision=eq.${start.revision}`,{
@@ -83,6 +84,6 @@ function createBusinessSnapshotSession(){
    return {...fail(String(error?.message||'Cloud save could not be confirmed.')),uncertain:sent};
   }finally{if(pending===task)pending=null;}
  }
- return {save,prepareRestore,restore};
+ return {save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
 }
 export {createBusinessSnapshotSession};
