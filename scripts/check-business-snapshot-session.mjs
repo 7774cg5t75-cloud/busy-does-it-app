@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {createBusinessSnapshotSession as create} from '../src/core/businessSnapshotSession.mjs';
+const businessId='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',ownerId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+let payload={websiteDraft:{id:'site',generation:2},businessName:'Owner copy'},scope={identity:{},ownerId,businessId,revision:4,ready:true,getPayload:()=>payload};let finish,calls=[];
+const row=(revision=5)=>({business_id:businessId,payload:JSON.parse(JSON.stringify(payload)),schema_version:1,revision});
+const args={getCurrent:()=>scope,ownerAccessToken:async()=>'fixture',schemaVersion:1,request:async(path,options)=>{calls.push({path,options});return [row()];}};
+const session=create();const pending=session.save({...args,ownerAccessToken:()=>new Promise(r=>finish=r)});assert.equal((await session.save(args)).ok,false);finish('fixture');assert.equal((await pending).ok,true);assert.match(calls[0].path,/business_id=eq.*revision=eq.4/);assert.equal(calls[0].options.method,'PATCH');
+scope={...scope,revision:5};assert.equal((await session.save(args)).unchanged,true);assert.equal(calls.length,1);
+scope={...scope,revision:4};let sent=0;const old=create().save({...args,ownerAccessToken:()=>new Promise(r=>finish=r),request:async()=>sent++});scope={...scope,identity:{},ownerId:'cccccccc-cccc-4ccc-8ccc-cccccccccccc'};finish('fixture');assert.equal((await old).ok,false);assert.equal(sent,0);
+scope={...scope,ownerId,identity:{}};let reads=0,writes=0;const observed=await create().save({...args,request:async(path,o)=>{if(o.method==='PATCH'){writes++;throw Error('confirmation lost');}reads++;return [row()];}});assert.equal(observed.ok,false);assert.equal(observed.observedMatch,true);assert.equal(observed.uncertain,true);assert.equal(writes,1);assert.equal(reads,1);
+let release;const changing=create().save({...args,request:()=>new Promise(r=>release=r)});await new Promise(r=>setImmediate(r));const receipt=row();payload={...payload,businessName:'Newer local owner copy'};release([receipt]);assert.equal((await changing).localChangesRemain,true);
+const malformed=await create().save({...args,request:async()=>[{...row(),business_id:'foreign'}]});assert.equal(malformed.ok,false);
+const conflict=await create().save({...args,request:async(path,o)=>o.method?[]:[row(8)]});assert.equal(conflict.conflict,true);assert.equal(conflict.remoteRevision,8);
+console.log('PASS: original snapshot CAS filters, duplicate/no-op saves, owner change, one read-only lost-receipt observation, exact receipt validation and retained newer local work. Fake REST only.');

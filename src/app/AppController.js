@@ -1,3 +1,4 @@
+import {createBusinessSnapshotSession} from "../core/businessSnapshotSession.mjs";
 import {bindWebsiteDraftScope,websiteDraftHasScope} from "../core/websiteDraftScope.mjs";
 import {createWebsiteVoiceActions} from "../core/websiteVoiceActions.mjs";
 import {createAppDesignFeedbackActions} from "../core/appDesignFeedbackActions.mjs";
@@ -566,6 +567,10 @@ function App() {
   const cloudOwnerScopeRef=useRef(null);
   if(cloudOwnerScopeRef.current?.userId!==(ownerSession?.userId||""))cloudOwnerScopeRef.current={userId:ownerSession?.userId||""};
   useEffect(()=>{setCloudInitialising(false);},[ownerSession?.userId]);
+  const snapshotIdentityRef=useRef(null),snapshotContextRef=useRef(null),snapshotSessionRef=useRef(null);
+  const snapshotKey=[ownerSession?.userId||"",cloudWorkspace?.businessId||""].join(":");
+  if(snapshotIdentityRef.current?.key!==snapshotKey)snapshotIdentityRef.current={key:snapshotKey};
+  if(!snapshotSessionRef.current)snapshotSessionRef.current=createBusinessSnapshotSession();
   const websiteHistoryScope={ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||""};
   const websiteAsyncContextRef=useRef(null),websiteAsyncGateRef=useRef(null);
   if(!websiteAsyncGateRef.current)websiteAsyncGateRef.current=createPrivateWebsiteAsyncGate();
@@ -2271,6 +2276,9 @@ function App() {
     advanced,
   });
 
+  snapshotContextRef.current={identity:snapshotIdentityRef.current,ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||"",
+    revision:cloudRevision,ready:cloudInitialised,getPayload:buildPersistentSnapshot};
+
   const applyCloudSnapshot = (saved,websiteBusinessId="") => {
     if (!saved || typeof saved !== "object") return;
     if (typeof saved.onboardingComplete === "boolean") setOnboardingComplete(saved.onboardingComplete);
@@ -2841,7 +2849,7 @@ function App() {
           {
             method: "POST",
             token,
-            prefer: "resolution=merge-duplicates,return=representation",
+            prefer: "resolution=ignore-duplicates,return=representation",
             body: {
               business_id: businessId,
               payload: localPayload,
@@ -2851,11 +2859,19 @@ function App() {
             },
           }
         )));
-        const savedRow = Array.isArray(saved) ? saved[0] : saved;
-        setCloudRevision(Number(savedRow?.revision) || 1);
+        let savedRow = Array.isArray(saved) ? saved[0] : saved;
+        const reusedExisting=!savedRow;
+        if(!savedRow){
+          const raced=await ownerAwait(()=>busyDataRequest(`busy_business_snapshots?business_id=eq.${encodeURIComponent(businessId)}&select=business_id,payload,schema_version,revision,updated_at`,{token}));
+          savedRow=Array.isArray(raced)?raced[0]:raced;
+          if(savedRow?.business_id!==businessId||!Number.isSafeInteger(savedRow.revision)||!savedRow.payload)throw Error("Could not verify the existing business snapshot. No replacement was sent.");
+          applyCloudSnapshot(savedRow.payload,businessId);
+        }
+        if(savedRow?.business_id!==businessId||!Number.isSafeInteger(savedRow.revision))throw Error("Could not confirm the initial business snapshot.");
+        setCloudRevision(savedRow.revision);
         setCloudLastSyncedAt(savedRow?.updated_at || new Date().toISOString());
         setCloudConflict(null);
-        setCloudSyncStatus("Local data backed up");
+        setCloudSyncStatus(reusedExisting?"Existing cloud copy restored":"Local data backed up");
       }
 
       setCloudInitialised(true);
@@ -2887,54 +2903,21 @@ function App() {
   };
 
   const saveBusinessCloud = async ({ quiet = false } = {}) => {
-    if (!cloudWorkspace?.businessId || !ownerSession?.accessToken || !cloudInitialised) return false;
-    if (!quiet) setCloudSyncStatus("Syncing…");
-    setCloudSyncError("");
-    try {
-      const token = await ownerAccessToken();
-      if (!token) throw new Error("Sign in again before syncing cloud data.");
-      const expectedRevision = Math.max(1, Number(cloudRevision) || 1);
-      const nextRevision = expectedRevision + 1;
-      const now = new Date().toISOString();
-      const saved = await busyDataRequest(
-        `busy_business_snapshots?business_id=eq.${encodeURIComponent(
-          cloudWorkspace.businessId
-        )}&revision=eq.${expectedRevision}`,
-        {
-          method: "PATCH",
-          token,
-          prefer: "return=representation",
-          body: {
-            payload: buildPersistentSnapshot(),
-            schema_version: CLOUD_SCHEMA_VERSION,
-            revision: nextRevision,
-            updated_at: now,
-          },
-        }
-      );
-      const savedRow = Array.isArray(saved) ? saved[0] : saved;
-      if (!savedRow) {
-        const remote = await fetchCloudSnapshot(token);
-        setCloudConflict({
-          remoteRevision: Number(remote?.revision) || 0,
-          remoteUpdatedAt: remote?.updated_at || "",
-        });
-        setCloudSyncStatus("Newer cloud copy found");
-        setCloudSyncError(
-          "BUSY stopped this save because another device or session changed the cloud copy. Restore the latest cloud copy before continuing."
-        );
-        return false;
-      }
-      setCloudRevision(Number(savedRow?.revision) || nextRevision);
-      setCloudLastSyncedAt(savedRow?.updated_at || now);
-      setCloudConflict(null);
-      setCloudSyncStatus("Up to date");
+    const identity=snapshotIdentityRef.current;
+    if(!quiet)setCloudSyncStatus("Syncing…");
+    const result=await snapshotSessionRef.current.save({getCurrent:()=>snapshotContextRef.current,
+      ownerAccessToken,request:busyDataRequest,schemaVersion:CLOUD_SCHEMA_VERSION});
+    if(snapshotIdentityRef.current!==identity)return false;
+    if(result.revision){setCloudRevision(result.revision);setCloudLastSyncedAt(result.updatedAt||cloudLastSyncedAt);}
+    if(result.ok){
+      setCloudConflict(null);setCloudSyncError("");
+      setCloudSyncStatus(result.localChangesRemain?"Earlier copy saved; newer changes remain":"Up to date");
       return true;
-    } catch (error) {
-      setCloudSyncError(error?.message || "Cloud sync failed.");
-      setCloudSyncStatus("Sync needs attention");
-      return false;
     }
+    if(result.conflict||result.uncertain&&!result.observedMatch)setCloudConflict({remoteRevision:result.remoteRevision||0,remoteUpdatedAt:result.remoteUpdatedAt||"",uncertain:result.uncertain===true});
+    setCloudSyncError(result.reason||"Save could not be confirmed.");
+    setCloudSyncStatus(result.observedMatch?"Cloud copy observed; confirmation lost":result.conflict?"Newer cloud copy found":"Sync needs attention");
+    return false;
   };
 
   const syncCloudNow = async () => {
@@ -3064,6 +3047,7 @@ function App() {
     cloudWorkspace?.businessId,
     ownerSession?.accessToken,
     cloudConflict,
+    cloudRevision,
     onboardingComplete,
     businessName,
     trade,
