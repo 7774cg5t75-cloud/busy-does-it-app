@@ -12,6 +12,16 @@
 | `AGENTS.md` | Standing instructions for Codex work in this repository | Automatically applicable when this file is present on the working branch. |
 | `docs/CODEX_PRODUCT_BRIEF.md` | Public, abbreviated orientation | Accessible in Git; **not** a replacement for the complete Word master. |
 
+### Latest owner-approved product master — V22.23 (16 October 2026)
+
+- **Decision:** contextual speech quality and voice-task safety: accurate business vocabulary and varied accents, self-corrections, editable transcripts, context-bound selected objects, explicit dictation-vs-action separation, privacy and cost-aware vendor-neutral speech evaluation. Wispr Flow is an illustrative experience benchmark only, not an approved integration or a validated performance claim.
+- **Private Word file:** `Busy_Does_It_Master_V22_23_Context_Aware_Voice_Intelligence.docx`.
+- **Private ChatGPT Library path:** `/Busy_Does_It_Master_V22_23_Context_Aware_Voice_Intelligence.docx` (upload confirmed 16 October 2026). This **does not** grant new Codex sessions access; attach the actual Word file or use a separately authorised private read connection.
+- **SHA-256 of original V22.23 generated DOCX:** `9a80e798888040a7258bc1a0e7d2e0eee85a243ea26cd61bceb8033e9de06946`.
+- **Provenance:** derived from SHA-256-verified approved V22.22; preserved all 19 existing tables and prior product decisions, added a focused 10-paragraph Section 30 voice-intelligence subsection, updated the document version/date and footer; structurally validated and rendered across 88 pages with visual review of edited pages.
+- **Public technical counterpart:** `ARCHITECTURE.md` on this documentation branch, “Permanent architecture direction — context-aware speech quality and safe voice control”. Requirements only: no new application code, provider calls, live recordings or paid commitments.
+- **Product development sequence:** functionality-first builder expansion remains the priority; deeper speech improvements are to be phased appropriately, not used to interrupt active functional missions.
+
 ### Latest owner-approved product master — V22.22 (15 October 2026)
 
 - **Owner-approved addition:** qualified B2B prospect discovery and safe, optional owner-controlled outreach integrated into `Get More Customers`, with company/source checks, channel-specific permission gates, UK GDPR/PECR safeguards, authenticated sending, suppression, honest replies-to-CRM/booking and measured business outcomes. Explee AI is inspiration, not an approved integration or validated results source.
