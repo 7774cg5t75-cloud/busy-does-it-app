@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {businessContentFixture} from './lib/business-content-fixture.mjs';
+import {manageBusinessContent as manage,readBusinessContent as read} from '../supabase/functions/_shared/businessContentStore.mjs';
+import {publicWebsiteBusinessContent as siteFeed} from '../supabase/functions/_shared/publicBusinessContent.mjs';
+import {businessContentSectionHtml as html} from '../supabase/functions/_shared/businessContentHtml.mjs';
+const db=businessContentFixture(),owner={businessId:'business-a',actorId:'owner-a',role:'owner'},deployment='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',website='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+db.tables.busy_website_deployments.push({id:deployment,website_id:website,business_id:owner.businessId,state:'live'});db.tables.busy_websites.push({id:website,business_id:owner.businessId,status:'live',current_live_deployment_id:deployment});
+const event={name:'Workshop',description:'Owner event',category:'Learning',image:null,status:'scheduled',startsAt:'2027-03-20T10:00:00.000Z',endsAt:'2027-03-20T12:00:00.000Z',timeZone:'Europe/London',location:'Owner venue',onlineUrl:''};
+const write=(action,expectedRevision,data)=>manage(db,owner,{action,id:'event_record_001',kind:'event',expectedRevision,ownerApproved:true,...data?{data}:{}});
+await write('content_save',0,event);await write('content_publish',1);
+assert.deepEqual((await siteFeed(db,{expectedDeploymentId:deployment})).records,(await read(db,owner.businessId,{publicOnly:true})).records);
+const markup=html({id:'events',type:'events',title:'Upcoming events',contentSource:'business_records_v1',contentLayout:'rows'},{endpoint:'https://fixture.supabase.co/functions/v1/busy-mini-app-guest',deploymentId:deployment});assert.match(markup,/grid-template-columns:1fr/);assert.equal(html({id:'x',type:'script'}),'');
+function element(tag='div'){return {tag,children:[],style:{},textContent:'',listeners:{},setAttribute(){},addEventListener(name,fn){this.listeners[name]=fn;},appendChild(x){this.children.push(x);},replaceChildren(){this.children=[];}};}
+const target=element(),handlers={};let fail=false;
+const document={getElementById:()=>target,createElement:element,visibilityState:'visible',addEventListener:(name,fn)=>handlers[name]=fn};
+vm.runInNewContext(markup.match(/<script>([\s\S]*)<\/script>/)[1],{document,Date,Intl,JSON,fetch:async(_,options)=>{assert.equal(JSON.parse(options.body).expectedDeploymentId,deployment);if(fail)throw Error('offline');return {ok:true,json:()=>siteFeed(db,{expectedDeploymentId:deployment})};}});
+const tick=()=>new Promise(resolve=>setImmediate(resolve));await tick();await tick();const text=node=>node.textContent+' '+node.children.map(text).join(' ');assert.match(text(target),/Workshop/);const search=target.children.find(x=>x.tag==='input');search.value='Not matching';search.listeners.input();assert.doesNotMatch(text(target),/Workshop/);search.value='Workshop';search.listeners.input();assert.match(text(target),/Workshop/);
+await write('content_save',2,{...event,status:'cancelled'});await write('content_publish',3);handlers.visibilitychange();await tick();await tick();assert.match(text(target),/Cancelled/);
+fail=true;handlers.visibilitychange();await tick();await tick();assert.doesNotMatch(text(target),/Workshop/);assert.match(text(target),/unavailable/);
+db.tables.busy_websites[0].current_live_deployment_id='cccccccc-cccc-4ccc-8ccc-cccccccccccc';await assert.rejects(()=>siteFeed(db,{expectedDeploymentId:deployment}));
+console.log('PASS actual public Website loader/DOM mount: current deployment scope, shared approved event revisions, cancellation on refresh, stale-source rejection and clearing unavailable data. DOM/database fixtures; no browser/hosted claim.');
+// Pending private App edits must not take the exact published native version offline.
+const {publicNativeMiniAppProjection}=await import('../supabase/functions/busy-mini-app-guest/publicNativeProjection.mjs');
+const app={id:'app',status:'update_pending',public_slug:'test-app',current_live_version_id:'version'};
+const version={id:'version',state:'live',config:{modules:[{key:'business_profile',enabled:true}],navigation:['business_profile'],publicProfile:{businessName:'Owner approved'}}};
+assert.equal(publicNativeMiniAppProjection(app,version,{expectedAppId:'app',expectedVersionId:'version'}).ok,true);
+assert.equal(publicNativeMiniAppProjection(app,{...version,state:'preview_ready'},{expectedAppId:'app',expectedVersionId:'version'}).ok,false);
+assert.equal(publicNativeMiniAppProjection({...app,current_live_version_id:'other'},version,{expectedAppId:'app',expectedVersionId:'version'}).ok,false);
+console.log('PASS inherited pending-App compatibility correction: only the exact current live version remains available; preview/mismatched versions rejected.');

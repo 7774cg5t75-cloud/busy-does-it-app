@@ -50,7 +50,7 @@ ok(CAPABILITIES.length>=25);
 eq(new Set(CAPABILITIES.map(x=>x.id)).size,CAPABILITIES.length);
 const ids=new Set(CAPABILITIES.map(x=>x.id));
 const appModules=new Set(Object.keys(SUPPORTED));
-const websiteSections=new Set(["hero","services","gallery","contact","faq","testimonials"]);
+const websiteSections=new Set(["hero","services","gallery","contact","faq","testimonials","products","events"]);
 for(const c of CAPABILITIES){
  eq(c.version,1,"Every contract must carry an explicit schema version.");
  eq(c.ownerApprovalRequired,true);

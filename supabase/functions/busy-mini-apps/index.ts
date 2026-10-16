@@ -1,3 +1,6 @@
+import {businessContentSectionHtml} from '../_shared/businessContentHtml.mjs';
+import {validContentLayout} from './businessContentRecords.mjs';
+import {manageBusinessContent,readBusinessContent} from '../_shared/businessContentStore.mjs';
 import {publicServiceDetails} from './publicServiceDetails.mjs';
 import {publicCollection} from './appPublicCollections.mjs';
 import {appConfigLockReason,retainAppDraftDesign,proposeAppModuleToggle} from "./appDraftComposition.mjs";
@@ -1933,7 +1936,7 @@ async function ownerStatus(businessId: string) {
   }
 
   return {
-    app,
+    app:app.draft_config?.contentLayout?.length?{...app,businessContent:await readBusinessContent(supabase,businessId,{publicOnly:true})}:app,
     versions: versions.data || [],
     requests: requests.data || [],
     requestLinks: requestLinks.data || [],
@@ -2514,6 +2517,7 @@ function publicMiniAppWebHtml(app: any, version: any) {
 
   const heroHtml = hero ? `<img class="hero-image" src="${escapeHtml(hero)}" alt="${escapeHtml(name)}" />` : "";
   const publicInformationHtml = enabled.has('business_profile') ? [['faqs','Questions and answers','question','answer'],['testimonials','What customers say','attribution','text']].map(([field,title,heading,body])=>{const rows=publicCollection(field,profile[field]||[]);return rows.length?`<section><div class="wrap"><h2>${escapeHtml(title)}</h2>${rows.map(row=>`<article><h3>${escapeHtml(row[heading])}</h3><p>${escapeHtml(row[body])}</p></article>`).join('')}</div></section>`:'';}).join('') : '';
+  const sharedContentHtml=validContentLayout(config.contentLayout)?config.contentLayout.map(block=>businessContentSectionHtml({id:block.kind==='product'?'products':'events',type:block.kind==='product'?'products':'events',title:block.title,contentSource:'business_records_v1',featuredId:block.featuredId},{endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',appSource:{slug,expectedAppId:app.id,expectedVersionId:version.id}})).join(''):'';
   const aboutHtml = enabled.has("business_profile")
     ? `<section id="about"><div class="wrap"><p class="eyebrow">About</p><h2>${escapeHtml(name)}</h2>${about ? `<p>${escapeHtml(about)}</p>` : ""}${serviceArea ? `<p class="muted">Service area: ${escapeHtml(serviceArea)}</p>` : ""}</div></section>`
     : "";
@@ -2543,6 +2547,7 @@ function publicMiniAppWebHtml(app: any, version: any) {
 <body>
   <header class="hero"><div class="wrap"><div class="brand">BUSY DOES IT</div>${category ? `<p class="eyebrow" style="margin-top:22px">${escapeHtml(category)}</p>` : ""}<h1>${escapeHtml(name)}</h1>${tagline ? `<p class="lead">${escapeHtml(tagline)}</p>` : description ? `<p class="lead">${escapeHtml(description)}</p>` : ""}${serviceArea ? `<p class="muted">${escapeHtml(serviceArea)}</p>` : ""}${heroHtml}<div class="hero-actions"><a class="button" href="${escapeHtml(actionUrl("open"))}">Open in BUSY DOES IT</a></div><span class="browse-note">No app or sign-in needed to browse</span></div></header>
   ${aboutHtml}
+  ${sharedContentHtml}
   ${publicInformationHtml}
   ${servicesHtml}
   ${galleryHtml}
@@ -3356,6 +3361,7 @@ async function appDetail(
     },
     version: version.data,
     loyaltyProgress,
+    businessContent:version.data.config?.contentLayout?.length?await readBusinessContent(supabase,app.data.business_id,{publicOnly:true}):null,
   };
 }
 
@@ -4265,6 +4271,9 @@ Deno.serve(async (request: Request) => {
       writeActions.has(action)
     );
     const resolvedBusinessId = member.business_id;
+    if(['content_list','content_save','content_publish','content_undo'].includes(action)){
+      return json(200,await manageBusinessContent(supabase,{businessId:resolvedBusinessId,actorId:user.id,role:member.role},body));
+    }
 
     if(action==="brain_owner_decisions"){
       return json(200,{ok:true,businessId:resolvedBusinessId,

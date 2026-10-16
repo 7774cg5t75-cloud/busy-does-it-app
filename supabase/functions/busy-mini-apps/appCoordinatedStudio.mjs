@@ -1,3 +1,4 @@
+import {validContentLayout} from './businessContentRecords.mjs';
 import {validPublicCollection} from './appPublicCollections.mjs';
 import {splitBuilderInstructionClauses} from './builderInstructionClauses.mjs';
 import {validAppContactEdit} from './appContactPolicy.mjs';
@@ -109,6 +110,14 @@ function proposeCoordinatedAppChanges(config,operations){
    if(next.publicProfile?.contact?.[op.field]===value)return {ok:false,reason:'This contact detail is already saved.'};
    after={...next,publicProfile:{...next.publicProfile,contact:{...next.publicProfile?.contact,[op.field]:value}}};
    undo={kind:'restore_public_field',field:'contact',value:snapshot};description='Updated public '+op.field;
+  }else if(['content_layout','restore_content_layout'].includes(op.kind)){
+   const present=Object.hasOwn(next,'contentLayout'),before=present?next.contentLayout:undefined;
+   if(present&&!validContentLayout(before))return {ok:false,reason:'Review the existing content layout.'};
+   const restore=op.kind==='restore_content_layout',value=restore?op.value?.value:op.value;
+   if(restore?(!op.value||typeof op.value.present!=='boolean'||Object.keys(op.value).some(k=>!['present','value'].includes(k))||op.value.present!==Object.hasOwn(op.value,'value')||op.value.present&&!validContentLayout(value)):!validContentLayout(value))return {ok:false,reason:'Choose supported product/event blocks and layouts.'};
+   after={...next};if(restore&&!op.value.present)delete after.contentLayout;else after.contentLayout=JSON.parse(JSON.stringify(value));
+   if(JSON.stringify(after.contentLayout)===JSON.stringify(before))return {ok:false,reason:'This composition is already saved.'};
+   undo={kind:'restore_content_layout',value:{present,...present?{value:JSON.parse(JSON.stringify(before))}:{}}};description='Updated reusable product/event composition';
   }else if(op.kind==='public_collection'){
    if(!['faqs','testimonials'].includes(op.field)||!validPublicCollection(op.field,op.value))return {ok:false,reason:'Use up to 20 complete owner-approved entries with safe public wording.'};
    const snapshot=captureAppProfileField(next,op.field);
@@ -161,8 +170,10 @@ function planAppVoiceInstructions(config,instruction){
  const pieces=splitBuilderInstructionClauses(phrase,{max:MAX_CHANGES});
  if(!pieces)return {ok:false,needsClarification:true,reason:"Use balanced quotes and up to eight complete changes."};
  if(pieces.length>MAX_CHANGES)return {ok:false,reason:"Describe up to eight changes at once."};
- const operations=[],unresolved=[],preserved=[];
+ const operations=[],unresolved=[],preserved=[];let contentBlocks=validContentLayout(config.contentLayout)?config.contentLayout.map(x=>({...x})):[],contentChanged=false;
  for(let p of pieces){
+  const block=/^(?:add|show|include)(?: my| our| the)? (products|events|upcoming events)(?: (?:section|screen))?(?: as (cards|rows))?$/i.exec(p);
+  if(block){const kind=block[1].toLowerCase()==='products'?'product':'event',value={kind,title:kind==='product'?'Products':'Upcoming events',layout:(block[2]||'cards').toLowerCase()};const i=contentBlocks.findIndex(x=>x.kind===kind);if(i>=0)contentBlocks[i]={...contentBlocks[i],layout:value.layout};else contentBlocks.push(value);contentChanged=true;continue;}
   // Literal copy is data. Commands outside its exact quoted value still fail.
   const literal=/^(?:set|change|update)(?: my| our| the)? (tagline|about|description|phone|email|opening hours) (?:to|as) ["“'‘]([\s\S]*)["”'’]$/i.exec(p);
   if(literal){
@@ -225,10 +236,11 @@ function planAppVoiceInstructions(config,instruction){
   }
   unresolved.push(p);
  }
+ if(contentChanged)operations.push({kind:'content_layout',value:contentBlocks});
  if(unresolved.length)return {ok:false,needsClarification:true,unresolved,preserved,
   supportedOperations:operations,reason:"BUSY needs clarification before combining these changes: "+unresolved.join("; ")};
  if(!operations.length)return {ok:false,reason:"Nothing needs changing; your existing design stays as it is."};
- const targets=operations.map(op=>['appearance','text','contact'].includes(op.kind)?op.kind+':'+op.field:'navigation');
+ const targets=operations.map(op=>['appearance','text','contact'].includes(op.kind)?op.kind+':'+op.field:op.kind==='content_layout'?'content_layout':'navigation');
  if(new Set(targets).size!==targets.length)return {ok:false,needsClarification:true,reason:'Choose one instruction for each app setting before preparing the changes.'};
  const result=proposeCoordinatedAppChanges(config,operations);
  return {...result,instruction:phrase,preserved};

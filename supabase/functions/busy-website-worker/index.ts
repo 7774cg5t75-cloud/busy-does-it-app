@@ -1,3 +1,4 @@
+import {businessContentSectionHtml} from '../_shared/businessContentHtml.mjs';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import {renderOptInContactForm} from "./formHtml.mjs";
@@ -342,7 +343,7 @@ function renderWebsiteHtml(
       return true;
     })
     .map((section: any, index: number) =>
-      renderSectionHtml(draft, section, urls, index === 0)
+      ['products','events'].includes(section.type)?businessContentSectionHtml(section,{endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',websiteId:draft.websiteId||draft.id,deploymentId}):renderSectionHtml(draft, section, urls, index === 0)
     )
     .join("");
 

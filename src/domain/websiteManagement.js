@@ -66,13 +66,16 @@ function buildWebsitePageModel(draft = {}) {
 
   const dedicated = [
     ["services", "Services", "/services", "services/index.html"],
+    ["products","Products","/products","products/index.html"],
+    ["events","Events","/events","events/index.html"],
     ["about", "About", "/about", "about/index.html"],
     ["gallery", "Gallery", "/gallery", "gallery/index.html"],
     ["faq", "FAQs", "/faq", "faq/index.html"],
     ["contact", "Contact", "/contact", "contact/index.html"],
   ];
 
-  if (!singlePage) dedicated.forEach(([id, title, path, outputPath]) => {
+  dedicated.forEach(([id, title, path, outputPath]) => {
+    if(singlePage&&!['products','events'].includes(id))return;
     if (!has(id)) return;
     pages.push({
       id,
@@ -101,8 +104,8 @@ function buildWebsitePageModel(draft = {}) {
 
   const navigation = singlePage
     ? [{id:"home",label:"Home",href:"#main"},
-      ...homeIds.filter(id=>["services","about","gallery","contact"].includes(id))
-        .map(id=>({id,label:({services:"Services",about:"About",gallery:"Gallery",contact:"Contact"})[id],href:"#"+id})),
+      ...homeIds.filter(id=>["services","about","gallery","contact","products","events"].includes(id))
+        .map(id=>({id,label:({services:"Services",about:"About",gallery:"Gallery",contact:"Contact",products:"Products",events:"Events"})[id],href:"#"+id})),
       ...pages.filter(page=>page.id.startsWith("page-")).map(page=>({id:page.id,label:page.title,href:page.path}))]
     : pages.filter(page=>page.id!=="faq").map(page=>({
       id:page.id,label:page.title,href:page.path

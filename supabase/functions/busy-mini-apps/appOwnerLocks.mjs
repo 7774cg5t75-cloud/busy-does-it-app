@@ -18,6 +18,7 @@ function appEditLockReason(config,op){
   galleryLayout:["gallery","photos"],serviceStyle:["services"],
   brandAccent:["branding","colours","colors"],brandPalette:["branding","colours","colors"]};
  const targets=[];
+ if(['content_layout','restore_content_layout'].includes(op?.kind))targets.push('business_profile','copy','navigation','products','events');
  if(op?.kind==="appearance")targets.push("appearance",op.field,...(groups[op.field]||[]));
  else if(op?.kind==="restore_appearance"){
   const before=config?.presentation||{},after=op.value||{};

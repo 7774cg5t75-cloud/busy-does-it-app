@@ -1,3 +1,4 @@
+import {businessContentSectionHtml} from '../core/businessContentHtml.mjs';
 import {protectWebsiteOwnerLocks} from "../../supabase/functions/busy-website-worker/websiteOwnerLocks.mjs";
 import { syncWebsitePageModel } from "./websiteManagement";
 import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";
@@ -173,7 +174,7 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
   // Rebuilding factual Brand Brain content must never discard owner-created
   // pages or their authored text. It is a content refresh, not a page deletion.
   const preserved=safeArray(previousDraft?.sections).filter(section=>
-    ["text","photo-feature"].includes(section?.type)&&clean(section.id).startsWith("custom-"));
+    (["text","photo-feature"].includes(section?.type)&&clean(section.id).startsWith("custom-"))||(['products','events'].includes(section?.type)&&section.contentSource==='business_records_v1'));
   // A deliberate owner add/remove is authoritative for that private collection.
   // A later Brand Brain refresh must not silently restore a removed service/FAQ
   // or delete a newly added one. Unedited collections still update from the brief.
@@ -386,6 +387,9 @@ function applyCoordinatedWebsiteCopyUnchecked({ draft = null, approved = {}, ser
 }
 
 function applySingleWebsiteInstruction(draft = {}, instruction = "") {
+  const content=/^(add|show|include|remove) (?:an? |my |our )?(products|events)(?: (?:section|page))?(?: as (cards|rows))?$/i.exec(clean(instruction));
+  if(content)return applyStructuredWebsiteEdit(draft,{action:content[1].toLowerCase()==='remove'?'remove-content-section':'content-section',sectionId:content[2].toLowerCase(),...content[1].toLowerCase()==='remove'?{}:{title:content[2].toLowerCase()==='products'?'Products':'Upcoming events',layout:(content[3]||'cards').toLowerCase()}});
+
   const text = clean(instruction);
   const lower = text.toLowerCase();
   if (!draft?.id || !text) {
@@ -690,7 +694,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
   // from the HTML, so linking to them would create a broken customer journey.
   const renderedAnchors=new Set(["main"]);
   for(const section of orderedSections){
-    const visible=section.type==="hero"?false:
+    const visible=['products','events'].includes(section.type)?true:section.type==="hero"?false:
       ["services","faq","testimonials"].includes(section.type)?
         safeArray(section.items).some(item=>clean(item?.title||item?.body)):
       section.type==="gallery"?safeArray(section.items).some(asset=>approvedImage(asset)):
@@ -709,6 +713,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
   const sectionHtml = orderedSections.map(section=>{
     const sectionClasses=sectionAppearanceClasses(section);
     const sectionAttrs=(sectionClasses?` class="${sectionClasses}"`:"")+editAttrs(section,"section");
+    if(['products','events'].includes(section.type))return businessContentSectionHtml(section);
     if(section.type==="hero"){
       const url=approvedImage(section.asset);
       const art=url

@@ -1,3 +1,4 @@
+import {BusinessContentView} from './businessContentView';
 /**
  * V3.155 independent native Business App. Offline by default.
  * A separately owner-approved LIVE connection loads only a strict public
@@ -185,6 +186,7 @@ function LiveInfo({screen,app,layout,onRequestService,onOpenContact,onOpenOfferE
       borderRadius:LOOK.imageCorners==="square"?2:12,marginTop:12}}
     resizeMode="cover"/>:null}
   {app.tagline&&app.about?<Text style={sub}>{app.about}</Text>:null}
+  {(app.contentLayout||[]).map(block=><BusinessContentView key={block.kind} feed={app.businessContent} colors={COLORS} {...block} onInterest={app.supportsEnquiry?name=>onRequestService?.(name,'enquiry'):null}/>)}
   {(app.faqs||[]).map((row,i)=><View key={'faq'+i} style={{marginTop:16}}><Text style={{...t,fontWeight:'700'}}>{row.question}</Text><Text style={sub}>{row.answer}</Text></View>)}
   {(app.testimonials||[]).map((row,i)=><View key={'testimonial'+i} style={{marginTop:16}}><Text style={sub}>{row.text}</Text><Text style={{...t,fontWeight:'700'}}>{row.attribution}</Text></View>)}
  </View>;

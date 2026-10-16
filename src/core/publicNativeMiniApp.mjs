@@ -13,7 +13,7 @@ const safeUrl=v=>typeof v==="string"&&v.length<=1800&&/^https:\/\//i.test(v)?v:"
 const validSlug=s=>typeof s==="string"&&/^[a-z0-9][a-z0-9-]{1,98}$/.test(s);
 const PUBLIC_MODULES=new Set(["business_profile","services","gallery","contact","enquiry","booking_request"]);
 function publicNativeMiniAppProjection(app,version,{expectedAppId,expectedVersionId}={}){
- if(!app||!version||app.status!=="live"||
+ if(!app||!version||!["live","update_pending"].includes(app.status)||app.status==="update_pending"&&version.state!=="live"||
   app.id!==expectedAppId||version.id!==expectedVersionId||
   app.current_live_version_id!==version.id||!validSlug(app.public_slug)||
   !version.config||typeof version.config!=="object")

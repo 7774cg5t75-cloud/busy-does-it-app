@@ -7,6 +7,7 @@ function appConfigLockReason(before,after){
  if(!locks.locks.length)return '';
  if(locks.locks.includes('all')&&!same(before,after))return 'Unlock the app before rebuilding it.';
  const operations=[];
+ if(!same(before.contentLayout,after.contentLayout))operations.push({kind:'content_layout'});
  for(const field of ['faqs','testimonials'])if(!same(before.publicProfile?.[field],after.publicProfile?.[field]))operations.push({kind:'public_collection',field});
  if(!same(before.navigation,after.navigation))operations.push({kind:'navigation',value:after.navigation});
  for(const field of new Set([...Object.keys(before.presentation||{}),...Object.keys(after.presentation||{})]))
@@ -23,7 +24,7 @@ function retainAppDraftDesign(previous,rebuilt){
  const next={...rebuilt};
  // Keep the established Studio, plan and distribution settings when refreshing
  // approved business facts. Applying a new plan explicitly replaces its fields.
- for(const key of ['schemaVersion','surface','presentation','builderPlan','offers','loyalty'])
+ for(const key of ['schemaVersion','surface','presentation','builderPlan','offers','loyalty','contentLayout'])
   if(Object.prototype.hasOwnProperty.call(previous,key))next[key]=previous[key];
  // Owner-authored information survives business-fact rebuilds; edit it explicitly.
  if(previous.publicProfile)for(const field of ['faqs','testimonials'])if(Object.hasOwn(previous.publicProfile,field))next.publicProfile={...next.publicProfile,[field]:previous.publicProfile[field]};

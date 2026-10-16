@@ -1,3 +1,4 @@
+import {validateBusinessContent,parseContentPrice,localEventInstant,validContentLayout} from './businessContentRecords.mjs';
 /**
  * V3.210 - universal, industry-agnostic capability planner.
  * Pure deterministic preparation based on a bounded owner request and the
@@ -33,7 +34,7 @@ const INTENTS=Object.freeze([
  ["subscriptions",/\b(?:subscriptions?|monthly billing|recurring payments?|monthly fees?)\b/i],
  ["uploads",/\b(?:upload(?:s|ing)?|submit (?:a )?(?:file|photo|document)|user submitted photos?|file submissions?)\b/i],
  ["voting",/\b(?:vot(?:e|es|ing)|polls?|competitions?|contests?)\b/i],
- ["events",/\b(?:event calendars?|event listings?|event schedules?|upcoming events?|concert schedules?|festival lineups?)\b/i],
+ ["events",/\b(?:events?|workshops?|class schedules?|event calendars?|event listings?|event schedules?|upcoming events?|concert schedules?|festival lineups?)\b/i],
  ["tickets",/\b(?:tickets?|ticketing|admissions?)\b/i],
  ["donations",/\b(?:donat(?:e|ion|ions)|fundrais(?:e|ing)|charity payments?)\b/i],
  ["search",/\b(?:search (?:my |the |for )?(?:site|website|products|listings|directory)|search bars?|directories|filters?)\b/i],
@@ -115,7 +116,8 @@ function assessSurfaceCapability(capability,surface,{website,app,catalog=[],busi
   const contentReady=!capability.publicContentField||
    (validPublicCollection(capability.publicContentField,app?.draft_config?.publicProfile?.[capability.publicContentField])&&
     app.draft_config.publicProfile[capability.publicContentField].length>0);
-  const enabled=matchingApp&&termsReady&&contentReady&&list(app.draft_config?.modules).some(
+  const recordLayoutReady=!capability.contentBlockKind||(validContentLayout(app?.draft_config?.contentLayout)&&app.draft_config.contentLayout.some(x=>x.kind===capability.contentBlockKind));
+  const enabled=matchingApp&&termsReady&&contentReady&&recordLayoutReady&&list(app.draft_config?.modules).some(
    module=>module?.key===descriptor.id&&module.enabled===true)&&
    enabledAppKeys(app.draft_config).ok;
   return {status:enabled?"present_in_private_draft":"available_module_needs_owner_setup",
@@ -167,7 +169,8 @@ function planWebsiteSectionComposition(website,explicit=[]){
  };
  for(const id of explicit){
   if(["gallery"].includes(id))push("gallery");
-  if(["services","catalogue","course_content"].includes(id))push("services");
+  if(["services","course_content"].includes(id))push("services");
+  if(id==="catalogue")push("products");if(id==="events")push("events");
   if(["faq"].includes(id))push("faq");
   if(["testimonials"].includes(id))push("testimonials");
   if(["enquiry","booking_request","contact","deposits","payments"].includes(id))push("contact");
@@ -249,3 +252,21 @@ function planUniversalBuilderRequest({
 }
 export {INTENTS,detectRequestedCapabilities,planWebsiteSectionComposition,
  assessSurfaceCapability,planUniversalBuilderRequest};
+
+// Finite record preparation extends the existing universal planner. It has no
+// save, publication, inventory, attendance or charge authority.
+function prepareBusinessContentInstruction(instruction,existing=null){
+ const fail=reason=>({ok:false,reason,needsClarification:true});
+ if(typeof instruction!=='string'||instruction.length>400)return fail('Use a short product or event instruction.');
+ const words=instruction.trim();let kind=existing?.kind,data=existing?.draft?JSON.parse(JSON.stringify(existing.draft)):null,create=false;
+ let match=/^create product "([^"<>]{1,160})" for ([0-9.]+) ([A-Z]{3})$/i.exec(words);
+ if(match){const price=parseContentPrice(match[2],match[3].toUpperCase());if(!price.ok)return fail(price.reason);kind='product';create=true;data={name:match[1],description:'',category:'',image:null,status:'active',amountMinor:price.amountMinor,currency:match[3].toUpperCase(),availability:'not_tracked'};}
+ else if((match=/^set price to ([0-9.]+) ([A-Z]{3})$/i.exec(words))&&kind==='product'&&data){if(data.variants?.length&&data.currency!==match[2].toUpperCase())return fail('Review each option price in the fields before changing currency.');const price=parseContentPrice(match[1],match[2].toUpperCase());if(!price.ok)return fail(price.reason);data.amountMinor=price.amountMinor;data.currency=match[2].toUpperCase();}
+ else if(/^cancel this event$/i.test(words)&&kind==='event'&&data)data.status='cancelled';
+ else if((match=/^rename to "([^"<>]{1,160})"$/i.exec(words))&&data)data.name=match[1];
+ else if((match=/^create event "([^"<>]{1,160})" on (\d{4}-\d\d-\d\d) from (\d\d:\d\d) to (\d\d:\d\d) in ([A-Za-z_+\/-]+) at "([^"<>]{1,300})"$/i.exec(words))){
+  const a=localEventInstant(match[2],match[3],match[5]),b=localEventInstant(match[2],match[4],match[5]);if(!a.ok||!b.ok)return fail(a.reason||b.reason);kind='event';create=true;data={name:match[1],description:'',category:'',image:null,status:'scheduled',startsAt:a.value,endsAt:b.value,timeZone:match[5],location:match[6],onlineUrl:''};
+ }else return fail('Describe an exact supported edit, or use the fields. BUSY will not guess prices, dates, payments or stock.');
+ const checked=validateBusinessContent(kind,data);return checked.ok?{ok:true,kind,data:checked.data,create,privateOnly:true,requiresOwnerApproval:true}:fail(checked.reason);
+}
+export {prepareBusinessContentInstruction};

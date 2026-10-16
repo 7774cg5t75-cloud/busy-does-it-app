@@ -26,5 +26,5 @@ for(const ownerLockedElements of ['navigation',Array(31).fill('x'),['navigation'
 for(const file of ['appOwnerLocks.mjs','appAppearanceEditing.mjs','appCoordinatedStudio.mjs','appSectionOrder.mjs'])assert.equal(readFileSync('src/core/'+file,'utf8'),readFileSync('supabase/functions/busy-mini-apps/'+file,'utf8'));
 const source=readFileSync('src/screens/appStudioComparison.js','utf8');parse(source,{sourceType:'module',plugins:['jsx']});
 assert.ok(source.includes('SAMPLE_WIDTHS.map'));assert.ok(source.includes('renderSurface(side==='));
-assert.ok(readFileSync('src/screens/miniApps.js','utf8').includes('renderSurface={config=><MiniAppSurface config={config}/>}'));
+assert.ok(readFileSync('src/screens/miniApps.js','utf8').includes('renderSurface={config=><MiniAppSurface config={config} businessContent={s.miniAppsView?.app?.businessContent||null}/>}'));
 console.log('PASS: task-aware bounded editing, unavailable-task suppression, owner locks, shared server parity and preview component wiring/syntax. No real devices tested.');

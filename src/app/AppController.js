@@ -14546,6 +14546,15 @@ function App() {
     return data;
   };
 
+  const businessContentRequest=async(action,payload={})=>{
+    const scope=renderedBusinessWorkspaceScope;
+    const current=()=>businessWorkspaceScopeRef.current===scope;
+    if(!current()||!['content_list','content_save','content_publish','content_undo'].includes(action))throw Error('Reopen the current business records.');
+    const result=await miniAppsRequest(action,payload,{isCurrent:current});
+    if(!current())throw Error('The business changed while loading records.');
+    return result;
+  };
+
   // A read-only authenticated lookup. Only the service-side billing ledger
   // is evidence of premium standalone eligibility. No client tier override.
   const checkStandaloneEligibility=async()=>{
@@ -16975,6 +16984,7 @@ function App() {
     openCustomWebsiteDomain,
     openWebsitePublishing,
     miniAppsStatus,
+    businessContentRequest,
     ownerQueueSummary,
     ownerQueueBusy,
     miniAppsView,
