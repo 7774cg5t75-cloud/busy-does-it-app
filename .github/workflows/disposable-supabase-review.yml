@@ -33,7 +33,6 @@ jobs:
       CI: 'true'
       BUSY_DISPOSABLE_APPROVAL: APPROVE_DISPOSABLE_TEST_ONLY
       BUSY_APPROVED_SHA: ${{ inputs.approved_sha }}
-      BUSY_DB_WORKDIR: ${{ runner.temp }}/busy-db-rehearsal
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -46,11 +45,17 @@ jobs:
         with:
           version: 2.54.11
       - name: Prepare and execute local-only rehearsal
+        env:
+          BUSY_DB_WORKDIR: ${{ runner.temp }}/busy-db-rehearsal
         run: python3 scripts/disposable-supabase/rehearse.py
       - name: Report evidence even when a stage fails
+        env:
+          BUSY_DB_WORKDIR: ${{ runner.temp }}/busy-db-rehearsal
         if: always()
         run: python3 scripts/disposable-supabase/report.py
       - name: Destroy disposable containers and data
+        env:
+          BUSY_DB_WORKDIR: ${{ runner.temp }}/busy-db-rehearsal
         if: always()
         run: |
           cleanup_status=0
