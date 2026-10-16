@@ -2,6 +2,14 @@ name: Approval-controlled disposable Supabase rehearsal (DRAFT)
 on:
   workflow_dispatch:
     inputs:
+      mode:
+        description: Diagnose approval gates only, or explicitly request the protected rehearsal
+        required: true
+        type: choice
+        default: diagnose
+        options:
+          - diagnose
+          - rehearse
       approved_sha:
         description: Exact reviewed commit SHA (no branch names)
         required: true
@@ -16,9 +24,44 @@ concurrency:
   group: busy-disposable-database-review
   cancel-in-progress: false
 jobs:
+  diagnose:
+    # No environment, checkout, secrets, database tools, artifacts or API calls.
+    # Job-level env evaluates vars at the same pre-runner scope as rehearse.if.
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.mode == 'diagnose' &&
+      github.repository == '7774cg5t75-cloud/busy-does-it-app' &&
+      github.event.repository.private == false
+    permissions: {}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    env:
+      EVENT_OK: ${{ github.event_name == 'workflow_dispatch' }}
+      REPOSITORY_OK: ${{ github.repository == '7774cg5t75-cloud/busy-does-it-app' }}
+      PUBLIC_OK: ${{ github.event.repository.private == false }}
+      APPROVAL_OK: ${{ inputs.approval == 'APPROVE_DISPOSABLE_TEST_ONLY' }}
+      INPUT_SHA_OK: ${{ inputs.approved_sha == github.sha }}
+      ENABLED_OK: ${{ vars.BUSY_DB_REHEARSAL_ENABLED == 'approved' }}
+      VARIABLE_SHA_OK: ${{ vars.BUSY_DB_REHEARSAL_APPROVED_SHA == github.sha }}
+      ALL_ORIGINAL_GATES_OK: ${{ github.event_name == 'workflow_dispatch' && github.repository == '7774cg5t75-cloud/busy-does-it-app' && github.event.repository.private == false && inputs.approval == 'APPROVE_DISPOSABLE_TEST_ONLY' && inputs.approved_sha == github.sha && vars.BUSY_DB_REHEARSAL_ENABLED == 'approved' && vars.BUSY_DB_REHEARSAL_APPROVED_SHA == github.sha }}
+      DEVELOPMENT_BRANCH_OK: ${{ github.ref == 'refs/heads/codex/disposable-supabase-review' }}
+    steps:
+      - name: Report boolean approval checks only
+        shell: bash
+        run: |
+          for key in EVENT_OK REPOSITORY_OK PUBLIC_OK APPROVAL_OK INPUT_SHA_OK ENABLED_OK VARIABLE_SHA_OK ALL_ORIGINAL_GATES_OK DEVELOPMENT_BRANCH_OK; do
+            case "${!key}" in
+              true) result=true ;;
+              false) result=false ;;
+              *) exit 1 ;;
+            esac
+            printf '%s=%s\n' "$key" "$result"
+          done
   rehearse:
+    # Diagnose mode cannot allocate this runner. All original gates remain required.
     # No push, PR, schedule or workflow_run trigger. Missing approval vars skip.
     if: >-
+      inputs.mode == 'rehearse' &&
       github.event_name == 'workflow_dispatch' &&
       github.repository == '7774cg5t75-cloud/busy-does-it-app' &&
       github.event.repository.private == false &&
