@@ -1,3 +1,4 @@
+import {businessContentSectionHtml} from '../../src/core/businessContentHtml.mjs';
 import {protectWebsiteOwnerLocks} from "../../supabase/functions/busy-website-worker/websiteOwnerLocks.mjs";
 /**
  * One Node-only harness for the React Native website domain.
@@ -25,6 +26,7 @@ import {editWebsiteDraftField}
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const trailer=/export\s*\{[\s\S]*?\};?\s*$/;
 const EXPECTED=Object.freeze([
+ "import {businessContentSectionHtml} from '../core/businessContentHtml.mjs';",
  'import {protectWebsiteOwnerLocks} from "../../supabase/functions/busy-website-worker/websiteOwnerLocks.mjs";',
  'import { syncWebsitePageModel } from "./websiteManagement";',
  'import {canonicalWebsiteHandoffUrl} from "../core/websiteAppHandoffV3214.mjs";',
@@ -52,7 +54,7 @@ const deps=Object.freeze({
  syncWebsitePageModel:management.syncWebsitePageModel,
  canonicalWebsiteHandoffUrl,designForWebsite,designCss,
  planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,
- editWebsiteDraftField,protectWebsiteOwnerLocks
+ editWebsiteDraftField,protectWebsiteOwnerLocks,businessContentSectionHtml
 });
 function websiteBuilderTestHarnessV3222(names=[]){
  assert.ok(Array.isArray(names)&&names.length>0&&names.length<=AVAILABLE.size,

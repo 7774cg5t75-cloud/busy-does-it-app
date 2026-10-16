@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {proposeCoordinatedAppChanges as plan,planAppVoiceInstructions as voice} from '../src/core/appCoordinatedStudio.mjs';
+import {editWebsiteDraftField as edit} from '../src/core/websiteStructuredEditing.mjs';
+const config={modules:[{key:'business_profile',enabled:true}],navigation:['business_profile'],publicProfile:{about:'Keep owner copy'}};
+const value=[{kind:'product',title:'Our products',layout:'cards'},{kind:'event',title:'Events',layout:'rows',featuredId:'event_record_001'}];
+const p=plan(config,[{kind:'content_layout',value}]);assert.equal(p.ok,true,p.reason);assert.deepEqual(plan(p.nextConfig,p.undoOperations).nextConfig,config);
+for(const lock of ['all','business_profile','copy','navigation','products','events'])assert.equal(plan({...config,presentation:{ownerLockedElements:[lock]}},[{kind:'content_layout',value}]).ok,false);
+assert.equal(plan(config,[{kind:'content_layout',value:[...value,value[0]]}]).ok,false);assert.equal(plan(config,[{kind:'content_layout',value:[{kind:'checkout',layout:'cards',title:'Pay'}]}]).ok,false);
+const spoken=voice(config,'show products as cards and show events as rows');assert.equal(spoken.ok,true,spoken.reason);assert.equal(spoken.nextConfig.contentLayout.length,2);assert.equal(voice(config,'show products and charge the customer').ok,false);
+const website={id:'site',generation:1,businessId:'business-a',theme:{},sections:[{id:'hero',type:'hero',title:'Keep',body:'Original'}]};
+const section=edit(website,{action:'content-section',sectionId:'products',title:'Products',layout:'cards'});assert.equal(section.applied,true);assert.deepEqual(section.draft.sections[0],website.sections[0]);assert.equal(edit({...website,theme:{lockedSections:['all']}},{action:'content-section',sectionId:'events',title:'Events',layout:'rows'}).applied,false);
+const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs');const rt=createRuntime({width:820}),domain=rt.load('src/domain/websiteBuilder.js');
+const changed=domain.applyStructuredWebsiteEdit(website,{action:'content-section',sectionId:'events',title:'Upcoming events',layout:'rows'});assert.equal(changed.applied,true,changed.reason);assert.ok(changed.draft.pages.find(p=>p.id==='events'));assert.match(domain.renderWebsiteHtml(changed.draft,'events'),/Upcoming events/);
+const retained=domain.buildWebsiteDraft({brandBrain:{websiteBrief:{businessName:'Fixture'}},previousDraft:changed.draft});assert.equal(retained.sections.find(s=>s.id==='events').contentSource,'business_records_v1');
+assert.equal(domain.applyWebsiteInstruction(website,'add products section as cards').applied,true);
+console.log('PASS actual App/Website composition: bounded blocks, exact Undo, locks, atomic voice planning, preserved copy, generated pages/HTML and regeneration retention. No publication.');

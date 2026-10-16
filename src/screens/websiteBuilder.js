@@ -1,3 +1,4 @@
+import {BusinessContentEditor} from './businessContentEditor';
 import {coordinatedWebsiteAlternatives} from "../core/websiteCoordinatedAlternatives.mjs";
 import {beginWebsiteMeasurementAttempt,currentWebsiteMeasurementAttempt} from "../core/websiteMeasurementAttempt.mjs";
 import {currentWebsiteDesignCandidate,privateWebsiteReviewProgress} from "../core/privateWebsiteReviewProgress.mjs";
@@ -272,6 +273,9 @@ function WebsiteBuilder({ s }) {
       subtitle="Tell BUSY about your business, preview your website and make it your own."
       brandCue="BUSY DOES IT • Website Builder"
     >
+      <BusinessContentEditor key={['records',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')}
+        businessId={s.cloudWorkspace?.businessId} request={s.businessContentRequest}
+        onCompose={(_,choice)=>s.applyWebsiteFieldChange(choice.remove?{action:'remove-content-section',sectionId:choice.kind==='product'?'products':'events'}:{action:'content-section',sectionId:choice.kind==='product'?'products':'events',title:choice.kind==='product'?'Products':'Upcoming events',layout:choice.layout,featuredId:choice.featuredId,previewFeed:choice.previewFeed})}/>
       <Card eyebrow="Your website"
         title={journey.isVerified ? "Your website is live and verified" :
           s.websitePublishingView?.liveDeployment ? "Website published • connection being verified" :

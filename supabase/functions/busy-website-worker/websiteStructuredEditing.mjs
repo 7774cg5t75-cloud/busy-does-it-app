@@ -1,3 +1,4 @@
+import {validPublicBusinessContent} from './businessContentRecords.mjs';
 import {protectWebsiteOwnerLocks} from "./websiteOwnerLocks.mjs";
 /**
  * Owner-directed structured website copy edits (V3.133).
@@ -106,6 +107,21 @@ function editWebsiteDraftFieldUnchecked(draft,change={}){
   return fail("Build a private website draft before editing its content.",draft);
  if(!change||typeof change!=="object"||Array.isArray(change))
   return fail("Choose a website field to edit.",draft);
+ if(['content-section','remove-content-section'].includes(change.action)){
+  if(!['products','events'].includes(change.sectionId)||Object.keys(change).some(k=>!['kind','action','sectionId','title','layout','featuredId','previewFeed'].includes(k)))return fail('Choose a supported shared-content section.',draft);
+  const found=draft.sections.filter(s=>s.id===change.sectionId);
+  if(found.length>1||found.some(s=>s.contentSource!=='business_records_v1'))return fail('Review the existing section before replacing it.',draft);
+  let sections=draft.sections;
+  if(change.action==='remove-content-section'&&!found.length)return fail('That shared-content section is not present.',draft);
+  if(change.action==='remove-content-section')sections=sections.filter(s=>s.id!==change.sectionId);
+  else{
+   if(!publicWord(change.title,80,true)||!['cards','rows'].includes(change.layout)||change.featuredId!==undefined&&change.featuredId!==''&&!/^[a-zA-Z0-9_-]{12,80}$/.test(change.featuredId))return fail('Choose the section heading, layout and optional featured record.',draft);
+   if(change.previewFeed!==undefined&&(!validPublicBusinessContent(change.previewFeed)||change.previewFeed.businessId!==(draft.businessId||draft.business_id)))return fail('The approved record snapshot belongs to another business.',draft);
+   const section={...change.previewFeed?{previewFeed:change.previewFeed}:{},id:change.sectionId,type:change.sectionId,title:change.title,enabled:true,contentSource:'business_records_v1',contentLayout:change.layout,featuredId:change.featuredId||''};
+   sections=found.length?sections.map(s=>s.id===section.id?section:s):[...sections,section];
+  }
+  return {applied:true,draft:{...draft,sections},privateOnly:true,reason:'Updated the private shared-record section. Nothing was published.'};
+ }
  if(["add-item","remove-item","move-item","create-collection"].includes(change.action))
   return editWebsiteDraftCollection(draft,change);
  const {sectionId,itemId,field,value}=change;

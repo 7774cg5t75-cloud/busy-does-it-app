@@ -65,6 +65,7 @@ function snackSourceFiles() {
     "supabase/functions/busy-website-worker/designReview.mjs",
     "supabase/functions/busy-website-worker/designEdits.mjs",
     "supabase/functions/busy-website-worker/websiteStructuredEditing.mjs",
+    "supabase/functions/busy-website-worker/businessContentRecords.mjs",
     "supabase/functions/busy-website-worker/websiteLayoutEditing.mjs",
     "supabase/functions/busy-website-worker/websiteOwnerLocks.mjs",
     "supabase/functions/busy-website-worker/websitePageEditing.mjs",

@@ -1,3 +1,7 @@
+import {validContentLayout} from '../core/businessContentRecords.mjs';
+import {proposeCoordinatedAppChanges as proposeContentComposition} from '../core/appCoordinatedStudio.mjs';
+import {BusinessContentView} from '../components/businessContentView';
+import {BusinessContentEditor} from './businessContentEditor';
 import {AppPublicCollectionEditor} from './appPublicCollectionEditor';
 import {publicCollection} from '../core/appPublicCollections.mjs';
 import {AppContactEditor} from "./appContactEditor";
@@ -247,6 +251,7 @@ function MiniAppSurface({
   onQualityObservation = null,
   onMeasuredWidth = null,
   onSelectService = null,
+  businessContent = null,
 }) {
   const profile = config?.publicProfile || {};
   const modules = orderedAppModules(config);
@@ -370,6 +375,7 @@ function MiniAppSurface({
               footer={profile.differentiators || ""}
               tone="blue"
             />
+            {(validContentLayout(config.contentLayout)?config.contentLayout:[]).map(block=><BusinessContentView key={block.kind} feed={businessContent} colors={brandColours} {...block} onInterest={interactive&&modules.some(m=>m.key==='enquiry')?onSelectService:null}/>)}
             {['faqs','testimonials'].map(field=>publicCollection(field,profile[field]||[]).map((row,i)=><Card key={field+i}
               eyebrow={field==='faqs'?'Customer question':'Customer testimonial'}
               title={field==='faqs'?row.question:row.attribution} body={field==='faqs'?row.answer:row.text}/>))}
@@ -1151,6 +1157,9 @@ function MiniAppBuilder({ s }) {
       subtitle="Describe the customer experience you want. BUSY turns it into a controlled app plan using tested modules and the business facts it already knows."
       brandCue="V3.56 • shared business profile • intelligent module recommendations • owner-controlled publishing."
     >
+      <BusinessContentEditor key={['records',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')}
+        businessId={s.cloudWorkspace?.businessId} request={s.businessContentRequest}
+        onCompose={(_,choice)=>{const old=validContentLayout(view.draftConfig?.contentLayout)?view.draftConfig.contentLayout:[],block={kind:choice.kind,layout:choice.layout,featuredId:choice.featuredId,title:choice.kind==='product'?'Products':'Upcoming events'};const value=choice.remove?old.filter(x=>x.kind!==choice.kind):old.some(x=>x.kind===choice.kind)?old.map(x=>x.kind===choice.kind?block:x):[...old,block];const proposal=proposeContentComposition(view.draftConfig,[{kind:'content_layout',value}]);if(proposal.ok)proposal.businessContentPreview=choice.previewFeed;setStudioPreview(proposal.ok?proposal:null);setStudioNotice(proposal.ok?'Review the real content composition in Studio. Approved records are loaded separately.':proposal.reason);}}/>
       <FirstAppFromWebsite website={s.websiteDraft}
         app={app} businessId={s.cloudWorkspace?.businessId}
         businessType={s.trade} services={s.miniAppProfileDraft?.services||s.services}
@@ -2548,7 +2557,7 @@ function MiniAppBuilder({ s }) {
               ):null}
               <AppStudioComparison key={studioPreview.source.configStamp+":"+JSON.stringify(studioPreview.operations)}
                 original={view.draftConfig} proposed={studioPreview.nextConfig}
-                renderSurface={config=><MiniAppSurface config={config}/>}/>
+                renderSurface={config=><MiniAppSurface config={config} businessContent={s.miniAppsView?.app?.businessContent||null}/>}/>
               <Button primary label={"Approve all "+studioPreview.changes.length+" private change(s)"}
                 disabled={!!s.miniAppsAction||!studio.canApprove}
                 onPress={studio.approve}/>
@@ -2945,7 +2954,7 @@ function MiniAppBuilder({ s }) {
                 {appearancePreviewOpen?(
                   <>
                     <Text style={styles.cardBody}>Unsaved customer-view preview; no public changes have been made.</Text>
-                    <MiniAppSurface config={proposal.nextConfig}/>
+                    <MiniAppSurface config={proposal.nextConfig} businessContent={proposal.businessContentPreview||s.miniAppsView?.app?.businessContent||null}/>
                   </>
                 ):null}
                 <Button label="Keep this appearance in my PRIVATE app"
@@ -2989,7 +2998,7 @@ function MiniAppBuilder({ s }) {
                 <Text style={styles.cardBody}>
                   {"Proposed order: "+proposal.after.map(x=>x.replaceAll("_"," ")).join(" → ")}
                 </Text>
-                <MiniAppSurface config={proposal.nextConfig}/>
+                <MiniAppSurface config={proposal.nextConfig} businessContent={proposal.businessContentPreview||s.miniAppsView?.app?.businessContent||null}/>
                 <Button label="Keep new order in PRIVATE app"
                   primary disabled={!!s.miniAppsAction}
                   onPress={async()=>{
@@ -4588,7 +4597,7 @@ function MiniAppPreview({ s }) {
       ):null}
       {config ? (
         <View ref={appSurfaceRef} collapsable={false}>
-          <MiniAppSurface key={"current-"+appId+"-"+revision+"-"+qualityEnabled}
+          <MiniAppSurface key={"current-"+appId+"-"+revision+"-"+qualityEnabled} businessContent={s.miniAppsView?.app?.businessContent||null}
             config={config}
             onQualityObservation={qualityEnabled?collectCurrent:null}
             onMeasuredWidth={qualityEnabled?setCurrentMeasuredWidth:null}/>
@@ -4716,12 +4725,14 @@ function BusyAppDetailForm({ s }) {
           tone="green"
         />
       ) : null}
+      {config?.contentLayout?.length?<Button label="Refresh products and events" disabled={!!s.miniAppsAction} onPress={()=>s.openBusyAppDetail(detail.app.slug)}/>:null}
       {config ? (
         <MiniAppSurface
           config={config}
           interactive
           s={s}
           loyaltyProgress={detail?.loyaltyProgress || null}
+          businessContent={detail.businessContent}
           onSelectService={enabled.has('enquiry')||enabled.has('booking_request')?setService:null}
         />
       ) : null}

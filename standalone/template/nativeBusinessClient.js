@@ -1,3 +1,4 @@
+import {validContentLayout,validPublicBusinessContent} from './businessContentRecords.mjs';
 import {validServiceDetails} from './publicServiceDetails.mjs';
 import {validPublicCollection} from './appPublicCollections.mjs';
 /**
@@ -69,6 +70,8 @@ function validPublicRead(payload,runtime){
   (payload.faqs!==undefined&&!validPublicCollection('faqs',payload.faqs))||
   (payload.testimonials!==undefined&&!validPublicCollection('testimonials',payload.testimonials))||
   (!Array.isArray(payload.services)||payload.services.length>40||payload.services.some(s=>!validServiceDetails(s)))||
+  (payload.contentLayout!==undefined&&!validContentLayout(payload.contentLayout))||
+  (payload.businessContent!==undefined&&payload.businessContent!==null&&!validPublicBusinessContent(payload.businessContent))||
   !validNativeExtras(payload)||!validPublicGallery(payload))
   return false;
  return true;

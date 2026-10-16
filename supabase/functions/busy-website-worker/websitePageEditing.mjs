@@ -14,7 +14,7 @@ function editWebsitePagesUnchecked(draft={},action={}){
  if(!action||typeof action!=="object"||Array.isArray(action))return fail(draft,"Choose a page action.");
  if(['edit-page-metadata','reset-page-metadata'].includes(action.action)){
   if(action.expectedWebsiteId!==draft.id||action.expectedGeneration!==draft.generation)return fail(draft,'The website changed. Select the page again before editing its search details.');
-  if(typeof action.pageId!=='string'||!/^(?:home|services|about|gallery|faq|contact|page-[a-z0-9][a-z0-9-]{1,68})$/.test(action.pageId))return fail(draft,'Choose a supported page identifier.');
+  if(typeof action.pageId!=='string'||!/^(?:home|services|about|gallery|faq|contact|products|events|page-[a-z0-9][a-z0-9-]{1,68})$/.test(action.pageId))return fail(draft,'Choose a supported page identifier.');
   const target=list(draft.pages).find(p=>p.id===action.pageId&&p.enabled!==false);
   if(!target)return fail(draft,'Choose a current website page.');
   const locks=websiteOwnerLocks(draft);

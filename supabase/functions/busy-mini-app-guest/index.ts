@@ -1,3 +1,6 @@
+import {publicWebsiteBusinessContent} from '../_shared/publicBusinessContent.mjs';
+import {validContentLayout} from '../_shared/businessContentRecords.mjs';
+import {readBusinessContent} from '../_shared/businessContentStore.mjs';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { publicNativeMiniAppProjection,validSlug } from "./publicNativeProjection.mjs";
@@ -551,6 +554,13 @@ Deno.serve(async (req: Request) => {
     const body = await req.json().catch(() => ({}));
     const action = clean(body?.action, 40);
 
+    if(action==='public_content'){
+      if(body.expectedDeploymentId)return json(200,await publicWebsiteBusinessContent(supabase,body));
+      const {app,version}=await liveApp(clean(body.slug,100));
+      const proof=publicNativeMiniAppProjection(app,version,{expectedAppId:body.expectedAppId,expectedVersionId:body.expectedVersionId});
+      if(!proof.ok)throw Error('This public app version is not current.');
+      return json(200,await readBusinessContent(supabase,app.business_id,{publicOnly:true}));
+    }
     if (action === "public_app") {
       const slug=clean(body?.slug,100);
       const expectedAppId=clean(body?.expectedAppId,80);
@@ -562,7 +572,8 @@ Deno.serve(async (req: Request) => {
       const projection=publicNativeMiniAppProjection(app,version,{
         expectedAppId,expectedVersionId});
       if(!projection.ok)return json(404,{error:"That exact public app version is not available."});
-      return json(200,projection);
+      const businessContent=version.config?.contentLayout?.length?await readBusinessContent(supabase,app.business_id,{publicOnly:true}):null;
+      return json(200,{...projection,businessContent,contentLayout:validContentLayout(version.config.contentLayout)?version.config.contentLayout:[]});
     }
     if (action === "challenge") {
       return json(200, {
