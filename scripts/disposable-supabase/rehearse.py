@@ -12,6 +12,35 @@ def inventory(root):
         raise RuntimeError('Migration history is empty, ambiguous or malformed')
     return files,{p.name:digest(p) for p in files}
 
+def command_label(args):
+    # Never publish argv: SQL, paths, tokens and row data may occur in arguments.
+    if args == ['supabase','--version']: return 'supabase-version'
+    for command in (['migration','new'],['migration','up'],['start'],['stop'],['status']):
+        if args == ['supabase',*command,'--help']:
+            return 'supabase-'+'-'.join(command)+'-help'
+    if args == ['supabase','--network-id',NETWORK,'start']: return 'supabase-local-start'
+    if args == ['supabase','migration','up','--local']: return 'supabase-local-migration-up'
+    if args == ['supabase','migration','new','shared_business_content_records']: return 'supabase-migration-new'
+    if args == ['supabase','status','--output','json']: return 'supabase-local-status'
+    return 'other-local-command'
+
+def failure_details(args,stage,exit_code=None,stdout='',stderr='',kind='exit'):
+    # Only fixed indicators leave private scratch, never arbitrary output.
+    # An indicator is evidence, not a root-cause verdict.
+    output='\n'.join(x.decode(errors='replace') if isinstance(x,bytes) else (x or '') for x in (stdout,stderr)).lower()
+    signatures={
+        'unknown-flag': r'unknown flag:',
+        'config-parse-error': r'failed to parse config|error parsing config',
+        'image-pull-error': r'failed to pull|pull access denied|manifest unknown',
+        'container-unhealthy': r'container[^\n]*unhealthy|unhealthy[^\n]*container',
+        'connection-refused': r'connection refused',
+        'network-unreachable': r'network is unreachable',
+        'deadline-exceeded': r'context deadline exceeded',
+        'docker-unavailable': r'cannot connect to the docker daemon',
+    }
+    return {'command':command_label(args),'stage':stage,'failureKind':kind,
+            'exitCode':exit_code,'indicators':[key for key,pattern in signatures.items() if re.search(pattern,output)]}
+
 def main():
     # Refuse arbitrary workstations, private/billable runners and remote credentials.
     if not (os.environ.get('GITHUB_ACTIONS')=='true' and os.environ.get('RUNNER_ENVIRONMENT')=='github-hosted'
@@ -31,12 +60,24 @@ def main():
     stage='initialise'
     def save(): (work/'report.json').write_text(json.dumps(report,indent=2)+'\n')
     def run(args,stdin=None,timeout=240):
-        result=subprocess.run(args,input=stdin,text=True,cwd=work,capture_output=True,timeout=timeout)
+        def record_failure(exit_code=None,stdout='',stderr='',kind='exit'):
+            private=work/'failure-private.log'
+            raw='\n'.join(x.decode(errors='replace') if isinstance(x,bytes) else (x or '') for x in (stdout,stderr))
+            fd=os.open(private,os.O_WRONLY|os.O_CREAT|os.O_TRUNC,0o600)
+            with os.fdopen(fd,'w') as handle: handle.write(raw)
+            report['failedCommand']=failure_details(args,stage,exit_code,stdout,stderr,kind)
+            save()
+        try:
+            result=subprocess.run(args,input=stdin,text=True,cwd=work,capture_output=True,timeout=timeout)
+        except subprocess.TimeoutExpired as exc:
+            record_failure(stdout=exc.stdout,stderr=exc.stderr,kind='timeout')
+            raise RuntimeError('Local command timed out; see sanitised report') from None
+        except OSError:
+            record_failure(kind='launch-error')
+            raise RuntimeError('Local command could not start; see sanitised report') from None
         if result.returncode:
-            # Raw local tooling output is private scratch, not a public artifact.
-            (work/'failure-private.log').write_text(result.stdout+result.stderr)
-            report['failedCommand']={'program':pathlib.Path(args[0]).name,'exitCode':result.returncode,'stage':stage}
-            raise RuntimeError('Command failed; inspect private runner diagnostics if authorised')
+            record_failure(result.returncode,result.stdout,result.stderr)
+            raise RuntimeError('Local command failed; see sanitised report')
         return result.stdout
     def sql(text): return run(['docker','exec','-i',DB,'psql','-X','-qAt','-U','postgres','-d','postgres','-v','ON_ERROR_STOP=1'],text)
     def passed(label): report['stages'].append({'stage':label,'result':'passed'});save()
@@ -48,16 +89,20 @@ def main():
         assert run(['git','-C',str(ROOT),'rev-parse','HEAD']).strip()==os.environ['GITHUB_SHA']
         files,history=inventory(ROOT);report['migrationHistory']=history
         report['candidateSourceHash']=digest(ROOT/'supabase/schema/business_content_records.sql')
+        stage='cli-discovery'
         report['cliVersion']=run(['supabase','--version']).strip()
         if report['cliVersion']!='2.54.11': raise RuntimeError('Reviewed CLI version required')
         # Discover all command/flag surfaces before invoking them. No guessed remote defaults.
         for command in (['migration','new'],['migration','up'],['start'],['stop'],['status']):run(['supabase',*command,'--help'])
+        stage='isolated-network-creation'
         shutil.copyfile(ROOT/'staging/disposable-supabase/config.toml',work/'supabase/config.toml')
         run(['docker','network','create','--internal',NETWORK])
         network=json.loads(run(['docker','network','inspect',NETWORK]))[0]
         assert network['Internal'] is True
         # Empty migration directory: historical cron never starts before egress isolation.
+        stage='isolated-stack-start'
         run(['supabase','--network-id',NETWORK,'start'],timeout=900)
+        stage='isolated-stack-verification'
         containers=json.loads(run(['docker','network','inspect',NETWORK]))[0]['Containers']
         if not containers: raise RuntimeError('Isolated containers missing')
         report['images']=[]
@@ -67,6 +112,7 @@ def main():
             image=json.loads(run(['docker','image','inspect',meta['Image']]))[0]
             report['images'].append({'name':meta['Name'],'id':meta['Image'],'digests':image.get('RepoDigests',[])})
         # Supabase Postgres supplies real Auth/Storage schemas, not mocked roles.
+        stage='scheduler-containment'
         sql("create extension if not exists pg_cron;\n")
         sql("alter system set cron.launch_active_jobs='off';\n")
         sql('select pg_reload_conf();');time.sleep(1)

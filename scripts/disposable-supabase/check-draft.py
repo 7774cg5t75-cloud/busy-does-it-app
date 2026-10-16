@@ -3,6 +3,51 @@ import ast,hashlib,importlib.util,json,pathlib,re,tempfile,unittest
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('rehearse',ROOT/'scripts/disposable-supabase/rehearse.py');module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 class DraftTests(unittest.TestCase):
+ def test_failure_diagnostics_are_allowlisted(self):
+  secret='PRIVATE_TOKEN_AND_ROW_DATA'
+  args=['supabase','status','--output','json']
+  detail=module.failure_details(args,'ordered-candidate-migration-application',1,
+      '{"SERVICE_ROLE_KEY":"'+secret+'"}','connection refused '+secret)
+  self.assertEqual(detail['command'],'supabase-local-status')
+  self.assertEqual(detail['indicators'],['connection-refused'])
+  self.assertNotIn(secret,json.dumps(detail));self.assertNotIn('SERVICE_ROLE_KEY',json.dumps(detail))
+  self.assertEqual(module.command_label(['supabase','--token',secret]),'other-local-command')
+  for command in (['migration','new'],['migration','up'],['start'],['stop'],['status']):
+   self.assertEqual(module.command_label(['supabase',*command,'--help']),'supabase-'+'-'.join(command)+'-help')
+ def test_start_failure_reporting_without_executing_tools(self):
+  import os,subprocess,contextlib,io,runpy
+  from unittest.mock import patch
+  for kind in ('exit','timeout','launch-error'):
+   with self.subTest(kind=kind),tempfile.TemporaryDirectory() as directory:
+    work=pathlib.Path(directory)/'fresh';sha='a'*40;secret='PRIVATE_DIAGNOSTIC_CANARY'
+    env={'GITHUB_ACTIONS':'true','RUNNER_ENVIRONMENT':'github-hosted',
+      'GITHUB_REPOSITORY':'7774cg5t75-cloud/busy-does-it-app',
+      'BUSY_DISPOSABLE_APPROVAL':'APPROVE_DISPOSABLE_TEST_ONLY',
+      'BUSY_APPROVED_SHA':sha,'GITHUB_SHA':sha,'RUNNER_TEMP':directory,'BUSY_DB_WORKDIR':str(work)}
+    calls=[]
+    def fake(args,**kwargs):
+     calls.append(args)
+     if args==['supabase','--network-id',module.NETWORK,'start']:
+      if kind=='timeout':raise subprocess.TimeoutExpired(args,900,output=secret.encode(),stderr=b'context deadline exceeded')
+      if kind=='launch-error':raise FileNotFoundError(secret)
+      return subprocess.CompletedProcess(args,1,secret,'connection refused '+secret)
+     output=''
+     if args[0]=='git':output=sha
+     elif args==['supabase','--version']:output='2.54.11'
+     elif args==['docker','network','inspect',module.NETWORK]:output='[{"Internal":true}]'
+     return subprocess.CompletedProcess(args,0,output,'')
+    with patch.dict(os.environ,env,clear=True),patch.object(module.subprocess,'run',side_effect=fake):
+     with self.assertRaisesRegex(SystemExit,'isolated-stack-start'):module.main()
+     report=json.loads((work/'report.json').read_text())
+     self.assertEqual(report['failedCommand']['command'],'supabase-local-start')
+     self.assertEqual(report['failedCommand']['failureKind'],kind)
+     self.assertNotIn(secret,json.dumps(report))
+     self.assertEqual(calls[-1],['supabase','--network-id',module.NETWORK,'start'])
+     self.assertEqual((work/'failure-private.log').stat().st_mode & 0o777,0o600)
+     captured=io.StringIO()
+     with contextlib.redirect_stdout(captured):runpy.run_path(str(ROOT/'scripts/disposable-supabase/report.py'))
+     self.assertNotIn(secret,captured.getvalue())
+     self.assertEqual(json.loads(captured.getvalue())['failedCommand'],report['failedCommand'])
  def test_history_is_unique_and_ordered(self):
   files,hashes=module.inventory(ROOT)
   self.assertEqual(files[-1].name,'20261014225500_v3_232_scoped_booking_close_revision.sql')
