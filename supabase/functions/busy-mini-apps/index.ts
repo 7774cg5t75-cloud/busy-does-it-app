@@ -1,3 +1,5 @@
+import {publicServiceDetails} from './publicServiceDetails.mjs';
+import {publicCollection} from './appPublicCollections.mjs';
 import {appConfigLockReason,retainAppDraftDesign,proposeAppModuleToggle} from "./appDraftComposition.mjs";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -693,12 +695,15 @@ function sanitizePublicProfile(input: any) {
             }
           : {},
     },
+    faqs: publicCollection('faqs',profile.faqs||[]),
+    testimonials: publicCollection('testimonials',profile.testimonials||[]),
     services: safeArray(profile.services)
       .slice(0, 50)
       .map((item: any) => ({
         id: clean(item?.id, 120) || slugify(item?.name),
         name: clean(item?.name || item?.title, 240),
         description: clean(item?.description || item?.body, 1200),
+        ...publicServiceDetails(item),
       }))
       .filter((item: any) => item.name),
     assets: {
@@ -2371,7 +2376,7 @@ function publicMiniAppWebHtml(app: any, version: any) {
   const servicesHtml = enabled.has("services")
     ? services.length
       ? `<section id="services"><div class="wrap"><p class="eyebrow">Services</p><h2>What we do</h2><div class="grid">${services
-          .map((service: any) => `<article><h3>${escapeHtml(service?.name || "Service")}</h3>${clean(service?.description, 1500) ? `<p>${escapeHtml(service.description)}</p>` : ""}</article>`)
+          .map((service: any) => `<article><h3>${escapeHtml(service?.name || "Service")}</h3>${clean(service?.description, 1500) ? `<p>${escapeHtml(service.description)}</p>` : ""}${Object.entries(publicServiceDetails(service)).map(([key,value])=>`<p>${escapeHtml(key==='priceLabel'?'Price information':key==='durationLabel'?'Typical duration':'Category')}: ${escapeHtml(value)}</p>`).join('')}</article>`)
           .join("")}</div></div></section>`
       : `<section id="services"><div class="wrap"><p class="eyebrow">Services</p><h2>Services</h2><p>No public services are listed yet.</p></div></section>`
     : "";
@@ -2508,6 +2513,7 @@ function publicMiniAppWebHtml(app: any, version: any) {
       : "";
 
   const heroHtml = hero ? `<img class="hero-image" src="${escapeHtml(hero)}" alt="${escapeHtml(name)}" />` : "";
+  const publicInformationHtml = enabled.has('business_profile') ? [['faqs','Questions and answers','question','answer'],['testimonials','What customers say','attribution','text']].map(([field,title,heading,body])=>{const rows=publicCollection(field,profile[field]||[]);return rows.length?`<section><div class="wrap"><h2>${escapeHtml(title)}</h2>${rows.map(row=>`<article><h3>${escapeHtml(row[heading])}</h3><p>${escapeHtml(row[body])}</p></article>`).join('')}</div></section>`:'';}).join('') : '';
   const aboutHtml = enabled.has("business_profile")
     ? `<section id="about"><div class="wrap"><p class="eyebrow">About</p><h2>${escapeHtml(name)}</h2>${about ? `<p>${escapeHtml(about)}</p>` : ""}${serviceArea ? `<p class="muted">Service area: ${escapeHtml(serviceArea)}</p>` : ""}</div></section>`
     : "";
@@ -2537,6 +2543,7 @@ function publicMiniAppWebHtml(app: any, version: any) {
 <body>
   <header class="hero"><div class="wrap"><div class="brand">BUSY DOES IT</div>${category ? `<p class="eyebrow" style="margin-top:22px">${escapeHtml(category)}</p>` : ""}<h1>${escapeHtml(name)}</h1>${tagline ? `<p class="lead">${escapeHtml(tagline)}</p>` : description ? `<p class="lead">${escapeHtml(description)}</p>` : ""}${serviceArea ? `<p class="muted">${escapeHtml(serviceArea)}</p>` : ""}${heroHtml}<div class="hero-actions"><a class="button" href="${escapeHtml(actionUrl("open"))}">Open in BUSY DOES IT</a></div><span class="browse-note">No app or sign-in needed to browse</span></div></header>
   ${aboutHtml}
+  ${publicInformationHtml}
   ${servicesHtml}
   ${galleryHtml}
   ${offersHtml}

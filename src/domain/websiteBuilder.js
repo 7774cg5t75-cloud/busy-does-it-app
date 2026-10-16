@@ -179,7 +179,7 @@ function buildWebsiteDraft({ brandBrain = {}, previousDraft = null, businessCrea
   // or delete a newly added one. Unedited collections still update from the brief.
   const ownedCollections=safeArray(previousDraft?.sections).filter(section=>
     section?.ownerEditedItems===true&&
-    ["services","faq"].includes(section.type)&&section.id===section.type&&
+    ["services","faq","testimonials"].includes(section.type)&&section.id===section.type&&
     Array.isArray(section.items)&&section.items.length<=30);
   const generated=buildSections(brief);
   const keepOwnerItems=section=>{

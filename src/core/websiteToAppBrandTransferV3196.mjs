@@ -1,3 +1,4 @@
+import {publicCollection} from './appPublicCollections.mjs';
 import {websiteDraftHasScope} from './websiteDraftScope.mjs';
 import {fillMissingBuilderDescriptions} from "./builderServiceDescriptions.mjs";
 /**
@@ -43,14 +44,14 @@ function websiteOwnerServices(website){
  return chosen;
 }
 function planWebsiteToAppDesign({website,app,businessId,mode="adapt",
- includeServices=false,fillDescriptions=false,includeDesign=true,includeContacts=false}={}){
- if(!MODES.includes(mode)||typeof includeServices!=="boolean"||typeof fillDescriptions!=="boolean"||typeof includeDesign!=="boolean"||typeof includeContacts!=="boolean")
+ includeServices=false,fillDescriptions=false,includeDesign=true,includeContacts=false,includePublicInformation=false}={}){
+ if(!MODES.includes(mode)||typeof includeServices!=="boolean"||typeof fillDescriptions!=="boolean"||typeof includeDesign!=="boolean"||typeof includeContacts!=="boolean"||typeof includePublicInformation!=="boolean")
   return {ok:false,reason:"Choose a supported transfer approach."};
  if(!validPrivateBuilderPair(website,app,businessId)||
    (website.business_id&&website.business_id!==businessId)||
    (website.businessId&&website.businessId!==businessId))
   return {ok:false,reason:"Open a current website and Business App draft for the same business."};
- if((!includeDesign||includeContacts)&&((!includeServices&&!includeContacts)||mode==="new"||!websiteDraftHasScope(website,businessId)))return {ok:false,reason:"Choose current same-business website services before preparing a content-only transfer."};
+ if((!includeDesign||includeContacts||includePublicInformation)&&((!includeServices&&!includeContacts&&!includePublicInformation)||mode==="new"||!websiteDraftHasScope(website,businessId)))return {ok:false,reason:"Choose current same-business website services before preparing a content-only transfer."};
  const config=app.draft_config;
  if(mode==="new")return {ok:true,kind:"private_website_to_app_design_v3196",
   mode,businessId,sourceWebsiteId:website.id,sourceWebsiteGeneration:website.generation,
@@ -114,7 +115,7 @@ function planWebsiteToAppDesign({website,app,businessId,mode="adapt",
    // No destructive replacement: preserve the original list, and fail
    // closed if it contains unsupported values or our bounds would overflow.
    if(existing.some(x=>!x||!valueOf(x.name,120)||!SAFE_TEXT(x.description??"")||
-      Object.keys(x).some(k=>!["id","name","description"].includes(k)))||
+      Object.keys(x).some(k=>!["id","name","description","category","priceLabel","durationLabel"].includes(k)))||
       existing.length+additions.length>30){
     skipped.push("Existing app service details require manual review; left untouched.");
    }else {
@@ -127,6 +128,20 @@ function planWebsiteToAppDesign({website,app,businessId,mode="adapt",
     explanations.push("Copy "+additions.length+" missing website service(s), preserving existing app services. Filled "+repair.filled.length+" previously empty description(s).");
     }
    }
+  }
+ }
+ if(includePublicInformation){
+  for(const [field,type,a,b] of [['faqs','faq','question','answer'],['testimonials','testimonials','attribution','text']]){
+   const previous=config.publicProfile?.[field];
+   if(previous!==undefined&&previous!==null&&(!Array.isArray(previous)||previous.length)){skipped.push('Kept existing app '+field+'.');continue;}
+   const sections=website.sections.filter(s=>s?.id===type&&s.type===type&&s.enabled!==false);
+   if(sections.length!==1||!Array.isArray(sections[0].items))continue;
+   const value=publicCollection(field,sections[0].items.map(row=>({...(row.id?{id:row.id}:{}),[a]:row.title,[b]:row.body})));
+   if(!value.length){skipped.push('Website '+field+' need review before reuse.');continue;}
+   const operation={kind:'public_collection',field,value};
+   const checked=proposeCoordinatedAppChanges(config,[operation]);
+   if(!checked.ok){skipped.push(checked.reason);continue;}
+   operations.push(operation);explanations.push('Fill missing '+field+' from this business website; existing app entries are preserved.');
   }
  }
  if(includeContacts){
@@ -150,7 +165,7 @@ function planWebsiteToAppDesign({website,app,businessId,mode="adapt",
   mode,businessId,sourceWebsiteId:website.id,
   sourceWebsiteGeneration:website.generation,
   targetAppId:app.id,targetAppRevision:app.draft_revision,
-  operations:reviewed,includeServices,fillDescriptions,includeDesign,includeContacts,changes:[...preview.changes],
+  operations:reviewed,includeServices,fillDescriptions,includeDesign,includeContacts,includePublicInformation,changes:[...preview.changes],
   previewConfig:preview.nextConfig,explanations,skipped,
   industryPriority:mode==="adapt"?
     recommendedAppFirstSection(website.businessType,config):null,
@@ -166,7 +181,7 @@ function confirmWebsiteToAppDesign({website,app,businessId,evidence}={}){
   return {ok:false,reason:"The website, app or business changed. Review the latest design first."};
  const current=planWebsiteToAppDesign({website,app,businessId,
   mode:evidence?.mode,
-  includeServices:evidence?.includeServices===true,fillDescriptions:evidence?.fillDescriptions===true,includeDesign:evidence?.includeDesign!==false,includeContacts:evidence?.includeContacts===true});
+  includeServices:evidence?.includeServices===true,fillDescriptions:evidence?.fillDescriptions===true,includeDesign:evidence?.includeDesign!==false,includeContacts:evidence?.includeContacts===true,includePublicInformation:evidence?.includePublicInformation===true});
  if(!current.ok||current.exactPreview!==evidence.exactPreview||
    JSON.stringify(current.operations)!==JSON.stringify(evidence.operations))
   return {ok:false,reason:"The proposed app changes no longer match the reviewed design."};

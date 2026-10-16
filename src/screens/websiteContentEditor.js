@@ -22,6 +22,7 @@ function WebsiteContentEditor({draft,onApply}){
  const [newEntryBody,setNewEntryBody]=React.useState("");
  const [confirmRemoval,setConfirmRemoval]=React.useState(null);
  const [createKind,setCreateKind]=React.useState("");
+ const [testimonialPermission,setTestimonialPermission]=React.useState(false);
  const section=(draft?.sections||[]).find(s=>s.id===sectionId)||null;
  const change=(field,itemId=null)=>{
   const target=itemId?selectedItem(section,itemId):section;
@@ -57,41 +58,42 @@ function WebsiteContentEditor({draft,onApply}){
          setNewEntryBody("");
         }}/>
      ))}
-     {["services","faq"].filter(kind=>!(draft?.sections||[])
+     {["services","faq","testimonials"].filter(kind=>!(draft?.sections||[])
        .some(item=>item.id===kind)).map(kind=>(
        <Button key={"new-section-"+kind} label={
-        "Create "+(kind==="faq"?"FAQs":"Services")+" section"}
+        "Create "+(kind==="faq"?"FAQs":kind==="testimonials"?"Testimonials":"Services")+" section"}
         onPress={()=>{
          setCreateKind(kind);setSectionId("");setSelection(null);
-         setNewEntryTitle("");setNewEntryBody("");
+         setNewEntryTitle("");setNewEntryBody("");setTestimonialPermission(false);
         }}/>
      ))}
      {createKind?(
       <View>
        <Text style={styles.sectionLabel}>
-        {"First "+(createKind==="faq"?"FAQ":"service")+" for your new section"}
+        {"First "+(createKind==="faq"?"FAQ":createKind==="testimonials"?"testimonial":"service")+" for your new section"}
        </Text>
-       <Field label={createKind==="faq"?"Question":"Service name"}
-        value={newEntryTitle} onChangeText={setNewEntryTitle}
+       <Field label={createKind==="faq"?"Question":createKind==="testimonials"?"Attribution":"Service name"}
+        value={newEntryTitle} onChangeText={v=>{setNewEntryTitle(v);setTestimonialPermission(false);}}
         placeholder="Use your exact wording"/>
        <View style={styles.fieldWrap}>
         <Text style={styles.fieldLabel}>
-         {createKind==="faq"?"Answer":"Service description"}
+         {createKind==="faq"?"Answer":createKind==="testimonials"?"Genuine testimonial wording":"Service description"}
         </Text>
         <View style={styles.fieldBox}>
-         <TextInput value={newEntryBody} onChangeText={setNewEntryBody}
+         <TextInput value={newEntryBody} onChangeText={v=>{setNewEntryBody(v);setTestimonialPermission(false);}}
           multiline numberOfLines={3} textAlignVertical="top"
           placeholder="What should visitors know?"
           placeholderTextColor="#9AA3B2"
           style={[styles.fieldInput,{minHeight:95,textAlignVertical:"top"}]}/>
         </View>
        </View>
-       <Button label="Create section in private draft" onPress={()=>{
+       {createKind==='testimonials'?<Button label={(testimonialPermission?'✓ ':'')+'I have permission to display this genuine testimonial'} onPress={()=>setTestimonialPermission(x=>!x)}/>:null}
+       <Button label="Create section in private draft" disabled={createKind==='testimonials'&&!testimonialPermission} onPress={()=>{
         const kind=createKind;
         if(onApply?.({action:"create-collection",sectionId:kind,
          title:newEntryTitle,body:newEntryBody})===true){
          setSectionId(kind);setCreateKind("");
-         setNewEntryTitle("");setNewEntryBody("");
+         setNewEntryTitle("");setNewEntryBody("");setTestimonialPermission(false);
         }
        }}/>
        <Button label="Cancel new section" onPress={()=>setCreateKind("")}/>
@@ -112,7 +114,7 @@ function WebsiteContentEditor({draft,onApply}){
             onPress={()=>change("title",item.id)}/>
           <Button label="Edit description / answer / testimonial"
             onPress={()=>change("body",item.id)}/>
-          {["services","faq"].includes(section.type)?(
+          {["services","faq","testimonials"].includes(section.type)?(
            <View>
             {index>0?<Button label={"Move "+item.title+" up"}
              onPress={()=>{
@@ -133,31 +135,32 @@ function WebsiteContentEditor({draft,onApply}){
         )):null}
       </View>
      ):null}
-     {section&&["services","faq"].includes(section.type)?(
+     {section&&["services","faq","testimonials"].includes(section.type)?(
       <View>
        <Text style={styles.sectionLabel}>
-         {section.type==="services"?"Add a service":"Add a FAQ"}
+         {section.type==="services"?"Add a service":section.type==="testimonials"?"Add a genuine testimonial":"Add a FAQ"}
        </Text>
-       <Field label={section.type==="services"?"Service name":"Question"}
-         value={newEntryTitle} onChangeText={setNewEntryTitle}
+       <Field label={section.type==="services"?"Service name":section.type==="testimonials"?"Attribution":"Question"}
+         value={newEntryTitle} onChangeText={v=>{setNewEntryTitle(v);setTestimonialPermission(false);}}
          placeholder={section.type==="services"?"Name your service":"Enter your question"}/>
        <View style={styles.fieldWrap}>
         <Text style={styles.fieldLabel}>
-         {section.type==="services"?"Service description":"Answer"}
+         {section.type==="services"?"Service description":section.type==="testimonials"?"Genuine testimonial wording":"Answer"}
         </Text>
         <View style={styles.fieldBox}>
-         <TextInput value={newEntryBody} onChangeText={setNewEntryBody}
+         <TextInput value={newEntryBody} onChangeText={v=>{setNewEntryBody(v);setTestimonialPermission(false);}}
           multiline numberOfLines={3} textAlignVertical="top"
           placeholder="Your exact wording"
           placeholderTextColor="#9AA3B2"
           style={[styles.fieldInput,{minHeight:95,textAlignVertical:"top"}]}/>
         </View>
        </View>
-       <Button label={section.type==="services"?"Add service to private draft":"Add FAQ to private draft"}
+       {section.type==='testimonials'?<Button label={(testimonialPermission?'✓ ':'')+'I have permission to display this genuine testimonial'} onPress={()=>setTestimonialPermission(x=>!x)}/>:null}
+       <Button disabled={section.type==='testimonials'&&!testimonialPermission} label={section.type==="services"?"Add service to private draft":section.type==='testimonials'?'Add testimonial to private draft':"Add FAQ to private draft"}
         onPress={()=>{
          if(onApply?.({action:"add-item",sectionId:section.id,
           title:newEntryTitle,body:newEntryBody})===true){
-          setNewEntryTitle("");setNewEntryBody("");setConfirmRemoval(null);
+          setNewEntryTitle("");setNewEntryBody("");setTestimonialPermission(false);setConfirmRemoval(null);
          }
         }}/>
        {(section.items||[]).map((item,i)=>(

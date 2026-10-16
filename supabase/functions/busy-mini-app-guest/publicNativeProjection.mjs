@@ -1,4 +1,6 @@
 import {publicNativeOffers,publicNativeLoyalty} from "./publicNativeExtrasV3190.mjs";
+import {publicServiceDetails} from './publicServiceDetails.mjs';
+import {publicCollection} from './appPublicCollections.mjs';
 /**
  * V3.155 public native Business App projection.
  *
@@ -33,7 +35,7 @@ function publicNativeMiniAppProjection(app,version,{expectedAppId,expectedVersio
  const has=key=>moduleKeys.includes(key);
  const services=has("services")&&Array.isArray(profile.services)?
   profile.services.slice(0,40).map(s=>({
-    name:str(s?.name,120),description:str(s?.description,600)
+    name:str(s?.name,120),description:str(s?.description,600),...publicServiceDetails(s)
   })).filter(s=>s.name):[];
  const gallery=has("gallery")&&Array.isArray(profile.assets?.gallery)?
   profile.assets.gallery.filter(x=>x?.approved===true||x?.marketingOk===true)
@@ -51,6 +53,7 @@ function publicNativeMiniAppProjection(app,version,{expectedAppId,expectedVersio
   title:str(config.display?.name||profile.businessName||app.display_name,120),
   tagline:str(config.display?.tagline||profile.tagline,260),
   about:str(profile.about||profile.description,1200),
+  faqs:publicCollection('faqs',profile.faqs||[]),testimonials:publicCollection('testimonials',profile.testimonials||[]),
   services,gallery,contact,offers,loyalty,moduleKeys,
   heroUrl:safeUrl(profile.assets?.hero?.uri),
   supportsEnquiry:has("enquiry"),supportsBookingRequest:has("booking_request"),

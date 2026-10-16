@@ -1,3 +1,5 @@
+import {validServiceDetails} from './publicServiceDetails.mjs';
+import {validPublicCollection} from './appPublicCollections.mjs';
 /**
  * V3.155 native public Business App client: only a matched, LIVE owner-approved
  * version can be displayed or receive a guest request. Never store any
@@ -64,6 +66,9 @@ function validPublicRead(payload,runtime){
   payload.slug!==runtime.slug||
   !Array.isArray(payload.moduleKeys)||!payload.moduleKeys.includes("business_profile")||
   payload.chargesEnabled!==false||payload.doesNotConfirmAppointments!==true||
+  (payload.faqs!==undefined&&!validPublicCollection('faqs',payload.faqs))||
+  (payload.testimonials!==undefined&&!validPublicCollection('testimonials',payload.testimonials))||
+  (!Array.isArray(payload.services)||payload.services.length>40||payload.services.some(s=>!validServiceDetails(s)))||
   !validNativeExtras(payload)||!validPublicGallery(payload))
   return false;
  return true;

@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {proposeCoordinatedAppChanges as plan} from '../src/core/appCoordinatedStudio.mjs';
+import {publicNativeMiniAppProjection as project} from '../supabase/functions/busy-mini-app-guest/publicNativeProjection.mjs';
+import {searchPublicNativeServices} from '../standalone/template/nativeCustomerActions.mjs';
+const base={modules:[{key:'business_profile',enabled:true},{key:'services',enabled:true}],navigation:['business_profile','services'],publicProfile:{services:[{id:'one',name:'Consultation',description:'Owner words'}]}};
+const service={id:'one',name:'Consultation',description:'Owner words',category:'Treatments',priceLabel:'From €40 — quote agreed separately',durationLabel:'Usually 45 minutes'};
+const p=plan(base,[{kind:'services',value:[service]}]);assert.equal(p.ok,true,p.reason);assert.deepEqual(p.nextConfig.publicProfile.services,[service]);assert.deepEqual(plan(p.nextConfig,p.undoOperations).nextConfig,base);
+assert.equal(plan(base,[{kind:'services',value:[{...service,priceLabel:'<script>bad</script>'}]}]).ok,false);assert.equal(plan(base,[{kind:'services',value:[{...service,stock:100}]}]).ok,false);
+const app={id:'a',status:'live',public_slug:'test-app',current_live_version_id:'v'},version={id:'v',config:p.nextConfig};const pub=project(app,version,{expectedAppId:'a',expectedVersionId:'v'});assert.equal(pub.services[0].priceLabel,service.priceLabel);assert.equal(pub.chargesEnabled,false);assert.equal(pub.doesNotConfirmAppointments,true);assert.equal(searchPublicNativeServices(pub.services,'treatments').length,1);
+assert.equal(fs.readFileSync('src/core/appServiceCollection.mjs','utf8'),fs.readFileSync('supabase/functions/busy-mini-apps/appServiceCollection.mjs','utf8'));
+console.log('PASS: actual Studio richer service/menu labels, exact Undo, unknown/unsafe field rejection, public projection and category search without checkout or availability authority.');

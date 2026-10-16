@@ -22,7 +22,7 @@ const fieldChoices={
 const itemSections=new Set(["services","faq","testimonials"]);
 const bounds={title:140,body:2500,cta:120,ctaHref:120,phone:40,email:254,openingHours:250};
 const fail=(reason,draft)=>({applied:false,reason,draft});
-const collectionKinds=new Set(["services","faq"]);
+const collectionKinds=new Set(["services","faq","testimonials"]);
 const publicWord=(s,max,required=false)=>typeof s==="string"&&s.length<=max&&
  !/[<>\u0000-\u001f\u007f]/.test(s)&&(!required||!!s.trim());
 function editWebsiteDraftCollectionUnchecked(draft,change={}){
@@ -45,7 +45,7 @@ function editWebsiteDraftCollectionUnchecked(draft,change={}){
     .replace(/^-+|-+$/g,"").slice(0,55);
   if(id==="owner-")return fail("Use a name or question with letters or numbers.",draft);
   const section={id:change.sectionId,type:change.sectionId,enabled:true,
-    title:change.sectionId==="faq"?"Frequently asked questions":"What we do",
+    title:change.sectionId==="faq"?"Frequently asked questions":change.sectionId==="testimonials"?"What customers say":"What we do",
     body:"",items:[{id,title,body}],ownerEditedItems:true};
   return {applied:true,draft:{...draft,sections:[...draft.sections,section]},
     reason:"Created a new PRIVATE "+change.sectionId+" section with an owner-written entry. Nothing was published.",

@@ -1,3 +1,5 @@
+import {AppPublicCollectionEditor} from './appPublicCollectionEditor';
+import {publicCollection} from '../core/appPublicCollections.mjs';
 import {AppContactEditor} from "./appContactEditor";
 import {validateNativeGuestRequest,searchPublicNativeServices} from "../../standalone/template/nativeCustomerActions.mjs";
 import {nativePreferredDates} from "../../standalone/template/nativePreferredDates.mjs";
@@ -244,10 +246,14 @@ function MiniAppSurface({
   loyaltyProgress = null,
   onQualityObservation = null,
   onMeasuredWidth = null,
+  onSelectService = null,
 }) {
   const profile = config?.publicProfile || {};
   const modules = orderedAppModules(config);
-  const services = Array.isArray(profile?.services) ? profile.services : [];
+  const [serviceQuery,setServiceQuery]=React.useState('');
+  const allServices=Array.isArray(profile?.services)?profile.services:[];
+  // Marketplace has legacy 50-row profiles; retain the native helper's 40-row bound.
+  const services=allServices.length<=50?[...searchPublicNativeServices(allServices.slice(0,40),serviceQuery),...searchPublicNativeServices(allServices.slice(40),serviceQuery)]:[];
   const gallery = Array.isArray(profile?.assets?.gallery)
     ? profile.assets.gallery.filter((item) => String(item?.uri || "").startsWith("https://"))
     : [];
@@ -353,8 +359,7 @@ function MiniAppSurface({
       {modules.map((module) => {
         if (module.key === "business_profile") {
           return (
-            <Card
-              key={module.key}
+            <View key={module.key}><Card
               eyebrow="About"
               title={profile.businessName || "About this business"}
               body={
@@ -365,6 +370,10 @@ function MiniAppSurface({
               footer={profile.differentiators || ""}
               tone="blue"
             />
+            {['faqs','testimonials'].map(field=>publicCollection(field,profile[field]||[]).map((row,i)=><Card key={field+i}
+              eyebrow={field==='faqs'?'Customer question':'Customer testimonial'}
+              title={field==='faqs'?row.question:row.attribution} body={field==='faqs'?row.answer:row.text}/>))}
+            </View>
           );
         }
 
@@ -372,6 +381,7 @@ function MiniAppSurface({
           return (
             <View key={module.key}>
               <Text style={styles.sectionLabel}>Services</Text>
+              {allServices.length>4?<Field label="Find a service" value={serviceQuery} onChangeText={setServiceQuery}/>:null}
               {services.length ? (
                 <View style={{flexDirection:"row",flexWrap:"wrap",
                   gap:responsive.ok?responsive.gap:12}}>
@@ -406,6 +416,11 @@ function MiniAppSurface({
                           fontSize:visual.type.bodySize}}>
                           {service.description||"Contact the business for more information."}
                         </Text>
+                        {service.category?<Text style={styles.cardBody}>{'Category: '+service.category}</Text>:null}
+                        {service.priceLabel?<Text style={styles.cardBody}>{'Price information: '+service.priceLabel}</Text>:null}
+                        {service.durationLabel?<Text style={styles.cardBody}>{'Typical duration: '+service.durationLabel}</Text>:null}
+                        {interactive&&typeof onSelectService==='function'?<Button label={'Choose '+service.name+' for my request'}
+                          onPress={()=>onSelectService(service.name)}/>:null}
                       </View>
                     </View>
                   ))}
@@ -413,8 +428,8 @@ function MiniAppSurface({
               ) : (
                 <Card
                   eyebrow="Services"
-                  title="Services still need adding"
-                  body="BUSY will not invent services just to fill the Business App."
+                  title={serviceQuery?"No matching services":"Services still need adding"}
+                  body={serviceQuery?"Try another word or clear the search. No request has been sent.":"BUSY will not invent services just to fill the Business App."}
                   tone="amber"
                 />
               )}
@@ -856,6 +871,7 @@ function MiniAppBuilder({ s }) {
   const [studioVoiceOpen,setStudioVoiceOpen]=React.useState(false);
   const [serviceIndex,setServiceIndex]=React.useState(-1);
   const [serviceName,setServiceName]=React.useState("");
+  const [serviceCategory,setServiceCategory]=React.useState(''),[servicePrice,setServicePrice]=React.useState(''),[serviceDuration,setServiceDuration]=React.useState('');
   const [serviceDescription,setServiceDescription]=React.useState("");
   const [accessiblePhotoNumber,setAccessiblePhotoNumber]=React.useState("1");
   const [accessiblePhotoAlt,setAccessiblePhotoAlt]=React.useState("");
@@ -893,7 +909,7 @@ function MiniAppBuilder({ s }) {
     setStagingInstallAudit(null);
     setBrainOwnerHistory(null);
     setBrainOwnerNotice("");
-    setServiceIndex(-1);setServiceName("");setServiceDescription("");
+    setServiceIndex(-1);setServiceName("");setServiceDescription("");setServiceCategory('');setServicePrice('');setServiceDuration('');
     setAccessiblePhotoNumber("1");
     setAccessiblePhotoAlt("");setAccessiblePhotoCaption("");
   },[app?.id,s.cloudWorkspace?.businessId,s.ownerSession?.userId]);
@@ -2347,6 +2363,8 @@ function MiniAppBuilder({ s }) {
           <Text style={styles.cardBody}>
             Voice provides transcription only, within its existing daily allowance. BUSY asks before changing the private app.
           </Text>
+          <AppPublicCollectionEditor key={['public-info',s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(':')}
+            config={view.draftConfig} onPreview={setStudioPreview} onNotice={setStudioNotice} busy={!!s.miniAppsAction||studio.pending}/>
           <AppContactEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(':')}
             businessId={s.cloudWorkspace?.businessId||''} app={app} busy={!!s.miniAppsAction||studio.pending}
             onPreview={setStudioPreview} onNotice={setStudioNotice}/>
@@ -2374,17 +2392,21 @@ function MiniAppBuilder({ s }) {
                 Add, change or remove a service, then review the whole private app before saving. Your live app will not be touched.
               </Text>
               <Button label={(serviceIndex===-1?"✓ ":"")+"Add a new service"}
-                onPress={()=>{setServiceIndex(-1);setServiceName("");setServiceDescription("");setStudioPreview(null);}}/>
+                onPress={()=>{setServiceIndex(-1);setServiceName("");setServiceDescription("");setServiceCategory('');setServicePrice('');setServiceDuration('');setStudioPreview(null);}}/>
               {(view.draftConfig.publicProfile?.services||[]).slice(0,30).map((service,i)=>(
                 <Button key={service.id||"service-"+i} label={(serviceIndex===i?"✓ ":"")+
                   (service.name||"Unnamed service")}
                   onPress={()=>{setServiceIndex(i);setServiceName(service.name||"");
-                    setServiceDescription(service.description||"");setStudioPreview(null);}}/>
+                    setServiceDescription(service.description||"");setServiceCategory(service.category||'');setServicePrice(service.priceLabel||'');setServiceDuration(service.durationLabel||'');setStudioPreview(null);}}/>
               ))}
               <Field label="Service name" value={serviceName} onChangeText={setServiceName}
                 placeholder="e.g. Cut and blow dry"/>
               <Field label="Service description" value={serviceDescription}
                 onChangeText={setServiceDescription} placeholder="Explain this service"/>
+              <Field label="Service category (optional)" value={serviceCategory} onChangeText={setServiceCategory}/>
+              <Field label="Owner-approved price wording (optional)" value={servicePrice} onChangeText={setServicePrice} placeholder="For example: From €40 — final quote agreed separately"/>
+              <Field label="Typical duration wording (optional)" value={serviceDuration} onChangeText={setServiceDuration}/>
+              <Text style={styles.cardBody}>These are public information labels. They do not take payment, reserve a slot or promise availability.</Text>
               <Button label={serviceIndex<0?"Preview new service":"Preview edited service"}
                 disabled={!!s.miniAppsAction||!serviceName.trim()}
                 onPress={()=>{
@@ -2392,7 +2414,7 @@ function MiniAppBuilder({ s }) {
                   const value=old.map(x=>({...x}));
                   const row={id:serviceIndex<0?"owner_service_"+Date.now().toString(36):
                     value[serviceIndex]?.id||"owner_service_"+Date.now().toString(36),
-                    name:serviceName,description:serviceDescription};
+                    name:serviceName,description:serviceDescription,...serviceCategory.trim()?{category:serviceCategory}:{},...servicePrice.trim()?{priceLabel:servicePrice}:{},...serviceDuration.trim()?{durationLabel:serviceDuration}:{}};
                   if(serviceIndex<0)value.push(row);else value[serviceIndex]=row;
                   const plan=proposeCoordinatedAppChanges(view.draftConfig,
                     [{kind:"services",value}]);
@@ -4700,6 +4722,7 @@ function BusyAppDetailForm({ s }) {
           interactive
           s={s}
           loyaltyProgress={detail?.loyaltyProgress || null}
+          onSelectService={enabled.has('enquiry')||enabled.has('booking_request')?setService:null}
         />
       ) : null}
       <Card
@@ -5326,6 +5349,7 @@ function MiniAppRequestDetailForm({ s }) {
 }
 
 export {
+  MiniAppSurface,
   BusyAppsMarketplace,
   MiniAppBuilder,
   MiniAppPreview,

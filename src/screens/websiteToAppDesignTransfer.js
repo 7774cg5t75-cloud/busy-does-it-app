@@ -14,6 +14,7 @@ function WebsiteToAppDesignTransfer({website,app,businessId,onPreview,busy}){
  const [includeDesign,setIncludeDesign]=React.useState(true);
  const [includeServices,setIncludeServices]=React.useState(false);
  const [includeContacts,setIncludeContacts]=React.useState(false);
+ const [includePublicInformation,setIncludePublicInformation]=React.useState(false);
  const [fillDescriptions,setFillDescriptions]=React.useState(false);
  const live=React.useRef(null),alive=React.useRef(true);live.current={website,app,businessId};
  React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
@@ -23,7 +24,7 @@ function WebsiteToAppDesignTransfer({website,app,businessId,onPreview,busy}){
   website?.id,website?.generation,app?.id,app?.draft_revision,businessId]);
  if(!website?.id||!app?.id||!businessId)return null;
  const preview=planWebsiteToAppDesign({
-  website,app,businessId,mode,includeServices,fillDescriptions,includeDesign,includeContacts
+  website,app,businessId,mode,includeServices,fillDescriptions,includeDesign,includeContacts,includePublicInformation
  });
  return <Card eyebrow="Build faster with your existing website"
    title="Use my website's design for this app"
@@ -50,6 +51,8 @@ function WebsiteToAppDesignTransfer({website,app,businessId,onPreview,busy}){
      onPress={()=>{setIncludeServices(v=>!v);setReview(null);setNotice("");}}/>:null}
     {mode!=="new"?<Button label={(includeContacts?"✓ ":"")+"Fill missing app contact details from my website"}
       onPress={()=>{setIncludeContacts(x=>!x);setReview(null);setNotice("");}}/>:null}
+    {mode!=="new"?<Button label={(includePublicInformation?'✓ ':'')+'Fill missing app FAQs and testimonials from my website'}
+      disabled={!!busy} onPress={()=>{setIncludePublicInformation(x=>!x);setReview(null);setNotice('');}}/>:null}
     {includeServices?<Button label={(fillDescriptions?"✓ ":"")+"Fill only empty descriptions of matching services"}
       onPress={()=>{setFillDescriptions(x=>!x);setReview(null);}}/>:null}
     {mode==="new"?<Text style={styles.cardBody}>

@@ -7,6 +7,7 @@
  * as a live, working customer journey. Any unfamiliar requirement has a safe
  * "needs design" route instead of being rejected for its business category.
  */
+import {validPublicCollection} from './appPublicCollections.mjs';
 import {CAPABILITIES,getUniversalCapability,VERSION}
  from "./universalCapabilityCatalogV3210.mjs";
 import {enabledAppKeys} from "./appSectionOrder.mjs";
@@ -16,7 +17,7 @@ const clean=value=>typeof value==="string"?value.trim():"";
 const list=value=>Array.isArray(value)?value:[];
 const INTENTS=Object.freeze([
  ["gallery",/\b(?:photo(?:graph)?s?|pictures?|images?|portfolios?|galler(?:y|ies)|showcase (?:our )?work)\b/i],
- ["faq",/\b(?:faq|frequently asked|questions and answers)\b/i],
+ ["faq",/\b(?:faqs?|frequently asked|questions and answers)\b/i],
  ["testimonials",/\b(?:testimonials?|customer reviews?|client reviews?)\b/i],
  ["services",/\b(?:services?|service list|treatments?|menu|menus|what we (?:do|offer))\b/i],
  ["contact",/\b(?:contact details?|phone number|opening hours|address|find us|location map)\b/i],
@@ -111,7 +112,10 @@ function assessSurfaceCapability(capability,surface,{website,app,catalog=[],busi
   const termsReady=descriptor.id!=="offers"||
    list(app?.draft_config?.offers).some(x=>x?.approved===true&&
     typeof x?.title==="string"&&!!x.title.trim());
-  const enabled=matchingApp&&termsReady&&list(app.draft_config?.modules).some(
+  const contentReady=!capability.publicContentField||
+   (validPublicCollection(capability.publicContentField,app?.draft_config?.publicProfile?.[capability.publicContentField])&&
+    app.draft_config.publicProfile[capability.publicContentField].length>0);
+  const enabled=matchingApp&&termsReady&&contentReady&&list(app.draft_config?.modules).some(
    module=>module?.key===descriptor.id&&module.enabled===true)&&
    enabledAppKeys(app.draft_config).ok;
   return {status:enabled?"present_in_private_draft":"available_module_needs_owner_setup",

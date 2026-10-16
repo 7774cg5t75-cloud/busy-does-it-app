@@ -1,3 +1,4 @@
+import {validPublicCollection} from './appPublicCollections.mjs';
 import {splitBuilderInstructionClauses} from './builderInstructionClauses.mjs';
 import {validAppContactEdit} from './appContactPolicy.mjs';
 import {editAppOwnerLocks} from "./appOwnerLockEditing.mjs";
@@ -108,6 +109,12 @@ function proposeCoordinatedAppChanges(config,operations){
    if(next.publicProfile?.contact?.[op.field]===value)return {ok:false,reason:'This contact detail is already saved.'};
    after={...next,publicProfile:{...next.publicProfile,contact:{...next.publicProfile?.contact,[op.field]:value}}};
    undo={kind:'restore_public_field',field:'contact',value:snapshot};description='Updated public '+op.field;
+  }else if(op.kind==='public_collection'){
+   if(!['faqs','testimonials'].includes(op.field)||!validPublicCollection(op.field,op.value))return {ok:false,reason:'Use up to 20 complete owner-approved entries with safe public wording.'};
+   const snapshot=captureAppProfileField(next,op.field);
+   if(!snapshot||JSON.stringify(next.publicProfile?.[op.field])===JSON.stringify(op.value))return {ok:false,reason:'Review the existing public entries before editing.'};
+   after={...next,publicProfile:{...next.publicProfile,[op.field]:JSON.parse(JSON.stringify(op.value))}};
+   undo={kind:'restore_public_field',field:op.field,value:snapshot};description='Updated public '+op.field;
   }else if(op.kind==="services"){
    const snapshot=captureAppProfileField(next,"services");
    if(!snapshot)return {ok:false,reason:"Review the existing public services before editing them."};

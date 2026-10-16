@@ -18,6 +18,12 @@ function reviewAppBusinessFactRefresh({businessId,app,profileRecord,selected=nul
   rows.push({id:'text:'+field,label:field,before:old[field]??'',after:value,conflict:!!old[field],
    allowed:checked.ok,reason:checked.ok?'':checked.reason,op});
  }
+ for(const field of ['faqs','testimonials']){
+  const value=fresh[field];if(!Array.isArray(value)||!value.length||same(value,old[field]))continue;
+  const op={kind:'public_collection',field,value},checked=proposeCoordinatedAppChanges(config,[op]);
+  rows.push({id:'information:'+field,label:field,before:JSON.stringify(old[field]||[]),after:JSON.stringify(value),conflict:Array.isArray(old[field])&&old[field].length>0,
+   allowed:checked.ok,reason:checked.ok?'':checked.reason,op});
+ }
  for(const field of ['phone','email','openingHours']){
   const value=fresh.contact?.[field],previous=old.contact?.[field];
   if(typeof value!=='string'||!value.trim()||value===previous)continue;
@@ -36,7 +42,7 @@ function reviewAppBusinessFactRefresh({businessId,app,profileRecord,selected=nul
   const key=name(item.name);if(offeredNames.has(key))return fail('Review duplicate normalised saved service names.');offeredNames.add(key);
   const at=prior.findIndex(x=>name(x.name)===name(item.name));
   const next={...item};
-  if(at>=0&&same({name:prior[at].name,description:prior[at].description||''},{name:item.name,description:item.description||''}))continue;
+  if(at>=0&&same({...prior[at],id:undefined,description:prior[at].description||''},{...item,id:undefined,description:item.description||''}))continue;
   const candidate=prior.map(x=>({...x}));
   if(at>=0)candidate[at]={...item,...prior[at].id?{id:prior[at].id}:{}};else candidate.push(item);
   const checked=proposeCoordinatedAppChanges(config,[{kind:'services',value:candidate}]);
