@@ -72,3 +72,30 @@ Interpretation for a separately approved future run:
 Refused endpoint categories are extracted only from lines containing connection refused and recognised local endpoint literals. Unknown targets become a fixed unclassified category; no addresses, credentials, row data or arbitrary error text are republished. A marker may be incidental/transient and does not prove it caused the final exit.
 
 No startup workaround, ignored health check, CLI upgrade, external network attachment or increased retry budget is introduced. The workflow and all manual/source/environment approvals remain unchanged. This commit needs renewed exact-SHA source approval before any separately authorised execution. No run is performed by preparation or offline validation.
+
+## PostgreSQL-only connectivity control (prepared, not executed)
+
+Select mode=postgres-control on this workflow at codex/disposable-supabase-review only after separate execution approval. This is a separate job with the original public-repository, manual-event, approval-phrase, input-SHA and repository-variable gates, the same busy-disposable-db-review protected environment, pinned checkout of github.sha and persist-credentials=false. Default mode remains diagnose; neither diagnose nor rehearse runs when postgres-control is selected. No default-branch registration change is needed.
+
+The owner must separately approve the new exact commit, verify the existing environment reviewers/branch restrictions and standard public ubuntu-24.04 £0 eligibility, then use approved_sha=<new full SHA>, approval=APPROVE_DISPOSABLE_TEST_ONLY and mode=postgres-control. BUSY_DB_REHEARSAL_APPROVED_SHA must match that new SHA and BUSY_DB_REHEARSAL_ENABLED must remain approved. Preparation does not alter those variables or dispatch anything.
+
+The reviewed CLI v2.54.11 image source is https://github.com/supabase/cli/blob/v2.54.11/pkg/config/templates/Dockerfile: supabase/postgres:17.6.1.029. The control uses its ghcr.io registry location, records the pulled image ID and available registry digest, then creates the container by immutable local image ID. The version tag has the same upstream mutability limitation as the existing CLI setup; recorded digests support later reproducibility. It does not pull an unreviewed generic PostgreSQL version or upgrade the CLI.
+
+postgres_control.py overrides the image entrypoint and runs initdb plus postgres as the postgres user. It deliberately skips Supabase entrypoint/bootstrap scripts, services, application migrations and fixtures. A random local-only password enables SCRAM host authentication; only the local Unix socket uses trust. Shared preload libraries are disabled and cron execution is off. Container root is read-only with all capabilities dropped and no-new-privileges; cluster data and password staging live in bounded temporary memory. No customer data or hosted credentials are used.
+
+The control owns one labelled container and one separate internal bridge network. It requests only 127.0.0.1:54322 -> container 5432, first checks the host port is free, verifies Internal=true and sole-network membership, and probes no external destination. It samples for at most 60 seconds (plus a bounded in-flight sample), preserving the first readiness success, every observed state transition, exit/OOM state, native health, configured/effective binding count and expected-port/loopback booleans. The three controls are in-container pg_isready, runner -> verified private container IP:5432 and runner -> 127.0.0.1:54322. Addresses, passwords, raw stdout/stderr, health-check logs and Docker environment values are not published.
+
+Evidence is saved before this control removes anything. It has no Supabase automatic cleanup race. Cleanup removes only resources bearing this exact SHA/run/attempt ownership label, including anonymous volumes; an always-run fallback repeats that ownership check. The private password file is removed. Failed cleanup fails the control. Reports use existing JSON/job-summary output without cache or artifact uploads.
+
+Expected conclusions:
+- all-paths-open: the minimal cluster and both host paths work here; investigate Supabase-specific bootstrap/configuration next, rather than attributing #9 to isolation.
+- published-path-failed: pg_isready succeeds and direct container access works, while loopback fails; inspect configured/effective bindings and Docker forwarding. Keep the internal network.
+- direct-path-failed: pg_isready succeeds but direct access fails; investigate the verified internal host/container path.
+- postgres-not-ready: readiness never succeeded or the final sample lost readiness; use firstReady, transitions and exit/OOM state to distinguish never ready from ready-then-exited. No PostgreSQL log/root-cause claim is inferred.
+
+A successful control is not evidence that application migrations, Supabase Auth/PostgREST, RLS or rollback passed. A failed control does not authorise an isolation bypass. Continue unrelated Website Builder and App Builder work with existing lightweight offline checks; reserve this gate for the database acceptance boundary.
+
+Offline validation (all Docker, sockets and waits are mocked):
+    python3 scripts/disposable-supabase/check-postgres-control.py
+    python3 scripts/disposable-supabase/check-draft.py
+    actionlint .github/workflows/disposable-supabase-review.yml

@@ -3,13 +3,14 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: Diagnose approval gates only, or explicitly request the protected rehearsal
+        description: Choose gate diagnostics, PostgreSQL-only control, or the protected rehearsal
         required: true
         type: choice
         default: diagnose
         options:
           - diagnose
           - rehearse
+          - postgres-control
       approved_sha:
         description: Exact reviewed commit SHA (no branch names)
         required: true
@@ -57,6 +58,44 @@ jobs:
             esac
             printf '%s=%s\n' "$key" "$result"
           done
+  postgres-control:
+    if: >-
+      inputs.mode == 'postgres-control' &&
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == '7774cg5t75-cloud/busy-does-it-app' &&
+      github.event.repository.private == false &&
+      github.ref == 'refs/heads/codex/disposable-supabase-review' &&
+      inputs.approval == 'APPROVE_DISPOSABLE_TEST_ONLY' &&
+      inputs.approved_sha == github.sha &&
+      vars.BUSY_DB_REHEARSAL_ENABLED == 'approved' &&
+      vars.BUSY_DB_REHEARSAL_APPROVED_SHA == github.sha
+    environment: busy-disposable-db-review
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      CI: 'true'
+      BUSY_DISPOSABLE_APPROVAL: APPROVE_DISPOSABLE_TEST_ONLY
+      BUSY_APPROVED_SHA: ${{ inputs.approved_sha }}
+      BUSY_DB_CONTROL_MODE: postgres-control
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: PostgreSQL-only isolated connectivity control
+        env:
+          BUSY_DB_WORKDIR: ${{ runner.temp }}/busy-pg-connectivity-control
+        run: python3 scripts/disposable-supabase/postgres_control.py
+      - name: Report sanitised control evidence
+        if: always()
+        env:
+          BUSY_DB_WORKDIR: ${{ runner.temp }}/busy-pg-connectivity-control
+        run: python3 scripts/disposable-supabase/report.py
+      - name: Fallback cleanup of this run's control resources
+        if: always()
+        env:
+          BUSY_DB_WORKDIR: ${{ runner.temp }}/busy-pg-connectivity-control
+        run: python3 scripts/disposable-supabase/postgres_control.py --cleanup
   rehearse:
     # Diagnose mode cannot allocate this runner. All original gates remain required.
     # No push, PR, schedule or workflow_run trigger. Missing approval vars skip.
