@@ -1,3 +1,5 @@
+import {publicServiceDetails} from '../core/publicServiceDetails.mjs';
+import {publicCollection} from '../core/appPublicCollections.mjs';
 import {summarizeStoredCustomerJourneys} from "../core/storedCustomerJourneys.mjs";
 import {reviewBusinessBrainObservedOutcomes} from "../core/businessBrainMeasuredOutcomes.mjs";
 import {assessDurableWorkOutcomes} from "../core/durableWorkOutcomeEvidenceV3181.mjs";
@@ -35,10 +37,12 @@ function buildMiniAppProfileDraft(brandBrain = {}, businessCreationIntelligence 
         instagram: clean(brief.social?.instagram),
       },
     },
+    faqs:publicCollection('faqs',brief.faqs||[]),
+    testimonials:publicCollection('testimonials',brief.testimonials||[]),
     services: safeArray(brief.services).map((service) => ({
       id: clean(service.id),
       name: clean(service.name),
-      description: clean(service.description),
+      description: clean(service.description),...publicServiceDetails(service),
     })),
     assets: {
       hero: brief.heroAsset || null,

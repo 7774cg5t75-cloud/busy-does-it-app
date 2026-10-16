@@ -9,13 +9,14 @@ function AppToWebsiteDesignTransfer({website,app,businessId,onApply}){
  const [open,setOpen]=React.useState(false);
  const [mode,setMode]=React.useState("adapt");
  const [withServices,setWithServices]=React.useState(false);
+ const [includeDesign,setIncludeDesign]=React.useState(true),[includePublicInformation,setIncludePublicInformation]=React.useState(false);
  const [review,setReview]=React.useState(null);
  const [notice,setNotice]=React.useState("");
  React.useEffect(()=>{setReview(null);setNotice("");},
   [website?.id,website?.generation,app?.id,app?.draft_revision,businessId]);
  if(!website?.id||!app?.id||!businessId)return null;
  const plan=planAppToWebsiteDesign({website,app,businessId,
-  mode,includeServices:withServices});
+  mode,includeServices:withServices,includeDesign,includePublicInformation});
  return <Card eyebrow="Make your website feel like your app"
   title="Reuse my Business App's design"
   body="Carry across selected design choices as one private website edit. Never automatically overwrite your existing website or publish changes."
@@ -30,6 +31,10 @@ function AppToWebsiteDesignTransfer({website,app,businessId,onApply}){
     ].map(([key,label])=><Button key={key}
       label={(mode===key?"✓ ":"")+label}
       onPress={()=>{setMode(key);setReview(null);setNotice("");}}/>)}
+    {mode!=="new"?<>
+     <Button label={(includeDesign?'':'✓ ')+'Reuse content only — keep my website design'} onPress={()=>{setIncludeDesign(x=>!x);setReview(null);}}/>
+     <Button label={(includePublicInformation?'✓ ':'')+'Create missing FAQ and testimonial sections from my app'} onPress={()=>{setIncludePublicInformation(x=>!x);setReview(null);}}/>
+    </>:null}
     {mode!=="new"?<Button
      label={(withServices?"✓ ":"")+"Also add missing app services"}
      onPress={()=>{setWithServices(x=>!x);setReview(null);setNotice("");}}/>:null}

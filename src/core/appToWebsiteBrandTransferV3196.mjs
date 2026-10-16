@@ -3,6 +3,9 @@
  * existing website's content. Finite operations, exact reviewed evidence,
  * no background sync, auto publishing, paid provider calls or live writes.
  */
+import {publicCollection} from './appPublicCollections.mjs';
+import {websiteDraftHasScope} from './websiteDraftScope.mjs';
+import {editWebsiteDraftField} from './websiteStructuredEditing.mjs';
 import {validPrivateBuilderPair,reviewedPairIsCurrent}
  from "./ownerBuilderDraftGuardV3195.mjs";
 import {safeHex,PALETTES,nativePalette} from "./nativePalette.mjs";
@@ -17,13 +20,14 @@ const A2W_TYPE=Object.freeze({
 });
 const A2W_LAYOUT=Object.freeze({cards:"cards",rows:"rows",spotlight:"outlines"});
 function planAppToWebsiteDesign({website,app,businessId,mode="adapt",
- includeServices=false}={}){
- if(!["match","adapt","new"].includes(mode)||typeof includeServices!=="boolean")
+ includeServices=false,includeDesign=true,includePublicInformation=false}={}){
+ if(!["match","adapt","new"].includes(mode)||typeof includeServices!=="boolean"||typeof includeDesign!=="boolean"||typeof includePublicInformation!=="boolean")
   return {ok:false,reason:"Choose a supported branding approach."};
  if(!validPrivateBuilderPair(website,app,businessId)||
    (website.business_id&&website.business_id!==businessId)||
    (website.businessId&&website.businessId!==businessId))
   return {ok:false,reason:"Open current private drafts from the same business."};
+ if(includePublicInformation&&!websiteDraftHasScope(website,businessId))return {ok:false,reason:'Confirm the website business before reusing public information.'};
  const base={ok:true,kind:"private_app_to_website_design_v3196",mode,businessId,
   sourceAppId:app.id,sourceAppRevision:app.draft_revision,
   targetWebsiteId:website.id,targetWebsiteGeneration:website.generation,
@@ -39,17 +43,17 @@ function planAppToWebsiteDesign({website,app,businessId,mode="adapt",
  const type=A2W_TYPE[look.typeStyle];
  const layout=A2W_LAYOUT[look.serviceStyle];
  const operations=[],reasons=[],skipped=[];
- if(colour&&(website.theme?.primary||"").toUpperCase()!==colour){
+ if(includeDesign&&colour&&(website.theme?.primary||"").toUpperCase()!==colour){
   operations.push({action:"brand-colour",value:colour});
   reasons.push("Coordinate approved app brand colour with readable website controls.");
  }else skipped.push("No different supported app brand colour to copy.");
  const compatible=mode==="match"?type:
   look.typeStyle==="impact"?"refined":type;
- if(compatible&&website.theme?.typography!==compatible){
+ if(includeDesign&&compatible&&website.theme?.typography!==compatible){
   operations.push({action:"style",field:"typography",value:compatible});
   reasons.push("Adapt native headline personality to web typography.");
  }
- if(layout&&website.theme?.cardLayout!==layout){
+ if(includeDesign&&layout&&website.theme?.cardLayout!==layout){
   operations.push({action:"style",field:"cardLayout",value:layout});
   reasons.push("Reflect app service presentation with a supported responsive website layout.");
  }
@@ -59,7 +63,7 @@ function planAppToWebsiteDesign({website,app,businessId,mode="adapt",
   if(candidate.ok)servicePlan=candidate;
   else skipped.push(candidate.reason||"No additional service text available.");
  }
- if(!operations.length&&!servicePlan)return {ok:false,reason:"Your website already matches the supported app design."};
+
  let preview=website;
  for(const op of operations){
   const result=applyWebsiteLayoutOperation(preview,op);
@@ -73,17 +77,33 @@ function planAppToWebsiteDesign({website,app,businessId,mode="adapt",
    [...preview.sections,section]};
   reasons.push("Add "+servicePlan.addedCount+" missing service(s); preserve original website wording.");
  }
+ let informationCount=0;
+ if(includePublicInformation){
+  for(const [field,type,a,b] of [['faqs','faq','question','answer'],['testimonials','testimonials','attribution','text']]){
+   if(preview.sections.some(s=>s?.id===type||s?.type===type)){skipped.push('Kept the existing website '+type+' section.');continue;}
+   const value=publicCollection(field,app.draft_config.publicProfile?.[field]||[]);
+   for(let i=0;i<value.length;i++){
+    const row=value[i],result=editWebsiteDraftField(preview,{action:i?'add-item':'create-collection',sectionId:type,title:row[a],body:row[b]});
+    if(!result.applied)return {ok:false,reason:result.reason};
+    preview=result.draft;informationCount++;
+   }
+  }
+  if(informationCount)reasons.push('Reuse '+informationCount+' public app entries in missing website sections, preserving existing website collections.');
+ }
+ if(!operations.length&&!servicePlan&&!informationCount)return {ok:false,reason:'No missing content or supported design change is available.'};
  const changes=[
   ...operations.map(op=>op.action==="brand-colour"?
    "Brand colour → "+op.value:
    "Website "+op.field+" → "+op.value),
-  ...(servicePlan?["Add "+servicePlan.addedCount+" missing services"]:[])
+  ...(servicePlan?["Add "+servicePlan.addedCount+" missing services"]:[]),
+  ...(informationCount?["Add "+informationCount+" public information entries to missing sections"]:[])
  ];
  const evidence={operations:operations.map(x=>({...x})),
-  copiedServices:servicePlan?servicePlan.added.map(x=>({...x})):[]};
+  copiedServices:servicePlan?servicePlan.added.map(x=>({...x})):[],
+  copiedInformation:informationCount?preview.sections.filter(s=>['faq','testimonials'].includes(s.type)&&!website.sections.some(old=>old.id===s.id)):[]};
  return {...base,operations:evidence.operations,
   addedServices:evidence.copiedServices,
-  serviceCopyCount:servicePlan?.addedCount||0,includeServices,
+  serviceCopyCount:servicePlan?.addedCount||0,includeServices,includeDesign,includePublicInformation,informationCount,
   changes:changes,explanations:reasons,skipped,
   proposedDraft:preview,exactReview:JSON.stringify(evidence),
   draftPreviewOnly:true};
@@ -95,7 +115,7 @@ function confirmAppToWebsiteDesign({website,app,businessId,evidence}={}){
  }))
   return {ok:false,reason:"An app, website or business selection has changed. Review it again."};
  const now=planAppToWebsiteDesign({website,app,businessId,
-  mode:evidence?.mode,includeServices:evidence?.includeServices});
+  mode:evidence?.mode,includeServices:evidence?.includeServices,includeDesign:evidence?.includeDesign!==false,includePublicInformation:evidence?.includePublicInformation===true});
  if(!now.ok||now.exactReview!==evidence.exactReview||
     JSON.stringify(now.operations)!==JSON.stringify(evidence.operations)||
     JSON.stringify(now.addedServices)!==JSON.stringify(evidence.addedServices))

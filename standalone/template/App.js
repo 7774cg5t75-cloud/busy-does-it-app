@@ -162,6 +162,9 @@ function ServicesInfo({app,layout,onRequestService}){
      <Text style={{...t,fontWeight:VISUAL.type.sectionWeight,
        fontSize:VISUAL.type.bodySize+2}}>{service.name}</Text>
      <Text style={sub}>{service.description||"Ask the business for details."}</Text>
+     {service.category?<Text style={sub}>{'Category: '+service.category}</Text>:null}
+     {service.priceLabel?<Text style={sub}>{'Price information: '+service.priceLabel}</Text>:null}
+     {service.durationLabel?<Text style={sub}>{'Typical duration: '+service.durationLabel}</Text>:null}
      {app.supportsBookingRequest&&app.moduleKeys?.includes("booking_request")?
       <Button title={"Request "+service.name}
        onPress={()=>onRequestService?.(service.name,"booking_request")}/>:null}
@@ -182,6 +185,8 @@ function LiveInfo({screen,app,layout,onRequestService,onOpenContact,onOpenOfferE
       borderRadius:LOOK.imageCorners==="square"?2:12,marginTop:12}}
     resizeMode="cover"/>:null}
   {app.tagline&&app.about?<Text style={sub}>{app.about}</Text>:null}
+  {(app.faqs||[]).map((row,i)=><View key={'faq'+i} style={{marginTop:16}}><Text style={{...t,fontWeight:'700'}}>{row.question}</Text><Text style={sub}>{row.answer}</Text></View>)}
+  {(app.testimonials||[]).map((row,i)=><View key={'testimonial'+i} style={{marginTop:16}}><Text style={sub}>{row.text}</Text><Text style={{...t,fontWeight:'700'}}>{row.attribution}</Text></View>)}
  </View>;
  if(screen.key==="services")return <ServicesInfo app={app} layout={layout} onRequestService={onRequestService}/>;
  if(screen.key==="gallery")return <View style={box}>

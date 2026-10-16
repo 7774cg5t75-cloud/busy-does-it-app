@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {editWebsiteDraftField as edit} from '../src/core/websiteStructuredEditing.mjs';
+import {planUniversalBuilderRequest as plan} from '../src/core/universalBuilderPlanV3210.mjs';
+const draft={id:'site',generation:2,sections:[{id:'hero',type:'hero',title:'Keep',body:'Business'}]};
+const change={action:'create-collection',sectionId:'testimonials',title:'Permissioned customer',body:'Genuine wording'};
+const made=edit(draft,change);assert.equal(made.applied,true,made.reason);assert.equal(made.draft.sections[1].ownerEditedItems,true);
+const added=edit(made.draft,{action:'add-item',sectionId:'testimonials',title:'Another customer',body:'Another genuine quote'});assert.equal(added.applied,true,added.reason);
+const item=added.draft.sections[1].items[1];const moved=edit(added.draft,{action:'move-item',sectionId:'testimonials',itemId:item.id,expectedTitle:item.title,direction:'up'});assert.equal(moved.applied,true);assert.equal(moved.draft.sections[1].items[0].id,item.id);
+assert.equal(edit(moved.draft,{action:'remove-item',sectionId:'testimonials',itemId:item.id,expectedTitle:'stale'}).applied,false);
+assert.equal(edit(moved.draft,{action:'remove-item',sectionId:'testimonials',itemId:item.id,expectedTitle:item.title}).applied,true);
+assert.equal(edit(draft,{...change,body:'<script>bad</script>'}).applied,false);
+const businessId='business',app={business_id:businessId,draft_revision:1,draft_config:{modules:[{key:'business_profile',enabled:true}],navigation:['business_profile'],publicProfile:{}}},catalog=[{module_key:'business_profile',status:'available'}];
+let result=plan({request:'FAQs and testimonials',businessId,app,catalog});assert.equal(result.capabilities.find(x=>x.id==='faq').app.presentInDraft,false);
+app.draft_config.publicProfile={faqs:[{question:'Question?',answer:'Actual answer'}],testimonials:[{attribution:'Customer',text:'Genuine quote'}]};
+result=plan({request:'FAQs and testimonials',businessId,app,catalog});assert.equal(result.capabilities.find(x=>x.id==='faq').app.presentInDraft,true);assert.equal(result.capabilities.find(x=>x.id==='testimonials').app.presentInDraft,true);assert.equal(result.capabilities.find(x=>x.id==='faq').app.liveVerified,false);
+console.log('PASS: actual Website testimonial creation/add/reorder/removal, exact item guards, unsafe text rejection and content-aware shared capability planning.');

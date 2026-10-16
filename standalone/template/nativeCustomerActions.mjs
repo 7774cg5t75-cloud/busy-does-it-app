@@ -25,7 +25,7 @@ function searchPublicNativeServices(services,query=""){
     typeof query!=="string"||query.length>80)return [];
  const q=query.trim().toLocaleLowerCase("en");
  return services.filter(item=>item&&typeof item.name==="string"&&
-   (!q||(item.name+" "+(typeof item.description==="string"?item.description:""))
+   (!q||(item.name+" "+(typeof item.description==="string"?item.description:"")+" "+(typeof item.category==='string'?item.category:''))
      .toLocaleLowerCase("en").includes(q)));
 }
 const clean=(v,max)=>typeof v==="string"?v.trim().slice(0,max):"";

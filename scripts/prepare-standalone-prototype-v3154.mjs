@@ -23,7 +23,7 @@ const handoff=buildStandalonePrivateHandoff({app,preview,plan,catalog,ownerConfi
 const descriptor=nativeShellDescriptor(handoff);
 if(!descriptor.ok)throw Error("Unsafe prototype: "+descriptor.reason);
 await mkdir(output,{recursive:true});
-for(const file of ["App.js","app.config.js","index.js","package.json","nativeBusinessClient.js","nativeGuestProof.js","nativeGuestRequests.js","appResponsiveDesign.mjs","nativeCustomerActions.mjs","nativePreferredDates.mjs"])
+for(const file of ["App.js","app.config.js","index.js","package.json","nativeBusinessClient.js","nativeGuestProof.js","nativeGuestRequests.js","appResponsiveDesign.mjs","nativeCustomerActions.mjs","nativePreferredDates.mjs","appPublicCollections.mjs","publicServiceDetails.mjs"])
  await copyFile(path.join(template,file),path.join(output,file));
 await copyFile(path.join(root,"src","core","nativePalette.mjs"),path.join(output,"nativePalette.mjs"));
 await copyFile(path.join(root,"src","core","appVisualPresentationV3194.mjs"),path.join(output,"appVisualPresentationV3194.mjs"));

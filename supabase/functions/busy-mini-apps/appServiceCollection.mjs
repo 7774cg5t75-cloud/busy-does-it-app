@@ -1,10 +1,11 @@
+import {SERVICE_DETAIL_LIMITS,validServiceDetails,publicServiceDetails} from './publicServiceDetails.mjs';
 import {appEditLockReason} from "./appOwnerLocks.mjs";
 /**
  * V3.158 owner-authored public service editing. Pure and private.
  * Replace a finite service list atomically without accepting executable
  * components, customer records, prices, arbitrary properties or URLs.
  */
-const allowed=new Set(["id","name","description"]);
+const allowed=new Set(["id","name","description",...Object.keys(SERVICE_DETAIL_LIMITS)]);
 const validText=(s,max,required=false)=>typeof s==="string"&&s.length<=max&&
  !/[<>\u0000-\u001f]/.test(s)&&(!required||s.trim().length>0);
 function reviewPrivateAppServices(config,services){
@@ -20,7 +21,7 @@ function reviewPrivateAppServices(config,services){
   return {ok:false,reason:"The service list is already up to date."};
  return {ok:true,nextConfig:{...config,publicProfile:{...config.publicProfile,
   services:services.map(x=>({...x.id?{id:x.id}:{},name:x.name,
-   description:x.description??""}))}},
+   description:x.description??"",...publicServiceDetails(x)}))}},
   previous:before,description:"Updated "+services.length+" owner-approved services",
   publicUntilApproved:false};
 }
@@ -30,7 +31,7 @@ function validatePrivateAppServices(services,{allowIncompleteNames=false}={}){
  for(const row of services){
   if(!row||typeof row!=="object"||Array.isArray(row)||
    Object.keys(row).some(k=>!allowed.has(k))||
-   !validText(row.name,120,!allowIncompleteNames)||!validText(row.description??"",600)||
+   !validServiceDetails(row)||!validText(row.name,120,!allowIncompleteNames)||!validText(row.description??"",600)||
    !(row.id===undefined||
      (typeof row.id==="string"&&row.id.length<=80&&
       (!row.id||/^[a-zA-Z0-9_-]{1,80}$/.test(row.id)))))

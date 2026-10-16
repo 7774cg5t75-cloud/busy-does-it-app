@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {planWebsiteToAppDesign as plan,confirmWebsiteToAppDesign as confirm} from '../src/core/websiteToAppBrandTransferV3196.mjs';
+import {reviewAppBusinessFactRefresh as facts} from '../src/core/appBusinessFactRefresh.mjs';
+const businessId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',app={id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',business_id:businessId,draft_revision:2,draft_config:{modules:[{key:'business_profile',enabled:true}],navigation:['business_profile'],publicProfile:{about:'Keep',services:[]}}};
+const website={id:'site',businessId,generation:2,sections:[{id:'faq',type:'faq',items:[{id:'q',title:'Do you travel?',body:'Only within our stated area.'}]},{id:'testimonials',type:'testimonials',items:[{id:'t',title:'Permissioned customer',body:'Genuine quote'}]}]};
+const options={businessId,app,website,includeDesign:false,includePublicInformation:true};const p=plan(options);assert.equal(p.ok,true,p.reason);assert.equal(p.operations.length,2);assert.equal(p.previewConfig.publicProfile.faqs[0].question,'Do you travel?');assert.equal(p.previewConfig.publicProfile.about,'Keep');assert.equal(confirm({...options,evidence:p}).ok,true);
+assert.equal(confirm({...options,website:{...website,generation:3},evidence:p}).ok,false);assert.equal(plan({...options,website:{...website,businessId:'other'}}).ok,false);
+const customised={...app,draft_config:{...app.draft_config,publicProfile:{...app.draft_config.publicProfile,faqs:[{question:'Owner question?',answer:'Keep my answer.'}]}}};const c=plan({...options,app:customised});assert.equal(c.ok,true);assert.deepEqual(c.previewConfig.publicProfile.faqs,customised.draft_config.publicProfile.faqs);
+const record={business_id:businessId,revision:3,profile:{services:[],faqs:[{question:'New question?',answer:'New answer'}]}};
+const review=facts({businessId,app:customised,profileRecord:record});assert.equal(review.rows.find(x=>x.id==='information:faqs').conflict,true);assert.equal(review.preview,null);
+const chosen=facts({businessId,app:customised,profileRecord:record,selected:['information:faqs']});assert.equal(chosen.preview.nextConfig.publicProfile.faqs[0].question,'New question?');
+console.log('PASS: same-business current-source FAQ/testimonial reuse, missing-only policy, existing custom content preservation, stale confirmation rejection and explicit fact-conflict approval.');
