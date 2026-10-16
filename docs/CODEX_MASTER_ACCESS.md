@@ -12,6 +12,16 @@
 | `AGENTS.md` | Standing instructions for Codex work in this repository | Automatically applicable when this file is present on the working branch. |
 | `docs/CODEX_PRODUCT_BRIEF.md` | Public, abbreviated orientation | Accessible in Git; **not** a replacement for the complete Word master. |
 
+### Latest owner-approved product master — V22.24 (16 October 2026)
+
+- **Owner-approved requirement:** AI-assisted creation and improvement of pages *within an existing compatible, owner-authorised website project*, reusing actual brand guidelines and assets, provider-supported page/CMS capabilities, scoped previews, owner-approved publishing and verified live outcomes. Framer is a candidate experience/API benchmark, not an approved production connector or guarantee of universal editing.
+- **Private Word filename:** `Busy_Does_It_Master_V22_24_Existing_Website_AI_Agent_Editing.docx`.
+- **Private ChatGPT Library path:** `/Busy_Does_It_Master_V22_24_Existing_Website_AI_Agent_Editing.docx` (upload confirmed 16 October 2026). Library possession does not grant a new Codex session direct access; attach the actual document or verify authorised private-source access before substantial product-scope decisions.
+- **SHA-256 of original generated V22.24 DOCX:** `07d6b64325c624abe50d81afc73f6fe5924416e3bd1c7ba5a71fc2160726e8e1`.
+- **Preservation and verification:** Derived from checksum-verified V22.23 (SHA-256 `9a80e798888040a7258bc1a0e7d2e0eee85a243ea26cd61bceb8033e9de06946`); existing paragraph order/content preserved except the version marker; all **19** original tables preserved; 11 paragraphs added to Section 29; V22.24 rendered across **89** pages, with added pages reviewed. No changes to functional application code.
+- **Public technical counterpart:** `ARCHITECTURE.md` section “Permanent architecture direction — AI-assisted editing in existing website projects (Framer-style benchmark, 16 October 2026)” on this documentation branch.
+- **Delivery and priority limits:** Framer / WordPress / Webflow / Shopify / CMS comparisons remain candidate evaluations. Neither provider integration nor live publishing is claimed. Keep current functionality-first App Builder and Website Builder work progressing before advanced external-site adapter development unless separately reprioritised.
+
 ### Latest owner-approved product master — V22.23 (16 October 2026)
 
 - **Decision:** contextual speech quality and voice-task safety: accurate business vocabulary and varied accents, self-corrections, editable transcripts, context-bound selected objects, explicit dictation-vs-action separation, privacy and cost-aware vendor-neutral speech evaluation. Wispr Flow is an illustrative experience benchmark only, not an approved integration or a validated performance claim.
