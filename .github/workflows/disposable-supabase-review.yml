@@ -1,0 +1,21 @@
+# Registration only. Database implementation remains on codex/disposable-supabase-review.
+# After separate owner approval, dispatch this path at that reviewed development ref.
+name: Approval-controlled disposable Supabase rehearsal (DRAFT)
+on:
+  workflow_dispatch:
+    inputs:
+      approved_sha:
+        description: Exact reviewed commit SHA (no branch names)
+        required: true
+        type: string
+      approval:
+        description: Enter APPROVE_DISPOSABLE_TEST_ONLY after reviewing usage and source
+        required: true
+        type: string
+permissions: {}
+jobs:
+  registration:
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    steps:
+      - run: ':'
