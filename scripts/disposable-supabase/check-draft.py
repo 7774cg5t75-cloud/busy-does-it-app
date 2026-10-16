@@ -1,5 +1,7 @@
 """Offline tests ONLY: parses/prepares fixtures; never invokes Supabase/Docker."""
-import ast,hashlib,importlib.util,json,pathlib,re,tempfile,unittest
+import ast,hashlib,importlib.util,json,pathlib,re,tempfile,unittest,sys
+sys.path.insert(0,str(pathlib.Path(__file__).resolve().parent))
+import startup_diagnostics as diagnostics
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('rehearse',ROOT/'scripts/disposable-supabase/rehearse.py');module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 class DraftTests(unittest.TestCase):
@@ -36,7 +38,8 @@ class DraftTests(unittest.TestCase):
      elif args==['supabase','--version']:output='2.54.11'
      elif args==['docker','network','inspect',module.NETWORK]:output='[{"Internal":true}]'
      return subprocess.CompletedProcess(args,0,output,'')
-    with patch.dict(os.environ,env,clear=True),patch.object(module.subprocess,'run',side_effect=fake):
+    with patch.dict(os.environ,env,clear=True),patch.object(module.subprocess,'run',side_effect=fake),patch.object(module,'StartupObserver') as observer:
+     observer.return_value.summary={'samples':0,'latest':{},'lastObserved':{},'observerError':False}
      with self.assertRaisesRegex(SystemExit,'isolated-stack-start'):module.main()
      report=json.loads((work/'report.json').read_text())
      self.assertEqual(report['failedCommand']['command'],'supabase-local-start')
@@ -48,6 +51,55 @@ class DraftTests(unittest.TestCase):
      with contextlib.redirect_stdout(captured):runpy.run_path(str(ROOT/'scripts/disposable-supabase/report.py'))
      self.assertNotIn(secret,captured.getvalue())
      self.assertEqual(json.loads(captured.getvalue())['failedCommand'],report['failedCommand'])
+ def test_startup_endpoint_classification_never_republishes_logs(self):
+  secret='PRIVATE_CREDENTIAL_ROW_CANARY'
+  raw='Starting database...\nconnection refused 127.0.0.1:54322 '+secret+'\nconnection refused http://localhost:54321/rest-admin/v1/ready '+secret
+  evidence=diagnostics.cli_evidence('',raw)
+  self.assertEqual(evidence['refusedConnectionCategories'],['runner-to-published-api-gateway','runner-to-published-postgres'])
+  self.assertTrue(evidence['databaseStartMarker']);self.assertTrue(evidence['postgrestReadinessPath'])
+  self.assertNotIn(secret,json.dumps(evidence))
+  evidence=diagnostics.cli_evidence('',b'connection refused https://sensitive.example:9999/secret')
+  self.assertEqual(evidence['refusedConnectionCategories'],['unclassified-refused-endpoint'])
+  self.assertNotIn('sensitive',json.dumps(evidence))
+ def test_startup_observation_scope_and_network_comparison(self):
+  from unittest.mock import patch
+  secret='PRIVATE_CONTAINER_CANARY'
+  meta={'project':diagnostics.PROJECT,'status':'running','health':'healthy',
+    'networks':{diagnostics.NETWORK:{'IPAddress':'172.19.0.2'}},
+    'ports':{'5432/tcp':[{'HostPort':'54322'}]},'secret':secret}
+  def read(args):
+   if args[0]=='network':return True
+   return meta if args[-1]=='supabase_db_'+diagnostics.PROJECT else None
+  def probe(host,port):
+   return 'refused' if host=='127.0.0.1' else 'open'
+  with patch.object(diagnostics,'docker_read',side_effect=read),patch.object(diagnostics,'tcp_result',side_effect=probe) as tcp:
+   result=diagnostics.sample()
+   db=result['services']['db']
+   self.assertEqual(db['health'],'healthy');self.assertTrue(db['expectedPortPublished'])
+   self.assertEqual(db['runnerLoopback'],'refused');self.assertEqual(db['runnerDirectContainer'],'open')
+   self.assertEqual(tcp.call_count,2);self.assertNotIn(secret,json.dumps(result))
+   meta['networks']['unexpected-external']={}
+   tcp.reset_mock();result=diagnostics.sample()
+   self.assertFalse(result['services']['db']['isolatedNetworkOnly'])
+   self.assertEqual(tcp.call_count,1) # No direct probe when isolation is not verified.
+   meta['project']='unrelated'
+   tcp.reset_mock();result=diagnostics.sample();self.assertEqual(tcp.call_count,0)
+ def test_startup_observer_preserves_evidence_before_cli_cleanup(self):
+  from unittest.mock import patch
+  watcher=diagnostics.StartupObserver()
+  samples=[{'networkInternal':True,'services':{'db':{'observed':True,'health':'healthy'}}},
+           {'networkInternal':True,'services':{'db':{'observed':False}}}]
+  class Event:
+   def __init__(self):self.n=0
+   def is_set(self):return False
+   def wait(self,seconds):
+    self.n+=1
+    return self.n==2
+  watcher.event=Event()
+  with patch.object(diagnostics,'sample',side_effect=samples):watcher.watch()
+  self.assertEqual(watcher.summary['samples'],2)
+  self.assertFalse(watcher.summary['latest']['services']['db']['observed'])
+  self.assertEqual(watcher.summary['lastObserved']['db']['health'],'healthy')
  def test_history_is_unique_and_ordered(self):
   files,hashes=module.inventory(ROOT)
   self.assertEqual(files[-1].name,'20261014225500_v3_232_scoped_booking_close_revision.sql')

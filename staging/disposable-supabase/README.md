@@ -46,3 +46,29 @@ node --check scripts/disposable-supabase/integration.mjs
 The runtime orchestrator deliberately refuses ordinary local invocation and arbitrary database URLs. It requires the reviewed GitHub-hosted runner context and exact commit. Do not remove those controls to run it locally. A separately reviewed local runner mode could be added later if necessary.
 
 After a successful approved rehearsal, review the generated migration artifact and commit a correctly generated migration as a **separate** reviewed change. This workflow never pushes changes or adopts a CI fixture as a production baseline. Existing hosted schema provenance remains an explicit integration dependency.
+
+## Startup refusal investigation and bounded diagnostics
+
+Rehearsal #8 at be82df34baf6c08397c8d96f98e7a75c642e58f2 failed at isolated-stack-start in supabase-local-start with exit 1 and connection-refused. This does not identify a service or prove that network isolation caused it. Raw output was intentionally not published and was removed during cleanup. No database migration result is established.
+
+Reviewed upstream CLI 2.54.11 sources:
+- https://github.com/supabase/cli/blob/v2.54.11/internal/db/start/start.go — Postgres publishes configured host port 54322 to container 5432; native pg_isready probes container loopback with a 120-second readiness budget. SetupLocalDatabase then opens a runner-side Postgres connection before applying service schema initialisation.
+- https://github.com/supabase/cli/blob/v2.54.11/internal/utils/connect.go — ConnectLocalPostgres uses the configured hostname and published database port.
+- https://github.com/supabase/cli/blob/v2.54.11/internal/status/status.go — PostgREST readiness is checked through the API gateway at /rest-admin/v1/ready, not with a native container health check.
+- https://github.com/supabase/cli/blob/v2.54.11/internal/start/start.go — start removes project containers when startup fails. Sampling only after CLI exit can miss the failing service.
+- https://docs.docker.com/reference/cli/docker/network/create/#network-internal-mode---internal — internal networks allow same-network communication and host-to-container-IP access while blocking other networks. This does not establish that published-loopback forwarding works in this particular runner/Docker configuration.
+
+A bounded observer now runs only during the already approved start command. It inspects six fixed project container names and the internal-network flag, samples only the fixed runner loopback ports and verified project-internal container addresses for Postgres/API gateway, and records allowlisted status/health/port-binding booleans and TCP categories. It does not fetch raw service logs, print Docker environments, change networking, create containers, issue SQL, or call external hosts. All subprocess and TCP probes have short timeouts; the observer stops before migrations proceed.
+
+The failure report includes latest observations plus lastObserved per service, because CLI cleanup may already have removed it. Sample numbers identify observation order; lastObserved entries can be from different times, and brief services may be missed. Native health status and TCP results are observations, not a causal verdict. No result means unobserved, not healthy.
+
+Interpretation for a separately approved future run:
+- Runner published Postgres refused, direct internal Postgres open, native DB healthy: evidence of a published-port/host-path discrepancy; investigate Docker forwarding/bindings without granting container egress.
+- Native DB unhealthy or both paths refused: investigate local Postgres readiness/listening/startup first; this alone does not prove a firewall fault.
+- Published API gateway refused with /rest-admin/v1/ready evidence: investigate Kong publication/readiness before attributing failure to PostgREST.
+- Service healthy but container-to-Postgres refusal category: inspect same-network membership and service startup ordering.
+- No classified endpoint: retain uncertainty. CLI phase markers and service observations narrow the next investigation without disclosing raw output.
+
+Refused endpoint categories are extracted only from lines containing connection refused and recognised local endpoint literals. Unknown targets become a fixed unclassified category; no addresses, credentials, row data or arbitrary error text are republished. A marker may be incidental/transient and does not prove it caused the final exit.
+
+No startup workaround, ignored health check, CLI upgrade, external network attachment or increased retry budget is introduced. The workflow and all manual/source/environment approvals remain unchanged. This commit needs renewed exact-SHA source approval before any separately authorised execution. No run is performed by preparation or offline validation.

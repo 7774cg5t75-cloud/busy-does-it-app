@@ -1,5 +1,6 @@
 """Manual-only GitHub-hosted disposable rehearsal. Never accepts a database URL."""
 import hashlib,json,os,pathlib,re,shutil,subprocess,time
+from startup_diagnostics import StartupObserver,cli_evidence
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 PROJECT='busy-disposable-review'; NETWORK='busy-db-review-internal'
 DB='supabase_db_'+PROJECT
@@ -60,13 +61,19 @@ def main():
     stage='initialise'
     def save(): (work/'report.json').write_text(json.dumps(report,indent=2)+'\n')
     def run(args,stdin=None,timeout=240):
+        observer=StartupObserver() if command_label(args)=='supabase-local-start' else None
         def record_failure(exit_code=None,stdout='',stderr='',kind='exit'):
             private=work/'failure-private.log'
             raw='\n'.join(x.decode(errors='replace') if isinstance(x,bytes) else (x or '') for x in (stdout,stderr))
             fd=os.open(private,os.O_WRONLY|os.O_CREAT|os.O_TRUNC,0o600)
             with os.fdopen(fd,'w') as handle: handle.write(raw)
             report['failedCommand']=failure_details(args,stage,exit_code,stdout,stderr,kind)
+            if observer:
+                observer.stop()
+                report['failedCommand']['startupObservations']=observer.summary
+                report['failedCommand']['cliEvidence']=cli_evidence(stdout,stderr)
             save()
+        if observer:observer.start()
         try:
             result=subprocess.run(args,input=stdin,text=True,cwd=work,capture_output=True,timeout=timeout)
         except subprocess.TimeoutExpired as exc:
@@ -75,6 +82,8 @@ def main():
         except OSError:
             record_failure(kind='launch-error')
             raise RuntimeError('Local command could not start; see sanitised report') from None
+        finally:
+            if observer:observer.stop()
         if result.returncode:
             record_failure(result.returncode,result.stdout,result.stderr)
             raise RuntimeError('Local command failed; see sanitised report')
