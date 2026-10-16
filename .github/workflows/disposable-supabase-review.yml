@@ -1,0 +1,67 @@
+name: Approval-controlled disposable Supabase rehearsal (DRAFT)
+on:
+  workflow_dispatch:
+    inputs:
+      approved_sha:
+        description: Exact reviewed commit SHA (no branch names)
+        required: true
+        type: string
+      approval:
+        description: Enter APPROVE_DISPOSABLE_TEST_ONLY after reviewing usage and source
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: busy-disposable-database-review
+  cancel-in-progress: false
+jobs:
+  rehearse:
+    # No push, PR, schedule or workflow_run trigger. Missing approval vars skip.
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == '7774cg5t75-cloud/busy-does-it-app' &&
+      github.event.repository.private == false &&
+      inputs.approval == 'APPROVE_DISPOSABLE_TEST_ONLY' &&
+      inputs.approved_sha == github.sha &&
+      vars.BUSY_DB_REHEARSAL_ENABLED == 'approved' &&
+      vars.BUSY_DB_REHEARSAL_APPROVED_SHA == github.sha
+    environment: busy-disposable-db-review
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      CI: 'true'
+      BUSY_DISPOSABLE_APPROVAL: APPROVE_DISPOSABLE_TEST_ONLY
+      BUSY_APPROVED_SHA: ${{ inputs.approved_sha }}
+      BUSY_DB_WORKDIR: ${{ runner.temp }}/busy-db-rehearsal
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22.14.0
+      - uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # reviewed v1
+        with:
+          version: 2.54.11
+      - name: Prepare and execute local-only rehearsal
+        run: python3 scripts/disposable-supabase/rehearse.py
+      - name: Report evidence even when a stage fails
+        if: always()
+        run: python3 scripts/disposable-supabase/report.py
+      - name: Destroy disposable containers and data
+        if: always()
+        run: |
+          cleanup_status=0
+          if [ -f "$BUSY_DB_WORKDIR/supabase/config.toml" ]; then
+            cd "$BUSY_DB_WORKDIR"
+            supabase stop --no-backup || cleanup_status=1
+          fi
+          if docker network inspect busy-db-review-internal >/dev/null 2>&1; then
+            docker network rm busy-db-review-internal || cleanup_status=1
+          fi
+          rm -f "$BUSY_DB_WORKDIR/local-status.json" "$BUSY_DB_WORKDIR/failure-private.log"
+          exit "$cleanup_status"
+# No project token, secrets, cloud project ref, linked project, deploy, db push,
+# build, provider call, artifact storage, workflow dispatch or repository write.
