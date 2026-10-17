@@ -99,3 +99,32 @@ Offline validation (all Docker, sockets and waits are mocked):
     python3 scripts/disposable-supabase/check-postgres-control.py
     python3 scripts/disposable-supabase/check-draft.py
     actionlint .github/workflows/disposable-supabase-review.yml
+
+## Internal-only Docker published-port correction
+
+PostgreSQL-only control #10 at 8e12b8a5ff72645dfb2f3255dcc67309119ad6b8 confirmed healthy PostgreSQL, pg_isready success and direct runner access while Docker retained one requested localhost binding but created zero effective bindings. Published localhost access was refused; the container remained healthy without OOM and cleanup succeeded. This verifies a publication-path failure, not a PostgreSQL startup failure.
+
+The symptom matches https://github.com/moby/moby/discussions/53256, reported on different Docker/OS versions. This is corroborating evidence, not a claim that every Docker version behaves identically. The discussion's second, noninternal-network workaround is deliberately not used.
+
+The approved rehearsal now creates only two host-side forwards, before Supabase CLI startup:
+- 127.0.0.1:54322 -> verified supabase_db_busy-disposable-review internal address:5432.
+- 127.0.0.1:54321 -> verified supabase_kong_busy-disposable-review internal address:8000.
+
+Before each upstream connection, local_proxy.py verifies the original network ID, Internal=true, the fixed project/container name and project label, running state, sole-network membership and matching NetworkID, and a private IPv4 address within that network's IPAM subnet. Each service container ID is pinned after first use; replacement is rejected. Destinations and ports are fixed in reviewed source, not chosen by clients, payloads or workflow inputs.
+
+Listeners accept loopback clients only. The implementation is a bounded TCP byte forwarder, not a generic HTTP CONNECT/SOCKS proxy. No container network, external route, firewall setting or permission is changed. Docker inspection is read-only. At most 16 concurrent sessions share the two listeners, with bounded buffers, partial-write handling and TCP half-close support. Payloads, credentials and arbitrary errors are never logged; the existing public report adds fixed policy labels and connection counters only.
+
+Both listeners and active sessions are closed in the rehearsal finally block, on success or failure, before the existing Docker cleanup step. They live inside the rehearsal process, so terminating that process leaves no separate proxy process running. Port conflicts fail startup without stealing a port or changing network policy. If a future Docker version creates native bindings again, they may conflict with the reserved proxy ports; that requires a separately reviewed compatibility change.
+
+All workflow gates, exact-SHA checks, protected environment, pinned CLI/actions, real database tests, historical migrations and isolation/health assertions remain unchanged. The PostgreSQL-only control remains an unproxied baseline. Observer runnerLoopback=open now indicates a listening proxy, not upstream readiness: CLI schema initialisation, API readiness and real Auth/PostgREST tests still establish actual service readiness.
+
+Offline validation:
+    python3 scripts/disposable-supabase/check-local-proxy.py
+    python3 scripts/disposable-supabase/check-draft.py
+    python3 scripts/disposable-supabase/check-postgres-control.py
+
+The new proxy tests mock Docker/listeners and use a deterministic binary-stream model for partial writes, bounded buffering and half-close. They need no external downloads or network access. Security cases cover unrelated projects, extra/replaced networks, invalid/out-of-subnet addresses, replaced containers, nonloopback clients, occupied ports, concurrency limits and cleanup. Existing startup-failure tests verify proxy start/stop and sanitised reporting integration.
+
+After separate owner approval of the new exact SHA, the minimum next test is one manual mode=rehearse dispatch at codex/disposable-supabase-review with the input SHA and BUSY_DB_REHEARSAL_APPROVED_SHA both matching that commit, BUSY_DB_REHEARSAL_ENABLED=approved, the existing approval phrase and protected-environment approval. It should show forwarding for both services and CLI startup/schema/API readiness passing while containers remain solely on the internal network. Later migration/fixture failures must be assessed separately; this correction does not claim those tests already pass.
+
+No workflow run, hosted Supabase access, setting change, merge, deployment or additional external spending is performed by preparation. Unrelated Website Builder and App Builder work remains unblocked.

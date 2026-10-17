@@ -36,11 +36,14 @@ class DraftTests(unittest.TestCase):
      output=''
      if args[0]=='git':output=sha
      elif args==['supabase','--version']:output='2.54.11'
-     elif args==['docker','network','inspect',module.NETWORK]:output='[{"Internal":true}]'
+     elif args==['docker','network','inspect',module.NETWORK]:output='[{"Internal":true,"Id":"test-network"}]'
      return subprocess.CompletedProcess(args,0,output,'')
-    with patch.dict(os.environ,env,clear=True),patch.object(module.subprocess,'run',side_effect=fake),patch.object(module,'StartupObserver') as observer:
+    with patch.dict(os.environ,env,clear=True),patch.object(module.subprocess,'run',side_effect=fake),patch.object(module,'StartupObserver') as observer,patch.object(module,'LocalProxyPair') as proxies:
+     proxies.return_value.summary.return_value={'listeners':'ipv4-loopback-only'}
      observer.return_value.summary={'samples':0,'latest':{},'lastObserved':{},'observerError':False}
      with self.assertRaisesRegex(SystemExit,'isolated-stack-start'):module.main()
+     proxies.return_value.start.assert_called_once()
+     proxies.return_value.stop.assert_called_once()
      report=json.loads((work/'report.json').read_text())
      self.assertEqual(report['failedCommand']['command'],'supabase-local-start')
      self.assertEqual(report['failedCommand']['failureKind'],kind)

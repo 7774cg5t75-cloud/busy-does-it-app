@@ -1,6 +1,7 @@
 """Manual-only GitHub-hosted disposable rehearsal. Never accepts a database URL."""
 import hashlib,json,os,pathlib,re,shutil,subprocess,time
 from startup_diagnostics import StartupObserver,cli_evidence
+from local_proxy import LocalProxyPair
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 PROJECT='busy-disposable-review'; NETWORK='busy-db-review-internal'
 DB='supabase_db_'+PROJECT
@@ -59,6 +60,7 @@ def main():
     report={'source':os.environ['GITHUB_SHA'],'scope':'disposable local Supabase; fictional accounts only','stages':[],
             'limitations':['Not hosted Supabase or production verification','Business-core baseline is an explicit CI compatibility fixture','Full Edge HTTP routes and native/browser journeys require separate acceptance']}
     stage='initialise'
+    proxy=None
     def save(): (work/'report.json').write_text(json.dumps(report,indent=2)+'\n')
     def run(args,stdin=None,timeout=240):
         observer=StartupObserver() if command_label(args)=='supabase-local-start' else None
@@ -108,6 +110,9 @@ def main():
         run(['docker','network','create','--internal',NETWORK])
         network=json.loads(run(['docker','network','inspect',NETWORK]))[0]
         assert network['Internal'] is True
+        stage='isolated-loopback-proxy'
+        proxy=LocalProxyPair(network['Id'])
+        proxy.start()
         # Empty migration directory: historical cron never starts before egress isolation.
         stage='isolated-stack-start'
         run(['supabase','--network-id',NETWORK,'start'],timeout=900)
@@ -192,5 +197,16 @@ def main():
         if progress.exists(): report['integrationProgress']=json.loads(progress.read_text())
         report['result']='failed';report['stages'].append({'stage':stage,'result':'failed','reason':type(exc).__name__});save()
         raise SystemExit('Disposable rehearsal failed at '+stage+'; see report summary') from None
+
+    finally:
+        if proxy:
+            try:
+                proxy.stop()
+            except RuntimeError:
+                report['result']='failed'
+                raise SystemExit('Local proxy cleanup failed') from None
+            finally:
+                report['localProxy']=proxy.summary()
+                save()
 
 if __name__=='__main__': main()
