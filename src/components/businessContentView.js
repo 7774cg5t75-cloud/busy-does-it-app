@@ -1,14 +1,15 @@
 import React from 'react';
 import {View,Text,Image,TextInput,Pressable,useWindowDimensions,Linking} from 'react-native';
-import {selectBusinessContent,contentPrice} from '../core/businessContentRecords.mjs';
+import {selectBusinessContent,contentPrice,prepareBusinessContentEnquiry} from '../core/businessContentRecords.mjs';
 function BusinessContentView({feed,kind,layout='cards',title,onInterest,featuredId='',colors={text:'#16253a',muted:'#46556a',surface:'#fff',line:'#8b93a3'}}){
  const [query,setQuery]=React.useState(''),[category,setCategory]=React.useState(''),[selected,setSelected]=React.useState(''),[notice,setNotice]=React.useState(''),[pageSize,setPageSize]=React.useState(12),[categoryCount,setCategoryCount]=React.useState(8);
  const width=useWindowDimensions().width;
+ const [options,setOptions]=React.useState({});
  const rows=selectBusinessContent(feed,{kind,query,category});
  if(featuredId){const index=rows.findIndex(r=>r.id===featuredId);if(index>0)rows.unshift(...rows.splice(index,1));}
  const categories=[...new Set(selectBusinessContent(feed,{kind}).map(r=>r.data.category).filter(Boolean))];
  const detail=rows.find(r=>r.id===selected),visible=detail?[detail]:rows.slice(0,pageSize);
- const button=(label,onPress)=><Pressable accessibilityRole="button" onPress={onPress} style={{padding:12,minHeight:48,borderWidth:1,borderColor:colors.line,borderRadius:8,marginVertical:4}}><Text style={{color:colors.text}}>{label}</Text></Pressable>;
+ const button=(label,onPress,selected)=><Pressable accessibilityRole="button" accessibilityState={typeof selected==='boolean'?{selected}:undefined} onPress={onPress} style={{padding:12,minHeight:48,borderWidth:1,borderColor:colors.line,borderRadius:8,marginVertical:4}}><Text style={{color:colors.text}}>{label}</Text></Pressable>;
  return <View style={{padding:12,backgroundColor:colors.surface,borderRadius:12,marginVertical:10}}>
   <Text style={{fontSize:23,fontWeight:'700',color:colors.text}}>{title|| (kind==='event'?'Upcoming events':'Products')}</Text>
   <Text style={{color:colors.muted,marginVertical:8}}>{feed?.ok?'Approved information checked '+feed.checkedAt:'Current approved information is unavailable.'}</Text>
@@ -22,12 +23,12 @@ function BusinessContentView({feed,kind,layout='cards',title,onInterest,featured
     <Text style={{fontSize:19,fontWeight:'700',color:colors.text}}>{data.name}</Text>
     <Text style={{color:colors.muted,marginTop:6}}>{data.category}</Text>
     <Text style={{color:colors.text,marginTop:6}}>{detail?data.description:data.description.slice(0,180)}</Text>
-    {kind==='product'?<><Text style={{fontWeight:'700',color:colors.text,marginTop:8}}>{contentPrice(data.amountMinor,data.currency)}</Text><Text style={{color:colors.muted}}>Availability: {data.availability.replaceAll('_',' ')}. No stock reservation or checkout.</Text>{detail?(data.variants||[]).map(v=><Text key={v.id} style={{color:colors.text}}>{v.label+' • '+contentPrice(v.amountMinor,data.currency)+(v.sku?' • '+v.sku:'')}</Text>):null}</>:<>
+    {kind==='product'?<><Text style={{fontWeight:'700',color:colors.text,marginTop:8}}>{contentPrice(data.amountMinor,data.currency)}</Text><Text style={{color:colors.muted}}>Availability: {data.availability.replaceAll('_',' ')}. No stock reservation or checkout.</Text>{detail&&data.variants?.length?button('Standard option • '+contentPrice(data.amountMinor,data.currency),()=>setOptions(x=>({...x,[row.id]:''})),!options[row.id]):null}{detail?(data.variants||[]).map(v=><View key={v.id}>{button((options[row.id]===v.id?'✓ ':'')+v.label+' • '+contentPrice(v.amountMinor,data.currency)+(v.sku?' • '+v.sku:''),()=>setOptions(x=>({...x,[row.id]:v.id})),options[row.id]===v.id)}</View>):null}</>:<>
       <Text style={{color:data.status==='cancelled'?'#a32121':colors.text,fontWeight:'700'}}>{data.status==='cancelled'?'Cancelled':new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short',timeZone:data.timeZone}).format(new Date(data.startsAt))+' • '+data.timeZone}</Text>
       <Text style={{color:colors.muted}}>{data.location||'Online event'}</Text><Text style={{color:colors.muted}}>An event listing does not confirm attendance.</Text>{data.onlineUrl?button('Open public event information',()=>Linking.openURL(data.onlineUrl).catch(()=>setNotice('The event link could not be opened.'))):null}
     </>}
     {!detail?button('View '+data.name,()=>setSelected(row.id)):null}
-    {onInterest&&data.status!=='cancelled'?button('Ask about '+data.name,()=>onInterest((kind==='product'?'Product: ':'Event: ')+data.name)):null}
+    {onInterest&&data.status!=='cancelled'?button('Ask about '+data.name,()=>{const prepared=prepareBusinessContentEnquiry(feed,feed?.businessId,{recordId:row.id,revision:row.revision,...options[row.id]?{variantId:options[row.id]}:{}});if(prepared.ok)onInterest(prepared.service,prepared);else setNotice(prepared.reason);}):null}
    </View>;})}
   </View>
   {!detail&&rows.length>pageSize?button('Show more '+(kind==='product'?'products':'events'),()=>setPageSize(x=>x+12)):null}

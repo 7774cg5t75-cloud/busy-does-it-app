@@ -1,3 +1,4 @@
+import {inspectCapabilityIntent} from './universalBuilderPlanV3210.mjs';
 /**
  * V3.153 — business-specific recommendation for functional mini-app modules.
  * Pure planner: reads the currently available server-owned module catalogue.
@@ -19,13 +20,8 @@ function planFunctionalBusinessApp({businessType="",businessName="",businessGoal
  // Goals are read as evidence of desired CUSTOMER actions, not authority to
  // enable paid, unavailable, unapproved or unimplemented features.
  const goal=String(businessGoals).slice(0,600).toLowerCase();
- const signals={
-  booking:/book|appointment|schedule|reserve|availability|slot/.test(goal),
-  gallery:/photo|picture|image|gallery|portfolio|our work|examples/.test(goal),
-  enquiry:/enquir|inquir|request a quote|message|contact|ask a question/.test(goal),
-  events:/festival|event|gig|ticket/.test(goal),
-  offers:/offer|promotion|special deal|discount/.test(goal)
- };
+ const intent=inspectCapabilityIntent(goal),wanted=new Set(intent.requested),declined=new Set(intent.declined);
+ const signals={booking:wanted.has('booking_request'),gallery:wanted.has('gallery'),enquiry:wanted.has('enquiry'),events:wanted.has('events'),offers:wanted.has('offers')};
  const category=categories.find(([name,re])=>re.test(businessType))?.[0]||"other";
  const available=new Map((Array.isArray(catalog)?catalog:[])
   .filter(x=>x?.status==="available"&&typeof x.module_key==="string")
@@ -67,11 +63,13 @@ function planFunctionalBusinessApp({businessType="",businessName="",businessGoal
    (key==="offers"&&signals.offers&&approvedOffers);
   const ownerData=key==="gallery"?approvedPhotos.length>0:
    key==="offers"?approvedOffers:true;
+  const explicitlyDeclined=declined.has(key);
   return {key,title:row.title||key,available:true,
-   suggested:requested&&ownerData,
+   suggested:requested&&ownerData&&!explicitlyDeclined,
+   explicitlyDeclined,
    actionCapability:row.capabilities?.customer_action===true,
    needsBusinessConfirmation:key==="booking_request",
-   reason:key==="booking_request"?
+   reason:explicitlyDeclined?"You asked not to include this action; BUSY will not recommend enabling it.":key==="booking_request"?
     "Customers may request a booking; the business must still confirm it.":
     key==="offers"?"Show only offers with accurate, owner-approved terms.":
     key==="enquiry"?"A tracked enquiry needs verified submission and owner follow-up, not just a Contact link.":
@@ -99,7 +97,7 @@ function planFunctionalBusinessApp({businessType="",businessName="",businessGoal
   layoutReason:category==="other"?
    "BUSY chose a simple starting point until the business purpose is clearer.":
    "BUSY considered this "+category+" business, customer goals and available features.",
-  missingOwnerFacts,
+  missingOwnerFacts,declinedCapabilities:intent.declined,needsClarification:intent.conflicts.length>0,conflictingCapabilities:intent.conflicts,
   suggestedModules:suggestions,visibleModuleKeys:suggestions.map(x=>x.key),
   understoodGoals:Object.entries(signals).filter(([,yes])=>yes).map(([key])=>key),
   unavailableGoalCapabilities:[

@@ -1,3 +1,13 @@
+## Mission 12 — connected builders and reviewable customer enquiries (17 October 2026)
+
+Continues PR #21 at `55db12d247b149aa2052fc17f5d5dc536a77b8a7` on separate dependent draft PR #23. Owner-supplied full Product Master V22.24 is verified; private Word content remains outside Git. Five connected areas improve the existing systems: reviewed product/event/option enquiry context through public links, sign-in and saved requests; guided contact/FAQ preparation and atomic typed/voice FAQ edits in App Studio; explicitly opted-in additive answer reuse between builders; one shared capability-intent policy respecting exclusions and contradictions; and exact saved-record approval plus bounded navigation/uncertainty recovery. The actual website approval controller now applies its reviewed information sections.
+
+Sixteen focused scripts pass, seven new; two inherited scripts remain blocked by absent Babel packages. Complete syntax checks cover eight JSX files, 27 .mjs files and two Edge entry points. New tests execute real function/handler bodies with inert boundaries; they do not prove native rendering, deployed Edge HTTP, hosted JWT/RLS or release readiness. The nine-stage rehearsal remains proof only for its original exact commit. No workflow, deployment, hosted database access, schema change, customer send or additional spending. See [Mission 12 delivery](docs/BUILDER_MISSION12_2026_10_17.md), [checks/source hashes](docs/BUILDER_MISSION12_CHECKS_2026_10_17.json) and [focused architecture health](docs/ARCHITECTURE_HEALTH_MISSION12_2026_10_17.md).
+
+## Historical Mission 12 preflight and completed disposable rehearsal — 17 October 2026
+
+Manual rehearsal #15 passed all nine stages and cleanup at `55db12d247b149aa2052fc17f5d5dc536a77b8a7`. This establishes the reported disposable local database scope, not hosted/device or production readiness. At this initial checkpoint Mission 12 had a separate dependent draft branch and no product changes. The then-pending private-master gate has since been satisfied by the supplied V22.24 document; see the current Mission 12 delivery entry above. See [Mission 12 preflight](docs/BUILDER_MISSION12_PREFLIGHT_2026_10_17.md) for exact dependencies, source observations, evidence and limits.
+
 ## Builder Mission 6 — source-bound recovery and useful content completion (2026-10-15)
 
 - Integration review also repaired an inherited render-time `cloudWorkspace` declaration-order defect. A new immediate-reference audit and executed scope-initialisation regression catches it; the final offline suite is 130/130, without native/staging verification.
@@ -1162,3 +1172,4 @@ These layers describe the intended direction. Their presence in this document **
 - `busy-production-watch` is an independent scheduled observer over the cloud business snapshot. It emits only a narrow trusted set of notifications and records a durable delivery key before future runs can resend the same event.
 - `busy_push_deliveries` and `busy_internal_config` are server-only tables. The cron authentication token never enters the mobile client.
 - `.github/workflows/eas-link.yml` performs the one-time Expo account link when an EXPO_TOKEN secret exists. `native-development-build.yml` queues the development build after project linking/signing is available.
+

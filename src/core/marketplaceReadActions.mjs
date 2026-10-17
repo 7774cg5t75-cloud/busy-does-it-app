@@ -1,3 +1,4 @@
+import {prepareBusinessContentEnquiry} from './businessContentRecords.mjs';
 // Lifecycle adapter for the existing authenticated marketplace endpoints.
 // Owner identity comes from the controller's existing authenticated scope token.
 // Latest-result lanes hold no customer payload and never repeat a mutation.
@@ -29,13 +30,14 @@ function createMarketplaceReadActions(getContext){
   }catch(error){if(current(t))c.setMiniAppsError(error?.message||'BUSY could not search the app marketplace.');return false;}
   finally{if(current(t))c.setBusyAppsSearching(false);finish(t);}
  }
- async function openBusyAppDetail(slug,source='marketplace',intent=''){
+ async function openBusyAppDetail(slug,source='marketplace',intent='',contentInterest=null){
   if(!slug)return false;const t=begin('detail');if(!t)return false;const c=getContext();c.setMiniAppsAction(`open:${slug}`);c.setMiniAppsError('');
   try{
    const data=await c.request('app_detail',{slug,source},{includeBusiness:false,isCurrent:()=>current(t)});
    if(!current(t))return false;
    if(data?.app?.slug!==slug||!data?.app?.id||!data?.version?.id)throw Error('The returned Business App did not match the selected app.');
-   c.setSelectedBusyAppDetail({...data,entryIntent:['enquiry','booking_request'].includes(String(intent||''))?String(intent):''});
+   const prepared=contentInterest?prepareBusinessContentEnquiry(data.businessContent,data.app.business_id,contentInterest):null;
+   c.setSelectedBusyAppDetail({...data,entryContentInterest:prepared?.ok?prepared:null,entryContentNotice:prepared&&!prepared.ok?prepared.reason:'',entryIntent:['enquiry','booking_request'].includes(String(intent||''))?String(intent):''});
    c.go('busyAppDetail');
    // Defer the optional read using the same owner token; never refresh a later account.
    c.schedule(()=>{if(current(t))void loadMyBusyApps({quiet:true});},80);

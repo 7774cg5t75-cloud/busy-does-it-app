@@ -3,7 +3,7 @@
  * existing website's content. Finite operations, exact reviewed evidence,
  * no background sync, auto publishing, paid provider calls or live writes.
  */
-import {publicCollection} from './appPublicCollections.mjs';
+import {publicCollection,mergeMissingPublicCollection} from './appPublicCollections.mjs';
 import {websiteDraftHasScope} from './websiteDraftScope.mjs';
 import {editWebsiteDraftField} from './websiteStructuredEditing.mjs';
 import {validPrivateBuilderPair,reviewedPairIsCurrent}
@@ -20,8 +20,8 @@ const A2W_TYPE=Object.freeze({
 });
 const A2W_LAYOUT=Object.freeze({cards:"cards",rows:"rows",spotlight:"outlines"});
 function planAppToWebsiteDesign({website,app,businessId,mode="adapt",
- includeServices=false,includeDesign=true,includePublicInformation=false}={}){
- if(!["match","adapt","new"].includes(mode)||typeof includeServices!=="boolean"||typeof includeDesign!=="boolean"||typeof includePublicInformation!=="boolean")
+ includeServices=false,includeDesign=true,includePublicInformation=false,includeMissingAnswers=false}={}){
+ if(!["match","adapt","new"].includes(mode)||typeof includeServices!=="boolean"||typeof includeDesign!=="boolean"||typeof includePublicInformation!=="boolean"||typeof includeMissingAnswers!=="boolean")
   return {ok:false,reason:"Choose a supported branding approach."};
  if(!validPrivateBuilderPair(website,app,businessId)||
    (website.business_id&&website.business_id!==businessId)||
@@ -80,10 +80,13 @@ function planAppToWebsiteDesign({website,app,businessId,mode="adapt",
  let informationCount=0;
  if(includePublicInformation){
   for(const [field,type,a,b] of [['faqs','faq','question','answer'],['testimonials','testimonials','attribution','text']]){
-   if(preview.sections.some(s=>s?.id===type||s?.type===type)){skipped.push('Kept the existing website '+type+' section.');continue;}
-   const value=publicCollection(field,app.draft_config.publicProfile?.[field]||[]);
+   const sections=preview.sections.filter(s=>s?.id===type||s?.type===type);
+   const section=sections[0];
+   if(sections.length&&(field!=='faqs'||!includeMissingAnswers||sections.length!==1||section.id!==type||section.type!==type||section.enabled===false||!Array.isArray(section.items))){skipped.push('Kept the existing website '+type+' section.');continue;}
+   let value=publicCollection(field,app.draft_config.publicProfile?.[field]||[]);
+   if(section){const existing=section.items.map(row=>({...(row.id?{id:row.id}:{}),[a]:row.title,[b]:row.body}));const merged=mergeMissingPublicCollection(field,existing,value);if(!merged.ok){skipped.push(merged.reason);continue;}if(merged.conflicts.length)skipped.push('Kept '+merged.conflicts.length+' conflicting website answers for owner review.');value=merged.added;}
    for(let i=0;i<value.length;i++){
-    const row=value[i],result=editWebsiteDraftField(preview,{action:i?'add-item':'create-collection',sectionId:type,title:row[a],body:row[b]});
+    const row=value[i],result=editWebsiteDraftField(preview,{action:section||i?'add-item':'create-collection',sectionId:type,title:row[a],body:row[b]});
     if(!result.applied)return {ok:false,reason:result.reason};
     preview=result.draft;informationCount++;
    }
@@ -100,10 +103,10 @@ function planAppToWebsiteDesign({website,app,businessId,mode="adapt",
  ];
  const evidence={operations:operations.map(x=>({...x})),
   copiedServices:servicePlan?servicePlan.added.map(x=>({...x})):[],
-  copiedInformation:informationCount?preview.sections.filter(s=>['faq','testimonials'].includes(s.type)&&!website.sections.some(old=>old.id===s.id)):[]};
+  copiedInformation:informationCount?preview.sections.filter(s=>['faq','testimonials'].includes(s.type)&&JSON.stringify(s)!==JSON.stringify(website.sections.find(old=>old.id===s.id))):[]};
  return {...base,operations:evidence.operations,
   addedServices:evidence.copiedServices,
-  serviceCopyCount:servicePlan?.addedCount||0,includeServices,includeDesign,includePublicInformation,informationCount,
+  serviceCopyCount:servicePlan?.addedCount||0,includeServices,includeDesign,includePublicInformation,includeMissingAnswers,informationCount,
   changes:changes,explanations:reasons,skipped,
   proposedDraft:preview,exactReview:JSON.stringify(evidence),
   draftPreviewOnly:true};
@@ -115,7 +118,7 @@ function confirmAppToWebsiteDesign({website,app,businessId,evidence}={}){
  }))
   return {ok:false,reason:"An app, website or business selection has changed. Review it again."};
  const now=planAppToWebsiteDesign({website,app,businessId,
-  mode:evidence?.mode,includeServices:evidence?.includeServices,includeDesign:evidence?.includeDesign!==false,includePublicInformation:evidence?.includePublicInformation===true});
+  mode:evidence?.mode,includeServices:evidence?.includeServices,includeDesign:evidence?.includeDesign!==false,includePublicInformation:evidence?.includePublicInformation===true,includeMissingAnswers:evidence?.includeMissingAnswers===true});
  if(!now.ok||now.exactReview!==evidence.exactReview||
     JSON.stringify(now.operations)!==JSON.stringify(evidence.operations)||
     JSON.stringify(now.addedServices)!==JSON.stringify(evidence.addedServices))

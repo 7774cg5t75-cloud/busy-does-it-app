@@ -10,13 +10,14 @@ function AppToWebsiteDesignTransfer({website,app,businessId,onApply}){
  const [mode,setMode]=React.useState("adapt");
  const [withServices,setWithServices]=React.useState(false);
  const [includeDesign,setIncludeDesign]=React.useState(true),[includePublicInformation,setIncludePublicInformation]=React.useState(false);
+ const [includeMissingAnswers,setIncludeMissingAnswers]=React.useState(false);
  const [review,setReview]=React.useState(null);
  const [notice,setNotice]=React.useState("");
  React.useEffect(()=>{setReview(null);setNotice("");},
   [website?.id,website?.generation,app?.id,app?.draft_revision,businessId]);
  if(!website?.id||!app?.id||!businessId)return null;
  const plan=planAppToWebsiteDesign({website,app,businessId,
-  mode,includeServices:withServices,includeDesign,includePublicInformation});
+  mode,includeServices:withServices,includeDesign,includePublicInformation,includeMissingAnswers});
  return <Card eyebrow="Make your website feel like your app"
   title="Reuse my Business App's design"
   body="Carry across selected design choices as one private website edit. Never automatically overwrite your existing website or publish changes."
@@ -44,6 +45,7 @@ function AppToWebsiteDesignTransfer({website,app,businessId,onApply}){
     </Text>:plan.ok?<Button label="Review exact website changes"
      onPress={()=>{setReview({...plan});setNotice("");}}/>:
      <Text style={styles.cardBody}>{plan.reason}</Text>}
+    {includePublicInformation&&mode!=="new"?<Button label={(includeMissingAnswers?'✓ ':'')+'Also add missing answers to an existing FAQ — keep my wording'} onPress={()=>{setIncludeMissingAnswers(x=>!x);setReview(null);setNotice('');}}/>:null}
     {review?<View style={{gap:5}}>
      <Text style={styles.sectionLabel}>Everything that will change</Text>
      {review.changes.map((line,i)=><Text key={i} style={styles.cardBody}>

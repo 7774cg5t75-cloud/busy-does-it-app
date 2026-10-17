@@ -1,4 +1,4 @@
-import {validContentLayout} from '../core/businessContentRecords.mjs';
+import {validContentLayout,prepareBusinessContentEnquiry} from '../core/businessContentRecords.mjs';
 import {proposeCoordinatedAppChanges as proposeContentComposition} from '../core/appCoordinatedStudio.mjs';
 import {BusinessContentView} from '../components/businessContentView';
 import {BusinessContentEditor} from './businessContentEditor';
@@ -251,6 +251,7 @@ function MiniAppSurface({
   onQualityObservation = null,
   onMeasuredWidth = null,
   onSelectService = null,
+  onSelectContent = null,
   businessContent = null,
 }) {
   const profile = config?.publicProfile || {};
@@ -375,7 +376,7 @@ function MiniAppSurface({
               footer={profile.differentiators || ""}
               tone="blue"
             />
-            {(validContentLayout(config.contentLayout)?config.contentLayout:[]).map(block=><BusinessContentView key={block.kind} feed={businessContent} colors={brandColours} {...block} onInterest={interactive&&modules.some(m=>m.key==='enquiry')?onSelectService:null}/>)}
+            {(validContentLayout(config.contentLayout)?config.contentLayout:[]).map(block=><BusinessContentView key={block.kind} feed={businessContent} colors={brandColours} {...block} onInterest={interactive&&modules.some(m=>m.key==='enquiry')?(onSelectContent||onSelectService):null}/>)}
             {['faqs','testimonials'].map(field=>publicCollection(field,profile[field]||[]).map((row,i)=><Card key={field+i}
               eyebrow={field==='faqs'?'Customer question':'Customer testimonial'}
               title={field==='faqs'?row.question:row.attribution} body={field==='faqs'?row.answer:row.text}/>))}
@@ -1301,6 +1302,8 @@ function MiniAppBuilder({ s }) {
         footer="This is a suggested private app experience, not a new hard-coded trade-specific app template."
         tone="blue">
         <Text style={styles.cardBody}>{experience.layoutReason}</Text>
+        {experience.needsClarification?<Text style={styles.cardBody}>Your brief includes and excludes the same action. Clarify that choice before enabling it; BUSY has left it out of recommendations.</Text>:null}
+        {experience.declinedCapabilities?.length?<Text style={styles.cardBody}>Left out at your request: {experience.declinedCapabilities.join(', ')}. Existing saved modules are unchanged.</Text>:null}
          {experience.understoodGoals?.length?(
           <Text style={styles.cardBody}>{"Customer goals identified: "+
             experience.understoodGoals.join(", ")}</Text>
@@ -4643,19 +4646,30 @@ function MiniAppPreview({ s }) {
 function BusyAppDetail({ s }) {
   // A different account, app or published version starts a separate form.
   const detail=s.selectedBusyAppDetail;
-  return <BusyAppDetailForm key={[s.ownerSession?.userId||"",detail?.app?.id||"",detail?.version?.id||""].join(":")} s={s}/>;
+  return <BusyAppDetailForm key={[s.ownerSession?.userId||"",detail?.app?.id||"",detail?.version?.id||"",JSON.stringify(detail?.entryContentInterest?.selection||null)].join(":")} s={s}/>;
 }
 function BusyAppDetailForm({ s }) {
   const detail = s.selectedBusyAppDetail || {};
   const config = detail?.version?.config || null;
-  const [name, setName] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [phone, setPhone] = React.useState("");
-  const [service, setService] = React.useState("");
-  const [date, setDate] = React.useState("");
-  const [note, setNote] = React.useState("");
-  const [message, setMessage] = React.useState("");
+  const saved=s.readBusyAppCustomerForm?.()||{};
+  const initial=detail.entryContentInterest;
+  const [name, setName] = React.useState(saved.name||"");
+  const [email, setEmail] = React.useState(saved.email||"");
+  const [phone, setPhone] = React.useState(saved.phone||"");
+  const [service, setService] = React.useState(saved.service??initial?.service??"");
+  const [date, setDate] = React.useState(saved.date||"");
+  const [note, setNote] = React.useState(saved.note||"");
+  const [message, setMessage] = React.useState(saved.message??initial?.message??"");
 
+  const [contentInterest,setContentInterest]=React.useState(Object.hasOwn(saved,'contentInterest')?saved.contentInterest:initial?.selection??null);
+  const [contentNotice,setContentNotice]=React.useState(detail.entryContentNotice||'');
+  React.useEffect(()=>{s.saveBusyAppCustomerForm?.({name,email,phone,service,date,note,message,contentInterest});},[name,email,phone,service,date,note,message,contentInterest]);
+  const chooseContent=(label,prepared)=>{
+    const checked=prepareBusinessContentEnquiry(detail.businessContent,detail.app?.business_id,prepared?.selection);
+    if(!checked.ok){setContentNotice(checked.reason);return;}
+    const apply=()=>{setService(checked.service);setMessage(checked.message);setContentInterest(checked.selection);setContentNotice('Selected item added to your enquiry. Review the message before sending.');};
+    if(message.trim())Alert.alert('Replace this enquiry draft?','Your current message will be replaced by the selected listing context.',[{text:'Keep my message',style:'cancel'},{text:'Use selected item',onPress:apply}]);else apply();
+  };
   const enabled = new Set(
     (config?.modules || [])
       .filter((item) => item.enabled)
@@ -4690,6 +4704,7 @@ function BusyAppDetailForm({ s }) {
 
   const submitEnquiry = async () => {
     if(!enquiryReady.ok)return false;
+    if(contentInterest){const checked=prepareBusinessContentEnquiry(detail.businessContent,detail.app?.business_id,contentInterest);if(!checked.ok){setContentNotice(checked.reason);return false;}}
     const reviewed=formLive.current;
     const ok = await s.submitBusyAppRequest("enquiry", {
       name: name.trim(),
@@ -4698,7 +4713,7 @@ function BusyAppDetailForm({ s }) {
       service: service.trim(),
       message: message.trim(),
     });
-    if (ok&&formAlive.current&&formLive.current===reviewed) setMessage("");
+    if (ok&&formAlive.current&&formLive.current===reviewed) {setMessage("");setContentInterest(null);s.saveBusyAppCustomerForm?.({name,email,phone,service,date,note,message:"",contentInterest:null});}
   };
 
   return (
@@ -4734,6 +4749,7 @@ function BusyAppDetailForm({ s }) {
           loyaltyProgress={detail?.loyaltyProgress || null}
           businessContent={detail.businessContent}
           onSelectService={enabled.has('enquiry')||enabled.has('booking_request')?setService:null}
+          onSelectContent={enabled.has('enquiry')?chooseContent:null}
         />
       ) : null}
       <Card
@@ -4853,6 +4869,8 @@ function BusyAppDetailForm({ s }) {
       {enabled.has("enquiry") ? (
         <>
           <Text style={styles.sectionLabel}>Send an enquiry</Text>
+          {contentNotice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{contentNotice}</Text>:null}
+          {contentInterest?<Button label="Remove selected listing from this enquiry" onPress={()=>{setContentInterest(null);setService('');setMessage('');setContentNotice('Listing removed. Write your enquiry below.');}}/>:null}
           <Field label="Message" value={message} onChangeText={setMessage} placeholder="What would you like to ask?" multiline />
           {!enquiryReady.ok?<Text style={styles.cardBody}>{enquiryReady.reason}</Text>:null}
           <Button
@@ -5368,3 +5386,4 @@ export {
   MiniAppShareCentre,
   MiniAppRequestDetail,
 };
+

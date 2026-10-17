@@ -46,26 +46,24 @@ const INTENTS=Object.freeze([
 ]);
 const validOwnerText=text=>typeof text==="string"&&text.length<=MAX_REQUEST&&
  !/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(text);
-function negativeMatch(text,index){
- // A nearby literal negation is not positive permission to recommend a feature.
- const left=text.slice(Math.max(0,index-24),index);
- return /(?:\b(?:no|without|don't need|do not need|not looking for|avoid)\s+(?:online |customer |any )?)$/i.test(left);
-}
-function detectRequestedCapabilities(request){
- const found=[];
- for(const [id,re] of INTENTS){
-  const match=re.exec(request);
-  // Visitor uploads do not imply a ready owner-approved public portfolio.
-  const visitorUpload=id==="gallery"&&
-   /\b(?:upload|submit|send)\s+(?:their\s+|own\s+|some\s+)?(?:photos?|images?|pictures?|files?)\b/i.test(request)&&
-   !/\b(?:show|display|portfolio|galler(?:y|ies))\b/i.test(request);
-  if(match&&!negativeMatch(request,match.index)&&!visitorUpload)found.push(id);
+function inspectCapabilityIntent(request=''){
+ const positive=new Set(),declined=new Set();
+ if(!validOwnerText(request))return {requested:[],declined:[],conflicts:[],valid:false};
+ for(const [id,re]of INTENTS){
+  // Clauses carry a local negation through a list, but not across "but".
+  const pattern=new RegExp(re.source,re.flags.includes('g')?re.flags:re.flags+'g');
+  for(const match of request.matchAll(pattern)){
+   const left=request.slice(0,match.index).split(/[;.!\n]|,\s*(?=(?:just|only|show|add|allow|enable|let|we|I|include|want|need)\b)|\b(?:but|however|instead)\b|\band\s+(?=(?:show|add|allow|enable|let|include|help|want|need)\b)/i).pop();
+   const negative=/\b(?:no|never|without|not|don't|don’t|do not|avoid|stop|rather than)\b/i.test(left.replace(/\bnot only\b/gi,''));
+   if(negative)declined.add(id);else positive.add(id);
+  }
  }
- // Deposits and donations are separate explicitly approved workflows, never
- // a synonym for generic payment collection or evidence of charge authority.
- // Their shared prerequisites will be inserted as dependencies below.
- return [...new Set(found)].slice(0,MAX_REQUESTED);
+ // Visitor uploads are not permission to reuse an owner portfolio.
+ if(/\b(?:upload|submit|send)\s+(?:their\s+|own\s+|some\s+)?(?:photos?|images?|pictures?|files?)\b/i.test(request)&&!/\b(?:show|display|portfolio|galler(?:y|ies))\b/i.test(request))positive.delete('gallery');
+ const conflicts=[...positive].filter(id=>declined.has(id));
+ return {requested:[...positive].filter(id=>!declined.has(id)).slice(0,MAX_REQUESTED),declined:[...declined],conflicts,valid:true};
 }
+function detectRequestedCapabilities(request){return inspectCapabilityIntent(request).requested;}
 function expandDependencies(explicit){
  const seen=new Set(["identity"]),result=["identity"];
  const visit=(id,depth)=>{
@@ -203,10 +201,15 @@ function planUniversalBuilderRequest({
  if(app&&app.business_id!==businessId)
   return {ok:false,reason:"The Business App belongs to a different business workspace."};
  const goal=clean(request);
- const explicit=detectRequestedCapabilities(goal);
+ const intent=inspectCapabilityIntent(goal);
+ if(intent.conflicts.length)return {ok:false,needsClarification:true,reason:'Your request both includes and excludes '+intent.conflicts.join(', ')+'. Confirm which actions you want before preparing a plan.'};
+ const explicit=intent.requested;
+ if(!explicit.length&&intent.declined.length)return {ok:false,needsClarification:true,reason:"BUSY noted the excluded features. Describe what customers should be able to do instead."};
  const unfamiliar=!!goal&&!explicit.length;
  const wanted=unfamiliar?["custom_feature"]:explicit;
  const ids=expandDependencies(wanted);
+ const blockedDependencies=ids.filter(id=>intent.declined.includes(id));
+ if(blockedDependencies.length)return {ok:false,needsClarification:true,reason:'This requested journey depends on '+blockedDependencies.join(', ')+', which you excluded. Review the dependency or choose a simpler journey.'};
  const capabilities=ids.map(id=>{
   const def=getUniversalCapability(id);
   return {id,title:def.title,description:def.description,version:def.version,
@@ -235,7 +238,7 @@ function planUniversalBuilderRequest({
   businessId:businessId||null,businessType:clean(businessType).slice(0,160),
   source:{websiteId:website?.id||null,websiteRevision:website?.generation||null,
    appId:app?.id||null,appRevision:app?.draft_revision||null},
-  detectedGoals:wanted,unfamiliarRequirement:unfamiliar,
+  detectedGoals:wanted,declinedCapabilities:intent.declined,unfamiliarRequirement:unfamiliar,
   noIndustryRestrictions:true,capabilities,capabilityCount:capabilities.length,
   websiteDraftComponents:supportedInWebsite,appDraftModules:supportedInApp,
   developmentGaps:[...new Set(needsDevelopment)],requestedFeaturesNeedingReview:gaps,
@@ -250,7 +253,7 @@ function planUniversalBuilderRequest({
   generatedExecutableCode:false,noModulesEnabled:true,noChangeSaved:true,
   noChargeMade:true,noPublishPerformed:true,noCrossBusinessLearning:true};
 }
-export {INTENTS,detectRequestedCapabilities,planWebsiteSectionComposition,
+export {INTENTS,inspectCapabilityIntent,detectRequestedCapabilities,planWebsiteSectionComposition,
  assessSurfaceCapability,planUniversalBuilderRequest};
 
 // Finite record preparation extends the existing universal planner. It has no
@@ -270,3 +273,4 @@ function prepareBusinessContentInstruction(instruction,existing=null){
  const checked=validateBusinessContent(kind,data);return checked.ok?{ok:true,kind,data:checked.data,create,privateOnly:true,requiresOwnerApproval:true}:fail(checked.reason);
 }
 export {prepareBusinessContentInstruction};
+

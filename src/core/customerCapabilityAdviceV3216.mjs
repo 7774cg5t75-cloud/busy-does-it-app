@@ -1,3 +1,4 @@
+import {inspectCapabilityIntent} from './universalBuilderPlanV3210.mjs';
 /**
  * V3.216 — deterministic, industry-neutral Business Brain suggestions.
  * Advisory only; no automatic provider work, new app module, spend or publish.
@@ -28,21 +29,14 @@ function adviseCustomerCapabilityV3216({
  // Negated actions must NOT be offered merely because the industry commonly
  // uses them. These are local, low-cost heuristics, never AI outcome proof.
  const explicit=[
-  {matches:/\b(?:enquir(?:y|ies)|inquir(?:y|ies)|quotes?|estimates?|contact us)\b/g,
-   goal:"Help customers send an enquiry or ask for a quote",capability:"enquiry"},
-  {matches:/\b(?:appointments?|bookings?|reservations?|book a|reserve a)\b/g,
-   goal:"Help customers request an appointment or reservation",capability:"booking_request"},
-  {matches:/\b(?:catalogue|catalog|online shop|sell products|product range)\b/g,
-   goal:"Help customers browse a product or service catalogue",capability:"catalogue"}
+  {goal:"Help customers send an enquiry or ask for a quote",capability:"enquiry"},
+  {goal:"Help customers request an appointment or reservation",capability:"booking_request"},
+  {goal:"Help customers browse a product or service catalogue",capability:"catalogue"}
  ];
- const declined=new Set(),positive=new Set();
- for(const rule of explicit)for(const match of goalText.matchAll(rule.matches)){
-  const clause=goalText.slice(0,match.index).split(/[,;.!]|\b(?:but|however)\b/).pop();
-  if(/\b(?:no|never|without|not|don't|don’t|do not|avoid|stop|rather than|instead of)\b/.test(clause))declined.add(rule.capability);
-  else positive.add(rule.capability);
- }
+ const intent=inspectCapabilityIntent(goalText);
+ const declined=new Set(intent.declined),positive=new Set(intent.requested);
  const bookingRejected=declined.has('booking_request');
- const conflict=[...positive].some(x=>declined.has(x));
+ const conflict=intent.conflicts.length>0;
  const requested=explicit.find(x=>positive.has(x.capability)&&!declined.has(x.capability));
  const industry=rules.find(r=>r.matches.test(industryText+" "+goalText)&&!declined.has(r.capability));
  const matched=requested||industry;

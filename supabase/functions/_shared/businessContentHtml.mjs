@@ -15,6 +15,17 @@ function mountBusinessContent(id,endpoint,payload,kind,featuredId){
    for(const row of filtered.slice(0,pageSize)){const d=row.data,article=document.createElement('article');article.style.cssText='padding:1rem;border:1px solid #bbc4d2;border-radius:12px;margin:1rem 0;';line(article,'h3',d.name);line(article,'p',d.category);line(article,'p',d.description);
     if(kind==='product'){const price=new Intl.NumberFormat(undefined,{style:'currency',currency:d.currency});line(article,'p',price.format(d.amountMinor/10**price.resolvedOptions().maximumFractionDigits));line(article,'p','Availability: '+d.availability.replaceAll('_',' ')+'. Stock and checkout are not supported.');}
     else{line(article,'p',d.status==='cancelled'?'Cancelled':new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short',timeZone:d.timeZone}).format(new Date(d.startsAt))+' • '+d.timeZone);line(article,'p',d.location||'Online event');line(article,'p','Listing only; attendance is not confirmed.');if(typeof d.onlineUrl==='string'&&/^https:\/\//.test(d.onlineUrl)){const link=line(article,'a','Open public event information');link.href=d.onlineUrl;link.target='_blank';link.rel='noopener noreferrer';}}
+    if(payload.allowEnquiry===true&&payload.slug&&payload.expectedAppId&&payload.expectedVersionId&&d.status!=='cancelled'){
+     const url=new URL(endpoint.replace(/busy-mini-app-guest$/,'busy-mini-app-link'));
+     for(const [key,value]of Object.entries({slug:payload.slug,source:'web',intent:'enquiry',appId:payload.expectedAppId,versionId:payload.expectedVersionId,content:row.id,content_revision:String(row.revision)}))url.searchParams.set(key,value);
+     const link=line(article,'a','Ask about '+d.name);link.href=url.toString();
+     if(kind==='product'&&Array.isArray(d.variants)&&d.variants.length){
+      const label=line(article,'label','Choose an option for your enquiry');const select=document.createElement('select');select.id=id+'-'+row.id+'-option';label.setAttribute('for',select.id);select.style.cssText='min-height:48px;max-width:100%;padding:0.5rem';
+      const base=line(select,'option','Standard option');base.value='';
+      for(const variant of d.variants){const option=line(select,'option',variant.label+' • '+new Intl.NumberFormat(undefined,{style:'currency',currency:d.currency}).format(variant.amountMinor/10**new Intl.NumberFormat(undefined,{style:'currency',currency:d.currency}).resolvedOptions().maximumFractionDigits));option.value=variant.id;}
+      select.addEventListener('change',()=>{if(select.value)url.searchParams.set('content_option',select.value);else url.searchParams.delete('content_option');link.href=url.toString();});article.appendChild(select);
+     }
+    }
     if(d.image?.uri&&/^https:\/\//.test(d.image.uri)){const img=document.createElement('img');img.src=d.image.uri;img.alt=String(d.image.alt||'');img.loading='lazy';img.style.cssText='max-width:100%;max-height:300px;object-fit:cover';article.appendChild(img);}listing.appendChild(article);
    }if(!filtered.length)line(listing,'p','No approved matching records.');if(filtered.length>pageSize){const more=line(listing,'button','Show more');more.type='button';more.onclick=()=>{pageSize+=24;renderRows();};}
    }input.addEventListener('input',()=>{pageSize=24;renderRows();});renderRows();

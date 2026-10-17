@@ -1,0 +1,288 @@
+{
+  "date": "2026-10-17",
+  "branch": "codex/builder-mission12-connected-journeys",
+  "baseCommit": "55db12d247b149aa2052fc17f5d5dc536a77b8a7",
+  "preflightCommit": "0ad57abade13cfb9d0fe42da3b72544c692650c7",
+  "recoverableFunctionalCommits": [
+    "f3512238cd0806d7c1c23e774f51b4fd07fb354b",
+    "e40813def24564df5b3a53c5a00810d48582f054",
+    "b8711f7a2e16d67dc0f8ad77f8153c84c36b3140"
+  ],
+  "runtime": "Node 24.19.0",
+  "results": [
+    {
+      "command": "node scripts/check-mission12-content-enquiry.mjs",
+      "exitCode": 0,
+      "output": "PASS Mission 12 item/option context, stale/cancelled/foreign rejection, authenticated handoff, secure retry continuity, real trusted submit/sanitisation and replay; DB/provider boundaries are inert fixtures.\n(node:15045) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/check-mission12-builder-reuse.mjs",
+      "exitCode": 0,
+      "output": "PASS guided contact/FAQ preparation, typed/voice atomic FAQ editing, exact Undo, locks, additive bidirectional reuse, conflict preservation, scope/revision and shared trusted planner parity. Pure functional tests; no publication.\n",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/check-mission12-intent.mjs",
+      "exitCode": 0,
+      "output": "PASS one shared capability-intent interpretation across universal plans, App Builder and customer advice: exclusions, lists, contradictory requests, dependency conflicts and unfamiliar businesses. No provider/model calls.\n",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/check-mission12-live-form-logic.mjs",
+      "exitCode": 0,
+      "output": "PASS actual customer form logic: selected context, navigation/remount, unchanged submission, cleared completion; saved-record approval guard and actual controller FAQ apply. Hooks/transport are inert fixtures, no JSX/device claim.\n",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/check-mission12-public-handoff.mjs",
+      "exitCode": 0,
+      "output": "PASS real public HTML option/link handlers and actual Edge handoff route: exact app/version pins, selected item/revision/option, unexpected/duplicate query and disabled-action rejection. DOM/DB fixtures; no browser or deployed claim.\n(node:15071) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/check-mission12-record-review.mjs",
+      "exitCode": 0,
+      "output": "PASS actual record editor logic -> trusted adapter: exact saved-form approval, unsaved and stale-revision blocking, save/publish sequence and non-destructive refresh. Hooks/DB are fixtures; no native render claim.\n",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/check-mission11-records.mjs",
+      "exitCode": 0,
+      "output": "PASS actual trusted product/event adapter: owner scope, durable row mutations in DB fixture, stable IDs, draft/approval separation, exact CAS/Undo, uncertain writes, cancellation, currency and DST validation. No hosted/Postgres claim.\nPASS option-currency approval, bounded owner list without history disclosure and image permission recheck at public approval.\n",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/check-mission11-intelligence.mjs",
+      "exitCode": 0,
+      "output": "PASS existing universal planner prepares exact product/event requests, structured currency amounts and cancellation, rejects unsupported actions, validates options and distinguishes record presentation from payments/live proof.\n",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/check-mission11-public-views.mjs",
+      "exitCode": 0,
+      "output": "PASS actual public Website loader/DOM mount: current deployment scope, shared approved event revisions, cancellation on refresh, stale-source rejection and clearing unavailable data. DOM/database fixtures; no browser/hosted claim.\nPASS inherited pending-App compatibility correction: only the exact current live version remains available; preview/mismatched versions rejected.\n",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/check-app-goal-content.mjs",
+      "exitCode": 0,
+      "output": "PASS: goal-specific missing questions, real Studio proposal/inverse, exact custom service preservation, lock/tenant/hostile-field rejection and incomplete booking-content gating.\n",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/check-app-goal-editing.mjs",
+      "exitCode": 1,
+      "output": "node:internal/modules/package_json_reader:301\n  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);\n        ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find package '@babel/parser' imported from /workspace/scratch/mission12/scripts/check-app-goal-editing.mjs\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:768:81)\n    at moduleResolve (node:internal/modules/esm/resolve:859:18)\n    at defaultResolve (node:internal/modules/esm/resolve:992:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)\n    at #resolve (node:internal/modules/esm/loader:683:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.19.0\n",
+      "status": "blocked_dependency"
+    },
+    {
+      "command": "node scripts/check-app-goal-decisions.mjs",
+      "exitCode": 0,
+      "output": "PASS: task-ranked choices, unrelated gallery suppression, absent/unapproved content blockers, new static advisory rejection and both website tenant aliases. No real-world outcome claims.\n",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/check-app-builder-dual-track-v3153.mjs",
+      "exitCode": 0,
+      "output": "V3.153 APP PATHS PASS: marketplace and private standalone planning, 13 businesses, catalogue restrictions, verified-billing gate, external costs, no confirmed bookings, no app-store submission.\n",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/check-mission10-information-reuse.mjs",
+      "exitCode": 0,
+      "output": "PASS: same-business current-source FAQ/testimonial reuse, missing-only policy, existing custom content preservation, stale confirmation rejection and explicit fact-conflict approval.\n",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/check-mission9-builder-language.mjs",
+      "exitCode": 0,
+      "output": "Passed after restoring baseline parity source files.",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/check-mission10-public-information.mjs",
+      "exitCode": 1,
+      "output": "PASS: FAQs/testimonials exact sparse Undo, locks, rebuild retention, bounded public allowlist, immutable live-only projection and trusted parity.\nnode:internal/modules/cjs/loader:1517\n  const err = new Error(message);\n              ^\n\nError: Cannot find module '@babel/core'\nRequire stack:\n- /workspace/scratch/mission12/scripts/lib/offline-component-runtime.cjs\n- /workspace/scratch/mission12/scripts/check-mission10-public-information.mjs\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1517:15)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at Module._load (node:internal/modules/cjs/loader:1294:5)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)\n    at Module.require (node:internal/modules/cjs/loader:1617:12)\n    at require (node:internal/modules/helpers:153:16)\n    at Object.<anonymous> (/workspace/scratch/mission12/scripts/lib/offline-component-runtime.cjs:3:83)\n    at Module._compile (node:internal/modules/cjs/loader:1872:14) {\n  code: 'MODULE_NOT_FOUND',\n  requireStack: [\n    '/workspace/scratch/mission12/scripts/lib/offline-component-runtime.cjs',\n    '/workspace/scratch/mission12/scripts/check-mission10-public-information.mjs'\n  ]\n}\n\nNode.js v24.19.0\n",
+      "status": "blocked_dependency"
+    },
+    {
+      "command": "node scripts/check-mission10-service-details.mjs",
+      "exitCode": 0,
+      "output": "Passed after restoring baseline parity source files.",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/check-mission12-standalone-continuity.mjs",
+      "exitCode": 0,
+      "output": "PASS actual standalone form navigation/uncertainty/receipt continuity with inert hooks/transport.",
+      "status": "passed"
+    }
+  ],
+  "syntax": {
+    "jsxFiles": 8,
+    "mjsFiles": 27,
+    "edgeEntryPoints": 2,
+    "jsxParser": {
+      "acorn": "8.17.0 (Node built-in)",
+      "pluginRepository": "acornjs/acorn-jsx",
+      "pluginCommit": "8ed96d6ddec2065204ba07d924bb2e7bca539ea6",
+      "license": "MIT",
+      "applicationDependency": false
+    }
+  },
+  "evidenceLevel": "offline actual source logic with inert hooks/database/transport; syntax parsing; no deployed/device claim",
+  "sourceSha256": {
+    "src/core/businessContentRecords.mjs": {
+      "bytes": 11564,
+      "sha256": "0e470e97691f583133908786cd0b9d3bb84aa0bb061e4ff401a79db33544d528"
+    },
+    "src/core/marketplaceReadActions.mjs": {
+      "bytes": 3763,
+      "sha256": "154c21363c1c33c1a4c6dbb46fd63284f3ef7efc19eef32bc9f4b0a59ecc24df"
+    },
+    "src/components/businessContentView.js": {
+      "bytes": 5438,
+      "sha256": "21a8b2e0a25236696b330c726553c4a6485cf952920f476501a397c3e7e69000"
+    },
+    "src/screens/miniApps.js": {
+      "bytes": 276422,
+      "sha256": "c5ed875c6c7b6b0e5a4685f6464ec2018efb2c4e66c150b4a1c5381e3afbe185"
+    },
+    "src/app/AppController.js": {
+      "bytes": 701068,
+      "sha256": "761f2b3051b15c50a8a9fc89c15673b2f3f7ef092c4091eb96dee668ddffd97f"
+    },
+    "src/core/businessContentHtml.mjs": {
+      "bytes": 7448,
+      "sha256": "5893e620b218aea904efc50f90bd0c9140968d31248d543e1c2a9b1939cdef3a"
+    },
+    "standalone/template/App.js": {
+      "bytes": 22617,
+      "sha256": "a07c8d28950d76379bf40d70aa043142affdec4c44c2962ed2a2eaebc748abc5"
+    },
+    "standalone/template/businessContentRecords.mjs": {
+      "bytes": 11564,
+      "sha256": "0e470e97691f583133908786cd0b9d3bb84aa0bb061e4ff401a79db33544d528"
+    },
+    "standalone/template/businessContentView.js": {
+      "bytes": 5432,
+      "sha256": "6b2e7b94a5a688c85a9931527c9805bedb1f70f645a45df611c4ca57aecf2adc"
+    },
+    "supabase/functions/_shared/businessContentRecords.mjs": {
+      "bytes": 11564,
+      "sha256": "0e470e97691f583133908786cd0b9d3bb84aa0bb061e4ff401a79db33544d528"
+    },
+    "supabase/functions/_shared/businessContentHtml.mjs": {
+      "bytes": 7448,
+      "sha256": "5893e620b218aea904efc50f90bd0c9140968d31248d543e1c2a9b1939cdef3a"
+    },
+    "supabase/functions/busy-mini-apps/businessContentRecords.mjs": {
+      "bytes": 11564,
+      "sha256": "0e470e97691f583133908786cd0b9d3bb84aa0bb061e4ff401a79db33544d528"
+    },
+    "supabase/functions/busy-mini-apps/index.ts": {
+      "bytes": 182526,
+      "sha256": "bc9977c5056c5d07c71b7030cd42da23e13c495a8dfa79ca07a851f90d5666c1"
+    },
+    "supabase/functions/busy-mini-app-link/index.ts": {
+      "bytes": 10386,
+      "sha256": "7892bbd0b3e97972f367188c4b14132b237e4648ad529d3b0d912c6607cedab2"
+    },
+    "supabase/functions/busy-website-worker/businessContentRecords.mjs": {
+      "bytes": 11564,
+      "sha256": "0e470e97691f583133908786cd0b9d3bb84aa0bb061e4ff401a79db33544d528"
+    },
+    "scripts/check-mission12-content-enquiry.mjs": {
+      "bytes": 7967,
+      "sha256": "557842bad689b04f15646b0a73cab86f57a5c09f7060a95b9def0741de9d8300"
+    },
+    "src/core/appGoalContentPreparation.mjs": {
+      "bytes": 6940,
+      "sha256": "f4a7fcf76b121c839013a763ea01b02043444be5375b2c0432e5fdee0048eac1"
+    },
+    "src/core/appCoordinatedStudio.mjs": {
+      "bytes": 17219,
+      "sha256": "511ecba845dbb7752d46786425d033c70acb7af151f7be7ad3e3820b9a96391f"
+    },
+    "supabase/functions/busy-mini-apps/appCoordinatedStudio.mjs": {
+      "bytes": 17219,
+      "sha256": "511ecba845dbb7752d46786425d033c70acb7af151f7be7ad3e3820b9a96391f"
+    },
+    "src/core/appPublicCollections.mjs": {
+      "bytes": 2588,
+      "sha256": "750e11e7ffbd52e7893e25ab36c00e2a58b7f76ae8c7268642e183e07a0fc7f0"
+    },
+    "standalone/template/appPublicCollections.mjs": {
+      "bytes": 2588,
+      "sha256": "750e11e7ffbd52e7893e25ab36c00e2a58b7f76ae8c7268642e183e07a0fc7f0"
+    },
+    "supabase/functions/busy-mini-app-guest/appPublicCollections.mjs": {
+      "bytes": 2588,
+      "sha256": "750e11e7ffbd52e7893e25ab36c00e2a58b7f76ae8c7268642e183e07a0fc7f0"
+    },
+    "supabase/functions/busy-mini-apps/appPublicCollections.mjs": {
+      "bytes": 2588,
+      "sha256": "750e11e7ffbd52e7893e25ab36c00e2a58b7f76ae8c7268642e183e07a0fc7f0"
+    },
+    "src/core/appToWebsiteBrandTransferV3196.mjs": {
+      "bytes": 8211,
+      "sha256": "9669e3b1213812b7137268a2d5f2e55dc6cf760588c647d270cdff4fe4e654c5"
+    },
+    "src/core/websiteToAppBrandTransferV3196.mjs": {
+      "bytes": 12209,
+      "sha256": "d4dccc224192e37f32df66c881fd59786ebca9079762989ed757e0d15a4fa440"
+    },
+    "scripts/check-mission12-builder-reuse.mjs": {
+      "bytes": 5866,
+      "sha256": "e7001f461f31d99a5f056a38faf248309606216d5d3aa5ba4a91fb098ed54297"
+    },
+    "src/screens/websiteToAppDesignTransfer.js": {
+      "bytes": 6485,
+      "sha256": "dc844ce9154d994ef88db11a0ca7a76f561d23049b9692bdaf33b74d9885cc95"
+    },
+    "src/screens/appToWebsiteDesignTransfer.js": {
+      "bytes": 4444,
+      "sha256": "6f9cb669e55e35eef88657322eb2157cdb5029c2c414bd110e20dce9e9b4b19a"
+    },
+    "src/core/universalBuilderPlanV3210.mjs": {
+      "bytes": 19203,
+      "sha256": "9d1b4fa623bb6f5493690487ab8fa5a47e0549a5525cd08380a87a90cecc766b"
+    },
+    "src/core/appExperiencePlanner.mjs": {
+      "bytes": 8022,
+      "sha256": "95c4f32a6c234a6ef73ad4f443ea458666e6a8b7ec9e23dbd318d8af81ab687e"
+    },
+    "src/core/customerCapabilityAdviceV3216.mjs": {
+      "bytes": 4429,
+      "sha256": "43e1ccd188ce8f955f49abc170d5411aa60d6e155b0a62ebe812895d4f25a338"
+    },
+    "src/screens/businessContentEditor.js": {
+      "bytes": 14003,
+      "sha256": "385604b5ef95ca134ac2bc4ca29b635b127a3bc1e464d2a7a7b9adbc406afe15"
+    },
+    "scripts/check-mission12-intent.mjs": {
+      "bytes": 2998,
+      "sha256": "40fc15fdadb0d10f72ca16cb578f16be78c7e5724800ea0e8596d2efc0a86469"
+    },
+    "scripts/check-mission12-live-form-logic.mjs": {
+      "bytes": 7559,
+      "sha256": "897f49f5e9c0208d3267338858b50fbfe6f04fb523acb0ec43acc42cefeca815"
+    },
+    "scripts/check-mission12-public-handoff.mjs": {
+      "bytes": 4568,
+      "sha256": "1ce8f234dc98773f0f6e738d243b49d0b63cffd601fb918a5abe27c0b878a611"
+    },
+    "scripts/check-mission12-record-review.mjs": {
+      "bytes": 3839,
+      "sha256": "77b260574ffa253d77d634d138dade6cf915a214ff72b062b537d56b41ccb9fd"
+    },
+    "scripts/check-mission12-standalone-continuity.mjs": {
+      "bytes": 3583,
+      "sha256": "ecd3f694f819a5221175fd0176428be326bebf9e4e091ad386d261cd447cc7e2"
+    }
+  },
+  "workflowExecuted": false,
+  "hostedDatabaseAccessed": false,
+  "additionalExternalSpendingGBP": 0
+}

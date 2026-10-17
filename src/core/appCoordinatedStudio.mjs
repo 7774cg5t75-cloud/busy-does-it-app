@@ -174,6 +174,8 @@ function planAppVoiceInstructions(config,instruction){
  for(let p of pieces){
   const block=/^(?:add|show|include)(?: my| our| the)? (products|events|upcoming events)(?: (?:section|screen))?(?: as (cards|rows))?$/i.exec(p);
   if(block){const kind=block[1].toLowerCase()==='products'?'product':'event',value={kind,title:kind==='product'?'Products':'Upcoming events',layout:(block[2]||'cards').toLowerCase()};const i=contentBlocks.findIndex(x=>x.kind===kind);if(i>=0)contentBlocks[i]={...contentBlocks[i],layout:value.layout};else contentBlocks.push(value);contentChanged=true;continue;}
+  const faq=/^add (?:a )?(?:customer )?question "([^"<>]{1,160})" (?:with )?answer "([^"<>]{1,1200})"$/i.exec(p);
+  if(faq){const previous=config.publicProfile?.faqs;if(previous!==undefined&&!Array.isArray(previous)){unresolved.push(p);continue;}operations.push({kind:'public_collection',field:'faqs',value:[...(previous||[]),{question:faq[1],answer:faq[2]}]});continue;}
   // Literal copy is data. Commands outside its exact quoted value still fail.
   const literal=/^(?:set|change|update)(?: my| our| the)? (tagline|about|description|phone|email|opening hours) (?:to|as) ["“'‘]([\s\S]*)["”'’]$/i.exec(p);
   if(literal){

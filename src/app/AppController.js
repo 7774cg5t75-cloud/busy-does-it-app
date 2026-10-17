@@ -1,3 +1,4 @@
+import {parseBusinessContentInterest} from '../core/businessContentRecords.mjs';
 import {validateNativeGuestRequest} from "../../standalone/template/nativeCustomerActions.mjs";
 import {createAppNotificationActions} from "../core/appNotificationActions.mjs";
 import {createRequestConversationActions} from "../core/requestConversationActions.mjs";
@@ -564,7 +565,7 @@ function App() {
     ownerSession?.userId||"",selectedBusyAppDetail?.app?.id||"",
     selectedBusyAppDetail?.app?.slug||""
   ].join(":");
-  const customerRequestEpochKey=[activeCustomerRequestScopeRef.current,selectedBusyAppDetail?.version?.id||""].join(":");
+  const customerRequestEpochKey=[activeCustomerRequestScopeRef.current,selectedBusyAppDetail?.version?.id||"",JSON.stringify(selectedBusyAppDetail?.entryContentInterest?.selection||null)].join(":");
   if(customerRequestEpochRef.current?.key!==customerRequestEpochKey)
     customerRequestEpochRef.current={key:customerRequestEpochKey};
   const customerRequestRenderEpoch=customerRequestEpochRef.current;
@@ -13516,6 +13517,11 @@ function App() {
           next.sections.map(s=>s.id==="services"?reviewed:s):
           [...next.sections,reviewed]});
     }
+    if(check.informationCount){
+      const reviewed=check.proposedDraft.sections.filter(section=>['faq','testimonials'].includes(section.type)&&JSON.stringify(section)!==JSON.stringify(current.sections.find(old=>old.id===section.id)));
+      if(!reviewed.length){setWebsiteBuilderNotice('The reviewed public information is missing. No change was saved.');return false;}
+      next=rebuildPrivateWebsiteDraft({...next,sections:[...next.sections.map(section=>reviewed.find(row=>row.id===section.id)||section),...reviewed.filter(row=>!next.sections.some(section=>section.id===row.id))]});
+    }
     // If a private style operation produced no generation bump, regenerate
     // the full private website before the only owner commit.
     if(!Number.isSafeInteger(next.generation)||
@@ -15878,6 +15884,17 @@ function App() {
   const {loadMyBusyApps,openBusyAppDetail}=marketplaceReadActionsRef.current;
   const searchBusyApps=(query=busyAppsSearch)=>marketplaceReadActionsRef.current.searchBusyApps(query);
 
+  // One in-memory customer form, bound to the existing account/app/version epoch.
+  // Never persisted to the owner cloud snapshot or reused by a different account.
+  const customerFormRef=useRef(null);
+  if(customerFormRef.current?.userId!==ownerSession?.userId)customerFormRef.current={userId:ownerSession?.userId,forms:new Map()};
+  const readBusyAppCustomerForm=()=>customerFormRef.current.forms.get(customerRequestRenderEpoch.key)||null;
+  const saveBusyAppCustomerForm=value=>{
+    if(customerRequestRenderEpoch!==customerRequestEpochRef.current)return false;
+    customerFormRef.current.forms.set(customerRequestRenderEpoch.key,value);
+    if(customerFormRef.current.forms.size>8)customerFormRef.current.forms.delete(customerFormRef.current.forms.keys().next().value);
+    return true;
+  };
   const submitBusyAppRequest = async (requestType, payload = {}) => {
     const slug = selectedBusyAppDetail?.app?.slug || "";
     const appId = selectedBusyAppDetail?.app?.id || "";
@@ -16696,7 +16713,7 @@ function App() {
     const intent = ["enquiry", "booking_request"].includes(String(query.intent || ""))
       ? String(query.intent)
       : "";
-    return { slug, source, intent };
+    return { slug, source, intent, contentInterest:intent==="enquiry"?parseBusinessContentInterest(query):null };
   };
 
   const handleMiniAppDeepLink = async (url) => {
@@ -16708,7 +16725,7 @@ function App() {
       return true;
     }
     setPendingMiniAppDeepLink(null);
-    return await openBusyAppDetail(target.slug, target.source, target.intent || "");
+    return await openBusyAppDetail(target.slug, target.source, target.intent || "", target.contentInterest || null);
   };
 
   useEffect(() => {
@@ -16734,7 +16751,7 @@ function App() {
     const target = pendingMiniAppDeepLink;
     const timer = setTimeout(() => {
       setPendingMiniAppDeepLink(null);
-      openBusyAppDetail(target.slug, target.source || "deep_link", target.intent || "");
+      openBusyAppDetail(target.slug, target.source || "deep_link", target.intent || "", target.contentInterest || null);
     }, 120);
     return () => clearTimeout(timer);
   }, [hydrated, ownerSession?.accessToken, pendingMiniAppDeepLink?.slug]);
@@ -17098,6 +17115,7 @@ function App() {
     shareMiniAppCustomerLink,
     openMiniAppCustomerLink,
     submitBusyAppRequest,
+    readBusyAppCustomerForm,saveBusyAppCustomerForm,
     checkBusyAppRequestRecovery,
     updateMiniAppRequestStatus,
     openBusyAppsMarketplace,

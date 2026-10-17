@@ -18,3 +18,21 @@ function publicCollection(field,value){
  return validPublicCollection(field,value)?value.map(row=>Object.fromEntries(['id',...COLLECTION_FIELDS[field]].filter(k=>Object.hasOwn(row,k)).map(k=>[k,row[k]]))):[];
 }
 export {COLLECTION_FIELDS,validPublicCollection,publicCollection};
+
+// Add missing owner-reviewed answers; never replace destination-specific wording.
+function mergeMissingPublicCollection(field,existing,incoming){
+ if(!validPublicCollection(field,existing)||!validPublicCollection(field,incoming))return {ok:false,reason:'Review the existing and incoming public information before copying.'};
+ const title=COLLECTION_FIELDS[field][0],normal=value=>value.trim().replace(/\s+/g,' ').toLocaleLowerCase('en');
+ const byTitle=new Map(existing.map(row=>[normal(row[title]),row]));
+ const ids=new Set(existing.map(row=>row.id).filter(Boolean)),added=[],conflicts=[];
+ for(const row of incoming){
+  const old=byTitle.get(normal(row[title]));
+  if(old){if(COLLECTION_FIELDS[field].some(k=>normal(old[k])!==normal(row[k])))conflicts.push(row[title]);continue;}
+  if(row.id&&ids.has(row.id)){conflicts.push(row[title]);continue;}
+  added.push({...row});byTitle.set(normal(row[title]),row);if(row.id)ids.add(row.id);
+ }
+ const value=[...existing.map(row=>({...row})),...added];
+ if(!validPublicCollection(field,value))return {ok:false,reason:'The combined public information exceeds the supported limit. Choose entries separately.'};
+ return {ok:true,value,added,conflicts,preservesExisting:true,requiresOwnerReview:true};
+}
+export {mergeMissingPublicCollection};

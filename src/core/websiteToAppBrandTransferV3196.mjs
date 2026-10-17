@@ -1,4 +1,4 @@
-import {publicCollection} from './appPublicCollections.mjs';
+import {publicCollection,mergeMissingPublicCollection} from './appPublicCollections.mjs';
 import {websiteDraftHasScope} from './websiteDraftScope.mjs';
 import {fillMissingBuilderDescriptions} from "./builderServiceDescriptions.mjs";
 /**
@@ -44,8 +44,8 @@ function websiteOwnerServices(website){
  return chosen;
 }
 function planWebsiteToAppDesign({website,app,businessId,mode="adapt",
- includeServices=false,fillDescriptions=false,includeDesign=true,includeContacts=false,includePublicInformation=false}={}){
- if(!MODES.includes(mode)||typeof includeServices!=="boolean"||typeof fillDescriptions!=="boolean"||typeof includeDesign!=="boolean"||typeof includeContacts!=="boolean"||typeof includePublicInformation!=="boolean")
+ includeServices=false,fillDescriptions=false,includeDesign=true,includeContacts=false,includePublicInformation=false,includeMissingAnswers=false}={}){
+ if(!MODES.includes(mode)||typeof includeServices!=="boolean"||typeof fillDescriptions!=="boolean"||typeof includeDesign!=="boolean"||typeof includeContacts!=="boolean"||typeof includePublicInformation!=="boolean"||typeof includeMissingAnswers!=="boolean")
   return {ok:false,reason:"Choose a supported transfer approach."};
  if(!validPrivateBuilderPair(website,app,businessId)||
    (website.business_id&&website.business_id!==businessId)||
@@ -133,15 +133,19 @@ function planWebsiteToAppDesign({website,app,businessId,mode="adapt",
  if(includePublicInformation){
   for(const [field,type,a,b] of [['faqs','faq','question','answer'],['testimonials','testimonials','attribution','text']]){
    const previous=config.publicProfile?.[field];
-   if(previous!==undefined&&previous!==null&&(!Array.isArray(previous)||previous.length)){skipped.push('Kept existing app '+field+'.');continue;}
+   if(previous!==undefined&&previous!==null&&(!Array.isArray(previous)||(field!=='faqs'||!includeMissingAnswers)&&previous.length)){skipped.push('Kept existing app '+field+'.');continue;}
    const sections=website.sections.filter(s=>s?.id===type&&s.type===type&&s.enabled!==false);
    if(sections.length!==1||!Array.isArray(sections[0].items))continue;
    const value=publicCollection(field,sections[0].items.map(row=>({...(row.id?{id:row.id}:{}),[a]:row.title,[b]:row.body})));
    if(!value.length){skipped.push('Website '+field+' need review before reuse.');continue;}
-   const operation={kind:'public_collection',field,value};
+   const merged=mergeMissingPublicCollection(field,previous||[],value);
+   if(!merged.ok){skipped.push(merged.reason);continue;}
+   if(merged.conflicts.length)skipped.push('Kept '+merged.conflicts.length+' conflicting '+field+' entries for owner review.');
+   if(!merged.added.length)continue;
+   const operation={kind:'public_collection',field,value:merged.value};
    const checked=proposeCoordinatedAppChanges(config,[operation]);
    if(!checked.ok){skipped.push(checked.reason);continue;}
-   operations.push(operation);explanations.push('Fill missing '+field+' from this business website; existing app entries are preserved.');
+   operations.push(operation);explanations.push('Add '+merged.added.length+' missing '+field+' from this business website; existing app entries are preserved.');
   }
  }
  if(includeContacts){
@@ -165,7 +169,7 @@ function planWebsiteToAppDesign({website,app,businessId,mode="adapt",
   mode,businessId,sourceWebsiteId:website.id,
   sourceWebsiteGeneration:website.generation,
   targetAppId:app.id,targetAppRevision:app.draft_revision,
-  operations:reviewed,includeServices,fillDescriptions,includeDesign,includeContacts,includePublicInformation,changes:[...preview.changes],
+  operations:reviewed,includeServices,fillDescriptions,includeDesign,includeContacts,includePublicInformation,includeMissingAnswers,changes:[...preview.changes],
   previewConfig:preview.nextConfig,explanations,skipped,
   industryPriority:mode==="adapt"?
     recommendedAppFirstSection(website.businessType,config):null,
@@ -181,7 +185,7 @@ function confirmWebsiteToAppDesign({website,app,businessId,evidence}={}){
   return {ok:false,reason:"The website, app or business changed. Review the latest design first."};
  const current=planWebsiteToAppDesign({website,app,businessId,
   mode:evidence?.mode,
-  includeServices:evidence?.includeServices===true,fillDescriptions:evidence?.fillDescriptions===true,includeDesign:evidence?.includeDesign!==false,includeContacts:evidence?.includeContacts===true,includePublicInformation:evidence?.includePublicInformation===true});
+  includeServices:evidence?.includeServices===true,fillDescriptions:evidence?.fillDescriptions===true,includeDesign:evidence?.includeDesign!==false,includeContacts:evidence?.includeContacts===true,includePublicInformation:evidence?.includePublicInformation===true,includeMissingAnswers:evidence?.includeMissingAnswers===true});
  if(!current.ok||current.exactPreview!==evidence.exactPreview||
    JSON.stringify(current.operations)!==JSON.stringify(evidence.operations))
   return {ok:false,reason:"The proposed app changes no longer match the reviewed design."};
