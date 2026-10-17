@@ -128,3 +128,26 @@ The new proxy tests mock Docker/listeners and use a deterministic binary-stream 
 After separate owner approval of the new exact SHA, the minimum next test is one manual mode=rehearse dispatch at codex/disposable-supabase-review with the input SHA and BUSY_DB_REHEARSAL_APPROVED_SHA both matching that commit, BUSY_DB_REHEARSAL_ENABLED=approved, the existing approval phrase and protected-environment approval. It should show forwarding for both services and CLI startup/schema/API readiness passing while containers remain solely on the internal network. Later migration/fixture failures must be assessed separately; this correction does not claim those tests already pass.
 
 No workflow run, hosted Supabase access, setting change, merge, deployment or additional external spending is performed by preparation. Unrelated Website Builder and App Builder work remains unblocked.
+
+## Scheduler-containment privilege correction after rehearsal #11
+
+Run #11 at b455037e8ef6381767af53582cc873312fb5bedf passed Supabase startup and reached scheduler-containment, then psql exited 3 under ON_ERROR_STOP=1. The old report did not distinguish the four SQL calls, and cleanup deleted private stderr. Therefore the first failing historical statement/SQLSTATE cannot be recovered from the retained report.
+
+A privilege defect is independently verified in the pinned image:
+- https://github.com/supabase/postgres/blob/17.6.1.029/migrations/db/migrations/10000000000000_demote-postgres.sql explicitly demotes postgres to NOSUPERUSER.
+- https://github.com/supabase/postgres/blob/17.6.1.029/ansible/files/postgresql_config/supautils.conf.j2 delegates extension management to postgres but does not allow cron.launch_active_jobs in its privileged-role configuration list.
+- https://www.postgresql.org/docs/17/sql-altersystem.html requires superuser or parameter-specific ALTER SYSTEM privilege. The existing helper used -U postgres even for this administrative operation.
+- The image's initial schema declares supabase_admin a superuser. https://github.com/citusdata/pg_cron/blob/v1.6.2/src/pg_cron.c defines cron.launch_active_jobs as a SIGHUP-reloadable, superuser-only setting.
+
+The fixed containment path uses the EXISTING supabase_admin role through docker exec in the verified disposable DB container, confined to a fixed reviewed map: verify current administrator is superuser; create pg_cron if absent; set cron.launch_active_jobs=off using ALTER SYSTEM; signal pg_reload_conf; verify the flag via a fresh session. No role grants, privilege promotion, arbitrary administrative SQL or remote connection input is added. Ordinary schema, integration, permission and RLS SQL retains the original postgres role.
+
+Every administrative psql call keeps -X and ON_ERROR_STOP=1 and adds VERBOSITY=sqlstate. Reports publish only fixed operation labels and an exact five-character SQLSTATE parsed from a SQLSTATE-only ERROR/FATAL/PANIC line. SQL text, arbitrary error messages, DETAIL/HINT/CONTEXT, credentials and row data stay out of the public report. schedulerContainment records the current operation and successfully completed SQL calls; completed verification calls are not themselves proof of containment until the final off check succeeds.
+
+pg_reload_conf() signals asynchronous reload. Its result must be true; verification accepts only off, retries only an on observation for a bounded ten fresh-session checks, and fails on any SQL error, unexpected value or continued on. Fixtures and historical replay remain after the containment barrier. No scheduler check is bypassed or treated as optional.
+
+Offline validation includes:
+    python3 scripts/disposable-supabase/check-scheduler-containment.py
+
+The tests inject failures into each administrative SQL operation and verify exact labels, SQLSTATE-only reporting, fail-fast ordering, private-log permissions, sensitive-value exclusion and proxy cleanup. They also exercise failed administrator/reload checks, bounded propagation of on -> off and permanent-on rejection. All Docker/SQL operations are mocked. No live SQL was executed during preparation.
+
+The next separately authorised rehearsal must use the new exact SHA in both approval gates and the existing protected-environment approval. It must show scheduler-containment passing before any historical SQL; if another issue appears, the fixed operation/SQLSTATE now identifies it. Localhost proxy, internal Docker isolation, cleanup, workflow triggers, SHA/environment gates, £0 additional-spending policy and PR dependencies remain unchanged. Website Builder and App Builder work unrelated to database acceptance remains unblocked.

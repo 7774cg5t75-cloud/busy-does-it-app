@@ -43,6 +43,40 @@ def failure_details(args,stage,exit_code=None,stdout='',stderr='',kind='exit'):
     return {'command':command_label(args),'stage':stage,'failureKind':kind,
             'exitCode':exit_code,'indicators':[key for key,pattern in signatures.items() if re.search(pattern,output)]}
 
+SCHEDULER_SQL={
+    'scheduler-check-admin':"select rolsuper from pg_roles where rolname=current_user;\n",
+    'scheduler-create-extension':"create extension if not exists pg_cron;\n",
+    'scheduler-disable-jobs':"alter system set cron.launch_active_jobs='off';\n",
+    'scheduler-reload-config':"select pg_reload_conf();\n",
+    'scheduler-verify-disabled':"show cron.launch_active_jobs;\n",
+}
+def scheduler_command(operation):
+    # Administrative role is confined to these exact reviewed local statements.
+    return (['docker','exec','-i',DB,'psql','-X','-qAt','-U','supabase_admin',
+             '-d','postgres','-v','ON_ERROR_STOP=1','-v','VERBOSITY=sqlstate'],SCHEDULER_SQL[operation])
+
+def safe_sqlstate(stderr):
+    text=stderr.decode(errors='replace') if isinstance(stderr,bytes) else (stderr or '')
+    for line in text.splitlines():
+        match=re.fullmatch(r'(?:psql:[^\r\n]*:\d+:\s*)?(?:ERROR|FATAL|PANIC):\s+([0-9A-Z]{5})\s*',line)
+        if match:return match[1]
+    return None
+
+def contain_scheduler(execute):
+    if execute('scheduler-check-admin').strip()!='t':
+        raise RuntimeError('Existing disposable administrator must be superuser')
+    execute('scheduler-create-extension')
+    execute('scheduler-disable-jobs')
+    if execute('scheduler-reload-config').strip()!='t':
+        raise RuntimeError('Scheduler configuration reload was not signalled')
+    # Reload is asynchronous. Each call opens a fresh session; never accept on/unknown.
+    for attempt in range(10):
+        value=execute('scheduler-verify-disabled').strip()
+        if value=='off':return
+        if value!='on':raise RuntimeError('Unexpected scheduler setting')
+        if attempt<9:time.sleep(0.2)
+    raise RuntimeError('Scheduler remained enabled after bounded reload wait')
+
 def main():
     # Refuse arbitrary workstations, private/billable runners and remote credentials.
     if not (os.environ.get('GITHUB_ACTIONS')=='true' and os.environ.get('RUNNER_ENVIRONMENT')=='github-hosted'
@@ -62,7 +96,9 @@ def main():
     stage='initialise'
     proxy=None
     def save(): (work/'report.json').write_text(json.dumps(report,indent=2)+'\n')
-    def run(args,stdin=None,timeout=240):
+    def run(args,stdin=None,timeout=240,operation=None):
+        if operation is not None and (args,stdin)!=scheduler_command(operation):
+            raise RuntimeError('Unreviewed scheduler command refused')
         observer=StartupObserver() if command_label(args)=='supabase-local-start' else None
         def record_failure(exit_code=None,stdout='',stderr='',kind='exit'):
             private=work/'failure-private.log'
@@ -70,6 +106,9 @@ def main():
             fd=os.open(private,os.O_WRONLY|os.O_CREAT|os.O_TRUNC,0o600)
             with os.fdopen(fd,'w') as handle: handle.write(raw)
             report['failedCommand']=failure_details(args,stage,exit_code,stdout,stderr,kind)
+            if operation is not None:
+                report['failedCommand']['command']=operation
+                report['failedCommand']['sqlstate']=safe_sqlstate(stderr)
             if observer:
                 observer.stop()
                 report['failedCommand']['startupObservations']=observer.summary
@@ -90,6 +129,13 @@ def main():
             record_failure(result.returncode,result.stdout,result.stderr)
             raise RuntimeError('Local command failed; see sanitised report')
         return result.stdout
+    def scheduler(operation):
+        state=report.setdefault('schedulerContainment',{'operation':None,'completed':[]})
+        state['operation']=operation;save()
+        args,text=scheduler_command(operation)
+        result=run(args,text,operation=operation)
+        state['completed'].append(operation);save()
+        return result
     def sql(text): return run(['docker','exec','-i',DB,'psql','-X','-qAt','-U','postgres','-d','postgres','-v','ON_ERROR_STOP=1'],text)
     def passed(label): report['stages'].append({'stage':label,'result':'passed'});save()
     def fingerprint():
@@ -127,10 +173,7 @@ def main():
             report['images'].append({'name':meta['Name'],'id':meta['Image'],'digests':image.get('RepoDigests',[])})
         # Supabase Postgres supplies real Auth/Storage schemas, not mocked roles.
         stage='scheduler-containment'
-        sql("create extension if not exists pg_cron;\n")
-        sql("alter system set cron.launch_active_jobs='off';\n")
-        sql('select pg_reload_conf();');time.sleep(1)
-        assert sql("show cron.launch_active_jobs;").strip()=='off'
+        contain_scheduler(scheduler)
         passed('isolated-stack-and-scheduler-containment')
         stage='fixture-prerequisites'
         sql((ROOT/'staging/ISOLATED_ONLY_business_core_v3180.sql').read_text())
