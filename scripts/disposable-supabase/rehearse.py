@@ -24,6 +24,8 @@ def command_label(args):
     if args == ['supabase','migration','up','--local']: return 'supabase-local-migration-up'
     if args == ['supabase','migration','new','shared_business_content_records']: return 'supabase-migration-new'
     if args == ['supabase','status','--output','json']: return 'supabase-local-status'
+    if len(args)==3 and args[0]=='node' and args[1]==str(ROOT/'scripts/disposable-supabase/integration.mjs'):
+        return 'local-node-integration'
     return 'other-local-command'
 
 def failure_details(args,stage,exit_code=None,stdout='',stderr='',kind='exit'):
@@ -124,6 +126,10 @@ def main():
             fd=os.open(private,os.O_WRONLY|os.O_CREAT|os.O_TRUNC,0o600)
             with os.fdopen(fd,'w') as handle: handle.write(raw)
             report['failedCommand']=failure_details(args,stage,exit_code,stdout,stderr,kind)
+            if command_label(args)=='local-node-integration':
+                # Entry-point parse/import failures can precede the first progress file.
+                text=stderr.decode(errors='replace') if isinstance(stderr,bytes) else (stderr or '')
+                report['failedCommand']['category']='node-runtime-initialisation' if any(marker in text for marker in ('SyntaxError','ERR_MODULE_NOT_FOUND','ERR_UNKNOWN_BUILTIN_MODULE','ERR_MODULE_NOT_EXPORTED')) else 'integration-process-failure'
             if operation is not None:
                 report['failedCommand']['command']=operation
                 report['failedCommand']['sqlstate']=safe_sqlstate(stderr)
