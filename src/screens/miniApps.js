@@ -339,7 +339,7 @@ function MiniAppSurface({
           </Text>
         ):null}
         {interactive?<AppSectionNavigation modules={modules.map(module=>({...module,label:module.label||module.title||miniAppModuleLabel(module.key)}))} selected={currentSection} colors={brandColours}
-          onSelect={key=>{setSelectedSection(key);if(['enquiry','booking_request'].includes(key))onRequestNavigation?.();}}/>:modules.length?(
+          onSelect={key=>{setSelectedSection(key);if(['enquiry','booking_request'].includes(key))onRequestNavigation?.(key);}}/>:modules.length?(
           <View style={{flexDirection:responsive.ok&&responsive.navigation==="list"?
             "column":"row",flexWrap:"wrap",gap:8,marginBottom:12}}>
             {modules.map((module,index)=>(
@@ -437,8 +437,10 @@ function MiniAppSurface({
                         {service.category?<Text style={styles.cardBody}>{'Category: '+service.category}</Text>:null}
                         {service.priceLabel?<Text style={styles.cardBody}>{'Price information: '+service.priceLabel}</Text>:null}
                         {service.durationLabel?<Text style={styles.cardBody}>{'Typical duration: '+service.durationLabel}</Text>:null}
-                        {interactive&&typeof onSelectService==='function'?<Button label={'Choose '+service.name+' for my request'}
-                          onPress={()=>onSelectService(service.name)}/>:null}
+                        {interactive&&typeof onSelectService==='function'&&modules.some(m=>m.key==='enquiry')?<Button label={'Ask about '+service.name}
+                          onPress={()=>onSelectService(service.name,'enquiry')}/>:null}
+                        {interactive&&typeof onSelectService==='function'&&modules.some(m=>m.key==='booking_request')?<Button label={'Request '+service.name}
+                          onPress={()=>onSelectService(service.name,'booking_request')}/>:null}
                       </View>
                     </View>
                   ))}
@@ -4585,7 +4587,14 @@ function BusyAppDetailForm({ s }) {
   const detail = s.selectedBusyAppDetail || {};
   const config = detail?.version?.config || null;
   const requestScroll=React.useRef(null),requestFormY=React.useRef(null);
-  const goToRequest=()=>{if(Number.isFinite(requestFormY.current))requestScroll.current?.scrollTo?.({y:Math.max(0,requestFormY.current-12),animated:true});};
+  const [requestKind,setRequestKind]=React.useState(config?.modules?.some(m=>m.enabled&&m.key==='enquiry')?'enquiry':'booking_request');
+  const goToRequest=type=>{
+    if(['enquiry','booking_request'].includes(type)&&config?.modules?.some(m=>m.enabled&&m.key===type)){
+      if(type==='booking_request'&&contentInterest)setContentNotice('The selected product or event is an enquiry. Remove that selection before switching to a booking request.');
+      else setRequestKind(type);
+    }
+    if(Number.isFinite(requestFormY.current))requestScroll.current?.scrollTo?.({y:Math.max(0,requestFormY.current-12),animated:true});
+  };
   const saved=s.readBusyAppCustomerForm?.()||{};
   const initial=detail.entryContentInterest;
   const [name, setName] = React.useState(saved.name||"");
@@ -4605,11 +4614,13 @@ function BusyAppDetailForm({ s }) {
   const chooseContent=(label,prepared)=>{
     const checked=prepareBusinessContentEnquiry(detail.businessContent,detail.app?.business_id,prepared?.selection);
     if(!checked.ok){setContentNotice(checked.reason);return;}
-    const apply=()=>{setService(checked.service);setMessage(checked.message);setContentInterest(checked.selection);setContentNotice('Selected item added to your enquiry. Review the message before sending.');goToRequest();};
+    const apply=()=>{setService(checked.service);setMessage(checked.message);setContentInterest(checked.selection);setContentNotice('Selected item added to your enquiry. Review the message before sending.');goToRequest('enquiry');};
     if(message.trim())Alert.alert('Replace this enquiry draft?','Your current message will be replaced by the selected listing context.',[{text:'Keep my message',style:'cancel'},{text:'Use selected item',onPress:apply}]);else apply();
   };
-  const chooseService=label=>{
-    const apply=()=>{setService(label);if(contentInterest){setContentInterest(null);setMessage("I'd like to ask about "+label+'.');setContentNotice('Selected listing removed. Review your service enquiry before sending.');}goToRequest();};
+  const chooseService=(label,kind)=>{
+    const type=['enquiry','booking_request'].includes(kind)?kind:config?.modules?.some(m=>m.enabled&&m.key==='enquiry')?'enquiry':'booking_request';
+    if(!config?.modules?.some(m=>m.enabled&&m.key===type))return;
+    const apply=()=>{setService(label);setRequestKind(type);if(contentInterest){setContentInterest(null);setMessage("I'd like to ask about "+label+'.');setContentNotice('Selected listing removed. Review your service enquiry before sending.');}else if(type==='enquiry'&&!message.trim())setMessage("I'd like to ask about "+label+'.');goToRequest();};
     if(contentInterest)Alert.alert('Replace the selected listing?','This removes the product or event selection and replaces its enquiry message with the selected service.',[{text:'Keep selected item',style:'cancel'},{text:'Use service',onPress:apply}]);else apply();
   };
   const enabled = new Set(
@@ -4753,7 +4764,7 @@ function BusyAppDetailForm({ s }) {
         />
       ) : null}
 
-      <BusinessAppCustomerRequestFields s={s} form={{enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}} onLayout={event=>{requestFormY.current=event.nativeEvent.layout.y;}}/>
+      <BusinessAppCustomerRequestFields s={s} form={{requestKind,setRequestKind,enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}} onLayout={event=>{requestFormY.current=event.nativeEvent.layout.y;}}/>
       <Button label="Back to BUSY Apps" onPress={() => s.go("busyAppsMarketplace")} />
     </Shell>
   );
