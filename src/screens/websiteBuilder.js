@@ -809,10 +809,10 @@ function WebsiteBuilder({ s }) {
               </>
             ) : null}
           </Card>
-          <AppToWebsiteDesignTransfer website={draft}
+          <AppToWebsiteDesignTransfer key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft.id,s.miniAppsView?.app?.id].join(':')} website={draft}
             app={s.miniAppsView?.app} businessId={s.cloudWorkspace?.businessId}
             onApply={s.applyAppDesignToWebsite}/>
-          <BusinessBrandDnaPreview website={draft}
+          <BusinessBrandDnaPreview key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft.id,s.miniAppsView?.app?.id].join(':')} website={draft}
             app={s.miniAppsView?.app}
             businessId={s.cloudWorkspace?.businessId}
             catalog={s.miniAppsView?.catalog||s.miniAppsStatus?.catalog||[]}
@@ -827,15 +827,15 @@ function WebsiteBuilder({ s }) {
             deliveryProof={deliveryProof}
             businessType={draft?.businessType||brand?.websiteBrief?.businessType||s.trade||""}
             description={brand?.websiteBrief?.description||""}/>
-          <WebsiteAppTypographyMatch website={draft}
+          <WebsiteAppTypographyMatch key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft.id,s.miniAppsView?.app?.id].join(':')} website={draft}
             app={s.miniAppsView?.app}
             businessId={s.cloudWorkspace?.businessId}
             onApply={s.applyBusinessAppTypographyToWebsite}/>
-          <WebsiteAppBrandMatch website={draft}
+          <WebsiteAppBrandMatch key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft.id,s.miniAppsView?.app?.id].join(':')} website={draft}
             app={s.miniAppsView?.app}
             businessId={s.cloudWorkspace?.businessId}
             onApply={s.applyBusinessAppBrandToWebsite}/>
-          <WebsiteAppServiceCopy website={draft}
+          <WebsiteAppServiceCopy key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft.id,s.miniAppsView?.app?.id].join(':')} website={draft}
             app={s.miniAppsView?.app}
             businessId={s.cloudWorkspace?.businessId}
             onApply={s.applyMissingAppServicesToWebsite}/>

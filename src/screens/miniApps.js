@@ -1204,7 +1204,7 @@ function MiniAppBuilder({ s }) {
         initialGoal={s.miniAppBuildBrief||plan?.ownerRequest||""}
         onSaveAppChanges={s.saveCoordinatedAppChanges}
         busy={!!s.miniAppsAction}/>
-      <WebsiteToAppDesignTransfer website={s.websiteDraft} app={app}
+      <WebsiteToAppDesignTransfer key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.websiteDraft?.id,app.id].join(':')} website={s.websiteDraft} app={app}
         businessId={s.cloudWorkspace?.businessId}
         onPreview={setStudioPreview} busy={!!s.miniAppsAction||studio.pending}/>
       <Card

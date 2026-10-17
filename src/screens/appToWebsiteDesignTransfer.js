@@ -1,3 +1,4 @@
+import {reviewedPairIsCurrent} from '../core/ownerBuilderDraftGuardV3195.mjs';
 import React from "react";
 import {View,Text} from "react-native";
 import {Card,Button} from "../components/ui";
@@ -13,9 +14,11 @@ function AppToWebsiteDesignTransfer({website,app,businessId,onApply}){
  const [includeMissingAnswers,setIncludeMissingAnswers]=React.useState(false);
  const [review,setReview]=React.useState(null);
  const [notice,setNotice]=React.useState("");
+ const live=React.useRef(null);live.current={website,app,businessId};
  React.useEffect(()=>{setReview(null);setNotice("");},
   [website?.id,website?.generation,app?.id,app?.draft_revision,businessId]);
  if(!website?.id||!app?.id||!businessId)return null;
+ if(review&&!reviewedPairIsCurrent(website,app,businessId,review,{appId:'sourceAppId',appRevision:'sourceAppRevision',websiteId:'targetWebsiteId',websiteRevision:'targetWebsiteGeneration'}))return <Card title="Review updated builder drafts" body="The source or destination changed. No old proposal was applied."><Button label="Review current design choices" onPress={()=>setReview(null)}/></Card>;
  const plan=planAppToWebsiteDesign({website,app,businessId,
   mode,includeServices:withServices,includeDesign,includePublicInformation,includeMissingAnswers});
  return <Card eyebrow="Make your website feel like your app"
@@ -63,6 +66,7 @@ function AppToWebsiteDesignTransfer({website,app,businessId,onApply}){
      </Text>
      <Button primary label="Approve this PRIVATE website change"
       onPress={()=>{
+       if(live.current.website!==website||live.current.app!==app||live.current.businessId!==businessId){setReview(null);return;}
        const check=confirmAppToWebsiteDesign({website,app,businessId,evidence:review});
        if(!check.ok){setNotice(check.reason);setReview(null);return;}
        const applied=onApply?.(review);

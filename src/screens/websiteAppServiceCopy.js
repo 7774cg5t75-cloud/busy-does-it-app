@@ -1,8 +1,9 @@
+import {reviewedPairIsCurrent} from '../core/ownerBuilderDraftGuardV3195.mjs';
 import React from "react";
 import {Text,View} from "react-native";
 import {Card,Button} from "../components/ui";
 import {styles} from "../theme/styles";
-import {planCopyMissingAppServices} from "../core/ownerBuilderServiceBridgeV3192.mjs";
+import {planCopyMissingAppServices,confirmCopyMissingAppServices} from "../core/ownerBuilderServiceBridgeV3192.mjs";
 
 /**
  * V3.192 — deliberately separate from the huge WebsiteBuilder screen.
@@ -12,9 +13,12 @@ import {planCopyMissingAppServices} from "../core/ownerBuilderServiceBridgeV3192
 function WebsiteAppServiceCopy({website,app,businessId,onApply}){
  const [fillDescriptions,setFillDescriptions]=React.useState(false);
  const [review,setReview]=React.useState(null);
+ const live=React.useRef(null);live.current={website,app,businessId};
  const plan=planCopyMissingAppServices(website,app,{businessId,fillDescriptions});
  const available=plan.ok&&(plan.addedCount>0||plan.filledCount>0);
  if(!website?.id||!app?.id)return null;
+ const currentReview=review&&reviewedPairIsCurrent(website,app,businessId,review,{appId:'sourceAppId',appRevision:'sourceAppRevision',websiteId:'targetWebsiteId',websiteRevision:'targetWebsiteGeneration'});
+ if(review&&!currentReview)return <Card title="Review updated builder drafts" body="The source or destination changed. Your old proposal was not applied."><Button label="Review current services" onPress={()=>setReview(null)}/></Card>;
  return <Card eyebrow="Keep your website and app consistent"
   title="Copy services you've written in your Business App"
   body="Copy only services missing from this website. Existing wording stays unchanged; you can explicitly include empty descriptions below. No AI credits or automatic publication."
@@ -54,6 +58,8 @@ function WebsiteAppServiceCopy({website,app,businessId,onApply}){
     </Text>
     <Button primary label="Copy these services into my PRIVATE website"
      onPress={()=>{
+      if(live.current.website!==website||live.current.app!==app||live.current.businessId!==businessId)return;
+      if(!confirmCopyMissingAppServices(website,app,{businessId,evidence:review}).ok){setReview(null);return;}
       const accepted=onApply?.(review);
       if(accepted===true)setReview(null);
      }}/>

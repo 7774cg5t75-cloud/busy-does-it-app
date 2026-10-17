@@ -1,3 +1,4 @@
+import {reviewedPairIsCurrent} from '../core/ownerBuilderDraftGuardV3195.mjs';
 import {proposeCoordinatedAppChanges} from "../core/appCoordinatedStudio.mjs";
 import {bindPrivateAppProposal} from "../core/privateAppEditSession.mjs";
 import React from "react";
@@ -24,6 +25,7 @@ function WebsiteToAppDesignTransfer({website,app,businessId,onPreview,busy}){
  React.useEffect(()=>{setReview(null);setNotice("");},[
   website?.id,website?.generation,app?.id,app?.draft_revision,businessId]);
  if(!website?.id||!app?.id||!businessId)return null;
+ if(review&&!reviewedPairIsCurrent(website,app,businessId,review,{appId:'targetAppId',appRevision:'targetAppRevision',websiteId:'sourceWebsiteId',websiteRevision:'sourceWebsiteGeneration'}))return <Card title="Review updated builder drafts" body="The source or destination changed. No old proposal was applied."><Button label="Review current design choices" onPress={()=>setReview(null)}/></Card>;
  const preview=planWebsiteToAppDesign({
   website,app,businessId,mode,includeServices,fillDescriptions,includeDesign,includeContacts,includePublicInformation,includeMissingAnswers
  });
