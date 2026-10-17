@@ -31,6 +31,7 @@ function render(extra={}){index=0;return Hook({...props,...extra})}
 const value=JSON.stringify({v:1,...scope,at:Date.now(),draft});let ui=render(),pending=ui.restore();await Promise.resolve();await Promise.resolve();
 render({draft:{...draft,message:'New typing'}});finish(value);assert.equal(await pending,false);assert.equal(applied,null);
 ui=render();pending=ui.restore();await Promise.resolve();await Promise.resolve();render({userId:OTHER});finish(value);assert.equal(await pending,false);assert.equal(applied,null);
+ui=render();pending=ui.restore();await Promise.resolve();await Promise.resolve();render({detail:{...props.detail,businessContent:{checkedAt:'new feed'}}});finish(value);assert.equal(await pending,false);assert.equal(applied,null);
 ui=render();pending=ui.restore();await Promise.resolve();await Promise.resolve();finish(value);assert.equal(await pending,true);assert.deepEqual(applied,draft);
 assert.ok(gets>=3);
 console.log('PASS encrypted-storage boundary fixtures, explicit save, reconstructed helper restore, account/version/expiry checks, newer-draft preservation, corrupted-storage denial and actual async hook stale-typing/account guards. No OS encryption/device-restart claim.');

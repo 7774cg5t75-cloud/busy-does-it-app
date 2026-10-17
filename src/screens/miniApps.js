@@ -334,7 +334,7 @@ function MiniAppSurface({
               responsive.serviceColumns+" service column(s)."}
           </Text>
         ):null}
-        {interactive?<AppSectionNavigation modules={modules} selected={currentSection} colors={brandColours}
+        {interactive?<AppSectionNavigation modules={modules.map(module=>({...module,label:module.label||module.title||miniAppModuleLabel(module.key)}))} selected={currentSection} colors={brandColours}
           onSelect={key=>{setSelectedSection(key);if(['enquiry','booking_request'].includes(key))onRequestNavigation?.();}}/>:modules.length?(
           <View style={{flexDirection:responsive.ok&&responsive.navigation==="list"?
             "column":"row",flexWrap:"wrap",gap:8,marginBottom:12}}>
