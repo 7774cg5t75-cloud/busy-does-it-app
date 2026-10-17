@@ -1,7 +1,7 @@
-import {validPublicBusinessContent,contentPrice} from './businessContentRecords.mjs';
+import {validPublicBusinessContent,contentPrice,contentEventSchedule} from './businessContentRecords.mjs';
 // One governed public-content mount for both Website renderer adapters.
 const escape=x=>String(x||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function mountBusinessContent(id,endpoint,payload,kind,featuredId){
+function mountBusinessContent(id,endpoint,payload,kind,featuredId,eventSchedule){
  const target=document.getElementById(id);if(!target)return;let generation=0;
  const line=(parent,tag,value)=>{const el=document.createElement(tag);el.textContent=String(value||'');parent.appendChild(el);return el;};
  async function refresh(){
@@ -14,7 +14,14 @@ function mountBusinessContent(id,endpoint,payload,kind,featuredId){
    function renderRows(){listing.replaceChildren();const query=String(input.value||'').toLocaleLowerCase(),filtered=rows.filter(r=>(r.data.name+' '+r.data.description+' '+r.data.category).toLocaleLowerCase().includes(query));
    for(const row of filtered.slice(0,pageSize)){const d=row.data,article=document.createElement('article');article.style.cssText='padding:1rem;border:1px solid #bbc4d2;border-radius:12px;margin:1rem 0;';line(article,'h3',d.name);line(article,'p',d.category);line(article,'p',d.description);
     if(kind==='product'){const price=new Intl.NumberFormat(undefined,{style:'currency',currency:d.currency});line(article,'p',price.format(d.amountMinor/10**price.resolvedOptions().maximumFractionDigits));line(article,'p','Availability: '+d.availability.replaceAll('_',' ')+'. Stock and checkout are not supported.');}
-    else{line(article,'p',d.status==='cancelled'?'Cancelled':new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short',timeZone:d.timeZone}).format(new Date(d.startsAt))+' • '+d.timeZone);line(article,'p',d.location||'Online event');line(article,'p','Listing only; attendance is not confirmed.');if(typeof d.onlineUrl==='string'&&/^https:\/\//.test(d.onlineUrl)){const link=line(article,'a','Open public event information');link.href=d.onlineUrl;link.target='_blank';link.rel='noopener noreferrer';}}
+    else{line(article,'p',d.status==='cancelled'?'Cancelled':eventSchedule(d));line(article,'p',d.location||'Online event');line(article,'p','Listing only; attendance is not confirmed.');if(typeof d.onlineUrl==='string'&&/^https:\/\//.test(d.onlineUrl)){const link=line(article,'a','Open public event information');link.href=d.onlineUrl;link.target='_blank';link.rel='noopener noreferrer';}}
+    line(article,'p','Approved listing revision '+row.revision+'. Review current details before enquiring.');
+    if(kind==='product'&&Array.isArray(d.variants)&&d.variants.length){
+     const details=document.createElement('details');line(details,'summary','Product options');
+     const list=document.createElement('ul');
+     for(const variant of d.variants){const price=new Intl.NumberFormat(undefined,{style:'currency',currency:d.currency});line(list,'li',variant.label+' • '+price.format(variant.amountMinor/10**price.resolvedOptions().maximumFractionDigits)+(variant.sku?' • '+variant.sku:''));}
+     details.appendChild(list);article.appendChild(details);
+    }
     if(payload.allowEnquiry===true&&payload.slug&&payload.expectedAppId&&payload.expectedVersionId&&d.status!=='cancelled'){
      const url=new URL(endpoint.replace(/busy-mini-app-guest$/,'busy-mini-app-link'));
      for(const [key,value]of Object.entries({slug:payload.slug,source:'web',intent:'enquiry',appId:payload.expectedAppId,versionId:payload.expectedVersionId,content:row.id,content_revision:String(row.revision)}))url.searchParams.set(key,value);
@@ -41,6 +48,6 @@ function businessContentSectionHtml(section,{endpoint='',websiteId='',deployment
  const preview=!safeEndpoint&&validPublicBusinessContent(section.previewFeed)?section.previewFeed:null;
  const previewHtml=preview?`<p>Approved record snapshot checked ${escape(preview.checkedAt)}. Current details require the connected public feed.</p>`+preview.records.filter(r=>r.kind===kind).map(r=>`<article><h3>${escape(r.data.name)}</h3><p>${escape(r.data.description)}</p><p>${escape(kind==='product'?contentPrice(r.data.amountMinor,r.data.currency):r.data.status==='cancelled'?'Cancelled':r.data.startsAt+' • '+r.data.timeZone)}</p></article>`).join(''):'';
  const args=[id,endpoint,payload,kind,section.featuredId||''].map(x=>JSON.stringify(x).replace(/</g,'\\u003c')).join(',');
- return `<section id="${escape(section.id)}"><div class="wrap"><h2>${escape(section.title)}</h2><div id="${escape(id)}" style="display:grid;grid-template-columns:${section.contentLayout==='rows'?'1fr':'repeat(auto-fit,minmax(min(100%,280px),1fr))'};gap:1rem">${previewHtml||`<p>${safeEndpoint?'Current approved information loads here.':'Shared record section prepared. Current published records require the connected live website.'}</p>`}</div>${safeEndpoint?`<script>(${mountBusinessContent.toString()})(${args});</script>`:''}</div></section>`;
+ return `<section id="${escape(section.id)}"><div class="wrap"><h2>${escape(section.title)}</h2><div id="${escape(id)}" style="display:grid;grid-template-columns:${section.contentLayout==='rows'?'1fr':'repeat(auto-fit,minmax(min(100%,280px),1fr))'};gap:1rem">${previewHtml||`<p>${safeEndpoint?'Current approved information loads here.':'Shared record section prepared. Current published records require the connected live website.'}</p>`}</div>${safeEndpoint?`<script>(${mountBusinessContent.toString()})(${args},${contentEventSchedule.toString()});</script>`:''}</div></section>`;
 }
 export {businessContentSectionHtml};

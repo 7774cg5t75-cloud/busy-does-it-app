@@ -1,10 +1,12 @@
 import React from 'react';
 import {View,Text,Image,TextInput,Pressable,useWindowDimensions,Linking} from 'react-native';
-import {selectBusinessContent,contentPrice,prepareBusinessContentEnquiry} from '../core/businessContentRecords.mjs';
+import {selectBusinessContent,contentPrice,contentEventSchedule,prepareBusinessContentEnquiry} from '../core/businessContentRecords.mjs';
 function BusinessContentView({feed,kind,layout='cards',title,onInterest,featuredId='',colors={text:'#16253a',muted:'#46556a',surface:'#fff',line:'#8b93a3'}}){
  const [query,setQuery]=React.useState(''),[category,setCategory]=React.useState(''),[selected,setSelected]=React.useState(''),[notice,setNotice]=React.useState(''),[pageSize,setPageSize]=React.useState(12),[categoryCount,setCategoryCount]=React.useState(8);
  const width=useWindowDimensions().width;
  const [options,setOptions]=React.useState({});
+ const [optionRevisions,setOptionRevisions]=React.useState({});
+ const chooseOption=(row,value)=>{setOptions(x=>({...x,[row.id]:value}));setOptionRevisions(x=>({...x,[row.id]:row.revision}));};
  const rows=selectBusinessContent(feed,{kind,query,category});
  if(featuredId){const index=rows.findIndex(r=>r.id===featuredId);if(index>0)rows.unshift(...rows.splice(index,1));}
  const categories=[...new Set(selectBusinessContent(feed,{kind}).map(r=>r.data.category).filter(Boolean))];
@@ -23,16 +25,17 @@ function BusinessContentView({feed,kind,layout='cards',title,onInterest,featured
     <Text style={{fontSize:19,fontWeight:'700',color:colors.text}}>{data.name}</Text>
     <Text style={{color:colors.muted,marginTop:6}}>{data.category}</Text>
     <Text style={{color:colors.text,marginTop:6}}>{detail?data.description:data.description.slice(0,180)}</Text>
-    {kind==='product'?<><Text style={{fontWeight:'700',color:colors.text,marginTop:8}}>{contentPrice(data.amountMinor,data.currency)}</Text><Text style={{color:colors.muted}}>Availability: {data.availability.replaceAll('_',' ')}. No stock reservation or checkout.</Text>{detail&&data.variants?.length?button('Standard option • '+contentPrice(data.amountMinor,data.currency),()=>setOptions(x=>({...x,[row.id]:''})),!options[row.id]):null}{detail?(data.variants||[]).map(v=><View key={v.id}>{button((options[row.id]===v.id?'✓ ':'')+v.label+' • '+contentPrice(v.amountMinor,data.currency)+(v.sku?' • '+v.sku:''),()=>setOptions(x=>({...x,[row.id]:v.id})),options[row.id]===v.id)}</View>):null}</>:<>
-      <Text style={{color:data.status==='cancelled'?'#a32121':colors.text,fontWeight:'700'}}>{data.status==='cancelled'?'Cancelled':new Intl.DateTimeFormat(undefined,{dateStyle:'medium',timeStyle:'short',timeZone:data.timeZone}).format(new Date(data.startsAt))+' • '+data.timeZone}</Text>
+    {detail?<Text style={{color:colors.muted,marginTop:6}}>Approved listing revision {row.revision}. Review current details before enquiring.</Text>:null}
+    {kind==='product'?<><Text style={{fontWeight:'700',color:colors.text,marginTop:8}}>{contentPrice(data.amountMinor,data.currency)}</Text><Text style={{color:colors.muted}}>Availability: {data.availability.replaceAll('_',' ')}. No stock reservation or checkout.</Text>{detail&&data.variants?.length?button('Standard option • '+contentPrice(data.amountMinor,data.currency),()=>chooseOption(row,''),!options[row.id]):null}{detail?(data.variants||[]).map(v=><View key={v.id}>{button((options[row.id]===v.id?'✓ ':'')+v.label+' • '+contentPrice(v.amountMinor,data.currency)+(v.sku?' • '+v.sku:''),()=>chooseOption(row,v.id),options[row.id]===v.id)}</View>):null}</>:<>
+      <Text style={{color:data.status==='cancelled'?'#a32121':colors.text,fontWeight:'700'}}>{data.status==='cancelled'?'Cancelled':contentEventSchedule(data)}</Text>
       <Text style={{color:colors.muted}}>{data.location||'Online event'}</Text><Text style={{color:colors.muted}}>An event listing does not confirm attendance.</Text>{data.onlineUrl?button('Open public event information',()=>Linking.openURL(data.onlineUrl).catch(()=>setNotice('The event link could not be opened.'))):null}
     </>}
     {!detail?button('View '+data.name,()=>setSelected(row.id)):null}
-    {onInterest&&data.status!=='cancelled'?button('Ask about '+data.name,()=>{const prepared=prepareBusinessContentEnquiry(feed,feed?.businessId,{recordId:row.id,revision:row.revision,...options[row.id]?{variantId:options[row.id]}:{}});if(prepared.ok)onInterest(prepared.service,prepared);else setNotice(prepared.reason);}):null}
+    {onInterest&&data.status!=='cancelled'?button('Ask about '+data.name,()=>{if(options[row.id]&&optionRevisions[row.id]!==row.revision){setNotice('This option has changed. Review the details and choose an option again.');return;}const prepared=prepareBusinessContentEnquiry(feed,feed?.businessId,{recordId:row.id,revision:row.revision,...options[row.id]?{variantId:options[row.id]}:{}});if(prepared.ok)onInterest(prepared.service,prepared);else setNotice(prepared.reason);}):null}
    </View>;})}
   </View>
   {!detail&&rows.length>pageSize?button('Show more '+(kind==='product'?'products':'events'),()=>setPageSize(x=>x+12)):null}
-  {notice?<Text style={{color:colors.muted}}>{notice}</Text>:null}
+  {notice?<Text accessibilityLiveRegion="polite" style={{color:colors.muted}}>{notice}</Text>:null}
   {feed?.ok&&!rows.length?<Text style={{color:colors.muted}}>No approved matching {kind==='product'?'products':'upcoming events'}.</Text>:null}
  </View>;
 }

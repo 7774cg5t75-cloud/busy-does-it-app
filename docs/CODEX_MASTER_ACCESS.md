@@ -2,7 +2,13 @@
 
 **Status:** configuration reference only. The full product master remains private and is **not stored in this public GitHub repository**. This file is intentionally safe to publish.
 
-## Current Mission 12 private-master verification — 17 October 2026
+## Current Mission 13 private-master verification — 17 October 2026
+
+The owner attached the complete approved Product Master **V22.27**, updated 17 October 2026, under the attachment name `Latest master 44.docx`. Its Word body, including table paragraphs, was opened and reviewed in full (1,691 paragraphs). Original DOCX SHA-256: `8c7e7134124f9b8c54fd8fd159f66dd199883dd0af601d390904e0ddec9005eb`. This supersedes V22.24 for Mission 13; earlier provenance remains below. The private document was neither changed nor copied into this public repository. The supplied filename alone was not used as version proof: V22.27 is stated in its contents and confirmed by the owner.
+
+Future missions must obtain and read the then-current approved master; this entry does not guarantee attachment access in another task.
+
+## Historical Mission 12 private-master verification — 17 October 2026
 
 The owner supplied the full `Busy_Does_It_Master_V22_24_Existing_Website_AI_Agent_Editing.docx` in this task. It was opened/reviewed and its original bytes match SHA-256 `07d6b64325c624abe50d81afc73f6fe5924416e3bd1c7ba5a71fc2160726e8e1`, the V22.24 provenance recorded in independent draft PR #16. The owner identified V22.24 as current for Mission 12. This supersedes the older V22.18 working-access checkpoint below for this mission; historical provenance remains intact.
 

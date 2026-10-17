@@ -589,7 +589,7 @@ async function currentOwnerFollowup(businessId:string,body:any){
  // Membership and owner/admin role are enforced by the existing route.
  // One clock value and one scoped snapshot anchor BOTH action + outcome.
  return readCurrentOwnerFollowupV3235({
-  businessId,appId:app.id,requestId,store:supabase,
+  businessId,appId:app.id,requestId,store:supabase,prepareReply:true,
   nowISO:new Date().toISOString()
  });
 }

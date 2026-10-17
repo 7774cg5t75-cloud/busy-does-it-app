@@ -2,6 +2,8 @@ import {validContentLayout,prepareBusinessContentEnquiry} from '../core/business
 import {proposeCoordinatedAppChanges as proposeContentComposition} from '../core/appCoordinatedStudio.mjs';
 import {BusinessContentView} from '../components/businessContentView';
 import {BusinessContentEditor} from './businessContentEditor';
+import {useCustomerEnquiryRecovery} from './useCustomerEnquiryRecovery';
+import {AppSectionNavigation} from '../components/appSectionNavigation';
 import {AppPublicCollectionEditor} from './appPublicCollectionEditor';
 import {publicCollection} from '../core/appPublicCollections.mjs';
 import {AppContactEditor} from "./appContactEditor";
@@ -252,11 +254,14 @@ function MiniAppSurface({
   onMeasuredWidth = null,
   onSelectService = null,
   onSelectContent = null,
+  onRequestNavigation = null,
   businessContent = null,
 }) {
   const profile = config?.publicProfile || {};
   const modules = orderedAppModules(config);
   const [serviceQuery,setServiceQuery]=React.useState('');
+  const [selectedSection,setSelectedSection]=React.useState('');
+  const currentSection=modules.some(m=>m.key===selectedSection)?selectedSection:'';
   const allServices=Array.isArray(profile?.services)?profile.services:[];
   // Marketplace has legacy 50-row profiles; retain the native helper's 40-row bound.
   const services=allServices.length<=50?[...searchPublicNativeServices(allServices.slice(0,40),serviceQuery),...searchPublicNativeServices(allServices.slice(40),serviceQuery)]:[];
@@ -329,7 +334,8 @@ function MiniAppSurface({
               responsive.serviceColumns+" service column(s)."}
           </Text>
         ):null}
-        {modules.length?(
+        {interactive?<AppSectionNavigation modules={modules.map(module=>({...module,label:module.label||module.title||miniAppModuleLabel(module.key)}))} selected={currentSection} colors={brandColours}
+          onSelect={key=>{setSelectedSection(key);if(['enquiry','booking_request'].includes(key))onRequestNavigation?.();}}/>:modules.length?(
           <View style={{flexDirection:responsive.ok&&responsive.navigation==="list"?
             "column":"row",flexWrap:"wrap",gap:8,marginBottom:12}}>
             {modules.map((module,index)=>(
@@ -341,9 +347,9 @@ function MiniAppSurface({
             ))}
           </View>
         ):null}
-        <Text style={styles.cardBody}>
+        {!interactive?<Text style={styles.cardBody}>
           Navigation labels are a visual preview; tap behaviour still needs device testing.
-        </Text>
+        </Text>:null}
         {heroUri.startsWith("https://") ? (
           <MeasuredPublicImage
             source={{ uri: heroUri }}
@@ -362,7 +368,7 @@ function MiniAppSurface({
         <MetricRow left="Powered by" right="BUSY DOES IT" strong />
       </Card>
 
-      {modules.map((module) => {
+      {modules.filter(module=>!interactive||!currentSection||module.key===currentSection).map((module) => {
         if (module.key === "business_profile") {
           return (
             <View key={module.key}><Card
@@ -4651,6 +4657,8 @@ function BusyAppDetail({ s }) {
 function BusyAppDetailForm({ s }) {
   const detail = s.selectedBusyAppDetail || {};
   const config = detail?.version?.config || null;
+  const requestScroll=React.useRef(null),requestFormY=React.useRef(null);
+  const goToRequest=()=>{if(Number.isFinite(requestFormY.current))requestScroll.current?.scrollTo?.({y:Math.max(0,requestFormY.current-12),animated:true});};
   const saved=s.readBusyAppCustomerForm?.()||{};
   const initial=detail.entryContentInterest;
   const [name, setName] = React.useState(saved.name||"");
@@ -4663,12 +4671,19 @@ function BusyAppDetailForm({ s }) {
 
   const [contentInterest,setContentInterest]=React.useState(Object.hasOwn(saved,'contentInterest')?saved.contentInterest:initial?.selection??null);
   const [contentNotice,setContentNotice]=React.useState(detail.entryContentNotice||'');
+  const recoveryDraft={name,email,phone,service,message,contentInterest};
+  const privateRecovery=useCustomerEnquiryRecovery({userId:s.ownerSession?.userId,detail,draft:recoveryDraft,
+    onRestore:value=>{setName(value.name);setEmail(value.email);setPhone(value.phone);setService(value.service);setMessage(value.message);setContentInterest(value.contentInterest);}});
   React.useEffect(()=>{s.saveBusyAppCustomerForm?.({name,email,phone,service,date,note,message,contentInterest});},[name,email,phone,service,date,note,message,contentInterest]);
   const chooseContent=(label,prepared)=>{
     const checked=prepareBusinessContentEnquiry(detail.businessContent,detail.app?.business_id,prepared?.selection);
     if(!checked.ok){setContentNotice(checked.reason);return;}
-    const apply=()=>{setService(checked.service);setMessage(checked.message);setContentInterest(checked.selection);setContentNotice('Selected item added to your enquiry. Review the message before sending.');};
+    const apply=()=>{setService(checked.service);setMessage(checked.message);setContentInterest(checked.selection);setContentNotice('Selected item added to your enquiry. Review the message before sending.');goToRequest();};
     if(message.trim())Alert.alert('Replace this enquiry draft?','Your current message will be replaced by the selected listing context.',[{text:'Keep my message',style:'cancel'},{text:'Use selected item',onPress:apply}]);else apply();
+  };
+  const chooseService=label=>{
+    const apply=()=>{setService(label);if(contentInterest){setContentInterest(null);setMessage("I'd like to ask about "+label+'.');setContentNotice('Selected listing removed. Review your service enquiry before sending.');}goToRequest();};
+    if(contentInterest)Alert.alert('Replace the selected listing?','This removes the product or event selection and replaces its enquiry message with the selected service.',[{text:'Keep selected item',style:'cancel'},{text:'Use service',onPress:apply}]);else apply();
   };
   const enabled = new Set(
     (config?.modules || [])
@@ -4713,6 +4728,7 @@ function BusyAppDetailForm({ s }) {
       service: service.trim(),
       message: message.trim(),
     });
+    if(ok)privateRecovery.clearIfSame(recoveryDraft).catch(()=>{});
     if (ok&&formAlive.current&&formLive.current===reviewed) {setMessage("");setContentInterest(null);s.saveBusyAppCustomerForm?.({name,email,phone,service,date,note,message:"",contentInterest:null});}
   };
 
@@ -4722,7 +4738,7 @@ function BusyAppDetailForm({ s }) {
       title={detail?.app?.name || "Business App"}
       subtitle="Customer-facing business app inside BUSY."
       brandCue="V3.55 • live Business App • customer requests • loyalty progress."
-
+      scrollRef={requestScroll}
     >
       {detail?.entryIntent ? (
         <Card
@@ -4748,7 +4764,8 @@ function BusyAppDetailForm({ s }) {
           s={s}
           loyaltyProgress={detail?.loyaltyProgress || null}
           businessContent={detail.businessContent}
-          onSelectService={enabled.has('enquiry')||enabled.has('booking_request')?setService:null}
+          onSelectService={enabled.has('enquiry')||enabled.has('booking_request')?chooseService:null}
+          onRequestNavigation={goToRequest}
           onSelectContent={enabled.has('enquiry')?chooseContent:null}
         />
       ) : null}
@@ -4809,10 +4826,18 @@ function BusyAppDetailForm({ s }) {
         />
       ) : null}
 
+      <View onLayout={event=>{requestFormY.current=event.nativeEvent.layout.y;}}>
       {typeof s.checkBusyAppRequestRecovery==="function"?<Card title="Earlier request interrupted?" body="Check your saved reference without sending another request. Your contact details are not stored in this recovery reference.">
         {['enquiry','booking_request'].filter(type=>enabled.has(type)).map(type=><Button key={type}
           label={type==='enquiry'?'Check earlier enquiry':'Check earlier booking request'} disabled={!!s.miniAppsAction}
           onPress={()=>s.checkBusyAppRequestRecovery(type)}/>)}
+      </Card>:null}
+      {enabled.has('enquiry')?<Card title="Keep a private enquiry draft"
+        body="Optional: save your name, contact details, message and selected item in encrypted storage on this device for this account. Restorable for 24 hours; expired drafts are deleted on next access. Nothing is sent or synced. Restore replaces the open enquiry fields; booking fields are not saved.">
+        <Button label="Save private enquiry on this device" disabled={privateRecovery.busy||!!s.miniAppsAction} onPress={privateRecovery.save}/>
+        <Button label="Restore saved enquiry" disabled={privateRecovery.busy||!!s.miniAppsAction} onPress={()=>Alert.alert('Restore this device draft?','This replaces the current enquiry fields. Nothing will be submitted.',[{text:'Keep current form',style:'cancel'},{text:'Restore draft',onPress:privateRecovery.restore}])}/>
+        <Button label="Delete saved device draft" disabled={privateRecovery.busy||!!s.miniAppsAction} onPress={privateRecovery.remove}/>
+        {privateRecovery.notice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{privateRecovery.notice}</Text>:null}
       </Card>:null}
       {(enabled.has("booking_request") || enabled.has("enquiry")) ? (
         <>
@@ -4884,6 +4909,7 @@ function BusyAppDetailForm({ s }) {
         </>
       ) : null}
 
+      </View>
       <Button label="Back to BUSY Apps" onPress={() => s.go("busyAppsMarketplace")} />
     </Shell>
   );
@@ -5188,6 +5214,13 @@ function MiniAppRequestDetailForm({ s }) {
                   {s.ownerFollowupReview.mayPrepareDraft?(
                     <View>
                       <Text style={styles.sectionLabel}>Private reply suggestion</Text>
+                      {s.ownerFollowupReview.preparation?(
+                        <View>
+                          <Text style={styles.cardBody}>{s.ownerFollowupReview.preparation.subject}</Text>
+                          <Text style={styles.cardBody}>{s.ownerFollowupReview.preparation.answerSource==='current_published_faq'?'Uses an answer from your current published app. Review its suitability before sending.':'No verified answer found. Check the details before making a commitment.'}</Text>
+                          {s.ownerFollowupReview.preparation.missingInformation.map((item,index)=><Text key={index} style={styles.cardBody}>{item}</Text>)}
+                        </View>
+                      ):null}
                       <Text style={styles.cardBody}>
                         {s.ownerFollowupReview.draft}
                       </Text>

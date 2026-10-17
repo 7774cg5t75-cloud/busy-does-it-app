@@ -37,6 +37,17 @@ function selectBusinessContent(feed,{kind,query='',category='',includePast=false
 function contentPrice(amountMinor,currency,locale='en'){
  try{const f=new Intl.NumberFormat(locale,{style:'currency',currency});return f.format(amountMinor/10**f.resolvedOptions().maximumFractionDigits);}catch{return String(amountMinor)+' minor units '+currency;}
 }
+// Shared native/web schedule wording; both ends retain the business time zone,
+// including multi-day events and daylight-saving transitions.
+function contentEventSchedule(data,locale){
+ try{
+  const start=Date.parse(data?.startsAt),end=Date.parse(data?.endsAt);
+  if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start||typeof data?.timeZone!=='string')return 'Event dates need review.';
+  const format=new Intl.DateTimeFormat(locale,{dateStyle:'medium',timeStyle:'short',timeZone:data.timeZone});
+  return format.format(new Date(start))+' – '+format.format(new Date(end))+' • '+data.timeZone;
+ }catch{return 'Event dates need review.';}
+}
+export {contentEventSchedule};
 function localEventInstant(date,time,timeZone){
  if(!/^\d{4}-\d\d-\d\d$/.test(date)||!/^\d\d:\d\d$/.test(time)||!zone(timeZone))return {ok:false,reason:'Enter a date, time and valid time zone.'};
  const base=Date.parse(date+'T'+time+':00.000Z'),matches=[];

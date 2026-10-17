@@ -257,7 +257,7 @@ function BusyBrandLockup({ size = 38, centered = false, inverse = false }) {
   );
 }
 
-function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack = false, dark = true, hideDevBadge = true }) {
+function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack = false, dark = true, hideDevBadge = true, scrollRef }) {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
@@ -283,6 +283,7 @@ function Shell({ s, children, title, subtitle, brandCue, noNav = false, noBack =
         keyboardVerticalOffset={0}
       >
         <ScrollView
+          ref={scrollRef}
           style={[styles.scroll, dark && styles.homeDarkShell]}
           contentContainerStyle={[
             styles.scrollContent,
