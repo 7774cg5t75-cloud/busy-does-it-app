@@ -171,11 +171,22 @@ function planAppVoiceInstructions(config,instruction){
  if(!pieces)return {ok:false,needsClarification:true,reason:"Use balanced quotes and up to eight complete changes."};
  if(pieces.length>MAX_CHANGES)return {ok:false,reason:"Describe up to eight changes at once."};
  const operations=[],unresolved=[],preserved=[];let contentBlocks=validContentLayout(config.contentLayout)?config.contentLayout.map(x=>({...x})):[],contentChanged=false;
+ let faqWorking=config.publicProfile?.faqs===undefined?[]:Array.isArray(config.publicProfile.faqs)?config.publicProfile.faqs.map(row=>({...row})):null;
+ let faqChanged=false;
  for(let p of pieces){
   const block=/^(?:add|show|include)(?: my| our| the)? (products|events|upcoming events)(?: (?:section|screen))?(?: as (cards|rows))?$/i.exec(p);
   if(block){const kind=block[1].toLowerCase()==='products'?'product':'event',value={kind,title:kind==='product'?'Products':'Upcoming events',layout:(block[2]||'cards').toLowerCase()};const i=contentBlocks.findIndex(x=>x.kind===kind);if(i>=0)contentBlocks[i]={...contentBlocks[i],layout:value.layout};else contentBlocks.push(value);contentChanged=true;continue;}
   const faq=/^add (?:a )?(?:customer )?question "([^"<>]{1,160})" (?:with )?answer "([^"<>]{1,1200})"$/i.exec(p);
-  if(faq){const previous=config.publicProfile?.faqs;if(previous!==undefined&&!Array.isArray(previous)){unresolved.push(p);continue;}operations.push({kind:'public_collection',field:'faqs',value:[...(previous||[]),{question:faq[1],answer:faq[2]}]});continue;}
+  if(faq){if(!faqWorking){unresolved.push(p);continue;}faqWorking=[...faqWorking,{question:faq[1],answer:faq[2]}];faqChanged=true;continue;}
+  const faqEdit=/^(?:change|update) (?:the )?answer to question "([^"<>]{1,160})" (?:to|with) "([^"<>]{1,1200})"$/i.exec(p);
+  const faqRemove=/^remove (?:the )?question "([^"<>]{1,160})"$/i.exec(p);
+  if(faqEdit||faqRemove){
+   const name=(faqEdit||faqRemove)[1].trim().toLocaleLowerCase('en');
+   const positions=(faqWorking||[]).map((row,index)=>row.question?.trim().toLocaleLowerCase('en')===name?index:-1).filter(index=>index>=0);
+   if(!faqWorking||positions.length!==1){unresolved.push(p);continue;}
+   faqWorking=faqRemove?faqWorking.filter((_,index)=>index!==positions[0]):faqWorking.map((row,index)=>index===positions[0]?{...row,answer:faqEdit[2]}:{...row});
+   faqChanged=true;continue;
+  }
   // Literal copy is data. Commands outside its exact quoted value still fail.
   const literal=/^(?:set|change|update)(?: my| our| the)? (tagline|about|description|phone|email|opening hours) (?:to|as) ["“'‘]([\s\S]*)["”'’]$/i.exec(p);
   if(literal){
@@ -239,10 +250,11 @@ function planAppVoiceInstructions(config,instruction){
   unresolved.push(p);
  }
  if(contentChanged)operations.push({kind:'content_layout',value:contentBlocks});
+ if(faqChanged)operations.push({kind:'public_collection',field:'faqs',value:faqWorking});
  if(unresolved.length)return {ok:false,needsClarification:true,unresolved,preserved,
   supportedOperations:operations,reason:"BUSY needs clarification before combining these changes: "+unresolved.join("; ")};
  if(!operations.length)return {ok:false,reason:"Nothing needs changing; your existing design stays as it is."};
- const targets=operations.map(op=>['appearance','text','contact'].includes(op.kind)?op.kind+':'+op.field:op.kind==='content_layout'?'content_layout':'navigation');
+ const targets=operations.map(op=>['appearance','text','contact','public_collection'].includes(op.kind)?op.kind+':'+op.field:op.kind==='content_layout'?'content_layout':'navigation');
  if(new Set(targets).size!==targets.length)return {ok:false,needsClarification:true,reason:'Choose one instruction for each app setting before preparing the changes.'};
  const result=proposeCoordinatedAppChanges(config,operations);
  return {...result,instruction:phrase,preserved};

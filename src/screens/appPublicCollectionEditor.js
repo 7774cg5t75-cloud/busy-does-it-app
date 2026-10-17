@@ -4,7 +4,7 @@ import {Button,Field} from '../components/ui';
 import {styles} from '../theme/styles';
 import {COLLECTION_FIELDS,validPublicCollection} from '../core/appPublicCollections.mjs';
 import {proposeCoordinatedAppChanges} from '../core/appCoordinatedStudio.mjs';
-function AppPublicCollectionEditor({config,onPreview,onNotice,busy}){
+function AppPublicCollectionEditor({config,onPreview,onNotice,busy,suggestions=[]}){
  const [field,setField]=React.useState(null),[index,setIndex]=React.useState(-1);
  const [title,setTitle]=React.useState(''),[body,setBody]=React.useState(''),[permission,setPermission]=React.useState(false);
  const live=React.useRef(config),alive=React.useRef(true);live.current=config;
@@ -17,6 +17,13 @@ function AppPublicCollectionEditor({config,onPreview,onNotice,busy}){
   const accepted=plan.ok&&onPreview(plan);onNotice(accepted?'Compare these private entries in Studio before approving.':plan.reason||'Studio cannot accept this preview yet. Review recovery and the current app.');
  };
  return <View>
+  {suggestions.slice(0,3).map(suggestion=><View key={suggestion.id}>
+   <Text style={styles.cardBody}>{suggestion.reason}</Text>
+   <Button label={'Prepare an answer: '+suggestion.question} disabled={busy} onPress={()=>{
+    if(!alive.current||live.current!==config){onNotice('The app changed. Review the current information first.');return;}
+    setField('faqs');setIndex(-1);setTitle(suggestion.question);setBody('');setPermission(false);
+   }}/>
+  </View>)}
   {Object.keys(COLLECTION_FIELDS).map(key=><Button key={key} label={key==='faqs'?'Edit customer questions and answers':'Edit permissioned testimonials'} disabled={busy}
    onPress={()=>{setField(key);setIndex(-1);setTitle('');setBody('');setPermission(false);}}/>)}
   {field?<>

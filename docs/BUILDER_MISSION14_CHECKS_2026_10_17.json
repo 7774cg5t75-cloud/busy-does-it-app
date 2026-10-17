@@ -1,0 +1,266 @@
+{
+  "evidence": "Offline execution with inert adapters/hooks; no hosted, device or provider acceptance",
+  "results": [
+    {
+      "command": "node scripts/check-mission13-conversations.mjs",
+      "exitCode": 0,
+      "seconds": 0.12,
+      "stdout": "PASS Mission 13 actual scoped follow-up adapter, published FAQ grounding, latest-message intent, original selection context, version reapproval, guest/closed/wait suppression and failed/foreign reads. Inert DB only; no messages sent.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission13-private-recovery.mjs",
+      "exitCode": 0,
+      "seconds": 0.1,
+      "stdout": "PASS encrypted-storage boundary fixtures, explicit save, reconstructed helper restore, account/version/expiry checks, newer-draft preservation, corrupted-storage denial and actual async hook stale-typing/account guards. No OS encryption/device-restart claim.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission13-customer-surfaces.mjs",
+      "exitCode": 0,
+      "seconds": 2.12,
+      "stdout": "PASS actual component navigation/selected states, revision-aware option reselection, real public HTML options without false handoff, multi-day non-UK/DST schedule wording and deployable contract parity. Hooks/DOM fixtures, no device/browser claim.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission13-communication-truth.mjs",
+      "exitCode": 0,
+      "seconds": 0.04,
+      "stdout": "PASS existing Communications Hub distinguishes approval/draft/unsent/sending/failed/unknown from recorded sends, refuses delivery claims, suppresses uncertain duplicate contact and respects contact revocation. Pure projections, no provider calls.\n",
+      "stderr": "(node:24956) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/mission13-git/src/domain/communicationsHub.js is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to /workspace/mission13-git/package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "node scripts/check-mission12-content-enquiry.mjs",
+      "exitCode": 0,
+      "seconds": 0.12,
+      "stdout": "PASS Mission 12 item/option context, stale/cancelled/foreign rejection, authenticated handoff, secure retry continuity, real trusted submit/sanitisation and replay; DB/provider boundaries are inert fixtures.\n",
+      "stderr": "(node:24963) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "node scripts/check-mission12-builder-reuse.mjs",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "stdout": "PASS guided contact/FAQ preparation, typed/voice atomic FAQ editing, exact Undo, locks, additive bidirectional reuse, conflict preservation, scope/revision and shared trusted planner parity. Pure functional tests; no publication.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission12-intent.mjs",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "stdout": "PASS one shared capability-intent interpretation across universal plans, App Builder and customer advice: exclusions, lists, contradictory requests, dependency conflicts and unfamiliar businesses. No provider/model calls.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission12-live-form-logic.mjs",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "stdout": "PASS actual customer form logic: selected context, navigation/remount, unchanged submission, cleared completion; saved-record approval guard and actual controller FAQ apply. Hooks/transport are inert fixtures, no JSX/device claim.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission12-public-handoff.mjs",
+      "exitCode": 0,
+      "seconds": 0.13,
+      "stdout": "PASS real public HTML option/link handlers and actual Edge handoff route: exact app/version pins, selected item/revision/option, unexpected/duplicate query and disabled-action rejection. DOM/DB fixtures; no browser or deployed claim.\n",
+      "stderr": "(node:24991) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "command": "node scripts/check-mission12-record-review.mjs",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "stdout": "PASS actual record editor logic -> trusted adapter: exact saved-form approval, unsaved and stale-revision blocking, save/publish sequence and non-destructive refresh. Hooks/DB are fixtures; no native render claim.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission12-standalone-continuity.mjs",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "stdout": "PASS actual standalone form logic: selected context, typed fields, pending navigation, success receipt continuity, no implicit duplicate and stale listing rejection. Hooks/transport fixtures, no native rendering or live service claim.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission11-records.mjs",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "stdout": "PASS actual trusted product/event adapter: owner scope, durable row mutations in DB fixture, stable IDs, draft/approval separation, exact CAS/Undo, uncertain writes, cancellation, currency and DST validation. No hosted/Postgres claim.\nPASS option-currency approval, bounded owner list without history disclosure and image permission recheck at public approval.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission11-intelligence.mjs",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "stdout": "PASS existing universal planner prepares exact product/event requests, structured currency amounts and cancellation, rejects unsupported actions, validates options and distinguishes record presentation from payments/live proof.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission11-public-views.mjs",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "stdout": "PASS actual public Website loader/DOM mount: current deployment scope, shared approved event revisions, cancellation on refresh, stale-source rejection and clearing unavailable data. DOM/database fixtures; no browser/hosted claim.\nPASS inherited pending-App compatibility correction: only the exact current live version remains available; preview/mismatched versions rejected.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-app-goal-content.mjs",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "stdout": "PASS: goal-specific missing questions, real Studio proposal/inverse, exact custom service preservation, lock/tenant/hostile-field rejection and incomplete booking-content gating.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-app-goal-editing.mjs",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "stdout": "PASS: task-aware bounded editing, unavailable-task suppression, owner locks, shared server parity and preview component wiring/syntax. No real devices tested.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-app-goal-decisions.mjs",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "stdout": "PASS: task-ranked choices, unrelated gallery suppression, absent/unapproved content blockers, new static advisory rejection and both website tenant aliases. No real-world outcome claims.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-app-builder-dual-track-v3153.mjs",
+      "exitCode": 0,
+      "seconds": 0.06,
+      "stdout": "V3.153 APP PATHS PASS: marketplace and private standalone planning, 13 businesses, catalogue restrictions, verified-billing gate, external costs, no confirmed bookings, no app-store submission.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission10-information-reuse.mjs",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "stdout": "PASS: same-business current-source FAQ/testimonial reuse, missing-only policy, existing custom content preservation, stale confirmation rejection and explicit fact-conflict approval.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission9-builder-language.mjs",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "stdout": "PASS: shared quote-aware builder clauses, real coordinated App copy/contact proposals with exact inverse, safe negation/ambiguity/unsupported action rejection and Website literal-copy preservation. No transcription or AI call.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission10-public-information.mjs",
+      "exitCode": 0,
+      "seconds": 0.91,
+      "stdout": "PASS: FAQs/testimonials exact sparse Undo, locks, rebuild retention, bounded public allowlist, immutable live-only projection and trusted parity.\nPASS actual owner collection editor prepares Studio operation and actual Website rebuild retains owner testimonial collection. Inert React/native boundary.\nPASS actual trusted App batch handler: owner approval, exact App/business/revision predicates, finite collection edit, private receipt and raced-write rejection. Database fixture, not hosted RLS proof.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission10-service-details.mjs",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "stdout": "PASS: actual Studio richer service/menu labels, exact Undo, unknown/unsafe field rejection, public projection and category search without checkout or availability authority.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-owner-outcome-v3235.mjs",
+      "exitCode": 0,
+      "seconds": 0.09,
+      "stdout": "V3.231: 11 genuine JWT/tenant scenarios prepared, NOT run; hosted staging unchanged.\nV3.233: staged booking acceptance prepared with 11 unverified real-world scenarios. No remote writes.\nV3.234: 12 additional owner/customer follow-up acceptance cases prepared; NONE executed remotely.\nV3.235 staging outcome acceptance: 42 genuine scenarios still NOT VERIFIED. Zero hosted actions.\nV3.235: 251 exact tenant readback, saved outcome truth, code health and owner UI assertions passed.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-communications-v3205.mjs",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "stdout": "V3.205 124 scoped owner-inbox, atomic reply recovery, provider evidence and no resend assertions PASS.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-customer-journey-v3204.mjs",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "stdout": "V3.204 96 receipt isolation, ambiguous submission recovery, Business Brain evidence and no-live-side-effects contracts PASS.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission9-reply-continuity.mjs",
+      "exitCode": 0,
+      "seconds": 2.03,
+      "stdout": "PASS: actual owner/customer sends stop after account/workspace changes, retain pending identity and suppress stale cleanup; original encrypted message retry preparation serialises and cannot clear a newer key. No message sent.\nPASS: actual conversation form retains newer typing after a successful earlier reply and is keyed by account/workspace/role/request. Native effects inert.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission9-request-recovery.mjs",
+      "exitCode": 0,
+      "seconds": 0.04,
+      "stdout": "PASS: encrypted opaque request references, restart/key-order continuity, changed/version conflicts, concurrent remounts, strict provenance/corrupt-record preservation and write failures. Fake secure storage only.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-message-integrity-v3185.mjs",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "stdout": "V3.185 61 durable retry, outbox evidence and wiring assertions PASS.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-builder-intelligence-v3240.mjs",
+      "exitCode": 0,
+      "seconds": 0.08,
+      "stdout": "V3.240: 118 app goal/design, Brand DNA, responsive evidence, private approvals, tenant and revision assertions passed.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission14-contextual-replies.mjs",
+      "exitCode": 0,
+      "seconds": 0.07,
+      "stdout": "PASS actual same-tenant read adapter and owner proof: original listing context across replies, exact option/revision price, changed/missing/cancelled denial, live service facts and event schedules. Inert DB; no messages, bookings or provider claims.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission14-content-intelligence.mjs",
+      "exitCode": 0,
+      "seconds": 0.74,
+      "stdout": "PASS enquiry-to-private-editor recommendations, 3-record threshold/tenant/time/dedup/privacy gates, canonical context exclusion, actual app/website preparation and multi-clause FAQ add/edit/remove with exact Undo/locks. Inert hooks; no publication.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-mission14-experience-recovery.mjs",
+      "exitCode": 0,
+      "seconds": 1.98,
+      "stdout": "PASS actual marketplace and standalone category filtering, customer-only layout clarity, stale website revision retention/approval, strict encrypted draft schema and extracted fields -> original enquiry submit handler. Inert component/native/transport boundaries.\n",
+      "stderr": ""
+    },
+    {
+      "command": "node scripts/check-standalone-native-v3154.mjs",
+      "exitCode": 0,
+      "seconds": 0.05,
+      "stdout": "V3.154 NATIVE ELIGIBILITY PASS: server evidence, native schema, no false bookings, no billing or store submission.\n",
+      "stderr": ""
+    }
+  ],
+  "syntax": {
+    "count": 21,
+    "sourceHashes": {
+      "scripts/check-mission14-content-intelligence.mjs": "edea18d21ad2f794c944146a02a696ebfac29afe773544ba13cdf0f15aa34def",
+      "scripts/check-mission14-contextual-replies.mjs": "f2a11ffaa877574baf41ac88fcf1d37ffe12b039e4172eab333946b83cf10a67",
+      "scripts/check-mission14-experience-recovery.mjs": "cac2abe4e185054a0d8828a3304e651f6f876d4b70b1482f6335330c32d2d728",
+      "scripts/prepare-standalone-prototype-v3154.mjs": "54b9caf4a07827df647801e2bdc1921a6213875ff8418ed9d37a72faaa4821c7",
+      "src/components/serviceCategoryFilter.js": "b93b50b2c8f19494a965d561c34870d274b20462804058c0ff702b317357cb20",
+      "src/core/appCoordinatedStudio.mjs": "97f50d7ff5df49998f83e4b2cd9ae514dc465a5aa36046b2cf4e47722947a07e",
+      "src/core/businessInfoClarity.mjs": "0affb0632192b31536c2983c919b8d06a5ed7790c3c7fa02b817bf9b187b789c",
+      "src/core/customerEnquiryCheckpoint.mjs": "305abc802fe3744d808af67f267f44ed70c720e6cab4f8643d21c71f73f89f61",
+      "src/core/ownerConversationPreparation.mjs": "5d140aad9db7f0cc8751f9cd262650c8df2e2cdbeb06e748a180f69d8871dd10",
+      "src/domain/miniApps.js": "d84a3b9812d0b4e634522aafc8bacfc024977aaa94d3af4b07d112792616610e",
+      "src/screens/appPublicCollectionEditor.js": "72b27620bf02344f6158d303084cf60dba7464e865f7ef6b6270cac09780fd23",
+      "src/screens/businessAppCustomerRequestFields.js": "aaff4852018e03c71688edb63bd9c303281c5edabe4ec3f54088b58f0f242c25",
+      "src/screens/miniApps.js": "fd6c281c1ffe68b651b710a638c4e13e54197eda1f28013c392dd2144cf497e4",
+      "src/screens/websiteBuilder.js": "22c8d07bbfd321154f44d404774face83c8b41516101c47ddd5c564cf3224fb0",
+      "src/screens/websiteContentEditor.js": "cea8dc95a9b6e096f5917a6940f8928345b8151c0f70b7fe2dc035e8fba774b3",
+      "standalone/template/App.js": "c09eddf39658db16caaad3f153e45eea552def94cabae1cae2a5f1bfbfb78224",
+      "standalone/template/nativeCustomerActions.mjs": "37e7062b77def15bf326f0fa10f89c3225119c9d0a4f2ad9f418689a068e6fc3",
+      "standalone/template/serviceCategoryFilter.js": "b93b50b2c8f19494a965d561c34870d274b20462804058c0ff702b317357cb20",
+      "supabase/functions/busy-mini-apps/appCoordinatedStudio.mjs": "97f50d7ff5df49998f83e4b2cd9ae514dc465a5aa36046b2cf4e47722947a07e",
+      "supabase/functions/busy-mini-apps/ownerConversationPreparation.mjs": "5d140aad9db7f0cc8751f9cd262650c8df2e2cdbeb06e748a180f69d8871dd10",
+      "supabase/functions/busy-mini-apps/ownerFollowupReadbackV3235.mjs": "eab35d8ed0a99daee9594e47034259b0a161b6606ddf0c7af709f4a6af7c3e60"
+    },
+    "additionalUnchangedEdgeEntry": "supabase/functions/busy-mini-apps/index.ts",
+    "checks": "Full Babel JS/JSX/module syntax; full original Edge entry TS stripped then Node syntax. Not Deno types."
+  },
+  "startingRemoteCommit": "2358f2ab0ba53e312a5da8de9e08e1d566966ace",
+  "protectedPathsUnchanged": true
+}

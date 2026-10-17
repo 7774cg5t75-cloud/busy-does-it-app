@@ -7,7 +7,9 @@ import {AppSectionNavigation} from '../components/appSectionNavigation';
 import {AppPublicCollectionEditor} from './appPublicCollectionEditor';
 import {publicCollection} from '../core/appPublicCollections.mjs';
 import {AppContactEditor} from "./appContactEditor";
-import {validateNativeGuestRequest,searchPublicNativeServices} from "../../standalone/template/nativeCustomerActions.mjs";
+import {validateNativeGuestRequest,searchPublicNativeServices,browsePublicNativeServices} from "../../standalone/template/nativeCustomerActions.mjs";
+import {ServiceCategoryFilter} from '../components/serviceCategoryFilter';
+import {BusinessAppCustomerRequestFields} from './businessAppCustomerRequestFields';
 import {nativePreferredDates} from "../../standalone/template/nativePreferredDates.mjs";
 import {bindAppControlReview,appControlReviewCurrent} from "../core/appControlReview.mjs";
 import {AppGoalContentAssistant} from "./appGoalContentAssistant";
@@ -260,11 +262,12 @@ function MiniAppSurface({
   const profile = config?.publicProfile || {};
   const modules = orderedAppModules(config);
   const [serviceQuery,setServiceQuery]=React.useState('');
+  const [serviceCategory,setServiceCategory]=React.useState('');
   const [selectedSection,setSelectedSection]=React.useState('');
   const currentSection=modules.some(m=>m.key===selectedSection)?selectedSection:'';
   const allServices=Array.isArray(profile?.services)?profile.services:[];
   // Marketplace has legacy 50-row profiles; retain the native helper's 40-row bound.
-  const services=allServices.length<=50?[...searchPublicNativeServices(allServices.slice(0,40),serviceQuery),...searchPublicNativeServices(allServices.slice(40),serviceQuery)]:[];
+  const serviceBrowse=browsePublicNativeServices(allServices,serviceQuery,serviceCategory),services=serviceBrowse.rows;
   const gallery = Array.isArray(profile?.assets?.gallery)
     ? profile.assets.gallery.filter((item) => String(item?.uri || "").startsWith("https://"))
     : [];
@@ -324,10 +327,10 @@ function MiniAppSurface({
         footer={profile.serviceArea || ""}
         tone={headerStyle==="bold"?"green":headerStyle==="quiet"?"blue":"green"}
       >
-        <Text style={styles.cardBody}>{"App layout: "+density+" • Header: "+headerStyle+
+        {!interactive?<Text style={styles.cardBody}>{"App layout: "+density+" • Header: "+headerStyle+
           " • Navigation: "+(responsive.ok?responsive.navigation:"list")+
-          " ("+(responsive.ok?responsive.tier.replaceAll("_"," "):"not measured")+")"}</Text>
-        {responsive.ok?(
+          " ("+(responsive.ok?responsive.tier.replaceAll("_"," "):"not measured")+")"}</Text>:null}
+        {!interactive&&responsive.ok?(
           <Text style={styles.cardBody}>
             {"Layout width "+responsive.width+" points • "+
               responsive.galleryColumns+" gallery column(s) • "+
@@ -395,6 +398,7 @@ function MiniAppSurface({
             <View key={module.key}>
               <Text style={styles.sectionLabel}>Services</Text>
               {allServices.length>4?<Field label="Find a service" value={serviceQuery} onChangeText={setServiceQuery}/>:null}
+              <ServiceCategoryFilter categories={serviceBrowse.categories} selected={serviceBrowse.selectedCategory} onSelect={setServiceCategory} colors={brandColours}/>
               {services.length ? (
                 <View style={{flexDirection:"row",flexWrap:"wrap",
                   gap:responsive.ok?responsive.gap:12}}>
@@ -2382,7 +2386,7 @@ function MiniAppBuilder({ s }) {
             Voice provides transcription only, within its existing daily allowance. BUSY asks before changing the private app.
           </Text>
           <AppPublicCollectionEditor key={['public-info',s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(':')}
-            config={view.draftConfig} onPreview={setStudioPreview} onNotice={setStudioNotice} busy={!!s.miniAppsAction||studio.pending}/>
+            config={view.draftConfig} suggestions={view.enquiryContentGaps?.suggestions||[]} onPreview={setStudioPreview} onNotice={setStudioNotice} busy={!!s.miniAppsAction||studio.pending}/>
           <AppContactEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(':')}
             businessId={s.cloudWorkspace?.businessId||''} app={app} busy={!!s.miniAppsAction||studio.pending}
             onPreview={setStudioPreview} onNotice={setStudioNotice}/>
@@ -4826,90 +4830,7 @@ function BusyAppDetailForm({ s }) {
         />
       ) : null}
 
-      <View onLayout={event=>{requestFormY.current=event.nativeEvent.layout.y;}}>
-      {typeof s.checkBusyAppRequestRecovery==="function"?<Card title="Earlier request interrupted?" body="Check your saved reference without sending another request. Your contact details are not stored in this recovery reference.">
-        {['enquiry','booking_request'].filter(type=>enabled.has(type)).map(type=><Button key={type}
-          label={type==='enquiry'?'Check earlier enquiry':'Check earlier booking request'} disabled={!!s.miniAppsAction}
-          onPress={()=>s.checkBusyAppRequestRecovery(type)}/>)}
-      </Card>:null}
-      {enabled.has('enquiry')?<Card title="Keep a private enquiry draft"
-        body="Optional: save your name, contact details, message and selected item in encrypted storage on this device for this account. Restorable for 24 hours; expired drafts are deleted on next access. Nothing is sent or synced. Restore replaces the open enquiry fields; booking fields are not saved.">
-        <Button label="Save private enquiry on this device" disabled={privateRecovery.busy||!!s.miniAppsAction} onPress={privateRecovery.save}/>
-        <Button label="Restore saved enquiry" disabled={privateRecovery.busy||!!s.miniAppsAction} onPress={()=>Alert.alert('Restore this device draft?','This replaces the current enquiry fields. Nothing will be submitted.',[{text:'Keep current form',style:'cancel'},{text:'Restore draft',onPress:privateRecovery.restore}])}/>
-        <Button label="Delete saved device draft" disabled={privateRecovery.busy||!!s.miniAppsAction} onPress={privateRecovery.remove}/>
-        {privateRecovery.notice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{privateRecovery.notice}</Text>:null}
-      </Card>:null}
-      {(enabled.has("booking_request") || enabled.has("enquiry")) ? (
-        <>
-          <Text style={styles.sectionLabel}>Your contact details</Text>
-          <Field
-            label="Name"
-            value={name}
-            onChangeText={setName}
-            placeholder="Your name"
-          />
-          <Field
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            placeholder="you@example.com"
-          />
-          <Field
-            label="Phone"
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="Phone number"
-          />
-        </>
-      ) : null}
-
-      {enabled.has("booking_request") ? (
-        <>
-          <Text style={styles.sectionLabel}>Request a booking</Text>
-          <Text style={styles.cardBody}>Choose a listed service or describe what you need. The business will review your request.</Text>
-          {serviceChoices.map((item,index)=><Button key={"request-service-"+index} label={"Request "+item.name}
-            disabled={!!s.miniAppsAction} onPress={()=>setService(item.name)}/>)}
-          <Field label="Service" value={service} onChangeText={setService} placeholder="Service you want" />
-          <Text style={styles.cardBody}>Preferred dates only — these are not available appointment slots.</Text>
-          <ScrollView horizontal accessibilityLabel="Preferred date suggestions" showsHorizontalScrollIndicator>
-            {preferredDates.map(day=><View key={"preferred-"+day.value} style={{marginRight:8}}><Button label={day.label}
-              disabled={!!s.miniAppsAction} onPress={()=>setDate(day.value)}/></View>)}
-          </ScrollView>
-          <Field label="Preferred date" value={date} onChangeText={setDate} placeholder="e.g. Friday afternoon" />
-          <Field label="Note" value={note} onChangeText={setNote} placeholder="Anything the business should know" multiline />
-          {!bookingReady.ok?<Text style={styles.cardBody}>{bookingReady.reason}</Text>:null}
-          <Button
-            label={s.miniAppsAction === "request:booking_request" ? "Sending…" : "Send booking request"}
-            primary
-            disabled={
-              !bookingReady.ok ||
-              !!s.miniAppsAction
-            }
-            onPress={submitBooking}
-          />
-        </>
-      ) : null}
-
-      {enabled.has("enquiry") ? (
-        <>
-          <Text style={styles.sectionLabel}>Send an enquiry</Text>
-          {contentNotice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{contentNotice}</Text>:null}
-          {contentInterest?<Button label="Remove selected listing from this enquiry" onPress={()=>{setContentInterest(null);setService('');setMessage('');setContentNotice('Listing removed. Write your enquiry below.');}}/>:null}
-          <Field label="Message" value={message} onChangeText={setMessage} placeholder="What would you like to ask?" multiline />
-          {!enquiryReady.ok?<Text style={styles.cardBody}>{enquiryReady.reason}</Text>:null}
-          <Button
-            label={s.miniAppsAction === "request:enquiry" ? "Sending…" : "Send enquiry"}
-            disabled={
-              !enquiryReady.ok ||
-              !!s.miniAppsAction
-            }
-            onPress={submitEnquiry}
-          />
-        </>
-      ) : null}
-
-      </View>
+      <BusinessAppCustomerRequestFields s={s} form={{enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}} onLayout={event=>{requestFormY.current=event.nativeEvent.layout.y;}}/>
       <Button label="Back to BUSY Apps" onPress={() => s.go("busyAppsMarketplace")} />
     </Shell>
   );
@@ -5217,7 +5138,7 @@ function MiniAppRequestDetailForm({ s }) {
                       {s.ownerFollowupReview.preparation?(
                         <View>
                           <Text style={styles.cardBody}>{s.ownerFollowupReview.preparation.subject}</Text>
-                          <Text style={styles.cardBody}>{s.ownerFollowupReview.preparation.answerSource==='current_published_faq'?'Uses an answer from your current published app. Review its suitability before sending.':'No verified answer found. Check the details before making a commitment.'}</Text>
+                          <Text style={styles.cardBody}>{s.ownerFollowupReview.preparation.answerSource==='no_verified_answer'?'No verified answer found. Check the details before making a commitment.':'Uses current approved business information. Review its suitability before sending; availability and commitments still need checking.'}</Text>
                           {s.ownerFollowupReview.preparation.missingInformation.map((item,index)=><Text key={index} style={styles.cardBody}>{item}</Text>)}
                         </View>
                       ):null}

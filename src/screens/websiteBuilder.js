@@ -13,7 +13,7 @@ import { buildWebsiteLaunchProof } from "../core/websiteLaunchProof.mjs";
 import { websiteQualityGuidance } from "../core/websiteQualityGuidance.mjs";
 import {GOALS as SHARED_GOALS,reviewSharedCustomerGoal} from "../core/sharedCustomerExperience.mjs";
 import {websiteEvidenceSummary} from "../core/crossBuilderEvidence.mjs";
-import {reviewBusinessInformation} from "../core/businessInfoClarity.mjs";
+import {reviewBusinessInformation,reviewEnquiryContentGaps} from "../core/businessInfoClarity.mjs";
 import {compareMeasuredWebsiteCandidates}
   from "../core/designEvidencePriorities.mjs";
 import {prepareDeviceReview}
@@ -839,7 +839,9 @@ function WebsiteBuilder({ s }) {
             app={s.miniAppsView?.app}
             businessId={s.cloudWorkspace?.businessId}
             onApply={s.applyMissingAppServicesToWebsite}/>
-          <WebsiteContentEditor draft={draft} onApply={s.applyWebsiteFieldChange}/>
+          <WebsiteContentEditor key={[s.ownerSession?.userId,draft.businessId,draft.id].join(':')} draft={draft} onApply={s.applyWebsiteFieldChange}
+            suggestions={draft.businessId===s.cloudWorkspace?.businessId&&s.miniAppsView?.app?.business_id===draft.businessId?
+              reviewEnquiryContentGaps({businessId:draft.businessId,appId:s.miniAppsView.app.id,requests:s.miniAppsView.requests||[],config:{publicProfile:{faqs:(draft.sections||[]).filter(section=>section.type==='faq').flatMap(section=>(section.items||[]).map(item=>({question:item.title})))}}}).suggestions:[]}/>
           <WebsiteLayoutControls draft={draft} onApply={s.applyWebsiteLayoutAction}/>
           <WebsitePagesEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft?.id].join(":")} draft={draft} onApply={s.applyWebsitePageAction} onShare={s.shareWebsiteContent} onShareZip={s.shareStandaloneWebsiteZip} onBackup={s.backupWebsiteOriginals}/>
         </>

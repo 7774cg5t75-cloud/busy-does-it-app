@@ -55,3 +55,15 @@ function validateNativeGuestRequest(type,payload){
  return {ok:true,payload:p};
 }
 export {nativeContactAction,searchPublicNativeServices,validateNativeGuestRequest};
+
+// One bounded browse policy for menu sections, service types or other owner
+// categories. No template-specific business or transaction assumptions.
+function browsePublicNativeServices(services,query='',category=''){
+ if(!Array.isArray(services)||services.length>50||typeof category!=='string'||category.length>80)return {rows:[],categories:[],selectedCategory:''};
+ const all=[...searchPublicNativeServices(services.slice(0,40)),...searchPublicNativeServices(services.slice(40))];
+ const categories=[...new Set(all.map(row=>row.category).filter(value=>typeof value==='string'&&value.trim()&&value.length<=80))];
+ const found=[...searchPublicNativeServices(services.slice(0,40),query),...searchPublicNativeServices(services.slice(40),query)];
+ const selectedCategory=categories.includes(category)?category:'';
+ return {rows:found.filter(row=>!selectedCategory||row.category===selectedCategory),categories,selectedCategory};
+}
+export {browsePublicNativeServices};

@@ -7,7 +7,8 @@
 import {decideFreshOwnerFollowup} from "./freshOwnerFollowupV3207.mjs";
 import {chooseOwnerConversationActionV3234} from "./ownerConversationActionV3234.mjs";
 import {classifyOwnerOutcomeEvidenceV3235} from "./ownerOutcomeEvidenceV3235.mjs";
-import {prepareOwnerConversation} from "./ownerConversationPreparation.mjs";
+import {prepareOwnerConversation,parseEnquiryListingReference,conversationReviewSignal} from "./ownerConversationPreparation.mjs";
+import {publicBusinessContent} from './businessContentRecords.mjs';
 const ID=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 async function readCurrentOwnerFollowupV3235({
  businessId="",requestId="",appId="",store=null,nowISO="",prepareReply=false
@@ -35,6 +36,13 @@ async function readCurrentOwnerFollowupV3235({
   messages:messages.data||[],nowISO
  });
  if(!decision.ok)throw Error(decision.reason);
+ const signal=prepareReply&&decision.category==='needsReply'?conversationReviewSignal(messages.data?.[0]?.sender_role==='customer'?messages.data[0].body:request.data.payload?.message):null;
+ if(signal){
+  decision.category='manual';decision.canOfferDraft=false;decision.replyDraft=null;
+  decision.why=signal==='review_contact_preference'?
+   'The customer may have asked to stop contact. Review their preferences; Busy will not prepare a follow-up.':
+   'The customer may be finished with this enquiry. Review whether to close it; no status has been changed.';
+ }
  if(prepareReply&&decision.category==="needsReply"){
   const app=await store.from("busy_mini_apps").select("id,business_id,current_live_version_id")
    .eq("business_id",businessId).eq("id",appId).maybeSingle();
@@ -49,8 +57,18 @@ async function readCurrentOwnerFollowupV3235({
    config=version.data.config;
   }
   decision.sourceStamp+="|facts:"+(versionId||"none");
+  let listingFeed=null;const selection=parseEnquiryListingReference(request.data.payload?.message);
+  if(selection){
+   const listing=await store.from('busy_business_content').select('id,business_id,kind,revision,published,published_revision')
+    .eq('business_id',businessId).eq('id',selection.recordId).maybeSingle();
+   if(listing.error)throw Error('The selected approved listing could not be checked.');
+   if(listing.data&&(listing.data.business_id!==businessId||listing.data.id!==selection.recordId))throw Error('The selected listing does not match this business.');
+   listingFeed=publicBusinessContent(listing.data?[listing.data]:[],businessId,{now:nowISO});
+   if(!listingFeed.ok)throw Error('The selected public listing needs review.');
+   decision.sourceStamp+='|listing:'+selection.recordId+':'+(listing.data?.published_revision||'missing');
+  }
   const preparation=prepareOwnerConversation({request:request.data,
-   latestMessage:messages.data?.[0]||null,publishedConfig:config});
+   latestMessage:messages.data?.[0]||null,publishedConfig:config,listingFeed,businessId,now:Date.parse(nowISO)});
   decision.replyDraft=preparation.draft;
   decision.preparation=preparation;
   decision.customerDataIncluded=true;

@@ -13,7 +13,8 @@ import prototype from "./prototype.json";
 import {verifiedPublicRuntime,publicNativeApp} from "./nativeBusinessClient";
 import {sendNativeGuestRequest} from "./nativeGuestRequests";
 import {responsiveAppLayout} from "./appResponsiveDesign.mjs";
-import {nativeContactAction,searchPublicNativeServices} from "./nativeCustomerActions.mjs";
+import {nativeContactAction,searchPublicNativeServices,browsePublicNativeServices} from "./nativeCustomerActions.mjs";
+import {ServiceCategoryFilter} from './serviceCategoryFilter';
 import {nativePalette} from "./nativePalette.mjs";
 import {appVisualPresentation} from "./appVisualPresentationV3194.mjs";
 import {nativePreferredDates} from "./nativePreferredDates.mjs";
@@ -142,9 +143,11 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
 }
 function ServicesInfo({app,layout,onRequestService}){
  const [query,setQuery]=useState("");
- const results=searchPublicNativeServices(app.services||[],query);
+ const [category,setCategory]=useState('');
+ const browse=browsePublicNativeServices(app.services||[],query,category),results=browse.rows;
  return <View style={box}>
   <Text style={{...t,fontSize:VISUAL.type.sectionSize,fontWeight:VISUAL.type.sectionWeight}}>Services</Text>
+  <ServiceCategoryFilter categories={browse.categories} selected={browse.selectedCategory} onSelect={setCategory} colors={COLORS}/>
   {app.services?.length>4?<TextInput accessibilityLabel="Search services"
     value={query} onChangeText={setQuery}
     placeholder="Find a service" placeholderTextColor={COLORS.muted}
