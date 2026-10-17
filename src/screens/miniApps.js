@@ -2,6 +2,7 @@ import {validContentLayout,prepareBusinessContentEnquiry} from '../core/business
 import {proposeCoordinatedAppChanges as proposeContentComposition} from '../core/appCoordinatedStudio.mjs';
 import {BusinessContentView} from '../components/businessContentView';
 import {BusinessContentEditor} from './businessContentEditor';
+import {useCustomerEnquiryRecovery} from './useCustomerEnquiryRecovery';
 import {AppPublicCollectionEditor} from './appPublicCollectionEditor';
 import {publicCollection} from '../core/appPublicCollections.mjs';
 import {AppContactEditor} from "./appContactEditor";
@@ -4663,6 +4664,9 @@ function BusyAppDetailForm({ s }) {
 
   const [contentInterest,setContentInterest]=React.useState(Object.hasOwn(saved,'contentInterest')?saved.contentInterest:initial?.selection??null);
   const [contentNotice,setContentNotice]=React.useState(detail.entryContentNotice||'');
+  const recoveryDraft={name,email,phone,service,message,contentInterest};
+  const privateRecovery=useCustomerEnquiryRecovery({userId:s.ownerSession?.userId,detail,draft:recoveryDraft,
+    onRestore:value=>{setName(value.name);setEmail(value.email);setPhone(value.phone);setService(value.service);setMessage(value.message);setContentInterest(value.contentInterest);}});
   React.useEffect(()=>{s.saveBusyAppCustomerForm?.({name,email,phone,service,date,note,message,contentInterest});},[name,email,phone,service,date,note,message,contentInterest]);
   const chooseContent=(label,prepared)=>{
     const checked=prepareBusinessContentEnquiry(detail.businessContent,detail.app?.business_id,prepared?.selection);
@@ -4713,6 +4717,7 @@ function BusyAppDetailForm({ s }) {
       service: service.trim(),
       message: message.trim(),
     });
+    if(ok)privateRecovery.clearIfSame(recoveryDraft).catch(()=>{});
     if (ok&&formAlive.current&&formLive.current===reviewed) {setMessage("");setContentInterest(null);s.saveBusyAppCustomerForm?.({name,email,phone,service,date,note,message:"",contentInterest:null});}
   };
 
@@ -4813,6 +4818,13 @@ function BusyAppDetailForm({ s }) {
         {['enquiry','booking_request'].filter(type=>enabled.has(type)).map(type=><Button key={type}
           label={type==='enquiry'?'Check earlier enquiry':'Check earlier booking request'} disabled={!!s.miniAppsAction}
           onPress={()=>s.checkBusyAppRequestRecovery(type)}/>)}
+      </Card>:null}
+      {enabled.has('enquiry')?<Card title="Keep a private enquiry draft"
+        body="Optional: save your name, contact details, message and selected item in encrypted storage on this device for this account. Restorable for 24 hours; expired drafts are deleted on next access. Nothing is sent or synced. Restore replaces the open enquiry fields; booking fields are not saved.">
+        <Button label="Save private enquiry on this device" disabled={privateRecovery.busy||!!s.miniAppsAction} onPress={privateRecovery.save}/>
+        <Button label="Restore saved enquiry" disabled={privateRecovery.busy||!!s.miniAppsAction} onPress={()=>Alert.alert('Restore this device draft?','This replaces the current enquiry fields. Nothing will be submitted.',[{text:'Keep current form',style:'cancel'},{text:'Restore draft',onPress:privateRecovery.restore}])}/>
+        <Button label="Delete saved device draft" disabled={privateRecovery.busy||!!s.miniAppsAction} onPress={privateRecovery.remove}/>
+        {privateRecovery.notice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{privateRecovery.notice}</Text>:null}
       </Card>:null}
       {(enabled.has("booking_request") || enabled.has("enquiry")) ? (
         <>
