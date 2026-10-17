@@ -13,7 +13,7 @@ function store({req=request,messages=[],version=V,badVersion=false,errorTable=''
  return {from(table){const filters=[];let selection='';const q={select(s){selection=s;return q},eq(k,v){filters.push([k,v]);return q},order(){return q},limit(){return result()},maybeSingle(){return result()}};
   async function result(){calls.push({table,filters,selection});if(table===errorTable)return {error:Error('fixture')};
    assert.ok(filters.some(([k,v])=>v===(table==='busy_mini_app_versions'?A:B)&&k===(table==='busy_mini_app_versions'?'mini_app_id':'business_id')));
-   const data=table==='busy_mini_app_requests'?req:table==='busy_mini_app_request_messages'?messages:table==='busy_mini_apps'?{id:A,business_id:B,current_live_version_id:version}:table==='busy_mini_app_versions'?{id:version,mini_app_id:badVersion?U:A,config}:null;
+   const data=table==='busy_mini_app_requests'?req:table==='busy_mini_app_request_messages'?messages:table==='busy_mini_apps'?{id:A,business_id:B,current_live_version_id:version}:table==='busy_mini_app_versions'?{id:version,mini_app_id:badVersion?U:A,state:'live',config}:null;
    assert.ok(data,'Unexpected table '+table);return {data};
   }return q;
  }};

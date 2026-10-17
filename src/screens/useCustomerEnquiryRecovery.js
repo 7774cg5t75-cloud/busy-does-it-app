@@ -8,11 +8,11 @@ function useCustomerEnquiryRecovery({userId,detail,draft,onRestore}){
  const [notice,setNotice]=React.useState(''),[busy,setBusy]=React.useState(false);
  const scope=JSON.stringify([userId,detail?.app?.id,detail?.version?.id,detail?.entryContentInterest?.selection||null]);
  const stamp=JSON.stringify(draft),live=React.useRef(null),inFlight=React.useRef(false);
- live.current={scope,stamp};
- React.useEffect(()=>{live.current={scope,stamp};return()=>{live.current=null;};},[]);
+ live.current={scope,stamp,detail};
+ React.useEffect(()=>{live.current={scope,stamp,detail};return()=>{live.current=null;};},[]);
  const store=React.useMemo(()=>createCustomerEnquiryCheckpoint(SecureStore,{userId,appId:detail?.app?.id,versionId:detail?.version?.id}),[userId,detail?.app?.id,detail?.version?.id]);
  const run=async(action)=>{
-  const current=()=>live.current?.scope===scope&&live.current?.stamp===stamp;
+  const current=()=>live.current?.scope===scope&&live.current?.stamp===stamp&&live.current?.detail===detail;
   if(inFlight.current||!current())return false;
   inFlight.current=true;
   setBusy(true);

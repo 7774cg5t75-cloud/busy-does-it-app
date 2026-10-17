@@ -42,9 +42,9 @@ async function readCurrentOwnerFollowupV3235({
    throw Error("The current published app could not be checked.");
   let config=null;const versionId=app.data.current_live_version_id;
   if(versionId){
-   const version=await store.from("busy_mini_app_versions").select("id,mini_app_id,config")
+   const version=await store.from("busy_mini_app_versions").select("id,mini_app_id,state,config")
     .eq("mini_app_id",appId).eq("id",versionId).maybeSingle();
-   if(version.error||version.data?.id!==versionId||version.data?.mini_app_id!==appId)
+   if(version.error||version.data?.id!==versionId||version.data?.mini_app_id!==appId||version.data?.state!=='live')
     throw Error("The approved app facts could not be checked.");
    config=version.data.config;
   }

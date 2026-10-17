@@ -4,7 +4,7 @@ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),babe
 function createRuntime({width=390,states=new Map()}={}){
  const root=path.resolve(__dirname,'../..'),cache=new Map(),effects=[];let index=0,slots=[],captured=null;const componentSlots=new Map();
  const React={createElement:(type,props,...children)=>({type,props:{...props,children}}),Fragment:'Fragment',
-  useState(value){const i=index++;if(!(i in slots))slots[i]=states.has(i)?states.get(i):typeof value==='function'?value():value;return [slots[i],next=>slots[i]=typeof next==='function'?next(slots[i]):next];},
+  useState(value){const i=index++,ownedSlots=slots;if(!(i in ownedSlots))ownedSlots[i]=states.has(i)?states.get(i):typeof value==='function'?value():value;return [ownedSlots[i],next=>ownedSlots[i]=typeof next==='function'?next(ownedSlots[i]):next];},
   useRef(value){const i=index++;return slots[i]||(slots[i]={current:value});},useEffect(fn){index++;effects.push(fn);},useLayoutEffect(fn){index++;effects.push(fn);},useMemo(fn){index++;return fn();},useCallback(fn){index++;return fn;}};
  const native={Platform:{OS:'ios',select:x=>x.ios??x.default},StyleSheet:{create:x=>x,hairlineWidth:1,absoluteFillObject:{}},Dimensions:{get:()=>({width,height:844})},useWindowDimensions:()=>({width,height:844,fontScale:1,scale:1}),PixelRatio:{get:()=>1},Alert:{alert:()=>{}},AppState:{currentState:'active'}};
  for(const name of ['SafeAreaView','ScrollView','View','Text','Pressable','TextInput','StatusBar','Switch','Image','KeyboardAvoidingView','ActivityIndicator','Modal','FlatList','TouchableOpacity','Animated','RefreshControl'])native[name]=name;
