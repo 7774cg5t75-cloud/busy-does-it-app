@@ -1,3 +1,4 @@
+import {AppServiceEditor} from './appServiceEditor';
 import {validContentLayout,prepareBusinessContentEnquiry} from '../core/businessContentRecords.mjs';
 import {proposeCoordinatedAppChanges as proposeContentComposition} from '../core/appCoordinatedStudio.mjs';
 import {BusinessContentView} from '../components/businessContentView';
@@ -886,10 +887,6 @@ function MiniAppBuilder({ s }) {
   const [photoFrom,setPhotoFrom]=React.useState("1");
   const [photoTo,setPhotoTo]=React.useState("2");
   const [studioVoiceOpen,setStudioVoiceOpen]=React.useState(false);
-  const [serviceIndex,setServiceIndex]=React.useState(-1);
-  const [serviceName,setServiceName]=React.useState("");
-  const [serviceCategory,setServiceCategory]=React.useState(''),[servicePrice,setServicePrice]=React.useState(''),[serviceDuration,setServiceDuration]=React.useState('');
-  const [serviceDescription,setServiceDescription]=React.useState("");
   const [accessiblePhotoNumber,setAccessiblePhotoNumber]=React.useState("1");
   const [accessiblePhotoAlt,setAccessiblePhotoAlt]=React.useState("");
   const [accessiblePhotoCaption,setAccessiblePhotoCaption]=React.useState("");
@@ -926,7 +923,6 @@ function MiniAppBuilder({ s }) {
     setStagingInstallAudit(null);
     setBrainOwnerHistory(null);
     setBrainOwnerNotice("");
-    setServiceIndex(-1);setServiceName("");setServiceDescription("");setServiceCategory('');setServicePrice('');setServiceDuration('');
     setAccessiblePhotoNumber("1");
     setAccessiblePhotoAlt("");setAccessiblePhotoCaption("");
   },[app?.id,s.cloudWorkspace?.businessId,s.ownerSession?.userId]);
@@ -2407,83 +2403,10 @@ function MiniAppBuilder({ s }) {
               setStudioPreview(p.ok?p:null);setStudioNotice(p.ok?
                 "Owner-written wording is ready to preview, not yet saved.":p.reason);
             }}/>
-          {view.draftConfig.modules?.some(m=>m.key==="services"&&m.enabled===true)?(
-            <>
-              <Text style={styles.sectionLabel}>Edit individual services</Text>
-              <Text style={styles.cardBody}>
-                Add, change or remove a service, then review the whole private app before saving. Your live app will not be touched.
-              </Text>
-              <Button label={(serviceIndex===-1?"✓ ":"")+"Add a new service"}
-                onPress={()=>{setServiceIndex(-1);setServiceName("");setServiceDescription("");setServiceCategory('');setServicePrice('');setServiceDuration('');setStudioPreview(null);}}/>
-              {(view.draftConfig.publicProfile?.services||[]).slice(0,30).map((service,i)=>(
-                <Button key={service.id||"service-"+i} label={(serviceIndex===i?"✓ ":"")+
-                  (service.name||"Unnamed service")}
-                  onPress={()=>{setServiceIndex(i);setServiceName(service.name||"");
-                    setServiceDescription(service.description||"");setServiceCategory(service.category||'');setServicePrice(service.priceLabel||'');setServiceDuration(service.durationLabel||'');setStudioPreview(null);}}/>
-              ))}
-              <Field label="Service name" value={serviceName} onChangeText={setServiceName}
-                placeholder="e.g. Cut and blow dry"/>
-              <Field label="Service description" value={serviceDescription}
-                onChangeText={setServiceDescription} placeholder="Explain this service"/>
-              <Field label="Service category (optional)" value={serviceCategory} onChangeText={setServiceCategory}/>
-              <Field label="Owner-approved price wording (optional)" value={servicePrice} onChangeText={setServicePrice} placeholder="For example: From €40 — final quote agreed separately"/>
-              <Field label="Typical duration wording (optional)" value={serviceDuration} onChangeText={setServiceDuration}/>
-              <Text style={styles.cardBody}>These are public information labels. They do not take payment, reserve a slot or promise availability.</Text>
-              <Button label={serviceIndex<0?"Preview new service":"Preview edited service"}
-                disabled={!!s.miniAppsAction||!serviceName.trim()}
-                onPress={()=>{
-                  const old=view.draftConfig.publicProfile?.services||[];
-                  const value=old.map(x=>({...x}));
-                  const row={id:serviceIndex<0?"owner_service_"+Date.now().toString(36):
-                    value[serviceIndex]?.id||"owner_service_"+Date.now().toString(36),
-                    name:serviceName,description:serviceDescription,...serviceCategory.trim()?{category:serviceCategory}:{},...servicePrice.trim()?{priceLabel:servicePrice}:{},...serviceDuration.trim()?{durationLabel:serviceDuration}:{}};
-                  if(serviceIndex<0)value.push(row);else value[serviceIndex]=row;
-                  const plan=proposeCoordinatedAppChanges(view.draftConfig,
-                    [{kind:"services",value}]);
-                  setStudioPreview(plan.ok?plan:null);
-                  setStudioNotice(plan.ok?"Review all services below before saving.":plan.reason);
-                }}/>
-              {serviceIndex>=0&&
-                (view.draftConfig.publicProfile?.services||[]).length>1?(
-                <>
-                  {[
-                    ["up","Move this service earlier"],
-                    ["down","Move this service later"]
-                  ].map(([direction,label])=>(
-                    <Button key={direction} label={"Preview: "+label}
-                      disabled={!!s.miniAppsAction}
-                      onPress={()=>{
-                        const previous=(view.draftConfig.publicProfile?.services||[])
-                          .map(x=>({...x}));
-                        const destination=serviceIndex+(direction==="up"?-1:1);
-                        if(destination<0||destination>=previous.length){
-                          setStudioNotice("The service is already at that end of the list.");
-                          return;
-                        }
-                        const [item]=previous.splice(serviceIndex,1);
-                        previous.splice(destination,0,item);
-                        const proposed=proposeCoordinatedAppChanges(view.draftConfig,
-                          [{kind:"services",value:previous}]);
-                        setStudioPreview(proposed.ok?proposed:null);
-                        setStudioNotice(proposed.ok?
-                          "Preview the reordered service list, then approve or discard.":proposed.reason);
-                      }}/>
-                  ))}
-                </>
-              ):null}
-              {serviceIndex>=0?(
-                <Button label="Preview removal of this service"
-                  disabled={!!s.miniAppsAction}
-                  onPress={()=>{
-                    const value=(view.draftConfig.publicProfile?.services||[])
-                      .filter((_,i)=>i!==serviceIndex).map(x=>({...x}));
-                    const plan=proposeCoordinatedAppChanges(view.draftConfig,
-                      [{kind:"services",value}]);
-                    setStudioPreview(plan.ok?plan:null);
-                    setStudioNotice(plan.ok?"Review the service removal below.":plan.reason);
-                  }}/>
-              ):null}
-            </>
+          {view.draftConfig.modules?.some(m=>m.key==='services'&&m.enabled===true)?(
+            <AppServiceEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id].join(':')}
+              config={view.draftConfig} revision={app.draft_revision} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
+              onPreview={setStudioPreview} onNotice={setStudioNotice}/>
           ):null}
           {view.draftConfig.modules?.some(x=>x.key==="gallery"&&x.enabled===true)&&
             (view.draftConfig.publicProfile?.assets?.gallery||[]).length>0?(
