@@ -26,9 +26,25 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
  };
  for(let i=0;i<clauses.length;i++){
   const clause=clauses[i];
-  if(forbidden.test(clause))return fail("No changes were made. Publishing, deleting and external actions need separate approval.");
-  let m,change,description;
-  if((m=clause.match(/^move (?:the )?(.+?) section (above|below|before|after) (?:the )?(.+?)(?: section| form)?$/i))){
+  const literal=clause.match(/^(?:change|set|update) (?:the )?(.+?) (heading|text|body|button text) (?:to|with) "([^"<>]{1,2500})"$/i);
+  let m,change,description,type='layout';
+  if(literal){
+   const section=findSection(literal[1]);if(!section)return fail('Name one exact visible section for your wording.');
+   const field={heading:'title',text:'body',body:'body','button text':'cta'}[literal[2].toLowerCase()];
+   change={sectionId:section.id,field,value:literal[3]};type='field';
+   description='Replace only the owner-written '+field+' in '+section.title;
+  }else if((m=clause.match(/^add question "([^"<>]{1,140})" answer "([^"<>]{1,1200})"$/i))){
+   const sections=list(draft.sections).filter(s=>s.id==='faq'||s.type==='faq');
+   if(!sections.length&&draft.designPlan?.architecture!=='focused-landing')return fail('Create the FAQ section in the content editor first, then open its page to add your question.');
+   if(sections.length&&!list(page.sectionIds).includes('faq'))return fail('Open the page containing your FAQ section before adding a question.');
+   if(pageId!=='home'&&(!sections.length||!list(page.sectionIds).includes('faq')))
+    return fail('Add the FAQ section to this page before preparing a question.');
+   if(sections.length>1||sections.length===1&&(sections[0].id!=='faq'||sections[0].type!=='faq'||sections[0].enabled===false))
+    return fail('Review the current FAQ section before adding questions.');
+   change={action:sections.length?'add-item':'create-collection',sectionId:'faq',title:m[1],body:m[2]};
+   type='field';description='Add your exact question and answer to the private FAQ section';
+  }else if(forbidden.test(clause))return fail("No changes were made. Publishing, deleting and external actions need separate approval.");
+  else if((m=clause.match(/^move (?:the )?(.+?) section (above|below|before|after) (?:the )?(.+?)(?: section| form)?$/i))){
    const section=findSection(m[1]),target=findSection(m[3]);
    if(!section||!target)return fail('Name two exact visible sections on this page.');
    change={action:'move-relative',sectionId:section.id,targetSectionId:target.id,
@@ -77,7 +93,7 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
   const leaves=change.action==='style-group'?change.operations:[change];
   const keys=leaves.map(op=>[op.action==='move-relative'?'move':op.action,op.sectionId||"global",op.field||"position"].join(":"));
   if(keys.some(key=>targets.has(key)))return fail("Two steps affect the same setting. Give one instruction for that setting.");
-  keys.forEach(key=>targets.add(key));steps.push({type:"layout",change,spoken:clause,description});
+  keys.forEach(key=>targets.add(key));steps.push({type,change,spoken:clause,description});
  }
  return {ok:true,draftId,pageId,generation,steps,requiresExplicitApproval:true,
   summary:steps.length+" named page change"+(steps.length===1?"":"s")+" ready for private preview"};
@@ -88,7 +104,7 @@ function prepareWebsitePageInstructionPreview(draft,request={},deps={}){
  if(typeof deps.layoutEdit!=="function"||typeof deps.renderPage!=="function")
   return fail("Website preview is unavailable.");
  const prepared=prepareSelectedWebsiteTransaction(draft,plan,{
-  fieldEdit:()=>({applied:false}),layoutEdit:deps.layoutEdit});
+  fieldEdit:typeof deps.fieldEdit==='function'?deps.fieldEdit:()=>({applied:false}),layoutEdit:deps.layoutEdit});
  if(!prepared.applied)return fail(prepared.reason);
  let originalHtml,candidateHtml;
  try{

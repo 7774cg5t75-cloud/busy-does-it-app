@@ -13570,7 +13570,7 @@ function App() {
     const current=websiteDraftRef.current;
     return prepareWebsitePageInstructionPreview(current,{
       draftId:current?.id,pageId,generation,instruction},{
-      layoutEdit:applyWebsiteLayoutChange,renderPage:renderWebsiteHtml
+      fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange,renderPage:renderWebsiteHtml
     });
   };
   // Optional AI intent translation. One metered request, explicit tap,
@@ -13585,7 +13585,7 @@ function App() {
     });
     if(!plan.ok){setWebsiteBuilderNotice(plan.reason);return {applied:false,reason:plan.reason};}
     const prepared=prepareSelectedWebsiteTransaction(current,plan,{
-      fieldEdit:()=>({applied:false}),layoutEdit:applyWebsiteLayoutChange
+      fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange
     });
     setWebsiteBuilderNotice(prepared.reason||"");
     if(!prepared.applied)return prepared;
