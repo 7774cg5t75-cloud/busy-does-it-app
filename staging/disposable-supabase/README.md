@@ -151,3 +151,23 @@ Offline validation includes:
 The tests inject failures into each administrative SQL operation and verify exact labels, SQLSTATE-only reporting, fail-fast ordering, private-log permissions, sensitive-value exclusion and proxy cleanup. They also exercise failed administrator/reload checks, bounded propagation of on -> off and permanent-on rejection. All Docker/SQL operations are mocked. No live SQL was executed during preparation.
 
 The next separately authorised rehearsal must use the new exact SHA in both approval gates and the existing protected-environment approval. It must show scheduler-containment passing before any historical SQL; if another issue appears, the fixed operation/SQLSTATE now identifies it. Localhost proxy, internal Docker isolation, cleanup, workflow triggers, SHA/environment gates, £0 additional-spending policy and PR dependencies remain unchanged. Website Builder and App Builder work unrelated to database acceptance remains unblocked.
+
+## Explicit administrator authentication route after rehearsal #12
+
+Run #12 at 164e2ee19e73cd2cd2f16288bb667c387c1b1d0f stopped at scheduler-check-admin with psql exit 2, SQLSTATE=null and no completed containment operations. Startup/proxy forwarding succeeded and historical migrations did not start. Exit 2 is a connection-level failure, not proof of an executed SQL permissions error. Its original raw authentication message was not retained.
+
+The pinned image gives an evidence-backed explanation for the invocation defect:
+- https://github.com/supabase/postgres/blob/17.6.1.029/ansible/files/postgresql_config/pg_hba.conf.j2 first matches Unix-socket supabase_admin with scram-sha-256. The later local peer rule cannot override that first match.
+- https://github.com/supabase/postgres/blob/17.6.1.029/ansible/files/postgresql_config/pg_ident.conf.j2 maps OS root/postgres/ubuntu to database postgres, not supabase_admin.
+- The same existing HBA file separately permits TCP 127.0.0.1/32 and ::1/128 using trust. No HBA rule is changed by this correction.
+- Docker exec starts a new process with the container's configured environment; startup-script exports do not automatically propagate to later exec processes. The CLI supplies POSTGRES_PASSWORD, but libpq uses PGPASSWORD, not POSTGRES_PASSWORD. The prior command omitted -h and supplied no libpq password.
+
+The smallest scoped correction is to retain the existing administrator and fixed SQL map, but explicitly invoke psql -h 127.0.0.1 -p 5432 -w INSIDE the already isolated DB container. This uses the image's existing container-loopback rule, not a new authentication exemption, the runner proxy, the container's external interface or an unrestricted network. No password is read, copied into argv/environment, logged or stored; no role privilege is granted. -w prevents a password prompt from blocking or consuming the SQL delivered through docker exec stdin. A changed HBA requiring a password will fail closed.
+
+The runtime still has to demonstrate that this expected pinned-image route succeeds. The administrator role check, fixed containment statements, ON_ERROR_STOP, SQLSTATE-only SQL errors, reload verification, bounded fresh-session off checks and the historical-SQL barrier are unchanged. The general SQL helper remains postgres using its existing local peer path.
+
+For any scheduler failure the report now adds a fixed connectionMode=container-loopback-tcp and a sanitised category: authentication, connection, connection-or-authentication (unclassified psql exit 2), sql-execution, timeout, process-launch or unclassified. Category matching uses fixed signatures only and never republishes the source message. SQLSTATE remains null when unavailable; no state is invented.
+
+Offline regression coverage now asserts explicit loopback host/port and no-prompt flags for every fixed operation; models the pinned HBA first-match difference; injects password, socket/connection and unclassified exit-2 failures; and verifies no later SQL, exact operation reporting, sensitive-value exclusion and cleanup. All SQL/Docker activity is mocked. There was no live authentication test during preparation.
+
+The next separately approved mode=rehearse run must use the new exact source SHA in both gates and retain the protected-environment review. It must first show scheduler-check-admin succeeding on container-loopback-tcp, then confirm cron.launch_active_jobs=off before historical SQL. No automatic workflow execution or setting changes are performed here. Unrelated Website Builder and App Builder work remains unblocked.

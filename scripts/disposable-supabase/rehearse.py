@@ -51,8 +51,10 @@ SCHEDULER_SQL={
     'scheduler-verify-disabled':"show cron.launch_active_jobs;\n",
 }
 def scheduler_command(operation):
+    # Use the pinned image's existing TCP-loopback HBA path, not its SCRAM-only
+    # admin Unix socket rule. No password, HBA edit or fallback authentication.
     # Administrative role is confined to these exact reviewed local statements.
-    return (['docker','exec','-i',DB,'psql','-X','-qAt','-U','supabase_admin',
+    return (['docker','exec','-i',DB,'psql','-X','-qAt','-w','-h','127.0.0.1','-p','5432','-U','supabase_admin',
              '-d','postgres','-v','ON_ERROR_STOP=1','-v','VERBOSITY=sqlstate'],SCHEDULER_SQL[operation])
 
 def safe_sqlstate(stderr):
@@ -61,6 +63,22 @@ def safe_sqlstate(stderr):
         match=re.fullmatch(r'(?:psql:[^\r\n]*:\d+:\s*)?(?:ERROR|FATAL|PANIC):\s+([0-9A-Z]{5})\s*',line)
         if match:return match[1]
     return None
+
+def scheduler_failure_category(exit_code,stderr,kind='exit'):
+    # Classify fixed error signatures only; never publish the matching text.
+    if kind=='timeout':return 'timeout'
+    if kind=='launch-error':return 'process-launch'
+    text=(stderr.decode(errors='replace') if isinstance(stderr,bytes) else (stderr or '')).lower()
+    if any(marker in text for marker in ('no password supplied','password authentication failed',
+            'peer authentication failed','no pg_hba.conf entry','authentication failed')):
+        return 'authentication'
+    if any(marker in text for marker in ('connection refused','connection timed out',
+            'could not connect','could not translate host name','server closed the connection',
+            'no such file or directory')):
+        return 'connection'
+    if exit_code==3:return 'sql-execution'
+    if exit_code==2:return 'connection-or-authentication'
+    return 'unclassified'
 
 def contain_scheduler(execute):
     if execute('scheduler-check-admin').strip()!='t':
@@ -109,6 +127,8 @@ def main():
             if operation is not None:
                 report['failedCommand']['command']=operation
                 report['failedCommand']['sqlstate']=safe_sqlstate(stderr)
+                report['failedCommand']['connectionMode']='container-loopback-tcp'
+                report['failedCommand']['category']=scheduler_failure_category(exit_code,stderr,kind)
             if observer:
                 observer.stop()
                 report['failedCommand']['startupObservations']=observer.summary
@@ -130,7 +150,8 @@ def main():
             raise RuntimeError('Local command failed; see sanitised report')
         return result.stdout
     def scheduler(operation):
-        state=report.setdefault('schedulerContainment',{'operation':None,'completed':[]})
+        state=report.setdefault('schedulerContainment',{'operation':None,'completed':[],
+            'connectionMode':'container-loopback-tcp'})
         state['operation']=operation;save()
         args,text=scheduler_command(operation)
         result=run(args,text,operation=operation)
