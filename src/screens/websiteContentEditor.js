@@ -13,7 +13,7 @@ const display=v=>String(v||"");
 const selectedItem=(section,id)=>
  (Array.isArray(section?.items)?section.items:[]).find(item=>item?.id===id)||null;
 
-function WebsiteContentEditor({draft,onApply}){
+function WebsiteContentEditor({draft,onApply,suggestions=[]}){
  const [open,setOpen]=React.useState(false);
  const [sectionId,setSectionId]=React.useState("");
  const [selection,setSelection]=React.useState(null);
@@ -23,6 +23,7 @@ function WebsiteContentEditor({draft,onApply}){
  const [confirmRemoval,setConfirmRemoval]=React.useState(null);
  const [createKind,setCreateKind]=React.useState("");
  const [testimonialPermission,setTestimonialPermission]=React.useState(false);
+ const liveDraft=React.useRef(draft);liveDraft.current=draft;
  const section=(draft?.sections||[]).find(s=>s.id===sectionId)||null;
  const change=(field,itemId=null)=>{
   const target=itemId?selectedItem(section,itemId):section;
@@ -40,6 +41,14 @@ function WebsiteContentEditor({draft,onApply}){
   <>
    <Button label={open?"Hide direct content editor":"Edit website content directly"}
      onPress={()=>setOpen(x=>!x)}/>
+   {suggestions.slice(0,3).map(suggestion=><View key={suggestion.id}>
+    <Text style={styles.cardBody}>{suggestion.reason}</Text>
+    <Button label={'Prepare a website answer: '+suggestion.question} onPress={()=>{
+     if(liveDraft.current!==draft)return;
+     const faq=(draft.sections||[]).find(section=>section.type==='faq'&&section.enabled!==false);
+     setOpen(true);setSectionId(faq?.id||'');setCreateKind(faq?'':'faq');setSelection(null);setNewEntryTitle(suggestion.question);setNewEntryBody('');setConfirmRemoval(null);
+    }}/>
+   </View>)}
    {open ? (
     <Card eyebrow="Direct website editor"
       title="Change the exact words you want"

@@ -19,17 +19,25 @@ function parseEnquiryListingReference(message){
  const [,recordId,revision,variantId]=matches[0];
  return RECORD_ID.test(recordId)&&(!variantId||RECORD_ID.test(variantId))?{recordId,revision:Number(revision),...(variantId?{variantId}:{})}:null;
 }
-function prepareOwnerConversation({request={},latestMessage=null,publishedConfig=null,listingFeed=null,businessId='',now=Date.now()}={}){
- const message=bounded(latestMessage?.sender_role==='customer'?latestMessage.body:request.payload?.message,3000);
- const context=bounded(request.service_name||request.payload?.service,240);
+function customerQuestionText(message){
+ const value=bounded(message,3000);
+ if(!parseEnquiryListingReference(value))return value;
+ return value.split('\n').filter(line=>!(/^(?:Product: |Event: |Displayed price: |Listed dates: |Listing reference: |This is an enquiry, not an order, reservation or confirmed attendance\.|Please tell me more\.)/.test(line))).join('\n').trim();
+}
+function enquiryQuestionKinds(message){
  const categories=[
-  ['price',/\b(price|cost|how much|quote|discount)\b/i,'Confirm the current price and scope before quoting.'],
+  ['price',/\b(prices?|costs?|how much|quotes?|discounts?)\b/i,'Confirm the current price and scope before quoting.'],
   ['availability',/\b(available|availability|book|booking|reserve|stock|tickets?|spaces?)\b/i,'Check actual availability before offering a time or item.'],
   ['location',/\b(where|location|address|venue|deliver|delivery|travel)\b/i,'Confirm the relevant location or service area.'],
   ['accessibility',/\b(accessib\w*|wheelchair|step.free)\b/i,'Confirm the requested accessibility arrangements.'],
   ['options',/\b(options?|variants?|sizes?|colours?|colors?)\b/i,'Review the selected option and current details.']
  ];
- const intents=categories.filter(([,pattern])=>pattern.test(message)).map(([id,,check])=>({id,check}));
+ return categories.filter(([,pattern])=>pattern.test(customerQuestionText(message))).map(([id,,check])=>({id,check}));
+}
+function prepareOwnerConversation({request={},latestMessage=null,publishedConfig=null,listingFeed=null,businessId='',now=Date.now()}={}){
+ const message=customerQuestionText(latestMessage?.sender_role==='customer'?latestMessage.body:request.payload?.message);
+ const context=bounded(request.service_name||request.payload?.service,240);
+ const intents=enquiryQuestionKinds(message);
  const faqs=publishedConfig?.publicProfile?.faqs;
  // No semantic guess: negation, extra requests and quoted instructions must
  // not accidentally select an unrelated approved answer.
@@ -90,4 +98,4 @@ function validOwnerConversationPreparation(value){
   value.ownerMustReview===true&&value.maySend===false&&
   value.providerDeliveryVerified===false&&value.bookingConfirmed===false;
 }
-export {prepareOwnerConversation,validOwnerConversationPreparation,parseEnquiryListingReference,conversationReviewSignal};
+export {prepareOwnerConversation,validOwnerConversationPreparation,parseEnquiryListingReference,conversationReviewSignal,enquiryQuestionKinds,customerQuestionText};

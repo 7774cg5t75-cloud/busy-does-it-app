@@ -2382,7 +2382,7 @@ function MiniAppBuilder({ s }) {
             Voice provides transcription only, within its existing daily allowance. BUSY asks before changing the private app.
           </Text>
           <AppPublicCollectionEditor key={['public-info',s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(':')}
-            config={view.draftConfig} onPreview={setStudioPreview} onNotice={setStudioNotice} busy={!!s.miniAppsAction||studio.pending}/>
+            config={view.draftConfig} suggestions={view.enquiryContentGaps?.suggestions||[]} onPreview={setStudioPreview} onNotice={setStudioNotice} busy={!!s.miniAppsAction||studio.pending}/>
           <AppContactEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(':')}
             businessId={s.cloudWorkspace?.businessId||''} app={app} busy={!!s.miniAppsAction||studio.pending}
             onPreview={setStudioPreview} onNotice={setStudioNotice}/>

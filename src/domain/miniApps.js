@@ -10,6 +10,7 @@ import {reviewCustomerOutcomeProof} from "../core/customerOutcomeProofV3187.mjs"
 import {assessOwnerEvidenceCompleteness} from "../core/customerEvidenceCompletenessV3188.mjs";
 import {prepareOwnerNextAction} from "../core/ownerNextActionV3189.mjs";
 import {evaluateOwnerRequestFollowUps} from "../core/ownerRequestFollowUpsV3206.mjs";
+import {reviewEnquiryContentGaps} from '../core/businessInfoClarity.mjs';
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -291,6 +292,7 @@ function buildMiniAppsView(remote = {}) {
     evidenceCompleteness,
     ownerNextAction,
     followUpIntelligence,
+    enquiryContentGaps:app?reviewEnquiryContentGaps({businessId:app.business_id,appId:app.id,requests,config:app.draft_config||{}}):null,
     deliveryEvidence,
     measuredOwnerActions,
     pushGatewayEvidence:remote?.pushGatewayEvidence?.ok===true?remote.pushGatewayEvidence:null,

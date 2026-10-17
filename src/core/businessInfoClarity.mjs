@@ -6,6 +6,7 @@
  * matching, already-authenticated business scope. That scope is not itself
  * an authentication mechanism.
  */
+import {enquiryQuestionKinds} from './ownerConversationPreparation.mjs';
 const clean=x=>typeof x==="string"?x.trim():"";
 const capped=x=>Array.isArray(x)?x.slice(0,30):[];
 function inspectServices(services,surface){
@@ -137,3 +138,24 @@ function reviewBusinessInformation({
   noCrossTenantLearning:true,noPublishing:true,noCharges:true};
 }
 export {inspectServices,reviewBusinessInformation};
+
+// Private recommendation over the existing bounded owner request sample. No
+// customer wording/identity is copied into public drafts or a learning store.
+function reviewEnquiryContentGaps({businessId,appId,requests=[],config={},now=Date.now()}={}){
+ const deny=()=>({ok:false,suggestions:[],customerTextReturned:false});
+ if(!businessId||!appId||!Number.isFinite(now)||!Array.isArray(requests)||requests.length>30||
+  requests.some(r=>!r?.id||r.business_id!==businessId||r.mini_app_id!==appId)||new Set(requests.map(r=>r.id)).size!==requests.length)return deny();
+ const counts=new Map();let sampled=0;
+ for(const request of requests){
+  const at=Date.parse(request.created_at||'');
+  if(request.request_type!=='enquiry'||!Number.isFinite(at)||at>now||now-at>30*86400000)continue;
+  sampled++;
+  for(const {id}of enquiryQuestionKinds(request.payload?.message))counts.set(id,(counts.get(id)||0)+1);
+ }
+ const templates={price:'How are prices and quotations agreed?',availability:'How do I ask about availability?',location:'Where does the business provide its services?',accessibility:'How can I discuss accessibility requirements?',options:'How can I choose the right option?'};
+ const faqs=Array.isArray(config.publicProfile?.faqs)?config.publicProfile.faqs:[];
+ const covered=new Set(faqs.flatMap(f=>enquiryQuestionKinds(f.question).map(x=>x.id)));
+ const suggestions=[...counts].filter(([id,count])=>count>=3&&!covered.has(id)).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,3).map(([id,count])=>({id,count,question:templates[id],reason:count+' recent enquiry records mention '+id+'. Consider making this clearer in your app and website. No commercial outcome is inferred.'}));
+ return {ok:true,suggestions,sampledRecords:sampled,coveragePartial:requests.length>=30,customerTextReturned:false,distinctCustomersVerified:false,privateRecommendationOnly:true,noAutomaticEdits:true};
+}
+export {reviewEnquiryContentGaps};
