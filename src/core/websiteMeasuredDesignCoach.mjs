@@ -36,6 +36,17 @@ function recommendMeasuredWebsiteChange({draft,pageId,report}={}){
    tradeoff:located?"Other screen-size overrides and all content stay unchanged; this heading still needs remeasuring.":"The heading becomes less prominent; remeasure before keeping it.",
    targetSectionId:sectionId,source:"measured-layout-hint",notGuaranteed:true});
  }
+ if(ids.has('readability')&&(report.counts.viewport<=600||report.counts.viewport>=960)){
+  const device=report.counts.viewport<=600?'mobile':'desktop',field=device+'BodyScale';
+  for(const sectionId of array(report.targets?.smallTextSectionIds)){
+   const section=active(sectionId);if(!section||section.appearance?.[field]==='large'||ownerDesignPreference(draft,'readable-measured-body',pageId)==='disliked')continue;
+   candidates.push({id:'readable-measured-body',label:'Try more readable text in '+clean(section.title||sectionId),
+    explanation:'Small paragraph or list text was measured in this section. Prepare larger body text and line spacing only on '+device+' widths; remeasure before keeping it.',
+    tradeoff:'Longer lines may wrap and increase scrolling. Other width overrides, headings and all wording remain unchanged.',
+    operation:{action:'section-style',sectionId,field,value:'large'},targetSectionId:sectionId,
+    source:'measured-layout-hint',notGuaranteed:true});
+  }
+ }
  const overflowLocated=Array.isArray(report.targets?.overflowSectionIds);
  if(ids.has("overflow")&&(!overflowLocated||report.targets.overflowSectionIds.includes("services"))&&
     ownerDesignPreference(draft,"simpler-service-layout",pageId)!=="disliked"&&active("services")&&draft.theme?.cardLayout!=="rows"){

@@ -80,13 +80,13 @@ function makeWebsiteVisualCheckHtml(html,inspectionKey="preview"){
     return node.textContent.trim()&&rect.width>0&&rect.height>0&&style.visibility!=='hidden'&&style.display!=='none';
    }).length;
    var samples=[].slice.call(document.querySelectorAll("main h1,main h2,main h3,main p,main li,main a,main button")).slice(0,120);
-   var lowContrast=0,contrastUnknown=0,contrastChecked=0,smallBodyText=0;
+   var lowContrast=0,contrastUnknown=0,contrastChecked=0,smallBodyText=0,smallTextNodes=[];
    samples.forEach(function(node){
     if(!node.textContent||!node.textContent.trim())return;
     var bounds=node.getBoundingClientRect(),style=getComputedStyle(node);
     if(bounds.width<=0||bounds.height<=0||style.visibility==="hidden"||style.display==="none")return;
     var size=parseFloat(style.fontSize)||0;
-    if(/^(P|LI)$/.test(node.tagName)&&size>0&&size<14)smallBodyText++;
+    if(/^(P|LI)$/.test(node.tagName)&&size>0&&size<14){smallBodyText++;smallTextNodes.push(node);}
     var front=rgb(style.color),back=backgroundFor(node);
     if(!front||!back||front[3]<.99){contrastUnknown++;return;}
     contrastChecked++;
@@ -104,7 +104,7 @@ function makeWebsiteVisualCheckHtml(html,inspectionKey="preview"){
     missingAlt:Math.min(99,missing),unloadedImages:Math.min(99,unloaded),
     smallTargets:Math.min(99,small),badAnchors:Math.min(99,anchors),
     clippedHeadings:Math.min(99,clipped),
-    clippedSectionIds:sectionIds(clippedNodes),overflowSectionIds:sectionIds(overflowNodes),
+    clippedSectionIds:sectionIds(clippedNodes),overflowSectionIds:sectionIds(overflowNodes),smallTextSectionIds:sectionIds(smallTextNodes),
     lowContrast:Math.min(99,lowContrast),contrastUnknown:Math.min(99,contrastUnknown),
     contrastChecked:Math.min(99,contrastChecked),smallBodyText:Math.min(99,smallBodyText),
     headings:Math.min(99,headings.length),
@@ -141,7 +141,7 @@ function reviewWebsiteVisualCheck(message,inspectionKey="preview"){
   counts.textBlocks=message.textBlocks;
  }
  const targets={};
- for(const [key,counter] of [["clippedSectionIds","clippedHeadings"],["overflowSectionIds","overflow"]]){
+ for(const [key,counter] of [["clippedSectionIds","clippedHeadings"],["overflowSectionIds","overflow"],["smallTextSectionIds","smallBodyText"]]){
   if(message[key]===undefined)continue;
   const ids=message[key];
   if(!Array.isArray(ids)||ids.length>6||ids.length>counts[counter]||new Set(ids).size!==ids.length||
