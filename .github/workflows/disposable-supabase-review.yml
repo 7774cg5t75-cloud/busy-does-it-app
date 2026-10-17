@@ -1,0 +1,154 @@
+name: Approval-controlled disposable Supabase rehearsal (DRAFT)
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Choose gate diagnostics, PostgreSQL-only control, or the protected rehearsal
+        required: true
+        type: choice
+        default: diagnose
+        options:
+          - diagnose
+          - rehearse
+          - postgres-control
+      approved_sha:
+        description: Exact reviewed commit SHA (no branch names)
+        required: true
+        type: string
+      approval:
+        description: Enter APPROVE_DISPOSABLE_TEST_ONLY after reviewing usage and source
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: busy-disposable-database-review
+  cancel-in-progress: false
+jobs:
+  diagnose:
+    # No environment, checkout, secrets, database tools, artifacts or API calls.
+    # Job-level env evaluates vars at the same pre-runner scope as rehearse.if.
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.mode == 'diagnose' &&
+      github.repository == '7774cg5t75-cloud/busy-does-it-app' &&
+      github.event.repository.private == false
+    permissions: {}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    env:
+      EVENT_OK: ${{ github.event_name == 'workflow_dispatch' }}
+      REPOSITORY_OK: ${{ github.repository == '7774cg5t75-cloud/busy-does-it-app' }}
+      PUBLIC_OK: ${{ github.event.repository.private == false }}
+      APPROVAL_OK: ${{ inputs.approval == 'APPROVE_DISPOSABLE_TEST_ONLY' }}
+      INPUT_SHA_OK: ${{ inputs.approved_sha == github.sha }}
+      ENABLED_OK: ${{ vars.BUSY_DB_REHEARSAL_ENABLED == 'approved' }}
+      VARIABLE_SHA_OK: ${{ vars.BUSY_DB_REHEARSAL_APPROVED_SHA == github.sha }}
+      ALL_ORIGINAL_GATES_OK: ${{ github.event_name == 'workflow_dispatch' && github.repository == '7774cg5t75-cloud/busy-does-it-app' && github.event.repository.private == false && inputs.approval == 'APPROVE_DISPOSABLE_TEST_ONLY' && inputs.approved_sha == github.sha && vars.BUSY_DB_REHEARSAL_ENABLED == 'approved' && vars.BUSY_DB_REHEARSAL_APPROVED_SHA == github.sha }}
+      DEVELOPMENT_BRANCH_OK: ${{ github.ref == 'refs/heads/codex/disposable-supabase-review' }}
+    steps:
+      - name: Report boolean approval checks only
+        shell: bash
+        run: |
+          for key in EVENT_OK REPOSITORY_OK PUBLIC_OK APPROVAL_OK INPUT_SHA_OK ENABLED_OK VARIABLE_SHA_OK ALL_ORIGINAL_GATES_OK DEVELOPMENT_BRANCH_OK; do
+            case "${!key}" in
+              true) result=true ;;
+              false) result=false ;;
+              *) exit 1 ;;
+            esac
+            printf '%s=%s\n' "$key" "$result"
+          done
+  postgres-control:
+    if: >-
+      inputs.mode == 'postgres-control' &&
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == '7774cg5t75-cloud/busy-does-it-app' &&
+      github.event.repository.private == false &&
+      github.ref == 'refs/heads/codex/disposable-supabase-review' &&
+      inputs.approval == 'APPROVE_DISPOSABLE_TEST_ONLY' &&
+      inputs.approved_sha == github.sha &&
+      vars.BUSY_DB_REHEARSAL_ENABLED == 'approved' &&
+      vars.BUSY_DB_REHEARSAL_APPROVED_SHA == github.sha
+    environment: busy-disposable-db-review
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      CI: 'true'
+      BUSY_DISPOSABLE_APPROVAL: APPROVE_DISPOSABLE_TEST_ONLY
+      BUSY_APPROVED_SHA: ${{ inputs.approved_sha }}
+      BUSY_DB_CONTROL_MODE: postgres-control
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: PostgreSQL-only isolated connectivity control
+        env:
+          BUSY_DB_WORKDIR: ${{ runner.temp }}/busy-pg-connectivity-control
+        run: python3 scripts/disposable-supabase/postgres_control.py
+      - name: Report sanitised control evidence
+        if: always()
+        env:
+          BUSY_DB_WORKDIR: ${{ runner.temp }}/busy-pg-connectivity-control
+        run: python3 scripts/disposable-supabase/report.py
+      - name: Fallback cleanup of this run's control resources
+        if: always()
+        env:
+          BUSY_DB_WORKDIR: ${{ runner.temp }}/busy-pg-connectivity-control
+        run: python3 scripts/disposable-supabase/postgres_control.py --cleanup
+  rehearse:
+    # Diagnose mode cannot allocate this runner. All original gates remain required.
+    # No push, PR, schedule or workflow_run trigger. Missing approval vars skip.
+    if: >-
+      inputs.mode == 'rehearse' &&
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == '7774cg5t75-cloud/busy-does-it-app' &&
+      github.event.repository.private == false &&
+      inputs.approval == 'APPROVE_DISPOSABLE_TEST_ONLY' &&
+      inputs.approved_sha == github.sha &&
+      vars.BUSY_DB_REHEARSAL_ENABLED == 'approved' &&
+      vars.BUSY_DB_REHEARSAL_APPROVED_SHA == github.sha
+    environment: busy-disposable-db-review
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      CI: 'true'
+      BUSY_DISPOSABLE_APPROVAL: APPROVE_DISPOSABLE_TEST_ONLY
+      BUSY_APPROVED_SHA: ${{ inputs.approved_sha }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22.14.0
+      - uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # reviewed v1
+        with:
+          version: 2.54.11
+      - name: Prepare and execute local-only rehearsal
+        env:
+          BUSY_DB_WORKDIR: ${{ runner.temp }}/busy-db-rehearsal
+        run: python3 scripts/disposable-supabase/rehearse.py
+      - name: Report evidence even when a stage fails
+        env:
+          BUSY_DB_WORKDIR: ${{ runner.temp }}/busy-db-rehearsal
+        if: always()
+        run: python3 scripts/disposable-supabase/report.py
+      - name: Destroy disposable containers and data
+        env:
+          BUSY_DB_WORKDIR: ${{ runner.temp }}/busy-db-rehearsal
+        if: always()
+        run: |
+          cleanup_status=0
+          if [ -f "$BUSY_DB_WORKDIR/supabase/config.toml" ]; then
+            cd "$BUSY_DB_WORKDIR"
+            supabase stop --no-backup || cleanup_status=1
+          fi
+          if docker network inspect busy-db-review-internal >/dev/null 2>&1; then
+            docker network rm busy-db-review-internal || cleanup_status=1
+          fi
+          rm -f "$BUSY_DB_WORKDIR/local-status.json" "$BUSY_DB_WORKDIR/failure-private.log"
+          exit "$cleanup_status"
+# No project token, secrets, cloud project ref, linked project, deploy, db push,
+# build, provider call, artifact storage, workflow dispatch or repository write.
