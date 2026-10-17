@@ -1,3 +1,4 @@
+import {parseBusinessContentInterest} from '../_shared/businessContentRecords.mjs';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import {verifyPublishedWebsiteIntent} from "./websiteRequestLinkGuardV3215.mjs";
@@ -87,11 +88,12 @@ async function recordEntry(app: any, source: string, stage: string) {
   }
 }
 
-function handoffPage(app: any, source: string, intent: string) {
+function handoffPage(app: any, source: string, intent: string, contentInterest: any = null) {
   const encodedSlug = encodeURIComponent(app.public_slug);
   const encodedSource = encodeURIComponent(source);
   const query = new URLSearchParams({ source });
   if (intent && intent !== "open") query.set("intent", intent);
+  if(intent==='enquiry'&&contentInterest){query.set('content',contentInterest.recordId);query.set('content_revision',String(contentInterest.revision));if(contentInterest.variantId)query.set('content_option',contentInterest.variantId);}
   const deepLink = `busydoesit://apps/${encodedSlug}?${query.toString()}`;
   const safeDeepLink = escapeHtml(deepLink);
   const businessName = escapeHtml(app.display_name || "this business");
@@ -157,6 +159,9 @@ Deno.serve(async (req: Request) => {
   const source = sourceValue(url.searchParams.get("source"));
   const intent = intentValue(url.searchParams.get("intent"));
 
+  const hasContent=['content','content_revision','content_option'].some(key=>url.searchParams.has(key));
+  const contentInterest=hasContent?parseBusinessContentInterest(Object.fromEntries(url.searchParams)):null;
+  if(hasContent&&(intent!=='enquiry'||!contentInterest||['content','content_revision','content_option'].some(key=>url.searchParams.getAll(key).length>1)))return page(400,'<!doctype html><title>BUSY DOES IT</title><p>The selected listing reference needs review.</p>');
   if (!slug) {
     return page(
       400,
@@ -202,7 +207,7 @@ Deno.serve(async (req: Request) => {
     // Existing QR/share/deep-link intents keep their independent flow.
     if(source==="web"){
       const bound=verifyPublishedWebsiteIntent({
-        url:req.url,app:app.data,version:version.data
+        url:(()=>{const bound=new URL(req.url);if(contentInterest)for(const key of ['content','content_revision','content_option'])bound.searchParams.delete(key);return bound.toString();})(),app:app.data,version:version.data
       });
       if(!bound.ok)return page(409,
         "<!doctype html><title>BUSY DOES IT</title><p>This website request link needs the business to review its current published app. No request has been submitted.</p>");
@@ -219,9 +224,9 @@ Deno.serve(async (req: Request) => {
         "<!doctype html><title>BUSY DOES IT</title><p>This business is not currently accepting that type of request in BUSY.</p>");
     }
     await recordEntry(app.data, source, "action_intent");
-    return page(200, handoffPage(app.data, source, intent));
+    return page(200, handoffPage(app.data, source, intent, contentInterest));
   }
-  if (intent) return page(200, handoffPage(app.data, source, intent));
+  if (intent) return page(200, handoffPage(app.data, source, intent, contentInterest));
 
   const publicWebUrl = clean(app.data.public_web_url, 2000);
   const webReady =

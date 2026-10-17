@@ -43,11 +43,12 @@ function Field({title,value,onChange,multiline=false}){
       minHeight:multiline?92:48,textAlignVertical:"top"}}/>
  </View>;
 }
-function RequestScreen({screen,live,runtime,initialService="",initialMessage=""}){
- const [input,setInput]=useState({name:"",email:"",phone:"",service:initialService,
+function RequestScreen({screen,live,runtime,initialService="",initialMessage="",savedState=null,onSaveState}){
+ const [input,setInput]=useState(savedState?.input||{name:"",email:"",phone:"",service:initialService,
   preferredDate:"",message:initialMessage,note:""});
- const [busy,setBusy]=useState(false),[result,setResult]=useState(null);
- const [possibleDuplicateRetry,setPossibleDuplicateRetry]=useState(false);
+ const [busy,setBusy]=useState(false),[result,setResult]=useState(savedState?.result||null);
+ const [possibleDuplicateRetry,setPossibleDuplicateRetry]=useState(savedState?.possibleDuplicateRetry||false);
+ useEffect(()=>{if(!inFlight.current)onSaveState?.({input,result,possibleDuplicateRetry});},[input,result,possibleDuplicateRetry]);
  const inFlight=React.useRef(false);
  const dateChoices=React.useMemo(()=>nativePreferredDates(new Date(),7),[]);
  const type=screen.key==="booking_request"?"booking_request":"enquiry";
@@ -64,10 +65,12 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage=""}
     result?.mayHaveBeenReceived&&!possibleDuplicateRetry)return;
   inFlight.current=true;
   setBusy(true);setResult(null);setPossibleDuplicateRetry(false);
+  onSaveState?.({input,result:{ok:false,mayHaveBeenReceived:true,reason:'This request is still unconfirmed. Do not submit a second request.'},possibleDuplicateRetry:false});
   try{
    const next=await sendNativeGuestRequest(runtime,live,type,input);
-   setResult(next);
+   onSaveState?.({input,result:next,possibleDuplicateRetry:false});setResult(next);
   }catch{
+   onSaveState?.({input,result:{ok:false,mayHaveBeenReceived:true,reason:"The request outcome is unconfirmed."},possibleDuplicateRetry:false});
    setResult({ok:false,mayHaveBeenReceived:true,
     reason:"The connection failed. Your request may have reached the business."});
   }finally{inFlight.current=false;setBusy(false);}
@@ -186,7 +189,7 @@ function LiveInfo({screen,app,layout,onRequestService,onOpenContact,onOpenOfferE
       borderRadius:LOOK.imageCorners==="square"?2:12,marginTop:12}}
     resizeMode="cover"/>:null}
   {app.tagline&&app.about?<Text style={sub}>{app.about}</Text>:null}
-  {(app.contentLayout||[]).map(block=><BusinessContentView key={block.kind} feed={app.businessContent} colors={COLORS} {...block} onInterest={app.supportsEnquiry?name=>onRequestService?.(name,'enquiry'):null}/>)}
+  {(app.contentLayout||[]).map(block=><BusinessContentView key={block.kind} feed={app.businessContent} colors={COLORS} {...block} onInterest={app.supportsEnquiry?(name,prepared)=>onRequestService?.(name,'enquiry',prepared):null}/>)}
   {(app.faqs||[]).map((row,i)=><View key={'faq'+i} style={{marginTop:16}}><Text style={{...t,fontWeight:'700'}}>{row.question}</Text><Text style={sub}>{row.answer}</Text></View>)}
   {(app.testimonials||[]).map((row,i)=><View key={'testimonial'+i} style={{marginTop:16}}><Text style={sub}>{row.text}</Text><Text style={{...t,fontWeight:'700'}}>{row.attribution}</Text></View>)}
  </View>;
@@ -254,6 +257,8 @@ export default function App(){
  const [requestedService,setRequestedService]=useState("");
  const [requestedIntent,setRequestedIntent]=useState("");
  const [requestedKind,setRequestedKind]=useState("service");
+ const [requestedMessage,setRequestedMessage]=useState("");
+ const requestForms=React.useRef(new Map());
  const [refreshSequence,setRefreshSequence]=useState(0);
  const [measuredFrameWidth,setMeasuredFrameWidth]=useState(0);
  const [contactNotice,setContactNotice]=useState("");
@@ -318,7 +323,7 @@ export default function App(){
     </Text>
     <View style={{flexDirection:responsive.ok&&responsive.navigation==="list"?"column":"row",flexWrap:"wrap",marginBottom:15,gap:7}}>
      {pages.map(item=><Pressable key={item.key} accessibilityRole="button"
-      accessibilityLabel={"View "+item.title} onPress={()=>{setRequestedService("");setRequestedIntent("");setRequestedKind("service");setCurrent(item.key);}}
+      accessibilityLabel={"View "+item.title} onPress={()=>setCurrent(item.key)}
       style={{backgroundColor:item.key===chosen.key?COLORS.accent:COLORS.surface,
        width:responsive.ok&&responsive.navigation==="list"?"100%":undefined,
        minHeight:48,justifyContent:"center",
@@ -331,16 +336,18 @@ export default function App(){
     {["enquiry","booking_request"].includes(chosen.key)?
      <RequestScreen key={chosen.key+":"+requestedService+":"+requestedIntent}
       screen={chosen} live={live} runtime={runtime}
-      initialService={chosen.key==="booking_request"&&requestedIntent==="booking_request"?
+      savedState={requestForms.current.get(live.versionId+':'+chosen.key+':'+requestedService+':'+requestedIntent)}
+      onSaveState={value=>{const key=live.versionId+':'+chosen.key+':'+requestedService+':'+requestedIntent;requestForms.current.set(key,value);if(requestForms.current.size>8)requestForms.current.delete(requestForms.current.keys().next().value);}}
+      initialService={chosen.key===requestedIntent?
        requestedService:""}
-      initialMessage={chosen.key==="enquiry"&&requestedIntent==="enquiry"&&requestedService?
+      initialMessage={requestedMessage|| (chosen.key==="enquiry"&&requestedIntent==="enquiry"&&requestedService?
        requestedKind==="offer"?
         "I would like to ask about the offer: "+requestedService+".":
-        "I would like to know more about "+requestedService+".":""}/>:
+        "I would like to know more about "+requestedService+".":"")}/>:
      <LiveInfo screen={chosen} app={live} layout={responsive}
       onOpenOfferEnquiry={offerTitle=>{
        if(!live.supportsEnquiry||!live.moduleKeys?.includes("enquiry"))return;
-       setRequestedService(offerTitle);setRequestedKind("offer");
+       setRequestedMessage("");setRequestedService(offerTitle);setRequestedKind("offer");
        setRequestedIntent("enquiry");setCurrent("enquiry");
       }}
       contactNotice={contactNotice}
@@ -351,13 +358,13 @@ export default function App(){
        Linking.openURL(action.url).catch(()=>setContactNotice(
         "This device could not open that contact method. Use the details shown above."));
       }}
-      onRequestService={(serviceName,intent)=>{
+      onRequestService={(serviceName,intent,prepared)=>{
        if(intent==="booking_request"&&
           (!live.supportsBookingRequest||!live.moduleKeys?.includes(intent)))return;
        if(intent==="enquiry"&&
           (!live.supportsEnquiry||!live.moduleKeys?.includes(intent)))return;
        if(!["booking_request","enquiry"].includes(intent))return;
-       setRequestedService(serviceName);setRequestedIntent(intent);setRequestedKind("service");
+       setRequestedMessage(prepared?.ok?prepared.message:"");setRequestedService(serviceName);setRequestedIntent(intent);setRequestedKind("service");
        setCurrent(intent);
       }}/>}
    </View>:null}

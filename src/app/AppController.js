@@ -1,3 +1,4 @@
+import {parseBusinessContentInterest} from '../core/businessContentRecords.mjs';
 import {validateNativeGuestRequest} from "../../standalone/template/nativeCustomerActions.mjs";
 import {createAppNotificationActions} from "../core/appNotificationActions.mjs";
 import {createRequestConversationActions} from "../core/requestConversationActions.mjs";
@@ -15878,6 +15879,14 @@ function App() {
   const {loadMyBusyApps,openBusyAppDetail}=marketplaceReadActionsRef.current;
   const searchBusyApps=(query=busyAppsSearch)=>marketplaceReadActionsRef.current.searchBusyApps(query);
 
+  // One in-memory customer form, bound to the existing account/app/version epoch.
+  // Never persisted to the owner cloud snapshot or reused by a different account.
+  const customerFormRef=useRef(null);
+  const readBusyAppCustomerForm=()=>customerFormRef.current?.epoch===customerRequestRenderEpoch?customerFormRef.current.value:null;
+  const saveBusyAppCustomerForm=value=>{
+    if(customerRequestRenderEpoch!==customerRequestEpochRef.current)return false;
+    customerFormRef.current={epoch:customerRequestRenderEpoch,value};return true;
+  };
   const submitBusyAppRequest = async (requestType, payload = {}) => {
     const slug = selectedBusyAppDetail?.app?.slug || "";
     const appId = selectedBusyAppDetail?.app?.id || "";
@@ -16696,7 +16705,7 @@ function App() {
     const intent = ["enquiry", "booking_request"].includes(String(query.intent || ""))
       ? String(query.intent)
       : "";
-    return { slug, source, intent };
+    return { slug, source, intent, contentInterest:intent==="enquiry"?parseBusinessContentInterest(query):null };
   };
 
   const handleMiniAppDeepLink = async (url) => {
@@ -16708,7 +16717,7 @@ function App() {
       return true;
     }
     setPendingMiniAppDeepLink(null);
-    return await openBusyAppDetail(target.slug, target.source, target.intent || "");
+    return await openBusyAppDetail(target.slug, target.source, target.intent || "", target.contentInterest || null);
   };
 
   useEffect(() => {
@@ -16734,7 +16743,7 @@ function App() {
     const target = pendingMiniAppDeepLink;
     const timer = setTimeout(() => {
       setPendingMiniAppDeepLink(null);
-      openBusyAppDetail(target.slug, target.source || "deep_link", target.intent || "");
+      openBusyAppDetail(target.slug, target.source || "deep_link", target.intent || "", target.contentInterest || null);
     }, 120);
     return () => clearTimeout(timer);
   }, [hydrated, ownerSession?.accessToken, pendingMiniAppDeepLink?.slug]);
@@ -17098,6 +17107,7 @@ function App() {
     shareMiniAppCustomerLink,
     openMiniAppCustomerLink,
     submitBusyAppRequest,
+    readBusyAppCustomerForm,saveBusyAppCustomerForm,
     checkBusyAppRequestRecovery,
     updateMiniAppRequestStatus,
     openBusyAppsMarketplace,

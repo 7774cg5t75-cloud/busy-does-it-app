@@ -66,3 +66,30 @@ function validPublicBusinessContent(feed){
  return !!feed&&feed.ok===true&&feed.version===1&&typeof feed.businessId==='string'&&instant(feed.checkedAt)&&feed.stockTracked===false&&feed.checkoutEnabled===false&&feed.attendanceConfirmed===false&&Array.isArray(feed.records)&&feed.records.length<=200&&feed.records.every(r=>plain(r)&&Object.keys(r).every(k=>['id','kind','revision','data'].includes(k))&&RECORD_ID.test(r.id||'')&&Number.isSafeInteger(r.revision)&&r.revision>0&&validateBusinessContent(r.kind,r.data).ok);
 }
 export {RECORD_ID,validateBusinessContent,publicBusinessContent,selectBusinessContent,contentPrice,localEventInstant,parseContentPrice,eventLocalFields,validContentLayout,validPublicBusinessContent};
+
+// Public selection only: re-resolve names/prices from the current approved feed.
+// The returned wording is an enquiry context, never a transaction receipt.
+function parseBusinessContentInterest(query={}){
+ const recordId=query.content,revision=Number(query.content_revision),variantId=query.content_option||'';
+ if(typeof recordId!=='string'||!RECORD_ID.test(recordId)||typeof query.content_revision!=='string'||!/^\d{1,10}$/.test(query.content_revision)||!Number.isSafeInteger(revision)||revision<1||typeof variantId!=='string'||variantId&&!RECORD_ID.test(variantId))return null;
+ return {recordId,revision,...variantId?{variantId}:{}};
+}
+function prepareBusinessContentEnquiry(feed,businessId,selection,{now=Date.now()}={}){
+ const fail=reason=>({ok:false,reason});
+ if(!businessId||!validPublicBusinessContent(feed)||feed.businessId!==businessId||!selection||!RECORD_ID.test(selection.recordId||'')||!Number.isSafeInteger(selection.revision))return fail('Refresh the approved catalogue before choosing an item.');
+ const matches=feed.records.filter(r=>r.id===selection.recordId);
+ if(matches.length!==1||matches[0].revision!==selection.revision)return fail('This item has changed. Review its current details before enquiring.');
+ const row=matches[0],d=row.data;
+ if(d.status==='archived'||d.status==='cancelled'||row.kind==='event'&&Date.parse(d.endsAt)<now)return fail('This listing is no longer accepting new interest.');
+ const variant=selection.variantId?(d.variants||[]).find(v=>v.id===selection.variantId):null;
+ if(selection.variantId&&!variant)return fail('This option has changed. Choose a current option.');
+ const subject=(row.kind==='product'?'Product: ':'Event: ')+d.name+(variant?' — '+variant.label:'');
+ const details=row.kind==='product'?
+  'Displayed price: '+contentPrice(variant?variant.amountMinor:d.amountMinor,d.currency)+'. Availability: '+d.availability.replaceAll('_',' ')+'.':
+  'Listed dates: '+d.startsAt+' to '+d.endsAt+' ('+d.timeZone+'). '+(d.location||'Online event')+'.';
+ const reference='Listing reference: '+row.id+' / approved revision '+row.revision+(variant?' / option '+variant.id:'')+'.';
+ return {ok:true,selection:{recordId:row.id,revision:row.revision,...variant?{variantId:variant.id}:{}},
+  service:subject.slice(0,240),message:subject+'\n'+details+'\n'+reference+'\nThis is an enquiry, not an order, reservation or confirmed attendance.\nPlease tell me more.',
+  businessId,transactionConfirmed:false};
+}
+export {parseBusinessContentInterest,prepareBusinessContentEnquiry};

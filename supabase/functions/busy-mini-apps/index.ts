@@ -2517,7 +2517,7 @@ function publicMiniAppWebHtml(app: any, version: any) {
 
   const heroHtml = hero ? `<img class="hero-image" src="${escapeHtml(hero)}" alt="${escapeHtml(name)}" />` : "";
   const publicInformationHtml = enabled.has('business_profile') ? [['faqs','Questions and answers','question','answer'],['testimonials','What customers say','attribution','text']].map(([field,title,heading,body])=>{const rows=publicCollection(field,profile[field]||[]);return rows.length?`<section><div class="wrap"><h2>${escapeHtml(title)}</h2>${rows.map(row=>`<article><h3>${escapeHtml(row[heading])}</h3><p>${escapeHtml(row[body])}</p></article>`).join('')}</div></section>`:'';}).join('') : '';
-  const sharedContentHtml=validContentLayout(config.contentLayout)?config.contentLayout.map(block=>businessContentSectionHtml({id:block.kind==='product'?'products':'events',type:block.kind==='product'?'products':'events',title:block.title,contentSource:'business_records_v1',featuredId:block.featuredId},{endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',appSource:{slug,expectedAppId:app.id,expectedVersionId:version.id}})).join(''):'';
+  const sharedContentHtml=validContentLayout(config.contentLayout)?config.contentLayout.map(block=>businessContentSectionHtml({id:block.kind==='product'?'products':'events',type:block.kind==='product'?'products':'events',title:block.title,contentSource:'business_records_v1',featuredId:block.featuredId},{endpoint:SUPABASE_URL+'/functions/v1/busy-mini-app-guest',appSource:{slug,expectedAppId:app.id,expectedVersionId:version.id,allowEnquiry:enabled.has("enquiry")}})).join(''):'';
   const aboutHtml = enabled.has("business_profile")
     ? `<section id="about"><div class="wrap"><p class="eyebrow">About</p><h2>${escapeHtml(name)}</h2>${about ? `<p>${escapeHtml(about)}</p>` : ""}${serviceArea ? `<p class="muted">Service area: ${escapeHtml(serviceArea)}</p>` : ""}</div></section>`
     : "";
@@ -3352,6 +3352,7 @@ async function appDetail(
   return {
     app: {
       id: app.data.id,
+      business_id: app.data.business_id,
       slug: app.data.public_slug,
       name: app.data.display_name,
       category: app.data.category,
