@@ -1302,6 +1302,8 @@ function MiniAppBuilder({ s }) {
         footer="This is a suggested private app experience, not a new hard-coded trade-specific app template."
         tone="blue">
         <Text style={styles.cardBody}>{experience.layoutReason}</Text>
+        {experience.needsClarification?<Text style={styles.cardBody}>Your brief includes and excludes the same action. Clarify that choice before enabling it; BUSY has left it out of recommendations.</Text>:null}
+        {experience.declinedCapabilities?.length?<Text style={styles.cardBody}>Left out at your request: {experience.declinedCapabilities.join(', ')}. Existing saved modules are unchanged.</Text>:null}
          {experience.understoodGoals?.length?(
           <Text style={styles.cardBody}>{"Customer goals identified: "+
             experience.understoodGoals.join(", ")}</Text>
@@ -4644,7 +4646,7 @@ function MiniAppPreview({ s }) {
 function BusyAppDetail({ s }) {
   // A different account, app or published version starts a separate form.
   const detail=s.selectedBusyAppDetail;
-  return <BusyAppDetailForm key={[s.ownerSession?.userId||"",detail?.app?.id||"",detail?.version?.id||""].join(":")} s={s}/>;
+  return <BusyAppDetailForm key={[s.ownerSession?.userId||"",detail?.app?.id||"",detail?.version?.id||"",JSON.stringify(detail?.entryContentInterest?.selection||null)].join(":")} s={s}/>;
 }
 function BusyAppDetailForm({ s }) {
   const detail = s.selectedBusyAppDetail || {};

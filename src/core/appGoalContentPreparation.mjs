@@ -41,7 +41,7 @@ function appGoalContentQuestions(config,goal){
     locked:!!appEditLockReason(config,{kind:'photo_description'})});
   }
  }
- if(['book','enquire'].includes(goal)){
+ if(['book','enquire'].includes(goal)&&config?.modules?.some(m=>m.key==='contact'&&m.enabled===true)){
   for(const [field,label,max]of [['phone','Public phone number (optional)',80],['email','Public email address (optional)',240],['openingHours','When can customers contact you? (optional)',700]]){
    const value=profile.contact?.[field];
    if(value===undefined||value===null||typeof value==='string'&&!value.trim())questions.push({id:'contact:'+field,label,max,field,locked:!!appEditLockReason(config,{kind:'contact',field})});

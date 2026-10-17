@@ -1,3 +1,4 @@
+import {prepareBusinessContentEnquiry} from './businessContentRecords.mjs';
 import {BusinessContentView} from './businessContentView';
 /**
  * V3.155 independent native Business App. Offline by default.
@@ -43,7 +44,7 @@ function Field({title,value,onChange,multiline=false}){
       minHeight:multiline?92:48,textAlignVertical:"top"}}/>
  </View>;
 }
-function RequestScreen({screen,live,runtime,initialService="",initialMessage="",savedState=null,onSaveState}){
+function RequestScreen({screen,live,runtime,initialService="",initialMessage="",savedState=null,onSaveState,contentSelection=null}){
  const [input,setInput]=useState(savedState?.input||{name:"",email:"",phone:"",service:initialService,
   preferredDate:"",message:initialMessage,note:""});
  const [busy,setBusy]=useState(false),[result,setResult]=useState(savedState?.result||null);
@@ -63,6 +64,7 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
  const send=async()=>{
   if(inFlight.current||busy||!enabled||result?.ok||
     result?.mayHaveBeenReceived&&!possibleDuplicateRetry)return;
+  if(contentSelection){const checked=prepareBusinessContentEnquiry(live.businessContent,contentSelection.businessId,contentSelection);if(!checked.ok){setResult({ok:false,reason:checked.reason});return;}}
   inFlight.current=true;
   setBusy(true);setResult(null);setPossibleDuplicateRetry(false);
   onSaveState?.({input,result:{ok:false,mayHaveBeenReceived:true,reason:'This request is still unconfirmed. Do not submit a second request.'},possibleDuplicateRetry:false});
@@ -258,6 +260,7 @@ export default function App(){
  const [requestedIntent,setRequestedIntent]=useState("");
  const [requestedKind,setRequestedKind]=useState("service");
  const [requestedMessage,setRequestedMessage]=useState("");
+ const [requestSelection,setRequestSelection]=useState(null);
  const requestForms=React.useRef(new Map());
  const [refreshSequence,setRefreshSequence]=useState(0);
  const [measuredFrameWidth,setMeasuredFrameWidth]=useState(0);
@@ -277,6 +280,7 @@ export default function App(){
  const pages=live?prototype.screenSchema.screens.filter(s=>
   live.moduleKeys?.includes(s.key)):[];
  const chosen=pages.find(x=>x.key===current)||pages[0];
+ const requestFormKey=JSON.stringify([live?.versionId,chosen?.key,requestedKind,requestedService,requestedIntent,requestSelection]);
  const outerPadding=LOOK.layoutDensity==="compact"?13:
    LOOK.layoutDensity==="airy"?28:20;
  const contentWidth=Math.max(250,Math.floor((measuredFrameWidth||viewport.width)-2*outerPadding));
@@ -334,10 +338,10 @@ export default function App(){
      </Pressable>)}
     </View>
     {["enquiry","booking_request"].includes(chosen.key)?
-     <RequestScreen key={chosen.key+":"+requestedService+":"+requestedIntent}
-      screen={chosen} live={live} runtime={runtime}
-      savedState={requestForms.current.get(live.versionId+':'+chosen.key+':'+requestedService+':'+requestedIntent)}
-      onSaveState={value=>{const key=live.versionId+':'+chosen.key+':'+requestedService+':'+requestedIntent;requestForms.current.set(key,value);if(requestForms.current.size>8)requestForms.current.delete(requestForms.current.keys().next().value);}}
+     <RequestScreen key={requestFormKey}
+      screen={chosen} live={live} runtime={runtime} contentSelection={requestSelection}
+      savedState={requestForms.current.get(requestFormKey)}
+      onSaveState={value=>{const key=requestFormKey;requestForms.current.set(key,value);if(requestForms.current.size>8)requestForms.current.delete(requestForms.current.keys().next().value);}}
       initialService={chosen.key===requestedIntent?
        requestedService:""}
       initialMessage={requestedMessage|| (chosen.key==="enquiry"&&requestedIntent==="enquiry"&&requestedService?
@@ -347,7 +351,7 @@ export default function App(){
      <LiveInfo screen={chosen} app={live} layout={responsive}
       onOpenOfferEnquiry={offerTitle=>{
        if(!live.supportsEnquiry||!live.moduleKeys?.includes("enquiry"))return;
-       setRequestedMessage("");setRequestedService(offerTitle);setRequestedKind("offer");
+       setRequestSelection(null);setRequestedMessage("");setRequestedService(offerTitle);setRequestedKind("offer");
        setRequestedIntent("enquiry");setCurrent("enquiry");
       }}
       contactNotice={contactNotice}
@@ -364,7 +368,7 @@ export default function App(){
        if(intent==="enquiry"&&
           (!live.supportsEnquiry||!live.moduleKeys?.includes(intent)))return;
        if(!["booking_request","enquiry"].includes(intent))return;
-       setRequestedMessage(prepared?.ok?prepared.message:"");setRequestedService(serviceName);setRequestedIntent(intent);setRequestedKind("service");
+       setRequestSelection(prepared?.ok?{...prepared.selection,businessId:prepared.businessId}:null);setRequestedMessage(prepared?.ok?prepared.message:"");setRequestedService(serviceName);setRequestedIntent(intent);setRequestedKind("service");
        setCurrent(intent);
       }}/>}
    </View>:null}

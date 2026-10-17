@@ -565,7 +565,7 @@ function App() {
     ownerSession?.userId||"",selectedBusyAppDetail?.app?.id||"",
     selectedBusyAppDetail?.app?.slug||""
   ].join(":");
-  const customerRequestEpochKey=[activeCustomerRequestScopeRef.current,selectedBusyAppDetail?.version?.id||""].join(":");
+  const customerRequestEpochKey=[activeCustomerRequestScopeRef.current,selectedBusyAppDetail?.version?.id||"",JSON.stringify(selectedBusyAppDetail?.entryContentInterest?.selection||null)].join(":");
   if(customerRequestEpochRef.current?.key!==customerRequestEpochKey)
     customerRequestEpochRef.current={key:customerRequestEpochKey};
   const customerRequestRenderEpoch=customerRequestEpochRef.current;
@@ -13517,6 +13517,11 @@ function App() {
           next.sections.map(s=>s.id==="services"?reviewed:s):
           [...next.sections,reviewed]});
     }
+    if(check.informationCount){
+      const reviewed=check.proposedDraft.sections.filter(section=>['faq','testimonials'].includes(section.type)&&JSON.stringify(section)!==JSON.stringify(current.sections.find(old=>old.id===section.id)));
+      if(!reviewed.length){setWebsiteBuilderNotice('The reviewed public information is missing. No change was saved.');return false;}
+      next=rebuildPrivateWebsiteDraft({...next,sections:[...next.sections.map(section=>reviewed.find(row=>row.id===section.id)||section),...reviewed.filter(row=>!next.sections.some(section=>section.id===row.id))]});
+    }
     // If a private style operation produced no generation bump, regenerate
     // the full private website before the only owner commit.
     if(!Number.isSafeInteger(next.generation)||
@@ -15882,10 +15887,13 @@ function App() {
   // One in-memory customer form, bound to the existing account/app/version epoch.
   // Never persisted to the owner cloud snapshot or reused by a different account.
   const customerFormRef=useRef(null);
-  const readBusyAppCustomerForm=()=>customerFormRef.current?.epoch===customerRequestRenderEpoch?customerFormRef.current.value:null;
+  if(customerFormRef.current?.userId!==ownerSession?.userId)customerFormRef.current={userId:ownerSession?.userId,forms:new Map()};
+  const readBusyAppCustomerForm=()=>customerFormRef.current.forms.get(customerRequestRenderEpoch.key)||null;
   const saveBusyAppCustomerForm=value=>{
     if(customerRequestRenderEpoch!==customerRequestEpochRef.current)return false;
-    customerFormRef.current={epoch:customerRequestRenderEpoch,value};return true;
+    customerFormRef.current.forms.set(customerRequestRenderEpoch.key,value);
+    if(customerFormRef.current.forms.size>8)customerFormRef.current.forms.delete(customerFormRef.current.forms.keys().next().value);
+    return true;
   };
   const submitBusyAppRequest = async (requestType, payload = {}) => {
     const slug = selectedBusyAppDetail?.app?.slug || "";

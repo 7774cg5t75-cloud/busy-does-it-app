@@ -3,15 +3,16 @@ import React from 'react';
 import {View,Text} from 'react-native';
 import {Card,Button,Field} from '../components/ui';
 import {styles} from '../theme/styles';
-import {localEventInstant,validateBusinessContent,parseContentPrice,eventLocalFields,contentPrice,publicBusinessContent} from '../core/businessContentRecords.mjs';
+import {localEventInstant,validateBusinessContent,parseContentPrice,eventLocalFields,contentPrice,publicBusinessContent,canApproveSavedBusinessContent} from '../core/businessContentRecords.mjs';
 function priceText(amount,currency){try{return String(amount/10**new Intl.NumberFormat('en',{style:'currency',currency}).resolvedOptions().maximumFractionDigits);}catch{return '';}}
 function BusinessContentEditor({request,businessId,onCompose}){
  const [open,setOpen]=React.useState(false),[records,setRecords]=React.useState([]),[kind,setKind]=React.useState('product'),[id,setId]=React.useState('');
  const [form,setForm]=React.useState({}),[busy,setBusy]=React.useState(false),[notice,setNotice]=React.useState(''),[review,setReview]=React.useState(null),[images,setImages]=React.useState([]),[layout,setLayout]=React.useState('cards'),[featuredId,setFeaturedId]=React.useState(''),[words,setWords]=React.useState(''),[uncertain,setUncertain]=React.useState(false),[optionCurrencyApproved,setOptionCurrencyApproved]=React.useState(false);
  const live=React.useRef(null),pending=React.useRef(false),alive=React.useRef(true);live.current={businessId,id,form};
  React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
+ const loadedRecord=React.useRef(null);
  const current=records.find(r=>r.id===id),set=(key,value)=>{if(key==='currency')setOptionCurrencyApproved(false);setForm(x=>({...x,[key]:value}));setReview(null);};
- const select=row=>{setOptionCurrencyApproved(false);setKind(row.kind);setId(row.id);setForm({...row.draft,...row.kind==='event'?eventLocalFields(row.draft):{priceText:String(row.draft.amountMinor/10**new Intl.NumberFormat('en',{style:'currency',currency:row.draft.currency}).resolvedOptions().maximumFractionDigits)}});setReview(null);};
+ const select=row=>{setOptionCurrencyApproved(false);setKind(row.kind);setId(row.id);const selectedForm={...row.draft,...row.kind==='event'?eventLocalFields(row.draft):{priceText:String(row.draft.amountMinor/10**new Intl.NumberFormat('en',{style:'currency',currency:row.draft.currency}).resolvedOptions().maximumFractionDigits)}};loadedRecord.current={id:row.id,revision:row.revision,formStamp:JSON.stringify(selectedForm)};setForm(selectedForm);setReview(null);};
  const fresh=type=>{setOptionCurrencyApproved(false);setKind(type);setId(type+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10));setForm(type==='product'?{name:'',description:'',category:'',image:null,status:'active',amountMinor:0,currency:'GBP',priceText:'',availability:'not_tracked'}:{name:'',description:'',category:'',image:null,status:'scheduled',startsAt:'',endsAt:'',timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC',location:'',onlineUrl:''});setReview(null);};
  async function run(action,payload={}){
   if(pending.current||action!=='content_list'&&uncertain||typeof request!=='function'){setNotice('Connect the supported business records service first.');return false;}
@@ -21,7 +22,7 @@ function BusinessContentEditor({request,businessId,onCompose}){
    if(!alive.current||live.current.businessId!==scope.businessId)return false;
    if(result?.ok!==true||result.businessId!==businessId)throw Error('The record response did not match this business.');
    if(result.records){setRecords(result.records);setUncertain(false);}if(result.images)setImages(result.images);
-   if(result.record)setRecords(old=>[...old.filter(r=>r.id!==result.record.id),result.record]);
+   if(result.record){setRecords(old=>[...old.filter(r=>r.id!==result.record.id),result.record]);if(live.current.id===scope.id&&live.current.form===scope.form&&result.record.id===scope.id&&['content_save','content_publish'].includes(action))loadedRecord.current={id:scope.id,revision:result.record.revision,formStamp:JSON.stringify(scope.form)};}
    setNotice(action==='content_publish'?'Shared record approved. Public views use its approved revision when refreshed.':action==='content_list'?'Current business records loaded.':'Private record saved. Public information is unchanged.');setReview(null);return true;
   }catch(e){if(alive.current&&live.current.businessId===scope.businessId){if(action!=='content_list')setUncertain(true);setNotice((e?.message||'Record action failed')+' Reload before repeating an uncertain write.');}return false;}
   finally{pending.current=false;if(alive.current&&live.current.businessId===scope.businessId)setBusy(false);}
@@ -77,7 +78,8 @@ function BusinessContentEditor({request,businessId,onCompose}){
     <Button label="Archive in private draft" disabled={busy} onPress={()=>set('status','archived')}/>
     <Button label="Review private record change" disabled={busy} onPress={prepare}/>
     {review?<><Text style={styles.cardBody}>{review.data.name+' • '+review.data.description+' • '+(review.kind==='product'?contentPrice(review.data.amountMinor,review.data.currency):review.data.startsAt+' to '+review.data.endsAt+' • '+review.data.timeZone)+' • '+review.data.status}</Text><Button label="Approve and save private record" disabled={busy} onPress={()=>run('content_save',{...review,ownerApproved:true})}/></>:null}
-    {current?<><Button label="Approve current saved record for shared public display" disabled={busy||!!review} onPress={()=>run('content_publish',{id:current.id,expectedRevision:current.revision,ownerApproved:true})}/>
+    {current?<><Button label="Approve current saved record for shared public display" disabled={busy||!!review||!canApproveSavedBusinessContent(current,form,loadedRecord.current)} onPress={()=>{if(!canApproveSavedBusinessContent(current,form,loadedRecord.current))return false;return run('content_publish',{id:current.id,expectedRevision:current.revision,ownerApproved:true});}}/>
+     {!canApproveSavedBusinessContent(current,form,loadedRecord.current)?<Text style={styles.cardBody}>Save your private edits or select the current saved record before approving shared public display. Unsaved wording is not published.</Text>:null}
      {current.canUndo?<Button label="Undo last private record edit" disabled={busy} onPress={()=>run('content_undo',{id:current.id,expectedRevision:current.revision,ownerApproved:true})}/>:null}</>:null}
    </>:null}
    {onCompose?<>
@@ -92,3 +94,4 @@ function BusinessContentEditor({request,businessId,onCompose}){
  </Card>;
 }
 export {BusinessContentEditor};
+

@@ -93,3 +93,9 @@ function prepareBusinessContentEnquiry(feed,businessId,selection,{now=Date.now()
   businessId,transactionConfirmed:false};
 }
 export {parseBusinessContentInterest,prepareBusinessContentEnquiry};
+
+// Approval refers to the exact saved record the owner reviewed, not unsaved fields.
+function canApproveSavedBusinessContent(current,form,baseline){
+ return !!current&&!!baseline&&baseline.id===current.id&&baseline.revision===current.revision&&baseline.formStamp===JSON.stringify(form);
+}
+export {canApproveSavedBusinessContent};

@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import {stripTypeScriptTypes} from 'node:module';
+import {businessContentSectionHtml} from '../src/core/businessContentHtml.mjs';
+import {parseBusinessContentInterest} from '../src/core/businessContentRecords.mjs';
+import {verifyPublishedWebsiteIntent} from '../supabase/functions/busy-mini-app-link/websiteRequestLinkGuardV3215.mjs';
+const appId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',versionId='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+const app={id:appId,business_id:'business-a',public_slug:'ceramics',display_name:'Fictional ceramics',status:'live',current_live_version_id:versionId};
+const version={id:versionId,mini_app_id:appId,state:'live',config:{modules:[{key:'enquiry',enabled:true}]}};
+const feed={ok:true,version:1,businessId:app.business_id,checkedAt:'2026-10-17T12:00:00.000Z',stockTracked:false,checkoutEnabled:false,attendanceConfirmed:false,records:[{id:'product_record_001',kind:'product',revision:3,data:{name:'Bowl',description:'Approved description',category:'Ceramics',status:'active',image:null,currency:'GBP',amountMinor:2450,availability:'not_tracked',variants:[{id:'variant_large_001',label:'Large',sku:'L',amountMinor:3000}]}}]};
+function element(tag='div'){return {tag,children:[],style:{},textContent:'',listeners:{},setAttribute(k,v){this[k]=v;},addEventListener(k,fn){this.listeners[k]=fn;},appendChild(x){this.children.push(x);},replaceChildren(){this.children=[];}};}
+const target=element(),document={getElementById:()=>target,createElement:element,visibilityState:'visible',addEventListener(){}};
+const markup=businessContentSectionHtml({id:'products',type:'products',title:'Products',contentSource:'business_records_v1'},{endpoint:'https://fixture.supabase.co/functions/v1/busy-mini-app-guest',appSource:{slug:'ceramics',expectedAppId:appId,expectedVersionId:versionId,allowEnquiry:true}});
+vm.runInNewContext(markup.match(/<script>([\s\S]*)<\/script>/)[1],{document,Date,Intl,JSON,URL,Object,fetch:async()=>({ok:true,json:async()=>feed})});await new Promise(resolve=>setImmediate(resolve));
+const walk=n=>[n,...n.children.flatMap(walk)],nodes=walk(target),link=nodes.find(n=>n.tag==='a'),select=nodes.find(n=>n.tag==='select');assert.ok(link&&select);const route=new URL(link.href);assert.equal(route.searchParams.get('appId'),appId);assert.equal(route.searchParams.get('versionId'),versionId);assert.equal(route.searchParams.get('content'),'product_record_001');assert.equal(route.searchParams.get('content_revision'),'3');
+select.value='variant_large_001';select.listeners.change();assert.equal(new URL(link.href).searchParams.get('content_option'),'variant_large_001');
+let handler;const db={from(table){const q={select:()=>q,eq:()=>q,in:()=>q,maybeSingle:async()=>({data:table==='busy_mini_apps'?app:version,error:null})};return q;},rpc:async()=>({error:null})};
+const source=fs.readFileSync(new URL('../supabase/functions/busy-mini-app-link/index.ts',import.meta.url),'utf8');const code=stripTypeScriptTypes(source.replace(/^import[^\n]*;\n/gm,''));
+new Function('createClient','verifyPublishedWebsiteIntent','parseBusinessContentInterest','Deno',code)(()=>db,verifyPublishedWebsiteIntent,parseBusinessContentInterest,{env:{get:key=>key==='SUPABASE_URL'?'https://fixture.supabase.co':''},serve:fn=>handler=fn});
+const response=await handler(new Request(link.href));assert.equal(response.status,200);const body=await response.text();assert.match(body,/busydoesit:\/\/apps\/ceramics/);assert.match(body,/content_option=variant_large_001/);assert.match(body,/content_revision=3/);
+const missingPin=new URL(link.href);missingPin.searchParams.delete('appId');assert.equal((await handler(new Request(missingPin))).status,409);
+const wrongPin=new URL(link.href);wrongPin.searchParams.set('appId',versionId);assert.equal((await handler(new Request(wrongPin))).status,409);
+const unexpected=new URL(link.href);unexpected.searchParams.set('unreviewed','yes');assert.equal((await handler(new Request(unexpected))).status,409);
+const duplicate=new URL(link.href);duplicate.searchParams.append('content','product_other_001');assert.equal((await handler(new Request(duplicate))).status,400);
+version.config.modules[0].enabled=false;assert.equal((await handler(new Request(link.href))).status,409);
+console.log('PASS real public HTML option/link handlers and actual Edge handoff route: exact app/version pins, selected item/revision/option, unexpected/duplicate query and disabled-action rejection. DOM/DB fixtures; no browser or deployed claim.');

@@ -19,6 +19,12 @@ function mountBusinessContent(id,endpoint,payload,kind,featuredId){
      const url=new URL(endpoint.replace(/busy-mini-app-guest$/,'busy-mini-app-link'));
      for(const [key,value]of Object.entries({slug:payload.slug,source:'web',intent:'enquiry',appId:payload.expectedAppId,versionId:payload.expectedVersionId,content:row.id,content_revision:String(row.revision)}))url.searchParams.set(key,value);
      const link=line(article,'a','Ask about '+d.name);link.href=url.toString();
+     if(kind==='product'&&Array.isArray(d.variants)&&d.variants.length){
+      const label=line(article,'label','Choose an option for your enquiry');const select=document.createElement('select');select.id=id+'-'+row.id+'-option';label.setAttribute('for',select.id);select.style.cssText='min-height:48px;max-width:100%;padding:0.5rem';
+      const base=line(select,'option','Standard option');base.value='';
+      for(const variant of d.variants){const option=line(select,'option',variant.label+' • '+new Intl.NumberFormat(undefined,{style:'currency',currency:d.currency}).format(variant.amountMinor/10**new Intl.NumberFormat(undefined,{style:'currency',currency:d.currency}).resolvedOptions().maximumFractionDigits));option.value=variant.id;}
+      select.addEventListener('change',()=>{if(select.value)url.searchParams.set('content_option',select.value);else url.searchParams.delete('content_option');link.href=url.toString();});article.appendChild(select);
+     }
     }
     if(d.image?.uri&&/^https:\/\//.test(d.image.uri)){const img=document.createElement('img');img.src=d.image.uri;img.alt=String(d.image.alt||'');img.loading='lazy';img.style.cssText='max-width:100%;max-height:300px;object-fit:cover';article.appendChild(img);}listing.appendChild(article);
    }if(!filtered.length)line(listing,'p','No approved matching records.');if(filtered.length>pageSize){const more=line(listing,'button','Show more');more.type='button';more.onclick=()=>{pageSize+=24;renderRows();};}
