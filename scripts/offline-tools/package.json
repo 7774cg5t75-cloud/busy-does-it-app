@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "@babel/core": "7.29.7",
+    "@babel/parser": "7.29.9",
+    "@babel/plugin-transform-modules-commonjs": "7.29.7",
+    "@babel/plugin-transform-react-jsx": "7.29.7",
+    "@babel/plugin-transform-typescript": "7.29.9"
+  },
+  "name": "busy-offline-verification-tools",
+  "private": true,
+  "description": "Optional cached-only Babel tools for offline source and component-boundary checks; never bundled into the app."
+}

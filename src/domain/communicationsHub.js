@@ -166,10 +166,22 @@ function sourceDirection(source = "", stage = "") {
 }
 
 function isRecordedSent(title = "", status = "") {
+  // Approval, "unsent" and failed/uncertain attempts are not contact proof.
+  if(/\b(unsent|not sent|failed|sending|unknown|uncertain|draft|awaiting)\b/i.test(`${title} ${status}`))return false;
   return (
-    /recorded as sent|approved/i.test(String(title || "")) ||
-    /sent/i.test(String(status || ""))
+    /\brecorded as sent\b/i.test(String(title || "")) ||
+    ["sent", "recorded as sent", "sent manually"].includes(lower(status))
   );
+}
+function communicationState(title="",status=""){
+ const value=lower(status||title);
+ if(/\b(unknown|uncertain)\b/.test(value))return 'unknown';
+ if(/\b(failed|not sent|unsent)\b/.test(value))return 'failed';
+ if(/\bsending\b/.test(value))return 'sending';
+ if(isRecordedSent(title,status))return 'sent_recorded';
+ if(/\bapproved\b/.test(value))return 'approved';
+ if(/\b(draft|wording prepared)\b/.test(value)||/wording prepared/i.test(title))return 'drafted';
+ return 'unknown';
 }
 
 function communicationRowsForCustomer({
@@ -182,7 +194,8 @@ function communicationRowsForCustomer({
   safeArray(journey?.communicationHistory).forEach((item) => {
     const title = clean(item.title);
     const status = clean(item.status);
-    const preparedOnly = /wording prepared|draft/i.test(title) && !isRecordedSent(title, status);
+    const state=communicationState(title,status);
+    const preparedOnly = ['drafted','approved'].includes(state);
     const isOutcome = String(item.kind || "").toLowerCase() === "outcome";
     const direction = isOutcome ? "record" : preparedOnly ? "draft" : "outbound";
     rows.push({
@@ -193,6 +206,8 @@ function communicationRowsForCustomer({
       title: title || "Customer communication",
       body: clean(item.body),
       status,
+      state,
+      deliveryVerified:false,
       source: item.source || "Customer journey",
       createdAt: item.createdAt || (item.date ? `${item.date}T12:00:00` : ""),
       date: item.date || "",
@@ -295,6 +310,8 @@ function threadLane({
 } = {}) {
   const pendingIncoming = rows.filter((row) => row.pendingInbox);
   if (pendingIncoming.length) return "Needs attention";
+  const latestCommunication=latestByTime(rows.filter(row=>row.direction!=='record'));
+  if(['sending','unknown','failed'].includes(latestCommunication?.state))return 'Needs attention';
 
   if (
     safeArray(journey?.stalledSignals).some(
@@ -343,6 +360,11 @@ function threadLane({
 }
 
 function duplicateContactGuard(rows = [], lane = "") {
+  const latest=latestByTime(rows.filter(row=>row.direction!=='record'));
+  if(['sending','unknown','failed'].includes(latest?.state))return {
+    blocked:true,title:'Check the earlier message first',
+    body:'The latest attempt has no confirmed send outcome. Review its original receipt before preparing another contact.'
+  };
   const actualOutbound = rows.filter(
     (row) => row.direction === "outbound" && row.actualContact
   );
@@ -389,7 +411,10 @@ function buildThread({
     rows.filter((row) => row.direction === "outbound" && row.actualContact)
   );
   const latestAny = latestByTime(rows);
-  const guard = duplicateContactGuard(rows, lane);
+  const guard = customer.contactOk===false?{
+    blocked:true,title:'Customer contact is paused',
+    body:'This customer has not permitted further contact. Do not prepare or send another message.'
+  }:duplicateContactGuard(rows, lane);
 
   return {
     id: `communication-thread-${customer.id}`,
