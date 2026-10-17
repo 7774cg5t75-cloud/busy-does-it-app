@@ -19,7 +19,7 @@ try{
   "const reply=(status,body)=>new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json'}});",
   "if(mode==='fetch-rejected')throw Object.assign(new TypeError('CANARY'),{cause:{code:'ECONNREFUSED',message:'CANARY'}});",
   "if(pathname==='/auth/v1/admin/users'){created++;if(mode==='admin-error'||mode==='second-account-error'&&created===2)return reply(503,{error_code:'unexpected_failure',message:'CANARY',token:'CANARY'});return reply(200,{id:'user-'+created,email:'CANARY'});}",
-  "if(pathname==='/auth/v1/token'){if(mode==='signin-error')return reply(400,{error_code:'invalid_credentials',message:'CANARY'});return reply(200,{access_token:'CANARY-token-'+created});}",
+  "if(pathname==='/auth/v1/token'){if(mode==='email-disabled')return reply(422,{error_code:'email_provider_disabled',message:'CANARY'});if(mode==='signin-error')return reply(400,{error_code:'invalid_credentials',message:'CANARY'});return reply(200,{access_token:'CANARY-token-'+created});}",
   "if(pathname==='/auth/v1/user'){const match=/token-([123])$/.exec(options.headers.Authorization);if(mode==='guard-error'||!match)return reply(401,{error_code:'bad_jwt',message:'CANARY'});return reply(200,{id:mode==='identity-assertion'?'different-user':'user-'+match[1]});}",
   "if(pathname==='/rest/v1/busy_businesses'&&mode==='fixture-error')return reply(403,{code:'42501',message:'CANARY'});",
   "throw Error('Unexpected inert request CANARY');};"
@@ -27,6 +27,7 @@ try{
  const scenarios=[
   ['admin-error','auth-create-a',503,'unexpected_failure','assertion'],
   ['signin-error','auth-signin-a',400,'invalid_credentials','assertion'],
+  ['email-disabled','auth-signin-a',422,'email_provider_disabled','assertion'],
   ['guard-error','auth-require-user-a',401,'bad_jwt','unclassified'],
   ['identity-assertion','auth-require-user-a',200,null,'assertion'],
   ['second-account-error','auth-create-b',503,'unexpected_failure','assertion'],

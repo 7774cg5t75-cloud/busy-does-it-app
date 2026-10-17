@@ -128,6 +128,14 @@ class DraftTests(unittest.TestCase):
   self.assertEqual(c['project_id'],'busy-disposable-review');self.assertFalse(c['db']['seed']['enabled']);self.assertFalse(c['edge_runtime']['enabled'])
   rollback=(ROOT/'staging/disposable-supabase/rollback.sql').read_text().lower()
   self.assertNotRegex(rollback,r'drop\s+.*cascade');self.assertIn("current_setting('busy.disposable_rehearsal',true)",rollback)
+ def test_email_login_enabled_without_public_signup(self):
+  import tomllib
+  c=tomllib.loads((ROOT/'staging/disposable-supabase/config.toml').read_text())
+  self.assertTrue(c['auth']['enabled'])
+  self.assertFalse(c['auth']['enable_signup'])
+  self.assertTrue(c['auth']['email']['enable_signup'])
+  self.assertFalse(c['auth']['email']['enable_confirmations'])
+  self.assertFalse(c['inbucket']['enabled'])
  def test_no_application_or_historical_schema_mutation(self):
   runner=(ROOT/'scripts/disposable-supabase/rehearse.py').read_text()
   for required in ["'--internal'","network['Internal'] is True","cron.launch_active_jobs='off'","'migration','new'","version>actual[-1]","assert inventory(ROOT)[1]==history","assert fingerprint()==baseline"]:self.assertIn(required,runner)

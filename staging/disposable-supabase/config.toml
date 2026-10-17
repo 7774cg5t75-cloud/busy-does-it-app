@@ -20,7 +20,9 @@ enabled = true
 site_url = "http://127.0.0.1:3000"
 enable_signup = false
 [auth.email]
-enable_signup = false
+# CLI 2.54.11 also uses this switch to enable password sign-in.
+# Public signup remains disabled by auth.enable_signup above.
+enable_signup = true
 enable_confirmations = false
 [analytics]
 enabled = false
