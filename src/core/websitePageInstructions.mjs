@@ -28,7 +28,26 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
   const clause=clauses[i];
   if(forbidden.test(clause))return fail("No changes were made. Publishing, deleting and external actions need separate approval.");
   let m,change,description;
-  if((m=clause.match(/^move (?:the )?(.+?) section (up|down)$/i))){
+  if((m=clause.match(/^move (?:the )?(.+?) section (above|below|before|after) (?:the )?(.+?)(?: section| form)?$/i))){
+   const section=findSection(m[1]),target=findSection(m[3]);
+   if(!section||!target)return fail('Name two exact visible sections on this page.');
+   change={action:'move-relative',sectionId:section.id,targetSectionId:target.id,
+    position:/above|before/i.test(m[2])?'before':'after',pageId};
+   description='Move '+section.title+' '+m[2]+' '+target.title;
+  }else if(/^(?:make|set) (?:the )?(?:whole |entire )?(?:page|website) (?:easier to read|more readable)(?: on (?:phones?|mobile))?$/i.test(clause)){
+   const operations=[{action:'style',field:'typography',value:'refined'},
+    {action:'style',field:'spacing',value:'comfortable'},
+    {action:'style',field:'cardLayout',value:'rows'}].filter(op=>draft.theme?.[op.field]!==op.value);
+   if(!operations.length)return fail('This page already uses the supported reading settings. Check the actual preview before changing it further.');
+   change={action:'style-group',operations};description='Use readable type, calm spacing and service rows across the shared website theme; business facts and colours stay unchanged';
+  }else if((m=clause.match(/^(?:make|set) (?:the )?(.+?) section (?:look |feel )?more premium$/i))){
+   const section=findSection(m[1]);if(!section)return fail('Name one exact visible section.');
+   const operations=[{action:'section-style',sectionId:section.id,field:'sectionSpacing',value:'generous'},
+    {action:'section-style',sectionId:section.id,field:'headingScale',value:'large'}]
+    .filter(op=>section.appearance?.[op.field]!==op.value);
+   if(!operations.length)return fail('This section already uses these supported settings.');
+   change={action:'style-group',operations};description='Give '+section.title+' more breathing room and a stronger heading; preview this visual hypothesis before saving';
+  }else if((m=clause.match(/^move (?:the )?(.+?) section (up|down)$/i))){
    const section=findSection(m[1]);if(!section)return fail("Name one visible section on this page: "+m[1]);
    change={action:"move",sectionId:section.id,direction:m[2].toLowerCase()};
    description="Move "+section.title+" "+m[2].toLowerCase();
@@ -55,9 +74,10 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    change={action:"style",field:"ctaEmphasis",value:"strong"};
    description="Emphasise the existing approved website button";
   }else return fail("No changes were made. Step "+(i+1)+" is not a supported, exact instruction. Try 'move the services section up' or 'make the hero heading smaller on phones'.");
-  const key=[change.action,change.sectionId||"global",change.field||"position"].join(":");
-  if(targets.has(key))return fail("Two steps affect the same setting. Give one instruction for that setting.");
-  targets.add(key);steps.push({type:"layout",change,spoken:clause,description});
+  const leaves=change.action==='style-group'?change.operations:[change];
+  const keys=leaves.map(op=>[op.action==='move-relative'?'move':op.action,op.sectionId||"global",op.field||"position"].join(":"));
+  if(keys.some(key=>targets.has(key)))return fail("Two steps affect the same setting. Give one instruction for that setting.");
+  keys.forEach(key=>targets.add(key));steps.push({type:"layout",change,spoken:clause,description});
  }
  return {ok:true,draftId,pageId,generation,steps,requiresExplicitApproval:true,
   summary:steps.length+" named page change"+(steps.length===1?"":"s")+" ready for private preview"};

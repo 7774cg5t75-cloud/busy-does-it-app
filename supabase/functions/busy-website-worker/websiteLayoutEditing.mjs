@@ -353,6 +353,23 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   theme.sectionOrder=list(theme.sectionOrder).filter(id=>id!==sectionId);
   return ready("Deleted the extra "+text(chosen.title)+" section.");
  }
+ if(action==="move-relative"){
+  if(Object.keys(operation).some(k=>!['action','sectionId','targetSectionId','position','pageId'].includes(k))||
+    !['before','after'].includes(operation.position)||sectionId==='hero'||
+    sectionId===operation.targetSectionId||chosen.enabled===false)
+   return fail(draft,'Choose two different visible sections and keep the main hero first.');
+  const page=list(draft.pages).filter(p=>p.id===operation.pageId&&p.enabled!==false);
+  if(page.length!==1||![sectionId,operation.targetSectionId].every(id=>list(page[0].sectionIds).includes(id)))
+   return fail(draft,'Both sections must be on the selected current page.');
+  const ids=order();
+  if(!ids.includes(operation.targetSectionId)||operation.targetSectionId==='hero'&&operation.position==='before')
+   return fail(draft,'Keep the main hero first and choose a visible destination.');
+  const next=ids.filter(id=>id!==sectionId),at=next.indexOf(operation.targetSectionId);
+  next.splice(at+(operation.position==='after'?1:0),0,sectionId);
+  if(JSON.stringify(ids)===JSON.stringify(next))return fail(draft,'These sections are already in that order.');
+  theme.sectionOrder=next;
+  return ready('Moved '+text(chosen.title||sectionId)+' '+operation.position+' '+operation.targetSectionId+'.');
+ }
  if(action==="move"){
   if(chosen.enabled===false||sectionId==="hero")
    return fail(draft,"Show the section before moving it. The main hero must remain first.");

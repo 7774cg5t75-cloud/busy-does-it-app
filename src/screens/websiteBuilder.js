@@ -311,7 +311,7 @@ function WebsiteBuilder({ s }) {
         {draft ? (
           <Button label="Preview my website draft" onPress={() => s.go("websitePreview")} />
         ) : null}
-        {hostedPreview?.id && journey.nextAction !== "review" ? (
+        {hostedPreview?.id ? (
           <Button label={hostedPreviewOutdated?
             "View previous hosted version (not latest)":"View my hosted website again"}
             primary={!hostedPreviewOutdated && journey.nextAction !== "brand"}
