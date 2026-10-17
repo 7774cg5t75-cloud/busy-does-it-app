@@ -5217,7 +5217,7 @@ function MiniAppRequestDetailForm({ s }) {
                       {s.ownerFollowupReview.preparation?(
                         <View>
                           <Text style={styles.cardBody}>{s.ownerFollowupReview.preparation.subject}</Text>
-                          <Text style={styles.cardBody}>{s.ownerFollowupReview.preparation.answerSource==='current_published_faq'?'Uses an answer from your current published app. Review its suitability before sending.':'No verified answer found. Check the details before making a commitment.'}</Text>
+                          <Text style={styles.cardBody}>{s.ownerFollowupReview.preparation.answerSource==='no_verified_answer'?'No verified answer found. Check the details before making a commitment.':'Uses current approved business information. Review its suitability before sending; availability and commitments still need checking.'}</Text>
                           {s.ownerFollowupReview.preparation.missingInformation.map((item,index)=><Text key={index} style={styles.cardBody}>{item}</Text>)}
                         </View>
                       ):null}
