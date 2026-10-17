@@ -56,3 +56,7 @@ When a new owner-approved master is created, update this provenance record (vers
 
 This prompt **does not** grant permission to skip the full product-master preflight or to work indefinitely after the task ends.
 
+
+## Mission 14 provenance verification — 17 October 2026
+
+Reopened the complete owner-attached V22.27 Word source, verified unchanged against the full document previously reviewed in this conversation, and rechecked relevant requirements. SHA-256 remains `8c7e7134124f9b8c54fd8fd159f66dd199883dd0af601d390904e0ddec9005eb`. No newer approved master was supplied. No private document content is published.

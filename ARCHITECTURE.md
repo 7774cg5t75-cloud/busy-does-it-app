@@ -1181,3 +1181,7 @@ These layers describe the intended direction. Their presence in this document **
 - `busy_push_deliveries` and `busy_internal_config` are server-only tables. The cron authentication token never enters the mobile client.
 - `.github/workflows/eas-link.yml` performs the one-time Expo account link when an EXPO_TOKEN secret exists. `native-development-build.yml` queues the development build after project linking/signing is available.
 
+
+## Mission 14 — 17 October 2026
+
+Draft PR #25 adds revision-bound listing/service reply preparation, private enquiry-informed FAQ improvements across builders, reversible FAQ language edits, shared service category browsing and stale-edit recovery. Existing trusted approval, tenant, receipt and publication contracts remain authoritative. See `docs/BUILDER_MISSION14_2026_10_17.md`, its checks JSON and architecture-health record. Offline evidence only; no deployment or hosted verification.
