@@ -1194,7 +1194,7 @@ function MiniAppBuilder({ s }) {
         onSave={s.saveCoordinatedAppChanges}
         onRefresh={s.refreshMiniAppsStatus}
         busy={s.miniAppsAction}/>
-      <BusinessBrandDnaPreview website={s.websiteDraft}
+      <BusinessBrandDnaPreview key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.websiteDraft?.id,app?.id].join(':')} website={s.websiteDraft}
         app={app} businessId={s.cloudWorkspace?.businessId}
         catalog={view.catalog||s.miniAppsStatus?.catalog||[]}/>
       <UniversalBuilderPlanReview surface="app"
@@ -1206,7 +1206,7 @@ function MiniAppBuilder({ s }) {
         busy={!!s.miniAppsAction}/>
       <WebsiteToAppDesignTransfer key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.websiteDraft?.id,app.id].join(':')} website={s.websiteDraft} app={app}
         businessId={s.cloudWorkspace?.businessId}
-        onPreview={setStudioPreview} busy={!!s.miniAppsAction||studio.pending}/>
+        onPreview={setStudioPreview} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}/>
       <Card
         eyebrow="Choose how customers use your app"
         title="Inside Busy, standalone, or eventually both"
