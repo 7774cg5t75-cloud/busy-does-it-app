@@ -27,7 +27,7 @@ assert.equal(plan(d,{...req('move the about section above the services section')
 assert.equal(plan(d,req('make the whole page easier to read; publish website')).ok,false);
 console.log('Mission15: canonical promoted preview, relative section navigation, grouped private edits, stale/lock/overlap safety PASS');
 
-assert.equal(plan(d,req('make the whole page easier to read only on phones')).ok,false,'Global theme cannot masquerade as phone-only text changes');
+assert.equal(plan(d,req('make the whole page easier to read only on phones')).steps[0].change.action,'page-reading','Phone-only reading now has a real scoped contract');
 
 const rendered={...d,designPlan:{sectionOrder:['hero','about','services','contact']}};
 const relative={action:'move-relative',sectionId:'contact',targetSectionId:'about',position:'before',pageId:'home'};

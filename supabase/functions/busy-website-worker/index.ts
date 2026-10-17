@@ -1,3 +1,4 @@
+import {sectionAppearanceClasses} from './websiteAppearanceClasses.mjs';
 import {businessContentSectionHtml} from '../_shared/businessContentHtml.mjs';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -137,24 +138,6 @@ function pageSeo(draft: any, page: any) {
 
 /** Match the private website generator's finite presentation tokens.
  * No raw styles from user or AI content may reach rendered HTML. */
-function sectionAppearanceClasses(section: any) {
-  const fields: Record<string,string[]>={headingScale:["compact","large"],
-    textAlign:["center"],sectionSpacing:["compact","generous"],
-    photoCrop:["top","bottom"],photoSide:["right"],gallerySize:["compact","large"],
-    mobileHeadingScale:["compact","large"],desktopHeadingScale:["compact","large"],
-    mobileGallerySize:["compact","large"],desktopGallerySize:["compact","large"]};
-  const names:Record<string,string>={headingScale:"heading",textAlign:"align",
-    sectionSpacing:"space",photoCrop:"crop",photoSide:"photo",gallerySize:"gallery",
-    mobileHeadingScale:"mobile-heading",desktopHeadingScale:"desktop-heading",
-    mobileGallerySize:"mobile-gallery",desktopGallerySize:"desktop-gallery"};
-  const appearance=section?.appearance;
-  if(!appearance||typeof appearance!=="object"||Array.isArray(appearance))return "";
-  const output:string[]=[];
-  for(const field of Object.keys(fields)) {
-    if(fields[field].includes(appearance[field]))output.push("owner-"+names[field]+"-"+appearance[field]);
-  }
-  return output.join(" ");
-}
 function renderSectionHtml(
   draft: any,
   section: any,

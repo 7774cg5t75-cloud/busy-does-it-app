@@ -50,6 +50,9 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    change={action:'move-relative',sectionId:section.id,targetSectionId:target.id,
     position:/above|before/i.test(m[2])?'before':'after',pageId};
    description='Move '+section.title+' '+m[2]+' '+target.title;
+  }else if((m=clause.match(/^(?:make|set) (?:the )?(?:whole |entire )?page (?:text )?(?:easier to read|more readable)(?: only)? on (phones?|mobile|desktop|computers?)$/i))){
+   change={action:'page-reading',pageId,device:/phone|mobile/i.test(m[1])?'mobile':'desktop'};
+   description='Increase supported body text and line spacing only at the requested width; headings, facts and other widths are preserved';
   }else if(/^(?:make|set) (?:the )?(?:whole |entire )?(?:page|website) (?:easier to read|more readable)$/i.test(clause)){
    const operations=[{action:'style',field:'typography',value:'refined'},
     {action:'style',field:'spacing',value:'comfortable'},

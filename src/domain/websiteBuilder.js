@@ -1,3 +1,4 @@
+import {sectionAppearanceClasses} from '../../supabase/functions/busy-website-worker/websiteAppearanceClasses.mjs';
 import {businessContentSectionHtml} from '../core/businessContentHtml.mjs';
 import {protectWebsiteOwnerLocks} from "../../supabase/functions/busy-website-worker/websiteOwnerLocks.mjs";
 import { syncWebsitePageModel } from "./websiteManagement";
@@ -621,24 +622,6 @@ function applyWebsitePageChange(draft = {}, change = {}) {
 }
 
 /** Finite tokens only. Page HTML must not expose user-supplied raw style strings. */
-function sectionAppearanceClasses(section){
-  const fields={headingScale:["compact","large"],textAlign:["center"],
-    sectionSpacing:["compact","generous"],photoCrop:["top","bottom"],
-    photoSide:["right"],gallerySize:["compact","large"],
-    mobileHeadingScale:["compact","large"],desktopHeadingScale:["compact","large"],
-    mobileGallerySize:["compact","large"],desktopGallerySize:["compact","large"]};
-  const names={headingScale:"heading",textAlign:"align",
-    sectionSpacing:"space",photoCrop:"crop",photoSide:"photo",gallerySize:"gallery",
-    mobileHeadingScale:"mobile-heading",desktopHeadingScale:"desktop-heading",
-    mobileGallerySize:"mobile-gallery",desktopGallerySize:"desktop-gallery"};
-  const appearance=section?.appearance;
-  if(!appearance||typeof appearance!=="object"||Array.isArray(appearance))return "";
-  const output=[];
-  for(const field of Object.keys(fields)){
-    if(fields[field].includes(appearance[field]))output.push("owner-"+names[field]+"-"+appearance[field]);
-  }
-  return output.join(" ");
-}
 function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
   const page=safeArray(draft.pages).find(p=>p?.id===pageId)||
     safeArray(draft.pages).find(p=>p?.id==="home")||null;

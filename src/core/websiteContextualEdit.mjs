@@ -52,6 +52,12 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
   return success("field",{sectionId,itemId:itemId||null,field,value:replacement[1]},
    "Replace only the selected wording in your private draft.");
  }
+ const reading=text.match(/^make (?:this|that|the selected) (?:text|paragraph|section) (?:easier to read|more readable)(?: only)? on (phones?|mobile|desktop|computers?)$/i);
+ if(reading){
+  if(itemId||!['body','section'].includes(field))return failure('Select the whole section or its paragraph to adjust reading size.');
+  return success('layout',{action:'section-style',sectionId,field:/phone|mobile/i.test(reading[1])?'mobileBodyScale':'desktopBodyScale',value:'large'},
+   'Prepare larger body text and line spacing only at this screen width. Preview before keeping it.');
+ }
  if(!itemId&&field!=='photo'&&/^(?:make|give) (?:this|that|the selected) section (?:look |feel )?more premium$/i.test(text)){
   const operations=[{action:'section-style',sectionId,field:'sectionSpacing',value:'generous'},
    {action:'section-style',sectionId,field:'headingScale',value:'large'}].filter(op=>section.appearance?.[op.field]!==op.value);

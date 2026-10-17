@@ -359,8 +359,13 @@ section.owner-gallery-large .gallery-image{height:clamp(280px,37vw,450px)}
  .family-portfolio .hero-image{border-radius:18px}
 }
 @media(max-width:380px){.wrap{width:min(100% - 28px,var(--content))}.brand{font-size:1.05rem}.cta{width:100%}}
+/* Body-reading overrides keep the existing headline hierarchy and facts. */
+section.owner-body-large p:not(.lead),section.owner-body-large li{font-size:1.125rem;line-height:1.75}
+section.owner-body-large .lead{font-size:clamp(1.25rem,2vw,1.5rem);line-height:1.7}
 /* V3.149: finite viewport overrides, shared by exported and hosted sites */
 @media(max-width:600px){
+ section.owner-mobile-body-large p:not(.lead),section.owner-mobile-body-large li{font-size:1.125rem;line-height:1.75}
+ section.owner-mobile-body-large .lead{font-size:1.25rem;line-height:1.7}
  section.owner-mobile-heading-compact h1{font-size:clamp(2.05rem,8vw,3rem)}
  section.owner-mobile-heading-compact h2{font-size:clamp(1.7rem,6vw,2.4rem)}
  section.owner-mobile-heading-large h1{font-size:clamp(3.3rem,12vw,5rem)}
@@ -371,6 +376,8 @@ section.owner-gallery-large .gallery-image{height:clamp(280px,37vw,450px)}
  section.owner-mobile-gallery-large .gallery-image{height:clamp(290px,90vw,420px)}
 }
 @media(min-width:960px){
+ section.owner-desktop-body-large p:not(.lead),section.owner-desktop-body-large li{font-size:1.125rem;line-height:1.75}
+ section.owner-desktop-body-large .lead{font-size:clamp(1.25rem,2vw,1.5rem);line-height:1.7}
  section.owner-desktop-heading-compact h1{font-size:clamp(2.6rem,5vw,4.1rem)}
  section.owner-desktop-heading-compact h2{font-size:clamp(1.9rem,3vw,2.8rem)}
  section.owner-desktop-heading-large h1{font-size:clamp(4.5rem,8vw,8rem)}
