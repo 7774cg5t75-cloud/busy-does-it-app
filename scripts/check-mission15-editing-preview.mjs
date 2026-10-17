@@ -28,3 +28,8 @@ assert.equal(plan(d,req('make the whole page easier to read; publish website')).
 console.log('Mission15: canonical promoted preview, relative section navigation, grouped private edits, stale/lock/overlap safety PASS');
 
 assert.equal(plan(d,req('make the whole page easier to read only on phones')).ok,false,'Global theme cannot masquerade as phone-only text changes');
+
+const rendered={...d,designPlan:{sectionOrder:['hero','about','services','contact']}};
+const relative={action:'move-relative',sectionId:'contact',targetSectionId:'about',position:'before',pageId:'home'};
+assert.deepEqual(layout(rendered,relative).draft.theme.sectionOrder,['hero','contact','about','services']);
+assert.equal(layout({...rendered,theme:{lockedSections:['about']}},relative).applied,false,'Protect the actual rendered lock position, not raw storage order');

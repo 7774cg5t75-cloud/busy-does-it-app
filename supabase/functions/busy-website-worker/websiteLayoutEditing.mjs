@@ -354,14 +354,15 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   return ready("Deleted the extra "+text(chosen.title)+" section.");
  }
  if(action==="move-relative"){
-  if(Object.keys(operation).some(k=>!['action','sectionId','targetSectionId','position','pageId'].includes(k))||
+  if(Object.keys(operation).some(k=>!['action','kind','sectionId','targetSectionId','position','pageId'].includes(k))||
     !['before','after'].includes(operation.position)||sectionId==='hero'||
     sectionId===operation.targetSectionId||chosen.enabled===false)
    return fail(draft,'Choose two different visible sections and keep the main hero first.');
   const page=list(draft.pages).filter(p=>p.id===operation.pageId&&p.enabled!==false);
   if(page.length!==1||![sectionId,operation.targetSectionId].every(id=>list(page[0].sectionIds).includes(id)))
    return fail(draft,'Both sections must be on the selected current page.');
-  const ids=order();
+  const rendered=list(draft.designPlan?.sectionOrder).filter(id=>active().includes(id));
+  const ids=list(theme.sectionOrder).length?order():[...new Set([...rendered,...active()])];
   if(!ids.includes(operation.targetSectionId)||operation.targetSectionId==='hero'&&operation.position==='before')
    return fail(draft,'Keep the main hero first and choose a visible destination.');
   const next=ids.filter(id=>id!==sectionId),at=next.indexOf(operation.targetSectionId);

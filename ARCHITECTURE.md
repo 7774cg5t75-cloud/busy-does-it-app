@@ -1185,3 +1185,9 @@ These layers describe the intended direction. Their presence in this document **
 ## Mission 14 — 17 October 2026
 
 Draft PR #25 adds revision-bound listing/service reply preparation, private enquiry-informed FAQ improvements across builders, reversible FAQ language edits, shared service category browsing and stale-edit recovery. Existing trusted approval, tenant, receipt and publication contracts remain authoritative. See `docs/BUILDER_MISSION14_2026_10_17.md`, its checks JSON and architecture-health record. Offline evidence only; no deployment or hosted verification.
+
+## Mission 15 — connected website and app advancement (17 October 2026)
+
+Dependent draft PR #26 continues PR #25 at `3e64352e7e043812b1ba79a0609b64c251a0f4bd`. Canonical promoted previews remain reachable; original selected/page instructions support relative placement and grouped appearance edits. Existing coordinated candidates can include exact reviewed structural composition. App Studio prepares literal service edits and relative screen navigation with original validation/Undo. Brand DNA flags service-content differences; retained DOM comparisons reject lost text coverage. Render-order lock protection corrected.
+
+44 offline scripts and 23-file syntax checks passed. Chromium normal-sandbox capture is blocked by managed IPC restrictions; no screenshot/aesthetic evidence claimed. No schema, workflow, deployment, hosted access, provider or spending change. See Mission 15 delivery, checks, architecture health and targeted acceptance records in `docs/`.
