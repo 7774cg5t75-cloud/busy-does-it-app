@@ -30,7 +30,7 @@ function publicBusinessContent(rows,businessId,{now=new Date().toISOString()}={}
  return {ok:true,version:1,businessId,checkedAt:now,records,stockTracked:false,checkoutEnabled:false,attendanceConfirmed:false};
 }
 function selectBusinessContent(feed,{kind,query='',category='',includePast=false,now=Date.now()}={}){
- if(!feed?.ok||feed.version!==1||!Array.isArray(feed.records)||feed.records.length>200||typeof query!=='string'||query.length>100)return [];
+ if(!validPublicBusinessContent(feed)||!['product','event'].includes(kind)||typeof query!=='string'||query.length>100)return [];
  const q=query.trim().toLocaleLowerCase('en');
  return feed.records.filter(r=>r.kind===kind&&validateBusinessContent(r.kind,r.data).ok&&(!category||r.data.category===category)&&(!q||(r.data.name+' '+r.data.description+' '+r.data.category).toLocaleLowerCase('en').includes(q))&&(kind!=='event'||includePast||Date.parse(r.data.endsAt)>=now)).sort((a,b)=>kind==='event'?Date.parse(a.data.startsAt)-Date.parse(b.data.startsAt):a.data.name.localeCompare(b.data.name));
 }
@@ -96,6 +96,6 @@ export {parseBusinessContentInterest,prepareBusinessContentEnquiry};
 
 // Approval refers to the exact saved record the owner reviewed, not unsaved fields.
 function canApproveSavedBusinessContent(current,form,baseline){
- return !!current&&!!baseline&&baseline.id===current.id&&baseline.revision===current.revision&&baseline.formStamp===JSON.stringify(form);
+ return !!current&&RECORD_ID.test(current.id||'')&&Number.isSafeInteger(current.revision)&&current.revision>0&&!!form&&typeof form==='object'&&!Array.isArray(form)&&!!baseline&&typeof baseline.formStamp==='string'&&baseline.id===current.id&&baseline.revision===current.revision&&baseline.formStamp===JSON.stringify(form);
 }
 export {canApproveSavedBusinessContent};

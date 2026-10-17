@@ -1,6 +1,6 @@
 # Mission 12 preflight — 17 October 2026
 
-Status: source/dependency review checkpoint; product development has not begun. Mandatory current-private-master verification remains incomplete.
+Historical preflight checkpoint. Superseded by the owner-supplied and verified V22.24 master and the functional Mission 12 work recorded in BUILDER_MISSION12_2026_10_17.md. The observations below preserve what was available at the initial checkpoint, not the current completion state.
 
 ## Verified source and dependencies
 
@@ -66,3 +66,4 @@ These are implementation observations, not final Mission 12 scope decisions. Aft
 This checkpoint changes documentation only. No functional sweep, new tests, dependency installation, schema change, customer data access, provider call, publication, signed build, merge or deployment occurred. No additional external spending. Internal Docker isolation, localhost proxy, exact-SHA gates, protected environment, manual approvals and cleanup remain byte-for-byte inherited. Do not rerun the completed rehearsal merely to establish this documentation checkpoint.
 
 Substantial App Builder-first/Website Builder-second development remains pending the current private-master gate. Device/browser accessibility, genuine hosted JWT/tenant journeys, provider delivery and release readiness remain separate evidence requirements. No claim of progress beyond this checkpoint should be inferred.
+

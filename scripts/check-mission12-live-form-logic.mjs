@@ -22,6 +22,7 @@ f=form();ui=f.render();assert.equal(ui.message,selected.message);assert.equal(ui
 ui=f.render();assert.equal(ui.message,'');f=form();ui=f.render();assert.equal(ui.message,'');assert.equal(ui.contentInterest,null,'completed context must not revive after remount');
 const current={id:'product_record_001',revision:2},fields={name:'Bowl'},baseline={...current,formStamp:JSON.stringify(fields)};
 assert.equal(canApproveSavedBusinessContent(current,fields,baseline),true);assert.equal(canApproveSavedBusinessContent(current,{name:'Unsaved'},baseline),false);assert.equal(canApproveSavedBusinessContent({...current,revision:3},fields,baseline),false);
+assert.equal(canApproveSavedBusinessContent({},undefined,{}),false);assert.equal(canApproveSavedBusinessContent(current,fields,{id:current.id,revision:current.revision}),false);
 // Execute the real AppController private website apply handler, not a parallel implementation.
 const controller=read('src/app/AppController.js'),a=controller.indexOf('  const applyAppDesignToWebsite=evidence=>'),b=controller.indexOf('  // V3.148:',a);assert.ok(a>0&&b>a);
 const website={id:'site',businessId,generation:1,theme:{},sections:[{id:'hero',type:'hero',title:'Keep',body:'Owner words'}]},app={id:appId,business_id:businessId,draft_revision:1,draft_config:{modules:[{key:'business_profile',enabled:true}],navigation:['business_profile'],publicProfile:{faqs:[{question:'Can I collect?',answer:'Please contact us first.'}]}}};

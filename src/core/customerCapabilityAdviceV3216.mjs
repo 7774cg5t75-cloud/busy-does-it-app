@@ -29,12 +29,9 @@ function adviseCustomerCapabilityV3216({
  // Negated actions must NOT be offered merely because the industry commonly
  // uses them. These are local, low-cost heuristics, never AI outcome proof.
  const explicit=[
-  {matches:/\b(?:enquir(?:y|ies)|inquir(?:y|ies)|quotes?|estimates?|contact us)\b/g,
-   goal:"Help customers send an enquiry or ask for a quote",capability:"enquiry"},
-  {matches:/\b(?:appointments?|bookings?|reservations?|book a|reserve a)\b/g,
-   goal:"Help customers request an appointment or reservation",capability:"booking_request"},
-  {matches:/\b(?:catalogue|catalog|online shop|sell products|product range)\b/g,
-   goal:"Help customers browse a product or service catalogue",capability:"catalogue"}
+  {goal:"Help customers send an enquiry or ask for a quote",capability:"enquiry"},
+  {goal:"Help customers request an appointment or reservation",capability:"booking_request"},
+  {goal:"Help customers browse a product or service catalogue",capability:"catalogue"}
  ];
  const intent=inspectCapabilityIntent(goalText);
  const declined=new Set(intent.declined),positive=new Set(intent.requested);

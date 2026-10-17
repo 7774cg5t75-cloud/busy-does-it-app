@@ -2,6 +2,12 @@
 
 **Status:** configuration reference only. The full product master remains private and is **not stored in this public GitHub repository**. This file is intentionally safe to publish.
 
+## Current Mission 12 private-master verification — 17 October 2026
+
+The owner supplied the full `Busy_Does_It_Master_V22_24_Existing_Website_AI_Agent_Editing.docx` in this task. It was opened/reviewed and its original bytes match SHA-256 `07d6b64325c624abe50d81afc73f6fe5924416e3bd1c7ba5a71fc2160726e8e1`, the V22.24 provenance recorded in independent draft PR #16. The owner identified V22.24 as current for Mission 12. This supersedes the older V22.18 working-access checkpoint below for this mission; historical provenance remains intact.
+
+No private document/content was copied to Git, changed, or claimed uploaded to Library. Future missions must still confirm the then-current owner-approved version and actually obtain/read it. This entry records verified access, not a merge of PR #16 or implementation of all V22.24 roadmap ideas.
+
 ## Master sources
 
 | Source | Authority | How Codex obtains it |
@@ -43,3 +49,4 @@ When a new owner-approved master is created, update this provenance record (vers
 > Continue Busy Does It development using the applicable AGENTS.md, full latest approved Word Product Master, GitHub ARCHITECTURE.md and permanent development policy. Review the current compatible PR dependency chain. Complete multiple substantive connected sweeps, reuse existing systems, verify each sweep, preserve progress in isolated draft PRs, and report the evidence. Additional external spending £0; no production, publication, paid builds, live migrations or protected-branch merges without separate approval.
 
 This prompt **does not** grant permission to skip the full product-master preflight or to work indefinitely after the task ends.
+

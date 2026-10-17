@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {stripTypeScriptTypes} from 'node:module';
-import {prepareBusinessContentEnquiry as prepare,parseBusinessContentInterest as parse} from '../src/core/businessContentRecords.mjs';
+import {prepareBusinessContentEnquiry as prepare,parseBusinessContentInterest as parse,selectBusinessContent} from '../src/core/businessContentRecords.mjs';
 import {createMarketplaceReadActions} from '../src/core/marketplaceReadActions.mjs';
 import {createCustomerRequestAttempt} from '../src/core/customerRequestAttempt.mjs';
 import {checkCustomerRequestReplay} from '../supabase/functions/busy-mini-apps/customerRequestReplayV3203.mjs';
@@ -10,6 +10,7 @@ const data={name:'Handmade bowl',description:'Owner description',category:'Ceram
 const feed={ok:true,version:1,businessId:business,checkedAt:'2026-10-17T12:00:00.000Z',records:[{id:'product_record_001',kind:'product',revision:2,data}],stockTracked:false,checkoutEnabled:false,attendanceConfirmed:false};
 const selection=parse({content:'product_record_001',content_revision:'2',content_option:'variant_large_001'});
 const selected=prepare(feed,business,selection);assert.equal(selected.ok,true);assert.match(selected.message,/Large/);assert.match(selected.message,/30\.00/);assert.match(selected.message,/approved revision 2/);assert.equal(selected.transactionConfirmed,false);
+assert.deepEqual(selectBusinessContent({...feed,records:[null]},{kind:'product'}),[]);assert.deepEqual(selectBusinessContent({...feed,checkoutEnabled:true},{kind:'product'}),[]);assert.equal(selectBusinessContent(feed,{kind:'product'}).length,1);
 for(const changed of [null,{...selection,revision:1},{...selection,variantId:'variant_unknown_1'}])assert.equal(prepare(feed,business,changed).ok,false);
 assert.equal(prepare(feed,'foreign-business',selection).ok,false);
 assert.equal(parse({content:'<script>',content_revision:'2'}),null);assert.equal(parse({content:selection.recordId,content_revision:'2e0'}),null);
@@ -29,6 +30,11 @@ assert.equal((await attempt.prepare(payload)).blocked,false);assert.equal((await
 assert.ok(!JSON.stringify([...slots]).includes('visitor@example.invalid'));
 // Execute the actual trusted submission function with an inert DB/provider boundary.
 const source=fs.readFileSync(new URL('../supabase/functions/busy-mini-apps/index.ts',import.meta.url),'utf8');
+const detailSource=source.slice(source.indexOf('async function appDetail('),source.indexOf('// Read-only, independently authenticated receipt lookup.'));
+const appRow={id:appId,business_id:business,public_slug:'ceramics',current_live_version_id:version,status:'live'};
+const readDb={from(table){const q={select:()=>q,eq:()=>q,in:()=>q,maybeSingle:async()=>({data:table==='busy_mini_apps'?appRow:live.version,error:null})};return q;}};
+const actualDetail=new Function('supabase','trackConsumerApp','recordMiniAppEntry','loyaltyProgressFor','readBusinessContent',stripTypeScriptTypes(detailSource)+';return appDetail;')(readDb,async()=>{},async()=>{},async()=>null,async()=>feed);
+const canonicalDetail=await actualDetail('ceramics','', 'unknown',false);assert.equal(canonicalDetail.app.business_id,business,'the real app_detail response must retain its server-resolved tenant');
 const body=source.slice(source.indexOf('async function submitRequest('),source.indexOf('// Provider submission status',source.indexOf('async function submitRequest(')));
 const saved=[];const db={from(table){const filters=[];let inserted=null;const result=()=>{if(table==='busy_mini_apps')return {data:{business_id:business},error:null};if(table==='busy_mini_app_request_events')return {error:null};if(inserted){const row={id:'request_saved_001',status:'received',...inserted};saved.push(row);return {data:row,error:null};}return {data:saved.find(r=>filters.every(([k,v])=>r[k]===v))||null,count:0,error:null};};const q={select:()=>q,eq:(k,v)=>{filters.push([k,v]);return q;},gte:()=>q,insert:v=>{inserted=v;return q;},single:async()=>result(),maybeSingle:async()=>result(),then:(a,b)=>Promise.resolve(result()).then(a,b)};return q;}};
 const submit=new Function('supabase','clean','safeArray','appDetail','checkCustomerRequestReplay','verifiedRequestEvidence','trackConsumerApp','notifyBusinessOfMiniAppRequest',stripTypeScriptTypes(body)+';return submitRequest;')(db,(v,max)=>typeof v==='string'?v.trim().slice(0,max):'',v=>Array.isArray(v)?v:[],async()=>live,checkCustomerRequestReplay,()=>({verifiedSaved:true}),async()=>{},async()=>{});
