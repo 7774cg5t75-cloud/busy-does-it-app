@@ -3,7 +3,7 @@
  * existing website's content. Finite operations, exact reviewed evidence,
  * no background sync, auto publishing, paid provider calls or live writes.
  */
-import {publicCollection} from './appPublicCollections.mjs';
+import {publicCollection,mergeMissingPublicCollection} from './appPublicCollections.mjs';
 import {websiteDraftHasScope} from './websiteDraftScope.mjs';
 import {editWebsiteDraftField} from './websiteStructuredEditing.mjs';
 import {validPrivateBuilderPair,reviewedPairIsCurrent}
@@ -80,10 +80,13 @@ function planAppToWebsiteDesign({website,app,businessId,mode="adapt",
  let informationCount=0;
  if(includePublicInformation){
   for(const [field,type,a,b] of [['faqs','faq','question','answer'],['testimonials','testimonials','attribution','text']]){
-   if(preview.sections.some(s=>s?.id===type||s?.type===type)){skipped.push('Kept the existing website '+type+' section.');continue;}
-   const value=publicCollection(field,app.draft_config.publicProfile?.[field]||[]);
+   const sections=preview.sections.filter(s=>s?.id===type||s?.type===type);
+   const section=sections[0];
+   if(sections.length&&(field!=='faqs'||sections.length!==1||section.id!==type||section.type!==type||section.enabled===false||!Array.isArray(section.items))){skipped.push('Kept the existing website '+type+' section.');continue;}
+   let value=publicCollection(field,app.draft_config.publicProfile?.[field]||[]);
+   if(section){const existing=section.items.map(row=>({...(row.id?{id:row.id}:{}),[a]:row.title,[b]:row.body}));const merged=mergeMissingPublicCollection(field,existing,value);if(!merged.ok){skipped.push(merged.reason);continue;}if(merged.conflicts.length)skipped.push('Kept '+merged.conflicts.length+' conflicting website answers for owner review.');value=merged.added;}
    for(let i=0;i<value.length;i++){
-    const row=value[i],result=editWebsiteDraftField(preview,{action:i?'add-item':'create-collection',sectionId:type,title:row[a],body:row[b]});
+    const row=value[i],result=editWebsiteDraftField(preview,{action:section||i?'add-item':'create-collection',sectionId:type,title:row[a],body:row[b]});
     if(!result.applied)return {ok:false,reason:result.reason};
     preview=result.draft;informationCount++;
    }
@@ -100,7 +103,7 @@ function planAppToWebsiteDesign({website,app,businessId,mode="adapt",
  ];
  const evidence={operations:operations.map(x=>({...x})),
   copiedServices:servicePlan?servicePlan.added.map(x=>({...x})):[],
-  copiedInformation:informationCount?preview.sections.filter(s=>['faq','testimonials'].includes(s.type)&&!website.sections.some(old=>old.id===s.id)):[]};
+  copiedInformation:informationCount?preview.sections.filter(s=>['faq','testimonials'].includes(s.type)&&JSON.stringify(s)!==JSON.stringify(website.sections.find(old=>old.id===s.id))):[]};
  return {...base,operations:evidence.operations,
   addedServices:evidence.copiedServices,
   serviceCopyCount:servicePlan?.addedCount||0,includeServices,includeDesign,includePublicInformation,informationCount,

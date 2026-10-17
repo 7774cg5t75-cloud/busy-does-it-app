@@ -41,19 +41,36 @@ function appGoalContentQuestions(config,goal){
     locked:!!appEditLockReason(config,{kind:'photo_description'})});
   }
  }
+ if(['book','enquire'].includes(goal)){
+  for(const [field,label,max]of [['phone','Public phone number (optional)',80],['email','Public email address (optional)',240],['openingHours','When can customers contact you? (optional)',700]]){
+   const value=profile.contact?.[field];
+   if(value===undefined||value===null||typeof value==='string'&&!value.trim())questions.push({id:'contact:'+field,label,max,field,locked:!!appEditLockReason(config,{kind:'contact',field})});
+  }
+ }
+ if(goal==='enquire'&&(profile.faqs===undefined||Array.isArray(profile.faqs)&&!profile.faqs.length)){
+  const locked=!!appEditLockReason(config,{kind:'public_collection',field:'faqs'});
+  questions.push({id:'first-faq-question',label:'What do customers often ask? (optional)',max:160,locked});
+  questions.push({id:'first-faq-answer',label:'What is your approved answer? (optional)',max:1200,locked});
+ }
  return questions;
 }
 function prepareAppGoalContent({businessId,app,goal,answers={}}={}){
  if(!privateAppEditSource({businessId,app})||!answers||typeof answers!=='object'||Array.isArray(answers))return {ok:false,reason:'Open the current private app before preparing content.'};
  const config=app.draft_config,questions=appGoalContentQuestions(config,goal),allowed=new Map(questions.map(q=>[q.id,q]));
- const operations=[],services=Array.isArray(config.publicProfile?.services)?config.publicProfile.services.map(x=>({...x})):[];let serviceChange=false;const first={};
+ const operations=[],services=Array.isArray(config.publicProfile?.services)?config.publicProfile.services.map(x=>({...x})):[];let serviceChange=false;const first={},faq={};
  for(const [id,value]of Object.entries(answers)){
   const q=allowed.get(id);if(!q||q.locked||typeof value!=='string'||value.length>q.max||/[<>\u0000-\u001f]/.test(value))return {ok:false,reason:'Only current, unlocked missing fields can be prepared.'};
   if(!value.trim())continue;
   if(id==='about')operations.push({kind:'text',field:'about',value:value.trim()});
   else if(q.expectedUri){const image=config.publicProfile.assets.gallery[q.index];operations.push({kind:'restore_photo_description',index:q.index,expectedUri:q.expectedUri,value:{alt:{present:true,value:value.trim()},caption:Object.prototype.hasOwnProperty.call(image,'caption')?{present:true,value:image.caption}:{present:false}}});}
+  else if(id.startsWith('contact:'))operations.push({kind:'contact',field:q.field,value:value.trim()});
+  else if(id.startsWith('first-faq-'))faq[id]=value.trim();
   else if(id.startsWith('first-service-'))first[id]=value.trim();
   else{services[q.index][q.field]=value.trim();serviceChange=true;}
+ }
+ if(Object.keys(faq).length){
+  if(!faq['first-faq-question']||!faq['first-faq-answer'])return {ok:false,reason:'Add both the customer question and your answer before preparing it.'};
+  operations.push({kind:'public_collection',field:'faqs',value:[{question:faq['first-faq-question'],answer:faq['first-faq-answer']}]});
  }
  if(Object.keys(first).length){
   if(!first['first-service-name'])return {ok:false,reason:'Give the service a name before preparing it.'};
