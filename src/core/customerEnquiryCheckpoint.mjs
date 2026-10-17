@@ -1,7 +1,7 @@
 import {enqueuePrivateCheckpoint} from './privateCheckpointQueue.mjs';
 const ID=/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 const LIMITS={name:120,email:200,phone:80,service:240,message:3000};
-const selectionOK=s=>s===null||!!s&&typeof s==='object'&&!Array.isArray(s)&&Object.keys(s).every(k=>['recordId','revision','variantId'].includes(k))&&/^[A-Za-z0-9_-]{1,80}$/.test(s.recordId||'')&&Number.isSafeInteger(s.revision)&&s.revision>0&&(!s.variantId||/^[A-Za-z0-9_-]{1,80}$/.test(s.variantId));
+const selectionOK=s=>s===null||!!s&&typeof s==='object'&&!Array.isArray(s)&&Object.keys(s).every(k=>['recordId','revision','variantId'].includes(k))&&typeof s.recordId==='string'&&/^[A-Za-z0-9_-]{1,80}$/.test(s.recordId)&&Number.isSafeInteger(s.revision)&&s.revision>0&&(s.variantId===undefined||typeof s.variantId==='string'&&/^[A-Za-z0-9_-]{1,80}$/.test(s.variantId));
 function validCustomerEnquiryDraft(draft){
  return !!draft&&typeof draft==='object'&&!Array.isArray(draft)&&
   Object.keys(draft).every(k=>Object.hasOwn(LIMITS,k)||k==='contentInterest')&&
@@ -21,7 +21,7 @@ function createCustomerEnquiryCheckpoint(storage,{userId,appId,versionId}={}, {n
   const raw=await storage.getItemAsync(key);if(!raw)return null;
   if(typeof raw!=='string'||raw.length>8000)throw Error('The saved enquiry draft needs review.');
   let d;try{d=JSON.parse(raw);}catch{throw Error('The saved enquiry draft could not be read.');}
-  if(d?.v!==1||d.userId!==userId||d.appId!==appId||!ID.test(d.versionId||'')||!Number.isSafeInteger(d.at)||d.at>now()||!validCustomerEnquiryDraft(d.draft))throw Error('The saved enquiry draft does not match this account and app.');
+  if(!d||typeof d!=='object'||Array.isArray(d)||Object.keys(d).some(k=>!['v','userId','appId','versionId','at','draft'].includes(k))||d.v!==1||d.userId!==userId||d.appId!==appId||!ID.test(d.versionId||'')||!Number.isSafeInteger(d.at)||d.at>now()||!validCustomerEnquiryDraft(d.draft))throw Error('The saved enquiry draft does not match this account and app.');
   if(now()-d.at>86400000){await storage.deleteItemAsync(key);return null;}
   if(d.versionId!==versionId)throw Error('This app has changed. Delete the old device draft and review current information before starting again.');
   return d.draft;

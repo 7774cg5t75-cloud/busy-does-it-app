@@ -1,0 +1,95 @@
+import React from 'react';
+import {View,Text,ScrollView,Alert} from 'react-native';
+import {Card,Button,Field} from '../components/ui';
+import {styles} from '../theme/styles';
+// Presentation only. Parent retains original state, scoped sends and recovery.
+function BusinessAppCustomerRequestFields({s,form,onLayout}){
+ const {enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}=form;
+ return (
+      <View onLayout={onLayout}>
+      {typeof s.checkBusyAppRequestRecovery==="function"?<Card title="Earlier request interrupted?" body="Check your saved reference without sending another request. Your contact details are not stored in this recovery reference.">
+        {['enquiry','booking_request'].filter(type=>enabled.has(type)).map(type=><Button key={type}
+          label={type==='enquiry'?'Check earlier enquiry':'Check earlier booking request'} disabled={!!s.miniAppsAction}
+          onPress={()=>s.checkBusyAppRequestRecovery(type)}/>)}
+      </Card>:null}
+      {enabled.has('enquiry')?<Card title="Keep a private enquiry draft"
+        body="Optional: save your name, contact details, message and selected item in encrypted storage on this device for this account. Restorable for 24 hours; expired drafts are deleted on next access. Nothing is sent or synced. Restore replaces the open enquiry fields; booking fields are not saved.">
+        <Button label="Save private enquiry on this device" disabled={privateRecovery.busy||!!s.miniAppsAction} onPress={privateRecovery.save}/>
+        <Button label="Restore saved enquiry" disabled={privateRecovery.busy||!!s.miniAppsAction} onPress={()=>Alert.alert('Restore this device draft?','This replaces the current enquiry fields. Nothing will be submitted.',[{text:'Keep current form',style:'cancel'},{text:'Restore draft',onPress:privateRecovery.restore}])}/>
+        <Button label="Delete saved device draft" disabled={privateRecovery.busy||!!s.miniAppsAction} onPress={privateRecovery.remove}/>
+        {privateRecovery.notice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{privateRecovery.notice}</Text>:null}
+      </Card>:null}
+      {(enabled.has("booking_request") || enabled.has("enquiry")) ? (
+        <>
+          <Text style={styles.sectionLabel}>Your contact details</Text>
+          <Field
+            label="Name"
+            value={name}
+            onChangeText={setName}
+            placeholder="Your name"
+          />
+          <Field
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            placeholder="you@example.com"
+          />
+          <Field
+            label="Phone"
+            value={phone}
+            onChangeText={setPhone}
+            placeholder="Phone number"
+          />
+        </>
+      ) : null}
+
+      {enabled.has("booking_request") ? (
+        <>
+          <Text style={styles.sectionLabel}>Request a booking</Text>
+          <Text style={styles.cardBody}>Choose a listed service or describe what you need. The business will review your request.</Text>
+          {serviceChoices.map((item,index)=><Button key={"request-service-"+index} label={"Request "+item.name}
+            disabled={!!s.miniAppsAction} onPress={()=>setService(item.name)}/>)}
+          <Field label="Service" value={service} onChangeText={setService} placeholder="Service you want" />
+          <Text style={styles.cardBody}>Preferred dates only — these are not available appointment slots.</Text>
+          <ScrollView horizontal accessibilityLabel="Preferred date suggestions" showsHorizontalScrollIndicator>
+            {preferredDates.map(day=><View key={"preferred-"+day.value} style={{marginRight:8}}><Button label={day.label}
+              disabled={!!s.miniAppsAction} onPress={()=>setDate(day.value)}/></View>)}
+          </ScrollView>
+          <Field label="Preferred date" value={date} onChangeText={setDate} placeholder="e.g. Friday afternoon" />
+          <Field label="Note" value={note} onChangeText={setNote} placeholder="Anything the business should know" multiline />
+          {!bookingReady.ok?<Text style={styles.cardBody}>{bookingReady.reason}</Text>:null}
+          <Button
+            label={s.miniAppsAction === "request:booking_request" ? "Sending…" : "Send booking request"}
+            primary
+            disabled={
+              !bookingReady.ok ||
+              !!s.miniAppsAction
+            }
+            onPress={submitBooking}
+          />
+        </>
+      ) : null}
+
+      {enabled.has("enquiry") ? (
+        <>
+          <Text style={styles.sectionLabel}>Send an enquiry</Text>
+          {contentNotice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{contentNotice}</Text>:null}
+          {contentInterest?<Button label="Remove selected listing from this enquiry" onPress={()=>{setContentInterest(null);setService('');setMessage('');setContentNotice('Listing removed. Write your enquiry below.');}}/>:null}
+          <Field label="Message" value={message} onChangeText={setMessage} placeholder="What would you like to ask?" multiline />
+          {!enquiryReady.ok?<Text style={styles.cardBody}>{enquiryReady.reason}</Text>:null}
+          <Button
+            label={s.miniAppsAction === "request:enquiry" ? "Sending…" : "Send enquiry"}
+            disabled={
+              !enquiryReady.ok ||
+              !!s.miniAppsAction
+            }
+            onPress={submitEnquiry}
+          />
+        </>
+      ) : null}
+
+      </View>
+ );
+}
+export {BusinessAppCustomerRequestFields};
