@@ -173,11 +173,36 @@ function planAppVoiceInstructions(config,instruction){
  const operations=[],unresolved=[],preserved=[];let contentBlocks=validContentLayout(config.contentLayout)?config.contentLayout.map(x=>({...x})):[],contentChanged=false;
  let faqWorking=config.publicProfile?.faqs===undefined?[]:Array.isArray(config.publicProfile.faqs)?config.publicProfile.faqs.map(row=>({...row})):null;
  let faqChanged=false;
+ let serviceWorking=Array.isArray(config.publicProfile?.services)?config.publicProfile.services.map(row=>({...row})):[];
+ let servicesChanged=false;
  for(let p of pieces){
   const block=/^(?:add|show|include)(?: my| our| the)? (products|events|upcoming events)(?: (?:section|screen))?(?: as (cards|rows))?$/i.exec(p);
   if(block){const kind=block[1].toLowerCase()==='products'?'product':'event',value={kind,title:kind==='product'?'Products':'Upcoming events',layout:(block[2]||'cards').toLowerCase()};const i=contentBlocks.findIndex(x=>x.kind===kind);if(i>=0)contentBlocks[i]={...contentBlocks[i],layout:value.layout};else contentBlocks.push(value);contentChanged=true;continue;}
   const faq=/^add (?:a )?(?:customer )?question "([^"<>]{1,160})" (?:with )?answer "([^"<>]{1,1200})"$/i.exec(p);
   if(faq){if(!faqWorking){unresolved.push(p);continue;}faqWorking=[...faqWorking,{question:faq[1],answer:faq[2]}];faqChanged=true;continue;}
+  const serviceAdd=/^add service "([^"<>]{1,120})" (?:with )?description "([^"<>]{1,600})"$/i.exec(p);
+  const serviceEdit=/^(?:change|update) service "([^"<>]{1,120})" (description|category|price label|duration label) (?:to|with) "([^"<>]{1,600})"$/i.exec(p);
+  if(serviceAdd||serviceEdit){
+   const name=(serviceAdd||serviceEdit)[1].trim().toLocaleLowerCase('en');
+   const positions=serviceWorking.map((row,index)=>row.name?.trim().toLocaleLowerCase('en')===name?index:-1).filter(index=>index>=0);
+   if(serviceAdd){if(positions.length){unresolved.push(p);continue;}
+    serviceWorking.push({name:serviceAdd[1].trim(),description:serviceAdd[2]});
+   }else{
+    if(positions.length!==1){unresolved.push(p);continue;}
+    const field={'price label':'priceLabel','duration label':'durationLabel'}[serviceEdit[2].toLowerCase()]||serviceEdit[2].toLowerCase();
+    serviceWorking=serviceWorking.map((row,index)=>index===positions[0]?{...row,[field]:serviceEdit[3]}:row);
+   }
+   servicesChanged=true;continue;
+  }
+  const relative=/^move (services|gallery|contact|about|enquiries|booking requests) (above|below|before|after) (services|gallery|contact|about|enquiries|booking requests)$/i.exec(p);
+  if(relative){
+   const keys={services:'services',gallery:'gallery',contact:'contact',about:'business_profile',enquiries:'enquiry','booking requests':'booking_request'};
+   const section=keys[relative[1].toLowerCase()],target=keys[relative[3].toLowerCase()],order=enabledAppKeys(config);
+   if(!order.ok||section===target||![section,target].every(key=>order.keys.includes(key))){unresolved.push(p);continue;}
+   const value=order.keys.filter(key=>key!==section),at=value.indexOf(target);
+   value.splice(at+(/below|after/i.test(relative[2])?1:0),0,section);
+   operations.push({kind:'navigation',value});continue;
+  }
   const faqEdit=/^(?:change|update) (?:the )?answer to question "([^"<>]{1,160})" (?:to|with) "([^"<>]{1,1200})"$/i.exec(p);
   const faqRemove=/^remove (?:the )?question "([^"<>]{1,160})"$/i.exec(p);
   if(faqEdit||faqRemove){
@@ -251,10 +276,11 @@ function planAppVoiceInstructions(config,instruction){
  }
  if(contentChanged)operations.push({kind:'content_layout',value:contentBlocks});
  if(faqChanged)operations.push({kind:'public_collection',field:'faqs',value:faqWorking});
+ if(servicesChanged)operations.push({kind:'services',value:serviceWorking});
  if(unresolved.length)return {ok:false,needsClarification:true,unresolved,preserved,
   supportedOperations:operations,reason:"BUSY needs clarification before combining these changes: "+unresolved.join("; ")};
  if(!operations.length)return {ok:false,reason:"Nothing needs changing; your existing design stays as it is."};
- const targets=operations.map(op=>['appearance','text','contact','public_collection'].includes(op.kind)?op.kind+':'+op.field:op.kind==='content_layout'?'content_layout':'navigation');
+ const targets=operations.map(op=>['appearance','text','contact','public_collection'].includes(op.kind)?op.kind+':'+op.field:op.kind==='content_layout'?'content_layout':op.kind==='services'?'services':'navigation');
  if(new Set(targets).size!==targets.length)return {ok:false,needsClarification:true,reason:'Choose one instruction for each app setting before preparing the changes.'};
  const result=proposeCoordinatedAppChanges(config,operations);
  return {...result,instruction:phrase,preserved};
