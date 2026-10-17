@@ -241,7 +241,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
              setSelectedInstructionPreview(null);
              setContextNote("");
             }}
-            placeholder={field==="title"?"Make this heading bigger":"Describe one change to this selected part"}
+            placeholder={field==="title"?"Make this heading bigger":"Make this section more premium; move this section above contact"}
             autoCapitalize="sentences"/>
            {preparedInstruction?.ok&&preparedInstruction.steps.length>1?(
             <View style={{marginTop:8,marginBottom:8}}>

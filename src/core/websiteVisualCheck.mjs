@@ -75,6 +75,10 @@ function makeWebsiteVisualCheckHtml(html,inspectionKey="preview"){
     }
     return [255,255,255,1];
    }
+   var textBlocks=[].slice.call(document.querySelectorAll('main p,main li')).filter(function(node){
+    var rect=node.getBoundingClientRect(),style=getComputedStyle(node);
+    return node.textContent.trim()&&rect.width>0&&rect.height>0&&style.visibility!=='hidden'&&style.display!=='none';
+   }).length;
    var samples=[].slice.call(document.querySelectorAll("main h1,main h2,main h3,main p,main li,main a,main button")).slice(0,120);
    var lowContrast=0,contrastUnknown=0,contrastChecked=0,smallBodyText=0;
    samples.forEach(function(node){
@@ -95,6 +99,7 @@ function makeWebsiteVisualCheckHtml(html,inspectionKey="preview"){
    var value={channel:"busy.website.visual-review.v1",key:${JSON.stringify(inspectionKey)},
     viewport:Math.max(0,Math.round(window.innerWidth)),
     width:Math.max(0,Math.round(document.documentElement.scrollWidth)),
+    textBlocks:Math.min(10000,textBlocks),
     overflow:Math.min(99,overflow),images:Math.min(99,imgs.length),
     missingAlt:Math.min(99,missing),unloadedImages:Math.min(99,unloaded),
     smallTargets:Math.min(99,small),badAnchors:Math.min(99,anchors),
@@ -129,6 +134,12 @@ function reviewWebsiteVisualCheck(message,inspectionKey="preview"){
  }
  if(counts.viewport<250||counts.viewport>3000||
     counts.width<0||counts.width>100000)return null;
+ // Optional for compatibility with earlier retained report packets. If a
+ // report supplies coverage, the comparator requires it on both sides.
+ if(message.textBlocks!==undefined){
+  if(!Number.isSafeInteger(message.textBlocks)||message.textBlocks<0||message.textBlocks>10000)return null;
+  counts.textBlocks=message.textBlocks;
+ }
  const targets={};
  for(const [key,counter] of [["clippedSectionIds","clippedHeadings"],["overflowSectionIds","overflow"]]){
   if(message[key]===undefined)continue;

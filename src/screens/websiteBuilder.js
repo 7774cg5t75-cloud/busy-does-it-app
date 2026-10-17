@@ -1291,7 +1291,7 @@ function WebsitePreview({ s }) {
         title="Tell BUSY which sections to adjust"
         body="Use the section names visible on this page. BUSY checks each instruction, shows the original beside the proposed result and asks you to approve before saving. Unsupported or unclear instructions change nothing."
         tone="blue">
-        <Text style={styles.cardBody}>Try: Move the services section up; make the hero heading smaller on phones; give the about section more space.</Text>
+        <Text style={styles.cardBody}>Try: Move the about section above services; make the about section more premium. Or: make the whole page easier to read. Shared theme changes affect all pages; always preview first.</Text>
         <TextInput value={pageInstruction}
           onChangeText={value=>{setPageInstruction(value);setPagePlanPreview(null);setPagePlanNotice("");}}
           multiline maxLength={400}

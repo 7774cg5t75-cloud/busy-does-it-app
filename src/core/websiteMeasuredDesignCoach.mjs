@@ -60,7 +60,7 @@ function compareWebsiteVisualReports(original,candidate){
  for(const report of [original,candidate])if(!Number.isFinite(report.counts.viewport)||report.counts.viewport<250||report.counts.viewport>3000||!Number.isFinite(report.counts.width)||report.counts.width<0)
   return {valid:false,reason:"Valid measured viewport and page widths are required."};
  const regressions=[],reducedMeasurements=[];
- for(const field of ['sections','headings','images']){
+ for(const field of ['sections','headings','images','textBlocks']){
   if(![original,candidate].some(r=>Object.hasOwn(r.counts,field)))continue;
   if(![original,candidate].every(r=>Number.isSafeInteger(r.counts[field])&&r.counts[field]>=0))return {valid:false,reason:'Content measurement coverage must be available for both designs.'};
   if(candidate.counts[field]<original.counts[field])regressions.push('Fewer '+field+' were checked');

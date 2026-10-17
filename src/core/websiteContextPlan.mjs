@@ -33,9 +33,10 @@ function planSelectedWebsiteChanges(draft,pageId,selection,instruction){
    c.field||"",
    c.action==="image-style"||c.action==="move-gallery-photo"?c.photoIndex:"",
   ].join(":");
-  if(changed.has(target))
+  const targets=c.action==='style-group'?c.operations.map(op=>['layout',op.action,op.sectionId||'',op.itemId||'',op.field||'',''].join(':')):[target];
+  if(targets.some(key=>changed.has(key)))
    return error("Two instructions would change the same setting. Choose one change for that setting.");
-  changed.add(target);
+  targets.forEach(key=>changed.add(key));
   steps.push({type:result.type,change:{...c},description:result.reason,spoken:clauses[i]});
  }
  return {ok:true,steps,requiresExplicitApproval:true,

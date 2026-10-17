@@ -73,6 +73,20 @@ function buildBusinessBrandDnaSnapshot({website,app,businessId}={}){
   conflicts.push("Website and App colours differ; keep both until owner chooses.");
  if(cleanText(website.businessName,140)&&cleanText(website.businessName,140)!==name)
   conflicts.push("Website and App business names differ; owner review required.");
+ const websiteServices=website.sections.filter(s=>s?.type==='services'&&s.enabled!==false);
+ const normal=v=>typeof v==='string'?v.trim().normalize('NFKC').toLocaleLowerCase('en'):'';
+ if(websiteServices.length===1&&Array.isArray(websiteServices[0].items)&&websiteServices[0].items.length<=30){
+  const web=websiteServices[0].items;
+  const shared=raw.filter(row=>normal(row?.name)&&web.filter(item=>normal(item?.title)===normal(row.name)).length===1);
+  const differing=shared.filter(row=>{
+   const other=web.find(item=>normal(item?.title)===normal(row.name));
+   return normal(row.description)&&normal(other.body)&&normal(row.description)!==normal(other.body);
+  });
+  if(differing.length)conflicts.push(differing.length+' shared service description(s) differ; preserve each destination until reviewed.');
+  const appOnly=raw.filter(row=>normal(row?.name)&&!web.some(item=>normal(item?.title)===normal(row.name))).length;
+  const webOnly=web.filter(row=>normal(row?.title)&&!raw.some(item=>normal(item?.name)===normal(row.title))).length;
+  if(appOnly||webOnly)conflicts.push('Service coverage differs: '+appOnly+' app-only and '+webOnly+' website-only. Missing-only reuse needs owner review.');
+ }
  const ownerVoice=cleanText(profile.brandVoice?.tone,48);
  const voice=ownerVoice&&["warm","professional","playful","direct","premium","calm"]
   .includes(ownerVoice.toLowerCase())?ownerVoice.toLowerCase():null;

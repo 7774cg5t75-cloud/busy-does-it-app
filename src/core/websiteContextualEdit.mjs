@@ -52,6 +52,21 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
   return success("field",{sectionId,itemId:itemId||null,field,value:replacement[1]},
    "Replace only the selected wording in your private draft.");
  }
+ if(!itemId&&field!=='photo'&&/^(?:make|give) (?:this|that|the selected) section (?:look |feel )?more premium$/i.test(text)){
+  const operations=[{action:'section-style',sectionId,field:'sectionSpacing',value:'generous'},
+   {action:'section-style',sectionId,field:'headingScale',value:'large'}].filter(op=>section.appearance?.[op.field]!==op.value);
+  if(!operations.length)return failure('This section already uses these settings. Inspect the preview before changing it further.');
+  return success('layout',{action:'style-group',operations},'Prepare stronger heading hierarchy and breathing room for the selected section; this is a visual hypothesis, not measured improvement.');
+ }
+ const relative=text.match(/^move (?:this|that|the selected) section (above|below|before|after) (?:the )?(.+?)(?: section| form)?$/i);
+ if(relative&&!itemId){
+  const name=relative[2].trim().toLocaleLowerCase('en');
+  const matches=draft.sections.filter(s=>s.enabled!==false&&list(page.sectionIds).includes(s.id)&&
+   (s.id.toLocaleLowerCase('en')===name||String(s.title||'').trim().toLocaleLowerCase('en')===name));
+  if(matches.length!==1)return failure('Name one exact visible destination section on this page.');
+  return success('layout',{action:'move-relative',sectionId,targetSectionId:matches[0].id,pageId,
+   position:/above|before/i.test(relative[1])?'before':'after'},'Move only the selected section relative to the named section; owner locks remain protected.');
+ }
  let m=text.match(/^(?:make|set) (?:this|that|the selected) (?:heading|title) (bigger|larger|smaller|normal)(?: (?:only )?on (phones?|mobile|desktop|computers?|wide screens?))?$/i);
  if(m){
   if(field!=="title")return failure("Tap the heading you want to resize.");

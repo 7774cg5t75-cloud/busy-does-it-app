@@ -13,7 +13,7 @@ const d={id:'draft',generation:3,businessId:'business',theme:{},pages:[{id:'home
 const req=instruction=>({draftId:d.id,generation:3,pageId:'home',instruction});
 const apply=(draft,op)=>{const out=layout(draft,op);return out.applied?{...out,draft:{...out.draft,generation:draft.generation+1}}:out;};
 const renderPage=draft=>'<!doctype html><html><body>'+JSON.stringify(draft.theme)+JSON.stringify(draft.sections)+'</body></html>';
-for(const instruction of ['move the about section above the services section','move the services section below the contact form','make the about section look more premium','make the whole page easier to read on phones']){
+for(const instruction of ['move the about section above the services section','move the services section below the contact form','make the about section look more premium','make the whole page easier to read']){
  const before=JSON.stringify(d),p=plan(d,req(instruction));assert.equal(p.ok,true,p.reason);
  const out=preview(d,req(instruction),{layoutEdit:apply,renderPage});assert.equal(out.ok,true,out.reason);assert.notEqual(out.originalHtml,out.candidateHtml);assert.equal(JSON.stringify(d),before);
 }
@@ -26,3 +26,5 @@ assert.equal(plan(d,req('make the about section more premium; give the about sec
 assert.equal(plan(d,{...req('move the about section above the services section'),generation:2}).ok,false);
 assert.equal(plan(d,req('make the whole page easier to read; publish website')).ok,false);
 console.log('Mission15: canonical promoted preview, relative section navigation, grouped private edits, stale/lock/overlap safety PASS');
+
+assert.equal(plan(d,req('make the whole page easier to read only on phones')).ok,false,'Global theme cannot masquerade as phone-only text changes');

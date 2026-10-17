@@ -34,7 +34,7 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    change={action:'move-relative',sectionId:section.id,targetSectionId:target.id,
     position:/above|before/i.test(m[2])?'before':'after',pageId};
    description='Move '+section.title+' '+m[2]+' '+target.title;
-  }else if(/^(?:make|set) (?:the )?(?:whole |entire )?(?:page|website) (?:easier to read|more readable)(?: on (?:phones?|mobile))?$/i.test(clause)){
+  }else if(/^(?:make|set) (?:the )?(?:whole |entire )?(?:page|website) (?:easier to read|more readable)$/i.test(clause)){
    const operations=[{action:'style',field:'typography',value:'refined'},
     {action:'style',field:'spacing',value:'comfortable'},
     {action:'style',field:'cardLayout',value:'rows'}].filter(op=>draft.theme?.[op.field]!==op.value);

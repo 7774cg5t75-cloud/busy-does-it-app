@@ -76,7 +76,7 @@ const screen=read("src/screens/websiteBuilder.js");
 assert.ok(controller.includes("const applySelectedWebsiteInstruction ="));
 assert.ok(controller.includes("selection.draftId!==current.id"));
 assert.ok(controller.includes("planSelectedWebsiteChanges(current,selection.pageId,selection,instruction)"));
-assert.ok(controller.includes("websiteDraftRef.current=updated.draft"));
+assert.ok(controller.includes("commitReviewedBuilderDraft(current,updated.draft,updated.reason"),"Selected edits must use the current shared scope/revision/lock commit boundary");
 assert.ok(controller.includes("setWebsiteUndo(items=>[...items,current].slice(-8))"),
  "Atomic multi-step change uses exactly one Undo entry");
 assert.ok(screen.includes("onApplyInstruction={s.applySelectedWebsiteInstruction}"));
