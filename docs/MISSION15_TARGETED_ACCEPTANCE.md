@@ -7,3 +7,13 @@
 5. Compare differing website/app service descriptions and coverage. Confirm both remain unchanged until an exact source-bound reuse proposal is approved.
 
 Hosted staging/deployment, physical devices, paid builds and customer/provider actions require separate approval. No full disposable rehearsal is requested by this plan.
+
+## Phase 2 additions — pending genuine device/staging approval
+
+- Coordinate quoted wording and layout edits, add a visible FAQ, reject a partial failing batch and Undo the entire saved edit.
+- Verify phone body-reading controls do not change tablet/desktop, and desktop overrides do not change phones; check actual text wrapping at 390/768/1280 and native accessibility scaling.
+- Edit a service while another owner revision inserts/removes/rewords it; typed text survives, current text is shown, stable-ID review is required, and saved Undo is exact.
+- Follow Ask about and Request service actions to the correct form, preserve customer wording, and verify original saved request types/receipts in approved isolated staging. Do not send real messages.
+- Switch account/business/site and update source revisions while a cross-builder proposal is open; no old private proposal should appear or be applied.
+
+Offline counterparts pass with inert boundaries; no new native/provider/hosted acceptance is claimed.
