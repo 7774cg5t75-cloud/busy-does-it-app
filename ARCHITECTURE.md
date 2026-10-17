@@ -1,3 +1,7 @@
+## Mission 12 preflight and completed disposable rehearsal — 17 October 2026
+
+Manual rehearsal #15 passed all nine stages and cleanup at `55db12d247b149aa2052fc17f5d5dc536a77b8a7`. This establishes the reported disposable local database scope, not hosted/device or production readiness. Mission 12 begins on a separate dependent draft branch; no product changes have been made. The current private-master gate remains pending: the workspace contains V22.18, while independent documentation PR #16 records V22.24. See [Mission 12 preflight](docs/BUILDER_MISSION12_PREFLIGHT_2026_10_17.md) for exact dependencies, source observations, evidence and limits.
+
 ## Builder Mission 6 — source-bound recovery and useful content completion (2026-10-15)
 
 - Integration review also repaired an inherited render-time `cloudWorkspace` declaration-order defect. A new immediate-reference audit and executed scope-initialisation regression catches it; the final offline suite is 130/130, without native/staging verification.
