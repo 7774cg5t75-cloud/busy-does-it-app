@@ -5,7 +5,7 @@ import {styles} from '../theme/styles';
 import {textTypographySupports} from '../../supabase/functions/busy-website-worker/websiteTextTypography.mjs';
 // Finite choices stage the original instruction/preview path, never CSS or a save.
 export function WebsiteTypographyControls({section,selection,onChoose}){
- const [active,setActive]=React.useState(null),[help,setHelp]=React.useState(null);
+ const [active,setActive]=React.useState(null),[help,setHelp]=React.useState(null),[advanced,setAdvanced]=React.useState(null);
  const scope=JSON.stringify([selection?.draftId,selection?.generation,selection?.pageId,selection?.sectionId,selection?.itemId,selection?.field,section?.type]);
  const live=React.useRef(null);live.current={scope,section,onChoose,category:null};
  const target=selection?.field==='title'?'title':selection?.field==='body'?'body':null;
@@ -19,7 +19,8 @@ export function WebsiteTypographyControls({section,selection,onChoose}){
  if(target==='body')for(const group of ['size','size on phones','size on desktop'])groups[group]=[['brand','Use existing reading style'],['normal','Standard paragraph'],['large','Larger paragraph'],['extra-large','Extra large paragraph']];
  if(target==='title'&&!selection.itemId)for(const group of ['size on phones','size on desktop'])groups[group]=[['smaller','Smaller heading'],['normal','Standard heading'],['bigger','Bigger heading']];
  const category=active?.scope===scope&&groups[active.name]?active.name:null;
- const helpVisible=help===scope;
+ const helpVisible=help===scope,advancedVisible=advanced===scope;
+ const extra=name=>name==='font'||name==='size on desktop';
  live.current.category=category;
  const current=()=>live.current.scope===scope&&live.current.section===section&&live.current.onChoose===onChoose;
  const choose=(instruction,fromCategory=null)=>{if(current()&&(!fromCategory||live.current.category===fromCategory))onChoose(instruction);};
@@ -28,7 +29,8 @@ export function WebsiteTypographyControls({section,selection,onChoose}){
   <Text style={styles.cardBody}>Choose a setting, then preview and approve. Your Brand DNA and other content stay unchanged.</Text>
   {target==='body'&&!selection.itemId?<View><Button label="Choose phone reading for this section" onPress={()=>choose('make this section easier to read on phones; give this section more space on phones and keep my colours')}/><Text style={styles.cardBody}>This phone preset changes reading size and spacing for the whole selected section. Desktop styling, colours and wording stay as they are.</Text></View>:null}
   {target==='title'?<View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}>{['smaller','normal','bigger'].map(size=><Button key={size} label={'Choose '+size+' heading'} onPress={()=>choose('make this heading '+size)}/>)}</View>:null}
-  <View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}>{Object.keys(groups).map(name=><View key={name} style={{width:'48%'}}><Button label={(category===name?'✓ ':'')+name} onPress={()=>{if(current())setActive(category===name?null:{scope,name});}}/></View>)}</View>
+  <View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}>{Object.keys(groups).filter(name=>advancedVisible||!extra(name)).map(name=><View key={name} style={{width:'48%'}}><Button label={(category===name?'✓ ':'')+name} onPress={()=>{if(current()){const next=category===name?null:name;live.current.category=next;setActive(next?{scope,name:next}:null);}}}/></View>)}</View>
+  <Button label={advancedVisible?'Fewer text options':'More text options'} onPress={()=>{if(current()){if(category&&extra(category)){live.current.category=null;setActive(null);}setAdvanced(advancedVisible?null:scope);}}}/>
   {category?<View accessibilityLiveRegion="polite">{groups[category].map(([value,label])=><Button key={value} label={label} onPress={()=>choose(category.startsWith('size')?target==='title'?'make this heading '+value+' on '+category.split(' on ')[1]:'set this paragraph size to '+value+(category==='size'?'':' on '+category.split(' on ')[1]):'set this '+subject+' '+category+' to '+value,category)}/>)}</View>:null}
   {category?<Button label="Cancel style choice" onPress={()=>{if(current()){live.current.category=null;setActive(null);}}}/>:null}
   {target==='body'?<Button label="Preview easier reading" onPress={()=>choose('set this paragraph size to large; set this paragraph line spacing to relaxed')}/>:null}
