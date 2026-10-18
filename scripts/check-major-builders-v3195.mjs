@@ -1,3 +1,4 @@
+import {verifyOriginalWebsiteInstructionRuntime} from "./lib/original-website-instruction-runtime.mjs";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {validPrivateBuilderPair,reviewedPairIsCurrent}
@@ -177,7 +178,8 @@ for(const path of [
 }
 const ctrl=read("src/app/AppController.js");
 ok(ctrl.includes("const commitReviewedBuilderDraft="));
-eq((ctrl.match(/commitReviewedBuilderDraft\(current,/g)||[]).length,6);
+// Exercise the original commit/Undo handlers; adding a reviewed caller must not break a call-count assertion.
+verifyOriginalWebsiteInstructionRuntime();
 ok(ctrl.includes("setWebsiteUndo(items=>[...items,current].slice(-8))"));
 ok(ctrl.includes("confirmMatchAppBrandToWebsite(current,app,{businessId,evidence})"));
 ok(ctrl.includes("confirmMatchAppTypeToWebsite(current,app,{businessId,evidence})"));

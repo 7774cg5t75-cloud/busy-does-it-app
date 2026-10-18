@@ -1,6 +1,7 @@
 // Read-only owner review of finite PUBLIC draft fields, never customer records.
 import {validatePrivateAppServices} from './appServiceCollection.mjs';
 import {validPublicCollection} from './appPublicCollections.mjs';
+import {validGalleryDescriptionText} from './appGalleryDescription.mjs';
 const fail=reason=>({ok:false,reason,rows:[],savesNothing:true});
 const norm=value=>typeof value==='string'?value.trim().normalize('NFKC').toLocaleLowerCase('en'):'';
 function reviewAppContentChanges(original,proposed){
@@ -32,6 +33,20 @@ function reviewAppContentChanges(original,proposed){
  if(!collection(profile.services||[],next.services||[],{name:'name',subject:'Service',fields:['name','description','category','priceLabel','durationLabel'],validator:rows=>validatePrivateAppServices(rows).ok}))return fail('The service lists need review before a detailed comparison.');
  for(const [field,name,body,subject]of [['faqs','question','answer','Question'],['testimonials','attribution','text','Testimonial']]){
   if(!collection(profile[field]||[],next[field]||[],{name,subject,fields:[name,body],validator:rows=>validPublicCollection(field,rows)}))return fail('Review the current public '+field+' list before comparison.');
+ }
+ const gallery=profile.assets?.gallery||[],nextGallery=next.assets?.gallery||[];
+ if(![gallery,nextGallery].every(items=>Array.isArray(items)&&items.length<=40))return fail('Review the gallery before comparing descriptions.');
+ const approved=image=>image&&(image.approved===true||image.marketingOk===true)&&typeof image.uri==='string';
+ // Match media identity internally, never return URLs or unapproved descriptions.
+ for(let index=0;index<gallery.length;index++){
+  const image=gallery[index];if(!approved(image))continue;
+  const matches=nextGallery.filter(item=>approved(item)&&item.uri===image.uri);
+  if(matches.length!==1||gallery.filter(item=>item?.uri===image.uri).length!==1)continue;
+  for(const field of ['alt','caption']){
+   const before=image[field]??null,after=matches[0][field]??null;
+   if(!validGalleryDescriptionText(before,field==='alt'?160:240)||!validGalleryDescriptionText(after,field==='alt'?160:240))return fail('Review the existing gallery descriptions first.');
+   add('Gallery photo '+(index+1),field,before??'',after??'');
+  }
  }
  return {ok:true,rows,changeCount:rows.length,scope:'listed_public_text_and_collections_only',includesCustomerRecords:false,
   savesNothing:true,neverPublishes:true,notVisualAssessment:true};

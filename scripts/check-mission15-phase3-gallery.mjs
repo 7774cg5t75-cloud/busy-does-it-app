@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {planAppVoiceInstructions as plan,proposeCoordinatedAppChanges as apply} from '../src/core/appCoordinatedStudio.mjs';
+import {reviewAppContentChanges as review} from '../src/core/appContentChangeReview.mjs';
+const config={modules:[{key:'business_profile',enabled:true},{key:'gallery',enabled:true},{key:'contact',enabled:true}],navigation:['business_profile','gallery','contact'],publicProfile:{assets:{gallery:[{uri:'https://example.test/approved-a',approved:true},{uri:'https://example.test/approved-b',marketingOk:true,alt:'Before',caption:'Before caption'},{uri:'https://example.test/private',approved:false,alt:'PRIVATE_SENTINEL'}]}}};
+const words='describe gallery photo 1 as "Send us your project ideas" caption "Owner-approved workshop"; describe gallery photo 2 as "Our studio" caption "Studio entrance"; move contact before gallery';
+const before=JSON.stringify(config),p=plan(config,words);assert.equal(p.ok,true,p.reason);assert.equal(p.operations.length,3);assert.deepEqual(apply(p.nextConfig,p.undoOperations).nextConfig,config);assert.equal(JSON.stringify(config),before);assert.deepEqual(p.nextConfig.publicProfile.assets.gallery.map(x=>x.uri),config.publicProfile.assets.gallery.map(x=>x.uri));
+const r=review(config,p.nextConfig);assert.equal(r.ok,true);assert.equal(r.rows.length,4);assert.ok(r.rows.some(row=>row.field==='alt'&&row.after==='Our studio'));assert.doesNotMatch(JSON.stringify(r),/https:|PRIVATE_SENTINEL/);
+for(const phrase of ['describe gallery photo 3 as "Secret" caption "No"','describe gallery photo 9 as "Missing" caption "No"','describe gallery photo 1 as "One" caption "First"; describe gallery photo 1 as "Two" caption "Second"','describe gallery photo 1 as "One" caption "First"; publish app'])assert.equal(plan(config,phrase).ok,false,phrase);
+assert.equal(plan({...config,presentation:{ownerLockedElements:['gallery']}},words).ok,false);
+const stale=structuredClone(config);stale.publicProfile.assets.gallery[0].uri='https://example.test/replaced';assert.equal(apply(stale,p.operations).ok,false);
+for(const name of ['appCoordinatedStudio.mjs','appGalleryDescription.mjs'])assert.equal(fs.readFileSync('src/core/'+name,'utf8'),fs.readFileSync('supabase/functions/busy-mini-apps/'+name,'utf8'));
+assert.equal(review(config,config).changeCount,0);
+console.log('PASS literal coordinated approved-gallery accessibility editing, exact public text review, sparse Undo, media identity, locks, duplicate/unsupported rejection and client/server parity. No media retrieval or visual claim.');

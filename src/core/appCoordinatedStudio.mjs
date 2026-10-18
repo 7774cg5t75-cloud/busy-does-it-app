@@ -177,6 +177,11 @@ function planAppVoiceInstructions(config,instruction){
  let servicesChanged=false;
  const serviceKeys=serviceWorking.map((_,index)=>index),serviceWrites=new Set();let nextServiceKey=serviceKeys.length;
  for(let p of pieces){
+  const photoDescription=/^describe gallery photo ([1-9][0-9]?) as "([^"<>]{1,160})" caption "([^"<>]{0,240})"$/i.exec(p);
+  if(photoDescription){
+   const index=Number(photoDescription[1])-1,image=config.publicProfile?.assets?.gallery?.[index];
+   operations.push({kind:'photo_description',index,expectedUri:image?.uri,value:{alt:photoDescription[2],caption:photoDescription[3]}});continue;
+  }
   const block=/^(?:add|show|include)(?: my| our| the)? (products|events|upcoming events)(?: (?:section|screen))?(?: as (cards|rows))?$/i.exec(p);
   if(block){const kind=block[1].toLowerCase()==='products'?'product':'event',value={kind,title:kind==='product'?'Products':'Upcoming events',layout:(block[2]||'cards').toLowerCase()};const i=contentBlocks.findIndex(x=>x.kind===kind);if(i>=0)contentBlocks[i]={...contentBlocks[i],layout:value.layout};else contentBlocks.push(value);contentChanged=true;continue;}
   const faq=/^add (?:a )?(?:customer )?question "([^"<>]{1,160})" (?:with )?answer "([^"<>]{1,1200})"$/i.exec(p);
@@ -302,7 +307,7 @@ function planAppVoiceInstructions(config,instruction){
  if(unresolved.length)return {ok:false,needsClarification:true,unresolved,preserved,
   supportedOperations:operations,reason:"BUSY needs clarification before combining these changes: "+unresolved.join("; ")};
  if(!operations.length)return {ok:false,reason:"Nothing needs changing; your existing design stays as it is."};
- const targets=operations.map(op=>['appearance','text','contact','public_collection'].includes(op.kind)?op.kind+':'+op.field:op.kind==='content_layout'?'content_layout':op.kind==='services'?'services':'navigation');
+ const targets=operations.map(op=>['appearance','text','contact','public_collection'].includes(op.kind)?op.kind+':'+op.field:op.kind==='content_layout'?'content_layout':op.kind==='services'?'services':op.kind==='photo_description'?'photo_description:'+op.index:'navigation');
  if(new Set(targets).size!==targets.length)return {ok:false,needsClarification:true,reason:'Choose one instruction for each app setting before preparing the changes.'};
  const result=proposeCoordinatedAppChanges(config,operations);
  return {...result,instruction:phrase,preserved};

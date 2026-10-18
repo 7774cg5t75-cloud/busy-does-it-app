@@ -1592,6 +1592,10 @@ function MiniAppBuilder({ s }) {
           body="Describe the result you want. BUSY identifies only supported safe edits, checks the current private app, then shows the entire proposed customer view. If an instruction is unclear, nothing is applied."
           footer="One approval saves the complete batch as ONE private revision. Undo reverses that batch without touching the live app."
           tone="blue">
+          <Text style={styles.cardBody}>
+            For approved gallery photos, try: describe gallery photo 1 as
+            {' "Workshop entrance" caption "Find us here"'}. Images stay unchanged.
+          </Text>
           <Button label={showCustomerTaskReview?
               "Hide customer journey ideas":"Help customers find what they need"}
             onPress={()=>setShowCustomerTaskReview(x=>!x)}/>
