@@ -15652,6 +15652,18 @@ function App() {
       ownerId:ownerSession?.userId||"",businessId:cloudWorkspace?.businessId||""});
   };
 
+  const readCurrentAppStudioDraft=async({appId}={})=>{
+    const captured=privateAppEditScopeRef.current;
+    const isCurrent=()=>{const live=privateAppEditScopeRef.current;return !!captured?.userId&&live?.userId===captured.userId&&live.businessId===captured.businessId&&live.app?.id===appId;};
+    if(!isCurrent()||privateAppEditInFlightRef.current)return {ok:false};
+    try{
+      const status=await miniAppsRequest('owner_status',{},{isCurrent});
+      if(!isCurrent()||status?.app?.id!==appId||status.app.business_id!==captured.businessId)return {ok:false};
+      applyMiniAppsStatus(status);
+      return {ok:true,readOnly:true,ownerId:captured.userId,businessId:captured.businessId,app:status.app};
+    }catch{return {ok:false};}
+  };
+
   const saveCoordinatedAppChanges=async({operations,appId,expectedRevision,source}={})=>{
     const captured=privateAppEditScopeRef.current;
     if(privateAppEditInFlightRef.current)return {ok:false,reason:"A private app save is already being checked."};
@@ -17103,6 +17115,7 @@ function App() {
     toggleMiniAppModule,
     savePrivateAppAppearance,
     saveCoordinatedAppChanges,
+    readCurrentAppStudioDraft,
     checkPrivateAppVisualReview,
     reviewPrivateAppScreenshot,
     comparePrivateAppScreenshots,

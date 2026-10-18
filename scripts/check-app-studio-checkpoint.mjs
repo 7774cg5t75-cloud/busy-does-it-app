@@ -15,7 +15,7 @@ const first=await create();first.prepare(proposal);await tick();first.detach();
 const restored=await create();assert.deepEqual(restored.snapshot().preview.nextConfig,proposal.nextConfig);assert.equal(restored.snapshot().canApprove,true);
 const other={...scope,ownerId:'dddddddd-dddd-4ddd-8ddd-dddddddddddd'};assert.notEqual(key(scope),key(other));assert.equal((await create(other)).snapshot().preview,null);
 const stale={...scope,app:{...scope.app,draft_revision:5}};assert.equal((await create(stale)).snapshot().preview,null);
-fail=true;await restored.approve(async()=>{writes++;});assert.equal(writes,0);assert.equal(restored.snapshot().uncertain,true);assert.match(restored.snapshot().recoveryError,/device locked/);
+fail=true;await restored.approve(async()=>{writes++;});assert.equal(writes,0);assert.equal(restored.snapshot().uncertain,false,'Storage failed before any dispatch, so no save outcome is unknown');assert.match(restored.snapshot().recoveryError,/device locked/);
 fail=false;restored.prepare(proposal);let finish;
 const pending=restored.approve(()=>{writes++;return new Promise(resolve=>{finish=resolve;});});await tick();assert.equal(writes,1);
 const interrupted=await create();assert.equal(interrupted.snapshot().interrupted,true);assert.equal(interrupted.snapshot().canApprove,false);assert.equal(interrupted.snapshot().canUndo,false);assert.equal(writes,1);

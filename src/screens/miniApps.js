@@ -897,7 +897,7 @@ function MiniAppBuilder({ s }) {
   const controlContext={ownerId:s.ownerSession?.userId||"",businessId:s.cloudWorkspace?.businessId||"",app};
   const liveControlContext=React.useRef(null);liveControlContext.current=controlContext;
   const studio=usePrivateAppStudio({businessId:s.cloudWorkspace?.businessId||"",
-    ownerId:s.ownerSession?.userId||"",app,config:view.draftConfig},s.saveCoordinatedAppChanges);
+    ownerId:s.ownerSession?.userId||"",app,config:view.draftConfig},s.saveCoordinatedAppChanges,s.readCurrentAppStudioDraft);
   const studioPreview=studio.preview,studioNotice=studio.notice;
   const setStudioPreview=studio.prepare,setStudioNotice=studio.setNotice;
   const studioIsCurrent=!!studio.preview;
@@ -2474,8 +2474,8 @@ function MiniAppBuilder({ s }) {
           ):null}
           {!studio.recoveryReady?<Text style={styles.cardBody}>Checking your encrypted private Studio checkpoint…</Text>:null}
           {studio.recoveryError?<Text style={styles.cardBody}>{studio.recoveryError}</Text>:null}
-          {studio.interrupted?<Button label="Refresh current private app" disabled={!!s.miniAppsAction}
-            onPress={()=>s.refreshMiniAppsStatus?.()}/>:null}
+          {studio.interrupted?<Button label="Refresh current private app" disabled={!!s.miniAppsAction||studio.pending}
+            onPress={studio.reconcile}/>:null}
           {studioNotice?<Text style={styles.cardBody}>{studioNotice}</Text>:null}
           {studioPreview?.ok&&studioIsCurrent?(
             <>
@@ -2499,7 +2499,7 @@ function MiniAppBuilder({ s }) {
               <Button primary label={"Approve all "+studioPreview.changes.length+" private change(s)"}
                 disabled={!!s.miniAppsAction||!studio.canApprove}
                 onPress={studio.approve}/>
-              <Button label="Discard the whole proposed batch" disabled={studio.pending}
+              <Button label="Discard the whole proposed batch" disabled={studio.pending||studio.uncertain}
                 onPress={studio.discard}/>
             </>
           ):null}
