@@ -2358,7 +2358,7 @@ function MiniAppBuilder({ s }) {
           <Text style={styles.sectionLabel}>Or tell Busy other changes</Text>
           <Field label="App instructions" value={studioWords}
             onChangeText={value=>{setStudioWords(value);setStudioPreview(null);}}
-            placeholder='Add service "Survey" description "Tell us about your project"; move enquiries before services'/>
+            placeholder='Rename service "Survey" to "Site survey"; move service "Repair" before service "Site survey"'/>
           <Button label="Preview these app changes together" disabled={!!s.miniAppsAction||!studioWords.trim()}
             onPress={()=>{
               const p=planAppVoiceInstructions(view.draftConfig,studioWords);

@@ -33,6 +33,11 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    const field={heading:'title',text:'body',body:'body','button text':'cta'}[literal[2].toLowerCase()];
    change={sectionId:section.id,field,value:literal[3]};type='field';
    description='Replace only the owner-written '+field+' in '+section.title;
+  }else if((m=clause.match(/^add section "([^"<>]{1,100})" text "([^"<>]{1,2500})"$/i))){
+   if(pageId!=='home')return fail('Create new text sections on Home first, then use the page editor to assign them elsewhere.');
+   if(list(draft.sections).some(s=>String(s.title||'').trim().toLocaleLowerCase('en')===m[1].trim().toLocaleLowerCase('en')))
+    return fail('A section already uses that title. Edit its text or choose a distinct name.');
+   change={action:'add-text',title:m[1],body:m[2]};description='Add your exact heading and wording before contact in the private Home page';
   }else if((m=clause.match(/^add question "([^"<>]{1,140})" answer "([^"<>]{1,1200})"$/i))){
    const sections=list(draft.sections).filter(s=>s.id==='faq'||s.type==='faq');
    if(!sections.length&&draft.designPlan?.architecture!=='focused-landing')return fail('Create the FAQ section in the content editor first, then open its page to add your question.');
@@ -94,7 +99,7 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    description="Emphasise the existing approved website button";
   }else return fail("No changes were made. Step "+(i+1)+" is not a supported, exact instruction. Try 'move the services section up' or 'make the hero heading smaller on phones'.");
   const leaves=change.action==='style-group'?change.operations:[change];
-  const keys=leaves.map(op=>[op.action==='move-relative'?'move':op.action,op.sectionId||"global",op.field||"position"].join(":"));
+  const keys=leaves.map(op=>[op.action==='move-relative'?'move':op.action,op.sectionId||"global",op.action==='add-text'?op.title.trim().toLocaleLowerCase('en'):op.field||"position"].join(":"));
   if(keys.some(key=>targets.has(key)))return fail("Two steps affect the same setting. Give one instruction for that setting.");
   keys.forEach(key=>targets.add(key));steps.push({type,change,spoken:clause,description});
  }

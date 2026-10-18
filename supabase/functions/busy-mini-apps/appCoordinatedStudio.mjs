@@ -175,6 +175,7 @@ function planAppVoiceInstructions(config,instruction){
  let faqChanged=false;
  let serviceWorking=Array.isArray(config.publicProfile?.services)?config.publicProfile.services.map(row=>({...row})):[];
  let servicesChanged=false;
+ const serviceKeys=serviceWorking.map((_,index)=>index),serviceWrites=new Set();let nextServiceKey=serviceKeys.length;
  for(let p of pieces){
   const block=/^(?:add|show|include)(?: my| our| the)? (products|events|upcoming events)(?: (?:section|screen))?(?: as (cards|rows))?$/i.exec(p);
   if(block){const kind=block[1].toLowerCase()==='products'?'product':'event',value={kind,title:kind==='product'?'Products':'Upcoming events',layout:(block[2]||'cards').toLowerCase()};const i=contentBlocks.findIndex(x=>x.kind===kind);if(i>=0)contentBlocks[i]={...contentBlocks[i],layout:value.layout};else contentBlocks.push(value);contentChanged=true;continue;}
@@ -182,14 +183,35 @@ function planAppVoiceInstructions(config,instruction){
   if(faq){if(!faqWorking){unresolved.push(p);continue;}faqWorking=[...faqWorking,{question:faq[1],answer:faq[2]}];faqChanged=true;continue;}
   const serviceAdd=/^add service "([^"<>]{1,120})" (?:with )?description "([^"<>]{1,600})"$/i.exec(p);
   const serviceEdit=/^(?:change|update) service "([^"<>]{1,120})" (description|category|price label|duration label) (?:to|with) "([^"<>]{1,600})"$/i.exec(p);
+  const serviceRename=/^rename service "([^"<>]{1,120})" to "([^"<>]{1,120})"$/i.exec(p);
+  const serviceRemove=/^remove service "([^"<>]{1,120})"$/i.exec(p);
+  const serviceMove=/^move service "([^"<>]{1,120})" (before|after) service "([^"<>]{1,120})"$/i.exec(p);
+  if(serviceRename||serviceRemove||serviceMove){
+   const command=serviceRename||serviceRemove||serviceMove;
+   const indices=name=>serviceWorking.map((row,index)=>row.name?.trim().normalize('NFKC').toLocaleLowerCase('en')===name.trim().normalize('NFKC').toLocaleLowerCase('en')?index:-1).filter(index=>index>=0);
+   const from=indices(command[1]);if(from.length!==1){unresolved.push(p);continue;}
+   const at=from[0],write=serviceKeys[at]+':'+(serviceRename?'name':serviceRemove?'remove':'order');
+   if(serviceWrites.has(write)){unresolved.push(p);continue;}serviceWrites.add(write);
+   if(serviceRename){
+    if(indices(command[2]).length){unresolved.push(p);continue;}
+    serviceWorking=serviceWorking.map((row,index)=>index===at?{...row,name:command[2].trim()}:row);
+   }else if(serviceRemove){serviceWorking.splice(at,1);serviceKeys.splice(at,1);}
+   else{
+    const target=indices(command[3]);if(target.length!==1||target[0]===at){unresolved.push(p);continue;}
+    const [row]=serviceWorking.splice(at,1),[key]=serviceKeys.splice(at,1),to=target[0]-(at<target[0]?1:0)+(command[2].toLowerCase()==='after'?1:0);
+    serviceWorking.splice(to,0,row);serviceKeys.splice(to,0,key);
+   }
+   servicesChanged=true;continue;
+  }
   if(serviceAdd||serviceEdit){
    const name=(serviceAdd||serviceEdit)[1].trim().toLocaleLowerCase('en');
    const positions=serviceWorking.map((row,index)=>row.name?.trim().toLocaleLowerCase('en')===name?index:-1).filter(index=>index>=0);
    if(serviceAdd){if(positions.length){unresolved.push(p);continue;}
-    serviceWorking.push({name:serviceAdd[1].trim(),description:serviceAdd[2]});
+    serviceWorking.push({name:serviceAdd[1].trim(),description:serviceAdd[2]});serviceKeys.push(nextServiceKey++);
    }else{
     if(positions.length!==1){unresolved.push(p);continue;}
     const field={'price label':'priceLabel','duration label':'durationLabel'}[serviceEdit[2].toLowerCase()]||serviceEdit[2].toLowerCase();
+    const write=serviceKeys[positions[0]]+':'+field;if(serviceWrites.has(write)){unresolved.push(p);continue;}serviceWrites.add(write);
     serviceWorking=serviceWorking.map((row,index)=>index===positions[0]?{...row,[field]:serviceEdit[3]}:row);
    }
    servicesChanged=true;continue;
