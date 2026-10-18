@@ -4,7 +4,7 @@
 // neither adapter nor a mutation/provider executor can come from a request.
 const uuid=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 const same=(a,b)=>a&&b&&['ownerId','businessId','kind','projectId','revision','sourceHash'].every(k=>a[k]===b[k]);
-const valid=s=>s&&s.authorised===true&&uuid.test(s.ownerId)&&uuid.test(s.businessId)&&uuid.test(s.projectId)&&['app','website'].includes(s.kind)&&Number.isSafeInteger(s.revision)&&s.revision>0&&/^[a-f0-9]{64}$/.test(s.sourceHash);
+const valid=s=>s&&s.authorised===true&&uuid.test(s.ownerId)&&uuid.test(s.businessId)&&(s.kind==='app'?uuid.test(s.projectId):typeof s.projectId==='string'&&/^[a-zA-Z0-9_-]{1,160}$/.test(s.projectId))&&['app','website'].includes(s.kind)&&Number.isSafeInteger(s.revision)&&s.revision>0&&/^[a-f0-9]{64}$/.test(s.sourceHash);
 function createBuilderExploreCapabilityBoundary({readCurrentScope,readApprovedSummary,now=Date.now}={}){
  if(typeof readCurrentScope!=='function'||typeof readApprovedSummary!=='function'||typeof now!=='function')throw new TypeError('Trusted read adapters are required.');
  const sessions=new WeakMap();
