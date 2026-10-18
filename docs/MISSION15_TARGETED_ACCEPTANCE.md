@@ -17,3 +17,13 @@ Hosted staging/deployment, physical devices, paid builds and customer/provider a
 - Switch account/business/site and update source revisions while a cross-builder proposal is open; no old private proposal should appear or be applied.
 
 Offline counterparts pass with inert boundaries; no new native/provider/hosted acceptance is claimed.
+
+## Phase 3 additions — pending separately authorised acceptance
+
+- Review a whole-page customer goal, explicitly adapt same-business app branding, compare original/candidate at phone/tablet/desktop, and Keep privately. Check other pages for shared order/theme effects; Undo restores content, theme and original feedback snapshot together. Reject stale app/website revisions, changed reviewed facts and owner locks.
+- Rename/reorder/remove services and add multiple owner-written website sections in one batch; verify literal punctuation, duplicate targets, partial failure rejection and original Undo.
+- Inspect exact public-content changes and approved gallery alt/caption review with native accessibility tools. Unapproved media descriptions/URLs must not appear; images and publication remain unchanged.
+- Interrupt save after dispatch, restart with existing encrypted recovery, and attempt prepare/discard: no replay. Read original revision: remain blocked. Read a newer authenticated same-business revision: show it without attributing the earlier operation or manufacturing Undo. Account switch/read failure must not release another actor's gate.
+- Simulate checkpoint storage failure before dispatch: zero requests, original proposal stays reviewable. Verify real SecureStore/platform behavior separately; offline fixtures do not prove OS encryption or process-death behavior.
+
+These checks do not authorise deployment, hosted changes or customer contact. No rerun of the earlier database rehearsal is required merely by this checklist.
