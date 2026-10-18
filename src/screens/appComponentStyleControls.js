@@ -3,6 +3,7 @@ import {Text,View} from 'react-native';
 import {Button} from '../components/ui';
 import {styles} from '../theme/styles';
 import {COMPONENT_STYLE_OPTIONS} from '../core/appComponentAppearance.mjs';
+import {selectedAppFaq} from '../core/appSelectedFaq.mjs';
 import {selectedAppService} from '../core/appSelectedService.mjs';
 import {proposeCoordinatedAppChanges} from '../core/appCoordinatedStudio.mjs';
 export function AppComponentStyleControls({config,selection,onPrepare,disabled=false}){
@@ -10,9 +11,10 @@ export function AppComponentStyleControls({config,selection,onPrepare,disabled=f
  const live=React.useRef(null);live.current={config,selection,disabled,target,group};
  const current=()=>live.current.config===config&&live.current.selection===selection&&live.current.target===target&&live.current.group===group&&!live.current.disabled;
  const row=selectedAppService(config,selection);
- const targets=selection?.part==='header'?[['header-title','App heading'],['header-tagline','Header paragraph']]:row?.id?[['service:'+row.id+':title','This service heading'],['service:'+row.id+':body','This service description']]:[];
- if(!['header','service'].includes(selection?.part))return null;
- if(!targets.length)return <Text style={styles.cardBody}>Individual styling needs a unique saved service identifier. Existing collection presets and wording editing remain available; no identifier is invented.</Text>;
+ const faq=selectedAppFaq(config,selection);
+ const targets=selection?.part==='header'?[['header-title','App heading'],['header-tagline','Header paragraph']]:faq?.id?[['faq:'+faq.id+':title','This question'],['faq:'+faq.id+':body','This answer']]:row?.id?[['service:'+row.id+':title','This service heading'],['service:'+row.id+':body','This service description']]:[];
+ if(!['header','service','faq'].includes(selection?.part))return null;
+ if(!targets.length)return <Text style={styles.cardBody}>Individual styling needs a unique saved item identifier. Existing collection presets and wording editing remain available; no identifier is invented.</Text>;
  const key=targets.some(([key])=>key===target)?target:targets[0][0];
  return <View>
   <Text style={styles.sectionLabel}>Style selected text only</Text>

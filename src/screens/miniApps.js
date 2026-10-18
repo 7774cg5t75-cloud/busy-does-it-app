@@ -1,6 +1,7 @@
 import {AppGallerySurface} from "./appGallerySurface";
 import {ServiceDetails} from "../../standalone/template/serviceDetails";
 import {AppEntryEditButton} from './appEntryEditButton';
+import {AppFaqCard} from '../../standalone/template/appFaqCard';
 import {appComponentTextStyle} from '../core/appComponentAppearance.mjs';
 import {amendAppQualityProposal} from "../core/appCoordinatedStudio.mjs";
 import {AppVisualSelection} from "./appVisualSelection";
@@ -412,12 +413,13 @@ function MiniAppSurface({
             />
             {ownerSelection?<Button label="Edit this business description" onPress={()=>ownerSelection.onSelect({part:'wording',field:profile.about?'about':'description'})}/>:null}
             {(validContentLayout(config.contentLayout)?config.contentLayout:[]).map(block=><BusinessContentView key={block.kind} feed={businessContent} colors={brandColours} {...block} onInterest={interactive&&modules.some(m=>m.key==='enquiry')?(onSelectContent||onSelectService):null}/>)}
-            {['faqs','testimonials'].map(field=>publicCollection(field,profile[field]||[]).map((row,i)=><Card key={field+i}
-              eyebrow={field==='faqs'?'Customer question':'Customer testimonial'}
-              title={field==='faqs'?row.question:row.attribution} body={field==='faqs'?row.answer:row.text}>
-              {ownerSelection&&field==='faqs'?<AppEntryEditButton label={'Edit answer: '+row.question} colors={brandColours}
-               selected={ownerSelection.selection?.part==='faq'&&ownerSelection.selection.index===i}
-               onPress={()=>ownerSelection.onSelect({part:'faq',index:i,expectedFaq:JSON.stringify(profile.faqs[i])})}/>:null}
+            {publicCollection('faqs',profile.faqs||[]).map((row,i)=><AppFaqCard key={row.id||i} row={row} colors={brandColours} componentStyles={presentation.componentStyles} bodySize={visual.type.bodySize}>
+              {ownerSelection?<AppEntryEditButton label={'Edit answer: '+row.question} colors={brandColours} selected={ownerSelection.selection?.part==='faq'&&ownerSelection.selection.index===i} onPress={()=>ownerSelection.onSelect({part:'faq',index:i,expectedFaq:JSON.stringify(profile.faqs[i])})}/>:null}
+             </AppFaqCard>)}
+            {['testimonials'].map(field=>publicCollection(field,profile[field]||[]).map((row,i)=><Card key={field+i}
+              eyebrow="Customer testimonial"
+              title={row.attribution} body={row.text}>
+
              </Card>))}
             </View>
           );

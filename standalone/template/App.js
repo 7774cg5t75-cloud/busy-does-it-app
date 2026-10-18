@@ -1,3 +1,4 @@
+import {AppFaqCard} from './appFaqCard';
 import {ServiceDetails} from "./serviceDetails";
 import {appComponentTextStyle} from './appComponentAppearance.mjs';
 import {ENQUIRY_REQUIREMENTS,emptyEnquiryRequirements,prepareCustomerEnquiry,customerEnquiryReview,prepareCustomerBookingNote} from './customerEnquiryRequirements.mjs';
@@ -229,7 +230,7 @@ function LiveInfo({screen,app,layout,onRequestService,onOpenContact,onOpenOfferE
     resizeMode="cover"/>:null}
   {app.tagline&&app.about?<Text style={sub}>{app.about}</Text>:null}
   {(app.contentLayout||[]).map(block=><BusinessContentView key={block.kind} feed={app.businessContent} colors={COLORS} {...block} onInterest={app.supportsEnquiry?(name,prepared)=>onRequestService?.(name,'enquiry',prepared):null}/>)}
-  {(app.faqs||[]).map((row,i)=><View key={'faq'+i} style={{marginTop:16}}><Text style={{...t,fontWeight:'700'}}>{row.question}</Text><Text style={sub}>{row.answer}</Text></View>)}
+  {(app.faqs||[]).map((row,i)=><AppFaqCard key={row.id||i} row={row} colors={COLORS} componentStyles={app.componentStyles||LOOK.componentStyles} bodySize={VISUAL.type.bodySize}/>)}
   {(app.testimonials||[]).map((row,i)=><View key={'testimonial'+i} style={{marginTop:16}}><Text style={sub}>{row.text}</Text><Text style={{...t,fontWeight:'700'}}>{row.attribution}</Text></View>)}
  </View>;
  if(screen.key==="services")return <ServicesInfo app={app} layout={layout} onRequestService={onRequestService}/>;

@@ -1,7 +1,8 @@
 // Finite text styling shared by Studio, trusted validation and native renders.
 // No action, URL, position, visibility or executable property is accepted.
 const COMPONENT_STYLE_OPTIONS=Object.freeze({size:['normal','large','extra-large'],weight:['regular','medium','bold'],align:['left','center','right'],colour:['brand','ink','accent']});
-const keyValid=key=>['header-title','header-tagline'].includes(key)||/^service:[a-zA-Z0-9_-]{1,80}:(title|body)$/.test(key);
+import {validPublicCollection} from './appPublicCollections.mjs';
+const keyValid=key=>['header-title','header-tagline'].includes(key)||/^(service|faq):[a-zA-Z0-9_-]{1,80}:(title|body)$/.test(key);
 const plain=value=>value&&typeof value==='object'&&!Array.isArray(value);
 function validComponentStyle(value){return plain(value)&&Object.keys(value).length>0&&Object.keys(value).every(key=>Object.hasOwn(COMPONENT_STYLE_OPTIONS,key)&&COMPONENT_STYLE_OPTIONS[key].includes(value[key]));}
 function validComponentStyles(value){return plain(value)&&Object.keys(value).length<=24&&Object.entries(value).every(([key,style])=>keyValid(key)&&validComponentStyle(style));}
@@ -9,9 +10,11 @@ function componentTargetExists(config,key){
  if(!keyValid(key))return false;
  const enabled=name=>config?.modules?.some(m=>m.key===name&&m.enabled===true);
  if(key.startsWith('header-'))return enabled('business_profile');
- const id=key.split(':')[1];return enabled('services')&&Array.isArray(config.publicProfile?.services)&&config.publicProfile.services.filter(row=>row?.id===id).length===1;
+ const id=key.split(':')[1];
+ if(key.startsWith('faq:'))return enabled('business_profile')&&validPublicCollection('faqs',config.publicProfile?.faqs)&&config.publicProfile.faqs.filter(row=>row.id===id).length===1;
+ return enabled('services')&&Array.isArray(config.publicProfile?.services)&&config.publicProfile.services.filter(row=>row?.id===id).length===1;
 }
-function componentLockTargets(key){return ['appearance','typography','componentStyles',key,...(key.startsWith('header-')?['header','copy']:['services','copy'])];}
+function componentLockTargets(key){return ['appearance','typography','componentStyles',key,...(key.startsWith('header-')?['header','copy']:key.startsWith('faq:')?['faqs','copy']:['services','copy'])];}
 function appComponentTextStyle(styles,key,{colors,baseSize=15}={}){
  if(!validComponentStyles(styles||{})||!Object.hasOwn(styles||{},key))return {};
  const value=styles[key],out={};

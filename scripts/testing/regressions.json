@@ -736,6 +736,13 @@
         "scripts/check-mission15-phase13-explore-experience.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase13-faq-styles",
+      "args": [
+        "scripts/check-mission15-phase13-faq-styles.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
