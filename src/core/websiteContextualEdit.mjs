@@ -86,7 +86,7 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
  }
  const reading=text.match(/^make (?:this|that|the selected) (?:text|paragraph|section) (?:easier to read|more readable)(?: only)? on (phones?|mobile|desktop|computers?)$/i);
  if(reading){
-  if(itemId||!['body','section'].includes(field))return failure('Select the whole section or its paragraph to adjust reading size.');
+  if(itemId||!(['body','section'].includes(field)||field==='photo'&&section.type==='photo-feature'))return failure('Select the whole section, its paragraph or a paired picture/text block to adjust reading size.');
   return success('layout',{action:'section-style',sectionId,field:/phone|mobile/i.test(reading[1])?'mobileBodyScale':'desktopBodyScale',value:'large'},
    'Prepare larger body text and line spacing only at this screen width. Preview before keeping it.');
  }

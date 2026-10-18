@@ -19,6 +19,7 @@ export function WebsitePhotoControls({draft,selection,section,onChoose}){
  }else if(section.type==='photo-feature'){
   delete groups.size;
   groups.position=[['Picture before text','move this photo to the left'],['Picture after text','move this photo to the right']];
+  groups.presets=[['Picture left, clearer phone text','move this photo to the left; make this section easier to read on phones and keep my colours'],['Picture right, clearer phone text','move this photo to the right; make this section easier to read on phones and keep my colours']];
  }
  if(section.type==='hero')groups.position=[['Picture beside text, left','move this photo to the left'],['Picture beside text, right','move this photo to the right']];
  if(section.type==='hero')groups.presets=[['Larger photo, focus top','make this photo bigger; crop this photo to the top'],['Smaller photo, focus centre','make this photo smaller; crop this photo to the center']];
