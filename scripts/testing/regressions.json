@@ -680,6 +680,27 @@
         "scripts/check-mission15-phase11-website-pictures.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase11-brand-controls",
+      "args": [
+        "scripts/check-mission15-phase11-brand-controls.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-app-visual-comparison-v3161",
+      "args": [
+        "scripts/check-app-visual-comparison-v3161.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-major-builders-v3193",
+      "args": [
+        "scripts/check-major-builders-v3193.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

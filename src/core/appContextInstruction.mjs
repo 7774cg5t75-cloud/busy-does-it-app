@@ -8,6 +8,8 @@ import {proposeCoordinatedAppChanges} from "./appCoordinatedStudio.mjs";
 import {selectedAppImage,selectedAppImageOperation} from "./appSelectedImage.mjs";
 import {PROFILE_TEXT_LIMITS} from "./appProfileFieldUndo.mjs";
 import {selectedAppService,selectedAppServiceOperation} from './appSelectedService.mjs';
+import {OPTIONS} from './appAppearanceEditing.mjs';
+import {LABELS} from './nativePalette.mjs';
 const fields=Object.freeze({header:"headerStyle",spacing:"layoutDensity",navigation:"navigationStyle",services:"serviceStyle",gallery:"galleryLayout",images:"imageScale",corners:"imageCorners",typography:"typeStyle"});
 function interpretSelectedAppAppearance(config,{selected,text}={}){
  const field=typeof selected==='string'&&Object.hasOwn(fields,selected)?fields[selected]:null,raw=typeof text==="string"?text.trim().toLowerCase():"";
@@ -51,6 +53,13 @@ function proposeSelectedAppInstruction(config,{selection,text}={}){
  const fail=reason=>({ok:false,reason});
  if(typeof text!=='string'||!text.trim()||text.length>180)return fail('Use one short instruction for the selected app part.');
  const phrase=text.trim(),part=selection?.part;
+ if(part==='branding'){
+  const match=/^use (.+?)(?: palette)?$/i.exec(phrase),name=match?.[1].toLowerCase();
+  const palette=OPTIONS.brandPalette.find(key=>key!=='custom'&&(key===name||LABELS[key]?.toLowerCase()===name));
+  if(!palette)return fail('Say “use Natural linen” or choose an existing app palette. Custom colours remain in the full brand editor.');
+  const proposal=proposeCoordinatedAppChanges(config,[{kind:'appearance',field:'brandPalette',value:palette}]);
+  return {...proposal,explanation:'This palette affects the whole app, not one element. The website and stored Brand DNA stay unchanged; review all screens before approval.'};
+ }
  if(part==='service'){
   const row=selectedAppService(config,selection);if(!row)return fail('Select the current owner-written service again.');
   const move=/^move this service (earlier|later)$/i.exec(phrase);

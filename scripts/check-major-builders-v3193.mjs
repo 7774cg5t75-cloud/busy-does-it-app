@@ -97,7 +97,15 @@ for(const bad of [
 const shell=read("standalone/template/App.js");
 ok(shell.includes("nativePalette(LOOK.brandPalette,LOOK.brandAccent)"));
 ok(shell.includes('title={"Ask about "+service.name}'));
-ok(shell.includes("initialMessage={chosen.key==="));
+// Execute the actual original JSX prop expression rather than its old spelling.
+const {createRequire}=await import('node:module'),babel=createRequire(import.meta.url)('@babel/core');
+const ast=babel.parseSync(shell,{configFile:false,babelrc:false,sourceType:'module',parserOpts:{plugins:['jsx']}}),messageProps=[];
+function visit(node){if(!node||typeof node!=='object')return;if(node.type==='JSXAttribute'&&node.name?.name==='initialMessage')messageProps.push(node.value.expression);for(const value of Object.values(node)){if(Array.isArray(value))value.forEach(visit);else if(value&&typeof value==='object')visit(value);}}
+visit(ast.program);eq(messageProps.length,1);
+const initialMessage=Function('requestedMessage','chosen','requestedIntent','requestedService','requestedKind','return ('+shell.slice(messageProps[0].start,messageProps[0].end)+');');
+eq(initialMessage('Owner-prepared question',{key:'enquiry'},'enquiry','Survey'),'Owner-prepared question');
+ok(initialMessage('',{key:'enquiry'},'enquiry','Survey').includes('Survey'));
+eq(initialMessage('',{key:'booking_request'},'booking_request','Survey'),'');
 ok(shell.includes('live.supportsEnquiry||!live.moduleKeys?.includes(intent)'));
 ok(shell.includes('live.supportsBookingRequest||!live.moduleKeys?.includes(intent)'));
 ok(shell.includes("setRequestedIntent(intent)"));
@@ -171,7 +179,10 @@ const websiteUi=read("src/screens/websiteAppBrandMatch.js");
 ok(controller.includes("confirmMatchAppBrandToWebsite(current,app,{businessId,evidence})"));
 ok(controller.includes("setWebsiteUndo(items=>[...items,current].slice(-8))"));
 ok(controller.includes("applyBusinessAppBrandToWebsite,"));
-ok(screen.includes("<WebsiteAppBrandMatch website={draft}"));
+const screenAst=babel.parseSync(screen,{configFile:false,babelrc:false,sourceType:'module',parserOpts:{plugins:['jsx']}}),brandInputs=[];
+function findBrand(node){if(!node||typeof node!=='object')return;if(node.type==='JSXOpeningElement'&&node.name?.name==='WebsiteAppBrandMatch')brandInputs.push(node.attributes.find(a=>a.name?.name==='website')?.value?.expression);for(const value of Object.values(node)){if(Array.isArray(value))value.forEach(findBrand);else if(value&&typeof value==='object')findBrand(value);}}
+findBrand(screenAst.program);eq(brandInputs.length,1);const currentDraft={id:'current-private-website'};
+eq(Function('draft','return ('+screen.slice(brandInputs[0].start,brandInputs[0].end)+');')(currentDraft),currentDraft);
 ok(websiteUi.includes("Apply this colour to my PRIVATE website"));
 console.log("V3.193 "+assertions+
  " palette, owner branding, trusted validation, cross-builder, contrast and native service journey assertions PASS.");
