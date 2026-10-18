@@ -48,6 +48,19 @@ function explainBuilderExplore({kind,project,catalog,plan,text}){
   return {answer:['Your current draft includes '+services.length+' service descriptions'+(categories.size?' across '+categories.size+' named categories':'')+'.',services.length>4?'The supported service screen includes text search. Categories can narrow the results, and Show all services clears both filters.':'Use clear service names and descriptions first. Categories can help when there are different kinds of service; text search appears when there are more than four services.',
    'Customers can open the existing service details and use an enabled enquiry or booking-request action. A button in a draft is not evidence that submission has completed; requests still need review and business confirmation. Nothing will be changed.'].join('\n'),alternatives:[]};
  }
+ if(kind==='website'&&/\b(?:another (?:homepage|page) layout|compare (?:homepage|page) layouts|which (?:homepage|page) layout)\b/i.test(text)){
+  const visible=(project.sections||[]).filter(s=>s.enabled!==false&&project.pages?.find(p=>p.id==='home')?.sectionIds?.includes(s.id));
+  return {answer:['Your current Home page includes '+visible.length+' visible sections'+(services.length?' and '+services.length+' service descriptions':'')+'.',
+   'Compare two different goals: a coordinated outlined-card presentation with confident typography, or larger phone reading text with the desktop styling kept. Both preserve your existing wording and colours.',
+   'These are supported source-based proposals. No screenshot has been inspected and neither is proven to look better. The original editor will show the private preview before a separate approval. Nothing will be changed.'].join('\n'),alternatives:[{label:'Compare coordinated page styling',instruction:'make the homepage more modern without changing the wording'},{label:'Compare phone-only reading',instruction:'improve the phone layout but leave the desktop arrangement alone'}]};
+ }
+ if(kind==='website'&&/\b(?:information|customers?)\b.*\b(?:see first|show first|first)\b/i.test(text)){
+  const page=project.pages?.find(p=>p.id==='home'),sections=(project.sections||[]).filter(s=>s.enabled!==false&&page?.sectionIds?.includes(s.id)),order=project.theme?.sectionOrder?.length?project.theme.sectionOrder:project.designPlan?.sectionOrder||[];
+  const ordered=[...new Set([...order,...sections.map(s=>s.id)])].map(id=>sections.find(s=>s.id===id)).filter(Boolean);
+  return {answer:['Your current Home page begins with '+(ordered.slice(0,3).map(s=>s.title||s.id).join(' → ')||'no visible sections yet')+'.',services.length?'Help visitors understand the existing services before asking them to enquire; keep a clear route to the original contact or enquiry action.':'Lead with a clear owner-written introduction and one supported next step. Add accurate information before extra decoration.',
+   project.theme?.sectionOrder?.length?'Your customised section order stays authoritative. Any change needs an explicit original editor review.':'This is information-order advice from your current source, not a measured customer outcome.',
+   'Nothing will be changed.'].join('\n'),alternatives:[]};
+ }
  const design=/\b(colou?rs?|layout|homepage|design|improve|readab|typograph|different look)\b/i.test(text);
  if(design){
   const findings=kind==='app'?appDesignQualityReport(project.draft_config,catalog).checks.filter(row=>!row.passed&&!['real_device_review','screenshot_review','shared_runtime'].includes(row.id)).slice(0,2).map(row=>row.detail):[];
