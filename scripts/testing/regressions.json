@@ -743,6 +743,20 @@
         "scripts/check-mission15-phase13-faq-styles.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase13-trusted-explore",
+      "args": [
+        "scripts/check-mission15-phase13-trusted-explore.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase13-website-reading",
+      "args": [
+        "scripts/check-mission15-phase13-website-reading.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
