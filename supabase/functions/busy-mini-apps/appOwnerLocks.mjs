@@ -19,7 +19,7 @@ function appEditLockReason(config,op){
   galleryLayout:["gallery","photos"],serviceStyle:["services"],
   brandAccent:["branding","colours","colors"],brandPalette:["branding","colours","colors"]};
  const targets=[];
- if(op?.kind==='service_presentation'){targets.push('services','appearance','servicePresentation',String(op.field||''));const fields=Object.keys(op.value||config.presentation?.servicePresentation?.[op.field]||{});if(fields.some(k=>k.startsWith('enquiry')))targets.push('enquiry','buttons');if(fields.some(k=>k.startsWith('booking')))targets.push('booking_request','buttons');}
+ if(['service_presentation','reset_service_presentation'].includes(op?.kind)){targets.push('services','appearance','servicePresentation',String(op.field||''));const fields=op.kind==='reset_service_presentation'?Object.keys(config.presentation?.servicePresentation?.[op.field]||{}).filter(k=>op.value==='card'?!k.startsWith('enquiry')&&!k.startsWith('booking'):k.startsWith(String(op.value))):Object.keys(op.value||config.presentation?.servicePresentation?.[op.field]||{});if(fields.some(k=>k.startsWith('enquiry')))targets.push('enquiry','buttons');if(fields.some(k=>k.startsWith('booking')))targets.push('booking_request','buttons');}
  if(op?.kind==='navigation_label')targets.push('navigation','copy',op.moduleKey);
  if(op?.kind==='image_appearance')targets.push('appearance','gallery','photos','imageStyles');
  if(op?.kind==='component_appearance')targets.push(...componentLockTargets(String(op.field||'')));

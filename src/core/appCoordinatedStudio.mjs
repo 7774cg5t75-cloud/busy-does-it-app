@@ -41,8 +41,8 @@ function proposeCoordinatedAppChanges(config,operations){
   if(op.kind==="owner_locks"){
    const edit=editAppOwnerLocks(next,op);if(!edit.ok)return edit;
    after=edit.nextConfig;undo=edit.undo;description="Editing protection: "+(after.presentation?.ownerLockedElements?.length?after.presentation.ownerLockedElements.join(", "):"no locks")+". Customer content is unchanged.";
-  }else if(op.kind==='service_presentation'){
-   const edit=previewServicePresentation(next,op);if(!edit.ok)return edit;after=edit.nextConfig;undo={kind:'restore_appearance',value:own(next,'presentation')?JSON.parse(JSON.stringify(next.presentation)):null};description=edit.description;
+  }else if(['service_presentation','reset_service_presentation'].includes(op.kind)){
+   const edit=previewServicePresentation(next,{...op,reset:op.kind==='reset_service_presentation'});if(!edit.ok)return edit;after=edit.nextConfig;undo={kind:'restore_appearance',value:own(next,'presentation')?JSON.parse(JSON.stringify(next.presentation)):null};description=edit.description;
   }else if(op.kind==='image_appearance'){
    const edit=previewAppImageAppearance(next,op);if(!edit.ok)return edit;
    after=edit.nextConfig;undo={kind:'restore_appearance',value:own(next,'presentation')?JSON.parse(JSON.stringify(next.presentation)):null};description=edit.description;
