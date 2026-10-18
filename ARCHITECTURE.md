@@ -1299,3 +1299,9 @@ Existing PR #26 continues verified `ce6b93f0e90beab5255ea223ae8b59f09f09ddf8`. F
 Website selected text can prepare five brand-typography properties in one original atomic review. Original universal planning now describes personal/club information projects without fake business details, explicitly requiring unavailable creator/project infrastructure. Actual business tenancy/runtime requirements remain unchanged; personal discussion cannot prepare business edits. Local Explore stays no-write/no-provider; remote authority remains dormant.
 
 See Phase 15 delivery, checks and focused architecture-health records for exact final integrated regression evidence and outstanding browser/device/hosted acceptance. Thirty-one changed source/test modules parse and four environment-policy checks pass; no schema, workflow execution, deployment, hosted access, provider action or spending. Main controller/Edge entry unchanged, miniApps grows two lines and static relative-import cycles remain zero. Mission 15 remains open.
+
+## Mission 15 Phase 16 — bounded request labels and scoped card presets
+
+Original service presentation operations now carry validated enquiry/booking-request display labels, while the shared marketplace/standalone button retains its original callback and request identity. Labels use a closed request-wording grammar; confirmation/payment claims are rejected. Copy locks cover edits/reset/inverse restoration. Stable-ID card presets coordinate existing spacing/surface/corners through one original review/Undo transaction. Existing trusted CAS, approval and publication checks remain unchanged.
+
+Natural club-project discussion reuses the neutral planner and cannot hand off a business edit. Remote Explore remains dormant. See Phase 16 delivery record and future creator/project authority proposal; neither claims an operational personal workspace or new service-image binding. No deployment, schema change, workflow execution or spending.
