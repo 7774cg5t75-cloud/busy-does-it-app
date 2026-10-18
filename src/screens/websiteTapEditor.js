@@ -225,6 +225,14 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
        ):null}
        {selection&&section?(
         <>
+         {field==='cta'&&section.type==='hero'?<View>
+          <Text style={styles.sectionLabel}>Responsive button size</Text>
+          <Text style={styles.cardBody}>These presets preserve the existing action and wrap on small screens.</Text>
+          {['normal','roomier','wider'].map(size=><Button key={size} label={'Choose '+size+' button'} onPress={()=>{
+            setContextRequest('make this button '+size);setShowContextHelp(true);setSelectedInstructionPreview(null);
+            setContextNote('Preview the responsive button before applying. Its destination stays unchanged.');
+          }}/>)}</View>:null}
+
          {initialMode==="voice"?(
           <Text style={styles.cardBody}>You selected the exact {names[field]?.toLowerCase()||"website part"}. BUSY is ready to listen. Press the red Stop control when you're finished — pauses are fine.</Text>
          ):null}

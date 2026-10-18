@@ -8,6 +8,8 @@ const textTypographyFields={},textTypographySupports={};
 for(const target of Object.keys(textTypes))for(const suffix of Object.keys(choices)){
  textTypographyFields[target+suffix]=choices[suffix];textTypographySupports[target+suffix]=textTypes[target];
 }
+const bodySizes=['brand','normal','large','extra-large'];
+for(const field of ['bodySize','mobileBodySize','desktopBodySize']){textTypographyFields[field]=bodySizes;textTypographySupports[field]=textTypes.body;}
 function textTypographyClasses(section){
  return Object.keys(textTypographyFields).filter(field=>textTypographySupports[field].includes(section?.type)&&
   textTypographyFields[field].includes(section?.appearance?.[field])&&section.appearance[field]!=='brand')
@@ -25,6 +27,14 @@ for(const target of Object.keys(textTypes))for(const suffix of Object.keys(choic
  // Heading/primary-paragraph scope excludes card text, navigation and facts.
  textTypographyCss+='section.owner-text-'+target+suffix+'-'+value+' '+selector+'{'+declaration+'}\n';
  textTypographyCss+='article.owner-text-'+target+suffix+'-'+value+' > '+(target==='title'?'h3':'p')+'{'+declaration+'}\n';
+}
+// These are relative, wrapping presets for the selected primary/card text.
+// Explicit phone/desktop choices take precedence over the all-width preset.
+for(const [field,media]of [['bodySize',''],['mobileBodySize','(max-width:600px)'],['desktopBodySize','(min-width:1000px)']]){
+ let rules='';
+ for(const [value,size]of [['normal','1rem'],['large','1.125rem'],['extra-large','1.25rem']])
+  rules+='section.owner-text-'+field+'-'+value+' :is(.hero-content > .lead,.wrap > p,.photo-feature-grid > div > p),article.owner-text-'+field+'-'+value+' > p{font-size:'+size+';overflow-wrap:anywhere}\n';
+ textTypographyCss+=media?'@media'+media+'{'+rules+'}':rules;
 }
 function itemTypographyClasses(item){return textTypographyClasses({type:'text',appearance:item?.appearance});}
 export {itemTypographyClasses,textTypes,textTypographyFields,textTypographySupports,textTypographyClasses,textTypographyCss};

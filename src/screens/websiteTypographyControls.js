@@ -14,11 +14,12 @@ export function WebsiteTypographyControls({section,selection,onChoose}){
   'line spacing':[['brand','Use brand spacing'],['standard','Comfortable'],['relaxed','More breathing room']],
   alignment:[['brand','Use brand alignment'],['left','Left'],['center','Centre'],['right','Right']],
   colour:[['brand','Use original colour'],['ink','Section foreground'],['accent','Readable brand accent']]};
+ if(target==='body')for(const group of ['size','size on phones','size on desktop'])groups[group]=[['brand','Use existing reading style'],['normal','Standard paragraph'],['large','Larger paragraph'],['extra-large','Extra large paragraph']];
  return <View>
   <Text style={styles.sectionLabel}>Style this {subject}</Text>
   {target==='title'?['smaller','normal','bigger'].map(size=><Button key={size} label={'Preview '+size+' heading'} onPress={()=>onChoose('make this heading '+size)}/>):null}
   <Text style={styles.cardBody}>Applies to this selected {selection?.itemId?'card':'section'} {subject}, across screen widths. Other content and your Brand DNA stay unchanged. Colour uses section foreground or an adjusted brand accent for the supported solid backgrounds; photo contrast is not assessed. Choose a setting, then preview and approve with the existing Busy controls.</Text>
   {Object.keys(groups).map(name=><Button key={name} label={(category===name?'✓ ':'')+name} onPress={()=>setCategory(category===name?null:name)}/>)}
-  {category?groups[category].map(([value,label])=><Button key={value} label={label} onPress={()=>onChoose('set this '+subject+' '+category+' to '+value)}/>):null}
+  {category?groups[category].map(([value,label])=><Button key={value} label={label} onPress={()=>onChoose(category.startsWith('size')?'set this paragraph size to '+value+(category==='size'?'':' on '+category.split(' on ')[1]):'set this '+subject+' '+category+' to '+value)}/>):null}
  </View>;
 }

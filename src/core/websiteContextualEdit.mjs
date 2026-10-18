@@ -61,6 +61,19 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
   return success("field",{sectionId,itemId:itemId||null,field,value:replacement[1]},
    "Replace only the selected wording in your private draft.");
  }
+ const paragraphSize=text.match(/^set (?:this|that|the selected) paragraph size to (brand|normal|large|extra-large)(?: on (phones|desktop))?$/i);
+ if(paragraphSize){
+  if(field!=='body'||!itemId&&!textTypographySupports.bodySize.includes(section.type))return failure('Select a supported primary paragraph or card paragraph first.');
+  const device=paragraphSize[2]?.toLowerCase();
+  return success('layout',{action:itemId?'item-style':'section-style',sectionId,...(itemId?{itemId}:{}),
+   field:device?(device==='phones'?'mobileBodySize':'desktopBodySize'):'bodySize',value:paragraphSize[1].toLowerCase()},
+   'Resize only this paragraph'+(device?' on '+device:' across screen widths')+'. Phone and desktop overrides remain explicit.');
+ }
+ if(field==='cta'&&section.type==='hero'){
+  const buttonSize=text.match(/^make (?:this|that|the selected) button (normal|roomier|wider)$/i);
+  if(buttonSize)return success('layout',{action:'section-style',sectionId,field:'ctaSize',value:{normal:'normal',roomier:'spacious',wider:'wide'}[buttonSize[1].toLowerCase()]},
+   'Adjust the responsive button preset without changing its label or destination.');
+ }
  const typography=text.match(/^set (?:this|that|the selected) (heading|paragraph) (font|weight|line spacing|alignment|colour|color) to (brand|sans|serif|mono|regular|medium|bold|heavy|standard|relaxed|left|center|right|ink|accent)$/i);
  if(typography){
   const target=typography[1].toLowerCase()==='heading'?'title':'body';
