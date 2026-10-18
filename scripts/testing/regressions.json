@@ -666,6 +666,13 @@
         "scripts/check-app-voice-layout-v3156.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase11-selected-services",
+      "args": [
+        "scripts/check-mission15-phase11-selected-services.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

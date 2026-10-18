@@ -7,6 +7,7 @@ import {previewPrivateAppAppearance} from "./appAppearanceEditing.mjs";
 import {proposeCoordinatedAppChanges} from "./appCoordinatedStudio.mjs";
 import {selectedAppImage,selectedAppImageOperation} from "./appSelectedImage.mjs";
 import {PROFILE_TEXT_LIMITS} from "./appProfileFieldUndo.mjs";
+import {selectedAppService,selectedAppServiceOperation} from './appSelectedService.mjs';
 const fields=Object.freeze({header:"headerStyle",spacing:"layoutDensity",navigation:"navigationStyle",services:"serviceStyle",gallery:"galleryLayout",images:"imageScale",corners:"imageCorners",typography:"typeStyle"});
 function interpretSelectedAppAppearance(config,{selected,text}={}){
  const field=typeof selected==='string'&&Object.hasOwn(fields,selected)?fields[selected]:null,raw=typeof text==="string"?text.trim().toLowerCase():"";
@@ -50,6 +51,14 @@ function proposeSelectedAppInstruction(config,{selection,text}={}){
  const fail=reason=>({ok:false,reason});
  if(typeof text!=='string'||!text.trim()||text.length>180)return fail('Use one short instruction for the selected app part.');
  const phrase=text.trim(),part=selection?.part;
+ if(part==='service'){
+  const row=selectedAppService(config,selection);if(!row)return fail('Select the current owner-written service again.');
+  const move=/^move this service (earlier|later)$/i.exec(phrase);
+  const copy=/^set this service (name|description) to "([^"<>]{1,160})"$/i.exec(phrase);
+  const result=move?selectedAppServiceOperation(config,selection,{kind:'move',direction:move[1].toLowerCase()}):copy?
+   selectedAppServiceOperation(config,selection,{kind:'wording',value:{name:copy[1].toLowerCase()==='name'?copy[2]:row.name,description:copy[1].toLowerCase()==='description'?copy[2]:row.description||''}}):null;
+  return result?(result.ok?result.proposal:result):fail('Use “move this service earlier/later” or set this service name/description to quoted owner wording. No change was prepared.');
+ }
  const wording=/^set this text to "([^"<>]{1,160})"$/i.exec(phrase);
  if(wording&&(part==='header'||part==='wording')){
   const field=part==='header'?'tagline':selection.field;

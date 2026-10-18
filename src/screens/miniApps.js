@@ -451,6 +451,8 @@ function MiniAppSurface({
                           {service.name||"Service"}
                         </Text>
                         <ServiceDetails service={service} colors={brandColours} bodySize={visual.type.bodySize}/>
+                        {ownerSelection?<Button label={'Edit service '+service.name}
+                          onPress={()=>ownerSelection.onSelect({part:'service',index:allServices.indexOf(service),expectedService:JSON.stringify(service)})}/>:null}
                         {interactive&&typeof onSelectService==='function'&&modules.some(m=>m.key==='enquiry')?<Button label={'Ask about '+service.name}
                           onPress={()=>onSelectService(service.name,'enquiry')}/>:null}
                         {interactive&&typeof onSelectService==='function'&&modules.some(m=>m.key==='enquiry')?<View>

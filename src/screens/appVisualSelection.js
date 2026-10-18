@@ -1,4 +1,5 @@
 import {AppSelectedInstruction} from "./appSelectedInstruction";
+import {AppSelectedServiceControls} from './appSelectedServiceControls';
 import React from 'react';
 import {AppSelectedImageControls} from './appSelectedImageControls';
 import {selectedAppImage} from '../core/appSelectedImage.mjs';
@@ -53,6 +54,7 @@ export function AppVisualSelection({Surface,config,businessContent,onPrepare,bus
     })}
    </View>
    {selection.part==='image'?<AppSelectedImageControls config={config} selection={selection} copy={imageCopy} disabled={busy||!selectionCurrent} onCopy={value=>{if(current()&&selectionCurrent&&live.current.selection===selection&&live.current.imageCopy===imageCopy)setImageCopy(value);}} onPrepare={prepare}/>:null}
+   {selection.part==='service'?<AppSelectedServiceControls key={JSON.stringify(selection)+String(selectionCurrent)} config={config} selection={selection} disabled={busy||!selectionCurrent} onPrepare={prepare}/>:null}
    {textOp?<View>
     <Field label={field==='tagline'?'App tagline (header and summary)':'Selected business '+field} value={wording} maxLength={PROFILE_TEXT_LIMITS[field]} multiline onChangeText={value=>{if(current()&&selectionCurrent&&live.current.selection===selection)setWording(value);}}/>
     <Text style={styles.cardBody}>Owner-written wording only. Review every affected screen in Studio before applying; your existing approval and Undo controls remain.</Text>
@@ -60,7 +62,7 @@ export function AppVisualSelection({Surface,config,businessContent,onPrepare,bus
     {selectionCurrent&&textProof&&!textProof.ok?<Text style={styles.cardBody}>{textProof.reason}</Text>:null}
    </View>:null}
    {moves.map(direction=><Button key={direction} label={'Preview selected section '+direction} disabled={busy||!selectionCurrent} onPress={()=>prepare({kind:'move',moduleKey:selection.moduleKey,direction})}/>)}
-   {!textOp&&!choices.some(([field,value])=>proposeCoordinatedAppChanges(config,[{kind:'appearance',field,value}]).ok)&&!moves.length?<Text accessibilityRole="alert" style={styles.cardBody}>No change is available for this selection. Current choices and owner locks are preserved.</Text>:null}
+   {!['service','image'].includes(selection.part)&&!textOp&&!choices.some(([field,value])=>proposeCoordinatedAppChanges(config,[{kind:'appearance',field,value}]).ok)&&!moves.length?<Text accessibilityRole="alert" style={styles.cardBody}>No change is available for this selection. Current choices and owner locks are preserved.</Text>:null}
    <AppSelectedInstruction key={JSON.stringify(selection)} config={config} selection={selection} disabled={busy||!selectionCurrent} voiceScope={voiceScope} onTranscribe={onTranscribe} onPrepare={proposal=>{if(current()&&selectionCurrent&&live.current.selection===selection)onPrepare(proposal);}}/>
    <Button label="Cancel selection" onPress={()=>{if(current()){setSelection(null);setSelectionSource(null);setWording('');}}}/>
   </View>:null}
