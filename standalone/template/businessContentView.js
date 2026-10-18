@@ -2,15 +2,16 @@ import React from 'react';
 import {View,Text,Image,TextInput,Pressable,useWindowDimensions,Linking} from 'react-native';
 import {contentPrice,contentEventSchedule,prepareBusinessContentEnquiry} from './businessContentRecords.mjs';
 import {catalogueState,catalogueSource,catalogueView,transitionCatalogue} from './catalogueState.mjs';
-function BusinessContentView({feed,kind,contextKey='',layout='cards',title,onInterest,featuredId='',colors={text:'#16253a',muted:'#46556a',surface:'#fff',line:'#8b93a3'}}){
- const [storedState,setStoredState]=React.useState(null),[notice,setNotice]=React.useState(''),[pageSize,setPageSize]=React.useState(12),[categoryCount,setCategoryCount]=React.useState(8);
+function BusinessContentView({feed,kind,contextKey='',savedBrowseState=null,onSaveBrowseState,layout='cards',title,onInterest,featuredId='',colors={text:'#16253a',muted:'#46556a',surface:'#fff',line:'#8b93a3'}}){
+ const [storedState,setStoredState]=React.useState(savedBrowseState),[notice,setNotice]=React.useState(''),[pageSize,setPageSize]=React.useState(12),[categoryCount,setCategoryCount]=React.useState(8);
  const width=useWindowDimensions().width;
  const state=catalogueState(storedState,feed,kind,contextKey),{query,category,selected,detailRevision,options,optionRevisions}=state;
  // Forget the previous public selection across a scope switch, including a switch back.
  if(storedState&&storedState.scope!==state.scope)setStoredState(state);
  const source=catalogueSource(feed,kind,contextKey),sourceStamp=JSON.stringify([source,state]),live=React.useRef(sourceStamp);live.current=sourceStamp;
  const current=()=>live.current===sourceStamp;
- const change=event=>{if(current())setStoredState(before=>transitionCatalogue(before,{...event,source},feed,kind,contextKey));};
+ const latest=React.useRef(state);latest.current=state;
+ const change=event=>{if(current()){const next=transitionCatalogue(latest.current,{...event,source},feed,kind,contextKey);latest.current=next;setStoredState(next);onSaveBrowseState?.(next);}};
  const chooseOption=(row,value)=>change({type:'option',recordId:row.id,revision:row.revision,value});
  const {rows,categories,detail,detailChanged,related}=catalogueView(state,feed,kind);
  if(featuredId){const index=rows.findIndex(r=>r.id===featuredId);if(index>0)rows.unshift(...rows.splice(index,1));}

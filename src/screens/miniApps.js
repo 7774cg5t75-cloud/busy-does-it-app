@@ -274,7 +274,10 @@ function MiniAppSurface({
   onRequestNavigation = null,
   businessContent = null,
   ownerEdit = null,
+  catalogueContextKey = '',
 }) {
+  const catalogueCache=React.useRef({scope:catalogueContextKey,states:{}});
+  if(catalogueCache.current.scope!==catalogueContextKey)catalogueCache.current={scope:catalogueContextKey,states:{}};
   const ownerSelection=!interactive&&typeof ownerEdit?.onSelect==='function'?ownerEdit:null;
   const Header=ownerSelection?Pressable:View;
   const profile = config?.publicProfile || {};
@@ -414,7 +417,7 @@ function MiniAppSurface({
               tone="blue"
             />
             {ownerSelection?<Button label="Edit this business description" onPress={()=>ownerSelection.onSelect({part:'wording',field:profile.about?'about':'description'})}/>:null}
-            {(validContentLayout(config.contentLayout)?config.contentLayout:[]).map(block=><BusinessContentView key={block.kind} feed={businessContent} colors={brandColours} {...block} onInterest={interactive&&modules.some(m=>m.key==='enquiry')?(onSelectContent||onSelectService):null}/>)}
+            {(validContentLayout(config.contentLayout)?config.contentLayout:[]).map(block=><BusinessContentView key={block.kind} contextKey={catalogueContextKey} savedBrowseState={catalogueCache.current.states[block.kind]} onSaveBrowseState={value=>{if(catalogueCache.current.scope===catalogueContextKey)catalogueCache.current.states[block.kind]=value;}} feed={businessContent} colors={brandColours} {...block} onInterest={interactive&&modules.some(m=>m.key==='enquiry')?(onSelectContent||onSelectService):null}/>)}
             {publicCollection('faqs',profile.faqs||[]).map((row,i)=><AppFaqCard key={row.id||i} row={row} colors={brandColours} componentStyles={presentation.componentStyles} bodySize={visual.type.bodySize}>
               {ownerSelection?<AppEntryEditButton label={'Edit answer: '+row.question} colors={brandColours} selected={ownerSelection.selection?.part==='faq'&&ownerSelection.selection.index===i} onPress={()=>ownerSelection.onSelect({part:'faq',index:i,expectedFaq:JSON.stringify(profile.faqs[i])})}/>:null}
              </AppFaqCard>)}
@@ -4756,6 +4759,7 @@ function BusyAppDetailForm({ s }) {
           s={s}
           loyaltyProgress={detail?.loyaltyProgress || null}
           businessContent={detail.businessContent}
+          catalogueContextKey={JSON.stringify([s.ownerSession?.userId||'',detail.app?.business_id||'',detail.app?.id||'',detail.version?.id||''])}
           onSelectService={enabled.has('enquiry')||enabled.has('booking_request')?chooseService:null}
           onRequestNavigation={goToRequest}
           onSelectContent={enabled.has('enquiry')?chooseContent:null}
@@ -4818,7 +4822,7 @@ function BusyAppDetailForm({ s }) {
         />
       ) : null}
 
-      <BusinessAppCustomerRequestFields s={s} form={{bookingReview:bookingReviewCurrent?bookingReview:null,cancelBookingReview:()=>setBookingReview(null),enquiryReview:enquiryReviewCurrent?enquiryReview:null,cancelEnquiryReview:()=>setEnquiryReview(null),requirements,setRequirements,requestKind,setRequestKind,enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}} onLayout={event=>{requestFormY.current=event.nativeEvent.layout.y;}}/>
+      <BusinessAppCustomerRequestFields s={s} form={{returnToInformation:()=>requestScroll.current?.scrollTo?.({y:0,animated:true}),bookingReview:bookingReviewCurrent?bookingReview:null,cancelBookingReview:()=>setBookingReview(null),enquiryReview:enquiryReviewCurrent?enquiryReview:null,cancelEnquiryReview:()=>setEnquiryReview(null),requirements,setRequirements,requestKind,setRequestKind,enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}} onLayout={event=>{requestFormY.current=event.nativeEvent.layout.y;}}/>
       <Button label="Back to BUSY Apps" onPress={() => s.go("busyAppsMarketplace")} />
     </Shell>
   );

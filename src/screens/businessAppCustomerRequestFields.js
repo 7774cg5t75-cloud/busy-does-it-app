@@ -6,9 +6,10 @@ import {Card,Button,Field} from '../components/ui';
 import {styles} from '../theme/styles';
 // Presentation only. Parent retains original state, scoped sends and recovery.
 function BusinessAppCustomerRequestFields({s,form,onLayout}){
- const {bookingReview,cancelBookingReview,enquiryReview,cancelEnquiryReview,requirements=emptyEnquiryRequirements(),setRequirements,requestKind,setRequestKind,enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}=form;
+ const {returnToInformation,bookingReview,cancelBookingReview,enquiryReview,cancelEnquiryReview,requirements=emptyEnquiryRequirements(),setRequirements,requestKind,setRequestKind,enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}=form;
  return (
       <View onLayout={onLayout}>
+      {typeof returnToInformation==='function'?<Button label="Back to app information" disabled={!!s.miniAppsAction} onPress={returnToInformation}/>:null}
       {typeof setRequestKind==='function'&&enabled.has('enquiry')&&enabled.has('booking_request')?<View>
         <Text style={styles.sectionLabel}>What would you like to do?</Text>
         {['enquiry','booking_request'].map(type=><Button key={type}

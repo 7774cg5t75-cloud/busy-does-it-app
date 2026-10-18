@@ -54,12 +54,13 @@ function Field({title,value,onChange,multiline=false,maxLength,disabled=false}){
       minHeight:multiline?92:48,textAlignVertical:"top"}}/>
  </View>;
 }
-function RequestScreen({screen,live,runtime,initialService="",initialMessage="",savedState=null,onSaveState,contentSelection=null}){
+function RequestScreen({screen,live,runtime,initialService="",initialMessage="",savedState=null,onSaveState,onReturnToInformation,contentSelection=null}){
  const [input,setInput]=useState(savedState?.input||{name:"",email:"",phone:"",service:initialService,
   preferredDate:"",message:initialMessage,note:"",requirements:emptyEnquiryRequirements()});
  const [busy,setBusy]=useState(false),[result,setResult]=useState(savedState?.result||null);
  const [possibleDuplicateRetry,setPossibleDuplicateRetry]=useState(savedState?.possibleDuplicateRetry||false);
- useEffect(()=>{if(!inFlight.current)onSaveState?.({input,result,possibleDuplicateRetry});},[input,result,possibleDuplicateRetry]);
+ const [enquiryReview,setEnquiryReview]=useState(savedState?.enquiryReview||null);
+ useEffect(()=>{if(!inFlight.current)onSaveState?.({input,result,possibleDuplicateRetry,enquiryReview});},[input,result,possibleDuplicateRetry,enquiryReview]);
  const inFlight=React.useRef(false);
  const dateChoices=React.useMemo(()=>nativePreferredDates(new Date(),7),[]);
  const type=screen.key==="booking_request"?"booking_request":"enquiry";
@@ -71,7 +72,7 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
    setResult(null);setPossibleDuplicateRetry(false);
   }
  };
- const [enquiryReview,setEnquiryReview]=useState(null);
+
  const preparedReview=type==='enquiry'?prepareCustomerEnquiry({message:input.message,requirements:input.requirements||emptyEnquiryRequirements(),feed:live.businessContent,businessId:contentSelection?.businessId,selection:contentSelection}):null;
  const preparedBookingNote=type==='booking_request'?prepareCustomerBookingNote(input.note,input.requirements||emptyEnquiryRequirements()):null;
  const validatedReview=type==='booking_request'?(preparedBookingNote.ok?validateNativeGuestRequest(type,{...input,note:preparedBookingNote.note}):preparedBookingNote):preparedReview?.ok?validateNativeGuestRequest(type,{...input,message:preparedReview.message}):null;
@@ -142,6 +143,7 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
 
        <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Your message" value={input.message} onChange={set("message")} multiline/>
      </>}
+    {typeof onReturnToInformation==='function'?<Button title="Back to item information" disabled={busy||inFlight.current} onPress={()=>{if(inFlight.current||busy)return;onSaveState?.({input,result,possibleDuplicateRetry,enquiryReview});onReturnToInformation();}}/>:null}
     <Text style={{...sub,fontSize:12}}>By sending, you share these details with the business
       so it can reply. Anti-spam verification may take a few moments.
       This is not a confirmed booking or payment.</Text>
@@ -225,7 +227,7 @@ function ServicesInfo({app,layout,onRequestService}){
   </View>:<Text style={sub}>{query?"No services match your search.":"No public services are listed."}</Text>}
  </View>;
 }
-function LiveInfo({screen,app,layout,onRequestService,onOpenContact,onOpenOfferEnquiry,contactNotice}){
+function LiveInfo({screen,app,layout,onRequestService,onOpenContact,onOpenOfferEnquiry,contactNotice,catalogueContextKey='',catalogueStates={},onCatalogueStateChange}){
  if(screen.key==="business_profile")return <View style={box}>
   <Text style={{...t,fontSize:21,fontWeight:"700",...appComponentTextStyle(app.componentStyles||LOOK.componentStyles,'header-title',{colors:COLORS,baseSize:21})}}>{app.title}</Text>
   <Text style={{...sub,...appComponentTextStyle(app.componentStyles||LOOK.componentStyles,'header-tagline',{colors:COLORS,baseSize:VISUAL.type.bodySize})}}>{app.tagline||app.about||"Contact this business for more information."}</Text>
@@ -235,7 +237,7 @@ function LiveInfo({screen,app,layout,onRequestService,onOpenContact,onOpenOfferE
       borderRadius:LOOK.imageCorners==="square"?2:12,marginTop:12}}
     resizeMode="cover"/>:null}
   {app.tagline&&app.about?<Text style={sub}>{app.about}</Text>:null}
-  {(app.contentLayout||[]).map(block=><BusinessContentView key={block.kind} feed={app.businessContent} colors={COLORS} {...block} onInterest={app.supportsEnquiry?(name,prepared)=>onRequestService?.(name,'enquiry',prepared):null}/>)}
+  {(app.contentLayout||[]).map(block=><BusinessContentView key={block.kind} contextKey={catalogueContextKey} savedBrowseState={catalogueStates[block.kind]} onSaveBrowseState={value=>onCatalogueStateChange?.(block.kind,value)} feed={app.businessContent} colors={COLORS} {...block} onInterest={app.supportsEnquiry?(name,prepared)=>onRequestService?.(name,'enquiry',prepared):null}/>)}
   {(app.faqs||[]).map((row,i)=><AppFaqCard key={row.id||i} row={row} colors={COLORS} componentStyles={app.componentStyles||LOOK.componentStyles} bodySize={VISUAL.type.bodySize}/>)}
   {(app.testimonials||[]).map((row,i)=><View key={'testimonial'+i} style={{marginTop:16}}><Text style={sub}>{row.text}</Text><Text style={{...t,fontWeight:'700'}}>{row.attribution}</Text></View>)}
  </View>;
@@ -300,11 +302,13 @@ export default function App(){
  const connected=verifiedPublicRuntime(runtime);
  const [current,setCurrent]=useState(prototype.screenSchema.screens[0].key);
  const [requestedService,setRequestedService]=useState("");
+ const [requestOrigin,setRequestOrigin]=useState('');
  const [requestedIntent,setRequestedIntent]=useState("");
  const [requestedKind,setRequestedKind]=useState("service");
  const [requestedMessage,setRequestedMessage]=useState("");
  const [requestSelection,setRequestSelection]=useState(null);
  const requestForms=React.useRef(new Map());
+ const catalogueCache=React.useRef({scope:'',states:{}});
  const [refreshSequence,setRefreshSequence]=useState(0);
  const [measuredFrameWidth,setMeasuredFrameWidth]=useState(0);
  const [contactNotice,setContactNotice]=useState("");
@@ -323,6 +327,9 @@ export default function App(){
  const pages=live?prototype.screenSchema.screens.filter(s=>
   live.moduleKeys?.includes(s.key)).map(s=>({...s,title:live.navigationLabels?.[s.key]||s.title})):[];
  const chosen=pages.find(x=>x.key===current)||pages[0];
+ const publicViewContext=JSON.stringify([live?.businessContent?.businessId||'',live?.appId||'',live?.versionId||'',runtime?.expectedAppId||'',runtime?.expectedVersionId||'']);
+ const viewContext=React.useRef(publicViewContext);viewContext.current=publicViewContext;
+ if(catalogueCache.current.scope!==publicViewContext)catalogueCache.current={scope:publicViewContext,states:{}};
  const requestFormKey=JSON.stringify([live?.versionId,chosen?.key,requestedKind,requestedService,requestedIntent,requestSelection]);
  const outerPadding=LOOK.layoutDensity==="compact"?13:
    LOOK.layoutDensity==="airy"?28:20;
@@ -384,14 +391,15 @@ export default function App(){
      <RequestScreen key={requestFormKey}
       screen={chosen} live={live} runtime={runtime} contentSelection={requestSelection}
       savedState={requestForms.current.get(requestFormKey)}
-      onSaveState={value=>{const key=requestFormKey;requestForms.current.set(key,value);if(requestForms.current.size>8)requestForms.current.delete(requestForms.current.keys().next().value);}}
+      onReturnToInformation={requestOrigin&&pages.some(page=>page.key===requestOrigin)?()=>{if(viewContext.current===publicViewContext)setCurrent(requestOrigin);}:null}
+      onSaveState={value=>{if(viewContext.current!==publicViewContext)return;const key=requestFormKey;requestForms.current.set(key,value);if(requestForms.current.size>8)requestForms.current.delete(requestForms.current.keys().next().value);}}
       initialService={chosen.key===requestedIntent?
        requestedService:""}
       initialMessage={requestedMessage|| (chosen.key==="enquiry"&&requestedIntent==="enquiry"&&requestedService?
        requestedKind==="offer"?
         "I would like to ask about the offer: "+requestedService+".":
         "I would like to know more about "+requestedService+".":"")}/>:
-     <LiveInfo screen={chosen} app={live} layout={responsive}
+     <LiveInfo screen={chosen} app={live} layout={responsive} catalogueContextKey={publicViewContext} catalogueStates={catalogueCache.current.states} onCatalogueStateChange={(kind,value)=>{if(catalogueCache.current.scope===publicViewContext)catalogueCache.current.states[kind]=value;}}
       onOpenOfferEnquiry={offerTitle=>{
        if(!live.supportsEnquiry||!live.moduleKeys?.includes("enquiry"))return;
        setRequestSelection(null);setRequestedMessage("");setRequestedService(offerTitle);setRequestedKind("offer");
@@ -406,6 +414,7 @@ export default function App(){
         "This device could not open that contact method. Use the details shown above."));
       }}
       onRequestService={(serviceName,intent,prepared,topic)=>{
+       if(viewContext.current!==publicViewContext)return;setRequestOrigin(chosen.key);
        if(intent==="booking_request"&&
           (!live.supportsBookingRequest||!live.moduleKeys?.includes(intent)))return;
        if(intent==="enquiry"&&
