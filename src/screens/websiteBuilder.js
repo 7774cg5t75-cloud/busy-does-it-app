@@ -279,7 +279,7 @@ function WebsiteBuilder({ s }) {
     >
       <BusinessContentEditor onApprovedRecords={approvedRecords.onApprovedRecords} key={['records',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')}
         businessId={s.cloudWorkspace?.businessId} request={s.businessContentRequest}
-        onCompose={(_,choice)=>s.applyWebsiteFieldChange(choice.remove?{action:'remove-content-section',sectionId:choice.kind==='product'?'products':'events'}:{action:'content-section',sectionId:choice.kind==='product'?'products':'events',title:choice.kind==='product'?'Products':'Upcoming events',layout:choice.layout,featuredId:choice.featuredId,previewFeed:choice.previewFeed})}/>
+        onCompose={(_,choice)=>s.applyWebsiteFieldChange(choice.remove?{action:'remove-content-section',sectionId:choice.kind==='product'?'products':'events'}:{action:'content-section',sectionId:choice.kind==='product'?'products':'events',title:draft?.sections?.find(section=>section.id===(choice.kind==='product'?'products':'events'))?.title||(choice.kind==='product'?'Products':'Upcoming events'),layout:choice.layout,featuredId:choice.featuredId,previewFeed:choice.previewFeed})}/>
       <Card eyebrow="Your website"
         title={journey.isVerified ? "Your website is live and verified" :
           s.websitePublishingView?.liveDeployment ? "Website published • connection being verified" :

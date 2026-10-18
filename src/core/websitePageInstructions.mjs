@@ -48,6 +48,11 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
     return fail('Review the current FAQ section before adding questions.');
    change={action:sections.length?'add-item':'create-collection',sectionId:'faq',title:m[1],body:m[2]};
    type='field';description='Add your exact question and answer to the private FAQ section';
+  }else if((m=clause.match(/^(?:show|display) (products|events) as (cards|rows)$/i))){
+   const section=findSection(m[1].toLowerCase());
+   if(!section||section.contentSource!=='business_records_v1')return fail('Open the current page containing the approved-record section first.');
+   change={action:'content-section',sectionId:section.id,title:section.title,layout:m[2].toLowerCase(),featuredId:section.featuredId||''};
+   type='field';description='Change only the record presentation; keep this destination heading, featured item, styling and approved-record source';
   }else if(forbidden.test(clause))return fail("No changes were made. Publishing, deleting and external actions need separate approval.");
   else if((m=clause.match(/^(?:give|make) (?:the )?(?:whole |entire )?page (more|less) (?:space|spacing|breathing room) on (phones?|mobile|desktop|computers?)$/i))){
    change={action:'page-spacing',pageId,device:/phone|mobile/i.test(m[2])?'mobile':'desktop',value:m[1].toLowerCase()==='more'?'generous':'compact'};
