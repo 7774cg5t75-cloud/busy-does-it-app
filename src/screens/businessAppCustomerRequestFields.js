@@ -5,7 +5,7 @@ import {Card,Button,Field} from '../components/ui';
 import {styles} from '../theme/styles';
 // Presentation only. Parent retains original state, scoped sends and recovery.
 function BusinessAppCustomerRequestFields({s,form,onLayout}){
- const {requirements=emptyEnquiryRequirements(),setRequirements,requestKind,setRequestKind,enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}=form;
+ const {enquiryReview,cancelEnquiryReview,requirements=emptyEnquiryRequirements(),setRequirements,requestKind,setRequestKind,enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}=form;
  return (
       <View onLayout={onLayout}>
       {typeof setRequestKind==='function'&&enabled.has('enquiry')&&enabled.has('booking_request')?<View>
@@ -89,8 +89,14 @@ function BusinessAppCustomerRequestFields({s,form,onLayout}){
           {typeof setRequirements==='function'?ENQUIRY_REQUIREMENTS.map(field=><Field key={field.key} label={field.label} value={requirements[field.key]} maxLength={field.max} onChangeText={value=>setRequirements(current=>({...current,[field.key]:value}))}/>):null}
           <Field label="Message" value={message} onChangeText={setMessage} placeholder="What would you like to ask?" multiline />
           {!enquiryReady.ok?<Text style={styles.cardBody}>{enquiryReady.reason}</Text>:null}
+          {enquiryReview?<View accessibilityLiveRegion="polite">
+            <Text style={styles.sectionLabel}>Review exactly what will be sent</Text>
+            {Object.entries(enquiryReview.payload).map(([key,value])=><Text key={key} selectable style={styles.cardBody}>{key+': '+(value||'(not supplied)')}</Text>)}
+            <Text style={styles.cardBody}>Confirm to share these details with this business so it can respond. This is an enquiry, not a booking, order or payment. Editing any field requires a new review.</Text>
+            <Button label="Correct my enquiry" disabled={!!s.miniAppsAction} onPress={cancelEnquiryReview}/>
+          </View>:null}
           <Button
-            label={s.miniAppsAction === "request:enquiry" ? "Sending…" : "Send enquiry"}
+            label={s.miniAppsAction === "request:enquiry" ? "Sending…" : enquiryReview?"Confirm and send enquiry":"Review enquiry"}
             disabled={
               !enquiryReady.ok ||
               !!s.miniAppsAction

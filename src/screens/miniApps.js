@@ -1,4 +1,4 @@
-import {emptyEnquiryRequirements,prepareCustomerEnquiry} from '../core/customerEnquiryRequirements.mjs';
+import {emptyEnquiryRequirements,prepareCustomerEnquiry,customerEnquiryReview} from '../core/customerEnquiryRequirements.mjs';
 import {AppServiceEditor} from './appServiceEditor';
 import {validContentLayout,prepareBusinessContentEnquiry} from '../core/businessContentRecords.mjs';
 import {proposeCoordinatedAppChanges as proposeContentComposition} from '../core/appCoordinatedStudio.mjs';
@@ -4663,17 +4663,23 @@ function BusyAppDetailForm({ s }) {
     }
   };
 
+  const [enquiryReview,setEnquiryReview]=React.useState(null);
+  const enquiryConfirming=React.useRef(false);
+  const reviewScope=JSON.stringify([s.ownerSession?.userId,detail.app?.business_id,detail.app?.id,detail.version?.id,requestKind]);
+  const currentEnquiryReview=enquiryReady.ok?customerEnquiryReview(enquiryReady.payload,reviewScope,formLive.current):null;
+  const enquiryLive=React.useRef(null);enquiryLive.current={key:currentEnquiryReview?.key,detail};
+  const enquiryReviewCurrent=!!enquiryReview&&enquiryReview.key===currentEnquiryReview?.key;
   const submitEnquiry = async () => {
-    if(!enquiryReady.ok)return false;
+    if(!enquiryReady.ok||enquiryConfirming.current||!formAlive.current)return false;
     if(contentInterest){const checked=prepareBusinessContentEnquiry(detail.businessContent,detail.app?.business_id,contentInterest);if(!checked.ok){setContentNotice(checked.reason);return false;}}
+    if(!currentEnquiryReview||enquiryLive.current?.key!==currentEnquiryReview.key||enquiryLive.current?.detail!==detail)return false;
+    if(!enquiryReviewCurrent){setEnquiryReview(currentEnquiryReview);return false;}
     const reviewed=formLive.current;
-    const ok = await s.submitBusyAppRequest("enquiry", {
-      name: name.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      service: service.trim(),
-      message: preparedEnquiry.message,
-    });
+    setEnquiryReview(null);
+    enquiryConfirming.current=true;
+    let ok=false;
+    try{ok=await s.submitBusyAppRequest("enquiry", enquiryReview.payload);}
+    finally{enquiryConfirming.current=false;}
     if(ok)privateRecovery.clearIfSame(recoveryDraft).catch(()=>{});
     if (ok&&formAlive.current&&formLive.current===reviewed) {setMessage("");setContentInterest(null);setRequirements(emptyEnquiryRequirements());s.saveBusyAppCustomerForm?.({name,email,phone,service,date,note,message:"",contentInterest:null,requirements:emptyEnquiryRequirements()});}
   };
@@ -4772,7 +4778,7 @@ function BusyAppDetailForm({ s }) {
         />
       ) : null}
 
-      <BusinessAppCustomerRequestFields s={s} form={{requirements,setRequirements,requestKind,setRequestKind,enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}} onLayout={event=>{requestFormY.current=event.nativeEvent.layout.y;}}/>
+      <BusinessAppCustomerRequestFields s={s} form={{enquiryReview:enquiryReviewCurrent?enquiryReview:null,cancelEnquiryReview:()=>setEnquiryReview(null),requirements,setRequirements,requestKind,setRequestKind,enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}} onLayout={event=>{requestFormY.current=event.nativeEvent.layout.y;}}/>
       <Button label="Back to BUSY Apps" onPress={() => s.go("busyAppsMarketplace")} />
     </Shell>
   );

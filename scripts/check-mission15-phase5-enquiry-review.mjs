@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs');
+const runtime=createRuntime(),{MiniAppSurface,BusyAppDetail}=runtime.load('src/screens/miniApps.js'),{BusinessAppCustomerRequestFields:Fields}=runtime.load('src/screens/businessAppCustomerRequestFields.js');
+const walk=n=>Array.isArray(n)?n.flatMap(walk):n&&typeof n==='object'?[n,...walk(n.props?.children)]:[];
+const get=(tree,label)=>walk(tree).find(n=>n.props?.label===label);
+const config={modules:['business_profile','services','enquiry'].map(key=>({key,enabled:true})),navigation:['business_profile','services','enquiry'],publicProfile:{services:[{name:'Survey',description:'Discuss first'}]}};
+let sent=null,resolve,calls=0;const s={ownerSession:{userId:'visitor-a'},selectedBusyAppDetail:{app:{id:'app-a',business_id:'business-a'},version:{id:'version-a',config}},submitBusyAppRequest:(type,payload)=>{sent={type,payload};calls++;return new Promise(r=>resolve=r);}};
+const Form=runtime.render(BusyAppDetail,{s}).type;let fields,surface;
+const render=()=>{const form=runtime.render(Form,{s});fields=runtime.render(Fields,walk(form).find(n=>n.type===Fields).props);surface=runtime.render(MiniAppSurface,walk(form).find(n=>n.type===MiniAppSurface).props);};
+render();get(surface,'Ask about Survey').props.onPress();render();get(fields,'Name').props.onChangeText('  Fictional visitor  ');get(fields,'Email').props.onChangeText('visitor@example.test');get(fields,'Quantity or group size (optional)').props.onChangeText('Two properties');render();
+await get(fields,'Review enquiry').props.onPress();render();assert.equal(calls,0);assert.match(JSON.stringify(fields),/Fictional visitor/);assert.match(JSON.stringify(fields),/Two properties/);
+const stale=get(fields,'Confirm and send enquiry');get(fields,'Message').props.onChangeText('Please discuss access.');render();assert.equal(get(fields,'Confirm and send enquiry'),undefined);await stale.props.onPress();assert.equal(calls,0,'old review callback cannot send edited payload');
+await get(fields,'Review enquiry').props.onPress();render();get(fields,'Correct my enquiry').props.onPress();render();assert.equal(get(fields,'Confirm and send enquiry'),undefined);assert.equal(get(fields,'Message').props.value,'Please discuss access.');
+await get(fields,'Review enquiry').props.onPress();render();const confirm=get(fields,'Confirm and send enquiry');const pending=confirm.props.onPress();await confirm.props.onPress();assert.equal(calls,1);assert.equal(sent.payload.name,'Fictional visitor');assert.match(sent.payload.message,/Please discuss access/);assert.equal(Object.keys(sent.payload).sort().join(','),'email,message,name,phone,service');
+get(fields,'Requirements or access needs (optional)').props.onChangeText('Step-free access');render();resolve(true);await pending;render();assert.equal(get(fields,'Requirements or access needs (optional)').props.value,'Step-free access');
+await get(fields,'Review enquiry').props.onPress();render();const oldAccount=get(fields,'Confirm and send enquiry');s.ownerSession={userId:'another-account'};render();assert.equal(get(fields,'Confirm and send enquiry'),undefined);await oldAccount.props.onPress();assert.equal(calls,1);
+console.log('PASS actual marketplace review/correction, exact sanitized payload, zero sends before confirmation, stale callback/account rejection, simultaneous confirmation guard and newer edit preservation. Original transport is inert.');

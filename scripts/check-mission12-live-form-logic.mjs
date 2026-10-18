@@ -1,4 +1,4 @@
-import {emptyEnquiryRequirements,prepareCustomerEnquiry} from '../src/core/customerEnquiryRequirements.mjs';
+import {emptyEnquiryRequirements,prepareCustomerEnquiry,customerEnquiryReview} from '../src/core/customerEnquiryRequirements.mjs';
 // Executes unchanged production function bodies up to their JSX return.
 // Native rendering/effects are modelled; this is not a JSX build or device test.
 import assert from 'node:assert/strict';
@@ -15,11 +15,11 @@ const selected=prepareBusinessContentEnquiry(feed,businessId,{recordId:'product_
 const source=read('src/screens/miniApps.js'),start=source.indexOf('function BusyAppDetailForm('),end=source.indexOf('\n  return (',start);
 assert.ok(start>0&&end>start);const logic=source.slice(start,end)+'\n return {chooseContent,submitEnquiry,setName,setEmail,setMessage,message,service,contentInterest};}';
 let draft=null,sent=null;const s={selectedBusyAppDetail:{app:{id:appId,business_id:businessId},version:{id:'version',config:{modules:[{key:'enquiry',enabled:true}]}},businessContent:feed},readBusyAppCustomerForm:()=>draft,saveBusyAppCustomerForm:value=>draft=value,submitBusyAppRequest:async(type,payload)=>{sent={type,payload};return true;}};
-function form(){const h=hooks();const Form=new Function('React','prepareBusinessContentEnquiry','validateNativeGuestRequest','searchPublicNativeServices','nativePreferredDates','Alert','useCustomerEnquiryRecovery','emptyEnquiryRequirements','prepareCustomerEnquiry',logic+';return BusyAppDetailForm;')(h.React,prepareBusinessContentEnquiry,validateNativeGuestRequest,()=>[],()=>[],{alert:(_a,_b,choices)=>choices.at(-1).onPress()},()=>({clearIfSame:async()=>false}),emptyEnquiryRequirements,prepareCustomerEnquiry);return {render:()=>h.run(Form,{s})};}
+function form(){const h=hooks();const Form=new Function('React','prepareBusinessContentEnquiry','validateNativeGuestRequest','searchPublicNativeServices','nativePreferredDates','Alert','useCustomerEnquiryRecovery','emptyEnquiryRequirements','prepareCustomerEnquiry','customerEnquiryReview',logic+';return BusyAppDetailForm;')(h.React,prepareBusinessContentEnquiry,validateNativeGuestRequest,()=>[],()=>[],{alert:(_a,_b,choices)=>choices.at(-1).onPress()},()=>({clearIfSame:async()=>false}),emptyEnquiryRequirements,prepareCustomerEnquiry,customerEnquiryReview);return {render:()=>h.run(Form,{s})};}
 let f=form(),ui=f.render();ui.chooseContent(selected.service,selected);ui=f.render();assert.equal(ui.service,selected.service);assert.equal(ui.message,selected.message);
 ui.setName('Fictional visitor');ui.setEmail('visitor@example.invalid');ui=f.render();
 // A fresh component instance after navigation restores the same private form.
-f=form();ui=f.render();assert.equal(ui.message,selected.message);assert.equal(ui.contentInterest.recordId,'product_record_001');await ui.submitEnquiry();assert.equal(sent.payload.message,selected.message);assert.equal(sent.payload.service,selected.service);
+f=form();ui=f.render();assert.equal(ui.message,selected.message);assert.equal(ui.contentInterest.recordId,'product_record_001');await ui.submitEnquiry();assert.equal(sent,null);ui=f.render();await ui.submitEnquiry();assert.equal(sent.payload.message,selected.message);assert.equal(sent.payload.service,selected.service);
 ui=f.render();assert.equal(ui.message,'');f=form();ui=f.render();assert.equal(ui.message,'');assert.equal(ui.contentInterest,null,'completed context must not revive after remount');
 const current={id:'product_record_001',revision:2},fields={name:'Bowl'},baseline={...current,formStamp:JSON.stringify(fields)};
 assert.equal(canApproveSavedBusinessContent(current,fields,baseline),true);assert.equal(canApproveSavedBusinessContent(current,{name:'Unsaved'},baseline),false);assert.equal(canApproveSavedBusinessContent({...current,revision:3},fields,baseline),false);

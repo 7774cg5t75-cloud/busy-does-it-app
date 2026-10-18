@@ -29,3 +29,14 @@ function prepareCustomerEnquiry({message='',requirements=emptyEnquiryRequirement
  return {ok:true,message:text,customerSupplied:true,transactionConfirmed:false};
 }
 export {ENQUIRY_REQUIREMENTS,emptyEnquiryRequirements,validEnquiryRequirements,prepareCustomerEnquiry};
+
+// Ephemeral review only; payload must come from the original request validator.
+// No persistence, send authority, idempotency key or new backend schema.
+function customerEnquiryReview(payload,scope,sourceStamp){
+ if(!payload||typeof scope!=='string'||!scope||typeof sourceStamp!=='string')return null;
+ const fields=['name','email','phone','service','message'];
+ if(fields.some(key=>typeof payload[key]!=='string'))return null;
+ const exact=Object.fromEntries(fields.map(key=>[key,payload[key]]));
+ return {payload:exact,key:JSON.stringify([scope,sourceStamp,exact])};
+}
+export {customerEnquiryReview};
