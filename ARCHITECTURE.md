@@ -1281,3 +1281,12 @@ Existing PR #26 continues verified `30c30f9aee0e99d52d6e7e385ef3352116b9be09`. P
 A server-owned ephemeral inspect-only capability is implemented/tested as a dormant trusted foundation. It is not an HTTP session, restricted JWT or activated remote AI/tool interface. Existing ingresses additionally deny Explore capability/session fields on mutation attempts. Actual distributed authority, fresh trusted adapters and tool transport remain required before remote exploration. Current local mode has no remote write/provider executor; original owner credentials retain their existing permissions elsewhere.
 
 108 reviewed offline checks passed together, plus 22-file syntax and four environment-policy checks. No device/browser/hosted acceptance claimed, no provider or hosted database action, workflow execution, deployment or spending. AppController/main Edge entrypoint unchanged; static relative-import audit finds zero cycles. See Phase 13 delivery/checks and architecture-health records. Mission 15 remains open.
+
+
+## Mission 15 Phase 14 — individual images, grounded discussion and navigation wording
+
+Same dependent PR #26 continues `ca6f0fc62e9593a5adaacf901185b034bf6e13e2`. Original Studio transactions now support individual approved-image cover/contain, relative size/corners/reset with unique source identity, locks and exact Undo; marketplace/standalone render the same finite tokens. Guest appearance metadata is limited to the actual published gallery. Information-screen navigation wording reaches original menu/runtime/public native contracts while preserving destination keys and customer actions.
+
+Talk & Explore explains current colours, service facts and app trade-offs, and dry-validates offered alternatives through original planners; bounded what-if questions remain discussion only until explicit handoff/approval. Hero picture presets coordinate original operations with cancellation/source guards. Dormant remote capability foundation stays disabled; no remote AI/tools/voice or restricted bearer session is claimed.
+
+112 offline checks pass in one reviewed run, plus 31-source syntax and four environment-policy checks. No browser/device/hosted acceptance, deployments, workflow execution, hosted database access or spending. Large controllers unchanged; zero static relative-import cycles. See Phase 14 delivery/checks and architecture-health records. Mission 15 remains open.
