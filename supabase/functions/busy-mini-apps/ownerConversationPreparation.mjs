@@ -35,7 +35,8 @@ function enquiryQuestionKinds(message){
  return categories.filter(([,pattern])=>pattern.test(customerQuestionText(message))).map(([id,,check])=>({id,check}));
 }
 function prepareOwnerConversation({request={},latestMessage=null,publishedConfig=null,listingFeed=null,businessId='',now=Date.now()}={}){
- const message=customerQuestionText(latestMessage?.sender_role==='customer'?latestMessage.body:request.payload?.message);
+ const originalQuestion=request.request_type==='booking_request'?request.payload?.note:request.payload?.message;
+ const message=customerQuestionText(latestMessage?.sender_role==='customer'?latestMessage.body:originalQuestion);
  const context=bounded(request.service_name||request.payload?.service,240);
  const intents=enquiryQuestionKinds(message);
  const faqs=publishedConfig?.publicProfile?.faqs;
