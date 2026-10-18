@@ -1309,3 +1309,9 @@ Natural club-project discussion reuses the neutral planner and cannot hand off a
 ## Mission 15 Phase 17 — website contextual composition
 
 Existing atomic page planner supports bounded comma-separated instructions and preceding exact-section references, preserving quoted copy and original locks/approval/Undo. Canonical framed heroes have distinct responsive text/image proportions; selected hero picture placement reaches original layout operations. Talk & Explore offers approved-image comparisons through dry-validated original planners without modifying source or enabling remote tools. Missing image bindings remain unsupported. See Phase 17 delivery/checks for regression evidence and limitations; no browser geometry/aesthetic claim, schema change or deployment.
+
+## Mission 15 Phase 18 — customer browsing recovery and exact wording
+
+Shared marketplace/standalone product/event callbacks reject superseded feed/selection/option context before original enquiry preparation. Removed listing and filter recovery use current public records; original server/source/version/receipt controls remain unchanged. One shared service-category component now provides counts and reset of both filters, replacing duplicate marketplace code. Standalone service card keys prefer stable identity.
+
+Website reference resolution is command-subject-only and preserves quoted owner copy. Natural section instructions and a finite whole-theme comparison reuse original atomic operations, canonical HTML, locks, private approval and Undo. Explore advice uses current service/category facts and recognises hobby planning without edits. Approved service imagery still needs the separately documented stable asset/authority contract; no schema or personal workspace activation. See Phase 18 delivery/checks for evidence and limits. No deployment or external spending.
