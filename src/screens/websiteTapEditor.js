@@ -72,6 +72,12 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  });
  const preparedInstruction=contextRequest.trim()
   ?planSelectedWebsiteChanges(draft,selection?.pageId,selection,contextRequest):null;
+ const prepareContextChoice=instruction=>{
+  const live=editorLive.current;
+  if(live.draft!==draft||live.selection!==selection||live.contextRequest!==contextRequest)return;
+  setContextRequest(instruction);setShowContextHelp(true);setSelectedInstructionPreview(null);
+  setContextNote('Choice prepared. Compare it before using Apply; nothing has been saved.');
+ };
  const previewContext=()=>{
   if(!preparedInstruction?.ok||!onPreviewInstruction){
    setContextNote(preparedInstruction?.reason||"Check your instruction before previewing.");
@@ -165,10 +171,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
            placeholder="Write your replacement"/>
          )}
          <Button label="Save to private website draft" primary onPress={save}/>
-         <WebsiteTypographyControls section={section} selection={selection} onChoose={instruction=>{
-          setContextRequest(instruction);setShowContextHelp(true);setSelectedInstructionPreview(null);
-          setContextNote("Typography choice prepared. Preview the result, then apply when you are happy.");
-         }}/>
+         <WebsiteTypographyControls section={section} selection={selection} onChoose={prepareContextChoice}/>
 
         </>
        ):null}
@@ -254,7 +257,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
           <View>
            <Text style={styles.cardBody}>BUSY knows exactly what you tapped. Try a suggested change, type an instruction or record your voice. Typed edits are local and use no AI credits; voice transcription uses a cloud service.</Text>
            {contextExamples.map(example=>(
-            <Button key={example} label={example} onPress={()=>applyContext(example)}/>
+            <Button key={example} label={'Prepare: '+example} onPress={()=>prepareContextChoice(example)}/>
            ))}
            <WebsiteSelectedVoice key={key} selection={selection} startImmediately={initialMode==="voice"} onTranscribe={onTranscribe}
             onTranscript={words=>{
