@@ -1,5 +1,6 @@
 import {AppGallerySurface} from "./appGallerySurface";
 import {ServiceDetails} from "../../standalone/template/serviceDetails";
+import {AppEntryEditButton} from './appEntryEditButton';
 import {amendAppQualityProposal} from "../core/appCoordinatedStudio.mjs";
 import {AppVisualSelection} from "./appVisualSelection";
 import {useApprovedBuilderRecords} from './useApprovedBuilderRecords';
@@ -410,7 +411,9 @@ function MiniAppSurface({
             {['faqs','testimonials'].map(field=>publicCollection(field,profile[field]||[]).map((row,i)=><Card key={field+i}
               eyebrow={field==='faqs'?'Customer question':'Customer testimonial'}
               title={field==='faqs'?row.question:row.attribution} body={field==='faqs'?row.answer:row.text}>
-              {ownerSelection&&field==='faqs'?<Button label={'Edit answer: '+row.question} onPress={()=>ownerSelection.onSelect({part:'faq',index:i,expectedFaq:JSON.stringify(profile.faqs[i])})}/>:null}
+              {ownerSelection&&field==='faqs'?<AppEntryEditButton label={'Edit answer: '+row.question} colors={brandColours}
+               selected={ownerSelection.selection?.part==='faq'&&ownerSelection.selection.index===i}
+               onPress={()=>ownerSelection.onSelect({part:'faq',index:i,expectedFaq:JSON.stringify(profile.faqs[i])})}/>:null}
              </Card>))}
             </View>
           );
@@ -453,7 +456,8 @@ function MiniAppSurface({
                           {service.name||"Service"}
                         </Text>
                         <ServiceDetails service={service} colors={brandColours} bodySize={visual.type.bodySize}/>
-                        {ownerSelection?<Button label={'Edit service '+service.name}
+                        {ownerSelection?<AppEntryEditButton label={'Edit service '+service.name} colors={brandColours}
+                          selected={ownerSelection.selection?.part==='service'&&ownerSelection.selection.index===allServices.indexOf(service)}
                           onPress={()=>ownerSelection.onSelect({part:'service',index:allServices.indexOf(service),expectedService:JSON.stringify(service)})}/>:null}
                         {interactive&&typeof onSelectService==='function'&&modules.some(m=>m.key==='enquiry')?<Button label={'Ask about '+service.name}
                           onPress={()=>onSelectService(service.name,'enquiry')}/>:null}
