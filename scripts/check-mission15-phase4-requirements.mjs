@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import {prepareOwnerConversation} from '../src/core/ownerConversationPreparation.mjs';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {emptyEnquiryRequirements as empty,prepareCustomerEnquiry as prepare} from '../src/core/customerEnquiryRequirements.mjs';
@@ -13,6 +15,9 @@ const render=()=>{const form=runtime.render(Form,{s});fields=runtime.render(Fiel
 render();get(surface,'Ask about Survey').props.onPress();render();get(fields,'Name').props.onChangeText('Fictional visitor');get(fields,'Email').props.onChangeText('visitor@example.test');get(fields,'Quantity or group size (optional)').props.onChangeText('Two properties');get(fields,'Preferred timing (optional, not confirmed)').props.onChangeText('Next week if possible');render();const pending=get(fields,'Send enquiry').props.onPress();assert.equal(sent.type,'enquiry');assert.match(sent.payload.message,/Two properties/);assert.match(sent.payload.message,/Next week if possible/);assert.match(sent.payload.message,/not confirmed/);get(fields,'Requirements or access needs (optional)').props.onChangeText('Step-free access');render();resolve(true);await pending;render();assert.equal(get(fields,'Requirements or access needs (optional)').props.value,'Step-free access','A successful older request cannot clear newer requirement edits');
 assert.equal(prepare({requirements:{...empty(),quantity:'x'.repeat(81)}}).ok,false);assert.equal(prepare({requirements:{...empty(),location:'<script>'}}).ok,false);assert.equal(prepare({message:'x'.repeat(3000),requirements:{...empty(),quantity:'2'}}).ok,false);
 assert.equal(prepare({requirements:{...empty(),details:'Can we discuss step-free access?'}}).ok,true);
+const preparation=prepareOwnerConversation({request:{request_type:'enquiry',service_name:sent.payload.service,payload:sent.payload},publishedConfig:config});
+assert.ok(preparation.intents.some(x=>x.id==='options'));assert.ok(preparation.intents.some(x=>x.id==='availability'));assert.ok(preparation.missingInformation.some(x=>x.includes('quantity or group size')));assert.equal(preparation.maySend,false);assert.equal(preparation.bookingConfirmed,false);
+assert.equal(fs.readFileSync('src/core/ownerConversationPreparation.mjs','utf8'),fs.readFileSync('supabase/functions/busy-mini-apps/ownerConversationPreparation.mjs','utf8'));
 const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`,slots=new Map(),storage={getItemAsync:async k=>slots.get(k),setItemAsync:async(k,v)=>slots.set(k,v),deleteItemAsync:async k=>slots.delete(k)};
 const scope={userId:id(1),appId:id(2),versionId:id(3)},draft={name:'Visitor',email:'v@example.test',phone:'',service:'Survey',message:'Question',contentInterest:null,requirements:{...empty(),quantity:'2'}};
 await createCustomerEnquiryCheckpoint(storage,scope).save(draft);assert.deepEqual(await createCustomerEnquiryCheckpoint(storage,scope).load(),draft);assert.equal(await createCustomerEnquiryCheckpoint(storage,{...scope,userId:id(4)}).load(),null);

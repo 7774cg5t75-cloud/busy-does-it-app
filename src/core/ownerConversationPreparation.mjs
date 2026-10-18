@@ -27,10 +27,10 @@ function customerQuestionText(message){
 function enquiryQuestionKinds(message){
  const categories=[
   ['price',/\b(prices?|costs?|how much|quotes?|discounts?)\b/i,'Confirm the current price and scope before quoting.'],
-  ['availability',/\b(available|availability|book|booking|reserve|stock|tickets?|spaces?)\b/i,'Check actual availability before offering a time or item.'],
+  ['availability',/\b(available|availability|preferred timing|preferred dates?|book|booking|reserve|stock|tickets?|spaces?)\b/i,'Check actual availability before offering a time or item.'],
   ['location',/\b(where|location|address|venue|deliver|delivery|travel)\b/i,'Confirm the relevant location or service area.'],
   ['accessibility',/\b(accessib\w*|wheelchair|step.free)\b/i,'Confirm the requested accessibility arrangements.'],
-  ['options',/\b(options?|variants?|sizes?|colours?|colors?)\b/i,'Review the selected option and current details.']
+  ['options',/\b(options?|variants?|sizes?|colours?|colors?|quantity|quantities|group size)\b/i,'Review the selected option, requested quantity or group size and current details.']
  ];
  return categories.filter(([,pattern])=>pattern.test(customerQuestionText(message))).map(([id,,check])=>({id,check}));
 }
