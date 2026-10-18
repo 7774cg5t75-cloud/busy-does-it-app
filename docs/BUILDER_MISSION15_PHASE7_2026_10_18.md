@@ -1,0 +1,30 @@
+# Mission 15 Phase 7 — implementation checkpoint, mission remains open
+
+Branch: `codex/builder-mission15-design-advancement`; existing draft PR #26, dependent on PR #25 and unchanged earlier draft chain. Starting remote `b0e47a4e5a990a4d8a24df8e0d122d439e636053`, local equivalent tree `f21a381d6df960d61b0f329b38567cddb2e78ae8`. Private owner-supplied V22.31 opened and reviewed against the previously fully reviewed V22.27; public provenance updated without copying private contents. AGENTS, architecture, development policy, prior phase evidence and original editing paths reviewed.
+
+## Functional slices preserved
+
+1. Website home-page section movement: app-owned private preview handles support primary mouse/touch/pen pointer events and accessible up/down keys. Only canonically allowed moves expose handles/drop cues; only actual rendered editable section roots qualify. Pointer threshold, cancellation, blur, page exit and one-shot bridge submission protect accidental/duplicate drops. Ordinary scrolling outside handles stays unchanged. Releasing on a valid edge explicitly requests a private save through the original selected-instruction controller; original locks, tenant/source revision checks and exact Undo stay authoritative. No saved coordinates, cross-container freeform layout or secondary-page movement claim.
+2. Selected typography: original tap toolbar/wording editor gains contextual font, weight, line-spacing and alignment choices for supported section headings and primary paragraphs. Brand/system sans/serif/mono; brand/400/500/700/800 weights; finite comfortable/relaxed leading; brand/left/centre/right alignment. Choices prepare the exact same grammar used by typed/voice-selected instructions, with original before/after comparison and explicit Apply. Existing section/card heading sizes, responsive controls and wording editing remain. Shared canonical appearance schema/classes/CSS reach local, hosted-section and exported website paths. Defaults remove only the selected override; other appearance and Brand DNA survive. No remote fonts, arbitrary CSS or authoritative business-record editing.
+3. App Studio: owners can tap the actual native preview header/navigation labels with clear selected outlines, then prepare existing type-style/spacing/navigation-look or permitted section-move proposals. These return to original Studio comparison, scoped owner approval, CAS save and Undo. The public interactive surface ignores owner editing props. Busy/pending/uncertain and owner locks restrict controls; stale parent callbacks fail current-context checks. Native tapping/buttons only, no claim of native drag/drop or independent per-text app fonts.
+4. Verification/maintenance: coherent gesture, typography and native selection modules avoid AppController growth. Original hosted renderer function execution replaces the inherited test's obsolete inline-helper/string-location expectation. Actual original selected handlers exercise grouped typography, stale selection rejection and one Undo snapshot. No test expectation was relaxed to accept a failed outcome.
+
+## Recoverable remote feature checkpoints
+
+- `f0f6f6007b9304a3e5843042059abe802d49bdf1`: private structured movement and keyboard alternatives.
+- `57c05814d43f95a0eab1ae462d99a3e86d124262`: selected typography and canonical renderer behaviour.
+- `868b172210e4d3ff248326c06f865f8a53c6f970`: native App selection plus actual-visible-section drop restriction.
+
+Every checkpoint tree matched the tested local tree before fast-forward-only connector updates. Final documentation/checkpoint follows these feature commits. No branch rewriting or new PR.
+
+## Evidence and limits
+
+76 offline commands pass; outputs in Phase 7 checks JSON. Tests execute actual canonical planners, renderers, original controller initialisers and component/gesture handlers with explicit inert IO/DOM/native boundaries. They are not deployed HTTP, browser layout, OS touch/keyboard, hosted authentication/RLS or physical-device acceptance. Nine fictional HTML design fixtures/unsigned prototype generation remain offline evidence only. Cached tooling reused; no installation. A Node child-process git syntax-list wrapper hit environment EPERM; the same source syntax checks then passed using a shell-generated file list. No browser retry or sandbox weakening.
+
+No text-range styling, contenteditable inline writing, arbitrary colour picker, font upload, pixel freeform resize, automatic autoscroll while dragging, gallery/card drag, secondary-page drag, or native dragging is claimed. The existing wording modal remains the direct text-edit path. System font appearance, selection-toolbar focus, screen reader announcements, scroll/drag interactions and renderer support for CSS `:is` need targeted normal-sandbox browser/iPad/iPhone acceptance. New canonical typography modules must accompany any separately approved worker/client release; no deployment authorised here.
+
+## Exact next unfinished workstream
+
+Continue Mission 15, not Mission 16: strengthen service selection and saved-context readback through original published-version/request contracts, including changed-version re-review in marketplace/standalone. Current service identity remains the original owner-written name and request version; no server-attested service revision/price/availability guarantee was added. Retain free-text requests rather than falsely requiring catalogue matching. Then extend selected typography with context-aware contrast-checked colour/size and supported card targets; preserve per-destination customisations and use the same finite edit paths. Real-device acceptance of this phase needs separate approved environment/device access, not sandbox disabling.
+
+No merge, deployment, hosted database access/change, schema/workflow modification or execution, publication, customer communication, paid provider/build, credential/billing change or external spend. Additional spending £0. Original migrations and disposable rehearsal unchanged; its passing result proves only its original exact scope.

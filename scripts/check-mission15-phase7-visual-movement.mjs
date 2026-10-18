@@ -30,7 +30,8 @@ assert.ok(edited.includes('pointercancel'));assert.ok(!edited.includes('undefine
 // Execute the actual installed gesture function with inert DOM/event boundaries.
 // These are behavioural event fixtures, not browser or touch-device acceptance.
 const events={},windowEvents={},sent=[],nodes={};
-function node(id){return {id,attrs:{},listeners:{},children:[],textContent:'',firstChild:null,
+function node(id){return {id,marker:id,attrs:{},listeners:{},children:[],textContent:'',firstChild:null,
+ getAttribute(k){return k==='data-busy-edit-section'?this.marker:this.attrs[k];},
  setAttribute(k,v){this.attrs[k]=v;},removeAttribute(k){delete this.attrs[k];},
  addEventListener(k,fn){this.listeners[k]=fn;},insertBefore(n){this.children.push(n);},
  appendChild(n){this.children.push(n);},getBoundingClientRect(){return {top:100,height:100};},
@@ -52,5 +53,10 @@ assert.deepEqual(sent,[message]);events.pointerup(e());assert.equal(sent.length,
 installWebsiteMovement(options);const keyboard=nodes[move.sectionId].children.at(-1);
 keyboard.listeners.keydown(e({key:move.position==='before'?'ArrowUp':'ArrowDown'}));assert.equal(sent.length,2);
 assert.ok(resolveWebsiteMovement(draft,'home',source,sent[1],editableHtml));
+const heroMove=options.moves.find(m=>m.targetSectionId==='hero'&&m.position==='after');
+assert.ok(heroMove);nodes.hero.id='';hit=nodes.hero;
+installWebsiteMovement(options);const heroHandle=nodes[heroMove.sectionId].children.at(-1);
+heroHandle.listeners.pointerdown(e());events.pointermove(e({clientY:190}));events.pointerup(e());
+assert.equal(sent.at(-1).targetSectionId,'hero','Rendered hero marker works without an HTML id');
 delete globalThis.window;delete globalThis.document;
 console.log('PASS: canonical rendered ordering, source/locks/page guards, pointer drop/cancel/blur, keyboard alternative and one-shot save; inert DOM only.');

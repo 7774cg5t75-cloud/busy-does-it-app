@@ -80,12 +80,13 @@ function installWebsiteMovement(options){
   if(!drag||e.pointerId!==drag.pointer)return;
   e.preventDefault();clear();drag.target=null;
   if(Math.abs(e.clientY-drag.y)+Math.abs(e.clientX-drag.x)<8)return;
-  var hit=document.elementFromPoint(e.clientX,e.clientY),section=hit&&hit.closest&&hit.closest('section[id]');
+  var hit=document.elementFromPoint(e.clientX,e.clientY),section=hit&&hit.closest&&hit.closest('section[data-busy-edit-section]');
   if(!section)return;
   var rect=section.getBoundingClientRect(),position=e.clientY<rect.top+rect.height/2?'before':'after';
-  if(!valid(drag.id,section.id,position))return;
-  drag.target=section.id;drag.position=position;marked=section;marked.setAttribute('data-busy-drop',position);
-  status.textContent='Move '+drag.id+' '+position+' '+section.id+'.';
+  var target=section.getAttribute('data-busy-edit-section');
+  if(!valid(drag.id,target,position))return;
+  drag.target=target;drag.position=position;marked=section;marked.setAttribute('data-busy-drop',position);
+  status.textContent='Move '+drag.id+' '+position+' '+target+'.';
  },{passive:false});
  document.addEventListener('pointerup',function(e){
   if(!drag||e.pointerId!==drag.pointer)return;
