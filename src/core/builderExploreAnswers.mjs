@@ -1,5 +1,6 @@
+import {websiteCompositionFacts} from './websiteCoordinatedAlternatives.mjs';
 import {planUniversalBuilderRequest} from './universalBuilderPlanV3210.mjs';
-import {LABELS} from './nativePalette.mjs';
+import {LABELS,nativePalette,contrast} from './nativePalette.mjs';
 import {appDesignQualityReport} from './appDesignQuality.mjs';
 // Presentation of existing planner evidence, not another planner or AI service.
 const readiness={present_in_private_draft:'Already included in your draft',supported_section_not_present:'Can be prepared for your review',available_module_needs_owner_setup:'Available, with setup still needed',runtime_module_not_verified_available:'Not confirmed for this app yet',requires_new_implementation:'Not supported yet',requires_service_verification:'Needs its service or connection checked'};
@@ -13,6 +14,11 @@ function explainBuilderExplore({kind,project,catalog,plan,text}){
  }
  const profile=kind==='app'?project.draft_config?.publicProfile||{}:project;
  const services=kind==='app'?(profile.services||[]):project.sections?.find(s=>s.type==='services'&&s.enabled!==false)?.items||[];
+ if(kind==='app'&&/\bcontrast\b|\breadable colou?rs\b/i.test(text)){
+  const palette=project.draft_config?.presentation?.brandPalette||'midnight',accent=project.draft_config?.presentation?.brandAccent;
+  if(Object.hasOwn(LABELS,palette)){const colors=nativePalette(palette,accent);return {answer:['Text on the standard card background: '+contrast(colors.text,colors.surface).toFixed(2)+':1. Accent text on that background: '+contrast(colors.accent,colors.surface).toFixed(2)+':1.',
+   'These calculations use your supported solid palette colours. They do not assess photographs, overlays, actual rendered text size or full accessibility. Preview each affected screen before keeping a change. Nothing will be changed.'].join('\n'),alternatives:[]};}
+ }
  if(/\b(colou?rs?|palette|dark background|light background)\b/i.test(text)){
   const palette=kind==='app'?LABELS[project.draft_config?.presentation?.brandPalette||'midnight']:null;
   const primary=kind==='website'&&/^#[a-f0-9]{6}$/i.test(project.theme?.primary||'')?project.theme.primary:null;
@@ -60,6 +66,13 @@ function explainBuilderExplore({kind,project,catalog,plan,text}){
   return {answer:['Your current Home page begins with '+(ordered.slice(0,3).map(s=>s.title||s.id).join(' → ')||'no visible sections yet')+'.',services.length?'Help visitors understand the existing services before asking them to enquire; keep a clear route to the original contact or enquiry action.':'Lead with a clear owner-written introduction and one supported next step. Add accurate information before extra decoration.',
    project.theme?.sectionOrder?.length?'Your customised section order stays authoritative. Any change needs an explicit original editor review.':'This is information-order advice from your current source, not a measured customer outcome.',
    'Nothing will be changed.'].join('\n'),alternatives:[]};
+ }
+ if(kind==='website'&&/\b(?:service[- ]focused|image[- ]led|gallery[- ]first|spacious homepage)\b/i.test(text)){
+  const facts=websiteCompositionFacts(project,'home');
+  return {answer:['Your current Home page has '+facts.serviceCount+' named services and '+facts.approvedGalleryCount+' approved gallery photographs.',
+   'An information-focused composition uses readable service rows; an image-led introduction gives existing photography more emphasis. More phone spacing can improve separation but requires more scrolling.',
+   facts.gallerySizeCustomized?'Your customised gallery sizing stays authoritative; the featured-gallery alternative is not offered over it.':'A featured-gallery proposal needs at least three approved photographs. No unrelated photo is assigned to a service.',
+   'These are source-based trade-offs, not screenshot or customer-outcome evidence. Nothing will be changed.'].join('\n'),alternatives:[{label:'Explore readable service rows',instruction:'make the whole page easier to read'},{label:'Explore more phone space',instruction:'give the whole page more spacing on phones'}]};
  }
  const design=/\b(colou?rs?|layout|homepage|design|improve|readab|typograph|different look)\b/i.test(text);
  if(design){

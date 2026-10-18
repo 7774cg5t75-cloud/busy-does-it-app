@@ -3,6 +3,11 @@ import {applyWebsiteLayoutOperation} from '../../supabase/functions/busy-website
 import {ownerDesignPreference} from './websiteMeasuredDesignCoach.mjs';
 // Finite alternatives for the EXISTING measured candidate lifecycle. Industry
 // is a hypothesis; current-render checks and the owner's choice stay decisive.
+function websiteCompositionFacts(draft,pageId='home'){
+ const page=draft?.pages?.find(p=>p.id===pageId&&p.enabled!==false),sections=(draft?.sections||[]).filter(s=>s.enabled!==false&&page?.sectionIds?.includes(s.id));
+ const service=sections.find(s=>s.id==='services'),gallery=sections.find(s=>s.id==='gallery');
+ return {serviceCount:Array.isArray(service?.items)?service.items.filter(item=>String(item.title||'').trim()).length:0,approvedGalleryCount:photographicCount(gallery?[gallery]:[]),heroPhoto:photographicCount(sections.filter(s=>s.id==='hero'))>0,gallerySizeCustomized:['compact','large'].includes(gallery?.appearance?.gallerySize)||['compact','large'].includes(gallery?.appearance?.desktopGallerySize)};
+}
 function coordinatedWebsiteAlternatives(draft,pageId,report){
  if(!draft?.id||!draft.pages?.some(p=>p.id===pageId&&p.enabled!==false)||!report?.counts||!Array.isArray(report.issues)||!Number.isFinite(report.counts.viewport)||report.counts.viewport<250||report.counts.viewport>3000)return [];
  const issueIds=report.issues.map(x=>x?.id);
@@ -17,12 +22,10 @@ function coordinatedWebsiteAlternatives(draft,pageId,report){
  directions.push({id:'coordinated-visual',label:heroPhoto?'Image-led introduction':'Editorial introduction',
   explanation:'Compare an editorial hero, separated cards and the existing gallery where it is on this page. Without an approved hero image, use a typographic statement. Images, colours and owner spacing choices are preserved.',
   settings:{typography:'editorial',cardLayout:'cards',heroLayout:heroPhoto?'image-feature':'type-poster'},tradeoff:'Uses more vertical space on phones; inspect tablet and desktop rhythm too.'});
- const serviceSection=draft.sections?.find(s=>s.id==='services'&&s.enabled!==false&&draft.pages.find(p=>p.id===pageId)?.sectionIds?.includes(s.id));
- const serviceCount=Array.isArray(serviceSection?.items)?serviceSection.items.filter(item=>String(item.title||'').trim()).length:0;
+ const facts=websiteCompositionFacts(draft,pageId),serviceCount=facts.serviceCount;
  if(serviceCount>=4)directions.unshift({id:'coordinated-service-guide',label:'Service guide with clear detail rows',explanation:'Your current page contains '+serviceCount+' named services. Compare compact typography and title/detail rows so visitors can scan names before reading the detail. Existing words, colours and images stay unchanged.',settings:{typography:'compact',cardLayout:'rows',heroLayout:heroPhoto?'image-frame':'type-left'},tradeoff:'Prioritises information density over large decorative cards; phones retain stacked service text.'});
- const gallery=draft.sections?.find(s=>s.id==='gallery'&&s.enabled!==false&&draft.pages.find(p=>p.id===pageId)?.sectionIds?.includes(s.id));
- const galleryPhotos=photographicCount(gallery?[gallery]:[]);
- if(galleryPhotos>=3&&serviceCount<4&&!['compact','large'].includes(gallery.appearance?.gallerySize)&&!['compact','large'].includes(gallery.appearance?.desktopGallerySize))directions.unshift({id:'coordinated-gallery-story',label:'Image-led story with a featured photograph',explanation:'Your current page has '+galleryPhotos+' approved gallery photographs. Compare a gallery-first story with one larger existing photograph on wide screens; phones keep the original flowing gallery. Existing captions, assets and colours stay unchanged.',settings:{typography:'editorial',cardLayout:'outlines',heroLayout:heroPhoto?'image-feature':'type-poster'},tradeoff:'Visitors meet the imagery before longer service detail. No photo is invented, replaced or assigned to a service.'});
+ const galleryPhotos=facts.approvedGalleryCount;
+ if(galleryPhotos>=3&&serviceCount<4&&!facts.gallerySizeCustomized)directions.unshift({id:'coordinated-gallery-story',label:'Image-led story with a featured photograph',explanation:'Your current page has '+galleryPhotos+' approved gallery photographs. Compare a gallery-first story with one larger existing photograph on wide screens; phones keep the original flowing gallery. Existing captions, assets and colours stay unchanged.',settings:{typography:'editorial',cardLayout:'outlines',heroLayout:heroPhoto?'image-feature':'type-poster'},tradeoff:'Visitors meet the imagery before longer service detail. No photo is invented, replaced or assigned to a service.'});
  directions.sort((a,b)=>{
   const liked=d=>ownerDesignPreference(draft,d.id,pageId)==='liked'?4:0;
   const relevant=d=>['coordinated-service-guide','coordinated-gallery-story'].includes(d.id)?3:d.id==='coordinated-reading'&&issueIds.some(id=>['overflow','headings','readability'].includes(id))?2:
@@ -48,4 +51,4 @@ function coordinatedWebsiteAlternatives(draft,pageId,report){
    industry:sector,measuredImprovementProven:false,decisionEvidence:{viewport:report.counts.viewport,issueIds,approvedPhotoCount:photos,ownerPreference:ownerDesignPreference(draft,d.id,pageId)||null},available:operations.length>0&&applyWebsiteLayoutOperation(draft,operation).applied};
  }).filter(d=>d.available).slice(0,2);
 }
-export {coordinatedWebsiteAlternatives};
+export {coordinatedWebsiteAlternatives,websiteCompositionFacts};
