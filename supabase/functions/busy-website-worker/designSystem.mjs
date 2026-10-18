@@ -254,6 +254,12 @@ main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:4
 .visual-cards-rows .grid{display:flex;flex-direction:column;gap:0}
 .visual-cards-rows .grid article{background:transparent;border:0;border-bottom:1px solid var(--line);box-shadow:none;border-radius:0;padding:24px 0}
 .visual-cards-rows .grid article h3{font-size:1.5rem}
+/* Services only: preserve title-first reading order and stack on phones. */
+@media(min-width:801px){
+ .visual-cards-rows #services .grid article{display:grid;grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr);gap:clamp(18px,3vw,40px);align-items:start}
+ .visual-cards-rows #services .grid article h3,.visual-cards-rows #services .grid article p{min-width:0;margin-block:0;overflow-wrap:anywhere}
+}
+
 .visual-ornament-arch .hero-art{border-radius:240px 240px 4px 4px;transform:rotate(0deg)}
 .visual-ornament-stripes .hero-art{border-radius:0;background:repeating-linear-gradient(115deg,var(--glow) 0,var(--glow) 10px,transparent 10px,transparent 25px);opacity:.12;transform:rotate(-8deg)}
 .visual-ornament-glow .hero-art{border-radius:50%;filter:blur(38px);opacity:.22}

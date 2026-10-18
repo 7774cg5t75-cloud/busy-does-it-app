@@ -41,6 +41,8 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
  if(!text||text.length>400)return failure("Type one short change, such as ‘make this heading bigger’.");
  // Literal user wording only: never invent content. This remains subject to
  // the existing text-field length, XSS-escaping, email and link validation.
+ const spacious=text.match(/^make (this|that|the selected) section more spacious(?: on (phones?|mobile|desktop|computers?))?$/i);
+ if(spacious)return interpretSelectedWebsiteRequest(draft,pageId,selection,'give '+spacious[1]+' section more space'+(spacious[2]?' on '+spacious[2]:''));
  const plainWeight=text.match(/^(?:make|set) (?:this|that|the selected) (heading|paragraph|text) (regular|medium|bold|heavy)$/i);
  if(plainWeight)return interpretSelectedWebsiteRequest(draft,pageId,selection,
   'set this '+(plainWeight[1].toLowerCase()==='heading'?'heading':'paragraph')+' weight to '+plainWeight[2].toLowerCase());

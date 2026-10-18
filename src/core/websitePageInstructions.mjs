@@ -19,7 +19,7 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
  if(clauses)clauses=clauses.flatMap(clause=>/^improve (?:the )?phone layout (?:but )?(?:leave|keep) (?:the )?desktop (?:arrangement |layout )?(?:alone|unchanged)$/i.test(clause)?['make the page easier to read on phones','give the page more space on phones']:clause);
  if(clauses&&clauses.length>5)return fail('Use up to five supported changes, including the two phone-layout adjustments.');
  if(!clauses)return fail("Ask for up to five clear changes separated by 'and then' or semicolons.");
- const steps=[],targets=new Set();let previousSection=null;
+ const steps=[],targets=new Set();let previousSection=null,preserveWording=false;
  const findSection=phrase=>{
   const name=String(phrase||"").trim().toLowerCase();
   const matches=list(draft.sections).filter(s=>s?.enabled!==false&&
@@ -29,6 +29,7 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
  };
  for(let i=0;i<clauses.length;i++){
   let clause=clauses[i];
+  if(/^keep (?:my |the )?(?:original |existing )?wording$/i.test(clause)){preserveWording=true;continue;}
   // Only an exact preceding named section can resolve these bounded references.
   const headingReference=/^((?:make|set) )(?:its|the) heading\b/i,sectionReference=/^((?:give|make) )(?:this|the) section\b/i;
   if(headingReference.test(clause)||sectionReference.test(clause)){
@@ -105,12 +106,12 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    const section=findSection(m[1]);if(!section)return fail("Name one visible section on this page: "+m[1]);
    change={action:"move",sectionId:section.id,direction:m[2].toLowerCase()};
    description="Move "+section.title+" "+m[2].toLowerCase();
-  }else if((m=clause.match(/^(?:make|set) (?:the )?(.+?) heading (bigger|larger|smaller|normal)(?: (?:only )?on (phones?|mobile|desktop|computers?|wide screens?))?$/i))){
+  }else if((m=clause.match(/^(?:make|set) (?:the )?(.+?) heading (bigger|larger|smaller|normal|more prominent)(?: (?:only )?on (phones?|mobile|desktop|computers?|wide screens?))?$/i))){
    const section=findSection(m[1]);if(!section)return fail("Name one visible heading section: "+m[1]);
    const device=m[3]?/phone|mobile/i.test(m[3])?"mobile":"desktop":"";
    change={action:"section-style",sectionId:section.id,
     field:device?device+"HeadingScale":"headingScale",
-    value:/bigger|larger/i.test(m[2])?"large":/smaller/i.test(m[2])?"compact":"normal"};
+    value:/bigger|larger|more prominent/i.test(m[2])?"large":/smaller/i.test(m[2])?"compact":"normal"};
    description="Resize "+section.title+" heading"+(device?" on "+device:"");
   }else if((m=clause.match(/^(?:make|show) (?:the )?gallery (?:photos|pictures|images) (bigger|larger|smaller|normal)(?: (?:only )?on (phones?|mobile|desktop|computers?|wide screens?))?$/i))){
    const section=findSection("gallery");if(!section||section.type!=="gallery")return fail("The gallery is not on this page.");
@@ -134,7 +135,9 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
   if(change.sectionId)previousSection=list(draft.sections).find(s=>s.id===change.sectionId)||null;
   keys.forEach(key=>targets.add(key));steps.push({type,change,spoken:clause,description});
  }
- return {ok:true,draftId,pageId,generation,steps,requiresExplicitApproval:true,
+ if(!steps.length)return fail('Choose a supported edit; preserving wording alone makes no change.');
+ if(preserveWording){const safe=op=>op.action==='style-group'?op.operations.every(safe):['style','section-style','move','move-relative','page-reading','page-spacing'].includes(op.action);if(steps.some(step=>step.type!=='layout'||!safe(step.change)))return fail('No changes were made. Wording edits or new content contradict keeping the original wording.');}
+ return {ok:true,draftId,pageId,generation,steps,preservesWording:preserveWording,requiresExplicitApproval:true,
   summary:steps.length+" named page change"+(steps.length===1?"":"s")+" ready for private preview"};
 }
 function prepareWebsitePageInstructionPreview(draft,request={},deps={}){

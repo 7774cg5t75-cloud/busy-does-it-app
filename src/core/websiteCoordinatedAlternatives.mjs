@@ -17,9 +17,12 @@ function coordinatedWebsiteAlternatives(draft,pageId,report){
  directions.push({id:'coordinated-visual',label:heroPhoto?'Image-led introduction':'Editorial introduction',
   explanation:'Compare an editorial hero, separated cards and the existing gallery where it is on this page. Without an approved hero image, use a typographic statement. Images, colours and owner spacing choices are preserved.',
   settings:{typography:'editorial',cardLayout:'cards',heroLayout:heroPhoto?'image-feature':'type-poster'},tradeoff:'Uses more vertical space on phones; inspect tablet and desktop rhythm too.'});
+ const serviceSection=draft.sections?.find(s=>s.id==='services'&&s.enabled!==false&&draft.pages.find(p=>p.id===pageId)?.sectionIds?.includes(s.id));
+ const serviceCount=Array.isArray(serviceSection?.items)?serviceSection.items.filter(item=>String(item.title||'').trim()).length:0;
+ if(serviceCount>=4)directions.unshift({id:'coordinated-service-guide',label:'Service guide with clear detail rows',explanation:'Your current page contains '+serviceCount+' named services. Compare compact typography and title/detail rows so visitors can scan names before reading the detail. Existing words, colours and images stay unchanged.',settings:{typography:'compact',cardLayout:'rows',heroLayout:heroPhoto?'image-frame':'type-left'},tradeoff:'Prioritises information density over large decorative cards; phones retain stacked service text.'});
  directions.sort((a,b)=>{
   const liked=d=>ownerDesignPreference(draft,d.id,pageId)==='liked'?4:0;
-  const relevant=d=>d.id==='coordinated-reading'&&issueIds.some(id=>['overflow','headings','readability'].includes(id))?2:
+  const relevant=d=>d.id==='coordinated-service-guide'?3:d.id==='coordinated-reading'&&issueIds.some(id=>['overflow','headings','readability'].includes(id))?2:
    d.id==='coordinated-visual'&&photos>0&&['creative','hospitality','events','retail'].includes(sector)?1:0;
   return liked(b)+relevant(b)-liked(a)-relevant(a);
  });
