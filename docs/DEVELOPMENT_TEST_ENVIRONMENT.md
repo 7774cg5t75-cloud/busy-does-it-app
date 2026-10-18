@@ -38,15 +38,16 @@ python3 scripts/testing/regressions.py --only-phase8-blocked
 python3 scripts/testing/regressions.py --filter phase8
 python3 scripts/testing/regressions.py --output /tmp/busy-checks.json
 python3 scripts/testing/check-environment.py
+node scripts/testing/syntax.mjs src/screens/appVisualSelection.js standalone/template/App.js
 ```
 
-Reports record source commit, dirty-tree indicator, selection hash, timing and bounded output. They are saved atomically after each result. Passed, failed, blocked and unexecuted are distinct. Filtered checks remain explicitly unexecuted; interruption/fail-fast never marks later checks green. Missing Babel or OS permission/time limits are blocked; assertion failures and missing original application files fail. Exit 0 means selected checks passed, 1 means failures, 2 means blocked/interrupted. Default output is ignored `.test-artifacts/regressions.json`. Runtime mocks/inert boundaries remain documented in individual tests; none becomes hosted/native acceptance because it passes.
+Reports record source commit, dirty-tree indicator, selection hash, timing and bounded output. They are saved atomically after each result. Passed, failed, blocked and unexecuted are distinct. Filtered checks remain explicitly unexecuted; interruption/fail-fast never marks later checks green. Missing Babel or OS permission/time limits are blocked; assertion failures and missing original application files fail. Exit 0 means selected checks passed, 1 means failures, 2 means blocked/interrupted or no matching checks. Default output is ignored `.test-artifacts/regressions.json`. Runtime mocks/inert boundaries remain documented in individual tests; none becomes hosted/native acceptance because it passes.
 
 Python orchestrates subprocesses because this task's command sandbox returned EPERM for Node synchronous subprocess calls. This is an environment restriction, not a reason to disable security. Both Node and Python remain necessary.
 
 ## Owner-managed cloud setup and permissions
 
-Create/select a reusable Codex development environment for this repository and branch chain. Configure its runtime image/setup to provide the exact Node/npm versions above and Python 3. Set its repository setup command to the two fresh-checkout commands above, with the checkout root as working directory. Publish/save that environment through the platform's environment configuration UI, then select it for future tasks. These repository files do **not** publish an environment or change platform settings.
+Create/select a reusable Codex development environment for this repository and branch chain. Configure its runtime image/setup to provide the exact Node/npm versions above and Python 3. Select the approved Mission 15 source branch (main does not yet contain this dependent work). Set its repository setup command to the two fresh-checkout commands above, with the checkout root as working directory. Publish/save that environment through the platform's environment configuration UI, then select it for future tasks. These repository files do **not** publish an environment or change platform settings.
 
 Allow the npm package-manager preset or the narrow `registry.npmjs.org` host **during setup**. Keep TLS/proxy trust enabled. Use no production secrets, customer credentials or provider bindings for offline tests. If the platform supports cached environment snapshots, preserve the prepared `scripts/offline-tools/node_modules` tree and scoped link, keyed/invalidate on the lockfile hash; otherwise keep a complete npm cache and let offline bootstrap rebuild it. A successful setup health check is required before calling the environment ready.
 

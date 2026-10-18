@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
+import {proposeCoordinatedAppChanges} from '../src/core/appCoordinatedStudio.mjs';
 const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs');
 const rt=createRuntime(),{AppVisualSelection}=rt.load('src/screens/appVisualSelection.js'),{MiniAppSurface}=rt.load('src/screens/miniApps.js');
 const walk=n=>Array.isArray(n)?n.flatMap(walk):n&&typeof n==='object'?[n,...walk(n.props?.children)]:[];
@@ -14,4 +15,10 @@ find(surface,'Edit this business description').props.onPress();render();find(pan
 const oldPrepare=find(panel,'Preview selected wording');props.config={...config,publicProfile:{...config.publicProfile,description:'Changed elsewhere'}};render();assert.equal(find(panel,'Preview selected wording').props.disabled,true);assert.equal(find(panel,'Selected business description').props.value,'Specific owner-written description');count=proposals.length;oldPrepare.props.onPress();assert.equal(proposals.length,count);find(panel,'Use current app source').props.onPress();render();assert.equal(find(panel,'Selected business description').props.value,'Changed elsewhere');
 props.config={...config,presentation:{...config.presentation,ownerLockedElements:['services','copy']}};render();find(surface,'Select service presentation').props.onPress();render();assert.equal(find(panel,'Preview rows services').props.disabled,true);find(surface,'Select app header typography').props.onPress();render();find(panel,'App tagline (header and summary)').props.onChangeText('Locked text');render();assert.equal(find(panel,'Preview selected wording').props.disabled,true);
 const publicTree=rt.render(MiniAppSurface,{config,interactive:true,ownerEdit:{onSelect:()=>{throw Error('No owner interaction in public view');}}});assert.equal(find(publicTree,'Select service presentation'),undefined);assert.equal(find(publicTree,'Select gallery presentation'),undefined);assert.equal(find(publicTree,'Edit this business description'),undefined);
+for(const proposal of proposals){
+ const restored=proposeCoordinatedAppChanges(proposal.nextConfig,JSON.parse(JSON.stringify(proposal.undoOperations)));assert.ok(restored.ok,restored.reason);assert.deepEqual(JSON.parse(JSON.stringify(restored.nextConfig)),config,'Original inverse restores exact source shape');
+}
+const rowDraft=JSON.parse(JSON.stringify(proposals[0].nextConfig)),rowSurface=rt.render(MiniAppSurface,{config:rowDraft,interactive:true});
+assert.ok(walk(rowSurface).some(node=>node.props?.style?.borderWidth===0&&node.props?.style?.borderBottomWidth===1),'Approved row proposal reaches actual rendered card styles after JSON reload');
+const wordingProposal=proposals.find(proposal=>proposal.nextConfig.publicProfile.tagline==='Newer owner wording');assert.ok(wordingProposal);assert.match(JSON.stringify(rt.render(MiniAppSurface,{config:JSON.parse(JSON.stringify(wordingProposal.nextConfig)),interactive:true})),/Newer owner wording/);
 assert.equal(JSON.stringify(config),original);console.log('PASS actual App Studio service/gallery selection, original proposals/Undo, inline draft wording, stale callbacks/source conflict preservation, locks and public-action exclusion. Inert native/IO boundaries, not device acceptance.');

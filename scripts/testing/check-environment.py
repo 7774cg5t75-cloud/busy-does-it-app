@@ -1,5 +1,5 @@
 """Inert runner policy checks; actual bootstrap/health are verified separately."""
-import importlib.util,json,pathlib,unittest
+import importlib.util,json,pathlib,unittest,subprocess,sys,tempfile
 path=pathlib.Path(__file__).with_name('regressions.py')
 spec=importlib.util.spec_from_file_location('regressions',path);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 class RunnerPolicy(unittest.TestCase):
@@ -10,6 +10,13 @@ class RunnerPolicy(unittest.TestCase):
   self.assertEqual(module.classify(1,"Cannot find module './original-app-file'"),'failed')
   self.assertEqual(module.classify(1,'spawn EPERM'),'blocked')
   self.assertEqual(module.classify(0,'',True),'blocked')
+ def test_no_matching_checks_are_not_green(self):
+  with tempfile.TemporaryDirectory() as folder:
+   report=pathlib.Path(folder)/'report.json'
+   result=subprocess.run([sys.executable,str(path),'--filter','NO_MATCHING_CHECK_ALLOWED','--output',str(report)],capture_output=True,text=True)
+   self.assertEqual(result.returncode,2)
+   data=json.loads(report.read_text());self.assertEqual(data['selectedCount'],0);self.assertEqual(data['summary']['passed'],0)
+   self.assertEqual(data['summary']['unexecuted'],len(data['results']))
  def test_reviewed_selection(self):
   rows=json.loads(path.with_name('regressions.json').read_text())['checks']
   self.assertEqual(sum(bool(r.get('phase8Blocked')) for r in rows),27)

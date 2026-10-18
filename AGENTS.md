@@ -47,3 +47,7 @@ The repository is **public**. Never commit an owner's private master, unpublishe
 - Do not claim a Word master or connected source was updated unless it truly was. Never publish private material to this public repository by convenience.
 - Keep `docs/CODEX_MASTER_ACCESS.md` current when a newly approved master supersedes its recorded version; archive/version the original privately. If an updated private master cannot be accessed, request it rather than guessing changes.
 - A short mission prompt can point to this `AGENTS.md`, specify immediate priorities and ask for multiple substantial sweeps. It cannot override safety rules or supply a missing private product master.
+
+## Reproducible verification tooling
+
+Use `node scripts/testing/health.mjs` before JSX/component checks. Prepare the existing isolated pinned tools with `python3 scripts/testing/bootstrap.py --offline`; network preparation belongs in an approved environment setup phase (`--allow-network`), never an unrequested root Expo install. See `docs/DEVELOPMENT_TEST_ENVIRONMENT.md` for exact runtime/cache/permission requirements. `python3 scripts/testing/regressions.py` runs the reviewed offline selection and records passed/failed/blocked/unexecuted outcomes. Optional browser tooling and workflow proposals remain separate and require a compatible normal-sandbox runner; no automatic browser download, workflow dispatch or paid execution is authorized by these instructions.

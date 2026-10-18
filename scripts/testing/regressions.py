@@ -28,6 +28,7 @@ def main():
  for row in selection:
   selected=(not args.only_phase8_blocked or row.get('phase8Blocked')) and args.filter in row['id']
   rows.append({**row,'status':'unexecuted','reason':'Not selected' if not selected else 'Waiting'})
+ report['selectedCount']=sum(row['reason']!='Not selected' for row in rows)
  save()
  for row in rows:
   if row['reason']=='Not selected' or stopped:continue
@@ -45,5 +46,5 @@ def main():
   print(row['status'].upper(),row['id'],flush=True);save()
   if args.fail_fast and row['status'] in ['failed','blocked']:stopped=True
  report['finishedAt']=datetime.datetime.now(datetime.timezone.utc).isoformat();save();print(json.dumps(report['summary']))
- return 1 if report['summary']['failed'] else 2 if report['summary']['blocked'] or stopped else 0
+ return 1 if report['summary']['failed'] else 2 if report['summary']['blocked'] or stopped or report['selectedCount']==0 else 0
 if __name__=='__main__':sys.exit(main())
