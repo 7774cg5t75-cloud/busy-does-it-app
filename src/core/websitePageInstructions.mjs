@@ -14,7 +14,10 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
   return fail("The website or selected page changed. Review the current draft again.");
  const page=list(draft.pages).find(p=>p.id===pageId&&p.enabled!==false);
  if(!page)return fail("Choose a current website page.");
- const clauses=splitSelectedWebsiteInstruction(instruction);
+ let clauses=splitSelectedWebsiteInstruction(instruction);
+ // Expand one bounded goal into existing width-specific operations, never global styling.
+ if(clauses)clauses=clauses.flatMap(clause=>/^improve (?:the )?phone layout (?:but )?(?:leave|keep) (?:the )?desktop (?:arrangement |layout )?(?:alone|unchanged)$/i.test(clause)?['make the page easier to read on phones','give the page more space on phones']:clause);
+ if(clauses&&clauses.length>5)return fail('Use up to five supported changes, including the two phone-layout adjustments.');
  if(!clauses)return fail("Ask for up to five clear changes separated by 'and then' or semicolons.");
  const steps=[],targets=new Set();let previousSection=null;
  const findSection=phrase=>{

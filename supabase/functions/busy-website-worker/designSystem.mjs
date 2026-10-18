@@ -174,7 +174,9 @@ main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:4
 .gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px;margin-top:35px}
 .gallery-image{display:block;width:100%;height:300px;object-fit:cover;border-radius:18px}
 .photo-feature-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,5vw,68px);align-items:center}
-.photo-feature-grid img{display:block;width:100%;height:clamp(240px,34vw,440px);object-fit:cover;border-radius:20px}
+.photo-feature-grid > *{min-width:0;max-width:100%}
+.photo-feature-grid h2,.photo-feature-grid a{overflow-wrap:anywhere}
+.photo-feature-grid img{display:block;box-sizing:border-box;max-width:100%;width:100%;height:clamp(240px,34vw,440px);object-fit:cover;border-radius:20px}
 .photo-feature-grid p{max-width:58ch;overflow-wrap:anywhere}
 @media(max-width:800px){.photo-feature-grid{grid-template-columns:1fr}.photo-feature-grid img{height:clamp(220px,60vw,370px)}}
 
