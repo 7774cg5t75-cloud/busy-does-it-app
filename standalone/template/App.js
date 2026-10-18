@@ -65,8 +65,8 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
  };
  const [enquiryReview,setEnquiryReview]=useState(null);
  const preparedReview=type==='enquiry'?prepareCustomerEnquiry({message:input.message,requirements:input.requirements||emptyEnquiryRequirements(),feed:live.businessContent,businessId:contentSelection?.businessId,selection:contentSelection}):null;
- const validatedReview=preparedReview?.ok?validateNativeGuestRequest('enquiry',{...input,message:preparedReview.message}):null;
- const currentReview=validatedReview?.ok?customerEnquiryReview(validatedReview.payload,JSON.stringify([live.appId,live.versionId,runtime?.expectedAppId,runtime?.expectedVersionId,screen.key]),JSON.stringify([input,contentSelection])):null;
+ const validatedReview=type==='booking_request'?validateNativeGuestRequest(type,input):preparedReview?.ok?validateNativeGuestRequest(type,{...input,message:preparedReview.message}):null;
+ const currentReview=validatedReview?.ok?customerEnquiryReview(validatedReview.payload,JSON.stringify([live.appId,live.versionId,runtime?.expectedAppId,runtime?.expectedVersionId,screen.key]),JSON.stringify([input,contentSelection]),type):null;
  const reviewLive=React.useRef(null);reviewLive.current={key:currentReview?.key,live,runtime};
  const reviewCurrent=!!enquiryReview&&enquiryReview.key===currentReview?.key;
  const send=async()=>{
@@ -75,7 +75,8 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
   if(contentSelection){const checked=prepareBusinessContentEnquiry(live.businessContent,contentSelection.businessId,contentSelection);if(!checked.ok){setResult({ok:false,reason:checked.reason});return;}}
   const prepared=type==='enquiry'?prepareCustomerEnquiry({message:input.message,requirements:input.requirements||emptyEnquiryRequirements(),feed:live.businessContent,businessId:contentSelection?.businessId,selection:contentSelection}):{ok:true};
   if(!prepared.ok){setResult({ok:false,reason:prepared.reason});return;}
-  if(type==='enquiry'){
+  if(type==='booking_request'&&contentSelection){setResult({ok:false,reason:'A selected product or event supports enquiries only.'});return;}
+  {
    if(!currentReview){setResult({ok:false,reason:validatedReview?.reason||preparedReview?.reason});return;}
    if(reviewLive.current?.key!==currentReview.key||reviewLive.current?.live!==live||reviewLive.current?.runtime!==runtime)return;
    if(!reviewCurrent){setEnquiryReview(currentReview);return;}
@@ -85,7 +86,7 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
   setBusy(true);setResult(null);setPossibleDuplicateRetry(false);
   onSaveState?.({input,result:{ok:false,mayHaveBeenReceived:true,reason:'This request is still unconfirmed. Do not submit a second request.'},possibleDuplicateRetry:false});
   try{
-   const next=await sendNativeGuestRequest(runtime,live,type,type==='enquiry'?enquiryReview.payload:input);
+   const next=await sendNativeGuestRequest(runtime,live,type,enquiryReview.payload);
    onSaveState?.({input,result:next,possibleDuplicateRetry:false});setResult(next);
   }catch{
    onSaveState?.({input,result:{ok:false,mayHaveBeenReceived:true,reason:"The request outcome is unconfirmed."},possibleDuplicateRetry:false});
@@ -133,14 +134,14 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
       so it can reply. Anti-spam verification may take a few moments.
       This is not a confirmed booking or payment.</Text>
     {busy?<ActivityIndicator color={COLORS.accent} style={{marginTop:15}}/>:null}
-    {type==='enquiry'&&reviewCurrent?<View accessibilityLiveRegion="polite">
+    {reviewCurrent?<View accessibilityLiveRegion="polite">
       <Text style={t}>Review exactly what will be sent</Text>
       {Object.entries(enquiryReview.payload).map(([key,value])=><Text key={key} selectable style={sub}>{key+': '+(value||'(not supplied)')}</Text>)}
       <Text style={sub}>Confirm to share these details with this business. Editing requires a new review. No booking, order or payment is confirmed.</Text>
-      <Button title="Correct my enquiry" disabled={busy} onPress={()=>setEnquiryReview(null)}/>
+      <Button title={type==='booking_request'?"Correct my booking request":"Correct my enquiry"} disabled={busy} onPress={()=>setEnquiryReview(null)}/>
     </View>:null}
     <Button title={busy?"Verifying and sending…":
-      type==="booking_request"?"Send booking REQUEST":reviewCurrent?"Confirm and send enquiry":"Review enquiry"}
+      type==="booking_request"?(reviewCurrent?"Confirm and send booking request":"Review booking request"):reviewCurrent?"Confirm and send enquiry":"Review enquiry"}
       disabled={busy||result?.ok===true||
        (result?.mayHaveBeenReceived===true&&!possibleDuplicateRetry)} onPress={send}/>
     {result?<Text accessibilityRole="text"

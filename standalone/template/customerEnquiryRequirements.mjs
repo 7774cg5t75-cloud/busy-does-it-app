@@ -32,11 +32,12 @@ export {ENQUIRY_REQUIREMENTS,emptyEnquiryRequirements,validEnquiryRequirements,p
 
 // Ephemeral review only; payload must come from the original request validator.
 // No persistence, send authority, idempotency key or new backend schema.
-function customerEnquiryReview(payload,scope,sourceStamp){
+function customerEnquiryReview(payload,scope,sourceStamp,type="enquiry"){
  if(!payload||typeof scope!=='string'||!scope||typeof sourceStamp!=='string')return null;
- const fields=['name','email','phone','service','message'];
+ if(!['enquiry','booking_request'].includes(type))return null;
+ const fields=type==='booking_request'?['name','email','phone','service','preferredDate','note']:['name','email','phone','service','message'];
  if(fields.some(key=>typeof payload[key]!=='string'))return null;
  const exact=Object.fromEntries(fields.map(key=>[key,payload[key]]));
- return {payload:exact,key:JSON.stringify([scope,sourceStamp,exact])};
+ return {payload:exact,key:JSON.stringify([type,scope,sourceStamp,exact])};
 }
 export {customerEnquiryReview};

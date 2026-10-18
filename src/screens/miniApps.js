@@ -4658,17 +4658,20 @@ function BusyAppDetailForm({ s }) {
   const enquiryReady=preparedEnquiry.ok?validateNativeGuestRequest('enquiry',{...requestInput,message:preparedEnquiry.message}):preparedEnquiry;
   const serviceChoices=searchPublicNativeServices(config?.publicProfile?.services||[],service.slice(0,80)).slice(0,8);
   const preferredDates=React.useMemo(()=>nativePreferredDates(new Date(),7),[]);
+  const reviewScope=JSON.stringify([s.ownerSession?.userId,detail.app?.business_id,detail.app?.id,detail.version?.id,requestKind]);
+  const [bookingReview,setBookingReview]=React.useState(null),bookingConfirming=React.useRef(false);
+  const currentBookingReview=bookingReady.ok&&!contentInterest?customerEnquiryReview(bookingReady.payload,reviewScope,formLive.current,'booking_request'):null;
+  const bookingLive=React.useRef(null);bookingLive.current={key:currentBookingReview?.key,detail};
+  const bookingReviewCurrent=!!bookingReview&&bookingReview.key===currentBookingReview?.key;
   const submitBooking = async () => {
-    if(!bookingReady.ok)return false;
+    if(!bookingReady.ok||contentInterest||bookingConfirming.current||!formAlive.current||!enabled.has('booking_request'))return false;
+    if(!currentBookingReview||bookingLive.current?.key!==currentBookingReview.key||bookingLive.current?.detail!==detail)return false;
+    if(!bookingReviewCurrent){setBookingReview(currentBookingReview);return false;}
     const reviewed=formLive.current;
-    const ok = await s.submitBusyAppRequest("booking_request", {
-      name: name.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      service: service.trim(),
-      preferredDate: date.trim(),
-      note: note.trim(),
-    });
+    setBookingReview(null);bookingConfirming.current=true;
+    let ok=false;
+    try{ok=await s.submitBusyAppRequest('booking_request',bookingReview.payload);}
+    finally{bookingConfirming.current=false;}
     if (ok&&formAlive.current&&formLive.current===reviewed) {
       setService("");
       setDate("");
@@ -4678,7 +4681,7 @@ function BusyAppDetailForm({ s }) {
 
   const [enquiryReview,setEnquiryReview]=React.useState(null);
   const enquiryConfirming=React.useRef(false);
-  const reviewScope=JSON.stringify([s.ownerSession?.userId,detail.app?.business_id,detail.app?.id,detail.version?.id,requestKind]);
+
   const currentEnquiryReview=enquiryReady.ok?customerEnquiryReview(enquiryReady.payload,reviewScope,formLive.current):null;
   const enquiryLive=React.useRef(null);enquiryLive.current={key:currentEnquiryReview?.key,detail};
   const enquiryReviewCurrent=!!enquiryReview&&enquiryReview.key===currentEnquiryReview?.key;
@@ -4791,7 +4794,7 @@ function BusyAppDetailForm({ s }) {
         />
       ) : null}
 
-      <BusinessAppCustomerRequestFields s={s} form={{enquiryReview:enquiryReviewCurrent?enquiryReview:null,cancelEnquiryReview:()=>setEnquiryReview(null),requirements,setRequirements,requestKind,setRequestKind,enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}} onLayout={event=>{requestFormY.current=event.nativeEvent.layout.y;}}/>
+      <BusinessAppCustomerRequestFields s={s} form={{bookingReview:bookingReviewCurrent?bookingReview:null,cancelBookingReview:()=>setBookingReview(null),enquiryReview:enquiryReviewCurrent?enquiryReview:null,cancelEnquiryReview:()=>setEnquiryReview(null),requirements,setRequirements,requestKind,setRequestKind,enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}} onLayout={event=>{requestFormY.current=event.nativeEvent.layout.y;}}/>
       <Button label="Back to BUSY Apps" onPress={() => s.go("busyAppsMarketplace")} />
     </Shell>
   );

@@ -5,7 +5,7 @@ import {Card,Button,Field} from '../components/ui';
 import {styles} from '../theme/styles';
 // Presentation only. Parent retains original state, scoped sends and recovery.
 function BusinessAppCustomerRequestFields({s,form,onLayout}){
- const {enquiryReview,cancelEnquiryReview,requirements=emptyEnquiryRequirements(),setRequirements,requestKind,setRequestKind,enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}=form;
+ const {bookingReview,cancelBookingReview,enquiryReview,cancelEnquiryReview,requirements=emptyEnquiryRequirements(),setRequirements,requestKind,setRequestKind,enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}=form;
  return (
       <View onLayout={onLayout}>
       {typeof setRequestKind==='function'&&enabled.has('enquiry')&&enabled.has('booking_request')?<View>
@@ -68,8 +68,14 @@ function BusinessAppCustomerRequestFields({s,form,onLayout}){
           <Field label="Preferred date" value={date} onChangeText={setDate} placeholder="e.g. Friday afternoon" />
           <Field label="Note" value={note} onChangeText={setNote} placeholder="Anything the business should know" multiline />
           {!bookingReady.ok?<Text style={styles.cardBody}>{bookingReady.reason}</Text>:null}
+          {bookingReview?<View accessibilityLiveRegion="polite">
+            <Text style={styles.sectionLabel}>Review your booking request</Text>
+            {Object.entries(bookingReview.payload).map(([key,value])=><Text key={key} selectable style={styles.cardBody}>{key+': '+(value||'(not supplied)')}</Text>)}
+            <Text style={styles.cardBody}>Confirm to share these details with this business. Preferred dates are not available slots. The business must accept your request before an appointment is confirmed. Editing requires a new review.</Text>
+            <Button label="Correct my booking request" disabled={!!s.miniAppsAction} onPress={cancelBookingReview}/>
+          </View>:null}
           <Button
-            label={s.miniAppsAction === "request:booking_request" ? "Sending…" : "Send booking request"}
+            label={s.miniAppsAction === "request:booking_request" ? "Sending…" : bookingReview?"Confirm and send booking request":"Review booking request"}
             primary
             disabled={
               !bookingReady.ok ||
