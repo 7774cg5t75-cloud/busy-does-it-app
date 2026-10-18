@@ -1,3 +1,4 @@
+import {useApprovedBuilderRecords} from './useApprovedBuilderRecords';
 import {WebsiteCompositionReview} from './websiteCompositionReview';
 import {prepareReviewedWebsiteComposition,reviewedWebsiteCompositionCurrent} from '../core/websiteReviewedComposition.mjs';
 import {BusinessContentEditor} from './businessContentEditor';
@@ -58,6 +59,7 @@ import {inspectCurrentWebsiteCandidateV3240}
  from "../core/websiteCurrentCandidateV3240.mjs";
 
 function WebsiteBuilder({ s }) {
+  const approvedRecords=useApprovedBuilderRecords(s.ownerSession?.userId,s.cloudWorkspace?.businessId);
   const draft = s.websiteDraft;
   const brand = s.brandBrain || {};
   const [instruction, setInstruction] = React.useState("");
@@ -275,7 +277,7 @@ function WebsiteBuilder({ s }) {
       subtitle="Tell BUSY about your business, preview your website and make it your own."
       brandCue="BUSY DOES IT • Website Builder"
     >
-      <BusinessContentEditor key={['records',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')}
+      <BusinessContentEditor onApprovedRecords={approvedRecords.onApprovedRecords} key={['records',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')}
         businessId={s.cloudWorkspace?.businessId} request={s.businessContentRequest}
         onCompose={(_,choice)=>s.applyWebsiteFieldChange(choice.remove?{action:'remove-content-section',sectionId:choice.kind==='product'?'products':'events'}:{action:'content-section',sectionId:choice.kind==='product'?'products':'events',title:choice.kind==='product'?'Products':'Upcoming events',layout:choice.layout,featuredId:choice.featuredId,previewFeed:choice.previewFeed})}/>
       <Card eyebrow="Your website"
@@ -325,7 +327,7 @@ function WebsiteBuilder({ s }) {
           </Text>
         ) : null}
       </Card>
-      <UniversalBuilderPlanReview surface="website"
+      <UniversalBuilderPlanReview surface="website" approvedContent={approvedRecords.feed}
         businessId={s.cloudWorkspace?.businessId||""}
         businessType={draft?.businessType||brand?.websiteBrief?.businessType||s.trade||""}
         website={draft} app={s.miniAppsView?.app}

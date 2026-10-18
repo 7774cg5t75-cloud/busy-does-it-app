@@ -5,7 +5,7 @@ import {Card,Button,Field} from '../components/ui';
 import {styles} from '../theme/styles';
 import {localEventInstant,validateBusinessContent,parseContentPrice,eventLocalFields,contentPrice,publicBusinessContent,canApproveSavedBusinessContent} from '../core/businessContentRecords.mjs';
 function priceText(amount,currency){try{return String(amount/10**new Intl.NumberFormat('en',{style:'currency',currency}).resolvedOptions().maximumFractionDigits);}catch{return '';}}
-function BusinessContentEditor({request,businessId,onCompose}){
+function BusinessContentEditor({request,businessId,onCompose,onApprovedRecords}){
  const [open,setOpen]=React.useState(false),[records,setRecords]=React.useState([]),[kind,setKind]=React.useState('product'),[id,setId]=React.useState('');
  const [form,setForm]=React.useState({}),[busy,setBusy]=React.useState(false),[notice,setNotice]=React.useState(''),[review,setReview]=React.useState(null),[images,setImages]=React.useState([]),[layout,setLayout]=React.useState('cards'),[featuredId,setFeaturedId]=React.useState(''),[words,setWords]=React.useState(''),[uncertain,setUncertain]=React.useState(false),[optionCurrencyApproved,setOptionCurrencyApproved]=React.useState(false);
  const live=React.useRef(null),pending=React.useRef(false),alive=React.useRef(true);live.current={businessId,id,form};
@@ -21,10 +21,13 @@ function BusinessContentEditor({request,businessId,onCompose}){
    const result=await request(action,payload);
    if(!alive.current||live.current.businessId!==scope.businessId)return false;
    if(result?.ok!==true||result.businessId!==businessId)throw Error('The record response did not match this business.');
+   let observed=result.records||records;
+   if(result.record)observed=[...observed.filter(row=>row.id!==result.record.id),result.record];
+   const approved=publicBusinessContent(observed,businessId);onApprovedRecords?.(approved.ok?approved:null);
    if(result.records){setRecords(result.records);setUncertain(false);}if(result.images)setImages(result.images);
    if(result.record){setRecords(old=>[...old.filter(r=>r.id!==result.record.id),result.record]);if(live.current.id===scope.id&&live.current.form===scope.form&&result.record.id===scope.id&&['content_save','content_publish'].includes(action))loadedRecord.current={id:scope.id,revision:result.record.revision,formStamp:JSON.stringify(scope.form)};}
    setNotice(action==='content_publish'?'Shared record approved. Public views use its approved revision when refreshed.':action==='content_list'?'Current business records loaded.':'Private record saved. Public information is unchanged.');setReview(null);return true;
-  }catch(e){if(alive.current&&live.current.businessId===scope.businessId){if(action!=='content_list')setUncertain(true);setNotice((e?.message||'Record action failed')+' Reload before repeating an uncertain write.');}return false;}
+  }catch(e){if(alive.current&&live.current.businessId===scope.businessId){onApprovedRecords?.(null);if(action!=='content_list')setUncertain(true);setNotice((e?.message||'Record action failed')+' Reload before repeating an uncertain write.');}return false;}
   finally{pending.current=false;if(alive.current&&live.current.businessId===scope.businessId)setBusy(false);}
  }
  function prepare(){

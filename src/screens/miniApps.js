@@ -1,3 +1,5 @@
+import {useApprovedBuilderRecords} from './useApprovedBuilderRecords';
+import {planApprovedAppRecordSection} from '../core/approvedBuilderRecords.mjs';
 import {emptyEnquiryRequirements,prepareCustomerEnquiry,customerEnquiryReview} from '../core/customerEnquiryRequirements.mjs';
 import {AppServiceEditor} from './appServiceEditor';
 import {validContentLayout,prepareBusinessContentEnquiry} from '../core/businessContentRecords.mjs';
@@ -854,6 +856,7 @@ function BusyAppsMarketplace({ s }) {
 }
 
 function MiniAppBuilder({ s }) {
+  const approvedRecords=useApprovedBuilderRecords(s.ownerSession?.userId,s.cloudWorkspace?.businessId);
   const [distributionMode,setDistributionMode]=React.useState("busy_marketplace");
   const [distributionAcks,setDistributionAcks]=React.useState({});
   const [requestedPlatforms,setRequestedPlatforms]=React.useState(["ios","android"]);
@@ -999,6 +1002,7 @@ function MiniAppBuilder({ s }) {
     businessGoals:s.miniAppBuildBrief||plan?.ownerRequest||"",
     catalog:view.catalog||[],
     profile:view.draftConfig?.publicProfile||view.activeConfig?.publicProfile||{},
+    approvedContent:approvedRecords.feed,businessId:s.cloudWorkspace?.businessId,
     offerTerms:view.draftConfig?.offers||view.activeConfig?.offers||[]
   });
   const quality=appDesignQualityReport(view.draftConfig||view.activeConfig||{},view.catalog||[]);
@@ -1169,6 +1173,7 @@ function MiniAppBuilder({ s }) {
     >
       <BusinessContentEditor key={['records',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')}
         businessId={s.cloudWorkspace?.businessId} request={s.businessContentRequest}
+        onApprovedRecords={approvedRecords.onApprovedRecords}
         onCompose={(_,choice)=>{const old=validContentLayout(view.draftConfig?.contentLayout)?view.draftConfig.contentLayout:[],block={kind:choice.kind,layout:choice.layout,featuredId:choice.featuredId,title:choice.kind==='product'?'Products':'Upcoming events'};const value=choice.remove?old.filter(x=>x.kind!==choice.kind):old.some(x=>x.kind===choice.kind)?old.map(x=>x.kind===choice.kind?block:x):[...old,block];const proposal=proposeContentComposition(view.draftConfig,[{kind:'content_layout',value}]);if(proposal.ok)proposal.businessContentPreview=choice.previewFeed;setStudioPreview(proposal.ok?proposal:null);setStudioNotice(proposal.ok?'Review the real content composition in Studio. Approved records are loaded separately.':proposal.reason);}}/>
       <FirstAppFromWebsite website={s.websiteDraft}
         app={app} businessId={s.cloudWorkspace?.businessId}
@@ -1198,7 +1203,7 @@ function MiniAppBuilder({ s }) {
       <BusinessBrandDnaPreview key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,s.websiteDraft?.id,app?.id].join(':')} website={s.websiteDraft}
         app={app} businessId={s.cloudWorkspace?.businessId}
         catalog={view.catalog||s.miniAppsStatus?.catalog||[]}/>
-      <UniversalBuilderPlanReview surface="app"
+      <UniversalBuilderPlanReview surface="app" approvedContent={approvedRecords.feed}
         businessId={s.cloudWorkspace?.businessId||""}
         businessType={view.category||s.trade||""}
         website={s.websiteDraft} app={app} catalog={view.catalog||[]}
@@ -1331,6 +1336,14 @@ function MiniAppBuilder({ s }) {
             experience.unavailableGoalCapabilities.join(", ")+
             ". BUSY will not pretend these work."}</Text>
         ):null}
+        {experience.approvedRecords?.map(row=><View key={row.kind}>
+          <Text style={styles.cardBody}>{row.count+' approved '+(row.kind==='product'?'product':'upcoming event')+' record(s) in the latest loaded snapshot. No stock, attendance or availability is confirmed.'}</Text>
+          {!view.draftConfig?.contentLayout?.some(block=>block.kind===row.kind)?<Button label={'Review '+(row.kind==='product'?'approved products':'approved events')+' in my app'} onPress={()=>{
+            if(liveControlContext.current!==controlContext||!approvedRecords.isCurrent())return;
+            const proposal=planApprovedAppRecordSection(view.draftConfig,approvedRecords.feed,s.cloudWorkspace?.businessId,row.kind);
+            setStudioPreview(proposal.ok?proposal:null);setStudioNotice(proposal.ok?'Review the original private Studio preview before approval. Publication remains separate.':proposal.reason);
+          }}/>:<Text style={styles.cardBody}>Already included. Studio keeps your existing heading, layout and featured item.</Text>}
+        </View>)}
         {experience.suggestedModules.filter(item=>item.suggested).slice(0,7).map(item=>(
           <MetricRow key={item.key} left={item.title} right={item.reason}/>
         ))}
