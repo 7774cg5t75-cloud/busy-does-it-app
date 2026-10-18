@@ -27,9 +27,11 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
  for(let i=0;i<clauses.length;i++){
   let clause=clauses[i];
   // Only an exact preceding named section can resolve these bounded references.
-  if(/\b(?:its heading|this section)\b/i.test(clause)){
+  const headingReference=/^((?:make|set) )(?:its|the) heading\b/i,sectionReference=/^((?:give|make) )(?:this|the) section\b/i;
+  if(headingReference.test(clause)||sectionReference.test(clause)){
    if(!previousSection)return fail('Name a visible section before referring to its heading or this section.');
-   clause=clause.replace(/\bits heading\b/ig,previousSection.id+' heading').replace(/\bthis section\b/ig,previousSection.id+' section');
+   // Resolve command subjects only; never replace words inside quoted copy.
+   clause=clause.replace(headingReference,(_,verb)=>verb+previousSection.id+' heading').replace(sectionReference,(_,verb)=>verb+previousSection.id+' section');
   }
   const literal=clause.match(/^(?:change|set|update) (?:the )?(.+?) (heading|text|body|button text) (?:to|with) "([^"<>]{1,2500})"$/i);
   let m,change,description,type='layout';
@@ -66,11 +68,15 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    if(!findSection('hero'))return fail('Open the page containing the current hero before changing its composition.');
    change={action:'style',field:'heroLayout',value:{left:'image-left',right:'image-right','in a frame':'image-frame','as the main feature':'image-feature'}[m[1].toLowerCase()]};
    description='Recompose the approved hero image and introduction using the existing responsive renderer; no image or words replaced';
+  }else if(/^(?:make|set) (?:the )?(?:homepage|whole page|page|website) (?:feel |look )?more modern (?:without changing (?:the |my )?wording|but keep (?:the |my )?(?:existing )?colou?rs)$/i.test(clause)){
+   const operations=[{action:'style',field:'typography',value:'confident'},{action:'style',field:'cardLayout',value:'outlines'},{action:'style',field:'spacing',value:'comfortable'},{action:'style',field:'navStyle',value:'quiet'}].filter(op=>draft.theme?.[op.field]!==op.value);
+   if(!operations.length)return fail('These supported settings are already present. Keep the current design unless the preview shows a specific issue.');
+   change={action:'style-group',operations};description='Compare confident typography, outlined cards, calm navigation and comfortable spacing across the shared website theme. Colours, owner wording, images, customer destinations and section order stay unchanged. This is a proposal, not verified aesthetic improvement';
   }else if(forbidden.test(clause))return fail("No changes were made. Publishing, deleting and external actions need separate approval.");
   else if((m=clause.match(/^(?:give|make) (?:the )?(?:whole |entire )?page (more|less) (?:space|spacing|breathing room) on (phones?|mobile|desktop|computers?)$/i))){
    change={action:'page-spacing',pageId,device:/phone|mobile/i.test(m[2])?'mobile':'desktop',value:m[1].toLowerCase()==='more'?'generous':'compact'};
    description='Adjust existing section spacing only at the requested width. Shared sections change on other pages too; wording, branding and other widths stay unchanged';
-  }else if((m=clause.match(/^move (?:the )?(.+?)(?: section)? (above|below|before|after) (?:the )?(.+?)(?: section| form)?$/i))){
+  }else if((m=clause.match(/^move (?:(?:the|my|our) )?(.+?)(?: section)? (above|below|before|after) (?:the )?(.+?)(?: section| form)?$/i))){
    const section=findSection(m[1]),target=findSection(m[3]);
    if(!section||!target)return fail('Name two exact visible sections on this page.');
    change={action:'move-relative',sectionId:section.id,targetSectionId:target.id,

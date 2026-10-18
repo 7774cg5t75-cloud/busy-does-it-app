@@ -4,7 +4,7 @@ import {appDesignQualityReport} from './appDesignQuality.mjs';
 // Presentation of existing planner evidence, not another planner or AI service.
 const readiness={present_in_private_draft:'Already included in your draft',supported_section_not_present:'Can be prepared for your review',available_module_needs_owner_setup:'Available, with setup still needed',runtime_module_not_verified_available:'Not confirmed for this app yet',requires_new_implementation:'Not supported yet',requires_service_verification:'Needs its service or connection checked'};
 function explainBuilderExplore({kind,project,catalog,plan,text}){
- if(/\b(?:just for (?:me|myself)|personal (?:app|project|website|portfolio)|club (?:app|website|project)|(?:my|our|a) club|community project)\b/i.test(text)){
+ if(/\b(?:just for (?:me|myself)|personal (?:app|project|website|portfolio)|hobby (?:app|project|website)|club (?:app|website|project)|(?:my|our|a) club|community project)\b/i.test(text)){
   const purpose=/club|community/i.test(text)?'club':'personal';
   const neutral=planUniversalBuilderRequest({request:text,projectPurpose:purpose});
   return {answer:[neutral.summary,'A simple information site can start with your own title, pages, pictures and chosen style. A personal project should not need invented services, customers or a trading name.',
@@ -32,6 +32,11 @@ function explainBuilderExplore({kind,project,catalog,plan,text}){
   const hero=project.sections?.find(s=>s.type==='hero'&&s.enabled!==false),asset=hero?.asset;
   if(!asset||asset.approved!==true)return {answer:'Your current introduction has no approved main picture to rearrange. Choose and approve the right image in the original editor first. Nothing will be changed.',alternatives:[]};
   return {answer:'We can compare the approved main picture to the left or right of your introduction. These are different desktop arrangements; phones keep one reading column with the text before the picture. Your words, colours and picture stay the same. This is a source-based proposal, not a screenshot assessment. Nothing will be changed.',alternatives:[{label:'Compare picture on the left',instruction:'move the hero photo left'},{label:'Compare picture on the right',instruction:'move the hero photo right'}]};
+ }
+ if(kind==='app'&&/\b(?:find|browse|discover)\b.*\bservices\b/i.test(text)){
+  const categories=new Set(services.map(s=>typeof s.category==='string'?s.category.trim():'').filter(Boolean));
+  return {answer:['Your current draft includes '+services.length+' service descriptions'+(categories.size?' across '+categories.size+' named categories':'')+'.',services.length>4?'The supported service screen includes text search. Categories can narrow the results, and Show all services clears both filters.':'Use clear service names and descriptions first. Categories can help when there are different kinds of service; text search appears when there are more than four services.',
+   'Customers can open the existing service details and use an enabled enquiry or booking-request action. A button in a draft is not evidence that submission has completed; requests still need review and business confirmation. Nothing will be changed.'].join('\n'),alternatives:[]};
  }
  const design=/\b(colou?rs?|layout|homepage|design|improve|readab|typograph|different look)\b/i.test(text);
  if(design){
