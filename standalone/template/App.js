@@ -184,14 +184,14 @@ function ServicesInfo({app,layout,onRequestService}){
  const browse=browsePublicNativeServices(app.services||[],query,category),results=browse.rows;
  return <View style={box}>
   <Text style={{...t,fontSize:VISUAL.type.sectionSize,fontWeight:VISUAL.type.sectionWeight}}>Services</Text>
-  <ServiceCategoryFilter categories={browse.categories} selected={browse.selectedCategory} onSelect={setCategory} colors={COLORS}/>
+  <ServiceCategoryFilter categories={browse.categories} selected={browse.selectedCategory} onSelect={setCategory} colors={COLORS} query={query} resultCount={results.length} onClear={()=>{setQuery('');setCategory('');}}/>
   {app.services?.length>4?<TextInput accessibilityLabel="Search services"
     value={query} onChangeText={setQuery}
     placeholder="Find a service" placeholderTextColor={COLORS.muted}
     style={{color:COLORS.text,backgroundColor:COLORS.bg,padding:12,
       minHeight:48,borderRadius:9,marginTop:12}}/>:null}
   {results.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:12}}>
-   {results.map((service,i)=><View key={i} style={{marginTop:14,
+   {results.map((service,i)=><View key={service.id||service.name||i} style={{marginTop:14,
      width:VISUAL.serviceColumns===1?"100%":
        layout?.serviceColumns===2?"48%":"100%",
      backgroundColor:VISUAL.serviceStyle==="cards"?COLORS.bg:COLORS.surface,

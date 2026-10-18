@@ -806,6 +806,13 @@
         "scripts/check-mission15-phase15-brand-typography.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase18-customer-browsing",
+      "args": [
+        "scripts/check-mission15-phase18-customer-browsing.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

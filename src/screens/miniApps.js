@@ -432,7 +432,7 @@ function MiniAppSurface({
             <View key={module.key}>
               {ownerSelection?<Pressable accessibilityRole="button" accessibilityLabel="Select service presentation" accessibilityState={{selected:ownerSelection.selection?.part==='services'}} onPress={()=>ownerSelection.onSelect({part:'services'})} style={{borderWidth:2,borderColor:ownerSelection.selection?.part==='services'?'#4489ed':brandColours.muted,padding:8}}><Text style={styles.sectionLabel}>Services</Text></Pressable>:<Text style={styles.sectionLabel}>Services</Text>}
               {allServices.length>4?<Field label="Find a service" value={serviceQuery} onChangeText={setServiceQuery}/>:null}
-              <ServiceCategoryFilter categories={serviceBrowse.categories} selected={serviceBrowse.selectedCategory} onSelect={setServiceCategory} colors={brandColours}/>
+              <ServiceCategoryFilter categories={serviceBrowse.categories} selected={serviceBrowse.selectedCategory} onSelect={setServiceCategory} colors={brandColours} query={serviceQuery} resultCount={services.length} onClear={()=>{setServiceQuery('');setServiceCategory('');}}/>
               {services.length ? (
                 <View style={{flexDirection:"row",flexWrap:"wrap",
                   gap:responsive.ok?responsive.gap:12}}>
