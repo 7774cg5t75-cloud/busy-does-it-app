@@ -1,4 +1,4 @@
-import {ENQUIRY_REQUIREMENTS,emptyEnquiryRequirements,prepareCustomerEnquiry,customerEnquiryReview} from './customerEnquiryRequirements.mjs';
+import {ENQUIRY_REQUIREMENTS,emptyEnquiryRequirements,prepareCustomerEnquiry,customerEnquiryReview,prepareCustomerBookingNote} from './customerEnquiryRequirements.mjs';
 import {prepareBusinessContentEnquiry} from './businessContentRecords.mjs';
 import {BusinessContentView} from './businessContentView';
 /**
@@ -65,7 +65,8 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
  };
  const [enquiryReview,setEnquiryReview]=useState(null);
  const preparedReview=type==='enquiry'?prepareCustomerEnquiry({message:input.message,requirements:input.requirements||emptyEnquiryRequirements(),feed:live.businessContent,businessId:contentSelection?.businessId,selection:contentSelection}):null;
- const validatedReview=type==='booking_request'?validateNativeGuestRequest(type,input):preparedReview?.ok?validateNativeGuestRequest(type,{...input,message:preparedReview.message}):null;
+ const preparedBookingNote=type==='booking_request'?prepareCustomerBookingNote(input.note,input.requirements||emptyEnquiryRequirements()):null;
+ const validatedReview=type==='booking_request'?(preparedBookingNote.ok?validateNativeGuestRequest(type,{...input,note:preparedBookingNote.note}):preparedBookingNote):preparedReview?.ok?validateNativeGuestRequest(type,{...input,message:preparedReview.message}):null;
  const currentReview=validatedReview?.ok?customerEnquiryReview(validatedReview.payload,JSON.stringify([live.appId,live.versionId,runtime?.expectedAppId,runtime?.expectedVersionId,screen.key]),JSON.stringify([input,contentSelection]),type):null;
  const reviewLive=React.useRef(null);reviewLive.current={key:currentReview?.key,live,runtime};
  const reviewCurrent=!!enquiryReview&&enquiryReview.key===currentReview?.key;
@@ -104,6 +105,9 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
     <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Your name" value={input.name} onChange={set("name")}/>
     <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Email address" value={input.email} onChange={set("email")}/>
     <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Phone number (optional)" value={input.phone} onChange={set("phone")}/>
+    <Text style={sub}>Optional requirements are shared with the business for review; no date, quantity, access arrangement or price is confirmed.</Text>
+    {ENQUIRY_REQUIREMENTS.map(field=><Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} key={field.key} title={field.label} maxLength={field.max} value={(input.requirements||emptyEnquiryRequirements())[field.key]}
+      onChange={value=>set('requirements')({...input.requirements||emptyEnquiryRequirements(),[field.key]:value})}/>)}
     {type==="booking_request"?<>
       <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Service you want" value={input.service} onChange={set("service")}/>
       <Text style={{...sub,fontSize:13}}>Choose a preferred day, or type a different date below. These are NOT available appointment slots.</Text>
@@ -126,8 +130,7 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
        onChange={set("note")} multiline/>
      </>:<>
        <Text style={sub}>Optional requirements are included in your saved enquiry. They do not confirm quantity, timing, availability or attendance.</Text>
-       {ENQUIRY_REQUIREMENTS.map(field=><Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} key={field.key} title={field.label} maxLength={field.max} value={(input.requirements||emptyEnquiryRequirements())[field.key]}
-         onChange={value=>set('requirements')({...input.requirements||emptyEnquiryRequirements(),[field.key]:value})}/>)}
+
        <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Your message" value={input.message} onChange={set("message")} multiline/>
      </>}
     <Text style={{...sub,fontSize:12}}>By sending, you share these details with the business

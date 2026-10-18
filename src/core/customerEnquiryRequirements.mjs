@@ -41,3 +41,11 @@ function customerEnquiryReview(payload,scope,sourceStamp,type="enquiry"){
  return {payload:exact,key:JSON.stringify([type,scope,sourceStamp,exact])};
 }
 export {customerEnquiryReview};
+
+function prepareCustomerBookingNote(note='',requirements=emptyEnquiryRequirements()){
+ if(typeof note!=='string'||!validEnquiryRequirements(requirements))return {ok:false,reason:'Review the booking-request requirements before continuing.'};
+ const lines=ENQUIRY_REQUIREMENTS.filter(field=>requirements[field.key].trim()).map(field=>field.label+': '+requirements[field.key].trim());
+ const text=[note.trim(),lines.length?'Customer-supplied requirements (not confirmed):\n'+lines.join('\n'):''].filter(Boolean).join('\n\n');
+ return text.length<=3000?{ok:true,note:text,appointmentConfirmed:false}:{ok:false,reason:'The combined note and requirements exceed 3,000 characters. Shorten them; nothing was sent.'};
+}
+export {prepareCustomerBookingNote};

@@ -53,6 +53,12 @@ function BusinessAppCustomerRequestFields({s,form,onLayout}){
         </>
       ) : null}
 
+      {typeof setRequirements==='function'?<View>
+        <Text style={styles.sectionLabel}>What do you need? (optional)</Text>
+        <Text style={styles.cardBody}>These customer-supplied requirements are included in the request for the business to review. No quantity, date, arrangement or price is confirmed.</Text>
+        {ENQUIRY_REQUIREMENTS.map(field=><Field key={field.key} label={field.label} value={requirements[field.key]} maxLength={field.max} onChangeText={value=>setRequirements(current=>({...current,[field.key]:value}))}/>)}
+      </View>:null}
+
       {enabled.has("booking_request")&&(!requestKind||requestKind==='booking_request') ? (
         <>
           <Text style={styles.sectionLabel}>Request a booking</Text>
@@ -92,7 +98,7 @@ function BusinessAppCustomerRequestFields({s,form,onLayout}){
           {contentNotice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{contentNotice}</Text>:null}
           {contentInterest?<Button label="Remove selected listing from this enquiry" onPress={()=>{setContentInterest(null);setService('');setMessage('');setContentNotice('Listing removed. Write your enquiry below.');}}/>:null}
           <Text style={styles.cardBody}>Optional details help the business respond. These are your requirements, not confirmed availability, prices, orders or attendance. They are included in the saved enquiry message.</Text>
-          {typeof setRequirements==='function'?ENQUIRY_REQUIREMENTS.map(field=><Field key={field.key} label={field.label} value={requirements[field.key]} maxLength={field.max} onChangeText={value=>setRequirements(current=>({...current,[field.key]:value}))}/>):null}
+
           <Field label="Message" value={message} onChangeText={setMessage} placeholder="What would you like to ask?" multiline />
           {!enquiryReady.ok?<Text style={styles.cardBody}>{enquiryReady.reason}</Text>:null}
           {enquiryReview?<View accessibilityLiveRegion="polite">

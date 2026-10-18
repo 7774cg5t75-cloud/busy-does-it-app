@@ -1,6 +1,6 @@
 import {useApprovedBuilderRecords} from './useApprovedBuilderRecords';
 import {planApprovedAppRecordSection} from '../core/approvedBuilderRecords.mjs';
-import {emptyEnquiryRequirements,prepareCustomerEnquiry,customerEnquiryReview} from '../core/customerEnquiryRequirements.mjs';
+import {emptyEnquiryRequirements,prepareCustomerEnquiry,customerEnquiryReview,prepareCustomerBookingNote} from '../core/customerEnquiryRequirements.mjs';
 import {AppServiceEditor} from './appServiceEditor';
 import {validContentLayout,prepareBusinessContentEnquiry} from '../core/businessContentRecords.mjs';
 import {proposeCoordinatedAppChanges as proposeContentComposition} from '../core/appCoordinatedStudio.mjs';
@@ -4653,7 +4653,8 @@ function BusyAppDetailForm({ s }) {
   formLive.current=JSON.stringify([name,email,phone,service,date,note,message,contentInterest,requirements]);
   React.useEffect(()=>{formAlive.current=true;return()=>{formAlive.current=false;};},[]);
   const requestInput={name,email,phone,service,preferredDate:date,note,message};
-  const bookingReady=validateNativeGuestRequest('booking_request',requestInput);
+  const preparedBookingNote=prepareCustomerBookingNote(note,requirements);
+  const bookingReady=preparedBookingNote.ok?validateNativeGuestRequest('booking_request',{...requestInput,note:preparedBookingNote.note}):preparedBookingNote;
   const preparedEnquiry=prepareCustomerEnquiry({message,requirements,feed:detail.businessContent,businessId:detail.app?.business_id,selection:contentInterest});
   const enquiryReady=preparedEnquiry.ok?validateNativeGuestRequest('enquiry',{...requestInput,message:preparedEnquiry.message}):preparedEnquiry;
   const serviceChoices=searchPublicNativeServices(config?.publicProfile?.services||[],service.slice(0,80)).slice(0,8);
@@ -4676,6 +4677,7 @@ function BusyAppDetailForm({ s }) {
       setService("");
       setDate("");
       setNote("");
+      setRequirements(emptyEnquiryRequirements());
     }
   };
 
