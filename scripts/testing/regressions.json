@@ -638,6 +638,34 @@
         "scripts/check-mission15-phase10-selected-instructions.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase10-gallery-parity",
+      "args": [
+        "scripts/check-mission15-phase10-gallery-parity.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-app-context-editor-v3155",
+      "args": [
+        "scripts/check-app-context-editor-v3155.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission7-app-intent",
+      "args": [
+        "scripts/check-mission7-app-intent.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-app-voice-layout-v3156",
+      "args": [
+        "scripts/check-app-voice-layout-v3156.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

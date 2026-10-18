@@ -242,7 +242,7 @@ function LiveInfo({screen,app,layout,onRequestService,onOpenContact,onOpenOfferE
         accessibilityLabel={String(photo.alt||photo.caption||"Business photo "+(i+1))}
         style={{width:"100%",height:layout?.ok?layout.galleryHeight:190,
           borderRadius:LOOK.imageCorners==="square"?2:11,marginTop:12}}/>
-       {photo.caption?<Text style={{...sub,fontSize:13}}>{photo.caption}</Text>:null}
+       {photo.caption?<Text style={{...sub,fontSize:VISUAL.type.bodySize}}>{photo.caption}</Text>:null}
        </View>
      )}</View>:<Text style={sub}>No photographs have been approved for this app yet.</Text>}
  </View>;

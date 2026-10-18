@@ -1,3 +1,4 @@
+import {AppGallerySurface} from "./appGallerySurface";
 import {ServiceDetails} from "../../standalone/template/serviceDetails";
 import {amendAppQualityProposal} from "../core/appCoordinatedStudio.mjs";
 import {AppVisualSelection} from "./appVisualSelection";
@@ -279,10 +280,6 @@ function MiniAppSurface({
   const allServices=Array.isArray(profile?.services)?profile.services:[];
   // Marketplace has legacy 50-row profiles; retain the native helper's 40-row bound.
   const serviceBrowse=browsePublicNativeServices(allServices,serviceQuery,serviceCategory),services=serviceBrowse.rows;
-  const PhotoFrame=ownerSelection?Pressable:View;
-  const gallery = Array.isArray(profile?.assets?.gallery)
-    ? profile.assets.gallery.filter((item) => String(item?.uri || "").startsWith("https://"))
-    : [];
   const heroUri = String(profile?.assets?.hero?.uri || "");
   const loyalty = config?.loyalty || {};
   const offers = (Array.isArray(config?.offers) ? config.offers : []).filter(
@@ -479,49 +476,8 @@ function MiniAppSurface({
         }
 
         if (module.key === "gallery") {
-          return (
-            <View key={module.key}>
-              {ownerSelection?<Pressable accessibilityRole="button" accessibilityLabel="Select gallery presentation" accessibilityState={{selected:ownerSelection.selection?.part==='gallery'}} onPress={()=>ownerSelection.onSelect({part:'gallery'})} style={{borderWidth:2,borderColor:ownerSelection.selection?.part==='gallery'?'#4489ed':brandColours.muted,padding:8}}><Text style={styles.sectionLabel}>Gallery</Text></Pressable>:<Text style={styles.sectionLabel}>Gallery</Text>}
-              {gallery.length ? (
-                <View style={{flexDirection:"row",flexWrap:"wrap",
-                  gap:responsive.ok?responsive.gap:8}}>
-                  {gallery.slice(0, 12).map((asset, index) => (
-                    <PhotoFrame key={asset.key || asset.uri || `gallery-${index}`}
-                      accessibilityRole={ownerSelection?'button':undefined}
-                      accessibilityLabel={ownerSelection?'Select gallery photo '+(index+1):undefined}
-                      accessibilityState={ownerSelection?{selected:ownerSelection.selection?.part==='image'&&ownerSelection.selection?.index===profile.assets.gallery.indexOf(asset),disabled:asset.approved!==true&&asset.marketingOk!==true}:undefined}
-                      onPress={ownerSelection?()=>{if(asset.approved===true||asset.marketingOk===true)ownerSelection.onSelect({part:'image',index:profile.assets.gallery.indexOf(asset),expectedUri:asset.uri});}:undefined}
-                      style={{...(ownerSelection?{borderWidth:2,borderColor:ownerSelection.selection?.part==='image'&&ownerSelection.selection?.index===profile.assets.gallery.indexOf(asset)?'#4489ed':brandColours.muted}:{}),width:responsive.ok?(responsive.galleryColumns===3?"31%":
-                        responsive.galleryColumns===2?"48%":"100%"):"100%"}}>
-                      <MeasuredPublicImage
-                        source={{ uri: asset.uri }}
-                        observationKey={"gallery-"+index} observationKind="gallery_image"
-                        onObservation={onQualityObservation}
-                        accessibilityLabel={String(asset.alt||asset.caption||
-                          asset.description||"Business gallery photo "+(index+1)).slice(0,140)}
-                        style={{
-                          width:"100%",
-                          height:responsive.ok?responsive.galleryHeight:205,
-                          borderRadius:presentation.imageCorners==="square"?2:14,
-                          marginBottom:asset.caption?4:8,
-                        }}
-                      />
-                      {asset.caption?<Text style={styles.cardBody}>
-                        {String(asset.caption).slice(0,240)}
-                      </Text>:null}
-                    </PhotoFrame>
-                  ))}
-                </View>
-              ) : (
-                <Card
-                  eyebrow="Gallery"
-                  title="No approved photos yet"
-                  body="Only imagery approved for public business use is shown here."
-                  tone="amber"
-                />
-              )}
-            </View>
-          );
+          return <AppGallerySurface key={module.key} config={config} responsive={responsive} colors={brandColours} visual={visual}
+            ImageComponent={MeasuredPublicImage} onQualityObservation={onQualityObservation} ownerSelection={ownerSelection} publicMode={interactive}/>;
         }
 
         if (module.key === "contact") {
