@@ -1,3 +1,4 @@
+import {websiteMovementOptions,resolveWebsiteMovement} from "../core/websiteVisualMovement.mjs";
 import {useApprovedBuilderRecords} from './useApprovedBuilderRecords';
 import {WebsiteCompositionReview} from './websiteCompositionReview';
 import {prepareReviewedWebsiteComposition,reviewedWebsiteCompositionCurrent} from '../core/websiteReviewedComposition.mjs';
@@ -1074,7 +1075,7 @@ function WebsitePreview({ s }) {
     :draft&&visualCheckOn
     ?makeWebsiteVisualCheckHtml(liveConceptHtml,inspectionKey)
     :draft&&tapEditMode
-    ?makeTapToEditHtml(renderWebsiteHtml(draft,activePage?.id||"home",{editablePreview:true}))
+    ?makeTapToEditHtml(renderWebsiteHtml(draft,activePage?.id||"home",{editablePreview:true}),websiteMovementOptions(draft,activePage?.id||"home",sourceKey))
     :liveConceptHtml;
   const interactiveHtml=unscaledInteractiveHtml
     ?withWebsitePreviewViewport(unscaledInteractiveHtml,previewSize):"";
@@ -1128,6 +1129,11 @@ function WebsitePreview({ s }) {
       // Selection alone never opens a large editing modal. The context
       // toolbar is the single obvious action surface; every message is
       // revalidated against the exact enabled website page and element.
+      if(raw?.channel==="busy.website.section-move.v1"){
+        const movement=resolveWebsiteMovement(draft,activePage?.id||"home",sourceKey,raw);
+        if(movement)s.applySelectedWebsiteInstruction?.(movement);
+        return;
+      }
       const resolved=resolveTapToolbarAction(draft,activePage?.id||"home",raw);
       if(resolved)setSelectedEdit({...resolved.selection,
         initialMode:resolved.action,draftId:draft.id,
@@ -1302,7 +1308,7 @@ function WebsitePreview({ s }) {
         tone="blue">
         <Button primary label={tapEditMode?"Finish tapping — view normally":"Start editing by tapping"}
           onPress={()=>{setSelectedEdit(null);setVisualCheckOn(false);setTapEditMode(x=>!x);}}/>
-        {tapEditMode?<Text style={styles.cardBody}>Tap any picture or words. A subtle outline and three small controls appear beside your selection. Nothing is published automatically.</Text>:null}
+        {tapEditMode?<Text style={styles.cardBody}>Tap pictures or words to edit. On the home page, use a Move section handle to drag to a highlighted edge, or focus it and press an arrow key. Locks and the first hero stay protected. Undo restores a saved move. Nothing is published automatically.</Text>:null}
       </Card>
 
       <Card eyebrow="Change several parts together"

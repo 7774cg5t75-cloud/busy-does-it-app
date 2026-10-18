@@ -2,7 +2,11 @@
 
 **Status:** configuration reference only. The full product master remains private and is **not stored in this public GitHub repository**. This file is intentionally safe to publish.
 
-## Current Mission 13 private-master verification — 17 October 2026
+## Current Mission 15 Phase 7 private-master verification — 18 October 2026
+
+The owner supplied the approved **V22.31** Word Product Master, `Busy_Does_It_Master_V22_31_Direct_Visual_Editing_and_Typography.docx`. The complete Word body was opened and its changes reviewed against the previously fully reviewed V22.27 body. Original DOCX SHA-256: `790c59dfe74676886a5a7185ed65368208f9c700b57b0df36f8d1bf9ab7810cb`. This supersedes V22.27 for this phase. The document and extracted text remain private and are not committed here. Product ambitions are not implementation or release evidence.
+
+## Historical Mission 13 private-master verification — 17 October 2026
 
 The owner attached the complete approved Product Master **V22.27**, updated 17 October 2026, under the attachment name `Latest master 44.docx`. Its Word body, including table paragraphs, was opened and reviewed in full (1,691 paragraphs). Original DOCX SHA-256: `8c7e7134124f9b8c54fd8fd159f66dd199883dd0af601d390904e0ddec9005eb`. This supersedes V22.24 for Mission 13; earlier provenance remains below. The private document was neither changed nor copied into this public repository. The supplied filename alone was not used as version proof: V22.27 is stated in its contents and confirmed by the owner.
 
