@@ -241,7 +241,11 @@ main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:4
 .visual-hero-type-poster .hero-no-image .hero-art{right:-8%;top:-35%;width:54vw}
 .visual-hero-image-left .hero-with-image .hero-image{grid-column:1;grid-row:1}
 .visual-hero-image-left .hero-with-image .hero-content{grid-column:2;grid-row:1}
-.visual-hero-image-frame .hero-image{border-radius:4px!important;border:12px solid rgba(255,255,255,.11)}
+/* Framed composition balances longer copy against an inset approved image. */
+.visual-hero-image-frame .hero-with-image .wrap{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);align-items:center;gap:clamp(24px,5vw,72px)}
+.visual-hero-image-frame .hero-image{box-sizing:border-box;max-width:100%;min-width:0;border-radius:4px!important;border:clamp(6px,1.2vw,12px) solid rgba(255,255,255,.11)}
+.hero-content{min-width:0;overflow-wrap:anywhere}
+.hero .cta{max-width:100%;white-space:normal;overflow-wrap:anywhere}
 .visual-hero-image-feature .hero-with-image .wrap{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)}
 .visual-hero-image-feature .hero-image{height:clamp(320px,49vw,625px);border-radius:4px}
 .visual-cards-outlines .grid article{background:transparent;border:2px solid var(--line);box-shadow:none;border-radius:4px}
@@ -334,7 +338,7 @@ section.owner-gallery-large .gallery-image{height:clamp(280px,37vw,450px)}
 @media(max-width:800px){
  .visual-hero-image-left .hero-with-image .hero-content{grid-column:1;grid-row:1}
  .visual-hero-image-left .hero-with-image .hero-image{grid-column:1;grid-row:2}
- .visual-hero-image-feature .hero-with-image .wrap{grid-template-columns:1fr}
+ .visual-hero-image-feature .hero-with-image .wrap,.visual-hero-image-frame .hero-with-image .wrap{grid-template-columns:1fr}
  .visual-hero-type-poster .hero-no-image h1{font-size:clamp(3rem,11vw,5rem)}
  .visual-hero-type-right .hero-no-image .wrap{align-items:flex-start;text-align:left}
 }

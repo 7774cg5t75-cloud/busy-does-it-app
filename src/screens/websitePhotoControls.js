@@ -20,6 +20,7 @@ export function WebsitePhotoControls({draft,selection,section,onChoose}){
   delete groups.size;
   groups.position=[['Picture before text','move this photo to the left'],['Picture after text','move this photo to the right']];
  }
+ if(section.type==='hero')groups.position=[['Picture beside text, left','move this photo to the left'],['Picture beside text, right','move this photo to the right']];
  if(section.type==='hero')groups.presets=[['Larger photo, focus top','make this photo bigger; crop this photo to the top'],['Smaller photo, focus centre','make this photo smaller; crop this photo to the center']];
  const category=active?.draft===draft&&active.scope===scope?active.name:null;
  live.current.category=category;

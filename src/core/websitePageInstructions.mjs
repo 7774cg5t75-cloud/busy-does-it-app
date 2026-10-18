@@ -16,7 +16,7 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
  if(!page)return fail("Choose a current website page.");
  const clauses=splitSelectedWebsiteInstruction(instruction);
  if(!clauses)return fail("Ask for up to five clear changes separated by 'and then' or semicolons.");
- const steps=[],targets=new Set();
+ const steps=[],targets=new Set();let previousSection=null;
  const findSection=phrase=>{
   const name=String(phrase||"").trim().toLowerCase();
   const matches=list(draft.sections).filter(s=>s?.enabled!==false&&
@@ -25,7 +25,12 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
   return matches.length===1?matches[0]:null;
  };
  for(let i=0;i<clauses.length;i++){
-  const clause=clauses[i];
+  let clause=clauses[i];
+  // Only an exact preceding named section can resolve these bounded references.
+  if(/\b(?:its heading|this section)\b/i.test(clause)){
+   if(!previousSection)return fail('Name a visible section before referring to its heading or this section.');
+   clause=clause.replace(/\bits heading\b/ig,previousSection.id+' heading').replace(/\bthis section\b/ig,previousSection.id+' section');
+  }
   const literal=clause.match(/^(?:change|set|update) (?:the )?(.+?) (heading|text|body|button text) (?:to|with) "([^"<>]{1,2500})"$/i);
   let m,change,description,type='layout';
   if(literal){
@@ -65,7 +70,7 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
   else if((m=clause.match(/^(?:give|make) (?:the )?(?:whole |entire )?page (more|less) (?:space|spacing|breathing room) on (phones?|mobile|desktop|computers?)$/i))){
    change={action:'page-spacing',pageId,device:/phone|mobile/i.test(m[2])?'mobile':'desktop',value:m[1].toLowerCase()==='more'?'generous':'compact'};
    description='Adjust existing section spacing only at the requested width. Shared sections change on other pages too; wording, branding and other widths stay unchanged';
-  }else if((m=clause.match(/^move (?:the )?(.+?) section (above|below|before|after) (?:the )?(.+?)(?: section| form)?$/i))){
+  }else if((m=clause.match(/^move (?:the )?(.+?)(?: section)? (above|below|before|after) (?:the )?(.+?)(?: section| form)?$/i))){
    const section=findSection(m[1]),target=findSection(m[3]);
    if(!section||!target)return fail('Name two exact visible sections on this page.');
    change={action:'move-relative',sectionId:section.id,targetSectionId:target.id,
@@ -117,6 +122,7 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
   const leaves=change.action==='style-group'?change.operations:[change];
   const keys=leaves.map(op=>[op.action==='move-relative'?'move':op.action,op.sectionId||"global",op.action==='add-text'?op.title.trim().toLocaleLowerCase('en'):op.field||op.device||"position"].join(":"));
   if(keys.some(key=>targets.has(key)))return fail("Two steps affect the same setting. Give one instruction for that setting.");
+  if(change.sectionId)previousSection=list(draft.sections).find(s=>s.id===change.sectionId)||null;
   keys.forEach(key=>targets.add(key));steps.push({type,change,spoken:clause,description});
  }
  return {ok:true,draftId,pageId,generation,steps,requiresExplicitApproval:true,
