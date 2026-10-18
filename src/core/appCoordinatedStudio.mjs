@@ -172,7 +172,7 @@ function planAppVoiceInstructions(config,instruction){
  if(pieces.length>MAX_CHANGES)return {ok:false,reason:"Describe up to eight changes at once."};
  const operations=[],unresolved=[],preserved=[];let contentBlocks=validContentLayout(config.contentLayout)?config.contentLayout.map(x=>({...x})):[],contentChanged=false;
  let faqWorking=config.publicProfile?.faqs===undefined?[]:Array.isArray(config.publicProfile.faqs)?config.publicProfile.faqs.map(row=>({...row})):null;
- let faqChanged=false;
+ let faqChanged=false;const contentWrites=new Set();
  let serviceWorking=Array.isArray(config.publicProfile?.services)?config.publicProfile.services.map(row=>({...row})):[];
  let servicesChanged=false;
  const serviceKeys=serviceWorking.map((_,index)=>index),serviceWrites=new Set();let nextServiceKey=serviceKeys.length;
@@ -181,6 +181,17 @@ function planAppVoiceInstructions(config,instruction){
   if(photoDescription){
    const index=Number(photoDescription[1])-1,image=config.publicProfile?.assets?.gallery?.[index];
    operations.push({kind:'photo_description',index,expectedUri:image?.uri,value:{alt:photoDescription[2],caption:photoDescription[3]}});continue;
+  }
+  const blockTitle=/^rename (products|events) section to "([^"<>]{1,80})"$/i.exec(p);
+  const blockLayout=/^(?:show|display) (products|events) as (cards|rows)$/i.exec(p);
+  const blockRemove=/^hide (products|events) section$/i.exec(p);
+  if(blockTitle||blockLayout||blockRemove){
+   const command=blockTitle||blockLayout||blockRemove,kind=command[1].toLowerCase()==='products'?'product':'event',at=contentBlocks.findIndex(block=>block.kind===kind);
+   const target=kind+':'+(blockRemove?'all':blockTitle?'title':'layout');
+   if(at<0||contentWrites.has(target)||contentWrites.has(kind+':all')||blockRemove&&[...contentWrites].some(key=>key.startsWith(kind+':'))){unresolved.push(p);continue;}contentWrites.add(target);
+   if(blockRemove)contentBlocks=contentBlocks.filter(block=>block.kind!==kind);
+   else contentBlocks=contentBlocks.map((block,index)=>index===at?{...block,...blockTitle?{title:command[2]}:{layout:command[2].toLowerCase()}}:block);
+   contentChanged=true;continue;
   }
   const block=/^(?:add|show|include)(?: my| our| the)? (products|events|upcoming events)(?: (?:section|screen))?(?: as (cards|rows))?$/i.exec(p);
   if(block){const kind=block[1].toLowerCase()==='products'?'product':'event',value={kind,title:kind==='product'?'Products':'Upcoming events',layout:(block[2]||'cards').toLowerCase()};const i=contentBlocks.findIndex(x=>x.kind===kind);if(i>=0)contentBlocks[i]={...contentBlocks[i],layout:value.layout};else contentBlocks.push(value);contentChanged=true;continue;}

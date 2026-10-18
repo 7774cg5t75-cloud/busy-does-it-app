@@ -1322,8 +1322,8 @@ function MiniAppBuilder({ s }) {
              {"Before showing these features, BUSY needs: "+
               experience.missingOwnerFacts.map(x=>x==="approved_gallery_photos"?
                 "approved photographs":x==="approved_offer_terms"?
-                "approved offer terms":"owner details").join(", ")+
-              ". No photographs or offer terms will be invented."}
+                "approved offer terms":x==="owner_service_details"?"owner-written service details":x==="approved_product_records"?"current approved product records in Products & Events":x==="approved_event_records"?"current approved event records in Products & Events":"owner details").join(", ")+
+              ". Review the existing content editor; no facts, stock, prices or availability will be invented."}
            </Text>
          ):null}
          {experience.unavailableGoalCapabilities?.length?(
@@ -1594,6 +1594,7 @@ function MiniAppBuilder({ s }) {
           footer="One approval saves the complete batch as ONE private revision. Undo reverses that batch without touching the live app."
           tone="blue">
           <Text style={styles.cardBody}>
+            Try: rename products section to {'"Our collection"'}; show products as rows.
             For approved gallery photos, try: describe gallery photo 1 as
             {' "Workshop entrance" caption "Find us here"'}. Images stay unchanged.
           </Text>

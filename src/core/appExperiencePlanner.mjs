@@ -1,3 +1,4 @@
+import {supportedAppCatalogModule} from './appCatalogSupport.mjs';
 import {inspectCapabilityIntent} from './universalBuilderPlanV3210.mjs';
 /**
  * V3.153 — business-specific recommendation for functional mini-app modules.
@@ -21,10 +22,10 @@ function planFunctionalBusinessApp({businessType="",businessName="",businessGoal
  // enable paid, unavailable, unapproved or unimplemented features.
  const goal=String(businessGoals).slice(0,600).toLowerCase();
  const intent=inspectCapabilityIntent(goal),wanted=new Set(intent.requested),declined=new Set(intent.declined);
- const signals={booking:wanted.has('booking_request'),gallery:wanted.has('gallery'),enquiry:wanted.has('enquiry'),events:wanted.has('events'),offers:wanted.has('offers')};
+ const signals={catalogue:wanted.has('catalogue'),booking:wanted.has('booking_request'),gallery:wanted.has('gallery'),enquiry:wanted.has('enquiry'),events:wanted.has('events'),offers:wanted.has('offers')};
  const category=categories.find(([name,re])=>re.test(businessType))?.[0]||"other";
  const available=new Map((Array.isArray(catalog)?catalog:[])
-  .filter(x=>x?.status==="available"&&typeof x.module_key==="string")
+  .filter(x=>typeof x?.module_key==="string"&&supportedAppCatalogModule(catalog,x.module_key))
   .map(x=>[x.module_key,x]));
  const base=["business_profile","services","contact","enquiry"];
  // A suggested request is never a confirmed appointment.
@@ -88,6 +89,9 @@ function planFunctionalBusinessApp({businessType="",businessName="",businessGoal
   category==="food"?"events-first":
   category==="retail"?"service-first":"minimal";
  const missingOwnerFacts=[
+  ...((wanted.has('services')||signals.booking)&&(!Array.isArray(profile.services)||!profile.services.length)?['owner_service_details']:[]),
+  ...(signals.catalogue?['approved_product_records']:[]),
+  ...(signals.events?['approved_event_records']:[]),
   ...(signals.gallery&&!approvedPhotos.length?["approved_gallery_photos"]:[]),
   ...(signals.offers&&!approvedOffers?["approved_offer_terms"]:[])
  ];

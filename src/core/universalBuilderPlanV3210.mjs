@@ -1,3 +1,4 @@
+import {supportedAppCatalogModule} from './appCatalogSupport.mjs';
 import {validateBusinessContent,parseContentPrice,localEventInstant,validContentLayout} from './businessContentRecords.mjs';
 /**
  * V3.210 - universal, industry-agnostic capability planner.
@@ -94,12 +95,8 @@ function assessSurfaceCapability(capability,surface,{website,app,catalog=[],busi
    presentInDraft:enabled,liveVerified:false,sectionId:descriptor.id};
  }
  if(descriptor.kind==="module"){
-  const item=list(catalog).find(row=>row?.module_key===descriptor.id&&
-   row.status==="available");
-  const eligible=!!item&&
-   (descriptor.id!=="booking_request"||
-    item.capabilities?.confirmation_required_by_business===true)&&
-   (descriptor.id!=="enquiry"||item.capabilities?.customer_action===true);
+  const item=supportedAppCatalogModule(catalog,descriptor.id);
+  const eligible=!!item;
   if(!eligible)return {status:"runtime_module_not_verified_available",
    reason:"The current business-scoped module catalogue does not verify this customer capability.",
    presentInDraft:false,liveVerified:false,moduleKey:descriptor.id};
