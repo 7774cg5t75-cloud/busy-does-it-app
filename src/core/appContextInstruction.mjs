@@ -21,7 +21,7 @@ function interpretSelectedAppAppearance(config,{selected,text}={}){
   galleryLayout:{grid:/\b(grid|side.by.side)\b/g,stack:/\b(stack|stacked|one column|full.width)\b/g},
   imageScale:{regular:/\b(regular|normal|smaller)\b/g,large:/\b(larger|large|bigger)\b/g},
   imageCorners:{rounded:/\b(rounded|round|soft)\b/g,square:/\b(square|sharp)\b/g},
-  typeStyle:{balanced:/\b(balanced)\b/g,editorial:/\b(editorial|serif)\b/g,impact:/\b(impact)\b/g,friendly:/\b(friendly)\b/g}};
+  typeStyle:{balanced:/\b(balanced)\b/g,editorial:/\b(editorial)\b/g,impact:/\b(impact)\b/g,friendly:/\b(friendly)\b/g}};
  const selectedParts={header:/\b(spacing|navigation|menu)\b/,spacing:/\b(header|heading|navigation|menu)\b/,navigation:/\b(header|heading|spacing)\b/,
   services:/\b(header|heading|spacing|navigation|gallery|photos?|images?|typography|font)\b/,
   gallery:/\b(header|heading|spacing|navigation|services?|typography|font|corners?)\b/,
