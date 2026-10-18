@@ -1272,3 +1272,12 @@ The canonical native palette now protects small accent text against service-card
 ### Mission 15 Phase 12 — bounded component appearance and local Explore
 
 App Studio component appearance uses canonical finite tokens, stable service IDs, original CAS/locks/Undo and shared marketplace/standalone rendering. `builderExplore.mjs` reuses the existing bounded conversation and universal/edit planners in a closed local discussion executor without remote capabilities. The two builder entry points replace editing UI while exploring; explicit fresh-source handoff prepares the original editor and requires its separate approval. Three existing server ingresses deny mode-tagged Explore requests as defense in depth; this is not a restricted credential or server-persisted read-only session. Cloud tools/paid voice are unsupported in Explore. See `docs/BUILDER_MISSION15_PHASE12_2026_10_18.md` for verification and limitations.
+
+
+## Mission 15 Phase 13 — simpler exploration and individual FAQ styling
+
+Existing PR #26 continues verified `30c30f9aee0e99d52d6e7e385ef3352116b9be09`. Plain-language Talk & Explore reuses original conversation, capability/readiness planning and explicit editor handoff; supported website alternatives stage questions only. Stable-ID question/answer styles extend original Studio/CAS/locks/Undo and shared marketplace/standalone FAQ rendering with solid-surface contrast checks. A selected website paragraph offers coordinated reading preparation; cancelled typography menus reject stale callbacks.
+
+A server-owned ephemeral inspect-only capability is implemented/tested as a dormant trusted foundation. It is not an HTTP session, restricted JWT or activated remote AI/tool interface. Existing ingresses additionally deny Explore capability/session fields on mutation attempts. Actual distributed authority, fresh trusted adapters and tool transport remain required before remote exploration. Current local mode has no remote write/provider executor; original owner credentials retain their existing permissions elsewhere.
+
+108 reviewed offline checks passed together, plus 22-file syntax and four environment-policy checks. No device/browser/hosted acceptance claimed, no provider or hosted database action, workflow execution, deployment or spending. AppController/main Edge entrypoint unchanged; static relative-import audit finds zero cycles. See Phase 13 delivery/checks and architecture-health records. Mission 15 remains open.
