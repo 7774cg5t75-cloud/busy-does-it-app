@@ -1,3 +1,5 @@
+import {ServiceActionButton} from './serviceActionButton';
+import {serviceCardStyle} from './appServicePresentation.mjs';
 import {appImagePresentation} from './appImageAppearance.mjs';
 import {AppFaqCard} from './appFaqCard';
 import {ServiceDetails} from "./serviceDetails";
@@ -198,7 +200,7 @@ function ServicesInfo({app,layout,onRequestService}){
      borderRadius:VISUAL.serviceStyle==="rows"?0:11,
      padding:VISUAL.serviceStyle==="rows"?6:12,
      borderBottomWidth:VISUAL.serviceStyle==="rows"?1:undefined,
-     borderBottomColor:VISUAL.serviceStyle==="rows"?COLORS.line:undefined}}>
+     borderBottomColor:VISUAL.serviceStyle==="rows"?COLORS.line:undefined,...serviceCardStyle(app.servicePresentation||LOOK.servicePresentation,service.id,COLORS)}}>
      {i===0&&VISUAL.featuredFirst?<Text style={{
        color:COLORS.accent,fontWeight:"700",fontSize:12,marginBottom:6}}>
        Featured service
@@ -207,10 +209,10 @@ function ServicesInfo({app,layout,onRequestService}){
        fontSize:VISUAL.type.bodySize+2,...appComponentTextStyle(app.componentStyles||LOOK.componentStyles,'service:'+service.id+':title',{colors:COLORS,baseSize:VISUAL.type.bodySize+2})}}>{service.name}</Text>
      <ServiceDetails service={service} colors={COLORS} bodySize={VISUAL.type.bodySize} textStyle={appComponentTextStyle(app.componentStyles||LOOK.componentStyles,'service:'+service.id+':body',{colors:COLORS,baseSize:VISUAL.type.bodySize})}/>
      {app.supportsBookingRequest&&app.moduleKeys?.includes("booking_request")?
-      <Button title={"Request "+service.name}
+      <ServiceActionButton serviceId={service.id} action="booking_request" presentation={app.servicePresentation||LOOK.servicePresentation} colors={COLORS} title={"Request "+service.name}
        onPress={()=>onRequestService?.(service.name,"booking_request")}/>:null}
      {app.supportsEnquiry&&app.moduleKeys?.includes("enquiry")?
-      <Button title={"Ask about "+service.name}
+      <ServiceActionButton serviceId={service.id} action="enquiry" presentation={app.servicePresentation||LOOK.servicePresentation} colors={COLORS} title={"Ask about "+service.name}
        onPress={()=>onRequestService?.(service.name,"enquiry")}/>:null}
      {app.supportsEnquiry&&app.moduleKeys?.includes("enquiry")?<View>
       <Button title={questionService===service.name?"Hide question ideas":"Help me ask about "+service.name} onPress={()=>setQuestionService(questionService===service.name?'':service.name)}/>

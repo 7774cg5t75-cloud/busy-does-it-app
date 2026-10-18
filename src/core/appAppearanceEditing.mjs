@@ -1,3 +1,4 @@
+import {validServicePresentation,servicePresentationTarget} from './appServicePresentation.mjs';
 import {validImageStyles,imageStyleTargetExists} from './appImageAppearance.mjs';
 import {editingQualityDecision} from "./builderQualityPolicy.mjs";
 import {validComponentStyles,componentTargetExists} from './appComponentAppearance.mjs';
@@ -36,7 +37,7 @@ function previewPrivateAppAppearance(config,{field,value}={}){
      field==="brandPalette"&&value==="custom")
   return {ok:false,reason:"Choose a supported palette, or enter your brand colour as #RRGGBB."};
  const current={...DEFAULTS,...config.presentation};
- if(!appOwnerLocks(config).ok||Object.keys(current).some(key=>key==="imageStyles"?!validImageStyles(current[key]):key==="componentStyles"?!validComponentStyles(current[key]):key==="ownerLockedElements"?false:key==="brandAccent"?
+ if(!appOwnerLocks(config).ok||Object.keys(current).some(key=>key==="servicePresentation"?!validServicePresentation(current[key]):key==="imageStyles"?!validImageStyles(current[key]):key==="componentStyles"?!validComponentStyles(current[key]):key==="ownerLockedElements"?false:key==="brandAccent"?
       typeof current[key]!=="string"||!HEX.test(current[key]):
       !owned(OPTIONS,key)||!OPTIONS[key].includes(current[key]))||
     current.brandPalette==="custom"&&!HEX.test(current.brandAccent||""))
@@ -69,13 +70,13 @@ function publicAppAppearance(presentation={}){
     !appOwnerLocks({presentation}).ok)
   return {ok:false,reason:"The approved app appearance needs review."};
  const {ownerLockedElements,...look}=presentation;
- if(Object.keys(look).some(key=>key==="imageStyles"?!validImageStyles(look[key]):key==="componentStyles"?!validComponentStyles(look[key]):key==="brandAccent"?
+ if(Object.keys(look).some(key=>key==="servicePresentation"?!validServicePresentation(look[key]):key==="imageStyles"?!validImageStyles(look[key]):key==="componentStyles"?!validComponentStyles(look[key]):key==="brandAccent"?
     typeof look[key]!=="string"||!HEX.test(look[key]):
     !owned(OPTIONS,key)||!OPTIONS[key].includes(look[key]))||
     (look.brandPalette==="custom"&&!HEX.test(look.brandAccent||""))||
     (look.brandAccent!==undefined&&look.brandPalette!=="custom"))
   return {ok:false,reason:"Use a supported appearance and a valid custom brand colour."};
- return {ok:true,appearance:{...DEFAULTS,...look,...(look.imageStyles?{imageStyles:JSON.parse(JSON.stringify(look.imageStyles))}:{}),...(look.componentStyles?{componentStyles:JSON.parse(JSON.stringify(look.componentStyles))}:{})}};
+ return {ok:true,appearance:{...DEFAULTS,...look,...(look.servicePresentation?{servicePresentation:JSON.parse(JSON.stringify(look.servicePresentation))}:{}),...(look.imageStyles?{imageStyles:JSON.parse(JSON.stringify(look.imageStyles))}:{}),...(look.componentStyles?{componentStyles:JSON.parse(JSON.stringify(look.componentStyles))}:{})}};
 }
 export {OPTIONS,DEFAULTS,previewPrivateAppAppearance,publicAppAppearance};
 
@@ -91,6 +92,7 @@ function reviewAppEditingQuality(config){
   add('navigation-permutation','critical','The navigation must contain each enabled screen exactly once. Restore the supported order.');
  if(!publicAppAppearance(config?.presentation||{}).ok)add('appearance-contract','critical','This appearance contains an unsupported style or colour. Choose the supported controls.');
  const p=config?.presentation||{};
+ if(validServicePresentation(p.servicePresentation||{})&&Object.keys(p.servicePresentation||{}).some(key=>!servicePresentationTarget(config,key)))add('service-presentation-target','critical','Reset a service card style before removing its source.');
  if(validImageStyles(p.imageStyles||{})&&Object.keys(p.imageStyles||{}).some(uri=>!imageStyleTargetExists(config,uri)))add('image-target','critical','Reset this picture style before removing, replacing or unapproving its source.');
  if(validComponentStyles(p.componentStyles||{})&&Object.keys(p.componentStyles||{}).some(key=>!componentTargetExists(config,key)))add('component-target','critical','A styled text component no longer exists. Reset its style before removing its source.');
  if(p.typeStyle==='impact'&&p.headerStyle==='bold')add('strong-header','advisory','This combines a bold header with emphatic typography. Check long business names on a phone; you may keep your choice.','heuristic',{kind:'appearance',field:'headerStyle',value:'refined'});

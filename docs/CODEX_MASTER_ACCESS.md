@@ -1,3 +1,7 @@
+## Current approved private master — V22.35 (Phase 15 review, 18 October 2026)
+
+Owner-supplied `Latest master 74.docx` identifies Version 22.35, updated 18 October 2026. The complete Word body, including table paragraphs, was opened and read: 1,796 paragraphs / 425,343 extracted characters. SHA256 `7d93efedb1ff68a57470bdb97073767a14a9fc64cd1c53c06fba3021d12e298d`. It supersedes V22.34; Section 52.15 expands the long-term audience while preserving small-business launch priorities and trusted tenancy. The private file/text stays outside Git. This provenance does not claim implementation or release readiness.
+
 # Codex master access and provenance
 
 **Status:** configuration reference only. The full product master remains private and is **not stored in this public GitHub repository**. This file is intentionally safe to publish.

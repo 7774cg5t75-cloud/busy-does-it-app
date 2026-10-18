@@ -1,3 +1,4 @@
+import {serviceCardStyle} from '../src/core/appServicePresentation.mjs';
 import assert from 'node:assert/strict';
 import {appComponentTextStyle} from '../src/core/appComponentAppearance.mjs';
 import fs from 'node:fs';
@@ -18,7 +19,8 @@ assert.match(JSON.stringify(runtime.render(MiniAppSurface,{config,interactive:fa
 const appSource=fs.readFileSync('standalone/template/App.js','utf8'),start=appSource.indexOf('function ServicesInfo('),end=appSource.indexOf('function LiveInfo(',start);assert.ok(start>0&&end>start);
 let slots=[],index=0;const React={createElement:(type,props,...children)=>({type,props:{...props,children}})};const useState=value=>{const i=index++;if(!(i in slots))slots[i]=value;return [slots[i],v=>slots[i]=v]};
 const {ServiceDetails}=runtime.load('standalone/template/serviceDetails.js');
-const context={appComponentTextStyle,LOOK:{},ServiceDetails,React,useState,View:'View',Text:'Text',TextInput:'TextInput',Button:'Button',ServiceCategoryFilter,browsePublicNativeServices:browse,box:{},t:{},sub:{},COLORS:{},VISUAL:{type:{},serviceColumns:1}};
+const {ServiceActionButton}=runtime.load('standalone/template/serviceActionButton.js');
+const context={serviceCardStyle,ServiceActionButton,appComponentTextStyle,LOOK:{},ServiceDetails,React,useState,View:'View',Text:'Text',TextInput:'TextInput',Button:'Button',ServiceCategoryFilter,browsePublicNativeServices:browse,box:{},t:{},sub:{},COLORS:{},VISUAL:{type:{},serviceColumns:1}};
 vm.runInNewContext(babel.transformSync(appSource.slice(start,end)+';globalThis.Services=ServicesInfo;',{babelrc:false,configFile:false,plugins:[[require('@babel/plugin-transform-react-jsx'),{runtime:'classic'}]]}).code,context);
 index=0;tree=context.Services({app:{services}});walk(tree).find(n=>n.type===ServiceCategoryFilter).props.onSelect('Advice');index=0;tree=context.Services({app:{services}});assert.match(JSON.stringify(tree),/Discuss a project/);assert.doesNotMatch(JSON.stringify(tree),/Morning menu/);
 // Existing direct Website editor retains text but rejects a stale generation.

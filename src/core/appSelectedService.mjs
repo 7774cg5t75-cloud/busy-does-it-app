@@ -3,7 +3,7 @@ import {proposeCoordinatedAppChanges} from './appCoordinatedStudio.mjs';
 // raw private row, not a filtered position or a possibly duplicated name.
 function selectedAppService(config,selection){
  const rows=config?.publicProfile?.services;
- if(selection?.part!=='service'||!Number.isInteger(selection.index)||selection.index<0||
+ if(!['service','service-button'].includes(selection?.part)||!Number.isInteger(selection.index)||selection.index<0||
   !Array.isArray(rows)||!config?.modules?.some(m=>m.key==='services'&&m.enabled===true))return null;
  const row=rows[selection.index];
  return row&&JSON.stringify(row)===selection.expectedService?row:null;

@@ -1,3 +1,4 @@
+import {serviceCardStyle} from '../src/core/appServicePresentation.mjs';
 import assert from 'node:assert/strict';
 import {createRequire,stripTypeScriptTypes} from 'node:module';
 import {readFileSync} from 'node:fs';
@@ -35,7 +36,9 @@ const ast=babel.parseSync(nativeSource,{configFile:false,babelrc:false,sourceTyp
 const code=babel.transformSync(nativeSource.slice(node[0].start,node[0].end),{configFile:false,babelrc:false,plugins:[[require('@babel/plugin-transform-react-jsx'),{runtime:'classic'}]]}).code;
 const React={createElement:(type,props,...children)=>({type,props:{...props,children}})},colors=nativePalette('linen');
 const {appVisualPresentation}=await import('../src/core/appVisualPresentationV3194.mjs'),{browsePublicNativeServices}=await import('../standalone/template/nativeCustomerActions.mjs');
-const deps={React,View:'View',Text:'Text',Button:'Button',TextInput:'TextInput',ServiceCategoryFilter:'Filter',ServiceDetails,appComponentTextStyle,useState:x=>[x,()=>{}],browsePublicNativeServices,box:{},t:{color:colors.text},sub:{color:colors.muted},COLORS:colors,VISUAL:appVisualPresentation({}),LOOK:{},SERVICE_QUESTION_TOPICS:[]};
+const {ServiceActionButton}=rt.load('standalone/template/serviceActionButton.js');
+const deps={serviceCardStyle,ServiceActionButton,React,View:'View',Text:'Text',Button:'Button',TextInput:'TextInput',ServiceCategoryFilter:'Filter',ServiceDetails,appComponentTextStyle,useState:x=>[x,()=>{}],browsePublicNativeServices,box:{},t:{color:colors.text},sub:{color:colors.muted},COLORS:colors,VISUAL:appVisualPresentation({}),LOOK:{},SERVICE_QUESTION_TOPICS:[]};
 const native=Function(...Object.keys(deps),code+';return ServicesInfo;')(...Object.values(deps)),nativeActions=[],nativeTree=native({app:{...projected,supportsEnquiry:true,supportsBookingRequest:true,moduleKeys:['enquiry','booking_request']},layout:{},onRequestService:(...x)=>nativeActions.push(x)});
 assert.deepEqual(walk(nativeTree).find(n=>n.type===ServiceDetails).props.textStyle,JSON.parse(JSON.stringify(details[0].props.textStyle)));walk(nativeTree).find(n=>n.props?.title==='Ask about Survey').props.onPress();assert.deepEqual(nativeActions,[['Survey','enquiry']]);
+const nativeStyled=native({app:{...projected,servicePresentation:{survey:{spacing:'spacious',enquiryTone:'solid'}},supportsEnquiry:true,moduleKeys:['enquiry']},layout:{},onRequestService:()=>{}});assert.ok(walk(nativeStyled).some(n=>n.props?.style?.padding===22));const nativeButton=walk(nativeStyled).find(n=>n.props?.title==='Ask about Survey');assert.equal(nativeButton.type,ServiceActionButton);assert.equal(nativeButton.props.presentation.survey.enquiryTone,'solid');
 assert.equal(JSON.stringify(config),original);console.log('PASS per-component original Studio/CAS/render/JSON reload, selected controls, exact Undo, stable ids, locks, action preservation, public projection and shared style policy. Inert DB/native boundaries, not hosted/device acceptance.');

@@ -1,3 +1,5 @@
+import {ServiceActionButton} from '../../standalone/template/serviceActionButton';
+import {serviceCardStyle} from '../core/appServicePresentation.mjs';
 import {AppGallerySurface} from "./appGallerySurface";
 import {ServiceDetails} from "../../standalone/template/serviceDetails";
 import {AppEntryEditButton} from './appEntryEditButton';
@@ -451,7 +453,7 @@ function MiniAppSurface({
                         borderColor:index===0&&visual.featuredFirst?
                            brandColours.accent:brandColours.line,
                         borderRadius:visual.serviceStyle==="rows"?0:12,
-                        padding:visual.serviceStyle==="rows"?9:15}}>
+                        padding:visual.serviceStyle==="rows"?9:15,...serviceCardStyle(presentation.servicePresentation,service.id,brandColours)}}>
                         {index===0&&visual.featuredFirst?<Text style={{
                           color:brandColours.accent,fontSize:12,fontWeight:"700"}}>
                           Featured service
@@ -465,14 +467,14 @@ function MiniAppSurface({
                         {ownerSelection?<AppEntryEditButton label={'Edit service '+service.name} colors={brandColours}
                           selected={ownerSelection.selection?.part==='service'&&ownerSelection.selection.index===allServices.indexOf(service)}
                           onPress={()=>ownerSelection.onSelect({part:'service',index:allServices.indexOf(service),expectedService:JSON.stringify(service)})}/>:null}
-                        {interactive&&typeof onSelectService==='function'&&modules.some(m=>m.key==='enquiry')?<Button label={'Ask about '+service.name}
-                          onPress={()=>onSelectService(service.name,'enquiry')}/>:null}
+                        {(ownerSelection||interactive&&typeof onSelectService==='function')&&modules.some(m=>m.key==='enquiry')?<ServiceActionButton serviceId={service.id} action="enquiry" presentation={presentation.servicePresentation} colors={brandColours} label={'Ask about '+service.name}
+                          onPress={()=>ownerSelection?ownerSelection.onSelect({part:'service-button',action:'enquiry',index:allServices.indexOf(service),expectedService:JSON.stringify(service)}):onSelectService(service.name,'enquiry')}/>:null}
                         {interactive&&typeof onSelectService==='function'&&modules.some(m=>m.key==='enquiry')?<View>
                           <Button label={questionService===service.name?'Hide question ideas':'Help me ask about '+service.name} onPress={()=>setQuestionService(questionService===service.name?'':service.name)}/>
                           {questionService===service.name?SERVICE_QUESTION_TOPICS.map(topic=><Button key={topic.key} label={topic.label} onPress={()=>onSelectService(service.name,'enquiry',topic.key)}/>):null}
                         </View>:null}
-                        {interactive&&typeof onSelectService==='function'&&modules.some(m=>m.key==='booking_request')?<Button label={'Request '+service.name}
-                          onPress={()=>onSelectService(service.name,'booking_request')}/>:null}
+                        {(ownerSelection||interactive&&typeof onSelectService==='function')&&modules.some(m=>m.key==='booking_request')?<ServiceActionButton serviceId={service.id} action="booking_request" presentation={presentation.servicePresentation} colors={brandColours} label={'Request '+service.name}
+                          onPress={()=>ownerSelection?ownerSelection.onSelect({part:'service-button',action:'booking_request',index:allServices.indexOf(service),expectedService:JSON.stringify(service)}):onSelectService(service.name,'booking_request')}/>:null}
                       </View>
                     </View>
                   ))}
