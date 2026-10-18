@@ -1,0 +1,41 @@
+# Mission 15 Phase 4 — recoverable continuation, mission remains open
+
+Same branch `codex/builder-mission15-design-advancement`, draft PR #26, dependent on PR #25. Verified remote starting head `8f4f7fa4b69b976e7ffaedfbe8a993ec4ede2141`; equivalent tested local tree at `c10f46ec`. Continues the mission’s complete private V22.27 master review and architecture preflight; no newer approved master supplied. Private master remains private. PR #25/#24/#23/#21 and their dependency chain remain untouched.
+
+## Functional changes
+
+- **Structured enquiry requirements:** marketplace customers can supply topic, quantity/group size, preferred timing, location/delivery area and requirements/access needs. Bounded, clearly customer-supplied fields become labelled wording in the ORIGINAL enquiry message, not a new request schema. Existing trusted submission, tenant scoping, saved owner inbox, exact-payload replay and receipts remain authoritative. Enquiries do not confirm stock, price, time, purchase, booking or attendance. Product/event context is re-resolved against the currently loaded approved feed and attached even after the customer edits their question; stale/cancelled/foreign listings stop before submission. Unchanged legacy selection wording remains unchanged. Combined message limit is 3,000 characters to fit the existing owner-preparation scope; oversize input is rejected visibly, never truncated by this preparation.
+- **Recovery:** new fields use the existing account/app/version-scoped in-memory form and opt-in encrypted native checkpoint. Older checkpoints without requirements remain readable. Newer requirement edits survive completion of an older submission. No new storage system, web persistence or automatic send. OS encryption/process-death behavior is not proven by fixtures.
+- **Functional catalogue editing:** existing Studio grammar now renames product/event headings, switches cards/rows and hides sections. Examples: `rename products section to "Our collection"; show products as rows`. Original content-layout operation, featured identity, lock checks, atomic batch, server revision save and sparse Undo remain authoritative. No record is deleted or made transactional. Actual marketplace surface receives the new title/layout; standalone already reads the same configuration contract.
+- **More trustworthy recommendations:** both existing planners share one bounded catalogue-support check. Duplicate rows, unavailable modules, explicit mismatched request types, absent customer-action evidence and missing booking-confirmation safeguards cannot establish supported request actions. Missing legacy request_type remains compatible; a supplied mismatch is rejected. The app experience planner recognises product goals and explains that approved products/events and service facts must be reviewed in existing editors. It does not claim to have read a current approved-record feed from publicProfile, enable modules or verify entitlements.
+- **Responsive website composition/editing:** existing selected/page instruction paths support section spacing on phones or desktop, including coordinated whole-page spacing plus wording changes. Finite per-width classes and media rules preserve tablet/default settings, owner branding and content. Original immutable transactions, scope checks, lock protection and one Undo snapshot remain. Shared sections can affect multiple pages; original width review remains required.
+- **Connected catalogue presentation:** verified product/event renderer bypass now forwards canonical appearance classes to the shared public HTML component. Product/event sections participate in supported whole-page responsive spacing in both preview and worker adapters. Shared HTML copies remain identical; class strings are escaped. No public feed endpoint, script authority or current-record publication policy changed.
+- **Owner follow-up intelligence:** existing deterministic reply preparation recognises preferred timing and requested quantity/group size, showing availability/options checks in the original owner review. It uses current approved facts, keeps customer wording untrusted and never sends or confirms anything. Client/Edge preparation copies remain identical; existing privacy-controlled enquiry-content-gap advice automatically reuses the same categories without a new memory/AI engine.
+- **Standalone continuity:** the same requirements helper is packaged with the unsigned local template. Original guest-request validation/challenge/send remains authoritative. Requirements and edited questions preserve selected context across in-memory navigation; pending/success states retain original duplicate protection. No claim of device-restart persistence for standalone forms. Fictional unsigned prototype generation passed; no native build/signing or provider connection.
+
+## Recoverable GitHub checkpoints
+
+| Work | Remote commit |
+| --- | --- |
+| Structured enquiries | `40175623233cd92b40fd91b90f896bf96cfef849` |
+| App catalogue editing/recommendations | `0bccc2e9b8e05264078251d4f1bad5aee7c1ce7e` |
+| Responsive website composition | `530c8e1f49663463d716fddef86d8bffcb6827e5` |
+| Owner requirement review | `38df1a597a8f9192195a0036ac7f174c7d91178d` |
+| Standalone requirements parity | `bbfc381f5e6689d869ff1bfa4714fcf0fb5e210a` |
+| Connected catalogue styling | `87ad2f2bc23b31c24344b33b832b964f5b550995` |
+
+Local commits have different metadata SHAs; each remote tree exactly matches its tested local checkpoint. The final evidence-record commit is the PR head after this record.
+
+## Verification, rollout and limits
+
+62 regression commands pass, including actual trusted submit/sanitisation/replay code with inert DB/provider boundaries, marketplace component/form submission, standalone pre-render form continuity, encrypted-storage boundary fixtures, source/tenant/version guards, existing private Studio saves/Undo and actual canonical HTML rendering. 31 changed source files parse. Website worker TypeScript-stripped source passes Node syntax checking; this is not Deno type checking. Checks JSON retains outputs and source hashes. Fictional offline prototype generation passed. No new dependency or installation.
+
+No browser retry, screenshots, AI aesthetic assessment, hosted/device/provider acceptance or production-readiness claim. Preferred timing and quantities are unverified customer requests. Website/browser and native accessibility/layout acceptance remain pending. Voice grammar is finite English, using existing voice transcription interfaces; no paid transcription tested. Existing unknown-save original-revision limitation remains. Service context remains the original published-version/name contract; no new server-authenticated service pricing/availability snapshot is introduced. Structured fields are labelled message content, not new independently validated transaction facts. No new atomic server-side listing-revision check is introduced; owner preparation still rechecks current approved facts before commitments.
+
+An eventual separately approved rollout must bundle the updated worker layout/classes/shared HTML and matching clients, and ship the new helper with standalone exports. Existing enquiry payload and content-layout contracts remain compatible; no migration needed. No rollout is authorised by this record.
+
+No workflows, hosted database access/change, migration, deployment, merge, publication, real customer communication, paid provider/build, credentials or billing change. £0 additional external spending. Workflow/migration/disposable harness and root dependency manifests are unchanged. Earlier database rehearsal proves only its earlier exact scope.
+
+## Resume next — Mission 15 remains open
+
+Next unfinished functional workstream: a guided, accessible enquiry review/correction step using the existing fields, selected-item revalidation and uncertain-outcome receipt system across marketplace/standalone. Show exactly what will be saved before the customer confirms; preserve changed drafts and earlier pending references without new storage or request engines. Follow with current approved-record-aware capability recommendations using the existing scoped read path, rather than inferring catalogue readiness from profile text. Browser/device/staging acceptance remains separately gated.

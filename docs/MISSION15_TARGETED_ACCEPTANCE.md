@@ -27,3 +27,12 @@ Offline counterparts pass with inert boundaries; no new native/provider/hosted a
 - Simulate checkpoint storage failure before dispatch: zero requests, original proposal stays reviewable. Verify real SecureStore/platform behavior separately; offline fixtures do not prove OS encryption or process-death behavior.
 
 These checks do not authorise deployment, hosted changes or customer contact. No rerun of the earlier database rehearsal is required merely by this checklist.
+
+## Phase 4 additions — pending separately authorised acceptance
+
+- In marketplace and standalone, enquire about an approved service/product/event, edit the question, enter group size/timing/location/access requirements, navigate away/back, and confirm the original selection and all intended details reach the correct owner inbox. Request wording must not become booking/order/attendance or delivery proof.
+- Revise/cancel the selected listing or change account/app/version before submission/restore: reject stale or foreign context. Interrupt after sending, check the original receipt without duplicate mutation, and ensure newer requirement edits survive an older success. Verify optional native device storage separately; standalone in-memory navigation is not restart recovery.
+- Review quantity/timing-related owner preparation, change underlying approved facts, and check original reapproval/permission gates before any send. No real customer/provider communication authorised.
+- Rename product/event headings, switch cards/rows or hide one in a single Studio batch. Check featured identity and actual customer layouts in marketplace/standalone; Undo restores the entire original revision. Reject owner locks and missing sections.
+- Preview whole-page phone spacing plus desktop spacing and copy edits. Measure phone/tablet/desktop and inspect shared sections on other pages, including connected product/event lists. Check actual public HTML adapters only after approved isolated rollout; no deployment authorised here.
+- Feed duplicated or incomplete request module descriptors to both planners: neither may recommend them as supported customer actions. Current approved-record and subscription evidence still require the existing scoped data sources, not profile inference.
