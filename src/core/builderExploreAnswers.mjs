@@ -28,6 +28,11 @@ function explainBuilderExplore({kind,project,catalog,plan,text}){
    'Start with one useful customer task, using your approved branding and information. Booking requests need business confirmation; payments and live availability need separately verified support.',
    'This is a recommendation, not an app build or a subscription entitlement check. Nothing has been changed.'].join('\n'),alternatives:[]};
  }
+ if(kind==='website'&&/\b(?:picture|photo|image)\b.*\b(?:other side|beside|left|right)\b/i.test(text)){
+  const hero=project.sections?.find(s=>s.type==='hero'&&s.enabled!==false),asset=hero?.asset;
+  if(!asset||asset.approved!==true)return {answer:'Your current introduction has no approved main picture to rearrange. Choose and approve the right image in the original editor first. Nothing will be changed.',alternatives:[]};
+  return {answer:'We can compare the approved main picture to the left or right of your introduction. These are different desktop arrangements; phones keep one reading column with the text before the picture. Your words, colours and picture stay the same. This is a source-based proposal, not a screenshot assessment. Nothing will be changed.',alternatives:[{label:'Compare picture on the left',instruction:'move the hero photo left'},{label:'Compare picture on the right',instruction:'move the hero photo right'}]};
+ }
  const design=/\b(colou?rs?|layout|homepage|design|improve|readab|typograph|different look)\b/i.test(text);
  if(design){
   const findings=kind==='app'?appDesignQualityReport(project.draft_config,catalog).checks.filter(row=>!row.passed&&!['real_device_review','screenshot_review','shared_runtime'].includes(row.id)).slice(0,2).map(row=>row.detail):[];

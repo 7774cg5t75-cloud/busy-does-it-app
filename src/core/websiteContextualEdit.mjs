@@ -158,7 +158,10 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
    if(section.type==="photo-feature")
     return success("layout",{action:"section-style",sectionId,field:"photoSide",value:direction},
       "Move only the selected photo/text block image on wide screens.");
-   return failure("The main website photo has separate positioning controls; choose its crop instead.");
+   if(section.type==="hero")
+    return success("layout",{action:"style",field:"heroLayout",value:direction==='left'?'image-left':'image-right'},
+      "Place the approved main picture beside the introduction; phones keep a single reading column.");
+   return failure("Choose a supported picture/text section.");
   }
   m=text.match(/^(?:make|show) (?:this|that|the selected) (?:photo|image|picture) (bigger|larger|smaller)(?: (?:only )?on (phones?|mobile|desktop|computers?|wide screens?))?$/i);
   if(m){
