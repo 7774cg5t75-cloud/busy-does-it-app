@@ -409,7 +409,9 @@ function MiniAppSurface({
             {(validContentLayout(config.contentLayout)?config.contentLayout:[]).map(block=><BusinessContentView key={block.kind} feed={businessContent} colors={brandColours} {...block} onInterest={interactive&&modules.some(m=>m.key==='enquiry')?(onSelectContent||onSelectService):null}/>)}
             {['faqs','testimonials'].map(field=>publicCollection(field,profile[field]||[]).map((row,i)=><Card key={field+i}
               eyebrow={field==='faqs'?'Customer question':'Customer testimonial'}
-              title={field==='faqs'?row.question:row.attribution} body={field==='faqs'?row.answer:row.text}/>))}
+              title={field==='faqs'?row.question:row.attribution} body={field==='faqs'?row.answer:row.text}>
+              {ownerSelection&&field==='faqs'?<Button label={'Edit answer: '+row.question} onPress={()=>ownerSelection.onSelect({part:'faq',index:i,expectedFaq:JSON.stringify(profile.faqs[i])})}/>:null}
+             </Card>))}
             </View>
           );
         }

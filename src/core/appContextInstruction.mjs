@@ -10,6 +10,7 @@ import {PROFILE_TEXT_LIMITS} from "./appProfileFieldUndo.mjs";
 import {selectedAppService,selectedAppServiceOperation} from './appSelectedService.mjs';
 import {OPTIONS} from './appAppearanceEditing.mjs';
 import {LABELS} from './nativePalette.mjs';
+import {selectedAppFaq,selectedAppFaqOperation} from './appSelectedFaq.mjs';
 const fields=Object.freeze({header:"headerStyle",spacing:"layoutDensity",navigation:"navigationStyle",services:"serviceStyle",gallery:"galleryLayout",images:"imageScale",corners:"imageCorners",typography:"typeStyle"});
 function interpretSelectedAppAppearance(config,{selected,text}={}){
  const field=typeof selected==='string'&&Object.hasOwn(fields,selected)?fields[selected]:null,raw=typeof text==="string"?text.trim().toLowerCase():"";
@@ -53,6 +54,13 @@ function proposeSelectedAppInstruction(config,{selection,text}={}){
  const fail=reason=>({ok:false,reason});
  if(typeof text!=='string'||!text.trim()||text.length>180)return fail('Use one short instruction for the selected app part.');
  const phrase=text.trim(),part=selection?.part;
+ if(part==='faq'){
+  const row=selectedAppFaq(config,selection);if(!row)return fail('Select the current owner-written answer again.');
+  const move=/^move this answer (earlier|later)$/i.exec(phrase),copy=/^set this (question|answer) to "([^"<>]{1,160})"$/i.exec(phrase);
+  const result=move?selectedAppFaqOperation(config,selection,{kind:'move',direction:move[1].toLowerCase()}):copy?
+   selectedAppFaqOperation(config,selection,{kind:'wording',value:{question:copy[1].toLowerCase()==='question'?copy[2]:row.question,answer:copy[1].toLowerCase()==='answer'?copy[2]:row.answer}}):null;
+  return result?(result.ok?result.proposal:result):fail('Use “move this answer earlier/later” or set this question/answer to quoted owner wording. No facts were invented.');
+ }
  if(part==='branding'){
   const match=/^use (.+?)(?: palette)?$/i.exec(phrase),name=match?.[1].toLowerCase();
   const palette=OPTIONS.brandPalette.find(key=>key!=='custom'&&(key===name||LABELS[key]?.toLowerCase()===name));

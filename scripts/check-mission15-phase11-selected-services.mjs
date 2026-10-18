@@ -3,6 +3,7 @@ import {createRequire} from 'node:module';
 import {selectedAppServiceOperation} from '../src/core/appSelectedService.mjs';
 import {proposeSelectedAppInstruction} from '../src/core/appContextInstruction.mjs';
 import {proposeCoordinatedAppChanges} from '../src/core/appCoordinatedStudio.mjs';
+import {proposeCoordinatedAppChanges as trustedPlan} from '../supabase/functions/busy-mini-apps/appCoordinatedStudio.mjs';
 const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs');
 const rt=createRuntime(),{MiniAppSurface}=rt.load('src/screens/miniApps.js'),{AppVisualSelection}=rt.load('src/screens/appVisualSelection.js'),{AppSelectedServiceControls}=rt.load('src/screens/appSelectedServiceControls.js');
 const walk=n=>Array.isArray(n)?n.flatMap(walk):n&&typeof n==='object'?[n,...walk(n.props?.children)]:[];
@@ -21,7 +22,7 @@ assert.equal(selectedAppServiceOperation(config,selection,{kind:'wording',value:
 assert.equal(selectedAppServiceOperation(config,{...selection,expectedService:'old'},{kind:'move',direction:'later'}).ok,false);
 assert.equal(selectedAppServiceOperation(config,selection,{kind:'wording',value:{name:'Repair',description:'Duplicate'}}).ok,false);
 const oldPrepare=find(controls,'Preview selected service wording'),count=proposals.length;props.config={...config,publicProfile:{...config.publicProfile,services:[...config.publicProfile.services].reverse()}};render();oldPrepare.props.onPress();assert.equal(proposals.length,count);assert.equal(find(controls,'Preview selected service wording').props.disabled,true);
-for(const proposal of proposals){const restored=proposeCoordinatedAppChanges(proposal.nextConfig,proposal.undoOperations);assert.ok(restored.ok,restored.reason);assert.deepEqual(JSON.parse(JSON.stringify(restored.nextConfig)),config);}
+for(const proposal of proposals){const trusted=trustedPlan(config,JSON.parse(JSON.stringify(proposal.operations)));assert.ok(trusted.ok,trusted.reason);assert.deepEqual(JSON.parse(JSON.stringify(trusted.nextConfig)),JSON.parse(JSON.stringify(proposal.nextConfig)));const restored=proposeCoordinatedAppChanges(proposal.nextConfig,proposal.undoOperations);assert.ok(restored.ok,restored.reason);assert.deepEqual(JSON.parse(JSON.stringify(restored.nextConfig)),config);}
 const selectedDraft=JSON.parse(JSON.stringify(proposals[0].nextConfig)),actions=[];const publicTree=rt.render(MiniAppSurface,{config:selectedDraft,interactive:true,onSelectService:(...args)=>actions.push(args)});assert.equal(find(publicTree,'Edit service Survey'),undefined);find(publicTree,'Ask about Survey').props.onPress();find(publicTree,'Request Survey').props.onPress();assert.deepEqual(actions,[['Survey','enquiry'],['Survey','booking_request']]);
 assert.equal(JSON.stringify(config),original);
 console.log('PASS original service selection -> scoped wording/order -> Studio proposals, locks, stale callback/source rejection, JSON reload, exact Undo and public enquiry/request actions. Inert native/IO boundaries; no device/hosted claim.');

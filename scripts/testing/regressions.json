@@ -701,6 +701,13 @@
         "scripts/check-major-builders-v3193.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase11-selected-faq",
+      "args": [
+        "scripts/check-mission15-phase11-selected-faq.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

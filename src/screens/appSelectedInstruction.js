@@ -17,7 +17,7 @@ export function AppSelectedInstruction({config,selection,onPrepare,disabled=fals
   setNotice(proposal.explanation||'Prepared in Studio. Nothing is saved until your normal approval.');onPrepare(proposal);
  };
  return <View>
-  <Field label="Ask Busy about this selected app part" value={text} maxLength={180} multiline onChangeText={value=>{if(current()){setText(value);setNotice('');}}} placeholder={selection.part==='image'?'Move this photo later, or set this photo caption to "Owner wording"':selection.part==='wording'?'Set this text to "Owner wording"':'Describe one supported appearance change'}/>
+  <Field label="Ask Busy about this selected app part" value={text} maxLength={180} multiline onChangeText={value=>{if(current()){setText(value);setNotice('');}}} placeholder={selection.part==='faq'?'Set this answer to "Owner wording", or move this answer later':selection.part==='service'?'Set this service description to "Owner wording", or move this service later':selection.part==='branding'?'Use Natural linen':selection.part==='image'?'Move this photo later, or set this photo caption to "Owner wording"':selection.part==='wording'?'Set this text to "Owner wording"':'Describe one supported appearance change'}/>
   <Button label="Preview selected instruction" disabled={disabled||!proposal?.ok} onPress={prepare}/>
   {proposal&&!proposal.ok?<Text style={styles.cardBody}>{proposal.reason}</Text>:null}
   {notice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{notice}</Text>:null}
