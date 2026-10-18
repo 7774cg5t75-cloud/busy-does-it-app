@@ -1068,6 +1068,7 @@ function WebsitePreview({ s }) {
   },[requestedReview,previewSize,sourceKey,candidateIsCurrent]);
   const candidateHtml=candidateIsCurrent&&designCandidate?.draft
     ?renderWebsiteHtml(designCandidate.draft,activePage?.id||"home"):"";
+  const editableConceptHtml=draft&&tapEditMode?renderWebsiteHtml(draft,activePage?.id||"home",{editablePreview:true}):"";
   const unscaledInteractiveHtml=draft&&candidateIsCurrent
     ?showOriginalComparison?(visualCheckOn?
       makeWebsiteVisualCheckHtml(liveConceptHtml,inspectionKey):liveConceptHtml):
@@ -1075,7 +1076,7 @@ function WebsitePreview({ s }) {
     :draft&&visualCheckOn
     ?makeWebsiteVisualCheckHtml(liveConceptHtml,inspectionKey)
     :draft&&tapEditMode
-    ?makeTapToEditHtml(renderWebsiteHtml(draft,activePage?.id||"home",{editablePreview:true}),websiteMovementOptions(draft,activePage?.id||"home",sourceKey))
+    ?makeTapToEditHtml(editableConceptHtml,websiteMovementOptions(draft,activePage?.id||"home",sourceKey,editableConceptHtml))
     :liveConceptHtml;
   const interactiveHtml=unscaledInteractiveHtml
     ?withWebsitePreviewViewport(unscaledInteractiveHtml,previewSize):"";
@@ -1130,7 +1131,7 @@ function WebsitePreview({ s }) {
       // toolbar is the single obvious action surface; every message is
       // revalidated against the exact enabled website page and element.
       if(raw?.channel==="busy.website.section-move.v1"){
-        const movement=resolveWebsiteMovement(draft,activePage?.id||"home",sourceKey,raw);
+        const movement=resolveWebsiteMovement(draft,activePage?.id||"home",sourceKey,raw,editableConceptHtml);
         if(movement)s.applySelectedWebsiteInstruction?.(movement);
         return;
       }

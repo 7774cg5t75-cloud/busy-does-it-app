@@ -2,13 +2,17 @@
 import {applyWebsiteLayoutOperation} from '../../supabase/functions/busy-website-worker/websiteLayoutEditing.mjs';
 const list=x=>Array.isArray(x)?x:[];
 const channel='busy.website.section-move.v1';
-function websiteMovementOptions(draft,pageId,sourceKey){
+function websiteMovementOptions(draft,pageId,sourceKey,editableHtml){
  // Secondary pages have their own sectionIds render order. Do not pretend a
  // global theme-order operation moves their sections.
  if(pageId!=='home'||!sourceKey||!draft?.id)return null;
+ if(typeof editableHtml!=='string'||editableHtml.length>500000)return null;
+ // Only actual rendered section roots are drop targets, never empty/hidden
+ // source sections or product/event content without supported editor markers.
+ const visible=new Set([...editableHtml.matchAll(/<section\b[^>]*\bdata-busy-edit-section="([a-zA-Z0-9_-]+)"/g)].map(m=>m[1]));
  const page=list(draft.pages).find(p=>p.id===pageId&&p.enabled!==false);
  const order=[...new Set([...list(draft.designPlan?.sectionOrder),...list(draft.sections).map(s=>s.id)])]
-  .filter(id=>list(page?.sectionIds).includes(id)&&list(draft.sections).some(s=>s.id===id&&s.enabled!==false));
+  .filter(id=>visible.has(id)&&list(page?.sectionIds).includes(id)&&list(draft.sections).some(s=>s.id===id&&s.enabled!==false));
  if(order.length>30)return null;
  const moves=[];
  for(const sectionId of order)for(const targetSectionId of order)for(const position of ['before','after']){
@@ -17,11 +21,11 @@ function websiteMovementOptions(draft,pageId,sourceKey){
  }
  return {channel,sourceKey,order,moves};
 }
-function resolveWebsiteMovement(draft,pageId,sourceKey,message){
+function resolveWebsiteMovement(draft,pageId,sourceKey,message,editableHtml){
  if(!message||typeof message!=='object'||Array.isArray(message)||JSON.stringify(message).length>1200||
   message.channel!==channel||message.sourceKey!==sourceKey||
   Object.keys(message).some(k=>!['channel','sourceKey','sectionId','targetSectionId','position'].includes(k)))return null;
- const options=websiteMovementOptions(draft,pageId,sourceKey);
+ const options=websiteMovementOptions(draft,pageId,sourceKey,editableHtml);
  if(!options?.moves.some(m=>m.sectionId===message.sectionId&&m.targetSectionId===message.targetSectionId&&m.position===message.position))return null;
  // The original selected-instruction controller rechecks the live revision,
  // tenant, locks and all-or-nothing commit; one Undo restores the whole draft.

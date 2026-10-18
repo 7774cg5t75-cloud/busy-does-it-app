@@ -1,3 +1,4 @@
+import {AppVisualSelection} from "./appVisualSelection";
 import {useApprovedBuilderRecords} from './useApprovedBuilderRecords';
 import {planApprovedAppRecordSection} from '../core/approvedBuilderRecords.mjs';
 import {emptyEnquiryRequirements,prepareCustomerEnquiry,customerEnquiryReview,prepareCustomerBookingNote} from '../core/customerEnquiryRequirements.mjs';
@@ -21,7 +22,7 @@ import {AppOwnerLockControls} from "./appOwnerLockControls";
 import {AppBusinessFactRefresh} from "./appBusinessFactRefresh";
 import {useOwnerDesignMemory} from "./useOwnerDesignMemory";
 import React from "react";
-import { Image, Text, View, Dimensions, Platform, Alert, useWindowDimensions, ScrollView, PixelRatio } from "react-native";
+import { Image, Text, View, Pressable, Dimensions, Platform, Alert, useWindowDimensions, ScrollView, PixelRatio } from "react-native";
 import {captureRef} from "react-native-view-shot";
 import {File as ExpoFile} from "expo-file-system";
 import QRCode from "react-native-qrcode-svg";
@@ -262,7 +263,10 @@ function MiniAppSurface({
   onSelectContent = null,
   onRequestNavigation = null,
   businessContent = null,
+  ownerEdit = null,
 }) {
+  const ownerSelection=!interactive&&typeof ownerEdit?.onSelect==='function'?ownerEdit:null;
+  const Header=ownerSelection?Pressable:View;
   const profile = config?.publicProfile || {};
   const modules = orderedAppModules(config);
   const [serviceQuery,setServiceQuery]=React.useState('');
@@ -300,7 +304,12 @@ function MiniAppSurface({
         onMeasuredWidth?.(width);
       }
     }}>
-      <View style={{backgroundColor:brandColours.bg,padding:14,
+      <Header accessibilityRole={ownerSelection?'button':undefined}
+        accessibilityLabel={ownerSelection?'Select app header typography':undefined}
+        accessibilityState={ownerSelection?{selected:ownerSelection.selection?.part==='header'}:undefined}
+        onPress={ownerSelection?()=>ownerSelection.onSelect({part:'header'}):undefined}
+        style={{backgroundColor:brandColours.bg,padding:14,
+        ...(ownerSelection?{borderWidth:2,borderColor:ownerSelection.selection?.part==='header'?'#4489ed':brandColours.muted}:{}),
         borderRadius:14,marginBottom:10}}>
         <Text style={{color:brandColours.muted,fontSize:12}}>
           {config?.display?.category||profile.businessType||"Business"}
@@ -318,7 +327,7 @@ function MiniAppSurface({
         </Text>
         <View style={{backgroundColor:brandColours.accent,
           height:4,borderRadius:3,marginTop:14}}/>
-      </View>
+      </Header>
       <Card
         eyebrow={config?.display?.category || profile.businessType || "Business App"}
         title={config?.display?.name || profile.businessName || "Business"}
@@ -346,11 +355,17 @@ function MiniAppSurface({
           <View style={{flexDirection:responsive.ok&&responsive.navigation==="list"?
             "column":"row",flexWrap:"wrap",gap:8,marginBottom:12}}>
             {modules.map((module,index)=>(
-              <MeasuredNavLabel key={"preview-navigation-"+module.key}
+              ownerSelection?<Pressable key={"select-navigation-"+module.key}
+                accessibilityRole="button" accessibilityLabel={"Select "+module.key.replaceAll("_"," ")+" navigation"}
+                accessibilityState={{selected:ownerSelection.selection?.moduleKey===module.key}}
+                onPress={()=>ownerSelection.onSelect({part:'navigation',moduleKey:module.key})}
+                style={{minHeight:44,padding:8,borderRadius:8,borderWidth:2,
+                  borderColor:ownerSelection.selection?.moduleKey===module.key?'#4489ed':brandColours.muted}}>
+                <MeasuredNavLabel label={module.label||module.title||module.key.replaceAll("_"," ")}
+                  index={index} isList={responsive.ok&&responsive.navigation==="list"} onObservation={onQualityObservation}/>
+              </Pressable>:<MeasuredNavLabel key={"preview-navigation-"+module.key}
                 label={module.label||module.title||module.key.replaceAll("_"," ")}
-                index={index}
-                isList={responsive.ok&&responsive.navigation==="list"}
-                onObservation={onQualityObservation}/>
+                index={index} isList={responsive.ok&&responsive.navigation==="list"} onObservation={onQualityObservation}/>
             ))}
           </View>
         ):null}
@@ -2784,6 +2799,13 @@ function MiniAppBuilder({ s }) {
           title="Change the private app design"
           body="Try a header style, spacing or navigation look. BUSY shows an unsaved customer preview first. Keeping it creates a new private draft revision, not a live update."
           tone="blue">
+          <AppVisualSelection key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(':')}
+            Surface={MiniAppSurface} config={view.draftConfig} businessContent={app.businessContent||null}
+            busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
+            onPrepare={proposal=>{
+              if(liveControlContext.current!==controlContext)return;
+              setStudioPreview(proposal);setStudioNotice('Review the selected visual change in the original Studio comparison. Approval saves one private revision; Undo restores it.');
+            }}/>
           <Text style={styles.sectionLabel}>Select the part you want to change</Text>
           {[
             ["header","Header"],["spacing","Spacing"],["navigation","Navigation"]
