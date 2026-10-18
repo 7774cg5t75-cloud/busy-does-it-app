@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {beginBuilderExplore,runBuilderExplore,prepareBuilderExploreHandoff} from '../src/core/builderExplore.mjs';
+import {websiteBuilderTestHarnessV3222} from './lib/website-builder-test-harness-v3222.mjs';
+const ownerId='11111111-1111-4111-8111-111111111111',businessId='22222222-2222-4222-8222-222222222222';
+const {buildWebsiteDraft}=websiteBuilderTestHarnessV3222(['buildWebsiteDraft']);
+const project=buildWebsiteDraft({businessId,brandBrain:{websiteReady:true,websiteBrief:{businessName:'Fictional garden studio',description:'Owner words.'}}}),context={kind:'website',ownerId,businessId,project},before=JSON.stringify(project);
+let session=beginBuilderExplore(context),result=runBuilderExplore(session,context,{type:'discuss',text:'What could we improve about my homepage?'});assert.ok(result.ok);assert.match(result.answer,/suggestions from your draft, not a visual inspection/);assert.equal(result.session.idea,null);assert.equal(result.session.alternatives.length,2);
+for(const idea of result.session.alternatives){const discussed=runBuilderExplore(result.session,context,{type:'discuss',text:idea.instruction});assert.ok(discussed.session.idea,'Each offered website idea must dry-validate in the original editor');assert.ok(prepareBuilderExploreHandoff(discussed.session,context,{ownerConfirmed:true}).ok);assert.equal(JSON.stringify(project),before);}
+const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs'),rt=createRuntime(),{BuilderTalkExplore}=rt.load('src/screens/builderTalkExplore.js');
+const walk=x=>Array.isArray(x)?x.flatMap(walk):x&&typeof x==='object'?[x,...walk(x.props?.children)]:[],find=(t,label)=>walk(t).find(n=>n.props?.label===label);let handed=0;
+const props={context,onExit:()=>{},onHandoff:()=>{handed++;return true;}};let t=rt.render(BuilderTalkExplore,props);assert.match(t.props.body,/Explore ideas without changing anything/);assert.doesNotMatch(t.props.body,/executor|planner|local exploration|capability session/i);
+find(t,'Talk & Explore question or idea').props.onChangeText('Could you show me a different layout?');t=rt.render(BuilderTalkExplore,props);find(t,'Discuss without changing anything').props.onPress();t=rt.render(BuilderTalkExplore,props);const ideaButton=find(t,'Try more breathing room');assert.ok(ideaButton);ideaButton.props.onPress();t=rt.render(BuilderTalkExplore,props);assert.equal(find(t,'Talk & Explore question or idea').props.value,'give the whole page more spacing on phones');assert.equal(find(t,'Make changes'),undefined,'Choosing an example stages words, never authorises an edit');assert.equal(handed,0);assert.equal(JSON.stringify(project),before);
+find(t,'Discuss without changing anything').props.onPress();t=rt.render(BuilderTalkExplore,props);assert.ok(find(t,'Make changes'));assert.equal(handed,0);
+console.log('PASS ordinary Talk & Explore wording, real supported homepage alternatives, staged conversational selection and unchanged original source; inert component runtime, no screenshots/provider calls.');

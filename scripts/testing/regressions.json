@@ -729,6 +729,13 @@
         "scripts/check-mission15-phase12-explore-handoff.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase13-explore-experience",
+      "args": [
+        "scripts/check-mission15-phase13-explore-experience.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

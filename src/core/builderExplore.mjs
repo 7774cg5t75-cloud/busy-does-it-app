@@ -2,6 +2,7 @@ import {beginWebsiteConversation,addWebsiteConversationTurn} from './websiteDesi
 import {planUniversalBuilderRequest} from './universalBuilderPlanV3210.mjs';
 import {planAppVoiceInstructions} from './appCoordinatedStudio.mjs';
 import {planWebsitePageInstructions} from './websitePageInstructions.mjs';
+import {explainBuilderExplore} from './builderExploreAnswers.mjs';
 import {canonicalJsonValue} from './stableJson.mjs';
 import {applyWebsiteVisualEdit} from '../../supabase/functions/busy-website-worker/designEdits.mjs';
 import {prepareSelectedWebsiteTransaction} from './websiteContextPlan.mjs';
@@ -38,11 +39,11 @@ function runBuilderExplore(session,context,request){
  const text=request.text.trim(),project=JSON.parse(session.source.stamp);
  const plan=planUniversalBuilderRequest({businessId:session.source.businessId,request:text,catalog:JSON.parse(session.source.catalogStamp),...session.source.kind==='app'?{app:project}:{website:project}});
  const edit=session.source.kind==='app'?planAppVoiceInstructions(project.draft_config,text):websiteIdea(project,text);
- const lines=plan.ok?plan.capabilities.filter(row=>row.explicitlyRequested).slice(0,3).map(row=>row.title+': '+row[session.source.kind].status.replaceAll('_',' ')+'. '+row[session.source.kind].reason):[];
- const answer=edit.ok?'A supported private edit can be reviewed separately. '+(edit.changes||edit.steps.map(step=>step.description)).join(' '):plan.ok?[plan.summary,...lines,'These are capability/source checks, not proof of a live customer result. External connections and paid features need separate verification and approval.'].join('\n'):plan.reason;
+ const explanation=explainBuilderExplore({kind:session.source.kind,project,catalog:JSON.parse(session.source.catalogStamp),plan,text});
+ const answer=edit.ok?'We can prepare this idea for you to review. '+(edit.changes||edit.steps.map(step=>step.description)).join(' '):explanation.answer;
  let conversation=addWebsiteConversationTurn(session.conversation,session.conversation.scope,{role:'owner',text});
  conversation=addWebsiteConversationTurn(conversation,conversation.scope,{role:'busy',text:answer});
- return {ok:true,answer,session:{...session,conversation,idea:edit.ok?{instruction:text,summary:edit.changes||edit.steps.map(step=>step.description)}:null},noChangesPerformed:true,noChargeMade:true};
+ return {ok:true,answer,session:{...session,conversation,alternatives:edit.ok?[]:explanation.alternatives,idea:edit.ok?{instruction:text,summary:edit.changes||edit.steps.map(step=>step.description)}:null},noChangesPerformed:true,noChargeMade:true};
 }
 function prepareBuilderExploreHandoff(session,context,{ownerConfirmed=false}={}){
  if(ownerConfirmed!==true||!currentBuilderExplore(session,context)||!session.idea)return {ok:false,reason:'Explicitly review a supported idea against the current project before leaving Explore.'};
