@@ -1,3 +1,4 @@
+import {textTypographyClasses} from "./websiteTextTypography.mjs";
 // Canonical finite appearance classes for native previews, hosted HTML and exports.
 function sectionAppearanceClasses(section){
   const fields={bodyScale:['large'],mobileBodyScale:['large'],desktopBodyScale:['large'],headingScale:["compact","large"],textAlign:["center"],
@@ -15,6 +16,6 @@ function sectionAppearanceClasses(section){
   for(const field of Object.keys(fields)){
     if(fields[field].includes(appearance[field]))output.push("owner-"+names[field]+"-"+appearance[field]);
   }
-  return output.join(" ");
+  return [...output,textTypographyClasses(section)].filter(Boolean).join(" ");
 }
 export {sectionAppearanceClasses};

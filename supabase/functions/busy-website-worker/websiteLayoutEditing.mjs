@@ -1,3 +1,4 @@
+import {textTypographyFields,textTypographySupports} from "./websiteTextTypography.mjs";
 import {photographicCount} from './designPlanner.mjs';
 import {websiteLayoutLockReason,protectWebsiteOwnerLocks} from "./websiteOwnerLocks.mjs";
 /**
@@ -239,6 +240,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
    return fail(draft,"Choose one visible section of your website.");
   const target=matched[0];
   const fields={
+   ...textTypographyFields,
    bodyScale:['normal','large'],mobileBodyScale:['normal','large'],desktopBodyScale:['normal','large'],
    headingScale:["compact","normal","large"],
    textAlign:["left","center"],
@@ -252,6 +254,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   };
   const bodyTypes=['hero','services','about','text','photo-feature','faq','testimonials','contact'];
   const supports={
+   ...textTypographySupports,
    bodyScale:bodyTypes,mobileBodyScale:bodyTypes,desktopBodyScale:bodyTypes,
    headingScale:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
    textAlign:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
@@ -288,7 +291,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const defaults={bodyScale:'normal',mobileBodyScale:'normal',desktopBodyScale:'normal',headingScale:"normal",textAlign:"left",sectionSpacing:"normal",mobileSectionSpacing:"normal",desktopSectionSpacing:"normal",
     photoCrop:"center",photoSide:"left",gallerySize:"comfortable",
     mobileHeadingScale:"normal",desktopHeadingScale:"normal",mobileGallerySize:"comfortable",desktopGallerySize:"comfortable"};
-  if(value===defaults[field])delete next[field];else next[field]=value;
+  if(value===(Object.hasOwn(textTypographyFields,field)?"brand":defaults[field]))delete next[field];else next[field]=value;
   if(Object.keys(next).length)target.appearance=next;else delete target.appearance;
   return ready("Changed just this section's "+field+".");
  }

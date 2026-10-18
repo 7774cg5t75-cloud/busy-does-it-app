@@ -1,3 +1,4 @@
+import {WebsiteTypographyControls} from "./websiteTypographyControls";
 import React from "react";
 import {Image,KeyboardAvoidingView,Modal,Platform,SafeAreaView,ScrollView,Text,TextInput,View} from "react-native";
 import {Button,Card,Field} from "../components/ui";
@@ -151,6 +152,11 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
            placeholder="Write your replacement"/>
          )}
          <Button label="Save to private website draft" primary onPress={save}/>
+         <WebsiteTypographyControls section={section} selection={selection} onChoose={instruction=>{
+          setContextRequest(instruction);setShowContextHelp(true);setSelectedInstructionPreview(null);
+          setContextNote("Typography choice prepared. Preview the result, then apply when you are happy.");
+         }}/>
+
         </>
        ):null}
        {selection&&field==="photo"&&initialMode==="edit"?(

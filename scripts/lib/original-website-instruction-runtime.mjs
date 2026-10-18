@@ -60,6 +60,15 @@ function verifyOriginalWebsiteInstructionRuntime(){
  assert.equal(state.undo.length,1);assert.equal(state.undo[0],draft);assert.equal(websiteDraftRef.current,state.current);assert.deepEqual(state.redo,[]);
  assert.equal(state.current.ownerDesignFeedback.at(-1).changeId,'reviewed-whole-page');
  const saved=state.current;assert.equal(applyComposition(composition.evidence),false);assert.equal(state.current,saved);assert.equal(state.undo.length,1);
+ websiteDraftRef.current=draft;state.current=draft;state.undo=[];state.redo=[draft];
+ assert.equal(selected({selection,instruction:'set this heading font to serif; set this heading weight to bold; set this heading line spacing to relaxed'}).applied,true);
+ assert.equal(state.undo.length,1);assert.equal(state.undo[0],draft);assert.deepEqual(state.redo,[]);
+ assert.equal(state.current.sections.find(s=>s.id==='hero').appearance.titleFont,'serif');
+ const styled=state.current;
+ assert.equal(selected({selection,instruction:'set this heading font to mono'}).applied,false);
+ assert.equal(state.current,styled);assert.equal(state.undo.length,1);
+ // Restoring the exact prior snapshot preserves missing typography and Brand DNA.
+ assert.equal(state.undo[0].theme,draft.theme);assert.equal(state.undo[0].sections,draft.sections);
  return {handlers:names.length,offline:true};
 }
 export {verifyOriginalWebsiteInstructionRuntime};

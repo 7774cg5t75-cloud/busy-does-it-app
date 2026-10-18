@@ -1,3 +1,4 @@
+import {textTypographySupports,textTypographyFields} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";
 /**
  * V3.140: No-cost, context-bound "this/that" website editing.
  * Parses a deliberately SMALL grammar only after the owner taps an exact
@@ -51,6 +52,16 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
   if(!valid)return failure("That instruction doesn't match the part you tapped. Choose its exact wording instead.");
   return success("field",{sectionId,itemId:itemId||null,field,value:replacement[1]},
    "Replace only the selected wording in your private draft.");
+ }
+ const typography=text.match(/^set (?:this|that|the selected) (heading|paragraph) (font|weight|line spacing|alignment) to (brand|sans|serif|mono|regular|medium|bold|heavy|standard|relaxed|left|center|right)$/i);
+ if(typography){
+  const target=typography[1].toLowerCase()==='heading'?'title':'body';
+  const suffix={font:'Font',weight:'Weight','line spacing':'Leading',alignment:'Align'}[typography[2].toLowerCase()];
+  const style=target+suffix,value=typography[3].toLowerCase();
+  if(itemId||field!==target||!textTypographySupports[style].includes(section.type)||!textTypographyFields[style].includes(value))
+   return failure('Select a supported section heading or primary paragraph. Card text uses its existing controls.');
+  return success('layout',{action:'section-style',sectionId,field:style,value},
+   'Change only the selected section '+(target==='title'?'heading':'primary paragraph')+'. Brand defaults and other content stay intact.');
  }
  const reading=text.match(/^make (?:this|that|the selected) (?:text|paragraph|section) (?:easier to read|more readable)(?: only)? on (phones?|mobile|desktop|computers?)$/i);
  if(reading){
