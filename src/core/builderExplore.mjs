@@ -40,8 +40,9 @@ function runBuilderExplore(session,context,request){
  const plan=planUniversalBuilderRequest({businessId:session.source.businessId,request:text,catalog:JSON.parse(session.source.catalogStamp),...session.source.kind==='app'?{app:project}:{website:project}});
  const hypothetical=/^what would happen if I moved (?:the )?([a-z][a-z -]{0,50}?) (above|below) (?:the )?([a-z][a-z -]{0,50}?)\??$/i.exec(text);
  const instruction=hypothetical?'move '+hypothetical[1].replace(/ section$/i,'')+(session.source.kind==='website'?' section':'')+' '+hypothetical[2]+' '+hypothetical[3].replace(/ section$/i,''):text;
- const edit=session.source.kind==='app'?planAppVoiceInstructions(project.draft_config,instruction):websiteIdea(project,instruction);
+ let edit=session.source.kind==='app'?planAppVoiceInstructions(project.draft_config,instruction):websiteIdea(project,instruction);
  const explanation=explainBuilderExplore({kind:session.source.kind,project,catalog:JSON.parse(session.source.catalogStamp),plan,text});
+ if(explanation.discussionOnly)edit={ok:false};
  const answer=edit.ok?'We can prepare this idea for you to review. '+(edit.changes||edit.steps.map(step=>step.description)).join(' '):explanation.answer;
  let conversation=addWebsiteConversationTurn(session.conversation,session.conversation.scope,{role:'owner',text});
  conversation=addWebsiteConversationTurn(conversation,conversation.scope,{role:'busy',text:answer});

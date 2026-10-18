@@ -9,7 +9,7 @@ function explainBuilderExplore({kind,project,catalog,plan,text}){
   const neutral=planUniversalBuilderRequest({request:text,projectPurpose:purpose});
   return {answer:[neutral.summary,'A simple information site can start with your own title, pages, pictures and chosen style. A personal project should not need invented services, customers or a trading name.',
    'Private trackers, member accounts, shared records and community tools need real ownership, permissions and storage support; they are not working just because a preview looks convincing.',
-   'Your current business project stays unchanged. Personal and club creation is a future expansion, not an available workspace or permission to convert this project.'].join('\n'),alternatives:[]};
+   'Your current business project stays unchanged. Personal and club creation is a future expansion, not an available workspace or permission to convert this project.'].join('\n'),alternatives:[],discussionOnly:true};
  }
  const profile=kind==='app'?project.draft_config?.publicProfile||{}:project;
  const services=kind==='app'?(profile.services||[]):project.sections?.find(s=>s.type==='services'&&s.enabled!==false)?.items||[];
