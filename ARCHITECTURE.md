@@ -1290,3 +1290,12 @@ Same dependent PR #26 continues `ca6f0fc62e9593a5adaacf901185b034bf6e13e2`. Orig
 Talk & Explore explains current colours, service facts and app trade-offs, and dry-validates offered alternatives through original planners; bounded what-if questions remain discussion only until explicit handoff/approval. Hero picture presets coordinate original operations with cancellation/source guards. Dormant remote capability foundation stays disabled; no remote AI/tools/voice or restricted bearer session is claimed.
 
 112 offline checks pass in one reviewed run, plus 31-source syntax and four environment-policy checks. No browser/device/hosted acceptance, deployments, workflow execution, hosted database access or spending. Large controllers unchanged; zero static relative-import cycles. See Phase 14 delivery/checks and architecture-health records. Mission 15 remains open.
+
+
+## Mission 15 Phase 15 — selected service actions and V22.35 planning foundations
+
+Existing PR #26 continues verified `ce6b93f0e90beab5255ea223ae8b59f09f09ddf8`. Full private V22.35 Word master reviewed; provenance only is public. Individual service card spacing/surface/corners and real enquiry/booking-request button size/emphasis/alignment/shape use original Studio/CAS/locks/Undo. Shared marketplace/standalone rendering retains literal labels/destinations and source facts; owner-preview button presses select rather than submit. Card/button resets are separately scoped. Existing contextual typed/transcript instructions prepare these same finite operations.
+
+Website selected text can prepare five brand-typography properties in one original atomic review. Original universal planning now describes personal/club information projects without fake business details, explicitly requiring unavailable creator/project infrastructure. Actual business tenancy/runtime requirements remain unchanged; personal discussion cannot prepare business edits. Local Explore stays no-write/no-provider; remote authority remains dormant.
+
+See Phase 15 delivery, checks and focused architecture-health records for exact final integrated regression evidence and outstanding browser/device/hosted acceptance. Thirty-one changed source/test modules parse and four environment-policy checks pass; no schema, workflow execution, deployment, hosted access, provider action or spending. Main controller/Edge entry unchanged, miniApps grows two lines and static relative-import cycles remain zero. Mission 15 remains open.
