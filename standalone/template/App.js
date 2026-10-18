@@ -34,10 +34,10 @@ function Button({title,onPress,disabled=false}){
      fontWeight:"700",textAlign:"center"}}>{title}</Text>
  </Pressable>;
 }
-function Field({title,value,onChange,multiline=false,maxLength}){
+function Field({title,value,onChange,multiline=false,maxLength,disabled=false}){
  return <View style={{marginTop:13}}>
   <Text style={{color:COLORS.text,fontWeight:"600"}}>{title}</Text>
-  <TextInput accessibilityLabel={title} value={value} onChangeText={onChange}
+  <TextInput accessibilityLabel={title} editable={!disabled} accessibilityState={{disabled}} value={value} onChangeText={onChange}
     multiline={multiline} maxLength={maxLength} keyboardType={title==="Email address"?"email-address":"default"}
     autoCapitalize={title==="Email address"?"none":"sentences"}
     placeholderTextColor={COLORS.muted}
@@ -57,7 +57,7 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
  const type=screen.key==="booking_request"?"booking_request":"enquiry";
  const enabled=type==="booking_request"?live?.supportsBookingRequest:live?.supportsEnquiry;
  const set=(key)=>(value)=>{
-  if(result?.ok)return;
+  if(inFlight.current||busy||result?.ok||result?.mayHaveBeenReceived)return;
   setInput(prev=>({...prev,[key]:value}));
   if(!result?.mayHaveBeenReceived){
    setResult(null);setPossibleDuplicateRetry(false);
@@ -100,11 +100,11 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
     "Send a message directly to this business using BUSY's verified guest request service."}</Text>
   {!enabled?<Text style={sub}>This customer request action is not available on the live app.</Text>:(
    <>
-    <Field title="Your name" value={input.name} onChange={set("name")}/>
-    <Field title="Email address" value={input.email} onChange={set("email")}/>
-    <Field title="Phone number (optional)" value={input.phone} onChange={set("phone")}/>
+    <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Your name" value={input.name} onChange={set("name")}/>
+    <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Email address" value={input.email} onChange={set("email")}/>
+    <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Phone number (optional)" value={input.phone} onChange={set("phone")}/>
     {type==="booking_request"?<>
-      <Field title="Service you want" value={input.service} onChange={set("service")}/>
+      <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Service you want" value={input.service} onChange={set("service")}/>
       <Text style={{...sub,fontSize:13}}>Choose a preferred day, or type a different date below. These are NOT available appointment slots.</Text>
       <View style={{flexDirection:"row",flexWrap:"wrap",gap:7,marginTop:8}}>
        {dateChoices.map(day=><Pressable key={day.value} accessibilityRole="button"
@@ -119,15 +119,15 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
          </Text>
        </Pressable>)}
       </View>
-      <Field title="Preferred date (optional)" value={input.preferredDate}
+      <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Preferred date (optional)" value={input.preferredDate}
        onChange={set("preferredDate")}/>
-      <Field title="Notes (optional)" value={input.note}
+      <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Notes (optional)" value={input.note}
        onChange={set("note")} multiline/>
      </>:<>
        <Text style={sub}>Optional requirements are included in your saved enquiry. They do not confirm quantity, timing, availability or attendance.</Text>
-       {ENQUIRY_REQUIREMENTS.map(field=><Field key={field.key} title={field.label} maxLength={field.max} value={(input.requirements||emptyEnquiryRequirements())[field.key]}
+       {ENQUIRY_REQUIREMENTS.map(field=><Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} key={field.key} title={field.label} maxLength={field.max} value={(input.requirements||emptyEnquiryRequirements())[field.key]}
          onChange={value=>set('requirements')({...input.requirements||emptyEnquiryRequirements(),[field.key]:value})}/>)}
-       <Field title="Your message" value={input.message} onChange={set("message")} multiline/>
+       <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Your message" value={input.message} onChange={set("message")} multiline/>
      </>}
     <Text style={{...sub,fontSize:12}}>By sending, you share these details with the business
       so it can reply. Anti-spam verification may take a few moments.
@@ -154,6 +154,7 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
          preferredDate:"",message:"",note:""});
         setResult(null);setPossibleDuplicateRetry(false);
        }}/>:null}
+    {result?.mayHaveBeenReceived?<Text style={sub}>These request details stay fixed while the outcome is unconfirmed. Check the original request before retrying; changed details are not silently resent.</Text>:null}
     {result?.mayHaveBeenReceived&&!possibleDuplicateRetry?<View>
       <Text style={sub}>
        Don't send repeatedly unless you have checked with the business:
