@@ -99,7 +99,7 @@ function BusinessAppCustomerRequestFields({s,form,onLayout}){
         <>
           <Text style={styles.sectionLabel}>Send an enquiry</Text>
           {contentNotice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{contentNotice}</Text>:null}
-          {contentInterest?<Button label="Remove selected listing from this enquiry" onPress={()=>{setContentInterest(null);setService('');setMessage('');setContentNotice('Listing removed. Write your enquiry below.');}}/>:null}
+          {contentInterest?<Button label="Remove selected listing from this enquiry" disabled={!!s.miniAppsAction} onPress={()=>{if(s.miniAppsAction)return;setContentInterest(null);setService('');setContentNotice('Listing attachment removed. Your message and requirements were kept; review any item wording before sending.');}}/>:null}
           <Text style={styles.cardBody}>Optional details help the business respond. These are your requirements, not confirmed availability, prices, orders or attendance. They are included in the saved enquiry message.</Text>
 
           <Field label="Message" value={message} onChangeText={setMessage} placeholder="What would you like to ask?" multiline />

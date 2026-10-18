@@ -158,11 +158,12 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
       type==="booking_request"?(reviewCurrent?"Confirm and send booking request":"Review booking request"):reviewCurrent?"Confirm and send enquiry":"Review enquiry"}
       disabled={busy||result?.ok===true||
        (result?.mayHaveBeenReceived===true&&!possibleDuplicateRetry)} onPress={send}/>
-    {result?<Text accessibilityRole="text"
+    {result?<Text accessibilityLiveRegion="polite" accessibilityRole="text"
        style={{color:result.ok?"#91E1B8":"#FFD8A8",marginTop:15}}>
        {result.ok?result.message:result.reason}
        {result.ok?" Keep this confirmation for your records.":""}
      </Text>:null}
+    {result?.ok&&typeof result.requestId==='string'&&/^[a-zA-Z0-9_-]{1,120}$/.test(result.requestId)?<Text selectable accessibilityLiveRegion="polite" style={sub}>{'Saved request reference: '+result.requestId+'. This identifies the request; it is not appointment, order or delivery confirmation.'}</Text>:null}
     {result?.ok?<Button title="Start a separate new request"
        onPress={()=>{
         setInput({name:"",email:"",phone:"",service:initialService,
