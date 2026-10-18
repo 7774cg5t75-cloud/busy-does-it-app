@@ -9,7 +9,7 @@ import {selectedAppImage,selectedAppImageOperation} from "./appSelectedImage.mjs
 import {PROFILE_TEXT_LIMITS} from "./appProfileFieldUndo.mjs";
 const fields=Object.freeze({header:"headerStyle",spacing:"layoutDensity",navigation:"navigationStyle",services:"serviceStyle",gallery:"galleryLayout",images:"imageScale",corners:"imageCorners",typography:"typeStyle"});
 function interpretSelectedAppAppearance(config,{selected,text}={}){
- const field=fields[selected],raw=typeof text==="string"?text.trim().toLowerCase():"";
+ const field=typeof selected==='string'&&Object.hasOwn(fields,selected)?fields[selected]:null,raw=typeof text==="string"?text.trim().toLowerCase():"";
  if(!field||!raw||raw.length>180)return {ok:false,reason:"Select an app appearance element and describe one change."};
  if(/\b(pay|payment|purchase|publish|delete|book|confirm|customer data|api|script|code)\b/.test(raw))
   return {ok:false,reason:"This editor only changes the selected visual element."};
@@ -36,6 +36,7 @@ function interpretSelectedAppAppearance(config,{selected,text}={}){
   if(!/\b(not|never|avoid|without|no|less|do not|don't|don’t)\b/.test(clause))positive.add(choice);
  }
  if(positive.size!==1)return {ok:false,needsClarification:true,reason:'Choose one clear style for the selected part. Busy will keep the current design until you do.'};
+ if(/\b(colou?r|gold|silver|red|blue|green|border|background|hex|pixels?|px|html|css)\b/.test(raw))return {ok:false,needsClarification:true,reason:'Use the existing palette or size controls for that request. Describe one supported style here; no partial change was prepared.'};
  const value=[...positive][0];
  const proof=previewPrivateAppAppearance(config,{field,value});
  return proof.ok?{...proof,selected,originalInstruction:raw,
