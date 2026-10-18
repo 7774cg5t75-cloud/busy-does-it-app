@@ -1,3 +1,4 @@
+import {appImagePresentation} from './appImageAppearance.mjs';
 import {AppFaqCard} from './appFaqCard';
 import {ServiceDetails} from "./serviceDetails";
 import {appComponentTextStyle} from './appComponentAppearance.mjs';
@@ -240,10 +241,9 @@ function LiveInfo({screen,app,layout,onRequestService,onOpenContact,onOpenOfferE
      {app.gallery.map((photo,i)=>
        <View key={i} style={{width:layout?.galleryColumns===3?"31%":
          layout?.galleryColumns===2?"48%":"100%"}}>
-       <Image source={{uri:photo.uri}} accessible accessibilityRole="image"
+       <Image source={{uri:photo.uri}} resizeMode={appImagePresentation(app.imageStyles||LOOK.imageStyles,photo.uri).resizeMode} accessible accessibilityRole="image"
         accessibilityLabel={String(photo.alt||photo.caption||"Business photo "+(i+1))}
-        style={{width:"100%",height:layout?.ok?layout.galleryHeight:190,
-          borderRadius:LOOK.imageCorners==="square"?2:11,marginTop:12}}/>
+        style={{width:"100%",...appImagePresentation(app.imageStyles||LOOK.imageStyles,photo.uri,{height:layout?.ok?layout.galleryHeight:190,corners:LOOK.imageCorners}),marginTop:12}}/>
        {photo.caption?<Text style={{...sub,fontSize:VISUAL.type.bodySize}}>{photo.caption}</Text>:null}
        </View>
      )}</View>:<Text style={sub}>No photographs have been approved for this app yet.</Text>}

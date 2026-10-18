@@ -757,6 +757,13 @@
         "scripts/check-mission15-phase13-website-reading.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase14-image-styles",
+      "args": [
+        "scripts/check-mission15-phase14-image-styles.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

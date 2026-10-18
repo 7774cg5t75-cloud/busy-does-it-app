@@ -1,3 +1,4 @@
+import {appImagePresentation} from '../core/appImageAppearance.mjs';
 import {PUBLIC_GALLERY_LIMIT,publicAppGallery} from "../core/publicAppGallery.mjs";
 import React from 'react';
 import {View,Text,Pressable} from 'react-native';
@@ -15,6 +16,7 @@ export function AppGallerySurface({config,responsive,colors,visual,ImageComponen
   {gallery.length?<View style={{flexDirection:'row',flexWrap:'wrap',gap:responsive.ok?responsive.gap:8}}>
    {gallery.map((asset,index)=>{
     const rawIndex=raw.indexOf(asset),approved=asset.approved===true||asset.marketingOk===true;
+    const picture=appImagePresentation(config?.presentation?.imageStyles,asset.uri,{height:responsive.ok?responsive.galleryHeight:205,corners:config?.presentation?.imageCorners});
     const selected=owner?.selection?.part==='image'&&owner.selection.index===rawIndex;
     return <Frame key={asset.key||asset.uri||'gallery-'+index} accessibilityRole={owner?'button':undefined}
      accessibilityLabel={owner?'Select gallery photo '+(index+1):undefined}
@@ -22,9 +24,9 @@ export function AppGallerySurface({config,responsive,colors,visual,ImageComponen
      accessibilityState={owner?{selected,disabled:!approved}:undefined}
      onPress={owner?()=>{if(approved)owner.onSelect({part:'image',index:rawIndex,expectedUri:asset.uri});}:undefined}
      style={{...(owner?{borderWidth:2,borderColor:selected?'#4489ed':colors.muted}:{}),width:responsive.ok?(responsive.galleryColumns===3?'31%':responsive.galleryColumns===2?'48%':'100%'):'100%'}}>
-     <ImageComponent source={{uri:asset.uri}} observationKey={'gallery-'+index} observationKind="gallery_image" onObservation={onQualityObservation}
+     <ImageComponent source={{uri:asset.uri}} resizeMode={picture.resizeMode} observationKey={'gallery-'+index} observationKind="gallery_image" onObservation={onQualityObservation}
       accessibilityLabel={String(asset.alt||asset.caption||asset.description||'Business gallery photo '+(index+1)).slice(0,140)}
-      style={{width:'100%',height:responsive.ok?responsive.galleryHeight:205,borderRadius:config?.presentation?.imageCorners==='square'?2:14,marginBottom:asset.caption?4:8}}/>
+      style={{width:'100%',height:picture.height,borderRadius:picture.borderRadius,marginBottom:asset.caption?4:8}}/>
      {asset.caption?<Text style={{color:colors.muted,fontSize:visual.type.bodySize,lineHeight:visual.type.bodySize+7,marginTop:6}}>{String(asset.caption).slice(0,240)}</Text>:null}
     </Frame>;
    })}

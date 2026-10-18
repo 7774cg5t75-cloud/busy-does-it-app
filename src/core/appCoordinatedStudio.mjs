@@ -1,3 +1,4 @@
+import {previewAppImageAppearance} from './appImageAppearance.mjs';
 import {validContentLayout} from './businessContentRecords.mjs';
 import {previewAppComponentAppearance} from './appComponentAppearance.mjs';
 import {validPublicCollection} from './appPublicCollections.mjs';
@@ -38,6 +39,9 @@ function proposeCoordinatedAppChanges(config,operations){
   if(op.kind==="owner_locks"){
    const edit=editAppOwnerLocks(next,op);if(!edit.ok)return edit;
    after=edit.nextConfig;undo=edit.undo;description="Editing protection: "+(after.presentation?.ownerLockedElements?.length?after.presentation.ownerLockedElements.join(", "):"no locks")+". Customer content is unchanged.";
+  }else if(op.kind==='image_appearance'){
+   const edit=previewAppImageAppearance(next,op);if(!edit.ok)return edit;
+   after=edit.nextConfig;undo={kind:'restore_appearance',value:own(next,'presentation')?JSON.parse(JSON.stringify(next.presentation)):null};description=edit.description;
   }else if(op.kind==='component_appearance'){
    const edit=previewAppComponentAppearance(next,op);if(!edit.ok)return edit;
    after=edit.nextConfig;undo={kind:'restore_appearance',value:own(next,'presentation')?JSON.parse(JSON.stringify(next.presentation)):null};description=edit.description;

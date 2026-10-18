@@ -19,11 +19,13 @@ function appEditLockReason(config,op){
   galleryLayout:["gallery","photos"],serviceStyle:["services"],
   brandAccent:["branding","colours","colors"],brandPalette:["branding","colours","colors"]};
  const targets=[];
+ if(op?.kind==='image_appearance')targets.push('appearance','gallery','photos','imageStyles');
  if(op?.kind==='component_appearance')targets.push(...componentLockTargets(String(op.field||'')));
  if(['content_layout','restore_content_layout'].includes(op?.kind))targets.push('business_profile','copy','navigation','products','events');
  if(op?.kind==="appearance")targets.push("appearance",op.field,...(groups[op.field]||[]));
  else if(op?.kind==="restore_appearance"){
   const before=config?.presentation||{},after=op.value||{};
+  if(JSON.stringify(before.imageStyles||{})!==JSON.stringify(after.imageStyles||{}))targets.push('gallery','photos');
   for(const field of new Set([...Object.keys(before),...Object.keys(after)]))
    if(JSON.stringify(before[field])!==JSON.stringify(after[field]))targets.push("appearance",field,...(groups[field]||[]));
   for(const key of new Set([...Object.keys(before.componentStyles||{}),...Object.keys(after.componentStyles||{})]))if(JSON.stringify(before.componentStyles?.[key])!==JSON.stringify(after.componentStyles?.[key]))targets.push(...componentLockTargets(key));

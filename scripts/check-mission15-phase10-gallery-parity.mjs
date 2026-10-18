@@ -1,3 +1,4 @@
+import {appImagePresentation} from '../src/core/appImageAppearance.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
@@ -24,9 +25,10 @@ const publicApp=publicNativeMiniAppProjection({id:'a',status:'live',public_slug:
 const source=readFileSync('standalone/template/App.js','utf8'),ast=babel.parseSync(source,{configFile:false,babelrc:false,sourceType:'module',parserOpts:{plugins:['jsx']}}),nodes=ast.program.body.filter(node=>node.type==='FunctionDeclaration'&&node.id.name==='LiveInfo');assert.equal(nodes.length,1);
 const code=babel.transformSync(source.slice(nodes[0].start,nodes[0].end),{configFile:false,babelrc:false,plugins:[[require('@babel/plugin-transform-react-jsx'),{runtime:'classic'}]]}).code;
 const React={createElement:(type,props,...children)=>({type,props:{...props,children}})};
-const native=Function('React','View','Text','Image','box','t','sub','COLORS','VISUAL','LOOK',code+';return LiveInfo;')(React,'View','Text','Image',{backgroundColor:colors.surface},{color:colors.text},{color:colors.muted},colors,visual,{});
+const native=Function('appImagePresentation','React','View','Text','Image','box','t','sub','COLORS','VISUAL','LOOK',code+';return LiveInfo;')(appImagePresentation,React,'View','Text','Image',{backgroundColor:colors.surface},{color:colors.text},{color:colors.muted},colors,visual,{});
 const result=native({screen:{key:'gallery'},app:publicApp,layout:{ok:true,galleryColumns:1,galleryHeight:230}}),caption=walk(result).find(node=>node.props?.children?.includes('Approved caption'));
 assert.equal(caption.props.style.fontSize,visual.type.bodySize);assert.equal(caption.props.style.color,colors.muted);assert.equal(walk(result).find(node=>node.type==='Image').props.accessibilityLabel,'Accessible owner text');
+const styled=native({screen:{key:'gallery'},app:{...publicApp,imageStyles:{[publicApp.gallery[0].uri]:{fit:'contain',size:'large',corners:'square'}}},layout:{ok:true,galleryColumns:1,galleryHeight:230}}),styledImage=walk(styled).find(node=>node.type==='Image');assert.equal(styledImage.props.resizeMode,'contain');assert.equal(styledImage.props.style.height,288);assert.equal(styledImage.props.style.borderRadius,2);
 const many=Array.from({length:18},(_,i)=>({uri:'https://example.test/'+i+'.png',approved:true,caption:'Photo '+i}));
 const parityConfig={...config,publicProfile:{...config.publicProfile,assets:{gallery:[{uri:'https://example.test/unapproved.png',approved:false},...many]}}};
 const projected=publicNativeMiniAppProjection({id:'a',status:'live',public_slug:'fictional',current_live_version_id:'v'},{id:'v',config:parityConfig},{expectedAppId:'a',expectedVersionId:'v'});assert.equal(projected.gallery.length,15);

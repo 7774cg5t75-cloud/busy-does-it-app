@@ -1,3 +1,4 @@
+import {validImageStyles,imageStyleTargetExists} from './appImageAppearance.mjs';
 import {publicAppGallery} from "./publicAppGallery.mjs";
 import {validComponentStyles,componentTargetExists} from './appComponentAppearance.mjs';
 import {publicNativeOffers,publicNativeLoyalty} from "./publicNativeExtrasV3190.mjs";
@@ -22,6 +23,8 @@ function publicNativeMiniAppProjection(app,version,{expectedAppId,expectedVersio
   !version.config||typeof version.config!=="object")
   return {ok:false,reason:"This app version is not publicly available."};
  const config=version.config,profile=config.publicProfile||{};
+ const imageStyles=config.presentation?.imageStyles||{};
+ if(!validImageStyles(imageStyles)||Object.keys(imageStyles).some(uri=>!imageStyleTargetExists(config,uri)))return {ok:false,reason:'The approved image appearance needs review.'};
  const componentStyles=config.presentation?.componentStyles||{};
  if(!validComponentStyles(componentStyles)||Object.keys(componentStyles).some(key=>!componentTargetExists(config,key)))return {ok:false,reason:'The approved component appearance needs review.'};
  const enabled=(Array.isArray(config.modules)?config.modules:[])
@@ -53,7 +56,7 @@ function publicNativeMiniAppProjection(app,version,{expectedAppId,expectedVersio
   tagline:str(config.display?.tagline||profile.tagline,260),
   about:str(profile.about||profile.description,1200),
   faqs:publicCollection('faqs',profile.faqs||[]),testimonials:publicCollection('testimonials',profile.testimonials||[]),
-  services,gallery,contact,offers,loyalty,moduleKeys,...(Object.keys(componentStyles).length?{componentStyles:JSON.parse(JSON.stringify(componentStyles))}:{}),
+  services,gallery,contact,offers,loyalty,moduleKeys,...(Object.keys(imageStyles).length?{imageStyles:JSON.parse(JSON.stringify(imageStyles))}:{}),...(Object.keys(componentStyles).length?{componentStyles:JSON.parse(JSON.stringify(componentStyles))}:{}),
   heroUrl:safeUrl(profile.assets?.hero?.uri),
   supportsEnquiry:has("enquiry"),supportsBookingRequest:has("booking_request"),
   bookingsAlwaysRequireBusinessConfirmation:true,
