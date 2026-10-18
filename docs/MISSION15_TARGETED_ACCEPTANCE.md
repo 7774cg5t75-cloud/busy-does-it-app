@@ -36,3 +36,12 @@ These checks do not authorise deployment, hosted changes or customer contact. No
 - Rename product/event headings, switch cards/rows or hide one in a single Studio batch. Check featured identity and actual customer layouts in marketplace/standalone; Undo restores the entire original revision. Reject owner locks and missing sections.
 - Preview whole-page phone spacing plus desktop spacing and copy edits. Measure phone/tablet/desktop and inspect shared sections on other pages, including connected product/event lists. Check actual public HTML adapters only after approved isolated rollout; no deployment authorised here.
 - Feed duplicated or incomplete request module descriptors to both planners: neither may recommend them as supported customer actions. Current approved-record and subscription evidence still require the existing scoped data sources, not profile inference.
+
+## Phase 5 additions — pending separately authorised acceptance
+
+- Marketplace/standalone: fill an enquiry, review the exact contact/service/message payload, correct details, then confirm. No request before confirmation. Change account/app/version/listing/option or requirements during review: old confirmation must fail. Review consent must not be restored silently after navigation/restart.
+- Interrupt confirmation, follow the original pending/receipt recovery, and reject repeated taps. Marketplace newer edits survive an older success. Standalone pending/unknown fields remain fixed and explain why; no changed payload may be silently resent. Guest uncertainty remains subject to original explicit warnings, not a new reconciliation guarantee.
+- Load Products & Events using the existing scoped read. Verify private draft names never enter advice, expired/cancelled events are excluded, stale/failed/foreign reads invalidate composition, and account-away/back callbacks cannot restore old snapshots. Prepare a missing app section in original Studio; keep existing custom sections unchanged and Undo exact.
+- Website: change connected section layout and heading together; preserve responsive appearance, featured item and original branding. App: reorder product/event blocks with a heading change in one batch. Check actual layouts/accessibility in each supported destination, original owner locks and independent publication boundaries.
+
+No deployment, hosted database change, publication or real communication is authorised by this checklist. Normal-sandbox browser/device acceptance remains pending; do not retry the blocked Chromium configuration here.
