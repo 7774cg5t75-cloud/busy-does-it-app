@@ -231,10 +231,10 @@ main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:4
    independent within each industry. Every variation has a mobile fallback. */
 .visual-hero-type-center .hero-no-image .wrap{align-items:center;text-align:center}
 .visual-hero-type-center .hero-no-image .hero-content{margin-inline:auto}
-.visual-hero-type-center .hero-no-image .hero .lead{margin-inline:auto}
+.visual-hero-type-center .hero-no-image .lead{margin-inline:auto}
 .visual-hero-type-right .hero-no-image .wrap{align-items:flex-end;text-align:right}
 .visual-hero-type-right .hero-no-image .hero-content{margin-left:auto}
-.visual-hero-type-right .hero-no-image .hero .lead{margin-left:auto}
+.visual-hero-type-right .hero-no-image .lead{margin-left:auto}
 .visual-hero-type-poster .hero-no-image h1{font-size:clamp(3.7rem,11vw,8.5rem);line-height:.95;max-width:1000px}
 .visual-hero-type-poster .hero-no-image .hero-art{right:-8%;top:-35%;width:54vw}
 .visual-hero-image-left .hero-with-image .hero-image{grid-column:1;grid-row:1}

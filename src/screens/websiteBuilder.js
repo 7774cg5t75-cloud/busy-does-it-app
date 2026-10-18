@@ -1309,7 +1309,7 @@ function WebsitePreview({ s }) {
         title="Tell BUSY which sections to adjust"
         body="Use the section names visible on this page. BUSY checks each instruction, shows the original beside the proposed result and asks you to approve before saving. Unsupported or unclear instructions change nothing."
         tone="blue">
-        <Text style={styles.cardBody}>Try: Change the hero heading to "Welcome to our workshop"; move the about section above services. Or add question "Do you travel?" answer "Ask us about your location." For phone reading: make the whole page easier to read only on phones. For a calmer mobile layout: give the whole page less space on phones. Shared theme changes affect all pages; always preview first.</Text>
+        <Text style={styles.cardBody}>Try: Change the hero heading to "Welcome to our workshop"; move the about section above services. Or add question "Do you travel?" answer "Ask us about your location." For phone reading: make the whole page easier to read only on phones. For a calmer mobile layout: give the whole page less space on phones. For composition: make the hero centred; or move the hero photo left when an approved hero image exists. Shared theme changes affect all pages; always preview first.</Text>
         <TextInput value={pageInstruction}
           onChangeText={value=>{setPageInstruction(value);setPagePlanPreview(null);setPagePlanNotice("");}}
           multiline maxLength={400}

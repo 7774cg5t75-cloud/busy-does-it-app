@@ -654,6 +654,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     : "";
   const prefix="../".repeat(clean(page?.outputPath||"index.html").split("/").length-1);
   const approvedImage = asset => {
+    if(asset?.approved===false)return "";
     if(standalone){
       const key=clean(asset?.storagePath)||clean(asset?.uri);
       const filename=options?.assetFiles?.[key]||"";

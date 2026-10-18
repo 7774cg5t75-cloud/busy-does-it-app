@@ -128,10 +128,11 @@ function planWebsiteDesign({businessType="",businessName="",sections=[],theme={}
   const family=allSupportedFamilies.includes(theme?.designFamily) && photoCompatible
     ? theme.designFamily
     : allowedFamilies[(familySeed>>>4)%allowedFamilies.length];
-  const visualIdentity=selectVisualIdentity({businessName,businessType,theme,family,photos});
+  const heroPhotos=photographicCount(active.filter(part=>part.id==='hero'));
+ const visualIdentity=selectVisualIdentity({businessName,businessType,theme,family,photos:heroPhotos});
   // A short brief benefits from a confident typographic hero, not a blank
   // image placeholder, empty gallery or falsely completed features.
-  const heroTreatment=photos?"photographic":"typographic";
+  const heroTreatment=heroPhotos?"photographic":"typographic";
   // Event caterers with enough *approved* food photographs need a menu/image-led
   // introduction. A cafe with the same amount of text can remain story-led.
   // Without confirmed photographs or services, never invent visual content.

@@ -9,13 +9,14 @@ function coordinatedWebsiteAlternatives(draft,pageId,report){
  // Restyling cannot repair missing originals, factual descriptions or links.
  if(issueIds.length&&issueIds.every(id=>['photos','descriptions','links'].includes(id)))return [];
  const sector=deriveSector(draft.businessType||''),photos=photographicCount(draft.sections),theme=draft.theme||{};
+ const heroPhoto=photographicCount((draft.sections||[]).filter(section=>section.id==='hero'))>0;
  const directions=[{id:'coordinated-reading',label:'Clear information, calm rhythm',
   explanation:'Put existing services near the start where supported; compare readable rows, restrained headings and consistent spacing. '+
    (['professional','learning','wellness'].includes(sector)?'This suits information-led decisions.':'Useful when customers need to understand the details first.'),
-  settings:{typography:'refined',cardLayout:'rows',spacing:'comfortable'},tradeoff:'Less image-led; visitors may scroll through more service details.'}];
- if(photos>0)directions.push({id:'coordinated-visual',label:'Visual story with breathing room',
-  explanation:'Lead with the existing gallery where it is already on this page, then use editorial headings, separated cards and generous spacing. No images or colours are replaced.',
-  settings:{typography:'editorial',cardLayout:'cards',spacing:'generous'},tradeoff:'Uses more vertical space on phones; inspect tablet and desktop rhythm too.'});
+  settings:{typography:'refined',cardLayout:'rows',heroLayout:heroPhoto?'image-right':'type-left'},tradeoff:'Less image-led; visitors may scroll through more service details.'}];
+ directions.push({id:'coordinated-visual',label:heroPhoto?'Image-led introduction':'Editorial introduction',
+  explanation:'Compare an editorial hero, separated cards and the existing gallery where it is on this page. Without an approved hero image, use a typographic statement. Images, colours and owner spacing choices are preserved.',
+  settings:{typography:'editorial',cardLayout:'cards',heroLayout:heroPhoto?'image-feature':'type-poster'},tradeoff:'Uses more vertical space on phones; inspect tablet and desktop rhythm too.'});
  directions.sort((a,b)=>{
   const liked=d=>ownerDesignPreference(draft,d.id,pageId)==='liked'?4:0;
   const relevant=d=>d.id==='coordinated-reading'&&issueIds.some(id=>['overflow','headings','readability'].includes(id))?2:
@@ -31,7 +32,7 @@ function coordinatedWebsiteAlternatives(draft,pageId,report){
   const before=[...new Set([...(draft.designPlan?.sectionOrder||[]).filter(id=>active.includes(id)),...active])];
   const target=d.id==='coordinated-visual'?'gallery':'services';
   const page=draft.pages.find(p=>p.id===pageId);
-  if(draft.businessId&&before[0]==='hero'&&before.includes(target)&&page.sectionIds?.includes(target)){
+  if(!theme.sectionOrder?.length&&draft.businessId&&before[0]==='hero'&&before.includes(target)&&page.sectionIds?.includes(target)){
    const proposed=['hero',target,...before.filter(id=>id!=='hero'&&id!==target)];
    if(JSON.stringify(before)!==JSON.stringify(proposed))operations.push({action:'apply-reviewed-composition',
     websiteId:draft.id,expectedGeneration:draft.generation,expectedBusinessId:draft.businessId,before,proposed});

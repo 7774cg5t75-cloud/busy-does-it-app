@@ -1,3 +1,4 @@
+import {photographicCount} from './designPlanner.mjs';
 import {websiteLayoutLockReason,protectWebsiteOwnerLocks} from "./websiteOwnerLocks.mjs";
 /**
  * V3.134 — exact structural and appearance operations on a PRIVATE website draft.
@@ -16,6 +17,7 @@ const allow={
  spacing:["comfortable","generous","compact"],
  ctaEmphasis:["normal","strong"],
  heroSize:["medium","large","extra-large"],
+ heroLayout:["type-left","type-center","type-right","type-poster","image-right","image-left","image-frame","image-feature"],
  photoFocus:["center","top","bottom"],
 };
 function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
@@ -170,6 +172,10 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const {field,value}=operation;
   if(!Object.prototype.hasOwnProperty.call(allow,field)||!allow[field].includes(value))
    return fail(draft,"Choose a supported appearance setting. Arbitrary CSS or remote fonts are not allowed.");
+  if(field==='heroLayout'){
+   const hero=sections.find(section=>section.type==='hero'&&section.enabled!==false),hasImage=photographicCount(hero?[hero]:[])>0;
+   if(!hero||value.startsWith('image-')!==hasImage)return fail(draft,hasImage?'Keep the approved hero photo and choose an image layout.':'Choose a typographic layout or select an approved hero photo first.');
+  }
   if(field==="photoFocus"&&!sections.some(s=>s.type==="hero"&&s.asset?.approved!==false&&text(s.asset?.storagePath)))
    return fail(draft,"Add an approved customer hero photo before changing photo crop.");
   if(field==="ctaEmphasis"&&value==="strong"&&!sections.some(s=>s.type==="hero"&&text(s.cta)&&text(s.ctaHref)))

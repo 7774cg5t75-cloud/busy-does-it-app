@@ -53,6 +53,14 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    if(!section||section.contentSource!=='business_records_v1')return fail('Open the current page containing the approved-record section first.');
    change={action:'content-section',sectionId:section.id,title:section.title,layout:m[2].toLowerCase(),featuredId:section.featuredId||''};
    type='field';description='Change only the record presentation; keep this destination heading, featured item, styling and approved-record source';
+  }else if((m=clause.match(/^(?:make|set) (?:the )?hero (left aligned|centred|centered|right aligned|a poster)$/i))){
+   if(!findSection('hero'))return fail('Open the page containing the current hero before changing its composition.');
+   change={action:'style',field:'heroLayout',value:{'left aligned':'type-left',centred:'type-center',centered:'type-center','right aligned':'type-right','a poster':'type-poster'}[m[1].toLowerCase()]};
+   description='Use a distinct typographic hero composition; preserve wording, branding and content. An existing hero photo is never removed by this instruction';
+  }else if((m=clause.match(/^(?:move|place|show) (?:the )?hero photo (?:on the )?(left|right|in a frame|as the main feature)$/i))){
+   if(!findSection('hero'))return fail('Open the page containing the current hero before changing its composition.');
+   change={action:'style',field:'heroLayout',value:{left:'image-left',right:'image-right','in a frame':'image-frame','as the main feature':'image-feature'}[m[1].toLowerCase()]};
+   description='Recompose the approved hero image and introduction using the existing responsive renderer; no image or words replaced';
   }else if(forbidden.test(clause))return fail("No changes were made. Publishing, deleting and external actions need separate approval.");
   else if((m=clause.match(/^(?:give|make) (?:the )?(?:whole |entire )?page (more|less) (?:space|spacing|breathing room) on (phones?|mobile|desktop|computers?)$/i))){
    change={action:'page-spacing',pageId,device:/phone|mobile/i.test(m[2])?'mobile':'desktop',value:m[1].toLowerCase()==='more'?'generous':'compact'};
