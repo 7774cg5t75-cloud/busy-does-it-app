@@ -1,3 +1,4 @@
+import {ServiceDetails} from "./serviceDetails";
 import {ENQUIRY_REQUIREMENTS,emptyEnquiryRequirements,prepareCustomerEnquiry,customerEnquiryReview,prepareCustomerBookingNote} from './customerEnquiryRequirements.mjs';
 import {prepareBusinessContentEnquiry} from './businessContentRecords.mjs';
 import {BusinessContentView} from './businessContentView';
@@ -201,10 +202,7 @@ function ServicesInfo({app,layout,onRequestService}){
      </Text>:null}
      <Text style={{...t,fontWeight:VISUAL.type.sectionWeight,
        fontSize:VISUAL.type.bodySize+2}}>{service.name}</Text>
-     <Text style={sub}>{service.description||"Ask the business for details."}</Text>
-     {service.category?<Text style={sub}>{'Category: '+service.category}</Text>:null}
-     {service.priceLabel?<Text style={sub}>{'Price information: '+service.priceLabel}</Text>:null}
-     {service.durationLabel?<Text style={sub}>{'Typical duration: '+service.durationLabel}</Text>:null}
+     <ServiceDetails service={service} colors={COLORS} bodySize={VISUAL.type.bodySize}/>
      {app.supportsBookingRequest&&app.moduleKeys?.includes("booking_request")?
       <Button title={"Request "+service.name}
        onPress={()=>onRequestService?.(service.name,"booking_request")}/>:null}

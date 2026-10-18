@@ -1,3 +1,4 @@
+import {ServiceDetails} from "../../standalone/template/serviceDetails";
 import {amendAppQualityProposal} from "../core/appCoordinatedStudio.mjs";
 import {AppVisualSelection} from "./appVisualSelection";
 import {useApprovedBuilderRecords} from './useApprovedBuilderRecords';
@@ -406,6 +407,7 @@ function MiniAppSurface({
               footer={profile.differentiators || ""}
               tone="blue"
             />
+            {ownerSelection?<Button label="Edit this business description" onPress={()=>ownerSelection.onSelect({part:'wording',field:profile.about?'about':'description'})}/>:null}
             {(validContentLayout(config.contentLayout)?config.contentLayout:[]).map(block=><BusinessContentView key={block.kind} feed={businessContent} colors={brandColours} {...block} onInterest={interactive&&modules.some(m=>m.key==='enquiry')?(onSelectContent||onSelectService):null}/>)}
             {['faqs','testimonials'].map(field=>publicCollection(field,profile[field]||[]).map((row,i)=><Card key={field+i}
               eyebrow={field==='faqs'?'Customer question':'Customer testimonial'}
@@ -417,7 +419,7 @@ function MiniAppSurface({
         if (module.key === "services") {
           return (
             <View key={module.key}>
-              <Text style={styles.sectionLabel}>Services</Text>
+              {ownerSelection?<Pressable accessibilityRole="button" accessibilityLabel="Select service presentation" accessibilityState={{selected:ownerSelection.selection?.part==='services'}} onPress={()=>ownerSelection.onSelect({part:'services'})} style={{borderWidth:2,borderColor:ownerSelection.selection?.part==='services'?'#4489ed':brandColours.muted,padding:8}}><Text style={styles.sectionLabel}>Services</Text></Pressable>:<Text style={styles.sectionLabel}>Services</Text>}
               {allServices.length>4?<Field label="Find a service" value={serviceQuery} onChangeText={setServiceQuery}/>:null}
               <ServiceCategoryFilter categories={serviceBrowse.categories} selected={serviceBrowse.selectedCategory} onSelect={setServiceCategory} colors={brandColours}/>
               {services.length ? (
@@ -450,13 +452,7 @@ function MiniAppSurface({
                           fontWeight:visual.type.sectionWeight}}>
                           {service.name||"Service"}
                         </Text>
-                        <Text style={{color:brandColours.muted,marginTop:5,
-                          fontSize:visual.type.bodySize}}>
-                          {service.description||"Contact the business for more information."}
-                        </Text>
-                        {service.category?<Text style={styles.cardBody}>{'Category: '+service.category}</Text>:null}
-                        {service.priceLabel?<Text style={styles.cardBody}>{'Price information: '+service.priceLabel}</Text>:null}
-                        {service.durationLabel?<Text style={styles.cardBody}>{'Typical duration: '+service.durationLabel}</Text>:null}
+                        <ServiceDetails service={service} colors={brandColours} bodySize={visual.type.bodySize}/>
                         {interactive&&typeof onSelectService==='function'&&modules.some(m=>m.key==='enquiry')?<Button label={'Ask about '+service.name}
                           onPress={()=>onSelectService(service.name,'enquiry')}/>:null}
                         {interactive&&typeof onSelectService==='function'&&modules.some(m=>m.key==='enquiry')?<View>
@@ -484,7 +480,7 @@ function MiniAppSurface({
         if (module.key === "gallery") {
           return (
             <View key={module.key}>
-              <Text style={styles.sectionLabel}>Gallery</Text>
+              {ownerSelection?<Pressable accessibilityRole="button" accessibilityLabel="Select gallery presentation" accessibilityState={{selected:ownerSelection.selection?.part==='gallery'}} onPress={()=>ownerSelection.onSelect({part:'gallery'})} style={{borderWidth:2,borderColor:ownerSelection.selection?.part==='gallery'?'#4489ed':brandColours.muted,padding:8}}><Text style={styles.sectionLabel}>Gallery</Text></Pressable>:<Text style={styles.sectionLabel}>Gallery</Text>}
               {gallery.length ? (
                 <View style={{flexDirection:"row",flexWrap:"wrap",
                   gap:responsive.ok?responsive.gap:8}}>

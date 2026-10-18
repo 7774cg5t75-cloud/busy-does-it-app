@@ -596,6 +596,20 @@
         "scripts/check-mission15-phase8-website-suggestions.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase9-studio-selection",
+      "args": [
+        "scripts/check-mission15-phase9-studio-selection.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase9-service-details",
+      "args": [
+        "scripts/check-mission15-phase9-service-details.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
