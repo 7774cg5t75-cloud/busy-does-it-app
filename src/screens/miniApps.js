@@ -1,3 +1,4 @@
+import {emptyEnquiryRequirements,prepareCustomerEnquiry} from '../core/customerEnquiryRequirements.mjs';
 import {AppServiceEditor} from './appServiceEditor';
 import {validContentLayout,prepareBusinessContentEnquiry} from '../core/businessContentRecords.mjs';
 import {proposeCoordinatedAppChanges as proposeContentComposition} from '../core/appCoordinatedStudio.mjs';
@@ -4611,10 +4612,11 @@ function BusyAppDetailForm({ s }) {
 
   const [contentInterest,setContentInterest]=React.useState(Object.hasOwn(saved,'contentInterest')?saved.contentInterest:initial?.selection??null);
   const [contentNotice,setContentNotice]=React.useState(detail.entryContentNotice||'');
-  const recoveryDraft={name,email,phone,service,message,contentInterest};
+  const [requirements,setRequirements]=React.useState(saved.requirements||emptyEnquiryRequirements());
+  const recoveryDraft={name,email,phone,service,message,contentInterest,requirements};
   const privateRecovery=useCustomerEnquiryRecovery({userId:s.ownerSession?.userId,detail,draft:recoveryDraft,
-    onRestore:value=>{setName(value.name);setEmail(value.email);setPhone(value.phone);setService(value.service);setMessage(value.message);setContentInterest(value.contentInterest);}});
-  React.useEffect(()=>{s.saveBusyAppCustomerForm?.({name,email,phone,service,date,note,message,contentInterest});},[name,email,phone,service,date,note,message,contentInterest]);
+    onRestore:value=>{setName(value.name);setEmail(value.email);setPhone(value.phone);setService(value.service);setMessage(value.message);setContentInterest(value.contentInterest);setRequirements(value.requirements||emptyEnquiryRequirements());}});
+  React.useEffect(()=>{s.saveBusyAppCustomerForm?.({name,email,phone,service,date,note,message,contentInterest,requirements});},[name,email,phone,service,date,note,message,contentInterest,requirements]);
   const chooseContent=(label,prepared)=>{
     const checked=prepareBusinessContentEnquiry(detail.businessContent,detail.app?.business_id,prepared?.selection);
     if(!checked.ok){setContentNotice(checked.reason);return;}
@@ -4634,11 +4636,12 @@ function BusyAppDetailForm({ s }) {
   );
 
   const formLive=React.useRef(null),formAlive=React.useRef(true);
-  formLive.current=JSON.stringify([name,email,phone,service,date,note,message]);
+  formLive.current=JSON.stringify([name,email,phone,service,date,note,message,contentInterest,requirements]);
   React.useEffect(()=>{formAlive.current=true;return()=>{formAlive.current=false;};},[]);
   const requestInput={name,email,phone,service,preferredDate:date,note,message};
   const bookingReady=validateNativeGuestRequest('booking_request',requestInput);
-  const enquiryReady=validateNativeGuestRequest('enquiry',requestInput);
+  const preparedEnquiry=prepareCustomerEnquiry({message,requirements,feed:detail.businessContent,businessId:detail.app?.business_id,selection:contentInterest});
+  const enquiryReady=preparedEnquiry.ok?validateNativeGuestRequest('enquiry',{...requestInput,message:preparedEnquiry.message}):preparedEnquiry;
   const serviceChoices=searchPublicNativeServices(config?.publicProfile?.services||[],service.slice(0,80)).slice(0,8);
   const preferredDates=React.useMemo(()=>nativePreferredDates(new Date(),7),[]);
   const submitBooking = async () => {
@@ -4668,10 +4671,10 @@ function BusyAppDetailForm({ s }) {
       email: email.trim(),
       phone: phone.trim(),
       service: service.trim(),
-      message: message.trim(),
+      message: preparedEnquiry.message,
     });
     if(ok)privateRecovery.clearIfSame(recoveryDraft).catch(()=>{});
-    if (ok&&formAlive.current&&formLive.current===reviewed) {setMessage("");setContentInterest(null);s.saveBusyAppCustomerForm?.({name,email,phone,service,date,note,message:"",contentInterest:null});}
+    if (ok&&formAlive.current&&formLive.current===reviewed) {setMessage("");setContentInterest(null);setRequirements(emptyEnquiryRequirements());s.saveBusyAppCustomerForm?.({name,email,phone,service,date,note,message:"",contentInterest:null,requirements:emptyEnquiryRequirements()});}
   };
 
   return (
@@ -4768,7 +4771,7 @@ function BusyAppDetailForm({ s }) {
         />
       ) : null}
 
-      <BusinessAppCustomerRequestFields s={s} form={{requestKind,setRequestKind,enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}} onLayout={event=>{requestFormY.current=event.nativeEvent.layout.y;}}/>
+      <BusinessAppCustomerRequestFields s={s} form={{requirements,setRequirements,requestKind,setRequestKind,enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}} onLayout={event=>{requestFormY.current=event.nativeEvent.layout.y;}}/>
       <Button label="Back to BUSY Apps" onPress={() => s.go("busyAppsMarketplace")} />
     </Shell>
   );
