@@ -617,6 +617,13 @@
         "scripts/check-mission15-phase9-browser-policy.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase10-selected-images",
+      "args": [
+        "scripts/check-mission15-phase10-selected-images.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

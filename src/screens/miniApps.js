@@ -279,6 +279,7 @@ function MiniAppSurface({
   const allServices=Array.isArray(profile?.services)?profile.services:[];
   // Marketplace has legacy 50-row profiles; retain the native helper's 40-row bound.
   const serviceBrowse=browsePublicNativeServices(allServices,serviceQuery,serviceCategory),services=serviceBrowse.rows;
+  const PhotoFrame=ownerSelection?Pressable:View;
   const gallery = Array.isArray(profile?.assets?.gallery)
     ? profile.assets.gallery.filter((item) => String(item?.uri || "").startsWith("https://"))
     : [];
@@ -485,8 +486,12 @@ function MiniAppSurface({
                 <View style={{flexDirection:"row",flexWrap:"wrap",
                   gap:responsive.ok?responsive.gap:8}}>
                   {gallery.slice(0, 12).map((asset, index) => (
-                    <View key={asset.key || asset.uri || `gallery-${index}`}
-                      style={{width:responsive.ok?(responsive.galleryColumns===3?"31%":
+                    <PhotoFrame key={asset.key || asset.uri || `gallery-${index}`}
+                      accessibilityRole={ownerSelection?'button':undefined}
+                      accessibilityLabel={ownerSelection?'Select gallery photo '+(index+1):undefined}
+                      accessibilityState={ownerSelection?{selected:ownerSelection.selection?.part==='image'&&ownerSelection.selection?.index===profile.assets.gallery.indexOf(asset),disabled:asset.approved!==true&&asset.marketingOk!==true}:undefined}
+                      onPress={ownerSelection?()=>{if(asset.approved===true||asset.marketingOk===true)ownerSelection.onSelect({part:'image',index:profile.assets.gallery.indexOf(asset),expectedUri:asset.uri});}:undefined}
+                      style={{...(ownerSelection?{borderWidth:2,borderColor:ownerSelection.selection?.part==='image'&&ownerSelection.selection?.index===profile.assets.gallery.indexOf(asset)?'#4489ed':brandColours.muted}:{}),width:responsive.ok?(responsive.galleryColumns===3?"31%":
                         responsive.galleryColumns===2?"48%":"100%"):"100%"}}>
                       <MeasuredPublicImage
                         source={{ uri: asset.uri }}
@@ -504,7 +509,7 @@ function MiniAppSurface({
                       {asset.caption?<Text style={styles.cardBody}>
                         {String(asset.caption).slice(0,240)}
                       </Text>:null}
-                    </View>
+                    </PhotoFrame>
                   ))}
                 </View>
               ) : (

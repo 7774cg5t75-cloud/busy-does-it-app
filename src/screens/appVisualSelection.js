@@ -1,4 +1,6 @@
 import React from 'react';
+import {AppSelectedImageControls} from './appSelectedImageControls';
+import {selectedAppImage} from '../core/appSelectedImage.mjs';
 import {Text,View} from 'react-native';
 import {Button,Field} from '../components/ui';
 import {styles} from '../theme/styles';
@@ -10,17 +12,19 @@ import {PROFILE_TEXT_LIMITS} from '../core/appProfileFieldUndo.mjs';
 export function AppVisualSelection({Surface,config,businessContent,onPrepare,busy=false}){
  const [selection,setSelection]=React.useState(null),[selectionSource,setSelectionSource]=React.useState(null);
  const [wording,setWording]=React.useState('');
- const live=React.useRef(null);live.current={config,busy,selection,wording};
+ const [imageCopy,setImageCopy]=React.useState({alt:'',caption:''});
+ const live=React.useRef(null);live.current={config,busy,selection,wording,imageCopy};
  const current=()=>live.current.config===config&&!live.current.busy;
  const select=value=>{
   if(!current())return;
   setSelection(value);setSelectionSource(config);
+  const image=selectedAppImage(config,value);setImageCopy({alt:image?.alt||'',caption:image?.caption||''});
   const field=value.part==='header'?'tagline':value.part==='wording'?value.field:null;
   setWording(field?String(config?.publicProfile?.[field]??(field==='tagline'?config?.display?.tagline:'')??''):'');
  };
  const selectionCurrent=selectionSource===config;
  const prepare=operation=>{
-  if(!current()||!selectionCurrent||live.current.selection!==selection||live.current.wording!==wording)return;
+  if(!current()||!selectionCurrent||live.current.selection!==selection||live.current.wording!==wording||live.current.imageCopy!==imageCopy)return;
   const proposal=proposeCoordinatedAppChanges(config,[operation]);
   if(proposal.ok)onPrepare(proposal);
  };
@@ -28,7 +32,7 @@ export function AppVisualSelection({Surface,config,businessContent,onPrepare,bus
   selection?.part==='navigation'?[['navigationStyle','tabs'],['navigationStyle','list']]:
   selection?.part==='spacing'?[['layoutDensity','comfortable'],['layoutDensity','compact'],['layoutDensity','airy']]:
   selection?.part==='services'?[['serviceStyle','cards'],['serviceStyle','rows'],['serviceStyle','spotlight']]:
-  selection?.part==='gallery'?[['galleryLayout','grid'],['galleryLayout','stack'],['imageScale','regular'],['imageScale','large'],['imageCorners','rounded'],['imageCorners','square']]:[];
+  ['gallery','image'].includes(selection?.part)?[['galleryLayout','grid'],['galleryLayout','stack'],['imageScale','regular'],['imageScale','large'],['imageCorners','rounded'],['imageCorners','square']]:[];
  const field=selection?.part==='header'?'tagline':selection?.part==='wording'?selection.field:null;
  const textOp=Object.hasOwn(PROFILE_TEXT_LIMITS,field||'')?{kind:'text',field,value:wording}:null;
  const textProof=textOp?proposeCoordinatedAppChanges(config,[textOp]):null;
@@ -47,6 +51,7 @@ export function AppVisualSelection({Surface,config,businessContent,onPrepare,bus
      return <Button key={field+value} label={'Preview '+value+' '+(field==='typeStyle'?'typography':field==='serviceStyle'?'services':field==='galleryLayout'?'gallery layout':field==='imageScale'?'images':field==='imageCorners'?'image corners':selection.part)} disabled={busy||!selectionCurrent||!proof.ok} onPress={()=>prepare({kind:'appearance',field,value})}/>;
     })}
    </View>
+   {selection.part==='image'?<AppSelectedImageControls config={config} selection={selection} copy={imageCopy} disabled={busy||!selectionCurrent} onCopy={value=>{if(current()&&selectionCurrent&&live.current.selection===selection&&live.current.imageCopy===imageCopy)setImageCopy(value);}} onPrepare={prepare}/>:null}
    {textOp?<View>
     <Field label={field==='tagline'?'App tagline (header and summary)':'Selected business '+field} value={wording} maxLength={PROFILE_TEXT_LIMITS[field]} multiline onChangeText={value=>{if(current()&&selectionCurrent&&live.current.selection===selection)setWording(value);}}/>
     <Text style={styles.cardBody}>Owner-written wording only. Review every affected screen in Studio before applying; your existing approval and Undo controls remain.</Text>
