@@ -12,14 +12,16 @@ function websiteIdea(project,instruction){
  return dry.applied?plan:{ok:false,reason:dry.reason};
 }
 const uuid=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
-function builderExploreSource({kind,ownerId,businessId,project}={}){
+function builderExploreSource({kind,ownerId,businessId,project,catalog=[]}={}){
  if(!['app','website'].includes(kind)||!uuid.test(ownerId||'')||!uuid.test(businessId||'')||!project?.id)return null;
  if(kind==='app'?project.business_id!==businessId:project.businessId&&project.businessId!==businessId||project.business_id&&project.business_id!==businessId)return null;
  const revision=kind==='app'?project.draft_revision:project.generation;
  if(!Number.isSafeInteger(revision)||revision<1)return null;
- let stamp;try{stamp=JSON.stringify(canonicalJsonValue(project));}catch{return null;}
+ if(!Array.isArray(catalog)||catalog.length>50)return null;
+ let stamp,catalogStamp;try{stamp=JSON.stringify(canonicalJsonValue(project));catalogStamp=JSON.stringify(canonicalJsonValue(catalog));}catch{return null;}
+ if(catalogStamp.length>60000)return null;
  if(stamp.length>600000)return null;
- return {kind,ownerId,businessId,projectId:project.id,revision,stamp};
+ return {kind,ownerId,businessId,projectId:project.id,revision,stamp,catalogStamp};
 }
 function currentBuilderExplore(session,context){return !!session?.ok&&JSON.stringify(session.source)===JSON.stringify(builderExploreSource(context));}
 function beginBuilderExplore(context){
@@ -34,9 +36,9 @@ function runBuilderExplore(session,context,request){
  if(!currentBuilderExplore(session,context))return deny('The owner, business or source changed. Exit and reopen Talk & Explore.');
  if(!request||Object.keys(request).some(key=>!['type','text'].includes(key))||request.type!=='discuss'||typeof request.text!=='string'||!request.text.trim()||request.text.length>400)return deny('Talk & Explore accepts discussion only. Nothing was changed or sent.');
  const text=request.text.trim(),project=JSON.parse(session.source.stamp);
- const plan=planUniversalBuilderRequest({businessId:session.source.businessId,request:text,...session.source.kind==='app'?{app:project}:{website:project}});
+ const plan=planUniversalBuilderRequest({businessId:session.source.businessId,request:text,catalog:JSON.parse(session.source.catalogStamp),...session.source.kind==='app'?{app:project}:{website:project}});
  const edit=session.source.kind==='app'?planAppVoiceInstructions(project.draft_config,text):websiteIdea(project,text);
- const lines=plan.ok?plan.capabilities.filter(row=>row.explicitlyRequested).slice(0,3).map(row=>row.title+': '+row[session.source.kind].status.replaceAll('_',' ')):[];
+ const lines=plan.ok?plan.capabilities.filter(row=>row.explicitlyRequested).slice(0,3).map(row=>row.title+': '+row[session.source.kind].status.replaceAll('_',' ')+'. '+row[session.source.kind].reason):[];
  const answer=edit.ok?'A supported private edit can be reviewed separately. '+(edit.changes||edit.steps.map(step=>step.description)).join(' '):plan.ok?[plan.summary,...lines,'These are capability/source checks, not proof of a live customer result. External connections and paid features need separate verification and approval.'].join('\n'):plan.reason;
  let conversation=addWebsiteConversationTurn(session.conversation,session.conversation.scope,{role:'owner',text});
  conversation=addWebsiteConversationTurn(conversation,conversation.scope,{role:'busy',text:answer});

@@ -1155,7 +1155,7 @@ function MiniAppBuilder({ s }) {
     },
   ];
 
-  const exploreContext={kind:'app',ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,project:app?{...app,draft_config:view.draftConfig}:null};
+  const exploreContext={kind:'app',ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,catalog:view.catalog||[],project:app?{...app,draft_config:view.draftConfig}:null};
   const exploreLive=React.useRef(null);exploreLive.current=exploreContext;
   if(explore)return <Shell s={s} title="Business App • Talk & Explore" subtitle="Nothing will be changed"><BuilderTalkExplore context={exploreContext} onExit={()=>setExplore(false)} onHandoff={handoff=>{
     if(s.miniAppsAction||studio.pending||studio.uncertain||!currentBuilderExplore({ok:true,source:handoff.source},exploreLive.current))return false;
