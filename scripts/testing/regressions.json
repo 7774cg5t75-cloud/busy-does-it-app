@@ -827,6 +827,13 @@
         "scripts/check-mission15-phase19-editing.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase20-catalogue",
+      "args": [
+        "scripts/check-mission15-phase20-catalogue.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
