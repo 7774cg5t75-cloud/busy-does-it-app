@@ -20,7 +20,9 @@ export function WebsitePhotoControls({draft,selection,section,onChoose}){
   delete groups.size;
   groups.position=[['Picture before text','move this photo to the left'],['Picture after text','move this photo to the right']];
  }
+ if(section.type==='hero')groups.presets=[['Larger photo, focus top','make this photo bigger; crop this photo to the top'],['Smaller photo, focus centre','make this photo smaller; crop this photo to the center']];
  const category=active?.draft===draft&&active.scope===scope?active.name:null;
+ live.current.category=category;
  const current=()=>live.current.draft===draft&&live.current.scope===scope;
  return <View>
   <Text style={styles.sectionLabel}>Adjust this picture</Text>
@@ -30,8 +32,10 @@ export function WebsitePhotoControls({draft,selection,section,onChoose}){
    const plan=planSelectedWebsiteChanges(draft,selection?.pageId,selection,instruction);
    // Grammar success alone does not establish a permitted move: evaluate the
    // original pure operation too, including boundaries, no-ops and locks.
-   const available=plan.ok&&plan.steps.length===1&&plan.steps[0].type==='layout'&&applyWebsiteLayoutOperation(draft,plan.steps[0].change).applied;
-   return <Button key={instruction} label={label} disabled={!available} onPress={()=>{if(current()&&available)onChoose(instruction);}}/>;
+   let working=draft,available=plan.ok;
+   if(available)for(const step of plan.steps){const outcome=step.type==='layout'?applyWebsiteLayoutOperation(working,step.change):null;if(!outcome?.applied){available=false;break;}working=outcome.draft;}
+   return <Button key={instruction} label={label} disabled={!available} onPress={()=>{if(current()&&live.current.category===category&&available)onChoose(instruction);}}/>;
   })}</View>:null}
+  {category?<Button label="Cancel picture choice" onPress={()=>{if(current()){live.current.category=null;setActive(null);}}}/>:null}
  </View>;
 }

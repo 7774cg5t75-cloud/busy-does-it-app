@@ -38,12 +38,14 @@ function runBuilderExplore(session,context,request){
  if(!request||Object.keys(request).some(key=>!['type','text'].includes(key))||request.type!=='discuss'||typeof request.text!=='string'||!request.text.trim()||request.text.length>400)return deny('Talk & Explore accepts discussion only. Nothing was changed or sent.');
  const text=request.text.trim(),project=JSON.parse(session.source.stamp);
  const plan=planUniversalBuilderRequest({businessId:session.source.businessId,request:text,catalog:JSON.parse(session.source.catalogStamp),...session.source.kind==='app'?{app:project}:{website:project}});
- const edit=session.source.kind==='app'?planAppVoiceInstructions(project.draft_config,text):websiteIdea(project,text);
+ const hypothetical=/^what would happen if I moved (?:the )?([a-z][a-z -]{0,50}?) (above|below) (?:the )?([a-z][a-z -]{0,50}?)\??$/i.exec(text);
+ const instruction=hypothetical?'move '+hypothetical[1].replace(/ section$/i,'')+(session.source.kind==='website'?' section':'')+' '+hypothetical[2]+' '+hypothetical[3].replace(/ section$/i,''):text;
+ const edit=session.source.kind==='app'?planAppVoiceInstructions(project.draft_config,instruction):websiteIdea(project,instruction);
  const explanation=explainBuilderExplore({kind:session.source.kind,project,catalog:JSON.parse(session.source.catalogStamp),plan,text});
  const answer=edit.ok?'We can prepare this idea for you to review. '+(edit.changes||edit.steps.map(step=>step.description)).join(' '):explanation.answer;
  let conversation=addWebsiteConversationTurn(session.conversation,session.conversation.scope,{role:'owner',text});
  conversation=addWebsiteConversationTurn(conversation,conversation.scope,{role:'busy',text:answer});
- return {ok:true,answer,session:{...session,conversation,alternatives:edit.ok?[]:explanation.alternatives,idea:edit.ok?{instruction:text,summary:edit.changes||edit.steps.map(step=>step.description)}:null},noChangesPerformed:true,noChargeMade:true};
+ return {ok:true,answer,session:{...session,conversation,alternatives:edit.ok?[]:explanation.alternatives.filter(idea=>(session.source.kind==='app'?planAppVoiceInstructions(project.draft_config,idea.instruction):websiteIdea(project,idea.instruction)).ok),idea:edit.ok?{instruction,summary:edit.changes||edit.steps.map(step=>step.description)}:null},noChangesPerformed:true,noChargeMade:true};
 }
 function prepareBuilderExploreHandoff(session,context,{ownerConfirmed=false}={}){
  if(ownerConfirmed!==true||!currentBuilderExplore(session,context)||!session.idea)return {ok:false,reason:'Explicitly review a supported idea against the current project before leaving Explore.'};

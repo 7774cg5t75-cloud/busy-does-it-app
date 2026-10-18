@@ -764,6 +764,20 @@
         "scripts/check-mission15-phase14-image-styles.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase14-explore-context",
+      "args": [
+        "scripts/check-mission15-phase14-explore-context.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase14-picture-presets",
+      "args": [
+        "scripts/check-mission15-phase14-picture-presets.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
