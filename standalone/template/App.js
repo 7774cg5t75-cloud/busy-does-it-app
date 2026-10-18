@@ -1,3 +1,4 @@
+import {ENQUIRY_REQUIREMENTS,emptyEnquiryRequirements,prepareCustomerEnquiry} from './customerEnquiryRequirements.mjs';
 import {prepareBusinessContentEnquiry} from './businessContentRecords.mjs';
 import {BusinessContentView} from './businessContentView';
 /**
@@ -33,11 +34,11 @@ function Button({title,onPress,disabled=false}){
      fontWeight:"700",textAlign:"center"}}>{title}</Text>
  </Pressable>;
 }
-function Field({title,value,onChange,multiline=false}){
+function Field({title,value,onChange,multiline=false,maxLength}){
  return <View style={{marginTop:13}}>
   <Text style={{color:COLORS.text,fontWeight:"600"}}>{title}</Text>
   <TextInput accessibilityLabel={title} value={value} onChangeText={onChange}
-    multiline={multiline} keyboardType={title==="Email address"?"email-address":"default"}
+    multiline={multiline} maxLength={maxLength} keyboardType={title==="Email address"?"email-address":"default"}
     autoCapitalize={title==="Email address"?"none":"sentences"}
     placeholderTextColor={COLORS.muted}
     style={{color:COLORS.text,backgroundColor:COLORS.bg,borderColor:COLORS.line,
@@ -47,7 +48,7 @@ function Field({title,value,onChange,multiline=false}){
 }
 function RequestScreen({screen,live,runtime,initialService="",initialMessage="",savedState=null,onSaveState,contentSelection=null}){
  const [input,setInput]=useState(savedState?.input||{name:"",email:"",phone:"",service:initialService,
-  preferredDate:"",message:initialMessage,note:""});
+  preferredDate:"",message:initialMessage,note:"",requirements:emptyEnquiryRequirements()});
  const [busy,setBusy]=useState(false),[result,setResult]=useState(savedState?.result||null);
  const [possibleDuplicateRetry,setPossibleDuplicateRetry]=useState(savedState?.possibleDuplicateRetry||false);
  useEffect(()=>{if(!inFlight.current)onSaveState?.({input,result,possibleDuplicateRetry});},[input,result,possibleDuplicateRetry]);
@@ -66,11 +67,13 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
   if(inFlight.current||busy||!enabled||result?.ok||
     result?.mayHaveBeenReceived&&!possibleDuplicateRetry)return;
   if(contentSelection){const checked=prepareBusinessContentEnquiry(live.businessContent,contentSelection.businessId,contentSelection);if(!checked.ok){setResult({ok:false,reason:checked.reason});return;}}
+  const prepared=type==='enquiry'?prepareCustomerEnquiry({message:input.message,requirements:input.requirements||emptyEnquiryRequirements(),feed:live.businessContent,businessId:contentSelection?.businessId,selection:contentSelection}):{ok:true};
+  if(!prepared.ok){setResult({ok:false,reason:prepared.reason});return;}
   inFlight.current=true;
   setBusy(true);setResult(null);setPossibleDuplicateRetry(false);
   onSaveState?.({input,result:{ok:false,mayHaveBeenReceived:true,reason:'This request is still unconfirmed. Do not submit a second request.'},possibleDuplicateRetry:false});
   try{
-   const next=await sendNativeGuestRequest(runtime,live,type,input);
+   const next=await sendNativeGuestRequest(runtime,live,type,type==='enquiry'?{...input,message:prepared.message}:input);
    onSaveState?.({input,result:next,possibleDuplicateRetry:false});setResult(next);
   }catch{
    onSaveState?.({input,result:{ok:false,mayHaveBeenReceived:true,reason:"The request outcome is unconfirmed."},possibleDuplicateRetry:false});
@@ -108,8 +111,12 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
        onChange={set("preferredDate")}/>
       <Field title="Notes (optional)" value={input.note}
        onChange={set("note")} multiline/>
-     </>:<Field title="Your message" value={input.message}
-        onChange={set("message")} multiline/>}
+     </>:<>
+       <Text style={sub}>Optional requirements are included in your saved enquiry. They do not confirm quantity, timing, availability or attendance.</Text>
+       {ENQUIRY_REQUIREMENTS.map(field=><Field key={field.key} title={field.label} maxLength={field.max} value={(input.requirements||emptyEnquiryRequirements())[field.key]}
+         onChange={value=>set('requirements')({...input.requirements||emptyEnquiryRequirements(),[field.key]:value})}/>)}
+       <Field title="Your message" value={input.message} onChange={set("message")} multiline/>
+     </>}
     <Text style={{...sub,fontSize:12}}>By sending, you share these details with the business
       so it can reply. Anti-spam verification may take a few moments.
       This is not a confirmed booking or payment.</Text>
