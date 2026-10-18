@@ -869,6 +869,13 @@
         "scripts/check-mission15-phase22-removal.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase22-composition",
+      "args": [
+        "scripts/check-mission15-phase22-composition.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
