@@ -45,3 +45,13 @@ These checks do not authorise deployment, hosted changes or customer contact. No
 - Website: change connected section layout and heading together; preserve responsive appearance, featured item and original branding. App: reorder product/event blocks with a heading change in one batch. Check actual layouts/accessibility in each supported destination, original owner locks and independent publication boundaries.
 
 No deployment, hosted database change, publication or real communication is authorised by this checklist. Normal-sandbox browser/device acceptance remains pending; do not retry the blocked Chromium configuration here.
+
+## Phase 6 additions — pending separately authorised acceptance
+
+- Marketplace/standalone booking requests: select service, enter preferred date and access/group/location needs, review exact contact/service/date/note, correct and confirm. Verify no pre-confirm request, no duplicate taps, stale source rejection and original owner inbox/receipt. Availability and appointments must remain unconfirmed.
+- Change fields/account/app/version during review. Marketplace newer edits survive older success; standalone unknown requests keep fixed details and original retry warnings. New booking requirements must not imply persistent booking-draft/device recovery.
+- In an approved normal-sandbox renderer, compare typographic left/centre/poster and approved-image left/right/frame/feature heroes at phone/tablet/desktop. Confirm unchanged facts/colour/media, visible hero-page requirement, mobile fallbacks, rejected-image exclusion and accurate lead alignment. Inspect real screenshots before any visual-quality claim.
+- Compare original coordinated reading/editorial candidates with and without a hero image, gallery-only images, custom owner order and locks. Existing measured-regression/Keep/Undo gates must remain; owner rejection must be respected. Do not publish during acceptance without separate permission.
+- Verify saved booking notes inform owner review prompts and current approved facts, without automatic send/appointment/delivery claims. Check revoked permissions and cross-tenant access in approved isolated staging only.
+
+No hosted/database/provider/deployment action is authorised by this checklist. Do not retry the known blocked Chromium configuration or disable its sandbox.
