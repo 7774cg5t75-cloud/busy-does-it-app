@@ -188,7 +188,7 @@ function renderSectionHtml(
     return `<section class="photo-feature${sectionClasses?" "+sectionClasses:""}" id="${escapeHtml(section.id)}"><div class="wrap photo-feature-grid"><img loading="lazy" src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}"><div><${headingTag}>${escapeHtml(section.title)}</${headingTag}><p>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></div></section>`;
   }
   if (section.type === "gallery") {
-    const images = safeArray(section.items)
+    const imageNodes = safeArray(section.items)
       .map((item: any, index: number) => {
         const url = urlForAsset(item, urls, index);
         const crop=(["top","bottom"].includes(item?.appearance?.photoCrop)
@@ -200,11 +200,11 @@ function renderSectionHtml(
             )}" alt="">`
           : "";
       })
-      .filter(Boolean)
-      .join("");
+      .filter(Boolean);
+    const images = imageNodes.join("");
     return `<section id="gallery"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(
       section.title
-    )}</${headingTag}><div class="gallery">${images}</div></div></section>`;
+    )}</${headingTag}><div class="gallery${imageNodes.length>=3?" gallery-rich":""}">${images}</div></div></section>`;
   }
 
   if (section.type === "testimonials" || section.type === "faq") {

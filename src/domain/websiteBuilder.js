@@ -731,7 +731,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     }
     if(section.type==="gallery"){
       const images=safeArray(section.items).map(approvedImage).filter(Boolean);
-      return images.length ? `<section id="gallery"${sectionAttrs}><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><div class="gallery">${safeArray(section.items).map((asset,i)=>{const image=approvedImage(asset);return image?`<img class="gallery-image${galleryPhotoClass(asset)}"${editAttrs(section,"photo","",String(i))} loading="lazy" src="${escapeHtml(image)}" alt="Customer-supplied photograph">`:"";}).join("")}</div></div></section>` : "";
+      return images.length ? `<section id="gallery"${sectionAttrs}><div class="wrap"><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><div class="gallery${images.length>=3?" gallery-rich":""}">${safeArray(section.items).map((asset,i)=>{const image=approvedImage(asset);return image?`<img class="gallery-image${galleryPhotoClass(asset)}"${editAttrs(section,"photo","",String(i))} loading="lazy" src="${escapeHtml(image)}" alt="Customer-supplied photograph">`:"";}).join("")}</div></div></section>` : "";
     }
     if(section.type==="contact"){
       if(!clean(section.body)&&!clean(phone)&&!clean(email))return "";

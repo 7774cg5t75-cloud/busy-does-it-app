@@ -172,6 +172,11 @@ main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:4
 .grid article{height:100%}
 .grid article p,section article p{color:#475569;line-height:1.65}
 .gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px;margin-top:35px}
+/* Existing image-led compositions: only rich, uncustomised galleries gain a wide-screen feature. */
+@media(min-width:1100px){
+ :is(.visual-hero-image-feature,.visual-hero-type-poster) #gallery:not(.owner-gallery-compact):not(.owner-gallery-large):not(.owner-desktop-gallery-compact):not(.owner-desktop-gallery-large) .gallery-rich{grid-template-columns:repeat(3,minmax(0,1fr))}
+ :is(.visual-hero-image-feature,.visual-hero-type-poster) #gallery:not(.owner-gallery-compact):not(.owner-gallery-large):not(.owner-desktop-gallery-compact):not(.owner-desktop-gallery-large) .gallery-rich > .gallery-image:first-child{grid-column:span 2;grid-row:span 2;height:clamp(360px,48vw,620px);min-width:0;max-width:100%}
+}
 .gallery-image{display:block;width:100%;height:300px;object-fit:cover;border-radius:18px}
 .photo-feature-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,5vw,68px);align-items:center}
 .photo-feature-grid > *{min-width:0;max-width:100%}
