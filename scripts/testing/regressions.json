@@ -848,6 +848,13 @@
         "scripts/check-mission15-phase21-context.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase21-editing",
+      "args": [
+        "scripts/check-mission15-phase21-editing.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
