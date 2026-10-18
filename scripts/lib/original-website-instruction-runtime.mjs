@@ -1,3 +1,5 @@
+import {planReviewedWebsiteComposition,prepareReviewedWebsiteComposition} from '../../src/core/websiteReviewedComposition.mjs';
+import {recordWebsiteOwnerDesignFeedback} from '../../src/core/websiteMeasuredDesignCoach.mjs';
 // Execute only reviewed, checked-in controller initializer ASTs. No visitor code.
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -10,7 +12,7 @@ const babel=createRequire(import.meta.url)('@babel/core');
 function verifyOriginalWebsiteInstructionRuntime(){
  const source=readFileSync(new URL('../../src/app/AppController.js',import.meta.url),'utf8');
  const ast=babel.parseSync(source,{sourceType:'module',configFile:false,babelrc:false,parserOpts:{plugins:['jsx']}});
- const names=['commitReviewedBuilderDraft','applySelectedWebsiteInstruction','applyWebsitePageInstruction'];
+ const names=['commitReviewedBuilderDraft','applySelectedWebsiteInstruction','applyWebsitePageInstruction','applyReviewedWebsiteComposition'];
  const found=new Map();
  function walk(node){if(!node||typeof node!=='object')return;
   if(node.type==='VariableDeclarator'&&names.includes(node.id?.name)){
@@ -29,6 +31,8 @@ function verifyOriginalWebsiteInstructionRuntime(){
  websiteHistoryScope:{businessId},setWebsiteUndo:fn=>{state.undo=fn(state.undo);},setWebsiteRedo:value=>{state.redo=value;},
  setWebsiteDraft:value=>{state.current=value;},setWebsiteBuilderNotice:value=>{state.notice=value;},
  planSelectedWebsiteChanges,prepareSelectedWebsiteTransaction,applyWebsiteLayoutChange,applyStructuredWebsiteEdit,planWebsitePageInstructions};
+ const app={id:'app-a',business_id:businessId,draft_revision:1,draft_config:{display:{name:'Fictional workshop'},modules:[{key:'business_profile',enabled:true},{key:'services',enabled:true}],navigation:['business_profile','services'],presentation:{brandPalette:'forest',typeStyle:'editorial',serviceStyle:'rows'},publicProfile:{businessName:'Fictional workshop'}}};
+ Object.assign(deps,{prepareReviewedWebsiteComposition,recordWebsiteOwnerDesignFeedback,miniAppsStatus:{app},cloudWorkspace:{businessId}});
  const make=name=>Function(...Object.keys(deps),'return ('+found.get(name)+');')(...Object.values(deps));
  deps.commitReviewedBuilderDraft=make('commitReviewedBuilderDraft');
  const selected=make('applySelectedWebsiteInstruction'),page=make('applyWebsitePageInstruction');
@@ -48,6 +52,14 @@ function verifyOriginalWebsiteInstructionRuntime(){
  assert.equal(selected({selection:{...selection,generation:locked.generation},instruction:'make this heading smaller'}).applied,false);assert.equal(state.current,locked);assert.equal(state.undo.length,2);
  // The original saved snapshot is the exact restoration input, not an inverse guess.
  assert.equal(state.undo[0],draft);assert.equal(draft.sections.find(s=>s.id==='hero').appearance,undefined);
+ websiteDraftRef.current=draft;state.current=draft;state.undo=[];state.redo=[draft];
+ const composition=planReviewedWebsiteComposition({website:draft,app,businessId,pageId:'home',request:'Make contact details easy to find',brandSource:'app'});
+ assert.equal(composition.ok,true,composition.reason);
+ const applyComposition=make('applyReviewedWebsiteComposition');
+ assert.equal(applyComposition(composition.evidence,{ownerFeedback:{draftId:draft.id,pageId:'home',changeId:'reviewed-whole-page',choice:'liked'}}),true);
+ assert.equal(state.undo.length,1);assert.equal(state.undo[0],draft);assert.equal(websiteDraftRef.current,state.current);assert.deepEqual(state.redo,[]);
+ assert.equal(state.current.ownerDesignFeedback.at(-1).changeId,'reviewed-whole-page');
+ const saved=state.current;assert.equal(applyComposition(composition.evidence),false);assert.equal(state.current,saved);assert.equal(state.undo.length,1);
  return {handlers:names.length,offline:true};
 }
 export {verifyOriginalWebsiteInstructionRuntime};

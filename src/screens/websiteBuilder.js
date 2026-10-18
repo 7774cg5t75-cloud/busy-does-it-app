@@ -1,3 +1,5 @@
+import {WebsiteCompositionReview} from './websiteCompositionReview';
+import {prepareReviewedWebsiteComposition,reviewedWebsiteCompositionCurrent} from '../core/websiteReviewedComposition.mjs';
 import {BusinessContentEditor} from './businessContentEditor';
 import {coordinatedWebsiteAlternatives} from "../core/websiteCoordinatedAlternatives.mjs";
 import {beginWebsiteMeasurementAttempt,currentWebsiteMeasurementAttempt} from "../core/websiteMeasurementAttempt.mjs";
@@ -1018,7 +1020,9 @@ function WebsitePreview({ s }) {
   const sourceKey=[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft?.id,
     draft?.generation,activePage?.id||"home"].join(":");
   const candidateIsCurrent=currentWebsiteDesignCandidate(designCandidate,{
-    businessId:s.cloudWorkspace?.businessId,website:draft,pageId:activePage?.id||"home",ownerId:s.ownerSession?.userId||""});
+    businessId:s.cloudWorkspace?.businessId,website:draft,pageId:activePage?.id||"home",ownerId:s.ownerSession?.userId||""})&&
+    (!designCandidate?.compositionEvidence||reviewedWebsiteCompositionCurrent(designCandidate.compositionEvidence,
+      {website:draft,app:s.miniAppsView?.app,businessId:s.cloudWorkspace?.businessId}));
   const inspectionKey=["review",captureEpoch.current,"original",captureSequence.original].join(":");
   const candidateKey=designCandidate?
     ["review",captureEpoch.current,"candidate",captureSequence.candidate].join(":"):"";
@@ -1177,7 +1181,12 @@ function WebsitePreview({ s }) {
   const coordinatedAdvice=coordinatedWebsiteAlternatives(draft,activePage?.id,visualCheckResult);
   const tryCandidate=(advice=layoutAdvice)=>{
     if(!advice||!draft)return;
-    const result=applyWebsiteLayoutChange(draft,advice.operation);
+    if(advice.compositionEvidence){
+      const prepared=prepareReviewedWebsiteComposition(advice.compositionEvidence,{website:draft,app:s.miniAppsView?.app,
+        businessId:s.cloudWorkspace?.businessId},{layoutEdit:applyWebsiteLayoutChange});
+      if(!prepared.ok){setDesignCandidateNotice(prepared.reason);return;}advice=prepared;
+    }
+    const result=advice.compositionEvidence?{applied:true,draft:advice.draft}:applyWebsiteLayoutChange(draft,advice.operation);
     if(!result?.applied){
       setDesignCandidateNotice(result?.reason||"That layout alternative could not be prepared.");
       return;
@@ -1215,13 +1224,15 @@ function WebsitePreview({ s }) {
        currentCandidateEvidence?.ok===true&&
         currentCandidateEvidence.safeForPrivateApproval!==true||
        designCandidate?.baseGeneration!==draft?.generation)return;
-    const saved=s.applyWebsiteLayoutAction(designCandidate.operation,{
+    const saveOptions={
       baseGeneration:designCandidate.baseGeneration,
       expectedBusinessId:designCandidate.businessId,expectedWebsiteId:designCandidate.websiteId,
       expectedGeneration:designCandidate.baseGeneration,
       ownerFeedback:{draftId:draft.id,pageId:activePage?.id,
         changeId:designCandidate.id,choice:"liked"}
-    });
+    };
+    const saved=designCandidate.compositionEvidence?s.applyReviewedWebsiteComposition?.(designCandidate.compositionEvidence,saveOptions):
+      s.applyWebsiteLayoutAction(designCandidate.operation,saveOptions);
     if(saved){setDesignCandidate(null);setCandidateCheckResult(null);
       setPrivateWidthEvidence(null);
       setDesignCandidateNotice("Saved in your private draft. Undo remains available. Recheck other screen sizes before publishing.");}
@@ -1278,6 +1289,11 @@ function WebsitePreview({ s }) {
             onPress={()=>setSelectedPageId(page.id)}/>
         ))}
       </Card>
+
+      {!designCandidate?<WebsiteCompositionReview key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft.id,s.miniAppsView?.app?.id].join(':')}
+        website={draft} app={s.miniAppsView?.app} businessId={s.cloudWorkspace?.businessId} pageId={activePage?.id||'home'}
+        canCompare={['phone','tablet','desktop'].includes(previewSize)&&!visualCheckOn&&!candidateCheckOn&&!requestedReview}
+        onCompare={tryCandidate}/>:null}
 
       <Card eyebrow="Edit by tapping" title="Tap anything you want to change"
         body="Start editing, tap the exact picture or words, then use the small floating toolbar to edit, talk to BUSY or see more options. Everything stays private."

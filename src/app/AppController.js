@@ -1,3 +1,4 @@
+import {prepareReviewedWebsiteComposition} from '../core/websiteReviewedComposition.mjs';
 import {parseBusinessContentInterest} from '../core/businessContentRecords.mjs';
 import {validateNativeGuestRequest} from "../../standalone/template/nativeCustomerActions.mjs";
 import {createAppNotificationActions} from "../core/appNotificationActions.mjs";
@@ -13423,6 +13424,16 @@ function App() {
     return true;
   };
 
+  const applyReviewedWebsiteComposition=(evidence,options={})=>{
+    const current=websiteDraftRef.current;
+    const prepared=prepareReviewedWebsiteComposition(evidence,{website:current,app:miniAppsStatus?.app,
+      businessId:cloudWorkspace?.businessId||''},{layoutEdit:applyWebsiteLayoutChange});
+    if(!prepared.ok){setWebsiteBuilderNotice(prepared.reason);return false;}
+    let next=prepared.draft;
+    if(options.ownerFeedback){const feedback=recordWebsiteOwnerDesignFeedback(next,{...options.ownerFeedback,at:new Date().toISOString()});if(feedback.applied)next=feedback.draft;}
+    return commitReviewedBuilderDraft(current,next,'Saved the reviewed composition and branding as one private edit. Undo restores the complete prior website.');
+  };
+
   // V3.192: explicit, same-business private copy from current Business App
   // into current website. Recheck app+website revisions and exact reviewed
   // words at the tap; no service can override existing website wording.
@@ -16946,6 +16957,7 @@ function App() {
     applyBusinessAppBrandToWebsite,
     applyBusinessAppTypographyToWebsite,
     applyAppDesignToWebsite,
+    applyReviewedWebsiteComposition,
     applySelectedWebsiteInstruction,
     previewSelectedWebsiteInstruction,
     previewWebsitePageInstruction,
