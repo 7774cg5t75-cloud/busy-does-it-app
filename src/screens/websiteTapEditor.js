@@ -1,3 +1,4 @@
+import {BuilderQualityNotice} from "../components/builderQualityNotice";
 import {WebsiteTypographyControls} from "./websiteTypographyControls";
 import React from "react";
 import {Image,KeyboardAvoidingView,Modal,Platform,SafeAreaView,ScrollView,Text,TextInput,View} from "react-native";
@@ -270,6 +271,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
             <View style={{marginVertical:10}}>
              <Text style={styles.sectionLabel}>Private before-and-after preview</Text>
              <Text style={styles.cardBody}>{selectedInstructionPreview.summary}</Text>
+             <BuilderQualityNotice quality={selectedInstructionPreview.quality}/>
              <Text style={styles.cardBody}>Compare phone, tablet or desktop layouts before applying. Wider views are scaled down on your phone.</Text>
              {["phone","tablet","desktop"].map(mode=>(
               <Button key={mode} label={(comparisonSize===mode?"✓ ":"")+"Compare "+mode+" layout"}

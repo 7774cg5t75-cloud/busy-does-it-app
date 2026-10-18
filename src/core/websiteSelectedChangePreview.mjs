@@ -1,3 +1,4 @@
+import {reviewWebsiteEditingQuality} from "../../supabase/functions/busy-website-worker/websiteEditingQuality.mjs";
 /**
  * V3.148 — Private, on-demand, exact-element design preview.
  *
@@ -33,7 +34,7 @@ function previewSelectedWebsiteInstruction(draft,{selection,instruction}={},deps
     !originalHtml.startsWith("<!doctype html>")||!candidateHtml.startsWith("<!doctype html>")||
     /<script\b|data-busy-edit-section|busy.contextual-action.v1/i.test(originalHtml+candidateHtml))
   return fail("The safe, static preview could not be prepared.");
- return {ok:true,draftId:draft.id,pageId:selection.pageId,
+ return {ok:true,quality:reviewWebsiteEditingQuality(result.draft),draftId:draft.id,pageId:selection.pageId,
   generation:draft.generation,originalHtml,candidateHtml,
   steps:plan.steps.map(x=>({spoken:x.spoken,description:x.description})),
   summary:"Preview only — "+result.steps+

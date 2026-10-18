@@ -1,3 +1,4 @@
+import {amendAppQualityProposal} from "../core/appCoordinatedStudio.mjs";
 import {AppVisualSelection} from "./appVisualSelection";
 import {useApprovedBuilderRecords} from './useApprovedBuilderRecords';
 import {planApprovedAppRecordSection} from '../core/approvedBuilderRecords.mjs';
@@ -2529,6 +2530,11 @@ function MiniAppBuilder({ s }) {
               ):null}
               <AppStudioComparison key={studioPreview.source.configStamp+":"+JSON.stringify(studioPreview.operations)}
                 original={view.draftConfig} proposed={studioPreview.nextConfig}
+                onQualityRepair={repair=>{
+                  if(liveControlContext.current!==controlContext||!studioIsCurrent||studio.pending||studio.uncertain)return;
+                  const next=amendAppQualityProposal(view.draftConfig,studioPreview,repair);
+                  if(next.ok)setStudioPreview(next);else setStudioNotice(next.reason);
+                }}
                 renderSurface={config=><MiniAppSurface config={config} businessContent={s.miniAppsView?.app?.businessContent||null}/>}/>
               <Button primary label={"Approve all "+studioPreview.changes.length+" private change(s)"}
                 disabled={!!s.miniAppsAction||!studio.canApprove}

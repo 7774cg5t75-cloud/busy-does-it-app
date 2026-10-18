@@ -11,7 +11,7 @@ import {appEditLockReason} from "./appOwnerLocks.mjs";
  * It cannot enable modules, confirm requests, charge, publish or submit apps.
  */
 import {enabledAppKeys,proposeAppSectionMove} from "./appSectionOrder.mjs";
-import {previewPrivateAppAppearance,publicAppAppearance} from "./appAppearanceEditing.mjs";
+import {reviewAppEditingQuality,previewPrivateAppAppearance,publicAppAppearance} from "./appAppearanceEditing.mjs";
 import {reviewPrivateAppServices} from "./appServiceCollection.mjs";
 import {proposeGalleryImageDescription,restoreGalleryDescription} from "./appGalleryDescription.mjs";
 const MAX_CHANGES=8;
@@ -158,7 +158,9 @@ function proposeCoordinatedAppChanges(config,operations){
   if(!after||!undo)return {ok:false,reason:"No safe change was prepared."};
   next=after;inverse.unshift(undo);changes.push(description);
  }
- return {ok:true,changes,operations:operations.map(x=>({...x})),undoOperations:inverse,
+ const quality=reviewAppEditingQuality(next);
+ if(!quality.mayCommit)return {ok:false,reason:quality.explanation,quality};
+ return {ok:true,quality,changes,operations:operations.map(x=>({...x})),undoOperations:inverse,
    nextConfig:next,privateOnly:true,requiresOwnerApproval:true,
    changesBookings:false,chargesCustomers:false,publishes:false,
    sameSharedConfigForStandalone:true,proofType:"static_config_preview"};
@@ -331,3 +333,14 @@ function planAppVoiceInstructions(config,instruction){
  return {...result,instruction:phrase,preserved};
 }
 export {MAX_CHANGES,TEXT_FIELDS,proposeCoordinatedAppChanges,planAppVoiceInstructions};
+
+// Re-prepare the ORIGINAL proposal after an owner requests a suggested repair.
+// No save, standalone edit engine or change to unrelated reviewed operations.
+function amendAppQualityProposal(config,proposal,repair){
+ if(!proposal?.ok||repair?.kind!=='appearance'||
+  !['headerStyle','layoutDensity'].includes(repair.field)||
+  proposal.operations.some(op=>op.kind==='restore_appearance'))
+  return {ok:false,reason:'Prepare a current supported design proposal before adjusting it.'};
+ return proposeCoordinatedAppChanges(config,[...proposal.operations.filter(op=>!(op.kind==='appearance'&&op.field===repair.field)),repair]);
+}
+export {amendAppQualityProposal};

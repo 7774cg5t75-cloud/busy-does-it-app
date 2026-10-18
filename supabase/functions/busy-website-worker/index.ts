@@ -1,3 +1,4 @@
+import {reviewWebsiteEditingQuality} from "./websiteEditingQuality.mjs";
 import {itemTypographyClasses} from "./websiteTextTypography.mjs";
 import {sectionAppearanceClasses} from './websiteAppearanceClasses.mjs';
 import {businessContentSectionHtml} from '../_shared/businessContentHtml.mjs';
@@ -500,6 +501,8 @@ async function syncProfileForDeployment(
 }
 
 async function prepareDeployment(job: any, deployment: any, website: any) {
+  const quality=reviewWebsiteEditingQuality(deployment.source_draft);
+  if(!quality.mayCommit)throw new Error("Design quality: "+quality.explanation);
   await ensureBuckets();
   await supabase
     .from("busy_website_deployments")
@@ -663,6 +666,8 @@ async function prepareDeployment(job: any, deployment: any, website: any) {
 }
 
 async function publishDeployment(job: any, deployment: any, website: any) {
+  const quality=reviewWebsiteEditingQuality(deployment.source_draft);
+  if(!quality.mayCommit)throw new Error("Design quality: "+quality.explanation);
   if (!deployment.preview_storage_path || !deployment.prepared_at) {
     throw new Error("The website version must be prepared before publishing.");
   }
@@ -812,6 +817,8 @@ async function publishDeployment(job: any, deployment: any, website: any) {
 }
 
 async function rollbackDeployment(job: any, target: any, website: any) {
+  const quality=reviewWebsiteEditingQuality(target.source_draft);
+  if(!quality.mayCommit)throw new Error("Design quality: "+quality.explanation);
   if (!target.published_at || !target.public_storage_path) {
     throw new Error("That website version has never been published.");
   }
@@ -890,6 +897,7 @@ async function rollbackDeployment(job: any, target: any, website: any) {
 
 function permanentPublishingFailure(message: string) {
   const lower = message.toLowerCase();
+  if(lower.startsWith("design quality:"))return true;
   return (
     lower.includes("prepared website asset is missing") ||
     lower.includes("must be prepared before publishing") ||

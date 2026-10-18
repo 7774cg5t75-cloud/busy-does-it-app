@@ -1,3 +1,5 @@
+import {BuilderQualityNotice} from "../components/builderQualityNotice";
+import {reviewAppEditingQuality} from "../core/appAppearanceEditing.mjs";
 import {reviewAppContentChanges} from '../core/appContentChangeReview.mjs';
 import React from "react";
 import {Text,View,ScrollView} from "react-native";
@@ -9,7 +11,7 @@ import {SAMPLE_WIDTHS} from "../core/appResponsiveDesign.mjs";
 
 // Both sides use the original marketplace renderer. Fixed content widths are
 // a development/owner preview, never claims about a native device screenshot.
-function AppStudioComparison({original,proposed,renderSurface}){
+function AppStudioComparison({original,proposed,renderSurface,onQualityRepair}){
  const [side,setSide]=React.useState("proposed");
  const [widthId,setWidthId]=React.useState("phone");
  const [contentLimit,setContentLimit]=React.useState(12);
@@ -20,6 +22,7 @@ function AppStudioComparison({original,proposed,renderSurface}){
  const quality=comparison.designOnly?compareAppScreenQuality(original,proposed):null;
  return <>
   <Text style={styles.sectionLabel}>Before and after comparison</Text>
+  <BuilderQualityNotice quality={reviewAppEditingQuality(proposed)} onRepair={onQualityRepair}/>
   <Text style={styles.cardBody}>{comparison.changeCount+" layout / navigation differences recorded. "+
    (comparison.designOnly?"Only design settings changed.":"Public content or modules also changed; review everything.")}</Text>
   {comparison.changes.slice(0,8).map(change=><MetricRow key={change.field}

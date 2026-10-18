@@ -1,3 +1,4 @@
+import {reviewAppEditingQuality} from "./appAppearanceEditing.mjs";
 import {checkReviewedCustomerVersion} from "./customerReviewedVersion.mjs";
 import {businessContentSectionHtml} from '../_shared/businessContentHtml.mjs';
 import {validContentLayout} from './businessContentRecords.mjs';
@@ -2828,6 +2829,8 @@ async function uploadMiniAppHtml(path: string, html: string, cacheControl: strin
 }
 
 async function publishMiniAppWebArtifact(app: any, version: any) {
+  const quality=reviewAppEditingQuality(version?.config);
+  if(!quality.mayCommit)throw new Error(quality.explanation);
   await ensureMiniAppPublicBucket();
   const html = publicMiniAppWebHtml(app, version);
   const bytes = new TextEncoder().encode(html).byteLength;

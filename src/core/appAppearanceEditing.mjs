@@ -1,3 +1,4 @@
+import {editingQualityDecision} from "./builderQualityPolicy.mjs";
 import {appOwnerLocks,appEditLockReason} from "./appOwnerLocks.mjs";
 /** V3.193 owner-controlled Business App appearance. Exact same code on
  * client and trusted Edge; acceptance and save use the same security rules. */
@@ -53,8 +54,10 @@ function previewPrivateAppAppearance(config,{field,value}={}){
    delete presentation[optional];
  }
  const previous=isBrand?current.brandAccent||"":current[field];
- return {ok:true,field,value:validated,previous,
-  nextConfig:{...config,presentation},
+ const nextConfig={...config,presentation},quality=reviewAppEditingQuality(nextConfig);
+ if(!quality.mayCommit)return {ok:false,reason:quality.explanation,quality};
+ return {ok:true,field,value:validated,previous,quality,
+  nextConfig,
   privateOnly:true,ownerApprovalRequired:true,changesBooking:false,
   changesPayments:false};
 }
@@ -73,3 +76,21 @@ function publicAppAppearance(presentation={}){
  return {ok:true,appearance:{...DEFAULTS,...look}};
 }
 export {OPTIONS,DEFAULTS,previewPrivateAppAppearance,publicAppAppearance};
+
+// Extends the existing appearance review; schema failures are critical,
+// visual preferences remain advisory and never override owner choices.
+function reviewAppEditingQuality(config){
+ const findings=[],add=(id,level,message,evidence='finite-contract',repair=null)=>findings.push({id,level,message,evidence,repair});
+ const enabled=(Array.isArray(config?.modules)?config.modules:[]).filter(m=>m?.enabled===true).map(m=>m.key);
+ if(!enabled.includes('business_profile')||new Set(enabled).size!==enabled.length)
+  add('essential-navigation','critical','Keep one business profile and unique enabled screens so customers can navigate the app.');
+ if(config?.navigation!==undefined&&(!Array.isArray(config.navigation)||config.navigation.length!==enabled.length||
+  new Set(config.navigation).size!==enabled.length||config.navigation.some(key=>!enabled.includes(key))))
+  add('navigation-permutation','critical','The navigation must contain each enabled screen exactly once. Restore the supported order.');
+ if(!publicAppAppearance(config?.presentation||{}).ok)add('appearance-contract','critical','This appearance contains an unsupported style or colour. Choose the supported controls.');
+ const p=config?.presentation||{};
+ if(p.typeStyle==='impact'&&p.headerStyle==='bold')add('strong-header','advisory','This combines a bold header with emphatic typography. Check long business names on a phone; you may keep your choice.','heuristic',{kind:'appearance',field:'headerStyle',value:'refined'});
+ if(p.layoutDensity==='compact'&&enabled.length>=5)add('compact-navigation','advisory','This compact app has several screens. More space may help customers scan it.','heuristic',{kind:'appearance',field:'layoutDensity',value:'comfortable'});
+ return editingQualityDecision(findings);
+}
+export {reviewAppEditingQuality};
