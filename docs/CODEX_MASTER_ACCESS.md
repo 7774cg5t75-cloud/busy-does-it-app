@@ -2,6 +2,17 @@
 
 **Status:** configuration reference only. The full product master remains private and is **not stored in this public GitHub repository**. This file is intentionally safe to publish.
 
+## New private product-master checkpoint — 18 October 2026 (V22.28)
+
+The owner approved the **BUSY Inbox / unified customer conversations** refinement in Product Master **V22.28**, updating existing Section 49.2 (and the version decision record), not creating a parallel CRM or provider sending capability. The new private Word document was created from the complete V22.27 source, checked after edit (1,305 paragraphs; 19 tables) and rendered successfully (94 pages). The Word file was saved to the owner's **private ChatGPT Library** on 18 October 2026; it is not in this public repository.
+
+- **Filename:** `Busy_Does_It_Master_V22_28_Unified_Customer_Inbox.docx`.
+- **Original updated DOCX SHA-256:** `fe33bf52211c6c2e4111c0636d6caf21e55dea76e566778cf3a1591f340955f0`.
+- **Location:** owner's private ChatGPT Library; do not assume a fresh Codex thread has access.
+- **Technical reference:** documentation-only draft PR #27, which extends the existing Communications Hub and Follow-up Engine architecture with phased, permissioned provider integration requirements. No API integration, migration, production message, paid operation or protected-branch merge occurred.
+
+For future substantial missions, obtain and **actually open the latest owner-approved master** (V22.28 or any newer version) and reconcile it with the working GitHub architecture and tests. This dated checkpoint is provenance, not blanket access or implementation proof.
+
 ## Current Mission 13 private-master verification — 17 October 2026
 
 The owner attached the complete approved Product Master **V22.27**, updated 17 October 2026, under the attachment name `Latest master 44.docx`. Its Word body, including table paragraphs, was opened and reviewed in full (1,691 paragraphs). Original DOCX SHA-256: `8c7e7134124f9b8c54fd8fd159f66dd199883dd0af601d390904e0ddec9005eb`. This supersedes V22.24 for Mission 13; earlier provenance remains below. The private document was neither changed nor copied into this public repository. The supplied filename alone was not used as version proof: V22.27 is stated in its contents and confirmed by the owner.
