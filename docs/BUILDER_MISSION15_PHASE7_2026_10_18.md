@@ -1,5 +1,7 @@
 # Mission 15 Phase 7 — implementation checkpoint, mission remains open
 
+**Superseded completion status:** the supported first-version implementation is now complete. See [Phase 7 completion](BUILDER_MISSION15_PHASE7_COMPLETION_2026_10_18.md) for expanded typography/colours, owner-page movement, accessible buttons and the resolved request-version workstream. Historical checkpoint details below remain accurate for their original source. Mission 15 remains open for Phase 8.
+
 Branch: `codex/builder-mission15-design-advancement`; existing draft PR #26, dependent on PR #25 and unchanged earlier draft chain. Starting remote `b0e47a4e5a990a4d8a24df8e0d122d439e636053`, local equivalent tree `f21a381d6df960d61b0f329b38567cddb2e78ae8`. Private owner-supplied V22.31 opened and reviewed against the previously fully reviewed V22.27; public provenance updated without copying private contents. AGENTS, architecture, development policy, prior phase evidence and original editing paths reviewed.
 
 ## Functional slices preserved

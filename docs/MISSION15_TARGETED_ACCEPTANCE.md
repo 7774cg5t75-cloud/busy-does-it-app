@@ -55,3 +55,10 @@ No deployment, hosted database change, publication or real communication is auth
 - Verify saved booking notes inform owner review prompts and current approved facts, without automatic send/appointment/delivery claims. Check revoked permissions and cross-tenant access in approved isolated staging only.
 
 No hosted/database/provider/deployment action is authorised by this checklist. Do not retry the known blocked Chromium configuration or disable its sandbox.
+
+## Phase 7 completion acceptance (not executed)
+
+- Normal-sandbox browser and iPad/iPhone: select section and card heading/body; preview/apply font, weight, colour and alignment; reload; exact Undo; deliberately drag only from handle, cancel with Escape/blur, scroll normally elsewhere. Test Earlier/Later with VoiceOver/TalkBack and without a keyboard. Verify the home and owner-page render orders independently and reject displaced locked sections.
+- Native App Studio: tap header/navigation, prepare finite appearance or move, compare, approve one revision and Undo; verify public customer surfaces never expose editing controls.
+- Separately approved isolated staging: advertise reviewed-version capability, retain old-client compatibility, then use the updated client to review a service request. Republish between review and submit: no new request, explicit reload/re-review and safe retry-reference completion. Lose the submit response and republish: original receipt reconciliation must return the one saved request/version without replay. Account/tenant switching and foreign expected IDs must fail safely. Match owner-inbox original customer requirements and service name to the saved `version_id`.
+- Complete screenshot/layout and assistive-technology checks before claiming measured visual quality or device readiness. Calculated solid-colour contrast is not image-based evaluation. No acceptance execution, publication or deployment authorised by this plan.
