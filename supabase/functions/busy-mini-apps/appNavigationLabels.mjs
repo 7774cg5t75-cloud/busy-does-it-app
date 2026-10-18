@@ -1,7 +1,10 @@
 const keys=Object.freeze(['business_profile','services','gallery','contact']);
 const valid=value=>typeof value==='string'&&value.trim()===value&&value.length>0&&value.length<=36&&!/[<>\u0000-\u001f\u007f]/.test(value)&&!/\b(?:pay|paid|checkout|purchase|confirmed|available|in stock|book now)\b/i.test(value);
 function validNavigationLabels(value){return value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).every(key=>keys.includes(key)&&valid(value[key]));}
-function publicNavigationLabels(config){return Object.fromEntries((config?.modules||[]).filter(m=>m?.enabled===true&&keys.includes(m.key)&&valid(m.label)).map(m=>[m.key,m.label]));}
+function publicNavigationLabels(config,{withDefaults=false}={}){
+ const defaults={business_profile:'Business profile',services:'Services',gallery:'Gallery',contact:'Contact'};
+ return Object.fromEntries((config?.modules||[]).filter(m=>m?.enabled===true&&keys.includes(m.key)&&(withDefaults||valid(m.label))).map(m=>[m.key,valid(m.label)?m.label:valid(m.title)?m.title:defaults[m.key]]));
+}
 function prepareNavigationLabel(config,{moduleKey,value}={}){
  const rows=config?.modules?.filter(m=>m.key===moduleKey&&m.enabled===true)||[];
  if(!keys.includes(moduleKey)||rows.length!==1||value!==null&&!valid(value))return {ok:false,reason:'Choose an information screen and a short, honest navigation label.'};

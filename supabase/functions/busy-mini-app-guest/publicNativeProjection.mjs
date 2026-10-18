@@ -58,7 +58,7 @@ function publicNativeMiniAppProjection(app,version,{expectedAppId,expectedVersio
   tagline:str(config.display?.tagline||profile.tagline,260),
   about:str(profile.about||profile.description,1200),
   faqs:publicCollection('faqs',profile.faqs||[]),testimonials:publicCollection('testimonials',profile.testimonials||[]),
-  services,gallery,contact,offers,loyalty,moduleKeys,navigationLabels:publicNavigationLabels(config),...(Object.keys(publishedImageStyles).length?{imageStyles:JSON.parse(JSON.stringify(publishedImageStyles))}:{}),...(Object.keys(componentStyles).length?{componentStyles:JSON.parse(JSON.stringify(componentStyles))}:{}),
+  services,gallery,contact,offers,loyalty,moduleKeys,navigationLabels:publicNavigationLabels(config,{withDefaults:true}),...(Object.keys(publishedImageStyles).length?{imageStyles:JSON.parse(JSON.stringify(publishedImageStyles))}:{}),...(Object.keys(componentStyles).length?{componentStyles:JSON.parse(JSON.stringify(componentStyles))}:{}),
   heroUrl:safeUrl(profile.assets?.hero?.uri),
   supportsEnquiry:has("enquiry"),supportsBookingRequest:has("booking_request"),
   bookingsAlwaysRequireBusinessConfirmation:true,
