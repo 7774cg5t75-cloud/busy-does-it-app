@@ -16,6 +16,8 @@ for(const [field,values]of Object.entries(textTypographyFields))for(const value 
  const reset=applyWebsiteLayoutChange(r.draft,{action:'item-style',sectionId:'services',itemId:id,field,value:'brand'});assert.ok(reset.applied);assert.equal(reset.draft.sections.find(s=>s.id==='services').items[0].appearance,undefined);
 }
 const selection={draftId:first.id,generation:first.generation,pageId:'home',sectionId:'services',itemId:id,field:'title'};
+for(const text of ['make this heading bold','change this heading to brand accent','make this heading section foreground']){const friendly=planSelectedWebsiteChanges(first,'home',selection,text);assert.ok(friendly.ok,text);assert.equal(friendly.steps[0].type,'layout','Colour/weight requests must not replace owner wording');}
+assert.equal(planSelectedWebsiteChanges(first,'home',selection,'change this heading to gold').ok,false,'Unsupported colour must not silently replace the heading wording');
 const plan=planSelectedWebsiteChanges(first,'home',selection,'set this heading font to serif; set this heading colour to accent; make this heading bigger');assert.ok(plan.ok);
 const r=prepareSelectedWebsiteTransaction(first,plan,{fieldEdit:applyStructuredWebsiteEdit,layoutEdit:applyWebsiteLayoutChange});assert.ok(r.applied);
 const resetSize=applyWebsiteLayoutChange(r.draft,{action:'item-style',sectionId:'services',itemId:id,field:'headingScale',value:'normal'});assert.ok(resetSize.applied);

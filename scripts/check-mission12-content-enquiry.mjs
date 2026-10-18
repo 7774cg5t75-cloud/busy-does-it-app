@@ -1,3 +1,4 @@
+import {checkReviewedCustomerVersion} from "../supabase/functions/busy-mini-apps/customerReviewedVersion.mjs";
 import {emptyEnquiryRequirements,prepareCustomerEnquiry} from '../src/core/customerEnquiryRequirements.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -40,8 +41,11 @@ const actualDetail=new Function('supabase','trackConsumerApp','recordMiniAppEntr
 const canonicalDetail=await actualDetail('ceramics','', 'unknown',false);assert.equal(canonicalDetail.app.business_id,business,'the real app_detail response must retain its server-resolved tenant');
 const body=source.slice(source.indexOf('async function submitRequest('),source.indexOf('// Provider submission status',source.indexOf('async function submitRequest(')));
 const saved=[];const db={from(table){const filters=[];let inserted=null;const result=()=>{if(table==='busy_mini_apps')return {data:{business_id:business},error:null};if(table==='busy_mini_app_request_events')return {error:null};if(inserted){const row={id:'request_saved_001',status:'received',...inserted};saved.push(row);return {data:row,error:null};}return {data:saved.find(r=>filters.every(([k,v])=>r[k]===v))||null,count:0,error:null};};const q={select:()=>q,eq:(k,v)=>{filters.push([k,v]);return q;},gte:()=>q,insert:v=>{inserted=v;return q;},single:async()=>result(),maybeSingle:async()=>result(),then:(a,b)=>Promise.resolve(result()).then(a,b)};return q;}};
-const submit=new Function('supabase','clean','safeArray','appDetail','checkCustomerRequestReplay','verifiedRequestEvidence','trackConsumerApp','notifyBusinessOfMiniAppRequest',stripTypeScriptTypes(body)+';return submitRequest;')(db,(v,max)=>typeof v==='string'?v.trim().slice(0,max):'',v=>Array.isArray(v)?v:[],async()=>live,checkCustomerRequestReplay,()=>({verifiedSaved:true}),async()=>{},async()=>{});
-const receipt=await submit(user,{slug:'ceramics',requestType:'enquiry',payload},'request-key-001');
+const submit=new Function('supabase','clean','safeArray','appDetail','checkCustomerRequestReplay','checkReviewedCustomerVersion','verifiedRequestEvidence','trackConsumerApp','notifyBusinessOfMiniAppRequest',stripTypeScriptTypes(body)+';return submitRequest;')(db,(v,max)=>typeof v==='string'?v.trim().slice(0,max):'',v=>Array.isArray(v)?v:[],async()=>live,checkCustomerRequestReplay,checkReviewedCustomerVersion,()=>({verifiedSaved:true}),async()=>{},async()=>{});
+assert.deepEqual(canonicalDetail.requestReview,{schema:'published-version.v1',appId,versionId:version});
+const receipt=await submit(user,{slug:'ceramics',requestType:'enquiry',payload,expectedAppId:appId,expectedVersionId:version},'request-key-001');
+assert.equal(saved[0].version_id,version,'Owner inbox request retains the exact reviewed published version');
+const stale=await submit(user,{slug:'ceramics',requestType:'enquiry',payload,expectedAppId:appId,expectedVersionId:'stale-version'},'different-key');assert.equal(stale.reviewRequired,true);assert.equal(saved.length,1,'Stale review cannot create another owner-inbox request');
 assert.equal(receipt.savedRequestConfirmed,true);assert.equal(saved.length,1);assert.equal(saved[0].business_id,business);assert.equal(saved[0].consumer_user_id,user);assert.equal(saved[0].payload.message,payload.message);assert.match(saved[0].payload.message,/Quantity or group size \(optional\): 3/);assert.match(saved[0].payload.message,/approved revision 2/);assert.equal(saved[0].service_name,selected.service);assert.equal(receipt.notificationDeliveryVerified,false);
 await submit(user,{slug:'ceramics',requestType:'enquiry',payload},'request-key-001');assert.equal(saved.length,1);
 await assert.rejects(()=>submit(user,{slug:'ceramics',requestType:'enquiry',payload:{...payload,message:'Different context'}},'request-key-001'));

@@ -41,6 +41,14 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
  if(!text||text.length>400)return failure("Type one short change, such as ‘make this heading bigger’.");
  // Literal user wording only: never invent content. This remains subject to
  // the existing text-field length, XSS-escaping, email and link validation.
+ const plainWeight=text.match(/^(?:make|set) (?:this|that|the selected) (heading|paragraph|text) (regular|medium|bold|heavy)$/i);
+ if(plainWeight)return interpretSelectedWebsiteRequest(draft,pageId,selection,
+  'set this '+(plainWeight[1].toLowerCase()==='heading'?'heading':'paragraph')+' weight to '+plainWeight[2].toLowerCase());
+ const plainColour=text.match(/^(?:make|set|change) (?:this|that|the selected) (heading|paragraph|text) (?:colou?r )?(?:to )?(?:the )?(section foreground|brand accent)$/i);
+ if(plainColour)return interpretSelectedWebsiteRequest(draft,pageId,selection,
+  'set this '+(plainColour[1].toLowerCase()==='heading'?'heading':'paragraph')+' colour to '+(/accent/i.test(plainColour[2])?'accent':'ink'));
+ if(/^(?:change|set) (?:this|that|the selected) (?:heading|title|text|paragraph) to (?:gold|silver|red|blue|green|yellow|orange|purple|white|black)$/i.test(text))
+  return failure('That sounds like a colour request. Use the readable brand accent or section foreground controls; arbitrary colours need contrast review. To replace the actual wording, use Edit.');
  const replacement=text.match(/^(?:change|set|replace) (?:this|that|the selected) (?:heading|title|text|wording|paragraph|button(?: text)?|phone(?: number)?|email|hours) (?:to|with|as) (.+)$/i);
  if(replacement){
   const subject=text.match(/^(?:change|set|replace) (?:this|that|the selected) (heading|title|text|wording|paragraph|button(?: text)?|phone(?: number)?|email|hours) /i)?.[1]?.toLowerCase()||"";
