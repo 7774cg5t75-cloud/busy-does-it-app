@@ -67,3 +67,24 @@ function browsePublicNativeServices(services,query='',category=''){
  return {rows:found.filter(row=>!selectedCategory||row.category===selectedCategory),categories,selectedCategory};
 }
 export {browsePublicNativeServices};
+
+// Finite customer questions from the current public service list. No inferred
+// price, appointment, availability, provider action or new request contract.
+const SERVICE_QUESTION_TOPICS=Object.freeze([
+ {key:'details',label:'What is included?'},
+ {key:'price',label:'Price and options'},
+ {key:'timing',label:'Timing and requirements'}
+]);
+function prepareServiceQuestion(services,name,topic){
+ if(!Array.isArray(services)||services.length>50||typeof name!=='string'||
+    !name.trim()||name.length>240||/[<>\u0000-\u001f\u007f]/.test(name)||
+    !SERVICE_QUESTION_TOPICS.some(item=>item.key===topic))
+  return {ok:false,reason:'Choose a current service and supported question.'};
+ if(services.filter(item=>item?.name===name).length!==1)
+  return {ok:false,reason:'This service changed or is ambiguous. Choose it again.'};
+ const question=topic==='details'?'What is included in '+name+' and what information do you need from me?':
+  topic==='price'?'Could you confirm the current price and options for '+name+'?':
+  'What timing can be arranged for '+name+' and what requirements should I prepare?';
+ return {ok:true,service:name,message:question,transactionConfirmed:false};
+}
+export {SERVICE_QUESTION_TOPICS,prepareServiceQuestion};

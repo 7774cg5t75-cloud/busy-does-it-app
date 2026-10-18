@@ -13,7 +13,7 @@ import {AppSectionNavigation} from '../components/appSectionNavigation';
 import {AppPublicCollectionEditor} from './appPublicCollectionEditor';
 import {publicCollection} from '../core/appPublicCollections.mjs';
 import {AppContactEditor} from "./appContactEditor";
-import {validateNativeGuestRequest,searchPublicNativeServices,browsePublicNativeServices} from "../../standalone/template/nativeCustomerActions.mjs";
+import {validateNativeGuestRequest,searchPublicNativeServices,browsePublicNativeServices,prepareServiceQuestion,SERVICE_QUESTION_TOPICS} from "../../standalone/template/nativeCustomerActions.mjs";
 import {ServiceCategoryFilter} from '../components/serviceCategoryFilter';
 import {BusinessAppCustomerRequestFields} from './businessAppCustomerRequestFields';
 import {nativePreferredDates} from "../../standalone/template/nativePreferredDates.mjs";
@@ -272,6 +272,7 @@ function MiniAppSurface({
   const modules = orderedAppModules(config);
   const [serviceQuery,setServiceQuery]=React.useState('');
   const [serviceCategory,setServiceCategory]=React.useState('');
+  const [questionService,setQuestionService]=React.useState('');
   const [selectedSection,setSelectedSection]=React.useState('');
   const currentSection=modules.some(m=>m.key===selectedSection)?selectedSection:'';
   const allServices=Array.isArray(profile?.services)?profile.services:[];
@@ -458,6 +459,10 @@ function MiniAppSurface({
                         {service.durationLabel?<Text style={styles.cardBody}>{'Typical duration: '+service.durationLabel}</Text>:null}
                         {interactive&&typeof onSelectService==='function'&&modules.some(m=>m.key==='enquiry')?<Button label={'Ask about '+service.name}
                           onPress={()=>onSelectService(service.name,'enquiry')}/>:null}
+                        {interactive&&typeof onSelectService==='function'&&modules.some(m=>m.key==='enquiry')?<View>
+                          <Button label={questionService===service.name?'Hide question ideas':'Help me ask about '+service.name} onPress={()=>setQuestionService(questionService===service.name?'':service.name)}/>
+                          {questionService===service.name?SERVICE_QUESTION_TOPICS.map(topic=><Button key={topic.key} label={topic.label} onPress={()=>onSelectService(service.name,'enquiry',topic.key)}/>):null}
+                        </View>:null}
                         {interactive&&typeof onSelectService==='function'&&modules.some(m=>m.key==='booking_request')?<Button label={'Request '+service.name}
                           onPress={()=>onSelectService(service.name,'booking_request')}/>:null}
                       </View>
@@ -4665,11 +4670,16 @@ function BusyAppDetailForm({ s }) {
     const apply=()=>{setService(checked.service);setMessage(checked.message);setContentInterest(checked.selection);setContentNotice('Selected item added to your enquiry. Review the message before sending.');goToRequest('enquiry');};
     if(message.trim())Alert.alert('Replace this enquiry draft?','Your current message will be replaced by the selected listing context.',[{text:'Keep my message',style:'cancel'},{text:'Use selected item',onPress:apply}]);else apply();
   };
-  const chooseService=(label,kind)=>{
+  const chooseService=(label,kind,topic)=>{
     const type=['enquiry','booking_request'].includes(kind)?kind:config?.modules?.some(m=>m.enabled&&m.key==='enquiry')?'enquiry':'booking_request';
     if(!config?.modules?.some(m=>m.enabled&&m.key===type))return;
-    const apply=()=>{setService(label);setRequestKind(type);if(contentInterest){setContentInterest(null);setMessage("I'd like to ask about "+label+'.');setContentNotice('Selected listing removed. Review your service enquiry before sending.');}else if(type==='enquiry'&&!message.trim())setMessage("I'd like to ask about "+label+'.');goToRequest();};
-    if(contentInterest)Alert.alert('Replace the selected listing?','This removes the product or event selection and replaces its enquiry message with the selected service.',[{text:'Keep selected item',style:'cancel'},{text:'Use service',onPress:apply}]);else apply();
+    const question=topic?prepareServiceQuestion(config?.publicProfile?.services||[],label,topic):null;
+    if(topic&&(!question?.ok||type!=='enquiry')){setContentNotice(question?.reason||'Choose an enquiry question.');return;}
+    const stamp=formLive.current,selectedUser=s.ownerSession?.userId;
+    const apply=()=>{
+      if(!formAlive.current||formLive.current!==stamp||s.selectedBusyAppDetail!==detail||s.ownerSession?.userId!==selectedUser){setContentNotice('Your draft changed. Choose the service again; your newer details were kept.');return;}
+      setService(label);setRequestKind(type);if(question){setContentInterest(null);setMessage(question.message);setContentNotice('Question prepared, not sent. Add your requirements and review before confirming.');}else if(contentInterest){setContentInterest(null);setMessage("I'd like to ask about "+label+'.');setContentNotice('Selected listing removed. Review your service enquiry before sending.');}else if(type==='enquiry'&&!message.trim())setMessage("I'd like to ask about "+label+'.');goToRequest();};
+    if(question&&message.trim())Alert.alert('Replace this enquiry message?','Your existing message will be replaced by the service question. Contact details and requirements will be kept.',[{text:'Keep my message',style:'cancel'},{text:'Use question',onPress:apply}]);else if(contentInterest)Alert.alert('Replace the selected listing?','This removes the product or event selection and replaces its enquiry message with the selected service.',[{text:'Keep selected item',style:'cancel'},{text:'Use service',onPress:apply}]);else apply();
   };
   const enabled = new Set(
     (config?.modules || [])

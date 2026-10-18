@@ -14,7 +14,7 @@ import prototype from "./prototype.json";
 import {verifiedPublicRuntime,publicNativeApp} from "./nativeBusinessClient";
 import {sendNativeGuestRequest,validateNativeGuestRequest} from "./nativeGuestRequests";
 import {responsiveAppLayout} from "./appResponsiveDesign.mjs";
-import {nativeContactAction,searchPublicNativeServices,browsePublicNativeServices} from "./nativeCustomerActions.mjs";
+import {nativeContactAction,searchPublicNativeServices,browsePublicNativeServices,prepareServiceQuestion,SERVICE_QUESTION_TOPICS} from "./nativeCustomerActions.mjs";
 import {ServiceCategoryFilter} from './serviceCategoryFilter';
 import {nativePalette} from "./nativePalette.mjs";
 import {appVisualPresentation} from "./appVisualPresentationV3194.mjs";
@@ -174,6 +174,7 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
 function ServicesInfo({app,layout,onRequestService}){
  const [query,setQuery]=useState("");
  const [category,setCategory]=useState('');
+ const [questionService,setQuestionService]=useState('');
  const browse=browsePublicNativeServices(app.services||[],query,category),results=browse.rows;
  return <View style={box}>
   <Text style={{...t,fontSize:VISUAL.type.sectionSize,fontWeight:VISUAL.type.sectionWeight}}>Services</Text>
@@ -210,6 +211,10 @@ function ServicesInfo({app,layout,onRequestService}){
      {app.supportsEnquiry&&app.moduleKeys?.includes("enquiry")?
       <Button title={"Ask about "+service.name}
        onPress={()=>onRequestService?.(service.name,"enquiry")}/>:null}
+     {app.supportsEnquiry&&app.moduleKeys?.includes("enquiry")?<View>
+      <Button title={questionService===service.name?"Hide question ideas":"Help me ask about "+service.name} onPress={()=>setQuestionService(questionService===service.name?'':service.name)}/>
+      {questionService===service.name?SERVICE_QUESTION_TOPICS.map(topic=><Button key={topic.key} title={topic.label} onPress={()=>onRequestService?.(service.name,'enquiry',null,topic.key)}/>):null}
+     </View>:null}
    </View>)}
   </View>:<Text style={sub}>{query?"No services match your search.":"No public services are listed."}</Text>}
  </View>;
@@ -395,13 +400,15 @@ export default function App(){
        Linking.openURL(action.url).catch(()=>setContactNotice(
         "This device could not open that contact method. Use the details shown above."));
       }}
-      onRequestService={(serviceName,intent,prepared)=>{
+      onRequestService={(serviceName,intent,prepared,topic)=>{
        if(intent==="booking_request"&&
           (!live.supportsBookingRequest||!live.moduleKeys?.includes(intent)))return;
        if(intent==="enquiry"&&
           (!live.supportsEnquiry||!live.moduleKeys?.includes(intent)))return;
        if(!["booking_request","enquiry"].includes(intent))return;
-       setRequestSelection(prepared?.ok?{...prepared.selection,businessId:prepared.businessId}:null);setRequestedMessage(prepared?.ok?prepared.message:"");setRequestedService(serviceName);setRequestedIntent(intent);setRequestedKind("service");
+       const question=topic?prepareServiceQuestion(live.services||[],serviceName,topic):null;
+       if(topic&&(!question?.ok||intent!=='enquiry')){setContactNotice(question?.reason||'Choose an enquiry question.');return;}
+       setRequestSelection(prepared?.ok?{...prepared.selection,businessId:prepared.businessId}:null);setRequestedMessage(question?.ok?question.message:prepared?.ok?prepared.message:"");setRequestedService(serviceName);setRequestedIntent(intent);setRequestedKind(topic?"service-question-"+topic:"service");
        setCurrent(intent);
       }}/>}
    </View>:null}

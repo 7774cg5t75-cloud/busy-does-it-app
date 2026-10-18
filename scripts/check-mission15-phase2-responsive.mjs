@@ -19,5 +19,17 @@ const section=d.sections.find(s=>s.id==='hero'),selection={pageId:'home',generat
 assert.equal(interpretSelectedWebsiteRequest(d,'home',selection,'make this paragraph easier to read on phones').change.field,'mobileBodyScale');
 assert.equal(interpretSelectedWebsiteRequest(d,'home',{...selection,field:'title'},'make this paragraph easier to read on phones').ok,false);
 for(const path of ['src/domain/websiteBuilder.js','supabase/functions/busy-website-worker/index.ts'])assert.ok(readFileSync(path,'utf8').includes('import {sectionAppearanceClasses}'),'Both renderers use the same finite class generator');
-const mobileCss=html.split('@media(max-width:600px){').at(-1).split('@media(min-width:960px){')[0];assert.ok(mobileCss.includes('section.owner-mobile-body-large'));assert.ok(!mobileCss.includes('owner-desktop-body-large'));
+// Inspect each real media block rather than assuming the last phone block is
+// the original reading rule; selected paragraph controls legitimately add more.
+const mediaBlocks=[];
+for(const match of html.matchAll(/@media\(([^)]+)\)\{/g)){
+ let depth=1,end=match.index+match[0].length;
+ for(;end<html.length&&depth;end++){if(html[end]==='{')depth++;else if(html[end]==='}')depth--;}
+ assert.equal(depth,0,'Media block must close');
+ mediaBlocks.push({query:match[1],css:html.slice(match.index+match[0].length,end-1)});
+}
+const readingBlocks=mediaBlocks.filter(block=>block.css.includes('section.owner-mobile-body-large'));
+assert.equal(readingBlocks.length,1);assert.equal(readingBlocks[0].query,'max-width:600px');
+assert.ok(!readingBlocks[0].css.includes('owner-desktop-body-large'));
+assert.ok(mediaBlocks.some(block=>block.query==='min-width:960px'&&block.css.includes('owner-desktop-body-large')));
 console.log('PASS scoped phone reading through actual builder HTML, immutable content/theme, shared hosted/export classes, locks and no-op guards. CSS/source evidence, not browser measurement.');
