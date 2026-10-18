@@ -316,7 +316,7 @@ export default function App(){
   return ()=>{active=false;};
  },[connected,runtime?.expectedVersionId,refreshSequence]);
  const pages=live?prototype.screenSchema.screens.filter(s=>
-  live.moduleKeys?.includes(s.key)):[];
+  live.moduleKeys?.includes(s.key)).map(s=>({...s,title:live.navigationLabels?.[s.key]||s.title})):[];
  const chosen=pages.find(x=>x.key===current)||pages[0];
  const requestFormKey=JSON.stringify([live?.versionId,chosen?.key,requestedKind,requestedService,requestedIntent,requestSelection]);
  const outerPadding=LOOK.layoutDensity==="compact"?13:

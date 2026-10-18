@@ -19,6 +19,7 @@ function appEditLockReason(config,op){
   galleryLayout:["gallery","photos"],serviceStyle:["services"],
   brandAccent:["branding","colours","colors"],brandPalette:["branding","colours","colors"]};
  const targets=[];
+ if(op?.kind==='navigation_label')targets.push('navigation','copy',op.moduleKey);
  if(op?.kind==='image_appearance')targets.push('appearance','gallery','photos','imageStyles');
  if(op?.kind==='component_appearance')targets.push(...componentLockTargets(String(op.field||'')));
  if(['content_layout','restore_content_layout'].includes(op?.kind))targets.push('business_profile','copy','navigation','products','events');

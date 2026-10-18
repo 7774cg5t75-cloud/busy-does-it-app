@@ -1,3 +1,4 @@
+import {validNavigationLabels} from './appNavigationLabels.mjs';
 import {validImageStyles} from './appImageAppearance.mjs';
 import {validComponentStyles} from './appComponentAppearance.mjs';
 import {validContentLayout,validPublicBusinessContent} from './businessContentRecords.mjs';
@@ -69,6 +70,7 @@ function validPublicRead(payload,runtime){
   payload.slug!==runtime.slug||
   !Array.isArray(payload.moduleKeys)||!payload.moduleKeys.includes("business_profile")||
   payload.chargesEnabled!==false||payload.doesNotConfirmAppointments!==true||
+  (payload.navigationLabels!==undefined&&!validNavigationLabels(payload.navigationLabels))||
   (payload.imageStyles!==undefined&&!validImageStyles(payload.imageStyles))||
   (payload.componentStyles!==undefined&&!validComponentStyles(payload.componentStyles))||
   (payload.faqs!==undefined&&!validPublicCollection('faqs',payload.faqs))||

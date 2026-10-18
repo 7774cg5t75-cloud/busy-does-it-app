@@ -778,6 +778,13 @@
         "scripts/check-mission15-phase14-picture-presets.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase14-navigation-labels",
+      "args": [
+        "scripts/check-mission15-phase14-navigation-labels.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

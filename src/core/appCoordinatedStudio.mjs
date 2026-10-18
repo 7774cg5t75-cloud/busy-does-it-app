@@ -1,3 +1,4 @@
+import {prepareNavigationLabel} from './appNavigationLabels.mjs';
 import {previewAppImageAppearance} from './appImageAppearance.mjs';
 import {validContentLayout} from './businessContentRecords.mjs';
 import {previewAppComponentAppearance} from './appComponentAppearance.mjs';
@@ -66,6 +67,8 @@ function proposeCoordinatedAppChanges(config,operations){
    if(op.value===null)delete after.presentation;
    else after.presentation=JSON.parse(JSON.stringify(op.value));
    description="Restored the reviewed private appearance";
+  }else if(op.kind==='navigation_label'){
+   const edit=prepareNavigationLabel(next,op);if(!edit.ok)return edit;after=edit.nextConfig;undo=edit.undo;description=edit.description;
   }else if(op.kind==="move"){
    const edit=proposeAppSectionMove(next,{moduleKey:op.moduleKey,direction:op.direction});
    if(!edit.ok)return edit;
