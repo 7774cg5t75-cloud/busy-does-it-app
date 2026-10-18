@@ -820,6 +820,13 @@
         "scripts/check-mission15-phase19-journeys.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase19-editing",
+      "args": [
+        "scripts/check-mission15-phase19-editing.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
