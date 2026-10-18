@@ -4,7 +4,7 @@ import {appDesignQualityReport} from './appDesignQuality.mjs';
 // Presentation of existing planner evidence, not another planner or AI service.
 const readiness={present_in_private_draft:'Already included in your draft',supported_section_not_present:'Can be prepared for your review',available_module_needs_owner_setup:'Available, with setup still needed',runtime_module_not_verified_available:'Not confirmed for this app yet',requires_new_implementation:'Not supported yet',requires_service_verification:'Needs its service or connection checked'};
 function explainBuilderExplore({kind,project,catalog,plan,text}){
- if(/\b(?:just for (?:me|myself)|personal (?:app|project|website|portfolio)|club (?:app|website|project)|community project)\b/i.test(text)){
+ if(/\b(?:just for (?:me|myself)|personal (?:app|project|website|portfolio)|club (?:app|website|project)|(?:my|our|a) club|community project)\b/i.test(text)){
   const purpose=/club|community/i.test(text)?'club':'personal';
   const neutral=planUniversalBuilderRequest({request:text,projectPurpose:purpose});
   return {answer:[neutral.summary,'A simple information site can start with your own title, pages, pictures and chosen style. A personal project should not need invented services, customers or a trading name.',
