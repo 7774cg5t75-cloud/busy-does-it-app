@@ -45,6 +45,7 @@ function publicNativeMiniAppProjection(app,version,{expectedAppId,expectedVersio
     name:str(s?.name,120),description:str(s?.description,600),...publicServiceDetails(s)
   })).filter(s=>s.name):[];
  const gallery=has("gallery")?publicAppGallery(profile.assets?.gallery):[];
+ const publishedImageStyles=Object.fromEntries(Object.entries(imageStyles).filter(([uri])=>gallery.some(photo=>photo.uri===uri)));
  const contact=has("contact")?{
   phone:str(profile.contact?.phone,80),email:str(profile.contact?.email,180),
   openingHours:str(profile.contact?.openingHours,260)
@@ -57,7 +58,7 @@ function publicNativeMiniAppProjection(app,version,{expectedAppId,expectedVersio
   tagline:str(config.display?.tagline||profile.tagline,260),
   about:str(profile.about||profile.description,1200),
   faqs:publicCollection('faqs',profile.faqs||[]),testimonials:publicCollection('testimonials',profile.testimonials||[]),
-  services,gallery,contact,offers,loyalty,moduleKeys,navigationLabels:publicNavigationLabels(config),...(Object.keys(imageStyles).length?{imageStyles:JSON.parse(JSON.stringify(imageStyles))}:{}),...(Object.keys(componentStyles).length?{componentStyles:JSON.parse(JSON.stringify(componentStyles))}:{}),
+  services,gallery,contact,offers,loyalty,moduleKeys,navigationLabels:publicNavigationLabels(config),...(Object.keys(publishedImageStyles).length?{imageStyles:JSON.parse(JSON.stringify(publishedImageStyles))}:{}),...(Object.keys(componentStyles).length?{componentStyles:JSON.parse(JSON.stringify(componentStyles))}:{}),
   heroUrl:safeUrl(profile.assets?.hero?.uri),
   supportsEnquiry:has("enquiry"),supportsBookingRequest:has("booking_request"),
   bookingsAlwaysRequireBusinessConfirmation:true,
