@@ -696,7 +696,7 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
   const sectionHtml = orderedSections.map(section=>{
     const sectionClasses=sectionAppearanceClasses(section);
     const sectionAttrs=(sectionClasses?` class="${sectionClasses}"`:"")+editAttrs(section,"section");
-    if(['products','events'].includes(section.type))return businessContentSectionHtml(section);
+    if(['products','events'].includes(section.type))return businessContentSectionHtml(section,{sectionClasses});
     if(section.type==="hero"){
       const url=approvedImage(section.asset);
       const art=url

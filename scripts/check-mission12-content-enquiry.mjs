@@ -19,6 +19,8 @@ const event={...feed,records:[{id:'event_record_001',kind:'event',revision:1,dat
 assert.equal(prepare(event,business,{recordId:'event_record_001',revision:1}).ok,true);
 assert.equal(prepare({...event,records:[{...event.records[0],data:{...event.records[0].data,status:'cancelled'}}]},business,{recordId:'event_record_001',revision:1}).ok,false);
 assert.equal(prepare(event,business,{recordId:'event_record_001',revision:1},{now:Date.parse('2031-01-01')}).ok,false);
+const eventNeeds=prepareCustomerEnquiry({message:'Can our group attend?',requirements:{...emptyEnquiryRequirements(),quantity:'4',details:'Step-free access'},feed:event,businessId:business,selection:{recordId:'event_record_001',revision:1}});assert.equal(eventNeeds.ok,true);assert.match(eventNeeds.message,/Event: Workshop/);assert.match(eventNeeds.message,/Step-free access/);assert.match(eventNeeds.message,/not an order, reservation or confirmed attendance/);
+assert.equal(prepareCustomerEnquiry({message:'Question',feed:event,businessId:business,selection:{recordId:'event_record_001',revision:2}}).ok,false);
 let detail;const ownerScope={userId:user},live={app:{id:appId,business_id:business,slug:'ceramics'},version:{id:version,config:{modules:[{key:'enquiry',enabled:true}]}},businessContent:feed};
 const context={ownerScope,request:async()=>live,setMiniAppsAction(){},setMiniAppsError(){},setSelectedBusyAppDetail:v=>detail=v,go(){},schedule(){}};
 const reads=createMarketplaceReadActions(()=>context);

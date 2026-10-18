@@ -250,8 +250,8 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
    headingScale:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
    textAlign:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
    sectionSpacing:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
-   mobileSectionSpacing:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
-   desktopSectionSpacing:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
+   mobileSectionSpacing:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact","products","events"],
+   desktopSectionSpacing:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact","products","events"],
    photoCrop:["hero","photo-feature","gallery"],
    photoSide:["photo-feature"],
    gallerySize:["gallery"],
@@ -401,7 +401,7 @@ function applyWebsiteLayoutOperation(draft,operation){
   if(pages.length!==1)return fail(draft,'Choose one current page.');
   const field=spacing?operation.device+'SectionSpacing':operation.device==='all'?'bodyScale':operation.device+'BodyScale';
   const sections=list(draft.sections).filter(s=>s.enabled!==false&&list(pages[0].sectionIds).includes(s.id)&&
-   ['hero','services','about','text','photo-feature','faq','testimonials','contact',...(spacing?['gallery']:[])].includes(s.type));
+   ['hero','services','about','text','photo-feature','faq','testimonials','contact',...(spacing?['gallery','products','events']:[])].includes(s.type));
   if(!sections.length||sections.length>30)return fail(draft,'Review the current page sections first.');
   let next=draft,changed=false;
   for(const section of sections){
