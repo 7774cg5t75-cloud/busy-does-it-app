@@ -1,0 +1,47 @@
+# REVIEW ONLY. Deliberately outside .github/workflows; NOT registered.
+name: Proposed fictional builder browser acceptance
+on:
+  workflow_dispatch:
+    inputs:
+      approved_sha:
+        description: Exact reviewed commit, not a branch name
+        required: true
+        type: string
+      approval:
+        description: Enter APPROVE_LOCAL_FIXTURE_TEST after checking free usage and source
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  local-fixtures:
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == '7774cg5t75-cloud/busy-does-it-app' &&
+      github.ref == 'refs/heads/codex/builder-mission15-design-advancement' &&
+      inputs.approved_sha == github.sha &&
+      inputs.approval == 'APPROVE_LOCAL_FIXTURE_TEST'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.approved_sha }}
+          persist-credentials: false
+      - name: Check exact checkout and existing runner runtime
+        env:
+          APPROVED_SHA: ${{ inputs.approved_sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$APPROVED_SHA"
+          test "$(node --version)" = "v24.19.0"
+          test "$(npm --version)" = "11.9.0"
+      # Owner must prepare/approve a compatible runner with these runtimes and
+      # Chromium libraries. No sudo, broad setup-action or runtime-download step.
+      - name: Install exact optional tools without lifecycle scripts
+        run: |
+          npm ci --prefix scripts/browser-tools --ignore-scripts --no-audit --no-fund
+          node scripts/browser-tools/node_modules/playwright/cli.js install chromium
+      - name: Capture fictional local fixtures with normal Chromium sandbox
+        run: python3 scripts/testing/browser.py --capture
+      # Evidence is left in the job's temporary workspace for now. An artifact
+      # upload step requires separate retention/storage/cost review and a pin.

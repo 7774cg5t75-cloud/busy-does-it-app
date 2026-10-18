@@ -26,9 +26,9 @@ export function health(){
  const npmPath=(process.env.PATH||'').split(':').map(p=>join(p,'npm')).find(p=>existsSync(p));
  let npm;try{npm=JSON.parse(readFileSync(join(dirname(realpathSync(npmPath)),'../package.json'),'utf8')).version;}catch{}
  let resolution=false;try{const req=createRequire(new URL('../testing-entry.cjs',import.meta.url));resolution=realpathSync(req.resolve('@babel/core'))===realpathSync(requireTools.resolve('@babel/core'));}catch{}
- let transforms=false;try{const b=requireTools('@babel/core');transforms=!!b.transformSync('export const view=<div/>;',{configFile:false,babelrc:false,plugins:[requireTools('@babel/plugin-transform-react-jsx'),requireTools('@babel/plugin-transform-modules-commonjs')]}).code;}catch{}
+ let transforms=false;try{const b=requireTools('@babel/core');transforms=!!b.transformSync('export const view=<div/>;',{configFile:false,babelrc:false,plugins:[requireTools('@babel/plugin-transform-react-jsx'),requireTools('@babel/plugin-transform-modules-commonjs')]}).code&&!!b.transformSync('const count: number=1;',{filename:'health.ts',configFile:false,babelrc:false,plugins:[requireTools('@babel/plugin-transform-typescript')]}).code;}catch{}
  const app=JSON.parse(readFileSync(join(root,'package.json'),'utf8'));
- return {ok:tools.ok&&runtime&&npm===toolchain.npm&&resolution&&transforms,node:process.version,expectedNode:toolchain.node,npm,expectedNpm:toolchain.npm,tools,scriptResolution:resolution,jsxTransform:transforms,
+ return {ok:tools.ok&&runtime&&npm===toolchain.npm&&resolution&&transforms,node:process.version,expectedNode:toolchain.node,npm,expectedNpm:toolchain.npm,tools,scriptResolution:resolution,jsxAndTypeScriptTransform:transforms,
   optional:{applicationInstall:existsSync(join(root,'node_modules/expo/package.json')),expoRequested:app.dependencies.expo,reactNativeRequested:app.dependencies['react-native'],playwrightRequested:app.devDependencies.playwright,rootLockfile:existsSync(join(root,'package-lock.json'))},
   note:'Offline component fixtures are not Expo bundles, native/device acceptance or Deno type checking.'};
 }

@@ -610,6 +610,13 @@
         "scripts/check-mission15-phase9-service-details.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase9-browser-policy",
+      "args": [
+        "scripts/check-mission15-phase9-browser-policy.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
