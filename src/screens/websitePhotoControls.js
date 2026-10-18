@@ -3,6 +3,7 @@ import {Text,View} from 'react-native';
 import {Button} from '../components/ui';
 import {styles} from '../theme/styles';
 import {planSelectedWebsiteChanges} from '../core/websiteContextPlan.mjs';
+import {applyWebsiteLayoutOperation} from '../../supabase/functions/busy-website-worker/websiteLayoutEditing.mjs';
 // Stage only the original finite instructions. No coordinates, uploads,
 // image approval or save path; original preview/transaction/Undo owns changes.
 export function WebsitePhotoControls({draft,selection,section,onChoose}){
@@ -27,7 +28,10 @@ export function WebsitePhotoControls({draft,selection,section,onChoose}){
   <View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}>{Object.keys(groups).map(name=><View key={name} style={{width:'48%'}}><Button label={(category===name?'✓ ':'')+'Picture '+name} onPress={()=>{if(current())setActive(category===name?null:{draft,scope,name});}}/></View>)}</View>
   {category&&groups[category]?<View accessibilityLiveRegion="polite">{groups[category].map(([label,instruction])=>{
    const plan=planSelectedWebsiteChanges(draft,selection?.pageId,selection,instruction);
-   return <Button key={instruction} label={label} disabled={!plan.ok} onPress={()=>{if(current()&&plan.ok)onChoose(instruction);}}/>;
+   // Grammar success alone does not establish a permitted move: evaluate the
+   // original pure operation too, including boundaries, no-ops and locks.
+   const available=plan.ok&&plan.steps.length===1&&plan.steps[0].type==='layout'&&applyWebsiteLayoutOperation(draft,plan.steps[0].change).applied;
+   return <Button key={instruction} label={label} disabled={!available} onPress={()=>{if(current()&&available)onChoose(instruction);}}/>;
   })}</View>:null}
  </View>;
 }
