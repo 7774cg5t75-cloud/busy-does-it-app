@@ -1,0 +1,26 @@
+import './check-mission15-phase21-context.mjs';
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs');
+const walk=x=>Array.isArray(x)?x.flatMap(walk):x&&typeof x==='object'?[x,...walk(x.props?.children)]:[];
+const button=(tree,title)=>walk(tree).find(n=>n.props?.title===title);
+const input={name:'Fictional',email:'fictional@example.test',message:'My own question',service:'Old product',requirements:{timing:'Friday',quantity:'3',location:'Home',accessibility:'Step free'}};
+const selection={recordId:'product_record_001',revision:1,businessId:'business-a',kind:'product'};
+const base={screen:{key:'enquiry'},live:{appId:'a',versionId:'v',supportsEnquiry:true},runtime:{expectedAppId:'a',expectedVersionId:'v'},contentSelection:selection,savedState:{input,enquiryReview:{key:'old-review',payload:{message:'old'}}}};
+const rt=createRuntime(),Request=rt.load('.tmp/standalone-prototype-v3154/App.js').RequestScreen;let removed=null;
+let tree=rt.render(Request,{...base,onRemoveAttachment:value=>removed=value});
+const old=button(tree,'Remove selected listing');old.props.onPress();assert.deepEqual(JSON.parse(JSON.stringify(removed.input)),{...input,service:''});assert.equal(removed.enquiryReview,null);assert.equal(removed.result,null);
+removed=null;walk(tree).find(n=>n.props?.title==='Your message').props.onChange('Newer typing');tree=rt.render(Request,{...base,onRemoveAttachment:value=>removed=value});old.props.onPress();assert.equal(removed,null,'Stale removal cannot overwrite newer input');button(tree,'Remove selected listing').props.onPress();assert.equal(removed.input.message,'Newer typing');
+for(const result of [{ok:true,requestId:'original-ref'},{ok:false,mayHaveBeenReceived:true,requestId:'pending-ref'}]){
+ const r=createRuntime(),R=r.load('.tmp/standalone-prototype-v3154/App.js').RequestScreen;let changed=false;const t=r.render(R,{...base,savedState:{input,result},onRemoveAttachment:()=>changed=true});const b=button(t,'Remove selected listing');assert.equal(b.props.disabled,true);b.props.onPress();assert.equal(changed,false);
+}
+const restored=createRuntime(),R=restored.load('.tmp/standalone-prototype-v3154/App.js').RequestScreen;const t=restored.render(R,{...base,contentSelection:null,savedState:removed});assert.ok(button(t,'Review enquiry'));assert.equal(button(t,'Confirm and send enquiry'),undefined);
+console.log('PASS original native attachment removal preserves independent private input, clears review, blocks submitted/unknown outcomes and rejects stale typing callbacks. No submission or provider IO.');
+// Execute the actual parent callback with inert setters, not a parallel implementation.
+const {readFileSync}=await import('node:fs');const source=readFileSync('standalone/template/App.js','utf8');const start=source.indexOf('      onRemoveAttachment={value=>{'),end=source.indexOf('\n      onReturnToInformation=',start);assert.ok(start>0&&end>start);
+const callback=source.slice(start,end).replace('      onRemoveAttachment={','').slice(0,-1);
+const requestForms={current:new Map()},requestFormKey='attached-form',publicViewContext='business/app/version',viewContext={current:publicViewContext};let actions=[];
+const deps={requestForms,requestFormKey,publicViewContext,viewContext,requestSelection:selection,chosen:{key:'enquiry'},live:{versionId:'v'},requestedIntent:'enquiry',setRequestSelection:v=>actions.push(['selection',v]),setRequestedService:v=>actions.push(['service',v]),setRequestedKind:v=>actions.push(['kind',v]),setRequestedMessage:v=>actions.push(['message',v])};
+const detach=Function(...Object.keys(deps),'return ('+callback+');')(...Object.values(deps));requestForms.current.set(requestFormKey,{input});detach(removed);const newKey=JSON.stringify(['v','enquiry','service','','enquiry',null]);assert.equal(requestForms.current.get(newKey).input.message,'Newer typing');assert.equal(requestForms.current.get(newKey).enquiryReview,null);assert.equal(requestForms.current.has(requestFormKey),false);assert.deepEqual(actions[0],['selection',null]);
+actions=[];viewContext.current='other-business';detach(removed);assert.equal(actions.length,0);viewContext.current=publicViewContext;requestForms.current.set(requestFormKey,{input,result:{mayHaveBeenReceived:true,requestId:'old-reference'}});detach(removed);assert.equal(actions.length,0);assert.equal(requestForms.current.get(requestFormKey).result.requestId,'old-reference');
+console.log('PASS actual native parent rekeys private draft, removes old key, clears selection/review and refuses changed runtime or uncertain original receipt.');

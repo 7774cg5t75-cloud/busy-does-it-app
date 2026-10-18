@@ -54,7 +54,7 @@ function Field({title,value,onChange,multiline=false,maxLength,disabled=false}){
       minHeight:multiline?92:48,textAlignVertical:"top"}}/>
  </View>;
 }
-function RequestScreen({screen,live,runtime,initialService="",initialMessage="",savedState=null,onSaveState,onReturnToInformation,contentSelection=null}){
+function RequestScreen({screen,live,runtime,initialService="",initialMessage="",savedState=null,onSaveState,onReturnToInformation,onRemoveAttachment,contentSelection=null}){
  const [input,setInput]=useState(savedState?.input||{name:"",email:"",phone:"",service:initialService,
   preferredDate:"",message:initialMessage,note:"",requirements:emptyEnquiryRequirements()});
  const [busy,setBusy]=useState(false),[result,setResult]=useState(savedState?.result||null);
@@ -62,6 +62,7 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
  const [enquiryReview,setEnquiryReview]=useState(savedState?.enquiryReview||null);
  useEffect(()=>{if(!inFlight.current)onSaveState?.({input,result,possibleDuplicateRetry,enquiryReview});},[input,result,possibleDuplicateRetry,enquiryReview]);
  const inFlight=React.useRef(false);
+ const latestDraft=React.useRef(null);latestDraft.current={input,result,contentSelection,live,runtime};
  const dateChoices=React.useMemo(()=>nativePreferredDates(new Date(),7),[]);
  const type=screen.key==="booking_request"?"booking_request":"enquiry";
  const enabled=type==="booking_request"?live?.supportsBookingRequest:live?.supportsEnquiry;
@@ -143,6 +144,15 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
 
        <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Your message" value={input.message} onChange={set("message")} multiline/>
      </>}
+    {contentSelection&&typeof onRemoveAttachment==='function'?<>
+      <Text style={sub}>This enquiry includes a selected listing. Removing it keeps your wording and requirements; check any item names in your message.</Text>
+      <Button title="Remove selected listing" disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} onPress={()=>{
+       const current=latestDraft.current;
+       if(inFlight.current||busy||current.input!==input||current.contentSelection!==contentSelection||current.live!==live||current.runtime!==runtime||current.result?.ok||current.result?.mayHaveBeenReceived)return;
+       onRemoveAttachment({input:{...input,service:''},result:null,possibleDuplicateRetry:false,enquiryReview:null});
+      }}/>
+      {result?.mayHaveBeenReceived?<Text style={sub}>Keep this attachment while the earlier request is unconfirmed. Do not create a replacement request.</Text>:null}
+    </>:null}
     {typeof onReturnToInformation==='function'?<Button title="Back to item information" disabled={busy||inFlight.current} onPress={()=>{if(inFlight.current||busy)return;onSaveState?.({input,result,possibleDuplicateRetry,enquiryReview});onReturnToInformation();}}/>:null}
     <Text style={{...sub,fontSize:12}}>By sending, you share these details with the business
       so it can reply. Anti-spam verification may take a few moments.
@@ -392,6 +402,16 @@ export default function App(){
      <RequestScreen key={requestFormKey}
       screen={chosen} live={live} runtime={runtime} contentSelection={requestSelection}
       savedState={requestForms.current.get(requestFormKey)}
+      onRemoveAttachment={value=>{
+       if(viewContext.current!==publicViewContext||!requestSelection||chosen.key!=='enquiry')return;
+       const previous=requestForms.current.get(requestFormKey);
+       if(previous?.result?.ok||previous?.result?.mayHaveBeenReceived)return;
+       const nextKey=JSON.stringify([live?.versionId,chosen.key,'service','',requestedIntent,null]);
+       requestForms.current.delete(requestFormKey);
+       requestForms.current.set(nextKey,{...value,enquiryReview:null,result:null,possibleDuplicateRetry:false});
+       if(requestForms.current.size>8)requestForms.current.delete(requestForms.current.keys().next().value);
+       setRequestSelection(null);setRequestedService('');setRequestedKind('service');setRequestedMessage('');
+      }}
       onReturnToInformation={requestOrigin&&pages.some(page=>page.key===requestOrigin)?()=>{if(viewContext.current===publicViewContext)setCurrent(requestOrigin);}:null}
       onSaveState={value=>{if(viewContext.current!==publicViewContext)return;const key=requestFormKey;requestForms.current.set(key,value);if(requestForms.current.size>8)requestForms.current.delete(requestForms.current.keys().next().value);}}
       initialService={chosen.key===requestedIntent?
