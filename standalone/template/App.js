@@ -415,7 +415,7 @@ export default function App(){
         "This device could not open that contact method. Use the details shown above."));
       }}
       onRequestService={(serviceName,intent,prepared,topic)=>{
-       if(viewContext.current!==publicViewContext)return;setRequestOrigin(chosen.key);
+       if(viewContext.current!==publicViewContext)return;
        if(intent==="booking_request"&&
           (!live.supportsBookingRequest||!live.moduleKeys?.includes(intent)))return;
        if(intent==="enquiry"&&
@@ -423,6 +423,7 @@ export default function App(){
        if(!["booking_request","enquiry"].includes(intent))return;
        const question=topic?prepareServiceQuestion(live.services||[],serviceName,topic):null;
        if(topic&&(!question?.ok||intent!=='enquiry')){setContactNotice(question?.reason||'Choose an enquiry question.');return;}
+       setRequestOrigin(chosen.key);
        setRequestSelection(prepared?.ok?{...prepared.selection,businessId:prepared.businessId}:null);setRequestedMessage(question?.ok?question.message:prepared?.ok?prepared.message:"");setRequestedService(serviceName);setRequestedIntent(intent);setRequestedKind(topic?"service-question-"+topic:"service");
        setCurrent(intent);
       }}/>}

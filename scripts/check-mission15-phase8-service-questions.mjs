@@ -35,8 +35,8 @@ const marker='onRequestService={(serviceName,intent,prepared,topic)=>{';assert.e
 const chunk=native.slice(native.indexOf(marker)+marker.length,native.indexOf('}}/>}',native.indexOf(marker)));
 assert.ok(chunk.trim().endsWith('setCurrent(intent);'));
 const calls=[],live={supportsEnquiry:true,moduleKeys:['enquiry'],services};
-const args={live,prepareServiceQuestion};for(const key of ['setContactNotice','setRequestSelection','setRequestedMessage','setRequestedService','setRequestedIntent','setRequestedKind','setCurrent'])args[key]=value=>calls.push([key,value]);
+const args={live,prepareServiceQuestion,viewContext:{current:'app-a/version-a'},publicViewContext:'app-a/version-a',chosen:{key:'services'},setRequestOrigin:value=>calls.push(['setRequestOrigin',value])};for(const key of ['setContactNotice','setRequestSelection','setRequestedMessage','setRequestedService','setRequestedIntent','setRequestedKind','setCurrent'])args[key]=value=>calls.push([key,value]);
 const callback=Function(...Object.keys(args),'return (serviceName,intent,prepared,topic)=>{'+chunk+'};')(...Object.values(args));
 callback('Survey','enquiry',null,'timing');assert.ok(calls.some(([key,v])=>key==='setRequestedKind'&&v==='service-question-timing'));assert.ok(calls.some(([key,v])=>key==='setRequestedMessage'&&v===prepareServiceQuestion(services,'Survey','timing').message));
-calls.length=0;live.supportsEnquiry=false;callback('Survey','enquiry',null,'price');assert.equal(calls.length,0);
+calls.length=0;args.viewContext.current='changed-version';callback('Survey','enquiry',null,'timing');assert.equal(calls.length,0,'Stale runtime cannot change origin or prepare a question');args.viewContext.current=args.publicViewContext;live.supportsEnquiry=false;callback('Survey','enquiry',null,'price');assert.equal(calls.length,0);
 console.log('PASS bounded public-service questions, original preparation/validation/exact review, actual marketplace replacement/stale/account callbacks and standalone permission/scoped-draft callbacks. Inert state and transport boundaries; not native/device or hosted acceptance.');
