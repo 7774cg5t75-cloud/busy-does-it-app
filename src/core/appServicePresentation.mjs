@@ -2,7 +2,15 @@ import {contrast} from './nativePalette.mjs';
 const SERVICE_PRESENTATION_OPTIONS=Object.freeze({spacing:['normal','spacious'],surface:['card','plain'],corners:['rounded','square'],enquirySize:['normal','roomy'],enquiryTone:['outline','solid'],enquiryAlign:['stretch','left'],enquiryCorners:['rounded','square'],bookingSize:['normal','roomy'],bookingTone:['outline','solid'],bookingAlign:['stretch','left'],bookingCorners:['rounded','square']});
 const plain=x=>x&&typeof x==='object'&&!Array.isArray(x);
 const id=x=>typeof x==='string'&&/^[a-zA-Z0-9_-]{1,80}$/.test(x)&&!['__proto__','prototype','constructor'].includes(x);
-const valid=x=>plain(x)&&Object.keys(x).length>0&&Object.keys(x).every(k=>Object.hasOwn(SERVICE_PRESENTATION_OPTIONS,k)&&SERVICE_PRESENTATION_OPTIONS[k].includes(x[k]));
+// Deliberately bounded request wording: display copy cannot promise an outcome.
+function validServiceActionLabel(value,action){
+ if(typeof value!=='string'||value.length>64||value!==value.trim())return false;
+ const pattern=action==='booking_request'?/^Request (?:an? appointment|a booking|booking|appointment|a booking for this service)$/i:/^(?:Ask (?:us |me )?about (?:this service|a service)|Enquire(?: about this service)?|Contact (?:us|me)|Request (?:more information|a quote|service information))$/i;
+ return pattern.test(value);
+}
+const valid=x=>plain(x)&&Object.keys(x).length>0&&Object.keys(x).every(k=>k==='enquiryLabel'||k==='bookingLabel'?validServiceActionLabel(x[k],k==='bookingLabel'?'booking_request':'enquiry'):Object.hasOwn(SERVICE_PRESENTATION_OPTIONS,k)&&SERVICE_PRESENTATION_OPTIONS[k].includes(x[k]));
+function serviceButtonLabel(value,key,action,fallback){const prefix=action==='booking_request'?'booking':'enquiry';return validServicePresentation(value||{})&&value?.[key]?.[prefix+'Label']||fallback;}
+
 function validServicePresentation(value){return plain(value)&&Object.keys(value).length<=20&&Object.entries(value).every(([key,row])=>id(key)&&valid(row));}
 function servicePresentationTarget(config,key){return id(key)&&config?.modules?.some(m=>m.key==='services'&&m.enabled===true)&&Array.isArray(config.publicProfile?.services)&&config.publicProfile.services.filter(row=>row?.id===key).length===1;}
 function previewServicePresentation(config,{field,value,reset=false}={}){
@@ -25,4 +33,4 @@ function serviceButtonStyle(value,key,action,colors){
  const backgroundColor=solid?colors.accent:colors.surface,color=solid?(contrast('#14212B',colors.accent)>=4.5?'#14212B':'#FFFFFF'):colors.accent;
  return {container:{backgroundColor,borderColor:colors.accent,borderWidth:1,borderRadius:row[prefix+'Corners']==='square'?3:14,minHeight:48,maxWidth:'100%',alignSelf:row[prefix+'Align']==='left'?'flex-start':'stretch',paddingHorizontal:roomy?18:14,paddingVertical:roomy?16:12,marginTop:10,justifyContent:'center'},text:{color,fontSize:roomy?18:16,fontWeight:solid?'800':'600',textAlign:'center',flexShrink:1}};
 }
-export {SERVICE_PRESENTATION_OPTIONS,validServicePresentation,servicePresentationTarget,previewServicePresentation,serviceCardStyle,serviceButtonStyle};
+export {validServiceActionLabel,serviceButtonLabel,SERVICE_PRESENTATION_OPTIONS,validServicePresentation,servicePresentationTarget,previewServicePresentation,serviceCardStyle,serviceButtonStyle};
