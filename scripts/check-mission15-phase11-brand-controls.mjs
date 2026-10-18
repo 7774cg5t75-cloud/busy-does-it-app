@@ -27,4 +27,9 @@ const rendered=rt.render(MiniAppSurface,{config:spotlight,interactive:true});
 const featured=walk(rendered).find(node=>node.props?.children?.some(value=>typeof value==='string'&&value.trim()==='Featured service'));
 assert.ok(featured);const card=walk(rendered).find(node=>Array.isArray(node.props?.children)&&node.props.children.includes(featured));
 assert.ok(card?.props.style.backgroundColor);assert.ok(contrast(featured.props.style.color,card.props.style.backgroundColor)>=4.5,'Actual small featured text against actual rendered service-card background');
+for(const brandPalette of ['__proto__','constructor','unknown']){
+ const bad=rt.render(AppSelectedBrandControls,{config:{...config,presentation:{brandPalette}},onPrepare:()=>{throw Error('Invalid palette cannot prepare');}});
+ assert.match(JSON.stringify(bad),/Current app colours need review/);assert.doesNotMatch(JSON.stringify(bad),/Calculated text contrast passes/);
+ assert.equal(find(bad,'Preview Natural linen').props.disabled,true);
+}
 assert.equal(JSON.stringify(config),original);console.log('PASS 221 custom seeds + curated palettes on supported solid backgrounds, real palette/renderer parity, compact scoped controls, selected natural instruction, original Undo, JSON reload, source/branding locks and preserved actions. No screenshot/device certification.');
