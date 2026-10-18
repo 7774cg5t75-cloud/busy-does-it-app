@@ -1,3 +1,4 @@
+import {itemTypographyClasses} from "./websiteTextTypography.mjs";
 import {sectionAppearanceClasses} from './websiteAppearanceClasses.mjs';
 import {businessContentSectionHtml} from '../_shared/businessContentHtml.mjs';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -173,7 +174,7 @@ function renderSectionHtml(
     )}</${headingTag}><div class="grid">${safeArray(section.items)
       .map(
         (item: any) =>
-          `<article><h3${itemHeadingClass(item)}>${escapeHtml(item.title)}</h3><p>${escapeHtml(
+          `<article${itemTypographyClasses(item)?` class="${itemTypographyClasses(item)}"`:""}><h3${itemHeadingClass(item)}>${escapeHtml(item.title)}</h3><p>${escapeHtml(
             item.body
           )}</p></article>`
       )
@@ -213,7 +214,7 @@ function renderSectionHtml(
     )}</${headingTag}>${safeArray(section.items)
       .map(
         (item: any) =>
-          `<article><h3${itemHeadingClass(item)}>${escapeHtml(item.title)}</h3><p>${escapeHtml(
+          `<article${itemTypographyClasses(item)?` class="${itemTypographyClasses(item)}"`:""}><h3${itemHeadingClass(item)}>${escapeHtml(item.title)}</h3><p>${escapeHtml(
             item.body
           )}</p></article>`
       )

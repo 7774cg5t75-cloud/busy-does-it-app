@@ -36,5 +36,5 @@ const words=[],props={section:first.sections.find(s=>s.id==='hero'),selection,on
 const walk=n=>!n||typeof n!=='object'?[]:[n,...Object.values(n.props||{}).flat(Infinity).filter(x=>x&&typeof x==='object').flatMap(walk)];
 let tree=rt.render(WebsiteTypographyControls,props);walk(tree).find(n=>n.props?.label==='font').props.onPress();tree=rt.render(WebsiteTypographyControls,props);
 walk(tree).find(n=>n.props?.label==='Classic serif').props.onPress();assert.deepEqual(words,['set this heading font to serif']);
-assert.equal(rt.render(WebsiteTypographyControls,{...props,selection:{...selection,itemId:'card'}}),null);
+assert.equal(rt.render(WebsiteTypographyControls,{...props,selection:{...selection,itemId:'card'}}),null,'Hero has no supported card target');
 console.log('PASS finite typography choices, local/hosted original rendering, reload, per-field reset, Brand DNA/locks, exact selected transactions/Undo/stale checks and actual contextual choices; inert IO only.');

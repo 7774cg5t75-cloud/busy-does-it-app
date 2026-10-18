@@ -1,3 +1,4 @@
+import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";
 // Execute actual checked-in section renderer; signed asset URL resolution is
 // an inert map boundary. No Deno entrypoint, HTTP, provider or hosted execution.
 import {readFileSync} from 'node:fs';
@@ -14,5 +15,5 @@ export function originalWebsiteSectionRuntime(){
   return source.slice(matches[0].start,matches[0].end);
  }).join('\n');
  const js=babel.transformSync(code,{filename:'reviewed-worker-functions.ts',configFile:false,babelrc:false,plugins:[require('@babel/plugin-transform-typescript')]}).code;
- return Function('sectionAppearanceClasses','urlForAsset',js+'\nreturn renderSectionHtml;')(sectionAppearanceClasses,(asset,urls)=>asset?.approved===false?'':urls[asset?.storagePath]||'');
+ return Function('sectionAppearanceClasses','itemTypographyClasses','urlForAsset',js+'\nreturn renderSectionHtml;')(sectionAppearanceClasses,itemTypographyClasses,(asset,urls)=>asset?.approved===false?'':urls[asset?.storagePath]||'');
 }

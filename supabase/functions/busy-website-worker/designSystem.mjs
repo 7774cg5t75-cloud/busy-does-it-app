@@ -1,3 +1,4 @@
+import {websiteTextColourCss} from "./websiteTextColours.mjs";
 import {textTypographyCss} from "./websiteTextTypography.mjs";
 /**
  * BUSY DOES IT V3.99 — professional website design foundations.
@@ -397,6 +398,7 @@ section.owner-body-large .lead{font-size:clamp(1.25rem,2vw,1.5rem);line-height:1
  section.owner-desktop-gallery-large .gallery-image{height:clamp(330px,32vw,460px)}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+${websiteTextColourCss(d)}
 ${textTypographyCss}
 `;
 }

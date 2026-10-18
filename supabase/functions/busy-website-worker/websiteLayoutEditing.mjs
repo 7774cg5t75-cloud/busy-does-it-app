@@ -217,18 +217,21 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const itemId=operation.itemId;
   const section=sections.find(x=>x?.id===sectionId&&x.enabled!==false);
   if(!section||!["services","faq","testimonials"].includes(section.type)||
-     operation.field!=="headingScale"||
-     !["compact","normal","large"].includes(operation.value))
+     !(operation.field==='headingScale'?['compact','normal','large']:Object.hasOwn(textTypographyFields,operation.field)?textTypographyFields[operation.field]:[]).includes(operation.value))
    return fail(draft,"Select an existing service, question or testimonial heading.");
   const matches=list(section.items).filter(item=>item?.id===itemId);
   if(typeof itemId!=="string"||!itemId||matches.length!==1)
    return fail(draft,"That exact heading no longer exists.");
   const at=list(section.items).findIndex(item=>item.id===itemId);
-  const item=section.items[at],present=text(item?.appearance?.headingScale)||"normal";
-  if(present===operation.value)return fail(draft,"That heading already uses this size.");
+  const field=operation.field,defaultValue=field==='headingScale'?'normal':'brand';
+  const item=section.items[at],present=text(item?.appearance?.[field])||defaultValue;
+  if(present===operation.value)return fail(draft,"That text already uses this setting.");
+  const appearance={};
+  if(['compact','large'].includes(item?.appearance?.headingScale))appearance.headingScale=item.appearance.headingScale;
+  for(const name of Object.keys(textTypographyFields))if(textTypographyFields[name].includes(item?.appearance?.[name])&&item.appearance[name]!=='brand')appearance[name]=item.appearance[name];
+  if(operation.value===defaultValue)delete appearance[field];else appearance[field]=operation.value;
   const nextItem={...item};
-  if(operation.value==="normal")delete nextItem.appearance;
-  else nextItem.appearance={headingScale:operation.value};
+  if(Object.keys(appearance).length)nextItem.appearance=appearance;else delete nextItem.appearance;
   section.items[at]=nextItem;
   return ready("Resized only the selected card heading.");
  }
