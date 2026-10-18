@@ -364,6 +364,10 @@ section.owner-body-large p:not(.lead),section.owner-body-large li{font-size:1.12
 section.owner-body-large .lead{font-size:clamp(1.25rem,2vw,1.5rem);line-height:1.7}
 /* V3.149: finite viewport overrides, shared by exported and hosted sites */
 @media(max-width:600px){
+ section.owner-mobile-space-compact:not(.hero){padding-block:28px}
+ section.owner-mobile-space-compact.hero .wrap{padding-block:48px}
+ section.owner-mobile-space-generous:not(.hero){padding-block:72px}
+ section.owner-mobile-space-generous.hero .wrap{padding-block:88px}
  section.owner-mobile-body-large p:not(.lead),section.owner-mobile-body-large li{font-size:1.125rem;line-height:1.75}
  section.owner-mobile-body-large .lead{font-size:1.25rem;line-height:1.7}
  section.owner-mobile-heading-compact h1{font-size:clamp(2.05rem,8vw,3rem)}
@@ -376,6 +380,10 @@ section.owner-body-large .lead{font-size:clamp(1.25rem,2vw,1.5rem);line-height:1
  section.owner-mobile-gallery-large .gallery-image{height:clamp(290px,90vw,420px)}
 }
 @media(min-width:960px){
+ section.owner-desktop-space-compact:not(.hero){padding-block:48px}
+ section.owner-desktop-space-compact.hero .wrap{padding-block:72px}
+ section.owner-desktop-space-generous:not(.hero){padding-block:128px}
+ section.owner-desktop-space-generous.hero .wrap{padding-block:152px}
  section.owner-desktop-body-large p:not(.lead),section.owner-desktop-body-large li{font-size:1.125rem;line-height:1.75}
  section.owner-desktop-body-large .lead{font-size:clamp(1.25rem,2vw,1.5rem);line-height:1.7}
  section.owner-desktop-heading-compact h1{font-size:clamp(2.6rem,5vw,4.1rem)}

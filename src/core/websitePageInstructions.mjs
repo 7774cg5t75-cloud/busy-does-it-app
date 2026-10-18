@@ -49,7 +49,10 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    change={action:sections.length?'add-item':'create-collection',sectionId:'faq',title:m[1],body:m[2]};
    type='field';description='Add your exact question and answer to the private FAQ section';
   }else if(forbidden.test(clause))return fail("No changes were made. Publishing, deleting and external actions need separate approval.");
-  else if((m=clause.match(/^move (?:the )?(.+?) section (above|below|before|after) (?:the )?(.+?)(?: section| form)?$/i))){
+  else if((m=clause.match(/^(?:give|make) (?:the )?(?:whole |entire )?page (more|less) (?:space|spacing|breathing room) on (phones?|mobile|desktop|computers?)$/i))){
+   change={action:'page-spacing',pageId,device:/phone|mobile/i.test(m[2])?'mobile':'desktop',value:m[1].toLowerCase()==='more'?'generous':'compact'};
+   description='Adjust existing section spacing only at the requested width. Shared sections change on other pages too; wording, branding and other widths stay unchanged';
+  }else if((m=clause.match(/^move (?:the )?(.+?) section (above|below|before|after) (?:the )?(.+?)(?: section| form)?$/i))){
    const section=findSection(m[1]),target=findSection(m[3]);
    if(!section||!target)return fail('Name two exact visible sections on this page.');
    change={action:'move-relative',sectionId:section.id,targetSectionId:target.id,
@@ -89,9 +92,9 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
     field:device?device+"GallerySize":"gallerySize",
     value:/bigger|larger/i.test(m[1])?"large":/smaller/i.test(m[1])?"compact":"comfortable"};
    description="Resize gallery images"+(device?" on "+device:"");
-  }else if((m=clause.match(/^(?:give|make) (?:the )?(.+?) section (more|less) (?:space|spacing|breathing room)$/i))){
+  }else if((m=clause.match(/^(?:give|make) (?:the )?(.+?) section (more|less) (?:space|spacing|breathing room)(?: on (phones?|mobile|desktop|computers?))?$/i))){
    const section=findSection(m[1]);if(!section)return fail("Name one visible section: "+m[1]);
-   change={action:"section-style",sectionId:section.id,field:"sectionSpacing",
+   change={action:"section-style",sectionId:section.id,field:m[3]?(/phone|mobile/i.test(m[3])?"mobile":"desktop")+"SectionSpacing":"sectionSpacing",
     value:m[2].toLowerCase()==="more"?"generous":"compact"};
    description="Adjust spacing in "+section.title;
   }else if(/^(?:make|give) (?:the )?(?:main|hero|contact) button (?:stand out|more prominent)$/i.test(clause)){
@@ -99,7 +102,7 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    description="Emphasise the existing approved website button";
   }else return fail("No changes were made. Step "+(i+1)+" is not a supported, exact instruction. Try 'move the services section up' or 'make the hero heading smaller on phones'.");
   const leaves=change.action==='style-group'?change.operations:[change];
-  const keys=leaves.map(op=>[op.action==='move-relative'?'move':op.action,op.sectionId||"global",op.action==='add-text'?op.title.trim().toLocaleLowerCase('en'):op.field||"position"].join(":"));
+  const keys=leaves.map(op=>[op.action==='move-relative'?'move':op.action,op.sectionId||"global",op.action==='add-text'?op.title.trim().toLocaleLowerCase('en'):op.field||op.device||"position"].join(":"));
   if(keys.some(key=>targets.has(key)))return fail("Two steps affect the same setting. Give one instruction for that setting.");
   keys.forEach(key=>targets.add(key));steps.push({type,change,spoken:clause,description});
  }

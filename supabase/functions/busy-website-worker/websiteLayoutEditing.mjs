@@ -237,6 +237,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
    headingScale:["compact","normal","large"],
    textAlign:["left","center"],
    sectionSpacing:["compact","normal","generous"],
+   mobileSectionSpacing:["compact","normal","generous"],desktopSectionSpacing:["compact","normal","generous"],
    photoCrop:["top","center","bottom"],
    photoSide:["left","right"],
    gallerySize:["comfortable","compact","large"],
@@ -249,6 +250,8 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
    headingScale:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
    textAlign:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
    sectionSpacing:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
+   mobileSectionSpacing:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
+   desktopSectionSpacing:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
    photoCrop:["hero","photo-feature","gallery"],
    photoSide:["photo-feature"],
    gallerySize:["gallery"],
@@ -276,7 +279,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   for(const name of Object.keys(fields))
    if(fields[name].includes(existing[name])&&supports[name].includes(target.type))
     next[name]=existing[name];
-  const defaults={bodyScale:'normal',mobileBodyScale:'normal',desktopBodyScale:'normal',headingScale:"normal",textAlign:"left",sectionSpacing:"normal",
+  const defaults={bodyScale:'normal',mobileBodyScale:'normal',desktopBodyScale:'normal',headingScale:"normal",textAlign:"left",sectionSpacing:"normal",mobileSectionSpacing:"normal",desktopSectionSpacing:"normal",
     photoCrop:"center",photoSide:"left",gallerySize:"comfortable",
     mobileHeadingScale:"normal",desktopHeadingScale:"normal",mobileGallerySize:"comfortable",desktopGallerySize:"comfortable"};
   if(value===defaults[field])delete next[field];else next[field]=value;
@@ -390,22 +393,23 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
  return fail(draft,"Unsupported layout change. No website content was modified.");
 }
 function applyWebsiteLayoutOperation(draft,operation){
- if(operation?.action==='page-reading'){
-  if(Object.keys(operation).some(k=>!['action','kind','pageId','device'].includes(k))||
-   !['mobile','desktop','all'].includes(operation.device))return fail(draft,'Choose the page and supported reading size.');
+ if(['page-reading','page-spacing'].includes(operation?.action)){
+  const spacing=operation.action==='page-spacing',value=spacing?operation.value:'large';
+  if(Object.keys(operation).some(k=>!(spacing?['action','kind','pageId','device','value']:['action','kind','pageId','device']).includes(k))||
+   !(spacing?['mobile','desktop']:['mobile','desktop','all']).includes(operation.device)||spacing&&!['compact','generous'].includes(value))return fail(draft,'Choose the page and supported reading size.');
   const pages=list(draft?.pages).filter(p=>p.id===operation.pageId&&p.enabled!==false);
   if(pages.length!==1)return fail(draft,'Choose one current page.');
-  const field=operation.device==='all'?'bodyScale':operation.device+'BodyScale';
+  const field=spacing?operation.device+'SectionSpacing':operation.device==='all'?'bodyScale':operation.device+'BodyScale';
   const sections=list(draft.sections).filter(s=>s.enabled!==false&&list(pages[0].sectionIds).includes(s.id)&&
-   ['hero','services','about','text','photo-feature','faq','testimonials','contact'].includes(s.type));
+   ['hero','services','about','text','photo-feature','faq','testimonials','contact',...(spacing?['gallery']:[])].includes(s.type));
   if(!sections.length||sections.length>30)return fail(draft,'Review the current page sections first.');
   let next=draft,changed=false;
   for(const section of sections){
-   if(section.appearance?.[field]==='large')continue;
-   const result=applyWebsiteLayoutOperation(next,{action:'section-style',sectionId:section.id,field,value:'large'});
+   if(section.appearance?.[field]===value)continue;
+   const result=applyWebsiteLayoutOperation(next,{action:'section-style',sectionId:section.id,field,value});
    if(!result.applied)return fail(draft,result.reason);next=result.draft;changed=true;
   }
-  return changed?protectWebsiteOwnerLocks(draft,{applied:true,draft:next,reason:'Prepared larger body text and reading space on '+operation.device+' layouts. Wording and other widths stay unchanged.'}):fail(draft,'This page already uses the requested reading size.');
+  return changed?protectWebsiteOwnerLocks(draft,{applied:true,draft:next,reason:(spacing?'Prepared section spacing on ':'Prepared larger body text and reading space on ')+operation.device+' layouts. Wording and other widths stay unchanged.'}):fail(draft,'This page already uses the requested reading size.');
  }
  if(operation?.action==='style-group'){
   const ops=operation.operations;

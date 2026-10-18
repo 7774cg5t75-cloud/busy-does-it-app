@@ -47,7 +47,7 @@ function verifyOriginalWebsiteInstructionRuntime(){
  assert.equal(selected({selection:fresh,instruction:'make this heading smaller'}).applied,false);assert.equal(state.undo.length,1);
  websiteDraftRef.current=current;state.current=current;
  assert.equal(page({pageId:'home',generation:current.generation,instruction:'make the hero heading smaller; publish website'}).applied,false);assert.equal(state.current,current);
- assert.equal(page({pageId:'home',generation:current.generation,instruction:'make the hero heading smaller on phones'}).applied,true);assert.equal(state.undo.length,2);assert.equal(state.undo[1],current);
+ assert.equal(page({pageId:'home',generation:current.generation,instruction:'make the hero heading smaller on phones; give the whole page less space on phones'}).applied,true);assert.equal(state.undo.length,2);assert.equal(state.undo[1],current);assert.equal(state.current.sections.find(s=>s.id==='services').appearance.mobileSectionSpacing,'compact');
  const locked={...state.current,theme:{...state.current.theme,lockedSections:['hero']}};websiteDraftRef.current=locked;state.current=locked;
  assert.equal(selected({selection:{...selection,generation:locked.generation},instruction:'make this heading smaller'}).applied,false);assert.equal(state.current,locked);assert.equal(state.undo.length,2);
  // The original saved snapshot is the exact restoration input, not an inverse guess.

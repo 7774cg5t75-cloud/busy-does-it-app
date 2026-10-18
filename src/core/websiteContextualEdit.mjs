@@ -93,8 +93,8 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
   return success("layout",{action:"section-style",sectionId,field:"textAlign",value:alignment},
    "Change the alignment of the selected section.");
  }
- m=text.match(/^(?:give|make) (?:this|that|the selected) section (more|less) (?:space|spacing|breathing room)$/i);
- if(m)return success("layout",{action:"section-style",sectionId,field:"sectionSpacing",
+ m=text.match(/^(?:give|make) (?:this|that|the selected) section (more|less) (?:space|spacing|breathing room)(?: on (phones?|mobile|desktop|computers?))?$/i);
+ if(m)return success("layout",{action:"section-style",sectionId,field:m[2]?(/phone|mobile/i.test(m[2])?"mobile":"desktop")+"SectionSpacing":"sectionSpacing",
   value:states.sectionSpacing[m[1].toLowerCase()]},"Adjust spacing around only this section.");
  if(field==="photo"){
   if(section.type==="gallery"){
