@@ -15924,6 +15924,12 @@ function App() {
     const customerUserId = ownerSession?.userId || "";
     if (!slug || !appId || !customerUserId ||customerRequestRenderEpoch!==customerRequestEpochRef.current||
         customerRequestInFlightRef.current?.epoch===customerRequestEpochRef.current) return false;
+    const reviewedVersion=selectedBusyAppDetail?.requestReview;
+    if(reviewedVersion?.schema!=="published-version.v1"||reviewedVersion.appId!==appId||
+      reviewedVersion.versionId!==selectedBusyAppDetail?.version?.id){
+      setMiniAppsError("Reload this Business App before reviewing a new request. Its current request-version service is required. Earlier uncertain requests can still be checked through recovery.");
+      return false;
+    }
     const validatedRequest=validateNativeGuestRequest(requestType,payload);
     if(!validatedRequest.ok){setMiniAppsError(validatedRequest.reason);return false;}
     // Keep one request key for the SAME in-memory draft after an ambiguous
@@ -15948,9 +15954,18 @@ function App() {
       customerRequestPendingRef.current={signature,requestKey:key};
       if(differentDraft)throw Error('An earlier request needs checking before changed details can be sent.');
       const data = await miniAppsRequest(
-        "submit_request",{slug,requestType,payload},
+        "submit_request",{slug,requestType,payload,expectedAppId:appId,expectedVersionId:reviewedVersion.versionId},
         {includeBusiness:false,requestKey:key,isCurrent:scopeStillCurrent}
       );
+      if(data?.reviewRequired===true&&data.newRequestSaved===false&&
+        data.reviewedAppId===appId&&data.reviewedVersionId===reviewedVersion.versionId){
+        const cleared=await durable.complete(key).catch(()=>false);
+        if(!scopeStillCurrent())return false;
+        if(cleared&&customerRequestPendingRef.current?.requestKey===key)customerRequestPendingRef.current=null;
+        setMiniAppsError("The published app changed. Nothing new was sent. Reload this Business App, check its service details and review your request again."+
+          (cleared?"":" The device reference still needs checking through recovery."));
+        return false;
+      }
       const verified=evaluateCustomerRequestOutcome({
         businessAppId:appId,customerUserId,requestType,
         response:data,evidenceSource:"submit_response"

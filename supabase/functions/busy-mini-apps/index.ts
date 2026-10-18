@@ -1,3 +1,4 @@
+import {checkReviewedCustomerVersion} from "./customerReviewedVersion.mjs";
 import {businessContentSectionHtml} from '../_shared/businessContentHtml.mjs';
 import {validContentLayout} from './businessContentRecords.mjs';
 import {manageBusinessContent,readBusinessContent} from '../_shared/businessContentStore.mjs';
@@ -3361,6 +3362,7 @@ async function appDetail(
       favorite,
     },
     version: version.data,
+    requestReview:{schema:"published-version.v1",appId:app.data.id,versionId:version.data.id},
     loyaltyProgress,
     businessContent:version.data.config?.contentLayout?.length?await readBusinessContent(supabase,app.data.business_id,{publicOnly:true}):null,
   };
@@ -3487,6 +3489,13 @@ async function submitRequest(
         notificationDeliveryVerified:false,retryMayCreateDuplicate:false};
     }
   }
+
+  // Reconcile a saved idempotent request ABOVE this gate, even if the app
+  // has since been republished. A new action must match the reviewed version.
+  const reviewed=checkReviewedCustomerVersion(body,detail);
+  if(!reviewed.ok)return {reviewRequired:true,newRequestSaved:false,
+    reviewedAppId:body.expectedAppId,reviewedVersionId:body.expectedVersionId,
+    reason:reviewed.reason};
 
   const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
   const recent = await supabase
