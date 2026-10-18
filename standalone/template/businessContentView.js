@@ -6,6 +6,8 @@ function BusinessContentView({feed,kind,contextKey='',layout='cards',title,onInt
  const [storedState,setStoredState]=React.useState(null),[notice,setNotice]=React.useState(''),[pageSize,setPageSize]=React.useState(12),[categoryCount,setCategoryCount]=React.useState(8);
  const width=useWindowDimensions().width;
  const state=catalogueState(storedState,feed,kind,contextKey),{query,category,selected,detailRevision,options,optionRevisions}=state;
+ // Forget the previous public selection across a scope switch, including a switch back.
+ if(storedState&&storedState.scope!==state.scope)setStoredState(state);
  const source=catalogueSource(feed,kind,contextKey),sourceStamp=JSON.stringify([source,state]),live=React.useRef(sourceStamp);live.current=sourceStamp;
  const current=()=>live.current===sourceStamp;
  const change=event=>{if(current())setStoredState(before=>transitionCatalogue(before,{...event,source},feed,kind,contextKey));};
