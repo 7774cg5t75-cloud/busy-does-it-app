@@ -4,6 +4,8 @@ import {AppEntryEditButton} from './appEntryEditButton';
 import {appComponentTextStyle} from '../core/appComponentAppearance.mjs';
 import {amendAppQualityProposal} from "../core/appCoordinatedStudio.mjs";
 import {AppVisualSelection} from "./appVisualSelection";
+import {BuilderTalkExplore} from './builderTalkExplore';
+import {currentBuilderExplore} from '../core/builderExplore.mjs';
 import {useApprovedBuilderRecords} from './useApprovedBuilderRecords';
 import {planApprovedAppRecordSection} from '../core/approvedBuilderRecords.mjs';
 import {emptyEnquiryRequirements,prepareCustomerEnquiry,customerEnquiryReview,prepareCustomerBookingNote} from '../core/customerEnquiryRequirements.mjs';
@@ -844,6 +846,7 @@ function BusyAppsMarketplace({ s }) {
 }
 
 function MiniAppBuilder({ s }) {
+  const [explore,setExplore]=React.useState(false);
   const approvedRecords=useApprovedBuilderRecords(s.ownerSession?.userId,s.cloudWorkspace?.businessId);
   const [distributionMode,setDistributionMode]=React.useState("busy_marketplace");
   const [distributionAcks,setDistributionAcks]=React.useState({});
@@ -1152,6 +1155,13 @@ function MiniAppBuilder({ s }) {
     },
   ];
 
+  const exploreContext={kind:'app',ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,project:app?{...app,draft_config:view.draftConfig}:null};
+  const exploreLive=React.useRef(null);exploreLive.current=exploreContext;
+  if(explore)return <Shell s={s} title="Business App • Talk & Explore" subtitle="Nothing will be changed"><BuilderTalkExplore context={exploreContext} onExit={()=>setExplore(false)} onHandoff={handoff=>{
+    if(s.miniAppsAction||studio.pending||studio.uncertain||!currentBuilderExplore({ok:true,source:handoff.source},exploreLive.current))return false;
+    if(!setStudioPreview(handoff.proposal))return false;
+    setExplore(false);setStudioNotice('Explore ended. Review the original Studio comparison; no project change was applied.');return true;
+  }}/></Shell>;
   return (
     <Shell
       s={s}
@@ -1159,6 +1169,7 @@ function MiniAppBuilder({ s }) {
       subtitle="Describe the customer experience you want. BUSY turns it into a controlled app plan using tested modules and the business facts it already knows."
       brandCue="V3.56 • shared business profile • intelligent module recommendations • owner-controlled publishing."
     >
+      <Button label="Talk & Explore — no project changes" disabled={!app||!view.draftConfig||!!s.miniAppsAction||studio.pending||studio.uncertain} onPress={()=>setExplore(true)}/>
       <BusinessContentEditor key={['records',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')}
         businessId={s.cloudWorkspace?.businessId} request={s.businessContentRequest}
         onApprovedRecords={approvedRecords.onApprovedRecords}

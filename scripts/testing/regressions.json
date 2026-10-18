@@ -715,6 +715,20 @@
         "scripts/check-mission15-phase12-component-styles.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase12-explore",
+      "args": [
+        "scripts/check-mission15-phase12-explore.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase12-explore-handoff",
+      "args": [
+        "scripts/check-mission15-phase12-explore-handoff.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

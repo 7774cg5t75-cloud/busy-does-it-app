@@ -1,4 +1,7 @@
 import {websiteMovementOptions,resolveWebsiteMovement} from "../core/websiteVisualMovement.mjs";
+import {BuilderTalkExplore} from './builderTalkExplore';
+import {BuilderExploreEditReview} from './builderExploreEditReview';
+import {currentBuilderExplore} from '../core/builderExplore.mjs';
 import {useApprovedBuilderRecords} from './useApprovedBuilderRecords';
 import {WebsiteCompositionReview} from './websiteCompositionReview';
 import {prepareReviewedWebsiteComposition,reviewedWebsiteCompositionCurrent} from '../core/websiteReviewedComposition.mjs';
@@ -60,6 +63,7 @@ import {inspectCurrentWebsiteCandidateV3240}
  from "../core/websiteCurrentCandidateV3240.mjs";
 
 function WebsiteBuilder({ s }) {
+  const [explore,setExplore]=React.useState(false),[exploreHandoff,setExploreHandoff]=React.useState(null);
   const approvedRecords=useApprovedBuilderRecords(s.ownerSession?.userId,s.cloudWorkspace?.businessId);
   const draft = s.websiteDraft;
   const brand = s.brandBrain || {};
@@ -271,6 +275,12 @@ function WebsiteBuilder({ s }) {
     if (applied) setInstruction("");
   };
 
+  const exploreContext={kind:'website',ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,project:draft};
+  const exploreLive=React.useRef(null);exploreLive.current=exploreContext;
+  if(explore)return <Shell s={s} title="Website • Talk & Explore" subtitle="Nothing will be changed"><BuilderTalkExplore context={exploreContext} onExit={()=>setExplore(false)} onHandoff={handoff=>{
+    if(!currentBuilderExplore({ok:true,source:handoff.source},exploreLive.current))return false;
+    setExploreHandoff(handoff);setExplore(false);return true;
+  }}/></Shell>;
   return (
     <Shell
       s={s}
@@ -278,6 +288,8 @@ function WebsiteBuilder({ s }) {
       subtitle="Tell BUSY about your business, preview your website and make it your own."
       brandCue="BUSY DOES IT • Website Builder"
     >
+      <Button label="Talk & Explore — no project changes" disabled={!draft||!!s.websiteAction} onPress={()=>setExplore(true)}/>
+      {exploreHandoff?<BuilderExploreEditReview context={exploreContext} handoff={exploreHandoff} onCancel={()=>setExploreHandoff(null)} onApply={s.applyWebsitePageInstruction}/>:null}
       <BusinessContentEditor onApprovedRecords={approvedRecords.onApprovedRecords} key={['records',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')}
         businessId={s.cloudWorkspace?.businessId} request={s.businessContentRequest}
         onCompose={(_,choice)=>s.applyWebsiteFieldChange(choice.remove?{action:'remove-content-section',sectionId:choice.kind==='product'?'products':'events'}:{action:'content-section',sectionId:choice.kind==='product'?'products':'events',title:draft?.sections?.find(section=>section.id===(choice.kind==='product'?'products':'events'))?.title||(choice.kind==='product'?'Products':'Upcoming events'),layout:choice.layout,featuredId:choice.featuredId,previewFeed:choice.previewFeed})}/>

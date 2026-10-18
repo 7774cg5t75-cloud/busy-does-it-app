@@ -1,3 +1,4 @@
+import {builderExploreRemoteGuard} from './builderExploreRemoteGuard.mjs';
 import {reviewAppEditingQuality} from "./appAppearanceEditing.mjs";
 import {checkReviewedCustomerVersion} from "./customerReviewedVersion.mjs";
 import {businessContentSectionHtml} from '../_shared/businessContentHtml.mjs';
@@ -4175,6 +4176,8 @@ Deno.serve(async (request: Request) => {
   try {
     const user = await requireUser(request);
     const body = await request.json().catch(() => ({}));
+    const exploreGate=builderExploreRemoteGuard(body);
+    if(!exploreGate.allowed){console.warn('builder_explore_denied',exploreGate.audit);return json(403,{ok:false,error:exploreGate.code});}
     const action = clean(body?.action, 80);
     const businessId = clean(body?.businessId, 80);
     const requestId =
