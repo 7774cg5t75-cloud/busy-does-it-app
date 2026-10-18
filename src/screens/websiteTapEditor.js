@@ -1,3 +1,4 @@
+import {amendSelectedWebsiteQualityInstruction} from "../core/websiteSelectedChangePreview.mjs";
 import {BuilderQualityNotice} from "../components/builderQualityNotice";
 import {WebsiteTypographyControls} from "./websiteTypographyControls";
 import React from "react";
@@ -33,6 +34,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  const [selectedInstructionPreview,setSelectedInstructionPreview]=React.useState(null);
  const [showPreviewOriginal,setShowPreviewOriginal]=React.useState(false);
  const [comparisonSize,setComparisonSize]=React.useState("phone");
+ const editorLive=React.useRef(null);editorLive.current={draft,selection,contextRequest};
  const section=list(draft?.sections).find(s=>s.id===selection?.sectionId);
  const item=selection?.itemId?list(section?.items).find(x=>x.id===selection.itemId):null;
  const target=item||section;
@@ -84,6 +86,16 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
   setSelectedInstructionPreview(outcome);
   setShowPreviewOriginal(false);
   setContextNote("Your private comparison is ready. Nothing has been saved or published.");
+ };
+ const previewQualityAdjustment=repair=>{
+  const live=editorLive.current;
+  if(live.draft!==draft||live.selection!==selection||live.contextRequest!==contextRequest)return;
+  const amended=amendSelectedWebsiteQualityInstruction(draft,{selection,instruction:contextRequest,repair});
+  if(!amended.ok){setContextNote(amended.reason);return;}
+  const outcome=onPreviewInstruction?.({selection,instruction:amended.instruction});
+  if(!outcome?.ok){setContextNote(outcome?.reason||'The adjustment could not be previewed. Your current proposal is unchanged.');return;}
+  setContextRequest(amended.instruction);setSelectedInstructionPreview(outcome);setShowPreviewOriginal(false);
+  setContextNote('Suggested adjustment prepared with your other changes. Compare it, then use Apply if you want to keep it. Nothing was saved.');
  };
  const applyContext=(instruction)=>{
   const plan=planSelectedWebsiteChanges(draft,selection?.pageId,selection,instruction);
@@ -279,7 +291,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
             <View style={{marginVertical:10}}>
              <Text style={styles.sectionLabel}>Private before-and-after preview</Text>
              <Text style={styles.cardBody}>{selectedInstructionPreview.summary}</Text>
-             <BuilderQualityNotice quality={selectedInstructionPreview.quality}/>
+             <BuilderQualityNotice quality={{...selectedInstructionPreview.quality,findings:(selectedInstructionPreview.quality?.findings||[]).map(f=>({...f,repair:amendSelectedWebsiteQualityInstruction(draft,{selection,instruction:contextRequest,repair:f.repair}).ok?f.repair:null}))}} onRepair={previewQualityAdjustment}/>
              <Text style={styles.cardBody}>Compare phone, tablet or desktop layouts before applying. Wider views are scaled down on your phone.</Text>
              {["phone","tablet","desktop"].map(mode=>(
               <Button key={mode} label={(comparisonSize===mode?"✓ ":"")+"Compare "+mode+" layout"}

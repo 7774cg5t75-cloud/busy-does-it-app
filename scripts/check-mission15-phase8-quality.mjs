@@ -20,6 +20,17 @@ const locks={...web,theme:{lockedSections:['hero']}};
 assert.equal(checkPrivateWebsiteDraftCommit({current:locks,candidate:{...bold,theme:locks.theme},live:locks,scopeCurrent:true}).applied,false);
 assert.equal(editingQualityDecision([{id:'opinion',level:'critical',message:'Unusual style',evidence:'heuristic'}]).mayCommit,true,'Subjective opinion cannot become a hard gate');
 assert.equal(websiteEditingRegression(broken,{...broken,generation:3}).mayCommit,true,'Existing issue may remain during unrelated private repair; publication still blocked');
+const manyAdvice=Array.from({length:45},(_,i)=>({id:'advice-'+i,level:'advisory',message:'Optional preference',evidence:'heuristic'}));
+const lateCritical={id:'late-critical',level:'critical',message:'Broken navigation',evidence:'finite-contract'};
+assert.equal(editingQualityDecision([...manyAdvice,lateCritical]).mayCommit,false,'Presentation limits cannot hide critical faults');
+assert.equal(editingQualityDecision([...manyAdvice,lateCritical]).criticalCount,1);
+const crowded={...web,sections:[...web.sections,...Array.from({length:45},(_,i)=>({id:'hero-'+i,type:'hero',appearance:{headingScale:'large'}})),{id:'late-action',type:'text',cta:'Go',ctaHref:'#absent'}]};
+assert.equal(reviewWebsiteEditingQuality(crowded).mayCommit,false);
+assert.equal(websiteEditingRegression(web,crowded).mayCommit,false);
+for(const href of ['javascript:alert(1)','java\nscript:alert(1)','\tjava\tscript:alert(1)','data:text/html,unsafe']){
+ const unsafe={...web,sections:web.sections.map(s=>s.id==='hero'?{...s,ctaHref:href}:s)};
+ assert.equal(reviewWebsiteEditingQuality(unsafe).mayCommit,false,'Unsafe scheme remains blocked after browser URL normalization');
+}
 const app={modules:['business_profile','services','enquiry'].map(key=>({key,enabled:true})),navigation:['business_profile','services','enquiry'],presentation:{typeStyle:'impact',headerStyle:'bold'}};
 assert.equal(reviewAppEditingQuality(app).level,'advisory');
 const proposal=proposeCoordinatedAppChanges(app,[{kind:'appearance',field:'layoutDensity',value:'airy'}]);assert.ok(proposal.ok);assert.equal(proposal.quality.level,'advisory');
@@ -41,6 +52,7 @@ const worker='supabase/functions/busy-website-worker/index.ts';
 for(const [name,next]of [['prepareDeployment','publishDeployment'],['publishDeployment','rollbackDeployment']]){
  const fn=original(worker,name,next,deps);calls=0;
  await assert.rejects(fn({}, {source_draft:broken},{}),/Design quality:/);assert.equal(calls,0,'Critical rejection precedes external IO');
+ await assert.rejects(fn({}, {source_draft:crowded},{}),/Design quality:/);assert.equal(calls,0,'Late critical finding also rejects before external IO');
  if(name==='prepareDeployment')await assert.rejects(fn({}, {source_draft:bold},{}),/INERT_IO_BOUNDARY/);
 }
 const publish=original('supabase/functions/busy-mini-apps/index.ts','publishMiniAppWebArtifact','publishVersion',{reviewAppEditingQuality,ensureMiniAppPublicBucket:sentinel});

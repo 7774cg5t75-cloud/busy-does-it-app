@@ -10,7 +10,8 @@ export function reviewWebsiteEditingQuality(draft){
   add('section-identity','critical','Sections need unique, stable identities before this design can be used.');
  for(const s of sections){
   if(typeof s.ctaHref==='string'&&s.cta){
-   const href=s.ctaHref.trim();
+   // URL parsing removes ASCII tabs/newlines before interpreting a scheme.
+   const href=s.ctaHref.replace(/[\t\n\r]/g,'').trim();
    if(/^(?:javascript|data|vbscript):/i.test(href))add('unsafe-action:'+s.id,'critical','This button has an unsupported destination. Choose a supported link.',s.id);
    if(/^#.+/.test(href)&&href!=='#main'&&!sections.some(x=>x.type!=='hero'&&x.id===href.slice(1)))
     add('missing-action:'+s.id,'critical','This button points to a section that does not exist. Restore a visible destination.',s.id);
