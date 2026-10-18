@@ -1,6 +1,7 @@
 import {amendSelectedWebsiteQualityInstruction} from "../core/websiteSelectedChangePreview.mjs";
 import {BuilderQualityNotice} from "../components/builderQualityNotice";
 import {WebsiteTypographyControls} from "./websiteTypographyControls";
+import {WebsitePhotoControls} from './websitePhotoControls';
 import React from "react";
 import {Image,KeyboardAvoidingView,Modal,Platform,SafeAreaView,ScrollView,Text,TextInput,View} from "react-native";
 import {Button,Card,Field} from "../components/ui";
@@ -34,7 +35,11 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  const [selectedInstructionPreview,setSelectedInstructionPreview]=React.useState(null);
  const [showPreviewOriginal,setShowPreviewOriginal]=React.useState(false);
  const [comparisonSize,setComparisonSize]=React.useState("phone");
- const editorLive=React.useRef(null);editorLive.current={draft,selection,contextRequest};
+ const alive=React.useRef(true);React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
+ const editorLive=React.useRef(null);editorLive.current={draft,selection,contextRequest,value};
+ // Old toolbar, wording and voice callbacks may survive a selection change.
+ // They must not submit an earlier value against a replacement source.
+ const current=()=>alive.current&&editorLive.current.draft===draft&&editorLive.current.selection===selection;
  const section=list(draft?.sections).find(s=>s.id===selection?.sectionId);
  const item=selection?.itemId?list(section?.items).find(x=>x.id===selection.itemId):null;
  const target=item||section;
@@ -54,10 +59,11 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
   setComparisonSize("phone");
  },[key,draft?.updatedAt,initialMode]);
  const save=()=>{
-  if(!selection||field==="photo")return;
+  if(!current()||editorLive.current.value!==value||!selection||field==="photo")return;
   if(onTextChange?.({...selection,value})===true)onClose?.();
  };
  const apply=change=>{
+  if(!current())return;
   if(onLayoutChange?.(change)===true)onClose?.();
  };
  const gallery=list(draft?.sections).find(x=>x.id==="gallery");
@@ -79,6 +85,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
   setContextNote('Choice prepared. Compare it before using Apply; nothing has been saved.');
  };
  const previewContext=()=>{
+  if(!current()||editorLive.current.contextRequest!==contextRequest)return;
   if(!preparedInstruction?.ok||!onPreviewInstruction){
    setContextNote(preparedInstruction?.reason||"Check your instruction before previewing.");
    return;
@@ -104,6 +111,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
   setContextNote('Suggested adjustment prepared with your other changes. Compare it, then use Apply if you want to keep it. Nothing was saved.');
  };
  const applyContext=(instruction)=>{
+  if(!current()||editorLive.current.contextRequest!==contextRequest)return;
   const plan=planSelectedWebsiteChanges(draft,selection?.pageId,selection,instruction);
   if(!plan.ok){setContextNote(plan.reason);return;}
   if(onApplyInstruction){
@@ -156,7 +164,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
           <View style={styles.fieldWrap}>
            <Text style={styles.fieldLabel}>Your new wording</Text>
            <View style={styles.fieldBox}>
-            <TextInput value={value} onChangeText={setValue}
+            <TextInput value={value} onChangeText={next=>{if(current())setValue(next);}}
              style={[styles.fieldInput,{minHeight:135,textAlignVertical:"top"}]}
              placeholderTextColor="#9AA3B2"
              placeholder="Type the exact wording you want" multiline
@@ -165,7 +173,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
           </View>
          ):(
           <Field label={names[field]||"Website wording"} value={value}
-           onChangeText={setValue}
+           onChangeText={next=>{if(current())setValue(next);}}
            autoCapitalize={field==="email"||field==="ctaHref"?"none":"sentences"}
            keyboardType={field==="email"?"email-address":field==="phone"?"phone-pad":"default"}
            placeholder="Write your replacement"/>
@@ -178,6 +186,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
        {selection&&field==="photo"&&initialMode==="edit"?(
         <>
          <Text style={styles.sectionLabel}>Currently selected photograph</Text>
+         <WebsitePhotoControls draft={draft} selection={selection} section={section} onChoose={prepareContextChoice}/>
          {selectedPhotoSource?(
           <Image source={selectedPhotoSource} resizeMode="contain"
            accessibilityLabel={String(selectedPhoto?.alt||"Your selected business photograph").slice(0,120)}
@@ -189,9 +198,9 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
           <>
            <Text style={styles.cardBody}>{"Photo "+(photoIndex+1)+" of "+list(section.items).length+". Change its position or remove it from the draft gallery."}</Text>
            <Button label="Move photograph left / earlier"
-            onPress={()=>apply({action:"move-gallery-photo",sectionId:"gallery",photoIndex,direction:"up"})}/>
+            onPress={()=>prepareContextChoice('move this photo to the left')}/>
            <Button label="Move photograph right / later"
-            onPress={()=>apply({action:"move-gallery-photo",sectionId:"gallery",photoIndex,direction:"down"})}/>
+            onPress={()=>prepareContextChoice('move this photo to the right')}/>
            <Button label={confirmRemove?"Confirm remove from gallery":"Remove from this gallery"}
             onPress={()=>{
              if(!confirmRemove){setConfirmRemove(true);return;}
@@ -261,12 +270,14 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
            ))}
            <WebsiteSelectedVoice key={key} selection={selection} startImmediately={initialMode==="voice"} onTranscribe={onTranscribe}
             onTranscript={words=>{
+              if(!current())return;
               setContextRequest(words);
               setSelectedInstructionPreview(null);
               setContextNote("Please check these words carefully. Nothing has changed yet.");
             }}/>
            <Field label="What would you like to change?" value={contextRequest}
             onChangeText={words=>{
+             if(!current())return;
              setContextRequest(words);
              setSelectedInstructionPreview(null);
              setContextNote("");
