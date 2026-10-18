@@ -1,0 +1,601 @@
+{
+  "version": 1,
+  "checks": [
+    {
+      "id": "check-mission13-conversations",
+      "args": [
+        "scripts/check-mission13-conversations.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission13-private-recovery",
+      "args": [
+        "scripts/check-mission13-private-recovery.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission13-customer-surfaces",
+      "args": [
+        "scripts/check-mission13-customer-surfaces.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission13-communication-truth",
+      "args": [
+        "scripts/check-mission13-communication-truth.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission12-content-enquiry",
+      "args": [
+        "scripts/check-mission12-content-enquiry.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission12-builder-reuse",
+      "args": [
+        "scripts/check-mission12-builder-reuse.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission12-intent",
+      "args": [
+        "scripts/check-mission12-intent.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission12-live-form-logic",
+      "args": [
+        "scripts/check-mission12-live-form-logic.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission12-public-handoff",
+      "args": [
+        "scripts/check-mission12-public-handoff.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission12-record-review",
+      "args": [
+        "scripts/check-mission12-record-review.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission12-standalone-continuity",
+      "args": [
+        "scripts/check-mission12-standalone-continuity.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission11-records",
+      "args": [
+        "scripts/check-mission11-records.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission11-intelligence",
+      "args": [
+        "scripts/check-mission11-intelligence.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission11-public-views",
+      "args": [
+        "scripts/check-mission11-public-views.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-app-goal-content",
+      "args": [
+        "scripts/check-app-goal-content.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-app-goal-editing",
+      "args": [
+        "scripts/check-app-goal-editing.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-app-goal-decisions",
+      "args": [
+        "scripts/check-app-goal-decisions.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-app-builder-dual-track-v3153",
+      "args": [
+        "scripts/check-app-builder-dual-track-v3153.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission10-information-reuse",
+      "args": [
+        "scripts/check-mission10-information-reuse.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission9-builder-language",
+      "args": [
+        "scripts/check-mission9-builder-language.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission10-public-information",
+      "args": [
+        "scripts/check-mission10-public-information.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission10-service-details",
+      "args": [
+        "scripts/check-mission10-service-details.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-owner-outcome-v3235",
+      "args": [
+        "scripts/check-owner-outcome-v3235.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-communications-v3205",
+      "args": [
+        "scripts/check-communications-v3205.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-customer-journey-v3204",
+      "args": [
+        "scripts/check-customer-journey-v3204.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission9-reply-continuity",
+      "args": [
+        "scripts/check-mission9-reply-continuity.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission9-request-recovery",
+      "args": [
+        "scripts/check-mission9-request-recovery.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-message-integrity-v3185",
+      "args": [
+        "scripts/check-message-integrity-v3185.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-builder-intelligence-v3240",
+      "args": [
+        "scripts/check-builder-intelligence-v3240.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission14-contextual-replies",
+      "args": [
+        "scripts/check-mission14-contextual-replies.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission14-content-intelligence",
+      "args": [
+        "scripts/check-mission14-content-intelligence.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission14-experience-recovery",
+      "args": [
+        "scripts/check-mission14-experience-recovery.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-standalone-native-v3154",
+      "args": [
+        "scripts/check-standalone-native-v3154.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-editing-preview",
+      "args": [
+        "scripts/check-mission15-editing-preview.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-app-services",
+      "args": [
+        "scripts/check-mission15-app-services.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-design-candidates",
+      "args": [
+        "scripts/check-mission15-design-candidates.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-coherence",
+      "args": [
+        "scripts/check-mission15-coherence.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-website-page-instructions-v3149",
+      "args": [
+        "scripts/check-website-page-instructions-v3149.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-website-context-plan-v3147",
+      "args": [
+        "scripts/check-website-context-plan-v3147.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-website-context-v3140",
+      "args": [
+        "scripts/check-website-context-v3140.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-website-measured-coach-v3144",
+      "args": [
+        "scripts/check-website-measured-coach-v3144.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-website-coordinated-alternatives",
+      "args": [
+        "scripts/check-website-coordinated-alternatives.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission7-website-decisions",
+      "args": [
+        "scripts/check-mission7-website-decisions.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-major-builders-v3195",
+      "args": [
+        "scripts/check-major-builders-v3195.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission15-phase2-copy",
+      "args": [
+        "scripts/check-mission15-phase2-copy.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission15-phase2-responsive",
+      "args": [
+        "scripts/check-mission15-phase2-responsive.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase2-services",
+      "args": [
+        "scripts/check-mission15-phase2-services.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission15-phase2-measured-reading",
+      "args": [
+        "scripts/check-mission15-phase2-measured-reading.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase2-request-intent",
+      "args": [
+        "scripts/check-mission15-phase2-request-intent.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission15-phase2-transfer-review",
+      "args": [
+        "scripts/check-mission15-phase2-transfer-review.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-app-studio-session",
+      "args": [
+        "scripts/check-app-studio-session.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-app-studio-checkpoint",
+      "args": [
+        "scripts/check-app-studio-checkpoint.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "build-website-design-gallery-v3100",
+      "args": [
+        "scripts/build-website-design-gallery-v3100.mjs",
+        "/tmp/busy-mission15-phase2-gallery"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-builder-visual-receipt-v3238",
+      "args": [
+        "scripts/check-builder-visual-receipt-v3238.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase3-composition",
+      "args": [
+        "scripts/check-mission15-phase3-composition.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission15-phase3-content-review",
+      "args": [
+        "scripts/check-mission15-phase3-content-review.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission15-phase3-gallery",
+      "args": [
+        "scripts/check-mission15-phase3-gallery.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase3-language",
+      "args": [
+        "scripts/check-mission15-phase3-language.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase3-studio-recovery",
+      "args": [
+        "scripts/check-mission15-phase3-studio-recovery.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission15-phase4-app-capabilities",
+      "args": [
+        "scripts/check-mission15-phase4-app-capabilities.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission15-phase4-requirements",
+      "args": [
+        "scripts/check-mission15-phase4-requirements.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission15-phase4-website-spacing",
+      "args": [
+        "scripts/check-mission15-phase4-website-spacing.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase5-approved-records",
+      "args": [
+        "scripts/check-mission15-phase5-approved-records.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission15-phase5-catalogue-editing",
+      "args": [
+        "scripts/check-mission15-phase5-catalogue-editing.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase5-enquiry-review",
+      "args": [
+        "scripts/check-mission15-phase5-enquiry-review.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission11-composition",
+      "args": [
+        "scripts/check-mission11-composition.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "prepare-standalone-prototype-v3154",
+      "args": [
+        "scripts/prepare-standalone-prototype-v3154.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase6-booking-review",
+      "args": [
+        "scripts/check-mission15-phase6-booking-review.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission15-phase6-hero-composition",
+      "args": [
+        "scripts/check-mission15-phase6-hero-composition.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-distinct-website-designs-v3101",
+      "args": [
+        "scripts/check-distinct-website-designs-v3101.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-website-layout-v3134",
+      "args": [
+        "scripts/check-website-layout-v3134.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission8-shared-request-entry",
+      "args": [
+        "scripts/check-mission8-shared-request-entry.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission15-phase7-visual-movement",
+      "args": [
+        "scripts/check-mission15-phase7-visual-movement.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase7-typography",
+      "args": [
+        "scripts/check-mission15-phase7-typography.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission15-phase7-app-selection",
+      "args": [
+        "scripts/check-mission15-phase7-app-selection.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-website-section-styling-v3139",
+      "args": [
+        "scripts/check-website-section-styling-v3139.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase7-reviewed-request",
+      "args": [
+        "scripts/check-mission15-phase7-reviewed-request.mjs"
+      ],
+      "phase8Blocked": true
+    },
+    {
+      "id": "check-mission15-phase7-card-colours",
+      "args": [
+        "scripts/check-mission15-phase7-card-colours.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase7-page-movement",
+      "args": [
+        "scripts/check-mission15-phase7-page-movement.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-website-pages-v3135",
+      "args": [
+        "scripts/check-website-pages-v3135.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-website-tap-editor-v3138",
+      "args": [
+        "scripts/check-website-tap-editor-v3138.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase8-quality",
+      "args": [
+        "scripts/check-mission15-phase8-quality.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase8-sizing",
+      "args": [
+        "scripts/check-mission15-phase8-sizing.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase8-service-questions",
+      "args": [
+        "scripts/check-mission15-phase8-service-questions.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase8-website-suggestions",
+      "args": [
+        "scripts/check-mission15-phase8-website-suggestions.mjs"
+      ],
+      "phase8Blocked": false
+    }
+  ]
+}
