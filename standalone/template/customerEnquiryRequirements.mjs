@@ -49,3 +49,10 @@ function prepareCustomerBookingNote(note='',requirements=emptyEnquiryRequirement
  return text.length<=3000?{ok:true,note:text,appointmentConfirmed:false}:{ok:false,reason:'The combined note and requirements exceed 3,000 characters. Shorten them; nothing was sent.'};
 }
 export {prepareCustomerBookingNote};
+
+// Merge a suggested question against the latest queued form state, never an old snapshot.
+function applyEnquiryTopicSuggestion(current,topic){
+ if(!validEnquiryRequirements(current)||current.topic.trim()||typeof topic!=='string'||!topic.trim()||topic.length>120||/[<>\u0000-\u001f\u007f]/.test(topic))return current;
+ return {...current,topic};
+}
+export {applyEnquiryTopicSuggestion};

@@ -1,3 +1,4 @@
+import {applyEnquiryTopicSuggestion} from './customerEnquiryRequirements.mjs';
 import {EnquiryTopicShortcuts} from './enquiryTopicShortcuts';
 import {ServiceActionButton} from './serviceActionButton';
 import {serviceCardStyle} from './appServicePresentation.mjs';
@@ -65,7 +66,7 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
  const enabled=type==="booking_request"?live?.supportsBookingRequest:live?.supportsEnquiry;
  const set=(key)=>(value)=>{
   if(inFlight.current||busy||result?.ok||result?.mayHaveBeenReceived)return;
-  setInput(prev=>({...prev,[key]:value}));
+  setInput(prev=>({...prev,[key]:key==='requirements'&&typeof value==='function'?value(prev.requirements||emptyEnquiryRequirements()):value}));
   if(!result?.mayHaveBeenReceived){
    setResult(null);setPossibleDuplicateRetry(false);
   }
@@ -113,7 +114,7 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
     <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Email address" value={input.email} onChange={set("email")}/>
     <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Phone number (optional)" value={input.phone} onChange={set("phone")}/>
     <Text style={sub}>Optional requirements are shared with the business for review; no date, quantity, access arrangement or price is confirmed.</Text>
-    <EnquiryTopicShortcuts requirements={input.requirements||emptyEnquiryRequirements()} onChoose={value=>set('requirements')(value)} disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} colors={COLORS}/>
+    <EnquiryTopicShortcuts requirements={input.requirements||emptyEnquiryRequirements()} onChoose={value=>set('requirements')(current=>applyEnquiryTopicSuggestion(current,value.topic))} disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} colors={COLORS}/>
     {ENQUIRY_REQUIREMENTS.map(field=><Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} key={field.key} title={field.label} maxLength={field.max} value={(input.requirements||emptyEnquiryRequirements())[field.key]}
       onChange={value=>set('requirements')({...input.requirements||emptyEnquiryRequirements(),[field.key]:value})}/>)}
     {type==="booking_request"?<>

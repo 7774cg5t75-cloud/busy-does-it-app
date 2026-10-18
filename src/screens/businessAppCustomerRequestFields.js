@@ -1,5 +1,5 @@
 import {EnquiryTopicShortcuts} from '../../standalone/template/enquiryTopicShortcuts';
-import {ENQUIRY_REQUIREMENTS,emptyEnquiryRequirements} from '../core/customerEnquiryRequirements.mjs';
+import {ENQUIRY_REQUIREMENTS,emptyEnquiryRequirements,applyEnquiryTopicSuggestion} from '../core/customerEnquiryRequirements.mjs';
 import React from 'react';
 import {View,Text,ScrollView,Alert} from 'react-native';
 import {Card,Button,Field} from '../components/ui';
@@ -57,7 +57,7 @@ function BusinessAppCustomerRequestFields({s,form,onLayout}){
       {typeof setRequirements==='function'?<View>
         <Text style={styles.sectionLabel}>What do you need? (optional)</Text>
         <Text style={styles.cardBody}>These customer-supplied requirements are included in the request for the business to review. No quantity, date, arrangement or price is confirmed.</Text>
-        <EnquiryTopicShortcuts requirements={requirements} onChoose={setRequirements} disabled={!!s.miniAppsAction||!!enquiryReview||!!bookingReview}/>
+        <EnquiryTopicShortcuts requirements={requirements} onChoose={value=>setRequirements(current=>applyEnquiryTopicSuggestion(current,value.topic))} disabled={!!s.miniAppsAction||!!enquiryReview||!!bookingReview}/>
         {ENQUIRY_REQUIREMENTS.map(field=><Field key={field.key} label={field.label} value={requirements[field.key]} maxLength={field.max} onChangeText={value=>setRequirements(current=>({...current,[field.key]:value}))}/>)}
       </View>:null}
 
