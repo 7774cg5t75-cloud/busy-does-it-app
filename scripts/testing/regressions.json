@@ -855,6 +855,13 @@
         "scripts/check-mission15-phase21-editing.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase21-draft-choices",
+      "args": [
+        "scripts/check-mission15-phase21-draft-choices.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

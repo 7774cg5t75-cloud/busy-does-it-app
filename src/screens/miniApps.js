@@ -4654,7 +4654,12 @@ function BusyAppDetailForm({ s }) {
   const chooseContent=(label,prepared)=>{
     const checked=prepareBusinessContentEnquiry(detail.businessContent,detail.app?.business_id,prepared?.selection);
     if(!checked.ok){setContentNotice(checked.reason);return;}
-    const apply=()=>{setService(checked.service);setMessage(checked.message);setContentInterest(checked.selection);setContentNotice('Selected item added to your enquiry. Review the message before sending.');goToRequest('enquiry');};
+    const stamp=formLive.current,selectedUser=s.ownerSession?.userId;
+    const apply=()=>{
+      if(!formAlive.current||formLive.current!==stamp||s.selectedBusyAppDetail!==detail||s.ownerSession?.userId!==selectedUser){setContentNotice('Your draft or app changed. Choose the listing again; your newer details were kept.');return;}
+      const fresh=prepareBusinessContentEnquiry(s.selectedBusyAppDetail?.businessContent,detail.app?.business_id,checked.selection);
+      if(!fresh.ok){setContentNotice(fresh.reason);return;}
+      setService(fresh.service);setMessage(fresh.message);setContentInterest(fresh.selection);setContentNotice('Selected item added to your enquiry. Review the message before sending.');goToRequest('enquiry');};
     if(message.trim())Alert.alert('Replace this enquiry draft?','Your current message will be replaced by the selected listing context.',[{text:'Keep my message',style:'cancel'},{text:'Use selected item',onPress:apply}]);else apply();
   };
   const chooseService=(label,kind,topic)=>{
