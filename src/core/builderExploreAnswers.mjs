@@ -4,7 +4,7 @@ import {appDesignQualityReport} from './appDesignQuality.mjs';
 // Presentation of existing planner evidence, not another planner or AI service.
 const readiness={present_in_private_draft:'Already included in your draft',supported_section_not_present:'Can be prepared for your review',available_module_needs_owner_setup:'Available, with setup still needed',runtime_module_not_verified_available:'Not confirmed for this app yet',requires_new_implementation:'Not supported yet',requires_service_verification:'Needs its service or connection checked'};
 function explainBuilderExplore({kind,project,catalog,plan,text}){
- if(/\b(?:just for (?:me|myself)|personal (?:app|project|website|portfolio)|hobby (?:app|project|website)|club (?:app|website|project)|(?:my|our|a) club|community project)\b/i.test(text)){
+ if(/\b(?:just for (?:me|myself)|personal (?:app|project|website|portfolio)|hobby (?:app|project|website)|club (?:app|website|project)|(?:my|our|a|local|community) club|community project)\b/i.test(text)){
   const purpose=/club|community/i.test(text)?'club':'personal';
   const neutral=planUniversalBuilderRequest({request:text,projectPurpose:purpose});
   return {answer:[neutral.summary,'A simple information site can start with your own title, pages, pictures and chosen style. A personal project should not need invented services, customers or a trading name.',
@@ -32,6 +32,16 @@ function explainBuilderExplore({kind,project,catalog,plan,text}){
   const hero=project.sections?.find(s=>s.type==='hero'&&s.enabled!==false),asset=hero?.asset;
   if(!asset||asset.approved!==true)return {answer:'Your current introduction has no approved main picture to rearrange. Choose and approve the right image in the original editor first. Nothing will be changed.',alternatives:[]};
   return {answer:'We can compare the approved main picture to the left or right of your introduction. These are different desktop arrangements; phones keep one reading column with the text before the picture. Your words, colours and picture stay the same. This is a source-based proposal, not a screenshot assessment. Nothing will be changed.',alternatives:[{label:'Compare picture on the left',instruction:'move the hero photo left'},{label:'Compare picture on the right',instruction:'move the hero photo right'}]};
+ }
+ if(kind==='app'&&/\b(?:app)\b.*\b(?:more useful|help customers|improve)\b|\b(?:more useful|help customers|improve)\b.*\bapp\b/i.test(text)){
+  const incomplete=services.filter(row=>!String(row.description||'').trim()).length;
+  const modules=project.draft_config?.modules||[];
+  const enquiry=plan.capabilities?.find(row=>row.id==='enquiry')?.app?.status;
+  const suggestions=[services.length?'Your draft has '+services.length+' services. '+(incomplete?incomplete+' still need an owner-written description before customers can understand what to ask about.':'Customers can read the existing details and browse other services in the same category.'):'Start with one useful information screen and accurate owner-approved details, rather than adding empty screens.'];
+  if(!profile.contact?.email&&!profile.contact?.phone)suggestions.push('Review your contact information so customers know how to reach the right business.');
+  if(modules.some(row=>row.key==='enquiry'&&row.enabled===true))suggestions.push('An enquiry screen is present in the draft. Verify the complete customer review, saved request and owner inbox journey before treating it as a working result.');
+  else suggestions.push(enquiry==='available_module_needs_owner_setup'||enquiry==='supported_section_not_present'?'The existing enquiry capability could be prepared for owner review; its setup and permissions still need checking.':'Enquiry availability is not confirmed for this app from the current capability evidence. Check the supported catalogue before promising it.');
+  return {answer:[...suggestions,'No booking, payment or delivery is confirmed by a draft. These recommendations use current project information, not live customer outcome evidence. Nothing will be changed.'].join('\n'),alternatives:[]};
  }
  if(kind==='app'&&/\b(?:find|browse|discover)\b.*\bservices\b/i.test(text)){
   const categories=new Set(services.map(s=>typeof s.category==='string'?s.category.trim():'').filter(Boolean));

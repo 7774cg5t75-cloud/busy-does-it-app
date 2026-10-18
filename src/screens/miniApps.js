@@ -463,7 +463,7 @@ function MiniAppSurface({
                           fontWeight:visual.type.sectionWeight,...componentStyle('service:'+service.id+':title',visual.type.bodySize+2)}}>
                           {service.name||"Service"}
                         </Text>
-                        <ServiceDetails service={service} colors={brandColours} bodySize={visual.type.bodySize} textStyle={componentStyle('service:'+service.id+':body',visual.type.bodySize)}/>
+                        <ServiceDetails service={service} onRelatedServices={interactive&&!ownerSelection?category=>{setServiceQuery('');setServiceCategory(category);}:undefined} colors={brandColours} bodySize={visual.type.bodySize} textStyle={componentStyle('service:'+service.id+':body',visual.type.bodySize)}/>
                         {ownerSelection?<AppEntryEditButton label={'Edit service '+service.name} colors={brandColours}
                           selected={ownerSelection.selection?.part==='service'&&ownerSelection.selection.index===allServices.indexOf(service)}
                           onPress={()=>ownerSelection.onSelect({part:'service',index:allServices.indexOf(service),expectedService:JSON.stringify(service)})}/>:null}

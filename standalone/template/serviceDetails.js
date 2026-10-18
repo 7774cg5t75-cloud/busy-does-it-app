@@ -4,7 +4,7 @@ import {publicServiceDetails} from './publicServiceDetails.mjs';
 // One public informational view shared by marketplace and standalone. No new
 // request, storage, availability or transaction authority. Existing actions
 // remain outside this component and retain their original version/review gates.
-export function ServiceDetails({service,colors,bodySize=15,textStyle={}}){
+export function ServiceDetails({service,colors,bodySize=15,textStyle={},onRelatedServices}){
  const description=typeof service?.description==='string'?service.description.slice(0,2000):'';
  const details=publicServiceDetails(service),name=typeof service?.name==='string'?service.name:'this service';
  const stamp=JSON.stringify([service?.id,name,description,details]);
@@ -23,6 +23,7 @@ export function ServiceDetails({service,colors,bodySize=15,textStyle={}}){
    style={{minHeight:48,paddingVertical:12,paddingHorizontal:4,justifyContent:'center'}}>
    <Text style={{color:colors.text,fontWeight:'600',fontSize:bodySize}}>{expanded?'Back to service summary':'View service details'}</Text>
   </Pressable>
+  {expanded&&details.category&&typeof onRelatedServices==='function'?<Pressable accessibilityRole="button" accessibilityLabel={'See services in '+details.category} onPress={()=>{if(live.current===stamp)onRelatedServices(details.category);}} style={{minHeight:48,padding:12,justifyContent:'center'}}><Text style={{color:colors.text,fontWeight:'600'}}>See services in {details.category}</Text></Pressable>:null}
   {expanded?<Text style={text}>These are business-provided details. Ask the business to confirm current options, price and timing. An enquiry or booking request does not confirm an appointment, order or payment.</Text>:null}
  </View>;
 }
