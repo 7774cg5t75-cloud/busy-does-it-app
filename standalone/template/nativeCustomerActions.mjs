@@ -37,7 +37,7 @@ function validateNativeGuestRequest(type,payload){
   if(type==='booking_request'&&key==='message'||type==='enquiry'&&['preferredDate','note'].includes(key))continue;
   const value=payload?.[key];
   if(value!==undefined&&(typeof value!=='string'||value.length>max||/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(value)))
-   return {ok:false,reason:'Review the '+key+' field before sending. Details must fit the supported limit.'};
+   return {ok:false,field:key,reason:'Review the '+key+' field before sending. Details must fit the supported limit.'};
  }
  const p={
   name:clean(payload?.name,160),email:clean(payload?.email,240),
@@ -45,13 +45,13 @@ function validateNativeGuestRequest(type,payload){
   preferredDate:clean(payload?.preferredDate,240),message:clean(payload?.message,5000),
   note:clean(payload?.note,3000)
  };
- if(!p.name||(!p.email&&!p.phone))return {ok:false,reason:"Enter your name and email or phone."};
+ if(!p.name||(!p.email&&!p.phone))return {ok:false,field:!p.name?"name":"email",reason:"Enter your name and email or phone."};
  if(p.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email))
-  return {ok:false,reason:"Enter a valid email address."};
+  return {ok:false,field:"email",reason:"Enter a valid email address."};
  if(p.phone&&p.phone.replace(/\D/g,"").length<7)
-  return {ok:false,reason:"Enter a phone number with at least seven digits."};
- if(type==="booking_request"&&!p.service)return {ok:false,reason:"Enter the service you want to request."};
- if(type==="enquiry"&&!p.message)return {ok:false,reason:"Write your enquiry before sending."};
+  return {ok:false,field:"phone",reason:"Enter a phone number with at least seven digits."};
+ if(type==="booking_request"&&!p.service)return {ok:false,field:"service",reason:"Enter the service you want to request."};
+ if(type==="enquiry"&&!p.message)return {ok:false,field:"message",reason:"Write your enquiry before sending."};
  return {ok:true,payload:p};
 }
 export {nativeContactAction,searchPublicNativeServices,validateNativeGuestRequest};

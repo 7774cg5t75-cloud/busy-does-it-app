@@ -42,10 +42,10 @@ function Button({title,onPress,disabled=false}){
      fontWeight:"700",textAlign:"center"}}>{title}</Text>
  </Pressable>;
 }
-function Field({title,value,onChange,multiline=false,maxLength,disabled=false}){
+function Field({title,value,onChange,multiline=false,maxLength,disabled=false,inputRef}){
  return <View style={{marginTop:13}}>
   <Text style={{color:COLORS.text,fontWeight:"600"}}>{title}</Text>
-  <TextInput accessibilityLabel={title} editable={!disabled} accessibilityState={{disabled}} value={value} onChangeText={onChange}
+  <TextInput ref={inputRef} accessibilityLabel={title} editable={!disabled} accessibilityState={{disabled}} value={value} onChangeText={onChange}
     multiline={multiline} maxLength={maxLength} keyboardType={title==="Email address"?"email-address":"default"}
     autoCapitalize={title==="Email address"?"none":"sentences"}
     placeholderTextColor={COLORS.muted}
@@ -62,12 +62,13 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
  const [enquiryReview,setEnquiryReview]=useState(savedState?.enquiryReview||null);
  useEffect(()=>{if(!inFlight.current)onSaveState?.({input,result,possibleDuplicateRetry,enquiryReview});},[input,result,possibleDuplicateRetry,enquiryReview]);
  const inFlight=React.useRef(false);
+ const fieldRefs=React.useRef({});
  const latestDraft=React.useRef(null);latestDraft.current={input,result,contentSelection,live,runtime};
  const dateChoices=React.useMemo(()=>nativePreferredDates(new Date(),7),[]);
  const type=screen.key==="booking_request"?"booking_request":"enquiry";
  const enabled=type==="booking_request"?live?.supportsBookingRequest:live?.supportsEnquiry;
  const set=(key)=>(value)=>{
-  if(inFlight.current||busy||result?.ok||result?.mayHaveBeenReceived)return;
+  if(inFlight.current||busy||latestDraft.current?.live!==live||latestDraft.current?.runtime!==runtime||latestDraft.current?.contentSelection!==contentSelection||latestDraft.current?.result?.ok||latestDraft.current?.result?.mayHaveBeenReceived)return;
   setInput(prev=>({...prev,[key]:key==='requirements'&&typeof value==='function'?value(prev.requirements||emptyEnquiryRequirements()):value}));
   if(!result?.mayHaveBeenReceived){
    setResult(null);setPossibleDuplicateRetry(false);
@@ -88,7 +89,7 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
   if(!prepared.ok){setResult({ok:false,reason:prepared.reason});return;}
   if(type==='booking_request'&&contentSelection){setResult({ok:false,reason:'A selected product or event supports enquiries only.'});return;}
   {
-   if(!currentReview){setResult({ok:false,reason:validatedReview?.reason||preparedReview?.reason});return;}
+   if(!currentReview){setResult({ok:false,reason:validatedReview?.reason||preparedReview?.reason});fieldRefs.current[validatedReview?.field]?.focus?.();return;}
    if(reviewLive.current?.key!==currentReview.key||reviewLive.current?.live!==live||reviewLive.current?.runtime!==runtime)return;
    if(!reviewCurrent){setEnquiryReview(currentReview);return;}
   }
@@ -112,15 +113,15 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
     "Send a message directly to this business using BUSY's verified guest request service."}</Text>
   {!enabled?<Text style={sub}>This customer request action is not available on the live app.</Text>:(
    <>
-    <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Your name" value={input.name} onChange={set("name")}/>
-    <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Email address" value={input.email} onChange={set("email")}/>
-    <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Phone number (optional)" value={input.phone} onChange={set("phone")}/>
+    <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} inputRef={node=>{fieldRefs.current.name=node;}} title="Your name" value={input.name} onChange={set("name")}/>
+    <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} inputRef={node=>{fieldRefs.current.email=node;}} title="Email address" value={input.email} onChange={set("email")}/>
+    <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} inputRef={node=>{fieldRefs.current.phone=node;}} title="Phone number (optional)" value={input.phone} onChange={set("phone")}/>
     <Text style={sub}>Optional requirements are shared with the business for review; no date, quantity, access arrangement or price is confirmed.</Text>
     <EnquiryTopicShortcuts requirements={input.requirements||emptyEnquiryRequirements()} onChoose={value=>set('requirements')(current=>applyEnquiryTopicSuggestion(current,value.topic))} disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} colors={COLORS}/>
     {ENQUIRY_REQUIREMENTS.map(field=><Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} key={field.key} title={field.label} maxLength={field.max} value={(input.requirements||emptyEnquiryRequirements())[field.key]}
-      onChange={value=>set('requirements')({...input.requirements||emptyEnquiryRequirements(),[field.key]:value})}/>)}
+      onChange={value=>set('requirements')(current=>({...current,[field.key]:value}))}/>)}
     {type==="booking_request"?<>
-      <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Service you want" value={input.service} onChange={set("service")}/>
+      <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} inputRef={node=>{fieldRefs.current.service=node;}} title="Service you want" value={input.service} onChange={set("service")}/>
       <Text style={{...sub,fontSize:13}}>Choose a preferred day, or type a different date below. These are NOT available appointment slots.</Text>
       <View style={{flexDirection:"row",flexWrap:"wrap",gap:7,marginTop:8}}>
        {dateChoices.map(day=><Pressable key={day.value} accessibilityRole="button"
@@ -142,7 +143,7 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
      </>:<>
        <Text style={sub}>Optional requirements are included in your saved enquiry. They do not confirm quantity, timing, availability or attendance.</Text>
 
-       <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} title="Your message" value={input.message} onChange={set("message")} multiline/>
+       <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} inputRef={node=>{fieldRefs.current.message=node;}} title="Your message" value={input.message} onChange={set("message")} multiline/>
      </>}
     {contentSelection&&typeof onRemoveAttachment==='function'?<>
       <Text style={sub}>This enquiry includes a selected listing. Removing it keeps your wording and requirements; check any item names in your message.</Text>
@@ -342,6 +343,7 @@ export default function App(){
  const viewContext=React.useRef(publicViewContext);viewContext.current=publicViewContext;
  if(catalogueCache.current.scope!==publicViewContext)catalogueCache.current={scope:publicViewContext,states:{}};
  const requestFormKey=JSON.stringify([live?.versionId,chosen?.key,requestedKind,requestedService,requestedIntent,requestSelection]);
+ const requestIdentity=React.useRef(requestFormKey);requestIdentity.current=requestFormKey;
  const outerPadding=LOOK.layoutDensity==="compact"?13:
    LOOK.layoutDensity==="airy"?28:20;
  const contentWidth=Math.max(250,Math.floor((measuredFrameWidth||viewport.width)-2*outerPadding));
@@ -403,7 +405,7 @@ export default function App(){
       screen={chosen} live={live} runtime={runtime} contentSelection={requestSelection}
       savedState={requestForms.current.get(requestFormKey)}
       onRemoveAttachment={value=>{
-       if(viewContext.current!==publicViewContext||!requestSelection||chosen.key!=='enquiry')return;
+       if(viewContext.current!==publicViewContext||requestIdentity.current!==requestFormKey||!requestSelection||chosen.key!=='enquiry')return;
        const previous=requestForms.current.get(requestFormKey);
        if(previous?.result?.ok||previous?.result?.mayHaveBeenReceived)return;
        const nextKey=JSON.stringify([live?.versionId,chosen.key,'service','',requestedIntent,null]);
