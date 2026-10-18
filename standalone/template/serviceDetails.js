@@ -4,7 +4,7 @@ import {publicServiceDetails} from './publicServiceDetails.mjs';
 // One public informational view shared by marketplace and standalone. No new
 // request, storage, availability or transaction authority. Existing actions
 // remain outside this component and retain their original version/review gates.
-export function ServiceDetails({service,colors,bodySize=15}){
+export function ServiceDetails({service,colors,bodySize=15,textStyle={}}){
  const description=typeof service?.description==='string'?service.description.slice(0,2000):'';
  const details=publicServiceDetails(service),name=typeof service?.name==='string'?service.name:'this service';
  const stamp=JSON.stringify([service?.id,name,description,details]);
@@ -14,7 +14,7 @@ export function ServiceDetails({service,colors,bodySize=15}){
  const summary=description.length>160?description.slice(0,157).trimEnd()+'…':description;
  const text={color:colors.muted,fontSize:bodySize,lineHeight:bodySize+7,marginTop:8};
  return <View>
-  <Text style={text}>{(expanded?description:summary)||'Ask the business for details.'}</Text>
+  <Text style={{...text,...textStyle}}>{(expanded?description:summary)||'Ask the business for details.'}</Text>
   {details.category?<Text style={text}>{'Category: '+details.category}</Text>:null}
   {details.priceLabel?<Text style={text}>{'Price information: '+details.priceLabel}</Text>:null}
   {details.durationLabel?<Text style={text}>{'Typical duration: '+details.durationLabel}</Text>:null}

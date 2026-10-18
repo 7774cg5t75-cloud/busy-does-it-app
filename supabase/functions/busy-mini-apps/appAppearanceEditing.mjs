@@ -1,4 +1,5 @@
 import {editingQualityDecision} from "./builderQualityPolicy.mjs";
+import {validComponentStyles,componentTargetExists} from './appComponentAppearance.mjs';
 import {appOwnerLocks,appEditLockReason} from "./appOwnerLocks.mjs";
 /** V3.193 owner-controlled Business App appearance. Exact same code on
  * client and trusted Edge; acceptance and save use the same security rules. */
@@ -34,7 +35,7 @@ function previewPrivateAppAppearance(config,{field,value}={}){
      field==="brandPalette"&&value==="custom")
   return {ok:false,reason:"Choose a supported palette, or enter your brand colour as #RRGGBB."};
  const current={...DEFAULTS,...config.presentation};
- if(!appOwnerLocks(config).ok||Object.keys(current).some(key=>key==="ownerLockedElements"?false:key==="brandAccent"?
+ if(!appOwnerLocks(config).ok||Object.keys(current).some(key=>key==="componentStyles"?!validComponentStyles(current[key]):key==="ownerLockedElements"?false:key==="brandAccent"?
       typeof current[key]!=="string"||!HEX.test(current[key]):
       !owned(OPTIONS,key)||!OPTIONS[key].includes(current[key]))||
     current.brandPalette==="custom"&&!HEX.test(current.brandAccent||""))
@@ -67,13 +68,13 @@ function publicAppAppearance(presentation={}){
     !appOwnerLocks({presentation}).ok)
   return {ok:false,reason:"The approved app appearance needs review."};
  const {ownerLockedElements,...look}=presentation;
- if(Object.keys(look).some(key=>key==="brandAccent"?
+ if(Object.keys(look).some(key=>key==="componentStyles"?!validComponentStyles(look[key]):key==="brandAccent"?
     typeof look[key]!=="string"||!HEX.test(look[key]):
     !owned(OPTIONS,key)||!OPTIONS[key].includes(look[key]))||
     (look.brandPalette==="custom"&&!HEX.test(look.brandAccent||""))||
     (look.brandAccent!==undefined&&look.brandPalette!=="custom"))
   return {ok:false,reason:"Use a supported appearance and a valid custom brand colour."};
- return {ok:true,appearance:{...DEFAULTS,...look}};
+ return {ok:true,appearance:{...DEFAULTS,...look,...(look.componentStyles?{componentStyles:JSON.parse(JSON.stringify(look.componentStyles))}:{})}};
 }
 export {OPTIONS,DEFAULTS,previewPrivateAppAppearance,publicAppAppearance};
 
@@ -89,6 +90,7 @@ function reviewAppEditingQuality(config){
   add('navigation-permutation','critical','The navigation must contain each enabled screen exactly once. Restore the supported order.');
  if(!publicAppAppearance(config?.presentation||{}).ok)add('appearance-contract','critical','This appearance contains an unsupported style or colour. Choose the supported controls.');
  const p=config?.presentation||{};
+ if(validComponentStyles(p.componentStyles||{})&&Object.keys(p.componentStyles||{}).some(key=>!componentTargetExists(config,key)))add('component-target','critical','A styled text component no longer exists. Reset its style before removing its source.');
  if(p.typeStyle==='impact'&&p.headerStyle==='bold')add('strong-header','advisory','This combines a bold header with emphatic typography. Check long business names on a phone; you may keep your choice.','heuristic',{kind:'appearance',field:'headerStyle',value:'refined'});
  if(p.layoutDensity==='compact'&&enabled.length>=5)add('compact-navigation','advisory','This compact app has several screens. More space may help customers scan it.','heuristic',{kind:'appearance',field:'layoutDensity',value:'comfortable'});
  return editingQualityDecision(findings);

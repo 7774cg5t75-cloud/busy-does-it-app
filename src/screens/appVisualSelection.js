@@ -1,4 +1,5 @@
 import {AppSelectedInstruction} from "./appSelectedInstruction";
+import {AppComponentStyleControls} from './appComponentStyleControls';
 import {AppSelectedServiceControls} from './appSelectedServiceControls';
 import {AppSelectedBrandControls} from './appSelectedBrandControls';
 import {AppSelectedFaqControls} from './appSelectedFaqControls';
@@ -49,6 +50,7 @@ export function AppVisualSelection({Surface,config,businessContent,onPrepare,bus
   {selection?<View accessibilityLiveRegion="polite">
    <Text style={styles.sectionLabel}>{'Selected '+(selection.moduleKey||selection.field||selection.part).replaceAll('_',' ')}</Text>
    {!selectionCurrent?<View><Text accessibilityRole="alert" style={styles.cardBody}>The app source changed. Your unsubmitted wording is kept here; reselect the current part before preparing changes.</Text><Button label="Use current app source" disabled={busy} onPress={()=>select(selection)}/></View>:null}
+   <AppComponentStyleControls key={JSON.stringify(selection)+String(selectionCurrent)} config={config} selection={selection} disabled={busy||!selectionCurrent} onPrepare={prepare}/>
    {['services','gallery'].includes(selection.part)?<Text style={styles.cardBody}>Presentation applies to this collection, preserving its content and customer actions.</Text>:null}
    <View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}>
     {choices.map(([field,value])=>{

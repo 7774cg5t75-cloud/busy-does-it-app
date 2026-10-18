@@ -54,6 +54,14 @@ function proposeSelectedAppInstruction(config,{selection,text}={}){
  const fail=reason=>({ok:false,reason});
  if(typeof text!=='string'||!text.trim()||text.length>180)return fail('Use one short instruction for the selected app part.');
  const phrase=text.trim(),part=selection?.part;
+ const component=/^(?:make|set) this (heading|paragraph|service heading|service description) (bigger|larger|normal|extra-large|regular|medium|bold|left|center|right|brand|ink|accent)$/i.exec(phrase);
+ if(component){
+  const subject=component[1].toLowerCase(),value=component[2].toLowerCase(),row=selectedAppService(config,selection);
+  const key=part==='header'&&['heading','paragraph'].includes(subject)?subject==='heading'?'header-title':'header-tagline':part==='service'&&row?.id&&subject.startsWith('service ')?'service:'+row.id+':'+(subject==='service heading'?'title':'body'):null;
+  if(!key)return fail('Select the matching supported text component first.');
+  const field=['bigger','larger','normal','extra-large'].includes(value)?'size':['regular','medium','bold'].includes(value)?'weight':['left','center','right'].includes(value)?'align':'colour';
+  return proposeCoordinatedAppChanges(config,[{kind:'component_appearance',field:key,value:{[field]:['bigger','larger'].includes(value)?'large':value}}]);
+ }
  if(part==='faq'){
   const row=selectedAppFaq(config,selection);if(!row)return fail('Select the current owner-written answer again.');
   const move=/^move this answer (earlier|later)$/i.exec(phrase),copy=/^set this (question|answer) to "([^"<>]{1,160})"$/i.exec(phrase);

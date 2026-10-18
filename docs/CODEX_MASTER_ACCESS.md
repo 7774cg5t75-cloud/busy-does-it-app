@@ -2,7 +2,11 @@
 
 **Status:** configuration reference only. The full product master remains private and is **not stored in this public GitHub repository**. This file is intentionally safe to publish.
 
-## Current Mission 15 Phase 8 private-master verification — 18 October 2026
+## Current Mission 15 Phase 12 private-master verification — 18 October 2026
+
+The owner supplied the complete approved Product Master **V22.34** as `Master newest .pdf`, updated 18 October 2026. Its full PDF text was opened and reviewed, including Sections 52.11–52.14. Original PDF SHA-256: `71e3e8a3f0c537b4d0d6ebda85ab86cf275c7582e68c2897edb87a961fb8b666`. It supersedes V22.32 for this phase. The supplied PDF and extracted text remain private, outside Git. This records product-reference review, not implementation, provider access or release approval.
+
+## Historical Mission 15 Phase 8 private-master verification — 18 October 2026
 
 The owner supplied `Master latest 55 .docx`, whose contents identify approved **V22.32**, updated 18 October 2026. The full Word body, including table paragraphs, was opened and reviewed: 1,752 paragraphs, 402,395 extracted characters. Original DOCX SHA-256: `217b20a109368c92817e936d5a82845003d41e6b8ff92f1f79a07098d1cacb07`. This supersedes V22.31. The private document and extracted text remain outside Git; no private content is published here. This records review, not implementation or release approval.
 

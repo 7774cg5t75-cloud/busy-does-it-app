@@ -1,4 +1,5 @@
 import {publicAppGallery} from "./publicAppGallery.mjs";
+import {validComponentStyles,componentTargetExists} from './appComponentAppearance.mjs';
 import {publicNativeOffers,publicNativeLoyalty} from "./publicNativeExtrasV3190.mjs";
 import {publicServiceDetails} from './publicServiceDetails.mjs';
 import {publicCollection} from './appPublicCollections.mjs';
@@ -21,6 +22,8 @@ function publicNativeMiniAppProjection(app,version,{expectedAppId,expectedVersio
   !version.config||typeof version.config!=="object")
   return {ok:false,reason:"This app version is not publicly available."};
  const config=version.config,profile=config.publicProfile||{};
+ const componentStyles=config.presentation?.componentStyles||{};
+ if(!validComponentStyles(componentStyles)||Object.keys(componentStyles).some(key=>!componentTargetExists(config,key)))return {ok:false,reason:'The approved component appearance needs review.'};
  const enabled=(Array.isArray(config.modules)?config.modules:[])
   .filter(m=>m?.enabled===true&&PUBLIC_MODULES.has(m.key))
   .map(m=>m.key);
@@ -34,6 +37,7 @@ function publicNativeMiniAppProjection(app,version,{expectedAppId,expectedVersio
  const has=key=>moduleKeys.includes(key);
  const services=has("services")&&Array.isArray(profile.services)?
   profile.services.slice(0,40).map(s=>({
+    ...(typeof s?.id==='string'&&/^[a-zA-Z0-9_-]{1,80}$/.test(s.id)?{id:s.id}:{}),
     name:str(s?.name,120),description:str(s?.description,600),...publicServiceDetails(s)
   })).filter(s=>s.name):[];
  const gallery=has("gallery")?publicAppGallery(profile.assets?.gallery):[];
@@ -49,7 +53,7 @@ function publicNativeMiniAppProjection(app,version,{expectedAppId,expectedVersio
   tagline:str(config.display?.tagline||profile.tagline,260),
   about:str(profile.about||profile.description,1200),
   faqs:publicCollection('faqs',profile.faqs||[]),testimonials:publicCollection('testimonials',profile.testimonials||[]),
-  services,gallery,contact,offers,loyalty,moduleKeys,
+  services,gallery,contact,offers,loyalty,moduleKeys,...(Object.keys(componentStyles).length?{componentStyles:JSON.parse(JSON.stringify(componentStyles))}:{}),
   heroUrl:safeUrl(profile.assets?.hero?.uri),
   supportsEnquiry:has("enquiry"),supportsBookingRequest:has("booking_request"),
   bookingsAlwaysRequireBusinessConfirmation:true,

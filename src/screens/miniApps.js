@@ -1,6 +1,7 @@
 import {AppGallerySurface} from "./appGallerySurface";
 import {ServiceDetails} from "../../standalone/template/serviceDetails";
 import {AppEntryEditButton} from './appEntryEditButton';
+import {appComponentTextStyle} from '../core/appComponentAppearance.mjs';
 import {amendAppQualityProposal} from "../core/appCoordinatedStudio.mjs";
 import {AppVisualSelection} from "./appVisualSelection";
 import {useApprovedBuilderRecords} from './useApprovedBuilderRecords';
@@ -297,6 +298,7 @@ function MiniAppSurface({
   const headerStyle=presentation.headerStyle||"refined";
   const brandColours=nativePalette(presentation.brandPalette,presentation.brandAccent);
   const visual=appVisualPresentation(presentation);
+  const componentStyle=(key,baseSize)=>appComponentTextStyle(presentation.componentStyles,key,{colors:brandColours,baseSize});
 
   return (
     <View style={{width:"100%"}} onLayout={({nativeEvent})=>{
@@ -321,10 +323,10 @@ function MiniAppSurface({
             visual.headerEmphasis?visual.type.titleSize+4:visual.type.titleSize,
           fontWeight:visual.type.titleWeight,
           letterSpacing:visual.type.titleSpacing,
-          textAlign:visual.headerCentered?"center":"left",marginTop:5}}> 
+          textAlign:visual.headerCentered?"center":"left",marginTop:5,...componentStyle('header-title',visual.headerCompact?visual.type.titleSize-5:visual.headerEmphasis?visual.type.titleSize+4:visual.type.titleSize)}}>
           {config?.display?.name||profile.businessName||"Business"}
         </Text>
-        <Text style={{color:brandColours.muted,marginTop:5}}>
+        <Text style={{color:brandColours.muted,marginTop:5,...componentStyle('header-tagline',visual.type.bodySize)}}>
           {config?.display?.tagline||profile.tagline||profile.description||"Your Business App"}
         </Text>
         <View style={{backgroundColor:brandColours.accent,
@@ -452,10 +454,10 @@ function MiniAppSurface({
                         </Text>:null}
                         <Text style={{color:brandColours.text,
                           fontSize:visual.type.bodySize+2,
-                          fontWeight:visual.type.sectionWeight}}>
+                          fontWeight:visual.type.sectionWeight,...componentStyle('service:'+service.id+':title',visual.type.bodySize+2)}}>
                           {service.name||"Service"}
                         </Text>
-                        <ServiceDetails service={service} colors={brandColours} bodySize={visual.type.bodySize}/>
+                        <ServiceDetails service={service} colors={brandColours} bodySize={visual.type.bodySize} textStyle={componentStyle('service:'+service.id+':body',visual.type.bodySize)}/>
                         {ownerSelection?<AppEntryEditButton label={'Edit service '+service.name} colors={brandColours}
                           selected={ownerSelection.selection?.part==='service'&&ownerSelection.selection.index===allServices.indexOf(service)}
                           onPress={()=>ownerSelection.onSelect({part:'service',index:allServices.indexOf(service),expectedService:JSON.stringify(service)})}/>:null}

@@ -1,4 +1,5 @@
 import {ServiceDetails} from "./serviceDetails";
+import {appComponentTextStyle} from './appComponentAppearance.mjs';
 import {ENQUIRY_REQUIREMENTS,emptyEnquiryRequirements,prepareCustomerEnquiry,customerEnquiryReview,prepareCustomerBookingNote} from './customerEnquiryRequirements.mjs';
 import {prepareBusinessContentEnquiry} from './businessContentRecords.mjs';
 import {BusinessContentView} from './businessContentView';
@@ -201,8 +202,8 @@ function ServicesInfo({app,layout,onRequestService}){
        Featured service
      </Text>:null}
      <Text style={{...t,fontWeight:VISUAL.type.sectionWeight,
-       fontSize:VISUAL.type.bodySize+2}}>{service.name}</Text>
-     <ServiceDetails service={service} colors={COLORS} bodySize={VISUAL.type.bodySize}/>
+       fontSize:VISUAL.type.bodySize+2,...appComponentTextStyle(app.componentStyles||LOOK.componentStyles,'service:'+service.id+':title',{colors:COLORS,baseSize:VISUAL.type.bodySize+2})}}>{service.name}</Text>
+     <ServiceDetails service={service} colors={COLORS} bodySize={VISUAL.type.bodySize} textStyle={appComponentTextStyle(app.componentStyles||LOOK.componentStyles,'service:'+service.id+':body',{colors:COLORS,baseSize:VISUAL.type.bodySize})}/>
      {app.supportsBookingRequest&&app.moduleKeys?.includes("booking_request")?
       <Button title={"Request "+service.name}
        onPress={()=>onRequestService?.(service.name,"booking_request")}/>:null}
@@ -219,8 +220,8 @@ function ServicesInfo({app,layout,onRequestService}){
 }
 function LiveInfo({screen,app,layout,onRequestService,onOpenContact,onOpenOfferEnquiry,contactNotice}){
  if(screen.key==="business_profile")return <View style={box}>
-  <Text style={{...t,fontSize:21,fontWeight:"700"}}>{app.title}</Text>
-  <Text style={sub}>{app.tagline||app.about||"Contact this business for more information."}</Text>
+  <Text style={{...t,fontSize:21,fontWeight:"700",...appComponentTextStyle(app.componentStyles||LOOK.componentStyles,'header-title',{colors:COLORS,baseSize:21})}}>{app.title}</Text>
+  <Text style={{...sub,...appComponentTextStyle(app.componentStyles||LOOK.componentStyles,'header-tagline',{colors:COLORS,baseSize:VISUAL.type.bodySize})}}>{app.tagline||app.about||"Contact this business for more information."}</Text>
   {app.heroUrl?<Image source={{uri:app.heroUrl}} accessible
     accessibilityRole="image" accessibilityLabel="Business cover photo"
     style={{height:layout?.ok?layout.heroHeight:190,

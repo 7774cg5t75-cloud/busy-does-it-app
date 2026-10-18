@@ -708,6 +708,13 @@
         "scripts/check-mission15-phase11-selected-faq.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase12-component-styles",
+      "args": [
+        "scripts/check-mission15-phase12-component-styles.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

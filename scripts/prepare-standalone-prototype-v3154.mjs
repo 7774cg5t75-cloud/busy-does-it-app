@@ -26,6 +26,7 @@ await mkdir(output,{recursive:true});
 for(const file of ["App.js","app.config.js","index.js","package.json","nativeBusinessClient.js","nativeGuestProof.js","nativeGuestRequests.js","appResponsiveDesign.mjs","nativeCustomerActions.mjs","nativePreferredDates.mjs","appPublicCollections.mjs","publicServiceDetails.mjs","serviceDetails.js","businessContentView.js","businessContentRecords.mjs","serviceCategoryFilter.js","customerEnquiryRequirements.mjs"])
  await copyFile(path.join(template,file),path.join(output,file));
 await copyFile(path.join(root,"src","core","nativePalette.mjs"),path.join(output,"nativePalette.mjs"));
+await copyFile(path.join(root,'src','core','appComponentAppearance.mjs'),path.join(output,'appComponentAppearance.mjs'));
 await copyFile(path.join(root,"src","core","appVisualPresentationV3194.mjs"),path.join(output,"appVisualPresentationV3194.mjs"));
 await writeFile(path.join(output,"prototype.json"),JSON.stringify(descriptor,null,2)+"\n",{mode:0o600});
 if((await stat(path.join(output,"App.js"))).size<500)throw Error("Native shell missing");
