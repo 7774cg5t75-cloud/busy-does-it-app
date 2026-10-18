@@ -54,6 +54,18 @@ function proposeSelectedAppInstruction(config,{selection,text}={}){
  const fail=reason=>({ok:false,reason});
  if(typeof text!=='string'||!text.trim()||text.length>180)return fail('Use one short instruction for the selected app part.');
  const phrase=text.trim(),part=selection?.part;
+ if(part==='service-button'){
+  const row=selectedAppService(config,selection),match=/^make this button (bigger|larger|roomier|normal|solid|outline|rounded|square|left aligned|full width)$/i.exec(phrase);
+  if(!row?.id||!['enquiry','booking_request'].includes(selection.action)||!match)return fail('Select a current request button and ask for a supported size, emphasis, shape or alignment. Its wording and action stay unchanged.');
+  const word=match[1].toLowerCase(),prefix=selection.action==='booking_request'?'booking':'enquiry';
+  const [field,value]=['bigger','larger','roomier','normal'].includes(word)?['Size',word==='normal'?'normal':'roomy']:['solid','outline'].includes(word)?['Tone',word]:['rounded','square'].includes(word)?['Corners',word]:['Align',word==='left aligned'?'left':'stretch'];
+  return proposeCoordinatedAppChanges(config,[{kind:'service_presentation',field:row.id,value:{[prefix+field]:value}}]);
+ }
+ if(part==='service'&&/^make this card (?:more spacious|normal spacing|plain|rounded|square)$/i.test(phrase)){
+  const row=selectedAppService(config,selection);if(!row?.id)return fail('Select one identified service card first.');
+  const word=phrase.replace(/^make this card /i,'').toLowerCase(),[field,value]=word==='more spacious'?['spacing','spacious']:word==='normal spacing'?['spacing','normal']:word==='plain'?['surface','plain']:['corners',word];
+  return proposeCoordinatedAppChanges(config,[{kind:'service_presentation',field:row.id,value:{[field]:value}}]);
+ }
  const component=/^(?:make|set) this (heading|paragraph|service heading|service description|question|answer) (bigger|larger|normal|extra-large|regular|medium|bold|left|center|right|brand|ink|accent)$/i.exec(phrase);
  if(component){
   const subject=component[1].toLowerCase(),value=component[2].toLowerCase(),row=selectedAppService(config,selection),faq=selectedAppFaq(config,selection);

@@ -792,6 +792,20 @@
         "scripts/check-mission15-phase15-service-buttons.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase15-neutral-planning",
+      "args": [
+        "scripts/check-mission15-phase15-neutral-planning.mjs"
+      ],
+      "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase15-brand-typography",
+      "args": [
+        "scripts/check-mission15-phase15-brand-typography.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

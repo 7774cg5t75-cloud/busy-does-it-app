@@ -186,8 +186,9 @@ function planWebsiteSectionComposition(website,explicit=[]){
   noBookingOrCheckoutCreated:true};
 }
 function planUniversalBuilderRequest({
- request="",businessType="",businessId="",website=null,app=null,catalog=[]
+ request="",businessType="",businessId="",website=null,app=null,catalog=[],projectPurpose="business"
 }={}){
+ if(!['business','personal','club'].includes(projectPurpose))return {ok:false,reason:'Choose business, personal or club planning.'};
  if(!validOwnerText(request)||typeof businessType!=="string"||
    businessType.length>160||typeof businessId!=="string"||businessId.length>128)
   return {ok:false,reason:"Enter a short plain-language requirement (up to 1,400 characters)."};
@@ -232,15 +233,17 @@ function planUniversalBuilderRequest({
    c.app.status!=="present_in_private_draft")).map(c=>c.id);
  const sectionPlan=planWebsiteSectionComposition(website,wanted);
  return {ok:true,kind:"universal_builder_plan_v3210",version:VERSION,
+  projectPurpose,existingBusinessProjectPreserved:!!(website||app),planningAudience:projectPurpose==='business'?'customers':'people using the project',
+  projectWorkspaceRequired:projectPurpose!=='business',projectWorkspaceAvailable:projectPurpose==='business',
   businessId:businessId||null,businessType:clean(businessType).slice(0,160),
   source:{websiteId:website?.id||null,websiteRevision:website?.generation||null,
    appId:app?.id||null,appRevision:app?.draft_revision||null},
   detectedGoals:wanted,declinedCapabilities:intent.declined,unfamiliarRequirement:unfamiliar,
-  noIndustryRestrictions:true,capabilities,capabilityCount:capabilities.length,
+  noIndustryRestrictions:true,capabilities:projectPurpose==='business'?capabilities:capabilities.map(c=>c.id==='identity'?{...c,title:'Project introduction',description:'Owner-written project name, purpose and approved information; no trading name or CRM is required to discuss an idea.'}:c),capabilityCount:capabilities.length,
   websiteDraftComponents:supportedInWebsite,appDraftModules:supportedInApp,
   developmentGaps:[...new Set(needsDevelopment)],requestedFeaturesNeedingReview:gaps,
   sectionPlan,
-  summary:unfamiliar?
+  summary:projectPurpose!=='business'?'We can discuss this '+projectPurpose+' project without inventing business details. Creation and saving need a separately implemented owner/project workspace; this is planning only.':unfamiliar?
    "This requirement does not match BUSY's currently described building blocks. It needs owner-reviewed bespoke planning, not a generic refusal or invented feature.":
    wanted.length?
     "BUSY identified "+wanted.length+" requested capability type(s) and "+(ids.length-wanted.length)+

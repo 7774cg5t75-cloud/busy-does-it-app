@@ -1,8 +1,16 @@
+import {planUniversalBuilderRequest} from './universalBuilderPlanV3210.mjs';
 import {LABELS} from './nativePalette.mjs';
 import {appDesignQualityReport} from './appDesignQuality.mjs';
 // Presentation of existing planner evidence, not another planner or AI service.
 const readiness={present_in_private_draft:'Already included in your draft',supported_section_not_present:'Can be prepared for your review',available_module_needs_owner_setup:'Available, with setup still needed',runtime_module_not_verified_available:'Not confirmed for this app yet',requires_new_implementation:'Not supported yet',requires_service_verification:'Needs its service or connection checked'};
 function explainBuilderExplore({kind,project,catalog,plan,text}){
+ if(/\b(?:just for (?:me|myself)|personal (?:app|project|website|portfolio)|club (?:app|website|project)|community project)\b/i.test(text)){
+  const purpose=/club|community/i.test(text)?'club':'personal';
+  const neutral=planUniversalBuilderRequest({request:text,projectPurpose:purpose});
+  return {answer:[neutral.summary,'A simple information site can start with your own title, pages, pictures and chosen style. A personal project should not need invented services, customers or a trading name.',
+   'Private trackers, member accounts, shared records and community tools need real ownership, permissions and storage support; they are not working just because a preview looks convincing.',
+   'Your current business project stays unchanged. Personal and club creation is a future expansion, not an available workspace or permission to convert this project.'].join('\n'),alternatives:[]};
+ }
  const profile=kind==='app'?project.draft_config?.publicProfile||{}:project;
  const services=kind==='app'?(profile.services||[]):project.sections?.find(s=>s.type==='services'&&s.enabled!==false)?.items||[];
  if(/\b(colou?rs?|palette|dark background|light background)\b/i.test(text)){

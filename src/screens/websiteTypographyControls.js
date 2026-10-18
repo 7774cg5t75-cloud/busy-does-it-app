@@ -30,6 +30,7 @@ export function WebsiteTypographyControls({section,selection,onChoose}){
   {category?<View accessibilityLiveRegion="polite">{groups[category].map(([value,label])=><Button key={value} label={label} onPress={()=>choose(category.startsWith('size')?target==='title'?'make this heading '+value+' on '+category.split(' on ')[1]:'set this paragraph size to '+value+(category==='size'?'':' on '+category.split(' on ')[1]):'set this '+subject+' '+category+' to '+value,category)}/>)}</View>:null}
   {category?<Button label="Cancel style choice" onPress={()=>{if(current()){live.current.category=null;setActive(null);}}}/>:null}
   {target==='body'?<Button label="Preview easier reading" onPress={()=>choose('set this paragraph size to large; set this paragraph line spacing to relaxed')}/>:null}
+  <Button label="Preview brand text styling" onPress={()=>choose(['font','weight','alignment','line spacing','colour'].map(field=>'set this '+subject+' '+field+' to brand').join('; '))}/>
   <Button label={help?'Hide typography guidance':'What these controls change'} onPress={()=>setHelp(!help)}/>
   {help?<Text style={styles.cardBody}>Default styling applies to this selected {selection?.itemId?'card':'section'} {subject}. Phone and desktop sizes affect only their named widths. Foreground and adjusted brand-accent colours use supported solid backgrounds; contrast over photos is not assessed. Preview the result before keeping it.</Text>:null}
  </View>;
