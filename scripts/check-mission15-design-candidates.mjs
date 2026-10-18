@@ -5,7 +5,11 @@ const {buildWebsiteDraft,applyWebsiteLayoutChange,rebuildPrivateWebsiteDraft,ren
 const businessId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 let d=buildWebsiteDraft({businessId,brandBrain:{websiteReady:true,websiteBrief:{businessName:'Example workshop',businessType:'Independent maintenance',description:'Owner approved information.',services:[{id:'survey',name:'Survey',description:'Discuss requirements.'}],email:'hello@example.test'}}});
 d=rebuildPrivateWebsiteDraft({...d,theme:{...d.theme,sectionOrder:['hero','contact','services']}});
-const report={counts:{viewport:390},issues:[]},choices=alternatives(d,'home',report);assert.ok(choices.length);
+const report={counts:{viewport:390},issues:[]};
+const ownerChoices=alternatives(d,'home',report);assert.ok(ownerChoices.length);assert.ok(ownerChoices.every(choice=>choice.operation.operations.every(op=>op.action!=='apply-reviewed-composition')),'Explicit owner order remains authoritative');
+// The same observed order may come from an automatic plan, without an owner lock/order decision.
+const {sectionOrder,...unownedTheme}=d.theme;d={...d,theme:unownedTheme};
+const choices=alternatives(d,'home',report);assert.ok(choices.length);
 const before=JSON.stringify(d),choice=choices[0];assert.ok(choice.operation.operations.some(op=>op.action==='apply-reviewed-composition'));
 const out=applyWebsiteLayoutChange(d,choice.operation);assert.equal(out.applied,true,out.reason);assert.equal(JSON.stringify(d),before);assert.deepEqual(out.draft.sections,d.sections);
 assert.notEqual(renderWebsiteHtml(d,'home'),renderWebsiteHtml(out.draft,'home'));
