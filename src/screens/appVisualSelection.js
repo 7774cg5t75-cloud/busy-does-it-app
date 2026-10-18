@@ -1,3 +1,4 @@
+import {AppSelectedInstruction} from "./appSelectedInstruction";
 import React from 'react';
 import {AppSelectedImageControls} from './appSelectedImageControls';
 import {selectedAppImage} from '../core/appSelectedImage.mjs';
@@ -9,7 +10,7 @@ import {proposeAppSectionMove} from '../core/appSectionOrder.mjs';
 import {PROFILE_TEXT_LIMITS} from '../core/appProfileFieldUndo.mjs';
 // Native selection + bounded controls reuse the ORIGINAL Studio proposal,
 // comparison, CAS approval and Undo. No native dragging or local save engine.
-export function AppVisualSelection({Surface,config,businessContent,onPrepare,busy=false}){
+export function AppVisualSelection({Surface,config,businessContent,onPrepare,busy=false,voiceScope,onTranscribe}){
  const [selection,setSelection]=React.useState(null),[selectionSource,setSelectionSource]=React.useState(null);
  const [wording,setWording]=React.useState('');
  const [imageCopy,setImageCopy]=React.useState({alt:'',caption:''});
@@ -60,6 +61,7 @@ export function AppVisualSelection({Surface,config,businessContent,onPrepare,bus
    </View>:null}
    {moves.map(direction=><Button key={direction} label={'Preview selected section '+direction} disabled={busy||!selectionCurrent} onPress={()=>prepare({kind:'move',moduleKey:selection.moduleKey,direction})}/>)}
    {!textOp&&!choices.some(([field,value])=>proposeCoordinatedAppChanges(config,[{kind:'appearance',field,value}]).ok)&&!moves.length?<Text accessibilityRole="alert" style={styles.cardBody}>No change is available for this selection. Current choices and owner locks are preserved.</Text>:null}
+   <AppSelectedInstruction key={JSON.stringify(selection)} config={config} selection={selection} disabled={busy||!selectionCurrent} voiceScope={voiceScope} onTranscribe={onTranscribe} onPrepare={proposal=>{if(current()&&selectionCurrent&&live.current.selection===selection)onPrepare(proposal);}}/>
    <Button label="Cancel selection" onPress={()=>{if(current()){setSelection(null);setSelectionSource(null);setWording('');}}}/>
   </View>:null}
  </View>;

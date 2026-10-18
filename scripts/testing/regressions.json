@@ -631,6 +631,13 @@
         "scripts/check-mission15-phase10-website-toolbar.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase10-selected-instructions",
+      "args": [
+        "scripts/check-mission15-phase10-selected-instructions.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

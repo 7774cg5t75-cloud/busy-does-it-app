@@ -2813,6 +2813,8 @@ function MiniAppBuilder({ s }) {
           tone="blue">
           <AppVisualSelection key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(':')}
             Surface={MiniAppSurface} config={view.draftConfig} businessContent={app.businessContent||null}
+            voiceScope={s.cloudWorkspace?.businessId?{appId:app.id,revision:app.draft_revision,businessId:s.cloudWorkspace.businessId,selectedPart:'whole_app'}:null}
+            onTranscribe={s.transcribeSelectedAppAudio}
             busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
             onPrepare={proposal=>{
               if(liveControlContext.current!==controlContext)return;
