@@ -1309,7 +1309,7 @@ function WebsitePreview({ s }) {
         tone="blue">
         <Button primary label={tapEditMode?"Finish tapping — view normally":"Start editing by tapping"}
           onPress={()=>{setSelectedEdit(null);setVisualCheckOn(false);setTapEditMode(x=>!x);}}/>
-        {tapEditMode?<Text style={styles.cardBody}>Tap pictures or words to edit. On the home page, use a Move section handle to drag to a highlighted edge, or focus it and press an arrow key. Locks and the first hero stay protected. Undo restores a saved move. Nothing is published automatically.</Text>:null}
+        {tapEditMode?<Text style={styles.cardBody}>Tap pictures or words to edit. On the home page or owner-created pages, use a Move section handle to drag to a highlighted edge, or focus it and press an arrow key. Locks and the first hero stay protected. Undo restores a saved move. Nothing is published automatically.</Text>:null}
       </Card>
 
       <Card eyebrow="Change several parts together"

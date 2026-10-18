@@ -33,7 +33,7 @@ const events={},windowEvents={},sent=[],nodes={};
 function node(id){return {id,marker:id,attrs:{},listeners:{},children:[],textContent:'',firstChild:null,
  getAttribute(k){return k==='data-busy-edit-section'?this.marker:this.attrs[k];},
  setAttribute(k,v){this.attrs[k]=v;},removeAttribute(k){delete this.attrs[k];},
- addEventListener(k,fn){this.listeners[k]=fn;},insertBefore(n){this.children.push(n);},
+ addEventListener(k,fn){this.listeners[k]=fn;},insertBefore(n){this.children.unshift(n);},
  appendChild(n){this.children.push(n);},getBoundingClientRect(){return {top:100,height:100};},
  closest(){return this;},setPointerCapture(){}};}
 for(const id of options.order)nodes[id]=node(id);
@@ -50,13 +50,19 @@ events.pointercancel(e());events.pointerup(e());assert.equal(sent.length,0,'canc
 handle.listeners.pointerdown(e());events.pointermove(e({clientY:move.position==='before'?120:190}));windowEvents.blur();events.pointerup(e());assert.equal(sent.length,0,'blur cancels');
 handle.listeners.pointerdown(e());events.pointermove(e({clientY:move.position==='before'?120:190}));events.pointerup(e());
 assert.deepEqual(sent,[message]);events.pointerup(e());assert.equal(sent.length,1,'release is idempotent');
-installWebsiteMovement(options);const keyboard=nodes[move.sectionId].children.at(-1);
+installWebsiteMovement(options);const keyboard=nodes[move.sectionId].children[0];
 keyboard.listeners.keydown(e({key:move.position==='before'?'ArrowUp':'ArrowDown'}));assert.equal(sent.length,2);
 assert.ok(resolveWebsiteMovement(draft,'home',source,sent[1],editableHtml));
 const heroMove=options.moves.find(m=>m.targetSectionId==='hero'&&m.position==='after');
 assert.ok(heroMove);nodes.hero.id='';hit=nodes.hero;
-installWebsiteMovement(options);const heroHandle=nodes[heroMove.sectionId].children.at(-1);
+installWebsiteMovement(options);const heroHandle=nodes[heroMove.sectionId].children[0];
 heroHandle.listeners.pointerdown(e());events.pointermove(e({clientY:190}));events.pointerup(e());
 assert.equal(sent.at(-1).targetSectionId,'hero','Rendered hero marker works without an HTML id');
+installWebsiteMovement(options);
+const accessibleHandle=nodes[move.sectionId].children[0],panel=nodes[move.sectionId].children[1];
+assert.equal(panel.hidden,true);accessibleHandle.listeners.click(e());assert.equal(panel.hidden,false);
+const option=panel.children.find(b=>!b.disabled);assert.ok(option);const before=sent.length;option.listeners.click(e());
+assert.equal(sent.length,before+1,'Screen-reader activation saves through the same bounded bridge');
+assert.ok(resolveWebsiteMovement(draft,'home',source,sent.at(-1),editableHtml));
 delete globalThis.window;delete globalThis.document;
 console.log('PASS: canonical rendered ordering, source/locks/page guards, pointer drop/cancel/blur, keyboard alternative and one-shot save; inert DOM only.');

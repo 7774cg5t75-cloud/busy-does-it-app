@@ -34,6 +34,7 @@ function makeTapToEditHtml(html,movement=null){
   @media (prefers-reduced-motion:reduce){.busy-selection-toolbar{transition:none}}
   .busy-section-move{position:relative;z-index:2;min-height:44px;margin:8px;padding:8px 14px;
     background:#151c2b;color:#fff;border:2px solid #8db4ff;border-radius:8px;touch-action:none;cursor:grab}
+  .busy-section-move-options[hidden]{display:none!important}
   .busy-section-move:focus-visible{outline:3px solid #4489ed;outline-offset:3px}
   section[data-busy-drop="before"]{box-shadow:inset 0 5px #4489ed}
   section[data-busy-drop="after"]{box-shadow:inset 0 -5px #4489ed}

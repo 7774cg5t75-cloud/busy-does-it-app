@@ -1,3 +1,4 @@
+import {editWebsitePages} from "./websitePageEditing.mjs";
 import {textTypographyFields,textTypographySupports} from "./websiteTextTypography.mjs";
 import {photographicCount} from './designPlanner.mjs';
 import {websiteLayoutLockReason,protectWebsiteOwnerLocks} from "./websiteOwnerLocks.mjs";
@@ -379,6 +380,26 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const page=list(draft.pages).filter(p=>p.id===operation.pageId&&p.enabled!==false);
   if(page.length!==1||![sectionId,operation.targetSectionId].every(id=>list(page[0].sectionIds).includes(id)))
    return fail(draft,'Both sections must be on the selected current page.');
+  if(operation.pageId!=='home'){
+   const custom=list(draft.customPages).filter(p=>p.id===operation.pageId);
+   if(custom.length!==1||list(custom[0].sectionIds).length>12||
+      JSON.stringify(custom[0].sectionIds)!==JSON.stringify(page[0].sectionIds))
+    return fail(draft,'Choose a current owner-created page before moving its sections.');
+   const ids=custom[0].sectionIds,next=ids.filter(id=>id!==sectionId),at=next.indexOf(operation.targetSectionId);
+   if(at<0)return fail(draft,'Choose a visible destination on this same page.');
+   next.splice(at+(operation.position==='after'?1:0),0,sectionId);
+   let position=ids.indexOf(sectionId),target=next.indexOf(sectionId),working=draft;
+   if(position===target)return fail(draft,'These page sections are already in that order.');
+   const direction=target<position?'up':'down',step=target<position?-1:1;
+   // Reuse the original bounded page edit and lock guard. All intermediate
+   // drafts are private candidates; the caller commits only the final one.
+   while(position!==target){
+    const moved=editWebsitePages(working,{action:'move-page-section',pageId:operation.pageId,sectionId,direction});
+    if(!moved.applied)return fail(draft,moved.reason);
+    working=moved.draft;position+=step;
+   }
+   return {applied:true,draft:working,reason:'Moved the selected section only on its owner-created page. Undo restores the original page order.'};
+  }
   const rendered=list(draft.designPlan?.sectionOrder).filter(id=>active().includes(id));
   const ids=list(theme.sectionOrder).length?order():[...new Set([...rendered,...active()])];
   if(!ids.includes(operation.targetSectionId)||operation.targetSectionId==='hero'&&operation.position==='before')

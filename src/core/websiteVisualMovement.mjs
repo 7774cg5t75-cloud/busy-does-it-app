@@ -3,15 +3,15 @@ import {applyWebsiteLayoutOperation} from '../../supabase/functions/busy-website
 const list=x=>Array.isArray(x)?x:[];
 const channel='busy.website.section-move.v1';
 function websiteMovementOptions(draft,pageId,sourceKey,editableHtml){
- // Secondary pages have their own sectionIds render order. Do not pretend a
- // global theme-order operation moves their sections.
- if(pageId!=='home'||!sourceKey||!draft?.id)return null;
+ // Owner pages delegate to the original page-section edit; home uses its
+ // canonical global composition order. Never change another destination.
+ if(!sourceKey||!draft?.id||pageId!=='home'&&!list(draft.customPages).some(p=>p.id===pageId))return null;
  if(typeof editableHtml!=='string'||editableHtml.length>500000)return null;
  // Only actual rendered section roots are drop targets, never empty/hidden
  // source sections or product/event content without supported editor markers.
  const visible=new Set([...editableHtml.matchAll(/<section\b[^>]*\bdata-busy-edit-section="([a-zA-Z0-9_-]+)"/g)].map(m=>m[1]));
  const page=list(draft.pages).find(p=>p.id===pageId&&p.enabled!==false);
- const order=[...new Set([...list(draft.designPlan?.sectionOrder),...list(draft.sections).map(s=>s.id)])]
+ const order=[...new Set(pageId==='home'?[...list(draft.designPlan?.sectionOrder),...list(draft.sections).map(s=>s.id)]:list(page?.sectionIds))]
   .filter(id=>visible.has(id)&&list(page?.sectionIds).includes(id)&&list(draft.sections).some(s=>s.id===id&&s.enabled!==false));
  if(order.length>30)return null;
  const moves=[];
@@ -36,7 +36,7 @@ function resolveWebsiteMovement(draft,pageId,sourceKey,message,editableHtml){
 // options. No business text, arbitrary script, credentials or network access.
 function installWebsiteMovement(options){
  if(!options)return;
- var drag=null,marked=null,pending=false;
+ var drag=null,marked=null,pending=false,panels=[];
  var status=document.createElement('div');
  status.className='busy-move-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  document.body.appendChild(status);
@@ -55,7 +55,26 @@ function installWebsiteMovement(options){
   var section=document.getElementById(id);if(!section)return;
   var handle=document.createElement('button');handle.type='button';handle.className='busy-section-move';
   handle.textContent='↕ Move section';handle.setAttribute('aria-label','Move '+id+' section. Drag, or use up and down arrow keys.');
-  handle.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();});
+  var panel=document.createElement('div');panel.className='busy-section-move-options';panel.hidden=true;
+  panel.setAttribute('role','group');panel.setAttribute('aria-label','Move '+id+' without dragging');panels.push({panel:panel,handle:handle});
+  handle.setAttribute('aria-expanded','false');
+  function alternative(step){
+   var at=options.order.indexOf(id),position=step<0?'before':'after';
+   for(var i=at+step;i>=0&&i<options.order.length;i+=step)if(valid(id,options.order[i],position))return {target:options.order[i],position:position};
+   return null;
+  }
+  [-1,1].forEach(function(step){
+   var move=alternative(step),button=document.createElement('button');button.type='button';button.className='busy-section-move';
+   button.textContent=step<0?'↑ Earlier':'↓ Later';button.disabled=!move;
+   button.setAttribute('aria-label','Move '+id+(step<0?' earlier':' later')+' in the page');
+   button.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(move)send(id,move.target,move.position);});
+   panel.appendChild(button);
+  });
+  handle.addEventListener('click',function(e){
+   e.preventDefault();e.stopPropagation();if(pending)return;
+   panel.hidden=!panel.hidden;handle.setAttribute('aria-expanded',panel.hidden?'false':'true');
+   status.textContent=panel.hidden?'Movement options closed.':'Choose Earlier or Later. No dragging is required.';
+  });
   handle.addEventListener('keydown',function(e){
    if(e.key==='Escape'){cancel();status.textContent='Movement cancelled.';return;}
    if(e.key!=='ArrowUp'&&e.key!=='ArrowDown')return;
@@ -74,6 +93,7 @@ function installWebsiteMovement(options){
    status.textContent='Drag to a section edge. Release on a highlighted location to save privately. Escape cancels.';
   });
   handle.addEventListener('lostpointercapture',cancel);
+  section.insertBefore(panel,section.firstChild);
   section.insertBefore(handle,section.firstChild);
  });
  document.addEventListener('pointermove',function(e){
@@ -95,7 +115,7 @@ function installWebsiteMovement(options){
   else status.textContent='No valid drop selected. Website unchanged.';
  });
  document.addEventListener('pointercancel',cancel);
- document.addEventListener('keydown',function(e){if(e.key==='Escape'){cancel();status.textContent='Movement cancelled.';}});
+ document.addEventListener('keydown',function(e){if(e.key==='Escape'){cancel();panels.forEach(function(p){p.panel.hidden=true;p.handle.setAttribute('aria-expanded','false');});status.textContent='Movement cancelled.';}});
  window.addEventListener('blur',cancel);window.addEventListener('pagehide',cancel);
 }
 export {websiteMovementOptions,resolveWebsiteMovement,installWebsiteMovement};

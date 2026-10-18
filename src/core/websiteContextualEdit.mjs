@@ -61,7 +61,7 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
   if(field!==target||(!itemId&&!textTypographySupports[style].includes(section.type))||!textTypographyFields[style].includes(value))
    return failure('Select a supported section heading or primary paragraph. Card text uses its existing controls.');
   return success('layout',{action:itemId?'item-style':'section-style',sectionId,...(itemId?{itemId}:{}),field:style,value},
-   'Change only the selected section '+(target==='title'?'heading':'primary paragraph')+'. Brand defaults and other content stay intact.');
+   'Change only the selected '+(itemId?'card ':'section ')+(target==='title'?'heading':'primary paragraph')+'. Brand defaults and other content stay intact.');
  }
  const reading=text.match(/^make (?:this|that|the selected) (?:text|paragraph|section) (?:easier to read|more readable)(?: only)? on (phones?|mobile|desktop|computers?)$/i);
  if(reading){
