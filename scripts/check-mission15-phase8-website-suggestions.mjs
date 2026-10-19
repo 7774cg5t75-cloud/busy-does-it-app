@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {createRequire} from 'node:module';
 import {websiteBuilderTestHarnessV3222} from './lib/website-builder-test-harness-v3222.mjs';
 import {previewSelectedWebsiteInstruction,amendSelectedWebsiteQualityInstruction} from '../src/core/websiteSelectedChangePreview.mjs';
 const {buildWebsiteDraft,applyWebsiteLayoutChange,applyStructuredWebsiteEdit,renderWebsiteHtml}=websiteBuilderTestHarnessV3222(['buildWebsiteDraft','applyWebsiteLayoutChange','applyStructuredWebsiteEdit','renderWebsiteHtml']);
@@ -14,13 +14,11 @@ for(const bad of [{...repair,sectionId:'contact'},{...repair,field:'arbitrary'},
 assert.equal(amendSelectedWebsiteQualityInstruction({...draft,generation:draft.generation+1},{selection,instruction,repair}).ok,false);
 const locked={...draft,theme:{...draft.theme,lockedSections:['hero']}};
 assert.equal(previewSelectedWebsiteInstruction(locked,{selection,instruction:amended.instruction},deps).ok,false);
-// Execute the real UI callback with inert preview/state boundaries. No save or
-// transport dependency exists in this callback, and stale callbacks do nothing.
-const source=readFileSync(new URL('../src/screens/websiteTapEditor.js',import.meta.url),'utf8'),start=' const previewQualityAdjustment=repair=>{',end=' const applyContext=(instruction)=>{';
-assert.equal(source.split(start).length,2);const code=source.slice(source.indexOf(start),source.indexOf(end));
-const events=[],editorLive={current:{draft,selection,contextRequest:instruction}},args={draft,selection,contextRequest:instruction,editorLive,amendSelectedWebsiteQualityInstruction,onPreviewInstruction:request=>previewSelectedWebsiteInstruction(draft,request,deps)};
-for(const key of ['setContextNote','setContextRequest','setSelectedInstructionPreview','setShowPreviewOriginal'])args[key]=value=>events.push([key,value]);
-const callback=Function(...Object.keys(args),code+';return previewQualityAdjustment;')(...Object.values(args));callback(repair);
-assert.ok(events.some(([key,value])=>key==='setContextRequest'&&value===amended.instruction));assert.ok(events.some(([key,value])=>key==='setSelectedInstructionPreview'&&value.ok));
-events.length=0;editorLive.current={...editorLive.current,contextRequest:'New owner instruction'};callback(repair);assert.equal(events.length,0);
-console.log('PASS original website candidate, finite advisory amendment, preserved quoted wording, original static rendering, locks/stale rejection and actual UI preview-only callback. Inert state boundary; no browser/native or hosted acceptance.');
+// Execute the actual selected editor. Native views and IO are inert; the
+// original preview, quality notice props and callback state remain real.
+const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs'),rt=createRuntime(),{WebsiteTapEditor:Editor}=rt.load('src/screens/websiteTapEditor.js'),{BuilderQualityNotice}=rt.load('src/components/builderQualityNotice.js');
+const walk=x=>Array.isArray(x)?x.flatMap(walk):x&&typeof x==='object'?[x,...walk(x.props?.children)]:[],find=(t,label)=>walk(t).find(n=>n.props?.label===label);
+const calls=[],props={draft,selection,onPreviewInstruction:args=>{calls.push(args);return previewSelectedWebsiteInstruction(draft,args,deps);},onApplyInstruction:()=>{throw Error('Quality advice must not save');}};
+let tree=rt.render(Editor,props);find(tree,'Tell BUSY what to do with this part').props.onPress();tree=rt.render(Editor,props);find(tree,'What would you like to change?').props.onChangeText(instruction);tree=rt.render(Editor,props);find(tree,'See these changes before saving').props.onPress();tree=rt.render(Editor,props);let notice=walk(tree).find(n=>n.type===BuilderQualityNotice);assert.ok(notice);assert.equal(notice.props.quality.level,'advisory');notice.props.onRepair(repair);tree=rt.render(Editor,props);assert.equal(find(tree,'What would you like to change?').props.value,amended.instruction);notice=walk(tree).find(n=>n.type===BuilderQualityNotice);assert.equal(notice.props.quality.level,'safe');assert.equal(calls.length,2);
+const stale=notice.props.onRepair;find(tree,'What would you like to change?').props.onChangeText('New owner instruction');stale(repair);assert.equal(calls.length,2,'New typing immediately invalidates an old quality callback');tree=rt.render(Editor,props);assert.equal(find(tree,'What would you like to change?').props.value,'New owner instruction');assert.equal(JSON.stringify(draft),before);
+console.log('PASS original website candidate and actual editor quality adjustment, finite advisory amendment, quoted wording, canonical rendering, locks, immediate stale callback denial and preview-only state. Inert native/IO; no acceptance claim.');
