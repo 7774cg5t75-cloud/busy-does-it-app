@@ -91,6 +91,11 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
   if(itemId||section.type!=='services')return failure('Select the services section to change its layout.');
   return success('layout',{action:'section-style',sectionId,field:'serviceLayout',value:{'a directory':'directory',cards:'cards','the original layout':'brand'}[servicesLayout[1].toLowerCase()]},'Change only this services section. Service wording, order and destinations stay unchanged; phones use one column.');
  }
+ const desktopPicture=text.match(/^(?:put|move|show) (?:this|that|the selected) (?:picture|photo|image) (?:on |to )?(?:the )?(left|right) on (?:desktop|larger screens)$/i);
+ if(desktopPicture){
+  if(itemId||section.type!=='photo-feature'||section.asset?.approved!==true||!section.asset?.storagePath)return failure('Select a section with its approved original picture.');
+  return success('layout',{action:'section-style',sectionId,field:'desktopPhotoSide',value:desktopPicture[1].toLowerCase()},'Move this approved picture only on larger screens. Phone reading order, wording and colours stay unchanged.');
+ }
  const reading=text.match(/^make (?:this|that|the selected) (?:text|paragraph|section) (?:easier to read|more readable)(?: only)? on (phones?|mobile|desktop|computers?)$/i);
  if(reading){
   if(itemId||!(['body','section'].includes(field)||field==='photo'&&section.type==='photo-feature'))return failure('Select the whole section, its paragraph or a paired picture/text block to adjust reading size.');

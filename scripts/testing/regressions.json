@@ -967,6 +967,13 @@
         "scripts/check-mission15-phase24-explore.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase25-pictures",
+      "args": [
+        "scripts/check-mission15-phase25-pictures.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

@@ -253,7 +253,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
    sectionSpacing:["compact","normal","generous"],
    mobileSectionSpacing:["compact","normal","generous"],desktopSectionSpacing:["compact","normal","generous"],
    photoCrop:["top","center","bottom"],
-   photoSide:["left","right"],
+   photoSide:["left","right"],desktopPhotoSide:["brand","left","right"],
    gallerySize:["comfortable","compact","large"],
    mobileHeadingScale:["normal","compact","large"],desktopHeadingScale:["normal","compact","large"],
    mobileGallerySize:["comfortable","compact","large"],desktopGallerySize:["comfortable","compact","large"]
@@ -270,7 +270,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
    mobileSectionSpacing:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact","products","events"],
    desktopSectionSpacing:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact","products","events"],
    photoCrop:["hero","photo-feature","gallery"],
-   photoSide:["photo-feature"],
+   photoSide:["photo-feature"],desktopPhotoSide:["photo-feature"],
    gallerySize:["gallery"],
    mobileHeadingScale:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
    desktopHeadingScale:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
@@ -287,6 +287,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   if(!Object.prototype.hasOwnProperty.call(fields,field)||
      !fields[field].includes(value)||!supports[field].includes(target.type))
    return fail(draft,"Choose an available design control for this exact section.");
+  if(field==='desktopPhotoSide'&&value!=='brand'&&(target.asset?.approved!==true||!text(target.asset?.storagePath)))return fail(draft,'Choose an approved original picture before comparing its position.');
   if(field==="photoCrop"&&target.type!=="gallery"&&!text(target.asset?.storagePath))
    return fail(draft,"Add an approved original photo before changing its crop.");
   const before=Object.prototype.hasOwnProperty.call(existing,field)?existing[field]:"";
@@ -297,7 +298,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
    if(fields[name].includes(existing[name])&&supports[name].includes(target.type))
     next[name]=existing[name];
   const defaults={serviceLayout:'brand',ctaSize:'normal',bodyScale:'normal',mobileBodyScale:'normal',desktopBodyScale:'normal',headingScale:"normal",textAlign:"left",sectionSpacing:"normal",mobileSectionSpacing:"normal",desktopSectionSpacing:"normal",
-    photoCrop:"center",photoSide:"left",gallerySize:"comfortable",
+    photoCrop:"center",photoSide:"left",desktopPhotoSide:"brand",gallerySize:"comfortable",
     mobileHeadingScale:"normal",desktopHeadingScale:"normal",mobileGallerySize:"comfortable",desktopGallerySize:"comfortable"};
   if(value===(Object.hasOwn(textTypographyFields,field)?"brand":defaults[field]))delete next[field];else next[field]=value;
   if(Object.keys(next).length)target.appearance=next;else delete target.appearance;
