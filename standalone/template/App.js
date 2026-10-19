@@ -424,7 +424,7 @@ export default function App(){
        setRequestSelection(null);setRequestedService('');setRequestedKind('service');setRequestedMessage('');
       }}
       onReturnToInformation={requestOrigin&&pages.some(page=>page.key===requestOrigin)?()=>{if(viewContext.current===publicViewContext)setCurrent(requestOrigin);}:null}
-      onSaveState={value=>{if(viewContext.current!==publicViewContext)return;const key=requestFormKey;requestForms.current.set(key,value);if(requestForms.current.size>8)requestForms.current.delete(requestForms.current.keys().next().value);}}
+      onSaveState={value=>{if(viewContext.current!==publicViewContext)return;const key=requestFormKey;if(requestIdentity.current!==key&&!requestForms.current.has(key))return;requestForms.current.set(key,value);if(requestForms.current.size>8)requestForms.current.delete(requestForms.current.keys().next().value);}}
       initialService={chosen.key===requestedIntent?
        requestedService:""}
       initialMessage={requestedMessage|| (chosen.key==="enquiry"&&requestedIntent==="enquiry"&&requestedService?
