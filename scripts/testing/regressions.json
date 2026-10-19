@@ -1255,6 +1255,12 @@
       "args": [
         "scripts/check-mission15-phase31-independent-editors.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase31-home",
+      "args": [
+        "scripts/check-mission15-phase31-home.mjs"
+      ]
     }
   ]
 }

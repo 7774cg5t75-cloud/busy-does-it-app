@@ -1,3 +1,4 @@
+import {HomeCoreAreas} from "../components/HomeCoreAreas";
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -995,7 +996,7 @@ function HomeScreen({ s }) {
     ["Find more work", () => s.go("workNow")],
     ["Build my business", () => s.openBusinessCreationJourney()],
     [s.websiteDraft ? "Continue my website" : "Build my website", () => s.openWebsiteBuilder()],
-    ["Build a customer app", () => s.openBusyAppsMarketplace()],
+    ["Build a customer app", () => s.openMiniAppBuilder()],
     ["What BUSY remembers", () => s.go("businessMemory")],
     ["Grow my business", () => s.go("growthCommandCentre")],
     ["System health", () => s.go("selfRunningOperations")],
@@ -1046,14 +1047,19 @@ function HomeScreen({ s }) {
           <Text style={homeDark.heading}>Quick access</Text>
           <Text style={homeDark.badge}>Your tools</Text>
         </View>
+        <HomeCoreAreas s={s}/>
         <View style={homeDark.smallActionRow}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Diary" onPress={() => s.go("bookings")} style={homeDark.smallAction}><Text style={homeDark.smallActionText}>Diary</Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Inbox" onPress={s.openBusyInbox} style={homeDark.smallAction}><Text style={homeDark.smallActionText}>Inbox</Text></Pressable>
+        </View>
+        {showOtherMoves?<View style={homeDark.smallActionRow}>
           <Pressable accessibilityRole="button" onPress={() => s.jump("workHub", "Work")} style={homeDark.smallAction}>
             <Text style={homeDark.smallActionText}>Work & diary</Text>
           </Pressable>
           <Pressable accessibilityRole="button" onPress={s.openSocialCentre} style={homeDark.smallAction}>
             <Text style={homeDark.smallActionText}>Social Media</Text>
           </Pressable>
-        </View>
+        </View>:null}
         <Pressable
           accessibilityRole="button"
           accessibilityState={{ expanded: showOtherMoves }}
