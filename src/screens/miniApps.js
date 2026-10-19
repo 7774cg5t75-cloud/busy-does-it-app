@@ -897,19 +897,35 @@ function MiniAppBuilder({ s }) {
   const app = view.app;
   const [ownerEditorEpoch,setOwnerEditorEpoch]=React.useState(0);
   const ownerDirtyParts=React.useRef({selected:false,copy:false});
+  const ownerDraftEpoch=React.useRef(0),proposalDraft=React.useRef(null);
   const copyScope=JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,app?.id]);
   const previousCopyScope=React.useRef(copyScope);
   const copyScopeCurrent=previousCopyScope.current===copyScope;
   if(!copyScopeCurrent){previousCopyScope.current=copyScope;ownerDirtyParts.current={selected:false,copy:false};setStudioCopy('');}
   const legacyCopyLive=React.useRef(null);legacyCopyLive.current={value:copyScopeCurrent?studioCopy:'',field:studioCopyField,source:view.draftConfig};
   const reportOwnerDraft=useOwnerEditNavigation(s,{source:view.draftConfig,projectId:app?.id,revision:app?.draft_revision},()=>{ownerDirtyParts.current={selected:false,copy:false};legacyCopyLive.current.value='';setStudioCopy('');setOwnerEditorEpoch(x=>x+1);});
-  const markOwnerDirty=(part,value)=>{ownerDirtyParts.current={...ownerDirtyParts.current,[part]:!!value};reportOwnerDraft(Object.values(ownerDirtyParts.current).some(Boolean));};
+  const markOwnerDirty=(part,value)=>{ownerDraftEpoch.current++;ownerDirtyParts.current={...ownerDirtyParts.current,[part]:!!value};reportOwnerDraft(Object.values(ownerDirtyParts.current).some(Boolean));};
   const controlContext={ownerId:s.ownerSession?.userId||"",businessId:s.cloudWorkspace?.businessId||"",app};
   const liveControlContext=React.useRef(null);liveControlContext.current=controlContext;
   const studio=usePrivateAppStudio({businessId:s.cloudWorkspace?.businessId||"",
     ownerId:s.ownerSession?.userId||"",app,config:view.draftConfig},s.saveCoordinatedAppChanges,s.readCurrentAppStudioDraft);
   const studioPreview=studio.preview,studioNotice=studio.notice;
-  const setStudioPreview=studio.prepare,setStudioNotice=studio.setNotice;
+  const setStudioNotice=studio.setNotice;
+  const setStudioPreview=(proposal,part=null)=>{
+    proposalDraft.current=proposal?{part,epoch:ownerDraftEpoch.current,source:view.draftConfig}:null;
+    return studio.prepare(proposal);
+  };
+  const approvalEpoch=ownerDraftEpoch.current;
+  const mayReplaceOwnerSource=()=>{
+    if(liveControlContext.current!==controlContext||approvalEpoch!==ownerDraftEpoch.current)return false;
+    const dirty=Object.keys(ownerDirtyParts.current).filter(part=>ownerDirtyParts.current[part]);
+    const proposed=proposalDraft.current;
+    if(dirty.length&&!(dirty.length===1&&dirty[0]===proposed?.part&&proposed.epoch===ownerDraftEpoch.current&&proposed.source===view.draftConfig)){
+      setStudioNotice('Other wording is not saved. Keep editing, or cancel that wording before approving this change. Your proposal and private app are unchanged.');return false;
+    }
+    return true;
+  };
+
   const studioIsCurrent=!!studio.preview;
   const goalMemory=useOwnerDesignMemory({businessId:s.cloudWorkspace?.businessId||"",
     ownerId:s.ownerSession?.userId||"",appId:app?.id,revision:app?.draft_revision},s.getAppDesignLearningStatus);
@@ -2435,21 +2451,21 @@ function MiniAppBuilder({ s }) {
               if(liveControlContext.current!==controlContext||!copyScopeCurrent||legacyCopyLive.current.value!==studioCopy||legacyCopyLive.current.field!==studioCopyField||legacyCopyLive.current.source!==view.draftConfig)return;
               const p=proposeCoordinatedAppChanges(view.draftConfig,
                 [{kind:"text",field:studioCopyField,value:studioCopy}]);
-              setStudioPreview(p.ok?p:null);setStudioNotice(p.ok?
+              setStudioPreview(p.ok?p:null,'copy');setStudioNotice(p.ok?
                 "Owner-written wording is ready to preview, not yet saved.":p.reason);
             }}/>
           {view.draftConfig.modules?.some(m=>m.key==='services'&&m.enabled===true)?(
             <AppServiceEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch].join(':')}
               onDraftChange={value=>markOwnerDirty('services',value)} requestTransition={s.requestOwnerEditTransition}
               config={view.draftConfig} revision={app.draft_revision} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
-              onPreview={setStudioPreview} onNotice={setStudioNotice}/>
+              onPreview={proposal=>setStudioPreview(proposal,'services')} onNotice={setStudioNotice}/>
           ):null}
           {view.draftConfig.modules?.some(x=>x.key==='gallery'&&x.enabled===true)?(
             <AppGalleryDescriptionEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch].join(':')}
               config={view.draftConfig} revision={app.draft_revision}
               busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
               onDraftChange={value=>markOwnerDirty('gallery',value)} requestTransition={s.requestOwnerEditTransition}
-              onPreview={setStudioPreview} onNotice={setStudioNotice}/>
+              onPreview={proposal=>setStudioPreview(proposal,'gallery')} onNotice={setStudioNotice}/>
           ):null}
           {Array.isArray(view.draftConfig.publicProfile?.assets?.gallery)&&
             view.draftConfig.publicProfile.assets.gallery.length>=2?(
@@ -2498,7 +2514,7 @@ function MiniAppBuilder({ s }) {
                 renderSurface={config=><MiniAppSurface config={config} businessContent={s.miniAppsView?.app?.businessContent||null}/>}/>
               <Button primary label={"Approve all "+studioPreview.changes.length+" private change(s)"}
                 disabled={!!s.miniAppsAction||!studio.canApprove}
-                onPress={studio.approve}/>
+                onPress={()=>{if(mayReplaceOwnerSource())return studio.approve();}}/>
               <Button label="Discard the whole proposed batch" disabled={studio.pending||studio.uncertain}
                 onPress={studio.discard}/>
             </>
@@ -2506,7 +2522,7 @@ function MiniAppBuilder({ s }) {
           {studio.undo?(
             <Button label="Undo my last approved batch"
               disabled={!!s.miniAppsAction||!studio.canUndo}
-              onPress={studio.undoLast}/>
+              onPress={()=>{if(Object.values(ownerDirtyParts.current).some(Boolean)){setStudioNotice('Keep editing or cancel your unsaved wording before Undo.');return;}if(liveControlContext.current===controlContext&&approvalEpoch===ownerDraftEpoch.current)return studio.undoLast();}}/>
           ):null}
           <Text style={styles.cardBody}>
             BUSY cannot treat unrecognised instructions as completed edits. Payments,
@@ -2773,7 +2789,7 @@ function MiniAppBuilder({ s }) {
             busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
             onPrepare={proposal=>{
               if(liveControlContext.current!==controlContext)return;
-              setStudioPreview(proposal);setStudioNotice('Review the selected visual change in the original Studio comparison. Approval saves one private revision; Undo restores it.');
+              setStudioPreview(proposal,'selected');setStudioNotice('Review the selected visual change in the original Studio comparison. Approval saves one private revision; Undo restores it.');
             }}/>
           <Text style={styles.sectionLabel}>Select the part you want to change</Text>
           {[

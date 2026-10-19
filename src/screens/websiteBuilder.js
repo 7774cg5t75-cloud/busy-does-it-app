@@ -1209,6 +1209,7 @@ function WebsitePreview({ s }) {
   const coordinatedAdvice=coordinatedWebsiteAlternatives(draft,activePage?.id,visualCheckResult);
   const tryCandidate=(advice=layoutAdvice)=>{
     if(!advice||!draft)return;
+    if(selectedWordingDirty.current){setDesignCandidateNotice('Your selected wording is not saved. Keep editing, then save or discard it in the text editor before comparing a different layout.');return;}
     if(advice.compositionEvidence){
       const prepared=prepareReviewedWebsiteComposition(advice.compositionEvidence,{website:draft,app:s.miniAppsView?.app,
         businessId:s.cloudWorkspace?.businessId},{layoutEdit:applyWebsiteLayoutChange});
@@ -1246,6 +1247,7 @@ function WebsitePreview({ s }) {
     setDesignCandidateNotice("Original design restored. Your preference stays with this draft only.");
   };
   const keepCandidate=()=>{
+    if(selectedWordingDirty.current){setDesignCandidateNotice('Finish or discard your unsaved wording before keeping another layout. Nothing was saved.');return;}
     if(visualCheckOn||candidateCheckOn||requestedReview||!candidateIsCurrent||!designReviewProgress.mayKeep||
        !candidateComparison?.valid||!candidateComparison.noNewMeasuredProblems||
        privateWidthReview?.hasRegressions===true||

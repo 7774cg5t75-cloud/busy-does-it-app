@@ -1141,6 +1141,12 @@
       "args": [
         "scripts/check-mission15-phase29-legacy-drafts.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase29-approval-conflicts",
+      "args": [
+        "scripts/check-mission15-phase29-approval-conflicts.mjs"
+      ]
     }
   ]
 }
