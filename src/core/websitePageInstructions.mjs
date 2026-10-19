@@ -64,6 +64,10 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
    if(!section||section.type!=='photo-feature'||section.asset?.approved!==true||!section.asset?.storagePath)return fail('Name one visible section with its approved original picture.');
    change={action:'section-style',sectionId:section.id,field:'desktopPhotoSide',value:m[2].toLowerCase()};
    description='Move only the approved picture in '+section.title+' on larger screens. Phone reading order, words and colours stay unchanged';
+  }else if((m=clause.match(/^show (?:the )?(.+?) testimonials with a featured quotation$/i))){
+   const section=findSection(m[1]);if(!section||section.type!=='testimonials')return fail('Name one visible supplied-testimonials section.');
+   change={action:'section-style',sectionId:section.id,field:'testimonialsLayout',value:'spotlight'};
+   description='Compare the first existing quotation with supporting cards, without verifying reviews or changing words and order';
   }else if((m=clause.match(/^show (?:the )?(.+?) text as (an editorial layout|a reading column|two reading columns|the original layout)$/i))){
    const section=findSection(m[1]);if(!section||!['about','text'].includes(section.type))return fail('Name one visible information section.');
    change={action:'section-style',sectionId:section.id,field:'readingLayout',value:{'an editorial layout':'editorial','a reading column':'column','two reading columns':'columns','the original layout':'brand'}[m[2].toLowerCase()]};

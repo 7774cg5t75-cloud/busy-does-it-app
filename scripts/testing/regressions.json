@@ -1225,6 +1225,12 @@
       "args": [
         "scripts/check-mission15-phase30-photo-backup.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase30-explore",
+      "args": [
+        "scripts/check-mission15-phase30-explore.mjs"
+      ]
     }
   ]
 }

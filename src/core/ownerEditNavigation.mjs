@@ -12,7 +12,7 @@ export function createOwnerEditNavigation({getScope,confirm}){
   // Synchronous original owner-save only. This is UI draft coordination, not authority.
   withCommit(token,identity,transition){
    const item=current();
-   if(item&&(item.token!==token||item.identity.source!==identity.source||item.identity.projectId!==identity.projectId||item.identity.revision!==identity.revision))return false;
+   if(item&&(item.token!==token||item.identity.source!==identity.source||item.identity.projectId!==identity.projectId||item.identity.revision!==identity.revision||item.identity.ownerId!==identity.ownerId||item.identity.businessId!==identity.businessId))return false;
    const previous=permit;permit=item;
    try{return transition();}finally{permit=previous;}
   },

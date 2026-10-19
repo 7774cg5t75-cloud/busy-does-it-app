@@ -289,7 +289,12 @@ function WebsiteBuilder({ s }) {
       subtitle="Tell BUSY about your business, preview your website and make it your own."
       brandCue="BUSY DOES IT • Website Builder"
     >
-      <Button label="Talk & Explore — no project changes" disabled={!draft||!!s.websiteAction} onPress={()=>setExplore(true)}/>
+      <Button label="Talk & Explore — no project changes" disabled={!draft||!!s.websiteAction} onPress={()=>{
+        const current=()=>exploreLive.current.project===exploreContext.project&&exploreLive.current.ownerId===exploreContext.ownerId&&exploreLive.current.businessId===exploreContext.businessId;
+        if(!current())return;
+        const open=()=>{if(current())setExplore(true);};
+        if(s.requestOwnerEditTransition)s.requestOwnerEditTransition(open);else open();
+      }}/>
       {exploreHandoff?<BuilderExploreEditReview context={exploreContext} handoff={exploreHandoff} onCancel={()=>setExploreHandoff(null)} onApply={s.applyWebsitePageInstruction}/>:null}
       <BusinessContentEditor onApprovedRecords={approvedRecords.onApprovedRecords} key={['records',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')}
         businessId={s.cloudWorkspace?.businessId} request={s.businessContentRequest}

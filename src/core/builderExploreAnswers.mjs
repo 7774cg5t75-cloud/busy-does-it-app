@@ -1,3 +1,4 @@
+import {validTestimonialSpotlight} from '../../supabase/functions/busy-website-worker/websiteTestimonials.mjs';
 import {ownerDesignPreference} from './websiteMeasuredDesignCoach.mjs';
 import {websiteCompositionFacts} from './websiteCoordinatedAlternatives.mjs';
 import {planUniversalBuilderRequest} from './universalBuilderPlanV3210.mjs';
@@ -15,6 +16,16 @@ function explainBuilderExplore({kind,project,catalog,plan,text}){
  }
  const profile=kind==='app'?project.draft_config?.publicProfile||{}:project;
  const services=kind==='app'?(profile.services||[]):project.sections?.find(s=>s.type==='services'&&s.enabled!==false)?.items||[];
+ if(kind==='website'&&/testimonials?|customer words|\bproof\b|\btrust\b|why.*choose/i.test(text)&&!/^show (?:the )?.+? testimonials with a featured quotation$/i.test(text)){
+  const page=project.pages?.find(p=>p.id==='home'),sections=(project.sections||[]).filter(s=>s.enabled!==false&&page?.sectionIds?.includes(s.id)&&s.type==='testimonials'),section=sections.length===1?sections[0]:null;
+  const complete=section&&validTestimonialSpotlight(section),operation=section?{action:'style-group',operations:[{action:'section-style',sectionId:section.id,field:'testimonialsLayout',value:'spotlight'}]}:null;
+  const declined=section&&['selected-testimonial-spotlight','coordinated-testimonial-spotlight'].some(id=>ownerDesignPreference(project,id,'home',operation)==='disliked');
+  return {answer:[section?'Your Home page contains '+(section.items?.length||0)+' supplied testimonials in '+(section.title||section.id)+'.':'Select the exact supplied-testimonials section before comparing its presentation; no current single section is assumed.',
+   'These are owner-supplied words and attributions, not independently verified reviews. Keep permission and accuracy checks separate from design. No ratings, customer counts or performance claims are added.',
+   'The supported spotlight keeps the first existing quotation first and gives it more space on wider screens, with the others in supporting cards. Phones keep one column; all original words, attribution and order remain.',
+   declined?'You declined this exact direction. Use Review previous page ideas in the original website preview if you deliberately want it suggested again.':section?.appearance?.testimonialsLayout?'Your chosen quotation layout is kept; use an exact selected-section comparison for a deliberate replacement.':'Whether this evidence should lead depends on the real visitor goal. This is an original layout hypothesis, not a claim of increased enquiries or screenshot inspection.',
+   'Nothing will be changed. A fresh Make changes handoff and separate editor approval are still required.'].join('\n'),alternatives:complete&&!declined&&!section.appearance?.testimonialsLayout?[{label:'Explore a featured supplied quotation',instruction:'show the '+section.id+' testimonials with a featured quotation'}]:[],discussionOnly:true};
+ }
  if(kind==='website'&&(project.sections||[]).some(s=>s.type==='photo-feature'&&s.enabled!==false&&s.asset?.approved===true&&project.pages?.find(p=>p.id==='home')?.sectionIds?.includes(s.id))&&/\b(?:would|could|which side|other side)\b/i.test(text)&&/\b(?:picture|photo|image)\b/i.test(text)&&/\b(?:left|right|other side)\b/i.test(text)){
   const page=project.pages?.find(p=>p.id==='home'),sections=(project.sections||[]).filter(s=>s.enabled!==false&&s.type==='photo-feature'&&page?.sectionIds?.includes(s.id)&&s.asset?.approved===true&&s.asset?.storagePath);
   const section=sections.length===1?sections[0]:null,side=section?.appearance?.desktopPhotoSide||section?.appearance?.photoSide||'left',requested=/\bright\b/i.test(text)?'right':/\bleft\b/i.test(text)?'left':side==='left'?'right':'left';
