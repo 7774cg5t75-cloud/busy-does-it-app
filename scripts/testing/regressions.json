@@ -904,6 +904,13 @@
         "scripts/check-mission15-phase23-editorial.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase23-photo-controls",
+      "args": [
+        "scripts/check-mission15-phase23-photo-controls.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

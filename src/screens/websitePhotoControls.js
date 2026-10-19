@@ -8,7 +8,7 @@ import {applyWebsiteLayoutOperation} from '../../supabase/functions/busy-website
 // image approval or save path; original preview/transaction/Undo owns changes.
 export function WebsitePhotoControls({draft,selection,section,onChoose}){
  const [active,setActive]=React.useState(null);
- const scope=JSON.stringify(selection),live=React.useRef(null);live.current={draft,scope};
+ const scope=JSON.stringify(selection),live=React.useRef(null);live.current={draft,scope,section,onChoose};
  if(selection?.field!=='photo'||!['hero','photo-feature','gallery'].includes(section?.type))return null;
  const groups={framing:[['Focus top','crop this photo to the top'],['Focus centre','crop this photo to the center'],['Focus bottom','crop this photo to the bottom']],
   size:[['Larger picture','make this photo bigger'],['Smaller picture','make this photo smaller']]};
@@ -25,11 +25,11 @@ export function WebsitePhotoControls({draft,selection,section,onChoose}){
  if(section.type==='hero')groups.presets=[['Larger photo, focus top','make this photo bigger; crop this photo to the top'],['Smaller photo, focus centre','make this photo smaller; crop this photo to the center']];
  const category=active?.draft===draft&&active.scope===scope?active.name:null;
  live.current.category=category;
- const current=()=>live.current.draft===draft&&live.current.scope===scope;
+ const current=()=>live.current.draft===draft&&live.current.scope===scope&&live.current.section===section&&live.current.onChoose===onChoose;
  return <View>
   <Text style={styles.sectionLabel}>Adjust this picture</Text>
   <Text style={styles.cardBody}>{section.type==='gallery'?'Framing and position affect this photo; size presets affect the whole gallery.':'Use responsive picture presets; text and customer actions stay intact.'} Choose, compare, then apply. Nothing changes yet.</Text>
-  <View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}>{Object.keys(groups).map(name=><View key={name} style={{width:'48%'}}><Button label={(category===name?'✓ ':'')+'Picture '+name} onPress={()=>{if(current())setActive(category===name?null:{draft,scope,name});}}/></View>)}</View>
+  <View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}>{Object.keys(groups).map(name=><View key={name} style={{width:'48%'}}><Button label={(category===name?'✓ ':'')+'Picture '+name} onPress={()=>{if(current()){const next=category===name?null:name;live.current.category=next;setActive(next?{draft,scope,name:next}:null);}}}/></View>)}</View>
   {category&&groups[category]?<View accessibilityLiveRegion="polite">{groups[category].map(([label,instruction])=>{
    const plan=planSelectedWebsiteChanges(draft,selection?.pageId,selection,instruction);
    // Grammar success alone does not establish a permitted move: evaluate the
