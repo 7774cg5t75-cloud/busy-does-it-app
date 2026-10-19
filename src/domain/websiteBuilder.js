@@ -727,7 +727,9 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
     }
     if(section.type==="photo-feature"){
       const image=approvedImage(section.asset);
-      return image? `<section class="photo-feature${sectionClasses?" "+sectionClasses:""}" id="${escapeHtml(section.id)}"${editAttrs(section,"section")}><div class="wrap photo-feature-grid"><img loading="lazy"${editAttrs(section,"photo")} src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}"><div><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div></div></section>`:"";
+      const picture=`<img loading="lazy"${editAttrs(section,"photo")} src="${escapeHtml(image)}" alt="${escapeHtml(section.title)}">`;
+      const copy=`<div><h2${editAttrs(section,"title")}>${escapeHtml(section.title)}</h2><p${editAttrs(section,"body")}>${escapeHtml(section.body).replace(/\n/g,"<br>")}</p></div>`;
+      return image? `<section class="photo-feature${sectionClasses?" "+sectionClasses:""}" id="${escapeHtml(section.id)}"${editAttrs(section,"section")}><div class="wrap photo-feature-grid">${section.appearance?.photoSide==='right'?copy+picture:picture+copy}</div></div></section>`:"";
     }
     if(section.type==="gallery"){
       const images=safeArray(section.items).map(approvedImage).filter(Boolean);

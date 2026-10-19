@@ -7,8 +7,9 @@ function websiteCompositionFacts(draft,pageId='home'){
  const page=draft?.pages?.find(p=>p.id===pageId&&p.enabled!==false),sections=(draft?.sections||[]).filter(s=>s.enabled!==false&&page?.sectionIds?.includes(s.id));
  const readingSections=sections.filter(section=>['about','text','photo-feature'].includes(section.type)&&String(section.body||'').length>=500);
  const phoneReadingSection=readingSections.find(section=>!section.appearance?.mobileBodyScale&&!section.appearance?.mobileSectionSpacing);
+ const editorialFeature=sections.find(section=>section.type==='photo-feature'&&section.asset?.approved===true&&typeof section.asset.storagePath==='string'&&section.asset.storagePath.trim()&&String(section.body||'').length>=240&&!section.appearance?.photoSide&&!section.appearance?.desktopSectionSpacing&&!section.appearance?.sectionSpacing);
  const service=sections.find(s=>s.id==='services'),gallery=sections.find(s=>s.id==='gallery');
- return {longReadingSectionCount:readingSections.length,phoneReadingSectionId:phoneReadingSection?.id||null,serviceCount:Array.isArray(service?.items)?service.items.filter(item=>String(item.title||'').trim()).length:0,approvedGalleryCount:photographicCount(gallery?[gallery]:[]),heroPhoto:photographicCount(sections.filter(s=>s.id==='hero'))>0,gallerySizeCustomized:['compact','large'].includes(gallery?.appearance?.gallerySize)||['compact','large'].includes(gallery?.appearance?.desktopGallerySize)};
+ return {editorialFeatureId:editorialFeature?.id||null,longReadingSectionCount:readingSections.length,phoneReadingSectionId:phoneReadingSection?.id||null,serviceCount:Array.isArray(service?.items)?service.items.filter(item=>String(item.title||'').trim()).length:0,approvedGalleryCount:photographicCount(gallery?[gallery]:[]),heroPhoto:photographicCount(sections.filter(s=>s.id==='hero'))>0,gallerySizeCustomized:['compact','large'].includes(gallery?.appearance?.gallerySize)||['compact','large'].includes(gallery?.appearance?.desktopGallerySize)};
 }
 function coordinatedWebsiteAlternatives(draft,pageId,report){
  if(!draft?.id||!draft.pages?.some(p=>p.id===pageId&&p.enabled!==false)||!report?.counts||!Array.isArray(report.issues)||!Number.isFinite(report.counts.viewport)||report.counts.viewport<250||report.counts.viewport>3000)return [];
@@ -30,9 +31,11 @@ function coordinatedWebsiteAlternatives(draft,pageId,report){
  if(galleryPhotos>=3&&serviceCount<4&&!facts.gallerySizeCustomized)directions.unshift({id:'coordinated-gallery-story',label:'Image-led story with a featured photograph',explanation:'Your current page has '+galleryPhotos+' approved gallery photographs. Compare a gallery-first story with one larger existing photograph on wide screens; phones keep the original flowing gallery. Existing captions, assets and colours stay unchanged.',settings:{typography:'editorial',cardLayout:'outlines',heroLayout:heroPhoto?'image-feature':'type-poster'},tradeoff:'Visitors meet the imagery before longer service detail. No photo is invented, replaced or assigned to a service.'});
  const readingSection=(draft.sections||[]).find(section=>section.id===facts.phoneReadingSectionId);
  if(report.counts.viewport<=600&&readingSection)directions.unshift({id:'coordinated-phone-reading',label:'Phone-first reading for longer information',explanation:'Your '+(readingSection.title||'information')+' section contains longer approved text. Compare larger phone reading and more section space without changing desktop composition, words, images or brand colours.',settings:{},sectionOperations:[{action:'section-style',sectionId:readingSection.id,field:'mobileBodyScale',value:'large'},{action:'section-style',sectionId:readingSection.id,field:'mobileSectionSpacing',value:'generous'}],tradeoff:'Longer phone pages with fewer words on each line. Desktop and tablet styles stay unchanged; this is an unrendered proposal, not measured visual improvement.'});
+ const editorial=(draft.sections||[]).find(section=>section.id===facts.editorialFeatureId);
+ if(editorial)directions.unshift({id:'coordinated-editorial-feature',label:'Read the story, then meet the photograph',explanation:'Your '+(editorial.title||'picture and text')+' section has an approved photograph and a longer description. Compare text-first reading with the existing picture beside it on desktop and after the copy on phones. No words or assets are changed.',settings:{},sectionOperations:[{action:'section-style',sectionId:editorial.id,field:'photoSide',value:'right'},{action:'section-style',sectionId:editorial.id,field:'desktopSectionSpacing',value:'generous'}],tradeoff:'Gives the explanation priority and adds desktop breathing room. Existing phone spacing, section order and brand colours stay unchanged. This is source-based composition, not screenshot evidence.'});
  directions.sort((a,b)=>{
   const liked=d=>ownerDesignPreference(draft,d.id,pageId)==='liked'?4:0;
-  const relevant=d=>d.id==='coordinated-phone-reading'?3:['coordinated-service-guide','coordinated-gallery-story'].includes(d.id)?3:d.id==='coordinated-reading'&&issueIds.some(id=>['overflow','headings','readability'].includes(id))?2:
+  const relevant=d=>['coordinated-phone-reading','coordinated-editorial-feature'].includes(d.id)?3:['coordinated-service-guide','coordinated-gallery-story'].includes(d.id)?3:d.id==='coordinated-reading'&&issueIds.some(id=>['overflow','headings','readability'].includes(id))?2:
    d.id==='coordinated-visual'&&photos>0&&['creative','hospitality','events','retail'].includes(sector)?1:0;
   return liked(b)+relevant(b)-liked(a)-relevant(a);
  });
@@ -46,7 +49,7 @@ function coordinatedWebsiteAlternatives(draft,pageId,report){
   const before=[...new Set([...(draft.designPlan?.sectionOrder||[]).filter(id=>active.includes(id)),...active])];
   const target=['coordinated-visual','coordinated-gallery-story'].includes(d.id)?'gallery':'services';
   const page=draft.pages.find(p=>p.id===pageId);
-  if(d.id!=='coordinated-phone-reading'&&!theme.sectionOrder?.length&&draft.businessId&&before[0]==='hero'&&before.includes(target)&&page.sectionIds?.includes(target)){
+  if(!d.sectionOperations&&!theme.sectionOrder?.length&&draft.businessId&&before[0]==='hero'&&before.includes(target)&&page.sectionIds?.includes(target)){
    const proposed=['hero',target,...before.filter(id=>id!=='hero'&&id!==target)];
    if(JSON.stringify(before)!==JSON.stringify(proposed))operations.push({action:'apply-reviewed-composition',
     websiteId:draft.id,expectedGeneration:draft.generation,expectedBusinessId:draft.businessId,before,proposed});
