@@ -1315,6 +1315,12 @@
       "args": [
         "scripts/check-mission15-phase32-marketing-goals.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase32-manual-content",
+      "args": [
+        "scripts/check-mission15-phase32-manual-content.mjs"
+      ]
     }
   ]
 }

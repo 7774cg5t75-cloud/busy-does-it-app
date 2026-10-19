@@ -796,15 +796,18 @@ function SocialCreator({ s }) {
               onPress={applyBrandCaption}/>
           </View>:<Text style={styles.cardBody}>{brandReview.reason}</Text>}
         </View>:null}
-        {(brandedCaptionAccepted||s.socialDraftText.trim())&&!ready?<View>
-          <Text style={styles.fieldLabel}>Your editable caption</Text>
+
+      </Card>:null}
+
+        {!ready?<View>
+          <Text style={styles.fieldLabel}>Write your private content</Text>
           <TextInput multiline value={s.socialDraftText}
             onChangeText={editCaption}
             style={styles.messageInput}
-            placeholder="Review and edit your business caption"
+            placeholder="Write an announcement, useful information or your own approved offer"
             placeholderTextColor="#9AA3B2"/>
           <Button primary
-            label={photos.length?"Save branded post draft & review":"Save text draft & review"}
+            label={brandedCaptionAccepted&&photos.length?"Save branded post draft & review":photos.length?"Prepare private draft & review":"Save text draft & review"}
             disabled={!s.socialDraftText.trim()||analysing}
             onPress={s.saveGeneratedSocialDraft}/>
           <Text style={styles.cardBody}>
@@ -812,7 +815,6 @@ function SocialCreator({ s }) {
             keeps text-only drafts privately; approved photos are required before using its publishing queue.
           </Text>
         </View>:null}
-      </Card>:null}
 
       <Button
         label={analysing ? "BUSY is looking at the photos…" : ready ? "Analyse again" : "Create with BUSY AI"}
