@@ -19,6 +19,7 @@ function usePrivateAppStudio(context,onSave,onRead,canDispatch){
   return ()=>editor.detach();
  },[editor]);
  return {...editor.snapshot(),prepare:editor.prepare,setNotice:editor.setNotice,
+  canEdit:()=>{const state=editor.snapshot();return !state.pending&&!state.uncertain;},
   reconcile:()=>editor.reconcile(onRead),discard:editor.discard,removeChange:editor.removeChange,approve:()=>editor.approve(onSave,canDispatch),undoLast:()=>editor.undo(onSave,canDispatch)};
 }
 export {usePrivateAppStudio};

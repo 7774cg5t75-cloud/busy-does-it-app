@@ -1,3 +1,4 @@
+import {captureAppDraftAcknowledgement,acknowledgedAppDraftPart} from '../core/appDraftAcknowledgement.mjs';
 import {useOwnerEditNavigation} from './useOwnerEditNavigation';
 import {ServiceActionButton} from '../../standalone/template/serviceActionButton';
 import {serviceCardStyle} from '../core/appServicePresentation.mjs';
@@ -897,14 +898,16 @@ function MiniAppBuilder({ s }) {
   const app = view.app;
   const [ownerEditorEpoch,setOwnerEditorEpoch]=React.useState(0);
   const ownerDirtyParts=React.useRef({selected:false,copy:false});
-  const ownerDraftEpoch=React.useRef(0),proposalDraft=React.useRef(null);
+  const ownerDraftEpoch=React.useRef(0),proposalDraft=React.useRef(null),ownerPartEpochs=React.useRef({});
+  const [confirmedOwnerParts,setConfirmedOwnerParts]=React.useState({});
   const copyScope=JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,app?.id]);
   const previousCopyScope=React.useRef(copyScope);
   const copyScopeCurrent=previousCopyScope.current===copyScope;
-  if(!copyScopeCurrent){previousCopyScope.current=copyScope;ownerDirtyParts.current={selected:false,copy:false};setStudioCopy('');}
+  if(!copyScopeCurrent){ownerDraftEpoch.current++;for(const part of Object.keys(ownerPartEpochs.current))ownerPartEpochs.current[part]=ownerDraftEpoch.current;previousCopyScope.current=copyScope;ownerDirtyParts.current={selected:false,copy:false};setStudioCopy('');}
   const legacyCopyLive=React.useRef(null);legacyCopyLive.current={value:copyScopeCurrent?studioCopy:'',field:studioCopyField,source:view.draftConfig};
-  const reportOwnerDraft=useOwnerEditNavigation(s,{source:view.draftConfig,projectId:app?.id,revision:app?.draft_revision},()=>{ownerDraftEpoch.current++;ownerDirtyParts.current={selected:false,copy:false};legacyCopyLive.current.value='';setStudioCopy('');setOwnerEditorEpoch(x=>x+1);});
-  const markOwnerDirty=(part,value)=>{ownerDraftEpoch.current++;ownerDirtyParts.current={...ownerDirtyParts.current,[part]:!!value};reportOwnerDraft(Object.values(ownerDirtyParts.current).some(Boolean));};
+  const reportOwnerDraft=useOwnerEditNavigation(s,{source:view.draftConfig,projectId:app?.id,revision:app?.draft_revision},()=>{ownerDraftEpoch.current++;for(const part of Object.keys(ownerPartEpochs.current))ownerPartEpochs.current[part]=ownerDraftEpoch.current;ownerDirtyParts.current={selected:false,copy:false};legacyCopyLive.current.value='';setStudioCopy('');setOwnerEditorEpoch(x=>x+1);});
+  const currentOwnerReport=React.useRef(reportOwnerDraft);currentOwnerReport.current=reportOwnerDraft;
+  const markOwnerDirty=(part,value)=>{ownerDraftEpoch.current++;ownerPartEpochs.current[part]=ownerDraftEpoch.current;ownerDirtyParts.current={...ownerDirtyParts.current,[part]:!!value};reportOwnerDraft(Object.values(ownerDirtyParts.current).some(Boolean));};
   const controlContext={ownerId:s.ownerSession?.userId||"",businessId:s.cloudWorkspace?.businessId||"",app};
   const liveControlContext=React.useRef(null);liveControlContext.current=controlContext;
   const dispatchDraftEpoch=ownerDraftEpoch.current;
@@ -935,6 +938,21 @@ function MiniAppBuilder({ s }) {
       setStudioNotice('Other wording is not saved. Keep editing, or cancel that wording before approving this change. Your proposal and private app are unchanged.');return false;
     }
     return true;
+  };
+
+  const approveOwnerDraft=async()=>{
+    if(!mayReplaceOwnerSource())return {ok:false};
+    const part=proposalDraft.current?.part;
+    const expected=captureAppDraftAcknowledgement({...controlContext,config:view.draftConfig},part,ownerPartEpochs.current[part]);
+    const result=await studio.approve();
+    const cleared=acknowledgedAppDraftPart(expected,result,liveControlContext.current,ownerPartEpochs.current);
+    if(cleared){
+      ownerDirtyParts.current={...ownerDirtyParts.current,[cleared]:false};
+      if(cleared==='copy'){legacyCopyLive.current.value='';setStudioCopy('');}
+      setConfirmedOwnerParts(previous=>({...previous,[cleared]:(previous[cleared]||0)+1}));
+      currentOwnerReport.current(Object.values(ownerDirtyParts.current).some(Boolean));
+    }
+    return result;
   };
 
   const studioIsCurrent=!!studio.preview;
@@ -2454,7 +2472,7 @@ function MiniAppBuilder({ s }) {
               onPress={()=>{const change=()=>{setStudioCopyField(key);setStudioPreview(null);};if(ownerDirtyParts.current.copy&&s.requestOwnerEditTransition)s.requestOwnerEditTransition(change);else change();}}/>
           ))}
           <Field label={"Replacement "+studioCopyField+" (owner-approved copy)"}
-            value={copyScopeCurrent?studioCopy:''} onChangeText={value=>{if(liveControlContext.current!==controlContext)return;legacyCopyLive.current.value=value;setStudioCopy(value);markOwnerDirty('copy',!!value);setStudioPreview(null);}}
+            value={copyScopeCurrent?studioCopy:''} editable={studio.canEdit()} onChangeText={value=>{if(liveControlContext.current!==controlContext||!studio.canEdit())return;legacyCopyLive.current.value=value;setStudioCopy(value);markOwnerDirty('copy',!!value);setStudioPreview(null);}}
             placeholder="Write the exact words you want customers to see"/>
           {studioCopy?<Button label="Cancel replacement wording" onPress={()=>{if(liveControlContext.current!==controlContext||legacyCopyLive.current.value!==studioCopy)return;legacyCopyLive.current.value='';setStudioCopy('');markOwnerDirty('copy',false);setStudioPreview(null);}}/>:null}
           <Button label="Preview exact wording" disabled={!studioCopy.trim()||!!s.miniAppsAction}
@@ -2466,13 +2484,13 @@ function MiniAppBuilder({ s }) {
                 "Owner-written wording is ready to preview, not yet saved.":p.reason);
             }}/>
           {view.draftConfig.modules?.some(m=>m.key==='services'&&m.enabled===true)?(
-            <AppServiceEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch].join(':')}
+            <AppServiceEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch,confirmedOwnerParts.services||0].join(':')}
               onDraftChange={value=>markOwnerDirty('services',value)} requestTransition={s.requestOwnerEditTransition}
               config={view.draftConfig} revision={app.draft_revision} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
               onPreview={proposal=>setStudioPreview(proposal,'services')} onNotice={setStudioNotice}/>
           ):null}
           {view.draftConfig.modules?.some(x=>x.key==='gallery'&&x.enabled===true)?(
-            <AppGalleryDescriptionEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch].join(':')}
+            <AppGalleryDescriptionEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch,confirmedOwnerParts.gallery||0].join(':')}
               config={view.draftConfig} revision={app.draft_revision}
               busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
               onDraftChange={value=>markOwnerDirty('gallery',value)} requestTransition={s.requestOwnerEditTransition}
@@ -2525,7 +2543,7 @@ function MiniAppBuilder({ s }) {
                 renderSurface={config=><MiniAppSurface config={config} businessContent={s.miniAppsView?.app?.businessContent||null}/>}/>
               <Button primary label={"Approve all "+studioPreview.changes.length+" private change(s)"}
                 disabled={!!s.miniAppsAction||!studio.canApprove}
-                onPress={()=>{if(mayReplaceOwnerSource())return studio.approve();}}/>
+                onPress={approveOwnerDraft}/>
               <Button label="Discard the whole proposed batch" disabled={studio.pending||studio.uncertain}
                 onPress={studio.discard}/>
             </>

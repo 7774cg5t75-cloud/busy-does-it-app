@@ -1201,6 +1201,12 @@
       "args": [
         "scripts/check-mission15-phase30-history.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase30-save-ack",
+      "args": [
+        "scripts/check-mission15-phase30-save-ack.mjs"
+      ]
     }
   ]
 }

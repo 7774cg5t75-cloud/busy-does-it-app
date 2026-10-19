@@ -1,4 +1,8 @@
-## Current approved private master — V22.36 (Phase 28 review, 19 October 2026)
+## Current approved private master — V22.39 (Phase 30 review, 19 October 2026)
+
+Owner-supplied `22.39 master .docx` identifies Version 22.39 and the owner explicitly confirmed it supersedes V22.36 for this phase. Original SHA-256 `2de16d273f9a7bd64d57f9a800b6386bac270da7442c74e2d8c9ccd57567b121`. Complete body opened/extracted: 1,880 paragraphs / 454,557 characters including table paragraphs. Complete paragraph comparison verified unchanged material against the same-task fully reviewed V22.36 body, and all 15 changed ranges were reviewed. Private document/text stay outside Git. This provenance grants no release, public-intake, hosted-fetch, provider, marketing-partner or spending authority. V22.39 supersedes V22.36 as the product reference; actual implementation remains governed by source/test evidence and original approvals.
+
+## Historical approved private master — V22.36 (Phase 28 review, 19 October 2026)
 
 Owner-supplied `22.36 master.docx` identifies Version 22.36. Complete Word body opened: 1,809 paragraphs / 432,418 extracted characters. SHA-256 `566f8fa6e48eb83f3053a2708c07e3eb112c950e3346ae462f846e11390131c2`. Complete paragraph comparison confirms the previously fully reviewed V22.35 body remains, with updated version and an owner-controlled marketing-options addition; all added paragraphs were reviewed. The private document/text remain outside Git. This supersedes V22.35 as product reference, not release or provider-integration authority.
 
