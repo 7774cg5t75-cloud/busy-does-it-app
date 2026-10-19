@@ -981,6 +981,13 @@
         "scripts/check-mission15-phase25-wording.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase25-attachment-summary",
+      "args": [
+        "scripts/check-mission15-phase25-attachment-summary.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

@@ -1,3 +1,4 @@
+import {SelectedListingSummary} from './selectedListingSummary';
 import React,{useState,useEffect} from 'react';
 import {View,Text,Pressable,ActivityIndicator} from 'react-native';
 import {EnquiryTopicShortcuts} from './enquiryTopicShortcuts';
@@ -31,7 +32,6 @@ export function createNativeRequestScreen({Button,Field,COLORS,box,t,sub}){
   }
  };
 
- const attachment=contentSelection?prepareBusinessContentEnquiry(live.businessContent,contentSelection.businessId,contentSelection):null;
  const preparedReview=type==='enquiry'?prepareCustomerEnquiry({message:input.message,requirements:input.requirements||emptyEnquiryRequirements(),feed:live.businessContent,businessId:contentSelection?.businessId,selection:contentSelection}):null;
  const preparedBookingNote=type==='booking_request'?prepareCustomerBookingNote(input.note,input.requirements||emptyEnquiryRequirements()):null;
  const validatedReview=type==='booking_request'?(preparedBookingNote.ok?validateNativeGuestRequest(type,{...input,note:preparedBookingNote.note}):preparedBookingNote):preparedReview?.ok?validateNativeGuestRequest(type,{...input,message:preparedReview.message}):null;
@@ -70,10 +70,7 @@ export function createNativeRequestScreen({Button,Field,COLORS,box,t,sub}){
     "Send a message directly to this business using BUSY's verified guest request service."}</Text>
   {!enabled?<Text style={sub}>This customer request action is not available on the live app.</Text>:(
    <>
-    {attachment?<View accessibilityLiveRegion="polite">
-      <Text style={{...t,fontWeight:'700'}}>{attachment.ok?'Selected item: '+attachment.service:'Selected item needs review'}</Text>
-      <Text selectable style={sub}>{attachment.ok?'Approved revision '+contentSelection.revision+(contentSelection.variantId?' · option '+contentSelection.variantId:'')+'. This is an enquiry only.':attachment.reason+' Return to item information or remove the attachment to prepare a general enquiry. Your own wording and requirements stay here.'}</Text>
-    </View>:null}
+    <SelectedListingSummary feed={live.businessContent} businessId={contentSelection?.businessId} selection={contentSelection} colors={COLORS}/>
     <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} inputRef={node=>{fieldRefs.current.name=node;}} title="Your name" value={input.name} onChange={set("name")}/>
     <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} inputRef={node=>{fieldRefs.current.email=node;}} title="Email address" value={input.email} onChange={set("email")}/>
     <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} inputRef={node=>{fieldRefs.current.phone=node;}} title="Phone number (optional)" value={input.phone} onChange={set("phone")}/>
