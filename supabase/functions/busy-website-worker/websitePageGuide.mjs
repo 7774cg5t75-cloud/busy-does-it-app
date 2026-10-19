@@ -8,6 +8,7 @@ export function websitePageGuide(draft,sections,html,escapeHtml){
   const id=anchors.has(escapeHtml(section.id))?section.id:['services','contact','gallery'].includes(section.type)&&anchors.has(section.type)?section.type:null;
   if(!id||!/^[a-z0-9][a-z0-9-]{0,79}$/i.test(id)||seen.has(id))return [];seen.add(id);return [{id,title:section.title}];
  });
+ entries.sort((a,b)=>[...anchors].indexOf(a.id)-[...anchors].indexOf(b.id));
  if(entries.length<3)return '';
  return `<nav class="page-section-guide" aria-label="On this page"><div class="wrap"><p>On this page</p><ul>${entries.map(entry=>`<li><a href="#${escapeHtml(entry.id)}">${escapeHtml(entry.title)}</a></li>`).join('')}</ul></div></nav>`;
 }
