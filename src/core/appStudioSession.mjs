@@ -35,7 +35,7 @@ function createAppStudioSession({checkpoint=null}={}){
   uncertain=false;interrupted=false;recoveryPhase='review';changed();return !!preview;
  }
  function setNotice(value){notice=String(value||'').slice(0,500);notify();}
- async function submit(kind,save){
+ async function submit(kind,save,canDispatch){
   const state=snapshot(),proposal=kind==='undo'?state.undo:state.preview;
   if(!proposal||pending||uncertain||!recoveryReady||typeof save!=='function')return {ok:false};
   const startEpoch=epoch,source=proposal.source;let dispatched=false;
@@ -46,6 +46,12 @@ function createAppStudioSession({checkpoint=null}={}){
    // Durable intent precedes the only mutation. Storage failure sends nothing.
    await persist();
    if(epoch!==startEpoch||!currentPrivateAppProposal(proposal,context))return {ok:false,reason:'The editor workspace changed.'};
+   // A final local-draft check after encrypted intent persistence and before IO.
+   // Failure here is definitely unsent, so retain review rather than unknown outcome.
+   if(typeof canDispatch==='function'&&canDispatch()!==true){
+    recoveryPhase='review';notice='Your wording changed before this save was sent. Review your current wording and prepare a fresh proposal.';
+    return {ok:false,notDispatched:true,reason:notice};
+   }
    dispatched=true;
    const result=await save({appId:source.appId,expectedRevision:source.revision,
     source,operations:proposal.operations});
@@ -132,7 +138,7 @@ function createAppStudioSession({checkpoint=null}={}){
   finally{pending=false;if(epoch===started)changed();else notify();}
  }
  return {setContext,snapshot,prepare,setNotice,removeChange,restore,reconcile,
-  approve:save=>submit('approve',save),undo:save=>submit('undo',save),
+  approve:(save,canDispatch)=>submit('approve',save,canDispatch),undo:(save,canDispatch)=>submit('undo',save,canDispatch),
   discard:()=>{if(pending||!recoveryReady)return false;if(uncertain){setNotice('The earlier save may have finished. Read the current private draft before discarding this recovery state.');return false;}preview=null;undo=null;interrupted=false;uncertain=false;recoveryPhase='review';notice='No further changes saved.';changed();return true;},
   attach:callback=>{listener=callback;},detach:()=>{listener=null;epoch++;}};
 }

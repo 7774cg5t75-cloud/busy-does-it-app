@@ -907,8 +907,9 @@ function MiniAppBuilder({ s }) {
   const markOwnerDirty=(part,value)=>{ownerDraftEpoch.current++;ownerDirtyParts.current={...ownerDirtyParts.current,[part]:!!value};reportOwnerDraft(Object.values(ownerDirtyParts.current).some(Boolean));};
   const controlContext={ownerId:s.ownerSession?.userId||"",businessId:s.cloudWorkspace?.businessId||"",app};
   const liveControlContext=React.useRef(null);liveControlContext.current=controlContext;
+  const dispatchDraftEpoch=ownerDraftEpoch.current;
   const studio=usePrivateAppStudio({businessId:s.cloudWorkspace?.businessId||"",
-    ownerId:s.ownerSession?.userId||"",app,config:view.draftConfig},s.saveCoordinatedAppChanges,s.readCurrentAppStudioDraft);
+    ownerId:s.ownerSession?.userId||"",app,config:view.draftConfig},s.saveCoordinatedAppChanges,s.readCurrentAppStudioDraft,()=>dispatchDraftEpoch===ownerDraftEpoch.current);
   const studioPreview=studio.preview,studioNotice=studio.notice;
   const setStudioNotice=studio.setNotice;
   const setStudioPreview=(proposal,part=null)=>{
