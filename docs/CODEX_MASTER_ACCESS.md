@@ -80,3 +80,7 @@ Reopened the complete owner-attached V22.27 Word source, verified unchanged agai
 ## Mission 15 Phase 22 provenance — 19 October 2026
 
 Latest owner-approved private master: **V22.35**. Owner-supplied Word filename `Latest master 74.docx`; original-byte SHA-256 `7d93efedb1ff68a57470bdb97073767a14a9fc64cd1c53c06fba3021d12e298d`. The full document was read in this current task and remains accessible; checksum reverified during this continuation. This supersedes the older dated master checkpoints above. Only provenance is recorded here; no private contents are published. Future tasks must still verify actual access, not infer it from this manifest.
+
+## Phase 23 current-access limitation — 19 October 2026
+
+V22.35 remains the owner-approved version and the Phase 22 checksum remains provenance only. The original attachment path and extracted text are no longer mounted in this execution environment; available workspace Word files contain only V22.18. That older version was not substituted. Phase 23 records explicitly gate new product-scope sweeps pending owner reattachment, while preserving behaviour-only extraction and verified existing-contract/testing fixes. This entry does not claim current access or a fresh full review.
