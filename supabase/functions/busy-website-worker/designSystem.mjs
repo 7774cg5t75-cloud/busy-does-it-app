@@ -194,6 +194,17 @@ section.owner-reading-columns .wrap > :is(h1,h2){max-width:30ch}
  section.owner-reading-editorial .wrap > :is(h1,h2){grid-column:1;grid-row:1;min-width:0;margin-top:0;overflow-wrap:anywhere}
  section.owner-reading-editorial .wrap > p{grid-column:2;grid-row:1;min-width:0;margin-top:0}
 }
+/* A first supplied quotation becomes the lead; item order and typography overrides stay original. */
+.testimonial-spotlight{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+.testimonial-spotlight > article{min-width:0;padding:24px;border:1px solid var(--line);border-radius:16px;background:var(--soft);overflow-wrap:anywhere}
+.testimonial-spotlight > article > h3{margin-top:0}
+.testimonial-spotlight > article > p{margin-bottom:0}
+@media(min-width:801px){
+ .testimonial-spotlight{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .testimonial-spotlight > article:first-child{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:clamp(24px,4vw,56px);padding:clamp(24px,4vw,48px)}
+ .testimonial-spotlight > article:first-child > p{margin-top:0}
+ .testimonial-spotlight > article:first-child:not([class*="owner-text-body"]) > p{font-size:clamp(1.2rem,2vw,1.65rem);line-height:1.6}
+}
 .page-section-guide{border-bottom:1px solid var(--line);padding:20px 0;background:var(--soft)}
 .page-section-guide p{font-weight:700;margin:0 0 12px}
 .page-section-guide ul{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr));gap:8px;list-style:none;padding:0;margin:0}

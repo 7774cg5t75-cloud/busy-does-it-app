@@ -100,6 +100,10 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
   if(itemId||section.type!=='faq')return failure('Select the whole questions section first.');
   return success('layout',{action:'section-style',sectionId,field:'faqLayout',value:'questions'},'Prepare expandable questions with original answers. Preview before applying.');
  }
+ if(/^show (?:this|the selected) testimonials with a featured quotation$/i.test(text)){
+  if(itemId||section.type!=='testimonials')return failure('Select the whole supplied testimonials section first.');
+  return success('layout',{action:'section-style',sectionId,field:'testimonialsLayout',value:'spotlight'},'Compare the first supplied quotation with supporting cards; no review is independently verified by this layout.');
+ }
  const readingLayout=text.match(/^show (?:this|that|the selected) text as (an editorial layout|a reading column|two reading columns|the original layout)$/i);
  if(readingLayout){
   if(itemId||!['about','text'].includes(section.type))return failure('Select a supported information section first.');

@@ -1,3 +1,4 @@
+import {testimonialSpotlightItems} from './websiteTestimonials.mjs';
 import {websitePageGuide} from './websitePageGuide.mjs';
 import {serviceIndexHtml} from './websiteServiceIndex.mjs';
 import {faqDisclosureItems} from './websiteFaqPresentation.mjs';
@@ -216,6 +217,10 @@ function renderSectionHtml(
     )}</${headingTag}><div class="gallery${imageNodes.length>=3?" gallery-rich":""}">${images}</div></div></section>`;
   }
 
+  if(section.type==='testimonials'&&section.appearance?.testimonialsLayout==='spotlight'){
+    const items=testimonialSpotlightItems(section,{escapeHtml,itemHeadingClass,itemTypographyClasses});
+    if(items)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(section.title)}</${headingTag}>${items}</div></section>`;
+  }
   if(section.type==='faq'&&section.appearance?.faqLayout==='questions'){
     return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(section.title)}</${headingTag}><div class="faq-questions">${faqDisclosureItems(section,{escapeHtml,itemHeadingClass})}</div></div></section>`;
   }

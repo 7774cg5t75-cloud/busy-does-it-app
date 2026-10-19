@@ -1,3 +1,4 @@
+import {validTestimonialSpotlight} from './websiteTestimonials.mjs';
 import {validServiceIndex} from './websiteServiceIndex.mjs';
 import {editWebsitePages} from "./websitePageEditing.mjs";
 import {textTypographyFields,textTypographySupports} from "./websiteTextTypography.mjs";
@@ -245,9 +246,10 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   if(matched.length!==1)
    return fail(draft,"Choose one visible section of your website.");
   const target=matched[0];
+  if(operation.field==='testimonialsLayout'&&operation.value==='spotlight'&&!validTestimonialSpotlight(target))return fail(draft,'Use at least two complete, distinctly identified supplied testimonials before comparing this layout.');
   const fields={
    ...textTypographyFields,
-   serviceLayout:['brand','directory','cards','index'],readingLayout:['brand','column','editorial','columns'],faqLayout:['brand','questions'],
+   testimonialsLayout:['brand','spotlight'],serviceLayout:['brand','directory','cards','index'],readingLayout:['brand','column','editorial','columns'],faqLayout:['brand','questions'],
    ctaSize:['normal','spacious','wide'],
    bodyScale:['normal','large'],mobileBodyScale:['normal','large'],desktopBodyScale:['normal','large'],
    headingScale:["compact","normal","large"],
@@ -263,7 +265,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const bodyTypes=['hero','services','about','text','photo-feature','faq','testimonials','contact'];
   const supports={
    ...textTypographySupports,
-   serviceLayout:['services'],readingLayout:['about','text'],faqLayout:['faq'],
+   testimonialsLayout:['testimonials'],serviceLayout:['services'],readingLayout:['about','text'],faqLayout:['faq'],
    ctaSize:['hero'],
    bodyScale:bodyTypes,mobileBodyScale:bodyTypes,desktopBodyScale:bodyTypes,
    headingScale:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
@@ -301,7 +303,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   for(const name of Object.keys(fields))
    if(fields[name].includes(existing[name])&&supports[name].includes(target.type))
     next[name]=existing[name];
-  const defaults={faqLayout:'brand',readingLayout:'brand',serviceLayout:'brand',ctaSize:'normal',bodyScale:'normal',mobileBodyScale:'normal',desktopBodyScale:'normal',headingScale:"normal",textAlign:"left",sectionSpacing:"normal",mobileSectionSpacing:"normal",desktopSectionSpacing:"normal",
+  const defaults={testimonialsLayout:'brand',faqLayout:'brand',readingLayout:'brand',serviceLayout:'brand',ctaSize:'normal',bodyScale:'normal',mobileBodyScale:'normal',desktopBodyScale:'normal',headingScale:"normal",textAlign:"left",sectionSpacing:"normal",mobileSectionSpacing:"normal",desktopSectionSpacing:"normal",
     photoCrop:"center",photoSide:"left",desktopPhotoSide:"brand",gallerySize:"comfortable",
     mobileHeadingScale:"normal",desktopHeadingScale:"normal",mobileGallerySize:"comfortable",desktopGallerySize:"comfortable"};
   if(value===(Object.hasOwn(textTypographyFields,field)?"brand":defaults[field]))delete next[field];else next[field]=value;

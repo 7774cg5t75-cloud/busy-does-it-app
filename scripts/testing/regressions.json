@@ -1207,6 +1207,12 @@
       "args": [
         "scripts/check-mission15-phase30-save-ack.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase30-testimonials",
+      "args": [
+        "scripts/check-mission15-phase30-testimonials.mjs"
+      ]
     }
   ]
 }

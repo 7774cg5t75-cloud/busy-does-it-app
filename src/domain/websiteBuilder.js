@@ -1,3 +1,4 @@
+import {testimonialSpotlightItems} from '../../supabase/functions/busy-website-worker/websiteTestimonials.mjs';
 import {websitePageGuide} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';
 import {serviceIndexHtml} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
 import {faqDisclosureItems} from '../../supabase/functions/busy-website-worker/websiteFaqPresentation.mjs';
@@ -727,6 +728,11 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       const indexed=serviceIndexHtml(section,{escapeHtml,editAttrs,itemHeadingClass});
       const headingTag=page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
       if(indexed)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title)}</${headingTag}>${indexed}</div></section>`;
+    }
+    if(section.type==='testimonials'&&section.appearance?.testimonialsLayout==='spotlight'){
+      const items=testimonialSpotlightItems(section,{escapeHtml,editAttrs,itemHeadingClass,itemTypographyClasses});
+      const headingTag=page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
+      if(items)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title)}</${headingTag}>${items}</div></section>`;
     }
     if(section.type==='faq'&&section.appearance?.faqLayout==='questions'){
       const headingTag=page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
