@@ -939,6 +939,13 @@
         "scripts/check-mission15-phase24-wording.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase24-service-composition",
+      "args": [
+        "scripts/check-mission15-phase24-service-composition.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

@@ -265,6 +265,20 @@ main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:4
  .visual-cards-rows #services .grid article h3,.visual-cards-rows #services .grid article p{min-width:0;margin-block:0;overflow-wrap:anywhere}
 }
 
+/* Explicit section choices override a global card style, without changing
+   other collections. Normal document order remains title then description. */
+:is(#services,section).owner-services-directory .grid{display:grid;grid-template-columns:1fr;gap:0}
+:is(#services,section).owner-services-directory .grid article{display:block;background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;padding:clamp(20px,3vw,36px) 0}
+:is(#services,section).owner-services-directory .grid article h3,:is(#services,section).owner-services-directory .grid article p{min-width:0;margin-top:0;overflow-wrap:anywhere}
+:is(#services,section).owner-services-directory .grid article p{max-width:64ch;line-height:1.75}
+:is(#services,section).owner-services-cards .grid{display:grid;grid-template-columns:1fr;gap:20px}
+:is(#services,section).owner-services-cards .grid article{display:block;padding:24px;background:var(--soft);border:1px solid var(--line);border-radius:16px;box-shadow:none;min-width:0}
+:is(#services,section).owner-services-cards .grid article h3,:is(#services,section).owner-services-cards .grid article p{overflow-wrap:anywhere}
+@media(min-width:801px){
+ :is(#services,section).owner-services-directory .grid article{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:clamp(24px,4vw,64px);align-items:start}
+ :is(#services,section).owner-services-cards .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
 .visual-ornament-arch .hero-art{border-radius:240px 240px 4px 4px;transform:rotate(0deg)}
 .visual-ornament-stripes .hero-art{border-radius:0;background:repeating-linear-gradient(115deg,var(--glow) 0,var(--glow) 10px,transparent 10px,transparent 25px);opacity:.12;transform:rotate(-8deg)}
 .visual-ornament-glow .hero-art{border-radius:50%;filter:blur(38px);opacity:.22}
