@@ -1129,6 +1129,12 @@
       "args": [
         "scripts/check-mission15-phase28-explore.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase28-legacy-copy",
+      "args": [
+        "scripts/check-mission15-phase28-legacy-copy.mjs"
+      ]
     }
   ]
 }

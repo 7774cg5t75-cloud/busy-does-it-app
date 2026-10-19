@@ -898,7 +898,14 @@ function MiniAppBuilder({ s }) {
   const view = s.miniAppsView || {};
   const app = view.app;
   const [ownerEditorEpoch,setOwnerEditorEpoch]=React.useState(0);
-  const reportOwnerDraft=useOwnerEditNavigation(s,{source:view.draftConfig,projectId:app?.id,revision:app?.draft_revision},()=>setOwnerEditorEpoch(x=>x+1));
+  const ownerDirtyParts=React.useRef({selected:false,copy:false});
+  const copyScope=JSON.stringify([s.ownerSession?.userId,s.cloudWorkspace?.businessId,app?.id]);
+  const previousCopyScope=React.useRef(copyScope);
+  const copyScopeCurrent=previousCopyScope.current===copyScope;
+  if(!copyScopeCurrent){previousCopyScope.current=copyScope;ownerDirtyParts.current={selected:false,copy:false};setStudioCopy('');}
+  const legacyCopyLive=React.useRef(null);legacyCopyLive.current={value:copyScopeCurrent?studioCopy:'',field:studioCopyField,source:view.draftConfig};
+  const reportOwnerDraft=useOwnerEditNavigation(s,{source:view.draftConfig,projectId:app?.id,revision:app?.draft_revision},()=>{ownerDirtyParts.current={selected:false,copy:false};legacyCopyLive.current.value='';setStudioCopy('');setOwnerEditorEpoch(x=>x+1);});
+  const markOwnerDirty=(part,value)=>{ownerDirtyParts.current={...ownerDirtyParts.current,[part]:!!value};reportOwnerDraft(Object.values(ownerDirtyParts.current).some(Boolean));};
   const controlContext={ownerId:s.ownerSession?.userId||"",businessId:s.cloudWorkspace?.businessId||"",app};
   const liveControlContext=React.useRef(null);liveControlContext.current=controlContext;
   const studio=usePrivateAppStudio({businessId:s.cloudWorkspace?.businessId||"",
@@ -2421,13 +2428,15 @@ function MiniAppBuilder({ s }) {
             ["tagline","Tagline"],["about","About section"],["description","Description"]
           ].map(([key,label])=>(
             <Button key={key} label={(studioCopyField===key?"✓ ":"")+"Edit "+label}
-              onPress={()=>{setStudioCopyField(key);setStudioPreview(null);}}/>
+              onPress={()=>{const change=()=>{setStudioCopyField(key);setStudioPreview(null);};if(ownerDirtyParts.current.copy&&s.requestOwnerEditTransition)s.requestOwnerEditTransition(change);else change();}}/>
           ))}
           <Field label={"Replacement "+studioCopyField+" (owner-approved copy)"}
-            value={studioCopy} onChangeText={setStudioCopy}
+            value={copyScopeCurrent?studioCopy:''} onChangeText={value=>{if(liveControlContext.current!==controlContext)return;legacyCopyLive.current.value=value;setStudioCopy(value);markOwnerDirty('copy',!!value);setStudioPreview(null);}}
             placeholder="Write the exact words you want customers to see"/>
+          {studioCopy?<Button label="Cancel replacement wording" onPress={()=>{if(liveControlContext.current!==controlContext||legacyCopyLive.current.value!==studioCopy)return;legacyCopyLive.current.value='';setStudioCopy('');markOwnerDirty('copy',false);setStudioPreview(null);}}/>:null}
           <Button label="Preview exact wording" disabled={!studioCopy.trim()||!!s.miniAppsAction}
             onPress={()=>{
+              if(liveControlContext.current!==controlContext||!copyScopeCurrent||legacyCopyLive.current.value!==studioCopy||legacyCopyLive.current.field!==studioCopyField||legacyCopyLive.current.source!==view.draftConfig)return;
               const p=proposeCoordinatedAppChanges(view.draftConfig,
                 [{kind:"text",field:studioCopyField,value:studioCopy}]);
               setStudioPreview(p.ok?p:null);setStudioNotice(p.ok?
@@ -2799,7 +2808,7 @@ function MiniAppBuilder({ s }) {
           body="Try a header style, spacing or navigation look. BUSY shows an unsaved customer preview first. Keeping it creates a new private draft revision, not a live update."
           tone="blue">
           <AppVisualSelection key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision,ownerEditorEpoch].join(':')}
-            onDraftChange={reportOwnerDraft}
+            onDraftChange={value=>markOwnerDirty('selected',value)}
             Surface={MiniAppSurface} config={view.draftConfig} businessContent={app.businessContent||null}
             voiceScope={s.cloudWorkspace?.businessId?{appId:app.id,revision:app.draft_revision,businessId:s.cloudWorkspace.businessId,selectedPart:'whole_app'}:null}
             onTranscribe={s.transcribeSelectedAppAudio}

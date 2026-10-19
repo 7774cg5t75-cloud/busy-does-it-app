@@ -1,9 +1,12 @@
 import React from 'react';
-// Registers only dirty metadata around the original editor's own text state.
+const same=(a,b)=>a?.source===b?.source&&a?.projectId===b?.projectId&&a?.revision===b?.revision&&a?.ownerId===b?.ownerId&&a?.businessId===b?.businessId;
+// Dirty metadata only; the original editor continues to own all wording.
 export function useOwnerEditNavigation(s,identity,onDiscard){
- const token=React.useRef({}),dirty=React.useRef(false),live=React.useRef(null);live.current=identity;
- const report=value=>{if(live.current!==identity)return;dirty.current=!!value;s.setOwnerEditDirty?.({token:token.current,identity,dirty:!!value,onDiscard:()=>{if(live.current!==identity)return;dirty.current=false;onDiscard?.();}});};
+ const token=React.useRef({}),dirty=React.useRef(false),live=React.useRef(null);
+ const bound={...identity,ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId};live.current=bound;
+ const current=()=>same(live.current,bound)&&s.ownerSession?.userId===bound.ownerId&&s.cloudWorkspace?.businessId===bound.businessId;
+ const report=value=>{if(!current())return;dirty.current=!!value;s.setOwnerEditDirty?.({token:token.current,identity:bound,dirty:!!value,onDiscard:()=>{if(!current())return false;dirty.current=false;onDiscard?.();return true;}});};
  React.useEffect(()=>()=>s.releaseOwnerEdit?.(token.current),[]);
- React.useEffect(()=>{if(dirty.current)report(true);},[identity.source,identity.projectId,identity.revision,s.ownerSession?.userId,s.cloudWorkspace?.businessId]);
+ React.useEffect(()=>{if(dirty.current)report(true);},[identity.source,identity.projectId,identity.revision,bound.ownerId,bound.businessId]);
  return report;
 }
