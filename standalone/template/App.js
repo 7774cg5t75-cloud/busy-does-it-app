@@ -1,3 +1,4 @@
+import {useServiceBrowseReturn} from './useServiceBrowseReturn';
 import {createNativeRequestScreen} from './nativeRequestScreen';
 import {ServiceActionButton} from './serviceActionButton';
 import {serviceCardStyle} from './appServicePresentation.mjs';
@@ -50,19 +51,21 @@ function Field({title,value,onChange,multiline=false,maxLength,disabled=false,in
  </View>;
 }
 const RequestScreen=createNativeRequestScreen({Button,Field,COLORS,box,t,sub});
-function ServicesInfo({app,layout,onRequestService}){
+function ServicesInfo({app,layout,onRequestService,contextKey=''}){
  const [query,setQuery]=useState("");
  const [category,setCategory]=useState('');
  const [questionService,setQuestionService]=useState('');
- const browse=browsePublicNativeServices(app.services||[],query,category),results=browse.rows;
+ const serviceReturn=useServiceBrowseReturn({services:app.services||[],contextKey,query,category,setQuery,setCategory});
+ const browse=browsePublicNativeServices(app.services||[],serviceReturn.query,serviceReturn.category),results=browse.rows;
  return <View style={box}>
   <Text style={{...t,fontSize:VISUAL.type.sectionSize,fontWeight:VISUAL.type.sectionWeight}}>Services</Text>
-  <ServiceCategoryFilter categories={browse.categories} selected={browse.selectedCategory} onSelect={setCategory} colors={COLORS} query={query} resultCount={results.length} onClear={()=>{setQuery('');setCategory('');}}/>
+  <ServiceCategoryFilter categories={browse.categories} selected={browse.selectedCategory} onSelect={serviceReturn.onCategory} colors={COLORS} query={serviceReturn.query} resultCount={results.length} onClear={serviceReturn.clear}/>
   {app.services?.length>4?<TextInput accessibilityLabel="Search services"
-    value={query} onChangeText={setQuery}
+    value={serviceReturn.query} onChangeText={serviceReturn.onQuery}
     placeholder="Find a service" placeholderTextColor={COLORS.muted}
     style={{color:COLORS.text,backgroundColor:COLORS.bg,padding:12,
       minHeight:48,borderRadius:9,marginTop:12}}/>:null}
+  {serviceReturn.canReturn?<Button title="Back to my service results" onPress={serviceReturn.back}/>:null}
   {results.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:12}}>
    {results.map((service,i)=><View key={service.id||service.name||i} style={{marginTop:14,
      width:VISUAL.serviceColumns===1?"100%":
@@ -80,7 +83,7 @@ function ServicesInfo({app,layout,onRequestService}){
      </Text>:null}
      <Text style={{...t,fontWeight:VISUAL.type.sectionWeight,
        fontSize:VISUAL.type.bodySize+2,...appComponentTextStyle(app.componentStyles||LOOK.componentStyles,'service:'+service.id+':title',{colors:COLORS,baseSize:VISUAL.type.bodySize+2})}}>{service.name}</Text>
-     <ServiceDetails service={service} onRelatedServices={category=>{setQuery('');setCategory(category);}} colors={COLORS} bodySize={VISUAL.type.bodySize} textStyle={appComponentTextStyle(app.componentStyles||LOOK.componentStyles,'service:'+service.id+':body',{colors:COLORS,baseSize:VISUAL.type.bodySize})}/>
+     <ServiceDetails service={service} onRelatedServices={serviceReturn.related} colors={COLORS} bodySize={VISUAL.type.bodySize} textStyle={appComponentTextStyle(app.componentStyles||LOOK.componentStyles,'service:'+service.id+':body',{colors:COLORS,baseSize:VISUAL.type.bodySize})}/>
      {app.supportsBookingRequest&&app.moduleKeys?.includes("booking_request")?
       <ServiceActionButton serviceId={service.id} action="booking_request" presentation={app.servicePresentation||LOOK.servicePresentation} colors={COLORS} title={"Request "+service.name}
        onPress={()=>onRequestService?.(service.name,"booking_request")}/>:null}
@@ -109,7 +112,7 @@ function LiveInfo({screen,app,layout,onRequestService,onOpenContact,onOpenOfferE
   {(app.faqs||[]).map((row,i)=><AppFaqCard key={row.id||i} row={row} colors={COLORS} componentStyles={app.componentStyles||LOOK.componentStyles} bodySize={VISUAL.type.bodySize}/>)}
   {(app.testimonials||[]).map((row,i)=><View key={'testimonial'+i} style={{marginTop:16}}><Text style={sub}>{row.text}</Text><Text style={{...t,fontWeight:'700'}}>{row.attribution}</Text></View>)}
  </View>;
- if(screen.key==="services")return <ServicesInfo app={app} layout={layout} onRequestService={onRequestService}/>;
+ if(screen.key==="services")return <ServicesInfo app={app} layout={layout} onRequestService={onRequestService} contextKey={catalogueContextKey}/>;
  if(screen.key==="gallery")return <View style={box}>
    <Text style={{...t,fontSize:20,fontWeight:"700"}}>Approved photos</Text>
    {app.gallery?.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>

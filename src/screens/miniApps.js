@@ -1,3 +1,4 @@
+import {useServiceBrowseReturn} from '../../standalone/template/useServiceBrowseReturn';
 import {captureAppDraftAcknowledgement,acknowledgedAppDraftPart} from '../core/appDraftAcknowledgement.mjs';
 import {useOwnerEditNavigation} from './useOwnerEditNavigation';
 import {ServiceActionButton} from '../../standalone/template/serviceActionButton';
@@ -291,8 +292,9 @@ function MiniAppSurface({
   const [selectedSection,setSelectedSection]=React.useState('');
   const currentSection=modules.some(m=>m.key===selectedSection)?selectedSection:'';
   const allServices=Array.isArray(profile?.services)?profile.services:[];
+  const serviceReturn=useServiceBrowseReturn({services:allServices,contextKey:catalogueContextKey,query:serviceQuery,category:serviceCategory,setQuery:setServiceQuery,setCategory:setServiceCategory});
   // Marketplace has legacy 50-row profiles; retain the native helper's 40-row bound.
-  const serviceBrowse=browsePublicNativeServices(allServices,serviceQuery,serviceCategory),services=serviceBrowse.rows;
+  const serviceBrowse=browsePublicNativeServices(allServices,serviceReturn.query,serviceReturn.category),services=serviceBrowse.rows;
   const heroUri = String(profile?.assets?.hero?.uri || "");
   const loyalty = config?.loyalty || {};
   const offers = (Array.isArray(config?.offers) ? config.offers : []).filter(
@@ -437,8 +439,9 @@ function MiniAppSurface({
           return (
             <View key={module.key}>
               {ownerSelection?<Pressable accessibilityRole="button" accessibilityLabel="Select service presentation" accessibilityState={{selected:ownerSelection.selection?.part==='services'}} onPress={()=>ownerSelection.onSelect({part:'services'})} style={{borderWidth:2,borderColor:ownerSelection.selection?.part==='services'?'#4489ed':brandColours.muted,padding:8}}><Text style={styles.sectionLabel}>Services</Text></Pressable>:<Text style={styles.sectionLabel}>Services</Text>}
-              {allServices.length>4?<Field label="Find a service" value={serviceQuery} onChangeText={setServiceQuery}/>:null}
-              <ServiceCategoryFilter categories={serviceBrowse.categories} selected={serviceBrowse.selectedCategory} onSelect={setServiceCategory} colors={brandColours} query={serviceQuery} resultCount={services.length} onClear={()=>{setServiceQuery('');setServiceCategory('');}}/>
+              {allServices.length>4?<Field label="Find a service" value={serviceReturn.query} onChangeText={serviceReturn.onQuery}/>:null}
+              <ServiceCategoryFilter categories={serviceBrowse.categories} selected={serviceBrowse.selectedCategory} onSelect={serviceReturn.onCategory} colors={brandColours} query={serviceReturn.query} resultCount={services.length} onClear={serviceReturn.clear}/>
+              {serviceReturn.canReturn?<Button label="Back to my service results" onPress={serviceReturn.back}/>:null}
               {services.length ? (
                 <View style={{flexDirection:"row",flexWrap:"wrap",
                   gap:responsive.ok?responsive.gap:12}}>
@@ -469,7 +472,7 @@ function MiniAppSurface({
                           fontWeight:visual.type.sectionWeight,...componentStyle('service:'+service.id+':title',visual.type.bodySize+2)}}>
                           {service.name||"Service"}
                         </Text>
-                        <ServiceDetails service={service} onRelatedServices={interactive&&!ownerSelection?category=>{setServiceQuery('');setServiceCategory(category);}:undefined} colors={brandColours} bodySize={visual.type.bodySize} textStyle={componentStyle('service:'+service.id+':body',visual.type.bodySize)}/>
+                        <ServiceDetails service={service} onRelatedServices={interactive&&!ownerSelection?serviceReturn.related:undefined} colors={brandColours} bodySize={visual.type.bodySize} textStyle={componentStyle('service:'+service.id+':body',visual.type.bodySize)}/>
                         {ownerSelection?<AppEntryEditButton label={'Edit service '+service.name} colors={brandColours}
                           selected={ownerSelection.selection?.part==='service'&&ownerSelection.selection.index===allServices.indexOf(service)}
                           onPress={()=>ownerSelection.onSelect({part:'service',index:allServices.indexOf(service),expectedService:JSON.stringify(service)})}/>:null}

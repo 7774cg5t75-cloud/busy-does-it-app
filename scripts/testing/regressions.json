@@ -1213,6 +1213,12 @@
       "args": [
         "scripts/check-mission15-phase30-testimonials.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase30-service-return",
+      "args": [
+        "scripts/check-mission15-phase30-service-return.mjs"
+      ]
     }
   ]
 }
