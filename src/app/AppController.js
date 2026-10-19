@@ -13898,6 +13898,7 @@ function App() {
     return result.ok;
   };
   const restoreWebsiteRecoveryPoint=()=>{
+    const restore=()=>{
     if(!websiteHistoryIsCurrent())return false;
     const current=websiteDraftRef.current;
     if(current!==websiteDraft)return false;
@@ -13909,9 +13910,12 @@ function App() {
     websiteDraftRef.current=result.draft;
     setWebsiteDraft(result.draft);
     return true;
+    };
+    return ownerEditNavigation.current.sourceChange(websiteDraft,restore);
   };
 
   const restoreWebsiteHistoryEntry=(direction)=>{
+    const restore=()=>{
     if(!websiteHistoryIsCurrent())return false;
     const current=websiteDraftRef.current;
     if(current!==websiteDraft)return false;
@@ -13927,6 +13931,8 @@ function App() {
       setWebsiteRedo(items=>items.slice(0,-1));setWebsiteUndo(items=>[...items,current].slice(-8));
     }
     websiteDraftRef.current=result.draft;setWebsiteDraft(result.draft);return true;
+    };
+    return ownerEditNavigation.current.sourceChange(websiteDraft,restore);
   };
   const undoWebsiteChange = () => restoreWebsiteHistoryEntry("undo");
   const redoWebsiteChange = () => restoreWebsiteHistoryEntry("redo");
