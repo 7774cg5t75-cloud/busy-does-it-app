@@ -7,6 +7,12 @@ import {styles} from '../theme/styles';
 // Presentation only. Parent retains original state, scoped sends and recovery.
 function BusinessAppCustomerRequestFields({s,form,onLayout}){
  const {returnToInformation,bookingReview,cancelBookingReview,enquiryReview,cancelEnquiryReview,requirements=emptyEnquiryRequirements(),setRequirements,requestKind,setRequestKind,enabled,name,email,phone,service,date,note,message,contentNotice,contentInterest,preferredDates,serviceChoices,bookingReady,enquiryReady,privateRecovery,setName,setEmail,setPhone,setService,setDate,setNote,setMessage,setContentInterest,setContentNotice,submitBooking,submitEnquiry}=form;
+ const fieldRefs=React.useRef({}),latest=React.useRef(null);
+ const account=s.ownerSession?.userId,detail=s.selectedBusyAppDetail;
+ latest.current={form,account,detail};
+ const canFocus=()=>latest.current.form===form&&latest.current.account===account&&latest.current.detail===detail&&s.ownerSession?.userId===account&&s.selectedBusyAppDetail===detail&&!s.miniAppsAction;
+ const labels={name:'Name',email:'Email',phone:'Phone',service:'Service',preferredDate:'Preferred date',note:'Note',message:'Message'};
+ const problem=ready=>!ready.ok?<View accessibilityLiveRegion="polite"><Text style={styles.cardBody}>{ready.reason}</Text>{Object.hasOwn(labels,ready.field)?<Button label={'Correct '+labels[ready.field]} disabled={!!s.miniAppsAction} onPress={()=>{if(canFocus())fieldRefs.current[ready.field]?.focus?.();}}/>:null}</View>:null;
  return (
       <View onLayout={onLayout}>
       {typeof returnToInformation==='function'?<Button label="Back to app information" disabled={!!s.miniAppsAction} onPress={returnToInformation}/>:null}
@@ -34,20 +40,20 @@ function BusinessAppCustomerRequestFields({s,form,onLayout}){
         <>
           <Text style={styles.sectionLabel}>Your contact details</Text>
           <Field
-            label="Name"
+            inputRef={node=>{fieldRefs.current.name=node;}} label="Name"
             value={name}
             onChangeText={setName}
             placeholder="Your name"
           />
           <Field
-            label="Email"
+            inputRef={node=>{fieldRefs.current.email=node;}} label="Email"
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
             placeholder="you@example.com"
           />
           <Field
-            label="Phone"
+            inputRef={node=>{fieldRefs.current.phone=node;}} label="Phone"
             value={phone}
             onChangeText={setPhone}
             placeholder="Phone number"
@@ -68,15 +74,15 @@ function BusinessAppCustomerRequestFields({s,form,onLayout}){
           <Text style={styles.cardBody}>Choose a listed service or describe what you need. The business will review your request.</Text>
           {serviceChoices.map((item,index)=><Button key={"request-service-"+index} label={"Request "+item.name}
             disabled={!!s.miniAppsAction} onPress={()=>setService(item.name)}/>)}
-          <Field label="Service" value={service} onChangeText={setService} placeholder="Service you want" />
+          <Field inputRef={node=>{fieldRefs.current.service=node;}} label="Service" value={service} onChangeText={setService} placeholder="Service you want" />
           <Text style={styles.cardBody}>Preferred dates only — these are not available appointment slots.</Text>
           <ScrollView horizontal accessibilityLabel="Preferred date suggestions" showsHorizontalScrollIndicator>
             {preferredDates.map(day=><View key={"preferred-"+day.value} style={{marginRight:8}}><Button label={day.label}
               disabled={!!s.miniAppsAction} onPress={()=>setDate(day.value)}/></View>)}
           </ScrollView>
-          <Field label="Preferred date" value={date} onChangeText={setDate} placeholder="e.g. Friday afternoon" />
-          <Field label="Note" value={note} onChangeText={setNote} placeholder="Anything the business should know" multiline />
-          {!bookingReady.ok?<Text style={styles.cardBody}>{bookingReady.reason}</Text>:null}
+          <Field inputRef={node=>{fieldRefs.current.preferredDate=node;}} label="Preferred date" value={date} onChangeText={setDate} placeholder="e.g. Friday afternoon" />
+          <Field inputRef={node=>{fieldRefs.current.note=node;}} label="Note" value={note} onChangeText={setNote} placeholder="Anything the business should know" multiline />
+          {problem(bookingReady)}
           {bookingReview?<View accessibilityLiveRegion="polite">
             <Text style={styles.sectionLabel}>Review your booking request</Text>
             {Object.entries(bookingReview.payload).map(([key,value])=><Text key={key} selectable style={styles.cardBody}>{key+': '+(value||'(not supplied)')}</Text>)}
@@ -102,8 +108,8 @@ function BusinessAppCustomerRequestFields({s,form,onLayout}){
           {contentInterest?<Button label="Remove selected listing from this enquiry" disabled={!!s.miniAppsAction} onPress={()=>{if(s.miniAppsAction)return;setContentInterest(null);setService('');setContentNotice('Listing attachment removed. Your message and requirements were kept; review any item wording before sending.');}}/>:null}
           <Text style={styles.cardBody}>Optional details help the business respond. These are your requirements, not confirmed availability, prices, orders or attendance. They are included in the saved enquiry message.</Text>
 
-          <Field label="Message" value={message} onChangeText={setMessage} placeholder="What would you like to ask?" multiline />
-          {!enquiryReady.ok?<Text style={styles.cardBody}>{enquiryReady.reason}</Text>:null}
+          <Field inputRef={node=>{fieldRefs.current.message=node;}} label="Message" value={message} onChangeText={setMessage} placeholder="What would you like to ask?" multiline />
+          {problem(enquiryReady)}
           {enquiryReview?<View accessibilityLiveRegion="polite">
             <Text style={styles.sectionLabel}>Review exactly what will be sent</Text>
             {Object.entries(enquiryReview.payload).map(([key,value])=><Text key={key} selectable style={styles.cardBody}>{key+': '+(value||'(not supplied)')}</Text>)}

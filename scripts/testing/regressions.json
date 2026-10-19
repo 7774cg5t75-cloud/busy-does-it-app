@@ -890,6 +890,13 @@
         "scripts/check-mission15-phase23-field-contract.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase23-focus",
+      "args": [
+        "scripts/check-mission15-phase23-focus.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

@@ -411,13 +411,15 @@ function SmallLink({ label, onPress }) {
   );
 }
 
-function Field({ label, value, onChangeText, placeholder, keyboardType = "default", prefix, secureTextEntry = false, autoCapitalize = "sentences", multiline = false }) {
+function Field({ label, value, onChangeText, placeholder, keyboardType = "default", prefix, secureTextEntry = false, autoCapitalize = "sentences", multiline = false, inputRef, maxLength }) {
   return (
     <View style={styles.fieldWrap}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <View style={styles.fieldBox}>
         {prefix ? <Text style={styles.fieldPrefix}>{prefix}</Text> : null}
         <TextInput
+          ref={inputRef}
+          maxLength={maxLength}
           multiline={multiline}
           accessibilityLabel={label}
           value={value}
