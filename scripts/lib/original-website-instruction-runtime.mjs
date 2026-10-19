@@ -1,3 +1,4 @@
+import {createOwnerEditNavigation} from '../../src/core/ownerEditNavigation.mjs';
 import {planReviewedWebsiteComposition,prepareReviewedWebsiteComposition} from '../../src/core/websiteReviewedComposition.mjs';
 import {recordWebsiteOwnerDesignFeedback} from '../../src/core/websiteMeasuredDesignCoach.mjs';
 // Execute only reviewed, checked-in controller initializer ASTs. No visitor code.
@@ -27,7 +28,8 @@ function verifyOriginalWebsiteInstructionRuntime(){
  const draft=buildWebsiteDraft({businessId,brandBrain:{websiteReady:true,websiteBrief:{businessName:'Fictional workshop',businessType:'Repairs',services:[{name:'Survey',description:'Owner wording.'}],email:'hello@example.test'}}});
  const state={current:draft,undo:[],redo:[draft],notice:'',scope:true};
  const websiteDraftRef={current:draft};
- const deps={websiteDraftRef,checkPrivateWebsiteDraftCommit,websiteHistoryIsCurrent:()=>state.scope,
+ const ownerEditNavigation={current:createOwnerEditNavigation({getScope:()=> 'fixture',confirm:()=>{throw Error('No dirty editor in this baseline');}})};
+ const deps={ownerEditNavigation,websiteDraftRef,checkPrivateWebsiteDraftCommit,websiteHistoryIsCurrent:()=>state.scope,
  websiteHistoryScope:{businessId},setWebsiteUndo:fn=>{state.undo=fn(state.undo);},setWebsiteRedo:value=>{state.redo=value;},
  setWebsiteDraft:value=>{state.current=value;},setWebsiteBuilderNotice:value=>{state.notice=value;},
  planSelectedWebsiteChanges,prepareSelectedWebsiteTransaction,applyWebsiteLayoutChange,applyStructuredWebsiteEdit,planWebsitePageInstructions};
