@@ -59,6 +59,15 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
     return fail('Review the current FAQ section before adding questions.');
    change={action:sections.length?'add-item':'create-collection',sectionId:'faq',title:m[1],body:m[2]};
    type='field';description='Add your exact question and answer to the private FAQ section';
+  }else if((m=clause.match(/^(?:put|move) (?:the )?(.+?) picture (?:on )?(?:the )?(left|right) on desktop$/i))){
+   const section=findSection(m[1]);
+   if(!section||section.type!=='photo-feature'||section.asset?.approved!==true||!section.asset?.storagePath)return fail('Name one visible section with its approved original picture.');
+   change={action:'section-style',sectionId:section.id,field:'desktopPhotoSide',value:m[2].toLowerCase()};
+   description='Move only the approved picture in '+section.title+' on larger screens. Phone reading order, words and colours stay unchanged';
+  }else if((m=clause.match(/^show (?:the )?(.+?) text as (an editorial layout|a reading column|the original layout)$/i))){
+   const section=findSection(m[1]);if(!section||!['about','text'].includes(section.type))return fail('Name one visible information section.');
+   change={action:'section-style',sectionId:section.id,field:'readingLayout',value:{'an editorial layout':'editorial','a reading column':'column','the original layout':'brand'}[m[2].toLowerCase()]};
+   description='Compare only '+section.title+' reading layout without changing its words, colours or phone source order';
   }else if((m=clause.match(/^(?:show|display) (?:the )?services as (a directory|cards|the original layout)$/i))){
    const section=findSection('services');
    if(!section||section.type!=='services')return fail('Open the current page containing the services section first.');

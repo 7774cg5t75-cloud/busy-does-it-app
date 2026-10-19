@@ -70,7 +70,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  };
  const apply=change=>{
   if(!current())return;
-  if(wordingEdited.current){setContextNote('Save or cancel your wording before changing the layout. Your words are kept.');return;}
+  if(wordingEdited.current){setShowContextHelp(true);setContextNote('Save or cancel your wording before changing the layout. Your words are kept.');return;}
   if(onLayoutChange?.(change)===true)onClose?.();
  };
  const gallery=list(draft?.sections).find(x=>x.id==="gallery");
@@ -118,7 +118,8 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
   setContextNote('Suggested adjustment prepared with your other changes. Compare it, then use Apply if you want to keep it. Nothing was saved.');
  };
  const applyContext=(instruction)=>{
-  if(wordingEdited.current){setContextNote('Save or cancel your wording before applying this comparison. Your words are kept.');return;}
+  if(!current())return;
+  if(wordingEdited.current){setShowContextHelp(true);setContextNote('Save or cancel your wording before applying this comparison. Your words are kept.');return;}
   if(!current()||editorLive.current.contextRequest!==contextRequest)return;
   const plan=planSelectedWebsiteChanges(draft,selection?.pageId,selection,instruction);
   if(!plan.ok){setContextNote(plan.reason);return;}

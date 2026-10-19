@@ -15,6 +15,23 @@ function explainBuilderExplore({kind,project,catalog,plan,text}){
  }
  const profile=kind==='app'?project.draft_config?.publicProfile||{}:project;
  const services=kind==='app'?(profile.services||[]):project.sections?.find(s=>s.type==='services'&&s.enabled!==false)?.items||[];
+ if(kind==='website'&&(project.sections||[]).some(s=>s.type==='photo-feature'&&s.enabled!==false&&s.asset?.approved===true&&project.pages?.find(p=>p.id==='home')?.sectionIds?.includes(s.id))&&/\b(?:would|could|which side|other side)\b/i.test(text)&&/\b(?:picture|photo|image)\b/i.test(text)&&/\b(?:left|right|other side)\b/i.test(text)){
+  const page=project.pages?.find(p=>p.id==='home'),sections=(project.sections||[]).filter(s=>s.enabled!==false&&s.type==='photo-feature'&&page?.sectionIds?.includes(s.id)&&s.asset?.approved===true&&s.asset?.storagePath);
+  const section=sections.length===1?sections[0]:null,side=section?.appearance?.desktopPhotoSide||section?.appearance?.photoSide||'left',requested=/\bright\b/i.test(text)?'right':/\bleft\b/i.test(text)?'left':side==='left'?'right':'left';
+  const declined=ownerDesignPreference(project,'selected-picture-'+requested,'home')==='disliked';
+  return {answer:[section?'Your '+(section.title||section.id)+' section currently places its approved picture on the '+side+' on larger screens.':'Home has '+sections.length+' supported approved picture-and-text sections. Select the exact section in the editor rather than guessing which picture you mean.',
+   'Left gives the photograph the first visual column; right gives the explanation that column. The supported desktop-only comparison keeps phone reading order, the existing picture, words and colours.',
+   declined?'You previously declined that picture direction; it is not offered again here.':section?.appearance?.desktopPhotoSide?'Your explicit desktop picture choice is kept. Use the selected section controls for a deliberate replacement.':'This is a responsive layout explanation, not a screenshot inspection or proof that one side looks better.',
+   'Nothing will be changed. Any prepared comparison still needs Make changes and separate editor approval.'].join('\n'),alternatives:section&&side!==requested&&!declined&&!section.appearance?.desktopPhotoSide?[{label:'Explore picture on the '+requested,instruction:'put the '+section.id+' picture on the '+requested+' on desktop'}]:[],discussionOnly:true};
+ }
+ if(kind==='website'&&/\b(?:would|could|compare)\b/i.test(text)&&/\b(?:reading column|long information|editorial information)\b/i.test(text)){
+  const page=project.pages?.find(p=>p.id==='home'),sections=(project.sections||[]).filter(s=>s.enabled!==false&&['about','text'].includes(s.type)&&page?.sectionIds?.includes(s.id)&&String(s.body||'').length>=700),section=sections.length===1?sections[0]:null;
+  const declined=ownerDesignPreference(project,'selected-reading-column','home')==='disliked';
+  return {answer:['Home has '+sections.length+' longer information sections. A bounded reading column limits paragraph line length; an editorial arrangement places the heading beside the explanation on larger screens.',
+   'Both preserve your words and source reading order. More space may mean more scrolling; these are implemented layout rules, not measured visual improvement.',
+   declined?'You previously declined the reading-column direction.':section?.appearance?.readingLayout?'Your customised reading layout is kept.':'Use the exact section comparison before choosing whether to keep a change.',
+   'Nothing will be changed.'].join('\n'),alternatives:section&&!declined&&!section.appearance?.readingLayout?[{label:'Explore a focused reading column',instruction:'show the '+section.id+' text as a reading column'}]:[],discussionOnly:true};
+ }
  if(kind==='website'&&/\b(?:service directory|service cards|long(?:er)? (?:service )?descriptions|two[- ]column services|services easier to read)\b/i.test(text)){
   const page=project.pages?.find(p=>p.id==='home'),section=(project.sections||[]).find(s=>s.type==='services'&&s.id==='services'&&s.enabled!==false&&page?.sectionIds?.includes(s.id));
   const items=section?.items||[],long=items.filter(row=>String(row.body||'').length>=180).length,custom=section?.appearance?.serviceLayout;
