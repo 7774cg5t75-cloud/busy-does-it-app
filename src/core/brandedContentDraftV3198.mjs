@@ -8,7 +8,7 @@ import {planBrandDnaContentBrief} from "./businessBrandDnaV3195.mjs";
 const SUPPORTED=Object.freeze(["social","poster","advert"]);
 const short=(v,max)=>typeof v==="string"&&v.length<=max&&
  !/[<>\u0000-\u001f\u007f]/.test(v)?v.trim():"";
-function prepareBrandedCopyPreview(snapshot,{channel="social"}={}){
+function prepareBrandedCopyPreview(snapshot,{channel="social",serviceName=""}={}){
  if(!SUPPORTED.includes(channel))
   return {ok:false,reason:"Choose social post, poster or advert for a text draft."};
  const brief=planBrandDnaContentBrief(snapshot,{channel,
@@ -20,20 +20,23 @@ function prepareBrandedCopyPreview(snapshot,{channel="social"}={}){
  const name=short(brief.businessName,140);
  const tagline=short(brief.tagline,220);
  const about=short(brief.about,900);
- const names=brief.services.slice(0,3).map(s=>short(s.name,120)).filter(Boolean);
+ const selected=serviceName?brief.services.find(service=>service.name===serviceName):null;
+ if(serviceName&&!selected)return {ok:false,reason:"Choose a current approved service before preparing its post."};
+ const names=(selected?[selected]:brief.services.slice(0,3)).map(s=>short(s.name,120)).filter(Boolean);
  if(!name)return {ok:false,reason:"Add an owner-approved business name."};
  if(!tagline&&!about&&!names.length)
   return {ok:false,reason:"Add a brand description or approved services before preparing meaningful copy."};
- const copy=channel==="social"?
+ const serviceCopy=selected?[name,short(selected.name,120),short(selected.description,500),'Ask '+name+' for more information.'].filter(Boolean).join('\n\n'):null;
+ const copy=serviceCopy|| (channel==="social"?
   [name,tagline,about,names.length?"Services: "+names.join(" • "):"",
    "Find out more about "+name+"."].filter(Boolean).join("\n\n"):
   channel==="poster"?
   [name.toUpperCase(),tagline,about,names.length?"Services: "+names.join(" • "):"",
    "Ask us for more information."].filter(Boolean).join("\n\n"):
   [name,tagline,about,names.length?"Explore: "+names.join(" • "):"",
-   "Learn more about "+name+"."].filter(Boolean).join("\n\n");
+   "Learn more about "+name+"."].filter(Boolean).join("\n\n"));
  return {ok:true,kind:"private_branded_copy_v3198",businessId:brief.businessId,
-  source:{...brief.source},channel,copy,
+  source:{...brief.source},channel,copy,serviceName:selected?.name||"",
   brandColour:brief.brandColour,ownerChosenTone:brief.voice,
   includedServiceCount:names.length,usedOwnerProvidedFactsOnly:true,
   requiresOwnerApproval:true,privateOnly:true,neverPublishes:true,

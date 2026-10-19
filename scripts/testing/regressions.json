@@ -1261,6 +1261,12 @@
       "args": [
         "scripts/check-mission15-phase31-home.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase31-service-content",
+      "args": [
+        "scripts/check-mission15-phase31-service-content.mjs"
+      ]
     }
   ]
 }

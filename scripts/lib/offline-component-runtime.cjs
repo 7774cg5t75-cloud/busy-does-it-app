@@ -20,6 +20,6 @@ function createRuntime({width=390,states=new Map()}={}){
   const context={__captureContext:value=>captured=value,module,exports:module.exports,require:requireLocal,console,URL,URLSearchParams,TextEncoder,TextDecoder,Uint8Array,ArrayBuffer,Date,Math,JSON,Promise,Set,Map,WeakMap,WeakSet,process:{env:{EXPO_PUBLIC_BUSY_ENVIRONMENT:'isolated-staging'}},fetch:noIO,setTimeout:noIO,clearTimeout:()=>{},setInterval:noIO,clearInterval:()=>{},__DEV__:true};
   vm.runInNewContext(code,context,{filename:resolved,timeout:10000});return module.exports;
  }
- return {load:relative=>load(path.resolve(root,relative)),render(Component,props){index=0;if(!componentSlots.has(Component))componentSlots.set(Component,[]);slots=componentSlots.get(Component);return Component(props);},get appState(){return captured;},effects,get modules(){return cache.size;}};
+ return {native,load:relative=>load(path.resolve(root,relative)),render(Component,props){index=0;if(!componentSlots.has(Component))componentSlots.set(Component,[]);slots=componentSlots.get(Component);return Component(props);},get appState(){return captured;},effects,get modules(){return cache.size;}};
 }
 module.exports={createRuntime};

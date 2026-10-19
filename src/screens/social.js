@@ -1,3 +1,4 @@
+import {buildBusinessBrandDnaSnapshot} from "../core/businessBrandDnaV3195.mjs";
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -307,8 +308,8 @@ function SocialMediaCentre({ s }) {
   return (
     <Shell
       s={s}
-      title="Social Media"
-      subtitle="Create, schedule and manage your posts."
+      title="Content Creator"
+      subtitle="Prepare social posts, review drafts and manage supported publishing."
     >
       <Button label="+ Create a new post" primary onPress={s.startSocialFromPhone} />
 
@@ -664,15 +665,32 @@ function SocialCreator({ s }) {
     setBrandReview(null);setBrandedCaptionAccepted(false);
   },[businessId,brandWebsite?.id,brandWebsite?.generation,
     brandApp?.id,brandApp?.draft_revision]);
+  const captionEpoch=React.useRef(0),reviewRef=React.useRef(brandReview),liveCaption=React.useRef(null);
+  liveCaption.current={ownerId:s.ownerSession?.userId,businessId,website:brandWebsite,app:brandApp,s};
+  const capturedEpoch=captionEpoch.current;
+  const currentCaption=()=>liveCaption.current.ownerId===s.ownerSession?.userId&&liveCaption.current.businessId===businessId&&liveCaption.current.website===brandWebsite&&liveCaption.current.app===brandApp&&captionEpoch.current===capturedEpoch;
+  const review=value=>{reviewRef.current=value;setBrandReview(value);};
   const currentBrandInput=()=>({website:brandWebsite,app:brandApp,businessId});
+  const brandSnapshot=buildBusinessBrandDnaSnapshot(currentBrandInput());
+  const prepareCaption=(serviceName='')=>{
+    if(!currentCaption())return;
+    captionEpoch.current++;setBrandedCaptionAccepted(false);
+    review(prepareSocialBrandHandoff({...currentBrandInput(),serviceName}));
+  };
+  const editCaption=value=>{
+    if(liveCaption.current.ownerId!==s.ownerSession?.userId||liveCaption.current.businessId!==businessId||liveCaption.current.website!==brandWebsite||liveCaption.current.app!==brandApp)return;
+    captionEpoch.current++;review(null);s.setSocialDraftText(value);
+  };
   const applyBrandCaption=()=>{
-    const verified=confirmSocialBrandHandoff({...currentBrandInput(),
-      evidence:brandReview});
-    if(!verified.ok){setBrandReview(verified);setBrandedCaptionAccepted(false);return;}
+    if(!currentCaption()||reviewRef.current!==brandReview)return;
+    const verified=confirmSocialBrandHandoff({...currentBrandInput(),evidence:brandReview});
+    if(!verified.ok){review(verified);setBrandedCaptionAccepted(false);return;}
     const apply=()=>{
-      s.setSocialDraftText(verified.copy);
-      setBrandedCaptionAccepted(true);
-      setBrandReview(null);
+      if(!currentCaption()||reviewRef.current!==brandReview)return;
+      const fresh=confirmSocialBrandHandoff({...currentBrandInput(),evidence:brandReview});
+      if(!fresh.ok){review(fresh);return;}
+      captionEpoch.current++;s.setSocialDraftText(fresh.copy);
+      setBrandedCaptionAccepted(true);review(null);
     };
     if(s.socialDraftText.trim()&&s.socialDraftText.trim()!==verified.copy.trim()){
       Alert.alert("Replace your caption?",
@@ -746,10 +764,11 @@ function SocialCreator({ s }) {
         tone="blue">
         <Button label="Prepare my branded caption"
           disabled={analysing}
-          onPress={()=>{
-            setBrandedCaptionAccepted(false);
-            setBrandReview(prepareSocialBrandHandoff(currentBrandInput()));
-          }}/>
+          onPress={()=>prepareCaption()}/>
+        {brandSnapshot.ok?brandSnapshot.services.map(service=><Button key={service.name}
+          label={'Draft a post about '+service.name} disabled={analysing}
+          onPress={()=>prepareCaption(service.name)}/>):null}
+        <Text style={styles.cardBody}>Service ideas use your current approved wording. No price, offer, availability or new-service announcement is invented. Text preparation is local; selected photos and separate review are still required to save a social post.</Text>
         {brandReview?<View>
           {brandReview.ok?<View>
             <Text style={styles.sectionLabel}>Review your branded wording</Text>
@@ -761,7 +780,7 @@ function SocialCreator({ s }) {
         {brandedCaptionAccepted&&!ready?<View>
           <Text style={styles.fieldLabel}>Your editable branded caption</Text>
           <TextInput multiline value={s.socialDraftText}
-            onChangeText={s.setSocialDraftText}
+            onChangeText={editCaption}
             style={styles.messageInput}
             placeholder="Review and edit your business caption"
             placeholderTextColor="#9AA3B2"/>
@@ -836,7 +855,7 @@ function SocialCreator({ s }) {
           <TextInput
             multiline
             value={s.socialDraftText}
-            onChangeText={s.setSocialDraftText}
+            onChangeText={editCaption}
             style={styles.messageInput}
             placeholder="Edit the caption before saving"
             placeholderTextColor="#9AA3B2"

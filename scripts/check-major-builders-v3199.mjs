@@ -17,7 +17,7 @@ const website={id:"example-salon-website",generation:6,businessId:b,
  sections:[{id:"hero",type:"hero",body:"Appointments with care"},
  {id:"about",type:"about",body:"Local appointment studio."},
  {id:"services",type:"services",enabled:true,
- items:[{id:"service-1",title:"Haircuts",body:"Owner-approved service"}]}]};
+ items:[{id:"service-1",title:"Haircuts",body:"Cuts suited to your needs."}]}]};
 const config={schemaVersion:1,surface:"busy_mini_app",
  display:{name:"Example Salon",category:"hair salon",tagline:"Appointments with care"},
  presentation:{brandPalette:"custom",brandAccent:"#667788",
@@ -34,6 +34,8 @@ const app={id:"owner-app",business_id:b,draft_revision:9,
  category:"hair salon",status:"draft",draft_config:config};
 const dna=buildBusinessBrandDnaSnapshot({website,app,businessId:b});
 ok(dna.ok,dna.reason);eq(dna.conflicts.length,0);
+const conflicting={...website,sections:website.sections.map(section=>section.id==='services'?{...section,items:section.items.map(item=>({...item,body:'Different owner service copy'}))}:section)};
+eq(prepareSocialBrandHandoff({website:conflicting,app,businessId:b}).ok,false,'Divergent service descriptions still require owner resolution');
 const first=prepareSocialBrandHandoff({website,app,businessId:b});
 ok(first.ok,first.reason);eq(first.kind,"private_social_brand_handoff_v3199");
 eq(first.businessId,b);
@@ -103,12 +105,12 @@ for(const token of [
 ])ok(edge.includes(token),"Missing first-app RPC integration: "+token);
 const social=read("src/screens/social.js");
 for(const token of [
- "prepareSocialBrandHandoff(currentBrandInput())",
+ "prepareSocialBrandHandoff({...currentBrandInput(),serviceName})",
  "confirmSocialBrandHandoff({...currentBrandInput()",
  'Alert.alert("Replace your caption?"',
  'onPress={s.saveGeneratedSocialDraft}',
  'disabled={!photos.length||!s.socialDraftText.trim()||analysing}',
- "s.setSocialDraftText(verified.copy)",
+ "s.setSocialDraftText(fresh.copy)",
  "setBrandReview(null);setBrandedCaptionAccepted(false)"
 ])ok(social.includes(token),"Missing social owner-review wiring: "+token);
 ok(read("src/screens/miniApps.js").includes("suggestFirstAppNextStep({"));
