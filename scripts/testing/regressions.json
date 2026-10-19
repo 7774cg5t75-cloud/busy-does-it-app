@@ -1087,6 +1087,12 @@
       "args": [
         "scripts/check-mission15-phase27-service-advice.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase27-selected-feedback",
+      "args": [
+        "scripts/check-mission15-phase27-selected-feedback.mjs"
+      ]
     }
   ]
 }

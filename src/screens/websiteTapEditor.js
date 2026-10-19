@@ -27,7 +27,7 @@ const photoPreviewSource=asset=>{
  const uri=typeof asset?.uri==="string"?asset.uri.trim():"";
  return /^(https:\/\/|file:\/\/)/i.test(uri)?{uri}:null;
 };
-function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChange,onLayoutChange,onApplyInstruction,onPreviewInstruction,onTranscribe,exploreContext,onDraftChange}){
+function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChange,onLayoutChange,onApplyInstruction,onPreviewInstruction,onTranscribe,exploreContext,onDraftChange,onDesignFeedback}){
  const [closeRequested,setCloseRequested]=React.useState(false);
  const [exploring,setExploring]=React.useState(false);
  const [value,setValue]=React.useState("");
@@ -348,6 +348,14 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
             <View style={{marginVertical:10}}>
              <Text style={styles.sectionLabel}>Private before-and-after preview</Text>
              <Text style={styles.cardBody}>{selectedInstructionPreview.summary}</Text>
+             {onDesignFeedback&&selectedWebsiteComparisons(draft,selection).some(choice=>choice.instruction===contextRequest)?<Button label="Do not suggest this layout again" onPress={()=>{
+              if(!current()||editorLive.current.contextRequest!==contextRequest)return;
+              const choice=selectedWebsiteComparisons(draft,selection).find(item=>item.instruction===contextRequest),plan=planSelectedWebsiteChanges(draft,selection.pageId,selection,contextRequest);
+              if(!choice||!plan.ok||plan.steps.some(step=>step.type!=='layout'))return;
+              const operation={action:'style-group',operations:plan.steps.map(step=>step.change)};
+              if(onDesignFeedback({draftId:draft.id,pageId:selection.pageId,changeId:choice.id,operation,expectedSource:draft,choice:'disliked'})!==true){setContextNote('Your source changed. Compare the current section before recording a preference.');return;}
+              setContextDraft('');setSelectedInstructionPreview(null);setContextNote('Your preference was saved privately. Original wording and layout stay unchanged.');
+             }}/>:null}
              <BuilderQualityNotice quality={{...selectedInstructionPreview.quality,findings:(selectedInstructionPreview.quality?.findings||[]).map(f=>({...f,repair:amendSelectedWebsiteQualityInstruction(draft,{selection,instruction:contextRequest,repair:f.repair}).ok?f.repair:null}))}} onRepair={previewQualityAdjustment}/>
              <Text style={styles.cardBody}>Compare phone, tablet or desktop layouts before applying. Wider views are scaled down on your phone.</Text>
              {["phone","tablet","desktop"].map(mode=>(

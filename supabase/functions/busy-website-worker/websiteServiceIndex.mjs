@@ -6,6 +6,7 @@ export function validServiceIndex(section){
 // Original record order and wording; finite local anchors, never new actions.
 export function serviceIndexHtml(section,{escapeHtml,editAttrs=()=>'',itemHeadingClass=()=>''}={}){
  if(!validServiceIndex(section)||typeof escapeHtml!=='function')return '';
- const anchor=item=>'service-index-'+encodeURIComponent(section.id)+'-'+encodeURIComponent(item.id);
+ const segment=value=>Array.from(String(value),letter=>letter.codePointAt(0).toString(16)).join('-');
+ const anchor=item=>'service-index-'+segment(section.id)+'--'+segment(item.id);
  return `<div class="service-index-layout"><nav aria-label="${escapeHtml(section.title||'Services')}"><ul>${section.items.map(item=>`<li><a href="#${escapeHtml(anchor(item))}">${escapeHtml(item.title)}</a></li>`).join('')}</ul></nav><div class="service-index-details">${section.items.map(item=>`<article id="${escapeHtml(anchor(item))}" tabindex="-1" class="${itemTypographyClasses(item)}"><h3${itemHeadingClass(item)}${editAttrs(section,'title',item.id)}>${escapeHtml(item.title)}</h3><p${editAttrs(section,'body',item.id)}>${escapeHtml(item.body)}</p></article>`).join('')}</div></div>`;
 }

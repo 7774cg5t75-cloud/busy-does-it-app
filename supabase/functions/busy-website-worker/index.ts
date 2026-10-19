@@ -172,7 +172,8 @@ function renderSectionHtml(
   const headingTag = isFirstSection ? "h1" : "h2";
 
   if(section.type==='services'&&section.appearance?.serviceLayout==='index'){
-    return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(section.title)}</${headingTag}>${serviceIndexHtml(section,{escapeHtml,itemHeadingClass})}</div></section>`;
+    const indexed=serviceIndexHtml(section,{escapeHtml,itemHeadingClass});
+    if(indexed)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(section.title)}</${headingTag}>${indexed}</div></section>`;
   }
   if (section.type === "services") {
     return `<section id="services"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(

@@ -723,8 +723,9 @@ function renderWebsiteHtml(draft = {}, pageId = "home", options = {}) {
       return `<section class="hero hero-${escapeHtml(draft.theme?.heroSize||"large")} ${url?"hero-with-image":"hero-no-image"}${sectionClasses?" "+sectionClasses:""}"${editAttrs(section,"section")}><div class="wrap"><div class="hero-content">${kicker?`<p class="kicker">${escapeHtml(kicker)}</p>`:""}<h1${editAttrs(section,"title")}>${escapeHtml(section.title||draft.businessName||"Your business")}</h1>${lead}${action}</div>${art}</div></section>`;
     }
     if(section.type==='services'&&section.appearance?.serviceLayout==='index'){
+      const indexed=serviceIndexHtml(section,{escapeHtml,editAttrs,itemHeadingClass});
       const headingTag=page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
-      return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title)}</${headingTag}>${serviceIndexHtml(section,{escapeHtml,editAttrs,itemHeadingClass})}</div></section>`;
+      if(indexed)return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}${editAttrs(section,'title')}>${escapeHtml(section.title)}</${headingTag}>${indexed}</div></section>`;
     }
     if(section.type==='faq'&&section.appearance?.faqLayout==='questions'){
       const headingTag=page?.id!=='home'&&orderedSections[0]===section?'h1':'h2';
