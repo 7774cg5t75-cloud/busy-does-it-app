@@ -4770,7 +4770,7 @@ function BusyAppDetailForm({ s }) {
           tone="green"
         />
       ) : null}
-      {(enabled.has('enquiry')||enabled.has('booking_request'))?<Button label={(requestKind==='booking_request'?bookingReviewCurrent:enquiryReviewCurrent)?'Return to my reviewed request':'Return to my request draft'} disabled={!!s.miniAppsAction} onPress={()=>{if(formAlive.current&&s.selectedBusyAppDetail===detail&&s.ownerSession?.userId===requestUserId)goToRequest(requestKind);}}/>:null}
+      {(enabled.has('enquiry')||enabled.has('booking_request'))?<Button label={(requestKind==='booking_request'?bookingReviewCurrent:enquiryReviewCurrent)?'Return to my reviewed request':'Return to my request draft'} disabled={!!s.miniAppsAction} onPress={()=>{if(formAlive.current&&s.selectedBusyAppDetail===detail&&s.ownerSession?.userId===requestUserId)goToRequest();}}/>:null}
       {config?.contentLayout?.length?<Button label="Refresh products and events" disabled={!!s.miniAppsAction} onPress={()=>s.openBusyAppDetail(detail.app.slug)}/>:null}
       {config ? (
         <MiniAppSurface
