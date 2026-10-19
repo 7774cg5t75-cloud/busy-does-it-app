@@ -940,6 +940,7 @@ function SocialDraftReview({ s }) {
       brandCue="Preparation can be automatic. Public action still needs explicit owner approval."
     >
       <ContentDraftStatus s={s}/>
+      {s.socialSourceContext?.suggestedPlatform?<Text style={styles.cardBody}>{"Requested destination: "+s.socialSourceContext.suggestedPlatform+". Check your connected destination selections below; nothing is sent automatically."}</Text>:null}
       <Card
         eyebrow="Prepared content"
         title={s.socialSourceContext?.service || s.socialAiResult?.detectedService || "Social post"}

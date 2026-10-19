@@ -1,3 +1,4 @@
+import {localCoreAreaRequest} from "../domain/growthOperatorBridge.mjs";
 import {useSocialContentHandoff} from "../screens/useSocialContentHandoff";
 import {resolveSocialServiceIntent} from "../core/socialBrandHandoffV3199.mjs";
 import {createOwnerEditNavigation} from '../core/ownerEditNavigation.mjs';
@@ -3676,6 +3677,7 @@ function App() {
       id,
       source: socialSourceContext.type,
       sourceLabel: socialSourceContext.label,
+      suggestedPlatform:["Facebook","Instagram"].includes(socialSourceContext.suggestedPlatform)?socialSourceContext.suggestedPlatform:"",
       sourceCustomerId: socialSourceContext.customerId || "",
       sourceJobId: socialSourceContext.jobId || "",
       service:
@@ -4234,6 +4236,7 @@ function App() {
       customerId: draft.sourceCustomerId || "",
       jobId: draft.sourceJobId || "",
       service: draft.service || "",
+      suggestedPlatform:["Facebook","Instagram"].includes(draft.suggestedPlatform)?draft.suggestedPlatform:"",
     });
     go("socialDraftReview");
     });
@@ -12073,6 +12076,7 @@ function App() {
   };
 
   const submitBusyCommand = async ({ text = "", audioUri = "" } = {}) => {
+    if(businessWorkspaceScopeRef.current!==socialDraftScope)return null;
     const cleanText = String(text || "").trim();
     if (!cleanText && !audioUri) {
       setBusyCommandError("Tell BUSY what you want to do.");
@@ -12090,6 +12094,11 @@ function App() {
         if(contentIntent.handled){
           const opened=socialContentActions.prepare(contentIntent.serviceName,contentIntent.platform);
           return acceptGrowthOperator({handled:true,result:{title:"Content Creator",intent:"social_post",transcript:cleanText,response:opened?contentIntent.reason:"Sign in as this business owner to prepare content.",mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
+        }
+        const localNavigation=localCoreAreaRequest(cleanText);
+        if(localNavigation){
+          if(ownerSession?.userId&&cloudWorkspace?.businessId){if(localNavigation.route==='busyInbox')openBusyInbox();else go(localNavigation.route);}
+          return acceptGrowthOperator({handled:true,result:{title:"Busy",intent:"open_core_area",transcript:cleanText,response:ownerSession?.userId&&cloudWorkspace?.businessId?localNavigation.response:"Sign in and select your business before opening private work.",mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
         }
         const activityAnswer=await tryBusinessActivityOperator(cleanText,growthNonce);
         if(activityAnswer?.cancelled)return null;

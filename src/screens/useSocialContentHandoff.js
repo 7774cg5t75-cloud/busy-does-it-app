@@ -24,7 +24,7 @@ export function useSocialContentHandoff(input){
   // Explicit acceptance creates a new private draft target, preserving deliberately selected media.
   epoch.current++;input.setText(checked.copy);live.current={...live.current,text:checked.copy};
   input.setSelectedDraftId(null);input.setAiResult(null);input.setAiStatus('idle');input.setCaptionId('');
-  setContext({type:'approved_service',label:'Approved service wording',service:checked.serviceName,customerId:'',jobId:''});
+  setContext({type:'approved_service',label:'Approved service wording',service:checked.serviceName,suggestedPlatform:expected.platform,customerId:'',jobId:''});
   return true;
  };
  const editText=value=>{if(!current())return;epoch.current++;live.current={...live.current,text:value};input.setText(value);};

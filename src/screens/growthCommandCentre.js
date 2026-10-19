@@ -1,3 +1,4 @@
+import {GrowthWebsiteOpportunities} from "../components/GrowthWebsiteOpportunities";
 import {GrowthContentIdeas} from "../components/GrowthContentIdeas";
 import React from "react";
 import {Text} from "react-native";
@@ -73,6 +74,7 @@ function GrowthCommandCentre({s}){
       subtitle="Your saved business growth projects, their last private review stage and what needs attention next."
       brandCue="Review your saved projects before anything goes public.">
       <GrowthContentIdeas s={s}/>
+      <GrowthWebsiteOpportunities s={s}/>
       <Card eyebrow="Project overview"
         title={busy?"Checking your private projects…":centre.counts.projects+" saved growth project"+(centre.counts.projects===1?"":"s")}
         body={centre.notice}

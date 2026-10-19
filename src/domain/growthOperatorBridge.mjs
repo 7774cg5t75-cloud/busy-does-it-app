@@ -79,3 +79,14 @@ function resolveGrowthOperator(text,centre,{focus=null,scope=""}={}){
   return {handled:true,kind:"summary",serviceName:project.serviceName,channel,action:false,message};
 }
 export {classifyGrowthUtterance,resolveGrowthOperator};
+
+// Navigation-only local intents within the original Operator bridge.
+function localCoreAreaRequest(text){
+ const request=String(text||'').trim();if(!request||request.length>400)return null;
+ if(/\b(publish|send|spend|buy|charge|pay now|schedule)\b/i.test(request))return null;
+ if(/\b(help|how|want|get|attract|find)\b/i.test(request)&&/\b(more customers|local enquiries|customers find us|website discoverability)\b/i.test(request))return {route:'growthCommandCentre',response:'Review source-backed, £0-first ideas in Get More Customers. No campaign, publication, partner contact or spend has started.'};
+ if(/\b(show|review|open)\b/i.test(request)&&/\b(enquiries|inbox)\b/i.test(request))return {route:'busyInbox',response:'Open the existing Busy Inbox to review current enquiries. Nothing has been replied to or marked complete.'};
+ if(/\b(help|create|prepare|make)\b/i.test(request)&&/\b(invoice|payment request)\b/i.test(request))return {route:'workHub',response:'Get Paid currently supports private quote assistance in Work. This request has not created an invoice or collected payment; review a saved customer and the supported next steps.'};
+ return null;
+}
+export {localCoreAreaRequest};
