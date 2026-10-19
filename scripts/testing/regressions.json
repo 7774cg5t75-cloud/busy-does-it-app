@@ -1159,6 +1159,12 @@
       "args": [
         "scripts/check-mission15-phase29-article-layout.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase29-option-readback",
+      "args": [
+        "scripts/check-mission15-phase29-option-readback.mjs"
+      ]
     }
   ]
 }

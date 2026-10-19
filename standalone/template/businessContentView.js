@@ -1,4 +1,5 @@
 import React from 'react';
+import {SelectedListingSummary} from './selectedListingSummary';
 import {View,Text,Image,TextInput,Pressable,useWindowDimensions,Linking} from 'react-native';
 import {contentPrice,contentEventSchedule,prepareBusinessContentEnquiry} from './businessContentRecords.mjs';
 import {catalogueState,catalogueSource,catalogueView,transitionCatalogue} from './catalogueState.mjs';
@@ -43,6 +44,7 @@ function BusinessContentView({feed,kind,contextKey='',savedBrowseState=null,onSa
       <Text style={{color:data.status==='cancelled'?'#a32121':colors.text,fontWeight:'700'}}>{data.status==='cancelled'?'Cancelled':contentEventSchedule(data)}</Text>
       <Text style={{color:colors.muted}}>{data.location||'Online event'}</Text><Text style={{color:colors.muted}}>An event listing does not confirm attendance.</Text>{data.onlineUrl?button('Open public event information',()=>Linking.openURL(data.onlineUrl).catch(()=>{if(current())showNotice('The event link could not be opened.');})):null}
     </>}
+    {detail&&!detailChanged&&onInterest&&data.status!=='cancelled'&&(!options[row.id]||optionRevisions[row.id]===row.revision)?<SelectedListingSummary feed={feed} businessId={feed?.businessId} selection={{recordId:row.id,revision:row.revision,...options[row.id]?{variantId:options[row.id]}:{}}} colors={colors} mode="browsing"/>:null}
     {!detail?button('View '+data.name,()=>openDetail(row)):null}
     {onInterest&&!detailChanged&&data.status!=='cancelled'?button('Ask about '+data.name,()=>{if(options[row.id]&&optionRevisions[row.id]!==row.revision){showNotice('This option has changed. Review the details and choose an option again.');return;}const prepared=prepareBusinessContentEnquiry(feed,feed?.businessId,{recordId:row.id,revision:row.revision,...options[row.id]?{variantId:options[row.id]}:{}});if(prepared.ok)onInterest(prepared.service,prepared);else showNotice(prepared.reason);}):null}
    </View>;})}
