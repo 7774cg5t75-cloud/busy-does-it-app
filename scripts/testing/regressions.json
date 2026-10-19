@@ -1123,6 +1123,12 @@
       "args": [
         "scripts/check-mission15-phase28-customer-controls.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase28-explore",
+      "args": [
+        "scripts/check-mission15-phase28-explore.mjs"
+      ]
     }
   ]
 }
