@@ -866,7 +866,7 @@ function WebsiteBuilder({ s }) {
             suggestions={draft.businessId===s.cloudWorkspace?.businessId&&s.miniAppsView?.app?.business_id===draft.businessId?
               reviewEnquiryContentGaps({businessId:draft.businessId,appId:s.miniAppsView.app.id,requests:s.miniAppsView.requests||[],config:{publicProfile:{faqs:(draft.sections||[]).filter(section=>section.type==='faq').flatMap(section=>(section.items||[]).map(item=>({question:item.title})))}}}).suggestions:[]}/>
           <WebsiteLayoutControls draft={draft} onApply={s.applyWebsiteLayoutAction}/>
-          <WebsitePagesEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft?.id].join(":")} draft={draft} onApply={s.applyWebsitePageAction} onShare={s.shareWebsiteContent} onShareZip={s.shareStandaloneWebsiteZip} onBackup={s.backupWebsiteOriginals}/>
+          <WebsitePagesEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,draft?.id].join(":")} draft={draft} ownerState={s} onApply={s.applyWebsitePageAction} onShare={s.shareWebsiteContent} onShareZip={s.shareStandaloneWebsiteZip} onBackup={s.backupWebsiteOriginals}/>
         </>
       ) : null}
       <Button label={showWebsiteDetails ? "Hide extra website settings" : "More website settings"}

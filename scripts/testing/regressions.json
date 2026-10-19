@@ -1231,6 +1231,12 @@
       "args": [
         "scripts/check-mission15-phase30-explore.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase31-pages",
+      "args": [
+        "scripts/check-mission15-phase31-pages.mjs"
+      ]
     }
   ]
 }
