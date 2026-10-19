@@ -1183,6 +1183,12 @@
       "args": [
         "scripts/check-mission15-phase29-dispatch-epoch.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase29-website-drafts",
+      "args": [
+        "scripts/check-mission15-phase29-website-drafts.mjs"
+      ]
     }
   ]
 }

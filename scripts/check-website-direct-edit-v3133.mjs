@@ -124,7 +124,7 @@ const directScreen=read("src/screens/websiteContentEditor.js");
 for(const marker of ["const applyWebsiteFieldChange =","applyStructuredWebsiteEdit(websiteDraft, patch)","setWebsiteUndo(items=>","setWebsiteRedo([]);","applyWebsiteFieldChange,"]){
  yes(controller.includes(marker),"Direct editor history wiring: "+marker);
 }
-yes(screen.includes("<WebsiteContentEditor draft={draft} onApply={s.applyWebsiteFieldChange}/>"),"Simple website screen opens controlled direct editor");
+yes(/<WebsiteContentEditor\b[^>]*draft=\{draft\}[^>]*ownerState=\{s\}[^>]*onApply=\{s\.applyWebsiteFieldChange\}/.test(screen),"Simple website screen opens controlled direct editor");
 yes(directScreen.includes("Save to private draft"),"No publication in screen");
 yes(directScreen.includes("onApply({...selection,value})"),"Stable field IDs passed without parsing commands");
 yes(!directScreen.includes("fetch(")&&!directScreen.includes("publishWebsite"),"Direct content editor cannot charge or publish");

@@ -857,7 +857,7 @@ function WebsiteBuilder({ s }) {
             app={s.miniAppsView?.app}
             businessId={s.cloudWorkspace?.businessId}
             onApply={s.applyMissingAppServicesToWebsite}/>
-          <WebsiteContentEditor key={[s.ownerSession?.userId,draft.businessId,draft.id].join(':')} draft={draft} onApply={s.applyWebsiteFieldChange}
+          <WebsiteContentEditor key={[s.ownerSession?.userId,draft.businessId,draft.id].join(':')} draft={draft} ownerState={s} onApply={s.applyWebsiteFieldChange}
             suggestions={draft.businessId===s.cloudWorkspace?.businessId&&s.miniAppsView?.app?.business_id===draft.businessId?
               reviewEnquiryContentGaps({businessId:draft.businessId,appId:s.miniAppsView.app.id,requests:s.miniAppsView.requests||[],config:{publicProfile:{faqs:(draft.sections||[]).filter(section=>section.type==='faq').flatMap(section=>(section.items||[]).map(item=>({question:item.title})))}}}).suggestions:[]}/>
           <WebsiteLayoutControls draft={draft} onApply={s.applyWebsiteLayoutAction}/>
