@@ -1,3 +1,4 @@
+import {ContentDraftStatus} from "../components/ContentDraftStatus";
 import {buildBusinessBrandDnaSnapshot} from "../core/businessBrandDnaV3195.mjs";
 import React, { useEffect, useState } from "react";
 import {
@@ -938,6 +939,7 @@ function SocialDraftReview({ s }) {
       subtitle="Edit the wording, choose real destinations and decide whether to keep it as a draft, schedule it or publish it."
       brandCue="Preparation can be automatic. Public action still needs explicit owner approval."
     >
+      <ContentDraftStatus s={s}/>
       <Card
         eyebrow="Prepared content"
         title={s.socialSourceContext?.service || s.socialAiResult?.detectedService || "Social post"}

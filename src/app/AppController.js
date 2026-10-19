@@ -11,7 +11,7 @@ import {createMarketplaceReadActions} from "../core/marketplaceReadActions.mjs";
 import {createWebsiteLiveActions} from "../core/websiteLiveActions.mjs";
 import {createBusinessCacheRecoveryActions} from "../core/businessCacheRecoveryActions.mjs";
 import {enqueuePrivateCheckpoint} from "../core/privateCheckpointQueue.mjs";
-import {businessCacheKey,encodeBusinessCache,decodeBusinessCache,selectBusinessCache,completeBusinessSnapshot} from "../core/businessCache.mjs";
+import {businessCacheKey,encodeBusinessCache,decodeBusinessCache,selectBusinessCache,completeBusinessSnapshot,confirmBusinessCacheWrite} from "../core/businessCache.mjs";
 import {createWebsiteDomainActions} from "../core/websiteDomainActions.mjs";
 import {createBusinessSnapshotSession} from "../core/businessSnapshotSession.mjs";
 import {bindWebsiteDraftScope,websiteDraftHasScope} from "../core/websiteDraftScope.mjs";
@@ -585,6 +585,8 @@ function App() {
   const [ownerAuthNotice, setOwnerAuthNotice] = useState("");
   const [ownerAuthReady, setOwnerAuthReady] = useState(false);
   const [businessCacheRecovery,setBusinessCacheRecovery]=useState(null);
+  const [privateContentSave,setPrivateContentSave]=useState(null);
+  const privateContentWrite=useRef(null);
   const cloudOwnerScopeRef=useRef(null),businessCacheScopeRef=useRef(null),preservedBusinessCacheRef=useRef(null);
   if(cloudOwnerScopeRef.current?.userId!==(ownerSession?.userId||""))cloudOwnerScopeRef.current={userId:ownerSession?.userId||""};
   const businessWorkspaceScopeRef=useRef(null);
@@ -854,11 +856,19 @@ function App() {
       try{
         const writeScope=cloudOwnerScopeRef.current,writeBusiness=cloudWorkspace.businessId;
         const encoded=encodeBusinessCache({ownerId:ownerSession.userId,businessId:cloudWorkspace.businessId,revision:cloudRevision,payload:data});
-        enqueuePrivateCheckpoint(userCacheKey,()=>AsyncStorage.setItem(userCacheKey,encoded)).catch(()=>{if(cloudOwnerScopeRef.current===writeScope&&snapshotContextRef.current?.businessId===writeBusiness)setCloudSyncError("The private device copy could not be saved. Your cloud copy is unchanged.");});
+        const record=socialDrafts.find(item=>item.id===selectedSocialDraftId&&item.status==='Draft');
+        const receipt=record?{scope:businessWorkspaceScopeRef.current,record,status:'saving'}:null;
+        if(receipt){privateContentWrite.current=receipt;setPrivateContentSave(receipt);}
+        enqueuePrivateCheckpoint(userCacheKey,async()=>{
+          if(!receipt)return AsyncStorage.setItem(userCacheKey,encoded);
+          const result=await confirmBusinessCacheWrite({encoded,ownerId:ownerSession.userId,businessId:writeBusiness,write:value=>AsyncStorage.setItem(userCacheKey,value),read:()=>AsyncStorage.getItem(userCacheKey)});
+          if(privateContentWrite.current===receipt&&businessWorkspaceScopeRef.current===receipt.scope)setPrivateContentSave({...receipt,status:result.status});
+          if(result.status!=='confirmed')throw Error('Device readback was not confirmed.');
+        }).catch(()=>{if(cloudOwnerScopeRef.current===writeScope&&snapshotContextRef.current?.businessId===writeBusiness)setCloudSyncError("The private device copy could not be confirmed. Your cloud copy is unchanged; keep your current wording.");});
       }catch{setCloudSyncError("The device copy could not be verified for this business.");}
     }
   }, [
-    businessCacheRecovery,cloudWorkspace?.businessId,cloudRevision,cloudInitialised,cloudInitialising,
+    selectedSocialDraftId,businessCacheRecovery,cloudWorkspace?.businessId,cloudRevision,cloudInitialised,cloudInitialising,
     hydrated,
     ownerAuthReady,
     ownerSession?.userId,
@@ -17406,6 +17416,7 @@ function App() {
     socialScheduleTime,
     setSocialScheduleTime,
     socialSourceContext,
+    privateContentSave:privateContentSave?.scope===businessWorkspaceScopeRef.current?privateContentSave:null,
     socialContentActions,
     selectedSocialDraftId,
     socialPublishingStatus,

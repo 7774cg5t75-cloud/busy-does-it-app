@@ -40,3 +40,14 @@ function completeBusinessSnapshot(payload={}){
  return result;
 }
 export {businessCacheKey,encodeBusinessCache,decodeBusinessCache,selectBusinessCache,completeBusinessSnapshot};
+
+// Read back the original scoped device copy; this is not a second draft store.
+async function confirmBusinessCacheWrite({write,read,encoded,ownerId,businessId}){
+ try{
+  await write(encoded);
+  const raw=await read();
+  if(raw!==encoded||!decodeBusinessCache(raw,{ownerId,businessId}))return {status:'unknown'};
+  return {status:'confirmed'};
+ }catch{return {status:'unknown'};}
+}
+export {confirmBusinessCacheWrite};

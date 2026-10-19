@@ -1291,6 +1291,12 @@
       "args": [
         "scripts/check-mission15-phase32-growth-handoff.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase32-content-save",
+      "args": [
+        "scripts/check-mission15-phase32-content-save.mjs"
+      ]
     }
   ]
 }
