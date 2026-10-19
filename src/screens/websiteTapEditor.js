@@ -32,6 +32,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  const [exploring,setExploring]=React.useState(false);
  const [value,setValue]=React.useState("");
  const [confirmRemove,setConfirmRemove]=React.useState(false);
+ const [showComparisonReasons,setShowComparisonReasons]=React.useState(false);
  const [showSectionDesign,setShowSectionDesign]=React.useState(false);
  const [showContextHelp,setShowContextHelp]=React.useState(false);
  const [contextRequest,setContextRequest]=React.useState("");
@@ -67,7 +68,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
   setShowPhotoChoices(initialMode==="edit"&&selection?.field==="photo");
   setSelectedInstructionPreview(null);
   setShowPreviewOriginal(false);
-  setComparisonSize("phone");
+  setComparisonSize("phone");setShowComparisonReasons(false);
  },[key,draft?.updatedAt,initialMode]);
  const requestClose=()=>{if(!current())return;if(wordingEdited.current){setCloseRequested(true);return;}onClose?.();};
  const save=()=>{
@@ -284,9 +285,10 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
          {initialMode==="voice"?(
           <Text style={styles.cardBody}>You selected the exact {names[field]?.toLowerCase()||"website part"}. BUSY is ready to listen. Press the red Stop control when you're finished — pauses are fine.</Text>
          ):null}
+         {onPreviewInstruction&&selectedWebsiteComparisons(draft,selection).length?<Button label={showComparisonReasons?'Hide layout explanations':'Explain these layout choices'} onPress={()=>{if(current())setShowComparisonReasons(x=>!x);}}/>:null}
          {onPreviewInstruction?selectedWebsiteComparisons(draft,selection).map(choice=>(
           <View key={choice.id}>
-           <Text style={styles.cardBody}>{choice.explanation}</Text>
+           {showComparisonReasons?<Text style={styles.cardBody}>{choice.explanation}</Text>:null}
            <Button label={'Compare: '+choice.label} onPress={()=>{
             if(!current()||editorLive.current.contextRequest!==contextRequest)return;
             const outcome=onPreviewInstruction({selection,instruction:choice.instruction});
