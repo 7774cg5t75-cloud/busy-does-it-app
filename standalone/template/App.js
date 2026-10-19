@@ -63,18 +63,21 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
  useEffect(()=>{if(!inFlight.current)onSaveState?.({input,result,possibleDuplicateRetry,enquiryReview});},[input,result,possibleDuplicateRetry,enquiryReview]);
  const inFlight=React.useRef(false);
  const fieldRefs=React.useRef({});
+ const editEpoch=React.useRef(0),renderedEditEpoch=editEpoch.current;
  const latestDraft=React.useRef(null);latestDraft.current={input,result,contentSelection,live,runtime};
  const dateChoices=React.useMemo(()=>nativePreferredDates(new Date(),7),[]);
  const type=screen.key==="booking_request"?"booking_request":"enquiry";
  const enabled=type==="booking_request"?live?.supportsBookingRequest:live?.supportsEnquiry;
  const set=(key)=>(value)=>{
   if(inFlight.current||busy||latestDraft.current?.live!==live||latestDraft.current?.runtime!==runtime||latestDraft.current?.contentSelection!==contentSelection||latestDraft.current?.result?.ok||latestDraft.current?.result?.mayHaveBeenReceived)return;
+  editEpoch.current++;
   setInput(prev=>({...prev,[key]:key==='requirements'&&typeof value==='function'?value(prev.requirements||emptyEnquiryRequirements()):value}));
   if(!result?.mayHaveBeenReceived){
    setResult(null);setPossibleDuplicateRetry(false);
   }
  };
 
+ const attachment=contentSelection?prepareBusinessContentEnquiry(live.businessContent,contentSelection.businessId,contentSelection):null;
  const preparedReview=type==='enquiry'?prepareCustomerEnquiry({message:input.message,requirements:input.requirements||emptyEnquiryRequirements(),feed:live.businessContent,businessId:contentSelection?.businessId,selection:contentSelection}):null;
  const preparedBookingNote=type==='booking_request'?prepareCustomerBookingNote(input.note,input.requirements||emptyEnquiryRequirements()):null;
  const validatedReview=type==='booking_request'?(preparedBookingNote.ok?validateNativeGuestRequest(type,{...input,note:preparedBookingNote.note}):preparedBookingNote):preparedReview?.ok?validateNativeGuestRequest(type,{...input,message:preparedReview.message}):null;
@@ -82,7 +85,7 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
  const reviewLive=React.useRef(null);reviewLive.current={key:currentReview?.key,live,runtime};
  const reviewCurrent=!!enquiryReview&&enquiryReview.key===currentReview?.key;
  const send=async()=>{
-  if(inFlight.current||busy||!enabled||result?.ok||
+  if(inFlight.current||busy||editEpoch.current!==renderedEditEpoch||!enabled||result?.ok||
     result?.mayHaveBeenReceived&&!possibleDuplicateRetry)return;
   if(contentSelection){const checked=prepareBusinessContentEnquiry(live.businessContent,contentSelection.businessId,contentSelection);if(!checked.ok){setResult({ok:false,reason:checked.reason});return;}}
   const prepared=type==='enquiry'?prepareCustomerEnquiry({message:input.message,requirements:input.requirements||emptyEnquiryRequirements(),feed:live.businessContent,businessId:contentSelection?.businessId,selection:contentSelection}):{ok:true};
@@ -113,6 +116,10 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
     "Send a message directly to this business using BUSY's verified guest request service."}</Text>
   {!enabled?<Text style={sub}>This customer request action is not available on the live app.</Text>:(
    <>
+    {attachment?<View accessibilityLiveRegion="polite">
+      <Text style={{...t,fontWeight:'700'}}>{attachment.ok?'Selected item: '+attachment.service:'Selected item needs review'}</Text>
+      <Text selectable style={sub}>{attachment.ok?'Approved revision '+contentSelection.revision+(contentSelection.variantId?' · option '+contentSelection.variantId:'')+'. This is an enquiry only.':attachment.reason+' Return to item information or remove the attachment to prepare a general enquiry. Your own wording and requirements stay here.'}</Text>
+    </View>:null}
     <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} inputRef={node=>{fieldRefs.current.name=node;}} title="Your name" value={input.name} onChange={set("name")}/>
     <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} inputRef={node=>{fieldRefs.current.email=node;}} title="Email address" value={input.email} onChange={set("email")}/>
     <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} inputRef={node=>{fieldRefs.current.phone=node;}} title="Phone number (optional)" value={input.phone} onChange={set("phone")}/>
@@ -149,7 +156,7 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
       <Text style={sub}>This enquiry includes a selected listing. Removing it keeps your wording and requirements; check any item names in your message.</Text>
       <Button title="Remove selected listing" disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} onPress={()=>{
        const current=latestDraft.current;
-       if(inFlight.current||busy||current.input!==input||current.contentSelection!==contentSelection||current.live!==live||current.runtime!==runtime||current.result?.ok||current.result?.mayHaveBeenReceived)return;
+       if(inFlight.current||busy||editEpoch.current!==renderedEditEpoch||current.input!==input||current.contentSelection!==contentSelection||current.live!==live||current.runtime!==runtime||current.result?.ok||current.result?.mayHaveBeenReceived)return;
        onRemoveAttachment({input:{...input,service:''},result:null,possibleDuplicateRetry:false,enquiryReview:null});
       }}/>
       {result?.mayHaveBeenReceived?<Text style={sub}>Keep this attachment while the earlier request is unconfirmed. Do not create a replacement request.</Text>:null}
@@ -409,6 +416,7 @@ export default function App(){
        const previous=requestForms.current.get(requestFormKey);
        if(previous?.result?.ok||previous?.result?.mayHaveBeenReceived)return;
        const nextKey=JSON.stringify([live?.versionId,chosen.key,'service','',requestedIntent,null]);
+       requestIdentity.current=nextKey;
        requestForms.current.delete(requestFormKey);
        requestForms.current.set(nextKey,{...value,enquiryReview:null,result:null,possibleDuplicateRetry:false});
        if(requestForms.current.size>8)requestForms.current.delete(requestForms.current.keys().next().value);
