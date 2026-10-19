@@ -24,6 +24,16 @@ export function selectedWebsiteExploreAdvice(project,selection,text=''){
  }else if(/\b(?:space|spacing|breathing)\b/i.test(text)){
   choices=choices.filter(choice=>/selected-section-space|selected-phone-reading/.test(choice.id));
   facts.push('More space separates information but can mean more scrolling. This is advice, not measured usability.');
+ }else if(/\b(?:phones?|mobile)\b/i.test(text)&&/read|space|size|typograph/i.test(text)){
+  choices=choices.filter(choice=>choice.id==='selected-phone-reading');
+  facts.push('You asked about phones. This comparison changes only supported phone text size and section spacing; desktop and tablet appearance stay unchanged. More room can mean more scrolling, not verified usability improvement.');
+ }else if(['about','text'].includes(section.type)&&/read|column|article|long.*information/i.test(text)){
+  const length=String(section.body||'').length,current=section.appearance?.readingLayout||'brand';
+  choices=choices.filter(choice=>choice.id.startsWith('selected-reading-')||choice.id==='selected-phone-reading');
+  facts.push('This selected information section contains '+length+' source characters. Current reading layout: '+current+'. No wording or image is replaced by these alternatives.');
+  facts.push('A focused column limits line length. An editorial layout puts the heading beside the explanation on larger screens. Two reading columns flow the same text across a wide desktop, while phones and tablets keep one column. Readers must finish the first column before the second.');
+  if(length>=1600)choices.sort((a,b)=>Number(b.id==='selected-reading-columns')-Number(a.id==='selected-reading-columns'));
+  facts.push('Existing owner rejections and locks still determine which original comparisons are offered. A different reading flow is a design hypothesis, not measured reading speed or screenshot inspection.');
  }else if(/read|typograph|heading|hierarchy|question/i.test(text)){
   choices=choices.filter(choice=>/reading|heading|faq-questions|service-directory/.test(choice.id));
   facts.push(section.type==='faq'?'Expandable answers reduce initial density but need an opening action. Keeping answers expanded avoids that extra step.':'A stronger heading or bounded reading width can separate the information. Existing wording and colours stay authoritative.');

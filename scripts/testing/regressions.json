@@ -1171,6 +1171,12 @@
       "args": [
         "scripts/check-mission15-phase29-source-transitions.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase29-explore-reading",
+      "args": [
+        "scripts/check-mission15-phase29-explore-reading.mjs"
+      ]
     }
   ]
 }
