@@ -16,6 +16,14 @@ Before planning or beginning **any substantial sweep**, read both (1) the **late
 
 This preflight is a **required step**, not a suggestion. The owner prefers taking longer to implement the right long-term solution over shortcuts that cause maintenance debt or fail customers. See root `ARCHITECTURE.md`, section "Permanent policy — dual-master governance and outcome-first sweep planning".
 
+## Six-area whole-app release objective — approved 19 October 2026 (Product Master V22.38)
+
+The owner's agreed first-release customer-facing Home has one dominant typed/voice Ask Busy entry and six clear destinations: **Website Builder, App Builder, Content Creator, Get More Customers, Work & Customers, Get Paid**. Keep specialist features under the correct area; do not create a new Home tile for each provider/capability. They must be useful parts of **one connected assistant** using shared records, brand data, permissions, explicit approvals, genuine provider receipts and verified outcomes. This is a planned release definition, not evidence those features are presently available.
+
+Use coordinated multi-area sweeps with **one named lead customer outcome and bounded related secondary changes**. First complete a practical builder feature checkpoint; then lead with **Content Creator + Home**, alongside **Get More Customers**, while incrementally developing Work & Customers and Get Paid through shared enquiry-to-payment journeys. Do not allow unlimited builder polishing to prevent development of the rest of the six-part product. Preserve all existing quality/safety criteria.
+
+**Separate milestones:** *Complete Product* = all six core destinations meet stated first-release functional acceptance criteria and share coherent customer flows under repeatable source/integration checks; *Release Ready* = additionally verified in authenticated isolated staging and real supported devices/providers, including customer requests, publication and payment receipts, privacy/security, accessibility, credits/spend and recovery. Build-first can defer broad manual UAT but **cannot defer** basic regression/security checks or critical foundational integration verification. No paid/live staging/provider/production action is newly approved.
+
 ## Development priorities
 
 1. Build both marketplace Business Apps and independently downloadable standalone apps as completely as practical in code before undertaking expensive comprehensive live/customer tests. App Builder receives the larger share of feature-development effort.
