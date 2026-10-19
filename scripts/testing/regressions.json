@@ -1063,6 +1063,12 @@
       "args": [
         "scripts/check-mission15-phase27-design-feedback.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase27-request-return",
+      "args": [
+        "scripts/check-mission15-phase27-request-return.mjs"
+      ]
     }
   ]
 }

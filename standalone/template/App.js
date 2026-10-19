@@ -176,6 +176,7 @@ export default function App(){
  const [requestedMessage,setRequestedMessage]=useState("");
  const [requestSelection,setRequestSelection]=useState(null);
  const requestForms=React.useRef(new Map());
+ const lastRequest=React.useRef(null);
  const catalogueCache=React.useRef({scope:'',states:{}});
  const [refreshSequence,setRefreshSequence]=useState(0);
  const [measuredFrameWidth,setMeasuredFrameWidth]=useState(0);
@@ -200,7 +201,9 @@ export default function App(){
  if(catalogueCache.current.scope!==publicViewContext)catalogueCache.current={scope:publicViewContext,states:{}};
  const requestFormKey=JSON.stringify([live?.versionId,chosen?.key,requestedKind,requestedService,requestedIntent,requestSelection]);
  const requestIdentity=React.useRef(requestFormKey);requestIdentity.current=requestFormKey;
- const resumeRequestKey=JSON.stringify([live?.versionId,requestedIntent,requestedKind,requestedService,requestedIntent,requestSelection]);
+ const savedReturn=lastRequest.current?.scope===publicViewContext?lastRequest.current:null;
+ const resumeIntent=savedReturn?.screen||requestedIntent;
+ const resumeRequestKey=savedReturn?.key||JSON.stringify([live?.versionId,requestedIntent,requestedKind,requestedService,requestedIntent,requestSelection]);
  const resumableRequest=requestForms.current.get(resumeRequestKey);
  const outerPadding=LOOK.layoutDensity==="compact"?13:
    LOOK.layoutDensity==="airy"?28:20;
@@ -248,7 +251,7 @@ export default function App(){
     </Text>
     <View style={{flexDirection:responsive.ok&&responsive.navigation==="list"?"column":"row",flexWrap:"wrap",marginBottom:15,gap:7}}>
      {pages.map(item=><Pressable key={item.key} accessibilityRole="button"
-      accessibilityLabel={"View "+item.title} onPress={()=>setCurrent(item.key)}
+      accessibilityLabel={"View "+item.title} onPress={()=>{if(viewContext.current!==publicViewContext)return;if(['enquiry','booking_request'].includes(item.key)&&!['enquiry','booking_request'].includes(chosen.key))setRequestOrigin(chosen.key);setCurrent(item.key);}}
       style={{backgroundColor:item.key===chosen.key?COLORS.accent:COLORS.surface,
        width:responsive.ok&&responsive.navigation==="list"?"100%":undefined,
        minHeight:48,justifyContent:"center",
@@ -258,7 +261,7 @@ export default function App(){
        fontWeight:"600"}}>{item.title}</Text>
      </Pressable>)}
     </View>
-    {!['enquiry','booking_request'].includes(chosen.key)&&resumableRequest&&pages.some(page=>page.key===requestedIntent)?<Button title={resumableRequest.result?.ok?'Return to saved request':resumableRequest.result?.mayHaveBeenReceived?'Return to unconfirmed request':'Return to my unfinished request'} onPress={()=>{if(viewContext.current===publicViewContext&&requestForms.current.get(resumeRequestKey)===resumableRequest)setCurrent(requestedIntent);}}/>:null}
+    {!['enquiry','booking_request'].includes(chosen.key)&&resumableRequest&&pages.some(page=>page.key===resumeIntent)?<Button title={resumableRequest.result?.ok?'Return to saved request':resumableRequest.result?.mayHaveBeenReceived?'Return to unconfirmed request':'Return to my unfinished request'} onPress={()=>{if(viewContext.current!==publicViewContext||requestForms.current.get(resumeRequestKey)!==resumableRequest||lastRequest.current!==savedReturn)return;if(savedReturn){setRequestedKind(savedReturn.kind);setRequestedService(savedReturn.service);setRequestedIntent(savedReturn.intent);setRequestSelection(savedReturn.selection);setRequestedMessage(savedReturn.message);setRequestOrigin(savedReturn.origin);}setCurrent(resumeIntent);}}/>:null}
     {["enquiry","booking_request"].includes(chosen.key)?
      <RequestScreen key={requestFormKey}
       screen={chosen} live={live} runtime={runtime} contentSelection={requestSelection}
@@ -271,11 +274,13 @@ export default function App(){
        requestIdentity.current=nextKey;
        requestForms.current.delete(requestFormKey);
        requestForms.current.set(nextKey,{...value,enquiryReview:null,result:null,possibleDuplicateRetry:false});
+       lastRequest.current={key:nextKey,scope:publicViewContext,screen:chosen.key,kind:'service',service:'',intent:requestedIntent,selection:null,message:'',origin:requestOrigin};
        if(requestForms.current.size>8)requestForms.current.delete(requestForms.current.keys().next().value);
        setRequestSelection(null);setRequestedService('');setRequestedKind('service');setRequestedMessage('');
       }}
+      returnInformationLabel={requestSelection?'Back to item information':'Back to app information'}
       onReturnToInformation={requestOrigin&&pages.some(page=>page.key===requestOrigin)?()=>{if(viewContext.current===publicViewContext)setCurrent(requestOrigin);}:null}
-      onSaveState={value=>{if(viewContext.current!==publicViewContext)return;const key=requestFormKey;if(requestIdentity.current!==key&&!requestForms.current.has(key))return;requestForms.current.set(key,value);if(requestForms.current.size>8)requestForms.current.delete(requestForms.current.keys().next().value);}}
+      onSaveState={value=>{if(viewContext.current!==publicViewContext)return;const key=requestFormKey;if(requestIdentity.current!==key&&!requestForms.current.has(key))return;requestForms.current.set(key,value);if(requestIdentity.current===key)lastRequest.current={key,scope:publicViewContext,screen:chosen.key,kind:requestedKind,service:requestedService,intent:requestedIntent,selection:requestSelection,message:requestedMessage,origin:requestOrigin};if(requestForms.current.size>8)requestForms.current.delete(requestForms.current.keys().next().value);}}
       initialService={chosen.key===requestedIntent?
        requestedService:""}
       initialMessage={requestedMessage|| (chosen.key==="enquiry"&&requestedIntent==="enquiry"&&requestedService?

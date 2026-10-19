@@ -10,7 +10,7 @@ import {nativePreferredDates} from './nativePreferredDates.mjs';
 // The original request screen, extracted unchanged. The app supplies its existing
 // presentation primitives; submission, review, receipt and private state stay here.
 export function createNativeRequestScreen({Button,Field,COLORS,box,t,sub}){
- return function RequestScreen({screen,live,runtime,initialService="",initialMessage="",savedState=null,onSaveState,onReturnToInformation,onRemoveAttachment,contentSelection=null}){
+ return function RequestScreen({screen,live,runtime,initialService="",initialMessage="",savedState=null,onSaveState,onReturnToInformation,returnInformationLabel="Back to item information",onRemoveAttachment,contentSelection=null}){
  const [input,setInput]=useState(savedState?.input||{name:"",email:"",phone:"",service:initialService,
   preferredDate:"",message:initialMessage,note:"",requirements:emptyEnquiryRequirements()});
  const [busy,setBusy]=useState(false),[result,setResult]=useState(savedState?.result||null);
@@ -116,7 +116,7 @@ export function createNativeRequestScreen({Button,Field,COLORS,box,t,sub}){
       }}/>
       {result?.mayHaveBeenReceived?<Text style={sub}>Keep this attachment while the earlier request is unconfirmed. Do not create a replacement request.</Text>:null}
     </>:null}
-    {typeof onReturnToInformation==='function'?<Button title="Back to item information" disabled={busy||inFlight.current} onPress={()=>{if(inFlight.current||busy)return;onSaveState?.({input,result,possibleDuplicateRetry,enquiryReview});onReturnToInformation();}}/>:null}
+    {typeof onReturnToInformation==='function'?<Button title={returnInformationLabel} disabled={busy||inFlight.current} onPress={()=>{if(inFlight.current||busy)return;onSaveState?.({input,result,possibleDuplicateRetry,enquiryReview});onReturnToInformation();}}/>:null}
     <Text style={{...sub,fontSize:12}}>By sending, you share these details with the business
       so it can reply. Anti-spam verification may take a few moments.
       This is not a confirmed booking or payment.</Text>
