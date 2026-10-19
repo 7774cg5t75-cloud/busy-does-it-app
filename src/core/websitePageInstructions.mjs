@@ -59,6 +59,11 @@ function planWebsitePageInstructions(draft,{draftId,pageId,generation,instructio
     return fail('Review the current FAQ section before adding questions.');
    change={action:sections.length?'add-item':'create-collection',sectionId:'faq',title:m[1],body:m[2]};
    type='field';description='Add your exact question and answer to the private FAQ section';
+  }else if((m=clause.match(/^(?:show|display) (?:the )?services as (a directory|cards|the original layout)$/i))){
+   const section=findSection('services');
+   if(!section||section.type!=='services')return fail('Open the current page containing the services section first.');
+   change={action:'section-style',sectionId:section.id,field:'serviceLayout',value:{'a directory':'directory',cards:'cards','the original layout':'brand'}[m[1].toLowerCase()]};
+   description='Change only the services layout; preserve names, descriptions, order, branding and destinations. Phones keep one reading column';
   }else if((m=clause.match(/^(?:show|display) (products|events) as (cards|rows)$/i))){
    const section=findSection(m[1].toLowerCase());
    if(!section||section.contentSource!=='business_records_v1')return fail('Open the current page containing the approved-record section first.');

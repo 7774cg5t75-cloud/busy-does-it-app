@@ -15,6 +15,20 @@ function explainBuilderExplore({kind,project,catalog,plan,text}){
  }
  const profile=kind==='app'?project.draft_config?.publicProfile||{}:project;
  const services=kind==='app'?(profile.services||[]):project.sections?.find(s=>s.type==='services'&&s.enabled!==false)?.items||[];
+ if(kind==='website'&&/\b(?:service directory|service cards|long(?:er)? (?:service )?descriptions|two[- ]column services|services easier to read)\b/i.test(text)){
+  const page=project.pages?.find(p=>p.id==='home'),section=(project.sections||[]).find(s=>s.type==='services'&&s.id==='services'&&s.enabled!==false&&page?.sectionIds?.includes(s.id));
+  const items=section?.items||[],long=items.filter(row=>String(row.body||'').length>=180).length,custom=section?.appearance?.serviceLayout;
+  const declined=ownerDesignPreference(project,'coordinated-service-directory','home')==='disliked'||ownerDesignPreference(project,'selected-service-directory','home')==='disliked';
+  const alternatives=[];
+  if(section&&!custom){
+   if(!declined)alternatives.push({label:'Explore a service directory',instruction:'show the services as a directory'});
+   if(ownerDesignPreference(project,'selected-service-cards','home')!=='disliked')alternatives.push({label:'Explore two-column service cards',instruction:'show the services as cards'});
+  }
+  return {answer:['Your current Home page has '+items.length+' service descriptions; '+long+' contain longer information.',
+   section?'A service directory pairs names with descriptions on larger screens. Cards separate services into two columns. Both use one column on phones and preserve the original service order, wording and colours.':'There is no visible services section on Home to compare. Add accurate service information through the original editor first.',
+   custom?'Your chosen services layout is kept. Select the section in the editor if you want to review an explicit replacement.':declined?'You previously declined the directory direction, so it is not offered again here.':'A directory prioritises longer reading; cards give services separate visual groups. Neither is proven better for your visitors.',
+   'These are implemented responsive rules, not screenshot inspection. Choosing an alternative only prepares discussion; Make changes and the separate editor approval remain necessary. Nothing will be changed.'].join('\n'),alternatives,discussionOnly:true};
+ }
  if(kind==='website'&&/\b(?:editorial|picture[- ]and[- ]text|text first|text before (?:the )?picture|picture after (?:the )?text)\b/i.test(text)){
   const page=project.pages?.find(row=>row.id==='home'),features=(project.sections||[]).filter(row=>row.enabled!==false&&row.type==='photo-feature'&&page?.sectionIds?.includes(row.id)&&row.asset?.approved===true);
   const right=features.filter(row=>row.appearance?.photoSide==='right').length,declined=ownerDesignPreference(project,'coordinated-editorial-feature','home')==='disliked',facts=websiteCompositionFacts(project,'home');
