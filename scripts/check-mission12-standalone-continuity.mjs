@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {prepareBusinessContentEnquiry} from '../src/core/businessContentRecords.mjs';
 // Actual standalone form pre-render body; no Babel, React renderer or network.
-const source=fs.readFileSync(new URL('../standalone/template/App.js',import.meta.url),'utf8');
+const source=fs.readFileSync(new URL('../standalone/template/nativeRequestScreen.js',import.meta.url),'utf8');
 const a=source.indexOf('function RequestScreen('),b=source.indexOf(' return <View',a);assert.ok(a>0&&b>a);
 const feed={ok:true,version:1,businessId:'business-a',checkedAt:'2026-10-17T12:00:00.000Z',records:[{id:'product_record_001',kind:'product',revision:2,data:{name:'Bowl',description:'Owner wording',category:'Ceramics',image:null,status:'active',currency:'GBP',amountMinor:2450,availability:'not_tracked'}}],stockTracked:false,checkoutEnabled:false,attendanceConfirmed:false};
 const prepared=prepareBusinessContentEnquiry(feed,'business-a',{recordId:'product_record_001',revision:2});
@@ -18,7 +18,7 @@ let returned=component(persisted);ui=returned.render();assert.equal(ui.input.ser
 resolve({ok:true,requestId:'saved-request',message:'Enquiry sent.'});await pending;assert.equal(persisted.result.ok,true);
 returned=component(persisted);ui=returned.render();await ui.send();assert.equal(calls,1,'saved success survives navigation and cannot be silently submitted twice');
 const changed={...feed,records:[{...feed.records[0],revision:3}]};const stale=component().render({live:{supportsEnquiry:true,businessContent:changed}});await stale.send();assert.equal(calls,1,'a changed listing blocks before transport');
-assert.ok(source.includes('const requestFormKey=JSON.stringify([live?.versionId,chosen?.key,requestedKind,requestedService,requestedIntent,requestSelection])'));
+assert.ok(fs.readFileSync(new URL('../standalone/template/App.js',import.meta.url),'utf8').includes('const requestFormKey=JSON.stringify([live?.versionId,chosen?.key,requestedKind,requestedService,requestedIntent,requestSelection])'));
 console.log('PASS actual standalone form logic: selected context, typed fields, pending navigation, success receipt continuity, no implicit duplicate and stale listing rejection. Hooks/transport fixtures, no native rendering or live service claim.');
 
 assert.equal(fs.readFileSync(new URL('../standalone/template/customerEnquiryRequirements.mjs',import.meta.url),'utf8'),fs.readFileSync(new URL('../src/core/customerEnquiryRequirements.mjs',import.meta.url),'utf8'));

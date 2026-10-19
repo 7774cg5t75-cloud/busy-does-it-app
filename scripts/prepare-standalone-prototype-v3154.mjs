@@ -23,7 +23,7 @@ const handoff=buildStandalonePrivateHandoff({app,preview,plan,catalog,ownerConfi
 const descriptor=nativeShellDescriptor(handoff);
 if(!descriptor.ok)throw Error("Unsafe prototype: "+descriptor.reason);
 await mkdir(output,{recursive:true});
-for(const file of ["enquiryTopicShortcuts.js","catalogueState.mjs","serviceActionButton.js","appFaqCard.js","App.js","app.config.js","index.js","package.json","nativeBusinessClient.js","nativeGuestProof.js","nativeGuestRequests.js","appResponsiveDesign.mjs","nativeCustomerActions.mjs","nativePreferredDates.mjs","appPublicCollections.mjs","publicServiceDetails.mjs","serviceDetails.js","businessContentView.js","businessContentRecords.mjs","serviceCategoryFilter.js","customerEnquiryRequirements.mjs"])
+for(const file of ["nativeRequestScreen.js","enquiryTopicShortcuts.js","catalogueState.mjs","serviceActionButton.js","appFaqCard.js","App.js","app.config.js","index.js","package.json","nativeBusinessClient.js","nativeGuestProof.js","nativeGuestRequests.js","appResponsiveDesign.mjs","nativeCustomerActions.mjs","nativePreferredDates.mjs","appPublicCollections.mjs","publicServiceDetails.mjs","serviceDetails.js","businessContentView.js","businessContentRecords.mjs","serviceCategoryFilter.js","customerEnquiryRequirements.mjs"])
  await copyFile(path.join(template,file),path.join(output,file));
 await copyFile(path.join(root,"src","core","nativePalette.mjs"),path.join(output,"nativePalette.mjs"));
 await copyFile(path.join(root,'src','core','appComponentAppearance.mjs'),path.join(output,'appComponentAppearance.mjs'));
