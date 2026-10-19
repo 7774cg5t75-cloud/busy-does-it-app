@@ -3634,7 +3634,9 @@ function App() {
     ].filter(Boolean);
   };
 
+  const socialDraftScope=businessWorkspaceScopeRef.current;
   const upsertSocialDraft = (status = "Draft") => {
+    if(businessWorkspaceScopeRef.current!==socialDraftScope)return null;
     const text = socialDraftText.trim();
     if (!text || (status !== "Draft" && !socialCreatePhotos.length)) return null;
     const channels = socialChannelNames();
@@ -4175,6 +4177,7 @@ function App() {
   };
 
   const openSocialDraft = (id) => {
+    if(businessWorkspaceScopeRef.current!==socialDraftScope)return false;
     const draft = socialDrafts.find((item) => item.id === id);
     if (!draft) return;
     setSelectedSocialDraftId(id);
