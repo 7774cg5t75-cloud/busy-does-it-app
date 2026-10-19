@@ -777,20 +777,20 @@ function SocialCreator({ s }) {
               onPress={applyBrandCaption}/>
           </View>:<Text style={styles.cardBody}>{brandReview.reason}</Text>}
         </View>:null}
-        {brandedCaptionAccepted&&!ready?<View>
-          <Text style={styles.fieldLabel}>Your editable branded caption</Text>
+        {(brandedCaptionAccepted||s.socialDraftText.trim())&&!ready?<View>
+          <Text style={styles.fieldLabel}>Your editable caption</Text>
           <TextInput multiline value={s.socialDraftText}
             onChangeText={editCaption}
             style={styles.messageInput}
             placeholder="Review and edit your business caption"
             placeholderTextColor="#9AA3B2"/>
           <Button primary
-            label={photos.length?"Save branded post draft & review":"Choose photos to save this draft"}
-            disabled={!photos.length||!s.socialDraftText.trim()||analysing}
+            label={photos.length?"Save branded post draft & review":"Save text draft & review"}
+            disabled={!s.socialDraftText.trim()||analysing}
             onPress={s.saveGeneratedSocialDraft}/>
           <Text style={styles.cardBody}>
             Nothing is scheduled or published. The existing social workflow
-            currently requires selected photos to save a post draft.
+            keeps text-only drafts privately; approved photos are required before using its publishing queue.
           </Text>
         </View>:null}
       </Card>:null}
@@ -923,7 +923,7 @@ function SocialDraftReview({ s }) {
       <Card
         eyebrow="Prepared content"
         title={s.socialSourceContext?.service || s.socialAiResult?.detectedService || "Social post"}
-        body={s.socialAiResult?.story?.reason || "Prepared from selected business photos."}
+        body={!photos.length?"Private text draft. Add approved photos before using the supported publishing queue. Nothing has been scheduled or published.":s.socialAiResult?.story?.reason || "Prepared from selected business photos."}
         footer={s.socialSourceContext?.label || "Selected photos"}
         tone={warnings.length ? "amber" : "green"}
       >
@@ -1113,9 +1113,11 @@ function SocialDraftReview({ s }) {
 
       {!recordLocked ? (
         <>
+          {!photos.length?<Button label="Keep private wording draft" disabled={busy||!s.socialDraftText.trim()} onPress={s.saveGeneratedSocialDraft}/>:null}
+          {!photos.length?<Button label="Add approved photos in Content Creator" onPress={()=>s.go("socialCreator")}/>:null}
           <Button
             label={busy && s.socialPublishingAction === "save" ? "Saving to cloud…" : "Save cloud-backed draft"}
-            disabled={busy || !s.socialDraftText.trim()}
+            disabled={busy || !photos.length || !s.socialDraftText.trim()}
             onPress={s.saveSocialDraftOnly}
           />
           <Button
@@ -1128,7 +1130,7 @@ function SocialDraftReview({ s }) {
                 ? "Schedule real post"
                 : "Schedule in cloud queue"
             }
-            disabled={busy || !selectedCount || !s.socialDraftText.trim()}
+            disabled={busy || !photos.length || !selectedCount || !s.socialDraftText.trim()}
             onPress={s.scheduleSocialDraft}
           />
           <Button
@@ -1142,7 +1144,7 @@ function SocialDraftReview({ s }) {
                 : "Live publishing setup not finished"
             }
             primary={liveEnabled && selectedCount > 0}
-            disabled={busy || !selectedCount || !s.socialDraftText.trim() || !liveEnabled}
+            disabled={busy || !photos.length || !selectedCount || !s.socialDraftText.trim() || !liveEnabled}
             onPress={s.approveSocialDraft}
           />
         </>

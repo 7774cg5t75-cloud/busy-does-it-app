@@ -3636,7 +3636,7 @@ function App() {
 
   const upsertSocialDraft = (status = "Draft") => {
     const text = socialDraftText.trim();
-    if (!text || !socialCreatePhotos.length) return null;
+    if (!text || (status !== "Draft" && !socialCreatePhotos.length)) return null;
     const channels = socialChannelNames();
     if (status !== "Draft" && !channels.length) {
       Alert.alert("Choose a destination", "Select at least one social profile before scheduling or approving this post.");
@@ -3737,6 +3737,7 @@ function App() {
   };
 
   const buildSocialPublishPayload = async (record, ownerApproved = false) => {
+    if(!socialCreatePhotos.length)throw Error("This is a private text draft. Add approved photos before using the publishing queue.");
     const photos = [];
     for (let index = 0; index < socialCreatePhotos.length; index += 1) {
       const photo = socialCreatePhotos[index];
@@ -3887,6 +3888,7 @@ function App() {
   };
 
   const saveSocialDraftOnly = async () => {
+    if(!socialCreatePhotos.length){setSocialPublishingError("Add approved photos before using the publishing queue. Your text remains a private draft.");return false;}
     const record = upsertSocialDraft("Draft");
     if (!record) return false;
     setSocialPublishingLoading(true);
@@ -3910,6 +3912,7 @@ function App() {
   };
 
   const scheduleSocialDraft = async () => {
+    if(!socialCreatePhotos.length){setSocialPublishingError("Add approved photos before using the publishing queue. Your text remains a private draft.");return false;}
     const record = upsertSocialDraft("Draft");
     if (!record) return false;
     const scheduledFor = socialScheduledForISO();
@@ -3953,6 +3956,7 @@ function App() {
   };
 
   const approveSocialDraft = async () => {
+    if(!socialCreatePhotos.length){setSocialPublishingError("Add approved photos before using the publishing queue. Your text remains a private draft.");return false;}
     const record = upsertSocialDraft("Draft");
     if (!record) return false;
     setSocialPublishingLoading(true);

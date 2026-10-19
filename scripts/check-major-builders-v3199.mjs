@@ -109,7 +109,7 @@ for(const token of [
  "confirmSocialBrandHandoff({...currentBrandInput()",
  'Alert.alert("Replace your caption?"',
  'onPress={s.saveGeneratedSocialDraft}',
- 'disabled={!photos.length||!s.socialDraftText.trim()||analysing}',
+ 'disabled={!s.socialDraftText.trim()||analysing}',
  "s.setSocialDraftText(fresh.copy)",
  "setBrandReview(null);setBrandedCaptionAccepted(false)"
 ])ok(social.includes(token),"Missing social owner-review wiring: "+token);
