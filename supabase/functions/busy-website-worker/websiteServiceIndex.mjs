@@ -1,7 +1,7 @@
 import {itemTypographyClasses} from './websiteTextTypography.mjs';
 export function validServiceIndex(section){
  const items=section?.items;
- return section?.type==='services'&&Array.isArray(items)&&items.length>=2&&items.every(item=>typeof item.id==='string'&&item.id.trim()&&String(item.title||'').trim()&&String(item.body||'').trim())&&new Set(items.map(item=>item.id)).size===items.length;
+ return section?.type==='services'&&Array.isArray(items)&&items.length>=2&&items.every(item=>item&&typeof item.id==='string'&&item.id.trim()&&String(item.title||'').trim()&&String(item.body||'').trim())&&new Set(items.map(item=>item.id)).size===items.length;
 }
 // Original record order and wording; finite local anchors, never new actions.
 export function serviceIndexHtml(section,{escapeHtml,editAttrs=()=>'',itemHeadingClass=()=>''}={}){
