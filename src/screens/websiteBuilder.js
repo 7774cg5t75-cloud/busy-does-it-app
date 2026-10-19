@@ -985,7 +985,11 @@ function WebsitePreview({ s }) {
   const [selectedPageId,setSelectedPageId] = React.useState("home");
   const [tapEditMode,setTapEditMode]=React.useState(false);
   const [previewSize,setPreviewSize]=React.useState("full");
-  const [selectedEdit,setSelectedEdit]=React.useState(null);
+  const [selectedEdit,setSelectedEditState]=React.useState(null);
+  const selectedWordingDirty=React.useRef(false);
+  const [pendingEdit,setPendingEdit]=React.useState(null);
+  const setSelectedEdit=value=>{if(selectedWordingDirty.current){setPendingEdit({value,draft});return;}setSelectedEditState(value);};
+  React.useEffect(()=>{selectedWordingDirty.current=false;setSelectedEditState(null);setPendingEdit(null);},[s.ownerSession?.userId,s.cloudWorkspace?.businessId]);
   const [visualCheckOn,setVisualCheckOn]=React.useState(false);
   const [visualCheckResult,setVisualCheckResult]=React.useState(null);
   const [viewportEvidence,setViewportEvidence]=React.useState(null);
@@ -1623,8 +1627,10 @@ function WebsitePreview({ s }) {
         </Text>
       </Card>
 
-      <WebsiteTapEditor draft={draft} selection={selectedEdit}
+      {pendingEdit?<Card title="Keep your unsaved wording" body="Save the wording using its original control, keep editing, or discard it before switching."><Button label="Keep editing website wording" onPress={()=>setPendingEdit(null)}/><Button label="Discard website wording and switch" disabled={pendingEdit.draft!==draft} onPress={()=>{if(pendingEdit.draft!==draft)return;selectedWordingDirty.current=false;setSelectedEditState(pendingEdit.value);setPendingEdit(null);}}/></Card>:null}
+      <WebsiteTapEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')} draft={draft} selection={selectedEdit}
         exploreContext={{kind:'website',ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,project:draft,selection:selectedEdit}}
+        onDraftChange={value=>{selectedWordingDirty.current=!!value;if(!value)setPendingEdit(null);}}
         initialMode={selectedEdit?.initialMode||"edit"}
         onClose={()=>setSelectedEdit(null)}
         onTextChange={s.applyWebsiteFieldChange}

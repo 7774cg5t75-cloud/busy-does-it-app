@@ -27,7 +27,8 @@ const photoPreviewSource=asset=>{
  const uri=typeof asset?.uri==="string"?asset.uri.trim():"";
  return /^(https:\/\/|file:\/\/)/i.test(uri)?{uri}:null;
 };
-function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChange,onLayoutChange,onApplyInstruction,onPreviewInstruction,onTranscribe,exploreContext}){
+function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChange,onLayoutChange,onApplyInstruction,onPreviewInstruction,onTranscribe,exploreContext,onDraftChange}){
+ const [closeRequested,setCloseRequested]=React.useState(false);
  const [exploring,setExploring]=React.useState(false);
  const [value,setValue]=React.useState("");
  const [confirmRemove,setConfirmRemove]=React.useState(false);
@@ -46,8 +47,8 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  // They must not submit an earlier value against a replacement source.
  // Invalidate callbacks immediately, including before React renders the new text.
  const setContextDraft=words=>{editorLive.current.contextRequest=words;setContextRequest(words);};
- const setOwnerWording=words=>{wordingEdited.current=true;editorLive.current.value=words;setValue(words);};
- const cancelOwnerWording=()=>{if(!current())return;const original=String(target?.[field]??'');wordingEdited.current=false;editorLive.current.value=original;setValue(original);};
+ const setOwnerWording=words=>{setCloseRequested(false);onDraftChange?.(true);wordingEdited.current=true;editorLive.current.value=words;setValue(words);};
+ const cancelOwnerWording=()=>{if(!current())return;const original=String(target?.[field]??'');onDraftChange?.(false);wordingEdited.current=false;editorLive.current.value=original;setValue(original);};
  const current=()=>alive.current&&editorLive.current.draft===draft&&editorLive.current.selection===selection&&editorLive.current.exploreContext===exploreContext;
  const section=list(draft?.sections).find(s=>s.id===selection?.sectionId);
  const item=selection?.itemId?list(section?.items).find(x=>x.id===selection.itemId):null;
@@ -56,6 +57,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  const title=section?.title||"Website section";
  const key=[selection?.sectionId,selection?.field,selection?.itemId,selection?.photoIndex].join(":");
  React.useEffect(()=>{
+  if(wordingEdited.current){setSelectedInstructionPreview(null);setContextNote('Your source or selection changed. Your unsaved wording is kept; cancel it or reselect the current part before saving.');return;}
   setValue(typeof target?.[field]==="string"?target[field]:"");
   wordingEdited.current=false;setConfirmRemove(false);
   setShowSectionDesign(initialMode==="more"||selection?.field==="section");
@@ -67,9 +69,10 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
   setShowPreviewOriginal(false);
   setComparisonSize("phone");
  },[key,draft?.updatedAt,initialMode]);
+ const requestClose=()=>{if(!current())return;if(wordingEdited.current){setCloseRequested(true);return;}onClose?.();};
  const save=()=>{
   if(!current()||editorLive.current.value!==value||!selection||field==="photo")return;
-  if(onTextChange?.({...selection,value})===true)onClose?.();
+  if(onTextChange?.({...selection,value})===true){wordingEdited.current=false;onDraftChange?.(false);onClose?.();}
  };
  const apply=change=>{
   if(!current())return;
@@ -158,7 +161,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
       :{action:"section-style",sectionId:section?.id,field,value})}/>;
  };
  return (
-  <Modal visible={!!selection} onRequestClose={onClose}
+  <Modal visible={!!selection} onRequestClose={requestClose}
    animationType="slide" presentationStyle="pageSheet">
    <SafeAreaView style={{flex:1,backgroundColor:"#0D131E"}}>
     <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==="ios"?"padding":undefined}>
@@ -174,6 +177,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
       <Text style={{color:"#B4C0D2",marginBottom:14}}>
        {title+" • "+(names[field]||"Selected element")}
       </Text>
+      {closeRequested?<View accessibilityLiveRegion="polite"><Text style={styles.cardBody}>Your wording is not saved. Save it below or choose whether to discard it.</Text><Button label="Keep editing this wording" onPress={()=>setCloseRequested(false)}/><Button label="Discard wording and close" onPress={()=>{if(!current()||editorLive.current.value!==value)return;cancelOwnerWording();setCloseRequested(false);onClose?.();}}/></View>:null}
       {!exploring?<Card eyebrow="Private website change" title={initialMode==="voice"?"Talk to BUSY about this part":initialMode==="more"?"More ways to adjust this part":field==="section"?"Adjust this section":field==="photo"?"Replace this picture":"Change the exact wording"}
        body="Your edits stay in your private draft. Nothing is published automatically, and you can undo a saved change."
        tone="blue">
@@ -445,7 +449,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
          ):null}
         </>
        ):null}
-       <Button label="Cancel — leave website unchanged" onPress={onClose}/>
+       <Button label="Cancel — leave website unchanged" onPress={requestClose}/>
       </Card>:null}
      </ScrollView>
     </KeyboardAvoidingView>

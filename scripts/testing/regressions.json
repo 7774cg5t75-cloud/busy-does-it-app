@@ -1016,6 +1016,13 @@
         "scripts/check-mission15-phase26-selected-explore.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase26-draft-switch",
+      "args": [
+        "scripts/check-mission15-phase26-draft-switch.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
