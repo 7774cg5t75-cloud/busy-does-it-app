@@ -84,3 +84,7 @@ Latest owner-approved private master: **V22.35**. Owner-supplied Word filename `
 ## Phase 23 current-access limitation — 19 October 2026
 
 V22.35 remains the owner-approved version and the Phase 22 checksum remains provenance only. The original attachment path and extracted text are no longer mounted in this execution environment; available workspace Word files contain only V22.18. That older version was not substituted. Phase 23 records explicitly gate new product-scope sweeps pending owner reattachment, while preserving behaviour-only extraction and verified existing-contract/testing fixes. This entry does not claim current access or a fresh full review.
+
+## Phase 23 access restored — owner reattachment, 19 October 2026
+
+`Newest 69.docx` is V22.35, original-byte SHA-256 `7d93efedb1ff68a57470bdb97073767a14a9fc64cd1c53c06fba3021d12e298d`, identical to the complete document already read in this current task. The previous current-access limitation is resolved for this continuation. A mode-0600 copy is available outside this public repository at `/workspace/busy-does-it-private-masters/Busy_Does_It_Master_V22_35.docx`. Future tasks must verify actual file access and the approved version; this workspace copy is not a guaranteed cross-environment mount. No private contents were committed.
