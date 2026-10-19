@@ -60,7 +60,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
   if(wordingEdited.current){setSelectedInstructionPreview(null);setContextNote('Your source or selection changed. Your unsaved wording is kept; cancel it or reselect the current part before saving.');return;}
   setValue(typeof target?.[field]==="string"?target[field]:"");
   wordingEdited.current=false;setConfirmRemove(false);
-  setShowSectionDesign(initialMode==="more"||selection?.field==="section");
+  setShowSectionDesign(initialMode==="more");
   setShowContextHelp(initialMode==="voice");
   setContextDraft("");
   setContextNote("");

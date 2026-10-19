@@ -1037,6 +1037,13 @@
         "scripts/check-mission15-phase26-faq-composition.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase26-editing-controls",
+      "args": [
+        "scripts/check-mission15-phase26-editing-controls.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
