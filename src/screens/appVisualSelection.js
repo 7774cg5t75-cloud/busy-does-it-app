@@ -18,7 +18,7 @@ import {PROFILE_TEXT_LIMITS} from '../core/appProfileFieldUndo.mjs';
 // comparison, CAS approval and Undo. No native dragging or local save engine.
 export function AppVisualSelection({Surface,config,businessContent,onPrepare,busy=false,voiceScope,onTranscribe}){
  const [selection,setSelection]=React.useState(null),[selectionSource,setSelectionSource]=React.useState(null);
- const dirty=React.useRef(false);
+ const dirty=React.useRef(false),dirtyEpoch=React.useRef(0);
  const [pendingSelection,setPendingSelection]=React.useState(null);
  const [wording,setWording]=React.useState('');
  const [imageCopy,setImageCopy]=React.useState({alt:'',caption:''});
@@ -27,13 +27,13 @@ export function AppVisualSelection({Surface,config,businessContent,onPrepare,bus
  const current=()=>live.current.config===config&&!live.current.busy;
  const commitSelection=value=>{
   if(!current())return;
-  dirty.current=false;setPendingSelection(null);live.current.selection=value;setSelection(value);setSelectionSource(config);
+  dirty.current=false;dirtyEpoch.current++;setPendingSelection(null);live.current.selection=value;setSelection(value);setSelectionSource(config);
   const image=selectedAppImage(config,value);setImageCopy({alt:image?.alt||'',caption:image?.caption||''});
   const field=value?.part==='header'?'tagline':value?.part==='wording'?value.field:null;
   setWordingDraft(field?String(config?.publicProfile?.[field]??(field==='tagline'?config?.display?.tagline:'')??''):'');
  };
- const select=value=>{if(!current())return;if(dirty.current){setPendingSelection({value,config,selection:live.current.selection});return;}commitSelection(value);};
- const reportDirty=value=>{if(current()&&selectionSource===config&&live.current.selection===selection)dirty.current=!!value;};
+ const select=value=>{if(!current())return;if(dirty.current){setPendingSelection({value,config,selection:live.current.selection,epoch:dirtyEpoch.current});return;}commitSelection(value);};
+ const reportDirty=value=>{if(current()&&selectionSource===config&&live.current.selection===selection){dirty.current=!!value;dirtyEpoch.current++;setPendingSelection(null);}};
  const selectionCurrent=selectionSource===config;
  const prepare=operation=>{
   if(!current()||!selectionCurrent||live.current.selection!==selection||live.current.wording!==wording||live.current.imageCopy!==imageCopy)return;
@@ -54,16 +54,16 @@ export function AppVisualSelection({Surface,config,businessContent,onPrepare,bus
   <Surface config={config} businessContent={businessContent} ownerEdit={{selection:selectionCurrent?selection:null,onSelect:select}}/>
   <Button label={(selection?.part==='spacing'?'✓ ':'')+'Select app spacing'} disabled={busy} onPress={()=>select({part:'spacing'})}/>
   <Button label={(selection?.part==='branding'?'✓ ':'')+'Select app colours'} disabled={busy} onPress={()=>select({part:'branding'})}/>
-  {pendingSelection?<View accessibilityLiveRegion="polite"><Text style={styles.cardBody}>Your wording is not saved. Review it with the existing Preview control, or discard it before switching.</Text><Button label="Keep editing my wording" onPress={()=>setPendingSelection(null)}/><Button label="Discard wording and switch" disabled={pendingSelection.config!==config} onPress={()=>{if(current()&&pendingSelection.config===config&&pendingSelection.selection===live.current.selection)commitSelection(pendingSelection.value);}}/></View>:null}
+  {pendingSelection?<View accessibilityLiveRegion="polite"><Text style={styles.cardBody}>Your wording is not saved. Review it with the existing Preview control, or discard it before switching.</Text><Button label="Keep editing my wording" onPress={()=>setPendingSelection(null)}/><Button label="Discard wording and switch" disabled={pendingSelection.config!==config} onPress={()=>{if(current()&&pendingSelection.config===config&&pendingSelection.selection===live.current.selection&&pendingSelection.epoch===dirtyEpoch.current)commitSelection(pendingSelection.value);}}/></View>:null}
   {selection?<View accessibilityLiveRegion="polite">
    <Text style={styles.sectionLabel}>{'Selected '+(selection.moduleKey||selection.field||selection.part).replaceAll('_',' ')}</Text>
    {!selectionCurrent?<View><Text accessibilityRole="alert" style={styles.cardBody}>The app source changed. Your unsubmitted wording is kept here; reselect the current part before preparing changes.</Text><Button label="Use current app source" disabled={busy} onPress={()=>select(selection)}/></View>:null}
    {selection.part==='service'?<AppSelectedServiceControls key={JSON.stringify(selection)+String(selectionCurrent)} config={config} selection={selection} disabled={busy||!selectionCurrent} onPrepare={prepare} onDraftChange={reportDirty}/>:null}
    {selection.part==='faq'?<AppSelectedFaqControls key={JSON.stringify(selection)+String(selectionCurrent)} config={config} selection={selection} disabled={busy||!selectionCurrent} onPrepare={prepare} onDraftChange={reportDirty}/>:null}
    {textOp?<View>
-    <Field label={field==='tagline'?'App tagline (header and summary)':'Selected business '+field} value={wording} maxLength={PROFILE_TEXT_LIMITS[field]} multiline onChangeText={value=>{if(current()&&selectionCurrent&&live.current.selection===selection){dirty.current=true;setWordingDraft(value);}}}/>
+    <Field label={field==='tagline'?'App tagline (header and summary)':'Selected business '+field} value={wording} maxLength={PROFILE_TEXT_LIMITS[field]} multiline onChangeText={value=>{if(current()&&selectionCurrent&&live.current.selection===selection){dirty.current=true;dirtyEpoch.current++;setPendingSelection(null);setWordingDraft(value);}}}/>
     <Text style={styles.cardBody}>Owner-written wording only. Review every affected screen in Studio before applying; your existing approval and Undo controls remain.</Text>
-    <Button label="Cancel selected wording" disabled={busy||!selectionCurrent} onPress={()=>{if(current()&&selectionCurrent&&live.current.selection===selection)(dirty.current=false,setWordingDraft(String(config?.publicProfile?.[field]??(field==='tagline'?config?.display?.tagline:'')??'')));}}/>
+    <Button label="Cancel selected wording" disabled={busy||!selectionCurrent} onPress={()=>{if(current()&&selectionCurrent&&live.current.selection===selection)(dirty.current=false,dirtyEpoch.current++,setPendingSelection(null),setWordingDraft(String(config?.publicProfile?.[field]??(field==='tagline'?config?.display?.tagline:'')??'')));}}/>
     <Button label="Preview selected wording" disabled={busy||!selectionCurrent||!textProof?.ok} onPress={()=>prepare(textOp)}/>
     {selectionCurrent&&textProof&&!textProof.ok?<Text style={styles.cardBody}>{textProof.reason}</Text>:null}
    </View>:null}
