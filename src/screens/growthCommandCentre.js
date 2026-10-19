@@ -1,3 +1,4 @@
+import {GrowthContentIdeas} from "../components/GrowthContentIdeas";
 import React from "react";
 import {Text} from "react-native";
 import {Shell,Card,Button,Field,MetricRow} from "../components/ui";
@@ -68,9 +69,10 @@ function GrowthCommandCentre({s}){
     s.openBusinessCreationJourney();
   };
   return (
-    <Shell s={s} title="Grow my business"
+    <Shell s={s} title="Get More Customers"
       subtitle="Your saved business growth projects, their last private review stage and what needs attention next."
       brandCue="Review your saved projects before anything goes public.">
+      <GrowthContentIdeas s={s}/>
       <Card eyebrow="Project overview"
         title={busy?"Checking your private projects…":centre.counts.projects+" saved growth project"+(centre.counts.projects===1?"":"s")}
         body={centre.notice}

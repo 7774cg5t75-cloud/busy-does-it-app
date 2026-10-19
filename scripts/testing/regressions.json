@@ -1267,6 +1267,12 @@
       "args": [
         "scripts/check-mission15-phase31-service-content.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase31-growth-content",
+      "args": [
+        "scripts/check-mission15-phase31-growth-content.mjs"
+      ]
     }
   ]
 }
