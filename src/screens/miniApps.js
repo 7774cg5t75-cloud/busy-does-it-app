@@ -903,7 +903,7 @@ function MiniAppBuilder({ s }) {
   const copyScopeCurrent=previousCopyScope.current===copyScope;
   if(!copyScopeCurrent){previousCopyScope.current=copyScope;ownerDirtyParts.current={selected:false,copy:false};setStudioCopy('');}
   const legacyCopyLive=React.useRef(null);legacyCopyLive.current={value:copyScopeCurrent?studioCopy:'',field:studioCopyField,source:view.draftConfig};
-  const reportOwnerDraft=useOwnerEditNavigation(s,{source:view.draftConfig,projectId:app?.id,revision:app?.draft_revision},()=>{ownerDirtyParts.current={selected:false,copy:false};legacyCopyLive.current.value='';setStudioCopy('');setOwnerEditorEpoch(x=>x+1);});
+  const reportOwnerDraft=useOwnerEditNavigation(s,{source:view.draftConfig,projectId:app?.id,revision:app?.draft_revision},()=>{ownerDraftEpoch.current++;ownerDirtyParts.current={selected:false,copy:false};legacyCopyLive.current.value='';setStudioCopy('');setOwnerEditorEpoch(x=>x+1);});
   const markOwnerDirty=(part,value)=>{ownerDraftEpoch.current++;ownerDirtyParts.current={...ownerDirtyParts.current,[part]:!!value};reportOwnerDraft(Object.values(ownerDirtyParts.current).some(Boolean));};
   const controlContext={ownerId:s.ownerSession?.userId||"",businessId:s.cloudWorkspace?.businessId||"",app};
   const liveControlContext=React.useRef(null);liveControlContext.current=controlContext;
@@ -914,6 +914,16 @@ function MiniAppBuilder({ s }) {
   const setStudioPreview=(proposal,part=null)=>{
     proposalDraft.current=proposal?{part,epoch:ownerDraftEpoch.current,source:view.draftConfig}:null;
     return studio.prepare(proposal);
+  };
+  // This gates these original source replacements BEFORE mutation, not merely their later navigation.
+  const replaceOwnerSource=action=>{
+    if(liveControlContext.current!==controlContext)return false;
+    const run=()=>{if(liveControlContext.current!==controlContext)return false;return action();};
+    if(Object.values(ownerDirtyParts.current).some(Boolean)){
+      if(s.requestOwnerEditTransition)return s.requestOwnerEditTransition(run);
+      setStudioNotice('Keep editing or cancel your unsaved wording before replacing this private app.');return false;
+    }
+    return run();
   };
   const approvalEpoch=ownerDraftEpoch.current;
   const mayReplaceOwnerSource=()=>{
@@ -1582,7 +1592,7 @@ function MiniAppBuilder({ s }) {
               }
               primary
               disabled={!!s.miniAppsAction}
-              onPress={s.applyMiniAppPlan}
+              onPress={()=>replaceOwnerSource(()=>s.applyMiniAppPlan())}
             />
           ) : null}
         </Card>
@@ -2923,14 +2933,14 @@ function MiniAppBuilder({ s }) {
                 ):null}
                 <Button label="Keep this appearance in my PRIVATE app"
                   primary disabled={!!s.miniAppsAction}
-                  onPress={async()=>{
+                  onPress={()=>replaceOwnerSource(async()=>{
                     if(!appControlReviewCurrent(pendingAppearance,liveControlContext.current))return;
                     const ok=await s.savePrivateAppAppearance?.({
                       field:pendingAppearance.field,value:pendingAppearance.value,appId:app.id,
                       expectedRevision:pendingAppearance.reviewSource.revision
                     });
                     if(ok&&appControlReviewCurrent(pendingAppearance,liveControlContext.current)){setPendingAppearance(null);setAppearancePreviewOpen(false);}
-                  }}/>
+                  })}/>
                 <Button label="Discard appearance changes"
                   onPress={()=>{setPendingAppearance(null);setAppearancePreviewOpen(false);}}/>
               </>
@@ -2965,12 +2975,12 @@ function MiniAppBuilder({ s }) {
                 <MiniAppSurface config={proposal.nextConfig} businessContent={proposal.businessContentPreview||s.miniAppsView?.app?.businessContent||null}/>
                 <Button label="Keep new order in PRIVATE app"
                   primary disabled={!!s.miniAppsAction}
-                  onPress={async()=>{
+                  onPress={()=>replaceOwnerSource(async()=>{
                     if(!appControlReviewCurrent(pendingMove,liveControlContext.current))return;
                     const ok=await s.movePrivateAppSection?.({
                       moduleKey:pendingMove.moduleKey,direction:pendingMove.direction,appId:app.id,expectedRevision:pendingMove.reviewSource.revision});
                     if(ok&&appControlReviewCurrent(pendingMove,liveControlContext.current))setPendingMove(null);
-                  }}/>
+                  })}/>
                 <Button label="Discard section move" onPress={()=>setPendingMove(null)}/>
               </>
             ):<Text style={styles.cardBody}>{proposal.reason}</Text>;
@@ -3034,7 +3044,7 @@ function MiniAppBuilder({ s }) {
                     }
                     disabled={!!s.miniAppsAction}
                     onPress={() =>
-                      s.toggleMiniAppModule(module.module_key, !enabled)
+                      replaceOwnerSource(()=>s.toggleMiniAppModule(module.module_key, !enabled))
                     }
                   />
                 ) : null}

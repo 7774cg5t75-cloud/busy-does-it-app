@@ -1165,6 +1165,12 @@
       "args": [
         "scripts/check-mission15-phase29-option-readback.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase29-source-transitions",
+      "args": [
+        "scripts/check-mission15-phase29-source-transitions.mjs"
+      ]
     }
   ]
 }
