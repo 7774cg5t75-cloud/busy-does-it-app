@@ -245,7 +245,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const target=matched[0];
   const fields={
    ...textTypographyFields,
-   serviceLayout:['brand','directory','cards'],
+   serviceLayout:['brand','directory','cards'],readingLayout:['brand','column','editorial'],
    ctaSize:['normal','spacious','wide'],
    bodyScale:['normal','large'],mobileBodyScale:['normal','large'],desktopBodyScale:['normal','large'],
    headingScale:["compact","normal","large"],
@@ -261,7 +261,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const bodyTypes=['hero','services','about','text','photo-feature','faq','testimonials','contact'];
   const supports={
    ...textTypographySupports,
-   serviceLayout:['services'],
+   serviceLayout:['services'],readingLayout:['about','text'],
    ctaSize:['hero'],
    bodyScale:bodyTypes,mobileBodyScale:bodyTypes,desktopBodyScale:bodyTypes,
    headingScale:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
@@ -297,7 +297,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   for(const name of Object.keys(fields))
    if(fields[name].includes(existing[name])&&supports[name].includes(target.type))
     next[name]=existing[name];
-  const defaults={serviceLayout:'brand',ctaSize:'normal',bodyScale:'normal',mobileBodyScale:'normal',desktopBodyScale:'normal',headingScale:"normal",textAlign:"left",sectionSpacing:"normal",mobileSectionSpacing:"normal",desktopSectionSpacing:"normal",
+  const defaults={readingLayout:'brand',serviceLayout:'brand',ctaSize:'normal',bodyScale:'normal',mobileBodyScale:'normal',desktopBodyScale:'normal',headingScale:"normal",textAlign:"left",sectionSpacing:"normal",mobileSectionSpacing:"normal",desktopSectionSpacing:"normal",
     photoCrop:"center",photoSide:"left",desktopPhotoSide:"brand",gallerySize:"comfortable",
     mobileHeadingScale:"normal",desktopHeadingScale:"normal",mobileGallerySize:"comfortable",desktopGallerySize:"comfortable"};
   if(value===(Object.hasOwn(textTypographyFields,field)?"brand":defaults[field]))delete next[field];else next[field]=value;

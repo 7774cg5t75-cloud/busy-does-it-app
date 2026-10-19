@@ -43,7 +43,7 @@ function planSelectedWebsiteChanges(draft,pageId,selection,instruction){
  if(!steps.length)return error('Choose a supported change; keeping colours alone does not change your website.');
  if(preserveColours){
   // Only operations whose canonical contracts leave colours untouched may enter.
-  const safe=op=>op.action==='style-group'?op.operations.every(safe):['move','move-relative','move-gallery-photo'].includes(op.action)||op.action==='style'&&['heroLayout','heroSize','photoFocus'].includes(op.field)||op.action==='section-style'&&['desktopPhotoSide','serviceLayout','photoSide','photoCrop','sectionSpacing','mobileSectionSpacing','desktopSectionSpacing','bodyScale','mobileBodyScale','desktopBodyScale','headingScale','mobileHeadingScale','desktopHeadingScale','gallerySize','mobileGallerySize','desktopGallerySize','textAlign'].includes(op.field);
+  const safe=op=>op.action==='style-group'?op.operations.every(safe):['move','move-relative','move-gallery-photo'].includes(op.action)||op.action==='style'&&['heroLayout','heroSize','photoFocus'].includes(op.field)||op.action==='section-style'&&['readingLayout','desktopPhotoSide','serviceLayout','photoSide','photoCrop','sectionSpacing','mobileSectionSpacing','desktopSectionSpacing','bodyScale','mobileBodyScale','desktopBodyScale','headingScale','mobileHeadingScale','desktopHeadingScale','gallerySize','mobileGallerySize','desktopGallerySize','textAlign'].includes(op.field);
   if(steps.some(step=>step.type!=='layout'||!safe(step.change)))return error('No changes were made. Use picture placement, reading size, spacing or movement when keeping all existing colours.');
  }
  return {ok:true,steps,preservesColours:preserveColours,requiresExplicitApproval:true,

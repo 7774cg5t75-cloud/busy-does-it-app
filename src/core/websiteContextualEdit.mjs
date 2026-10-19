@@ -96,6 +96,11 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
   if(itemId||section.type!=='photo-feature'||section.asset?.approved!==true||!section.asset?.storagePath)return failure('Select a section with its approved original picture.');
   return success('layout',{action:'section-style',sectionId,field:'desktopPhotoSide',value:desktopPicture[1].toLowerCase()},'Move this approved picture only on larger screens. Phone reading order, wording and colours stay unchanged.');
  }
+ const readingLayout=text.match(/^show (?:this|that|the selected) text as (an editorial layout|a reading column|the original layout)$/i);
+ if(readingLayout){
+  if(itemId||!['about','text'].includes(section.type))return failure('Select a supported information section first.');
+  return success('layout',{action:'section-style',sectionId,field:'readingLayout',value:{'an editorial layout':'editorial','a reading column':'column','the original layout':'brand'}[readingLayout[1].toLowerCase()]},'Change this information section only. Keep original words, colours and phone reading order.');
+ }
  const reading=text.match(/^make (?:this|that|the selected) (?:text|paragraph|section) (?:easier to read|more readable)(?: only)? on (phones?|mobile|desktop|computers?)$/i);
  if(reading){
   if(itemId||!(['body','section'].includes(field)||field==='photo'&&section.type==='photo-feature'))return failure('Select the whole section, its paragraph or a paired picture/text block to adjust reading size.');
