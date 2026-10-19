@@ -1015,6 +1015,8 @@ function WebsitePreview({ s }) {
   const [pageVoiceExpanded,setPageVoiceExpanded]=React.useState(false);
   const [pageInterpretBusy,setPageInterpretBusy]=React.useState(false);
   const [pageConversation,setPageConversation]=React.useState(null);
+  const [showRejectedPageIdeas,setShowRejectedPageIdeas]=React.useState(false);
+  const pageIdeaSource=React.useRef(null);pageIdeaSource.current={draft,pageId:selectedPageId,ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId};
   const [showRecoveryTools,setShowRecoveryTools]=React.useState(false);
   const [confirmRecoveryRestore,setConfirmRecoveryRestore]=React.useState(false);
   React.useEffect(()=>{
@@ -1206,7 +1208,15 @@ function WebsitePreview({ s }) {
         captureSource:"current_private_webview_dom",
         original:visualCheckResult,candidate:candidateCheckResult}]
     }):null;
-  const coordinatedAdvice=coordinatedWebsiteAlternatives(draft,activePage?.id,visualCheckResult);
+  const coordinatedAdvice=React.useMemo(()=>coordinatedWebsiteAlternatives(draft,activePage?.id,visualCheckResult),[draft,activePage?.id,visualCheckResult]);
+  const rejectedPageIdeas=React.useMemo(()=>showRejectedPageIdeas?coordinatedWebsiteAlternatives(draft,activePage?.id,visualCheckResult,{includeRejected:true}).filter(idea=>idea.ownerPreference==='disliked'):[],[draft,activePage?.id,visualCheckResult,showRejectedPageIdeas]);
+  const pageIdeaBinding=pageIdeaSource.current;
+  const showPageIdeaAgain=idea=>{
+    if(pageIdeaSource.current!==pageIdeaBinding||!originalReportIsCurrent||designCandidate)return false;
+    const saved=s.recordMeasuredWebsiteFeedback?.({draftId:draft.id,pageId:activePage?.id,changeId:idea.id,operation:idea.operation,expectedSource:draft,choice:'liked'});
+    if(saved)setDesignCandidateNotice('This idea can be suggested again. Your website layout is unchanged; compare and approve separately.');
+    return saved;
+  };
   const tryCandidate=(advice=layoutAdvice)=>{
     if(!advice||!draft)return;
     if(selectedWordingDirty.current){setDesignCandidateNotice('Your selected wording is not saved. Keep editing, then save or discard it in the text editor before comparing a different layout.');return;}
@@ -1534,6 +1544,15 @@ function WebsitePreview({ s }) {
            ):null}
           </View>
         ):null}
+        {originalReportIsCurrent&&!designCandidate&&!visualCheckOn?<View>
+          <Button label={showRejectedPageIdeas?'Hide previous page ideas':'Review previous page ideas'} onPress={()=>{if(pageIdeaSource.current===pageIdeaBinding)setShowRejectedPageIdeas(value=>!value);}}/>
+          {showRejectedPageIdeas&&!rejectedPageIdeas.length?<Text style={styles.cardBody}>No eligible declined page ideas for this current source.</Text>:null}
+          {rejectedPageIdeas.map(idea=><View key={idea.id}>
+            <Text style={styles.sectionLabel}>{idea.label}</Text>
+            <Text style={styles.cardBody}>{'Previously declined. '+idea.explanation+' '+idea.tradeoff}</Text>
+            <Button label={'Show this idea again: '+idea.label} onPress={()=>showPageIdeaAgain(idea)}/>
+          </View>)}
+        </View>:null}
         {visualCheckResult&&!designCandidate&&!visualCheckOn?coordinatedAdvice.map(advice=>(
           <View key={advice.id} style={{marginVertical:8}}>
             <Text style={styles.sectionLabel}>{advice.label}</Text>

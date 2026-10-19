@@ -1147,6 +1147,12 @@
       "args": [
         "scripts/check-mission15-phase29-approval-conflicts.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase29-page-reconsider",
+      "args": [
+        "scripts/check-mission15-phase29-page-reconsider.mjs"
+      ]
     }
   ]
 }

@@ -1,6 +1,6 @@
 import {deriveSector,photographicCount} from './websiteDesignPlanner.mjs';
 import {applyWebsiteLayoutOperation} from '../../supabase/functions/busy-website-worker/websiteLayoutEditing.mjs';
-import {ownerDesignPreference} from './websiteMeasuredDesignCoach.mjs';
+import {createWebsitePreferenceReader} from './websiteMeasuredDesignCoach.mjs';
 // Finite alternatives for the EXISTING measured candidate lifecycle. Industry
 // is a hypothesis; current-render checks and the owner's choice stay decisive.
 function websiteCompositionFacts(draft,pageId='home'){
@@ -11,7 +11,8 @@ function websiteCompositionFacts(draft,pageId='home'){
  const service=sections.find(s=>s.id==='services'),gallery=sections.find(s=>s.id==='gallery');
  return {editorialFeatureId:editorialFeature?.id||null,longReadingSectionCount:readingSections.length,phoneReadingSectionId:phoneReadingSection?.id||null,serviceCount:Array.isArray(service?.items)?service.items.filter(item=>String(item.title||'').trim()).length:0,approvedGalleryCount:photographicCount(gallery?[gallery]:[]),heroPhoto:photographicCount(sections.filter(s=>s.id==='hero'))>0,gallerySizeCustomized:['compact','large'].includes(gallery?.appearance?.gallerySize)||['compact','large'].includes(gallery?.appearance?.desktopGallerySize)};
 }
-function coordinatedWebsiteAlternatives(draft,pageId,report){
+function coordinatedWebsiteAlternatives(draft,pageId,report,{includeRejected=false}={}){
+ const preference=createWebsitePreferenceReader(draft,pageId);
  if(!draft?.id||!draft.pages?.some(p=>p.id===pageId&&p.enabled!==false)||!report?.counts||!Array.isArray(report.issues)||!Number.isFinite(report.counts.viewport)||report.counts.viewport<250||report.counts.viewport>3000)return [];
  const issueIds=report.issues.map(x=>x?.id);
  // Restyling cannot repair missing originals, factual descriptions or links.
@@ -44,12 +45,12 @@ function coordinatedWebsiteAlternatives(draft,pageId,report){
  const guideSections=(draft.sections||[]).filter(section=>section.enabled!==false&&section.type!=='hero'&&String(section.title||'').trim()&&draft.pages.find(p=>p.id===pageId)?.sectionIds?.includes(section.id));
  if(guideSections.length>=5&&!theme.pageGuide)directions.unshift({id:'coordinated-page-guide',label:'A guide through longer pages',explanation:'Compare an On this page guide using existing section headings and real rendered destinations. The website-wide setting appears only on pages with at least three eligible rendered sections; existing section order, copy, brand and actions stay unchanged.',settings:{pageGuide:'sections'},tradeoff:'Adds a navigation block before the main content. This helps direct jumps but uses additional space on phones; compare before keeping it.'});
  directions.sort((a,b)=>{
-  const liked=d=>ownerDesignPreference(draft,d.id,pageId)==='liked'?4:0;
+  const liked=d=>preference(d.id)==='liked'?4:0;
   const relevant=d=>['coordinated-page-guide','coordinated-service-index','coordinated-faq-questions','coordinated-information-editorial','coordinated-service-directory','coordinated-phone-reading','coordinated-editorial-feature'].includes(d.id)?3:['coordinated-service-guide','coordinated-gallery-story'].includes(d.id)?3:d.id==='coordinated-reading'&&issueIds.some(id=>['overflow','headings','readability'].includes(id))?2:
    d.id==='coordinated-visual'&&photos>0&&['creative','hospitality','events','retail'].includes(sector)?1:0;
   return liked(b)+relevant(b)-liked(a)-relevant(a);
  });
- return directions.filter(d=>ownerDesignPreference(draft,d.id,pageId)!=='disliked').map(d=>{
+ return directions.filter(d=>includeRejected||preference(d.id)!=='disliked').map(d=>{
   const operations=Object.entries(d.settings).filter(([field,value])=>theme[field]!==value).map(([field,value])=>({action:'style',field,value}));
   operations.push(...(d.sectionOperations||[]));
   // Reuse the exact reviewed-composition operation, not a new layout engine.
@@ -65,9 +66,10 @@ function coordinatedWebsiteAlternatives(draft,pageId,report){
     websiteId:draft.id,expectedGeneration:draft.generation,expectedBusinessId:draft.businessId,before,proposed});
   }
   const operation={action:'style-group',operations};
-  if(ownerDesignPreference(draft,d.id,pageId,operation)==='disliked')return {...d,available:false};
-  return {...d,operation,source:'current-draft-and-business-type-hypothesis',notGuaranteed:true,
-   industry:sector,measuredImprovementProven:false,decisionEvidence:{viewport:report.counts.viewport,issueIds,approvedPhotoCount:photos,ownerPreference:ownerDesignPreference(draft,d.id,pageId)||null},available:operations.length>0&&applyWebsiteLayoutOperation(draft,operation).applied};
- }).filter(d=>d.available).slice(0,2);
+  const ownerPreference=preference(d.id,operation);
+  if(ownerPreference==='disliked'&&!includeRejected)return {...d,available:false};
+  return {...d,operation,ownerPreference,source:'current-draft-and-business-type-hypothesis',notGuaranteed:true,
+   industry:sector,measuredImprovementProven:false,decisionEvidence:{viewport:report.counts.viewport,issueIds,approvedPhotoCount:photos,ownerPreference:preference(d.id)||null},available:operations.length>0&&applyWebsiteLayoutOperation(draft,operation).applied};
+ }).filter(d=>d.available).slice(0,includeRejected?16:2);
 }
 export {coordinatedWebsiteAlternatives,websiteCompositionFacts};
