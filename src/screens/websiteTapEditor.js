@@ -167,7 +167,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
     <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==="ios"?"padding":undefined}>
      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{padding:18,paddingBottom:40}}>
       {exploring&&exploreContext?<BuilderTalkExplore context={exploreContext} onExit={()=>setExploring(false)} onHandoff={handoff=>{
-       if(!current()||!currentBuilderExplore({ok:true,source:handoff.source},exploreContext)||!handoff.source.selection||wordingEdited.current)return false;
+       if(!current()||editorLive.current.contextRequest!==contextRequest||!currentBuilderExplore({ok:true,source:handoff.source},exploreContext)||!handoff.source.selection||wordingEdited.current)return false;
        const outcome=onPreviewInstruction?.({selection,instruction:handoff.instruction});
        if(!outcome?.ok){setContextNote(outcome?.reason||'Select the current section again.');return false;}
        setContextDraft(handoff.instruction);setSelectedInstructionPreview(outcome);setShowContextHelp(true);setExploring(false);return true;

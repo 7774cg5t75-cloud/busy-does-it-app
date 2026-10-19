@@ -19,7 +19,7 @@ export function selectedWebsiteComparisons(draft,selection){
   ...(['section','body'].includes(selection.field)&&section.body?[{id:'selected-phone-reading',label:'Easier phone reading',instruction:'make this section easier to read on phones; give this section more space on phones',explanation:'Uses larger paragraph text and more section space on phones. Desktop settings stay unchanged.'}]:[]),
   ...(selection.field==='title'?[{id:'selected-heading-hierarchy',label:'Stronger heading',instruction:'make this heading bigger; give this section more space',explanation:'Gives this heading more emphasis and the section more breathing room. The original words and colours stay intact.'}]:[])
  ];
- return choices.filter(choice=>ownerDesignPreference(draft,choice.id,selection.pageId)!=='disliked').flatMap(choice=>{
+ return choices.filter(choice=>ownerDesignPreference(draft,choice.id,selection.pageId)!=='disliked').sort((a,b)=>Number(ownerDesignPreference(draft,b.id,selection.pageId)==='liked')-Number(ownerDesignPreference(draft,a.id,selection.pageId)==='liked')).flatMap(choice=>{
   const plan=planSelectedWebsiteChanges(draft,selection.pageId,selection,choice.instruction);
   if(!plan.ok)return [];
   let candidate=draft;

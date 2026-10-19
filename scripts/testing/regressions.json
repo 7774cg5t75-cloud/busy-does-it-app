@@ -1044,6 +1044,13 @@
         "scripts/check-mission15-phase26-editing-controls.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase26-selected-advice",
+      "args": [
+        "scripts/check-mission15-phase26-selected-advice.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

@@ -6,7 +6,7 @@ import {explainBuilderExplore} from './builderExploreAnswers.mjs';
 import {canonicalJsonValue} from './stableJson.mjs';
 import {applyWebsiteVisualEdit} from '../../supabase/functions/busy-website-worker/designEdits.mjs';
 import {selectedWebsiteVoiceContextIsCurrent} from './websiteSelectedVoiceContext.mjs';
-import {selectedWebsiteComparisons} from './websiteSelectedComparisons.mjs';
+import {selectedWebsiteExploreAdvice} from './selectedWebsiteExploreAdvice.mjs';
 import {planSelectedWebsiteChanges} from './websiteContextPlan.mjs';
 import {prepareSelectedWebsiteTransaction} from './websiteContextPlan.mjs';
 function websiteIdea(project,instruction,selection=null){
@@ -46,14 +46,7 @@ function runBuilderExplore(session,context,request){
  const instruction=hypothetical?'move '+hypothetical[1].replace(/ section$/i,'')+(session.source.kind==='website'?' section':'')+' '+hypothetical[2]+' '+hypothetical[3].replace(/ section$/i,''):text;
  let edit=session.source.kind==='app'?planAppVoiceInstructions(project.draft_config,instruction):websiteIdea(project,instruction,session.source.selection);
  let explanation=explainBuilderExplore({kind:session.source.kind,project,catalog:JSON.parse(session.source.catalogStamp),plan,text});
- if(session.source.selection){
-  const selected=session.source.selection,section=project.sections.find(s=>s.id===selected.sectionId),choices=selectedWebsiteComparisons(project,selected);
-  explanation={answer:['You selected '+(section.title||section.id)+' on '+selected.pageId+'.',
-   'These alternatives apply only to this selected part, preserving existing wording, approved pictures, colours and unrelated sections.',
-   ...choices.map(choice=>choice.label+': '+choice.explanation),
-   choices.length?'Compare the supported alternatives before choosing whether to keep a change.':'No supported alternative is available for this selection and its owner locks. Select a different part or keep the original.',
-   'This is source-based advice, not screenshot inspection. Nothing will be changed.'].join('\n'),alternatives:choices.map(choice=>({label:choice.label,instruction:choice.instruction}))};
- }
+ if(session.source.selection&&!/\b(?:club|personal project|community project)\b/i.test(text))explanation=selectedWebsiteExploreAdvice(project,session.source.selection,text);
  if(explanation.discussionOnly)edit={ok:false};
  const answer=edit.ok?'We can prepare this idea for you to review. '+(edit.changes||edit.steps.map(step=>step.description)).join(' '):explanation.answer;
  let conversation=addWebsiteConversationTurn(session.conversation,session.conversation.scope,{role:'owner',text});
