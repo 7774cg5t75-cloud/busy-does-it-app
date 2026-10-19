@@ -9,5 +9,9 @@ export function useOwnerEditNavigation(s,identity,onDiscard){
  const report=value=>{if(!current())return;dirty.current=!!value;s.setOwnerEditDirty?.({token:token.current,identity:bound,dirty:!!value,onDiscard:()=>{if(!current())return false;dirty.current=false;onDiscard?.();return true;}});};
  React.useEffect(()=>()=>s.releaseOwnerEdit?.(token.current),[]);
  React.useEffect(()=>{s.releaseOwnerEdit?.(token.current);if(dirty.current)report(true);},[identity.source,identity.projectId,identity.revision,bound.ownerId,bound.businessId]);
+ report.commit=operation=>{
+  if(!current())return false;
+  return s.withOwnerEditCommit?s.withOwnerEditCommit(token.current,bound,operation):operation();
+ };
  return report;
 }

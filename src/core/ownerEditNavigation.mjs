@@ -1,13 +1,26 @@
 // One volatile navigation guard, never a draft store or save authority.
 export function createOwnerEditNavigation({getScope,confirm}){
- let active=null,epoch=0,prompt=0;
- return {
+ let active=null,epoch=0,prompt=0,permit=null;
+ const current=()=>{if(active?.scope!==getScope())active=null;return active;};
+ const guard={
   report({token,identity,scope,dirty,onDiscard}){
    if(scope!==getScope()||!token||!identity||typeof identity!=='object')return false;
    if(dirty){active={token,identity,scope,onDiscard,epoch:++epoch};return true;}
    if(active?.token===token&&active.identity.source===identity.source&&active.identity.projectId===identity.projectId&&active.identity.revision===identity.revision){active=null;epoch++;}return true;
   },
   release(token){if(active?.token===token){active=null;epoch++;prompt++;}},
+  // Synchronous original owner-save only. This is UI draft coordination, not authority.
+  withCommit(token,identity,transition){
+   const item=current();
+   if(item&&(item.token!==token||item.identity.source!==identity.source||item.identity.projectId!==identity.projectId||item.identity.revision!==identity.revision))return false;
+   const previous=permit;permit=item;
+   try{return transition();}finally{permit=previous;}
+  },
+  sourceChange(source,transition){
+   const item=current();
+   if(!item||permit===item&&item.identity.source===source)return transition();
+   return guard.request(transition);
+  },
   request(transition){
    if(active?.scope!==getScope())active=null;
    if(!active){transition();return true;}
@@ -18,4 +31,5 @@ export function createOwnerEditNavigation({getScope,confirm}){
    }});return false;
   }
  };
+ return guard;
 }

@@ -45,7 +45,7 @@ function WebsiteContentEditor({draft,onApply:commitChange,suggestions=[],ownerSt
   const fieldChange=selection&&change.sectionId===selection.sectionId&&change.field===selection.field&&change.itemId===selection.itemId;
   const entryChange=['add-item','create-collection'].includes(change.action);
   if(dirty.current.field&&!fieldChange||dirty.current.entry&&!entryChange){setDraftNotice('Finish or cancel your other unsaved wording before making this change. Nothing was saved.');return false;}
-  const saved=commitChange?.(change);
+  const saved=reportOwnerDraft.commit(()=>commitChange?.(change));
   if(saved===true){if(fieldChange)mark('field',false);if(entryChange)mark('entry',false);setDraftNotice('');}
   return saved;
  };

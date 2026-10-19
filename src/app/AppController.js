@@ -13407,6 +13407,7 @@ function App() {
   // V3.195: one private-website commit path for reviewed cross-builder
   // edits. Undo, Redo, current ref and notice must remain synchronized.
   const commitReviewedBuilderDraft=(current,nextDraft,notice)=>{
+    const apply=()=>{
     const checked=checkPrivateWebsiteDraftCommit({current,candidate:nextDraft,
       live:websiteDraftRef.current,scopeCurrent:websiteHistoryIsCurrent(),businessId:websiteHistoryScope.businessId});
     if(!checked.applied){setWebsiteBuilderNotice(checked.reason);return false;}
@@ -13416,6 +13417,8 @@ function App() {
     setWebsiteDraft(nextDraft);
     setWebsiteBuilderNotice(notice);
     return true;
+    };
+    return ownerEditNavigation.current.sourceChange(current,apply);
   };
 
   const applyReviewedWebsiteComposition=(evidence,options={})=>{
@@ -16914,6 +16917,7 @@ function App() {
     setOwnerEditDirty,
     releaseOwnerEdit:token=>ownerEditNavigation.current.release(token),
     requestOwnerEditTransition:transition=>ownerEditNavigation.current.request(transition),
+    withOwnerEditCommit:(token,identity,operation)=>ownerEditNavigation.current.withCommit(token,identity,operation),
     screen,
     history,
     go,

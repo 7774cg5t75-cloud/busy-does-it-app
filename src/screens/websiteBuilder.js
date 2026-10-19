@@ -1657,7 +1657,7 @@ function WebsitePreview({ s }) {
         onDraftChange={value=>{reportOwnerDraft(value);selectedWordingDirty.current=!!value;if(!value)setPendingEdit(null);}}
         initialMode={selectedEdit?.initialMode||"edit"}
         onClose={()=>setSelectedEdit(null)}
-        onTextChange={s.applyWebsiteFieldChange}
+        onTextChange={change=>reportOwnerDraft.commit(()=>s.applyWebsiteFieldChange(change))}
         onLayoutChange={s.applyWebsiteLayoutAction}
         onApplyInstruction={s.applySelectedWebsiteInstruction}
         onPreviewInstruction={s.previewSelectedWebsiteInstruction}

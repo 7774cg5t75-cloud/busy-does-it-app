@@ -1189,6 +1189,12 @@
       "args": [
         "scripts/check-mission15-phase29-website-drafts.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase30-website-mutation",
+      "args": [
+        "scripts/check-mission15-phase30-website-mutation.mjs"
+      ]
     }
   ]
 }
