@@ -16909,6 +16909,8 @@ function App() {
 
   const appState = {
     setOwnerEditDirty,
+    releaseOwnerEdit:token=>ownerEditNavigation.current.release(token),
+    requestOwnerEditTransition:transition=>ownerEditNavigation.current.request(transition),
     screen,
     history,
     go,

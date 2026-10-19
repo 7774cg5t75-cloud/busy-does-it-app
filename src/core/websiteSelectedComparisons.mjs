@@ -1,12 +1,13 @@
 import {planSelectedWebsiteChanges} from './websiteContextPlan.mjs';
 import {selectedWebsiteVoiceContextIsCurrent} from './websiteSelectedVoiceContext.mjs';
-import {ownerDesignPreference} from './websiteMeasuredDesignCoach.mjs';
+import {createWebsitePreferenceReader} from './websiteMeasuredDesignCoach.mjs';
 import {applyWebsiteLayoutOperation} from '../../supabase/functions/busy-website-worker/websiteLayoutEditing.mjs';
 
 // Suggestions only. The original selected preview replans and renders each
 // instruction; Apply independently checks the current source and owner approval.
-export function selectedWebsiteComparisons(draft,selection){
+export function selectedWebsiteComparisons(draft,selection,{includeRejected=false}={}){
  if(!selectedWebsiteVoiceContextIsCurrent(draft,selection)||selection.itemId)return [];
+ const preference=createWebsitePreferenceReader(draft,selection.pageId);
  const section=draft.sections.find(s=>s.id===selection.sectionId);
  const picture=section.type==='photo-feature'&&section.asset?.approved===true&&section.asset.storagePath;
  const side=section.appearance?.desktopPhotoSide||section.appearance?.photoSide||'left';
@@ -23,7 +24,8 @@ export function selectedWebsiteComparisons(draft,selection){
   const plan=planSelectedWebsiteChanges(draft,selection.pageId,selection,choice.instruction);
   if(!plan.ok)return [];
   const operation={action:'style-group',operations:plan.steps.filter(step=>step.type==='layout').map(step=>step.change)};
-  if(ownerDesignPreference(draft,choice.id,selection.pageId,operation)==='disliked')return [];
+  const ownerPreference=preference(choice.id,operation);
+  if(!includeRejected&&ownerPreference==='disliked')return [];
   let candidate=draft;
   for(const step of plan.steps){
    if(step.type!=='layout')return [];
@@ -32,6 +34,6 @@ export function selectedWebsiteComparisons(draft,selection){
    candidate=result.draft;
   }
   if(JSON.stringify(candidate.sections)===JSON.stringify(draft.sections))return [];
-  return [{...choice,draftId:draft.id,generation:draft.generation,sectionId:section.id,pageId:selection.pageId}];
- });
+  return [{...choice,ownerPreference,operation,draftId:draft.id,generation:draft.generation,sectionId:section.id,pageId:selection.pageId}];
+ }).sort((a,b)=>Number(b.ownerPreference==='liked')-Number(a.ownerPreference==='liked'));
 }

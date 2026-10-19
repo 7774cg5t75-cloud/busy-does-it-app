@@ -983,12 +983,13 @@ function WebsiteBuilder({ s }) {
 
 function WebsitePreview({ s }) {
   const draft = s.websiteDraft;
-  const reportOwnerDraft=useOwnerEditNavigation(s,{source:draft,projectId:draft?.id,revision:draft?.generation});
+
   const [selectedPageId,setSelectedPageId] = React.useState("home");
   const [tapEditMode,setTapEditMode]=React.useState(false);
   const [previewSize,setPreviewSize]=React.useState("full");
   const [selectedEdit,setSelectedEditState]=React.useState(null);
   const selectedWordingDirty=React.useRef(false);
+  const reportOwnerDraft=useOwnerEditNavigation(s,{source:draft,projectId:draft?.id,revision:draft?.generation},()=>{selectedWordingDirty.current=false;setSelectedEditState(null);});
   const [pendingEdit,setPendingEdit]=React.useState(null);
   const setSelectedEdit=value=>{if(selectedWordingDirty.current){setPendingEdit({value,draft});return;}setSelectedEditState(value);};
   React.useEffect(()=>{selectedWordingDirty.current=false;setSelectedEditState(null);setPendingEdit(null);},[s.ownerSession?.userId,s.cloudWorkspace?.businessId]);

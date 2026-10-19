@@ -1,4 +1,4 @@
-import {websiteDesignDirection} from './websiteDesignDirection.mjs';
+import {websiteDesignDirection,createWebsiteDirectionReader} from './websiteDesignDirection.mjs';
 import {websiteLayoutLockReason,applyWebsiteLayoutOperation} from '../../supabase/functions/busy-website-worker/websiteLayoutEditing.mjs';
 /**
  * V3.144: small, owner-controlled suggestions derived ONLY from measured
@@ -132,13 +132,16 @@ function recordWebsiteOwnerDesignFeedback(draft,{draftId,pageId,choice,changeId,
  return {applied:true,draft:{...draft,ownerDesignFeedback:[...existing,next]},
   reason:"Saved for this website draft only. Nothing was sent to other businesses or used to train a model."};
 }
-function ownerDesignPreference(draft,changeId,pageId="",operation=null){
- const direction=operation?websiteDesignDirection(draft,pageId,operation):null;
- const rows=array(draft?.ownerDesignFeedback)
-  .filter(e=>e?.draftId===draft?.id&&(e.direction?!!direction&&e.direction===direction:e.changeId===changeId)&&
-    (!pageId||e.pageId===pageId));
- return rows.length?rows[rows.length-1].choice:null;
+function createWebsitePreferenceReader(draft,pageId=''){
+ let readDirection=null;
+ const feedback=array(draft?.ownerDesignFeedback).filter(e=>e?.draftId===draft?.id&&(!pageId||e.pageId===pageId));
+ return (changeId,operation=null)=>{
+  const direction=operation&&pageId&&feedback.some(e=>e.direction)?(readDirection||(readDirection=createWebsiteDirectionReader(draft,pageId)))(operation):null;
+  const rows=feedback.filter(e=>e.direction?!!direction&&e.direction===direction:e.changeId===changeId);
+  return rows.length?rows[rows.length-1].choice:null;
+ };
 }
+function ownerDesignPreference(draft,changeId,pageId='',operation=null){return createWebsitePreferenceReader(draft,pageId)(changeId,operation);}
 /** Human-readable and bounded, not an ungrounded aesthetic score. */
 function describeWebsiteDesignComparison(comparison){
  if(!comparison?.valid)return {headline:"Comparison unavailable",
@@ -168,5 +171,5 @@ function withoutPrivateWebsiteDesignFeedback(draft){
  return safe;
 }
 export {recommendMeasuredWebsiteChange,compareWebsiteVisualReports,
- recordWebsiteOwnerDesignFeedback,ownerDesignPreference,withoutPrivateWebsiteDesignFeedback,
+ recordWebsiteOwnerDesignFeedback,ownerDesignPreference,createWebsitePreferenceReader,withoutPrivateWebsiteDesignFeedback,
  describeWebsiteDesignComparison};

@@ -32,6 +32,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  const [exploring,setExploring]=React.useState(false);
  const [value,setValue]=React.useState("");
  const [confirmRemove,setConfirmRemove]=React.useState(false);
+ const [showRejected,setShowRejected]=React.useState(false);
  const [showComparisonReasons,setShowComparisonReasons]=React.useState(false);
  const [showSectionDesign,setShowSectionDesign]=React.useState(false);
  const [showContextHelp,setShowContextHelp]=React.useState(false);
@@ -51,6 +52,8 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  const setOwnerWording=words=>{setCloseRequested(false);onDraftChange?.(true);wordingEdited.current=true;editorLive.current.value=words;setValue(words);};
  const cancelOwnerWording=()=>{if(!current())return;const original=String(target?.[field]??'');onDraftChange?.(false);wordingEdited.current=false;editorLive.current.value=original;setValue(original);};
  const current=()=>alive.current&&editorLive.current.draft===draft&&editorLive.current.selection===selection&&editorLive.current.exploreContext===exploreContext;
+ const comparisonChoices=React.useMemo(()=>selectedWebsiteComparisons(draft,selection,{includeRejected:true}),[draft,selection,exploreContext?.ownerId,exploreContext?.businessId]);
+ const visibleComparisons=comparisonChoices.filter(choice=>showRejected||choice.ownerPreference!=='disliked');
  const section=list(draft?.sections).find(s=>s.id===selection?.sectionId);
  const item=selection?.itemId?list(section?.items).find(x=>x.id===selection.itemId):null;
  const target=item||section;
@@ -68,7 +71,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
   setShowPhotoChoices(initialMode==="edit"&&selection?.field==="photo");
   setSelectedInstructionPreview(null);
   setShowPreviewOriginal(false);
-  setComparisonSize("phone");setShowComparisonReasons(false);
+  setComparisonSize("phone");setShowComparisonReasons(false);setShowRejected(false);
  },[key,draft?.updatedAt,initialMode]);
  const requestClose=()=>{if(!current())return;if(wordingEdited.current){setCloseRequested(true);return;}onClose?.();};
  const save=()=>{
@@ -285,10 +288,12 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
          {initialMode==="voice"?(
           <Text style={styles.cardBody}>You selected the exact {names[field]?.toLowerCase()||"website part"}. BUSY is ready to listen. Press the red Stop control when you're finished — pauses are fine.</Text>
          ):null}
-         {onPreviewInstruction&&selectedWebsiteComparisons(draft,selection).length?<Button label={showComparisonReasons?'Hide layout explanations':'Explain these layout choices'} onPress={()=>{if(current())setShowComparisonReasons(x=>!x);}}/>:null}
-         {onPreviewInstruction?selectedWebsiteComparisons(draft,selection).map(choice=>(
+         {onDesignFeedback&&comparisonChoices.some(choice=>choice.ownerPreference==='disliked')?<Button label={showRejected?'Hide declined ideas':'Reconsider declined ideas'} onPress={()=>{if(current())setShowRejected(x=>!x);}}/>:null}
+         {onPreviewInstruction&&visibleComparisons.length?<Button label={showComparisonReasons?'Hide layout explanations':'Explain these layout choices'} onPress={()=>{if(current())setShowComparisonReasons(x=>!x);}}/>:null}
+         {onPreviewInstruction?visibleComparisons.map(choice=>(
           <View key={choice.id}>
            {showComparisonReasons?<Text style={styles.cardBody}>{choice.explanation}</Text>:null}
+           {choice.ownerPreference==='disliked'?<View><Text style={styles.cardBody}>You previously declined this exact layout. Exploring it here does not change your saved website.</Text><Button label={'Show this idea again: '+choice.label} onPress={()=>{if(!current()||editorLive.current.contextRequest!==contextRequest)return;if(onDesignFeedback?.({draftId:draft.id,pageId:selection.pageId,changeId:choice.id,operation:choice.operation,expectedSource:draft,choice:'liked'})===true){setShowRejected(false);setContextNote('This idea is available again for this source. Nothing about the website layout was changed.');}}}/></View>:null}
            <Button label={'Compare: '+choice.label} onPress={()=>{
             if(!current()||editorLive.current.contextRequest!==contextRequest)return;
             const outcome=onPreviewInstruction({selection,instruction:choice.instruction});

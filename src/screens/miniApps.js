@@ -897,7 +897,8 @@ function MiniAppBuilder({ s }) {
   const [accessiblePhotoCaption,setAccessiblePhotoCaption]=React.useState("");
   const view = s.miniAppsView || {};
   const app = view.app;
-  const reportOwnerDraft=useOwnerEditNavigation(s,{source:view.draftConfig,projectId:app?.id,revision:app?.draft_revision});
+  const [ownerEditorEpoch,setOwnerEditorEpoch]=React.useState(0);
+  const reportOwnerDraft=useOwnerEditNavigation(s,{source:view.draftConfig,projectId:app?.id,revision:app?.draft_revision},()=>setOwnerEditorEpoch(x=>x+1));
   const controlContext={ownerId:s.ownerSession?.userId||"",businessId:s.cloudWorkspace?.businessId||"",app};
   const liveControlContext=React.useRef(null);liveControlContext.current=controlContext;
   const studio=usePrivateAppStudio({businessId:s.cloudWorkspace?.businessId||"",
@@ -1178,7 +1179,7 @@ function MiniAppBuilder({ s }) {
       subtitle="Describe the customer experience you want. BUSY turns it into a controlled app plan using tested modules and the business facts it already knows."
       brandCue="V3.56 • shared business profile • intelligent module recommendations • owner-controlled publishing."
     >
-      <Button label="Talk & Explore — no project changes" disabled={!app||!view.draftConfig||!!s.miniAppsAction||studio.pending||studio.uncertain} onPress={()=>setExplore(true)}/>
+      <Button label="Talk & Explore — no project changes" disabled={!app||!view.draftConfig||!!s.miniAppsAction||studio.pending||studio.uncertain} onPress={()=>s.requestOwnerEditTransition?s.requestOwnerEditTransition(()=>setExplore(true)):setExplore(true)}/>
       <BusinessContentEditor key={['records',s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')}
         businessId={s.cloudWorkspace?.businessId} request={s.businessContentRequest}
         onApprovedRecords={approvedRecords.onApprovedRecords}
@@ -2379,7 +2380,7 @@ function MiniAppBuilder({ s }) {
           ):null}
             </>
           ):null}
-          <AppOwnerLockControls key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(":")}
+          <AppOwnerLockControls key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision,ownerEditorEpoch].join(":")}
             config={view.draftConfig} onPreview={setStudioPreview} onNotice={setStudioNotice}
             busy={!!s.miniAppsAction||studio.pending}/>
           <Text style={styles.sectionLabel}>Or tell Busy other changes</Text>
@@ -2410,9 +2411,9 @@ function MiniAppBuilder({ s }) {
           <Text style={styles.cardBody}>
             Voice provides transcription only, within its existing daily allowance. BUSY asks before changing the private app.
           </Text>
-          <AppPublicCollectionEditor key={['public-info',s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(':')}
+          <AppPublicCollectionEditor key={['public-info',s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision,ownerEditorEpoch].join(':')}
             config={view.draftConfig} suggestions={view.enquiryContentGaps?.suggestions||[]} onPreview={setStudioPreview} onNotice={setStudioNotice} busy={!!s.miniAppsAction||studio.pending}/>
-          <AppContactEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(':')}
+          <AppContactEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision,ownerEditorEpoch].join(':')}
             businessId={s.cloudWorkspace?.businessId||''} app={app} busy={!!s.miniAppsAction||studio.pending}
             onPreview={setStudioPreview} onNotice={setStudioNotice}/>
           <Text style={styles.sectionLabel}>Or change supported public wording directly</Text>
@@ -2797,7 +2798,7 @@ function MiniAppBuilder({ s }) {
           title="Change the private app design"
           body="Try a header style, spacing or navigation look. BUSY shows an unsaved customer preview first. Keeping it creates a new private draft revision, not a live update."
           tone="blue">
-          <AppVisualSelection key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(':')}
+          <AppVisualSelection key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision,ownerEditorEpoch].join(':')}
             onDraftChange={reportOwnerDraft}
             Surface={MiniAppSurface} config={view.draftConfig} businessContent={app.businessContent||null}
             voiceScope={s.cloudWorkspace?.businessId?{appId:app.id,revision:app.draft_revision,businessId:s.cloudWorkspace.businessId,selectedPart:'whole_app'}:null}
