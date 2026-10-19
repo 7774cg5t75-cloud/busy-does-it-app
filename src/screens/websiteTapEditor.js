@@ -1,3 +1,4 @@
+import {selectedWebsiteComparisons} from '../core/websiteSelectedComparisons.mjs';
 import {amendSelectedWebsiteQualityInstruction} from "../core/websiteSelectedChangePreview.mjs";
 import {BuilderQualityNotice} from "../components/builderQualityNotice";
 import {WebsiteTypographyControls} from "./websiteTypographyControls";
@@ -260,6 +261,19 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
          {initialMode==="voice"?(
           <Text style={styles.cardBody}>You selected the exact {names[field]?.toLowerCase()||"website part"}. BUSY is ready to listen. Press the red Stop control when you're finished — pauses are fine.</Text>
          ):null}
+         {onPreviewInstruction?selectedWebsiteComparisons(draft,selection).map(choice=>(
+          <View key={choice.id}>
+           <Text style={styles.cardBody}>{choice.explanation}</Text>
+           <Button label={'Compare: '+choice.label} onPress={()=>{
+            if(!current()||editorLive.current.contextRequest!==contextRequest)return;
+            const outcome=onPreviewInstruction({selection,instruction:choice.instruction});
+            if(!outcome?.ok){setContextNote(outcome?.reason||'Select the current section again.');return;}
+            setContextRequest(choice.instruction);setShowContextHelp(true);
+            setSelectedInstructionPreview(outcome);setShowPreviewOriginal(false);
+            setContextNote('Private comparison for this section only. Nothing has been saved.');
+           }}/>
+          </View>
+         )):null}
          <Button label={showContextHelp?"Hide instructions for this part":"Tell BUSY what to do with this part"}
           onPress={()=>{setContextNote("");setShowContextHelp(x=>!x);}}/>
          {showContextHelp?(
