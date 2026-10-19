@@ -701,6 +701,7 @@ function SocialCreator({ s }) {
     }else apply();
   };
   const pendingIdea=s.socialSourceContext?.pendingContentIdea;
+  const pendingCheck=pendingIdea?.evidence?.ok?confirmSocialBrandHandoff({...currentBrandInput(),evidence:pendingIdea.evidence}):null;
   const handoffTicket=s.socialContentActions?.capture();
   const applyIncomingIdea=()=>{
     if(!s.socialContentActions?.fresh(handoffTicket))return;
@@ -724,9 +725,9 @@ function SocialCreator({ s }) {
       brandCue="BUSY looks only at the photos you deliberately select."
     >
       {pendingIdea?<Card eyebrow="Private content idea · not published" title={pendingIdea.serviceName||'Choose the service for your post'}
-        body={pendingIdea.evidence?.ok?pendingIdea.evidence.copy:pendingIdea.evidence?.reason||'Choose one current approved service below. No launch date, offer or availability is inferred.'} tone="blue">
+        body={pendingCheck?.ok?pendingCheck.copy:pendingCheck?.reason||pendingIdea.evidence?.reason||'Choose one current approved service below. No launch date, offer or availability is inferred.'} tone="blue">
         {pendingIdea.platform?<Text style={styles.cardBody}>{'Suggested destination: '+pendingIdea.platform+'. Existing channel selections are kept; choose destinations during review.'}</Text>:null}
-        {pendingIdea.evidence?.ok?<Button label="Use this service idea" onPress={applyIncomingIdea}/>:brandSnapshot.ok?brandSnapshot.services.map(service=><Button key={service.name} label={'Use service: '+service.name} onPress={()=>s.socialContentActions?.prepare(service.name,pendingIdea.platform)}/>):null}
+        {pendingCheck?.ok?<Button label="Use this service idea" onPress={applyIncomingIdea}/>:brandSnapshot.ok?brandSnapshot.services.map(service=><Button key={service.name} label={'Use service: '+service.name} onPress={()=>s.socialContentActions?.prepare(service.name,pendingIdea.platform)}/>):null}
         <Button label="Keep my current draft" onPress={()=>s.socialContentActions?.keep(pendingIdea)}/>
       </Card>:null}
       <Card

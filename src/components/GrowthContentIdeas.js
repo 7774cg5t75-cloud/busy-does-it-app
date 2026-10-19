@@ -22,8 +22,8 @@ export function GrowthContentIdeas({s}){
   {checked?.ok?<>
    <Text style={styles.sectionLabel}>{'Private wording idea · '+checked.serviceName}</Text>
    <Text selectable style={styles.cardBody}>{checked.copy}</Text>
-   <Text style={styles.cardBody}>{'In Content Creator, choose “Draft a post about '+checked.serviceName+'” to prepare current wording for your post. Your existing caption and selected media are kept when you open it.'}</Text>
-   <Button label="Open Content Creator for this idea" onPress={()=>{if(!current()||!confirmSocialBrandHandoff({...input,evidence:idea}).ok)return;live.current.s.go('socialCreator');}}/>
+   <Text style={styles.cardBody}>{'Open this exact service idea in Content Creator for review. Your existing caption, saved draft and selected media stay unchanged until you deliberately use the new idea.'}</Text>
+   <Button label="Open Content Creator for this idea" onPress={()=>{if(!current()||!confirmSocialBrandHandoff({...input,evidence:idea}).ok)return;if(live.current.s.socialContentActions)live.current.s.socialContentActions.prepare(checked.serviceName);else live.current.s.go('socialCreator');}}/>
   </>:idea?<Text style={styles.cardBody}>Your approved source changed. Review a current service idea again.</Text>:null}
  </Card>;
 }

@@ -1285,6 +1285,12 @@
       "args": [
         "scripts/check-mission15-phase32-service-intent.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase32-growth-handoff",
+      "args": [
+        "scripts/check-mission15-phase32-growth-handoff.mjs"
+      ]
     }
   ]
 }
