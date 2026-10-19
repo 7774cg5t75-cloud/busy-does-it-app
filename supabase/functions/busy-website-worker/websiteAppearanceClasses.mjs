@@ -1,7 +1,7 @@
 import {textTypographyClasses} from "./websiteTextTypography.mjs";
 // Canonical finite appearance classes for native previews, hosted HTML and exports.
 function sectionAppearanceClasses(section){
-  const fields={faqLayout:['questions'],readingLayout:['column','editorial'],serviceLayout:['directory','cards'],ctaSize:['spacious','wide'],bodyScale:['large'],mobileBodyScale:['large'],desktopBodyScale:['large'],headingScale:["compact","large"],textAlign:["center"],
+  const fields={faqLayout:['questions'],readingLayout:['column','editorial'],serviceLayout:['directory','cards','index'],ctaSize:['spacious','wide'],bodyScale:['large'],mobileBodyScale:['large'],desktopBodyScale:['large'],headingScale:["compact","large"],textAlign:["center"],
     sectionSpacing:["compact","generous"],mobileSectionSpacing:["compact","generous"],desktopSectionSpacing:["compact","generous"],photoCrop:["top","bottom"],
     photoSide:["right"],desktopPhotoSide:["left","right"],gallerySize:["compact","large"],
     mobileHeadingScale:["compact","large"],desktopHeadingScale:["compact","large"],

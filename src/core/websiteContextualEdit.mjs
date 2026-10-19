@@ -86,10 +86,10 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
   return success('layout',{action:itemId?'item-style':'section-style',sectionId,...(itemId?{itemId}:{}),field:style,value},
    'Change only the selected '+(itemId?'card ':'section ')+(target==='title'?'heading':'primary paragraph')+'. Brand defaults and other content stay intact.');
  }
- const servicesLayout=text.match(/^show (?:this|that|the selected) services (?:as|in) (a directory|cards|the original layout)$/i);
+ const servicesLayout=text.match(/^show (?:this|that|the selected) services (?:as|in) (a directory|an indexed directory|cards|the original layout)$/i);
  if(servicesLayout){
   if(itemId||section.type!=='services')return failure('Select the services section to change its layout.');
-  return success('layout',{action:'section-style',sectionId,field:'serviceLayout',value:{'a directory':'directory',cards:'cards','the original layout':'brand'}[servicesLayout[1].toLowerCase()]},'Change only this services section. Service wording, order and destinations stay unchanged; phones use one column.');
+  return success('layout',{action:'section-style',sectionId,field:'serviceLayout',value:{'a directory':'directory','an indexed directory':'index',cards:'cards','the original layout':'brand'}[servicesLayout[1].toLowerCase()]},'Change only this services section. Service wording, order and destinations stay unchanged; phones use one column.');
  }
  const desktopPicture=text.match(/^(?:put|move|show) (?:this|that|the selected) (?:picture|photo|image) (?:on |to )?(?:the )?(left|right) on (?:desktop|larger screens)$/i);
  if(desktopPicture){

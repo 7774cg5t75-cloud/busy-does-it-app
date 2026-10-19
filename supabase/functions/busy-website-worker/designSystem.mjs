@@ -187,6 +187,14 @@ section.owner-reading-editorial .wrap > p{max-width:68ch;overflow-wrap:anywhere}
  section.owner-reading-editorial .wrap > :is(h1,h2){grid-column:1;grid-row:1;min-width:0;margin-top:0;overflow-wrap:anywhere}
  section.owner-reading-editorial .wrap > p{grid-column:2;grid-row:1;min-width:0;margin-top:0}
 }
+section.owner-services-index .service-index-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;margin-top:24px}
+section.owner-services-index nav ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+section.owner-services-index nav a{display:flex;align-items:center;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;color:inherit;overflow-wrap:anywhere}
+section.owner-services-index nav a:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+section.owner-services-index article{min-width:0;padding:24px 0;border:0;border-bottom:1px solid var(--line);background:transparent;box-shadow:none;border-radius:0;scroll-margin-top:100px}
+section.owner-services-index article p{max-width:66ch;overflow-wrap:anywhere}
+section.owner-services-index article h3{overflow-wrap:anywhere}
+@media(min-width:801px){section.owner-services-index .service-index-layout{grid-template-columns:minmax(0,1fr) minmax(0,2.4fr);gap:clamp(24px,5vw,64px);align-items:start}}
 section.owner-faq-questions .faq-questions{display:grid;grid-template-columns:1fr;gap:12px;margin-top:28px}
 section.owner-faq-questions article{padding:0;border:1px solid var(--line);border-radius:12px;background:var(--soft);box-shadow:none;min-width:0}
 section.owner-faq-questions summary{cursor:pointer;padding:20px;min-height:48px;overflow-wrap:anywhere}

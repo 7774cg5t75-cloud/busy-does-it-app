@@ -1,3 +1,4 @@
+import {serviceIndexHtml} from './websiteServiceIndex.mjs';
 import {faqDisclosureItems} from './websiteFaqPresentation.mjs';
 import {reviewWebsiteEditingQuality} from "./websiteEditingQuality.mjs";
 import {itemTypographyClasses} from "./websiteTextTypography.mjs";
@@ -170,6 +171,9 @@ function renderSectionHtml(
 
   const headingTag = isFirstSection ? "h1" : "h2";
 
+  if(section.type==='services'&&section.appearance?.serviceLayout==='index'){
+    return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(section.title)}</${headingTag}>${serviceIndexHtml(section,{escapeHtml,itemHeadingClass})}</div></section>`;
+  }
   if (section.type === "services") {
     return `<section id="services"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(
       section.title

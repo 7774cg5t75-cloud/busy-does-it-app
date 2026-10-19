@@ -1069,6 +1069,12 @@
       "args": [
         "scripts/check-mission15-phase27-request-return.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase27-service-index",
+      "args": [
+        "scripts/check-mission15-phase27-service-index.mjs"
+      ]
     }
   ]
 }

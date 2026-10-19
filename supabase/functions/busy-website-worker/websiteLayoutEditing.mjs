@@ -1,3 +1,4 @@
+import {validServiceIndex} from './websiteServiceIndex.mjs';
 import {editWebsitePages} from "./websitePageEditing.mjs";
 import {textTypographyFields,textTypographySupports} from "./websiteTextTypography.mjs";
 import {photographicCount} from './designPlanner.mjs';
@@ -245,7 +246,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const target=matched[0];
   const fields={
    ...textTypographyFields,
-   serviceLayout:['brand','directory','cards'],readingLayout:['brand','column','editorial'],faqLayout:['brand','questions'],
+   serviceLayout:['brand','directory','cards','index'],readingLayout:['brand','column','editorial'],faqLayout:['brand','questions'],
    ctaSize:['normal','spacious','wide'],
    bodyScale:['normal','large'],mobileBodyScale:['normal','large'],desktopBodyScale:['normal','large'],
    headingScale:["compact","normal","large"],
@@ -287,6 +288,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   if(!Object.prototype.hasOwnProperty.call(fields,field)||
      !fields[field].includes(value)||!supports[field].includes(target.type))
    return fail(draft,"Choose an available design control for this exact section.");
+  if(field==='serviceLayout'&&value==='index'&&!validServiceIndex(target))return fail(draft,'An indexed service directory needs distinct original service identities, titles and descriptions.');
   if(field==='faqLayout'&&value==='questions'&&(!list(target.items).length||list(target.items).some(item=>!text(item?.title).trim()||!text(item?.body).trim())))return fail(draft,'Each question needs its original answer before using expandable questions.');
   if(field==='desktopPhotoSide'&&value!=='brand'&&(target.asset?.approved!==true||!text(target.asset?.storagePath)))return fail(draft,'Choose an approved original picture before comparing its position.');
   if(field==="photoCrop"&&target.type!=="gallery"&&!text(target.asset?.storagePath))
