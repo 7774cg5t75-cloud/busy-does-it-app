@@ -1327,6 +1327,12 @@
       "args": [
         "scripts/check-mission15-phase32-caption-races.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase32-source-choice",
+      "args": [
+        "scripts/check-mission15-phase32-source-choice.mjs"
+      ]
     }
   ]
 }

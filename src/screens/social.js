@@ -703,6 +703,7 @@ function SocialCreator({ s }) {
   };
   const pendingIdea=s.socialSourceContext?.pendingContentIdea;
   const pendingCheck=pendingIdea?.evidence?.ok?confirmSocialBrandHandoff({...currentBrandInput(),evidence:pendingIdea.evidence}):null;
+  const incomingSnapshot=buildContentBrandSnapshot({...currentBrandInput(),sourceMode:pendingIdea?.sourceMode||""});
   const handoffTicket=s.socialContentActions?.capture();
   const applyIncomingIdea=()=>{
     if(!s.socialContentActions?.fresh(handoffTicket))return;
@@ -725,10 +726,13 @@ function SocialCreator({ s }) {
       subtitle={s.socialSourceContext?.label || "Selected photos"}
       brandCue="BUSY looks only at the photos you deliberately select."
     >
+      {!brandSnapshot.ok&&s.businessCreationIntelligence?.sharedProfile&&s.socialContentActions&&!pendingIdea?<Card eyebrow="Choose your content source" title="Review current business facts"
+        body={brandSnapshot.reason} tone="blue"><Button label="Use current approved business profile" onPress={()=>s.socialContentActions.prepare('','','approved-profile')}/></Card>:null}
       {pendingIdea?<Card eyebrow="Private content idea · not published" title={pendingIdea.serviceName||'Choose the service for your post'}
         body={pendingCheck?.ok?pendingCheck.copy:pendingCheck?.reason||pendingIdea.evidence?.reason||'Choose one current approved service below. No launch date, offer or availability is inferred.'} tone="blue">
         {pendingIdea.platform?<Text style={styles.cardBody}>{'Suggested destination: '+pendingIdea.platform+'. Existing channel selections are kept; choose destinations during review.'}</Text>:null}
-        {pendingCheck?.ok?<Button label="Use this service idea" onPress={applyIncomingIdea}/>:brandSnapshot.ok?brandSnapshot.services.map(service=><Button key={service.name} label={'Use service: '+service.name} onPress={()=>s.socialContentActions?.prepare(service.name,pendingIdea.platform)}/>):null}
+        {!incomingSnapshot.ok&&s.businessCreationIntelligence?.sharedProfile?<Button label="Use current approved business profile" onPress={()=>s.socialContentActions?.prepare(pendingIdea.serviceName,pendingIdea.platform,'approved-profile')}/>:null}
+        {pendingCheck?.ok?<Button label="Use this service idea" onPress={applyIncomingIdea}/>:incomingSnapshot.ok?incomingSnapshot.services.map(service=><Button key={service.name} label={'Use service: '+service.name} onPress={()=>s.socialContentActions?.prepare(service.name,pendingIdea.platform,pendingIdea.sourceMode)}/>):null}
         <Button label="Keep my current draft" onPress={()=>s.socialContentActions?.keep(pendingIdea)}/>
       </Card>:null}
       <Card

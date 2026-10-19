@@ -126,14 +126,16 @@ export {CHANNELS,buildBusinessBrandDnaSnapshot,planBrandDnaContentBrief};
 
 // Reuse the original approved shared profile when a business has not built both surfaces.
 // Caller supplies its current authorised projection; this is not authentication or new memory.
-function buildContentBrandSnapshot({website,app,businessId,approvedProfile}={}){
+function buildContentBrandSnapshot({website,app,businessId,approvedProfile,sourceMode=""}={}){
  if(website?.businessId&&website.businessId!==businessId||website?.business_id&&website.business_id!==businessId||app?.business_id&&app.business_id!==businessId)return {ok:false,reason:'Open approved information for this business.'};
- if(website&&app){
+ if(website&&app&&sourceMode!=="approved-profile"){
   const snapshot=buildBusinessBrandDnaSnapshot({website,app,businessId});
   if(!snapshot.ok||!approvedProfile?.businessName)return snapshot;
   const normal=value=>String(value||'').trim().toLocaleLowerCase('en');
-  const differs=normal(snapshot.identity.name)!==normal(approvedProfile.businessName)||snapshot.services.some(service=>{
-   const rows=(approvedProfile.services||[]).filter(row=>normal(row.name)===normal(service.name));
+  const approvedServices=Array.isArray(approvedProfile.services)?approvedProfile.services:[];
+  const differs=normal(snapshot.identity.name)!==normal(approvedProfile.businessName)||approvedServices.some(service=>!snapshot.services.some(row=>normal(row.name)===normal(service.name)))||snapshot.services.some(service=>{
+   if(!approvedServices.some(row=>normal(row.name)===normal(service.name)))return true;
+   const rows=approvedServices.filter(row=>normal(row.name)===normal(service.name));
    return rows.length===1&&normal(rows[0].description)&&normal(rows[0].description)!==normal(service.description);
   });
   return differs?{ok:false,reason:'Your approved business profile and builder wording differ. Review the source before preparing shared content.'}:snapshot;

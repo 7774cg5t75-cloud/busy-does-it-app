@@ -9,10 +9,10 @@ export function useSocialContentHandoff(input){
  const context=()=>({website:live.current.website,app:live.current.app,businessId:live.current.businessId,approvedProfile:live.current.approvedProfile});
  const setContext=value=>{live.current={...live.current,sourceContext:value};input.setSourceContext(value);};
  const valid=()=>current()&&!!live.current.ownerId&&!!live.current.businessId&&['owner','admin'].includes(live.current.role);
- const prepare=(serviceName='',platform='')=>{
+ const prepare=(serviceName='',platform='',sourceMode='')=>{
   if(!valid())return false;
-  const evidence=serviceName?prepareSocialBrandHandoff({...context(),serviceName}):null;
-  const pending={evidence,serviceName,platform:['Facebook','Instagram'].includes(platform)?platform:'',scope,ownerId:live.current.ownerId};
+  const evidence=serviceName?prepareSocialBrandHandoff({...context(),serviceName,sourceMode}):(()=>{const result=prepareSocialBrandHandoff({...context(),sourceMode});return result.ok?null:result;})();
+  const pending={evidence,serviceName,sourceMode,platform:['Facebook','Instagram'].includes(platform)?platform:'',scope,ownerId:live.current.ownerId};
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:pending});
   input.go('socialCreator');return true;
  };
