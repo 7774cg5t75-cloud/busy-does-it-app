@@ -512,6 +512,7 @@ function App() {
   const [socialBrief, setSocialBrief] = useState("");
   const [socialAiStatus, setSocialAiStatus] = useState("idle");
   const [socialAiResult, setSocialAiResult] = useState(null);
+  const socialAnalysisNonce=useRef(0);
   const [socialAiError, setSocialAiError] = useState("");
   const [socialCaptionId, setSocialCaptionId] = useState("");
   const [socialDraftText, setSocialDraftText] = useState("");
@@ -3460,6 +3461,7 @@ function App() {
   };
 
   const chooseSocialPhotos = async () => {
+    const ticket=socialContentActions.capture();if(!socialContentActions.fresh(ticket))return false;
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
@@ -3468,7 +3470,8 @@ function App() {
         quality: 0.65,
         base64: true,
       });
-      if (result.canceled) return;
+      if (result.canceled||!socialContentActions.fresh(ticket)) return false;
+      socialContentActions.invalidate();
       const picked = (result.assets || []).map((asset, index) => ({
         id: asset.assetId || `social-photo-${Date.now()}-${index}`,
         uri: asset.uri,
@@ -3489,11 +3492,13 @@ function App() {
       setSocialAiResult(null);
       setSocialAiError("");
     } catch (error) {
+      if(!socialContentActions.fresh(ticket))return false;
       Alert.alert("Could not open photos", "Please try again. Nothing was uploaded.");
     }
   };
 
   const removeSocialPhoto = (id) => {
+    socialContentActions.invalidate();
     setSocialCreatePhotos((current) => current.filter((photo) => photo.id !== id));
     setSocialAiStatus("idle");
     setSocialAiResult(null);
@@ -3503,7 +3508,7 @@ function App() {
   const commitSocialCaption = (caption) => {
     if (!caption) return;
     setSocialCaptionId(caption.id);
-    setSocialDraftText(caption.text || "");
+    socialContentActions.editText(caption.text || "");
     const recommended = new Set(caption.recommendedChannels || []);
     const metaConnection = socialPublishingStatus?.connections?.meta || {};
     const googleConnection = socialPublishingStatus?.connections?.google_business || {};
@@ -3530,8 +3535,10 @@ function App() {
   };
 
   const applySocialCaption = (caption) => {
-    if (!caption) return;
-    const currentText = String(socialDraftText || "").trim();
+    const ticket=socialContentActions.capture();
+    if(!caption||!socialContentActions.fresh(ticket)||!ticket.aiResult?.captions?.includes(caption))return;
+    const replace=()=>{if(socialContentActions.fresh(ticket)){socialContentActions.invalidate();commitSocialCaption(caption);}};
+    const currentText = String(ticket.text || "").trim();
     const nextText = String(caption.text || "").trim();
     const selectedCaption = (socialAiResult?.captions || []).find(
       (item) => item.id === socialCaptionId
@@ -3550,18 +3557,22 @@ function App() {
           { text: "Keep my wording", style: "cancel" },
           {
             text: "Replace wording",
-            onPress: () => commitSocialCaption(caption),
+            onPress: replace,
           },
         ]
       );
       return;
     }
 
-    commitSocialCaption(caption);
+    replace();
   };
 
   const runSocialContentAI = async () => {
     if (!socialCreatePhotos.length) return false;
+    const ticket=socialContentActions.capture(),scope=businessWorkspaceScopeRef.current,nonce=++socialAnalysisNonce.current;
+    if(!socialContentActions.fresh(ticket))return false;
+    const current=()=>socialAnalysisNonce.current===nonce&&socialContentActions.fresh(ticket);
+    const outdated=()=>{if(businessWorkspaceScopeRef.current===scope&&socialAnalysisNonce.current===nonce){setSocialAiStatus("outdated");setSocialAiError("Your draft changed while analysis was pending. Your latest wording and media were kept; no result was applied and nothing was retried automatically.");}return false;};
     setSocialAiStatus("analysing");
     setSocialAiError("");
 
@@ -3576,6 +3587,7 @@ function App() {
         });
       }
 
+      if(!current())return outdated();
       const response = await fetch(BUSY_SOCIAL_URL, {
         method: "POST",
         headers: {
@@ -3607,6 +3619,7 @@ function App() {
       });
 
       const payload = await response.json();
+      if(!current())return outdated();
       if (!response.ok) {
         throw new Error(payload?.error || `BUSY social AI returned ${response.status}.`);
       }
@@ -3618,11 +3631,12 @@ function App() {
           service: payload.detectedService,
         }));
       }
-      if (!String(socialDraftText || "").trim()) {
+      if (!String(ticket.text || "").trim()) {
         commitSocialCaption(payload.captions?.[0]);
       }
       return true;
     } catch (error) {
+      if(!current())return outdated();
       setSocialAiStatus("error");
       setSocialAiError(error?.message || "BUSY could not analyse these photos.");
       return false;
@@ -3630,6 +3644,7 @@ function App() {
   };
 
   const toggleSocialDraftChannel = (key) => {
+    socialContentActions.invalidate();
     setSocialDraftChannels((current) => ({ ...current, [key]: !current[key] }));
   };
 
@@ -8284,7 +8299,7 @@ function App() {
     websiteDraft,
     miniAppsView,
   });
-  const socialContentActions=useSocialContentHandoff({workspaceScope:businessWorkspaceScopeRef.current,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,approvedProfile:businessCreationIntelligence.sharedProfile,website:websiteDraft,app:miniAppsStatus?.app,text:socialDraftText,photos:socialCreatePhotos,selectedDraftId:selectedSocialDraftId,sourceContext:socialSourceContext,records:socialDrafts,brief:socialBrief,channels:socialDraftChannels,confirm:({keep,discard})=>Alert.alert('Keep your current draft?','Opening another saved draft will replace the current unsaved wording and selected photos. Nothing will be published.',[{text:'Keep my current draft',style:'cancel',onPress:keep},{text:'Open saved draft',onPress:discard}]),setSourceContext:setSocialSourceContext,setText:setSocialDraftText,setSelectedDraftId:setSelectedSocialDraftId,setAiResult:setSocialAiResult,setAiStatus:setSocialAiStatus,setCaptionId:setSocialCaptionId,go});
+  const socialContentActions=useSocialContentHandoff({workspaceScope:businessWorkspaceScopeRef.current,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,aiResult:socialAiResult,approvedProfile:businessCreationIntelligence.sharedProfile,website:websiteDraft,app:miniAppsStatus?.app,text:socialDraftText,photos:socialCreatePhotos,selectedDraftId:selectedSocialDraftId,sourceContext:socialSourceContext,records:socialDrafts,brief:socialBrief,channels:socialDraftChannels,confirm:({keep,discard})=>Alert.alert('Keep your current draft?','Opening another saved draft will replace the current unsaved wording and selected photos. Nothing will be published.',[{text:'Keep my current draft',style:'cancel',onPress:keep},{text:'Open saved draft',onPress:discard}]),setSourceContext:setSocialSourceContext,setText:setSocialDraftText,setSelectedDraftId:setSelectedSocialDraftId,setAiResult:setSocialAiResult,setAiStatus:setSocialAiStatus,setCaptionId:setSocialCaptionId,go});
   const businessCreationJourney = buildBusinessCreationJourney({
     businessCreationIntelligence,
     brandBrain,

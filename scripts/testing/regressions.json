@@ -1321,6 +1321,12 @@
       "args": [
         "scripts/check-mission15-phase32-manual-content.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase32-caption-races",
+      "args": [
+        "scripts/check-mission15-phase32-caption-races.mjs"
+      ]
     }
   ]
 }

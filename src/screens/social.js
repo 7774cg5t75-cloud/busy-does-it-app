@@ -823,10 +823,10 @@ function SocialCreator({ s }) {
         onPress={s.runSocialContentAI}
       />
 
-      {s.socialAiStatus === "error" ? (
+      {["error","outdated"].includes(s.socialAiStatus) ? (
         <Card
           eyebrow="Social AI"
-          title="BUSY could not create the content"
+          title={s.socialAiStatus==="outdated"?"Your draft has newer changes":"BUSY could not create the content"}
           body={s.socialAiError || "The analysis did not complete."}
           footer="Nothing was saved or published"
           tone="amber"

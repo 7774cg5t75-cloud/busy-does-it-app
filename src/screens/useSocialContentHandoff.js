@@ -29,8 +29,8 @@ export function useSocialContentHandoff(input){
  };
  const editText=value=>{if(!current())return;epoch.current++;live.current={...live.current,text:value};input.setText(value);};
  // UI confirmations must bind to the exact current local draft, including pre-render typing.
- const capture=()=>({epoch:epoch.current,scope,text:live.current.text,selectedId:live.current.selectedDraftId,photos:live.current.photos,brief:live.current.brief,channels:JSON.stringify(live.current.channels),pending:live.current.sourceContext?.pendingContentIdea});
- const fresh=ticket=>valid()&&ticket?.scope===scope&&ticket.epoch===epoch.current&&ticket.text===live.current.text&&ticket.selectedId===live.current.selectedDraftId&&ticket.photos===live.current.photos&&ticket.brief===live.current.brief&&ticket.channels===JSON.stringify(live.current.channels)&&ticket.pending===live.current.sourceContext?.pendingContentIdea;
+ const capture=()=>({epoch:epoch.current,scope,website:live.current.website,app:live.current.app,profile:JSON.stringify(live.current.approvedProfile),aiResult:live.current.aiResult,text:live.current.text,selectedId:live.current.selectedDraftId,photos:live.current.photos,brief:live.current.brief,channels:JSON.stringify(live.current.channels),pending:live.current.sourceContext?.pendingContentIdea});
+ const fresh=ticket=>valid()&&ticket?.scope===scope&&ticket.epoch===epoch.current&&ticket.website===live.current.website&&ticket.app===live.current.app&&ticket.profile===JSON.stringify(live.current.approvedProfile)&&ticket.aiResult===live.current.aiResult&&ticket.text===live.current.text&&ticket.selectedId===live.current.selectedDraftId&&ticket.photos===live.current.photos&&ticket.brief===live.current.brief&&ticket.channels===JSON.stringify(live.current.channels)&&ticket.pending===live.current.sourceContext?.pendingContentIdea;
  const reopen=(record,load)=>{
   if(!valid()||!live.current.records?.includes(record))return false;
   const ticket=capture(),now=live.current,saved=now.records.find(row=>row.id===now.selectedDraftId);
