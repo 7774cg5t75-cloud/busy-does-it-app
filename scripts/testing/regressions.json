@@ -1243,6 +1243,12 @@
       "args": [
         "scripts/check-mission15-phase31-service-resume.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase31-cloud-drafts",
+      "args": [
+        "scripts/check-mission15-phase31-cloud-drafts.mjs"
+      ]
     }
   ]
 }
