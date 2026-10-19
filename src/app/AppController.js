@@ -1,6 +1,5 @@
 import {localCoreAreaRequest} from "../domain/growthOperatorBridge.mjs";
 import {useSocialContentHandoff} from "../screens/useSocialContentHandoff";
-import {resolveSocialServiceIntent} from "../core/socialBrandHandoffV3199.mjs";
 import {createOwnerEditNavigation} from '../core/ownerEditNavigation.mjs';
 import {prepareReviewedWebsiteComposition} from '../core/websiteReviewedComposition.mjs';
 import {parseBusinessContentInterest} from '../core/businessContentRecords.mjs';
@@ -12105,9 +12104,9 @@ function App() {
       // Local typed routing uses the authenticated project rows, avoiding an AI
       // request for grounded project-only questions.
       if(cleanText && !audioUri && !businessCreationConversationActive){
-        const contentIntent=resolveSocialServiceIntent(cleanText,{website:websiteDraft,app:miniAppsStatus?.app,businessId:cloudWorkspace?.businessId,approvedProfile:businessCreationIntelligence.sharedProfile});
+        const contentIntent=socialContentActions.route(cleanText);
         if(contentIntent.handled){
-          const opened=socialContentActions.prepare(contentIntent.serviceName,contentIntent.platform);
+          const opened=contentIntent.opened;
           return acceptGrowthOperator({handled:true,result:{title:"Content Creator",intent:"social_post",transcript:cleanText,response:opened?contentIntent.reason:"Sign in as this business owner to prepare content.",mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
         }
         const localNavigation=localCoreAreaRequest(cleanText);
@@ -12123,6 +12122,7 @@ function App() {
         if(handled?.handled)return acceptGrowthOperator(handled);
       }
       const token = await ownerAccessToken();
+      if(businessWorkspaceScopeRef.current!==socialDraftScope)return null;
       if (!token) throw new Error("Sign in again before using BUSY Operator.");
 
       const context = buildBusyCommandContext();
@@ -12196,10 +12196,12 @@ function App() {
       }
 
       const payload = await response.json().catch(() => ({}));
+      if(businessWorkspaceScopeRef.current!==socialDraftScope)return null;
       if (!response.ok) {
         throw new Error(payload?.error || `BUSY Operator returned ${response.status}.`);
       }
 
+      if(businessWorkspaceScopeRef.current!==socialDraftScope)return null;
       const command = payload?.command || {};
       let result = {
         ...command,
@@ -12209,6 +12211,8 @@ function App() {
       // Audio was transcribed by the existing BUSY Operator service; resolve
       // project-only commands before its standard actions can run.
       if(result.transcript && !businessCreationConversationActive){
+        const contentIntent=socialContentActions.route(result.transcript);
+        if(contentIntent.handled)return acceptGrowthOperator({handled:true,result:{title:"Content Creator",intent:"social_post",transcript:result.transcript,response:contentIntent.opened?contentIntent.reason:"Sign in as this business owner to prepare content.",mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
         const activityAnswer=await tryBusinessActivityOperator(result.transcript,growthNonce);
         if(activityAnswer?.cancelled)return null;
         if(activityAnswer?.handled)return acceptGrowthOperator(activityAnswer);
@@ -12396,6 +12400,7 @@ function App() {
       setBusyCommandStatus("ready");
       return result;
     } catch (error) {
+      if(businessWorkspaceScopeRef.current!==socialDraftScope)return null;
       const message = error?.message || "BUSY could not understand that request.";
       setBusyCommandError(message);
       setBusyCommandStatus("error");

@@ -1333,6 +1333,12 @@
       "args": [
         "scripts/check-mission15-phase32-source-choice.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase32-transcript-parity",
+      "args": [
+        "scripts/check-mission15-phase32-transcript-parity.mjs"
+      ]
     }
   ]
 }

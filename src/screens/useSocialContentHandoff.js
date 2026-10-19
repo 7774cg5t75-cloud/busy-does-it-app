@@ -1,5 +1,5 @@
 import React from 'react';
-import {prepareSocialBrandHandoff,confirmSocialBrandHandoff} from '../core/socialBrandHandoffV3199.mjs';
+import {prepareSocialBrandHandoff,confirmSocialBrandHandoff,resolveSocialServiceIntent} from '../core/socialBrandHandoffV3199.mjs';
 
 // Pending intent stays inside the original in-memory source context. No draft store or save authority.
 export function useSocialContentHandoff(input){
@@ -39,5 +39,10 @@ export function useSocialContentHandoff(input){
   const open=()=>{if(!fresh(ticket)||!live.current.records?.includes(record))return false;epoch.current++;load();return true;};
   if(dirty){input.confirm?.({keep:()=>{},discard:open});return false;}return open();
  };
- return {prepare,keep,accept,capture,fresh,editText,reopen,invalidate:()=>{if(current())epoch.current++;}};
+ const route=text=>{
+  if(!current())return {handled:false};
+  const result=resolveSocialServiceIntent(text,context());
+  return result.handled?{...result,opened:prepare(result.serviceName,result.platform)}:result;
+ };
+ return {route,prepare,keep,accept,capture,fresh,editText,reopen,invalidate:()=>{if(current())epoch.current++;}};
 }
