@@ -995,6 +995,13 @@
         "scripts/check-mission15-phase25-reading.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase25-coordinated-controls",
+      "args": [
+        "scripts/check-mission15-phase25-coordinated-controls.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

@@ -33,7 +33,7 @@ export function AppVisualSelection({Surface,config,businessContent,onPrepare,bus
  const selectionCurrent=selectionSource===config;
  const prepare=operation=>{
   if(!current()||!selectionCurrent||live.current.selection!==selection||live.current.wording!==wording||live.current.imageCopy!==imageCopy)return;
-  const proposal=proposeCoordinatedAppChanges(config,[operation]);
+  const proposal=proposeCoordinatedAppChanges(config,Array.isArray(operation)?operation:[operation]);
   if(proposal.ok)onPrepare(proposal);
  };
  const choices=selection?.part==='header'?[['typeStyle','balanced'],['typeStyle','editorial'],['typeStyle','impact'],['typeStyle','friendly']]:
