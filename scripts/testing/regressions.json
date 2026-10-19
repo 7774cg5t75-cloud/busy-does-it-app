@@ -1030,6 +1030,13 @@
         "scripts/check-mission15-phase26-request-returns.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase26-faq-composition",
+      "args": [
+        "scripts/check-mission15-phase26-faq-composition.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

@@ -187,6 +187,13 @@ section.owner-reading-editorial .wrap > p{max-width:68ch;overflow-wrap:anywhere}
  section.owner-reading-editorial .wrap > :is(h1,h2){grid-column:1;grid-row:1;min-width:0;margin-top:0;overflow-wrap:anywhere}
  section.owner-reading-editorial .wrap > p{grid-column:2;grid-row:1;min-width:0;margin-top:0}
 }
+section.owner-faq-questions .faq-questions{display:grid;grid-template-columns:1fr;gap:12px;margin-top:28px}
+section.owner-faq-questions article{padding:0;border:1px solid var(--line);border-radius:12px;background:var(--soft);box-shadow:none;min-width:0}
+section.owner-faq-questions summary{cursor:pointer;padding:20px;min-height:48px;overflow-wrap:anywhere}
+section.owner-faq-questions summary h3{display:inline;margin:0}
+section.owner-faq-questions summary h3:not(.owner-item-heading-large):not(.owner-item-heading-compact){font-size:1.15rem}
+section.owner-faq-questions summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+section.owner-faq-questions details > p{padding:0 20px 20px;margin:0;max-width:70ch;overflow-wrap:anywhere}
 .photo-feature-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,5vw,68px);align-items:center}
 .photo-feature-grid > *{min-width:0;max-width:100%}
 .photo-feature-grid h2,.photo-feature-grid a{overflow-wrap:anywhere}

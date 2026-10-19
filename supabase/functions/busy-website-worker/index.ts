@@ -1,3 +1,4 @@
+import {faqDisclosureItems} from './websiteFaqPresentation.mjs';
 import {reviewWebsiteEditingQuality} from "./websiteEditingQuality.mjs";
 import {itemTypographyClasses} from "./websiteTextTypography.mjs";
 import {sectionAppearanceClasses} from './websiteAppearanceClasses.mjs';
@@ -209,6 +210,9 @@ function renderSectionHtml(
     )}</${headingTag}><div class="gallery${imageNodes.length>=3?" gallery-rich":""}">${images}</div></div></section>`;
   }
 
+  if(section.type==='faq'&&section.appearance?.faqLayout==='questions'){
+    return `<section id="${escapeHtml(section.id)}"${sectionAttrs}><div class="wrap"><${headingTag}>${escapeHtml(section.title)}</${headingTag}><div class="faq-questions">${faqDisclosureItems(section,{escapeHtml,itemHeadingClass})}</div></div></section>`;
+  }
   if (section.type === "testimonials" || section.type === "faq") {
     return `<section id="${escapeHtml(
       section.id

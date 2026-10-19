@@ -96,6 +96,10 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
   if(itemId||section.type!=='photo-feature'||section.asset?.approved!==true||!section.asset?.storagePath)return failure('Select a section with its approved original picture.');
   return success('layout',{action:'section-style',sectionId,field:'desktopPhotoSide',value:desktopPicture[1].toLowerCase()},'Move this approved picture only on larger screens. Phone reading order, wording and colours stay unchanged.');
  }
+ if(/^show (?:this|the selected) (?:faq|questions) as expandable questions$/i.test(text)){
+  if(itemId||section.type!=='faq')return failure('Select the whole questions section first.');
+  return success('layout',{action:'section-style',sectionId,field:'faqLayout',value:'questions'},'Prepare expandable questions with original answers. Preview before applying.');
+ }
  const readingLayout=text.match(/^show (?:this|that|the selected) text as (an editorial layout|a reading column|the original layout)$/i);
  if(readingLayout){
   if(itemId||!['about','text'].includes(section.type))return failure('Select a supported information section first.');

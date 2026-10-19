@@ -245,7 +245,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const target=matched[0];
   const fields={
    ...textTypographyFields,
-   serviceLayout:['brand','directory','cards'],readingLayout:['brand','column','editorial'],
+   serviceLayout:['brand','directory','cards'],readingLayout:['brand','column','editorial'],faqLayout:['brand','questions'],
    ctaSize:['normal','spacious','wide'],
    bodyScale:['normal','large'],mobileBodyScale:['normal','large'],desktopBodyScale:['normal','large'],
    headingScale:["compact","normal","large"],
@@ -261,7 +261,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const bodyTypes=['hero','services','about','text','photo-feature','faq','testimonials','contact'];
   const supports={
    ...textTypographySupports,
-   serviceLayout:['services'],readingLayout:['about','text'],
+   serviceLayout:['services'],readingLayout:['about','text'],faqLayout:['faq'],
    ctaSize:['hero'],
    bodyScale:bodyTypes,mobileBodyScale:bodyTypes,desktopBodyScale:bodyTypes,
    headingScale:["hero","services","about","text","photo-feature","gallery","faq","testimonials","contact"],
@@ -287,6 +287,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   if(!Object.prototype.hasOwnProperty.call(fields,field)||
      !fields[field].includes(value)||!supports[field].includes(target.type))
    return fail(draft,"Choose an available design control for this exact section.");
+  if(field==='faqLayout'&&value==='questions'&&(!list(target.items).length||list(target.items).some(item=>!text(item?.title).trim()||!text(item?.body).trim())))return fail(draft,'Each question needs its original answer before using expandable questions.');
   if(field==='desktopPhotoSide'&&value!=='brand'&&(target.asset?.approved!==true||!text(target.asset?.storagePath)))return fail(draft,'Choose an approved original picture before comparing its position.');
   if(field==="photoCrop"&&target.type!=="gallery"&&!text(target.asset?.storagePath))
    return fail(draft,"Add an approved original photo before changing its crop.");
@@ -297,7 +298,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   for(const name of Object.keys(fields))
    if(fields[name].includes(existing[name])&&supports[name].includes(target.type))
     next[name]=existing[name];
-  const defaults={readingLayout:'brand',serviceLayout:'brand',ctaSize:'normal',bodyScale:'normal',mobileBodyScale:'normal',desktopBodyScale:'normal',headingScale:"normal",textAlign:"left",sectionSpacing:"normal",mobileSectionSpacing:"normal",desktopSectionSpacing:"normal",
+  const defaults={faqLayout:'brand',readingLayout:'brand',serviceLayout:'brand',ctaSize:'normal',bodyScale:'normal',mobileBodyScale:'normal',desktopBodyScale:'normal',headingScale:"normal",textAlign:"left",sectionSpacing:"normal",mobileSectionSpacing:"normal",desktopSectionSpacing:"normal",
     photoCrop:"center",photoSide:"left",desktopPhotoSide:"brand",gallerySize:"comfortable",
     mobileHeadingScale:"normal",desktopHeadingScale:"normal",mobileGallerySize:"comfortable",desktopGallerySize:"comfortable"};
   if(value===(Object.hasOwn(textTypographyFields,field)?"brand":defaults[field]))delete next[field];else next[field]=value;
