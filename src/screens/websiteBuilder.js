@@ -1624,6 +1624,7 @@ function WebsitePreview({ s }) {
       </Card>
 
       <WebsiteTapEditor draft={draft} selection={selectedEdit}
+        exploreContext={{kind:'website',ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,project:draft,selection:selectedEdit}}
         initialMode={selectedEdit?.initialMode||"edit"}
         onClose={()=>setSelectedEdit(null)}
         onTextChange={s.applyWebsiteFieldChange}

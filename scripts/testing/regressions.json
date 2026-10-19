@@ -1009,6 +1009,13 @@
         "scripts/check-mission15-phase25-explore.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase26-selected-explore",
+      "args": [
+        "scripts/check-mission15-phase26-selected-explore.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
