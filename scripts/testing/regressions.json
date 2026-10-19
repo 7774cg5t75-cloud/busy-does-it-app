@@ -918,6 +918,13 @@
         "scripts/check-mission15-phase23-catalogue-recovery.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase23-explore",
+      "args": [
+        "scripts/check-mission15-phase23-explore.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }

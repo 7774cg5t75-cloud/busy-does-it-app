@@ -1,3 +1,4 @@
+import {ownerDesignPreference} from './websiteMeasuredDesignCoach.mjs';
 import {websiteCompositionFacts} from './websiteCoordinatedAlternatives.mjs';
 import {planUniversalBuilderRequest} from './universalBuilderPlanV3210.mjs';
 import {LABELS,nativePalette,contrast} from './nativePalette.mjs';
@@ -14,6 +15,21 @@ function explainBuilderExplore({kind,project,catalog,plan,text}){
  }
  const profile=kind==='app'?project.draft_config?.publicProfile||{}:project;
  const services=kind==='app'?(profile.services||[]):project.sections?.find(s=>s.type==='services'&&s.enabled!==false)?.items||[];
+ if(kind==='website'&&/\b(?:editorial|picture[- ]and[- ]text|text first|text before (?:the )?picture|picture after (?:the )?text)\b/i.test(text)){
+  const page=project.pages?.find(row=>row.id==='home'),features=(project.sections||[]).filter(row=>row.enabled!==false&&row.type==='photo-feature'&&page?.sectionIds?.includes(row.id)&&row.asset?.approved===true);
+  const right=features.filter(row=>row.appearance?.photoSide==='right').length,declined=ownerDesignPreference(project,'coordinated-editorial-feature','home')==='disliked',facts=websiteCompositionFacts(project,'home');
+  return {answer:['Your current Home page has '+features.length+' approved picture-and-text sections. '+right+' already place their photograph after the explanation in the source reading order.',
+   declined?'You previously declined the editorial direction. Keep that choice; it is not being proposed again here.':facts.editorialFeatureId?'The existing design comparison can prepare a text-first alternative for a longer picture-and-text section without a custom picture side or spacing override.':'No uncustomised longer picture-and-text section is ready for that candidate. Keep current choices or review an explicit selected-section change.',
+   'A right-hand photograph stays beside the explanation on desktop and follows the text in the single-column phone layout. Text-first gives the explanation priority; picture-first gives the photograph priority. Both keep the original words and approved asset.',
+   'This describes implemented source order and responsive rules, not screenshot quality or customer-outcome evidence. Nothing will be changed.'].join('\n'),alternatives:[]};
+ }
+ if(kind==='app'&&/\b(?:connection fails?|interrupted request|unknown outcome|unconfirmed request|request recovery)\b/i.test(text)){
+  const modules=project.draft_config?.modules||[],requests=modules.filter(row=>row.enabled===true&&['enquiry','booking_request'].includes(row.key)).length;
+  return {answer:[requests?'Your draft includes '+requests+' customer request screens. Their presence is not proof that live submission permissions are ready.':'Your draft does not currently include an enabled enquiry or booking-request screen. Its setup must be reviewed before promising this journey.',
+   'For a supported live request, customers review the exact details and explicitly confirm. An unconfirmed outcome must keep its original reference; do not blindly send a new request. Use the saved-reference check when the runtime offers it, or check with the business before retrying.',
+   'Saved request receipts are evidence only for their own request. Removing a listing or changing wording cannot turn an earlier receipt into proof that a new request was saved. A request is not a confirmed appointment, purchase or payment.',
+   'This discussion cannot read private customer requests, check delivery or contact the business. Nothing will be changed.'].join('\n'),alternatives:[]};
+ }
  if(kind==='app'&&/\bcontrast\b|\breadable colou?rs\b/i.test(text)){
   const palette=project.draft_config?.presentation?.brandPalette||'midnight',accent=project.draft_config?.presentation?.brandAccent;
   if(Object.hasOwn(LABELS,palette)){const colors=nativePalette(palette,accent);return {answer:['Text on the standard card background: '+contrast(colors.text,colors.surface).toFixed(2)+':1. Accent text on that background: '+contrast(colors.accent,colors.surface).toFixed(2)+':1.',
