@@ -1,5 +1,5 @@
 import {ContentDraftStatus} from "../components/ContentDraftStatus";
-import {buildBusinessBrandDnaSnapshot} from "../core/businessBrandDnaV3195.mjs";
+import {buildContentBrandSnapshot} from "../core/businessBrandDnaV3195.mjs";
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -667,12 +667,12 @@ function SocialCreator({ s }) {
   },[businessId,brandWebsite?.id,brandWebsite?.generation,
     brandApp?.id,brandApp?.draft_revision]);
   const captionEpoch=React.useRef(0),reviewRef=React.useRef(brandReview),liveCaption=React.useRef(null);
-  liveCaption.current={ownerId:s.ownerSession?.userId,businessId,website:brandWebsite,app:brandApp,s};
+  liveCaption.current={approvedProfile:s.businessCreationIntelligence?.sharedProfile,ownerId:s.ownerSession?.userId,businessId,website:brandWebsite,app:brandApp,s};
   const capturedEpoch=captionEpoch.current;
   const currentCaption=()=>liveCaption.current.ownerId===s.ownerSession?.userId&&liveCaption.current.businessId===businessId&&liveCaption.current.website===brandWebsite&&liveCaption.current.app===brandApp&&captionEpoch.current===capturedEpoch;
   const review=value=>{reviewRef.current=value;setBrandReview(value);};
-  const currentBrandInput=()=>({website:brandWebsite,app:brandApp,businessId});
-  const brandSnapshot=buildBusinessBrandDnaSnapshot(currentBrandInput());
+  const currentBrandInput=()=>({website:brandWebsite,app:brandApp,businessId,approvedProfile:liveCaption.current.approvedProfile});
+  const brandSnapshot=buildContentBrandSnapshot(currentBrandInput());
   const prepareCaption=(serviceName='')=>{
     if(!currentCaption())return;
     captionEpoch.current++;setBrandedCaptionAccepted(false);
@@ -776,10 +776,10 @@ function SocialCreator({ s }) {
         style={styles.messageInput}
       />
 
-      {brandWebsite?.id&&brandApp?.id&&businessId?<Card
+      {brandSnapshot.ok&&businessId?<Card
         eyebrow="Your Business Brand DNA"
         title="Use your existing branding in this post"
-        body="Busy can prepare a caption using the approved details in your website and app. Review it, then use it with your selected photos. This does not call paid AI or publish anything."
+        body="Busy can prepare a caption using your current approved business information. Compatible website and app branding is reused. Review it, then use it with your selected photos. This does not call paid AI or publish anything."
         tone="blue">
         <Button label="Prepare my branded caption"
           disabled={analysing}

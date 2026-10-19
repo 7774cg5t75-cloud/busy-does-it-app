@@ -3646,7 +3646,7 @@ function App() {
     ].filter(Boolean);
   };
 
-  const socialContentActions=useSocialContentHandoff({workspaceScope:businessWorkspaceScopeRef.current,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,website:websiteDraft,app:miniAppsStatus?.app,text:socialDraftText,photos:socialCreatePhotos,selectedDraftId:selectedSocialDraftId,sourceContext:socialSourceContext,setSourceContext:setSocialSourceContext,setText:setSocialDraftText,setSelectedDraftId:setSelectedSocialDraftId,setAiResult:setSocialAiResult,setAiStatus:setSocialAiStatus,setCaptionId:setSocialCaptionId,go});
+
   const socialDraftScope=businessWorkspaceScopeRef.current;
   const upsertSocialDraft = (status = "Draft") => {
     if(businessWorkspaceScopeRef.current!==socialDraftScope)return null;
@@ -8279,6 +8279,7 @@ function App() {
     websiteDraft,
     miniAppsView,
   });
+  const socialContentActions=useSocialContentHandoff({workspaceScope:businessWorkspaceScopeRef.current,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,approvedProfile:businessCreationIntelligence.sharedProfile,website:websiteDraft,app:miniAppsStatus?.app,text:socialDraftText,photos:socialCreatePhotos,selectedDraftId:selectedSocialDraftId,sourceContext:socialSourceContext,setSourceContext:setSocialSourceContext,setText:setSocialDraftText,setSelectedDraftId:setSelectedSocialDraftId,setAiResult:setSocialAiResult,setAiStatus:setSocialAiStatus,setCaptionId:setSocialCaptionId,go});
   const businessCreationJourney = buildBusinessCreationJourney({
     businessCreationIntelligence,
     brandBrain,
@@ -12083,7 +12084,7 @@ function App() {
       // Local typed routing uses the authenticated project rows, avoiding an AI
       // request for grounded project-only questions.
       if(cleanText && !audioUri && !businessCreationConversationActive){
-        const contentIntent=resolveSocialServiceIntent(cleanText,{website:websiteDraft,app:miniAppsStatus?.app,businessId:cloudWorkspace?.businessId});
+        const contentIntent=resolveSocialServiceIntent(cleanText,{website:websiteDraft,app:miniAppsStatus?.app,businessId:cloudWorkspace?.businessId,approvedProfile:businessCreationIntelligence.sharedProfile});
         if(contentIntent.handled){
           const opened=socialContentActions.prepare(contentIntent.serviceName,contentIntent.platform);
           return acceptGrowthOperator({handled:true,result:{title:"Content Creator",intent:"social_post",transcript:cleanText,response:opened?contentIntent.reason:"Sign in as this business owner to prepare content.",mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});

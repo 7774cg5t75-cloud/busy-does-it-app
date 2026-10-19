@@ -123,3 +123,27 @@ function planBrandDnaContentBrief(snapshot,{channel,goal=""}={}){
   guidance:"Adapt to the chosen format. Do not invent prices, customer reviews, event details, availability or approval; ask the owner for missing facts."};
 }
 export {CHANNELS,buildBusinessBrandDnaSnapshot,planBrandDnaContentBrief};
+
+// Reuse the original approved shared profile when a business has not built both surfaces.
+// Caller supplies its current authorised projection; this is not authentication or new memory.
+function buildContentBrandSnapshot({website,app,businessId,approvedProfile}={}){
+ if(website?.businessId&&website.businessId!==businessId||website?.business_id&&website.business_id!==businessId||app?.business_id&&app.business_id!==businessId)return {ok:false,reason:'Open approved information for this business.'};
+ if(website&&app){
+  const snapshot=buildBusinessBrandDnaSnapshot({website,app,businessId});
+  if(!snapshot.ok||!approvedProfile?.businessName)return snapshot;
+  const normal=value=>String(value||'').trim().toLocaleLowerCase('en');
+  const differs=normal(snapshot.identity.name)!==normal(approvedProfile.businessName)||snapshot.services.some(service=>{
+   const rows=(approvedProfile.services||[]).filter(row=>normal(row.name)===normal(service.name));
+   return rows.length===1&&normal(rows[0].description)&&normal(rows[0].description)!==normal(service.description);
+  });
+  return differs?{ok:false,reason:'Your approved business profile and builder wording differ. Review the source before preparing shared content.'}:snapshot;
+ }
+ if(!businessId||!approvedProfile||typeof approvedProfile.fingerprint!=='string'||approvedProfile.businessId&&approvedProfile.businessId!==businessId)return {ok:false,reason:'Review your approved business profile before preparing content.'};
+ const name=cleanText(approvedProfile.businessName,140);if(!name)return {ok:false,reason:'Add an approved business name before preparing content.'};
+ const services=(Array.isArray(approvedProfile.services)?approvedProfile.services:[]).slice(0,30).map(row=>({id:cleanText(row?.id,128),name:cleanText(row?.name,120),description:cleanText(row?.description,500)})).filter(row=>row.name).slice(0,12);
+ const identity={name,tagline:cleanText(approvedProfile.tagline,220),about:cleanText(approvedProfile.description||approvedProfile.about,900)};
+ const colour=normalColour(approvedProfile.theme?.primary);
+ return {ok:true,schema:'private_brand_dna_draft_v1',businessId,source:{approvedProfileSource:JSON.stringify({identity,services,colour})},identity,
+  services,design:{primaryColour:colour,appTypography:null},voice:{ownerChosenTone:null},assets:{photos:[]},conflicts:[],privateOnly:true,requiresOwnerReview:true,autoPublishes:false,sourceOfTruth:'current approved shared business profile'};
+}
+export {buildContentBrandSnapshot};

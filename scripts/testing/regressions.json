@@ -1297,6 +1297,12 @@
       "args": [
         "scripts/check-mission15-phase32-content-save.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase32-approved-profile",
+      "args": [
+        "scripts/check-mission15-phase32-approved-profile.mjs"
+      ]
     }
   ]
 }

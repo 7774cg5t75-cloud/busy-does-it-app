@@ -6,7 +6,7 @@ export function useSocialContentHandoff(input){
  const live=React.useRef(input),epoch=React.useRef(0);live.current=input;
  const scope=input.workspaceScope;
  const current=()=>live.current.workspaceScope===scope;
- const context=()=>({website:live.current.website,app:live.current.app,businessId:live.current.businessId});
+ const context=()=>({website:live.current.website,app:live.current.app,businessId:live.current.businessId,approvedProfile:live.current.approvedProfile});
  const setContext=value=>{live.current={...live.current,sourceContext:value};input.setSourceContext(value);};
  const valid=()=>current()&&!!live.current.ownerId&&!!live.current.businessId&&['owner','admin'].includes(live.current.role);
  const prepare=(serviceName='',platform='')=>{

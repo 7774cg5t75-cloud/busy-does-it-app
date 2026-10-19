@@ -2,16 +2,16 @@ import React from 'react';
 import {Text} from 'react-native';
 import {Card,Button} from './ui';
 import {styles} from '../theme/styles';
-import {buildBusinessBrandDnaSnapshot} from '../core/businessBrandDnaV3195.mjs';
+import {buildContentBrandSnapshot} from '../core/businessBrandDnaV3195.mjs';
 import {prepareSocialBrandHandoff,confirmSocialBrandHandoff} from '../core/socialBrandHandoffV3199.mjs';
 
 // £0-first recommendations from the same Brand DNA. No fetch, save or publishing.
 export function GrowthContentIdeas({s}){
- const input={website:s.websiteDraft,app:s.miniAppsStatus?.app,businessId:s.cloudWorkspace?.businessId};
+ const input={website:s.websiteDraft,app:s.miniAppsStatus?.app,businessId:s.cloudWorkspace?.businessId,approvedProfile:s.businessCreationIntelligence?.sharedProfile};
  const ownerId=s.ownerSession?.userId,live=React.useRef(null);live.current={...input,ownerId,s};
  const [idea,setIdea]=React.useState(null);
- const snapshot=buildBusinessBrandDnaSnapshot(input);
- const current=()=>live.current.ownerId===ownerId&&live.current.businessId===input.businessId&&live.current.website===input.website&&live.current.app===input.app;
+ const snapshot=buildContentBrandSnapshot(input);
+ const current=()=>live.current.ownerId===ownerId&&live.current.businessId===input.businessId&&live.current.website===input.website&&live.current.app===input.app&&JSON.stringify(buildContentBrandSnapshot(live.current).source)===JSON.stringify(snapshot.source);
  const checked=idea&&idea.ownerId===ownerId&&current()?confirmSocialBrandHandoff({...input,evidence:idea}):null;
  if(!snapshot.ok||snapshot.conflicts.length||!snapshot.services.length)return null;
  return <Card eyebrow="Get More Customers · £0-first idea" title="Explain a service you already offer"
