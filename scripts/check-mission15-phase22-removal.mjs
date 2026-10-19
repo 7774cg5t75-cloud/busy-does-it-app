@@ -5,7 +5,7 @@ import {createRequire} from 'node:module';
 const {createRuntime}=createRequire(import.meta.url)('./lib/offline-component-runtime.cjs');
 const walk=x=>Array.isArray(x)?x.flatMap(walk):x&&typeof x==='object'?[x,...walk(x.props?.children)]:[];
 const button=(tree,title)=>walk(tree).find(n=>n.props?.title===title);
-const input={name:'Fictional',email:'fictional@example.test',message:'My own question',service:'Old product',requirements:{timing:'Friday',quantity:'3',location:'Home',accessibility:'Step free'}};
+const input={name:'Fictional',email:'fictional@example.test',message:'My own question',service:'Old product',requirements:{topic:'',timing:'Friday',quantity:'3',location:'Home',details:'Step free'}};
 const selection={recordId:'product_record_001',revision:1,businessId:'business-a',kind:'product'};
 const base={screen:{key:'enquiry'},live:{appId:'a',versionId:'v',supportsEnquiry:true},runtime:{expectedAppId:'a',expectedVersionId:'v'},contentSelection:selection,savedState:{input,enquiryReview:{key:'old-review',payload:{message:'old'}}}};
 const rt=createRuntime(),Request=rt.load('.tmp/standalone-prototype-v3154/App.js').RequestScreen;let removed=null;

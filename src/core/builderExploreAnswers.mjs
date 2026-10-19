@@ -27,6 +27,12 @@ function explainBuilderExplore({kind,project,catalog,plan,text}){
    'Readable text and buttons need sufficient contrast on their actual backgrounds. Photos and overlays need a real preview check.',
    'Use the existing colour preview in the editor to compare a change when you are ready. Your branding stays unchanged here.'].join('\n'),alternatives:[]};
  }
+ if(kind==='website'&&/\b(?:phone|mobile|service page)\b.*\b(?:read|readability|text|spac)|\b(?:read|readability|text|spac)\w*\b.*\b(?:phone|mobile)\b/i.test(text)){
+  const facts=websiteCompositionFacts(project,'home');
+  return {answer:['Your current Home page contains '+facts.longReadingSectionCount+' longer information sections (at least 500 source characters each). This counts supplied text; it does not measure rendered line length or reading time.',
+   facts.phoneReadingSectionId?'The existing design comparison can prepare larger phone text and more breathing room for one longer section that has no custom phone reading settings, subject to your owner locks. Desktop and tablet rules stay unchanged.':'No uncustomised longer information section is available for that targeted comparison. Keep your existing phone choices, or review a deliberately wider change in the editor.',
+   'Larger type can ease reading but adds scrolling. This is source-based advice, not a screenshot, usability test or accessibility certification. Nothing will be changed.'].join('\n'),alternatives:[]};
+ }
  if(kind==='website'&&/\b(?:add|own|benefit|worth|need|build|create)\b.*\bapp\b|\bapp\b.*\b(?:customers|benefit|worth)\b/i.test(text)){
   const sections=(project.sections||[]).filter(s=>s.enabled!==false);
   return {answer:['Your website draft has '+sections.length+' visible sections'+(services.length?' and '+services.length+' service descriptions':'')+'.',

@@ -157,6 +157,7 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
       <Button title="Remove selected listing" disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} onPress={()=>{
        const current=latestDraft.current;
        if(inFlight.current||busy||editEpoch.current!==renderedEditEpoch||current.input!==input||current.contentSelection!==contentSelection||current.live!==live||current.runtime!==runtime||current.result?.ok||current.result?.mayHaveBeenReceived)return;
+       editEpoch.current++;
        onRemoveAttachment({input:{...input,service:''},result:null,possibleDuplicateRetry:false,enquiryReview:null});
       }}/>
       {result?.mayHaveBeenReceived?<Text style={sub}>Keep this attachment while the earlier request is unconfirmed. Do not create a replacement request.</Text>:null}
