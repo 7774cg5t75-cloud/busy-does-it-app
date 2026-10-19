@@ -76,3 +76,7 @@ This prompt **does not** grant permission to skip the full product-master prefli
 ## Mission 14 provenance verification — 17 October 2026
 
 Reopened the complete owner-attached V22.27 Word source, verified unchanged against the full document previously reviewed in this conversation, and rechecked relevant requirements. SHA-256 remains `8c7e7134124f9b8c54fd8fd159f66dd199883dd0af601d390904e0ddec9005eb`. No newer approved master was supplied. No private document content is published.
+
+## Mission 15 Phase 22 provenance — 19 October 2026
+
+Latest owner-approved private master: **V22.35**. Owner-supplied Word filename `Latest master 74.docx`; original-byte SHA-256 `7d93efedb1ff68a57470bdb97073767a14a9fc64cd1c53c06fba3021d12e298d`. The full document was read in this current task and remains accessible; checksum reverified during this continuation. This supersedes the older dated master checkpoints above. Only provenance is recorded here; no private contents are published. Future tasks must still verify actual access, not infer it from this manifest.
