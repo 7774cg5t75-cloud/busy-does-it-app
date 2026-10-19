@@ -1,6 +1,10 @@
 """Reviewed offline selection; no shell, downloads, browser or workflow dispatch."""
 import argparse, datetime, hashlib, json, os, pathlib, signal, subprocess, sys, time
 ROOT=pathlib.Path(__file__).resolve().parents[2]
+# Babel may resolve named plugins from the test cwd rather than its own prefix.
+# Give child checks the reviewed isolated tools, without changing app installs
+# or requiring a shell-exported NODE_PATH from a previous session.
+TEST_ENV={**os.environ,'NODE_PATH':str(ROOT/'scripts/offline-tools/node_modules')}
 def classify(code,output,timed_out=False):
  if timed_out:return 'blocked'
  if code==0:return 'passed'
@@ -19,7 +23,7 @@ def main():
  manifest=ROOT/'scripts/testing/regressions.json';selection=json.loads(manifest.read_text())['checks'];rows=[]
  for row in selection:validate(row)
  def git(*argv):return subprocess.check_output(['git',*argv],cwd=ROOT,text=True).strip()
- report={'sourceSha':git('rev-parse','HEAD'),'workingTreeChanged':bool(git('status','--porcelain','--untracked-files=normal')),'selectionSha256':hashlib.sha256(manifest.read_bytes()).hexdigest(),'startedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'evidence':'Offline original code with inert boundaries; not hosted/native/browser acceptance.','results':rows}
+ report={'sourceSha':git('rev-parse','HEAD'),'workingTreeChanged':bool(git('status','--porcelain','--untracked-files=normal')),'testToolModulePath':TEST_ENV['NODE_PATH'],'selectionSha256':hashlib.sha256(manifest.read_bytes()).hexdigest(),'startedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'evidence':'Offline original code with inert boundaries; not hosted/native/browser acceptance.','results':rows}
  output=pathlib.Path(args.output).resolve();output.parent.mkdir(parents=True,exist_ok=True)
  def save():
   report['summary']={key:sum(r['status']==key for r in rows) for key in ['passed','failed','blocked','unexecuted']}
@@ -34,7 +38,7 @@ def main():
   if row['reason']=='Not selected' or stopped:continue
   start=time.monotonic();process=None;timed_out=False
   try:
-   process=subprocess.Popen(validate(row),cwd=ROOT,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,start_new_session=True)
+   process=subprocess.Popen(validate(row),cwd=ROOT,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,start_new_session=True,env=TEST_ENV)
    try:out,_=process.communicate(timeout=args.timeout)
    except subprocess.TimeoutExpired:
     timed_out=True;os.killpg(process.pid,signal.SIGKILL);out,_=process.communicate()

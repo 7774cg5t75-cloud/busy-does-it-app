@@ -59,3 +59,7 @@ The current managed policy allowed the registry, but the command sandbox separat
 - Existing historical Actions workflows often use Node 22.13.0, root `npm install`, floating action tags and browser downloads. They are historical recipes, not proof of this environment or all current tests. This phase does not dispatch or rewrite them.
 - Babel parses/transforms TS syntax; Node's TS erasure is not Deno type checking. Deno/Edge integration requires separate tools and acceptance. No schema execution is part of this setup.
 - Optional browser tooling uses the already-approved Playwright 1.58.2 in a separate locked prefix. See the browser acceptance instructions. Installing Babel does not install browsers or make the managed Chromium sandbox compatible.
+
+### Phase 23 — named Babel plugin resolution
+
+The reviewed regression runner now gives only its child checks `NODE_PATH=<repository>/scripts/offline-tools/node_modules`. Some inherited checks pass Babel plugin names as strings; Babel resolves those relative to the working directory, which could fail despite a healthy pinned prefix when an earlier session's shell export was absent. The runner supplies this test-only lookup explicitly and records it in its evidence JSON. No global shell configuration, runtime dependency, download or Codex platform permission is changed. Prefer explicit `requireTools` plugin objects in new checks. Offline bootstrap and health commands remain unchanged.
