@@ -21,13 +21,14 @@ export function AppVisualSelection({Surface,config,businessContent,onPrepare,bus
  const [wording,setWording]=React.useState('');
  const [imageCopy,setImageCopy]=React.useState({alt:'',caption:''});
  const live=React.useRef(null);live.current={config,busy,selection,wording,imageCopy};
+ const setWordingDraft=value=>{live.current.wording=value;setWording(value);};
  const current=()=>live.current.config===config&&!live.current.busy;
  const select=value=>{
   if(!current())return;
   live.current.selection=value;setSelection(value);setSelectionSource(config);
   const image=selectedAppImage(config,value);setImageCopy({alt:image?.alt||'',caption:image?.caption||''});
   const field=value.part==='header'?'tagline':value.part==='wording'?value.field:null;
-  setWording(field?String(config?.publicProfile?.[field]??(field==='tagline'?config?.display?.tagline:'')??''):'');
+  setWordingDraft(field?String(config?.publicProfile?.[field]??(field==='tagline'?config?.display?.tagline:'')??''):'');
  };
  const selectionCurrent=selectionSource===config;
  const prepare=operation=>{
@@ -68,15 +69,16 @@ export function AppVisualSelection({Surface,config,businessContent,onPrepare,bus
    {selection.part==='faq'?<AppSelectedFaqControls key={JSON.stringify(selection)+String(selectionCurrent)} config={config} selection={selection} disabled={busy||!selectionCurrent} onPrepare={prepare}/>:null}
    {selection.part==='branding'?<AppSelectedBrandControls config={config} disabled={busy||!selectionCurrent} onPrepare={prepare}/>:null}
    {textOp?<View>
-    <Field label={field==='tagline'?'App tagline (header and summary)':'Selected business '+field} value={wording} maxLength={PROFILE_TEXT_LIMITS[field]} multiline onChangeText={value=>{if(current()&&selectionCurrent&&live.current.selection===selection)setWording(value);}}/>
+    <Field label={field==='tagline'?'App tagline (header and summary)':'Selected business '+field} value={wording} maxLength={PROFILE_TEXT_LIMITS[field]} multiline onChangeText={value=>{if(current()&&selectionCurrent&&live.current.selection===selection)setWordingDraft(value);}}/>
     <Text style={styles.cardBody}>Owner-written wording only. Review every affected screen in Studio before applying; your existing approval and Undo controls remain.</Text>
+    <Button label="Cancel selected wording" disabled={busy||!selectionCurrent} onPress={()=>{if(current()&&selectionCurrent&&live.current.selection===selection)setWordingDraft(String(config?.publicProfile?.[field]??(field==='tagline'?config?.display?.tagline:'')??''));}}/>
     <Button label="Preview selected wording" disabled={busy||!selectionCurrent||!textProof?.ok} onPress={()=>prepare(textOp)}/>
     {selectionCurrent&&textProof&&!textProof.ok?<Text style={styles.cardBody}>{textProof.reason}</Text>:null}
    </View>:null}
    {moves.map(direction=><Button key={direction} label={'Preview selected section '+direction} disabled={busy||!selectionCurrent} onPress={()=>prepare({kind:'move',moduleKey:selection.moduleKey,direction})}/>)}
    {!['service','image','branding','faq'].includes(selection.part)&&!textOp&&!choices.some(([field,value])=>proposeCoordinatedAppChanges(config,[{kind:'appearance',field,value}]).ok)&&!moves.length?<Text accessibilityRole="alert" style={styles.cardBody}>No change is available for this selection. Current choices and owner locks are preserved.</Text>:null}
    <AppSelectedInstruction key={JSON.stringify(selection)} config={config} selection={selection} disabled={busy||!selectionCurrent} voiceScope={voiceScope} onTranscribe={onTranscribe} onPrepare={proposal=>{if(current()&&selectionCurrent&&live.current.selection===selection)onPrepare(proposal);}}/>
-   <Button label="Cancel selection" onPress={()=>{if(current()){live.current.selection=null;setSelection(null);setSelectionSource(null);setWording('');}}}/>
+   <Button label="Cancel selection" onPress={()=>{if(current()){live.current.selection=null;setSelection(null);setSelectionSource(null);setWordingDraft('');}}}/>
   </View>:null}
  </View>;
 }

@@ -37,11 +37,14 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  const [showPreviewOriginal,setShowPreviewOriginal]=React.useState(false);
  const [comparisonSize,setComparisonSize]=React.useState("phone");
  const alive=React.useRef(true);React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
+ const wordingEdited=React.useRef(false);
  const editorLive=React.useRef(null);editorLive.current={draft,selection,contextRequest,value};
  // Old toolbar, wording and voice callbacks may survive a selection change.
  // They must not submit an earlier value against a replacement source.
  // Invalidate callbacks immediately, including before React renders the new text.
  const setContextDraft=words=>{editorLive.current.contextRequest=words;setContextRequest(words);};
+ const setOwnerWording=words=>{wordingEdited.current=true;editorLive.current.value=words;setValue(words);};
+ const cancelOwnerWording=()=>{if(!current())return;const original=String(target?.[field]??'');wordingEdited.current=false;editorLive.current.value=original;setValue(original);};
  const current=()=>alive.current&&editorLive.current.draft===draft&&editorLive.current.selection===selection;
  const section=list(draft?.sections).find(s=>s.id===selection?.sectionId);
  const item=selection?.itemId?list(section?.items).find(x=>x.id===selection.itemId):null;
@@ -51,7 +54,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  const key=[selection?.sectionId,selection?.field,selection?.itemId,selection?.photoIndex].join(":");
  React.useEffect(()=>{
   setValue(typeof target?.[field]==="string"?target[field]:"");
-  setConfirmRemove(false);
+  wordingEdited.current=false;setConfirmRemove(false);
   setShowSectionDesign(initialMode==="more"||selection?.field==="section");
   setShowContextHelp(initialMode==="voice");
   setContextDraft("");
@@ -67,6 +70,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  };
  const apply=change=>{
   if(!current())return;
+  if(wordingEdited.current){setContextNote('Save or cancel your wording before changing the layout. Your words are kept.');return;}
   if(onLayoutChange?.(change)===true)onClose?.();
  };
  const gallery=list(draft?.sections).find(x=>x.id==="gallery");
@@ -114,6 +118,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
   setContextNote('Suggested adjustment prepared with your other changes. Compare it, then use Apply if you want to keep it. Nothing was saved.');
  };
  const applyContext=(instruction)=>{
+  if(wordingEdited.current){setContextNote('Save or cancel your wording before applying this comparison. Your words are kept.');return;}
   if(!current()||editorLive.current.contextRequest!==contextRequest)return;
   const plan=planSelectedWebsiteChanges(draft,selection?.pageId,selection,instruction);
   if(!plan.ok){setContextNote(plan.reason);return;}
@@ -167,7 +172,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
           <View style={styles.fieldWrap}>
            <Text style={styles.fieldLabel}>Your new wording</Text>
            <View style={styles.fieldBox}>
-            <TextInput value={value} onChangeText={next=>{if(current())setValue(next);}}
+            <TextInput value={value} onChangeText={next=>{if(current())setOwnerWording(next);}}
              style={[styles.fieldInput,{minHeight:135,textAlignVertical:"top"}]}
              placeholderTextColor="#9AA3B2"
              placeholder="Type the exact wording you want" multiline
@@ -176,11 +181,12 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
           </View>
          ):(
           <Field label={names[field]||"Website wording"} value={value}
-           onChangeText={next=>{if(current())setValue(next);}}
+           onChangeText={next=>{if(current())setOwnerWording(next);}}
            autoCapitalize={field==="email"||field==="ctaHref"?"none":"sentences"}
            keyboardType={field==="email"?"email-address":field==="phone"?"phone-pad":"default"}
            placeholder="Write your replacement"/>
          )}
+         <Button label="Cancel wording changes" onPress={cancelOwnerWording}/>
          <Button label="Save to private website draft" primary onPress={save}/>
          <WebsiteTypographyControls section={section} selection={selection} onChoose={prepareContextChoice}/>
 
