@@ -1,3 +1,4 @@
+import {RequestDraftStatus} from './requestDraftStatus';
 import {SelectedListingSummary} from './selectedListingSummary';
 import React,{useState,useEffect} from 'react';
 import {View,Text,Pressable,ActivityIndicator} from 'react-native';
@@ -70,6 +71,7 @@ export function createNativeRequestScreen({Button,Field,COLORS,box,t,sub}){
     "Send a message directly to this business using BUSY's verified guest request service."}</Text>
   {!enabled?<Text style={sub}>This customer request action is not available on the live app.</Text>:(
    <>
+    <RequestDraftStatus busy={busy} reviewed={reviewCurrent} result={result} colors={COLORS}/>
     <SelectedListingSummary feed={live.businessContent} businessId={contentSelection?.businessId} selection={contentSelection} colors={COLORS}/>
     <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} inputRef={node=>{fieldRefs.current.name=node;}} title="Your name" value={input.name} onChange={set("name")}/>
     <Field disabled={busy||result?.ok===true||result?.mayHaveBeenReceived===true} inputRef={node=>{fieldRefs.current.email=node;}} title="Email address" value={input.email} onChange={set("email")}/>

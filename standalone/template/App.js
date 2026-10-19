@@ -200,6 +200,8 @@ export default function App(){
  if(catalogueCache.current.scope!==publicViewContext)catalogueCache.current={scope:publicViewContext,states:{}};
  const requestFormKey=JSON.stringify([live?.versionId,chosen?.key,requestedKind,requestedService,requestedIntent,requestSelection]);
  const requestIdentity=React.useRef(requestFormKey);requestIdentity.current=requestFormKey;
+ const resumeRequestKey=JSON.stringify([live?.versionId,requestedIntent,requestedKind,requestedService,requestedIntent,requestSelection]);
+ const resumableRequest=requestForms.current.get(resumeRequestKey);
  const outerPadding=LOOK.layoutDensity==="compact"?13:
    LOOK.layoutDensity==="airy"?28:20;
  const contentWidth=Math.max(250,Math.floor((measuredFrameWidth||viewport.width)-2*outerPadding));
@@ -256,6 +258,7 @@ export default function App(){
        fontWeight:"600"}}>{item.title}</Text>
      </Pressable>)}
     </View>
+    {!['enquiry','booking_request'].includes(chosen.key)&&resumableRequest&&pages.some(page=>page.key===requestedIntent)?<Button title={resumableRequest.result?.ok?'Return to saved request':resumableRequest.result?.mayHaveBeenReceived?'Return to unconfirmed request':'Return to my unfinished request'} onPress={()=>{if(viewContext.current===publicViewContext&&requestForms.current.get(resumeRequestKey)===resumableRequest)setCurrent(requestedIntent);}}/>:null}
     {["enquiry","booking_request"].includes(chosen.key)?
      <RequestScreen key={requestFormKey}
       screen={chosen} live={live} runtime={runtime} contentSelection={requestSelection}

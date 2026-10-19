@@ -4803,7 +4803,7 @@ function BusyAppDetailForm({ s }) {
       {s.latestCustomerRequestOutcome?.ok===true&&
         s.latestCustomerRequestOutcome.businessAppId===detail?.app?.id?(
         <Card eyebrow="What Busy has verified"
-          title="Your request is saved"
+          title="Earlier saved request — separate from this draft"
           body={s.latestCustomerRequestOutcome.evidenceLevel===
             "authenticated_customer_readback"?
             "Busy checked the saved request after an interrupted response.":
@@ -4813,6 +4813,8 @@ function BusyAppDetailForm({ s }) {
             This does not yet verify that a notification arrived, the
             business replied, or an appointment was confirmed.
           </Text>
+          <Text style={styles.cardBody}>This receipt does not show that the currently edited form was sent. A changed request needs its own exact review and submission.</Text>
+          {typeof s.latestCustomerRequestOutcome.requestId==='string'&&/^[a-zA-Z0-9_-]{1,120}$/.test(s.latestCustomerRequestOutcome.requestId)?<Text selectable style={styles.cardBody}>{'Saved request reference: '+s.latestCustomerRequestOutcome.requestId}</Text>:null}
           <Button label="Review My BUSY Apps"
             onPress={()=>s.go("busyAppsMarketplace")}/>
         </Card>
