@@ -1219,6 +1219,12 @@
       "args": [
         "scripts/check-mission15-phase30-service-return.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase30-photo-backup",
+      "args": [
+        "scripts/check-mission15-phase30-photo-backup.mjs"
+      ]
     }
   ]
 }

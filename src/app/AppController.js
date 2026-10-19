@@ -13743,13 +13743,18 @@ function App() {
       setWebsiteBuilderNotice("Build your website and connect your business cloud workspace before backing up original photos.");
       return false;
     }
+    const mayBackup=()=>{
+      if(!ownerEditNavigation.current.hasDirtySource(websiteDraft))return true;
+      setWebsiteBuilderNotice('Your wording is not saved. Keep editing, then save or discard it before continuing photo backup. Your wording was kept.');return false;
+    };
+    if(!mayBackup())return false;
     const task=websiteBeginTask("media");
     if(!task)return false;
     const original=task.context.draft;
     const businessId=task.context.businessId;
     try{
     const token=await ownerAccessToken();
-    if(!websiteTaskCurrent(task))return false;
+    if(!websiteTaskCurrent(task)||!mayBackup())return false;
     if(!token){
       setWebsiteBuilderNotice("Sign in again before backing up your website photos.");
       return false;
@@ -13768,7 +13773,7 @@ function App() {
     let copied=0,missing=0,bytesTotal=0,next=original;
     try{
       for(const {key,asset} of assets){
-        if(!websiteTaskCurrent(task))return false;
+        if(!websiteTaskCurrent(task)||!mayBackup())return false;
         const uri=String(asset?.uri||"").trim();
         if(!/^(?:file|content):\/\//i.test(uri)){missing++;continue;}
         try{
@@ -13778,7 +13783,7 @@ function App() {
             missing++;continue;
           }
           const base64=await local.base64();
-          if(!websiteTaskCurrent(task))return false;
+          if(!websiteTaskCurrent(task)||!mayBackup())return false;
           if(base64.length>12_600_000){missing++;continue;}
           const response=await fetchWithTimeout(
             BUSY_SUPABASE_URL+"/functions/v1/busy-website-original-media",{
@@ -13788,7 +13793,7 @@ function App() {
               body:JSON.stringify({action:"upload",businessId,photoBase64:base64})
             },60000);
           const data=await response.json().catch(()=>({}));
-          if(!websiteTaskCurrent(task))return false;
+          if(!websiteTaskCurrent(task)||!mayBackup())return false;
           if(!response.ok||!data.ok||!validExportOriginalPath(data.storagePath,businessId)){
             missing++;continue;
           }
@@ -13796,12 +13801,10 @@ function App() {
           copied++;bytesTotal+=size;
         }catch{missing++;}
       }
-      if(!websiteTaskCurrent(task))return false;
+      if(!websiteTaskCurrent(task)||!mayBackup())return false;
       if(copied){
-        setWebsiteUndo(items=>[...items,original].slice(-8));
-        setWebsiteRedo([]);
         next=rebuildPrivateWebsiteDraft(next);
-        websiteDraftRef.current=next;setWebsiteDraft(next);
+        if(!commitReviewedBuilderDraft(original,next,'Saved private original-photo references. Your live website is unchanged.'))return false;
       }
       setWebsiteBuilderNotice(copied+" original photograph"+(copied===1?"":"s")+
         " securely backed up for future ZIP exports. "+
@@ -13809,7 +13812,7 @@ function App() {
         "Your website has NOT been published or changed online.");
       return copied>0&&missing===0;
     }catch{
-      if(!websiteTaskCurrent(task))return false;
+      if(!websiteTaskCurrent(task)||!mayBackup())return false;
       setWebsiteBuilderNotice("Backup could not finish. Your published website is untouched.");
       return false;
     }
