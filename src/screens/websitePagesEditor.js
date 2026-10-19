@@ -19,16 +19,18 @@ function WebsitePagesEditor({draft,onApply,onShare,onShareZip,onBackup,ownerStat
  const [showExport,setShowExport]=React.useState(false);
  const page=(draft?.customPages||[]).find(x=>x.id===selected);
  const sections=Array.isArray(draft?.sections)?draft.sections:[];
- const dirty=React.useRef({}),epoch=React.useRef(0),live=React.useRef(draft);live.current=draft;
+ const dirty=React.useRef({}),epoch=React.useRef(0),inputSession=React.useRef(0),live=React.useRef(draft);live.current=draft;
+ const scope=JSON.stringify([ownerState.ownerSession?.userId,ownerState.cloudWorkspace?.businessId]);
+ const liveScope=React.useRef(scope);liveScope.current=scope;
  const [notice,setNotice]=React.useState('');
  const version=JSON.stringify([draft?.id,draft?.generation]);
  const [reviewedVersion,setReviewedVersion]=React.useState(version);
- const clear=()=>{epoch.current++;dirty.current={};setMetadata(null);setMetadataTitle('');setMetadataDescription('');setNewTitle('');setNewBody('');setPageTitle(page?.title||'');setSectionTitle('');setSectionBody('');};
+ const clear=()=>{epoch.current++;inputSession.current++;dirty.current={};setMetadata(null);setMetadataTitle('');setMetadataDescription('');setNewTitle('');setNewBody('');setPageTitle(page?.title||'');setSectionTitle('');setSectionBody('');};
  const report=useOwnerEditNavigation(ownerState,{source:draft,projectId:draft?.id,revision:draft?.generation},clear);
- const captured=epoch.current;
- const current=()=>live.current===draft&&epoch.current===captured;
- const edit=(part,setter)=>value=>{if(!current())return;epoch.current++;dirty.current={...dirty.current,[part]:true};setter(value);report(true);};
- const transition=run=>{if(!current())return;const next=()=>{if(live.current!==draft)return false;run();return true;};
+ const captured=epoch.current,capturedInput=inputSession.current;
+ const current=()=>live.current===draft&&liveScope.current===scope&&epoch.current===captured;
+ const edit=(part,setter)=>value=>{if(live.current!==draft||liveScope.current!==scope||inputSession.current!==capturedInput)return;epoch.current++;dirty.current={...dirty.current,[part]:true};setter(value);report(true);};
+ const transition=run=>{if(!current())return;const next=()=>{if(live.current!==draft||liveScope.current!==scope)return false;inputSession.current++;run();return true;};
   if(Object.values(dirty.current).some(Boolean)){if(ownerState.requestOwnerEditTransition)return ownerState.requestOwnerEditTransition(next);setNotice('Finish your unsaved page wording before changing pages.');return false;}return next();};
  const apply=patch=>{
   if(!current()||reviewedVersion!==version)return false;
@@ -58,7 +60,7 @@ function WebsitePagesEditor({draft,onApply,onShare,onShareZip,onBackup,ownerStat
      onPress={()=>transition(()=>setOpen(x=>!x))}/>
    {notice?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{notice}</Text>:null}
    {reviewedVersion!==version?<View><Text style={styles.cardBody}>The website changed. Your wording is kept. Review the current page before saving.</Text><Button label="I reviewed the current page — keep my wording" onPress={()=>{if(current()){setReviewedVersion(version);if(metadata)setMetadata({...metadata,expectedWebsiteId:draft.id,expectedGeneration:draft.generation});}}}/></View>:null}
-   {Object.values(dirty.current).some(Boolean)?<Button label="Discard unsaved page wording" onPress={()=>transition(()=>{})}/>:null}
+   {Object.values(dirty.current).some(Boolean)?<Button label="Discard unsaved page wording" onPress={()=>{if(!current())return;clear();report(false);}}/>:null}
    {open?(
     <Card eyebrow="Your website pages"
       title="Add pages without starting again"

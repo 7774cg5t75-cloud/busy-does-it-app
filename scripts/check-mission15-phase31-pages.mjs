@@ -11,14 +11,14 @@ const draft={id:'site',generation:1,pages:[{id:'home',title:'Home',path:'/'}],se
 const ownerState={ownerSession:{userId:'owner'},cloudWorkspace:{businessId:'business'},setOwnerEditDirty:v=>guard.report({...v,scope}),releaseOwnerEdit:guard.release,requestOwnerEditTransition:guard.request,withOwnerEditCommit:guard.withCommit};
 let props={draft,ownerState,onApply:patch=>{applied.push(patch);return true;}};
 const render=()=>rt.render(Editor,props);let tree=render();find(tree,'Manage website pages').props.onPress();tree=render();find(tree,'Home • /').props.onPress();tree=render();
-find(tree,'Search title (up to 70 characters)').props.onChangeText('Exact search title');tree=render();
+find(tree,'Search title (up to 70 characters)').props.onChangeText('Exact search title');find(tree,'Search description (up to 160 characters)').props.onChangeText('Queued independent description');tree=render();assert.equal(find(tree,'Search description (up to 160 characters)').props.value,'Queued independent description');
 const oldSave=find(tree,'Save private page search details').props.onPress;
 find(tree,'Page title').props.onChangeText('Independent new page');tree=render();oldSave();assert.equal(applied.length,0,'Old save cannot clear newer independent typing');
 find(tree,'Save private page search details').props.onPress();assert.equal(applied.length,0,'Current own save cannot bypass independent dirty group');
 guard.request(()=>applied.push('navigate'));assert.ok(prompt);const discard=prompt.discard;
 find(tree,'Page title').props.onChangeText('Newer wording');tree=render();assert.equal(discard(),false);assert.equal(find(tree,'Page title').props.value,'Newer wording');
-find(tree,'Discard unsaved page wording').props.onPress();prompt.keep();tree=render();assert.equal(find(tree,'Page title').props.value,'Newer wording');
-find(tree,'Discard unsaved page wording').props.onPress();prompt.discard();tree=render();assert.equal(find(tree,'Page title').props.value,'');
+guard.request(()=>{});prompt.keep();tree=render();assert.equal(find(tree,'Page title').props.value,'Newer wording');
+const other={};guard.report({token:other,identity:{source:draft,projectId:draft.id,revision:1,ownerId:'owner',businessId:'business'},scope,dirty:true,onDiscard:()=>{}});find(tree,'Discard unsaved page wording').props.onPress();assert.equal(guard.hasDirtySource(draft),true,'Discarding page copy preserves another dirty editor');guard.release(other);tree=render();assert.equal(find(tree,'Page title').props.value,'');
 find(tree,'Home • /').props.onPress();tree=render();find(tree,'Search description (up to 160 characters)').props.onChangeText('Literal approved description');tree=render();find(tree,'Save private page search details').props.onPress();assert.equal(applied.at(-1).description,'Literal approved description');
 const before=applied.length;guard.request(()=>applied.push('clean-navigation'));assert.equal(applied.length,before+1,'Exact confirmed save clears own dirtiness');
 tree=render();find(tree,'Page title').props.onChangeText('Keep across revision');tree=render();const stale=find(tree,'Create private page').props.onPress;props={...props,draft:{...draft,generation:2}};tree=render();stale();assert.equal(applied.length,before+1);assert.equal(find(tree,'Page title').props.value,'Keep across revision');find(tree,'Create private page').props.onPress();assert.equal(applied.length,before+1,'New revision requires deliberate review');
