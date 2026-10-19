@@ -911,6 +911,13 @@
         "scripts/check-mission15-phase23-photo-controls.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase23-catalogue-recovery",
+      "args": [
+        "scripts/check-mission15-phase23-catalogue-recovery.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
