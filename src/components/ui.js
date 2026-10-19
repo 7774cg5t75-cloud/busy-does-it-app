@@ -335,7 +335,6 @@ function BottomNav({ s, dark = true }) {
             key={label}
             style={styles.navItem}
             onPress={() => {
-              s.setTab(label);
               s.jump(target, label);
             }}
           >

@@ -1,3 +1,4 @@
+import {useOwnerEditNavigation} from './useOwnerEditNavigation';
 import {ServiceActionButton} from '../../standalone/template/serviceActionButton';
 import {serviceCardStyle} from '../core/appServicePresentation.mjs';
 import {AppGallerySurface} from "./appGallerySurface";
@@ -896,6 +897,7 @@ function MiniAppBuilder({ s }) {
   const [accessiblePhotoCaption,setAccessiblePhotoCaption]=React.useState("");
   const view = s.miniAppsView || {};
   const app = view.app;
+  const reportOwnerDraft=useOwnerEditNavigation(s,{source:view.draftConfig,projectId:app?.id,revision:app?.draft_revision});
   const controlContext={ownerId:s.ownerSession?.userId||"",businessId:s.cloudWorkspace?.businessId||"",app};
   const liveControlContext=React.useRef(null);liveControlContext.current=controlContext;
   const studio=usePrivateAppStudio({businessId:s.cloudWorkspace?.businessId||"",
@@ -2796,6 +2798,7 @@ function MiniAppBuilder({ s }) {
           body="Try a header style, spacing or navigation look. BUSY shows an unsaved customer preview first. Keeping it creates a new private draft revision, not a live update."
           tone="blue">
           <AppVisualSelection key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,app.draft_revision].join(':')}
+            onDraftChange={reportOwnerDraft}
             Surface={MiniAppSurface} config={view.draftConfig} businessContent={app.businessContent||null}
             voiceScope={s.cloudWorkspace?.businessId?{appId:app.id,revision:app.draft_revision,businessId:s.cloudWorkspace.businessId,selectedPart:'whole_app'}:null}
             onTranscribe={s.transcribeSelectedAppAudio}

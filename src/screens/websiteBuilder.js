@@ -1,3 +1,4 @@
+import {useOwnerEditNavigation} from './useOwnerEditNavigation';
 import {websiteMovementOptions,resolveWebsiteMovement} from "../core/websiteVisualMovement.mjs";
 import {BuilderTalkExplore} from './builderTalkExplore';
 import {BuilderExploreEditReview} from './builderExploreEditReview';
@@ -982,6 +983,7 @@ function WebsiteBuilder({ s }) {
 
 function WebsitePreview({ s }) {
   const draft = s.websiteDraft;
+  const reportOwnerDraft=useOwnerEditNavigation(s,{source:draft,projectId:draft?.id,revision:draft?.generation});
   const [selectedPageId,setSelectedPageId] = React.useState("home");
   const [tapEditMode,setTapEditMode]=React.useState(false);
   const [previewSize,setPreviewSize]=React.useState("full");
@@ -1630,7 +1632,7 @@ function WebsitePreview({ s }) {
       {pendingEdit?<Card title="Keep your unsaved wording" body="Save the wording using its original control, keep editing, or discard it before switching."><Button label="Keep editing website wording" onPress={()=>setPendingEdit(null)}/><Button label="Discard website wording and switch" disabled={pendingEdit.draft!==draft} onPress={()=>{if(pendingEdit.draft!==draft)return;selectedWordingDirty.current=false;setSelectedEditState(pendingEdit.value);setPendingEdit(null);}}/></Card>:null}
       <WebsiteTapEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId].join(':')} draft={draft} selection={selectedEdit}
         exploreContext={{kind:'website',ownerId:s.ownerSession?.userId,businessId:s.cloudWorkspace?.businessId,project:draft,selection:selectedEdit}}
-        onDraftChange={value=>{selectedWordingDirty.current=!!value;if(!value)setPendingEdit(null);}}
+        onDraftChange={value=>{reportOwnerDraft(value);selectedWordingDirty.current=!!value;if(!value)setPendingEdit(null);}}
         initialMode={selectedEdit?.initialMode||"edit"}
         onClose={()=>setSelectedEdit(null)}
         onTextChange={s.applyWebsiteFieldChange}

@@ -1,3 +1,7 @@
+## Current approved private master — V22.36 (Phase 28 review, 19 October 2026)
+
+Owner-supplied `22.36 master.docx` identifies Version 22.36. Complete Word body opened: 1,809 paragraphs / 432,418 extracted characters. SHA-256 `566f8fa6e48eb83f3053a2708c07e3eb112c950e3346ae462f846e11390131c2`. Complete paragraph comparison confirms the previously fully reviewed V22.35 body remains, with updated version and an owner-controlled marketing-options addition; all added paragraphs were reviewed. The private document/text remain outside Git. This supersedes V22.35 as product reference, not release or provider-integration authority.
+
 ## Current approved private master — V22.35 (Phase 15 review, 18 October 2026)
 
 Owner-supplied `Latest master 74.docx` identifies Version 22.35, updated 18 October 2026. The complete Word body, including table paragraphs, was opened and read: 1,796 paragraphs / 425,343 extracted characters. SHA256 `7d93efedb1ff68a57470bdb97073767a14a9fc64cd1c53c06fba3021d12e298d`. It supersedes V22.34; Section 52.15 expands the long-term audience while preserving small-business launch priorities and trusted tenancy. The private file/text stays outside Git. This provenance does not claim implementation or release readiness.

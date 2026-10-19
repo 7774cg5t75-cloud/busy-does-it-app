@@ -1,3 +1,4 @@
+import {createOwnerEditNavigation} from '../core/ownerEditNavigation.mjs';
 import {prepareReviewedWebsiteComposition} from '../core/websiteReviewedComposition.mjs';
 import {parseBusinessContentInterest} from '../core/businessContentRecords.mjs';
 import {validateNativeGuestRequest} from "../../standalone/template/nativeCustomerActions.mjs";
@@ -919,24 +920,14 @@ function App() {
     advanced,
   ]);
 
-  const go = (next) => {
-    setHistory((h) => [...h, screen]);
-    setScreen(next);
-  };
-
-  const back = () => {
-    if (!history.length) return;
-    const copy = [...history];
-    const prev = copy.pop();
-    setHistory(copy);
-    setScreen(prev);
-  };
-
-  const jump = (next, nextTab = tab) => {
-    setHistory([]);
-    setScreen(next);
-    setTab(nextTab);
-  };
+  const navigationScope=[ownerSession?.userId||'',cloudWorkspace?.businessId||'',screen].join(':');
+  const navigationScopeRef=useRef(navigationScope);navigationScopeRef.current=navigationScope;
+  const ownerEditNavigation=useRef(null);
+  if(!ownerEditNavigation.current)ownerEditNavigation.current=createOwnerEditNavigation({getScope:()=>navigationScopeRef.current,confirm:({keep,discard})=>Alert.alert('Your wording is not saved','Keep editing, then use the original Preview and approval controls to save. Discard changes only if you want to leave without them.',[{text:'Keep editing',style:'cancel',onPress:keep},{text:'Discard changes',style:'destructive',onPress:discard}])});
+  const setOwnerEditDirty=binding=>ownerEditNavigation.current.report({...binding,scope:navigationScope});
+  const go = next => ownerEditNavigation.current.request(()=>{setHistory(h=>[...h,screen]);setScreen(next);});
+  const back = () => {if(!history.length)return;return ownerEditNavigation.current.request(()=>{const copy=[...history],prev=copy.pop();setHistory(copy);setScreen(prev);});};
+  const jump = (next,nextTab=tab) => ownerEditNavigation.current.request(()=>{setHistory([]);setScreen(next);setTab(nextTab);});
 
   const confirmSpareSlot = (slot) => {
     const nextSlot = slot || "Any suitable work";
@@ -16917,6 +16908,7 @@ function App() {
   };
 
   const appState = {
+    setOwnerEditDirty,
     screen,
     history,
     go,

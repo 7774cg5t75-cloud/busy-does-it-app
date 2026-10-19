@@ -1093,6 +1093,12 @@
       "args": [
         "scripts/check-mission15-phase27-selected-feedback.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase28-navigation",
+      "args": [
+        "scripts/check-mission15-phase28-navigation.mjs"
+      ]
     }
   ]
 }
