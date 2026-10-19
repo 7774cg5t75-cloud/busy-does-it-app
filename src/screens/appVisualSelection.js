@@ -24,7 +24,7 @@ export function AppVisualSelection({Surface,config,businessContent,onPrepare,bus
  const current=()=>live.current.config===config&&!live.current.busy;
  const select=value=>{
   if(!current())return;
-  setSelection(value);setSelectionSource(config);
+  live.current.selection=value;setSelection(value);setSelectionSource(config);
   const image=selectedAppImage(config,value);setImageCopy({alt:image?.alt||'',caption:image?.caption||''});
   const field=value.part==='header'?'tagline':value.part==='wording'?value.field:null;
   setWording(field?String(config?.publicProfile?.[field]??(field==='tagline'?config?.display?.tagline:'')??''):'');
@@ -39,7 +39,7 @@ export function AppVisualSelection({Surface,config,businessContent,onPrepare,bus
   selection?.part==='navigation'?[['navigationStyle','tabs'],['navigationStyle','list']]:
   selection?.part==='spacing'?[['layoutDensity','comfortable'],['layoutDensity','compact'],['layoutDensity','airy']]:
   selection?.part==='services'?[['serviceStyle','cards'],['serviceStyle','rows'],['serviceStyle','spotlight']]:
-  ['gallery','image'].includes(selection?.part)?[['galleryLayout','grid'],['galleryLayout','stack'],['imageScale','regular'],['imageScale','large'],['imageCorners','rounded'],['imageCorners','square']]:[];
+  selection?.part==='gallery'?[['galleryLayout','grid'],['galleryLayout','stack'],['imageScale','regular'],['imageScale','large'],['imageCorners','rounded'],['imageCorners','square']]:[];
  const field=selection?.part==='header'?'tagline':selection?.part==='wording'?selection.field:null;
  const textOp=Object.hasOwn(PROFILE_TEXT_LIMITS,field||'')?{kind:'text',field,value:wording}:null;
  const textProof=textOp?proposeCoordinatedAppChanges(config,[textOp]):null;
@@ -62,6 +62,7 @@ export function AppVisualSelection({Surface,config,businessContent,onPrepare,bus
      return <Button key={field+value} label={'Preview '+value+' '+(field==='typeStyle'?'typography':field==='serviceStyle'?'services':field==='galleryLayout'?'gallery layout':field==='imageScale'?'images':field==='imageCorners'?'image corners':selection.part)} disabled={busy||!selectionCurrent||!proof.ok} onPress={()=>prepare({kind:'appearance',field,value})}/>;
     })}
    </View>
+   {selection.part==='image'?<View><Text style={styles.cardBody}>Only this photograph is selected. Choose the entire gallery separately to change its layout.</Text><Button label="Select entire gallery" disabled={busy||!selectionCurrent} onPress={()=>{if(current()&&live.current.selection===selection)select({part:'gallery',moduleKey:'gallery'});}}/></View>:null}
    {selection.part==='image'?<AppSelectedImageControls config={config} selection={selection} copy={imageCopy} disabled={busy||!selectionCurrent} onCopy={value=>{if(current()&&selectionCurrent&&live.current.selection===selection&&live.current.imageCopy===imageCopy)setImageCopy(value);}} onPrepare={prepare}/>:null}
    {selection.part==='service'?<AppSelectedServiceControls key={JSON.stringify(selection)+String(selectionCurrent)} config={config} selection={selection} disabled={busy||!selectionCurrent} onPrepare={prepare}/>:null}
    {selection.part==='faq'?<AppSelectedFaqControls key={JSON.stringify(selection)+String(selectionCurrent)} config={config} selection={selection} disabled={busy||!selectionCurrent} onPrepare={prepare}/>:null}
@@ -75,7 +76,7 @@ export function AppVisualSelection({Surface,config,businessContent,onPrepare,bus
    {moves.map(direction=><Button key={direction} label={'Preview selected section '+direction} disabled={busy||!selectionCurrent} onPress={()=>prepare({kind:'move',moduleKey:selection.moduleKey,direction})}/>)}
    {!['service','image','branding','faq'].includes(selection.part)&&!textOp&&!choices.some(([field,value])=>proposeCoordinatedAppChanges(config,[{kind:'appearance',field,value}]).ok)&&!moves.length?<Text accessibilityRole="alert" style={styles.cardBody}>No change is available for this selection. Current choices and owner locks are preserved.</Text>:null}
    <AppSelectedInstruction key={JSON.stringify(selection)} config={config} selection={selection} disabled={busy||!selectionCurrent} voiceScope={voiceScope} onTranscribe={onTranscribe} onPrepare={proposal=>{if(current()&&selectionCurrent&&live.current.selection===selection)onPrepare(proposal);}}/>
-   <Button label="Cancel selection" onPress={()=>{if(current()){setSelection(null);setSelectionSource(null);setWording('');}}}/>
+   <Button label="Cancel selection" onPress={()=>{if(current()){live.current.selection=null;setSelection(null);setSelectionSource(null);setWording('');}}}/>
   </View>:null}
  </View>;
 }

@@ -40,6 +40,8 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  const editorLive=React.useRef(null);editorLive.current={draft,selection,contextRequest,value};
  // Old toolbar, wording and voice callbacks may survive a selection change.
  // They must not submit an earlier value against a replacement source.
+ // Invalidate callbacks immediately, including before React renders the new text.
+ const setContextDraft=words=>{editorLive.current.contextRequest=words;setContextRequest(words);};
  const current=()=>alive.current&&editorLive.current.draft===draft&&editorLive.current.selection===selection;
  const section=list(draft?.sections).find(s=>s.id===selection?.sectionId);
  const item=selection?.itemId?list(section?.items).find(x=>x.id===selection.itemId):null;
@@ -52,7 +54,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
   setConfirmRemove(false);
   setShowSectionDesign(initialMode==="more"||selection?.field==="section");
   setShowContextHelp(initialMode==="voice");
-  setContextRequest("");
+  setContextDraft("");
   setContextNote("");
   setShowPhotoChoices(initialMode==="edit"&&selection?.field==="photo");
   setSelectedInstructionPreview(null);
@@ -82,7 +84,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
  const prepareContextChoice=instruction=>{
   const live=editorLive.current;
   if(live.draft!==draft||live.selection!==selection||live.contextRequest!==contextRequest)return;
-  setContextRequest(instruction);setShowContextHelp(true);setSelectedInstructionPreview(null);
+  setContextDraft(instruction);setShowContextHelp(true);setSelectedInstructionPreview(null);
   setContextNote('Choice prepared. Compare it before using Apply; nothing has been saved.');
  };
  const previewContext=()=>{
@@ -108,7 +110,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
   if(!amended.ok){setContextNote(amended.reason);return;}
   const outcome=onPreviewInstruction?.({selection,instruction:amended.instruction});
   if(!outcome?.ok){setContextNote(outcome?.reason||'The adjustment could not be previewed. Your current proposal is unchanged.');return;}
-  setContextRequest(amended.instruction);setSelectedInstructionPreview(outcome);setShowPreviewOriginal(false);
+  setContextDraft(amended.instruction);setSelectedInstructionPreview(outcome);setShowPreviewOriginal(false);
   setContextNote('Suggested adjustment prepared with your other changes. Compare it, then use Apply if you want to keep it. Nothing was saved.');
  };
  const applyContext=(instruction)=>{
@@ -254,7 +256,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
           <Text style={styles.sectionLabel}>Responsive button size</Text>
           <Text style={styles.cardBody}>These presets preserve the existing action and wrap on small screens.</Text>
           {['normal','roomier','wider'].map(size=><Button key={size} label={'Choose '+size+' button'} onPress={()=>{
-            setContextRequest('make this button '+size);setShowContextHelp(true);setSelectedInstructionPreview(null);
+            setContextDraft('make this button '+size);setShowContextHelp(true);setSelectedInstructionPreview(null);
             setContextNote('Preview the responsive button before applying. Its destination stays unchanged.');
           }}/>)}</View>:null}
 
@@ -268,7 +270,7 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
             if(!current()||editorLive.current.contextRequest!==contextRequest)return;
             const outcome=onPreviewInstruction({selection,instruction:choice.instruction});
             if(!outcome?.ok){setContextNote(outcome?.reason||'Select the current section again.');return;}
-            setContextRequest(choice.instruction);setShowContextHelp(true);
+            setContextDraft(choice.instruction);setShowContextHelp(true);
             setSelectedInstructionPreview(outcome);setShowPreviewOriginal(false);
             setContextNote('Private comparison for this section only. Nothing has been saved.');
            }}/>
@@ -285,14 +287,14 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
            <WebsiteSelectedVoice key={key} selection={selection} startImmediately={initialMode==="voice"} onTranscribe={onTranscribe}
             onTranscript={words=>{
               if(!current())return;
-              setContextRequest(words);
+              setContextDraft(words);
               setSelectedInstructionPreview(null);
               setContextNote("Please check these words carefully. Nothing has changed yet.");
             }}/>
            <Field label="What would you like to change?" value={contextRequest}
             onChangeText={words=>{
              if(!current())return;
-             setContextRequest(words);
+             setContextDraft(words);
              setSelectedInstructionPreview(null);
              setContextNote("");
             }}
@@ -309,6 +311,10 @@ function WebsiteTapEditor({draft,selection,initialMode="edit",onClose,onTextChan
              <Text style={styles.cardBody}>If any step cannot be completed, nothing changes. One Undo restores the original.</Text>
             </View>
            ):null}
+           {contextRequest||selectedInstructionPreview?<Button label="Cancel proposed changes" onPress={()=>{
+            if(!current()||editorLive.current.contextRequest!==contextRequest)return;
+            setContextDraft('');setSelectedInstructionPreview(null);setContextNote('Comparison cancelled. Your unsaved wording is kept.');
+           }}/>:null}
            {preparedInstruction?.ok&&onPreviewInstruction?(
             <Button label="See these changes before saving" onPress={previewContext}/>
            ):null}
