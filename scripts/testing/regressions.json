@@ -946,6 +946,13 @@
         "scripts/check-mission15-phase24-service-composition.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase24-catalogue-freshness",
+      "args": [
+        "scripts/check-mission15-phase24-catalogue-freshness.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
