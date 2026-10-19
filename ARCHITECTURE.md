@@ -385,6 +385,31 @@ This branch restructures the large single-file prototype into domain modules wit
 - **Release gate unchanged:** hosted staging still holds only the security canary and two canary migration records. SQL source and real disposable PostgreSQL tests do not grant database installation/deployment approval or prove authenticated tenant RLS, provider delivery, native builds or live customer outcomes. Independently review true schema, privileges, side effects, backup/restore and owner phase approval before hosted testing.
 
 
+## V22.38 six connected core areas — homepage and whole-app completion contract (19 October 2026)
+
+**Product authority:** the owner's private approved Busy Does It Product Master V22.38, new Section 54, refined Sections 10/13/39/47/50 and its decision record. This is the **first-release product direction**, not an implementation, deployment, or current feature-readiness claim. Preserve the original six-function operating layer, commercial safeguards, builder/project vision and permanent two-master policy.
+
+**Six stable Home destinations** (the owner-approved compact two-column layout beneath a prominent Ask Busy microphone/typing field):
+1. **Website Builder** — create/edit/preview/publish genuine supported websites and owner-authorised existing-site improvements.
+2. **App Builder** — build supported functioning marketplace/business apps and eligible standalone outputs; general-purpose creator apps develop behind separate scope and security gates.
+3. **Content Creator** — one reusable production capability for posts, graphics, video, written content, email and other approved branded assets; also relevant to non-business creators.
+4. **Get More Customers** — choose marketing strategy and channels, SEO/search visibility, organic and owner-approved paid campaigns and partners; invoke the same Content Creator for assets and inspect actual results.
+5. **Work & Customers** — canonical customer/enquiry/message, booking/diary/job, follow-up and owner-priority workflows.
+6. **Get Paid** — provider-neutral estimates/quotes, invoices, payment handoffs/reminders and accounting connections governed by true external receipts and approvals.
+
+**Reuse one connected core:** one Busy/Business Brain coordinator, trusted business/project scope, Brand DNA, tenant/member permissions, owner approval contracts, assets, content drafts, canonical customer/work data, provider-specific receipts, credits/entitlements, measured outcomes and gradual permissioned learning. Avoid six separate AI agents, repeated branding databases, extra home tabs, parallel CRM/communications systems or duplicative content/marketing schedulers. Make Home adaptive but stable; Diary/Inbox/More and one contextual suggestion can remain available without hiding the six choices or cluttering the first view. Typed/voice intents must route across capabilities without forcing customers to pick a tile first.
+
+**Coordinated development order, not six serial silo builds:**
+- Complete a bounded first-release **builder feature checkpoint**, based on working supported creation/editing and at least one genuine customer/website action, not endless discretionary controls. Continue required builder fixes alongside the rest of the app.
+- Give the next lead programme to **Content Creator + six-tile Home**, while developing **Get More Customers** beside it so marketing consumes the same creative engine, approved Brand DNA and actual social/provider evidence.
+- Deepen **Work & Customers + Get Paid** together around a source-backed enquiry -> quote/booking -> work -> invoice/payment journey and customer communications.
+- Complete cross-area orchestration and native/hosted lifecycle integration. Each substantial sweep may touch multiple related areas but must name ONE lead customer outcome, limited secondary work, source-of-truth reuse, precise proof level and realistic test boundaries.
+- Keep optional sophisticated/general-purpose app generation, unlimited editing, unverified external providers and speculative AI creativity out of the first-release completion gate unless genuinely supported, costed and approved.
+
+**Two milestones, never conflated:** (A) *Complete Product* means all six Home areas provide the agreed first-release minimum **functional** customer results through existing shared systems, with meaningful automated source/customer-journey evidence. The presence of six buttons or an offline synthetic pass alone does not satisfy this. (B) *Release Ready* additionally requires proportionate isolated hosted-auth/RLS/provider acceptance, real web/iPhone/iPad layout and accessibility, actual publishing, real customer receipt paths, quote/invoice/payment behaviour, security/privacy, spend/cost limits, monitoring/rollback and app distribution/permissions tested and approved. Source-only, proposed, simulated, staging and externally delivered results must stay labelled separately. Customer- or finance-impacting foundational blockers found earlier are repaired as they arise; postpone exhaustive user-led manual acceptance, **not** routine checks or essential integration gates.
+
+**Audit/reporting:** Maintain one evidence-backed six-area release matrix with each area's minimum deliverable, current source-only state, integration blockers, approved provider scope and outstanding device/hosted tests. Prioritise genuine cross-area completion and owner-time saved over number of code lines, version/sweep count, large content catalogues or cosmetic completeness percentages. No additional live API spend, deployment, schema migration, external messages, ad purchase, financial transaction, store publication or protected-branch merge is authorised by this docs-only decision.
+
 ## V22.37 conversion-aware homepage hierarchy — genuine proof first (19 October 2026)
 
 **Product authority:** the private, owner-approved Busy Does It Product Master V22.37, Section 29 and Section 52.10. Prompted by a We Are Moon Corp website advert about owners hiding their strongest work behind multiple clicks. This is a **refinement of the existing Website Builder, visual reviewer, Business Brain, Brand/Design DNA, Talk & Explore and authorised external-site improvement paths**, not an additional “conversion AI” engine, paid third-party dependency or evidence that a live optimiser has shipped.
