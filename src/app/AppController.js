@@ -926,7 +926,7 @@ function App() {
   const navigationStateRef=useRef(null);navigationStateRef.current={screen,history,tab};
   const navigationOwnerCurrent=()=>navigationScopeRef.current.startsWith(navigationOwnerScope+':');
   const ownerEditNavigation=useRef(null);
-  if(!ownerEditNavigation.current)ownerEditNavigation.current=createOwnerEditNavigation({getScope:()=>navigationScopeRef.current,confirm:({keep,discard})=>Alert.alert('Your wording is not saved','Keep editing, then use the original Preview and approval controls to save. Discard changes only if you want to leave without them.',[{text:'Keep editing',style:'cancel',onPress:keep},{text:'Discard changes',style:'destructive',onPress:discard}])});
+  if(!ownerEditNavigation.current)ownerEditNavigation.current=createOwnerEditNavigation({getScope:()=>navigationScopeRef.current,confirm:({keep,discard,reason})=>Alert.alert('Your wording is not saved',reason==='source-change'?'Keep editing, then use Preview and approval to save your wording. Discard changes only if you want the reviewed private source change to replace the unsaved wording. Nothing is published.':'Keep editing, then use the original Preview and approval controls to save. Discard changes only if you want to leave without them.',[{text:'Keep editing',style:'cancel',onPress:keep},{text:'Discard changes',style:'destructive',onPress:discard}])});
   const setOwnerEditDirty=binding=>ownerEditNavigation.current.report({...binding,scope:navigationScope});
   const go = next => navigationOwnerCurrent()&&ownerEditNavigation.current.request(()=>{const from=navigationStateRef.current.screen;setHistory(h=>[...h,from]);setScreen(next);});
   const back = () => {if(!navigationOwnerCurrent()||!navigationStateRef.current.history.length)return;return ownerEditNavigation.current.request(()=>{const copy=[...navigationStateRef.current.history],prev=copy.pop();setHistory(copy);setScreen(prev);});};
@@ -16925,7 +16925,7 @@ function App() {
   const appState = {
     setOwnerEditDirty,
     releaseOwnerEdit:token=>ownerEditNavigation.current.release(token),
-    requestOwnerEditTransition:transition=>ownerEditNavigation.current.request(transition),
+    requestOwnerEditTransition:(transition,options)=>ownerEditNavigation.current.request(transition,options),
     withOwnerEditCommit:(token,identity,operation)=>ownerEditNavigation.current.withCommit(token,identity,operation),
     screen,
     history,

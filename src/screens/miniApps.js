@@ -927,7 +927,7 @@ function MiniAppBuilder({ s }) {
     if(liveControlContext.current!==controlContext)return false;
     const run=()=>{if(liveControlContext.current!==controlContext)return false;return action();};
     if(Object.values(ownerDirtyParts.current).some(Boolean)){
-      if(s.requestOwnerEditTransition)return s.requestOwnerEditTransition(run);
+      if(s.requestOwnerEditTransition)return s.requestOwnerEditTransition(run,{reason:'source-change'});
       setStudioNotice('Keep editing or cancel your unsaved wording before replacing this private app.');return false;
     }
     return run();

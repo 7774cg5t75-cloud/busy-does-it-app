@@ -20,13 +20,13 @@ export function createOwnerEditNavigation({getScope,confirm}){
   sourceChange(source,transition){
    const item=current();
    if(!item||permit===item&&item.identity.source===source)return transition();
-   return guard.request(transition);
+   return guard.request(transition,{reason:'source-change'});
   },
-  request(transition){
+  request(transition,{reason='navigation'}={}){
    if(active?.scope!==getScope())active=null;
    if(!active){transition();return true;}
    const captured=active,sequence=++prompt;
-   confirm({keep:()=>{if(sequence===prompt)prompt++;},discard:()=>{
+   confirm({reason,keep:()=>{if(sequence===prompt)prompt++;},discard:()=>{
     if(sequence!==prompt||active!==captured||captured.scope!==getScope()||captured.epoch!==epoch)return false;
     if(captured.onDiscard?.()===false)return false;active=null;epoch++;prompt++;transition();return true;
    }});return false;
