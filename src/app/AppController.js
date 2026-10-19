@@ -3665,6 +3665,8 @@ function App() {
   const socialDraftScope=businessWorkspaceScopeRef.current;
   const upsertSocialDraft = (status = "Draft") => {
     if(businessWorkspaceScopeRef.current!==socialDraftScope)return null;
+    const currentDraft=socialContentActions.capture();
+    if(currentDraft.text!==socialDraftText||currentDraft.selectedId!==selectedSocialDraftId||currentDraft.photos!==socialCreatePhotos||currentDraft.records!==socialDrafts)return null;
     const text = socialDraftText.trim();
     if (!text || (status !== "Draft" && !socialCreatePhotos.length)) return null;
     const channels = socialChannelNames();

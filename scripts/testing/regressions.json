@@ -1339,6 +1339,12 @@
       "args": [
         "scripts/check-mission15-phase32-transcript-parity.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase32-save-freshness",
+      "args": [
+        "scripts/check-mission15-phase32-save-freshness.mjs"
+      ]
     }
   ]
 }
