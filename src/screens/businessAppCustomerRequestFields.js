@@ -17,7 +17,7 @@ function BusinessAppCustomerRequestFields({s,form,onLayout}){
  const problem=ready=>!ready.ok?<View accessibilityLiveRegion="polite"><Text style={styles.cardBody}>{ready.reason}</Text>{Object.hasOwn(labels,ready.field)?<Button label={'Correct '+labels[ready.field]} disabled={!!s.miniAppsAction} onPress={()=>{if(canFocus())fieldRefs.current[ready.field]?.focus?.();}}/>:null}</View>:null;
  return (
       <View onLayout={onLayout}>
-      <RequestDraftStatus busy={!!s.miniAppsAction} reviewed={!!(requestKind==='booking_request'?bookingReview:enquiryReview)}/>
+      <RequestDraftStatus busy={s.miniAppsAction===('request:'+(requestKind||'enquiry'))} reviewed={!!(requestKind==='booking_request'?bookingReview:enquiryReview)}/>
       {typeof returnToInformation==='function'?<Button label="Back to app information" disabled={!!s.miniAppsAction} onPress={returnToInformation}/>:null}
       {typeof setRequestKind==='function'&&enabled.has('enquiry')&&enabled.has('booking_request')?<View>
         <Text style={styles.sectionLabel}>What would you like to do?</Text>
