@@ -700,6 +700,17 @@ function SocialCreator({ s }) {
       ]);
     }else apply();
   };
+  const pendingIdea=s.socialSourceContext?.pendingContentIdea;
+  const handoffTicket=s.socialContentActions?.capture();
+  const applyIncomingIdea=()=>{
+    if(!s.socialContentActions?.fresh(handoffTicket))return;
+    const apply=()=>{if(s.socialContentActions.fresh(handoffTicket))s.socialContentActions.accept(pendingIdea,handoffTicket);};
+    if(s.socialDraftText.trim()||s.selectedSocialDraftId){
+      Alert.alert('Keep your current draft?', 'Using this new idea starts a separate private draft. Your selected photos stay; existing saved content is not replaced.',[
+        {text:'Keep my current draft',style:'cancel'}, {text:'Use this new idea',onPress:apply}
+      ]);
+    }else apply();
+  };
   const result = s.socialAiResult;
   const photos = s.socialCreatePhotos || [];
   const analysing = s.socialAiStatus === "analysing";
@@ -712,6 +723,12 @@ function SocialCreator({ s }) {
       subtitle={s.socialSourceContext?.label || "Selected photos"}
       brandCue="BUSY looks only at the photos you deliberately select."
     >
+      {pendingIdea?<Card eyebrow="Private content idea · not published" title={pendingIdea.serviceName||'Choose the service for your post'}
+        body={pendingIdea.evidence?.ok?pendingIdea.evidence.copy:pendingIdea.evidence?.reason||'Choose one current approved service below. No launch date, offer or availability is inferred.'} tone="blue">
+        {pendingIdea.platform?<Text style={styles.cardBody}>{'Suggested destination: '+pendingIdea.platform+'. Existing channel selections are kept; choose destinations during review.'}</Text>:null}
+        {pendingIdea.evidence?.ok?<Button label="Use this service idea" onPress={applyIncomingIdea}/>:brandSnapshot.ok?brandSnapshot.services.map(service=><Button key={service.name} label={'Use service: '+service.name} onPress={()=>s.socialContentActions?.prepare(service.name,pendingIdea.platform)}/>):null}
+        <Button label="Keep my current draft" onPress={()=>s.socialContentActions?.keep(pendingIdea)}/>
+      </Card>:null}
       <Card
         eyebrow="Source"
         title={s.socialSourceContext?.type === "job" ? "Completed job photos" : "Photos from your phone"}

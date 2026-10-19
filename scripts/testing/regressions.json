@@ -1279,6 +1279,12 @@
       "args": [
         "scripts/check-mission15-phase31-text-drafts.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase32-service-intent",
+      "args": [
+        "scripts/check-mission15-phase32-service-intent.mjs"
+      ]
     }
   ]
 }

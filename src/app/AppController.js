@@ -1,3 +1,5 @@
+import {useSocialContentHandoff} from "../screens/useSocialContentHandoff";
+import {resolveSocialServiceIntent} from "../core/socialBrandHandoffV3199.mjs";
 import {createOwnerEditNavigation} from '../core/ownerEditNavigation.mjs';
 import {prepareReviewedWebsiteComposition} from '../core/websiteReviewedComposition.mjs';
 import {parseBusinessContentInterest} from '../core/businessContentRecords.mjs';
@@ -3634,6 +3636,7 @@ function App() {
     ].filter(Boolean);
   };
 
+  const socialContentActions=useSocialContentHandoff({workspaceScope:businessWorkspaceScopeRef.current,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,website:websiteDraft,app:miniAppsStatus?.app,text:socialDraftText,photos:socialCreatePhotos,selectedDraftId:selectedSocialDraftId,sourceContext:socialSourceContext,setSourceContext:setSocialSourceContext,setText:setSocialDraftText,setSelectedDraftId:setSelectedSocialDraftId,setAiResult:setSocialAiResult,setAiStatus:setSocialAiStatus,setCaptionId:setSocialCaptionId,go});
   const socialDraftScope=businessWorkspaceScopeRef.current;
   const upsertSocialDraft = (status = "Draft") => {
     if(businessWorkspaceScopeRef.current!==socialDraftScope)return null;
@@ -12070,6 +12073,11 @@ function App() {
       // Local typed routing uses the authenticated project rows, avoiding an AI
       // request for grounded project-only questions.
       if(cleanText && !audioUri && !businessCreationConversationActive){
+        const contentIntent=resolveSocialServiceIntent(cleanText,{website:websiteDraft,app:miniAppsStatus?.app,businessId:cloudWorkspace?.businessId});
+        if(contentIntent.handled){
+          const opened=socialContentActions.prepare(contentIntent.serviceName,contentIntent.platform);
+          return acceptGrowthOperator({handled:true,result:{title:"Content Creator",intent:"social_post",transcript:cleanText,response:opened?contentIntent.reason:"Sign in as this business owner to prepare content.",mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
+        }
         const activityAnswer=await tryBusinessActivityOperator(cleanText,growthNonce);
         if(activityAnswer?.cancelled)return null;
         if(activityAnswer?.handled)return acceptGrowthOperator(activityAnswer);
@@ -17391,13 +17399,14 @@ function App() {
     socialAiError,
     socialCaptionId,
     socialDraftText,
-    setSocialDraftText,
+    setSocialDraftText:socialContentActions.editText,
     socialDraftChannels,
     socialScheduleDate,
     setSocialScheduleDate,
     socialScheduleTime,
     setSocialScheduleTime,
     socialSourceContext,
+    socialContentActions,
     selectedSocialDraftId,
     socialPublishingStatus,
     socialPublishingLoading,
