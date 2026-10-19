@@ -932,6 +932,13 @@
         "scripts/check-mission15-phase24-comparisons.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase24-wording",
+      "args": [
+        "scripts/check-mission15-phase24-wording.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
