@@ -13624,7 +13624,7 @@ function App() {
     });
     if(!checked.applied)return false;
     setWebsiteDraft(current=>{
-      if(!current||current.id!==draftId)return current;
+      if(!current||current.id!==draftId||expectedSource&&current!==expectedSource)return current;
       return recordWebsiteOwnerDesignFeedback(current,{
         draftId,pageId,changeId,choice,operation,at:new Date().toISOString()
       }).draft;

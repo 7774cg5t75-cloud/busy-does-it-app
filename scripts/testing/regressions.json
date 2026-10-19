@@ -1081,6 +1081,12 @@
       "args": [
         "scripts/check-mission15-phase27-simple-controls.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase27-service-advice",
+      "args": [
+        "scripts/check-mission15-phase27-service-advice.mjs"
+      ]
     }
   ]
 }
