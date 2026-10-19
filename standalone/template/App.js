@@ -158,7 +158,8 @@ function RequestScreen({screen,live,runtime,initialService="",initialMessage="",
        const current=latestDraft.current;
        if(inFlight.current||busy||editEpoch.current!==renderedEditEpoch||current.input!==input||current.contentSelection!==contentSelection||current.live!==live||current.runtime!==runtime||current.result?.ok||current.result?.mayHaveBeenReceived)return;
        editEpoch.current++;
-       onRemoveAttachment({input:{...input,service:''},result:null,possibleDuplicateRetry:false,enquiryReview:null});
+       const message=typeof initialMessage==='string'&&initialMessage?(input.message===initialMessage?'':input.message.startsWith(initialMessage+'\n')?input.message.slice(initialMessage.length+1):input.message):input.message;
+       onRemoveAttachment({input:{...input,service:'',message},result:null,possibleDuplicateRetry:false,enquiryReview:null});
       }}/>
       {result?.mayHaveBeenReceived?<Text style={sub}>Keep this attachment while the earlier request is unconfirmed. Do not create a replacement request.</Text>:null}
     </>:null}
