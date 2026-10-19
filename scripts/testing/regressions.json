@@ -1111,6 +1111,12 @@
       "args": [
         "scripts/check-mission15-phase28-returns.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase28-page-guide",
+      "args": [
+        "scripts/check-mission15-phase28-page-guide.mjs"
+      ]
     }
   ]
 }

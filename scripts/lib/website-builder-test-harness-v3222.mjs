@@ -1,3 +1,4 @@
+import {websitePageGuide} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';
 import {serviceIndexHtml} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';
 import {faqDisclosureItems} from '../../supabase/functions/busy-website-worker/websiteFaqPresentation.mjs';
 import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";
@@ -30,6 +31,7 @@ import {editWebsiteDraftField}
 const source=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
 const trailer=/export\s*\{[\s\S]*?\};?\s*$/;
 const EXPECTED=Object.freeze([
+ "import {websitePageGuide} from '../../supabase/functions/busy-website-worker/websitePageGuide.mjs';",
  "import {serviceIndexHtml} from '../../supabase/functions/busy-website-worker/websiteServiceIndex.mjs';",
  "import {faqDisclosureItems} from '../../supabase/functions/busy-website-worker/websiteFaqPresentation.mjs';",
  'import {itemTypographyClasses} from "../../supabase/functions/busy-website-worker/websiteTextTypography.mjs";',
@@ -59,7 +61,7 @@ function stripKnownModule(file){
 const management=Function(stripKnownModule("src/domain/websiteManagement.js")+
  "\nreturn {syncWebsitePageModel};")();
 const deps=Object.freeze({
- serviceIndexHtml,faqDisclosureItems,itemTypographyClasses,sectionAppearanceClasses,syncWebsitePageModel:management.syncWebsitePageModel,
+ websitePageGuide,serviceIndexHtml,faqDisclosureItems,itemTypographyClasses,sectionAppearanceClasses,syncWebsitePageModel:management.syncWebsitePageModel,
  canonicalWebsiteHandoffUrl,designForWebsite,designCss,
  planWebsiteDesign,reviewWebsiteDesign,applyWebsiteVisualEdit,
  editWebsiteDraftField,protectWebsiteOwnerLocks,businessContentSectionHtml

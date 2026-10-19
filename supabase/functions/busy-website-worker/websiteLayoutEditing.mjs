@@ -13,6 +13,7 @@ const list=x=>Array.isArray(x)?x:[];
 const slug=s=>text(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-+$/g,"").slice(0,52);
 const fail=(draft,reason)=>({applied:false,draft,reason});
 const allow={
+ pageGuide:["none","sections"],
  typography:["confident","refined","compact","editorial","friendly"],
  cardLayout:["cards","outlines","rows"],
  navStyle:["quiet","underline","pill"],
