@@ -1105,6 +1105,12 @@
       "args": [
         "scripts/check-mission15-phase28-reconsider.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase28-returns",
+      "args": [
+        "scripts/check-mission15-phase28-returns.mjs"
+      ]
     }
   ]
 }

@@ -198,6 +198,7 @@ export default function App(){
  const chosen=pages.find(x=>x.key===current)||pages[0];
  const publicViewContext=JSON.stringify([live?.businessContent?.businessId||'',live?.appId||'',live?.versionId||'',runtime?.expectedAppId||'',runtime?.expectedVersionId||'']);
  const viewContext=React.useRef(publicViewContext);viewContext.current=publicViewContext;
+ const runtimeScreen=React.useRef(null);runtimeScreen.current={live,screen:chosen?.key};
  if(catalogueCache.current.scope!==publicViewContext)catalogueCache.current={scope:publicViewContext,states:{}};
  const requestFormKey=JSON.stringify([live?.versionId,chosen?.key,requestedKind,requestedService,requestedIntent,requestSelection]);
  const requestIdentity=React.useRef(requestFormKey);requestIdentity.current=requestFormKey;
@@ -289,7 +290,9 @@ export default function App(){
         "I would like to know more about "+requestedService+".":"")}/>:
      <LiveInfo screen={chosen} app={live} layout={responsive} catalogueContextKey={publicViewContext} catalogueStates={catalogueCache.current.states} onCatalogueStateChange={(kind,value)=>{if(catalogueCache.current.scope===publicViewContext)catalogueCache.current.states[kind]=value;}}
       onOpenOfferEnquiry={offerTitle=>{
+       if(viewContext.current!==publicViewContext||runtimeScreen.current.live!==live||runtimeScreen.current.screen!==chosen.key||!live.offers?.some(offer=>offer.title===offerTitle))return;
        if(!live.supportsEnquiry||!live.moduleKeys?.includes("enquiry"))return;
+       setRequestOrigin(chosen.key);
        setRequestSelection(null);setRequestedMessage("");setRequestedService(offerTitle);setRequestedKind("offer");
        setRequestedIntent("enquiry");setCurrent("enquiry");
       }}

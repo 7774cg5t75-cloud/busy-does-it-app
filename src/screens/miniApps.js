@@ -4627,6 +4627,7 @@ function BusyAppDetail({ s }) {
   return <BusyAppDetailForm key={[s.ownerSession?.userId||"",detail?.app?.id||"",detail?.version?.id||"",JSON.stringify(detail?.entryContentInterest?.selection||null)].join(":")} s={s}/>;
 }
 function BusyAppDetailForm({ s }) {
+  const requestUserId=s.ownerSession?.userId;
   const detail = s.selectedBusyAppDetail || {};
   const config = detail?.version?.config || null;
   const requestScroll=React.useRef(null),requestFormY=React.useRef(null);
@@ -4760,6 +4761,7 @@ function BusyAppDetailForm({ s }) {
           tone="green"
         />
       ) : null}
+      {(enabled.has('enquiry')||enabled.has('booking_request'))?<Button label={(requestKind==='booking_request'?bookingReviewCurrent:enquiryReviewCurrent)?'Return to my reviewed request':'Return to my request draft'} disabled={!!s.miniAppsAction} onPress={()=>{if(formAlive.current&&s.selectedBusyAppDetail===detail&&s.ownerSession?.userId===requestUserId)goToRequest(requestKind);}}/>:null}
       {config?.contentLayout?.length?<Button label="Refresh products and events" disabled={!!s.miniAppsAction} onPress={()=>s.openBusyAppDetail(detail.app.slug)}/>:null}
       {config ? (
         <MiniAppSurface
