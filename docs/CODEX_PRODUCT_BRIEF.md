@@ -12,6 +12,8 @@ The product should feel extraordinarily simple. Complexity belongs in reusable e
 
 ## Current build-first priorities
 
+**Phase 31 priority update:** The bounded, source-tested builder implementation checkpoint is recorded in `BUILDER_FIRST_RELEASE_CHECKPOINT_2026_10_19.md`. Lead development now moves to **Content Creator and the six-area Home**, with **Get More Customers** alongside. Work & Customers and Get Paid deepen next through existing contracts. This is a development-priority transition, not production readiness; hosted/device/security acceptance and separate publication/provider approvals remain mandatory. Keep residual builder work tied to concrete first-release gaps rather than indefinite cosmetic variants.
+
 **App Builder** and **Website Builder** are foundational. Design for many kinds of businesses and products, not a narrow set of hard-coded sectors.
 
 - The App Builder supports business-facing mini-apps accessible through Busy and a distinct optional standalone export route, according to entitlements and costs. Share brand design, business information, approvals and operational capabilities.
