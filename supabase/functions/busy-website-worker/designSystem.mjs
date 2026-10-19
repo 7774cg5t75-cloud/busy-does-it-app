@@ -182,6 +182,13 @@ main a:not(.cta),main button{display:inline-flex;align-items:center;min-height:4
 section.owner-reading-column .wrap > p{max-width:64ch;overflow-wrap:anywhere}
 section.owner-reading-column .wrap > :is(h1,h2){max-width:22ch;overflow-wrap:anywhere}
 section.owner-reading-editorial .wrap > p{max-width:68ch;overflow-wrap:anywhere}
+/* Long-form article flow: original DOM words/order; one column until wide desktop. */
+section.owner-reading-columns .wrap > p{max-width:76ch;overflow-wrap:anywhere}
+section.owner-reading-columns .wrap > :is(h1,h2){max-width:30ch}
+@media(min-width:1100px){
+ section.owner-reading-columns .wrap > p{max-width:none;column-count:2;column-gap:clamp(32px,5vw,72px);column-rule:1px solid var(--line);orphans:3;widows:3}
+}
+
 @media(min-width:801px){
  section.owner-reading-editorial .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.7fr);gap:clamp(24px,5vw,72px);align-items:start}
  section.owner-reading-editorial .wrap > :is(h1,h2){grid-column:1;grid-row:1;min-width:0;margin-top:0;overflow-wrap:anywhere}

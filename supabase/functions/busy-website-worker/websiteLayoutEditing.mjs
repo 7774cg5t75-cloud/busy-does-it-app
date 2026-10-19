@@ -247,7 +247,7 @@ function applyWebsiteLayoutOperationUnchecked(draft,operation={}){
   const target=matched[0];
   const fields={
    ...textTypographyFields,
-   serviceLayout:['brand','directory','cards','index'],readingLayout:['brand','column','editorial'],faqLayout:['brand','questions'],
+   serviceLayout:['brand','directory','cards','index'],readingLayout:['brand','column','editorial','columns'],faqLayout:['brand','questions'],
    ctaSize:['normal','spacious','wide'],
    bodyScale:['normal','large'],mobileBodyScale:['normal','large'],desktopBodyScale:['normal','large'],
    headingScale:["compact","normal","large"],

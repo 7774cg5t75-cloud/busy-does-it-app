@@ -100,10 +100,10 @@ function interpretSelectedWebsiteRequest(draft,pageId,selection,instruction){
   if(itemId||section.type!=='faq')return failure('Select the whole questions section first.');
   return success('layout',{action:'section-style',sectionId,field:'faqLayout',value:'questions'},'Prepare expandable questions with original answers. Preview before applying.');
  }
- const readingLayout=text.match(/^show (?:this|that|the selected) text as (an editorial layout|a reading column|the original layout)$/i);
+ const readingLayout=text.match(/^show (?:this|that|the selected) text as (an editorial layout|a reading column|two reading columns|the original layout)$/i);
  if(readingLayout){
   if(itemId||!['about','text'].includes(section.type))return failure('Select a supported information section first.');
-  return success('layout',{action:'section-style',sectionId,field:'readingLayout',value:{'an editorial layout':'editorial','a reading column':'column','the original layout':'brand'}[readingLayout[1].toLowerCase()]},'Change this information section only. Keep original words, colours and phone reading order.');
+  return success('layout',{action:'section-style',sectionId,field:'readingLayout',value:{'an editorial layout':'editorial','a reading column':'column','two reading columns':'columns','the original layout':'brand'}[readingLayout[1].toLowerCase()]},'Change this information section only. Keep original words, colours and phone reading order.');
  }
  const reading=text.match(/^make (?:this|that|the selected) (?:text|paragraph|section) (?:easier to read|more readable)(?: only)? on (phones?|mobile|desktop|computers?)$/i);
  if(reading){

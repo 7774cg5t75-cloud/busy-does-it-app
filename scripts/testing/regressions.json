@@ -1153,6 +1153,12 @@
       "args": [
         "scripts/check-mission15-phase29-page-reconsider.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase29-article-layout",
+      "args": [
+        "scripts/check-mission15-phase29-article-layout.mjs"
+      ]
     }
   ]
 }

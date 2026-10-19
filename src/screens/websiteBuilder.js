@@ -1208,8 +1208,8 @@ function WebsitePreview({ s }) {
         captureSource:"current_private_webview_dom",
         original:visualCheckResult,candidate:candidateCheckResult}]
     }):null;
-  const coordinatedAdvice=React.useMemo(()=>coordinatedWebsiteAlternatives(draft,activePage?.id,visualCheckResult),[draft,activePage?.id,visualCheckResult]);
-  const rejectedPageIdeas=React.useMemo(()=>showRejectedPageIdeas?coordinatedWebsiteAlternatives(draft,activePage?.id,visualCheckResult,{includeRejected:true}).filter(idea=>idea.ownerPreference==='disliked'):[],[draft,activePage?.id,visualCheckResult,showRejectedPageIdeas]);
+  const coordinatedAdvice=React.useMemo(()=>coordinatedWebsiteAlternatives(draft,activePage?.id,visualCheckResult,{renderedHtml:liveConceptHtml}),[draft,activePage?.id,visualCheckResult,liveConceptHtml]);
+  const rejectedPageIdeas=React.useMemo(()=>showRejectedPageIdeas?coordinatedWebsiteAlternatives(draft,activePage?.id,visualCheckResult,{includeRejected:true,renderedHtml:liveConceptHtml}).filter(idea=>idea.ownerPreference==='disliked'):[],[draft,activePage?.id,visualCheckResult,showRejectedPageIdeas,liveConceptHtml]);
   const pageIdeaBinding=pageIdeaSource.current;
   const showPageIdeaAgain=idea=>{
     if(pageIdeaSource.current!==pageIdeaBinding||!originalReportIsCurrent||designCandidate)return false;
