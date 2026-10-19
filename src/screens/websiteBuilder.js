@@ -1218,7 +1218,7 @@ function WebsitePreview({ s }) {
     }
     // Don't modify the owner's real draft. Recheck the entire rendered private
     // candidate on the SAME page and viewport, then offer an explicit Keep.
-    setDesignCandidate({...advice,draft:result.draft,pageId:activePage?.id,
+    setDesignCandidate({...advice,sourceDraft:draft,draft:result.draft,pageId:activePage?.id,
       businessId:s.cloudWorkspace?.businessId,websiteId:draft.id,ownerId:s.ownerSession?.userId||"",
       baseGeneration:draft.generation});
     const baseline=recordPrivateWebsiteCandidateWidthV3239(null,{
@@ -1237,7 +1237,7 @@ function WebsitePreview({ s }) {
     setShowOriginalComparison(false);
     if(designCandidate&&draft&&s.recordMeasuredWebsiteFeedback)
       s.recordMeasuredWebsiteFeedback({draftId:draft.id,pageId:activePage?.id,
-        changeId:designCandidate.id,choice:"disliked"});
+        changeId:designCandidate.id,operation:designCandidate.operation,expectedSource:designCandidate.sourceDraft,choice:"disliked"});
     setDesignCandidate(null);setCandidateCheckOn(false);
     setCandidateCheckResult(null);setPrivateWidthEvidence(null);
     setDesignCandidateNotice("Original design restored. Your preference stays with this draft only.");

@@ -1057,6 +1057,12 @@
       "args": [
         "scripts/check-mission15-phase27-button-drafts.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase27-design-feedback",
+      "args": [
+        "scripts/check-mission15-phase27-design-feedback.mjs"
+      ]
     }
   ]
 }

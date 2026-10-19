@@ -61,6 +61,7 @@ function coordinatedWebsiteAlternatives(draft,pageId,report){
     websiteId:draft.id,expectedGeneration:draft.generation,expectedBusinessId:draft.businessId,before,proposed});
   }
   const operation={action:'style-group',operations};
+  if(ownerDesignPreference(draft,d.id,pageId,operation)==='disliked')return {...d,available:false};
   return {...d,operation,source:'current-draft-and-business-type-hypothesis',notGuaranteed:true,
    industry:sector,measuredImprovementProven:false,decisionEvidence:{viewport:report.counts.viewport,issueIds,approvedPhotoCount:photos,ownerPreference:ownerDesignPreference(draft,d.id,pageId)||null},available:operations.length>0&&applyWebsiteLayoutOperation(draft,operation).applied};
  }).filter(d=>d.available).slice(0,2);

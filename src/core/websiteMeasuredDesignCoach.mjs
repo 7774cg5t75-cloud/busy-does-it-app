@@ -1,3 +1,4 @@
+import {websiteDesignDirection} from './websiteDesignDirection.mjs';
 import {websiteLayoutLockReason,applyWebsiteLayoutOperation} from '../../supabase/functions/busy-website-worker/websiteLayoutEditing.mjs';
 /**
  * V3.144: small, owner-controlled suggestions derived ONLY from measured
@@ -114,7 +115,7 @@ function compareWebsiteVisualReports(original,candidate){
     "No new measured warnings at this width, but improvement is not proven. Decide which look you prefer."};
 }
 /** Explicit on-device customer feedback, not model training or global sharing. */
-function recordWebsiteOwnerDesignFeedback(draft,{draftId,pageId,choice,changeId,at}={}){
+function recordWebsiteOwnerDesignFeedback(draft,{draftId,pageId,choice,changeId,at,operation}={}){
  if(!draft?.id||draft.id!==draftId||
     !array(draft.pages).some(p=>p.id===pageId)||
     !["liked","disliked"].includes(choice)||
@@ -124,14 +125,17 @@ function recordWebsiteOwnerDesignFeedback(draft,{draftId,pageId,choice,changeId,
  const existing=array(draft.ownerDesignFeedback)
    .filter(e=>e?.draftId===draftId&&["liked","disliked"].includes(e.choice))
    .slice(-19);
- const next={draftId,pageId,choice,changeId,at:at.slice(0,30),
+ const direction=operation?websiteDesignDirection(draft,pageId,operation):null;
+ if(operation&&!direction)return {applied:false,draft,reason:"Select a current supported design change."};
+ const next={draftId,pageId,choice,changeId,at:at.slice(0,30),...(direction?{direction}:{}),
   source:"owner-explicit-feedback",scope:"this-website-draft-only"};
  return {applied:true,draft:{...draft,ownerDesignFeedback:[...existing,next]},
   reason:"Saved for this website draft only. Nothing was sent to other businesses or used to train a model."};
 }
-function ownerDesignPreference(draft,changeId,pageId=""){
+function ownerDesignPreference(draft,changeId,pageId="",operation=null){
+ const direction=operation?websiteDesignDirection(draft,pageId,operation):null;
  const rows=array(draft?.ownerDesignFeedback)
-  .filter(e=>e?.draftId===draft?.id&&e.changeId===changeId&&
+  .filter(e=>e?.draftId===draft?.id&&(e.direction?!!direction&&e.direction===direction:e.changeId===changeId)&&
     (!pageId||e.pageId===pageId));
  return rows.length?rows[rows.length-1].choice:null;
 }

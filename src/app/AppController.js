@@ -13616,16 +13616,17 @@ function App() {
 
   // V3.144: explicit owner feedback stays attached to the current private
   // website draft; it is not a global learning signal or automatic retraining.
-  const recordMeasuredWebsiteFeedback = ({draftId,pageId,changeId,choice}) => {
+  const recordMeasuredWebsiteFeedback = ({draftId,pageId,changeId,choice,operation,expectedSource}) => {
+    if(expectedSource&&websiteDraftRef.current!==expectedSource)return false;
     if(!websiteDraftRef.current||websiteDraftRef.current.id!==draftId)return false;
     const checked=recordWebsiteOwnerDesignFeedback(websiteDraftRef.current,{
-      draftId,pageId,changeId,choice,at:new Date().toISOString()
+      draftId,pageId,changeId,choice,operation,at:new Date().toISOString()
     });
     if(!checked.applied)return false;
     setWebsiteDraft(current=>{
       if(!current||current.id!==draftId)return current;
       return recordWebsiteOwnerDesignFeedback(current,{
-        draftId,pageId,changeId,choice,at:new Date().toISOString()
+        draftId,pageId,changeId,choice,operation,at:new Date().toISOString()
       }).draft;
     });
     setWebsiteBuilderNotice("Saved your design preference privately for this website. Nothing was shared or published.");
