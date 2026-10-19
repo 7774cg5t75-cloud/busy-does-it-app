@@ -922,12 +922,15 @@ function App() {
 
   const navigationScope=[ownerSession?.userId||'',cloudWorkspace?.businessId||'',screen].join(':');
   const navigationScopeRef=useRef(navigationScope);navigationScopeRef.current=navigationScope;
+  const navigationOwnerScope=[ownerSession?.userId||'',cloudWorkspace?.businessId||''].join(':');
+  const navigationStateRef=useRef(null);navigationStateRef.current={screen,history,tab};
+  const navigationOwnerCurrent=()=>navigationScopeRef.current.startsWith(navigationOwnerScope+':');
   const ownerEditNavigation=useRef(null);
   if(!ownerEditNavigation.current)ownerEditNavigation.current=createOwnerEditNavigation({getScope:()=>navigationScopeRef.current,confirm:({keep,discard})=>Alert.alert('Your wording is not saved','Keep editing, then use the original Preview and approval controls to save. Discard changes only if you want to leave without them.',[{text:'Keep editing',style:'cancel',onPress:keep},{text:'Discard changes',style:'destructive',onPress:discard}])});
   const setOwnerEditDirty=binding=>ownerEditNavigation.current.report({...binding,scope:navigationScope});
-  const go = next => navigationScopeRef.current===navigationScope&&ownerEditNavigation.current.request(()=>{setHistory(h=>[...h,screen]);setScreen(next);});
-  const back = () => {if(navigationScopeRef.current!==navigationScope||!history.length)return;return ownerEditNavigation.current.request(()=>{const copy=[...history],prev=copy.pop();setHistory(copy);setScreen(prev);});};
-  const jump = (next,nextTab=tab) => navigationScopeRef.current===navigationScope&&ownerEditNavigation.current.request(()=>{setHistory([]);setScreen(next);setTab(nextTab);});
+  const go = next => navigationOwnerCurrent()&&ownerEditNavigation.current.request(()=>{const from=navigationStateRef.current.screen;setHistory(h=>[...h,from]);setScreen(next);});
+  const back = () => {if(!navigationOwnerCurrent()||!navigationStateRef.current.history.length)return;return ownerEditNavigation.current.request(()=>{const copy=[...navigationStateRef.current.history],prev=copy.pop();setHistory(copy);setScreen(prev);});};
+  const jump = (next,nextTab=navigationStateRef.current.tab) => navigationOwnerCurrent()&&ownerEditNavigation.current.request(()=>{setHistory([]);setScreen(next);setTab(nextTab);});
 
   const confirmSpareSlot = (slot) => {
     const nextSlot = slot || "Any suitable work";
