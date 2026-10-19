@@ -14,6 +14,7 @@ import {useApprovedBuilderRecords} from './useApprovedBuilderRecords';
 import {planApprovedAppRecordSection} from '../core/approvedBuilderRecords.mjs';
 import {emptyEnquiryRequirements,prepareCustomerEnquiry,customerEnquiryReview,prepareCustomerBookingNote} from '../core/customerEnquiryRequirements.mjs';
 import {AppServiceEditor} from './appServiceEditor';
+import {AppGalleryDescriptionEditor} from './appGalleryDescriptionEditor';
 import {validContentLayout,prepareBusinessContentEnquiry} from '../core/businessContentRecords.mjs';
 import {proposeCoordinatedAppChanges as proposeContentComposition} from '../core/appCoordinatedStudio.mjs';
 import {BusinessContentView} from '../components/businessContentView';
@@ -892,9 +893,6 @@ function MiniAppBuilder({ s }) {
   const [photoFrom,setPhotoFrom]=React.useState("1");
   const [photoTo,setPhotoTo]=React.useState("2");
   const [studioVoiceOpen,setStudioVoiceOpen]=React.useState(false);
-  const [accessiblePhotoNumber,setAccessiblePhotoNumber]=React.useState("1");
-  const [accessiblePhotoAlt,setAccessiblePhotoAlt]=React.useState("");
-  const [accessiblePhotoCaption,setAccessiblePhotoCaption]=React.useState("");
   const view = s.miniAppsView || {};
   const app = view.app;
   const [ownerEditorEpoch,setOwnerEditorEpoch]=React.useState(0);
@@ -937,8 +935,6 @@ function MiniAppBuilder({ s }) {
     setStagingInstallAudit(null);
     setBrainOwnerHistory(null);
     setBrainOwnerNotice("");
-    setAccessiblePhotoNumber("1");
-    setAccessiblePhotoAlt("");setAccessiblePhotoCaption("");
   },[app?.id,s.cloudWorkspace?.businessId,s.ownerSession?.userId]);
   React.useEffect(()=>{
     setPendingAppearance(null);
@@ -2443,55 +2439,17 @@ function MiniAppBuilder({ s }) {
                 "Owner-written wording is ready to preview, not yet saved.":p.reason);
             }}/>
           {view.draftConfig.modules?.some(m=>m.key==='services'&&m.enabled===true)?(
-            <AppServiceEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id].join(':')}
+            <AppServiceEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch].join(':')}
+              onDraftChange={value=>markOwnerDirty('services',value)} requestTransition={s.requestOwnerEditTransition}
               config={view.draftConfig} revision={app.draft_revision} busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
               onPreview={setStudioPreview} onNotice={setStudioNotice}/>
           ):null}
-          {view.draftConfig.modules?.some(x=>x.key==="gallery"&&x.enabled===true)&&
-            (view.draftConfig.publicProfile?.assets?.gallery||[]).length>0?(
-            <>
-              <Text style={styles.sectionLabel}>Make gallery photos accessible</Text>
-              <Text style={styles.cardBody}>
-                Describe what an approved photo shows, rather than adding marketing slogans.
-                BUSY keeps the existing picture and asks before saving any public wording.
-              </Text>
-              <Field label="Gallery photo number (1 is first)" value={accessiblePhotoNumber}
-                onChangeText={setAccessiblePhotoNumber}/>
-              <Button label="Load this photo's existing descriptions"
-                onPress={()=>{
-                  const asset=view.draftConfig.publicProfile?.assets?.gallery?.[
-                    Number(accessiblePhotoNumber)-1];
-                  if(!asset||asset.approved!==true&&asset.marketingOk!==true){
-                    setStudioNotice("Choose an existing approved gallery photo.");
-                    return;
-                  }
-                  setAccessiblePhotoAlt(String(asset.alt||""));
-                  setAccessiblePhotoCaption(String(asset.caption||""));
-                  setStudioPreview(null);
-                }}/>
-              <Field label="Image description for screen readers"
-                value={accessiblePhotoAlt} onChangeText={setAccessiblePhotoAlt}
-                placeholder="e.g. Hairdresser cutting a client's hair in the salon"/>
-              <Field label="Optional public caption"
-                value={accessiblePhotoCaption} onChangeText={setAccessiblePhotoCaption}
-                placeholder="e.g. Our team at work"/>
-              <Button label="Preview photo description changes"
-                disabled={!!s.miniAppsAction}
-                onPress={()=>{
-                  const index=Number(accessiblePhotoNumber)-1;
-                  const gallery=view.draftConfig.publicProfile?.assets?.gallery||[];
-                  const item=gallery[index];
-                  const plan=proposeCoordinatedAppChanges(view.draftConfig,[{
-                    kind:"photo_description",index,
-                    expectedUri:item?.uri,
-                    value:{alt:accessiblePhotoAlt,caption:accessiblePhotoCaption}
-                  }]);
-                  setStudioPreview(plan.ok?plan:null);
-                  setStudioNotice(plan.ok?
-                    "Preview the owner-written photo descriptions below, then approve or discard.":
-                    plan.reason);
-                }}/>
-            </>
+          {view.draftConfig.modules?.some(x=>x.key==='gallery'&&x.enabled===true)?(
+            <AppGalleryDescriptionEditor key={[s.ownerSession?.userId,s.cloudWorkspace?.businessId,app.id,ownerEditorEpoch].join(':')}
+              config={view.draftConfig} revision={app.draft_revision}
+              busy={!!s.miniAppsAction||studio.pending||studio.uncertain}
+              onDraftChange={value=>markOwnerDirty('gallery',value)} requestTransition={s.requestOwnerEditTransition}
+              onPreview={setStudioPreview} onNotice={setStudioNotice}/>
           ):null}
           {Array.isArray(view.draftConfig.publicProfile?.assets?.gallery)&&
             view.draftConfig.publicProfile.assets.gallery.length>=2?(

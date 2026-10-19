@@ -5,7 +5,9 @@ import {styles} from '../theme/styles';
 import {validatePrivateAppServices} from '../core/appServiceCollection.mjs';
 import {proposeCoordinatedAppChanges} from '../core/appCoordinatedStudio.mjs';
 // Owns unsaved form presentation only. Original Studio owns review/save/Undo.
-function AppServiceEditor({config,revision,busy=false,onPreview,onNotice}){
+function AppServiceEditor({config,revision,busy=false,onPreview,onNotice,onDraftChange}){
+ const epoch=React.useRef(0),dirty=React.useRef(false);
+ const [pending,setPending]=React.useState(null);
  const rows=config?.publicProfile?.services||[];
  const stamp=JSON.stringify([revision,rows]);
  const live=React.useRef(null);live.current={stamp,config,rows,busy};
@@ -15,9 +17,11 @@ function AppServiceEditor({config,revision,busy=false,onPreview,onNotice}){
  const [query,setQuery]=React.useState('');
  const valid=validatePrivateAppServices(rows),stale=source!==stamp;
  const clearPreview=()=>onPreview?.(null);
- const change=setter=>value=>{if(live.current.busy)return;setter(value);clearPreview();};
- const pick=(row=null)=>{
-  if(live.current.busy)return;
+ const change=setter=>value=>{if(live.current.busy||live.current.config!==config)return;epoch.current++;dirty.current=true;onDraftChange?.(true);setter(value);setPending(null);clearPreview();};
+ const pick=(row=null,discard=false)=>{
+  if(live.current.busy||live.current.config!==config)return;
+  if(dirty.current&&!discard){setPending({row,epoch:epoch.current,config});return;}
+  epoch.current++;dirty.current=false;onDraftChange?.(false);setPending(null);
   setSource(live.current.stamp);setSelected(row?{id:row.id||'',name:row.name}:null);
   setName(row?.name||'');setDescription(row?.description||'');setCategory(row?.category||'');setPrice(row?.priceLabel||'');setDuration(row?.durationLabel||'');clearPreview();
  };
@@ -26,7 +30,9 @@ function AppServiceEditor({config,revision,busy=false,onPreview,onNotice}){
   const matches=live.current.rows.map((row,index)=>(selected.id?row.id===selected.id:row.name===selected.name)?index:-1).filter(index=>index>=0);
   return matches.length===1?matches[0]:-2;
  };
+ const captured=epoch.current;
  const submit=kind=>{
+  if(captured!==epoch.current||live.current.config!==config||pending)return;
   if(live.current.busy||source!==live.current.stamp){onNotice?.('The service list changed. Review the current version before preparing this edit.');return;}
   const index=locate();if(index===-2){onNotice?.('This service was removed or became ambiguous. Choose a current service.');return;}
   let value=live.current.rows.map(row=>({...row}));
@@ -59,6 +65,12 @@ function AppServiceEditor({config,revision,busy=false,onPreview,onNotice}){
    <Button label="I reviewed current services — keep my text" disabled={busy} onPress={rebase}/>
   </View>:null}
   {rows.length>4?<Field label="Find a service to edit" value={query} onChangeText={setQuery}/>:null}
+  {pending?<View>
+   <Text style={styles.cardBody}>Your service wording is not saved.</Text>
+   <Button label="Keep editing service wording" onPress={()=>{if(live.current.config===config)setPending(null);}}/>
+   <Button label="Discard service wording and continue" onPress={()=>{if(pending.config===live.current.config&&pending.epoch===epoch.current)pick(pending.row,true);}}/>
+  </View>:null}
+  <Button label="Cancel service wording" disabled={busy} onPress={()=>{if(captured===epoch.current&&live.current.config===config)pick(null,true);}}/>
   <Button label="Add a new service" disabled={busy} onPress={()=>pick()}/>
   {rows.filter(row=>(row.name+' '+(row.category||'')).toLocaleLowerCase('en').includes(query.trim().toLocaleLowerCase('en'))).map((row,index)=><Button key={row.id||row.name||index}
    label={'Edit '+row.name} disabled={busy} onPress={()=>pick(row)}/>)}

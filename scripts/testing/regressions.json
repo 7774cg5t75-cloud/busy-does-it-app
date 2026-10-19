@@ -1135,6 +1135,12 @@
       "args": [
         "scripts/check-mission15-phase28-legacy-copy.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase29-legacy-drafts",
+      "args": [
+        "scripts/check-mission15-phase29-legacy-drafts.mjs"
+      ]
     }
   ]
 }
