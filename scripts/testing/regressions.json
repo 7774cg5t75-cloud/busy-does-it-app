@@ -1303,6 +1303,12 @@
       "args": [
         "scripts/check-mission15-phase32-approved-profile.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase32-home-content",
+      "args": [
+        "scripts/check-mission15-phase32-home-content.mjs"
+      ]
     }
   ]
 }

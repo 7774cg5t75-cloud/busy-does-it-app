@@ -1,3 +1,4 @@
+import {homeContentReview} from "../core/homeContentReview.mjs";
 import {HomeCoreAreas} from "../components/HomeCoreAreas";
 import React, { useEffect, useState } from "react";
 import {
@@ -181,6 +182,7 @@ const homeDark = StyleSheet.create({
 });
 
 function HomeScreen({ s }) {
+  const currentHomeSource=React.useRef(s);currentHomeSource.current=s;
   const [showOtherMoves, setShowOtherMoves] = useState(false);
   const [verifiedAppBenefit,setVerifiedAppBenefit]=useState(null);
   // One read-only, tenant-scoped check while an opportunity is relevant.
@@ -794,7 +796,8 @@ function HomeScreen({ s }) {
         !s.dismissedOpportunities.includes(item.id)
     );
 
-  const rankedMoves = [...operationalMoves, ...marketingMoves]
+  const privateContentReview=homeContentReview(s,()=>currentHomeSource.current);
+  const rankedMoves = [...operationalMoves, ...marketingMoves, ...(privateContentReview?[privateContentReview]:[])]
     .sort((a, b) => (b.score || 0) - (a.score || 0))
     .map((item, index) => {
       const evidenceRows = Object.fromEntries(

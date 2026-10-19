@@ -29,7 +29,15 @@ export function useSocialContentHandoff(input){
  };
  const editText=value=>{if(!current())return;epoch.current++;live.current={...live.current,text:value};input.setText(value);};
  // UI confirmations must bind to the exact current local draft, including pre-render typing.
- const capture=()=>({epoch:epoch.current,scope,text:live.current.text,selectedId:live.current.selectedDraftId,photos:live.current.photos,pending:live.current.sourceContext?.pendingContentIdea});
- const fresh=ticket=>valid()&&ticket?.scope===scope&&ticket.epoch===epoch.current&&ticket.text===live.current.text&&ticket.selectedId===live.current.selectedDraftId&&ticket.photos===live.current.photos&&ticket.pending===live.current.sourceContext?.pendingContentIdea;
- return {prepare,keep,accept,capture,fresh,editText};
+ const capture=()=>({epoch:epoch.current,scope,text:live.current.text,selectedId:live.current.selectedDraftId,photos:live.current.photos,brief:live.current.brief,channels:JSON.stringify(live.current.channels),pending:live.current.sourceContext?.pendingContentIdea});
+ const fresh=ticket=>valid()&&ticket?.scope===scope&&ticket.epoch===epoch.current&&ticket.text===live.current.text&&ticket.selectedId===live.current.selectedDraftId&&ticket.photos===live.current.photos&&ticket.brief===live.current.brief&&ticket.channels===JSON.stringify(live.current.channels)&&ticket.pending===live.current.sourceContext?.pendingContentIdea;
+ const reopen=(record,load)=>{
+  if(!valid()||!live.current.records?.includes(record))return false;
+  const ticket=capture(),now=live.current,saved=now.records.find(row=>row.id===now.selectedDraftId);
+  const media=rows=>JSON.stringify((rows||[]).map(row=>[row.id||'',row.uri||'',row.storagePath||'']));
+  const dirty=now.text.trim()!==(saved?.text||'')||media(now.photos)!==media(saved?.photos)||!!now.brief&&now.brief!==(saved?.brief||'');
+  const open=()=>{if(!fresh(ticket)||!live.current.records?.includes(record))return false;epoch.current++;load();return true;};
+  if(dirty){input.confirm?.({keep:()=>{},discard:open});return false;}return open();
+ };
+ return {prepare,keep,accept,capture,fresh,editText,reopen,invalidate:()=>{if(current())epoch.current++;}};
 }
