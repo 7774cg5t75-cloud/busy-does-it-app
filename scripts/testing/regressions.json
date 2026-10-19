@@ -1117,6 +1117,12 @@
       "args": [
         "scripts/check-mission15-phase28-page-guide.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase28-customer-controls",
+      "args": [
+        "scripts/check-mission15-phase28-customer-controls.mjs"
+      ]
     }
   ]
 }

@@ -9,7 +9,7 @@ const catalogueSource=(feed,kind,contextKey='')=>JSON.stringify([feed,kind,conte
 function catalogueView(state,feed,kind){
  const records=selectBusinessContent(feed,{kind}),categories=[...new Set(records.map(r=>r.data.category).filter(Boolean))];
  const category=categories.includes(state.category)?state.category:'';
- const rows=selectBusinessContent(feed,{kind,query:state.query,category});
+ const rows=selectBusinessContent(feed,{kind,query:state.query,category}).filter(row=>kind!=='event'||!state.hideCancelled||row.data.status!=='cancelled');
  const detail=records.find(r=>r.id===state.selected),detailChanged=!!detail&&state.detailRevision!==detail.revision;
  return {records,categories,rows,detail,detailChanged,category,related:detail?.data.category?records.filter(r=>r.id!==detail.id&&r.data.category===detail.data.category&&r.data.status!=='cancelled').slice(0,3):[]};
 }
@@ -18,6 +18,7 @@ function transitionCatalogue(value,event,feed,kind,contextKey=''){
  if(event?.source!==catalogueSource(feed,kind,contextKey))return state;
  const view=catalogueView(state,feed,kind),row=view.records.find(r=>r.id===event.recordId);
  switch(event.type){
+  case 'hide-cancelled':return kind==='event'&&typeof event.value==='boolean'?{...state,hideCancelled:event.value}:state;
   case 'query':return typeof event.value==='string'?{...state,query:event.value.slice(0,100),selected:'',detailRevision:null}:state;
   case 'category':return event.value===''||view.categories.includes(event.value)?{...state,category:event.value,selected:'',detailRevision:null}:state;
   case 'clear':return {...state,query:'',category:'',selected:'',detailRevision:null};

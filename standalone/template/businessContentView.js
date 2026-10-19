@@ -23,7 +23,8 @@ function BusinessContentView({feed,kind,contextKey='',savedBrowseState=null,onSa
  return <View style={{padding:12,backgroundColor:colors.surface,borderRadius:12,marginVertical:10}}>
   <Text style={{fontSize:23,fontWeight:'700',color:colors.text}}>{title|| (kind==='event'?'Upcoming events':'Products')}</Text>
   <Text style={{color:colors.muted,marginVertical:8}}>{feed?.ok?'Approved information checked '+feed.checkedAt:'Current approved information is unavailable.'}</Text>
-  <TextInput accessibilityLabel={'Search '+kind+' records'} value={query} onChangeText={v=>{change({type:'query',value:v});setPageSize(12);}} placeholder="Search names or categories" placeholderTextColor="#46556a" style={{padding:12,minHeight:48,borderWidth:1,borderColor:colors.line,color:colors.text}}/>
+  <TextInput accessibilityLabel={'Search '+kind+' records'} value={query} onChangeText={v=>{change({type:'query',value:v});setPageSize(12);}} placeholder="Search names, descriptions or categories" placeholderTextColor="#46556a" style={{padding:12,minHeight:48,borderWidth:1,borderColor:colors.line,color:colors.text}}/>
+  {kind==='event'?button(state.hideCancelled?'Show cancelled events':'Hide cancelled events',()=>change({type:'hide-cancelled',value:!state.hideCancelled}),!!state.hideCancelled):null}
   {categories.length?<View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}>{button('All categories',()=>{change({type:'category',value:''});},!activeCategory)}{categories.slice(0,categoryCount).map(c=><View key={c}>{button(c,()=>{change({type:'category',value:c});setPageSize(12);},activeCategory===c)}</View>)}</View>:null}
   {categories.length>categoryCount?button('More categories',()=>setCategoryCount(x=>x+8)):null}
   {detail?button('Back to all results',()=>change({type:'back'})):null}
