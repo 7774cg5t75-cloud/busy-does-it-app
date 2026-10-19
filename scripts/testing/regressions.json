@@ -883,6 +883,13 @@
         "scripts/check-mission15-phase22-editing.mjs"
       ],
       "phase8Blocked": false
+    },
+    {
+      "id": "check-mission15-phase23-field-contract",
+      "args": [
+        "scripts/check-mission15-phase23-field-contract.mjs"
+      ],
+      "phase8Blocked": false
     }
   ]
 }
