@@ -1237,6 +1237,12 @@
       "args": [
         "scripts/check-mission15-phase31-pages.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase31-service-resume",
+      "args": [
+        "scripts/check-mission15-phase31-service-resume.mjs"
+      ]
     }
   ]
 }

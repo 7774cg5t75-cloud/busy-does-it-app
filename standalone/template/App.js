@@ -51,11 +51,11 @@ function Field({title,value,onChange,multiline=false,maxLength,disabled=false,in
  </View>;
 }
 const RequestScreen=createNativeRequestScreen({Button,Field,COLORS,box,t,sub});
-function ServicesInfo({app,layout,onRequestService,contextKey=''}){
+function ServicesInfo({app,layout,onRequestService,contextKey='',savedBrowseState,onSaveBrowseState}){
  const [query,setQuery]=useState("");
  const [category,setCategory]=useState('');
  const [questionService,setQuestionService]=useState('');
- const serviceReturn=useServiceBrowseReturn({services:app.services||[],contextKey,query,category,setQuery,setCategory});
+ const serviceReturn=useServiceBrowseReturn({services:app.services||[],contextKey,query,category,setQuery,setCategory,savedBrowseState,onSaveBrowseState});
  const browse=browsePublicNativeServices(app.services||[],serviceReturn.query,serviceReturn.category),results=browse.rows;
  return <View style={box}>
   <Text style={{...t,fontSize:VISUAL.type.sectionSize,fontWeight:VISUAL.type.sectionWeight}}>Services</Text>
@@ -112,7 +112,7 @@ function LiveInfo({screen,app,layout,onRequestService,onOpenContact,onOpenOfferE
   {(app.faqs||[]).map((row,i)=><AppFaqCard key={row.id||i} row={row} colors={COLORS} componentStyles={app.componentStyles||LOOK.componentStyles} bodySize={VISUAL.type.bodySize}/>)}
   {(app.testimonials||[]).map((row,i)=><View key={'testimonial'+i} style={{marginTop:16}}><Text style={sub}>{row.text}</Text><Text style={{...t,fontWeight:'700'}}>{row.attribution}</Text></View>)}
  </View>;
- if(screen.key==="services")return <ServicesInfo app={app} layout={layout} onRequestService={onRequestService} contextKey={catalogueContextKey}/>;
+ if(screen.key==="services")return <ServicesInfo app={app} layout={layout} onRequestService={onRequestService} contextKey={catalogueContextKey} savedBrowseState={catalogueStates.services} onSaveBrowseState={value=>onCatalogueStateChange?.('services',value)}/>;
  if(screen.key==="gallery")return <View style={box}>
    <Text style={{...t,fontSize:20,fontWeight:"700"}}>Approved photos</Text>
    {app.gallery?.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>
@@ -291,7 +291,7 @@ export default function App(){
        requestedKind==="offer"?
         "I would like to ask about the offer: "+requestedService+".":
         "I would like to know more about "+requestedService+".":"")}/>:
-     <LiveInfo screen={chosen} app={live} layout={responsive} catalogueContextKey={publicViewContext} catalogueStates={catalogueCache.current.states} onCatalogueStateChange={(kind,value)=>{if(catalogueCache.current.scope===publicViewContext)catalogueCache.current.states[kind]=value;}}
+     <LiveInfo screen={chosen} app={live} layout={responsive} catalogueContextKey={publicViewContext} catalogueStates={catalogueCache.current.states} onCatalogueStateChange={(kind,value)=>{if(catalogueCache.current.scope===publicViewContext&&runtimeScreen.current.live===live&&runtimeScreen.current.screen===chosen.key)catalogueCache.current.states[kind]=value;}}
       onOpenOfferEnquiry={offerTitle=>{
        if(viewContext.current!==publicViewContext||runtimeScreen.current.live!==live||runtimeScreen.current.screen!==chosen.key||!live.offers?.some(offer=>offer.title===offerTitle))return;
        if(!live.supportsEnquiry||!live.moduleKeys?.includes("enquiry"))return;
@@ -308,7 +308,7 @@ export default function App(){
         "This device could not open that contact method. Use the details shown above."));
       }}
       onRequestService={(serviceName,intent,prepared,topic)=>{
-       if(viewContext.current!==publicViewContext)return;
+       if(viewContext.current!==publicViewContext||runtimeScreen.current.live!==live||runtimeScreen.current.screen!==chosen.key)return;
        if(intent==="booking_request"&&
           (!live.supportsBookingRequest||!live.moduleKeys?.includes(intent)))return;
        if(intent==="enquiry"&&
