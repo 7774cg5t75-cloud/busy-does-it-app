@@ -1249,6 +1249,12 @@
       "args": [
         "scripts/check-mission15-phase31-cloud-drafts.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase31-independent-editors",
+      "args": [
+        "scripts/check-mission15-phase31-independent-editors.mjs"
+      ]
     }
   ]
 }
