@@ -12211,6 +12211,15 @@ function App() {
       return null;
     }
     const growthNonce=++growthOperatorRequestRef.current;
+    // Typed and already-transcribed requests use the same finite local routes.
+    // Navigation is not completion, publication, messaging or payment authority.
+    const acceptLocalNavigation=(transcript)=>{
+      if(businessWorkspaceScopeRef.current!==socialDraftScope||growthOperatorRequestRef.current!==growthNonce)return null;
+      const local=localCoreAreaRequest(transcript);if(!local)return null;
+      const allowed=!!ownerSession?.userId&&!!cloudWorkspace?.businessId&&['owner','admin'].includes(cloudWorkspace?.role);
+      if(allowed){if(local.route==='busyInbox')openBusyInbox();else go(local.route);}
+      return acceptGrowthOperator({handled:true,result:{title:"Busy",intent:"open_core_area",localNavigationOnly:true,transcript,response:allowed?local.response:"Sign in as this business owner and select your business before opening private work.",mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
+    };
     setBusyCommandStatus("thinking");
     setBusyCommandError("");
     setBusyCommandResult(null);
@@ -12223,11 +12232,8 @@ function App() {
           const opened=contentIntent.opened;
           return acceptGrowthOperator({handled:true,result:{title:"Content Creator",intent:"social_post",localNavigationOnly:true,transcript:cleanText,response:opened?contentIntent.reason:"Sign in as this business owner to prepare content.",mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
         }
-        const localNavigation=localCoreAreaRequest(cleanText);
-        if(localNavigation){
-          if(ownerSession?.userId&&cloudWorkspace?.businessId){if(localNavigation.route==='busyInbox')openBusyInbox();else go(localNavigation.route);}
-          return acceptGrowthOperator({handled:true,result:{title:"Busy",intent:"open_core_area",localNavigationOnly:true,transcript:cleanText,response:ownerSession?.userId&&cloudWorkspace?.businessId?localNavigation.response:"Sign in and select your business before opening private work.",mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
-        }
+        const localNavigation=acceptLocalNavigation(cleanText);
+        if(localNavigation)return localNavigation;
         const activityAnswer=await tryBusinessActivityOperator(cleanText,growthNonce);
         if(activityAnswer?.cancelled)return null;
         if(activityAnswer?.handled)return acceptGrowthOperator(activityAnswer);
@@ -12310,7 +12316,7 @@ function App() {
       }
 
       const payload = await response.json().catch(() => ({}));
-      if(businessWorkspaceScopeRef.current!==socialDraftScope)return null;
+      if(businessWorkspaceScopeRef.current!==socialDraftScope||growthOperatorRequestRef.current!==growthNonce)return null;
       if (!response.ok) {
         throw new Error(payload?.error || `BUSY Operator returned ${response.status}.`);
       }
@@ -12327,6 +12333,9 @@ function App() {
       if(result.transcript && !businessCreationConversationActive){
         const contentIntent=socialContentActions.route(result.transcript);
         if(contentIntent.handled)return acceptGrowthOperator({handled:true,result:{title:"Content Creator",intent:"social_post",localNavigationOnly:true,transcript:result.transcript,response:contentIntent.opened?contentIntent.reason:"Sign in as this business owner to prepare content.",mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
+        if(growthOperatorRequestRef.current!==growthNonce)return null;
+        const localNavigation=acceptLocalNavigation(result.transcript);
+        if(localNavigation)return localNavigation;
         const activityAnswer=await tryBusinessActivityOperator(result.transcript,growthNonce);
         if(activityAnswer?.cancelled)return null;
         if(activityAnswer?.handled)return acceptGrowthOperator(activityAnswer);

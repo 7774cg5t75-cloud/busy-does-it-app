@@ -1567,6 +1567,12 @@
       "args": [
         "scripts/check-mission15-phase36-home-prepared-quote.mjs"
       ]
+    },
+    {
+      "id": "check-mission15-phase36-core-routing",
+      "args": [
+        "scripts/check-mission15-phase36-core-routing.mjs"
+      ]
     }
   ]
 }
