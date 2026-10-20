@@ -19,6 +19,7 @@ export function createOwnerEditNavigation({getScope,confirm}){
    const previous=permit;permit=item;
    try{return transition();}finally{permit=previous;}
   },
+  hasDirtyEdits(){return current().length>0;},
   hasDirtySource(source){return current().some(item=>item.identity.source===source||item.identity.projectId===source?.id);},
   sourceChange(source,transition){
    const items=current();

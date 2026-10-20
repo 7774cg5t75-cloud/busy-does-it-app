@@ -11,5 +11,13 @@ guard.request(()=>{});prompt.discard();assert.throws(()=>apply({onboardingComple
 let finish,status='',error='',revision=0;const id={},snapshotRestoreRef={current:null};const noop=()=>{};
 const env={ownerSession:{accessToken:'inert'},cloudWorkspace:{businessId:'business'},snapshotRestoreRef,snapshotIdentityRef:{current:id},snapshotSessionRef:{current:{restore:()=>new Promise(resolve=>finish=resolve)}},snapshotContextRef:{current:{}},setCloudInitialising:noop,setCloudSyncError:v=>error=v,setCloudSyncStatus:v=>status=v,ownerAccessToken:noop,busyDataRequest:noop,CLOUD_SCHEMA_VERSION:1,applyCloudSnapshot:apply,setCloudRevision:()=>revision++,setCloudLastSyncedAt:noop,setCloudConflict:noop};
 const restore=Function(...Object.keys(env),'return '+functions.restoreLatestCloudCopy)(...Object.values(env));const pending=restore({original:'ticket'});register();finish({ok:true,payload:{onboardingComplete:true},businessId:'business',revision:9});assert.equal(await pending,false);assert.match(error,/wording is not saved/);assert.equal(status,'Restore needs attention');assert.equal(revision,0);assert.equal(mutated,1);assert.equal(snapshotRestoreRef.current,null);
-scope='other-owner:other-business:home';assert.throws(()=>apply({onboardingComplete:true},'business'),e=>e===sentinel,'Old owner registration cannot block mandatory scope replacement');
-console.log('PASS actual authenticated snapshot application stops before state mutation when website wording is dirty; original asynchronous restore rejects typing during await without success/revision acknowledgement. Current deliberate discard and owner-scope reset remain effective. Auth/transport inert, hosted policies unverified.');
+// Full snapshot replacement also affects original App Studio and quote records.
+for(const source of [{id:'quote',revision:3},{id:'app',revision:7}]){
+ guard.report({token:{},identity:{source,projectId:source.id,revision:source.revision},scope,dirty:true,onDiscard:()=>true});
+ assert.throws(()=>apply({onboardingComplete:true},'business'),/wording is not saved/);
+ assert.equal(mutated,1,'A non-website dirty editor blocks before the first snapshot setter');
+ guard.request(()=>{});prompt.keep();assert.equal(guard.hasDirtyEdits(),true);
+ guard.request(()=>{});assert.equal(prompt.discard(),true);assert.equal(guard.hasDirtyEdits(),false);
+}
+register();scope='other-owner:other-business:home';assert.throws(()=>apply({onboardingComplete:true},'business'),e=>e===sentinel,'Old owner registration cannot block mandatory scope replacement');
+console.log('PASS actual authenticated snapshot application stops before state mutation when any currently registered original editor is dirty; original asynchronous restore rejects typing during await without success/revision acknowledgement. Current deliberate discard and owner-scope reset remain effective. Auth/transport inert, hosted policies unverified.');

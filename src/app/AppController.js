@@ -2190,7 +2190,7 @@ function App() {
     if (!saved || typeof saved !== "object") return;
     // Authenticated loads are not reviewed field commits. Never erase wording
     // typed while a restore/load was pending. Security resets use their own path.
-    if(ownerEditNavigation.current.hasDirtySource(websiteDraftRef.current))throw Error("Your website wording is not saved. Keep editing, or deliberately discard it before restoring the cloud copy.");
+    if(ownerEditNavigation.current.hasDirtyEdits())throw Error("Your current wording is not saved. Keep editing, or deliberately discard it before restoring the cloud copy.");
     // Validate nested provenance before any state mutation.
     if(saved.websiteDraft&&websiteBusinessId)bindWebsiteDraftScope(saved.websiteDraft,websiteBusinessId);
     saved=completeBusinessSnapshot(saved);
