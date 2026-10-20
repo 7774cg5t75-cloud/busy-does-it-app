@@ -1669,6 +1669,12 @@
       "args": [
         "scripts/check-mission15-phase39-unsaved-content-home.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase39-talk-current-content",
+      "args": [
+        "scripts/check-mission15-phase39-talk-current-content.mjs"
+      ]
     }
   ]
 }

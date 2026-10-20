@@ -1,3 +1,4 @@
+import {homeUnsavedContentReview} from '../core/homeContentReview.mjs';
 import {privateContentChannels} from '../core/contentDraftChanges.mjs';
 import {quoteEnquiryReference,resolveQuoteEnquiryReference} from '../core/quoteEnquiryReference.mjs';
 import {preparedQuoteTarget,followUpQuoteTarget} from '../core/homeQuoteReview.mjs';
@@ -12280,6 +12281,15 @@ function App() {
         const result=resumeCurrentEnquiry();
         if(!result.found&&!result.blocked)openBusyInbox();
         response=result.blocked?'Your current business permissions need review before opening private enquiries.':result.found?(result.opened?'Review your current enquiry. Existing form wording has been kept; nothing was filed or sent.':'Your current enquiry or unfinished edits need attention before returning. Nothing was filed or sent.'):'Choose an existing enquiry in Busy Inbox. No particular enquiry was guessed or changed.';
+      }else if(allowed&&local.continueContent){
+        const currentContent=()=>{
+          const ticket=socialContentActions.capture();
+          return {ownerWorkspaceScope:businessWorkspaceScopeRef.current,ownerSession,cloudWorkspace:{...cloudWorkspace,role:replyActionSources.current.role},socialContentActions,socialSourceContext,socialDraftText:ticket.text,socialCreatePhotos:ticket.photos,socialBrief:ticket.brief,socialDraftChannels:ticket.channels,socialDrafts:ticket.records,selectedSocialDraftId:ticket.selectedId,go};
+        };
+        const continuation=homeUnsavedContentReview(currentContent(),currentContent);
+        if(continuation)response=continuation.onAction()?'Continue your current unsaved content. Your words, photos and destination choices are kept; nothing was saved or published.':'Your content or current permissions changed. Keep your latest wording and review Content Creator.';
+        else if(['owner','admin'].includes(replyActionSources.current.role))go(local.route);
+        else response='Your current business permissions need review before opening private content.';
       }else if(allowed&&(local.continueQuote||local.reviewQuoteFollowUp)){
         const source=replyActionSources.current;
         const target=(local.reviewQuoteFollowUp?followUpQuoteTarget:preparedQuoteTarget)({ownerWorkspaceScope:socialDraftScope,ownerSession,cloudWorkspace:{...cloudWorkspace,role:source.role},customers:source.customers,replyActions:source.replyActions,selectedReplyActionId:source.selectedReplyActionId},local.quoteCustomerName);
