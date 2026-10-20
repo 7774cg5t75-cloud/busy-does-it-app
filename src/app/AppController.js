@@ -3693,7 +3693,7 @@ function App() {
 
     const now = new Date().toISOString();
     const existing = socialDrafts.find((draft) => draft.id === selectedSocialDraftId);
-    if(existing&&(existing.status!=="Draft"||existing.publishedAt))return null;
+    if(existing&&((existing.status||"Draft")!=="Draft"||existing.publishedAt))return null;
     const id = existing?.id || `social-draft-${Date.now()}`;
     const photos = socialCreatePhotos.map((photo) => ({
       id: photo.id,
