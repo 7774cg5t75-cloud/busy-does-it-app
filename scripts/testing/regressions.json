@@ -1357,6 +1357,12 @@
       "args": [
         "scripts/check-mission15-phase33-approved-records.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase33-device-recovery",
+      "args": [
+        "scripts/check-mission15-phase33-device-recovery.mjs"
+      ]
     }
   ]
 }

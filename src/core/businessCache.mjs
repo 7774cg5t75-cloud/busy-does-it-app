@@ -45,9 +45,13 @@ export {businessCacheKey,encodeBusinessCache,decodeBusinessCache,selectBusinessC
 async function confirmBusinessCacheWrite({write,read,encoded,ownerId,businessId}){
  try{
   await write(encoded);
-  const raw=await read();
-  if(raw!==encoded||!decodeBusinessCache(raw,{ownerId,businessId}))return {status:'unknown'};
-  return {status:'confirmed'};
+  return await confirmBusinessCacheRead({read,encoded,ownerId,businessId});
  }catch{return {status:'unknown'};}
 }
 export {confirmBusinessCacheWrite};
+
+// Reconcile uncertain device evidence without repeating any write or provider action.
+async function confirmBusinessCacheRead({read,encoded,ownerId,businessId}){
+ try{const raw=await read();return {status:raw===encoded&&decodeBusinessCache(raw,{ownerId,businessId})?'confirmed':'unknown'};}catch{return {status:'unknown'};}
+}
+export {confirmBusinessCacheRead};

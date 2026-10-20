@@ -11,7 +11,7 @@ import {createMarketplaceReadActions} from "../core/marketplaceReadActions.mjs";
 import {createWebsiteLiveActions} from "../core/websiteLiveActions.mjs";
 import {createBusinessCacheRecoveryActions} from "../core/businessCacheRecoveryActions.mjs";
 import {enqueuePrivateCheckpoint} from "../core/privateCheckpointQueue.mjs";
-import {businessCacheKey,encodeBusinessCache,decodeBusinessCache,selectBusinessCache,completeBusinessSnapshot,confirmBusinessCacheWrite} from "../core/businessCache.mjs";
+import {businessCacheKey,encodeBusinessCache,decodeBusinessCache,selectBusinessCache,completeBusinessSnapshot,confirmBusinessCacheWrite,confirmBusinessCacheRead} from "../core/businessCache.mjs";
 import {createWebsiteDomainActions} from "../core/websiteDomainActions.mjs";
 import {createBusinessSnapshotSession} from "../core/businessSnapshotSession.mjs";
 import {bindWebsiteDraftScope,websiteDraftHasScope} from "../core/websiteDraftScope.mjs";
@@ -856,16 +856,19 @@ function App() {
     if (userCacheKey) {
       try{
         const writeScope=cloudOwnerScopeRef.current,writeBusiness=cloudWorkspace.businessId;
-        const encoded=encodeBusinessCache({ownerId:ownerSession.userId,businessId:cloudWorkspace.businessId,revision:cloudRevision,payload:data});
         const record=socialDrafts.find(item=>item.id===selectedSocialDraftId&&item.status==='Draft');
         const receipt=record?{scope:businessWorkspaceScopeRef.current,record,status:'saving'}:null;
-        if(receipt){privateContentWrite.current=receipt;setPrivateContentSave(receipt);}
+        if(receipt)privateContentWrite.current=receipt;
+        let encoded;
+        try{encoded=encodeBusinessCache({ownerId:ownerSession.userId,businessId:cloudWorkspace.businessId,revision:cloudRevision,payload:data});}
+        catch(error){if(receipt){receipt.status='failed';setPrivateContentSave(receipt);}throw error;}
+        if(receipt){receipt.encoded=encoded;receipt.cacheKey=userCacheKey;receipt.ownerId=ownerSession.userId;receipt.businessId=writeBusiness;setPrivateContentSave(receipt);}
         enqueuePrivateCheckpoint(userCacheKey,async()=>{
           if(!receipt)return AsyncStorage.setItem(userCacheKey,encoded);
           const result=await confirmBusinessCacheWrite({encoded,ownerId:ownerSession.userId,businessId:writeBusiness,write:value=>AsyncStorage.setItem(userCacheKey,value),read:()=>AsyncStorage.getItem(userCacheKey)});
           if(privateContentWrite.current===receipt&&businessWorkspaceScopeRef.current===receipt.scope)setPrivateContentSave({...receipt,status:result.status});
           if(result.status!=='confirmed')throw Error('Device readback was not confirmed.');
-        }).catch(()=>{if(cloudOwnerScopeRef.current===writeScope&&snapshotContextRef.current?.businessId===writeBusiness)setCloudSyncError("The private device copy could not be confirmed. Your cloud copy is unchanged; keep your current wording.");});
+        }).catch(()=>{if(receipt&&privateContentWrite.current===receipt&&businessWorkspaceScopeRef.current===receipt.scope)setPrivateContentSave({...receipt,status:'unknown'});if(cloudOwnerScopeRef.current===writeScope&&snapshotContextRef.current?.businessId===writeBusiness)setCloudSyncError("The private device copy could not be confirmed. Your cloud copy is unchanged; keep your current wording.");});
       }catch{setCloudSyncError("The device copy could not be verified for this business.");}
     }
   }, [
@@ -3762,6 +3765,15 @@ function App() {
     }
 
     return record;
+  };
+
+  const checkPrivateContentCopy=async()=>{
+    if(businessWorkspaceScopeRef.current!==socialDraftScope)return false;
+    const receipt=privateContentWrite.current,ticket=socialContentActions.capture();
+    if(!receipt||receipt.scope!==socialDraftScope||!receipt.encoded||!receipt.cacheKey||receipt.record.id!==ticket.selectedId||!ticket.records?.includes(receipt.record))return false;
+    const result=await confirmBusinessCacheRead({read:()=>AsyncStorage.getItem(receipt.cacheKey),encoded:receipt.encoded,ownerId:receipt.ownerId,businessId:receipt.businessId});
+    if(privateContentWrite.current!==receipt||!socialContentActions.fresh(ticket))return false;
+    setPrivateContentSave({...receipt,status:result.status});return result.status==='confirmed';
   };
 
   const saveGeneratedSocialDraft = () => {
@@ -17451,7 +17463,7 @@ function App() {
     socialScheduleTime,
     setSocialScheduleTime,
     socialSourceContext,
-    privateContentSave:privateContentSave?.scope===businessWorkspaceScopeRef.current?privateContentSave:null,
+    privateContentSave:privateContentSave?.scope===businessWorkspaceScopeRef.current?{record:privateContentSave.record,status:privateContentSave.status}:null,
     socialContentActions,
     selectedSocialDraftId,
     socialPublishingStatus,
@@ -17553,6 +17565,7 @@ function App() {
     runSocialContentAI,
     applySocialCaption,
     toggleSocialDraftChannel,
+    checkPrivateContentCopy,
     saveGeneratedSocialDraft,
     saveSocialDraftOnly,
     scheduleSocialDraft,
