@@ -1,3 +1,4 @@
+import {useQuoteActionReview} from './useQuoteActionReview';
 import React, { useEffect, useState } from "react";
 import GetPaidOwnerReview from "../components/GetPaidOwnerReview";
 import {
@@ -3558,6 +3559,7 @@ function ReplyActions({ s }) {
 }
 
 function ReplyActionDetail({ s }) {
+  const quoteReview=useQuoteActionReview(s);
   const customer = s.selectedReplyCustomer;
   if (!customer) {
     return (
@@ -3629,8 +3631,8 @@ function ReplyActionDetail({ s }) {
   );
 
   const finish = (details) => {
-    s.completeReplyAction(customer.id, details);
-    s.back();
+    const save=()=>{const result=s.completeReplyAction(customer.id,details);if(result===false)return false;s.back();return true;};
+    return type==='quote'?quoteReview.commit(save):save();
   };
 
   if (type === "quote") {
@@ -3674,15 +3676,15 @@ function ReplyActionDetail({ s }) {
           </Text>
         </View>
         <GetPaidOwnerReview s={s} customer={customer} saved={saved} type="quote" todayISO={todayISO} />
-        <Field label="Quote amount" value={s.actionQuoteAmount} onChangeText={s.setActionQuoteAmount} keyboardType="number-pad" prefix="£" />
+        <Field label="Quote amount" value={s.actionQuoteAmount} onChangeText={value=>quoteReview.edit('actionQuoteAmount',value)} keyboardType="number-pad" prefix="£" />
         <Text style={styles.fieldLabel}>Draft reply</Text>
-        <TextInput multiline value={s.actionQuoteMessage} onChangeText={s.setActionQuoteMessage} style={styles.messageInput} />
+        <TextInput multiline value={s.actionQuoteMessage} onChangeText={value=>quoteReview.edit('actionQuoteMessage',value)} style={styles.messageInput} />
         {(quoteStatus === "Prepared" || quoteStatus === "Sent" || !saved.done) ? (
           <>
             <DatePickerField
               label="Quote sent date"
               value={s.actionQuoteSentDate}
-              onChange={s.setActionQuoteSentDate}
+              onChange={value=>quoteReview.edit('actionQuoteSentDate',value)}
             />
             <Card
               eyebrow="Automatic admin"

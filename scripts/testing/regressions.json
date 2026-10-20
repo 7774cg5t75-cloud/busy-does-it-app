@@ -1531,6 +1531,12 @@
       "args": [
         "scripts/check-mission15-phase36-talk-treatment.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase36-quote-review",
+      "args": [
+        "scripts/check-mission15-phase36-quote-review.mjs"
+      ]
     }
   ]
 }
