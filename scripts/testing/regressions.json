@@ -1543,6 +1543,12 @@
       "args": [
         "scripts/check-mission15-phase36-record-continuity.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase36-quote-navigation",
+      "args": [
+        "scripts/check-mission15-phase36-quote-navigation.mjs"
+      ]
     }
   ]
 }

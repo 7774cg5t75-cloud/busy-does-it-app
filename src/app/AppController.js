@@ -1457,29 +1457,40 @@ function App() {
     return true;
   };
 
+  const replyActionSources=useRef(null);replyActionSources.current={customers,lastSimulatedRecipients,replyActions,role:cloudWorkspace?.role};
   const beginReplyAction = (customerId, suggested) => {
     const customer =
       customers.find((item) => item.id === customerId) ||
       lastSimulatedRecipients.find((item) => item.id === customerId);
     if (!customer || !suggested) return;
 
+    const previous=replyActions[customerId];
+    const isCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&replyActionSources.current.replyActions[customerId]===previous&&(replyActionSources.current.customers.includes(customer)||replyActionSources.current.lastSimulatedRecipients.includes(customer));
+    return ownerEditNavigation.current.request(()=>{
     saveReplyAction(customerId, suggested.task, suggested.type, "simulated");
     setSelectedReplyActionId(customerId);
     loadReplyActionForm(customerId, suggested.type);
     go("replyActionDetail");
+    },{isCurrent});
   };
 
   const openSavedReplyAction = (customerId) => {
     const saved = replyActions[customerId];
     if (!saved) return;
+    const isCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&replyActionSources.current.replyActions[customerId]===saved;
+    return ownerEditNavigation.current.request(()=>{
     setSelectedReplyActionId(customerId);
     loadReplyActionForm(customerId, saved.type);
     go("replyActionDetail");
+    },{isCurrent});
   };
 
   const startDirectCustomerAction = (customerId, type) => {
     const customer = customers.find((item) => item.id === customerId);
     if (!customer || !["quote", "booking", "reminder"].includes(type)) return;
+    const previous=replyActions[customerId];
+    const isCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&replyActionSources.current.replyActions[customerId]===previous&&replyActionSources.current.customers.includes(customer);
+    return ownerEditNavigation.current.request(()=>{
     const task =
       type === "quote"
         ? "Prepare and send a quote"
@@ -1511,6 +1522,7 @@ function App() {
       note: "Started directly from the customer record.",
     });
     go("replyActionDetail");
+    },{isCurrent});
   };
 
   const openCustomer = (customerId) => {

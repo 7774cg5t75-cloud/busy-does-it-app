@@ -25,13 +25,14 @@ export function createOwnerEditNavigation({getScope,confirm}){
    if(!items.length||items.length===1&&permit===items[0]&&permit.identity.source===source)return transition();
    return guard.request(transition,{reason:'source-change'});
   },
-  request(transition,{reason='navigation'}={}){
+  request(transition,{reason='navigation',isCurrent=()=>true}={}){
+   if(!isCurrent())return false;
    const captured=current();
    if(!captured.length){transition();return true;}
    const capturedEpoch=epoch,sequence=++prompt;
    confirm({reason,keep:()=>{if(sequence===prompt)prompt++;},discard:()=>{
     const fresh=current();
-    if(sequence!==prompt||capturedEpoch!==epoch||fresh.length!==captured.length||captured.some(item=>active.get(item.token)!==item))return false;
+    if(!isCurrent()||sequence!==prompt||capturedEpoch!==epoch||fresh.length!==captured.length||captured.some(item=>active.get(item.token)!==item))return false;
     for(const item of captured){if(item.onDiscard?.()===false)return false;}
     // Reentrant callbacks cannot clear newly registered typing.
     if(capturedEpoch!==epoch||sequence!==prompt)return false;
