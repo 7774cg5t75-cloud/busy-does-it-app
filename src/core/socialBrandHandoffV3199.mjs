@@ -80,6 +80,10 @@ function resolveSocialServiceIntent(text,{website,app,businessId,approvedProfile
  const action=/\b(help|tell|introduce|make|create|write|draft|prepare|advertise|promote|announce)\b/i.test(request);
  const content=/\b(post|caption|facebook|instagram|announcement)\b/i.test(request)||/\b(?:tell (?:our |my |the )?(?:customers|people) about|advertise|promote|write something|prepare something)\b/i.test(request);
  if(!action||!introduction&&!content)return {handled:false};
+ const styleRequest=request.includes(':')?request.slice(0,request.indexOf(':')):request;
+ const styles=[['welcoming','friendly|welcoming|warm'],['concise','short|concise'],['detailed','informative|detailed|explanatory']].filter(([,words])=>new RegExp('\\b(?:'+words+')\\s+(?:(?:facebook|instagram|social)\\s+)?(?:post|caption|introduction|announcement|message|wording|copy)\\b|\\b(?:in|with|using)\\s+(?:a |an )?(?:'+words+')\\s+(?:tone|style)\\b','i').test(styleRequest)).map(([style])=>style);
+ if(/\b(?:using|with|in) (?:my|our|the) (?:approved )?brand (?:voice|tone)\b/i.test(styleRequest))styles.push('brand');
+ const treatment=styles.length===1?styles[0]:'standard',needsTreatmentSelection=styles.length>1;
  const ownerAnnouncement=/\b(announcement|announce|opening hours|closing|close early|thank[- ]you|thank (?:our|my|the) customers|attending|(?:special|our|my|an|the) offer)\b/i.test(request);
  const recordKind=/\bevents?\b/i.test(request)?'event':/\b(products?|collection)\b/i.test(request)?'product':'';
  const snapshot=buildContentBrandSnapshot({website,app,businessId,approvedProfile});
@@ -89,7 +93,7 @@ function resolveSocialServiceIntent(text,{website,app,businessId,approvedProfile
  const purpose=introduction?'business-introduction':ownerAnnouncement&&(!recordKind||request.includes(':'))?'owner-announcement':matches.length===1?'service':recordKind||'service';
  const ownerFacts=purpose==='owner-announcement'&&request.includes(':')?request.slice(request.indexOf(':')+1).trim():'';
  const serviceName=purpose==='service'&&matches.length===1?matches[0]:'';
- return {handled:true,ownerFacts,purpose,serviceName,needsSelection:['product','event'].includes(purpose)||purpose==='service'&&!serviceName,
+ return {handled:true,ownerFacts,purpose,serviceName,treatment,needsTreatmentSelection,needsSelection:['product','event'].includes(purpose)||purpose==='service'&&!serviceName,
   platform:/\bfacebook\b/i.test(request)?'Facebook':/\binstagram\b/i.test(request)?'Instagram':'',
   reason:!snapshot.ok?snapshot.reason:purpose==='business-introduction'?'Review an introduction based on current approved business facts in Content Creator.':purpose==='owner-announcement'?'Supply and review your exact announcement details. Missing dates, hours and offer terms are not invented.':['product','event'].includes(purpose)?'Choose the intended current approved '+purpose+' in Content Creator. New does not establish launch, availability or attendance.':serviceName?'Review the current service wording in Content Creator.':'Choose the intended current service in Content Creator. New does not establish a launch date.'};
 }

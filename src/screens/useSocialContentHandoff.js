@@ -10,10 +10,10 @@ export function useSocialContentHandoff(input){
  const context=()=>({website:live.current.website,app:live.current.app,businessId:live.current.businessId,approvedProfile:live.current.approvedProfile});
  const setContext=value=>{live.current={...live.current,sourceContext:value};input.setSourceContext(value);};
  const valid=()=>current()&&!!live.current.ownerId&&!!live.current.businessId&&['owner','admin'].includes(live.current.role);
- const prepare=(serviceName='',platform='',sourceMode='',purpose='service',ownerFacts='',treatment='standard')=>{
+ const prepare=(serviceName='',platform='',sourceMode='',purpose='service',ownerFacts='',treatment='standard',requiresTreatmentSelection=false)=>{
   if(!valid())return false;
   const evidence=purpose==='owner-announcement'?prepareOwnerAnnouncementHandoff({...context(),sourceMode,ownerFacts,treatment}):serviceName||purpose==='business-introduction'?prepareSocialBrandHandoff({...context(),serviceName,sourceMode,purpose,treatment}):(()=>{const result=prepareSocialBrandHandoff({...context(),sourceMode});return result.ok?null:result;})();
-  const pending={evidence,serviceName,sourceMode,purpose,ownerFacts,treatment,session:{},platform:['Facebook','Instagram'].includes(platform)?platform:'',scope,ownerId:live.current.ownerId};
+  const pending={evidence,serviceName,sourceMode,purpose,ownerFacts,treatment,requiresTreatmentSelection,session:{},platform:['Facebook','Instagram'].includes(platform)?platform:'',scope,ownerId:live.current.ownerId};
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:pending});
   input.go('socialCreator');return true;
  };
@@ -21,9 +21,9 @@ export function useSocialContentHandoff(input){
  const failPending=(expected,reason)=>{
   if(valid()&&expected?.scope===scope&&live.current.sourceContext?.pendingContentIdea===expected){epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,loading:false,evidence:{ok:false,reason}}});}return false;
  };
- const loadRecords=async(kind,platform='',sourceMode='',hint=null,treatment='standard')=>{
+ const loadRecords=async(kind,platform='',sourceMode='',hint=null,treatment='standard',requiresTreatmentSelection=false)=>{
   if(!valid()||!['product','event'].includes(kind))return false;
-  const pending={purpose:kind,platform,sourceMode,treatment,scope,ownerId:live.current.ownerId,loading:true};
+  const pending={purpose:kind,platform,sourceMode,treatment,requiresTreatmentSelection,scope,ownerId:live.current.ownerId,loading:true};
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:pending});input.go('socialCreator');
   const ticket=capture();
   try{
@@ -42,16 +42,16 @@ export function useSocialContentHandoff(input){
  const pendingTreatment=expected=>expected?.treatment||expected?.evidence?.treatment||'standard';
  const selectService=(expected,serviceName)=>{
   if(!pendingCurrent(expected)||expected.purpose!=='service')return false;
-  return prepare(serviceName,expected.platform,expected.sourceMode,'service','',pendingTreatment(expected));
+  return prepare(serviceName,expected.platform,expected.sourceMode,'service','',pendingTreatment(expected),expected.requiresTreatmentSelection);
  };
  const switchSource=(expected,sourceMode)=>{
   if(!pendingCurrent(expected)||sourceMode!=='approved-profile')return false;
   const treatment=pendingTreatment(expected);
   if(['product','event'].includes(expected.purpose)){
    const hint=expected.evidence?.selection?{selection:expected.evidence.selection,recordStamp:expected.evidence.recordStamp}:null;
-   return loadRecords(expected.purpose,expected.platform,sourceMode,hint,treatment);
+   return loadRecords(expected.purpose,expected.platform,sourceMode,hint,treatment,expected.requiresTreatmentSelection);
   }
-  return prepare(expected.serviceName,expected.platform,sourceMode,expected.purpose,expected.ownerFacts,treatment);
+  return prepare(expected.serviceName,expected.platform,sourceMode,expected.purpose,expected.ownerFacts,treatment,expected.requiresTreatmentSelection);
  };
  const start=purpose=>{
   if(!valid()||epoch.current!==renderEpoch||!['service','business-introduction','product','event','owner-announcement'].includes(purpose))return false;
@@ -59,7 +59,8 @@ export function useSocialContentHandoff(input){
   const treatment=pendingCurrent(pending)?pendingTreatment(pending):evidence?.businessId===live.current.businessId?evidence.treatment||'standard':'standard';
   // A treatment is reusable preference, never approval of the previous facts.
   const sourceMode=pendingCurrent(pending)?pending.sourceMode:evidence?.businessId===live.current.businessId?evidence.sourceMode||'':'';
-  return ['product','event'].includes(purpose)?loadRecords(purpose,'',sourceMode,null,treatment):prepare('','',sourceMode,purpose,'',treatment);
+  const requiresTreatmentSelection=pendingCurrent(pending)&&!!pending.requiresTreatmentSelection;
+  return ['product','event'].includes(purpose)?loadRecords(purpose,'',sourceMode,null,treatment,requiresTreatmentSelection):prepare('','',sourceMode,purpose,'',treatment,requiresTreatmentSelection);
  };
  const selectRecord=(expected,selection)=>{
   if(!valid()||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected)return false;
@@ -72,7 +73,7 @@ export function useSocialContentHandoff(input){
   const base={...context(),sourceMode:expected.sourceMode,treatment};
   const evidence=['product','event'].includes(expected.purpose)?prepareSocialRecordHandoff({...base,feed:expected.feed,selection:expected.evidence.selection}):expected.purpose==='owner-announcement'?prepareOwnerAnnouncementHandoff({...base,ownerFacts:expected.ownerFacts}):prepareSocialBrandHandoff({...base,serviceName:expected.serviceName,purpose:expected.purpose});
   if(!evidence.ok)return false;
-  epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,evidence,treatment}});return true;
+  epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,evidence,treatment,requiresTreatmentSelection:false}});return true;
  };
  const editOwnerFacts=(expected,value)=>{
   const pending=live.current.sourceContext?.pendingContentIdea;
@@ -100,7 +101,7 @@ export function useSocialContentHandoff(input){
   }catch{return failPending(expected,'Could not confirm the current approved item. Your draft was kept; refresh before using the idea.');}
  };
  const accept=(expected,ticket)=>{
-  if(!fresh(ticket)||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected)return false;
+  if(!fresh(ticket)||expected?.requiresTreatmentSelection||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected)return false;
   if(['product','event'].includes(expected.purpose))return acceptRecord(expected,ticket);
   const checked=confirmSocialBrandHandoff({...context(),evidence:expected.evidence});
   if(!checked.ok)return false;
@@ -178,8 +179,8 @@ export function useSocialContentHandoff(input){
  const route=text=>{
   if(!current())return {handled:false};
   const result=resolveSocialServiceIntent(text,context());
-  if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform);return {...result,opened:valid()};}
-  return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose,result.ownerFacts)}:result;
+  if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform,'',null,result.treatment,result.needsTreatmentSelection);return {...result,opened:valid()};}
+  return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose,result.ownerFacts,result.treatment,result.needsTreatmentSelection)}:result;
  };
  return {isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,start,switchSource,selectService,loadRecords,selectRecord,chooseTreatment,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource,checkAccountDraft,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
 }

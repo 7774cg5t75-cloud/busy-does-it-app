@@ -1525,6 +1525,12 @@
       "args": [
         "scripts/check-mission15-phase36-source-treatment.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase36-talk-treatment",
+      "args": [
+        "scripts/check-mission15-phase36-talk-treatment.mjs"
+      ]
     }
   ]
 }
