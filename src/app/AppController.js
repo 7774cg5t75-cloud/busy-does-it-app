@@ -3252,6 +3252,7 @@ function App() {
               scheduledAt: post.scheduled_for || draft.scheduledAt || null,
               publishedAt: post.published_at || draft.publishedAt || null,
               updatedAt: post.updated_at || draft.updatedAt,
+              cloudUpdatedAt:post.updated_at||draft.cloudUpdatedAt||null,
             };
           })
         );
@@ -3889,6 +3890,7 @@ function App() {
         ? post.scheduled_for
         : previous.scheduledAt || null,
       updatedAt: post.updated_at || now,
+      cloudUpdatedAt:post.updated_at||previous.cloudUpdatedAt||null,
     };
 
     setSocialDrafts((items) => {
@@ -4251,6 +4253,7 @@ function App() {
     try {
       const data = await socialPublishRequest("cancel_schedule", {
         clientDraftId: draft.id,
+        ...draft.cloudUpdatedAt?{expectedUpdatedAt:draft.cloudUpdatedAt}:{},
       },{isCurrent:operation.current});
       if(!operation.matches(data.post,['Draft'])){if(operation.scoped())setSocialPublishingError("The current draft action was not confirmed. Check its saved record before repeating an uncertain request.");return false;}
       applyCloudSocialPost(data.post, draft);

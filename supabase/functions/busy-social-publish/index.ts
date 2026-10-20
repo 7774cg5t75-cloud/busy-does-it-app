@@ -1179,9 +1179,12 @@ async function deleteDraft(clientDraftId: string) {
   return { deleted: true, cloudRecordFound: true };
 }
 
-async function cancelScheduledPost(clientDraftId: string) {
+async function cancelScheduledPost(clientDraftId: string, expectedUpdatedAt: unknown = undefined) {
   const post = await getPostByClientDraftId(clientDraftId);
   if (!post) throw new Error("That scheduled post no longer exists.");
+  if (!post.updated_at || expectedUpdatedAt !== undefined && (typeof expectedUpdatedAt !== "string" || expectedUpdatedAt !== post.updated_at)) {
+    throw new Error("That scheduled revision changed. Read its current account status before cancelling.");
+  }
   if (!["Scheduled", "Held for setup"].includes(String(post.status || ""))) {
     throw new Error(
       post.status === "Publishing" || post.status === "Published"
@@ -1201,12 +1204,14 @@ async function cancelScheduledPost(clientDraftId: string) {
     })
     .eq("workspace_key", WORKSPACE)
     .eq("client_draft_id", post.client_draft_id)
-    .in("status", ["Scheduled", "Held for setup"])
+    .eq("id", post.id)
+    .eq("status", post.status)
+    .eq("updated_at", post.updated_at)
     .select("*")
     .maybeSingle();
   if (error) throw error;
   if (!data) {
-    throw new Error("That post started publishing before BUSY could cancel it.");
+    throw new Error("That schedule changed or started publishing before BUSY could cancel this revision.");
   }
   return data;
 }
@@ -1432,7 +1437,7 @@ Deno.serve(async (request: Request) => {
 
     if (action === "cancel_schedule") {
       const clientDraftId = cleanText(body?.clientDraftId, 180);
-      return json(200, { ok: true, post: await cancelScheduledPost(clientDraftId) });
+      return json(200, { ok: true, post: await cancelScheduledPost(clientDraftId, body?.expectedUpdatedAt) });
     }
 
     if (action === "schedule") {

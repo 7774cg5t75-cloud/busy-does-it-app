@@ -1555,6 +1555,12 @@
       "args": [
         "scripts/check-mission15-phase36-quote-device-copy.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase36-cancel-revision",
+      "args": [
+        "scripts/check-mission15-phase36-cancel-revision.mjs"
+      ]
     }
   ]
 }
