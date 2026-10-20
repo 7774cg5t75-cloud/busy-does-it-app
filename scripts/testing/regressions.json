@@ -1609,6 +1609,12 @@
       "args": [
         "scripts/check-mission15-phase37-reopened-content.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase37-recorded-quote-status",
+      "args": [
+        "scripts/check-mission15-phase37-recorded-quote-status.mjs"
+      ]
     }
   ]
 }

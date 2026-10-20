@@ -17,7 +17,7 @@ export function InboxCustomerContinuation({s,item}){
   return live.current.prepareQuoteFollowUp(customer.id,item.id);
  };
  return <><Text style={styles.cardBody}>This item was filed into an existing customer record. Further work stays private until you approve a supported action.</Text>
-  {action?.type==='quote'&&action.details?.quoteStatus==='Prepared'&&!action.done?<Button label="Continue this private quote" onPress={()=>current()?live.current.openSavedReplyAction(customer.id,item.id):false}/>:null}
+  {action?.type==='quote'&&action.details?.quoteStatus==='Prepared'?<Button label="Continue this private quote" onPress={()=>current()?live.current.openSavedReplyAction(customer.id,item.id):false}/>:null}
   <Button label="Open this customer" onPress={()=>current()?live.current.openCustomer(customer.id,item.id):false}/>
   {action?.type==='quote'&&action.details?.quoteStatus==='Sent'?<Button label="Prepare a private quote follow-up" onPress={prepare}/>:null}
  </>;

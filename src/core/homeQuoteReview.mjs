@@ -3,10 +3,10 @@ export function homeQuoteReview(s,getCurrent){
  const scope=s.ownerWorkspaceScope,owner=s.ownerSession?.userId,businessId=s.cloudWorkspace?.businessId;
  const customer=s.customers?.find(row=>row.id===s.selectedReplyActionId),action=customer?s.replyActions?.[customer.id]:null;
  const wording=s.quoteFollowUpDraft,epoch=s.getQuoteFollowUpTypingEpoch?.();
- if(s.quoteFollowUpSourceCurrent===false||!scope||!owner||!businessId||!['owner','admin'].includes(s.cloudWorkspace?.role)||typeof wording!=='string'||!wording.trim()||epoch===undefined||!customer||action?.type!=='quote'||action.details?.quoteStatus!=='Sent'||action.done||action.details.followUpSentAt||[customer.businessId,customer.business_id].some(id=>id&&id!==businessId))return null;
+ if(s.quoteFollowUpSourceCurrent===false||!scope||!owner||!businessId||!['owner','admin'].includes(s.cloudWorkspace?.role)||typeof wording!=='string'||!wording.trim()||epoch===undefined||!customer||action?.type!=='quote'||action.details?.quoteStatus!=='Sent'||action.details.followUpSentAt||[customer.businessId,customer.business_id].some(id=>id&&id!==businessId))return null;
  return {id:'private-quote-review-'+customer.id,score:56,eyebrow:'Work & Customers',title:'Continue your private quote follow-up',body:'Your current follow-up wording for '+customer.name+' is available in this workspace. Review it before any separate action; no customer message has been sent by this suggestion.',why:'This comes from your actual unfinished wording and an existing saved quote.',evidence:[['Source','Existing customer and saved quote'],['Status','Private wording; no send performed']],actionLabel:'Continue private follow-up',canIgnore:false,tone:'blue',onAction:()=>{
   const now=getCurrent();
-  if(now.quoteFollowUpSourceCurrent===false||now.ownerWorkspaceScope!==scope||now.ownerSession?.userId!==owner||now.cloudWorkspace?.businessId!==businessId||!['owner','admin'].includes(now.cloudWorkspace?.role)||!now.customers?.includes(customer)||now.replyActions?.[customer.id]!==action||now.selectedReplyActionId!==customer.id||now.quoteFollowUpDraft!==wording||now.getQuoteFollowUpTypingEpoch?.()!==epoch||action.done||action.details.followUpSentAt)return false;
+  if(now.quoteFollowUpSourceCurrent===false||now.ownerWorkspaceScope!==scope||now.ownerSession?.userId!==owner||now.cloudWorkspace?.businessId!==businessId||!['owner','admin'].includes(now.cloudWorkspace?.role)||!now.customers?.includes(customer)||now.replyActions?.[customer.id]!==action||now.selectedReplyActionId!==customer.id||now.quoteFollowUpDraft!==wording||now.getQuoteFollowUpTypingEpoch?.()!==epoch||action.details.followUpSentAt)return false;
   now.go('quoteFollowUp');return true;
  }};
 }
@@ -32,6 +32,6 @@ export function preparedQuoteTarget(s,exactName=''){
  const matches=(s.customers||[]).filter(customer=>exactName?key(customer.name)===key(exactName):customer.id===s.selectedReplyActionId);
  if(matches.length!==1)return null;
  const customer=matches[0],action=s.replyActions?.[customer.id];
- if([customer.businessId,customer.business_id].some(id=>id&&id!==business)||action?.type!=='quote'||action.done||action.details?.quoteStatus!=='Prepared'||!String(action.details?.message||'').trim())return null;
+ if([customer.businessId,customer.business_id].some(id=>id&&id!==business)||action?.type!=='quote'||action.details?.quoteStatus!=='Prepared'||!String(action.details?.message||'').trim())return null;
  return {customer,action};
 }
