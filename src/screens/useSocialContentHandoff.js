@@ -74,6 +74,10 @@ export function useSocialContentHandoff(input){
  // UI confirmations must bind to the exact current local draft, including pre-render typing.
  const capture=()=>({epoch:epoch.current,scope,records:live.current.records,website:live.current.website,app:live.current.app,profile:JSON.stringify(live.current.approvedProfile),aiResult:live.current.aiResult,text:live.current.text,selectedId:live.current.selectedDraftId,photos:live.current.photos,brief:live.current.brief,channels:JSON.stringify(live.current.channels),pending:live.current.sourceContext?.pendingContentIdea});
  const fresh=ticket=>valid()&&ticket?.scope===scope&&ticket.epoch===epoch.current&&ticket.website===live.current.website&&ticket.app===live.current.app&&ticket.profile===JSON.stringify(live.current.approvedProfile)&&ticket.aiResult===live.current.aiResult&&ticket.text===live.current.text&&ticket.selectedId===live.current.selectedDraftId&&ticket.photos===live.current.photos&&ticket.brief===live.current.brief&&ticket.channels===JSON.stringify(live.current.channels)&&ticket.pending===live.current.sourceContext?.pendingContentIdea;
+ const freshSave=(ticket,record)=>{
+  const selectedId=live.current.selectedDraftId;
+  return !!record?.id&&(live.current.records===ticket?.records||live.current.records?.includes(record))&&(selectedId===ticket?.selectedId||selectedId===record.id)&&fresh({...ticket,selectedId});
+ };
  const protectDraftTransition=(load,record=null)=>{
   if(!valid()||record&&!live.current.records?.includes(record))return false;
   const ticket=capture(),now=live.current,saved=now.records?.find(row=>row.id===now.selectedDraftId);
@@ -91,5 +95,5 @@ export function useSocialContentHandoff(input){
   if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform);return {...result,opened:valid()};}
   return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose,result.ownerFacts)}:result;
  };
- return {route,prepare,loadRecords,selectRecord,editOwnerFacts,keep,accept,capture,fresh,editText,reopen,replaceDraft,invalidate:()=>{if(current())epoch.current++;}};
+ return {route,prepare,loadRecords,selectRecord,editOwnerFacts,keep,accept,capture,fresh,freshSave,editText,reopen,replaceDraft,invalidate:()=>{if(current())epoch.current++;}};
 }

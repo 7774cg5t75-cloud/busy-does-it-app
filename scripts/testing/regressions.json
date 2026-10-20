@@ -1387,6 +1387,12 @@
       "args": [
         "scripts/check-mission15-phase33-new-post-safety.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase33-cloud-freshness",
+      "args": [
+        "scripts/check-mission15-phase33-cloud-freshness.mjs"
+      ]
     }
   ]
 }

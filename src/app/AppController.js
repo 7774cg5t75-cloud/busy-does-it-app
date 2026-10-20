@@ -512,6 +512,7 @@ function App() {
   const [socialAiStatus, setSocialAiStatus] = useState("idle");
   const [socialAiResult, setSocialAiResult] = useState(null);
   const socialAnalysisNonce=useRef(0);
+  const socialPrivateSaveOperation=useRef(null);
   const [socialAiError, setSocialAiError] = useState("");
   const [socialCaptionId, setSocialCaptionId] = useState("");
   const [socialDraftText, setSocialDraftText] = useState("");
@@ -3050,8 +3051,11 @@ function App() {
     await resetPrototype({ preserveUserCache: true });
   };
 
-  const socialPublishRequest = async (action, payload = {}) => {
+  const socialPublishRequest = async (action, payload = {}, {isCurrent=()=>true}={}) => {
+    const requestScope=businessWorkspaceScopeRef.current;
+    const current=()=>businessWorkspaceScopeRef.current===requestScope&&isCurrent();
     const token = await ownerAccessToken();
+    if(!current())throw Error('The publishing workspace changed. Reopen the current draft before continuing.');
     if (!token) {
       throw new Error("BUSY account sign-in is required for publishing controls.");
     }
@@ -3071,6 +3075,7 @@ function App() {
       action === "publish_now" || action === "retry_post" ? 45000 : 25000
     );
     const data = await response.json().catch(() => ({}));
+    if(!current())throw Error('The publishing response belongs to an earlier workspace or draft. Nothing was applied locally.');
     if (!response.ok) {
       if (response.status === 401) {
         await persistOwnerSession(null);
@@ -3934,25 +3939,30 @@ function App() {
 
   const saveSocialDraftOnly = async () => {
     if(!socialCreatePhotos.length){setSocialPublishingError("Add approved photos before using the publishing queue. Your text remains a private draft.");return false;}
-    const record = upsertSocialDraft("Draft");
-    if (!record) return false;
-    setSocialPublishingLoading(true);
-    setSocialPublishingAction("save");
-    setSocialPublishingError("");
+    if(businessWorkspaceScopeRef.current!==socialDraftScope||socialPrivateSaveOperation.current?.scope===socialDraftScope)return false;
+    const ticket=socialContentActions.capture(),record=upsertSocialDraft("Draft");
+    if(!record)return false;
+    const operation={scope:socialDraftScope};socialPrivateSaveOperation.current=operation;
+    const current=()=>businessWorkspaceScopeRef.current===socialDraftScope&&socialPrivateSaveOperation.current===operation&&socialContentActions.freshSave(ticket,record);
+    const outdated=()=>{if(businessWorkspaceScopeRef.current===socialDraftScope&&socialPrivateSaveOperation.current===operation)setSocialPublishingError('Your draft changed during the cloud save. Current edits were kept; check the original saved record before repeating an uncertain action.');return false;};
+    setSocialPublishingLoading(true);setSocialPublishingAction("save");setSocialPublishingError("");
     try {
-      const payload = await buildSocialPublishPayload(record, false);
-      const data = await socialPublishRequest("save_draft", payload);
-      applyCloudSocialPost(data.post, record);
-      await refreshSocialPublishingStatus({ quiet: true });
-      go("socialMedia");
+      const payload=await buildSocialPublishPayload(record,false);
+      if(!current())return outdated();
+      const data=await socialPublishRequest("save_draft",payload,{isCurrent:current});
+      if(!current())return outdated();
+      if(data?.post?.client_draft_id!==record.id||data.post.status!=='Draft'||data.post.caption!==record.text)throw Error('The cloud response did not confirm this exact private draft.');
+      applyCloudSocialPost(data.post,record);
+      await refreshSocialPublishingStatus({quiet:true});
+      if(businessWorkspaceScopeRef.current!==socialDraftScope||socialPrivateSaveOperation.current!==operation)return false;
+      // Keep the editor open: this confirmation belongs to the earlier saved record, not any newer typing.
       return true;
-    } catch (error) {
-      setSocialPublishingError(error?.message || "BUSY could not save this draft to the publishing queue.");
-      Alert.alert("Draft saved on this phone", error?.message || "BUSY could not sync the cloud draft.");
-      return false;
-    } finally {
-      setSocialPublishingLoading(false);
-      setSocialPublishingAction("");
+    }catch(error){
+      if(!current())return outdated();
+      setSocialPublishingError(error?.message||"The cloud draft save could not be confirmed.");
+      Alert.alert("Cloud save not confirmed","Your current content is kept in this workspace. Check the private device-copy status separately. "+(error?.message||"Do not assume a cloud save or publication succeeded."));return false;
+    }finally{
+      if(socialPrivateSaveOperation.current===operation){socialPrivateSaveOperation.current=null;if(businessWorkspaceScopeRef.current===socialDraftScope){setSocialPublishingLoading(false);setSocialPublishingAction("");}}
     }
   };
 
