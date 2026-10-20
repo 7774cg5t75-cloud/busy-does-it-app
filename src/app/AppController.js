@@ -1489,12 +1489,12 @@ function App() {
     const saved = replyActions[customerId];
     if (!saved) return;
     const original=replyActionSources.current,customer=[...original.customers,...original.lastSimulatedRecipients].find(row=>row.id===customerId),stamp=JSON.stringify([customer,saved]);
-    const originItem=originInboxId?original.inboxItems.find(item=>item.id===originInboxId&&item.status==='Filed'&&item.filedCustomerId===customerId):null,originStamp=originItem?JSON.stringify(originItem):'';
+    const originItem=originInboxId?original.inboxItems.find(item=>item.id===originInboxId&&item.status==='Filed'&&item.filedCustomerId===customerId):saved.details?.enquiryReference?resolveQuoteEnquiryReference(saved.details.enquiryReference,{businessId:cloudWorkspace?.businessId,customerId,inboxItems:original.inboxItems,revision:original.cloudRevision}):null,originStamp=originItem?JSON.stringify(originItem):'';
     if(!customer||originInboxId&&!originItem)return false;
     const isCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&replyActionSources.current.cloudRevision===original.cloudRevision&&replyActionSources.current.replyActions[customerId]===saved&&[...replyActionSources.current.customers,...replyActionSources.current.lastSimulatedRecipients].includes(customer)&&JSON.stringify([customer,saved])===stamp&&(!originItem||replyActionSources.current.inboxItems.includes(originItem)&&JSON.stringify(originItem)===originStamp);
     return ownerEditNavigation.current.request(()=>{
     if(originItem)replyActionOrigin.current={workspace:renderedBusinessWorkspaceScope,customerId,item:originItem,stamp:originStamp};
-    else if(replyActionOrigin.current?.customerId!==customerId)replyActionOrigin.current=null;
+    else if(saved.details?.enquiryReference||replyActionOrigin.current?.customerId!==customerId)replyActionOrigin.current=null;
     setSelectedReplyActionId(customerId);
     loadReplyActionForm(customerId, saved.type);
     go("replyActionDetail");
@@ -17744,6 +17744,7 @@ function App() {
     setQuoteFollowUpDraft:value=>{if(typeof value!=="string"||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.workspace!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.customerId!==selectedReplyActionId)return;quoteFollowUpTypingEpoch.current++;quoteFollowUpScope.current={...quoteFollowUpScope.current,words:value};setQuoteFollowUpDraft(value);},
     quoteFollowUpOutcome,
     prepareQuoteDetails,
+    quoteEnquiryLinkStatus:replyActions[selectedReplyActionId]?.details?.enquiryReference?resolveQuoteEnquiryReference(replyActions[selectedReplyActionId].details.enquiryReference,{businessId:cloudWorkspace?.businessId,customerId:selectedReplyActionId,inboxItems,revision:cloudRevision})?'linked':'needs-review':'',
     returnToQuoteEnquiry,
     customerEnquiryOriginItem:replyActionOrigin.current?.workspace===businessWorkspaceScopeRef.current&&replyActionOrigin.current?.customerId===selectedCustomerId&&['owner','admin'].includes(cloudWorkspace?.role)&&inboxItems.includes(replyActionOrigin.current?.item)&&replyActionOrigin.current?.item?.status==='Filed'&&replyActionOrigin.current.item.filedCustomerId===selectedCustomerId&&JSON.stringify(replyActionOrigin.current.item)===replyActionOrigin.current.stamp?replyActionOrigin.current.item:null,
     quoteEnquiryOriginItem:replyActionOrigin.current?.workspace===businessWorkspaceScopeRef.current&&replyActionOrigin.current?.customerId===selectedReplyActionId&&['owner','admin'].includes(cloudWorkspace?.role)&&inboxItems.includes(replyActionOrigin.current?.item)&&replyActionOrigin.current?.item?.status==='Filed'&&replyActionOrigin.current.item.filedCustomerId===selectedReplyActionId&&JSON.stringify(replyActionOrigin.current.item)===replyActionOrigin.current.stamp?replyActionOrigin.current.item:null,

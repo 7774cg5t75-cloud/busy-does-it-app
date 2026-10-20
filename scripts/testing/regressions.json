@@ -1621,6 +1621,12 @@
       "args": [
         "scripts/check-mission15-phase38-quote-reference.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase38-quote-recovery",
+      "args": [
+        "scripts/check-mission15-phase38-quote-recovery.mjs"
+      ]
     }
   ]
 }
