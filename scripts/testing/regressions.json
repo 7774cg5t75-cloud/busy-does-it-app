@@ -1513,6 +1513,12 @@
       "args": [
         "scripts/check-mission15-phase35-quote-outcome.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase35-catalogue-option",
+      "args": [
+        "scripts/check-mission15-phase35-catalogue-option.mjs"
+      ]
     }
   ]
 }

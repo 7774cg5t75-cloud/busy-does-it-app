@@ -31,10 +31,10 @@ export function GrowthCatalogueIdeas({s}){
   {visible?.records?.length>0?<><Text style={styles.cardBody}>Choose the wording for your next idea. Your current draft stays unchanged until you use it in Content Creator.</Text>{[['standard','Original wording'],['welcoming','Friendly and welcoming'],['concise','Short and clear'],['detailed','More explanatory']].map(([value,label])=><Button key={value} label={(value===treatment?'✓ ':'')+label} onPress={()=>{if(current()&&live.current.view===view){live.current.treatment=value;setTreatment(value);}}}/>)}</>:null}
   {visible?.records?.map(row=><React.Fragment key={row.id}>
    <Text style={styles.cardBody}>{row.data.name+' — '+row.data.description}</Text>
-   <Button label={'Prepare a post: '+row.data.name} onPress={()=>{
+   {[{id:'',label:'Prepare a post: '+row.data.name},...(row.kind==='product'?(row.data.variants||[]).map(option=>({id:option.id,label:'Prepare for option: '+option.label})):[])].map(option=><Button key={option.id||row.id} label={option.label} onPress={()=>{
     if(!current()||live.current.treatment!==treatment||live.current.view!==view||!live.current.s.socialContentActions.fresh(view.ticket))return false;
-    return live.current.s.socialContentActions.loadRecords(row.kind,'','',{selection:{recordId:row.id,revision:row.revision},recordStamp:JSON.stringify(row)},treatment);
-   }}/>
+    return live.current.s.socialContentActions.loadRecords(row.kind,'','',{selection:{recordId:row.id,revision:row.revision,...option.id?{variantId:option.id}:{}},recordStamp:JSON.stringify(row)},treatment);
+   }}/>) }
   </React.Fragment>)}
   {visible?.status==='ready'&&!visible.records.length?<Text style={styles.cardBody}>No eligible approved items were found. You can still introduce your business or explain a current service.</Text>:null}
   {view?.status==='stale'?<Text style={styles.cardBody}>Your draft or source changed during the read. Load fresh ideas when ready; your content is kept.</Text>:null}
