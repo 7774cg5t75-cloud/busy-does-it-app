@@ -1363,6 +1363,12 @@
       "args": [
         "scripts/check-mission15-phase33-device-recovery.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase33-announcements",
+      "args": [
+        "scripts/check-mission15-phase33-announcements.mjs"
+      ]
     }
   ]
 }

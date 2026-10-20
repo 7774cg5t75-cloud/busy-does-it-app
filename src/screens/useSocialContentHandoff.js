@@ -1,6 +1,6 @@
 import React from 'react';
 import {publicBusinessContent,selectBusinessContent} from '../core/businessContentRecords.mjs';
-import {prepareSocialBrandHandoff,confirmSocialBrandHandoff,resolveSocialServiceIntent,prepareSocialRecordHandoff} from '../core/socialBrandHandoffV3199.mjs';
+import {prepareSocialBrandHandoff,confirmSocialBrandHandoff,resolveSocialServiceIntent,prepareSocialRecordHandoff,prepareOwnerAnnouncementHandoff} from '../core/socialBrandHandoffV3199.mjs';
 
 // Pending intent stays inside the original in-memory source context. No draft store or save authority.
 export function useSocialContentHandoff(input){
@@ -10,10 +10,10 @@ export function useSocialContentHandoff(input){
  const context=()=>({website:live.current.website,app:live.current.app,businessId:live.current.businessId,approvedProfile:live.current.approvedProfile});
  const setContext=value=>{live.current={...live.current,sourceContext:value};input.setSourceContext(value);};
  const valid=()=>current()&&!!live.current.ownerId&&!!live.current.businessId&&['owner','admin'].includes(live.current.role);
- const prepare=(serviceName='',platform='',sourceMode='',purpose='service')=>{
+ const prepare=(serviceName='',platform='',sourceMode='',purpose='service',ownerFacts='')=>{
   if(!valid())return false;
-  const evidence=serviceName||purpose==='business-introduction'?prepareSocialBrandHandoff({...context(),serviceName,sourceMode,purpose}):(()=>{const result=prepareSocialBrandHandoff({...context(),sourceMode});return result.ok?null:result;})();
-  const pending={evidence,serviceName,sourceMode,purpose,platform:['Facebook','Instagram'].includes(platform)?platform:'',scope,ownerId:live.current.ownerId};
+  const evidence=purpose==='owner-announcement'?prepareOwnerAnnouncementHandoff({...context(),sourceMode,ownerFacts}):serviceName||purpose==='business-introduction'?prepareSocialBrandHandoff({...context(),serviceName,sourceMode,purpose}):(()=>{const result=prepareSocialBrandHandoff({...context(),sourceMode});return result.ok?null:result;})();
+  const pending={evidence,serviceName,sourceMode,purpose,ownerFacts,session:{},platform:['Facebook','Instagram'].includes(platform)?platform:'',scope,ownerId:live.current.ownerId};
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:pending});
   input.go('socialCreator');return true;
  };
@@ -38,6 +38,11 @@ export function useSocialContentHandoff(input){
   const evidence=prepareSocialRecordHandoff({...context(),feed:expected.feed,sourceMode:expected.sourceMode,selection});
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,evidence}});return evidence.ok;
  };
+ const editOwnerFacts=(expected,value)=>{
+  const pending=live.current.sourceContext?.pendingContentIdea;
+  if(!valid()||!expected.session||pending?.session!==expected.session||pending.purpose!=='owner-announcement')return false;
+  epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,ownerFacts:value,evidence:prepareOwnerAnnouncementHandoff({...context(),sourceMode:pending.sourceMode,ownerFacts:value})}});return true;
+ };
  const commitAccepted=(expected,checked)=>{
   // Explicit acceptance creates a new private draft target, preserving deliberately selected media.
   const warnings=live.current.aiResult?.privacyWarnings;
@@ -45,7 +50,7 @@ export function useSocialContentHandoff(input){
   epoch.current++;input.setText(checked.copy);live.current={...live.current,text:checked.copy,selectedDraftId:null,aiResult:analysis};
   input.setSelectedDraftId(null);input.setAiResult(analysis);input.setAiStatus('idle');input.setCaptionId('');
   const record=['product','event'].includes(checked.purpose);
-  setContext({type:record?'approved_'+checked.purpose:checked.purpose==='business-introduction'?'approved_business':'approved_service',label:record?'Approved '+checked.purpose+' wording':checked.purpose==='business-introduction'?'Approved business introduction':'Approved service wording',service:checked.serviceName,selection:checked.selection,suggestedPlatform:expected.platform,customerId:'',jobId:''});
+  setContext({type:checked.purpose==='owner-announcement'?'owner_announcement':record?'approved_'+checked.purpose:checked.purpose==='business-introduction'?'approved_business':'approved_service',label:checked.purpose==='owner-announcement'?'Owner-supplied announcement · review needed':record?'Approved '+checked.purpose+' wording':checked.purpose==='business-introduction'?'Approved business introduction':'Approved service wording',service:checked.serviceName,selection:checked.selection,suggestedPlatform:expected.platform,customerId:'',jobId:''});
   return true;
  };
  const acceptRecord=async(expected,ticket)=>{
@@ -81,7 +86,7 @@ export function useSocialContentHandoff(input){
   if(!current())return {handled:false};
   const result=resolveSocialServiceIntent(text,context());
   if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform);return {...result,opened:valid()};}
-  return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose)}:result;
+  return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose,result.ownerFacts)}:result;
  };
- return {route,prepare,loadRecords,selectRecord,keep,accept,capture,fresh,editText,reopen,invalidate:()=>{if(current())epoch.current++;}};
+ return {route,prepare,loadRecords,selectRecord,editOwnerFacts,keep,accept,capture,fresh,editText,reopen,invalidate:()=>{if(current())epoch.current++;}};
 }
