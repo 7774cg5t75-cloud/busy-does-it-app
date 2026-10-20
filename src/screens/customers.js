@@ -1,3 +1,4 @@
+import {QuoteFollowUpRecordReview} from '../components/QuoteFollowUpRecordReview';
 import {QuoteEnquiryContext} from '../components/QuoteEnquiryContext';
 import React, { useEffect, useState } from "react";
 import {
@@ -1399,11 +1400,12 @@ function QuoteFollowUp({ s }) {
       <Card
         eyebrow="Existing customer intent"
         title={customer.name}
-        body={`${customer.service} • quote ${action.details?.quoteAmount ? `£${action.details.quoteAmount}` : "value not recorded"}${age !== null ? ` • quiet for ${age} days` : ""}`}
+        body={`${customer.service} • quote ${action.details?.quoteAmount ? `£${action.details.quoteAmount}` : "value not recorded"}${age !== null ? ` • ${age} days since the recorded quote date` : ""}`}
         footer="Advertising spend: £0"
         tone="green"
       />
       <Card eyebrow="Private preparation" title={s.quoteFollowUpSourceCurrent===false?"The saved quote changed":"Your editable follow-up"} body={s.quoteFollowUpSourceCurrent===false?"Your words are kept. Reopen the current saved quote before approving another action.":"This wording is held in the current workspace. No saved-account copy or customer delivery is confirmed."} tone="blue" />
+      <QuoteFollowUpRecordReview s={s}/>
       <QuoteEnquiryContext s={s} item={s.quoteFollowUpOriginItem||null} />
       <Text style={styles.fieldLabel}>Prepared follow-up</Text>
       <TextInput

@@ -1699,6 +1699,12 @@
       "args": [
         "scripts/check-mission15-phase40-talk-formats.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase40-followup-context",
+      "args": [
+        "scripts/check-mission15-phase40-followup-context.mjs"
+      ]
     }
   ]
 }

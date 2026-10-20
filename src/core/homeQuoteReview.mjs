@@ -41,20 +41,26 @@ export function followUpQuoteTarget(s,exactName=''){
 }
 
 function quoteReviewTarget(s,exactName,status){
- const owner=s.ownerSession?.userId,business=s.cloudWorkspace?.businessId;
- if(!s.ownerWorkspaceScope||!owner||!business||!['owner','admin'].includes(s.cloudWorkspace?.role))return null;
+ if(!quoteReviewAuthority(s))return null;
  const key=value=>String(value||'').trim().replace(/\s+/g,' ').toLowerCase();
  const matches=(s.customers||[]).filter(customer=>exactName?key(customer.name)===key(exactName):customer.id===s.selectedReplyActionId);
  if(matches.length!==1)return null;
- const customer=matches[0],action=s.replyActions?.[customer.id];
+ return quoteReviewRecord(s,matches[0],status);
+}
+function quoteReviewAuthority(s){return !!s.ownerWorkspaceScope&&!!s.ownerSession?.userId&&!!s.cloudWorkspace?.businessId&&['owner','admin'].includes(s.cloudWorkspace?.role);}
+function quoteReviewRecord(s,customer,status){
+ const business=s.cloudWorkspace.businessId,action=s.replyActions?.[customer.id];
  if([customer.businessId,customer.business_id].some(id=>id&&id!==business)||action?.type!=='quote'||action.details?.quoteStatus!==status||(status==='Sent'&&action.details?.followUpSentAt)||!String(action.details?.message||'').trim())return null;
  return {customer,action};
 }
 
 // Enumerate original eligible records by customer ID; duplicate names never select a record.
 export function followUpQuoteChoices(s){
- return (s.customers||[]).flatMap(customer=>{
-  const target=followUpQuoteTarget({...s,selectedReplyActionId:customer.id});
+ if(!quoteReviewAuthority(s))return [];
+ const rows=s.customers||[],counts=new Map();
+ for(const customer of rows)counts.set(customer.id,(counts.get(customer.id)||0)+1);
+ return rows.flatMap(customer=>{
+  const target=counts.get(customer.id)===1?quoteReviewRecord(s,customer,'Sent'):null;
   return target?[target]:[];
  });
 }
