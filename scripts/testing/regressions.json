@@ -1681,6 +1681,12 @@
       "args": [
         "scripts/check-mission15-phase40-quote-selection.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase40-creator-formats",
+      "args": [
+        "scripts/check-mission15-phase40-creator-formats.mjs"
+      ]
     }
   ]
 }

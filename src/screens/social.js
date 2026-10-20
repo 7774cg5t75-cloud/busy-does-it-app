@@ -1,3 +1,4 @@
+import {ContentFormatChoices} from '../components/ContentFormatChoices';
 import {ContentAccountReadback} from '../components/ContentAccountReadback';
 import {ContentWordingChoices} from '../components/ContentWordingChoices';
 import {ContentSourceReview} from '../components/ContentSourceReview';
@@ -747,6 +748,7 @@ function SocialCreator({ s }) {
         {!incomingSnapshot.ok&&s.businessCreationIntelligence?.sharedProfile?<Button label="Use current approved business profile" onPress={()=>s.socialContentActions?.switchSource(pendingIdea,'approved-profile')}/>:null}
         {ownerIdea?<><Field label="Your exact announcement or offer details" value={pendingIdea.ownerFacts||''} multiline onChangeText={value=>s.socialContentActions?.editOwnerFacts(pendingIdea,value)} placeholder="Include the dates, terms or prices you want to state."/><Text style={styles.cardBody}>Owner-supplied draft information, not independently verified business facts. Review any missing dates, offer terms or eligibility before publication.</Text></>:null}
         {recordIdea?<ContentRecordChoices pending={pendingIdea} actions={s.socialContentActions}/>:null}
+        <ContentFormatChoices pending={pendingIdea} actions={s.socialContentActions}/>
         <ContentWordingChoices pending={pendingIdea} actions={s.socialContentActions}/>
         {pendingCheck?.ok&&!pendingIdea.requiresTreatmentSelection?<Button label={ownerIdea?'Use my announcement':recordIdea?'Use this item idea':pendingIdea.purpose==='business-introduction'?"Use this introduction":"Use this service idea"} onPress={applyIncomingIdea}/>:!pendingCheck?.ok&&!ownerIdea&&!recordIdea&&incomingSnapshot.ok&&pendingIdea.purpose!=='business-introduction'?incomingSnapshot.services.map(service=><Button key={service.name} label={'Use service: '+service.name} onPress={()=>s.socialContentActions?.selectService(pendingIdea,service.name)}/>):null}
         <Button label="Keep my current draft" onPress={()=>s.socialContentActions?.keep(pendingIdea)}/>

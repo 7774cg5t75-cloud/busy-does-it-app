@@ -11,10 +11,10 @@ export function useSocialContentHandoff(input){
  const context=()=>({website:live.current.website,app:live.current.app,businessId:live.current.businessId,approvedProfile:live.current.approvedProfile});
  const setContext=value=>{live.current={...live.current,sourceContext:value};input.setSourceContext(value);};
  const valid=()=>current()&&!!live.current.ownerId&&!!live.current.businessId&&['owner','admin'].includes(live.current.role);
- const prepare=(serviceName='',platform='',sourceMode='',purpose='service',ownerFacts='',treatment='standard',requiresTreatmentSelection=false)=>{
+ const prepare=(serviceName='',platform='',sourceMode='',purpose='service',ownerFacts='',treatment='standard',requiresTreatmentSelection=false,channel='social')=>{
   if(!valid())return false;
-  const evidence=purpose==='owner-announcement'?prepareOwnerAnnouncementHandoff({...context(),sourceMode,ownerFacts,treatment}):serviceName||purpose==='business-introduction'?prepareSocialBrandHandoff({...context(),serviceName,sourceMode,purpose,treatment}):(()=>{const result=prepareSocialBrandHandoff({...context(),sourceMode});return result.ok?null:result;})();
-  const pending={evidence,serviceName,sourceMode,purpose,ownerFacts,treatment,requiresTreatmentSelection,session:{},platform:['Facebook','Instagram'].includes(platform)?platform:'',scope,ownerId:live.current.ownerId};
+  const evidence=purpose==='owner-announcement'?prepareOwnerAnnouncementHandoff({...context(),sourceMode,ownerFacts,treatment}):serviceName||purpose==='business-introduction'?prepareSocialBrandHandoff({...context(),serviceName,sourceMode,purpose,treatment,channel}):(()=>{const result=prepareSocialBrandHandoff({...context(),sourceMode});return result.ok?null:result;})();
+  const pending={evidence,serviceName,sourceMode,purpose,ownerFacts,treatment,channel,requiresTreatmentSelection,session:{},platform:['Facebook','Instagram'].includes(platform)?platform:'',scope,ownerId:live.current.ownerId};
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:pending});
   input.go('socialCreator');return true;
  };
@@ -48,7 +48,7 @@ export function useSocialContentHandoff(input){
  const pendingTreatment=expected=>expected?.treatment||expected?.evidence?.treatment||'standard';
  const selectService=(expected,serviceName)=>{
   if(!pendingCurrent(expected)||expected.purpose!=='service')return false;
-  return prepare(serviceName,expected.platform,expected.sourceMode,'service','',pendingTreatment(expected),expected.requiresTreatmentSelection);
+  return prepare(serviceName,expected.platform,expected.sourceMode,'service','',pendingTreatment(expected),expected.requiresTreatmentSelection,expected.channel||expected.evidence?.channel||'social');
  };
  const recordHint=expected=>expected.evidence?.selection?{selection:expected.evidence.selection,recordStamp:expected.evidence.recordStamp}:expected.selectionHint||null;
  const refreshRecords=expected=>pendingCurrent(expected)&&['product','event'].includes(expected.purpose)?loadRecords(expected.purpose,expected.platform,expected.sourceMode,recordHint(expected),pendingTreatment(expected),expected.requiresTreatmentSelection):false;
@@ -59,7 +59,7 @@ export function useSocialContentHandoff(input){
    const hint=recordHint(expected);
    return loadRecords(expected.purpose,expected.platform,sourceMode,hint,treatment,expected.requiresTreatmentSelection);
   }
-  return prepare(expected.serviceName,expected.platform,sourceMode,expected.purpose,expected.ownerFacts,treatment,expected.requiresTreatmentSelection);
+  return prepare(expected.serviceName,expected.platform,sourceMode,expected.purpose,expected.ownerFacts,treatment,expected.requiresTreatmentSelection,expected.channel||expected.evidence?.channel||'social');
  };
  const start=purpose=>{
   if(!valid()||epoch.current!==renderEpoch||!['service','business-introduction','product','event','owner-announcement'].includes(purpose))return false;
@@ -68,7 +68,8 @@ export function useSocialContentHandoff(input){
   // A treatment is reusable preference, never approval of the previous facts.
   const sourceMode=pendingCurrent(pending)?pending.sourceMode:evidence?.businessId===live.current.businessId?evidence.sourceMode||'':'';
   const requiresTreatmentSelection=pendingCurrent(pending)&&!!pending.requiresTreatmentSelection;
-  return ['product','event'].includes(purpose)?loadRecords(purpose,'',sourceMode,null,treatment,requiresTreatmentSelection):prepare('','',sourceMode,purpose,'',treatment,requiresTreatmentSelection);
+  const channel=['service','business-introduction'].includes(purpose)?(pendingCurrent(pending)?pending.channel||pending.evidence?.channel:evidence?.businessId===live.current.businessId?evidence.channel:null)||'social':'social';
+  return ['product','event'].includes(purpose)?loadRecords(purpose,'',sourceMode,null,treatment,requiresTreatmentSelection):prepare('','',sourceMode,purpose,'',treatment,requiresTreatmentSelection,channel);
  };
  const reprepareSource=expected=>{
   if(!valid()||epoch.current!==renderEpoch||!expected||live.current.sourceContext?.contentEvidence!==expected||live.current.sourceContext?.pendingContentIdea||expected.businessId!==live.current.businessId)return false;
@@ -81,7 +82,7 @@ export function useSocialContentHandoff(input){
    // A name alone cannot re-authorise a different or legacy unidentified service.
    if(!expected.serviceId||!current.ok||current.serviceId!==expected.serviceId)serviceName='';
   }
-  return prepare(serviceName,'',sourceMode,purpose,expected.ownerFacts||'',treatment);
+  return prepare(serviceName,'',sourceMode,purpose,expected.ownerFacts||'',treatment,false,expected.channel||'social');
  };
  const selectRecord=(expected,selection)=>{
   if(!valid()||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected)return false;
@@ -93,10 +94,14 @@ export function useSocialContentHandoff(input){
  const chooseTreatment=(expected,treatment)=>{
   if(!valid()||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected||!['service','business-introduction','product','event','owner-announcement'].includes(expected.purpose))return false;
   if(!confirmSocialBrandHandoff({...context(),evidence:expected.evidence,feed:expected.feed}).ok)return failPending(expected,'The business source changed. Prepare a current idea before choosing its wording.');
-  const base={...context(),sourceMode:expected.sourceMode,treatment};
+  const base={...context(),sourceMode:expected.sourceMode,treatment,channel:expected.channel||expected.evidence?.channel||'social'};
   const evidence=['product','event'].includes(expected.purpose)?prepareSocialRecordHandoff({...base,feed:expected.feed,selection:expected.evidence.selection}):expected.purpose==='owner-announcement'?prepareOwnerAnnouncementHandoff({...base,ownerFacts:expected.ownerFacts}):prepareSocialBrandHandoff({...base,serviceName:expected.serviceName,purpose:expected.purpose});
   if(!evidence.ok)return false;
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,evidence,treatment,requiresTreatmentSelection:false}});return true;
+ };
+ const chooseFormat=(expected,channel)=>{
+  if(!pendingCurrent(expected)||!['service','business-introduction'].includes(expected.purpose)||!['social','poster','advert'].includes(channel)||!confirmSocialBrandHandoff({...context(),evidence:expected.evidence}).ok)return false;
+  return prepare(expected.serviceName,expected.platform,expected.sourceMode,expected.purpose,'',pendingTreatment(expected),expected.requiresTreatmentSelection,channel);
  };
  const editOwnerFacts=(expected,value)=>{
   const pending=live.current.sourceContext?.pendingContentIdea;
@@ -110,7 +115,7 @@ export function useSocialContentHandoff(input){
   epoch.current++;input.setText(checked.copy);live.current={...live.current,text:checked.copy,selectedDraftId:null,aiResult:analysis};
   input.setSelectedDraftId(null);input.setAiResult(analysis);input.setAiStatus('idle');input.setCaptionId('');
   const record=['product','event'].includes(checked.purpose);
-  setContext({type:checked.purpose==='owner-announcement'?'owner_announcement':record?'approved_'+checked.purpose:checked.purpose==='business-introduction'?'approved_business':'approved_service',label:checked.purpose==='owner-announcement'?'Owner-supplied announcement · review needed':record?'Approved '+checked.purpose+' wording':checked.purpose==='business-introduction'?'Approved business introduction':'Approved service wording',service:checked.serviceName,selection:checked.selection,contentEvidence:checked,suggestedPlatform:expected.platform,customerId:'',jobId:''});
+  setContext({type:checked.purpose==='owner-announcement'?'owner_announcement':record?'approved_'+checked.purpose:checked.purpose==='business-introduction'?'approved_business':'approved_service',label:['poster','advert'].includes(checked.channel)?'Approved '+checked.channel+' wording · text only':checked.purpose==='owner-announcement'?'Owner-supplied announcement · review needed':record?'Approved '+checked.purpose+' wording':checked.purpose==='business-introduction'?'Approved business introduction':'Approved service wording',service:checked.serviceName,selection:checked.selection,contentEvidence:checked,suggestedPlatform:expected.platform,customerId:'',jobId:''});
   return true;
  };
  const acceptRecord=async(expected,ticket)=>{
@@ -204,5 +209,5 @@ export function useSocialContentHandoff(input){
   if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform,'',null,result.treatment,result.needsTreatmentSelection);return {...result,opened:valid()};}
   return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose,result.ownerFacts,result.treatment,result.needsTreatmentSelection)}:result;
  };
- return {isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,start,switchSource,selectService,refreshRecords,loadRecords,selectRecord,reprepareSource,chooseTreatment,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource,checkAccountDraft,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
+ return {isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,start,switchSource,selectService,refreshRecords,loadRecords,selectRecord,reprepareSource,chooseTreatment,chooseFormat,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource,checkAccountDraft,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
 }

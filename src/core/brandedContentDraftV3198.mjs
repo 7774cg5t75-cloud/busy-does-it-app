@@ -33,7 +33,7 @@ function prepareBrandedCopyPreview(snapshot,{channel="social",serviceName="",tre
  if(!tagline&&!about&&!names.length)
   return {ok:false,reason:"Add a brand description or approved services before preparing meaningful copy."};
  const serviceCopy=selected?[name,short(selected.name,120),short(selected.description,500),'Ask '+name+' for more information.'].filter(Boolean).join('\n\n'):null;
- let copy=serviceCopy|| (channel==="social"?
+ let copy=(channel==='social'?serviceCopy:null)|| (channel==="social"?
   [name,tagline,about,names.length?"Services: "+names.join(" • "):"",
    "Find out more about "+name+"."].filter(Boolean).join("\n\n"):
   channel==="poster"?
@@ -43,7 +43,7 @@ function prepareBrandedCopyPreview(snapshot,{channel="social",serviceName="",tre
    "Learn more about "+name+"."].filter(Boolean).join("\n\n"));
  const appliedTreatment=resolveWordingTreatment(treatment,brief.voice);
  let includedServiceCount=names.length;
- if(channel==='social'&&appliedTreatment!=='standard'){
+ if(appliedTreatment!=='standard'){
   const description=selected?short(selected.description,500):about;
   const details=selected?[]:brief.services.map(service=>[short(service.name,120),short(service.description,500)].filter(Boolean).join(' — '));
   const subject=selected?short(selected.name,120):name;
@@ -53,6 +53,16 @@ function prepareBrandedCopyPreview(snapshot,{channel="social",serviceName="",tre
    copy=[name,selected?'About '+subject:tagline,description,!selected&&details.length?'What we offer\n'+details.join('\n\n'):'','Ask '+name+' about '+(selected?subject:'the services that interest you')+'.'].filter(Boolean).join('\n\n');
    if(!selected)includedServiceCount=details.length;
   }
+ }
+ // Format is text composition only; facts remain the same approved projection.
+ if(channel!=='social'){
+  const subject=selected?short(selected.name,120):name;
+  const description=selected?short(selected.description,500):about;
+  const serviceLines=!selected&&names.length?names.join(channel==='poster'?'\n':' • '):'';
+  const opening=appliedTreatment==='welcoming'?'Get to know '+subject+'.':appliedTreatment==='detailed'?'About '+subject:'';
+  const details=appliedTreatment==='detailed'&&!selected?brief.services.map(service=>[short(service.name,120),short(service.description,500)].filter(Boolean).join(' — ')).join('\n\n'):serviceLines;
+  copy=channel==='poster'?[subject.toUpperCase(),selected?name:tagline,opening,description,details,'Ask '+name+' for more information.'].filter(Boolean).join(appliedTreatment==='concise'?'\n':'\n\n'):
+   [selected?subject+' · '+name:name,selected?'':tagline,opening,description,details,'Learn more about '+subject+' — contact '+name+'.'].filter(Boolean).join(appliedTreatment==='concise'?'\n':'\n\n');
  }
  return {ok:true,kind:"private_branded_copy_v3198",businessId:brief.businessId,
   source:{...brief.source},channel,copy,serviceName:selected?.name||"",
