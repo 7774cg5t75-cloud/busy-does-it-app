@@ -1717,6 +1717,12 @@
       "args": [
         "scripts/check-mission15-phase40-home-quote-selection.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase40-followup-authority",
+      "args": [
+        "scripts/check-mission15-phase40-followup-authority.mjs"
+      ]
     }
   ]
 }

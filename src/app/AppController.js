@@ -4672,9 +4672,12 @@ function App() {
     openCustomer(customerId);
   };
 
-  const quoteFollowUpSources=useRef(null);quoteFollowUpSources.current={customers,replyActions,lastSimulatedRecipients,inboxItems};
+  const quoteFollowUpSources=useRef(null);quoteFollowUpSources.current={customers,replyActions,lastSimulatedRecipients,inboxItems,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,revision:cloudRevision};
   const prepareQuoteFollowUp = (customerId,originInboxId="") => {
     if(businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope)return false;
+    const authority=quoteFollowUpSources.current;
+    if(!authority?.ownerId||!authority.businessId||authority.businessId!==cloudWorkspace?.businessId||authority.revision!==cloudRevision||!['owner','admin'].includes(authority.role))return false;
+    const sourceOwner=authority.ownerId,sourceBusiness=authority.businessId,sourceRevision=authority.revision;
     const action = replyActions[customerId];
     const customer =
       customers.find((item) => item.id === customerId) ||
@@ -4683,7 +4686,8 @@ function App() {
     const originItem=originInboxId?inboxItems.find(item=>item.id===originInboxId&&item.status==="Filed"&&item.filedCustomerId===customerId):action.details?.enquiryReference?resolveQuoteEnquiryReference(action.details.enquiryReference,{businessId:cloudWorkspace?.businessId,customerId,inboxItems,revision:cloudRevision}):null;
     const originStamp=originItem?JSON.stringify(originItem):'';
     if(originInboxId&&!originItem)return false;
-    const sourceCurrent=()=>quoteFollowUpSources.current?.replyActions?.[customerId]===action&&(quoteFollowUpSources.current?.customers.includes(customer)||quoteFollowUpSources.current?.lastSimulatedRecipients.includes(customer))&&(!originItem||quoteFollowUpSources.current?.inboxItems?.includes(originItem)&&originItem.status==="Filed"&&originItem.filedCustomerId===customerId&&JSON.stringify(originItem)===originStamp);
+    const quoteStamp=JSON.stringify([customer,action]);
+    const sourceCurrent=()=>quoteFollowUpSources.current?.ownerId===sourceOwner&&quoteFollowUpSources.current?.businessId===sourceBusiness&&quoteFollowUpSources.current?.revision===sourceRevision&&['owner','admin'].includes(quoteFollowUpSources.current?.role)&&![customer.businessId,customer.business_id].some(id=>id&&id!==sourceBusiness)&&JSON.stringify([customer,action])===quoteStamp&&quoteFollowUpSources.current?.replyActions?.[customerId]===action&&(quoteFollowUpSources.current?.customers.includes(customer)||quoteFollowUpSources.current?.lastSimulatedRecipients.includes(customer))&&(!originItem||quoteFollowUpSources.current?.inboxItems?.includes(originItem)&&originItem.status==="Filed"&&originItem.filedCustomerId===customerId&&JSON.stringify(originItem)===originStamp);
     if(quoteFollowUpTypingEpoch.current!==quoteFollowUpRenderEpoch||!sourceCurrent())return false;
     if(quoteFollowUpScope.current?.workspace===renderedBusinessWorkspaceScope&&quoteFollowUpScope.current?.customerId===customerId&&quoteFollowUpScope.current?.action===action&&quoteFollowUpScope.current?.words?.trim()){
       if(originItem){replyActionOrigin.current={workspace:renderedBusinessWorkspaceScope,customerId,item:originItem,stamp:originStamp};quoteFollowUpScope.current={...quoteFollowUpScope.current,originItem};quoteFollowUpTypingEpoch.current++;}
