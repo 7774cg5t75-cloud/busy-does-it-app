@@ -1404,7 +1404,7 @@ function QuoteFollowUp({ s }) {
         tone="green"
       />
       <Card eyebrow="Private preparation" title={s.quoteFollowUpSourceCurrent===false?"The saved quote changed":"Your editable follow-up"} body={s.quoteFollowUpSourceCurrent===false?"Your words are kept. Reopen the current saved quote before approving another action.":"This wording is held in the current workspace. No saved-account copy or customer delivery is confirmed."} tone="blue" />
-      <QuoteEnquiryContext s={s} />
+      <QuoteEnquiryContext s={s} item={s.quoteFollowUpOriginItem||null} />
       <Text style={styles.fieldLabel}>Prepared follow-up</Text>
       <TextInput
         multiline

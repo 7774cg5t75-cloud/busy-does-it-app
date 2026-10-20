@@ -1504,7 +1504,7 @@ function App() {
 
   const prepareQuoteDetails = (customerId,details,expectedAction) => {
     const current=replyActionSources.current,action=current.replyActions[customerId],customer=current.customers.find(row=>row.id===customerId)||current.lastSimulatedRecipients.find(row=>row.id===customerId);
-    if(businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||!['owner','admin'].includes(current.role)||!customer||action?.type!=='quote'||current.selectedReplyActionId!==customerId||current.cloudRevision!==cloudRevision||expectedAction&&action!==expectedAction||!details||typeof details!=='object'||Array.isArray(details))return false;
+    if(businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||!['owner','admin'].includes(current.role)||!customer||[customer.businessId,customer.business_id].some(id=>id&&id!==cloudWorkspace?.businessId)||action?.type!=='quote'||current.selectedReplyActionId!==customerId||current.cloudRevision!==cloudRevision||expectedAction&&action!==expectedAction||!details||typeof details!=='object'||Array.isArray(details))return false;
     const {enquiryReference:incomingReference,...fields}=details;
     const prepared=action.details?.enquiryReference?{...fields,enquiryReference:action.details.enquiryReference}:fields;
     const origin=replyActionOrigin.current;
@@ -4679,12 +4679,13 @@ function App() {
       customers.find((item) => item.id === customerId) ||
       lastSimulatedRecipients.find((item) => item.id === customerId);
     if (!customer || action?.type !== "quote" || action.details?.quoteStatus !== "Sent") return;
-    const originItem=originInboxId?inboxItems.find(item=>item.id===originInboxId&&item.status==="Filed"&&item.filedCustomerId===customerId):null;
+    const originItem=originInboxId?inboxItems.find(item=>item.id===originInboxId&&item.status==="Filed"&&item.filedCustomerId===customerId):action.details?.enquiryReference?resolveQuoteEnquiryReference(action.details.enquiryReference,{businessId:cloudWorkspace?.businessId,customerId,inboxItems,revision:cloudRevision}):null;
+    const originStamp=originItem?JSON.stringify(originItem):'';
     if(originInboxId&&!originItem)return false;
-    const sourceCurrent=()=>quoteFollowUpSources.current?.replyActions?.[customerId]===action&&(quoteFollowUpSources.current?.customers.includes(customer)||quoteFollowUpSources.current?.lastSimulatedRecipients.includes(customer))&&(!originItem||quoteFollowUpSources.current?.inboxItems?.includes(originItem)&&originItem.status==="Filed"&&originItem.filedCustomerId===customerId);
+    const sourceCurrent=()=>quoteFollowUpSources.current?.replyActions?.[customerId]===action&&(quoteFollowUpSources.current?.customers.includes(customer)||quoteFollowUpSources.current?.lastSimulatedRecipients.includes(customer))&&(!originItem||quoteFollowUpSources.current?.inboxItems?.includes(originItem)&&originItem.status==="Filed"&&originItem.filedCustomerId===customerId&&JSON.stringify(originItem)===originStamp);
     if(quoteFollowUpTypingEpoch.current!==quoteFollowUpRenderEpoch||!sourceCurrent())return false;
     if(quoteFollowUpScope.current?.workspace===renderedBusinessWorkspaceScope&&quoteFollowUpScope.current?.customerId===customerId&&quoteFollowUpScope.current?.action===action&&quoteFollowUpScope.current?.words?.trim()){
-      if(originItem){quoteFollowUpScope.current={...quoteFollowUpScope.current,originItem};quoteFollowUpTypingEpoch.current++;}
+      if(originItem){replyActionOrigin.current={workspace:renderedBusinessWorkspaceScope,customerId,item:originItem,stamp:originStamp};quoteFollowUpScope.current={...quoteFollowUpScope.current,originItem};quoteFollowUpTypingEpoch.current++;}
       setSelectedReplyActionId(customerId);go("quoteFollowUp");return true;
     }
     return protectQuoteDraftTransition({workspace:renderedBusinessWorkspaceScope,workspaceRef:businessWorkspaceScopeRef,draftRef:quoteFollowUpScope,epochRef:quoteFollowUpTypingEpoch,renderEpoch:quoteFollowUpRenderEpoch,sourceCurrent,confirm:Alert.alert,apply:()=>{
@@ -4693,6 +4694,7 @@ function App() {
     const draft =
       action.details?.followUpMessage ||
       `Hi ${customer.name.split(" ")[0]}, just checking in about the ${service.toLowerCase()} quote${amount ? ` for £${amount}` : ""}. No pressure at all — let me know if you’d like to go ahead, have any questions, or want me to leave it with you for now.`;
+    replyActionOrigin.current=originItem?{workspace:renderedBusinessWorkspaceScope,customerId,item:originItem,stamp:originStamp}:null;
     quoteFollowUpScope.current={workspace:renderedBusinessWorkspaceScope,customerId,action,customer,originItem,words:draft};
     quoteFollowUpTypingEpoch.current++;
     setSelectedReplyActionId(customerId);

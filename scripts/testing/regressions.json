@@ -1639,6 +1639,12 @@
       "args": [
         "scripts/check-mission15-phase38-content-draft-fields.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase38-followup-enquiry",
+      "args": [
+        "scripts/check-mission15-phase38-followup-enquiry.mjs"
+      ]
     }
   ]
 }
