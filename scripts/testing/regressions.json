@@ -1441,6 +1441,12 @@
       "args": [
         "scripts/check-mission15-phase34-job-start.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase34-account-readback",
+      "args": [
+        "scripts/check-mission15-phase34-account-readback.mjs"
+      ]
     }
   ]
 }

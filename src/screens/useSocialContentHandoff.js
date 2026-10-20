@@ -82,6 +82,27 @@ export function useSocialContentHandoff(input){
   if(!checked.ok)return false;
   return commitAccepted(expected,checked);
  };
+ const checkAccountDraft=async()=>{
+  if(!valid())return false;
+  const record=live.current.records?.find(row=>row.id===live.current.selectedDraftId);
+  if(!record)return false;
+  const ticket=capture();let review;
+  try{
+   const result=await live.current.loadSocialStatus?.();
+   if(!fresh(ticket)||!live.current.records?.includes(record))return false;
+   if(result?.owner?.businessId!==live.current.businessId||!Array.isArray(result.queue))throw Error('The account response did not match the current business.');
+   const matches=result.queue.filter(row=>row.client_draft_id===record.id);
+   if(matches.length!==1)review={status:'unknown',message:'Could not establish one saved account record for this draft. Keep your content; do not repeat an uncertain publication.'};
+   else{
+    const post=matches[0],known=['Draft','Ready to publish','Scheduled','Held for setup','Publishing','Published','Partial failure','Failed','Cancelled'];
+    if(!known.includes(post.status)||typeof post.caption!=='string')throw Error('The account record needs review.');
+    const same=post.caption===record.text;
+    review={status:same?'confirmed':'different',serverStatus:post.status,message:same?'Account wording for the saved draft was read back. Its current status is '+post.status+'. This does not confirm newer words, photos or destination changes.':'The account wording differs from this private draft. Your current words and photos were kept. Review the account record before any further action.'};
+   }
+  }catch{review={status:'unknown',message:'Could not confirm the saved account record. Keep your current content; no write or publication was retried.'};}
+  if(!fresh(ticket)||!live.current.records?.includes(record))return false;
+  epoch.current++;setContext({...live.current.sourceContext,contentCloudReview:{...review,record,checkedText:ticket.text}});return review.status==='confirmed';
+ };
  const reviewSource=async()=>{
   if(!valid())return false;
   const evidence=live.current.sourceContext?.contentEvidence;
@@ -136,5 +157,5 @@ export function useSocialContentHandoff(input){
   if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform);return {...result,opened:valid()};}
   return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose,result.ownerFacts)}:result;
  };
- return {isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,loadRecords,selectRecord,chooseTreatment,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
+ return {isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,loadRecords,selectRecord,chooseTreatment,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource,checkAccountDraft,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
 }
