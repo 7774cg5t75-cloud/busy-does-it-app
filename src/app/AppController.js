@@ -1,4 +1,4 @@
-import {beginSocialContentAction} from '../core/socialContentActionGuard.mjs';
+import {beginSocialContentAction,matchesSocialContentPost} from '../core/socialContentActionGuard.mjs';
 import {localCoreAreaRequest} from "../domain/growthOperatorBridge.mjs";
 import {useSocialContentHandoff} from "../screens/useSocialContentHandoff";
 import {createOwnerEditNavigation} from '../core/ownerEditNavigation.mjs';
@@ -3961,7 +3961,7 @@ function App() {
       if(!current())return outdated();
       const data=await socialPublishRequest("save_draft",payload,{isCurrent:current});
       if(!current())return outdated();
-      if(data?.post?.client_draft_id!==record.id||data.post.status!=='Draft'||data.post.caption!==record.text)throw Error('The cloud response did not confirm this exact private draft.');
+      if(!matchesSocialContentPost(data?.post,record,['Draft'],{ownSave:true}))throw Error('The cloud response did not confirm this exact private draft.');
       applyCloudSocialPost(data.post,record);
       await refreshSocialPublishingStatus({quiet:true});
       if(businessWorkspaceScopeRef.current!==socialDraftScope||socialPrivateSaveOperation.current!==operation)return false;
