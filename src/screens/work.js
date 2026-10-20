@@ -3682,7 +3682,7 @@ function ReplyActionDetail({ s }) {
         {(quoteStatus === "Prepared" || quoteStatus === "Sent" || !saved.done) ? (
           <>
             <DatePickerField
-              label="Quote sent date"
+              label={quoteStatus==="Sent"?"Recorded quote sent date":"Planned quote sent date"}
               value={s.actionQuoteSentDate}
               onChange={value=>quoteReview.edit('actionQuoteSentDate',value)}
             />
@@ -3703,6 +3703,7 @@ function ReplyActionDetail({ s }) {
               ...(saved.details || {}),
               quoteAmount: s.actionQuoteAmount,
               message: s.actionQuoteMessage,
+              plannedSentDate:s.actionQuoteSentDate,
               quoteStatus: saved.details?.quoteStatus || "Prepared",
               summary: `Quote ${String(saved.details?.quoteStatus || "Prepared").toLowerCase()} for £${s.actionQuoteAmount}`,
             })
@@ -3717,6 +3718,7 @@ function ReplyActionDetail({ s }) {
                 ...(saved.details || {}),
                 quoteAmount: s.actionQuoteAmount,
                 message: s.actionQuoteMessage,
+                plannedSentDate:s.actionQuoteSentDate,
                 quoteStatus: "Sent",
                 quoteSentAt: new Date(`${s.actionQuoteSentDate || dateToISO(new Date())}T12:00:00`).toISOString(),
                 followUpDueDate: addDaysFromISO(s.actionQuoteSentDate || dateToISO(new Date()), 7),

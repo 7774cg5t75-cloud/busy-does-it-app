@@ -1437,7 +1437,7 @@ function App() {
       setActionQuoteSentDate(
         saved?.details?.quoteSentAt
           ? String(saved.details.quoteSentAt).slice(0, 10)
-          : dateToISO(new Date())
+          : /^\d{4}-\d{2}-\d{2}$/.test(saved?.details?.plannedSentDate||"")?saved.details.plannedSentDate:dateToISO(new Date())
       );
     } else if (type === "booking") {
       setActionBookingDate(saved?.details?.bookingDate || nextDateForSlot(quietSlot));
