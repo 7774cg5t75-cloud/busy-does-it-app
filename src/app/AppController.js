@@ -1,4 +1,4 @@
-import {protectQuoteDraftTransition} from '../core/quoteDraftTransition.mjs';
+import {protectQuoteDraftTransition,isQuoteDraftSourceCurrent} from '../core/quoteDraftTransition.mjs';
 import {beginSocialContentAction,matchesSocialContentPost} from '../core/socialContentActionGuard.mjs';
 import {localCoreAreaRequest} from "../domain/growthOperatorBridge.mjs";
 import {useSocialContentHandoff} from "../screens/useSocialContentHandoff";
@@ -4616,7 +4616,7 @@ function App() {
     const draft =
       action.details?.followUpMessage ||
       `Hi ${customer.name.split(" ")[0]}, just checking in about the ${service.toLowerCase()} quote${amount ? ` for £${amount}` : ""}. No pressure at all — let me know if you’d like to go ahead, have any questions, or want me to leave it with you for now.`;
-    quoteFollowUpScope.current={workspace:renderedBusinessWorkspaceScope,customerId,action,words:draft};
+    quoteFollowUpScope.current={workspace:renderedBusinessWorkspaceScope,customerId,action,customer,words:draft};
     quoteFollowUpTypingEpoch.current++;
     setSelectedReplyActionId(customerId);
     setQuoteFollowUpDraft(draft);
@@ -4632,6 +4632,7 @@ function App() {
     const customer =
       customers.find((item) => item.id === customerId) ||
       lastSimulatedRecipients.find((item) => item.id === customerId);
+    if(!isQuoteDraftSourceCurrent(quoteFollowUpScope.current,renderedBusinessWorkspaceScope,customerId,action,customer))return false;
     const draft = quoteFollowUpDraft.trim();
     if (!customer || action?.type !== "quote" || !draft) return;
     const sentAt = new Date().toISOString();
@@ -4685,9 +4686,11 @@ function App() {
 
   const saveQuoteFollowUpOutcome = () => {
     if(quoteFollowUpScope.current?.workspace!==businessWorkspaceScopeRef.current||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.customerId!==selectedReplyActionId)return false;
+    if(quoteFollowUpTypingEpoch.current!==quoteFollowUpRenderEpoch)return false;
     const customerId = selectedReplyActionId;
     const action = replyActions[customerId];
-    if (!action?.details?.followUpSentAt) return;
+    if (!action?.details?.followUpSentAt||!isQuoteDraftSourceCurrent(quoteFollowUpScope.current,renderedBusinessWorkspaceScope,customerId,action)) return false;
+    quoteFollowUpScope.current=null;quoteFollowUpTypingEpoch.current++;
     const recordedAt = new Date().toISOString();
     const nextQuoteStatus =
       quoteFollowUpOutcome === "Accepted"
@@ -17638,7 +17641,8 @@ function App() {
     getQuoteFollowUpTypingEpoch:()=>quoteFollowUpTypingEpoch.current,
     setQuoteFollowUpDraft:value=>{if(typeof value!=="string"||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.workspace!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.customerId!==selectedReplyActionId)return;quoteFollowUpTypingEpoch.current++;quoteFollowUpScope.current={...quoteFollowUpScope.current,words:value};setQuoteFollowUpDraft(value);},
     quoteFollowUpOutcome,
-    setQuoteFollowUpOutcome,
+    quoteFollowUpSourceCurrent:isQuoteDraftSourceCurrent(quoteFollowUpScope.current,businessWorkspaceScopeRef.current,selectedReplyActionId,replyActions[selectedReplyActionId],customers.find(row=>row.id===selectedReplyActionId)||lastSimulatedRecipients.find(row=>row.id===selectedReplyActionId)),
+    setQuoteFollowUpOutcome:value=>{if(!["No reply yet","Still considering","Accepted","Declined"].includes(value)||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||!isQuoteDraftSourceCurrent(quoteFollowUpScope.current,renderedBusinessWorkspaceScope,selectedReplyActionId,quoteFollowUpSources.current?.replyActions?.[selectedReplyActionId]))return;quoteFollowUpTypingEpoch.current++;setQuoteFollowUpOutcome(value);},
     enquiryFollowUpDraft,
     setEnquiryFollowUpDraft,
     enquiryFollowUpOutcome,

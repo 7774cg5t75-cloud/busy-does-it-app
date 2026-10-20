@@ -1401,6 +1401,7 @@ function QuoteFollowUp({ s }) {
         footer="Advertising spend: £0"
         tone="green"
       />
+      <Card eyebrow="Private preparation" title={s.quoteFollowUpSourceCurrent===false?"The saved quote changed":"Your editable follow-up"} body={s.quoteFollowUpSourceCurrent===false?"Your words are kept. Reopen the current saved quote before approving another action.":"This wording is held in the current workspace. No saved-account copy or customer delivery is confirmed."} tone="blue" />
       <Text style={styles.fieldLabel}>Prepared follow-up</Text>
       <TextInput
         multiline
@@ -1416,7 +1417,7 @@ function QuoteFollowUp({ s }) {
         body="The prototype records the approval and outcome, but it does not actually message the customer."
         tone="blue"
       />
-      <Button label="Approve simulated send" primary disabled={!s.quoteFollowUpDraft.trim()} onPress={s.simulateQuoteFollowUpSend} />
+      <Button label="Approve simulated send" primary disabled={!s.quoteFollowUpDraft.trim()||s.quoteFollowUpSourceCurrent===false} onPress={s.simulateQuoteFollowUpSend} />
       <Button label="Open original quote" onPress={() => s.openSavedReplyAction(customer.id)} />
       <Button label="Not now" onPress={s.back} />
     </Shell>
@@ -1486,7 +1487,8 @@ function QuoteFollowUpOutcome({ s }) {
           tone="green"
         />
       ) : null}
-      <Button label="Save outcome" primary onPress={s.saveQuoteFollowUpOutcome} />
+      <Text style={styles.cardBody}>This records your report of the outcome. It is not proof of message delivery, booking confirmation or payment.</Text>
+      <Button label="Save outcome" primary disabled={s.quoteFollowUpSourceCurrent===false} onPress={s.saveQuoteFollowUpOutcome} />
       <Button label="Cancel" onPress={s.back} />
     </Shell>
   );

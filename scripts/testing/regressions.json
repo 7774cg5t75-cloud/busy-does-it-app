@@ -1507,6 +1507,12 @@
       "args": [
         "scripts/check-mission15-phase35-quote-transition.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase35-quote-outcome",
+      "args": [
+        "scripts/check-mission15-phase35-quote-outcome.mjs"
+      ]
     }
   ]
 }

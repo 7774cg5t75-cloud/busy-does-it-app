@@ -12,3 +12,7 @@ export function protectQuoteDraftTransition({workspace,workspaceRef,draftRef,epo
  }
  return run();
 }
+
+export function isQuoteDraftSourceCurrent(draft,workspace,customerId,action,customer){
+ return !!draft&&draft.workspace===workspace&&draft.customerId===customerId&&draft.action===action&&!!action&&(!draft.customer||draft.customer===customer);
+}
