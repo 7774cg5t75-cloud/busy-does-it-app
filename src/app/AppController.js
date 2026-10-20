@@ -1468,7 +1468,7 @@ function App() {
   };
 
   const replyActionOrigin=useRef(null);
-  const replyActionSources=useRef(null);replyActionSources.current={customers,lastSimulatedRecipients,replyActions,inboxItems,selectedCustomerId,selectedReplyActionId,cloudRevision,role:cloudWorkspace?.role};
+  const replyActionSources=useRef(null);replyActionSources.current={customers,lastSimulatedRecipients,replyActions,inboxItems,selectedInboxItemId,selectedCustomerId,selectedReplyActionId,cloudRevision,role:cloudWorkspace?.role};
   const beginReplyAction = (customerId, suggested) => {
     const customer =
       customers.find((item) => item.id === customerId) ||
@@ -6280,6 +6280,17 @@ function App() {
     setTab("Work");
     go("quickCaptureReview");
     },{isCurrent});
+  };
+
+  const resumeCurrentEnquiry = () => {
+    if(businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||!['owner','admin'].includes(replyActionSources.current.role))return {found:false,blocked:true};
+    const origin=replyActionOrigin.current;
+    if(origin?.workspace===renderedBusinessWorkspaceScope)return {found:true,opened:returnToQuoteEnquiry(origin.customerId)===true};
+    const item=inboxItems.find(row=>row.id===selectedInboxItemId&&row.status==='Pending'),stamp=JSON.stringify(item);
+    if(!item)return {found:false};
+    const isCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&replyActionSources.current.cloudRevision===cloudRevision&&replyActionSources.current.selectedInboxItemId===item.id&&replyActionSources.current.inboxItems.includes(item)&&item.status==='Pending'&&JSON.stringify(item)===stamp;
+    // Existing capture fields belong to this selected review. Never reload them.
+    return {found:true,opened:ownerEditNavigation.current.request(()=>go('quickCaptureReview'),{isCurrent})===true};
   };
 
   const dismissInboxItem = (id) => {
@@ -12260,7 +12271,11 @@ function App() {
       const local=localCoreAreaRequest(transcript);if(!local)return null;
       const allowed=!!ownerSession?.userId&&!!cloudWorkspace?.businessId&&['owner','admin'].includes(cloudWorkspace?.role);
       let response=local.response;
-      if(allowed&&local.continueQuote){
+      if(allowed&&local.resumeEnquiry){
+        const result=resumeCurrentEnquiry();
+        if(!result.found&&!result.blocked)openBusyInbox();
+        response=result.blocked?'Your current business permissions need review before opening private enquiries.':result.found?(result.opened?'Review your current enquiry. Existing form wording has been kept; nothing was filed or sent.':'Your current enquiry or unfinished edits need attention before returning. Nothing was filed or sent.'):'Choose an existing enquiry in Busy Inbox. No particular enquiry was guessed or changed.';
+      }else if(allowed&&local.continueQuote){
         const source=replyActionSources.current;
         const target=preparedQuoteTarget({ownerWorkspaceScope:socialDraftScope,ownerSession,cloudWorkspace:{...cloudWorkspace,role:source.role},customers:source.customers,replyActions:source.replyActions,selectedReplyActionId:source.selectedReplyActionId},local.quoteCustomerName);
         if(target){const opened=openSavedReplyAction(target.customer.id);response=opened?'Review the existing private quote for '+target.customer.name+'. Nothing has been sent or approved.':'Your current changes or the quote source need attention before opening this private quote. Nothing has been sent.';}
@@ -17745,6 +17760,7 @@ function App() {
     quoteFollowUpOutcome,
     prepareQuoteDetails,
     quoteEnquiryLinkStatus:replyActions[selectedReplyActionId]?.details?.enquiryReference?resolveQuoteEnquiryReference(replyActions[selectedReplyActionId].details.enquiryReference,{businessId:cloudWorkspace?.businessId,customerId:selectedReplyActionId,inboxItems,revision:cloudRevision})?'linked':'needs-review':'',
+    resumeCurrentEnquiry,
     returnToQuoteEnquiry,
     customerEnquiryOriginItem:replyActionOrigin.current?.workspace===businessWorkspaceScopeRef.current&&replyActionOrigin.current?.customerId===selectedCustomerId&&['owner','admin'].includes(cloudWorkspace?.role)&&inboxItems.includes(replyActionOrigin.current?.item)&&replyActionOrigin.current?.item?.status==='Filed'&&replyActionOrigin.current.item.filedCustomerId===selectedCustomerId&&JSON.stringify(replyActionOrigin.current.item)===replyActionOrigin.current.stamp?replyActionOrigin.current.item:null,
     quoteEnquiryOriginItem:replyActionOrigin.current?.workspace===businessWorkspaceScopeRef.current&&replyActionOrigin.current?.customerId===selectedReplyActionId&&['owner','admin'].includes(cloudWorkspace?.role)&&inboxItems.includes(replyActionOrigin.current?.item)&&replyActionOrigin.current?.item?.status==='Filed'&&replyActionOrigin.current.item.filedCustomerId===selectedReplyActionId&&JSON.stringify(replyActionOrigin.current.item)===replyActionOrigin.current.stamp?replyActionOrigin.current.item:null,

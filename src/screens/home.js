@@ -1,3 +1,4 @@
+import {homeEnquiryReview} from '../core/homeEnquiryReview.mjs';
 import {homeQuoteReview,homePreparedQuoteReview} from '../core/homeQuoteReview.mjs';
 import {homeContentReview} from "../core/homeContentReview.mjs";
 import {HomeCoreAreas} from "../components/HomeCoreAreas";
@@ -797,9 +798,10 @@ function HomeScreen({ s }) {
         !s.dismissedOpportunities.includes(item.id)
     );
 
+  const enquiryReview=homeEnquiryReview(s,()=>currentHomeSource.current);
   const privateContentReview=homeContentReview(s,()=>currentHomeSource.current);
   const privateQuoteReview=homeQuoteReview(s,()=>currentHomeSource.current)||homePreparedQuoteReview(s,()=>currentHomeSource.current);
-  const rankedMoves = [...operationalMoves, ...marketingMoves, ...(privateQuoteReview?[privateQuoteReview]:[]), ...(privateContentReview?[privateContentReview]:[])]
+  const rankedMoves = [...operationalMoves, ...marketingMoves, ...(enquiryReview?[enquiryReview]:[]), ...(privateQuoteReview?[privateQuoteReview]:[]), ...(privateContentReview?[privateContentReview]:[])]
     .sort((a, b) => (b.score || 0) - (a.score || 0))
     .map((item, index) => {
       const evidenceRows = Object.fromEntries(

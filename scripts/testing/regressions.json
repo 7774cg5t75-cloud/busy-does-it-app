@@ -1627,6 +1627,12 @@
       "args": [
         "scripts/check-mission15-phase38-quote-recovery.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase38-current-enquiry",
+      "args": [
+        "scripts/check-mission15-phase38-current-enquiry.mjs"
+      ]
     }
   ]
 }
