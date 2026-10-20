@@ -6228,6 +6228,9 @@ function App() {
   const openInboxItem = (id) => {
     const item = inboxItems.find((candidate) => candidate.id === id);
     if (!item || item.status !== "Pending") return;
+    const stamp=JSON.stringify(item);
+    const isCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&replyActionSources.current.cloudRevision===cloudRevision&&replyActionSources.current.inboxItems.includes(item)&&item.status==='Pending'&&JSON.stringify(item)===stamp;
+    return ownerEditNavigation.current.request(()=>{
     const parsed = item.parsed || parseQuickCapture(item.rawText, services, trade);
     setSelectedInboxItemId(id);
     setCaptureForceNew(false);
@@ -6255,6 +6258,7 @@ function App() {
     setCaptureExtractedFields(parsed.extractedFields || []);
     setTab("Work");
     go("quickCaptureReview");
+    },{isCurrent});
   };
 
   const dismissInboxItem = (id) => {
