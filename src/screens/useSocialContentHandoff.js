@@ -55,7 +55,7 @@ export function useSocialContentHandoff(input){
   epoch.current++;input.setText(checked.copy);live.current={...live.current,text:checked.copy,selectedDraftId:null,aiResult:analysis};
   input.setSelectedDraftId(null);input.setAiResult(analysis);input.setAiStatus('idle');input.setCaptionId('');
   const record=['product','event'].includes(checked.purpose);
-  setContext({type:checked.purpose==='owner-announcement'?'owner_announcement':record?'approved_'+checked.purpose:checked.purpose==='business-introduction'?'approved_business':'approved_service',label:checked.purpose==='owner-announcement'?'Owner-supplied announcement · review needed':record?'Approved '+checked.purpose+' wording':checked.purpose==='business-introduction'?'Approved business introduction':'Approved service wording',service:checked.serviceName,selection:checked.selection,suggestedPlatform:expected.platform,customerId:'',jobId:''});
+  setContext({type:checked.purpose==='owner-announcement'?'owner_announcement':record?'approved_'+checked.purpose:checked.purpose==='business-introduction'?'approved_business':'approved_service',label:checked.purpose==='owner-announcement'?'Owner-supplied announcement · review needed':record?'Approved '+checked.purpose+' wording':checked.purpose==='business-introduction'?'Approved business introduction':'Approved service wording',service:checked.serviceName,selection:checked.selection,contentEvidence:checked,suggestedPlatform:expected.platform,customerId:'',jobId:''});
   return true;
  };
  const acceptRecord=async(expected,ticket)=>{
@@ -74,6 +74,24 @@ export function useSocialContentHandoff(input){
   const checked=confirmSocialBrandHandoff({...context(),evidence:expected.evidence});
   if(!checked.ok)return false;
   return commitAccepted(expected,checked);
+ };
+ const reviewSource=async()=>{
+  if(!valid())return false;
+  const evidence=live.current.sourceContext?.contentEvidence;
+  if(!evidence)return false;
+  const ticket=capture();let result;
+  try{
+   let feed;
+   if(['product','event'].includes(evidence.purpose)){
+    const loaded=await live.current.loadApprovedContent?.();
+    if(!fresh(ticket))return false;
+    feed=loaded?.ok===true&&loaded.businessId===live.current.businessId?publicBusinessContent(loaded.records,loaded.businessId):null;
+    if(!feed?.ok)throw Error('Current approved records could not be verified.');
+   }
+   result=confirmSocialBrandHandoff({...context(),evidence,feed});
+  }catch{result={ok:false,unknown:true,reason:'Current source could not be checked. Your wording is kept; no publication or save is confirmed.'};}
+  if(!fresh(ticket))return false;
+  epoch.current++;setContext({...live.current.sourceContext,contentSourceReview:{status:result.ok?'current':result.unknown?'unknown':'changed',reason:result.reason||'',checkedText:ticket.text,evidence}});return result.ok;
  };
  const editText=value=>{if(!current())return;epoch.current++;live.current={...live.current,text:value};input.setText(value);};
  // UI confirmations must bind to the exact current local draft, including pre-render typing.
@@ -100,5 +118,5 @@ export function useSocialContentHandoff(input){
   if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform);return {...result,opened:valid()};}
   return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose,result.ownerFacts)}:result;
  };
- return {route,prepare,loadRecords,selectRecord,editOwnerFacts,keep,accept,capture,fresh,freshSave,editText,reopen,replaceDraft,invalidate:()=>{if(current())epoch.current++;}};
+ return {route,prepare,loadRecords,selectRecord,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource,editText,reopen,replaceDraft,invalidate:()=>{if(current())epoch.current++;}};
 }

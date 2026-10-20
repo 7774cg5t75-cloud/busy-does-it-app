@@ -1399,6 +1399,12 @@
       "args": [
         "scripts/check-mission15-phase33-growth-records.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase33-source-continuity",
+      "args": [
+        "scripts/check-mission15-phase33-source-continuity.mjs"
+      ]
     }
   ]
 }

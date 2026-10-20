@@ -1,3 +1,4 @@
+import {ContentSourceReview} from '../components/ContentSourceReview';
 import {ContentRecordChoices} from '../components/ContentRecordChoices';
 import {ContentDraftStatus} from "../components/ContentDraftStatus";
 import {buildContentBrandSnapshot} from "../core/businessBrandDnaV3195.mjs";
@@ -957,7 +958,7 @@ function SocialDraftReview({ s }) {
       subtitle="Edit the wording, choose real destinations and decide whether to keep it as a draft, schedule it or publish it."
       brandCue="Preparation can be automatic. Public action still needs explicit owner approval."
     >
-      <ContentDraftStatus s={s}/>
+      <ContentDraftStatus s={s}/><ContentSourceReview s={s}/>
       {s.socialSourceContext?.suggestedPlatform?<Text style={styles.cardBody}>{"Requested destination: "+s.socialSourceContext.suggestedPlatform+". Check your connected destination selections below; nothing is sent automatically."}</Text>:null}
       <Card
         eyebrow="Prepared content"

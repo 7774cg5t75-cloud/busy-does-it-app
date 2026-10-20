@@ -3701,6 +3701,7 @@ function App() {
       id,
       source: socialSourceContext.type,
       sourceLabel: socialSourceContext.label,
+      contentEvidence:socialSourceContext.contentEvidence||null,
       suggestedPlatform:["Facebook","Instagram"].includes(socialSourceContext.suggestedPlatform)?socialSourceContext.suggestedPlatform:"",
       sourceCustomerId: socialSourceContext.customerId || "",
       sourceJobId: socialSourceContext.jobId || "",
@@ -4271,6 +4272,8 @@ function App() {
     setSocialSourceContext({
       type: draft.source || "phone",
       label: draft.sourceLabel || "Saved draft",
+      contentEvidence:draft.contentEvidence||null,
+      selection:draft.contentEvidence?.selection,
       customerId: draft.sourceCustomerId || "",
       jobId: draft.sourceJobId || "",
       service: draft.service || "",
