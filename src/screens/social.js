@@ -733,22 +733,22 @@ function SocialCreator({ s }) {
       brandCue="Your wording and selected photos stay private until separate publishing review."
     >
       {s.socialContentActions?<Card title="What would you like to create?" body="Choose a starting point. Your current words and photos stay until you deliberately use a new idea.">
-        <Button label="Introduce my business" onPress={()=>s.socialContentActions.prepare('','','','business-introduction')}/>
-        <Button label="Explain a service" onPress={()=>s.socialContentActions.prepare()}/>
-        <Button label="Promote an approved product" onPress={()=>s.socialContentActions.loadRecords('product')}/>
-        <Button label="Talk about an approved event" onPress={()=>s.socialContentActions.loadRecords('event')}/>
-        <Button label="Write an announcement or offer" onPress={()=>s.socialContentActions.prepare('','','','owner-announcement')}/>
+        <Button label="Introduce my business" onPress={()=>s.socialContentActions.start('business-introduction')}/>
+        <Button label="Explain a service" onPress={()=>s.socialContentActions.start('service')}/>
+        <Button label="Promote an approved product" onPress={()=>s.socialContentActions.start('product')}/>
+        <Button label="Talk about an approved event" onPress={()=>s.socialContentActions.start('event')}/>
+        <Button label="Write an announcement or offer" onPress={()=>s.socialContentActions.start('owner-announcement')}/>
       </Card>:null}
       {!brandSnapshot.ok&&s.businessCreationIntelligence?.sharedProfile&&s.socialContentActions&&!pendingIdea?<Card eyebrow="Choose your content source" title="Review current business facts"
         body={brandSnapshot.reason} tone="blue"><Button label="Use current approved business profile" onPress={()=>s.socialContentActions.prepare('','','approved-profile')}/></Card>:null}
       {pendingIdea?<Card eyebrow="Private content idea · not published" title={ownerIdea?'Your announcement or offer':recordIdea?'Choose an approved '+pendingIdea.purpose:pendingIdea.purpose==='business-introduction'?'Introduce your business':pendingIdea.serviceName||'Choose the service for your post'}
         body={pendingIdea.loading?'Loading current approved records…':pendingCheck?.ok?pendingCheck.copy:pendingCheck?.reason||pendingIdea.evidence?.reason||(recordIdea?'Choose the approved item below. Nothing is published.':'Choose one current approved service below. No launch date, offer or availability is inferred.')} tone="blue">
         {pendingIdea.platform?<Text style={styles.cardBody}>{'Suggested destination: '+pendingIdea.platform+'. Existing channel selections are kept; choose destinations during review.'}</Text>:null}
-        {!incomingSnapshot.ok&&s.businessCreationIntelligence?.sharedProfile?<Button label="Use current approved business profile" onPress={()=>recordIdea?s.socialContentActions?.loadRecords(pendingIdea.purpose,pendingIdea.platform,'approved-profile'):s.socialContentActions?.prepare(pendingIdea.serviceName,pendingIdea.platform,'approved-profile',pendingIdea.purpose,pendingIdea.ownerFacts)}/>:null}
+        {!incomingSnapshot.ok&&s.businessCreationIntelligence?.sharedProfile?<Button label="Use current approved business profile" onPress={()=>s.socialContentActions?.switchSource(pendingIdea,'approved-profile')}/>:null}
         {ownerIdea?<><Field label="Your exact announcement or offer details" value={pendingIdea.ownerFacts||''} multiline onChangeText={value=>s.socialContentActions?.editOwnerFacts(pendingIdea,value)} placeholder="Include the dates, terms or prices you want to state."/><Text style={styles.cardBody}>Owner-supplied draft information, not independently verified business facts. Review any missing dates, offer terms or eligibility before publication.</Text></>:null}
         {recordIdea?<ContentRecordChoices pending={pendingIdea} actions={s.socialContentActions}/>:null}
         <ContentWordingChoices pending={pendingIdea} actions={s.socialContentActions}/>
-        {pendingCheck?.ok?<Button label={ownerIdea?'Use my announcement':recordIdea?'Use this item idea':pendingIdea.purpose==='business-introduction'?"Use this introduction":"Use this service idea"} onPress={applyIncomingIdea}/>:!ownerIdea&&!recordIdea&&incomingSnapshot.ok&&pendingIdea.purpose!=='business-introduction'?incomingSnapshot.services.map(service=><Button key={service.name} label={'Use service: '+service.name} onPress={()=>s.socialContentActions?.prepare(service.name,pendingIdea.platform,pendingIdea.sourceMode)}/>):null}
+        {pendingCheck?.ok?<Button label={ownerIdea?'Use my announcement':recordIdea?'Use this item idea':pendingIdea.purpose==='business-introduction'?"Use this introduction":"Use this service idea"} onPress={applyIncomingIdea}/>:!ownerIdea&&!recordIdea&&incomingSnapshot.ok&&pendingIdea.purpose!=='business-introduction'?incomingSnapshot.services.map(service=><Button key={service.name} label={'Use service: '+service.name} onPress={()=>s.socialContentActions?.selectService(pendingIdea,service.name)}/>):null}
         <Button label="Keep my current draft" onPress={()=>s.socialContentActions?.keep(pendingIdea)}/>
       </Card>:null}
       <Card

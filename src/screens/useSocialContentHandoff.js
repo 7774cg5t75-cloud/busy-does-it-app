@@ -38,6 +38,29 @@ export function useSocialContentHandoff(input){
    if(fresh(ticket)){epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,loading:false,evidence:{ok:false,reason:'Could not load approved records. Your draft is unchanged.'}}});}return false;
   }
  };
+ const pendingCurrent=expected=>valid()&&expected?.scope===scope&&live.current.sourceContext?.pendingContentIdea===expected;
+ const pendingTreatment=expected=>expected?.treatment||expected?.evidence?.treatment||'standard';
+ const selectService=(expected,serviceName)=>{
+  if(!pendingCurrent(expected)||expected.purpose!=='service')return false;
+  return prepare(serviceName,expected.platform,expected.sourceMode,'service','',pendingTreatment(expected));
+ };
+ const switchSource=(expected,sourceMode)=>{
+  if(!pendingCurrent(expected)||sourceMode!=='approved-profile')return false;
+  const treatment=pendingTreatment(expected);
+  if(['product','event'].includes(expected.purpose)){
+   const hint=expected.evidence?.selection?{selection:expected.evidence.selection,recordStamp:expected.evidence.recordStamp}:null;
+   return loadRecords(expected.purpose,expected.platform,sourceMode,hint,treatment);
+  }
+  return prepare(expected.serviceName,expected.platform,sourceMode,expected.purpose,expected.ownerFacts,treatment);
+ };
+ const start=purpose=>{
+  if(!valid()||epoch.current!==renderEpoch||!['service','business-introduction','product','event','owner-announcement'].includes(purpose))return false;
+  const pending=live.current.sourceContext?.pendingContentIdea,evidence=live.current.sourceContext?.contentEvidence;
+  const treatment=pendingCurrent(pending)?pendingTreatment(pending):evidence?.businessId===live.current.businessId?evidence.treatment||'standard':'standard';
+  // A treatment is reusable preference, never approval of the previous facts.
+  const sourceMode=pendingCurrent(pending)?pending.sourceMode:evidence?.businessId===live.current.businessId?evidence.sourceMode||'':'';
+  return ['product','event'].includes(purpose)?loadRecords(purpose,'',sourceMode,null,treatment):prepare('','',sourceMode,purpose,'',treatment);
+ };
  const selectRecord=(expected,selection)=>{
   if(!valid()||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected)return false;
   const evidence=prepareSocialRecordHandoff({...context(),feed:expected.feed,sourceMode:expected.sourceMode,treatment:expected.treatment||expected.evidence?.treatment||"standard",selection});
@@ -158,5 +181,5 @@ export function useSocialContentHandoff(input){
   if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform);return {...result,opened:valid()};}
   return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose,result.ownerFacts)}:result;
  };
- return {isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,loadRecords,selectRecord,chooseTreatment,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource,checkAccountDraft,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
+ return {isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,start,switchSource,selectService,loadRecords,selectRecord,chooseTreatment,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource,checkAccountDraft,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
 }

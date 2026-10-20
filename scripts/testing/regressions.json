@@ -1519,6 +1519,12 @@
       "args": [
         "scripts/check-mission15-phase35-catalogue-option.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase36-source-treatment",
+      "args": [
+        "scripts/check-mission15-phase36-source-treatment.mjs"
+      ]
     }
   ]
 }
