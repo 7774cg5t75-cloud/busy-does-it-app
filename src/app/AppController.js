@@ -1,3 +1,4 @@
+import {privateContentChannels} from '../core/contentDraftChanges.mjs';
 import {quoteEnquiryReference,resolveQuoteEnquiryReference} from '../core/quoteEnquiryReference.mjs';
 import {preparedQuoteTarget} from '../core/homeQuoteReview.mjs';
 import {readPrivateQuoteCopy,quoteCustomerSource} from '../core/privateQuoteCopy.mjs';
@@ -3740,7 +3741,9 @@ function App() {
     if(currentDraft.text!==socialDraftText||currentDraft.selectedId!==selectedSocialDraftId||currentDraft.photos!==socialCreatePhotos||currentDraft.records!==socialDrafts)return null;
     const text = socialDraftText.trim();
     if (!text || (status !== "Draft" && !socialCreatePhotos.length)) return null;
-    const channels = socialChannelNames();
+    // Private intent survives a disconnected account; public preparation still
+    // uses the original connection-filtered destinations below.
+    const channels = status==='Draft'&&typeof currentDraft.channels==='string'?(privateContentChannels(currentDraft.channels)||socialChannelNames()):socialChannelNames();
     if (status !== "Draft" && !channels.length) {
       Alert.alert("Choose a destination", "Select at least one social profile before scheduling or approving this post.");
       return null;
@@ -8465,7 +8468,7 @@ function App() {
     websiteDraft,
     miniAppsView,
   });
-  const socialContentActions=useSocialContentHandoff({customers,loadSocialStatus:()=>socialPublishRequest('status'),loadApprovedContent:()=>businessContentRequest('content_list'),workspaceScope:businessWorkspaceScopeRef.current,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,aiResult:socialAiResult,approvedProfile:businessCreationIntelligence.sharedProfile,website:websiteDraft,app:miniAppsStatus?.app,text:socialDraftText,photos:socialCreatePhotos,selectedDraftId:selectedSocialDraftId,sourceContext:socialSourceContext,records:socialDrafts,brief:socialBrief,channels:socialDraftChannels,confirm:({keep,discard,message,actionLabel})=>Alert.alert('Keep your current draft?',message||'Opening another saved draft will replace the current unsaved wording and selected photos. Nothing will be published.',[{text:'Keep my current draft',style:'cancel',onPress:keep},{text:actionLabel||'Open saved draft',onPress:discard}]),setSourceContext:setSocialSourceContext,setText:setSocialDraftText,setSelectedDraftId:setSelectedSocialDraftId,setAiResult:setSocialAiResult,setAiStatus:setSocialAiStatus,setCaptionId:setSocialCaptionId,go});
+  const socialContentActions=useSocialContentHandoff({customers,loadSocialStatus:()=>socialPublishRequest('status'),loadApprovedContent:()=>businessContentRequest('content_list'),workspaceScope:businessWorkspaceScopeRef.current,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,aiResult:socialAiResult,approvedProfile:businessCreationIntelligence.sharedProfile,website:websiteDraft,app:miniAppsStatus?.app,text:socialDraftText,photos:socialCreatePhotos,selectedDraftId:selectedSocialDraftId,sourceContext:socialSourceContext,records:socialDrafts,brief:socialBrief,channels:socialDraftChannels,confirm:({keep,discard,message,actionLabel})=>Alert.alert('Keep your current draft?',message||'Opening another saved draft will replace the current unsaved wording, photos and destination choices. Nothing will be published.',[{text:'Keep my current draft',style:'cancel',onPress:keep},{text:actionLabel||'Open saved draft',onPress:discard}]),setSourceContext:setSocialSourceContext,setText:setSocialDraftText,setSelectedDraftId:setSelectedSocialDraftId,setAiResult:setSocialAiResult,setAiStatus:setSocialAiStatus,setCaptionId:setSocialCaptionId,go});
   const businessCreationJourney = buildBusinessCreationJourney({
     businessCreationIntelligence,
     brandBrain,

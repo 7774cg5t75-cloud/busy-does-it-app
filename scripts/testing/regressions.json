@@ -1633,6 +1633,12 @@
       "args": [
         "scripts/check-mission15-phase38-current-enquiry.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase38-content-draft-fields",
+      "args": [
+        "scripts/check-mission15-phase38-content-draft-fields.mjs"
+      ]
     }
   ]
 }

@@ -1,3 +1,4 @@
+import {contentDraftChanges} from '../core/contentDraftChanges.mjs';
 import React from 'react';
 import {Text} from 'react-native';
 import {Button} from './ui';
@@ -8,11 +9,10 @@ export function ContentDraftStatus({s}){
  if(record.status!=='Draft')return null;
  const receipt=s.privateContentSave;
  const exact=receipt?.record===record;
- const newer=s.socialDraftText.trim()!==record.text;
- const media=items=>JSON.stringify((items||[]).map(item=>[item.id||'',item.uri||'',item.storagePath||'',item.fileName||'',item.width||0,item.height||0,item.contentType||item.mimeType||'image/jpeg']));
- const savedPhotos=(record.photos||[]).map(photo=>{const cloud=record.cloudMedia?.find(item=>item.id===photo.id);return cloud?{...photo,storagePath:cloud.storagePath,contentType:cloud.contentType||photo.mimeType||'image/jpeg'}:photo;});
- const otherChanges=media(s.socialCreatePhotos)!==media(savedPhotos)||(s.socialBrief||'').trim()!==(record.brief||'');
+ const changes=contentDraftChanges({text:s.socialDraftText,photos:s.socialCreatePhotos,brief:s.socialBrief,channels:s.socialDraftChannels},record);
+ const newer=changes.wording,otherChanges=changes.media||changes.brief||changes.channels;
  const message=newer?'You have newer unsaved wording. The stored draft does not include these edits.':
+  changes.channels?'Your destination choices differ from this saved draft. Save privately to keep them; publishing still requires connected, approved channels.':
   otherChanges?'You have unsaved photo or brief changes. Save privately to include them.':
   exact&&receipt.status==='failed'?'The device save did not start. Your draft is still in memory; keep your changes and save privately again.':
   exact&&receipt.status==='confirmed'?'This wording was saved and read back from your private device copy. It is not published.':

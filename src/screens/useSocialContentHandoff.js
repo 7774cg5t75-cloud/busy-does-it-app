@@ -1,3 +1,4 @@
+import {contentDraftChanges} from '../core/contentDraftChanges.mjs';
 import React from 'react';
 import {publicBusinessContent,selectBusinessContent,prepareBusinessContentEnquiry} from '../core/businessContentRecords.mjs';
 import {prepareSocialBrandHandoff,confirmSocialBrandHandoff,resolveSocialServiceIntent,prepareSocialRecordHandoff,prepareOwnerAnnouncementHandoff} from '../core/socialBrandHandoffV3199.mjs';
@@ -184,10 +185,9 @@ export function useSocialContentHandoff(input){
  const protectDraftTransition=(load,record=null)=>{
   if(!valid()||record&&!live.current.records?.includes(record))return false;
   const ticket=capture(),now=live.current,saved=now.records?.find(row=>row.id===now.selectedDraftId);
-  const media=rows=>JSON.stringify((rows||[]).map(row=>[row.id||'',row.uri||'',row.storagePath||'']));
-  const dirty=now.text.trim()!==(saved?.text||'')||media(now.photos)!==media(saved?.photos)||!!now.brief&&now.brief!==(saved?.brief||'');
+  const dirty=contentDraftChanges(now,saved).dirty;
   const open=()=>{if(!fresh(ticket)||record&&!live.current.records?.includes(record))return false;epoch.current++;return load()!==false;};
-  if(dirty){input.confirm?.({keep:()=>{},discard:open,...!record?{message:'Starting a new post replaces the current unsaved wording and selected photos. Saved drafts remain unchanged.',actionLabel:'Start a new post'}:{}});return false;}return open();
+  if(dirty){input.confirm?.({keep:()=>{},discard:open,...!record?{message:'Starting a new post replaces the current unsaved wording, photos and destination choices. Saved drafts remain unchanged.',actionLabel:'Start a new post'}:{}});return false;}return open();
  };
  const reopen=(record,load)=>protectDraftTransition(load,record);
  const replaceDraft=load=>protectDraftTransition(load);
