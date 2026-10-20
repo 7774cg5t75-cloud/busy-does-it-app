@@ -3829,7 +3829,8 @@ function App() {
   };
 
   const applyCloudSocialPost = (post, fallbackRecord = null) => {
-    if (!post?.client_draft_id) return null;
+    if (businessWorkspaceScopeRef.current!==socialDraftScope||!post?.client_draft_id) return null;
+    setSocialPublishingStatus(current=>businessWorkspaceScopeRef.current!==socialDraftScope?current:{...current,queue:[...(current.queue||[]).filter(item=>item.client_draft_id!==post.client_draft_id),post]});
     const now = new Date().toISOString();
     const media = Array.isArray(post.media) ? post.media : [];
     const previous =
@@ -4128,7 +4129,8 @@ function App() {
   };
 
   const removeLocalSocialDraft = (draft) => {
-    if (!draft?.id) return;
+    if (businessWorkspaceScopeRef.current!==socialDraftScope||!draft?.id) return;
+    setSocialPublishingStatus(current=>businessWorkspaceScopeRef.current!==socialDraftScope?current:{...current,queue:(current.queue||[]).filter(item=>item.client_draft_id!==draft.id)});
     setSocialDrafts((items) => items.filter((item) => item.id !== draft.id));
 
     if (draft.source === "job" && draft.sourceCustomerId && draft.sourceJobId) {
