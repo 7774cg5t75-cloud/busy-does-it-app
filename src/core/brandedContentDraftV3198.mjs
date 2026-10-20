@@ -7,6 +7,10 @@
 import {planBrandDnaContentBrief} from "./businessBrandDnaV3195.mjs";
 const SUPPORTED=Object.freeze(["social","poster","advert"]);
 const WORDING_TREATMENTS=Object.freeze(["standard","welcoming","concise","detailed","brand"]);
+function resolveWordingTreatment(treatment,voice){
+ if(!WORDING_TREATMENTS.includes(treatment))return null;
+ return treatment==='brand'?(['warm','playful'].includes(voice)?'welcoming':voice==='direct'?'concise':voice?'detailed':'standard'):treatment;
+}
 const short=(v,max)=>typeof v==="string"&&v.length<=max&&
  !/[<>\u0000-\u001f\u007f]/.test(v)?v.trim():"";
 function prepareBrandedCopyPreview(snapshot,{channel="social",serviceName="",treatment="standard"}={}){
@@ -37,7 +41,7 @@ function prepareBrandedCopyPreview(snapshot,{channel="social",serviceName="",tre
    "Ask us for more information."].filter(Boolean).join("\n\n"):
   [name,tagline,about,names.length?"Explore: "+names.join(" • "):"",
    "Learn more about "+name+"."].filter(Boolean).join("\n\n"));
- const appliedTreatment=treatment==='brand'?(['warm','playful'].includes(brief.voice)?'welcoming':brief.voice==='direct'?'concise':brief.voice?'detailed':'standard'):treatment;
+ const appliedTreatment=resolveWordingTreatment(treatment,brief.voice);
  let includedServiceCount=names.length;
  if(channel==='social'&&appliedTreatment!=='standard'){
   const description=selected?short(selected.description,500):about;
@@ -59,4 +63,4 @@ function prepareBrandedCopyPreview(snapshot,{channel="social",serviceName="",tre
   noAutomaticMediaReuse:true,noPricesOrReviewsInvented:true,
   needsHumanCopyAndComplianceReview:true};
 }
-export {SUPPORTED,WORDING_TREATMENTS,prepareBrandedCopyPreview};
+export {SUPPORTED,WORDING_TREATMENTS,resolveWordingTreatment,prepareBrandedCopyPreview};

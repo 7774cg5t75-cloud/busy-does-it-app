@@ -40,20 +40,21 @@ export function useSocialContentHandoff(input){
  };
  const selectRecord=(expected,selection)=>{
   if(!valid()||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected)return false;
-  const evidence=prepareSocialRecordHandoff({...context(),feed:expected.feed,sourceMode:expected.sourceMode,selection});
+  const evidence=prepareSocialRecordHandoff({...context(),feed:expected.feed,sourceMode:expected.sourceMode,treatment:expected.treatment||expected.evidence?.treatment||"standard",selection});
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,evidence}});return evidence.ok;
  };
  const chooseTreatment=(expected,treatment)=>{
-  if(!valid()||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected||!['service','business-introduction'].includes(expected.purpose))return false;
-  if(!confirmSocialBrandHandoff({...context(),evidence:expected.evidence}).ok)return failPending(expected,'The business source changed. Prepare a current idea before choosing its wording.');
-  const evidence=prepareSocialBrandHandoff({...context(),sourceMode:expected.sourceMode,serviceName:expected.serviceName,purpose:expected.purpose,treatment});
+  if(!valid()||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected||!['service','business-introduction','product','event','owner-announcement'].includes(expected.purpose))return false;
+  if(!confirmSocialBrandHandoff({...context(),evidence:expected.evidence,feed:expected.feed}).ok)return failPending(expected,'The business source changed. Prepare a current idea before choosing its wording.');
+  const base={...context(),sourceMode:expected.sourceMode,treatment};
+  const evidence=['product','event'].includes(expected.purpose)?prepareSocialRecordHandoff({...base,feed:expected.feed,selection:expected.evidence.selection}):expected.purpose==='owner-announcement'?prepareOwnerAnnouncementHandoff({...base,ownerFacts:expected.ownerFacts}):prepareSocialBrandHandoff({...base,serviceName:expected.serviceName,purpose:expected.purpose});
   if(!evidence.ok)return false;
-  epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,evidence}});return true;
+  epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,evidence,treatment}});return true;
  };
  const editOwnerFacts=(expected,value)=>{
   const pending=live.current.sourceContext?.pendingContentIdea;
   if(!valid()||expected?.scope!==scope||!expected.session||pending?.session!==expected.session||pending.purpose!=='owner-announcement')return false;
-  epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,ownerFacts:value,evidence:prepareOwnerAnnouncementHandoff({...context(),sourceMode:pending.sourceMode,ownerFacts:value})}});return true;
+  epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,ownerFacts:value,evidence:prepareOwnerAnnouncementHandoff({...context(),sourceMode:pending.sourceMode,ownerFacts:value,treatment:pending.treatment||pending.evidence?.treatment||"standard"})}});return true;
  };
  const commitAccepted=(expected,checked)=>{
   // Explicit acceptance creates a new private draft target, preserving deliberately selected media.
