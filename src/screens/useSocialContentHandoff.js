@@ -18,17 +18,22 @@ export function useSocialContentHandoff(input){
   input.go('socialCreator');return true;
  };
  const keep=expected=>{if(!valid()||live.current.sourceContext?.pendingContentIdea!==expected)return false;epoch.current++;const {pendingContentIdea,...rest}=live.current.sourceContext;setContext(rest);return true;};
- const loadRecords=async(kind,platform='',sourceMode='')=>{
+ const failPending=(expected,reason)=>{
+  if(valid()&&live.current.sourceContext?.pendingContentIdea===expected){epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,loading:false,evidence:{ok:false,reason}}});}return false;
+ };
+ const loadRecords=async(kind,platform='',sourceMode='',hint=null)=>{
   if(!valid()||!['product','event'].includes(kind))return false;
   const pending={purpose:kind,platform,sourceMode,scope,ownerId:live.current.ownerId,loading:true};
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:pending});input.go('socialCreator');
   const ticket=capture();
   try{
    const result=await live.current.loadApprovedContent?.();
-   if(!fresh(ticket))return false;
+   if(!fresh(ticket))return failPending(pending,'Your draft changed while records loaded. Refresh the current approved items; your words are kept.');
    const feed=result?.ok===true&&result.businessId===live.current.businessId?publicBusinessContent(result.records,result.businessId):null;
    const records=feed?.ok?selectBusinessContent(feed,{kind}).filter(row=>row.data.status!=='cancelled'):[];
-   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,loading:false,feed,records,evidence:feed?.ok?null:{ok:false,reason:'Current approved records could not be loaded. Your draft is unchanged.'}}});return !!feed?.ok;
+   let evidence=feed?.ok?null:{ok:false,reason:'Current approved records could not be loaded. Your draft is unchanged.'};
+   if(hint&&feed?.ok){const row=feed.records.find(item=>item.id===hint.selection?.recordId);evidence=row&&JSON.stringify(row)===hint.recordStamp?prepareSocialRecordHandoff({...context(),sourceMode,feed,selection:hint.selection}):{ok:false,reason:'This item changed since the suggestion. Choose its current approved information below.'};}
+   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,loading:false,feed,records,evidence}});return !!feed?.ok;
   }catch{
    if(fresh(ticket)){epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,loading:false,evidence:{ok:false,reason:'Could not load approved records. Your draft is unchanged.'}}});}return false;
   }
@@ -56,12 +61,12 @@ export function useSocialContentHandoff(input){
  const acceptRecord=async(expected,ticket)=>{
   try{
    const result=await live.current.loadApprovedContent?.();
-   if(!fresh(ticket))return false;
+   if(!fresh(ticket))return failPending(expected,'Your draft changed while its item was checked. Your words are kept; choose the current approved item again.');
    const feed=result?.ok===true&&result.businessId===live.current.businessId?publicBusinessContent(result.records,result.businessId):null;
    const checked=confirmSocialBrandHandoff({...context(),evidence:expected.evidence,feed});
    if(!checked.ok){epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,evidence:{ok:false,reason:checked.reason}}});return false;}
    return commitAccepted(expected,checked);
-  }catch{return false;}
+  }catch{return failPending(expected,'Could not confirm the current approved item. Your draft was kept; refresh before using the idea.');}
  };
  const accept=(expected,ticket)=>{
   if(!fresh(ticket)||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected)return false;

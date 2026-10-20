@@ -1,3 +1,4 @@
+import {GrowthCatalogueIdeas} from '../components/GrowthCatalogueIdeas';
 import {GrowthWebsiteOpportunities} from "../components/GrowthWebsiteOpportunities";
 import {GrowthContentIdeas} from "../components/GrowthContentIdeas";
 import React from "react";
@@ -73,7 +74,7 @@ function GrowthCommandCentre({s}){
     <Shell s={s} title="Get More Customers"
       subtitle="Your saved business growth projects, their last private review stage and what needs attention next."
       brandCue="Review your saved projects before anything goes public.">
-      <GrowthContentIdeas s={s}/>
+      <GrowthContentIdeas s={s}/><GrowthCatalogueIdeas s={s}/>
       <GrowthWebsiteOpportunities s={s}/>
       <Card eyebrow="Project overview"
         title={busy?"Checking your private projects…":centre.counts.projects+" saved growth project"+(centre.counts.projects===1?"":"s")}

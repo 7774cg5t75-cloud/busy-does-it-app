@@ -1393,6 +1393,12 @@
       "args": [
         "scripts/check-mission15-phase33-cloud-freshness.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase33-growth-records",
+      "args": [
+        "scripts/check-mission15-phase33-growth-records.mjs"
+      ]
     }
   ]
 }
