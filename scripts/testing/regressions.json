@@ -1675,6 +1675,12 @@
       "args": [
         "scripts/check-mission15-phase39-talk-current-content.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase40-quote-selection",
+      "args": [
+        "scripts/check-mission15-phase40-quote-selection.mjs"
+      ]
     }
   ]
 }

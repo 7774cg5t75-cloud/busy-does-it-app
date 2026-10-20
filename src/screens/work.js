@@ -1,3 +1,4 @@
+import {QuoteFollowUpChoices} from '../components/QuoteFollowUpChoices';
 import {QuoteEnquiryContext} from '../components/QuoteEnquiryContext';
 import {QuotePrivateSaveStatus} from '../components/QuotePrivateSaveStatus';
 import {useQuoteActionReview} from './useQuoteActionReview';
@@ -812,6 +813,7 @@ function WorkHub({ s }) {
       subtitle="See your bookings, look after customers and find more work when you need it."
       brandCue="Your jobs and diary, all in one place."
     >
+      <QuoteFollowUpChoices s={s} />
       <View style={styles.workOverviewRow}>
         <Pressable accessibilityRole="button" accessibilityLabel={`View ${weekBookings.length} booked jobs this week`} onPress={() => s.go("workCalendar")} style={styles.workOverviewTile}>
           <Text style={styles.workOverviewNumber}>{weekBookings.length}</Text>

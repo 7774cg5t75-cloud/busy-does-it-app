@@ -50,3 +50,11 @@ function quoteReviewTarget(s,exactName,status){
  if([customer.businessId,customer.business_id].some(id=>id&&id!==business)||action?.type!=='quote'||action.details?.quoteStatus!==status||(status==='Sent'&&action.details?.followUpSentAt)||!String(action.details?.message||'').trim())return null;
  return {customer,action};
 }
+
+// Enumerate original eligible records by customer ID; duplicate names never select a record.
+export function followUpQuoteChoices(s){
+ return (s.customers||[]).flatMap(customer=>{
+  const target=followUpQuoteTarget({...s,selectedReplyActionId:customer.id});
+  return target?[target]:[];
+ });
+}
