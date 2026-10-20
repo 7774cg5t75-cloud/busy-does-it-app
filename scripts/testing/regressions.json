@@ -1705,6 +1705,12 @@
       "args": [
         "scripts/check-mission15-phase40-followup-context.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase40-growth-source-choice",
+      "args": [
+        "scripts/check-mission15-phase40-growth-source-choice.mjs"
+      ]
     }
   ]
 }
