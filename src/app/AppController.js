@@ -713,6 +713,7 @@ function App() {
   const [pendingBrainFeedback, setPendingBrainFeedback] = useState(null);
   const [brainFeedbackReason, setBrainFeedbackReason] = useState("");
   const [quoteFollowUpDraft, setQuoteFollowUpDraft] = useState("");
+  const quoteFollowUpTypingEpoch=useRef(0);
   const [quoteFollowUpOutcome, setQuoteFollowUpOutcome] = useState("No reply yet");
   const [enquiryFollowUpDraft, setEnquiryFollowUpDraft] = useState("");
   const [enquiryFollowUpOutcome, setEnquiryFollowUpOutcome] = useState("No reply yet");
@@ -4595,6 +4596,7 @@ function App() {
   };
 
   const prepareQuoteFollowUp = (customerId) => {
+    if(businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope)return false;
     const action = replyActions[customerId];
     const customer =
       customers.find((item) => item.id === customerId) ||
@@ -4605,6 +4607,7 @@ function App() {
     const draft =
       action.details?.followUpMessage ||
       `Hi ${customer.name.split(" ")[0]}, just checking in about the ${service.toLowerCase()} quote${amount ? ` for £${amount}` : ""}. No pressure at all — let me know if you’d like to go ahead, have any questions, or want me to leave it with you for now.`;
+    quoteFollowUpTypingEpoch.current++;
     setSelectedReplyActionId(customerId);
     setQuoteFollowUpDraft(draft);
     setQuoteFollowUpOutcome(action.details?.followUpOutcome || "No reply yet");
@@ -17502,6 +17505,7 @@ function App() {
     socialPublishingError,
     socialPublishingAction,
     ownerSession,
+    ownerWorkspaceScope:businessWorkspaceScopeRef.current,
     ownerEmail,
     setOwnerEmail,
     ownerPassword,
@@ -17611,7 +17615,8 @@ function App() {
     saveBusinessBrainRule,
     removeBusinessBrainRule,
     quoteFollowUpDraft,
-    setQuoteFollowUpDraft,
+    getQuoteFollowUpTypingEpoch:()=>quoteFollowUpTypingEpoch.current,
+    setQuoteFollowUpDraft:value=>{quoteFollowUpTypingEpoch.current++;setQuoteFollowUpDraft(value);},
     quoteFollowUpOutcome,
     setQuoteFollowUpOutcome,
     enquiryFollowUpDraft,

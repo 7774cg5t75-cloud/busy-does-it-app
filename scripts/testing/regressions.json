@@ -1453,6 +1453,12 @@
       "args": [
         "scripts/check-mission15-phase34-queue-continuity.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase34-inbox-quote",
+      "args": [
+        "scripts/check-mission15-phase34-inbox-quote.mjs"
+      ]
     }
   ]
 }

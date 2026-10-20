@@ -1,3 +1,4 @@
+import {InboxCustomerContinuation} from '../components/InboxCustomerContinuation';
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -326,6 +327,7 @@ function BusyInbox({ s }) {
                   </Pressable>
                 </>
               ) : null}
+              <InboxCustomerContinuation s={s} item={item}/>
               {item.status === "Dismissed" ? (
                 <Pressable onPress={() => s.reopenInboxItem(item.id)} style={styles.customerEditWrap}>
                   <Text style={styles.customerEditText}>Put back in Inbox</Text>
