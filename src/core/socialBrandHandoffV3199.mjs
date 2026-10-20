@@ -63,18 +63,25 @@ export {prepareSocialBrandHandoff,confirmSocialBrandHandoff,prepareSocialRecordH
 // Closed local extension of the original Operator route, never a provider action.
 function resolveSocialServiceIntent(text,{website,app,businessId,approvedProfile}={}){
  const request=String(text||'').trim();
+ if(!request||request.length>500||/\b(?:do not|don['’]t|never)\s+(?:make|create|write|prepare|advertise|promote|tell)\b/i.test(request))return {handled:false};
+ // Advice is not authority to create content; external/public actions stay with original approval routes.
+ if(/^(?:how|why|should|what (?:can|should))\b/i.test(request)||/\b(publish|schedule|send|spend|buy|boost)\b/i.test(request))return {handled:false};
  const introduction=/\b(introduc(?:e|ing|tion)|what we do|about (?:my|our|the) business)\b/i.test(request);
- const explicitIntro=introduction&&/\b(help|tell|introduce|make|create|write|draft|prepare)\b/i.test(request);
- if(request.length>500||!explicitIntro&&(!/\b(make|create|write|draft|prepare|announce|tell)\b/i.test(request)||!/\b(post|caption|announce|announcement)\b/i.test(request)))return {handled:false};
- const announcement=/\b(offer|announcement|announce|closing|close early|thank[- ]you|thank (?:our|my|the) customers|attending)\b/i.test(request);
- const ownerFacts=announcement&&request.includes(':')?request.slice(request.indexOf(':')+1).trim():'';
- const recordKind=!announcement&&/\bevents?\b/i.test(request)?'event':!announcement&&/\bproducts?|collection\b/i.test(request)?'product':'';
+ const action=/\b(help|tell|introduce|make|create|write|draft|prepare|advertise|promote|announce)\b/i.test(request);
+ const content=/\b(post|caption|facebook|instagram|announcement)\b/i.test(request)||/\b(?:tell (?:our |my |the )?(?:customers|people) about|advertise|promote|write something|prepare something)\b/i.test(request);
+ if(!action||!introduction&&!content)return {handled:false};
+ const ownerAnnouncement=/\b(announcement|announce|opening hours|closing|close early|thank[- ]you|thank (?:our|my|the) customers|attending|(?:special|our|my|an|the) offer)\b/i.test(request);
+ const recordKind=/\bevents?\b/i.test(request)?'event':/\b(products?|collection)\b/i.test(request)?'product':'';
  const snapshot=buildContentBrandSnapshot({website,app,businessId,approvedProfile});
  const names=snapshot.ok?snapshot.services.map(service=>service.name):[];
  const escaped=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
  const matches=names.filter(name=>new RegExp('(?:^|[^\\p{L}\\p{N}])'+escaped(name)+'(?:$|[^\\p{L}\\p{N}])','iu').test(request));
- return {handled:true,ownerFacts,purpose:announcement?'owner-announcement':introduction?'business-introduction':matches.length===1?'service':recordKind||'service',serviceName:!introduction&&matches.length===1?matches[0]:'',needsSelection:!!recordKind||!introduction&&matches.length!==1,
+ const purpose=introduction?'business-introduction':ownerAnnouncement&&(!recordKind||request.includes(':'))?'owner-announcement':matches.length===1?'service':recordKind||'service';
+ const ownerFacts=purpose==='owner-announcement'&&request.includes(':')?request.slice(request.indexOf(':')+1).trim():'';
+ const serviceName=purpose==='service'&&matches.length===1?matches[0]:'';
+ return {handled:true,ownerFacts,purpose,serviceName,needsSelection:['product','event'].includes(purpose)||purpose==='service'&&!serviceName,
   platform:/\bfacebook\b/i.test(request)?'Facebook':/\binstagram\b/i.test(request)?'Instagram':'',
-  reason:!snapshot.ok?snapshot.reason:introduction?'Review an introduction based on current approved business facts in Content Creator.':matches.length===1?'Review the current service wording in Content Creator.':'Choose the intended current service in Content Creator. “New” does not establish a launch date.'};
+  reason:!snapshot.ok?snapshot.reason:purpose==='business-introduction'?'Review an introduction based on current approved business facts in Content Creator.':purpose==='owner-announcement'?'Supply and review your exact announcement details. Missing dates, hours and offer terms are not invented.':['product','event'].includes(purpose)?'Choose the intended current approved '+purpose+' in Content Creator. New does not establish launch, availability or attendance.':serviceName?'Review the current service wording in Content Creator.':'Choose the intended current service in Content Creator. New does not establish a launch date.'};
 }
+
 export {resolveSocialServiceIntent};

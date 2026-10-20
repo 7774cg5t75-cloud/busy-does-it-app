@@ -1411,6 +1411,12 @@
       "args": [
         "scripts/check-mission15-phase33-talk-parity.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase34-natural-content",
+      "args": [
+        "scripts/check-mission15-phase34-natural-content.mjs"
+      ]
     }
   ]
 }
