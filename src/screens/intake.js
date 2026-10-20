@@ -1,3 +1,4 @@
+import {QuoteEnquiryContext} from '../components/QuoteEnquiryContext';
 import {InboxCustomerContinuation} from '../components/InboxCustomerContinuation';
 import React, { useEffect, useState } from "react";
 import {
@@ -245,6 +246,7 @@ function BusyInbox({ s }) {
       subtitle="Incoming information is triaged first. Only strict, low-risk record updates can be filed automatically."
       brandCue="BUSY handles the obvious admin. You handle exceptions and approvals."
     >
+      {s.quoteEnquiryOriginItem?<><QuoteEnquiryContext s={{...s,returnToQuoteEnquiry:null}}/><InboxCustomerContinuation s={s} item={s.quoteEnquiryOriginItem}/></>:null}
       <Card
         eyebrow="Inbox triage"
         title={

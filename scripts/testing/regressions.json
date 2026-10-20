@@ -1573,6 +1573,12 @@
       "args": [
         "scripts/check-mission15-phase36-core-routing.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase37-enquiry-quote-return",
+      "args": [
+        "scripts/check-mission15-phase37-enquiry-quote-return.mjs"
+      ]
     }
   ]
 }
