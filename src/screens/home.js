@@ -1,3 +1,4 @@
+import {homeQuoteReview} from '../core/homeQuoteReview.mjs';
 import {homeContentReview} from "../core/homeContentReview.mjs";
 import {HomeCoreAreas} from "../components/HomeCoreAreas";
 import React, { useEffect, useState } from "react";
@@ -797,7 +798,8 @@ function HomeScreen({ s }) {
     );
 
   const privateContentReview=homeContentReview(s,()=>currentHomeSource.current);
-  const rankedMoves = [...operationalMoves, ...marketingMoves, ...(privateContentReview?[privateContentReview]:[])]
+  const privateQuoteReview=homeQuoteReview(s,()=>currentHomeSource.current);
+  const rankedMoves = [...operationalMoves, ...marketingMoves, ...(privateQuoteReview?[privateQuoteReview]:[]), ...(privateContentReview?[privateContentReview]:[])]
     .sort((a, b) => (b.score || 0) - (a.score || 0))
     .map((item, index) => {
       const evidenceRows = Object.fromEntries(

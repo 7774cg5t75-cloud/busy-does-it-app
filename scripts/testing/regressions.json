@@ -1465,6 +1465,12 @@
       "args": [
         "scripts/check-mission15-phase34-record-wording.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase34-home-quote",
+      "args": [
+        "scripts/check-mission15-phase34-home-quote.mjs"
+      ]
     }
   ]
 }
