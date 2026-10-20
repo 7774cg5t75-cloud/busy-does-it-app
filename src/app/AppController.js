@@ -1,3 +1,4 @@
+import {readPrivateQuoteCopy,quoteCustomerSource} from '../core/privateQuoteCopy.mjs';
 import {protectQuoteDraftTransition,isQuoteDraftSourceCurrent} from '../core/quoteDraftTransition.mjs';
 import {beginSocialContentAction,matchesSocialContentPost} from '../core/socialContentActionGuard.mjs';
 import {localCoreAreaRequest} from "../domain/growthOperatorBridge.mjs";
@@ -591,6 +592,8 @@ function App() {
   const [businessCacheRecovery,setBusinessCacheRecovery]=useState(null);
   const [privateContentSave,setPrivateContentSave]=useState(null);
   const privateContentWrite=useRef(null);
+  const [privateQuoteSave,setPrivateQuoteSave]=useState(null);
+  const privateQuoteWrite=useRef(null);
   const cloudOwnerScopeRef=useRef(null),businessCacheScopeRef=useRef(null),preservedBusinessCacheRef=useRef(null);
   if(cloudOwnerScopeRef.current?.userId!==(ownerSession?.userId||""))cloudOwnerScopeRef.current={userId:ownerSession?.userId||""};
   const businessWorkspaceScopeRef=useRef(null);
@@ -864,16 +867,21 @@ function App() {
         const record=socialDrafts.find(item=>item.id===selectedSocialDraftId&&item.status==='Draft');
         const receipt=record?{scope:businessWorkspaceScopeRef.current,record,status:'saving'}:null;
         if(receipt)privateContentWrite.current=receipt;
+        const quoteRecord=data.replyActions?.[selectedReplyActionId];
+        const quoteReceipt=quoteRecord?.type==='quote'?{scope:businessWorkspaceScopeRef.current,record:quoteRecord,customerId:selectedReplyActionId,stamp:JSON.stringify(quoteRecord),revision:cloudRevision,status:'saving'}:null;
+        if(quoteReceipt)privateQuoteWrite.current=quoteReceipt;
         let encoded;
         try{encoded=encodeBusinessCache({ownerId:ownerSession.userId,businessId:cloudWorkspace.businessId,revision:cloudRevision,payload:data});}
-        catch(error){if(receipt){receipt.status='failed';setPrivateContentSave(receipt);}throw error;}
+        catch(error){if(receipt){receipt.status='failed';setPrivateContentSave(receipt);}if(quoteReceipt)setPrivateQuoteSave({...quoteReceipt,status:'failed'});throw error;}
         if(receipt){receipt.encoded=encoded;receipt.cacheKey=userCacheKey;receipt.ownerId=ownerSession.userId;receipt.businessId=writeBusiness;setPrivateContentSave(receipt);}
+        if(quoteReceipt)setPrivateQuoteSave(quoteReceipt);
         enqueuePrivateCheckpoint(userCacheKey,async()=>{
-          if(!receipt)return AsyncStorage.setItem(userCacheKey,encoded);
+          if(!receipt&&!quoteReceipt)return AsyncStorage.setItem(userCacheKey,encoded);
           const result=await confirmBusinessCacheWrite({encoded,ownerId:ownerSession.userId,businessId:writeBusiness,write:value=>AsyncStorage.setItem(userCacheKey,value),read:()=>AsyncStorage.getItem(userCacheKey)});
-          if(privateContentWrite.current===receipt&&businessWorkspaceScopeRef.current===receipt.scope)setPrivateContentSave({...receipt,status:result.status});
+          if(receipt&&privateContentWrite.current===receipt&&businessWorkspaceScopeRef.current===receipt.scope)setPrivateContentSave({...receipt,status:result.status});
+          if(quoteReceipt&&privateQuoteWrite.current===quoteReceipt&&businessWorkspaceScopeRef.current===quoteReceipt.scope)setPrivateQuoteSave({...quoteReceipt,status:result.status});
           if(result.status!=='confirmed')throw Error('Device readback was not confirmed.');
-        }).catch(()=>{if(receipt&&privateContentWrite.current===receipt&&businessWorkspaceScopeRef.current===receipt.scope)setPrivateContentSave({...receipt,status:'unknown'});if(cloudOwnerScopeRef.current===writeScope&&snapshotContextRef.current?.businessId===writeBusiness)setCloudSyncError("The private device copy could not be confirmed. Your cloud copy is unchanged; keep your current wording.");});
+        }).catch(()=>{if(quoteReceipt&&privateQuoteWrite.current===quoteReceipt&&businessWorkspaceScopeRef.current===quoteReceipt.scope)setPrivateQuoteSave({...quoteReceipt,status:'unknown'});if(receipt&&privateContentWrite.current===receipt&&businessWorkspaceScopeRef.current===receipt.scope)setPrivateContentSave({...receipt,status:'unknown'});if(cloudOwnerScopeRef.current===writeScope&&snapshotContextRef.current?.businessId===writeBusiness)setCloudSyncError("The private device copy could not be confirmed. Your cloud copy is unchanged; keep your current wording.");});
       }catch{setCloudSyncError("The device copy could not be verified for this business.");}
     }
   }, [
@@ -1457,7 +1465,7 @@ function App() {
     return true;
   };
 
-  const replyActionSources=useRef(null);replyActionSources.current={customers,lastSimulatedRecipients,replyActions,role:cloudWorkspace?.role};
+  const replyActionSources=useRef(null);replyActionSources.current={customers,lastSimulatedRecipients,replyActions,selectedReplyActionId,cloudRevision,role:cloudWorkspace?.role};
   const beginReplyAction = (customerId, suggested) => {
     const customer =
       customers.find((item) => item.id === customerId) ||
@@ -3793,6 +3801,20 @@ function App() {
     }
 
     return record;
+  };
+
+  const checkPrivateQuoteCopy=async({isCurrent=()=>true}={})=>{
+    const scope=businessWorkspaceScopeRef.current,customerId=selectedReplyActionId,record=replyActions[customerId];
+    const customer=customers.find(row=>row.id===customerId)||lastSimulatedRecipients.find(row=>row.id===customerId);
+    const stamp=JSON.stringify(record),customerStamp=JSON.stringify(quoteCustomerSource(customer));
+    const current=()=>businessWorkspaceScopeRef.current===scope&&scope===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&replyActionSources.current.selectedReplyActionId===customerId&&replyActionSources.current.cloudRevision===cloudRevision&&replyActionSources.current.replyActions[customerId]===record&&JSON.stringify(record)===stamp&&JSON.stringify(quoteCustomerSource(replyActionSources.current.customers.find(row=>row.id===customerId)||replyActionSources.current.lastSimulatedRecipients.find(row=>row.id===customerId)))===customerStamp;
+    const key=businessCacheKey(storageKeyForUser(ownerSession?.userId),cloudWorkspace?.businessId);
+    if(!current()||!isCurrent()||record?.type!=='quote'||!key||!customer)return false;
+    const receipt={scope,record,customerId,stamp,revision:cloudRevision,status:'checking'};privateQuoteWrite.current=receipt;setPrivateQuoteSave(receipt);
+    const result=await readPrivateQuoteCopy({read:()=>AsyncStorage.getItem(key),ownerId:ownerSession.userId,businessId:cloudWorkspace.businessId,revision:cloudRevision,customer,record});
+    if(privateQuoteWrite.current!==receipt)return false;
+    if(!current()){if(businessWorkspaceScopeRef.current===scope)setPrivateQuoteSave({...receipt,status:'unknown'});return false;}
+    const status=isCurrent()?result.status:'unknown';setPrivateQuoteSave({...receipt,status});return status==='confirmed';
   };
 
   const checkPrivateContentCopy=async()=>{
@@ -6757,6 +6779,7 @@ function App() {
     setJobPostOutcome("No enquiry yet");
     setJobPostOutcomeValue("");
     setSocialDrafts([]);
+    privateQuoteWrite.current=null;setPrivateQuoteSave(null);
     setSocialCreatePhotos([]);
     setSocialBrief("");
     setSocialAiStatus("idle");
@@ -17535,6 +17558,8 @@ function App() {
     socialScheduleTime,
     setSocialScheduleTime:value=>{socialContentActions.invalidate();setSocialScheduleTime(value);},
     socialSourceContext,
+    privateQuoteSave:privateQuoteSave?.scope===businessWorkspaceScopeRef.current&&privateQuoteSave.revision===cloudRevision?{record:privateQuoteSave.record,customerId:privateQuoteSave.customerId,stamp:privateQuoteSave.stamp,status:privateQuoteSave.status}:null,
+    checkPrivateQuoteCopy,
     privateContentSave:privateContentSave?.scope===businessWorkspaceScopeRef.current?{record:privateContentSave.record,status:privateContentSave.status}:null,
     socialContentActions,
     selectedSocialDraftId,

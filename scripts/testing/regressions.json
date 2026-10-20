@@ -1549,6 +1549,12 @@
       "args": [
         "scripts/check-mission15-phase36-quote-navigation.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase36-quote-device-copy",
+      "args": [
+        "scripts/check-mission15-phase36-quote-device-copy.mjs"
+      ]
     }
   ]
 }

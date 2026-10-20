@@ -56,5 +56,5 @@ export function useQuoteActionReview(s){
    dirty.current=false;report(false);s.back?.();
   }else{dirty.current=true;report(true);}
  },[action,stamp,scope,customerStamp,...renderValues]);
- return {edit,commit,validDate,conflict,saving:!!pending.current,dirty:dirty.current,sentAt:()=>validDate?new Date(date+'T12:00:00').toISOString():null};
+ return {edit,commit,checkDeviceCopy:()=>current()&&s.checkPrivateQuoteCopy?.({isCurrent:()=>current()&&epoch.current===renderEpoch}),validDate,conflict,saving:!!pending.current,dirty:dirty.current,sentAt:()=>validDate?new Date(date+'T12:00:00').toISOString():null};
 }

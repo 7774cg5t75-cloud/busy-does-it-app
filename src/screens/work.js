@@ -1,3 +1,4 @@
+import {QuotePrivateSaveStatus} from '../components/QuotePrivateSaveStatus';
 import {useQuoteActionReview} from './useQuoteActionReview';
 import React, { useEffect, useState } from "react";
 import GetPaidOwnerReview from "../components/GetPaidOwnerReview";
@@ -3677,6 +3678,7 @@ function ReplyActionDetail({ s }) {
         </View>
         <GetPaidOwnerReview s={s} customer={customer} saved={saved} type="quote" todayISO={todayISO} />
         <Card eyebrow="Private quote" title={quoteReview.conflict?'The saved quote changed':quoteReview.saving?'Checking the updated record':quoteReview.dirty?'Changes not recorded yet':'Private record review'} body={quoteReview.conflict?'Your words are kept. Reopen the current quote or deliberately discard your changes before using a different source.':'Recording this quote uses the current workspace record. Device/account persistence and customer delivery are not confirmed by this form.'} tone="blue" />
+        <QuotePrivateSaveStatus s={s} record={saved} dirty={quoteReview.dirty} check={quoteReview.checkDeviceCopy}/>
         <Field label="Quote amount" value={s.actionQuoteAmount} onChangeText={value=>quoteReview.edit('actionQuoteAmount',value)} keyboardType="number-pad" prefix="£" />
         <Text style={styles.fieldLabel}>Draft reply</Text>
         <TextInput multiline value={s.actionQuoteMessage} onChangeText={value=>quoteReview.edit('actionQuoteMessage',value)} style={styles.messageInput} />
