@@ -1687,6 +1687,12 @@
       "args": [
         "scripts/check-mission15-phase40-creator-formats.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase40-growth-formats",
+      "args": [
+        "scripts/check-mission15-phase40-growth-formats.mjs"
+      ]
     }
   ]
 }
