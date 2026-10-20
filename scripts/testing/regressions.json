@@ -1729,6 +1729,12 @@
       "args": [
         "scripts/check-mission15-phase41-item-formats.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase41-growth-item-formats",
+      "args": [
+        "scripts/check-mission15-phase41-growth-item-formats.mjs"
+      ]
     }
   ]
 }

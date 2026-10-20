@@ -6,9 +6,10 @@ import {publicBusinessContent,selectBusinessContent} from '../core/businessConte
 
 // Original approved-record read and Creator handoff; no separate copy or marketing engine.
 export function GrowthCatalogueIdeas({s}){
+ const [channel,setChannel]=React.useState('social');
  const [treatment,setTreatment]=React.useState('standard');
  const [view,setView]=React.useState(null),live=React.useRef({s,view}),alive=React.useRef(true),sequence=React.useRef(0);
- live.current={s,view,treatment};React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
+ live.current={s,view,treatment,channel};React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
  if(!s.socialContentActions||!s.businessContentRequest)return null;
  const ticket=s.socialContentActions.capture(),owner=s.ownerSession?.userId,businessId=s.cloudWorkspace?.businessId;
  const current=()=>alive.current&&live.current.s.ownerSession?.userId===owner&&live.current.s.cloudWorkspace?.businessId===businessId&&live.current.s.socialContentActions.fresh(ticket);
@@ -26,14 +27,15 @@ export function GrowthCatalogueIdeas({s}){
  };
  const visible=view?.owner===owner&&view?.businessId===businessId&&s.socialContentActions.fresh(view.ticket)?view:null;
  return <Card eyebrow="Get More Customers · £0-first" title="Tell people about an approved item"
-  body="Use a current approved product or event as the starting point for a factual post. Busy can prepare private wording; no reach, sales, stock, tickets or booking availability are promised.">
+  body="Use a current approved product or event as the starting point for social, poster or advert wording. These are editable text drafts, not graphics or live advertisements. Busy can prepare private wording; no reach, sales, stock, tickets or booking availability are promised.">
   <Button label={view?.status==='loading'?'Loading approved items…':'Find approved product and event ideas'} onPress={load}/>
+  {visible?.records?.length>0?<><Text style={styles.cardBody}>Choose the text format for this idea. No graphic, campaign or publication is created.</Text>{[['social','Social post wording'],['poster','Poster wording'],['advert','Advert wording']].map(([value,label])=><Button key={value} label={(value===channel?'✓ ':'')+label} onPress={()=>{if(current()&&live.current.view===view){live.current.channel=value;setChannel(value);}}}/>)}</>:null}
   {visible?.records?.length>0?<><Text style={styles.cardBody}>Choose the wording for your next idea. Your current draft stays unchanged until you use it in Content Creator.</Text>{[['standard','Original wording'],['welcoming','Friendly and welcoming'],['concise','Short and clear'],['detailed','More explanatory']].map(([value,label])=><Button key={value} label={(value===treatment?'✓ ':'')+label} onPress={()=>{if(current()&&live.current.view===view){live.current.treatment=value;setTreatment(value);}}}/>)}</>:null}
   {visible?.records?.map(row=><React.Fragment key={row.id}>
    <Text style={styles.cardBody}>{row.data.name+' — '+row.data.description}</Text>
-   {[{id:'',label:'Prepare a post: '+row.data.name},...(row.kind==='product'?(row.data.variants||[]).map(option=>({id:option.id,label:'Prepare for option: '+option.label})):[])].map(option=><Button key={option.id||row.id} label={option.label} onPress={()=>{
-    if(!current()||live.current.treatment!==treatment||live.current.view!==view||!live.current.s.socialContentActions.fresh(view.ticket))return false;
-    return live.current.s.socialContentActions.loadRecords(row.kind,'','',{selection:{recordId:row.id,revision:row.revision,...option.id?{variantId:option.id}:{}},recordStamp:JSON.stringify(row)},treatment);
+   {[{id:'',label:(channel==='social'?'Prepare a post: ':channel==='poster'?'Prepare poster wording: ':'Prepare advert wording: ')+row.data.name},...(row.kind==='product'?(row.data.variants||[]).map(option=>({id:option.id,label:'Prepare for option: '+option.label})):[])].map(option=><Button key={option.id||row.id} label={option.label} onPress={()=>{
+    if(!current()||live.current.treatment!==treatment||live.current.channel!==channel||live.current.view!==view||!live.current.s.socialContentActions.fresh(view.ticket))return false;
+    return live.current.s.socialContentActions.loadRecords(row.kind,'','',{selection:{recordId:row.id,revision:row.revision,...option.id?{variantId:option.id}:{}},recordStamp:JSON.stringify(row)},treatment,false,channel);
    }}/>) }
   </React.Fragment>)}
   {visible?.status==='ready'&&!visible.records.length?<Text style={styles.cardBody}>No eligible approved items were found. You can still introduce your business or explain a current service.</Text>:null}
