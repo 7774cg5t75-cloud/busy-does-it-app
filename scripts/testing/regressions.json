@@ -1483,6 +1483,12 @@
       "args": [
         "scripts/check-mission15-phase34-quote-scope.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase35-growth-treatment",
+      "args": [
+        "scripts/check-mission15-phase35-growth-treatment.mjs"
+      ]
     }
   ]
 }

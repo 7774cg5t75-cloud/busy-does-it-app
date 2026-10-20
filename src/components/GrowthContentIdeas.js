@@ -1,6 +1,7 @@
 import React from 'react';
 import {Text} from 'react-native';
 import {Card,Button} from './ui';
+import {ContentWordingChoices} from './ContentWordingChoices';
 import {styles} from '../theme/styles';
 import {buildContentBrandSnapshot} from '../core/businessBrandDnaV3195.mjs';
 import {prepareSocialBrandHandoff,confirmSocialBrandHandoff} from '../core/socialBrandHandoffV3199.mjs';
@@ -9,7 +10,7 @@ import {prepareSocialBrandHandoff,confirmSocialBrandHandoff} from '../core/socia
 export function GrowthContentIdeas({s}){
  const input={website:s.websiteDraft,app:s.miniAppsStatus?.app,businessId:s.cloudWorkspace?.businessId,approvedProfile:s.businessCreationIntelligence?.sharedProfile};
  const ownerId=s.ownerSession?.userId,live=React.useRef(null);live.current={...input,ownerId,s};
- const [idea,setIdea]=React.useState(null);
+ const [idea,setIdea]=React.useState(null);live.current.idea=idea;
  const snapshot=buildContentBrandSnapshot(input);
  const current=()=>live.current.ownerId===ownerId&&live.current.businessId===input.businessId&&live.current.website===input.website&&live.current.app===input.app&&JSON.stringify(buildContentBrandSnapshot(live.current).source)===JSON.stringify(snapshot.source);
  const checked=idea&&idea.ownerId===ownerId&&current()?confirmSocialBrandHandoff({...input,evidence:idea}):null;
@@ -22,9 +23,10 @@ export function GrowthContentIdeas({s}){
    onPress={()=>{if(current())setIdea({...prepareSocialBrandHandoff({...input,serviceName:service.name}),ownerId});}}/>)}
   {checked?.ok?<>
    <Text style={styles.sectionLabel}>{'Private wording idea · '+(checked.purpose==='business-introduction'?'Business introduction':checked.serviceName)}</Text>
+   <ContentWordingChoices pending={{purpose:checked.purpose,evidence:checked}} actions={{chooseTreatment:(_,treatment)=>{if(!current()||live.current.idea!==idea)return false;const next=prepareSocialBrandHandoff({...input,serviceName:checked.serviceName,purpose:checked.purpose,sourceMode:checked.sourceMode,treatment});if(next.ok)setIdea({...next,ownerId});return next.ok;}}}/>
    <Text selectable style={styles.cardBody}>{checked.copy}</Text>
    <Text style={styles.cardBody}>{'Open this exact idea in Content Creator for review. Your existing caption, saved draft and selected media stay unchanged until you deliberately use the new idea.'}</Text>
-   <Button label="Open Content Creator for this idea" onPress={()=>{if(!current()||!confirmSocialBrandHandoff({...input,evidence:idea}).ok)return;if(live.current.s.socialContentActions)live.current.s.socialContentActions.prepare(checked.serviceName,'','',checked.purpose);else live.current.s.go('socialCreator');}}/>
+   <Button label="Open Content Creator for this idea" onPress={()=>{if(!current()||live.current.idea!==idea||!confirmSocialBrandHandoff({...input,evidence:idea}).ok)return;if(live.current.s.socialContentActions)live.current.s.socialContentActions.prepare(checked.serviceName,'',checked.sourceMode,checked.purpose,'',checked.treatment);else live.current.s.go('socialCreator');}}/>
   </>:idea?<Text style={styles.cardBody}>Your approved source changed. Review a current service idea again.</Text>:null}
  </Card>;
 }
