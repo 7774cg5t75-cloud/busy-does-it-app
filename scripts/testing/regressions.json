@@ -1369,6 +1369,12 @@
       "args": [
         "scripts/check-mission15-phase33-announcements.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase33-growth-home",
+      "args": [
+        "scripts/check-mission15-phase33-growth-home.mjs"
+      ]
     }
   ]
 }
