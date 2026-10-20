@@ -9,13 +9,13 @@ import {prepareBusinessContentEnquiry,contentEventSchedule} from "./businessCont
 const currentSource=(a,b)=>a&&b&&
  a.websiteId===b.websiteId&&a.websiteGeneration===b.websiteGeneration&&
  a.appId===b.appId&&a.appDraftRevision===b.appDraftRevision&&a.approvedProfileSource===b.approvedProfileSource;
-function prepareSocialBrandHandoff({website,app,businessId,serviceName="",approvedProfile,sourceMode="",purpose="service"}={}){
+function prepareSocialBrandHandoff({website,app,businessId,serviceName="",approvedProfile,sourceMode="",purpose="service",treatment="standard"}={}){
  if(!["service","business-introduction"].includes(purpose)||purpose==="business-introduction"&&serviceName)return {ok:false,reason:"Choose a supported content purpose."};
  const snapshot=buildContentBrandSnapshot({website,app,businessId,approvedProfile,sourceMode});
  if(!snapshot.ok)return {ok:false,reason:snapshot.reason};
  const matching=serviceName?(snapshot.source.approvedProfileSource?approvedProfile.services:app?.draft_config?.publicProfile?.services||[]).filter(row=>typeof row?.name==='string'&&row.name.trim().toLocaleLowerCase('en')===serviceName.toLocaleLowerCase('en')):[];
  if(serviceName&&matching.length!==1)return {ok:false,reason:"Review the service identity before preparing its post. Duplicate service names cannot be guessed."};
- const copy=prepareBrandedCopyPreview(snapshot,{channel:"social",serviceName});
+ const copy=prepareBrandedCopyPreview(snapshot,{channel:"social",serviceName,treatment});
  if(!copy.ok)return copy;
  return {...copy,purpose,sourceMode:snapshot.source.approvedProfileSource?"approved-profile":"builders",serviceId:matching[0]?.id||null,kind:"private_social_brand_handoff_v3199",
   notAutomaticallySaved:true,noMediaAttached:true,
@@ -52,7 +52,7 @@ function confirmSocialBrandHandoff({website,app,businessId,evidence,approvedProf
   const fresh=prepareSocialRecordHandoff({website,app,businessId,approvedProfile,feed,sourceMode:evidence.sourceMode,selection:evidence.selection});
   return fresh.ok&&currentSource(fresh.source,evidence.source)&&fresh.recordStamp===evidence.recordStamp&&fresh.copy===evidence.copy?fresh:{ok:false,reason:'This approved item changed. Reload its current information before preparing content.'};
  }
- const fresh=prepareSocialBrandHandoff({website,app,businessId,approvedProfile,sourceMode:evidence.sourceMode,purpose:evidence.purpose||"service",serviceName:evidence.serviceName||""});
+ const fresh=prepareSocialBrandHandoff({website,app,businessId,approvedProfile,sourceMode:evidence.sourceMode,purpose:evidence.purpose||"service",treatment:evidence.treatment||"standard",serviceName:evidence.serviceName||""});
  if(!fresh.ok||!currentSource(fresh.source,evidence.source)||
     fresh.copy!==evidence.copy||fresh.brandColour!==evidence.brandColour||fresh.serviceId!==evidence.serviceId)
   return {ok:false,reason:"Business branding changed. Prepare a new caption before using it."};

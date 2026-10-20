@@ -17,9 +17,9 @@ export function useSocialContentHandoff(input){
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:pending});
   input.go('socialCreator');return true;
  };
- const keep=expected=>{if(!valid()||live.current.sourceContext?.pendingContentIdea!==expected)return false;epoch.current++;const {pendingContentIdea,...rest}=live.current.sourceContext;setContext(rest);return true;};
+ const keep=expected=>{if(!valid()||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected)return false;epoch.current++;const {pendingContentIdea,...rest}=live.current.sourceContext;setContext(rest);return true;};
  const failPending=(expected,reason)=>{
-  if(valid()&&live.current.sourceContext?.pendingContentIdea===expected){epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,loading:false,evidence:{ok:false,reason}}});}return false;
+  if(valid()&&expected?.scope===scope&&live.current.sourceContext?.pendingContentIdea===expected){epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,loading:false,evidence:{ok:false,reason}}});}return false;
  };
  const loadRecords=async(kind,platform='',sourceMode='',hint=null)=>{
   if(!valid()||!['product','event'].includes(kind))return false;
@@ -39,13 +39,20 @@ export function useSocialContentHandoff(input){
   }
  };
  const selectRecord=(expected,selection)=>{
-  if(!valid()||live.current.sourceContext?.pendingContentIdea!==expected)return false;
+  if(!valid()||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected)return false;
   const evidence=prepareSocialRecordHandoff({...context(),feed:expected.feed,sourceMode:expected.sourceMode,selection});
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,evidence}});return evidence.ok;
  };
+ const chooseTreatment=(expected,treatment)=>{
+  if(!valid()||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected||!['service','business-introduction'].includes(expected.purpose))return false;
+  if(!confirmSocialBrandHandoff({...context(),evidence:expected.evidence}).ok)return failPending(expected,'The business source changed. Prepare a current idea before choosing its wording.');
+  const evidence=prepareSocialBrandHandoff({...context(),sourceMode:expected.sourceMode,serviceName:expected.serviceName,purpose:expected.purpose,treatment});
+  if(!evidence.ok)return false;
+  epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,evidence}});return true;
+ };
  const editOwnerFacts=(expected,value)=>{
   const pending=live.current.sourceContext?.pendingContentIdea;
-  if(!valid()||!expected.session||pending?.session!==expected.session||pending.purpose!=='owner-announcement')return false;
+  if(!valid()||expected?.scope!==scope||!expected.session||pending?.session!==expected.session||pending.purpose!=='owner-announcement')return false;
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,ownerFacts:value,evidence:prepareOwnerAnnouncementHandoff({...context(),sourceMode:pending.sourceMode,ownerFacts:value})}});return true;
  };
  const commitAccepted=(expected,checked)=>{
@@ -118,5 +125,5 @@ export function useSocialContentHandoff(input){
   if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform);return {...result,opened:valid()};}
   return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose,result.ownerFacts)}:result;
  };
- return {route,prepare,loadRecords,selectRecord,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource,editText,reopen,replaceDraft,invalidate:()=>{if(current())epoch.current++;}};
+ return {route,prepare,loadRecords,selectRecord,chooseTreatment,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource,editText,reopen,replaceDraft,invalidate:()=>{if(current())epoch.current++;}};
 }

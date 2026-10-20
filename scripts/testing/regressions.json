@@ -1417,6 +1417,12 @@
       "args": [
         "scripts/check-mission15-phase34-natural-content.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase34-wording",
+      "args": [
+        "scripts/check-mission15-phase34-wording.mjs"
+      ]
     }
   ]
 }

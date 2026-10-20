@@ -1,3 +1,4 @@
+import {ContentWordingChoices} from '../components/ContentWordingChoices';
 import {ContentSourceReview} from '../components/ContentSourceReview';
 import {ContentRecordChoices} from '../components/ContentRecordChoices';
 import {ContentDraftStatus} from "../components/ContentDraftStatus";
@@ -745,6 +746,7 @@ function SocialCreator({ s }) {
         {!incomingSnapshot.ok&&s.businessCreationIntelligence?.sharedProfile?<Button label="Use current approved business profile" onPress={()=>recordIdea?s.socialContentActions?.loadRecords(pendingIdea.purpose,pendingIdea.platform,'approved-profile'):s.socialContentActions?.prepare(pendingIdea.serviceName,pendingIdea.platform,'approved-profile',pendingIdea.purpose,pendingIdea.ownerFacts)}/>:null}
         {ownerIdea?<><Field label="Your exact announcement or offer details" value={pendingIdea.ownerFacts||''} multiline onChangeText={value=>s.socialContentActions?.editOwnerFacts(pendingIdea,value)} placeholder="Include the dates, terms or prices you want to state."/><Text style={styles.cardBody}>Owner-supplied draft information, not independently verified business facts. Review any missing dates, offer terms or eligibility before publication.</Text></>:null}
         {recordIdea?<ContentRecordChoices pending={pendingIdea} actions={s.socialContentActions}/>:null}
+        <ContentWordingChoices pending={pendingIdea} actions={s.socialContentActions}/>
         {pendingCheck?.ok?<Button label={ownerIdea?'Use my announcement':recordIdea?'Use this item idea':pendingIdea.purpose==='business-introduction'?"Use this introduction":"Use this service idea"} onPress={applyIncomingIdea}/>:!ownerIdea&&!recordIdea&&incomingSnapshot.ok&&pendingIdea.purpose!=='business-introduction'?incomingSnapshot.services.map(service=><Button key={service.name} label={'Use service: '+service.name} onPress={()=>s.socialContentActions?.prepare(service.name,pendingIdea.platform,pendingIdea.sourceMode)}/>):null}
         <Button label="Keep my current draft" onPress={()=>s.socialContentActions?.keep(pendingIdea)}/>
       </Card>:null}
