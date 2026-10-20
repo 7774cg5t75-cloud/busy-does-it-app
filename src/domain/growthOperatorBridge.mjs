@@ -87,6 +87,7 @@ function localCoreAreaRequest(text){
  if(/^(?:busy[, ]+)?(?:please )?(?:(?:show|open|continue|resume)(?: me)? (?:the |my )?(?:enquiry (?:I was|we were) working on|original enquiry)|take me back to (?:the |my )?original enquiry)[.!?]?$/i.test(request))return {route:'busyInbox',resumeEnquiry:true,response:'Review the current enquiry or choose its exact record. Nothing is filed or sent by navigation.'};
  const followUp=/^(?:busy[, ]+)?(?:please )?(?:(?:help me |prepare (?:a )?(?:polite )?)?follow up on (?:(?:a|that|this|the|my) )?quote|review (?:(?:the|my|this) )?quote follow-up)(?: for (.+?))?[.!?]?$/i.exec(request);
  if(followUp)return {route:'workHub',reviewQuoteFollowUp:true,quoteCustomerName:followUp[1]||'',response:'Choose the exact recorded quote in Work to review before preparing a private follow-up. No message has been sent; recorded quote status is not delivery evidence.'};
+ if(/^(?:busy[, ]+)?(?:please )?(?:show|review|open)(?: me)?(?: (?:my|the|our))? (?:recorded |existing )?quotes(?: (?:to|that need) follow[ -]up)?[.!?]?$/i.test(request))return {route:'workHub',chooseQuote:true,response:'Choose an existing recorded quote in Work. Review the customer and enquiry before private follow-up preparation; no delivery or urgency is inferred.'};
  // Incomplete follow-up wording must not fall through to quote creation/navigation.
  if(/\bfollow[ -]up\b/i.test(request))return null;
  const quote=/^(?:busy[, ]+)?(?:please )?(?:continue|resume|open|review)(?: (?:my|the|our|this|private|prepared|saved))* quote(?: for (.+?))?[.!?]?$/i.exec(request);

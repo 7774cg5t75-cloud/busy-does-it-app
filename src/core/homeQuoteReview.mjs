@@ -64,3 +64,14 @@ export function followUpQuoteChoices(s){
   return target?[target]:[];
  });
 }
+
+export function homeQuoteSelectionReview(s,getCurrent){
+ const entries=followUpQuoteChoices(s);if(!entries.length)return null;
+ const scope=s.ownerWorkspaceScope,owner=s.ownerSession.userId,business=s.cloudWorkspace.businessId,revision=s.cloudRevision;
+ const stamp=JSON.stringify(entries);
+ return {id:'recorded-quote-selection',score:54,eyebrow:'Work & Customers',title:'Choose a recorded quote to review',body:entries.length+' recorded quote'+(entries.length===1?' is':'s are')+' available for private review. Choose the correct customer before preparing a follow-up; delivery and urgency are not inferred.',why:'This comes from existing eligible quote records, not a reminder or a customer reply.',evidence:[['Source','Existing customer and quote records'],['Status','Recorded status; delivery not verified']],actionLabel:'Choose a quote',canIgnore:false,tone:'blue',onAction:()=>{
+  const now=getCurrent();
+  if(now.ownerWorkspaceScope!==scope||now.ownerSession?.userId!==owner||now.cloudWorkspace?.businessId!==business||!['owner','admin'].includes(now.cloudWorkspace?.role)||now.cloudRevision!==revision||now.customers!==s.customers||now.replyActions!==s.replyActions||JSON.stringify(followUpQuoteChoices(now))!==stamp)return false;
+  return now.go('workHub')!==false;
+ }};
+}

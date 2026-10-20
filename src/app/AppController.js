@@ -12290,11 +12290,17 @@ function App() {
         if(continuation)response=continuation.onAction()?'Continue your current unsaved content. Your words, photos and destination choices are kept; nothing was saved or published.':'Your content or current permissions changed. Keep your latest wording and review Content Creator.';
         else if(['owner','admin'].includes(replyActionSources.current.role))go(local.route);
         else response='Your current business permissions need review before opening private content.';
+      }else if(allowed&&local.chooseQuote){
+        if(['owner','admin'].includes(replyActionSources.current.role))go(local.route);
+        else response='Your current business permissions need review before opening private quotes.';
       }else if(allowed&&(local.continueQuote||local.reviewQuoteFollowUp)){
         const source=replyActionSources.current;
+        if(!['owner','admin'].includes(source.role))response='Your current business permissions need review before opening private quotes.';
+        else{
         const target=(local.reviewQuoteFollowUp?followUpQuoteTarget:preparedQuoteTarget)({ownerWorkspaceScope:socialDraftScope,ownerSession,cloudWorkspace:{...cloudWorkspace,role:source.role},customers:source.customers,replyActions:source.replyActions,selectedReplyActionId:source.selectedReplyActionId},local.quoteCustomerName);
         if(target){const opened=openSavedReplyAction(target.customer.id);response=opened?(local.reviewQuoteFollowUp?'Review the recorded quote and original enquiry for '+target.customer.name+' before choosing private follow-up preparation. Recorded status is not proof of customer delivery. Nothing has been sent.':'Review the existing private quote for '+target.customer.name+'. Nothing has been sent or approved.'):'Your current changes or the quote source need attention before opening this private quote. Nothing has been sent.';}
         else go(local.route);
+        }
       }else if(allowed){if(local.route==='busyInbox')openBusyInbox();else go(local.route);}
       return acceptGrowthOperator({handled:true,result:{title:"Busy",intent:"open_core_area",localNavigationOnly:true,transcript,response:allowed?response:"Sign in as this business owner and select your business before opening private work.",mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
     };

@@ -1711,6 +1711,12 @@
       "args": [
         "scripts/check-mission15-phase40-growth-source-choice.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase40-home-quote-selection",
+      "args": [
+        "scripts/check-mission15-phase40-home-quote-selection.mjs"
+      ]
     }
   ]
 }
