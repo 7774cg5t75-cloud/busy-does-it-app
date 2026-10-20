@@ -56,5 +56,10 @@ export function useQuoteActionReview(s){
    dirty.current=false;report(false);s.back?.();
   }else{dirty.current=true;report(true);}
  },[action,stamp,scope,customerStamp,...renderValues]);
- return {edit,commit,checkDeviceCopy:()=>current()&&s.checkPrivateQuoteCopy?.({isCurrent:()=>current()&&epoch.current===renderEpoch}),validDate,conflict,saving:!!pending.current,dirty:dirty.current,sentAt:()=>validDate?new Date(date+'T12:00:00').toISOString():null};
+ const transition=operation=>{
+  const isCurrent=()=>current()&&!conflict&&!pending.current&&epoch.current===renderEpoch;
+  if(!isCurrent()||typeof s.requestOwnerEditTransition!=='function')return false;
+  return s.requestOwnerEditTransition(operation,{isCurrent});
+ };
+ return {edit,commit,transition,checkDeviceCopy:()=>current()&&s.checkPrivateQuoteCopy?.({isCurrent:()=>current()&&epoch.current===renderEpoch}),validDate,conflict,saving:!!pending.current,dirty:dirty.current,sentAt:()=>validDate?new Date(date+'T12:00:00').toISOString():null};
 }

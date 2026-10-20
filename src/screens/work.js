@@ -3741,6 +3741,7 @@ function ReplyActionDetail({ s }) {
         ) : null}
         {saved.done && quoteStatus === "Sent" ? (
           <>
+            {!saved.details?.followUpSentAt && s.prepareQuoteFollowUp ? <Button label="Prepare a private quote follow-up" onPress={() => quoteReview.transition(() => s.prepareQuoteFollowUp(customer.id))} /> : null}
             <Button label="Mark quote accepted" onPress={() => s.setQuoteStatus(customer.id, "Accepted")} />
             <Button label="Mark quote declined" onPress={() => s.setQuoteStatus(customer.id, "Declined")} />
           </>
