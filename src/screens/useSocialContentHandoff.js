@@ -1,5 +1,5 @@
 import React from 'react';
-import {publicBusinessContent,selectBusinessContent} from '../core/businessContentRecords.mjs';
+import {publicBusinessContent,selectBusinessContent,prepareBusinessContentEnquiry} from '../core/businessContentRecords.mjs';
 import {prepareSocialBrandHandoff,confirmSocialBrandHandoff,resolveSocialServiceIntent,prepareSocialRecordHandoff,prepareOwnerAnnouncementHandoff} from '../core/socialBrandHandoffV3199.mjs';
 
 // Pending intent stays inside the original in-memory source context. No draft store or save authority.
@@ -32,8 +32,13 @@ export function useSocialContentHandoff(input){
    const feed=result?.ok===true&&result.businessId===live.current.businessId?publicBusinessContent(result.records,result.businessId):null;
    const records=feed?.ok?selectBusinessContent(feed,{kind}).filter(row=>row.data.status!=='cancelled'):[];
    let evidence=feed?.ok?null:{ok:false,reason:'Current approved records could not be loaded. Your draft is unchanged.'};
-   if(hint&&feed?.ok){const row=feed.records.find(item=>item.id===hint.selection?.recordId);evidence=row&&JSON.stringify(row)===hint.recordStamp?prepareSocialRecordHandoff({...context(),sourceMode,feed,selection:hint.selection,treatment}):{ok:false,reason:'This item changed since the suggestion. Choose its current approved information below.'};}
-   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,loading:false,feed,records,evidence}});return !!feed?.ok;
+   let selectionHint=null;
+   if(hint&&feed?.ok){
+    const row=feed.records.find(item=>item.id===hint.selection?.recordId),interest=prepareBusinessContentEnquiry(feed,live.current.businessId,hint.selection);
+    if(row&&JSON.stringify(row)===hint.recordStamp&&interest.ok){selectionHint={selection:interest.selection,recordStamp:JSON.stringify(row)};evidence=prepareSocialRecordHandoff({...context(),sourceMode,feed,selection:interest.selection,treatment});}
+    else evidence={ok:false,reason:'This item changed since the suggestion. Choose its current approved information below.'};
+   }
+   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,loading:false,feed,records,evidence,selectionHint}});return !!feed?.ok;
   }catch{
    if(fresh(ticket)){epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,loading:false,evidence:{ok:false,reason:'Could not load approved records. Your draft is unchanged.'}}});}return false;
   }
@@ -44,11 +49,13 @@ export function useSocialContentHandoff(input){
   if(!pendingCurrent(expected)||expected.purpose!=='service')return false;
   return prepare(serviceName,expected.platform,expected.sourceMode,'service','',pendingTreatment(expected),expected.requiresTreatmentSelection);
  };
+ const recordHint=expected=>expected.evidence?.selection?{selection:expected.evidence.selection,recordStamp:expected.evidence.recordStamp}:expected.selectionHint||null;
+ const refreshRecords=expected=>pendingCurrent(expected)&&['product','event'].includes(expected.purpose)?loadRecords(expected.purpose,expected.platform,expected.sourceMode,recordHint(expected),pendingTreatment(expected),expected.requiresTreatmentSelection):false;
  const switchSource=(expected,sourceMode)=>{
   if(!pendingCurrent(expected)||sourceMode!=='approved-profile')return false;
   const treatment=pendingTreatment(expected);
   if(['product','event'].includes(expected.purpose)){
-   const hint=expected.evidence?.selection?{selection:expected.evidence.selection,recordStamp:expected.evidence.recordStamp}:null;
+   const hint=recordHint(expected);
    return loadRecords(expected.purpose,expected.platform,sourceMode,hint,treatment,expected.requiresTreatmentSelection);
   }
   return prepare(expected.serviceName,expected.platform,sourceMode,expected.purpose,expected.ownerFacts,treatment,expected.requiresTreatmentSelection);
@@ -65,7 +72,9 @@ export function useSocialContentHandoff(input){
  const selectRecord=(expected,selection)=>{
   if(!valid()||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected)return false;
   const evidence=prepareSocialRecordHandoff({...context(),feed:expected.feed,sourceMode:expected.sourceMode,treatment:expected.treatment||expected.evidence?.treatment||"standard",selection});
-  epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,evidence}});return evidence.ok;
+  const interest=prepareBusinessContentEnquiry(expected.feed,live.current.businessId,selection),row=expected.feed?.records?.find(item=>item.id===selection.recordId);
+  const selectionHint=interest.ok&&row?{selection:interest.selection,recordStamp:JSON.stringify(row)}:null;
+  epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,evidence,selectionHint}});return evidence.ok;
  };
  const chooseTreatment=(expected,treatment)=>{
   if(!valid()||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected||!['service','business-introduction','product','event','owner-announcement'].includes(expected.purpose))return false;
@@ -182,5 +191,5 @@ export function useSocialContentHandoff(input){
   if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform,'',null,result.treatment,result.needsTreatmentSelection);return {...result,opened:valid()};}
   return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose,result.ownerFacts,result.treatment,result.needsTreatmentSelection)}:result;
  };
- return {isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,start,switchSource,selectService,loadRecords,selectRecord,chooseTreatment,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource,checkAccountDraft,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
+ return {isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,start,switchSource,selectService,refreshRecords,loadRecords,selectRecord,chooseTreatment,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource,checkAccountDraft,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
 }

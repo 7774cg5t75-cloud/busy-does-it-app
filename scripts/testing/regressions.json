@@ -1537,6 +1537,12 @@
       "args": [
         "scripts/check-mission15-phase36-quote-review.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase36-record-continuity",
+      "args": [
+        "scripts/check-mission15-phase36-record-continuity.mjs"
+      ]
     }
   ]
 }
