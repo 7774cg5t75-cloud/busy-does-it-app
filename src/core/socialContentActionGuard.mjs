@@ -1,5 +1,6 @@
 // Transient guards around original client operations; no scheduler, ledger or provider authority.
 export function beginSocialContentAction({scope,scopeRef,operationRef,actions,record,ownSave=false,view}){
+ if(actions.isRenderCurrent?.()===false)return null;
  if(!scope||scopeRef.current!==scope||operationRef.current?.scope===scope||!record?.id)return null;
  const ticket=actions.capture(),stamp=JSON.stringify(record);
  if(!actions.fresh(ticket)||ticket.text!==view.text||ticket.photos!==view.photos||ticket.selectedId!==view.selectedId||ticket.records!==view.records)return null;

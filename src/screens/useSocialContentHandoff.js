@@ -5,7 +5,7 @@ import {prepareSocialBrandHandoff,confirmSocialBrandHandoff,resolveSocialService
 // Pending intent stays inside the original in-memory source context. No draft store or save authority.
 export function useSocialContentHandoff(input){
  const live=React.useRef(input),epoch=React.useRef(0);live.current=input;
- const scope=input.workspaceScope;
+ const scope=input.workspaceScope,renderEpoch=epoch.current;
  const current=()=>live.current.workspaceScope===scope;
  const context=()=>({website:live.current.website,app:live.current.app,businessId:live.current.businessId,approvedProfile:live.current.approvedProfile});
  const setContext=value=>{live.current={...live.current,sourceContext:value};input.setSourceContext(value);};
@@ -102,8 +102,13 @@ export function useSocialContentHandoff(input){
  };
  const editText=value=>{if(!current())return;epoch.current++;live.current={...live.current,text:value};input.setText(value);};
  // UI confirmations must bind to the exact current local draft, including pre-render typing.
- const capture=()=>({epoch:epoch.current,scope,records:live.current.records,website:live.current.website,app:live.current.app,profile:JSON.stringify(live.current.approvedProfile),aiResult:live.current.aiResult,text:live.current.text,selectedId:live.current.selectedDraftId,photos:live.current.photos,brief:live.current.brief,channels:JSON.stringify(live.current.channels),pending:live.current.sourceContext?.pendingContentIdea});
- const fresh=ticket=>valid()&&ticket?.scope===scope&&ticket.epoch===epoch.current&&ticket.website===live.current.website&&ticket.app===live.current.app&&ticket.profile===JSON.stringify(live.current.approvedProfile)&&ticket.aiResult===live.current.aiResult&&ticket.text===live.current.text&&ticket.selectedId===live.current.selectedDraftId&&ticket.photos===live.current.photos&&ticket.brief===live.current.brief&&ticket.channels===JSON.stringify(live.current.channels)&&ticket.pending===live.current.sourceContext?.pendingContentIdea;
+ const sourceJobStamp=()=>{
+  const source=live.current.sourceContext;if(source?.type!=='job')return null;
+  const customer=live.current.customers?.find(row=>row.id===source.customerId),job=customer?.history?.find(row=>row.id===source.jobId&&row.kind==='job');
+  return job?JSON.stringify({customerId:customer.id,jobId:job.id,service:job.service||customer.service||'',postDraft:job.postDraft||'',photos:(job.photos||[]).filter(photo=>photo.marketingOk).map(photo=>[photo.id,photo.uri,photo.storagePath,photo.marketingOk])}):'unavailable';
+ };
+ const capture=()=>({epoch:epoch.current,scope,jobStamp:sourceJobStamp(),records:live.current.records,website:live.current.website,app:live.current.app,profile:JSON.stringify(live.current.approvedProfile),aiResult:live.current.aiResult,text:live.current.text,selectedId:live.current.selectedDraftId,photos:live.current.photos,brief:live.current.brief,channels:JSON.stringify(live.current.channels),pending:live.current.sourceContext?.pendingContentIdea});
+ const fresh=ticket=>valid()&&sourceJobStamp()!=='unavailable'&&ticket?.jobStamp===sourceJobStamp()&&ticket?.scope===scope&&ticket.epoch===epoch.current&&ticket.website===live.current.website&&ticket.app===live.current.app&&ticket.profile===JSON.stringify(live.current.approvedProfile)&&ticket.aiResult===live.current.aiResult&&ticket.text===live.current.text&&ticket.selectedId===live.current.selectedDraftId&&ticket.photos===live.current.photos&&ticket.brief===live.current.brief&&ticket.channels===JSON.stringify(live.current.channels)&&ticket.pending===live.current.sourceContext?.pendingContentIdea;
  const freshSave=(ticket,record)=>{
   const selectedId=live.current.selectedDraftId;
   return !!record?.id&&(live.current.records===ticket?.records||live.current.records?.includes(record))&&(selectedId===ticket?.selectedId||selectedId===record.id)&&fresh({...ticket,selectedId});
@@ -113,11 +118,17 @@ export function useSocialContentHandoff(input){
   const ticket=capture(),now=live.current,saved=now.records?.find(row=>row.id===now.selectedDraftId);
   const media=rows=>JSON.stringify((rows||[]).map(row=>[row.id||'',row.uri||'',row.storagePath||'']));
   const dirty=now.text.trim()!==(saved?.text||'')||media(now.photos)!==media(saved?.photos)||!!now.brief&&now.brief!==(saved?.brief||'');
-  const open=()=>{if(!fresh(ticket)||record&&!live.current.records?.includes(record))return false;epoch.current++;load();return true;};
+  const open=()=>{if(!fresh(ticket)||record&&!live.current.records?.includes(record))return false;epoch.current++;return load()!==false;};
   if(dirty){input.confirm?.({keep:()=>{},discard:open,...!record?{message:'Starting a new post replaces the current unsaved wording and selected photos. Saved drafts remain unchanged.',actionLabel:'Start a new post'}:{}});return false;}return open();
  };
  const reopen=(record,load)=>protectDraftTransition(load,record);
  const replaceDraft=load=>protectDraftTransition(load);
+ const replaceFromJob=(customer,job,load)=>{
+  const stamp=JSON.stringify(job),service=customer?.service;
+  const allowed=()=>valid()&&live.current.customers?.includes(customer)&&customer.history?.includes(job)&&job.kind==='job'&&JSON.stringify(job)===stamp&&customer.service===service&&(job.photos||[]).some(photo=>photo.marketingOk);
+  if(!allowed())return false;
+  return protectDraftTransition(()=>allowed()?load():false);
+ };
 
  const route=text=>{
   if(!current())return {handled:false};
@@ -125,5 +136,5 @@ export function useSocialContentHandoff(input){
   if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform);return {...result,opened:valid()};}
   return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose,result.ownerFacts)}:result;
  };
- return {route,prepare,loadRecords,selectRecord,chooseTreatment,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource,editText,reopen,replaceDraft,invalidate:()=>{if(current())epoch.current++;}};
+ return {isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,loadRecords,selectRecord,chooseTreatment,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
 }

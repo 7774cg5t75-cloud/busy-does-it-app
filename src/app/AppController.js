@@ -3438,6 +3438,7 @@ function App() {
       Alert.alert("No approved job photos", "Choose job photos and allow BUSY to suggest them for marketing first.");
       return false;
     }
+    return socialContentActions.replaceFromJob(customer,job,()=>{
     const service = job.service || customer.service || "";
     setSelectedCustomerId(customerId);
     setSelectedJobId(jobId);
@@ -3466,6 +3467,7 @@ function App() {
     setSelectedSocialDraftId(null);
     go("socialCreator");
     return true;
+    });
   };
 
   const chooseSocialPhotos = async () => {
@@ -3576,6 +3578,7 @@ function App() {
   };
 
   const runSocialContentAI = async () => {
+    if(socialContentActions.isRenderCurrent?.()===false)return false;
     if (!socialCreatePhotos.length) return false;
     const ticket=socialContentActions.capture(),scope=businessWorkspaceScopeRef.current,nonce=++socialAnalysisNonce.current;
     if(!socialContentActions.fresh(ticket))return false;
@@ -3674,6 +3677,7 @@ function App() {
   const socialDraftScope=businessWorkspaceScopeRef.current;
   const beginSocialAction=(record,ownSave=false)=>beginSocialContentAction({scope:socialDraftScope,scopeRef:businessWorkspaceScopeRef,operationRef:socialPrivateSaveOperation,actions:socialContentActions,record,ownSave,view:{text:socialDraftText,photos:socialCreatePhotos,selectedId:selectedSocialDraftId,records:socialDrafts}});
   const upsertSocialDraft = (status = "Draft") => {
+    if(socialContentActions.isRenderCurrent?.()===false)return null;
     if(businessWorkspaceScopeRef.current!==socialDraftScope)return null;
     const currentDraft=socialContentActions.capture();
     if(currentDraft.text!==socialDraftText||currentDraft.selectedId!==selectedSocialDraftId||currentDraft.photos!==socialCreatePhotos||currentDraft.records!==socialDrafts)return null;
@@ -8337,7 +8341,7 @@ function App() {
     websiteDraft,
     miniAppsView,
   });
-  const socialContentActions=useSocialContentHandoff({loadApprovedContent:()=>businessContentRequest('content_list'),workspaceScope:businessWorkspaceScopeRef.current,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,aiResult:socialAiResult,approvedProfile:businessCreationIntelligence.sharedProfile,website:websiteDraft,app:miniAppsStatus?.app,text:socialDraftText,photos:socialCreatePhotos,selectedDraftId:selectedSocialDraftId,sourceContext:socialSourceContext,records:socialDrafts,brief:socialBrief,channels:socialDraftChannels,confirm:({keep,discard,message,actionLabel})=>Alert.alert('Keep your current draft?',message||'Opening another saved draft will replace the current unsaved wording and selected photos. Nothing will be published.',[{text:'Keep my current draft',style:'cancel',onPress:keep},{text:actionLabel||'Open saved draft',onPress:discard}]),setSourceContext:setSocialSourceContext,setText:setSocialDraftText,setSelectedDraftId:setSelectedSocialDraftId,setAiResult:setSocialAiResult,setAiStatus:setSocialAiStatus,setCaptionId:setSocialCaptionId,go});
+  const socialContentActions=useSocialContentHandoff({customers,loadApprovedContent:()=>businessContentRequest('content_list'),workspaceScope:businessWorkspaceScopeRef.current,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,aiResult:socialAiResult,approvedProfile:businessCreationIntelligence.sharedProfile,website:websiteDraft,app:miniAppsStatus?.app,text:socialDraftText,photos:socialCreatePhotos,selectedDraftId:selectedSocialDraftId,sourceContext:socialSourceContext,records:socialDrafts,brief:socialBrief,channels:socialDraftChannels,confirm:({keep,discard,message,actionLabel})=>Alert.alert('Keep your current draft?',message||'Opening another saved draft will replace the current unsaved wording and selected photos. Nothing will be published.',[{text:'Keep my current draft',style:'cancel',onPress:keep},{text:actionLabel||'Open saved draft',onPress:discard}]),setSourceContext:setSocialSourceContext,setText:setSocialDraftText,setSelectedDraftId:setSelectedSocialDraftId,setAiResult:setSocialAiResult,setAiStatus:setSocialAiStatus,setCaptionId:setSocialCaptionId,go});
   const businessCreationJourney = buildBusinessCreationJourney({
     businessCreationIntelligence,
     brandBrain,

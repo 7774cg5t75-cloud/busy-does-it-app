@@ -1435,6 +1435,12 @@
       "args": [
         "scripts/check-mission15-phase34-management-actions.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase34-job-start",
+      "args": [
+        "scripts/check-mission15-phase34-job-start.mjs"
+      ]
     }
   ]
 }
