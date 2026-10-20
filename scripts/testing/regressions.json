@@ -1423,6 +1423,12 @@
       "args": [
         "scripts/check-mission15-phase34-wording.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase34-publication-freshness",
+      "args": [
+        "scripts/check-mission15-phase34-publication-freshness.mjs"
+      ]
     }
   ]
 }

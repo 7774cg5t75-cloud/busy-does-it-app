@@ -1,3 +1,4 @@
+import {beginSocialContentAction} from '../core/socialContentActionGuard.mjs';
 import {localCoreAreaRequest} from "../domain/growthOperatorBridge.mjs";
 import {useSocialContentHandoff} from "../screens/useSocialContentHandoff";
 import {createOwnerEditNavigation} from '../core/ownerEditNavigation.mjs';
@@ -3671,6 +3672,7 @@ function App() {
 
 
   const socialDraftScope=businessWorkspaceScopeRef.current;
+  const beginSocialAction=(record,ownSave=false)=>beginSocialContentAction({scope:socialDraftScope,scopeRef:businessWorkspaceScopeRef,operationRef:socialPrivateSaveOperation,actions:socialContentActions,record,ownSave,view:{text:socialDraftText,photos:socialCreatePhotos,selectedId:selectedSocialDraftId,records:socialDrafts}});
   const upsertSocialDraft = (status = "Draft") => {
     if(businessWorkspaceScopeRef.current!==socialDraftScope)return null;
     const currentDraft=socialContentActions.capture();
@@ -3685,6 +3687,7 @@ function App() {
 
     const now = new Date().toISOString();
     const existing = socialDrafts.find((draft) => draft.id === selectedSocialDraftId);
+    if(existing&&(existing.status!=="Draft"||existing.publishedAt))return null;
     const id = existing?.id || `social-draft-${Date.now()}`;
     const photos = socialCreatePhotos.map((photo) => ({
       id: photo.id,
@@ -3969,6 +3972,7 @@ function App() {
 
   const scheduleSocialDraft = async () => {
     if(!socialCreatePhotos.length){setSocialPublishingError("Add approved photos before using the publishing queue. Your text remains a private draft.");return false;}
+    if(businessWorkspaceScopeRef.current!==socialDraftScope||socialPrivateSaveOperation.current?.scope===socialDraftScope)return false;
     const record = upsertSocialDraft("Draft");
     if (!record) return false;
     const scheduledFor = socialScheduledForISO();
@@ -3976,16 +3980,18 @@ function App() {
       Alert.alert("Choose a future time", "Scheduled posts need a date and time in the future.");
       return false;
     }
+    const operation=beginSocialAction(record,true);if(!operation)return false;
     setSocialPublishingLoading(true);
     setSocialPublishingAction("schedule");
     setSocialPublishingError("");
     try {
       const payload = await buildSocialPublishPayload(record, true);
       payload.scheduledFor = scheduledFor;
-      const data = await socialPublishRequest("schedule", payload);
+      if(!operation.current()){if(operation.scoped())setSocialPublishingError("Your draft changed during this action. Current edits were kept; check the original record before repeating an uncertain request.");return false;}
+      const data = await socialPublishRequest("schedule", payload, {isCurrent:operation.current});
+      if(!operation.matches(data.post,["Scheduled", "Held for setup"])){if(operation.scoped())setSocialPublishingError("The response did not confirm this exact draft and action. Check the original record before repeating an uncertain request.");return false;}
       const saved = applyCloudSocialPost(data.post, record);
       rememberSocialChannels(record.channels || []);
-      await refreshSocialPublishingStatus({ quiet: true });
       const when = new Date(scheduledFor);
       const whenLabel = Number.isNaN(when.getTime())
         ? "the selected time"
@@ -3996,35 +4002,37 @@ function App() {
             minute: "2-digit",
           });
       Alert.alert(
-        "Post scheduled",
-        `BUSY will publish to ${(record.channels || []).join(" + ")} at ${whenLabel}. You can cancel it from the Social Control Centre before it starts publishing.`
+        saved?.status==="Scheduled"?"Post scheduled":"Schedule held for setup",
+        saved?.status==="Scheduled"?`The server confirmed this schedule for ${(record.channels || []).join(" + ")} at ${whenLabel}. Review or cancel it in Content Creator.`:"The schedule is held for setup. This is not confirmation that a provider will publish it."
       );
-      go("socialMedia");
       return !!saved;
     } catch (error) {
+      if(!operation.current()){if(operation.scoped())setSocialPublishingError("Your draft changed during this action. Current edits were kept; check the original record before repeating an uncertain request.");return false;}
       setSocialPublishingError(error?.message || "BUSY could not schedule this post.");
       Alert.alert("Could not schedule", error?.message || "BUSY could not schedule this post.");
       return false;
     } finally {
-      setSocialPublishingLoading(false);
-      setSocialPublishingAction("");
+      if(operation.finish()){setSocialPublishingLoading(false);setSocialPublishingAction("");}
     }
   };
 
   const approveSocialDraft = async () => {
     if(!socialCreatePhotos.length){setSocialPublishingError("Add approved photos before using the publishing queue. Your text remains a private draft.");return false;}
+    if(businessWorkspaceScopeRef.current!==socialDraftScope||socialPrivateSaveOperation.current?.scope===socialDraftScope)return false;
     const record = upsertSocialDraft("Draft");
     if (!record) return false;
+    const operation=beginSocialAction(record,true);if(!operation)return false;
     setSocialPublishingLoading(true);
     setSocialPublishingAction("publish");
     setSocialPublishingError("");
     try {
       const payload = await buildSocialPublishPayload(record, true);
       payload.scheduledFor = null;
-      const data = await socialPublishRequest("publish_now", payload);
+      if(!operation.current()){if(operation.scoped())setSocialPublishingError("Your draft changed during this action. Current edits were kept; check the original record before repeating an uncertain request.");return false;}
+      const data = await socialPublishRequest("publish_now", payload, {isCurrent:operation.current});
+      if(!operation.matches(data.post,["Published", "Partial failure", "Failed", "Publishing", "Ready to publish", "Held for setup"])){if(operation.scoped())setSocialPublishingError("The response did not confirm this exact draft and action. Check the original record before repeating an uncertain request.");return false;}
       const saved = applyCloudSocialPost(data.post, record);
       rememberSocialChannels(record.channels || []);
-      await refreshSocialPublishingStatus({ quiet: true });
       const publishStatus = saved?.status || data.post?.status || "Failed";
       const providerResults = saved?.providerResults || data.post?.provider_results || {};
       const successfulChannels = (record.channels || []).filter(
@@ -4038,12 +4046,15 @@ function App() {
           "Post published",
           `BUSY published this post to ${successfulChannels.join(" + ") || (record.channels || []).join(" + ")}. Provider receipts are saved against this post.`
         );
-        go("socialMedia");
       } else if (publishStatus === "Partial failure") {
         Alert.alert(
           "Published with a problem",
-          `Published to ${successfulChannels.join(" + ") || "at least one destination"}. ${failedChannels.join(" + ") || "Another destination"} failed, and BUSY will retry only the failed destination(s).`
+          `Published to ${successfulChannels.join(" + ") || "at least one destination"}. ${failedChannels.join(" + ") || "Another destination"} failed, and you can separately review a retry of only the failed destination(s).`
         );
+      } else if(publishStatus==='Publishing'){
+        Alert.alert('Publication pending','The original server record is still processing. Do not resend; check its status and provider receipts before any retry.');
+      } else if(['Ready to publish','Held for setup'].includes(publishStatus)){
+        Alert.alert('Not published · review needed','This record is held for review or setup. Publication has not been confirmed; a separate owner-approved action is still required.');
       } else {
         Alert.alert(
           "Post not published",
@@ -4052,18 +4063,17 @@ function App() {
       }
       return !!saved;
     } catch (error) {
+      if(!operation.current()){if(operation.scoped())setSocialPublishingError("Your draft changed during this action. Current edits were kept; check the original record before repeating an uncertain request.");return false;}
       const serverPost = error?.payload?.post;
-      if (serverPost) applyCloudSocialPost(serverPost, record);
+      if (serverPost&&operation.matches(serverPost,["Failed","Partial failure","Ready to publish","Publishing","Held for setup"])) applyCloudSocialPost(serverPost, record);
       setSocialPublishingError(error?.message || "BUSY could not publish this post.");
-      await refreshSocialPublishingStatus({ quiet: true });
       Alert.alert(
-        "Publishing not live yet",
+        "Publishing outcome not confirmed",
         error?.message || "BUSY could not publish this post."
       );
       return false;
     } finally {
-      setSocialPublishingLoading(false);
-      setSocialPublishingAction("");
+      if(operation.finish()){setSocialPublishingLoading(false);setSocialPublishingAction("");}
     }
   };
 
@@ -17463,7 +17473,7 @@ function App() {
     socialPreferredChannels,
     socialCreatePhotos,
     socialBrief,
-    setSocialBrief,
+    setSocialBrief:value=>{socialContentActions.invalidate();setSocialBrief(value);},
     socialAiStatus,
     socialAiResult,
     socialAiError,
@@ -17472,9 +17482,9 @@ function App() {
     setSocialDraftText:socialContentActions.editText,
     socialDraftChannels,
     socialScheduleDate,
-    setSocialScheduleDate,
+    setSocialScheduleDate:value=>{socialContentActions.invalidate();setSocialScheduleDate(value);},
     socialScheduleTime,
-    setSocialScheduleTime,
+    setSocialScheduleTime:value=>{socialContentActions.invalidate();setSocialScheduleTime(value);},
     socialSourceContext,
     privateContentSave:privateContentSave?.scope===businessWorkspaceScopeRef.current?{record:privateContentSave.record,status:privateContentSave.status}:null,
     socialContentActions,
