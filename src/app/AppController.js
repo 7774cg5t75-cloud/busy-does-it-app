@@ -4079,36 +4079,36 @@ function App() {
 
   const retrySocialDraft = async () => {
     const draft = socialDrafts.find((item) => item.id === selectedSocialDraftId);
-    if (!draft) return false;
+    if (!draft||!['Failed', 'Partial failure', 'Ready to publish'].includes(draft.status)) return false;
+    const operation=beginSocialAction(draft);if(!operation)return false;
     setSocialPublishingLoading(true);
     setSocialPublishingAction("retry");
     setSocialPublishingError("");
     try {
       const data = await socialPublishRequest("retry_post", {
         clientDraftId: draft.id,
-      });
+      },{isCurrent:operation.current});
+      if(!operation.matches(data.post,['Published', 'Partial failure', 'Failed', 'Publishing', 'Ready to publish'])){if(operation.scoped())setSocialPublishingError("The current draft action was not confirmed. Check its saved record before repeating an uncertain request.");return false;}
       const next = applyCloudSocialPost(data.post, draft);
       rememberSocialChannels(next?.channels || draft.channels || []);
-      await refreshSocialPublishingStatus({ quiet: true });
       const retried = Array.isArray(data.retriedChannels)
         ? data.retriedChannels.join(" + ")
         : "the failed destination";
       Alert.alert(
-        "Retry complete",
+        next?.status==='Publishing'?"Retry still processing":"Retry result received",
         next?.status === "Published"
           ? `BUSY retried only ${retried}. All selected destinations now have successful provider receipts.`
           : `BUSY retried only ${retried}. Current status: ${next?.status || "updated"}.`
       );
       return true;
     } catch (error) {
+      if(!operation.current())return false;
       const message = error?.message || "BUSY could not retry this post.";
       setSocialPublishingError(message);
-      await refreshSocialPublishingStatus({ quiet: true });
-      Alert.alert("Retry failed", message);
+      Alert.alert("Retry outcome not confirmed", message);
       return false;
     } finally {
-      setSocialPublishingLoading(false);
-      setSocialPublishingAction("");
+      if(operation.finish()){setSocialPublishingLoading(false);setSocialPublishingAction("");}
     }
   };
 
@@ -4163,24 +4163,25 @@ function App() {
 
   const deleteSocialDraft = async () => {
     const draft = socialDrafts.find((item) => item.id === selectedSocialDraftId);
-    if (!draft) return false;
+    if (!draft||!['Draft', 'Failed', 'Ready to publish'].includes(draft.status)||draft.publishedAt) return false;
+    const operation=beginSocialAction(draft);if(!operation)return false;
     setSocialPublishingLoading(true);
     setSocialPublishingAction("delete");
     setSocialPublishingError("");
     try {
-      await socialPublishRequest("delete_draft", { clientDraftId: draft.id });
+      const data=await socialPublishRequest("delete_draft", { clientDraftId: draft.id },{isCurrent:operation.current});
+      if(!operation.current()||data?.deleted!==true){if(operation.scoped())setSocialPublishingError("Deletion was not confirmed for this current request. Keep your draft and check its status before repeating.");return false;}
       removeLocalSocialDraft(draft);
-      await refreshSocialPublishingStatus({ quiet: true });
       go("socialMedia");
       return true;
     } catch (error) {
+      if(!operation.current())return false;
       const message = error?.message || "BUSY could not delete this draft.";
       setSocialPublishingError(message);
-      Alert.alert("Draft not deleted", message);
+      Alert.alert("Deletion not confirmed", message);
       return false;
     } finally {
-      setSocialPublishingLoading(false);
-      setSocialPublishingAction("");
+      if(operation.finish()){setSocialPublishingLoading(false);setSocialPublishingAction("");}
     }
   };
 
@@ -4199,29 +4200,30 @@ function App() {
 
   const cancelScheduledSocialDraft = async () => {
     const draft = socialDrafts.find((item) => item.id === selectedSocialDraftId);
-    if (!draft) return false;
+    if (!draft||!['Scheduled', 'Held for setup'].includes(draft.status)) return false;
+    const operation=beginSocialAction(draft);if(!operation)return false;
     setSocialPublishingLoading(true);
     setSocialPublishingAction("cancel-schedule");
     setSocialPublishingError("");
     try {
       const data = await socialPublishRequest("cancel_schedule", {
         clientDraftId: draft.id,
-      });
+      },{isCurrent:operation.current});
+      if(!operation.matches(data.post,['Draft'])){if(operation.scoped())setSocialPublishingError("The current draft action was not confirmed. Check its saved record before repeating an uncertain request.");return false;}
       applyCloudSocialPost(data.post, draft);
-      await refreshSocialPublishingStatus({ quiet: true });
       Alert.alert(
         "Schedule cancelled",
         "The post is back as a draft. Nothing will be published at the old scheduled time."
       );
       return true;
     } catch (error) {
+      if(!operation.current())return false;
       const message = error?.message || "BUSY could not cancel this scheduled post.";
       setSocialPublishingError(message);
-      Alert.alert("Schedule not cancelled", message);
+      Alert.alert("Cancellation not confirmed", message);
       return false;
     } finally {
-      setSocialPublishingLoading(false);
-      setSocialPublishingAction("");
+      if(operation.finish()){setSocialPublishingLoading(false);setSocialPublishingAction("");}
     }
   };
 

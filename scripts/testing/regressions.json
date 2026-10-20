@@ -1429,6 +1429,12 @@
       "args": [
         "scripts/check-mission15-phase34-publication-freshness.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase34-management-actions",
+      "args": [
+        "scripts/check-mission15-phase34-management-actions.mjs"
+      ]
     }
   ]
 }
