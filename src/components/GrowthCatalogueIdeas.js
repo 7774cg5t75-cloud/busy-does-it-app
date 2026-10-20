@@ -6,8 +6,9 @@ import {publicBusinessContent,selectBusinessContent} from '../core/businessConte
 
 // Original approved-record read and Creator handoff; no separate copy or marketing engine.
 export function GrowthCatalogueIdeas({s}){
+ const [treatment,setTreatment]=React.useState('standard');
  const [view,setView]=React.useState(null),live=React.useRef({s,view}),alive=React.useRef(true),sequence=React.useRef(0);
- live.current={s,view};React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
+ live.current={s,view,treatment};React.useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
  if(!s.socialContentActions||!s.businessContentRequest)return null;
  const ticket=s.socialContentActions.capture(),owner=s.ownerSession?.userId,businessId=s.cloudWorkspace?.businessId;
  const current=()=>alive.current&&live.current.s.ownerSession?.userId===owner&&live.current.s.cloudWorkspace?.businessId===businessId&&live.current.s.socialContentActions.fresh(ticket);
@@ -27,11 +28,12 @@ export function GrowthCatalogueIdeas({s}){
  return <Card eyebrow="Get More Customers · £0-first" title="Tell people about an approved item"
   body="Use a current approved product or event as the starting point for a factual post. Busy can prepare private wording; no reach, sales, stock, tickets or booking availability are promised.">
   <Button label={view?.status==='loading'?'Loading approved items…':'Find approved product and event ideas'} onPress={load}/>
+  {visible?.records?.length>0?<><Text style={styles.cardBody}>Choose the wording for your next idea. Your current draft stays unchanged until you use it in Content Creator.</Text>{[['standard','Original wording'],['welcoming','Friendly and welcoming'],['concise','Short and clear'],['detailed','More explanatory']].map(([value,label])=><Button key={value} label={(value===treatment?'✓ ':'')+label} onPress={()=>{if(current()&&live.current.view===view)setTreatment(value);}}/>)}</>:null}
   {visible?.records?.map(row=><React.Fragment key={row.id}>
    <Text style={styles.cardBody}>{row.data.name+' — '+row.data.description}</Text>
    <Button label={'Prepare a post: '+row.data.name} onPress={()=>{
-    if(!current()||live.current.view!==view||!live.current.s.socialContentActions.fresh(view.ticket))return false;
-    return live.current.s.socialContentActions.loadRecords(row.kind,'','',{selection:{recordId:row.id,revision:row.revision},recordStamp:JSON.stringify(row)});
+    if(!current()||live.current.treatment!==treatment||live.current.view!==view||!live.current.s.socialContentActions.fresh(view.ticket))return false;
+    return live.current.s.socialContentActions.loadRecords(row.kind,'','',{selection:{recordId:row.id,revision:row.revision},recordStamp:JSON.stringify(row)},treatment);
    }}/>
   </React.Fragment>)}
   {visible?.status==='ready'&&!visible.records.length?<Text style={styles.cardBody}>No eligible approved items were found. You can still introduce your business or explain a current service.</Text>:null}

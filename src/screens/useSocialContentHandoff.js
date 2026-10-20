@@ -21,9 +21,9 @@ export function useSocialContentHandoff(input){
  const failPending=(expected,reason)=>{
   if(valid()&&expected?.scope===scope&&live.current.sourceContext?.pendingContentIdea===expected){epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,loading:false,evidence:{ok:false,reason}}});}return false;
  };
- const loadRecords=async(kind,platform='',sourceMode='',hint=null)=>{
+ const loadRecords=async(kind,platform='',sourceMode='',hint=null,treatment='standard')=>{
   if(!valid()||!['product','event'].includes(kind))return false;
-  const pending={purpose:kind,platform,sourceMode,scope,ownerId:live.current.ownerId,loading:true};
+  const pending={purpose:kind,platform,sourceMode,treatment,scope,ownerId:live.current.ownerId,loading:true};
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:pending});input.go('socialCreator');
   const ticket=capture();
   try{
@@ -32,7 +32,7 @@ export function useSocialContentHandoff(input){
    const feed=result?.ok===true&&result.businessId===live.current.businessId?publicBusinessContent(result.records,result.businessId):null;
    const records=feed?.ok?selectBusinessContent(feed,{kind}).filter(row=>row.data.status!=='cancelled'):[];
    let evidence=feed?.ok?null:{ok:false,reason:'Current approved records could not be loaded. Your draft is unchanged.'};
-   if(hint&&feed?.ok){const row=feed.records.find(item=>item.id===hint.selection?.recordId);evidence=row&&JSON.stringify(row)===hint.recordStamp?prepareSocialRecordHandoff({...context(),sourceMode,feed,selection:hint.selection}):{ok:false,reason:'This item changed since the suggestion. Choose its current approved information below.'};}
+   if(hint&&feed?.ok){const row=feed.records.find(item=>item.id===hint.selection?.recordId);evidence=row&&JSON.stringify(row)===hint.recordStamp?prepareSocialRecordHandoff({...context(),sourceMode,feed,selection:hint.selection,treatment}):{ok:false,reason:'This item changed since the suggestion. Choose its current approved information below.'};}
    epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,loading:false,feed,records,evidence}});return !!feed?.ok;
   }catch{
    if(fresh(ticket)){epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,loading:false,evidence:{ok:false,reason:'Could not load approved records. Your draft is unchanged.'}}});}return false;

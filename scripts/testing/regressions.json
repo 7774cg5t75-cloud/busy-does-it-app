@@ -1489,6 +1489,12 @@
       "args": [
         "scripts/check-mission15-phase35-growth-treatment.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase35-catalogue-treatment",
+      "args": [
+        "scripts/check-mission15-phase35-catalogue-treatment.mjs"
+      ]
     }
   ]
 }
