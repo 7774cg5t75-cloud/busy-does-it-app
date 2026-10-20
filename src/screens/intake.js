@@ -324,7 +324,7 @@ function BusyInbox({ s }) {
               {item.autoFiled ? (
                 <>
                   <Text style={styles.activitySummary}>{item.autoFileReason || "Passed Safe Autopilot rules"}</Text>
-                  <Pressable onPress={() => s.openCustomer(item.filedCustomerId)} style={styles.customerOpenWrap}>
+                  <Pressable onPress={() => s.openCustomer(item.filedCustomerId,item.id)} style={styles.customerOpenWrap}>
                     <Text style={styles.customerOpenText}>Open filed customer →</Text>
                   </Pressable>
                 </>

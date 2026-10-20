@@ -1466,7 +1466,7 @@ function App() {
   };
 
   const replyActionOrigin=useRef(null);
-  const replyActionSources=useRef(null);replyActionSources.current={customers,lastSimulatedRecipients,replyActions,inboxItems,selectedReplyActionId,cloudRevision,role:cloudWorkspace?.role};
+  const replyActionSources=useRef(null);replyActionSources.current={customers,lastSimulatedRecipients,replyActions,inboxItems,selectedCustomerId,selectedReplyActionId,cloudRevision,role:cloudWorkspace?.role};
   const beginReplyAction = (customerId, suggested) => {
     const customer =
       customers.find((item) => item.id === customerId) ||
@@ -1499,9 +1499,9 @@ function App() {
     },{isCurrent});
   };
 
-  const returnToQuoteEnquiry = () => {
+  const returnToQuoteEnquiry = (customerId=replyActionSources.current.selectedReplyActionId) => {
     const origin=replyActionOrigin.current,initial=replyActionSources.current;
-    const isCurrent=()=>!!origin&&replyActionOrigin.current===origin&&businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&origin.workspace===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&replyActionSources.current.selectedReplyActionId===origin.customerId&&replyActionSources.current.cloudRevision===initial.cloudRevision&&replyActionSources.current.inboxItems.includes(origin.item)&&origin.item.status==='Filed'&&origin.item.filedCustomerId===origin.customerId&&JSON.stringify(origin.item)===origin.stamp;
+    const isCurrent=()=>!!origin&&replyActionOrigin.current===origin&&businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&origin.workspace===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&origin.customerId===customerId&&(replyActionSources.current.selectedReplyActionId===customerId||replyActionSources.current.selectedCustomerId===customerId)&&replyActionSources.current.cloudRevision===initial.cloudRevision&&replyActionSources.current.inboxItems.includes(origin.item)&&origin.item.status==='Filed'&&origin.item.filedCustomerId===origin.customerId&&JSON.stringify(origin.item)===origin.stamp;
     return ownerEditNavigation.current.request(()=>go('busyInbox'),{isCurrent});
   };
 
@@ -1545,11 +1545,17 @@ function App() {
     },{isCurrent});
   };
 
-  const openCustomer = (customerId) => {
-    const customer = customers.find((item) => item.id === customerId);
-    if (!customer) return;
-    setSelectedCustomerId(customerId);
-    go("customerDetail");
+  const openCustomer = (customerId,originInboxId="") => {
+    const customer = customers.find((item) => item.id === customerId),original=replyActionSources.current;
+    const item=originInboxId?original.inboxItems.find(row=>row.id===originInboxId&&row.status==='Filed'&&row.filedCustomerId===customerId):null;
+    if(!customer||originInboxId&&!item)return false;
+    const stamp=JSON.stringify([customer,item]);
+    const isCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&replyActionSources.current.cloudRevision===original.cloudRevision&&replyActionSources.current.customers.includes(customer)&&JSON.stringify([customer,item])===stamp&&(!item||replyActionSources.current.inboxItems.includes(item));
+    return ownerEditNavigation.current.request(()=>{
+      if(item)replyActionOrigin.current={workspace:renderedBusinessWorkspaceScope,customerId,item,stamp:JSON.stringify(item)};
+      else if(replyActionOrigin.current?.customerId!==customerId)replyActionOrigin.current=null;
+      setSelectedCustomerId(customerId);go("customerDetail");
+    },{isCurrent});
   };
 
   const updateReplyAction = (customerId, updater) => {
@@ -17706,6 +17712,7 @@ function App() {
     setQuoteFollowUpDraft:value=>{if(typeof value!=="string"||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.workspace!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.customerId!==selectedReplyActionId)return;quoteFollowUpTypingEpoch.current++;quoteFollowUpScope.current={...quoteFollowUpScope.current,words:value};setQuoteFollowUpDraft(value);},
     quoteFollowUpOutcome,
     returnToQuoteEnquiry,
+    customerEnquiryOriginItem:replyActionOrigin.current?.workspace===businessWorkspaceScopeRef.current&&replyActionOrigin.current?.customerId===selectedCustomerId&&['owner','admin'].includes(cloudWorkspace?.role)&&inboxItems.includes(replyActionOrigin.current?.item)&&replyActionOrigin.current?.item?.status==='Filed'&&replyActionOrigin.current.item.filedCustomerId===selectedCustomerId&&JSON.stringify(replyActionOrigin.current.item)===replyActionOrigin.current.stamp?replyActionOrigin.current.item:null,
     quoteEnquiryOriginItem:replyActionOrigin.current?.workspace===businessWorkspaceScopeRef.current&&replyActionOrigin.current?.customerId===selectedReplyActionId&&['owner','admin'].includes(cloudWorkspace?.role)&&inboxItems.includes(replyActionOrigin.current?.item)&&replyActionOrigin.current?.item?.status==='Filed'&&replyActionOrigin.current.item.filedCustomerId===selectedReplyActionId&&JSON.stringify(replyActionOrigin.current.item)===replyActionOrigin.current.stamp?replyActionOrigin.current.item:null,
     quoteFollowUpOriginItem:quoteFollowUpScope.current?.workspace===businessWorkspaceScopeRef.current&&quoteFollowUpScope.current?.customerId===selectedReplyActionId&&inboxItems.includes(quoteFollowUpScope.current?.originItem)&&quoteFollowUpScope.current?.originItem?.filedCustomerId===selectedReplyActionId&&quoteFollowUpScope.current?.originItem?.status==="Filed"?quoteFollowUpScope.current.originItem:null,
     quoteFollowUpSourceCurrent:isQuoteDraftSourceCurrent(quoteFollowUpScope.current,businessWorkspaceScopeRef.current,selectedReplyActionId,replyActions[selectedReplyActionId],customers.find(row=>row.id===selectedReplyActionId)||lastSimulatedRecipients.find(row=>row.id===selectedReplyActionId)),

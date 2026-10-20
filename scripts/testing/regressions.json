@@ -1579,6 +1579,12 @@
       "args": [
         "scripts/check-mission15-phase37-enquiry-quote-return.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase37-customer-enquiry",
+      "args": [
+        "scripts/check-mission15-phase37-customer-enquiry.mjs"
+      ]
     }
   ]
 }
