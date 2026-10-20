@@ -3995,7 +3995,7 @@ function App() {
       payload.scheduledFor = scheduledFor;
       if(!operation.current()){if(operation.scoped())setSocialPublishingError("Your draft changed during this action. Current edits were kept; check the original record before repeating an uncertain request.");return false;}
       const data = await socialPublishRequest("schedule", payload, {isCurrent:operation.current});
-      if(!operation.matches(data.post,["Scheduled", "Held for setup"])){if(operation.scoped())setSocialPublishingError("The response did not confirm this exact draft and action. Check the original record before repeating an uncertain request.");return false;}
+      if(!operation.matches(data.post,["Scheduled", "Held for setup"])||!Number.isFinite(Date.parse(data.post.scheduled_for))||Date.parse(data.post.scheduled_for)!==Date.parse(scheduledFor)){if(operation.scoped())setSocialPublishingError("The response did not confirm this exact draft and action. Check the original record before repeating an uncertain request.");return false;}
       const saved = applyCloudSocialPost(data.post, record);
       rememberSocialChannels(record.channels || []);
       const when = new Date(scheduledFor);

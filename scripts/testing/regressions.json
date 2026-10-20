@@ -1471,6 +1471,12 @@
       "args": [
         "scripts/check-mission15-phase34-home-quote.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase34-receipt-identity",
+      "args": [
+        "scripts/check-mission15-phase34-receipt-identity.mjs"
+      ]
     }
   ]
 }
