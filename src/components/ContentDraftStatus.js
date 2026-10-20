@@ -4,7 +4,8 @@ import {Button} from './ui';
 import {styles} from '../theme/styles';
 export function ContentDraftStatus({s}){
  const record=(s.socialDrafts||[]).find(item=>item.id===s.selectedSocialDraftId);
- if(!record||record.status!=='Draft')return null;
+ if(!record)return s.socialDraftText?.trim()||s.socialCreatePhotos?.length?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>Changes not saved yet. Save privately to keep a draft; nothing is published.</Text>:null;
+ if(record.status!=='Draft')return null;
  const receipt=s.privateContentSave;
  const exact=receipt?.record===record;
  const newer=s.socialDraftText.trim()!==record.text;

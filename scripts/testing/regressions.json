@@ -1375,6 +1375,12 @@
       "args": [
         "scripts/check-mission15-phase33-growth-home.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase33-creator-starts",
+      "args": [
+        "scripts/check-mission15-phase33-creator-starts.mjs"
+      ]
     }
   ]
 }

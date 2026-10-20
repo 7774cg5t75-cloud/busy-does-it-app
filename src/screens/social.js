@@ -727,8 +727,15 @@ function SocialCreator({ s }) {
       s={s}
       title="Create social content"
       subtitle={s.socialSourceContext?.label || "Selected photos"}
-      brandCue="BUSY looks only at the photos you deliberately select."
+      brandCue="Your wording and selected photos stay private until separate publishing review."
     >
+      {s.socialContentActions?<Card title="What would you like to create?" body="Choose a starting point. Your current words and photos stay until you deliberately use a new idea.">
+        <Button label="Introduce my business" onPress={()=>s.socialContentActions.prepare('','','','business-introduction')}/>
+        <Button label="Explain a service" onPress={()=>s.socialContentActions.prepare()}/>
+        <Button label="Promote an approved product" onPress={()=>s.socialContentActions.loadRecords('product')}/>
+        <Button label="Talk about an approved event" onPress={()=>s.socialContentActions.loadRecords('event')}/>
+        <Button label="Write an announcement or offer" onPress={()=>s.socialContentActions.prepare('','','','owner-announcement')}/>
+      </Card>:null}
       {!brandSnapshot.ok&&s.businessCreationIntelligence?.sharedProfile&&s.socialContentActions&&!pendingIdea?<Card eyebrow="Choose your content source" title="Review current business facts"
         body={brandSnapshot.reason} tone="blue"><Button label="Use current approved business profile" onPress={()=>s.socialContentActions.prepare('','','approved-profile')}/></Card>:null}
       {pendingIdea?<Card eyebrow="Private content idea · not published" title={ownerIdea?'Your announcement or offer':recordIdea?'Choose an approved '+pendingIdea.purpose:pendingIdea.purpose==='business-introduction'?'Introduce your business':pendingIdea.serviceName||'Choose the service for your post'}
@@ -742,9 +749,9 @@ function SocialCreator({ s }) {
       </Card>:null}
       <Card
         eyebrow="Source"
-        title={s.socialSourceContext?.type === "job" ? "Completed job photos" : "Photos from your phone"}
+        title={s.socialSourceContext?.type?.startsWith('approved_')?'Started with approved business information':s.socialSourceContext?.type==='owner_announcement'?'Your own announcement':s.socialSourceContext?.type === "job" ? "Completed job photos" : s.socialDraftText.trim()?'Your private wording and selected photos':"Photos from your phone"}
         body={
-          s.socialSourceContext?.type === "job"
+          s.socialSourceContext?.type?.startsWith('approved_')?'The starting copy uses the business source you reviewed. Your edits remain yours; check current facts before any publication.':s.socialSourceContext?.type==='owner_announcement'?'These are owner-supplied details, not independently verified facts. Check dates and terms before publishing.':s.socialSourceContext?.type === "job"
             ? "These are photos already attached to a completed job and approved for marketing suggestions. Private customer details are not intentionally added to the caption."
             : "Choose up to six photos. BUSY can look for a before/after pair, a finished result, work-in-progress or another useful story."
         }

@@ -25,6 +25,7 @@ function prepareSocialBrandHandoff({website,app,businessId,serviceName="",approv
 function prepareSocialRecordHandoff({website,app,businessId,approvedProfile,sourceMode="",feed,selection,now=Date.now()}={}){
  const snapshot=buildContentBrandSnapshot({website,app,businessId,approvedProfile,sourceMode});
  if(!snapshot.ok)return snapshot;
+ if(snapshot.conflicts?.length)return {ok:false,reason:'Choose a consistent current business source before preparing item content.'};
  const interest=prepareBusinessContentEnquiry(feed,businessId,selection,{now});
  if(!interest.ok)return interest;
  const row=feed.records.find(record=>record.id===selection.recordId),data=row.data;
@@ -72,7 +73,7 @@ function resolveSocialServiceIntent(text,{website,app,businessId,approvedProfile
  const names=snapshot.ok?snapshot.services.map(service=>service.name):[];
  const escaped=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
  const matches=names.filter(name=>new RegExp('(?:^|[^\\p{L}\\p{N}])'+escaped(name)+'(?:$|[^\\p{L}\\p{N}])','iu').test(request));
- return {handled:true,ownerFacts,purpose:announcement?'owner-announcement':recordKind|| (introduction?'business-introduction':'service'),serviceName:!introduction&&matches.length===1?matches[0]:'',needsSelection:!!recordKind||!introduction&&matches.length!==1,
+ return {handled:true,ownerFacts,purpose:announcement?'owner-announcement':introduction?'business-introduction':matches.length===1?'service':recordKind||'service',serviceName:!introduction&&matches.length===1?matches[0]:'',needsSelection:!!recordKind||!introduction&&matches.length!==1,
   platform:/\bfacebook\b/i.test(request)?'Facebook':/\binstagram\b/i.test(request)?'Instagram':'',
   reason:!snapshot.ok?snapshot.reason:introduction?'Review an introduction based on current approved business facts in Content Creator.':matches.length===1?'Review the current service wording in Content Creator.':'Choose the intended current service in Content Creator. “New” does not establish a launch date.'};
 }
