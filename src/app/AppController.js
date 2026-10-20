@@ -1485,7 +1485,9 @@ function App() {
   const openSavedReplyAction = (customerId) => {
     const saved = replyActions[customerId];
     if (!saved) return;
-    const isCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&replyActionSources.current.replyActions[customerId]===saved;
+    const original=replyActionSources.current,customer=[...original.customers,...original.lastSimulatedRecipients].find(row=>row.id===customerId),stamp=JSON.stringify([customer,saved]);
+    if(!customer)return false;
+    const isCurrent=()=>businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&['owner','admin'].includes(replyActionSources.current.role)&&replyActionSources.current.cloudRevision===original.cloudRevision&&replyActionSources.current.replyActions[customerId]===saved&&[...replyActionSources.current.customers,...replyActionSources.current.lastSimulatedRecipients].includes(customer)&&JSON.stringify([customer,saved])===stamp;
     return ownerEditNavigation.current.request(()=>{
     setSelectedReplyActionId(customerId);
     loadReplyActionForm(customerId, saved.type);

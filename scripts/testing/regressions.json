@@ -1561,6 +1561,12 @@
       "args": [
         "scripts/check-mission15-phase36-cancel-revision.mjs"
       ]
+    },
+    {
+      "id": "check-mission15-phase36-home-prepared-quote",
+      "args": [
+        "scripts/check-mission15-phase36-home-prepared-quote.mjs"
+      ]
     }
   ]
 }
