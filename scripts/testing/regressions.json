@@ -1405,6 +1405,12 @@
       "args": [
         "scripts/check-mission15-phase33-source-continuity.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase33-talk-parity",
+      "args": [
+        "scripts/check-mission15-phase33-talk-parity.mjs"
+      ]
     }
   ]
 }
