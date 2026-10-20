@@ -1591,6 +1591,12 @@
       "args": [
         "scripts/check-mission15-phase37-talk-quote.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase37-content-reprepare",
+      "args": [
+        "scripts/check-mission15-phase37-content-reprepare.mjs"
+      ]
     }
   ]
 }

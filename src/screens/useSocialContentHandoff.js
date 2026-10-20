@@ -69,6 +69,19 @@ export function useSocialContentHandoff(input){
   const requiresTreatmentSelection=pendingCurrent(pending)&&!!pending.requiresTreatmentSelection;
   return ['product','event'].includes(purpose)?loadRecords(purpose,'',sourceMode,null,treatment,requiresTreatmentSelection):prepare('','',sourceMode,purpose,'',treatment,requiresTreatmentSelection);
  };
+ const reprepareSource=expected=>{
+  if(!valid()||epoch.current!==renderEpoch||!expected||live.current.sourceContext?.contentEvidence!==expected||live.current.sourceContext?.pendingContentIdea||expected.businessId!==live.current.businessId)return false;
+  const purpose=expected.purpose||'service',treatment=expected.treatment||'standard',sourceMode=expected.sourceMode||'';
+  if(['product','event'].includes(purpose))return loadRecords(purpose,'',sourceMode,{selection:expected.selection,recordStamp:expected.recordStamp},treatment);
+  if(!['service','business-introduction','owner-announcement'].includes(purpose))return false;
+  let serviceName=expected.serviceName||'';
+  if(purpose==='service'){
+   const current=prepareSocialBrandHandoff({...context(),serviceName,sourceMode,purpose,treatment});
+   // A name alone cannot re-authorise a different or legacy unidentified service.
+   if(!expected.serviceId||!current.ok||current.serviceId!==expected.serviceId)serviceName='';
+  }
+  return prepare(serviceName,'',sourceMode,purpose,expected.ownerFacts||'',treatment);
+ };
  const selectRecord=(expected,selection)=>{
   if(!valid()||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected)return false;
   const evidence=prepareSocialRecordHandoff({...context(),feed:expected.feed,sourceMode:expected.sourceMode,treatment:expected.treatment||expected.evidence?.treatment||"standard",selection});
@@ -191,5 +204,5 @@ export function useSocialContentHandoff(input){
   if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform,'',null,result.treatment,result.needsTreatmentSelection);return {...result,opened:valid()};}
   return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose,result.ownerFacts,result.treatment,result.needsTreatmentSelection)}:result;
  };
- return {isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,start,switchSource,selectService,refreshRecords,loadRecords,selectRecord,chooseTreatment,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource,checkAccountDraft,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
+ return {isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,start,switchSource,selectService,refreshRecords,loadRecords,selectRecord,reprepareSource,chooseTreatment,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource,checkAccountDraft,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
 }
