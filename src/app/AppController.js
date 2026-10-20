@@ -3418,10 +3418,10 @@ function App() {
     go("socialMedia");
   };
 
-  const startSocialFromPhone = () => {
+  const startSocialFromPhone = () => socialContentActions.replaceDraft(()=>{
     resetSocialCreator();
     go("socialCreator");
-  };
+  });
 
   const startSocialFromJob = (customerId = selectedCustomerId, jobId = selectedJobId) => {
     const customer = customers.find((item) => item.id === customerId);
@@ -8312,7 +8312,7 @@ function App() {
     websiteDraft,
     miniAppsView,
   });
-  const socialContentActions=useSocialContentHandoff({loadApprovedContent:()=>businessContentRequest('content_list'),workspaceScope:businessWorkspaceScopeRef.current,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,aiResult:socialAiResult,approvedProfile:businessCreationIntelligence.sharedProfile,website:websiteDraft,app:miniAppsStatus?.app,text:socialDraftText,photos:socialCreatePhotos,selectedDraftId:selectedSocialDraftId,sourceContext:socialSourceContext,records:socialDrafts,brief:socialBrief,channels:socialDraftChannels,confirm:({keep,discard})=>Alert.alert('Keep your current draft?','Opening another saved draft will replace the current unsaved wording and selected photos. Nothing will be published.',[{text:'Keep my current draft',style:'cancel',onPress:keep},{text:'Open saved draft',onPress:discard}]),setSourceContext:setSocialSourceContext,setText:setSocialDraftText,setSelectedDraftId:setSelectedSocialDraftId,setAiResult:setSocialAiResult,setAiStatus:setSocialAiStatus,setCaptionId:setSocialCaptionId,go});
+  const socialContentActions=useSocialContentHandoff({loadApprovedContent:()=>businessContentRequest('content_list'),workspaceScope:businessWorkspaceScopeRef.current,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,aiResult:socialAiResult,approvedProfile:businessCreationIntelligence.sharedProfile,website:websiteDraft,app:miniAppsStatus?.app,text:socialDraftText,photos:socialCreatePhotos,selectedDraftId:selectedSocialDraftId,sourceContext:socialSourceContext,records:socialDrafts,brief:socialBrief,channels:socialDraftChannels,confirm:({keep,discard,message,actionLabel})=>Alert.alert('Keep your current draft?',message||'Opening another saved draft will replace the current unsaved wording and selected photos. Nothing will be published.',[{text:'Keep my current draft',style:'cancel',onPress:keep},{text:actionLabel||'Open saved draft',onPress:discard}]),setSourceContext:setSocialSourceContext,setText:setSocialDraftText,setSelectedDraftId:setSelectedSocialDraftId,setAiResult:setSocialAiResult,setAiStatus:setSocialAiStatus,setCaptionId:setSocialCaptionId,go});
   const businessCreationJourney = buildBusinessCreationJourney({
     businessCreationIntelligence,
     brandBrain,

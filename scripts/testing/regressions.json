@@ -1381,6 +1381,12 @@
       "args": [
         "scripts/check-mission15-phase33-creator-starts.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase33-new-post-safety",
+      "args": [
+        "scripts/check-mission15-phase33-new-post-safety.mjs"
+      ]
     }
   ]
 }
