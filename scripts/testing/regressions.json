@@ -1723,6 +1723,12 @@
       "args": [
         "scripts/check-mission15-phase40-followup-authority.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase41-item-formats",
+      "args": [
+        "scripts/check-mission15-phase41-item-formats.mjs"
+      ]
     }
   ]
 }

@@ -22,9 +22,9 @@ export function useSocialContentHandoff(input){
  const failPending=(expected,reason)=>{
   if(valid()&&expected?.scope===scope&&live.current.sourceContext?.pendingContentIdea===expected){epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,loading:false,evidence:{ok:false,reason}}});}return false;
  };
- const loadRecords=async(kind,platform='',sourceMode='',hint=null,treatment='standard',requiresTreatmentSelection=false)=>{
-  if(!valid()||!['product','event'].includes(kind))return false;
-  const pending={purpose:kind,platform,sourceMode,treatment,requiresTreatmentSelection,scope,ownerId:live.current.ownerId,loading:true};
+ const loadRecords=async(kind,platform='',sourceMode='',hint=null,treatment='standard',requiresTreatmentSelection=false,channel='social')=>{
+  if(!valid()||!['product','event'].includes(kind)||!['social','poster','advert'].includes(channel))return false;
+  const pending={purpose:kind,platform,sourceMode,treatment,channel,requiresTreatmentSelection,scope,ownerId:live.current.ownerId,loading:true};
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:pending});input.go('socialCreator');
   const ticket=capture();
   try{
@@ -36,7 +36,7 @@ export function useSocialContentHandoff(input){
    let selectionHint=null;
    if(hint&&feed?.ok){
     const row=feed.records.find(item=>item.id===hint.selection?.recordId),interest=prepareBusinessContentEnquiry(feed,live.current.businessId,hint.selection);
-    if(row&&JSON.stringify(row)===hint.recordStamp&&interest.ok){selectionHint={selection:interest.selection,recordStamp:JSON.stringify(row)};evidence=prepareSocialRecordHandoff({...context(),sourceMode,feed,selection:interest.selection,treatment});}
+    if(row&&JSON.stringify(row)===hint.recordStamp&&interest.ok){selectionHint={selection:interest.selection,recordStamp:JSON.stringify(row)};evidence=prepareSocialRecordHandoff({...context(),sourceMode,feed,selection:interest.selection,treatment,channel});}
     else evidence={ok:false,reason:'This item changed since the suggestion. Choose its current approved information below.'};
    }
    epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,loading:false,feed,records,evidence,selectionHint}});return !!feed?.ok;
@@ -51,13 +51,13 @@ export function useSocialContentHandoff(input){
   return prepare(serviceName,expected.platform,expected.sourceMode,'service','',pendingTreatment(expected),expected.requiresTreatmentSelection,expected.channel||expected.evidence?.channel||'social');
  };
  const recordHint=expected=>expected.evidence?.selection?{selection:expected.evidence.selection,recordStamp:expected.evidence.recordStamp}:expected.selectionHint||null;
- const refreshRecords=expected=>pendingCurrent(expected)&&['product','event'].includes(expected.purpose)?loadRecords(expected.purpose,expected.platform,expected.sourceMode,recordHint(expected),pendingTreatment(expected),expected.requiresTreatmentSelection):false;
+ const refreshRecords=expected=>pendingCurrent(expected)&&['product','event'].includes(expected.purpose)?loadRecords(expected.purpose,expected.platform,expected.sourceMode,recordHint(expected),pendingTreatment(expected),expected.requiresTreatmentSelection,expected.channel||expected.evidence?.channel||'social'):false;
  const switchSource=(expected,sourceMode)=>{
   if(!pendingCurrent(expected)||sourceMode!=='approved-profile')return false;
   const treatment=pendingTreatment(expected);
   if(['product','event'].includes(expected.purpose)){
    const hint=recordHint(expected);
-   return loadRecords(expected.purpose,expected.platform,sourceMode,hint,treatment,expected.requiresTreatmentSelection);
+   return loadRecords(expected.purpose,expected.platform,sourceMode,hint,treatment,expected.requiresTreatmentSelection,expected.channel||expected.evidence?.channel||'social');
   }
   return prepare(expected.serviceName,expected.platform,sourceMode,expected.purpose,expected.ownerFacts,treatment,expected.requiresTreatmentSelection,expected.channel||expected.evidence?.channel||'social');
  };
@@ -68,13 +68,13 @@ export function useSocialContentHandoff(input){
   // A treatment is reusable preference, never approval of the previous facts.
   const sourceMode=pendingCurrent(pending)?pending.sourceMode:evidence?.businessId===live.current.businessId?evidence.sourceMode||'':'';
   const requiresTreatmentSelection=pendingCurrent(pending)&&!!pending.requiresTreatmentSelection;
-  const channel=['service','business-introduction'].includes(purpose)?(pendingCurrent(pending)?pending.channel||pending.evidence?.channel:evidence?.businessId===live.current.businessId?evidence.channel:null)||'social':'social';
-  return ['product','event'].includes(purpose)?loadRecords(purpose,'',sourceMode,null,treatment,requiresTreatmentSelection):prepare('','',sourceMode,purpose,'',treatment,requiresTreatmentSelection,channel);
+  const channel=['service','business-introduction','product','event'].includes(purpose)?(pendingCurrent(pending)?pending.channel||pending.evidence?.channel:evidence?.businessId===live.current.businessId?evidence.channel:null)||'social':'social';
+  return ['product','event'].includes(purpose)?loadRecords(purpose,'',sourceMode,null,treatment,requiresTreatmentSelection,channel):prepare('','',sourceMode,purpose,'',treatment,requiresTreatmentSelection,channel);
  };
  const reprepareSource=expected=>{
   if(!valid()||epoch.current!==renderEpoch||!expected||live.current.sourceContext?.contentEvidence!==expected||live.current.sourceContext?.pendingContentIdea||expected.businessId!==live.current.businessId)return false;
   const purpose=expected.purpose||'service',treatment=expected.treatment||'standard',sourceMode=expected.sourceMode||'';
-  if(['product','event'].includes(purpose))return loadRecords(purpose,'',sourceMode,{selection:expected.selection,recordStamp:expected.recordStamp},treatment);
+  if(['product','event'].includes(purpose))return loadRecords(purpose,'',sourceMode,{selection:expected.selection,recordStamp:expected.recordStamp},treatment,false,expected.channel||'social');
   if(!['service','business-introduction','owner-announcement'].includes(purpose))return false;
   let serviceName=expected.serviceName||'';
   if(purpose==='service'){
@@ -86,7 +86,7 @@ export function useSocialContentHandoff(input){
  };
  const selectRecord=(expected,selection)=>{
   if(!valid()||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected)return false;
-  const evidence=prepareSocialRecordHandoff({...context(),feed:expected.feed,sourceMode:expected.sourceMode,treatment:expected.treatment||expected.evidence?.treatment||"standard",selection});
+  const evidence=prepareSocialRecordHandoff({...context(),feed:expected.feed,sourceMode:expected.sourceMode,treatment:expected.treatment||expected.evidence?.treatment||"standard",channel:expected.channel||expected.evidence?.channel||"social",selection});
   const interest=prepareBusinessContentEnquiry(expected.feed,live.current.businessId,selection),row=expected.feed?.records?.find(item=>item.id===selection.recordId);
   const selectionHint=interest.ok&&row?{selection:interest.selection,recordStamp:JSON.stringify(row)}:null;
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,evidence,selectionHint}});return evidence.ok;
@@ -100,7 +100,8 @@ export function useSocialContentHandoff(input){
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,evidence,treatment,requiresTreatmentSelection:false}});return true;
  };
  const chooseFormat=(expected,channel)=>{
-  if(!pendingCurrent(expected)||!['service','business-introduction'].includes(expected.purpose)||!['social','poster','advert'].includes(channel)||!confirmSocialBrandHandoff({...context(),evidence:expected.evidence}).ok)return false;
+  if(!pendingCurrent(expected)||!['service','business-introduction','product','event'].includes(expected.purpose)||!['social','poster','advert'].includes(channel)||!confirmSocialBrandHandoff({...context(),evidence:expected.evidence,feed:expected.feed}).ok)return false;
+  if(['product','event'].includes(expected.purpose))return loadRecords(expected.purpose,expected.platform,expected.sourceMode,recordHint(expected),pendingTreatment(expected),expected.requiresTreatmentSelection,channel);
   return prepare(expected.serviceName,expected.platform,expected.sourceMode,expected.purpose,'',pendingTreatment(expected),expected.requiresTreatmentSelection,channel);
  };
  const editOwnerFacts=(expected,value)=>{
