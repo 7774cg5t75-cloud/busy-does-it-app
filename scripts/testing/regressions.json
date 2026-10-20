@@ -1645,6 +1645,12 @@
       "args": [
         "scripts/check-mission15-phase38-followup-enquiry.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase39-followup-review",
+      "args": [
+        "scripts/check-mission15-phase39-followup-review.mjs"
+      ]
     }
   ]
 }

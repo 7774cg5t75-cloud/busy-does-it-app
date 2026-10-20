@@ -85,6 +85,8 @@ function localCoreAreaRequest(text){
  const request=String(text||'').trim();if(!request||request.length>400)return null;
  if(/\b(publish|send|spend|buy|charge|pay now|schedule)\b/i.test(request))return null;
  if(/^(?:busy[, ]+)?(?:please )?(?:(?:show|open|continue|resume)(?: me)? (?:the |my )?(?:enquiry (?:I was|we were) working on|original enquiry)|take me back to (?:the |my )?original enquiry)[.!?]?$/i.test(request))return {route:'busyInbox',resumeEnquiry:true,response:'Review the current enquiry or choose its exact record. Nothing is filed or sent by navigation.'};
+ const followUp=/^(?:busy[, ]+)?(?:please )?(?:(?:help me |prepare (?:a )?(?:polite )?)?follow up (?:on|with)|review (?:the |my |this )?quote follow-up(?: for)?)(?: (?:that|this|the|my))?(?: quote)?(?: for)?(?: (.+?))?[.!?]?$/i.exec(request);
+ if(followUp)return {route:'workHub',reviewQuoteFollowUp:true,quoteCustomerName:followUp[1]||'',response:'Choose the exact recorded quote in Work to review before preparing a private follow-up. No message has been sent; recorded quote status is not delivery evidence.'};
  const quote=/^(?:busy[, ]+)?(?:please )?(?:continue|resume|open|review)(?: (?:my|the|our|this|private|prepared|saved))* quote(?: for (.+?))?[.!?]?$/i.exec(request);
  if(quote)return {route:'workHub',continueQuote:true,quoteCustomerName:quote[1]||'',response:'Choose the exact existing customer and prepared quote in Work. No quote has been created, sent or approved.'};
  if(/^(?:how|why|should|what (?:can|should))\b/i.test(request)&&/\b(advertise|promote|marketing|attract customers)\b/i.test(request))return {route:'growthCommandCentre',response:'Review source-backed marketing ideas. Advice has not created a post, launched a campaign or spent money.'};

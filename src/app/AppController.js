@@ -1,6 +1,6 @@
 import {privateContentChannels} from '../core/contentDraftChanges.mjs';
 import {quoteEnquiryReference,resolveQuoteEnquiryReference} from '../core/quoteEnquiryReference.mjs';
-import {preparedQuoteTarget} from '../core/homeQuoteReview.mjs';
+import {preparedQuoteTarget,followUpQuoteTarget} from '../core/homeQuoteReview.mjs';
 import {readPrivateQuoteCopy,quoteCustomerSource} from '../core/privateQuoteCopy.mjs';
 import {protectQuoteDraftTransition,isQuoteDraftSourceCurrent} from '../core/quoteDraftTransition.mjs';
 import {beginSocialContentAction,matchesSocialContentPost} from '../core/socialContentActionGuard.mjs';
@@ -12280,10 +12280,10 @@ function App() {
         const result=resumeCurrentEnquiry();
         if(!result.found&&!result.blocked)openBusyInbox();
         response=result.blocked?'Your current business permissions need review before opening private enquiries.':result.found?(result.opened?'Review your current enquiry. Existing form wording has been kept; nothing was filed or sent.':'Your current enquiry or unfinished edits need attention before returning. Nothing was filed or sent.'):'Choose an existing enquiry in Busy Inbox. No particular enquiry was guessed or changed.';
-      }else if(allowed&&local.continueQuote){
+      }else if(allowed&&(local.continueQuote||local.reviewQuoteFollowUp)){
         const source=replyActionSources.current;
-        const target=preparedQuoteTarget({ownerWorkspaceScope:socialDraftScope,ownerSession,cloudWorkspace:{...cloudWorkspace,role:source.role},customers:source.customers,replyActions:source.replyActions,selectedReplyActionId:source.selectedReplyActionId},local.quoteCustomerName);
-        if(target){const opened=openSavedReplyAction(target.customer.id);response=opened?'Review the existing private quote for '+target.customer.name+'. Nothing has been sent or approved.':'Your current changes or the quote source need attention before opening this private quote. Nothing has been sent.';}
+        const target=(local.reviewQuoteFollowUp?followUpQuoteTarget:preparedQuoteTarget)({ownerWorkspaceScope:socialDraftScope,ownerSession,cloudWorkspace:{...cloudWorkspace,role:source.role},customers:source.customers,replyActions:source.replyActions,selectedReplyActionId:source.selectedReplyActionId},local.quoteCustomerName);
+        if(target){const opened=openSavedReplyAction(target.customer.id);response=opened?(local.reviewQuoteFollowUp?'Review the recorded quote and original enquiry for '+target.customer.name+' before choosing private follow-up preparation. Recorded status is not proof of customer delivery. Nothing has been sent.':'Review the existing private quote for '+target.customer.name+'. Nothing has been sent or approved.'):'Your current changes or the quote source need attention before opening this private quote. Nothing has been sent.';}
         else go(local.route);
       }else if(allowed){if(local.route==='busyInbox')openBusyInbox();else go(local.route);}
       return acceptGrowthOperator({handled:true,result:{title:"Busy",intent:"open_core_area",localNavigationOnly:true,transcript,response:allowed?response:"Sign in as this business owner and select your business before opening private work.",mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});

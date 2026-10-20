@@ -26,12 +26,21 @@ export function homePreparedQuoteReview(s,getCurrent){
 
 // Reuse current original records for Home/Talk navigation; not a customer matcher or store.
 export function preparedQuoteTarget(s,exactName=''){
+ return quoteReviewTarget(s,exactName,'Prepared');
+}
+
+// Recorded Sent is review context, never proof of customer delivery.
+export function followUpQuoteTarget(s,exactName=''){
+ return quoteReviewTarget(s,exactName,'Sent');
+}
+
+function quoteReviewTarget(s,exactName,status){
  const owner=s.ownerSession?.userId,business=s.cloudWorkspace?.businessId;
  if(!s.ownerWorkspaceScope||!owner||!business||!['owner','admin'].includes(s.cloudWorkspace?.role))return null;
  const key=value=>String(value||'').trim().replace(/\s+/g,' ').toLowerCase();
  const matches=(s.customers||[]).filter(customer=>exactName?key(customer.name)===key(exactName):customer.id===s.selectedReplyActionId);
  if(matches.length!==1)return null;
  const customer=matches[0],action=s.replyActions?.[customer.id];
- if([customer.businessId,customer.business_id].some(id=>id&&id!==business)||action?.type!=='quote'||action.details?.quoteStatus!=='Prepared'||!String(action.details?.message||'').trim())return null;
+ if([customer.businessId,customer.business_id].some(id=>id&&id!==business)||action?.type!=='quote'||action.details?.quoteStatus!==status||(status==='Sent'&&action.details?.followUpSentAt)||!String(action.details?.message||'').trim())return null;
  return {customer,action};
 }
