@@ -1,5 +1,6 @@
 import React from 'react';
-import {prepareSocialBrandHandoff,confirmSocialBrandHandoff,resolveSocialServiceIntent} from '../core/socialBrandHandoffV3199.mjs';
+import {publicBusinessContent,selectBusinessContent} from '../core/businessContentRecords.mjs';
+import {prepareSocialBrandHandoff,confirmSocialBrandHandoff,resolveSocialServiceIntent,prepareSocialRecordHandoff} from '../core/socialBrandHandoffV3199.mjs';
 
 // Pending intent stays inside the original in-memory source context. No draft store or save authority.
 export function useSocialContentHandoff(input){
@@ -17,17 +18,52 @@ export function useSocialContentHandoff(input){
   input.go('socialCreator');return true;
  };
  const keep=expected=>{if(!valid()||live.current.sourceContext?.pendingContentIdea!==expected)return false;epoch.current++;const {pendingContentIdea,...rest}=live.current.sourceContext;setContext(rest);return true;};
- const accept=(expected,ticket)=>{
-  if(!fresh(ticket)||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected)return false;
-  const checked=confirmSocialBrandHandoff({...context(),evidence:expected.evidence});
-  if(!checked.ok)return false;
+ const loadRecords=async(kind,platform='',sourceMode='')=>{
+  if(!valid()||!['product','event'].includes(kind))return false;
+  const pending={purpose:kind,platform,sourceMode,scope,ownerId:live.current.ownerId,loading:true};
+  epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:pending});input.go('socialCreator');
+  const ticket=capture();
+  try{
+   const result=await live.current.loadApprovedContent?.();
+   if(!fresh(ticket))return false;
+   const feed=result?.ok===true&&result.businessId===live.current.businessId?publicBusinessContent(result.records,result.businessId):null;
+   const records=feed?.ok?selectBusinessContent(feed,{kind}).filter(row=>row.data.status!=='cancelled'):[];
+   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,loading:false,feed,records,evidence:feed?.ok?null:{ok:false,reason:'Current approved records could not be loaded. Your draft is unchanged.'}}});return !!feed?.ok;
+  }catch{
+   if(fresh(ticket)){epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...pending,loading:false,evidence:{ok:false,reason:'Could not load approved records. Your draft is unchanged.'}}});}return false;
+  }
+ };
+ const selectRecord=(expected,selection)=>{
+  if(!valid()||live.current.sourceContext?.pendingContentIdea!==expected)return false;
+  const evidence=prepareSocialRecordHandoff({...context(),feed:expected.feed,sourceMode:expected.sourceMode,selection});
+  epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,evidence}});return evidence.ok;
+ };
+ const commitAccepted=(expected,checked)=>{
   // Explicit acceptance creates a new private draft target, preserving deliberately selected media.
   const warnings=live.current.aiResult?.privacyWarnings;
   const analysis=Array.isArray(warnings)&&warnings.length?{privacyWarnings:[...warnings],captions:[],story:null,detectedService:''}:null;
   epoch.current++;input.setText(checked.copy);live.current={...live.current,text:checked.copy,selectedDraftId:null,aiResult:analysis};
   input.setSelectedDraftId(null);input.setAiResult(analysis);input.setAiStatus('idle');input.setCaptionId('');
-  setContext({type:checked.purpose==='business-introduction'?'approved_business':'approved_service',label:checked.purpose==='business-introduction'?'Approved business introduction':'Approved service wording',service:checked.serviceName,suggestedPlatform:expected.platform,customerId:'',jobId:''});
+  const record=['product','event'].includes(checked.purpose);
+  setContext({type:record?'approved_'+checked.purpose:checked.purpose==='business-introduction'?'approved_business':'approved_service',label:record?'Approved '+checked.purpose+' wording':checked.purpose==='business-introduction'?'Approved business introduction':'Approved service wording',service:checked.serviceName,selection:checked.selection,suggestedPlatform:expected.platform,customerId:'',jobId:''});
   return true;
+ };
+ const acceptRecord=async(expected,ticket)=>{
+  try{
+   const result=await live.current.loadApprovedContent?.();
+   if(!fresh(ticket))return false;
+   const feed=result?.ok===true&&result.businessId===live.current.businessId?publicBusinessContent(result.records,result.businessId):null;
+   const checked=confirmSocialBrandHandoff({...context(),evidence:expected.evidence,feed});
+   if(!checked.ok){epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,evidence:{ok:false,reason:checked.reason}}});return false;}
+   return commitAccepted(expected,checked);
+  }catch{return false;}
+ };
+ const accept=(expected,ticket)=>{
+  if(!fresh(ticket)||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected)return false;
+  if(['product','event'].includes(expected.purpose))return acceptRecord(expected,ticket);
+  const checked=confirmSocialBrandHandoff({...context(),evidence:expected.evidence});
+  if(!checked.ok)return false;
+  return commitAccepted(expected,checked);
  };
  const editText=value=>{if(!current())return;epoch.current++;live.current={...live.current,text:value};input.setText(value);};
  // UI confirmations must bind to the exact current local draft, including pre-render typing.
@@ -44,7 +80,8 @@ export function useSocialContentHandoff(input){
  const route=text=>{
   if(!current())return {handled:false};
   const result=resolveSocialServiceIntent(text,context());
+  if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform);return {...result,opened:valid()};}
   return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose)}:result;
  };
- return {route,prepare,keep,accept,capture,fresh,editText,reopen,invalidate:()=>{if(current())epoch.current++;}};
+ return {route,prepare,loadRecords,selectRecord,keep,accept,capture,fresh,editText,reopen,invalidate:()=>{if(current())epoch.current++;}};
 }
