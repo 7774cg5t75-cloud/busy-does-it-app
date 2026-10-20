@@ -1,3 +1,4 @@
+import {quoteEnquiryReference,resolveQuoteEnquiryReference} from '../core/quoteEnquiryReference.mjs';
 import {preparedQuoteTarget} from '../core/homeQuoteReview.mjs';
 import {readPrivateQuoteCopy,quoteCustomerSource} from '../core/privateQuoteCopy.mjs';
 import {protectQuoteDraftTransition,isQuoteDraftSourceCurrent} from '../core/quoteDraftTransition.mjs';
@@ -1498,6 +1499,19 @@ function App() {
     loadReplyActionForm(customerId, saved.type);
     go("replyActionDetail");
     },{isCurrent});
+  };
+
+  const prepareQuoteDetails = (customerId,details,expectedAction) => {
+    const current=replyActionSources.current,action=current.replyActions[customerId],customer=current.customers.find(row=>row.id===customerId)||current.lastSimulatedRecipients.find(row=>row.id===customerId);
+    if(businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||!['owner','admin'].includes(current.role)||!customer||action?.type!=='quote'||current.selectedReplyActionId!==customerId||current.cloudRevision!==cloudRevision||expectedAction&&action!==expectedAction||!details||typeof details!=='object'||Array.isArray(details))return false;
+    const {enquiryReference:incomingReference,...fields}=details;
+    const prepared=action.details?.enquiryReference?{...fields,enquiryReference:action.details.enquiryReference}:fields;
+    const origin=replyActionOrigin.current;
+    if(!origin||origin.workspace!==renderedBusinessWorkspaceScope||origin.customerId!==customerId)return prepared;
+    if(!current.inboxItems.includes(origin.item)||JSON.stringify(origin.item)!==origin.stamp)return false;
+    const reference=quoteEnquiryReference({businessId:cloudWorkspace?.businessId,customerId,item:origin.item,revision:cloudRevision});
+    // Legacy records without a filing receipt stay saveable; no link is invented.
+    return reference?{...prepared,enquiryReference:reference}:prepared;
   };
 
   const returnToQuoteEnquiry = (customerId=replyActionSources.current.selectedReplyActionId) => {
@@ -4929,6 +4943,12 @@ function App() {
 
   const completeReplyAction = (customerId, details = {}) => {
     const action = replyActions[customerId];
+    if(action?.type==='quote'&&details.enquiryReference){
+      const reviewed=prepareQuoteDetails(customerId,details,action);
+      if(!reviewed||JSON.stringify(reviewed.enquiryReference)!==JSON.stringify(details.enquiryReference)||details.enquiryReference.businessId!==cloudWorkspace?.businessId||details.enquiryReference.customerId!==customerId)return false;
+      // New associations must come from the current reviewed original enquiry.
+      if(JSON.stringify(action.details?.enquiryReference)!==JSON.stringify(details.enquiryReference)&&!resolveQuoteEnquiryReference(details.enquiryReference,{businessId:cloudWorkspace?.businessId,customerId,inboxItems:replyActionSources.current.inboxItems,revision:cloudRevision}))return false;
+    }
     setReplyActions((current) => ({
       ...current,
       [customerId]: current[customerId]
@@ -17723,6 +17743,7 @@ function App() {
     getQuoteFollowUpTypingEpoch:()=>quoteFollowUpTypingEpoch.current,
     setQuoteFollowUpDraft:value=>{if(typeof value!=="string"||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.workspace!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.customerId!==selectedReplyActionId)return;quoteFollowUpTypingEpoch.current++;quoteFollowUpScope.current={...quoteFollowUpScope.current,words:value};setQuoteFollowUpDraft(value);},
     quoteFollowUpOutcome,
+    prepareQuoteDetails,
     returnToQuoteEnquiry,
     customerEnquiryOriginItem:replyActionOrigin.current?.workspace===businessWorkspaceScopeRef.current&&replyActionOrigin.current?.customerId===selectedCustomerId&&['owner','admin'].includes(cloudWorkspace?.role)&&inboxItems.includes(replyActionOrigin.current?.item)&&replyActionOrigin.current?.item?.status==='Filed'&&replyActionOrigin.current.item.filedCustomerId===selectedCustomerId&&JSON.stringify(replyActionOrigin.current.item)===replyActionOrigin.current.stamp?replyActionOrigin.current.item:null,
     quoteEnquiryOriginItem:replyActionOrigin.current?.workspace===businessWorkspaceScopeRef.current&&replyActionOrigin.current?.customerId===selectedReplyActionId&&['owner','admin'].includes(cloudWorkspace?.role)&&inboxItems.includes(replyActionOrigin.current?.item)&&replyActionOrigin.current?.item?.status==='Filed'&&replyActionOrigin.current.item.filedCustomerId===selectedReplyActionId&&JSON.stringify(replyActionOrigin.current.item)===replyActionOrigin.current.stamp?replyActionOrigin.current.item:null,

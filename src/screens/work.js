@@ -3634,7 +3634,9 @@ function ReplyActionDetail({ s }) {
 
   const finish = (details) => {
     const save=()=>{const result=s.completeReplyAction(customer.id,details);if(result===false)return false;s.back();return true;};
-    return type==='quote'?quoteReview.commit(()=>s.completeReplyAction(customer.id,details),details):save();
+    if(type!=='quote')return save();
+    const reviewed=s.prepareQuoteDetails?s.prepareQuoteDetails(customer.id,details,saved):details;
+    return reviewed?quoteReview.commit(()=>s.completeReplyAction(customer.id,reviewed),reviewed):false;
   };
 
   if (type === "quote") {

@@ -1615,6 +1615,12 @@
       "args": [
         "scripts/check-mission15-phase37-recorded-quote-status.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase38-quote-reference",
+      "args": [
+        "scripts/check-mission15-phase38-quote-reference.mjs"
+      ]
     }
   ]
 }
