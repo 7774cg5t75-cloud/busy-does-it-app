@@ -1651,6 +1651,12 @@
       "args": [
         "scripts/check-mission15-phase39-followup-review.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase39-home-quote-review",
+      "args": [
+        "scripts/check-mission15-phase39-home-quote-review.mjs"
+      ]
     }
   ]
 }
