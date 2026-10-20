@@ -4597,17 +4597,20 @@ function App() {
     openCustomer(customerId);
   };
 
-  const quoteFollowUpSources=useRef(null);quoteFollowUpSources.current={customers,replyActions,lastSimulatedRecipients};
-  const prepareQuoteFollowUp = (customerId) => {
+  const quoteFollowUpSources=useRef(null);quoteFollowUpSources.current={customers,replyActions,lastSimulatedRecipients,inboxItems};
+  const prepareQuoteFollowUp = (customerId,originInboxId="") => {
     if(businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope)return false;
     const action = replyActions[customerId];
     const customer =
       customers.find((item) => item.id === customerId) ||
       lastSimulatedRecipients.find((item) => item.id === customerId);
     if (!customer || action?.type !== "quote" || action.details?.quoteStatus !== "Sent") return;
-    const sourceCurrent=()=>quoteFollowUpSources.current?.replyActions?.[customerId]===action&&(quoteFollowUpSources.current?.customers.includes(customer)||quoteFollowUpSources.current?.lastSimulatedRecipients.includes(customer));
+    const originItem=originInboxId?inboxItems.find(item=>item.id===originInboxId&&item.status==="Filed"&&item.filedCustomerId===customerId):null;
+    if(originInboxId&&!originItem)return false;
+    const sourceCurrent=()=>quoteFollowUpSources.current?.replyActions?.[customerId]===action&&(quoteFollowUpSources.current?.customers.includes(customer)||quoteFollowUpSources.current?.lastSimulatedRecipients.includes(customer))&&(!originItem||quoteFollowUpSources.current?.inboxItems?.includes(originItem)&&originItem.status==="Filed"&&originItem.filedCustomerId===customerId);
     if(quoteFollowUpTypingEpoch.current!==quoteFollowUpRenderEpoch||!sourceCurrent())return false;
     if(quoteFollowUpScope.current?.workspace===renderedBusinessWorkspaceScope&&quoteFollowUpScope.current?.customerId===customerId&&quoteFollowUpScope.current?.action===action&&quoteFollowUpScope.current?.words?.trim()){
+      if(originItem){quoteFollowUpScope.current={...quoteFollowUpScope.current,originItem};quoteFollowUpTypingEpoch.current++;}
       setSelectedReplyActionId(customerId);go("quoteFollowUp");return true;
     }
     return protectQuoteDraftTransition({workspace:renderedBusinessWorkspaceScope,workspaceRef:businessWorkspaceScopeRef,draftRef:quoteFollowUpScope,epochRef:quoteFollowUpTypingEpoch,renderEpoch:quoteFollowUpRenderEpoch,sourceCurrent,confirm:Alert.alert,apply:()=>{
@@ -4616,7 +4619,7 @@ function App() {
     const draft =
       action.details?.followUpMessage ||
       `Hi ${customer.name.split(" ")[0]}, just checking in about the ${service.toLowerCase()} quote${amount ? ` for £${amount}` : ""}. No pressure at all — let me know if you’d like to go ahead, have any questions, or want me to leave it with you for now.`;
-    quoteFollowUpScope.current={workspace:renderedBusinessWorkspaceScope,customerId,action,customer,words:draft};
+    quoteFollowUpScope.current={workspace:renderedBusinessWorkspaceScope,customerId,action,customer,originItem,words:draft};
     quoteFollowUpTypingEpoch.current++;
     setSelectedReplyActionId(customerId);
     setQuoteFollowUpDraft(draft);
@@ -17641,6 +17644,7 @@ function App() {
     getQuoteFollowUpTypingEpoch:()=>quoteFollowUpTypingEpoch.current,
     setQuoteFollowUpDraft:value=>{if(typeof value!=="string"||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.workspace!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.customerId!==selectedReplyActionId)return;quoteFollowUpTypingEpoch.current++;quoteFollowUpScope.current={...quoteFollowUpScope.current,words:value};setQuoteFollowUpDraft(value);},
     quoteFollowUpOutcome,
+    quoteFollowUpOriginItem:quoteFollowUpScope.current?.workspace===businessWorkspaceScopeRef.current&&quoteFollowUpScope.current?.customerId===selectedReplyActionId&&inboxItems.includes(quoteFollowUpScope.current?.originItem)&&quoteFollowUpScope.current?.originItem?.filedCustomerId===selectedReplyActionId&&quoteFollowUpScope.current?.originItem?.status==="Filed"?quoteFollowUpScope.current.originItem:null,
     quoteFollowUpSourceCurrent:isQuoteDraftSourceCurrent(quoteFollowUpScope.current,businessWorkspaceScopeRef.current,selectedReplyActionId,replyActions[selectedReplyActionId],customers.find(row=>row.id===selectedReplyActionId)||lastSimulatedRecipients.find(row=>row.id===selectedReplyActionId)),
     setQuoteFollowUpOutcome:value=>{if(!["No reply yet","Still considering","Accepted","Declined"].includes(value)||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||!isQuoteDraftSourceCurrent(quoteFollowUpScope.current,renderedBusinessWorkspaceScope,selectedReplyActionId,quoteFollowUpSources.current?.replyActions?.[selectedReplyActionId]))return;quoteFollowUpTypingEpoch.current++;setQuoteFollowUpOutcome(value);},
     enquiryFollowUpDraft,

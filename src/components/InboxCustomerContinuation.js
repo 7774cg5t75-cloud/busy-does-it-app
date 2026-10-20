@@ -14,7 +14,7 @@ export function InboxCustomerContinuation({s,item}){
  };
  const prepare=()=>{
   if(!current()||action?.type!=='quote'||action.details?.quoteStatus!=='Sent')return false;
-  return live.current.prepareQuoteFollowUp(customer.id);
+  return live.current.prepareQuoteFollowUp(customer.id,item.id);
  };
  return <><Text style={styles.cardBody}>This item was filed into an existing customer record. Further work stays private until you approve a supported action.</Text>
   <Button label="Open this customer" onPress={()=>current()?live.current.openCustomer(customer.id):false}/>
