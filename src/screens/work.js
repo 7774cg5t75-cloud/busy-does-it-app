@@ -3697,13 +3697,14 @@ function ReplyActionDetail({ s }) {
         <Button
           label={saved.done ? "Save quote changes" : "Save quote as prepared"}
           primary
-          disabled={!String(s.actionQuoteAmount).trim()}
+          disabled={!String(s.actionQuoteAmount).trim()||!quoteReview.validDate}
           onPress={() =>
             finish({
               ...(saved.details || {}),
               quoteAmount: s.actionQuoteAmount,
               message: s.actionQuoteMessage,
               plannedSentDate:s.actionQuoteSentDate,
+              ...saved.details?.quoteStatus==='Sent'?{quoteSentAt:quoteReview.sentAt(),followUpDueDate:addDaysFromISO(s.actionQuoteSentDate,7)}:{},
               quoteStatus: saved.details?.quoteStatus || "Prepared",
               summary: `Quote ${String(saved.details?.quoteStatus || "Prepared").toLowerCase()} for £${s.actionQuoteAmount}`,
             })
@@ -3712,7 +3713,7 @@ function ReplyActionDetail({ s }) {
         {!saved.done ? (
           <Button
             label="Save & mark quote as sent"
-            disabled={!String(s.actionQuoteAmount).trim()}
+            disabled={!String(s.actionQuoteAmount).trim()||!quoteReview.validDate}
             onPress={() =>
               finish({
                 ...(saved.details || {}),
@@ -3720,7 +3721,7 @@ function ReplyActionDetail({ s }) {
                 message: s.actionQuoteMessage,
                 plannedSentDate:s.actionQuoteSentDate,
                 quoteStatus: "Sent",
-                quoteSentAt: new Date(`${s.actionQuoteSentDate || dateToISO(new Date())}T12:00:00`).toISOString(),
+                quoteSentAt: quoteReview.sentAt(),
                 followUpDueDate: addDaysFromISO(s.actionQuoteSentDate || dateToISO(new Date()), 7),
                 summary: `Quote marked sent for £${s.actionQuoteAmount}`,
               })

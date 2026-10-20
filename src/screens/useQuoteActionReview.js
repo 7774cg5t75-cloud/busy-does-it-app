@@ -13,10 +13,12 @@ export function useQuoteActionReview(s){
   epoch.current++;live.current={...live.current,[field]:value};
   s['set'+field[0].toUpperCase()+field.slice(1)]?.(value);return true;
  };
+ const date=String(s.actionQuoteSentDate||''),parsed=new Date(date+'T12:00:00Z');
+ const validDate=/^\d{4}-\d{2}-\d{2}$/.test(date)&&Number.isFinite(parsed.getTime())&&parsed.toISOString().slice(0,10)===date;
  const commit=operation=>{
-  if(!current()||action?.type!=='quote'||epoch.current!==renderEpoch||JSON.stringify(values(live.current))!==JSON.stringify(renderValues))return false;
+  if(!validDate||!current()||action?.type!=='quote'||epoch.current!==renderEpoch||JSON.stringify(values(live.current))!==JSON.stringify(renderValues))return false;
   // Consume this exact review even if another callback is invoked before render.
   epoch.current++;const result=operation();if(result===false&&epoch.current===renderEpoch+1)epoch.current=renderEpoch;return result;
  };
- return {edit,commit};
+ return {edit,commit,validDate,sentAt:()=>validDate?new Date(date+'T12:00:00').toISOString():null};
 }
