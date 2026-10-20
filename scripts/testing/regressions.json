@@ -1693,6 +1693,12 @@
       "args": [
         "scripts/check-mission15-phase40-growth-formats.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase40-talk-formats",
+      "args": [
+        "scripts/check-mission15-phase40-talk-formats.mjs"
+      ]
     }
   ]
 }

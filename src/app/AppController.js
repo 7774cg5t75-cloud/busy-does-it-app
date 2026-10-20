@@ -12308,7 +12308,7 @@ function App() {
         const contentIntent=socialContentActions.route(cleanText);
         if(contentIntent.handled){
           const opened=contentIntent.opened;
-          return acceptGrowthOperator({handled:true,result:{title:"Content Creator",intent:"social_post",localNavigationOnly:true,transcript:cleanText,response:opened?contentIntent.reason:"Sign in as this business owner to prepare content.",mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
+          return acceptGrowthOperator({handled:true,result:{title:"Content Creator",intent:"social_post",localNavigationOnly:true,transcript:cleanText,response:opened?contentIntent.reason:(contentIntent.blockedReason||"Sign in as this business owner to prepare content."),mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
         }
         const localNavigation=acceptLocalNavigation(cleanText);
         if(localNavigation)return localNavigation;
@@ -12410,7 +12410,7 @@ function App() {
       // project-only commands before its standard actions can run.
       if(result.transcript && !businessCreationConversationActive){
         const contentIntent=socialContentActions.route(result.transcript);
-        if(contentIntent.handled)return acceptGrowthOperator({handled:true,result:{title:"Content Creator",intent:"social_post",localNavigationOnly:true,transcript:result.transcript,response:contentIntent.opened?contentIntent.reason:"Sign in as this business owner to prepare content.",mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
+        if(contentIntent.handled)return acceptGrowthOperator({handled:true,result:{title:"Content Creator",intent:"social_post",localNavigationOnly:true,transcript:result.transcript,response:contentIntent.opened?contentIntent.reason:(contentIntent.blockedReason||"Sign in as this business owner to prepare content."),mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
         if(growthOperatorRequestRef.current!==growthNonce)return null;
         const localNavigation=acceptLocalNavigation(result.transcript);
         if(localNavigation)return localNavigation;
