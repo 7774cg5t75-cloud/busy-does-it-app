@@ -9,10 +9,10 @@ export function useSocialContentHandoff(input){
  const context=()=>({website:live.current.website,app:live.current.app,businessId:live.current.businessId,approvedProfile:live.current.approvedProfile});
  const setContext=value=>{live.current={...live.current,sourceContext:value};input.setSourceContext(value);};
  const valid=()=>current()&&!!live.current.ownerId&&!!live.current.businessId&&['owner','admin'].includes(live.current.role);
- const prepare=(serviceName='',platform='',sourceMode='')=>{
+ const prepare=(serviceName='',platform='',sourceMode='',purpose='service')=>{
   if(!valid())return false;
-  const evidence=serviceName?prepareSocialBrandHandoff({...context(),serviceName,sourceMode}):(()=>{const result=prepareSocialBrandHandoff({...context(),sourceMode});return result.ok?null:result;})();
-  const pending={evidence,serviceName,sourceMode,platform:['Facebook','Instagram'].includes(platform)?platform:'',scope,ownerId:live.current.ownerId};
+  const evidence=serviceName||purpose==='business-introduction'?prepareSocialBrandHandoff({...context(),serviceName,sourceMode,purpose}):(()=>{const result=prepareSocialBrandHandoff({...context(),sourceMode});return result.ok?null:result;})();
+  const pending={evidence,serviceName,sourceMode,purpose,platform:['Facebook','Instagram'].includes(platform)?platform:'',scope,ownerId:live.current.ownerId};
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:pending});
   input.go('socialCreator');return true;
  };
@@ -26,7 +26,7 @@ export function useSocialContentHandoff(input){
   const analysis=Array.isArray(warnings)&&warnings.length?{privacyWarnings:[...warnings],captions:[],story:null,detectedService:''}:null;
   epoch.current++;input.setText(checked.copy);live.current={...live.current,text:checked.copy,selectedDraftId:null,aiResult:analysis};
   input.setSelectedDraftId(null);input.setAiResult(analysis);input.setAiStatus('idle');input.setCaptionId('');
-  setContext({type:'approved_service',label:'Approved service wording',service:checked.serviceName,suggestedPlatform:expected.platform,customerId:'',jobId:''});
+  setContext({type:checked.purpose==='business-introduction'?'approved_business':'approved_service',label:checked.purpose==='business-introduction'?'Approved business introduction':'Approved service wording',service:checked.serviceName,suggestedPlatform:expected.platform,customerId:'',jobId:''});
   return true;
  };
  const editText=value=>{if(!current())return;epoch.current++;live.current={...live.current,text:value};input.setText(value);};
@@ -44,7 +44,7 @@ export function useSocialContentHandoff(input){
  const route=text=>{
   if(!current())return {handled:false};
   const result=resolveSocialServiceIntent(text,context());
-  return result.handled?{...result,opened:prepare(result.serviceName,result.platform)}:result;
+  return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose)}:result;
  };
  return {route,prepare,keep,accept,capture,fresh,editText,reopen,invalidate:()=>{if(current())epoch.current++;}};
 }

@@ -1345,6 +1345,12 @@
       "args": [
         "scripts/check-mission15-phase32-save-freshness.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase33-introduction",
+      "args": [
+        "scripts/check-mission15-phase33-introduction.mjs"
+      ]
     }
   ]
 }

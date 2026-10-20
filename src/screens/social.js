@@ -728,11 +728,11 @@ function SocialCreator({ s }) {
     >
       {!brandSnapshot.ok&&s.businessCreationIntelligence?.sharedProfile&&s.socialContentActions&&!pendingIdea?<Card eyebrow="Choose your content source" title="Review current business facts"
         body={brandSnapshot.reason} tone="blue"><Button label="Use current approved business profile" onPress={()=>s.socialContentActions.prepare('','','approved-profile')}/></Card>:null}
-      {pendingIdea?<Card eyebrow="Private content idea · not published" title={pendingIdea.serviceName||'Choose the service for your post'}
+      {pendingIdea?<Card eyebrow="Private content idea · not published" title={pendingIdea.purpose==='business-introduction'?'Introduce your business':pendingIdea.serviceName||'Choose the service for your post'}
         body={pendingCheck?.ok?pendingCheck.copy:pendingCheck?.reason||pendingIdea.evidence?.reason||'Choose one current approved service below. No launch date, offer or availability is inferred.'} tone="blue">
         {pendingIdea.platform?<Text style={styles.cardBody}>{'Suggested destination: '+pendingIdea.platform+'. Existing channel selections are kept; choose destinations during review.'}</Text>:null}
-        {!incomingSnapshot.ok&&s.businessCreationIntelligence?.sharedProfile?<Button label="Use current approved business profile" onPress={()=>s.socialContentActions?.prepare(pendingIdea.serviceName,pendingIdea.platform,'approved-profile')}/>:null}
-        {pendingCheck?.ok?<Button label="Use this service idea" onPress={applyIncomingIdea}/>:incomingSnapshot.ok?incomingSnapshot.services.map(service=><Button key={service.name} label={'Use service: '+service.name} onPress={()=>s.socialContentActions?.prepare(service.name,pendingIdea.platform,pendingIdea.sourceMode)}/>):null}
+        {!incomingSnapshot.ok&&s.businessCreationIntelligence?.sharedProfile?<Button label="Use current approved business profile" onPress={()=>s.socialContentActions?.prepare(pendingIdea.serviceName,pendingIdea.platform,'approved-profile',pendingIdea.purpose)}/>:null}
+        {pendingCheck?.ok?<Button label={pendingIdea.purpose==='business-introduction'?"Use this introduction":"Use this service idea"} onPress={applyIncomingIdea}/>:incomingSnapshot.ok&&pendingIdea.purpose!=='business-introduction'?incomingSnapshot.services.map(service=><Button key={service.name} label={'Use service: '+service.name} onPress={()=>s.socialContentActions?.prepare(service.name,pendingIdea.platform,pendingIdea.sourceMode)}/>):null}
         <Button label="Keep my current draft" onPress={()=>s.socialContentActions?.keep(pendingIdea)}/>
       </Card>:null}
       <Card
