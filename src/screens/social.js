@@ -856,15 +856,15 @@ function SocialCreator({ s }) {
       {ready ? (
         <>
           <Card
-            eyebrow="BUSY saw"
+            eyebrow={result.restoredPrivateDraft?"Saved private draft":"BUSY saw"}
             title={result.summary || socialStoryLabel(result.story?.type)}
-            body={result.story?.reason || "BUSY analysed the selected photos as one content set."}
-            footer={`${socialStoryLabel(result.story?.type)} • confidence ${result.story?.confidence || "Low"}`}
+            body={result.restoredPrivateDraft?"Reopening kept the saved wording and photos; it did not inspect the photos again. Review current facts and permissions before publishing.":result.story?.reason || "BUSY analysed the selected photos as one content set."}
+            footer={result.restoredPrivateDraft?"Earlier preparation · not a new inspection or publication":`${socialStoryLabel(result.story?.type)} • confidence ${result.story?.confidence || "Low"}`}
             tone={result.privacyWarnings?.length ? "amber" : "green"}
           >
-            <MetricRow left="Detected service" right={result.detectedService || "Not certain"} />
+            <MetricRow left={result.restoredPrivateDraft?"Saved service":"Detected service"} right={result.detectedService || "Not certain"} />
             {result.story?.type === "before_after" ? (
-              <MetricRow left="Before / after pairing" right="Detected" strong />
+              <MetricRow left="Before / after pairing" right={result.restoredPrivateDraft?"Previously recorded":"Detected"} strong />
             ) : null}
           </Card>
 

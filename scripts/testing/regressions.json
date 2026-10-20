@@ -1603,6 +1603,12 @@
       "args": [
         "scripts/check-mission15-phase37-home-inbox.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase37-reopened-content",
+      "args": [
+        "scripts/check-mission15-phase37-reopened-content.mjs"
+      ]
     }
   ]
 }

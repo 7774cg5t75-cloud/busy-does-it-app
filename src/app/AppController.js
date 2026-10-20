@@ -4327,6 +4327,7 @@ function App() {
     );
     setSocialBrief(draft.brief || "");
     setSocialAiResult({
+      restoredPrivateDraft:true,
       summary: draft.story
         ? `${socialStoryLabel(draft.story.type)} content`
         : "Saved social draft",
