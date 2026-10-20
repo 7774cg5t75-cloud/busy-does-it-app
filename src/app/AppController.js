@@ -1,3 +1,4 @@
+import {protectQuoteDraftTransition} from '../core/quoteDraftTransition.mjs';
 import {beginSocialContentAction,matchesSocialContentPost} from '../core/socialContentActionGuard.mjs';
 import {localCoreAreaRequest} from "../domain/growthOperatorBridge.mjs";
 import {useSocialContentHandoff} from "../screens/useSocialContentHandoff";
@@ -4596,6 +4597,7 @@ function App() {
     openCustomer(customerId);
   };
 
+  const quoteFollowUpSources=useRef(null);quoteFollowUpSources.current={customers,replyActions,lastSimulatedRecipients};
   const prepareQuoteFollowUp = (customerId) => {
     if(businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope)return false;
     const action = replyActions[customerId];
@@ -4603,17 +4605,24 @@ function App() {
       customers.find((item) => item.id === customerId) ||
       lastSimulatedRecipients.find((item) => item.id === customerId);
     if (!customer || action?.type !== "quote" || action.details?.quoteStatus !== "Sent") return;
+    const sourceCurrent=()=>quoteFollowUpSources.current?.replyActions?.[customerId]===action&&(quoteFollowUpSources.current?.customers.includes(customer)||quoteFollowUpSources.current?.lastSimulatedRecipients.includes(customer));
+    if(quoteFollowUpTypingEpoch.current!==quoteFollowUpRenderEpoch||!sourceCurrent())return false;
+    if(quoteFollowUpScope.current?.workspace===renderedBusinessWorkspaceScope&&quoteFollowUpScope.current?.customerId===customerId&&quoteFollowUpScope.current?.action===action&&quoteFollowUpScope.current?.words?.trim()){
+      setSelectedReplyActionId(customerId);go("quoteFollowUp");return true;
+    }
+    return protectQuoteDraftTransition({workspace:renderedBusinessWorkspaceScope,workspaceRef:businessWorkspaceScopeRef,draftRef:quoteFollowUpScope,epochRef:quoteFollowUpTypingEpoch,renderEpoch:quoteFollowUpRenderEpoch,sourceCurrent,confirm:Alert.alert,apply:()=>{
     const amount = action.details?.quoteAmount;
     const service = customer.service || "the work";
     const draft =
       action.details?.followUpMessage ||
       `Hi ${customer.name.split(" ")[0]}, just checking in about the ${service.toLowerCase()} quote${amount ? ` for £${amount}` : ""}. No pressure at all — let me know if you’d like to go ahead, have any questions, or want me to leave it with you for now.`;
-    quoteFollowUpScope.current={workspace:renderedBusinessWorkspaceScope,customerId,action};
+    quoteFollowUpScope.current={workspace:renderedBusinessWorkspaceScope,customerId,action,words:draft};
     quoteFollowUpTypingEpoch.current++;
     setSelectedReplyActionId(customerId);
     setQuoteFollowUpDraft(draft);
     setQuoteFollowUpOutcome(action.details?.followUpOutcome || "No reply yet");
     go("quoteFollowUp");
+    }});
   };
 
   const simulateQuoteFollowUpSend = () => {
@@ -4664,11 +4673,14 @@ function App() {
     if(businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope)return false;
     const action = replyActions[customerId];
     if (!action?.details?.followUpSentAt) return;
-    quoteFollowUpScope.current={workspace:renderedBusinessWorkspaceScope,customerId,action};quoteFollowUpTypingEpoch.current++;
+    const sourceCurrent=()=>quoteFollowUpSources.current?.replyActions?.[customerId]===action;
+    return protectQuoteDraftTransition({workspace:renderedBusinessWorkspaceScope,workspaceRef:businessWorkspaceScopeRef,draftRef:quoteFollowUpScope,epochRef:quoteFollowUpTypingEpoch,renderEpoch:quoteFollowUpRenderEpoch,sourceCurrent,confirm:Alert.alert,apply:()=>{
+    quoteFollowUpScope.current={workspace:renderedBusinessWorkspaceScope,customerId,action,words:action.details?.followUpMessage||""};quoteFollowUpTypingEpoch.current++;
     setSelectedReplyActionId(customerId);
     setQuoteFollowUpDraft(action.details?.followUpMessage || "");
     setQuoteFollowUpOutcome(action.details?.followUpOutcome || "No reply yet");
     go("quoteFollowUpOutcome");
+    }});
   };
 
   const saveQuoteFollowUpOutcome = () => {
@@ -17624,7 +17636,7 @@ function App() {
     removeBusinessBrainRule,
     quoteFollowUpDraft:quoteFollowUpScope.current?.workspace===businessWorkspaceScopeRef.current&&quoteFollowUpScope.current?.customerId===selectedReplyActionId?quoteFollowUpDraft:"",
     getQuoteFollowUpTypingEpoch:()=>quoteFollowUpTypingEpoch.current,
-    setQuoteFollowUpDraft:value=>{if(typeof value!=="string"||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.workspace!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.customerId!==selectedReplyActionId)return;quoteFollowUpTypingEpoch.current++;setQuoteFollowUpDraft(value);},
+    setQuoteFollowUpDraft:value=>{if(typeof value!=="string"||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.workspace!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.customerId!==selectedReplyActionId)return;quoteFollowUpTypingEpoch.current++;quoteFollowUpScope.current={...quoteFollowUpScope.current,words:value};setQuoteFollowUpDraft(value);},
     quoteFollowUpOutcome,
     setQuoteFollowUpOutcome,
     enquiryFollowUpDraft,

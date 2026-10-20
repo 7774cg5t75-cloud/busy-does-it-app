@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text,Alert} from 'react-native';
+import {Text} from 'react-native';
 import {Button} from './ui';
 import {styles} from '../theme/styles';
 // Deliberate owner navigation from an existing filing receipt, never inbound-content authority.
@@ -14,12 +14,7 @@ export function InboxCustomerContinuation({s,item}){
  };
  const prepare=()=>{
   if(!current()||action?.type!=='quote'||action.details?.quoteStatus!=='Sent')return false;
-  const now=live.current,run=()=>current()?now.prepareQuoteFollowUp(customer.id):false;
-  if(now.quoteFollowUpDraft?.trim()){
-   if(now.selectedReplyActionId===customer.id)return now.go('quoteFollowUp');
-   Alert.alert('Keep your current follow-up?','Preparing this saved quote will replace the other unfinished follow-up. Nothing will be sent.',[{text:'Keep current draft',style:'cancel'},{text:'Use this saved quote',onPress:run}]);return false;
-  }
-  return run();
+  return live.current.prepareQuoteFollowUp(customer.id);
  };
  return <><Text style={styles.cardBody}>This item was filed into an existing customer record. Further work stays private until you approve a supported action.</Text>
   <Button label="Open this customer" onPress={()=>current()?live.current.openCustomer(customer.id):false}/>

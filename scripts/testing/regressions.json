@@ -1501,6 +1501,12 @@
       "args": [
         "scripts/check-mission15-phase35-publish-claims.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase35-quote-transition",
+      "args": [
+        "scripts/check-mission15-phase35-quote-transition.mjs"
+      ]
     }
   ]
 }
