@@ -714,6 +714,7 @@ function App() {
   const [brainFeedbackReason, setBrainFeedbackReason] = useState("");
   const [quoteFollowUpDraft, setQuoteFollowUpDraft] = useState("");
   const quoteFollowUpTypingEpoch=useRef(0);
+  const quoteFollowUpScope=useRef(null),quoteFollowUpRenderEpoch=quoteFollowUpTypingEpoch.current;
   const [quoteFollowUpOutcome, setQuoteFollowUpOutcome] = useState("No reply yet");
   const [enquiryFollowUpDraft, setEnquiryFollowUpDraft] = useState("");
   const [enquiryFollowUpOutcome, setEnquiryFollowUpOutcome] = useState("No reply yet");
@@ -4607,6 +4608,7 @@ function App() {
     const draft =
       action.details?.followUpMessage ||
       `Hi ${customer.name.split(" ")[0]}, just checking in about the ${service.toLowerCase()} quote${amount ? ` for £${amount}` : ""}. No pressure at all — let me know if you’d like to go ahead, have any questions, or want me to leave it with you for now.`;
+    quoteFollowUpScope.current={workspace:renderedBusinessWorkspaceScope,customerId,action};
     quoteFollowUpTypingEpoch.current++;
     setSelectedReplyActionId(customerId);
     setQuoteFollowUpDraft(draft);
@@ -4615,6 +4617,7 @@ function App() {
   };
 
   const simulateQuoteFollowUpSend = () => {
+    if(quoteFollowUpScope.current?.workspace!==businessWorkspaceScopeRef.current||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.customerId!==selectedReplyActionId||quoteFollowUpTypingEpoch.current!==quoteFollowUpRenderEpoch)return false;
     const customerId = selectedReplyActionId;
     const action = replyActions[customerId];
     const customer =
@@ -4623,6 +4626,7 @@ function App() {
     const draft = quoteFollowUpDraft.trim();
     if (!customer || action?.type !== "quote" || !draft) return;
     const sentAt = new Date().toISOString();
+    quoteFollowUpScope.current=null;
     updateReplyAction(customerId, (current) => ({
       ...current,
       done: true,
@@ -4657,8 +4661,10 @@ function App() {
   };
 
   const openQuoteFollowUpOutcome = (customerId) => {
+    if(businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope)return false;
     const action = replyActions[customerId];
     if (!action?.details?.followUpSentAt) return;
+    quoteFollowUpScope.current={workspace:renderedBusinessWorkspaceScope,customerId,action};quoteFollowUpTypingEpoch.current++;
     setSelectedReplyActionId(customerId);
     setQuoteFollowUpDraft(action.details?.followUpMessage || "");
     setQuoteFollowUpOutcome(action.details?.followUpOutcome || "No reply yet");
@@ -4666,6 +4672,7 @@ function App() {
   };
 
   const saveQuoteFollowUpOutcome = () => {
+    if(quoteFollowUpScope.current?.workspace!==businessWorkspaceScopeRef.current||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.customerId!==selectedReplyActionId)return false;
     const customerId = selectedReplyActionId;
     const action = replyActions[customerId];
     if (!action?.details?.followUpSentAt) return;
@@ -6809,6 +6816,7 @@ function App() {
     });
     setPendingBrainFeedback(null);
     setBrainFeedbackReason("");
+    quoteFollowUpScope.current=null;quoteFollowUpTypingEpoch.current++;
     setQuoteFollowUpDraft("");
     setQuoteFollowUpOutcome("No reply yet");
     setEnquiryFollowUpDraft("");
@@ -17614,9 +17622,9 @@ function App() {
     openSocialDraft,
     saveBusinessBrainRule,
     removeBusinessBrainRule,
-    quoteFollowUpDraft,
+    quoteFollowUpDraft:quoteFollowUpScope.current?.workspace===businessWorkspaceScopeRef.current&&quoteFollowUpScope.current?.customerId===selectedReplyActionId?quoteFollowUpDraft:"",
     getQuoteFollowUpTypingEpoch:()=>quoteFollowUpTypingEpoch.current,
-    setQuoteFollowUpDraft:value=>{quoteFollowUpTypingEpoch.current++;setQuoteFollowUpDraft(value);},
+    setQuoteFollowUpDraft:value=>{if(typeof value!=="string"||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.workspace!==renderedBusinessWorkspaceScope||quoteFollowUpScope.current?.customerId!==selectedReplyActionId)return;quoteFollowUpTypingEpoch.current++;setQuoteFollowUpDraft(value);},
     quoteFollowUpOutcome,
     setQuoteFollowUpOutcome,
     enquiryFollowUpDraft,

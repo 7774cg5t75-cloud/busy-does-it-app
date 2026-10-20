@@ -1477,6 +1477,12 @@
       "args": [
         "scripts/check-mission15-phase34-receipt-identity.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase34-quote-scope",
+      "args": [
+        "scripts/check-mission15-phase34-quote-scope.mjs"
+      ]
     }
   ]
 }
