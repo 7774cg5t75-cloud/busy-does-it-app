@@ -92,7 +92,7 @@ function resolveSocialServiceIntent(text,{website,app,businessId,approvedProfile
  const styles=[['welcoming','friendly|welcoming|warm'],['concise','short|concise'],['detailed','informative|detailed|explanatory']].filter(([,words])=>new RegExp('\\b(?:write|make|create|draft|prepare)\\s+(?:(?:me|us)\\s+)?(?:a |an )?(?:'+words+')\\s+(?:(?:facebook|instagram|social)\\s+)?(?:post|caption|introduction|announcement|message|wording|copy|poster|advert|advertisement)\\b|\\b(?:in|with|using)\\s+(?:a |an )?(?:'+words+')\\s+(?:tone|style)\\b','i').test(styleRequest)).map(([style])=>style);
  if(/\b(?:using|with|in) (?:my|our|the) (?:approved )?brand (?:voice|tone)\b/i.test(styleRequest))styles.push('brand');
  const treatment=styles.length===1?styles[0]:'standard',needsTreatmentSelection=styles.length>1;
- const formatMatch=/\b(?:make|create|write|draft|prepare)\s+(?:(?:me|us)\s+)?(?:a |an )?(?:(?:friendly|welcoming|warm|short|concise|informative|detailed|explanatory)\s+)?(poster|advert|advertisement)(?:\s+(?:wording|copy))?\b/i.exec(styleRequest);
+ const formatMatch=/\b(?:make|create|write|draft|prepare)\s+(?:(?:me|us)\s+)?(?:a |an )?(?:(?:friendly|welcoming|warm|short|concise|informative|detailed|explanatory|promotional)\s+)?(poster|advert|advertisement)(?:\s+(?:wording|copy))?\b/i.exec(styleRequest);
  const channel=formatMatch?(formatMatch[1].toLowerCase()==='poster'?'poster':'advert'):'social';
  const ownerAnnouncement=/\b(announcement|announce|opening hours|closing|close early|thank[- ]you|thank (?:our|my|the) customers|attending|(?:special|our|my|an|the) offer)\b/i.test(request);
  const recordKind=/\bevents?\b/i.test(request)?'event':/\b(products?|collection)\b/i.test(request)?'product':'';
@@ -101,7 +101,7 @@ function resolveSocialServiceIntent(text,{website,app,businessId,approvedProfile
  const escaped=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
  const matches=names.filter(name=>new RegExp('(?:^|[^\\p{L}\\p{N}])'+escaped(name)+'(?:$|[^\\p{L}\\p{N}])','iu').test(request));
  const purpose=introduction?'business-introduction':ownerAnnouncement&&(!recordKind||request.includes(':'))?'owner-announcement':matches.length===1?'service':recordKind||'service';
- if(channel!=='social'&&!['service','business-introduction'].includes(purpose))return {handled:true,unsupportedFormat:true,channel,purpose,reason:'Poster and advert wording currently use approved business or service facts. Product, event and owner-announcement text can be prepared as a social draft; no graphic or campaign has been created.'};
+ if(channel!=='social'&&purpose==='owner-announcement')return {handled:true,unsupportedFormat:true,channel,purpose,reason:'Poster and advert wording currently use approved business, service, product or event facts. Owner-written announcements can be prepared as a social draft; no graphic or campaign has been created.'};
  const ownerFacts=purpose==='owner-announcement'&&request.includes(':')?request.slice(request.indexOf(':')+1).trim():'';
  const serviceName=purpose==='service'&&matches.length===1?matches[0]:'';
  return {handled:true,ownerFacts,purpose,serviceName,treatment,channel,needsTreatmentSelection,needsSelection:['product','event'].includes(purpose)||purpose==='service'&&!serviceName,
