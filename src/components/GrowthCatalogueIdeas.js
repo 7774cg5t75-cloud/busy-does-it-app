@@ -28,7 +28,7 @@ export function GrowthCatalogueIdeas({s}){
  return <Card eyebrow="Get More Customers · £0-first" title="Tell people about an approved item"
   body="Use a current approved product or event as the starting point for a factual post. Busy can prepare private wording; no reach, sales, stock, tickets or booking availability are promised.">
   <Button label={view?.status==='loading'?'Loading approved items…':'Find approved product and event ideas'} onPress={load}/>
-  {visible?.records?.length>0?<><Text style={styles.cardBody}>Choose the wording for your next idea. Your current draft stays unchanged until you use it in Content Creator.</Text>{[['standard','Original wording'],['welcoming','Friendly and welcoming'],['concise','Short and clear'],['detailed','More explanatory']].map(([value,label])=><Button key={value} label={(value===treatment?'✓ ':'')+label} onPress={()=>{if(current()&&live.current.view===view)setTreatment(value);}}/>)}</>:null}
+  {visible?.records?.length>0?<><Text style={styles.cardBody}>Choose the wording for your next idea. Your current draft stays unchanged until you use it in Content Creator.</Text>{[['standard','Original wording'],['welcoming','Friendly and welcoming'],['concise','Short and clear'],['detailed','More explanatory']].map(([value,label])=><Button key={value} label={(value===treatment?'✓ ':'')+label} onPress={()=>{if(current()&&live.current.view===view){live.current.treatment=value;setTreatment(value);}}}/>)}</>:null}
   {visible?.records?.map(row=><React.Fragment key={row.id}>
    <Text style={styles.cardBody}>{row.data.name+' — '+row.data.description}</Text>
    <Button label={'Prepare a post: '+row.data.name} onPress={()=>{
