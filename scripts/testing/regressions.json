@@ -1585,6 +1585,12 @@
       "args": [
         "scripts/check-mission15-phase37-customer-enquiry.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase37-talk-quote",
+      "args": [
+        "scripts/check-mission15-phase37-talk-quote.mjs"
+      ]
     }
   ]
 }

@@ -1,3 +1,4 @@
+import {preparedQuoteTarget} from '../core/homeQuoteReview.mjs';
 import {readPrivateQuoteCopy,quoteCustomerSource} from '../core/privateQuoteCopy.mjs';
 import {protectQuoteDraftTransition,isQuoteDraftSourceCurrent} from '../core/quoteDraftTransition.mjs';
 import {beginSocialContentAction,matchesSocialContentPost} from '../core/socialContentActionGuard.mjs';
@@ -12233,8 +12234,14 @@ function App() {
       if(businessWorkspaceScopeRef.current!==socialDraftScope||growthOperatorRequestRef.current!==growthNonce)return null;
       const local=localCoreAreaRequest(transcript);if(!local)return null;
       const allowed=!!ownerSession?.userId&&!!cloudWorkspace?.businessId&&['owner','admin'].includes(cloudWorkspace?.role);
-      if(allowed){if(local.route==='busyInbox')openBusyInbox();else go(local.route);}
-      return acceptGrowthOperator({handled:true,result:{title:"Busy",intent:"open_core_area",localNavigationOnly:true,transcript,response:allowed?local.response:"Sign in as this business owner and select your business before opening private work.",mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
+      let response=local.response;
+      if(allowed&&local.continueQuote){
+        const source=replyActionSources.current;
+        const target=preparedQuoteTarget({ownerWorkspaceScope:socialDraftScope,ownerSession,cloudWorkspace:{...cloudWorkspace,role:source.role},customers:source.customers,replyActions:source.replyActions,selectedReplyActionId:source.selectedReplyActionId},local.quoteCustomerName);
+        if(target){const opened=openSavedReplyAction(target.customer.id);response=opened?'Review the existing private quote for '+target.customer.name+'. Nothing has been sent or approved.':'Your current changes or the quote source need attention before opening this private quote. Nothing has been sent.';}
+        else go(local.route);
+      }else if(allowed){if(local.route==='busyInbox')openBusyInbox();else go(local.route);}
+      return acceptGrowthOperator({handled:true,result:{title:"Busy",intent:"open_core_area",localNavigationOnly:true,transcript,response:allowed?response:"Sign in as this business owner and select your business before opening private work.",mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
     };
     setBusyCommandStatus("thinking");
     setBusyCommandError("");
