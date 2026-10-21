@@ -33,7 +33,7 @@ export function prepareEnquiryCatalogueText({customer,item,businessId,result}={}
  const feed=publicBusinessContent(result.records,businessId),checked=prepareBusinessContentEnquiry(feed,businessId,selection);
  if(!checked.ok)return {ok:false};
  const row=feed.records.find(record=>record.id===selection.recordId);
- const base=prepareEnquiryReplyText({customer,item,businessId,purpose:readCustomerEnquiryRequirements(item.rawText)?'quote-preparation':'acknowledge'});
+ const base=prepareEnquiryReplyText({customer,item:{...item,parsed:{...item.parsed,service:checked.service}},businessId,purpose:readCustomerEnquiryRequirements(item.rawText)?'quote-preparation':'acknowledge'});
  if(!base.ok)return base;
  return {...base,selection:checked.selection,recordStamp:stableJson(row),
   text:base.text+'\n\nCurrent approved listing information (not an agreed quote):\n'+checked.message.replace(/\nPlease tell me more\.$/,'')+'\n'+row.data.description};
