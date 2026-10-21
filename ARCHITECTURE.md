@@ -1,3 +1,9 @@
+## Phase52 — retained reply evidence, newsletter inspection and shared owner voice
+
+Original saved private replies can retain bounded owner-reviewed catalogue provenance without treating it as current approval. Pending/unknown device-save tickets survive replacement attempts until original reconciliation. Exact differing newsletter account versions can be inspected read-only while current words/targets stay unchanged. Original Brand Identity tone choices now reach the shared profile, new replies and brand-treated newsletters through one finite read-only policy.
+
+Pure newsletter wording is separated from Brand DNA preparation with compatible exports; preview dependencies reduce from7 to2 modules. AppController is unchanged. See the single combined `docs/MISSION15_PHASE52_2026_10_21.md` for delivery, architecture, actual checks, integration risks and remaining limitations. No new store/provider/schema/authority; six Home areas and bounded builders remain. Hosted/mixed-client/media/provider/device/release gates remain separate.
+
 ## Phase51 — original replies, saved newsletter recovery and shared requirements
 
 Original private enquiry replies can deliberately review current approved product/event information from an older exact listing reference, using the same pure source validator as Work quote preparation. Current listed facts remain separate from historical customer assertions. Owner wording changes require review, then a fresh authenticated catalogue read; quote amounts/dates are untouched. Missing, duplicate, foreign, expired/cancelled or changed sources fail closed.

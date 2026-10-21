@@ -1,3 +1,7 @@
+## Phase52 — actual V22.43 access reverified
+
+Reopened the accessible complete private Word used in Phase51: SHA-256 `c0cd8558d704123773f1eb042c6847cb2e91f0e3c0406b0b3ec2e043ca4924ff`, internal V22.43, 2,069 body/table paragraphs and19 tables. Complete text matches the genuinely available full review, including Sections56–61. The differently recorded V22.43 variant is preserved as separate provenance, not assumed identical. Original and extraction remain private outside Git. This is access evidence, not implementation or live-action approval.
+
 ## Phase51 — current task attachment verified (V22.43, 21 October 2026)
 
 The complete owner-attached Word was opened: internal version22.43, original SHA-256 `c0cd8558d704123773f1eb042c6847cb2e91f0e3c0406b0b3ec2e043ca4924ff`, 2,069 body/table paragraphs and19 tables. Unchanged ordered body/table text matches the accessible fully reviewed V22.42; cover version and all new Section61 paragraphs were reviewed. Sections57–60 remain unchanged and their genuine full review is reused. Private original and complete extraction remain outside public Git.
