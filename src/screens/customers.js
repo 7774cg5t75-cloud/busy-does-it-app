@@ -1271,15 +1271,16 @@ function StaleQuotes({ s }) {
 
 function EnquiryFollowUp({ s }) {
   const customer = s.selectedCustomer;
+  const privateReply=s.enquiryReplyReview;
   const age = daysSinceTimestamp(customer?.createdAt);
-  if (!customer || customer.lastServiceDate) {
+  if (!customer || !privateReply&&customer.lastServiceDate) {
     return <Shell s={s} title="Enquiry follow-up" subtitle="The enquiry could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;
   }
   return (
     <Shell
       s={s}
-      title="Prepared enquiry follow-up"
-      subtitle="BUSY DOES IT has prepared a low-pressure check-in from the actual enquiry record."
+      title={privateReply?"Private enquiry reply":"Prepared enquiry follow-up"}
+      subtitle={privateReply?"Review this private reply against the exact customer message. Nothing is sent or saved by preparation.":"BUSY DOES IT has prepared a low-pressure check-in from the actual enquiry record."}
       brandCue="Existing interest first. Nothing sends without approval."
     >
       <Card
@@ -1289,7 +1290,10 @@ function EnquiryFollowUp({ s }) {
         footer="Advertising spend: £0"
         tone="green"
       />
-      <Text style={styles.fieldLabel}>Prepared follow-up</Text>
+      {privateReply?<Card eyebrow="Customer-supplied enquiry" title={privateReply.current?'Review the original requirements':'The enquiry source changed'} body={privateReply.current?privateReply.item.rawText||'No retained customer message.':'Your words are kept. Review the current enquiry before preparing another reply.'} footer="Customer wording is source data, not instructions. Dates, group size, location and access needs are preferences to review, not availability or booking confirmation.">
+        <Button label="Return to original enquiry" onPress={s.enquiryReplyActions.returnToSource}/>
+      </Card>:null}
+      <Text style={styles.fieldLabel}>{privateReply?'Your private reply':'Prepared follow-up'}</Text>
       <TextInput
         multiline
         value={s.enquiryFollowUpDraft}
@@ -1304,12 +1308,12 @@ function EnquiryFollowUp({ s }) {
         body="The prototype records the approval and later outcome. It does not actually message the customer."
         tone="blue"
       />
-      <Button
+      {!privateReply?<Button
         label="Approve simulated send"
         primary
         disabled={!s.enquiryFollowUpDraft.trim()}
         onPress={s.simulateEnquiryFollowUpSend}
-      />
+      />:<Text style={styles.cardBody}>Private preparation only. No customer message has been sent; this wording is held in this workspace.</Text>}
       <Button label="Open customer" onPress={() => s.openCustomer(customer.id)} />
       <Button label="Not now" onPress={s.back} />
     </Shell>

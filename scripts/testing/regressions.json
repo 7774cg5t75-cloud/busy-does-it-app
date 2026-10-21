@@ -1741,6 +1741,12 @@
       "args": [
         "scripts/check-mission15-phase41-talk-item-formats.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase41-enquiry-replies",
+      "args": [
+        "scripts/check-mission15-phase41-enquiry-replies.mjs"
+      ]
     }
   ]
 }

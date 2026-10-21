@@ -1,3 +1,4 @@
+import {useEnquiryReplyPreparation} from '../screens/useEnquiryReplyPreparation';
 import {homeUnsavedContentReview} from '../core/homeContentReview.mjs';
 import {privateContentChannels} from '../core/contentDraftChanges.mjs';
 import {quoteEnquiryReference,resolveQuoteEnquiryReference} from '../core/quoteEnquiryReference.mjs';
@@ -4575,6 +4576,7 @@ function App() {
   const prepareEnquiryFollowUp = (customerId) => {
     const customer = customers.find((item) => item.id === customerId);
     if (!customer || customer.lastServiceDate || replyActions[customerId]) return;
+    return enquiryReplyActions.replaceLegacy(customer,()=>{
     const firstName = String(customer.name || "").split(" ")[0] || "there";
     const draft =
       customer.enquiryFollowUpDraft ||
@@ -4583,9 +4585,11 @@ function App() {
     setEnquiryFollowUpDraft(draft);
     setEnquiryFollowUpOutcome(customer.enquiryFollowUpOutcome || "No reply yet");
     go("enquiryFollowUp");
+    });
   };
 
   const simulateEnquiryFollowUpSend = () => {
+    if(enquiryReplyActions.hasSession())return false;
     const customerId = selectedCustomerId;
     const draft = enquiryFollowUpDraft.trim();
     const customer = customers.find((item) => item.id === customerId);
@@ -4625,10 +4629,12 @@ function App() {
   const openEnquiryFollowUpOutcome = (customerId) => {
     const customer = customers.find((item) => item.id === customerId);
     if (!customer?.enquiryFollowUpSentAt) return;
+    return enquiryReplyActions.replaceLegacy(customer,()=>{
     setSelectedCustomerId(customerId);
     setEnquiryFollowUpDraft(customer.enquiryFollowUpDraft || "");
     setEnquiryFollowUpOutcome(customer.enquiryFollowUpOutcome || "No reply yet");
     go("enquiryFollowUpOutcome");
+    });
   };
 
   const saveEnquiryFollowUpOutcome = () => {
@@ -8475,6 +8481,7 @@ function App() {
     websiteDraft,
     miniAppsView,
   });
+  const enquiryReplyActions=useEnquiryReplyPreparation({scope:businessWorkspaceScopeRef.current,scopeRef:businessWorkspaceScopeRef,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,revision:cloudRevision,customers,inboxItems,profile:businessCreationIntelligence.sharedProfile,selectedCustomerId,text:enquiryFollowUpDraft,setText:setEnquiryFollowUpDraft,setSelectedCustomerId,go,requestTransition:(run,options)=>ownerEditNavigation.current.request(run,options),confirm:Alert.alert,setOrigin:(customerId,item)=>{replyActionOrigin.current={workspace:businessWorkspaceScopeRef.current,customerId,item,stamp:JSON.stringify(item)};},returnToSource:returnToQuoteEnquiry});
   const socialContentActions=useSocialContentHandoff({customers,loadSocialStatus:()=>socialPublishRequest('status'),loadApprovedContent:()=>businessContentRequest('content_list'),workspaceScope:businessWorkspaceScopeRef.current,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,aiResult:socialAiResult,approvedProfile:businessCreationIntelligence.sharedProfile,website:websiteDraft,app:miniAppsStatus?.app,text:socialDraftText,photos:socialCreatePhotos,selectedDraftId:selectedSocialDraftId,sourceContext:socialSourceContext,records:socialDrafts,brief:socialBrief,channels:socialDraftChannels,confirm:({keep,discard,message,actionLabel})=>Alert.alert('Keep your current draft?',message||'Opening another saved draft will replace the current unsaved wording, photos and destination choices. Nothing will be published.',[{text:'Keep my current draft',style:'cancel',onPress:keep},{text:actionLabel||'Open saved draft',onPress:discard}]),setSourceContext:setSocialSourceContext,setText:setSocialDraftText,setSelectedDraftId:setSelectedSocialDraftId,setAiResult:setSocialAiResult,setAiStatus:setSocialAiStatus,setCaptionId:setSocialCaptionId,go});
   const businessCreationJourney = buildBusinessCreationJourney({
     businessCreationIntelligence,
@@ -17792,8 +17799,10 @@ function App() {
     quoteFollowUpOriginItem:quoteFollowUpScope.current?.workspace===businessWorkspaceScopeRef.current&&quoteFollowUpScope.current?.customerId===selectedReplyActionId&&inboxItems.includes(quoteFollowUpScope.current?.originItem)&&quoteFollowUpScope.current?.originItem?.filedCustomerId===selectedReplyActionId&&quoteFollowUpScope.current?.originItem?.status==="Filed"?quoteFollowUpScope.current.originItem:null,
     quoteFollowUpSourceCurrent:isQuoteDraftSourceCurrent(quoteFollowUpScope.current,businessWorkspaceScopeRef.current,selectedReplyActionId,replyActions[selectedReplyActionId],customers.find(row=>row.id===selectedReplyActionId)||lastSimulatedRecipients.find(row=>row.id===selectedReplyActionId)),
     setQuoteFollowUpOutcome:value=>{if(!["No reply yet","Still considering","Accepted","Declined"].includes(value)||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||!isQuoteDraftSourceCurrent(quoteFollowUpScope.current,renderedBusinessWorkspaceScope,selectedReplyActionId,quoteFollowUpSources.current?.replyActions?.[selectedReplyActionId]))return;quoteFollowUpTypingEpoch.current++;setQuoteFollowUpOutcome(value);},
-    enquiryFollowUpDraft,
-    setEnquiryFollowUpDraft,
+    enquiryFollowUpDraft:enquiryReplyActions.text,
+    setEnquiryFollowUpDraft:enquiryReplyActions.edit,
+    enquiryReplyActions,
+    enquiryReplyReview:enquiryReplyActions.review,
     enquiryFollowUpOutcome,
     setEnquiryFollowUpOutcome,
     reviewRequestDraft,
