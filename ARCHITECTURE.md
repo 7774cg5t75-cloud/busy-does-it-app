@@ -1,3 +1,9 @@
+## Phase49 — exact enquiry catalogue and newsletter correction continuity
+
+Existing Work quote preparation can deliberately resolve the original customer listing ID/published revision/option through authenticated approved records, then recheck before using editable private wording. Original amount/date stay unchanged. Existing Creator source review can deliberately review current starting facts after an approved correction/revision while retaining exact owner wording, target, media references and channels; it does not confirm current edits saved or sent.
+
+The existing quoteEnquiryReference module now shares read-only reviewed-enquiry presentation between customer and quote parents; AppController retains role gates and all state/navigation/mutations. See the Phase49 architecture, delivery, CHECKS and bounded read-only INTEGRATION_RISK reports. No new production module, store, provider, schema or external authority. Six Home areas and builder foundations remain.
+
 ## Phase 48 — connected preparation under V22.42
 
 Private master access/checksum is recorded in `docs/CODEX_MASTER_ACCESS.md`. Existing Work quote review now deliberately reuses structured filed customer requirements and an unambiguous current approved service description. Existing Creator source review can start a separate newsletter draft from the exact current owner wording without changing its saved original. No new state store, provider, media authority or external execution was added.
