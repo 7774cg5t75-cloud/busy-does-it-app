@@ -1987,6 +1987,12 @@
       "args": [
         "scripts/check-mission15-phase49-enquiry-projection.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase50-older-enquiry",
+      "args": [
+        "scripts/check-mission15-phase50-older-enquiry.mjs"
+      ]
     }
   ]
 }

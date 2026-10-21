@@ -27,14 +27,17 @@ export function prepareEnquiryReplyText({customer,item,businessId,approvedProfil
 
 
 // Customer listing references select a record to check, never authorise its facts.
-export function prepareEnquiryCatalogueText({customer,item,businessId,result}={}){
+export function prepareEnquiryCatalogueText({customer,item,businessId,result,reviewCurrent=false}={}){
  const selection=parseEnquiryListingReference(item?.rawText);
  if(!selection||result?.ok!==true||result.businessId!==businessId)return {ok:false};
- const feed=publicBusinessContent(result.records,businessId),checked=prepareBusinessContentEnquiry(feed,businessId,selection);
+ const feed=publicBusinessContent(result.records,businessId),rows=feed?.records?.filter(record=>record.id===selection.recordId);
+ if(rows?.length!==1||rows[0].revision<selection.revision)return {ok:false};
+ const row=rows[0],changed=row.revision!==selection.revision;
+ if(changed&&!reviewCurrent)return {ok:false,reason:'changed'};
+ const checked=prepareBusinessContentEnquiry(feed,businessId,{...selection,revision:row.revision});
  if(!checked.ok)return {ok:false};
- const row=feed.records.find(record=>record.id===selection.recordId);
  const base=prepareEnquiryReplyText({customer,item:{...item,parsed:{...item.parsed,service:checked.service}},businessId,purpose:readCustomerEnquiryRequirements(item.rawText)?'quote-preparation':'acknowledge'});
  if(!base.ok)return base;
- return {...base,selection:checked.selection,recordStamp:stableJson(row),
-  text:base.text+'\n\nCurrent approved listing information (not an agreed quote):\n'+checked.message.replace(/\nPlease tell me more\.$/,'')+'\n'+row.data.description};
+ return {...base,originalSelection:selection,changed,selection:checked.selection,recordStamp:stableJson(row),
+  text:(changed?'The customer referred to an earlier version of this listing. Earlier listing facts cannot be verified here; the original enquiry is retained. The following uses current listed information, not an agreed price or booking.\n\n':'')+base.text+'\n\nCurrent approved listing information (not an agreed quote):\n'+checked.message.replace(/\nPlease tell me more\.$/,'')+'\n'+row.data.description};
 }
