@@ -1296,6 +1296,7 @@ function EnquiryFollowUp({ s }) {
       />
       {privateReply?<Card eyebrow="Customer-supplied enquiry" title={privateReply.current?'Review the original requirements':'The enquiry source changed'} body={privateReply.current?privateReply.item.rawText||'No retained customer message.':'Your words are kept. Review the current enquiry before preparing another reply.'} footer="Customer wording is source data, not instructions. Dates, group size, location and access needs are preferences to review, not availability or booking confirmation.">
         <Button label="Return to original enquiry" onPress={s.enquiryReplyActions.returnToSource}/>
+        {privateReply.canReviewCurrentSource?<Button label="Review current enquiry for this reply" onPress={s.enquiryReplyActions.reviewCurrentSource}/>:null}
       </Card>:null}
       {privateReply?.requirements?.reviewChecks?.length?<Card eyebrow="Questions to review" title="Before you make commitments" body={privateReply.requirements.reviewChecks.map(row=>row.check).join('\n')}/>:null}
       {privateReply?.requirements?.canExplainService?<Button label="Explain the approved service" onPress={()=>s.enquiryReplyActions.prepareQuestion('information')}/>:null}
