@@ -84,6 +84,22 @@ function createBusinessSnapshotSession(){
    return {...fail(String(error?.message||'Cloud save could not be confirmed.')),uncertain:sent};
   }finally{if(pending===task)pending=null;}
  }
- return {save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
+ async function read({getCurrent,ownerAccessToken,request,schemaVersion}){
+  const source=getCurrent(),fail=reason=>({ok:false,reason});
+  if(!uuid.test(source?.ownerId||'')||!uuid.test(source?.businessId||'')||!source.ready||!Number.isSafeInteger(source.revision)||source.revision<1)return fail('Open the current signed-in business before checking its account copy.');
+  if(pending?.identity===source.identity)return {...fail('A business save or read is still being checked.'),busy:true};
+  const current=()=>{const live=getCurrent();return live?.identity===source.identity&&live.ownerId===source.ownerId&&live.businessId===source.businessId&&live.revision===source.revision&&live.ready===true;};
+  const task={identity:source.identity};pending=task;
+  try{
+   const token=await ownerAccessToken();if(!token||!current())return fail('The signed-in workspace changed before checking.');
+   const rows=await request(`busy_business_snapshots?business_id=eq.${encodeURIComponent(source.businessId)}&select=business_id,payload,schema_version,revision,updated_at`,{token});
+   if(!current())return fail('The workspace changed while checking. Nothing was restored or saved.');
+   const row=rowOf(rows);
+   if(row?.business_id!==source.businessId||!Number.isSafeInteger(row.revision)||row.revision<source.revision||!Number.isInteger(row.schema_version)||row.schema_version<1||row.schema_version>schemaVersion||!row.payload||typeof row.payload!=='object'||Array.isArray(row.payload))return fail('The account copy could not be verified for this business and revision.');
+   return {ok:true,businessId:source.businessId,revision:row.revision,payload:JSON.parse(stamp(row.payload))};
+  }catch{return fail('The account copy could not be checked. No save was retried.');}
+  finally{if(pending===task)pending=null;}
+ }
+ return {read,save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
 }
 export {createBusinessSnapshotSession};

@@ -1,9 +1,9 @@
 import {stableJson} from '../core/stableJson.mjs';
-import {enquiryReplyCustomerSource,preparePrivateEnquiryReply,resolvePrivateEnquiryReply,inspectPrivateEnquiryReply} from '../core/privateEnquiryReply.mjs';
+import {enquiryReplyCustomerSource,preparePrivateEnquiryReply,resolvePrivateEnquiryReply,inspectPrivateEnquiryReply,inspectPrivateReplyAccount} from '../core/privateEnquiryReply.mjs';
 import React from 'react';import {prepareEnquiryReplyText} from '../core/enquiryReplyText.mjs';import {protectQuoteDraftTransition} from '../core/quoteDraftTransition.mjs';
 // Volatile source/typing metadata. Original parent enquiry fields remain the only wording state.
 export function useEnquiryReplyPreparation(input){
- const live=React.useRef(input),session=React.useRef(null),epoch=React.useRef(0),pendingSave=React.useRef(null);const [saveState,setSaveState]=React.useState(null);live.current=input;
+ const live=React.useRef(input),session=React.useRef(null),epoch=React.useRef(0),pendingSave=React.useRef(null);const [saveState,setSaveState]=React.useState(null),[accountState,setAccountState]=React.useState(null);const accountRequest=React.useRef(null);live.current=input;
  const scope=input.scope,owner=input.ownerId,business=input.businessId,renderEpoch=epoch.current;
  const valid=()=>live.current.scope===scope&&input.scopeRef.current===scope&&!!owner&&!!business&&live.current.ownerId===owner&&live.current.businessId===business&&['owner','admin'].includes(live.current.role);
  const bound=value=>value&&value.scope===scope&&value.owner===owner&&value.business===business;
@@ -89,6 +89,15 @@ export function useEnquiryReplyPreparation(input){
   const next={draftToken:{},scope,workspace:scope,owner,business,customer,item:saved.item,revision:live.current.revision,stamp:sourceStamp(customer,saved.item),purpose:saved.record.purpose};
   return protect(()=>{epoch.current++;session.current={...next,words:saved.record.text,generatedText:null};pendingSave.current=null;setSaveState({status:'reopened',savedText:saved.record.text});live.current={...live.current,text:saved.record.text,selectedCustomerId:customerId};input.setText(saved.record.text);input.setSelectedCustomerId(customerId);input.setOrigin(customerId,saved.item);input.go('enquiryFollowUp');},()=>sourceCurrent(next)&&customer.privateEnquiryReply===saved.record);
  };
+ const checkAccount=async()=>{
+  const value=session.current,record=value?.customer.privateEnquiryReply,typing=epoch.current;
+  if(!sourceCurrent(value)||!record||record.reference?.inboxId!==value.item.id||epoch.current!==renderEpoch||!input.readAccount||accountRequest.current?.checking)return false;
+  const ticket={value,record,checking:true};accountRequest.current=ticket;setAccountState({status:'checking',record});
+  let result;try{result=inspectPrivateReplyAccount({result:await input.readAccount(),ownerId:owner,businessId:business,customer:value.customer,record,item:value.item});}catch{result={status:'unknown'};}
+  if(accountRequest.current!==ticket)return false;accountRequest.current={...ticket,checking:false};
+  if(!sourceCurrent(value)||session.current?.draftToken!==value.draftToken||epoch.current!==typing||live.current.selectedCustomerId!==value.customer.id){setAccountState({status:'unknown',record});return false;}
+  setAccountState({...result,record});return result.status==='confirmed';
+ };
  const reviewSaved=customerId=>{
   if(!valid()||epoch.current!==renderEpoch)return false;
   const rows=live.current.customers.filter(row=>row.id===customerId);if(rows.length!==1)return false;
@@ -100,8 +109,8 @@ export function useEnquiryReplyPreparation(input){
  };
  const savedReplies=()=>valid()?live.current.customers.flatMap(customer=>{const saved=resolvePrivateEnquiryReply({ownerId:owner,businessId:business,customer,inboxItems:live.current.inboxItems,revision:live.current.revision});return saved?[{customer,...saved}]:[];}):[];
  const value=session.current;
- return {reviewSaved,savedReplies:savedReplies(),save:()=>save(false),checkSave:()=>save(true),reopen,prepare,prepareCurrent,resume,continuation:value&&sourceCurrent(value)&&input.text?.trim()?{customer:value.customer,item:value.item,text:input.text,epoch:renderEpoch,revision:value.revision}:null,edit,replaceLegacy,prepareQuestion:purpose=>value&&session.current===value&&sourceCurrent(value)&&epoch.current===renderEpoch?prepare(value.customer.id,value.item.id,purpose):false,hasSession:()=>!!session.current,
+ return {checkAccount,reviewSaved,savedReplies:savedReplies(),save:()=>save(false),checkSave:()=>save(true),reopen,prepare,prepareCurrent,resume,continuation:value&&sourceCurrent(value)&&input.text?.trim()?{customer:value.customer,item:value.item,text:input.text,epoch:renderEpoch,revision:value.revision}:null,edit,replaceLegacy,prepareQuestion:purpose=>value&&session.current===value&&sourceCurrent(value)&&epoch.current===renderEpoch?prepare(value.customer.id,value.item.id,purpose):false,hasSession:()=>!!session.current,
   text:value?(valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?input.text:''):input.text,
-  review:value&&valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?{item:value.item,customer:value.customer,purpose:value.purpose,requirements:sourceCurrent(value)?prepareEnquiryReplyText({customer:value.customer,item:value.item,businessId:business,approvedProfile:input.profile,purpose:'acknowledge'}):null,current:sourceCurrent(value),epoch:renderEpoch,saveStatus:saveState?.savedText&&saveState.savedText!==input.text?'newer':saveState?.status||'unsaved'}:null,
+  review:value&&valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?{item:value.item,customer:value.customer,purpose:value.purpose,requirements:sourceCurrent(value)?prepareEnquiryReplyText({customer:value.customer,item:value.item,businessId:business,approvedProfile:input.profile,purpose:'acknowledge'}):null,current:sourceCurrent(value),epoch:renderEpoch,accountStatus:accountState&&accountState.record===value.customer.privateEnquiryReply?(accountState.status==='confirmed'&&accountState.savedText!==input.text?'newer':accountState.status):null,saveStatus:saveState?.savedText&&saveState.savedText!==input.text?'newer':saveState?.status||'unsaved'}:null,
   returnToSource:()=>sourceCurrent(session.current)&&epoch.current===renderEpoch?input.returnToSource(session.current.customer.id):false};
 }

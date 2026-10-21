@@ -27,3 +27,13 @@ export async function writePrivateEnquiryReplyCopy({ownerId,businessId,revision,
  return {...result,customer:updated,encoded};
 }
 export {confirmBusinessCacheRead as readPrivateEnquiryReplyCopy};
+
+export function inspectPrivateReplyAccount({result,ownerId,businessId,customer,record,item}){
+ if(!result?.ok||result.businessId!==businessId||!record)return {status:'unknown'};
+ const rows=result.payload?.customers?.filter(row=>row.id===customer.id);
+ if(rows?.length!==1)return {status:'different'};
+ const remote=rows[0],saved=remote.privateEnquiryReply;
+ if(!saved||stableJson(saved)!==stableJson(record)||stableJson(enquiryReplyCustomerSource(remote))!==stableJson(enquiryReplyCustomerSource(customer)))return {status:'different'};
+ const checked=resolvePrivateEnquiryReply({ownerId,businessId,customer:remote,inboxItems:result.payload.inboxItems,revision:result.revision});
+ return checked&&stableJson(checked.item)===stableJson(item)?{status:'confirmed',savedText:saved.text,revision:result.revision}:{status:'different'};
+}

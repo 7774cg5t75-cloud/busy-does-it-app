@@ -1813,6 +1813,12 @@
       "args": [
         "scripts/check-mission15-phase43-reply-canonical.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase43-reply-account",
+      "args": [
+        "scripts/check-mission15-phase43-reply-account.mjs"
+      ]
     }
   ]
 }
