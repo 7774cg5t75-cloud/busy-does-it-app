@@ -46,8 +46,8 @@ export function useEnquiryReplyPreparation(input){
   return protect(apply,()=>sourceCurrent(next));
  };
  const prepareCatalogue=async()=>{
-  const value=session.current,typing=epoch.current,text=live.current.text,token=++catalogueRequest.current;
-  const fresh=()=>catalogueRequest.current===token&&sourceCurrent(value)&&session.current===value&&epoch.current===typing&&live.current.text===text&&live.current.selectedCustomerId===value.customer.id;
+  const value=session.current,typing=epoch.current,text=live.current.text,saveTicket=pendingSave.current,token=++catalogueRequest.current;
+  const fresh=()=>catalogueRequest.current===token&&pendingSave.current===saveTicket&&!['saving','unknown'].includes(saveTicket?.status)&&sourceCurrent(value)&&session.current===value&&epoch.current===typing&&live.current.text===text&&live.current.selectedCustomerId===value.customer.id;
   if(typing!==renderEpoch||!fresh()||!parseEnquiryListingReference(value.item.rawText)||!live.current.loadApprovedContent)return false;
   const read=async()=>prepareEnquiryCatalogueReply({customer:value.customer,item:value.item,businessId:business,approvedProfile:live.current.profile,result:await live.current.loadApprovedContent()});
   try{

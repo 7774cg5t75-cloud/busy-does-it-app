@@ -2023,6 +2023,12 @@
       "args": [
         "scripts/check-mission15-phase51-newsletter-recovery.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase51-known-requirements",
+      "args": [
+        "scripts/check-mission15-phase51-known-requirements.mjs"
+      ]
     }
   ]
 }
