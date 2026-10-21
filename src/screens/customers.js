@@ -1270,8 +1270,8 @@ function StaleQuotes({ s }) {
 }
 
 function EnquiryFollowUp({ s }) {
-  const customer = s.selectedCustomer;
   const privateReply=s.enquiryReplyReview;
+  const customer = s.selectedCustomer || privateReply?.customer;
   const age = daysSinceTimestamp(customer?.createdAt);
   if (!customer || !privateReply&&customer.lastServiceDate) {
     return <Shell s={s} title="Enquiry follow-up" subtitle="The enquiry could not be found."><Button label="Back" primary onPress={s.back} /></Shell>;

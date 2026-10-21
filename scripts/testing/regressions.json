@@ -1765,6 +1765,12 @@
       "args": [
         "scripts/check-mission15-phase41-home-replies.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase41-reply-source-removal",
+      "args": [
+        "scripts/check-mission15-phase41-reply-source-removal.mjs"
+      ]
     }
   ]
 }
