@@ -23,19 +23,21 @@ export function useEnquiryReplyPreparation(input){
   if(!prepared.ok)return false;
   const next={scope,workspace:scope,owner,business,customer,item,revision:live.current.revision,stamp:sourceStamp(customer,item),purpose};
   if(sourceCurrent(session.current)&&session.current.customer===customer&&session.current.item===item&&session.current.purpose===purpose){let opened=false;input.requestTransition(()=>{input.setSelectedCustomerId(customerId);input.go('enquiryFollowUp');opened=true;},{isCurrent:()=>sourceCurrent(session.current)&&epoch.current===renderEpoch});return opened;}
-  return protect(()=>{
-   epoch.current++;session.current={...next,words:prepared.text};live.current={...live.current,text:prepared.text,selectedCustomerId:customerId};
+  const apply=()=>{
+   epoch.current++;session.current={...next,words:prepared.text,generatedText:prepared.text};live.current={...live.current,text:prepared.text,selectedCustomerId:customerId};
    input.setSelectedCustomerId(customerId);input.setText(prepared.text);input.setOrigin(customerId,item);input.go('enquiryFollowUp');
-  },()=>sourceCurrent(next));
+  };
+  if(sourceCurrent(session.current)&&session.current.customer===customer&&session.current.item===item&&live.current.text===session.current.generatedText){let applied=false;input.requestTransition(()=>{apply();applied=true;},{isCurrent:()=>sourceCurrent(next)&&epoch.current===renderEpoch});return applied;}
+  return protect(apply,()=>sourceCurrent(next));
  };
  const edit=value=>{
   if(!valid()||typeof value!=='string')return false;
   if(session.current&&(!bound(session.current)||live.current.selectedCustomerId!==session.current.customer.id))return false;
   epoch.current++;live.current={...live.current,text:value};if(session.current)session.current={...session.current,words:value};input.setText(value);return true;
  };
- const replaceLegacy=(customer,operation)=>protect(()=>{session.current=null;epoch.current++;operation();},()=>live.current.customers.includes(customer)&&![customer.businessId,customer.business_id].some(id=>id&&id!==business));
+ const replaceLegacy=(customer,operation)=>epoch.current===renderEpoch&&live.current.revision===input.revision&&protect(()=>{session.current=null;epoch.current++;operation();},()=>live.current.customers.includes(customer)&&customer.contactOk!==false&&![customer.businessId,customer.business_id].some(id=>id&&id!==business));
  const value=session.current;
- return {prepare,edit,replaceLegacy,hasSession:()=>!!session.current,
+ return {prepare,edit,replaceLegacy,prepareQuestion:purpose=>value&&session.current===value&&sourceCurrent(value)&&epoch.current===renderEpoch?prepare(value.customer.id,value.item.id,purpose):false,hasSession:()=>!!session.current,
   text:value?(valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?input.text:''):input.text,
   review:value&&valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?{item:value.item,customer:value.customer,purpose:value.purpose,current:sourceCurrent(value),epoch:renderEpoch}:null,
   returnToSource:()=>sourceCurrent(session.current)&&epoch.current===renderEpoch?input.returnToSource(session.current.customer.id):false};

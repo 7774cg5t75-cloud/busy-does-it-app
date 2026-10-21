@@ -1747,6 +1747,12 @@
       "args": [
         "scripts/check-mission15-phase41-enquiry-replies.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase41-reply-questions",
+      "args": [
+        "scripts/check-mission15-phase41-reply-questions.mjs"
+      ]
     }
   ]
 }

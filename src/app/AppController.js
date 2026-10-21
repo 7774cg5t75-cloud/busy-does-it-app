@@ -4638,6 +4638,7 @@ function App() {
   };
 
   const saveEnquiryFollowUpOutcome = () => {
+    if(enquiryReplyActions.hasSession())return false;
     const customerId = selectedCustomerId;
     const customer = customers.find((item) => item.id === customerId);
     if (!customer?.enquiryFollowUpSentAt) return;

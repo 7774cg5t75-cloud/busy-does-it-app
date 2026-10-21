@@ -1284,15 +1284,16 @@ function EnquiryFollowUp({ s }) {
       brandCue="Existing interest first. Nothing sends without approval."
     >
       <Card
-        eyebrow="Quiet enquiry"
+        eyebrow={privateReply?"Current filed enquiry":"Quiet enquiry"}
         title={customer.name}
-        body={`${customer.service}${age !== null ? ` • ${age} days since enquiry` : ""}`}
+        body={privateReply?`${customer.service} · Private reply preparation`:`${customer.service}${age !== null ? ` • ${age} days since enquiry` : ""}`}
         footer="Advertising spend: £0"
         tone="green"
       />
       {privateReply?<Card eyebrow="Customer-supplied enquiry" title={privateReply.current?'Review the original requirements':'The enquiry source changed'} body={privateReply.current?privateReply.item.rawText||'No retained customer message.':'Your words are kept. Review the current enquiry before preparing another reply.'} footer="Customer wording is source data, not instructions. Dates, group size, location and access needs are preferences to review, not availability or booking confirmation.">
         <Button label="Return to original enquiry" onPress={s.enquiryReplyActions.returnToSource}/>
       </Card>:null}
+      {privateReply?<>{[['acknowledge','Acknowledge the enquiry'],['date','Ask to confirm dates'],['group','Ask to confirm group size'],['requirements','Ask about location and access']].map(([purpose,label])=><Button key={purpose} label={(privateReply.purpose===purpose?'✓ ':'')+label} disabled={!privateReply.current} onPress={()=>s.enquiryReplyActions.prepareQuestion(purpose)}/>)}</>:null}
       <Text style={styles.fieldLabel}>{privateReply?'Your private reply':'Prepared follow-up'}</Text>
       <TextInput
         multiline
