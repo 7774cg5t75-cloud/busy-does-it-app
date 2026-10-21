@@ -1311,8 +1311,8 @@ function EnquiryFollowUp({ s }) {
       />
       <Card
         eyebrow="Approval"
-        title="You decide whether this goes"
-        body="The prototype records the approval and later outcome. It does not actually message the customer."
+        title={privateReply?"Private review":"You decide whether this goes"}
+        body={privateReply?"Save a private copy or keep editing. Sending requires a separate supported approval; this editor does not send customer messages.":"The prototype records the approval and later outcome. It does not actually message the customer."}
         tone="blue"
       />
       {!privateReply?<Button

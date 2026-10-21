@@ -1789,6 +1789,12 @@
       "args": [
         "scripts/check-mission15-phase42-reply-information.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase42-saved-reply-home",
+      "args": [
+        "scripts/check-mission15-phase42-saved-reply-home.mjs"
+      ]
     }
   ]
 }

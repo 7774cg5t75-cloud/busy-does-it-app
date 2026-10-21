@@ -22,3 +22,15 @@ export function homeEnquiryReplyReview(s,getCurrent){
   return now.enquiryReplyActions.resume().opened===true;
  }};
 }
+
+// A single original saved customer reply can be offered without choosing between customers.
+export function homeSavedEnquiryReplyReview(s,getCurrent){
+ const scope=s.ownerWorkspaceScope,owner=s.ownerSession?.userId,business=s.cloudWorkspace?.businessId,rows=s.enquiryReplyActions?.savedReplies;
+ if(!scope||!owner||!business||!['owner','admin'].includes(s.cloudWorkspace?.role)||rows?.length!==1)return null;
+ const entry=rows[0],stamp=JSON.stringify(entry),revision=s.cloudRevision;
+ return {id:'saved-private-reply-'+entry.customer.id,score:56,eyebrow:'Work & Customers',title:'Review your saved private reply',body:'Reopen the private reply for '+entry.customer.name+' and its exact filed enquiry. No customer delivery or current account/device save is inferred.',why:'An existing private field on the current customer record matches its filed source. This is not a generated task.',evidence:[['Source','Saved private reply record'],['Status','Review before any separate customer action']],actionLabel:'Review saved private reply',canIgnore:false,tone:'blue',onAction:()=>{
+  const now=getCurrent(),current=now.enquiryReplyActions?.savedReplies;
+  if(now.ownerWorkspaceScope!==scope||now.ownerSession?.userId!==owner||now.cloudWorkspace?.businessId!==business||now.cloudRevision!==revision||!['owner','admin'].includes(now.cloudWorkspace?.role)||current?.length!==1||JSON.stringify(current[0])!==stamp)return false;
+  return now.enquiryReplyActions.reopen(entry.customer.id,entry.item.id);
+ }};
+}

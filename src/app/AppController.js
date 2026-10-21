@@ -12308,6 +12308,7 @@ function App() {
       if(allowed&&local.resumeEnquiryReply){
         const result=enquiryReplyActions.resume();
         if(result.blocked)response='Your current business permissions need review before opening private replies.';
+        else if(result.found&&result.saved)response=result.opened?'Reopened the existing private reply record. Review its enquiry and persistence separately; nothing was sent.':'Keep your current wording or deliberately reopen the saved private reply. Nothing was sent.';
         else if(result.found)response=result.opened?'Continue your private enquiry reply. Current wording is kept; nothing was saved or sent.':'Your current source or wording needs review before continuing. Your words are kept.';
         else{openBusyInbox();response='Choose an existing filed enquiry in Busy Inbox. No saved or sent reply is inferred.';}
       }else if(allowed&&local.enquiryReplyPurpose){
