@@ -1927,6 +1927,12 @@
       "args": [
         "scripts/check-mission15-phase46-newsletter-exact.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase47-newsletter-recovery",
+      "args": [
+        "scripts/check-mission15-phase47-newsletter-recovery.mjs"
+      ]
     }
   ]
 }
