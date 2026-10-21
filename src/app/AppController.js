@@ -1,7 +1,7 @@
 import {persistPrivateReply} from './privateEnquiryReplyPersistence.mjs';
 import {useEnquiryReplyPreparation} from '../screens/useEnquiryReplyPreparation';
 import {homeUnsavedContentReview} from '../core/homeContentReview.mjs';
-import {privateContentChannels} from '../core/contentDraftChanges.mjs';
+import {privateContentChannels,restoreContentDraft} from '../core/contentDraftChanges.mjs';
 import {quoteEnquiryReference,resolveQuoteEnquiryReference} from '../core/quoteEnquiryReference.mjs';
 import {preparedQuoteTarget,followUpQuoteTarget} from '../core/homeQuoteReview.mjs';
 import {readPrivateQuoteCopy,quoteCustomerSource} from '../core/privateQuoteCopy.mjs';
@@ -4334,51 +4334,19 @@ function App() {
     const draft = socialDrafts.find((item) => item.id === id);
     if (!draft) return;
     return socialContentActions.reopen(draft,()=>{
+    const restored=restoreContentDraft(draft,{today:dateToISO(new Date()),storyLabel:draft.story?socialStoryLabel(draft.story.type):''});
     setSelectedSocialDraftId(id);
-    setSocialCreatePhotos(
-      (draft.photos || []).map((photo) => {
-        const cloud = (draft.cloudMedia || []).find((item) => item.id === photo.id);
-        return cloud
-          ? {
-              ...photo,
-              storagePath: cloud.storagePath,
-              contentType: cloud.contentType || photo.mimeType || "image/jpeg",
-            }
-          : { ...photo };
-      })
-    );
-    setSocialBrief(draft.brief || "");
-    setSocialAiResult({
-      restoredPrivateDraft:true,
-      summary: draft.story
-        ? `${socialStoryLabel(draft.story.type)} content`
-        : "Saved social draft",
-      detectedService: draft.service || "",
-      story: draft.story || null,
-      privacyWarnings: draft.privacyWarnings || [],
-      captions: draft.captions || [],
-    });
+    setSocialCreatePhotos(restored.photos);
+    setSocialBrief(restored.brief);
+    setSocialAiResult(restored.analysis);
     setSocialAiStatus("ready");
     setSocialAiError("");
-    setSocialCaptionId(draft.selectedCaptionId || "");
-    setSocialDraftText(draft.text || "");
-    setSocialDraftChannels({
-      facebook: (draft.channels || []).includes("Facebook"),
-      instagram: (draft.channels || []).includes("Instagram"),
-      googleBusiness: (draft.channels || []).includes("Google Business"),
-    });
-    setSocialScheduleDate(draft.scheduleDate || dateToISO(new Date()));
-    setSocialScheduleTime(draft.scheduleTime || "19:00");
-    setSocialSourceContext({
-      type: draft.source || "phone",
-      label: draft.sourceLabel || "Saved draft",
-      contentEvidence:draft.contentEvidence||null,
-      selection:draft.contentEvidence?.selection,
-      customerId: draft.sourceCustomerId || "",
-      jobId: draft.sourceJobId || "",
-      service: draft.service || "",
-      suggestedPlatform:["Facebook","Instagram"].includes(draft.suggestedPlatform)?draft.suggestedPlatform:"",
-    });
+    setSocialCaptionId(restored.captionId);
+    setSocialDraftText(restored.text);
+    setSocialDraftChannels(restored.channels);
+    setSocialScheduleDate(restored.date);
+    setSocialScheduleTime(restored.time);
+    setSocialSourceContext(restored.source);
     go("socialDraftReview");
     });
   };

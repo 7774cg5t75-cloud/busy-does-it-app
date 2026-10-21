@@ -1933,6 +1933,12 @@
       "args": [
         "scripts/check-mission15-phase47-newsletter-recovery.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase47-content-restoration",
+      "args": [
+        "scripts/check-mission15-phase47-content-restoration.mjs"
+      ]
     }
   ]
 }

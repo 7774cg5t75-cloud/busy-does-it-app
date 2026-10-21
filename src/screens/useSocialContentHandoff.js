@@ -202,10 +202,12 @@ export function useSocialContentHandoff(input){
   return !!record?.id&&(live.current.records===ticket?.records||live.current.records?.includes(record))&&(selectedId===ticket?.selectedId||selectedId===record.id)&&fresh({...ticket,selectedId});
  };
  const protectDraftTransition=(load,record=null)=>{
-  if(!valid()||record&&!live.current.records?.includes(record))return false;
+  let targetStamp;try{targetStamp=record?savedAnnouncementStamp(record):null;}catch{return false;}
+  const targetCurrent=()=>!record||live.current.records?.includes(record)&&live.current.records.filter(row=>row.id===record.id).length===1&&![record.businessId,record.business_id,record.contentEvidence?.businessId].some(id=>id&&id!==live.current.businessId)&&savedAnnouncementStamp(record)===targetStamp;
+  if(!valid()||!targetCurrent())return false;
   const ticket=capture(),now=live.current,saved=now.records?.find(row=>row.id===now.selectedDraftId);
   const dirty=contentDraftChanges(now,saved).dirty;
-  const open=()=>{if(!fresh(ticket)||record&&!live.current.records?.includes(record))return false;epoch.current++;return load()!==false;};
+  const open=()=>{if(!fresh(ticket)||!targetCurrent())return false;epoch.current++;return load()!==false;};
   if(dirty){input.confirm?.({keep:()=>{},discard:open,...!record?{message:'Starting a new post replaces the current unsaved wording, photos and destination choices. Saved drafts remain unchanged.',actionLabel:'Start a new post'}:{}});return false;}return open();
  };
  const reopen=(record,load)=>protectDraftTransition(load,record);
