@@ -84,6 +84,9 @@ export {classifyGrowthUtterance,resolveGrowthOperator};
 function localCoreAreaRequest(text){
  const request=String(text||'').trim();if(!request||request.length>400)return null;
  if(/\b(publish|send|spend|buy|charge|pay now|schedule)\b/i.test(request))return null;
+ const replyRequest=request.replace(/^(?:busy[, ]+)?(?:please )?/i,'').replace(/[.!?]$/,'');
+ const replyPurpose=/^(?:help me (?:reply to|answer)|prepare (?:a )?reply (?:to|for)) (?:this|the current) (?:customer|enquiry)$/i.test(replyRequest)?'acknowledge':/^(?:ask them (?:what date they need|to confirm (?:the )?dates?)|prepare a reply asking for (?:the )?date)$/i.test(replyRequest)?'date':/^(?:ask them to confirm (?:the )?group size|help me respond to the customer asking about group size)$/i.test(replyRequest)?'group':/^ask (?:them )?about (?:the )?location and access(?: needs)?$/i.test(replyRequest)?'requirements':'';
+ if(replyPurpose)return {route:'busyInbox',enquiryReplyPurpose:replyPurpose,response:'Review a private reply from the exact current filed enquiry. No customer message is sent.'};
  if(/^(?:busy[, ]+)?(?:please )?(?:(?:show|open|continue|resume)(?: me)? (?:the |my )?(?:enquiry (?:I was|we were) working on|original enquiry)|take me back to (?:the |my )?original enquiry)[.!?]?$/i.test(request))return {route:'busyInbox',resumeEnquiry:true,response:'Review the current enquiry or choose its exact record. Nothing is filed or sent by navigation.'};
  const followUp=/^(?:busy[, ]+)?(?:please )?(?:(?:help me |prepare (?:a )?(?:polite )?)?follow up on (?:(?:a|that|this|the|my) )?quote|review (?:(?:the|my|this) )?quote follow-up)(?: for (.+?))?[.!?]?$/i.exec(request);
  if(followUp)return {route:'workHub',reviewQuoteFollowUp:true,quoteCustomerName:followUp[1]||'',response:'Choose the exact recorded quote in Work to review before preparing a private follow-up. No message has been sent; recorded quote status is not delivery evidence.'};

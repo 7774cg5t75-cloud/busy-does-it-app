@@ -1753,6 +1753,12 @@
       "args": [
         "scripts/check-mission15-phase41-reply-questions.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase41-talk-replies",
+      "args": [
+        "scripts/check-mission15-phase41-talk-replies.mjs"
+      ]
     }
   ]
 }

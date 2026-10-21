@@ -8482,7 +8482,7 @@ function App() {
     websiteDraft,
     miniAppsView,
   });
-  const enquiryReplyActions=useEnquiryReplyPreparation({scope:businessWorkspaceScopeRef.current,scopeRef:businessWorkspaceScopeRef,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,revision:cloudRevision,customers,inboxItems,profile:businessCreationIntelligence.sharedProfile,selectedCustomerId,text:enquiryFollowUpDraft,setText:setEnquiryFollowUpDraft,setSelectedCustomerId,go,requestTransition:(run,options)=>ownerEditNavigation.current.request(run,options),confirm:Alert.alert,setOrigin:(customerId,item)=>{replyActionOrigin.current={workspace:businessWorkspaceScopeRef.current,customerId,item,stamp:JSON.stringify(item)};},returnToSource:returnToQuoteEnquiry});
+  const enquiryReplyActions=useEnquiryReplyPreparation({scope:businessWorkspaceScopeRef.current,scopeRef:businessWorkspaceScopeRef,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,revision:cloudRevision,customers,inboxItems,profile:businessCreationIntelligence.sharedProfile,selectedInboxItemId,contextCustomerId:["replyActionDetail","quoteFollowUp"].includes(screen)?selectedReplyActionId:selectedCustomerId,origin:replyActionOrigin.current,getOrigin:()=>replyActionOrigin.current,selectedCustomerId,text:enquiryFollowUpDraft,setText:setEnquiryFollowUpDraft,setSelectedCustomerId,go,requestTransition:(run,options)=>ownerEditNavigation.current.request(run,options),confirm:Alert.alert,setOrigin:(customerId,item)=>{replyActionOrigin.current={workspace:businessWorkspaceScopeRef.current,customerId,item,stamp:JSON.stringify(item)};},returnToSource:returnToQuoteEnquiry});
   const socialContentActions=useSocialContentHandoff({customers,loadSocialStatus:()=>socialPublishRequest('status'),loadApprovedContent:()=>businessContentRequest('content_list'),workspaceScope:businessWorkspaceScopeRef.current,ownerId:ownerSession?.userId,businessId:cloudWorkspace?.businessId,role:cloudWorkspace?.role,aiResult:socialAiResult,approvedProfile:businessCreationIntelligence.sharedProfile,website:websiteDraft,app:miniAppsStatus?.app,text:socialDraftText,photos:socialCreatePhotos,selectedDraftId:selectedSocialDraftId,sourceContext:socialSourceContext,records:socialDrafts,brief:socialBrief,channels:socialDraftChannels,confirm:({keep,discard,message,actionLabel})=>Alert.alert('Keep your current draft?',message||'Opening another saved draft will replace the current unsaved wording, photos and destination choices. Nothing will be published.',[{text:'Keep my current draft',style:'cancel',onPress:keep},{text:actionLabel||'Open saved draft',onPress:discard}]),setSourceContext:setSocialSourceContext,setText:setSocialDraftText,setSelectedDraftId:setSelectedSocialDraftId,setAiResult:setSocialAiResult,setAiStatus:setSocialAiStatus,setCaptionId:setSocialCaptionId,go});
   const businessCreationJourney = buildBusinessCreationJourney({
     businessCreationIntelligence,
@@ -12289,7 +12289,13 @@ function App() {
       const local=localCoreAreaRequest(transcript);if(!local)return null;
       const allowed=!!ownerSession?.userId&&!!cloudWorkspace?.businessId&&['owner','admin'].includes(cloudWorkspace?.role);
       let response=local.response;
-      if(allowed&&local.resumeEnquiry){
+      if(allowed&&local.enquiryReplyPurpose){
+        const result=enquiryReplyActions.prepareCurrent(local.enquiryReplyPurpose);
+        if(result.blocked)response='Your current business permissions need review before preparing private replies.';
+        else if(result.stale)response='Your enquiry context or wording changed. Your latest words are kept; review the current enquiry again.';
+        else if(result.found)response=result.prepared?'Review your editable private enquiry reply. Nothing was saved or sent.':'Keep your current wording or deliberately review the new reply. Nothing was sent.';
+        else{openBusyInbox();response='Choose the exact filed enquiry in Busy Inbox before preparing a private reply. No customer was guessed or messaged.';}
+      }else if(allowed&&local.resumeEnquiry){
         const result=resumeCurrentEnquiry();
         if(!result.found&&!result.blocked)openBusyInbox();
         response=result.blocked?'Your current business permissions need review before opening private enquiries.':result.found?(result.opened?'Review your current enquiry. Existing form wording has been kept; nothing was filed or sent.':'Your current enquiry or unfinished edits need attention before returning. Nothing was filed or sent.'):'Choose an existing enquiry in Busy Inbox. No particular enquiry was guessed or changed.';
@@ -17184,6 +17190,8 @@ function App() {
     if (!customer || !thread || customer.contactOk === false || thread.duplicateGuard?.blocked) {
       return false;
     }
+    const local=enquiryReplyActions.prepareCurrent('acknowledge',customerId);
+    if(local.found||local.blocked||local.stale)return local.prepared===true;
     setSelectedCustomerId(customer.id);
     openTalkToBusy(false);
     setTimeout(() => {

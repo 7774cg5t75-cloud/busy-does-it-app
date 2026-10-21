@@ -36,8 +36,19 @@ export function useEnquiryReplyPreparation(input){
   epoch.current++;live.current={...live.current,text:value};if(session.current)session.current={...session.current,words:value};input.setText(value);return true;
  };
  const replaceLegacy=(customer,operation)=>epoch.current===renderEpoch&&live.current.revision===input.revision&&protect(()=>{session.current=null;epoch.current++;operation();},()=>live.current.customers.includes(customer)&&customer.contactOk!==false&&![customer.businessId,customer.business_id].some(id=>id&&id!==business));
+ const currentEnquiry=()=>{
+  const data=live.current,receipt=data.origin,selected=data.contextCustomerId;
+  if(receipt){if(receipt.workspace!==scope||selected&&receipt.customerId!==selected||!data.inboxItems.includes(receipt.item)||JSON.stringify(receipt.item)!==receipt.stamp)return null;return receipt.item?.status==='Filed'&&receipt.item.filedCustomerId===receipt.customerId?receipt.item:null;}
+  const rows=data.inboxItems.filter(row=>row.id===data.selectedInboxItemId&&row.status==='Filed'&&(!selected||row.filedCustomerId===selected));return rows.length===1?rows[0]:null;
+ };
+ const prepareCurrent=(purpose='acknowledge',customerId='')=>{
+  if(!valid())return {found:false,blocked:true};
+  if(epoch.current!==renderEpoch||live.current.revision!==input.revision||live.current.contextCustomerId!==input.contextCustomerId||live.current.selectedInboxItemId!==input.selectedInboxItemId||live.current.origin!==input.origin||input.getOrigin?.()!==input.origin)return {found:true,prepared:false,stale:true};
+  const item=currentEnquiry();if(!item||customerId&&item.filedCustomerId!==customerId)return {found:false};
+  return {found:true,prepared:prepare(item.filedCustomerId,item.id,purpose)};
+ };
  const value=session.current;
- return {prepare,edit,replaceLegacy,prepareQuestion:purpose=>value&&session.current===value&&sourceCurrent(value)&&epoch.current===renderEpoch?prepare(value.customer.id,value.item.id,purpose):false,hasSession:()=>!!session.current,
+ return {prepare,prepareCurrent,edit,replaceLegacy,prepareQuestion:purpose=>value&&session.current===value&&sourceCurrent(value)&&epoch.current===renderEpoch?prepare(value.customer.id,value.item.id,purpose):false,hasSession:()=>!!session.current,
   text:value?(valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?input.text:''):input.text,
   review:value&&valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?{item:value.item,customer:value.customer,purpose:value.purpose,current:sourceCurrent(value),epoch:renderEpoch}:null,
   returnToSource:()=>sourceCurrent(session.current)&&epoch.current===renderEpoch?input.returnToSource(session.current.customer.id):false};
