@@ -2011,6 +2011,12 @@
       "args": [
         "scripts/check-mission15-phase50-runtime-loading.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase51-catalogue-reply",
+      "args": [
+        "scripts/check-mission15-phase51-catalogue-reply.mjs"
+      ]
     }
   ]
 }

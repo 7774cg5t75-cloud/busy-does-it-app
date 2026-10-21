@@ -27,7 +27,7 @@ export function prepareEnquiryReplyText({customer,item,businessId,approvedProfil
 
 
 // Customer listing references select a record to check, never authorise its facts.
-export function prepareEnquiryCatalogueText({customer,item,businessId,result,reviewCurrent=false}={}){
+export function inspectEnquiryCatalogue({item,businessId,result,reviewCurrent=false}={}){
  const selection=parseEnquiryListingReference(item?.rawText);
  if(!selection||result?.ok!==true||result.businessId!==businessId)return {ok:false};
  const feed=publicBusinessContent(result.records,businessId),rows=feed?.records?.filter(record=>record.id===selection.recordId);
@@ -36,8 +36,25 @@ export function prepareEnquiryCatalogueText({customer,item,businessId,result,rev
  if(changed&&!reviewCurrent)return {ok:false,reason:'changed'};
  const checked=prepareBusinessContentEnquiry(feed,businessId,{...selection,revision:row.revision});
  if(!checked.ok)return {ok:false};
+ return {ok:true,originalSelection:selection,changed,selection:checked.selection,recordStamp:stableJson(row),row,checked};
+}
+export function prepareEnquiryCatalogueText({customer,item,businessId,result,reviewCurrent=false}={}){
+ const source=inspectEnquiryCatalogue({item,businessId,result,reviewCurrent});if(!source.ok)return source;
+ const {originalSelection:selection,changed,selection:currentSelection,recordStamp,row,checked}=source;
  const base=prepareEnquiryReplyText({customer,item:{...item,parsed:{...item.parsed,service:checked.service}},businessId,purpose:readCustomerEnquiryRequirements(item.rawText)?'quote-preparation':'acknowledge'});
  if(!base.ok)return base;
- return {...base,originalSelection:selection,changed,selection:checked.selection,recordStamp:stableJson(row),
+ return {...base,originalSelection:selection,changed,selection:currentSelection,recordStamp,
   text:(changed?'The customer referred to an earlier version of this listing. Earlier listing facts cannot be verified here; the original enquiry is retained. The following uses current listed information, not an agreed price or booking.\n\n':'')+base.text+'\n\nCurrent approved listing information (not an agreed quote):\n'+checked.message.replace(/\nPlease tell me more\.$/,'')+'\n'+row.data.description};
+}
+
+// Customer-facing private clarification shares the quote source validator, not quote execution.
+export function prepareEnquiryCatalogueReply({customer,item,businessId,result,approvedProfile}={}){
+ const source=inspectEnquiryCatalogue({item,businessId,result,reviewCurrent:true});if(!source.ok)return source;
+ const {row,checked,changed}=source;
+ const base=prepareEnquiryReplyText({customer,item:{...item,parsed:{...item.parsed,service:checked.service}},businessId,approvedProfile,purpose:readCustomerEnquiryRequirements(item.rawText)?'confirm-requirements':'acknowledge'});
+ if(!base.ok)return base;
+ const information=checked.message.replace(/\nPlease tell me more\.$/,'')+'\n'+row.data.description;
+ return {...base,purpose:'catalogue',selection:source.selection,recordStamp:source.recordStamp,changed,
+  warning:changed?'The enquiry refers to an earlier listing. Earlier facts cannot be verified here; review these current approved details against the original request.':'Review current approved details against the original customer request.',
+  text:base.text+'\n\n'+(changed?'The listing has changed since your enquiry. Please review these current listed details:':'Here are the current listed details for you to review:')+'\n'+information+'\n\nPlease let us know whether these details meet your requirements. Listed information does not confirm availability, an agreed quote or a booking.'};
 }

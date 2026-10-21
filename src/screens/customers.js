@@ -1299,6 +1299,8 @@ function EnquiryFollowUp({ s }) {
         {privateReply.canReviewCurrentSource?<Button label="Review current enquiry for this reply" onPress={s.enquiryReplyActions.reviewCurrentSource}/>:null}
       </Card>:null}
       {privateReply?.requirements?.reviewChecks?.length?<Card eyebrow="Questions to review" title="Before you make commitments" body={privateReply.requirements.reviewChecks.map(row=>row.check).join('\n')}/>:null}
+      {privateReply?.canReviewCatalogue?<Button label="Review current item details for this reply" onPress={s.enquiryReplyActions.prepareCatalogue}/>:null}
+      {privateReply?.catalogueWarning?<Text accessibilityLiveRegion="polite" style={styles.cardBody}>{privateReply.catalogueWarning} Nothing has been sent.</Text>:null}
       {privateReply?.requirements?.canExplainService?<Button label="Explain the approved service" onPress={()=>s.enquiryReplyActions.prepareQuestion('information')}/>:null}
       {privateReply?.requirements?.canConfirmRequirements?<Button label="Confirm the supplied requirements" disabled={!privateReply.current} onPress={()=>s.enquiryReplyActions.prepareQuestion('confirm-requirements')}/>:null}
       {privateReply?<>{[['acknowledge','Acknowledge the enquiry'],['date','Ask to confirm dates'],['flexibility','Ask whether dates are flexible'],['group','Ask to confirm group size'],['requirements','Ask about location and access']].map(([purpose,label])=><Button key={purpose} label={(privateReply.purpose===purpose?'✓ ':'')+label} disabled={!privateReply.current} onPress={()=>s.enquiryReplyActions.prepareQuestion(purpose)}/>)}</>:null}

@@ -1,8 +1,10 @@
 import {stableJson} from '../core/stableJson.mjs';
 import {enquiryReplyCustomerSource,preparePrivateEnquiryReply,resolvePrivateEnquiryReply,inspectPrivateEnquiryReply,inspectPrivateReplyAccount,inspectPrivateReplyAccountRemoval,privateReplyAccountStatus} from '../core/privateEnquiryReply.mjs';
-import React from 'react';import {prepareEnquiryReplyText} from '../core/enquiryReplyText.mjs';import {protectQuoteDraftTransition} from '../core/quoteDraftTransition.mjs';
+import {parseEnquiryListingReference} from '../core/ownerConversationPreparation.mjs';
+import React from 'react';import {prepareEnquiryReplyText,prepareEnquiryCatalogueReply} from '../core/enquiryReplyText.mjs';import {protectQuoteDraftTransition} from '../core/quoteDraftTransition.mjs';
 // Volatile source/typing metadata. Original parent enquiry fields remain the only wording state.
 export function useEnquiryReplyPreparation(input){
+ const catalogueRequest=React.useRef(0);
  const live=React.useRef(input),session=React.useRef(null),epoch=React.useRef(0),pendingSave=React.useRef(null);const [saveState,setSaveState]=React.useState(null),[accountState,setAccountState]=React.useState(null);const accountRequest=React.useRef(null);live.current=input;
  const scope=input.scope,owner=input.ownerId,business=input.businessId,renderEpoch=epoch.current;
  const valid=()=>live.current.scope===scope&&input.scopeRef.current===scope&&!!owner&&!!business&&live.current.ownerId===owner&&live.current.businessId===business&&['owner','admin'].includes(live.current.role);
@@ -42,6 +44,29 @@ export function useEnquiryReplyPreparation(input){
   };
   if(sourceCurrent(session.current)&&session.current.customer===customer&&session.current.item===item&&live.current.text===session.current.generatedText){let applied=false;input.requestTransition(()=>{apply();applied=true;},{isCurrent:()=>sourceCurrent(next)&&epoch.current===renderEpoch});return applied;}
   return protect(apply,()=>sourceCurrent(next));
+ };
+ const prepareCatalogue=async()=>{
+  const value=session.current,typing=epoch.current,text=live.current.text,token=++catalogueRequest.current;
+  const fresh=()=>catalogueRequest.current===token&&sourceCurrent(value)&&session.current===value&&epoch.current===typing&&live.current.text===text&&live.current.selectedCustomerId===value.customer.id;
+  if(typing!==renderEpoch||!fresh()||!parseEnquiryListingReference(value.item.rawText)||!live.current.loadApprovedContent)return false;
+  const read=async()=>prepareEnquiryCatalogueReply({customer:value.customer,item:value.item,businessId:business,approvedProfile:live.current.profile,result:await live.current.loadApprovedContent()});
+  try{
+   const prepared=await read();if(!fresh())return false;
+   if(!prepared.ok){input.confirm('Review the selected item','The original item or option is unavailable, changed, expired or could not be checked. Your reply and enquiry are kept.');return false;}
+   let resolved=false;
+   input.confirm(prepared.changed?'Review the changed listing':'Review current item details',prepared.warning+'\n\n'+prepared.text+'\n\nUsing this preparation replaces only this private reply. Quote amounts and dates stay unchanged. Nothing is saved or sent.',[
+    {text:'Keep my wording',style:'cancel',onPress:()=>{resolved=true;}},
+    {text:'Use reviewed reply',onPress:()=>{
+     if(resolved||!fresh())return false;resolved=true;
+     let result=false;
+     input.requestTransition(()=>{result=(async()=>{
+      try{const checked=await read();if(!fresh()||!checked.ok||checked.recordStamp!==prepared.recordStamp||stableJson(checked.selection)!==stableJson(prepared.selection)||checked.text!==prepared.text)return false;
+       epoch.current++;pendingSave.current=null;setSaveState(null);setAccountState(null);session.current={...value,purpose:'catalogue',words:checked.text,generatedText:checked.text,catalogueWarning:checked.warning};live.current={...live.current,text:checked.text};input.setText(checked.text);return true;
+      }catch{return false;}
+     })();},{isCurrent:fresh});return result;
+    }},
+   ]);return true;
+  }catch{if(fresh())input.confirm('Could not check this item','Your current reply is kept. Nothing was saved or sent.');return false;}
  };
  const edit=value=>{
   if(!valid()||typeof value!=='string')return false;
@@ -157,8 +182,8 @@ export function useEnquiryReplyPreparation(input){
  if(sourceCurrent(value)&&value.customer.privateEnquiryReply){
   try{ownSave=inspectPrivateReplyAccount({result:input.readOwnSave?.({customerId:value.customer.id,inboxId:value.item.id}),ownerId:owner,businessId:business,customer:value.customer,record:value.customer.privateEnquiryReply,item:value.item});}catch{/* Unsupported or unavailable receipt is not saving evidence. */}
  }
- return {reviewCurrentSource,checkAccount,reviewSaved,savedReplies:savedReplies(),save:()=>savedAction('save'),removeSaved:()=>savedAction('remove'),checkSave:()=>save(true),reopen,prepare,prepareCurrent,resume,continuation:value&&sourceCurrent(value)&&input.text?.trim()?{customer:value.customer,item:value.item,text:input.text,epoch:renderEpoch,revision:value.revision}:null,edit,replaceLegacy,prepareQuestion:purpose=>value&&session.current===value&&sourceCurrent(value)&&epoch.current===renderEpoch?prepare(value.customer.id,value.item.id,purpose):false,hasSession:()=>!!session.current,
+ return {prepareCatalogue,reviewCurrentSource,checkAccount,reviewSaved,savedReplies:savedReplies(),save:()=>savedAction('save'),removeSaved:()=>savedAction('remove'),checkSave:()=>save(true),reopen,prepare,prepareCurrent,resume,continuation:value&&sourceCurrent(value)&&input.text?.trim()?{customer:value.customer,item:value.item,text:input.text,epoch:renderEpoch,revision:value.revision}:null,edit,replaceLegacy,prepareQuestion:purpose=>value&&session.current===value&&sourceCurrent(value)&&epoch.current===renderEpoch?prepare(value.customer.id,value.item.id,purpose):false,hasSession:()=>!!session.current,
   text:value?(valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?input.text:''):input.text,
-  review:value&&valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?{item:value.item,customer:value.customer,purpose:value.purpose,canReviewCurrentSource:!!sourceReviewCandidate(),requirements:sourceCurrent(value)?prepareEnquiryReplyText({customer:value.customer,item:value.item,businessId:business,approvedProfile:input.profile,purpose:'acknowledge'}):null,current:sourceCurrent(value),epoch:renderEpoch,accountStatus:privateReplyAccountStatus({state:accountState,customer:value.customer,text:input.text,saveState,ownSave}),saveStatus:saveState?.savedText&&saveState.savedText!==input.text?'newer':saveState?.status||'unsaved'}:null,
+  review:value&&valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?{item:value.item,customer:value.customer,purpose:value.purpose,catalogueWarning:value.catalogueWarning||'',canReviewCatalogue:sourceCurrent(value)&&!!parseEnquiryListingReference(value.item.rawText),canReviewCurrentSource:!!sourceReviewCandidate(),requirements:sourceCurrent(value)?prepareEnquiryReplyText({customer:value.customer,item:value.item,businessId:business,approvedProfile:input.profile,purpose:'acknowledge'}):null,current:sourceCurrent(value),epoch:renderEpoch,accountStatus:privateReplyAccountStatus({state:accountState,customer:value.customer,text:input.text,saveState,ownSave}),saveStatus:saveState?.savedText&&saveState.savedText!==input.text?'newer':saveState?.status||'unsaved'}:null,
   returnToSource:()=>{const current=session.current;if(!sourceCurrent(current)||epoch.current!==renderEpoch||live.current.selectedCustomerId!==current.customer.id)return false;input.setOrigin(current.customer.id,current.item);return input.returnToSource(current.customer.id);}};
 }
