@@ -8,6 +8,7 @@ import {inspectNewsletterAccount} from '../core/newsletterAccountReadback.mjs';
 
 export function NewsletterAccountReadback({s}){
  const [review,setReview]=React.useState(null),live=React.useRef(s),request=React.useRef(0);live.current=s;
+ React.useEffect(()=>()=>{request.current++;},[]);
  const records=s.socialDrafts||[],matches=records.filter(row=>row.id===s.selectedSocialDraftId),record=matches.length===1?matches[0]:null;
  const stamp=record?stableJson(record):'',scope=s.ownerWorkspaceScope,owner=s.ownerSession?.userId,business=s.cloudWorkspace?.businessId;
  const eligible=record?.contentEvidence?.channel==='newsletter'&&record.contentEvidence.businessId===business&&record.status==='Draft'&&!record.publishedAt&&owner&&['owner','admin'].includes(s.cloudWorkspace?.role);

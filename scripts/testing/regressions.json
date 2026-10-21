@@ -1939,6 +1939,12 @@
       "args": [
         "scripts/check-mission15-phase47-content-restoration.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase47-enquiry-requirements",
+      "args": [
+        "scripts/check-mission15-phase47-enquiry-requirements.mjs"
+      ]
     }
   ]
 }

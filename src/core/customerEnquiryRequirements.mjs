@@ -30,6 +30,22 @@ function prepareCustomerEnquiry({message='',requirements=emptyEnquiryRequirement
 }
 export {ENQUIRY_REQUIREMENTS,emptyEnquiryRequirements,validEnquiryRequirements,prepareCustomerEnquiry};
 
+// Read only the original labelled request contract, never infer facts from prose
+// or filing timestamps. Values remain untrusted customer-supplied preferences.
+export function readCustomerEnquiryRequirements(message){
+ if(typeof message!=='string'||message.length>3000)return null;
+ const lines=message.split('\n'),heading='Customer-supplied requirements (not confirmed):',starts=lines.flatMap((line,i)=>line===heading?[i]:[]);
+ if(starts.length!==1)return null;
+ const result=emptyEnquiryRequirements(),seen=new Set();
+ for(const line of lines.slice(starts[0]+1)){
+  if(!line.trim())continue;
+  const field=ENQUIRY_REQUIREMENTS.find(row=>line.startsWith(row.label+': '));
+  if(!field||seen.has(field.key))return null;
+  seen.add(field.key);result[field.key]=line.slice(field.label.length+2);
+ }
+ return seen.size&&validEnquiryRequirements(result)?result:null;
+}
+
 // Ephemeral review only; payload must come from the original request validator.
 // No persistence, send authority, idempotency key or new backend schema.
 function customerEnquiryReview(payload,scope,sourceStamp,type="enquiry"){
