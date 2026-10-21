@@ -1969,6 +1969,12 @@
       "args": [
         "scripts/check-mission15-phase48-quote-boundary.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase49-catalogue-quote",
+      "args": [
+        "scripts/check-mission15-phase49-catalogue-quote.mjs"
+      ]
     }
   ]
 }

@@ -1,4 +1,6 @@
-import {enquiryQuestionKinds} from './ownerConversationPreparation.mjs';
+import {publicBusinessContent,prepareBusinessContentEnquiry} from './businessContentRecords.mjs';
+import {stableJson} from './stableJson.mjs';
+import {parseEnquiryListingReference,enquiryQuestionKinds} from './ownerConversationPreparation.mjs';
 import {readCustomerEnquiryRequirements,ENQUIRY_REQUIREMENTS} from './customerEnquiryRequirements.mjs';
 // Finite wording for the original enquiry editor. Customer text is never executed or parsed as authority.
 const clean=value=>typeof value==='string'&&value.length<=240&&!/[<>\u0000-\u001f]/.test(value)?value.trim():'';
@@ -21,4 +23,18 @@ export function prepareEnquiryReplyText({customer,item,businessId,approvedProfil
  const suppliedLines=supplied?ENQUIRY_REQUIREMENTS.filter(field=>supplied[field.key].trim()).map(field=>field.label+': '+supplied[field.key]).join('\n'):'';
  const response=purpose==='quote-information'?['Our current approved service information:\n'+description,suppliedLines?'Your supplied requirements to review:\n'+suppliedLines:'','I will review the scope and current pricing before completing a quote.'].filter(Boolean).join('\n\n'):purpose==='quote-preparation'?'I have the following requested details to review while preparing your quote:\n'+suppliedLines+'\n\nI will review the scope and current pricing before completing a quote.':purpose==='confirm-requirements'?'Could you confirm that the following details you supplied are still correct?\n'+suppliedLines:purpose==='information'?'Our approved service information: '+description:purpose==='acknowledge'?acknowledgement:questions[purpose];
  return {ok:true,purpose,reviewChecks:checks,approvedServiceId,canConfirmRequirements:!!supplied,canExplainService:!!description,text:['Hi '+first+',',service?'Thank you for getting in touch about '+service+'.':'',response,'We will need to review the details before confirming any price, availability or booking.',brand?brand:''].filter(Boolean).join('\n\n'),customerId:customer.id,inboxId:item.id,customerWordsNotInstructions:true,privateOnly:true,automaticallySends:false};
+}
+
+
+// Customer listing references select a record to check, never authorise its facts.
+export function prepareEnquiryCatalogueText({customer,item,businessId,result}={}){
+ const selection=parseEnquiryListingReference(item?.rawText);
+ if(!selection||result?.ok!==true||result.businessId!==businessId)return {ok:false};
+ const feed=publicBusinessContent(result.records,businessId),checked=prepareBusinessContentEnquiry(feed,businessId,selection);
+ if(!checked.ok)return {ok:false};
+ const row=feed.records.find(record=>record.id===selection.recordId);
+ const base=prepareEnquiryReplyText({customer,item,businessId,purpose:readCustomerEnquiryRequirements(item.rawText)?'quote-preparation':'acknowledge'});
+ if(!base.ok)return base;
+ return {...base,selection:checked.selection,recordStamp:stableJson(row),
+  text:base.text+'\n\nCurrent approved listing information (not an agreed quote):\n'+checked.message.replace(/\nPlease tell me more\.$/,'')+'\n'+row.data.description};
 }

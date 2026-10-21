@@ -1,6 +1,7 @@
 import React from 'react';
 import {Alert} from 'react-native';
-import {prepareEnquiryReplyText} from '../core/enquiryReplyText.mjs';
+import {parseEnquiryListingReference} from '../core/ownerConversationPreparation.mjs';
+import {prepareEnquiryReplyText,prepareEnquiryCatalogueText} from '../core/enquiryReplyText.mjs';
 import {stableJson} from '../core/stableJson.mjs';
 import {quoteCustomerSource as customerSource} from '../core/privateQuoteCopy.mjs';
 import {useOwnerEditNavigation} from './useOwnerEditNavigation';
@@ -80,6 +81,23 @@ export function useQuoteActionReview(s){
   ]);
   return true;
  };
+ const prepareCatalogue=async(item)=>{
+  const start=live.current,revision=start.cloudRevision,typing=epoch.current,wording=values(start),itemStamp=stableJson(item||null);
+  const sourceCurrent=()=>current()&&!conflict&&!pending.current&&action?.type==='quote'&&(!action.details?.quoteStatus||action.details.quoteStatus==='Prepared')&&customer.contactOk!==false&&live.current.cloudRevision===revision&&Number.isSafeInteger(revision)&&epoch.current===typing&&same(values(live.current),wording)&&live.current.quoteEnquiryOriginItem===item&&live.current.inboxItems?.includes(item)&&live.current.inboxItems.filter(row=>row?.id===item?.id).length===1&&live.current.customers?.includes(customer)&&live.current.customers.filter(row=>row?.id===customer.id).length===1&&stableJson(item||null)===itemStamp;
+  if(epoch.current!==renderEpoch||!sourceCurrent()||!parseEnquiryListingReference(item?.rawText)||typeof start.businessContentRequest!=='function')return false;
+  const read=async()=>prepareEnquiryCatalogueText({customer,item,businessId:s.cloudWorkspace.businessId,result:await live.current.businessContentRequest('content_list')});
+  try{
+   const prepared=await read();if(!sourceCurrent())return false;
+   if(!prepared.ok){Alert.alert('Review the selected item','The enquiry’s selected item or option changed, expired or could not be checked. Your wording, amount and date are kept.');return false;}
+   Alert.alert('Use this approved item?',prepared.text+'\n\nReview the listed information and customer requests. Your amount and date stay unchanged. Nothing is saved or sent.',[
+    {text:'Keep my wording',style:'cancel'},
+    {text:'Use this item information',onPress:async()=>{
+     if(!sourceCurrent())return false;
+     try{const checked=await read();if(!sourceCurrent()||!checked.ok||checked.recordStamp!==prepared.recordStamp||stableJson(checked.selection)!==stableJson(prepared.selection))return false;return edit('actionQuoteMessage',checked.text);}catch{return false;}
+    }},
+   ]);return true;
+  }catch{if(sourceCurrent())Alert.alert('Could not check this item','Keep your current wording. No preparation was accepted or saved.');return false;}
+ };
  const enquiryInformation=current()&&s.quoteEnquiryOriginItem?prepareEnquiryReplyText({customer,item:s.quoteEnquiryOriginItem,businessId:s.cloudWorkspace.businessId,approvedProfile:s.businessCreationIntelligence?.sharedProfile,purpose:'quote-information'}):null;
- return {edit,commit,transition,prepareEnquiry,canExplainService:enquiryInformation?.ok===true,checkDeviceCopy:()=>current()&&s.checkPrivateQuoteCopy?.({isCurrent:()=>current()&&epoch.current===renderEpoch}),validDate,conflict,saving:!!pending.current,dirty:dirty.current,sentAt:()=>validDate?new Date(date+'T12:00:00').toISOString():null};
+ return {edit,commit,transition,prepareEnquiry,prepareCatalogue,canExplainService:enquiryInformation?.ok===true,checkDeviceCopy:()=>current()&&s.checkPrivateQuoteCopy?.({isCurrent:()=>current()&&epoch.current===renderEpoch}),validDate,conflict,saving:!!pending.current,dirty:dirty.current,sentAt:()=>validDate?new Date(date+'T12:00:00').toISOString():null};
 }
