@@ -14,3 +14,15 @@ export function resolveQuoteEnquiryReference(reference,{businessId,customerId,in
  const item=matches[0],current=quoteEnquiryReference({businessId,customerId,item,revision:reference.snapshotRevision});
  return current&&stableJson(current)===stableJson(reference)?item:null;
 }
+
+// Pure private-detail preparation. Caller owns workspace/role/approval and writes.
+export function prepareQuoteEnquiryDetails({details,existingReference,businessId,customerId,item=null,sourceStamp='',inboxItems=[],revision}){
+ if(!details||typeof details!=='object'||Array.isArray(details))return false;
+ const {enquiryReference:incomingReference,...fields}=details;
+ const prepared=existingReference?{...fields,enquiryReference:existingReference}:fields;
+ if(!item)return prepared;
+ if(!inboxItems.includes(item)||inboxItems.filter(row=>row.id===item.id).length!==1||JSON.stringify(item)!==sourceStamp||[item.businessId,item.business_id].some(id=>id&&id!==businessId))return false;
+ const reference=quoteEnquiryReference({businessId,customerId,item,revision});
+ // Legacy items without a filing receipt remain saveable, without a fabricated link.
+ return reference?{...prepared,enquiryReference:reference}:prepared;
+}

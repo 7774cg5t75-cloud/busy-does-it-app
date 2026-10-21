@@ -2,7 +2,7 @@ import {persistPrivateReply} from './privateEnquiryReplyPersistence.mjs';
 import {useEnquiryReplyPreparation} from '../screens/useEnquiryReplyPreparation';
 import {homeUnsavedContentReview} from '../core/homeContentReview.mjs';
 import {privateContentChannels,restoreContentDraft} from '../core/contentDraftChanges.mjs';
-import {quoteEnquiryReference,resolveQuoteEnquiryReference} from '../core/quoteEnquiryReference.mjs';
+import {quoteEnquiryReference,resolveQuoteEnquiryReference,prepareQuoteEnquiryDetails} from '../core/quoteEnquiryReference.mjs';
 import {preparedQuoteTarget,followUpQuoteTarget} from '../core/homeQuoteReview.mjs';
 import {readPrivateQuoteCopy,quoteCustomerSource} from '../core/privateQuoteCopy.mjs';
 import {protectQuoteDraftTransition,isQuoteDraftSourceCurrent} from '../core/quoteDraftTransition.mjs';
@@ -1508,14 +1508,9 @@ function App() {
   const prepareQuoteDetails = (customerId,details,expectedAction) => {
     const current=replyActionSources.current,action=current.replyActions[customerId],customer=current.customers.find(row=>row.id===customerId)||current.lastSimulatedRecipients.find(row=>row.id===customerId);
     if(businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||!['owner','admin'].includes(current.role)||!customer||[customer.businessId,customer.business_id].some(id=>id&&id!==cloudWorkspace?.businessId)||action?.type!=='quote'||current.selectedReplyActionId!==customerId||current.cloudRevision!==cloudRevision||expectedAction&&action!==expectedAction||!details||typeof details!=='object'||Array.isArray(details))return false;
-    const {enquiryReference:incomingReference,...fields}=details;
-    const prepared=action.details?.enquiryReference?{...fields,enquiryReference:action.details.enquiryReference}:fields;
     const origin=replyActionOrigin.current;
-    if(!origin||origin.workspace!==renderedBusinessWorkspaceScope||origin.customerId!==customerId)return prepared;
-    if(!current.inboxItems.includes(origin.item)||JSON.stringify(origin.item)!==origin.stamp)return false;
-    const reference=quoteEnquiryReference({businessId:cloudWorkspace?.businessId,customerId,item:origin.item,revision:cloudRevision});
-    // Legacy records without a filing receipt stay saveable; no link is invented.
-    return reference?{...prepared,enquiryReference:reference}:prepared;
+    return prepareQuoteEnquiryDetails({details,existingReference:action.details?.enquiryReference,businessId:cloudWorkspace?.businessId,customerId,revision:cloudRevision,inboxItems:current.inboxItems,
+      item:origin?.workspace===renderedBusinessWorkspaceScope&&origin.customerId===customerId?origin.item:null,sourceStamp:origin?.stamp});
   };
 
   const returnToQuoteEnquiry = (customerId=replyActionSources.current.selectedReplyActionId) => {
