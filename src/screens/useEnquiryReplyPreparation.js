@@ -1,5 +1,5 @@
 import {stableJson} from '../core/stableJson.mjs';
-import {enquiryReplyCustomerSource,preparePrivateEnquiryReply,resolvePrivateEnquiryReply,inspectPrivateEnquiryReply,inspectPrivateReplyAccount,inspectPrivateReplyAccountRemoval} from '../core/privateEnquiryReply.mjs';
+import {enquiryReplyCustomerSource,preparePrivateEnquiryReply,resolvePrivateEnquiryReply,inspectPrivateEnquiryReply,inspectPrivateReplyAccount,inspectPrivateReplyAccountRemoval,privateReplyAccountStatus} from '../core/privateEnquiryReply.mjs';
 import React from 'react';import {prepareEnquiryReplyText} from '../core/enquiryReplyText.mjs';import {protectQuoteDraftTransition} from '../core/quoteDraftTransition.mjs';
 // Volatile source/typing metadata. Original parent enquiry fields remain the only wording state.
 export function useEnquiryReplyPreparation(input){
@@ -138,8 +138,12 @@ export function useEnquiryReplyPreparation(input){
  };
  const savedReplies=()=>valid()?live.current.customers.flatMap(customer=>{const saved=resolvePrivateEnquiryReply({ownerId:owner,businessId:business,customer,inboxItems:live.current.inboxItems,revision:live.current.revision});return saved?[{customer,...saved}]:[];}):[];
  const value=session.current;
+ let ownSave=null;
+ if(sourceCurrent(value)&&value.customer.privateEnquiryReply){
+  try{ownSave=inspectPrivateReplyAccount({result:input.readOwnSave?.(),ownerId:owner,businessId:business,customer:value.customer,record:value.customer.privateEnquiryReply,item:value.item});}catch{/* Unsupported or unavailable receipt is not saving evidence. */}
+ }
  return {checkAccount,reviewSaved,savedReplies:savedReplies(),save:()=>savedAction('save'),removeSaved:()=>savedAction('remove'),checkSave:()=>save(true),reopen,prepare,prepareCurrent,resume,continuation:value&&sourceCurrent(value)&&input.text?.trim()?{customer:value.customer,item:value.item,text:input.text,epoch:renderEpoch,revision:value.revision}:null,edit,replaceLegacy,prepareQuestion:purpose=>value&&session.current===value&&sourceCurrent(value)&&epoch.current===renderEpoch?prepare(value.customer.id,value.item.id,purpose):false,hasSession:()=>!!session.current,
   text:value?(valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?input.text:''):input.text,
-  review:value&&valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?{item:value.item,customer:value.customer,purpose:value.purpose,requirements:sourceCurrent(value)?prepareEnquiryReplyText({customer:value.customer,item:value.item,businessId:business,approvedProfile:input.profile,purpose:'acknowledge'}):null,current:sourceCurrent(value),epoch:renderEpoch,accountStatus:accountState&&(accountState.removed?accountState.customer===value.customer&&!value.customer.privateEnquiryReply&&saveState?.status==='removed'&&saveState.removedRecord===accountState.removedRecord:!!accountState.record&&accountState.record===value.customer.privateEnquiryReply)?(accountState.status==='confirmed'&&accountState.savedText!==input.text?'newer':accountState.status):null,saveStatus:saveState?.savedText&&saveState.savedText!==input.text?'newer':saveState?.status||'unsaved'}:null,
+  review:value&&valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?{item:value.item,customer:value.customer,purpose:value.purpose,requirements:sourceCurrent(value)?prepareEnquiryReplyText({customer:value.customer,item:value.item,businessId:business,approvedProfile:input.profile,purpose:'acknowledge'}):null,current:sourceCurrent(value),epoch:renderEpoch,accountStatus:privateReplyAccountStatus({state:accountState,customer:value.customer,text:input.text,saveState,ownSave}),saveStatus:saveState?.savedText&&saveState.savedText!==input.text?'newer':saveState?.status||'unsaved'}:null,
   returnToSource:()=>{const current=session.current;if(!sourceCurrent(current)||epoch.current!==renderEpoch||live.current.selectedCustomerId!==current.customer.id)return false;input.setOrigin(current.customer.id,current.item);return input.returnToSource(current.customer.id);}};
 }

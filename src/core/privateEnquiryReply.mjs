@@ -51,3 +51,11 @@ export function inspectPrivateReplyAccountRemoval({result,ownerId,businessId,cus
  if(remote.privateEnquiryReply==null)return {status:'absent',revision:result.revision};
  return stableJson(remote.privateEnquiryReply)===stableJson(removedRecord)?{status:'present',revision:result.revision}:{status:'different'};
 }
+
+// Presentation evidence only. Existing check results outrank an earlier save receipt.
+export function privateReplyAccountStatus({state,customer,text,saveState,ownSave}){
+ const exact=state&&(state.removed?state.customer===customer&&!customer.privateEnquiryReply&&saveState?.status==='removed'&&saveState.removedRecord===state.removedRecord:!!state.record&&state.record===customer.privateEnquiryReply);
+ if(exact)return state.status==='confirmed'&&state.savedText!==text?'newer':state.status;
+ if(ownSave?.status==='confirmed')return ownSave.savedText===text?'ownSaved':'ownSavedNewer';
+ return null;
+}

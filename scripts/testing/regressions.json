@@ -1891,6 +1891,12 @@
       "args": [
         "scripts/check-mission15-phase45-newsletter-editing.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase45-reply-receipt",
+      "args": [
+        "scripts/check-mission15-phase45-reply-receipt.mjs"
+      ]
     }
   ]
 }

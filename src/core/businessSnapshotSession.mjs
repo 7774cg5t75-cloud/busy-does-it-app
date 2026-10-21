@@ -109,6 +109,13 @@ function createBusinessSnapshotSession(){
   const current=getCurrent(),receipt=lastOwnSave;
   return !!receipt&&current?.ready===true&&current.identity===receipt.identity&&current.ownerId===receipt.ownerId&&current.businessId===receipt.businessId&&current.revision===receipt.to&&fromRevision===receipt.from&&toRevision===receipt.to;
  };
- return {canContinueRevision,read,save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
+ // Read a defensive copy of the last exact PATCH representation, never a
+ // matching GET after a timeout. This is evidence, not a new write or restore.
+ const readOwnSave=({getCurrent})=>{
+  const receipt=lastOwnSave;
+  if(!receipt||!canContinueRevision({getCurrent,fromRevision:receipt.from,toRevision:receipt.to})||observed?.identity!==receipt.identity||observed.revision!==receipt.to)return {ok:false};
+  try{return {ok:true,businessId:receipt.businessId,revision:receipt.to,payload:JSON.parse(observed.stamp)};}catch{return {ok:false};}
+ };
+ return {readOwnSave,canContinueRevision,read,save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
 }
 export {createBusinessSnapshotSession};
