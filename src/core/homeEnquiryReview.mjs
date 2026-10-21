@@ -10,3 +10,15 @@ export function homeEnquiryReview(s,getCurrent){
   return now.resumeCurrentEnquiry();
  }};
 }
+
+// Original in-memory reply continuation, not a new task or save record.
+export function homeEnquiryReplyReview(s,getCurrent){
+ const draft=s.enquiryReplyActions?.continuation,scope=s.ownerWorkspaceScope,owner=s.ownerSession?.userId,business=s.cloudWorkspace?.businessId;
+ if(!draft||!scope||!owner||!business||!['owner','admin'].includes(s.cloudWorkspace?.role))return null;
+ const stamp=JSON.stringify(draft),revision=s.cloudRevision;
+ return {id:'private-enquiry-reply-'+draft.customer.id,score:58,eyebrow:'Work & Customers',title:'Continue your private enquiry reply',body:'Your unfinished reply for '+draft.customer.name+' is held in this workspace. Review the exact enquiry before any separate action; saving and delivery are not confirmed.',why:'This comes from actual current private wording and its filed enquiry, not a generated task or reminder.',evidence:[['Source','Current private reply and exact filed enquiry'],['Status','Workspace wording; not sent or confirmed saved']],actionLabel:'Continue private enquiry reply',canIgnore:false,tone:'blue',onAction:()=>{
+  const now=getCurrent(),current=now.enquiryReplyActions?.continuation;
+  if(now.ownerWorkspaceScope!==scope||now.ownerSession?.userId!==owner||now.cloudWorkspace?.businessId!==business||now.cloudRevision!==revision||!['owner','admin'].includes(now.cloudWorkspace?.role)||!current||JSON.stringify(current)!==stamp)return false;
+  return now.enquiryReplyActions.resume().opened===true;
+ }};
+}

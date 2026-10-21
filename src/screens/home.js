@@ -1,4 +1,4 @@
-import {homeEnquiryReview} from '../core/homeEnquiryReview.mjs';
+import {homeEnquiryReview,homeEnquiryReplyReview} from '../core/homeEnquiryReview.mjs';
 import {homeQuoteReview,homePreparedQuoteReview,homeFollowUpQuoteReview,homeQuoteSelectionReview} from '../core/homeQuoteReview.mjs';
 import {homeContentReview,homeUnsavedContentReview} from "../core/homeContentReview.mjs";
 import {HomeCoreAreas} from "../components/HomeCoreAreas";
@@ -798,7 +798,7 @@ function HomeScreen({ s }) {
         !s.dismissedOpportunities.includes(item.id)
     );
 
-  const enquiryReview=homeEnquiryReview(s,()=>currentHomeSource.current);
+  const enquiryReview=homeEnquiryReplyReview(s,()=>currentHomeSource.current)||homeEnquiryReview(s,()=>currentHomeSource.current);
   const privateContentReview=homeUnsavedContentReview(s,()=>currentHomeSource.current)||homeContentReview(s,()=>currentHomeSource.current);
   const privateQuoteReview=homeQuoteReview(s,()=>currentHomeSource.current)||homePreparedQuoteReview(s,()=>currentHomeSource.current)||homeFollowUpQuoteReview(s,()=>currentHomeSource.current)||homeQuoteSelectionReview(s,()=>currentHomeSource.current);
   const rankedMoves = [...operationalMoves, ...marketingMoves, ...(enquiryReview?[enquiryReview]:[]), ...(privateQuoteReview?[privateQuoteReview]:[]), ...(privateContentReview?[privateContentReview]:[])]

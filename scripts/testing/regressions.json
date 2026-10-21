@@ -1759,6 +1759,12 @@
       "args": [
         "scripts/check-mission15-phase41-talk-replies.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase41-home-replies",
+      "args": [
+        "scripts/check-mission15-phase41-home-replies.mjs"
+      ]
     }
   ]
 }

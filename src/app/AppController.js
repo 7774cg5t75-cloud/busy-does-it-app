@@ -12289,7 +12289,12 @@ function App() {
       const local=localCoreAreaRequest(transcript);if(!local)return null;
       const allowed=!!ownerSession?.userId&&!!cloudWorkspace?.businessId&&['owner','admin'].includes(cloudWorkspace?.role);
       let response=local.response;
-      if(allowed&&local.enquiryReplyPurpose){
+      if(allowed&&local.resumeEnquiryReply){
+        const result=enquiryReplyActions.resume();
+        if(result.blocked)response='Your current business permissions need review before opening private replies.';
+        else if(result.found)response=result.opened?'Continue your private enquiry reply. Current wording is kept; nothing was saved or sent.':'Your current source or wording needs review before continuing. Your words are kept.';
+        else{openBusyInbox();response='Choose an existing filed enquiry in Busy Inbox. No saved or sent reply is inferred.';}
+      }else if(allowed&&local.enquiryReplyPurpose){
         const result=enquiryReplyActions.prepareCurrent(local.enquiryReplyPurpose);
         if(result.blocked)response='Your current business permissions need review before preparing private replies.';
         else if(result.stale)response='Your enquiry context or wording changed. Your latest words are kept; review the current enquiry again.';

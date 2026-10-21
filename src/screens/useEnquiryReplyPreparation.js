@@ -12,7 +12,7 @@ export function useEnquiryReplyPreparation(input){
   const capturedEpoch=epoch.current,text=live.current.text,selected=live.current.selectedCustomerId;
   const fresh=()=>valid()&&epoch.current===capturedEpoch&&live.current.text===text&&live.current.selectedCustomerId===selected&&sourceIsCurrent();
   const draftRef=bound(session.current)?session:{current:text?.trim()?{workspace:scope,words:text}:null};
-  const run=()=>protectQuoteDraftTransition({workspace:scope,workspaceRef:input.scopeRef,draftRef,epochRef:epoch,renderEpoch:capturedEpoch,sourceCurrent:fresh,confirm:input.confirm,apply});
+  const run=()=>protectQuoteDraftTransition({workspace:scope,workspaceRef:input.scopeRef,draftRef,epochRef:epoch,renderEpoch:capturedEpoch,sourceCurrent:fresh,confirm:input.confirm,apply,promptTitle:'Keep your current reply?',promptBody:'Opening this private preparation will replace your current words. Nothing will be sent.'});
   let applied=false;input.requestTransition(()=>{applied=run();},{isCurrent:fresh});return applied===true;
  };
  const prepare=(customerId,inboxId,purpose='acknowledge')=>{
@@ -47,8 +47,15 @@ export function useEnquiryReplyPreparation(input){
   const item=currentEnquiry();if(!item||customerId&&item.filedCustomerId!==customerId)return {found:false};
   return {found:true,prepared:prepare(item.filedCustomerId,item.id,purpose)};
  };
+ const resume=()=>{
+  if(!valid())return {found:false,blocked:true};
+  const value=session.current;if(!bound(value)||!live.current.text?.trim())return {found:false};
+  const fresh=()=>session.current===value&&sourceCurrent(value)&&epoch.current===renderEpoch&&live.current.selectedCustomerId===input.selectedCustomerId;
+  if(!fresh())return {found:true,opened:false};
+  let opened=false;input.requestTransition(()=>{live.current={...live.current,selectedCustomerId:value.customer.id};input.setSelectedCustomerId(value.customer.id);input.go('enquiryFollowUp');opened=true;},{isCurrent:fresh});return {found:true,opened};
+ };
  const value=session.current;
- return {prepare,prepareCurrent,edit,replaceLegacy,prepareQuestion:purpose=>value&&session.current===value&&sourceCurrent(value)&&epoch.current===renderEpoch?prepare(value.customer.id,value.item.id,purpose):false,hasSession:()=>!!session.current,
+ return {prepare,prepareCurrent,resume,continuation:value&&sourceCurrent(value)&&input.text?.trim()?{customer:value.customer,item:value.item,text:input.text,epoch:renderEpoch,revision:value.revision}:null,edit,replaceLegacy,prepareQuestion:purpose=>value&&session.current===value&&sourceCurrent(value)&&epoch.current===renderEpoch?prepare(value.customer.id,value.item.id,purpose):false,hasSession:()=>!!session.current,
   text:value?(valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?input.text:''):input.text,
   review:value&&valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?{item:value.item,customer:value.customer,purpose:value.purpose,current:sourceCurrent(value),epoch:renderEpoch}:null,
   returnToSource:()=>sourceCurrent(session.current)&&epoch.current===renderEpoch?input.returnToSource(session.current.customer.id):false};
