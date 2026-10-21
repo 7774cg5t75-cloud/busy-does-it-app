@@ -60,26 +60,39 @@ export function useEnquiryReplyPreparation(input){
   if(!fresh())return {found:true,opened:false};
   let opened=false;input.requestTransition(()=>{live.current={...live.current,selectedCustomerId:value.customer.id};input.setSelectedCustomerId(value.customer.id);input.go('enquiryFollowUp');opened=true;},{isCurrent:fresh});return {found:true,opened};
  };
- const save=async(reconcile=false)=>{
+ const save=async(reconcile=false,operation='save')=>{
   const value=session.current,text=live.current.text,typing=epoch.current;
   if(!sourceCurrent(value)||epoch.current!==renderEpoch||!text?.trim()||pendingSave.current?.status==='saving'||!input.persistPrivateReply)return false;
   if(!reconcile&&pendingSave.current?.status==='unknown')return false;
-  const record=preparePrivateEnquiryReply({ownerId:owner,businessId:business,customer:value.customer,item:value.item,revision:value.revision,text,purpose:value.purpose});
-  if(!record)return false;
-  const previous=pendingSave.current;
+  const previous=pendingSave.current,removing=operation==='remove'||reconcile&&previous?.operation==='remove';
+  const savedBefore=value.customer.privateEnquiryReply,savedStamp=stableJson(savedBefore||null);
+  if(savedBefore&&(savedBefore.ownerId!==owner||savedBefore.businessId!==business))return false;
+  if(removing&&!savedBefore)return false;
+  const record=removing?null:preparePrivateEnquiryReply({ownerId:owner,businessId:business,customer:value.customer,item:value.item,revision:value.revision,text,purpose:value.purpose});
+  if(!removing&&!record)return false;
   if(reconcile&&(!previous?.encoded||previous.value?.draftToken!==value.draftToken))return false;
-  const ticket={value,text:reconcile?previous.text:text,status:'saving'};pendingSave.current=ticket;setSaveState(ticket);
+  const ticket={value,operation:removing?'remove':'save',text:reconcile?previous.text:text,status:'saving'};pendingSave.current=ticket;setSaveState(ticket);
   // Typing may continue, but only this exact saved text can be acknowledged.
-  const current=()=>sourceCurrent(value)&&live.current.selectedCustomerId===value.customer.id&&session.current?.draftToken===value.draftToken&&pendingSave.current===ticket;
+  const current=()=>sourceCurrent(value)&&live.current.selectedCustomerId===value.customer.id&&session.current?.draftToken===value.draftToken&&pendingSave.current===ticket&&value.customer.privateEnquiryReply===savedBefore&&stableJson(savedBefore||null)===savedStamp;
   let result;try{result=await input.persistPrivateReply({customer:value.customer,record,isCurrent:current,reconcile:reconcile?previous:null});}catch{result={status:'unknown'};}
   if(!current()){if(pendingSave.current===ticket){const uncertain={...ticket,...result,status:'unknown'};pendingSave.current=uncertain;setSaveState(uncertain);}return false;}
   const next={...ticket,...result,status:['confirmed','failed'].includes(result.status)?result.status:'unknown'};
   if(result.status==='confirmed'){
    live.current={...live.current,customers:live.current.customers.map(row=>row===value.customer?result.customer:row)};
    session.current={...session.current,customer:result.customer};next.value=session.current;
-   next.savedText=reconcile?previous.text:text;next.newer=epoch.current!==typing||live.current.text!==next.savedText;
+   if(removing)next.status='removed';
+   next.savedText=removing?null:reconcile?previous.text:text;next.newer=epoch.current!==typing||live.current.text!==next.savedText;
   }
   pendingSave.current=next;setSaveState(next);return result.status==='confirmed';
+ };
+ const savedAction=operation=>{
+  const value=session.current,saved=value?.customer.privateEnquiryReply;
+  if(!sourceCurrent(value)||epoch.current!==renderEpoch||pendingSave.current?.status==='saving'||pendingSave.current?.status==='unknown'||saved&&(saved.ownerId!==owner||saved.businessId!==business))return false;
+  if(operation==='save'&&(!saved||resolvePrivateEnquiryReply({ownerId:owner,businessId:business,customer:value.customer,inboxItems:live.current.inboxItems,revision:live.current.revision})?.item===value.item))return save(false);
+  if(!saved)return false;
+  const typing=epoch.current,text=live.current.text,stamp=stableJson(saved);
+  const fresh=()=>sourceCurrent(value)&&session.current?.draftToken===value.draftToken&&epoch.current===typing&&live.current.text===text&&live.current.selectedCustomerId===value.customer.id&&value.customer.privateEnquiryReply===saved&&stableJson(saved)===stamp;
+  input.confirm(operation==='remove'?'Discard the saved private reply?':'Replace the saved private reply?',operation==='remove'?'Your current wording stays. The saved reply is removed from this business copy; account removal is not confirmed. Nothing is sent.':'This customer already has a saved reply for another enquiry. There is one saved private reply per customer. Replacing it keeps your current words and sends nothing.',[{text:'Continue editing',style:'cancel',onPress:()=>false},{text:operation==='remove'?'Discard saved reply':'Replace saved reply',style:'destructive',onPress:()=>fresh()?save(false,operation):false}]);return false;
  };
  const reopen=(customerId,inboxId)=>{
   if(!valid()||epoch.current!==renderEpoch)return false;
@@ -109,7 +122,7 @@ export function useEnquiryReplyPreparation(input){
  };
  const savedReplies=()=>valid()?live.current.customers.flatMap(customer=>{const saved=resolvePrivateEnquiryReply({ownerId:owner,businessId:business,customer,inboxItems:live.current.inboxItems,revision:live.current.revision});return saved?[{customer,...saved}]:[];}):[];
  const value=session.current;
- return {checkAccount,reviewSaved,savedReplies:savedReplies(),save:()=>save(false),checkSave:()=>save(true),reopen,prepare,prepareCurrent,resume,continuation:value&&sourceCurrent(value)&&input.text?.trim()?{customer:value.customer,item:value.item,text:input.text,epoch:renderEpoch,revision:value.revision}:null,edit,replaceLegacy,prepareQuestion:purpose=>value&&session.current===value&&sourceCurrent(value)&&epoch.current===renderEpoch?prepare(value.customer.id,value.item.id,purpose):false,hasSession:()=>!!session.current,
+ return {checkAccount,reviewSaved,savedReplies:savedReplies(),save:()=>savedAction('save'),removeSaved:()=>savedAction('remove'),checkSave:()=>save(true),reopen,prepare,prepareCurrent,resume,continuation:value&&sourceCurrent(value)&&input.text?.trim()?{customer:value.customer,item:value.item,text:input.text,epoch:renderEpoch,revision:value.revision}:null,edit,replaceLegacy,prepareQuestion:purpose=>value&&session.current===value&&sourceCurrent(value)&&epoch.current===renderEpoch?prepare(value.customer.id,value.item.id,purpose):false,hasSession:()=>!!session.current,
   text:value?(valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?input.text:''):input.text,
   review:value&&valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?{item:value.item,customer:value.customer,purpose:value.purpose,requirements:sourceCurrent(value)?prepareEnquiryReplyText({customer:value.customer,item:value.item,businessId:business,approvedProfile:input.profile,purpose:'acknowledge'}):null,current:sourceCurrent(value),epoch:renderEpoch,accountStatus:accountState&&accountState.record===value.customer.privateEnquiryReply?(accountState.status==='confirmed'&&accountState.savedText!==input.text?'newer':accountState.status):null,saveStatus:saveState?.savedText&&saveState.savedText!==input.text?'newer':saveState?.status||'unsaved'}:null,
   returnToSource:()=>sourceCurrent(session.current)&&epoch.current===renderEpoch?input.returnToSource(session.current.customer.id):false};

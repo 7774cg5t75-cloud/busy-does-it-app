@@ -1819,6 +1819,12 @@
       "args": [
         "scripts/check-mission15-phase43-reply-account.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase43-reply-management",
+      "args": [
+        "scripts/check-mission15-phase43-reply-management.mjs"
+      ]
     }
   ]
 }

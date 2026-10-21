@@ -20,7 +20,7 @@ export function inspectPrivateEnquiryReply({ownerId,businessId,customer,inboxIte
 export function resolvePrivateEnquiryReply(input){const saved=inspectPrivateEnquiryReply(input);return saved?.current?{record:saved.record,item:saved.item}:null;}
 // Original snapshot queue and cache envelope; no cloud write or mutation replay.
 export async function writePrivateEnquiryReplyCopy({ownerId,businessId,revision,customer,record,payload,isCurrent,write,read}){
- let encoded;const updated={...customer,privateEnquiryReply:record};
+ let encoded;const updated={...customer};if(record===null)delete updated.privateEnquiryReply;else updated.privateEnquiryReply=record;
  try{if(!isCurrent()||!payload.customers?.includes(customer))return {status:'failed'};encoded=encodeBusinessCache({ownerId,businessId,revision,payload:{...payload,customers:payload.customers.map(row=>row===customer?updated:row)}});}catch{return {status:'failed'};}
  if(!isCurrent())return {status:'failed'};
  const result=await confirmBusinessCacheWrite({ownerId,businessId,encoded,write,read});

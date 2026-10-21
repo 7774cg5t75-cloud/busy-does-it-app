@@ -1,3 +1,4 @@
+import {SavedEnquiryReplyChoices} from '../components/SavedEnquiryReplyChoices';
 import {SavedEnquiryReplyButton} from '../components/SavedEnquiryReplyButton';
 import {QuoteFollowUpRecordReview} from '../components/QuoteFollowUpRecordReview';
 import {QuoteEnquiryContext} from '../components/QuoteEnquiryContext';
@@ -260,6 +261,7 @@ function CustomerRecords({ s }) {
           right={String(s.eligibleCustomers.length || 0)}
         />
       </Card>
+      <SavedEnquiryReplyChoices s={s}/>
       <Field
         label="Find a customer"
         value={search}
@@ -1298,13 +1300,14 @@ function EnquiryFollowUp({ s }) {
       {privateReply?.requirements?.reviewChecks?.length?<Card eyebrow="Questions to review" title="Before you make commitments" body={privateReply.requirements.reviewChecks.map(row=>row.check).join('\n')}/>:null}
       {privateReply?.requirements?.canExplainService?<Button label="Explain the approved service" onPress={()=>s.enquiryReplyActions.prepareQuestion('information')}/>:null}
       {privateReply?<>{[['acknowledge','Acknowledge the enquiry'],['date','Ask to confirm dates'],['group','Ask to confirm group size'],['requirements','Ask about location and access']].map(([purpose,label])=><Button key={purpose} label={(privateReply.purpose===purpose?'✓ ':'')+label} disabled={!privateReply.current} onPress={()=>s.enquiryReplyActions.prepareQuestion(purpose)}/>)}</>:null}
-      {privateReply?<><Text style={styles.cardBody}>{({unsaved:'Changes not saved yet.',saving:'Saving a private device copy…',confirmed:'Saved on this device. Account saving is separate.',failed:'The private save did not start. Your words are kept.',unknown:'Couldn’t confirm the device save. Keep your words and check the copy before retrying.',newer:'Newer wording has not been confirmed saved.',reopened:'Reopened a private saved record. Current device/account persistence has not been checked.'})[privateReply.saveStatus]}</Text>
+      {privateReply?<><Text style={styles.cardBody}>{({unsaved:'Changes not saved yet.',saving:'Saving a private device copy…',confirmed:'Saved on this device. Account saving is separate.',failed:'The private save did not start. Your words are kept.',unknown:'Couldn’t confirm the device save. Keep your words and check the copy before retrying.',newer:'Newer wording has not been confirmed saved.',removed:'The saved reply was removed from this device copy. Current words remain; account removal is not confirmed.',reopened:'Reopened a private saved record. Current device/account persistence has not been checked.'})[privateReply.saveStatus]}</Text>
         <Button label="Save reply on this device" disabled={!privateReply.current||!s.enquiryFollowUpDraft.trim()||['saving','unknown'].includes(privateReply.saveStatus)} onPress={s.enquiryReplyActions.save}/>
         {privateReply.saveStatus==='unknown'?<Button label="Check private device copy" onPress={s.enquiryReplyActions.checkSave}/>:null}
       </>:null}
       {privateReply&&customer.privateEnquiryReply?<><Button label="Check reply account copy" disabled={!privateReply.current||privateReply.accountStatus==='checking'} onPress={s.enquiryReplyActions.checkAccount}/>
         <Text style={styles.cardBody}>{({checking:'Checking the account copy…',confirmed:'The exact saved reply and enquiry were read back from your account. This does not send a message.',different:'The account copy differs or its source needs review. Your current words are kept.',unknown:'Couldn’t confirm the account copy. No save or send was retried.',newer:'The saved account record matched, but your newer wording has not been confirmed saved.'})[privateReply.accountStatus]||'Device saving and account saving are separate. Checking the account never saves or sends.'}</Text>
       </>:null}
+      {privateReply&&customer.privateEnquiryReply?<Button label="Discard saved private reply" disabled={!privateReply.current||['saving','unknown'].includes(privateReply.saveStatus)} onPress={s.enquiryReplyActions.removeSaved}/>:null}
       <Text style={styles.fieldLabel}>{privateReply?'Your private reply':'Prepared follow-up'}</Text>
       <TextInput
         multiline
