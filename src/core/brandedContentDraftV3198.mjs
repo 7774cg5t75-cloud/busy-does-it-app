@@ -5,7 +5,8 @@
  * All included facts originate in the current owner-readable Brand DNA.
  */
 import {planBrandDnaContentBrief} from "./businessBrandDnaV3195.mjs";
-const SUPPORTED=Object.freeze(["social","poster","advert"]);
+import {CONTENT_TEXT_FORMATS} from "./contentTextFormats.mjs";
+const SUPPORTED=CONTENT_TEXT_FORMATS;
 const WORDING_TREATMENTS=Object.freeze(["standard","welcoming","concise","detailed","brand"]);
 function resolveWordingTreatment(treatment,voice){
  if(!WORDING_TREATMENTS.includes(treatment))return null;
@@ -13,6 +14,10 @@ function resolveWordingTreatment(treatment,voice){
 }
 const short=(v,max)=>typeof v==="string"&&v.length<=max&&
  !/[<>\u0000-\u001f\u007f]/.test(v)?v.trim():"";
+export function newsletterWording({name='',subject='Business update',sections=[],treatment='standard',callToAction=''}){
+ const title=treatment==='welcoming'?'Get to know '+subject:treatment==='detailed'?'A closer look at '+subject:subject;
+ return ['Subject: '+title+(name?' · '+name:''),treatment==='welcoming'?'Hello,':treatment==='detailed'?'Here are the details for your review.':'',...sections.filter(Boolean),callToAction,name].filter(Boolean).join(treatment==='concise'?'\n':'\n\n');
+}
 function prepareBrandedCopyPreview(snapshot,{channel="social",serviceName="",treatment="standard"}={}){
  if(!WORDING_TREATMENTS.includes(treatment))return {ok:false,reason:"Choose a supported wording treatment."};
  if(!SUPPORTED.includes(channel))
@@ -64,6 +69,8 @@ function prepareBrandedCopyPreview(snapshot,{channel="social",serviceName="",tre
   copy=channel==='poster'?[subject.toUpperCase(),selected?name:tagline,opening,description,details,'Ask '+name+' for more information.'].filter(Boolean).join(appliedTreatment==='concise'?'\n':'\n\n'):
    [selected?subject+' · '+name:name,selected?'':tagline,opening,description,details,'Learn more about '+subject+' — contact '+name+'.'].filter(Boolean).join(appliedTreatment==='concise'?'\n':'\n\n');
  }
+ if(channel==='newsletter')copy=newsletterWording({name,subject:selected?short(selected.name,120):'Introducing '+name,treatment:appliedTreatment,
+  sections:[selected?'':tagline,selected?short(selected.description,500):about,!selected&&names.length?'What we offer\n'+(appliedTreatment==='detailed'?brief.services.map(service=>[short(service.name,120),short(service.description,500)].filter(Boolean).join(' — ')).join('\n\n'):names.join(' • ')):''],callToAction:appliedTreatment==='concise'?'':'Ask '+name+' for more information.'});
  return {ok:true,kind:"private_branded_copy_v3198",businessId:brief.businessId,
   source:{...brief.source},channel,copy,serviceName:selected?.name||"",
   brandColour:brief.brandColour,ownerChosenTone:brief.voice,

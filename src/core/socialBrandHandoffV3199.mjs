@@ -4,7 +4,7 @@
  * the existing social draft (with supported media) before any public action.
  */
 import {buildContentBrandSnapshot} from "./businessBrandDnaV3195.mjs";
-import {prepareBrandedCopyPreview,resolveWordingTreatment,SUPPORTED} from "./brandedContentDraftV3198.mjs";
+import {prepareBrandedCopyPreview,resolveWordingTreatment,SUPPORTED,newsletterWording} from "./brandedContentDraftV3198.mjs";
 import {prepareBusinessContentEnquiry,contentEventSchedule,contentPrice} from "./businessContentRecords.mjs";
 const currentSource=(a,b)=>a&&b&&
  a.websiteId===b.websiteId&&a.websiteGeneration===b.websiteGeneration&&
@@ -46,10 +46,11 @@ function prepareSocialRecordHandoff({website,app,businessId,approvedProfile,sour
   copy=[subject,channel==='poster'?name:'',opening,option?'Selected option: '+option.label:'',data.description,appliedTreatment==='detailed'&&data.category?'Category: '+data.category:'',price,schedule?'Listed dates: '+schedule:'',location?'Venue: '+location:'',link?'Event information: '+link:'','Ask '+name+' for current details.'].filter(Boolean).join(appliedTreatment==='concise'?'\n':'\n\n');
  }
 
+ if(channel==='newsletter')copy=newsletterWording({name,subject:data.name,treatment:appliedTreatment,sections:[option?'Selected option: '+option.label:'',data.description,price,schedule?'Listed dates: '+schedule:'',location?'Venue: '+location:'',link?'Event information: '+link:''],callToAction:appliedTreatment==='concise'?'':'Ask '+name+' for current details; availability is not confirmed.'});
  return {ok:true,kind:'private_social_brand_handoff_v3199',purpose:row.kind,channel,treatment,appliedTreatment,ownerChosenTone:snapshot.voice?.ownerChosenTone||null,businessId,copy,source:{...snapshot.source},sourceMode:snapshot.source.approvedProfileSource?'approved-profile':'builders',selection:{...interest.selection},recordStamp:JSON.stringify(row),brandColour:snapshot.design?.primaryColour||null,serviceId:null,serviceName:'',privateOnly:true,requiresOwnerApproval:true,noMediaAttached:true,notAutomaticallySaved:true,ownerMustReviewBeforeDraftSave:true,providerCallsMade:false};
 }
 function prepareOwnerAnnouncementHandoff({website,app,businessId,approvedProfile,sourceMode='',ownerFacts='',treatment='standard',channel='social'}={}){
- if(![...SUPPORTED,'newsletter'].includes(channel))return {ok:false,reason:'Choose supported social, poster or advert wording.'};
+ if(!SUPPORTED.includes(channel))return {ok:false,reason:'Choose supported social, poster or advert wording.'};
  if(!businessId||typeof ownerFacts!=='string'||!ownerFacts.trim()||ownerFacts.length>3000||/[<>\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(ownerFacts))return {ok:false,reason:'Add the exact announcement or offer details. Busy will not invent missing terms, dates or prices.'};
  const snapshot=buildContentBrandSnapshot({website,app,businessId,approvedProfile,sourceMode});
  const appliedTreatment=resolveWordingTreatment(treatment,snapshot.voice?.ownerChosenTone);
@@ -98,13 +99,13 @@ function resolveSocialServiceIntent(text,{website,app,businessId,approvedProfile
  const treatment=styles.length===1?styles[0]:'standard',needsTreatmentSelection=styles.length>1;
  const formatMatch=/\b(?:make|create|write|draft|prepare)\s+(?:(?:me|us)\s+)?(?:a |an )?(?:(?:friendly|welcoming|warm|short|concise|informative|detailed|explanatory|promotional)\s+)?(poster|advert|advertisement|newsletter)(?:\s+(?:wording|copy))?\b/i.exec(styleRequest);
  const channel=formatMatch?(formatMatch[1].toLowerCase()==='poster'?'poster':formatMatch[1].toLowerCase()==='newsletter'?'newsletter':'advert'):'social';
- const ownerAnnouncement=/\b(newsletter|announcement|announce|opening hours|closing|close early|thank[- ]you|thank (?:our|my|the) customers|attending|(?:special|our|my|an|the) offer)\b/i.test(request);
+ const ownerAnnouncement=channel==='newsletter'&&request.includes(':')||/\b(announcement|announce|opening hours|closing|close early|thank[- ]you|thank (?:our|my|the) customers|attending|(?:special|our|my|an|the) offer)\b/i.test(request);
  const recordKind=/\bevents?\b/i.test(request)?'event':/\b(products?|collection)\b/i.test(request)?'product':'';
  const snapshot=buildContentBrandSnapshot({website,app,businessId,approvedProfile});
  const names=snapshot.ok?snapshot.services.map(service=>service.name):[];
  const escaped=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
  const matches=names.filter(name=>new RegExp('(?:^|[^\\p{L}\\p{N}])'+escaped(name)+'(?:$|[^\\p{L}\\p{N}])','iu').test(request));
- const purpose=introduction?'business-introduction':ownerAnnouncement&&(!recordKind||request.includes(':'))?'owner-announcement':matches.length===1?'service':recordKind||'service';
+ const purpose=introduction?'business-introduction':ownerAnnouncement&&(!recordKind||request.includes(':'))?'owner-announcement':matches.length===1?'service':recordKind||(channel==='newsletter'?'owner-announcement':'service');
  const ownerFacts=purpose==='owner-announcement'&&request.includes(':')?request.slice(request.indexOf(':')+1).trim():'';
  const serviceName=purpose==='service'&&matches.length===1?matches[0]:'';
  return {handled:true,ownerFacts,purpose,serviceName,treatment,channel,needsTreatmentSelection,needsSelection:['product','event'].includes(purpose)||purpose==='service'&&!serviceName,

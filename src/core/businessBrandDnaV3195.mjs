@@ -11,7 +11,7 @@ import {validPrivateBuilderPair} from "./ownerBuilderDraftGuardV3195.mjs";
 import {PALETTES,safeHex,nativePalette} from "./nativePalette.mjs";
 import {appVisualPresentation} from "./appVisualPresentationV3194.mjs";
 
-const CHANNELS=Object.freeze(["website","app","social","advert","poster","video"]);
+const CHANNELS=Object.freeze(["website","app","social","advert","poster","video","newsletter"]);
 const cleanText=(text,max)=>{
  if(typeof text!=="string"||text.length>max||/[<>\u0000-\u001f\u007f]/.test(text))return "";
  return text.trim();

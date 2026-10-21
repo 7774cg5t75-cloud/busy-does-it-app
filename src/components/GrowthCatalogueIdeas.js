@@ -1,3 +1,4 @@
+import {CONTENT_FORMAT_CHOICES} from '../core/contentTextFormats.mjs';
 import React from 'react';
 import {Text} from 'react-native';
 import {Card,Button} from './ui';
@@ -29,11 +30,11 @@ export function GrowthCatalogueIdeas({s}){
  return <Card eyebrow="Get More Customers · £0-first" title="Tell people about an approved item"
   body="Use a current approved product or event as the starting point for social, poster or advert wording. These are editable text drafts, not graphics or live advertisements. Busy can prepare private wording; no reach, sales, stock, tickets or booking availability are promised.">
   <Button label={view?.status==='loading'?'Loading approved items…':'Find approved product and event ideas'} onPress={load}/>
-  {visible?.records?.length>0?<><Text style={styles.cardBody}>Choose the text format for this idea. No graphic, campaign or publication is created.</Text>{[['social','Social post wording'],['poster','Poster wording'],['advert','Advert wording']].map(([value,label])=><Button key={value} label={(value===channel?'✓ ':'')+label} onPress={()=>{if(current()&&live.current.view===view){live.current.channel=value;setChannel(value);}}}/>)}</>:null}
+  {visible?.records?.length>0?<><Text style={styles.cardBody}>Choose the text format for this idea. No graphic, campaign or publication is created.</Text>{CONTENT_FORMAT_CHOICES.map(([value,label])=><Button key={value} label={(value===channel?'✓ ':'')+label} onPress={()=>{if(current()&&live.current.view===view){live.current.channel=value;setChannel(value);}}}/>)}</>:null}
   {visible?.records?.length>0?<><Text style={styles.cardBody}>Choose the wording for your next idea. Your current draft stays unchanged until you use it in Content Creator.</Text>{[['standard','Original wording'],['welcoming','Friendly and welcoming'],['concise','Short and clear'],['detailed','More explanatory']].map(([value,label])=><Button key={value} label={(value===treatment?'✓ ':'')+label} onPress={()=>{if(current()&&live.current.view===view){live.current.treatment=value;setTreatment(value);}}}/>)}</>:null}
   {visible?.records?.map(row=><React.Fragment key={row.id}>
    <Text style={styles.cardBody}>{row.data.name+' — '+row.data.description}</Text>
-   {[{id:'',label:(channel==='social'?'Prepare a post: ':channel==='poster'?'Prepare poster wording: ':'Prepare advert wording: ')+row.data.name},...(row.kind==='product'?(row.data.variants||[]).map(option=>({id:option.id,label:'Prepare for option: '+option.label})):[])].map(option=><Button key={option.id||row.id} label={option.label} onPress={()=>{
+   {[{id:'',label:(channel==='social'?'Prepare a post: ':channel==='poster'?'Prepare poster wording: ':channel==='newsletter'?'Prepare newsletter wording: ':'Prepare advert wording: ')+row.data.name},...(row.kind==='product'?(row.data.variants||[]).map(option=>({id:option.id,label:'Prepare for option: '+option.label})):[])].map(option=><Button key={option.id||row.id} label={option.label} onPress={()=>{
     if(!current()||live.current.treatment!==treatment||live.current.channel!==channel||live.current.view!==view||!live.current.s.socialContentActions.fresh(view.ticket))return false;
     return live.current.s.socialContentActions.loadRecords(row.kind,'','',{selection:{recordId:row.id,revision:row.revision,...option.id?{variantId:option.id}:{}},recordStamp:JSON.stringify(row)},treatment,false,channel);
    }}/>) }
