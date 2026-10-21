@@ -4,7 +4,8 @@ import {parseEnquiryListingReference} from '../core/ownerConversationPreparation
 import React from 'react';import {prepareEnquiryReplyText,prepareEnquiryCatalogueReply} from '../core/enquiryReplyText.mjs';import {protectQuoteDraftTransition} from '../core/quoteDraftTransition.mjs';
 // Volatile source/typing metadata. Original parent enquiry fields remain the only wording state.
 export function useEnquiryReplyPreparation(input){
- const catalogueRequest=React.useRef(0);
+ const catalogueRequest=React.useRef(0),catalogueView=React.useRef(input.screen);
+ if(catalogueView.current!==input.screen){catalogueRequest.current++;catalogueView.current=input.screen;}
  const live=React.useRef(input),session=React.useRef(null),epoch=React.useRef(0),pendingSave=React.useRef(null);const [saveState,setSaveState]=React.useState(null),[accountState,setAccountState]=React.useState(null);const accountRequest=React.useRef(null);live.current=input;
  const scope=input.scope,owner=input.ownerId,business=input.businessId,renderEpoch=epoch.current;
  const valid=()=>live.current.scope===scope&&input.scopeRef.current===scope&&!!owner&&!!business&&live.current.ownerId===owner&&live.current.businessId===business&&['owner','admin'].includes(live.current.role);
@@ -46,6 +47,7 @@ export function useEnquiryReplyPreparation(input){
   return protect(apply,()=>sourceCurrent(next));
  };
  const prepareCatalogue=async()=>{
+  if(live.current.screen!==undefined&&live.current.screen!=='enquiryFollowUp')return false;
   const value=session.current,typing=epoch.current,text=live.current.text,saveTicket=pendingSave.current,token=++catalogueRequest.current;
   const fresh=()=>catalogueRequest.current===token&&pendingSave.current===saveTicket&&!['saving','unknown'].includes(saveTicket?.status)&&sourceCurrent(value)&&session.current===value&&epoch.current===typing&&live.current.text===text&&live.current.selectedCustomerId===value.customer.id;
   if(typing!==renderEpoch||!fresh()||!parseEnquiryListingReference(value.item.rawText)||!live.current.loadApprovedContent)return false;
