@@ -48,5 +48,6 @@ export function inspectPrivateReplyAccountRemoval({result,ownerId,businessId,cus
  if(stableJson(enquiryReplyCustomerSource(remote))!==stableJson(enquiryReplyCustomerSource(customer)))return {status:'different'};
  const checked=resolvePrivateEnquiryReply({ownerId,businessId,customer:{...remote,privateEnquiryReply:removedRecord},inboxItems:result.payload?.inboxItems,revision:result.revision});
  if(!checked||stableJson(checked.item)!==stableJson(item))return {status:'different'};
- return remote.privateEnquiryReply?{status:'present',revision:result.revision}:{status:'absent',revision:result.revision};
+ if(remote.privateEnquiryReply==null)return {status:'absent',revision:result.revision};
+ return stableJson(remote.privateEnquiryReply)===stableJson(removedRecord)?{status:'present',revision:result.revision}:{status:'different'};
 }

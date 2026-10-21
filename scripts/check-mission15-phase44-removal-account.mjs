@@ -11,6 +11,7 @@ assert.equal(observe(result).status,'absent');
 assert.equal(observe({...result,payload:{...result.payload,customers:[{...customer,privateEnquiryReply:record}]}}).status,'present');
 assert.equal(observe({...result,payload:{...result.payload,customers:[{...customer,contactOk:false}]}}).status,'different');
 assert.equal(observe({...result,payload:{...result.payload,inboxItems:[{...item,rawText:'Different original question'}]}}).status,'different');
+for(const privateEnquiryReply of [{...record,text:'Another saved reply'},'',{},false])assert.equal(observe({...result,payload:{...result.payload,customers:[{...customer,privateEnquiryReply}]}}).status,'different');
 assert.equal(observe({...result,revision:2}).status,'different');
 assert.equal(observe({...result,businessId:'foreign'}).status,'unknown');
 assert.equal(observe({...result,payload:{...result.payload,customers:[customer,{...customer}]}}).status,'different');

@@ -1867,6 +1867,12 @@
       "args": [
         "scripts/check-mission15-phase44-newsletter-talk.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase44-removal-parent",
+      "args": [
+        "scripts/check-mission15-phase44-removal-parent.mjs"
+      ]
     }
   ]
 }
