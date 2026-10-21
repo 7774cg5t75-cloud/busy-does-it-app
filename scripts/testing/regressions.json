@@ -2017,6 +2017,12 @@
       "args": [
         "scripts/check-mission15-phase51-catalogue-reply.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase51-newsletter-recovery",
+      "args": [
+        "scripts/check-mission15-phase51-newsletter-recovery.mjs"
+      ]
     }
   ]
 }

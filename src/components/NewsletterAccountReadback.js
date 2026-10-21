@@ -20,12 +20,12 @@ export function NewsletterAccountReadback({s}){
   setReview({status:'checking',record,stamp,ticket,scope,owner,business,localRevision});
   let result;try{result=await s.readPrivateContentAccount();}catch{result={ok:false};}
   if(!current())return false;
-  const inspected=inspectNewsletterAccount({result,businessId:business,record});setReview({...inspected,record,stamp,ticket,scope,owner,business,localRevision});
+  const inspected=inspectNewsletterAccount({result,businessId:business,record,minimumRevision:localRevision});setReview({...inspected,record,stamp,ticket,scope,owner,business,localRevision});
   if(!reopen||inspected.status!=='confirmed')return inspected.status==='confirmed';
   // Reuse the original source checker and original dirty-editor Keep/Open path.
   // A compatible account revision is not itself approval of the content facts.
-  if(evidence!==record.contentEvidence||live.current.socialSourceContext?.pendingContentIdea||!s.openSocialDraft||!s.socialContentActions.reviewSource)return false;
-  const sourceCurrent=await s.socialContentActions.reviewSource();
+  if(live.current.socialSourceContext?.pendingContentIdea||!s.openSocialDraft||!s.socialContentActions.reviewSavedSource)return false;
+  const sourceCurrent=await s.socialContentActions.reviewSavedSource(record);
   if(!current(ticket.epoch+1))return false;
   const reviewedTicket={...ticket,epoch:ticket.epoch+1};
   setReview({...inspected,status:sourceCurrent?'confirmed':'sourceChanged',record,stamp,ticket:reviewedTicket,scope,owner,business,localRevision});
@@ -34,10 +34,10 @@ export function NewsletterAccountReadback({s}){
  if(!eligible)return null;
  const exact=review?.record===record&&review.stamp===stamp&&review.scope===scope&&review.owner===owner&&review.business===business&&review.localRevision===s.cloudRevision&&s.socialContentActions?.fresh(review.ticket);
  const dirty=contentDraftChanges({text:s.socialDraftText,photos:s.socialCreatePhotos,brief:s.socialBrief,channels:s.socialDraftChannels,...Object.hasOwn(s,'socialSourceContext')?{sourceContext:s.socialSourceContext}:{}},record).dirty||s.socialDraftText!==record.text;
- const messages={checking:'Checking the account copy. No save or send is being attempted.',confirmed:dirty?'The saved newsletter record was confirmed in the account. Your current edits are not confirmed saved.':'The saved newsletter record was confirmed in the account at the checked revision. This is not delivery or current-source approval.',absent:'This draft was not found in the checked account snapshot. Your device copy and current edits are kept.',different:'The account record differs. Your current wording and media are kept; nothing was restored or overwritten.',unknown:'Could not confirm the account copy. Keep your work; no save was retried.',sourceChanged:'The saved account record matches, but its starting source needs fresh review. Your current wording was kept.'};
+ const messages={checking:'Checking the account copy. No save or send is being attempted.',confirmed:dirty?'The saved newsletter record was confirmed in the account. Your current edits are not confirmed saved.':'The saved newsletter record was confirmed in the account at the checked revision. This is not delivery or current-source approval.',absent:'This draft was not found in the checked account snapshot. Your device copy and current edits are kept.',different:'The account record differs. Your current wording and media are kept; nothing was restored or overwritten.',stale:'The account response is older than this workspace. Keep your current work and check again; nothing was restored or retried.',unknown:'Could not confirm the account copy. Keep your work; no save was retried.',sourceChanged:'The saved account record matches, but its starting source needs fresh review. Your current wording was kept.'};
  return <Card title="Newsletter account copy" body="Read the original business snapshot to check this saved newsletter. Device evidence and source review are separate.">
   <Button label="Check newsletter account copy" disabled={exact&&review.status==='checking'} onPress={()=>check(false)}/>
-  {s.openSocialDraft&&s.socialSourceContext?.contentEvidence===record.contentEvidence&&!s.socialSourceContext?.pendingContentIdea?<Button label="Review and reopen saved newsletter" disabled={exact&&review.status==='checking'} onPress={()=>check(true)}/>:null}
+  {s.openSocialDraft&&!s.socialSourceContext?.pendingContentIdea?<Button label="Review and reopen saved newsletter" disabled={exact&&review.status==='checking'} onPress={()=>check(true)}/>:null}
   <Text accessibilityLiveRegion="polite" style={styles.cardBody}>{exact?messages[review.status]:'No current account confirmation for this draft and wording.'}</Text>
  </Card>;
 }
