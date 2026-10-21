@@ -1957,6 +1957,12 @@
       "args": [
         "scripts/check-mission15-phase48-approved-knowledge.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase48-newsletter-copy",
+      "args": [
+        "scripts/check-mission15-phase48-newsletter-copy.mjs"
+      ]
     }
   ]
 }
