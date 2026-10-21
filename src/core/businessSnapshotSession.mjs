@@ -71,7 +71,7 @@ function createBusinessSnapshotSession(){
    if(!row){const remote=await read();return current()?{ok:false,conflict:true,remoteRevision:remote?.revision||0,remoteUpdatedAt:remote?.updated_at||'',reason:'Another cloud revision is present. Review it before replacing local work.'}:fail('The workspace changed.');}
    if(row.business_id!==start.businessId||row.revision!==revision||row.schema_version!==schemaVersion||stamp(row.payload)!==payloadStamp)throw Error('The save receipt did not match the submitted business revision.');
    observed={identity:start.identity,revision,stamp:payloadStamp};
-   lastOwnSave={identity:start.identity,ownerId:start.ownerId,businessId:start.businessId,from:start.revision,to:revision};
+   lastOwnSave={identity:start.identity,ownerId:start.ownerId,businessId:start.businessId,from:start.revision,to:revision,payload};
    return {ok:true,revision,updatedAt:row.updated_at||updatedAt,localChangesRemain:stamp(getCurrent().getPayload())!==payloadStamp};
   }catch(error){
    if(!current())return fail('The workspace changed. No result was applied.');
@@ -111,10 +111,10 @@ function createBusinessSnapshotSession(){
  };
  // Read a defensive copy of the last exact PATCH representation, never a
  // matching GET after a timeout. This is evidence, not a new write or restore.
- const readOwnSave=({getCurrent})=>{
+ const readOwnSave=({getCurrent,customerId,inboxId})=>{
   const receipt=lastOwnSave;
-  if(!receipt||!canContinueRevision({getCurrent,fromRevision:receipt.from,toRevision:receipt.to})||observed?.identity!==receipt.identity||observed.revision!==receipt.to)return {ok:false};
-  try{return {ok:true,businessId:receipt.businessId,revision:receipt.to,payload:JSON.parse(observed.stamp)};}catch{return {ok:false};}
+  if(typeof customerId!=='string'||typeof inboxId!=='string'||!receipt||!canContinueRevision({getCurrent,fromRevision:receipt.from,toRevision:receipt.to})||observed?.identity!==receipt.identity||observed.revision!==receipt.to)return {ok:false};
+  try{return {ok:true,businessId:receipt.businessId,revision:receipt.to,payload:JSON.parse(stamp({customers:receipt.payload.customers?.filter(row=>row?.id===customerId)||[],inboxItems:receipt.payload.inboxItems?.filter(row=>row?.id===inboxId)||[]}))};}catch{return {ok:false};}
  };
  return {readOwnSave,canContinueRevision,read,save,prepareRestore,restore,isBusy:identity=>pending?.identity===identity};
 }
