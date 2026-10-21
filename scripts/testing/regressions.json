@@ -1855,6 +1855,18 @@
       "args": [
         "scripts/check-mission15-phase44-own-revision.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase44-newsletter",
+      "args": [
+        "scripts/check-mission15-phase44-newsletter.mjs"
+      ]
+    },
+    {
+      "id": "mission15-phase44-newsletter-talk",
+      "args": [
+        "scripts/check-mission15-phase44-newsletter-talk.mjs"
+      ]
     }
   ]
 }

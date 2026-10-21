@@ -921,7 +921,7 @@ function SocialCreator({ s }) {
 
 function SocialDraftReview({ s }) {
   useEffect(() => {
-    s.refreshSocialPublishingStatus({ quiet: true });
+    if(s.socialSourceContext?.contentEvidence?.channel!=='newsletter')s.refreshSocialPublishingStatus({ quiet: true });
   }, []);
 
   const photos = s.socialCreatePhotos || [];
@@ -955,6 +955,15 @@ function SocialDraftReview({ s }) {
     !!selectedDraft &&
     ["Draft", "Failed", "Ready to publish"].includes(draftStatus) &&
     !hasPublishedHistory;
+
+  if(s.socialSourceContext?.contentEvidence?.channel==='newsletter')return <Shell s={s} title="Review private newsletter" subtitle="Plain-text wording to edit and keep privately. No recipients or sending integration.">
+    <ContentDraftStatus s={s}/><ContentSourceReview s={s}/>
+    <Field label="Subject and newsletter wording" multiline value={s.socialDraftText} onChangeText={s.socialContentActions?.editText}/>
+    <Button label="Save newsletter draft privately" disabled={!s.socialDraftText.trim()} onPress={s.saveGeneratedSocialDraft}/>
+    <Card title="Review before using outside Busy" body="Check the subject, facts, links and offer terms. Recipient eligibility has not been checked. Before sending elsewhere, you need an authorised sender, lawful marketing permission, an unsubscribe method and a review of any costs. An enquiry alone does not grant newsletter permission." footer="No email, campaign, graphic or recurring schedule has been created. Your selected photos and social destinations are kept, but are not attached or used by this text preparation."/>
+    <Text selectable style={styles.cardBody}>{s.socialDraftText}</Text>
+    <Button label="Back to Content Creator" onPress={()=>s.go('socialCreator')}/>
+  </Shell>;
 
   return (
     <Shell

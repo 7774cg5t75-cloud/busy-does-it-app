@@ -1,5 +1,10 @@
 ## Current approved private master — V22.39 (Phase 30 review, 19 October 2026)
 
+## Current owner-approved private master — V22.40 (21 October 2026)
+
+The owner attached the complete Word Product Master and explicitly approved V22.40 for Phase 44, superseding V22.39. Its internal version is 22.40, updated 20 October 2026. Original SHA-256: `8cbd29a11915d494c5c40e83eeda3047aeef599f885a168aee14fcc9b360b63b`. Complete body opened: 1,905 paragraphs including all 19 tables. Full comparison against the accessible, previously fully reviewed V22.39 source verified unchanged paragraphs; all new material was reviewed. Original and extracted text remain privately outside Git. This is product-reference provenance, not provider, sending, release or spending approval. Future tasks must verify actual access.
+
+
 Owner-supplied `22.39 master .docx` identifies Version 22.39 and the owner explicitly confirmed it supersedes V22.36 for this phase. Original SHA-256 `2de16d273f9a7bd64d57f9a800b6386bac270da7442c74e2d8c9ccd57567b121`. Complete body opened/extracted: 1,880 paragraphs / 454,557 characters including table paragraphs. Complete paragraph comparison verified unchanged material against the same-task fully reviewed V22.36 body, and all 15 changed ranges were reviewed. Private document/text stay outside Git. This provenance grants no release, public-intake, hosted-fetch, provider, marketing-partner or spending authority. V22.39 supersedes V22.36 as the product reference; actual implementation remains governed by source/test evidence and original approvals.
 
 ## Historical approved private master — V22.36 (Phase 28 review, 19 October 2026)

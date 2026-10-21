@@ -3872,6 +3872,7 @@ function App() {
   };
 
   const buildSocialPublishPayload = async (record, ownerApproved = false) => {
+    if(record?.contentEvidence?.channel==='newsletter')throw Error('Newsletter wording is private preparation. Email sending and social publication are not available for this draft.');
     if(!socialCreatePhotos.length)throw Error("This is a private text draft. Add approved photos before using the publishing queue.");
     const photos = [];
     for (let index = 0; index < socialCreatePhotos.length; index += 1) {

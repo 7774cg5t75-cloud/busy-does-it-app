@@ -1,5 +1,10 @@
 # Busy Does It — Standing Codex Repository Instructions
 
+## Current owner-approved private master — V22.40 (21 October 2026)
+
+The owner attached the complete Word Product Master and explicitly approved V22.40 for Phase 44, superseding V22.39. Its internal version is 22.40, updated 20 October 2026. Original SHA-256: `8cbd29a11915d494c5c40e83eeda3047aeef599f885a168aee14fcc9b360b63b`. Complete body opened: 1,905 paragraphs including all 19 tables. Full comparison against the accessible, previously fully reviewed V22.39 source verified unchanged paragraphs; all new material was reviewed. Original and extracted text remain privately outside Git. This is product-reference provenance, not provider, sending, release or spending approval. Future tasks must verify actual access.
+
+
 These instructions apply to all development work in this repository. They govern working practice; they do not prove that a feature is implemented or authorise a release.
 
 ## Before any substantial development mission: two-master preflight

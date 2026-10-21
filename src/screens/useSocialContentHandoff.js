@@ -106,7 +106,7 @@ export function useSocialContentHandoff(input){
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:{...expected,evidence,treatment,requiresTreatmentSelection:false}});return true;
  };
  const chooseFormat=(expected,channel)=>{
-  if(!pendingCurrent(expected)||!['service','business-introduction','product','event','owner-announcement'].includes(expected.purpose)||!['social','poster','advert'].includes(channel)||!confirmSocialBrandHandoff({...context(),evidence:expected.evidence,feed:expected.feed}).ok)return false;
+  if(!pendingCurrent(expected)||!['service','business-introduction','product','event','owner-announcement'].includes(expected.purpose)||!['social','poster','advert',...(expected.purpose==='owner-announcement'?['newsletter']:[])].includes(channel)||!confirmSocialBrandHandoff({...context(),evidence:expected.evidence,feed:expected.feed}).ok)return false;
   if(['product','event'].includes(expected.purpose))return loadRecords(expected.purpose,expected.platform,expected.sourceMode,recordHint(expected),pendingTreatment(expected),expected.requiresTreatmentSelection,channel);
   return prepare(expected.serviceName,expected.platform,expected.sourceMode,expected.purpose,expected.ownerFacts||'',pendingTreatment(expected),expected.requiresTreatmentSelection,channel,expected.reuse);
  };
@@ -122,7 +122,7 @@ export function useSocialContentHandoff(input){
   epoch.current++;input.setText(checked.copy);live.current={...live.current,text:checked.copy,selectedDraftId:null,aiResult:analysis};
   input.setSelectedDraftId(null);input.setAiResult(analysis);input.setAiStatus('idle');input.setCaptionId('');
   const record=['product','event'].includes(checked.purpose);
-  setContext({type:checked.purpose==='owner-announcement'?'owner_announcement':record?'approved_'+checked.purpose:checked.purpose==='business-introduction'?'approved_business':'approved_service',label:['poster','advert'].includes(checked.channel)?(checked.purpose==='owner-announcement'?'Owner-supplied ':'Approved ')+checked.channel+' wording · text only':checked.purpose==='owner-announcement'?'Owner-supplied announcement · review needed':record?'Approved '+checked.purpose+' wording':checked.purpose==='business-introduction'?'Approved business introduction':'Approved service wording',service:checked.serviceName,selection:checked.selection,contentEvidence:expected.reuse?{...checked,reusedDraft:{id:expected.reuse.record.id,updatedAt:expected.reuse.record.updatedAt||'',businessId:live.current.businessId}}:checked,suggestedPlatform:expected.platform,customerId:'',jobId:''});
+  setContext({type:checked.purpose==='owner-announcement'?'owner_announcement':record?'approved_'+checked.purpose:checked.purpose==='business-introduction'?'approved_business':'approved_service',label:checked.channel==='newsletter'?'Private newsletter wording · plain text only':['poster','advert'].includes(checked.channel)?(checked.purpose==='owner-announcement'?'Owner-supplied ':'Approved ')+checked.channel+' wording · text only':checked.purpose==='owner-announcement'?'Owner-supplied announcement · review needed':record?'Approved '+checked.purpose+' wording':checked.purpose==='business-introduction'?'Approved business introduction':'Approved service wording',service:checked.serviceName,selection:checked.selection,contentEvidence:expected.reuse?{...checked,reusedDraft:{id:expected.reuse.record.id,updatedAt:expected.reuse.record.updatedAt||'',businessId:live.current.businessId}}:checked,suggestedPlatform:expected.platform,customerId:'',jobId:''});
   return true;
  };
  const acceptRecord=async(expected,ticket)=>{
@@ -215,7 +215,7 @@ export function useSocialContentHandoff(input){
   const result=resolveSocialServiceIntent(text,context());
   if(requestsSavedAnnouncement(text)){
    if(!valid())return {handled:true,opened:false,blockedReason:'Open the current authorised business before choosing a saved announcement.'};
-   const channel=/\b(?:social post|social wording|facebook|instagram)\b/i.test(text)?'social':/\b(?:poster|advert|advertisement)\b/i.test(text)?result.channel||'social':null,treatment=result.treatment&&result.treatment!=='standard'?result.treatment:null;
+   const channel=/\bnewsletter\b/i.test(text)?'newsletter':/\b(?:social post|social wording|facebook|instagram)\b/i.test(text)?'social':/\b(?:poster|advert|advertisement|newsletter)\b/i.test(text)?result.channel||'social':null,treatment=result.treatment&&result.treatment!=='standard'?result.treatment:null;
    epoch.current++;setContext({...live.current.sourceContext,savedAnnouncementRequest:{scope,ownerId:live.current.ownerId,businessId:live.current.businessId,channel,treatment,platform:result.platform||'',requiresTreatmentSelection:!!result.needsTreatmentSelection}});input.go('growthCommandCentre');
    const available=live.current.records?.some(row=>savedAnnouncementEligible(row,live.current.businessId,live.current.records));
    return {handled:true,opened:true,savedAnnouncementSelection:true,reason:available?'Choose the exact saved announcement in Get More Customers. Your current draft and photos stay until separate Creator review; nothing is published.':'No eligible saved owner announcement is available. Review approved business ideas in Get More Customers, or save an announcement in Creator before reusing it.'};

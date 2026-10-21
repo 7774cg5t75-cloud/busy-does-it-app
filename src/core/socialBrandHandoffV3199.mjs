@@ -49,7 +49,7 @@ function prepareSocialRecordHandoff({website,app,businessId,approvedProfile,sour
  return {ok:true,kind:'private_social_brand_handoff_v3199',purpose:row.kind,channel,treatment,appliedTreatment,ownerChosenTone:snapshot.voice?.ownerChosenTone||null,businessId,copy,source:{...snapshot.source},sourceMode:snapshot.source.approvedProfileSource?'approved-profile':'builders',selection:{...interest.selection},recordStamp:JSON.stringify(row),brandColour:snapshot.design?.primaryColour||null,serviceId:null,serviceName:'',privateOnly:true,requiresOwnerApproval:true,noMediaAttached:true,notAutomaticallySaved:true,ownerMustReviewBeforeDraftSave:true,providerCallsMade:false};
 }
 function prepareOwnerAnnouncementHandoff({website,app,businessId,approvedProfile,sourceMode='',ownerFacts='',treatment='standard',channel='social'}={}){
- if(!SUPPORTED.includes(channel))return {ok:false,reason:'Choose supported social, poster or advert wording.'};
+ if(![...SUPPORTED,'newsletter'].includes(channel))return {ok:false,reason:'Choose supported social, poster or advert wording.'};
  if(!businessId||typeof ownerFacts!=='string'||!ownerFacts.trim()||ownerFacts.length>3000||/[<>\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(ownerFacts))return {ok:false,reason:'Add the exact announcement or offer details. Busy will not invent missing terms, dates or prices.'};
  const snapshot=buildContentBrandSnapshot({website,app,businessId,approvedProfile,sourceMode});
  const appliedTreatment=resolveWordingTreatment(treatment,snapshot.voice?.ownerChosenTone);
@@ -57,6 +57,7 @@ function prepareOwnerAnnouncementHandoff({website,app,businessId,approvedProfile
  const facts=ownerFacts.trim();let copy=appliedTreatment==='welcoming'?'Hello everyone,\n\n'+facts:appliedTreatment==='detailed'?'Business update\n\n'+facts+'\n\nPlease contact us if you have questions.':facts;
  if(channel==='poster')copy=[snapshot.ok?snapshot.identity?.name:'','BUSINESS UPDATE',facts,appliedTreatment==='detailed'?'Please contact us to check the full details.':''].filter(Boolean).join(appliedTreatment==='concise'?'\n':'\n\n');
  if(channel==='advert')copy=[appliedTreatment==='welcoming'?'An update for our customers':snapshot.ok?snapshot.identity?.name:'Business update',facts,appliedTreatment==='detailed'?'Please ask us about the full terms and details before making plans.':''].filter(Boolean).join('\n\n');
+ if(channel==='newsletter')copy=['Subject: '+(snapshot.ok?snapshot.identity.name+' — ':'')+'Business update',appliedTreatment==='welcoming'?'Hello,':'',facts,appliedTreatment==='concise'?'':'Please contact us if you have questions.',snapshot.ok?snapshot.identity.name:''].filter(Boolean).join('\n\n');
  // Owner-supplied words remain useful without a complete business profile.
  return {ok:true,kind:'private_social_brand_handoff_v3199',purpose:'owner-announcement',channel,treatment,appliedTreatment,businessId,source:snapshot.ok?{...snapshot.source}:{businessId,ownerSuppliedOnly:true},sourceMode:snapshot.source?.approvedProfileSource?'approved-profile':sourceMode,ownerFacts,copy,serviceName:'',serviceId:null,privateOnly:true,requiresOwnerApproval:true,ownerSuppliedNotIndependentlyVerified:true,noMediaAttached:true,providerCallsMade:false};
 }
@@ -89,15 +90,15 @@ function resolveSocialServiceIntent(text,{website,app,businessId,approvedProfile
  if(/^(?:how|why|should|what (?:can|should))\b/i.test(request)||/\b(publish|schedule|send|spend|buy|boost)\b/i.test(request))return {handled:false};
  const introduction=/\b(introduc(?:e|ing|tion)|what we do|about (?:my|our|the) business)\b/i.test(request);
  const action=/\b(help|tell|introduce|make|create|write|draft|prepare|advertise|promote|announce)\b/i.test(request);
- const content=/\b(post|caption|facebook|instagram|announcement|poster|advert|advertisement)\b/i.test(request)||/\b(?:tell (?:our |my |the )?(?:customers|people) about|advertise|promote|write something|prepare something)\b/i.test(request);
+ const content=/\b(post|caption|facebook|instagram|announcement|poster|advert|advertisement|newsletter)\b/i.test(request)||/\b(?:tell (?:our |my |the )?(?:customers|people) about|advertise|promote|write something|prepare something)\b/i.test(request);
  if(!action||!introduction&&!content)return {handled:false};
  const styleRequest=request.includes(':')?request.slice(0,request.indexOf(':')):request;
- const styles=[['welcoming','friendly|welcoming|warm'],['concise','short|concise'],['detailed','informative|detailed|explanatory']].filter(([,words])=>new RegExp('\\b(?:write|make|create|draft|prepare)\\s+(?:(?:me|us)\\s+)?(?:a |an )?(?:'+words+')\\s+(?:(?:facebook|instagram|social)\\s+)?(?:post|caption|introduction|announcement|message|wording|copy|poster|advert|advertisement)\\b|\\b(?:in|with|using)\\s+(?:a |an )?(?:'+words+')\\s+(?:tone|style)\\b','i').test(styleRequest)).map(([style])=>style);
+ const styles=[['welcoming','friendly|welcoming|warm'],['concise','short|concise'],['detailed','informative|detailed|explanatory']].filter(([,words])=>new RegExp('\\b(?:write|make|create|draft|prepare)\\s+(?:(?:me|us)\\s+)?(?:a |an )?(?:'+words+')\\s+(?:(?:facebook|instagram|social)\\s+)?(?:post|caption|introduction|announcement|message|wording|copy|poster|advert|advertisement|newsletter)\\b|\\b(?:in|with|using)\\s+(?:a |an )?(?:'+words+')\\s+(?:tone|style)\\b','i').test(styleRequest)).map(([style])=>style);
  if(/\b(?:using|with|in) (?:my|our|the) (?:approved )?brand (?:voice|tone)\b/i.test(styleRequest))styles.push('brand');
  const treatment=styles.length===1?styles[0]:'standard',needsTreatmentSelection=styles.length>1;
- const formatMatch=/\b(?:make|create|write|draft|prepare)\s+(?:(?:me|us)\s+)?(?:a |an )?(?:(?:friendly|welcoming|warm|short|concise|informative|detailed|explanatory|promotional)\s+)?(poster|advert|advertisement)(?:\s+(?:wording|copy))?\b/i.exec(styleRequest);
- const channel=formatMatch?(formatMatch[1].toLowerCase()==='poster'?'poster':'advert'):'social';
- const ownerAnnouncement=/\b(announcement|announce|opening hours|closing|close early|thank[- ]you|thank (?:our|my|the) customers|attending|(?:special|our|my|an|the) offer)\b/i.test(request);
+ const formatMatch=/\b(?:make|create|write|draft|prepare)\s+(?:(?:me|us)\s+)?(?:a |an )?(?:(?:friendly|welcoming|warm|short|concise|informative|detailed|explanatory|promotional)\s+)?(poster|advert|advertisement|newsletter)(?:\s+(?:wording|copy))?\b/i.exec(styleRequest);
+ const channel=formatMatch?(formatMatch[1].toLowerCase()==='poster'?'poster':formatMatch[1].toLowerCase()==='newsletter'?'newsletter':'advert'):'social';
+ const ownerAnnouncement=/\b(newsletter|announcement|announce|opening hours|closing|close early|thank[- ]you|thank (?:our|my|the) customers|attending|(?:special|our|my|an|the) offer)\b/i.test(request);
  const recordKind=/\bevents?\b/i.test(request)?'event':/\b(products?|collection)\b/i.test(request)?'product':'';
  const snapshot=buildContentBrandSnapshot({website,app,businessId,approvedProfile});
  const names=snapshot.ok?snapshot.services.map(service=>service.name):[];
