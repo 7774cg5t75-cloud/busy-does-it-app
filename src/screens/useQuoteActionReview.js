@@ -1,9 +1,12 @@
 import React from 'react';
+import {Alert} from 'react-native';
+import {prepareEnquiryReplyText} from '../core/enquiryReplyText.mjs';
+import {stableJson} from '../core/stableJson.mjs';
+import {quoteCustomerSource as customerSource} from '../core/privateQuoteCopy.mjs';
 import {useOwnerEditNavigation} from './useOwnerEditNavigation';
 const fields=['actionQuoteAmount','actionQuoteMessage','actionQuoteSentDate'];
 const values=s=>fields.map(key=>String(s[key]??''));
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
-const customerSource=customer=>customer&&[customer.id,customer.name,customer.service,customer.businessId,customer.business_id];
 function recordValues(action,fallback){
  const details=action?.details||{};
  return [String(details.quoteAmount??fallback[0]),String(details.message??fallback[1]),details.quoteSentAt?String(details.quoteSentAt).slice(0,10):details.plannedSentDate||fallback[2]];
@@ -61,5 +64,20 @@ export function useQuoteActionReview(s){
   if(!isCurrent()||typeof s.requestOwnerEditTransition!=='function')return false;
   return s.requestOwnerEditTransition(operation,{isCurrent});
  };
- return {edit,commit,transition,checkDeviceCopy:()=>current()&&s.checkPrivateQuoteCopy?.({isCurrent:()=>current()&&epoch.current===renderEpoch}),validDate,conflict,saving:!!pending.current,dirty:dirty.current,sentAt:()=>validDate?new Date(date+'T12:00:00').toISOString():null};
+ const prepareEnquiry=item=>{
+  if(!item||typeof item!=='object')return false;
+  const profile=live.current.businessCreationIntelligence?.sharedProfile,revision=live.current.cloudRevision;
+  const itemStamp=stableJson(item),profileStamp=stableJson(profile||null);
+  const sourceCurrent=()=>current()&&!conflict&&!pending.current&&action?.type==='quote'&&(!action.details?.quoteStatus||action.details.quoteStatus==='Prepared')&&customer.contactOk!==false&&live.current.cloudRevision===revision&&Number.isSafeInteger(revision)&&live.current.quoteEnquiryOriginItem===item&&live.current.inboxItems?.filter(row=>row.id===item?.id).length===1&&live.current.inboxItems.includes(item)&&live.current.customers?.filter(row=>row.id===customer.id).length===1&&live.current.customers.includes(customer)&&stableJson(item)===itemStamp&&stableJson(live.current.businessCreationIntelligence?.sharedProfile||null)===profileStamp;
+  if(epoch.current!==renderEpoch||!sourceCurrent())return false;
+  const prepared=prepareEnquiryReplyText({customer,item,businessId:s.cloudWorkspace.businessId,approvedProfile:profile,purpose:'quote-preparation'});
+  if(!prepared.ok)return false;
+  const typing=epoch.current,wording=values(live.current);
+  Alert.alert('Use these enquiry details?',prepared.text+'\n\nThis changes only your private wording. Your amount and date stay unchanged. Nothing is saved or sent.',[
+   {text:'Keep my wording',style:'cancel'},
+   {text:'Use these requirements',onPress:()=>sourceCurrent()&&epoch.current===typing&&same(values(live.current),wording)?edit('actionQuoteMessage',prepared.text):false},
+  ]);
+  return true;
+ };
+ return {edit,commit,transition,prepareEnquiry,checkDeviceCopy:()=>current()&&s.checkPrivateQuoteCopy?.({isCurrent:()=>current()&&epoch.current===renderEpoch}),validDate,conflict,saving:!!pending.current,dirty:dirty.current,sentAt:()=>validDate?new Date(date+'T12:00:00').toISOString():null};
 }

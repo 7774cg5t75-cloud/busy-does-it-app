@@ -1945,6 +1945,12 @@
       "args": [
         "scripts/check-mission15-phase47-enquiry-requirements.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase48-enquiry-quote",
+      "args": [
+        "scripts/check-mission15-phase48-enquiry-quote.mjs"
+      ]
     }
   ]
 }
