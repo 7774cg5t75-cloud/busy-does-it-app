@@ -11,6 +11,8 @@ const media=items=>JSON.stringify((items||[]).map(item=>[item.id||'',item.uri||'
 export function contentDraftChanges(current,record){
  const savedPhotos=(record?.photos||[]).map(photo=>{const cloud=record?.cloudMedia?.find(item=>item.id===photo.id);return cloud?{...photo,storagePath:cloud.storagePath,contentType:cloud.contentType||photo.mimeType||'image/jpeg'}:photo;});
  const requested=privateContentChannels(current.channels);
- const result={wording:String(current.text||'').trim()!==String(record?.text||''),media:media(current.photos)!==media(savedPhotos),brief:String(current.brief||'').trim()!==String(record?.brief||''),channels:requested!==null&&JSON.stringify([...requested].sort())!==JSON.stringify([...(record?.channels||[])].sort())};
+ const exact=record?.contentEvidence?.channel==='newsletter';
+ const wording=String(current.text||''),brief=String(current.brief||'');
+ const result={wording:(exact?wording:wording.trim())!==String(record?.text||''),media:media(current.photos)!==media(savedPhotos),brief:(exact?brief:brief.trim())!==String(record?.brief||''),channels:requested!==null&&JSON.stringify([...requested].sort())!==JSON.stringify([...(record?.channels||[])].sort())};
  return {...result,dirty:Object.values(result).some(Boolean)};
 }

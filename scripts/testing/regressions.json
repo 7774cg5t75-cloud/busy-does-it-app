@@ -1921,6 +1921,12 @@
       "args": [
         "scripts/check-mission15-phase46-reply-adapter.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase46-newsletter-exact",
+      "args": [
+        "scripts/check-mission15-phase46-newsletter-exact.mjs"
+      ]
     }
   ]
 }

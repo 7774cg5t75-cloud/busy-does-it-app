@@ -3742,8 +3742,9 @@ function App() {
     if(businessWorkspaceScopeRef.current!==socialDraftScope)return null;
     const currentDraft=socialContentActions.capture();
     if(currentDraft.text!==socialDraftText||currentDraft.selectedId!==selectedSocialDraftId||currentDraft.photos!==socialCreatePhotos||currentDraft.records!==socialDrafts)return null;
-    const text = socialDraftText.trim();
-    if (!text || (status !== "Draft" && !socialCreatePhotos.length)) return null;
+    const newsletter=socialSourceContext.contentEvidence?.channel==='newsletter';
+    const text = newsletter?socialDraftText:socialDraftText.trim();
+    if (!text.trim() || (status !== "Draft" && !socialCreatePhotos.length)) return null;
     // Private intent survives a disconnected account; public preparation still
     // uses the original connection-filtered destinations below.
     const channels = status==='Draft'&&typeof currentDraft.channels==='string'?(privateContentChannels(currentDraft.channels)||socialChannelNames()):socialChannelNames();
@@ -3781,7 +3782,7 @@ function App() {
         existing?.service ||
         "",
       photos,
-      brief: socialBrief.trim(),
+      brief: newsletter?socialBrief:socialBrief.trim(),
       text,
       selectedCaptionId: socialCaptionId,
       captions: socialAiResult?.captions || existing?.captions || [],
