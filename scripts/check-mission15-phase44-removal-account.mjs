@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {preparePrivateEnquiryReply,inspectPrivateReplyAccountRemoval} from '../src/core/privateEnquiryReply.mjs';
 const ownerId='cccccccc-cccc-4ccc-8ccc-cccccccccccc',businessId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
-const item={id:'filed',status:'Filed',filedCustomerId:'customer',rawText:'Need catering in October'};
+const item={id:'filed',status:'Filed',filedCustomerId:'customer',reviewedAt:'2026-10-21T00:00:00.000Z',rawText:'Need catering in October'};
 const customer={id:'customer',businessId,name:'Alex',contactOk:true};
 const record=preparePrivateEnquiryReply({ownerId,businessId,customer,item,revision:3,text:'Private words',purpose:'acknowledge'});
 assert.ok(record);

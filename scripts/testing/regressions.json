@@ -1837,6 +1837,18 @@
       "args": [
         "scripts/check-mission15-phase43-date-flexibility.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase44-announcement-reuse",
+      "args": [
+        "scripts/check-mission15-phase44-announcement-reuse.mjs"
+      ]
+    },
+    {
+      "id": "mission15-phase44-removal-account",
+      "args": [
+        "scripts/check-mission15-phase44-removal-account.mjs"
+      ]
     }
   ]
 }
