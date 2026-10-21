@@ -16,3 +16,5 @@ let tree=rt.render(HomeScreen,{s});const button=walk(tree).find(n=>n.type==='Pre
 const count=opened.length;rt.render(HomeScreen,{s:{...s,ownerWorkspaceScope:{}}});button.props.onPress();assert.equal(opened.length,count,'Old Home callback cannot reopen across workspace changes');assert.equal(walk(rt.render(HomeCoreAreas,{s})).filter(n=>n.type==='Pressable'&&n.props?.accessibilityHint).length,6);
 await import('./check-mission15-phase38-quote-recovery.mjs');
 console.log('PASS actual six-area Home offers exact selected recorded quote review without invented urgency/delivery; role, revision, selection, record and scope freshness deny stale actions; original saved filing-reference recovery and guarded parent execute.');
+
+console.log('Bounded original controller VM statistics:',JSON.stringify(rt.statistics));

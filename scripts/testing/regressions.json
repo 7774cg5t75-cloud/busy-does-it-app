@@ -2005,6 +2005,12 @@
       "args": [
         "scripts/check-mission15-phase50-quote-fields.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase50-runtime-loading",
+      "args": [
+        "scripts/check-mission15-phase50-runtime-loading.mjs"
+      ]
     }
   ]
 }
