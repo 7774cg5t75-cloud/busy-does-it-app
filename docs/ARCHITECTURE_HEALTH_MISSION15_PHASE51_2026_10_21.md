@@ -1,36 +1,3 @@
-# Phase51 — shared source validation, specialist reply and newsletter ownership
+# Phase 51 architecture review
 
-## Concrete boundaries
-
-- Extracted `inspectEnquiryCatalogue` inside the existing `enquiryReplyText.mjs`. Original Work quote copy and new private reply copy share exact listing/option/public-revision validation. This removes the need to duplicate catalogue trust rules in another workflow. Historical customer assertions remain separate from current authenticated catalogue projection. No historical price reconstruction.
-- `useEnquiryReplyPreparation` retains its original editor, scope/session, navigation and device/account systems. A bounded request token and exact source/typing/save-ticket checks protect a reviewed clarification; original owner navigation guard remains authoritative for other unfinished work. Leaving the private reply editor invalidates its review token, including when the same customer/editor is reopened without typing; old and in-flight proposals cannot revive. Accepting requires another original authenticated catalogue read, exact prepared record/selection/wording equality and one-use deliberate approval. Saving/unknown tickets prevent replacement; no write/retry authority moves into preparation.
-- `useSocialContentHandoff` reuses its original source checker for an exact saved newsletter, rather than temporarily replacing current evidence to validate it. Separate public `reviewSavedSource(record)` avoids treating native onPress events as saved records; the existing `reviewSource()` callback contract remains intact. Original `recordCurrent`, capture/fresh, Brand DNA confirmation and Keep/Open own acceptance. The account component checks account record equality and minimum workspace revision; neither account evidence nor source review authorises publication.
-- Finite missing-requirement clarification reads the original structured request and current approved service projection. It asks only for absent timing/quantity/location/details. Unique service identity is required before including approved description; customer requests are not availability, prices or bookings. The existing profile correction informs subsequent reply and newsletter proposals, never silently rewriting existing text.
-
-AppController stays **18,142 lines and94 relative outbound imports**,750,710→750,780 bytes: one original catalogue-loader injection into the existing private-reply specialist. **No new AppController extraction** was undertaken: its state, hooks, persistence and navigation closures remain in place. The useful extraction is shared pure catalogue validation in its existing specialist module, with actual Work/reply parent regressions. Moving more controller code merely to reduce its size was not justified by this bounded work.
-
-Touched specialist sizes: reply wording43→70 physical lines; reply hook164→191; content handoff285→287; account component43→43; account inspection10→11. These dense inherited modules still need careful small responsibility reviews; line reduction is not a quality score. No competing editor, CRM, memory, approval ledger, store, scheduler or provider was introduced. React hook ordering is stable within each source version; a new unconditional ref remains inside its original reply hook, with no conditional hook calls or competing React state owner.
-
-Static audit, exit0: **1,412 source files,154,891 physical lines,2,846 static relative edges,zero detected static relative-import cycles**. Phase50:1,409/154,775/2,840/zero. Three new files are actual-source regressions. Dynamic/aliased imports and runtime cycles are outside the audit. Large AppController, builder and Work files remain inherited maintainability risks.
-
-## Security, recovery and compatibility
-
-No authentication, membership/RLS, snapshot schema, CAS, Edge, worker, standalone public contract or provider permission is changed. Client UI protections do not establish a trusted server lock or cross-device exactly-once guarantee. Preparation rechecks the existing authenticated read but cannot claim atomicity with a later remote edit. Private owner wording remains reviewable; existing customer/private reply storage is reused with no automatic save/send.
-
-Newsletter recovery preserves exact saved identity, subject/body, brief/audience intention, photos/references, channel choices, format/treatment and source provenance through original parent restoration. Current different source evidence no longer hides deliberate saved-source review. Older account responses are labelled stale; absent/different/unknown results never trigger a write or automatic restore. A matching account record is readback at that revision, not OS durability, mixed-client retention, current-source approval or delivery.
-
-The Phase50 compilation fixture remains unchanged: exact-source process-local code cache, isolated exports/React slots, static dependency preparation, original10,000ms VM limit and inert IO. No timeout increase or assertion suppression. Phase51's unsuccessful fixture candidates remain in CHECKS, with corrected setup and passing reruns.
-
-## Bounded read-only integration follow-up
-
-At frozen GitHubeab073dcde642a60eee26be3a60982c04d9f48aa, complete recursive trees show **647 changed paths** against actual base3e64352e7e043812b1ba79a0609b64c251a0f4bd; no truncated tree and no migration path changes. Four newer visual-direction documentation changes were preserved before implementation. Dependency PR heads remain unchanged/open/draft/unmerged. Shared sequential files are not proof of conflict-free eventual integration.
-
-Retain Phase49's detailed integration-risk assessment and separately approved oldest-first21→23→24→25→26 sequence. Before release, establish original snapshot provisioning/member/RLS/CAS authority and inherited prepared catalogue migration order, test current/old client private-field retention and all client/Edge/standalone combinations. Current CAS is not a version/capability retention fence; older clients may strip optional private fields or reintroduce removed data. No fake tombstone, second ledger or migration was added.
-
-## Future visual direction and remaining gates
-
-Section61 is future design exploration only. Before a visual sweep: owner review representative Home/Creator/Inbox/Work/builder/Get Paid screens, reusable theme tokens, restrained atmospheric components, truthful Busy status, still/reduced-motion variants, contrast/focus/large-text/screen-reader semantics, real narrow-screen/native/browser performance and low-power testing. Preserve six destinations and corporate brand; no visual rewrite/assets or paid tooling in Phase51.
-
-Newsletter images remain unavailable pending actual ownership, permitted use, consent/revocation and reviewed safe local-byte access. No recipient selection/import, tracking, sending, campaigns or scheduling. UK GDPR/PECR basis, suppression/unsubscribe, sender/domain verification, costs, explicit approval and provider receipts remain separate prerequisites.
-
-Hosted auth/RLS/CAS and mixed-client acceptance, browser/mail-client/native accessibility, physical-device/process-death recovery, publisher source/media/approval/receipt/cron/cross-device authority, financial/tax execution, PR integration and release remain separately gated. No customer delivery, booking, invoice/payment/HMRC outcome, model retraining or measured longitudinal/customer time-saving claim follows from offline tests. £0 additional spending; no live application action.
+The complete review is included in the [combined Phase 51 delivery report and architecture review](MISSION15_PHASE51_2026_10_21.md#architecture-review). This link preserves existing references; the combined document is the maintained report.
