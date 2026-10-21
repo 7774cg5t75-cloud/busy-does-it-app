@@ -105,3 +105,7 @@ V22.35 remains the owner-approved version and the Phase 22 checksum remains prov
 ## Phase 23 access restored — owner reattachment, 19 October 2026
 
 `Newest 69.docx` is V22.35, original-byte SHA-256 `7d93efedb1ff68a57470bdb97073767a14a9fc64cd1c53c06fba3021d12e298d`, identical to the complete document already read in this current task. The previous current-access limitation is resolved for this continuation. A mode-0600 copy is available outside this public repository at `/workspace/busy-does-it-private-masters/Busy_Does_It_Master_V22_35.docx`. Future tasks must verify actual file access and the approved version; this workspace copy is not a guaranteed cross-environment mount. No private contents were committed.
+
+## Mission 15 Phase 46 — V22.41 attachment access verified
+
+The owner attached the complete current Word source. Its original bytes match SHA-256 `9d3a981e4c6cafe316781e34b58bace2b49a32587bb668a0568e3c660db47029`; internal version/date identify V22.41, updated 21 October 2026. All 1,928 body/table paragraphs and 19 tables were opened and compared against the genuinely available, fully reviewed V22.40 document. Unchanged material reuses that complete review; all changes, including Section 56, were reviewed. This resolves Phase 45's then-current access limitation for this task. Original and complete extraction remain privately outside Git, with no private text published. Future tasks must independently verify access. This is reference provenance, not hosted/provider/release approval.
