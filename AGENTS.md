@@ -1,6 +1,11 @@
 # Busy Does It — Standing Codex Repository Instructions
 
-## Current owner-approved private master — V22.40 (21 October 2026)
+## Current owner-approved private master — V22.41 (21 October 2026)
+
+The owner approved the permanent **Shared Intelligence, Separated Responsibilities** principle and the private Product Master was updated from V22.40 to **V22.41**, Section 56. The complete source was actually opened and verified: 1,928 body/table paragraphs and 19 preserved tables; original file SHA-256 `9d3a981e4c6cafe316781e34b58bace2b49a32587bb668a0568e3c660db47029`. The previous V22.40 original checksum was `8cbd29a11915d494c5c40e83eeda3047aeef599f885a168aee14fcc9b360b63b`. V22.41 is saved separately in the owner's private ChatGPT Library at `/Busy_Master_V22_41_Shared_Intelligence_Separated_Responsibilities.docx`; V22.40 remains preserved. Neither original document nor extracted private contents were copied into public GitHub. The new principle is an owner-approved product/engineering instruction, not a claim that every module already complies or that release/provider actions are authorised. Future tasks must independently verify private document access and follow the actual branch/source evidence.
+
+
+## Historical owner-approved private master — V22.40 (21 October 2026)
 
 The owner attached the complete Word Product Master and explicitly approved V22.40 for Phase 44, superseding V22.39. Its internal version is 22.40, updated 20 October 2026. Original SHA-256: `8cbd29a11915d494c5c40e83eeda3047aeef599f885a168aee14fcc9b360b63b`. Complete body opened: 1,905 paragraphs including all 19 tables. Full comparison against the accessible, previously fully reviewed V22.39 source verified unchanged paragraphs; all new material was reviewed. Original and extracted text remain privately outside Git. This is product-reference provenance, not provider, sending, release or spending approval. Future tasks must verify actual access.
 
@@ -24,6 +29,7 @@ The repository is **public**. Never commit an owner's private master, unpublishe
 - Build Busy as an accessible, owner-friendly operating layer for many kinds of small businesses; simple, voice/typed-first interaction above sophisticated reusable intelligence.
 - Current construction emphasis: **App Builder first, Website Builder second**, across many industries rather than a fixed handful. Preserve Business Apps in the Busy marketplace and the optional standalone app/export path.
 - Share Business Brain, Brand DNA, design systems, owner feedback, customer context and existing capabilities across apps, websites, content, marketing and other business workflows. Prefer a single source of truth over competing agents, ledgers or engines.
+- **Shared Intelligence, Separated Responsibilities (owner-approved 21 October 2026):** Reuse scoped current business knowledge, Brand DNA, preferences and original customer/work truths across specialist systems. The Business Brain supplies intelligence and context; it is **not** the implementation, execution or approval owner of every feature. Keep content, marketing, communications/CRM/Work, builders and finance/provider actions behind clear, testable domain contracts. Avoid growing Business Brain, AppController or a central hook into an indispensable monolith. Review coupling, duplicated rules and oversized modules during every sweep and deep audits; simplify selectively with tests, not speculative rewrites. See the private V22.41 Master Section 56 and the permanent section of `ARCHITECTURE.md`.
 - Improve per-business memory, outcome-based evaluation, owner-feedback loops and foundations for explicitly opt-in privacy-preserving aggregated learning. Tenant isolation, consent and oversight come first; do not claim the model retrains automatically.
 - Owner's approved content, choices, design locks, exports/ownership, and final approval always matter. Avoid silent public changes, surprise charges and irreversible automation.
 
