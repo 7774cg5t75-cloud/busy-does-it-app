@@ -4,7 +4,7 @@
 
 ## Permanent architecture rule — Shared Intelligence, Separated Responsibilities (21 October 2026)
 
-Owner-approved product-master reference: private **V22.41, Section 56**; technical reference: root `ARCHITECTURE.md` under the matching permanent architecture principle.
+Owner-approved product-master reference: private **V22.42 (retaining Section 56)**; technical reference: root `ARCHITECTURE.md` under the matching permanent architecture principle.
 
 - Deliver one useful conversational Busy with reusable, business-scoped Business Brain/Brand DNA, approved facts, customer/work context, permissions and outcome evidence. Don't create disconnected versions of these truths.
 - Keep clearly accountable specialist domains for creative preparation, marketing, customer communications/CRM/Work, app/website composition, quotes/payments and their trusted provider execution. Shared intelligence supplies facts and recommendations; it does **not** silently obtain authority to send, publish, spend, book, mutate or take payments.

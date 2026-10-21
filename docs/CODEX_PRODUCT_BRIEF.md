@@ -10,6 +10,10 @@ Busy Does It aims to be an intelligent, connected operating layer for small busi
 
 The product should feel extraordinarily simple. Complexity belongs in reusable engineering and responsible automation, not in customers' menus or explanations. Optimize for reliable end-to-end outcomes and customer control over flashy demos or raw feature count.
 
+## Current owner-approved direction — V22.42
+
+Freedom, simplicity and capability: reduce repeated owner entry and help complete real supported preparation. Prefer current authorised knowledge, plain-language review and evidence of outcomes. Preserve six Home areas and specialist ownership. Future tax/bookkeeping support is a roadmap; current quotes, jobs and communication receipts do not establish payments, deductible expenses, accounting calculations or HMRC readiness. See the Phase 48 source-backed readiness review.
+
 ## Current build-first priorities
 
 **Phase 31 priority update:** The bounded, source-tested builder implementation checkpoint is recorded in `BUILDER_FIRST_RELEASE_CHECKPOINT_2026_10_19.md`. Lead development now moves to **Content Creator and the six-area Home**, with **Get More Customers** alongside. Work & Customers and Get Paid deepen next through existing contracts. This is a development-priority transition, not production readiness; hosted/device/security acceptance and separate publication/provider approvals remain mandatory. Keep residual builder work tied to concrete first-release gaps rather than indefinite cosmetic variants.

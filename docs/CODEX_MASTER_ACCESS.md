@@ -1,4 +1,8 @@
-## Current owner-approved private master — V22.41 (21 October 2026)
+## Current owner-approved private master — V22.42 (21 October 2026)
+
+The complete attached Word source was opened and checked in Phase 48, superseding V22.41. Original SHA-256: `23acac54572cab244baac73ed9515e014554914b5f9fa45687fd37fd026ba105`. Complete body/table review: 2,044 paragraphs and 19 tables, with unchanged material verified against the accessible fully reviewed V22.41 and all changed ranges, including Sections 57–60, read completely. Original Word and complete extracted text remain outside public Git. Future tasks must verify genuine access again; this public provenance is not a substitute for the private master. Product ambitions do not establish implemented capabilities or authorise live actions.
+
+## Historical owner-approved private master — V22.41 (21 October 2026)
 
 The owner approved the permanent **Shared Intelligence, Separated Responsibilities** principle and the private Product Master was updated from V22.40 to **V22.41**, Section 56. The complete source was actually opened and verified: 1,928 body/table paragraphs and 19 preserved tables; original file SHA-256 `9d3a981e4c6cafe316781e34b58bace2b49a32587bb668a0568e3c660db47029`. The previous V22.40 original checksum was `8cbd29a11915d494c5c40e83eeda3047aeef599f885a168aee14fcc9b360b63b`. V22.41 is saved separately in the owner's private ChatGPT Library at `/Busy_Master_V22_41_Shared_Intelligence_Separated_Responsibilities.docx`; V22.40 remains preserved. Neither original document nor extracted private contents were copied into public GitHub. The new principle is an owner-approved product/engineering instruction, not a claim that every module already complies or that release/provider actions are authorised. Future tasks must independently verify private document access and follow the actual branch/source evidence.
 
