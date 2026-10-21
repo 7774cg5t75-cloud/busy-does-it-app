@@ -1873,6 +1873,12 @@
       "args": [
         "scripts/check-mission15-phase44-removal-parent.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase44-home-newsletter",
+      "args": [
+        "scripts/check-mission15-phase44-home-newsletter.mjs"
+      ]
     }
   ]
 }
