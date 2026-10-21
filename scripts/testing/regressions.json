@@ -2035,6 +2035,12 @@
       "args": [
         "scripts/check-mission15-phase52-reply-provenance.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase52-newsletter-versions",
+      "args": [
+        "scripts/check-mission15-phase52-newsletter-versions.mjs"
+      ]
     }
   ]
 }

@@ -20,7 +20,7 @@ export function NewsletterAccountReadback({s}){
   setReview({status:'checking',record,stamp,ticket,scope,owner,business,localRevision});
   let result;try{result=await s.readPrivateContentAccount();}catch{result={ok:false};}
   if(!current())return false;
-  const inspected=inspectNewsletterAccount({result,businessId:business,record,minimumRevision:localRevision});setReview({...inspected,record,stamp,ticket,scope,owner,business,localRevision});
+  const inspected=inspectNewsletterAccount({result,businessId:business,record,minimumRevision:localRevision,ownerId:owner});setReview({...inspected,record,stamp,ticket,scope,owner,business,localRevision});
   if(!reopen||inspected.status!=='confirmed')return inspected.status==='confirmed';
   // Reuse the original source checker and original dirty-editor Keep/Open path.
   // A compatible account revision is not itself approval of the content facts.
@@ -38,6 +38,10 @@ export function NewsletterAccountReadback({s}){
  return <Card title="Newsletter account copy" body="Read the original business snapshot to check this saved newsletter. Device evidence and source review are separate.">
   <Button label="Check newsletter account copy" disabled={exact&&review.status==='checking'} onPress={()=>check(false)}/>
   {s.openSocialDraft&&!s.socialSourceContext?.pendingContentIdea?<Button label="Review and reopen saved newsletter" disabled={exact&&review.status==='checking'} onPress={()=>check(true)}/>:null}
+  {exact&&review.status==='different'&&review.preview?<Card title="Account newsletter — read only" body={'Subject: '+review.preview.subject+'\n\n'+review.preview.body} footer="Your open draft stays unchanged. This version has not been opened, saved or sent.">
+   <Text style={styles.cardBody}>{'Differences: '+(review.preview.differences.join('; ')||'saved record details')+'.'}</Text>
+   {review.preview.brief?<Text style={styles.cardBody}>{'Account audience intention: '+review.preview.brief+' — this does not select recipients or establish marketing permission.'}</Text>:null}
+  </Card>:null}
   <Text accessibilityLiveRegion="polite" style={styles.cardBody}>{exact?messages[review.status]:'No current account confirmation for this draft and wording.'}</Text>
  </Card>;
 }
