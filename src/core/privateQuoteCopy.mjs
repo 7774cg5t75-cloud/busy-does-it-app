@@ -12,3 +12,12 @@ export async function readPrivateQuoteCopy({read,ownerId,businessId,revision,cus
   return {status:saved&&stableJson(saved)===stableJson(record)?'confirmed':'unknown'};
  }catch{return {status:'unknown'};}
 }
+
+// Original quote-form values only; caller owns navigation, current scope and setters.
+export function quoteFormFields({customer,saved,services=[],today}){
+ const service=services.find(item=>item.name===customer.service);
+ const fallbackAmount=Number(customer.lastJobValue)>0?customer.lastJobValue:service?.value||'';
+ const amount=saved?.details?.quoteAmount??fallbackAmount;
+ return {amount:String(amount||''),message:saved?.details?.message||`Hi ${customer.name.split(" ")[0]}, thanks for getting back to us. The quote for ${customer.service.toLowerCase()} is £${amount||"—"}. Let me know if you’d like to go ahead.`,
+  date:saved?.details?.quoteSentAt?String(saved.details.quoteSentAt).slice(0,10):/^\d{4}-\d{2}-\d{2}$/.test(saved?.details?.plannedSentDate||'')?saved.details.plannedSentDate:today};
+}

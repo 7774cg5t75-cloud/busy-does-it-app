@@ -4,7 +4,7 @@ import {homeUnsavedContentReview} from '../core/homeContentReview.mjs';
 import {privateContentChannels,restoreContentDraft} from '../core/contentDraftChanges.mjs';
 import {quoteEnquiryReference,resolveQuoteEnquiryReference,prepareQuoteEnquiryDetails,reviewedFiledEnquiry} from '../core/quoteEnquiryReference.mjs';
 import {preparedQuoteTarget,followUpQuoteTarget} from '../core/homeQuoteReview.mjs';
-import {readPrivateQuoteCopy,quoteCustomerSource} from '../core/privateQuoteCopy.mjs';
+import {readPrivateQuoteCopy,quoteCustomerSource,quoteFormFields} from '../core/privateQuoteCopy.mjs';
 import {protectQuoteDraftTransition,isQuoteDraftSourceCurrent} from '../core/quoteDraftTransition.mjs';
 import {beginSocialContentAction,matchesSocialContentPost} from '../core/socialContentActionGuard.mjs';
 import {localCoreAreaRequest} from "../domain/growthOperatorBridge.mjs";
@@ -1439,20 +1439,10 @@ function App() {
     if (!customer) return false;
 
     if (type === "quote") {
-      const service = services.find((item) => item.name === customer.service);
-      const fallbackAmount =
-        Number(customer.lastJobValue) > 0 ? customer.lastJobValue : service?.value || "";
-      const amount = saved?.details?.quoteAmount ?? fallbackAmount;
-      setActionQuoteAmount(String(amount || ""));
-      setActionQuoteMessage(
-        saved?.details?.message ||
-          `Hi ${customer.name.split(" ")[0]}, thanks for getting back to us. The quote for ${customer.service.toLowerCase()} is £${amount || "—"}. Let me know if you’d like to go ahead.`
-      );
-      setActionQuoteSentDate(
-        saved?.details?.quoteSentAt
-          ? String(saved.details.quoteSentAt).slice(0, 10)
-          : /^\d{4}-\d{2}-\d{2}$/.test(saved?.details?.plannedSentDate||"")?saved.details.plannedSentDate:dateToISO(new Date())
-      );
+      const form=quoteFormFields({customer,saved,services,today:dateToISO(new Date())});
+      setActionQuoteAmount(form.amount);
+      setActionQuoteMessage(form.message);
+      setActionQuoteSentDate(form.date);
     } else if (type === "booking") {
       setActionBookingDate(saved?.details?.bookingDate || nextDateForSlot(quietSlot));
       setActionBookingTime(saved?.details?.bookingTime || defaultTimeForSlot(quietSlot));

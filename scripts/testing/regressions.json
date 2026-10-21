@@ -1999,6 +1999,12 @@
       "args": [
         "scripts/check-mission15-phase50-newsletter-dirty.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase50-quote-fields",
+      "args": [
+        "scripts/check-mission15-phase50-quote-fields.mjs"
+      ]
     }
   ]
 }
