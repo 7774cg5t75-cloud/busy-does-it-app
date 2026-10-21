@@ -1,3 +1,17 @@
+## Approved future visual direction — Midnight Intelligence (21 October 2026; private Master V22.43 Section 61)
+
+**Status:** Owner-approved premium-dark visual language for a later coordinated, explicitly reviewed design implementation. Design discussions and illustrative mockups **did not change the application**. Do not silently infer implemented screens, replace the existing Trusted Assistant brand/logo direction, create new navigation, or mix fictitious mockup values with live business data.
+
+- **Base:** near-black / midnight-navy / graphite backgrounds, readable type, understated borders and spacious layouts; sparse tiny low-contrast star points and rare faint constellation links mainly in empty header/background space, fading around working content.
+- **Atmosphere:** diffuse, exceptionally restrained aurora glow; use mild area-specific accents (turquoise, soft pink, violet, indigo, teal, subdued green) through **shared design tokens**, not independent card-by-card saturated neon. Use one coherent dark app; subdued specialist-page moods must not harm recognition, accessibility or business workflows.
+- **Busy presence:** a small distinctive abstract luminous ring with tiny nearby points, separate from the company logo. States: calm idle; gently pulsing confirmed listening; subtle connected points during actual working; quiet settling when truly complete. Animation may reflect **only trustworthy actual state**, never a fabricated provider outcome, listening session or success.
+- **Interaction discipline:** preserve exactly six existing connected Home areas and meaningful owner approval/status; no seventh tile, fake analytics, decorative state confusion, or changed authority merely to match concept artwork. Important form fields, customer data and financial numbers stay visually calm and accessible.
+- **Quality:** Reduce Motion, strong contrast/focus, noncolour status cues, VoiceOver, readable dense screens, battery/thermal and low-powered device fallback. Avoid always-on animated starfields and heavy GPU effects; verify on real iPhone/iPad/web before declaring visual quality.
+- **Architecture:** central reusable theme tokens, bounded atmospheric components and specialist screen views. No ornamentation coupled into Business Brain, no giant AppController graphics module, no duplicate page-specific styles when shared components are appropriate. Maintain *Shared Intelligence, Separated Responsibilities*.
+- **Approval gate:** produce restrained real-screen stills and optional interaction studies for owner approval before implementing a broad redesign. Keep changes reversible and separately verify native/browser performance, accessibility and visual consistency; do not treat passing offline source tests or generated images as UX validation.
+
+Cross-reference: private V22.43 Section 61; standing two-master governance. This public description contains non-sensitive implementation guidance only, not the owner's full private master.
+
 ## Phase50 — older-listing review and protected source-only drafts
 
 Original Work quote preparation can deliberately review current approved information for an earlier listing reference, preserving the original enquiry and independent owner fields. Historical price/description is not invented. Source-only newsletter changes now participate in original dirty-editor, status, account readback and Home continuation; original private save/restoration retains source evidence.

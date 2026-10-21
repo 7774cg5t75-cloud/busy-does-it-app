@@ -12,6 +12,11 @@ Owner-approved product-master reference: private **V22.42 (retaining Section 56)
 - For each feature sweep identify the owner of facts, approval, writes and external effects; check touched-code responsibilities, fan-in/fan-out, coupling, copy-pasted business rules and static/dynamic dependencies. At approximately five-major-sweep audits, inspect oversized files/components and show concrete incremental refactors and regression evidence; don't rewrite just to shorten files.
 - Protect tenant/owner boundaries, source identity, revision/CAS, stale-work denial, data portability, backward compatibility, current owner edits and result honesty in each domain's real trusted contract. Do not misstate source tests as hosted integration proof.
 
+
+## Approved future visual direction — Midnight Intelligence (owner decision 21 October 2026)
+
+Reference private Product Master **V22.43, Section 61** and the matching non-confidential `ARCHITECTURE.md` direction. Preserve premium near-black/midnight UI with exceptionally subtle stars, constellation links, restrained area-specific aurora tones and a distinctive non-cartoon Busy ring/presence. All effects are subordinate to legible, navigable business content; use shared tokens/components and keep page responsibilities separated from Business Brain and AppController. Actual listening/working/completed motion must be bound to truthful workflow state. Respect Reduce Motion, keyboard/screen readers, contrast, low-power/performance and correct six-area navigation. This is **future design approval only**, not permission for a broad code redesign, deployment, paid build or release. Review representative screens and motion with the owner before implementation; validate actual device/browser behaviour separately.
+
 ## Mandatory two-master preflight (owner decision, 14 October 2026)
 
 Before planning or beginning **any substantial sweep**, read both (1) the **latest saved Busy Does It product master** (the owner's versioned Word master, normally in ChatGPT Library or supplied by the owner) and (2) GitHub **`ARCHITECTURE.md`**, alongside the latest relevant source, prior sweep results and actual CI/staging evidence. Never rely on an outdated file copy or assume the two stay synced automatically. If the product master is inaccessible, disclose that limitation rather than claiming it was checked.
