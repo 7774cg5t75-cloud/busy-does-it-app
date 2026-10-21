@@ -1,5 +1,5 @@
 import {stableJson} from '../core/stableJson.mjs';
-import {enquiryReplyCustomerSource,preparePrivateEnquiryReply,resolvePrivateEnquiryReply,inspectPrivateEnquiryReply,inspectPrivateReplyAccount} from '../core/privateEnquiryReply.mjs';
+import {enquiryReplyCustomerSource,preparePrivateEnquiryReply,resolvePrivateEnquiryReply,inspectPrivateEnquiryReply,inspectPrivateReplyAccount,inspectPrivateReplyAccountRemoval} from '../core/privateEnquiryReply.mjs';
 import React from 'react';import {prepareEnquiryReplyText} from '../core/enquiryReplyText.mjs';import {protectQuoteDraftTransition} from '../core/quoteDraftTransition.mjs';
 // Volatile source/typing metadata. Original parent enquiry fields remain the only wording state.
 export function useEnquiryReplyPreparation(input){
@@ -78,7 +78,7 @@ export function useEnquiryReplyPreparation(input){
   const record=removing?null:preparePrivateEnquiryReply({ownerId:owner,businessId:business,customer:value.customer,item:value.item,revision:value.revision,text,purpose:value.purpose});
   if(!removing&&!record)return false;
   if(reconcile&&(!previous?.encoded||previous.value?.draftToken!==value.draftToken))return false;
-  const ticket={value,operation:removing?'remove':'save',text:reconcile?previous.text:text,status:'saving'};pendingSave.current=ticket;setSaveState(ticket);
+  const ticket={value,operation:removing?'remove':'save',removedRecord:removing?savedBefore:null,text:reconcile?previous.text:text,status:'saving'};pendingSave.current=ticket;setSaveState(ticket);
   // Typing may continue, but only this exact saved text can be acknowledged.
   const current=()=>sourceCurrent(value)&&live.current.selectedCustomerId===value.customer.id&&session.current?.draftToken===value.draftToken&&pendingSave.current===ticket&&value.customer.privateEnquiryReply===savedBefore&&stableJson(savedBefore||null)===savedStamp;
   let result;try{result=await input.persistPrivateReply({customer:value.customer,record,isCurrent:current,reconcile:reconcile?previous:null});}catch{result={status:'unknown'};}
@@ -110,13 +110,18 @@ export function useEnquiryReplyPreparation(input){
   return protect(()=>{epoch.current++;session.current={...next,words:saved.record.text,generatedText:null};pendingSave.current=null;setSaveState({status:'reopened',savedText:saved.record.text});live.current={...live.current,text:saved.record.text,selectedCustomerId:customerId};input.setText(saved.record.text);input.setSelectedCustomerId(customerId);input.setOrigin(customerId,saved.item);input.go('enquiryFollowUp');},()=>sourceCurrent(next)&&customer.privateEnquiryReply===saved.record);
  };
  const checkAccount=async()=>{
-  const value=session.current,record=value?.customer.privateEnquiryReply,typing=epoch.current;
-  if(!sourceCurrent(value)||!record||record.reference?.inboxId!==value.item.id||epoch.current!==renderEpoch||!input.readAccount||accountRequest.current?.checking)return false;
-  const ticket={value,record,checking:true};accountRequest.current=ticket;setAccountState({status:'checking',record});
-  let result;try{result=inspectPrivateReplyAccount({result:await input.readAccount(),ownerId:owner,businessId:business,customer:value.customer,record,item:value.item});}catch{result={status:'unknown'};}
+  const value=session.current,record=value?.customer.privateEnquiryReply||null,typing=epoch.current;
+  const removalTicket=pendingSave.current;
+  const removing=!record&&removalTicket?.status==='removed'&&removalTicket.operation==='remove'&&removalTicket.value?.draftToken===value?.draftToken&&removalTicket.removedRecord?.reference?.inboxId===value?.item.id;
+  if(!sourceCurrent(value)||!record&&!removing||record&&record.reference?.inboxId!==value.item.id||epoch.current!==renderEpoch||!input.readAccount||accountRequest.current?.checking)return false;
+  const ticket={value,record,removing,removalTicket:removing?removalTicket:null,checking:true};accountRequest.current=ticket;setAccountState({status:'checking',record,removed:removing,customer:value.customer,removedRecord:removing?removalTicket.removedRecord:null});
+  let result;try{
+   const read=await input.readAccount();
+   result=removing?inspectPrivateReplyAccountRemoval({result:read,ownerId:owner,businessId:business,customer:value.customer,removedRecord:removalTicket.removedRecord,item:value.item}):inspectPrivateReplyAccount({result:read,ownerId:owner,businessId:business,customer:value.customer,record,item:value.item});
+  }catch{result={status:'unknown'};}
   if(accountRequest.current!==ticket)return false;accountRequest.current={...ticket,checking:false};
-  if(!sourceCurrent(value)||session.current?.draftToken!==value.draftToken||epoch.current!==typing||live.current.selectedCustomerId!==value.customer.id){setAccountState({status:'unknown',record});return false;}
-  setAccountState({...result,record});return result.status==='confirmed';
+  if(!sourceCurrent(value)||session.current?.draftToken!==value.draftToken||epoch.current!==typing||live.current.selectedCustomerId!==value.customer.id||removing&&(pendingSave.current!==removalTicket||!!value.customer.privateEnquiryReply)||!removing&&value.customer.privateEnquiryReply!==record){setAccountState({status:'unknown',record,removed:removing,customer:value.customer,removedRecord:removing?removalTicket.removedRecord:null});return false;}
+  setAccountState({...result,record,removed:removing,customer:value.customer,removedRecord:removing?removalTicket.removedRecord:null});return result.status==='confirmed'||result.status==='absent';
  };
  const reviewSaved=customerId=>{
   if(!valid()||epoch.current!==renderEpoch)return false;
@@ -131,6 +136,6 @@ export function useEnquiryReplyPreparation(input){
  const value=session.current;
  return {checkAccount,reviewSaved,savedReplies:savedReplies(),save:()=>savedAction('save'),removeSaved:()=>savedAction('remove'),checkSave:()=>save(true),reopen,prepare,prepareCurrent,resume,continuation:value&&sourceCurrent(value)&&input.text?.trim()?{customer:value.customer,item:value.item,text:input.text,epoch:renderEpoch,revision:value.revision}:null,edit,replaceLegacy,prepareQuestion:purpose=>value&&session.current===value&&sourceCurrent(value)&&epoch.current===renderEpoch?prepare(value.customer.id,value.item.id,purpose):false,hasSession:()=>!!session.current,
   text:value?(valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?input.text:''):input.text,
-  review:value&&valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?{item:value.item,customer:value.customer,purpose:value.purpose,requirements:sourceCurrent(value)?prepareEnquiryReplyText({customer:value.customer,item:value.item,businessId:business,approvedProfile:input.profile,purpose:'acknowledge'}):null,current:sourceCurrent(value),epoch:renderEpoch,accountStatus:accountState&&accountState.record===value.customer.privateEnquiryReply?(accountState.status==='confirmed'&&accountState.savedText!==input.text?'newer':accountState.status):null,saveStatus:saveState?.savedText&&saveState.savedText!==input.text?'newer':saveState?.status||'unsaved'}:null,
+  review:value&&valid()&&bound(value)&&input.selectedCustomerId===value.customer.id?{item:value.item,customer:value.customer,purpose:value.purpose,requirements:sourceCurrent(value)?prepareEnquiryReplyText({customer:value.customer,item:value.item,businessId:business,approvedProfile:input.profile,purpose:'acknowledge'}):null,current:sourceCurrent(value),epoch:renderEpoch,accountStatus:accountState&&(accountState.removed?accountState.customer===value.customer&&!value.customer.privateEnquiryReply&&saveState?.status==='removed'&&saveState.removedRecord===accountState.removedRecord:!!accountState.record&&accountState.record===value.customer.privateEnquiryReply)?(accountState.status==='confirmed'&&accountState.savedText!==input.text?'newer':accountState.status):null,saveStatus:saveState?.savedText&&saveState.savedText!==input.text?'newer':saveState?.status||'unsaved'}:null,
   returnToSource:()=>{const current=session.current;if(!sourceCurrent(current)||epoch.current!==renderEpoch||live.current.selectedCustomerId!==current.customer.id)return false;input.setOrigin(current.customer.id,current.item);return input.returnToSource(current.customer.id);}};
 }

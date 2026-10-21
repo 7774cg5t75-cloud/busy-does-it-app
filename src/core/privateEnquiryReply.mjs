@@ -37,3 +37,16 @@ export function inspectPrivateReplyAccount({result,ownerId,businessId,customer,r
  const checked=resolvePrivateEnquiryReply({ownerId,businessId,customer:remote,inboxItems:result.payload.inboxItems,revision:result.revision});
  return checked&&stableJson(checked.item)===stableJson(item)?{status:'confirmed',savedText:saved.text,revision:result.revision}:{status:'different'};
 }
+
+// Read-only observation after device-copy removal. Absence does not prove that
+// the local removal synced, that any older client retained it, or erasure.
+export function inspectPrivateReplyAccountRemoval({result,ownerId,businessId,customer,removedRecord,item}){
+ if(!result?.ok||result.businessId!==businessId||!customer||customer.privateEnquiryReply||!removedRecord||!item)return {status:'unknown'};
+ const rows=result.payload?.customers?.filter(row=>row.id===customer.id);
+ if(rows?.length!==1)return {status:'different'};
+ const remote=rows[0];
+ if(stableJson(enquiryReplyCustomerSource(remote))!==stableJson(enquiryReplyCustomerSource(customer)))return {status:'different'};
+ const checked=resolvePrivateEnquiryReply({ownerId,businessId,customer:{...remote,privateEnquiryReply:removedRecord},inboxItems:result.payload?.inboxItems,revision:result.revision});
+ if(!checked||stableJson(checked.item)!==stableJson(item))return {status:'different'};
+ return remote.privateEnquiryReply?{status:'present',revision:result.revision}:{status:'absent',revision:result.revision};
+}
