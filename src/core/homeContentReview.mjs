@@ -4,7 +4,9 @@ import {contentDraftChanges} from './contentDraftChanges.mjs';
 export function homeContentReview(s,getCurrent){
  const ownerId=s.ownerSession?.userId,businessId=s.cloudWorkspace?.businessId;
  if(!ownerId||!businessId||!['owner','admin'].includes(s.cloudWorkspace?.role))return null;
- const record=(s.socialDrafts||[]).filter(item=>item?.status==='Draft'&&typeof item.text==='string'&&item.text.trim()&&typeof item.id==='string'&&(!item.businessId||item.businessId===businessId)&&(!item.contentEvidence?.businessId||item.contentEvidence.businessId===businessId)&&s.socialDrafts.filter(row=>row.id===item.id).length===1&&!item.publishedAt).sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')))[0];
+ const records=s.socialDrafts||[],counts=new Map();
+ for(const row of records)counts.set(row?.id,(counts.get(row?.id)||0)+1);
+ const record=records.filter(item=>item?.status==='Draft'&&typeof item.text==='string'&&item.text.trim()&&typeof item.id==='string'&&(!item.businessId||item.businessId===businessId)&&(!item.contentEvidence?.businessId||item.contentEvidence.businessId===businessId)&&counts.get(item.id)===1&&!item.publishedAt).sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')))[0];
  if(!record)return null;
  const scope=s.ownerWorkspaceScope,revision=s.cloudRevision,stamp=stableJson(record),newsletter=record.contentEvidence?.channel==='newsletter';
  return {id:'content-review-'+record.id,score:55,eyebrow:'Content Creator',title:newsletter?'Continue your private newsletter wording':'Continue your private content draft',
