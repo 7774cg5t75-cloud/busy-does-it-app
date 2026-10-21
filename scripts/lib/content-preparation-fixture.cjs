@@ -10,3 +10,13 @@ module.exports=function contentPreparationFixture(extra={}){
  const walk=x=>Array.isArray(x)?x.flatMap(walk):x&&typeof x==='object'?[x,...walk(x.props?.children)]:[];
  return {rt,data,render,state,walk,find:(tree,label)=>walk(tree).find(n=>n.props?.label===label),get actions(){return actions;},get prompt(){return prompt;},get route(){return route;}};
 };
+// Lazily extract real original parent closures for inert integration fixtures.
+module.exports.parent=function originalParent(name,env){
+ if(!module.exports.initializers){
+  const fs=require('node:fs'),{parse}=require('@babel/parser'),source=fs.readFileSync('src/app/AppController.js','utf8'),initializers=new Map();
+  function visit(n){if(!n||typeof n!=='object')return;if(n.type==='VariableDeclarator'&&n.id?.type==='Identifier'&&n.init)initializers.set(n.id.name,source.slice(n.init.start,n.init.end));for(const v of Object.values(n)){if(Array.isArray(v))v.forEach(visit);else if(v&&typeof v==='object')visit(v);}}
+  visit(parse(source,{sourceType:'module',plugins:['jsx']}));module.exports.initializers=initializers;
+ }
+ const code=module.exports.initializers.get(name);if(!code)throw Error('Missing original parent '+name);
+ return Function(...Object.keys(env),'return '+code)(...Object.values(env));
+};
