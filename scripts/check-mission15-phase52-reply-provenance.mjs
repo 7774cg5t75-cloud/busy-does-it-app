@@ -25,6 +25,8 @@ assert.equal(resolvePrivateEnquiryReply({ownerId:'foreign',businessId:business,c
 actions.edit('Pending owner wording');render();hold=true;task=actions.save();await new Promise(r=>setImmediate(r));const before=customers;scopeRef.current={};release();assert.equal(await task,false);assert.equal(customers,before);assert.equal(text,'Pending owner wording');
 console.log('PASS real Inbox/reply UI -> original parent save adapter -> scoped snapshot queue/write/readback -> original customer record and deliberate reopen; exact filing/source/owner, duplicate clicks, newer typing, unknown read-only reconciliation and scope change. No cloud/save delivery/OS recovery claim.');
 
-const {privateReplyCatalogueProvenance}=await import('../src/core/privateEnquiryReply.mjs');const good=customers[0].privateEnquiryReply.provenance;
+const {privateReplyCatalogueProvenance,preparePrivateEnquiryReply}=await import('../src/core/privateEnquiryReply.mjs');const good=customers[0].privateEnquiryReply.provenance;
 assert.equal(privateReplyCatalogueProvenance({businessId:'other-business',item,prepared:good}),null);assert.equal(privateReplyCatalogueProvenance({businessId:business,item:{...item,rawText:'Listing reference: product_other / approved revision 1.'},prepared:good}),null);
 console.log('PASS original parent save adapter, scoped cache readback, Inbox reopen and reply editor retain exact reviewed catalogue provenance without promoting it to current approval. Keep/Use, owner text, current revisions and foreign/mismatched evidence protected.');
+
+assert.equal(preparePrivateEnquiryReply({ownerId:owner,businessId:business,customer:customers[0],item:{...item,businessId:'foreign'},revision,text:'Private words',purpose:'acknowledge'}),null,'A foreign enquiry cannot become a local saved reply');

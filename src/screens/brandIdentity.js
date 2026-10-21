@@ -12,12 +12,7 @@ import {
   StatusChip,
 } from "../components/ui";
 
-const toneChoices = [
-  "Friendly and professional",
-  "Warm and conversational",
-  "Straightforward and practical",
-  "Premium and polished",
-];
+import {BRAND_TONE_CHOICES as toneChoices} from '../core/brandVoice.mjs';
 
 const visualChoices = [
   "Clean and modern",

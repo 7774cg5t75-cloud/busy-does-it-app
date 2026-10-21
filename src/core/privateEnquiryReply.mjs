@@ -8,7 +8,7 @@ const replySourceStamp=(customer,item)=>stableJson([enquiryReplyCustomerSource(c
 function savedSourceStamp(record){try{const source=JSON.parse(record.sourceStamp);return Array.isArray(source)&&source.length===2?replySourceStamp(source[0],source[1]):null;}catch{return null;}}
 export function preparePrivateEnquiryReply({ownerId,businessId,customer,item,revision,text,purpose,provenance}){
  const reference=quoteEnquiryReference({businessId,customerId:customer?.id,item,revision});
- if(!ownerId||!reference||customer?.contactOk===false||typeof text!=='string'||!text.trim()||text.length>10000||[customer?.businessId,customer?.business_id].some(id=>id&&id!==businessId))return null;
+ if(!ownerId||!reference||customer?.contactOk===false||typeof text!=='string'||!text.trim()||text.length>10000||[customer?.businessId,customer?.business_id,item?.businessId,item?.business_id].some(id=>id&&id!==businessId))return null;
  const evidence=privateReplyCatalogueProvenance({businessId,item,prepared:provenance});
  return {version:2,ownerId,businessId,customerId:customer.id,reference,sourceStamp:replySourceStamp(customer,item),text,purpose,...evidence?{provenance:evidence}:{},privateOnly:true};
 }
@@ -16,7 +16,7 @@ export function inspectPrivateEnquiryReply({ownerId,businessId,customer,inboxIte
  const record=customer?.privateEnquiryReply,reference=record?.reference;
  if(!ownerId||!businessId||![1,2].includes(record?.version)||record.ownerId!==ownerId||record.businessId!==businessId||record.customerId!==customer.id||[customer.businessId,customer.business_id].some(id=>id&&id!==businessId)||record.privateOnly!==true||typeof record.text!=='string'||!record.text.trim()||record.text.length>10000||reference?.version!==1||reference.businessId!==businessId||reference.customerId!==customer.id||!reference.inboxId||!Number.isSafeInteger(reference.snapshotRevision)||reference.snapshotRevision<1||!Number.isSafeInteger(revision)||revision<reference.snapshotRevision)return null;
  const item=resolveQuoteEnquiryReference(reference,{businessId,customerId:customer.id,inboxItems,revision});
- const current=!!item&&customer.contactOk!==false&&replySourceStamp(customer,item)===savedSourceStamp(record);
+ const current=!!item&&![item.businessId,item.business_id].some(id=>id&&id!==businessId)&&customer.contactOk!==false&&replySourceStamp(customer,item)===savedSourceStamp(record);
  return {record,item:current?item:null,current};
 }
 export function resolvePrivateEnquiryReply(input){const saved=inspectPrivateEnquiryReply(input);return saved?.current?{record:saved.record,item:saved.item}:null;}

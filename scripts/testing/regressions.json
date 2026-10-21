@@ -2041,6 +2041,18 @@
       "args": [
         "scripts/check-mission15-phase52-newsletter-versions.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase52-owner-tone",
+      "args": [
+        "scripts/check-mission15-phase52-owner-tone.mjs"
+      ]
+    },
+    {
+      "id": "mission15-phase52-retention-contract",
+      "args": [
+        "scripts/check-mission15-phase52-retention-contract.mjs"
+      ]
     }
   ]
 }

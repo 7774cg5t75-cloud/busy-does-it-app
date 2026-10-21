@@ -7,6 +7,7 @@
  * Consumer channels use this same source so AI/marketing generation can be
  * added later behind explicit user approval and per-tenant protections.
  */
+import {approvedBrandTone} from './brandVoice.mjs';
 import {validPrivateBuilderPair} from "./ownerBuilderDraftGuardV3195.mjs";
 import {PALETTES,safeHex,nativePalette} from "./nativePalette.mjs";
 import {appVisualPresentation} from "./appVisualPresentationV3194.mjs";
@@ -87,9 +88,7 @@ function buildBusinessBrandDnaSnapshot({website,app,businessId}={}){
   const webOnly=web.filter(row=>normal(row?.title)&&!raw.some(item=>normal(item?.name)===normal(row.title))).length;
   if(appOnly||webOnly)conflicts.push('Service coverage differs: '+appOnly+' app-only and '+webOnly+' website-only. Missing-only reuse needs owner review.');
  }
- const ownerVoice=cleanText(profile.brandVoice?.tone,48);
- const voice=ownerVoice&&["warm","professional","playful","direct","premium","calm"]
-  .includes(ownerVoice.toLowerCase())?ownerVoice.toLowerCase():null;
+ const voice=approvedBrandTone(profile.brandVoice?.tone);
  return {ok:true,schema:"private_brand_dna_draft_v1",
   businessId,source:{websiteId:website.id,websiteGeneration:website.generation,
    appId:app.id,appDraftRevision:app.draft_revision},
@@ -133,7 +132,8 @@ function buildContentBrandSnapshot({website,app,businessId,approvedProfile,sourc
   if(!snapshot.ok||!approvedProfile?.businessName)return snapshot;
   const normal=value=>String(value||'').trim().toLocaleLowerCase('en');
   const approvedServices=Array.isArray(approvedProfile.services)?approvedProfile.services:[];
-  const differs=normal(snapshot.identity.name)!==normal(approvedProfile.businessName)||approvedServices.some(service=>!snapshot.services.some(row=>normal(row.name)===normal(service.name)))||snapshot.services.some(service=>{
+  const profileVoice=approvedBrandTone(approvedProfile.toneOfVoice);
+  const differs=!!profileVoice&&profileVoice!==snapshot.voice.ownerChosenTone||normal(snapshot.identity.name)!==normal(approvedProfile.businessName)||approvedServices.some(service=>!snapshot.services.some(row=>normal(row.name)===normal(service.name)))||snapshot.services.some(service=>{
    if(!approvedServices.some(row=>normal(row.name)===normal(service.name)))return true;
    const rows=approvedServices.filter(row=>normal(row.name)===normal(service.name));
    return rows.length===1&&normal(rows[0].description)&&normal(rows[0].description)!==normal(service.description);
@@ -144,8 +144,8 @@ function buildContentBrandSnapshot({website,app,businessId,approvedProfile,sourc
  const name=cleanText(approvedProfile.businessName,140);if(!name)return {ok:false,reason:'Add an approved business name before preparing content.'};
  const services=(Array.isArray(approvedProfile.services)?approvedProfile.services:[]).slice(0,30).map(row=>({id:cleanText(row?.id,128),name:cleanText(row?.name,120),description:cleanText(row?.description,500)})).filter(row=>row.name).slice(0,12);
  const identity={name,tagline:cleanText(approvedProfile.tagline,220),about:cleanText(approvedProfile.description||approvedProfile.about,900)};
- const colour=normalColour(approvedProfile.theme?.primary);
- return {ok:true,schema:'private_brand_dna_draft_v1',businessId,source:{approvedProfileSource:JSON.stringify({identity,services,colour})},identity,
-  services,design:{primaryColour:colour,appTypography:null},voice:{ownerChosenTone:null},assets:{photos:[]},conflicts:[],privateOnly:true,requiresOwnerReview:true,autoPublishes:false,sourceOfTruth:'current approved shared business profile'};
+ const colour=normalColour(approvedProfile.theme?.primary),voice=approvedBrandTone(approvedProfile.toneOfVoice);
+ return {ok:true,schema:'private_brand_dna_draft_v1',businessId,source:{approvedProfileSource:JSON.stringify({identity,services,colour,...voice?{voice}:{}})},identity,
+  services,design:{primaryColour:colour,appTypography:null},voice:{ownerChosenTone:voice},assets:{photos:[]},conflicts:[],privateOnly:true,requiresOwnerReview:true,autoPublishes:false,sourceOfTruth:'current approved shared business profile'};
 }
 export {buildContentBrandSnapshot};
