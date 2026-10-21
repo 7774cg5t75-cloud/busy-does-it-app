@@ -1,4 +1,4 @@
-import {savedAnnouncementEligible,savedAnnouncementStamp,requestsSavedAnnouncement} from '../core/savedAnnouncementSource.mjs';
+import {savedAnnouncementEligible,savedAnnouncementStamp,savedAnnouncementOwnerFacts,requestsSavedAnnouncement} from '../core/savedAnnouncementSource.mjs';
 import {contentDraftChanges} from '../core/contentDraftChanges.mjs';
 import React from 'react';
 import {publicBusinessContent,selectBusinessContent,prepareBusinessContentEnquiry} from '../core/businessContentRecords.mjs';
@@ -22,7 +22,7 @@ export function useSocialContentHandoff(input){
  };
  const prepareSavedAnnouncement=(record,channel=record?.contentEvidence?.channel||'social',treatment=record?.contentEvidence?.treatment||'standard',platform='',requiresTreatmentSelection=false)=>{
   if(!valid()||epoch.current!==renderEpoch||!savedAnnouncementEligible(record,live.current.businessId,live.current.records))return false;
-  return prepare('',platform,'','owner-announcement',record.text,treatment,requiresTreatmentSelection,channel,{record,stamp:savedAnnouncementStamp(record),scope,ownerId:live.current.ownerId,businessId:live.current.businessId});
+  return prepare('',platform,'','owner-announcement',savedAnnouncementOwnerFacts(record,live.current.businessId),treatment,requiresTreatmentSelection,channel,{record,stamp:savedAnnouncementStamp(record),scope,ownerId:live.current.ownerId,businessId:live.current.businessId});
  };
  const keep=expected=>{if(!valid()||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected)return false;epoch.current++;const {pendingContentIdea,...rest}=live.current.sourceContext;setContext(rest);return true;};
  const failPending=(expected,reason)=>{
