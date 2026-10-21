@@ -66,5 +66,5 @@ export function prepareEnquiryCatalogueReply({customer,item,businessId,result,ap
  const information=checked.message.replace(/\nPlease tell me more\.$/,'')+'\n'+row.data.description;
  return {...base,purpose:'catalogue',selection:source.selection,recordStamp:source.recordStamp,changed,
   warning:changed?'The enquiry refers to an earlier listing. Earlier facts cannot be verified here; review these current approved details against the original request.':'Review current approved details against the original customer request.',
-  text:base.text+'\n\n'+(changed?'The listing has changed since your enquiry. Please review these current listed details:':'Here are the current listed details for you to review:')+'\n'+information+'\n\nPlease let us know whether these details meet your requirements. Listed information does not confirm availability, an agreed quote or a booking.'};
+  text:base.text+'\n\n'+(changed?'Your enquiry refers to an earlier listing version. Please review these current listed details:':'Here are the current listed details for you to review:')+'\n'+information+'\n\nPlease let us know whether these details meet your requirements. Listed information does not confirm availability, an agreed quote or a booking.'};
 }
