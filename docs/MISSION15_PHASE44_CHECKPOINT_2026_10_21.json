@@ -1,0 +1,36 @@
+{
+  "phase": 44,
+  "completion": "checkpoint_only",
+  "base": "f83b936d7401d2af76d12d673908ea37870e2ed0",
+  "functionalHead": "09d259c166f85f65a1cb6fc7395074650901f432",
+  "functionalTree": "5a508b597807580f84c627739618aaa0171460cc",
+  "focusedSourceV8": {
+    "executed": true,
+    "passed": 12,
+    "failed": 0,
+    "scope": "isolated actual source function evaluation with inert dependencies; non-JSX React hooks compiled after import removal"
+  },
+  "nodeRegressions": {
+    "added": [
+      "scripts/check-mission15-phase44-announcement-reuse.mjs",
+      "scripts/check-mission15-phase44-removal-account.mjs"
+    ],
+    "executed": false,
+    "passed": null,
+    "failed": null
+  },
+  "fullOfflineSelection": {
+    "executed": false,
+    "passed": null,
+    "failed": null,
+    "phase43HistoricalPassed": 281
+  },
+  "jsxParser": {
+    "executed": false
+  },
+  "nativeHostedProvider": {
+    "executed": false
+  },
+  "spentGBP": 0,
+  "limit": "No complete Phase 44 regression assurance; do not claim release readiness."
+}
