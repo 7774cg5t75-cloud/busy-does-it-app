@@ -2,7 +2,7 @@ import {persistPrivateReply} from './privateEnquiryReplyPersistence.mjs';
 import {useEnquiryReplyPreparation} from '../screens/useEnquiryReplyPreparation';
 import {homeUnsavedContentReview} from '../core/homeContentReview.mjs';
 import {privateContentChannels,restoreContentDraft} from '../core/contentDraftChanges.mjs';
-import {quoteEnquiryReference,resolveQuoteEnquiryReference,prepareQuoteEnquiryDetails} from '../core/quoteEnquiryReference.mjs';
+import {quoteEnquiryReference,resolveQuoteEnquiryReference,prepareQuoteEnquiryDetails,reviewedFiledEnquiry} from '../core/quoteEnquiryReference.mjs';
 import {preparedQuoteTarget,followUpQuoteTarget} from '../core/homeQuoteReview.mjs';
 import {readPrivateQuoteCopy,quoteCustomerSource} from '../core/privateQuoteCopy.mjs';
 import {protectQuoteDraftTransition,isQuoteDraftSourceCurrent} from '../core/quoteDraftTransition.mjs';
@@ -17789,8 +17789,8 @@ function App() {
     quoteEnquiryLinkStatus:replyActions[selectedReplyActionId]?.details?.enquiryReference?resolveQuoteEnquiryReference(replyActions[selectedReplyActionId].details.enquiryReference,{businessId:cloudWorkspace?.businessId,customerId:selectedReplyActionId,inboxItems,revision:cloudRevision})?'linked':'needs-review':'',
     resumeCurrentEnquiry,
     returnToQuoteEnquiry,
-    customerEnquiryOriginItem:replyActionOrigin.current?.workspace===businessWorkspaceScopeRef.current&&replyActionOrigin.current?.customerId===selectedCustomerId&&['owner','admin'].includes(cloudWorkspace?.role)&&inboxItems.includes(replyActionOrigin.current?.item)&&replyActionOrigin.current?.item?.status==='Filed'&&replyActionOrigin.current.item.filedCustomerId===selectedCustomerId&&JSON.stringify(replyActionOrigin.current.item)===replyActionOrigin.current.stamp?replyActionOrigin.current.item:null,
-    quoteEnquiryOriginItem:replyActionOrigin.current?.workspace===businessWorkspaceScopeRef.current&&replyActionOrigin.current?.customerId===selectedReplyActionId&&['owner','admin'].includes(cloudWorkspace?.role)&&inboxItems.includes(replyActionOrigin.current?.item)&&replyActionOrigin.current?.item?.status==='Filed'&&replyActionOrigin.current.item.filedCustomerId===selectedReplyActionId&&JSON.stringify(replyActionOrigin.current.item)===replyActionOrigin.current.stamp?replyActionOrigin.current.item:null,
+    customerEnquiryOriginItem:['owner','admin'].includes(cloudWorkspace?.role)?reviewedFiledEnquiry({origin:replyActionOrigin.current,workspace:businessWorkspaceScopeRef.current,customerId:selectedCustomerId,inboxItems}):null,
+    quoteEnquiryOriginItem:['owner','admin'].includes(cloudWorkspace?.role)?reviewedFiledEnquiry({origin:replyActionOrigin.current,workspace:businessWorkspaceScopeRef.current,customerId:selectedReplyActionId,inboxItems}):null,
     quoteFollowUpOriginItem:quoteFollowUpScope.current?.workspace===businessWorkspaceScopeRef.current&&quoteFollowUpScope.current?.customerId===selectedReplyActionId&&inboxItems.includes(quoteFollowUpScope.current?.originItem)&&quoteFollowUpScope.current?.originItem?.filedCustomerId===selectedReplyActionId&&quoteFollowUpScope.current?.originItem?.status==="Filed"?quoteFollowUpScope.current.originItem:null,
     quoteFollowUpSourceCurrent:isQuoteDraftSourceCurrent(quoteFollowUpScope.current,businessWorkspaceScopeRef.current,selectedReplyActionId,replyActions[selectedReplyActionId],customers.find(row=>row.id===selectedReplyActionId)||lastSimulatedRecipients.find(row=>row.id===selectedReplyActionId)),
     setQuoteFollowUpOutcome:value=>{if(!["No reply yet","Still considering","Accepted","Declined"].includes(value)||businessWorkspaceScopeRef.current!==renderedBusinessWorkspaceScope||!isQuoteDraftSourceCurrent(quoteFollowUpScope.current,renderedBusinessWorkspaceScope,selectedReplyActionId,quoteFollowUpSources.current?.replyActions?.[selectedReplyActionId]))return;quoteFollowUpTypingEpoch.current++;setQuoteFollowUpOutcome(value);},

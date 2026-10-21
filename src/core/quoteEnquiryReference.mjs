@@ -26,3 +26,10 @@ export function prepareQuoteEnquiryDetails({details,existingReference,businessId
  // Legacy items without a filing receipt remain saveable, without a fabricated link.
  return reference?{...prepared,enquiryReference:reference}:prepared;
 }
+
+// Read-only presentation of an existing reviewed origin; caller retains role checks.
+export function reviewedFiledEnquiry({origin,workspace,customerId,inboxItems=[]}={}){
+ const item=origin?.item;
+ if(!origin||origin.workspace!==workspace||origin.customerId!==customerId||!item||!Array.isArray(inboxItems)||!inboxItems.includes(item)||inboxItems.filter(row=>row?.id===item.id).length!==1||item.status!=='Filed'||item.filedCustomerId!==customerId||JSON.stringify(item)!==origin.stamp)return null;
+ return item;
+}

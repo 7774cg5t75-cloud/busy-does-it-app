@@ -1981,6 +1981,12 @@
       "args": [
         "scripts/check-mission15-phase49-newsletter-source.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase49-enquiry-projection",
+      "args": [
+        "scripts/check-mission15-phase49-enquiry-projection.mjs"
+      ]
     }
   ]
 }
