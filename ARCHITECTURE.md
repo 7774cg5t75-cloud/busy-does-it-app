@@ -1,3 +1,11 @@
+## Phase51 — original replies, saved newsletter recovery and shared requirements
+
+Original private enquiry replies can deliberately review current approved product/event information from an older exact listing reference, using the same pure source validator as Work quote preparation. Current listed facts remain separate from historical customer assertions. Owner wording changes require review, then a fresh authenticated catalogue read; quote amounts/dates are untouched. Missing, duplicate, foreign, expired/cancelled or changed sources fail closed.
+
+Saved newsletter account/source review now targets the exact saved record even when current source evidence differs, before original Keep/Open. Older account responses cannot confirm recovery. Exact current wording, audience brief, photos, destinations and treatment remain until deliberate selection. New clarification reuses supplied requirements and approved service corrections; no repeated questions for structured details already present. This is private preparation, not sending, booking, saving or verified customer time saved.
+
+Source-tested evidence and limitations: `docs/MISSION15_PHASE51_2026_10_21.md`, matching CHECKS and architecture report. No new production store, provider or schema; six Home areas, original builder checkpoint and draft PR chain remain. Hosted/member/RLS/CAS, older-client private-field retention, catalogue provisioning, publisher trust and device/provider/release gates remain separate.
+
 ## Approved future visual direction — Midnight Intelligence (21 October 2026; private Master V22.43 Section 61)
 
 **Status:** Owner-approved premium-dark visual language for a later coordinated, explicitly reviewed design implementation. Design discussions and illustrative mockups **did not change the application**. Do not silently infer implemented screens, replace the existing Trusted Assistant brand/logo direction, create new navigation, or mix fictitious mockup values with live business data.

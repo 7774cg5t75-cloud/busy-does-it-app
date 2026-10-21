@@ -1,3 +1,9 @@
+## Phase51 — current task attachment verified (V22.43, 21 October 2026)
+
+The complete owner-attached Word was opened: internal version22.43, original SHA-256 `c0cd8558d704123773f1eb042c6847cb2e91f0e3c0406b0b3ec2e043ca4924ff`, 2,069 body/table paragraphs and19 tables. Unchanged ordered body/table text matches the accessible fully reviewed V22.42; cover version and all new Section61 paragraphs were reviewed. Sections57–60 remain unchanged and their genuine full review is reused. Private original and complete extraction remain outside public Git.
+
+The newer GitHub documentation-only commit57c9824a9bed568e1b44721253b195d9836f1098 records another V22.43 variant (`42f10a98…`,2,073 paragraphs). That provenance/history is preserved below; it is not claimed byte-identical to this mission's actual attachment. The explicitly attached, checksum-matching source above is used for Phase51. Visual direction remains future exploration, not UI implementation/brand replacement or live-action approval. Future tasks must verify the then-current actual private source again.
+
 # Busy Does It — Standing Codex Repository Instructions
 
 ## Current owner-approved private master — V22.43 (21 October 2026)

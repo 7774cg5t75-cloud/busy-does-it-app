@@ -10,7 +10,9 @@ Busy Does It aims to be an intelligent, connected operating layer for small busi
 
 The product should feel extraordinarily simple. Complexity belongs in reusable engineering and responsible automation, not in customers' menus or explanations. Optimize for reliable end-to-end outcomes and customer control over flashy demos or raw feature count.
 
-## Current owner-approved direction — V22.42
+## Current owner-approved direction — V22.43
+
+The Phase51 attachment is verified separately in the master-access manifest. Premium Midnight Atmosphere is approved future design exploration only; no broad redesign or new visual assets are implemented.
 
 Freedom, simplicity and capability: reduce repeated owner entry and help complete real supported preparation. Prefer current authorised knowledge, plain-language review and evidence of outcomes. Preserve six Home areas and specialist ownership. Future tax/bookkeeping support is a roadmap; current quotes, jobs and communication receipts do not establish payments, deductible expenses, accounting calculations or HMRC readiness. See the Phase 48 source-backed readiness review.
 
