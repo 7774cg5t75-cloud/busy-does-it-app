@@ -15,6 +15,7 @@ export function QuoteEnquiryContext(props){
   {item.parsed?.service?<Text style={styles.cardBody}>{'Requested service: '+item.parsed.service}</Text>:null}
   {item.rawText?<Text selectable style={styles.cardBody}>{item.rawText}</Text>:<Text style={styles.cardBody}>The original item has no retained message wording. Review its customer record for supplied details.</Text>}
   {props.prepareQuote&&readCustomerEnquiryRequirements(item.rawText)?<Button label="Use supplied details in my quote draft" onPress={()=>props.prepareQuote(item)}/>:null}
+  {props.prepareService?<Button label="Use approved service information" onPress={()=>props.prepareService(item)}/>:null}
   {(s.quoteEnquiryOriginItem===item||s.customerEnquiryOriginItem===item)&&s.returnToQuoteEnquiry?<Button label="Return to original enquiry" onPress={()=>live.current.s.ownerWorkspaceScope===scope&&live.current.item===item&&live.current.customerId===customerId&&JSON.stringify(item)===stamp&&live.current.s.inboxItems?.includes(item)?live.current.s.returnToQuoteEnquiry(customerId):false}/>:null}
  </Card>;
 }

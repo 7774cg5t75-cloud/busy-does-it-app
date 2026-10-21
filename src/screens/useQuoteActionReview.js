@@ -64,13 +64,14 @@ export function useQuoteActionReview(s){
   if(!isCurrent()||typeof s.requestOwnerEditTransition!=='function')return false;
   return s.requestOwnerEditTransition(operation,{isCurrent});
  };
- const prepareEnquiry=item=>{
+ const prepareEnquiry=(item,purpose='quote-preparation')=>{
   if(!item||typeof item!=='object')return false;
+  if(!['quote-preparation','quote-information'].includes(purpose))return false;
   const profile=live.current.businessCreationIntelligence?.sharedProfile,revision=live.current.cloudRevision;
   const itemStamp=stableJson(item),profileStamp=stableJson(profile||null);
   const sourceCurrent=()=>current()&&!conflict&&!pending.current&&action?.type==='quote'&&(!action.details?.quoteStatus||action.details.quoteStatus==='Prepared')&&customer.contactOk!==false&&live.current.cloudRevision===revision&&Number.isSafeInteger(revision)&&live.current.quoteEnquiryOriginItem===item&&live.current.inboxItems?.filter(row=>row.id===item?.id).length===1&&live.current.inboxItems.includes(item)&&live.current.customers?.filter(row=>row.id===customer.id).length===1&&live.current.customers.includes(customer)&&stableJson(item)===itemStamp&&stableJson(live.current.businessCreationIntelligence?.sharedProfile||null)===profileStamp;
   if(epoch.current!==renderEpoch||!sourceCurrent())return false;
-  const prepared=prepareEnquiryReplyText({customer,item,businessId:s.cloudWorkspace.businessId,approvedProfile:profile,purpose:'quote-preparation'});
+  const prepared=prepareEnquiryReplyText({customer,item,businessId:s.cloudWorkspace.businessId,approvedProfile:profile,purpose});
   if(!prepared.ok)return false;
   const typing=epoch.current,wording=values(live.current);
   Alert.alert('Use these enquiry details?',prepared.text+'\n\nThis changes only your private wording. Your amount and date stay unchanged. Nothing is saved or sent.',[
@@ -79,5 +80,6 @@ export function useQuoteActionReview(s){
   ]);
   return true;
  };
- return {edit,commit,transition,prepareEnquiry,checkDeviceCopy:()=>current()&&s.checkPrivateQuoteCopy?.({isCurrent:()=>current()&&epoch.current===renderEpoch}),validDate,conflict,saving:!!pending.current,dirty:dirty.current,sentAt:()=>validDate?new Date(date+'T12:00:00').toISOString():null};
+ const enquiryInformation=current()&&s.quoteEnquiryOriginItem?prepareEnquiryReplyText({customer,item:s.quoteEnquiryOriginItem,businessId:s.cloudWorkspace.businessId,approvedProfile:s.businessCreationIntelligence?.sharedProfile,purpose:'quote-information'}):null;
+ return {edit,commit,transition,prepareEnquiry,canExplainService:enquiryInformation?.ok===true,checkDeviceCopy:()=>current()&&s.checkPrivateQuoteCopy?.({isCurrent:()=>current()&&epoch.current===renderEpoch}),validDate,conflict,saving:!!pending.current,dirty:dirty.current,sentAt:()=>validDate?new Date(date+'T12:00:00').toISOString():null};
 }

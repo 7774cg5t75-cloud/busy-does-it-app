@@ -3681,7 +3681,7 @@ function ReplyActionDetail({ s }) {
               : `Suggested from your saved ${customer.service.toLowerCase()} service price. Check it before using it.`}
           </Text>
         </View>
-        <QuoteEnquiryContext s={s} prepareQuote={quoteReview.prepareEnquiry}/>
+        <QuoteEnquiryContext s={s} prepareQuote={quoteReview.prepareEnquiry} prepareService={quoteReview.canExplainService?item=>quoteReview.prepareEnquiry(item,'quote-information'):null}/>
         <GetPaidOwnerReview s={s} customer={customer} saved={saved} type="quote" todayISO={todayISO} />
         <Card eyebrow="Private quote" title={quoteReview.conflict?'The saved quote changed':quoteReview.saving?'Checking the updated record':quoteReview.dirty?'Changes not recorded yet':'Private record review'} body={quoteReview.conflict?'Your words are kept. Reopen the current quote or deliberately discard your changes before using a different source.':'Recording this quote uses the current workspace record. Device/account persistence and customer delivery are not confirmed by this form.'} tone="blue" />
         <QuotePrivateSaveStatus s={s} record={saved} dirty={quoteReview.dirty} check={quoteReview.checkDeviceCopy}/>

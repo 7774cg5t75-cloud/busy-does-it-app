@@ -1951,6 +1951,12 @@
       "args": [
         "scripts/check-mission15-phase48-enquiry-quote.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase48-approved-knowledge",
+      "args": [
+        "scripts/check-mission15-phase48-approved-knowledge.mjs"
+      ]
     }
   ]
 }
