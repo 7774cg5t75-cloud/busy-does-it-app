@@ -1831,6 +1831,12 @@
       "args": [
         "scripts/check-mission15-phase43-connected-routing.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase43-date-flexibility",
+      "args": [
+        "scripts/check-mission15-phase43-date-flexibility.mjs"
+      ]
     }
   ]
 }
