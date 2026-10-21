@@ -9,13 +9,13 @@ import {inspectNewsletterAccount} from '../core/newsletterAccountReadback.mjs';
 export function NewsletterAccountReadback({s}){
  const [review,setReview]=React.useState(null),live=React.useRef(s),request=React.useRef(0);live.current=s;
  React.useEffect(()=>()=>{request.current++;},[]);
- const records=s.socialDrafts||[],matches=records.filter(row=>row.id===s.selectedSocialDraftId),record=matches.length===1?matches[0]:null;
+ const records=Array.isArray(s.socialDrafts)?s.socialDrafts:[],matches=records.filter(row=>row?.id===s.selectedSocialDraftId),record=matches.length===1?matches[0]:null;
  const stamp=record?stableJson(record):'',scope=s.ownerWorkspaceScope,owner=s.ownerSession?.userId,business=s.cloudWorkspace?.businessId;
- const eligible=record?.contentEvidence?.channel==='newsletter'&&record.contentEvidence.businessId===business&&record.status==='Draft'&&!record.publishedAt&&owner&&['owner','admin'].includes(s.cloudWorkspace?.role);
+ const eligible=![record?.businessId,record?.business_id].some(id=>id&&id!==business)&&![record?.ownerId,record?.owner_id].some(id=>id&&id!==owner)&&record?.contentEvidence?.channel==='newsletter'&&record.contentEvidence.businessId===business&&record.status==='Draft'&&!record.publishedAt&&owner&&['owner','admin'].includes(s.cloudWorkspace?.role);
  const check=async(reopen=false)=>{
   if(!eligible||!s.readPrivateContentAccount||s.socialContentActions?.isRenderCurrent?.()===false)return false;
   const localRevision=s.cloudRevision,token=++request.current,ticket=s.socialContentActions.capture(),evidence=s.socialSourceContext?.contentEvidence;
-  const current=(expectedEpoch=ticket.epoch)=>{const now=live.current,rows=now.socialDrafts?.filter(row=>row.id===record.id);return request.current===token&&now.ownerWorkspaceScope===scope&&now.cloudRevision===localRevision&&now.ownerSession?.userId===owner&&now.cloudWorkspace?.businessId===business&&['owner','admin'].includes(now.cloudWorkspace?.role)&&now.selectedSocialDraftId===record.id&&rows?.length===1&&rows[0]===record&&stableJson(record)===stamp&&now.socialSourceContext?.contentEvidence===evidence&&now.socialContentActions.fresh({...ticket,epoch:expectedEpoch});};
+  const current=(expectedEpoch=ticket.epoch)=>{const now=live.current,rows=Array.isArray(now.socialDrafts)?now.socialDrafts.filter(row=>row?.id===record.id):null;return request.current===token&&now.ownerWorkspaceScope===scope&&now.cloudRevision===localRevision&&now.ownerSession?.userId===owner&&now.cloudWorkspace?.businessId===business&&['owner','admin'].includes(now.cloudWorkspace?.role)&&now.selectedSocialDraftId===record.id&&rows?.length===1&&rows[0]===record&&stableJson(record)===stamp&&now.socialSourceContext?.contentEvidence===evidence&&now.socialContentActions.fresh({...ticket,epoch:expectedEpoch});};
   if(!current())return false;
   setReview({status:'checking',record,stamp,ticket,scope,owner,business,localRevision});
   let result;try{result=await s.readPrivateContentAccount();}catch{result={ok:false};}
