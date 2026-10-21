@@ -1885,6 +1885,12 @@
       "args": [
         "scripts/check-mission15-phase45-approved-newsletters.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase45-newsletter-editing",
+      "args": [
+        "scripts/check-mission15-phase45-newsletter-editing.mjs"
+      ]
     }
   ]
 }

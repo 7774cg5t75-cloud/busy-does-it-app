@@ -1,3 +1,4 @@
+import {editNewsletterWording} from '../core/brandedContentDraftV3198.mjs';
 import {supportsContentTextFormat} from '../core/contentTextFormats.mjs';
 import {savedAnnouncementEligible,savedAnnouncementStamp,savedAnnouncementOwnerFacts,requestsSavedAnnouncement} from '../core/savedAnnouncementSource.mjs';
 import {contentDraftChanges} from '../core/contentDraftChanges.mjs';
@@ -182,6 +183,11 @@ export function useSocialContentHandoff(input){
   if(!fresh(ticket))return false;
   epoch.current++;setContext({...live.current.sourceContext,contentSourceReview:{status:result.ok?'current':result.unknown?'unknown':'changed',reason:result.reason||'',checkedText:ticket.text,evidence}});return result.ok;
  };
+ const editNewsletterPart=(part,value)=>{
+  if(!valid()||live.current.selectedDraftId!==input.selectedDraftId||live.current.sourceContext?.contentEvidence!==input.sourceContext?.contentEvidence||live.current.sourceContext?.contentEvidence?.channel!=='newsletter')return false;
+  const changed=editNewsletterWording(live.current.text,part,value);if(changed===null)return false;
+  editText(changed);return true;
+ };
  const editText=value=>{if(!current())return;epoch.current++;live.current={...live.current,text:value};input.setText(value);};
  // UI confirmations must bind to the exact current local draft, including pre-render typing.
  const sourceJobStamp=()=>{
@@ -226,5 +232,5 @@ export function useSocialContentHandoff(input){
   if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform,'',null,result.treatment,result.needsTreatmentSelection,result.channel||'social');return {...result,opened:valid()};}
   return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose,result.ownerFacts,result.treatment,result.needsTreatmentSelection,result.channel||'social')}:result;
  };
- return {pendingSourceCurrent:expected=>pendingCurrent(expected),prepareSavedAnnouncement,isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,start,switchSource,selectService,refreshRecords,loadRecords,selectRecord,reprepareSource,chooseTreatment,chooseFormat,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource,checkAccountDraft,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
+ return {pendingSourceCurrent:expected=>pendingCurrent(expected),prepareSavedAnnouncement,isRenderCurrent:()=>valid()&&epoch.current===renderEpoch,route,prepare,start,switchSource,selectService,refreshRecords,loadRecords,selectRecord,reprepareSource,chooseTreatment,chooseFormat,editOwnerFacts,keep,accept,capture,fresh,freshSave,reviewSource,checkAccountDraft,editNewsletterPart,editText,reopen,replaceDraft,replaceFromJob,invalidate:()=>{if(current())epoch.current++;}};
 }
