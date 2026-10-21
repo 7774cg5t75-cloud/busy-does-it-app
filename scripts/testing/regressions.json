@@ -2029,6 +2029,12 @@
       "args": [
         "scripts/check-mission15-phase51-known-requirements.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase52-reply-provenance",
+      "args": [
+        "scripts/check-mission15-phase52-reply-provenance.mjs"
+      ]
     }
   ]
 }
