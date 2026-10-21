@@ -1915,6 +1915,12 @@
       "args": [
         "scripts/check-mission15-phase46-newsletter-account.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase46-reply-adapter",
+      "args": [
+        "scripts/check-mission15-phase46-reply-adapter.mjs"
+      ]
     }
   ]
 }
