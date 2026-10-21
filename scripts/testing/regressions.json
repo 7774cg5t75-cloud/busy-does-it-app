@@ -1993,6 +1993,12 @@
       "args": [
         "scripts/check-mission15-phase50-older-enquiry.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase50-newsletter-dirty",
+      "args": [
+        "scripts/check-mission15-phase50-newsletter-dirty.mjs"
+      ]
     }
   ]
 }

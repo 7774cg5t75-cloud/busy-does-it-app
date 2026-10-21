@@ -1,3 +1,4 @@
+import {stableJson} from './stableJson.mjs';
 // Finite private-draft comparison shared by original transition and status UI.
 const channels=[['facebook','Facebook'],['instagram','Instagram'],['googleBusiness','Google Business']];
 export function privateContentChannels(value){
@@ -25,5 +26,9 @@ export function contentDraftChanges(current,record){
  const exact=record?.contentEvidence?.channel==='newsletter';
  const wording=String(current.text||''),brief=String(current.brief||'');
  const result={wording:(exact?wording:wording.trim())!==String(record?.text||''),media:media(current.photos)!==media(savedPhotos),brief:(exact?brief:brief.trim())!==String(record?.brief||''),channels:requested!==null&&JSON.stringify([...requested].sort())!==JSON.stringify([...(record?.channels||[])].sort())};
+ if(Object.hasOwn(current,'contentEvidence')||Object.hasOwn(current,'sourceContext')){
+  const evidence=Object.hasOwn(current,'contentEvidence')?current.contentEvidence:current.sourceContext?.contentEvidence;
+  try{result.source=stableJson(evidence||null)!==stableJson(record?.contentEvidence||null);}catch{result.source=true;}
+ }
  return {...result,dirty:Object.values(result).some(Boolean)};
 }

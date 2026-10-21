@@ -9,9 +9,10 @@ export function ContentDraftStatus({s}){
  if(record.status!=='Draft')return null;
  const receipt=s.privateContentSave;
  const exact=receipt?.record===record;
- const changes=contentDraftChanges({text:s.socialDraftText,photos:s.socialCreatePhotos,brief:s.socialBrief,channels:s.socialDraftChannels},record);
- const newer=changes.wording,otherChanges=changes.media||changes.brief||changes.channels;
+ const changes=contentDraftChanges({text:s.socialDraftText,photos:s.socialCreatePhotos,brief:s.socialBrief,channels:s.socialDraftChannels,...Object.hasOwn(s,'socialSourceContext')?{sourceContext:s.socialSourceContext}:{}},record);
+ const newer=changes.wording,otherChanges=changes.media||changes.brief||changes.channels||changes.source;
  const message=newer?'You have newer unsaved wording. The stored draft does not include these edits.':
+  changes.source?'Your starting facts, format or writing treatment changed. Save privately to keep these changes; your account copy has not been confirmed.':
   changes.channels?'Your destination choices differ from this saved draft. Save privately to keep them; publishing still requires connected, approved channels.':
   otherChanges?'You have unsaved photo or brief changes. Save privately to include them.':
   exact&&receipt.status==='failed'?'The device save did not start. Your draft is still in memory; keep your changes and save privately again.':
