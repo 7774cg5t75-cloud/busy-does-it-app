@@ -1909,6 +1909,12 @@
       "args": [
         "scripts/check-mission15-phase46-newsletter-preview.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase46-newsletter-account",
+      "args": [
+        "scripts/check-mission15-phase46-newsletter-account.mjs"
+      ]
     }
   ]
 }

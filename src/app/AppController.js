@@ -17234,6 +17234,13 @@ function App() {
     return draftCustomerReply(customerId);
   };
 
+  const readPrivateContentAccount=()=>snapshotSessionRef.current.read({
+    getCurrent:()=>{
+      const current=snapshotContextRef.current;
+      const allowed=businessWorkspaceScopeRef.current===renderedBusinessWorkspaceScope&&current?.ownerId===ownerSession?.userId&&current?.businessId===cloudWorkspace?.businessId&&['owner','admin'].includes(replyActionSources.current.role);
+      return allowed?current:{...current,ready:false};
+    },ownerAccessToken,request:busyDataRequest,schemaVersion:CLOUD_SCHEMA_VERSION,
+  });
   const appState = {
     setOwnerEditDirty,
     releaseOwnerEdit:token=>ownerEditNavigation.current.release(token),
@@ -17704,6 +17711,7 @@ function App() {
     checkPrivateQuoteCopy,
     privateContentSave:privateContentSave?.scope===businessWorkspaceScopeRef.current?{record:privateContentSave.record,status:privateContentSave.status}:null,
     socialContentActions,
+    readPrivateContentAccount,
     selectedSocialDraftId,
     socialPublishingStatus,
     socialPublishingLoading,

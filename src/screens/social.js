@@ -1,5 +1,6 @@
 import {readNewsletterWording} from '../core/brandedContentDraftV3198.mjs';
 import {NewsletterPreview} from '../components/NewsletterPreview';
+import {NewsletterAccountReadback} from '../components/NewsletterAccountReadback';
 import {ContentFormatChoices} from '../components/ContentFormatChoices';
 import {ContentAccountReadback} from '../components/ContentAccountReadback';
 import {ContentWordingChoices} from '../components/ContentWordingChoices';
@@ -967,6 +968,7 @@ function SocialDraftReview({ s }) {
     </>:<Field label="Subject and newsletter wording" multiline value={s.socialDraftText} onChangeText={s.socialContentActions?.editText}/>}
 
     <NewsletterPreview s={s}/>
+    <NewsletterAccountReadback s={s}/>
     <Button label="Save newsletter draft privately" disabled={!s.socialDraftText.trim()} onPress={s.saveGeneratedSocialDraft}/>
     <Card title="Review before using outside Busy" body="Check the subject, facts, links and offer terms. Recipient eligibility has not been checked. Before sending elsewhere, you need an authorised sender, lawful marketing permission, an unsubscribe method and a review of any costs. An enquiry alone does not grant newsletter permission." footer="No email, campaign, graphic or recurring schedule has been created. Your selected photos and social destinations are kept, but are not attached or used by this text preparation."/>
     <Text selectable style={styles.cardBody}>{s.socialDraftText}</Text>
