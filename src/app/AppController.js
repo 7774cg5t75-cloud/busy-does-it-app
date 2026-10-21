@@ -12310,6 +12310,7 @@ function App() {
         if(result.blocked)response='Your current business permissions need review before opening private replies.';
         else if(result.found&&result.saved)response=result.opened?'Reopened the existing private reply record. Review its enquiry and persistence separately; nothing was sent.':'Keep your current wording or deliberately reopen the saved private reply. Nothing was sent.';
         else if(result.found)response=result.opened?'Continue your private enquiry reply. Current wording is kept; nothing was saved or sent.':'Your current source or wording needs review before continuing. Your words are kept.';
+        else if(result.needsSelection){go('customerRecords');response='Choose the correct saved private reply by customer. No reply was guessed or sent.';}
         else{openBusyInbox();response='Choose an existing filed enquiry in Busy Inbox. No saved or sent reply is inferred.';}
       }else if(allowed&&local.enquiryReplyPurpose){
         const result=enquiryReplyActions.prepareCurrent(local.enquiryReplyPurpose);
@@ -12330,7 +12331,7 @@ function App() {
         if(continuation)response=continuation.onAction()?'Continue your current unsaved content. Your words, photos and destination choices are kept; nothing was saved or published.':'Your content or current permissions changed. Keep your latest wording and review Content Creator.';
         else if(['owner','admin'].includes(replyActionSources.current.role))go(local.route);
         else response='Your current business permissions need review before opening private content.';
-      }else if(allowed&&local.chooseQuote){
+      }else if(allowed&&(local.chooseQuote||local.chooseReply)){
         if(['owner','admin'].includes(replyActionSources.current.role))go(local.route);
         else response='Your current business permissions need review before opening private quotes.';
       }else if(allowed&&(local.continueQuote||local.reviewQuoteFollowUp)){
@@ -12354,7 +12355,7 @@ function App() {
         const contentIntent=socialContentActions.route(cleanText);
         if(contentIntent.handled){
           const opened=contentIntent.opened;
-          return acceptGrowthOperator({handled:true,result:{title:"Content Creator",intent:"social_post",localNavigationOnly:true,transcript:cleanText,response:opened?contentIntent.reason:(contentIntent.blockedReason||"Sign in as this business owner to prepare content."),mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
+          return acceptGrowthOperator({handled:true,result:{title:contentIntent.savedAnnouncementSelection?"Get More Customers":"Content Creator",intent:"social_post",localNavigationOnly:true,transcript:cleanText,response:opened?contentIntent.reason:(contentIntent.blockedReason||"Sign in as this business owner to prepare content."),mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
         }
         const localNavigation=acceptLocalNavigation(cleanText);
         if(localNavigation)return localNavigation;
@@ -12456,7 +12457,7 @@ function App() {
       // project-only commands before its standard actions can run.
       if(result.transcript && !businessCreationConversationActive){
         const contentIntent=socialContentActions.route(result.transcript);
-        if(contentIntent.handled)return acceptGrowthOperator({handled:true,result:{title:"Content Creator",intent:"social_post",localNavigationOnly:true,transcript:result.transcript,response:contentIntent.opened?contentIntent.reason:(contentIntent.blockedReason||"Sign in as this business owner to prepare content."),mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
+        if(contentIntent.handled)return acceptGrowthOperator({handled:true,result:{title:contentIntent.savedAnnouncementSelection?"Get More Customers":"Content Creator",intent:"social_post",localNavigationOnly:true,transcript:result.transcript,response:contentIntent.opened?contentIntent.reason:(contentIntent.blockedReason||"Sign in as this business owner to prepare content."),mode:"answer",applied:false,needsClarification:false,requiresConfirmation:false,actionLabel:""}});
         if(growthOperatorRequestRef.current!==growthNonce)return null;
         const localNavigation=acceptLocalNavigation(result.transcript);
         if(localNavigation)return localNavigation;

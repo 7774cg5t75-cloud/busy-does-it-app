@@ -1825,6 +1825,12 @@
       "args": [
         "scripts/check-mission15-phase43-reply-management.mjs"
       ]
+    },
+    {
+      "id": "mission15-phase43-connected-routing",
+      "args": [
+        "scripts/check-mission15-phase43-connected-routing.mjs"
+      ]
     }
   ]
 }

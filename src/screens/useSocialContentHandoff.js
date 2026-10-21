@@ -1,4 +1,4 @@
-import {savedAnnouncementEligible,savedAnnouncementStamp} from '../core/savedAnnouncementSource.mjs';
+import {savedAnnouncementEligible,savedAnnouncementStamp,requestsSavedAnnouncement} from '../core/savedAnnouncementSource.mjs';
 import {contentDraftChanges} from '../core/contentDraftChanges.mjs';
 import React from 'react';
 import {publicBusinessContent,selectBusinessContent,prepareBusinessContentEnquiry} from '../core/businessContentRecords.mjs';
@@ -20,9 +20,9 @@ export function useSocialContentHandoff(input){
   epoch.current++;setContext({...live.current.sourceContext,pendingContentIdea:pending});
   input.go('socialCreator');return true;
  };
- const prepareSavedAnnouncement=(record,channel=record?.contentEvidence?.channel||'social',treatment=record?.contentEvidence?.treatment||'standard')=>{
+ const prepareSavedAnnouncement=(record,channel=record?.contentEvidence?.channel||'social',treatment=record?.contentEvidence?.treatment||'standard',platform='',requiresTreatmentSelection=false)=>{
   if(!valid()||epoch.current!==renderEpoch||!savedAnnouncementEligible(record,live.current.businessId,live.current.records))return false;
-  return prepare('','','','owner-announcement',record.text,treatment,false,channel,{record,stamp:savedAnnouncementStamp(record),scope,ownerId:live.current.ownerId,businessId:live.current.businessId});
+  return prepare('',platform,'','owner-announcement',record.text,treatment,requiresTreatmentSelection,channel,{record,stamp:savedAnnouncementStamp(record),scope,ownerId:live.current.ownerId,businessId:live.current.businessId});
  };
  const keep=expected=>{if(!valid()||expected?.scope!==scope||live.current.sourceContext?.pendingContentIdea!==expected)return false;epoch.current++;const {pendingContentIdea,...rest}=live.current.sourceContext;setContext(rest);return true;};
  const failPending=(expected,reason)=>{
@@ -213,6 +213,14 @@ export function useSocialContentHandoff(input){
  const route=text=>{
   if(!current())return {handled:false};
   const result=resolveSocialServiceIntent(text,context());
+  if(requestsSavedAnnouncement(text)){
+   if(!valid())return {handled:true,opened:false,blockedReason:'Open the current authorised business before choosing a saved announcement.'};
+   const channel=/\b(?:social post|social wording|facebook|instagram)\b/i.test(text)?'social':/\b(?:poster|advert|advertisement)\b/i.test(text)?result.channel||'social':null,treatment=result.treatment&&result.treatment!=='standard'?result.treatment:null;
+   epoch.current++;setContext({...live.current.sourceContext,savedAnnouncementRequest:{scope,ownerId:live.current.ownerId,businessId:live.current.businessId,channel,treatment,platform:result.platform||'',requiresTreatmentSelection:!!result.needsTreatmentSelection}});input.go('growthCommandCentre');
+   const available=live.current.records?.some(row=>savedAnnouncementEligible(row,live.current.businessId,live.current.records));
+   return {handled:true,opened:true,savedAnnouncementSelection:true,reason:available?'Choose the exact saved announcement in Get More Customers. Your current draft and photos stay until separate Creator review; nothing is published.':'No eligible saved owner announcement is available. Review approved business ideas in Get More Customers, or save an announcement in Creator before reusing it.'};
+  }
+
   if(result.handled&&result.unsupportedFormat)return {...result,opened:false,blockedReason:result.reason};
   if(result.handled&&['product','event'].includes(result.purpose)){void loadRecords(result.purpose,result.platform,'',null,result.treatment,result.needsTreatmentSelection,result.channel||'social');return {...result,opened:valid()};}
   return result.handled?{...result,opened:prepare(result.serviceName,result.platform,'',result.purpose,result.ownerFacts,result.treatment,result.needsTreatmentSelection,result.channel||'social')}:result;
