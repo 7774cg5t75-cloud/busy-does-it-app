@@ -1,3 +1,4 @@
+import {SavedEnquiryReplyButton} from '../components/SavedEnquiryReplyButton';
 import {QuoteFollowUpRecordReview} from '../components/QuoteFollowUpRecordReview';
 import {QuoteEnquiryContext} from '../components/QuoteEnquiryContext';
 import React, { useEffect, useState } from "react";
@@ -415,6 +416,7 @@ function CustomerDetail({ s }) {
       subtitle="Contact details, live work and history in one place."
       brandCue="One customer. One clear history."
     >
+      <SavedEnquiryReplyButton s={s} customer={customer}/>
       {s.customerEnquiryOriginItem?<QuoteEnquiryContext s={s} customerId={customer.id} item={s.customerEnquiryOriginItem}/>:null}
       <Card
         eyebrow={customer.lastServiceDate ? "Customer" : "New enquiry"}
